@@ -46,7 +46,7 @@ test('E2E la pestaña «Pagos» registra, confirma y anula el pago del cliente; 
   await expect(page).toHaveURL(/\/repuestos\/[0-9a-f-]{36}$/)
   const proyecto = new URL(page.url()).pathname.split('/').pop() ?? ''
 
-  await page.getByRole('button', { name: 'Pagos', exact: true }).click()
+  await page.getByRole('tab', { name: 'Pagos', exact: true }).click()
   await expect(page).toHaveURL(/[?&]pestana=pagos/)
   await expect(page.getByText('Este proyecto no tiene pagos registrados.')).toBeVisible()
 

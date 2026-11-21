@@ -42,6 +42,8 @@ export type PropsDeLaHoja = {
   ordenDeLasFases: ReadonlyMap<string, number> | null
   // Lo que otra área pone en cada fila y su panel (8.10-2); lo llena `src/app`.
   hueco?: HuecoDeLaHoja
+  // Otra pestaña del proyecto está abierta: la hoja sigue montada (sus filas vivas alimentan la barra de progreso y volver no la relee) pero no se ve.
+  oculta?: boolean
 }
 
 // Las filas vivas agrupadas por paso: se recalcula sólo si cambian las filas, el orden o el tope (O(n) sobre ≤ 200).
@@ -114,17 +116,16 @@ export function HojaDeItems(props: PropsDeLaHoja) {
     <FilaNueva alAgregar={hoja.agregar} />
   ) : null
   const hayFilas = hoja.filas.length > 0
-  const api: ApiDelHueco = {
-    filas: hoja.filas,
-    puedeEditar: props.puedeEditar,
-    cerrado: props.cerrado,
-    cambiarFila: hoja.cambiarFila,
-  }
+  const api = apiDelHueco(hoja, props)
 
   return (
     <>
       {arribaDelHueco(props.hueco, api)}
-      <section aria-label="Ítems del proyecto" className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <section
+        aria-label="Ítems del proyecto"
+        hidden={props.oculta === true}
+        className="grid grid-cols-[minmax(0,1fr)] gap-3"
+      >
         <SimbolosDeXCell />
         {props.cerrado ? <AvisoDeCerrado /> : null}
         {hoja.conflicto ? (
@@ -161,6 +162,15 @@ export function HojaDeItems(props: PropsDeLaHoja) {
   )
 }
 
+const apiDelHueco = (
+  hoja: Pick<ReturnType<typeof useHojaDeItems>, 'filas' | 'cambiarFila'>,
+  props: Pick<PropsDeLaHoja, 'puedeEditar' | 'cerrado'>,
+): ApiDelHueco => ({
+  filas: hoja.filas,
+  puedeEditar: props.puedeEditar,
+  cerrado: props.cerrado,
+  cambiarFila: hoja.cambiarFila,
+})
 const accionDelHueco = (hueco: HuecoDeLaHoja | undefined) => hueco?.accionDeFila
 const pasoDelHueco = (hueco: HuecoDeLaHoja | undefined) => hueco?.pasoDeFila
 const arribaDelHueco = (hueco: HuecoDeLaHoja | undefined, api: ApiDelHueco) =>

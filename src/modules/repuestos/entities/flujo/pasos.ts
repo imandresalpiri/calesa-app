@@ -2,7 +2,6 @@ import type { FilaDeItem } from '../nucleo/item'
 import {
   ORDEN_DE_LOS_HITOS,
   PANEL_DEL_HITO,
-  PANELES_DEL_PASO,
   type FaseDeLosPasos,
   type FlujoDeLosPasos,
   type HitoDelPaso,
@@ -197,13 +196,4 @@ export function armarPasos(
     })
   }
   return pasos
-}
-
-/** Los paneles que el flujo no ubica en un paso: van en «Del proyecto». Compras siempre; los de un hito, si ninguna fase lo pide. Sin flujo legible, todos. */
-export function panelesFueraDeLosPasos(indice: IndiceDelFlujo | null): PanelDelPaso[] {
-  if (indice === null) return [...PANELES_DEL_PASO]
-  const ubicados = new Set(
-    ORDEN_DE_LOS_HITOS.filter((h) => indice.faseDelHito.has(h)).map((h) => PANEL_DEL_HITO[h]),
-  )
-  return PANELES_DEL_PASO.filter((panel) => !ubicados.has(panel))
 }
