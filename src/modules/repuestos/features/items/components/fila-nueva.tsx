@@ -1,6 +1,7 @@
 'use client'
 
 import { useId, useState } from 'react'
+import { useCambiosSinGuardar } from '@/shared/ui/cambios-del-panel'
 import { MENSAJE_DE_DESCRIPCION } from '../../../entities/items/celda'
 
 type Props = {
@@ -19,6 +20,14 @@ export function FilaNueva({ alAgregar }: Props) {
   const [texto, setTexto] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [enCurso, setEnCurso] = useState(false)
+  // Lo escrito y aún sin agregar se pierde al cerrar el drawer de «Agregar ítems»: cerrar pregunta (fuera de un drawer no hace nada).
+  useCambiosSinGuardar(
+    texto.trim() !== '',
+    () => {
+      setTexto('')
+    },
+    { preguntaAlCerrar: true },
+  )
 
   async function agregar() {
     if (enCurso) {

@@ -36,6 +36,16 @@ export const REGISTRO: Record<string, RegistroDeDrawer> = {
   'src/modules/repuestos/features/items/components/drawer-de-imagenes.tsx': {
     sinFormulario: 'sube y quita imágenes al instante: no guarda nada tipeado',
   },
+  // El panel del ítem de `/repuestos/[id]` (`?item=<id>`): la fila del ítem editable.
+  'src/modules/repuestos/features/items/components/panel-del-item-en-la-hoja.tsx': {
+    sinFormulario:
+      'cada celda guarda al pulsar Enter o al salir de ella (Esc la devuelve): no hay borrador que se pierda al cerrar',
+  },
+  // «Agregar ítems» de `/repuestos/[id]` (`?panel=nuevo-item`): la fila nueva dice que tiene algo escrito con `useCambiosSinGuardar` (`preguntaAlCerrar`).
+  'src/modules/repuestos/features/items/components/drawer-de-items-nuevos.tsx': {
+    formulario: 'src/modules/repuestos/features/items/components/fila-nueva.tsx',
+    mecanismo: 'contexto',
+  },
   // El stock de un ítem de repuestos (8.10-2): `?panel=stock&item=<id>`. El formulario «Pasar a stock» dice que tiene algo escrito con `useCambiosSinGuardar`.
   'src/modules/repuestos/features/stock/components/drawer-de-stock.tsx': {
     formulario: 'src/modules/repuestos/features/stock/components/formulario-pasar-a-stock.tsx',

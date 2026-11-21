@@ -132,7 +132,7 @@ test('sin `repuestos.cotizar`: no hay botón «Cotizaciones» y la hoja dice que
   // La URL abre la pestaña Ítems (vacía): tiene que verse, no sólo faltar lo de cotizaciones.
   await expect(page.getByRole('heading', { level: 1, name: /^Proyecto #\d+$/ })).toBeVisible()
   await expect(page.getByText('Este proyecto todavía no tiene ítems.')).toBeVisible()
-  await expect(page.getByLabel('Nuevo ítem: descripción')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Agregar ítem', exact: true })).toHaveCount(0)
   await expect(page.getByRole('tab', { name: 'Cotizaciones', exact: true })).toHaveCount(0)
   await expect(page.getByRole('list', { name: 'Cotizaciones del proyecto' })).toHaveCount(0)
   await page.goto(rutaDeLaPrimera)

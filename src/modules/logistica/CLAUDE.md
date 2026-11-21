@@ -75,7 +75,7 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   **El panel de un ítem va con sus secciones a la vista** (`PanelDeLaUnidadALaVista`, por `pantallas/unidad-item.ts`; el de `/logistica/gastos?vehiculo=` sigue
   plegable): «Qué falta» primero, los `bloques` que compone `src/app` (imágenes, stock y compras de `repuestos`) y el resto en `ORDEN_DEL_ITEM`
   (`enElOrdenDelItem`). Cada sección es un `SeccionDelHuecoALaVista` (`h3` con `tabIndex={-1}`, `data-bloque-del-hueco`, montada con el panel) en su
-  `LimiteDelHueco`; el atajo de una falta la trae a la vista y enfoca su `h3`. `destinoInicial` (`?destino=` de `repuestos`) llega a «Qué falta» por el contexto
+  `LimiteDelHueco`; el atajo de una falta la trae a la vista y enfoca su `h3`. `conCabecera={false}` omite `CabeceraDeLaUnidad` cuando el título ya dice qué ítem es (el drawer de un ítem de `/repuestos/[id]`; queda la línea de `aviso`). `destinoInicial` (`?destino=` de `repuestos`) llega a «Qué falta» por el contexto
   `ProveedorDelDestinoInicial` / `useDestinoInicialDelMover()` (`features/nucleo/destino-inicial.tsx`, nulo sin proveedor): `CuerpoDeQueFalta` lo abre con
   `conAbiertoPorDefecto` sólo si está entre los destinos leídos y fuera de «La ganamos». Tras un `PT409`, el aviso de un ítem sólo ofrece «Recargar»
   (la página de la unidad es de un vehículo).

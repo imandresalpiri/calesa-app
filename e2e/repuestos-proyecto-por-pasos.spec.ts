@@ -11,6 +11,7 @@ import {
   darRolDePrueba,
 } from './soporte/base'
 import { capturar } from './soporte/recorrido'
+import { abrirItem, agregarItems, tarjetaDe } from './soporte/repuestos-tarjetas'
 import { literal, sql } from './soporte/sql'
 
 // El proyecto de repuestos guiado por pasos (`docs/UX.md` › `/repuestos/[id]`): arriba, los pasos que salen del flujo de repuestos con su progreso en texto (y los
@@ -51,7 +52,7 @@ function limpiar() {
 
 const paso = (page: Page, clave: string) => page.locator(`[data-paso="${clave}"]`)
 const fila = (page: Page, nombre: string) =>
-  page.locator(`[data-fila-de-item="${ids[nombre] ?? ''}"]`).filter({ visible: true })
+  page.locator(`[data-tarjeta-de-item="${ids[nombre] ?? ''}"]`).filter({ visible: true })
 
 test.beforeAll(async ({}, info) => {
   const nombre = info.project.name
@@ -109,11 +110,8 @@ test('los pasos salen del flujo con su progreso; un hito lleva a su pestaña y C
   proyecto = new URL(page.url()).pathname.split('/').pop() ?? ''
   // Sin ítems: los pasos sólo con su nombre.
   await expect(page.getByText('Agrega ítems para ver cuántos van en cada paso.')).toBeVisible()
+  await agregarItems(page, [A, B, C])
   for (const nombre of [A, B, C]) {
-    const nueva = page.getByLabel('Nuevo ítem: descripción')
-    await nueva.fill(nombre)
-    await nueva.press('Enter')
-    await expect(page.getByLabel(`Descripción del ítem ${nombre}`)).toBeVisible()
     ids[nombre] = sql(
       `select id from repuestos_items where proyecto_id = '${proyecto}' and descripcion = ${literal(nombre)}`,
     ).trim()
@@ -169,7 +167,7 @@ test('un ítem avanza con su siguiente: el panel abre con el destino ya elegido'
   await fila(page, B)
     .getByRole('button', { name: `Comprar · ${B}` })
     .click()
-  const panel = page.getByRole('dialog', { name: 'Repuesto' })
+  const panel = page.getByRole('dialog', { name: B, exact: true })
   await expect(page).toHaveURL(new RegExp(`destino=${fases['Comprado'] ?? ''}`))
   await expect(panel.locator('[data-bloque-del-hueco]').first()).toHaveAttribute(
     'data-bloque-del-hueco',
@@ -190,8 +188,7 @@ test('una salida con nota obligatoria: el ítem queda «Perdido», sin botón, y
 }) => {
   await entrar(page, duena, { fresco: true })
   await page.goto(`/repuestos/${proyecto}`)
-  await page.getByRole('button', { name: `Abrir el panel del ítem ${C}` }).click()
-  const panel = page.getByRole('dialog', { name: 'Repuesto' })
+  const panel = await abrirItem(page, C)
   await panel.getByRole('button', { name: 'Elegir el destino «Perdido»' }).click()
   await panel.getByLabel('Nota interna (obligatoria)').fill('Se rompió en el depósito.')
   await panel.getByRole('button', { name: ACCION_PERDIDO, exact: true }).click()
@@ -203,7 +200,7 @@ test('una salida con nota obligatoria: el ítem queda «Perdido», sin botón, y
     page
       .locator(`[data-grupo-de-paso="${fases['Perdido'] ?? ''}"]`)
       .filter({ visible: true })
-      .locator(`[data-fila-de-item="${ids[C] ?? ''}"]`),
+      .locator(`[data-tarjeta-de-item="${ids[C] ?? ''}"]`),
   ).toBeVisible()
   await expect(fila(page, C).locator('[data-siguiente-item]')).toHaveCount(0)
   await expect(paso(page, fases['Perdido'] ?? '')).toContainText('1 de 3')
@@ -269,7 +266,7 @@ test('las pestañas no se mueven al cambiar de una a otra y la hoja vuelve como 
   await page.getByRole('tab', { name: 'Ítems', exact: true }).click()
   await expect(page).not.toHaveURL(/pestana=/)
   await expect(hoja).toBeVisible()
-  await expect(page.getByLabel(`Descripción del ítem ${A}`)).toBeVisible()
+  await expect(tarjetaDe(page, A)).toBeVisible()
   expect(await pestanas.boundingBox()).toEqual(antes)
   // Un enlace con `?pestana=items` abre lo mismo que sin ella.
   await page.goto(`/repuestos/${proyecto}?pestana=items`)
@@ -279,7 +276,7 @@ test('las pestañas no se mueven al cambiar de una a otra y la hoja vuelve como 
 test('el panel del ítem va sin acordeones, con «Qué falta» primero', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
   await page.goto(`/repuestos/${proyecto}?item=${ids[A] ?? ''}`)
-  const panel = page.getByRole('dialog', { name: 'Repuesto' })
+  const panel = page.getByRole('dialog', { name: A, exact: true })
   await expect(panel.getByRole('heading', { name: A })).toBeVisible()
   await expect(panel.locator('details')).toHaveCount(0)
   const orden = await panel
@@ -301,7 +298,7 @@ test('el panel del ítem va sin acordeones, con «Qué falta» primero', async (
 test('sin `repuestos.costos.ver` no aparece nada de costos', async ({ page }) => {
   await entrar(page, sinCostos, { fresco: true })
   await page.goto(`/repuestos/${proyecto}?pestana=compras`)
-  await expect(page.getByLabel(`Descripción del ítem ${A}`)).toBeVisible()
+  await expect(tarjetaDe(page, A)).toBeVisible()
   await expect(page.getByRole('tab', { name: 'Pagos', exact: true })).toHaveCount(0)
   await expect(page.getByRole('tab', { name: 'Compras', exact: true })).toHaveCount(0)
   await expect(page.getByRole('region', { name: 'Margen del proyecto' })).toHaveCount(0)
@@ -310,7 +307,7 @@ test('sin `repuestos.costos.ver` no aparece nada de costos', async ({ page }) =>
   await expect(paso(page, 'pago')).not.toContainText('Registrado')
   await expect(paso(page, 'pago')).not.toContainText('Sin registrar')
   await page.goto(`/repuestos/${proyecto}?item=${ids[A] ?? ''}`)
-  const panel = page.getByRole('dialog', { name: 'Repuesto' })
+  const panel = page.getByRole('dialog', { name: A, exact: true })
   await expect(panel.locator('[data-bloque-del-hueco="stock"]')).toBeVisible()
   await expect(panel.locator('[data-bloque-del-hueco="compras"]')).toHaveCount(0)
 })

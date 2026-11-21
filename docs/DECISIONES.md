@@ -1200,11 +1200,21 @@ las trampas, en `docs/LECCIONES.md`.
 - **El panel del ítem es una variante de logística** (`PanelDeLaUnidadALaVista`), no un cambio de la pieza común: el drawer de `/logistica/gastos?vehiculo=` sigue
   plegable. El destino ya elegido viaja en `?destino=` y llega a «Qué falta» por un contexto nulo por defecto; los bloques de `repuestos` (imágenes, stock, compras)
   los compone `src/app`. El stock del bloque sólo enlaza a su panel de la hoja: el formulario cambia la fila sin releerla.
-- **La hoja de ítems se agrupa por paso en el navegador sobre lo leído** (`agruparPorPaso`, ≤ 200 filas, sin otra lectura) y la fila no repite la fase: la dice
-  el encabezado de su grupo, y la columna «Siguiente» sólo lleva el botón (sin flujo legible, la fase de cada ítem, para no perderla). Una fase que no está en el
-  orden del flujo va tras las conocidas, por nombre. Descartados: una tabla por paso (las columnas se desalinean y los encabezados se repiten) y pestañas por paso
-  (esconden ítems). La primera columna dice qué es el ítem («Tipo · Condición» y la descripción); cantidad, precio y el siguiente van antes que los demás datos.
-- **La ayuda de cada columna de la hoja va en un `title`** con subrayado punteado: un «?» con `Popover` arrastra Base UI a la carga en frío por diez encabezados
+- **Los ítems de un proyecto son tarjetas agrupadas por paso, y su fila de Excel vive en un drawer de abajo.** Se agrupan en el navegador sobre lo leído (`agruparPorPaso`, ≤ 200 filas, sin otra
+  lectura) y la tarjeta no repite la fase: la dice el encabezado de su grupo, y «Siguiente» sólo lleva el botón (sin flujo legible, la insignia de su fase). Una fase que no está en el orden del flujo va tras las
+  conocidas, por nombre. La tarjeta dice qué es el ítem («Tipo · Condición» o la descripción), cantidad, precio y stock; el clic abre `?item=` con **la fila del ítem como hoja de cálculo** (Ítem, Cantidad,
+  Precio, País, Vía, Moneda, Tracking, Notas) sobre las secciones del ítem. Descartados: mantener la tabla además de las tarjetas (dos vistas que mantener y la tabla no cabe en el celular), un drawer a la derecha (en
+  el celular la fila de ocho celdas necesita el ancho; abajo se desplaza de costado como una hoja), apilar las celdas de la fila en el celular (deja de ser una fila) y un panel de filtros (los filtros son pocos
+  y se ven: fichas de una sola opción). El drawer mide el 60 % del alto en escritorio con un asa que lo agranda o lo achica mientras está abierto (`<Drawer alto="ajustable">`, recordado sólo mientras está
+  montado) y la pantalla completa en el celular. El ítem se abre sin la cabecera «Proyecto #N» ni su enlace: su título es el ítem (`conCabecera={false}`).
+- **Buscar y filtrar los ítems va en la URL con `shallow: true` y `replace`** (excepción a `ui.md`): se aplican en el navegador sobre las ≤ 200 filas ya leídas, así que un viaje al servidor por cada letra no
+  aporta nada y no suma entradas al «atrás». Con otra navegación pendiente, una escritura `shallow` se pisa (la última letra puede no llegar a la URL): se acepta, el filtro es barato de repetir. Con filtros, «N de M ítems»
+  (M con `conteoCorto`: «3 de 200+ ítems»); nunca un total exacto.
+- **«Agregar ítem» tiene su propia URL (`?panel=nuevo-item`) y un drawer con una fila nueva**; crea sólo con la descripción (Enter) y deja otra fila lista, para cargar varios ítems seguidos. El ítem creado
+  queda arriba y se edita celda a celda; no hay fila nueva dentro de la lista.
+- **Reglas menores de los ítems en tarjetas:** cada ficha de filtro es de una sola opción (no multiselección) y «Sin precio» es un interruptor aparte; Stock y «Mover a…» van en el «⋯» de la tarjeta
+  y «Mover a…» abre el drawer del ítem para elegir el destino; «Eliminar el ítem» pide `repuestos.editar`; el alto del drawer, mientras el panel sigue montado, se conserva entre aperturas.
+- **La ayuda de cada columna de la fila del ítem va en un `title`** con subrayado punteado: un «?» con `Popover` arrastra Base UI a la carga en frío por diez encabezados
   y el `popover` nativo no se posiciona junto al encabezado en Safari sin anchor positioning. No llega al tacto en una tablet de 768 px o más: el título visible
   ya dice qué es.
 - **El vehículo de la cabecera de un proyecto se lee en su propio `<Suspense>`** (la lectura empieza en la página, en paralelo con la hoja): su error se dice en

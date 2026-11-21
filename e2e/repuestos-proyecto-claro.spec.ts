@@ -4,6 +4,7 @@ import { CONTRASENA, entrar } from './soporte/alta'
 import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
 import { borrarFotosDe } from './soporte/fotos'
 import { capturar } from './soporte/recorrido'
+import { abrirItem } from './soporte/repuestos-tarjetas'
 import { literal, sql } from './soporte/sql'
 import { sembrarFotos } from './soporte/vehiculos-lista'
 
@@ -59,7 +60,7 @@ const grupo = (page: Page, clave: string) =>
 const encabezado = (page: Page, clave: string) =>
   grupo(page, clave).locator('th[scope="rowgroup"], h2')
 const fila = (page: Page, nombre: string) =>
-  page.locator(`[data-fila-de-item="${ids[nombre] ?? ''}"]`).filter({ visible: true })
+  page.locator(`[data-tarjeta-de-item="${ids[nombre] ?? ''}"]`).filter({ visible: true })
 
 test.beforeAll(async ({}, info) => {
   const nombre = info.project.name
@@ -166,14 +167,18 @@ test('los ítems salen agrupados por paso, en el orden del flujo, con su conteo 
   await expect(encabezado(page, posterior.id)).toHaveText(`${posterior.nombre} · 1`)
   await expect(encabezado(page, 'sin_fase')).toHaveText('Sin fase · 1')
   await expect(
-    grupo(page, primera.id).locator(`[data-fila-de-item="${ids[A] ?? ''}"]`),
+    grupo(page, primera.id).locator(`[data-tarjeta-de-item="${ids[A] ?? ''}"]`),
   ).toBeVisible()
   await expect(
-    grupo(page, 'sin_fase').locator(`[data-fila-de-item="${ids[D] ?? ''}"]`),
+    grupo(page, 'sin_fase').locator(`[data-tarjeta-de-item="${ids[D] ?? ''}"]`),
   ).toBeVisible()
-  // Editable: la primera columna lleva el tipo y la condición del ítem.
-  await expect(fila(page, A).getByLabel(`Tipo de pieza del ítem ${A}`)).toHaveValue(tipo.id)
-  await expect(fila(page, A).getByLabel(`Condición del ítem ${A}`)).toHaveValue(condicion.id)
+  // La tarjeta dice «Tipo · Condición» y la descripción; el tipo y la condición se editan en la fila del ítem, en su drawer.
+  await expect(fila(page, A)).toContainText(`${tipo.nombre} · ${condicion.nombre}`)
+  const drawer = await abrirItem(page, A, `${tipo.nombre} · ${condicion.nombre}`)
+  await expect(drawer.getByLabel(`Tipo de pieza del ítem ${A}`)).toHaveValue(tipo.id)
+  await expect(drawer.getByLabel(`Condición del ítem ${A}`)).toHaveValue(condicion.id)
+  await page.keyboard.press('Escape')
+  await expect(drawer).toBeHidden()
   await capturar(page, info, 'hoja-por-paso')
 })
 
@@ -185,18 +190,20 @@ test('el siguiente de un ítem lo mueve de grupo y los conteos quedan al día', 
   const accion = nombre.split(' · ')[0] ?? ''
   expect(nombre).toBe(`${accion} · ${B}`)
   await boton.click()
-  const panel = page.getByRole('dialog', { name: 'Repuesto' })
+  const panel = page.getByRole('dialog', { name: B, exact: true })
   await expect(page).toHaveURL(/[?&]destino=[0-9a-f-]{36}/)
   const destino = new URL(page.url()).searchParams.get('destino') ?? ''
   await panel.getByRole('button', { name: accion, exact: true }).click()
   await expect(page.getByText(new RegExp(`^${B} pasó a «`))).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(panel).toBeHidden()
-  await expect(grupo(page, destino).locator(`[data-fila-de-item="${ids[B] ?? ''}"]`)).toBeVisible()
+  await expect(
+    grupo(page, destino).locator(`[data-tarjeta-de-item="${ids[B] ?? ''}"]`),
+  ).toBeVisible()
   await expect(encabezado(page, primera.id)).toHaveText(`${primera.nombre} · 1`)
 })
 
-test('con el proyecto cerrado, la primera columna dice «Tipo · Condición» y la descripción', async ({
+test('con el proyecto cerrado, la tarjeta y la fila del ítem dicen «Tipo · Condición» y la descripción, sin celdas', async ({
   page,
 }) => {
   sql(`update repuestos_proyectos set cerrado_en = now() where id = '${proyecto}'`)
@@ -205,7 +212,11 @@ test('con el proyecto cerrado, la primera columna dice «Tipo · Condición» y 
     await page.goto(`/repuestos/${proyecto}`)
     await expect(fila(page, A)).toContainText(`${tipo.nombre} · ${condicion.nombre}`)
     await expect(fila(page, A)).toContainText(A)
-    await expect(fila(page, A).getByLabel(`Tipo de pieza del ítem ${A}`)).toHaveCount(0)
+    const drawer = await abrirItem(page, A, `${tipo.nombre} · ${condicion.nombre}`)
+    await expect(drawer.getByLabel(`Tipo de pieza del ítem ${A}`)).toHaveCount(0)
+    await expect(drawer.locator('[data-fila-de-item]')).toContainText(
+      `${tipo.nombre} · ${condicion.nombre}`,
+    )
   } finally {
     sql(`update repuestos_proyectos set cerrado_en = null where id = '${proyecto}'`)
   }

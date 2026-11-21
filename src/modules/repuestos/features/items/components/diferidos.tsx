@@ -27,3 +27,13 @@ export const ImagenesDelItemDiferido = diferido(
     ),
   },
 )
+
+// El panel del ítem de `/repuestos/[id]` (`?item=`): la fila como Excel y sus secciones, en un drawer de abajo. Se pide al abrirse (`useAbiertoAlgunaVez()`).
+export const PanelDelItemEnLaHojaDiferido = diferido(() =>
+  import('./panel-del-item-en-la-hoja').then((modulo) => modulo.PanelDelItemEnLaHoja),
+)
+
+// «Agregar ítems» (`?panel=nuevo-item`): el drawer con la fila nueva. Se pide al abrirse (`useAbiertoAlgunaVez()`).
+export const DrawerDeItemsNuevosDiferido = diferido(() =>
+  import('./drawer-de-items-nuevos').then((modulo) => modulo.DrawerDeItemsNuevos),
+)

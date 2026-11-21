@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useCallback, useTransition, type ComponentProps, type ReactNode } from 'react'
 import { useAlCambiarElDineroDelProyecto } from '@/modules/logistica/pantallas/dinero-proyecto'
-import { BotonDelPanelDelItem, useItemPorUrl } from '@/modules/repuestos/pantallas/flujo'
+import { useItemPorUrl } from '@/modules/repuestos/pantallas/flujo'
 import {
   PasoDelItem,
   PasosDelProyecto,
@@ -14,8 +14,9 @@ import {
   type PanelDelPaso as Panel,
 } from '@/modules/repuestos/pantallas/flujo-pasos'
 import { HojaDeItems, type HuecoDeLaHoja } from '@/modules/repuestos/pantallas/items'
-import { BotonDeStock, PanelDeStock, useStockPorUrl } from '@/modules/repuestos/pantallas/stock'
+import { PanelDeStock, useStockPorUrl } from '@/modules/repuestos/pantallas/stock'
 import { EsqueletoListado } from '@/shared/ui/esqueletos'
+import type { AccionDeMenu } from '@/shared/ui/lista'
 import { BarraDePestanas } from './barra-de-pestanas'
 import { PanelDelPaso } from './panel-del-paso'
 import { usePanelDelPaso } from './use-panel-del-paso'
@@ -32,6 +33,8 @@ type Props = Omit<ComponentProps<typeof HojaDeItems>, 'hueco' | 'ordenDeLasFases
   numero: number
   // Lo calcula el servidor con `puede()`; la base vuelve a exigirlo.
   puede: { mover: boolean; cotizar: boolean; registrarPago: boolean; configurar: boolean }
+  // Las secciones del panel del ítem de `?item=` que dibujó el servidor y de qué ítem son (nulo sin `?item=`).
+  seccionesDelItem: { id: string; contenido: ReactNode } | null
 }
 
 type PropsDeArriba = Pick<Props, 'lectura' | 'pago' | 'disponibles' | 'titulos' | 'hayMas'> & {
@@ -101,8 +104,56 @@ function ArribaDeLaHoja({
   )
 }
 
+// Lo que dibuja la pestaña abierta: lo del servidor si es la misma que dice la URL y, mientras llega, su esqueleto.
+function contenidoDeLaPestana(abierto: Panel | null, delServidor: Props['panelDelServidor']) {
+  return abierto !== null && delServidor?.panel === abierto ? (
+    delServidor.contenido
+  ) : (
+    <EsqueletoDeLaPestana />
+  )
+}
+
+type EntradaDeLasAcciones = {
+  abrirStock: (id: string) => void
+  abrirItem: (id: string) => void
+  puedeMover: boolean
+  cerrado: boolean
+}
+
+// Lo que este hueco suma al «⋯» de la tarjeta: Stock (de todos) y «Mover a…» (abre el panel del ítem, donde está «Qué falta»; sólo con `repuestos.mover`, el proyecto abierto y un ítem que no está en una fase final).
+function useAccionesDeFila({ abrirStock, abrirItem, puedeMover, cerrado }: EntradaDeLasAcciones) {
+  return useCallback<HuecoDeLaHoja['accionesDeFila']>(
+    (fila) => {
+      const acciones: AccionDeMenu[] = [
+        {
+          tipo: 'accion',
+          clave: 'stock',
+          etiqueta: 'Stock',
+          despuesDeCerrar: true,
+          alElegir: () => {
+            abrirStock(fila.id)
+          },
+        },
+      ]
+      if (puedeMover && !cerrado && fila.fase !== null && !fila.fase.esFinal) {
+        acciones.push({
+          tipo: 'accion',
+          clave: 'mover',
+          etiqueta: 'Mover a…',
+          despuesDeCerrar: true,
+          alElegir: () => {
+            abrirItem(fila.id)
+          },
+        })
+      }
+      return acciones
+    },
+    [abrirStock, abrirItem, puedeMover, cerrado],
+  )
+}
+
 // La hoja del proyecto con todo lo que otras áreas ponen en su hueco (un área no importa otra, y una función no cruza de un Server Component a uno de cliente): arriba,
-// la barra de progreso, las pestañas y el contenido de la abierta (la hoja sigue montada pero oculta mientras se ve otra pestaña); el orden de las fases, para agrupar la hoja por paso; en cada fila, el botón de su siguiente, «Stock» y «Abrir panel»; y el panel del stock. Cuando cambia el dinero del
+// la barra de progreso, las pestañas y el contenido de la abierta (la hoja sigue montada pero oculta mientras se ve otra pestaña); el orden de las fases, para agrupar la hoja por paso; en cada tarjeta, el botón de su siguiente y, en su «⋯», Stock y «Mover a…»; el panel del ítem (`?item=`) con las secciones que dibuja el servidor; y el panel del stock. Cuando cambia el dinero del
 // proyecto (un pago), vuelve a pedir la página para que los pasos y los botones digan si ya hay pago; mientras tanto, los botones del siguiente se apagan.
 export function HojaDelProyecto({
   lectura,
@@ -112,6 +163,7 @@ export function HojaDelProyecto({
   titulos,
   numero,
   puede,
+  seccionesDelItem,
   ...hoja
 }: Props) {
   const router = useRouter()
@@ -124,35 +176,34 @@ export function HojaDelProyecto({
   const indice = useIndiceDelFlujo(lectura)
   const stock = useStockPorUrl()
   const { abrir: abrirStock } = stock
-  const { abrir: abrirItem } = useItemPorUrl()
+  const item = useItemPorUrl()
+  const { abrir: abrirItem, cerrar: cerrarItem } = item
   const paso = usePanelDelPaso(disponibles)
-  const accionDeFila = useCallback<HuecoDeLaHoja['accionDeFila']>(
-    (fila) => (
-      <>
-        <BotonDeStock fila={fila} alAbrir={abrirStock} />
-        <BotonDelPanelDelItem fila={fila} alAbrir={abrirItem} />
-      </>
-    ),
-    [abrirStock, abrirItem],
-  )
+  const accionesDeFila = useAccionesDeFila({
+    abrirStock,
+    abrirItem,
+    puedeMover: puede.mover,
+    cerrado: hoja.cerrado,
+  })
   const contexto = { pago, cerrado: hoja.cerrado, puede }
   const alHito = (_: string, hito: HitoDelSiguiente) => {
     if (hito === 'pago') paso.registrarPago()
     else paso.abrirCotizaciones()
   }
-  const contenido =
-    paso.abierto !== null && panelDelServidor?.panel === paso.abierto ? (
-      panelDelServidor.contenido
-    ) : (
-      <EsqueletoDeLaPestana />
-    )
+  const contenido = contenidoDeLaPestana(paso.abierto, panelDelServidor)
   return (
     <HojaDeItems
       {...hoja}
       ordenDeLasFases={indice?.lugar ?? null}
       oculta={paso.abierto !== null}
       hueco={{
-        accionDeFila,
+        item: {
+          abierto: item.id,
+          abrir: abrirItem,
+          cerrar: cerrarItem,
+          secciones: seccionesDelItem,
+        },
+        accionesDeFila,
         panel: (api) => <PanelDeStock url={stock} api={api} />,
         arriba: (api) => (
           <ArribaDeLaHoja

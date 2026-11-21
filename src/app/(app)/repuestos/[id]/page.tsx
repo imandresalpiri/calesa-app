@@ -33,7 +33,7 @@ import { RUTAS, unParametro } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
 import { EstadoSinPermiso, EstadoVacio } from '@/shared/ui/estados'
 import { EsqueletoListado } from '@/shared/ui/esqueletos'
-import { PanelDelItem } from '../panel-del-item'
+import { ItemAbierto } from '../item-abierto'
 import { HojaDelProyecto } from './hoja-del-proyecto'
 import { CargandoUnProyectoCuerpo } from './loading'
 import {
@@ -163,14 +163,32 @@ async function Proyecto({
               }
         }
         puede={puedeEnLaHoja(permisos)}
-      />
-      <PanelDelItem
-        itemId={itemAbiertoDe(parametros)}
-        destino={destinoDelPanelDe(parametros)}
-        permisos={permisos}
+        seccionesDelItem={seccionesDelItem(
+          itemAbiertoDe(parametros),
+          destinoDelPanelDe(parametros),
+          permisos,
+        )}
       />
     </CabeceraDeProyecto>
   )
+}
+
+// Las secciones del panel del ítem de `?item=` (Qué falta, Imágenes, Stock, Compras, Documentos, Historial…): las dibuja el servidor y la hoja las pone bajo la fila del ítem, en su drawer. Llevan el id
+// del ítem (y `key`) para que, al abrir otro, la hoja muestre el esqueleto hasta que lleguen las suyas. Sin `?item=` (o con `?panel=`), nulo. Una URL con el id de otro proyecto abre igual: se lee por id, bajo la RLS.
+function seccionesDelItem(
+  itemId: string | null,
+  destino: string | null,
+  permisos: Permisos,
+): { id: string; contenido: ReactNode } | null {
+  if (itemId === null) return null
+  return {
+    id: itemId,
+    contenido: (
+      <Suspense key={itemId} fallback={<EsqueletoListado filas={4} columnas={2} />}>
+        <ItemAbierto id={itemId} destino={destino} permisos={permisos} conCabecera={false} />
+      </Suspense>
+    ),
+  }
 }
 
 // El vehículo de la cabecera: su lectura empieza aquí, antes de esperar lo demás (va en paralelo), y la espera su `<Suspense>`. Un proyecto externo no lo lee.

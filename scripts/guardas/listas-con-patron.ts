@@ -16,6 +16,8 @@ export const LISTAS_SIN_PATRON: Record<string, string> = {
     'es la comparación lado a lado de 2 o 3 cotizaciones (una columna por cotización, una fila por nodo), no una lista de registros: no tiene resumen ni «⋯» por fila',
   'src/modules/cotizaciones/features/formula/components/planilla/cuadricula/tabla-de-la-cuadricula.tsx':
     'es la cuadrícula de la planilla de la fórmula (`role="grid"`: las filas de un grafo con sus columnas A a D, como una hoja de cálculo), no una lista de registros: no tiene resumen ni «⋯» por fila',
+  'src/modules/repuestos/features/items/components/fila-del-item.tsx':
+    'es la fila de UN ítem como una hoja de cálculo (sus ocho celdas editables) dentro del drawer del ítem o de «Agregar ítems», no una lista de registros: la lista son las tarjetas, que sí usan el patrón',
   'src/modules/tablero/features/metricas/graficas/tabla-equivalente.tsx':
     'es la tabla de «Ver como tabla» de una gráfica (los mismos números, de sólo lectura), no una lista de registros: no tiene resumen ni «⋯» por fila',
 }

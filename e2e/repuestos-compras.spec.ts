@@ -9,6 +9,7 @@ import {
   darRolDePrueba,
   PREFIJO_ROL_E2E,
 } from './soporte/base'
+import { agregarItems } from './soporte/repuestos-tarjetas'
 import { sql } from './soporte/sql'
 import { formatearMonto } from '../src/shared/lib/formato'
 
@@ -78,10 +79,7 @@ test('con costos: la pestaña «Compras» lista la compra y el margen; sin preci
   await expect(page).toHaveURL(/\/repuestos\/[0-9a-f-]{36}$/)
   proyecto = new URL(page.url()).pathname.split('/').pop() ?? ''
 
-  const nueva = page.getByLabel('Nuevo ítem: descripción')
-  await nueva.fill(BOMBA)
-  await nueva.press('Enter')
-  await expect(page.getByLabel(`Descripción del ítem ${BOMBA}`)).toBeVisible()
+  await agregarItems(page, [BOMBA])
   // Las compras se escriben por RPC (el Drawer es de 8.11-3): acá se siembran como `postgres`.
   sql(
     `update repuestos_items set cantidad = 2, precio_cliente = 50, moneda = '${BASE}' where proyecto_id = '${proyecto}'`,

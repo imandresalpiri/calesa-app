@@ -1,6 +1,7 @@
 import { expect, test } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
 import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
+import { accionDelItem, agregarItems, tarjetaDe } from './soporte/repuestos-tarjetas'
 import { sql } from './soporte/sql'
 import { abrirVistaYOpciones } from './soporte/vista-y-opciones'
 
@@ -45,20 +46,15 @@ test('pasar 2 a stock desde la hoja: la fila dice cuántos y el historial lo lis
   await expect(page).toHaveURL(/\/repuestos\/[0-9a-f-]{36}$/)
   proyecto = new URL(page.url()).pathname.split('/').pop() ?? ''
 
-  const nueva = page.getByLabel('Nuevo ítem: descripción')
-  await nueva.fill(FILTRO)
-  await nueva.press('Enter')
-  await expect(page.getByLabel(`Descripción del ítem ${FILTRO}`)).toBeVisible()
+  await agregarItems(page, [FILTRO])
   sql(`update repuestos_items set cantidad = 3 where proyecto_id = '${proyecto}'`)
   await page.reload()
 
-  const fila = page.locator('[data-fila-de-item]').filter({
-    has: page.getByLabel(`Descripción del ítem ${FILTRO}`),
-  })
-  await expect(fila.getByRole('button', { name: `Stock del ítem ${FILTRO}` })).toBeVisible()
-  await expect(fila.getByText(/En stock/)).toHaveCount(0)
+  const tarjeta = tarjetaDe(page, FILTRO)
+  await expect(tarjeta).toBeVisible()
+  await expect(tarjeta.getByText(/En stock/)).toHaveCount(0)
 
-  await fila.getByRole('button', { name: `Stock del ítem ${FILTRO}` }).click()
+  await accionDelItem(page, FILTRO, 'Stock')
   const panel = page.getByRole('dialog', { name: `Stock de «${FILTRO}»` })
   await expect(panel.getByText('Este ítem aún no tiene movimientos de stock.')).toBeVisible()
   await expect(panel.getByText('En stock: 0 de 3')).toBeVisible()
@@ -71,7 +67,10 @@ test('pasar 2 a stock desde la hoja: la fila dice cuántos y el historial lo lis
   await expect(movimiento).toContainText('+2')
   await expect(panel.getByText('En stock: 2 de 3')).toBeVisible()
   await expect(panel.getByLabel('Cantidad')).toHaveValue('')
-  await expect(fila.getByText('En stock: 2')).toBeVisible()
+  // Con el panel abierto lo de atrás queda oculto para los roles: la tarjeta se busca por su texto.
+  await expect(
+    page.locator('[data-tarjeta-de-item]').filter({ hasText: FILTRO }).getByText('En stock: 2'),
+  ).toBeVisible()
 
   const enLaBase = sql(
     `select i.stock_cantidad || ':' || m.motivo || ':' || m.cantidad from repuestos_items i join repuestos_stock_movimientos m on m.item_id = i.id where i.proyecto_id = '${proyecto}'`,
@@ -139,7 +138,7 @@ test('en la vista «Stock»: reasignar 1 a otro proyecto y vender suelto lo que 
     ).trim(),
   ).toBe(`${FILTRO}:1`)
   await page.goto(`/repuestos/${idDestino}`)
-  await expect(page.getByLabel(`Descripción del ítem ${FILTRO}`)).toBeVisible()
+  await expect(tarjetaDe(page, FILTRO)).toBeVisible()
 
   await page.goto('/repuestos?vista=stock')
   await fila.getByRole('button', { name: `Más acciones de ${FILTRO}` }).click()
