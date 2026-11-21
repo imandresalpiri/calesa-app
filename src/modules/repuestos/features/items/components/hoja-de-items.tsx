@@ -167,7 +167,8 @@ export function HojaDeItems(props: PropsDeLaHoja) {
       <section
         aria-label="Ítems del proyecto"
         hidden={props.oculta === true}
-        className="grid grid-cols-[minmax(0,1fr)] gap-3"
+        // `max-md:pb-24`: en el celular el marco no reserva lugar para lo que flota abajo a la derecha (compartir y chat) y taparía el «⋯» de la última tarjeta.
+        className="grid grid-cols-[minmax(0,1fr)] gap-3 max-md:pb-24"
       >
         <BarraDeItems
           filtro={vista.filtro}
