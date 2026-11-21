@@ -48,8 +48,8 @@ import { EsqueletoDelVehiculo, VehiculoDelProyecto } from './vehiculo-del-proyec
 
 export const metadata: Metadata = { title: 'Proyecto de repuestos' }
 
-// Un proyecto de repuestos (`docs/UX.md` › «Repuestos»): su cabecera (con el vehículo, que llega en su propio `<Suspense>`), los pasos del proyecto (las fases del flujo de repuestos y sus hitos, con su progreso), el panel del
-// paso abierto (`?pestana=cotizaciones|pagos|compras`, cada uno con su permiso) y la hoja de ítems, siempre a la vista, con el botón del siguiente en cada fila. Lo que
+// Un proyecto de repuestos (`docs/UX.md` › «Repuestos»): su cabecera (con el vehículo, que llega en su propio `<Suspense>`), la barra de progreso (las fases del flujo de repuestos y sus hitos), las pestañas
+// fijas Ítems · Cotizaciones · Pagos · Compras (`?pestana=items|cotizaciones|pagos|compras`, cada una con su permiso; por defecto Ítems = la hoja, con el botón del siguiente en cada fila). Lo que
 // no existe, está eliminado o quien mira no ve se dicen igual (D49), con un enlace al listado.
 export default function PaginaDeUnProyecto({ params, searchParams }: PageProps<'/repuestos/[id]'>) {
   return (
@@ -147,6 +147,7 @@ async function Proyecto({
         pago={pago}
         disponibles={disponibles}
         titulos={TITULO_DEL_PANEL}
+        numero={proyecto.numero}
         panelDelServidor={
           abierto === null
             ? null
@@ -200,7 +201,7 @@ type DatosDelPanel = {
   cerrado: boolean
 }
 
-// Lo que dibuja el panel abierto bajo los pasos. Compras y cotizaciones se leen recién al abrirse (`escala.md` › «Carga del cliente»); los pagos los lee el navegador.
+// Lo que dibuja la pestaña abierta (la que no es Ítems). Compras y cotizaciones se leen recién al abrirse (`escala.md` › «Carga del cliente»); los pagos los lee el navegador.
 function contenidoDelPanel(abierto: PanelDelPaso, datos: DatosDelPanel): ReactNode {
   const { proyectoId, hoja, monedas, permisos, cerrado } = datos
   const esqueleto = <EsqueletoListado filas={4} columnas={4} />

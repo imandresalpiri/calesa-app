@@ -559,11 +559,11 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   (≤ 51 filas por vehículo, una lectura por elección). El buscador de leads es el de siempre (`_acotar_pagina`). La lista no suma lecturas.
 - JS en frío: «Nuevo proyecto» (formulario, buscadores, lectura del vínculo y supabase-js) llega con `diferido()` desde `src/app` al abrirlo:
   `/repuestos` pesa 376,3 KB (build de e2e, `medirJsEnFrio`). Sin tope propio.
-- Los pasos de `/repuestos/[id]`: tres lecturas de configuración en paralelo en cada carga (fases, salidas y requisitos de dato con una clave de hito del
+- La barra de progreso de `/repuestos/[id]`: tres lecturas de configuración en paralelo en cada carga (fases, salidas y requisitos de dato con una clave de hito del
   flujo de repuestos; topes 30 / 360 / 60 más uno, por `fases_flujo_id_nombre_key`, `fases_transiciones_flujo_id_idx` y `fases_requisitos_fase_id_idx`)
   y, sólo con `repuestos.costos.ver`, el pago vivo (`limit 1` por `pagos_proyecto_repuestos_id_idx`). Progreso y siguiente los calcula el navegador sobre
-  las filas de la hoja (≤ 200): O(fases² + ítems) por cambio de filas. Ningún número es un total («37+ de 200+»). Los paneles (Compras tope 200,
-  Cotizaciones 50, Pagos como siempre) se leen al elegirlos y su código llega con `diferido()`. Los grupos por paso de la hoja los arma el navegador sobre las
+  las filas de la hoja (≤ 200): O(fases² + ítems) por cambio de filas. Ningún número es un total («37+ de 200+»). Las pestañas Cotizaciones, Pagos y Compras (Compras tope 200,
+  Cotizaciones 50, Pagos como siempre) se leen al elegirlas y su código llega con `diferido()`. Los grupos por paso de la hoja los arma el navegador sobre las
   mismas filas (O(n), ≤ 200 filas y ≤ 31 encabezados; los conteos con la hoja topada, «N+»). **JS en frío de `/repuestos/[id]`** (con tres ítems y un vehículo,
   mismo método): 386,0 KB en 29 chunks. La cabecera sale de `pantallas/proyectos-detalle.ts`, no del barril del listado (que arrastra el listado y «Nuevo
   proyecto»). Sin tope propio.

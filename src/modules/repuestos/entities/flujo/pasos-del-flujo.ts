@@ -23,7 +23,7 @@ export const TITULO_DEL_HITO: Readonly<Record<HitoDelPaso, string>> = {
   pago: 'Pago del cliente',
 }
 
-/** Lo que se abre bajo los pasos (`?pestana=`): el valor de la URL de siempre, para que los enlaces viejos sigan abriendo lo mismo. */
+/** Las pestañas del proyecto que no son la hoja de ítems (`?pestana=`): el valor de la URL de siempre, para que los enlaces viejos sigan abriendo lo mismo. */
 export const PANELES_DEL_PASO = ['cotizaciones', 'pagos', 'compras'] as const
 export type PanelDelPaso = (typeof PANELES_DEL_PASO)[number]
 
@@ -33,7 +33,7 @@ export const TITULO_DEL_PANEL: Readonly<Record<PanelDelPaso, string>> = {
   compras: 'Compras',
 }
 
-/** El panel que va junto a cada hito. Compras no tiene hito: la base no tiene una clave que la ubique (va en «Del proyecto»). */
+/** La pestaña a la que lleva cada hito. Compras no tiene hito: la base no tiene una clave que la ubique. */
 export const PANEL_DEL_HITO: Readonly<Record<HitoDelPaso, PanelDelPaso>> = {
   precio: 'cotizaciones',
   pago: 'pagos',

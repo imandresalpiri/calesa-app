@@ -14,7 +14,7 @@ import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 
 // El proyecto de repuestos guiado por pasos (`docs/UX.md` › `/repuestos/[id]`): arriba, los pasos que salen del flujo de repuestos con su progreso en texto (y los
-// hitos «Precio al cliente» y «Pago del cliente» donde el flujo los pide); en cada fila, el botón del siguiente; los paneles bajo los pasos con la hoja siempre a la
+// hitos «Precio al cliente» y «Pago del cliente» donde el flujo los pide); en cada fila, el botón del siguiente; las pestañas fijas Ítems · Cotizaciones · Pagos · Compras con la hoja en la primera, a la
 // vista; el panel del ítem sin acordeones. Mientras corre, el flujo de repuestos suma una salida «Comprado → Perdido» con nota obligatoria y un requisito
 // **informativo** de pago en «Comprado» (no frena ningún mover ajeno); los dos se quitan al empezar y al terminar. La etiqueta no empieza con «E2E»: la limpieza de
 // `repuestos-proyecto.spec.ts` borra esas (D12). Cada proyecto de Playwright usa la suya.
@@ -97,7 +97,7 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-test('los pasos salen del flujo con su progreso; un hito pide su panel y Compras va en «Del proyecto»', async ({
+test('los pasos salen del flujo con su progreso; un hito lleva a su pestaña y Compras es una pestaña', async ({
   page,
 }, info) => {
   await entrar(page, duena, { fresco: true })
@@ -131,17 +131,13 @@ test('los pasos salen del flujo con su progreso; un hito pide su panel y Compras
   await expect(paso(page, 'precio')).toContainText('Precio al cliente')
   await expect(paso(page, 'precio')).toContainText('2 de 3 con precio')
   await expect(
-    paso(page, 'precio').getByRole('button', { name: 'Cotizaciones', exact: true }),
+    paso(page, 'precio').getByRole('button', { name: /Abrir Cotizaciones$/ }),
   ).toBeVisible()
   await expect(paso(page, 'pago')).toContainText('0 de 3 · Sin registrar')
-  await expect(paso(page, 'pago').getByRole('button', { name: 'Pagos', exact: true })).toBeVisible()
+  await expect(paso(page, 'pago').getByRole('button', { name: /Abrir Pagos$/ })).toBeVisible()
   await expect(paso(page, fases['Comprado'] ?? '')).toContainText('1 de 3')
   await expect(paso(page, fases['Recibido'] ?? '')).toContainText('0 de 3')
-  await expect(
-    page
-      .getByRole('group', { name: 'Del proyecto' })
-      .getByRole('button', { name: 'Compras', exact: true }),
-  ).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Compras', exact: true })).toBeVisible()
   await expect(fila(page, C).getByRole('button', { name: `Despachar · ${C}` })).toBeVisible()
   await capturar(page, info, 'pasos')
 })
@@ -155,11 +151,12 @@ test('el siguiente de un ítem sin precio abre Cotizaciones y lo enfoca', async 
   await expect(page).toHaveURL(/[?&]pestana=cotizaciones/)
   const titulo = page.getByRole('heading', { name: 'Cotizaciones', level: 2 })
   await expect(titulo).toBeFocused()
-  await expect(page.getByRole('button', { name: 'Cotizaciones', exact: true })).toHaveAttribute(
-    'aria-pressed',
+  await expect(page.getByRole('tab', { name: 'Cotizaciones', exact: true })).toHaveAttribute(
+    'aria-selected',
     'true',
   )
-  await expect(page.getByRole('region', { name: 'Ítems del proyecto' })).toBeVisible()
+  // Ítems es otra pestaña: la hoja sigue montada pero no se ve.
+  await expect(page.getByRole('region', { name: 'Ítems del proyecto' })).toBeHidden()
   await capturar(page, info, 'panel-abierto')
 })
 
@@ -216,7 +213,9 @@ test('una salida con nota obligatoria: el ítem queda «Perdido», sin botón, y
 test('registrar un pago desde su paso: el hito pasa a «Registrado»', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
   await page.goto(`/repuestos/${proyecto}`)
-  await paso(page, 'pago').getByRole('button', { name: 'Pagos', exact: true }).click()
+  await paso(page, 'pago')
+    .getByRole('button', { name: /Abrir Pagos$/ })
+    .click()
   await expect(page).toHaveURL(/[?&]pestana=pagos/)
   await page.getByRole('button', { name: 'Registrar pago', exact: true }).click()
   const formulario = page.getByRole('dialog', { name: 'Registrar pago' })
@@ -227,20 +226,54 @@ test('registrar un pago desde su paso: el hito pasa a «Registrado»', async ({ 
   await expect(paso(page, 'pago')).toContainText('3 de 3 · Registrado')
 })
 
-test('?pestana=compras abre Compras con la hoja a la vista; el enlace viejo de una compra redirige', async ({
+test('?pestana=compras abre la pestaña Compras; el enlace viejo de una compra redirige', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
   await page.goto(`/repuestos/${proyecto}?pestana=compras`)
-  await expect(page.getByRole('button', { name: 'Compras', exact: true })).toHaveAttribute(
-    'aria-pressed',
+  await expect(page.getByRole('tab', { name: 'Compras', exact: true })).toHaveAttribute(
+    'aria-selected',
     'true',
   )
   await expect(page.getByRole('region', { name: 'Margen del proyecto' })).toBeVisible()
-  await expect(page.getByLabel(`Descripción del ítem ${A}`)).toBeVisible()
   await page.goto(`/repuestos/${proyecto}?panel=compra&compra=nueva`)
   await expect(page).toHaveURL(/[?&]pestana=compras/)
   await expect(page.getByRole('dialog', { name: 'Registrar compra' })).toBeVisible()
+})
+
+test('las pestañas no se mueven al cambiar de una a otra y la hoja vuelve como estaba', async ({
+  page,
+}, info) => {
+  await entrar(page, duena, { fresco: true })
+  await page.goto(`/repuestos/${proyecto}`)
+  const pestanas = page.getByRole('tablist')
+  const hoja = page.getByRole('region', { name: 'Ítems del proyecto' })
+  await expect(page.getByRole('tab', { name: 'Ítems', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+  await expect(hoja).toBeVisible()
+  const antes = await pestanas.boundingBox()
+  for (const titulo of ['Cotizaciones', 'Pagos', 'Compras']) {
+    await page.getByRole('tab', { name: titulo, exact: true }).click()
+    await expect(page.getByRole('tab', { name: titulo, exact: true })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    await expect(page).toHaveURL(new RegExp(`[?&]pestana=${titulo.toLowerCase()}`))
+    await expect(hoja).toBeHidden()
+    expect(await pestanas.boundingBox()).toEqual(antes)
+  }
+  await expect(page.getByRole('region', { name: 'Margen del proyecto' })).toBeVisible()
+  await capturar(page, info, 'pestana-compras')
+  await page.getByRole('tab', { name: 'Ítems', exact: true }).click()
+  await expect(page).not.toHaveURL(/pestana=/)
+  await expect(hoja).toBeVisible()
+  await expect(page.getByLabel(`Descripción del ítem ${A}`)).toBeVisible()
+  expect(await pestanas.boundingBox()).toEqual(antes)
+  // Un enlace con `?pestana=items` abre lo mismo que sin ella.
+  await page.goto(`/repuestos/${proyecto}?pestana=items`)
+  await expect(hoja).toBeVisible()
 })
 
 test('el panel del ítem va sin acordeones, con «Qué falta» primero', async ({ page }) => {
@@ -269,8 +302,8 @@ test('sin `repuestos.costos.ver` no aparece nada de costos', async ({ page }) =>
   await entrar(page, sinCostos, { fresco: true })
   await page.goto(`/repuestos/${proyecto}?pestana=compras`)
   await expect(page.getByLabel(`Descripción del ítem ${A}`)).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Pagos', exact: true })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Compras', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('tab', { name: 'Pagos', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('tab', { name: 'Compras', exact: true })).toHaveCount(0)
   await expect(page.getByRole('region', { name: 'Margen del proyecto' })).toHaveCount(0)
   await expect(page.getByRole('list', { name: 'Compras del proyecto' })).toHaveCount(0)
   await expect(paso(page, 'pago')).toBeVisible()

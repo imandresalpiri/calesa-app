@@ -67,7 +67,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** El cliente de un proyecto ya creado no se cambia — haría falta una RPC con versión (`PT409`) para `lead_id`: decidir si se puede cambiar y quién.
 - **[—]** En la lista de proyectos, uno que sólo tiene lead dice «—» en «Cliente» — `repuestos_proyectos_listar` no trae el lead; sumarlo pide leer
   `leads_vista` por página: decidir si la lista debe nombrarlo.
-- **[T36]** «Compra registrada» no es un paso del proyecto: la base no tiene una clave de requisito que la ubique, así que Compras va en «Del proyecto» y
+- **[T36]** «Compra registrada» no es un paso del proyecto: la base no tiene una clave de requisito que la ubique, así que Compras sólo tiene su pestaña y
   «Registrar compra» nunca es el siguiente de un ítem — decidir si se crea `repuesto.compra` (requisito de dato evaluado por `_requisito_dato_cumple`) y en qué fase.
 - **[T36]** La acción de `repuesto.precio` en «Qué falta» lleva al proyecto sin abrir el panel de Cotizaciones — podría ir a `?pestana=cotizaciones`.
 

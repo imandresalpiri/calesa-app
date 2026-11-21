@@ -15,7 +15,8 @@ import {
 } from '@/modules/repuestos/pantallas/flujo-pasos'
 import { HojaDeItems, type HuecoDeLaHoja } from '@/modules/repuestos/pantallas/items'
 import { BotonDeStock, PanelDeStock, useStockPorUrl } from '@/modules/repuestos/pantallas/stock'
-import { Skeleton } from '@/shared/ui/skeleton'
+import { EsqueletoListado } from '@/shared/ui/esqueletos'
+import { BarraDePestanas } from './barra-de-pestanas'
 import { PanelDelPaso } from './panel-del-paso'
 import { usePanelDelPaso } from './use-panel-del-paso'
 
@@ -27,6 +28,8 @@ type Props = Omit<ComponentProps<typeof HojaDeItems>, 'hueco' | 'ordenDeLasFases
   // El panel que dibujó el servidor y cuál es (puede quedar atrás del de la URL mientras llega la página).
   panelDelServidor: { panel: Panel; contenido: ReactNode } | null
   titulos: Readonly<Record<Panel, string>>
+  // El número del proyecto, para el nombre compacto de la barra de pestañas pegada.
+  numero: number
   // Lo calcula el servidor con `puede()`; la base vuelve a exigirlo.
   puede: { mover: boolean; cotizar: boolean; registrarPago: boolean; configurar: boolean }
 }
@@ -37,11 +40,31 @@ type PropsDeArriba = Pick<Props, 'lectura' | 'pago' | 'disponibles' | 'titulos' 
   paso: ReturnType<typeof usePanelDelPaso>
   contenido: ReactNode
   puedeConfigurar: boolean
+  numero: number
 }
 
-// Lo que va arriba de la hoja: los pasos del proyecto y, debajo, el panel del paso abierto.
-function ArribaDeLaHoja({ indice, lectura, paso, titulos, contenido, ...props }: PropsDeArriba) {
+const CLAVE_DE_LA_HOJA = 'items'
+
+// Mientras llega la pestaña elegida: lo mismo que ella dibuja al leer, en el mismo alto reservado.
+function EsqueletoDeLaPestana() {
+  return <EsqueletoListado filas={4} columnas={4} />
+}
+
+// Lo que va arriba de la hoja: la barra de progreso, las pestañas del proyecto (Ítems siempre; las otras con su permiso) y, si la abierta no es Ítems, su contenido.
+function ArribaDeLaHoja({
+  indice,
+  lectura,
+  paso,
+  titulos,
+  contenido,
+  numero,
+  ...props
+}: PropsDeArriba) {
   const router = useRouter()
+  const pestanas = [
+    { clave: CLAVE_DE_LA_HOJA, titulo: 'Ítems' },
+    ...props.disponibles.map((panel) => ({ clave: panel, titulo: titulos[panel] })),
+  ]
   return (
     <>
       <PasosDelProyecto
@@ -51,11 +74,18 @@ function ArribaDeLaHoja({ indice, lectura, paso, titulos, contenido, ...props }:
         hayMas={props.hayMas}
         pago={props.pago}
         disponibles={props.disponibles}
-        abierto={paso.abierto}
         alElegirPanel={paso.elegir}
         puedeConfigurar={props.puedeConfigurar}
         alReintentar={() => {
           router.refresh()
+        }}
+      />
+      <BarraDePestanas
+        titulo={`Proyecto #${String(numero)}`}
+        pestanas={pestanas}
+        valor={paso.abierto ?? CLAVE_DE_LA_HOJA}
+        alElegir={(clave) => {
+          paso.elegir(props.disponibles.find((p) => p === clave) ?? null)
         }}
       />
       {paso.abierto === null ? null : (
@@ -63,9 +93,6 @@ function ArribaDeLaHoja({ indice, lectura, paso, titulos, contenido, ...props }:
           titulo={titulos[paso.abierto]}
           enfocar={paso.enfocar}
           alEnfocar={paso.yaEnfocado}
-          alCerrar={() => {
-            paso.elegir(null)
-          }}
         >
           {contenido}
         </PanelDelPaso>
@@ -75,7 +102,7 @@ function ArribaDeLaHoja({ indice, lectura, paso, titulos, contenido, ...props }:
 }
 
 // La hoja del proyecto con todo lo que otras áreas ponen en su hueco (un área no importa otra, y una función no cruza de un Server Component a uno de cliente): arriba,
-// los pasos del proyecto y el panel del paso abierto; el orden de las fases, para agrupar la hoja por paso; en cada fila, el botón de su siguiente, «Stock» y «Abrir panel»; y el panel del stock. Cuando cambia el dinero del
+// la barra de progreso, las pestañas y el contenido de la abierta (la hoja sigue montada pero oculta mientras se ve otra pestaña); el orden de las fases, para agrupar la hoja por paso; en cada fila, el botón de su siguiente, «Stock» y «Abrir panel»; y el panel del stock. Cuando cambia el dinero del
 // proyecto (un pago), vuelve a pedir la página para que los pasos y los botones digan si ya hay pago; mientras tanto, los botones del siguiente se apagan.
 export function HojaDelProyecto({
   lectura,
@@ -83,6 +110,7 @@ export function HojaDelProyecto({
   disponibles,
   panelDelServidor,
   titulos,
+  numero,
   puede,
   ...hoja
 }: Props) {
@@ -116,12 +144,13 @@ export function HojaDelProyecto({
     paso.abierto !== null && panelDelServidor?.panel === paso.abierto ? (
       panelDelServidor.contenido
     ) : (
-      <Skeleton className="h-24 w-full" />
+      <EsqueletoDeLaPestana />
     )
   return (
     <HojaDeItems
       {...hoja}
       ordenDeLasFases={indice?.lugar ?? null}
+      oculta={paso.abierto !== null}
       hueco={{
         accionDeFila,
         panel: (api) => <PanelDeStock url={stock} api={api} />,
@@ -137,6 +166,7 @@ export function HojaDelProyecto({
             titulos={titulos}
             contenido={contenido}
             puedeConfigurar={puede.configurar}
+            numero={numero}
           />
         ),
         pasoDeFila: (fila) =>

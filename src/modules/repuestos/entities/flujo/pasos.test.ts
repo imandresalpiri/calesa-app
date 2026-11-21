@@ -3,7 +3,6 @@ import {
   armarPasos,
   indexarFlujo,
   llegaronA,
-  panelesFueraDeLosPasos,
   textoDelProgreso,
   type PasoDelProyecto,
 } from './pasos'
@@ -124,7 +123,6 @@ describe('los hitos y los nombres de las fases', () => {
     ]
     const indice = indexarFlujo({ fases, salidas: [salida(1, 2), salida(2, 3)], pedidos: [] })
     expect(armarPasos(indice, [], SIN_PAGO).every((p) => p.tipo === 'fase')).toBe(true)
-    expect(panelesFueraDeLosPasos(indice)).toEqual(['cotizaciones', 'pagos', 'compras'])
   })
 
   it('un ítem en una fase jubilada cuenta en las que llegan a ella hacia adelante', () => {
@@ -144,28 +142,5 @@ describe('los hitos y los nombres de las fases', () => {
     expect(armarPasos(indice, [item(1)], { hayMas: true, pago: null })[0]?.progreso.texto).toBe(
       '1+ de 1+',
     )
-  })
-})
-
-describe('los paneles fuera de los pasos («Del proyecto»)', () => {
-  it('Compras siempre; los de un hito, sólo si ninguna fase lo pide', () => {
-    expect(panelesFueraDeLosPasos(indexarFlujo(flujo()))).toEqual([
-      'cotizaciones',
-      'pagos',
-      'compras',
-    ])
-    expect(panelesFueraDeLosPasos(indexarFlujo(flujo({ pedidos: [pide(2, 'precio')] })))).toEqual([
-      'pagos',
-      'compras',
-    ])
-    expect(
-      panelesFueraDeLosPasos(
-        indexarFlujo(flujo({ pedidos: [pide(2, 'precio'), pide(3, 'pago')] })),
-      ),
-    ).toEqual(['compras'])
-  })
-
-  it('sin flujo legible, todos', () => {
-    expect(panelesFueraDeLosPasos(null)).toEqual(['cotizaciones', 'pagos', 'compras'])
   })
 })

@@ -1,4 +1,4 @@
-// Los paneles que se abren bajo los pasos de `/repuestos/[id]` (`?pestana=`, el nombre de siempre: los enlaces viejos abren lo mismo). Cotizaciones pide `repuestos.cotizar`
+// Las pestañas de `/repuestos/[id]` que no son la hoja (`?pestana=`, el nombre de siempre: los enlaces viejos abren lo mismo; Ítems es la hoja, sin clave o con `items`). Cotizaciones pide `repuestos.cotizar`
 // (quien sólo tiene `repuestos.costos.ver`, que la RLS deja leer, no lo ve); Pagos y Compras, `repuestos.costos.ver`. Sin la clave, el valor de la URL no abre nada ni
 // lee nada. Esconder un panel es comodidad, no seguridad: la autoridad es la RLS y el `assert_permiso` de cada lectura.
 import { PANELES_DEL_PAGO } from '@/modules/logistica'

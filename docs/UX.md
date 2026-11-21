@@ -454,12 +454,13 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   cliente elegido; `?nuevo=proyecto` lo conserva en la URL debajo de «Nuevo lead»).
   - `/repuestos/[id]`: la cabecera dice **de qué vehículo es**, en un recuadro bajo el título: la miniatura de su portada, el título enlazado a su ficha, el
     VIN o el lote (con los dos, «VIN X · Lote N»), el origen y la situación; sin vehículo, «Proyecto externo · sin vehículo» con la etiqueta y el VIN escritos;
-    debajo, el cliente y las notas. «Cerrar proyecto» o «Reabrir proyecto» (y «Eliminar proyecto» sin ítems: sin confirmación, con «Deshacer»); arriba,
-    los **pasos del proyecto** (las fases activas del flujo de repuestos en su orden y, justo antes de la primera fase que lo pide, los hitos
-    «Precio al cliente» y «Pago del cliente», cada uno con su progreso en texto); al final, «Del proyecto» con los paneles que el flujo no
-    ubica en un paso (Compras siempre). Un hito o «Del proyecto» abren su panel **bajo los pasos** (`?pestana=cotizaciones|pagos|compras`,
-    `aria-pressed`; Cotizaciones pide `repuestos.cotizar`, Pagos y Compras `repuestos.costos.ver`; sin la clave el valor no abre ni lee nada)
-    y la hoja de ítems queda **siempre a la vista**, editable celda a celda y **agrupada por paso**: un encabezado por fase con ítems, en el orden de los
+    debajo, el cliente y las notas. «Cerrar proyecto» o «Reabrir proyecto» (y «Eliminar proyecto» sin ítems: sin confirmación, con «Deshacer»); bajo la
+    cabecera, la **barra de progreso** (las fases activas del flujo de repuestos en su orden y, justo antes de la primera fase que lo pide, los hitos
+    «Precio al cliente» y «Pago del cliente», cada uno con su pista de avance y su progreso en texto; un hito es un botón que lleva a su pestaña) y, debajo,
+    las **pestañas fijas** Ítems · Cotizaciones · Pagos · Compras (`?pestana=items|cotizaciones|pagos|compras`, `role="tab"`; por defecto Ítems; Cotizaciones pide
+    `repuestos.cotizar`, Pagos y Compras `repuestos.costos.ver`; sin la clave la pestaña no está y el valor no abre ni lee nada). La barra de pestañas va **pegada**
+    bajo la barra superior al bajar, con «Proyecto #N» a su izquierda mientras va pegada; cambiar de pestaña no la mueve y el contenido reserva su alto mientras
+    llega. **Ítems** es la hoja, editable celda a celda y **agrupada por paso** (en otra pestaña sigue montada, oculta): un encabezado por fase con ítems, en el orden de los
     pasos, con su nombre y cuántos tiene («Comprar · 3»), y «Sin fase» al final. Cada fila dice **qué es** («Bomba de agua · Usado» y debajo la descripción),
     luego cantidad, precio y **el botón de su siguiente** (mover a la próxima fase, con la acción de la transición: abre el panel del ítem con el destino ya elegido, `?item=<id>&destino=<fase>`;
     o «Nueva cotización» / «Registrar pago» si el destino pide ese hito como bloqueante y falta). Nunca arrastrar. Los enlaces viejos
@@ -2031,15 +2032,15 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
 
 - **Estados:** cabecera esqueleto (el título y el recuadro del vehículo) y lista esqueleto (6 filas, 6 columnas); sin `repuestos.ver`, «No tienes permiso»; error de `(app)`. No existe,
   eliminado o sin acceso se dicen igual: «Este proyecto ya no está disponible: no existe o ya no tienes acceso.» con «Volver a Repuestos».
-- **Pasos:** esqueleto de una fila (`h-16`) con la cabecera. Sin ítems, los pasos sólo con su nombre y «Agrega ítems para ver cuántos van en
+- **Barra de progreso:** esqueleto de una fila (`h-14`) y el de las pestañas (`h-9`) con la cabecera. Sin ítems, los pasos sólo con su nombre y «Agrega ítems para ver cuántos van en
   cada paso.». Progreso de una fase = los ítems que llegaron (están en ella o en una a la que se llega desde ella hacia adelante): «3 de 5»,
   con la hoja topada «37+ de 200+»; un ítem «Perdido» no cuenta en «Recibido». «Precio al cliente»: «2 de 5 con precio». «Pago del
   cliente», con `repuestos.costos.ver`: «5 de 5 · Registrado» o «0 de 5 · Sin registrar»; sin la clave, los que llegaron a la fase que lo
   pide, sin decir nada del pago. Flujo sin fases: «El flujo de repuestos todavía no tiene fases: los pasos aparecen cuando las tenga.»
   (con `repuestos.configurar`, «Configurar el flujo»); ilegible: «No pudimos leer el flujo de repuestos: los pasos no se muestran.» con
-  «Reintentar»; con más fases o salidas de las que se muestran, una línea que lo dice. En los tres, «Del proyecto» sigue con los paneles
-  permitidos, la hoja sigue y no hay botones del siguiente. La fila se desplaza de costado con su pista; «Del proyecto» se parte.
-- **Panel del paso:** título (`h2`) y «Cerrar»; lo abierto por el botón de un ítem recibe el foco. Si su lectura falla, «No se pudieron
+  «Reintentar»; con más fases o salidas de las que se muestran, una línea que lo dice. En los tres, las pestañas siguen
+  con las permitidas, la hoja sigue y no hay botones del siguiente. La fila se desplaza de costado con su pista.
+- **Contenido de una pestaña** (Cotizaciones, Pagos, Compras): mientras llega, el esqueleto de su lista en un alto reservado (`min-h-80`); su `h2` es sólo para lectores de pantalla y recibe el foco si la abrió el botón de un ítem o un hito, sin «Cerrar» (se cambia de pestaña). Si su lectura falla, «No se pudieron
   cargar…» con «Reintentar» ahí (la hoja sigue); sin red, «Sin conexión. No se pudo abrir esto.» con «Reintentar».
 - **Siguiente:** en la columna «Siguiente» (en la tarjeta, tras cantidad y precio, a lo ancho y a 44 px). Nombre accesible «Comprar · Bomba». Sin fase: «Mover a
   «X»» con una sola fase inicial, «Elegir fase» con varias, nada sin inicial. Fase final (también «Perdido») o proyecto cerrado: nada (la
@@ -2079,7 +2080,7 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   renglones mientras lee; «No se pudieron cargar las compras del ítem.» con «Reintentar»; «Este ítem no tiene compras registradas.»; tope 20
   con aviso; «Registrar compra» (`?pestana=compras&panel=compra&compra=nueva&item_de_compra=<id>`, con el ítem ya elegido; sin
   `repuestos.costos.editar` o cerrado, su motivo) y «Ver todas en Compras».
-- **Compras:** panel sólo con `repuestos.costos.ver` (sin él no hay botón y `?pestana=compras` deja sólo la hoja, sin leer nada).
+- **Compras:** panel sólo con `repuestos.costos.ver` (sin él no hay pestaña y `?pestana=compras` deja sólo la hoja, sin leer nada).
   - «Margen del proyecto»: una tarjeta por moneda con precios, compras y margen (`<Monto>`; Modo Live los oculta); con algún ítem sin
     precio o sin moneda, «Sin precio en N ítems» («más de 200»), nunca 0; sin nada, su vacío.
   - Lista de la más reciente: proveedor («Sin proveedor»), fecha, ítem («Sin ítem»), monto y, fuera de la moneda base, «Equivale a …».
