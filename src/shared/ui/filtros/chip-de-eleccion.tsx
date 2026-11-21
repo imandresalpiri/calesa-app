@@ -3,13 +3,14 @@
 import { ChevronDownIcon, XIcon } from 'lucide-react'
 import { useId } from 'react'
 import { cn } from 'cn'
-import type { OpcionDeActividad } from '../../../entities/filtros'
+
+export type OpcionDeChip = { valor: string; etiqueta: string }
 
 type Props = {
   etiqueta: string
   // Lo que dice sin filtro («Todas», «Todos»).
   todas: string
-  opciones: readonly OpcionDeActividad[]
+  opciones: readonly OpcionDeChip[]
   // El valor elegido; nulo sin filtro.
   valor: string | null
   alElegir: (valor: string | null) => void

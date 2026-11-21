@@ -2,12 +2,12 @@
 
 import { formatearFecha } from '@/shared/lib/fechas'
 import { Button } from '@/shared/ui/button'
+import { ChipDeEleccion } from '@/shared/ui/filtros'
 import { IrAUnaFecha } from '@/shared/ui/ir-a-una-fecha'
 import { etiquetaDeEntidad } from '../../../entities/etiquetas'
 import type { OpcionDeActividad, PedidoDeActividad } from '../../../entities/filtros'
 import type { FiltrosDeActividad } from '../hooks/use-filtros-de-actividad'
 import type { ActividadCargada } from '../hooks/use-actividad'
-import { ChipDeEleccion } from './chip-de-eleccion'
 import { ChipQuitable } from './chip-quitable'
 
 type Props = {
