@@ -88,6 +88,7 @@ test('el buscador y las fichas filtran los ítems en el navegador, con «N de M 
   await page.goto(`/repuestos/${proyecto}`)
   await expect(page.locator('[data-tarjeta-de-item]')).toHaveCount(4)
   await expect(page.getByRole('status')).toHaveCount(0)
+  await capturar(page, info, 'tarjetas')
 
   // Por el tracking.
   await page.getByRole('searchbox', { name: 'Buscar ítems' }).fill('BBB222')
@@ -143,6 +144,13 @@ test('un clic en la tarjeta abre el drawer con la fila del ítem, se edita celda
     'que-falta',
   )
   await capturar(page, info, 'drawer-del-item')
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '200%'
+  })
+  await capturar(page, info, 'drawer-del-item-200')
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = ''
+  })
 
   // Tracking: se tipea y Enter guarda; la flecha derecha al final pasa a Notas y Tab sigue.
   const tracking = filaDelItem(drawer).getByLabel(`Tracking del ítem ${TAPA}`)
@@ -176,9 +184,14 @@ test('un clic en la tarjeta abre el drawer con la fila del ítem, se edita celda
 
 test('«Agregar ítem» crea cada ítem con Enter y deja otra fila nueva; las tarjetas quedan en la hoja', async ({
   page,
-}) => {
+}, info) => {
   await entrar(page, duena, { fresco: true })
   await page.goto(`/repuestos/${proyecto}`)
+  await page.getByRole('button', { name: 'Agregar ítem', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Agregar ítems' })).toBeVisible()
+  await capturar(page, info, 'agregar-item')
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Agregar ítems' })).toBeHidden()
   await agregarItems(page, ['Espejo derecho', 'Luz trasera'])
   await expect(page).not.toHaveURL(/panel=nuevo-item/)
   await expect(tarjetaDe(page, 'Espejo derecho')).toBeVisible()
