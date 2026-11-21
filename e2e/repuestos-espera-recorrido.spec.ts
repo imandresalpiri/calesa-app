@@ -84,14 +84,16 @@ test('la dueña ve en el panel del vehículo que espera un repuesto y llega a su
   await hueco.getByRole('link', { name: REPUESTO }).click()
   await expect(page).toHaveURL(new RegExp(`/repuestos/${proyectoDeRepuestos}\\?item=${item}`))
   await expect(
-    page.getByRole('dialog', { name: 'Repuesto' }).getByRole('heading', { name: REPUESTO }),
+    page
+      .getByRole('dialog', { name: REPUESTO, exact: true })
+      .getByRole('heading', { name: REPUESTO }),
   ).toBeVisible()
 })
 
 test('con sólo repuestos.ver, mover el ítem está apagado y dice por qué', async ({ page }) => {
   await entrar(page, lectora, { fresco: true })
   await page.goto(`/repuestos/${proyectoDeRepuestos}?item=${item}`)
-  const panel = page.getByRole('dialog', { name: 'Repuesto' })
+  const panel = page.getByRole('dialog', { name: REPUESTO, exact: true })
   await expect(panel.getByRole('heading', { name: REPUESTO })).toBeVisible()
   await expect(panel.getByRole('button', { name: 'Elegir el destino «Recibido»' })).toBeDisabled()
   // «En tránsito» sale a dos destinos («Recibido» y «Perdido»): cada uno repite el motivo.
@@ -107,7 +109,7 @@ test('la dueña pasa el ítem a «Recibido» desde la Cadena y el vehículo ya p
   const columna = page.getByRole('region', { name: 'En tránsito: 1 ítem' })
   await expect(columna.getByRole('link', { name: REPUESTO })).toBeVisible()
   await columna.getByRole('link', { name: REPUESTO }).click()
-  const panel = page.getByRole('dialog', { name: 'Repuesto' })
+  const panel = page.getByRole('dialog', { name: REPUESTO, exact: true })
   await expect(panel.getByRole('heading', { name: REPUESTO })).toBeVisible()
   await panel.getByRole('button', { name: 'Elegir el destino «Recibido»' }).click()
   // «Recibido» no pide nada: el botón nace habilitado.

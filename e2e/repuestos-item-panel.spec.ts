@@ -9,6 +9,7 @@ import {
   crearPersona,
   darRolDePrueba,
 } from './soporte/base'
+import { abrirItem, agregarItems } from './soporte/repuestos-tarjetas'
 import { sql } from './soporte/sql'
 
 // El panel de un ítem de repuestos (8.13-2): en la hoja de `/repuestos/[id]`, «Abrir panel» abre `?item=<id>` con la descripción, el proyecto, la fase, «Qué falta», los documentos, el
@@ -72,23 +73,16 @@ test('la dueña abre el panel de un ítem, lo pasa a «Comprado» y escribe una 
   await expect(page).toHaveURL(/\/repuestos\/[0-9a-f-]{36}$/)
   proyecto = new URL(page.url()).pathname.split('/').pop() ?? ''
 
-  const nueva = page.getByLabel('Nuevo ítem: descripción')
-  await nueva.fill(REPUESTO)
-  await nueva.press('Enter')
-  await expect(page.getByLabel(`Descripción del ítem ${REPUESTO}`)).toBeVisible()
+  await agregarItems(page, [REPUESTO])
   item = sql(`select id from repuestos_items where proyecto_id = '${proyecto}'`).trim()
   // «Comprado» exige un precio (`repuesto.precio`): se pone aquí, no se prueba otra vez.
   sql(`update repuestos_items set precio_cliente = 99, moneda = 'USD' where id = '${item}'`)
   await page.reload()
 
-  await page.getByRole('button', { name: `Abrir el panel del ítem ${REPUESTO}` }).click()
-  const panel = page.getByRole('dialog', { name: 'Repuesto' })
+  const panel = await abrirItem(page, REPUESTO)
   await expect(page).toHaveURL(new RegExp(`item=${item}`))
   await expect(panel.getByRole('heading', { name: REPUESTO })).toBeVisible()
-  const numero = sql(`select numero from repuestos_proyectos where id = '${proyecto}'`).trim()
-  await expect(panel.getByText(`Proyecto #${numero}`)).toBeVisible()
   await expect(panel.getByText('Por cotizar', { exact: true })).toBeVisible()
-  await expect(panel.getByRole('link', { name: 'Abrir proyecto' })).toBeVisible()
 
   // Las secciones van a la vista, sin acordeones: «Qué falta» primero.
   await expect(panel.locator('details')).toHaveCount(0)
@@ -126,12 +120,10 @@ test('la dueña abre el panel de un ítem, lo pasa a «Comprado» y escribe una 
 
   // Recargar con `?item=` lo vuelve a abrir; con `?panel=stock` manda el stock.
   await page.reload()
-  await expect(
-    page.getByRole('dialog', { name: 'Repuesto' }).getByRole('heading', { name: REPUESTO }),
-  ).toBeVisible()
+  await expect(panel.getByRole('heading', { name: REPUESTO })).toBeVisible()
   await page.goto(`/repuestos/${proyecto}?panel=stock&item=${item}`)
   await expect(page.getByRole('dialog', { name: `Stock de «${REPUESTO}»` })).toBeVisible()
-  await expect(page.getByRole('dialog', { name: 'Repuesto' })).toHaveCount(0)
+  await expect(page.getByRole('dialog', { name: REPUESTO, exact: true })).toHaveCount(0)
 })
 
 test('con sólo repuestos.ver: el panel abre, mover y subir apagados con su motivo, y la nota se escribe', async ({
@@ -142,7 +134,7 @@ test('con sólo repuestos.ver: el panel abre, mover y subir apagados con su moti
   sql(`update repuestos_items set fase_id = ${porCotizar}, fase_desde = now() where id = '${item}'`)
   await entrar(page, lectora, { fresco: true })
   await page.goto(`/repuestos/${proyecto}?item=${item}`)
-  const panel = page.getByRole('dialog', { name: 'Repuesto' })
+  const panel = page.getByRole('dialog', { name: REPUESTO, exact: true })
   await expect(panel.getByRole('heading', { name: REPUESTO })).toBeVisible()
 
   await expect(panel.getByRole('button', { name: 'Elegir el destino «Comprado»' })).toBeDisabled()

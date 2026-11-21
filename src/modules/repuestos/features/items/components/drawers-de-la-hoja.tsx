@@ -1,7 +1,7 @@
 'use client'
 
+import { useState } from 'react'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
-import type { FilaDeItem } from '../../../entities/nucleo/item'
 import type { useEliminarItemPorUrl } from '../hooks/use-eliminar-item-por-url'
 import type { useHojaDeItems } from '../hooks/use-hoja-de-items'
 import type { useImagenesPorUrl } from '../hooks/use-imagenes-por-url'
@@ -16,12 +16,10 @@ import {
 import type { HuecoDeLaHoja } from './hueco-de-la-hoja'
 
 // Al cerrar un drawer el foco vuelve a la tarjeta del ítem (a su botón «Abrir …»); si ya no está, al elemento que lo tenía antes.
-function focoDeLaTarjeta(item: FilaDeItem | null): HTMLElement | true {
+function focoDeLaTarjeta(id: string | null): HTMLElement | true {
+  if (id === null) return true
   return (
-    (item &&
-      document.querySelector<HTMLElement>(
-        `[data-tarjeta-de-item="${item.id}"] [data-abre-resumen]`,
-      )) ??
+    document.querySelector<HTMLElement>(`[data-tarjeta-de-item="${id}"] [data-abre-resumen]`) ??
     true
   )
 }
@@ -59,6 +57,11 @@ export function DrawersDeLaHoja({
   const montarNuevo = useAbiertoAlgunaVez(nuevo.abierto)
   const montarItem = useAbiertoAlgunaVez(idAbierto !== null)
   const filaAbierta = hoja.filas.find((fila) => fila.id === idAbierto) ?? null
+  // El último ítem abierto: al cerrarse el drawer `idAbierto` ya es nulo cuando Base UI pide a dónde vuelve el foco (tras recargar no hay quien lo abrió).
+  const [ultimoAbierto, setUltimoAbierto] = useState<string | null>(null)
+  if (idAbierto !== null && idAbierto !== ultimoAbierto) {
+    setUltimoAbierto(idAbierto)
+  }
   const alAgregar = async (id: string, descripcion: string) => {
     const motivo = await hoja.agregar(id, descripcion)
     if (motivo === null) {
@@ -79,7 +82,7 @@ export function DrawersDeLaHoja({
           cerrado={cerrado}
           conflicto={hoja.conflicto}
           alRecargar={hoja.olvidarConflicto}
-          focoAlCerrar={() => focoDeLaTarjeta(filaAbierta)}
+          focoAlCerrar={() => focoDeLaTarjeta(ultimoAbierto)}
         />
       ) : null}
       {montarNuevo ? (
@@ -103,7 +106,7 @@ export function DrawersDeLaHoja({
           alCerrar={eliminacion.cerrar}
           item={eliminacion.item}
           alEliminar={hoja.eliminar}
-          focoAlCerrar={() => focoDeLaTarjeta(eliminacion.item)}
+          focoAlCerrar={() => focoDeLaTarjeta(eliminacion.item?.id ?? null)}
         />
       ) : null}
       {montarImagenes ? (
@@ -114,7 +117,7 @@ export function DrawersDeLaHoja({
           item={imagenes.item}
           editable={editable}
           cerrado={cerrado}
-          focoAlCerrar={() => focoDeLaTarjeta(imagenes.item)}
+          focoAlCerrar={() => focoDeLaTarjeta(imagenes.item?.id ?? null)}
         />
       ) : null}
     </>

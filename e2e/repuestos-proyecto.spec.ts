@@ -11,6 +11,13 @@ import {
   PREFIJO_ROL_E2E,
 } from './soporte/base'
 import { fotos } from './soporte/fotos'
+import {
+  abrirItem,
+  accionDelItem,
+  agregarItems,
+  filaDelItem,
+  tarjetaDe,
+} from './soporte/repuestos-tarjetas'
 import { sql } from './soporte/sql'
 
 // `/repuestos/[id]` (8.09-2): la dueña crea un proyecto externo, cae en su detalle, agrega dos ítems sólo con el teclado, pone un precio, recarga y siguen; cierra el proyecto (la hoja queda de lectura) y
@@ -75,7 +82,7 @@ test.afterAll(async () => {
 const FARO = 'Faro izquierdo'
 const PARACHOQUES = 'Parachoques delantero'
 
-test('la dueña crea un proyecto, carga dos ítems con el teclado, cambia un precio y todo sigue tras recargar', async ({
+test('la dueña crea un proyecto, carga dos ítems con el teclado en «Agregar ítem», cambia un precio y todo sigue tras recargar', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
@@ -88,36 +95,28 @@ test('la dueña crea un proyecto, carga dos ítems con el teclado, cambia un pre
   await expect(page.getByRole('heading', { name: /^Proyecto #\d+$/ })).toBeVisible()
   await expect(page.getByText('Este proyecto todavía no tiene ítems.')).toBeVisible()
 
-  // Dos ítems sólo con el teclado: descripción, Enter, descripción, Enter. El foco se queda en la fila nueva.
-  const nueva = page.getByLabel('Nuevo ítem: descripción')
-  await nueva.fill(FARO)
-  await nueva.press('Enter')
-  await expect(page.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
-  await expect(nueva).toBeFocused()
-  await expect(nueva).toHaveValue('')
-  await nueva.fill(PARACHOQUES)
-  await nueva.press('Enter')
-  await expect(page.getByLabel(`Descripción del ítem ${PARACHOQUES}`)).toBeVisible()
+  // Dos ítems sólo con el teclado, en «Agregar ítem»: descripción, Enter, descripción, Enter. El foco se queda en la fila nueva.
+  const agregar = await agregarItems(page, [FARO, PARACHOQUES])
+  await expect(agregar).toBeHidden()
+  await expect(tarjetaDe(page, FARO)).toBeVisible()
+  await expect(tarjetaDe(page, PARACHOQUES)).toBeVisible()
 
-  // Un precio con el teclado: en la celda del precio se tipea y Enter confirma; el ítem queda con la moneda de la empresa.
-  const fila = page.locator('[data-fila-de-item]').filter({
-    has: page.getByLabel(`Descripción del ítem ${FARO}`),
-  })
-  const precio = fila.getByRole('group', { name: 'Precio al cliente' })
+  // Un precio con el teclado: en la celda del precio de la fila del ítem se tipea y Enter confirma; el ítem queda con la moneda de la empresa.
+  const drawer = await abrirItem(page, FARO)
+  const precio = filaDelItem(drawer).getByRole('group', { name: 'Precio al cliente' })
   await precio.locator('[data-parada="0"]').focus()
   await page.keyboard.type('1250')
   await page.keyboard.press('Enter')
   await expect(precio).toContainText(/1\.?250/)
-  await expect(fila.getByLabel(`Moneda del ítem ${FARO}`)).not.toHaveValue('')
+  await expect(filaDelItem(drawer).getByLabel(`Moneda del ítem ${FARO}`)).not.toHaveValue('')
 
-  // Recarga: los dos ítems y el precio siguen.
+  // Recarga: los dos ítems y el precio siguen (el drawer sigue abierto: `?item=`).
   await page.reload()
-  await expect(page.getByLabel(`Descripción del ítem ${PARACHOQUES}`)).toBeVisible()
+  await expect(tarjetaDe(page, PARACHOQUES)).toBeVisible()
   await expect(
-    page
-      .locator('[data-fila-de-item]')
-      .filter({ has: page.getByLabel(`Descripción del ítem ${FARO}`) })
-      .getByRole('group', { name: 'Precio al cliente' }),
+    filaDelItem(page.getByRole('dialog', { name: FARO, exact: true })).getByRole('group', {
+      name: 'Precio al cliente',
+    }),
   ).toContainText(/1\.?250/)
 })
 
@@ -130,19 +129,25 @@ test('cerrar el proyecto deja la hoja de lectura, reabrir la devuelve y un ítem
   await expect(
     page.getByText('El proyecto está cerrado: reábrelo para editar los ítems.'),
   ).toBeVisible()
-  await expect(page.getByLabel('Nuevo ítem: descripción')).toHaveCount(0)
-  await expect(page.getByLabel(`Descripción del ítem ${FARO}`)).toHaveCount(0)
-  await expect(page.getByText(FARO)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Agregar ítem', exact: true })).toHaveCount(0)
+  await expect(tarjetaDe(page, FARO)).toBeVisible()
+  const cerrada = await abrirItem(page, FARO)
+  await expect(cerrada.getByLabel(`Descripción del ítem ${FARO}`)).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(cerrada).toBeHidden()
 
   await page.getByRole('button', { name: 'Reabrir proyecto' }).click()
-  await expect(page.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
+  const abierta = await abrirItem(page, FARO)
+  await expect(abierta.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(abierta).toBeHidden()
 
-  await page.getByRole('button', { name: `Eliminar el ítem ${PARACHOQUES}` }).click()
+  await accionDelItem(page, PARACHOQUES, 'Eliminar')
   const confirmar = page.getByRole('dialog', { name: `Eliminar el ítem «${PARACHOQUES}»` })
   await expect(confirmar).toBeVisible()
   await confirmar.getByRole('button', { name: 'Eliminar' }).click()
-  await expect(page.getByLabel(`Descripción del ítem ${PARACHOQUES}`)).toHaveCount(0)
-  await expect(page.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
+  await expect(tarjetaDe(page, PARACHOQUES)).toHaveCount(0)
+  await expect(tarjetaDe(page, FARO)).toBeVisible()
 })
 
 test('quien sólo ve repuestos ve la hoja sin celdas editables, sin fila nueva y sin eliminar', async ({
@@ -150,12 +155,17 @@ test('quien sólo ve repuestos ve la hoja sin celdas editables, sin fila nueva y
 }) => {
   await entrar(page, lectora, { fresco: true })
   await page.goto(`/repuestos/${proyecto}`)
-  await expect(page.getByText(FARO)).toBeVisible()
-  await expect(page.getByLabel(`Descripción del ítem ${FARO}`)).toHaveCount(0)
-  await expect(page.getByLabel('Nuevo ítem: descripción')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /^Eliminar el ítem/ })).toHaveCount(0)
+  await expect(tarjetaDe(page, FARO)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Agregar ítem', exact: true })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Cerrar proyecto' })).toHaveCount(0)
-  await expect(page.locator('[data-xcell]')).toHaveCount(0)
+  const drawer = await abrirItem(page, FARO)
+  await expect(drawer.getByLabel(`Descripción del ítem ${FARO}`)).toHaveCount(0)
+  await expect(drawer.locator('[data-xcell]')).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(drawer).toBeHidden()
+  await page.getByRole('button', { name: `Más acciones de ${FARO}`, exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Imágenes', exact: true })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: 'Eliminar', exact: true })).toHaveCount(0)
 })
 
 test('si otra persona cambia el ítem, guardar otra celda sale como conflicto y no pisa; recargar trae lo nuevo', async ({
@@ -163,7 +173,8 @@ test('si otra persona cambia el ítem, guardar otra celda sale como conflicto y 
 }) => {
   await entrar(page, duena, { fresco: true })
   await page.goto(`/repuestos/${proyecto}`)
-  const descripcion = page.getByLabel(`Descripción del ítem ${FARO}`)
+  const drawer = await abrirItem(page, FARO)
+  const descripcion = drawer.getByLabel(`Descripción del ítem ${FARO}`)
   await expect(descripcion).toBeVisible()
   sql(
     `update repuestos_items set precio_cliente = 99 where proyecto_id = '${proyecto}' and descripcion = '${FARO}' and eliminado_en is null`,
@@ -171,11 +182,11 @@ test('si otra persona cambia el ítem, guardar otra celda sale como conflicto y 
   await descripcion.fill(`${FARO} derecho`)
   await descripcion.press('Enter')
   await expect(
-    page.getByText('Otra persona cambió este ítem. Recarga para ver lo nuevo.'),
+    drawer.getByText('Otra persona cambió este ítem. Recarga para ver lo nuevo.'),
   ).toBeVisible()
-  await page.getByRole('button', { name: 'Recargar', exact: true }).click()
-  await expect(page.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
-  await expect(page.getByRole('group', { name: 'Precio al cliente' })).toContainText(/99/)
+  await drawer.getByRole('button', { name: 'Recargar', exact: true }).click()
+  await expect(drawer.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
+  await expect(drawer.getByRole('group', { name: 'Precio al cliente' })).toContainText(/99/)
 })
 
 test('las imágenes de un ítem: sube dos, siguen tras recargar, quita una con «Deshacer» y quita otra que queda en la cola', async ({
@@ -186,7 +197,7 @@ test('las imágenes de un ítem: sube dos, siguen tras recargar, quita una con �
   itemConImagenes = sql(
     `select id from repuestos_items where proyecto_id = '${proyecto}' and descripcion = '${FARO}' and eliminado_en is null`,
   )
-  await page.getByRole('button', { name: `Imágenes del ítem ${FARO}` }).click()
+  await accionDelItem(page, FARO, 'Imágenes')
   const panel = page.getByRole('dialog', { name: `Imágenes de «${FARO}»` })
   await expect(panel.getByText('0 de 8 imágenes')).toBeVisible()
   await expect(panel.getByText('Este ítem aún no tiene imágenes')).toBeVisible()

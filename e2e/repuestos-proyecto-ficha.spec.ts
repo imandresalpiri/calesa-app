@@ -6,6 +6,7 @@ import {
   correoDePrueba,
   crearDuenaDePrueba,
 } from './soporte/base'
+import { agregarItems, tarjetaDe } from './soporte/repuestos-tarjetas'
 import { literal, sql } from './soporte/sql'
 
 // El proyecto de repuestos de un vehículo desde su ficha y eliminar un proyecto vacío. Sin proyecto, `?seccion=repuestos` (el enlace viejo) se queda en la ficha; el
@@ -95,11 +96,8 @@ test('un proyecto sin ítems se elimina de una vez, «Deshacer» lo devuelve y c
   await expect(page.getByRole('heading', { name: /^Proyecto #\d+$/ })).toBeVisible()
 
   // Con un ítem, la base no lo dejaría: la cabecera ni lo ofrece.
-  const nueva = page.getByLabel('Nuevo ítem: descripción')
-  await nueva.fill(ITEM)
-  await nueva.press('Enter')
-  await expect(page.getByLabel(`Descripción del ítem ${ITEM}`)).toBeVisible()
+  await agregarItems(page, [ITEM])
   await page.reload()
-  await expect(page.getByLabel(`Descripción del ítem ${ITEM}`)).toBeVisible()
+  await expect(tarjetaDe(page, ITEM)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Eliminar proyecto' })).toHaveCount(0)
 })

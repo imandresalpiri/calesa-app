@@ -111,7 +111,9 @@ test('la dueña ve el ítem en los dos bloques, abre su panel y «Ver todas» ll
   await region(page, 'Repuestos por mover').getByRole('link', { name: REPUESTO }).click()
   await expect(page).toHaveURL(new RegExp(`/repuestos/${proyectoDeRepuestos}\\?item=${item}`))
   await expect(
-    page.getByRole('dialog', { name: 'Repuesto' }).getByRole('heading', { name: REPUESTO }),
+    page
+      .getByRole('dialog', { name: REPUESTO, exact: true })
+      .getByRole('heading', { name: REPUESTO }),
   ).toBeVisible()
 })
 
