@@ -1,8 +1,18 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react'
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { cn } from 'cn'
+import { ALTO_INICIAL } from '../lib/alto-del-panel'
 import { useAtajo } from './atajos'
+import { AsaDelPanel } from './asa-del-panel'
 import { ContextoDeCambios } from './cambios-del-panel'
 import { ConfirmarDescarte } from './confirmar-descarte'
 import {
@@ -32,6 +42,9 @@ type Props = {
   // Quién se desplaza: el cuerpo (por defecto) o lo de adentro, que lo hace por su cuenta y deja fijo lo de arriba (una cabecera con pestañas que llenan el resto). Con `'propio'`
   // el cuerpo no se desplaza y sus hijos deben ocupar su alto.
   desplazamiento?: 'cuerpo' | 'propio'
+  // Sólo con `lado="bottom"`: el panel arranca al 60 % de la ventana en escritorio y se agranda arrastrando su asa (o con ↑/↓); debajo de `md` ocupa toda la pantalla, sin asa. El alto se
+  // recuerda mientras el panel está montado y no se guarda en ningún lado.
+  alto?: 'ajustable'
   // A dónde va el foco al cerrar (el de Base UI). Sin esto: el elemento que tenía el foco antes de abrir, que un panel abierto por la
   // URL (con `shallow: false`) a veces ya no tiene: un panel que se apila sobre otro devuelve el foco a quien lo abrió.
   focoAlCerrar?: Popup['finalFocus']
@@ -41,15 +54,33 @@ type Props = {
   children: ReactNode
 }
 
+// El alto ajustable (`alto="ajustable"`): lo recuerda mientras el panel está montado, lo pasa al CSS como `--alto-del-panel` y dibuja el asa.
+function useAltoAjustable(ajustable: boolean) {
+  const [alto, setAlto] = useState(ALTO_INICIAL)
+  return {
+    ajustable,
+    propsDelPanel: ajustable
+      ? { style: { '--alto-del-panel': `${String(alto)}dvh` } as CSSProperties }
+      : {},
+    asa: ajustable ? <AsaDelPanel alto={alto} alCambiar={setAlto} /> : null,
+  }
+}
+
 // La hoja inferior no pasa del alto de la pantalla: lo de adentro se desplaza.
-function clasesDelPanel(lado: NonNullable<Props['lado']>, ancho: NonNullable<Props['ancho']>) {
+function clasesDelPanel(
+  lado: NonNullable<Props['lado']>,
+  ancho: NonNullable<Props['ancho']>,
+  ajustable: boolean,
+) {
   return cn(
     'gap-0',
-    lado === 'bottom'
-      ? 'max-h-[85dvh] rounded-t-(--radius-card)'
-      : ancho === 'amplio'
-        ? 'data-[side=left]:w-full data-[side=right]:w-full sm:max-w-xl data-[side=left]:sm:max-w-xl data-[side=right]:sm:max-w-xl'
-        : 'sm:max-w-md',
+    ajustable
+      ? 'data-[side=bottom]:h-dvh max-h-dvh rounded-none md:data-[side=bottom]:h-(--alto-del-panel) md:max-h-[95dvh] md:rounded-t-(--radius-card)'
+      : lado === 'bottom'
+        ? 'max-h-[85dvh] rounded-t-(--radius-card)'
+        : ancho === 'amplio'
+          ? 'data-[side=left]:w-full data-[side=right]:w-full sm:max-w-xl data-[side=left]:sm:max-w-xl data-[side=right]:sm:max-w-xl'
+          : 'sm:max-w-md',
   )
 }
 
@@ -96,11 +127,13 @@ export function Drawer({
   ancho = 'normal',
   pie,
   desplazamiento = 'cuerpo',
+  alto,
   focoAlCerrar,
   alCostado = false,
   children,
 }: Props) {
   const [hayCambios, setHayCambios] = useState(false)
+  const ajuste = useAltoAjustable(alto === 'ajustable' && lado === 'bottom')
   const [preguntaAlCerrar, setPreguntaAlCerrar] = useState(false)
   const alDescartar = useRef<(() => void) | undefined>(undefined)
   const anotar = useCallback((hay: boolean, descartar?: () => void, pregunta = false) => {
@@ -149,8 +182,10 @@ export function Drawer({
           side={lado}
           finalFocus={focoAlCerrar}
           conFondo={!alCostado}
-          className={clasesDelPanel(lado, ancho)}
+          className={clasesDelPanel(lado, ancho, ajuste.ajustable)}
+          {...ajuste.propsDelPanel}
         >
+          {ajuste.asa}
           <CuerpoDelPanel titulo={titulo} descripcion={descripcion} desplazamiento={desplazamiento}>
             {children}
           </CuerpoDelPanel>
