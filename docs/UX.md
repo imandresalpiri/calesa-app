@@ -365,7 +365,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (`?panel=cotizaciones-del-vehiculo&vehiculo=<id>`, se recarga, se comparte y «atrás» lo cierra; mientras está abierto `?vehiculo=` es del modal y no el filtro, así que la lista de atrás sigue agrupada;
   el foco vuelve al botón; en el celular, a pantalla completa) titulado «Cotizaciones de <vehículo>» y con las cotizaciones del vehículo que coinciden con la búsqueda y los
   filtros en **líneas compactas**: la aprobada primero (con su insignia «Aprobada»; sin ella, la cabeza del grupo) y después las más recientes (casilla, «N.º n» con su título, «Final», el
-  total con su modo, autor · «hace…» y la vigencia; sin cliente ni «⋯»). La lista ya no despliega nada. De a 10 con «Ver más» hasta 100 y ahí «Ver todas en Cotizaciones» (`/cotizaciones?vehiculo=`); 2 o 3
+  total con su modo, autor · «hace…» y la vigencia; sin cliente ni «⋯»); la fila de la lista no se despliega. De a 10 con «Ver más» hasta 100 y ahí «Ver todas en Cotizaciones» (`/cotizaciones?vehiculo=`); 2 o 3
   casillas habilitan «Comparar» en el pie del modal («Elige 2 o 3 para comparar.»; con 3, «Puedes comparar hasta 3.»). Un clic en una línea cierra el modal y abre su resumen (el foco va al
   resumen). Estados del modal: tres líneas de esqueleto, «No pudimos cargar las cotizaciones de este vehículo.» o «No hay conexión.» con «Reintentar» (la lista sigue); si su cabeza ya no vale (papelera,
   invalidar, una más nueva) la página se relee. Un `vehiculo` que no es un id no abre nada, avisa y limpia la URL; si el grupo no está en la página del enlace, el modal se arma sólo con lo que lee
@@ -552,10 +552,10 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   «…».» y su URL lleva a las tarjetas. Las URL viejas (`/origenes`, `/tipos`, `/seguimientos`, `/embudo`, `/portal`, `/telefonos` y `?seccion=`) redirigen con el panel y el resto de la
   consulta. Sin ninguno de los dos permisos, «No tienes permiso» y la sección no está en el menú ni en el inicio.
 - **Empresa** — `/configuracion/empresa` (`empresa.*`), cuatro sub-rutas en el menú de Configuración (`configuracion/empresa/seccion.ts`):
-  «Datos de la empresa» (la índice, `/configuracion/empresa`: el formulario y los íconos), «Monedas y tipos de cambio» (`/monedas`: la **moneda base** arriba con «Cambiar»,
+  «Datos de la empresa» (la índice, `/configuracion/empresa`: sus tarjetas de ajustes con modal), «Monedas y tipos de cambio» (`/monedas`: la **moneda base** arriba con «Cambiar»,
   un grupo por **par de monedas** con sus tipos de cambio como tarjetas —valor, quién y cuándo, «En la barra» con su tope de 3— y «Tipo de cambio» por par, y abajo
   las monedas activas con «Gestionar» y «Al compartir» con «Editar»; modales `?panel=moneda-base|monedas|leyenda`, paneles `?tc=`, `?moneda=`, crear en `?panel=`/`?par=`), «Integraciones» (`/integraciones`) y «Comprobantes»
-  (`/comprobantes`, con `empresa.ajustes.gestionar`: la serie vigente, el próximo comprobante y el campo para cambiarla, con versión; sin el
+  (`/comprobantes`, con `empresa.ajustes.gestionar`: la tarjeta con la serie vigente y el próximo comprobante, y «Cambiar serie» en su modal, con versión; sin el
   permiso, apagada con «Pide el permiso «Ajustes de la empresa».» y su URL abre Datos). Las URLs viejas redirigen en el servidor
   (`url-vieja.ts`): `?seccion=` a su sub-ruta, y `?tc=`, `?moneda=` y los `?panel=` de crear (con o sin `?seccion=`) a Monedas con ellos.
 - **Catálogos** — `/configuracion/catalogos` (cualquiera de los permisos de sus catálogos): lo que es de toda la empresa y no de un origen. No
@@ -579,7 +579,7 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
   `?seccion=catalogos|cotizador` redirigen a su sub-ruta con sus `?panel=`, `tramo`, `caja` y `moneda` (sin `?seccion=` ni panel, a Flujo).
 - **Orígenes** — `/configuracion/origenes` (`origenes.gestionar`, `flujos.configurar` o `cotizaciones.configurar`, cada una **en ese origen**): la
   frase «De dónde vienen los vehículos: sus datos, campos y categorías, su flujo, su fórmula y sus tablas.», «Nuevo origen» (un enlace a
-  `/configuracion/origenes/nuevo`; `?panel=nuevo`, el panel de antes, responde 308 ahí con su consulta; sin `origenes.gestionar`, apagado con su motivo) y, como tarjetas, sólo los orígenes que la persona abre (dos columnas desde 40 rem de contenedor; una al 200 % y en el celular; tope 100
+  `/configuracion/origenes/nuevo`; `?panel=nuevo` responde 308 ahí con su consulta; sin `origenes.gestionar`, apagado con su motivo) y, como tarjetas, sólo los orígenes que la persona abre (dos columnas desde 40 rem de contenedor; una al 200 % y en el celular; tope 100
   con `<AvisoDeTope>`): punto de color, nombre, «Subasta|Manual», «Activo|Inactivo», lo que falta en corto o «Nada pendiente», y vehículos y
   cotizaciones; la tarjeta entera abre sus Datos.
 - **La página del origen** — `/configuracion/origenes/<id>/<pestaña>`: arriba «‹ Orígenes»; el punto de color, el nombre como `h1`, «Activo» o
@@ -607,8 +607,8 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
     cabeza del editor (el nombre, su estado y el «⋯» de la lista) y sus pestañas **Planilla · Hoja · Tarjeta** (`/planilla`, `/hoja`, `/tarjeta`;
     `/formulas/<fórmula>` sola abre la planilla).
     «Planilla» («Qué se calcula.», a todo el ancho): arriba la publicada, el borrador y las versiones, y abajo la planilla; `?panel=publicar-formula`,
-    `revertir-formula&version=<id>` y `descartar-borrador`, y los de la planilla («Cotización: fórmula (estados propios)»); `editar-formula` y
-    `plantillas-de-v1` (paneles que ya no existen) responden 308 a la misma parte, sin ellos. «Hoja» («Cómo se ve y se llena la cotización.»):
+    `revertir-formula&version=<id>` y `descartar-borrador`, y los de la planilla («Cotización: fórmula (estados propios)»); `?panel=editar-formula` y
+    `?panel=plantillas-de-v1` responden 308 a la misma parte, sin el panel. «Hoja» («Cómo se ve y se llena la cotización.»):
     `?vista=412|1280|200`, desde `xl` al costado. «Tarjeta» («La imagen que recibe el cliente.»): `?panel=publicar-tarjeta|descartar-plantilla` y
     `?referencia=ejemplo`, a todo el ancho. La ruta corta `/formula`, `/formula/hoja` y `/formula/tarjeta` responde 308 a esa parte de la fórmula de
     trabajo (por persona, con su consulta) o, sin ninguna, a la lista.
@@ -617,7 +617,7 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
   - `/<id>` sola abre (308) la primera pestaña que la persona abre, y `/<id>?seccion=…` su parte, conservando `?campo=`, `?categoria=` y `?panel=`. Una
     pestaña que no abre, por URL: «No puedes abrir esta pestaña», su motivo e «Ir a <la primera que abre>»; un origen ajeno, «No puedes abrir este
     origen» (con «Ver los orígenes» si abre otros), sin decirle si existe; a quien sí podría abrirlo, uno que no existe es un 404.
-  - **Las URLs de antes** redirigen con 308 y su consulta: `/configuracion/cotizacion/<origen>/formula|hoja|tarjeta|tablas` (y `/<origen>` solo) a la
+  - **Las URLs viejas** redirigen con 308 y su consulta: `/configuracion/cotizacion/<origen>/formula|hoja|tarjeta|tablas` (y `/<origen>` solo) a la
     pestaña del origen (la fórmula, por su ruta corta), `?seccion=formula` del origen a `/formulas`, `/configuracion/cotizacion/general/*` y `?seccion=tonos|colores|niveles|ajustes|vigencia` a Catálogos,
     `/configuracion/flujos?origen=` a su Flujo (`?ambito=repuestos` al de repuestos; sin origen, el primero que la persona configura), `?seccion=documentos`
     sin `flujos.configurar` a Tipos de documento, y `/configuracion/logistica/*` a su catálogo. Lo que no se resuelve, a la lista de orígenes.
@@ -1486,7 +1486,7 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   Hasta 500 filas con aviso y «Buscar fila» (por concepto: «Ninguna fila tiene «x» en el concepto.»); sin filas, «Esta fórmula no tiene
   filas.» con «Sumar la primera fila». **Al costado** (cuando la planilla mide 72 rem o más; si no, debajo): «Totales» (el total en dólares y
   en la moneda local con el modo elegido, la base imponible y lo aparte, cada uno con `<Monto>` y cómo sale; lo aparte apagado dice por qué) y
-  «Tarjeta de la cotización» (la plantilla de trabajo del origen, el borrador si hay, con la unidad de ejemplo y el selector de modo «Tipo de
+  «Tarjeta de la cotización» (la plantilla de esta fórmula, el borrador si hay, con la unidad de ejemplo y el selector de modo «Tipo de
   cambio» con dos o más modos; sin plantilla, «Esta fórmula todavía no tiene tarjeta.» con «La imagen que recibe el cliente»; si no se leyó,
   «Reintentar»). En el celular y con el texto al 200 % la cuadrícula se desplaza de costado en su marco con «#» y A pegadas y la barra a lo
   ancho; la página no se ensancha.

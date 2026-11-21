@@ -470,7 +470,7 @@ la pide.
   (otro origen o una que no existe: el mismo 42501 del permiso; una archivada: 22023 «Esta fórmula está archivada.», hint
   `formula_del_origen`).
 - **La primera publicada de un origen sin activa la activa** (`trg_fdo_asignar`, que también cuelga de la de trabajo una versión o una
-  plantilla insertada sin fórmula del origen: las pruebas y el e2e que insertan directo siguen igual; corre también con
+  plantilla insertada sin fórmula del origen, como las que insertan directo las pruebas y el e2e; corre también con
   `session_replication_role = replica`).
 - **«Guardar con la N»** vale mientras la versión abierta no lleve más de 24 h reemplazada: por una versión posterior de su fórmula o porque
   su fórmula dejó de ser la activa (`desactivada_en`), lo primero que pasó.
@@ -538,7 +538,7 @@ plantilla_publicada_esperada)`: cada pieza con su esperada (la activa que se vio
   nuevo hace 2 min.» o «El borrador que abriste ya no está: se publicó o se descartó.» (publicar mira antes la publicada). Sin hora toman el
   que haya («No hay borrador»). La app manda siempre las esperadas; la base acepta la nula (excepción aprobada a
   `.claude/rules/migraciones.md`).
-- **Dónde se ven:** pestaña «Fórmula» de la página del origen: publicada, borrador (atrasado si su versión de origen ya no es la
+- **Dónde se ven:** cada fórmula en la pestaña «Fórmulas» de la página del origen (`/formulas/<fórmula>/planilla`): publicada, borrador (atrasado si su versión de origen ya no es la
   publicada) y versiones por cursor, sin lo oculto (`docs/UX.md` › «Cotización: fórmula (estados propios)»); ahí se publica con nota, se
   descarta (`<Confirmar>`) y se revierte.
 - **Carreras** (`scripts/carreras/tonos.mjs`, `formula-mixtas.mjs`): dos publicar, dos ⚙, el ⚙ contra publicar el borrador, revertir contra
@@ -691,7 +691,7 @@ quien guarda no ve ni edita, y devuelve lo mismo que crear. Recibe el **estado e
 `notas`, `vehículo` y `ver_total_bs` sin valor por omisión: nulo es un valor, salvo en `ver_total_bs`, donde nulo es
 `ver_total_bs_falta`; el vehículo es el de la hoja: el guardado o el elegido en una preventa); lo que no manda en `entradas` queda sin tipear (↺). Se edita `modo_tc` (clave de un modo de SU versión, o nulo),
 `ver_total_bs` (verdadero sólo si el diseño de SU versión lo ofrece; también en una final), `titulo` y `titulo_manual` (manual si `titulo` trae
-texto y `titulo_manual` no es falso —nulo, el de las llamadas viejas, es «manual si trae texto»; sin vehículo el texto es manual—, hasta 120:
+texto y `titulo_manual` no es falso —nulo es «manual si trae texto»; sin vehículo el texto es manual—, hasta 120:
 `titulo_largo`; si no, el del vehículo que queda, rehecho en cada guardado; sin vehículo y sin título, 22023 `hint titulo`; `titulo_manual` entra
 en la huella del intento y en «nada cambió»), `notas` (hasta 2.000) y
 `vehiculo_id` (poner o **cambiar**, no se quita; **una final no lo cambia**). No se editan `tipos_cambio` (se congelan al crear), `clase`,
@@ -766,7 +766,7 @@ ver_total_bs, moneda_bs, ajustes}` más su aspecto y, sólo si el diseño las tr
   (con el **nombre** del nivel que falta) o `no_se_edita`. **`ajustes` (⚙):** una constante con `cotizaciones.configurar` del origen, o un tipo de cambio con
   `empresa.tipos_cambio.gestionar`.
 - **El modo por clave:** la hoja recibe los modos sin sus `buckets`; `cotizacion_evaluar(…, p_modo_tc)` acepta la clave de un modo de esa
-  versión (`_cotizacion_modo()`; ajena: `modo_invalido`). `p_modo` (objeto) sigue para el editor.
+  versión (`_cotizacion_modo()`; ajena: `modo_invalido`). `p_modo` (objeto) también lo acepta la base; la app no lo manda.
 
 ### La hoja abierta
 
@@ -943,8 +943,7 @@ opción, que se apuntan por `hermana_id`.
 `formula_id` (recalcular o editar usa **esa** versión, nunca la vigente); `valores` (`{nodo_id: número | null}` de TODOS los nodos; el
 `opcion` guarda su clave; un nodo fuera de variante o apagado guarda 0); `fuentes` (`{nodo_id: default|sugerido|override|input}`);
 `tipos_cambio` (`{clave: valor}` congelados); `totales` (por moneda y por grupo); `titulo` (el **título de la cotización**, hasta 120) y
-`titulo_manual` (si lo escribió una persona; si no, es el del vehículo y la base lo rehace en cada guardado; las que ya tenían título antes de la
-columna quedaron manuales); `tarjeta_retoques` (los **retoques de la tarjeta**: textos y filas ocultas sólo de esta cotización; nula, la tarjeta tal
+`titulo_manual` (si lo escribió una persona; si no, es el del vehículo y la base lo rehace en cada guardado); `tarjeta_retoques` (los **retoques de la tarjeta**: textos y filas ocultas sólo de esta cotización; nula, la tarjeta tal
 cual la plantilla; «Retoques de la tarjeta», abajo); `hermana_id` (la **cotización hermana** de una variante en par; nula si no tiene; purgar una la pone en
 nulo en la otra sin mover su versión). **Nada se lee directo** (sale por `cotizacion_leer()`,
 recortado por el nivel; `total_base`, `modo_tc`, `ver_total_bs`, `titulo`, `titulo_manual`, `tarjeta_retoques` y `hermana_id` sí son legibles) **ni se escribe directo**: se
@@ -1002,7 +1001,7 @@ cotización con comprobante no va a la papelera ni la baja marcar otra final. Er
 
 ## Plantilla de tarjeta (PDF)
 
-La tarjeta de la cotización (la vista previa tipo Excel, el PDF y la imagen) se describe como una **cuadrícula libre**, como en V1, y **un solo
+La tarjeta de la cotización (la vista previa tipo Excel, el PDF y la imagen) se describe como una **cuadrícula libre** y **un solo
 modelo** la dibuja (`geometriaDeLaTarjeta()`). Sólo nodos del nivel «todos». PDF en servidor con `@react-pdf/renderer`; imagen con `next/og`.
 
 **Dos formas de `plantillas_tarjeta.definicion`.** Con la clave `forma` en la raíz es la **forma 2** (la cuadrícula); sin ella, la **forma 1** (la de
@@ -1132,7 +1131,7 @@ publicar valida contra la publicada de **esa** fórmula. Guardar el borrador, pu
 
 ### El editor de la plantilla
 
-- **La pestaña «Tarjeta»** (`/configuracion/origenes/<id>/formula/tarjeta`, `cotizaciones.configurar`, a todo el ancho) edita el **borrador** como un
+- **La pestaña «Tarjeta»** (`/configuracion/origenes/<id>/formulas/<fórmula>/tarjeta`, `cotizaciones.configurar`, a todo el ancho) edita el **borrador** como un
   Excel y escribe **sólo la forma 2**. El servidor arma `propsDelEditor()`: la cuadrícula de la que nace (`cuadriculaParaEditar()`: el borrador; si no se
   lee, la copia de la publicada; si no, la de por omisión), su procedencia, sus avisos y el contexto reducido. Una forma 2 se usa tal cual; una forma 1
   pasa por `alinearConLaFormula()` y `convertirPlantilla()` con «Se convirtió a cuadrícula: revisa y guarda.» (no se guarda sola); sin plantilla, la
@@ -1148,7 +1147,7 @@ publicar valida contra la publicada de **esa** fórmula. Guardar el borrador, pu
   `geometriaDeLaTarjeta()` y llama a `capa(g, escala)` (la grilla del editor, encima, sin escalar: multiplica por la escala) y a `debajo(g)` («Ocultas con
   esta referencia»). `GeometriaParaEditar` lleva el tamaño, las filas que se dibujan con su banda y las ocultas; la `x` de cada columna la saca la capa
   de los anchos de la plantilla, así no repite la regla de qué fila se oculta.
-- **La referencia** (`ReferenciaDeLaTarjeta`, núcleo): la compone `src/app` (`[origen]/tarjeta/referencia.ts`, `server-only`, nunca lanza) como el PDF:
+- **La referencia** (`ReferenciaDeLaTarjeta`, núcleo): la compone `src/app` (`formulas/[formula]/tarjeta/referencia.ts`, `server-only`, nunca lanza) como el PDF:
   `leerListadoDeCotizaciones()` con `UNA` (la más reciente que quien configura ve, sin papelera, por `cotizaciones_origen_creado_idx`), la hoja guardada
   con su primer recálculo, el cliente y el vehículo por PK, el asesor (quien configura) y los ajustes, y `referenciaPlana(calculoDeLoGuardado(…))`. Sin estados (el
   recálculo falló) es `no_se_leyo`: la tarjeta caería a la de por omisión. La página la pide sin esperarla y `SeccionDeLaPlantilla` la espera en paralelo
@@ -1262,10 +1261,10 @@ objetos en el bucket. Lo que evita volver a dibujarla es la caché del navegador
   entrega con la `ETag` y `Cache-Control: private, no-cache`. Con «Ver como» (la perspectiva cambia los permisos, no la persona), sin el primer recálculo
   (la tarjeta saldría sólo con el total) o incompleta (falló leer el cliente, el vehículo o el asesor, o no llegó el logo o la foto que la tarjeta dibuja:
   `ImagenArmada.completa`), `no-store` y sin `ETag`: la huella no ve esos fallos y la ETag dejaría fija la imagen a medias. Si armarla falla, 500 en texto con `no-store`: nunca una vieja. `Server-Timing` dice
-  cuánto tardaron la huella y el armado. La ruta vieja, `/cotizaciones/<id>/portada`, es un 308 a ésta con su consulta.
+  cuánto tardaron la huella y el armado. `/cotizaciones/<id>/portada` responde 308 a ésta con su consulta.
 - **En pantalla**, `<ImagenDeLaTarjeta>` (`pantallas/tarjeta-imagen.ts`; en el resumen del listado, por el hueco `Imagen`): la imagen con
   `object-contain` en un marco de la proporción que le dan (15:8 por omisión), pedida recién a la vista y con turno en la cola de la página (a lo sumo
   cuatro a la vez: `useCargaDeLaImagen()`, `crearCola()`); mientras espera o carga, un recuadro del mismo tamaño con el
   total y «Preparando la imagen…»; si falla, «No se pudo armar la imagen.» con «Reintentar» (otra URL, `?intento=`); el clic la abre en el visor de
-  fotos (`?visor=imagen-<id>`, o `imagen-de-la-lista-<id>` desde la tarjeta de la lista; las claves de antes, `portada-…`, también lo abren); en Modo
+  fotos (`?visor=imagen-<id>`, o `imagen-de-la-lista-<id>` desde la tarjeta de la lista; `portada-…` y `portada-de-la-lista-…` también lo abren); en Modo
   Live, borrosa con «Oculto en Modo Live» y sin visor.

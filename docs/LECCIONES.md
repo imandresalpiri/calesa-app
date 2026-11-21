@@ -43,7 +43,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Cambiar argumentos o tipo de retorno es `drop` + `create` (parámetro nuevo al final, con default si hay llamadas posicionales): `create or replace` deja dos sobrecargas.
 - Repite siempre `revoke`/`grant` explícitos (también `anon` en `web.*`), aunque `create or replace` conserve privilegios, y pruébalo con una mutación que conceda a `anon` o PUBLIC.
 - Prefiere una función de lectura aparte a cambiar el tipo de retorno de una existente: el `drop` rompe pruebas, infra y la definición que otros recrean.
-- Al traer `main`, cruza las funciones que redefine tu migración con las de las migraciones nuevas de `main` (con y sin comillas: el volcado escribe `"public"."x"`): git no ve el choque y tu `create or replace`, que corre después, borra lo de la otra. Rehazla desde la definición de `main`.
+- Cruza las funciones que redefine tu migración con las de las migraciones nuevas de `main` y de los PR de delante en la cola (con y sin comillas: el volcado escribe `"public"."x"`): git no ve el choque y tu `create or replace`, que corre después, borra lo de la otra. Rehazla desde la definición más nueva.
 - Parte un trigger si su `when` nombra `old`: ese `when` no puede ir en un trigger de `insert`.
 - Al crear un permiso o cambiar su `aplicado_en`, cámbialo también en `supabase/seed.sql` y prueba la migración re-ejecutándola sobre la base sembrada: el seed corre después con `on conflict … do update` y la pisa, y antes del seed la tabla está vacía.
 - Valida en la RPC el texto que la nube puede tener con otros valores; un `check` nuevo sobre una tabla con datos nace `not valid` y se valida en otra sentencia sólo si ninguna fila lo rompe (si no, `raise notice`): la migración no debe caer en la nube.
@@ -51,7 +51,6 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - En la nube un índice nuevo se crea sin `concurrently` y bloquea las escrituras mientras se arma: mide la tabla o púrgala antes del `db push`.
 - No nombres `p_cantidad` ni `p_tamano` un parámetro que no es una página: `escala.sql` lo trata como tamaño y exige `_acotar_pagina`.
 - No llames a un ayudante con un prefijo que una prueba cuenta por patrón (`_formula_%` lo cuenta `validar-formula.sql`).
-- Si dos ramas reescriben entera la misma función, la que se integra segunda se rehace sobre la otra: si no, la pisa sin conflicto de git.
 - Una migración integrada con fecha anterior a la última que ya tiene la demo traba `demo.yml` (`db push` no aplica ninguna): no la muevas
   tal cual (pisaría lo que una posterior redefine); bórrala, crea una al final sólo con lo que ninguna posterior redefine y compara
   `scripts/db/huella-de-la-base.sh` antes y después.
@@ -131,7 +130,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Tras un `router.refresh()` inevitable, mantén los controles apagados hasta que la pantalla se redibuje: un cambio de URL en medio pierde el refresco.
 - Suelta el aviso de guardado o el cierre de panel al terminar el envío (`useTrasElEnvio`) y encola lo que sale al desmontarse: el refresco remonta el panel antes de que `isPending` baje.
 - Responde una redirección permanente (308) desde `src/proxy.ts` o un route handler, nunca desde una página: bajo el `<Suspense>` del layout y con
-  `loading.tsx`, `permanentRedirect()` llega ya mandado el esqueleto y sale 200 con un meta refresh. Pruébala con `page.request.get(…, { maxRedirects: 0 })`.
+  `loading.tsx`, `permanentRedirect()` llega ya mandado el esqueleto y sale 200 con un meta refresh. Si depende de la persona, `redireccionPermanente(…, { porPersona: true })`
+  (`Cache-Control: private, no-store`), o el navegador la reusa para otra sesión; un `route.ts` convive con el `layout.tsx` del segmento. Pruébala con `page.request.get(…, { maxRedirects: 0 })`.
 - Un test que comprueba que una ruta existe mirando `src/app` atraviesa los grupos de rutas (`(pestanas)`): la URL no los nombra y un `existsSync` del
   camino literal da falso en cuanto una carpeta pasa a un grupo (`existeLaRuta()` de `src/app/(app)/configuracion/origenes/existe-la-ruta.ts`).
 - Mide el peor caso de lo que manda una Server Action: el tope es 1 MB por pedido y una fórmula de 2.000 nodos pesa ≈ 400 KB.
@@ -160,7 +160,6 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Saca un componente de un `pantallas/<área>.ts` ajeno a la ruta por su propio `pantallas/<área>-<pantalla>.ts`: importar de un barril con Client Components de otra pantalla puede arrastrarlos al JS en frío (el detalle de un proyecto cargaba el listado y «Nuevo proyecto», +5 %).
 - Haz que un `loading.tsx` importe sólo el esqueleto, nunca la pantalla ni el barril de `pantallas/`: baja su chunk dos veces en frío.
 - No pongas un `page.tsx` que sólo redirige en un segmento con hijos: pide su `loading.tsx`, y el esqueleto de cada nivel viaja en el HTML de todas las páginas de debajo (dos veces). La redirección fija va a `redirects()` de `next.config.ts`.
-- Una redirección que depende de la consulta o de los permisos va en un `route.ts` con 308 (`redireccionPermanente()`), nunca en un `page.tsx` (tras su `loading.tsx`, es del navegador y no un 308); si depende de la persona, con `{ porPersona: true }` (`Cache-Control: private, no-store`), o el navegador la reusa para otra sesión. Un `route.ts` convive con el `layout.tsx` del segmento.
 - Manda al navegador las acciones ya calculadas por el servidor, no `permisos.ts` ni las reglas: importarlas suma JS en frío a la ruta.
 - Pasa al cliente sólo lo que dibuja (`contextoParaElNavegador()`): las props viajan en el primer HTML (≈ 100 B por nodo y por fila) y las del layout, en el de todas las pantallas (30 acciones de la paleta suman 7 KB a `/perfil`).
 - Pon en un archivo de `features/` del módulo la composición que cruza módulos: en una entrada la rechaza `boundaries`.
@@ -222,7 +221,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   más baja que una línea), y la página reserva el lugar de su barra (`scrollbar-gutter: stable`). Si una barra que aparece cambia el ancho medido, la
   escala, el alto y la barra entran en un ciclo de pocos píxeles que no deja elegir nada. Se prueba con las barras visibles
   (`ignoreDefaultArgs: ['--hide-scrollbars']`, `e2e/configuracion-tarjeta-arrastrar.spec.ts`): el Chromium de Playwright las esconde.
-- Dentro de una columna que se desplaza por dentro (la ficha en dos columnas), no uses `scrollIntoView` para dejar algo a la vista de una barra de costado (la tira de miniaturas): mueve también a la columna y la deja donde la persona no la puso; ajusta el `scrollLeft` de la barra. Y esa columna va `relative`: un `sr-only` (absoluto) de adentro, sin ancestro posicionado, no queda recortado y alarga el documento (la ventana se desplazaba 17 px).
+- Dentro de una columna que se desplaza por dentro (la ficha en dos columnas), no uses `scrollIntoView` para dejar algo a la vista de una barra de costado (la tira de miniaturas): mueve también a la columna y la deja donde la persona no la puso; ajusta el `scrollLeft` de la barra. Y esa columna va `relative`: un `sr-only` (absoluto) de adentro, sin ancestro posicionado, no queda recortado y alarga el documento (la ventana se desplaza 17 px).
 - Una columna que recupera su posición al volver a una pantalla (`usePosicionDeLasColumnas()`) insiste unos segundos: al mostrarse de nuevo el contenido se acomoda y el navegador achica el desplazamiento al tope de ese momento; reponer una sola vez deja la posición equivocada.
 - Un modal de formulario queda montado al cerrarse: lo tipeado sigue en su estado y, en un campo controlado, en el `value` del documento. Un secreto o una
   clave se borra al cerrar (`useModalDeSecreto`), y el e2e que dice «la clave no vuelve» mira `page.content()` con el modal ya cerrado.
@@ -265,7 +264,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 
 ### Localizar y esperar
 
-- Con un diálogo abierto, lo de afuera sale del árbol accesible: `toHaveCount(0)` de una fila pasa aunque siga ahí. Espera primero `expect(dialogo).toBeHidden()`.
+- Con un diálogo o un `<Drawer>` abierto, lo de afuera sale del árbol accesible: `toHaveCount(0)` de una fila pasa aunque siga ahí. Ciérralo y espera `expect(dialogo).toBeHidden()` antes de afirmar sobre la página.
 - Sobre listas de cientos de filas busca por texto, no `*ByRole`: calcular el nombre accesible de cada enlace agota el timeout con un CPU.
 - Una página con `h1` propio (las sub-rutas de Configuración) repite el nombre de sus bloques («Monedas y tipos de cambio» contiene «Tipos de cambio»): busca el `h2` con `exact: true` o `level`.
 - Usa `exact: true` en botones genéricos («Guardar») y cuando un nombre o texto contiene a otro («Ir a la versión» dentro de «Revertir a la versión N»): si no, coincide con el de otra barra.
@@ -277,7 +276,6 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Filtra lo visible en un localizador de filas (`tr, li`): Next conserva la pantalla anterior escondida en el DOM y aparecen dos filas.
 - Una hora de Postgres no trae siempre 6 decimales (quita los ceros finales): no compares su largo; compara la ida y vuelta.
 - En el celular una fila de tabla es una tarjeta: un localizador por fila funciona en escritorio y cae en `movil`.
-- Con un modal o `<Drawer>` abierto lo de atrás sale del árbol de accesibilidad: ciérralo antes de afirmar sobre la página (un `toHaveCount(0)` sería un falso verde).
 - Antes de un atajo de teclado o un Tab espera el estado final (`toHaveValue`, resultados, hidratación, la sección y el foco en su lugar): antes de hidratar la `N` la toma el «Nuevo lead» del marco, y un Tab mientras llega contenido manda el foco al `body`.
 - Un clic antes de hidratar se pierde: reintenta con tope corto hasta que la URL pida el panel y para si ya lo pide, porque cada clic de más suma una entrada al historial y rompe «atrás».
 - Un clic que abre un visor o un modal se afirma (visible) y se cierra (`toBeHidden()`) antes del clic siguiente: si no, el siguiente cae sobre él y la prueba pasa sólo cuando el primero llegó antes de hidratar.
@@ -343,7 +341,6 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 
 - Registra una RPC en `paginas-en-la-base.ts` en el mismo cambio que su primer `.rpc(`, no antes: `paginas.test.ts` rechaza una entrada sin llamador en `src/`.
 - Agrega la sección de `docs/UX.md` que cita un spec en el mismo commit que la pantalla: la guarda del mapa exige que el título exista.
-- Lee pronto el log de una corrida roja: `gh run view --log-failed` sale vacío al rato y la causa queda sin verificar.
 - `supabase db lint` cambia de formato si detecta un agente (`AI_AGENT`, `CLAUDECODE`): lee con `leerDbLint()` aceptando las dos formas y, para reproducir el CI, quita esas variables.
 - Corre Splinter con los schemas de `[api]` (`pgrst.db_schemas`): sin ellos sólo revisa `public` y no ve los avisos de `web`.
 - Un job que levanta la pila de Supabase la levanta con `./.github/acciones/pila`, nunca con `supabase start` suelto: reserva los puertos efímeros y, si aun así «address already in use», muestra quién tiene el puerto (`ss`), baja la pila y reintenta una vez (otro error cae a la primera). Un «Base» o un e2e rojo con ese texto en `supabase start` no es del código: mira ese diagnóstico antes de tocar nada.
@@ -357,13 +354,12 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   antes de que pasen 5 minutos desde que empezó ese segundo intento.
 - No nombres `<Confirmar>` con sus signos en un comentario: `scripts/guardas/confirmar-con-url.test.ts` busca el texto crudo (comentarios incluidos) y pide registrar un diálogo que no existe; escribe el nombre sin `<…>`.
 - Usa `set -o pipefail` en los arneses: el código de salida de una tubería es el del último comando y una mutación «cae» o «pasa» en falso.
-- Antes de culpar al código por e2e que caen, mira que la base del carril tenga las migraciones (`pnpm db:reset` tras traer main; `supabase_migrations.schema_migrations`): dos worktrees con la misma letra en `.env.carril` comparten la pila y se pisan; `bash scripts/worktree/preparar.sh <letra libre>` pasa el worktree a otra.
+- Antes de culpar al código por e2e que caen, mira que la base del carril tenga las migraciones (`pnpm db:reset` al partir de un `main` nuevo; `supabase_migrations.schema_migrations`): dos worktrees con la misma letra en `.env.carril` comparten la pila y se pisan; `bash scripts/worktree/preparar.sh <letra libre>` pasa el worktree a otra.
 - El hook de Bash lee el texto entero del comando, heredocs incluidos, y lo parte también por comillas invertidas y paréntesis: un guion que nombre un push, la bandera de saltar hooks o una orden remota de Supabase se escribe en un archivo (Write) y se corre desde ahí. Lo mismo un texto que nombre un comando bloqueado, aunque sea entre `` ` `` (un doc, un mensaje de commit que nombre una orden de pnpm): se escribe con Write o va por `git commit -F <archivo>`.
 - Un issue que abre una GitHub App tiene `author_association` NONE: el filtro de quién puede escribir reconoce a la app por `performed_via_github_app.id`. (kit)
 - Un token de instalación vence a la hora: una sesión larga no hereda un `GH_TOKEN` fijo; `gh` y git piden el suyo por `gh-app/gh` y el helper de credenciales. (kit)
 - En un hook, busca el subcomando saltando las opciones globales (`pnpm -C x up`, `pnpm --filter web …`): mirar el primer argumento deja pasar la orden con una opción delante.
 - Con dos cuentas en `gh`, no cambies la activa: pide el token de la dueña del repo por llamada (`GH_TOKEN=$(gh auth token --user <dueña>)`), como hace `scripts/flujo/publicar.sh`.
-- `gh pr merge --auto` sin protección en `main` integra en el acto, antes del CI: el auto-merge sólo espera lo que la rama exige («Listo · todo en verde»).
 - Pide los archivos de un PR con la API paginada (`gh api --paginate repos/{owner}/{repo}/pulls/<n>/files?per_page=100`): `gh pr view --json files` corta en 100 y lo que queda afuera (una migración) no se ve.
 - La cuenta de líneas de `max-lines` (300) vale también para un `.test.ts`: una prueba nueva que no cabe va en su propio archivo.
 - `supabase db reset --linked` (CLI 2.120) no siembra aunque `[db.seed]` esté encendido: resetea con `--no-seed` y aplica cada semilla con
@@ -375,8 +371,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   `typecheck` (`**/*.ts`) y `mapa.sh --check` lo recorren y el hook del commit cae por código ajeno. Si pasa, aparta el enlace del worktree (no su destino). (kit)
 - En un carril corre las herramientas con `TMPDIR` propio (fuera de `/tmp`): el `/tmp` de la máquina es un tmpfs que comparten todas las
   sesiones y, sin inodos, nada puede crear archivos ahí (tampoco la terminal del agente).
-- Lee el motivo de un CI rojo en el log del job caído (`gh run view --job <id> --log-failed`), no en el de la corrida: su final es el
-  del agregador «Listo», que no dice qué cayó. (kit)
+- Lee pronto el motivo de un CI rojo en el log del job caído (`gh run view --job <id> --log-failed`), no en el de la corrida: su final es el
+  del agregador «Listo», que no dice qué cayó, y `--log-failed` sale vacío al rato. (kit)
 - Un rojo que la rama no causó (un choque por lo que otra tarea integró, la máquina del CI, una migración que quedó antes de una ya
   integrada) no gasta un intento de arreglo: lo mecánico va sin sesión (`scripts/orquestador/sin-sesion.sh`) y el choque cuenta aparte. (kit)
 - `claude -p` en un worktree pide el trust de la principal en `~/.claude.json` (`projects[<principal>].hasTrustDialogAccepted`): sin él
@@ -388,12 +384,12 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Una versión de modelo escrita en un archivo versionado envejece sin aviso: va el alias (`opus`) o el nivel (`capaz`), y `orquestador.sh verificar` dice qué modelo es hoy (`scripts/guardas/versiones-de-modelo.test.ts`).
 - Un `deny` de `.claude/settings.json` vale en todo modo y le gana al hook: lo que el hook deja pasar con `ORQ_PERMITE` (`pnpm update` en la tarea de dependencias) no puede estar en el deny.
 - Un issue que abre un workflow con `GITHUB_TOKEN` es de `github-actions[bot]`, sin asociación de escritura (`author_association: NONE`): el espejo de la cola lo acepta por su usuario sólo con la etiqueta `noche-roja`, y ningún comentario de un bot cuenta como respuesta.
-- Ancla con `/` en `.prettierignore` una carpeta de la raíz (`/contratos/`): sin la barra, la regla de gitignore vale para toda carpeta con ese nombre y `scripts/contratos/` dejaba de formatearse.
+- Ancla con `/` en `.prettierignore` una carpeta de la raíz (`/contratos/`): sin la barra, la regla de gitignore vale para toda carpeta con ese nombre y `scripts/contratos/` deja de formatearse.
 - Un `.ts` generado dentro del repo pasa por el `typecheck` con `noUnusedLocals`: no declares un ayudante que puede quedar sin uso (el `Json` de los tipos de un contrato) y pruébalo compilando con las opciones de `tsconfig.json`.
 - Con `@types/node` 20, `fs.globSync` (Node 22+) no tipa aunque Node 24 lo tenga: recorre con `readdirSync(dir, { recursive: true })`.
-- Nombra la pila de un carril con el repo (`<proyecto>-<rol>-<carril>`), no con el proyecto: con el slug solo, el carril «a» de app y el de web de un mismo proyecto compartían contenedores.
+- Nombra la pila de un carril con el repo (`<proyecto>-<rol>-<carril>`), no con el proyecto: con el slug solo, el carril «a» de app y el de web de un mismo proyecto comparten contenedores.
 - Un repo nuevo no declara `provee` ni `consume` antes del paso que publica o fija el contrato: sin `contratos/<id>@<n>.json` (o sin la copia fijada) los jobs `contrato` y `contrato-uso` caen desde el primer PR.
-- Protege main de un repo nuevo antes de encender su orquestador (`publicar-proyecto.mjs proteger`, tras el primer CI verde): sin protección, el auto-merge integra al instante.
+- Protege main de un repo nuevo antes de encender su orquestador (`publicar-proyecto.mjs proteger`, tras el primer CI verde): `gh pr merge --auto` sólo espera lo que la rama exige («Listo · todo en verde») y, sin protección, integra al instante, antes del CI.
 - Un repo recién creado vive en `z_<proyecto>/<rol>` y todavía no tiene remoto: el repo propio se busca también por su `rol`, o con un manifiesto de varios repos el orquestador no sabe quién es.
 - Una sesión de `claude -p` con la ventana de 1M casi no compacta: cada turno paga todo el contexto (500k–900k en una tarea larga), y
   eso es la mayor parte de su costo. El tope de compactación va explícito al lanzarla (`--autocompact <tokens>`). (kit)
