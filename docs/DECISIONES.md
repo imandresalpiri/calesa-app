@@ -1181,18 +1181,22 @@ las trampas, en `docs/LECCIONES.md`.
 - **El proyecto se guía por pasos que salen del flujo de repuestos, no de nombres** (`entities/flujo/pasos.ts`): las fases activas en su orden y, justo antes de
   la primera fase activa que lo pide (bloqueante o informativo), un hito por clave de requisito: `repuesto.precio` → «Precio al cliente», `proyecto.pago_cliente` →
   «Pago del cliente». Antes, porque un requisito es lo que la fase pide para entrar. Sin la clave en ninguna fase, el hito no aparece: el progreso no inventa pasos.
-  Descartados: un kanban de ítems por fase (arrastrar está prohibido y duplica la Cadena), pestañas con una barra de progreso (no junta el dinero con su paso ni
-  dice qué sigue) y un asistente por ítem (lento con 20 ítems y rompe la hoja celda a celda).
-- **«Compra registrada» no es un paso**: la base no tiene una clave que la ubique. Un panel cuyo hito el flujo no ubica va en «Del proyecto», al final de los pasos
-  y sin progreso: Compras siempre, Cotizaciones y Pagos si ninguna fase pide su clave (la clave `repuesto.compra` es de la persona, `PENDIENTES`).
+  Se dibujan como una barra de progreso compacta bajo la cabecera (pista con el color de la fase, nombre y progreso en texto); un hito es un botón que lleva a su
+  pestaña. Descartados: un kanban de ítems por fase (arrastrar está prohibido y duplica la Cadena) y un asistente por ítem (lento con 20 ítems y rompe la hoja celda a celda).
+- **«Compra registrada» no es un paso**: la base no tiene una clave que la ubique. Compras no tiene hito: sólo su pestaña (la clave `repuesto.compra` es de la persona,
+  `PENDIENTES`). Cotizaciones y Pagos tienen su pestaña pidan o no las fases su clave; el hito sólo es un atajo.
 - **El progreso de una fase cuenta los ítems que llegaron**: los que están en ella o en una fase a la que se llega desde ella por salidas hacia adelante (destino de
   mayor `orden`). Así un ítem «Perdido» no cuenta en «Recibido» y una vuelta atrás no infla el número. El del pago, con `repuestos.costos.ver`, es todos o ninguno
   (un pago es del proyecto); sin la clave, los que llegaron a la fase que lo pide, sin decir nada del pago.
 - **El siguiente de un ítem sólo cambia de botón por un hito bloqueante** (`siguienteDelItem`): un informativo no frena mover. Destino = la salida hacia adelante más
   cercana (si no hay, la primera); cada botón pide la clave que la base exige para eso (`repuestos.mover`, `repuestos.cotizar`, `repuestos.costos.editar`) y sin ella
   se dice «Sigue: «X»»; un hito bloqueante que falta y quien mira no puede hacer nunca da «Mover» (la base lo rechazaría siempre). Se calcula en el navegador sobre las filas vivas de la hoja: un precio tecleado cambia el botón y el progreso sin releer nada.
-- **Los paneles conservan `?pestana=`** (`cotizaciones|pagos|compras`) como «el panel abierto bajo los pasos»: los enlaces viejos abren lo mismo y los de un
-  formulario de compra o de pagos sin `?pestana=` redirigen con su panel. La hoja no se desmonta nunca.
+- **El proyecto se recorre por pestañas fijas** (Ítems · Cotizaciones · Pagos · Compras, `?pestana=items|cotizaciones|pagos|compras`; sin clave, Ítems): un solo
+  lugar para cada cosa y nada aparece de golpe. Los enlaces viejos abren lo mismo y los de un formulario de compra o de pagos sin `?pestana=` redirigen con su
+  pestaña. La hoja no se desmonta nunca: en otra pestaña queda montada y oculta (`hidden`), porque sus filas vivas calculan la barra de progreso, volver a Ítems no
+  la relee y lo que se esté escribiendo en una celda no se pierde. Lo que se pega bajo la barra superior es la barra de pestañas, con el nombre compacto del proyecto
+  a su izquierda mientras va pegada: la cabecera entera (vehículo, cliente, notas) ocuparía un tercio de la pantalla. Cada pestaña reserva su alto (`min-h-80`)
+  mientras llega. Sin «Cerrar»: cambiar de pestaña lo cierra.
 - **El panel del ítem es una variante de logística** (`PanelDeLaUnidadALaVista`), no un cambio de la pieza común: el drawer de `/logistica/gastos?vehiculo=` sigue
   plegable. El destino ya elegido viaja en `?destino=` y llega a «Qué falta» por un contexto nulo por defecto; los bloques de `repuestos` (imágenes, stock, compras)
   los compone `src/app`. El stock del bloque sólo enlaza a su panel de la hoja: el formulario cambia la fila sin releerla.

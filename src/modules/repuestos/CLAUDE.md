@@ -32,8 +32,8 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
   El módulo no importa `buscador`: los buscadores de vehículo y lead los compone `src/app`.
 - **`items`** — `pantallas/items.ts`: `<HojaDeItems>` (`/repuestos/[id]`) con el panel `?panel=imagenes&item=`; `index.ts`: `leerProyecto`,
   `leerItemsDelProyecto`, `leerItem`, `cuentasDeLaHoja`, `FilaDeItem`. El hueco de la hoja (`HuecoDeLaHoja`) tiene cuatro ranuras: `accionDeFila(fila)`,
-  `panel(api)`, `arriba(api)` (antes de la hoja, con sus filas vivas: los pasos y el panel del paso) y `pasoDeFila(fila)` (en la columna «Siguiente»: el
-  botón del siguiente; si no pone nada, la fila muestra la fase). La hoja recibe `ordenDeLasFases` (de `IndiceDelFlujo.lugar`, lo pasa `src/app`) y agrupa sus filas
+  `panel(api)`, `arriba(api)` (antes de la hoja, con sus filas vivas: la barra de progreso, las pestañas y el contenido de la abierta) y `pasoDeFila(fila)` (en la columna «Siguiente»: el
+  botón del siguiente; si no pone nada, la fila muestra la fase). La hoja recibe `oculta` (otra pestaña abierta: sigue montada, con `hidden`) y `ordenDeLasFases` (de `IndiceDelFlujo.lugar`, lo pasa `src/app`) y agrupa sus filas
   por paso en el navegador con `agruparPorPaso` (`entities/items/grupos-por-paso.ts`: el orden del flujo, una fase fuera de él tras las conocidas, «Sin fase» al
   final, «N+» con la hoja topada; sin orden, todo en «Sin fase»): un `<tbody data-grupo-de-paso>` por grupo en la tabla, una `<section>` en las tarjetas, y la fila
   nueva al final, fuera de los grupos. La primera columna dice qué es el ítem (`queEsElItem`, `entities/items/que-es.ts`: «Tipo · Condición»; `<QueEsElItem>`)
@@ -73,10 +73,10 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
 - **`flujo`** — los **pasos** de `/repuestos/[id]` (`docs/GLOSARIO.md` › «Paso (de un proyecto)», «Hito (de un paso)», «Siguiente (de un ítem)»):
   `leerFlujoDeLosPasos()` (`infra/flujo/pasos.ts`: fases, salidas y requisitos de dato con una clave de hito del flujo de repuestos, tres lecturas con tope 30 /
   360 / 60 más uno; un error no lanza: `ilegible`), `LecturaDeLosPasos`, `PANELES_DEL_PASO`, `TITULO_DEL_PANEL`. Las reglas, puras y con test:
-  `entities/flujo/pasos-del-flujo.ts` (`CLAVES_DE_HITO`), `pasos.ts` (`indexarFlujo`, `armarPasos`, `panelesFueraDeLosPasos`, `llegaronA`) y `siguiente.ts`
-  (`siguienteDelItem`). `pantallas/flujo-pasos.ts` (aparte, para que la Cadena no pague su JS): `<PasosDelProyecto>`, `<PasoDelItem>`, `useIndiceDelFlujo`;
+  `entities/flujo/pasos-del-flujo.ts` (`CLAVES_DE_HITO`), `pasos.ts` (`indexarFlujo`, `armarPasos`, `llegaronA`) y `siguiente.ts`
+  (`siguienteDelItem`). `pantallas/flujo-pasos.ts` (aparte, para que la Cadena no pague su JS): `<PasosDelProyecto>` (la barra de progreso: un hito es un botón a su pestaña), `<PasoDelItem>`, `useIndiceDelFlujo`;
   los calcula el navegador sobre las filas vivas de la hoja con los booleanos de `puede()` que manda el servidor. Lo compone `src/app/(app)/repuestos/[id]/`
-  (`hoja-del-proyecto.tsx`, `paneles.ts`: `?pestana=` y los enlaces viejos).
+  (`hoja-del-proyecto.tsx`, `barra-de-pestanas.tsx`: las pestañas pegadas con `<PestanasConDesborde>`, `paneles.ts`: `?pestana=` y los enlaces viejos).
 - **`flujo`** — esperas: `esperasQueDestraban(vehiculoId)` (`Resultado<{ items, hayMas }>`, hasta 50, por `repuestos_pendientes_de_vehiculo`, que oculta los
   nombres de fase sin `logistica.ver`). `pantallas/flujo-esperas.ts`: `HUECOS_DE_ESPERAS_EN_LA_UNIDAD` (`repuestos.ver`, regla `esperas`, tipo estructural
   propio: no importa `logistica`; el cast va en `huecos-de-la-unidad.tsx` de logística); lee con `leerEsperasDelVehiculo` al abrir y si cambia la fase,

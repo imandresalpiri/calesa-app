@@ -878,11 +878,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Grupo por paso** — `GrupoPorPaso` (`agruparPorPaso`, `entities/items/grupos-por-paso.ts`): los ítems de una misma fase bajo su encabezado («Comprar · 3»)
   en la hoja de `/repuestos/[id]`, en el orden de los pasos y «Sin fase» al final. No es «Grupo (de la hoja)» del cotizador ni «Grupo (de transporte)».
 - **Paso (de un proyecto)** — `PasoDelProyecto` (`entities/flujo/pasos.ts`): cada parada del camino de la venta sobre la hoja de `/repuestos/[id]`:
-  una fase activa del flujo de repuestos (su nombre, en su orden) o un hito, con su progreso en texto («3 de 5», «37+ de 200+»). No: «etapa»
-  (es del embudo).
+  una fase activa del flujo de repuestos (su nombre, en su orden) o un hito, con su progreso en texto («3 de 5», «37+ de 200+»); juntos son la **barra de progreso**
+  del proyecto, bajo la cabecera. No: «etapa» (es del embudo).
 - **Hito (de un paso)** — `HitoDelPaso` (`CLAVES_DE_HITO`): lo que no es fase y el flujo pide como requisito de dato: «Precio al cliente»
   (`repuesto.precio`) y «Pago del cliente» (`proyecto.pago_cliente`). Va justo antes de la primera fase activa que lo pide; si ninguna lo
-  pide, no aparece. Lleva su panel (Cotizaciones o Pagos); lo que no tiene hito va en «Del proyecto».
+  pide, no aparece. Es un botón que lleva a su pestaña (Cotizaciones o Pagos); Compras no tiene hito.
+- **Pestañas del proyecto** — Ítems · Cotizaciones · Pagos · Compras de `/repuestos/[id]` (`?pestana=items|cotizaciones|pagos|compras`; `PANELES_DEL_PASO`, `TITULO_DEL_PANEL`):
+  fijas bajo la barra de progreso; Ítems es la hoja y las otras tres piden su permiso (sin él no están). No es «pestaña del resumen» (cotizaciones) ni «zona de pestañas» (unidad).
 - **Siguiente (de un ítem)** — `SiguienteDelItem` (`siguienteDelItem`): lo que toca hacer para que el ítem avance y el botón que lo hace: mover
   a su próxima fase (la acción de la transición), o «Nueva cotización» / «Registrar pago» si el destino pide ese hito como bloqueante y falta.
   Sin permiso, sólo «Sigue: «X»».
@@ -1749,11 +1751,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Grupo por paso** — `GrupoPorPaso` (`agruparPorPaso`, `entities/items/grupos-por-paso.ts`): los ítems de una misma fase bajo su encabezado («Comprar · 3»)
   en la hoja de `/repuestos/[id]`, en el orden de los pasos y «Sin fase» al final. No es «Grupo (de la hoja)» del cotizador ni «Grupo (de transporte)».
 - **Paso (de un proyecto)** — `PasoDelProyecto` (`entities/flujo/pasos.ts`): cada parada del camino de la venta sobre la hoja de `/repuestos/[id]`:
-  una fase activa del flujo de repuestos (su nombre, en su orden) o un hito, con su progreso en texto («3 de 5», «37+ de 200+»). No: «etapa»
-  (es del embudo).
+  una fase activa del flujo de repuestos (su nombre, en su orden) o un hito, con su progreso en texto («3 de 5», «37+ de 200+»); juntos son la **barra de progreso**
+  del proyecto, bajo la cabecera. No: «etapa» (es del embudo).
 - **Hito (de un paso)** — `HitoDelPaso` (`CLAVES_DE_HITO`): lo que no es fase y el flujo pide como requisito de dato: «Precio al cliente»
   (`repuesto.precio`) y «Pago del cliente» (`proyecto.pago_cliente`). Va justo antes de la primera fase activa que lo pide; si ninguna lo
-  pide, no aparece. Lleva su panel (Cotizaciones o Pagos); lo que no tiene hito va en «Del proyecto».
+  pide, no aparece. Es un botón que lleva a su pestaña (Cotizaciones o Pagos); Compras no tiene hito.
+- **Pestañas del proyecto** — Ítems · Cotizaciones · Pagos · Compras de `/repuestos/[id]` (`?pestana=items|cotizaciones|pagos|compras`; `PANELES_DEL_PASO`, `TITULO_DEL_PANEL`):
+  fijas bajo la barra de progreso; Ítems es la hoja y las otras tres piden su permiso (sin él no están). No es «pestaña del resumen» (cotizaciones) ni «zona de pestañas» (unidad).
 - **Siguiente (de un ítem)** — `SiguienteDelItem` (`siguienteDelItem`): lo que toca hacer para que el ítem avance y el botón que lo hace: mover
   a su próxima fase (la acción de la transición), o «Nueva cotización» / «Registrar pago» si el destino pide ese hito como bloqueante y falta.
   Sin permiso, sólo «Sigue: «X»».
