@@ -29,6 +29,7 @@ export const AVISO_DE_PROYECTO_CERRADO = 'El proyecto está cerrado: reábrelo p
 export const MOTIVO_SIN_PERMISO_PARA_EDITAR = 'Sin permiso para editar.'
 export const MOTIVO_PROYECTO_CERRADO = 'Proyecto cerrado.'
 export const TEXTO_DE_HOJA_VACIA = 'Este proyecto todavía no tiene ítems.'
+export const TEXTO_SIN_RESULTADOS = 'Ningún ítem coincide con la búsqueda o los filtros.'
 
 // Los catálogos que la hoja ofrece en sus celdas: cuatro listas de valores (la página pasa `leerCatalogosDeRepuestos()` tal cual: tiene de más). `areas/items` no importa
 // `areas/catalogos`, así que lo que necesita lo declara acá y el tipo de aquel lo cumple por estructura.
