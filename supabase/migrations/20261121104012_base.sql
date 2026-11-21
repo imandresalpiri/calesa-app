@@ -1,5 +1,5 @@
--- La base: el esquema y los datos de catálogo de las 26 migraciones anteriores (hasta 20261119203236_cotizaciones_plantillas_de_v1.sql), aplastadas el
--- 2026-11-19 con `pnpm db:aplastar` (scripts/db/aplastar.sh), que comprobó que deja la misma base. **No se edita**:
+-- La base: el esquema y los datos de catálogo de las 21 migraciones anteriores (hasta 20261121104012_formula_quitar_plantillas_de_v1.sql), aplastadas el
+-- 2026-11-21 con `pnpm db:aplastar` (scripts/db/aplastar.sh), que comprobó que deja la misma base. **No se edita**:
 -- todo cambio es una migración nueva (`supabase migration new`), y una guarda de `pnpm test` fija el sha256 de este archivo
 -- (scripts/guardas/orden-de-migraciones.test.ts). Las migraciones que reemplaza están en git, en el commit anterior al que las aplastó.
 --
@@ -405,12 +405,13 @@ begin
     return false;
   end if;
   v_id := p_registro::uuid;
-  if v_fila is null and p_tabla in ('comprobantes', 'documentos', 'formulas', 'gastos', 'pagos', 'transportes') then
+  if v_fila is null and p_tabla in ('comprobantes', 'documentos', 'formulas', 'formulas_del_origen', 'gastos', 'pagos', 'transportes') then
     -- Cada una por su PK.
     v_fila := case p_tabla
       when 'comprobantes' then (select to_jsonb(t) from public.comprobantes t where t.id = v_id)
       when 'documentos' then (select to_jsonb(t) from public.documentos t where t.id = v_id)
       when 'formulas' then (select to_jsonb(t) from public.formulas t where t.id = v_id)
+      when 'formulas_del_origen' then (select to_jsonb(t) from public.formulas_del_origen t where t.id = v_id)
       when 'gastos' then (select to_jsonb(t) from public.gastos t where t.id = v_id)
       when 'pagos' then (select to_jsonb(t) from public.pagos t where t.id = v_id)
       when 'transportes' then (select to_jsonb(t) from public.transportes t where t.id = v_id)
@@ -429,8 +430,9 @@ begin
     when 'transportes' then public.puede_unidad((v_fila ->> 'vehiculo_id')::uuid, (v_fila ->> 'repuesto_id')::uuid, 'logistica.ver', 'repuestos.ver')
     when 'pagos' then ((v_fila ->> 'vehiculo_id') is not null and public.puede_vehiculo((v_fila ->> 'vehiculo_id')::uuid, 'logistica.pagos.ver'))
                    or ((v_fila ->> 'proyecto_repuestos_id') is not null and public.tiene_permiso('repuestos.costos.ver'))
-    -- policy «formulas: leer»: el origen con cotizaciones.configurar (propios o más).
+    -- policies «formulas: leer» y «formulas_del_origen: leer»: el origen con cotizaciones.configurar (propios o más).
     when 'formulas' then (v_fila ->> 'origen_id')::uuid = any (public.origenes_con_alcance('cotizaciones.configurar', 'propios'))
+    when 'formulas_del_origen' then (v_fila ->> 'origen_id')::uuid = any (public.origenes_con_alcance('cotizaciones.configurar', 'propios'))
     when 'repuestos_compras' then public.tiene_permiso('repuestos.costos.ver')
     when 'repuestos_items' then public.tiene_permiso('repuestos.ver')
     -- policy «declaraciones_aduana: leer» (6.07-3): quien gestiona aduana, o un vehículo vigente de la declaración que se ve.
@@ -513,7 +515,7 @@ CREATE OR REPLACE FUNCTION "public"."_actividad_recorte"("p_tabla" "text") RETUR
   select case
     when p_tabla = 'leads' then 'lead'
     when p_tabla in ('vehiculos', 'cotizaciones', 'comprobantes', 'declaraciones_aduana', 'documentos', 'gastos', 'pagos', 'transportes',
-                     'repuestos_compras', 'repuestos_items', 'formulas') then 'entidad'
+                     'repuestos_compras', 'repuestos_items', 'formulas', 'formulas_del_origen') then 'entidad'
     when p_tabla in ('ajustes_empresa', 'ajustes_web', 'ajustes_leads', 'categorias', 'cola_web_asesores', 'fases', 'fases_requisitos',
                      'fases_transiciones', 'integraciones', 'leads_campos', 'origenes', 'origenes_campos', 'origenes_lead',
                      'plantillas_tarjeta', 'roles_permisos', 'tipos_cambio', 'tipos_lead', 'tipos_seguimiento', 'usuarios_roles') then 'configuracion'
@@ -1346,13 +1348,13 @@ begin
     delete from public.cotizaciones_aprobadas x where x.vehiculo_id = p_vehiculo;
     return;
   end if;
-  -- Activa = con este vehículo, fuera de la papelera y no inválida (la reportada cuenta).
+  -- Activa = con este vehículo, fuera de la papelera, no inválida (la reportada cuenta) y pública.
   select x.cotizacion_id, x.origen_id, x.creado_por, x.lead_id, x.monto, x.moneda into a
     from public.cotizaciones_aprobadas x where x.vehiculo_id = p_vehiculo;
   if found then
     select k.origen_id, k.creado_por, k.lead_id, k.totales into c
       from public.cotizaciones k
-     where k.id = a.cotizacion_id and k.vehiculo_id = p_vehiculo and k.eliminado_en is null and k.estado <> 'invalida';
+     where k.id = a.cotizacion_id and k.vehiculo_id = p_vehiculo and k.eliminado_en is null and k.estado <> 'invalida' and not k.privada;
     if found then
       -- Se queda; sólo se refrescan el primer resultado y las copias si cambiaron.
       select * into r from public._cotizacion_primer_resultado(c.totales);
@@ -1367,7 +1369,7 @@ begin
   end if;
   -- La más antigua activa (cotizaciones_vehiculo_creado_idx hacia atrás).
   select k.id into c from public.cotizaciones k
-   where k.vehiculo_id = p_vehiculo and k.eliminado_en is null and k.estado <> 'invalida'
+   where k.vehiculo_id = p_vehiculo and k.eliminado_en is null and k.estado <> 'invalida' and not k.privada
    order by k.creado_en, k.id limit 1;
   if found then
     perform public._aprobada_poner(p_vehiculo, c.id);
@@ -1381,7 +1383,7 @@ $$;
 ALTER FUNCTION "public"."_aprobada_reponer"("p_vehiculo" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_aprobada_reponer"("p_vehiculo" "uuid") IS 'La regla única de la aprobada de un vehículo: si apunta a una cotización activa se queda (refresca monto y copias si cambiaron); si no, pasa a la más antigua activa por (creado_en, id); sin activas, o con el vehículo en la papelera o inexistente, no hay fila. Supone el candado de _aprobada_candado(). De nadie.';
+COMMENT ON FUNCTION "public"."_aprobada_reponer"("p_vehiculo" "uuid") IS 'La regla única de la aprobada de un vehículo: si apunta a una cotización activa y pública se queda (refresca monto y copias si cambiaron); si no, pasa a la más antigua activa y pública por (creado_en, id); sin activas, o con el vehículo en la papelera o inexistente, no hay fila. Supone el candado de _aprobada_candado(). De nadie.';
 
 
 
@@ -2852,21 +2854,31 @@ CREATE OR REPLACE FUNCTION "public"."_cotizacion_abierta"("p_origen" "uuid", "p_
     SET "search_path" TO ''
     AS $$
 declare
-  v_version int; v_estado text; v_siguiente timestamptz;
+  v_version int; v_estado text; v_siguiente timestamptz; v_fdo uuid; v_activa boolean; v_desactivada timestamptz;
 begin
-  -- «Guardar con la N» no fija precios viejos para siempre: la hoja tiene que haberse abierto hace menos de un día y, si la versión ya no es la publicada, haber dejado de serlo hace menos de un día.
+  -- «Guardar con la N» no fija precios viejos para siempre: la hoja tiene que haberse abierto hace menos de un día y, si la versión ya no es la que se cotiza,
+  -- haber dejado de serlo hace menos de un día: la reemplazó una versión posterior de su fórmula o su fórmula dejó de ser la activa, lo primero que pasó.
   if p_abierta_en < statement_timestamp() - interval '24 hours' then
     raise exception 'Abriste la hoja hace más de un día: ábrela de nuevo.' using errcode = '22023', detail = 'abierta_vencida', hint = 'abierta';
   end if;
-  select f.version, f.estado::text into v_version, v_estado from public.formulas f where f.id = p_formula and f.origen_id = p_origen and f.estado in ('publicada', 'archivada');
+  select f.version, f.estado::text, f.formula_del_origen_id into v_version, v_estado, v_fdo
+    from public.formulas f where f.id = p_formula and f.origen_id = p_origen and f.estado in ('publicada', 'archivada');
   if not found then
     raise exception 'La versión de la hoja que abriste ya no está disponible: ábrela de nuevo.' using errcode = '22023', detail = 'abierta_no_disponible', hint = 'abierta';
   end if;
+  select d.activa, d.desactivada_en into v_activa, v_desactivada from public.formulas_del_origen d where d.id = v_fdo;   -- formulas_del_origen_pkey
+  if v_estado = 'publicada' and v_activa then
+    return;
+  end if;
   if v_estado = 'archivada' then
-    select min(f.publicado_en) into v_siguiente from public.formulas f where f.origen_id = p_origen and f.version > v_version and f.estado in ('publicada', 'archivada');
-    if v_siguiente is null or v_siguiente < statement_timestamp() - interval '24 hours' then
-      raise exception 'Esa versión de la hoja se reemplazó hace más de un día: ábrela de nuevo.' using errcode = '22023', detail = 'abierta_vencida', hint = 'abierta';
-    end if;
+    select min(f.publicado_en) into v_siguiente from public.formulas f                                   -- formulas_formula_del_origen_id_version_key
+     where f.formula_del_origen_id = v_fdo and f.version > v_version and f.estado in ('publicada', 'archivada');
+  end if;
+  if not v_activa then
+    v_siguiente := least(v_siguiente, v_desactivada);
+  end if;
+  if v_siguiente is null or v_siguiente < statement_timestamp() - interval '24 hours' then
+    raise exception 'Esa versión de la hoja se reemplazó hace más de un día: ábrela de nuevo.' using errcode = '22023', detail = 'abierta_vencida', hint = 'abierta';
   end if;
 end $$;
 
@@ -2952,7 +2964,7 @@ declare
   v_activa_new boolean;
 begin
   if tg_op = 'INSERT' then
-    if new.vehiculo_id is not null and new.eliminado_en is null and new.estado <> 'invalida' then
+    if new.vehiculo_id is not null and new.eliminado_en is null and new.estado <> 'invalida' and not new.privada then
       v_ids := array[new.vehiculo_id];
     end if;
   elsif tg_op = 'DELETE' then
@@ -2960,8 +2972,8 @@ begin
       v_ids := array[old.vehiculo_id];
     end if;
   else
-    v_activa_old := old.vehiculo_id is not null and old.eliminado_en is null and old.estado <> 'invalida';
-    v_activa_new := new.vehiculo_id is not null and new.eliminado_en is null and new.estado <> 'invalida';
+    v_activa_old := old.vehiculo_id is not null and old.eliminado_en is null and old.estado <> 'invalida' and not old.privada;
+    v_activa_new := new.vehiculo_id is not null and new.eliminado_en is null and new.estado <> 'invalida' and not new.privada;
     if new.vehiculo_id is distinct from old.vehiculo_id then
       v_ids := array_remove(array[old.vehiculo_id, new.vehiculo_id], null);
     elsif v_activa_old is distinct from v_activa_new
@@ -3063,8 +3075,9 @@ begin
         perform public._motor_fallar('llamada_invalida', 'p_formula', 'La versión de la hoja no es de este origen.');
       end if;
     else
+      v_formula := public._publicada_de_la_activa(p_origen);                                   -- la publicada de la fórmula activa
       select f.id, f.definicion, f.params, f.visibilidad into v_formula, v_def, v_par, v_visib
-        from public.formulas f where f.origen_id = p_origen and f.estado = 'publicada';          -- formulas_publicada_unica
+        from public.formulas f where f.id = v_formula;                                           -- formulas_pkey
       if not found then
         perform public._motor_fallar('origen_sin_formula', null, 'Este origen no tiene una fórmula publicada.');
       end if;
@@ -3220,6 +3233,8 @@ CREATE TABLE IF NOT EXISTS "public"."cotizaciones" (
     "titulo_manual" boolean DEFAULT false NOT NULL,
     "tarjeta_retoques" "jsonb",
     "hermana_id" "uuid",
+    "privada" boolean DEFAULT false NOT NULL,
+    CONSTRAINT "cotizaciones_final_no_privada" CHECK ((NOT ("privada" AND ("clase" = 'final'::"public"."clase_cotizacion")))),
     CONSTRAINT "cotizaciones_hermana_distinta" CHECK (("hermana_id" <> "id")),
     CONSTRAINT "cotizaciones_tarjeta_retoques_objeto" CHECK ((("tarjeta_retoques" IS NULL) OR ("jsonb_typeof"("tarjeta_retoques") = 'object'::"text")))
 );
@@ -3261,6 +3276,10 @@ COMMENT ON COLUMN "public"."cotizaciones"."tarjeta_retoques" IS 'Los retoques de
 
 
 COMMENT ON COLUMN "public"."cotizaciones"."hermana_id" IS 'La cotización hermana (glosario: «Cotizaciones hermanas»): la otra opción de una variante en par. Las dos se apuntan entre sí y comparten lead, vehículo, origen y versión (trg_cotizaciones_hermanas). La escriben sólo cotizacion_crear_en_par y cotizacion_encima_en_par; purgar una la pone en nulo en la otra.';
+
+
+
+COMMENT ON COLUMN "public"."cotizaciones"."privada" IS 'Privada: la ven sólo quien la creó y quien tiene cotizaciones.privadas.ver de su origen. La cambia sólo quien la creó (cotizacion_privada_cambiar, o p_privada al crearla); aprobarla o marcarla final la hace pública. Una final nunca es privada (cotizaciones_final_no_privada) ni la aprobada de un vehículo; las hermanas comparten la marca.';
 
 
 
@@ -3779,64 +3798,6 @@ COMMENT ON FUNCTION "public"."_cotizacion_modo"("p_formula" "uuid", "p_modo_tc" 
 
 
 
-CREATE OR REPLACE FUNCTION "public"."_cotizacion_portada_clave"("p_cot" "uuid") RETURNS "text"
-    LANGUAGE "sql" STABLE
-    SET "search_path" TO ''
-    AS $$
-  select 'p' || public._portada_version_del_dibujo()::text || '-' || md5(jsonb_build_array(
-    -- La cotización (cotizaciones_pkey): guardar, el título y los retoques mueven `actualizado_en`; la versión y el origen dicen qué tarjeta se dibuja.
-    extract(epoch from c.actualizado_en), c.formula_id, c.origen_id,
-    -- La plantilla publicada del origen (plantillas_publicada_unica), o ninguna: la tarjeta por omisión.
-    (select jsonb_build_array(p.id, extract(epoch from p.actualizado_en))
-       from public.plantillas_tarjeta p where p.origen_id = c.origen_id and p.estado = 'publicada'),
-    -- Esa versión de la fórmula (formulas_pkey).
-    (select extract(epoch from f.actualizado_en) from public.formulas f where f.id = c.formula_id),
-    -- El catálogo de colores (decenas de filas, entero): la clave y el hex de cada uno, lo que lee `cotizacion_tarjeta()`.
-    (select md5(string_agg(t.clave || ':' || t.hex, ',' order by t.clave collate "C")) from public.tonos t),
-    -- Los tipos de cambio (decenas de filas, enteros): el nombre, si está activo y la moneda, nunca el valor del día.
-    (select md5(string_agg(jsonb_build_array(t.clave, t.nombre, t.activo, t.moneda_a)::text, ',' order by t.clave collate "C", t.id))
-       from public.tipos_cambio t),
-    -- El cliente (leads_pkey) y el vehículo (vehiculos_pkey), vivos: en la papelera no se dibujan.
-    (select l.nombre from public.leads l where l.id = c.lead_id and l.eliminado_en is null),
-    (select jsonb_build_array(v.titulo, v.lote, v.vin) from public.vehiculos v where v.id = c.vehiculo_id and v.eliminado_en is null),
-    -- Quien la creó (perfiles_pkey): lo que lee `autorVisible()`.
-    (select jsonb_build_array(pe.nombre, pe.email) from public.perfiles pe where pe.id = c.creado_por),
-    -- Los ajustes de la empresa (ajustes_empresa_pkey, la fila única): el logo, la zona, el formato regional, la vigencia y el nombre.
-    (select extract(epoch from e.actualizado_en) from public.ajustes_empresa e where e.id = 1)
-  )::text)
-  from public.cotizaciones c where c.id = p_cot;
-$$;
-
-
-ALTER FUNCTION "public"."_cotizacion_portada_clave"("p_cot" "uuid") OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."_cotizacion_portada_clave"("p_cot" "uuid") IS 'La clave de la portada de una cotización: p<_portada_version_del_dibujo>-md5 de lo que dibuja su tarjeta (la cotización, la plantilla publicada del origen, su versión de la fórmula, los colores y los tipos de cambio por contenido, el cliente y el vehículo vivos, quien la creó y los ajustes de la empresa). Todo por clave primaria o índice único, y dos catálogos de decenas de filas. De nadie; la llaman cotizacion_portada y cotizacion_portada_poner.';
-
-
-
-CREATE OR REPLACE FUNCTION "public"."_cotizacion_portada_ve_todo"("p_lead" "uuid", "p_vehiculo" "uuid") RETURNS boolean
-    LANGUAGE "sql" STABLE
-    SET "search_path" TO ''
-    AS $$
-  select coalesce(
-    (p_lead is null
-       or not exists (select 1 from public.leads l where l.id = p_lead and l.eliminado_en is null)
-       or public.puede_lead(p_lead, 'leads.ver'))
-    and (p_vehiculo is null
-       or not exists (select 1 from public.vehiculos v where v.id = p_vehiculo and v.eliminado_en is null)
-       or public.puede_vehiculo(p_vehiculo, 'vehiculos.ver')),
-    false);
-$$;
-
-
-ALTER FUNCTION "public"."_cotizacion_portada_ve_todo"("p_lead" "uuid", "p_vehiculo" "uuid") OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."_cotizacion_portada_ve_todo"("p_lead" "uuid", "p_vehiculo" "uuid") IS 'Si quien llama ve lo que la portada compartida de una cotización dibuja: el cliente vivo con leads.ver y el vehículo vivo con vehiculos.ver (leads_pkey, vehiculos_pkey). De nadie; la llaman cotizacion_portada y cotizacion_portada_poner.';
-
-
-
 CREATE OR REPLACE FUNCTION "public"."_cotizacion_primer_resultado"("p_totales" "jsonb", OUT "monto" numeric, OUT "moneda" "text") RETURNS "record"
     LANGUAGE "sql" STABLE
     SET "search_path" TO ''
@@ -3982,7 +3943,7 @@ begin
   -- Por origen, la puerta de la hoja (`crear` y `ver`), antes de leer la hoja abierta y de mirar nada más.
   perform public.assert_permiso('cotizaciones.crear', p_origen);
   perform public.assert_permiso('cotizaciones.ver', p_origen);
-  select f.id into v_publicada from public.formulas f where f.origen_id = p_origen and f.estado = 'publicada';       -- formulas_publicada_unica
+  v_publicada := public._publicada_de_la_activa(p_origen);
   if p_abierta is null then
     return v_publicada;
   end if;
@@ -4168,7 +4129,7 @@ begin
     from public.cotizaciones c
     join public.vehiculos v on v.id = c.vehiculo_id and v.eliminado_en is null
     cross join lateral public._cotizacion_primer_resultado(c.totales) r
-   where c.eliminado_en is null and c.estado <> 'invalida'
+   where c.eliminado_en is null and c.estado <> 'invalida' and not c.privada
    order by c.vehiculo_id, c.creado_en, c.id
   on conflict do nothing;
   get diagnostics n = row_count;
@@ -4198,9 +4159,9 @@ begin
   end if;
   select * into h from public.cotizaciones x where x.id = yo.hermana_id;
   v_ok := found and h.hermana_id = yo.id and h.lead_id is not distinct from yo.lead_id and h.vehiculo_id is not distinct from yo.vehiculo_id
-          and h.origen_id = yo.origen_id and h.formula_id = yo.formula_id;
+          and h.origen_id = yo.origen_id and h.formula_id = yo.formula_id and h.privada = yo.privada;
   if v_ok is not true then
-    raise exception 'Las cotizaciones hermanas se apuntan entre sí y comparten el lead, el vehículo, el origen y la versión de la fórmula.'
+    raise exception 'Las cotizaciones hermanas se apuntan entre sí y comparten el lead, el vehículo, el origen, la versión de la fórmula y la marca privada.'
       using errcode = '23514', detail = 'hermanas';
   end if;
   return null;
@@ -4223,6 +4184,7 @@ declare
   v_yo constant uuid := (select auth.uid());
   v_t uuid[];
   v_p uuid[];
+  v_pv uuid[];
   v_solo_propios uuid[];
   v_texto text;
   v_patron text;
@@ -4237,6 +4199,7 @@ begin
   end if;
   v_t := coalesce((select public.origenes_con_alcance('cotizaciones.ver', 'todos')), '{}');
   v_p := coalesce((select public.origenes_con_alcance('cotizaciones.ver', 'propios')), '{}');
+  v_pv := coalesce((select public.origenes_con_alcance('cotizaciones.privadas.ver', 'propios')), '{}');
   -- El origen del listado sólo estrecha.
   if p_origen is not null then
     v_t := case when p_origen = any (v_t) then array[p_origen] else array[]::uuid[] end;
@@ -4250,6 +4213,7 @@ begin
   v_ids := array(
     select c.id from public.cotizaciones c
      where c.titulo ilike v_patron and c.eliminado_en is null and c.origen_id = any (v_t || v_p)
+       and (not c.privada or c.creado_por = v_yo or c.origen_id = any (v_pv))
      limit 1000);
   -- Las propias, por `cotizaciones_creador_idx (creado_por, creado_en desc, id desc) where eliminado_en is null`, sólo donde se tiene «propios» sin «todos».
   v_solo_propios := array(select unnest(v_p) except select unnest(v_t));
@@ -4268,6 +4232,7 @@ begin
     select c.id from public.cotizaciones c
      where c.id = any (v_ids)
        and c.eliminado_en is null
+       and (not c.privada or c.creado_por = v_yo or c.origen_id = any (v_pv))
        and (c.origen_id = any (v_t)
             or (c.origen_id = any (v_p) and (c.creado_por = v_yo or public.en_cartera(c.lead_id))))
      order by c.creado_en desc, c.id desc
@@ -4477,10 +4442,13 @@ CREATE OR REPLACE FUNCTION "public"."_cotizaciones_papelera_lote_json"("p_lote" 
       from public.cotizaciones c
       where c.id = any (array(select c0.id from public.cotizaciones c0
                                 where c0.lote_papelera_id = p_lote.id and c0.eliminado_en is not null
+                                  -- Una privada ajena (glosario: «Cotización privada») no existe para quien no puede verla, tampoco en la papelera.
+                                  and (not c0.privada or c0.creado_por = p_yo or public.tiene_permiso('cotizaciones.privadas.ver', c0.origen_id))
                                 order by c0.numero limit p_primeros))),
     -- Cuántas quedan en la papelera, exacto: un lote tiene a lo sumo 200 (contado sobre 201 para la guarda de escala).
     'en_papelera', (select count(*) from (select 1 from public.cotizaciones c where c.lote_papelera_id = p_lote.id
-                                           and c.eliminado_en is not null limit 201) n));
+                                           and c.eliminado_en is not null
+                                           and (not c.privada or c.creado_por = p_yo or public.tiene_permiso('cotizaciones.privadas.ver', c.origen_id)) limit 201) n));
 $$;
 
 
@@ -4803,6 +4771,7 @@ begin
                                 from jsonb_array_elements_text(case when x.value ->> 'tipo' = 'calculo' and jsonb_typeof(x.value -> 'de') = 'array'
                                                                     then x.value -> 'de' else '[]'::jsonb end) d
                     union all select x.value ->> 'pct' where x.value ->> 'tipo' = 'calculo' and x.value ->> 'op' = 'porcentaje_de'
+                    union all select x.value ->> 'prueba' where x.value ->> 'tipo' = 'calculo' and x.value ->> 'op' = 'elegir'
                     union all select x.value ->> 'sobre'
                                where (x.value ->> 'tipo' = 'calculo' and x.value ->> 'op' = 'depreciar') or x.value ->> 'tipo' = 'tramo'
                     union all select m.value
@@ -6491,6 +6460,7 @@ CREATE TABLE IF NOT EXISTS "public"."formulas" (
     "publicado_en" timestamp with time zone,
     "creado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
     "actualizado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "formula_del_origen_id" "uuid" NOT NULL,
     CONSTRAINT "formulas_publicada_con_diseno" CHECK ((("estado" = 'borrador'::"public"."estado_version") OR (("diseno" IS NOT NULL) AND ("visibilidad" IS NOT NULL))))
 );
 
@@ -6498,11 +6468,15 @@ CREATE TABLE IF NOT EXISTS "public"."formulas" (
 ALTER TABLE "public"."formulas" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."formulas" IS 'Una serie por origen, append-only. A lo sumo un borrador y una publicada. Publicar archiva la vigente. «Revertir» publica una copia. Escritura sólo por RPC formula_*.';
+COMMENT ON TABLE "public"."formulas" IS 'Las versiones de una fórmula del origen, append-only. A lo sumo un borrador y una publicada por fórmula del origen. Publicar archiva la vigente. «Revertir» publica una copia. Escritura sólo por RPC formula_*.';
 
 
 
 COMMENT ON COLUMN "public"."formulas"."version_origen_id" IS 'En una publicada o archivada, la publicada que reemplazó. En un borrador, la publicada sobre la que se empezó: si ya no es la publicada, publicarlo da PT409 (formula_guardar_borrador la escribe al crear el borrador). Nula si no había publicada o la fila se escribió fuera de las RPC.';
+
+
+
+COMMENT ON COLUMN "public"."formulas"."formula_del_origen_id" IS 'La fórmula del origen de esta versión. Nula al insertar: la pone trg_fdo_asignar (la de trabajo del origen).';
 
 
 
@@ -6843,6 +6817,341 @@ end $_$;
 ALTER FUNCTION "public"."_fase_validar"("p_fila" "public"."fases", "p_claves" "text"[]) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."_fdo_activada_por"("p_fdo" "uuid") RETURNS "text"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v public.formulas_del_origen; v_sujeto text;
+begin
+  select * into v from public.formulas_del_origen d where d.id = p_fdo;   -- formulas_del_origen_pkey
+  if v.id is null then return null; end if;
+  if v.activada_por is not null and v.activada_por = (select auth.uid()) then
+    v_sujeto := 'Activaste';
+  else
+    select nullif(btrim(p.nombre), '') || ' activó' into v_sujeto from public.perfiles p where p.id = v.activada_por;
+    v_sujeto := coalesce(v_sujeto, 'Otra persona activó');
+  end if;
+  return v_sujeto || ' «' || v.nombre || '»' || case when v.activada_en is null then '' else ' ' || public._hace(v.activada_en) end || '.';
+end $$;
+
+
+ALTER FUNCTION "public"."_fdo_activada_por"("p_fdo" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_activada_por"("p_fdo" "uuid") IS 'Interna: «Ana activó «Planilla» hace 2 min.»: el PT409 de activar cuando la activa no es la que se vio.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_asignar"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  if new.formula_del_origen_id is null then
+    new.formula_del_origen_id := public._fdo_de_trabajo(new.origen_id, true);
+  end if;
+  if tg_table_name = 'formulas' then
+    if new.estado = 'publicada'
+       and not exists (select 1 from public.formulas_del_origen d where d.origen_id = new.origen_id and d.activa) then   -- formulas_del_origen_activa_unica
+      update public.formulas_del_origen d
+         set activa = true, activada_en = coalesce(new.publicado_en, now()), activada_por = new.publicado_por, desactivada_en = null
+       where d.id = new.formula_del_origen_id and d.archivada_en is null;
+    end if;
+  end if;
+  return new;
+end $$;
+
+
+ALTER FUNCTION "public"."_fdo_asignar"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_asignar"() IS 'Trigger: pone la fórmula de trabajo del origen a una versión o plantilla que se inserta sin ella, y activa la fórmula de la primera publicada de un origen sin activa.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_campos_que_faltan"("p_def" "jsonb", "p_origen" "uuid") RETURNS "jsonb"
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select coalesce(jsonb_agg(jsonb_build_object('nodo', x.n ->> 'id', 'campo', x.n ->> 'campo') order by x.o), '[]'::jsonb)
+    from jsonb_array_elements(case when jsonb_typeof(p_def -> 'nodos') = 'array' then p_def -> 'nodos' else '[]'::jsonb end) with ordinality x (n, o)
+   where x.n ->> 'tipo' = 'campo_vehiculo'
+     and coalesce(x.n ->> 'campo', '') not in ('anio', 'marca', 'modelo', 'kilometraje', 'precio')
+     and not exists (select 1 from public.origenes_campos c where c.origen_id = p_origen and c.clave = x.n ->> 'campo');   -- origenes_campos_origen_id_clave_key
+$$;
+
+
+ALTER FUNCTION "public"."_fdo_campos_que_faltan"("p_def" "jsonb", "p_origen" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_campos_que_faltan"("p_def" "jsonb", "p_origen" "uuid") IS 'Interna: [{nodo, campo}] de cada campo_vehiculo que no es una columna común ni un campo del origen.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_de_trabajo"("p_origen" "uuid", "p_crear" boolean) RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  v_id uuid;
+begin
+  v_id := public._fdo_de_trabajo_leida(p_origen);
+  if v_id is not null or not coalesce(p_crear, false) or p_origen is null then
+    return v_id;
+  end if;
+  for v_n in 1..60 loop
+    begin
+      insert into public.formulas_del_origen (origen_id, nombre, creado_por)
+      values (p_origen, case when v_n = 1 then 'Fórmula' else 'Fórmula ' || v_n end, (select auth.uid()))
+      returning id into v_id;
+      return v_id;
+    exception when unique_violation then
+      select d.id into v_id from public.formulas_del_origen d
+       where d.origen_id = p_origen and d.archivada_en is null order by d.creado_en desc, d.id desc limit 1;
+      if v_id is not null then
+        return v_id;
+      end if;
+    end;
+  end loop;
+  raise exception 'No pudimos nombrar la fórmula del origen: renombra alguna archivada.' using errcode = '23505', hint = 'nombre';
+end $$;
+
+
+ALTER FUNCTION "public"."_fdo_de_trabajo"("p_origen" "uuid", "p_crear" boolean) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_de_trabajo"("p_origen" "uuid", "p_crear" boolean) IS 'Interna: la fórmula de trabajo del origen (la activa; si no hay, la más nueva sin archivar). Con p_crear crea «Fórmula» si el origen no tiene ninguna. docs/COTIZADOR.md › «Fórmulas del origen».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_de_trabajo_leida"("p_origen" "uuid") RETURNS "uuid"
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select coalesce(
+    (select d.id from public.formulas_del_origen d where d.origen_id = p_origen and d.activa),   -- formulas_del_origen_activa_unica
+    (select d.id from public.formulas_del_origen d                                              -- formulas_del_origen_origen_idx
+      where d.origen_id = p_origen and d.archivada_en is null order by d.creado_en desc, d.id desc limit 1));
+$$;
+
+
+ALTER FUNCTION "public"."_fdo_de_trabajo_leida"("p_origen" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_de_trabajo_leida"("p_origen" "uuid") IS 'Interna: la fórmula de trabajo del origen sin crearla (la activa; si no hay, la más nueva sin archivar). docs/COTIZADOR.md › «Fórmulas del origen».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_exigir_campos"("p_def" "jsonb", "p_origen" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  v jsonb := public._fdo_campos_que_faltan(p_def, p_origen) -> 0;
+begin
+  if v is not null then
+    raise exception 'El dato «%» no existe en este origen: elige otro o créalo en el origen.', v ->> 'campo'
+      using errcode = '22023', hint = 'nodos.' || (v ->> 'nodo');
+  end if;
+end $$;
+
+
+ALTER FUNCTION "public"."_fdo_exigir_campos"("p_def" "jsonb", "p_origen" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_exigir_campos"("p_def" "jsonb", "p_origen" "uuid") IS 'Interna: 22023 (hint nodos.<id>) si la fórmula nombra un dato del vehículo que el origen no tiene. La usan publicar y activar en una copia de otro origen.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_formula_en_blanco"() RETURNS "jsonb"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  v_tc text;
+begin
+  select t.clave into v_tc from public.tipos_cambio t order by t.activo desc, t.es_default desc, t.orden, t.clave collate "C" limit 1;
+  if v_tc is null then
+    raise exception 'Crea un tipo de cambio antes de la primera fórmula.' using errcode = '22023', hint = 'tipos_cambio';
+  end if;
+  return jsonb_build_object(
+    'definicion', jsonb_build_object(
+      'nodos', jsonb_build_array(
+        jsonb_build_object('id', 'tc', 'tipo', 'tipo_cambio', 'clave', v_tc, 'etiqueta', 'Tipo de cambio'),
+        jsonb_build_object('id', 'total', 'tipo', 'input', 'etiqueta', 'Total', 'salida', 'total', 'bucket', 'local')),
+      'buckets', jsonb_build_object('local', 'tc')),
+    'params', '{}'::jsonb,
+    'diseno', jsonb_build_object(
+      'cabecera', jsonb_build_object('modos', '[]'::jsonb, 'ver_total_bs', false),
+      'secciones', jsonb_build_array(jsonb_build_object('id', 'hoja', 'presentacion', 'principal',
+        'items', jsonb_build_array(jsonb_build_object('tipo', 'celda', 'nodo', 'total', 'ancho', 'completo')))),
+      'tarjeta_total', jsonb_build_object('nodo', 'total', 'secundarios', '[]'::jsonb)));
+end $$;
+
+
+ALTER FUNCTION "public"."_fdo_formula_en_blanco"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_formula_en_blanco"() IS 'Interna: {definicion, params, diseno} de una fórmula nueva en blanco (la fila del total y su celda). Publica tal cual.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_nombre"("p_nombre" "text") RETURNS "text"
+    LANGUAGE "plpgsql" IMMUTABLE
+    SET "search_path" TO ''
+    AS $$
+declare v text := btrim(p_nombre);
+begin
+  if v is null or char_length(v) not between 1 and 60 then
+    raise exception 'El nombre lleva de 1 a 60 caracteres.' using errcode = '22023', hint = 'nombre';
+  end if;
+  return v;
+end $$;
+
+
+ALTER FUNCTION "public"."_fdo_nombre"("p_nombre" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_nombre"("p_nombre" "text") IS 'Interna: el nombre de una fórmula del origen sin espacios de más; 22023 (hint nombre) si no tiene de 1 a 60 caracteres.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_origen_con_permiso"("p_id" "uuid") RETURNS "uuid"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v_origen uuid;
+begin
+  perform public.assert_activo();
+  select d.origen_id into v_origen from public.formulas_del_origen d where d.id = p_id;   -- formulas_del_origen_pkey
+  if v_origen is null then
+    raise exception 'No tienes el permiso «cotizaciones.configurar».' using errcode = '42501';
+  end if;
+  perform public.assert_permiso('cotizaciones.configurar', v_origen);
+  return v_origen;
+end $$;
+
+
+ALTER FUNCTION "public"."_fdo_origen_con_permiso"("p_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_origen_con_permiso"("p_id" "uuid") IS 'Interna: el origen de una fórmula del origen tras exigir cotizaciones.configurar en él; la que no existe da el mismo 42501.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."formulas_del_origen" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "origen_id" "uuid" NOT NULL,
+    "nombre" "text" NOT NULL,
+    "activa" boolean DEFAULT false NOT NULL,
+    "copiada_de_otro_origen" boolean DEFAULT false NOT NULL,
+    "activada_en" timestamp with time zone,
+    "activada_por" "uuid",
+    "desactivada_en" timestamp with time zone,
+    "archivada_en" timestamp with time zone,
+    "archivada_por" "uuid",
+    "creado_por" "uuid",
+    "creado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "actualizado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "formulas_del_origen_activa_no_archivada" CHECK ((NOT ("activa" AND ("archivada_en" IS NOT NULL)))),
+    CONSTRAINT "formulas_del_origen_nombre_check" CHECK ((("nombre" = "btrim"("nombre")) AND (("char_length"("nombre") >= 1) AND ("char_length"("nombre") <= 60))))
+);
+
+
+ALTER TABLE "public"."formulas_del_origen" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."formulas_del_origen" IS 'Una fórmula con nombre de un origen: agrupa sus versiones de formulas (borrador, publicada, archivadas) y su plantilla de tarjeta. A lo sumo una activa por origen (la que se cotiza). Se lee con cotizaciones.configurar del origen y se escribe sólo por RPC. docs/COTIZADOR.md › «Fórmulas del origen».';
+
+
+
+COMMENT ON COLUMN "public"."formulas_del_origen"."activa" IS 'La que se usa al cotizar en su origen (formulas_del_origen_activa_unica). Una activa siempre tiene versión publicada y no está archivada.';
+
+
+
+COMMENT ON COLUMN "public"."formulas_del_origen"."copiada_de_otro_origen" IS 'Nació como copia de una fórmula de otro origen: publicar y activar exigen que cada dato del vehículo que nombra exista en este origen.';
+
+
+
+COMMENT ON COLUMN "public"."formulas_del_origen"."activada_en" IS 'La última vez que pasó a ser la activa; con valor, la fórmula ya no se elimina (se archiva).';
+
+
+
+COMMENT ON COLUMN "public"."formulas_del_origen"."desactivada_en" IS 'Cuándo dejó de ser la activa: desde ahí corren las 24 h de «Guardar con la N» para una hoja abierta con su versión.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_resolver"("p_origen" "uuid", "p_formula_del_origen" "uuid", "p_crear" boolean) RETURNS "public"."formulas_del_origen"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  v public.formulas_del_origen; v_id uuid;
+begin
+  if p_formula_del_origen is null then
+    v_id := public._fdo_de_trabajo(p_origen, p_crear);
+    select * into v from public.formulas_del_origen d where d.id = v_id;   -- formulas_del_origen_pkey
+    return v;
+  end if;
+  select * into v from public.formulas_del_origen d where d.id = p_formula_del_origen and d.origen_id = p_origen;   -- formulas_del_origen_pkey
+  if v.id is null then
+    raise exception 'No tienes el permiso «cotizaciones.configurar».' using errcode = '42501';
+  end if;
+  if v.archivada_en is not null then
+    raise exception 'Esta fórmula está archivada.' using errcode = '22023', hint = 'formula_del_origen';
+  end if;
+  return v;
+end $$;
+
+
+ALTER FUNCTION "public"."_fdo_resolver"("p_origen" "uuid", "p_formula_del_origen" "uuid", "p_crear" boolean) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_resolver"("p_origen" "uuid", "p_formula_del_origen" "uuid", "p_crear" boolean) IS 'Interna: la fórmula del origen de una RPC de Configuración (nula: la de trabajo). 42501 si no es del origen o no existe; 22023 si está archivada.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_tarjeta_en_blanco"() RETURNS "jsonb"
+    LANGUAGE "sql" IMMUTABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select '{"forma":2,"columnas":[{"id":"concepto","ancho":120},{"id":"monto","ancho":340},{"id":"logo","ancho":140}],"filas":[{"id":"fecha","alto":25,"ocultar_si":"nunca"},{"id":"numero","alto":25,"ocultar_si":"nunca"},{"id":"asesor","alto":25,"ocultar_si":"nunca"},{"id":"vehiculo","alto":28,"ocultar_si":"nunca"},{"id":"total","alto":54,"ocultar_si":"nunca"}],"celdas":[{"id":"c_fecha_concepto","fila":"fecha","columna":"concepto","contenido":{"tipo":"dato","variable":"fecha_larga"}},{"id":"c_fecha_monto","fila":"fecha","columna":"monto","contenido":{"tipo":"dato","variable":"titulo"}},{"id":"c_logo","fila":"fecha","columna":"logo","abarca_filas":3,"contenido":{"tipo":"logo"}},{"id":"c_numero_concepto","fila":"numero","columna":"concepto","contenido":{"tipo":"texto","texto":"Cotización n.º"}},{"id":"c_numero_monto","fila":"numero","columna":"monto","contenido":{"tipo":"dato","variable":"numero"}},{"id":"c_asesor_concepto","fila":"asesor","columna":"concepto","contenido":{"tipo":"texto","texto":"Asesor:"}},{"id":"c_asesor_monto","fila":"asesor","columna":"monto","contenido":{"tipo":"dato","variable":"asesor_nombre"}},{"id":"c_vehiculo_concepto","fila":"vehiculo","columna":"concepto","abarca_columnas":3,"contenido":{"tipo":"dato","variable":"vehiculo_titulo"},"estilo":{"tamano":14,"negrita":true}},{"id":"c_total_concepto","fila":"total","columna":"concepto","contenido":{"tipo":"texto","texto":"Total"},"estilo":{"tamano":16,"negrita":true,"bordes":{"todos":"fino"}}},{"id":"c_total_monto","fila":"total","columna":"monto","abarca_columnas":2,"contenido":{"tipo":"dato","nodo":"total","mostrar":"monto"},"estilo":{"tamano":16,"negrita":true,"alinear":"derecha","bordes":{"todos":"fino"}}}]}'::jsonb;
+$$;
+
+
+ALTER FUNCTION "public"."_fdo_tarjeta_en_blanco"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_tarjeta_en_blanco"() IS 'Interna: la plantilla de tarjeta por omisión (forma 2), espejo de PLANTILLA_POR_OMISION. La usa una fórmula nueva en blanco o una copia sin plantilla.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_fdo_tomar"("p_id" "uuid", "p_origen" "uuid", "p_esperada" timestamp with time zone) RETURNS "public"."formulas_del_origen"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v public.formulas_del_origen;
+begin
+  perform pg_advisory_xact_lock(hashtextextended('formulas:' || p_origen::text, 0));
+  perform pg_advisory_xact_lock(hashtextextended('plantillas:' || p_origen::text, 0));
+  select * into v from public.formulas_del_origen d where d.id = p_id for no key update;   -- formulas_del_origen_pkey
+  if v.id is null then
+    raise exception 'No tienes el permiso «cotizaciones.configurar».' using errcode = '42501';
+  end if;
+  if v.actualizado_en is distinct from p_esperada then
+    perform public._conflicto_de_edicion('formulas_del_origen', p_id, v.actualizado_en, 'esta fórmula');
+  end if;
+  return v;
+end $$;
+
+
+ALTER FUNCTION "public"."_fdo_tomar"("p_id" "uuid", "p_origen" "uuid", "p_esperada" timestamp with time zone) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_fdo_tomar"("p_id" "uuid", "p_origen" "uuid", "p_esperada" timestamp with time zone) IS 'Interna: toma los candados formulas: y plantillas: del origen y la fila de la fórmula del origen; PT409 (_conflicto_de_edicion) si su actualizado_en no es la esperada.';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."_final_aplicar"("c" "public"."cotizaciones", "p_tomadas" "uuid"[]) RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
@@ -6858,8 +7167,9 @@ begin
   -- 1. La final anterior baja a preventa sólo si se tomó en la pasada: por id, nunca por el vehículo (una final que se confirmó después da 23505 en el paso 2).
   update public.cotizaciones x set clase = 'preventa'
    where x.id = any (p_tomadas) and x.id <> c.id and x.clase = 'final' and x.eliminado_en is null;
-  -- 2. La cotización, final (una que ya lo es no se toca).
-  update public.cotizaciones x set clase = 'final' where x.id = c.id and x.clase <> 'final';
+  -- 2. La cotización, final y pública (una final nunca es privada); una que ya lo es no se toca. La hermana deja de ser privada con ella.
+  update public.cotizaciones x set clase = 'final', privada = false where x.id = c.id and (x.clase <> 'final' or x.privada);
+  update public.cotizaciones x set privada = false where x.id = c.hermana_id and x.privada;
   -- 3. Las preventas tomadas (con la que bajó), a un lote de la papelera de quien marca, como `_cotizacion_a_papelera`. Una con comprobante (sólo anulados, por
   --    el paso 0) baja y queda viva: ninguna cotización con comprobante entra a la papelera (4.26-1, P7 a).
   v_ids := array(select x.id from public.cotizaciones x
@@ -6902,7 +7212,7 @@ $$;
 ALTER FUNCTION "public"."_final_aplicar"("c" "public"."cotizaciones", "p_tomadas" "uuid"[]) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_final_aplicar"("c" "public"."cotizaciones", "p_tomadas" "uuid"[]) IS 'Los efectos de marcar final, llamado con todo tomado (el lead, el vehículo y las cotizaciones p_tomadas): si otra tomada tiene un comprobante vigente, 23514 (4.26-1); la final anterior tomada baja a preventa, c pasa a final, las preventas tomadas sin comprobante van a un lote de la papelera de quien llama (con uno anulado bajan y quedan vivas), el vehículo sin lead queda con el de c (con otro lead, 23514), el lead pasa al primer tipo activo de la clase cliente y la actividad. No toma candados y escribe cotizaciones sólo por id. De nadie: lo llama cotizacion_marcar_final (y el 4.25-1b, cotizacion_crear).';
+COMMENT ON FUNCTION "public"."_final_aplicar"("c" "public"."cotizaciones", "p_tomadas" "uuid"[]) IS 'Los efectos de marcar final, llamado con todo tomado (el lead, el vehículo y las cotizaciones p_tomadas): si otra tomada tiene un comprobante vigente, 23514 (4.26-1); la final anterior tomada baja a preventa, c pasa a final y pública (con su hermana), las preventas tomadas sin comprobante van a un lote de la papelera de quien llama (con uno anulado bajan y quedan vivas), el vehículo sin lead queda con el de c (con otro lead, 23514), el lead pasa al primer tipo activo de la clase cliente y la actividad. No toma candados y escribe cotizaciones sólo por id. De nadie: lo llama cotizacion_marcar_final (y el 4.25-1b, cotizacion_crear).';
 
 
 
@@ -7203,12 +7513,13 @@ begin
           format('«%s» es una salida y no puede sumar al grupo «%s».', p_ids[i], v_grupo));
       end if;
     end loop;
-    -- Doble conteo (revisarDobleConteo): una pasada hacia adelante marca lo que acumula un miembro (el miembro, un cálculo que no
-    -- es `porcentaje_de` y lee algo marcado, un `sugerido_de` de algo marcado).
+    -- Doble conteo (revisarDobleConteo): una pasada hacia adelante marca lo que acumula un miembro (el miembro, un cálculo que
+    -- acumula su `de` y lee algo marcado, un `sugerido_de` de algo marcado). No acumulan su `de` un `porcentaje_de` (su base) ni las
+    -- operaciones de condición, que valen 1 o 0; `elegir` acumula sus ramas (`de`) y no su `prueba` (acumulaDe de TS).
     for i in 1 .. v_n loop
       v_nodo := p_nodos -> (i - 1);
       v_leido := null;
-      if p_tipos[i] = 'calculo' and v_nodo ->> 'op' <> 'porcentaje_de' then
+      if p_tipos[i] = 'calculo' and v_nodo ->> 'op' not in ('porcentaje_de', 'comparar', 'es_opcion', 'y', 'o') then
         v_x := v_nodo -> 'de';
         for k in 0 .. jsonb_array_length(v_x) - 1 loop
           j := (p_pos ->> (v_x ->> k))::int;
@@ -7447,6 +7758,7 @@ declare
   v_tipo text;
   v_op text;
   v_permitidas text[];
+  v_cmps text[];          -- los comparadores que admite `comparar` o `es_opcion`
   v_x jsonb;
   v_o jsonb;
   v_min int;
@@ -7471,13 +7783,17 @@ begin
   if v_permitidas is null then /*F02*/ return '.tipo'; end if;
   if v_tipo = 'calculo' then
     v_op := case when jsonb_typeof(p_n -> 'op') = 'string' then p_n ->> 'op' end;
-    if (v_op in ('suma', 'porcentaje_de', 'multiplicar', 'restar', 'dividir', 'si', 'depreciar', 'redondear')) is not true then
+    if (v_op in ('suma', 'porcentaje_de', 'multiplicar', 'restar', 'dividir', 'si', 'depreciar', 'redondear',
+                 'comparar', 'es_opcion', 'y', 'o', 'elegir', 'max', 'min')) is not true then
       /*F03*/ return '.op';
     end if;
     v_permitidas := v_permitidas || case v_op
       when 'porcentaje_de' then array['pct']
       when 'depreciar' then array['tabla', 'sobre', 'columna']
       when 'redondear' then array['n']
+      when 'comparar' then array['cmp']
+      when 'es_opcion' then array['cmp', 'clave']
+      when 'elegir' then array['prueba']
       else '{}'::text[]
     end;
   end if;
@@ -7575,8 +7891,11 @@ begin
   elsif v_tipo = 'calculo' then
     -- La aridad de cada operación, cerrada.
     v_min := case v_op when 'multiplicar' then 2 when 'restar' then 2 when 'dividir' then 2
-                       when 'si' then 1 when 'depreciar' then 1 when 'redondear' then 1 else 1 end;
-    v_max := case v_op when 'dividir' then 2 when 'si' then 1 when 'depreciar' then 1 when 'redondear' then 1 end;
+                       when 'si' then 1 when 'depreciar' then 1 when 'redondear' then 1
+                       when 'comparar' then 2 when 'es_opcion' then 1 when 'y' then 2 when 'o' then 2
+                       when 'elegir' then 1 else 1 end;
+    v_max := case v_op when 'dividir' then 2 when 'si' then 1 when 'depreciar' then 1 when 'redondear' then 1
+                       when 'comparar' then 2 when 'es_opcion' then 1 when 'elegir' then 2 end;
     v_x := p_n -> 'de';
     if (jsonb_typeof(v_x) = 'array' and jsonb_array_length(v_x) >= v_min
         and (v_max is null or jsonb_array_length(v_x) <= v_max)) is not true then
@@ -7605,6 +7924,17 @@ begin
         v_f := v_num::float8;
         if v_f <> trunc(v_f) or v_f < 0 or v_f > 6 then /*F42*/ return '.n'; end if;
       end if;
+    end if;
+    -- Las claves propias de las operaciones de condición, después de `de` (como en el Zod): el comparador, la opción y la prueba.
+    if v_op in ('comparar', 'es_opcion') then
+      v_cmps := case v_op when 'comparar' then array['>', '<', '>=', '<=', '=', '<>'] else array['=', '<>'] end;
+      if (jsonb_typeof(p_n -> 'cmp') = 'string' and (p_n ->> 'cmp') = any (v_cmps)) is not true then /*F71*/ return '.cmp'; end if;
+    end if;
+    if v_op = 'es_opcion' and (jsonb_typeof(p_n -> 'clave') = 'string' and (p_n ->> 'clave') ~ c_id) is not true then
+      /*F72*/ return '.clave';
+    end if;
+    if v_op = 'elegir' and (jsonb_typeof(p_n -> 'prueba') = 'string' and (p_n ->> 'prueba') ~ c_id) is not true then
+      /*F73*/ return '.prueba';
     end if;
   end if;
   return null;
@@ -7645,6 +7975,7 @@ declare
   v_x jsonb;
   v_clave text;
   v_par_roto boolean;
+  v_mal boolean;
   i int;
   k int;
 begin
@@ -7680,25 +8011,33 @@ begin
     v_variante := i;
     v_variante_id := p_ids[i];
   end loop;
-  -- `solo_en` lee la variante: va después de ella, como toda referencia, y nombra opciones que tiene.
+  -- `solo_en` lee la variante: va después de ella, como toda referencia, y nombra opciones que tiene. En la misma pasada, un
+  -- `es_opcion` compara con una opción que la variante tiene (que nombra la variante ya lo dijo `referencia_de_tipo`).
   for i in 1 .. v_n loop
-    continue when p_tipos[i] in ('tipo_cambio', 'opcion');
-    v_x := p_nodos -> (i - 1) -> 'solo_en';
-    continue when v_x is null;
-    if v_variante is null then
-      perform public._formula_rechazar('solo_en_sin_opcion', p_ids[i],
-        format('«%s» dice en qué variantes vale, y la fórmula no tiene variante.', p_ids[i]));
-    end if;
-    if v_variante > i then
-      perform public._formula_rechazar('referencia_hacia_adelante', p_ids[i],
-        format('«%s» usa «%s», que está después en la lista: el orden de la lista es el de evaluación y sólo se usa lo anterior.', p_ids[i], v_variante_id));
-    end if;
-    for k in 0 .. jsonb_array_length(v_x) - 1 loop
-      if not coalesce(v_claves ? (v_x ->> k), false) then
-        perform public._formula_rechazar('solo_en_opcion_inexistente', p_ids[i],
-          format('«%s» nombra la opción «%s», que la variante no tiene.', p_ids[i], v_x ->> k));
+    v_nodo := p_nodos -> (i - 1);
+    v_x := case when p_tipos[i] in ('tipo_cambio', 'opcion') then null else v_nodo -> 'solo_en' end;
+    if v_x is not null then
+      if v_variante is null then
+        perform public._formula_rechazar('solo_en_sin_opcion', p_ids[i],
+          format('«%s» dice en qué variantes vale, y la fórmula no tiene variante.', p_ids[i]));
       end if;
-    end loop;
+      if v_variante > i then
+        perform public._formula_rechazar('referencia_hacia_adelante', p_ids[i],
+          format('«%s» usa «%s», que está después en la lista: el orden de la lista es el de evaluación y sólo se usa lo anterior.', p_ids[i], v_variante_id));
+      end if;
+      for k in 0 .. jsonb_array_length(v_x) - 1 loop
+        if not coalesce(v_claves ? (v_x ->> k), false) then
+          perform public._formula_rechazar('solo_en_opcion_inexistente', p_ids[i],
+            format('«%s» nombra la opción «%s», que la variante no tiene.', p_ids[i], v_x ->> k));
+        end if;
+      end loop;
+    end if;
+    v_mal := p_tipos[i] = 'calculo' and v_nodo ->> 'op' = 'es_opcion' and v_variante is not null
+             and not v_claves ? (v_nodo ->> 'clave');
+    if v_mal then
+      perform public._formula_rechazar('clave_de_opcion_inexistente', p_ids[i],
+        format('«%s» compara con la opción «%s», que la variante no tiene.', p_ids[i], v_nodo ->> 'clave'));
+    end if;
   end loop;
 end;
 $$;
@@ -11108,15 +11447,18 @@ CREATE OR REPLACE FUNCTION "public"."_nivel_uso"("p_clave" "text") RETURNS "json
     AS $$
   -- Materializada: el índice conduce (la misma lección que _nivel_en_uso).
   with u as materialized (
-    select f.id, f.origen_id, f.version from public.formulas f
+    select f.id, f.origen_id, f.formula_del_origen_id, f.version from public.formulas f
      where public._niveles_del_diseno(f.diseno) @> jsonb_build_array(p_clave)  -- formulas_niveles_idx
   ), ultimas as (
-    select distinct on (u.origen_id) u.id, u.origen_id from u order by u.origen_id, u.version desc nulls first
+    -- La última de cada fórmula del origen sin archivar.
+    select distinct on (u.formula_del_origen_id) u.id, u.origen_id from u
+      join public.formulas_del_origen d on d.id = u.formula_del_origen_id and d.archivada_en is null   -- formulas_del_origen_pkey
+     order by u.formula_del_origen_id, u.version desc nulls first
   ), secciones as (
     select s.value as s from ultimas l join public.formulas f on f.id = l.id, jsonb_array_elements(f.diseno -> 'secciones') s
   )
   select jsonb_build_object(
-    'origenes', (select count(*) from (select 1 from ultimas limit 1000) x),
+    'origenes', (select count(*) from (select distinct l.origen_id from ultimas l limit 1000) x),
     'secciones', (select count(*) from (select 1 from secciones where p_clave in (s ->> 'nivel_ver', s ->> 'nivel_editar') limit 1000) x),
     'celdas', (select count(*) from (
         select 1 from secciones, jsonb_array_elements(s -> 'items') it
@@ -11205,9 +11547,10 @@ begin
   -- Una sola pasada en el orden de la lista: un nodo sólo nombra lo anterior (`referencia_hacia_adelante`), así que lo que nombra ya está decidido.
   for v_n in select x.value from jsonb_array_elements(p_def -> 'nodos') with ordinality x (value, ord) order by x.ord loop
     continue when v_n ->> 'tipo' in ('opcion', 'tipo_cambio');
-    -- Lo que nombra, como `referenciasDe()`: de, pct, sobre, condicion, requerido_si, sugerido_de y los valores del match (un valor que no es un nodo no está marcado).
+    -- Lo que nombra, como `referenciasDe()`: de, pct, sobre, prueba, condicion, requerido_si, sugerido_de y los valores del match (un valor que
+    -- no es un nodo no está marcado).
     v_refs := array(select jsonb_array_elements_text(case when jsonb_typeof(v_n -> 'de') = 'array' then v_n -> 'de' else '[]'::jsonb end))
-           || array[v_n ->> 'pct', v_n ->> 'sobre', v_n ->> 'condicion', v_n ->> 'requerido_si', v_n ->> 'sugerido_de']
+           || array[v_n ->> 'pct', v_n ->> 'sobre', v_n ->> 'prueba', v_n ->> 'condicion', v_n ->> 'requerido_si', v_n ->> 'sugerido_de']
            || array(select e.value from jsonb_each_text(case when jsonb_typeof(v_n -> 'match') = 'object' then v_n -> 'match' else '{}'::jsonb end) e);
     v_va := v_n ? 'solo_en' or exists (select 1 from unnest(v_refs) r where r is not null and v_marcados ? r);
     if v_va then
@@ -12026,20 +12369,20 @@ CREATE OR REPLACE FUNCTION "public"."_papelera_purgar_cotizaciones"("p_lote" "uu
 declare
   c record; v_rutas text[]; v_quedan int; v_version timestamptz;
   v_purgados jsonb := '[]'::jsonb; v_bloqueados jsonb := '[]'::jsonb;
+  -- Las privadas ajenas del lote (glosario: «Cotización privada»): se purgan con él, pero la respuesta no las nombra.
+  v_ocultas uuid[] := '{}'::uuid[];
 begin
   for c in
-    select x.id, x.numero, coalesce(x.titulo, 'Cotización #' || x.numero) as titulo from public.cotizaciones x
+    select x.id, x.numero, coalesce(x.titulo, 'Cotización #' || x.numero) as titulo,
+           (x.privada and x.creado_por is distinct from (select auth.uid()) and not public.tiene_permiso('cotizaciones.privadas.ver', x.origen_id)) as oculta from public.cotizaciones x
      where x.lote_papelera_id = p_lote and x.eliminado_en is not null and (p_ids is null or x.id = any (p_ids))
      order by x.id for update
   loop
+    if c.oculta then v_ocultas := v_ocultas || c.id; end if;
     begin
-      select array_agg(r.ruta) into v_rutas from (
-        select a.ruta from public.cotizaciones_adjuntos a where a.cotizacion_id = c.id
-        union all
-        select p.ruta from public.cotizaciones_portadas p where p.cotizacion_id = c.id
-      ) r;
+      select array_agg(a.ruta) into v_rutas from public.cotizaciones_adjuntos a where a.cotizacion_id = c.id;
       delete from public.cotizaciones x where x.id = c.id;
-      -- Después del borrado: el refcount ya no la cuenta (cotizaciones_adjuntos_ruta_idx, cotizaciones_portadas_ruta_key).
+      -- Después del borrado: el refcount ya no la cuenta (cotizaciones_adjuntos_ruta_idx).
       perform public._encolar_para_limpiar('cotizaciones', v_rutas, false);
       v_purgados := v_purgados || jsonb_build_object('id', c.id, 'numero', c.numero, 'titulo', c.titulo);
     exception when foreign_key_violation or restrict_violation then
@@ -12052,7 +12395,7 @@ begin
     select 1 from public.cotizaciones x where x.lote_papelera_id = p_lote and x.eliminado_en is not null limit 201) q;
   if jsonb_array_length(v_purgados) = 0 then
     return jsonb_build_object('actualizado_en', (select l.actualizado_en from public.lotes_papelera l where l.id = p_lote),
-      'purgados', v_purgados, 'bloqueados', v_bloqueados, 'quedan', v_quedan);
+      'purgados', (select coalesce(jsonb_agg(e order by o), '[]'::jsonb) from jsonb_array_elements(v_purgados) with ordinality x (e, o) where not ((e ->> 'id')::uuid = any (v_ocultas))), 'bloqueados', (select coalesce(jsonb_agg(e order by o), '[]'::jsonb) from jsonb_array_elements(v_bloqueados) with ordinality x (e, o) where not ((e ->> 'id')::uuid = any (v_ocultas))), 'quedan', v_quedan);
   end if;
   update public.lotes_papelera l
   set resumen = l.resumen || jsonb_build_object('purgados', coalesce((l.resumen ->> 'purgados')::int, 0) + jsonb_array_length(v_purgados)),
@@ -12061,7 +12404,7 @@ begin
   v_version := public._lote_papelera_tocar(p_lote);
   perform public.registrar_actividad('papelera.purgado', 'lotes_papelera', p_lote::text, null, null,
     jsonb_build_object('tipo', 'cotizaciones', 'cantidad', jsonb_array_length(v_purgados), 'automatica', (select auth.uid()) is null));
-  return jsonb_build_object('actualizado_en', v_version, 'purgados', v_purgados, 'bloqueados', v_bloqueados, 'quedan', v_quedan);
+  return jsonb_build_object('actualizado_en', v_version, 'purgados', (select coalesce(jsonb_agg(e order by o), '[]'::jsonb) from jsonb_array_elements(v_purgados) with ordinality x (e, o) where not ((e ->> 'id')::uuid = any (v_ocultas))), 'bloqueados', (select coalesce(jsonb_agg(e order by o), '[]'::jsonb) from jsonb_array_elements(v_bloqueados) with ordinality x (e, o) where not ((e ->> 'id')::uuid = any (v_ocultas))), 'quedan', v_quedan);
 end;
 $$;
 
@@ -12148,14 +12491,10 @@ begin
           select c.ruta from public.cola_gc_storage c where c.bucket = 'vehiculos' and c.ruta like v.id::text || '/%' and c.reclamado_en is null
         ) x;
         select array_agg(d.ruta) into v_documentos from public.documentos d where d.vehiculo_id = v.id and d.ruta is not null;
-        -- Los adjuntos y las portadas de sus cotizaciones del lote, que se van con ellas.
-        select array_agg(r.ruta) into v_adjuntos from (
-          select a.ruta from public.cotizaciones_adjuntos a join public.cotizaciones c on c.id = a.cotizacion_id
-          where c.vehiculo_id = v.id and c.lote_papelera_id = p_lote
-          union all
-          select p.ruta from public.cotizaciones_portadas p join public.cotizaciones c on c.id = p.cotizacion_id
-          where c.vehiculo_id = v.id and c.lote_papelera_id = p_lote
-        ) r;
+        -- Los adjuntos de sus cotizaciones del lote, que se van con ellas.
+        select array_agg(a.ruta) into v_adjuntos
+          from public.cotizaciones_adjuntos a join public.cotizaciones c on c.id = a.cotizacion_id
+         where c.vehiculo_id = v.id and c.lote_papelera_id = p_lote;
 
         delete from public.cotizaciones c where c.vehiculo_id = v.id and c.lote_papelera_id = p_lote;
         delete from public.vehiculos x where x.id = v.id;
@@ -12202,6 +12541,8 @@ declare
   c record; v_vehiculo uuid; v_lead uuid; v_clase public.clase_cotizacion; v_vehiculo_fuera boolean; v_lead_fuera boolean;
   v_motivo text; v_restriccion text; v_quedan int; v_version timestamptz;
   v_restaurados jsonb := '[]'::jsonb; v_pendientes jsonb := '[]'::jsonb;
+  -- Las privadas ajenas del lote (glosario: «Cotización privada»): se restauran o purgan con él, pero la respuesta no las nombra.
+  v_ocultas uuid[] := '{}'::uuid[];
 begin
   -- 0. Antes de tomar cotización alguna, sus leads y después sus vehículos, por id (cotizaciones_lote_papelera_idx; las PK): el orden lead → vehículo de
   -- vincular, que toma el lead y después el vehículo (al revés, 40P01).
@@ -12215,10 +12556,12 @@ begin
    order by v.id for key share;
 
   for c in
-    select x.id, x.numero, coalesce(x.titulo, 'Cotización #' || x.numero) as titulo from public.cotizaciones x
+    select x.id, x.numero, coalesce(x.titulo, 'Cotización #' || x.numero) as titulo,
+           (x.privada and x.creado_por is distinct from (select auth.uid()) and not public.tiene_permiso('cotizaciones.privadas.ver', x.origen_id)) as oculta from public.cotizaciones x
      where x.lote_papelera_id = p_lote and x.eliminado_en is not null and (p_ids is null or x.id = any (p_ids))
      order by x.id for no key update
   loop
+    if c.oculta then v_ocultas := v_ocultas || c.id; end if;
     begin
       -- 1. Sobre la fila tomada (la FK pudo poner nulos el vehículo o el lead mientras se esperaba).
       select x.vehiculo_id, x.lead_id, x.clase into v_vehiculo, v_lead, v_clase from public.cotizaciones x where x.id = c.id;
@@ -12262,7 +12605,7 @@ begin
     select 1 from public.cotizaciones x where x.lote_papelera_id = p_lote and x.eliminado_en is not null limit 201) q;
   if jsonb_array_length(v_restaurados) = 0 then
     return jsonb_build_object('actualizado_en', (select l.actualizado_en from public.lotes_papelera l where l.id = p_lote),
-      'restaurados', v_restaurados, 'pendientes', v_pendientes, 'quedan', v_quedan);
+      'restaurados', (select coalesce(jsonb_agg(e order by o), '[]'::jsonb) from jsonb_array_elements(v_restaurados) with ordinality x (e, o) where not ((e ->> 'id')::uuid = any (v_ocultas))), 'pendientes', (select coalesce(jsonb_agg(e order by o), '[]'::jsonb) from jsonb_array_elements(v_pendientes) with ordinality x (e, o) where not ((e ->> 'id')::uuid = any (v_ocultas))), 'quedan', v_quedan);
   end if;
   update public.lotes_papelera l
   set resumen = l.resumen || jsonb_build_object('restaurados', coalesce((l.resumen ->> 'restaurados')::int, 0) + jsonb_array_length(v_restaurados)),
@@ -12272,7 +12615,7 @@ begin
   v_version := public._lote_papelera_tocar(p_lote);
   perform public.registrar_actividad('papelera.restaurado', 'lotes_papelera', p_lote::text, null, null,
     jsonb_build_object('tipo', 'cotizaciones', 'cantidad', jsonb_array_length(v_restaurados)));
-  return jsonb_build_object('actualizado_en', v_version, 'restaurados', v_restaurados, 'pendientes', v_pendientes, 'quedan', v_quedan);
+  return jsonb_build_object('actualizado_en', v_version, 'restaurados', (select coalesce(jsonb_agg(e order by o), '[]'::jsonb) from jsonb_array_elements(v_restaurados) with ordinality x (e, o) where not ((e ->> 'id')::uuid = any (v_ocultas))), 'pendientes', (select coalesce(jsonb_agg(e order by o), '[]'::jsonb) from jsonb_array_elements(v_pendientes) with ordinality x (e, o) where not ((e ->> 'id')::uuid = any (v_ocultas))), 'quedan', v_quedan);
 end;
 $$;
 
@@ -12299,44 +12642,6 @@ $$;
 
 
 ALTER FUNCTION "public"."_papelera_solo_cotizaciones"("p_tipo" "public"."tipo_lote_papelera") OWNER TO "postgres";
-
-
-CREATE OR REPLACE FUNCTION "public"."_paquete_colores_preparar"("p_reusar" "jsonb", "p_crear" integer) RETURNS "void"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO ''
-    AS $$
-declare
-  v_tope integer := public._tonos_tope();
-  v_hay integer;
-  v_r jsonb;
-  v_sigue boolean;
-  v_cabe boolean;
-begin
-  perform public.assert_permiso('cotizaciones.configurar');
-  lock table public.tonos in share row exclusive mode;
-  for v_r in select x from jsonb_array_elements(coalesce(p_reusar, '[]'::jsonb)) x loop
-    v_sigue := exists (select 1 from public.tonos t
-                        where t.clave = v_r ->> 'clave' and lower(t.hex) = lower(v_r ->> 'hex'));   -- tonos_clave_key
-    if not v_sigue then
-      raise exception 'Mientras elegías, cambiaron los colores del catálogo. Vuelve a elegir la plantilla.' using errcode = 'PT409';
-    end if;
-  end loop;
-  select count(*) into v_hay from (select 1 from public.tonos limit v_tope + 1) t;
-  v_cabe := v_hay + coalesce(p_crear, 0) <= v_tope;
-  if not v_cabe then
-    raise exception 'No hay lugar para % más en el catálogo (máximo %): elimina alguno que no se use.',
-      case when p_crear = 1 then '1 color' else p_crear || ' colores' end, v_tope
-      using errcode = '22023', hint = 'colores';
-  end if;
-end;
-$$;
-
-
-ALTER FUNCTION "public"."_paquete_colores_preparar"("p_reusar" "jsonb", "p_crear" integer) OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."_paquete_colores_preparar"("p_reusar" "jsonb", "p_crear" integer) IS 'Toma tonos en share row exclusive (cotizaciones.configurar) y comprueba que cada color que se reusa ({clave, hex}) sigue con su hex (PT409) y que caben p_crear más (22023, hint colores). Lo llama la invocadora cotizacion_paquete_aplicar.';
-
 
 
 CREATE OR REPLACE FUNCTION "public"."_personas_dominadas"("p_ids" "uuid"[]) RETURNS SETOF "uuid"
@@ -12393,14 +12698,14 @@ COMMENT ON FUNCTION "public"."_plantilla_alto_de_texto"("p_texto" "text", "p_anc
 
 
 
-CREATE OR REPLACE FUNCTION "public"."_plantilla_borrador_ausente"("p_origen" "uuid", "p_esperada" timestamp with time zone) RETURNS "void"
+CREATE OR REPLACE FUNCTION "public"."_plantilla_borrador_ausente"("p_formula_del_origen" "uuid", "p_esperada" timestamp with time zone) RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
 declare
   v_pub public.plantillas_tarjeta;
 begin
-  select * into v_pub from public.plantillas_tarjeta where origen_id = p_origen and estado = 'publicada';
+  select * into v_pub from public.plantillas_tarjeta where formula_del_origen_id = p_formula_del_origen and estado = 'publicada';   -- plantillas_publicada_unica
   if v_pub.id is not null and v_pub.publicado_en >= p_esperada then
     raise exception 'El borrador ya no está: la versión % se publicó %.', v_pub.version, public._hace(v_pub.publicado_en) using errcode = 'PT409';
   end if;
@@ -12409,10 +12714,10 @@ end;
 $$;
 
 
-ALTER FUNCTION "public"."_plantilla_borrador_ausente"("p_origen" "uuid", "p_esperada" timestamp with time zone) OWNER TO "postgres";
+ALTER FUNCTION "public"."_plantilla_borrador_ausente"("p_formula_del_origen" "uuid", "p_esperada" timestamp with time zone) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_plantilla_borrador_ausente"("p_origen" "uuid", "p_esperada" timestamp with time zone) IS 'Interna: el PT409 de guardar, publicar o descartar un borrador que ya no está (se publicó o se descartó). docs/COTIZADOR.md › «Versiones de la plantilla (4.19-1)».';
+COMMENT ON FUNCTION "public"."_plantilla_borrador_ausente"("p_formula_del_origen" "uuid", "p_esperada" timestamp with time zone) IS 'Interna: el PT409 de guardar, publicar, descartar o activar un borrador de plantilla que ya no está (se publicó o se descartó). docs/COTIZADOR.md › «Versiones de la plantilla (4.19-1)».';
 
 
 
@@ -12635,13 +12940,133 @@ COMMENT ON FUNCTION "public"."_plantilla_convertir"("p_plantilla" "jsonb", "p_de
 
 
 
+CREATE OR REPLACE FUNCTION "public"."_plantilla_cuadricula_condiciones"("p_si" "jsonb", "p_donde" "text") RETURNS "void"
+    LANGUAGE "plpgsql" STABLE
+    SET "search_path" TO ''
+    AS $$
+declare v_c jsonb; v_d text; v_es text; v_extra text;
+begin
+  if jsonb_typeof(p_si) is distinct from 'array' then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+  if jsonb_array_length(p_si) not between 1 and 3 then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+  for k in 0 .. jsonb_array_length(p_si) - 1 loop
+    v_c := p_si -> k;
+    v_d := format('%s[%s]', p_donde, k);
+    if jsonb_typeof(v_c) is distinct from 'object' then perform public._plantilla_cuadricula_rechazar('forma', v_d); end if;
+    v_es := case when jsonb_typeof(v_c -> 'es') = 'string' then v_c ->> 'es' end;
+    if v_es is null or v_es not in ('vacio', 'no_vacio', 'cero', 'no_cero', 'mayor', 'menor', 'igual', 'opcion', 'encendido', 'apagado') then
+      perform public._plantilla_cuadricula_rechazar('forma', v_d || '.es');
+    end if;
+    if v_es in ('vacio', 'no_vacio') then
+      if exists (select 1 from jsonb_object_keys(v_c) x where x not in ('es', 'dato')) then perform public._plantilla_cuadricula_rechazar('forma', v_d); end if;
+      perform public._plantilla_cuadricula_dato(v_c -> 'dato', v_d || '.dato');
+    else
+      v_extra := case when v_es in ('mayor', 'menor', 'igual') then 'a' when v_es = 'opcion' then 'opcion' else 'es' end;
+      if exists (select 1 from jsonb_object_keys(v_c) x where x not in ('es', 'nodo', v_extra)) then perform public._plantilla_cuadricula_rechazar('forma', v_d); end if;
+      if not public._plantilla_es_id(v_c -> 'nodo') then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.nodo'); end if;
+      if v_es in ('mayor', 'menor', 'igual') and jsonb_typeof(v_c -> 'a') is distinct from 'number' then
+        perform public._plantilla_cuadricula_rechazar('forma', v_d || '.a');
+      end if;
+      if v_es = 'opcion' and not public._plantilla_es_id(v_c -> 'opcion') then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.opcion'); end if;
+    end if;
+  end loop;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_plantilla_cuadricula_condiciones"("p_si" "jsonb", "p_donde" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_plantilla_cuadricula_condiciones"("p_si" "jsonb", "p_donde" "text") IS 'Interna: la forma del `si` de una rama o de una fila de la cuadrícula de la tarjeta, espejo de revisarSi() en entities/plantilla/condiciones-de-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_plantilla_cuadricula_dato"("p_x" "jsonb", "p_donde" "text") RETURNS "void"
+    LANGUAGE "plpgsql" STABLE
+    SET "search_path" TO ''
+    AS $$
+declare v_t text;
+begin
+  if jsonb_typeof(p_x) is distinct from 'object' then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+  if p_x -> 'tipo' is distinct from '"dato"'::jsonb then perform public._plantilla_cuadricula_rechazar('forma', p_donde || '.tipo'); end if;
+  if p_x ? 'variable' then
+    if exists (select 1 from jsonb_object_keys(p_x) k where k not in ('tipo', 'variable')) then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+    if not public._plantilla_es_id(p_x -> 'variable') then perform public._plantilla_cuadricula_rechazar('forma', p_donde || '.variable'); end if;
+  else
+    if exists (select 1 from jsonb_object_keys(p_x) k where k not in ('tipo', 'nodo', 'mostrar')) then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+    if not public._plantilla_es_id(p_x -> 'nodo') then perform public._plantilla_cuadricula_rechazar('forma', p_donde || '.nodo'); end if;
+    v_t := case when jsonb_typeof(p_x -> 'mostrar') = 'string' then p_x ->> 'mostrar' end;
+    if v_t is null or v_t not in ('monto', 'etiqueta', 'descripcion', 'porcentaje', 'tc_nombre', 'tc_valor', 'plazo') then
+      perform public._plantilla_cuadricula_rechazar('forma', p_donde || '.mostrar');
+    end if;
+  end if;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_plantilla_cuadricula_dato"("p_x" "jsonb", "p_donde" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_plantilla_cuadricula_dato"("p_x" "jsonb", "p_donde" "text") IS 'Interna: la forma de un dato de la cuadrícula de la tarjeta, espejo de revisarDatoDeUnaCelda() en entities/plantilla/condiciones-de-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" "jsonb") RETURNS TABLE("o" bigint, "lugar" "text", "id" "text", "variable" "text", "nodo" "text", "mostrar" "text", "es" "text", "opcion" "text")
+    LANGUAGE "sql" IMMUTABLE
+    SET "search_path" TO ''
+    AS $$
+  with filas as (
+    select f.v, f.n from jsonb_array_elements(p_plantilla -> 'filas') with ordinality f (v, n)
+  ), celdas as (
+    select c.v ->> 'id' as cual, c.v -> 'contenido' as x, 1000000 + c.n * 100 as base
+      from jsonb_array_elements(p_plantilla -> 'celdas') with ordinality c (v, n)
+  ), ramas as (
+    select c.cual, c.base, r.x as rama, r.j
+      from celdas c cross join lateral jsonb_array_elements(c.x -> 'ramas') with ordinality r (x, j)
+     where c.x ->> 'tipo' = 'condiciones'
+  ), piezas (orden, en, cual, dato, cond) as (
+    select f.n * 100, 'filas'::text, f.v ->> 'id', f.v, null::jsonb from filas f where f.v ? 'nodo'
+    union all
+    select f.n * 100 + s.m, 'filas', f.v ->> 'id', null, s.x
+      from filas f cross join lateral jsonb_array_elements(f.v -> 'si') with ordinality s (x, m)
+     where jsonb_typeof(f.v -> 'si') = 'array'
+    union all
+    select c.base, 'celdas', c.cual, c.x, null from celdas c where c.x ->> 'tipo' = 'dato'
+    union all
+    select c.base + d.j, 'celdas', c.cual, d.x, null
+      from celdas c cross join lateral jsonb_array_elements(c.x -> 'datos') with ordinality d (x, j)
+     where c.x ->> 'tipo' = 'respaldo'
+    union all
+    select r.base + (r.j - 1) * 4 + s.m, 'celdas', r.cual, null, s.x
+      from ramas r cross join lateral jsonb_array_elements(r.rama -> 'si') with ordinality s (x, m)
+    union all
+    select r.base + r.j * 4, 'celdas', r.cual, r.rama -> 'contenido', null from ramas r where r.rama -> 'contenido' ->> 'tipo' = 'dato'
+    union all
+    select c.base + 17, 'celdas', c.cual, c.x -> 'si_no', null from celdas c where c.x ->> 'tipo' = 'condiciones' and c.x -> 'si_no' ->> 'tipo' = 'dato'
+  )
+  select p.orden, p.en, p.cual,
+         coalesce(p.cond -> 'dato', p.dato) ->> 'variable',
+         coalesce(p.cond -> 'dato', p.cond, p.dato) ->> 'nodo',
+         coalesce(p.cond -> 'dato', p.dato) ->> 'mostrar',
+         p.cond ->> 'es',
+         p.cond ->> 'opcion'
+    from piezas p
+$$;
+
+
+ALTER FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" "jsonb") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" "jsonb") IS 'Interna: todo dato que nombra la cuadrícula de la tarjeta (filas y celdas, con sus listas de respaldo y sus condiciones), aplanado y en orden; espejo de entities/plantilla/datos-de-la-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."_plantilla_cuadricula_forma"("p_plantilla" "jsonb", "p_con_tope" boolean) RETURNS "void"
     LANGUAGE "plpgsql" STABLE
     SET "search_path" TO ''
     AS $$
 declare
   v_cols jsonb; v_filas jsonb; v_celdas jsonb; v_c jsonb; v_x jsonb; v_e jsonb; v_b jsonb;
-  v_k text; v_t text; v_d text; v_dc text; v_lado text;
+  v_k text; v_t text; v_d text; v_dc text; v_dr text; v_lado text; v_r jsonb;
   v_icol jsonb; v_ifila jsonb; v_ncols int; v_ocupadas boolean[]; v_f0 int; v_c0 int; v_n int; v_ok boolean;
 begin
   if jsonb_typeof(p_plantilla) is distinct from 'object' then perform public._plantilla_cuadricula_rechazar('forma', 'definicion'); end if;
@@ -12664,7 +13089,8 @@ begin
     if not public._plantilla_entero_entre(v_c -> 'ancho', 24, 640) then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.ancho'); end if;
   end loop;
 
-  -- Las filas: al menos una, cada una {id, alto, ocultar_si, nodo?}; el nodo va salvo con `nunca`, y con `nunca` no va (aunque sea nulo: mira `?`).
+  -- Las filas: al menos una, cada una {id, alto, ocultar_si, nodo?, si?}; el nodo va con `no_aplica` y `no_aplica_o_cero`, y con `nunca` o `condiciones` no va (aunque sea
+  -- nulo: mira `?`); el `si` (de 1 a 3 condiciones) va sólo con `condiciones`.
   v_filas := p_plantilla -> 'filas';
   if jsonb_typeof(v_filas) is distinct from 'array' then perform public._plantilla_cuadricula_rechazar('forma', 'filas'); end if;
   if jsonb_array_length(v_filas) = 0 then perform public._plantilla_cuadricula_rechazar('forma', 'filas'); end if;
@@ -12672,15 +13098,21 @@ begin
     v_c := v_filas -> i;
     v_d := format('filas[%s]', i);
     if jsonb_typeof(v_c) is distinct from 'object' then perform public._plantilla_cuadricula_rechazar('forma', v_d); end if;
-    if exists (select 1 from jsonb_object_keys(v_c) k where k not in ('id', 'alto', 'ocultar_si', 'nodo')) then perform public._plantilla_cuadricula_rechazar('forma', v_d); end if;
+    if exists (select 1 from jsonb_object_keys(v_c) k where k not in ('id', 'alto', 'ocultar_si', 'nodo', 'si')) then perform public._plantilla_cuadricula_rechazar('forma', v_d); end if;
     if not public._plantilla_es_id(v_c -> 'id') then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.id'); end if;
     if not public._plantilla_entero_entre(v_c -> 'alto', 16, 240) then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.alto'); end if;
     v_t := case when jsonb_typeof(v_c -> 'ocultar_si') = 'string' then v_c ->> 'ocultar_si' end;
-    if v_t is null or v_t not in ('nunca', 'no_aplica', 'no_aplica_o_cero') then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.ocultar_si'); end if;
-    if v_t = 'nunca' then
+    if v_t is null or v_t not in ('nunca', 'no_aplica', 'no_aplica_o_cero', 'condiciones') then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.ocultar_si'); end if;
+    if v_t = 'condiciones' then
       if v_c ? 'nodo' then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.nodo'); end if;
-    elsif not public._plantilla_es_id(v_c -> 'nodo') then
-      perform public._plantilla_cuadricula_rechazar('forma', v_d || '.nodo');
+      perform public._plantilla_cuadricula_condiciones(v_c -> 'si', v_d || '.si');
+    else
+      if v_t = 'nunca' then
+        if v_c ? 'nodo' then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.nodo'); end if;
+      elsif not public._plantilla_es_id(v_c -> 'nodo') then
+        perform public._plantilla_cuadricula_rechazar('forma', v_d || '.nodo');
+      end if;
+      if v_c ? 'si' then perform public._plantilla_cuadricula_rechazar('forma', v_d || '.si'); end if;
     end if;
   end loop;
 
@@ -12704,28 +13136,39 @@ begin
       perform public._plantilla_cuadricula_rechazar('forma', v_d || '.abarca_filas');
     end if;
 
-    -- El contenido: texto (0 a 300 caracteres, sin `{{`), dato (una variable o un nodo con qué mostrar), logo o vacío.
+    -- El contenido: texto (0 a 300 caracteres, sin `{{`), dato (una variable o un nodo con qué mostrar), la lista de respaldo (hasta 5 datos), las condiciones
+    -- (de 1 a 4 ramas {si, contenido} y el «si no»), logo, foto del asesor o vacío.
     v_x := v_c -> 'contenido';
     v_dc := v_d || '.contenido';
     if jsonb_typeof(v_x) is distinct from 'object' then perform public._plantilla_cuadricula_rechazar('forma', v_dc); end if;
     v_t := case when jsonb_typeof(v_x -> 'tipo') = 'string' then v_x ->> 'tipo' end;
-    if v_t is null or v_t not in ('texto', 'dato', 'logo', 'vacio') then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.tipo'); end if;
+    if v_t is null or v_t not in ('texto', 'dato', 'respaldo', 'condiciones', 'logo', 'vacio', 'foto_del_asesor') then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.tipo'); end if;
     if v_t = 'texto' then
       if exists (select 1 from jsonb_object_keys(v_x) k where k not in ('tipo', 'texto')) then perform public._plantilla_cuadricula_rechazar('forma', v_dc); end if;
       if jsonb_typeof(v_x -> 'texto') is distinct from 'string' then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.texto'); end if;
       if char_length(v_x ->> 'texto') > 300 or strpos(v_x ->> 'texto', '{{') > 0 then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.texto'); end if;
     elsif v_t = 'dato' then
-      if v_x ? 'variable' then
-        if exists (select 1 from jsonb_object_keys(v_x) k where k not in ('tipo', 'variable')) then perform public._plantilla_cuadricula_rechazar('forma', v_dc); end if;
-        if not public._plantilla_es_id(v_x -> 'variable') then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.variable'); end if;
-      else
-        if exists (select 1 from jsonb_object_keys(v_x) k where k not in ('tipo', 'nodo', 'mostrar')) then perform public._plantilla_cuadricula_rechazar('forma', v_dc); end if;
-        if not public._plantilla_es_id(v_x -> 'nodo') then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.nodo'); end if;
-        v_t := case when jsonb_typeof(v_x -> 'mostrar') = 'string' then v_x ->> 'mostrar' end;
-        if v_t is null or v_t not in ('monto', 'etiqueta', 'descripcion', 'porcentaje', 'tc_nombre', 'tc_valor', 'plazo') then
-          perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.mostrar');
-        end if;
-      end if;
+      perform public._plantilla_cuadricula_dato(v_x, v_dc);
+    elsif v_t = 'respaldo' then
+      if exists (select 1 from jsonb_object_keys(v_x) k where k not in ('tipo', 'datos')) then perform public._plantilla_cuadricula_rechazar('forma', v_dc); end if;
+      if jsonb_typeof(v_x -> 'datos') is distinct from 'array' then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.datos'); end if;
+      if jsonb_array_length(v_x -> 'datos') > 5 then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.datos'); end if;
+      for j in 0 .. jsonb_array_length(v_x -> 'datos') - 1 loop
+        perform public._plantilla_cuadricula_dato(v_x -> 'datos' -> j, format('%s.datos[%s]', v_dc, j));
+      end loop;
+    elsif v_t = 'condiciones' then
+      if exists (select 1 from jsonb_object_keys(v_x) k where k not in ('tipo', 'ramas', 'si_no')) then perform public._plantilla_cuadricula_rechazar('forma', v_dc); end if;
+      if jsonb_typeof(v_x -> 'ramas') is distinct from 'array' then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.ramas'); end if;
+      if jsonb_array_length(v_x -> 'ramas') not between 1 and 4 then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.ramas'); end if;
+      for j in 0 .. jsonb_array_length(v_x -> 'ramas') - 1 loop
+        v_r := v_x -> 'ramas' -> j;
+        v_dr := format('%s.ramas[%s]', v_dc, j);
+        if jsonb_typeof(v_r) is distinct from 'object' then perform public._plantilla_cuadricula_rechazar('forma', v_dr); end if;
+        if exists (select 1 from jsonb_object_keys(v_r) k where k not in ('si', 'contenido')) then perform public._plantilla_cuadricula_rechazar('forma', v_dr); end if;
+        perform public._plantilla_cuadricula_condiciones(v_r -> 'si', v_dr || '.si');
+        perform public._plantilla_cuadricula_simple(v_r -> 'contenido', v_dr || '.contenido');
+      end loop;
+      perform public._plantilla_cuadricula_simple(v_x -> 'si_no', v_dc || '.si_no');
     elsif exists (select 1 from jsonb_object_keys(v_x) k where k <> 'tipo') then
       perform public._plantilla_cuadricula_rechazar('forma', v_dc);
     end if;
@@ -12809,12 +13252,19 @@ begin
     end loop;
   end loop;
 
+  -- El primer dato con una variable que no existe, en el orden de `_plantilla_cuadricula_datos()` (las filas, por sus condiciones, antes que las celdas).
+  select d.lugar || '.' || d.id into v_k from public._plantilla_cuadricula_datos(p_plantilla) d
+   where d.variable is not null
+     and d.variable not in ('empresa_nombre', 'fecha_larga', 'numero', 'titulo', 'titulo_opcion', 'asesor_nombre', 'asesor_iniciales', 'cliente_nombre',
+                            'vehiculo_titulo', 'vehiculo_lote', 'vehiculo_vin', 'vence_el', 'modo_tc', 'asesor_telefono', 'asesor_cargo')
+   order by d.o limit 1;
+  if v_k is not null then perform public._plantilla_cuadricula_rechazar('variable_inexistente', v_k); end if;
+
+  -- La primera lista de respaldo con menos de dos datos.
   select c ->> 'id' into v_k from jsonb_array_elements(v_celdas) with ordinality t (c, o)
-   where c -> 'contenido' ->> 'tipo' = 'dato' and c -> 'contenido' ? 'variable'
-     and (c -> 'contenido' ->> 'variable') not in ('fecha_larga', 'numero', 'titulo', 'titulo_opcion', 'asesor_nombre', 'asesor_iniciales', 'cliente_nombre',
-                                                   'vehiculo_titulo', 'vehiculo_lote', 'vehiculo_vin', 'vence_el', 'modo_tc')
+   where c -> 'contenido' ->> 'tipo' = 'respaldo' and jsonb_array_length(c -> 'contenido' -> 'datos') < 2
    order by o limit 1;
-  if v_k is not null then perform public._plantilla_cuadricula_rechazar('variable_inexistente', 'celdas.' || v_k); end if;
+  if v_k is not null then perform public._plantilla_cuadricula_rechazar('respaldo_vacio', 'celdas.' || v_k); end if;
 end;
 $$;
 
@@ -12831,9 +13281,8 @@ CREATE OR REPLACE FUNCTION "public"."_plantilla_cuadricula_nodos"("p_plantilla" 
     SET "search_path" TO ''
     AS $$
 declare
-  v_filas jsonb; v_celdas jsonb; v_nodos jsonb; v_grupos jsonb; v_pcts jsonb; v_vis jsonb; v_ton jsonb; v_k text;
+  v_celdas jsonb; v_nodos jsonb; v_grupos jsonb; v_pcts jsonb; v_vis jsonb; v_ton jsonb; v_k text;
 begin
-  v_filas := p_plantilla -> 'filas';
   v_celdas := p_plantilla -> 'celdas';
   v_nodos := coalesce((select jsonb_object_agg(n ->> 'id', n) from jsonb_array_elements(coalesce(p_def -> 'nodos', '[]'::jsonb)) n), '{}'::jsonb);
   v_grupos := coalesce((select jsonb_object_agg(g ->> 'id', g) from jsonb_array_elements(coalesce(p_def -> 'grupos', '[]'::jsonb)) g), '{}'::jsonb);
@@ -12851,50 +13300,60 @@ begin
     if v_k is not null then perform public._plantilla_cuadricula_rechazar('tono_inexistente', 'celdas.' || v_k); end if;
   end if;
 
-  select f ->> 'id' into v_k from jsonb_array_elements(v_filas) with ordinality t (f, o) where f ? 'nodo' and not v_nodos ? (f ->> 'nodo') order by o limit 1;
+  select d.id into v_k from public._plantilla_cuadricula_datos(p_plantilla) d
+   where d.lugar = 'filas' and d.nodo is not null and not v_nodos ? d.nodo order by d.o limit 1;
   if v_k is not null then perform public._plantilla_cuadricula_rechazar('nodo_de_fila_inexistente', 'filas.' || v_k); end if;
 
-  select c ->> 'id' into v_k from jsonb_array_elements(v_celdas) with ordinality t (c, o)
-   where c -> 'contenido' ->> 'tipo' = 'dato' and c -> 'contenido' ? 'nodo' and not v_nodos ? (c -> 'contenido' ->> 'nodo') order by o limit 1;
+  select d.id into v_k from public._plantilla_cuadricula_datos(p_plantilla) d
+   where d.lugar = 'celdas' and d.nodo is not null and not v_nodos ? d.nodo order by d.o limit 1;
   if v_k is not null then perform public._plantilla_cuadricula_rechazar('nodo_inexistente', 'celdas.' || v_k); end if;
 
   -- El `pct` del par de un nodo: el suyo si es el `porcentaje_de`, él mismo si es el `pct` de uno; nulo si no es de un par.
-  select c ->> 'id' into v_k from jsonb_array_elements(v_celdas) with ordinality t (c, o)
-   cross join lateral (select v_nodos -> (c -> 'contenido' ->> 'nodo') as n, c -> 'contenido' ->> 'mostrar' as mostrar) d
-   where c -> 'contenido' ->> 'tipo' = 'dato' and c -> 'contenido' ? 'nodo'
+  select d.lugar || '.' || d.id into v_k from public._plantilla_cuadricula_datos(p_plantilla) d
+   cross join lateral (select v_nodos -> d.nodo as n) x
+   where d.nodo is not null and d.mostrar is not null
      and ((d.mostrar = 'porcentaje'
-           and (case when d.n ->> 'tipo' = 'calculo' and d.n ->> 'op' = 'porcentaje_de' and d.n ->> 'pct' is not null then d.n ->> 'pct'
-                     when v_pcts ? (d.n ->> 'id') then d.n ->> 'id' end) is null)
-       or (d.mostrar in ('tc_nombre', 'tc_valor', 'plazo') and (d.n ->> 'grupo' is null or not v_grupos ? (d.n ->> 'grupo'))))
-   order by o limit 1;
-  if v_k is not null then perform public._plantilla_cuadricula_rechazar('mostrar_no_admitido', 'celdas.' || v_k); end if;
+           and (case when x.n ->> 'tipo' = 'calculo' and x.n ->> 'op' = 'porcentaje_de' and x.n ->> 'pct' is not null then x.n ->> 'pct'
+                     when v_pcts ? d.nodo then d.nodo end) is null)
+       or (d.mostrar in ('tc_nombre', 'tc_valor', 'plazo') and (x.n ->> 'grupo' is null or not v_grupos ? (x.n ->> 'grupo'))))
+   order by d.o limit 1;
+  if v_k is not null then perform public._plantilla_cuadricula_rechazar('mostrar_no_admitido', v_k); end if;
 
-  select 'filas.' || (f ->> 'id') into v_k from jsonb_array_elements(v_filas) with ordinality t (f, o)
-   where f ? 'nodo' and coalesce(v_vis -> (f ->> 'nodo') ->> 'ver', '') <> 'todos' order by o limit 1;
-  if v_k is null then
-    select 'celdas.' || (c ->> 'id') into v_k from jsonb_array_elements(v_celdas) with ordinality t (c, o)
-     cross join lateral (select v_nodos -> (c -> 'contenido' ->> 'nodo') as n, c -> 'contenido' ->> 'mostrar' as mostrar) d
-     where c -> 'contenido' ->> 'tipo' = 'dato' and c -> 'contenido' ? 'nodo'
-       and (coalesce(v_vis -> (d.n ->> 'id') ->> 'ver', '') <> 'todos'
-         or (d.mostrar = 'porcentaje'
-             and coalesce(v_vis -> (case when d.n ->> 'tipo' = 'calculo' and d.n ->> 'op' = 'porcentaje_de' and d.n ->> 'pct' is not null then d.n ->> 'pct'
-                                         else d.n ->> 'id' end) ->> 'ver', '') <> 'todos'))
-     order by o limit 1;
-  end if;
+  select d.lugar || '.' || d.id into v_k from public._plantilla_cuadricula_datos(p_plantilla) d
+   cross join lateral (select v_nodos -> d.nodo as n) x
+   where d.nodo is not null
+     and (coalesce(v_vis -> d.nodo ->> 'ver', '') <> 'todos'
+       or (d.mostrar = 'porcentaje'
+           and coalesce(v_vis -> (case when x.n ->> 'tipo' = 'calculo' and x.n ->> 'op' = 'porcentaje_de' and x.n ->> 'pct' is not null then x.n ->> 'pct'
+                                       else d.nodo end) ->> 'ver', '') <> 'todos'))
+   order by d.o limit 1;
   if v_k is not null then perform public._plantilla_cuadricula_rechazar('nodo_restringido', v_k); end if;
 
-  select c ->> 'id' into v_k from jsonb_array_elements(v_celdas) with ordinality t (c, o)
-   cross join lateral (select v_grupos -> (v_nodos -> (c -> 'contenido' ->> 'nodo') ->> 'grupo') ->> 'bucket' as b) g
-   where c -> 'contenido' ->> 'tipo' = 'dato' and c -> 'contenido' ->> 'mostrar' in ('tc_nombre', 'tc_valor') and g.b is not null
+  select d.lugar || '.' || d.id into v_k from public._plantilla_cuadricula_datos(p_plantilla) d
+   cross join lateral (select v_grupos -> (v_nodos -> d.nodo ->> 'grupo') ->> 'bucket' as b) g
+   where d.mostrar in ('tc_nombre', 'tc_valor') and g.b is not null
      and exists (select 1 from (select p_def -> 'buckets' ->> g.b as id
                                 union all
                                 select mb ->> 'nodo'
                                   from jsonb_array_elements(coalesce(p_diseno -> 'cabecera' -> 'modos', '[]'::jsonb)) m
                                  cross join lateral jsonb_array_elements(coalesce(m -> 'buckets', '[]'::jsonb)) mb
-                                 where mb ->> 'bucket' = g.b) x
-                  where x.id is not null and coalesce(v_vis -> x.id ->> 'ver', '') <> 'todos')
-   order by o limit 1;
-  if v_k is not null then perform public._plantilla_cuadricula_rechazar('tipo_de_cambio_restringido', 'celdas.' || v_k); end if;
+                                 where mb ->> 'bucket' = g.b) b
+                  where b.id is not null and coalesce(v_vis -> b.id ->> 'ver', '') <> 'todos')
+   order by d.o limit 1;
+  if v_k is not null then perform public._plantilla_cuadricula_rechazar('tipo_de_cambio_restringido', v_k); end if;
+
+  -- Una condición sobre un nodo que ese nodo no puede responder (las de un dato, `vacio` y `no_vacio`, siempre se responden).
+  select d.lugar || '.' || d.id into v_k from public._plantilla_cuadricula_datos(p_plantilla) d
+   cross join lateral (select v_nodos -> d.nodo as n) x
+   where d.es is not null and d.nodo is not null and d.mostrar is null
+     and ((d.es = 'opcion'
+           and (x.n ->> 'tipo' is distinct from 'opcion'
+                or not exists (select 1 from jsonb_array_elements(case when jsonb_typeof(x.n -> 'opciones') = 'array' then x.n -> 'opciones' else '[]'::jsonb end) op
+                                where op ->> 'clave' = d.opcion)))
+       or (d.es in ('encendido', 'apagado') and x.n ->> 'tipo' is distinct from 'bandera')
+       or (d.es in ('cero', 'no_cero', 'mayor', 'menor', 'igual') and x.n ->> 'tipo' = 'opcion'))
+   order by d.o limit 1;
+  if v_k is not null then perform public._plantilla_cuadricula_rechazar('condicion_invalida', v_k); end if;
 end;
 $$;
 
@@ -12929,12 +13388,14 @@ begin
     when 'celda_fuera_de_la_grilla' then v_l || ' se sale de la cuadrícula.'
     when 'celdas_se_pisan' then v_l || ' pisa otra celda.'
     when 'variable_inexistente' then v_l || ' muestra un dato que no existe.'
+    when 'respaldo_vacio' then v_l || ' necesita al menos dos datos para mostrar el primero con valor.'
     when 'tono_inexistente' then v_l || ' usa un color que no está en el catálogo.'
     when 'nodo_de_fila_inexistente' then v_l || ' depende de un nodo que no es de la fórmula.'
     when 'nodo_inexistente' then v_l || ' nombra un nodo que no es de la fórmula.'
     when 'mostrar_no_admitido' then v_l || ' muestra algo que su nodo no tiene.'
     when 'nodo_restringido' then format('La tarjeta no puede mostrar lo que nombra %s: no es del nivel «todos».', v_lugar)
     when 'tipo_de_cambio_restringido' then format('La tarjeta no puede nombrar el tipo de cambio de %s: no es del nivel «todos».', v_lugar)
+    when 'condicion_invalida' then v_l || ' tiene una condición que esta fórmula no puede responder.'
   end);
 end;
 $$;
@@ -12944,6 +13405,35 @@ ALTER FUNCTION "public"."_plantilla_cuadricula_rechazar"("p_regla" "text", "p_do
 
 
 COMMENT ON FUNCTION "public"."_plantilla_cuadricula_rechazar"("p_regla" "text", "p_donde" "text") IS 'Interna: el 22023 de una regla de la forma 2 de la plantilla de la tarjeta, con el mensaje de motivos-de-plantilla.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_plantilla_cuadricula_simple"("p_x" "jsonb", "p_donde" "text") RETURNS "void"
+    LANGUAGE "plpgsql" STABLE
+    SET "search_path" TO ''
+    AS $$
+declare v_t text;
+begin
+  if jsonb_typeof(p_x) is distinct from 'object' then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+  v_t := case when jsonb_typeof(p_x -> 'tipo') = 'string' then p_x ->> 'tipo' end;
+  if v_t is null or v_t not in ('texto', 'dato', 'vacio') then perform public._plantilla_cuadricula_rechazar('forma', p_donde || '.tipo'); end if;
+  if v_t = 'texto' then
+    if exists (select 1 from jsonb_object_keys(p_x) k where k not in ('tipo', 'texto')) then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+    if jsonb_typeof(p_x -> 'texto') is distinct from 'string' then perform public._plantilla_cuadricula_rechazar('forma', p_donde || '.texto'); end if;
+    if char_length(p_x ->> 'texto') > 300 or strpos(p_x ->> 'texto', '{{') > 0 then perform public._plantilla_cuadricula_rechazar('forma', p_donde || '.texto'); end if;
+  elsif v_t = 'dato' then
+    perform public._plantilla_cuadricula_dato(p_x, p_donde);
+  elsif exists (select 1 from jsonb_object_keys(p_x) k where k <> 'tipo') then
+    perform public._plantilla_cuadricula_rechazar('forma', p_donde);
+  end if;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_plantilla_cuadricula_simple"("p_x" "jsonb", "p_donde" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_plantilla_cuadricula_simple"("p_x" "jsonb", "p_donde" "text") IS 'Interna: la forma de lo que muestra una rama o el «si no» de unas condiciones de la tarjeta, espejo de revisarSimple() en entities/plantilla/condiciones-de-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
 
 
 
@@ -13148,16 +13638,33 @@ COMMENT ON FUNCTION "public"."_plantilla_pieza"("p_columna" "text", "p_hasta" "t
 
 
 
-CREATE OR REPLACE FUNCTION "public"."_portada_version_del_dibujo"() RETURNS integer
-    LANGUAGE "sql" IMMUTABLE
+CREATE OR REPLACE FUNCTION "public"."_plantilla_publicar_en"("p_formula_del_origen" "uuid", "p_nota" "text", "p_esperada" timestamp with time zone) RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
-    AS $$ select 1 $$;
+    AS $$
+declare
+  v_b public.plantillas_tarjeta; v_pub uuid; v_ver int; fo record;
+begin
+  select * into v_b from public.plantillas_tarjeta where formula_del_origen_id = p_formula_del_origen and estado = 'borrador' for update;   -- plantillas_borrador_unico
+  if v_b.id is null then perform public._plantilla_borrador_ausente(p_formula_del_origen, p_esperada); end if;
+  perform public._exigir_version(v_b.actualizado_en, p_esperada,
+    'El borrador de esta plantilla cambió ' || public._hace(v_b.actualizado_en) || ', mientras lo editabas.');
+  select id into v_pub from public.plantillas_tarjeta where formula_del_origen_id = p_formula_del_origen and estado = 'publicada';   -- plantillas_publicada_unica
+  select f.definicion, f.diseno, f.visibilidad into fo from public.formulas f
+   where f.formula_del_origen_id = p_formula_del_origen and f.estado = 'publicada';   -- formulas_publicada_unica
+  if not found then perform public._formula_rechazar('formula_sin_publicar', 'origen', 'Publica la fórmula del origen antes que su plantilla.'); end if;
+  perform public.validar_plantilla(v_b.definicion, fo.definicion, fo.diseno, fo.visibilidad, array(select t.clave from public.tonos t));
+  select coalesce(max(version), 0) + 1 into v_ver from public.plantillas_tarjeta where formula_del_origen_id = p_formula_del_origen;   -- plantillas_tarjeta_formula_del_origen_id_version_key
+  update public.plantillas_tarjeta set estado = 'archivada' where id = v_pub;
+  update public.plantillas_tarjeta set estado = 'publicada', version = v_ver, nota = p_nota, publicado_en = now() where id = v_b.id;
+  return v_b.id;
+end $$;
 
 
-ALTER FUNCTION "public"."_portada_version_del_dibujo"() OWNER TO "postgres";
+ALTER FUNCTION "public"."_plantilla_publicar_en"("p_formula_del_origen" "uuid", "p_nota" "text", "p_esperada" timestamp with time zone) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_portada_version_del_dibujo"() IS 'La versión del dibujo de la portada de la cotización: se sube en una migración cuando cambia cómo se dibuja la imagen de la tarjeta (infra/tarjeta/imagen/, geometriaDeLaTarjeta, webp-de-la-tarjeta.ts). Entra en _cotizacion_portada_clave.';
+COMMENT ON FUNCTION "public"."_plantilla_publicar_en"("p_formula_del_origen" "uuid", "p_nota" "text", "p_esperada" timestamp with time zone) IS 'Interna: publica el borrador de la plantilla de una fórmula del origen, validado contra la publicada de esa fórmula, con el candado plantillas: tomado. La usan plantilla_publicar y formula_del_origen_activar. docs/COTIZADOR.md › «Versiones de la plantilla (4.19-1)».';
 
 
 
@@ -13331,19 +13838,38 @@ COMMENT ON FUNCTION "public"."_proyecto_fase_que_pide_pago"("p_proyecto" "uuid")
 
 
 
-CREATE OR REPLACE FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone) RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."_publicada_de_la_activa"("p_origen" "uuid") RETURNS "uuid"
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select f.id
+    from public.formulas_del_origen d                                                   -- formulas_del_origen_activa_unica
+    join public.formulas f on f.formula_del_origen_id = d.id and f.estado = 'publicada'   -- formulas_publicada_unica
+   where d.origen_id = p_origen and d.activa;
+$$;
+
+
+ALTER FUNCTION "public"."_publicada_de_la_activa"("p_origen" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_publicada_de_la_activa"("p_origen" "uuid") IS 'Interna: la versión publicada de la fórmula activa del origen (la que se cotiza), o nula. docs/COTIZADOR.md › «Fórmulas del origen».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
 declare
-  v_b public.formulas; v_pub uuid; v_ver int; v_vis jsonb; v_f text;
+  v_b public.formulas; v_pub uuid; v_ver int; v_vis jsonb; v_f text; v_fdo public.formulas_del_origen;
 begin
   perform public.assert_permiso('cotizaciones.configurar', p_origen);
   if coalesce(trim(p_nota), '') = '' then raise exception 'Publicar pide una nota.' using errcode = '22023'; end if;
   -- Guardar, publicar, el ⚙ y revertir de un origen, en serie: el segundo relee la publicada y el borrador y los compara con sus esperadas.
   perform pg_advisory_xact_lock(hashtextextended('formulas:' || p_origen::text, 0));
-  select * into v_b from public.formulas where origen_id = p_origen and estado = 'borrador' for update;
-  select id into v_pub from public.formulas where origen_id = p_origen and estado = 'publicada';
+  v_fdo := public._fdo_resolver(p_origen, p_formula_del_origen, false);
+  select * into v_b from public.formulas where formula_del_origen_id = v_fdo.id and estado = 'borrador' for update;   -- formulas_borrador_unico
+  select id into v_pub from public.formulas where formula_del_origen_id = v_fdo.id and estado = 'publicada';           -- formulas_publicada_unica
   if p_publicada_esperada is not null and v_pub is distinct from p_publicada_esperada then
     if v_pub is null then
       raise exception 'La versión que tenías ya no es la publicada, y el origen no tiene otra.' using errcode = 'PT409';
@@ -13357,27 +13883,32 @@ begin
     raise exception 'Después de que empezaste este borrador, %.', coalesce(public._version_publicada_por(v_pub), 'la versión publicada cambió')
       using errcode = 'PT409';
   end if;
+  -- Una copia de otro origen no publica un dato del vehículo que este origen no tiene.
+  if v_fdo.copiada_de_otro_origen then
+    perform public._fdo_exigir_campos(v_b.definicion, p_origen);
+  end if;
 
   v_vis := public._preparar_publicacion(v_b.definicion, v_b.params, v_b.diseno, p_ignorar_retirados);
 
-  select coalesce(max(version), 0) + 1 into v_ver from public.formulas where origen_id = p_origen;
+  select coalesce(max(version), 0) + 1 into v_ver from public.formulas where formula_del_origen_id = v_fdo.id;   -- formulas_formula_del_origen_id_version_key
   update public.formulas set estado = 'archivada' where id = v_pub;
   update public.formulas set estado = 'publicada', version = v_ver, nota = p_nota, visibilidad = v_vis, publicado_por = (select auth.uid()),
          publicado_en = now(), version_origen_id = v_pub where id = v_b.id;
-  perform public.registrar_actividad('formula.publicada', 'formulas', v_b.id::text, jsonb_build_object('anterior', v_pub), jsonb_build_object('version', v_ver, 'nota', p_nota));
+  perform public.registrar_actividad('formula.publicada', 'formulas', v_b.id::text, jsonb_build_object('anterior', v_pub), jsonb_build_object('version', v_ver, 'nota', p_nota),
+                                     jsonb_build_object('formula_del_origen_id', v_fdo.id, 'nombre', v_fdo.nombre));
   return v_b.id;
 end;
 $$;
 
 
-ALTER FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone) OWNER TO "postgres";
+ALTER FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone) IS 'Interna: publica el borrador de un origen tras el candado, la publicada esperada y la actualizado_en esperada del borrador (nula: no compara). La usa formula_publicar. docs/COTIZADOR.md › «Versiones (4.20-1)».';
+COMMENT ON FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") IS 'Interna: publica el borrador de una fórmula del origen (nula: la de trabajo) tras el candado del origen, la publicada esperada y la actualizado_en esperada del borrador (nula: no compara). En una copia de otro origen exige los datos del vehículo. La usan formula_publicar y formula_del_origen_activar. docs/COTIZADOR.md › «Versiones (4.20-1)».';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean) RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean, "p_formula_del_origen" "uuid") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
@@ -13386,7 +13917,7 @@ declare
 begin
   if coalesce(trim(p_nota), '') = '' then raise exception 'Publicar pide una nota.' using errcode = '22023'; end if;
   perform pg_advisory_xact_lock(hashtextextended('formulas:' || p_origen::text, 0));
-  select id into v_pub from public.formulas where origen_id = p_origen and estado = 'publicada';
+  select id into v_pub from public.formulas where formula_del_origen_id = p_formula_del_origen and estado = 'publicada';   -- formulas_publicada_unica
   if v_pub is null then raise exception 'El origen no tiene fórmula publicada.' using errcode = '22023'; end if;
   if p_esperada is distinct from v_pub then
     v_f := public._version_publicada_por(v_pub);
@@ -13395,22 +13926,23 @@ begin
 
   v_vis := public._preparar_publicacion(p_def, p_params, p_diseno, p_ignorar_retirados);
 
-  select coalesce(max(version), 0) + 1 into v_ver from public.formulas where origen_id = p_origen;   -- formulas_origen_id_version_key
+  select coalesce(max(version), 0) + 1 into v_ver from public.formulas where formula_del_origen_id = p_formula_del_origen;   -- formulas_formula_del_origen_id_version_key
   update public.formulas set estado = 'archivada' where id = v_pub;
-  insert into public.formulas (origen_id, version, estado, definicion, params, diseno, visibilidad, nota, version_origen_id, creado_por, publicado_por, publicado_en)
-  values (p_origen, v_ver, 'publicada', p_def, p_params, p_diseno, v_vis, p_nota, v_pub, (select auth.uid()), (select auth.uid()), now())
+  insert into public.formulas (origen_id, formula_del_origen_id, version, estado, definicion, params, diseno, visibilidad, nota, version_origen_id, creado_por, publicado_por, publicado_en)
+  values (p_origen, p_formula_del_origen, v_ver, 'publicada', p_def, p_params, p_diseno, v_vis, p_nota, v_pub, (select auth.uid()), (select auth.uid()), now())
   returning id into v_id;
   perform public.registrar_actividad('formula.publicada', 'formulas', v_id::text, jsonb_build_object('anterior', v_pub),
-                                     jsonb_build_object('version', v_ver, 'nota', p_nota) || coalesce(p_detalle, '{}'::jsonb));
+                                     jsonb_build_object('version', v_ver, 'nota', p_nota) || coalesce(p_detalle, '{}'::jsonb),
+                                     jsonb_build_object('formula_del_origen_id', p_formula_del_origen));
   return v_id;
 end;
 $$;
 
 
-ALTER FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean) OWNER TO "postgres";
+ALTER FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean, "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean) IS 'Interna: publica la N+1 de un origen como fila nueva (archiva la publicada), sin leer ni escribir el borrador, tras el candado del origen y la esperada. La usan el ⚙ y formula_revertir. docs/COTIZADOR.md › «Versiones (4.20-1)».';
+COMMENT ON FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean, "p_formula_del_origen" "uuid") IS 'Interna: publica la N+1 de una fórmula del origen como fila nueva (archiva la publicada), sin leer ni escribir el borrador, tras el candado del origen y la esperada. La usan el ⚙, formula_revertir y tabla_referencia_publicar. docs/COTIZADOR.md › «Versiones (4.20-1)».';
 
 
 
@@ -15081,6 +15613,101 @@ end $$;
 ALTER FUNCTION "public"."_subasta_puede_resolver"("p_vehiculo" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_clave"("p_nombre" "text") RETURNS "text"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v text;
+begin
+  -- `collate "C"`: `lower()` sólo toca ASCII, igual en la base real y en PGlite; las vocales con acento, en las dos cajas, las cambia `translate`.
+  v := btrim(regexp_replace(
+         translate(lower(coalesce(p_nombre, '') collate "C"),
+                   'áàäâãéèëêíìïîóòöôõúùüûñçÁÀÄÂÃÉÈËÊÍÌÏÎÓÒÖÔÕÚÙÜÛÑÇ',
+                   'aaaaaeeeeiiiiooooouuuuncaaaaaeeeeiiiiooooouuuunc'),
+         '[^abcdefghijklmnopqrstuvwxyz0123456789]+', '_', 'g'), '_');
+  if v ~ '^[0123456789]' then
+    v := 't_' || v;
+  end if;
+  v := rtrim(left(v, 40), '_');
+  if char_length(v) < 2 then
+    raise exception 'El nombre de la tabla necesita al menos dos letras o números.' using errcode = '22023', hint = 'nombre';
+  end if;
+  return v;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_tabla_referencia_clave"("p_nombre" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_tabla_referencia_clave"("p_nombre" "text") IS 'La clave de una tabla de referencia sacada de su nombre (minúsculas ASCII, sin acentos, _ entre palabras, t_ si empieza con un dígito, hasta 40). Espejo: claveDeLaTabla. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_columnas_validas"("p_columnas" "jsonb", "p_anteriores" "jsonb" DEFAULT NULL::"jsonb") RETURNS "jsonb"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $_$
+declare
+  v_ok boolean; v_c jsonb; v_n bigint; v_camino text; v_clave text; v_etiqueta text; v_tipo text;
+  v_claves text[] := array[]::text[]; v_etiquetas text[] := array[]::text[]; v_salida jsonb := '[]'::jsonb;
+begin
+  v_ok := coalesce(jsonb_typeof(p_columnas) = 'array', false);
+  if v_ok then
+    v_ok := jsonb_array_length(p_columnas) between 1 and 20;
+  end if;
+  if not v_ok then
+    raise exception 'Una tabla tiene de 1 a 20 columnas.' using errcode = '22023', hint = 'columnas';
+  end if;
+  for v_c, v_n in select e.value, e.n from jsonb_array_elements(p_columnas) with ordinality e (value, n) loop
+    v_camino := 'columnas.' || (v_n - 1);
+    if jsonb_typeof(v_c) is distinct from 'object' then
+      raise exception 'La columna %: no es una columna.', v_n using errcode = '22023', hint = v_camino;
+    end if;
+    v_clave := case when jsonb_typeof(v_c -> 'clave') = 'string' then v_c ->> 'clave' end;
+    v_ok := coalesce(v_clave ~ '^[abcdefghijklmnopqrstuvwxyz][abcdefghijklmnopqrstuvwxyz0123456789_]{0,40}$', false);
+    if not v_ok then
+      raise exception 'La columna %: la clave va en minúsculas, sin espacios ni acentos, y empieza con una letra.', v_n
+        using errcode = '22023', hint = v_camino || '.clave';
+    end if;
+    if v_clave = any (v_claves) then
+      raise exception 'La columna %: ya hay otra con la clave «%».', v_n, v_clave using errcode = '22023', hint = v_camino || '.clave';
+    end if;
+    v_etiqueta := case when jsonb_typeof(v_c -> 'etiqueta') = 'string' then btrim(v_c ->> 'etiqueta', ' ') else '' end;
+    if v_etiqueta = '' then
+      raise exception 'La columna %: le falta el nombre.', v_n using errcode = '22023', hint = v_camino || '.etiqueta';
+    end if;
+    if char_length(v_etiqueta) > 60 then
+      raise exception 'La columna %: el nombre pasa de 60 letras.', v_n using errcode = '22023', hint = v_camino || '.etiqueta';
+    end if;
+    if lower(v_etiqueta collate "C") = any (v_etiquetas) then
+      raise exception 'La columna %: ya hay otra «%».', v_n, v_etiqueta using errcode = '22023', hint = v_camino || '.etiqueta';
+    end if;
+    v_tipo := case when jsonb_typeof(v_c -> 'tipo') = 'string' then v_c ->> 'tipo' end;
+    v_ok := coalesce(v_tipo in ('numero', 'anio', 'texto'), false);
+    if not v_ok and v_tipo is not null and jsonb_typeof(p_anteriores) = 'array' then
+      v_ok := exists (select 1 from jsonb_array_elements(p_anteriores) a
+                       where a.value ->> 'clave' = v_clave and a.value ->> 'tipo' = v_tipo);
+    end if;
+    if not v_ok then
+      raise exception 'La columna %: el tipo es número, año o texto.', v_n using errcode = '22023', hint = v_camino || '.tipo';
+    end if;
+    v_claves := v_claves || v_clave;
+    v_etiquetas := v_etiquetas || lower(v_etiqueta collate "C");
+    v_salida := v_salida || jsonb_build_array(jsonb_build_object('clave', v_clave, 'etiqueta', v_etiqueta, 'tipo', v_tipo));
+  end loop;
+  return v_salida;
+end;
+$_$;
+
+
+ALTER FUNCTION "public"."_tabla_referencia_columnas_validas"("p_columnas" "jsonb", "p_anteriores" "jsonb") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_tabla_referencia_columnas_validas"("p_columnas" "jsonb", "p_anteriores" "jsonb") IS 'Valida y normaliza las columnas de una tabla de referencia ({clave, etiqueta, tipo}, de 1 a 20); 22023 con el camino en hint. Espejo: validarColumnas. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_filas_validas"("p_columnas" "jsonb", "p_filas" "jsonb") RETURNS "void"
     LANGUAGE "plpgsql" STABLE SECURITY DEFINER
     SET "search_path" TO ''
@@ -15137,6 +15764,65 @@ COMMENT ON FUNCTION "public"."_tabla_referencia_filas_validas"("p_columnas" "jso
 
 
 
+CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_frase_de_usos"("p_tabla" "uuid", "p_columnas" "text"[] DEFAULT NULL::"text"[]) RETURNS "text"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v_partes text[]; v_n int;
+begin
+  select array_agg(case u.estado when 'publicada' then 'la fórmula publicada de ' else 'el borrador de ' end || u.origen order by u.ord)
+    into v_partes
+    from (select d.origen, d.estado, row_number() over (order by d.origen collate "C", d.origen_id, d.estado_orden) as ord
+            from (select distinct x.origen_id, x.origen, x.estado, case x.estado when 'publicada' then 0 else 1 end as estado_orden
+                    from public._tabla_referencia_usos(p_tabla) x
+                   where p_columnas is null or x.columnas && p_columnas) d
+           order by d.origen collate "C", d.origen_id, d.estado_orden
+           limit 4) u;
+  v_n := coalesce(cardinality(v_partes), 0);
+  if v_n = 0 then
+    return null;
+  elsif v_n = 1 then
+    return v_partes[1];
+  elsif v_n = 2 then
+    return v_partes[1] || ' y ' || v_partes[2];
+  elsif v_n = 3 then
+    return v_partes[1] || ', ' || v_partes[2] || ' y ' || v_partes[3];
+  end if;
+  return v_partes[1] || ', ' || v_partes[2] || ', ' || v_partes[3] || ' y otras fórmulas';
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_tabla_referencia_frase_de_usos"("p_tabla" "uuid", "p_columnas" "text"[]) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_tabla_referencia_frase_de_usos"("p_tabla" "uuid", "p_columnas" "text"[]) IS '«la fórmula publicada de X y el borrador de Y»: hasta tres usos de la tabla (o de esas columnas), sin total. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_permiso_de_quienes_la_usan"("p_tabla" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v_o record;
+begin
+  for v_o in select distinct u.origen_id, u.origen as nombre from public._tabla_referencia_usos(p_tabla) u
+              order by u.origen_id loop
+    if not public.tiene_permiso('cotizaciones.configurar', v_o.origen_id) then
+      raise exception 'La usa la fórmula de %, donde no tienes «cotizaciones.configurar».', v_o.nombre using errcode = '42501';
+    end if;
+  end loop;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_tabla_referencia_permiso_de_quienes_la_usan"("p_tabla" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_tabla_referencia_permiso_de_quienes_la_usan"("p_tabla" "uuid") IS '42501 si falta cotizaciones.configurar de algún origen cuya publicada o borrador usa la tabla, con su nombre. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_publicada_por"("p_tabla" "uuid") RETURNS "text"
     LANGUAGE "plpgsql" STABLE SECURITY DEFINER
     SET "search_path" TO ''
@@ -15164,30 +15850,157 @@ COMMENT ON FUNCTION "public"."_tabla_referencia_publicada_por"("p_tabla" "uuid")
 
 
 
-CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_usada_en"("p_tabla" "uuid", "p_origen" "uuid" DEFAULT NULL::"uuid") RETURNS TABLE("origen_id" "uuid", "formula_id" "uuid")
+CREATE TABLE IF NOT EXISTS "public"."tablas_referencia" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "origen_id" "uuid",
+    "clave" "text" NOT NULL,
+    "nombre" "text" NOT NULL,
+    "descripcion" "text",
+    "columnas" "jsonb" NOT NULL,
+    "activa" boolean DEFAULT true NOT NULL,
+    "creado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "actualizado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "version" integer DEFAULT 1 NOT NULL,
+    "nota" "text",
+    "publicado_por" "uuid",
+    "publicado_en" timestamp with time zone,
+    CONSTRAINT "tablas_referencia_version_check" CHECK (("version" >= 1))
+);
+
+
+ALTER TABLE "public"."tablas_referencia" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."tablas_referencia" IS 'Tablas que alimentan los nodos tabla y tramo y el cálculo depreciar de la fórmula (impuestos por tipo, tramos por año y cilindrada, tarifas de transporte por ruta, depreciación por año). Las lee quien tiene cotizaciones.configurar; se escriben sólo por RPC: tabla_referencia_crear, tabla_referencia_columnas, tabla_referencia_desactivar y tabla_referencia_publicar (que publica la N+1 de cada fórmula que la usa con la copia congelada).';
+
+
+
+COMMENT ON COLUMN "public"."tablas_referencia"."version" IS 'La versión de la tabla: nace en 1; publicar y cambiar las columnas la suben en uno. Es la esperada al publicar, cambiar las columnas y desactivar (PT409 si otra persona cambió antes).';
+
+
+
+COMMENT ON COLUMN "public"."tablas_referencia"."nota" IS 'La nota de la última publicación o cambio de columnas (nula en la versión 1).';
+
+
+
+COMMENT ON COLUMN "public"."tablas_referencia"."publicado_por" IS 'Quién publicó o cambió las columnas de la versión vigente (nulo en la versión 1 o si la cuenta se borró).';
+
+
+
+COMMENT ON COLUMN "public"."tablas_referencia"."publicado_en" IS 'Cuándo se publicó o se cambiaron las columnas de la versión vigente (nulo en la versión 1).';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_tomar"("p_tabla" "uuid", "p_version_esperada" integer) RETURNS "public"."tablas_referencia"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  c_sin_permiso constant text := 'No tienes el permiso «cotizaciones.configurar».';
+  v_t public.tablas_referencia; v_o record; v_f text;
+begin
+  perform public.assert_activo();
+  -- Una tabla que no existe, una inactiva y una de un origen ajeno dan el mismo 42501, como publicar.
+  select * into v_t from public.tablas_referencia r where r.id = p_tabla;                          -- tablas_referencia_pkey
+  if v_t.id is null or not v_t.activa then raise exception '%', c_sin_permiso using errcode = '42501'; end if;
+  perform public.assert_permiso('cotizaciones.configurar', v_t.origen_id);
+  if p_version_esperada is null then
+    raise exception 'Falta la versión de la tabla que tenías.' using errcode = '22023', hint = 'version';
+  end if;
+  select * into v_t from public.tablas_referencia r where r.id = p_tabla for update;
+  if not v_t.activa then raise exception '%', c_sin_permiso using errcode = '42501'; end if;
+  -- Los orígenes que la reciben, en orden de origen (como publicar): «en uso» se lee después y ve lo que otro publicó antes.
+  for v_o in select distinct u.origen_id from public._tabla_referencia_usada_en(p_tabla) u order by u.origen_id loop
+    perform pg_advisory_xact_lock(hashtextextended('formulas:' || v_o.origen_id::text, 0));
+  end loop;
+  perform public._tabla_referencia_permiso_de_quienes_la_usan(p_tabla);
+  if v_t.version <> p_version_esperada then
+    v_f := public._tabla_referencia_publicada_por(p_tabla);
+    raise exception '%.', upper(left(v_f, 1)) || substr(v_f, 2) using errcode = 'PT409';
+  end if;
+  return v_t;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_tabla_referencia_tomar"("p_tabla" "uuid", "p_version_esperada" integer) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_tabla_referencia_tomar"("p_tabla" "uuid", "p_version_esperada" integer) IS 'Lo común de cambiar las columnas y desactivar: permiso, la tabla for update, formulas:<origen> en orden, permiso de quienes la usan y PT409. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_usada_en"("p_tabla" "uuid", "p_origen" "uuid" DEFAULT NULL::"uuid") RETURNS TABLE("origen_id" "uuid", "formula_del_origen_id" "uuid", "formula_id" "uuid")
     LANGUAGE "sql" STABLE SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
-  select o.id, f.id
+  select o.id, u.fdo_id, u.formula_id
     from public.tablas_referencia t                                                              -- tablas_referencia_pkey
     join public.origenes o
       on (t.origen_id is not null and o.id = t.origen_id)
       or (t.origen_id is null
           and not exists (select 1 from public.tablas_referencia r                               -- tablas_referencia_origen_id_clave_key
                            where r.origen_id = o.id and r.clave = t.clave and r.activa))
-    left join public.formulas f                                                                  -- formulas_publicada_unica
-      on f.origen_id = o.id and f.estado = 'publicada'
-     and (coalesce(f.params -> 'tablas', '{}'::jsonb) ? t.clave
-          or exists (select 1 from jsonb_array_elements(f.definicion -> 'nodos') n where n ->> 'tabla' = t.clave))
+    left join lateral (
+      select d.id as fdo_id, d.creado_en, f.id as formula_id
+        from public.formulas_del_origen d                                                        -- formulas_del_origen_origen_idx
+        join public.formulas f on f.formula_del_origen_id = d.id and f.estado = 'publicada'     -- formulas_publicada_unica
+       where d.origen_id = o.id and d.archivada_en is null
+         and (coalesce(f.params -> 'tablas', '{}'::jsonb) ? t.clave
+              or exists (select 1 from jsonb_array_elements(f.definicion -> 'nodos') n where n ->> 'tabla' = t.clave))
+    ) u on true
    where t.id = p_tabla and (p_origen is null or o.id = p_origen)
-   order by o.id;
+   order by o.id, u.creado_en, u.fdo_id;
 $$;
 
 
 ALTER FUNCTION "public"."_tabla_referencia_usada_en"("p_tabla" "uuid", "p_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_tabla_referencia_usada_en"("p_tabla" "uuid", "p_origen" "uuid") IS 'Interna: los orígenes que reciben una tabla de referencia y, de cada uno, la publicada que la usa (un nodo la nombra o la congeló), nula si no la usa. docs/COTIZADOR.md › «Las tablas congeladas (D5)».';
+COMMENT ON FUNCTION "public"."_tabla_referencia_usada_en"("p_tabla" "uuid", "p_origen" "uuid") IS 'Interna: los orígenes que reciben una tabla de referencia y, de cada uno, cada fórmula del origen sin archivar cuya publicada la usa (un nodo la nombra o la congeló); una fila con fórmula nula si ninguna la usa. docs/COTIZADOR.md › «Las tablas congeladas (D5)».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_tabla_referencia_usos"("p_tabla" "uuid") RETURNS TABLE("origen_id" "uuid", "origen" "text", "estado" "text", "columnas" "text"[])
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $_$
+  select o.id, o.nombre, f.estado::text,
+         coalesce((select array_agg(distinct x.c order by x.c)
+                     from (select k.c
+                             from jsonb_array_elements(case when jsonb_typeof(f.definicion -> 'nodos') = 'array' then f.definicion -> 'nodos' else '[]'::jsonb end) n
+                            cross join lateral (
+                              select jsonb_object_keys(case when jsonb_typeof(n -> 'match') = 'object' then n -> 'match' else '{}'::jsonb end)
+                               where n ->> 'tipo' = 'tabla'
+                              union all select n ->> 'columna' where n ->> 'tipo' = 'tabla'
+                              union all select y from unnest(array[n ->> 'columna', 'desde', 'hasta']) y
+                               where n ->> 'tipo' = 'tramo' or (n ->> 'tipo' = 'calculo' and n ->> 'op' = 'depreciar')
+                            ) k (c)
+                            where n ->> 'tabla' = t.clave) x
+                    where x.c is not null), array[]::text[])
+    from public.tablas_referencia t                                                              -- tablas_referencia_pkey
+    join public.origenes o
+      on (t.origen_id is not null and o.id = t.origen_id)
+      or (t.origen_id is null
+          and not exists (select 1 from public.tablas_referencia r                               -- tablas_referencia_origen_id_clave_key
+                           where r.origen_id = o.id and r.clave = t.clave and r.activa))
+    join public.formulas_del_origen d                                                            -- formulas_del_origen_origen_idx
+      on d.origen_id = o.id and d.archivada_en is null
+    join public.formulas f                                                                       -- formulas_publicada_unica, formulas_borrador_unico
+      on f.formula_del_origen_id = d.id and f.estado in ('publicada', 'borrador')
+   where t.id = p_tabla
+     and (exists (select 1 from jsonb_array_elements(case when jsonb_typeof(f.definicion -> 'nodos') = 'array' then f.definicion -> 'nodos' else '[]'::jsonb end) n
+                   where n ->> 'tabla' = t.clave)
+          or coalesce(jsonb_typeof(f.params -> 'tablas') = 'object' and (f.params -> 'tablas') ? t.clave, false)
+          or coalesce(jsonb_path_exists(f.diseno, '$.secciones[*].items[*].ayuda.tabla ? (@ == $c)', jsonb_build_object('c', t.clave)), false))
+   order by o.nombre collate "C", o.id, case f.estado when 'publicada' then 0 else 1 end, f.id;
+$_$;
+
+
+ALTER FUNCTION "public"."_tabla_referencia_usos"("p_tabla" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_tabla_referencia_usos"("p_tabla" "uuid") IS 'Las fórmulas (publicada o borrador) de cada origen que recibe la tabla y la usan, con las columnas que nombran sus nodos. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
 
 
 
@@ -16471,7 +17284,8 @@ CREATE OR REPLACE FUNCTION "public"."_vehiculo_cotizado"() RETURNS "trigger"
     SET "search_path" TO ''
     AS $$
 begin
-  if new.vehiculo_id is not null and (tg_op = 'INSERT' or new.vehiculo_id is distinct from old.vehiculo_id) then
+  if new.vehiculo_id is not null and not new.privada
+     and (tg_op = 'INSERT' or new.vehiculo_id is distinct from old.vehiculo_id or old.privada) then
     update public.vehiculos set cotizado_en = now()
      where id = new.vehiculo_id and (cotizado_en is null or cotizado_en < now());
   end if;
@@ -16859,6 +17673,10 @@ begin
       return format('((%1$s ->> ''desde'') is null or v.atributos ->> %2$s >= (%1$s ->> ''desde'')) and ((%1$s ->> ''antesDe'') is null or v.atributos ->> %2$s < (%1$s ->> ''antesDe''))', c, v_clave);
     when 'atributo_texto' then
       return format('(v.atributos ->> %s ilike %s)', v_clave, public._vehiculos_inventario_patron(p_i));
+    when 'cierre_entre' then
+      -- La situación va como literal en el texto: así calza el predicado de `vehiculos_subasta_viva_cierre_idx` (y el de `vehiculos_situacion_idx`, ordenando por alta).
+      -- Los instantes, por `$1`. La misma condición en PostgREST: `infra/queries/condiciones.ts`.
+      return format('(v.situacion = ''en_subasta'' and v.cierre_subasta_en >= (%1$s ->> ''desde'')::timestamptz and v.cierre_subasta_en < (%1$s ->> ''hasta'')::timestamptz)', c);
     when 'situacion_fuera_de' then
       -- Como el complemento (`= any` de las que quedan) y no como `<> all`: con un arreglo que no es constante el planificador estima `<> all` casi
       -- nulo (1/ndistinct por elemento) y deja de leer la ruta en orden por su índice; `= any` lo estima casi 1. `situacion` nunca es nula.
@@ -16914,76 +17732,139 @@ COMMENT ON FUNCTION "public"."_vehiculos_inventario_patron"("p_i" integer) IS 'E
 
 
 
-CREATE OR REPLACE FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text") RETURNS "text"
+CREATE OR REPLACE FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text", "p_orden" "text" DEFAULT 'reciente'::"text", "p_tramo" smallint DEFAULT NULL::smallint) RETURNS "text"
     LANGUAGE "plpgsql" STABLE
     SET "search_path" TO ''
     AS $_$
 declare
   v_cols constant text := 'v.id, v.numero, v.origen_id, v.titulo, v.marca, v.modelo, v.anio, v.vin, v.lote, v.plataforma, v.url_origen, v.precio, v.precio_negociable, '
     || 'v.acepta_permuta, v.placado, v.kilometraje, v.categoria_id, v.fase_id, v.atributos, v.lead_id, v.publicado_web, v.destacado_web, v.precio_web, v.precio_web_hasta, '
-    || 'v.precio_web_nota, v.creado_por, v.creado_en, v.actualizado_en, v.estado_subasta, v.situacion';
+    || 'v.precio_web_nota, v.creado_por, v.creado_en, v.actualizado_en, v.estado_subasta, v.situacion, v.cierre_subasta_en';
   v_f jsonb := coalesce(p_filtros, '[]'::jsonb);
   v_d text; v_cursor text; v_pred text := ''; v_rutas text; v_sit integer; v_preds text[]; v_p text; v_ramas text[] := '{}'::text[]; k integer; v_resto boolean;
+  -- Por el cierre: qué tramos puede traer cada rama ('0', '1', '2' en un texto), y lo de cada tramo.
+  v_cierre boolean := false; v_tramos text[]; v_desde integer; v_hasta integer; v_tp text; v_c text; v_o text; v_a text; v_b text;
 begin
   if p_rutas is null or p_rutas not in ('origen', 'propios') or p_sentido is null or p_sentido not in ('primera', 'siguiente', 'anterior') then
     raise exception 'La forma del inventario no es válida.' using errcode = '22023', hint = 'forma';
+  end if;
+  if p_orden is null or p_orden not in ('reciente', 'cierre') then
+    raise exception 'El orden del inventario no es válido.' using errcode = '22023', hint = 'orden';
+  end if;
+  -- El tramo sólo con un cursor del cierre, y entonces es obligatorio.
+  if (p_tramo is not null) <> (p_orden = 'cierre' and p_sentido <> 'primera') or p_tramo not between 0 and 2 then
+    raise exception 'El cursor del inventario está incompleto.' using errcode = '22023', hint = 'cursor';
   end if;
   perform public._vehiculos_inventario_validar(v_f);
   for i in 0 .. jsonb_array_length(v_f) - 1 loop
     if v_f -> i ->> 'tipo' = 'situacion_en' then
       v_sit := i;
     else
+      v_cierre := v_cierre or v_f -> i ->> 'tipo' = 'cierre_entre';
       v_pred := v_pred || ' and ' || public._vehiculos_inventario_condicion(v_f -> i ->> 'tipo', v_f -> i ->> 'columna', i, v_f -> i);
     end if;
   end loop;
   -- «Situación» (a lo sumo una, lo validó): con una sola rama, su predicado va con los demás; con varias, una ruta completa por rama (`union all`, cada una con su `order by … limit`).
+  -- Al lado, los tramos del cierre que puede traer cada rama: una situación propia es un valor cerrado (lo validó) y nunca entra al texto; sólo poda ramas que darían
+  -- vacío y recorrerían un índice en vano.
   v_preds := array[v_pred];
+  v_tramos := array['012'];
   if v_sit is not null then
     k := jsonb_array_length(v_f -> v_sit -> 'situaciones');
     v_resto := jsonb_array_length(v_f -> v_sit -> 'fases') > 0 or (v_f -> v_sit ->> 'sinFase')::boolean;
     if k + (v_resto::integer) <= 1 then
       v_preds := array[v_pred || ' and ' || public._vehiculos_inventario_condicion('situacion_en', null, v_sit, v_f -> v_sit)];
+      v_tramos := array[case when v_f -> v_sit -> 'situaciones' ->> 0 = 'en_subasta' then '01' else '2' end];
     else
-      v_preds := '{}';
+      v_preds := '{}'; v_tramos := '{}';
       for i in 0 .. k - 1 loop
         v_preds := v_preds || (v_pred || ' and ' || public._vehiculos_inventario_condicion('situacion_en', 'p' || i, v_sit, v_f -> v_sit));
+        v_tramos := v_tramos || case when v_f -> v_sit -> 'situaciones' ->> i = 'en_subasta' then '01' else '2' end;
       end loop;
       if v_resto then
         v_preds := v_preds || (v_pred || ' and ' || public._vehiculos_inventario_condicion('situacion_en', 'resto', v_sit, v_f -> v_sit));
+        v_tramos := v_tramos || '2'::text;
       end if;
     end if;
   end if;
   v_d := case p_sentido when 'anterior' then 'asc' else 'desc' end;
   v_cursor := case p_sentido when 'siguiente' then ' and (v.creado_en, v.id) < ($5, $6)' when 'anterior' then ' and (v.creado_en, v.id) > ($5, $6)' else '' end;
-  foreach v_p in array v_preds loop
-    if p_rutas = 'origen' then
-      -- R1: vehiculos_origen_listado_idx.
-      v_ramas := v_ramas || format('(select %s, public.limpieza_el(v) as limpieza_el, false as releer from public.vehiculos v where v.origen_id = $2 and v.eliminado_en is null%s%s '
-        || 'order by v.creado_en %s, v.id %s limit $3)', v_cols, v_cursor, v_p, v_d, v_d);
-    else
-      -- R2: lo que creó quien mira, vehiculos_creador_idx. R3: su cartera que crearon otros (o nadie: `creado_por` admite nulo), un lateral por lead sobre vehiculos_lead_id_idx.
-      v_ramas := v_ramas || format('(select %1$s, public.limpieza_el(v) as limpieza_el, false as releer from public.vehiculos v where v.creado_por = $4 and v.origen_id = $2 '
-        || 'and v.eliminado_en is null%2$s%3$s order by v.creado_en %4$s, v.id %4$s limit $3) '
-        || 'union all (select x.* from public.mis_leads() m (lead_id) cross join lateral (select %1$s, null::date as limpieza_el, true as releer from public.vehiculos v '
-        || 'where v.lead_id = m.lead_id and v.origen_id = $2 '
-        || 'and v.creado_por is distinct from $4 and v.eliminado_en is null%2$s%3$s order by v.creado_en %4$s, v.id %4$s limit $3) x)', v_cols, v_cursor, v_p, v_d);
-    end if;
+  -- `reciente`: una pasada sin tramo (-1). `cierre`: un tramo por pasada; hacia adelante, el del cursor y los que siguen; hacia atrás, el del cursor y los de antes.
+  v_desde := case when p_orden = 'reciente' then -1 when p_sentido = 'siguiente' then p_tramo else 0 end;
+  v_hasta := case when p_orden = 'reciente' then -1 when p_sentido = 'anterior' then p_tramo else 2 end;
+  for i in 1 .. cardinality(v_preds) loop
+    v_p := v_preds[i];
+    for t in v_desde .. v_hasta loop
+      if t = -1 then
+        v_tp := ''; v_c := v_cursor; v_o := format('v.creado_en %1$s, v.id %1$s', v_d);
+      else
+        -- Una ventana (`cierre_entre`) sólo trae vivas con fecha.
+        continue when position(t::text in v_tramos[i]) = 0 or v_cierre and t > 0;
+        -- Los tramos, como `tramoDelCierre()` de src/modules/vehiculos/entities/cursor-del-cierre.ts (si se separan, el cursor saltea filas). La situación, literal:
+        -- el 0 por vehiculos_subasta_viva_cierre_idx, el 1 por vehiculos_subasta_viva_sin_fecha_idx, el 2 por vehiculos_origen_listado_idx.
+        v_tp := case t when 0 then ' and v.situacion = ''en_subasta'' and v.cierre_subasta_en is not null'
+                       when 1 then ' and v.situacion = ''en_subasta'' and v.cierre_subasta_en is null'
+                       else ' and v.situacion = any (array[''sin_resolver'', ''no_ganada'', ''fase''])' end;
+        -- El cursor, sólo en su tramo: en el 0 es el cierre; en los otros, el alta.
+        v_c := case when t <> p_tramo or p_tramo is null then ''
+                    when t = 0 then case p_sentido when 'siguiente' then ' and (v.cierre_subasta_en, v.id) > ($5, $6)' else ' and (v.cierre_subasta_en, v.id) < ($5, $6)' end
+                    else v_cursor end;
+        v_o := case when t = 0 then format('v.cierre_subasta_en %1$s, v.id %1$s', case p_sentido when 'anterior' then 'desc' else 'asc' end)
+                    else format('v.creado_en %1$s, v.id %1$s', v_d) end;
+      end if;
+      if p_rutas = 'origen' then
+        -- R1: el índice del origen (o el de su tramo).
+        v_ramas := v_ramas || format('(select %s, public.limpieza_el(v) as limpieza_el, false as releer from public.vehiculos v where v.origen_id = $2 and v.eliminado_en is null%s%s%s '
+          || 'order by %s limit $3)', v_cols, v_c, v_p, v_tp, v_o);
+      else
+        -- R2: lo que creó quien mira, vehiculos_creador_idx. R3: su cartera que crearon otros (o nadie: `creado_por` admite nulo), un lateral por lead sobre vehiculos_lead_id_idx.
+        v_ramas := v_ramas || format('(select %1$s, public.limpieza_el(v) as limpieza_el, false as releer from public.vehiculos v where v.creado_por = $4 and v.origen_id = $2 '
+          || 'and v.eliminado_en is null%2$s%3$s%5$s order by %4$s limit $3) '
+          || 'union all (select x.* from public.mis_leads() m (lead_id) cross join lateral (select %1$s, null::date as limpieza_el, true as releer from public.vehiculos v '
+          || 'where v.lead_id = m.lead_id and v.origen_id = $2 '
+          || 'and v.creado_por is distinct from $4 and v.eliminado_en is null%2$s%3$s%5$s order by %4$s limit $3) x)', v_cols, v_c, v_p, v_o, v_tp);
+      end if;
+    end loop;
   end loop;
+  if cardinality(v_ramas) = 0 then
+    -- Todo podado (una ventana con «Sin resolver», o un cursor más allá del último tramo): ninguna fila.
+    v_ramas := array[format('(select %s, null::date as limpieza_el, false as releer from public.vehiculos v where false)', v_cols)];
+  end if;
   v_rutas := array_to_string(v_ramas, ' union all ');
-  -- `limpieza_el` se calcula sobre la fila que la ruta ya leyó bajo la RLS: releerla por id paga otra pasada de la policy (sus InitPlans y un en_cartera por fila; Beto
-  -- 10,3 → 8,6 ms, S0'' del 4.16-2a). R1 y R2 cortan en n + 1 antes de proyectar; R3 emite lo de toda la cartera, así que relee sólo las filas de la página, con una
-  -- subconsulta escalar dentro de un `case` (sólo se evalúa si `releer`; una lateral con `where f.releer` relee igual). La portada, sólo para la página.
+  if p_orden = 'reciente' then
+    -- `limpieza_el` se calcula sobre la fila que la ruta ya leyó bajo la RLS: releerla por id paga otra pasada de la policy (sus InitPlans y un en_cartera por fila; Beto
+    -- 10,3 → 8,6 ms, S0'' del 4.16-2a). R1 y R2 cortan en n + 1 antes de proyectar; R3 emite lo de toda la cartera, así que relee sólo las filas de la página, con una
+    -- subconsulta escalar dentro de un `case` (sólo se evalúa si `releer`; una lateral con `where f.releer` relee igual). La portada, sólo para la página.
+    return format('select %3$s, case when f.releer then (select public.limpieza_el(w) from public.vehiculos w where w.id = f.id) else f.limpieza_el end, p.ruta_miniatura '
+      || 'from (select * from (%1$s) u order by u.creado_en %2$s, u.id %2$s limit $3) f '
+      || 'left join lateral (select i.ruta_miniatura from public.vehiculos_imagenes i where i.vehiculo_id = f.id and i.es_portada limit 1) p on true '
+      || 'order by f.creado_en %2$s, f.id %2$s', v_rutas, v_d, replace(v_cols, 'v.', 'f.'));
+  end if;
+  -- Por el cierre, afuera: el tramo y, dentro de él, su clave (el cierre ascendente en el 0; el alta descendente en los otros). Hacia atrás, todo al revés.
+  v_a := case p_sentido when 'anterior' then 'desc' else 'asc' end;
+  v_b := case p_sentido when 'anterior' then 'asc' else 'desc' end;
   return format('select %3$s, case when f.releer then (select public.limpieza_el(w) from public.vehiculos w where w.id = f.id) else f.limpieza_el end, p.ruta_miniatura '
-    || 'from (select * from (%1$s) u order by u.creado_en %2$s, u.id %2$s limit $3) f '
+    || 'from (select * from (%1$s) u order by %2$s limit $3) f '
     || 'left join lateral (select i.ruta_miniatura from public.vehiculos_imagenes i where i.vehiculo_id = f.id and i.es_portada limit 1) p on true '
-    || 'order by f.creado_en %2$s, f.id %2$s', v_rutas, v_d, replace(v_cols, 'v.', 'f.'));
+    || 'order by %4$s', v_rutas,
+    replace(format('(case when ¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null then 0 when ¤.situacion = ''en_subasta'' then 1 else 2 end) %1$s, '
+      || 'case when ¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null then ¤.cierre_subasta_en end %1$s, '
+      || 'case when ¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null then ¤.id end %1$s, '
+      || 'case when not (¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null) then ¤.creado_en end %2$s, '
+      || 'case when not (¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null) then ¤.id end %2$s', v_a, v_b), '¤', 'u'),
+    replace(v_cols, 'v.', 'f.'),
+    replace(format('(case when ¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null then 0 when ¤.situacion = ''en_subasta'' then 1 else 2 end) %1$s, '
+      || 'case when ¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null then ¤.cierre_subasta_en end %1$s, '
+      || 'case when ¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null then ¤.id end %1$s, '
+      || 'case when not (¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null) then ¤.creado_en end %2$s, '
+      || 'case when not (¤.situacion = ''en_subasta'' and ¤.cierre_subasta_en is not null) then ¤.id end %2$s', v_a, v_b), '¤', 'f'));
 end $_$;
 
 
-ALTER FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text") OWNER TO "postgres";
+ALTER FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text", "p_orden" "text", "p_tramo" smallint) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text") IS 'El texto de la consulta de vehiculos_inventario(): las rutas, el sentido y los predicados; depende sólo de la forma del pedido y ningún valor entra al texto. Invocadora; no lee tablas.';
+COMMENT ON FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text", "p_orden" "text", "p_tramo" smallint) IS 'El texto de la consulta de vehiculos_inventario(): las rutas, el sentido, el orden (reciente, o cierre por tramos con el tramo del cursor) y los predicados; depende sólo de la forma del pedido y ningún valor entra al texto. Invocadora; no lee tablas.';
 
 
 
@@ -16995,6 +17876,7 @@ declare
   c jsonb; v_t text; v_ok boolean; v_total integer := 0; v_arr text; v_sits integer := 0;
   v_uuid constant text := '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$';
   v_clave constant text := '^[a-z][a-z0-9_]{1,40}$';
+  v_instante constant text := '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:\d{2})$';
 begin
   -- Un `or` o un `and` de SQL no fija el orden: lo que sólo vale tras comprobar el tipo va en un `case`.
   v_ok := case when jsonb_typeof(p_filtros) = 'array' then jsonb_array_length(p_filtros) <= 100 else false end;
@@ -17014,6 +17896,8 @@ begin
           and (select coalesce(bool_and(jsonb_typeof(u) = 'string' and u #>> '{}' in ('en_subasta', 'sin_resolver', 'no_ganada')), true)
                  from jsonb_array_elements(c -> 'situaciones') u)
           and cardinality(array(select distinct u #>> '{}' from jsonb_array_elements(c -> 'situaciones') u)) = jsonb_array_length(c -> 'situaciones') end
+      -- Viva y con el cierre en [desde, hasta): dos instantes ISO con zona (los arma la página, nunca la persona).
+      when 'cierre_entre' then jsonb_typeof(c -> 'desde') = 'string' and jsonb_typeof(c -> 'hasta') = 'string' and c ->> 'desde' ~ v_instante and c ->> 'hasta' ~ v_instante
       when 'atributos_contienen' then jsonb_typeof(c -> 'alternativas') = 'array'
       when 'atributo_rango_numero' then c ->> 'clave' ~ v_clave and jsonb_typeof(c -> 'clave') = 'string'
         and jsonb_typeof(coalesce(c -> 'min', 'null')) in ('number', 'null') and jsonb_typeof(coalesce(c -> 'max', 'null')) in ('number', 'null')
@@ -17026,7 +17910,7 @@ begin
                from jsonb_array_elements(c -> 'valores') u) else false end
       else false end;
     exit when not coalesce(v_ok, false);
-    v_sits := v_sits + case when v_t = 'situacion_en' then 1 else 0 end;
+    v_sits := v_sits + case when v_t in ('situacion_en', 'cierre_entre') then 1 else 0 end;
     v_ok := v_sits <= 1;
     exit when not v_ok;
     -- Los textos (≤ 1.000 caracteres), el año (un entero de smallint) y la fecha (un día que existe).
@@ -17035,6 +17919,10 @@ begin
       -- Entero también en su forma (`2010.0` no lo es: `::integer` caería con 22P02 al leer una fila).
       v_ok := (select coalesce(bool_and(case when (c ->> k) ~ '^-?[0-9]{1,5}$' then abs((c ->> k)::integer) <= 32767 else false end), true)
                  from unnest(array['min', 'max']) k where jsonb_typeof(c -> k) = 'number');
+    end if;
+    if v_ok and v_t = 'cierre_entre' then
+      -- Un instante que no existe cae con 22008 (abajo, a 22023).
+      v_ok := (c ->> 'desde')::timestamptz < (c ->> 'hasta')::timestamptz;
     end if;
     if v_ok and v_t = 'por_limpiar' then
       v_ok := to_char(to_date(c ->> 'hasta', 'YYYY-MM-DD'), 'YYYY-MM-DD') = c ->> 'hasta';
@@ -17062,7 +17950,7 @@ begin
   if not coalesce(v_ok, false) or v_total > 1000 then
     raise exception 'Los filtros del inventario no son válidos.' using errcode = '22023', hint = 'filtros';
   end if;
-exception when invalid_datetime_format or datetime_field_overflow or numeric_value_out_of_range then
+exception when invalid_datetime_format or datetime_field_overflow or numeric_value_out_of_range or invalid_time_zone_displacement_value then
   raise exception 'Los filtros del inventario no son válidos.' using errcode = '22023', hint = 'filtros';
 end $_$;
 
@@ -18719,6 +19607,7 @@ declare
   v_n constant integer := public._acotar_pagina(p_tamano, 5, 20);
   v_t uuid[];
   v_p uuid[];
+  v_pv uuid[];
   v_solo_propios uuid[];
   b record;
   v_patron text;
@@ -18733,6 +19622,7 @@ begin
   end if;
   v_t := coalesce((select public.origenes_con_alcance('cotizaciones.ver', 'todos')), '{}');
   v_p := coalesce((select public.origenes_con_alcance('cotizaciones.ver', 'propios')), '{}');
+  v_pv := coalesce((select public.origenes_con_alcance('cotizaciones.privadas.ver', 'propios')), '{}');
   if cardinality(v_t) = 0 and cardinality(v_p) = 0 then
     return;
   end if;
@@ -18747,6 +19637,7 @@ begin
     v_ids := v_ids || array(
       select c.id from public.cotizaciones c
        where c.titulo ilike v_patron and c.eliminado_en is null and c.origen_id = any (v_t || v_p)
+         and (not c.privada or c.creado_por = v_yo or c.origen_id = any (v_pv))
        limit 1000);
     -- Las propias, por `cotizaciones_creador_idx (creado_por, creado_en desc, id desc) where eliminado_en is null`, sólo donde quien llama tiene «propios» sin
     -- «todos»: encuentra las suyas aunque el título lo compartan miles de ajenas que no ve. Donde ve «todos» no corre (recorría todas sus propias con un título
@@ -18769,6 +19660,7 @@ begin
       from public.cotizaciones c
      where c.id = any (v_ids)
        and c.eliminado_en is null
+       and (not c.privada or c.creado_por = v_yo or c.origen_id = any (v_pv))
        and (c.origen_id = any (v_t)
             or (c.origen_id = any (v_p) and (c.creado_por = v_yo or public.en_cartera(c.lead_id))))
      order by (c.numero = b.numero) desc nulls last, c.creado_en desc, c.id desc
@@ -20065,7 +20957,7 @@ COMMENT ON FUNCTION "public"."cotizacion_adjunto_quitar"("p_adjunto" "uuid") IS 
 
 
 
-CREATE OR REPLACE FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone) RETURNS "jsonb"
+CREATE OR REPLACE FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_hacerla_publica" boolean DEFAULT false) RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
@@ -20075,10 +20967,11 @@ declare
   v_ant record;
   v_ver_ant boolean;
   v_anterior jsonb := null;
+  v_version timestamptz;
 begin
   perform public.assert_activo();
   -- Ver, y el permiso del origen, antes de tomar nada: quien no puede recibe 42501 sin esperar.
-  select x.id, x.vehiculo_id, x.origen_id, x.estado into c from public.cotizaciones x where x.id = p_cotizacion and x.eliminado_en is null;
+  select x.id, x.vehiculo_id, x.origen_id, x.estado, x.hermana_id into c from public.cotizaciones x where x.id = p_cotizacion and x.eliminado_en is null;
   if not found or not public.puede_cotizacion(p_cotizacion, 'cotizaciones.ver') then
     raise exception 'No tienes acceso a esta cotización.' using errcode = '42501';
   end if;
@@ -20094,10 +20987,11 @@ begin
   if p_actualizado_en_esperado is null then
     raise exception 'Falta la versión que tenías en pantalla. Recarga e intenta de nuevo.' using errcode = '22023';
   end if;
-  -- Candados en el orden común: vehículo, cotización, y al final el de la aprobada.
+  -- Candados en el orden común: vehículo, la cotización y su hermana por id, y al final el de la aprobada.
   perform 1 from public.vehiculos v where v.id = c.vehiculo_id for key share;
-  select x.id, x.numero, x.vehiculo_id, x.estado, x.actualizado_en into k
-    from public.cotizaciones x where x.id = p_cotizacion and x.eliminado_en is null for share;
+  perform 1 from public.cotizaciones x where x.id in (c.id, c.hermana_id) order by x.id for no key update;
+  select x.id, x.numero, x.vehiculo_id, x.estado, x.actualizado_en, x.privada, x.hermana_id into k
+    from public.cotizaciones x where x.id = p_cotizacion and x.eliminado_en is null;
   if not found or not public.puede_cotizacion(p_cotizacion, 'cotizaciones.ver') then
     raise exception 'No tienes acceso a esta cotización.' using errcode = '42501';
   end if;
@@ -20107,6 +21001,9 @@ begin
   if k.estado = 'invalida' then
     raise exception 'Una cotización inválida no se aprueba: reactívala primero.' using errcode = '23514';
   end if;
+  if k.privada and not coalesce(p_hacerla_publica, false) then
+    raise exception 'Al aprobarla deja de ser privada.' using errcode = '22023', hint = 'privada';
+  end if;
   perform public._aprobada_candado(array[k.vehiculo_id]);
 
   select a.cotizacion_id into v_ant from public.cotizaciones_aprobadas a where a.vehiculo_id = k.vehiculo_id;
@@ -20114,6 +21011,12 @@ begin
     return jsonb_build_object('cotizacion', jsonb_build_object('id', k.id, 'numero', k.numero, 'actualizado_en', k.actualizado_en), 'anterior', null);
   end if;
 
+  -- La aprobada nunca es privada: deja de serlo antes de aprobarla (sube su versión y deja su revisión).
+  v_version := k.actualizado_en;
+  if k.privada then
+    update public.cotizaciones x set privada = false where x.id in (k.id, k.hermana_id) and x.privada;
+    select x.actualizado_en into v_version from public.cotizaciones x where x.id = k.id;
+  end if;
   perform public._aprobada_poner(k.vehiculo_id, k.id);
   perform public.registrar_actividad('cotizacion.aprobada', 'cotizaciones', k.id::text,
     jsonb_build_object('aprobada', v_ant.cotizacion_id), jsonb_build_object('aprobada', k.id), jsonb_build_object('vehiculo', k.vehiculo_id));
@@ -20130,15 +21033,15 @@ begin
     end if;
   end if;
 
-  return jsonb_build_object('cotizacion', jsonb_build_object('id', k.id, 'numero', k.numero, 'actualizado_en', k.actualizado_en), 'anterior', v_anterior);
+  return jsonb_build_object('cotizacion', jsonb_build_object('id', k.id, 'numero', k.numero, 'actualizado_en', v_version), 'anterior', v_anterior);
 end;
 $$;
 
 
-ALTER FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone) OWNER TO "postgres";
+ALTER FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_hacerla_publica" boolean) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone) IS 'Aprueba una cotización: pasa a ser la aprobada de su vehículo y la anterior deja de serlo (una por vehículo). Pide ver (42501, también si no existe o está en la papelera) y cotizaciones.aprobar de su origen (42501); sin vehículo 22023 (hint vehiculo); inválida 23514; la versión de esa cotización (PT409). No mueve su versión ni escribe cotizaciones: deja cotizacion.aprobada en la actividad. Candados: vehículo (for key share), la cotización (for share) y el de la aprobada. {cotizacion: {id, numero, actualizado_en}, anterior: {id, numero, actualizado_en} | null} (la anterior sólo si quien llama la ve, la aprueba y sigue activa).';
+COMMENT ON FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_hacerla_publica" boolean) IS 'Aprueba una cotización: pasa a ser la aprobada de su vehículo y la anterior deja de serlo (una por vehículo). Pide ver (42501, también si no existe o está en la papelera) y cotizaciones.aprobar de su origen (42501); sin vehículo 22023 (hint vehiculo); inválida 23514; la versión de esa cotización (PT409); una privada sin p_hacerla_publica, 22023 (hint privada). No mueve su versión ni escribe cotizaciones, salvo una privada: con p_hacerla_publica la hace pública con su hermana (la versión sube y queda su revisión). Deja cotizacion.aprobada en la actividad. Candados: vehículo (for key share), la cotización y su hermana por id (for no key update) y el de la aprobada. {cotizacion: {id, numero, actualizado_en}, anterior: {id, numero, actualizado_en} | null} (la anterior sólo si quien llama la ve, la aprueba y sigue activa).';
 
 
 
@@ -20457,7 +21360,7 @@ $$;
 ALTER FUNCTION "public"."cotizacion_contadores"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid" DEFAULT NULL::"uuid", "p_vehiculo_nuevo" "jsonb" DEFAULT NULL::"jsonb", "p_modo_tc" "text" DEFAULT NULL::"text", "p_clase" "public"."clase_cotizacion" DEFAULT 'preventa'::"public"."clase_cotizacion", "p_con_la_abierta" boolean DEFAULT false, "p_ver_total_bs" boolean DEFAULT false, "p_titulo" "text" DEFAULT NULL::"text", "p_titulo_manual" boolean DEFAULT false) RETURNS "jsonb"
+CREATE OR REPLACE FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid" DEFAULT NULL::"uuid", "p_vehiculo_nuevo" "jsonb" DEFAULT NULL::"jsonb", "p_modo_tc" "text" DEFAULT NULL::"text", "p_clase" "public"."clase_cotizacion" DEFAULT 'preventa'::"public"."clase_cotizacion", "p_con_la_abierta" boolean DEFAULT false, "p_ver_total_bs" boolean DEFAULT false, "p_titulo" "text" DEFAULT NULL::"text", "p_titulo_manual" boolean DEFAULT false, "p_privada" boolean DEFAULT false) RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $_$
@@ -20466,7 +21369,7 @@ declare
   v_yo uuid := (select auth.uid());
   c public.cotizaciones;
   a record;
-  v_formula uuid; v_uso uuid; v_vuelta int := 0; v_version int;
+  v_formula uuid; v_uso uuid; v_vuelta int := 0; v_version int; v_fdo uuid; v_otra text;
   v_ab_formula uuid; v_ab_en timestamptz; v_ab_huella text;
   v_veh uuid := p_vehiculo;
   v_modo jsonb;
@@ -20495,6 +21398,10 @@ begin
   end if;
   if p_clase = 'final' then
     perform public.assert_permiso('cotizaciones.final.gestionar', p_origen);
+  end if;
+  -- Una final nunca es privada (cotizaciones_final_no_privada).
+  if coalesce(p_privada, false) and p_clase = 'final' then
+    raise exception 'Una final no se hace privada.' using errcode = '22023', hint = 'privada';
   end if;
 
   -- El intento: dos llamadas con el mismo id se ordenan acá (la segunda espera a que la primera confirme). Sólo una cotización MÍA, de este origen y viva se devuelve; un id ajeno
@@ -20584,14 +21491,23 @@ begin
     raise exception 'Escribe el título de la cotización.' using errcode = '22023', hint = 'titulo';
   end if;
 
-  -- La fórmula publicada, `for share` por su id: si publicaron mientras esperábamos, READ COMMITTED descarta la fila que ya se archivó y se vuelve a leer la nueva.
+  -- La fórmula activa y su publicada, `for share` por su id: activar otra espera a esta alta, y si publicaron o activaron mientras esperábamos,
+  -- READ COMMITTED descarta la fila que ya cambió y se vuelve a leer.
   loop
     v_vuelta := v_vuelta + 1;
-    select f.id into v_formula from public.formulas f where f.origen_id = p_origen and f.estado = 'publicada';
-    if v_formula is null then
+    v_formula := null;
+    select d.id into v_fdo from public.formulas_del_origen d where d.origen_id = p_origen and d.activa;   -- formulas_del_origen_activa_unica
+    if v_fdo is null then
       perform public._motor_fallar('origen_sin_formula', null, 'Este origen no tiene una fórmula publicada.');
     end if;
-    perform 1 from public.formulas f where f.id = v_formula and f.estado = 'publicada' for share;
+    perform 1 from public.formulas_del_origen d where d.id = v_fdo and d.activa for share;
+    if found then
+      select f.id into v_formula from public.formulas f where f.formula_del_origen_id = v_fdo and f.estado = 'publicada';   -- formulas_publicada_unica
+      if v_formula is null then
+        perform public._motor_fallar('origen_sin_formula', null, 'Este origen no tiene una fórmula publicada.');
+      end if;
+      perform 1 from public.formulas f where f.id = v_formula and f.estado = 'publicada' for share;
+    end if;
     exit when found;
     if v_vuelta >= 3 then
       raise exception 'La fórmula cambió mientras cotizabas. Vuelve a intentarlo.' using errcode = 'PT409';
@@ -20604,6 +21520,12 @@ begin
   if v_ab_formula is distinct from v_formula then
     select f.version into v_version from public.formulas f where f.id = v_formula;
     if not p_con_la_abierta then
+      -- La abierta es de otra fórmula del origen: mientras cotizaba se activó la de ahora (formulas_pkey y formulas_del_origen_pkey).
+      select d.nombre into v_otra from public.formulas ab, public.formulas_del_origen d
+       where ab.id = v_ab_formula and ab.formula_del_origen_id is distinct from v_fdo and d.id = v_fdo;
+      if v_otra is not null then
+        raise exception 'Se activó la fórmula «%» mientras cotizabas: ahora se cotiza con su versión %.', v_otra, v_version using errcode = 'PT409', detail = 'desactualizada', hint = 'formula';
+      end if;
       raise exception 'Se publicó la versión % de la hoja mientras cotizabas.', v_version using errcode = 'PT409', detail = 'desactualizada', hint = 'formula';
     end if;
     perform public._cotizacion_abierta(p_origen, v_ab_formula, v_ab_en);
@@ -20710,10 +21632,10 @@ begin
 
   begin
     insert into public.cotizaciones (id, origen_id, lead_id, vehiculo_id, creado_por, clase, formula_id, valores, fuentes, tipos_cambio, totales, total_base, modo_tc, ver_total_bs,
-                                     titulo, titulo_manual, hermana_id, creado_en)
+                                     titulo, titulo_manual, hermana_id, creado_en, privada)
     values (p_id, p_origen, p_lead, v_veh, v_yo, p_clase, a.formula_id, v_res -> 'valores', coalesce(v_res -> 'fuentes', '{}'::jsonb), a.entrada -> 'tipos_cambio',
             v_res -> 'totales', v_total_base, p_modo_tc, p_ver_total_bs, v_titulo, v_titulo_manual, (v_par ->> 'hermana')::uuid,
-            coalesce((v_par ->> 'creado_en')::timestamptz, now()))
+            coalesce((v_par ->> 'creado_en')::timestamptz, now()), coalesce(p_privada, false))
     returning * into c;
   exception when unique_violation then
     get stacked diagnostics v_constraint = constraint_name;
@@ -20735,14 +21657,14 @@ begin
 end $_$;
 
 
-ALTER FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) OWNER TO "postgres";
+ALTER FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) IS 'Crea una cotización calculada en la base (evaluar_formula sobre la fórmula publicada del origen, o sobre la abierta con p_con_la_abierta) y devuelve lo que quien llama ve (_cotizacion_respuesta). Pide cotizaciones.crear y cotizaciones.ver. El lead y el vehículo son obligatorios salvo con cotizaciones.crear.sin_lead y cotizaciones.crear.sin_vehiculo del origen (22023 con hint lead o vehiculo, el lead primero); una final siempre pide los dos. El título (T307): manual con p_titulo_manual y texto (sin vehículo, el texto que llega es manual; más de 120: 22023 detail titulo_largo); si no, el del vehículo cortado a 120; sin vehículo y sin título, 22023 hint titulo (después del lead y del vehículo). Idempotente por el id del intento. D2: PT409 desactualizada si la hoja que se abrió (p_abierta, la de cotizacion_hoja) ya no es la vigente o si las tarifas de la apertura que reconstruye del historial no son las que vio (su huella, _cotizacion_huella_tarifas; con p_con_la_abierta, 22023 abierta_tarifas). «Ver total Bs» (p_ver_total_bs, falso por omisión) sólo vale si el diseño de la versión que se usa lo ofrece (_cotizacion_ver_total_bs). Una final (4.25-1b) deja el estado de marcarla: mira sin candado (el lead en la cartera con leads.editar, ver el vehículo y, en _final_crear_mirar, otra final activa, las preventas que no puede mandar a la papelera y el vínculo de otro lead), toma lead (no key update) → vehículo → fórmula → las vivas del vehículo, vuelve a mirar y aplica _final_aplicar. docs/COTIZADOR.md › «Quién escribe una cotización y cómo (4.10-2)», «Cómo se guarda (4.10-3)» y «La hoja abierta (4.13-3a)».';
+COMMENT ON FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) IS 'Crea una cotización calculada en la base (evaluar_formula sobre la fórmula publicada del origen, o sobre la abierta con p_con_la_abierta) y devuelve lo que quien llama ve (_cotizacion_respuesta). Pide cotizaciones.crear y cotizaciones.ver. El lead y el vehículo son obligatorios salvo con cotizaciones.crear.sin_lead y cotizaciones.crear.sin_vehiculo del origen (22023 con hint lead o vehiculo, el lead primero); una final siempre pide los dos. El título (T307): manual con p_titulo_manual y texto (sin vehículo, el texto que llega es manual; más de 120: 22023 detail titulo_largo); si no, el del vehículo cortado a 120; sin vehículo y sin título, 22023 hint titulo (después del lead y del vehículo). Idempotente por el id del intento. D2: PT409 desactualizada si la hoja que se abrió (p_abierta, la de cotizacion_hoja) ya no es la vigente o si las tarifas de la apertura que reconstruye del historial no son las que vio (su huella, _cotizacion_huella_tarifas; con p_con_la_abierta, 22023 abierta_tarifas). «Ver total Bs» (p_ver_total_bs, falso por omisión) sólo vale si el diseño de la versión que se usa lo ofrece (_cotizacion_ver_total_bs). Una final (4.25-1b) deja el estado de marcarla: mira sin candado (el lead en la cartera con leads.editar, ver el vehículo y, en _final_crear_mirar, otra final activa, las preventas que no puede mandar a la papelera y el vínculo de otro lead), toma lead (no key update) → vehículo → fórmula → las vivas del vehículo, vuelve a mirar y aplica _final_aplicar. p_privada (falso por omisión) la crea privada; una final privada, 22023 (hint privada). docs/COTIZADOR.md › «Quién escribe una cotización y cómo (4.10-2)», «Cómo se guarda (4.10-3)» y «La hoja abierta (4.13-3a)».';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid" DEFAULT NULL::"uuid", "p_modo_tc" "text" DEFAULT NULL::"text", "p_con_la_abierta" boolean DEFAULT false, "p_ver_total_bs" boolean DEFAULT false, "p_titulo" "text" DEFAULT NULL::"text", "p_titulo_manual" boolean DEFAULT false) RETURNS "jsonb"
+CREATE OR REPLACE FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid" DEFAULT NULL::"uuid", "p_modo_tc" "text" DEFAULT NULL::"text", "p_con_la_abierta" boolean DEFAULT false, "p_ver_total_bs" boolean DEFAULT false, "p_titulo" "text" DEFAULT NULL::"text", "p_titulo_manual" boolean DEFAULT false, "p_privada" boolean DEFAULT false) RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
@@ -20782,20 +21704,20 @@ begin
   -- tarifas fallan en la primera, para las dos; cualquier error deshace las dos.
   perform set_config('importadora.en_par', jsonb_build_object('opcion', 1, 'hermana', v_b)::text, true);
   r1 := public.cotizacion_crear(v_a, p_origen, p_lead, p_entradas -> 0, p_abierta, p_vehiculo, null, p_modo_tc, 'preventa', p_con_la_abierta, p_ver_total_bs,
-                                p_titulo, p_titulo_manual);
+                                p_titulo, p_titulo_manual, p_privada);
   select x.creado_en into v_creado from public.cotizaciones x where x.id = v_a;
   perform set_config('importadora.en_par', jsonb_build_object('opcion', 2, 'hermana', v_a, 'creado_en', v_creado + interval '1 microsecond')::text, true);
   r2 := public.cotizacion_crear(v_b, p_origen, p_lead, p_entradas -> 1, p_abierta, p_vehiculo, null, p_modo_tc, 'preventa', p_con_la_abierta, p_ver_total_bs,
-                                p_titulo, p_titulo_manual);
+                                p_titulo, p_titulo_manual, p_privada);
   perform set_config('importadora.en_par', '', true);
   return jsonb_build_object('cotizaciones', jsonb_build_array(r1 - 'repetido', r2 - 'repetido'), 'repetido', false);
 end $$;
 
 
-ALTER FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) OWNER TO "postgres";
+ALTER FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) IS 'Crea las dos cotizaciones hermanas de una versión con su variante en par, en una transacción (glosario: «Cotizaciones hermanas»): p_ids, los dos ids del cliente (el intento: dos mías, vivas, hermanas, se devuelven con repetido); p_entradas, un arreglo con lo tipeado de cada opción, sin la variante (entradas_invalidas). Llama a cotizacion_crear una vez por opción con importadora.en_par (la opción por su posición, la hermana y, la segunda, la hora de la primera + 1 µs). Siempre preventa. Devuelve {cotizaciones: [la de la primera opción, la de la segunda], repetido}. docs/COTIZADOR.md › «Quién escribe una cotización y cómo».';
+COMMENT ON FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) IS 'Crea las dos cotizaciones hermanas de una versión con su variante en par, en una transacción (glosario: «Cotizaciones hermanas»): p_ids, los dos ids del cliente (el intento: dos mías, vivas, hermanas, se devuelven con repetido); p_entradas, un arreglo con lo tipeado de cada opción, sin la variante (entradas_invalidas). Llama a cotizacion_crear una vez por opción con importadora.en_par (la opción por su posición, la hermana y, la segunda, la hora de la primera + 1 µs). Siempre preventa; p_privada, las dos privadas (comparten la marca). Devuelve {cotizaciones: [la de la primera opción, la de la segunda], repetido}. docs/COTIZADOR.md › «Quién escribe una cotización y cómo».';
 
 
 
@@ -20806,7 +21728,7 @@ CREATE OR REPLACE FUNCTION "public"."cotizacion_encima"("p_id" "uuid", "p_anteri
 declare
   v_yo uuid := (select auth.uid());
   c public.cotizaciones; ant public.cotizaciones; a record;
-  v_formula uuid; v_vuelta int := 0; v_enc uuid;
+  v_formula uuid; v_vuelta int := 0; v_enc uuid; v_fdo uuid;
   v_lleva jsonb; v_modo_tc text; v_bs boolean; v_res jsonb; v_total_base numeric; v_constraint text; v_desc int;
   v_lead uuid; v_vehiculo uuid; v_tomas int := 0;
   -- Lo fija `cotizacion_encima_en_par` (la posición de la opción, la hermana nueva y la hora); nulo fuera de ella.
@@ -20890,14 +21812,22 @@ begin
     raise exception 'Elige el vehículo de la cotización.' using errcode = '22023', hint = 'vehiculo';
   end if;
 
-  -- La publicada de hoy, `for share` (como en `cotizacion_crear`).
+  -- La publicada de la fórmula activa de hoy, `for share` (como en `cotizacion_crear`).
   loop
     v_vuelta := v_vuelta + 1;
-    select f.id into v_formula from public.formulas f where f.origen_id = ant.origen_id and f.estado = 'publicada';
-    if v_formula is null then
+    v_formula := null;
+    select d.id into v_fdo from public.formulas_del_origen d where d.origen_id = ant.origen_id and d.activa;   -- formulas_del_origen_activa_unica
+    if v_fdo is null then
       perform public._motor_fallar('origen_sin_formula', null, 'Este origen no tiene una fórmula publicada.');
     end if;
-    perform 1 from public.formulas f where f.id = v_formula and f.estado = 'publicada' for share;
+    perform 1 from public.formulas_del_origen d where d.id = v_fdo and d.activa for share;
+    if found then
+      select f.id into v_formula from public.formulas f where f.formula_del_origen_id = v_fdo and f.estado = 'publicada';   -- formulas_publicada_unica
+      if v_formula is null then
+        perform public._motor_fallar('origen_sin_formula', null, 'Este origen no tiene una fórmula publicada.');
+      end if;
+      perform 1 from public.formulas f where f.id = v_formula and f.estado = 'publicada' for share;
+    end if;
     exit when found;
     if v_vuelta >= 3 then
       raise exception 'La fórmula cambió mientras cotizabas. Vuelve a intentarlo.' using errcode = 'PT409';
@@ -20939,10 +21869,10 @@ begin
 
   begin
     insert into public.cotizaciones (id, origen_id, lead_id, vehiculo_id, creado_por, clase, formula_id, valores, fuentes, tipos_cambio, totales, total_base, modo_tc, ver_total_bs,
-                                     titulo, titulo_manual, notas, tarjeta_retoques, cotizacion_padre_id, version, hermana_id, creado_en)
+                                     titulo, titulo_manual, notas, tarjeta_retoques, cotizacion_padre_id, version, hermana_id, creado_en, privada)
     values (p_id, ant.origen_id, ant.lead_id, ant.vehiculo_id, v_yo, 'preventa', v_formula, v_res -> 'valores', coalesce(v_res -> 'fuentes', '{}'::jsonb), a.entrada -> 'tipos_cambio',
             v_res -> 'totales', v_total_base, v_modo_tc, v_bs, v_titulo, ant.titulo_manual, ant.notas, ant.tarjeta_retoques, p_anterior, ant.version + 1,
-            (v_par ->> 'hermana')::uuid, coalesce((v_par ->> 'creado_en')::timestamptz, now()))
+            (v_par ->> 'hermana')::uuid, coalesce((v_par ->> 'creado_en')::timestamptz, now()), ant.privada)
     returning * into c;
   exception when unique_violation then
     get stacked diagnostics v_constraint = constraint_name;
@@ -20995,7 +21925,7 @@ begin
   end if;
   perform public.assert_permiso('cotizaciones.crear', ant1.origen_id);
   perform public.assert_permiso('cotizaciones.ver', ant1.origen_id);
-  select f.definicion into v_def_hoy from public.formulas f where f.origen_id = ant1.origen_id and f.estado = 'publicada';   -- formulas_publicada_unica
+  select f.definicion into v_def_hoy from public.formulas f where f.id = (select public._publicada_de_la_activa(ant1.origen_id));   -- formulas_pkey
   if public._variante_en_par(v_def_hoy) is null then
     raise exception 'La hoja de hoy no cotiza dos opciones a la vez.' using errcode = '22023', detail = 'sin_par', hint = 'variante';
   end if;
@@ -21072,7 +22002,7 @@ begin
     perform public.assert_permiso('cotizaciones.ver', p_origen);
     if p_abierta is not null then
       select l.formula_id, l.abierta_en into v_formula, v_abierta_en from public._cotizacion_abierta_leer(p_abierta, p_origen) l;
-      select f.id into v_publicada from public.formulas f where f.origen_id = p_origen and f.estado = 'publicada';       -- formulas_publicada_unica
+      v_publicada := public._publicada_de_la_activa(p_origen);
       -- Una versión que ya no es la publicada: ¿todavía se podría guardar con ella? Si no, «abierta_vencida» y la hoja pide recargar.
       if v_formula is distinct from v_publicada then
         perform public._cotizacion_abierta(p_origen, v_formula, v_abierta_en);
@@ -21470,7 +22400,7 @@ begin
   if v_nombre is null then
     raise exception 'No encontramos ese origen.' using errcode = '22023';
   end if;
-  select x.id into v_formula from public.formulas x where x.origen_id = p_origen and x.estado = 'publicada';   -- formulas_publicada_unica
+  v_formula := public._publicada_de_la_activa(p_origen);
   if v_formula is null then
     return jsonb_build_object('estado', 'sin_publicar', 'origen', jsonb_build_object('id', p_origen, 'nombre', v_nombre),
                               'puede_configurar', public.tiene_permiso('cotizaciones.configurar', p_origen));
@@ -21506,7 +22436,7 @@ begin
   -- Quién guarda decide también qué celdas se editan (no `_nodos_visibles()`, que da «editar» con `crear`).
   v_edita := public._cotizacion_puede_guardar(c.id, c.clase, c.origen_id);
   select o.nombre into v_nombre from public.origenes o where o.id = c.origen_id;
-  select x.id, x.version into v_pub from public.formulas x where x.origen_id = c.origen_id and x.estado = 'publicada';   -- formulas_publicada_unica
+  select x.id, x.version into v_pub from public.formulas x where x.id = (select public._publicada_de_la_activa(c.origen_id));   -- formulas_pkey
   -- La vigencia, por día en la zona de la empresa (docs/GLOSARIO.md › «Vencida»): vale hasta el día de `creado_en` + `vigencia_dias`, entero.
   select (c.creado_en at time zone e.zona_horaria)::date + e.vigencia_dias, (now() at time zone e.zona_horaria)::date
     into v_vence, v_hoy from public.ajustes_empresa e where e.id = 1;
@@ -21547,6 +22477,59 @@ ALTER FUNCTION "public"."cotizacion_hoja_guardada"("p_id" "uuid") OWNER TO "post
 
 
 COMMENT ON FUNCTION "public"."cotizacion_hoja_guardada"("p_id" "uuid") IS 'La hoja de una cotización guardada, para quien la ve: la fila y el snapshot recortados (como cotizacion_leer), el diseño de SU versión (como cotizacion_hoja, con lo editable decidido por _cotizacion_puede_guardar; con una variante en par, par.opcion es la de esta), puede_guardar, el origen, la publicada de hoy, vence_el y vencida (por día, en la zona de la empresa), la hermana (id, disponible y, si lo está, actualizado_en y puede_guardar), anterior, encima, puede_cotizar_encima y puede_cotizar_encima_en_par. Lo que no existe, está en la papelera o no se ve da el 42501 de cotizacion_leer. docs/COTIZADOR.md › «La hoja de una guardada y cotizar encima (4.15-2)».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."cotizacion_imagen_huella"("p_cotizacion" "uuid") RETURNS "text"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  v_c public.cotizaciones; v_yo uuid := (select auth.uid()); v_ve_cliente boolean; v_ve_vehiculo boolean;
+begin
+  perform public.assert_activo();
+  -- Lo que no existe, está en la papelera o no se ve, lo mismo (puede_cotizacion: cotizaciones_pkey).
+  select * into v_c from public.cotizaciones c where c.id = p_cotizacion and c.eliminado_en is null;
+  if not found or not public.puede_cotizacion(p_cotizacion, 'cotizaciones.ver') then
+    raise exception 'No tienes acceso a esta cotización.' using errcode = '42501';
+  end if;
+  -- El cliente y el vehículo entran sólo si quien pide los ve: la imagen los dibuja sólo entonces.
+  v_ve_cliente := v_c.lead_id is not null and public.puede_lead(v_c.lead_id, 'leads.ver');
+  v_ve_vehiculo := v_c.vehiculo_id is not null and public.puede_vehiculo(v_c.vehiculo_id, 'vehiculos.ver');
+  return 'i-' || md5(jsonb_build_array(
+    -- La cotización: guardar, el título y los retoques mueven `actualizado_en`; la versión y el origen dicen qué tarjeta se dibuja.
+    extract(epoch from v_c.actualizado_en), v_c.formula_id, v_c.origen_id,
+    -- La plantilla publicada de la fórmula del origen de esa versión (plantillas_publicada_unica), o ninguna: la tarjeta por omisión.
+    (select jsonb_build_array(p.id, extract(epoch from p.actualizado_en))
+       from public.plantillas_tarjeta p
+      where p.formula_del_origen_id = (select f.formula_del_origen_id from public.formulas f where f.id = v_c.formula_id) and p.estado = 'publicada'),
+    -- Esa versión de la fórmula (formulas_pkey).
+    (select extract(epoch from f.actualizado_en) from public.formulas f where f.id = v_c.formula_id),
+    -- El catálogo de colores (decenas de filas, entero): la clave y el hex de cada uno, lo que lee `cotizacion_tarjeta()`.
+    (select md5(string_agg(t.clave || ':' || t.hex, ',' order by t.clave collate "C")) from public.tonos t),
+    -- Los tipos de cambio (decenas de filas, enteros): el nombre, si está activo y la moneda, nunca el valor del día.
+    (select md5(string_agg(jsonb_build_array(t.clave, t.nombre, t.activo, t.moneda_a)::text, ',' order by t.clave collate "C", t.id))
+       from public.tipos_cambio t),
+    -- El cliente (leads_pkey) y el vehículo (vehiculos_pkey), vivos y si quien pide los ve.
+    v_ve_cliente,
+    case when v_ve_cliente then (select l.nombre from public.leads l where l.id = v_c.lead_id and l.eliminado_en is null) end,
+    v_ve_vehiculo,
+    case when v_ve_vehiculo then (select jsonb_build_array(v.titulo, v.lote, v.vin) from public.vehiculos v
+                                   where v.id = v_c.vehiculo_id and v.eliminado_en is null) end,
+    -- Quien pide, el asesor de la tarjeta (perfiles_pkey): lo que lee `getAsesorQueMira()`.
+    v_yo,
+    (select jsonb_build_array(pe.nombre, pe.email, pe.whatsapp_web, pe.cargo_web, pe.avatar_ruta) from public.perfiles pe where pe.id = v_yo),
+    -- Los ajustes de la empresa (ajustes_empresa_pkey, la fila única): el logo, la zona, el formato regional, la vigencia y el nombre.
+    (select extract(epoch from e.actualizado_en) from public.ajustes_empresa e where e.id = 1)
+  )::text);
+end;
+$$;
+
+
+ALTER FUNCTION "public"."cotizacion_imagen_huella"("p_cotizacion" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."cotizacion_imagen_huella"("p_cotizacion" "uuid") IS 'La huella de la imagen de la tarjeta de una cotización para quien la pide: i-md5 de lo que dibuja (la cotización, la plantilla publicada del origen, su versión de la fórmula, los colores y los tipos de cambio por contenido, el cliente y el vehículo vivos sólo si quien pide los ve, quien pide como asesor y los ajustes de la empresa). Todo por clave primaria o índice único, y dos catálogos de decenas de filas. Pide ver la cotización: 42501 igual para lo que no existe, está en la papelera o no se ve. La ETag de GET /cotizaciones/<id>/imagen la arma la app con esta huella, quien pide, la versión del dibujo y el ancho.';
 
 
 
@@ -21719,204 +22702,65 @@ COMMENT ON FUNCTION "public"."cotizacion_moderar"("p_cotizacion" "uuid", "p_actu
 
 
 
-CREATE OR REPLACE FUNCTION "public"."cotizacion_paquete_aplicar"("p_origen" "uuid", "p_paquete" "jsonb", "p_formula_esperada" timestamp with time zone, "p_plantilla_esperada" timestamp with time zone) RETURNS "jsonb"
-    LANGUAGE "plpgsql"
-    SET "search_path" TO ''
-    AS $_$
-declare
-  v_pieza text;
-  v_tipo text;
-  v_falta boolean;
-  v_c jsonb;
-  v_formula jsonb;
-  v_plantilla timestamptz;
-  v_respuesta jsonb;
-  v_clave text;
-  v_distinta boolean;
-  v_creados jsonb := '[]'::jsonb;
-begin
-  perform public.assert_permiso('cotizaciones.configurar', p_origen);
-
-  -- La forma del paquete: cada pieza con su tipo; un color que se reusa, {clave, hex}; uno nuevo, {id, nombre, hex, clave} con el id del intento.
-  v_falta := coalesce(jsonb_typeof(p_paquete), '') <> 'object';
-  if v_falta then
-    raise exception 'El paquete está incompleto.' using errcode = '22023', hint = 'paquete';
-  end if;
-  for v_pieza, v_tipo in
-    select x.pieza, x.tipo from (values ('definicion', 'object'), ('params', 'object'), ('diseno', 'object'), ('tarjeta', 'object'),
-                                        ('nota', 'string'), ('reusar', 'array'), ('crear', 'array')) x (pieza, tipo)
-  loop
-    v_falta := coalesce(jsonb_typeof(p_paquete -> v_pieza), '') <> v_tipo;
-    if v_falta then
-      raise exception 'El paquete está incompleto.' using errcode = '22023', hint = 'paquete.' || v_pieza;
-    end if;
-  end loop;
-  for v_c in select x from jsonb_array_elements(p_paquete -> 'reusar') x loop
-    v_falta := coalesce(jsonb_typeof(v_c -> 'clave'), '') <> 'string' or coalesce(jsonb_typeof(v_c -> 'hex'), '') <> 'string';
-    if v_falta then
-      raise exception 'El paquete está incompleto.' using errcode = '22023', hint = 'paquete.reusar';
-    end if;
-  end loop;
-  for v_c in select x from jsonb_array_elements(p_paquete -> 'crear') x loop
-    v_falta := coalesce(v_c ->> 'id', '') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-            or coalesce(jsonb_typeof(v_c -> 'nombre'), '') <> 'string'
-            or coalesce(jsonb_typeof(v_c -> 'hex'), '') <> 'string'
-            or coalesce(jsonb_typeof(v_c -> 'clave'), '') <> 'string';
-    if v_falta then
-      raise exception 'El paquete está incompleto.' using errcode = '22023', hint = 'paquete.crear';
-    end if;
-  end loop;
-
-  -- Los dos borradores, con la hora del que se reemplaza (nula = crear). La publicada no se compara: el paquete no sale de ella.
-  v_formula := public.formula_guardar_borrador(
-    p_origen => p_origen, p_def => p_paquete -> 'definicion', p_params => p_paquete -> 'params', p_diseno => p_paquete -> 'diseno',
-    p_nota => p_paquete ->> 'nota', p_publicada_esperada => null, p_actualizado_en_esperado => p_formula_esperada);
-  v_plantilla := public.plantilla_guardar_borrador(
-    p_origen => p_origen, p_actualizado_en_esperado => p_plantilla_esperada, p_def => p_paquete -> 'tarjeta', p_nota => p_paquete ->> 'nota');
-
-  -- Los colores: el candado del catálogo, el reuso y el lugar; después cada color nuevo con la clave que se eligió (`_tono_clave()` suma `_2` en silencio si
-  -- otro la tomó mientras tanto, y un nombre que otro tomó da 23505: los dos son un PT409, no otro color).
-  perform public._paquete_colores_preparar(p_paquete -> 'reusar', jsonb_array_length(p_paquete -> 'crear'));
-  for v_c in select x from jsonb_array_elements(p_paquete -> 'crear') x loop
-    begin
-      v_respuesta := public.tono_crear((v_c ->> 'id')::uuid, v_c ->> 'nombre', v_c ->> 'hex');
-    exception when unique_violation then
-      raise exception 'Mientras elegías, cambiaron los colores del catálogo. Vuelve a elegir la plantilla.' using errcode = 'PT409';
-    end;
-    select t ->> 'clave' into v_clave from jsonb_array_elements(v_respuesta -> 'lista' -> 'tonos') t where t ->> 'id' = v_c ->> 'id';
-    v_distinta := v_clave is distinct from v_c ->> 'clave';
-    if v_distinta then
-      raise exception 'Mientras elegías, cambiaron los colores del catálogo. Vuelve a elegir la plantilla.' using errcode = 'PT409';
-    end if;
-    v_creados := v_creados || to_jsonb(v_clave);
-  end loop;
-
-  return jsonb_build_object('formula', v_formula, 'plantilla', v_plantilla, 'colores', v_creados);
-end;
-$_$;
-
-
-ALTER FUNCTION "public"."cotizacion_paquete_aplicar"("p_origen" "uuid", "p_paquete" "jsonb", "p_formula_esperada" timestamp with time zone, "p_plantilla_esperada" timestamp with time zone) OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."cotizacion_paquete_aplicar"("p_origen" "uuid", "p_paquete" "jsonb", "p_formula_esperada" timestamp with time zone, "p_plantilla_esperada" timestamp with time zone) IS 'Aplica una plantilla de V1 a un origen, todo o nada (cotizaciones.configurar del origen, 42501): la forma del paquete (22023, hint paquete.<pieza>), el borrador de la fórmula y el de la tarjeta (esperada nula = crear; sus PT409 tal cual), y los colores que faltan (PT409 si el catálogo cambió, 22023 colores sin lugar). No publica. Devuelve {formula: {id, actualizado_en}, plantilla, colores}. docs/COTIZADOR.md › «Plantillas de V1».';
-
-
-
-CREATE OR REPLACE FUNCTION "public"."cotizacion_portada"("p_cotizacion" "uuid") RETURNS "jsonb"
-    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
-    SET "search_path" TO ''
-    AS $$
-declare
-  c public.cotizaciones; p public.cotizaciones_portadas; v_ve_todo boolean; v_contexto jsonb;
-begin
-  perform public.assert_activo();
-  -- Lo que no existe, está en la papelera o no se ve, lo mismo (puede_cotizacion: cotizaciones_pkey).
-  if not public.puede_cotizacion(p_cotizacion, 'cotizaciones.ver') then
-    raise exception 'No tienes acceso a esta cotización.' using errcode = '42501';
-  end if;
-  select * into c from public.cotizaciones x where x.id = p_cotizacion;
-  select * into p from public.cotizaciones_portadas x where x.cotizacion_id = p_cotizacion;
-  v_ve_todo := public._cotizacion_portada_ve_todo(c.lead_id, c.vehiculo_id);
-  if v_ve_todo then
-    v_contexto := jsonb_build_object(
-      'cliente', (select l.nombre from public.leads l where l.id = c.lead_id and l.eliminado_en is null),
-      'vehiculo', (select jsonb_build_object('titulo', v.titulo, 'lote', v.lote, 'vin', v.vin)
-                     from public.vehiculos v where v.id = c.vehiculo_id and v.eliminado_en is null),
-      'asesor', (select jsonb_build_object('nombre', pe.nombre, 'email', pe.email) from public.perfiles pe where pe.id = c.creado_por));
-  end if;
-  return jsonb_build_object(
-    'ruta', p.ruta,
-    'clave', p.clave,
-    'clave_vigente', public._cotizacion_portada_clave(p_cotizacion),
-    've_todo', v_ve_todo,
-    'puede_guardarla', v_ve_todo and coalesce(public._cotizacion_puede_guardar(c.id, c.clase, c.origen_id), false),
-    'contexto', v_contexto);
-end;
-$$;
-
-
-ALTER FUNCTION "public"."cotizacion_portada"("p_cotizacion" "uuid") OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."cotizacion_portada"("p_cotizacion" "uuid") IS 'El estado de la portada de una cotización para quien pide: {ruta, clave} de la guardada (nulas si no hay), clave_vigente, ve_todo (ve el cliente y el vehículo vivos que dibuja la compartida), puede_guardarla (ve_todo y _cotizacion_puede_guardar) y, sólo con ve_todo, el contexto que dibuja la compartida ({cliente, vehiculo: {titulo, lote, vin}, asesor: {nombre, email}}). Pide ver la cotización: 42501 igual para lo que no existe, está en la papelera o no se ve.';
-
-
-
-CREATE OR REPLACE FUNCTION "public"."cotizacion_portada_poner"("p_cotizacion" "uuid", "p_ruta" "text", "p_clave" "text") RETURNS "void"
+CREATE OR REPLACE FUNCTION "public"."cotizacion_privada_cambiar"("p_cotizacion" "uuid", "p_privada" boolean, "p_actualizado_en_esperado" timestamp with time zone) RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
-    AS $_$
+    AS $$
 declare
-  c public.cotizaciones; v_meta jsonb; v_vieja text;
-  v_no_puede constant text := 'No puedes guardar la vista previa de esta cotización.';
+  v_yo uuid := (select auth.uid());
+  c record;
+  v_final boolean;
+  v_aprobada boolean;
 begin
   perform public.assert_activo();
-  if not public.puede_cotizacion(p_cotizacion, 'cotizaciones.ver') then
+  -- Ver antes de tomar nada: lo que no se ve da el mismo 42501 que lo que no existe.
+  select x.id, x.vehiculo_id, x.hermana_id, x.creado_por into c from public.cotizaciones x where x.id = p_cotizacion and x.eliminado_en is null;
+  if not found or not public.puede_cotizacion(p_cotizacion, 'cotizaciones.ver') then
     raise exception 'No tienes acceso a esta cotización.' using errcode = '42501';
   end if;
-  select * into c from public.cotizaciones x where x.id = p_cotizacion;
-  if not coalesce(public._cotizacion_puede_guardar(c.id, c.clase, c.origen_id) and public._cotizacion_portada_ve_todo(c.lead_id, c.vehiculo_id), false) then
-    raise exception '%', v_no_puede using errcode = '42501';
+  if c.creado_por is distinct from v_yo then
+    raise exception 'Sólo quien la creó la hace privada o pública.' using errcode = '42501';
   end if;
-  if p_ruta is null or p_ruta !~ ('^' || p_cotizacion::text || '/portada/[0-9a-f]{64}\.webp$') then
-    raise exception 'La imagen no está en la carpeta de esta cotización.' using errcode = '22023', hint = 'ruta';
+  if p_privada is null then
+    raise exception 'Elige si la cotización es privada o pública.' using errcode = '22023', hint = 'privada';
   end if;
-  select o.metadata into v_meta from storage.objects o where o.bucket_id = 'cotizaciones' and o.name = p_ruta;
-  if not found then
-    raise exception 'La imagen no terminó de subir.' using errcode = '22023', hint = 'ruta';
+  if c.vehiculo_id is not null then
+    perform 1 from public.vehiculos v where v.id = c.vehiculo_id for key share;
   end if;
-  -- Lo que dice storage, si lo dice.
-  if v_meta ->> 'mimetype' is not null and v_meta ->> 'mimetype' <> 'image/webp' then
-    raise exception 'La vista previa tiene que ser una imagen WebP.' using errcode = '22023', hint = 'mime';
+  -- Ella y su hermana (comparten la marca), por id.
+  perform 1 from public.cotizaciones x where x.id in (c.id, c.hermana_id) order by x.id for no key update;
+  select x.id, x.vehiculo_id, x.hermana_id, x.creado_por, x.clase, x.privada, x.actualizado_en into c
+    from public.cotizaciones x where x.id = p_cotizacion and x.eliminado_en is null;
+  if not found or not public.puede_cotizacion(p_cotizacion, 'cotizaciones.ver') then
+    raise exception 'No tienes acceso a esta cotización.' using errcode = '42501';
   end if;
-  if v_meta ->> 'size' is not null and (v_meta ->> 'size')::bigint > 5242880 then
-    raise exception 'La vista previa pesa más de 5 MB.' using errcode = '22023', hint = 'bytes';
+  perform public._exigir_version(c.actualizado_en, p_actualizado_en_esperado,
+                                 'Alguien cambió esta cotización mientras la mirabas. Recarga e intenta de nuevo.');
+  if c.privada = p_privada then
+    return jsonb_build_object('resultado', 'sin_cambios', 'privada', c.privada, 'actualizado_en', c.actualizado_en);
   end if;
-
-  -- El candado de la cotización: serializa con `cotizacion_guardar` sin chocar con el `key share` de quien inserta hijas (comentarios, adjuntos, la portada).
-  select * into c from public.cotizaciones x where x.id = p_cotizacion for no key update;
-  if not found or c.eliminado_en is not null
-     or not coalesce(public._cotizacion_puede_guardar(c.id, c.clase, c.origen_id) and public._cotizacion_portada_ve_todo(c.lead_id, c.vehiculo_id), false) then
-    raise exception '%', v_no_puede using errcode = '42501';
+  if p_privada then
+    select exists (select 1 from public.cotizaciones x where x.id in (c.id, c.hermana_id) and x.clase = 'final') into v_final;
+    if v_final then
+      raise exception 'Una final no se hace privada.' using errcode = '23514';
+    end if;
+    -- La aprobada de un vehículo nunca es privada: se mira con su candado (aprobar y reponer lo toman).
+    perform public._aprobada_candado(array[c.vehiculo_id]);
+    select exists (select 1 from public.cotizaciones_aprobadas a where a.cotizacion_id in (c.id, c.hermana_id)) into v_aprobada;
+    if v_aprobada then
+      raise exception 'Es la aprobada de su vehículo: no se hace privada.' using errcode = '23514';
+    end if;
   end if;
-  -- En una sentencia aparte, tras el candado: ve lo que otro acaba de confirmar.
-  if p_clave is distinct from public._cotizacion_portada_clave(p_cotizacion) then
-    raise exception 'La tarjeta cambió mientras se armaba la imagen.' using errcode = 'PT409';
-  end if;
-
-  select x.ruta into v_vieja from public.cotizaciones_portadas x where x.cotizacion_id = p_cotizacion;
-  insert into public.cotizaciones_portadas (cotizacion_id, ruta, clave) values (p_cotizacion, p_ruta, p_clave)
-  on conflict (cotizacion_id) do update set ruta = excluded.ruta, clave = excluded.clave, generada_en = now();
-  -- Después de reemplazarla: el refcount ya no cuenta la vieja (cotizaciones_portadas_ruta_key).
-  if v_vieja is not null and v_vieja <> p_ruta then
-    perform public._encolar_para_limpiar('cotizaciones', array[v_vieja], false);
-  end if;
-end;
-$_$;
+  update public.cotizaciones x set privada = p_privada where x.id in (c.id, c.hermana_id) and x.privada is distinct from p_privada;
+  return (select jsonb_build_object('resultado', 'cambiada', 'privada', x.privada, 'actualizado_en', x.actualizado_en)
+            from public.cotizaciones x where x.id = c.id);
+end $$;
 
 
-ALTER FUNCTION "public"."cotizacion_portada_poner"("p_cotizacion" "uuid", "p_ruta" "text", "p_clave" "text") OWNER TO "postgres";
+ALTER FUNCTION "public"."cotizacion_privada_cambiar"("p_cotizacion" "uuid", "p_privada" boolean, "p_actualizado_en_esperado" timestamp with time zone) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."cotizacion_portada_poner"("p_cotizacion" "uuid", "p_ruta" "text", "p_clave" "text") IS 'Anota la portada de una cotización ya subida al bucket cotizaciones. Pide verla (42501 «No tienes acceso…», igual para lo que no existe o está en la papelera), poder guardarla y ver lo que dibuja la compartida (42501 «No puedes guardar la vista previa…», antes de mirar la ruta y otra vez tras el candado for no key update). La ruta, <cotización>/portada/<sha-256>.webp, existente en storage.objects, WebP de hasta 5 MB según su metadata (22023 con hint ruta, mime o bytes). La clave, la vigente tras el candado (PT409 «La tarjeta cambió mientras se armaba la imagen.»). Reemplaza la fila y encola la ruta vieja si nadie más la usa.';
-
-
-
-CREATE OR REPLACE FUNCTION "public"."cotizacion_portada_visible"("p_cot" "uuid") RETURNS boolean
-    LANGUAGE "sql" STABLE SECURITY DEFINER
-    SET "search_path" TO ''
-    AS $$
-  select coalesce((
-    select public.puede_cotizacion(c.id, 'cotizaciones.ver') and public._cotizacion_portada_ve_todo(c.lead_id, c.vehiculo_id)
-      from public.cotizaciones c where c.id = p_cot), false);
-$$;
-
-
-ALTER FUNCTION "public"."cotizacion_portada_visible"("p_cot" "uuid") OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."cotizacion_portada_visible"("p_cot" "uuid") IS 'Si quien llama ve la cotización y todo lo que dibuja su portada compartida (_cotizacion_portada_ve_todo). La pide la policy «cotizaciones: leer» de storage.objects para los objetos de <cotización>/portada/. Nunca nula.';
+COMMENT ON FUNCTION "public"."cotizacion_privada_cambiar"("p_cotizacion" "uuid", "p_privada" boolean, "p_actualizado_en_esperado" timestamp with time zone) IS 'Hace privada o pública una cotización (y su hermana: comparten la marca). Pide verla (42501, también si no existe o está en la papelera) y ser quien la creó (42501 «Sólo quien la creó…»); sin la marca, 22023 (hint privada); la versión (PT409). Una final o la aprobada de su vehículo no se hacen privadas (23514). Candados: el vehículo (for key share), ella y su hermana por id (for no key update) y, al hacerla privada, el de la aprobada. La versión, la revisión y la actividad las dejan los triggers. {resultado: cambiada | sin_cambios, privada, actualizado_en}.';
 
 
 
@@ -22239,7 +23083,7 @@ CREATE OR REPLACE FUNCTION "public"."cotizacion_tarjeta"("p_formula" "uuid") RET
     SET "search_path" TO ''
     AS $$
 declare
-  fo public.formulas; v_pla public.plantillas_tarjeta; v_p jsonb; v_celdas jsonb; v_filas jsonb; v_nodos jsonb; v_grupos jsonb; v_total text; v_opcion jsonb;
+  fo public.formulas; v_pla public.plantillas_tarjeta; v_p jsonb; v_celdas jsonb; v_nodos jsonb; v_grupos jsonb; v_total text; v_opcion jsonb;
   v_datos jsonb; v_ids text[]; v_pcts jsonb; v_de_grupo text[]; v_buckets text[]; v_tc jsonb; v_variables text[];
 begin
   perform public.assert_activo();
@@ -22248,9 +23092,9 @@ begin
   if not found or fo.estado = 'borrador' then raise exception 'No tienes acceso a esa versión de la fórmula.' using errcode = '42501'; end if;
   if not public.tiene_permiso('cotizaciones.ver', fo.origen_id) then raise exception 'No tienes acceso a esa versión de la fórmula.' using errcode = '42501'; end if;
 
-  -- La publicada del origen (plantillas_publicada_unica), validada contra ESTA versión sin el catálogo: un color borrado se dibuja `auto`. La de la forma 1 se
+  -- La publicada de la fórmula del origen de esta versión (plantillas_publicada_unica), validada contra ESTA versión sin el catálogo: un color borrado se dibuja `auto`. La de la forma 1 se
   -- convierte con el catálogo de hoy (un color borrado cae al del grupo) y lo convertido se valida sin el tope de 24 KiB.
-  select * into v_pla from public.plantillas_tarjeta p where p.origen_id = fo.origen_id and p.estado = 'publicada';
+  select * into v_pla from public.plantillas_tarjeta p where p.formula_del_origen_id = fo.formula_del_origen_id and p.estado = 'publicada';
   if not found then return jsonb_build_object('estado', 'sin_plantilla'); end if;
   begin
     perform public.validar_plantilla(v_pla.definicion, fo.definicion, fo.diseno, fo.visibilidad, null);
@@ -22266,28 +23110,28 @@ begin
   end;
 
   v_celdas := v_p -> 'celdas';
-  v_filas := v_p -> 'filas';
   v_nodos := coalesce((select jsonb_object_agg(n ->> 'id', n) from jsonb_array_elements(coalesce(fo.definicion -> 'nodos', '[]'::jsonb)) n), '{}'::jsonb);
   v_grupos := coalesce((select jsonb_object_agg(g ->> 'id', g) from jsonb_array_elements(coalesce(fo.definicion -> 'grupos', '[]'::jsonb)) g), '{}'::jsonb);
   select n ->> 'id' into v_total from jsonb_array_elements(coalesce(fo.definicion -> 'nodos', '[]'::jsonb)) n where n ->> 'salida' = 'total' limit 1;
   select n into v_opcion from jsonb_array_elements(coalesce(fo.definicion -> 'nodos', '[]'::jsonb)) n where n ->> 'tipo' = 'opcion' limit 1;
 
-  -- Lo que muestran las celdas de un nodo ({nodo, mostrar}) y el `pct` del par de cada porcentaje: el suyo si es el `porcentaje_de`, él mismo si es el `pct`.
-  v_datos := coalesce((select jsonb_agg(jsonb_build_object('nodo', c -> 'contenido' ->> 'nodo', 'mostrar', c -> 'contenido' ->> 'mostrar'))
-                         from jsonb_array_elements(v_celdas) c where c -> 'contenido' ->> 'tipo' = 'dato' and c -> 'contenido' ? 'nodo'), '[]'::jsonb);
+  -- Lo que la cuadrícula muestra de un nodo ({nodo, mostrar}: en una celda, su lista de respaldo, sus ramas y el dato de una condición, `_plantilla_cuadricula_datos()`) y
+  -- el `pct` del par de cada porcentaje: el suyo si es el `porcentaje_de`, él mismo si es el `pct`.
+  v_datos := coalesce((select jsonb_agg(jsonb_build_object('nodo', d.nodo, 'mostrar', d.mostrar))
+                         from public._plantilla_cuadricula_datos(v_p) d where d.nodo is not null and d.mostrar is not null), '[]'::jsonb);
   v_pcts := coalesce((select jsonb_object_agg(d ->> 'nodo',
                                               case when v_nodos -> (d ->> 'nodo') ->> 'tipo' = 'calculo' and v_nodos -> (d ->> 'nodo') ->> 'op' = 'porcentaje_de'
                                                         and v_nodos -> (d ->> 'nodo') ->> 'pct' is not null
                                                    then v_nodos -> (d ->> 'nodo') ->> 'pct' else d ->> 'nodo' end)
                         from jsonb_array_elements(v_datos) d where d ->> 'mostrar' = 'porcentaje'), '{}'::jsonb);
-  v_ids := array(select distinct x from (select f ->> 'nodo' as x from jsonb_array_elements(v_filas) f where f ? 'nodo'
-                                         union all select d ->> 'nodo' from jsonb_array_elements(v_datos) d
+  -- Los nodos que nombra la cuadrícula (el de cada fila, los de cada dato y los de cada condición) y el `pct` de cada porcentaje.
+  v_ids := array(select distinct x from (select d.nodo as x from public._plantilla_cuadricula_datos(v_p) d
                                          union all select value #>> '{}' from jsonb_each(v_pcts)) t where x is not null);
   v_de_grupo := array(select distinct v_nodos -> (d ->> 'nodo') ->> 'grupo' from jsonb_array_elements(v_datos) d
                        where d ->> 'mostrar' in ('tc_nombre', 'tc_valor', 'plazo') and v_nodos -> (d ->> 'nodo') ->> 'grupo' is not null);
   v_buckets := array(select distinct v_grupos -> (v_nodos -> (d ->> 'nodo') ->> 'grupo') ->> 'bucket' from jsonb_array_elements(v_datos) d
                       where d ->> 'mostrar' in ('tc_nombre', 'tc_valor') and v_grupos -> (v_nodos -> (d ->> 'nodo') ->> 'grupo') ->> 'bucket' is not null);
-  v_variables := array(select distinct c -> 'contenido' ->> 'variable' from jsonb_array_elements(v_celdas) c where c -> 'contenido' ? 'variable');
+  v_variables := array(select distinct d.variable from public._plantilla_cuadricula_datos(v_p) d where d.variable is not null);
   -- El nombre de cada tipo de cambio por su nodo: el de `tipos_cambio` activo con la clave del nodo (nulo si no hay uno activo), nunca la clave ni el id.
   v_tc := coalesce((select jsonb_object_agg(n ->> 'id', t.nombre) from jsonb_array_elements(coalesce(fo.definicion -> 'nodos', '[]'::jsonb)) n
                       left join public.tipos_cambio t on t.activo and t.clave = n ->> 'clave' where n ->> 'tipo' = 'tipo_cambio'), '{}'::jsonb);
@@ -22419,7 +23263,7 @@ COMMENT ON FUNCTION "public"."cotizaciones_aprobadas_de_vehiculos"("p_vehiculos"
 
 
 
-CREATE OR REPLACE FUNCTION "public"."cotizaciones_buscar"("p_texto" "text", "p_tamano" integer, "p_origen" "uuid" DEFAULT NULL::"uuid", "p_clase" "public"."clase_cotizacion" DEFAULT NULL::"public"."clase_cotizacion", "p_mias" boolean DEFAULT false, "p_vehiculo" "uuid" DEFAULT NULL::"uuid", "p_lead" "uuid" DEFAULT NULL::"uuid", "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid", "p_hacia_atras" boolean DEFAULT false) RETURNS TABLE("id" "uuid", "numero" bigint, "origen_id" "uuid", "lead_id" "uuid", "vehiculo_id" "uuid", "creado_por" "uuid", "clase" "public"."clase_cotizacion", "estado" "public"."estado_cotizacion", "titulo" "text", "total_base" numeric, "moneda_mostrar" character, "creado_en" timestamp with time zone, "vence_el" "date", "vencida" boolean, "acotada" boolean)
+CREATE OR REPLACE FUNCTION "public"."cotizaciones_buscar"("p_texto" "text", "p_tamano" integer, "p_origen" "uuid" DEFAULT NULL::"uuid", "p_clase" "public"."clase_cotizacion" DEFAULT NULL::"public"."clase_cotizacion", "p_mias" boolean DEFAULT false, "p_vehiculo" "uuid" DEFAULT NULL::"uuid", "p_lead" "uuid" DEFAULT NULL::"uuid", "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid", "p_hacia_atras" boolean DEFAULT false) RETURNS TABLE("id" "uuid", "numero" bigint, "origen_id" "uuid", "lead_id" "uuid", "vehiculo_id" "uuid", "creado_por" "uuid", "clase" "public"."clase_cotizacion", "estado" "public"."estado_cotizacion", "titulo" "text", "total_base" numeric, "moneda_mostrar" character, "creado_en" timestamp with time zone, "vence_el" "date", "vencida" boolean, "acotada" boolean, "privada" boolean)
     LANGUAGE "plpgsql" STABLE
     SET "search_path" TO ''
     AS $_$
@@ -22449,7 +23293,7 @@ declare
     when p_hacia_atras then 'and (c.creado_en, c.id) > ($12, $13)'
     else 'and (c.creado_en, c.id) < ($12, $13)' end;
   v_filtros text;
-  v_columnas constant text := 'c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en';
+  v_columnas constant text := 'c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada';
   v_ruta text;
 begin
   if (p_cursor_en is null) <> (p_cursor_id is null) then
@@ -22525,7 +23369,7 @@ begin
     -- Cada cotización nombrada por su título, por la PK.
     || ' union all (select x.* from unnest($20) t (id) cross join lateral (' || v_ruta || 'c.id = t.id' || v_filtros || ') x)'
     || ') select d.id, d.numero, d.origen_id, d.lead_id, d.vehiculo_id, d.creado_por, d.clase, d.estado, d.titulo, d.total_base, d.moneda_mostrar, d.creado_en,'
-    || ' (d.creado_en at time zone $14)::date + $15, (d.creado_en at time zone $14)::date + $15 < $16, $17'
+    || ' (d.creado_en at time zone $14)::date + $15, (d.creado_en at time zone $14)::date + $15 < $16, $17, d.privada'
     || ' from (select distinct on (f.id) f.* from filas f) d'
     || ' order by d.creado_en ' || v_sentido || ', d.id ' || v_sentido || ' limit $11'
     using b.numero, v_leads, v_vehiculos, v_autores, p_origen, v_clases, coalesce(p_mias, false), v_uid, p_vehiculo, p_lead, v_n, p_cursor_en, p_cursor_id,
@@ -22536,11 +23380,11 @@ end $_$;
 ALTER FUNCTION "public"."cotizaciones_buscar"("p_texto" "text", "p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."cotizaciones_buscar"("p_texto" "text", "p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) IS 'La búsqueda del listado /cotizaciones: por número exacto (cotizaciones_numero_key), por cliente (leads_candidatos y leads_vista_por_ids, cotizaciones_lead_creado_idx), por vehículo (título, VIN o lote, vehiculos_origen_listado_idx y cotizaciones_vehiculo_creado_idx), por quien la creó (por nombre en perfiles, cotizaciones_creador_idx) y por el título de la cotización (_cotizaciones_ids_por_titulo, cotizaciones_titulo_trgm, y la página por la PK), de la más nueva a la más vieja (creado_en desc, id desc), sin repetir, por cursor y con los filtros del listado. Invocadora: la RLS decide qué se ve y qué se puede nombrar. Cada fuente nombra hasta 50 ids (el más nuevo primero); acotada dice si alguna se pasó. Por autor, la de otra persona sólo se busca donde se ve «todos» (con «propios» se verían las de la cartera, a un en_cartera() por cotización). Mínimo de _buscador_interpretar. Lo mide supabase/tests/medir-cotizaciones-buscar.sql.';
+COMMENT ON FUNCTION "public"."cotizaciones_buscar"("p_texto" "text", "p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) IS 'La búsqueda del listado /cotizaciones: por número exacto (cotizaciones_numero_key), por cliente (leads_candidatos y leads_vista_por_ids, cotizaciones_lead_creado_idx), por vehículo (título, VIN o lote, vehiculos_origen_listado_idx y cotizaciones_vehiculo_creado_idx), por quien la creó (por nombre en perfiles, cotizaciones_creador_idx) y por el título de la cotización (_cotizaciones_ids_por_titulo, cotizaciones_titulo_trgm, y la página por la PK), de la más nueva a la más vieja (creado_en desc, id desc), sin repetir, por cursor y con los filtros del listado. Invocadora: la RLS decide qué se ve (también la marca privada) y qué se puede nombrar. Cada fuente nombra hasta 50 ids (el más nuevo primero); acotada dice si alguna se pasó. Por autor, la de otra persona sólo se busca donde se ve «todos» (con «propios» se verían las de la cartera, a un en_cartera() por cotización). Mínimo de _buscador_interpretar. Lo mide supabase/tests/medir-cotizaciones-buscar.sql.';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."cotizaciones_de_este_vehiculo"("p_vehiculo" "uuid", "p_tamano" integer, "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid") RETURNS TABLE("id" "uuid", "numero" bigint, "origen_id" "uuid", "origen" "text", "clase" "public"."clase_cotizacion", "estado" "public"."estado_cotizacion", "titulo" "text", "total" numeric, "moneda" character, "modo" "text", "autor" "text", "creado_en" timestamp with time zone, "editada_en" timestamp with time zone, "vencida" boolean, "aprobada" boolean, "fijada" boolean)
+CREATE OR REPLACE FUNCTION "public"."cotizaciones_de_este_vehiculo"("p_vehiculo" "uuid", "p_tamano" integer, "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid") RETURNS TABLE("id" "uuid", "numero" bigint, "origen_id" "uuid", "origen" "text", "clase" "public"."clase_cotizacion", "estado" "public"."estado_cotizacion", "titulo" "text", "total" numeric, "moneda" character, "modo" "text", "autor" "text", "creado_en" timestamp with time zone, "editada_en" timestamp with time zone, "vencida" boolean, "aprobada" boolean, "fijada" boolean, "vence_el" "date", "privada" boolean)
     LANGUAGE "plpgsql" STABLE
     SET "search_path" TO ''
     AS $$
@@ -22558,7 +23402,7 @@ begin
   if p_vehiculo is null then
     return;
   end if;
-  -- La vigencia, espejo de `cotizaciones_listado()`: si una cambia, cambia la otra.
+  -- La vigencia (`vencida` y `vence_el`), espejo de `cotizaciones_listado()`: si una cambia, cambia la otra.
   select e.zona_horaria, e.vigencia_dias into v_zona, v_dias from public.ajustes_empresa e where e.id = 1;
   v_hoy := (now() at time zone v_zona)::date;
 
@@ -22566,13 +23410,13 @@ begin
     return query
     with filas as (
       (select c.id, c.numero, c.origen_id, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.formula_id, c.modo_tc, c.creado_por,
-              c.creado_en, c.actualizado_en, false as fijada
+              c.creado_en, c.actualizado_en, c.privada, false as fijada
          from public.cotizaciones c
         where c.vehiculo_id = p_vehiculo and c.eliminado_en is null
         order by c.creado_en desc, c.id desc limit v_n)  -- cotizaciones_vehiculo_creado_idx
       union all
       (select c.id, c.numero, c.origen_id, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.formula_id, c.modo_tc, c.creado_por,
-              c.creado_en, c.actualizado_en, true as fijada
+              c.creado_en, c.actualizado_en, c.privada, true as fijada
          from public.cotizaciones_aprobadas a
          join public.cotizaciones c on c.id = a.cotizacion_id and c.eliminado_en is null
         where a.vehiculo_id = p_vehiculo)  -- cotizaciones_aprobadas_pkey, cotizaciones_pkey
@@ -22589,7 +23433,9 @@ begin
            f.creado_en, f.actualizado_en,
            (f.creado_en at time zone v_zona)::date + v_dias < v_hoy,
            exists (select 1 from public.cotizaciones_aprobadas x where x.cotizacion_id = f.id),  -- cotizaciones_aprobadas_cotizacion_id_key
-           f.fijada
+           f.fijada,
+           (f.creado_en at time zone v_zona)::date + v_dias,
+           f.privada
       from filas f
       left join public.origenes o on o.id = f.origen_id  -- origenes_pkey
       left join public.perfiles p on p.id = f.creado_por  -- perfiles_pkey
@@ -22599,7 +23445,7 @@ begin
     return query
     with filas as (
       select c.id, c.numero, c.origen_id, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.formula_id, c.modo_tc, c.creado_por,
-             c.creado_en, c.actualizado_en
+             c.creado_en, c.actualizado_en, c.privada
         from public.cotizaciones c
        where c.vehiculo_id = p_vehiculo and c.eliminado_en is null and (c.creado_en, c.id) < (p_cursor_en, p_cursor_id)
        order by c.creado_en desc, c.id desc limit v_n  -- cotizaciones_vehiculo_creado_idx
@@ -22614,7 +23460,9 @@ begin
            f.creado_en, f.actualizado_en,
            (f.creado_en at time zone v_zona)::date + v_dias < v_hoy,
            exists (select 1 from public.cotizaciones_aprobadas x where x.cotizacion_id = f.id),
-           false
+           false,
+           (f.creado_en at time zone v_zona)::date + v_dias,
+           f.privada
       from filas f
       left join public.origenes o on o.id = f.origen_id
       left join public.perfiles p on p.id = f.creado_por
@@ -22627,11 +23475,11 @@ end $$;
 ALTER FUNCTION "public"."cotizaciones_de_este_vehiculo"("p_vehiculo" "uuid", "p_tamano" integer, "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."cotizaciones_de_este_vehiculo"("p_vehiculo" "uuid", "p_tamano" integer, "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid") IS 'El bloque «De este vehículo» (docs/UX.md › «Cotización guardada»): una página de las cotizaciones de un vehículo que quien mira ve (creado_en desc, id desc) por cotizaciones_vehiculo_creado_idx y, sin cursor, además la aprobada del vehículo (fijada) por cotizaciones_aprobadas_pkey. Corre como quien la llama: la RLS decide. Devuelve el nombre del origen, el del modo (_nombre_del_modo), el autor visible, la versión (editada_en = actualizado_en, para aprobar) y la vigencia de cotizaciones_listado(). Lo mide supabase/tests/medir-cotizaciones-de-este-vehiculo.sql.';
+COMMENT ON FUNCTION "public"."cotizaciones_de_este_vehiculo"("p_vehiculo" "uuid", "p_tamano" integer, "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid") IS 'El bloque «De este vehículo» y las tarjetas de la ficha del vehículo: una página de las cotizaciones de un vehículo que quien mira ve (creado_en desc, id desc) por cotizaciones_vehiculo_creado_idx y, sin cursor, además la aprobada del vehículo (fijada) por cotizaciones_aprobadas_pkey. Corre como quien la llama: la RLS decide. Devuelve el nombre del origen, el del modo (_nombre_del_modo), el autor visible, la versión (editada_en = actualizado_en, para aprobar), la vigencia de cotizaciones_listado() (vencida y vence_el) y la marca privada (la insignia de la tarjeta; una privada ajena sin cotizaciones.privadas.ver no llega). Lo mide supabase/tests/medir-cotizaciones-de-este-vehiculo.sql.';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."cotizaciones_listado"("p_tamano" integer, "p_origen" "uuid" DEFAULT NULL::"uuid", "p_clase" "public"."clase_cotizacion" DEFAULT NULL::"public"."clase_cotizacion", "p_mias" boolean DEFAULT false, "p_vehiculo" "uuid" DEFAULT NULL::"uuid", "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid", "p_hacia_atras" boolean DEFAULT false, "p_lead" "uuid" DEFAULT NULL::"uuid") RETURNS TABLE("id" "uuid", "numero" bigint, "origen_id" "uuid", "lead_id" "uuid", "vehiculo_id" "uuid", "creado_por" "uuid", "clase" "public"."clase_cotizacion", "estado" "public"."estado_cotizacion", "titulo" "text", "total_base" numeric, "moneda_mostrar" character, "creado_en" timestamp with time zone, "vence_el" "date", "vencida" boolean)
+CREATE OR REPLACE FUNCTION "public"."cotizaciones_listado"("p_tamano" integer, "p_origen" "uuid" DEFAULT NULL::"uuid", "p_clase" "public"."clase_cotizacion" DEFAULT NULL::"public"."clase_cotizacion", "p_mias" boolean DEFAULT false, "p_vehiculo" "uuid" DEFAULT NULL::"uuid", "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid", "p_hacia_atras" boolean DEFAULT false, "p_lead" "uuid" DEFAULT NULL::"uuid") RETURNS TABLE("id" "uuid", "numero" bigint, "origen_id" "uuid", "lead_id" "uuid", "vehiculo_id" "uuid", "creado_por" "uuid", "clase" "public"."clase_cotizacion", "estado" "public"."estado_cotizacion", "titulo" "text", "total_base" numeric, "moneda_mostrar" character, "creado_en" timestamp with time zone, "vence_el" "date", "vencida" boolean, "privada" boolean)
     LANGUAGE "plpgsql" STABLE
     SET "search_path" TO ''
     AS $$
@@ -22674,120 +23522,123 @@ begin
   if p_cursor_en is null then
     return query
     with filas as (
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_listado and c.clase = any (v_clases) order by c.creado_en desc, c.id desc limit v_n)  -- cotizaciones_listado_idx
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_finales and c.eliminado_en is null and c.clase = 'final' order by c.creado_en desc, c.id desc limit v_n)  -- cotizaciones_finales_idx
       union all
       (select x.* from unnest(v_t) o (id) cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c where c.origen_id = o.id and c.clase = any (v_clases) order by c.creado_en desc, c.id desc limit v_n) x  -- cotizaciones_origen_creado_idx
         where v_por_origen)
       union all
       (select x.* from unnest(v_t) o (id) cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c where c.origen_id = o.id and c.eliminado_en is null and c.clase = 'final' order by c.creado_en desc, c.id desc limit v_n) x  -- cotizaciones_origen_finales_idx
         where v_origen_finales)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_propias and c.creado_por = v_uid and c.origen_id = any (v_mias_en) and c.clase = any (v_clases)
         order by c.creado_en desc, c.id desc limit v_n)  -- cotizaciones_creador_idx
       union all
       (select x.* from public.mis_leads() m (lead_id) cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c where c.lead_id = m.lead_id and c.creado_por <> v_uid and c.origen_id = any (v_p) and c.clase = any (v_clases)
           order by c.creado_en desc, c.id desc limit v_n) x  -- cotizaciones_lead_creado_idx
         where v_cartera)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_por_vehiculo and c.vehiculo_id = p_vehiculo and c.origen_id = any (v_ver) and c.clase = any (v_clases)
           and (not p_mias or c.creado_por = v_uid) order by c.creado_en desc, c.id desc limit v_n)  -- cotizaciones_vehiculo_creado_idx
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_por_lead and c.lead_id = p_lead and c.origen_id = any (v_ver) and c.clase = any (v_clases)
           and (not p_mias or c.creado_por = v_uid) and (p_vehiculo is null or c.vehiculo_id = p_vehiculo) order by c.creado_en desc, c.id desc limit v_n)  -- cotizaciones_lead_creado_idx
     )
-    select f.*, (f.creado_en at time zone v_zona)::date + v_dias, (f.creado_en at time zone v_zona)::date + v_dias < v_hoy
+    select f.id, f.numero, f.origen_id, f.lead_id, f.vehiculo_id, f.creado_por, f.clase, f.estado, f.titulo, f.total_base, f.moneda_mostrar, f.creado_en,
+           (f.creado_en at time zone v_zona)::date + v_dias, (f.creado_en at time zone v_zona)::date + v_dias < v_hoy, f.privada
       from filas f order by f.creado_en desc, f.id desc limit v_n;
   elsif not p_hacia_atras then
     return query
     with filas as (
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_listado and c.clase = any (v_clases) and (c.creado_en, c.id) < (p_cursor_en, p_cursor_id) order by c.creado_en desc, c.id desc limit v_n)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_finales and c.eliminado_en is null and c.clase = 'final' and (c.creado_en, c.id) < (p_cursor_en, p_cursor_id) order by c.creado_en desc, c.id desc limit v_n)
       union all
       (select x.* from unnest(v_t) o (id) cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c where c.origen_id = o.id and c.clase = any (v_clases) and (c.creado_en, c.id) < (p_cursor_en, p_cursor_id) order by c.creado_en desc, c.id desc limit v_n) x
         where v_por_origen)
       union all
       (select x.* from unnest(v_t) o (id) cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c where c.origen_id = o.id and c.eliminado_en is null and c.clase = 'final' and (c.creado_en, c.id) < (p_cursor_en, p_cursor_id) order by c.creado_en desc, c.id desc limit v_n) x
         where v_origen_finales)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_propias and c.creado_por = v_uid and c.origen_id = any (v_mias_en) and c.clase = any (v_clases) and (c.creado_en, c.id) < (p_cursor_en, p_cursor_id)
         order by c.creado_en desc, c.id desc limit v_n)
       union all
       (select x.* from public.mis_leads() m (lead_id) cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c where c.lead_id = m.lead_id and c.creado_por <> v_uid and c.origen_id = any (v_p) and c.clase = any (v_clases) and (c.creado_en, c.id) < (p_cursor_en, p_cursor_id)
           order by c.creado_en desc, c.id desc limit v_n) x
         where v_cartera)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_por_vehiculo and c.vehiculo_id = p_vehiculo and c.origen_id = any (v_ver) and c.clase = any (v_clases)
           and (not p_mias or c.creado_por = v_uid) and (c.creado_en, c.id) < (p_cursor_en, p_cursor_id) order by c.creado_en desc, c.id desc limit v_n)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_por_lead and c.lead_id = p_lead and c.origen_id = any (v_ver) and c.clase = any (v_clases)
           and (not p_mias or c.creado_por = v_uid) and (p_vehiculo is null or c.vehiculo_id = p_vehiculo) and (c.creado_en, c.id) < (p_cursor_en, p_cursor_id)
         order by c.creado_en desc, c.id desc limit v_n))
-    select f.*, (f.creado_en at time zone v_zona)::date + v_dias, (f.creado_en at time zone v_zona)::date + v_dias < v_hoy
+    select f.id, f.numero, f.origen_id, f.lead_id, f.vehiculo_id, f.creado_por, f.clase, f.estado, f.titulo, f.total_base, f.moneda_mostrar, f.creado_en,
+           (f.creado_en at time zone v_zona)::date + v_dias, (f.creado_en at time zone v_zona)::date + v_dias < v_hoy, f.privada
       from filas f order by f.creado_en desc, f.id desc limit v_n;
   else
     -- Hacia atrás: lo estrictamente anterior, en orden ascendente (`armarPagina` lo da vuelta).
     return query
     with filas as (
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_listado and c.clase = any (v_clases) and (c.creado_en, c.id) > (p_cursor_en, p_cursor_id) order by c.creado_en, c.id limit v_n)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_finales and c.eliminado_en is null and c.clase = 'final' and (c.creado_en, c.id) > (p_cursor_en, p_cursor_id) order by c.creado_en, c.id limit v_n)
       union all
       (select x.* from unnest(v_t) o (id) cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c where c.origen_id = o.id and c.clase = any (v_clases) and (c.creado_en, c.id) > (p_cursor_en, p_cursor_id) order by c.creado_en, c.id limit v_n) x
         where v_por_origen)
       union all
       (select x.* from unnest(v_t) o (id) cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c where c.origen_id = o.id and c.eliminado_en is null and c.clase = 'final' and (c.creado_en, c.id) > (p_cursor_en, p_cursor_id) order by c.creado_en, c.id limit v_n) x
         where v_origen_finales)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_propias and c.creado_por = v_uid and c.origen_id = any (v_mias_en) and c.clase = any (v_clases) and (c.creado_en, c.id) > (p_cursor_en, p_cursor_id)
         order by c.creado_en, c.id limit v_n)
       union all
       (select x.* from public.mis_leads() m (lead_id) cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c where c.lead_id = m.lead_id and c.creado_por <> v_uid and c.origen_id = any (v_p) and c.clase = any (v_clases) and (c.creado_en, c.id) > (p_cursor_en, p_cursor_id)
           order by c.creado_en, c.id limit v_n) x
         where v_cartera)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_por_vehiculo and c.vehiculo_id = p_vehiculo and c.origen_id = any (v_ver) and c.clase = any (v_clases)
           and (not p_mias or c.creado_por = v_uid) and (c.creado_en, c.id) > (p_cursor_en, p_cursor_id) order by c.creado_en, c.id limit v_n)
       union all
-      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+      (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
          from public.cotizaciones c where v_por_lead and c.lead_id = p_lead and c.origen_id = any (v_ver) and c.clase = any (v_clases)
           and (not p_mias or c.creado_por = v_uid) and (p_vehiculo is null or c.vehiculo_id = p_vehiculo) and (c.creado_en, c.id) > (p_cursor_en, p_cursor_id)
         order by c.creado_en, c.id limit v_n))
-    select f.*, (f.creado_en at time zone v_zona)::date + v_dias, (f.creado_en at time zone v_zona)::date + v_dias < v_hoy
+    select f.id, f.numero, f.origen_id, f.lead_id, f.vehiculo_id, f.creado_por, f.clase, f.estado, f.titulo, f.total_base, f.moneda_mostrar, f.creado_en,
+           (f.creado_en at time zone v_zona)::date + v_dias, (f.creado_en at time zone v_zona)::date + v_dias < v_hoy, f.privada
       from filas f order by f.creado_en, f.id limit v_n;
   end if;
 end $$;
@@ -22796,11 +23647,11 @@ end $$;
 ALTER FUNCTION "public"."cotizaciones_listado"("p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean, "p_lead" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."cotizaciones_listado"("p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean, "p_lead" "uuid") IS 'Una página del listado /cotizaciones de la más nueva a la más vieja (creado_en desc, id desc), por cursor (hacia atrás, en orden ascendente), con los filtros origen, clase, mías (las que creó quien mira), vehículo y lead, y la vigencia (vence_el, vencida) de cotizacion_hoja_guardada. Corre como quien la llama: la RLS decide qué se ve; cada ruta (lo de «todos», lo propio, la cartera de mis_leads(), el vehículo, el lead) va por su índice; con el lead, una sola ruta y el vehículo como filtro. Sin el snapshot. Lo mide supabase/tests/medir-cotizaciones-listado.sql.';
+COMMENT ON FUNCTION "public"."cotizaciones_listado"("p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean, "p_lead" "uuid") IS 'Una página del listado /cotizaciones de la más nueva a la más vieja (creado_en desc, id desc), por cursor (hacia atrás, en orden ascendente), con los filtros origen, clase, mías (las que creó quien mira), vehículo y lead, y la vigencia (vence_el, vencida) de cotizacion_hoja_guardada. Corre como quien la llama: la RLS decide qué se ve; cada ruta (lo de «todos», lo propio, la cartera de mis_leads(), el vehículo, el lead) va por su índice; con el lead, una sola ruta y el vehículo como filtro. Sin el snapshot; con la marca privada. Una privada (`privada`) la ven sólo quien la creó y quien tiene cotizaciones.privadas.ver de su origen: para el resto no existe (lo decide la RLS). Lo mide supabase/tests/medir-cotizaciones-listado.sql.';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."cotizaciones_listado_por_vehiculo"("p_tamano" integer, "p_origen" "uuid" DEFAULT NULL::"uuid", "p_clase" "public"."clase_cotizacion" DEFAULT NULL::"public"."clase_cotizacion", "p_mias" boolean DEFAULT false, "p_lead" "uuid" DEFAULT NULL::"uuid", "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid", "p_hacia_atras" boolean DEFAULT false) RETURNS TABLE("tipo" "text", "orden_en" timestamp with time zone, "orden_id" "uuid", "id" "uuid", "numero" bigint, "origen_id" "uuid", "lead_id" "uuid", "vehiculo_id" "uuid", "creado_por" "uuid", "clase" "public"."clase_cotizacion", "estado" "public"."estado_cotizacion", "titulo" "text", "total_base" numeric, "moneda_mostrar" character, "creado_en" timestamp with time zone, "vence_el" "date", "vencida" boolean, "grupo_n" integer)
+CREATE OR REPLACE FUNCTION "public"."cotizaciones_listado_por_vehiculo"("p_tamano" integer, "p_origen" "uuid" DEFAULT NULL::"uuid", "p_clase" "public"."clase_cotizacion" DEFAULT NULL::"public"."clase_cotizacion", "p_mias" boolean DEFAULT false, "p_lead" "uuid" DEFAULT NULL::"uuid", "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid", "p_hacia_atras" boolean DEFAULT false) RETURNS TABLE("tipo" "text", "orden_en" timestamp with time zone, "orden_id" "uuid", "id" "uuid", "numero" bigint, "origen_id" "uuid", "lead_id" "uuid", "vehiculo_id" "uuid", "creado_por" "uuid", "clase" "public"."clase_cotizacion", "estado" "public"."estado_cotizacion", "titulo" "text", "total_base" numeric, "moneda_mostrar" character, "creado_en" timestamp with time zone, "vence_el" "date", "vencida" boolean, "grupo_n" integer, "privada" boolean)
     LANGUAGE "plpgsql" STABLE
     SET "search_path" TO ''
     AS $$
@@ -22928,16 +23779,17 @@ begin
                                and c3.clase = any (v_clases) and (p_origen is null or c3.origen_id = p_origen)
                                and (not p_mias or c3.creado_por = v_uid) and (p_lead is null or c3.lead_id = p_lead)
                              order by c3.creado_en desc, c3.id desc limit 101) z)  -- cotizaciones_vehiculo_creado_idx
-         end
+         end,
+         h.privada
     from unnest(v_ids) with ordinality u (id, k)
    cross join lateral (
      select c.id, c.vehiculo_id, c.creado_en from public.cotizaciones c where c.id = u.id limit 1  -- cotizaciones_pkey
    ) n
    cross join lateral (
-     (select a.id, a.numero, a.origen_id, a.lead_id, a.vehiculo_id, a.creado_por, a.clase, a.estado, a.titulo, a.total_base, a.moneda_mostrar, a.creado_en
+     (select a.id, a.numero, a.origen_id, a.lead_id, a.vehiculo_id, a.creado_por, a.clase, a.estado, a.titulo, a.total_base, a.moneda_mostrar, a.creado_en, a.privada
         from public.cotizaciones_aprobadas ap
        cross join lateral (
-         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+         select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
            from public.cotizaciones c
           where c.id = ap.cotizacion_id  -- cotizaciones_pkey
             and c.clase = any (v_clases) and (p_origen is null or c.origen_id = p_origen)
@@ -22945,7 +23797,7 @@ begin
           limit 1) a
        where ap.vehiculo_id = n.vehiculo_id)  -- cotizaciones_aprobadas_pkey
      union all
-     (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en
+     (select c.id, c.numero, c.origen_id, c.lead_id, c.vehiculo_id, c.creado_por, c.clase, c.estado, c.titulo, c.total_base, c.moneda_mostrar, c.creado_en, c.privada
         from public.cotizaciones c where c.id = n.id)  -- cotizaciones_pkey
      limit 1
    ) h
@@ -22954,7 +23806,7 @@ begin
   if v_cortada then
     return query
     select 'cortada'::text, v_en, v_id, null::uuid, null::bigint, null::uuid, null::uuid, null::uuid, null::uuid, null::public.clase_cotizacion,
-           null::public.estado_cotizacion, null::text, null::numeric, null::character, null::timestamptz, null::date, null::boolean, null::integer;
+           null::public.estado_cotizacion, null::text, null::numeric, null::character, null::timestamptz, null::date, null::boolean, null::integer, null::boolean;
   end if;
 end $$;
 
@@ -22962,7 +23814,7 @@ end $$;
 ALTER FUNCTION "public"."cotizaciones_listado_por_vehiculo"("p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."cotizaciones_listado_por_vehiculo"("p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) IS 'Una página de la lista /cotizaciones agrupada por vehículo (docs/UX.md › «Cotizaciones»): grupos (la cabeza: la cotización más reciente de un vehículo que quien mira ve y coincide) y sueltas (sin vehículo), de la más nueva a la más vieja por cursor (orden_en, orden_id), con los filtros del listado. Recorre lotes de _cotizaciones_lote_del_listado (las rutas e índices de cotizaciones_listado()) con una sonda por cotizaciones_vehiculo_creado_idx, hasta llenar la página o leer 2.020 (entonces una fila cortada con dónde siguió). Cada grupo trae su aprobada si quien mira la ve y coincide (cotizaciones_aprobadas_pkey), si no la cabeza, y su conteo acotado a 101 (cotizaciones_vehiculo_creado_idx). No lee vehiculos. Corre como quien la llama: la RLS decide. Lo mide supabase/tests/medir-cotizaciones-listado-por-vehiculo.sql.';
+COMMENT ON FUNCTION "public"."cotizaciones_listado_por_vehiculo"("p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) IS 'Una página de la lista /cotizaciones agrupada por vehículo (docs/UX.md › «Cotizaciones»): grupos (la cabeza: la cotización más reciente de un vehículo que quien mira ve y coincide) y sueltas (sin vehículo), de la más nueva a la más vieja por cursor (orden_en, orden_id), con los filtros del listado. Recorre lotes de _cotizaciones_lote_del_listado (las rutas e índices de cotizaciones_listado()) con una sonda por cotizaciones_vehiculo_creado_idx, hasta llenar la página o leer 2.020 (entonces una fila cortada con dónde siguió). Cada grupo trae su aprobada si quien mira la ve y coincide (cotizaciones_aprobadas_pkey), si no la cabeza, y su conteo acotado a 101 (cotizaciones_vehiculo_creado_idx). No lee vehiculos. Corre como quien la llama: la RLS decide (también la marca privada). Lo mide supabase/tests/medir-cotizaciones-listado-por-vehiculo.sql.';
 
 
 
@@ -23085,21 +23937,27 @@ begin
     v_ids := array(select l.id from public.lotes_papelera l
       where l.tipo = 'cotizaciones' and l.purgado_en is null and l.restaurado_en is null
         and (v_todo or l.creado_por = v_yo)
-        and (select true from public.cotizaciones c where c.lote_papelera_id = l.id and c.eliminado_en is not null limit 1)
+        and (select true from public.cotizaciones c where c.lote_papelera_id = l.id
+           and (not c.privada or c.creado_por = v_yo or public.tiene_permiso('cotizaciones.privadas.ver', c.origen_id))
+           and c.eliminado_en is not null limit 1)
       order by l.creado_en desc, l.id desc limit v_n);
   elsif not coalesce(p_hacia_atras, false) then
     v_ids := array(select l.id from public.lotes_papelera l
       where l.tipo = 'cotizaciones' and l.purgado_en is null and l.restaurado_en is null
         and (v_todo or l.creado_por = v_yo)
         and (l.creado_en, l.id) < (p_antes_en, p_antes_id)
-        and (select true from public.cotizaciones c where c.lote_papelera_id = l.id and c.eliminado_en is not null limit 1)
+        and (select true from public.cotizaciones c where c.lote_papelera_id = l.id
+           and (not c.privada or c.creado_por = v_yo or public.tiene_permiso('cotizaciones.privadas.ver', c.origen_id))
+           and c.eliminado_en is not null limit 1)
       order by l.creado_en desc, l.id desc limit v_n);
   else
     v_ids := array(select l.id from public.lotes_papelera l
       where l.tipo = 'cotizaciones' and l.purgado_en is null and l.restaurado_en is null
         and (v_todo or l.creado_por = v_yo)
         and (l.creado_en, l.id) > (p_antes_en, p_antes_id)
-        and (select true from public.cotizaciones c where c.lote_papelera_id = l.id and c.eliminado_en is not null limit 1)
+        and (select true from public.cotizaciones c where c.lote_papelera_id = l.id
+           and (not c.privada or c.creado_por = v_yo or public.tiene_permiso('cotizaciones.privadas.ver', c.origen_id))
+           and c.eliminado_en is not null limit 1)
       order by l.creado_en, l.id limit v_n);
   end if;
   return coalesce((
@@ -23128,7 +23986,8 @@ begin
   select * into l from public.lotes_papelera x
    where x.id = p_lote and x.tipo = 'cotizaciones' and x.purgado_en is null and x.restaurado_en is null
      and (v_todo or x.creado_por = v_yo)
-     and exists (select 1 from public.cotizaciones y where y.lote_papelera_id = x.id and y.eliminado_en is not null);
+     and exists (select 1 from public.cotizaciones y where y.lote_papelera_id = x.id and y.eliminado_en is not null
+                   and (not y.privada or y.creado_por = v_yo or public.tiene_permiso('cotizaciones.privadas.ver', y.origen_id)));
   if not found then
     return null;
   end if;
@@ -23220,23 +24079,6 @@ ALTER FUNCTION "public"."cotizaciones_papelera_restaurar"("p_lote" "uuid", "p_ac
 
 
 COMMENT ON FUNCTION "public"."cotizaciones_papelera_restaurar"("p_lote" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_cotizaciones" "uuid"[]) IS 'Restaura un lote de la papelera de cotizaciones (o sólo p_cotizaciones) con la versión que quien llama tenía en pantalla: quien lo envió o quien tiene cotizaciones.papelera.purgar, mirado antes de tomar el lote. Lo que no puede volver queda en pendientes con su motivo. Devuelve {actualizado_en, restaurados: [{id, numero, titulo}], pendientes: [{id, numero, titulo, motivo}], quedan}.';
-
-
-
-CREATE OR REPLACE FUNCTION "public"."cotizaciones_portada_rescatar"() RETURNS "trigger"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO ''
-    AS $$
-begin
-  perform public.storage_gc_rescatar('cotizaciones', new.ruta);
-  return new;
-end $$;
-
-
-ALTER FUNCTION "public"."cotizaciones_portada_rescatar"() OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."cotizaciones_portada_rescatar"() IS 'Trigger before insert or update of ruta de cotizaciones_portadas: saca la ruta de la cola de limpieza de storage (o avisa si ya se está limpiando).';
 
 
 
@@ -25251,6 +26093,8 @@ declare
   v_f jsonb;
   v_celda jsonb;
   v_hay boolean;
+  v_todos boolean;
+  v_alguno boolean;
   v_sobre float8;
   v_bs float8;
   v_suma_usd float8;
@@ -25262,9 +26106,7 @@ declare
   v_s text;
   r text;
   g int;
-  i int;
   j int;
-  k int;
   jp int;
 begin
   -- §0 la forma de lo que llega: la entrada y el modo, como los Zod de TS.
@@ -25765,6 +26607,89 @@ begin
         v_t := v_val[j];
         if v_op = 'si' then v_x := v_t;
         elsif v_t is not null then v_x := public._motor_redondear(v_t, ((v_nodo -> 'n')::numeric)::int); end if;
+
+      elsif v_op = 'comparar' then
+        -- 1 o 0; un operando null da null. La igualdad es exacta, como `===` de JS entre dobles.
+        v_de := v_nodo -> 'de';
+        r := v_de ->> 0;
+        j := (v_pos ->> r)::int;
+        if v_leible[j] is not true then perform public._motor_sin_leer(v_id, r); end if;
+        v_y := v_val[j];
+        r := v_de ->> 1;
+        j := (v_pos ->> r)::int;
+        if v_leible[j] is not true then perform public._motor_sin_leer(v_id, r); end if;
+        v_z := v_val[j];
+        if v_y is not null and v_z is not null then
+          v_hay := case v_nodo ->> 'cmp'
+                     when '>' then v_y > v_z when '<' then v_y < v_z when '>=' then v_y >= v_z
+                     when '<=' then v_y <= v_z when '=' then v_y = v_z else v_y <> v_z end;
+          v_x := case when v_hay then 1 else 0 end;
+        end if;
+
+      elsif v_op = 'es_opcion' then
+        -- La variante vale su clave (un texto): se compara como texto, sin conversión.
+        r := (v_nodo -> 'de') ->> 0;
+        j := (v_pos ->> r)::int;
+        if v_hecho[j] is not true then perform public._motor_sin_leer(v_id, r); end if;
+        if v_tipos[j] <> 'opcion' then
+          perform public._motor_sin_validar(v_id, format('«%s» compara «%s», que no es la variante', v_id, r));
+        end if;
+        v_hay := (v_variante = (v_nodo ->> 'clave')) = ((v_nodo ->> 'cmp') = '=');
+        v_x := case when v_hay then 1 else 0 end;
+
+      elsif v_op in ('y', 'o') then
+        -- Se leen todos los términos; null si alguno lo es. `y`: todos distintos de 0; `o`: alguno distinto de 0.
+        v_de := v_nodo -> 'de';
+        v_nulo := false;
+        v_todos := true;
+        v_alguno := false;
+        for k in 0 .. jsonb_array_length(v_de) - 1 loop
+          r := v_de ->> k;
+          j := (v_pos ->> r)::int;
+          if v_leible[j] is not true then perform public._motor_sin_leer(v_id, r); end if;
+          v_t := v_val[j];
+          if v_t is null then v_nulo := true;
+          elsif v_t = 0 then v_todos := false;
+          else v_alguno := true; end if;
+        end loop;
+        v_hay := (v_op = 'y' and v_todos) or (v_op = 'o' and v_alguno);
+        v_x := case when v_nulo then null when v_hay then 1 else 0 end;
+
+      elsif v_op = 'elegir' then
+        -- Se leen la prueba y las dos ramas (la que falta vale 0); vale la rama que elige la prueba, y sólo su null pasa.
+        r := v_nodo ->> 'prueba';
+        j := (v_pos ->> r)::int;
+        if v_leible[j] is not true then perform public._motor_sin_leer(v_id, r); end if;
+        v_t := v_val[j];
+        v_de := v_nodo -> 'de';
+        r := v_de ->> 0;
+        j := (v_pos ->> r)::int;
+        if v_leible[j] is not true then perform public._motor_sin_leer(v_id, r); end if;
+        v_y := v_val[j];
+        v_z := 0;
+        if jsonb_array_length(v_de) > 1 then
+          r := v_de ->> 1;
+          j := (v_pos ->> r)::int;
+          if v_leible[j] is not true then perform public._motor_sin_leer(v_id, r); end if;
+          v_z := v_val[j];
+        end if;
+        v_x := case when v_t is null then null when v_t <> 0 then v_y else v_z end;
+
+      elsif v_op in ('max', 'min') then
+        -- De izquierda a derecha: el primero y cada término que lo supera estrictamente; null si alguno lo es. Nunca `greatest` ni
+        -- `least`: ignoran los null.
+        v_de := v_nodo -> 'de';
+        v_nulo := false;
+        v_base := null;
+        for k in 0 .. jsonb_array_length(v_de) - 1 loop
+          r := v_de ->> k;
+          j := (v_pos ->> r)::int;
+          if v_leible[j] is not true then perform public._motor_sin_leer(v_id, r); end if;
+          v_t := v_val[j];
+          if v_t is null then v_nulo := true;
+          elsif v_base is null or (v_op = 'max' and v_t > v_base) or (v_op = 'min' and v_t < v_base) then v_base := v_t; end if;
+        end loop;
+        v_x := case when v_nulo then null else v_base end;
       end if;
     end if;
 
@@ -26528,6 +27453,220 @@ $$;
 ALTER FUNCTION "public"."fase_validar"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."flujo_copiar_fases"("p_flujo" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_desde" "uuid") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  v_destino public.flujos;
+  v_ambito_desde public.ambito_flujo;
+  v_subasta boolean;
+  v_esperas boolean;
+  v_tope_saltado constant int := 50;
+  v_tope_tipos constant int := public._tipos_documento_tope();
+  v_fases jsonb;
+  v_salidas jsonb;
+  v_tipos jsonb := '{}'::jsonb;
+  v_saltado jsonb := '[]'::jsonb;
+  v_n_fases int := 0;
+  v_n_salidas int := 0;
+  v_n_req int := 0;
+  v_n_tipos int := 0;
+  v_n_existentes int;
+  v_reusado uuid;
+  v_nuevo uuid;
+  v_tipo uuid;
+  v_formatos text[];
+  v_motivo text;
+  v_version timestamptz;
+  t record;
+  r record;
+begin
+  -- Forma. Los textos los pone la app según código y hint (sólo el PT409 se muestra tal cual).
+  if p_desde is null or p_desde = p_flujo then
+    raise exception 'Elige otro flujo de donde copiar.' using errcode = '22023', hint = 'desde';
+  end if;
+  select fl.ambito into v_ambito_desde from public.flujos fl where fl.id = p_desde;
+  if not found or v_ambito_desde <> 'vehiculos' then
+    raise exception 'Ese flujo no se puede copiar.' using errcode = '22023', hint = 'desde';
+  end if;
+  if p_flujo is null or not exists (select 1 from public.flujos where id = p_flujo) then
+    raise exception 'Este flujo ya no existe. Recarga e intenta de nuevo.' using errcode = 'PT409';
+  end if;
+
+  -- Los dos permisos antes de todo candado: quien no puede no espera ni hace esperar.
+  if not public.puede_configurar_flujo(p_flujo) then
+    raise exception 'No tienes permiso para configurar este flujo.' using errcode = '42501';
+  end if;
+  if not public.puede_configurar_flujo(p_desde) then
+    raise exception 'No tienes permiso para configurar el flujo de donde copias.' using errcode = '42501', hint = 'desde';
+  end if;
+
+  -- Candados en orden de id: dos copias cruzadas (A→B y B→A) no se bloquean entre sí. El de donde se copia, `for share`: frena a quien lo
+  -- edita (`_flujo_para_editar` toma `for no key update`) mientras dura la copia; el destino, con el contrato de siempre.
+  if p_desde < p_flujo then
+    perform 1 from public.flujos where id = p_desde for share;
+  end if;
+  v_destino := public._flujo_para_editar(p_flujo, p_actualizado_en_esperado);
+  if p_desde > p_flujo then
+    perform 1 from public.flujos where id = p_desde for share;
+  end if;
+
+  -- Estado, ya con los candados.
+  if v_destino.ambito <> 'vehiculos' then
+    raise exception 'Sólo se copian fases entre flujos de vehículos.' using errcode = '22023', hint = 'destino';
+  end if;
+  -- fases_flujo_id_nombre_key (flujo_id primero). También las jubiladas: «sin fases» es ninguna fila.
+  if exists (select 1 from public.fases where flujo_id = p_flujo) then
+    raise exception 'Este flujo ya tiene fases.' using errcode = '23514', hint = 'destino';
+  end if;
+  if not exists (select 1 from public.fases where flujo_id = p_desde and activa) then
+    raise exception 'Ese flujo no tiene fases para copiar.' using errcode = '22023', hint = 'desde';
+  end if;
+  v_subasta := public._flujo_de_subasta(p_flujo);
+  v_esperas := public.flujo_regla_activa(p_desde, 'esperas');
+
+  -- 1. Las reglas, antes que las fases (`fase_validar` y `fase_requisito_validar` las miran): el destino queda con exactamente las del origen.
+  -- Apagar o borrar una regla del destino no choca con `flujo_regla_apagar_validar`: sin fases no hay uso.
+  delete from public.flujos_reglas d
+   where d.flujo_id = p_flujo
+     and not exists (select 1 from public.flujos_reglas o where o.flujo_id = p_desde and o.regla = d.regla);
+  insert into public.flujos_reglas (flujo_id, regla, activa)
+  select p_flujo, o.regla, o.activa from public.flujos_reglas o where o.flujo_id = p_desde
+  on conflict (flujo_id, regla) do update set activa = excluded.activa;
+
+  -- 2. Los tipos «Sólo de este flujo», todos (activos o no) y en su orden. El candado y la regla del nombre, los de `tipo_documento_crear`
+  -- (`_tipo_documento_nombre_libre`): un nombre que ya está en el destino, o en uno de la empresa activo si el tipo es activo, se reusa y se dice.
+  lock table public.tipos_documento in share row exclusive mode;
+  -- tipos_documento_flujo_id_nombre_key (flujo_id primero); a lo sumo el tope + 1.
+  select count(*) into v_n_existentes
+    from (select 1 from public.tipos_documento x where x.flujo_id = p_flujo limit v_tope_tipos + 1) q;
+  for t in
+    select x.* from public.tipos_documento x where x.flujo_id = p_desde order by x.orden, x.id limit v_tope_tipos + 1
+  loop
+    select x.id into v_reusado
+      from public.tipos_documento x
+     where (x.flujo_id = p_flujo or (t.activo and x.flujo_id is null and x.activo))
+       and lower(btrim(x.nombre)) = lower(btrim(t.nombre))
+     order by (x.flujo_id is null), x.id
+     limit 1;
+    if v_reusado is not null then
+      v_tipos := v_tipos || jsonb_build_object(t.id::text, v_reusado);
+      v_saltado := v_saltado || jsonb_build_array(jsonb_build_object('motivo', 'tipo_documento_reusado', 'nombre', t.nombre));
+    else
+      if v_n_existentes + v_n_tipos >= v_tope_tipos then
+        raise exception 'No caben más tipos de documento en este flujo.' using errcode = '22023', hint = 'tipos_documento';
+      end if;
+      v_nuevo := gen_random_uuid();
+      insert into public.tipos_documento (id, flujo_id, nombre, descripcion, activo, orden, visible_portal_permitido, proposito,
+                                          modo_vencimiento, vigencia_dias, aviso_dias, formatos)
+      values (v_nuevo, p_flujo, t.nombre, t.descripcion, t.activo, t.orden, t.visible_portal_permitido, null,
+              t.modo_vencimiento, t.vigencia_dias, t.aviso_dias, t.formatos);
+      v_tipos := v_tipos || jsonb_build_object(t.id::text, v_nuevo);
+      v_n_tipos := v_n_tipos + 1;
+    end if;
+  end loop;
+
+  -- 3. Las fases activas, con id nuevo y todas sus columnas. «Es la subasta» sólo si el destino es un origen de subasta; si no, se dice.
+  select coalesce(jsonb_object_agg(f.id::text, gen_random_uuid()), '{}'::jsonb) into v_fases
+    from public.fases f where f.flujo_id = p_desde and f.activa;
+  if not v_subasta then
+    v_saltado := v_saltado || coalesce((
+      select jsonb_agg(jsonb_build_object('motivo', 'subasta', 'nombre', f.nombre) order by f.orden, f.id)
+        from public.fases f where f.flujo_id = p_desde and f.activa and f.es_subasta), '[]'::jsonb);
+  end if;
+  insert into public.fases (id, flujo_id, nombre, descripcion, color, icono, orden, es_inicial, es_final, activa, es_logistica, demora_dias,
+                            alerta_cada_horas, nota_obligatoria, permite_contenedor, permite_aduana, cuenta_llegada_repuestos, publica_web,
+                            visible_portal, alias_portal, descripcion_portal, es_subasta)
+  select (v_fases ->> f.id::text)::uuid, p_flujo, f.nombre, f.descripcion, f.color, f.icono, f.orden, f.es_inicial, f.es_final, true,
+         f.es_logistica, f.demora_dias, f.alerta_cada_horas, f.nota_obligatoria, f.permite_contenedor, f.permite_aduana,
+         f.cuenta_llegada_repuestos, f.publica_web, f.visible_portal, f.alias_portal, f.descripcion_portal, f.es_subasta and v_subasta
+    from public.fases f
+   where f.flujo_id = p_desde and f.activa
+   order by f.orden, f.id;
+  get diagnostics v_n_fases = row_count;
+
+  -- 4. Los roles de cada fase (fases_roles_pkey, fase_id primero).
+  insert into public.fases_roles (fase_id, rol_id)
+  select (v_fases ->> fr.fase_id::text)::uuid, fr.rol_id
+    from public.fases_roles fr join public.fases f on f.id = fr.fase_id
+   where f.flujo_id = p_desde and f.activa;
+
+  -- 5. Las salidas entre fases activas (fases_transiciones_flujo_id_idx) y sus roles. Las que van a una jubilada no se copian.
+  select coalesce(jsonb_object_agg(s.id::text, gen_random_uuid()), '{}'::jsonb) into v_salidas
+    from public.fases_transiciones s
+   where s.flujo_id = p_desde and v_fases ? s.de_fase_id::text and v_fases ? s.a_fase_id::text;
+  insert into public.fases_transiciones (id, flujo_id, de_fase_id, a_fase_id, accion, nota_obligatoria)
+  select (v_salidas ->> s.id::text)::uuid, p_flujo, (v_fases ->> s.de_fase_id::text)::uuid, (v_fases ->> s.a_fase_id::text)::uuid,
+         s.accion, s.nota_obligatoria
+    from public.fases_transiciones s
+   where s.flujo_id = p_desde and v_salidas ? s.id::text;
+  get diagnostics v_n_salidas = row_count;
+  insert into public.fases_transiciones_roles (transicion_id, rol_id)
+  select (v_salidas ->> sr.transicion_id::text)::uuid, sr.rol_id
+    from public.fases_transiciones_roles sr join public.fases_transiciones s on s.id = sr.transicion_id
+   where s.flujo_id = p_desde and v_salidas ? s.id::text;
+
+  -- 6. Los requisitos de las fases activas (fases_requisitos_fase_id_idx), en su orden. Un documento del flujo apunta al tipo copiado (o al
+  -- reusado: si sus formatos no caben, el requisito queda sin acotar); uno de la empresa, al mismo. Una espera que el destino no aceptaría
+  -- se filtra antes del insert y se dice: así no sale un 23514 crudo a mitad de la copia.
+  for r in
+    select q.*, f.nombre as fase_nombre, fe.activa as esperada_activa, fle.ambito as esperada_ambito
+      from public.fases f
+      join public.fases_requisitos q on q.fase_id = f.id
+      left join public.fases fe on fe.id = q.espera_fase_id
+      left join public.flujos fle on fle.id = fe.flujo_id
+     where f.flujo_id = p_desde and f.activa
+     order by f.orden, f.id, q.orden, q.id
+  loop
+    v_motivo := null;
+    v_tipo := r.tipo_documento_id;
+    v_formatos := r.formatos;
+    if r.tipo = 'espera' then
+      v_motivo := case
+        when not v_esperas then 'espera_apagada'
+        when r.esperada_ambito is distinct from 'repuestos' then 'espera_otro_flujo'
+        when not r.esperada_activa then 'espera_jubilada'
+      end;
+    elsif r.tipo = 'documento' then
+      v_tipo := coalesce((v_tipos ->> r.tipo_documento_id::text)::uuid, r.tipo_documento_id);
+      if v_formatos is not null
+         and not (v_formatos <@ (select x.formatos from public.tipos_documento x where x.id = v_tipo)) then
+        v_formatos := null;
+      end if;
+    end if;
+    if v_motivo is not null then
+      v_saltado := v_saltado || jsonb_build_array(jsonb_build_object('motivo', v_motivo, 'nombre', r.fase_nombre));
+      continue;
+    end if;
+    insert into public.fases_requisitos (fase_id, tipo, bloqueante, orden, notas, tipo_documento_id, min_archivos, max_archivos, formatos,
+                                         clave_dato, config, espera_fase_id, espera_ambito)
+    values ((v_fases ->> r.fase_id::text)::uuid, r.tipo, r.bloqueante, r.orden, r.notas, v_tipo, r.min_archivos, r.max_archivos, v_formatos,
+            r.clave_dato, r.config, r.espera_fase_id, r.espera_ambito);
+    v_n_req := v_n_req + 1;
+  end loop;
+
+  -- 7. La actividad y la versión.
+  perform public.registrar_actividad('flujo.copiado', 'flujos', p_flujo::text, null, null,
+    jsonb_build_object('desde', p_desde, 'fases', v_n_fases, 'saltados', jsonb_array_length(v_saltado)));
+  v_version := public._flujo_tocar(p_flujo);
+  return jsonb_build_object(
+    'version', v_version,
+    'copiado', jsonb_build_object('fases', v_n_fases, 'salidas', v_n_salidas, 'requisitos', v_n_req, 'tipos_documento', v_n_tipos),
+    'saltado', coalesce((select jsonb_agg(e.valor order by e.i)
+                           from jsonb_array_elements(v_saltado) with ordinality as e(valor, i)
+                          where e.i <= v_tope_saltado), '[]'::jsonb),
+    'saltado_hay_mas', jsonb_array_length(v_saltado) > v_tope_saltado);
+end $$;
+
+
+ALTER FUNCTION "public"."flujo_copiar_fases"("p_flujo" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_desde" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."flujo_copiar_fases"("p_flujo" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_desde" "uuid") IS 'Copia a un flujo de vehículos SIN fases (ninguna fila, tampoco jubiladas) las fases activas de otro flujo de vehículos: reglas, fases, roles, salidas entre activas con sus roles, requisitos y los tipos «Sólo de este flujo». Rechazos en orden: forma (22023 hint desde) → destino inexistente (PT409) → permiso en el destino y en el origen (42501, antes de todo candado) → candados en orden de id (el origen for share, el destino con _flujo_para_editar: versión → PT409) → destino de repuestos (22023 hint destino) → destino con fases (23514 hint destino) → origen sin fases activas (22023 hint desde) → tope de tipos (22023 hint tipos_documento). Devuelve {version, copiado, saltado[≤50] {motivo, nombre}, saltado_hay_mas}; motivos: subasta, espera_apagada, espera_otro_flujo, espera_jubilada, tipo_documento_reusado.';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."flujo_de_fase"("p_fase" "uuid") RETURNS "uuid"
     LANGUAGE "sql" STABLE SECURITY DEFINER
     SET "search_path" TO ''
@@ -26860,7 +27999,7 @@ $$;
 ALTER FUNCTION "public"."formula_auditar"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid" DEFAULT NULL::"uuid", "p_formula_del_origen" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
@@ -26873,6 +28012,8 @@ declare
   v_ver boolean;
   v_visibles jsonb;
   v_pedido jsonb;
+  v_fdo public.formulas_del_origen;
+  v_esperada uuid;
 begin
   perform public.assert_permiso('cotizaciones.configurar', p_origen);
   if p_modo_por_defecto is null then
@@ -26884,10 +28025,16 @@ begin
   if p_modos_visibles is null then
     raise exception 'Elige las opciones visibles.' using errcode = '22023', hint = 'modos_visibles';
   end if;
-  select * into v_pub from public.formulas where origen_id = p_origen and estado = 'publicada';
+  -- Sin esperada, la publicada leída antes del candado (lo que quien llama tenía a la vista): si alguien publicó o activó mientras tanto, PT409.
+  v_esperada := coalesce(p_publicada_esperada, (select f.id from public.formulas f
+                                                 where f.formula_del_origen_id = coalesce(p_formula_del_origen, public._fdo_de_trabajo_leida(p_origen))
+                                                   and f.origen_id = p_origen and f.estado = 'publicada'));   -- formulas_publicada_unica
+  perform pg_advisory_xact_lock(hashtextextended('formulas:' || p_origen::text, 0));
+  v_fdo := public._fdo_resolver(p_origen, p_formula_del_origen, false);
+  select * into v_pub from public.formulas where formula_del_origen_id = v_fdo.id and estado = 'publicada';   -- formulas_publicada_unica
   if v_pub.id is null then raise exception 'El origen no tiene fórmula publicada.' using errcode = '22023'; end if;
-  -- Se compara con lo leído aquí, que es lo que se copia: `_publicar_version` vuelve a comparar tras el candado.
-  if p_publicada_esperada is not null and p_publicada_esperada is distinct from v_pub.id then
+  -- Se compara con lo leído aquí, tras el candado, que es lo que se copia.
+  if v_esperada is distinct from v_pub.id then
     v_f := public._version_publicada_por(v_pub.id);
     raise exception '%.', upper(left(v_f, 1)) || substr(v_f, 2) using errcode = 'PT409';
   end if;
@@ -26909,28 +28056,34 @@ begin
   return public._publicar_version(p_origen, v_pub.definicion, v_pub.params,
                                   jsonb_set(v_pub.diseno, '{cabecera}', (v_cab - array['modo_por_defecto', 'ver_total_bs_por_defecto', 'modos_visibles']) || v_pedido),
                                   format('Cabecera: %s por defecto, desde el cotizador', p_modo_por_defecto), v_pub.id,
-                                  jsonb_build_object('cabecera', v_pedido), true);
+                                  jsonb_build_object('cabecera', v_pedido), true, v_fdo.id);
 end $$;
 
 
-ALTER FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid") OWNER TO "postgres";
+ALTER FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid") IS 'El ⚙ de la cabecera: publica la N+1 desde la publicada con el modo por defecto, «Ver total» por defecto y los modos visibles, sin tocar el borrador (cotizaciones.configurar del origen). PT409 si la esperada no es la publicada (quién y cuándo); 22023 con hint cabecera si la publicada no tiene modos o ya tiene esos valores (los efectivos); el diseño resultante se valida entero (validar_diseno) y se registra formula.publicada con despues.cabecera. docs/COTIZADOR.md › «Versiones».';
+COMMENT ON FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") IS 'El ⚙ del cotizador: publica la N+1 de una fórmula del origen (nula: la de trabajo, la activa) con el modo por defecto, «Ver total Bs» por defecto y las opciones visibles de la cabecera (cotizaciones.configurar). PT409 si p_publicada_esperada ya no es la publicada. docs/COTIZADOR.md › «Versiones (4.20-1)».';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid" DEFAULT NULL::"uuid", "p_formula_del_origen" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
-declare v_pub public.formulas; v_anterior numeric; v_f text;
+declare v_pub public.formulas; v_anterior numeric; v_f text; v_fdo public.formulas_del_origen; v_esperada uuid;
 begin
   perform public.assert_permiso('cotizaciones.configurar', p_origen);
-  select * into v_pub from public.formulas where origen_id = p_origen and estado = 'publicada';
+  -- Sin esperada, la publicada leída antes del candado (lo que quien llama tenía a la vista): si alguien publicó o activó mientras tanto, PT409.
+  v_esperada := coalesce(p_publicada_esperada, (select f.id from public.formulas f
+                                                 where f.formula_del_origen_id = coalesce(p_formula_del_origen, public._fdo_de_trabajo_leida(p_origen))
+                                                   and f.origen_id = p_origen and f.estado = 'publicada'));   -- formulas_publicada_unica
+  perform pg_advisory_xact_lock(hashtextextended('formulas:' || p_origen::text, 0));
+  v_fdo := public._fdo_resolver(p_origen, p_formula_del_origen, false);
+  select * into v_pub from public.formulas where formula_del_origen_id = v_fdo.id and estado = 'publicada';   -- formulas_publicada_unica
   if v_pub.id is null then raise exception 'El origen no tiene fórmula publicada.' using errcode = '22023'; end if;
-  -- Se compara con lo leído aquí, que es lo que se copia: `_publicar_version` vuelve a comparar tras el candado.
-  if p_publicada_esperada is not null and p_publicada_esperada is distinct from v_pub.id then
+  -- Se compara con lo leído aquí, tras el candado, que es lo que se copia.
+  if v_esperada is distinct from v_pub.id then
     v_f := public._version_publicada_por(v_pub.id);
     raise exception '%.', upper(left(v_f, 1)) || substr(v_f, 2) using errcode = 'PT409';
   end if;
@@ -26939,45 +28092,395 @@ begin
   if v_anterior = p_valor then raise exception 'La constante ya tiene ese valor.' using errcode = '22023', hint = 'valor'; end if;
   return public._publicar_version(p_origen, v_pub.definicion, v_pub.params || jsonb_build_object(p_nodo, p_valor), v_pub.diseno,
                                   format('%s: %s → %s, desde el cotizador', p_nodo, v_anterior, p_valor), v_pub.id,
-                                  jsonb_build_object('constante', p_nodo), true);
+                                  jsonb_build_object('constante', p_nodo), true, v_fdo.id);
 end;
 $$;
 
 
-ALTER FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid") OWNER TO "postgres";
+ALTER FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid") IS 'El ⚙ de una constante: publica la N+1 desde la publicada con ese valor, sin tocar el borrador (cotizaciones.configurar del origen). PT409 si la esperada ya no es la publicada; 22023 si el valor no cambia. docs/COTIZADOR.md › «Versiones (4.20-1)».';
+COMMENT ON FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") IS 'El ⚙ del cotizador: publica la N+1 de una fórmula del origen (nula: la de trabajo, la activa) con una constante cambiada (cotizaciones.configurar). PT409 si p_publicada_esperada ya no es la publicada. docs/COTIZADOR.md › «Versiones (4.20-1)».';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone DEFAULT NULL::timestamp with time zone) RETURNS "void"
+CREATE OR REPLACE FUNCTION "public"."formula_del_origen_activar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_activa_esperada" "uuid", "p_borrador_esperado" timestamp with time zone, "p_publicada_esperada" "uuid", "p_plantilla_borrador_esperado" timestamp with time zone, "p_plantilla_publicada_esperada" "uuid") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
-declare v_b public.formulas;
+declare
+  v_yo uuid := (select auth.uid());
+  v_origen uuid; v public.formulas_del_origen; v_d public.formulas_del_origen; v_vieja public.formulas_del_origen;
+  v_activa uuid; v_b public.formulas; v_pub uuid; v_pb public.plantillas_tarjeta; v_pp public.plantillas_tarjeta;
+  v_formula uuid; v_plantilla uuid; fo public.formulas; v_f text;
+begin
+  v_origen := public._fdo_origen_con_permiso(p_id);
+  if coalesce(btrim(p_nota), '') = '' then raise exception 'Activar pide una nota.' using errcode = '22023', hint = 'nota'; end if;
+  if p_actualizado_en_esperado is null then perform public._exigir_version(null, null, null); end if;
+  v := public._fdo_tomar(p_id, v_origen, p_actualizado_en_esperado);
+  if v.archivada_en is not null then
+    raise exception 'Esta fórmula está archivada.' using errcode = '22023', hint = 'formula_del_origen';
+  end if;
+
+  -- La activa que se vio (nula: ninguna).
+  select d.id into v_activa from public.formulas_del_origen d where d.origen_id = v_origen and d.activa;   -- formulas_del_origen_activa_unica
+  if v_activa is distinct from p_activa_esperada then
+    if v_activa is null then
+      raise exception 'La fórmula que viste activa ya no lo está, y el origen no tiene otra.' using errcode = 'PT409';
+    end if;
+    raise exception '%', public._fdo_activada_por(v_activa) using errcode = 'PT409';
+  end if;
+  -- El borrador de la fórmula: sin esperada, que no haya; con ella, que sea ése.
+  select * into v_b from public.formulas f where f.formula_del_origen_id = p_id and f.estado = 'borrador' for update;   -- formulas_borrador_unico
+  if p_borrador_esperado is null and v_b.id is not null then
+    raise exception 'Ya hay un borrador: % y se guardó %.', public._borrador_formula_empezado_por(v_b.creado_por), public._hace(v_b.actualizado_en)
+      using errcode = 'PT409';
+  end if;
+  perform public._exigir_borrador_formula(v_b, p_borrador_esperado);
+  -- La publicada.
+  select f.id into v_pub from public.formulas f where f.formula_del_origen_id = p_id and f.estado = 'publicada';   -- formulas_publicada_unica
+  if v_pub is distinct from p_publicada_esperada then
+    if v_pub is null then
+      raise exception 'La versión que tenías ya no es la publicada, y el origen no tiene otra.' using errcode = 'PT409';
+    end if;
+    v_f := public._version_publicada_por(v_pub);
+    raise exception '%.', upper(left(v_f, 1)) || substr(v_f, 2) using errcode = 'PT409';
+  end if;
+  -- El borrador de la tarjeta: lo mismo.
+  select * into v_pb from public.plantillas_tarjeta p where p.formula_del_origen_id = p_id and p.estado = 'borrador' for update;   -- plantillas_borrador_unico
+  if p_plantilla_borrador_esperado is null then
+    if v_pb.id is not null then
+      raise exception 'Ya hay un borrador de esta plantilla, guardado %.', public._hace(v_pb.actualizado_en) using errcode = 'PT409';
+    end if;
+  else
+    if v_pb.id is null then perform public._plantilla_borrador_ausente(p_id, p_plantilla_borrador_esperado); end if;
+    perform public._exigir_version(v_pb.actualizado_en, p_plantilla_borrador_esperado,
+      'El borrador de esta plantilla cambió ' || public._hace(v_pb.actualizado_en) || ', mientras lo editabas.');
+  end if;
+  -- La tarjeta publicada.
+  select * into v_pp from public.plantillas_tarjeta p where p.formula_del_origen_id = p_id and p.estado = 'publicada';   -- plantillas_publicada_unica
+  if v_pp.id is distinct from p_plantilla_publicada_esperada then
+    if v_pp.id is null then
+      raise exception 'La tarjeta que tenías ya no es la publicada, y la fórmula no tiene otra.' using errcode = 'PT409';
+    end if;
+    raise exception 'Se publicó la versión % de la tarjeta%.', v_pp.version, coalesce(' ' || public._hace(v_pp.publicado_en), '') using errcode = 'PT409';
+  end if;
+
+  if v_pub is null and v_b.id is null then
+    raise exception 'Esta fórmula no tiene una versión que se pueda publicar.' using errcode = '22023', hint = 'formula';
+  end if;
+  if v_pp.id is null and v_pb.id is null then
+    raise exception 'Esta fórmula no tiene tarjeta: guarda una antes de activarla.' using errcode = '22023', hint = 'tarjeta';
+  end if;
+
+  -- Lo pendiente, con sus validaciones de siempre (y la de los datos del vehículo en una copia de otro origen): un error corta todo.
+  v_formula := v_pub;
+  if v_b.id is not null then
+    v_formula := public._publicar_formula(v_origen, p_nota, v_pub, false, v_b.actualizado_en, p_id);
+  elsif v.copiada_de_otro_origen then
+    perform public._fdo_exigir_campos((select f.definicion from public.formulas f where f.id = v_formula), v_origen);
+  end if;
+  if v_pb.id is not null then
+    -- Valida el borrador contra la publicada de esta fórmula (la recién publicada, si la hubo).
+    v_plantilla := public._plantilla_publicar_en(p_id, p_nota, v_pb.actualizado_en);
+  else
+    -- La tarjeta publicada tiene que calzar con la versión que se va a cotizar (como la dibuja cotizacion_tarjeta: sin el catálogo de colores).
+    select * into fo from public.formulas f where f.id = v_formula;   -- formulas_pkey
+    perform public.validar_plantilla(v_pp.definicion, fo.definicion, fo.diseno, fo.visibilidad, null);
+    v_plantilla := v_pp.id;
+  end if;
+
+  -- La vieja se apaga antes de prender la nueva (formulas_del_origen_activa_unica), y queda dicho quién y cuándo.
+  if v_activa is distinct from p_id then
+    if v_activa is not null then
+      select * into v_vieja from public.formulas_del_origen d where d.id = v_activa;
+      update public.formulas_del_origen set activa = false, desactivada_en = now() where id = v_activa;
+      perform public.registrar_actividad('formula_del_origen.desactivar', 'formulas_del_origen', v_activa::text, to_jsonb(v_vieja),
+                                         (select to_jsonb(d) from public.formulas_del_origen d where d.id = v_activa), jsonb_build_object('nueva', p_id));
+    end if;
+    update public.formulas_del_origen set activa = true, activada_en = now(), activada_por = v_yo, desactivada_en = null where id = p_id;
+  end if;
+  select * into v_d from public.formulas_del_origen d where d.id = p_id;
+  perform public.registrar_actividad('formula_del_origen.activar', 'formulas_del_origen', p_id::text, to_jsonb(v), to_jsonb(v_d),
+                                     jsonb_build_object('nota', p_nota, 'anterior', v_activa, 'formula', v_formula, 'plantilla', v_plantilla));
+  return jsonb_build_object('activa', p_id, 'formula', v_formula, 'plantilla', v_plantilla, 'actualizado_en', v_d.actualizado_en);
+end $$;
+
+
+ALTER FUNCTION "public"."formula_del_origen_activar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_activa_esperada" "uuid", "p_borrador_esperado" timestamp with time zone, "p_publicada_esperada" "uuid", "p_plantilla_borrador_esperado" timestamp with time zone, "p_plantilla_publicada_esperada" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."formula_del_origen_activar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_activa_esperada" "uuid", "p_borrador_esperado" timestamp with time zone, "p_publicada_esperada" "uuid", "p_plantilla_borrador_esperado" timestamp with time zone, "p_plantilla_publicada_esperada" "uuid") IS 'Activa una fórmula del origen (cotizaciones.configurar): publica con p_nota su borrador y el de su tarjeta, exige que la tarjeta calce con la publicada y la vuelve la que se cotiza en su origen (la anterior queda sin activar, con desactivada_en). PT409 si cambió cualquiera de las esperadas (la fila, la activa que se vio, el borrador y la publicada de la fórmula y de la tarjeta). Devuelve {activa, formula, plantilla, actualizado_en}. docs/COTIZADOR.md › «Fórmulas del origen».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."formula_del_origen_archivar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) RETURNS timestamp with time zone
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v_origen uuid; v public.formulas_del_origen; v_d public.formulas_del_origen;
+begin
+  v_origen := public._fdo_origen_con_permiso(p_id);
+  if p_actualizado_en_esperado is null then perform public._exigir_version(null, null, null); end if;
+  v := public._fdo_tomar(p_id, v_origen, p_actualizado_en_esperado);
+  if v.archivada_en is not null then
+    raise exception 'Esta fórmula está archivada.' using errcode = '22023', hint = 'formula_del_origen';
+  end if;
+  if v.activa then
+    raise exception 'La fórmula activa no se archiva ni se elimina: activa otra primero.' using errcode = '22023', hint = 'activa';
+  end if;
+  update public.formulas_del_origen set archivada_en = now(), archivada_por = (select auth.uid()) where id = p_id returning * into v_d;
+  perform public.registrar_actividad('formula_del_origen.archivar', 'formulas_del_origen', p_id::text, to_jsonb(v), to_jsonb(v_d), null);
+  return v_d.actualizado_en;
+end $$;
+
+
+ALTER FUNCTION "public"."formula_del_origen_archivar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."formula_del_origen_archivar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) IS 'Archiva una fórmula del origen que no es la activa (cotizaciones.configurar): deja de ofrecerse y no se edita; sus versiones quedan. PT409 si cambió desde p_actualizado_en_esperado. docs/COTIZADOR.md › «Fórmulas del origen».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."formula_del_origen_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_copia_de" "uuid" DEFAULT NULL::"uuid", "p_pieza" "text" DEFAULT 'publicada'::"text") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  v_yo uuid := (select auth.uid());
+  v_nombre text;
+  v_fuente public.formulas_del_origen;
+  v_ya public.formulas_del_origen;
+  v_d public.formulas_del_origen;
+  v_pieza public.formulas;
+  v_def jsonb; v_params jsonb; v_diseno jsonb; v_nota text; v_tarjeta jsonb; v_blanco jsonb;
+  v_otro boolean := false;
+  v_marcada boolean := false;
+  v_avisos jsonb := '[]'::jsonb;
+  v_n int; v_c text; v_clave text; v_tf public.tablas_referencia; v_nueva uuid; v_filas jsonb; v_origen_fuente text;
+begin
+  perform public.assert_permiso('cotizaciones.configurar', p_origen);
+  if p_id is null then raise exception 'Falta el id de la fórmula.' using errcode = '22023', hint = 'id'; end if;
+  -- El mismo intento otra vez, antes de mirar la fuente: lo mismo aunque la fuente ya no exista. Un id de otro origen da el 42501 de no tener el permiso.
+  select * into v_ya from public.formulas_del_origen d where d.id = p_id;   -- formulas_del_origen_pkey
+  if v_ya.id is not null then
+    if v_ya.origen_id <> p_origen then raise exception 'No tienes el permiso «cotizaciones.configurar».' using errcode = '42501'; end if;
+    if v_ya.nombre = public._fdo_nombre(p_nombre) then
+      return jsonb_build_object('id', v_ya.id, 'actualizado_en', v_ya.actualizado_en, 'avisos', '[]'::jsonb);
+    end if;
+    raise exception 'Esa fórmula ya se creó con otros datos.' using errcode = 'PT409';
+  end if;
+  -- La fuente de una copia: también con configurar en su origen; la que no existe da el mismo 42501.
+  if p_copia_de is not null then
+    select * into v_fuente from public.formulas_del_origen d where d.id = p_copia_de;   -- formulas_del_origen_pkey
+    if v_fuente.id is null or not public.tiene_permiso('cotizaciones.configurar', v_fuente.origen_id) then
+      raise exception 'No tienes el permiso «cotizaciones.configurar».' using errcode = '42501';
+    end if;
+    if p_pieza is null or p_pieza not in ('publicada', 'borrador') then
+      raise exception 'Se copia la versión publicada o el borrador.' using errcode = '22023', hint = 'pieza';
+    end if;
+    v_otro := v_fuente.origen_id <> p_origen;
+    -- La copia de una copia de otro origen sigue marcada: D9 vale para las dos.
+    v_marcada := v_otro or v_fuente.copiada_de_otro_origen;
+  end if;
+  v_nombre := public._fdo_nombre(p_nombre);
+  -- En blanco pide un tipo de cambio: se valida antes de tomar los candados.
+  if p_copia_de is null then v_blanco := public._fdo_formula_en_blanco(); end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('formulas:' || p_origen::text, 0));
+  perform pg_advisory_xact_lock(hashtextextended('plantillas:' || p_origen::text, 0));
+  -- El mismo intento a la vez que otro: el segundo la ve al tener el candado y responde lo mismo que arriba.
+  select * into v_ya from public.formulas_del_origen d where d.id = p_id;   -- formulas_del_origen_pkey
+  if v_ya.id is not null then
+    if v_ya.origen_id <> p_origen then raise exception 'No tienes el permiso «cotizaciones.configurar».' using errcode = '42501'; end if;
+    if v_ya.nombre = v_nombre then
+      return jsonb_build_object('id', v_ya.id, 'actualizado_en', v_ya.actualizado_en, 'avisos', '[]'::jsonb);
+    end if;
+    raise exception 'Esa fórmula ya se creó con otros datos.' using errcode = 'PT409';
+  end if;
+  -- El tope: 50 sin archivar (formulas_del_origen_origen_idx), contado con uno de más.
+  select count(*) into v_n from (select 1 from public.formulas_del_origen d where d.origen_id = p_origen and d.archivada_en is null limit 51) x;
+  if v_n >= 50 then
+    raise exception 'Este origen ya tiene 50 fórmulas: archiva o elimina alguna.' using errcode = '22023', hint = 'formulas';
+  end if;
+
+  if p_copia_de is null then
+    v_def := v_blanco -> 'definicion'; v_params := v_blanco -> 'params'; v_diseno := v_blanco -> 'diseno';
+    v_tarjeta := public._fdo_tarjeta_en_blanco();
+  else
+    select * into v_pieza from public.formulas f where f.formula_del_origen_id = v_fuente.id and f.estado = p_pieza::public.estado_version;   -- formulas_borrador_unico / formulas_publicada_unica
+    if v_pieza.id is null then
+      raise exception '%', case p_pieza when 'borrador' then 'Esa fórmula no tiene borrador.' else 'Esa fórmula no tiene versión publicada.' end
+        using errcode = '22023', hint = 'pieza';
+    end if;
+    v_def := v_pieza.definicion; v_params := v_pieza.params; v_diseno := v_pieza.diseno; v_nota := v_pieza.nota;
+    -- La tarjeta de la misma pieza; si no hay, la otra; si no, la de omisión.
+    select p.definicion into v_tarjeta from public.plantillas_tarjeta p
+     where p.formula_del_origen_id = v_fuente.id and p.estado in ('publicada', 'borrador')                       -- plantillas_publicada_unica / plantillas_borrador_unico
+     order by (p.estado::text = p_pieza) desc limit 1;
+    v_tarjeta := coalesce(v_tarjeta, public._fdo_tarjeta_en_blanco());
+  end if;
+
+  begin
+    insert into public.formulas_del_origen (id, origen_id, nombre, copiada_de_otro_origen, creado_por)
+    values (p_id, p_origen, v_nombre, v_marcada, v_yo)
+    returning * into v_d;
+  exception when unique_violation then
+    get stacked diagnostics v_c = constraint_name;
+    if v_c = 'formulas_del_origen_nombre_unico' then
+      raise exception 'Ya hay una fórmula «%» en este origen.', v_nombre using errcode = '23505', hint = 'nombre';
+    end if;
+    -- El mismo id creado en otro origen mientras tanto: lo mismo que arriba.
+    raise exception 'No tienes el permiso «cotizaciones.configurar».' using errcode = '42501';
+  end;
+
+  if v_otro then
+    select o.nombre into v_origen_fuente from public.origenes o where o.id = v_fuente.origen_id;   -- origenes_pkey
+    -- Las tablas que usa (las que congeló y las que nombra un nodo): la del destino si la tiene (sin la copia congelada, para leer la suya); si no
+    -- y la de la fuente es de su origen, se crea en el destino con las filas de la copia (las congeladas o, si no congeló, las vivas). Una
+    -- compartida ya la ven los dos.
+    for v_clave in
+      select x.c from (
+        select jsonb_object_keys(case when jsonb_typeof(v_params -> 'tablas') = 'object' then v_params -> 'tablas' else '{}'::jsonb end) as c
+        union
+        select n ->> 'tabla' from jsonb_array_elements(case when jsonb_typeof(v_def -> 'nodos') = 'array' then v_def -> 'nodos' else '[]'::jsonb end) n
+         where n ->> 'tabla' is not null) x
+       order by x.c collate "C"
+    loop
+      if exists (select 1 from public.tablas_referencia r where r.origen_id = p_origen and r.clave = v_clave) then   -- tablas_referencia_origen_id_clave_key
+        if jsonb_typeof(v_params -> 'tablas') = 'object' and (v_params -> 'tablas') ? v_clave then
+          v_params := jsonb_set(v_params, '{tablas}', (v_params -> 'tablas') - v_clave);
+        end if;
+        v_avisos := v_avisos || jsonb_build_array(jsonb_build_object('tipo', 'tabla_del_destino', 'clave', v_clave));
+        continue;
+      end if;
+      select * into v_tf from public.tablas_referencia r where r.origen_id = v_fuente.origen_id and r.clave = v_clave;   -- tablas_referencia_origen_id_clave_key
+      if v_tf.id is null then continue; end if;
+      if jsonb_typeof(v_params -> 'tablas' -> v_clave) = 'array' then
+        v_filas := v_params -> 'tablas' -> v_clave;
+      else
+        select coalesce(jsonb_agg(f.valores order by f.orden, f.id), '[]'::jsonb) into v_filas
+          from public.tablas_referencia_filas f where f.tabla_id = v_tf.id and f.activa;   -- tablas_referencia_filas_tabla_orden_idx
+      end if;
+      insert into public.tablas_referencia (origen_id, clave, nombre, descripcion, columnas, version, nota, publicado_por, publicado_en)
+      values (p_origen, v_clave, v_tf.nombre, v_tf.descripcion, v_tf.columnas, 1, 'Copiada de ' || coalesce(v_origen_fuente, 'otro origen'), v_yo, now())
+      returning id into v_nueva;
+      insert into public.tablas_referencia_filas (tabla_id, valores, orden)
+      select v_nueva, f.fila, (f.n - 1)::smallint from jsonb_array_elements(v_filas) with ordinality f (fila, n);
+      v_avisos := v_avisos || jsonb_build_array(jsonb_build_object('tipo', 'tabla_creada', 'clave', v_clave));
+    end loop;
+  end if;
+  if v_marcada then
+    -- Los datos del vehículo que el destino no tiene: quedan marcados hasta arreglarlos (publicar y activar los exigen).
+    v_avisos := v_avisos || (select coalesce(jsonb_agg(jsonb_build_object('tipo', 'campo', 'nodo', c ->> 'nodo', 'campo', c ->> 'campo')), '[]'::jsonb)
+                               from jsonb_array_elements(public._fdo_campos_que_faltan(v_def, p_origen)) c);
+  end if;
+
+  insert into public.formulas (origen_id, formula_del_origen_id, estado, definicion, params, diseno, nota, creado_por)
+  values (p_origen, v_d.id, 'borrador', v_def, coalesce(v_params, '{}'::jsonb), v_diseno, v_nota, v_yo);
+  insert into public.plantillas_tarjeta (origen_id, formula_del_origen_id, estado, definicion, creado_por)
+  values (p_origen, v_d.id, 'borrador', v_tarjeta, v_yo);
+  perform public.registrar_actividad('formula_del_origen.crear', 'formulas_del_origen', v_d.id::text, null, to_jsonb(v_d),
+                                     jsonb_build_object('copia_de', p_copia_de, 'pieza', case when p_copia_de is not null then p_pieza end, 'avisos', v_avisos));
+  return jsonb_build_object('id', v_d.id, 'actualizado_en', v_d.actualizado_en, 'avisos', v_avisos);
+end $$;
+
+
+ALTER FUNCTION "public"."formula_del_origen_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_copia_de" "uuid", "p_pieza" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."formula_del_origen_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_copia_de" "uuid", "p_pieza" "text") IS 'Crea una fórmula del origen (cotizaciones.configurar; copiar de otro origen lo pide también en el de la fuente): en blanco, o copia de la publicada o del borrador (p_pieza) de otra, como borradores de la fórmula y de la tarjeta. Una copia de otro origen trae o reusa sus tablas y avisa los datos del vehículo que faltan. Tope de 50 sin archivar; nombre único (23505). Idempotente por p_id. Devuelve {id, actualizado_en, avisos}. docs/COTIZADOR.md › «Fórmulas del origen».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."formula_del_origen_eliminar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v_origen uuid; v public.formulas_del_origen;
+begin
+  v_origen := public._fdo_origen_con_permiso(p_id);
+  if p_actualizado_en_esperado is null then perform public._exigir_version(null, null, null); end if;
+  v := public._fdo_tomar(p_id, v_origen, p_actualizado_en_esperado);
+  if v.activa then
+    raise exception 'La fórmula activa no se archiva ni se elimina: activa otra primero.' using errcode = '22023', hint = 'activa';
+  end if;
+  -- Lo que se cotizó o se cotizaba con ella se conserva (cotizaciones_formula_id_idx y formulas_formula_del_origen_id_version_key).
+  if v.activada_en is not null
+     or exists (select 1 from public.formulas f join public.cotizaciones c on c.formula_id = f.id where f.formula_del_origen_id = p_id) then
+    raise exception 'Esta fórmula ya se usó para cotizar o estuvo activa: archívala.' using errcode = '23503', hint = 'formula_del_origen';
+  end if;
+  delete from public.formulas_del_origen where id = p_id;
+  perform public.registrar_actividad('formula_del_origen.eliminar', 'formulas_del_origen', p_id::text, to_jsonb(v), null, null);
+end $$;
+
+
+ALTER FUNCTION "public"."formula_del_origen_eliminar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."formula_del_origen_eliminar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) IS 'Elimina una fórmula del origen que nunca estuvo activa ni se usó para cotizar, con sus versiones y su tarjeta (cotizaciones.configurar); si no, 23503: se archiva. PT409 si cambió desde p_actualizado_en_esperado. docs/COTIZADOR.md › «Fórmulas del origen».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."formula_del_origen_renombrar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nombre" "text") RETURNS timestamp with time zone
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v_origen uuid; v public.formulas_del_origen; v_d public.formulas_del_origen; v_nombre text; v_c text;
+begin
+  v_origen := public._fdo_origen_con_permiso(p_id);
+  if p_actualizado_en_esperado is null then perform public._exigir_version(null, null, null); end if;
+  v_nombre := public._fdo_nombre(p_nombre);
+  v := public._fdo_tomar(p_id, v_origen, p_actualizado_en_esperado);
+  begin
+    update public.formulas_del_origen set nombre = v_nombre where id = p_id returning * into v_d;
+  exception when unique_violation then
+    get stacked diagnostics v_c = constraint_name;
+    if v_c = 'formulas_del_origen_nombre_unico' then
+      raise exception 'Ya hay una fórmula «%» en este origen.', v_nombre using errcode = '23505', hint = 'nombre';
+    end if;
+    raise;
+  end;
+  perform public.registrar_actividad('formula_del_origen.renombrar', 'formulas_del_origen', p_id::text, to_jsonb(v), to_jsonb(v_d), null);
+  return v_d.actualizado_en;
+end $$;
+
+
+ALTER FUNCTION "public"."formula_del_origen_renombrar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nombre" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."formula_del_origen_renombrar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nombre" "text") IS 'Renombra una fórmula del origen, también archivada (cotizaciones.configurar). PT409 si cambió desde p_actualizado_en_esperado; 23505 si el nombre ya está en el origen. Devuelve la actualizado_en nueva. docs/COTIZADOR.md › «Fórmulas del origen».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_formula_del_origen" "uuid" DEFAULT NULL::"uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v_b public.formulas; v_fdo public.formulas_del_origen;
 begin
   perform public.assert_permiso('cotizaciones.configurar', p_origen);
   perform pg_advisory_xact_lock(hashtextextended('formulas:' || p_origen::text, 0));
-  select * into v_b from public.formulas where origen_id = p_origen and estado = 'borrador' for update;   -- formulas_borrador_unico
+  v_fdo := public._fdo_resolver(p_origen, p_formula_del_origen, false);
+  select * into v_b from public.formulas where formula_del_origen_id = v_fdo.id and estado = 'borrador' for update;   -- formulas_borrador_unico
   perform public._exigir_borrador_formula(v_b, p_actualizado_en_esperado);
   delete from public.formulas where id = v_b.id;
 end;
 $$;
 
 
-ALTER FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) OWNER TO "postgres";
+ALTER FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) IS 'Descarta el borrador de un origen (cotizaciones.configurar). Con p_actualizado_en_esperado, sólo si es la del borrador (PT409 si cambió o ya no está); sin ella, el que haya. docs/COTIZADOR.md › «Versiones (4.20-1)».';
+COMMENT ON FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") IS 'Descarta el borrador de una fórmula del origen (cotizaciones.configurar; p_formula_del_origen nula: la de trabajo). Con p_actualizado_en_esperado, PT409 si el borrador cambió o ya no está. docs/COTIZADOR.md › «Versiones (4.20-1)».';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text" DEFAULT NULL::"text", "p_publicada_esperada" "uuid" DEFAULT NULL::"uuid", "p_actualizado_en_esperado" timestamp with time zone DEFAULT NULL::timestamp with time zone) RETURNS "jsonb"
+CREATE OR REPLACE FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text" DEFAULT NULL::"text", "p_publicada_esperada" "uuid" DEFAULT NULL::"uuid", "p_actualizado_en_esperado" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_formula_del_origen" "uuid" DEFAULT NULL::"uuid") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
-declare v_b public.formulas; v_pub uuid; v_id uuid; v_en timestamptz;
+declare v_b public.formulas; v_pub uuid; v_id uuid; v_en timestamptz; v_fdo public.formulas_del_origen;
 begin
   perform public.assert_permiso('cotizaciones.configurar', p_origen);
   perform public.validar_formula(p_def, p_params);
@@ -26986,22 +28489,24 @@ begin
   end if;
   -- Guardar, publicar, el ⚙ y revertir de un origen, en serie: el segundo lee lo que dejó el primero.
   perform pg_advisory_xact_lock(hashtextextended('formulas:' || p_origen::text, 0));
-  select * into v_b from public.formulas where origen_id = p_origen and estado = 'borrador' for update;   -- formulas_borrador_unico
+  -- La fórmula del origen que se edita (nula: la de trabajo, que se crea si el origen no tiene ninguna).
+  v_fdo := public._fdo_resolver(p_origen, p_formula_del_origen, true);
+  select * into v_b from public.formulas where formula_del_origen_id = v_fdo.id and estado = 'borrador' for update;   -- formulas_borrador_unico
   if p_actualizado_en_esperado is null then
     -- Crear: no había borrador, y la publicada sobre la que se empezó (si se dice) sigue siendo la publicada.
     if v_b.id is not null then
       raise exception 'Ya hay un borrador: % y se guardó %.', public._borrador_formula_empezado_por(v_b.creado_por), public._hace(v_b.actualizado_en)
         using errcode = 'PT409';
     end if;
-    select id into v_pub from public.formulas where origen_id = p_origen and estado = 'publicada';   -- formulas_publicada_unica
+    select id into v_pub from public.formulas where formula_del_origen_id = v_fdo.id and estado = 'publicada';   -- formulas_publicada_unica
     if p_publicada_esperada is not null and v_pub is distinct from p_publicada_esperada then
       if v_pub is null then
         raise exception 'La versión que tenías ya no es la publicada, y el origen no tiene otra.' using errcode = 'PT409';
       end if;
       raise exception 'Mientras editabas, %.', public._version_publicada_por(v_pub) using errcode = 'PT409';
     end if;
-    insert into public.formulas (origen_id, estado, definicion, params, diseno, nota, creado_por, version_origen_id)
-    values (p_origen, 'borrador', p_def, p_params, p_diseno, p_nota, (select auth.uid()), v_pub)
+    insert into public.formulas (origen_id, formula_del_origen_id, estado, definicion, params, diseno, nota, creado_por, version_origen_id)
+    values (p_origen, v_fdo.id, 'borrador', p_def, p_params, p_diseno, p_nota, (select auth.uid()), v_pub)
     returning id, actualizado_en into v_id, v_en;
   else
     -- Pisar: el borrador que leyó, tal como lo leyó. La publicada no se compara: publicarlo atrasado da su propio PT409.
@@ -27015,10 +28520,10 @@ end;
 $$;
 
 
-ALTER FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) OWNER TO "postgres";
+ALTER FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) IS 'Guarda el borrador de un origen (cotizaciones.configurar). Sin p_actualizado_en_esperado crea (PT409 si ya hay borrador o si p_publicada_esperada ya no es la publicada); con ella pisa sólo si es la del borrador (PT409 si cambió o ya no está). Devuelve {id, actualizado_en}. docs/COTIZADOR.md › «Versiones (4.20-1)».';
+COMMENT ON FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") IS 'Guarda el borrador de una fórmula del origen (cotizaciones.configurar; p_formula_del_origen nula: la de trabajo, que se crea si el origen no tiene ninguna). Sin p_actualizado_en_esperado crea (PT409 si ya hay borrador o si p_publicada_esperada ya no es la publicada); con ella pisa sólo si es la del borrador (PT409 si cambió o ya no está). Devuelve {id, actualizado_en}. docs/COTIZADOR.md › «Versiones (4.20-1)».';
 
 
 
@@ -27033,7 +28538,7 @@ begin
   if p_origen is null then
     raise exception 'Falta el origen.' using errcode = '22023';
   end if;
-  select * into f from public.formulas x where x.origen_id = p_origen and x.estado = 'publicada';   -- formulas_publicada_unica
+  select * into f from public.formulas x where x.id = (select public._publicada_de_la_activa(p_origen));   -- formulas_pkey
   if f.id is null then
     raise exception 'Este origen no tiene una fórmula publicada.' using errcode = '22023';
   end if;
@@ -27049,49 +28554,54 @@ COMMENT ON FUNCTION "public"."formula_para_cotizar"("p_origen" "uuid") IS 'La ve
 
 
 
-CREATE OR REPLACE FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid" DEFAULT NULL::"uuid", "p_actualizado_en_esperado" timestamp with time zone DEFAULT NULL::timestamp with time zone) RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid" DEFAULT NULL::"uuid", "p_actualizado_en_esperado" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_formula_del_origen" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
 begin
-  return public._publicar_formula(p_origen, p_nota, p_publicada_esperada, false, p_actualizado_en_esperado);
+  return public._publicar_formula(p_origen, p_nota, p_publicada_esperada, false, p_actualizado_en_esperado, p_formula_del_origen);
 end;
 $$;
 
 
-ALTER FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) OWNER TO "postgres";
+ALTER FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) IS 'Publica el borrador de un origen (cotizaciones.configurar). PT409 si p_publicada_esperada ya no es la publicada, si el borrador ya no tiene la p_actualizado_en_esperado (o ya no está) o si nació sobre otra publicada. docs/COTIZADOR.md › «Versiones (4.20-1)».';
+COMMENT ON FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") IS 'Publica el borrador de una fórmula del origen (cotizaciones.configurar; p_formula_del_origen nula: la de trabajo). PT409 si p_publicada_esperada ya no es la publicada, si el borrador ya no tiene la p_actualizado_en_esperado (o ya no está) o si nació sobre otra publicada. La primera publicada de un origen sin activa la vuelve activa. docs/COTIZADOR.md › «Versiones (4.20-1)».';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid") RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
-declare v_v public.formulas; v_estado text;
+declare v_v public.formulas; v_estado text; v_fdo public.formulas_del_origen;
 begin
   perform public.assert_permiso('cotizaciones.configurar', p_origen);
   if p_publicada_esperada is null then
     raise exception 'Revertir pide la versión publicada que tienes.' using errcode = '22023', hint = 'publicada_esperada';
   end if;
+  perform pg_advisory_xact_lock(hashtextextended('formulas:' || p_origen::text, 0));
+  v_fdo := public._fdo_resolver(p_origen, p_formula_del_origen, false);
   -- Una versión de otro origen y una que no existe dan el mismo texto: no se delata ninguna fila.
   select * into v_v from public.formulas f where f.id = p_version and f.origen_id = p_origen;
   if v_v.id is null then raise exception 'Esa versión no es de este origen.' using errcode = '22023', hint = 'version'; end if;
+  if v_v.formula_del_origen_id is distinct from v_fdo.id then
+    raise exception 'Esa versión es de otra fórmula del origen.' using errcode = '22023', hint = 'version';
+  end if;
   v_estado := v_v.estado::text;
   if v_estado = 'publicada' then raise exception 'Esa ya es la versión publicada.' using errcode = '22023', hint = 'version'; end if;
   if v_estado = 'borrador' then raise exception 'Un borrador no se revierte: se publica.' using errcode = '22023', hint = 'version'; end if;
   return public._publicar_version(p_origen, v_v.definicion, v_v.params, v_v.diseno, p_nota, p_publicada_esperada,
-                                  jsonb_build_object('copia_de', v_v.id, 'version_copiada', v_v.version), false);
+                                  jsonb_build_object('copia_de', v_v.id, 'version_copiada', v_v.version), false, v_fdo.id);
 end;
 $$;
 
 
-ALTER FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid") OWNER TO "postgres";
+ALTER FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid") IS 'Revertir la fórmula de un origen (cotizaciones.configurar): publica la N+1 como copia, con su diseño, de una versión archivada, sin tocar el borrador. PT409 si la esperada ya no es la publicada; 22023 con nivel_retirado si su diseño usa un nivel retirado. docs/COTIZADOR.md › «Versiones (4.20-1)».';
+COMMENT ON FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") IS 'Publica como N+1 una copia de una versión archivada de la misma fórmula del origen (cotizaciones.configurar; p_formula_del_origen nula: la de trabajo). PT409 si p_publicada_esperada ya no es la publicada. docs/COTIZADOR.md › «Versiones (4.20-1)».';
 
 
 
@@ -29006,6 +30516,7 @@ declare
   v_vpropios uuid[] := public.origenes_con_alcance('vehiculos.ver', 'propios');
   v_ctodos uuid[] := public.origenes_con_alcance('cotizaciones.ver', 'todos');
   v_cpropios uuid[] := public.origenes_con_alcance('cotizaciones.ver', 'propios');
+  v_pv uuid[] := public.origenes_con_alcance('cotizaciones.privadas.ver', 'propios');
   v_cartera boolean := public.en_cartera(p_lead);
   v_vinculados jsonb;
   v_interesados jsonb;
@@ -29071,6 +30582,8 @@ begin
        where c.lead_id = p_lead and c.vehiculo_id is not null
          and c.eliminado_en is null and c.estado in ('activa', 'reportada')
          and c.origen_id = any (v_cpropios)
+         -- Una privada ajena que no se ve no entra a la ventana: no cuenta ni como oculta.
+         and (not c.privada or c.creado_por = v_yo or c.origen_id = any (v_pv))
        order by c.creado_en desc, c.id desc
        limit 101),
     marcada as (
@@ -29130,6 +30643,7 @@ declare
   v_vpropios uuid[] := public.origenes_con_alcance('vehiculos.ver', 'propios');
   v_ctodos uuid[] := public.origenes_con_alcance('cotizaciones.ver', 'todos');
   v_cpropios uuid[] := public.origenes_con_alcance('cotizaciones.ver', 'propios');
+  v_pv uuid[] := public.origenes_con_alcance('cotizaciones.privadas.ver', 'propios');
   v_cartera boolean := public.en_cartera(p_lead);
   c refcursor;
   r record;
@@ -29218,13 +30732,15 @@ begin
                 or (v.origen_id = any (v_vpropios)
                     and (v.creado_por = v_yo or (v.lead_id is not null and case when v.lead_id = p_lead then v_cartera else public.en_cartera(v.lead_id) end))))
                and (c1.origen_id = any (v_ctodos) or (c1.origen_id = any (v_cpropios) and (c1.creado_por = v_yo or v_cartera)))
+               and (not c1.privada or c1.creado_por = v_yo or c1.origen_id = any (v_pv))
                and not exists (
                  select 1 from public.cotizaciones c2
                   where c2.vehiculo_id = c1.vehiculo_id and c2.lead_id = c1.lead_id
                     and c2.eliminado_en is null and c2.estado in ('activa', 'reportada')
                     and (c2.creado_en, c2.id) > (c1.creado_en, c1.id)
                     and (c2.origen_id = any (v_ctodos)
-                         or (c2.origen_id = any (v_cpropios) and (c2.creado_por = v_yo or v_cartera)))) as visible
+                         or (c2.origen_id = any (v_cpropios) and (c2.creado_por = v_yo or v_cartera)))
+                    and (not c2.privada or c2.creado_por = v_yo or c2.origen_id = any (v_pv))) as visible
           from public.cotizaciones c1
           join public.vehiculos v on v.id = c1.vehiculo_id and v.eliminado_en is null
          where c1.lead_id = p_lead and c1.vehiculo_id is not null
@@ -29238,13 +30754,15 @@ begin
                 or (v.origen_id = any (v_vpropios)
                     and (v.creado_por = v_yo or (v.lead_id is not null and case when v.lead_id = p_lead then v_cartera else public.en_cartera(v.lead_id) end))))
                and (c1.origen_id = any (v_ctodos) or (c1.origen_id = any (v_cpropios) and (c1.creado_por = v_yo or v_cartera)))
+               and (not c1.privada or c1.creado_por = v_yo or c1.origen_id = any (v_pv))
                and not exists (
                  select 1 from public.cotizaciones c2
                   where c2.vehiculo_id = c1.vehiculo_id and c2.lead_id = c1.lead_id
                     and c2.eliminado_en is null and c2.estado in ('activa', 'reportada')
                     and (c2.creado_en, c2.id) > (c1.creado_en, c1.id)
                     and (c2.origen_id = any (v_ctodos)
-                         or (c2.origen_id = any (v_cpropios) and (c2.creado_por = v_yo or v_cartera)))) as visible
+                         or (c2.origen_id = any (v_cpropios) and (c2.creado_por = v_yo or v_cartera)))
+                    and (not c2.privada or c2.creado_por = v_yo or c2.origen_id = any (v_pv))) as visible
           from public.cotizaciones c1
           join public.vehiculos v on v.id = c1.vehiculo_id and v.eliminado_en is null
          where c1.lead_id = p_lead and c1.vehiculo_id is not null
@@ -33585,7 +35103,7 @@ $$;
 ALTER FUNCTION "public"."origenes_lead_con_uso"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."origenes_resumen"() RETURNS TABLE("origen_id" "uuid", "vehiculos" integer, "cotizaciones" integer, "campos_activos" integer, "categorias" integer, "fases" integer, "formula_publicada" boolean, "concesiones" integer)
+CREATE OR REPLACE FUNCTION "public"."origenes_resumen"() RETURNS TABLE("origen_id" "uuid", "vehiculos" integer, "cotizaciones" integer, "campos_activos" integer, "categorias" integer, "fases" integer, "formula_publicada" boolean, "concesiones" integer, "tarjeta_publicada" boolean)
     LANGUAGE "plpgsql" STABLE SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
@@ -33601,8 +35119,12 @@ begin
     (select count(*)::int from public.origenes_campos c where c.origen_id = o.id and c.activo),
     (select count(*)::int from public.categorias k where k.origen_id = o.id),
     (select count(*)::int from public.fases f join public.flujos fl on fl.id = f.flujo_id where fl.origen_id = o.id and f.activa),
-    exists (select 1 from public.formulas fo where fo.origen_id = o.id and fo.estado = 'publicada'),
-    (select count(*)::int from public.roles_permisos rp where rp.origen_id = o.id)
+    exists (select 1 from public.formulas_del_origen fo where fo.origen_id = o.id and fo.activa),   -- formulas_del_origen_activa_unica
+    (select count(*)::int from public.roles_permisos rp where rp.origen_id = o.id),
+    -- La activa (formulas_del_origen_activa_unica) y su publicada (plantillas_publicada_unica).
+    exists (select 1 from public.formulas_del_origen fo
+              join public.plantillas_tarjeta p on p.formula_del_origen_id = fo.id and p.estado = 'publicada'
+             where fo.origen_id = o.id and fo.activa)
   from public.origenes o
   order by o.orden, o.nombre;
 end;
@@ -33610,6 +35132,10 @@ $$;
 
 
 ALTER FUNCTION "public"."origenes_resumen"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."origenes_resumen"() IS 'Cómo está configurado cada origen (origenes.gestionar, flujos.configurar o cotizaciones.configurar en alguno; si no, 42501): conteos de vehículos, cotizaciones, campos, categorías, fases y concesiones; formula_publicada (tiene fórmula activa) y tarjeta_publicada (la fórmula activa tiene su tarjeta publicada).';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."otorgar_portal"("p_lead" "uuid", "p_clave" "text", "p_otorgado_en_esperado" timestamp with time zone) RETURNS "jsonb"
@@ -34120,7 +35646,8 @@ begin
   perform public._papelera_solo_cotizaciones(p_tipo);
   select papelera_dias into v_dias from public.ajustes_empresa where id = 1;
   return query select c.id, coalesce(c.titulo, 'Cotización #' || c.numero), c.eliminado_en, c.eliminado_por, c.lote_papelera_id, c.eliminado_en + make_interval(days => v_dias)
-    from public.cotizaciones c where c.eliminado_en is not null and (c.eliminado_por = (select auth.uid()) or public.tiene_permiso('cotizaciones.papelera.purgar'));
+    from public.cotizaciones c where c.eliminado_en is not null and (c.eliminado_por = (select auth.uid()) or public.tiene_permiso('cotizaciones.papelera.purgar'))
+       and (not c.privada or c.creado_por = (select auth.uid()) or public.tiene_permiso('cotizaciones.privadas.ver', c.origen_id));
 end;
 $$;
 
@@ -34358,18 +35885,19 @@ $$;
 ALTER FUNCTION "public"."personas_dominadas"("p_ids" "uuid"[]) OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) RETURNS "void"
+CREATE OR REPLACE FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid" DEFAULT NULL::"uuid") RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
 declare
-  v_b public.plantillas_tarjeta;
+  v_b public.plantillas_tarjeta; v_fdo public.formulas_del_origen;
 begin
   perform public.assert_permiso('cotizaciones.configurar', p_origen);
   if p_actualizado_en_esperado is null then perform public._exigir_version(null, null, null); end if;
   perform pg_advisory_xact_lock(hashtextextended('plantillas:' || p_origen::text, 0));
-  select * into v_b from public.plantillas_tarjeta where origen_id = p_origen and estado = 'borrador' for update;
-  if v_b.id is null then perform public._plantilla_borrador_ausente(p_origen, p_actualizado_en_esperado); end if;
+  v_fdo := public._fdo_resolver(p_origen, p_formula_del_origen, false);
+  select * into v_b from public.plantillas_tarjeta where formula_del_origen_id = v_fdo.id and estado = 'borrador' for update;   -- plantillas_borrador_unico
+  if v_b.id is null then perform public._plantilla_borrador_ausente(v_fdo.id, p_actualizado_en_esperado); end if;
   perform public._exigir_version(v_b.actualizado_en, p_actualizado_en_esperado,
     'El borrador de esta plantilla cambió ' || public._hace(v_b.actualizado_en) || ', mientras lo editabas.');
   delete from public.plantillas_tarjeta where id = v_b.id;
@@ -34377,34 +35905,37 @@ end;
 $$;
 
 
-ALTER FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) OWNER TO "postgres";
+ALTER FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) IS 'Borra el borrador de la plantilla de la tarjeta de un origen (cotizaciones.configurar del origen), con la versión que se vio (PT409 si cambió o ya no está). Candado por origen. docs/COTIZADOR.md › «Versiones de la plantilla (4.19-1)».';
+COMMENT ON FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") IS 'Descarta el borrador de la plantilla de una fórmula del origen (cotizaciones.configurar; p_formula_del_origen nula: la de trabajo). PT409 si cambió o ya no está. docs/COTIZADOR.md › «Versiones de la plantilla (4.19-1)».';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text" DEFAULT NULL::"text") RETURNS timestamp with time zone
+CREATE OR REPLACE FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text" DEFAULT NULL::"text", "p_formula_del_origen" "uuid" DEFAULT NULL::"uuid") RETURNS timestamp with time zone
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
 declare
-  v_b public.plantillas_tarjeta; v_v timestamptz;
+  v_b public.plantillas_tarjeta; v_v timestamptz; v_fdo public.formulas_del_origen;
 begin
   perform public.assert_permiso('cotizaciones.configurar', p_origen);
   perform public.validar_plantilla(p_def, null, null, null, null);
   -- Guardar, publicar y descartar de un origen, en serie: el segundo lee el borrador que dejó el primero.
   perform pg_advisory_xact_lock(hashtextextended('plantillas:' || p_origen::text, 0));
-  select * into v_b from public.plantillas_tarjeta where origen_id = p_origen and estado = 'borrador' for update;
+  -- La fórmula del origen de la plantilla (nula: la de trabajo, que se crea si el origen no tiene ninguna).
+  v_fdo := public._fdo_resolver(p_origen, p_formula_del_origen, true);
+  select * into v_b from public.plantillas_tarjeta where formula_del_origen_id = v_fdo.id and estado = 'borrador' for update;   -- plantillas_borrador_unico
   if p_actualizado_en_esperado is null then
     if v_b.id is not null then
       raise exception 'Ya hay un borrador de esta plantilla, guardado %.', public._hace(v_b.actualizado_en) using errcode = 'PT409';
     end if;
-    insert into public.plantillas_tarjeta (origen_id, estado, definicion, nota, creado_por) values (p_origen, 'borrador', p_def, p_nota, (select auth.uid()))
+    insert into public.plantillas_tarjeta (origen_id, formula_del_origen_id, estado, definicion, nota, creado_por)
+    values (p_origen, v_fdo.id, 'borrador', p_def, p_nota, (select auth.uid()))
     returning actualizado_en into v_v;
     return v_v;
   end if;
-  if v_b.id is null then perform public._plantilla_borrador_ausente(p_origen, p_actualizado_en_esperado); end if;
+  if v_b.id is null then perform public._plantilla_borrador_ausente(v_fdo.id, p_actualizado_en_esperado); end if;
   perform public._exigir_version(v_b.actualizado_en, p_actualizado_en_esperado,
     'El borrador de esta plantilla cambió ' || public._hace(v_b.actualizado_en) || ', mientras lo editabas.');
   update public.plantillas_tarjeta set definicion = p_def, nota = p_nota where id = v_b.id returning actualizado_en into v_v;
@@ -34413,44 +35944,33 @@ end;
 $$;
 
 
-ALTER FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text") OWNER TO "postgres";
+ALTER FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text", "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text") IS 'Guarda el borrador de la plantilla de la tarjeta de un origen (cotizaciones.configurar del origen). Esperada nula = crear (PT409 si ya hay uno); con la esperada, la compara con la del borrador (PT409). Devuelve la versión nueva (actualizado_en). Candado por origen. docs/COTIZADOR.md › «Versiones de la plantilla (4.19-1)».';
+COMMENT ON FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text", "p_formula_del_origen" "uuid") IS 'Guarda el borrador de la plantilla de una fórmula del origen (cotizaciones.configurar; p_formula_del_origen nula: la de trabajo, que se crea si el origen no tiene ninguna). Esperada nula crea (PT409 si ya hay borrador); con ella pisa sólo si es la del borrador. Devuelve la actualizado_en nueva. docs/COTIZADOR.md › «Versiones de la plantilla (4.19-1)».';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text") RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_formula_del_origen" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
 declare
-  v_b public.plantillas_tarjeta; v_pub uuid; v_ver int; fo record;
+  v_fdo public.formulas_del_origen;
 begin
   perform public.assert_permiso('cotizaciones.configurar', p_origen);
   if p_actualizado_en_esperado is null then perform public._exigir_version(null, null, null); end if;
   if coalesce(btrim(p_nota), '') = '' then raise exception 'Publicar pide una nota.' using errcode = '22023', hint = 'nota'; end if;
   perform pg_advisory_xact_lock(hashtextextended('plantillas:' || p_origen::text, 0));
-  select * into v_b from public.plantillas_tarjeta where origen_id = p_origen and estado = 'borrador' for update;
-  if v_b.id is null then perform public._plantilla_borrador_ausente(p_origen, p_actualizado_en_esperado); end if;
-  perform public._exigir_version(v_b.actualizado_en, p_actualizado_en_esperado,
-    'El borrador de esta plantilla cambió ' || public._hace(v_b.actualizado_en) || ', mientras lo editabas.');
-  select id into v_pub from public.plantillas_tarjeta where origen_id = p_origen and estado = 'publicada';
-  select f.definicion, f.diseno, f.visibilidad into fo from public.formulas f where f.origen_id = p_origen and f.estado = 'publicada';
-  if not found then perform public._formula_rechazar('formula_sin_publicar', 'origen', 'Publica la fórmula del origen antes que su plantilla.'); end if;
-  perform public.validar_plantilla(v_b.definicion, fo.definicion, fo.diseno, fo.visibilidad, array(select t.clave from public.tonos t));
-  select coalesce(max(version), 0) + 1 into v_ver from public.plantillas_tarjeta where origen_id = p_origen;
-  update public.plantillas_tarjeta set estado = 'archivada' where id = v_pub;
-  update public.plantillas_tarjeta set estado = 'publicada', version = v_ver, nota = p_nota, publicado_en = now() where id = v_b.id;
-  return v_b.id;
-end;
-$$;
+  v_fdo := public._fdo_resolver(p_origen, p_formula_del_origen, false);
+  return public._plantilla_publicar_en(v_fdo.id, p_nota, p_actualizado_en_esperado);
+end $$;
 
 
-ALTER FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text") OWNER TO "postgres";
+ALTER FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_formula_del_origen" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text") IS 'Publica el borrador de la plantilla de un origen como la N+1 (cotizaciones.configurar del origen): pide la versión del borrador que se vio y una nota; lo valida contra la fórmula publicada y los tonos. Candado por origen. Devuelve el id de la publicada. docs/COTIZADOR.md › «Versiones de la plantilla (4.19-1)».';
+COMMENT ON FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_formula_del_origen" "uuid") IS 'Publica el borrador de la plantilla de una fórmula del origen (cotizaciones.configurar; p_formula_del_origen nula: la de trabajo), validado contra la publicada de esa fórmula. PT409 si el borrador cambió o ya no está. docs/COTIZADOR.md › «Versiones de la plantilla (4.19-1)».';
 
 
 
@@ -34669,6 +36189,8 @@ CREATE OR REPLACE FUNCTION "public"."puede_cotizacion"("p_cot" "uuid", "p_clave"
              when 'propios' then c.creado_por = (select auth.uid()) or public.en_cartera(c.lead_id)
              else false
            end
+           -- La privada de otra persona, sólo con cotizaciones.privadas.ver de su origen, con cualquier clave: para el resto no existe.
+           and (not c.privada or c.creado_por = (select auth.uid()) or public.tiene_permiso('cotizaciones.privadas.ver', c.origen_id))
       from public.cotizaciones c
      where c.id = p_cot and c.eliminado_en is null
   ), false);
@@ -34676,6 +36198,10 @@ $$;
 
 
 ALTER FUNCTION "public"."puede_cotizacion"("p_cot" "uuid", "p_clave" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."puede_cotizacion"("p_cot" "uuid", "p_clave" "text") IS 'Si quien llama puede usar esa cotización con esa clave (cotizaciones.ver o cotizaciones.editar): por el alcance del origen («todos», o «propios» = la creó o su lead está en su cartera), fuera de la papelera, y una privada (`privada`) la ven sólo quien la creó y quien tiene cotizaciones.privadas.ver de su origen: para el resto no existe. Lo usan las RPC que piden ver una cotización y las policies de sus tablas hijas y del bucket.';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."puede_estar_en_la_rueda"("p_usuario" "uuid") RETURNS boolean
@@ -37530,7 +39056,6 @@ begin
     where o.bucket_id = 'cotizaciones' and o.name > v_desde and o.name <= v_ultimo
       and o.created_at < now() - p_gracia
       and not exists (select 1 from public.cotizaciones_adjuntos a where a.ruta = o.name)
-      and not exists (select 1 from public.cotizaciones_portadas p where p.ruta = o.name)
       and not exists (select 1 from public.cola_gc_storage c where c.bucket = 'cotizaciones' and c.ruta = o.name)
     on conflict do nothing;
   else
@@ -37673,7 +39198,6 @@ CREATE OR REPLACE FUNCTION "public"."storage_refcount"("p_bucket" "text", "p_rut
     (select count(*) from public.repuestos_items_imagenes where p_bucket = 'repuestos' and ruta = p_ruta) +
     (select count(*) from public.documentos where p_bucket = 'documentos' and ruta = p_ruta and eliminado_en is null) +
     (select count(*) from public.cotizaciones_adjuntos where p_bucket = 'cotizaciones' and ruta = p_ruta) +
-    (select count(*) from public.cotizaciones_portadas where p_bucket = 'cotizaciones' and ruta = p_ruta) +
     (select count(*) from public.gastos where p_bucket = 'comprobantes' and comprobante_ruta = p_ruta) +
     (select count(*) from public.pagos where p_bucket = 'comprobantes' and comprobante_ruta = p_ruta) +
     (select count(*) from public.repuestos_compras where p_bucket = 'comprobantes' and comprobante_ruta = p_ruta) +
@@ -37692,6 +39216,223 @@ $_$;
 ALTER FUNCTION "public"."storage_refcount"("p_bucket" "text", "p_ruta" "text") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."tabla_referencia_columnas"("p_tabla" "uuid", "p_columnas" "jsonb", "p_version_esperada" integer) RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  v_t public.tablas_referencia; v_anterior int; v_nuevas jsonb := '[]'::jsonb; v_validas jsonb; v_c jsonb; v_viejo jsonb; v_n bigint;
+  v_quitadas text[]; v_usadas text[]; v_lista text[]; v_lista_texto text; v_frase text; v_usos int; v_verbo text; v_partes text[] := array[]::text[];
+  v_sumadas text[]; v_renombradas text[]; v_orden_antes text[]; v_orden_ahora text[];
+begin
+  v_t := public._tabla_referencia_tomar(p_tabla, p_version_esperada);
+  v_validas := public._tabla_referencia_columnas_validas(p_columnas, v_t.columnas);
+  -- Una columna que ya estaba conserva lo suyo (también una llave que no es de esta pantalla) y sólo cambia su etiqueta.
+  for v_c, v_n in select e.value, e.n from jsonb_array_elements(v_validas) with ordinality e (value, n) loop
+    select a.value into v_viejo from jsonb_array_elements(v_t.columnas) a where a.value ->> 'clave' = v_c ->> 'clave' limit 1;
+    if v_viejo is not null and (v_viejo ->> 'tipo') is distinct from (v_c ->> 'tipo') then
+      raise exception 'La columna %: su tipo no cambia; quítala y súmala de nuevo.', v_n
+        using errcode = '22023', hint = 'columnas.' || (v_n - 1) || '.tipo';
+    end if;
+    v_nuevas := v_nuevas || jsonb_build_array(case when v_viejo is null then v_c else v_viejo || jsonb_build_object('etiqueta', v_c -> 'etiqueta') end);
+  end loop;
+  if v_nuevas = v_t.columnas then
+    raise exception 'Las columnas no cambiaron.' using errcode = '22023', hint = 'columnas';
+  end if;
+
+  select coalesce(array_agg(a.value ->> 'clave' order by a.n), array[]::text[]) into v_quitadas
+    from jsonb_array_elements(v_t.columnas) with ordinality a (value, n)
+   where not exists (select 1 from jsonb_array_elements(v_nuevas) b where b.value ->> 'clave' = a.value ->> 'clave');
+  if cardinality(v_quitadas) > 0 then
+    select coalesce(array_agg(distinct x.c), array[]::text[]) into v_usadas
+      from public._tabla_referencia_usos(p_tabla) u cross join lateral unnest(u.columnas) x (c)
+     where x.c = any (v_quitadas);
+    if cardinality(v_usadas) > 0 then
+      select array_agg('«' || (a.value ->> 'etiqueta') || '»' order by a.n) into v_lista
+        from jsonb_array_elements(v_t.columnas) with ordinality a (value, n) where a.value ->> 'clave' = any (v_usadas);
+      v_frase := public._tabla_referencia_frase_de_usos(p_tabla, v_usadas);
+      select count(*) into v_usos from (select distinct u.origen_id, u.estado from public._tabla_referencia_usos(p_tabla) u
+                                          where u.columnas && v_usadas limit 2) x;
+      v_lista_texto := case when cardinality(v_lista) = 1 then v_lista[1]
+                            else array_to_string(v_lista[1:cardinality(v_lista) - 1], ', ') || ' y ' || v_lista[cardinality(v_lista)] end;
+      v_verbo := case when cardinality(v_lista) = 1 then 'la' else 'las' end || case when v_usos > 1 then ' usan' else ' usa' end;
+      raise exception '% % % %.', case when cardinality(v_lista) = 1 then 'La columna' else 'Las columnas' end, v_lista_texto, v_verbo, v_frase
+        using errcode = '23503', hint = 'columnas';
+    end if;
+  end if;
+
+  -- La nota automática: qué se sumó, renombró y quitó, y si cambió el orden de las que siguen.
+  select coalesce(array_agg('«' || (b.value ->> 'etiqueta') || '»' order by b.n), array[]::text[]) into v_sumadas
+    from jsonb_array_elements(v_nuevas) with ordinality b (value, n)
+   where not exists (select 1 from jsonb_array_elements(v_t.columnas) a where a.value ->> 'clave' = b.value ->> 'clave');
+  select coalesce(array_agg('«' || (a.value ->> 'etiqueta') || '» a «' || (b.value ->> 'etiqueta') || '»' order by b.n), array[]::text[]) into v_renombradas
+    from jsonb_array_elements(v_nuevas) with ordinality b (value, n)
+    join jsonb_array_elements(v_t.columnas) a on a.value ->> 'clave' = b.value ->> 'clave'
+   where (a.value ->> 'etiqueta') is distinct from (b.value ->> 'etiqueta');
+  select coalesce(array_agg(a.value ->> 'clave' order by a.n), array[]::text[]) into v_orden_antes
+    from jsonb_array_elements(v_t.columnas) with ordinality a (value, n) where not (a.value ->> 'clave') = any (v_quitadas);
+  select coalesce(array_agg(b.value ->> 'clave' order by b.n), array[]::text[]) into v_orden_ahora
+    from jsonb_array_elements(v_nuevas) with ordinality b (value, n) where (b.value ->> 'clave') = any (v_orden_antes);
+  if cardinality(v_sumadas) > 0 then v_partes := v_partes || ('sumó ' || array_to_string(v_sumadas, ', ')); end if;
+  if cardinality(v_renombradas) > 0 then v_partes := v_partes || ('renombró ' || array_to_string(v_renombradas, ', ')); end if;
+  if cardinality(v_quitadas) > 0 then
+    v_partes := v_partes || ('quitó ' || (select string_agg('«' || (a.value ->> 'etiqueta') || '»', ', ' order by a.n)
+                                           from jsonb_array_elements(v_t.columnas) with ordinality a (value, n)
+                                          where a.value ->> 'clave' = any (v_quitadas)));
+  end if;
+  if v_orden_antes is distinct from v_orden_ahora then v_partes := v_partes || 'cambió el orden'::text; end if;
+
+  v_anterior := v_t.version;
+  update public.tablas_referencia r
+     set columnas = v_nuevas, version = r.version + 1, nota = left('Columnas: ' || array_to_string(v_partes, '; ') || '.', 2000),
+         publicado_por = (select auth.uid()), publicado_en = now()
+   where r.id = p_tabla
+  returning * into v_t;
+  -- Sin esto, el próximo publicar fallaría con «la tabla no tiene la columna».
+  if cardinality(v_quitadas) > 0 then
+    update public.tablas_referencia_filas x set valores = x.valores - v_quitadas                     -- tablas_referencia_filas_tabla_orden_idx
+     where x.tabla_id = p_tabla and x.valores ?| v_quitadas;
+  end if;
+
+  perform public.registrar_actividad('tabla_referencia.columnas', 'tablas_referencia', p_tabla::text,
+    jsonb_build_object('version', v_anterior), jsonb_build_object('version', v_t.version, 'nota', v_t.nota));
+  return jsonb_build_object('version', v_t.version);
+end;
+$$;
+
+
+ALTER FUNCTION "public"."tabla_referencia_columnas"("p_tabla" "uuid", "p_columnas" "jsonb", "p_version_esperada" integer) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."tabla_referencia_columnas"("p_tabla" "uuid", "p_columnas" "jsonb", "p_version_esperada" integer) IS 'Cambia las columnas de una tabla (suma, renombra, mueve, quita las sin uso) con la versión esperada; sube la versión sin publicar fórmulas. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."tabla_referencia_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_columnas" "jsonb") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  c_sin_permiso constant text := 'No tienes el permiso «cotizaciones.configurar».';
+  v_nombre text; v_clave text; v_columnas jsonb; v_t public.tablas_referencia; v_estado text; v_lleno text;
+begin
+  perform public.assert_activo();
+  if p_id is null then
+    raise exception 'Falta el identificador del intento.' using errcode = '22023';
+  end if;
+  -- Con origen, el de ese origen; compartida, el de algún origen.
+  perform public.assert_permiso('cotizaciones.configurar', p_origen);
+  -- Con una concesión de todos los orígenes `tiene_permiso` da verdadero para cualquier id: sin esto caería la FK cruda.
+  if p_origen is not null and not exists (select 1 from public.origenes o where o.id = p_origen) then   -- origenes_pkey
+    raise exception 'Ese origen no existe.' using errcode = '22023', hint = 'origen';
+  end if;
+  v_nombre := btrim(coalesce(p_nombre, ''));
+  if v_nombre = '' then
+    raise exception 'La tabla necesita un nombre.' using errcode = '22023', hint = 'nombre';
+  end if;
+  if char_length(v_nombre) > 80 then
+    raise exception 'El nombre pasa de 80 letras.' using errcode = '22023', hint = 'nombre';
+  end if;
+  v_clave := public._tabla_referencia_clave(v_nombre);
+  v_columnas := public._tabla_referencia_columnas_validas(p_columnas);
+
+  -- Dos que crean a la vez van en fila: la segunda ve la clave y el tope de la primera.
+  perform pg_advisory_xact_lock(hashtextextended('tablas_referencia:crear', 0));
+  select * into v_t from public.tablas_referencia r where r.id = p_id;                               -- tablas_referencia_pkey
+  if v_t.id is not null then
+    -- El mismo intento en otro destino no delata la fila.
+    if v_t.origen_id is distinct from p_origen then
+      raise exception '%', c_sin_permiso using errcode = '42501';
+    end if;
+    return jsonb_build_object('id', v_t.id, 'clave', v_t.clave, 'version', v_t.version, 'repetido', true);
+  end if;
+
+  -- tablas_referencia_origen_id_clave_key: la restricción cuenta también las desactivadas.
+  if p_origen is null then
+    select case when r.activa then '' else ' (desactivada)' end into v_estado
+      from public.tablas_referencia r where r.origen_id is null and r.clave = v_clave;
+  else
+    select case when r.activa then '' else ' (desactivada)' end into v_estado
+      from public.tablas_referencia r where r.origen_id = p_origen and r.clave = v_clave;
+  end if;
+  if v_estado is not null then
+    raise exception 'Ya hay una tabla con la clave «%»%: elige otro nombre.', v_clave, v_estado using errcode = '23505', hint = 'nombre';
+  end if;
+  -- Una propia taparía a la compartida activa que las fórmulas del origen leen vivas.
+  if p_origen is not null and exists (select 1 from public.tablas_referencia r
+                                       where r.origen_id is null and r.clave = v_clave and r.activa) then   -- tablas_referencia_origen_id_clave_key
+    raise exception 'Ya hay una tabla compartida con la clave «%»: elige otro nombre.', v_clave using errcode = '23505', hint = 'nombre';
+  end if;
+
+  -- El tope: un origen recibe hasta 100 tablas activas, propias y compartidas (la lista y el catálogo de BUSCARV muestran 100).
+  if p_origen is not null then
+    select o.nombre into v_lleno from public.origenes o                                              -- origenes_pkey
+     where o.id = p_origen
+       and (select count(*) from (select 1 from public.tablas_referencia r                           -- tablas_referencia_origen_id_clave_key
+                                   where r.activa and (r.origen_id = p_origen or r.origen_id is null) limit 100) x) >= 100;
+  else
+    select o.nombre into v_lleno from public.origenes o
+     where (select count(*) from (select 1 from public.tablas_referencia r                           -- tablas_referencia_origen_id_clave_key
+                                   where r.activa and (r.origen_id = o.id or r.origen_id is null) limit 100) x) >= 100
+     order by o.nombre collate "C", o.id limit 1;
+  end if;
+  if v_lleno is not null then
+    raise exception '% ya recibe 100 tablas, que es el máximo: desactiva una que ninguna fórmula use.', v_lleno using errcode = '22023', hint = 'nombre';
+  end if;
+
+  begin
+    insert into public.tablas_referencia (id, origen_id, clave, nombre, columnas)
+    values (p_id, p_origen, v_clave, v_nombre, v_columnas);
+  exception when unique_violation then
+    raise exception 'Ya hay una tabla con la clave «%»: elige otro nombre.', v_clave using errcode = '23505', hint = 'nombre';
+  end;
+
+  -- La actividad no guarda las columnas (contenido oculto de las tablas de referencia): sólo cuántas.
+  perform public.registrar_actividad('tabla_referencia.creada', 'tablas_referencia', p_id::text, null,
+    jsonb_build_object('clave', v_clave, 'nombre', v_nombre, 'origen_id', p_origen, 'cuantas_columnas', jsonb_array_length(v_columnas)));
+  return jsonb_build_object('id', p_id, 'clave', v_clave, 'version', 1, 'repetido', false);
+end;
+$$;
+
+
+ALTER FUNCTION "public"."tabla_referencia_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_columnas" "jsonb") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."tabla_referencia_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_columnas" "jsonb") IS 'Crea una tabla de referencia del origen o compartida (origen nulo), idempotente por p_id; la clave sale del nombre. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."tabla_referencia_desactivar"("p_tabla" "uuid", "p_version_esperada" integer) RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare v_t public.tablas_referencia; v_frase text; v_usos int;
+begin
+  v_t := public._tabla_referencia_tomar(p_tabla, p_version_esperada);
+  -- También cubre la propia que tapa una compartida: el origen usa esa clave.
+  v_frase := public._tabla_referencia_frase_de_usos(p_tabla);
+  if v_frase is not null then
+    select count(*) into v_usos from (select distinct u.origen_id, u.estado from public._tabla_referencia_usos(p_tabla) u limit 2) x;
+    if v_usos > 1 then
+      raise exception 'La usan %: quítala de esas fórmulas para desactivarla.', v_frase using errcode = '23503', hint = 'tabla';
+    end if;
+    raise exception 'La usa %: quítala de esa fórmula para desactivarla.', v_frase using errcode = '23503', hint = 'tabla';
+  end if;
+  update public.tablas_referencia r set activa = false where r.id = p_tabla;
+  perform public.registrar_actividad('tabla_referencia.desactivada', 'tablas_referencia', p_tabla::text,
+    jsonb_build_object('version', v_t.version), jsonb_build_object('activa', false));
+  return jsonb_build_object('id', p_tabla);
+end;
+$$;
+
+
+ALTER FUNCTION "public"."tabla_referencia_desactivar"("p_tabla" "uuid", "p_version_esperada" integer) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."tabla_referencia_desactivar"("p_tabla" "uuid", "p_version_esperada" integer) IS 'Desactiva una tabla que ninguna fórmula usa, con la versión esperada; no se deshace desde la app. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."tabla_referencia_publicar"("p_tabla" "uuid", "p_filas" "jsonb", "p_nota" "text", "p_version_esperada" integer) RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
@@ -37699,7 +39440,7 @@ CREATE OR REPLACE FUNCTION "public"."tabla_referencia_publicar"("p_tabla" "uuid"
 declare
   c_sin_permiso constant text := 'No tienes el permiso «cotizaciones.configurar».';
   v_t public.tablas_referencia; v_anterior int; v_o record; v_pub public.formulas; v_nuevas jsonb; v_vivas jsonb; v_f text; v_id uuid;
-  v_formulas jsonb := '[]'::jsonb; v_igual boolean;
+  v_formulas jsonb := '[]'::jsonb; v_igual boolean; v_u record;
 begin
   perform public.assert_activo();
   -- Una tabla que no existe, una inactiva y una de un origen ajeno dan el mismo 42501: no se delata ninguna fila.
@@ -37748,21 +39489,23 @@ begin
    where r.id = p_tabla
   returning * into v_t;
 
-  -- La N+1 de cada origen que la usa, en orden de origen. La publicada se relee tras el candado del origen (el ⚙ o un revertir pudieron
-  -- publicar otra mientras se esperaba): si ya no la usa, se salta; si la usa, con el permiso de ese origen.
-  for v_o in select u.origen_id from public._tabla_referencia_usada_en(p_tabla) u loop
+  -- La N+1 de cada fórmula del origen que la usa, en orden de origen. Las publicadas se releen tras el candado del origen (el ⚙ o un revertir
+  -- pudieron publicar otra mientras se esperaba): la que ya no la usa se salta; la que la usa, con el permiso de ese origen.
+  for v_o in select distinct u.origen_id from public._tabla_referencia_usada_en(p_tabla) u order by u.origen_id loop
     perform pg_advisory_xact_lock(hashtextextended('formulas:' || v_o.origen_id::text, 0));
-    select f.* into v_pub from public.formulas f
-     where f.id = (select u.formula_id from public._tabla_referencia_usada_en(p_tabla, v_o.origen_id) u);   -- formulas_pkey
-    continue when v_pub.id is null;
-    perform public.assert_permiso('cotizaciones.configurar', v_o.origen_id);
-    v_id := public._publicar_version(
-      v_o.origen_id, v_pub.definicion,
-      v_pub.params || jsonb_build_object('tablas', coalesce(v_pub.params -> 'tablas', '{}'::jsonb) || jsonb_build_object(v_t.clave, v_nuevas)),
-      v_pub.diseno, format('Tabla «%s» versión %s: %s', v_t.nombre, v_t.version, btrim(p_nota)), v_pub.id,
-      jsonb_build_object('tabla', v_t.clave, 'version_tabla', v_t.version), true);
-    v_formulas := v_formulas || jsonb_build_array(jsonb_build_object(
-      'origen_id', v_o.origen_id, 'version', (select f.version from public.formulas f where f.id = v_id)));   -- formulas_pkey
+    for v_u in select u.formula_del_origen_id, u.formula_id from public._tabla_referencia_usada_en(p_tabla, v_o.origen_id) u
+                where u.formula_id is not null loop
+      select f.* into v_pub from public.formulas f where f.id = v_u.formula_id;   -- formulas_pkey
+      perform public.assert_permiso('cotizaciones.configurar', v_o.origen_id);
+      v_id := public._publicar_version(
+        v_o.origen_id, v_pub.definicion,
+        v_pub.params || jsonb_build_object('tablas', coalesce(v_pub.params -> 'tablas', '{}'::jsonb) || jsonb_build_object(v_t.clave, v_nuevas)),
+        v_pub.diseno, format('Tabla «%s» versión %s: %s', v_t.nombre, v_t.version, btrim(p_nota)), v_pub.id,
+        jsonb_build_object('tabla', v_t.clave, 'version_tabla', v_t.version), true, v_u.formula_del_origen_id);
+      v_formulas := v_formulas || jsonb_build_array(jsonb_build_object(
+        'origen_id', v_o.origen_id, 'formula_del_origen_id', v_u.formula_del_origen_id,
+        'version', (select f.version from public.formulas f where f.id = v_id)));   -- formulas_pkey
+    end loop;
   end loop;
 
   perform public.registrar_actividad('tabla_referencia.publicada', 'tablas_referencia', p_tabla::text,
@@ -40192,6 +41935,7 @@ declare
   v_tipo text;
   v_ref text;
   v_papel text;
+  v_op text;
   v_otro text;
   v_refs text[];
   v_papeles text[];
@@ -40250,10 +41994,14 @@ begin
       v_refs := array_append(v_refs, v_nodo ->> 'sobre');
       v_papeles := array_append(v_papeles, 'sobre');
     elsif v_tipo = 'calculo' then
+      -- `elegir` nombra primero su `prueba`; los términos de `y` y `o` son pruebas y el de `es_opcion`, la variante.
+      v_op := v_nodo ->> 'op';
+      if v_op = 'elegir' then v_refs := array_append(v_refs, v_nodo ->> 'prueba'); v_papeles := array_append(v_papeles, 'prueba'); end if;
+      v_papel := case v_op when 'y' then 'prueba' when 'o' then 'prueba' when 'es_opcion' then 'variante' else 'de' end;
       v_x := v_nodo -> 'de';
       for k in 0 .. jsonb_array_length(v_x) - 1 loop
         v_refs := array_append(v_refs, v_x ->> k);
-        v_papeles := array_append(v_papeles, 'de');
+        v_papeles := array_append(v_papeles, v_papel);
       end loop;
       if v_nodo ->> 'op' = 'porcentaje_de' then v_refs := array_append(v_refs, v_nodo ->> 'pct'); v_papeles := array_append(v_papeles, 'pct'); end if;
       if v_nodo ->> 'op' = 'depreciar' then v_refs := array_append(v_refs, v_nodo ->> 'sobre'); v_papeles := array_append(v_papeles, 'sobre'); end if;
@@ -40288,7 +42036,20 @@ begin
         perform public._formula_rechazar('referencia_de_tipo', v_id,
           format('«%s» usa «%s» como %s, y tiene que ser %s.', v_id, v_ref, v_papel, 'una bandera'));
       end if;
-      if v_tipos[j] = 'opcion' and v_papel <> 'match' then
+      -- La prueba vale 1 o 0: una bandera o una operación de condición (`esCondicion`).
+      v_mal := v_papel = 'prueba'
+               and not (v_tipos[j] = 'bandera'
+                        or (v_tipos[j] = 'calculo' and (v_nodos -> (j - 1) ->> 'op') in ('comparar', 'es_opcion', 'y', 'o')));
+      if v_mal then
+        perform public._formula_rechazar('referencia_de_tipo', v_id,
+          format('«%s» usa «%s» como %s, y tiene que ser %s.', v_id, v_ref, v_papel,
+                 'una condición (una bandera, una comparación, Y u O)'));
+      end if;
+      if v_papel = 'variante' and v_tipos[j] <> 'opcion' then
+        perform public._formula_rechazar('referencia_de_tipo', v_id,
+          format('«%s» usa «%s» como %s, y tiene que ser %s.', v_id, v_ref, v_papel, 'la variante'));
+      end if;
+      if v_tipos[j] = 'opcion' and v_papel not in ('match', 'variante') then
         perform public._formula_rechazar('referencia_de_tipo', v_id,
           format('«%s» usa «%s» como %s, y tiene que ser %s.', v_id, v_ref, v_papel,
                  'un número (la variante se nombra en «solo_en» o en un «match»)'));
@@ -41016,6 +42777,7 @@ declare
   v_v public.vehiculos;
   v_todos uuid[] := public.origenes_con_alcance('cotizaciones.ver', 'todos');
   v_propios uuid[] := public.origenes_con_alcance('cotizaciones.ver', 'propios');
+  v_pv uuid[] := public.origenes_con_alcance('cotizaciones.privadas.ver', 'propios');
   v_lead record;
   v_vinculado jsonb;
   v_interesados jsonb;
@@ -41077,6 +42839,8 @@ begin
        where c.vehiculo_id = p_vehiculo and c.lead_id is not null
          and c.eliminado_en is null and c.estado in ('activa', 'reportada')
          and c.origen_id = any (v_propios)
+         -- Una privada ajena que no se ve no entra a la ventana: no cuenta ni como oculta.
+         and (not c.privada or c.creado_por = v_yo or c.origen_id = any (v_pv))
        order by c.creado_en desc, c.id desc
        limit 101),
     marcada as (
@@ -41139,6 +42903,7 @@ declare
   v_n int := public._acotar_pagina(p_tamano, 20, 20) + 1;
   v_todos uuid[] := public.origenes_con_alcance('cotizaciones.ver', 'todos');
   v_propios uuid[] := public.origenes_con_alcance('cotizaciones.ver', 'propios');
+  v_pv uuid[] := public.origenes_con_alcance('cotizaciones.privadas.ver', 'propios');
   c refcursor;
   r record;
   v_filas jsonb := '[]'::jsonb;
@@ -41194,13 +42959,15 @@ begin
                public._lead_visible_para(l.eliminado_en, l.cartera, v_alcance, v_yo, v_fuera)
                and (c1.origen_id = any (v_todos)
                     or (c1.origen_id = any (v_propios) and (c1.creado_por = v_yo or public.en_cartera(c1.lead_id))))
+               and (not c1.privada or c1.creado_por = v_yo or c1.origen_id = any (v_pv))
                and not exists (
                  select 1 from public.cotizaciones c2
                   where c2.vehiculo_id = c1.vehiculo_id and c2.lead_id = c1.lead_id
                     and c2.eliminado_en is null and c2.estado in ('activa', 'reportada')
                     and (c2.creado_en, c2.id) > (c1.creado_en, c1.id)
                     and (c2.origen_id = any (v_todos)
-                         or (c2.origen_id = any (v_propios) and (c2.creado_por = v_yo or public.en_cartera(c2.lead_id))))) as visible
+                         or (c2.origen_id = any (v_propios) and (c2.creado_por = v_yo or public.en_cartera(c2.lead_id))))
+                    and (not c2.privada or c2.creado_por = v_yo or c2.origen_id = any (v_pv))) as visible
           from public.cotizaciones c1
           join public.leads l on l.id = c1.lead_id
          where c1.vehiculo_id = p_vehiculo and c1.lead_id is not null
@@ -41214,13 +42981,15 @@ begin
                public._lead_visible_para(l.eliminado_en, l.cartera, v_alcance, v_yo, v_fuera)
                and (c1.origen_id = any (v_todos)
                     or (c1.origen_id = any (v_propios) and (c1.creado_por = v_yo or public.en_cartera(c1.lead_id))))
+               and (not c1.privada or c1.creado_por = v_yo or c1.origen_id = any (v_pv))
                and not exists (
                  select 1 from public.cotizaciones c2
                   where c2.vehiculo_id = c1.vehiculo_id and c2.lead_id = c1.lead_id
                     and c2.eliminado_en is null and c2.estado in ('activa', 'reportada')
                     and (c2.creado_en, c2.id) > (c1.creado_en, c1.id)
                     and (c2.origen_id = any (v_todos)
-                         or (c2.origen_id = any (v_propios) and (c2.creado_por = v_yo or public.en_cartera(c2.lead_id))))) as visible
+                         or (c2.origen_id = any (v_propios) and (c2.creado_por = v_yo or public.en_cartera(c2.lead_id))))
+                    and (not c2.privada or c2.creado_por = v_yo or c2.origen_id = any (v_pv))) as visible
           from public.cotizaciones c1
           join public.leads l on l.id = c1.lead_id
          where c1.vehiculo_id = p_vehiculo and c1.lead_id is not null
@@ -41667,7 +43436,7 @@ $$;
 ALTER FUNCTION "public"."vehiculos_editables"("p_ids" "uuid"[]) OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer DEFAULT NULL::integer, "p_filtros" "jsonb" DEFAULT '[]'::"jsonb", "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid", "p_hacia_atras" boolean DEFAULT false) RETURNS TABLE("id" "uuid", "numero" bigint, "origen_id" "uuid", "titulo" "text", "marca" "text", "modelo" "text", "anio" smallint, "vin" "text", "lote" "text", "plataforma" "text", "url_origen" "text", "precio" numeric, "precio_negociable" boolean, "acepta_permuta" boolean, "placado" boolean, "kilometraje" integer, "categoria_id" "uuid", "fase_id" "uuid", "atributos" "jsonb", "lead_id" "uuid", "publicado_web" boolean, "destacado_web" boolean, "precio_web" numeric, "precio_web_hasta" numeric, "precio_web_nota" "text", "creado_por" "uuid", "creado_en" timestamp with time zone, "actualizado_en" timestamp with time zone, "estado_subasta" "public"."estado_subasta", "situacion" "text", "limpieza_el" "date", "portada_ruta" "text")
+CREATE OR REPLACE FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer DEFAULT NULL::integer, "p_filtros" "jsonb" DEFAULT '[]'::"jsonb", "p_cursor_en" timestamp with time zone DEFAULT NULL::timestamp with time zone, "p_cursor_id" "uuid" DEFAULT NULL::"uuid", "p_hacia_atras" boolean DEFAULT false, "p_orden" "text" DEFAULT 'reciente'::"text", "p_cursor_tramo" smallint DEFAULT NULL::smallint) RETURNS TABLE("id" "uuid", "numero" bigint, "origen_id" "uuid", "titulo" "text", "marca" "text", "modelo" "text", "anio" smallint, "vin" "text", "lote" "text", "plataforma" "text", "url_origen" "text", "precio" numeric, "precio_negociable" boolean, "acepta_permuta" boolean, "placado" boolean, "kilometraje" integer, "categoria_id" "uuid", "fase_id" "uuid", "atributos" "jsonb", "lead_id" "uuid", "publicado_web" boolean, "destacado_web" boolean, "precio_web" numeric, "precio_web_hasta" numeric, "precio_web_nota" "text", "creado_por" "uuid", "creado_en" timestamp with time zone, "actualizado_en" timestamp with time zone, "estado_subasta" "public"."estado_subasta", "situacion" "text", "cierre_subasta_en" timestamp with time zone, "limpieza_el" "date", "portada_ruta" "text")
     LANGUAGE "plpgsql" STABLE
     SET "search_path" TO ''
     AS $$
@@ -41691,8 +43460,8 @@ begin
     -- Con más de 5.000 leads en la cartera, lo de hoy: el origen, y la RLS pregunta en_cartera() por fila.
     v_rutas := case when public.leads_cartera_corta() then 'propios' else 'origen' end;
   end if;
-  -- Los filtros se validan también sin ruta: un pedido que no vale falla igual para todos.
-  v_sql := public._vehiculos_inventario_sql(v_filtros, coalesce(v_rutas, 'origen'), v_sentido);
+  -- Los filtros, el orden y el tramo se validan también sin ruta: un pedido que no vale falla igual para todos.
+  v_sql := public._vehiculos_inventario_sql(v_filtros, coalesce(v_rutas, 'origen'), v_sentido, p_orden, p_cursor_tramo);
   if v_rutas is null then
     return;
   end if;
@@ -41700,10 +43469,10 @@ begin
 end $$;
 
 
-ALTER FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) OWNER TO "postgres";
+ALTER FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean, "p_orden" "text", "p_cursor_tramo" smallint) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) IS 'Una página del inventario de un origen, de lo más nuevo a lo más viejo (creado_en desc, id desc), por cursor (hacia atrás, en orden ascendente), con los filtros del layout (Condicion[]) y, por fila, limpieza_el, la portada, el estado de la subasta y la situación. Corre como quien la llama: la RLS decide qué se ve; cada ruta (el origen, lo creado, la cartera de mis_leads()) va por su índice con su propio limit. Lo mide supabase/tests/medir-vehiculos-inventario.sql.';
+COMMENT ON FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean, "p_orden" "text", "p_cursor_tramo" smallint) IS 'Una página del inventario de un origen, de lo más nuevo a lo más viejo (creado_en desc, id desc) o por el cierre más próximo, por tramos (p_orden = cierre: las vivas con fecha por su cierre, las vivas sin fecha y las demás por alta; el cursor lleva su tramo), por cursor (hacia atrás, en orden inverso), con los filtros del layout (Condicion[]) y, por fila, limpieza_el, la portada, el estado de la subasta, la situación y el cierre de la subasta viva. Corre como quien la llama: la RLS decide qué se ve; cada ruta (el origen, lo creado, la cartera de mis_leads()) y cada tramo van por su índice con su propio limit. Lo miden supabase/tests/medir-vehiculos-inventario.sql y medir-vehiculos-inventario-cierre.sql.';
 
 
 
@@ -43559,7 +45328,7 @@ CREATE TABLE IF NOT EXISTS "public"."cotizaciones_aprobadas" (
 ALTER TABLE "public"."cotizaciones_aprobadas" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."cotizaciones_aprobadas" IS 'La cotización aprobada de cada vehículo (una fila por vehículo) con su primer resultado congelado (monto, moneda). Sólo la escriben cotizacion_aprobar() y _aprobada_reponer() (al confirmar, por trg_cotizaciones_aprobadas_al_confirmar). origen_id, creado_por y lead_id son copias de la cotización: su policy espeja «cotizaciones: leer», así que la fila y el monto los ve exactamente quien ve esa cotización.';
+COMMENT ON TABLE "public"."cotizaciones_aprobadas" IS 'La cotización aprobada de cada vehículo (una fila por vehículo) con su primer resultado congelado (monto, moneda). Sólo la escriben cotizacion_aprobar() y _aprobada_reponer() (al confirmar, por trg_cotizaciones_aprobadas_al_confirmar). origen_id, creado_por y lead_id son copias de la cotización: su policy espeja «cotizaciones: leer», así que la fila y el monto los ve exactamente quien ve esa cotización. La aprobada nunca es privada (aprobarla la hace pública, una privada no se elige al reponer y la aprobada no se hace privada): la regla de la marca no hace falta en su policy.';
 
 
 
@@ -43628,27 +45397,6 @@ ALTER TABLE "public"."cotizaciones" ALTER COLUMN "numero" ADD GENERATED ALWAYS A
     NO MAXVALUE
     CACHE 1
 );
-
-
-
-CREATE TABLE IF NOT EXISTS "public"."cotizaciones_portadas" (
-    "cotizacion_id" "uuid" NOT NULL,
-    "ruta" "text" NOT NULL,
-    "clave" "text" NOT NULL,
-    "generada_en" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "cotizaciones_portadas_clave_check" CHECK ((("char_length"("clave") >= 1) AND ("char_length"("clave") <= 64))),
-    CONSTRAINT "cotizaciones_portadas_ruta_check" CHECK (("ruta" ~ (('^'::"text" || ("cotizacion_id")::"text") || '/portada/[0-9a-f]{64}\.webp$'::"text")))
-);
-
-
-ALTER TABLE "public"."cotizaciones_portadas" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."cotizaciones_portadas" IS 'La portada de cada cotización guardada: la imagen de su tarjeta (WebP por hash en el bucket cotizaciones, <cotización>/portada/<sha-256>.webp) y la clave de lo que la armó (_cotizacion_portada_clave). Una fila por cotización; se va con ella por la cascada y su objeto, por la cola de limpieza. Sólo la escribe cotizacion_portada_poner(); se lee como la cotización.';
-
-
-
-COMMENT ON COLUMN "public"."cotizaciones_portadas"."clave" IS 'La huella de lo que dibuja la tarjeta cuando se armó (_cotizacion_portada_clave). Distinta de la vigente: la portada quedó vieja. Es la ETag de GET /cotizaciones/<id>/portada.';
 
 
 
@@ -44428,14 +46176,19 @@ CREATE TABLE IF NOT EXISTS "public"."plantillas_tarjeta" (
     "creado_por" "uuid",
     "publicado_en" timestamp with time zone,
     "creado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "actualizado_en" timestamp with time zone DEFAULT "now"() NOT NULL
+    "actualizado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "formula_del_origen_id" "uuid" NOT NULL
 );
 
 
 ALTER TABLE "public"."plantillas_tarjeta" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."plantillas_tarjeta" IS 'Cómo se ve la cotización (PDF y tarjeta). Versionado espejo de formulas, independiente de ella.';
+COMMENT ON TABLE "public"."plantillas_tarjeta" IS 'Cómo se ve la cotización (PDF y tarjeta), de una fórmula del origen. Versionado espejo de formulas, independiente de ella.';
+
+
+
+COMMENT ON COLUMN "public"."plantillas_tarjeta"."formula_del_origen_id" IS 'La fórmula del origen de esta plantilla. Nula al insertar: la pone trg_fdo_asignar (la de trabajo del origen).';
 
 
 
@@ -44445,6 +46198,8 @@ CREATE TABLE IF NOT EXISTS "public"."preferencias_usuario" (
     "valor" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
     "actualizado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
     CONSTRAINT "preferencias_agrupar_cotizaciones_valida" CHECK ((("clave" <> 'cotizaciones.agrupar'::"text") OR ("jsonb_typeof"("valor") = 'boolean'::"text"))),
+    CONSTRAINT "preferencias_embudo_de_la_ficha_valida" CHECK ((("clave" <> 'leads.embudo_de_la_ficha'::"text") OR (("jsonb_typeof"("valor") = 'string'::"text") AND (("valor" #>> '{}'::"text"[]) ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'::"text")))),
+    CONSTRAINT "preferencias_menu_plegado_valida" CHECK ((("clave" <> 'menu.plegado'::"text") OR ("jsonb_typeof"("valor") = 'boolean'::"text"))),
     CONSTRAINT "preferencias_por_pagina_valida" CHECK ((("clave" <> 'listas.por_pagina'::"text") OR ("valor" = ANY (ARRAY['10'::"jsonb", '25'::"jsonb", '50'::"jsonb", '100'::"jsonb"])))),
     CONSTRAINT "preferencias_vista_de_cotizaciones_valida" CHECK ((("clave" <> 'cotizaciones.vista'::"text") OR ("valor" = ANY (ARRAY['"tabla"'::"jsonb", '"tarjetas"'::"jsonb"])))),
     CONSTRAINT "preferencias_vista_de_vehiculos_valida" CHECK ((("clave" <> 'vehiculos.vista'::"text") OR ("valor" = ANY (ARRAY['"tabla"'::"jsonb", '"tarjetas"'::"jsonb"])))),
@@ -44708,47 +46463,6 @@ ALTER TABLE "public"."suscripciones_push" OWNER TO "postgres";
 
 
 COMMENT ON TABLE "public"."suscripciones_push" IS 'Suscripciones de push web, una por navegador (endpoint único). Se escribe sólo por push_suscribir / push_desuscribir; la función push anota con push_resultado. La persona lee y borra las suyas.';
-
-
-
-CREATE TABLE IF NOT EXISTS "public"."tablas_referencia" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "origen_id" "uuid",
-    "clave" "text" NOT NULL,
-    "nombre" "text" NOT NULL,
-    "descripcion" "text",
-    "columnas" "jsonb" NOT NULL,
-    "activa" boolean DEFAULT true NOT NULL,
-    "creado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "actualizado_en" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "version" integer DEFAULT 1 NOT NULL,
-    "nota" "text",
-    "publicado_por" "uuid",
-    "publicado_en" timestamp with time zone,
-    CONSTRAINT "tablas_referencia_version_check" CHECK (("version" >= 1))
-);
-
-
-ALTER TABLE "public"."tablas_referencia" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."tablas_referencia" IS 'Tablas que alimentan los nodos tabla y tramo y el cálculo depreciar de la fórmula (impuestos por tipo, tramos por año y cilindrada, tarifas de transporte por ruta, depreciación por año). Las lee quien tiene cotizaciones.configurar; se escriben sólo con tabla_referencia_publicar() (4.23-1), que publica la N+1 de cada fórmula que la usa con la copia congelada.';
-
-
-
-COMMENT ON COLUMN "public"."tablas_referencia"."version" IS 'La versión de la tabla: 1 al crearla; tabla_referencia_publicar() la sube en uno. Es la esperada al publicar (PT409 si otra persona publicó antes).';
-
-
-
-COMMENT ON COLUMN "public"."tablas_referencia"."nota" IS 'La nota de la última publicación (nula en la versión 1).';
-
-
-
-COMMENT ON COLUMN "public"."tablas_referencia"."publicado_por" IS 'Quién publicó la versión vigente (nulo en la versión 1 o si la cuenta se borró).';
-
-
-
-COMMENT ON COLUMN "public"."tablas_referencia"."publicado_en" IS 'Cuándo se publicó la versión vigente (nulo en la versión 1).';
 
 
 
@@ -45422,11 +47136,6 @@ ALTER TABLE ONLY "public"."cotizaciones"
 
 
 
-ALTER TABLE ONLY "public"."cotizaciones_portadas"
-    ADD CONSTRAINT "cotizaciones_portadas_pkey" PRIMARY KEY ("cotizacion_id");
-
-
-
 ALTER TABLE ONLY "public"."cotizaciones_reportes"
     ADD CONSTRAINT "cotizaciones_reportes_pkey" PRIMARY KEY ("cotizacion_id", "usuario_id");
 
@@ -45547,8 +47256,18 @@ ALTER TABLE ONLY "public"."flujos_reglas"
 
 
 
+ALTER TABLE ONLY "public"."formulas_del_origen"
+    ADD CONSTRAINT "formulas_del_origen_origen_id_id_key" UNIQUE ("origen_id", "id");
+
+
+
+ALTER TABLE ONLY "public"."formulas_del_origen"
+    ADD CONSTRAINT "formulas_del_origen_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."formulas"
-    ADD CONSTRAINT "formulas_origen_id_version_key" UNIQUE ("origen_id", "version");
+    ADD CONSTRAINT "formulas_formula_del_origen_id_version_key" UNIQUE ("formula_del_origen_id", "version");
 
 
 
@@ -45778,7 +47497,7 @@ ALTER TABLE ONLY "public"."permisos"
 
 
 ALTER TABLE ONLY "public"."plantillas_tarjeta"
-    ADD CONSTRAINT "plantillas_tarjeta_origen_id_version_key" UNIQUE ("origen_id", "version");
+    ADD CONSTRAINT "plantillas_tarjeta_formula_del_origen_id_version_key" UNIQUE ("formula_del_origen_id", "version");
 
 
 
@@ -46361,14 +48080,6 @@ CREATE INDEX "cotizaciones_plantilla_id_idx" ON "public"."cotizaciones" USING "b
 
 
 
-CREATE UNIQUE INDEX "cotizaciones_portadas_ruta_key" ON "public"."cotizaciones_portadas" USING "btree" ("ruta");
-
-
-
-COMMENT ON INDEX "public"."cotizaciones_portadas_ruta_key" IS 'El refcount de storage (storage_refcount(''cotizaciones'', ruta)) del barrido y de la cola de limpieza: una ruta, sin recorrer la tabla.';
-
-
-
 CREATE INDEX "cotizaciones_relacion_lead_idx" ON "public"."cotizaciones" USING "btree" ("lead_id", "creado_en" DESC, "id" DESC) WHERE (("eliminado_en" IS NULL) AND ("estado" = ANY (ARRAY['activa'::"public"."estado_cotizacion", 'reportada'::"public"."estado_cotizacion"])) AND ("vehiculo_id" IS NOT NULL));
 
 
@@ -46593,7 +48304,7 @@ CREATE UNIQUE INDEX "flujos_transporte_oferta_puerto_key" ON "public"."flujos_tr
 
 
 
-CREATE UNIQUE INDEX "formulas_borrador_unico" ON "public"."formulas" USING "btree" ("origen_id") WHERE ("estado" = 'borrador'::"public"."estado_version");
+CREATE UNIQUE INDEX "formulas_borrador_unico" ON "public"."formulas" USING "btree" ("formula_del_origen_id") WHERE ("estado" = 'borrador'::"public"."estado_version");
 
 
 
@@ -46601,11 +48312,39 @@ CREATE INDEX "formulas_creado_por_idx" ON "public"."formulas" USING "btree" ("cr
 
 
 
+CREATE UNIQUE INDEX "formulas_del_origen_activa_unica" ON "public"."formulas_del_origen" USING "btree" ("origen_id") WHERE "activa";
+
+
+
+CREATE INDEX "formulas_del_origen_activada_por_idx" ON "public"."formulas_del_origen" USING "btree" ("activada_por");
+
+
+
+CREATE INDEX "formulas_del_origen_archivada_por_idx" ON "public"."formulas_del_origen" USING "btree" ("archivada_por");
+
+
+
+CREATE INDEX "formulas_del_origen_creado_por_idx" ON "public"."formulas_del_origen" USING "btree" ("creado_por");
+
+
+
+CREATE UNIQUE INDEX "formulas_del_origen_nombre_unico" ON "public"."formulas_del_origen" USING "btree" ("origen_id", "lower"("nombre"));
+
+
+
+CREATE INDEX "formulas_del_origen_origen_idx" ON "public"."formulas_del_origen" USING "btree" ("origen_id", "archivada_en", "creado_en" DESC, "id" DESC);
+
+
+
 CREATE INDEX "formulas_niveles_idx" ON "public"."formulas" USING "gin" ("public"."_niveles_del_diseno"("diseno") "jsonb_path_ops");
 
 
 
-CREATE UNIQUE INDEX "formulas_publicada_unica" ON "public"."formulas" USING "btree" ("origen_id") WHERE ("estado" = 'publicada'::"public"."estado_version");
+CREATE INDEX "formulas_origen_id_formula_del_origen_id_idx" ON "public"."formulas" USING "btree" ("origen_id", "formula_del_origen_id");
+
+
+
+CREATE UNIQUE INDEX "formulas_publicada_unica" ON "public"."formulas" USING "btree" ("formula_del_origen_id") WHERE ("estado" = 'publicada'::"public"."estado_version");
 
 
 
@@ -47069,15 +48808,19 @@ CREATE INDEX "permisos_nivel_clave_idx" ON "public"."permisos" USING "btree" ("n
 
 
 
-CREATE UNIQUE INDEX "plantillas_borrador_unico" ON "public"."plantillas_tarjeta" USING "btree" ("origen_id") WHERE ("estado" = 'borrador'::"public"."estado_version");
+CREATE UNIQUE INDEX "plantillas_borrador_unico" ON "public"."plantillas_tarjeta" USING "btree" ("formula_del_origen_id") WHERE ("estado" = 'borrador'::"public"."estado_version");
 
 
 
-CREATE UNIQUE INDEX "plantillas_publicada_unica" ON "public"."plantillas_tarjeta" USING "btree" ("origen_id") WHERE ("estado" = 'publicada'::"public"."estado_version");
+CREATE UNIQUE INDEX "plantillas_publicada_unica" ON "public"."plantillas_tarjeta" USING "btree" ("formula_del_origen_id") WHERE ("estado" = 'publicada'::"public"."estado_version");
 
 
 
 CREATE INDEX "plantillas_tarjeta_creado_por_idx" ON "public"."plantillas_tarjeta" USING "btree" ("creado_por");
+
+
+
+CREATE INDEX "plantillas_tarjeta_origen_id_formula_del_origen_id_idx" ON "public"."plantillas_tarjeta" USING "btree" ("origen_id", "formula_del_origen_id");
 
 
 
@@ -47597,6 +49340,22 @@ CREATE INDEX "vehiculos_subasta_resuelta_por_idx" ON "public"."vehiculos" USING 
 
 
 
+CREATE INDEX "vehiculos_subasta_viva_cierre_idx" ON "public"."vehiculos" USING "btree" ("origen_id", "cierre_subasta_en", "id") WHERE (("eliminado_en" IS NULL) AND ("situacion" = 'en_subasta'::"text") AND ("cierre_subasta_en" IS NOT NULL));
+
+
+
+COMMENT ON INDEX "public"."vehiculos_subasta_viva_cierre_idx" IS 'Las subastas vivas (situación en_subasta) con fecha, por origen y cierre: el orden «Cierre más próximo» (tramo 0) y las ventanas de cierre_entre del inventario.';
+
+
+
+CREATE INDEX "vehiculos_subasta_viva_sin_fecha_idx" ON "public"."vehiculos" USING "btree" ("origen_id", "creado_en" DESC, "id" DESC) WHERE (("eliminado_en" IS NULL) AND ("situacion" = 'en_subasta'::"text") AND ("cierre_subasta_en" IS NULL));
+
+
+
+COMMENT ON INDEX "public"."vehiculos_subasta_viva_sin_fecha_idx" IS 'Las subastas vivas (situación en_subasta) sin fecha, por origen y alta: el tramo 1 del orden «Cierre más próximo» del inventario.';
+
+
+
 CREATE INDEX "vehiculos_titulo_trgm" ON "public"."vehiculos" USING "gin" ("titulo" "extensions"."gin_trgm_ops");
 
 
@@ -47726,6 +49485,10 @@ CREATE OR REPLACE TRIGGER "trg_actualizado_en" BEFORE UPDATE ON "public"."fases"
 
 
 CREATE OR REPLACE TRIGGER "trg_actualizado_en" BEFORE UPDATE ON "public"."formulas" FOR EACH ROW EXECUTE FUNCTION "public"."set_actualizado_en"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_actualizado_en" BEFORE UPDATE ON "public"."formulas_del_origen" FOR EACH ROW EXECUTE FUNCTION "public"."set_actualizado_en"();
 
 
 
@@ -47977,7 +49740,7 @@ CREATE OR REPLACE TRIGGER "trg_compra_version" BEFORE UPDATE ON "public"."repues
 
 
 
-CREATE OR REPLACE TRIGGER "trg_cotizacion_aprobada_anotar" AFTER INSERT OR DELETE OR UPDATE OF "vehiculo_id", "estado", "eliminado_en", "totales", "lead_id", "creado_por", "origen_id" ON "public"."cotizaciones" FOR EACH ROW EXECUTE FUNCTION "public"."_cotizacion_aprobada_anotar"();
+CREATE OR REPLACE TRIGGER "trg_cotizacion_aprobada_anotar" AFTER INSERT OR DELETE OR UPDATE OF "vehiculo_id", "estado", "eliminado_en", "totales", "lead_id", "creado_por", "origen_id", "privada" ON "public"."cotizaciones" FOR EACH ROW EXECUTE FUNCTION "public"."_cotizacion_aprobada_anotar"();
 
 
 
@@ -48001,15 +49764,11 @@ CREATE OR REPLACE TRIGGER "trg_cotizacion_version" BEFORE UPDATE ON "public"."co
 
 
 
-CREATE CONSTRAINT TRIGGER "trg_cotizaciones_aprobadas_al_confirmar" AFTER INSERT OR DELETE OR UPDATE OF "vehiculo_id", "estado", "eliminado_en", "totales", "lead_id", "creado_por", "origen_id" ON "public"."cotizaciones" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION "public"."_cotizaciones_aprobadas_al_confirmar"();
+CREATE CONSTRAINT TRIGGER "trg_cotizaciones_aprobadas_al_confirmar" AFTER INSERT OR DELETE OR UPDATE OF "vehiculo_id", "estado", "eliminado_en", "totales", "lead_id", "creado_por", "origen_id", "privada" ON "public"."cotizaciones" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION "public"."_cotizaciones_aprobadas_al_confirmar"();
 
 
 
-CREATE CONSTRAINT TRIGGER "trg_cotizaciones_hermanas" AFTER INSERT OR UPDATE OF "hermana_id", "lead_id", "vehiculo_id", "origen_id", "formula_id" ON "public"."cotizaciones" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW WHEN (("new"."hermana_id" IS NOT NULL)) EXECUTE FUNCTION "public"."_cotizaciones_hermanas_comprobar"();
-
-
-
-CREATE OR REPLACE TRIGGER "trg_cotizaciones_portada_rescatar" BEFORE INSERT OR UPDATE OF "ruta" ON "public"."cotizaciones_portadas" FOR EACH ROW EXECUTE FUNCTION "public"."cotizaciones_portada_rescatar"();
+CREATE CONSTRAINT TRIGGER "trg_cotizaciones_hermanas" AFTER INSERT OR UPDATE OF "hermana_id", "lead_id", "vehiculo_id", "origen_id", "formula_id", "privada" ON "public"."cotizaciones" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW WHEN (("new"."hermana_id" IS NOT NULL)) EXECUTE FUNCTION "public"."_cotizaciones_hermanas_comprobar"();
 
 
 
@@ -48046,6 +49805,18 @@ CREATE OR REPLACE TRIGGER "trg_fase_situacion" AFTER INSERT OR DELETE OR UPDATE 
 
 
 CREATE OR REPLACE TRIGGER "trg_fase_validar" BEFORE INSERT OR UPDATE ON "public"."fases" FOR EACH ROW EXECUTE FUNCTION "public"."fase_validar"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_fdo_asignar" BEFORE INSERT OR UPDATE OF "estado" ON "public"."formulas" FOR EACH ROW EXECUTE FUNCTION "public"."_fdo_asignar"();
+
+ALTER TABLE "public"."formulas" ENABLE ALWAYS TRIGGER "trg_fdo_asignar";
+
+
+
+CREATE OR REPLACE TRIGGER "trg_fdo_asignar" BEFORE INSERT ON "public"."plantillas_tarjeta" FOR EACH ROW EXECUTE FUNCTION "public"."_fdo_asignar"();
+
+ALTER TABLE "public"."plantillas_tarjeta" ENABLE ALWAYS TRIGGER "trg_fdo_asignar";
 
 
 
@@ -48337,7 +50108,7 @@ CREATE OR REPLACE TRIGGER "trg_transporte_exigido" BEFORE UPDATE OF "naviera_id"
 
 
 
-CREATE OR REPLACE TRIGGER "trg_vehiculo_cotizado" AFTER INSERT OR UPDATE OF "vehiculo_id" ON "public"."cotizaciones" FOR EACH ROW EXECUTE FUNCTION "public"."_vehiculo_cotizado"();
+CREATE OR REPLACE TRIGGER "trg_vehiculo_cotizado" AFTER INSERT OR UPDATE OF "vehiculo_id", "privada" ON "public"."cotizaciones" FOR EACH ROW EXECUTE FUNCTION "public"."_vehiculo_cotizado"();
 
 
 
@@ -48617,11 +50388,6 @@ ALTER TABLE ONLY "public"."cotizaciones"
 
 
 
-ALTER TABLE ONLY "public"."cotizaciones_portadas"
-    ADD CONSTRAINT "cotizaciones_portadas_cotizacion_id_fkey" FOREIGN KEY ("cotizacion_id") REFERENCES "public"."cotizaciones"("id") ON DELETE CASCADE;
-
-
-
 ALTER TABLE ONLY "public"."cotizaciones_reportes"
     ADD CONSTRAINT "cotizaciones_reportes_cotizacion_id_fkey" FOREIGN KEY ("cotizacion_id") REFERENCES "public"."cotizaciones"("id") ON DELETE CASCADE;
 
@@ -48829,6 +50595,31 @@ ALTER TABLE ONLY "public"."flujos_transporte_oferta"
 
 ALTER TABLE ONLY "public"."formulas"
     ADD CONSTRAINT "formulas_creado_por_fkey" FOREIGN KEY ("creado_por") REFERENCES "public"."perfiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."formulas_del_origen"
+    ADD CONSTRAINT "formulas_del_origen_activada_por_fkey" FOREIGN KEY ("activada_por") REFERENCES "public"."perfiles"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."formulas_del_origen"
+    ADD CONSTRAINT "formulas_del_origen_archivada_por_fkey" FOREIGN KEY ("archivada_por") REFERENCES "public"."perfiles"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."formulas_del_origen"
+    ADD CONSTRAINT "formulas_del_origen_creado_por_fkey" FOREIGN KEY ("creado_por") REFERENCES "public"."perfiles"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."formulas_del_origen"
+    ADD CONSTRAINT "formulas_del_origen_origen_id_fkey" FOREIGN KEY ("origen_id") REFERENCES "public"."origenes"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."formulas"
+    ADD CONSTRAINT "formulas_formula_del_origen_fkey" FOREIGN KEY ("origen_id", "formula_del_origen_id") REFERENCES "public"."formulas_del_origen"("origen_id", "id") ON DELETE CASCADE;
 
 
 
@@ -49234,6 +51025,11 @@ ALTER TABLE ONLY "public"."permisos"
 
 ALTER TABLE ONLY "public"."plantillas_tarjeta"
     ADD CONSTRAINT "plantillas_tarjeta_creado_por_fkey" FOREIGN KEY ("creado_por") REFERENCES "public"."perfiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."plantillas_tarjeta"
+    ADD CONSTRAINT "plantillas_tarjeta_formula_del_origen_fkey" FOREIGN KEY ("origen_id", "formula_del_origen_id") REFERENCES "public"."formulas_del_origen"("origen_id", "id") ON DELETE CASCADE;
 
 
 
@@ -49845,7 +51641,7 @@ CREATE POLICY "cotizaciones: fuera de la papelera" ON "public"."cotizaciones" AS
 
 
 
-CREATE POLICY "cotizaciones: leer" ON "public"."cotizaciones" FOR SELECT TO "authenticated" USING ((("eliminado_en" IS NULL) AND (("origen_id" = ANY (( SELECT "public"."origenes_con_alcance"('cotizaciones.ver'::"text", 'todos'::"public"."alcance_permiso") AS "origenes_con_alcance")::"uuid"[])) OR (("origen_id" = ANY (( SELECT "public"."origenes_con_alcance"('cotizaciones.ver'::"text", 'propios'::"public"."alcance_permiso") AS "origenes_con_alcance")::"uuid"[])) AND (("creado_por" = ( SELECT "auth"."uid"() AS "uid")) OR "public"."en_cartera"("lead_id"))))));
+CREATE POLICY "cotizaciones: leer" ON "public"."cotizaciones" FOR SELECT TO "authenticated" USING ((("eliminado_en" IS NULL) AND ((NOT "privada") OR ("creado_por" = ( SELECT "auth"."uid"() AS "uid")) OR ("origen_id" = ANY (( SELECT "public"."origenes_con_alcance"('cotizaciones.privadas.ver'::"text", 'propios'::"public"."alcance_permiso") AS "origenes_con_alcance")::"uuid"[]))) AND (("origen_id" = ANY (( SELECT "public"."origenes_con_alcance"('cotizaciones.ver'::"text", 'todos'::"public"."alcance_permiso") AS "origenes_con_alcance")::"uuid"[])) OR (("origen_id" = ANY (( SELECT "public"."origenes_con_alcance"('cotizaciones.ver'::"text", 'propios'::"public"."alcance_permiso") AS "origenes_con_alcance")::"uuid"[])) AND (("creado_por" = ( SELECT "auth"."uid"() AS "uid")) OR "public"."en_cartera"("lead_id"))))));
 
 
 
@@ -49902,13 +51698,6 @@ CREATE POLICY "cotizaciones_favoritos: leer" ON "public"."cotizaciones_favoritos
 
 
 ALTER TABLE "public"."cotizaciones_niveles" ENABLE ROW LEVEL SECURITY;
-
-
-ALTER TABLE "public"."cotizaciones_portadas" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "cotizaciones_portadas: leer" ON "public"."cotizaciones_portadas" FOR SELECT TO "authenticated" USING (( SELECT "public"."puede_cotizacion"("cotizaciones_portadas"."cotizacion_id", 'cotizaciones.ver'::"text") AS "puede_cotizacion"));
-
 
 
 ALTER TABLE "public"."cotizaciones_reportes" ENABLE ROW LEVEL SECURITY;
@@ -50063,6 +51852,13 @@ ALTER TABLE "public"."formulas" ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "formulas: leer" ON "public"."formulas" FOR SELECT TO "authenticated" USING (("origen_id" = ANY (( SELECT "public"."origenes_con_alcance"('cotizaciones.configurar'::"text", 'propios'::"public"."alcance_permiso") AS "origenes_con_alcance")::"uuid"[])));
+
+
+
+ALTER TABLE "public"."formulas_del_origen" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "formulas_del_origen: leer" ON "public"."formulas_del_origen" FOR SELECT TO "authenticated" USING (("origen_id" = ANY (( SELECT "public"."origenes_con_alcance"('cotizaciones.configurar'::"text", 'propios'::"public"."alcance_permiso") AS "origenes_con_alcance")::"uuid"[])));
 
 
 
@@ -51832,6 +53628,10 @@ GRANT SELECT("hermana_id") ON TABLE "public"."cotizaciones" TO "authenticated";
 
 
 
+GRANT SELECT("privada") ON TABLE "public"."cotizaciones" TO "authenticated";
+
+
+
 REVOKE ALL ON FUNCTION "public"."_cotizacion_cadena"("c" "public"."cotizaciones", "p_publicada" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_cotizacion_cadena"("c" "public"."cotizaciones", "p_publicada" "uuid") TO "service_role";
 
@@ -51890,16 +53690,6 @@ GRANT ALL ON FUNCTION "public"."_cotizacion_lo_que_se_lleva"("p_def" "jsonb", "p
 
 REVOKE ALL ON FUNCTION "public"."_cotizacion_modo"("p_formula" "uuid", "p_modo_tc" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_cotizacion_modo"("p_formula" "uuid", "p_modo_tc" "text") TO "service_role";
-
-
-
-REVOKE ALL ON FUNCTION "public"."_cotizacion_portada_clave"("p_cot" "uuid") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_cotizacion_portada_clave"("p_cot" "uuid") TO "service_role";
-
-
-
-REVOKE ALL ON FUNCTION "public"."_cotizacion_portada_ve_todo"("p_lead" "uuid", "p_vehiculo" "uuid") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_cotizacion_portada_ve_todo"("p_lead" "uuid", "p_vehiculo" "uuid") TO "service_role";
 
 
 
@@ -52323,6 +54113,71 @@ GRANT ALL ON FUNCTION "public"."_fase_uso"("p_fase" "uuid") TO "service_role";
 
 REVOKE ALL ON FUNCTION "public"."_fase_validar"("p_fila" "public"."fases", "p_claves" "text"[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_fase_validar"("p_fila" "public"."fases", "p_claves" "text"[]) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_activada_por"("p_fdo" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_activada_por"("p_fdo" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_asignar"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_asignar"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_campos_que_faltan"("p_def" "jsonb", "p_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_campos_que_faltan"("p_def" "jsonb", "p_origen" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_de_trabajo"("p_origen" "uuid", "p_crear" boolean) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_de_trabajo"("p_origen" "uuid", "p_crear" boolean) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_de_trabajo_leida"("p_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_de_trabajo_leida"("p_origen" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_exigir_campos"("p_def" "jsonb", "p_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_exigir_campos"("p_def" "jsonb", "p_origen" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_formula_en_blanco"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_formula_en_blanco"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_nombre"("p_nombre" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_nombre"("p_nombre" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_origen_con_permiso"("p_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_origen_con_permiso"("p_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."formulas_del_origen" TO "service_role";
+GRANT SELECT ON TABLE "public"."formulas_del_origen" TO "authenticated";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_resolver"("p_origen" "uuid", "p_formula_del_origen" "uuid", "p_crear" boolean) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_resolver"("p_origen" "uuid", "p_formula_del_origen" "uuid", "p_crear" boolean) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_tarjeta_en_blanco"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_tarjeta_en_blanco"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_fdo_tomar"("p_id" "uuid", "p_origen" "uuid", "p_esperada" timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_fdo_tomar"("p_id" "uuid", "p_origen" "uuid", "p_esperada" timestamp with time zone) TO "service_role";
 
 
 
@@ -53253,12 +55108,6 @@ GRANT ALL ON FUNCTION "public"."_papelera_solo_cotizaciones"("p_tipo" "public"."
 
 
 
-REVOKE ALL ON FUNCTION "public"."_paquete_colores_preparar"("p_reusar" "jsonb", "p_crear" integer) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_paquete_colores_preparar"("p_reusar" "jsonb", "p_crear" integer) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."_paquete_colores_preparar"("p_reusar" "jsonb", "p_crear" integer) TO "service_role";
-
-
-
 REVOKE ALL ON FUNCTION "public"."_personas_dominadas"("p_ids" "uuid"[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_personas_dominadas"("p_ids" "uuid"[]) TO "service_role";
 
@@ -53269,8 +55118,8 @@ GRANT ALL ON FUNCTION "public"."_plantilla_alto_de_texto"("p_texto" "text", "p_a
 
 
 
-REVOKE ALL ON FUNCTION "public"."_plantilla_borrador_ausente"("p_origen" "uuid", "p_esperada" timestamp with time zone) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_plantilla_borrador_ausente"("p_origen" "uuid", "p_esperada" timestamp with time zone) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."_plantilla_borrador_ausente"("p_formula_del_origen" "uuid", "p_esperada" timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_plantilla_borrador_ausente"("p_formula_del_origen" "uuid", "p_esperada" timestamp with time zone) TO "service_role";
 
 
 
@@ -53281,6 +55130,24 @@ GRANT ALL ON FUNCTION "public"."_plantilla_conversion_fila"("p_armado" "jsonb", 
 
 REVOKE ALL ON FUNCTION "public"."_plantilla_convertir"("p_plantilla" "jsonb", "p_def" "jsonb", "p_diseno" "jsonb", "p_visibilidad" "jsonb", "p_tonos" "text"[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_plantilla_convertir"("p_plantilla" "jsonb", "p_def" "jsonb", "p_diseno" "jsonb", "p_visibilidad" "jsonb", "p_tonos" "text"[]) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_plantilla_cuadricula_condiciones"("p_si" "jsonb", "p_donde" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_condiciones"("p_si" "jsonb", "p_donde" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_condiciones"("p_si" "jsonb", "p_donde" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_plantilla_cuadricula_dato"("p_x" "jsonb", "p_donde" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_dato"("p_x" "jsonb", "p_donde" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_dato"("p_x" "jsonb", "p_donde" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" "jsonb") TO "service_role";
 
 
 
@@ -53299,6 +55166,12 @@ GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_nodos"("p_plantilla" "json
 REVOKE ALL ON FUNCTION "public"."_plantilla_cuadricula_rechazar"("p_regla" "text", "p_donde" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_rechazar"("p_regla" "text", "p_donde" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_rechazar"("p_regla" "text", "p_donde" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_plantilla_cuadricula_simple"("p_x" "jsonb", "p_donde" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_simple"("p_x" "jsonb", "p_donde" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_simple"("p_x" "jsonb", "p_donde" "text") TO "service_role";
 
 
 
@@ -53336,8 +55209,8 @@ GRANT ALL ON FUNCTION "public"."_plantilla_pieza"("p_columna" "text", "p_hasta" 
 
 
 
-REVOKE ALL ON FUNCTION "public"."_portada_version_del_dibujo"() FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_portada_version_del_dibujo"() TO "service_role";
+REVOKE ALL ON FUNCTION "public"."_plantilla_publicar_en"("p_formula_del_origen" "uuid", "p_nota" "text", "p_esperada" timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_plantilla_publicar_en"("p_formula_del_origen" "uuid", "p_nota" "text", "p_esperada" timestamp with time zone) TO "service_role";
 
 
 
@@ -53385,13 +55258,18 @@ GRANT ALL ON FUNCTION "public"."_proyecto_fase_que_pide_pago"("p_proyecto" "uuid
 
 
 
-REVOKE ALL ON FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."_publicada_de_la_activa"("p_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_publicada_de_la_activa"("p_origen" "uuid") TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_publicar_formula"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_ignorar_retirados" boolean, "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean, "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_publicar_version"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_esperada" "uuid", "p_detalle" "jsonb", "p_ignorar_retirados" boolean, "p_formula_del_origen" "uuid") TO "service_role";
 
 
 
@@ -53752,8 +55630,28 @@ GRANT ALL ON FUNCTION "public"."_subasta_puede_resolver"("p_vehiculo" "uuid") TO
 
 
 
+REVOKE ALL ON FUNCTION "public"."_tabla_referencia_clave"("p_nombre" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_tabla_referencia_clave"("p_nombre" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_tabla_referencia_columnas_validas"("p_columnas" "jsonb", "p_anteriores" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_tabla_referencia_columnas_validas"("p_columnas" "jsonb", "p_anteriores" "jsonb") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."_tabla_referencia_filas_validas"("p_columnas" "jsonb", "p_filas" "jsonb") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_tabla_referencia_filas_validas"("p_columnas" "jsonb", "p_filas" "jsonb") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_tabla_referencia_frase_de_usos"("p_tabla" "uuid", "p_columnas" "text"[]) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_tabla_referencia_frase_de_usos"("p_tabla" "uuid", "p_columnas" "text"[]) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_tabla_referencia_permiso_de_quienes_la_usan"("p_tabla" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_tabla_referencia_permiso_de_quienes_la_usan"("p_tabla" "uuid") TO "service_role";
 
 
 
@@ -53762,8 +55660,23 @@ GRANT ALL ON FUNCTION "public"."_tabla_referencia_publicada_por"("p_tabla" "uuid
 
 
 
+GRANT ALL ON TABLE "public"."tablas_referencia" TO "service_role";
+GRANT SELECT ON TABLE "public"."tablas_referencia" TO "authenticated";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_tabla_referencia_tomar"("p_tabla" "uuid", "p_version_esperada" integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_tabla_referencia_tomar"("p_tabla" "uuid", "p_version_esperada" integer) TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."_tabla_referencia_usada_en"("p_tabla" "uuid", "p_origen" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_tabla_referencia_usada_en"("p_tabla" "uuid", "p_origen" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_tabla_referencia_usos"("p_tabla" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_tabla_referencia_usos"("p_tabla" "uuid") TO "service_role";
 
 
 
@@ -54110,9 +56023,9 @@ GRANT ALL ON FUNCTION "public"."_vehiculos_inventario_patron"("p_i" integer) TO 
 
 
 
-REVOKE ALL ON FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text") TO "service_role";
+REVOKE ALL ON FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text", "p_orden" "text", "p_tramo" smallint) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text", "p_orden" "text", "p_tramo" smallint) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_vehiculos_inventario_sql"("p_filtros" "jsonb", "p_rutas" "text", "p_sentido" "text", "p_orden" "text", "p_tramo" smallint) TO "service_role";
 
 
 
@@ -54539,9 +56452,9 @@ GRANT ALL ON FUNCTION "public"."cotizacion_adjunto_quitar"("p_adjunto" "uuid") T
 
 
 
-REVOKE ALL ON FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_hacerla_publica" boolean) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_hacerla_publica" boolean) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."cotizacion_aprobar"("p_cotizacion" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_hacerla_publica" boolean) TO "service_role";
 
 
 
@@ -54585,15 +56498,15 @@ GRANT ALL ON FUNCTION "public"."cotizacion_contadores"() TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."cotizacion_crear"("p_id" "uuid", "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_vehiculo_nuevo" "jsonb", "p_modo_tc" "text", "p_clase" "public"."clase_cotizacion", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."cotizacion_crear_en_par"("p_ids" "uuid"[], "p_origen" "uuid", "p_lead" "uuid", "p_entradas" "jsonb", "p_abierta" "text", "p_vehiculo" "uuid", "p_modo_tc" "text", "p_con_la_abierta" boolean, "p_ver_total_bs" boolean, "p_titulo" "text", "p_titulo_manual" boolean, "p_privada" boolean) TO "service_role";
 
 
 
@@ -54645,6 +56558,12 @@ GRANT ALL ON FUNCTION "public"."cotizacion_hoja_guardada"("p_id" "uuid") TO "ser
 
 
 
+REVOKE ALL ON FUNCTION "public"."cotizacion_imagen_huella"("p_cotizacion" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."cotizacion_imagen_huella"("p_cotizacion" "uuid") TO "service_role";
+GRANT ALL ON FUNCTION "public"."cotizacion_imagen_huella"("p_cotizacion" "uuid") TO "authenticated";
+
+
+
 REVOKE ALL ON FUNCTION "public"."cotizacion_leer"("p_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."cotizacion_leer"("p_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."cotizacion_leer"("p_id" "uuid") TO "service_role";
@@ -54663,27 +56582,9 @@ GRANT ALL ON FUNCTION "public"."cotizacion_moderar"("p_cotizacion" "uuid", "p_ac
 
 
 
-REVOKE ALL ON FUNCTION "public"."cotizacion_paquete_aplicar"("p_origen" "uuid", "p_paquete" "jsonb", "p_formula_esperada" timestamp with time zone, "p_plantilla_esperada" timestamp with time zone) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."cotizacion_paquete_aplicar"("p_origen" "uuid", "p_paquete" "jsonb", "p_formula_esperada" timestamp with time zone, "p_plantilla_esperada" timestamp with time zone) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."cotizacion_paquete_aplicar"("p_origen" "uuid", "p_paquete" "jsonb", "p_formula_esperada" timestamp with time zone, "p_plantilla_esperada" timestamp with time zone) TO "service_role";
-
-
-
-REVOKE ALL ON FUNCTION "public"."cotizacion_portada"("p_cotizacion" "uuid") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."cotizacion_portada"("p_cotizacion" "uuid") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."cotizacion_portada"("p_cotizacion" "uuid") TO "service_role";
-
-
-
-REVOKE ALL ON FUNCTION "public"."cotizacion_portada_poner"("p_cotizacion" "uuid", "p_ruta" "text", "p_clave" "text") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."cotizacion_portada_poner"("p_cotizacion" "uuid", "p_ruta" "text", "p_clave" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."cotizacion_portada_poner"("p_cotizacion" "uuid", "p_ruta" "text", "p_clave" "text") TO "service_role";
-
-
-
-REVOKE ALL ON FUNCTION "public"."cotizacion_portada_visible"("p_cot" "uuid") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."cotizacion_portada_visible"("p_cot" "uuid") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."cotizacion_portada_visible"("p_cot" "uuid") TO "service_role";
+REVOKE ALL ON FUNCTION "public"."cotizacion_privada_cambiar"("p_cotizacion" "uuid", "p_privada" boolean, "p_actualizado_en_esperado" timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."cotizacion_privada_cambiar"("p_cotizacion" "uuid", "p_privada" boolean, "p_actualizado_en_esperado" timestamp with time zone) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."cotizacion_privada_cambiar"("p_cotizacion" "uuid", "p_privada" boolean, "p_actualizado_en_esperado" timestamp with time zone) TO "service_role";
 
 
 
@@ -54751,8 +56652,8 @@ GRANT ALL ON FUNCTION "public"."cotizaciones_aprobadas_de_vehiculos"("p_vehiculo
 
 
 REVOKE ALL ON FUNCTION "public"."cotizaciones_buscar"("p_texto" "text", "p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."cotizaciones_buscar"("p_texto" "text", "p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) TO "service_role";
 GRANT ALL ON FUNCTION "public"."cotizaciones_buscar"("p_texto" "text", "p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."cotizaciones_buscar"("p_texto" "text", "p_tamano" integer, "p_origen" "uuid", "p_clase" "public"."clase_cotizacion", "p_mias" boolean, "p_vehiculo" "uuid", "p_lead" "uuid", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) TO "service_role";
 
 
 
@@ -54807,11 +56708,6 @@ GRANT ALL ON FUNCTION "public"."cotizaciones_papelera_purgar"("p_lote" "uuid", "
 REVOKE ALL ON FUNCTION "public"."cotizaciones_papelera_restaurar"("p_lote" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_cotizaciones" "uuid"[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."cotizaciones_papelera_restaurar"("p_lote" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_cotizaciones" "uuid"[]) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."cotizaciones_papelera_restaurar"("p_lote" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_cotizaciones" "uuid"[]) TO "service_role";
-
-
-
-REVOKE ALL ON FUNCTION "public"."cotizaciones_portada_rescatar"() FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."cotizaciones_portada_rescatar"() TO "service_role";
 
 
 
@@ -55173,6 +57069,12 @@ GRANT ALL ON FUNCTION "public"."fase_validar"() TO "service_role";
 
 
 
+REVOKE ALL ON FUNCTION "public"."flujo_copiar_fases"("p_flujo" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_desde" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."flujo_copiar_fases"("p_flujo" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_desde" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."flujo_copiar_fases"("p_flujo" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_desde" "uuid") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."flujo_de_fase"("p_fase" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."flujo_de_fase"("p_fase" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."flujo_de_fase"("p_fase" "uuid") TO "service_role";
@@ -55230,27 +57132,57 @@ GRANT ALL ON FUNCTION "public"."formula_auditar"() TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid") TO "service_role";
+REVOKE ALL ON FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_cambiar_cabecera"("p_origen" "uuid", "p_modo_por_defecto" "text", "p_ver_total_bs_por_defecto" boolean, "p_modos_visibles" "text"[], "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid") TO "service_role";
+REVOKE ALL ON FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_cambiar_constante"("p_origen" "uuid", "p_nodo" "text", "p_valor" numeric, "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."formula_del_origen_activar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_activa_esperada" "uuid", "p_borrador_esperado" timestamp with time zone, "p_publicada_esperada" "uuid", "p_plantilla_borrador_esperado" timestamp with time zone, "p_plantilla_publicada_esperada" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_del_origen_activar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_activa_esperada" "uuid", "p_borrador_esperado" timestamp with time zone, "p_publicada_esperada" "uuid", "p_plantilla_borrador_esperado" timestamp with time zone, "p_plantilla_publicada_esperada" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_del_origen_activar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_activa_esperada" "uuid", "p_borrador_esperado" timestamp with time zone, "p_publicada_esperada" "uuid", "p_plantilla_borrador_esperado" timestamp with time zone, "p_plantilla_publicada_esperada" "uuid") TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."formula_del_origen_archivar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_del_origen_archivar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_del_origen_archivar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."formula_del_origen_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_copia_de" "uuid", "p_pieza" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_del_origen_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_copia_de" "uuid", "p_pieza" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_del_origen_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_copia_de" "uuid", "p_pieza" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."formula_del_origen_eliminar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_del_origen_eliminar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_del_origen_eliminar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."formula_del_origen_renombrar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nombre" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_del_origen_renombrar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nombre" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_del_origen_renombrar"("p_id" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nombre" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_guardar_borrador"("p_origen" "uuid", "p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") TO "service_role";
 
 
 
@@ -55260,15 +57192,15 @@ GRANT ALL ON FUNCTION "public"."formula_para_cotizar"("p_origen" "uuid") TO "ser
 
 
 
-REVOKE ALL ON FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_publicar"("p_origen" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid") TO "service_role";
+REVOKE ALL ON FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."formula_revertir"("p_origen" "uuid", "p_version" "uuid", "p_nota" "text", "p_publicada_esperada" "uuid", "p_formula_del_origen" "uuid") TO "service_role";
 
 
 
@@ -56350,21 +58282,21 @@ GRANT ALL ON FUNCTION "public"."personas_dominadas"("p_ids" "uuid"[]) TO "authen
 
 
 
-REVOKE ALL ON FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."plantilla_descartar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_formula_del_origen" "uuid") TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text") TO "service_role";
+REVOKE ALL ON FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text", "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text", "p_formula_del_origen" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."plantilla_guardar_borrador"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_def" "jsonb", "p_nota" "text", "p_formula_del_origen" "uuid") TO "service_role";
 
 
 
-REVOKE ALL ON FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text") TO "service_role";
+REVOKE ALL ON FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_formula_del_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_formula_del_origen" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."plantilla_publicar"("p_origen" "uuid", "p_actualizado_en_esperado" timestamp with time zone, "p_nota" "text", "p_formula_del_origen" "uuid") TO "service_role";
 
 
 
@@ -56874,6 +58806,24 @@ GRANT ALL ON FUNCTION "public"."storage_gc_rescatar"("p_bucket" "text", "p_ruta"
 REVOKE ALL ON FUNCTION "public"."storage_refcount"("p_bucket" "text", "p_ruta" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."storage_refcount"("p_bucket" "text", "p_ruta" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."storage_refcount"("p_bucket" "text", "p_ruta" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tabla_referencia_columnas"("p_tabla" "uuid", "p_columnas" "jsonb", "p_version_esperada" integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tabla_referencia_columnas"("p_tabla" "uuid", "p_columnas" "jsonb", "p_version_esperada" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."tabla_referencia_columnas"("p_tabla" "uuid", "p_columnas" "jsonb", "p_version_esperada" integer) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tabla_referencia_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_columnas" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tabla_referencia_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_columnas" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."tabla_referencia_crear"("p_id" "uuid", "p_origen" "uuid", "p_nombre" "text", "p_columnas" "jsonb") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tabla_referencia_desactivar"("p_tabla" "uuid", "p_version_esperada" integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tabla_referencia_desactivar"("p_tabla" "uuid", "p_version_esperada" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."tabla_referencia_desactivar"("p_tabla" "uuid", "p_version_esperada" integer) TO "service_role";
 
 
 
@@ -57391,9 +59341,9 @@ GRANT ALL ON FUNCTION "public"."vehiculos_editables"("p_ids" "uuid"[]) TO "servi
 
 
 
-REVOKE ALL ON FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean, "p_orden" "text", "p_cursor_tramo" smallint) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean, "p_orden" "text", "p_cursor_tramo" smallint) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."vehiculos_inventario"("p_origen" "uuid", "p_tamano" integer, "p_filtros" "jsonb", "p_cursor_en" timestamp with time zone, "p_cursor_id" "uuid", "p_hacia_atras" boolean, "p_orden" "text", "p_cursor_tramo" smallint) TO "service_role";
 
 
 
@@ -57781,11 +59731,6 @@ GRANT ALL ON SEQUENCE "public"."cotizaciones_numero_seq" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."cotizaciones_portadas" TO "service_role";
-GRANT SELECT ON TABLE "public"."cotizaciones_portadas" TO "authenticated";
-
-
-
 GRANT ALL ON TABLE "public"."cotizaciones_reportes" TO "service_role";
 GRANT SELECT ON TABLE "public"."cotizaciones_reportes" TO "authenticated";
 
@@ -58124,11 +60069,6 @@ GRANT SELECT,DELETE ON TABLE "public"."suscripciones_push" TO "authenticated";
 
 
 
-GRANT ALL ON TABLE "public"."tablas_referencia" TO "service_role";
-GRANT SELECT ON TABLE "public"."tablas_referencia" TO "authenticated";
-
-
-
 GRANT ALL ON TABLE "public"."tablas_referencia_filas" TO "service_role";
 GRANT SELECT ON TABLE "public"."tablas_referencia_filas" TO "authenticated";
 
@@ -58365,7 +60305,7 @@ create policy "comprobantes: leer" on storage.objects as permissive for select t
 create policy "comprobantes: subir" on storage.objects as permissive for insert to authenticated
   with check (((bucket_id = 'comprobantes'::text) AND ( SELECT public.comprobante_puede(objects.name, 'subir'::text) AS comprobante_puede)));
 create policy "cotizaciones: leer" on storage.objects as permissive for select to authenticated
-  using (((bucket_id = 'cotizaciones'::text) AND ( SELECT public.puede_cotizacion(public._cotizacion_de_objeto(objects.name), 'cotizaciones.ver'::text) AS puede_cotizacion) AND ((split_part(name, '/'::text, 2) <> 'portada'::text) OR ( SELECT public.cotizacion_portada_visible(public._cotizacion_de_objeto(objects.name)) AS cotizacion_portada_visible))));
+  using (((bucket_id = 'cotizaciones'::text) AND ( SELECT public.puede_cotizacion(public._cotizacion_de_objeto(objects.name), 'cotizaciones.ver'::text) AS puede_cotizacion)));
 create policy "cotizaciones: subir" on storage.objects as permissive for insert to authenticated
   with check (((bucket_id = 'cotizaciones'::text) AND ( SELECT public.cotizacion_puede_adjuntar(public._cotizacion_de_objeto(objects.name)) AS cotizacion_puede_adjuntar)));
 create policy "documentos: leer" on storage.objects as permissive for select to authenticated
@@ -58465,6 +60405,7 @@ INSERT INTO public.permisos (clave, modulo, nombre, descripcion, por_origen, con
 INSERT INTO public.permisos (clave, modulo, nombre, descripcion, por_origen, con_alcance, aplicado_en, orden, nivel_clave) VALUES ('leads.telefonos_extra.editar', 'leads', 'Editar teléfonos extra', 'Agregar, rotular y quitar los teléfonos extra de los leads de mi cartera', false, true, 'lead_telefono_guardar, lead_telefono_quitar, verificar_telefono_extra', 165, NULL);
 INSERT INTO public.permisos (clave, modulo, nombre, descripcion, por_origen, con_alcance, aplicado_en, orden, nivel_clave) VALUES ('cotizaciones.crear.sin_vehiculo', 'cotizaciones', 'Guardar sin vehículo', 'Guardar una preventa sin elegir su vehículo (por origen); una final siempre lo pide', true, false, 'cotizacion_crear, cotizacion_encima, _cotizacion_cadena', 231, NULL);
 INSERT INTO public.permisos (clave, modulo, nombre, descripcion, por_origen, con_alcance, aplicado_en, orden, nivel_clave) VALUES ('cotizaciones.crear.sin_lead', 'cotizaciones', 'Guardar sin lead', 'Guardar una preventa sin elegir su lead en «Cliente» (por origen); una final siempre lo pide', true, false, 'cotizacion_crear, cotizacion_encima, _cotizacion_cadena', 232, NULL);
+INSERT INTO public.permisos (clave, modulo, nombre, descripcion, por_origen, con_alcance, aplicado_en, orden, nivel_clave) VALUES ('cotizaciones.privadas.ver', 'cotizaciones', 'Ver las privadas de otros', 'Ver las cotizaciones privadas que crearon otras personas (por origen; pide también cotizaciones.ver). Sin él, la privada de otro no aparece en ninguna lista, búsqueda ni ficha', true, false, 'policy cotizaciones: leer, puede_cotizacion, _cotizaciones_ids_por_titulo, buscador_cotizaciones, vehiculo_relacionados, lead_relacionados', 221, NULL);
 INSERT INTO public.tonos (id, clave, nombre, claro_fondo, claro_borde, claro_tinta, oscuro_fondo, oscuro_borde, oscuro_tinta, creado_en, actualizado_en, hex) VALUES ('124fa413-0890-4567-a267-04354eb5df2e', 'amarillo', 'Amarillo', '#fff7d6', '#e9d27a', '#1b2130', '#3e3f3c', '#797251', '#f2f4f8', '2026-10-28 18:05:36.432693+00', '2026-10-28 18:05:36.432693+00', '#fff7d6');
 INSERT INTO public.tonos (id, clave, nombre, claro_fondo, claro_borde, claro_tinta, oscuro_fondo, oscuro_borde, oscuro_tinta, creado_en, actualizado_en, hex) VALUES ('91401593-a83e-429f-844a-7821f33af649', 'verde', 'Verde', '#e6f6ee', '#8fd3b0', '#1b2130', '#2d3c42', '#50726a', '#f2f4f8', '2026-10-28 18:05:36.432693+00', '2026-10-28 18:05:36.432693+00', '#e6f6ee');
 INSERT INTO public.tonos (id, clave, nombre, claro_fondo, claro_borde, claro_tinta, oscuro_fondo, oscuro_borde, oscuro_tinta, creado_en, actualizado_en, hex) VALUES ('639de0fb-7b7f-4661-a777-8a3eaf35996b', 'naranja', 'Naranja', '#ffe9d6', '#f0b27a', '#1b2130', '#3f3a3c', '#876b55', '#f2f4f8', '2026-10-28 18:05:36.432693+00', '2026-10-28 18:05:36.432693+00', '#ffe9d6');
