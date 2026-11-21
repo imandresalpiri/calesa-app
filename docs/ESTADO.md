@@ -30,7 +30,7 @@ recibe actualizaciones sueltas: una rama, un PR que se integra solo con el CI en
 - **En todo el sistema:** avisos con acciones (cada bloqueo dice cómo destrabarlo), el visor de fotos con carrusel, «visto» (negrita lo no
   abierto) y «último visto» por persona y módulo en las listas, «Vista y opciones» en cada lista, y la barra superior con «Nuevo» (lo que
   la persona puede crear) y los tipos de cambio elegidos (cambiar el valor ahí y compartirlos como imagen o texto).
-- **Repuestos:** proyectos guiados por pasos (las fases del flujo y sus hitos, con el siguiente de cada ítem) y con su cliente como lead, ítems, compras, stock,
+- **Repuestos:** proyectos guiados por pasos (las fases del flujo y sus hitos, con el siguiente de cada ítem) y con su cliente como lead, ítems en tarjetas con buscador, filtros y su fila de hoja de cálculo en un drawer, compras, stock,
   cotizador propio y pagos.
 - **Agenda, chat, notificaciones y buscador:** la agenda como libreta del día con sus pendientes (semana y mes a un clic, eventos con su lead), canales y grupos con realtime, la campana y el push (sin claves
   VAPID todavía), la paleta `Ctrl/Cmd+K`.

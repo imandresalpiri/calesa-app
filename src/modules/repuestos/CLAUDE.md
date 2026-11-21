@@ -6,7 +6,7 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
 
 ## Entra y sale
 
-- Entra: proyectos desde la ficha del vehículo o sueltos, hoja de ítems editable celda a celda, compras, movimientos de stock, cotizaciones de repuestos.
+- Entra: proyectos desde la ficha del vehículo o sueltos, ítems en tarjetas con su fila editable celda a celda en un drawer, compras, movimientos de stock, cotizaciones de repuestos.
 - Depende de: `vehiculos`, `flujos`, `leads` (sólo por `src/app`: el módulo no los importa). Lo consumen `vehiculos`, `logistica`, `tablero`, `buscador`.
 - Las actions **no salen por los barriles** (las importan en relativo sus hooks) y comprueban su permiso con `puede()` antes de la base. Lo que cruza áreas
   lo compone `src/app/(app)/repuestos/` (render prop, hueco o props).
@@ -30,17 +30,20 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
   (`vehiculo-del-proyecto.tsx`: `<VehiculoEnLaCabecera>` de `vehiculos`, `<VehiculoQueNoSeVe>` de `pantallas/proyectos-detalle.ts` o su error con «Reintentar», en su propio
   `<Suspense>`); un proyecto externo (`vehiculo_id` nulo) lo dibuja la cabecera sola con `<ProyectoExterno>` («Proyecto externo · sin vehículo»).
   El módulo no importa `buscador`: los buscadores de vehículo y lead los compone `src/app`.
-- **`items`** — `pantallas/items.ts`: `<HojaDeItems>` (`/repuestos/[id]`) con el panel `?panel=imagenes&item=`; `index.ts`: `leerProyecto`,
-  `leerItemsDelProyecto`, `leerItem`, `cuentasDeLaHoja`, `FilaDeItem`. El hueco de la hoja (`HuecoDeLaHoja`) tiene cuatro ranuras: `accionDeFila(fila)`,
-  `panel(api)`, `arriba(api)` (antes de la hoja, con sus filas vivas: la barra de progreso, las pestañas y el contenido de la abierta) y `pasoDeFila(fila)` (en la columna «Siguiente»: el
-  botón del siguiente; si no pone nada, la fila muestra la fase). La hoja recibe `oculta` (otra pestaña abierta: sigue montada, con `hidden`) y `ordenDeLasFases` (de `IndiceDelFlujo.lugar`, lo pasa `src/app`) y agrupa sus filas
-  por paso en el navegador con `agruparPorPaso` (`entities/items/grupos-por-paso.ts`: el orden del flujo, una fase fuera de él tras las conocidas, «Sin fase» al
-  final, «N+» con la hoja topada; sin orden, todo en «Sin fase»): un `<tbody data-grupo-de-paso>` por grupo en la tabla, una `<section>` en las tarjetas, y la fila
-  nueva al final, fuera de los grupos. La primera columna dice qué es el ítem (`queEsElItem`, `entities/items/que-es.ts`: «Tipo · Condición»; `<QueEsElItem>`)
-  y las columnas, sus títulos y su ayuda (`title`) salen de `COLUMNAS_DE_LA_HOJA` (`columnas-de-la-hoja.ts`). `pantallas/items-del-panel.ts`: `ImagenesDelItemDiferido` (`ContenidoDeImagenes`, el mismo del panel de imágenes), el
-  bloque «Imágenes» del panel del ítem.
-- **`stock`** — la hoja expone un hueco (`HuecoDeLaHoja`: `accionDeFila(fila)`, `panel(api)` con `cambiarFila`) que llena `hoja-del-proyecto.tsx` con
-  `pantallas/stock.ts` (`BotonDeStock`, `PanelDeStock`, `useStockPorUrl`; `?panel=stock&item=`). Vista `/repuestos?vista=stock`: `leerStock`,
+- **`items`** — `pantallas/items.ts`: `<HojaDeItems>` (la pestaña Ítems de `/repuestos/[id]`); `index.ts`: `leerProyecto`, `leerItemsDelProyecto`, `leerItem`, `cuentasDeLaHoja`, `FilaDeItem`.
+  Los ítems son **tarjetas** (`tarjeta-de-item.tsx`: «Tipo · Condición» o la descripción, «2 × Monto», «En stock: N», el siguiente o la fase; el «⋯» con las `accionesDeFila` del hueco, Imágenes y Eliminar)
+  agrupadas por paso (`tarjetas-por-paso.tsx`; `agruparPorPaso`, `entities/items/grupos-por-paso.ts`: el orden del flujo, una fase fuera de él tras las conocidas, «Sin fase» al final, «N+» con la hoja
+  topada; sin orden, todo en «Sin fase»), bajo la barra de `barra-de-items.tsx` (buscador y fichas con `ChipDeEleccion`, «Sin precio», «Limpiar filtros», «N de M ítems», «Agregar ítem»). El filtro es puro
+  (`entities/items/filtro.ts`) y vive en la URL con `shallow` (`hooks/use-filtro-de-items.ts`). El clic abre el **drawer del ítem** (`panel-del-item-en-la-hoja.tsx`, `?item=`): **la fila del ítem**
+  (`fila-del-item.tsx`: `TablaDeLaFila`, `FilaDelItem`, flechas por `flechas-de-la-fila.ts`; columnas y su ayuda en `columnas-de-la-hoja.ts`) y, debajo, las secciones que dibuja el servidor (`secciones`
+  del hueco). `drawer-de-items-nuevos.tsx` (`?panel=nuevo-item`, `use-nuevo-item-por-url.ts`) es «Agregar ítem»: una fila nueva (`fila-nueva.tsx`) que crea con la descripción. `drawers-de-la-hoja.tsx` monta los
+  drawers (ítem, agregar, imágenes, eliminar) y devuelve el foco a la tarjeta. El hueco de la hoja (`HuecoDeLaHoja`) tiene: `item` (`abierto`, `abrir`, `cerrar`, `secciones(id)`: lo que `src/app` pone bajo
+  la fila), `accionesDeFila(fila)` (el «⋯»: Stock y «Mover a…»), `panel(api)`, `arriba(api)` (antes de la hoja, con sus filas vivas: la barra de progreso, las pestañas y el contenido de la abierta) y
+  `pasoDeFila(fila)` (en la tarjeta: el botón del siguiente; si no pone nada, la insignia de la fase). La hoja recibe `oculta` (otra pestaña abierta: sigue montada, con `hidden`) y `ordenDeLasFases`
+  (de `IndiceDelFlujo.lugar`, lo pasa `src/app`). La primera línea de la tarjeta dice qué es el ítem (`queEsElItem`, `entities/items/que-es.ts`). `pantallas/items-del-panel.ts`: `ImagenesDelItemDiferido`
+  (`ContenidoDeImagenes`, el mismo del panel de imágenes), el bloque «Imágenes» del panel del ítem.
+- **`stock`** — la hoja expone un hueco (`HuecoDeLaHoja`: `accionesDeFila(fila)`, `panel(api)` con `cambiarFila`) que llena `hoja-del-proyecto.tsx` con
+  `pantallas/stock.ts` (`PanelDeStock`, `useStockPorUrl`; `?panel=stock&item=`; el «Stock» del «⋯» de la tarjeta). Vista `/repuestos?vista=stock`: `leerStock`,
   `leerCursorDeStock`, `esVistaDeStock`, `CLAVE_DE_VISTA_DE_REPUESTOS` (`areas/stock/index.ts`) y `<VistaDeStock>` (`pantallas/stock-vista.ts`). El bloque
   «Stock» del panel del ítem (`pantallas/stock-del-panel.ts`: `<BloqueDeStockDelItem>`, Server Component sin JS) dice «En stock: N de M» y enlaza a
   `?panel=stock&item=` de la hoja (el formulario cambia la fila sin releerla). La vista de stock va con
@@ -69,7 +72,7 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
   8-13b) con los bloques Imágenes, Stock y Compras (éste con `repuestos.costos.ver`) que compone `src/app`. `index.ts`: `leerItemDelPanel(id)` (nulo si no
   existe, está en la papelera, no se ve o su proyecto no se ve: los cuatro se dicen igual; trae cantidad, stock y si el proyecto está cerrado),
   `itemAbiertoDe(parametros)` (el guid de `?item=` **sólo sin `?panel=`**), `destinoDelPanelDe(parametros)` (`?destino=<fase>`, sólo con un ítem abierto: el
-  destino que «Qué falta» abre solo), `ItemDelPanel`; `pantallas/flujo.ts`: `<DrawerDelItem>`, `<BotonDelPanelDelItem>`, `useItemPorUrl()` (`abrir(id, destino?)`).
+  destino que «Qué falta» abre solo), `ItemDelPanel`; `pantallas/flujo.ts`: `<DrawerDelItem>` (el de la Cadena), `useItemPorUrl()` (`abrir(id, destino?)`). En `/repuestos/[id]` ese panel va dentro del drawer del ítem, bajo su fila y sin cabecera (`conCabecera={false}`).
 - **`flujo`** — los **pasos** de `/repuestos/[id]` (`docs/GLOSARIO.md` › «Paso (de un proyecto)», «Hito (de un paso)», «Siguiente (de un ítem)»):
   `leerFlujoDeLosPasos()` (`infra/flujo/pasos.ts`: fases, salidas y requisitos de dato con una clave de hito del flujo de repuestos, tres lecturas con tope 30 /
   360 / 60 más uno; un error no lanza: `ilegible`), `LecturaDeLosPasos`, `PANELES_DEL_PASO`, `TITULO_DEL_PANEL`. Las reglas, puras y con test:
@@ -99,7 +102,7 @@ El módulo se parte por **área**, como `logistica`: `features|entities|infra/<�
 | ----------- | ---------------------------------------------------------------------------------- |
 | `nucleo`    | lo compartido entre áreas                                                          |
 | `proyectos` | `/repuestos`: el listado de proyectos, crear, cerrar, eliminar                     |
-| `items`     | `/repuestos/[id]`: la hoja de ítems y sus imágenes                                 |
+| `items`     | `/repuestos/[id]`: los ítems en tarjetas, su fila y sus imágenes                   |
 | `stock`     | movimientos de stock y sobrantes                                                   |
 | `compras`   | compras y pagos (con `repuestos.costos.*`)                                         |
 | `cotizador` | la configuración versionada y las cotizaciones de repuestos                        |

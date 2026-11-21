@@ -563,9 +563,10 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   flujo de repuestos; topes 30 / 360 / 60 más uno, por `fases_flujo_id_nombre_key`, `fases_transiciones_flujo_id_idx` y `fases_requisitos_fase_id_idx`)
   y, sólo con `repuestos.costos.ver`, el pago vivo (`limit 1` por `pagos_proyecto_repuestos_id_idx`). Progreso y siguiente los calcula el navegador sobre
   las filas de la hoja (≤ 200): O(fases² + ítems) por cambio de filas. Ningún número es un total («37+ de 200+»). Las pestañas Cotizaciones, Pagos y Compras (Compras tope 200,
-  Cotizaciones 50, Pagos como siempre) se leen al elegirlas y su código llega con `diferido()`. Los grupos por paso de la hoja los arma el navegador sobre las
-  mismas filas (O(n), ≤ 200 filas y ≤ 31 encabezados; los conteos con la hoja topada, «N+»). **JS en frío de `/repuestos/[id]`** (con tres ítems y un vehículo,
-  mismo método): 386,0 KB en 29 chunks. La cabecera sale de `pantallas/proyectos-detalle.ts`, no del barril del listado (que arrastra el listado y «Nuevo
+  Cotizaciones 50, Pagos como siempre) se leen al elegirlas y su código llega con `diferido()`. Los grupos por paso de los ítems los arma el navegador sobre las
+  mismas filas (O(n), ≤ 200 filas y ≤ 31 encabezados; los conteos con la hoja topada, «N+»). El buscador y los filtros de los ítems también: un recorrido O(n) por
+  cambio sobre esas filas (≤ 200), sin otra lectura ni pedido; el drawer del ítem y el de «Agregar ítem» viajan con `diferido()` y sus secciones las lee el servidor al abrirlos (`?item=`).
+  **JS en frío de `/repuestos/[id]`** (con tres ítems, mismo método): 395,5 KB en 29 chunks. La cabecera sale de `pantallas/proyectos-detalle.ts`, no del barril del listado (que arrastra el listado y «Nuevo
   proyecto»). Sin tope propio.
 - El vehículo de la cabecera de `/repuestos/[id]`: el vehículo por su PK (empieza en la página, en paralelo con la hoja) y, dentro de su `<Suspense>` y sólo
   con vehículo, `leerFasesDeOrigen` (≤ ~30 fases, `cache()` por pedido) y `getOrigenes(true)` (decenas, `cache()`); la hoja no espera ninguna. Su miniatura es

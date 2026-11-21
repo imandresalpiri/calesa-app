@@ -688,8 +688,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   preventa, con la publicada y las tarifas de hoy y lo tipeado de la anterior); la anterior no cambia; una viva por anterior.
 - **Imagen del ítem** — `repuestos_items_imagenes` / `?panel=imagenes&item=<id>`: imagen de un repuesto (hasta 8, WebP ≤ 1600 px,
   `<item>/<sha-256>.webp` en el bucket `repuestos`); no se llama «foto» (las fotos son del vehículo).
-- **Hoja de ítems** — tabla (tarjetas en el celular) de `/repuestos/[id]` (`HojaDeItems`, `features/items/`): una fila por ítem, editable
-  celda a celda con `repuestos.editar`; hasta 200 ítems.
+- **Ítems (de un proyecto)** — la pestaña Ítems de `/repuestos/[id]` (`HojaDeItems`, `features/items/`): una tarjeta por ítem, agrupadas por paso, con su buscador, sus filtros y «Agregar ítem»;
+  hasta 200 ítems. Editable con `repuestos.editar`. No: «hoja de ítems» ni «tabla de ítems».
+- **Fila del ítem** — `FilaDelItem` (`features/items/`): el ítem como una sola fila de hoja de cálculo (Ítem, Cantidad, Precio al cliente, País de origen, Vía de transporte, Moneda, Tracking, Notas),
+  editable celda a celda; está en el drawer del ítem (`?item=`) y en el de «Agregar ítem» (`?panel=nuevo-item`). No: «fila de la tabla».
+- **Filtros de los ítems** — `FiltroDeItems` (`entities/items/filtro.ts`, `useFiltroDeItems`): el buscador (tipo de pieza, descripción, tracking y notas) y las fichas Fase, Tipo de pieza, Condición, País de origen,
+  Vía de transporte y «Sin precio» de la pestaña Ítems; se aplican en el navegador sobre lo leído y viven en la URL. Con filtros, «N de M ítems».
 - **Cliente (de un proyecto)** — `repuestos_proyectos.lead_id` (en los proyectos viejos, `cliente_nombre`), `ClienteDeLaCabecera`: el lead a quien se
   venden los repuestos de un proyecto; opcional (un proyecto para un vehículo propio no lo lleva). En «Nuevo proyecto» es «Cliente (lead)», y el de un
   vehículo nace con el lead vinculado al vehículo. No: «comprador», «contacto».
@@ -876,7 +880,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   (`vehiculo_etiqueta`, `vin`). En el listado se escribe «Externo · …» y en la cabecera de `/repuestos/[id]` «Proyecto externo · sin vehículo» (`ProyectoExterno`).
 - **Ítem de repuesto** — `repuestos_items`: el repuesto que recorre el flujo de repuestos.
 - **Grupo por paso** — `GrupoPorPaso` (`agruparPorPaso`, `entities/items/grupos-por-paso.ts`): los ítems de una misma fase bajo su encabezado («Comprar · 3»)
-  en la hoja de `/repuestos/[id]`, en el orden de los pasos y «Sin fase» al final. No es «Grupo (de la hoja)» del cotizador ni «Grupo (de transporte)».
+  en la pestaña Ítems de `/repuestos/[id]`, en el orden de los pasos y «Sin fase» al final. No es «Grupo (de la hoja)» del cotizador ni «Grupo (de transporte)».
 - **Paso (de un proyecto)** — `PasoDelProyecto` (`entities/flujo/pasos.ts`): cada parada del camino de la venta sobre la hoja de `/repuestos/[id]`:
   una fase activa del flujo de repuestos (su nombre, en su orden) o un hito, con su progreso en texto («3 de 5», «37+ de 200+»); juntos son la **barra de progreso**
   del proyecto, bajo la cabecera. No: «etapa» (es del embudo).
@@ -885,7 +889,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   pide, no aparece. Es un botón que lleva a su pestaña (Cotizaciones o Pagos); Compras no tiene hito.
 - **Pestañas del proyecto** — Ítems · Cotizaciones · Pagos · Compras de `/repuestos/[id]` (`?pestana=items|cotizaciones|pagos|compras`; `PANELES_DEL_PASO`, `TITULO_DEL_PANEL`):
   fijas bajo la barra de progreso; Ítems es la hoja y las otras tres piden su permiso (sin él no están). No es «pestaña del resumen» (cotizaciones) ni «zona de pestañas» (unidad).
-- **Siguiente (de un ítem)** — `SiguienteDelItem` (`siguienteDelItem`): lo que toca hacer para que el ítem avance y el botón que lo hace: mover
+- **Siguiente (de un ítem)** — `SiguienteDelItem` (`siguienteDelItem`): lo que toca hacer para que el ítem avance y el botón que lo hace (en su tarjeta): mover
   a su próxima fase (la acción de la transición), o «Nueva cotización» / «Registrar pago» si el destino pide ese hito como bloqueante y falta.
   Sin permiso, sólo «Sigue: «X»».
 - **Stock** — `repuestos_items.stock_cantidad`, `_stock_movimientos`: sobrantes disponibles; se mueve sólo por `repuesto_stock_mover` y
@@ -1572,8 +1576,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   preventa, con la publicada y las tarifas de hoy y lo tipeado de la anterior); la anterior no cambia; una viva por anterior.
 - **Imagen del ítem** — `repuestos_items_imagenes` / `?panel=imagenes&item=<id>`: imagen de un repuesto (hasta 8, WebP ≤ 1600 px,
   `<item>/<sha-256>.webp` en el bucket `repuestos`); no se llama «foto» (las fotos son del vehículo).
-- **Hoja de ítems** — tabla (tarjetas en el celular) de `/repuestos/[id]` (`HojaDeItems`, `features/items/`): una fila por ítem, editable
-  celda a celda con `repuestos.editar`; hasta 200 ítems.
+- **Ítems (de un proyecto)** — la pestaña Ítems de `/repuestos/[id]` (`HojaDeItems`, `features/items/`): una tarjeta por ítem, agrupadas por paso, con su buscador, sus filtros y «Agregar ítem»;
+  hasta 200 ítems. Editable con `repuestos.editar`. No: «hoja de ítems» ni «tabla de ítems».
+- **Fila del ítem** — `FilaDelItem` (`features/items/`): el ítem como una sola fila de hoja de cálculo (Ítem, Cantidad, Precio al cliente, País de origen, Vía de transporte, Moneda, Tracking, Notas),
+  editable celda a celda; está en el drawer del ítem (`?item=`) y en el de «Agregar ítem» (`?panel=nuevo-item`). No: «fila de la tabla».
+- **Filtros de los ítems** — `FiltroDeItems` (`entities/items/filtro.ts`, `useFiltroDeItems`): el buscador (tipo de pieza, descripción, tracking y notas) y las fichas Fase, Tipo de pieza, Condición, País de origen,
+  Vía de transporte y «Sin precio» de la pestaña Ítems; se aplican en el navegador sobre lo leído y viven en la URL. Con filtros, «N de M ítems».
 - **Cliente (de un proyecto)** — `repuestos_proyectos.lead_id` (en los proyectos viejos, `cliente_nombre`), `ClienteDeLaCabecera`: el lead a quien se
   venden los repuestos de un proyecto; opcional (un proyecto para un vehículo propio no lo lleva). En «Nuevo proyecto» es «Cliente (lead)», y el de un
   vehículo nace con el lead vinculado al vehículo. No: «comprador», «contacto».
@@ -1749,7 +1757,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   (`vehiculo_etiqueta`, `vin`). En el listado se escribe «Externo · …» y en la cabecera de `/repuestos/[id]` «Proyecto externo · sin vehículo» (`ProyectoExterno`).
 - **Ítem de repuesto** — `repuestos_items`: el repuesto que recorre el flujo de repuestos.
 - **Grupo por paso** — `GrupoPorPaso` (`agruparPorPaso`, `entities/items/grupos-por-paso.ts`): los ítems de una misma fase bajo su encabezado («Comprar · 3»)
-  en la hoja de `/repuestos/[id]`, en el orden de los pasos y «Sin fase» al final. No es «Grupo (de la hoja)» del cotizador ni «Grupo (de transporte)».
+  en la pestaña Ítems de `/repuestos/[id]`, en el orden de los pasos y «Sin fase» al final. No es «Grupo (de la hoja)» del cotizador ni «Grupo (de transporte)».
 - **Paso (de un proyecto)** — `PasoDelProyecto` (`entities/flujo/pasos.ts`): cada parada del camino de la venta sobre la hoja de `/repuestos/[id]`:
   una fase activa del flujo de repuestos (su nombre, en su orden) o un hito, con su progreso en texto («3 de 5», «37+ de 200+»); juntos son la **barra de progreso**
   del proyecto, bajo la cabecera. No: «etapa» (es del embudo).
@@ -1758,7 +1766,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   pide, no aparece. Es un botón que lleva a su pestaña (Cotizaciones o Pagos); Compras no tiene hito.
 - **Pestañas del proyecto** — Ítems · Cotizaciones · Pagos · Compras de `/repuestos/[id]` (`?pestana=items|cotizaciones|pagos|compras`; `PANELES_DEL_PASO`, `TITULO_DEL_PANEL`):
   fijas bajo la barra de progreso; Ítems es la hoja y las otras tres piden su permiso (sin él no están). No es «pestaña del resumen» (cotizaciones) ni «zona de pestañas» (unidad).
-- **Siguiente (de un ítem)** — `SiguienteDelItem` (`siguienteDelItem`): lo que toca hacer para que el ítem avance y el botón que lo hace: mover
+- **Siguiente (de un ítem)** — `SiguienteDelItem` (`siguienteDelItem`): lo que toca hacer para que el ítem avance y el botón que lo hace (en su tarjeta): mover
   a su próxima fase (la acción de la transición), o «Nueva cotización» / «Registrar pago» si el destino pide ese hito como bloqueante y falta.
   Sin permiso, sólo «Sigue: «X»».
 - **Stock** — `repuestos_items.stock_cantidad`, `_stock_movimientos`: sobrantes disponibles; se mueve sólo por `repuesto_stock_mover` y

@@ -27,7 +27,7 @@ locale)`, el único lector de un número tipeado.
 - Formularios con `useAction`: `lib/enviar-accion.ts` (envío con `sinRed`), `lib/formularios.ts` (errores por campo), `lib/borrador.ts` +
   `ui/use-borrador.ts` (borrador en `sessionStorage`).
 - `lib/filtros/`: filtros declarativos sin nuqs (`EsquemaDeFiltros`, `leerFiltros()`, `chipsDe()`, `cumpleElMinimo()`; `campos.ts`: campos del
-  layout a filtros). `ui/filtros/`: `<FilterShell>` (barra plana: buscador que crece, «Filtros», «Vista y opciones» con `opciones` y «Ítems por página»,
+  layout a filtros). `ui/filtros/`: `<ChipDeEleccion>` (la ficha de una sola opción: un `<select>` nativo con su rótulo y «Todas»; lo usan los filtros declarativos y los de la pestaña Ítems de repuestos), `<FilterShell>` (barra plana: buscador que crece, «Filtros», «Vista y opciones» con `opciones` y «Ítems por página»,
   y `acciones` para «Nuevo»); `ui/vista-y-opciones/`: `<VistaYOpciones grupos>` (el botón en frío; el panel, popover o hoja, con `diferido()`),
   `useVistaYOpciones()` (`cerrar`, `cerrarYLuego`: lo que abre otro panel corre al terminar de cerrarse), `CLASE_DE_OPCION`; `ui/por-pagina.tsx`, `ui/paginacion.tsx` (con `alIr`, sin ir al servidor),
   `ui/aviso-de-tope.tsx`, `ui/ir-a-una-fecha.tsx` y `ui/desde-una-fecha.tsx` (entregan un día `YYYY-MM-DD`; el instante lo arma quien lee).
@@ -44,7 +44,7 @@ locale)`, el único lector de un número tipeado.
 - `config/esquemas.ts`: el entorno en Zod (`entornoPublico()`, `entornoDelServidor()`, `pnpm env:check`; lectores en `scripts/lib/entornos/`).
   `config/app.ts`: nombre y colores.
 - `ui/diferido.tsx`: `diferido()` (con `aviso: 'aqui'`, `respaldo(props)` se dibuja bajo «Sin conexión» si el código no llega). `ui/modal.tsx`, `ui/drawer.tsx`, `ui/confirmar.tsx`: diálogos por URL; `ui/modal-de-formulario.tsx`,
-  `ui/use-envio-de-modal.ts` (envío sin versión). `<Drawer desplazamiento="propio">`: el cuerpo no se desplaza y lo de adentro llena su alto (el resumen de una cotización: cabecera fija y pestañas). `<Drawer alCostado>`: no modal y sin fondo (lo de atrás se sigue usando; tocar afuera no
+  `ui/use-envio-de-modal.ts` (envío sin versión). `<Drawer desplazamiento="propio">`: el cuerpo no se desplaza y lo de adentro llena su alto (el resumen de una cotización: cabecera fija y pestañas). `<Drawer alto="ajustable">` (sólo `lado="bottom"`): el alto lo cambia `<AsaDelPanel>` (arrastrar o ↑ ↓ Inicio Fin; `lib/alto-del-panel.ts`, puro) y se recuerda mientras el panel está montado; en el celular, a pantalla completa. `<Drawer alCostado>`: no modal y sin fondo (lo de atrás se sigue usando; tocar afuera no
   cierra, Esc y la ✕ sí), para el panel que acompaña a una pantalla ancha. `ui/bloque.tsx`: `<Bloque>` es un `<details>`;
   dentro de `<BloquesALaVista>` (`ui/bloques-a-la-vista.tsx`) es una `<section>` a la vista con su `h3` (`h4` anidado) y `onAbrir` una vez al montarse.
 - `ui/vuelta-del-foco.ts`: `abrirConVuelta()` y `useVueltaDelFoco()`: tras recargar con un panel por URL, «atrás» devuelve el foco a quien lo abrió

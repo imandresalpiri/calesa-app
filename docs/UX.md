@@ -460,15 +460,16 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     las **pestañas fijas** Ítems · Cotizaciones · Pagos · Compras (`?pestana=items|cotizaciones|pagos|compras`, `role="tab"`; por defecto Ítems; Cotizaciones pide
     `repuestos.cotizar`, Pagos y Compras `repuestos.costos.ver`; sin la clave la pestaña no está y el valor no abre ni lee nada). La barra de pestañas va **pegada**
     bajo la barra superior al bajar, con «Proyecto #N» a su izquierda mientras va pegada; cambiar de pestaña no la mueve y el contenido reserva su alto mientras
-    llega. **Ítems** es la hoja, editable celda a celda y **agrupada por paso** (en otra pestaña sigue montada, oculta): un encabezado por fase con ítems, en el orden de los
-    pasos, con su nombre y cuántos tiene («Comprar · 3»), y «Sin fase» al final. Cada fila dice **qué es** («Bomba de agua · Usado» y debajo la descripción),
-    luego cantidad, precio y **el botón de su siguiente** (mover a la próxima fase, con la acción de la transición: abre el panel del ítem con el destino ya elegido, `?item=<id>&destino=<fase>`;
-    o «Nueva cotización» / «Registrar pago» si el destino pide ese hito como bloqueante y falta). Nunca arrastrar. Los enlaces viejos
+    llega. **Ítems** son **tarjetas agrupadas por paso** (en otra pestaña siguen montadas, ocultas), con buscador y filtros en el navegador: un encabezado por fase con ítems, en el orden de los
+    pasos, con su nombre y cuántos tiene («Comprar · 3»), y «Sin fase» al final. Cada tarjeta dice **qué es** («Bomba de agua · Usado» o su descripción), cantidad y precio, y **el botón de su siguiente** (mover a la
+    próxima fase, con la acción de la transición: abre el panel del ítem con el destino ya elegido, `?item=<id>&destino=<fase>`;
+    o «Nueva cotización» / «Registrar pago» si el destino pide ese hito como bloqueante y falta); su «⋯» lleva a Imágenes, Stock, «Mover a…» y Eliminar. El clic en la tarjeta abre un **drawer de abajo
+    con la fila del ítem como hoja de cálculo** y sus secciones; «Agregar ítem» abre otro con una fila nueva. Nunca arrastrar. Los enlaces viejos
     sin `?pestana=` (`?panel=compra&compra=…` y los de pagos) redirigen con su panel; `?panel=stock|imagenes&item=` e `?item=` siguen igual.
   - Vistas «Stock» (`?vista=stock`) y «Cadena» (`?vista=cadena`; las tres se eligen en «Vista y opciones» › «Qué ver»: una columna por fase del flujo de repuestos, más «Sin fase» si tiene
     ítems, de a 50, tarjeta con «Proyecto #N» y días en la fase; `?q=`, `?proyecto=` y, en el celular, `?fase=`).
   - El panel del ítem (`?item=<id>`, sobre el proyecto o la Cadena) es el panel de la unidad de logística **con sus secciones a la vista**,
-    sin acordeones: «Qué falta» primero (con el destino de `?destino=` ya abierto), «Imágenes», «Stock», «Compras» (con
+    sin acordeones (en el proyecto, bajo la fila del ítem y sin cabecera propia: ver «Repuestos: proyecto (estados propios)» › «Drawer del ítem»): «Qué falta» primero (con el destino de `?destino=` ya abierto), «Imágenes», «Stock», «Compras» (con
     `repuestos.costos.ver`), «Documentos», «Historial», «Notas» y «Transporte».
   - **Cotizaciones del proyecto:** «Nueva cotización» con la moneda en la misma barra (apagado con su motivo con el proyecto cerrado o sin
     monedas activas; sin configuración, el mensaje de la base y, con `repuestos.configurar`, el enlace a configurarla) y la lista (número,
@@ -2030,7 +2031,7 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
 
 ### Repuestos: proyecto (estados propios)
 
-- **Estados:** cabecera esqueleto (el título y el recuadro del vehículo) y lista esqueleto (6 filas, 6 columnas); sin `repuestos.ver`, «No tienes permiso»; error de `(app)`. No existe,
+- **Estados:** cabecera esqueleto (el título y el recuadro del vehículo) y lista esqueleto (6 tarjetas); sin `repuestos.ver`, «No tienes permiso»; error de `(app)`. No existe,
   eliminado o sin acceso se dicen igual: «Este proyecto ya no está disponible: no existe o ya no tienes acceso.» con «Volver a Repuestos».
 - **Barra de progreso:** esqueleto de una fila (`h-14`) y el de las pestañas (`h-9`) con la cabecera. Sin ítems, los pasos sólo con su nombre y «Agrega ítems para ver cuántos van en
   cada paso.». Progreso de una fase = los ítems que llegaron (están en ella o en una a la que se llega desde ella hacia adelante): «3 de 5»,
@@ -2042,21 +2043,30 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   con las permitidas, la hoja sigue y no hay botones del siguiente. La fila se desplaza de costado con su pista.
 - **Contenido de una pestaña** (Cotizaciones, Pagos, Compras): mientras llega, el esqueleto de su lista en un alto reservado (`min-h-80`); su `h2` es sólo para lectores de pantalla y recibe el foco si la abrió el botón de un ítem o un hito, sin «Cerrar» (se cambia de pestaña). Si su lectura falla, «No se pudieron
   cargar…» con «Reintentar» ahí (la hoja sigue); sin red, «Sin conexión. No se pudo abrir esto.» con «Reintentar».
-- **Siguiente:** en la columna «Siguiente» (en la tarjeta, tras cantidad y precio, a lo ancho y a 44 px). Nombre accesible «Comprar · Bomba». Sin fase: «Mover a
+- **Siguiente:** en la tarjeta del ítem, tras cantidad y precio, a lo ancho y a 44 px. Nombre accesible «Comprar · Bomba». Sin fase: «Mover a
   «X»» con una sola fase inicial, «Elegir fase» con varias, nada sin inicial. Fase final (también «Perdido») o proyecto cerrado: nada (la
-  fase la dice el encabezado del grupo). Sin la clave de lo que toca (`repuestos.mover`, `repuestos.cotizar`, `repuestos.costos.editar`): «Sigue: «X»», sin botón (un hito
+  fase la dice el encabezado del grupo; sin flujo legible, la insignia de su fase). Sin la clave de lo que toca (`repuestos.mover`, `repuestos.cotizar`, `repuestos.costos.editar`): «Sigue: «X»», sin botón (un hito
   bloqueante que falta y quien mira no puede hacer: «Sigue: «Precio al cliente»», nunca «Mover»). Un hito informativo no cambia el botón. Tras registrar un pago, la página se vuelve a pedir y los botones del siguiente se apagan mientras dura.
-- **Hoja:** tabla desde 768 px y tarjetas debajo; cada celda se guarda sola (Enter o al salir; la lista, al elegir). Columnas: «Ítem» (tipo de pieza y
-  condición en una fila que se parte y la descripción debajo; de lectura, «Tipo · Condición» y la descripción), «Cantidad», «Precio al cliente», «Siguiente»,
-  «País de origen», «Vía de transporte», «Moneda», «Tracking», «Notas» y «Acciones»; cada título lleva su ayuda en un `title` (subrayado punteado). Cantidad y
-  precio son `XCell`. La fase es de lectura y la dice el **encabezado de su grupo** (punto con su color y «Comprar · 3»; un paso sin ítems no tiene grupo;
-  «Sin fase» al final; en la tarjeta, un `h2` por grupo): la fila no la repite. Mover un ítem lo pasa a su grupo nuevo. Un precio sin moneda lleva la primera
-  activa. Enter en la fila nueva agrega el ítem y deja el foco en la siguiente; la fila nueva va al final, fuera de los grupos (un ítem recién creado sin fase
-  cae en «Sin fase»). No filtra: hasta 200 ítems (con 200, cada encabezado con «N+», sin fila nueva y con `<AvisoDeTope>`). Flujo sin fases o ilegible: un
-  solo grupo «Sin fase · N» con todos y, en «Siguiente», la fase de cada ítem. Vacía: «Este proyecto todavía no tiene ítems.» y, con `repuestos.editar`, la
-  fila nueva, sin grupos.
+- **Ítems** (pestaña Ítems): arriba, la barra (`role="group"` «Buscar y filtrar los ítems»): el buscador «Buscar ítems» (tipo de pieza, descripción, tracking y notas; 3 letras o más, como toda búsqueda), las
+  fichas **Fase · Tipo de pieza · Condición · País de origen · Vía de transporte** (una sola opción cada una; las opciones son las que los ítems del proyecto tienen) y la ficha
+  «Sin precio»; con algo puesto, «Limpiar filtros» y «3 de 12 ítems» (`role="status"`; con la hoja topada, «3 de 200+ ítems»). El buscador y las fichas viven en la URL
+  (`?q=&fase=&tipo=&condicion=&pais=&via=&sin_precio=1`, `shallow`, `replace`: filtrar no pide nada al servidor ni suma entradas al «atrás») y se aplican en el navegador sobre lo ya leído. Debajo,
+  los ítems como **tarjetas agrupadas por paso** (grilla de `18rem` mínimo; un `h2` por grupo con el punto de su color y «Comprar · 3»; «Sin fase» al final; un paso sin ítems no tiene grupo): nunca una
+  tarjeta dentro de otra ni una tabla. Cada tarjeta dice qué es el ítem («Tipo · Condición» o su descripción), la cantidad y el precio («2 × Monto»; sin precio, «2 · Sin precio»), «En stock: N» si tiene, y su
+  «Siguiente» o su fase. En su esquina, el «⋯» (`Más acciones de <ítem>`): **Imágenes** y **Stock** (también sin `repuestos.editar` y con el proyecto cerrado), **Mover a…** (con `repuestos.mover`, el ítem fuera de una fase final y el proyecto abierto: abre el drawer del ítem para elegir
+  el destino) y **Eliminar el ítem** (con `repuestos.editar`; `<Confirmar>`, ver «Eliminar»). El clic en la tarjeta (o Enter en su nombre, `Abrir <ítem>`) abre el **drawer del ítem**.
+- **Drawer del ítem** (`?item=<id>`, de abajo; sin cabecera de proyecto: su título es la descripción del ítem y debajo su fase): arriba, **la fila del ítem como una hoja de cálculo** (columnas Ítem · Cantidad · Precio al
+  cliente · País de origen · Vía de transporte · Moneda · Tracking · Notas, cada título con su ayuda en un `title`; en el celular se desplaza de costado con su pista); cada celda se guarda sola (Enter o al salir; la lista, al
+  elegir), con las flechas ← → (un texto sólo sale de la celda con el cursor en el borde) y Tab entre celdas, Esc devuelve lo guardado (y, sin nada que devolver, cierra el drawer). Cantidad y precio son `XCell`. Debajo, las
+  secciones del ítem a la vista: **Qué falta**, Imágenes, Stock, Compras (con `repuestos.costos.ver`), Documentos, Historial, Notas y Transporte. En escritorio ocupa el **60 %** del alto y su **asa** (arriba, `Cambiar el alto del panel`;
+  arrastrar o ↑ ↓ Inicio Fin) lo agranda o lo achica mientras está abierto; en el celular, la pantalla completa. Esc y «atrás» lo cierran y el foco vuelve a la tarjeta (también tras recargar). Mover el ítem de
+  fase lo pasa a su grupo nuevo. Un precio sin moneda lleva la primera activa.
+- **Agregar ítem** (`?panel=nuevo-item`, con `repuestos.editar`; botón junto al buscador): drawer de abajo con **una fila nueva** de la misma hoja; la descripción (Enter) crea el ítem, que queda arriba editable celda a
+  celda, y deja otra fila nueva con el foco. Sólo la descripción es obligatoria; un ítem nuevo sin fase cae en «Sin fase». No hay fila nueva dentro de la lista. Con 200 ítems el botón no está y se avisa con
+  `<AvisoDeTope>` (cada encabezado, «N+»). Flujo sin fases o ilegible: un solo grupo «Sin fase · N» y, en cada tarjeta, la fase del ítem. Sin ítems: «Este proyecto todavía no tiene ítems.» y, con `repuestos.editar`, «Agregar ítem».
+  Con filtros que no dejan ninguno: «Ningún ítem coincide con la búsqueda o los filtros.» con «Limpiar filtros».
 - **Sólo lectura:** sin `repuestos.editar` o con el proyecto cerrado («El proyecto está cerrado: reábrelo para editar los ítems.»), texto
-  plano, sin fila nueva ni «Eliminar».
+  plano, sin «Agregar ítem» ni «Eliminar» (el drawer abre igual, en lectura).
 - **Conflicto:** «Otra persona cambió este ítem. Recarga para ver lo nuevo.» con «Recargar»; lo escrito no se guarda. **Eliminar:**
   `<Confirmar>` con URL que nombra el ítem; uno con historial, documentos, compras, gastos o stock dice por qué y no se elimina.
 - **Cerrar:** sin confirmación; toast con «Deshacer».
@@ -2070,8 +2080,8 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   es de la cartera de quien mira, «Fuera de tu cartera»; un lead que no se ve (otra cartera sin alcance, papelera, limbo) o sin `leads.ver`, «Cliente
   que no puedes ver», sin datos; un proyecto viejo, el nombre escrito a mano; sin cliente, «—». Nunca el teléfono. Si falla la lectura del lead, el
   error de `(app)` con «Reintentar».
-- **Imágenes del ítem:** «Imágenes» en las acciones de cada fila, también sin `repuestos.editar`; abre `?panel=imagenes&item=<id>` (se
-  recarga; «atrás» lo cierra y el foco vuelve al botón). Esqueleto, error con «Reintentar», vacío (con permiso, la zona de subir). Con
+- **Imágenes del ítem:** «Imágenes» en el «⋯» de la tarjeta, también sin `repuestos.editar`; abre `?panel=imagenes&item=<id>` (se
+  recarga; «atrás» lo cierra y el foco vuelve a la tarjeta). Esqueleto, error con «Reintentar», vacío (con permiso, la zona de subir). Con
   imágenes: «3 de 8 imágenes» (exacto: el tope es duro), rejilla de 2 a 4 columnas que enlaza al original, «Quitar» de 44 px con
   «Deshacer». Lleno: zona apagada con su motivo. Sólo lectura (o proyecto cerrado): sin zona ni «Quitar». Sin conexión: zona apagada.
   Elegir sube al momento; lo repetido dice «ya estaba».
@@ -2091,7 +2101,7 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
     notas; el equivalente en la base lo calcula el sistema al guardar. Motivos junto a su campo; conflicto con «Recargar»; sin conexión,
     sale al volver; cerrar con algo escrito pregunta. Guardar relee lista y margen. «⋯» → «Editar» y «Eliminar» (sin preguntar, con
     «Deshacer»). «Ver comprobante» pide una URL de 60 s al tocarlo.
-- **Stock del ítem:** «Stock» en las acciones de cada fila, también sin `repuestos.editar` y con el proyecto cerrado; al lado, «En stock: N»
+- **Stock del ítem:** «Stock» en el «⋯» de la tarjeta, también sin `repuestos.editar` y con el proyecto cerrado; al lado, «En stock: N»
   (`<Badge>` de texto; con 0 nada). Abre `?panel=stock&item=<id>` (se recarga; «atrás» lo cierra; un ítem que ya no está avisa). Arriba
   «En stock: N de <cantidad>»; con `repuestos.editar` (también con el proyecto cerrado: los sobrantes nacen al terminar), «Pasar a stock»
   con cantidad (entero ≥ 1, no más que la del ítem; el tope exacto lo dice la base junto al campo) y nota (≤ 500); tras pasar, el panel
