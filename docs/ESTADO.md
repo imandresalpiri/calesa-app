@@ -4,7 +4,7 @@
 > un verde que dejó de serlo). Qué existe en el código lo dice `docs/MAPA.md`; lo que falta, `docs/PENDIENTES.md`; cómo se trabaja,
 > `docs/FLUJO.md`. Las versiones anteriores: `git log -p docs/ESTADO.md`.
 
-**Última actualización:** 2026-11-19
+**Última actualización:** 2026-11-21
 **Estado:** **terminado (fases 0 a 9) y listo para desplegar.** Desplegar es de la persona (`docs/DESPLIEGUE.md`). Desde aquí el proyecto
 recibe actualizaciones sueltas: una rama, un PR que se integra solo con el CI en verde.
 
@@ -12,13 +12,11 @@ recibe actualizaciones sueltas: una rama, un PR que se integra solo con el CI en
 
 - **Equipo y permisos:** registro e invitaciones, roles libres sobre un catálogo fijo de permisos, por origen y con alcance, dominancia
   sobre la persona, bajas con traspaso de cartera, «Ver como».
-- **Empresa y orígenes:** ajustes, monedas y tipos de cambio, integraciones (apibara, web pública), campos por origen con rango. Datos de la empresa, Integraciones, la serie de Comprobantes Ajustes y Legales del sitio web y el perfil son tarjetas con lo guardado a la vista y un modal por tarjeta (`?panel=`), sin acordeones ni barra de cambios sin guardar. Cada origen tiene su página en
+- **Empresa y orígenes:** ajustes, monedas y tipos de cambio, integraciones (apibara, web pública), campos por origen con rango. Datos de la empresa, Integraciones, la serie de Comprobantes, Ajustes y Legales del sitio web y el perfil son tarjetas con lo guardado a la vista y un modal por tarjeta (`?panel=`), sin acordeones ni barra de cambios sin guardar. Cada origen tiene su página en
   Configuración (datos, campos, categorías, flujo, fórmula y tablas) con lo que le falta para cotizar y mover; lo de toda la empresa, en Catálogos. Un
   origen nuevo se crea en una página y sigue por su puesta en marcha (Campos, Flujo, Fórmula, Tarjeta y Publicar, un paso por página con el editor de su
   pestaña) hasta «Cotizar con <origen>»; se puede salir a mitad y retomarla desde la página del origen.
 - **Vehículos:** inventario por origen con rutas e índices por caso, ficha en dos columnas (a la izquierda lo clave: la foto con su tira, la cuenta del cierre con la puja, la compra directa y el costo estimado como en la tarjeta, y los datos clave con la ficha completa en un modal; a la derecha fase y qué falta, relacionados, cotizaciones, documentos, ficha y repuestos), que la lista abre directo, vitrina, papelera, subastas por apibara con su zona horaria; una sola situación real (fase y subasta) con su filtro, tarjetas (todas del mismo alto) o tabla con el lote, el costo estimado (la aprobada con su modo) y la compra directa, alta suelta o desde cotizar, vitrina desde la lista; «relacionados» (vinculado, interesado y cotizado) arriba de cada detalle.
-- **Leads:** listado y kanban con cartera, teléfono único y enmascarado con teléfonos extra configurables, último seguimiento y recordatorio en la lista, campos configurables y privados, seguimientos, oportunidades (la base al nacer y otra desde el «⋯» con aviso de las que ya tiene),
-- **Vehículos:** inventario por origen con rutas e índices por caso, ficha en dos columnas (a la izquierda lo clave: la foto con su tira, la aprobada, la subasta en una frase y los datos clave con la ficha completa en un modal; a la derecha fase y qué falta, relacionados, cotizaciones, documentos, ficha y repuestos), que la lista abre directo, vitrina, papelera, subastas por apibara con su zona horaria; una sola situación real (fase y subasta) con su filtro, tarjetas (todas del mismo alto) o tabla con el lote, el costo estimado (la aprobada con su modo) y la compra directa, alta suelta o desde cotizar, vitrina desde la lista; «relacionados» (vinculado, interesado y cotizado) arriba de cada detalle.
 - **Leads:** listado y kanban con cartera, teléfono único y enmascarado con teléfonos extra configurables, último seguimiento y recordatorio en la lista, campos configurables y privados, su configuración en una página de seis tarjetas con un modal cada una (tipos, orígenes, seguimientos, embudo, mensaje del portal y teléfonos extra), seguimientos, oportunidades (la base al nacer y otra desde el «⋯» con aviso de las que ya tiene),
   la ficha en dos columnas con todo a la vista (índice de bloques, seguimientos y recordatorios resumidos con «Ver todos», relacionados con la
   gestión de vehículos al pie), a la que lleva la lista, importar y exportar, limpieza automática, papelera.
@@ -27,7 +25,7 @@ recibe actualizaciones sueltas: una rama, un PR que se integra solo con el CI en
 - **Flujos y logística:** fases, transiciones, requisitos y reglas por RPC, configurados sobre el diagrama del flujo (cajas y flechas, ordenar
   arrastrando, avisos de «Revisar» encima) con el panel de cada fase al costado; `/logistica` (la bandeja del día con siete grupos, la cadena como gráfica por fase, la lista de cada fase,
   «qué falta» con la acción que destraba cada requisito (hacerlo, ir a donde se hace o pedírselo a quien puede con una tarea), mover y el lote, documentos, embarques, aduana, gastos, pagos y margen), medida con 300.000 vehículos.
-- **En todo el sistema:** avisos con acciones (cada bloqueo dice cómo destrabarlo), el visor de fotos con carrusel, «visto» (negrita lo no
+- **En todo el sistema:** Configuración desde `/configuracion/inicio` con su buscador, el menú lateral plegable, recargar la página y copiar su enlace en la barra, avisos con acciones (cada bloqueo dice cómo destrabarlo), el visor de fotos con carrusel, «visto» (negrita lo no
   abierto) y «último visto» por persona y módulo en las listas, «Vista y opciones» en cada lista, y la barra superior con «Nuevo» (lo que
   la persona puede crear) y los tipos de cambio elegidos (cambiar el valor ahí y compartirlos como imagen o texto).
 - **Repuestos:** proyectos guiados por pasos (las fases del flujo y sus hitos, con el siguiente de cada ítem) y con su cliente como lead, ítems en tarjetas con buscador, filtros y su fila de hoja de cálculo en un drawer, compras, stock,
@@ -44,21 +42,19 @@ recibe actualizaciones sueltas: una rama, un PR que se integra solo con el CI en
 ## Verdes
 
 - `lint`, `typecheck`, `test` (13.100+ pruebas), `db:probar` (1.483 bloques), `db:lint`, `db:carreras` y `mapa.sh --check`.
-- **e2e completo:** el de escritorio, verde sobre `0391e343` (2026-11-19, la verificación de `main` antes del cierre); el de la noche
-  (los dos proyectos) sobre `c880e916` cayó en dos specs de escritorio por carreras de la prueba (el visor de la imagen abierto y
-  la primera flecha del asa), ya arregladas: el issue `noche-roja` #395 se cierra con la próxima noche en verde. El último Nivel 3 con celular (sobre `20815f1c`): 898 en verde, 31 saltadas, 0 caídas, 38,2 min.
-- **CI:** Nivel 1 siempre, «Base» si cambia código, los e2e dirigidos (o el completo de escritorio en 8 bloques si toca un disparador),
-  y `Listo · todo en verde`, el único check que `main` exige; el completo con los dos proyectos, cada noche.
+- **e2e completo:** el de escritorio, verde sobre `374901f3` (2026-11-21, la verificación de `main` antes del cierre); el de la noche
+  (los dos proyectos) sobre `86322259` cayó en dos specs de `movil` con el texto al 200 % (el diagrama del flujo y el resumen de la hoja):
+  lo sigue el issue `noche-roja` #495. El último Nivel 3 con celular (sobre `20815f1c`): 898 en verde, 31 saltadas, 0 caídas, 38,2 min.
+- **CI:** Nivel 1, «Base» si cambia código, los e2e dirigidos (o el completo de escritorio en 8 bloques) y `Listo · todo en verde`.
 - **Base:** una sola migración (`20261121104012_base.sql`), aplastada con la huella de la base idéntica (`pnpm db:aplastar`).
 - **Despliegue:** el ensayo en seco en `listo` (`pnpm despliegue:en-seco`).
 
 ## Al borde
 
-- Presupuestos: la hoja, 467 nodos de 500; JS de `/cotizaciones/nuevo` 462,6 de 465 KB, de `/cotizaciones/[id]` 475,0 de 480 y de `/cotizaciones` 386,9 de 390. Con la regla del 5 % se sube el tope (`docs/RENDIMIENTO.md`).
+- Presupuestos: la hoja, 467 nodos de 500; JS de `/cotizaciones/nuevo` 466,6 de 470 KB, de `/cotizaciones/[id]` 480,1 de 490 y de `/cotizaciones` 391,2 de 400; el kanban de leads, 10.252 nodos de 10.300; el documento de `/cotizaciones/papelera`, 477.234 B de 480.000. Con la regla del 5 % se sube el tope (`docs/RENDIMIENTO.md`).
 - El e2e completo con los dos proyectos tarda ≈ 95 min de reloj (5a-4b): en CI va en 8 bloques (el de escritorio de un PR, ≈ 13 min).
 
 ## Siguiente
 
-- **Para la persona:** producción (variables, secretos, Vercel) y la lista de `docs/DESPLIEGUE.md` › «Lo que sólo una persona
-  comprueba»; después, las decisiones de producto de `docs/PENDIENTES.md`.
+- **Para la persona:** producción y `docs/DESPLIEGUE.md` › «Lo que sólo una persona comprueba»; después, lo de producto de `docs/PENDIENTES.md`.
 - **Para una sesión:** lo que la persona pida, o lo de `docs/PENDIENTES.md` › «Seguridad y dinero» primero.
