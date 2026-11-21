@@ -46,7 +46,7 @@ function Contenido({ paso, conProgreso }: Pick<Props, 'paso' | 'conProgreso'>) {
       </span>
       <span
         aria-hidden={conProgreso}
-        className="flex items-center gap-1 text-left font-medium [overflow-wrap:anywhere]"
+        className="flex items-center gap-1 text-left text-(length:--text-sm) font-medium [overflow-wrap:anywhere]"
       >
         {nombre}
         {paso.tipo === 'hito' ? (
@@ -76,7 +76,7 @@ export function TarjetaDelPaso({ paso, conProgreso, disponibles, alElegirPanel }
     <li
       data-paso={paso.tipo === 'fase' ? paso.fase.id : paso.hito}
       data-tipo-de-paso={paso.tipo}
-      className="flex min-w-0 shrink-0 grow basis-28"
+      className={`flex min-w-0 shrink-0 grow ${paso.tipo === 'hito' ? 'basis-36' : 'basis-28'}`}
     >
       {paso.tipo === 'hito' && conPestana ? (
         <button

@@ -264,6 +264,7 @@ test('las pestañas no se mueven al cambiar de una a otra y la hoja vuelve como 
     await expect(hoja).toBeHidden()
     expect(await pestanas.boundingBox()).toEqual(antes)
   }
+  await expect(page.getByRole('region', { name: 'Margen del proyecto' })).toBeVisible()
   await capturar(page, info, 'pestana-compras')
   await page.getByRole('tab', { name: 'Ítems', exact: true }).click()
   await expect(page).not.toHaveURL(/pestana=/)

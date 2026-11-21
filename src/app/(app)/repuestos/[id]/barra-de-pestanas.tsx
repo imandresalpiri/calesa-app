@@ -50,7 +50,7 @@ export function BarraDePestanas({ titulo, pestanas, valor, alElegir }: Props) {
       <div ref={centinela} aria-hidden className="-mb-4 h-px" />
       <div
         data-barra-de-pestanas=""
-        className="sticky top-(--topbar) z-10 -mx-1 flex min-h-12 min-w-0 items-center gap-3 border-b border-(--color-line) bg-(--color-paper) px-1 py-1"
+        className="sticky top-(--topbar) z-10 -mx-1 flex min-h-11 min-w-0 items-center gap-3 border-b border-(--color-line) bg-(--color-paper) px-1 py-1"
       >
         {pegada ? (
           <span className="hidden shrink-0 font-semibold tabular-nums sm:inline">{titulo}</span>
