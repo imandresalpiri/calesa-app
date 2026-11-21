@@ -1,8 +1,6 @@
 'use client'
 
-import { ImageIcon, Trash2Icon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Button } from '@/shared/ui/button'
 import { Monto } from '@/shared/ui/monto'
 import { XCell } from '@/shared/ui/xcell'
 import {
@@ -16,7 +14,6 @@ import type { FilaDeItem } from '../../../entities/nucleo/item'
 import { CeldaDeSeleccion, type OpcionDeCelda } from './celda-de-seleccion'
 import { CeldaDeTexto } from './celda-de-texto'
 import type { ContextoDeLaHoja } from './contexto-de-la-hoja'
-import { FaseDelItemInsignia } from './fase-del-item'
 import { QueEsElItem } from './que-es-el-item'
 
 // Lo que se ofrece en una celda de catálogo: los activos y, aunque se haya desactivado, el valor que el ítem ya tiene (para no perder lo guardado).
@@ -42,12 +39,6 @@ export type ControlesDeItem = {
   moneda: ReactNode
   tracking: ReactNode
   notas: ReactNode
-  // El botón del siguiente (lo pone el hueco); sin hueco o sin flujo legible, la fase del ítem.
-  siguiente: ReactNode
-  imagenes: ReactNode
-  // Lo del hueco de la hoja (8.10-2); nulo sin hueco.
-  hueco: ReactNode
-  eliminar: ReactNode
 }
 
 const CATALOGOS = [
@@ -174,54 +165,8 @@ function monedaDeItem(fila: FilaDeItem, c: ContextoDeLaHoja) {
   )
 }
 
-// «Imágenes» está en toda fila, también para quien sólo ve (8.09-3, C14, D70): el panel decide qué deja hacer.
-function imagenesDeItem(fila: FilaDeItem, c: ContextoDeLaHoja) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      data-imagenes-item={fila.id}
-      aria-label={`Imágenes del ítem ${fila.descripcion}`}
-      className="min-h-11 md:min-h-9"
-      onClick={() => {
-        c.alPedirImagenes(fila.id)
-      }}
-    >
-      <ImageIcon aria-hidden />
-      Imágenes
-    </Button>
-  )
-}
-
-function eliminarDeItem(fila: FilaDeItem, c: ContextoDeLaHoja) {
-  return c.editable ? (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      data-eliminar-item={fila.id}
-      aria-label={`Eliminar el ítem ${fila.descripcion}`}
-      className="min-h-11 md:min-h-9"
-      onClick={() => {
-        c.alPedirEliminar(fila.id)
-      }}
-    >
-      <Trash2Icon aria-hidden />
-      Eliminar
-    </Button>
-  ) : null
-}
-
-// Lo que sigue para el ítem: el botón del siguiente que pone el hueco (el encabezado de su grupo ya dice la fase: la fila no la repite). Sin hueco, o sin flujo legible
-// (el hueco no pone nada y todo cae en «Sin fase»), la fase del ítem: así no se pierde.
-function siguienteDeItem(fila: FilaDeItem, c: ContextoDeLaHoja) {
-  const siguiente = c.pasoDeFila ? c.pasoDeFila(fila) : null
-  return siguiente ?? <FaseDelItemInsignia fase={fila.fase} />
-}
-
-// Los controles de una fila de la hoja (8.09-2, C8), los mismos en la tabla y en la tarjeta: cada uno con su nombre accesible («Descripción del ítem Faro»). Con `repuestos.editar` y el proyecto abierto
-// son editables; si no, texto plano, el precio por `<Monto>`. La fase es de lectura (la dice el encabezado del grupo): se mueve con el botón del siguiente (el hueco) o desde el panel del ítem.
+// Los controles de la fila del ítem (8.09-2, C8): cada uno con su nombre accesible («Descripción del ítem Faro»). Con `repuestos.editar` y el proyecto abierto
+// son editables; si no, texto plano, el precio por `<Monto>`. La fase es de lectura (la dice el encabezado del grupo): se mueve con el botón de la tarjeta o desde el panel del ítem.
 export function controlesDeItem(fila: FilaDeItem, c: ContextoDeLaHoja): ControlesDeItem {
   const descripcion = textoDeItem(fila, c, 'descripcion')
   const catalogos = catalogosDeItem(fila, c)
@@ -234,9 +179,5 @@ export function controlesDeItem(fila: FilaDeItem, c: ContextoDeLaHoja): Controle
     moneda: monedaDeItem(fila, c),
     tracking: textoDeItem(fila, c, 'tracking'),
     notas: textoDeItem(fila, c, 'notas'),
-    siguiente: siguienteDeItem(fila, c),
-    imagenes: imagenesDeItem(fila, c),
-    hueco: c.accionDeFila ? c.accionDeFila(fila) : null,
-    eliminar: eliminarDeItem(fila, c),
   }
 }

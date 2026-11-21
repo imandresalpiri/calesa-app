@@ -17,6 +17,8 @@ type Props = {
   destinoInicial?: string | null
   // Lo que pone quien compone el panel entre «Qué falta» y el resto (los bloques de `repuestos`: imágenes, stock, compras), cada uno ya con su permiso.
   bloques?: readonly SeccionDeLaUnidad[]
+  // Sin cabecera (`false`) el panel va bajo un título que ya dice qué ítem es (el drawer de un ítem de `/repuestos/[id]`): sólo queda su línea de `aviso`, si la hay.
+  conCabecera?: boolean
 }
 
 const QUE_FALTA = 'que-falta'
@@ -40,6 +42,7 @@ export function PanelDeLaUnidadALaVista({
   aviso = null,
   destinoInicial = null,
   bloques = [],
+  conCabecera = true,
 }: Props) {
   const secciones = seccionesDeLaUnidad(unidad, enElOrdenDelItem(huecos))
   const queFalta = secciones.filter((s) => s.clave === QUE_FALTA)
@@ -51,7 +54,11 @@ export function PanelDeLaUnidadALaVista({
   return (
     <ProveedorDelDestinoInicial destino={destinoInicial}>
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4" data-slot="panel-de-la-unidad">
-        <CabeceraDeLaUnidad unidad={unidad} origen={origen} fase={fase} aviso={aviso} />
+        {conCabecera ? (
+          <CabeceraDeLaUnidad unidad={unidad} origen={origen} fase={fase} aviso={aviso} />
+        ) : aviso ? (
+          <p className="text-(length:--text-sm) text-(--color-ink-soft)">{aviso}</p>
+        ) : null}
         {[...queFalta, ...propios, ...resto].map((seccion) => (
           <Seccion key={seccion.clave} seccion={seccion} />
         ))}

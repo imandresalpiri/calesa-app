@@ -27,7 +27,7 @@ function bajar(entrada: HTMLInputElement, columna: string) {
   siguiente?.focus()
 }
 
-// Una celda de texto de la hoja (8.09-2, C8): una entrada que guarda al pulsar Enter o al salir si cambió; Esc vuelve a lo guardado. Lo escrito queda si el guardado falla (el motivo va debajo y se
+// Una celda de texto de la hoja (8.09-2, C8): una entrada que guarda al pulsar Enter o al salir si cambió; Esc vuelve a lo guardado (si no hay nada que devolver, cierra el panel donde esté). Lo escrito queda si el guardado falla (el motivo va debajo y se
 // puede reintentar tal cual). Sin `repuestos.editar` (o con el proyecto cerrado), texto plano.
 export function CeldaDeTexto({
   etiqueta,
@@ -46,6 +46,7 @@ export function CeldaDeTexto({
     setVista(valor)
     setBorrador(valor ?? '')
   }
+  const sucio = editable && borrador.trim() !== (valor ?? '')
   if (!editable) {
     return valor ? (
       <span className="[overflow-wrap:anywhere]">{valor}</span>
@@ -84,7 +85,9 @@ export function CeldaDeTexto({
             evento.preventDefault()
             confirmar()
             bajar(evento.currentTarget, columna)
-          } else if (evento.key === 'Escape') {
+          } else if (evento.key === 'Escape' && sucio) {
+            // Con lo escrito sin guardar, Esc lo devuelve y el panel sigue abierto; sin nada que devolver, el evento sigue y Esc cierra el panel.
+            evento.stopPropagation()
             setBorrador(valor ?? '')
           }
         }}

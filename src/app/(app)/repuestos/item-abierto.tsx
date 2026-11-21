@@ -88,9 +88,10 @@ function ItemNoDisponible() {
 // El ítem con ese id y su panel con las secciones a la vista («Qué falta» primero, con `?destino=` ya abierto), o el estado que toque (8.13-2). `repuestos` lee el ítem (fase, proyecto) bajo la RLS de quien mira y `logistica` dibuja el panel: `logistica` no importa
 // `repuestos`, así que la unidad se arma aquí. Sin origen (el flujo de repuestos no lo tiene): los huecos se filtran por `repuestos.ver`. No va atada a la página: la «Cadena» la monta igual.
 // Un error de lectura sube al `error.tsx` de `(app)`, que ofrece «Reintentar».
-type Props = { id: string; destino?: string | null; permisos: Permisos }
+// `conCabecera={false}`: el drawer del proyecto ya tiene el título del ítem y su fila arriba.
+type Props = { id: string; destino?: string | null; permisos: Permisos; conCabecera?: boolean }
 
-export async function ItemAbierto({ id, destino = null, permisos }: Props) {
+export async function ItemAbierto({ id, destino = null, permisos, conCabecera = true }: Props) {
   if (!puede(permisos, 'repuestos.ver')) {
     return <EstadoSinPermiso />
   }
@@ -122,6 +123,7 @@ export async function ItemAbierto({ id, destino = null, permisos }: Props) {
       aviso={aviso}
       destinoInicial={destino}
       bloques={bloquesDelItem(item, permisos)}
+      conCabecera={conCabecera}
     />
   )
 }

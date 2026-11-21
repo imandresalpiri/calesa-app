@@ -1,7 +1,5 @@
-// Las columnas de la hoja de ítems, en su orden: primero qué es el ítem, luego cantidad, precio y el siguiente; los demás datos después. Cada título lleva su ayuda en
-// un `title` (subrayado punteado para que se note): un «?» con `Popover` arrastraría Base UI a la carga en frío por diez encabezados. Texto de interfaz, no regla:
-// ninguna ayuda nombra un valor de catálogo.
-export const COLUMNAS_DE_LA_HOJA = [
+// Las columnas de la fila del ítem, en su orden: qué es el ítem, cantidad y precio; los demás datos después. Texto de interfaz, no regla: ninguna ayuda nombra un valor de catálogo.
+export const COLUMNAS_DE_LA_FILA = [
   {
     clave: 'item',
     titulo: 'Ítem',
@@ -19,12 +17,6 @@ export const COLUMNAS_DE_LA_HOJA = [
     titulo: 'Precio al cliente',
     ayuda: 'Precio al cliente: lo que se le cobra por unidad',
     clase: 'min-w-40 text-right',
-  },
-  {
-    clave: 'siguiente',
-    titulo: 'Siguiente',
-    ayuda: 'Siguiente: lo que toca hacer para que el ítem avance de paso',
-    clase: 'min-w-44',
   },
   {
     clave: 'pais',
@@ -51,17 +43,10 @@ export const COLUMNAS_DE_LA_HOJA = [
     ayuda: 'Notas: lo que el equipo anota del ítem',
     clase: 'min-w-48',
   },
-  { clave: 'acciones', titulo: 'Acciones', ayuda: null, clase: '' },
 ] as const
 
-export type ClaveDeColumna = (typeof COLUMNAS_DE_LA_HOJA)[number]['clave']
-
-export const CANTIDAD_DE_COLUMNAS = COLUMNAS_DE_LA_HOJA.length
-
-/** El título de una columna (también la etiqueta de su campo en la tarjeta de la lista). */
-export const tituloDe = (clave: ClaveDeColumna): string =>
-  COLUMNAS_DE_LA_HOJA.find((c) => c.clave === clave)?.titulo ?? clave
+export type ClaveDeColumna = (typeof COLUMNAS_DE_LA_FILA)[number]['clave']
 
 /** La clase de la columna: la misma en su `<th>` y en sus celdas. */
 export const claseDe = (clave: ClaveDeColumna): string =>
-  COLUMNAS_DE_LA_HOJA.find((c) => c.clave === clave)?.clase ?? ''
+  COLUMNAS_DE_LA_FILA.find((c) => c.clave === clave)?.clase ?? ''

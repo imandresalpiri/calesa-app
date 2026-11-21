@@ -1,9 +1,7 @@
-import type { ReactNode } from 'react'
 import type { ColumnaEditable, ValorDeCelda } from '../../../entities/items/celda'
 import type { CatalogosDeLaHoja, MonedaDeLaHoja } from '../../../entities/items/hoja'
-import type { FilaDeItem } from '../../../entities/nucleo/item'
 
-// Lo que las filas necesitan de la hoja (8.09-2): si se edita, los catálogos y las monedas, lo que dijo cada celda al guardar y las funciones, **estables** (la `XCell` está en `memo`).
+// Lo que la fila del ítem necesita de la hoja (8.09-2): si se edita, los catálogos y las monedas, lo que dijo cada celda al guardar y las funciones, **estables** (la `XCell` está en `memo`).
 export type ContextoDeLaHoja = {
   editable: boolean
   catalogos: CatalogosDeLaHoja
@@ -15,11 +13,4 @@ export type ContextoDeLaHoja = {
   guardar: (itemId: string, columna: ColumnaEditable, valor: ValorDeCelda) => Promise<void>
   alConfirmarNumero: (id: string, valor: number | null) => void
   alReiniciar: (id: string) => void
-  alPedirEliminar: (itemId: string) => void
-  // Abre el panel de imágenes del ítem (`?panel=imagenes&item=<id>`, 8.09-3): también para quien sólo ve (D70).
-  alPedirImagenes: (itemId: string) => void
-  // Lo que el hueco de la hoja pone en cada fila (8.10-2: el stock del ítem); sin hueco, nada.
-  accionDeFila?: (fila: FilaDeItem) => ReactNode
-  // Lo que el hueco pone en la columna «Siguiente» de cada fila (el botón del siguiente); sin hueco, la fase del ítem.
-  pasoDeFila?: (fila: FilaDeItem) => ReactNode
 }

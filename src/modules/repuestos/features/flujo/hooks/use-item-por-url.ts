@@ -24,6 +24,8 @@ export function useItemPorUrl() {
   useVueltaDelFoco(CLAVE_DE_ITEM_DEL_PANEL, abierto)
   return {
     abierto,
+    // El id de `?item=` mientras el panel está abierto; nulo si no (también con `?panel=`).
+    id: abierto ? valores[CLAVE_DE_ITEM_DEL_PANEL] : null,
     abrir: (id: string, destino: string | null = null) => {
       abrirConVuelta(
         CLAVE_DE_ITEM_DEL_PANEL,
