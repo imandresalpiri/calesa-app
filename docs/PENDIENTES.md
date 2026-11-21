@@ -179,7 +179,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** El orquestador une sin sesión sólo los choques en `docs/*.md`: sumar las fichas `src/modules/*/CLAUDE.md` y `.claude/rules/*.md` — 8 de los 11 choques de la tanda del 2026-11-21 tocaban docs o fichas y 3 abrieron sesión sólo por eso.
 - **[—]** Los arreglos van primero al soltarse un carril, pero esperan a que termine una sesión de tarea (2–4 h): 28 esperaron 751 min en total (máx. 135) — sin salida clara (¿reservar un carril si hay un PR por arreglar?).
 - **[—]** Ninguna guarda ve un término repetido en `docs/GLOSARIO.md` (un guion de una sesión duplicó 879 líneas y entró a `main`): que `mapa.sh --check` falle con un término o un título repetido en un doc.
-- **[—]** Lo que el CI compara de la base (`revisar-base.mjs advisors db-lint … inventario`) no tiene comando local: un `pnpm db:revisar` igual al paso del CI, nombrado en los prompts al tocar `supabase/` (3 arreglos de la tanda).
+- **[—]** El «Final del log» del job caído llega vacío a 7 de 21 prompts de arreglo (`gh run view --log-failed` se vacía al rato): el orquestador lo guarda al ver el rojo, o lo pide por la API de jobs.
 - **[—]** `vitest.config.mts` corta un test a los 5 s en local y a los 15 s en CI: con la máquina cargada (3 sesiones) dio 17 timeouts en 8 tareas que obligaron a repetir `verificar.sh` — 15 s también en local.
 - **[—]** Una sesión cortada por «API Error: No response from API» se retoma desde cero (una retoma costó US$34 y 151 min): retomarla con `claude --resume <id>`.
 - **[—]** `verificar.sh` no corre `shellcheck`, que el Nivel 1 del CI sí corre sobre `*.sh` (ya cayó dos veces): correrlo, o fallar si falta, cuando la rama toca un `.sh`.
