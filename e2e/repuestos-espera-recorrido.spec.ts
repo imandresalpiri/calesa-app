@@ -109,7 +109,7 @@ test('la dueña pasa el ítem a «Recibido» desde la Cadena y el vehículo ya p
   const columna = page.getByRole('region', { name: 'En tránsito: 1 ítem' })
   await expect(columna.getByRole('link', { name: REPUESTO })).toBeVisible()
   await columna.getByRole('link', { name: REPUESTO }).click()
-  const panel = page.getByRole('dialog', { name: REPUESTO, exact: true })
+  const panel = page.getByRole('dialog', { name: 'Repuesto' })
   await expect(panel.getByRole('heading', { name: REPUESTO })).toBeVisible()
   await panel.getByRole('button', { name: 'Elegir el destino «Recibido»' }).click()
   // «Recibido» no pide nada: el botón nace habilitado.
