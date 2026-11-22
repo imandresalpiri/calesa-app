@@ -8,16 +8,23 @@ import {
   CabeceraPegada,
   CeldaPegada,
   FilaDeLista,
+  MasAcciones,
   TablaDeLista,
   TarjetaDeLista,
   UnaSolaVista,
 } from '@/shared/ui/lista'
+import type { AccionDeMenu } from '@/shared/ui/lista/acciones'
 import { useRegional } from '@/shared/ui/regional'
 import { TableBody, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { rutaDeGuia, type GuiaDeLista } from '../../../../entities/contenido/guias'
 import { EstadoDeLaGuia } from './estado-de-la-guia'
 
 type Props = { filas: readonly GuiaDeLista[]; ahora: string }
+
+// La lista única del «⋯» de una guía: «Abrir» (lo mismo que tocar la fila o la tarjeta).
+function accionesDeLaGuia(abrir: () => void): AccionDeMenu[] {
+  return [{ tipo: 'accion', clave: 'abrir', etiqueta: 'Abrir', principal: true, alElegir: abrir }]
+}
 
 const SIN = 'Sin asignar'
 
@@ -33,6 +40,9 @@ function Tabla({ filas, ahora }: Props) {
           <TableHead>Autor</TableHead>
           <TableHead>Estado</TableHead>
           <TableHead>Actualizada</TableHead>
+          <CabeceraPegada lado="acciones">
+            <span className="sr-only">Acciones</span>
+          </CabeceraPegada>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -56,6 +66,14 @@ function Tabla({ filas, ahora }: Props) {
             <td className="p-2 text-(--color-ink-soft)">
               {formatearFecha(guia.actualizadoEn, { zona: zonaHoraria })}
             </td>
+            <CeldaPegada lado="acciones">
+              <MasAcciones
+                nombre={guia.titulo}
+                acciones={accionesDeLaGuia(() => {
+                  router.push(rutaDeGuia(guia.id) as Route)
+                })}
+              />
+            </CeldaPegada>
           </FilaDeLista>
         ))}
       </TableBody>
@@ -74,6 +92,14 @@ function Tarjetas({ filas, ahora }: Props) {
           alAbrir={() => {
             router.push(rutaDeGuia(guia.id) as Route)
           }}
+          acciones={
+            <MasAcciones
+              nombre={guia.titulo}
+              acciones={accionesDeLaGuia(() => {
+                router.push(rutaDeGuia(guia.id) as Route)
+              })}
+            />
+          }
         >
           <AbrirResumen nombre={guia.titulo} className="min-w-0 font-medium break-words">
             {guia.titulo}
