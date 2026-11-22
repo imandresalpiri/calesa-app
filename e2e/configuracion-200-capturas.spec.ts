@@ -146,8 +146,8 @@ for (const zoom of ['100', '200'] as const) {
       if (zoom === '100' && !AL_CIEN.has(nombre)) continue
       await page.goto(url())
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-      // Un panel por la URL (las tablas de referencia): se captura abierto.
-      if (url().includes('panel=')) await expect(page.getByRole('dialog')).toBeVisible()
+      // Un panel por la URL (las tablas de referencia): se captura abierto; con `accion=`, el de la tabla va encima del drawer «Tablas».
+      if (url().includes('panel=')) await expect(page.getByRole('dialog').last()).toBeVisible()
       // La barra de secciones se desplaza hasta la abierta recién al hidratar: se captura con ella ya a la vista.
       if ((await page.getByRole('tablist').count()) > 0) {
         await aLaVistaAlAcomodarse(
