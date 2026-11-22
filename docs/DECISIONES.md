@@ -828,6 +828,11 @@ las trampas, en `docs/LECCIONES.md`.
   no se ocultaría con sus miembros; la combinada se acorta sola). El color: el de la plantilla si sigue en el catálogo, si no el del grupo. Los altos se
   estiman con aritmética entera (igual en TS y SQL). Una forma 1 cuya conversión rompe una regla de la cuadrícula es `sin_plantilla`; lo convertido no
   se mide contra los 24 KiB (lo acotan la forma 1 y la fórmula).
+- **Las tarjetas sembradas de USA son forma 2.** `subasta_usa` y `planilla_usa` siembran la conversión de su forma 1 con la leyenda de la transferencia como
+  texto con datos («Comisión giro » y el porcentaje de cada cotización), que la forma 1 no puede decir: su descripción fija («Comisión giro 4%») no cambiaba con el
+  porcentaje de la cotización. Lo sembrado va legible (cada columna, fila y celda en su línea) y vale contra la v1 con el tope de 24 KiB. La forma 1
+  de las dos queda en `entities/plantilla/plantillas-v1-de-las-semillas.json`: la conversión se sigue probando con una plantilla real (T5 de
+  `plantilla-convertir.sql`, `convertir-plantilla.test.ts`). La de oficina sigue en forma 1: la conversión al leer sigue sembrada.
 - **Un solo modelo de dibujo para HTML, PDF e imagen.** `geometriaDeLaTarjeta()` da, por celda visible, su rectángulo en px, su contenido resuelto y
   su estilo, y los tres la pintan con posiciones absolutas: es lo único que entienden igual el HTML, react-pdf y satori (`next/og` no tiene `grid`; una
   `<table>` como la de V1 no la dibujan react-pdf ni satori). El HTML escala con `min(1, ancho del contenedor / ancho)` como una imagen (la página nunca

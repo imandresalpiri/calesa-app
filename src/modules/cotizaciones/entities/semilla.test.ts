@@ -7,8 +7,18 @@ import {
   sembrada,
   SEMILLAS,
   tiposDeCambio,
+  plantillaDeLaSemilla,
+  plantillaV1DeLaSemilla,
   type Clave,
 } from './semilla-lectura'
+import type { PlantillaEnCuadricula } from './cuadricula-de-la-tarjeta'
+import type { Diseno } from './diseno'
+import { visibilidadDelDiseno } from './diseno/visibilidad'
+import type { Definicion } from './formula'
+import { convertirPlantilla } from './plantilla/convertir-plantilla'
+import type { Plantilla } from './plantilla/forma-de-plantilla'
+import type { ContextoDeNodos, DefinicionParaPlantilla } from './plantilla/nodos-de-plantilla'
+import { validarPlantilla } from './plantilla/validar-plantilla'
 import { validarDiseno } from './validar-diseno'
 
 // La semilla del cotizador (paso 4.08, prompt 3): `supabase/semillas/cotizador-*.sql` y los tipos de cambio de `supabase/seed.sql`.
@@ -116,4 +126,44 @@ describe('cada fórmula sembrada es la del juego', () => {
     expect(sembrada('planilla_usa').diseno.cabecera.modos).toEqual([])
     expect(sembrada('oficina').diseno.cabecera.modos).toEqual([])
   })
+})
+
+// La tarjeta sembrada de USA: forma 2, la conversión de su forma 1 (el fixture) con la visibilidad de su diseño, salvo la leyenda de la transferencia, que es
+// un texto con datos: «Comisión giro » y el porcentaje de cada cotización. El espejo contra la base es `supabase/tests/semilla-cotizador.sql`.
+describe('la tarjeta sembrada de USA', () => {
+  const LEYENDA = 'c_n_transferencia_leyenda'
+  const conLaLeyenda = (p: PlantillaEnCuadricula, contenido: unknown) => ({
+    ...p,
+    celdas: p.celdas.map((c) => (c.id === LEYENDA ? { ...c, contenido } : c)),
+  })
+
+  it.each(['subasta_usa', 'planilla_usa'] as const)(
+    '%s es forma 2, cabe en los 24 KiB, valida contra su fórmula y es su forma 1 convertida con la comisión del giro como texto con datos',
+    (clave) => {
+      const s = sembrada(clave)
+      const contexto: ContextoDeNodos = {
+        definicion: s.definicion as DefinicionParaPlantilla,
+        diseno: s.diseno as ContextoDeNodos['diseno'],
+        visibilidad: Object.fromEntries(
+          visibilidadDelDiseno(s.definicion as Definicion, s.diseno as Diseno),
+        ),
+      }
+      const tarjeta = plantillaDeLaSemilla(clave) as PlantillaEnCuadricula
+      expect(tarjeta.forma).toBe(2)
+      const r = validarPlantilla(tarjeta, { ...contexto, tonos: CONTEXTO.tonos })
+      expect(r.ok ? 'válida' : `${r.error.regla}@${r.error.donde}`).toBe('válida')
+      expect(tarjeta.celdas.find((c) => c.id === LEYENDA)?.contenido).toEqual({
+        tipo: 'texto',
+        partes: ['Comisión giro ', { tipo: 'dato', nodo: 'transferencia', mostrar: 'porcentaje' }],
+      })
+      const convertida = convertirPlantilla(
+        plantillaV1DeLaSemilla(clave) as Plantilla,
+        contexto,
+        CONTEXTO.tonos,
+      )
+      const original = convertida.celdas.find((c) => c.id === LEYENDA)?.contenido
+      expect(original).toEqual({ tipo: 'dato', nodo: 'transferencia', mostrar: 'descripcion' })
+      expect(conLaLeyenda(tarjeta, original)).toEqual(convertida)
+    },
+  )
 })

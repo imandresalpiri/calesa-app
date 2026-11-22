@@ -95,7 +95,8 @@ begin
     if v_clave = 'planilla_usa' then
       -- Su diseño no dibuja tipos de cambio (S0 del 4.18-1): su plantilla nace sin la columna.
       if exists (select 1 from jsonb_each(f.definicion -> 'buckets') b where f.visibilidad ? (b.value #>> '{}')) then raise exception 'planilla_usa ya dibuja un tipo de cambio: S0 cambió'; end if;
-      if (select p.definicion -> 'columnas' -> 'tipo_cambio' from public.plantillas_tarjeta p where p.origen_id = f.origen_id and p.version = 1) is distinct from 'false' then
+      if exists (select 1 from public.plantillas_tarjeta p, jsonb_array_elements(p.definicion -> 'columnas') c
+                  where p.origen_id = f.origen_id and p.version = 1 and c ->> 'id' = 'tipo_cambio') then
         raise exception 'la plantilla de planilla_usa nombra los tipos de cambio que su hoja no dibuja';
       end if;
       continue;
@@ -289,8 +290,11 @@ begin
      where o.clave = v_clave;
     if v_r is distinct from 'válida' then raise exception 'la plantilla v1 de % no valida contra su fórmula: %', v_clave, v_r; end if;
   end loop;
-  if (select p.definicion -> 'grupos' from public.plantillas_tarjeta p join public.origenes o on o.id = p.origen_id where o.clave = 'subasta_usa' and p.version = 1)
-     is distinct from '[{"grupo": "compra", "tono": "verde"}, {"grupo": "logistica", "tono": "amarillo"}, {"grupo": "aduana", "tono": "naranja"}]' then
+  -- Sus tres grupos con su tono: el título de cada uno (la celda de la columna `grupo` de su primera fila) con el fondo de su color.
+  if (select jsonb_agg(jsonb_build_array(c ->> 'id', c -> 'contenido' ->> 'texto', c -> 'estilo' ->> 'fondo') order by x.n)
+        from public.plantillas_tarjeta p join public.origenes o on o.id = p.origen_id, jsonb_array_elements(p.definicion -> 'celdas') with ordinality x (c, n)
+       where o.clave = 'subasta_usa' and p.version = 1 and c ->> 'columna' = 'grupo' and left(c ->> 'fila', 2) = 'n_')
+     is distinct from '[["c_n_remate_grupo", "Compra", "verde"], ["c_n_grua_grupo", "Logística", "amarillo"], ["c_n_nacionalizacion_grupo", "Aduana", "naranja"]]' then
     raise exception 'la plantilla de subasta_usa no lleva sus tres grupos con su tono';
   end if;
   foreach v_f in array array['public.validar_plantilla(jsonb, jsonb, jsonb, jsonb, text[])', 'public._plantilla_forma(jsonb)', 'public._plantilla_nodos(jsonb, jsonb, jsonb, jsonb)'] loop

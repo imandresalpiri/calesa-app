@@ -30,8 +30,10 @@ end $f$;
 
 -- La plantilla publicada de subasta_usa (v1: valida contra su fórmula) con otra nota: `p_marca` distingue una definición de otra.
 create or replace function pg_temp.pve_def(p_marca text) returns jsonb language sql as $f$
-  select jsonb_set(p.definicion, '{nota}', to_jsonb('Nota ' || p_marca))
-    from public.plantillas_tarjeta p join public.origenes o on o.id = p.origen_id where o.clave = 'subasta_usa' and p.version = 1
+  select jsonb_set(p.definicion, array['celdas', (x.n - 1)::text, 'contenido', 'texto'], to_jsonb('Nota ' || p_marca))
+    from public.plantillas_tarjeta p join public.origenes o on o.id = p.origen_id,
+         jsonb_array_elements(p.definicion -> 'celdas') with ordinality x (c, n)
+   where o.clave = 'subasta_usa' and p.version = 1 and x.c ->> 'id' = 'c_nota_grupo'
 $f$;
 
 -- @test plantilla-version T1: guardar con la esperada nula crea el borrador y devuelve su versión; el segundo crear da PT409 y no pisa nada

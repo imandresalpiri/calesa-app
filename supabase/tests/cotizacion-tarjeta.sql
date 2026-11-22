@@ -1,6 +1,8 @@
 -- `cotizacion_tarjeta(p_formula)` (paso 4.18-1): lo que dibuja la tarjeta (y el PDF) de una versión de la fórmula, con la plantilla publicada del origen validada
 -- contra ESA versión (la de la forma 1, convertida a la cuadrícula), sólo con lo del nivel «todos» que la plantilla nombra. docs/COTIZADOR.md › «La lectura de la tarjeta». K4 es el bloque de lo oculto, por cada nivel, que
 -- nombra el inventario de `cotizaciones-visibilidad.sql` (`cubierta_por`). Usa `pg_temp.pv_formula` y `pg_temp.pv_plantilla_g1` de `plantilla-validar.sql`, que corre antes.
+-- La tarjeta sembrada de USA es una cuadrícula; su forma 1 llega del fixture `entities/plantilla/plantillas-v1-de-las-semillas.json` (tabla
+-- `_plantillas_v1_de_las_semillas`, `DATOS_DE_PRUEBA` de `scripts/probar-schema.mjs`).
 -- La dueña es `…0001` (la crea `humo.sql`). Cada bloque abre su transacción y la revierte. Compara claves y hojas, nunca texto suelto.
 
 create or replace function pg_temp.ct_como(p_quien uuid) returns void language sql as $f$ select pg_temp.pv_como(p_quien) $f$;
@@ -43,6 +45,8 @@ begin
   update public.plantillas_tarjeta set estado = 'archivada' where origen_id = p_origen and estado = 'publicada';
   insert into public.plantillas_tarjeta (origen_id, version, estado, definicion, publicado_en) values (p_origen, (select coalesce(max(version), 0) + 1 from public.plantillas_tarjeta where origen_id = p_origen), 'publicada', p_def, now());
 end $f$;
+-- La forma 1 de la tarjeta de un origen de USA, como era antes de sembrarse en forma 2.
+create or replace function pg_temp.ct_v1(p_clave text) returns jsonb language sql as $f$ select doc -> p_clave from pg_temp._plantillas_v1_de_las_semillas $f$;
 create or replace function pg_temp.ct_claves(p jsonb) returns text[] language sql as $f$ select array(select k from jsonb_object_keys(p) k order by k) $f$;
 create or replace function pg_temp.ct_nombre_tc(p_clave text) returns text language sql as $f$ select nombre from public.tipos_cambio where clave = p_clave and activo $f$;
 
@@ -92,7 +96,7 @@ begin
   return v_id;
 end $f$;
 
--- @test tarjeta K1: la de subasta_usa (forma 1 sembrada) devuelve su conversión a la cuadrícula y sólo lo que esa cuadrícula nombra: sus nodos, sus grupos, sus tipos de cambio, la variante, los colores con el hex del catálogo y el total
+-- @test tarjeta K1: la de subasta_usa (cuadrícula sembrada) devuelve su cuadrícula tal cual y sólo lo que nombra: sus nodos (la transferencia con su pct, por la comisión del giro), sus grupos, sus tipos de cambio, la variante, los colores con el hex del catálogo y el total
 begin;
 do $$
 declare
@@ -107,17 +111,23 @@ begin
   if pg_temp.ct_claves(r) is distinct from array['colores', 'definicion', 'estado', 'grupos', 'modos', 'moneda_bs', 'nodos', 'plantilla', 'tipos_de_cambio', 'total', 'variante'] then
     raise exception 'las claves: %', pg_temp.ct_claves(r);
   end if;
-  if r -> 'definicion' is distinct from public._plantilla_convertir(v_pla, fo.definicion, fo.diseno, fo.visibilidad, array(select t.clave from public.tonos t)) then
-    raise exception 'la definición no es la conversión de la plantilla sembrada';
+  if v_pla ->> 'forma' is distinct from '2' or r -> 'definicion' is distinct from v_pla then
+    raise exception 'la definición no es la cuadrícula sembrada';
   end if;
   if (r -> 'plantilla' ->> 'version')::int is distinct from (select version from public.plantillas_tarjeta where origen_id = o and estado = 'publicada') then
     raise exception 'la versión: %', r -> 'plantilla';
   end if;
-  -- Los nodos: los miembros, el total y lo aparte, cada uno con su etiqueta, su descripción, su grupo y el pct sólo de un porcentaje (no hay).
+  -- Los nodos: los miembros, el total y lo aparte, cada uno con su etiqueta, su descripción, su grupo y el pct sólo de un porcentaje: el de la transferencia,
+  -- que la comisión del giro muestra en su leyenda (un texto con datos).
   if (select array_agg(x ->> 'id' order by x ->> 'id') from jsonb_array_elements(r -> 'nodos') x)
      is distinct from array['comision', 'cuenta_especial', 'documentacion', 'export', 'fees', 'garantia', 'grua', 'nacionalizacion', 'remate', 'total', 'transferencia',
-                            'transporte_bolivia', 'transporte_chile'] then
+                            'transferencia_pct', 'transporte_bolivia', 'transporte_chile'] then
     raise exception 'los nodos: %', r -> 'nodos';
+  end if;
+  if (select x ->> 'pct' from jsonb_array_elements(r -> 'nodos') x where x ->> 'id' = 'transferencia') is distinct from 'transferencia_pct'
+     or pg_temp.ct_celda(r, 'c_n_transferencia_leyenda') -> 'contenido'
+        <> '{"tipo": "texto", "partes": ["Comisión giro ", {"tipo": "dato", "nodo": "transferencia", "mostrar": "porcentaje"}]}' then
+    raise exception 'la comisión del giro con su porcentaje: % %', r -> 'nodos', pg_temp.ct_celda(r, 'c_n_transferencia_leyenda');
   end if;
   if (select x from jsonb_array_elements(r -> 'nodos') x where x ->> 'id' = 'remate')
      is distinct from '{"id": "remate", "etiqueta": "Remate (costo aprox.)", "descripcion": "Probabilidad de compra en subasta", "grupo": "compra", "pct": null}' then
@@ -191,7 +201,7 @@ declare
   f1 uuid; fn uuid; fn1 uuid; r jsonb; v_pla jsonb;
 begin
   select id into f1 from public.formulas where origen_id = o_sub and version = 1;
-  v_pla := (select definicion from public.plantillas_tarjeta where origen_id = o_sub and version = 1);
+  v_pla := pg_temp.ct_v1('subasta_usa');
   -- (a) la forma vieja.
   perform pg_temp.ct_publicar(o_sub, '{"paleta": {"fondo": "#ffffff"}, "columnas": [], "grupos": [{"titulo": "Detalle", "filas": "secciones"}]}');
   r := pg_temp.ct_tarjeta(duena, f1);
@@ -353,7 +363,7 @@ begin
      or r #>> '{tipos_de_cambio,modos,unificado,aduana,nombre}' is distinct from pg_temp.ct_nombre_tc('oficial') then
     raise exception 'uno inactivo: %', r -> 'tipos_de_cambio';
   end if;
-  perform pg_temp.ct_publicar(o, jsonb_set((select definicion from public.plantillas_tarjeta where origen_id = o and estado = 'publicada'), '{columnas,tipo_cambio}', 'false'));
+  perform pg_temp.ct_publicar(o, jsonb_set(pg_temp.ct_v1('subasta_usa'), '{columnas,tipo_cambio}', 'false'));
   r := pg_temp.ct_tarjeta(duena, f);
   if r ->> 'estado' is distinct from 'lista' or r -> 'tipos_de_cambio' is distinct from '{"buckets": {}, "modos": {}}' then raise exception 'sin la columna: %', r; end if;
 end $$;

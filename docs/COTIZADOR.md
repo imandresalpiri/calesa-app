@@ -1009,7 +1009,8 @@ modelo** la dibuja (`geometriaDeLaTarjeta()`). Sólo nodos del nivel «todos». 
 
 **Dos formas de `plantillas_tarjeta.definicion`.** Con la clave `forma` en la raíz es la **forma 2** (la cuadrícula); sin ella, la **forma 1** (la de
 grupos), que se convierte a la cuadrícula al leerla y no se migra. El editor escribe sólo la forma 2; una forma 1 guardada (borrador o publicada) se
-convierte al abrirla y se guarda convertida cuando quien edita guarda.
+convierte al abrirla y se guarda convertida cuando quien edita guarda. Las semillas de USA siembran la forma 2 (con la comisión del giro y su porcentaje
+como texto con datos; su forma 1, para las pruebas de la conversión, en `entities/plantilla/plantillas-v1-de-las-semillas.json`); la de oficina, la forma 1.
 
 **La forma 2**, estricta (`entities/cuadricula-de-la-tarjeta.ts`): `{forma: 2, columnas: [{id, ancho}], filas: [{id, alto, ocultar_si, nodo?}],
 celdas: [{id, fila, columna, abarca_columnas?, abarca_filas?, contenido, estilo?}]}`. Columnas de 24 a 640 px (hasta 16, **ancho total ≤ 1.600**);
