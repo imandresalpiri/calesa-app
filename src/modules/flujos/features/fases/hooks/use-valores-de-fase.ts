@@ -5,13 +5,15 @@ import { useBorradorDeEstado } from '@/shared/ui/use-borrador-de-estado'
 import {
   ID_DE_CAMPO_DE_FASE,
   bloquesConError,
+  pestanasDeLosCampos,
   primerCampoConError,
 } from '../../../entities/fases/bloques-de-fase'
-import { valoresDeFase } from '../../../entities/fases/formulario-de-fase'
-import type {
-  CampoDeFase,
-  ErroresDeFase,
-  ValoresDeFase,
+import { camposConCambios, valoresDeFase } from '../../../entities/fases/formulario-de-fase'
+import {
+  esCampoDeFase,
+  type CampoDeFase,
+  type ErroresDeFase,
+  type ValoresDeFase,
 } from '../../../entities/fases/reglas-de-fase'
 import type { FaseParaConfigurar } from '../../../entities/flujo'
 
@@ -24,7 +26,7 @@ function controlDe(id: string): HTMLElement | null {
   return elemento.querySelector<HTMLElement>('input, textarea, button, select')
 }
 
-// El bloque que se abre por un error aparece en el cuadro siguiente: el foco espera dos.
+// La pestaña que se abre por un error aparece en el cuadro siguiente: el foco espera dos.
 function enfocarCampo(campo: CampoDeFase) {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -33,9 +35,12 @@ function enfocarCampo(campo: CampoDeFase) {
   })
 }
 
-// Lo escrito en «Datos» de una fase, el motivo junto a cada campo y el borrador: 17 campos, así que en `sessionStorage` (uno por fase). El foco de un
-// error va al primer campo con error en el orden en que se ven.
-export function useValoresDeFase(fase: FaseParaConfigurar) {
+// Lo escrito en «Identidad» y «Ajustes» de una fase, el motivo junto a cada campo y el borrador: 18 campos, así que en `sessionStorage` (uno por fase). El
+// foco de un error va al primer campo con error en el orden en que se ven; `alIrAlCampo` lleva antes la pestaña a la de ese campo (puede no verse).
+export function useValoresDeFase(
+  fase: FaseParaConfigurar,
+  alIrAlCampo?: (campo: CampoDeFase) => void,
+) {
   const guardado = useMemo(() => valoresDeFase(fase), [fase])
   const [valores, setValores] = useState<ValoresDeFase>(guardado)
   const [errores, setErrores] = useState<ErroresDeFase>({})
@@ -48,13 +53,18 @@ export function useValoresDeFase(fase: FaseParaConfigurar) {
     },
   })
 
+  const camposConError = Object.keys(errores).filter(esCampoDeFase)
+  const camposEscritos = camposConCambios(valores, guardado)
   return {
     valores,
     errores,
-    // Los bloques con un error adentro no pueden quedar plegados.
+    // Los bloques con un error adentro.
     conError: bloquesConError(errores),
+    // Las pestañas con un error adentro, se vean o no.
+    pestanasConError: pestanasDeLosCampos(camposConError),
     // Lo escrito que todavía no está en la base.
-    hayCambios: JSON.stringify(valores) !== JSON.stringify(guardado),
+    hayCambios: camposEscritos.length > 0,
+    pestanasConCambios: pestanasDeLosCampos(camposEscritos),
     escribir: (cambios: Partial<ValoresDeFase>, campo: CampoDeFase) => {
       setValores((antes) => ({ ...antes, ...cambios }))
       setErrores((antes) => {
@@ -66,6 +76,7 @@ export function useValoresDeFase(fase: FaseParaConfigurar) {
       setErrores(nuevos)
       const primero = primerCampoConError(nuevos)
       if (primero !== null) {
+        alIrAlCampo?.(primero)
         enfocarCampo(primero)
       }
     },

@@ -25,6 +25,8 @@ export const CLAVES_DEL_PANEL_DE_FASE = [
   // documentos: `?panel=editar-tipo&tipo=<id>`, `?panel=nuevo-tipo&de=empresa|flujo`.
   'tipo',
   'de',
+  // fases: la pestaña del panel de una fase (`?fase=<id>&pestana=identidad|ajustes`; sin ella, «Reglas»). Es la `CLAVE_DE_PESTANA_DE_FASE` del área `fases`.
+  'pestana',
 ] as const
 
 export type ContenidoDelPanel =
