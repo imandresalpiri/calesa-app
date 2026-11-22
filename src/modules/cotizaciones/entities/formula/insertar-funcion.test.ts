@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { insertarFuncion } from './insertar-funcion'
 
 describe('insertarFuncion', () => {
-  it('con el texto vacío o sin «=», la fórmula entera con el cursor entre los paréntesis', () => {
+  it('con el texto vacío, la fórmula entera con el cursor entre los paréntesis', () => {
     expect(insertarFuncion('', 0, 'SUMA')).toEqual({ texto: '=SUMA()', cursor: 6 })
-    expect(insertarFuncion('100', 3, 'MAX')).toEqual({ texto: '=MAX()', cursor: 5 })
+  })
+
+  it('sin «=», lo escrito queda adentro (la cifra de un valor fijo no se pierde)', () => {
+    expect(insertarFuncion(' 100 ', 3, 'MAX')).toEqual({ texto: '=MAX(100)', cursor: 8 })
   })
 
   it('con una fórmula, la función en el cursor', () => {
