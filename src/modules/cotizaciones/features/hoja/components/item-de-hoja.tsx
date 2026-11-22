@@ -11,6 +11,7 @@ import { InterruptorDeHoja } from './interruptor-de-hoja'
 import { ContextoDelPar } from './par/contexto-del-par'
 import { ItemEnPar } from './par/item-en-par'
 import { SubtotalDeHoja } from './subtotal-de-hoja'
+import { TotalDeHoja } from './total-de-hoja'
 import { VarianteDeHoja } from './variante-de-hoja'
 
 type Props = { item: Item; contexto: ContextoDeHoja; acciones: AccionesDeHoja }
@@ -36,13 +37,39 @@ function Atajos({ item, contexto, acciones }: Props & { item: Extract<Item, { ti
   )
 }
 
+// En una hoja en par, lo que cambia según la opción va en dos celdas (glosario: «Variante en par»). Sin el par (una hermana abierta sola), la celda de siempre.
+const enParDe = (
+  item: Item,
+  enPar: boolean,
+): Extract<Item, { tipo: 'celda' | 'subtotal' }> | null =>
+  enPar && (item.tipo === 'celda' || item.tipo === 'subtotal') && item.enPar === true ? item : null
+
+// La tarjeta del total como pieza. En par mandan los dos totales del resumen (`TotalesEnPar`): la pieza no dibuja nada. Al costado (`@4xl/hoja`) se ve ésta y
+// el resumen esconde la suya; en el celular, al revés (el total al pie): un solo total grande a cada ancho.
+function PiezaDelTotal({
+  item,
+  contexto,
+  enPar,
+}: {
+  item: Extract<Item, { tipo: 'total' }>
+  contexto: ContextoDeHoja
+  enPar: boolean
+}) {
+  if (enPar) return null
+  return (
+    <div className={`${claseDelItem(item)} hidden @4xl/hoja:block`}>
+      <TotalDeHoja item={item} contexto={contexto} />
+    </div>
+  )
+}
+
 // Un ítem de una sección, con su `data-nodo` (lo que miran los e2e: el orden del DOM es el declarado). Su lugar en la rejilla de 12 pistas de su sección (columnas,
 // filas, letra y énfasis) sale de su aspecto (`claseDelItem()`): sin él, la celda con su ancho con nombre y lo demás a lo ancho, como siempre.
 export function ItemDeHoja({ item, contexto, acciones }: Props) {
-  // En una hoja en par, lo que cambia según la opción va en dos celdas (glosario: «Variante en par»). Sin el par (una hermana abierta sola), la celda de siempre.
-  const delPar = useContext(ContextoDelPar)
-  if ((item.tipo === 'celda' || item.tipo === 'subtotal') && item.enPar && delPar !== null) {
-    return <ItemEnPar item={item} acciones={acciones} />
+  const enPar = useContext(ContextoDelPar) !== null
+  const enDos = enParDe(item, enPar)
+  if (enDos !== null) {
+    return <ItemEnPar item={enDos} acciones={acciones} />
   }
   const clase = claseDelItem(item)
   switch (item.tipo) {
@@ -85,6 +112,8 @@ export function ItemDeHoja({ item, contexto, acciones }: Props) {
           <SubtotalDeHoja item={item} valor={valorDeSubtotal(item.nodo, contexto.respuesta)} />
         </div>
       )
+    case 'total':
+      return <PiezaDelTotal item={item} contexto={contexto} enPar={enPar} />
     default: {
       const _: never = item
       return _

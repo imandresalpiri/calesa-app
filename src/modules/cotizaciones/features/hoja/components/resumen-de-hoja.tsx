@@ -42,6 +42,8 @@ type Props = {
   interruptor?: ReactNode
   // Lo pisado (`ListaDePisadasDiferida`): lo primero del detalle, bajo el total y sus avisos. Nulo sin nada pisado.
   pisadas?: ReactNode
+  // El diseño ubica la tarjeta del total en una sección principal (`hayTotalEnLaHoja()`): al costado, la del resumen se esconde.
+  totalEnLaHoja?: boolean
 }
 
 export type BotonDeGuardar = {
@@ -123,6 +125,27 @@ function PieDelResumen({
   )
 }
 
+// Los avisos del resumen, en su región viva: el fallo del cálculo (sin el par), el del vehículo y el del guardado.
+function AvisosDelResumen({
+  fallo,
+  avisoDelVehiculo,
+  avisoDeGuardado,
+}: {
+  fallo: ReactNode
+  avisoDelVehiculo: string | null
+  avisoDeGuardado: ReactNode
+}) {
+  return (
+    <div role="status" className="grid gap-1">
+      {fallo}
+      {avisoDelVehiculo === null ? null : (
+        <p className="text-(length:--text-sm) text-(--color-ink-soft)">{avisoDelVehiculo}</p>
+      )}
+      {avisoDeGuardado}
+    </div>
+  )
+}
+
 export function ResumenDeHoja({
   tarjeta,
   monedaDelTotalBs,
@@ -140,6 +163,7 @@ export function ResumenDeHoja({
   totales = null,
   interruptor,
   pisadas,
+  totalEnLaHoja = false,
 }: Props) {
   const total = totalDelResumen(contexto)
   const viejo = estado.tipo !== 'al_dia'
@@ -165,6 +189,7 @@ export function ResumenDeHoja({
           plegado={plegado}
           alternar={alternar}
           idDelDetalle={idDelDetalle}
+          totalEnLaHoja={totalEnLaHoja}
         />
       )}
       {totalGuardado}
@@ -180,15 +205,15 @@ export function ResumenDeHoja({
         ) : null}
         <ModoDelResumen nombre={modo} />
       </div>
-      <div role="status" className="grid gap-1">
-        {totales === null ? (
-          <AvisoDeFallo estado={estado} alReintentar={alReintentar} alRecargar={alRecargar} />
-        ) : null}
-        {avisoDelVehiculo === null ? null : (
-          <p className="text-(length:--text-sm) text-(--color-ink-soft)">{avisoDelVehiculo}</p>
-        )}
-        {avisoDeGuardado}
-      </div>
+      <AvisosDelResumen
+        fallo={
+          totales === null ? (
+            <AvisoDeFallo estado={estado} alReintentar={alReintentar} alRecargar={alRecargar} />
+          ) : null
+        }
+        avisoDelVehiculo={avisoDelVehiculo}
+        avisoDeGuardado={avisoDeGuardado}
+      />
       {interruptor}
       <PieDelResumen guardar={guardar} soloLectura={soloLectura} vistaPrevia={vistaPrevia} />
     </aside>

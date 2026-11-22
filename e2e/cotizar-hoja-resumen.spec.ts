@@ -12,6 +12,8 @@ import {
   totalDeLaHoja,
   vigilarGuardados,
 } from './soporte/cotizar-guardar'
+import { crearOrigenDeCotizar } from './soporte/cotizar-formula'
+import { publicarFormulaConElTotal } from './soporte/diseno-editor'
 import { avisoNoTapaElPie, textoGrandeAlCargar } from './soporte/recorrido'
 import { sql } from './soporte/sql'
 import { formatearNumero } from '../src/shared/lib/formato'
@@ -28,10 +30,14 @@ let duena = ''
 let lead = ''
 let origen = { id: '', nombre: '' }
 let planilla = ''
+let conElTotal = { id: '', nombre: '' }
 
 test.beforeAll(async ({}, info) => {
   ;({ origen, duena, lead } = await prepararGuardado(info.project.name, 'resumen', true))
   planilla = sql("select id from public.origenes where clave = 'planilla_usa'")
+  // Un origen cuyo diseño ubica la tarjeta del total en una sección (lo borra `limpiarGuardado()` con los demás orígenes de prueba).
+  conElTotal = await crearOrigenDeCotizar(info.project.name, 'rtotal', false)
+  publicarFormulaConElTotal(conElTotal.id)
 })
 
 test.afterAll(async () => {
@@ -302,4 +308,20 @@ test('el resumen dice el modo, y el botón Live oculta los montos de la hoja', a
   await expect(page.locator('[data-total] [data-monto-valor]')).toBeHidden()
   await live.click()
   await expect(page.locator('html')).not.toHaveClass(/live/)
+})
+
+test('con la tarjeta del total ubicada en una sección se ve un solo total grande, al costado o al pie', async ({
+  page,
+}) => {
+  await ir(page, conElTotal.id)
+  await tipearEnLaHoja(page, 'precio', '1000')
+  await tipearEnLaHoja(page, 'flete', '200')
+  await tipearEnLaHoja(page, 'aduana', '34')
+  // Desde `@4xl/hoja` la de la sección y el resumen la esconde; por debajo, al revés: a cada ancho, una sola tarjeta a la vista.
+  const aLaVista = page.locator('[data-tarjeta-del-total]:visible')
+  await expect(aLaVista).toHaveCount(1)
+  await expect(aLaVista).toContainText('1.234,00')
+  await expect(
+    page.locator('[data-seccion="resumen"] [data-tarjeta-del-total="pieza"]'),
+  ).toHaveCount(1)
 })
