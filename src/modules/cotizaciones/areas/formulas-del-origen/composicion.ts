@@ -1,4 +1,4 @@
-// Composición del área `formulas-del-origen` de `cotizaciones` en el servidor: la pestaña «Fórmulas» de la página del origen y la cabeza del editor de cada
+// Composición del área `formulas-del-origen` de `cotizaciones` en el servidor: la barra de la fórmula de la página del origen y la cabeza del editor de cada
 // fórmula. Sale por la `composicion.ts` de la raíz.
 import 'server-only'
 import { cache } from 'react'

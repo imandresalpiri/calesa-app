@@ -39,7 +39,7 @@ type Props = {
   secciones?: SeccionesDelPanel
 }
 
-// El editor de un flujo (5.02): la pestaña Flujo de un origen o Repuestos › Flujo de repuestos, leído en el servidor con la sesión de quien mira y detrás
+// El editor de un flujo (5.02): la pestaña Fases de un origen o Repuestos › Flujo de repuestos, leído en el servidor con la sesión de quien mira y detrás
 // de `<Suspense>`: el flujo fijo entero y los roles para nombrarlos. La base vuelve a decidir cada escritura. Una lectura que falla sube al `error.tsx` de `(app)`, que ofrece «Reintentar».
 export async function PantallaDelFlujo({
   permisos,

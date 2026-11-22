@@ -498,12 +498,12 @@ plantilla_publicada_esperada)`: cada pieza con su esperada (la activa que se vio
     sólo publica lo pendiente. Un error corta todo.
   - La archivada o la activa no se archivan ni se eliminan (22023, hint `activa`: activar otra primero). `actividad` registra
     `formula_del_origen.crear|renombrar|archivar|eliminar|activar|desactivar`.
-- **La pantalla** (área `formulas-del-origen`; `docs/UX.md` › «Cotización: fórmulas del origen (estados propios)»): la pestaña «Fórmulas» de la página
-  del origen (`/configuracion/origenes/<id>/formulas`) lista las del origen (51 por `formulas_del_origen_origen_idx`, la activa primero; las archivadas
-  aparte, de a 20 por cursor hasta 500) y llama a las cinco RPC. Cada una se edita en `/formulas/<fórmula>/planilla|hoja|tarjeta`: la página lee
-  esa fila por PK (`leerLaFormulaDelOrigen()`, con `cache()` entre el layout y la página) y sus lecturas y escrituras llevan **el id de la URL**
-  (`p_formula_del_origen`); una de otro origen o que no existe, 404; una archivada no se edita. La ruta corta (`/formula`, `/formula/hoja`,
-  `/formula/tarjeta`) es un `route.ts` que responde 308 a la fórmula de trabajo, leída como quien pide.
+- **La pantalla** (área `formulas-del-origen`; `docs/UX.md` › «Cotización: fórmulas del origen (estados propios)»): el selector de la barra de la fórmula,
+  arriba de las pestañas Planilla, Hoja y Tarjeta de la página del origen (`/configuracion/origenes/<id>/planilla|hoja|tarjeta`), lista las del origen
+  (51 por `formulas_del_origen_origen_idx`, la activa primero; las archivadas aparte, de a 20 por cursor hasta 500) y llama a las cinco RPC. La elegida va
+  en `?formula=<id>`: la pestaña lee esa fila por PK (`leerLaFormulaDelOrigen()`, con `cache()`) y sus lecturas y escrituras llevan **el id de la URL**
+  (`p_formula_del_origen`); sin `?formula=`, o con una de otro origen o que no existe (con su aviso), la de trabajo, leída como quien pide; una archivada
+  no se edita.
 
 ### Versiones
 
@@ -538,8 +538,8 @@ plantilla_publicada_esperada)`: cada pieza con su esperada (la activa que se vio
   nuevo hace 2 min.» o «El borrador que abriste ya no está: se publicó o se descartó.» (publicar mira antes la publicada). Sin hora toman el
   que haya («No hay borrador»). La app manda siempre las esperadas; la base acepta la nula (excepción aprobada a
   `.claude/rules/migraciones.md`).
-- **Dónde se ven:** cada fórmula en la pestaña «Fórmulas» de la página del origen (`/formulas/<fórmula>/planilla`): publicada, borrador (atrasado si su versión de origen ya no es la
-  publicada) y versiones por cursor, sin lo oculto (`docs/UX.md` › «Cotización: fórmula (estados propios)»); ahí se publica con nota, se
+- **Dónde se ven:** cada fórmula en la pestaña «Planilla» de la página del origen (`/planilla?formula=<fórmula>`): publicada, borrador (atrasado si su versión de origen ya no es la
+  publicada) y versiones por cursor (en el drawer «Versiones» de la barra de la fórmula), sin lo oculto (`docs/UX.md` › «Cotización: fórmula (estados propios)»); ahí se publica con nota, se
   descarta (`<Confirmar>`) y se revierte.
 - **Carreras** (`scripts/carreras/tonos.mjs`, `formula-mixtas.mjs`): dos publicar, dos ⚙, el ⚙ contra publicar el borrador, revertir contra
   el ⚙ y el ⚙ de la cabecera contra el de una constante y contra publicar, en los dos órdenes: la segunda da PT409 y nada se pisa.
@@ -1131,7 +1131,7 @@ publicar valida contra la publicada de **esa** fórmula. Guardar el borrador, pu
 
 ### El editor de la plantilla
 
-- **La pestaña «Tarjeta»** (`/configuracion/origenes/<id>/formulas/<fórmula>/tarjeta`, `cotizaciones.configurar`, a todo el ancho) edita el **borrador** como un
+- **La pestaña «Tarjeta»** (`/configuracion/origenes/<id>/tarjeta?formula=<fórmula>`, `cotizaciones.configurar`, a todo el ancho) edita el **borrador** como un
   Excel y escribe **sólo la forma 2**. El servidor arma `propsDelEditor()`: la cuadrícula de la que nace (`cuadriculaParaEditar()`: el borrador; si no se
   lee, la copia de la publicada; si no, la de por omisión), su procedencia, sus avisos y el contexto reducido. Una forma 2 se usa tal cual; una forma 1
   pasa por `alinearConLaFormula()` y `convertirPlantilla()` con «Se convirtió a cuadrícula: revisa y guarda.» (no se guarda sola); sin plantilla, la

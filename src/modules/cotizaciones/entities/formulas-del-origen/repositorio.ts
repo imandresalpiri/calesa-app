@@ -1,4 +1,4 @@
-// Lo que escribe la pestaña «Fórmulas», por las RPC de las fórmulas del origen (la implementación está en `infra/formulas-del-origen/`). Cada una vuelve a pedir
+// Lo que escribe la barra de la fórmula, por las RPC de las fórmulas del origen (la implementación está en `infra/formulas-del-origen/`). Cada una vuelve a pedir
 // el permiso, compara la versión y valida: la pantalla sólo evita pedir lo que se va a rechazar.
 import type { ResultadoDeAccion } from '@/shared/lib/enviar-accion'
 import type { EsperadasDeActivar } from './activar'

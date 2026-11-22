@@ -18,7 +18,7 @@ describe('la URL vieja de Configuración › Flujos', () => {
     )
   })
 
-  it('`?origen=` va a la pestaña Flujo del origen, conservando sección, fase y lo demás', () => {
+  it('`?origen=` va a la pestaña Fases del origen, conservando sección, fase y lo demás', () => {
     expect(
       destinoDeLaUrlVieja(
         { origen: B, seccion: 'reglas', fase: 'f1', vista: 'lista', panel: 'x' },

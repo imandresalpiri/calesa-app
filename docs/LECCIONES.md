@@ -151,6 +151,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Un hijo que registra algo en el estado de un padre al montarse (las líneas del «⋯» de la guardada) lo hace en `useLayoutEffect`: el `setState` de un `useEffect`
   de la hidratación se aplica recién cuando termina de hidratarse lo que llega tras `<Suspense>`, y entretanto el padre dibuja sin eso. Un `ref` que también es un
   objeto de contexto con un `RefObject` adentro hace que el compilador marque `ref={ctx.funcion}`: la función va en su propio contexto.
+- Un `redirects()` de `next.config.ts` cuyo destino fija un parámetro (`?panel=tablas`) lo junta con el mismo parámetro de la consulta que llega, no lo
+  reemplaza. Si la URL vieja puede traerlo con otro sentido, la redirección va en un `route.ts` que traduce la consulta (`urls-viejas/tablas.ts`).
 
 ## Módulos y JS en frío
 

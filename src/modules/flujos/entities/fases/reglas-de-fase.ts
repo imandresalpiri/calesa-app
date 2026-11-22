@@ -1,4 +1,4 @@
-// Las reglas de una fase al editarla en la pestaña Flujo de un origen (5.04). Son espejo de `_fase_validar()`, `_fase_forma()` y `_fase_unico()`:
+// Las reglas de una fase al editarla en la pestaña Fases de un origen (5.04). Son espejo de `_fase_validar()`, `_fase_forma()` y `_fase_unico()`:
 // la base las vuelve a decir, con estos mismos textos y estos mismos campos en el `hint`, si algo llega de otro
 // lado. Aquí sirven para mostrar el error junto al campo sin ir a la base, y para apagar un interruptor que la regla del flujo no deja encender.
 import type { AmbitoDeFlujo, FaseParaConfigurar, FlujoParaConfigurar } from '../flujo'

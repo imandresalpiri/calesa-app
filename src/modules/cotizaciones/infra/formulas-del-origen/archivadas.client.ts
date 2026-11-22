@@ -1,4 +1,4 @@
-// Las archivadas de un origen (la sección «Archivadas» de la pestaña «Fórmulas», al abrirse), desde el navegador con la sesión de quien mira: de a
+// Las archivadas de un origen (la sección «Archivadas» de la barra de la fórmula, al abrirse), desde el navegador con la sesión de quien mira: de a
 // `TAMANO_DE_VER_MAS`, las más recién archivadas primero, por el cursor `(archivada_en desc, id desc)`. Son decenas: no se miden con volumen.
 import { z } from 'zod'
 import { citar } from '@/shared/lib/supabase/consultas'

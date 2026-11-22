@@ -28,7 +28,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Menú plegado** — `menu.plegado` / `Preferencias.menuPlegado`, `useMenuPlegado()`, `<LateralPlegable>` (`_shell/`): el menú lateral de escritorio reducido a una columna de sólo
   íconos, con su nombre en `title` y para el lector y el contador de Chat como punto. Se alterna con «Plegar menú» / «Desplegar menú» o `Ctrl/Cmd+B`. No: «colapsado», «mini», «compacto» (la densidad es otra cosa).
 - **Última pestaña del origen** — `origenes.ultima_pestana` / `PestanasRecordadas`, `recordarLaPestana()` (`equipo/entities/ultima-pestana.ts`): la pestaña que cada
-  persona abrió por última vez en cada origen (hasta 30 orígenes). Entrar a `/configuracion/origenes/<id>` lleva ahí; sin recordar, a Fases. No viaja en `Preferencias`.
+  persona abrió por última vez en cada origen (hasta 30 orígenes). Entrar a `/configuracion/origenes/<id>` lleva ahí; sin recordar (o si ya no la abre), a la primera que abre. No viaja en `Preferencias`.
 - **Zona de quien mira** — `preferencias_usuario.zona_horaria` / `useRegional().zonaDeLaPersona`: en qué zona ve cada persona las fechas de
   subasta (`/perfil` › Preferencias › «Zona horaria»); sin elegir, la de la empresa. Lo demás sigue en la zona de la empresa.
 - **Cuenta regresiva del cierre** — `cuentaDelCierre()` (`vehiculos/entities/cuenta-regresiva-del-cierre.ts`), `<CuentaRegresivaDelCierre>`: lo que le falta a una subasta
@@ -113,25 +113,29 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Origen sin uso** — `motivoParaNoEliminar()` / `origen_eliminar()`: sin vehículos (papelera incluida), cotizaciones ni fórmula publicada.
 - **Uso de un origen** — `origenes_resumen()` / `UsoDeOrigen`: vehículos, cotizaciones, campos, categorías, fases, ¿fórmula publicada? y
   concesiones.
-- **Para cotizar y mover** — `pasosParaCotizarYMover()` / `<ParaCotizarYMover>`: lo que le falta a un origen activo para cotizar y mover sus
+- **Para cotizar y mover** — `pasosParaCotizarYMover()` / `pasosQueFaltan()`: lo que le falta a un origen activo para cotizar y mover sus
   vehículos, en cinco pasos con su estado (✓ listo, ⚠ aviso, ✗ bloquea): Datos (apibara en una subasta), Campos, Flujo (con fases), Fórmula
-  (una activa) y Tarjeta (publicada en la activa), cada uno enlazado a su pestaña de la página del origen (Fórmula, a la lista de las fórmulas). Un inactivo dice sólo «Inactivo». Lo accionable se ve
-  también en el inicio de Configuración como **lo que falta** (`faltasPorSeccion()`, `<QueFaltaDeLaSeccion>`: una línea por origen en Orígenes,
-  apibara en Empresa). Mientras el origen no tenga fórmula activa, la tira marca **Pendiente** el paso de la puesta en marcha que falta y ofrece
-  «Seguir la puesta en marcha» (`enMarcha()`). No: «siguientes pasos», «checklist».
-- **Página del origen** — `/configuracion/origenes/<id>/<pestaña>` (`MarcoDelOrigen`, `PESTANAS_DEL_ORIGEN`): todo lo de un origen en un lugar,
-  con su encabezado, «Para cotizar y mover» y seis **pestañas**: Datos, Campos, Categorías, Flujo, Fórmulas (la lista de las fórmulas del origen;
-  cada una se edita en `/formulas/<fórmula>` con sus pestañas Planilla, Hoja y Tarjeta) y Tablas. Cada pestaña pide su permiso en ese origen; la que no se abre va apagada con su motivo.
+  (una activa) y Tarjeta (publicada en la activa), cada uno con el lugar donde se arregla (`pasos.ts` de `src/app`). Un inactivo no tiene faltas. Se ve en el
+  inicio de Configuración como **lo que falta** (`faltasPorSeccion()`, `<QueFaltaDeLaSeccion>`: una línea por origen en Orígenes, apibara en Empresa) y, en
+  la página del origen, como el ⚠ de la pestaña donde se arregla (`faltaDeCadaPestana()`). Mientras el origen no termina su puesta en marcha
+  (`siguePendienteLaPuestaEnMarcha()`), su cabecera ofrece «Seguir la puesta en marcha». No: «siguientes pasos», «checklist».
+- **Página del origen** — `/configuracion/origenes/<id>/<pestaña>` (`MarcoDelOrigen`, `PESTANAS_DEL_ORIGEN`): todo lo de un origen en un lugar, a todo
+  el ancho: las **migas** con el selector de origen, la cabecera («Seguir la puesta en marcha», «Datos» y el «⋯») y seis **pestañas** planas: Fases,
+  Planilla, Hoja, Tarjeta, Campos y Categorías (las tres de la fórmula, con la barra de la fórmula). Cada pestaña pide su permiso en ese origen; la que no
+  se abre va apagada con su motivo y la que tiene algo pendiente, con ⚠. Los datos del origen van en su drawer (`?panel=datos`, `PANEL_DATOS_DEL_ORIGEN`).
+- **Selector de origen** — `SelectorDeOrigen` (`src/app/(app)/configuracion/origenes/[id]/`): el último paso de las migas de la página del origen
+  («<origen> ▾»), un popover con los orígenes que la persona abre (buscador desde 11) que lleva a la misma pestaña del elegido
+  (`destinoAlCambiarDeOrigen()`) o, si allí no la abre, a la primera que abre. No: «switcher», «cambiador».
 - **Puesta en marcha** — `/configuracion/origenes/nuevo` y `/configuracion/origenes/<id>/puesta-en-marcha/<paso>` (`rutaDeLaPuestaEnMarcha()`,
   `estadoDeLaPuestaEnMarcha()`, `<PasoAPaso>`): el paso a paso que lleva a quien crea un origen hasta cotizar con él: Datos, Campos, Flujo, Fórmula,
   Tarjeta, Publicar y **Listo** («Cotizar con <origen>»). El avance se deriva de lo que hay (campos, fases, fórmula de trabajo, fórmula activa), sin
   guardar un «paso actual»: cada paso guarda con sus botones, «Seguir» va al siguiente y la raíz lleva al que falta. Un paso sin el permiso en ese
-  origen se salta y dice su motivo. Se retoma desde «Para cotizar y mover». No: «asistente», «wizard», «onboarding».
+  origen se salta y dice su motivo. Se retoma con «Seguir la puesta en marcha» de la página del origen. No: «asistente», «wizard», «onboarding».
 - **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos/<clave>`: lo que es de toda la empresa y no de un origen, en
   tres tramos: «Cotizaciones» (Colores, Niveles, Quién crea y quién ve, Vigencia), «Logística» (Puertos, Navieras, Categorías de gasto, Tipos de documento) y las Tablas
   compartidas. No es el catálogo de repuestos ni el de apibara.
 - **Flujo de repuestos** — `/configuracion/repuestos/flujo` (`FLUJO_DE_REPUESTOS_EN_CONFIGURACION`): el flujo de los repuestos, que se configura en
-  la sección Repuestos con el mismo editor que la pestaña Flujo de un origen.
+  la sección Repuestos con el mismo editor que la pestaña Fases de un origen.
 - **Fórmula pendiente** — origen sin **fórmula activa** (`origenes_resumen().formula_publicada`): un origen nuevo no se cotiza hasta publicar la primera.
 - **Vehículo** — `vehiculos`: el dato central; recorre el flujo de su origen.
 - **Atributos** — `vehiculos.atributos`, `leads.atributos`: campos del layout que no son columna. En un lead se leen por `leads_vista`, recortados.
@@ -477,9 +481,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   (`formula_del_origen_renombrar|archivar|eliminar|activar`). No: «variante», «plantilla» (la plantilla es la de la tarjeta).
 - **Fórmula activa** — `formulas_del_origen.activa` (`formulas_del_origen_activa_unica`): la fórmula del origen con que se cotiza, a lo sumo una por
   origen y siempre con versión publicada; se cotiza con su publicada (`_publicada_de_la_activa()`). Activar otra publica sus borradores y apaga la anterior.
-- **Fórmula de trabajo** — `_fdo_de_trabajo()` / `leerFormulaDeTrabajo()`: la que usa una RPC que no recibe `p_formula_del_origen` y adonde lleva la
-  ruta corta (`/configuracion/origenes/<id>/formula`, `/formula/hoja`, `/formula/tarjeta`: 308): la activa o, sin ella, la más nueva sin archivar; el
-  primer guardado de un origen sin ninguna la crea. El editor de una fórmula lee y escribe la de su URL.
+- **Fórmula de trabajo** — `_fdo_de_trabajo()` / `leerFormulaDeTrabajo()`: la que usa una RPC que no recibe `p_formula_del_origen` y la que abren
+  Planilla, Hoja y Tarjeta sin `?formula=`: la activa o, sin ella, la más nueva sin archivar; el primer guardado de un origen sin ninguna la crea. El
+  editor de una fórmula lee y escribe la de su URL.
 - **Activar (una fórmula del origen)** — `formula_del_origen_activar()`, «Activar…» del «⋯» (`?panel=activar-formula&formula=<id>`): volverla la que se
   cotiza en su origen. Publica con una nota sus borradores (de la planilla y de la tarjeta), exige que la tarjeta calce con la versión que se va a
   cotizar y apaga la activa anterior. Cada pieza va con su esperada (PT409 si cambió). No: «publicar la fórmula» (eso es una versión), «usar».
@@ -493,7 +497,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   cambio ajeno (`PT409`); `useVersionDelFlujo()` la entrega a las acciones.
 - **Inspector de fase** — lo de una fase en el panel del flujo (`?fase=<id>`, `ContenidoDeLaFase`): sus avisos y acciones y cuatro bloques a la vista,
   «Datos», «Requisitos para entrar», «Salidas y quién mueve» y «Reglas que la afectan».
-- **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Flujo de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
+- **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Fases de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
   del flujo entero, «Reglas del flujo» o «Tipos de documento» (`?seccion=reglas|documentos`); gana `?seccion=`. No: «sidebar», «inspector» para
   lo del flujo.
 - **Diagrama del flujo** — `DiagramaDelFlujo` (`disponerDiagrama()`): las fases como cajas en su orden y las salidas como flechas (ramas arriba,
@@ -515,7 +519,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Columna de una tabla de referencia** — un elemento de `tablas_referencia.columnas`: clave (no cambia), etiqueta (su nombre) y tipo número, año
   o texto (no cambia).
 - **Crear una tabla de referencia** — `tabla_referencia_crear()`: nombre (de él sale la clave, que no cambia), para un origen o compartida, y sus
-  columnas; nace en la versión 1 sin filas. «Nueva tabla» en la pestaña Tablas o en Catálogos › Tablas compartidas.
+  columnas; nace en la versión 1 sin filas. «Nueva tabla» en el drawer de las tablas de un origen («Tablas» en la barra de la fórmula) o en Catálogos › Tablas compartidas.
 - **Cambiar las columnas** — `tabla_referencia_columnas()`: renombrar, ordenar, sumar y quitar columnas de una tabla; sube su versión sin
   publicar la N+1 de ninguna fórmula y borra de las filas la clave quitada.
 - **Tabla desactivada** — `tablas_referencia.activa = false` (`tabla_referencia_desactivar()`): sale de las listas y de BUSCARV; no se deshace
@@ -523,7 +527,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Tabla o columna en uso** — `_tabla_referencia_usos()`: la nombra la publicada o el borrador de una fórmula del origen sin archivar, en un
   origen que recibe la tabla. Una tabla en uso no se desactiva y una columna en uso no se quita.
 - **Tabla compartida** — tabla de referencia con `origen_id` nulo: la usan los orígenes sin una propia de esa clave; la propia la **tapa** (va
-  `tapada` en la lista de ese origen). Se edita en Catálogos › Tablas compartidas o desde la pestaña Tablas de un origen que la usa, con el aviso
+  `tapada` en la lista de ese origen). Se edita en Catálogos › Tablas compartidas o desde el drawer de las tablas de un origen que la usa, con el aviso
   de a quién le cambia; publicarla pide `cotizaciones.configurar` en cada origen que la usa.
 - **Tarjeta de la cotización** — `<TarjetaDeCotizacion>`, `geometriaDeLaTarjeta()`: la vista previa tipo Excel de una cotización, lo que ve el
   cliente: la misma en la vista previa, el PDF, la imagen y «Copiar texto». No es la **tarjeta de la lista** (cada ítem de la vista Tarjetas de un
@@ -747,12 +751,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `comprobantes_serie_cambiar`) y `comprobantes_contadores` (último número de cada serie usada): numeración sin huecos.
 - **Diseño de la hoja** — `formulas.diseno` / `entities/diseno.ts`, `validarDiseno()`, `validar_diseno()`: cómo se ve la hoja de un origen
   (secciones, celdas, atajos, variantes, interruptores, modos, tarjeta) y el aspecto de cada pieza en la rejilla de la hoja.
-- **Hoja (pestaña)** — `/configuracion/origenes/<id>/formulas/<fórmula>/hoja`, clave `hoja` de `SUBPESTANAS_DE_LA_FORMULA`: el nombre en la UI de la
-  pestaña del editor de una fórmula del origen donde se edita el diseño de la hoja («Cómo se ve y se llena la cotización.»). El término técnico sigue siendo «Diseño de la hoja»
+- **Hoja (pestaña)** — `/configuracion/origenes/<id>/hoja` (`?formula=<id>`), clave `hoja` de `PARTES_DEL_ORIGEN`: el nombre en la UI de la
+  pestaña de la página del origen donde se edita el diseño de la hoja de una fórmula («Cómo se ve y se llena la cotización.»). El término técnico sigue siendo «Diseño de la hoja»
   (`features/diseno/`); la «Hoja» de cotizar es la pantalla donde se cotiza.
 - **Barra de la fórmula** — `BarraDeLaFormulaDelOrigen`, `<ConLaBarraDeLaFormula>`, `<AccionesEnLaBarra>` (`cotizaciones/features/barra-de-la-formula/`): la
   barra de arriba de las pestañas Planilla, Hoja y Tarjeta de la página del origen: el selector «Fórmula: X (activa) ▾» (la elegida va en `?formula=`), el estado de
-  lo que se edita, «Versiones», «Tablas» y los botones del editor (Guardar, Publicar), que cada editor manda a la ranura con `<AccionesEnLaBarra>`. Fuera de la
+  lo que se edita, «Versiones» (el drawer de las publicadas, `?panel=versiones`), «Tablas» (el drawer de las tablas, `?panel=tablas`) y los botones del editor (Guardar, Publicar), que cada editor manda a la ranura con `<AccionesEnLaBarra>`. Fuera de la
   página del origen (la puesta en marcha) los botones quedan en su lugar. No: «barra de edición», «toolbar».
 - **Estado de la edición** — `EstadoDeLaEdicion` (`cotizaciones/entities/estado-de-la-edicion.ts`), `useEstadoEnLaBarra()`: lo que dice la barra de la fórmula de lo que
   se edita: «Cambios sin guardar», «Borrador» o «Publicada vN» (lo no guardado manda).

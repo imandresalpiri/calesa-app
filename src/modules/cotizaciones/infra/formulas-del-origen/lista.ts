@@ -1,4 +1,4 @@
-// La lista de la pestaña «Fórmulas» de un origen: las no archivadas (a lo sumo 50, el tope de la base; se pide una más para decirlo si alguna vez pasa) y si
+// La lista del selector de la barra de la fórmula de un origen: las no archivadas (a lo sumo 50, el tope de la base; se pide una más para decirlo si alguna vez pasa) y si
 // hay alguna archivada (la sección «Archivadas» las lee al abrirse, desde el navegador).
 import 'server-only'
 import { z } from 'zod'

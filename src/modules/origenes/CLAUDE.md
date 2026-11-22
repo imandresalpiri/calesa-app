@@ -5,26 +5,28 @@ Orígenes de vehículos configurables (subasta/apibara o manual), su layout de c
 ## Entra y sale
 
 - Entra: `/configuracion/origenes` (la lista: sólo los orígenes que quien mira abre, tope 100 con aviso) y **la página del origen**,
-  `/configuracion/origenes/[id]/datos|campos|categorias|flujo|formulas|tablas` (`src/app` arma el layout de `[id]` con el encabezado, «Para cotizar y
-  mover» y las pestañas; las pestañas Flujo, Fórmulas (con el editor de cada fórmula en `formulas/[formula]/planilla|hoja|tarjeta`) y Tablas dibujan pantallas de `flujos` y `cotizaciones`, que este módulo no conoce). `/[id]` sin
-  pestaña y los enlaces de antes (`?seccion=`, con `?campo=`, `?categoria=` y `?panel=`) redirigen con 308 (`[id]/route.ts`, `[id]/url-vieja.ts`). Las
-  pantallas van partidas por pestaña: `pantallas/origen.ts` (el marco: `ParaCotizarYMover` y `MenuDelOrigen`, el «⋯» con activar, desactivar y
-  eliminar), `origen-datos.ts`, `origen-campos.ts` y `origen-categorias.ts`. Las pestañas viven bajo el grupo `[id]/(pestanas)/` (su layout dibuja el
-  marco).
+  `/configuracion/origenes/[id]/fases|planilla|hoja|tarjeta|campos|categorias` (`src/app` arma el layout de `[id]` con las migas y el selector de origen, la
+  cabecera y las pestañas con su ⚠; Fases, Planilla, Hoja y Tarjeta dibujan pantallas de `flujos` y `cotizaciones`, que este módulo no conoce). `/[id]` sin
+  pestaña va a la última que la persona abrió (`equipo`: «Última pestaña del origen»), y las rutas de antes (`/datos`, `/flujo`, `/formula*`, `/formulas*`,
+  `/tablas`, `?seccion=`) redirigen con 308 (`[id]/route.ts`, `[id]/urls-viejas/`). Las pantallas van partidas por pestaña: `pantallas/origen.ts` (la
+  cabecera: `BotonDeDatos` y `DrawerDeDatos`, los datos del origen en un drawer `?panel=datos` (`PANEL_DATOS_DEL_ORIGEN`), y `MenuDelOrigen`, el «⋯» con
+  «Datos» en el celular, activar, desactivar y eliminar; sus líneas, `lineasDelOrigen(origen, { conDatos, gestiona })` de `entities/acciones-del-origen.ts`),
+  `origen-campos.ts` y `origen-categorias.ts`; `origen-datos.ts` es el formulario de página del paso Datos de la puesta en marcha (comparte
+  `FichaDelOrigen` con el drawer). Las pestañas viven bajo el grupo `[id]/(pestanas)/` (su layout dibuja el marco).
 - **La puesta en marcha** (glosario): `/configuracion/origenes/nuevo` (el alta, `origenes.gestionar`; `pantallas/origen-nuevo.ts`,
   `FormularioDelOrigenNuevo`; `?panel=nuevo` responde 308 desde `next.config.ts`) y `/configuracion/origenes/[id]/puesta-en-marcha/<paso>` (`datos`,
   `campos`, `flujo`, `formula`, `tarjeta`, `publicar`, `listo`; la raíz, un `route.ts` que lleva al paso que falta). `src/app` arma cada paso con el
   editor de su pestaña (`puesta-en-marcha/abrir.ts`: la sesión, el origen, los permisos y la fórmula de trabajo, una vez por pedido) y lo dibuja con
   `pantallas/puesta-en-marcha.ts` (`PasoAPaso`, `MenuDeLaPuestaEnMarcha`). Las reglas, puras y con test, en `entities/puesta-en-marcha.ts`:
   `estadoDeLaPuestaEnMarcha({ uso, hayFormulaDeTrabajo, permisos })` (lo hecho se deriva de lo que hay; nada guarda un «paso actual»), `estadoDelPaso()`,
-  `pasoPendiente()`, `pasoSiguiente()`, `pasoAnterior()`, `enMarcha()` (sin fórmula activa) y `pendienteEnLaTira()` (el paso de «Para cotizar y mover»
-  que dice «Pendiente»: Publicar es Fórmula). La tira de la página del origen recibe `pendiente` y `seguir` («Seguir la puesta en marcha») de
-  `[id]/puesta-en-marcha-en-la-tira.ts`, que lee la fórmula de trabajo sólo si el origen está activo, sin fórmula activa y con el permiso del cotizador.
+  `pasoPendiente()`, `pasoSiguiente()`, `pasoAnterior()`, `enMarcha()` (sin fórmula activa) y `siguePendienteLaPuestaEnMarcha()` (en marcha y con un paso
+  pendiente). La cabecera de la página del origen recibe `seguir` («Seguir la puesta en marcha») de `[id]/seguir-la-puesta-en-marcha.ts`, que lee la
+  fórmula de trabajo sólo si el origen está activo, sin fórmula activa y con el permiso del cotizador.
 - `index.ts`: lo de la puesta en marcha (arriba), `getOrigenes(incluirInactivos?)`, `leerLayout(origenId, { conUso })` (también los campos desactivados: quien consume filtra `activo`),
   `leerCampoPrincipal(origenId)` (o `null`; para quien nombra un vehículo fuera del listado), `leerDatosNuevosDeApibara`, `leerOrigenes`,
   `pasosParaCotizarYMover(origen, { apibaraActiva })` y `pasosQueFaltan()` (los cinco pasos de «Para cotizar y mover», glosario: Datos, Campos, Flujo,
   Fórmula y Tarjeta, con `estado` listo|aviso|bloquea; un inactivo, `{ inactivo: true }`; los dos últimos miran la fórmula **activa**: Fórmula, que haya una
-  (`origenes_resumen().formula_publicada`), y Tarjeta, que la activa tenga la suya publicada (`tarjeta_publicada`); Fórmula lleva a la lista, `…/formulas`),
+  (`origenes_resumen().formula_publicada`), y Tarjeta, que la activa tenga la suya publicada (`tarjeta_publicada`); Fórmula lleva a la Planilla; en la página del origen, cada falta es el ⚠ de su pestaña, `faltaDeCadaPestana()` de `src/app`),
   `DATOS_COMUNES` y `leerDatosClave(origenId)` (para la ficha del vehículo: la lista resuelta, `{ de: 'comun', clave,
 etiqueta }` o `{ de: 'campo', clave, etiqueta, campoId }`, con los de fábrica si está vacía; las claves comunes son nombres de columna de
   `vehiculos` en snake_case: `anio`, `categoria_id`, `url_origen`).

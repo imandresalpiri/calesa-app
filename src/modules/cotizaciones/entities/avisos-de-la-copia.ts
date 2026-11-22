@@ -18,7 +18,7 @@ export const claveDeLosAvisos = (formulaId: string) => `avisos-de-la-copia:${for
 
 export type TextoDeUnAviso = { clave: string; texto: string; tablas: boolean }
 
-// Lo que se lee: uno por aviso, en el orden de la base. `tablas` dice si lleva el enlace a la pestaña Tablas.
+// Lo que se lee: uno por aviso, en el orden de la base. `tablas` dice si lleva el enlace a el drawer de las tablas.
 export function textosDeLosAvisos(avisos: readonly AvisoDeLaCopia[]): TextoDeUnAviso[] {
   return avisos.map((aviso, i) => {
     switch (aviso.tipo) {
