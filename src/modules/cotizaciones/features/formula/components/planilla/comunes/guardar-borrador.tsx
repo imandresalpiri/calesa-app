@@ -65,13 +65,13 @@ export function GuardarBorrador(props: Props) {
   const linea = lineaDe(estado, motivo, enCurso)
   return (
     <div className="grid min-w-0 gap-2 empty:hidden">
-      {/* En la página del origen el botón y su línea van a la barra de la fórmula (la línea, chica y antes del botón); los avisos quedan acá. */}
+      {/* En la página del origen el botón y su línea van a la barra de la fórmula (la línea, chica, antes del botón y en hasta dos renglones: el motivo más largo entra entero); los avisos quedan acá. */}
       <AccionesEnLaBarra orden={1}>
         <div data-guardado className="flex min-w-0 items-center gap-2">
           <p
             role="status"
             title={linea || undefined}
-            className="max-w-40 min-w-0 truncate text-(length:--text-xs) text-(--color-ink-soft) sm:max-w-64"
+            className="line-clamp-2 max-w-48 min-w-0 text-(length:--text-xs) text-(--color-ink-soft) sm:max-w-64"
           >
             {linea}
           </p>
