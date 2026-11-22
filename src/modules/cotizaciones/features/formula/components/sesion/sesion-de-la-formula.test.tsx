@@ -98,7 +98,7 @@ describe('SesionDeLaFormula', () => {
     expect(screen.getByLabelText('Cargando la lista')).toBeTruthy()
     await responder()
     expect(screen.getByRole('grid', { name: 'Filas de la fórmula de Japón' })).toBeTruthy()
-    for (const columna of ['A · concepto', 'B · %', 'C · valor', 'D · de dónde sale']) {
+    for (const columna of ['A · concepto', 'B · %', 'C · valor', 'Ejemplo']) {
       expect(screen.getByRole('columnheader', { name: columna })).toBeTruthy()
     }
     expect(screen.getByText(/Elige una celda y escribe, como en una hoja de cálculo/)).toBeTruthy()

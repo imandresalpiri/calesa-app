@@ -1,5 +1,6 @@
 // Lo que cada fila de la cuadrícula saca de la planilla, en valores simples: las filas son `memo` y la planilla dibuja hasta 500. Puro.
 import type { ReactNode } from 'react'
+import type { ContenidoDeLaFila } from '../../../../../entities/formula/contenido-de-c'
 import type { FilaDeLaHoja } from '../../../../../entities/formula/hoja-de-la-planilla'
 import type { CifraDeLaFila } from '../../../../../entities/formula/vista-previa'
 import type { Arrastre } from '../../../hooks/use-arrastre-de-fila'
@@ -8,6 +9,11 @@ import type { PropsDeLaFila } from './fila-de-la-cuadricula'
 import { porcentajeDe, unidadDe } from './valor-de-la-unidad'
 
 const SIN_CIFRA: CifraDeLaFila = { tipo: 'nada' }
+// Una fila recién insertada, antes de que el cálculo la tenga.
+const SIN_CONTENIDO: ContenidoDeLaFila = {
+  c: { tipo: 'de_donde_sale', texto: '' },
+  ejemplo: 'nada',
+}
 
 type Extra = { arrastre: Arrastre | null; entrada: ReactNode; menu: ReactNode }
 
@@ -37,7 +43,8 @@ function deLaCelda(pl: Planilla, fila: FilaDeLaHoja, x: Extra) {
   }
 }
 
-// Lo que la fila muestra: su %, su valor (fijo, de la unidad de ejemplo o calculado), de dónde sale, el rechazo que la nombra y el dato del vehículo que falta.
+// Lo que la fila muestra: su %, su valor fijo, lo de la unidad de ejemplo, su cifra, qué va en C y en Ejemplo, el rechazo que la nombra y el dato del vehículo que
+// falta.
 function deLosValores(pl: Planilla, fila: FilaDeLaHoja) {
   const { id, nodo, numero } = fila
   const { trabajo, rechazo } = pl.editor
@@ -47,7 +54,7 @@ function deLosValores(pl: Planilla, fila: FilaDeLaHoja) {
     unidad: unidadDe(pl.unidad, nodo),
     cifra: pl.calculo.cifras.get(id) ?? SIN_CIFRA,
     leyendo: pl.calculo.vista === null,
-    dicho: pl.calculo.dichas.get(id) ?? '',
+    contenido: pl.contenidos.get(id) ?? SIN_CONTENIDO,
     rechazo: rechazo?.filaId === id ? rechazo.mensaje : null,
     falta: pl.faltan.get(id) ?? null,
   }

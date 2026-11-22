@@ -20,7 +20,7 @@ export type CodigoDeA1 =
   | 'misma_fila'
   | 'fila_inexistente'
   | 'columna_a'
-  | 'columna_d'
+  | 'columna_ejemplo'
   | 'columna_inexistente'
   | 'b_sin_pct'
   | 'b_en_la_formula'
@@ -55,8 +55,8 @@ function mensajeDeColumna(celda: Celda): Omit<Rechazo, 'desde' | 'hasta'> {
     }
   if (celda.col === 'D')
     return {
-      codigo: 'columna_d',
-      mensaje: `${nombre} es «de dónde sale»: en una fórmula va ${c('C', n)}.`,
+      codigo: 'columna_ejemplo',
+      mensaje: `${nombre}: Ejemplo no se usa en una fórmula: es la unidad de ejemplo. En una fórmula va ${c('C', n)}.`,
     }
   return {
     codigo: 'columna_inexistente',

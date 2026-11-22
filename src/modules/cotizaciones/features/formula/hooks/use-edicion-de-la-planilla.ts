@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { contenidoDeLaFila, type ContenidoDeLaFila } from '../../../entities/formula/contenido-de-c'
 import type { CambioDeLaUnidad } from '../../../entities/formula/escrito-en-la-celda'
 import type { HojaDeLaPlanilla } from '../../../entities/formula/hoja-de-la-planilla'
 import {
@@ -28,11 +29,25 @@ type Args = {
 const textoConIdsDe = (fila: FilaParaDibujar | undefined) =>
   fila !== undefined && 'texto' in fila.texto ? fila.texto.texto : null
 
-// La edición de la planilla: con qué texto abre cada celda (`textoDeLaCelda()`), la edición con referencias, el autocompletar y lo que pinta lo tipeado (los colores,
-// la leyenda y el borde de cada celda nombrada).
+// La edición de la planilla: qué muestran C y Ejemplo en cada fila (una vez por fórmula de trabajo: tipear no lo recalcula), con qué texto abre cada celda
+// (`textoDeLaCelda()`), la edición con referencias, el autocompletar y lo que pinta lo tipeado (los colores, la leyenda y el borde de cada celda nombrada).
 export function useEdicionDeLaPlanilla({ editor, hoja, calculo, unidad, alCambiarUnidad }: Args) {
   const { locale, dichas } = calculo
   const filas = useMemo(() => new Map(editor.filas.map((f) => [f.id, f])), [editor.filas])
+  const contenidos = useMemo(
+    () =>
+      new Map<string, ContenidoDeLaFila>(
+        editor.filas.map((f) => [
+          f.id,
+          contenidoDeLaFila(f.nodo, {
+            hoja,
+            textoConIds: textoConIdsDe(f),
+            dicho: dichas.get(f.id) ?? '',
+          }),
+        ]),
+      ),
+    [editor.filas, hoja, dichas],
+  )
   const textoDe = (celda: CeldaActiva) =>
     textoDeLaCelda(hoja.numeroDe.get(celda.id) ?? 0, celda.col, {
       formula: editor.trabajo,
@@ -55,7 +70,7 @@ export function useEdicionDeLaPlanilla({ editor, hoja, calculo, unidad, alCambia
   )
   const leyenda = useMemo(() => leyendaDeReferencias(refs, hoja), [refs, hoja])
   const bordes = useMemo(() => bordesDeReferencias(refs), [refs])
-  return { textoDe, edicion, sugerencias, refs, leyenda, bordes }
+  return { textoDe, contenidos, edicion, sugerencias, refs, leyenda, bordes }
 }
 
 export type EdicionDeLaPlanilla = ReturnType<typeof useEdicionDeLaPlanilla>

@@ -3,6 +3,7 @@
 import { Button } from '@/shared/ui/button'
 import { useLive } from '@/shared/ui/live'
 import { filaDe } from '../../../../../entities/formula/hoja-de-la-planilla'
+import { nombreDeLaCelda } from '../../../../../entities/formula/texto-de-la-celda'
 import { useGrillaQuieta } from '../../../hooks/use-grilla-quieta'
 import type { Planilla } from '../../../hooks/use-planilla'
 import { idsDeLaEdicion } from '../ids-de-la-edicion'
@@ -19,23 +20,21 @@ const CAJA_QUIETA =
   'min-h-[44px] min-w-0 rounded-(--radius-md) border border-dashed border-(--color-line) px-3 py-2.5 text-(length:--text-sm) text-(--color-ink-soft) break-words md:pointer-fine:min-h-9 md:pointer-fine:py-1.5'
 const BOTON = 'min-h-[44px] md:pointer-fine:min-h-9'
 
-// Lo que la barra muestra de la celda activa: su texto si se escribe; si no, por qué (D, «de dónde sale», o un monto con el Modo Live).
+// Lo que la barra muestra de la celda activa: su texto si se escribe; si no, por qué (o un monto con el Modo Live).
 function textoDeLaCelda(planilla: Planilla, live: boolean) {
   const { cuadricula, edicion, hoja } = planilla
   const celda = edicion.edicion ?? cuadricula.activa
   if (celda === null) return null
   const fila = filaDe(hoja, hoja.numeroDe.get(celda.id) ?? 0)
   if (fila === undefined) return null
-  const nombre = `${celda.col}${String(fila.numero)}, ${fila.nodo.etiqueta}`
+  const nombre = `${nombreDeLaCelda(celda.col, fila.numero)}, ${fila.nodo.etiqueta}`
   const t = planilla.textoDe(celda)
   const quieto =
     live && esMontoQueSeEscribe(fila.nodo, celda.col)
       ? 'Con el Modo Live, el monto se escribe en la celda.'
-      : celda.col === 'D'
-        ? (planilla.calculo.dichas.get(fila.id) ?? '')
-        : t.editable
-          ? null
-          : t.motivo
+      : t.editable
+        ? null
+        : t.motivo
   return {
     celda,
     fila,
@@ -84,9 +83,9 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
       <div className="flex min-w-0 flex-wrap items-start gap-2 sm:flex-nowrap">
         <span
           data-celda-de-la-barra=""
-          className="flex min-h-[44px] w-14 shrink-0 items-center justify-center rounded-(--radius-md) border border-(--color-line) font-mono text-(length:--text-sm) md:pointer-fine:min-h-9"
+          className="flex min-h-[44px] w-auto min-w-14 shrink-0 items-center justify-center rounded-(--radius-md) border border-(--color-line) px-2 font-mono text-(length:--text-sm) whitespace-nowrap md:pointer-fine:min-h-9"
         >
-          {activa === null ? '—' : `${activa.celda.col}${String(activa.fila.numero)}`}
+          {activa === null ? '—' : nombreDeLaCelda(activa.celda.col, activa.fila.numero)}
         </span>
         <span
           aria-hidden

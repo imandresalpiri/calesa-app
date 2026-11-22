@@ -1,6 +1,7 @@
 // Con qué texto abre la edición de una celda de la planilla (D11 y D15 del cambio de la planilla), o por qué no se escribe: A, el concepto; B, el % que es una
-// constante (en puntos); C, según el tipo de celda: la fórmula en A1 (`=C5+C7`), el valor fijo, lo de la unidad de ejemplo (lo que escribe el asesor, el dato del
-// vehículo, «Sí» o «No», la opción de la variante) o, en un tipo de cambio o una tabla, el motivo. D nunca se escribe. Puro.
+// constante (en puntos); C, lo que guarda la fórmula: la fórmula en A1 (`=C5+C7`), el valor fijo o, en una fila que se llena al cotizar (lo escribe el asesor, el
+// dato del vehículo, el interruptor, la variante), vacío (un «=» la vuelve cálculo); en un tipo de cambio o una tabla, el motivo. La columna Ejemplo (clave
+// interna `D`) es lo de la unidad de ejemplo y se escribe sólo en las filas que se llenan al cotizar. Puro.
 import { textoInicial } from './ajuste'
 import type { Formula } from '../formula'
 import { formatoDe, type Nodo } from '../nodos'
@@ -10,6 +11,10 @@ import type { UnidadDeEjemplo } from './unidad-de-ejemplo'
 
 export type ColumnaDeLaPlanilla = 'A' | 'B' | 'C' | 'D'
 export const COLUMNAS_DE_LA_PLANILLA: readonly ColumnaDeLaPlanilla[] = ['A', 'B', 'C', 'D']
+
+// El nombre que ve quien escribe: «C5»; la columna Ejemplo no tiene letra («Ejemplo 5»).
+export const nombreDeLaCelda = (col: ColumnaDeLaPlanilla, numero: number) =>
+  col === 'D' ? `Ejemplo ${String(numero)}` : `${col}${String(numero)}`
 
 export type TextoDeLaCelda =
   | { readonly editable: true; readonly texto: string }
@@ -28,7 +33,10 @@ export type ContextoDelTexto = {
 
 export const motivoSinEscribir = (deDondeSale: string) =>
   `Esta celda no se escribe: ${deDondeSale}. Cambia su tipo en «Tipo de celda».`
-export const MOTIVO_DE_D = 'D dice de dónde sale el valor: se calcula sola.'
+export const MOTIVO_DEL_EJEMPLO =
+  'Ejemplo es lo que da esta fila con la unidad de ejemplo: se calcula sola.'
+export const motivoDelEjemploDeUnValorFijo = (numero: number) =>
+  `El valor fijo se escribe en C${String(numero)}.`
 export const MOTIVO_SIN_PORCENTAJE = 'Esta fila no tiene porcentaje.'
 export const motivoDelPorcentajeDeOtraFila = (numero: number) =>
   `El % de esta fila es C${String(numero)}: cámbialo ahí.`
@@ -65,20 +73,39 @@ function textoDeLaUnidad(nodo: Nodo, ctx: ContextoDelTexto): string | null {
   return null
 }
 
+// El texto de una fila en A1, con su «=» adelante.
+export function formulaEnA1(textoConIds: string, hoja: HojaDeLaPlanilla): string {
+  const { texto } = aA1(textoConIds, hoja)
+  return texto.trimStart().startsWith('=') ? texto : `=${texto}`
+}
+
+// Las filas que se llenan al cotizar: su valor de la unidad de ejemplo va en la columna Ejemplo.
+export const esDeLaUnidad = (nodo: Nodo) =>
+  nodo.tipo === 'input' ||
+  nodo.tipo === 'bandera' ||
+  nodo.tipo === 'opcion' ||
+  nodo.tipo === 'campo_vehiculo'
+
 function textoDeC(nodo: Nodo, ctx: ContextoDelTexto): TextoDeLaCelda {
   if (nodo.tipo === 'constante')
     return escribe(
       textoInicial(ctx.formula.params.constantes[nodo.id] ?? 0, formatoDe(nodo), ctx.locale),
     )
-  if (nodo.tipo === 'calculo') {
-    if (ctx.textoConIds === null) return escribe('')
-    const { texto } = aA1(ctx.textoConIds, ctx.hoja)
-    return escribe(texto.trimStart().startsWith('=') ? texto : `=${texto}`)
-  }
+  if (nodo.tipo === 'calculo')
+    return escribe(ctx.textoConIds === null ? '' : formulaEnA1(ctx.textoConIds, ctx.hoja))
+  // Una fila que se llena al cotizar abre vacía: un «=» la vuelve cálculo.
+  return esDeLaUnidad(nodo)
+    ? escribe('')
+    : { editable: false, motivo: motivoSinEscribir(ctx.deDondeSale) }
+}
+
+function textoDelEjemplo(nodo: Nodo, numero: number, ctx: ContextoDelTexto): TextoDeLaCelda {
   const deLaUnidad = textoDeLaUnidad(nodo, ctx)
-  return deLaUnidad === null
-    ? { editable: false, motivo: motivoSinEscribir(ctx.deDondeSale) }
-    : escribe(deLaUnidad)
+  if (deLaUnidad !== null) return escribe(deLaUnidad)
+  return {
+    editable: false,
+    motivo: nodo.tipo === 'constante' ? motivoDelEjemploDeUnValorFijo(numero) : MOTIVO_DEL_EJEMPLO,
+  }
 }
 
 function textoDeB(numero: number, ctx: ContextoDelTexto): TextoDeLaCelda {
@@ -103,5 +130,5 @@ export function textoDeLaCelda(
   if (col === 'A') return escribe(fila.nodo.etiqueta)
   if (col === 'B') return textoDeB(numero, ctx)
   if (col === 'C') return textoDeC(fila.nodo, ctx)
-  return { editable: false, motivo: MOTIVO_DE_D }
+  return textoDelEjemplo(fila.nodo, numero, ctx)
 }
