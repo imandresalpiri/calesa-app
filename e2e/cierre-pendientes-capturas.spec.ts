@@ -22,8 +22,8 @@ import { sql } from './soporte/sql'
 
 // Las capturas de la sesión «cierre de pendientes del 200 %» (`E2E_CAPTURAS=e2e-capturas/cierre-pendientes/{antes,despues}`): 5a-22 (la ficha
 // con un origen inactivo de nombre largo), 5a-23 (el chip de una búsqueda de 22 letras), 5a-24 (el selector de iconos arriba y abajo,
-// y el mismo modal al 100 %, donde cabe), el ancho de «Persona» en el equipo, el interruptor «Activa» de Integraciones y las tres pestañas del
-// origen con su barra a la vista. Al 100 % y al 200 %. Sin asserts: lo que se afirma vive en `leads-ficha-origen-inactivo-200`,
+// y el mismo modal al 100 %, donde cabe), el ancho de «Persona» en el equipo, el interruptor «Activa» de Integraciones y las pestañas del
+// origen (Fases, Campos, Categorías) y el drawer de sus datos con su barra a la vista. Al 100 % y al 200 %. Sin asserts: lo que se afirma vive en `leads-ficha-origen-inactivo-200`,
 // `barra-de-filtros-200`, `modal-desborde-200` y `equipo-200`; este recorre y deja las imágenes, y corre igual contra el código de antes.
 test.describe.configure({ mode: 'serial' })
 
@@ -116,13 +116,20 @@ for (const zoom of ['100', '200'] as const) {
     await aLaVistaAlAcomodarse(activaDeApibara, 'el interruptor «Activa» de apibara')
     await capturar(page, info, `integraciones-activa-${zoom}`)
 
-    // Las partes del origen, una por una, cada una en su sub-ruta, con el título largo a la vista.
-    for (const clave of ['datos', 'campos', 'categorias'] as const) {
+    // Las pestañas del origen que no son la fórmula, una por una, cada una en su sub-ruta, con el título largo a la vista.
+    for (const clave of ['fases', 'campos', 'categorias'] as const) {
       await page.goto(`/configuracion/origenes/${origen.id}/${clave}`)
       const titulo = page.getByRole('heading', { level: 1, name: origen.nombre })
       await aLaVistaAlAcomodarse(titulo, `el origen en ${clave}`)
       await capturar(page, info, `origen-${clave}-${zoom}`)
     }
+
+    // Los datos del origen ya no son pestaña: abren un drawer modal sobre la de entrada, que deja el `h1` fuera del árbol de accesibilidad.
+    await page.goto(`/configuracion/origenes/${origen.id}/fases?panel=datos`)
+    const drawerDeDatos = page.getByRole('dialog', { name: 'Datos del origen' })
+    await aLaVistaAlAcomodarse(drawerDeDatos, 'el drawer «Datos del origen»')
+    await quieto(drawerDeDatos)
+    await capturar(page, info, `origen-datos-${zoom}`)
 
     // 5a-24: el modal que desborda al 200 % y el mismo, entero, al 100 %.
     await selectorDeIconos(page, info, zoom)
