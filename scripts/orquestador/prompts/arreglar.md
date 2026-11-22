@@ -25,6 +25,7 @@ Primero entiende el estado: `git log --oneline origin/main..HEAD`, `git status -
   Si cae más de un spec ajeno, nombra el primero y los demás en la evidencia. Sólo vale con un spec y una línea reales y con el PR sin
   nada propio en rojo: si además cae algo de esta rama, arréglalo y publica (el ajeno lo verá la próxima vuelta). Lo que no es un
   e2e (lint, tipos, un servicio de afuera) sigue siendo `RESULTADO: TRABADA —` con el job y la evidencia.
+- **Un archivo versionado que `.gitignore` ignora** (`git ls-files -ci --exclude-standard` lo lista; `pnpm test` cae en `scripts/guardas/ignorados.test.ts`): no lo restaures a mano ni lo rodees; sácalo con `git rm --cached <archivo>` en un commit `chore` aparte.
 - **Una dependencia** que el arreglo necesite sigue la misma regla que la tarea: entra si está en
   `scripts/orquestador/dependencias-aprobadas.txt`; si no, como último recurso, se suma a esa lista en el mismo PR con la sección
   «Dependencias nuevas» en el cuerpo (por qué no alcanza lo que hay, peso gzip, licencia, mantenimiento, versión verificada hoy con

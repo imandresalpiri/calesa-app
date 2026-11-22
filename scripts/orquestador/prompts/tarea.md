@@ -55,6 +55,7 @@ y los codemods siguen bloqueados.
   (levanta la app del carril, entra con una cuenta creada como en los e2e, toma capturas en escritorio y celular y míralas) y di en el PR qué viste.
 - Datos y dinero (migración, RLS, permisos, `security definer`, fórmula, dinero): antes de publicar, una segunda lectura con el
   agente `revisor` (Agent, subagent_type `revisor`) sobre `git diff origin/main...HEAD`; aplica lo que encuentre que sea real.
+- **Un archivo versionado que `.gitignore` ignora** (`git ls-files -ci --exclude-standard` lo lista; `pnpm test` cae en `scripts/guardas/ignorados.test.ts`): no lo restaures a mano ni lo rodees; sácalo con `git rm --cached <archivo>` en un commit `chore` aparte.
 - Docs según `docs/FLUJO.md` › «Docs: qué se toca» (sin historia en los docs).
 - Publica con la skill `entregar`, pero con **`bash scripts/flujo/publicar.sh --sin-esperar --titulo '<tipo(scope): descripción>' --cuerpo <archivo>`**.
   El cuerpo: qué cambió, por qué, cómo se verificó (comandos y specs), «Decisiones tomadas sin preguntar», «Dependencias nuevas» si
