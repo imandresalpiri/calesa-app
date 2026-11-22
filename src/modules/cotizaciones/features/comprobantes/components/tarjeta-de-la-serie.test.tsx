@@ -26,12 +26,14 @@ describe('TarjetaDeLaSerie', () => {
     const t = tarjeta(true)
     expect(t.getByText('A', { selector: '[data-serie-vigente]' })).toBeTruthy()
     expect(t.getByText('A-13', { selector: '[data-proximo-comprobante]' })).toBeTruthy()
-    expect(t.getByRole('button', { name: 'Cambiar serie' }).hasAttribute('disabled')).toBe(false)
+    expect(t.getByRole('button', { name: 'Cambiar la serie' })).toBeTruthy()
+    expect(t.getByRole('button', { name: 'Más acciones de Serie de comprobantes' })).toBeTruthy()
   })
 
-  it('sin permiso se ve todo y «Cambiar serie» queda apagado', () => {
+  it('sin permiso se ve todo y no hay botón para cambiarla', () => {
     const t = tarjeta(false)
     expect(t.getByText('A-13')).toBeTruthy()
-    expect(t.getByRole('button', { name: 'Cambiar serie' }).hasAttribute('disabled')).toBe(true)
+    expect(t.queryByRole('button', { name: 'Cambiar la serie' })).toBeNull()
+    expect(t.getByRole('button', { name: 'Más acciones de Serie de comprobantes' })).toBeTruthy()
   })
 })

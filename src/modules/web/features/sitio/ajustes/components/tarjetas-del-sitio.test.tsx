@@ -29,7 +29,7 @@ const origenes = [
 afterEach(cleanup)
 
 describe('TarjetasDelSitio', () => {
-  it('son cinco tarjetas con su «Editar» y lo guardado a la vista', () => {
+  it('son cinco tarjetas con su «⋯» y lo guardado a la vista', () => {
     const Con = withNuqsTestingAdapter()
     render(
       <Con>
@@ -39,7 +39,8 @@ describe('TarjetasDelSitio', () => {
     for (const titulo of ['Identidad del sitio', 'Contacto', 'Redes', 'SEO', 'Vitrina']) {
       expect(screen.getByRole('region', { name: titulo })).toBeTruthy()
     }
-    expect(screen.getAllByRole('button', { name: 'Editar' })).toHaveLength(5)
+    expect(screen.getAllByRole('button', { name: /^Editar / })).toHaveLength(5)
+    expect(screen.getAllByRole('button', { name: /^Más acciones de / })).toHaveLength(5)
     expect(screen.getByRole('region', { name: 'Identidad del sitio' }).textContent).toContain(
       'Autos del Sur',
     )

@@ -61,22 +61,23 @@ describe('TarjetasDeLaEmpresa', () => {
     )
   }
 
-  it('con permiso hay cinco tarjetas con su «Editar» y sin aviso', () => {
+  it('con permiso hay cinco tarjetas con su «⋯» y sin aviso', () => {
     tarjetas(true)
     for (const titulo of ['Identidad', 'Región', 'Datos legales y de contacto', 'Políticas']) {
       expect(screen.getByRole('region', { name: titulo })).toBeTruthy()
     }
     expect(screen.getByRole('region', { name: 'Íconos de la app' })).toBeTruthy()
-    expect(screen.getAllByRole('button', { name: 'Editar' }).length).toBeGreaterThanOrEqual(5)
+    // «Íconos de la app» no abre sin logo: su botón no se dibuja y su «⋯» lo dice.
+    expect(screen.getAllByRole('button', { name: /^Editar / })).toHaveLength(4)
+    expect(screen.getAllByRole('button', { name: /^Más acciones de / })).toHaveLength(5)
     expect(screen.queryByText(MOTIVO_SIN_PERMISO_AJUSTES)).toBeNull()
   })
 
-  it('sin permiso se ve todo, con «Editar» apagado y el motivo', () => {
+  it('sin permiso se ve todo, sin botón para editar y con el motivo', () => {
     tarjetas(false)
     expect(screen.getByText(MOTIVO_SIN_PERMISO_AJUSTES)).toBeTruthy()
-    for (const boton of screen.getAllByRole('button', { name: 'Editar' })) {
-      expect(boton.matches(':disabled')).toBe(true)
-    }
+    expect(screen.queryAllByRole('button', { name: /^Editar / })).toHaveLength(0)
+    expect(screen.getAllByRole('button', { name: /^Más acciones de / })).toHaveLength(5)
   })
 })
 

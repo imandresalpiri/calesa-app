@@ -86,14 +86,15 @@ describe('TarjetasDeIntegraciones', () => {
     expect(within(tarjeta).getByText('No se puede ver: sólo reemplazar.')).toBeTruthy()
   })
 
-  it('sin permiso se ve todo, con «Configurar» y los interruptores apagados y el motivo', () => {
+  it('sin permiso se ve todo, sin «Configurar» y con los interruptores apagados y el motivo', () => {
     tarjetas(false)
     expect(screen.getAllByText(MOTIVO_SIN_PERMISO_AJUSTES).length).toBeGreaterThan(0)
     for (const titulo of ['apibara', 'Web pública']) {
       const tarjeta = screen.getByRole('region', { name: titulo })
-      expect(within(tarjeta).getByRole('button', { name: 'Configurar' }).matches(':disabled')).toBe(
-        true,
-      )
+      expect(within(tarjeta).queryByRole('button', { name: /^Configurar/ })).toBeNull()
+      expect(
+        within(tarjeta).getByRole('button', { name: `Más acciones de ${titulo}` }),
+      ).toBeTruthy()
     }
     for (const interruptor of screen.getAllByRole('switch')) {
       expect(interruptor.getAttribute('data-disabled')).toBe('')
