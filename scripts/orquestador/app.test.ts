@@ -170,15 +170,18 @@ describe('quién es de confianza', () => {
       const propio = issueDeApp('mi-app[bot]')
       // Si GitHub llenara performed_via_github_app, también vale el id.
       const porId = issueDeApp('otro-nombre[bot]', { performed_via_github_app: { id: 123 } })
+      // Una persona que se llama como la app no entra.
+      const persona = issueDeApp('mi-app[bot]', { user: { login: 'mi-app[bot]', type: 'User' } })
       const r = t.lineas(
         [
           `token_gh; con_permiso '${propio}' && echo propia`,
           `con_permiso '${porId}' && echo por-id`,
           `con_permiso '${issueDeApp('otra-app[bot]')}' || echo ajena`,
+          `con_permiso '${persona}' || echo persona`,
           `ORQ_SIN_APP=1 con_permiso '${propio}' || echo apagada`,
         ].join('; '),
       )
-      expect(r.filter(Boolean)).toEqual(['propia', 'por-id', 'ajena', 'apagada'])
+      expect(r.filter(Boolean)).toEqual(['propia', 'por-id', 'ajena', 'persona', 'apagada'])
     },
     TIEMPO,
   )
