@@ -9,6 +9,7 @@ import {
   darRolDePrueba,
 } from './soporte/base'
 import {
+  abrirLosDatos,
   borrarOrigenes,
   camposDelOrigen,
   campoDelOrigen,
@@ -118,17 +119,15 @@ test('se crea un origen manual y uno de subasta, cada uno con su flujo y sus cam
   await panel.getByRole('button', { name: 'Crear origen' }).click()
   await expect(page.getByText(`Origen «${MANUAL}» creado`)).toBeVisible()
 
-  // Sigue en el paso Campos de la puesta en marcha. La página del origen tiene «Para cotizar y mover»: cada paso lleva a su pestaña.
+  // Sigue en el paso Campos de la puesta en marcha. En la página del origen, la pestaña con algo pendiente lo dice (su ⚠).
   await delAltaASuPagina(page)
   await expect(page.getByRole('heading', { name: MANUAL, level: 1 })).toBeVisible()
-  const tira = page.getByRole('region', { name: 'Para cotizar y mover' })
-  const paso = (titulo: string) => tira.getByRole('listitem').filter({ hasText: titulo })
-  await expect(tira.getByRole('listitem')).toHaveCount(5)
-  await expect(paso('Flujo')).toContainText('Sin fases: sus vehículos no se pueden mover')
-  await expect(paso('Fórmula').getByRole('link')).toHaveAttribute(
-    'href',
-    /\/configuracion\/origenes\/[0-9a-f-]{36}\/formulas$/,
-  )
+  await expect(
+    page.getByRole('tab', { name: 'Fases. Sin fases: sus vehículos no se pueden mover' }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('tab', { name: 'Planilla. Sin fórmula activa: no se puede cotizar' }),
+  ).toBeVisible()
 
   const corea = await origenDeLaBase('corea')
   expect(corea).toMatchObject({ nombre: MANUAL, tipo: 'manual', sustantivo: 'unidad', genero: 'f' })
@@ -172,13 +171,9 @@ test('se crea un origen manual y uno de subasta, cada uno con su flujo y sus cam
   expect(campos.filter((campo) => campo.clave_apibara !== null).length).toBeGreaterThan(95)
   expect(campos.every((campo) => campo.activo)).toBe(true)
   expect((await flujoDelOrigen(japon.id)).reglas).toContain('aduana')
-  // Un origen de subasta suma activar apibara a lo que le falta.
-  await expect(
-    page
-      .getByRole('region', { name: 'Para cotizar y mover' })
-      .getByRole('listitem')
-      .filter({ hasText: 'Datos' }),
-  ).toContainText('Activa apibara para traer sus subastas')
+  // Un origen de subasta suma activar apibara a lo que le falta: su tarjeta en la lista lo dice.
+  await page.goto('/configuracion/origenes')
+  await expect(tarjetaDelOrigen(page, SUBASTA)).toContainText('Falta activar apibara')
 })
 
 test('un nombre repetido se dice en el campo y lo tipeado queda', async ({ page }) => {
@@ -288,25 +283,29 @@ test('dos personas editando el mismo origen: la segunda ve el conflicto y no pie
 }) => {
   await entrar(page, duena)
   await irADetalle(page, MANUAL)
+  const datos = await abrirLosDatos(page)
   const segunda = await otraPersona(browser, page)
   await segunda.goto('/ingreso')
   await ingresar(segunda, duena, CLAVE)
   await expect(segunda).toHaveURL('/')
+  // La misma pestaña con `?panel=datos`: el drawer abierto.
   await segunda.goto(page.url())
+  const susDatos = segunda.getByRole('dialog', { name: 'Datos del origen' })
 
-  // La segunda guarda primero.
-  await segunda.getByLabel('Nombre', { exact: true }).fill('Corea del Sur')
-  await segunda.getByRole('button', { name: 'Guardar' }).click()
+  // La segunda guarda primero: el drawer se cierra.
+  await susDatos.getByLabel('Nombre', { exact: true }).fill('Corea del Sur')
+  await susDatos.getByRole('button', { name: 'Guardar' }).click()
   await expect(segunda.getByText('Origen «Corea del Sur» guardado')).toBeVisible()
+  await expect(susDatos).toBeHidden()
 
   // La primera todavía tiene la versión vieja en pantalla.
-  await page.getByLabel('Nombre', { exact: true }).fill('Corea Norte')
-  await page.getByRole('button', { name: 'Guardar' }).click()
+  await datos.getByLabel('Nombre', { exact: true }).fill('Corea Norte')
+  await datos.getByRole('button', { name: 'Guardar' }).click()
   await expect(
-    page.getByText('Otra persona cambió este origen mientras lo editabas.'),
+    datos.getByText('Otra persona cambió este origen mientras lo editabas.'),
   ).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Recargar', exact: true })).toBeVisible()
-  await expect(page.getByLabel('Nombre', { exact: true })).toHaveValue('Corea Norte')
+  await expect(datos.getByRole('button', { name: 'Recargar', exact: true })).toBeVisible()
+  await expect(datos.getByLabel('Nombre', { exact: true })).toHaveValue('Corea Norte')
   expect((await origenDeLaBase('corea')).nombre).toBe('Corea del Sur')
 
   // Al renombrarse, el flujo acompaña al nombre.
@@ -322,11 +321,12 @@ test('con la conexión caída el formulario conserva lo tipeado y avisa', async 
 }) => {
   await entrar(page, duena)
   await irADetalle(page, 'Corea del Sur')
-  await page.getByLabel('Nombre', { exact: true }).fill('Corea sin red')
+  const datos = await abrirLosDatos(page)
+  await datos.getByLabel('Nombre', { exact: true }).fill('Corea sin red')
   await context.setOffline(true)
-  await page.getByRole('button', { name: 'Guardar' }).click()
+  await datos.getByRole('button', { name: 'Guardar' }).click()
   await expect(page.getByText(/No hay conexión|No pudimos llegar al servidor/)).toBeVisible()
-  await expect(page.getByLabel('Nombre', { exact: true })).toHaveValue('Corea sin red')
+  await expect(datos.getByLabel('Nombre', { exact: true })).toHaveValue('Corea sin red')
   await context.setOffline(false)
   expect((await origenDeLaBase('corea')).nombre).toBe('Corea del Sur')
 })

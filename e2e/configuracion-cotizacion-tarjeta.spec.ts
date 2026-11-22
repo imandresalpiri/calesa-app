@@ -11,11 +11,12 @@ import {
   tarjetaDibujada,
   type TerrenoDePlantilla,
 } from './soporte/plantilla'
-import { abrirLaFormula, enElEditor } from './soporte/rutas-de-la-formula'
+import { pestanaDelOrigen } from './soporte/pestanas-del-origen'
+import { abrirLaFormula, enElEditor, formulaDeTrabajoDe } from './soporte/rutas-de-la-formula'
 
 // @sin-celular-archivo: editor de Configuración que se usa en una pantalla de al menos 1.024 px; el celular ve un aviso y la tarjeta en sólo lectura
 
-// La sub-pestaña «Tarjeta» de la Fórmula de un origen (T325, `docs/UX.md` › «Cotización: tarjeta (estados propios)»): quien configura el origen edita el borrador de la
+// La pestaña «Tarjeta» de un origen (T325, `docs/UX.md` › «Cotización: tarjeta (estados propios)»): quien configura el origen edita el borrador de la
 // tarjeta en el lienzo (la forma 2) y lo guarda con la versión esperada. Sin plantilla nace de la de por omisión; sin la clave no se abre; sin fórmula publicada, un
 // vacío con su enlace; lo escrito y sin guardar vuelve tras recargar. La marca de archivo no deja medir (el editor es de escritorio): sin «sin scroll horizontal».
 test.describe.configure({ mode: 'serial' })
@@ -91,21 +92,18 @@ test('E1: sin borrador ni publicada el editor nace de la de por omisión, guarda
 }) => {
   await entrar(page, configuradora, { fresco: true })
   await abrirLaFormula(page, origenId(), 'planilla')
-  // Las pestañas del origen (Flujo apagada: no configura el flujo) y, debajo, las de la fórmula.
+  // Las pestañas del origen (Fases apagada: no configura el flujo; con algo pendiente, el nombre sigue con lo que falta).
   await expect(page.getByRole('tab')).toHaveText([
-    'Datos',
-    'Campos',
-    'Categorías',
-    'Flujo',
-    'Fórmulas',
-    'Tablas',
-    'Planilla',
-    'Hoja',
-    'Tarjeta',
+    /^Fases/,
+    /^Planilla/,
+    /^Hoja/,
+    /^Tarjeta/,
+    /^Campos/,
+    /^Categorías/,
   ])
-  await expect(page.getByRole('tab', { name: 'Flujo', exact: true })).toBeDisabled()
-  await page.getByRole('tab', { name: 'Tarjeta', exact: true }).click()
-  await expect(page).toHaveURL(enElEditor(origenId(), 'tarjeta'))
+  await expect(pestanaDelOrigen(page, 'Fases')).toBeDisabled()
+  await pestanaDelOrigen(page, 'Tarjeta').click()
+  await expect(page).toHaveURL(enElEditor(origenId(), 'tarjeta', formulaDeTrabajoDe(origenId())))
   await expect(page.getByRole('heading', { name: /^Tarjeta de / })).toBeVisible()
   await expect(
     page.getByText('Sin borrador ni publicada: parte de la de por omisión.'),

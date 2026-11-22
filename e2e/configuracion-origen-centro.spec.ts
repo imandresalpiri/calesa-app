@@ -14,11 +14,12 @@ import {
 } from './soporte/base'
 import { publicarFormulaDePrueba } from './soporte/cotizar-formula'
 import { PREFIJO_CLAVE_E2E, crearOrigenDePrueba, tarjetaDelOrigen } from './soporte/origenes'
-import { enLaPestana } from './soporte/pestanas-del-origen'
+import { enLaPestana, pestanaDelOrigen } from './soporte/pestanas-del-origen'
 import { formulaDeTrabajoDe } from './soporte/rutas-de-la-formula'
+import { literal, sql } from './soporte/sql'
 
-// El origen como centro: cada origen tiene su página (`/configuracion/origenes/<id>/<pestaña>`) con «Para cotizar y mover» y seis pestañas,
-// cada una con su permiso en ese origen; lo de toda la empresa vive en Catálogos. Las URL de cuando Cotización, Flujos y Logística eran
+// El origen como centro: cada origen tiene su página (`/configuracion/origenes/<id>/<pestaña>`) con seis pestañas, cada una con su permiso en ese
+// origen y un ⚠ en la que tiene algo pendiente; lo de toda la empresa vive en Catálogos. Las URL de cuando Cotización, Flujos y Logística eran
 // secciones siguen llevando adonde vive hoy lo que pedían, con un 308 del servidor y su consulta.
 
 const ID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -92,97 +93,97 @@ test.afterAll(async () => {
 })
 
 const menu = (page: Page) => page.getByRole('navigation', { name: 'Secciones de Configuración' })
-const tira = (page: Page) => page.getByRole('region', { name: 'Para cotizar y mover' })
-const paso = (page: Page, titulo: string) =>
-  tira(page).getByRole('listitem').filter({ hasText: titulo })
+const avisos = (page: Page) => page.locator('[data-aviso-de-la-pestana]')
+
+// Quien entra a `/configuracion/origenes/<id>` va a la última pestaña que abrió ahí: las pruebas que miden la primera vez la olvidan antes.
+function olvidarLasPestanas(correo: string) {
+  sql(
+    `delete from public.preferencias_usuario where clave = 'origenes.ultima_pestana' and usuario_id = (select id from public.perfiles where email = ${literal(correo)})`,
+  )
+}
 
 test('E2E pestañas con permisos: quien sólo configura el cotizador de un origen', async ({
   page,
 }) => {
+  olvidarLasPestanas(cotizadora)
   await entrar(page, cotizadora, { fresco: true })
 
-  // La página sola abre la primera pestaña: Datos, que abre todo el que abre el origen.
+  // La página sola abre la primera pestaña que abre: Fases pide el flujo, así que la Planilla.
   await page.goto(`/configuracion/origenes/${a.id}`)
-  await expect(page).toHaveURL(`/configuracion/origenes/${a.id}/datos`)
+  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${a.id}/planilla(\\?|$)`))
   await expect(page.getByRole('heading', { name: a.nombre, level: 1 })).toBeVisible()
-  await enLaPestana(page, 'Datos')
+  await enLaPestana(page, 'Planilla')
 
-  // Datos, en sólo lectura y con su motivo.
-  await expect(page.getByText('no tienes el permiso «Gestionar orígenes»')).toBeVisible()
-  await expect(page.getByLabel('Nombre', { exact: true })).toBeDisabled()
+  // Datos, en su drawer, en sólo lectura y con su motivo; sin `origenes.gestionar` no hay «⋯» en escritorio.
+  await expect(page.getByRole('button', { name: `Más acciones de ${a.nombre}` })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Datos', exact: true }).click()
+  const datos = page.getByRole('dialog', { name: 'Datos del origen' })
+  await expect(datos.getByText('no tienes el permiso «Gestionar orígenes»')).toBeVisible()
+  await expect(datos.getByLabel('Nombre', { exact: true })).toBeDisabled()
+  await page.keyboard.press('Escape')
+  await expect(datos).toBeHidden()
 
-  // Flujo, apagada con su motivo bajo las pestañas; en la tira, el paso sin enlace y con el motivo.
-  await expect(page.getByRole('tab', { name: 'Flujo', exact: true }).first()).toBeDisabled()
+  // Fases, apagada con su motivo bajo las pestañas; Campos sí abre.
+  await expect(pestanaDelOrigen(page, 'Fases')).toBeDisabled()
   await expect(
-    page.getByText('Flujo: Lo configura quien tiene el permiso «Configurar el flujo».'),
+    page.getByText('Fases: Lo configura quien tiene el permiso «Configurar el flujo».'),
   ).toBeVisible()
-  await expect(paso(page, 'Flujo').getByRole('link')).toHaveCount(0)
-  await expect(paso(page, 'Flujo')).toContainText('«Configurar el flujo»')
 
-  // Fórmulas sí abre.
-  await page.getByRole('tab', { name: 'Fórmulas', exact: true }).click()
-  await expect(page).toHaveURL(`/configuracion/origenes/${a.id}/formulas`)
-  await enLaPestana(page, 'Fórmulas')
+  await pestanaDelOrigen(page, 'Campos').click()
+  await expect(page).toHaveURL(`/configuracion/origenes/${a.id}/campos`)
+  await enLaPestana(page, 'Campos')
 
-  // Flujo escrita a mano en la URL: dice por qué y ofrece la primera que abre.
-  await page.goto(`/configuracion/origenes/${a.id}/flujo`)
+  // Fases escrita a mano en la URL: dice por qué y ofrece la primera que abre.
+  await page.goto(`/configuracion/origenes/${a.id}/fases`)
   await expect(page.getByText('No puedes abrir esta pestaña')).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Ir a Datos' })).toHaveAttribute(
-    'href',
-    `/configuracion/origenes/${a.id}/datos`,
-  )
+  const irALaPrimera = page.getByRole('link', { name: 'Ir a Planilla' })
+  await expect(irALaPrimera).toHaveAttribute('href', `/configuracion/origenes/${a.id}/planilla`)
 
-  // El menú nombra el origen que abre (marcado en todas sus pestañas) y no el que no abre.
-  await expect(menu(page).getByRole('link', { name: a.nombre, exact: true })).toHaveAttribute(
-    'aria-current',
-    'page',
-  )
-  await expect(menu(page).getByRole('link', { name: b.nombre, exact: true })).toHaveCount(0)
+  // El selector de las migas ofrece el origen que abre y no el que no abre.
+  await page.getByRole('button', { name: `Cambiar de origen (ahora ${a.nombre})` }).click()
+  const otros = page.getByRole('list', { name: 'Orígenes' })
+  await expect(otros.getByRole('link', { name: a.nombre })).toBeVisible()
+  await expect(otros.getByRole('link', { name: b.nombre })).toHaveCount(0)
+  await page.keyboard.press('Escape')
 
-  // La lista tampoco lo muestra, y su página dice que no se abre.
+  // La lista y el menú de Configuración tampoco lo muestran, y su página dice que no se abre.
   await page.goto('/configuracion/origenes')
   await expect(tarjetaDelOrigen(page, a.nombre)).toBeVisible()
   await expect(tarjetaDelOrigen(page, b.nombre)).toHaveCount(0)
   await expect(menu(page).getByRole('link', { name: b.nombre, exact: true })).toHaveCount(0)
-  await page.goto(`/configuracion/origenes/${b.id}/datos`)
+  await page.goto(`/configuracion/origenes/${b.id}/fases`)
   await expect(page.getByText('No puedes abrir este origen')).toBeVisible()
 })
 
-test('E2E la tira: lo que falta enlaza a su pestaña, publicar la fórmula la pone lista y un inactivo sólo dice «Inactivo»', async ({
+test('E2E el ⚠ de las pestañas: lo que falta lo dice su pestaña, publicar la fórmula lo quita y un inactivo no avisa', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${t.id}/datos`)
-  await expect(tira(page).getByRole('listitem')).toHaveCount(5)
+  await page.goto(`/configuracion/origenes/${t.id}/campos`)
+  await enLaPestana(page, 'Campos')
 
-  // Sin fases ni fórmula: ✗ Flujo y ✗ Fórmula, cada uno a su pestaña (la fórmula, a la lista); la tarjeta, ⚠.
-  await expect(paso(page, 'Flujo')).toContainText('Bloquea')
-  await expect(paso(page, 'Flujo').getByRole('link')).toHaveAttribute(
-    'href',
-    `/configuracion/origenes/${t.id}/flujo`,
-  )
-  await expect(paso(page, 'Fórmula')).toContainText('Bloquea')
-  await expect(paso(page, 'Fórmula').getByRole('link')).toHaveAttribute(
-    'href',
-    `/configuracion/origenes/${t.id}/formulas`,
-  )
-  await expect(paso(page, 'Tarjeta')).toContainText('Aviso')
-  await expect(paso(page, 'Tarjeta').getByRole('link')).toHaveAttribute(
-    'href',
-    `/configuracion/origenes/${t.id}/formula/tarjeta`,
-  )
+  // Sin fases ni fórmula: Fases y Planilla lo dicen en su nombre (y su ⚠); la tarjeta, que se usa la de siempre.
+  for (const nombre of [
+    'Fases. Sin fases: sus vehículos no se pueden mover',
+    'Planilla. Sin fórmula activa: no se puede cotizar',
+    'Tarjeta. Sin publicar: se usa la tarjeta de siempre',
+  ]) {
+    await expect(page.getByRole('tab', { name: nombre })).toBeVisible()
+  }
+  await expect(pestanaDelOrigen(page, 'Fases').locator('[data-aviso-de-la-pestana]')).toHaveCount(1)
 
-  // Con la fórmula publicada, el paso queda ✓.
+  // Con la fórmula publicada, la Planilla ya no avisa; Fases sí.
   publicarFormulaDePrueba(t.id)
   await page.reload()
-  await expect(paso(page, 'Fórmula')).toContainText('Listo')
-  await expect(paso(page, 'Flujo')).toContainText('Bloquea')
+  await expect(page.getByRole('tab', { name: 'Planilla', exact: true })).toBeVisible()
+  await expect(pestanaDelOrigen(page, 'Fases').locator('[data-aviso-de-la-pestana]')).toHaveCount(1)
 
-  // Inactivo: la tira sólo dice eso, sin pasos.
-  await page.goto(`/configuracion/origenes/${c.id}/datos`)
+  // Inactivo: «Inactivo» junto al nombre y ninguna pestaña avisa.
+  await page.goto(`/configuracion/origenes/${c.id}/campos`)
   await expect(page.getByRole('heading', { name: c.nombre, level: 1 })).toBeVisible()
-  await expect(tira(page)).toContainText('Inactivo')
-  await expect(tira(page).getByRole('listitem')).toHaveCount(0)
+  await expect(page.getByText('Inactivo', { exact: true })).toBeVisible()
+  await enLaPestana(page, 'Campos')
+  await expect(avisos(page)).toHaveCount(0)
 })
 
 // Cada URL vieja, con quién la pide y adónde tiene que llevar (ruta y consulta). `destino` es la ruta exacta o una expresión para lo que
@@ -194,7 +195,7 @@ type Redireccion = {
 }
 
 const REDIRECCIONES: Record<string, Redireccion> = {
-  // Las ocho fijas de next.config.ts.
+  // Las fijas de next.config.ts.
   'cotizacion/general': {
     de: () => '/configuracion/cotizacion/general?x=1',
     a: () => '/configuracion/catalogos/colores?x=1',
@@ -205,23 +206,23 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'cotizacion/<origen>/formula': {
     de: () => `/configuracion/cotizacion/${a.id}/formula?version=2`,
-    a: () => `/configuracion/origenes/${a.id}/formula?version=2`,
+    a: () => `/configuracion/origenes/${a.id}/planilla?version=2`,
   },
   'cotizacion/<origen>/hoja': {
     de: () => `/configuracion/cotizacion/${a.id}/hoja?vista=412`,
-    a: () => `/configuracion/origenes/${a.id}/formula/hoja?vista=412`,
+    a: () => `/configuracion/origenes/${a.id}/hoja?vista=412`,
   },
   'cotizacion/<origen>/tarjeta': {
     de: () => `/configuracion/cotizacion/${a.id}/tarjeta?panel=publicar-tarjeta`,
-    a: () => `/configuracion/origenes/${a.id}/formula/tarjeta?panel=publicar-tarjeta`,
+    a: () => `/configuracion/origenes/${a.id}/tarjeta?panel=publicar-tarjeta`,
   },
   'cotizacion/<origen>/tablas': {
     de: () => `/configuracion/cotizacion/${a.id}/tablas?tabla=${UNA_TABLA}`,
-    a: () => `/configuracion/origenes/${a.id}/tablas?tabla=${UNA_TABLA}`,
+    a: () => `/configuracion/origenes/${a.id}/planilla?panel=tablas&tabla=${UNA_TABLA}`,
   },
   'cotizacion/<origen>': {
     de: () => `/configuracion/cotizacion/${a.id}?x=1`,
-    a: () => `/configuracion/origenes/${a.id}/formula?x=1`,
+    a: () => `/configuracion/origenes/${a.id}/planilla?x=1`,
   },
   'logistica/navieras': {
     de: () => '/configuracion/logistica/navieras?panel=nueva-naviera',
@@ -238,16 +239,16 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'cotizacion ?seccion=tablas&origen&tabla': {
     de: () => `/configuracion/cotizacion?seccion=tablas&origen=${a.id}&tabla=${UNA_TABLA}`,
-    a: () => `/configuracion/origenes/${a.id}/tablas?tabla=${UNA_TABLA}`,
+    a: () => `/configuracion/origenes/${a.id}/planilla?panel=tablas&tabla=${UNA_TABLA}`,
   },
   'cotizacion ?origen': {
     de: () => `/configuracion/cotizacion?origen=${a.id}`,
-    a: () => `/configuracion/origenes/${a.id}/formula`,
+    a: () => `/configuracion/origenes/${a.id}/planilla`,
   },
   // /configuracion/flujos (route.ts, por persona).
   'flujos ?origen&fase&vista': {
     de: () => `/configuracion/flujos?origen=${a.id}&fase=${UNA_FASE}&vista=lista`,
-    a: () => `/configuracion/origenes/${a.id}/flujo?fase=${UNA_FASE}&vista=lista`,
+    a: () => `/configuracion/origenes/${a.id}/fases?fase=${UNA_FASE}&vista=lista`,
   },
   'flujos ?ambito=repuestos': {
     de: () => '/configuracion/flujos?ambito=repuestos',
@@ -260,7 +261,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'flujos sin nada': {
     de: () => '/configuracion/flujos',
-    a: () => new RegExp(`^/configuracion/origenes/${ID}/flujo$`),
+    a: () => new RegExp(`^/configuracion/origenes/${ID}/fases$`),
   },
   // /configuracion/logistica (route.ts, por persona).
   'logistica ?seccion=navieras': {
@@ -276,7 +277,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
     de: () => '/configuracion/catalogos',
     a: () => '/configuracion/catalogos/colores',
   },
-  // /configuracion/origenes/<id> (route.ts).
+  // /configuracion/origenes/<id> (route.ts, por persona: sin pestaña recordada, la primera que abre).
   'origenes/<id> ?seccion=campos&campo': {
     de: () => `/configuracion/origenes/${a.id}?seccion=campos&campo=${UN_CAMPO}`,
     a: () => `/configuracion/origenes/${a.id}/campos?campo=${UN_CAMPO}`,
@@ -285,52 +286,59 @@ const REDIRECCIONES: Record<string, Redireccion> = {
     de: () => `/configuracion/origenes/${a.id}?categoria=${UNA_CATEGORIA}`,
     a: () => `/configuracion/origenes/${a.id}/categorias?categoria=${UNA_CATEGORIA}`,
   },
-  // La ruta corta de la fórmula (route.ts, por persona): la fórmula de trabajo, con su consulta; sin ninguna, la lista.
-  'origenes/<id>/formula': {
-    de: () => `/configuracion/origenes/${f.id}/formula`,
-    a: () => `/configuracion/origenes/${f.id}/formulas/${formulaDeF}/planilla`,
-  },
-  'origenes/<id>/formula/hoja ?vista': {
-    de: () => `/configuracion/origenes/${f.id}/formula/hoja?vista=412`,
-    a: () => `/configuracion/origenes/${f.id}/formulas/${formulaDeF}/hoja?vista=412`,
-  },
-  'origenes/<id>/formula/tarjeta ?panel': {
-    de: () => `/configuracion/origenes/${f.id}/formula/tarjeta?panel=publicar-tarjeta`,
-    a: () =>
-      `/configuracion/origenes/${f.id}/formulas/${formulaDeF}/tarjeta?panel=publicar-tarjeta`,
-  },
-  'origenes/<id>/formula ?panel=editar-formula': {
-    de: () => `/configuracion/origenes/${f.id}/formula?panel=editar-formula`,
-    a: () => `/configuracion/origenes/${f.id}/formulas/${formulaDeF}/planilla`,
-  },
-  // El Modo avanzado de la planilla ya no existe (proxy): a la misma planilla, sin el panel y con el resto de la consulta.
-  'origenes/<id>/formulas/<fórmula>/planilla ?panel=editar-formula': {
-    de: () =>
-      `/configuracion/origenes/${f.id}/formulas/${formulaDeF}/planilla?panel=editar-formula&fila=x`,
-    a: () => `/configuracion/origenes/${f.id}/formulas/${formulaDeF}/planilla?fila=x`,
-  },
-  'origenes/<id>/formula, sin fórmulas': {
-    de: () => `/configuracion/origenes/${a.id}/formula?version=2`,
-    a: () => `/configuracion/origenes/${a.id}/formulas`,
-  },
-  // Una fórmula sin parte (next.config.ts).
-  'origenes/<id>/formulas/<fórmula>': {
-    de: () => `/configuracion/origenes/${f.id}/formulas/${formulaDeF}?panel=renombrar-formula`,
-    a: () =>
-      `/configuracion/origenes/${f.id}/formulas/${formulaDeF}/planilla?panel=renombrar-formula`,
-  },
   'origenes/<id> ?seccion=formula': {
     de: () => `/configuracion/origenes/${a.id}?seccion=formula`,
-    a: () => `/configuracion/origenes/${a.id}/formulas`,
+    a: () => `/configuracion/origenes/${a.id}/planilla`,
   },
   'origenes/<id> sin nada': {
     de: () => `/configuracion/origenes/${a.id}`,
-    a: () => `/configuracion/origenes/${a.id}/datos`,
+    a: () => `/configuracion/origenes/${a.id}/fases`,
+  },
+  // Las pestañas de antes: Datos es un drawer sobre la de entrada; Flujo es Fases; Tablas, el drawer de la Planilla (el panel de la tabla, en `accion`).
+  'origenes/<id>/datos': {
+    de: () => `/configuracion/origenes/${a.id}/datos`,
+    a: () => `/configuracion/origenes/${a.id}/fases?panel=datos`,
+  },
+  'origenes/<id>/flujo ?fase&vista': {
+    de: () => `/configuracion/origenes/${a.id}/flujo?fase=${UNA_FASE}&vista=lista`,
+    a: () => `/configuracion/origenes/${a.id}/fases?fase=${UNA_FASE}&vista=lista`,
+  },
+  'origenes/<id>/tablas ?tabla&panel': {
+    de: () => `/configuracion/origenes/${a.id}/tablas?tabla=${UNA_TABLA}&panel=publicar-tabla`,
+    a: () =>
+      `/configuracion/origenes/${a.id}/planilla?panel=tablas&tabla=${UNA_TABLA}&accion=publicar-tabla`,
+  },
+  // La lista de fórmulas y las rutas cortas: la pestaña sin `?formula=` (la de trabajo), con su consulta.
+  'origenes/<id>/formulas ?panel=nueva-formula': {
+    de: () => `/configuracion/origenes/${f.id}/formulas?panel=nueva-formula`,
+    a: () => `/configuracion/origenes/${f.id}/planilla?panel=nueva-formula`,
+  },
+  'origenes/<id>/formula/hoja ?vista': {
+    de: () => `/configuracion/origenes/${f.id}/formula/hoja?vista=412`,
+    a: () => `/configuracion/origenes/${f.id}/hoja?vista=412`,
+  },
+  'origenes/<id>/formula ?panel=editar-formula': {
+    de: () => `/configuracion/origenes/${f.id}/formula?panel=editar-formula`,
+    a: () => `/configuracion/origenes/${f.id}/planilla`,
+  },
+  // El editor de una fórmula de antes: su pestaña con ella elegida, sin el Modo avanzado y con el resto de la consulta.
+  'origenes/<id>/formulas/<fórmula>/planilla ?panel=editar-formula': {
+    de: () =>
+      `/configuracion/origenes/${f.id}/formulas/${formulaDeF}/planilla?panel=editar-formula&fila=x`,
+    a: () => `/configuracion/origenes/${f.id}/planilla?formula=${formulaDeF}&fila=x`,
+  },
+  // Sin parte, la Planilla; el panel de una fórmula nombra la suya en `cual`.
+  'origenes/<id>/formulas/<fórmula> ?panel=renombrar-formula&formula': {
+    de: () =>
+      `/configuracion/origenes/${f.id}/formulas/${formulaDeF}?panel=renombrar-formula&formula=${formulaDeF}`,
+    a: () =>
+      `/configuracion/origenes/${f.id}/planilla?formula=${formulaDeF}&panel=renombrar-formula&cual=${formulaDeF}`,
   },
 }
 
 for (const [nombre, r] of Object.entries(REDIRECCIONES)) {
   test(`E2E 308: ${nombre}`, async ({ page }) => {
+    olvidarLasPestanas(duena)
     await entrar(page, r.quien === 'logistica' ? logistica : duena)
     const respuesta = await page.request.get(r.de(), { maxRedirects: 0 })
     expect(respuesta.status()).toBe(308)

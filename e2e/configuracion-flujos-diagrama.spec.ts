@@ -67,7 +67,7 @@ const caja = (page: Page, nombre: string) =>
   diagrama(page).getByRole('button', { name: `Fase «${nombre}»`, exact: true })
 
 async function abrirConElDiagrama(page: Page) {
-  await page.goto(`/configuracion/origenes/${origen.id}/flujo`)
+  await page.goto(`/configuracion/origenes/${origen.id}/fases`)
   await expect(caja(page, A)).toBeVisible()
 }
 
@@ -141,7 +141,7 @@ test('E2E T38 el diagrama dibuja fases y salidas, abre el panel de una fase, gua
   await capturar(page, info, 'tras-arrastrar')
 
   // `?fase=` abre su panel, también tras recargar.
-  await page.goto(`/configuracion/origenes/${origen.id}/flujo?fase=${fases[B] ?? ''}`)
+  await page.goto(`/configuracion/origenes/${origen.id}/fases?fase=${fases[B] ?? ''}`)
   await page.reload()
   await expect(page.getByRole('dialog', { name: B })).toBeVisible()
   await page.keyboard.press('Escape')
@@ -160,7 +160,7 @@ test('E2E T38 la lista abre el mismo panel y no ensancha la página con el texto
   page,
 }, info) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origen.id}/flujo?vista=lista`)
+  await page.goto(`/configuracion/origenes/${origen.id}/fases?vista=lista`)
   const nombres = page.locator('[data-abre-resumen]')
   await expect(nombres.filter({ hasText: A })).toBeVisible()
   await expect(diagrama(page)).toHaveCount(0)

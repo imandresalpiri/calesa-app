@@ -73,9 +73,9 @@ export type Grupo = 'empresa' | 'flujo'
 export const seccionDelGrupo = (page: Page, grupo: Grupo): Locator =>
   page.locator(`section[aria-labelledby="titulo-de-tipos-${grupo}"]`)
 
-// Los de un flujo: en el panel de la pestaña Flujo del origen (`?seccion=documentos`), sólo los de ese flujo.
+// Los de un flujo: en el panel de la pestaña Fases del origen (`?seccion=documentos`), sólo los de ese flujo.
 export async function abrirDocumentos(page: Page, origenId = origenDeLaSubasta()): Promise<void> {
-  await page.goto(`/configuracion/origenes/${origenId}/flujo?seccion=documentos`)
+  await page.goto(`/configuracion/origenes/${origenId}/fases?seccion=documentos`)
   await expect(page.getByRole('heading', { name: 'Sólo de este flujo', level: 2 })).toBeVisible()
 }
 

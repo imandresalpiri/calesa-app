@@ -2,6 +2,7 @@
 import { formatearMonto } from '../src/shared/lib/formato'
 import { expect, test } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
+import { barraDeLaFormula } from './soporte/barra-de-la-formula'
 import {
   borrarPersonasDePrueba,
   borrarRolesDePrueba,
@@ -24,7 +25,7 @@ import {
   textoDeLaBarra,
 } from './soporte/planilla'
 
-// La planilla de la fórmula (`docs/UX.md` › «Cotización: fórmula (estados propios)»): la vista por defecto de la pestaña «Fórmula», una hoja de cálculo con las
+// La planilla de la fórmula (`docs/UX.md` › «Cotización: fórmula (estados propios)»): la pestaña «Planilla» del origen, una hoja de cálculo con las
 // cuatro columnas de V1 y la frase; cambiar un valor fijo en C mueve «Totales» y la tarjeta en vivo; un cálculo se lee y se escribe en la barra de fórmula con
 // referencias A1 y se guarda con ids; la unidad de ejemplo se tipea en la C de lo que escribe el asesor; se guarda el borrador y se publica con nota.
 // La fórmula de prueba con texto (`formula-editor.ts`): `con_ayuda` es una constante de 5 en el grupo `gpub`, `pub` un input del mismo grupo (en la variante por
@@ -106,8 +107,7 @@ test('la planilla: valor fijo, barra de fórmula en A1, unidad de ejemplo, guard
   // (5) Guardar el borrador y publicarlo con nota: lo guardado nombra ids, nunca la celda.
   await guardar(page).click()
   await expect(guardado(page)).toHaveText('Se guardó el borrador.')
-  const borrador = page.getByRole('region', { name: 'Borrador' })
-  await borrador.getByRole('button', { name: 'Publicar…', exact: true }).click()
+  await barraDeLaFormula(page).getByRole('button', { name: 'Publicar…', exact: true }).click()
   const modal = page.getByRole('dialog', { name: 'Publicar el borrador' })
   await modal.getByLabel('Nota').fill('Desde la planilla')
   await modal.getByRole('button', { name: 'Publicar', exact: true }).click()

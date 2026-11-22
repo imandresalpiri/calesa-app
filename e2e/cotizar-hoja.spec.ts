@@ -255,12 +255,12 @@ test('«Falta publicar la fórmula» lleva el enlace a configuración sólo a qu
   await irA(page, duena, `/cotizaciones/nuevo?origen=${sinFormula.id}`)
   await expect(page.getByText(`Falta publicar la fórmula de ${sinFormula.nombre}`)).toBeVisible()
   const enlace = page.getByRole('link', { name: /Ir a la configuración de cotización/ })
-  await expect(enlace).toHaveAttribute('href', `/configuracion/origenes/${sinFormula.id}/formulas`)
+  await expect(enlace).toHaveAttribute('href', `/configuracion/origenes/${sinFormula.id}/planilla`)
   await capturar(page, info, 'cotizar-falta-publicar')
-  // Lleva a las fórmulas de ese origen, que dicen que todavía no tiene ninguna.
+  // Lleva a la Planilla de ese origen, que dice que todavía no tiene ninguna.
   await enlace.click()
   await expect(
-    page.getByText('Este origen todavía no tiene fórmulas: crea la primera en blanco o copia una.'),
+    page.getByText('Este origen todavía no tiene fórmula.', { exact: true }),
   ).toBeVisible()
 })
 

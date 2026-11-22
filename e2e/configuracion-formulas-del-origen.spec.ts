@@ -1,5 +1,5 @@
 // @sin-celular-archivo: pantalla de Configuración; en el celular se ve igual y el camino feliz va sólo en escritorio.
-import { expect, test, type Locator, type Page } from './soporte/prueba'
+import { expect, test, type Page } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
   PREFIJO_ROL_E2E,
@@ -19,13 +19,21 @@ import { guardarConElAtajo, tarjetaGuardada, tipearEnLaHoja } from './soporte/co
 import { escribirElTitulo } from './soporte/cotizar-titulo'
 import { borrarLeadsDePrueba, crearLead } from './soporte/leads'
 import { telefonoAlAzar } from './soporte/leads-alta'
+import {
+  abrirElSelector,
+  accionDeLaFormula,
+  filaDelSelector,
+  listaDeFormulas,
+  popoverDelSelector,
+  selectorDeFormula,
+} from './soporte/barra-de-la-formula'
 import { enLaPestana } from './soporte/pestanas-del-origen'
 import { enElEditor } from './soporte/rutas-de-la-formula'
 import { literal, sql } from './soporte/sql'
 
-// La pestaña «Fórmulas» de un origen (`docs/UX.md` › «Cotización: fórmulas del origen»): la lista con la activa primero, «Nueva fórmula» en blanco o
-// copiando una de este u otro origen (con los avisos de la copia), renombrar, activar con nota (y su PT409), cotizar con la activa, eliminar la que nunca
-// estuvo activa, archivar la que sí y el tope de 50. Las URL viejas de la fórmula: `configuracion-origen-centro.spec.ts` (REDIRECCIONES).
+// Las fórmulas de un origen en el selector de la barra de la fórmula (`docs/UX.md` › «Cotización: fórmulas del origen»): la lista con la activa primero,
+// «Nueva fórmula» en blanco o copiando una de este u otro origen (con los avisos de la copia), renombrar, activar con nota (y su PT409) desde el «⋯» de cada
+// fila (`?panel=…-formula&cual=<id>`), cotizar con la activa, eliminar la que nunca estuvo activa, archivar la que sí y el tope de 50. Las URL viejas de la fórmula: `configuracion-origen-centro.spec.ts` (REDIRECCIONES).
 
 test.describe.configure({ mode: 'serial' })
 
@@ -41,37 +49,31 @@ let subasta = ''
 let fuente = ''
 const FUENTE = 'E2E Fuente con millas'
 
-const fila = (page: Page, nombre: string): Locator =>
-  page
-    .getByRole('list', { name: `Fórmulas de ${a.nombre}` })
-    .getByRole('listitem')
-    .filter({ has: page.getByRole('link', { name: nombre, exact: true }) })
 const modal = (page: Page, nombre: string | RegExp) => page.getByRole('dialog', { name: nombre })
 const idDe = (nombre: string) =>
   sql(
     `select id from public.formulas_del_origen where origen_id = ${literal(a.id)}::uuid and nombre = ${literal(nombre)}`,
   )
 
+// La Planilla del origen (con la de trabajo) y el selector de la barra abierto.
 async function abrirLaLista(page: Page, origenId = a.id) {
-  await page.goto(`/configuracion/origenes/${origenId}/formulas`)
-  await enLaPestana(page, 'Fórmulas')
+  await page.goto(`/configuracion/origenes/${origenId}/planilla`)
+  await enLaPestana(page, 'Planilla')
+  await abrirElSelector(page)
 }
 
-async function delMenu(page: Page, nombre: string, accion: string) {
-  await page
-    .getByRole('button', { name: `Más acciones de ${nombre}` })
-    .first()
-    .click()
-  await page.getByRole('menuitem', { name: accion }).click()
-}
-
+// «Nueva fórmula» del selector (o, sin fórmulas, «Empezar en blanco» del cuerpo de la pestaña) y el modal hasta crearla: queda elegida en la Planilla.
 async function crear(
   page: Page,
   como: string,
   nombre: string,
   fuenteDeLaCopia?: () => Promise<void>,
 ) {
-  await page.getByRole('button', { name: 'Nueva fórmula' }).first().click()
+  if (await popoverDelSelector(page).isVisible()) {
+    await popoverDelSelector(page).getByRole('button', { name: 'Nueva fórmula' }).click()
+  } else {
+    await page.getByRole('button', { name: 'Empezar en blanco' }).click()
+  }
   const nueva = modal(page, 'Nueva fórmula')
   await expect(nueva).toBeVisible()
   // El radio es `sr-only` y, con las opciones en dos renglones, cae bajo otra etiqueta: se elige por su texto, como la persona.
@@ -80,7 +82,9 @@ async function crear(
   if (fuenteDeLaCopia) await fuenteDeLaCopia()
   await nueva.getByLabel('Nombre', { exact: true }).fill(nombre)
   await nueva.getByRole('button', { name: 'Crear fórmula' }).click()
-  await expect(page).toHaveURL(enElEditor(a.id, 'planilla'))
+  await expect(nueva).toBeHidden()
+  await expect(page).toHaveURL(enElEditor(a.id, 'planilla', idDe(nombre)))
+  await expect(selectorDeFormula(page)).toHaveText(new RegExp(`^Fórmula: ${nombre}`))
 }
 
 test.beforeAll(async ({}, info) => {
@@ -138,21 +142,18 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-test('E2E escritorio · sin fórmulas, el vacío y la Fórmula ✗ en «Para cotizar y mover»; se crea una en blanco', async ({
+test('E2E escritorio · sin fórmulas, el vacío y el ⚠ de la Planilla; se crea una en blanco', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${a.id}/datos`)
-  const paso = page
-    .getByRole('region', { name: 'Para cotizar y mover' })
-    .getByRole('listitem')
-    .filter({ hasText: 'Fórmula' })
-  await expect(paso).toContainText('Bloquea')
-  await paso.getByRole('link').click()
-  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${a.id}/formulas$`))
+  await page.goto(`/configuracion/origenes/${a.id}/planilla`)
   await expect(
-    page.getByText('Este origen todavía no tiene fórmulas: crea la primera en blanco o copia una.'),
+    page.getByRole('tab', { name: 'Planilla. Sin fórmula activa: no se puede cotizar' }),
   ).toBeVisible()
+  await expect(
+    page.getByText('Este origen todavía no tiene fórmula.', { exact: true }),
+  ).toBeVisible()
+  await expect(selectorDeFormula(page)).toHaveText(/^Sin fórmulas/)
 
   await crear(page, 'En blanco', 'Prueba blanco')
   await enLaPestana(page, 'Planilla')
@@ -169,7 +170,8 @@ test('E2E escritorio · copiar la publicada de este origen y una de otro origen,
   )
   await entrar(page, duena)
   await abrirLaLista(page)
-  await expect(fila(page, 'Prueba blanco')).toContainText('Activa · v1')
+  await expect(filaDelSelector(page, 'Prueba blanco')).toContainText('Activa · v1')
+  await expect(filaDelSelector(page, 'Prueba blanco').getByLabel('Activa')).toBeVisible()
 
   await crear(page, 'Copia de este origen', 'Prueba flete', async () => {
     const nueva = modal(page, 'Nueva fórmula')
@@ -194,7 +196,7 @@ test('E2E escritorio · copiar la publicada de este origen y una de otro origen,
   )
   await expect(avisos.getByRole('link', { name: 'Abrir Tablas' })).toHaveAttribute(
     'href',
-    `/configuracion/origenes/${a.id}/tablas`,
+    `/configuracion/origenes/${a.id}/planilla?formula=${idDe('Prueba traída')}&panel=tablas`,
   )
   await expect(page.locator('[data-falta-el-campo="odometro_millas"]').first()).toBeVisible()
   await avisos.getByRole('button', { name: 'Ocultar' }).click()
@@ -204,7 +206,7 @@ test('E2E escritorio · copiar la publicada de este origen y una de otro origen,
 test('E2E escritorio · quien configura sólo este origen no copia de otro', async ({ page }) => {
   await entrar(page, soloA, { fresco: true })
   await abrirLaLista(page)
-  await page.getByRole('button', { name: 'Nueva fórmula' }).first().click()
+  await popoverDelSelector(page).getByRole('button', { name: 'Nueva fórmula' }).click()
   const nueva = modal(page, 'Nueva fórmula')
   await expect(nueva.getByRole('radio', { name: 'Copia de este origen' })).toBeVisible()
   await expect(nueva.getByRole('radio', { name: 'Copia de otro origen' })).toHaveCount(0)
@@ -215,8 +217,11 @@ test('E2E escritorio · renombrar: un nombre repetido se dice junto al campo; ot
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await abrirLaLista(page)
-  await delMenu(page, 'Prueba traída', 'Renombrar')
+  await page.goto(`/configuracion/origenes/${a.id}/planilla`)
+  await accionDeLaFormula(page, 'Prueba traída', 'Renombrar')
+  await expect(page).toHaveURL(
+    new RegExp(`[?&]panel=renombrar-formula&cual=${idDe('Prueba traída')}(&|$)`),
+  )
   const renombrar = modal(page, 'Renombrar «Prueba traída»')
   const nombre = renombrar.getByLabel('Nombre', { exact: true })
   await nombre.fill('Prueba flete')
@@ -225,15 +230,16 @@ test('E2E escritorio · renombrar: un nombre repetido se dice junto al campo; ot
   await nombre.fill('Prueba de otro origen')
   await renombrar.getByRole('button', { name: 'Renombrar' }).click()
   await expect(renombrar).toBeHidden()
-  await expect(fila(page, 'Prueba de otro origen')).toBeVisible()
+  await abrirElSelector(page)
+  await expect(filaDelSelector(page, 'Prueba de otro origen')).toBeVisible()
 })
 
 test('E2E escritorio · activar con nota: primero un PT409 con «Recargar», después queda primera y activa', async ({
   page,
 }) => {
   await entrar(page, duena)
-  await abrirLaLista(page)
-  await delMenu(page, 'Prueba flete', 'Activar…')
+  await page.goto(`/configuracion/origenes/${a.id}/planilla`)
+  await accionDeLaFormula(page, 'Prueba flete', 'Activar…')
   const activar = modal(page, 'Activar «Prueba flete»')
   await expect(activar).toBeVisible()
   await activar.getByLabel('Nota', { exact: true }).fill('Flete nuevo')
@@ -247,11 +253,11 @@ test('E2E escritorio · activar con nota: primero un PT409 con «Recargar», des
   await expect(activar.getByLabel('Nota', { exact: true })).toHaveValue('Flete nuevo')
   await activar.getByRole('button', { name: 'Activar «Prueba flete»' }).click()
   await expect(activar).toBeHidden()
-  const filas = page.getByRole('list', { name: `Fórmulas de ${a.nombre}` }).getByRole('listitem')
-  await expect(filas.first()).toContainText('Prueba flete')
-  await expect(fila(page, 'Prueba flete')).toContainText('Activa · v1')
-  await expect(fila(page, 'Prueba flete').getByLabel('Activa')).toBeVisible()
-  await expect(fila(page, 'Prueba blanco')).toContainText('v1 publicada, no activa')
+  await abrirElSelector(page)
+  await expect(listaDeFormulas(page).getByRole('listitem').first()).toContainText('Prueba flete')
+  await expect(filaDelSelector(page, 'Prueba flete')).toContainText('Activa · v1')
+  await expect(filaDelSelector(page, 'Prueba flete').getByLabel('Activa')).toBeVisible()
+  await expect(filaDelSelector(page, 'Prueba blanco')).toContainText('v1 publicada, no activa')
 })
 
 test('E2E escritorio · se cotiza con la publicada de la nueva activa', async ({ page }) => {
@@ -275,32 +281,38 @@ test('E2E escritorio · eliminar la que nunca estuvo activa y archivar la que s�
   page,
 }) => {
   await entrar(page, duena)
-  await abrirLaLista(page)
-  await delMenu(page, 'Prueba de otro origen', 'Eliminar')
+  await page.goto(`/configuracion/origenes/${a.id}/planilla`)
+  await accionDeLaFormula(page, 'Prueba de otro origen', 'Eliminar')
   const eliminar = page.getByRole('dialog', { name: 'Eliminar «Prueba de otro origen»' })
   await eliminar.getByRole('button', { name: 'Eliminar' }).click()
-  // Con el diálogo abierto la lista queda fuera del árbol accesible: primero, que se cierre.
   await expect(eliminar).toBeHidden()
-  await expect(fila(page, 'Prueba de otro origen')).toHaveCount(0)
+  await abrirElSelector(page)
+  await expect(filaDelSelector(page, 'Prueba blanco')).toBeVisible()
+  await expect(filaDelSelector(page, 'Prueba de otro origen')).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(popoverDelSelector(page)).toBeHidden()
 
-  await delMenu(page, 'Prueba blanco', 'Archivar')
+  await accionDeLaFormula(page, 'Prueba blanco', 'Archivar')
   const archivar = page.getByRole('dialog', { name: 'Archivar «Prueba blanco»' })
   await archivar.getByRole('button', { name: 'Archivar' }).click()
   await expect(archivar).toBeHidden()
-  await expect(fila(page, 'Prueba blanco')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Archivadas' }).click()
-  const archivadas = page.getByRole('list', { name: 'Fórmulas archivadas' })
-  await expect(archivadas.getByRole('link', { name: 'Prueba blanco', exact: true })).toBeVisible()
+  await abrirElSelector(page)
+  await expect(listaDeFormulas(page).getByRole('link', { name: /Prueba blanco/ })).toHaveCount(0)
+  await popoverDelSelector(page).getByRole('button', { name: 'Archivadas' }).click()
+  const archivadas = popoverDelSelector(page).getByRole('list', { name: 'Fórmulas archivadas' })
+  await expect(archivadas.getByRole('link', { name: /Prueba blanco/ })).toBeVisible()
   await expect(archivadas).toContainText('Archivada')
 
-  // Renombrarla con la sección abierta: la pantalla se vuelve a leer y las archivadas también.
+  // Renombrarla desde su «⋯»: la pantalla se vuelve a leer y las archivadas también.
   await archivadas.getByRole('button', { name: 'Más acciones de Prueba blanco' }).click()
   await page.getByRole('menuitem', { name: 'Renombrar' }).click()
   const renombrar = modal(page, 'Renombrar «Prueba blanco»')
   await renombrar.getByLabel('Nombre', { exact: true }).fill('Prueba guardada')
   await renombrar.getByRole('button', { name: 'Renombrar' }).click()
   await expect(renombrar).toBeHidden()
-  await expect(archivadas.getByRole('link', { name: 'Prueba guardada', exact: true })).toBeVisible()
+  await abrirElSelector(page)
+  await popoverDelSelector(page).getByRole('button', { name: 'Archivadas' }).click()
+  await expect(archivadas.getByRole('link', { name: /Prueba guardada/ })).toBeVisible()
 })
 
 test('E2E escritorio · con 50 fórmulas «Nueva fórmula» queda apagada con su aviso', async ({
@@ -311,8 +323,12 @@ test('E2E escritorio · con 50 fórmulas «Nueva fórmula» queda apagada con su
   )
   await entrar(page, duena)
   await abrirLaLista(page, c.id)
-  await expect(page.getByRole('button', { name: 'Nueva fórmula' })).toBeDisabled()
   await expect(
-    page.getByText('Este origen ya tiene 50 fórmulas: archiva o elimina alguna para crear otra.'),
+    popoverDelSelector(page).getByRole('button', { name: 'Nueva fórmula' }),
+  ).toBeDisabled()
+  await expect(
+    popoverDelSelector(page).getByText(
+      'Este origen ya tiene 50 fórmulas: archiva o elimina alguna para crear otra.',
+    ),
   ).toBeVisible()
 })

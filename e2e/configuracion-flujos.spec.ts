@@ -8,12 +8,13 @@ import {
   crearDuenaDePrueba,
 } from './soporte/base'
 import { borrarOrigenes, crearOrigenDePrueba, tarjetaDelOrigen } from './soporte/origenes'
+import { enLaPestana, pestanaDelOrigen } from './soporte/pestanas-del-origen'
 import { crearAsesoraDeLaSemilla } from './soporte/recorrido'
 import { sql } from './soporte/sql'
 
-// El flujo de un origen y el de repuestos (5.02, `docs/UX.md` › «Flujos: configuración (estados propios)»): la dueña abre la pestaña Flujo de un origen y
+// El flujo de un origen y el de repuestos (5.02, `docs/UX.md` › «Flujos: configuración (estados propios)»): la dueña abre la pestaña Fases de un origen y
 // ve sus fases en el orden de la base, abre el flujo de repuestos en su sección, abre el panel de una fase por la URL; un origen recién creado llega desde
-// Orígenes por «Para cotizar y mover» y muestra el vacío; una asesora no los abre. Sólo lectura: no escribe nada. Cuenta lo que dice la base, no números
+// Orígenes, su pestaña Fases lleva el ⚠ y muestra el vacío; una asesora no los abre. Sólo lectura: no escribe nada. Cuenta lo que dice la base, no números
 // fijos de la semilla.
 test.describe.configure({ mode: 'serial' })
 
@@ -73,13 +74,10 @@ test('la dueña ve las fases de un origen en orden, abre el flujo de repuestos y
   expect(repuestos.length).toBeGreaterThan(0)
 
   await entrar(page, duena, { fresco: true })
-  // La pestaña Flujo del origen: las fases abren primero, como diagrama; las reglas y los tipos de documento se abren desde la barra del flujo, en su panel.
-  await page.goto(`/configuracion/origenes/${idDelOrigen('subasta_usa')}/flujo`)
+  // La pestaña Fases del origen: las fases abren primero, como diagrama; las reglas y los tipos de documento se abren desde la barra del flujo, en su panel.
+  await page.goto(`/configuracion/origenes/${idDelOrigen('subasta_usa')}/fases`)
   await expect(page.getByRole('heading', { name: subasta, level: 1 })).toBeVisible()
-  await expect(page.getByRole('tab', { name: 'Flujo', exact: true })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  )
+  await enLaPestana(page, 'Fases')
   await expect(page.getByRole('heading', { name: 'Fases', level: 2 })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Reglas del flujo', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Tipos de documento', exact: true })).toBeVisible()
@@ -138,22 +136,21 @@ test('un origen recién creado llega desde Orígenes y su flujo está vacío', a
   await tarjetaDelOrigen(page, ORIGEN_NUEVO).click()
   await expect(page.getByRole('heading', { name: ORIGEN_NUEVO, level: 1 })).toBeVisible()
 
-  // «Para cotizar y mover»: el paso Flujo bloquea (sin fases) y lleva a su pestaña.
-  await page
-    .getByRole('region', { name: 'Para cotizar y mover' })
-    .getByRole('link', { name: /Flujo/ })
-    .click()
-  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${origen.id}/flujo$`))
-  await expect(page.getByRole('tab', { name: 'Flujo', exact: true })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  )
+  // Sin fases, la pestaña Fases lleva su ⚠ (el texto, también en su nombre) y abre el vacío.
+  await pestanaDelOrigen(page, 'Fases').click()
+  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${origen.id}/fases$`))
+  await expect(
+    page.getByRole('tab', {
+      name: 'Fases. Sin fases: sus vehículos no se pueden mover',
+      selected: true,
+    }),
+  ).toBeVisible()
   await expect(page.getByText(`El flujo de ${ORIGEN_NUEVO} todavía no tiene fases.`)).toBeVisible()
 })
 
 test('una asesora no abre el flujo de un origen ni el de repuestos', async ({ page }) => {
   await entrar(page, asesora, { fresco: true })
-  await page.goto(`/configuracion/origenes/${idDelOrigen('subasta_usa')}/flujo`)
+  await page.goto(`/configuracion/origenes/${idDelOrigen('subasta_usa')}/fases`)
   await expect(page.getByText('No puedes abrir este origen')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Fases', level: 2 })).toBeHidden()
   await page.goto('/configuracion/repuestos/flujo')

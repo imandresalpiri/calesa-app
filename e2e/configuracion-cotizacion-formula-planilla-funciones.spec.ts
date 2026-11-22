@@ -2,6 +2,7 @@
 import { formatearMonto } from '../src/shared/lib/formato'
 import { expect, test, type Page } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
+import { barraDeLaFormula } from './soporte/barra-de-la-formula'
 import {
   borrarPersonasDePrueba,
   borrarRolesDePrueba,
@@ -107,10 +108,7 @@ test('la comisión con SI, MAX y BUSCARV se escribe en la planilla, se publica y
   // (3) Guardar el borrador y publicarlo: la comisión publicada es un `elegir` y la búsqueda, un `tramo` sobre `fletes`. Sus auxiliares no piden celda.
   await guardar(page).click()
   await expect(guardado(page)).toHaveText('Se guardó el borrador.')
-  await page
-    .getByRole('region', { name: 'Borrador' })
-    .getByRole('button', { name: 'Publicar…', exact: true })
-    .click()
+  await barraDeLaFormula(page).getByRole('button', { name: 'Publicar…', exact: true }).click()
   const modal = page.getByRole('dialog', { name: 'Publicar el borrador' })
   await modal.getByLabel('Nota').fill('Con funciones de Excel')
   await modal.getByRole('button', { name: 'Publicar', exact: true }).click()

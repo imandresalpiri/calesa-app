@@ -5,10 +5,12 @@ import { CONTRASENA, entrar } from './soporte/alta'
 import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
 import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar-formula'
 import { publicarConTablaViva } from './soporte/cotizar-guardada'
+import { urlDeLaFormula } from './soporte/rutas-de-la-formula'
 import { literal, sql } from './soporte/sql'
 
-// Crear tablas de referencia y cambiar sus columnas desde la configuración (`docs/COTIZADOR.md` › «Crear, columnas y desactivar»): «Nueva tabla», sus filas y su
-// publicación, «Columnas» (renombrar, sumar y quitar), la columna en uso que la base rechaza, la clave repetida y «Desactivar»; y una compartida desde Catálogos.
+// Crear tablas de referencia y cambiar sus columnas desde el drawer «Tablas» de la Planilla del origen (`docs/COTIZADOR.md` › «Crear, columnas y desactivar»):
+// «Nueva tabla», sus filas y su publicación, «Columnas» (renombrar, sumar y quitar), la columna en uso que la base rechaza, la clave repetida y «Desactivar»; y
+// una compartida desde Catálogos.
 // El PT409, los permisos de otro origen y los topes los prueban `supabase/tests/areas/tablas/` y las carreras.
 
 let origen = { id: '', nombre: '' }
@@ -44,7 +46,7 @@ const deLaTabla = (clave: string, columna: string) =>
 
 async function crearLaTabla(page: Page) {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origen.id}/tablas`)
+  await page.goto(urlDeLaFormula(origen.id, 'planilla', 'panel=tablas'))
   await page.getByRole('button', { name: 'Nueva tabla' }).click()
 
   const nueva = page.getByRole('dialog', { name: 'Nueva tabla' })
@@ -125,7 +127,7 @@ async function cambiarLasColumnas(page: Page, editor: Locator) {
 
 // Una columna que lee la fórmula publicada no se quita: lo dice la base y nada cambia.
 async function quitarUnaColumnaEnUso(page: Page) {
-  await page.goto(`/configuracion/origenes/${origen.id}/tablas`)
+  await page.goto(urlDeLaFormula(origen.id, 'planilla', 'panel=tablas'))
   const lista = page.getByRole('list', { name: `Tablas de referencia de ${origen.nombre}` })
   await lista.getByRole('button', { name: 'Más acciones de Factores vivos' }).click()
   await page.getByRole('menuitem', { name: 'Columnas' }).click()
@@ -169,7 +171,11 @@ async function desactivarLaTabla(page: Page) {
   const confirmar = page.getByRole('dialog', { name: `Desactivar «${NOMBRE}»` })
   await confirmar.getByRole('button', { name: 'Desactivar' }).click()
   await expect(page.getByText(`Desactivaste «${NOMBRE}».`)).toBeVisible()
-  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${origen.id}/tablas$`))
+  await expect(page).toHaveURL(
+    new RegExp(
+      `/configuracion/origenes/${origen.id}/planilla\\?formula=[0-9a-f-]{36}&panel=tablas$`,
+    ),
+  )
   await expect(lista.getByRole('link', { name: NOMBRE })).toBeHidden()
   expect(deLaTabla('e2e_fletes_por_puerto', 'activa')).toBe('f')
 }
@@ -201,7 +207,7 @@ test('E2E escritorio · camino feliz: crear una tabla compartida en Catálogos',
     ),
   ).toBe('1')
 
-  await page.goto(`/configuracion/origenes/${origen.id}/tablas`)
+  await page.goto(urlDeLaFormula(origen.id, 'planilla', 'panel=tablas'))
   const fila = page
     .getByRole('list', { name: `Tablas de referencia de ${origen.nombre}` })
     .getByRole('listitem')

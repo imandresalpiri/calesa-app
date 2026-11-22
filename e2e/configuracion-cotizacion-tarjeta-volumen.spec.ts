@@ -28,7 +28,7 @@ test.describe.configure({ mode: 'serial' })
 
 // Lo medido en escritorio con 500 miembros y la cuadrícula más grande (267.903 B y 4.135 nodos con el build de `.next-e2e`), con margen: va a
 // docs/RENDIMIENTO.md. Crece contra el editor de bloques (183.947 B): el contexto reducido lleva todos los nodos del nivel «todos» y la cuadrícula viaja entera; y
-// la página del origen suma su marco (encabezado, «Para cotizar y mover», pestañas y sub-pestañas), fijo: no crece con los miembros ni con la cuadrícula.
+// la página del origen suma su marco (migas, encabezado, pestañas y la barra de la fórmula), fijo: no crece con los miembros ni con la cuadrícula.
 // La puesta en marcha suma un chunk que nombra cada referencia de cliente del payload, y el grupo `(pestanas)`.
 const TOPE_DE_BYTES_DEL_HTML = 280_700
 const TOPE_DE_NODOS_CON_500 = 5_000

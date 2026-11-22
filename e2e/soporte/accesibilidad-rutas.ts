@@ -58,33 +58,25 @@ export const DINAMICAS: Record<string, (t: Terreno) => Destino> = {
   '/logistica/vehiculo/[id]': (t) => ({ url: `/logistica/vehiculo/${t.vehiculo}` }),
   '/logistica/bandeja/[grupo]': () => ({ url: '/logistica/bandeja/demorados' }),
   '/logistica/fase/[fase]': (t) => ({ url: `/logistica/fase/sin_fase?origen=${t.origen}` }),
-  // La página de un origen sin parte es un `route.ts` (308 a la primera pestaña que se abre): no es una página y no se barre. Se barren sus pestañas.
-  '/configuracion/origenes/[id]/datos': (t) => ({
-    url: `/configuracion/origenes/${t.origen}/datos`,
+  // La página de un origen sin parte es un `route.ts` (308 a la última pestaña que se abrió): no es una página y no se barre. Se barren sus pestañas; las de la
+  // fórmula, con la de trabajo elegida (sin `?formula=` la escribe el navegador con `replace`).
+  '/configuracion/origenes/[id]/fases': (t) => ({
+    url: `/configuracion/origenes/${t.origen}/fases`,
+  }),
+  '/configuracion/origenes/[id]/planilla': (t) => ({
+    url: urlDeLaFormula(t.origen, 'planilla'),
+  }),
+  '/configuracion/origenes/[id]/hoja': (t) => ({
+    url: urlDeLaFormula(t.origen, 'hoja'),
+  }),
+  '/configuracion/origenes/[id]/tarjeta': (t) => ({
+    url: urlDeLaFormula(t.origen, 'tarjeta'),
   }),
   '/configuracion/origenes/[id]/campos': (t) => ({
     url: `/configuracion/origenes/${t.origen}/campos`,
   }),
   '/configuracion/origenes/[id]/categorias': (t) => ({
     url: `/configuracion/origenes/${t.origen}/categorias`,
-  }),
-  '/configuracion/origenes/[id]/flujo': (t) => ({
-    url: `/configuracion/origenes/${t.origen}/flujo`,
-  }),
-  '/configuracion/origenes/[id]/formulas': (t) => ({
-    url: `/configuracion/origenes/${t.origen}/formulas`,
-  }),
-  '/configuracion/origenes/[id]/formulas/[formula]/planilla': (t) => ({
-    url: urlDeLaFormula(t.origen, 'planilla'),
-  }),
-  '/configuracion/origenes/[id]/formulas/[formula]/hoja': (t) => ({
-    url: urlDeLaFormula(t.origen, 'hoja'),
-  }),
-  '/configuracion/origenes/[id]/formulas/[formula]/tarjeta': (t) => ({
-    url: urlDeLaFormula(t.origen, 'tarjeta'),
-  }),
-  '/configuracion/origenes/[id]/tablas': (t) => ({
-    url: `/configuracion/origenes/${t.origen}/tablas`,
   }),
   // La puesta en marcha (su raíz es un `route.ts`, 307 al paso que falta: no se barre): cada paso con el origen del barrido, que no tiene fórmula activa;
   // «Listo» sin ella vuelve a la raíz, así que va con la subasta de la semilla, que la tiene.

@@ -199,7 +199,7 @@ test('E2E armar una lista de respaldo, unas condiciones y ocultar una fila segú
   page,
 }, info) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origen}/formula/tarjeta`)
+  await page.goto(`/configuracion/origenes/${origen}/tarjeta`)
   await expect(page.getByRole('heading', { name: /^Tarjeta de / })).toBeVisible()
   const panel = panelDe(page)
 

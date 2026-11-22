@@ -1,5 +1,6 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
+import { abrirLasVersiones } from './soporte/barra-de-la-formula'
 import { enLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
@@ -14,11 +15,11 @@ import {
 import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar-formula'
 import { sembrarVersiones } from './soporte/formula-versiones'
 import { crearAsesoraDeLaSemilla } from './soporte/recorrido'
-import { abrirLaFormula } from './soporte/rutas-de-la-formula'
+import { abrirLaFormula, enElEditor } from './soporte/rutas-de-la-formula'
 
-// La sub-pestaña «Fórmula» de la pestaña Fórmula de un origen (4.20-2a, `docs/UX.md` › «Cotización: fórmula (estados propios)»): entra quien tiene `cotizaciones.configurar` en algún origen,
-// también sin los permisos de los niveles; muestra la publicada, el borrador (atrasado si se publicó otra después) y las versiones de a 20 por cursor hasta 500, con
-// «Ir a la versión» como camino a lo antiguo. Publicar y revertir: `configuracion-cotizacion-formula-publicar.spec.ts` y `-revertir.spec.ts` (4.20-2b).
+// La pestaña Planilla de un origen (4.20-2a, `docs/UX.md` › «Cotización: fórmula (estados propios)»): entra quien tiene `cotizaciones.configurar` en algún origen,
+// también sin los permisos de los niveles; muestra la publicada, el borrador (atrasado si se publicó otra después) y, en el drawer «Versiones» de la barra, las
+// versiones de a 20 por cursor hasta 500, con «Ir a la versión» como camino a lo antiguo. Publicar y revertir: `configuracion-cotizacion-formula-publicar.spec.ts` y `-revertir.spec.ts` (4.20-2b).
 test.describe.configure({ mode: 'serial' })
 
 // Lo medido en escritorio con 520 versiones, más un 5 %: los bytes de la primera respuesta de «Ver más» (20 + 1 filas sin lo oculto; 4.20-2a: 4.429 B) y los nodos de la
@@ -86,14 +87,9 @@ test('quien sólo configura la fórmula de un origen entra por el hub y el menú
   // En el menú, sólo su origen.
   await expect(menu(page).getByRole('link', { name: grande.nombre, exact: true })).toHaveCount(0)
   await menu(page).getByRole('link', { name: chica.nombre, exact: true }).click()
-  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${chica.id}/datos$`))
+  // Sin el flujo, la primera pestaña que abre es la Planilla, con la fórmula de trabajo.
+  await expect(page).toHaveURL(enElEditor(chica.id, 'planilla'))
   await expect(page.getByRole('heading', { name: chica.nombre, level: 1 })).toBeVisible()
-  await page.getByRole('tab', { name: 'Fórmulas', exact: true }).click()
-  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${chica.id}/formulas$`))
-  await page
-    .getByRole('link', { name: /^Editar «/ })
-    .first()
-    .click()
   await enLaPestana(page, 'Planilla')
   await expect(page.getByRole('heading', { name: 'Publicada: versión 26' })).toBeVisible()
   // Los niveles tampoco se abren escribiendo la URL: van al primer catálogo que abre.
@@ -123,6 +119,7 @@ test('la dueña ve la publicada, el borrador atrasado y las versiones de a 20 co
   await expect(borrador).toContainText(
     'Después de que empezó, se publicó la versión 26: publicarlo dará conflicto.',
   )
+  await abrirLasVersiones(page)
   await expect(versiones(page)).toHaveCount(20)
   await expect(versiones(page).first()).toContainText('Versión 26')
   await expect(versiones(page).first()).toContainText('Publicada')
@@ -140,6 +137,7 @@ test('con 520 versiones, «Ver más» llega hasta 500, avisa el tope e «Ir a la
   test.setTimeout(120_000)
   await entrar(page, duena)
   await abrirFormula(page, grande.id)
+  await abrirLasVersiones(page)
   await expect(versiones(page)).toHaveCount(20)
   for (let cargadas = 20; cargadas < 500; cargadas += 20) {
     await page.getByRole('button', { name: 'Ver más' }).click()
@@ -168,6 +166,7 @@ test('la lista de versiones pesa lo medido: bytes de «Ver más» y nodos con 20
   test.setTimeout(120_000)
   await entrar(page, duena)
   await abrirFormula(page, grande.id)
+  await abrirLasVersiones(page)
   await expect(versiones(page)).toHaveCount(20)
   const nodos = () =>
     page

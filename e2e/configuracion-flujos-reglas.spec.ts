@@ -51,7 +51,7 @@ test('la dueña apaga una regla sin uso con «Deshacer» y guarda la oferta de t
 }) => {
   const fase = `${PREFIJO_DE_REGLAS_E2E} En aduana`
   const naviera = `${PREFIJO_DE_REGLAS_E2E} Naviera ${proyecto}`
-  const url = `/configuracion/origenes/${origenId}/flujo?seccion=reglas`
+  const url = `/configuracion/origenes/${origenId}/fases?seccion=reglas`
   const aduana = () => page.getByRole('switch', { name: 'Aduana', exact: true })
   const toast = (texto: string) => page.locator('[data-sonner-toast]').filter({ hasText: texto })
   expect(reglaEnLaBase(origenId, 'aduana')).toBe(true)
@@ -69,7 +69,7 @@ test('la dueña apaga una regla sin uso con «Deshacer» y guarda la oferta de t
   await expect(aviso).toContainText(`la usa la fase «${fase}»`)
   await expect(aviso.getByRole('link', { name: fase })).toHaveAttribute(
     'href',
-    `/configuracion/origenes/${origenId}/flujo?fase=${faseId}`,
+    `/configuracion/origenes/${origenId}/fases?fase=${faseId}`,
   )
   await expect(aduana()).toBeChecked()
   expect(reglaEnLaBase(origenId, 'aduana')).toBe(true)

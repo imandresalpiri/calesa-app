@@ -151,10 +151,9 @@ export async function flujoDelOrigen(
 
 // --- La pantalla --------------------------------------------------------------------------------------
 
-// Cada parte de un origen es su sub-ruta y una pestaña de su página: se salta entre ellas por las pestañas. Las del origen van primero (la
-// pestaña Fórmula tiene debajo sus sub-pestañas, con otra «Fórmula»).
+// Cada parte de un origen es su sub-ruta y una pestaña de su página: se salta entre ellas por las pestañas. Una pestaña de la página del origen por su título: con algo pendiente su nombre sigue con «. <lo que falta>» (el ⚠).
 export async function irAParte(page: Page, parte: string) {
-  const pestana = page.getByRole('tab', { name: parte, exact: true }).first()
+  const pestana = page.getByRole('tab', { name: new RegExp(`^${parte}(\\.|$)`) })
   await pestana.click()
   await expect(pestana).toHaveAttribute('aria-selected', 'true')
 }
@@ -166,21 +165,32 @@ export function tarjetaDelOrigen(page: Page, nombre: string) {
     .filter({ has: page.getByText(/^(Subasta|Manual)$/) })
 }
 
-// Abre un origen desde la lista (su tarjeta lleva a «Datos») y, si se pide, otra de sus partes.
+// Abre un origen desde la lista (su tarjeta lleva a `/configuracion/origenes/<id>`, que entra a la última pestaña que la persona abrió ahí o a la primera
+// que abre) y, si se pide, otra de sus partes.
 export async function irADetalle(page: Page, nombre: string, seccion?: string) {
   await page.goto('/configuracion/origenes')
   await tarjetaDelOrigen(page, nombre).click()
-  await expect(page).toHaveURL(/\/datos$/)
+  await expect(page).toHaveURL(
+    /\/configuracion\/origenes\/[0-9a-f-]{36}\/(fases|planilla|hoja|tarjeta|campos|categorias)(\?|$)/,
+  )
   await expect(page.getByRole('heading', { name: nombre, level: 1 })).toBeVisible()
   if (seccion) {
     await irAParte(page, seccion)
   }
 }
 
-// Recién creado, el origen sigue en el paso Campos de su puesta en marcha: de ahí a su página (la pestaña Datos).
+// Los datos del origen abierto en su drawer («Datos» de la cabecera, desde 768 px; en el celular va primero en el «⋯»).
+export async function abrirLosDatos(page: Page) {
+  await page.getByRole('button', { name: 'Datos', exact: true }).click()
+  const datos = page.getByRole('dialog', { name: 'Datos del origen' })
+  await expect(datos).toBeVisible()
+  return datos
+}
+
+// Recién creado, el origen sigue en el paso Campos de su puesta en marcha: de ahí a su página (la pestaña Campos, que abre todo el que abre el origen).
 export async function delAltaASuPagina(page: Page) {
   await expect(page).toHaveURL(
     /\/configuracion\/origenes\/[0-9a-f-]{36}\/puesta-en-marcha\/campos$/,
   )
-  await page.goto(page.url().replace(/\/puesta-en-marcha\/campos$/, '/datos'))
+  await page.goto(page.url().replace(/\/puesta-en-marcha\/campos$/, '/campos'))
 }

@@ -1,5 +1,6 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
+import { abrirLasVersiones } from './soporte/barra-de-la-formula'
 import { enLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
 import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
@@ -12,7 +13,7 @@ import { sembrarBorrador, sembrarVersiones } from './soporte/formula-versiones'
 import { literal, sql } from './soporte/sql'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
-// Revertir la fórmula a una versión archivada desde la Fórmula de un origen (Configuración › Orígenes) (4.20-2b, `docs/UX.md` › «Cotización: fórmula (estados propios)»): publica la
+// Revertir la fórmula a una versión archivada desde el drawer «Versiones» de la Planilla de un origen (4.20-2b, `docs/UX.md` › «Cotización: fórmula (estados propios)»): publica la
 // N+1 como copia de esa versión con su diseño (`formula_revertir()`), sin tocar el borrador; la nota viene escrita y vacía se rechaza antes de pedir; el PT409 de la base
 // se muestra tal cual con «Recargar»; la URL (`?panel=revertir-formula&version=<id>`) se revisa al llegar.
 test.describe.configure({ mode: 'serial' })
@@ -69,6 +70,7 @@ test('revertir a la 1 publica la 4 como su copia, con la nota escrita, y el borr
 }) => {
   await entrar(page, duena, { fresco: true })
   await abrirFormula(page, conBorrador.id)
+  await abrirLasVersiones(page)
   await expect(
     page.getByRole('button', { name: 'Revertir a la versión 3', exact: true }),
   ).toHaveCount(0)
@@ -102,6 +104,7 @@ test('si otra persona publicó con el modal abierto, el conflicto dice quién si
 }) => {
   await entrar(page, duena)
   await abrirFormula(page, carrera.id)
+  await abrirLasVersiones(page)
   await page.getByRole('button', { name: 'Revertir a la versión 1', exact: true }).click()
   await expect(modal(page, 1)).toBeVisible()
   publicarLaVersionSiguiente(carrera.id, 9)
@@ -142,6 +145,7 @@ test('la URL no abre revertir la publicada, una versión que no está ni un orig
 test('una versión traída por «Ver más» también se revierte', async ({ page }) => {
   await entrar(page, duena)
   await abrirFormula(page, larga.id)
+  await abrirLasVersiones(page)
   await page.getByRole('button', { name: 'Ver más' }).click()
   await page.getByRole('button', { name: 'Revertir a la versión 2', exact: true }).click()
   await expect(modal(page, 2)).toBeVisible()

@@ -1,6 +1,7 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
+import { barraDeLaFormula } from './soporte/barra-de-la-formula'
 import {
   borrarPersonasDePrueba,
   borrarRolesDePrueba,
@@ -24,7 +25,7 @@ import {
   sugerencias,
   textoDeLaBarra,
 } from './soporte/planilla'
-import { urlDeLaFormula } from './soporte/rutas-de-la-formula'
+import { enElEditor, urlDeLaFormula } from './soporte/rutas-de-la-formula'
 import { literal, sql } from './soporte/sql'
 
 // La fórmula como hoja de cálculo, de punta a punta (`docs/COTIZADOR.md` › «El editor»): referencias A1 con el clic, la fila insertada que corre las referencias,
@@ -194,10 +195,7 @@ async function quitarGuardarYPublicar(page: Page, id: string) {
   await expect(filaDe(page, id)).toHaveCount(0)
   await guardar(page).click()
   await expect(guardado(page)).toHaveText('Se guardó el borrador.')
-  await page
-    .getByRole('region', { name: 'Borrador' })
-    .getByRole('button', { name: 'Publicar…', exact: true })
-    .click()
+  await barraDeLaFormula(page).getByRole('button', { name: 'Publicar…', exact: true }).click()
   const modal = page.getByRole('dialog', { name: 'Publicar el borrador' })
   await modal.getByLabel('Nota').fill('Como excel')
   await modal.getByRole('button', { name: 'Publicar', exact: true }).click()
@@ -231,11 +229,13 @@ test('la fórmula como excel: referencias con el clic, filas, tipos, bandas, fun
 
   // (8) La URL vieja del Modo avanzado termina en la planilla, sin el panel.
   await page.goto(urlDeLaFormula(origen.id, 'planilla', '?panel=editar-formula'))
-  await expect(page).toHaveURL(/\/planilla$/)
+  await expect(page).toHaveURL(enElEditor(origen.id, 'planilla'))
+  await expect(page).not.toHaveURL(/panel=/)
   await expect(grilla(page)).toBeVisible()
 
   // (9) «Empezar desde una plantilla» ya no existe: su URL vieja termina igual y la cabeza no ofrece el botón.
   await page.goto(urlDeLaFormula(origen.id, 'planilla', '?panel=plantillas-de-v1'))
-  await expect(page).toHaveURL(/\/planilla$/)
+  await expect(page).toHaveURL(enElEditor(origen.id, 'planilla'))
+  await expect(page).not.toHaveURL(/panel=/)
   await expect(page.getByRole('button', { name: 'Empezar desde una plantilla' })).toHaveCount(0)
 })
