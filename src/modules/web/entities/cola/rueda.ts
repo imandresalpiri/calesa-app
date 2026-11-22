@@ -4,6 +4,7 @@ import type { FilaDelTablero } from './tablero'
 
 export const TEXTO_HABILITADA_SIN_PERMISO =
   'Quedó habilitada, pero su rol no recibe turnos de la web.'
+export const MOTIVO_YA_NO_ESTA_EN_LA_RUEDA = 'Esa persona ya no está en la rueda.'
 export const MOTIVO_SIN_PERMISO_COLA = 'Tu rol no gestiona la cola web.'
 export const MOTIVO_SIN_EQUIPO = 'Tu rol no ve el equipo.'
 export const MOTIVO_CUENTA_BLOQUEADA = 'Cuenta bloqueada'
@@ -79,4 +80,15 @@ export function personasParaLaRueda(
         enLaRueda: habilitadas.get(persona.id) ?? null,
       }
     })
+}
+
+// Por qué un `?panel=…&para=<usuarioId>` no se puede abrir: sin `para`, o de alguien que no está en el tablero (la quitaron, o la URL es vieja o está
+// escrita a mano). Con el tablero cortado en `TOPE_DEL_EQUIPO`, quien quedó fuera tampoco se abre: no se conocen sus valores.
+export function motivoParaNoAbrirPersona(
+  filas: readonly FilaDelTablero[],
+  usuarioId: string | null,
+): string | null {
+  return usuarioId !== null && filas.some((fila) => fila.usuarioId === usuarioId)
+    ? null
+    : MOTIVO_YA_NO_ESTA_EN_LA_RUEDA
 }

@@ -1,32 +1,63 @@
+'use client'
+
 import { fechaRelativa } from '@/shared/lib/fechas'
 import { formatearNumero, formatearPorcentaje } from '@/shared/lib/formato'
 import { Badge } from '@/shared/ui/badge'
-import { configuracionDe } from '../../../../entities/cola/rueda'
+import { MasAcciones, TarjetaDeLista } from '@/shared/ui/lista'
 import type { FilaDelTablero } from '../../../../entities/cola/tablero'
-import { QuitarDeLaRueda } from '../../rueda/components/quitar-de-la-rueda'
+import { accionesDeLaPersona } from './acciones-de-la-persona'
 
 type Props = {
   fila: FilaDelTablero
-  // El puesto en el orden de la ruleta; sin él, la fila no está entre las elegibles.
+  // El puesto en el orden de la ruleta; sin él, la persona no está entre las elegibles.
   puesto?: number
   // Por qué hoy no recibe un turno nuevo, si no lo recibe.
   motivo?: string
+  alEditar: (fila: FilaDelTablero) => void
+  alQuitar: (fila: FilaDelTablero) => void
 }
 
-// Una persona habilitada en la cola: lo que pesa en la ruleta (disponible, abiertas de su cupo, prioridad) y cómo le fue (tasa de contacto, vencidas,
-// última asignación), con «Quitar» (8.04-3).
-export function FilaDeLaRueda({ fila, puesto, motivo }: Props) {
+// Una persona habilitada en la cola, como tarjeta de la lista: lo que pesa en la ruleta (disponible, abiertas de su cupo, prioridad) y cómo le fue (tasa de
+// contacto, vencidas, última asignación). Sólo lleva su «⋯» («Editar…», «Quitar de la rueda»); tocarla, fuera del «⋯», abre «Editar…». Con el teclado, el nombre
+// es el botón «Editar <nombre>» y el «⋯» va aparte.
+export function TarjetaDeLaPersona({ fila, puesto, motivo, alEditar, alQuitar }: Props) {
   const tasa =
     fila.tasaContactoPct === null
       ? 'Sin turnos aún'
       : `Contacta el ${formatearPorcentaje(fila.tasaContactoPct / 100)}`
   return (
-    <li className="grid min-w-0 gap-1 rounded-(--radius-md) border border-(--color-line) bg-(--color-surface) px-3 py-2">
+    <TarjetaDeLista
+      estirada
+      alAbrir={() => {
+        alEditar(fila)
+      }}
+      acciones={
+        <MasAcciones
+          nombre={fila.nombre}
+          acciones={accionesDeLaPersona({
+            alEditar: () => {
+              alEditar(fila)
+            },
+            alQuitar: () => {
+              alQuitar(fila)
+            },
+          })}
+        />
+      }
+    >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {puesto === undefined ? null : (
           <span className="text-(--color-ink-soft) tabular-nums">{formatearNumero(puesto)}.</span>
         )}
-        <span className="min-w-0 font-medium break-words text-(--color-ink)">{fila.nombre}</span>
+        <button
+          type="button"
+          data-abre-resumen=""
+          aria-label={`Editar ${fila.nombre}`}
+          title={fila.nombre}
+          className="min-w-0 text-left font-medium break-words text-(--color-ink) underline-offset-2 outline-none hover:underline focus-visible:shadow-(--shadow-focus)"
+        >
+          {fila.nombre}
+        </button>
         {fila.cuentaActiva ? (
           <Badge variant={fila.disponible ? 'secondary' : 'outline'}>
             {fila.disponible ? 'Disponible' : 'No disponible'}
@@ -36,7 +67,6 @@ export function FilaDeLaRueda({ fila, puesto, motivo }: Props) {
         {fila.faltaWhatsapp && !motivo ? (
           <Badge variant="destructive">Le falta el WhatsApp</Badge>
         ) : null}
-        <QuitarDeLaRueda configuracion={configuracionDe(fila)} nombre={fila.nombre} />
       </div>
       {motivo ? <p className="text-(length:--text-sm) text-(--color-ink-soft)">{motivo}</p> : null}
       <p className="flex flex-wrap gap-x-3 gap-y-0.5 text-(length:--text-sm) text-(--color-ink-soft)">
@@ -53,6 +83,6 @@ export function FilaDeLaRueda({ fila, puesto, motivo }: Props) {
           Último turno: {fila.ultimaAsignacionEn ? fechaRelativa(fila.ultimaAsignacionEn) : 'nunca'}
         </span>
       </p>
-    </li>
+    </TarjetaDeLista>
   )
 }

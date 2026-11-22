@@ -1,11 +1,12 @@
 'use client'
 
 import { conteoEnFrase } from '@/shared/lib/conteo'
-import { formatearFechaHora } from '@/shared/lib/fechas'
+import { fechaRelativa, formatearFechaHora } from '@/shared/lib/fechas'
 import { TOPE_DE_LO_CARGADO } from '@/shared/lib/paginacion'
 import { AvisoDeTope } from '@/shared/ui/aviso-de-tope'
 import { Button } from '@/shared/ui/button'
 import { EstadoVacio } from '@/shared/ui/estados'
+import { TarjetaDeLista } from '@/shared/ui/lista'
 import {
   conteoDeSinAsignar,
   firmaDePagina,
@@ -13,12 +14,14 @@ import {
   type SolicitudSinAsignar,
 } from '../../../../entities/cola/solicitudes'
 import { useSinAsignar } from '../hooks/use-sin-asignar'
+import { REJILLA_DE_TARJETAS } from './rejilla-de-tarjetas'
 import { SeccionDeLaCola } from './seccion-de-la-cola'
 
 type Props = { primera: PaginaDeSolicitudes }
 
-// «Sin asignar», destacado arriba del tablero: las solicitudes de la web que no encontraron asesor (al visitante ya se lo mandó al WhatsApp de respaldo),
-// la más nueva primero. El conteo es el de la primera página («más de 20»), nunca un total. La lista se reinicia cuando «Actualizar» trae otra primera página.
+// «Sin asignar», arriba de la rueda: las solicitudes de la web que no encontraron asesor (al visitante ya se lo mandó al WhatsApp de respaldo), la más nueva
+// primero, una tarjeta de la lista por solicitud. El conteo es el de la primera página («más de 20»), nunca un total. La lista se reinicia cuando «Actualizar»
+// trae otra primera página.
 export function SinAsignar({ primera }: Props) {
   const conteo = conteoEnFrase(conteoDeSinAsignar(primera))
   return (
@@ -30,8 +33,6 @@ export function SinAsignar({ primera }: Props) {
           <span className="font-normal text-(--color-ink-soft) tabular-nums"> · {conteo}</span>
         </>
       }
-      descripcion="Las solicitudes de la web que todavía no tienen asesor."
-      className="rounded-(--radius-md) border border-(--color-aviso) bg-(--color-aviso-soft) p-4"
     >
       <ListaDeSinAsignar key={firmaDePagina(primera)} primera={primera} />
     </SeccionDeLaCola>
@@ -45,9 +46,9 @@ function ListaDeSinAsignar({ primera }: Props) {
   }
   return (
     <div className="grid gap-3">
-      <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
+      <ul className={REJILLA_DE_TARJETAS}>
         {lista.solicitudes.map((solicitud) => (
-          <FilaDeSinAsignar key={solicitud.id} solicitud={solicitud} />
+          <TarjetaDeSinAsignar key={solicitud.id} solicitud={solicitud} />
         ))}
       </ul>
       {lista.error ? (
@@ -76,17 +77,22 @@ function ListaDeSinAsignar({ primera }: Props) {
   )
 }
 
-// La fuente y la ruta son texto que mandó la web del visitante: se dibujan tal cual, nunca como enlace.
-function FilaDeSinAsignar({ solicitud }: { solicitud: SolicitudSinAsignar }) {
+// La fuente y la ruta son texto que mandó la web del visitante: se dibujan tal cual, nunca como enlace. Hoy una solicitud sin asignar no tiene ninguna acción
+// (la lista sólo informa): la tarjeta va sin «⋯» y sin clic, lista para recibirlos cuando exista una acción.
+function TarjetaDeSinAsignar({ solicitud }: { solicitud: SolicitudSinAsignar }) {
   const vehiculo =
     solicitud.vehiculoTitulo ?? (solicitud.vehiculoId ? 'Ya no se ve en la web' : null)
   return (
-    <li className="grid min-w-0 gap-0.5 rounded-(--radius-md) bg-(--color-surface) px-3 py-2">
-      <div className="flex flex-wrap items-baseline gap-x-2">
+    <TarjetaDeLista estirada>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2">
         <span className="font-medium text-(--color-ink)">{solicitud.codigo}</span>
-        <span className="text-(length:--text-sm) text-(--color-ink-soft)">
-          {formatearFechaHora(solicitud.creadoEn)}
-        </span>
+        <time
+          dateTime={solicitud.creadoEn}
+          title={formatearFechaHora(solicitud.creadoEn)}
+          className="text-(length:--text-sm) text-(--color-ink-soft)"
+        >
+          {fechaRelativa(solicitud.creadoEn)}
+        </time>
       </div>
       <p className="min-w-0 text-(length:--text-sm) break-words text-(--color-ink-soft)">
         {solicitud.fuente}
@@ -97,6 +103,6 @@ function FilaDeSinAsignar({ solicitud }: { solicitud: SolicitudSinAsignar }) {
           {solicitud.ruta}
         </p>
       ) : null}
-    </li>
+    </TarjetaDeLista>
   )
 }
