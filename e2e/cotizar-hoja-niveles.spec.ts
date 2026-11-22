@@ -214,9 +214,11 @@ test('una celda cuya bandera esconde el nivel llega apagada y sin nombrar nada; 
   await page.context().clearCookies()
   await entrar(page, costos, { fresco: true })
   await page.goto(`/cotizaciones/nuevo?origen=${origen.id}`)
-  await expect(celda(page, 'cond_oc')).toContainText(`Se habilita con «${OCULTO.etiquetas[1]}».`)
+  await expect(
+    celda(page, 'cond_oc').getByRole('img', { name: `Se habilita con «${OCULTO.etiquetas[1]}».` }),
+  ).toBeVisible()
   await celda(page, 'oculta_b').getByRole('switch').click()
-  await expect(celda(page, 'cond_oc')).not.toContainText('Se habilita con')
+  await expect(celda(page, 'cond_oc').getByRole('img', { name: /^Se habilita con/ })).toHaveCount(0)
   await tipear(page, 'cond_oc', '40')
   await expect(page.locator('[data-total]')).toContainText('45,00')
 })
@@ -226,7 +228,9 @@ test('lo que se ve y no se edita lleva su motivo; con el nivel se edita', async 
   await page.context().clearCookies()
   await entrar(page, todos, { fresco: true })
   await page.goto(`/cotizaciones/nuevo?origen=${origen.id}`)
-  await expect(celda(page, 'solo_n')).toContainText('Lo edita quien tiene el nivel «Costos».')
+  await expect(
+    celda(page, 'solo_n').getByRole('img', { name: 'Lo edita quien tiene el nivel «Costos».' }),
+  ).toBeVisible()
   await page.context().clearCookies()
   await entrar(page, costos, { fresco: true })
   await page.goto(`/cotizaciones/nuevo?origen=${origen.id}`)
