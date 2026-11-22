@@ -12,7 +12,7 @@ import { publicarFormulaDeTresSumandos, publicarLaVersionConAspecto } from './so
 import { literal, sql } from './soporte/sql'
 import { PREFIJO_DE_COLOR_DE_PRUEBA, borrarColoresDePrueba } from './soporte/tonos'
 
-// La pestaña «Colores» (docs/UX.md › «Cotización: colores (estados propios)»; la tabla `tonos`): el camino feliz en escritorio. Un color se crea con un nombre y un
+// El modal «Colores» de Orígenes (docs/UX.md › «Cotización: colores (estados propios)»; la tabla `tonos`): el camino feliz en escritorio. Un color se crea con un nombre y un
 // #hex; sus muestras de la hoja, en vivo, son las que deriva la base (`_color_derivar`), y la de la tarjeta, el hex tal cual con su aviso suave si el texto no se
 // lee. Cambiar el hex vuelve a derivar la hoja de una cotización cuya sección lo nombra; un color en uso no se elimina. Un hex mal escrito no sale.
 test.describe.configure({ mode: 'serial' })
@@ -69,10 +69,10 @@ const enLaBase = (nombre: string) =>
 const fila = (page: Page, nombre: string) =>
   page.locator('li[data-color]').filter({ has: page.getByText(nombre, { exact: true }) })
 
+// La lista de colores vive en un modal de Configuración › Orígenes (`?panel=colores`); «Nuevo», «Editar» y «Eliminar» son modales hermanos que vuelven a ella.
 async function abrirColores(page: Page) {
-  await page.goto('/configuracion/catalogos/colores')
-  await expect(page.getByRole('heading', { name: 'Colores', level: 1 })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Colores', level: 2 })).toBeVisible()
+  await page.goto('/configuracion/origenes?panel=colores')
+  await expect(page.getByRole('dialog', { name: 'Colores', exact: true })).toBeVisible()
 }
 
 async function escribir(modal: Locator, nombre: string | null, hex: string) {
@@ -93,7 +93,7 @@ async function muestrasDeLaHoja(modal: Locator, hex: string) {
 
 async function eliminarDesdeElMenu(page: Page, nombre: string) {
   await page.getByRole('button', { name: `Más acciones de «${nombre}»`, exact: true }).click()
-  await page.getByRole('menuitem', { name: 'Eliminar', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Eliminar…', exact: true }).click()
   const confirmar = page.getByRole('dialog', { name: `Eliminar el color «${nombre}»` })
   await expect(confirmar).toBeVisible()
   await confirmar.getByRole('button', { name: 'Eliminar color', exact: true }).click()
