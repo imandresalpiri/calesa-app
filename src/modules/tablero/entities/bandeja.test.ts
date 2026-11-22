@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CLAVES_PERMISO, type Concesion, type Permisos } from '@/shared/lib/permisos'
-import { BLOQUES_BANDEJA, bloquesVisibles } from './bandeja'
+import { BLOQUES_BANDEJA, bloqueVisible, bloquesVisibles } from './bandeja'
 
 function concesiones(...claves: Concesion['clave'][]): Permisos {
   return claves.map((clave) => ({ clave, origenId: null, alcance: 'todos' }))
@@ -74,5 +74,32 @@ describe('BLOQUES_BANDEJA', () => {
     for (const bloque of BLOQUES_BANDEJA) {
       expect(bloque.permisos.length).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('«Ver todos» de cada bloque', () => {
+  it('el género sigue a lo que lista el bloque', () => {
+    const porClave = Object.fromEntries(BLOQUES_BANDEJA.map((b) => [b.clave, b.verTodos]))
+    expect(porClave).toEqual({
+      recordatorios: 'Ver todos',
+      'leads-sin-seguimiento': 'Ver todos',
+      'turnos-web': 'Ver todos',
+      'vehiculos-trabados': 'Ver todos',
+      'documentos-por-aprobar': 'Ver todos',
+      'alertas-demora': 'Ver todas',
+      'repuestos-por-mover': 'Ver todos',
+      'esperas-repuestos': 'Ver todas',
+      tareas: 'Ver todas',
+      'equipo-sin-rol': 'Ver todas',
+    })
+  })
+})
+
+describe('bloqueVisible', () => {
+  it('trae el bloque sólo si quien mira cumple alguno de sus permisos', () => {
+    expect(bloqueVisible(concesiones('leads.crear'), 'turnos-web')?.clave).toBe('turnos-web')
+    expect(bloqueVisible(concesiones('web.cola.gestionar'), 'turnos-web')?.clave).toBe('turnos-web')
+    expect(bloqueVisible(concesiones('leads.ver'), 'turnos-web')).toBeNull()
+    expect(bloqueVisible([], 'turnos-web')).toBeNull()
   })
 })

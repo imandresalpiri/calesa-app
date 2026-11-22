@@ -32,6 +32,7 @@ las trampas, en `docs/LECCIONES.md`.
   `esperando_ci` (sin estado nuevo, sin retener sus llaves de área, sin gastar `MAX_ARREGLOS`), y al integrarse la urgente se pone al día con main sin
   sesión. Sólo vale desde un arreglo con PR y con un spec y línea válidos; `MAX_AJENOS` (3) corta el ciclo si el spec sigue cayendo
   (`scripts/orquestador/ajeno-de-main.sh`).
+- **Las esperas que sondean se rechazan en el hook.** Decirlo en el prompt no alcanza (cada vuelta de sondeo relee todo el contexto): `bloquear-esperas.sh` rechaza un Bash en primer plano con un bucle con `sleep` o un `sleep` de más de 5 s, y un Monitor que sólo cuenta tiempo; `run_in_background` pasa. Lee el texto del comando como el resto del hook: un mensaje o un `grep` que nombre las dos cosas juntas también cae (el texto largo va por Write o `-F`), y un bucle dentro de un guion no se ve.
 
 ## Base de datos y permisos
 
@@ -742,9 +743,26 @@ las trampas, en `docs/LECCIONES.md`.
 - **La hoja abierta la firma la base.** `cotizacion_hoja()` devuelve `abierta` con HMAC (clave en Vault); crear, evaluar y la ayuda de tabla reciben `p_abierta` y calculan con esa versión. Firma también la huella de las tarifas de la apertura, no sus valores: `crear` la compara con las que reconstruye del historial, porque un `cambiado_en` anterior a la apertura puede confirmar después. Cotizar pide `crear` y `ver` del origen.
 - **Cotizar encima.** La N+1 nace al tocar (`cotizacion_encima`), siempre preventa, con lo guardado de la última de la cadena; índice parcial `cotizaciones_encima_unica`. Quien no ve la N+1 sólo sabe que existe.
 - **Revisiones con totales por clave.** El diff se compara después de recortar (`_cotizacion_diff_recortado()`); «Ir a una fecha» es `p_hasta` exclusivo en `cotizacion_revisiones()`, anclando y paginando por id.
-- **La celda (XCell) va en una fila, como la de V1:** rótulo · valor(es) · acciones. El rótulo se corta con «…» y el texto completo va en `title` (y en el
-  nombre del grupo); el monto, en la monoespaciada, nunca se corta y baja de línea antes de encimarse; el % de un par, chico y gris al lado (con tono, en la
-  tinta del tono: el gris sobre un color no garantiza AA). Sin el envoltorio de la cabecera: un nodo menos por celda paga los de los pasos.
+- **La hoja con el aspecto de V1:** el de las capturas de V1, con los tokens y en clases y variables sobre los nodos de siempre (ningún nodo más por celda ni
+  por sección).
+  - **La celda (XCell) va en una fila:** rótulo · valor(es) · acciones, de 56 px (`--xcell-alto`, en px: no crece con el texto). El rótulo va a 1,3 veces la
+    letra de la hoja y se corta con «…» (el texto completo, en `title` y en el nombre del grupo); el monto, a 1,5 veces, en negrita y en la monoespaciada,
+    nunca se corta y baja de línea antes de encimarse; el % de un par, chico y gris al lado (con tono, en la tinta del tono: un gris sobre un color no
+    garantiza AA). Todo sigue a `--text-sm`, así la «Letra» del aspecto escala la celda. Sin el envoltorio de la cabecera: un nodo menos por celda paga los
+    de los pasos.
+  - **La celda densa de `repuestos` se queda densa:** la hoja de ítems es una tabla, no la hoja de cotizar; `XCELL_COMPACTA` en su contenedor apaga el alto,
+    la sangría y las letras de V1.
+  - **El candado de un lado bloqueado va en la fila de acciones**, con su motivo como nombre (`aria-label`), descripción del valor y globo en el `::after`
+    del mismo nodo al pasar el puntero o enfocarlo: tres nodos, los de la nota escrita que reemplaza. El aviso o el error sigue escrito bajo la celda.
+  - **El orden de las acciones es candado · ⚙ · ? · ↺**, el de V1; las flechas siguen ese orden. El candado no cuenta para anunciar el atajo: su motivo ya es
+    la descripción.
+  - **Un par cuyo secundario es el monto dibuja el % grande y primero** (`secondaryProminent`): el orden visual y el de Tab coinciden y los ids que emite la
+    celda no cambian. La semilla deja sus impuestos en `porcentaje` (cambiarla movería el corpus y la tarea de oro).
+  - **El total va en una tarjeta de superficie invertida** (la tinta de fondo y el papel de letra: oscura en claro y clara en oscuro, como V1), pegada al
+    borde de arriba del resumen, en su lugar de hoy; el rótulo es la etiqueta del nodo en mayúsculas por CSS.
+  - **«Avanzado» es un botón a lo ancho con los reguladores**, y el modal conserva su título (el término del glosario); es grande (56 rem: un `tercio` va a
+    tres columnas) y sus secciones van sin marco. Los títulos que esconde son la descripción del botón, sin escribirse; «Hay datos por revisar.» sí se
+    escribe: es un estado.
 - **El modo elegido se dibuja aunque no sea visible; la visibilidad no es una regla de guardado.** Los modos visibles son sólo del encabezado
   (`modosDelEncabezado()`): `_cotizacion_modo` sigue aceptando cualquier modo del diseño, así una guardada vieja no pierde el suyo. Una cotización nueva abre con
   el modo por defecto y «Ver total» por defecto; una guardada, con lo suyo.
@@ -1322,6 +1340,16 @@ las trampas, en `docs/LECCIONES.md`.
 
 - **Inicio es la bandeja.** Los widgets personalizables viven sólo en `/tablero`; widgets en Inicio, exportar una gráfica y comparar períodos quedan fuera.
 - **Bloques de Inicio en el servidor**, cada uno tras su `<Suspense>`; 5 por bloque leyendo 6; cada uno lleva su límite de error (`<LimiteDeBloque>`): lo que falla al leer o al dibujar apaga sólo ese bloque. «Recordatorios de hoy» incluye los vencidos; «Sin seguimiento» = mi cartera, creado hace > 24 h.
+- **«Ver todos» en cada bloque de Inicio, sólo en el tope.** Bajo el tope el bloque ya muestra todo y el enlace sobraría (menos ruido); en el tope (5, el sexto lo dice) lleva a la lista completa ya filtrada. Se dibuja sólo si
+  quien mira puede abrir el destino (si no, el bloque sigue con su conteo). El género vive en el catálogo (`BloqueBandeja.verTodos`: «Ver todas» personas, tareas, alertas y esperas; «Ver todos» lo demás). Los que antes lo mostraban siempre
+  (recordatorios, tareas, trabados, por aprobar, demora, repuestos) lo muestran sólo con tope y conservan su destino. Descartado: un enlace fijo en el título (ruido con listas cortas) y el número del total (nunca un total exacto).
+- **«Leads sin seguimiento» abre `/leads?sin_seguimiento=si` sin `alcance`: «míos».** Es lo que cuenta el bloque (mi cartera). Quien elige «Todos» a mano con el filtro puesto ve los leads sin seguimiento de lo que esa persona ve (la misma
+  definición, otra población): el chip y el panel lo dicen. El filtro es una condición de columnas de `leads_vista`/`leads_cartera_vista` (`ultimo_seguimiento_en is null` y `creado_en < ahora − 24 h`) sin índice propio; el «No» del
+  panel de filtros (siempre ofrece Todos/Sí/No) es el contrario lógico: con algún seguimiento o creado hace menos de 24 h. Medido con 212.000 leads (`medir-escala.sql`, `docs/RENDIMIENTO.md`).
+- **«Personas sin rol» abre `/configuracion/equipo?estado=sin_rol`.** Un filtro más de `equipo_lista()` (activa, no bloqueada y sin fila en `usuarios_roles`, la definición del bloque) y no un estado de la persona: la insignia no cambia.
+- **El «Ver todos» de los turnos de la web es un panel en Inicio (`?panel=turnos`), no una pantalla.** Todos mis turnos sin confirmar (asignados y vencidos), de a 20 con «Ver más» por cursor `(vence_en, id)` hasta 200, con
+  «Contacté» y «Vincular a lead» en cada uno. Lee en el navegador al abrirse y al volver a la pestaña (un turno pudo vencer o reasignarse) y no se relee por props: «Contacté» quita el turno localmente
+  para no soltar las páginas cargadas. «Vincular a lead» reemplaza `?panel=turnos` por `?panel=vincular-turno` (un solo modal a la vez; «atrás» vuelve al panel).
 - **La conversión cuenta por la clase del tipo de lead** y por `cliente_desde`, que sólo pone el paso de prospecto a cliente (un alta como cliente no infla la tasa); `conversion_desde` cubre a los clientes de antes. La tasa puede pasar de 1.
 - **Ranking por dueño vigente**: sin dueño o en baja cuenta en el total y no en el ranking.
 - **El margen del mes cuenta cada vehículo en el mes de su último pago confirmado vivo.** Un mes pasado cambia si se confirma o anula un pago: no se presenta como cerrado.

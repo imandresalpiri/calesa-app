@@ -83,8 +83,10 @@ describe('.claude/settings.json › hooks', () => {
   const cableado = (evento: string, matcher: string, ruta: string) =>
     todos.some((t) => t.evento === evento && t.matcher === matcher && rutaDe(t.hook) === ruta)
 
-  it('Bash pasa por bloquear-peligrosos.sh antes de correr', () => {
-    expect(cableado('PreToolUse', 'Bash', '.claude/hooks/bloquear-peligrosos.sh')).toBe(true)
+  it('Bash y Monitor pasan por bloquear-peligrosos.sh antes de correr', () => {
+    expect(cableado('PreToolUse', 'Bash|Monitor', '.claude/hooks/bloquear-peligrosos.sh')).toBe(
+      true,
+    )
   })
 
   it('un archivo editado se lintea y al terminar se verifica', () => {
@@ -110,6 +112,7 @@ const CON_CANDADO = [
   'db:medir',
   'db:carreras',
   'db:lint',
+  'db:revisar',
   'db:sembrar-volumen',
   'db:medir:volumen',
   'test:e2e',

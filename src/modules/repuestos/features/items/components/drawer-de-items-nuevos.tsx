@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { Drawer } from '@/shared/ui/drawer'
-import { SimbolosDeXCell } from '@/shared/ui/xcell'
+import { SimbolosDeXCell, XCELL_COMPACTA } from '@/shared/ui/xcell'
 import type { FilaDeItem } from '../../../entities/nucleo/item'
 import { AvisoDeConflictoDeLaHoja, AvisoDeTopeDeLaHoja } from './avisos-de-la-hoja'
 import type { ContextoDeLaHoja } from './contexto-de-la-hoja'
@@ -55,7 +55,7 @@ export function DrawerDeItemsNuevos({
       alto="ajustable"
       focoAlCerrar={focoAlCerrar}
     >
-      <div className="grid min-w-0 gap-3">
+      <div className={`grid min-w-0 gap-3 ${XCELL_COMPACTA}`}>
         <SimbolosDeXCell />
         {conflicto ? (
           <AvisoDeConflictoDeLaHoja mensaje={conflicto} alRecargar={alRecargar} />

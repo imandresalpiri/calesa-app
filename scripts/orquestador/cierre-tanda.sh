@@ -13,7 +13,7 @@
 # cuyo rojo ya se encoló), `.cierre-publicado` (el T<n> del cierre en camino), `.cierre-trabadas` y `.cierre-frenado` (lo ya dicho en
 # el log), `.cierre-roto` (el sha con el que una plantilla no se leyó) y, en estado/<ID>/, `cierre_hecho`. Lo carga orquestador.sh con
 # `source`, después de kit.sh; usa sus `campo`, `spec_de`, `ids`, `estado_de`, `est_get`, `deps_listas`, `manifiesto`, `log` y `avisar`,
-# de github.sh `ghc`, `con_issues`, `REPO_GH`, `CON_PERMISO` y `JQ_CON_PERMISO`, de cola-entrada.sh `publicar_entrada` y `PUBLICADA`, y de kit.sh
+# de github.sh `ghc`, `con_issues`, `REPO_GH` y `alguno_con_permiso`, de cola-entrada.sh `publicar_entrada` y `PUBLICADA`, y de kit.sh
 # `es_el_kit`. La verificación de main está en cierre-main.sh.
 
 # Las ramas de lo que entra solo a la cola: no son de la tanda. La de dependencias sale de su plantilla; la de la noche roja, de
@@ -69,12 +69,11 @@ cola_quieta() {
   [ -z "$CIERRE_TRABADAS" ]
 }
 
-# 0 si hay un issue `cierre` abierto por quien puede escribir en el repo; 1 si no; 2 si GitHub no respondió.
+# 0 si hay un issue `cierre` abierto por quien puede escribir en el repo o la app del orquestador; 1 si no; 2 si GitHub no respondió.
 cierre_abierto() {
   local salida
   salida=$(ghc api --paginate "repos/{owner}/{repo}/issues?labels=cierre&state=open&per_page=100") || return 2
-  jq -s -e --argjson ok "$CON_PERMISO" --arg app "${APP_ID:-}" "$JQ_CON_PERMISO"'[add[]? | select(has("pull_request") | not)
-    | select(con_permiso($ok; $app))] | length > 0' <<<"$salida" >/dev/null
+  alguno_con_permiso "$salida"
 }
 
 # Devuelve 1 sólo si GitHub no respondió (el espejo lo trata como sin red).

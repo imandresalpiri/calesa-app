@@ -511,7 +511,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Bucket** — `definicion.buckets` (nombre → nodo `tipo_cambio`), `grupos[].bucket`: papel del dinero (pagado afuera, en aduana) y el tipo de
   cambio que lo convierte.
 - **Snapshot** — `cotizaciones.valores`, `fuentes`, `tipos_cambio`: todo lo que el cálculo usó.
-- **XCell** — `src/shared/ui/xcell`: celda numérica editable del cotizador: valor, default, revertir, ayuda, ⚙, sugerido, teclado.
+- **XCell** — `src/shared/ui/xcell`: celda numérica editable del cotizador: valor, default, revertir, ayuda, ⚙, sugerido, teclado. Con el aspecto
+  de V1: una fila de 56 px con rótulo · valor(es) · acciones (candado · ⚙ · ? · ↺); `XCELL_COMPACTA` la vuelve densa (la hoja de ítems).
 - **Modo Live** — `useLive()` / `<Monto>`: oculta cifras y símbolos de moneda en toda la app.
 - **Tabla de referencia** — `tablas_referencia`, `_filas`: alimentan nodos tabla/tramo (impuestos, tramos, tarifas, depreciación).
 - **Publicar una tabla de referencia** — `tabla_referencia_publicar()`: reemplaza sus filas, sube `tablas_referencia.version` y publica la
@@ -814,9 +815,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   (`?ayuda=texto|tabla&nodo=<id>`); la tabla se lee con la hoja abierta. El texto puede llevar hasta 5 **enlaces** (`ayuda.enlaces[]`,
   `EnlaceDeAyuda`: título de hasta 60 caracteres y URL `https://`), que se abren en otra pestaña bajo «Consulta estas fuentes».
 - **Secundario (de una celda)** — `secundario` de una `celda`: el % (o monto) junto al valor en un `porcentaje_de`; obligatorio si el monto se
-  sobrescribe.
+  sobrescribe. Va chico y detrás; con `como: 'monto'` el % va grande y primero (`secondaryProminent` de la XCell).
 - **Subtotal (de la hoja)** — ítem `subtotal` del diseño: un nodo de cálculo dibujado como franja (el «CIF» de «avanzado»).
-- **Tarjeta del total** — `diseno.tarjeta_total`: resumen fijo (al pie en celular): nodo total y secundarios; no se ubica en el diseño.
+- **Tarjeta del total** — `diseno.tarjeta_total`: resumen fijo (al pie en celular): nodo total y secundarios; no se ubica en el diseño. El total
+  va en una tarjeta de superficie invertida pegada arriba del resumen, con la etiqueta en mayúsculas (`clases-del-total.ts`).
 - **Contexto del diseño** — `ContextoDeDiseno` / argumentos de `validar_diseno()`: niveles existentes y retirados y claves de los colores; «todos»
   siempre existe.
 - **Visibilidad (de un nodo)** — `formulas.visibilidad` / `_compilar_visibilidad()`: `{nodo: {ver, editar}}` por nivel, compilado al publicar.
@@ -969,6 +971,15 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Superficie pública** — esquema `web`: vistas y RPC que consume el repo de la web.
 - **Bandeja** — `/` / `<Bandeja>`: pantalla de inicio; lo que hay que hacer ahora.
 - **Bloque de la bandeja** — `BLOQUES_BANDEJA` / `bloquesVisibles()`: lista de pendientes del Inicio, según los permisos.
+- **Ver todos / Ver todas (de un bloque de la bandeja)** — `BloqueBandeja.verTodos`, `<VerTodasDelBloque>`: el enlace bajo la lista de un bloque, que lleva a la lista completa ya filtrada. Sólo
+  se dibuja cuando el bloque llegó a su tope (`hayMas`) y quien mira puede abrir el destino; el género es el de lo que lista el bloque («Ver todas» las personas, tareas,
+  alertas y esperas; «Ver todos» lo demás). No: «Ver más» (ése agrega filas a la misma lista).
+- **Sin seguimiento (filtro)** — `FILTRO_SIN_SEGUIMIENTO` / `?sin_seguimiento=si` del listado de leads: los leads sin ningún seguimiento y creados hace más de 24 horas, la misma
+  definición del bloque «Leads sin seguimiento» de Inicio (`creadoAntesDe()`). «No» es lo contrario: con algún seguimiento o creados hace menos. No: «sin actividad», «abandonados».
+- **Sin rol (filtro)** — `?estado=sin_rol` de `/configuracion/equipo`, `equipo_lista(p_estado => 'sin_rol')`: las personas activas, no bloqueadas y sin ninguna fila en
+  `usuarios_roles`; lo que cuenta el bloque «Personas sin rol» de Inicio. No es un estado de la persona (`estadoDePersona()`): no cambia lo que dice su insignia.
+- **Panel de turnos** — `?panel=turnos` en Inicio (`PanelDeTurnos`): todos mis turnos de la web sin confirmar (asignados y vencidos), de a 20 con «Ver más» hasta 200; es el «Ver todos» del bloque
+  «Turnos de la web sin confirmar». Cada turno lleva «Contacté» y «Vincular a lead».
 - **Bloque** — `<Bloque>`: sección plegable de un formulario o un panel.
 - **Bloque (de una ficha)** — `<BloqueDeFicha>`, `#<ancla>` (`src/shared/ui/ficha-en-bloques`): una parte de una ficha en dos columnas, siempre a la
   vista (no se pliega), con su ancla, su título `h2` (con su única acción a la derecha: `<TituloDeBloqueConAccion>`) y su error propio. No es `<Bloque>`,
@@ -1088,7 +1099,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `scripts/orquestador/integracion.sh`): prueba cada PR en verde combinado con `main` y los de delante, y lo integra. Nunca «cola» a
   secas: la cola es la del orquestador (los issues `cola`).
 - **App del orquestador** — la GitHub App `imandresalpiri-orquestador` (`APP_ID` en `scripts/orquestador/config.env`,
-  `scripts/orquestador/token-app.sh`, `app.sh`): con ella el orquestador y sus sesiones escriben en GitHub. No: «bot» a secas.
+  `scripts/orquestador/token-app.sh`, `app.sh`): con ella el orquestador y sus sesiones escriben en GitHub. Su login es
+  `imandresalpiri-orquestador[bot]` (`APP_LOGIN`): así se reconoce el issue que abre. No: «bot» a secas.
 - **E2E afectados** — `node scripts/e2e-afectados.mjs [--correr]`: los e2e que una rama puede romper aunque no sean de su módulo (los
   dirigidos, los que nombran un texto visible que cambió o que un texto nuevo vuelve ambiguo, y los de las pantallas de un compartido), con
   tope de 40; se corren en local antes de publicar. No son los **dirigidos** del CI (`scripts/e2e-dirigidos.mjs`), que son un subconjunto.

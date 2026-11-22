@@ -15,7 +15,7 @@ paths:
   noche lo vuelve tarea sola: `scripts/flujo/noche.mjs`); no se piden actualizaciones «estabilizar». Un `pnpm test`
   que cae deja su salida en `test-salidas/<fecha_hora-pid>/`. «La máquina estaba ocupada» no explica nada: se mide.
 - La base local y el servidor de e2e de una pila son de una sola sesión a la vez: `db:reset`, `db:types`,
-  `db:diff`, `db:medir`, `db:carreras`, `db:lint`, `db:aplastar`, `db:sembrar-volumen`, `db:medir:volumen`,
+  `db:diff`, `db:medir`, `db:carreras`, `db:lint`, `db:revisar`, `db:aplastar`, `db:sembrar-volumen`, `db:medir:volumen`,
   `test:e2e` y `test:e2e:completo` toman `scripts/candado.sh` (no `db:probar`, que es PGlite). Hay un candado por
   pila: la principal y cada carril (un worktree con su pila), que el candado reconoce por su `.env.carril`
   (`scripts/worktree/preparar.sh`). Ocupado falla con 75 (`CANDADO_ESPERA=<s>` espera); `bloquear-peligrosos.sh`

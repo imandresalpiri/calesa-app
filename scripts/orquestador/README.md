@@ -46,7 +46,7 @@ Nunca toca el árbol de trabajo de la principal: crea sus worktrees en `.orquest
 | `scripts/orquestador/maquina.sh`                 | Lo que comparten los orquestadores de la máquina: `maquina.env`, los turnos de sesión y la pausa por el límite del plan                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `scripts/orquestador/niveles.sh`                 | Los niveles de modelo: nivel → alias, qué campos de una spec valen, qué modelo es hoy cada alias                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `scripts/orquestador/spec-issue.mjs`             | Una spec entre archivo e issue, en los dos sentidos (con su forma canónica para comparar)                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `scripts/orquestador/config.env`                 | `PROYECTO` (vacío: el del manifiesto), `KIT_GITHUB`, paralelo, niveles de modelo, límites (`MAX_AJENOS`, `TIEMPO_MAX_SESION`, `AUTOCOMPACT_SESION`: los tokens de contexto a los que cada sesión compacta, vacío no lo pasa) y lo que entra solo (`DEPS_MENSUAL`, `KIT_SEMANAL`, `KIT_AVISAR`, `NIVEL_REDACTAR`, `EFFORT_REDACTAR`, `TIEMPO_MAX_REDACCION`, `CIERRE_TANDA`, `CIERRE_MIN_TAREAS`, `CIERRE_APLASTAR`) y la app del orquestador (`APP_ID`, `APP_INSTALACION`, `APP_CLAVE`: la ruta de la clave). Sin secretos                |
+| `scripts/orquestador/config.env`                 | `PROYECTO` (vacío: el del manifiesto), `KIT_GITHUB`, paralelo, niveles de modelo, límites (`MAX_AJENOS`, `TIEMPO_MAX_SESION`, `AUTOCOMPACT_SESION`: los tokens de contexto a los que cada sesión compacta, vacío no lo pasa) y lo que entra solo (`DEPS_MENSUAL`, `KIT_SEMANAL`, `KIT_AVISAR`, `NIVEL_REDACTAR`, `EFFORT_REDACTAR`, `TIEMPO_MAX_REDACCION`, `CIERRE_TANDA`, `CIERRE_MIN_TAREAS`, `CIERRE_APLASTAR`) y la app del orquestador (`APP_ID`, `APP_INSTALACION`, `APP_LOGIN`, `APP_CLAVE`: la ruta de la clave). Sin secretos   |
 | `scripts/orquestador/prompts/`                   | Lo que recibe cada sesión: `tarea.md`, `planificar.md`, `arreglar.md`, `retomar.md`, `redactar.md`; y lo que se le suma: `cierra-issue.md`, `permite-dependencias.md`                                                                                                                                                                                                                                                                                                                                                                     |
 | `scripts/orquestador/plantilla-tarea.md`         | La forma de una spec (la copia `nueva`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `scripts/orquestador/plantillas/`                | Las specs que nacen de una plantilla: `dependencias.md` (la tarea mensual), `traer-flujo-del-kit.md` (la semanal del kit) y `traer-de-proyecto.md` (la tarea que abre en el kit), `cerrar-tanda.md` (el cierre de la tanda), `aplastar-migraciones.md` (antes del cierre) y `main-en-rojo.md` (dejar verde main antes de cerrarla) y `e2e-roto-en-main.md` (dejar verde un e2e que una sesión de arreglo encontró roto en main), que crea el orquestador; y `cerrar-construccion.md`, el cierre de un repo nuevo (lo crea semilla-a-repo) |
@@ -153,8 +153,9 @@ respuesta: se guarda en `estado/<ID>/respuesta.md`, se suma al cuerpo del issue 
 **El PR cierra el issue:** la sesión pone `Closes #<n>` en su cuerpo; al integrarse, el orquestador pone `cola:integrada` y cierra el
 issue si GitHub no lo hizo.
 
-**Issues que abre un workflow.** El autor de un issue tiene que poder escribir en el repo, o ser `github-actions[bot]` en un issue
-`noche-roja`: ése lo abre el CI con `GITHUB_TOKEN` (un fork no tiene ese token con escritura). Otro issue de un bot no entra, y
+**Issues que abre un workflow.** El autor de un issue tiene que poder escribir en el repo, ser la app del orquestador (su login, de
+tipo Bot: «Como la app de GitHub» › «Quién es de confianza») o ser `github-actions[bot]` en un issue `noche-roja`: ése lo abre el CI
+con `GITHUB_TOKEN` (un fork no tiene ese token con escritura). Otro issue de un bot no entra, y
 ningún comentario de un bot cuenta como respuesta. Una spec redactada desde un pedido no puede traer `permite` ni `al_integrar`: un
 permiso o una escritura en el repo los da la persona.
 
@@ -303,9 +304,9 @@ de instalación de una hora que se renueva solo. La sesión de gh de la persona 
 - **Requisito (la persona, una vez):** crear la GitHub App en la organización, sin webhook, e instalarla en `calesa-app`, `calesa-web`
   y `kit`. Permisos en escritura: actions, contents, issues, merge_queues, pull_requests y workflows; en lectura: checks, statuses y
   metadata. Su clave privada va en `~/.config/orquestador/app.pem` (modo 600, carpeta 700), fuera de todo repo.
-- **`config.env`:** `APP_ID`, `APP_INSTALACION` y `APP_CLAVE` (la ruta de la clave). Los ids no son secretos; la clave sí: nunca se
-  versiona, ni se imprime, ni va a un log. `APP_ID` vacío (el kit, otra máquina) = la sesión de gh de la persona, como antes;
-  `ORQ_SIN_APP=1` en `config.local.env` la apaga sin tocar los ids.
+- **`config.env`:** `APP_ID`, `APP_INSTALACION`, `APP_LOGIN` (el login `<slug>[bot]`) y `APP_CLAVE` (la ruta de la clave). Los ids y
+  el login no son secretos; la clave sí: nunca se versiona, ni se imprime, ni va a un log. `APP_ID` vacío (el kit, otra máquina) =
+  la sesión de gh de la persona, como antes; `ORQ_SIN_APP=1` en `config.local.env` la apaga sin tocar los ids.
 - **El token:** `token-app.sh` firma un JWT RS256 con openssl (la clave por ruta; el JWT va a curl por stdin, nunca en argv), lo
   cambia por el token de instalación y lo guarda en `~/.cache/orquestador/app-<APP_INSTALACION>` (600, con `flock`) hasta 5 min antes
   de que venza. `token_gh` (`app.sh`) lo pide al arrancar, al principio de cada vuelta del bucle, en `correr` y en la redacción.
@@ -313,8 +314,14 @@ de instalación de una hora que se renueva solo. La sesión de gh de la persona 
   `PATH`: cada llamada toma el token fresco de la caché) y git empuja con el helper `token-app.sh credencial`, puesto por
   `GIT_CONFIG_*` (vacía los helpers de la máquina y suma el de la app; nada en `~/.gitconfig` ni en el repo). Un token de persona puesto
   a propósito (`GH_TOKEN=$(gh auth token --user …)`) se respeta.
-- **Quién es de confianza:** un issue que abre la app llega con `author_association` NONE; el filtro (`JQ_CON_PERMISO`, `github.sh`)
-  la reconoce por `performed_via_github_app.id` = `APP_ID`. Otro bot no entra; un comentario de un bot nunca es una respuesta.
+- **Quién es de confianza:** un issue que abre la app con su token de instalación llega con `author_association` CONTRIBUTOR (que no
+  basta: lo es cualquiera con un PR integrado), `user.type` Bot, login `<slug>[bot]` y `performed_via_github_app` nulo (GitHub sólo lo
+  llena cuando la app actúa en nombre de una persona). El filtro (`JQ_CON_PERMISO` e `identidad_app`, `github.sh`) la reconoce por ser
+  Bot con el login de `APP_LOGIN` (vacío: el de la caché del token, `token-app.sh --bot`) y, si GitHub lo llenara, por
+  `performed_via_github_app.id` = `APP_ID`. Sin `APP_ID`, con `ORQ_SIN_APP=1` o sin login, nada entra por ser de la app (`verificar` lo
+  dice, y da ✗ si `APP_LOGIN` no es el de GitHub). Una marca `estado/.ajenos/<n>` (o `P<n>` de un pedido) sólo evita repetir el log:
+  cuando el issue pasa el filtro, se quita sola («issue #<n>: ahora entra a la cola»). Otro bot no entra; un comentario de un bot nunca
+  es una respuesta.
 - **Sin la clave** (otra máquina, la app sin instalar, el reloj corrido, la instalación borrada): sigue con la sesión de la persona y
   avisa una vez por motivo («GitHub sin la app: …»; el último, en `estado/.app-sin-app`); al volver, «GitHub: vuelvo a actuar como la
   app» en el log. Sin red no avisa.

@@ -11,7 +11,7 @@ import { borrarDocumentos, sembrarDocumentos, type TerrenoDeDocumentos } from '.
 
 // La bandeja de logística en Inicio (6.12-2): sobre el terreno de documentos, la fase B pasa a alertar con 1 día, la unidad en B lleva 3 días en ella y
 // tiene un BL subido sin aprobar. Así queda demorada, trabada (C pide el BL aprobado) y con un documento por aprobar a la vez. Quien aprueba la ve en los
-// tres bloques; «Ver todas» de cada uno abre su grupo de la bandeja del día de logística y la fila abre la página de la unidad.
+// tres bloques; por debajo del tope no hay «Ver todas» y la fila abre la página de la unidad.
 test.describe.configure({ mode: 'serial' })
 
 const DIA = 86_400_000
@@ -61,7 +61,7 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-test('con una unidad demorada y un documento subido, Inicio los muestra y «Ver todas» abre su grupo de la bandeja del día', async ({
+test('con una unidad demorada y un documento subido, Inicio los muestra sin «Ver todas» y la fila abre la unidad', async ({
   page,
 }) => {
   await entrar(page, terreno.quienAprueba.correo, { fresco: true })
@@ -76,27 +76,15 @@ test('con una unidad demorada y un documento subido, Inicio los muestra y «Ver 
   await expect(trabados.getByRole('link', { name: new RegExp(terreno.enB.titulo) })).toContainText(
     `Falta para «${terreno.c.nombre}»: Documento: ${terreno.tipoDeBl.nombre}`,
   )
-  await expect(trabados.getByRole('link', { name: 'Ver todas' })).toHaveAttribute(
-    'href',
-    '/logistica/bandeja/trabados',
-  )
+  await expect(trabados.getByRole('link', { name: 'Ver todas' })).toHaveCount(0)
 
   const porAprobar = page.getByRole('region', { name: 'Documentos por aprobar' })
   await expect(
     porAprobar.getByRole('link', { name: new RegExp(terreno.enB.titulo) }),
   ).toContainText(`${terreno.tipoDeBl.nombre} · subido`)
-  await expect(porAprobar.getByRole('link', { name: 'Ver todas' })).toHaveAttribute(
-    'href',
-    '/logistica/bandeja/por-aprobar',
-  )
+  await expect(porAprobar.getByRole('link', { name: 'Ver todas' })).toHaveCount(0)
+  await expect(demoras.getByRole('link', { name: 'Ver todas' })).toHaveCount(0)
 
-  await demoras.getByRole('link', { name: 'Ver todas' }).click()
-  await expect(page).toHaveURL(/\/logistica\/bandeja\/demorados$/)
-  await expect(page.getByRole('heading', { name: 'Demorados', level: 1 })).toBeVisible()
-  await expect(page.getByRole('link', { name: terreno.enB.titulo, exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: terreno.enA.titulo, exact: true })).toHaveCount(0)
-
-  await page.goto('/')
   await page
     .getByRole('region', { name: 'Alertas por demora' })
     .getByRole('link', { name: new RegExp(terreno.enB.titulo) })

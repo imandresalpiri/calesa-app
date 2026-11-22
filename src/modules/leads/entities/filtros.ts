@@ -22,6 +22,11 @@ import { idsDeLasClaves, opcionesDeTipo, type TipoDeLeadEnCatalogo } from './cat
 import { columnaParaFiltrar, type CampoDeLead, type ColumnaDeAtributos } from './campo'
 import type { Etiqueta } from './etiqueta'
 import {
+  DEF_SIN_SEGUIMIENTO,
+  condicionesDeSeguimiento,
+  type CondicionDeSeguimiento,
+} from './filtro-sin-seguimiento'
+import {
   SECCIONES_DEL_LISTADO,
   SECCION_DATOS,
   condicionesDeMarcas,
@@ -30,6 +35,7 @@ import {
 } from './filtros-de-marcas'
 
 export { MINIMO_DE_BUSQUEDA, MINIMO_DEL_TEXTO_DE_UN_CAMPO, interpretarBusqueda }
+export { FILTRO_SIN_SEGUIMIENTO } from './filtro-sin-seguimiento'
 
 export const FILTRO_TIPO = 'tipo'
 export const FILTRO_ORIGEN = 'origen'
@@ -74,7 +80,7 @@ export function opcionesDeOrigen(
 
 export function esquemaDeFiltrosDeLeads(fuentes: Fuentes): EsquemaDeFiltros {
   const { campos, origenes, tipos, verTodos } = fuentes
-  const fijos: EsquemaDeFiltros['filtros'][number][] = []
+  const fijos: EsquemaDeFiltros['filtros'][number][] = [DEF_SIN_SEGUIMIENTO]
   if (tipos.length > 0) {
     fijos.push({
       tipo: 'opciones',
@@ -134,6 +140,8 @@ export type CondicionDeLead =
   | { tipo: 'en_cartera'; desdeLaCartera: boolean }
   | (CondicionDeAtributo & { columna: ColumnaDeAtributos })
   | CondicionDeMarca
+  // Sin ningún seguimiento y creado hace más de 24 h (o lo contrario): columnas de la fila, sin candidatos.
+  | CondicionDeSeguimiento
 
 // Los filtros por campo del layout, cada uno sobre su columna (`columnaParaFiltrar()`). La clave de un atributo sale
 // siempre del layout (nunca de la URL): un filtro de un campo que ya no es filtrable se ignora.
@@ -189,6 +197,8 @@ export function condicionesDeLeads(
     idsDelNumero?: readonly string[]
     // El catálogo de tipos: traduce las claves de `?tipo=` a ids.
     tipos?: readonly TipoDeLeadEnCatalogo[]
+    // El instante del servidor (ISO) del que sale «hace más de 24 h» en «Sin seguimiento»; sin él, el de ahora.
+    ahora?: string
   },
 ): CondicionDeLead[] {
   const condiciones: CondicionDeLead[] = []
@@ -207,6 +217,7 @@ export function condicionesDeLeads(
     ...condiciones,
     ...deCampos,
     ...condicionesDeColumnas(valores, opciones.tipos ?? []),
+    ...condicionesDeSeguimiento(valores, opciones.ahora ?? new Date().toISOString()),
     ...condicionesDeMarcas(valores),
   ]
 }

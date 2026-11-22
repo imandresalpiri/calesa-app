@@ -2,10 +2,10 @@
 
 import type { KeyboardEvent, RefObject } from 'react'
 import {
-  BOTON_DEL_LADO_BLOQUEADO,
-  BOTON_DEL_PORCENTAJE,
-  BOTON_DEL_PORCENTAJE_BLOQUEADO,
+  BOTON_CHICO,
+  BOTON_CHICO_BLOQUEADO,
   BOTON_DEL_VALOR,
+  BOTON_GRANDE_BLOQUEADO,
 } from './clases'
 import { ID_DEL_ATAJO } from './simbolos-de-xcell'
 import { TextoDeValor } from './texto-de-valor'
@@ -14,6 +14,10 @@ import type { DatosDeLado, Lado } from './use-edicion'
 type Props = {
   lado: Lado
   datos: DatosDeLado
+  // El lado que se lee primero, grande; el otro, chico (`clases.ts`).
+  grande: boolean
+  // Su lugar entre los valores: 0 el primero que se ve (recibe el foco al volver de ↺ y es el que busca la hoja).
+  parada: number
   moneda: string | undefined
   // Los ids que lo nombran: la etiqueta de la celda y él mismo.
   idDelBoton: string
@@ -33,15 +37,15 @@ type Props = {
   alMedir: (ancho: number) => void
 }
 
-// El monto, en la monoespaciada y en semibold; el porcentaje de un par, chico y gris (`clases.ts`).
-const claseDelBoton = (lado: Lado, soloEsteLado: boolean) =>
-  lado === 'principal'
+// El lado grande, en la monoespaciada y en negrita; el chico, en la letra de la hoja y gris. Bloqueado sólo este lado, con el borde discontinuo.
+const claseDelBoton = (grande: boolean, soloEsteLado: boolean) =>
+  grande
     ? soloEsteLado
-      ? BOTON_DEL_LADO_BLOQUEADO
+      ? BOTON_GRANDE_BLOQUEADO
       : BOTON_DEL_VALOR
     : soloEsteLado
-      ? BOTON_DEL_PORCENTAJE_BLOQUEADO
-      : BOTON_DEL_PORCENTAJE
+      ? BOTON_CHICO_BLOQUEADO
+      : BOTON_CHICO
 
 // El valor de un lado de la celda cuando no se edita. Deshabilitado es `aria-disabled`, no `disabled`: se alcanza con Tab y se lee.
 export function BotonDelValor(props: Props) {
@@ -51,8 +55,9 @@ export function BotonDelValor(props: Props) {
     <button
       id={idDelBoton}
       type="button"
-      data-parada={lado === 'principal' ? 0 : 1}
-      className={claseDelBoton(lado, props.soloEsteLado)}
+      data-parada={props.parada}
+      data-vacio={datos.valor === null ? '' : undefined}
+      className={claseDelBoton(props.grande, props.soloEsteLado)}
       aria-labelledby={`${idDeLaEtiqueta} ${idDelBoton}`}
       aria-describedby={
         conAtajo
@@ -64,7 +69,7 @@ export function BotonDelValor(props: Props) {
       aria-disabled={bloqueada || undefined}
       aria-keyshortcuts={conAtajo ? 'ArrowRight' : undefined}
       ref={(elemento) => {
-        if (lado === 'principal') {
+        if (props.parada === 0) {
           principalRef.current = elemento
         }
         if (elemento && volverARef.current === lado) {

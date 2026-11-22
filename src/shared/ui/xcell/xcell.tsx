@@ -2,7 +2,7 @@
 
 // La celda de la hoja de cotizar (`docs/COTIZADOR.md` › «Binding con la XCell»). Dibuja y maneja UNA celda a partir de props: no lee la base y
 // no calcula nada, dice «esta celda pasó a N» (`onCommit`) o «volver» (`onReset`) y la base recalcula (4.13). Ver `CLAUDE.md` de esta carpeta.
-import { memo, useId, useRef, type KeyboardEvent } from 'react'
+import { Fragment, memo, useId, useRef, type KeyboardEvent } from 'react'
 import { useRegional } from '../regional'
 import { AccionesDeXCell, PARADA_DE_ACCIONES_DESDE, RotuloDeXCell } from './cabecera-de-xcell'
 import { RAIZ } from './clases'
@@ -25,7 +25,7 @@ export type XCellProps = {
   suggested: boolean
   // `fuentes[id] === 'override'`: la persona cambió un default o un sugerido.
   overridden: boolean
-  // Candado y el motivo escrito; la celda se lee y se alcanza con el teclado, pero no abre la edición. En un par es el del principal: cada lado tiene el suyo.
+  // El candado (en las acciones, con el motivo de nombre y de descripción del lado); la celda se lee y se alcanza con el teclado, pero no abre la edición. En un par es el del principal: cada lado tiene el suyo.
   disabledReason?: string | undefined
   // El candado del secundario de un par (4.13-3c); sin él, el porcentaje se edita aunque el monto esté bloqueado.
   secondaryDisabledReason?: string | undefined
@@ -38,6 +38,9 @@ export type XCellProps = {
   secondaryValue?: number | null | undefined
   secondaryFormat?: FormatoDeXCell | undefined
   secondaryDecimals?: number | undefined
+  // El secundario es el que se lee primero (el diseño dice `secundario: 'monto'`: el % es el valor de la celda, como «14.94 % $181»): va primero, en
+  // grande, y el principal detrás, chico. Sólo cambia el aspecto y el orden: cada lado emite con su id, como siempre.
+  secondaryProminent?: boolean | undefined
   // La ayuda de la celda (una tabla o un texto: lo que abre lo decide la hoja) y el ⚙ (cambia el valor por defecto, global). Banderas y callbacks
   // aparte: la hoja pasa los MISMOS callbacks a todas las celdas y el `memo` aguanta. La celda no decide permisos y no mueve el foco al accionarlas.
   hasHelp?: boolean | undefined
@@ -69,10 +72,11 @@ function datosDeLado(props: XCellProps, lado: Lado): DatosDeLado {
   }
 }
 
-// Las flechas son de la celda: moverse entre sus paradas. Las acciones no son paradas de Tab (`tabIndex -1`), así Tab va de valor en valor.
+// Las flechas son de la celda: moverse entre sus paradas (los valores, el candado y los botones de acción). Las acciones y el candado no son paradas de
+// Tab (`tabIndex -1`), así Tab va de valor en valor.
 function teclasDeLaCelda(evento: KeyboardEvent<HTMLDivElement>, valor: HTMLElement | null) {
   const objetivo = evento.target
-  if (!(objetivo instanceof HTMLButtonElement) || objetivo.dataset['parada'] === undefined) {
+  if (!(objetivo instanceof HTMLElement) || objetivo.dataset['parada'] === undefined) {
     return
   }
   if (evento.key === 'ArrowRight' || evento.key === 'ArrowLeft') {
@@ -106,7 +110,13 @@ function XCellBase(props: XCellProps) {
     onCommit: props.onCommit,
   })
   const aviso = notaDe(edicion.edicion?.aviso, props.error)
-  const { notas, deLado, deLaEntrada } = notasDe(uid, aviso, candados, hayPar)
+  const notas = notasDe(uid, aviso, candados, hayPar)
+  // El orden en que se ven (y se recorren con Tab y las flechas) los lados: el grande primero.
+  const orden: Lado[] = !hayPar
+    ? ['principal']
+    : props.secondaryProminent === true
+      ? ['secundario', 'principal']
+      : ['principal', 'secundario']
 
   const lado = (cual: Lado) => (
     <LadoDeXCell
@@ -116,8 +126,10 @@ function XCellBase(props: XCellProps) {
       moneda={currency}
       idDelBoton={`${uid}${cual === 'principal' ? 'p' : 's'}`}
       idDeLaEtiqueta={`${uid}e`}
-      idDeLaNota={deLado[cual]}
-      idDeLaNotaDeLaEntrada={deLaEntrada}
+      idDeLaNota={notas.deLado[cual]}
+      idDeLaNotaDeLaEntrada={notas.deLaEntrada}
+      grande={orden[0] === cual}
+      parada={orden.indexOf(cual)}
       bloqueada={bloqueado(cual)}
       soloEsteLado={bloqueado(cual) && toda === undefined}
       conAtajo={acciones.hay}
@@ -143,10 +155,12 @@ function XCellBase(props: XCellProps) {
         label={label}
         sugerido={estados.includes('sugerido')}
       />
-      {lado('principal')}
-      {hayPar ? lado('secundario') : null}
+      {orden.map((cual) => (
+        <Fragment key={cual}>{lado(cual)}</Fragment>
+      ))}
       <AccionesDeXCell
         label={label}
+        candados={notas.candados}
         alAyudar={acciones.alAyudar}
         alAjustar={acciones.alAjustar}
         restablecer={acciones.restablecer}
@@ -156,9 +170,9 @@ function XCellBase(props: XCellProps) {
           onReset(id)
         }}
       />
-      {notas.map(({ id: idDeLaNota, nota }) => (
-        <NotaDeXCell key={idDeLaNota} id={idDeLaNota} nota={nota} />
-      ))}
+      {notas.aviso === undefined ? null : (
+        <NotaDeXCell id={notas.aviso.id} nota={notas.aviso.nota} />
+      )}
     </div>
   )
 }

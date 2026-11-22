@@ -126,12 +126,17 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      hermanas** y lo guardado dice «Se guardaron las dos: n.º N (20 pies) y n.º M (40 pies).» con «Abrir la de 20 pies» y «Abrir la de 40 pies». El título se
      escribe sin la opción (su tope deja lugar a « · <etiqueta>»). La vista previa muestra las dos tarjetas, una bajo la otra.
 3. **La hoja:** secciones en el orden declarado; cada monto en una **XCell** (`Tab` avanza, tipear abre edición, `Esc` cancela) con el color
-   de su grupo en borde y fondo, ayuda y ⚙ si el permiso lo da, **en una fila como la de V1**: rótulo (se corta con «…» y el completo va en
-   `title`) · monto en la monoespaciada (nunca se corta: baja de línea antes de encimarse) · el % chico y gris de un par · acciones; una celda
-   apagada (otra variante, condición apagada) se ve gris con su monto. Arriba del modal «Avanzado», «Tocar un valor lo cambia sólo en esta
+   de su grupo en borde y fondo, ayuda y ⚙ si el permiso lo da, **en una fila de 56 px como la de V1**: rótulo grande (se corta con «…» y el
+   completo va en `title`) · monto grande y en negrita en la monoespaciada (nunca se corta: baja de línea antes de encimarse) · el % chico y gris
+   de un par (si el secundario es el monto, el % va grande y primero) · acciones en el orden candado · ⚙ · ? · ↺; una celda apagada (otra
+   variante, condición apagada) se ve gris con su monto. Un lado bloqueado lleva **candado** en la fila de acciones: su motivo se ve en un
+   globo al pasar el puntero, al tocarlo o al llegar con →, y es la descripción del valor. Los títulos de sección van chicos y en mayúsculas;
+   las franjas de subtotal, con el valor en la monoespaciada. «Avanzado» es un botón a lo ancho con los reguladores (lo que esconde es su
+   descripción; «Hay datos por revisar.» va escrito) y abre un modal grande con sus secciones sin marco. Arriba del modal «Avanzado», «Tocar un valor lo cambia sólo en esta
    cotización.» y, a quien tiene el ⚙, «El ⚙ cambia el valor por defecto de las cotizaciones nuevas.». La ayuda de texto de una celda puede
    traer hasta 5 enlaces («Consulta estas fuentes», una tarjeta por enlace que abre en otra pestaña). Lo **sugerido** lleva un punto; sobrescrito queda **modificado** (anillo y ↺). Atajos (chips
-   de año), **variante** (Moto, Auto Gasolina…), **interruptores** (habilitar fila, mostrar garantía). **Una celda que quien mira no puede
+   de año) y **variante** (Moto, Auto Gasolina…) en píldoras, la elegida rellena del primario; **interruptores** (habilitar fila, mostrar
+   garantía) sin caja, con el switch y su rótulo a la derecha (el motivo de uno apagado va escrito debajo). **Una celda que quien mira no puede
    ver no se dibuja ni llega**; una que no puede editar va con candado y su motivo. **Recalcula en la base** 150 ms después de la última
    tecla. En el celular y al 200 %, una columna en el mismo orden.
    - **El ⚙** (`?ajuste=celda&nodo=`) abre «Valor por defecto de <celda>»: el valor por defecto de cada constante, que afecta a las
@@ -144,7 +149,8 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      Configuración › Empresa › Monedas y que la cotización conserva el suyo.
    - **La ayuda** («Ayuda de X») abre un panel de sólo lectura con su texto o su tabla de referencia (la de la hoja abierta; cargando, sin
      filas, tope de 1.000 filas, fallo con «Reintentar» o «Recargar»); con Modo Live sus cifras se tapan.
-4. **Resumen fijo:** total (y en moneda local si se pidió con «Ver total en moneda local», apagado al nacer y sólo si la versión da su
+4. **Resumen fijo:** total en la **tarjeta del total** (pegada arriba, de superficie invertida, con la etiqueta chica en mayúsculas y el monto
+   grande; en par, una por opción; «Ver el detalle» va fuera de ella) (y en moneda local si se pidió con «Ver total en moneda local», apagado al nacer y sólo si la versión da su
    moneda), garantía si está a la vista, modo de tipo de cambio y toggle **Live**; al pie en el celular (alto máximo 40 % de la ventana) y
    al costado, pegado bajo la barra, desde 56 rem de la hoja (el 200 % lo pasa al pie). `Ctrl/Cmd+S` guarda (preventa); en una guardada «Guardar» va en la
    cabecera y «Vista previa» en su «⋯». «Vista previa»
@@ -236,14 +242,16 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 
 - **Acceso** — `/ingreso`, `/registro`, `/recuperar` (sin sesión): `?returnTo=`, `?aviso=`; `/registro` sólo con registro abierto o sin
   equipo; `/auth/nueva-contrasena` tras el enlace del correo.
-- **Inicio** — `/` (todos): bandeja por rol + widgets opcionales; bloques por permiso; cada contador lleva a la lista filtrada. «Turnos de
+- **Inicio** — `/` (todos): bandeja por rol + widgets opcionales; bloques por permiso; cada contador lleva a la lista filtrada. **«Ver todos» / «Ver todas»** bajo la lista de un bloque,
+  sólo cuando llega a su tope (5: debajo se ve todo) y quien mira puede abrir el destino (si no, el bloque sigue con su conteo y sin enlace): leads sin seguimiento →
+  `/leads?sin_seguimiento=si` (abre «míos»), personas sin rol → `/configuracion/equipo?estado=sin_rol`, turnos de la web → el panel `?panel=turnos`; los demás, a su lista de siempre. «Turnos de
   la web sin confirmar» (`leads.crear` o `web.cola.gestionar`: mis turnos con código, fuente y «Vence en…», «Contacté» en un toque y
-  «Vincular a lead»), «Documentos por aprobar» (`logistica.documentos.aprobar`: sólo los de vehículos), «Repuestos por mover» (`repuestos.mover`) y
+  «Vincular a lead»; el panel de «Ver todos» es un drawer con todos mis turnos sin confirmar, de a 20 con «Ver más» hasta 200, el aviso del tope, esqueleto, vacío y error con «Reintentar»), «Documentos por aprobar» (`logistica.documentos.aprobar`: sólo los de vehículos), «Repuestos por mover» (`repuestos.mover`) y
   «Esperas que destraban vehículos» (`repuestos.ver`). Cada bloque, con su `<Suspense>` y su límite de error: si falla (al leer o al dibujar), sólo ése
   dice el error con «Reintentar». Sin ningún bloque: «Tu rol todavía no tiene trabajo en la bandeja», con los bloques que existen y a quién pedir
   acceso; sin rol, «Aún no tienes un rol, avisa al dueño».
 - **Leads** — `/leads` (`leads.ver`): tabla + enlace a la ficha. «Míos» por defecto; con alcance «todos», `?alcance=`. Filtros del layout
-  (`a.<campo>`), tipo, origen, `?q=`, `?cursor=`, vistas guardadas; la fila y la tarjeta llevan a `/leads/<id>` (un `?lead=` viejo redirige a la ficha con
+  (`a.<campo>`), «Sin seguimiento» (Todos / Sí / No, `?sin_seguimiento=`; chip con su «×»), tipo, origen, `?q=`, `?cursor=`, vistas guardadas; la fila y la tarjeta llevan a `/leads/<id>` (un `?lead=` viejo redirige a la ficha con
   lo que pedía: ver «Leads: listado (estados propios)»); marcas
   `?tachados=`, `?favoritos=`, `?etiqueta=`; `?panel=etiquetas`. «Lista | Embudo» (en «Vista y opciones», con el alcance, las vistas guardadas, «Ítems
   por página» y «Más»: exportar, importar y papelera): `?vista=embudo&embudo=<id>` es el kanban de las oportunidades propias (`?etapa=` en el celular;
@@ -669,7 +677,7 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
   resuelven en el servidor («jose» encuentra «José»); dibuja las 100 primeras por nombre y lo dice al pie; la persona se gestiona desde su
   «⋯», sin resumen. `?panel=invitar`; `?persona=`; `?baja=`.
 - **Roles** — `/configuracion/roles` (`equipo.roles.*`): matriz roles × permisos por módulo; desde 768 px la columna «Permiso» queda pegada
-  a la izquierda y la fila con los nombres de los roles arriba (la tarjeta se desplaza por dentro), con el título del módulo pegado debajo; cada
+  a la izquierda y la fila con los nombres de los roles arriba, a ras del borde, sin hueco (la tarjeta se desplaza por dentro y, con la página al final, su borde de arriba queda a ras de la barra superior), con el título del módulo pegado debajo, a ras de ella; cada
   celda guarda sola. En móvil, un rol a la vez (`?rol=`) y como lista (permiso, explicación y control debajo): la barra «Rol a la vista» queda
   pegada bajo la barra superior y el título del módulo en curso, debajo de ella.
   `?panel=nuevo-rol`, `?eliminar=`.

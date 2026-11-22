@@ -17,6 +17,7 @@ scripts/mapa.sh
 .claude/agents/revisor.md
 .claude/hooks/bloquear-peligrosos.sh
 .claude/hooks/bloquear-secretos.sh
+.claude/hooks/bloquear-esperas.sh
 .claude/hooks/verificar-al-terminar.sh
 .claude/hooks/lint-archivo.sh
 .claude/hooks/solo-lectura.sh
@@ -28,6 +29,7 @@ scripts/guardas/workflows.test.ts
 scripts/guardas/workflows-flujo.test.ts
 scripts/guardas/bloquear-peligrosos.casos.ts
 scripts/guardas/bloquear-secretos.casos.ts
+scripts/guardas/bloquear-esperas.casos.ts
 scripts/guardas/bloquear-peligrosos.test.ts
 scripts/guardas/primer-push-de-main.test.ts
 scripts/guardas/solo-lectura.casos.ts

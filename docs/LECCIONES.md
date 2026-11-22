@@ -338,13 +338,15 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Prueba un registro por área con el área simulada, nunca con el archivo real: la prueba cae en cuanto alguien registra algo.
 - Un componente que empieza a usar `useRouter()` o un hook de nuqs rompe los tests de todo lo que lo dibuja («invariant expected app router to be mounted»,
   «nuqs requires an adapter»): esos tests montan con `withNuqsTestingAdapter()` y mockean `next/navigation`; lo que la URL escribe llega tarde (`waitFor`).
+- jsdom (dom-accessibility-api) no toma el `aria-label` de un nodo referido por `aria-describedby` al calcular la descripción (sólo el texto): un test de
+  descripción sobre un candado con `aria-label` afirma el `aria-describedby` y el `aria-label`, y la descripción de verdad se prueba en Chromium (CDP, `e2e/xcell-teclado.spec.ts`).
 
 ## CI, entorno y herramientas
 
 - Un archivo que una herramienta regenera (`.eslintcache`) va a `.gitignore` antes de su primer commit; si ya está versionado, sale con `git rm --cached` en su propio commit, nunca se restaura a mano en cada sesión. (kit)
-- Espera un proceso en segundo plano con su aviso (`run_in_background`): un bucle de `sleep`/`until`, un `tail` repetido del log o un Monitor de intervalo pagan un turno con todo el contexto en cada vuelta. (kit)
+- Espera un proceso en segundo plano con su aviso (`run_in_background`): un bucle de `sleep`/`until`, un `tail` repetido del log o un Monitor de intervalo pagan un turno con todo el contexto en cada vuelta; el hook `bloquear-esperas.sh` lo rechaza. (kit)
 - Tras reescribir un doc con un guion (python, sed), compara sus líneas antes y después: un guion que escribe el contenido dos veces lo duplica sin que git, el lint ni el mapa lo vean. (kit)
-- Antes de publicar una migración, corre lo que el CI compara de la base: `pnpm db:lint > $TMPDIR/db-lint.txt` y `pnpm exec tsx scripts/despliegue/revisar-base.mjs advisors db-lint $TMPDIR/db-lint.txt inventario` (los advisors y el inventario no los corre `db:lint`). (kit)
+- Antes de publicar una migración, corre `pnpm db:revisar`: es lo que el job «Base» del CI compara de la base (`db:lint`, advisors, `db:lint` contra su lista e inventario); `pnpm db:lint` solo no corre los advisors ni compara contra la lista. (kit)
 - Registra una RPC en `paginas-en-la-base.ts` en el mismo cambio que su primer `.rpc(`, no antes: `paginas.test.ts` rechaza una entrada sin llamador en `src/`.
 - Agrega la sección de `docs/UX.md` que cita un spec en el mismo commit que la pantalla: la guarda del mapa exige que el título exista.
 - `supabase db lint` cambia de formato si detecta un agente (`AI_AGENT`, `CLAUDECODE`): lee con `leerDbLint()` aceptando las dos formas y, para reproducir el CI, quita esas variables.
@@ -362,7 +364,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Usa `set -o pipefail` en los arneses: el código de salida de una tubería es el del último comando y una mutación «cae» o «pasa» en falso.
 - Antes de culpar al código por e2e que caen, mira que la base del carril tenga las migraciones (`pnpm db:reset` al partir de un `main` nuevo; `supabase_migrations.schema_migrations`): dos worktrees con la misma letra en `.env.carril` comparten la pila y se pisan; `bash scripts/worktree/preparar.sh <letra libre>` pasa el worktree a otra.
 - El hook de Bash lee el texto entero del comando, heredocs incluidos, y lo parte también por comillas invertidas y paréntesis: un guion que nombre un push, la bandera de saltar hooks o una orden remota de Supabase se escribe en un archivo (Write) y se corre desde ahí. Lo mismo un texto que nombre un comando bloqueado, aunque sea entre `` ` `` (un doc, un mensaje de commit que nombre una orden de pnpm): se escribe con Write o va por `git commit -F <archivo>`.
-- Un issue que abre una GitHub App tiene `author_association` NONE: el filtro de quién puede escribir reconoce a la app por `performed_via_github_app.id`. (kit)
+- Un issue que abre una GitHub App con su token de instalación llega con `author_association` CONTRIBUTOR y `performed_via_github_app` nulo: a la app se la reconoce por `user.type` Bot y su login `<slug>[bot]`. (kit)
+- Un doble de prueba de una API se copia de una respuesta real (`gh api …`, sin datos personales), no de la documentación. (kit)
 - Un token de instalación vence a la hora: una sesión larga no hereda un `GH_TOKEN` fijo; `gh` y git piden el suyo por `gh-app/gh` y el helper de credenciales. (kit)
 - En un hook, busca el subcomando saltando las opciones globales (`pnpm -C x up`, `pnpm --filter web …`): mirar el primer argumento deja pasar la orden con una opción delante.
 - Con dos cuentas en `gh`, no cambies la activa: pide el token de la dueña del repo por llamada (`GH_TOKEN=$(gh auth token --user <dueña>)`), como hace `scripts/flujo/publicar.sh`.

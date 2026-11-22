@@ -6,6 +6,7 @@ export { confirmarContacto } from '../../features/turnos/actions/confirmar-conta
 export {
   CLAVE_DE_ELEGIR_TURNO,
   CLAVE_DE_TURNO,
+  PANEL_DE_TURNOS,
   PANEL_VINCULAR_TURNO,
 } from '../../entities/turnos/paneles'
 export type { Turno } from '../../entities/turnos/turnos'

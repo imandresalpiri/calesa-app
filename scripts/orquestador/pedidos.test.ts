@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, it } from 'vitest'
 import { escenario } from './prueba/escenario'
@@ -253,6 +253,27 @@ it(
     } finally {
       if (bucle.pid) process.kill(-bucle.pid, 'SIGKILL')
     }
+  },
+  TIEMPO,
+)
+
+it(
+  'pedidos › el que abre la app del orquestador (CONTRIBUTOR, Bot, su login) se redacta y su marca de ajeno se quita',
+  () => {
+    const t = escenario('APP_ID="123"\nAPP_INSTALACION=""\nAPP_LOGIN="mi-app[bot]"\n', {
+      conOrigen: true,
+    })
+    t.issue(47, 'Quiero avisos al celular cuando entra un lead.', ['pedido'])
+    t.cambiarGh((g) => {
+      Object.assign(g.issues[47]!, { autor: 'CONTRIBUTOR', login: 'mi-app[bot]', tipo: 'Bot' })
+    })
+    mkdirSync(join(t.datos, 'estado/.ajenos'), { recursive: true })
+    writeFileSync(join(t.datos, 'estado/.ajenos/P47'), '')
+    t.orqCon(conClaude(t, `SPEC:\n${SPEC}`), 'redactar', '47')
+    expect(sesiones(t)).toBe(1)
+    expect(existsSync(join(t.datos, 'estado/.ajenos/P47'))).toBe(false)
+    expect(t.log()).toContain('pedido #47: ahora se redacta')
+    expect(t.gh().issues[47]!.labels).toEqual(['cola'])
   },
   TIEMPO,
 )

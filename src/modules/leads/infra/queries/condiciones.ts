@@ -28,6 +28,17 @@ function aplicarBusqueda<Consulta extends Filtrable<Consulta>>(
   return consulta.or(porId === null ? porNombre : `${porNombre},${porId}`)
 }
 
+// «Sin seguimiento»: sin ningún seguimiento y creado antes de las últimas 24 h (la misma definición que el bloque de Inicio). Su contrario:
+// con alguno o creado después. Columnas de la fila, filtradas sobre el orden del listado.
+function aplicarSinSeguimiento<Consulta extends Filtrable<Consulta>>(
+  consulta: Consulta,
+  condicion: Extract<CondicionDeLead, { tipo: 'sin_seguimiento' }>,
+): Consulta {
+  return condicion.valor
+    ? consulta.is('ultimo_seguimiento_en', null).lt('creado_en', condicion.creadosAntesDe)
+    : consulta.or(`ultimo_seguimiento_en.not.is.null,creado_en.gte.${condicion.creadosAntesDe}`)
+}
+
 function aplicarUna<Consulta extends Filtrable<Consulta>>(
   consulta: Consulta,
   condicion: CondicionDeLead,
@@ -39,6 +50,8 @@ function aplicarUna<Consulta extends Filtrable<Consulta>>(
       return consulta.in(condicion.columna, condicion.valores)
     case 'en_cartera':
       return consulta.eq('en_cartera', true)
+    case 'sin_seguimiento':
+      return aplicarSinSeguimiento(consulta, condicion)
     // Las marcas de quien mira: columnas de `leads_vista` ya recortadas a sus marcas.
     case 'tachado':
       return consulta.eq('esta_tachado', condicion.valor)

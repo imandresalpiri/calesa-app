@@ -124,10 +124,14 @@ test('la hoja dibuja las secciones y los ítems en el orden declarado, con su ca
     .locator('[data-nodo]')
     .evaluateAll((es) => es.map((e) => e.getAttribute('data-nodo')))
   expect(nodos).toEqual(VISIBLE_SIN_COSTOS)
-  await expect(celda(page, 'anio')).toContainText('Viene del vehículo.')
-  await expect(celda(page, 'solo_n')).toContainText('Lo edita quien tiene el nivel «Costos».')
-  await expect(celda(page, 'dep')).toContainText('Se habilita con «Activar».')
-  await expect(celda(page, 'pub')).not.toContainText('Se habilita')
+  await expect(celda(page, 'anio').getByRole('img', { name: 'Viene del vehículo.' })).toBeVisible()
+  await expect(
+    celda(page, 'solo_n').getByRole('img', { name: 'Lo edita quien tiene el nivel «Costos».' }),
+  ).toBeVisible()
+  await expect(
+    celda(page, 'dep').getByRole('img', { name: 'Se habilita con «Activar».' }),
+  ).toBeVisible()
+  await expect(celda(page, 'pub').getByRole('img', { name: /^Se habilita con/ })).toHaveCount(0)
   await capturar(page, info, 'cotizar-hoja-de-prueba')
 })
 
@@ -148,7 +152,7 @@ test('elegir otra opción de la variante apaga lo que no es de ella, con el moti
   await abrirLaHoja(page, todos, `/cotizaciones/nuevo?origen=${conFormula.id}`)
   await expect(celda(page, 'v').getByLabel('A')).toBeChecked()
   await celda(page, 'v').getByText('B', { exact: true }).click()
-  await expect(celda(page, 'pub')).toContainText('Sólo en A.')
+  await expect(celda(page, 'pub').getByRole('img', { name: 'Sólo en A.' })).toBeVisible()
   await expect.poll(() => vigilante.pedidos.at(-1)?.p_entradas.variante).toBe('b')
 })
 
@@ -176,9 +180,13 @@ test('tipear un monto sin separador de miles recalcula y el total sale de la res
 test('encender un interruptor habilita la celda que depende de él', async ({ page }) => {
   await vigilarRecalculos(page)
   await abrirLaHoja(page, todos, `/cotizaciones/nuevo?origen=${conFormula.id}`)
-  await expect(celda(page, 'dep')).toContainText('Se habilita con «Activar».')
+  await expect(
+    celda(page, 'dep').getByRole('img', { name: 'Se habilita con «Activar».' }),
+  ).toBeVisible()
   await celda(page, 'activar').getByRole('switch', { name: 'Activar' }).click()
-  await expect(celda(page, 'dep')).not.toContainText('Se habilita con «Activar».')
+  await expect(
+    celda(page, 'dep').getByRole('img', { name: 'Se habilita con «Activar».' }),
+  ).toHaveCount(0)
   await tipear(page, 'dep', '300')
   await expect(total(page)).toContainText('305,00')
 })

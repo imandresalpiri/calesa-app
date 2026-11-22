@@ -14,6 +14,9 @@
 #                   Lo de pnpm vive en `bloquear-peligrosos-dependencias.sh`.
 #   Secretos:       ni la clave de la app del orquestador ni el token de GitHub se leen o se imprimen (`printenv`, `env` solo,
 #                   `$GH_TOKEN`, `gh auth token`, `git credential`, correr `token-app.sh`): viven en `bloquear-secretos.sh`.
+#   Esperas:        un Bash en primer plano que espera sondeando (un bucle until/while/for con `sleep`, o un `sleep` de más de 5 s) y un
+#                   Monitor que sólo cuenta tiempo se rechazan: se lanza con `run_in_background` y se espera el aviso. Vive en
+#                   `bloquear-esperas.sh`; el hook corre sobre `Bash|Monitor` (settings.json).
 #   El revisor:     su Bash es de sólo lectura (`solo-lectura.sh`) aunque la carpeta no esté confiada: los hooks del frontmatter de
 #                   `.claude/agents/revisor.md` sólo corren con la carpeta confiada y `claude -p` (el orquestador) no la confía; los de
 #                   settings sí corren y su entrada trae `agent_type`.
@@ -29,6 +32,9 @@ CMD=$(printf '%s' "$ENTRADA" | jq -r '.tool_input.command // empty' 2>/dev/null)
 CWD=$(printf '%s' "$ENTRADA" | jq -r '.cwd // empty' 2>/dev/null)
 [ -z "$CMD" ] && exit 0
 [ -z "$CWD" ] && CWD="$PWD"
+# La herramienta (Bash o Monitor: el mismo hook, el mismo `command`) y si el Bash va en segundo plano (`bloquear-esperas.sh`).
+HERRAMIENTA=$(printf '%s' "$ENTRADA" | jq -r '.tool_name // empty' 2>/dev/null)
+SEGUNDO_PLANO=$(printf '%s' "$ENTRADA" | jq -r '.tool_input.run_in_background // false' 2>/dev/null)
 
 if [ "$(printf '%s' "$ENTRADA" | jq -r '.agent_type // empty' 2>/dev/null)" = revisor ]; then
   printf '%s' "$ENTRADA" | bash "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/solo-lectura.sh" || exit $?
@@ -59,6 +65,10 @@ SECRETOS="$(dirname "${BASH_SOURCE[0]}")/bloquear-secretos.sh"
 # shellcheck source=bloquear-secretos.sh
 . "$SECRETOS" 2>/dev/null || bloquear "Falta $SECRETOS (las reglas de secretos del hook): sin él no corre nada."
 revisar_secretos
+ESPERAS="$(dirname "${BASH_SOURCE[0]}")/bloquear-esperas.sh"
+# shellcheck source=bloquear-esperas.sh
+. "$ESPERAS" 2>/dev/null || bloquear "Falta $ESPERAS (las reglas de esperas del hook): sin él no corre nada."
+revisar_esperas
 
 # --- Sobre el comando entero (lo de siempre) ---
 case "$CMD" in
@@ -238,7 +248,7 @@ revisar_supabase() {
   [ "$remoto" = 1 ] && [ "$sub $sub2" != "db diff" ] && return 0
   case "$sub $sub2" in
     "db reset" | "db lint" | "db diff" | "gen types")
-      bloquear "supabase $sub $sub2 usa la base local, que es de una a la vez: pasa por el candado (pnpm db:reset | db:lint | db:diff | db:types)." ;;
+      bloquear "supabase $sub $sub2 usa la base local, que es de una a la vez: pasa por el candado (pnpm db:reset | db:lint | db:revisar | db:diff | db:types)." ;;
   esac
 }
 

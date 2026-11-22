@@ -270,14 +270,24 @@ declare
   v_tablas text[] := case when v_rel = 'leads_cartera_vista' then '{leads,leads_asesores}' else '{leads}' end;
   -- La dueña en «míos» camina `leads_listado_idx` y descarta lo que no es suyo (un 60 %): el doble de margen, como siempre.
   v_desc int := case when p_mios and v_rel = 'leads_vista' then 6000 else 3000 end;
+  -- El filtro «Sin seguimiento» (`?sin_seguimiento=si`, el «Ver todos» de «Leads sin seguimiento» de Inicio): `ultimo_seguimiento_en is null` y creado antes de las
+  -- últimas 24 h, columnas de la fila sobre el orden del listado; su contrario (`no`) es `ultimo_seguimiento_en is not null or creado_en >= …`. Sin índice propio: camina
+  -- el del listado y descarta lo que no cumple, así que cuesta lo que pesa lo que hay que saltar (con la siembra, a quien casi no tiene leads con seguimiento, como Berta, ~100 ms
+  -- en «con seguimiento»; el «sí», que es el que abre Inicio, ≤ 72 ms para la dueña).
+  v_sin text := format('ultimo_seguimiento_en is null and creado_en < %L and esta_tachado = false', now() - interval '24 hours');
+  v_con text := format('(ultimo_seguimiento_en is not null or creado_en >= %L) and esta_tachado = false', now() - interval '24 hours');
 begin
   -- La dueña en «míos» sigue leyendo `leads_vista` (su cartera es grande: por la cartera no mejora, `docs/RENDIMIENTO.md`): se asserta lo
   -- que ya se asertaba de esa lectura y nada más. Su etiqueta propia (112 ms con 62.000 leads, presupuesto 100) es de `docs/PENDIENTES.md` 5a-7; un campo
   -- público (el atributo común, 105,6 ms con 212.000) se lee ahora por los candidatos y lo mide `busqueda()`, y uno privado (5a-10), `privados()`.
   if p_mios and v_rel = 'leads_vista' then
     perform pg_temp.escala(v_modo || ': página 1 con el máximo de la lista', q, pg_temp.pagina(v_m || 'esta_tachado = false', v_max, v_rel), 30, v_idx, v_tablas, v_desc);
+    perform pg_temp.escala(v_modo || ': sin seguimiento', q, pg_temp.pagina(v_m || v_sin, v_max, v_rel), 100);
+    perform pg_temp.escala(v_modo || ': con seguimiento', q, pg_temp.pagina(v_m || v_con, v_max, v_rel), 150);
     return;
   end if;
+  perform pg_temp.escala(v_modo || ': sin seguimiento', q, pg_temp.pagina(v_m || v_sin, v_max, v_rel), 100);
+  perform pg_temp.escala(v_modo || ': con seguimiento', q, pg_temp.pagina(v_m || v_con, v_max, v_rel), 150);
   perform pg_temp.escala(v_modo || ': página 1 (tachados ocultos)', q, pg_temp.pagina(v_m || 'esta_tachado = false', 50, v_rel), 30, v_idx, v_tablas, v_desc);
   perform pg_temp.escala(v_modo || ': página 1 con el máximo de la lista', q, pg_temp.pagina(v_m || 'esta_tachado = false', v_max, v_rel), 30, v_idx, v_tablas, v_desc);
   perform pg_temp.escala(v_modo || ': página 100 por cursor', q, pg_temp.pagina(v_m || 'esta_tachado = false and ' || v_cursor, 50, v_rel), 150, v_idx, v_tablas, v_desc);

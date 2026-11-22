@@ -23,6 +23,7 @@
     "db:medir": "bash scripts/candado.sh db:medir -- node scripts/medir-listado.mjs",
     "db:carreras": "bash scripts/candado.sh db:carreras -- node scripts/carreras.mjs",
     "db:lint": "bash scripts/candado.sh db:lint -- supabase db lint --fail-on error",
+    "db:revisar": "bash scripts/candado.sh db:revisar -- bash scripts/db/revisar.sh",
     "db:aplastar": "bash scripts/candado.sh db:aplastar -- bash scripts/db/aplastar.sh",
     "mapa": "bash scripts/mapa.sh",
     "env:check": "tsx scripts/env-check.ts",

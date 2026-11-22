@@ -26,6 +26,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** El dato del vehículo de una tabla (4.14-2c3) no se elige en el panel de una guardada: el lector de opciones lee `cotizacion_tabla` con la hoja abierta, que una guardada no tiene — falta uno por cotización (la celda dice «Falta un dato del vehículo.»).
 - **[4-72]** Quien ve una cotización pero no su vehículo no puede recalcularla («No se pudo recalcular») — que el recálculo de una guardada no dependa del vehículo, o que la pantalla diga por qué.
 - **[—]** Una plantilla de la forma 1 que ya no se convierte (un `{{` en una etiqueta, leyenda o nota, que la forma 1 admite como texto, o una fórmula con más de 120 filas convertidas) pasa a `sin_plantilla` sin aviso: la tarjeta va por omisión — que el editor o publicar la fórmula lo digan.
+- **[—]** La hoja de cotizar no llega del todo a la disposición de las capturas de V1: va en una columna a 1280–1440 (el contenedor de las secciones mide
+  612–770 px, con el menú y el resumen al costado), el total vive en el resumen y no dentro de la rejilla, y el ⚙ de los años no va junto a sus chips. Es del
+  editor de la hoja sobre la vista (la tarjeta del total como pieza).
 - **[—]** Los modos de tipo de cambio se editan en «Hoja», no en la planilla de la fórmula.
 - **[—]** Editor de la tarjeta: arrastrar el borde de una fila del lienzo para cambiar su alto (hoy, el campo «Alto» del panel).
 - **[—]** Una bandera que sólo lee la `prueba` de un `elegir` o un término de `Y`/`O` (`SI(nuevo; 100; 50)`) no pide su interruptor en el diseño al publicar (§5 de `validar_diseno()` y `revisarCobertura()` sólo cuentan la `condicion`): decidir si una condición también lo exige.
@@ -46,7 +49,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 ### Logística
 
 - **[—]** «Documentos por aprobar» de Inicio sólo trae los documentos de vehículos (`_bandeja_por_aprobar`): quien sólo aprueba los de repuestos no ve el bloque. Sumar los de los ítems pide ampliar esa RPC y su medición.
-- **[—]** Un bloque «Leads sin seguimiento» y «Personas sin rol» no llevan a una lista filtrada: ni `/leads` ni Equipo tienen ese filtro (cada fila abre su ficha o a la persona).
 - **[—]** Un bloque «Subastas sin resolver» en Inicio — hoy es un grupo de la bandeja del día de `/logistica` y «Subasta: Sin resolver» en el inventario.
 - **[A1c]** Avisos sin salida: el bloqueo de eliminar una fase no enlaza «las fases que esperan» ni «las unidades en ella» (`ImpactoDeFase` sólo trae conteos; pide los ids); «Editar grupo» con más unidades de las que se muestran y «súbelo por partes» de documentos de un grupo de más de 100 no dicen el paso siguiente; «No pudimos leer los títulos» del panel de fuera de regla no ofrece «Reintentar».
 - **[6-2]** Publicar en la vitrina mueve la versión de la ficha (`vehiculo_vitrina` usa `vehiculos.actualizado_en`) — una columna `vitrina_actualizado_en` que la RPC exija y devuelva.
@@ -200,6 +202,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px, los tercios del modal «Avanzado», un par con un lado bloqueado en el celular) baja sus
+  acciones a una segunda línea: la celda mide 88 px en vez de 56 y las de la misma fila no se alinean. Achicar el rótulo antes que bajar las acciones
+  (`clases.ts` de la XCell).
 - **[—]** En el celular, el paso a paso de la puesta en marcha (seis filas arriba) baja el contenido de cada paso casi a media pantalla, y en
   «Listo» deja «Cotizar con <origen>» bajo el pliegue: plegarlo a una línea («Paso 3 de 6 · Flujo») que abre la lista (`paso-a-paso.tsx`).
 - **[—]** Cabecera del resumen de la cotización en el celular: al 200 % ocupa casi toda la pantalla (el monto se corta contra el borde y las pestañas quedan debajo, sin desplazamiento del drawer, que va con `desplazamiento="propio"`) — que el drawer se desplace cuando la cabecera no deja alto a las pestañas, o plegarla a título y total; y la fila «Creada» parte su valor bajo la etiqueta — dejar la etiqueta con el primer tramo del valor (`resumen-de-cotizacion.tsx`, `cabecera-del-resumen.tsx`).

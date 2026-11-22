@@ -1,5 +1,5 @@
 // Bloque «Mis tareas»: mis tareas pendientes, las que vencen primero arriba y las sin fecha al final; una vencida dice «Vencida». Lee por la entrada pública de
-// `agenda`, con su RLS. Cada fila abre su panel en `/agenda`; «Ver todas» lleva al calendario de tareas.
+// `agenda`, con su RLS. Cada fila abre su panel en `/agenda`; «Ver todas» (sólo con tope) lleva al calendario de tareas.
 import { estaVencida, leerMisTareas } from '@/modules/agenda'
 import { cantidadAcotada } from '@/shared/lib/conteo'
 import { formatearFechaHora } from '@/shared/lib/fechas'
@@ -36,7 +36,7 @@ export const CuerpoTareas: CuerpoDeBloque = async ({ bloque, zona }) => {
           plural: 'tareas',
         })}
       />
-      <VerTodasDelBloque ruta="/agenda?ver=tarea" />
+      <VerTodasDelBloque bloque={bloque} ruta="/agenda?ver=tarea" hayMas={hayMas} />
     </>
   )
 }

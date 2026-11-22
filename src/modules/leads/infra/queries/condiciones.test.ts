@@ -122,4 +122,15 @@ describe('aplicarCondicionesDeLeads: atributos y marcas', () => {
       ),
     ).toEqual(['esta_tachado=eq.false', 'es_favorito=eq.true', 'etiquetas=ov.{a,b}'])
   })
+
+  it('«Sin seguimiento» pide sin último seguimiento y creado antes del instante; su contrario, lo opuesto', () => {
+    const creadosAntesDe = '2026-11-20T12:00:00.000Z'
+    expect(pedidosDe({ tipo: 'sin_seguimiento', valor: true, creadosAntesDe })).toEqual([
+      'ultimo_seguimiento_en=is.null',
+      `creado_en=lt.${creadosAntesDe}`,
+    ])
+    expect(pedidosDe({ tipo: 'sin_seguimiento', valor: false, creadosAntesDe })).toEqual([
+      `or=(ultimo_seguimiento_en.not.is.null,creado_en.gte.${creadosAntesDe})`,
+    ])
+  })
 })

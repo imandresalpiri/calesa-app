@@ -125,6 +125,10 @@ Bloque «Seguimiento» de la ficha y su «Ver todos» (`?todos=seguimientos`).
 - `turnos-web`: dos lecturas `limit 6` de `solicitudes_contacto_web` (`solicitudes_contacto_web_usuario_id_idx`; las `asignada`, por
   `solicitudes_web_asesor_abiertas_idx`) y, si hay vehículos, una de `web.vehiculos` por ids. La tarjeta sólo se monta con turnos; el panel
   de vincular va con `diferido()`.
+- «Ver todos» de cada bloque: un `<Link>` (sin JS ni lectura propia) que se dibuja sólo con el bloque en su tope. El panel de turnos (`?panel=turnos`) vive en el navegador: código con `diferido()` al primer
+  `?panel=turnos`, nada al cargar `/` en frío (`presupuesto-js`); lee a la apertura y al volver a la pestaña 2 consultas `limit 21` (vigentes y vencidas) más una de `web.vehiculos` por ids, y «Ver más» otras
+  dos por cursor `(vence_en, id)`, nunca `offset` ni conteo; tope 200 (`TOPE_DE_TURNOS_CARGADOS`) con aviso. Una persona recibe pocos turnos por día: tabla sin medición de volumen.
+- «Personas sin rol» → `equipo_lista(p_estado => 'sin_rol')`: la antijunta `not exists (… usuarios_roles)` camina `perfiles_vigentes_orden_idx` en el orden de la lista y se detiene en 101 (`limit`); una tabla de decenas de personas, sin medición de volumen.
 - `repuestos-por-mover` y `esperas-repuestos`: una lectura `limit 6` cada uno sobre `repuestos_items` (`repuestos_items_fase_id_idx`, orden
   `fase_desde`; sin índice propio: `docs/PENDIENTES.md`), con fase, proyecto y título embebidos. Server Components.
 
@@ -137,6 +141,8 @@ que asserta `pnpm db:medir:volumen` o el e2e. Mide `medir-escala.sql` salvo que 
 
 - Listado: 100 por cursor (`MAXIMO_DE_PAGINA_DE_LEADS`), `leads_listado_idx`; 30 ms página 1, 150 ms página profunda (100 por cursor). La
   policy se estima con `_lead_visible_para()` sobre `leads.cartera`.
+- Filtro «Sin seguimiento» (`?sin_seguimiento=si|no`, `ultimo_seguimiento_en is null and creado_en < ahora − 24 h`; su contrario, `is not null or creado_en >= …`): columnas de la fila sobre el orden del listado,
+  sin índice propio; se mide en `medir-escala.sql` («listado …: sin seguimiento» y «con seguimiento», «míos» y «todos»): «sin seguimiento» ≤ 100 ms y «con seguimiento» ≤ 150 ms (el contrario descarta más filas de la cartera).
 - Teléfonos extra: ≤ 20 por lead (el `check` de `telefonos_extra_maximo`), una sola respuesta con la lista entera, `leads_telefonos_unico (lead_id, telefono)`.
   El panel de edición, un pedido (`lead_ficha()` ya trae los extras y el máximo). Con «Los teléfonos extra cuentan como el principal» encendida,
   `_lead_verificar()` suma una búsqueda por `leads_telefonos_telefono_idx` sólo si el número no es principal de nadie.
@@ -606,15 +612,15 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 
 - Topes (`PRESUPUESTO_DE_JS_EN_KB` de `e2e/soporte/presupuestos.ts`, lo medido más un 5 % a la decena; uno pasado por ≤ 5 % se sube con la regla del 5 %):
   `/leads` 560, `/leads/[id]` 590, `/perfil` 440, `/vehiculos` 530, `/vehiculos/[id]` 540 (531,8 medidos con la cotización privada, los dos botones del marco y la cuenta regresiva de la subasta: regla del 5 %), `/cotizaciones` 400 (con las tarjetas de la lista, la imagen de la tarjeta en frío y el hook de los menús de las filas que comparte con las fichas),
-  `/cotizaciones/nuevo` 470 (466,6 medidos con el interruptor «Privada» y los botones «Recargar la página» y «Copiar el enlace de esta página» del marco: regla del 5 %; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
+  `/cotizaciones/nuevo` 470 (469,3 medidos con la hoja con el aspecto de V1, el interruptor «Privada» y los botones «Recargar la página» y «Copiar el enlace de esta página» del marco; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
   (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 480,1 medidos con «Hacer privada», la insignia y los dos botones del marco: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
   `/logistica/fase/[fase]` 390, `/logistica/vehiculo/[id]` 470, `/configuracion/catalogos/quien-crea-y-quien-ve` 420 (provisional hasta su primera medición);
   `/cotizaciones/papelera` 440 (en su spec).
 - Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 558,3 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
   frío serían 450: va con `diferido()`; la imagen del resumen, sólo su cáscara: `CLAVE_DEL_VISOR` por el barril del visor sumaba 2,5 KB, se importa de
-  `use-carrusel`), `/cotizaciones/[id]` 480,1 de 490 (la rejilla y el aspecto de la hoja pesan por sus tablas de clases; la barra del vehículo de la cabecera va con
-  `diferido()`, y con ella el panel de elegir otro vehículo en una preventa) y `/cotizaciones/nuevo` 466,6 de 470 (lo de la hoja en par va con `diferido()`; el
+  `use-carrusel`), `/cotizaciones/[id]` 483,0 de 490 (la rejilla y el aspecto de la hoja pesan por sus tablas de clases; la barra del vehículo de la cabecera va con
+  `diferido()`, y con ella el panel de elegir otro vehículo en una preventa) y `/cotizaciones/nuevo` 469,3 de 470 (lo de la hoja en par va con `diferido()`; el
   pedido del PDF va en su propia composición, sin la lectura de la tarjeta; el campo del título va con `diferido()` dentro del panel; los pasos de la hoja y el botón del ⚙ de la cabecera viajan en frío, su panel, los campos por defecto y los enlaces de la ayuda con
   `diferido()`) (`docs/PENDIENTES.md`).
 - La hoja no lleva al navegador `diseno.ts` ni su Zod: las constantes de la rejilla viven en `rejilla-de-la-hoja.ts` (importarlas de `diseno.ts` suma 1,7 KB a cada
@@ -858,15 +864,15 @@ pnpm db:medir:volumen`): invocadora, páginas de `MAXIMO_DE_PAGINA_DE_COTIZACION
   `cotizacion_crear` y `cotizacion_guardar`, que miden `medir-cotizacion-crear.sql` y `medir-cotizacion-guardar.sql`); `cotizaciones_hermana_unica` sostiene
   quién apunta a una cotización (la papelera y el `set null` de la purga).
 - La hoja dibujada (`e2e/cotizar-hoja-200.spec.ts`, 100 % y 200 %): `[data-hoja]` más «Avanzado» abierto ≤ 500 nodos con la fórmula más
-  grande, como quien cotiza sin ⚙ (~12 nodos por celda: la celda en una fila no lleva el envoltorio de la cabecera); mide 446 al abrir y 467 usada, con los
+  grande, como quien cotiza sin ⚙ (~12 nodos por celda: la celda en una fila no lleva el envoltorio de la cabecera); mide 457 al abrir y 478 usada, con los
   pasos de la hoja (de 5 a 8 nodos: la fila, sus 4 botones y el texto de cada punto). Lo que sume nodos a la hoja se para y se reporta. El aspecto
   (rejilla, espacios, letra y color) va en clases y variables sobre los nodos de siempre: ningún nodo por celda ni por sección. Al abrir,
   2 llamadas desde el servidor (+ `leerVehiculo` con un vehículo en la URL, + `leerClienteElegido` con un `?lead=`, + `integracionActiva`
   con `vehiculos.crear` en un origen de subasta, todas en el mismo `Promise.all`) y ninguna del navegador hasta abrir un panel; después un
   pedido por pausa de tecleo, con 1 en vuelo como máximo (`e2e/cotizar-hoja.spec.ts`).
 - El ⚙ de una constante (`e2e/cotizar-ajuste-constante.spec.ts`): como quien configura, cada ⚙ son exactamente 3 nodos (botón, `svg`,
-  `use`), el ⚙ de la cabecera son 7 (la fila junto a los modos, el botón, su `svg` y sus cuatro trazos) y la subasta ≤ 585 nodos (techo 600; mide 516 al abrir
-  y 540 usada); las dos personas ven las mismas celdas. Ningún pedido al abrir la hoja ni al pasar por una
+  `use`), el ⚙ de la cabecera son 7 (la fila junto a los modos, el botón, su `svg` y sus cuatro trazos) y la subasta ≤ 585 nodos (techo 600; mide 527 al abrir
+  y 551 usada); las dos personas ven las mismas celdas. Ningún pedido al abrir la hoja ni al pasar por una
   celda; abrir un ⚙ lee una fila, la publicada de la activa (`formulas_del_origen_activa_unica` y `formulas_publicada_unica`), ≤ 70 B. Panel, hook, lectura y action con `diferido()`.
 - El ⚙ de un tipo de cambio (`e2e/cotizar-ajuste-tipo-cambio.spec.ts`): una llamada a `formula_tipo_cambio_del_nodo()`, ≤ 247 B; tras
   cambiarlo la hoja no relee. Bloque, hooks y action de `empresa` van con el panel por `diferido()`.

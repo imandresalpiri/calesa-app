@@ -1,5 +1,5 @@
 // Bloque «Repuestos por mover»: los ítems del flujo de repuestos en una fase que no es la final, el que lleva más tiempo en su fase arriba (8.13-4). Lee por la
-// entrada pública de `repuestos`. Cada fila abre el panel del ítem, donde «Qué falta» y los botones dicen si se puede mover; «Ver todas» lleva a la cadena.
+// entrada pública de `repuestos`. Cada fila abre el panel del ítem, donde «Qué falta» y los botones dicen si se puede mover; «Ver todos» (sólo con tope) lleva a la cadena.
 import {
   detalleDeRepuestoPorMover,
   leerRepuestosPorMover,
@@ -8,6 +8,7 @@ import {
   textoDeRepuestoPorMover,
 } from '@/modules/repuestos'
 import { cantidadAcotada } from '@/shared/lib/conteo'
+import { puede } from '@/shared/lib/permisos'
 import { TOPE_DE_BLOQUE } from '../../../entities/bandeja'
 import { ErrorDeBloque } from '../components/error-de-bloque'
 import { ListaDeBloque } from '../components/lista-de-bloque'
@@ -15,7 +16,7 @@ import { VacioDeBloque } from '../components/vacio-de-bloque'
 import { VerTodasDelBloque } from '../components/ver-todas-del-bloque'
 import type { CuerpoDeBloque } from './tipos'
 
-export const CuerpoRepuestosPorMover: CuerpoDeBloque = async ({ bloque, zona }) => {
+export const CuerpoRepuestosPorMover: CuerpoDeBloque = async ({ bloque, zona, permisos }) => {
   const lectura = await leerRepuestosPorMover(TOPE_DE_BLOQUE)
   if (!lectura.ok) {
     return <ErrorDeBloque />
@@ -39,7 +40,12 @@ export const CuerpoRepuestosPorMover: CuerpoDeBloque = async ({ bloque, zona }) 
           plural: 'repuestos por mover',
         })}
       />
-      <VerTodasDelBloque ruta={rutaDeLaCadena()} />
+      <VerTodasDelBloque
+        bloque={bloque}
+        ruta={rutaDeLaCadena()}
+        hayMas={hayMas}
+        puedeAbrir={puede(permisos, 'repuestos.ver')}
+      />
     </>
   )
 }

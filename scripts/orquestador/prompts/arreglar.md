@@ -9,7 +9,7 @@ Primero entiende el estado: `git log --oneline origin/main..HEAD`, `git status -
 
 - **Choque con main:** `git fetch origin && git merge origin/main` (nunca rebase ni push forzado), resuelve conservando lo de las dos
   partes, commitea. Si una migración de esta rama quedó con fecha anterior a una ya integrada, créala de nuevo con
-  `pnpm exec supabase migration new` y borra la vieja de la rama (el CI exige el orden). Después `pnpm db:reset`, `pnpm db:types`.
+  `pnpm exec supabase migration new` y borra la vieja de la rama (el CI exige el orden). Después `pnpm db:reset`, `pnpm db:types` y `pnpm db:revisar` (lo que el job «Base» del CI compara de la base).
 - **Sacado de la cola de integración:** el CI del grupo (tu rama combinada con main y los PR de delante) cayó con tu PR en verde. Lo de
   delante suele estar ya en main: `git fetch origin && git merge origin/main`, reproduce lo caído y arregla la causa. Si es el orden de
   migraciones, la migración nueva con fecha de hoy (lo de arriba).
@@ -34,6 +34,7 @@ Primero entiende el estado: `git log --oneline origin/main..HEAD`, `git status -
   base si tocaste `supabase/`, y los e2e que cayeron más los afectados (`node scripts/e2e-afectados.mjs`: dice cuáles y por qué), en una sola
   corrida en segundo plano. Si fue un
   choque con main y tu lado sólo cambió docs al resolverlo: sólo `bash scripts/flujo/verificar.sh`, sin e2e. Lo temporal va en `$TMPDIR`, nunca en `/tmp`.
+- **Esperar no es sondear:** lo largo (`verificar.sh`, `e2e-afectados.mjs --correr`, `db:probar`) se lanza con `run_in_background` y se espera su aviso; no leas el log hasta que llegue, no armes bucles de espera ni un Monitor de intervalo, y tras tu `RESULTADO` no rearmes esperas. El hook `PreToolUse` rechaza un Bash en primer plano que sondea y un Monitor que sólo cuenta tiempo.
 - Publica de nuevo con `bash scripts/flujo/publicar.sh --sin-esperar --titulo '<el título actual del PR>'`. Agrega al cuerpo del PR
   (`gh pr edit` falla en este repo: `gh api -X PATCH 'repos/{owner}/{repo}/pulls/{{PR}}' -F body=@<archivo>`) qué cayó y cómo se arregló, en dos líneas.
 

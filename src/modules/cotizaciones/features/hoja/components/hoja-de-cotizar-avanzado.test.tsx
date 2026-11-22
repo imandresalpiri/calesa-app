@@ -96,7 +96,9 @@ describe('HojaDeCotizar: «Avanzado» es un modal', () => {
     montar()
     expect(secciones()).toEqual(['a', 'b'])
     const boton = screen.getByRole('button', { name: /Avanzado/ })
-    expect(boton.textContent).toContain('Componentes CIF · Póliza')
+    // Los títulos no se escriben: son la descripción del botón.
+    expect(boton).toHaveAccessibleName('Avanzado')
+    expect(boton).toHaveAccessibleDescription('Componentes CIF · Póliza')
     // El botón va entre las dos principales, donde estaba la primera avanzada.
     const dom = [...document.querySelectorAll('[data-seccion], [data-avanzado]')].map(
       (e) => e.getAttribute('data-seccion') ?? 'avanzado',

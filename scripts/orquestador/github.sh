@@ -20,21 +20,58 @@ con_issues() { [ "${ORQ_SOLO_LOCAL:-0}" != 1 ] && [ -n "$REPO_GH" ]; }
 
 # Quien abre un issue o comenta y puede escribir en el repo (author_association de la API). Lo demás no entra a la cola.
 CON_PERMISO='["OWNER","MEMBER","COLLABORATOR"]'
-# El filtro de quien abre un issue: lo de arriba o la app del orquestador (app.sh), que abre las tareas que entran solas (deps, kit,
-# cierre, la urgente de main) con author_association NONE; se la reconoce por su id (`performed_via_github_app.id` = APP_ID), que está
-# en config.env en cualquier máquina. Otro bot no entra. Uso: jq --argjson ok "$CON_PERMISO" --arg app "${APP_ID:-}" "$JQ_CON_PERMISO …".
+# El filtro de quien abre un issue: lo de arriba o la app del orquestador (app.sh), que abre las tareas que entran solas (la entrada,
+# deps, kit, cierre, la urgente de main). Con su token de instalación GitHub la devuelve así: author_association CONTRIBUTOR (que no
+# basta: lo es quien tenga un PR integrado), user.type Bot, user.login `<slug>[bot]` y performed_via_github_app nulo (sólo se llena
+# cuando la app actúa en nombre de una persona). Se la reconoce por su login (identidad_app) y, si GitHub lo llenara, por su id
+# (`performed_via_github_app.id` = APP_ID); siempre de tipo Bot, para que una persona con ese nombre no entre. Otro bot no entra.
+# Uso: identidad_app; jq --argjson ok "$CON_PERMISO" --arg app "$APP_RECONOCIDA_ID" --arg login "$APP_RECONOCIDA_LOGIN" "$JQ_CON_PERMISO …".
 JQ_CON_PERMISO=$(cat <<'JQ'
-def con_permiso($ok; $app): (.author_association as $a | $ok | index($a)) != null
-  or (.user.type == "Bot" and $app != "" and ((.performed_via_github_app.id // "") | tostring) == $app);
+def de_la_app($app; $login): .user.type == "Bot"
+  and (($login != "" and .user.login == $login)
+    or ($app != "" and ((.performed_via_github_app.id // "") | tostring) == $app));
+def con_permiso($ok; $app; $login): (.author_association as $a | $ok | index($a)) != null or de_la_app($app; $login);
 JQ
 )
+
+# Cómo se reconoce a la app en un issue: deja APP_RECONOCIDA_ID (APP_ID) y APP_RECONOCIDA_LOGIN. El login sale de APP_LOGIN en
+# config.env (sin red ni clave: vale aunque la app haya caído a la sesión de la persona) o, si está vacío, de la caché del token
+# (token-app.sh --bot, que lo pidió a GET /app; sólo con la app configurada). Las dos vacías sin APP_ID o con ORQ_SIN_APP=1: nada
+# entra por ser de la app. El login de la caché se recuerda en el proceso sólo si no vino vacío: el bucle vive días y lo vuelve a buscar.
+APP_LOGIN_DE_LA_CACHE=""
+identidad_app() {
+  APP_RECONOCIDA_ID="" APP_RECONOCIDA_LOGIN=""
+  { [ -n "${APP_ID:-}" ] && [ "${ORQ_SIN_APP:-0}" != 1 ]; } || return 0
+  APP_RECONOCIDA_ID=$APP_ID
+  if [ -n "${APP_LOGIN:-}" ]; then
+    APP_RECONOCIDA_LOGIN=$APP_LOGIN
+    return 0
+  fi
+  if [ -z "$APP_LOGIN_DE_LA_CACHE" ] && app_configurada; then
+    APP_LOGIN_DE_LA_CACHE=$(APP_ID="$APP_ID" APP_INSTALACION="${APP_INSTALACION:-}" APP_CLAVE="${APP_CLAVE:-}" \
+      bash "$TOKEN_APP" --bot 2>/dev/null)
+  fi
+  APP_RECONOCIDA_LOGIN=$APP_LOGIN_DE_LA_CACHE
+  return 0
+}
+
 # El autor de un issue: además, github-actions[bot] en un issue `noche-roja`, el que abre el aviso de la noche (scripts/flujo/noche.mjs)
 # con GITHUB_TOKEN, sin una asociación de escritura; un fork no tiene ese token con escritura. Otro issue de un bot (un `pedido`, una
 # `cola` sin `noche-roja`) no entra. Ningún comentario de un bot cuenta como respuesta (buscar_respuestas, redaccion.mjs).
 con_permiso() {
-  jq -e --argjson ok "$CON_PERMISO" --arg app "${APP_ID:-}" "$JQ_CON_PERMISO"' con_permiso($ok; $app)
+  identidad_app
+  jq -e --argjson ok "$CON_PERMISO" --arg app "$APP_RECONOCIDA_ID" --arg login "$APP_RECONOCIDA_LOGIN" \
+    "$JQ_CON_PERMISO"' con_permiso($ok; $app; $login)
     or (.user.login == "github-actions[bot]" and .user.type == "Bot"
       and any(.labels[]?; (if type == "string" then . else .name end) == "noche-roja"))' <<<"$1" >/dev/null
+}
+
+# La salida de un `ghc api --paginate …/issues` → 0 si algún issue (no un PR) lo abrió quien puede escribir en el repo o la app.
+alguno_con_permiso() {
+  identidad_app
+  jq -s -e --argjson ok "$CON_PERMISO" --arg app "$APP_RECONOCIDA_ID" --arg login "$APP_RECONOCIDA_LOGIN" \
+    "$JQ_CON_PERMISO"'[add[]? | select(has("pull_request") | not) | select(con_permiso($ok; $app; $login))] | length > 0' \
+    <<<"$1" >/dev/null
 }
 
 huella() { sha256sum | cut -c1-16; }

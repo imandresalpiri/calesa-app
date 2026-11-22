@@ -1,7 +1,13 @@
 import { cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CLASE_LIVE } from '../guion-live'
-import { PARADA_DE_AJUSTES, PARADA_DE_AYUDA, PARADA_DE_RESTABLECER } from './cabecera-de-xcell'
+import {
+  PARADA_DE_ACCIONES_DESDE,
+  PARADA_DE_AJUSTES,
+  PARADA_DE_AYUDA,
+  PARADA_DEL_CANDADO,
+  PARADA_DE_RESTABLECER,
+} from './cabecera-de-xcell'
 import { ID_DEL_ATAJO, SimbolosDeXCell, TEXTO_DEL_ATAJO } from './simbolos-de-xcell'
 import { BASE, celda } from './xcell.soporte'
 import { XCell } from './index'
@@ -58,12 +64,28 @@ describe('la ayuda y el ⚙', () => {
     expect(document.activeElement).toBe(ayuda)
   })
 
-  it('el orden de la ranura es ayuda → ⚙ → ↺', () => {
-    const c = celda({ ...ACCIONES(), overridden: true })
-    const orden = [...c.raiz.querySelectorAll('[data-parada]')]
-      .map((e) => Number(e.getAttribute('data-parada')))
-      .filter((n) => n >= PARADA_DE_AYUDA)
-    expect(orden).toEqual([PARADA_DE_AYUDA, PARADA_DE_AJUSTES, PARADA_DE_RESTABLECER])
+  it('el orden de la ranura es el de V1: candado → ⚙ → ayuda → ↺, y el DOM lo sigue', () => {
+    const orden = (props: Parameters<typeof celda>[0]) =>
+      [...celda(props).raiz.querySelectorAll('[data-parada]')]
+        .map((e) => Number(e.getAttribute('data-parada')))
+        .filter((n) => n >= PARADA_DE_ACCIONES_DESDE)
+    expect(orden({ ...ACCIONES(), overridden: true })).toEqual([
+      PARADA_DE_AJUSTES,
+      PARADA_DE_AYUDA,
+      PARADA_DE_RESTABLECER,
+    ])
+    cleanup()
+    // Un par con un lado bloqueado: el candado y ↺ conviven.
+    expect(
+      orden({
+        ...ACCIONES(),
+        overridden: true,
+        secondaryId: 'p',
+        secondaryFormat: 'porcentaje',
+        secondaryValue: 0.1,
+        disabledReason: 'Se calcula',
+      }),
+    ).toEqual([PARADA_DEL_CANDADO, PARADA_DE_AJUSTES, PARADA_DE_AYUDA, PARADA_DE_RESTABLECER])
   })
 
   it('deshabilitada: la ayuda y el ⚙ siguen (no escriben aquí); ↺ no', () => {
@@ -77,7 +99,7 @@ describe('la ayuda y el ⚙', () => {
     conLive()
     const { container } = render(<XCell {...BASE} {...ACCIONES()} />)
     const texto = [...container.querySelectorAll('[data-parada]')]
-      .filter((e) => Number(e.getAttribute('data-parada')) >= PARADA_DE_AYUDA)
+      .filter((e) => Number(e.getAttribute('data-parada')) >= PARADA_DE_ACCIONES_DESDE)
       .map((e) => `${e.getAttribute('aria-label') ?? ''}${e.getAttribute('title') ?? ''}`)
       .join(' ')
     expect(container.querySelectorAll('[data-parada]')).toHaveLength(3)
@@ -86,6 +108,13 @@ describe('la ayuda y el ⚙', () => {
 })
 
 describe('el anuncio de las flechas', () => {
+  it('el candado no anuncia el atajo: sólo con ⚙, ayuda o ↺ el valor dice «Más acciones…»', () => {
+    const c = celda({ disabledReason: 'Apagado' })
+    expect(c.parada(PARADA_DEL_CANDADO)).not.toBeNull()
+    expect(c.parada(0)?.getAttribute('aria-keyshortcuts')).toBeNull()
+    expect(c.parada(0)?.getAttribute('aria-describedby')).not.toContain(ID_DEL_ATAJO)
+  })
+
   const descripcion = (e: HTMLElement | null) => e?.getAttribute('aria-describedby') ?? ''
 
   it('el valor lo dice sólo cuando la celda tiene acciones, en los dos lados del par', () => {
@@ -108,7 +137,7 @@ describe('el anuncio de las flechas', () => {
     }
   })
 
-  it('la nota va antes que el atajo, y el texto vive una vez en el sprite', () => {
+  it('el candado va antes que el atajo, y el texto vive una vez en el sprite', () => {
     const { container } = render(
       <>
         <SimbolosDeXCell />
@@ -116,8 +145,9 @@ describe('el anuncio de las flechas', () => {
       </>,
     )
     const boton = container.querySelector('[data-parada="0"]')
-    const nota = container.querySelector('p')
-    expect(boton?.getAttribute('aria-describedby')).toBe(`${nota?.id ?? ''} ${ID_DEL_ATAJO}`)
+    const candado = container.querySelector('[role="img"]')
+    expect(boton?.getAttribute('aria-describedby')).toBe(`${candado?.id ?? ''} ${ID_DEL_ATAJO}`)
+    expect(candado?.getAttribute('aria-label')).toBe('Apagado')
     expect(container.querySelector(`#${ID_DEL_ATAJO}`)?.textContent).toBe(TEXTO_DEL_ATAJO)
   })
 })
