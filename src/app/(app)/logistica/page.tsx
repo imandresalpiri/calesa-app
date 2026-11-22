@@ -205,7 +205,7 @@ async function CadenaDelOrigen({
     return (
       <EstadoDeLaGrafica
         tipo="sin_fases"
-        enlaceAlFlujo={enlaceAFlujos ? rutaDeParteDelOrigen(origenId, 'flujo') : undefined}
+        enlaceAlFlujo={enlaceAFlujos ? rutaDeParteDelOrigen(origenId, 'fases') : undefined}
       />
     )
   }

@@ -7,7 +7,7 @@ import type { ErrorApp } from '@/shared/lib/errores'
 import type { FormulaDeLaLista } from '../../../entities/formulas-del-origen/lista'
 import { CAUSA_USADA } from '../../../entities/formulas-del-origen/resultado'
 import {
-  CLAVE_DE_LA_FORMULA,
+  CLAVE_DE_LA_FORMULA_DEL_PANEL,
   PANEL_ARCHIVAR_FORMULA,
 } from '../../../entities/formulas-del-origen/rutas'
 import { eliminarFormulaDelOrigen } from '../actions/eliminar-formula'
@@ -19,8 +19,8 @@ type Props = {
   alCerrar: () => void
   origenId: string
   formula: Pick<FormulaDeLaLista, 'id' | 'nombre' | 'actualizadoEn'>
-  // Desde la cabeza del editor: al entrar se vuelve a la lista.
-  volverALaLista: boolean
+  // Es la fórmula elegida en la barra: al entrar se va a esta ruta (la pestaña con la de trabajo); si no, se vuelve a leer la pantalla.
+  salirA: string | null
 }
 
 export const DESCRIPCION_DE_ELIMINAR =
@@ -36,7 +36,7 @@ function archivarSiSeUso(error: ErrorApp, formulaId: string) {
           tipo: 'panel',
           etiqueta: 'Archivar',
           panel: PANEL_ARCHIVAR_FORMULA,
-          valores: { [CLAVE_DE_LA_FORMULA]: formulaId },
+          valores: { [CLAVE_DE_LA_FORMULA_DEL_PANEL]: formulaId },
         },
         puede: true,
       },
@@ -44,13 +44,12 @@ function archivarSiSeUso(error: ErrorApp, formulaId: string) {
   }
 }
 
-// «Eliminar «<nombre>»» (`?panel=eliminar-formula&formula=<id>`): sólo una que nunca estuvo activa; con la versión que se leyó.
-export function ConfirmarEliminar({ abierto, alCerrar, origenId, formula, volverALaLista }: Props) {
+// «Eliminar «<nombre>»» (`?panel=eliminar-formula&cual=<id>`): sólo una que nunca estuvo activa; con la versión que se leyó.
+export function ConfirmarEliminar({ abierto, alCerrar, origenId, formula, salirA }: Props) {
   const eliminar = useAction(eliminarFormulaDelOrigen)
   const estado = useConfirmarEnLaFormula({
-    origenId,
     alCerrar,
-    volverALaLista,
+    salirA,
     pedir: () =>
       enviarAccion(
         eliminar.executeAsync({ id: formula.id, origenId, esperada: formula.actualizadoEn }),

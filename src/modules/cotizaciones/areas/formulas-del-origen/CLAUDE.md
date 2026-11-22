@@ -1,7 +1,7 @@
 # cotizaciones › formulas-del-origen
 
-El área `formulas-del-origen` de `cotizaciones`: la pestaña «Fórmulas» de la página del origen (listar, crear, copiar, renombrar, activar, archivar y eliminar
-las fórmulas del origen) y la cabeza del editor de cada una. Ficha del módulo: `../../CLAUDE.md` › «Áreas»; el dominio, `docs/COTIZADOR.md` › «Fórmulas del
+El área `formulas-del-origen` de `cotizaciones`: la barra de la fórmula de Planilla, Hoja y Tarjeta en la página del origen (elegir, crear, copiar, renombrar,
+activar, archivar y eliminar las fórmulas del origen). Ficha del módulo: `../../CLAUDE.md` › «Áreas»; el dominio, `docs/COTIZADOR.md` › «Fórmulas del
 origen».
 
 ## Qué es
@@ -20,18 +20,21 @@ tarjeta sirve. Acá se lee, se dibuja y se pide.
 - `composicion.ts` (servidor): `formulasDelOrigenSupabase`, el repositorio de las cinco RPC, que usan las actions de `features/formulas-del-origen/actions/`.
   Cada action pide `puede(ctx.permisos, 'cotizaciones.configurar', origenId)` antes de llamar y **no revalida**: la pantalla vuelve a leer con
   `router.refresh()` (crear abre la planilla nueva).
-- `client.ts` vacío. Las pantallas: `pantallas/formulas-del-origen.ts` (`SeccionDeLasFormulas`, recibe el origen, los orígenes y los permisos de `src/app`) y
-  `pantallas/formulas-del-origen-cabeza.ts` (`CabezaDeLaFormulaDelOrigen`). La puesta en marcha del origen (glosario) usa dos más, con los mismos modales
+- `client.ts` vacío. Las pantallas: `pantallas/formulas-del-origen.ts` (`ConLaBarraDeLaFormula`, del núcleo, y `BarraDeLaFormulaDelOrigen`, que recibe el
+  origen, la elegida, la lista leída, los orígenes de los que copia y lo que `src/app` pone de otras áreas: «Versiones» y «Tablas»). La puesta en marcha del origen (glosario) usa dos más, con los mismos modales
   (`components/puesta-en-marcha/`, su propio `diferidos.tsx`): `pantallas/formulas-del-origen-empezar.ts` (`EmpezarLaFormula`: «Empezar en blanco» o «Copiar la
   de otro origen», que abren «Nueva fórmula» con `&como=blanco|otro`, el nombre del origen propuesto y `alCrear`, que se queda en el paso) y
   `pantallas/formulas-del-origen-publicar.ts` (`PublicarLaFormula`: «Qué se publica» y «Publicar…», que abre «Activar» con `alActivar`, que lleva a «Listo»).
 
 ## La pantalla
 
-- La lista: la activa primero (★) y las demás por nombre (`ordenDeLaLista()`), el estado en un `<Badge>` (`estadoDeLaFormula()`), «Editar» y el «⋯»
-  (`menuDeLaFormulaDelOrigen()`, el mismo en la cabeza del editor). «Archivadas», plegada, se lee al abrirse.
+- La barra (`components/barra/`): el selector «Fórmula: <nombre> (activa) ▾» abre un popover con la lista (código diferido, montado al abrirse): la activa
+  primero (★) y las demás por nombre (`ordenDeLaLista()`), cada fila un enlace a la misma pestaña con `?formula=<id>` y su «⋯»
+  (`menuDeLaFormulaDelOrigen()`); «Archivadas», plegada, se lee al abrirse; al pie, «Nueva fórmula». Al lado, el estado: el que registra el editor de la
+  pestaña (`useEstadoEnLaBarra`) o, sin él, el de la fórmula (`estadoDeLaFormula()`). La elegida queda en la URL (`useFormulaEnLaUrl`, `replace`).
 - Los paneles van por la URL (`entities/formulas-del-origen/rutas.ts`) y se montan una vez por pantalla (`usePanelesDeLaFormula()`): `?panel=nueva-formula`
-  (`&copia=<id>` desde «Copiar»), `renombrar-formula`, `activar-formula`, `archivar-formula` y `eliminar-formula` (`&formula=<id>`). Uno que nombra una fórmula
+  (`&copia=<id>` desde «Copiar»), `renombrar-formula`, `activar-formula`, `archivar-formula` y `eliminar-formula` (`&cual=<id>`: `formula` es la elegida). Archivar o eliminar la elegida
+  lleva a la pestaña sin `?formula=` (la de trabajo). Uno que nombra una fórmula
   que no está en lo leído no se abre (`useRevisionAlAbrir()`).
 - «Nueva fórmula» crea con un id por apertura; los avisos de la copia (`avisos-de-la-copia.ts`) quedan en `sessionStorage` (`claveDeLosAvisos(id)`) para la
   planilla. «Activar» manda las ocho esperadas que se vieron (`esperadasDeActivar()`); un rechazo con `hint` ofrece ir al lugar

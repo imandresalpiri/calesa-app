@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useMemo, useSyncExternalStore } from 'react'
-import { rutaDeParteDelOrigen } from '@/shared/lib/rutas'
+import { consultaDelDrawerDeLasTablas, rutaDeLaFormula } from '@/shared/lib/rutas'
 import { Aviso } from '@/shared/ui/aviso'
 import { Button } from '@/shared/ui/button'
 import {
@@ -41,7 +41,7 @@ function ocultar(clave: string) {
 
 // Los avisos de la copia (docs/GLOSARIO.md) de una fórmula recién copiada de otro origen, arriba de su planilla: los guardó «Nueva fórmula» en `sessionStorage`
 // (`claveDeLosAvisos(id)`) y se leen con `useSyncExternalStore` (al hidratar, nada: el servidor no tiene `sessionStorage`). Siguen ahí al recargar la pestaña; «Ocultar» los borra. Los de tablas
-// llevan a la pestaña Tablas del origen. Los datos del vehículo que faltan quedan además marcados en sus filas (`useCamposQueFaltan()`).
+// abren el drawer «Tablas» sobre la planilla de esa fórmula. Los datos del vehículo que faltan quedan además marcados en sus filas (`useCamposQueFaltan()`).
 export function AvisosDeLaCopia({
   origenId,
   formulaDelOrigenId,
@@ -70,7 +70,12 @@ export function AvisosDeLaCopia({
         <div className="flex flex-wrap gap-2">
           {conTablas ? (
             <Link
-              href={rutaDeParteDelOrigen(origenId, 'tablas')}
+              href={rutaDeLaFormula(
+                origenId,
+                formulaDelOrigenId,
+                'planilla',
+                consultaDelDrawerDeLasTablas(),
+              )}
               className="inline-flex min-h-11 items-center underline md:min-h-8"
             >
               Abrir Tablas

@@ -10,7 +10,7 @@ import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { PieDelPanel } from '@/shared/ui/pie-del-panel'
 import { LARGO_MAXIMO_DEL_NOMBRE } from '../../../entities/tablas/estructura'
-import type { OrigenDeLasTablas } from '../../../entities/tablas/rutas'
+import type { LugarDeLasTablas, OrigenDeLasTablas } from '../../../entities/tablas/rutas'
 import { useNuevaTabla, type NuevaTabla, type ParaQuien } from '../hooks/use-nueva-tabla'
 import { EditorDeColumnas } from './editor-de-columnas'
 
@@ -19,6 +19,8 @@ type Props = {
   alCerrar: () => void
   // El origen de la pestaña; nulo en Catálogos (la tabla nace compartida y no se pregunta).
   origen: OrigenDeLasTablas | null
+  // Dónde se dibujan las tablas: al entrar se abre ahí la nueva.
+  lugar: LugarDeLasTablas
 }
 
 const OPCIONES: readonly { valor: ParaQuien; etiqueta: (origen: string) => string }[] = [
@@ -106,8 +108,8 @@ function CampoDelNombre({ nueva }: { nueva: NuevaTabla }) {
 
 // «Nueva tabla» (`?panel=nueva-tabla`): el nombre (con la clave que sale de él y no cambia), para quién es (sólo en un origen) y las columnas. Quien lo monta le
 // da `key` por apertura: cada apertura es un intento nuevo, con su id. Al entrar se abre la tabla nueva para sumarle filas.
-export function PanelDeNuevaTabla({ abierto, alCerrar, origen }: Props) {
-  const nueva = useNuevaTabla({ origenId: origen?.id ?? null })
+export function PanelDeNuevaTabla({ abierto, alCerrar, origen, lugar }: Props) {
+  const nueva = useNuevaTabla({ origenId: origen?.id ?? null, lugar })
   const idFormulario = useId()
   const formulario = useRef<HTMLFormElement>(null)
   return (

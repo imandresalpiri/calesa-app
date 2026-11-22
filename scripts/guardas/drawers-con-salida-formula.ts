@@ -3,6 +3,11 @@
 import type { RegistroDeDrawer } from './drawers-con-salida'
 
 export const DRAWERS_DE_LA_FORMULA: Record<string, RegistroDeDrawer> = {
+  // «Versiones» de la barra de la fórmula (`?panel=versiones`).
+  'src/modules/cotizaciones/features/formula/components/versiones/drawer-de-las-versiones.tsx': {
+    sinFormulario:
+      'la lista de versiones de la fórmula: sólo se lee; «Revertir» abre su confirmación',
+  },
   // El ⚙ de una constante en la hoja (4.20-3b): lo tipeado no tiene borrador, así que el cuerpo (una sola llamada para todo el panel) pide `preguntaAlCerrar`.
   'src/modules/cotizaciones/features/formula/components/hoja/panel-del-ajuste.tsx': {
     formulario: 'src/modules/cotizaciones/features/formula/components/hoja/cuerpo-del-ajuste.tsx',

@@ -1,10 +1,10 @@
 import type { ClavePermiso } from '@/shared/lib/permisos'
-import { PARTES_DEL_ORIGEN, type ParteDeLaFormula, type ParteDelOrigen } from '@/shared/lib/rutas'
+import { PARTES_DEL_ORIGEN, type ParteDelOrigen } from '@/shared/lib/rutas'
 
 // Las pestañas de la página de un origen (`/configuracion/origenes/<id>/<pestana>`): su título, la frase que dice la página bajo las
-// pestañas, lo que alguien escribiría para buscarla, el permiso que pide en ese origen y el motivo de la apagada. Datos, Campos y
-// Categorías no piden uno propio: se abren con el origen (sólo lectura sin `origenes.gestionar`). La única fuente de las pestañas: las
-// leen el acceso (`acceso.ts`), el marco y las páginas.
+// pestañas, lo que alguien escribiría para buscarla, el permiso que pide en ese origen y el motivo de la apagada. Campos y Categorías no
+// piden uno propio: se abren con el origen (sólo lectura sin `origenes.gestionar`). Los datos del origen no son pestaña: van en su drawer
+// (`?panel=datos`). La única fuente de las pestañas: las leen el acceso (`acceso.ts`), el marco y las páginas.
 export type PestanaDelOrigen = {
   clave: ParteDelOrigen
   titulo: string
@@ -20,12 +20,53 @@ export const MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR =
   'Lo configura quien tiene el permiso «Configurar el cotizador».'
 
 const DE_CADA_PESTANA: Record<ParteDelOrigen, Omit<PestanaDelOrigen, 'clave'>> = {
-  datos: {
-    titulo: 'Datos',
-    descripcion: 'El nombre, el tipo y cómo se nombra un vehículo de este origen.',
-    palabras: ['nombre', 'tipo', 'nombrar vehículo', 'color'],
-    permiso: null,
-    motivo: null,
+  fases: {
+    titulo: 'Fases',
+    descripcion: 'Las fases por las que pasa un vehículo de este origen, sus requisitos y reglas.',
+    palabras: [
+      'flujo',
+      'transiciones',
+      'requisitos',
+      'reglas',
+      'logística',
+      'diagrama',
+      'documentos',
+    ],
+    permiso: 'flujos.configurar',
+    motivo: MOTIVO_SIN_CONFIGURAR_EL_FLUJO,
+  },
+  planilla: {
+    titulo: 'Planilla',
+    descripcion: 'Qué se calcula: la fórmula del origen, sus versiones y sus tablas.',
+    palabras: [
+      'fórmula',
+      'cálculo',
+      'costo',
+      'margen',
+      'publicar',
+      'activar',
+      'copiar',
+      'versiones',
+      'tablas',
+      'depreciación',
+      'cotizador',
+    ],
+    permiso: 'cotizaciones.configurar',
+    motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
+  },
+  hoja: {
+    titulo: 'Hoja',
+    descripcion: 'Cómo se ve y se llena la cotización.',
+    palabras: ['cotizar', 'vista previa', 'diseño'],
+    permiso: 'cotizaciones.configurar',
+    motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
+  },
+  tarjeta: {
+    titulo: 'Tarjeta',
+    descripcion: 'La imagen que recibe el cliente.',
+    palabras: ['PDF', 'imagen', 'logo', 'plantilla'],
+    permiso: 'cotizaciones.configurar',
+    motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
   },
   campos: {
     titulo: 'Campos',
@@ -41,39 +82,6 @@ const DE_CADA_PESTANA: Record<ParteDelOrigen, Omit<PestanaDelOrigen, 'clave'>> =
     permiso: null,
     motivo: null,
   },
-  flujo: {
-    titulo: 'Flujo',
-    descripcion: 'Las fases por las que pasa un vehículo de este origen, sus requisitos y reglas.',
-    palabras: ['fases', 'transiciones', 'requisitos', 'reglas', 'logística', 'diagrama'],
-    permiso: 'flujos.configurar',
-    motivo: MOTIVO_SIN_CONFIGURAR_EL_FLUJO,
-  },
-  formulas: {
-    titulo: 'Fórmulas',
-    descripcion: 'Las fórmulas del origen: la activa es la que se cotiza.',
-    palabras: [
-      'fórmula',
-      'cálculo',
-      'costo',
-      'margen',
-      'publicar',
-      'activar',
-      'copiar',
-      'planilla',
-      'hoja',
-      'tarjeta',
-      'cotizador',
-    ],
-    permiso: 'cotizaciones.configurar',
-    motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
-  },
-  tablas: {
-    titulo: 'Tablas',
-    descripcion: 'Valores de referencia: depreciación, transporte…',
-    palabras: ['depreciación', 'transporte', 'referencia', 'aranceles'],
-    permiso: 'cotizaciones.configurar',
-    motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
-  },
 }
 
 export const PESTANAS_DEL_ORIGEN: readonly PestanaDelOrigen[] = PARTES_DEL_ORIGEN.map((clave) => ({
@@ -84,12 +92,3 @@ export const PESTANAS_DEL_ORIGEN: readonly PestanaDelOrigen[] = PARTES_DEL_ORIGE
 export function pestanaDelOrigen(clave: ParteDelOrigen): PestanaDelOrigen {
   return { clave, ...DE_CADA_PESTANA[clave] }
 }
-
-// Las sub-pestañas del editor de una fórmula (`…/formulas/<fórmula>/planilla|hoja|tarjeta`), con la frase de cada una.
-export const SUBPESTANAS_DE_LA_FORMULA = [
-  { clave: 'planilla', titulo: 'Planilla', descripcion: 'Qué se calcula.' },
-  { clave: 'hoja', titulo: 'Hoja', descripcion: 'Cómo se ve y se llena la cotización.' },
-  { clave: 'tarjeta', titulo: 'Tarjeta', descripcion: 'La imagen que recibe el cliente.' },
-] as const satisfies readonly { clave: ParteDeLaFormula; titulo: string; descripcion: string }[]
-
-export type SubpestanaDeLaFormula = (typeof SUBPESTANAS_DE_LA_FORMULA)[number]['clave']

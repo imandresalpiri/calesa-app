@@ -11,7 +11,7 @@ import { Confirmar } from '@/shared/ui/confirmar'
 import { avisarError, avisarExito } from '@/shared/ui/toasts'
 import { useUnEnvioALaVez } from '@/shared/ui/use-un-envio-a-la-vez'
 import { DESCRIPCION_DE_DESACTIVAR } from '../../../entities/tablas/estructura'
-import { rutaDeLasTablas } from '../../../entities/tablas/rutas'
+import { rutaDeLasTablas, type LugarDeLasTablas } from '../../../entities/tablas/rutas'
 import { desactivarTabla } from '../actions/desactivar-tabla'
 
 type Props = {
@@ -20,11 +20,13 @@ type Props = {
   tabla: { id: string; nombre: string; version: number }
   // El origen de la pestaña (nulo en Catálogos): a su lista se vuelve.
   origenId: string | null
+  // Dónde se dibujan las tablas: al entrar se vuelve a su lista.
+  lugar: LugarDeLasTablas
 }
 
 // «Desactivar «<nombre>»» (`?tabla=<id>&panel=desactivar-tabla`): con la versión abierta. En uso (23503) o sin permiso (42501), el texto de la base en un aviso;
 // el PT409, dentro del diálogo con «Recargar»; sin conexión, el diálogo queda abierto y lo dice. Al entrar vuelve a la lista, donde ya no está.
-export function DesactivarTabla({ abierto, alCerrar, tabla, origenId }: Props) {
+export function DesactivarTabla({ abierto, alCerrar, tabla, origenId, lugar }: Props) {
   const router = useRouter()
   const desactivar = useAction(desactivarTabla)
   const { mandar, enCurso } = useUnEnvioALaVez()
@@ -48,7 +50,7 @@ export function DesactivarTabla({ abierto, alCerrar, tabla, origenId }: Props) {
       setListo(true)
       // La ruta nueva ya no lleva `?panel=`: cierra el diálogo. Cerrarlo antes escribiría la URL después y pisaría esta.
       avisarExito(`Desactivaste «${tabla.nombre}».`)
-      router.replace(rutaDeLasTablas(origenId))
+      router.replace(rutaDeLasTablas(lugar))
       return
     }
     if ('sinRed' in hecho) {

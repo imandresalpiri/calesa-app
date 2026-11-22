@@ -1,10 +1,12 @@
 'use client'
 
 import type { LecturaDeLaFormula as Formula } from '../../../entities/formula/versiones'
+import { useEnLaBarra } from '../../barra-de-la-formula/components'
 import type { PanelDeLaFormula } from '../hooks/use-panel-de-la-formula'
 import { ListaDeVersiones } from './lista-de-versiones'
 import { TarjetaDeLaPublicada } from './tarjeta-de-la-publicada'
 import { TarjetaDelBorrador } from './tarjeta-del-borrador'
+import { DrawerDeLasVersiones } from './versiones/drawer-de-las-versiones'
 
 type Props = {
   origen: Origen
@@ -18,7 +20,7 @@ type Props = {
 
 type Origen = { id: string; nombre: string; activo: boolean }
 
-// Lo de arriba de la pestaña «Fórmula» (4.20-2a): la publicada del origen, su borrador y sus versiones (el origen se elige en la página). Se edita en la planilla, debajo.
+// Lo de arriba de la pestaña «Planilla»: la publicada de la fórmula, su borrador y sus versiones (en la barra de la fórmula, en su drawer). Se edita en la planilla, debajo.
 export function VistaDeLaFormula({
   origen,
   formula,
@@ -26,6 +28,17 @@ export function VistaDeLaFormula({
   publicarEspera,
   publicarEnLaBarra = false,
 }: Props) {
+  const enLaBarra = useEnLaBarra()
+  // Con otra fórmula de trabajo u otra publicada (se publicó o se revirtió) la lista vuelve a la primera página del servidor.
+  const versiones = (
+    <ListaDeVersiones
+      key={`${origen.id}:${formula.formulaDelOrigen?.id ?? ''}:${formula.publicada?.id ?? ''}`}
+      formulaDelOrigenId={formula.formulaDelOrigen?.id ?? null}
+      inicial={formula.versiones}
+      conPublicada={formula.publicada !== null}
+      alRevertir={panel.abrirRevertir}
+    />
+  )
   return (
     <>
       <TarjetaDeLaPublicada publicada={formula.publicada} origen={origen.nombre} />
@@ -39,14 +52,8 @@ export function VistaDeLaFormula({
           publicarEnLaBarra={publicarEnLaBarra}
         />
       ) : null}
-      {/* Con otra fórmula de trabajo u otra publicada (se publicó o se revirtió) la lista vuelve a la primera página del servidor. */}
-      <ListaDeVersiones
-        key={`${origen.id}:${formula.formulaDelOrigen?.id ?? ''}:${formula.publicada?.id ?? ''}`}
-        formulaDelOrigenId={formula.formulaDelOrigen?.id ?? null}
-        inicial={formula.versiones}
-        conPublicada={formula.publicada !== null}
-        alRevertir={panel.abrirRevertir}
-      />
+      {/* En la página del origen la lista va en el drawer «Versiones» de la barra; en la puesta en marcha, aquí. */}
+      {enLaBarra ? <DrawerDeLasVersiones>{versiones}</DrawerDeLasVersiones> : versiones}
     </>
   )
 }

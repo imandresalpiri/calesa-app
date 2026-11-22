@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { PasoParaCotizar } from '@/modules/origenes'
 import type { Permisos } from '@/shared/lib/permisos'
 import { existeLaRuta } from './existe-la-ruta'
-import { DESTINOS_DE_PASO, conDestino } from './pasos'
+import { DESTINOS_DE_PASO, conDestino, faltaDeCadaPestana } from './pasos'
 
 const APP = path.join(process.cwd(), 'src/app/(app)')
 const ORIGEN = '00000000-0000-4000-8000-000000000001'
@@ -29,7 +29,7 @@ describe('destinos de «Para cotizar y mover»', () => {
     }
   })
 
-  it('cada paso lleva a su pestaña; la Tarjeta, a la sub-pestaña de Fórmula', () => {
+  it('cada paso lleva a su pestaña; Datos, a su drawer', () => {
     const rutas = conDestino(
       [
         paso('datos', 'listo'),
@@ -43,11 +43,11 @@ describe('destinos de «Para cotizar y mover»', () => {
     ).map((uno) => uno.ruta)
     const base = `/configuracion/origenes/${ORIGEN}`
     expect(rutas).toEqual([
-      `${base}/datos`,
+      `${base}?panel=datos`,
       `${base}/campos`,
-      `${base}/flujo`,
-      `${base}/formulas`,
-      `${base}/formula/tarjeta`,
+      `${base}/fases`,
+      `${base}/planilla`,
+      `${base}/tarjeta`,
     ])
   })
 
@@ -77,5 +77,20 @@ describe('destinos de «Para cotizar y mover»', () => {
     for (const uno of conDestino([paso('datos', 'listo'), paso('campos', 'aviso')], [], ORIGEN)) {
       expect(uno.motivo).toBeNull()
     }
+  })
+})
+
+describe('faltaDeCadaPestana', () => {
+  it('pone la frase del paso que falta en su pestaña; Datos y lo listo, nada', () => {
+    expect(
+      faltaDeCadaPestana([
+        paso('datos', 'aviso'),
+        paso('campos', 'listo'),
+        paso('flujo', 'bloquea'),
+        paso('formula', 'bloquea'),
+        paso('tarjeta', 'aviso'),
+      ]),
+    ).toEqual({ fases: 'x', planilla: 'x', tarjeta: 'x' })
+    expect(faltaDeCadaPestana([])).toEqual({})
   })
 })

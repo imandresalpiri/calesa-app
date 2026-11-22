@@ -7,6 +7,7 @@ import { useRegional } from '@/shared/ui/regional'
 import type { TablaDeReferencia } from '../../../entities/tablas/lectura'
 import { AccionesDelEditor } from './acciones-de-la-tabla'
 import {
+  lugarDelDestino,
   origenIdDelDestino,
   rutaDeLasTablas,
   type DestinoDeLasTablas,
@@ -32,7 +33,7 @@ export function EncabezadoDelEditor({ tabla, destino, cambios }: Props) {
     <div className="flex min-w-0 items-start gap-2">
       <div className="grid min-w-0 flex-1 gap-1 text-(length:--text-sm)">
         <Link
-          href={rutaDeLasTablas(origenIdDelDestino(destino))}
+          href={rutaDeLasTablas(lugarDelDestino(destino))}
           className="w-fit text-(--color-ink-soft) underline-offset-4 hover:underline"
         >
           Volver a las tablas
@@ -59,7 +60,12 @@ export function EncabezadoDelEditor({ tabla, destino, cambios }: Props) {
           </p>
         ) : null}
       </div>
-      <AccionesDelEditor tabla={tabla} origenId={origenIdDelDestino(destino)} cambios={cambios} />
+      <AccionesDelEditor
+        tabla={tabla}
+        origenId={origenIdDelDestino(destino)}
+        lugar={lugarDelDestino(destino)}
+        cambios={cambios}
+      />
     </div>
   )
 }

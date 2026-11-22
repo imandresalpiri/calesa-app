@@ -28,15 +28,15 @@ describe('faltasPorSeccion', () => {
         {
           clave: CHINA.id,
           texto: 'China: falta configurar el flujo y activar una fórmula',
-          ruta: `/configuracion/origenes/${CHINA.id}/flujo`,
+          ruta: `/configuracion/origenes/${CHINA.id}/fases`,
         },
       ],
     })
   })
 
-  it('la tarjeta, a la sub-pestaña de Fórmula; tres o más, con comas', () => {
+  it('la tarjeta, a la pestaña Tarjeta; tres o más, con comas', () => {
     expect(faltasPorSeccion([de(JAPON, faltan(['tarjeta', 'aviso']))]).origenes?.[0]?.ruta).toBe(
-      `/configuracion/origenes/${JAPON.id}/formula/tarjeta`,
+      `/configuracion/origenes/${JAPON.id}/tarjeta`,
     )
     expect(
       faltasPorSeccion([

@@ -39,12 +39,12 @@ describe('puedeAbrirElOrigen', () => {
 describe('pestanasDelOrigen', () => {
   it('son las seis, en su orden y con su ruta', () => {
     expect(pestanasDelOrigen(con('origenes.gestionar'), A).map((p) => [p.clave, p.ruta])).toEqual([
-      ['datos', `/configuracion/origenes/${A}/datos`],
+      ['fases', `/configuracion/origenes/${A}/fases`],
+      ['planilla', `/configuracion/origenes/${A}/planilla`],
+      ['hoja', `/configuracion/origenes/${A}/hoja`],
+      ['tarjeta', `/configuracion/origenes/${A}/tarjeta`],
       ['campos', `/configuracion/origenes/${A}/campos`],
       ['categorias', `/configuracion/origenes/${A}/categorias`],
-      ['flujo', `/configuracion/origenes/${A}/flujo`],
-      ['formulas', `/configuracion/origenes/${A}/formulas`],
-      ['tablas', `/configuracion/origenes/${A}/tablas`],
     ])
   })
 
@@ -53,32 +53,33 @@ describe('pestanasDelOrigen', () => {
       pestanasDelOrigen(con('cotizaciones.configurar', A), A).map((p) => [p.clave, p.motivo]),
     )
     expect(motivos).toEqual({
-      datos: undefined,
+      fases: 'Lo configura quien tiene el permiso «Configurar el flujo».',
+      planilla: undefined,
+      hoja: undefined,
+      tarjeta: undefined,
       campos: undefined,
       categorias: undefined,
-      flujo: 'Lo configura quien tiene el permiso «Configurar el flujo».',
-      formulas: undefined,
-      tablas: undefined,
     })
     const enOtro = pestanasDelOrigen(con('cotizaciones.configurar', B), A)
-    expect(enOtro.find((p) => p.clave === 'formulas')?.motivo).toBe(
-      'Lo configura quien tiene el permiso «Configurar el cotizador».',
-    )
-    expect(enOtro.find((p) => p.clave === 'tablas')?.motivo).toBe(
-      'Lo configura quien tiene el permiso «Configurar el cotizador».',
-    )
+    for (const clave of ['planilla', 'hoja', 'tarjeta']) {
+      expect(enOtro.find((p) => p.clave === clave)?.motivo).toBe(
+        'Lo configura quien tiene el permiso «Configurar el cotizador».',
+      )
+    }
   })
 
   it('puedeAbrirLaPestana dice lo mismo que las pestañas', () => {
-    expect(puedeAbrirLaPestana(con('flujos.configurar', A), A, 'flujo')).toBe(true)
-    expect(puedeAbrirLaPestana(con('flujos.configurar', A), A, 'formulas')).toBe(false)
+    expect(puedeAbrirLaPestana(con('flujos.configurar', A), A, 'fases')).toBe(true)
+    expect(puedeAbrirLaPestana(con('flujos.configurar', A), A, 'planilla')).toBe(false)
     expect(puedeAbrirLaPestana(con('flujos.configurar', A), A, 'campos')).toBe(true)
   })
 })
 
 describe('primeraPestanaAbierta', () => {
-  it('es Datos para quien abre el origen; null para quien no lo abre', () => {
-    expect(primeraPestanaAbierta(con('flujos.configurar', A), A)?.clave).toBe('datos')
+  it('es Fases con el flujo, Planilla con el cotizador, Campos con sólo el origen; null para quien no lo abre', () => {
+    expect(primeraPestanaAbierta(con('flujos.configurar', A), A)?.clave).toBe('fases')
+    expect(primeraPestanaAbierta(con('cotizaciones.configurar', A), A)?.clave).toBe('planilla')
+    expect(primeraPestanaAbierta(con('origenes.gestionar', A), A)?.clave).toBe('campos')
     expect(primeraPestanaAbierta(con('flujos.configurar', A), B)).toBeNull()
     expect(primeraPestanaAbierta([], A)).toBeNull()
   })

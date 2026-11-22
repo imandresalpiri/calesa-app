@@ -30,11 +30,11 @@ export function destinoDeLaUrlVieja(
   }
   const origen = primero(parametros['origen'])
   if (origen !== undefined && origen !== '') {
-    return con(rutaDeParteDelOrigen(origen, 'flujo'))
+    return con(rutaDeParteDelOrigen(origen, 'fases'))
   }
   const configura = origenes.find((uno) => puede(permisos, 'flujos.configurar', uno.id))
   if (configura !== undefined) {
-    return con(rutaDeParteDelOrigen(configura.id, 'flujo'))
+    return con(rutaDeParteDelOrigen(configura.id, 'fases'))
   }
   return puede(permisos, 'repuestos.configurar') ? con(RUTAS.flujoDeRepuestos) : aDocumentos
 }

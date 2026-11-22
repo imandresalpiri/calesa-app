@@ -79,7 +79,7 @@ describe('buscarEnConfiguracion', () => {
     expect(caminos('flujo de repuestos')[0]).toBe('Repuestos › Flujo de repuestos')
   })
 
-  it('cada origen que suma el menú se encuentra por su nombre y abre su pestaña Datos', () => {
+  it('cada origen que suma el menú se encuentra por su nombre y abre su página (la última pestaña)', () => {
     const id = '00000000-0000-4000-8000-000000000001'
     const conOrigenes = conOrigenesEnElMenu(
       grupos,
@@ -88,7 +88,7 @@ describe('buscarEnConfiguracion', () => {
     expect(buscarEnConfiguracion(conOrigenes, 'japon')[0]).toEqual({
       clave: `origenes-${id}`,
       camino: 'Orígenes › Japón',
-      ruta: `/configuracion/origenes/${id}/datos`,
+      ruta: `/configuracion/origenes/${id}`,
     })
   })
 

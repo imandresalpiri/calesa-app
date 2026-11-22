@@ -51,7 +51,7 @@ describe('un origen en el menú', () => {
   const id = '00000000-0000-4000-8000-000000000001'
   const otro = '00000000-0000-4000-8000-000000000002'
   const origen = {
-    ruta: `/configuracion/origenes/${id}/datos`,
+    ruta: `/configuracion/origenes/${id}/fases`,
     marca: `/configuracion/origenes/${id}`,
   }
   const subrutas = [marcaDe(origen), `/configuracion/origenes/${otro}`]
@@ -66,7 +66,7 @@ describe('un origen en el menú', () => {
   })
 
   it('no se marca en otro origen ni en la lista', () => {
-    expect(marcaDelEnlace(`/configuracion/origenes/${otro}/datos`, marcaDe(origen))).toBeUndefined()
+    expect(marcaDelEnlace(`/configuracion/origenes/${otro}/fases`, marcaDe(origen))).toBeUndefined()
     expect(marcaDelEnlace('/configuracion/origenes', marcaDe(origen))).toBeUndefined()
     expect(marcaDelEnlace('/configuracion/origenes', '/configuracion/origenes', subrutas)).toBe(
       'page',

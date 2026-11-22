@@ -25,7 +25,7 @@ export default async function PaginaCamposDelOrigen({
   // Si no se pudo averiguar, el editor sigue: es un aviso, no la pantalla.
   const datosNuevos = nuevos?.ok ? nuevos.data : []
   return (
-    <div className="grid max-w-3xl gap-4">
+    <div className="grid min-w-0 gap-4">
       <div className="grid gap-6">
         {datosNuevos.length > 0 ? (
           <DatosNuevosDeApibara origenId={origen.id} datos={datosNuevos} />

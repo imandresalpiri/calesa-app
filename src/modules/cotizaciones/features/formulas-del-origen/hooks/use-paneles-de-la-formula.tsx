@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { rutaDeParteDelOrigen, type ParteDeLaFormula } from '@/shared/lib/rutas'
 import { useApertura } from '@/shared/ui/use-apertura'
 import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import { useRevisionAlAbrir } from '@/shared/ui/use-revision-al-abrir'
@@ -9,7 +10,7 @@ import type { AccionDeMenu } from '@/shared/ui/lista'
 import type { FormulaDeLaLista } from '../../../entities/formulas-del-origen/lista'
 import { menuDeLaFormulaDelOrigen } from '../../../entities/formulas-del-origen/menu'
 import {
-  CLAVE_DE_LA_FORMULA,
+  CLAVE_DE_LA_FORMULA_DEL_PANEL,
   PANEL_ACTIVAR_FORMULA,
   PANEL_ARCHIVAR_FORMULA,
   PANEL_ELIMINAR_FORMULA,
@@ -24,11 +25,11 @@ import {
 
 export const MOTIVO_NO_ESTA = 'Esa fórmula ya no está en la lista: recarga para ver cómo quedó.'
 
-// Un panel de una fórmula del origen por la URL (`?panel=<panel>&formula=<id>`): se revisa al llegar (una fórmula que no está en lo leído no se abre: se avisa y
+// Un panel de una fórmula del origen por la URL (`?panel=<panel>&cual=<id>`): se revisa al llegar (una fórmula que no está en lo leído no se abre: se avisa y
 // se limpia la URL) y cada apertura aceptada empieza de cero (`apertura`, la `key` de lo de adentro).
 function usePanelDeLaFormula(panel: string, formulas: readonly FormulaDeLaLista[]) {
-  const url = usePanelPorUrl(panel, [CLAVE_DE_LA_FORMULA])
-  const id = url.valor(CLAVE_DE_LA_FORMULA)
+  const url = usePanelPorUrl(panel, [CLAVE_DE_LA_FORMULA_DEL_PANEL])
+  const id = url.valor(CLAVE_DE_LA_FORMULA_DEL_PANEL)
   const formula = formulas.find((f) => f.id === id) ?? null
   const apertura = useApertura(url.abierto)
   const rechazada = useRevisionAlAbrir(
@@ -45,7 +46,7 @@ function usePanelDeLaFormula(panel: string, formulas: readonly FormulaDeLaLista[
     formula: mostrada,
     apertura,
     abrir: (formulaId: string) => {
-      url.abrir({ [CLAVE_DE_LA_FORMULA]: formulaId })
+      url.abrir({ [CLAVE_DE_LA_FORMULA_DEL_PANEL]: formulaId })
     },
     cerrar: url.cerrar,
   }
@@ -53,26 +54,25 @@ function usePanelDeLaFormula(panel: string, formulas: readonly FormulaDeLaLista[
 
 type Args = {
   origen: { id: string; nombre: string }
-  // Las fórmulas que la pantalla dibuja (la lista y las archivadas leídas, o la del editor): un panel sólo abre una de éstas.
+  // Las fórmulas que la barra conoce (las sin archivar, las archivadas leídas y la elegida): un panel sólo abre una de éstas.
   formulas: readonly FormulaDeLaLista[]
   activa: { id: string; nombre: string } | null
-  // «Copiar»: en la lista abre «Nueva fórmula» con la copia; en el editor lleva a la lista con ese panel.
+  // «Copiar»: abre «Nueva fórmula» con la copia.
   alCopiar: (formula: FormulaDeLaLista) => void
-  // «Activar…»: en la lista abre su panel; el editor lo cambia por ir a la lista con ese panel (ahí se ve qué deja de usarse).
-  alActivar?: (formula: FormulaDeLaLista) => void
-  // Desde el editor, archivar o eliminar vuelven a la lista.
-  volverALaLista: boolean
+  // La fórmula elegida en la barra y la pestaña abierta: archivar o eliminar la elegida lleva a la pestaña con la de trabajo.
+  elegidaId: string | null
+  parte: ParteDeLaFormula
 }
 
 // Los cuatro paneles de una fórmula (Renombrar, Activar, Archivar y Eliminar), abiertos por la URL y montados de a uno (el último que se abrió), y el «⋯» de cada fórmula que
-// los abre (`menuDeLaFormulaDelOrigen()`): el mismo en la fila de la lista y en la cabeza del editor.
+// los abre (`menuDeLaFormulaDelOrigen()`): el mismo en cada fila del selector de la barra.
 export function usePanelesDeLaFormula({
   origen,
   formulas,
   activa,
   alCopiar,
-  alActivar,
-  volverALaLista,
+  elegidaId,
+  parte,
 }: Args): {
   menuDe: (formula: FormulaDeLaLista) => AccionDeMenu[]
   paneles: ReactNode
@@ -90,10 +90,12 @@ export function usePanelesDeLaFormula({
     menuDeLaFormulaDelOrigen(formula, {
       alRenombrar: () => renombrar.abrir(formula.id),
       alCopiar: () => alCopiar(formula),
-      alActivar: () => (alActivar ? alActivar(formula) : activar.abrir(formula.id)),
+      alActivar: () => activar.abrir(formula.id),
       alArchivar: () => archivar.abrir(formula.id),
       alEliminar: () => eliminar.abrir(formula.id),
     })
+  const salirA = (formula: FormulaDeLaLista) =>
+    formula.id === elegidaId ? rutaDeParteDelOrigen(origen.id, parte) : null
   const paneles = (
     <>
       {ultimo === renombrar.nombre && renombrar.formula ? (
@@ -122,7 +124,7 @@ export function usePanelesDeLaFormula({
           alCerrar={archivar.cerrar}
           origenId={origen.id}
           formula={archivar.formula}
-          volverALaLista={volverALaLista}
+          salirA={salirA(archivar.formula)}
         />
       ) : null}
       {ultimo === eliminar.nombre && eliminar.formula ? (
@@ -132,7 +134,7 @@ export function usePanelesDeLaFormula({
           alCerrar={eliminar.cerrar}
           origenId={origen.id}
           formula={eliminar.formula}
-          volverALaLista={volverALaLista}
+          salirA={salirA(eliminar.formula)}
         />
       ) : null}
     </>

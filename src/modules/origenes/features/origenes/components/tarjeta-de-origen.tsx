@@ -1,7 +1,7 @@
 import { CircleCheckIcon } from 'lucide-react'
 import type { Route } from 'next'
 import Link from 'next/link'
-import { rutaDeParteDelOrigen } from '@/shared/lib/rutas'
+import { rutaDelOrigen } from '@/shared/lib/rutas'
 import { Badge } from '@/shared/ui/badge'
 import { contados } from '../../../entities/nombre'
 import { ETIQUETA_DE_TIPO_DE_ORIGEN, type OrigenConUso } from '../../../entities/origen'
@@ -20,7 +20,7 @@ export function TarjetaDeOrigen({ origen, faltas }: Props) {
   return (
     <li className="min-w-0">
       <Link
-        href={rutaDeParteDelOrigen(origen.id, 'datos') as Route}
+        href={rutaDelOrigen(origen.id) as Route}
         className="grid h-full content-start gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-4 outline-none hover:border-(--color-line-strong) hover:bg-(--color-surface-3) focus-visible:shadow-(--shadow-focus)"
       >
         <span className="grid gap-2">

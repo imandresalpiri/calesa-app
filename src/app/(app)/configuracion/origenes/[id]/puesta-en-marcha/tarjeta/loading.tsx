@@ -1,4 +1,4 @@
-import { EsqueletoDeLaTarjeta } from '../../(pestanas)/formulas/[formula]/tarjeta/esqueleto-de-la-tarjeta'
+import { EsqueletoDeLaTarjeta } from '../../(pestanas)/tarjeta/esqueleto-de-la-tarjeta'
 
 export default function CargandoPasoTarjeta() {
   return <EsqueletoDeLaTarjeta />

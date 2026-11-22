@@ -75,12 +75,12 @@ export function unidadDeLogistica(id: string): string {
 // Las pestañas de la página de un origen, en su orden: cada una es una sub-ruta `/configuracion/origenes/<id>/<parte>`. Viven acá porque
 // las arman las actions y los enlaces de otros módulos (cotizaciones, flujos), que no pueden importar `src/app`.
 export const PARTES_DEL_ORIGEN = [
-  'datos',
+  'fases',
+  'planilla',
+  'hoja',
+  'tarjeta',
   'campos',
   'categorias',
-  'flujo',
-  'formulas',
-  'tablas',
 ] as const
 
 export type ParteDelOrigen = (typeof PARTES_DEL_ORIGEN)[number]
@@ -88,6 +88,12 @@ export type ParteDelOrigen = (typeof PARTES_DEL_ORIGEN)[number]
 function conConsulta(ruta: string, consulta?: Record<string, string>): Route {
   const parametros = new URLSearchParams(consulta).toString()
   return (parametros === '' ? ruta : `${ruta}?${parametros}`) as Route
+}
+
+// La página de un origen sin pestaña (`/configuracion/origenes/<id>`): su `route.ts` lleva a la última pestaña que la persona abrió ahí (o a la primera que
+// abre), con la consulta (`?panel=datos`).
+export function rutaDelOrigen(origenId: string, consulta?: Record<string, string>): Route {
+  return conConsulta(`${RUTAS.origenes}/${encodeURIComponent(origenId)}`, consulta)
 }
 
 // Una pestaña de un origen, con su consulta en el orden en que viene (`?fase=`, `?panel=`); sin consulta, sin `?`.
@@ -99,51 +105,75 @@ export function rutaDeParteDelOrigen(
   return conConsulta(`${RUTAS.origenes}/${encodeURIComponent(origenId)}/${parte}`, consulta)
 }
 
-// Lo que se configura del cotizador de un origen: la Fórmula (con sus sub-pestañas Hoja y Tarjeta) y las Tablas, en su orden.
+// Lo que se configura del cotizador de un origen (los nombres de las rutas viejas `/configuracion/cotizacion/<origen>/<pestaña>`), en su orden.
 export const PESTANAS_DE_COTIZACION = ['formula', 'hoja', 'tarjeta', 'tablas'] as const
 
 export type PestanaDeCotizacion = (typeof PESTANAS_DE_COTIZACION)[number]
 
-const RUTA_EN_EL_ORIGEN: Record<PestanaDeCotizacion, string> = {
-  formula: 'formula',
-  hoja: 'formula/hoja',
-  tarjeta: 'formula/tarjeta',
-  tablas: 'tablas',
+// Dónde queda cada una en la página del origen: la Fórmula es la Planilla y las Tablas, su drawer sobre la Planilla (`?panel=tablas`).
+const EN_EL_ORIGEN: Record<PestanaDeCotizacion, ParteDeLaFormula> = {
+  formula: 'planilla',
+  hoja: 'hoja',
+  tarjeta: 'tarjeta',
+  tablas: 'planilla',
 }
 
-// Una pestaña del cotizador de un origen, en la página del origen (`…/origenes/<id>/formula`, `…/formula/hoja`, `…/formula/tarjeta`,
-// `…/tablas`), con su consulta en el orden en que viene (`?tabla=`, `?panel=`); sin consulta, sin `?`.
+// El drawer de las tablas de un origen (`?panel=tablas`) y el panel de una tabla adentro (`&accion=publicar-tabla`: convive con el drawer, que ya usa
+// `panel`). Viven acá porque los nombran las rutas viejas y el área `tablas`.
+export const PANEL_DE_LAS_TABLAS = 'tablas'
+export const CLAVE_DE_LA_ACCION_DE_LA_TABLA = 'accion'
+
+// La consulta de las tablas de antes (`?tabla=&panel=publicar-tabla`) en el drawer: `panel=tablas` y el panel de la tabla en `accion`.
+export function consultaDelDrawerDeLasTablas(
+  consulta: Record<string, string> = {},
+): Record<string, string> {
+  const { panel, ...resto } = consulta
+  return {
+    panel: PANEL_DE_LAS_TABLAS,
+    ...resto,
+    ...(panel === undefined || panel === PANEL_DE_LAS_TABLAS
+      ? {}
+      : { [CLAVE_DE_LA_ACCION_DE_LA_TABLA]: panel }),
+  }
+}
+
+// Una pestaña del cotizador de un origen, en la página del origen (`…/origenes/<id>/planilla|hoja|tarjeta`, las tablas en `…/planilla?panel=tablas`), con su
+// consulta en el orden en que viene (`?tabla=`); sin consulta, sin `?`. Sin `?formula=`: la de trabajo es la de por defecto.
 export function rutaDeConfiguracionDeCotizacion(
   origenId: string,
   pestana: PestanaDeCotizacion,
   consulta?: Record<string, string>,
 ): Route {
-  return conConsulta(
-    `${RUTAS.origenes}/${encodeURIComponent(origenId)}/${RUTA_EN_EL_ORIGEN[pestana]}`,
-    consulta,
+  return rutaDeParteDelOrigen(
+    origenId,
+    EN_EL_ORIGEN[pestana],
+    pestana === 'tablas' ? consultaDelDrawerDeLasTablas(consulta) : consulta,
   )
 }
 
-// Lo que se edita de una fórmula del origen, en su orden: cada parte es una sub-ruta `…/origenes/<id>/formulas/<fórmula>/<parte>`.
+// Las pestañas de la página del origen que editan una fórmula: llevan la elegida en `?formula=<id>` (sin ella, la de trabajo).
 export const PARTES_DE_LA_FORMULA = ['planilla', 'hoja', 'tarjeta'] as const
 
 export type ParteDeLaFormula = (typeof PARTES_DE_LA_FORMULA)[number]
 
-// La lista de las fórmulas de un origen (`…/origenes/<id>/formulas`), con su consulta (`?panel=`); sin consulta, sin `?`.
-export function rutaDeLasFormulas(origenId: string, consulta?: Record<string, string>): Route {
-  return conConsulta(`${RUTAS.origenes}/${encodeURIComponent(origenId)}/formulas`, consulta)
-}
+export const esParteDeLaFormula = (parte: string): parte is ParteDeLaFormula =>
+  (PARTES_DE_LA_FORMULA as readonly string[]).includes(parte)
 
-// Una parte de una fórmula del origen (`…/formulas/<fórmula>/planilla|hoja|tarjeta`), con su consulta (`?fila=`, `?lugar=`, `?panel=`).
+// La fórmula elegida en la barra de la fórmula (`?formula=<id>`).
+export const CLAVE_DE_LA_FORMULA = 'formula'
+
+// Una pestaña de la fórmula del origen con la elegida (`…/origenes/<id>/planilla|hoja|tarjeta?formula=<f>`) y el resto de su consulta (`?fila=`, `?lugar=`,
+// `?panel=`); sin fórmula, la de trabajo (sin `?formula=`).
 export function rutaDeLaFormula(
   origenId: string,
-  formulaId: string,
+  formulaId: string | null,
   parte: ParteDeLaFormula,
   consulta?: Record<string, string>,
 ): Route {
-  return conConsulta(
-    `${RUTAS.origenes}/${encodeURIComponent(origenId)}/formulas/${encodeURIComponent(formulaId)}/${parte}`,
-    consulta,
+  return rutaDeParteDelOrigen(
+    origenId,
+    parte,
+    formulaId === null ? consulta : { [CLAVE_DE_LA_FORMULA]: formulaId, ...consulta },
   )
 }
 

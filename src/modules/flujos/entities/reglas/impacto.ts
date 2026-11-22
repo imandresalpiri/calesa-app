@@ -73,12 +73,12 @@ export function textoDelImpacto(nombreDeLaRegla: string, impacto: ImpactoDeRegla
     : `${cabeza} la usan ${n} requisitos de espera (${dePara}).`
 }
 
-// El inspector de una fase: la pestaña Flujo del origen (o Repuestos › Flujo de repuestos) con `?fase=`.
+// El inspector de una fase: la pestaña Fases del origen (o Repuestos › Flujo de repuestos) con `?fase=`.
 export function hrefDeFase(claveDelFlujo: string, faseId: string): string {
   const fase = { fase: faseId }
   return claveDelFlujo === CLAVE_DE_REPUESTOS
     ? `${RUTAS.flujoDeRepuestos}?${new URLSearchParams(fase).toString()}`
-    : rutaDeParteDelOrigen(claveDelFlujo, 'flujo', fase)
+    : rutaDeParteDelOrigen(claveDelFlujo, 'fases', fase)
 }
 
 // Lo que responde la action de cambiar una regla: cambiada (con la versión nueva) o «en uso» (no se escribió nada).

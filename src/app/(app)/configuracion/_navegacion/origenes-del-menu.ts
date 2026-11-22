@@ -1,6 +1,6 @@
 import type { Permisos } from '@/shared/lib/permisos'
 import { TOPE_DE_ORIGENES_DEL_MENU } from '@/shared/lib/paginacion'
-import { RUTAS, rutaDeParteDelOrigen } from '@/shared/lib/rutas'
+import { RUTAS, rutaDelOrigen } from '@/shared/lib/rutas'
 import { puedeAbrirElOrigen } from '../origenes/acceso'
 import type { GrupoDelNavegador, SubseccionDelNavegador } from '../secciones'
 
@@ -19,7 +19,7 @@ export function subseccionesDeOrigenes(
     .map((origen) => ({
       clave: origen.id,
       titulo: origen.nombre,
-      ruta: rutaDeParteDelOrigen(origen.id, 'datos'),
+      ruta: rutaDelOrigen(origen.id),
       marca: `${RUTAS.origenes}/${encodeURIComponent(origen.id)}`,
     }))
   if (abiertos.length > TOPE_DE_ORIGENES_DEL_MENU) {

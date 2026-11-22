@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import { rutaDeLaHoja } from '@/modules/cotizaciones'
 import { pasoPendiente } from '@/modules/origenes'
 import { redirigir } from '@/shared/lib/navegacion'
-import { rutaDeLaPuestaEnMarcha, rutaDeParteDelOrigen } from '@/shared/lib/rutas'
+import { rutaDeLaPuestaEnMarcha, rutaDelOrigen } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
 import { EstadoVacio } from '@/shared/ui/estados'
 import { EsqueletoFormulario } from '@/shared/ui/esqueletos'
@@ -65,7 +65,7 @@ async function Listo({ id }: { id: string }) {
           descripcion={MOTIVO_DEL_PASO.publicar}
           accion={
             <Link
-              href={rutaDeParteDelOrigen(id, 'datos') as Route}
+              href={rutaDelOrigen(id) as Route}
               className={buttonVariants({ variant: 'outline' })}
             >
               Ir a la página del origen
