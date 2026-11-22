@@ -1023,6 +1023,7 @@ cmd_verificar() {
   token_gh
   if app_configurada; then verificar_app || ok=0
   elif ghr api user --jq .login >/dev/null 2>&1; then echo "✓ gh con la cuenta $(ghr api user --jq .login)"; else echo "✗ gh sin sesión para $(dueno_del_repo) (gh auth login)"; ok=0; fi
+  verificar_login_app || ok=0
   if [ "$(ghr api 'repos/{owner}/{repo}' --jq .allow_auto_merge 2>/dev/null)" = true ]; then echo "✓ auto-merge permitido en el repo"; else echo "✗ el repo no permite auto-merge"; ok=0; fi
   # No frena: sin la cola, el auto-merge integra como siempre (el kit decide si es opcional).
   if [ "$(cd "$REPO" && cola_activa)" = true ]; then echo "✓ main exige la cola de integración"
