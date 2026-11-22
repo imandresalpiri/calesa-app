@@ -667,12 +667,17 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
   «Publicada»; «← Guías» vuelve a la lista). «Preguntas frecuentes»: panel por URL, reordenar, eliminar con confirmación. «Testimonios»: con su
   consentimiento (quién, cuándo, canal; ciudad, vehículo y foto por separado) y «Retirar». Las listas llevan su acción principal («Nueva …») sin repetir el
   título de la página.
-- **Cola web (config)** — `/configuracion/cola-web` (`web.cola.gestionar`): una página con tres secciones, en este orden, cada una con título y frase.
-  «Sin asignar» (solicitudes sin asesor: código y fuente; «Ver más» de a 20), «En la rueda» (en el orden de la ruleta: disponible o no, abiertas de su
-  cupo, prioridad, «Contacta el N %» o «Sin turnos aún», vencidas y último turno, con «Quitar»; «Agregar a la rueda» —`?panel=agregar-a-la-rueda&q=`, busca
-  en el equipo y avisa si el rol no recibe turnos— junto a su título; y debajo, «Habilitada, pero su rol no recibe turnos de la web» con «Se cambia en
-  Roles.») y «Política de la cola» (cola activa, minutos para contactar, días de pegajoso, máximo de abiertas e intentos, con la barra fija de abajo).
-  «Actualizar» queda arriba de la página. En el celular, las tres secciones apiladas en su orden.
+- **Cola web (config)** — `/configuracion/cola-web` (`web.cola.gestionar`): tarjetas en una rejilla que ocupa todo el ancho del área (sin tope de ancho; a 1920 px,
+  varias columnas). «Actualizar» arriba y, debajo, los avisos de la política y tres bloques en este orden, cada uno con su título (`h2`).
+  «Sin asignar» (una tarjeta por solicitud sin asesor: código y fuente, sin «⋯» ni clic porque hoy no hay acciones; «Ver más» de a 20), «En la rueda» (una
+  tarjeta por persona, en el orden de la ruleta: disponible o no, abiertas de su cupo, prioridad, «Contacta el N %» o «Sin turnos aún», vencidas y último turno;
+  su «⋯» es lo único suelto: «Editar…» —`?panel=editar-en-la-rueda&para=`, cupo, prioridad y orden en un modal— y «Quitar de la rueda» —`?panel=quitar-de-la-rueda&para=`,
+  confirma nombrando a la persona y el aviso ofrece «Deshacer»—; tocar la tarjeta abre «Editar…»; «Agregar a la rueda» —`?panel=agregar-a-la-rueda&q=`, busca en
+  el equipo y avisa si el rol no recibe turnos— junto a su título; y, dentro del bloque, «Habilitada, pero su rol no recibe turnos de la web» con «Se cambia en
+  Roles.» y «Cuenta bloqueada o inactiva») y «Política de la cola» (una tarjeta de ajustes con cola activa, minutos para contactar, días con el mismo asesor,
+  cupo por defecto e intentos a la vista; su «⋯» dice «Editar política…» y tocarla abre el modal `?panel=politica`, con la versión de la fila: el conflicto deja
+  «Recargar» y conserva lo tipeado; cerrar con cambios pregunta). Cada bloque lleva su error de lectura si falla sin tapar los otros. Estados: esqueleto con las
+  mismas rejillas, vacío por bloque, «Mostrando las primeras N habilitadas» al tope, sin permiso («No tienes permiso»). En el celular, las tarjetas en una columna.
 - **Equipo** — `/configuracion/equipo` (`equipo.usuarios.*`): tabla desde 768 px, tarjetas debajo, panel lateral. `?q=&estado=` se
   resuelven en el servidor («jose» encuentra «José»); dibuja las 100 primeras por nombre y lo dice al pie; la persona se gestiona desde su
   «⋯», sin resumen. `?panel=invitar`; `?persona=`; `?baja=`.

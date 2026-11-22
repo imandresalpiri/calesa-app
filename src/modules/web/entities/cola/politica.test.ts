@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cambiosDePolitica } from './politica'
+import { cambiosDePolitica, filasDeLaPolitica, type PoliticaDeLaCola } from './politica'
 
 describe('cambiosDePolitica', () => {
   const edicion = {
@@ -31,5 +31,34 @@ describe('cambiosDePolitica', () => {
       'ttl_contacto_minutos',
     ])
     expect(cambios).not.toHaveProperty('whatsapp_respaldo')
+  })
+})
+
+describe('filasDeLaPolitica', () => {
+  const politica: PoliticaDeLaCola = {
+    colaActiva: true,
+    ttlContactoMinutos: 30,
+    diasPegajoso: 14,
+    maxAbiertasDefault: 5,
+    maxIntentos: 3,
+    whatsappRespaldo: null,
+    actualizadoEn: '2026-10-12T14:00:00.123456+00:00',
+  }
+
+  it('dice si la cola reparte y los cuatro números, en el orden del modal', () => {
+    expect(filasDeLaPolitica(politica)).toEqual([
+      { etiqueta: 'Cola', valor: 'Activa' },
+      { etiqueta: 'Minutos para contactar', valor: '30' },
+      { etiqueta: 'Días con el mismo asesor', valor: '14' },
+      { etiqueta: 'Cupo por defecto', valor: '5' },
+      { etiqueta: 'Intentos por solicitud', valor: '3' },
+    ])
+  })
+
+  it('con la cola apagada dice «Apagada»', () => {
+    expect(filasDeLaPolitica({ ...politica, colaActiva: false })[0]).toEqual({
+      etiqueta: 'Cola',
+      valor: 'Apagada',
+    })
   })
 })

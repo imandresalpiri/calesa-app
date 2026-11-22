@@ -1,6 +1,6 @@
-import { EsqueletoListado } from '@/shared/ui/esqueletos'
+import { EsqueletoDeLaCola } from './esqueleto-de-la-cola'
 
 // Sin importar `@/modules/web`: el esqueleto no carga el barril de pantallas.
 export default function CargandoColaWeb() {
-  return <EsqueletoListado filas={6} columnas={3} />
+  return <EsqueletoDeLaCola />
 }

@@ -30,9 +30,8 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
 - **Sub-rutas de Configuración › Sitio web**: una por parte (`/configuracion/web/{ajustes,legales,guias,faqs,testimonios}`), registradas en
   `src/app/(app)/configuracion/web/seccion.ts` (menú, frase y permisos); cada una importa su pantalla de `pantallas/sitio-{ajustes,legales,guias,faqs,testimonios}.ts`.
   `/configuracion/web` abre la primera que la persona puede y traduce `?seccion=` a su sub-ruta (`web/url-vieja.ts`). Ajustes y Legales son tarjetas con lo
-  guardado a la vista y un modal por tarjeta (`?panel=`; `@/shared/ui/tarjetas-de-ajustes`, `useEnvioConVersion()`); la política de la cola se guarda con la
-  barra de cambios sin guardar (`BarraDeCambiosSinGuardar`, hermana del formulario con `order-last`). Ajustes y Legales comparten la versión de
-  `ajustes_web`: cada action revalida las dos rutas.
+  guardado a la vista y un modal por tarjeta (`?panel=`; `@/shared/ui/tarjetas-de-ajustes`, `useEnvioConVersion()`), igual que la política de la cola
+  (`TarjetaDeLaPolitica` y su modal, abajo). Ajustes y Legales comparten la versión de `ajustes_web`: cada action revalida las dos rutas.
 - `turnos`: `infra/turnos/mis-turnos.ts` lee `limit 6` **filtrado por `usuario_id` a mano** (la RLS deja ver todas a quien gestiona la cola); el título sale
   de `web.vehiculos` (un vehículo que dejó de ser público va sin título). «Contacté» va en un toque sin «Deshacer»; «Vincular a lead» por
   `?panel=vincular-turno&turno=`, montado en `src/app/(app)/_inicio/vincular-turno.tsx` con el panel de `leads`. En `/perfil` (`pantallas/perfil.ts`; las tarjetas «Turnos de la web» y «Tu ficha en la web», esta con su modal `?panel=ficha`):
@@ -51,10 +50,15 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
   legales: `/configuracion/web/legales` (`web.ajustes.gestionar`, `guardarLegales`: uno o los dos documentos; cada modal manda el suyo).
 - `contenido` › FAQs y testimonios: lecturas con tope 100 + 1; actions con `web.contenido.gestionar`. La foto de un testimonio
   (`foto-de-testimonio.client.ts`) va a WebP, sube por hash al bucket `web` y se limpia con `quitarSiHuerfano`.
-- `cola`: `/configuracion/cola-web` (`pantallas/cola.ts`): una página con «Sin asignar», «En la rueda» (con «Agregar a la rueda» y, dentro, los grupos de las
-  habilitadas que hoy no reciben turnos) y «Política de la cola», cada una con su título y su frase (`SeccionDeLaCola`). `entities/cola/orden-de-la-rueda.ts` (`ordenDeLaRueda`) es **espejo documentado** del paso 5
-  de `web.solicitar_asesor`, con test: la base decide, esto sólo dibuja. La política se lee en `infra/cola/` porque un área no importa `sitio`. «Agregar a
-  la rueda» (`?panel=agregar-a-la-rueda&q=`; la búsqueda la lee `src/app` con `leerEquipo` sólo con el panel abierto y si quien mira ve el equipo) y
+- `cola`: `/configuracion/cola-web` (`pantallas/cola.ts`): una página a todo el ancho con «Sin asignar», «En la rueda» (con «Agregar a la rueda» junto al título y, dentro, los
+  grupos de las habilitadas que hoy no reciben turnos) y «Política de la cola», cada una con su título (`SeccionDeLaCola`) y sus tarjetas en `REJILLA_DE_TARJETAS`
+  (`auto-fill`; el esqueleto de `src/app` repite la clase porque no importa `@/modules/web`). `entities/cola/orden-de-la-rueda.ts` (`ordenDeLaRueda`) es **espejo documentado** del paso 5
+  de `web.solicitar_asesor`, con test: la base decide, esto sólo dibuja. La política se lee en `infra/cola/` porque un área no importa `sitio`. **Todo se edita en un
+  modal por URL**, pedido con `diferido()` al abrirse por primera vez: la política (`?panel=politica`, `TarjetaDeLaPolitica`: tarjeta clicable con un botón sr-only y su «⋯»
+  «Editar política…»; `ModalDeLaPolitica` con `useEnvioConVersion`, siempre las cinco claves), la persona (`?panel=editar-en-la-rueda&para=<usuarioId>`, `ModalDeEditarEnLaRueda`) y
+  «Quitar de la rueda» (`?panel=quitar-de-la-rueda&para=<usuarioId>`, `<Confirmar>`; `usePanelesDeLaRueda(filas)` resuelve la fila de `para` y avisa «Esa persona ya no está en la
+  rueda» si ya no está). La tarjeta de una persona (`TarjetaDeLaPersona`) sólo lleva su «⋯»; las de «Sin asignar» no llevan «⋯» ni clic hasta que haya una acción.
+  «Agregar a la rueda» (`?panel=agregar-a-la-rueda&q=`; la búsqueda la lee `src/app` con `leerEquipo` sólo con el panel abierto y si quien mira ve el equipo) y
   «Quitar» con «Deshacer» van por `cola_web_configurar`, que acepta todo `smallint` en prioridad y orden (los rangos angostos son del formulario).
 - `portal`: `infra/portal/{cookie,secreto,rpc}.ts`, `entities/portal/{sesion,ip}.ts`; rutas `app/api/portal/{ingresar,estado,documentos/[id],clave,salir}`
   (con `_comun.ts`; las recorre `e2e/portal-api.spec.ts`).

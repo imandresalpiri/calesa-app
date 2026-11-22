@@ -22,7 +22,7 @@ Antes de construir una pantalla, lee su fila en `docs/UX.md` (patrón, roles, es
   formulario que se reemplaza al llegar lo guardado (`key` con la versión) apaga sus campos mientras guarda.
 - Formularios en bloques `<Bloque titulo>` plegables; los secundarios nacen plegados. Su cuerpo es
   una grilla `minmax(0, 1fr)`. Salvo dentro de `<BloquesALaVista>` (el panel del flujo), donde van a la vista: una sección con su
-  `h3` (`h4` anidado). Salvo también las páginas de ajustes de Configuración (Empresa, Integraciones, Comprobantes, Sitio web › Ajustes y Legales, Leads) y el perfil (`/perfil`):
+  `h3` (`h4` anidado). Salvo también las páginas de ajustes de Configuración (Empresa, Integraciones, Comprobantes, Sitio web › Ajustes y Legales, Cola web › Política, Leads) y el perfil (`/perfil`):
   `<TarjetasDeAjustes>` con un `ModalDeFormulario` por tarjeta (`@/shared/ui/tarjetas-de-ajustes`, `useEnvioConVersion()`), sin acordeones.
 
 ## Destructivas, paneles y modales
