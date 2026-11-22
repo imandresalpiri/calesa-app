@@ -91,6 +91,10 @@ export const MODALES: Record<string, RegistroDeModal> = {
       '«Notificaciones» del perfil: cada interruptor y cada «Quitar» actúa al instante; no hay nada tipeado que se pierda al cerrar («Listo» sólo cierra)',
   },
   // --- cotizaciones
+  'src/modules/cotizaciones/features/diseno/components/colores-del-catalogo.tsx': {
+    sinFormulario:
+      'la lista de los colores: «Nuevo color», «Editar» y «Eliminar» abren su propio modal (con su aviso de cambios); nada tipeado en éste',
+  },
   'src/modules/cotizaciones/features/listado/components/grupo/modal-del-grupo.tsx': {
     sinFormulario:
       'lista las cotizaciones de un vehículo, de sólo lectura; las casillas de «Comparar» no se guardan y elegir una línea abre su resumen',
