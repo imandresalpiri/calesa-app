@@ -1,3 +1,5 @@
+import { PARAMETRO_DEL_BLOQUE, RUTAS } from '@/shared/lib/rutas'
+
 // Los parámetros de una página de Configuración tal como los entrega Next (`searchParams`).
 export type ParametrosDeLaUrl = Record<string, string | string[] | undefined>
 
@@ -60,4 +62,13 @@ export function conElPanelDeOrigenes(
     panel: propio === undefined || propio === '' ? panel : propio,
     ...resto,
   })
+}
+
+// La matriz de Roles con el bloque de cotizaciones a la vista que abre una URL vieja de Niveles o de Quién crea y quién ve: `?bloque=cotizaciones` primero y el resto de la
+// consulta de la URL vieja (`?panel=nuevo-nivel`, `?nivel=<id>`, `?origen=<id>`…). Sin `seccion` ni un `bloque` previo: el de esta ruta manda.
+export function conElBloqueDeRoles(parametros: ParametrosDeLaUrl): string {
+  const resto = Object.fromEntries(
+    Object.entries(parametros).filter(([nombre]) => nombre !== PARAMETRO_DEL_BLOQUE),
+  )
+  return conParametros(RUTAS.roles, { [PARAMETRO_DEL_BLOQUE]: 'cotizaciones', ...resto })
 }

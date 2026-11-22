@@ -86,7 +86,7 @@ describe('/configuracion/cotizacion/general en next.config', () => {
       },
       {
         source: '/configuracion/cotizacion/general/niveles',
-        destination: '/configuracion/catalogos/niveles',
+        destination: '/configuracion/roles?bloque=cotizaciones',
         conPanel: false,
         sinPanel: false,
         permanent: true,

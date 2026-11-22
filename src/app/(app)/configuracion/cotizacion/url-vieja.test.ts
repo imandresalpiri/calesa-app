@@ -22,9 +22,12 @@ describe('la URL vieja de Configuración › Cotización', () => {
     expect(destinoDeLaUrlVieja({ origen: A })).toBe(`${ORIGEN}/planilla`)
   })
 
-  it('los niveles van a Catálogos, con sus paneles', () => {
+  it('los niveles van al bloque «Cotizaciones» de Roles, con sus paneles', () => {
+    expect(destinoDeLaUrlVieja({ seccion: 'niveles' })).toBe(
+      '/configuracion/roles?bloque=cotizaciones',
+    )
     expect(destinoDeLaUrlVieja({ seccion: 'niveles', panel: 'nuevo-nivel' })).toBe(
-      '/configuracion/catalogos/niveles?panel=nuevo-nivel',
+      '/configuracion/roles?bloque=cotizaciones&panel=nuevo-nivel',
     )
   })
 

@@ -71,11 +71,11 @@ describe('buscarEnConfiguracion', () => {
     expect(caminos('portal', [])).toEqual([])
   })
 
-  it('lo de un origen se busca en Orígenes, con los colores y la vigencia de todas las cotizaciones; lo global, en Catálogos', () => {
+  it('lo de un origen se busca en Orígenes, con los colores y la vigencia de todas las cotizaciones; los niveles, en Roles; lo global, en Catálogos', () => {
     expect(caminos('fórmula')[0]).toBe('Orígenes')
     expect(caminos('flujo')).toContain('Orígenes')
     expect(caminos('colores')[0]).toBe('Orígenes › Colores')
-    expect(caminos('niveles')[0]).toBe('Catálogos › Niveles')
+    expect(caminos('niveles')[0]).toBe('Roles y permisos › Niveles de acceso')
     expect(caminos('tablas compartidas')[0]).toBe('Catálogos › Tablas compartidas')
     expect(caminos('flujo de repuestos')[0]).toBe('Repuestos › Flujo de repuestos')
   })

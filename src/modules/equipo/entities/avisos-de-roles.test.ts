@@ -7,6 +7,7 @@ import {
   nombreDelBotonDeAvisos,
   tituloDeAvisosDelRol,
 } from './avisos-de-roles'
+import { MOTIVO_SIN_GESTIONAR_ROLES } from './cuadro-de-cotizaciones'
 import { MOTIVO_ROL_NO_DOMINADO } from './dominancia'
 
 const NADIE = { n: 0, hayMas: false }
@@ -74,7 +75,10 @@ describe('avisosDelRol', () => {
 describe('avisosDeLaPagina', () => {
   it('dice uno u otro según pueda gestionar roles', () => {
     expect(avisosDeLaPagina(true)).toEqual([AVISO_DE_LA_PAGINA_CON_PERMISO])
-    expect(avisosDeLaPagina(false)).toEqual([AVISO_DE_LA_PAGINA_SIN_PERMISO])
+    expect(avisosDeLaPagina(false)).toEqual([
+      AVISO_DE_LA_PAGINA_SIN_PERMISO,
+      MOTIVO_SIN_GESTIONAR_ROLES,
+    ])
   })
 })
 

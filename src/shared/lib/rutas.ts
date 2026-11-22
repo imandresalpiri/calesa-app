@@ -3,6 +3,9 @@ import type { Route } from 'next'
 // Rutas del acceso y la regla que decide quién pasa. Son nombres de rutas, no reglas del negocio:
 // las usan `src/proxy.ts`, las actions de ingreso y el route handler que canjea los enlaces.
 
+// El parámetro que deja a la vista el bloque de un módulo de la matriz de Roles (`?bloque=cotizaciones`).
+export const PARAMETRO_DEL_BLOQUE = 'bloque'
+
 export const RUTAS = {
   inicio: '/',
   ingreso: '/ingreso',
@@ -17,6 +20,8 @@ export const RUTAS = {
   inicioDeConfiguracion: '/configuracion/inicio',
   equipo: '/configuracion/equipo',
   roles: '/configuracion/roles',
+  // El bloque «Cotizaciones» de la matriz de Roles, a la vista: ahí viven los niveles de acceso y «Quién crea y quién ve». Sólo un enlace (no se revalida).
+  cotizacionesEnRoles: '/configuracion/roles?bloque=cotizaciones',
   empresa: '/configuracion/empresa',
   monedasDeEmpresa: '/configuracion/empresa/monedas',
   integracionesDeEmpresa: '/configuracion/empresa/integraciones',
@@ -30,11 +35,9 @@ export const RUTAS = {
   // una abre su modal por `?panel=` (no son rutas: no se revalidan, se enlazan).
   coloresDeCotizacion: '/configuracion/origenes?panel=colores',
   vigenciaDeCotizacion: '/configuracion/origenes?panel=vigencia',
-  // Catálogos: lo global de la empresa (los niveles y quién crea y quién ve de la cotización; los puertos, las navieras, las categorías de gasto y los
+  // Catálogos: lo global de la empresa (los puertos, las navieras, las categorías de gasto y los
   // tipos de documento de toda la empresa; las tablas compartidas). Lo de cada origen vive en su página.
   catalogos: '/configuracion/catalogos',
-  nivelesDeCotizacion: '/configuracion/catalogos/niveles',
-  quienCreaYQuienVe: '/configuracion/catalogos/quien-crea-y-quien-ve',
   puertosDeLogistica: '/configuracion/catalogos/puertos',
   navierasDeLogistica: '/configuracion/catalogos/navieras',
   categoriasDeGastoDeLogistica: '/configuracion/catalogos/categorias-de-gasto',

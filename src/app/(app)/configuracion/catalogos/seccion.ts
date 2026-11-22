@@ -5,40 +5,13 @@ import type { SeccionDeConfiguracion, SubseccionDeConfiguracion } from '../secci
 import { CATALOGOS_DE_LOGISTICA } from './catalogos-de-logistica'
 
 // La entrada de Configuración › Catálogos en el registro: lo que es de toda la empresa y no de un origen, una sub-ruta por catálogo
-// (`/configuracion/catalogos/<clave>`), en tres tramos del menú:
-// - «Cotizaciones»: Niveles y Quién crea y quién ve, con los permisos de la matriz de Roles (cada nivel es un permiso; el cuadro escribe
-//   `cotizaciones.crear`, `.ver` y `.privadas.ver`) y, para quien configura sin ver los roles, apagadas con su motivo. Colores y Vigencia ya no son
-//   catálogos: son tarjetas de «Para todos los orígenes» en Configuración › Orígenes.
+// (`/configuracion/catalogos/<clave>`), en dos tramos del menú. Los niveles de acceso y Quién crea y quién ve ya no son catálogos: viven en la matriz de
+// Configuración › Roles (el bloque «Cotizaciones»); Colores y Vigencia, en las tarjetas de «Para todos los orígenes» de Configuración › Orígenes.
 // - «Logística»: los catálogos que llena el módulo (`catalogos-de-logistica.ts`), cada uno con su permiso, y Tipos de documento: los cambia quien
 //   gestiona los catálogos de logística y los lee quien configura un flujo.
 // - Tablas compartidas, sin rótulo: las tablas de referencia sin origen, con `cotizaciones.configurar`.
 // La sección no tiene índice: su `route.ts` abre la primera sub-sección que la persona puede abrir. Es la única fuente de títulos, frases, rutas y
 // permisos de sus páginas. El tipo se trae con `import type`: el ciclo con `secciones.ts` es sólo de tipos y se borra al compilar.
-
-export const MOTIVO_SIN_VER_ROLES = 'Te falta el permiso «Ver roles».'
-
-const DE_COTIZACIONES = [
-  {
-    clave: 'niveles',
-    titulo: 'Niveles',
-    descripcion: 'Quién ve y edita qué celdas.',
-    palabras: ['permisos', 'celdas', 'editar', 'ver', 'cotización'],
-    ruta: RUTAS.nivelesDeCotizacion,
-    permisos: ['equipo.roles.ver', 'equipo.roles.gestionar'],
-    motivoSinPermiso: MOTIVO_SIN_VER_ROLES,
-    grupo: 'Cotizaciones',
-  },
-  {
-    clave: 'quien-crea-y-quien-ve',
-    titulo: 'Quién crea y quién ve',
-    descripcion: 'Qué rol crea cotizaciones y cuáles ve, por origen.',
-    palabras: ['permisos', 'roles', 'crear', 'ver', 'privadas', 'origen', 'cotización'],
-    ruta: RUTAS.quienCreaYQuienVe,
-    permisos: ['equipo.roles.ver', 'equipo.roles.gestionar'],
-    motivoSinPermiso: MOTIVO_SIN_VER_ROLES,
-    grupo: 'Cotizaciones',
-  },
-] as const satisfies readonly SubseccionDeConfiguracion[]
 
 const DE_LOGISTICA: readonly SubseccionDeConfiguracion[] = [
   ...[
@@ -72,7 +45,6 @@ const TABLAS_COMPARTIDAS = {
 } as const satisfies SubseccionDeConfiguracion
 
 export const SUBSECCIONES_DE_CATALOGOS: readonly SubseccionDeConfiguracion[] = [
-  ...DE_COTIZACIONES,
   ...DE_LOGISTICA,
   TABLAS_COMPARTIDAS,
 ]
@@ -86,10 +58,8 @@ export const SECCION_DE_CATALOGOS: SeccionDeConfiguracion = {
   clave: 'catalogos',
   titulo: 'Catálogos',
   descripcion:
-    'Lo que es de toda la empresa: niveles y quién crea y quién ve de las cotizaciones, puertos, navieras, gastos, documentos y tablas compartidas.',
+    'Lo que es de toda la empresa: puertos, navieras, gastos, documentos y tablas compartidas.',
   palabras: [
-    'niveles',
-    'quién crea y quién ve',
     'puertos',
     'navieras',
     'gastos',

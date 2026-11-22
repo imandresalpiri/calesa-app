@@ -168,7 +168,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   dibuja la planilla. La pestaña Tarjeta va a ancho completo y su página pide la referencia del lienzo sin esperarla
   (`origenes/[id]/(pestanas)/tarjeta/referencia.ts`, con `leerListadoDeCotizaciones()` y `UNA` del área `listado`, `leerHojaDeUnaGuardada()`, y `referenciaPlana()` y
   `calculoDeLoGuardado()` del núcleo).
-- Niveles: `/configuracion/catalogos/niveles` (`equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|eliminar-nivel&nivel=<id>`).
+- Niveles: en la matriz de Roles, bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`; `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|eliminar-nivel&nivel=<id>`). `pantallas/configuracion.ts` sale `NivelesEnLaMatriz`: una render prop que da a la matriz de `equipo` los huecos (`cabeza`, `menuDelNivel`, `pie`, `ventanas`); la une `src/app/(app)/configuracion/roles/matriz-con-niveles.tsx`. Las rutas viejas de Catálogos responden 308.
 - Con Live, las cifras de la ayuda de una celda de dinero pasan por `<Monto>`; las de otra celda quedan a la vista.
 - Los `loading.tsx` de la hoja importan `pantallas/esqueleto-de-hoja.ts`, nunca el barril de su pantalla (con él, el HTML en frío baja dos chunks casi
   iguales). El núcleo del guardado (`useNucleoDelGuardado`: pendiente, un envío a la vez, reintento al volver la red) es el mismo de la hoja nueva y de la

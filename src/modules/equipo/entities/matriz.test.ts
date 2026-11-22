@@ -225,12 +225,12 @@ describe('permisos de un nivel de acceso', () => {
     ])
   })
 
-  it('lleva el nombre del nivel, y un retirado lo dice en el nombre sin dejar de aparecer', () => {
+  it('lleva el nombre del nivel, y un retirado conserva el nombre sin sufijo y sin dejar de aparecer', () => {
     const grupo = agruparPorModulo(delNivel).find((g) => g.modulo === 'cotizaciones')
     const nombres = grupo?.permisos.map((p) => p.nombre)
     expect(nombres).toContain('Ver el nivel «Costos»')
-    expect(nombres).toContain('Ver el nivel «Álamo» (retirado)')
-    expect(nombres).toContain('Editar el nivel «Álamo» (retirado)')
+    expect(nombres).toContain('Ver el nivel «Álamo»')
+    expect(nombres).toContain('Editar el nivel «Álamo»')
     const costos = delNivel.find((p) => p.clave === 'cotizaciones.nivel.costos.ver')
     expect(costos).toMatchObject({
       modulo: 'cotizaciones',
