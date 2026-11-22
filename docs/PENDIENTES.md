@@ -209,6 +209,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** En Logística › Configuración › Navieras la lista tiene dos columnas «Estado» («Activo» y «Activa»): `columnaDeUso="Estado"` en `navieras-de-transporte.tsx` repite el título de la columna de estado; ponerle otro («Uso» o quitarla).
 - **[—]** La planilla de la fórmula a 1280 px con la tarjeta al costado (36 rem): # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
   desplazando la grilla. Angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`).
+- **[—]** En el editor de la hoja, el «+» de la pieza elegida no se achica con el lienzo: con la vista 1.280 en una ventana de 1.280 (el lienzo a ≈ 0,3)
+  tapa la mitad de abajo de una pieza baja, como la tarjeta del total y su cifra. Darle un tamaño que siga la escala o sacarlo fuera de la pieza (`features/diseno/components/editor/`).
 - **[—]** En el celular al 200 %, el «⋯» del panel de la fase queda más arriba que la ✕ (el «⋯» va en rem y la ✕ en px): alinear sus centros (`drawer.tsx`, `acciones`).
 - **[—]** `e2e/cierre-pendientes-capturas.spec.ts` falla en `movil` (también en `main`): en la sub-ruta `datos` del origen, el título no queda a la vista porque el panel «Datos del origen» está abierto.
 - **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px, los tercios del modal «Avanzado», un par con un lado bloqueado en el celular) baja sus
