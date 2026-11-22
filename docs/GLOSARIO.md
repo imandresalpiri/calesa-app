@@ -137,9 +137,11 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Tarjeta, Publicar y **Listo** («Cotizar con <origen>»). El avance se deriva de lo que hay (campos, fases, fórmula de trabajo, fórmula activa), sin
   guardar un «paso actual»: cada paso guarda con sus botones, «Seguir» va al siguiente y la raíz lleva al que falta. Un paso sin el permiso en ese
   origen se salta y dice su motivo. Se retoma con «Seguir la puesta en marcha» de la página del origen. No: «asistente», «wizard», «onboarding».
-- **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos/<clave>`: lo que es de toda la empresa y no de un origen, en
-  dos tramos: «Logística» (Puertos, Navieras, Categorías de gasto, Tipos de documento) y las Tablas compartidas. Los niveles de acceso y Quién crea y quién ve
-  viven en la matriz de Roles; Colores y Vigencia, en Orígenes. No es el catálogo de repuestos ni el de apibara.
+- **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos/<clave>`: lo que es de toda la empresa y no de un origen ni de la logística; hoy, las
+  Tablas compartidas. Los niveles de acceso y Quién crea y quién ve viven en la matriz de Roles; Colores y Vigencia, en Orígenes; Puertos, Navieras, Categorías de gasto y
+  Tipos de documento, en Logística › Configuración. No es el catálogo de repuestos ni el de apibara.
+- **Configuración de logística** — `/logistica/configuracion/<clave>` (`RUTAS.configuracionDeLogistica`): la página de Logística con las pestañas Puertos, Navieras, Categorías de gasto y
+  Tipos de documento; se entra con el botón ⚙ «Configurar» de la cabecera de Logística. No: «Catálogos de logística» como sección de Configuración.
 - **Flujo de repuestos** — `/configuracion/repuestos/flujo` (`FLUJO_DE_REPUESTOS_EN_CONFIGURACION`): el flujo de los repuestos, que se configura en
   la sección Repuestos con el mismo editor que la pestaña Fases de un origen.
 - **Fórmula pendiente** — origen sin **fórmula activa** (`origenes_resumen().formula_publicada`): un origen nuevo no se cotiza hasta publicar la primera.
@@ -898,9 +900,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Tipo de documento** — `tipos_documento` / `tipo_documento_crear()`: qué documento pide el ciclo (Título, BL…); de la empresa (`flujo_id`
   nulo) o de un flujo; formatos y vencimiento (`ninguno`, `solicitar`, `renovar`, con `aviso_dias`). En uso se desactiva. No: «clase de documento».
 - **Transporte** — `transportes`: naviera, puertos, contenedor, booking y fechas de UNA unidad.
-- **Puerto** — `puertos`: origen o destino de un transporte; nombre, país y código opcionales, `orden`, `activo`. Catálogo en Configuración ›
-  Catálogos › Puertos; se desactiva, no se elimina. No: «terminal», «destino».
-- **Naviera** — `navieras`: la empresa que lleva el contenedor; nombre y `activo`. Catálogo en Configuración › Catálogos › Navieras; se
+- **Puerto** — `puertos`: origen o destino de un transporte; nombre, país y código opcionales, `orden`, `activo`. Catálogo en Logística ›
+  Configuración › Puertos; se desactiva, no se elimina. No: «terminal», «destino».
+- **Naviera** — `navieras`: la empresa que lleva el contenedor; nombre y `activo`. Catálogo en Logística › Configuración › Navieras; se
   desactiva; cada flujo ofrece las suyas (`flujos_transporte_oferta`). No: «línea marítima», «carrier».
 - **Embarque / Contenedor** — grupo por `transportes.booking` / `contenedor`: agrupación, no entidad.
 - **Grupo (de transporte)** — unidades que comparten `booking` o `contenedor`; no es entidad: `transporte_grupos()` lo cuenta y

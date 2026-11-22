@@ -4,7 +4,7 @@ import type { ClavePermiso } from '@/shared/lib/permisos'
 import { unidadDeLogistica } from '@/shared/lib/rutas'
 import { ORDEN_DE_HUECOS } from './hueco'
 
-// Un enlace de la sub-navegación de `/logistica` (Embarques, Aduana, Gastos) y un catálogo de logística de Configuración › Catálogos (6.01). Nulo hasta que
+// Un enlace de la sub-navegación de `/logistica` (Embarques, Aduana, Gastos) y un catálogo de logística de Logística › Configuración (6.01). Nulo hasta que
 // existe la página o el catálogo: el layout y la sección sólo dibujan lo que está lleno y que la persona puede ver.
 export type EnlaceDeLogistica = {
   titulo: string
@@ -12,7 +12,7 @@ export type EnlaceDeLogistica = {
   permiso: ClavePermiso
 }
 
-// Un catálogo de logística en Configuración › Catálogos: su `clave` es el último tramo de su sub-ruta (`/configuracion/catalogos/<clave>`) y su `descripcion`, la frase
+// Un catálogo de logística en Logística › Configuración: su `clave` es el último tramo de su sub-ruta (`/logistica/configuracion/<clave>`) y su `descripcion`, la frase
 // que la página dice bajo el título (una, de qué se configura ahí).
 export type CatalogoDeLogistica = {
   clave: string

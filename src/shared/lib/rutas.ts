@@ -35,13 +35,8 @@ export const RUTAS = {
   // una abre su modal por `?panel=` (no son rutas: no se revalidan, se enlazan).
   coloresDeCotizacion: '/configuracion/origenes?panel=colores',
   vigenciaDeCotizacion: '/configuracion/origenes?panel=vigencia',
-  // Catálogos: lo global de la empresa (los puertos, las navieras, las categorías de gasto y los
-  // tipos de documento de toda la empresa; las tablas compartidas). Lo de cada origen vive en su página.
+  // Catálogos: lo global de la empresa que no tiene otra área (las tablas compartidas). Lo de cada origen vive en su página.
   catalogos: '/configuracion/catalogos',
-  puertosDeLogistica: '/configuracion/catalogos/puertos',
-  navierasDeLogistica: '/configuracion/catalogos/navieras',
-  categoriasDeGastoDeLogistica: '/configuracion/catalogos/categorias-de-gasto',
-  tiposDeDocumento: '/configuracion/catalogos/tipos-de-documento',
   tablasCompartidas: '/configuracion/catalogos/tablas',
   configuracionDeRepuestos: '/configuracion/repuestos',
   flujoDeRepuestos: '/configuracion/repuestos/flujo',
@@ -64,6 +59,12 @@ export const RUTAS = {
   embarques: '/logistica/embarques',
   aduana: '/logistica/aduana',
   gastosDeLogistica: '/logistica/gastos',
+  // La configuración de la logística (puertos, navieras, categorías de gasto y los tipos de documento de la empresa) vive en Logística, una sub-ruta por catálogo.
+  configuracionDeLogistica: '/logistica/configuracion',
+  puertosDeLogistica: '/logistica/configuracion/puertos',
+  navierasDeLogistica: '/logistica/configuracion/navieras',
+  categoriasDeGastoDeLogistica: '/logistica/configuracion/categorias-de-gasto',
+  tiposDeDocumento: '/logistica/configuracion/tipos-de-documento',
   repuestos: '/repuestos',
   cotizaciones: '/cotizaciones',
   nuevaCotizacion: '/cotizaciones/nuevo',

@@ -94,7 +94,9 @@ test('la dueña apaga una regla sin uso con «Deshacer» y guarda la oferta de t
   const navieras = page.getByRole('group', { name: 'Navieras' })
   await expect(origen).toContainText('Vacío: se ofrecen todos.')
   await expect(destino).toContainText('Vacío: se ofrecen todos.')
-  await expect(navieras).toContainText('Todavía no hay navieras cargadas. Se cargan en Catálogos.')
+  await expect(navieras).toContainText(
+    'Todavía no hay navieras cargadas. Se cargan en la configuración de logística.',
+  )
   const guardar = page.getByRole('button', { name: 'Guardar oferta' })
   await expect(guardar).toBeDisabled()
 

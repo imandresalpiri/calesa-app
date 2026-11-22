@@ -54,8 +54,76 @@ export const DESTINOS_DE_BUSQUEDA: readonly DestinoDeBusqueda[] = [
   },
 ]
 
+// Un destino que el buscador de Configuración encuentra y que ya no es de Configuración: una página de otra área (Logística › Puertos). Se ofrece a quien tiene alguno de sus
+// permisos, con su camino («Logística › Puertos») y sin pertenecer a ninguna sección del registro: lo lee el buscador aparte. No mira permisos al abrir: la página comprueba los suyos.
+export type DestinoFueraDeConfiguracion = {
+  clave: string
+  // El área donde está: el camino que se muestra empieza por ella.
+  lugar: string
+  titulo: string
+  ruta: string
+  permisos: readonly ClavePermiso[]
+  palabras: readonly string[]
+}
+
+export const DESTINOS_FUERA_DE_CONFIGURACION: readonly DestinoFueraDeConfiguracion[] = [
+  {
+    clave: 'puertos',
+    lugar: 'Logística',
+    titulo: 'Puertos',
+    ruta: RUTAS.puertosDeLogistica,
+    permisos: ['logistica.catalogos.gestionar'],
+    palabras: ['puerto', 'embarque', 'llegada', 'país', 'código', 'catálogos', 'configuración'],
+  },
+  {
+    clave: 'navieras',
+    lugar: 'Logística',
+    titulo: 'Navieras',
+    ruta: RUTAS.navierasDeLogistica,
+    permisos: ['logistica.catalogos.gestionar'],
+    palabras: ['naviera', 'barco', 'embarque', 'catálogos', 'configuración'],
+  },
+  {
+    clave: 'categorias-de-gasto',
+    lugar: 'Logística',
+    titulo: 'Categorías de gasto',
+    ruta: RUTAS.categoriasDeGastoDeLogistica,
+    permisos: ['logistica.catalogos.gestionar'],
+    palabras: [
+      'gastos',
+      'gasto',
+      'categoría',
+      'propósito',
+      'tributos',
+      'catálogos',
+      'configuración',
+    ],
+  },
+  {
+    clave: 'tipos-de-documento',
+    lugar: 'Logística',
+    titulo: 'Tipos de documento',
+    ruta: RUTAS.tiposDeDocumento,
+    permisos: ['logistica.catalogos.gestionar', 'flujos.configurar', 'repuestos.configurar'],
+    palabras: ['documentos', 'requisitos', 'archivos', 'catálogos', 'configuración'],
+  },
+]
+
 // Lo que el navegador recibe de un destino: sólo lo que el buscador usa (sin los permisos).
 export type DestinoDelNavegador = Pick<DestinoDeBusqueda, 'clave' | 'titulo' | 'ruta' | 'palabras'>
+
+// Lo que el navegador recibe de un destino fuera de Configuración: sólo lo que el buscador usa (sin los permisos).
+export type DestinoFueraDelNavegador = Pick<
+  DestinoFueraDeConfiguracion,
+  'clave' | 'lugar' | 'titulo' | 'ruta' | 'palabras'
+>
+
+// Los destinos fuera de Configuración que esta persona puede abrir.
+export function destinosFueraDeConfiguracion(permisos: Permisos): DestinoFueraDelNavegador[] {
+  return DESTINOS_FUERA_DE_CONFIGURACION.filter((destino) =>
+    destino.permisos.some((clave) => puede(permisos, clave)),
+  ).map(({ clave, lugar, titulo, ruta, palabras }) => ({ clave, lugar, titulo, ruta, palabras }))
+}
 
 // Los destinos de una sección que esta persona puede abrir.
 export function destinosDeLaSeccion(seccion: string, permisos: Permisos): DestinoDelNavegador[] {

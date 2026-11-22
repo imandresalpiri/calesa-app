@@ -85,13 +85,13 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
 ## Documentos
 
 - `<PantallaDeDocumentos>` (`pantallas/documentos.ts`, `<EsqueletoDeTipos>`) dibuja **un** grupo de `tipos_documento` según `grupos`: `'flujo'` con su
-  `fijo`, en el panel del flujo (`?seccion=documentos`, `enElPanel`), y `'empresa'`, en la página Catálogos › Tipos de documento
-  (`/configuracion/catalogos/tipos-de-documento`). Los dos grupos de
+  `fijo`, en el panel del flujo (`?seccion=documentos`, `enElPanel`), y `'empresa'`, en la pestaña Logística › Configuración › Tipos de documento
+  (`/logistica/configuracion/tipos-de-documento`, sin título de grupo; la fila dice «Editar <nombre>»). Los dos grupos de
   `tipos_documento`, los de la empresa (`flujo_id` nulo; `logistica.catalogos.gestionar`) y los del flujo (`flujos.configurar` o `repuestos.configurar`; el
   origen lo decide la base). Quien no puede cambiar un grupo lo ve con «Nuevo tipo», «Editar» y el orden apagados y el motivo.
 - `entities/documentos/` valida espejo de la base (probado contra PGlite); escriben `tipo_documento_crear|guardar|mover|eliminar`.
   `leerTiposDeDocumento` y `leerUsoDeTiposDeDocumento` salen por el `index.ts` del área.
-- **La lista se relee, no se siembra:** cada action comprueba `puede()` con el `flujoId` del grupo y revalida `RUTAS.origenes`, `RUTAS.configuracionDeRepuestos` y `RUTAS.catalogos` (con `'layout'`). El uso
+- **La lista se relee, no se siembra:** cada action comprueba `puede()` con el `flujoId` del grupo y revalida `RUTAS.origenes`, `RUTAS.configuracionDeRepuestos` y `RUTAS.configuracionDeLogistica` (con `'layout'`). El uso
   (`tipos_documento_con_uso`, acotado a 50) sólo se pide a quien puede cambiar el grupo (a los demás, `42501`).
 - URL: `?panel=nuevo-tipo&de=empresa|flujo`, `?panel=editar-tipo&tipo=<id>`, `?panel=eliminar-tipo&tipo=<id>`. Lo que la URL pide y no se puede abrir se avisa
   y se limpia. Con uso, «Eliminar» está apagado: se desactiva.

@@ -1,4 +1,4 @@
-// Los catálogos de logística de `/configuracion/catalogos/*` del área `dinero` de `logistica` (6.01, llenado en 6.11-4): «Categorías de gasto». Sólo `src/app` importa este archivo (`.claude/rules/modulos.md`).
+// Los catálogos de logística de `/logistica/configuracion/*` del área `dinero` de `logistica` (6.01, llenado en 6.11-4): «Categorías de gasto». Sólo `src/app` importa este archivo (`.claude/rules/modulos.md`).
 import type { CatalogoDeLogistica } from '../entities/nucleo/enlaces'
 import { CategoriasDeGastoDiferido } from '../features/dinero/components/diferidos-del-catalogo'
 

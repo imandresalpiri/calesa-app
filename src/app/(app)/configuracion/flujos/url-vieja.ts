@@ -3,7 +3,7 @@ import { RUTAS, rutaDeParteDelOrigen } from '@/shared/lib/rutas'
 import { conParametros, type ParametrosDeLaUrl } from '../con-parametros'
 
 // Configuración › Flujos ya no existe: el flujo de cada origen es la pestaña Fases de su página, el de repuestos vive en Repuestos y los tipos
-// de documento de la empresa en Catálogos. Sus enlaces (`?origen=`, `?ambito=`, `?seccion=`, `?fase=`) siguen funcionando:
+// de documento de la empresa en Logística › Configuración. Sus enlaces (`?origen=`, `?ambito=`, `?seccion=`, `?fase=`) siguen funcionando:
 // - `?ambito=repuestos` → el flujo de repuestos.
 // - `?seccion=documentos` sin `flujos.configurar` (quien sólo gestionaba los catálogos de logística los veía en la página) → Tipos de documento.
 // - `?origen=<id>` → la pestaña Fases de ese origen (la pestaña dice si no se abre).

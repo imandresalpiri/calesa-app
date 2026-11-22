@@ -18,7 +18,7 @@ import type { VistaDeGrupo } from '../../../entities/documentos/vista-de-grupo'
 import { TiposDeDocumento } from './tipos-de-documento'
 
 type Props = { permisos: Permisos } & (
-  | // Catálogos › Tipos de documento: los de toda la empresa.
+  | // Logística › Configuración › Tipos de documento: los de toda la empresa.
     { grupos: 'empresa' }
   | {
       // El panel del flujo: los «Sólo de este flujo».
@@ -38,7 +38,7 @@ async function leerGrupo(flujoId: string | null, puedeCambiar: boolean): Promise
   return { grupo: datosO(grupo), puedeCambiar, uso: uso === null ? null : datosO(uso) }
 }
 
-// Los tipos de documento (5.09), leídos en el servidor con la sesión de quien mira y detrás de `<Suspense>`: en Catálogos, los de toda la empresa (se
+// Los tipos de documento (5.09), leídos en el servidor con la sesión de quien mira y detrás de `<Suspense>`: en Logística › Configuración, los de toda la empresa (se
 // ven con `flujos.configurar`; se cambian con `logistica.catalogos.gestionar`); en el panel del flujo, los de ese flujo (uno que quien mira configura).
 // La base vuelve a decidir cada escritura. Una lectura que falla sube al `error.tsx` de `(app)`, que ofrece «Reintentar».
 export async function PantallaDeDocumentos(props: Props) {

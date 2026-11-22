@@ -17,16 +17,10 @@ describe('la sección Catálogos de Configuración', () => {
     expect(existsSync(path.join(APP, 'configuracion/catalogos/route.ts'))).toBe(true)
   })
 
-  it('dos tramos: Logística y Tablas compartidas sin rótulo', () => {
+  it('sólo queda Tablas compartidas, sin rótulo: la logística vive en Logística › Configuración', () => {
     expect(
       SECCION_DE_CATALOGOS.subsecciones.map((sub) => [sub.titulo, sub.ruta, sub.grupo ?? null]),
-    ).toEqual([
-      ['Puertos', '/configuracion/catalogos/puertos', 'Logística'],
-      ['Navieras', '/configuracion/catalogos/navieras', 'Logística'],
-      ['Categorías de gasto', '/configuracion/catalogos/categorias-de-gasto', 'Logística'],
-      ['Tipos de documento', '/configuracion/catalogos/tipos-de-documento', 'Logística'],
-      ['Tablas compartidas', '/configuracion/catalogos/tablas', null],
-    ])
+    ).toEqual([['Tablas compartidas', '/configuracion/catalogos/tablas', null]])
   })
 
   it('cada catálogo lleva a una página que existe', () => {
@@ -35,44 +29,25 @@ describe('la sección Catálogos de Configuración', () => {
     }
   })
 
-  it('se abre con cualquiera de los permisos de sus catálogos', () => {
-    expect([...SECCION_DE_CATALOGOS.permisos].sort()).toEqual([
-      'cotizaciones.configurar',
-      'flujos.configurar',
-      'logistica.catalogos.gestionar',
-      'repuestos.configurar',
-    ])
+  it('se abre sólo con `cotizaciones.configurar`', () => {
+    expect([...SECCION_DE_CATALOGOS.permisos]).toEqual(['cotizaciones.configurar'])
   })
 
-  it('quien configura la cotización sólo ve las tablas compartidas', () => {
-    const visibles = conSubseccionesVisibles(SECCION_DE_CATALOGOS, con('cotizaciones.configurar'))
+  it('quien configura la cotización ve las tablas compartidas, y la sección abre ahí', () => {
+    const permisos = con('cotizaciones.configurar')
+    const visibles = conSubseccionesVisibles(SECCION_DE_CATALOGOS, permisos)
     expect(visibles.subsecciones.map((sub) => [sub.clave, sub.apagada ?? false])).toEqual([
       ['tablas', false],
     ])
-  })
-
-  it('quien configura un flujo sólo ve los tipos de documento, y la sección abre ahí', () => {
-    const permisos = con('flujos.configurar')
-    expect(
-      conSubseccionesVisibles(SECCION_DE_CATALOGOS, permisos)
-        .subsecciones.filter((sub) => !sub.apagada)
-        .map((sub) => sub.clave),
-    ).toEqual(['tipos-de-documento'])
     expect(primeraSubseccionAbierta(SECCION_DE_CATALOGOS, permisos)).toBe(
-      '/configuracion/catalogos/tipos-de-documento',
+      '/configuracion/catalogos/tablas',
     )
   })
 
-  it('quien gestiona los catálogos de logística abre los cuatro de logística, desde Puertos', () => {
-    const permisos = con('logistica.catalogos.gestionar')
-    expect(primeraSubseccionAbierta(SECCION_DE_CATALOGOS, permisos)).toBe(
-      '/configuracion/catalogos/puertos',
-    )
-    expect(
-      conSubseccionesVisibles(SECCION_DE_CATALOGOS, permisos)
-        .subsecciones.filter((sub) => !sub.apagada)
-        .map((sub) => sub.grupo),
-    ).toEqual(['Logística', 'Logística', 'Logística', 'Logística'])
+  it('quien sólo gestiona los catálogos de logística o configura un flujo no ve nada aquí', () => {
+    for (const clave of ['logistica.catalogos.gestionar', 'flujos.configurar'] as const) {
+      expect(primeraSubseccionAbierta(SECCION_DE_CATALOGOS, con(clave))).toBeNull()
+    }
   })
 
   it('sin permisos, nada que abrir', () => {
@@ -81,6 +56,12 @@ describe('la sección Catálogos de Configuración', () => {
 })
 
 describe('Lo que se mudó de Catálogos', () => {
+  it('los catálogos de logística ya no tienen página aquí: sus rutas viejas las redirige next.config.ts', () => {
+    for (const vieja of ['puertos', 'navieras', 'categorias-de-gasto', 'tipos-de-documento']) {
+      expect(existsSync(path.join(APP, 'configuracion/catalogos', vieja)), vieja).toBe(false)
+    }
+  })
+
   it('Colores, Vigencia, Niveles y Quién crea y quién ve ya no son catálogos: sus rutas viejas sólo redirigen (route.ts), sin página', () => {
     const claves = SECCION_DE_CATALOGOS.subsecciones.map((sub) => sub.clave)
     for (const vieja of ['colores', 'vigencia', 'niveles', 'quien-crea-y-quien-ve']) {

@@ -481,6 +481,7 @@ inferior), que no se dibuja hasta abrirse: la carga sólo paga el botón. En el 
 - Lo medido se arma en una transacción que se revierte: `session_replication_role = replica`, 195.000 vehículos con la fase 3 en 15.000 y después 105.000 más a ella (sumar y no mover: mover deja filas
   muertas en los índices y cambia lo que se mide).
 - JS en frío (`e2e/presupuesto-js.spec.ts`): `/logistica` ≤ 390 KB (medido 365,0 en 26 chunks) y `/logistica/fase/[fase]` ≤ 390 KB (medido 367,0 en 27 chunks): sobre lo medido más un 5 %, a la decena.
+- JS en frío de Logística › Configuración (`/logistica/configuracion/puertos`, el marco de Logística con la tira de pestañas y el catálogo de Puertos; las otras pestañas pesan lo mismo, cada una su editor): ≤ 390 KB (medido 365,6 en 28 chunks). El ⚙ «Configurar» vive en la `sub-navegacion` que ya viaja con `/logistica` (sin JS nuevo más que su icono): `/logistica` midió 373,8 KB, dentro de su 390. Cada catálogo conserva su tope y su aviso; sin consulta nueva ni volumen propio (decenas de filas).
 - JS en frío del detalle de un vehículo (`/logistica/vehiculo/[id]`): ≤ 470 KB (medido 446,1; el popover de relacionados, cada hueco y el modal «Pedírselo a alguien» van con `diferido()`), sobre lo medido más un 5 %, a la decena.
 - **Acciones de «Qué falta»** (`/logistica/vehiculo/[id]`): sin lectura nueva; viajan en la respuesta de la action de siempre (≈ 150 a 250 B por falta) y
   `por_revisar` sale del mismo `count` por `documentos_unidad_tipo_idx`. Se dibuja un botón por falta y el «⋯» sólo con más. «Pedírselo a alguien» llega

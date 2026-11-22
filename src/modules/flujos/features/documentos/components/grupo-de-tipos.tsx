@@ -34,10 +34,17 @@ type Props = {
 
 const BOTON = 'h-11 md:h-8'
 
+// El nombre de la región: los de la empresa no dibujan su título (es el de su pestaña) y se nombran con él; los de un flujo, por su título.
+function nombreDeLaSeccion(clave: ClaveDeGrupo, titulo: string, idDeTitulo: string) {
+  return clave === 'empresa' ? { 'aria-label': titulo } : { 'aria-labelledby': idDeTitulo }
+}
+
 type PropsDelEncabezado = {
   idDeTitulo: string
   titulo: string
   detalle: string
+  // Los de la empresa, en su pestaña de Logística › Configuración, no repiten el título de la pestaña: sólo «Nuevo tipo» arriba a la derecha.
+  sinTitulo: boolean
   // Por qué «Nuevo tipo» está apagado (sin permiso, o al tope); nulo si se puede.
   motivoNuevo: string | null
   idDelMotivo: string
@@ -45,15 +52,19 @@ type PropsDelEncabezado = {
 }
 
 function EncabezadoDeGrupo(props: PropsDelEncabezado) {
-  const { idDeTitulo, titulo, detalle, motivoNuevo, idDelMotivo, alNuevo } = props
+  const { idDeTitulo, titulo, detalle, sinTitulo, motivoNuevo, idDelMotivo, alNuevo } = props
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-      <div className="grid gap-0.5">
-        <h2 id={idDeTitulo} className="text-(length:--text-lg) font-semibold text-(--color-ink)">
-          {titulo}
-        </h2>
-        <p className="text-(length:--text-sm) text-(--color-ink-soft)">{detalle}</p>
-      </div>
+      {sinTitulo ? (
+        <span />
+      ) : (
+        <div className="grid gap-0.5">
+          <h2 id={idDeTitulo} className="text-(length:--text-lg) font-semibold text-(--color-ink)">
+            {titulo}
+          </h2>
+          <p className="text-(length:--text-sm) text-(--color-ink-soft)">{detalle}</p>
+        </div>
+      )}
       <Button
         className={BOTON}
         disabled={motivoNuevo !== null}
@@ -67,7 +78,7 @@ function EncabezadoDeGrupo(props: PropsDelEncabezado) {
   )
 }
 
-// Un grupo de tipos de documento (los de toda la empresa o los de un flujo): su encabezado con «Nuevo tipo», el aviso de sólo lectura si quien
+// Un grupo de tipos de documento (los de toda la empresa o los de un flujo): su encabezado con «Nuevo tipo» (los de la empresa, sólo el botón: su título es la pestaña), el aviso de sólo lectura si quien
 // mira no lo cambia, la lista con su orden por botones y el pie «N de 100 tipos posibles». Sin permiso, «Nuevo tipo» y «Editar» se ven apagados
 // con su motivo: nunca desaparecen en silencio.
 export function GrupoDeTipos({
@@ -82,6 +93,7 @@ export function GrupoDeTipos({
   alPedirEliminar,
 }: Props) {
   const { grupo, puedeCambiar } = vista
+  const esDeLaEmpresa = clave === 'empresa'
   const prefijo = `tipo-de-documento-${clave}`
   const idDeTitulo = `titulo-de-tipos-${clave}`
   const alTope = alTopeDelGrupo(grupo)
@@ -104,11 +116,12 @@ export function GrupoDeTipos({
   })
 
   return (
-    <section className="grid gap-3" aria-labelledby={idDeTitulo}>
+    <section className="grid gap-3" {...nombreDeLaSeccion(clave, titulo, idDeTitulo)}>
       <EncabezadoDeGrupo
         idDeTitulo={idDeTitulo}
         titulo={titulo}
         detalle={detalle}
+        sinTitulo={esDeLaEmpresa}
         motivoNuevo={motivoNuevo}
         idDelMotivo={`${prefijo}-motivo`}
         alNuevo={() => {
@@ -129,6 +142,7 @@ export function GrupoDeTipos({
           filas={filas}
           prefijo={prefijo}
           columnaDeUso="Uso"
+          {...(esDeLaEmpresa ? { verbo: 'Editar' } : {})}
           alAbrir={(id) => {
             if (puedeCambiar) {
               alEditar(id)

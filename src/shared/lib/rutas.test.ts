@@ -315,18 +315,20 @@ describe('Cotizaciones en Roles', () => {
 })
 
 describe('Catálogos', () => {
-  it('lo global de la empresa vive bajo /configuracion/catalogos', () => {
+  it('los de logística viven en Logística y las tablas compartidas, bajo /configuracion/catalogos', () => {
     expect([
+      RUTAS.configuracionDeLogistica,
       RUTAS.puertosDeLogistica,
       RUTAS.navierasDeLogistica,
       RUTAS.categoriasDeGastoDeLogistica,
       RUTAS.tiposDeDocumento,
       RUTAS.tablasCompartidas,
     ]).toEqual([
-      '/configuracion/catalogos/puertos',
-      '/configuracion/catalogos/navieras',
-      '/configuracion/catalogos/categorias-de-gasto',
-      '/configuracion/catalogos/tipos-de-documento',
+      '/logistica/configuracion',
+      '/logistica/configuracion/puertos',
+      '/logistica/configuracion/navieras',
+      '/logistica/configuracion/categorias-de-gasto',
+      '/logistica/configuracion/tipos-de-documento',
       '/configuracion/catalogos/tablas',
     ])
     expect(RUTAS.flujoDeRepuestos).toBe('/configuracion/repuestos/flujo')

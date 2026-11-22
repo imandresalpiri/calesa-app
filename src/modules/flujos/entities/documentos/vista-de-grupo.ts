@@ -16,7 +16,7 @@ export type VistaDeGrupo = {
   uso: Record<string, UsoDeTipo> | null
 }
 
-// Cada página dibuja un grupo: Catálogos › Tipos de documento, el de toda la empresa; el panel del flujo, el de ese flujo (nulo si quien mira no lo
+// Cada página dibuja un grupo: Logística › Configuración › Tipos de documento, el de toda la empresa; el panel del flujo, el de ese flujo (nulo si quien mira no lo
 // configura). El que la página no dibuja va nulo.
 export type VistasDeGrupos = { empresa: VistaDeGrupo | null; flujo: VistaDeGrupo | null }
 

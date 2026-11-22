@@ -5,6 +5,7 @@ import type { Route } from 'next'
 import { useMemo, useState, type KeyboardEvent } from 'react'
 import { useAtajo } from '@/shared/ui/atajos'
 import { salirSinPerder } from '@/shared/ui/salida-con-cambios'
+import type { DestinoFueraDelNavegador } from '../destinos-de-busqueda'
 import type { GrupoDelNavegador } from '../secciones'
 import { buscarEnConfiguracion, normalizar } from './buscar'
 
@@ -41,6 +42,7 @@ export function useBuscadorDeConfiguracion(
   id: string,
   grupos: readonly GrupoDelNavegador[],
   sinCampoEn: string | undefined,
+  fuera: readonly DestinoFueraDelNavegador[],
 ) {
   const router = useRouter()
   const actual = usePathname()
@@ -56,7 +58,10 @@ export function useBuscadorDeConfiguracion(
 
   const sinCampo = sinCampoEn === actual
   const buscando = !sinCampo && normalizar(texto) !== ''
-  const resultados = useMemo(() => buscarEnConfiguracion(grupos, texto), [grupos, texto])
+  const resultados = useMemo(
+    () => buscarEnConfiguracion(grupos, texto, fuera),
+    [grupos, texto, fuera],
+  )
 
   const limpiar = () => {
     setTexto('')

@@ -29,16 +29,18 @@ describe('abrirCatalogo', () => {
     expect(abierto.sinPermiso ? null : abierto.sub.titulo).toBe('Tablas compartidas')
   })
 
-  it('quien configura un flujo lee los tipos de documento', async () => {
-    conSesion(con('flujos.configurar'))
-    expect((await abrirCatalogo('tipos-de-documento')).sinPermiso).toBe(false)
+  it('quien sólo gestiona los catálogos de logística no abre las tablas: lleva al inicio de lo que abra, o a «No tienes permiso»', async () => {
+    conSesion(con('logistica.catalogos.gestionar'))
+    expect(await abrirCatalogo('tablas')).toEqual({ sinPermiso: true })
   })
 
-  it('sin el permiso de esa, lleva a la primera que abre', async () => {
-    conSesion(con('logistica.catalogos.gestionar'))
-    await expect(abrirCatalogo('tablas')).rejects.toThrow(
-      'redirige a /configuracion/catalogos/puertos',
-    )
+  it('Puertos, Navieras, Categorías de gasto y Tipos de documento ya no son catálogos de Configuración: viven en Logística', async () => {
+    conSesion(con('cotizaciones.configurar'))
+    for (const clave of ['puertos', 'navieras', 'categorias-de-gasto', 'tipos-de-documento']) {
+      await expect(abrirCatalogo(clave), clave).rejects.toThrow(
+        'redirige a /configuracion/catalogos/tablas',
+      )
+    }
   })
 
   it('Colores y Vigencia ya no son catálogos: no se abren aquí', async () => {

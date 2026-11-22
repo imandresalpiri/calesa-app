@@ -1,4 +1,4 @@
-// Las categorías de gasto de Configuración › Catálogos, leídas desde el navegador (6.11-4): todas, también las desactivadas, y sin recordar nada (la lista se relee tras cada escritura).
+// Las categorías de gasto de Logística › Configuración, leídas desde el navegador (6.11-4): todas, también las desactivadas, y sin recordar nada (la lista se relee tras cada escritura).
 // Es un catálogo de la empresa (decenas de filas): `.limit(200)`, como `leerOpcionesDeGasto`.
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/browser'
