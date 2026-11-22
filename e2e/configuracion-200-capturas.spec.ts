@@ -140,6 +140,8 @@ async function selectorDeIconos(page: Page, info: Parameters<typeof capturar>[1]
 
 for (const zoom of ['100', '200'] as const) {
   test(`Configuración y sus pantallas al ${zoom} %`, async ({ page }, info) => {
+    // Recorre cada pantalla de Configuración (las seis pestañas del origen y los paneles de sus tablas): al 200 % pasa de los 30 s de siempre.
+    test.setTimeout(90_000)
     if (zoom === '200') await textoGrandeAlCargar(page)
     await entrar(page, r.t.personas.duena)
     for (const [nombre, url] of PANTALLAS) {
