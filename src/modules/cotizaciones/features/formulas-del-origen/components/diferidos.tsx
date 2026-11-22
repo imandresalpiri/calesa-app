@@ -2,7 +2,7 @@
 
 import { diferido } from '@/shared/ui/diferido'
 
-// Los paneles de la pestaña «Fórmulas» se piden recién al abrirse; se montan con `useAbiertoAlgunaVez()`.
+// Los paneles de la barra de la fórmula se piden recién al abrirse; se montan con `useAbiertoAlgunaVez()`.
 export const ModalDeNuevaFormulaDiferido = diferido(() =>
   import('./modal-de-nueva-formula').then((modulo) => modulo.ModalDeNuevaFormula),
 )

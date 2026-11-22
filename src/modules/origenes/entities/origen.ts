@@ -155,6 +155,9 @@ export function origenesConUsoDesde(filas: unknown, usos: unknown): OrigenConUso
 // La confirmación de eliminar un origen, en la URL de su página (`?panel=eliminar-origen`).
 export const PANEL_ELIMINAR_ORIGEN = 'eliminar-origen'
 
+// «Datos» de la página de un origen, en un drawer (`?panel=datos`): tipo, nombre, sustantivo y género, color y plataformas de subasta.
+export const PANEL_DATOS_DEL_ORIGEN = 'datos'
+
 // Por qué un origen no se elimina, o null si se puede. Es la misma regla que aplica
 // `origen_eliminar()`: la interfaz la dice antes, la base la vuelve a comprobar.
 export function motivoParaNoEliminar(origen: OrigenConUso): string | null {

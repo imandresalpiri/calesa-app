@@ -19,7 +19,7 @@ export default async function PaginaCategoriasDelOrigen({
   const { origen, puedeGestionar } = abierto
   const { categorias } = datosO(await leerLayout(origen.id, { conUso: puedeGestionar }))
   return (
-    <div className="grid max-w-3xl gap-4">
+    <div className="grid min-w-0 gap-4">
       <ArbolDeCategorias
         origenId={origen.id}
         sustantivo={origen.sustantivo}

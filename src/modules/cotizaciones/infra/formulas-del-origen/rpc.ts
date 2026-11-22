@@ -1,4 +1,4 @@
-// Las escrituras de la pestaña «Fórmulas» por `formula_del_origen_crear|renombrar|archivar|eliminar|activar()` con el cliente de la sesión de quien escribe: cada
+// Las escrituras de la barra de la fórmula por `formula_del_origen_crear|renombrar|archivar|eliminar|activar()` con el cliente de la sesión de quien escribe: cada
 // RPC vuelve a pedir `cotizaciones.configurar` (al copiar de otro origen, también en ese), compara la versión y valida.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/shared/types/database.types'

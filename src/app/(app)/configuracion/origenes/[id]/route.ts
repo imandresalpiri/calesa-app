@@ -1,13 +1,12 @@
 import type { NextRequest } from 'next/server'
-import { deLaBusqueda, redireccionPermanente } from '../../con-parametros'
-import { destinoDeLaUrlVieja } from './url-vieja'
+import { deLaBusqueda } from '../../con-parametros'
+import { redirigirAlEntrar } from './entrada'
 
-// `/configuracion/origenes/<id>` sin pestaña: un 308 del servidor a la primera (o a la de `?seccion=`), con su consulta (`url-vieja.ts`).
-// La pestaña comprueba el permiso y el 404.
+// `/configuracion/origenes/<id>` sin pestaña: un 308 a la última que la persona abrió en este origen (o a la de `?seccion=`), con su consulta
+// (`urls-viejas/pestana.ts`).
 export async function GET(
   peticion: NextRequest,
   { params }: RouteContext<'/configuracion/origenes/[id]'>,
 ) {
-  const { id } = await params
-  return redireccionPermanente(destinoDeLaUrlVieja(id, deLaBusqueda(peticion.nextUrl.searchParams)))
+  return redirigirAlEntrar((await params).id, deLaBusqueda(peticion.nextUrl.searchParams))
 }

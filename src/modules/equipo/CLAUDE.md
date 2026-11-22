@@ -7,7 +7,7 @@ Autenticación, perfiles, roles y permisos (RBAC puro), invitaciones, bloqueo, b
 - Entra: sesión de Supabase Auth (email+contraseña, Google), enlaces de correos de Auth, gestión del equipo y roles, la cookie `perspectiva`.
 - `index.ts`: sesión (`requerirSesion()`, `getPermisos()`, `puede()`, `sinRol()`), acceso (`canjearAcceso()`, `cerrarSiInactiva()`, `cerrarSesion`…),
   equipo (`leerEquipo(filtro)`: 100 primeras por nombre; `leerPersona`, `leerMatriz`, `leerVistas`…), y para `tablero` `leerPersonasSinRol({ tope })` y `rutaDeLasPersonasSinRol()` (`/configuracion/equipo?estado=sin_rol`: el filtro «Sin rol» de `equipo_lista()`, la misma definición del bloque).
-- `client.ts`: `usePerspectiva()`, `<RoleBadge>`, `<VistasGuardadas>` (una sección de «Vista y opciones»), `guardarPreferencia`. `shell.ts` / `shell.client.ts`: sesión, proveedores y
+- `client.ts`: `usePerspectiva()`, `<RoleBadge>`, `<VistasGuardadas>` (una sección de «Vista y opciones»), `guardarPreferencia`, `recordarLaPestana`. `shell.ts` / `shell.client.ts`: sesión, proveedores y
   `<BannerPerspectiva>`.
 - Lo consumen todos. Depende de `empresa`. **Nunca de `origenes`**: la página pasa los orígenes a la matriz y al cuadro «Quién crea y quién ve» por props.
 
@@ -20,6 +20,10 @@ Autenticación, perfiles, roles y permisos (RBAC puro), invitaciones, bloqueo, b
   viaja en `ProveedorPreferencias`: `<ProveedorDelMenuPlegado>` aplica el cambio al instante, lo guarda esperando la respuesta y, sin red, reenvía el último valor al volver
   (`useReintentoAlVolver`); `useMenuPlegado()` (`shell.client.ts`) lo lee el menú lateral y deja su copia en la cookie `menu-plegado` para la cáscara (`@/shared/lib/menu-plegado`);
   su `check` en `supabase/tests/areas/equipo/preferencia-del-menu-plegado.sql`.
+- `entities/ultima-pestana.ts` — «Última pestaña del origen» (`origenes.ultima_pestana`, `{ <origenId>: <pestaña> }`, `TOPE_DE_PESTANAS_RECORDADAS` = 30,
+  espejo del `check` `preferencias_ultima_pestana_valida`, que valida la forma y no los nombres): **no** viaja en `ProveedorPreferencias`. La lee sólo la entrada
+  a `/configuracion/origenes/<id>` (`leerLasPestanasRecordadas(usuarioId)` de `index.ts`, por la PK; si falla, `{}`) y la escribe `recordarLaPestana({ origenId,
+parte })` de `client.ts` (lee, funde con `conLaPestana()` y hace upsert; sin revalidar). Prueba: `supabase/tests/areas/equipo/preferencia-de-la-ultima-pestana.sql`.
 - `entities/avisos-de-roles.ts` — los avisos de la matriz de Roles (`avisosDelRol()`, `avisosDeLaPagina()`): no se dibujan en línea; `features/roles/hooks/use-avisos-de-roles.ts`
   los lleva a un modal diferido por URL (`?panel=avisos&rol=`, `?panel=avisos-de-la-pagina`) que abren los botones «!» (`boton-de-avisos.tsx`).
 - `entities/dominancia.ts` — espejo de `concesion_dominada()` y `rol_dominado()`. `puede()` y el catálogo de claves: `@/shared/lib/permisos`.

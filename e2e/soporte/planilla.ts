@@ -23,8 +23,9 @@ export const entradaDeLaCelda = (page: Page) => grilla(page).getByRole('combobox
 export const sugerencias = (page: Page) =>
   planilla(page).getByRole('listbox', { name: 'Sugerencias' })
 export const guardado = (page: Page) => planilla(page).locator('[data-guardado] [role="status"]')
+// «Guardar el borrador»: en la página del origen va en la barra de la fórmula, arriba de la planilla; en la puesta en marcha, que no tiene barra, en la planilla.
 export const guardar = (page: Page) =>
-  planilla(page).getByRole('button', { name: 'Guardar el borrador', exact: true })
+  page.getByRole('button', { name: 'Guardar el borrador', exact: true })
 
 // El nombre A1 de la celda de esa fila hoy («C7»).
 export async function a1De(

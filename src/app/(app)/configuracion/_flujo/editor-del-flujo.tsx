@@ -15,7 +15,7 @@ type Props = {
   seccionPedida: string | undefined
 }
 
-// El editor de un flujo fijo, con lo que cada área de `flujos` le pone: la pestaña Flujo de un origen y Repuestos › Flujo de repuestos. Se lee detrás de
+// El editor de un flujo fijo, con lo que cada área de `flujos` le pone: la pestaña Fases de un origen y Repuestos › Flujo de repuestos. Se lee detrás de
 // `<Suspense>`; la página ya comprobó el permiso y la base vuelve a decidir cada escritura.
 export function EditorDelFlujo({ permisos, fijo, seccionPedida }: Props) {
   return (

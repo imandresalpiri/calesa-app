@@ -44,7 +44,7 @@ export function armarSelector(
   return entradas
 }
 
-// El flujo que abre una página: el de un origen (su pestaña Flujo) o el de repuestos (Repuestos › Flujo de repuestos).
+// El flujo que abre una página: el de un origen (su pestaña Fases) o el de repuestos (Repuestos › Flujo de repuestos).
 export type FlujoFijo = { origenId: string } | { ambito: typeof CLAVE_DE_REPUESTOS }
 
 // La entrada de ese flujo, o `null` si no está entre las que quien mira puede configurar. Nunca cae en otra: la pestaña de un origen no abre el

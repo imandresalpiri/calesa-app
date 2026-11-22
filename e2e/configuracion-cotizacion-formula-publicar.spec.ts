@@ -1,6 +1,7 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
-import { enLaPestana } from './soporte/pestanas-del-origen'
+import { abrirLasVersiones } from './soporte/barra-de-la-formula'
+import { enLaPestana, esLaQueRecuerdaLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
   PREFIJO_ROL_E2E,
@@ -19,7 +20,7 @@ import {
 import { sembrarBorrador } from './soporte/formula-versiones'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
-// Publicar el borrador de la fórmula con nota desde la Fórmula de un origen (Configuración › Orígenes) (4.20-2b, `docs/UX.md` › «Cotización: fórmula (estados propios)»): por
+// Publicar el borrador de la fórmula con nota desde la Planilla de un origen (Configuración › Orígenes) (4.20-2b, `docs/UX.md` › «Cotización: fórmula (estados propios)»): por
 // `formula_publicar()` con la publicada que se leyó; la nota vacía se rechaza antes de pedir; el PT409 de la base se muestra tal cual (sin «Recargá», 4.20-1) con
 // «Recargar»; la URL (`?panel=publicar-formula`) se revisa al llegar.
 test.describe.configure({ mode: 'serial' })
@@ -85,7 +86,7 @@ test('quien configura el origen publica su borrador con nota; sin nota no se pid
   await abrirFormula(page, alDia.id)
   const acciones: string[] = []
   page.on('request', (pedido) => {
-    if (pedido.headers()['next-action']) {
+    if (pedido.headers()['next-action'] && !esLaQueRecuerdaLaPestana(pedido)) {
       acciones.push(pedido.url())
     }
   })
@@ -104,10 +105,11 @@ test('quien configura el origen publica su borrador con nota; sin nota no se pid
   await expect(publicada).toContainText('Subo el flete')
   await expect(publicada).toContainText('Cleo Configura')
   await expect(page.getByRole('region', { name: 'Borrador' })).toHaveCount(0)
+  await expect(page).not.toHaveURL(/panel=/)
+  await abrirLasVersiones(page)
   await expect(versiones(page).first()).toContainText('Versión 2')
   await expect(versiones(page).first()).toContainText('Publicada')
   await expect(versiones(page)).toHaveCount(2)
-  await expect(page).not.toHaveURL(/panel=/)
 })
 
 test('si otra persona publicó con el modal abierto, el conflicto dice quién sin «Recargá» y, al recargar, ya no se puede publicar', async ({

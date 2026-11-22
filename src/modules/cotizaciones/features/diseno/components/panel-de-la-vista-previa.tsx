@@ -24,7 +24,7 @@ export function PanelDeLaVistaPrevia({ origen, trabajo, leida, tonos, vista }: P
       data-columna-de-la-vista-previa
       className={
         vista.abierta
-          ? 'grid min-w-0 gap-3 self-start xl:sticky xl:top-[calc(var(--topbar)+1rem)] xl:col-start-2 xl:row-span-5 xl:row-start-1'
+          ? 'grid min-w-0 gap-3 self-start xl:sticky xl:top-4 xl:col-start-2 xl:row-span-5 xl:row-start-1'
           : 'grid min-w-0 gap-3'
       }
     >

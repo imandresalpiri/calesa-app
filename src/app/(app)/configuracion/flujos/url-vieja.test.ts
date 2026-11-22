@@ -18,22 +18,22 @@ describe('la URL vieja de Configuración › Flujos', () => {
     )
   })
 
-  it('`?origen=` va a la pestaña Flujo del origen, conservando sección, fase y lo demás', () => {
+  it('`?origen=` va a la pestaña Fases del origen, conservando sección, fase y lo demás', () => {
     expect(
       destinoDeLaUrlVieja(
         { origen: B, seccion: 'reglas', fase: 'f1', vista: 'lista', panel: 'x' },
         flujos,
         ORIGENES,
       ),
-    ).toBe(`/configuracion/origenes/${B}/flujo?seccion=reglas&fase=f1&vista=lista&panel=x`)
+    ).toBe(`/configuracion/origenes/${B}/fases?seccion=reglas&fase=f1&vista=lista&panel=x`)
   })
 
   it('sin origen: el primero donde configura el flujo', () => {
     expect(destinoDeLaUrlVieja({}, con('flujos.configurar', B), ORIGENES)).toBe(
-      `/configuracion/origenes/${B}/flujo`,
+      `/configuracion/origenes/${B}/fases`,
     )
     expect(destinoDeLaUrlVieja({ seccion: 'documentos' }, flujos, ORIGENES)).toBe(
-      `/configuracion/origenes/${A}/flujo?seccion=documentos`,
+      `/configuracion/origenes/${A}/fases?seccion=documentos`,
     )
   })
 

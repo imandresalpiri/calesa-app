@@ -22,7 +22,7 @@ import { cargarVehiculos, vehiculoPorTitulo } from './soporte/vehiculos'
 
 // La puesta en marcha de un origen nuevo (`docs/UX.md` › «Puesta en marcha»): de «Nuevo origen» a «Cotizar con <origen>», paso por paso (Campos con los de
 // fábrica, Flujo copiado de un origen de la semilla, una fórmula en blanco con tres filas, la tarjeta por omisión y Publicar), salir a mitad y retomarla
-// desde «Para cotizar y mover», y el 308 del panel de antes.
+// desde la cabecera de la página del origen, y el 308 del panel de antes.
 test.describe.configure({ mode: 'serial' })
 
 let proyecto = ''
@@ -131,11 +131,12 @@ test('E2E escritorio · poner en marcha un origen nuevo y cotizar con él', asyn
   await expect(page).toHaveURL(urlDelPaso('flujo'))
   await expect(pasos.getByRole('listitem').filter({ hasText: 'Flujo' })).toContainText('Hecho')
 
-  // 8. Salir a mitad: la página del origen dice qué falta y retoma donde quedó.
-  await page.goto(`/configuracion/origenes/${origenId}/datos`)
-  const tira = page.getByRole('region', { name: 'Para cotizar y mover' })
-  await expect(tira.getByRole('listitem').filter({ hasText: 'Fórmula' })).toContainText('Pendiente')
-  await tira.getByRole('link', { name: 'Seguir la puesta en marcha' }).click()
+  // 8. Salir a mitad: la página del origen dice qué falta (el ⚠ de su pestaña) y retoma donde quedó.
+  await page.goto(`/configuracion/origenes/${origenId}/campos`)
+  await expect(
+    page.getByRole('tab', { name: 'Planilla. Sin fórmula activa: no se puede cotizar' }),
+  ).toBeVisible()
+  await page.getByRole('link', { name: 'Seguir la puesta en marcha' }).click()
   await expect(page).toHaveURL(urlDelPaso('formula'))
 
   // 4. Fórmula: en blanco, con dos filas sobre el total.

@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/shared/ui/button'
-import { AccionesDeLaEdicion } from '@/shared/ui/edicion-a-pantalla-completa'
+import { AccionesEnLaBarra } from '../../barra-de-la-formula/components'
 import { ID_DEL_MOTIVO_DE_PUBLICAR_LA_FORMULA } from './botones-del-borrador'
 
 type Props = {
@@ -10,10 +10,10 @@ type Props = {
   espera: boolean
 }
 
-// «Publicar…» del borrador en la barra de la edición a pantalla completa (fuera de ella lo dibuja la tarjeta del borrador).
+// «Publicar…» del borrador en la barra de la fórmula (fuera de ella lo dibuja la tarjeta del borrador).
 export function PublicarDelBorrador({ alPublicar, espera }: Props) {
   return (
-    <AccionesDeLaEdicion orden={2}>
+    <AccionesEnLaBarra orden={2}>
       <Button
         type="button"
         variant="outline"
@@ -24,6 +24,6 @@ export function PublicarDelBorrador({ alPublicar, espera }: Props) {
       >
         Publicar…
       </Button>
-    </AccionesDeLaEdicion>
+    </AccionesEnLaBarra>
   )
 }

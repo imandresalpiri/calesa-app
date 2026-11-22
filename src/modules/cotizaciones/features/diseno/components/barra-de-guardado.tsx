@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/shared/ui/button'
-import { AccionesDeLaEdicion } from '@/shared/ui/edicion-a-pantalla-completa'
+import { AccionesEnLaBarra } from '../../barra-de-la-formula/components'
 import {
   GUARDANDO,
   SE_GUARDO,
@@ -49,8 +49,8 @@ export function BarraDeGuardado({
   return (
     <div data-guardado className="grid min-w-0 gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        {/* En la edición a pantalla completa el botón va a la barra de arriba; la línea de estado y los avisos quedan acá. */}
-        <AccionesDeLaEdicion orden={1}>
+        {/* En la página del origen el botón va a la barra de la fórmula; la línea de estado y los avisos quedan acá. */}
+        <AccionesEnLaBarra orden={1}>
           <Button
             type="button"
             className="min-h-11 md:min-h-9"
@@ -59,7 +59,7 @@ export function BarraDeGuardado({
           >
             {enCurso ? GUARDANDO : 'Guardar el borrador'}
           </Button>
-        </AccionesDeLaEdicion>
+        </AccionesEnLaBarra>
         <p role="status" className="min-w-0 text-(length:--text-sm) text-(--color-ink-soft)">
           {linea(estado, motivo, enCurso)}
         </p>

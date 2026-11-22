@@ -1,5 +1,6 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test } from './soporte/prueba'
+import { barraDeLaFormula } from './soporte/barra-de-la-formula'
 import { enLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
 import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
@@ -7,7 +8,7 @@ import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar
 import { publicarConTablaViva } from './soporte/cotizar-guardada'
 import { literal, sql } from './soporte/sql'
 
-// La pestaña «Tablas» de la página de un origen (4.23-3, `docs/UX.md` › «Cotización: tablas (estados propios)»): quien configura un origen abre una tabla de
+// El drawer «Tablas» de la barra de la fórmula, en la pestaña Planilla de un origen (4.23-3, `docs/UX.md` › «Cotización: tablas (estados propios)»): quien configura un origen abre una tabla de
 // referencia, edita una celda con el locale de la empresa, suma una fila, la mueve y publica con nota. La base reemplaza las filas, sube la versión de la tabla y publica
 // la versión siguiente de la fórmula que la usa con esas filas. El PT409 y el 22023 los prueban `supabase/tests/areas/tablas/` y los tests de la action.
 
@@ -39,21 +40,21 @@ test('E2E escritorio · camino feliz: editar, sumar, mover y publicar una tabla 
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origen.id}/datos`)
+  await page.goto(`/configuracion/origenes/${origen.id}/planilla`)
   await expect(page.getByRole('heading', { name: origen.nombre, level: 1 })).toBeVisible()
-  await page.getByRole('tab', { name: 'Tablas', exact: true }).click()
-  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${origen.id}/tablas$`))
-  await enLaPestana(page, 'Tablas')
-  const lista = page.getByRole('list', { name: `Tablas de referencia de ${origen.nombre}` })
+  await enLaPestana(page, 'Planilla')
+  await barraDeLaFormula(page).getByRole('button', { name: 'Tablas', exact: true }).click()
+  await expect(page).toHaveURL(
+    new RegExp(`/configuracion/origenes/${origen.id}/planilla\\?(.*&)?panel=tablas(&|$)`),
+  )
+  const drawer = page.getByRole('dialog', { name: 'Tablas de referencia' })
+  const lista = drawer.getByRole('list', { name: `Tablas de referencia de ${origen.nombre}` })
   await lista.getByRole('link', { name: 'Factores vivos' }).click()
 
-  const editor = page.getByRole('region', { name: 'Editar Factores vivos' })
+  const editor = drawer.getByRole('region', { name: 'Editar Factores vivos' })
   await expect(editor.getByRole('heading', { name: 'Editar Factores vivos' })).toBeVisible()
-  // Abrir una tabla es entrar a la edición a pantalla completa: «Publicar» y el estado viven en la barra de arriba, y sin cambios no se puede publicar.
-  await expect(page).toHaveURL(/tabla=.*&editar=si/)
-  const publicarArriba = page.getByRole('button', { name: 'Publicar', exact: true })
-  await expect(page.getByText('Publicada v1')).toBeVisible()
-  await expect(publicarArriba).toBeDisabled()
+  await expect(editor.getByText('Sin cambios que publicar.')).toBeVisible()
+  await expect(editor.getByRole('button', { name: 'Publicar' })).toBeDisabled()
 
   // «9.200,5» en es-BO es 9200,5 (dinero: sólo `leerNumeroTipeado`).
   await editor.getByLabel('Factor, fila 2').fill('9.200,5')
@@ -69,9 +70,9 @@ test('E2E escritorio · camino feliz: editar, sumar, mover y publicar una tabla 
   await editor.getByRole('button', { name: 'Subir la fila 4' }).click()
   await expect(editor.getByLabel('Año, fila 3')).toHaveValue('2022')
   await expect(editor.getByRole('status').getByText('La fila quedó en el lugar 3.')).toBeAttached()
-  await expect(page.getByText('Cambios sin guardar')).toBeVisible()
+  await expect(editor.getByText(/^Cambios sin publicar/)).toBeVisible()
 
-  await publicarArriba.click()
+  await editor.getByRole('button', { name: 'Publicar' }).click()
   const modal = page.getByRole('dialog', { name: 'Publicar Factores vivos' })
   await modal.getByLabel('Nota').fill('E2E 4.23-3')
   await modal.getByRole('button', { name: 'Publicar' }).click()
@@ -82,8 +83,7 @@ test('E2E escritorio · camino feliz: editar, sumar, mover y publicar una tabla 
   ).toBeVisible()
   await expect(modal).toBeHidden()
   await expect(editor.getByText(/^Versión 2 · Tita Tablas/)).toBeVisible()
-  await expect(page.getByText('Publicada v2')).toBeVisible()
-  await expect(publicarArriba).toBeDisabled()
+  await expect(editor.getByText('Sin cambios que publicar.')).toBeVisible()
 
   // La base: la tabla en su versión 2 con las filas en el orden nuevo y los números como números, y la fórmula del origen en su versión siguiente con esas filas.
   const esperadas = [

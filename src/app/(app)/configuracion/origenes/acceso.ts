@@ -30,8 +30,8 @@ export type PestanaAbierta = {
   motivo?: string
 }
 
-// Las seis pestañas de un origen para esta persona, en su orden, con su ruta y, la que no puede abrir, su motivo. Datos, Campos y
-// Categorías se abren siempre que se abre el origen (en sólo lectura sin `origenes.gestionar`).
+// Las seis pestañas de un origen para esta persona, en su orden, con su ruta y, la que no puede abrir, su motivo. Campos y Categorías se
+// abren siempre que se abre el origen (en sólo lectura sin `origenes.gestionar`).
 export function pestanasDelOrigen(permisos: Permisos, origenId: string): PestanaAbierta[] {
   return PESTANAS_DEL_ORIGEN.map((pestana) => {
     const abre = pestana.permiso === null || puede(permisos, pestana.permiso, origenId)
@@ -54,7 +54,7 @@ export function puedeAbrirLaPestana(
   )
 }
 
-// La primera pestaña que la persona abre en este origen (Datos, si abre el origen).
+// La primera pestaña que la persona abre en este origen (Fases con `flujos.configurar`; si abre el origen, al menos Campos).
 export function primeraPestanaAbierta(permisos: Permisos, origenId: string): PestanaAbierta | null {
   if (!puedeAbrirElOrigen(permisos, origenId)) {
     return null

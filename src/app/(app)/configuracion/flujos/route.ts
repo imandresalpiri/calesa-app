@@ -4,7 +4,7 @@ import { getOrigenes } from '@/modules/origenes'
 import { deLaBusqueda, redireccionPermanente } from '../con-parametros'
 import { destinoDeLaUrlVieja } from './url-vieja'
 
-// `/configuracion/flujos` ya no tiene página: un 308 al flujo que pedía (la pestaña Flujo de un origen, el flujo de repuestos o Tipos de
+// `/configuracion/flujos` ya no tiene página: un 308 al flujo que pedía (la pestaña Fases de un origen, el flujo de repuestos o Tipos de
 // documento), con sus parámetros (`url-vieja.ts`). La página de destino comprueba el permiso. El destino puede depender de los permisos: no
 // se guarda en el navegador.
 export async function GET(peticion: NextRequest) {

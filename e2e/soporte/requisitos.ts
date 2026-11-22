@@ -96,7 +96,7 @@ export function borrarRequisitosDePrueba(): void {
 }
 
 export async function abrirInspector(page: Page, faseId: string): Promise<Locator> {
-  await page.goto(`/configuracion/origenes/${origenDeLaSubasta()}/flujo?fase=${faseId}`)
+  await page.goto(`/configuracion/origenes/${origenDeLaSubasta()}/fases?fase=${faseId}`)
   const inspector = page.getByRole('dialog').filter({ hasText: 'Requisitos para entrar' })
   await expect(inspector).toBeVisible()
   return inspector

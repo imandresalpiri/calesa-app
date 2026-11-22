@@ -3,10 +3,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo, useTransition, type ComponentType } from 'react'
-import { CONSULTA_DE_LA_EDICION } from '@/shared/lib/edicion'
 import { rutaDeLaFormula } from '@/shared/lib/rutas'
 import { Button } from '@/shared/ui/button'
-import { useEnLaEdicion } from '@/shared/ui/edicion-a-pantalla-completa'
 import { calculoDeLaUnidad } from '../../../../entities/formula/tarjeta-de-la-unidad'
 import type { VistaPrevia } from '../../../../entities/formula/vista-previa'
 import type {
@@ -39,8 +37,6 @@ function Cuerpo({
 }: Props) {
   const router = useRouter()
   const [releyendo, releer] = useTransition()
-  // Dentro de la edición a pantalla completa, ir a la tarjeta es cambiar de pieza: sigue en el modo.
-  const enLaEdicion = useEnLaEdicion()
   const lectura = tarjeta.estado === 'lista' ? tarjeta.lectura : null
   const calculo = useMemo(
     () => (lectura === null ? null : calculoDeLaUnidad(vista, lectura, modo, verTotalBs)),
@@ -51,12 +47,7 @@ function Cuerpo({
       <p className="text-(--color-ink-soft)">
         Esta fórmula todavía no tiene tarjeta.{' '}
         <Link
-          href={rutaDeLaFormula(
-            origenId,
-            formulaDelOrigenId,
-            'tarjeta',
-            enLaEdicion ? CONSULTA_DE_LA_EDICION : undefined,
-          )}
+          href={rutaDeLaFormula(origenId, formulaDelOrigenId, 'tarjeta')}
           className="text-(--color-primario-ink) underline"
         >
           La imagen que recibe el cliente

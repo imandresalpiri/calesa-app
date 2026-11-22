@@ -1,7 +1,7 @@
 'use client'
 
 import { useLayoutEffect, useState, type ComponentType } from 'react'
-import type { EstadoDeLaEdicion } from '@/shared/lib/edicion'
+import type { EstadoDeLaEdicion } from '../../../../entities/estado-de-la-edicion'
 import { modoInicial } from '../../../../entities/cabecera-de-la-hoja'
 import type { CatalogoDeTablas } from '../../../../entities/compilador'
 import type { FormulaParaEditar } from '../../../../entities/formula/edicion'
@@ -27,7 +27,7 @@ export type PropsDeLaSesion = {
   formulaId: string
   // «Sobre el borrador de <persona>.» o «Sobre la versión N publicada.»
   sobre: string
-  // El estado de lo guardado, para la barra de la edición a pantalla completa.
+  // El estado de lo guardado, para la barra de la fórmula.
   estadoGuardado: EstadoDeLaEdicion
   // Tras un conflicto al guardar: trae la pestaña de nuevo y vuelve a montar la sesión sobre lo que haya.
   recargando: boolean

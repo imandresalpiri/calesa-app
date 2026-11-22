@@ -1,4 +1,4 @@
-// La lista de las fórmulas de un origen (la pestaña «Fórmulas»): la forma de cada fila como la lee `infra/formulas-del-origen/`, su orden y su estado. Puro: la
+// La lista de las fórmulas de un origen (la barra de la fórmula): la forma de cada fila como la lee `infra/formulas-del-origen/`, su orden y su estado. Puro: la
 // base vuelve a decidir todo (docs/COTIZADOR.md › «Fórmulas del origen»).
 import { z } from 'zod'
 

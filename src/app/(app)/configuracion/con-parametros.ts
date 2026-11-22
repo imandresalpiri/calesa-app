@@ -3,7 +3,7 @@ export type ParametrosDeLaUrl = Record<string, string | string[] | undefined>
 
 // La ruta con los parámetros de la URL vieja que siguen valiendo: todos menos `seccion`, que era la pestaña y ahora es la ruta. Los
 // `?panel=` (con lo que cada uno lleva: `puerto`, `valor`, `tramo`…) siguen abriendo lo suyo en la sub-ruta nueva. Un parámetro repetido
-// se conserva repetido; sin parámetros, la ruta sola. `quitar` cambia cuáles no siguen (los de Flujos, donde `seccion` sigue siendo la del panel).
+// se conserva repetido; sin parámetros, la ruta sola (si ya trae consulta, se suman a ella). `quitar` cambia cuáles no siguen (los de Flujos, donde `seccion` sigue siendo la del panel).
 export function conParametros(
   ruta: string,
   parametros: ParametrosDeLaUrl,
@@ -19,7 +19,7 @@ export function conParametros(
     }
   }
   const busqueda = conservados.toString()
-  return busqueda === '' ? ruta : `${ruta}?${busqueda}`
+  return busqueda === '' ? ruta : `${ruta}${ruta.includes('?') ? '&' : '?'}${busqueda}`
 }
 
 // La consulta de un `route.ts` (`peticion.nextUrl.searchParams`) como los `searchParams` de una página: un parámetro repetido, en arreglo.

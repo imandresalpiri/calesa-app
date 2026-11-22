@@ -284,7 +284,7 @@ test('la dueña vuelve bloqueante un dato, ve el impacto y las unidades fuera de
   await expect(interruptor).toBeChecked()
 
   // El aviso sobre la lista de fases, con su panel: los dos títulos, la fase y el camino al inventario.
-  await page.goto(`/configuracion/origenes/${origenDeLaSubasta()}/flujo`)
+  await page.goto(`/configuracion/origenes/${origenDeLaSubasta()}/fases`)
   await expect(page.getByText(/unidades? fuera de regla/).first()).toBeVisible()
   await page.getByRole('button', { name: 'Ver cuáles' }).click()
   await expect(page).toHaveURL(/panel=fuera-de-regla/)

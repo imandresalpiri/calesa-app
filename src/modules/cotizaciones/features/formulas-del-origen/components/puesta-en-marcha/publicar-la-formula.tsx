@@ -8,7 +8,7 @@ import { useApertura } from '@/shared/ui/use-apertura'
 import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import type { FormulaDeLaLista } from '../../../../entities/formulas-del-origen/lista'
 import {
-  CLAVE_DE_LA_FORMULA,
+  CLAVE_DE_LA_FORMULA_DEL_PANEL,
   PANEL_ACTIVAR_FORMULA,
 } from '../../../../entities/formulas-del-origen/rutas'
 import { QueSePublica } from '../que-se-publica'
@@ -28,8 +28,8 @@ type Props = {
 // con su nota, su PT409 y, si la base la rechaza, el lugar que hay que arreglar («Ir a la celda»). Al publicar se sigue a «Listo».
 export function PublicarLaFormula({ origen, formula, activa, alListo }: Props) {
   const router = useRouter()
-  const activar = usePanelPorUrl(PANEL_ACTIVAR_FORMULA, [CLAVE_DE_LA_FORMULA])
-  const abierto = activar.abierto && activar.valor(CLAVE_DE_LA_FORMULA) === formula.id
+  const activar = usePanelPorUrl(PANEL_ACTIVAR_FORMULA, [CLAVE_DE_LA_FORMULA_DEL_PANEL])
+  const abierto = activar.abierto && activar.valor(CLAVE_DE_LA_FORMULA_DEL_PANEL) === formula.id
   const apertura = useApertura(abierto)
   const montado = useAbiertoAlgunaVez(abierto)
   return (
@@ -39,7 +39,7 @@ export function PublicarLaFormula({ origen, formula, activa, alListo }: Props) {
         type="button"
         className="min-h-11 w-full sm:w-fit md:min-h-9"
         onClick={() => {
-          activar.abrir({ [CLAVE_DE_LA_FORMULA]: formula.id })
+          activar.abrir({ [CLAVE_DE_LA_FORMULA_DEL_PANEL]: formula.id })
         }}
       >
         Publicar…

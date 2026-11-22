@@ -14,7 +14,7 @@ import {
 import { PREFIJO_CLAVE_E2E, crearOrigenDePrueba } from './soporte/origenes'
 
 // La navegación de Configuración: el menú son cuatro grupos (Empresa y equipo, Ventas, Operación, Web) sin Cotización, Flujos ni Logística; desde cada
-// sección se vuelve al inicio con «‹ Configuración»; el menú (también en el inicio) marca la sección actual y salta a otra; quien sólo configura los
+// sección (salvo la página de un origen, que tiene sus migas) se vuelve al inicio con «‹ Configuración»; el menú (también en el inicio) marca la sección actual y salta a otra; quien sólo configura los
 // leads ve sólo «Ventas › Leads»; y el inicio dice en Orígenes lo que le falta a cada origen, con su enlace a la pestaña.
 
 let duena = ''
@@ -85,9 +85,12 @@ test('E2E desde cada sección del menú se vuelve al inicio de Configuración', 
   await entrar(page, duena, { fresco: true })
   await page.goto('/configuracion/empresa')
   await expect(menu(page)).toBeVisible()
-  const rutas = await menu(page)
-    .getByRole('link')
-    .evaluateAll((enlaces) => enlaces.map((enlace) => enlace.getAttribute('href') ?? ''))
+  // La página de un origen no lleva «‹ Configuración»: su camino de vuelta son las migas.
+  const rutas = (
+    await menu(page)
+      .getByRole('link')
+      .evaluateAll((enlaces) => enlaces.map((enlace) => enlace.getAttribute('href') ?? ''))
+  ).filter((ruta) => !/^\/configuracion\/origenes\/(?!nuevo)[^/]+/.test(ruta))
   expect(rutas.length).toBeGreaterThanOrEqual(9)
   // Cotización, Flujos y Logística ya no son secciones: lo de cada origen vive en su página y lo global en Catálogos.
   for (const [grupo, secciones] of [
@@ -175,8 +178,8 @@ test('E2E el inicio dice en Orígenes qué le falta a un origen nuevo, con su en
     name: `${origen.nombre}: falta activar una fórmula y publicar la tarjeta`,
     exact: true,
   })
-  await expect(falta).toHaveAttribute('href', `/configuracion/origenes/${origen.id}/formulas`)
+  await expect(falta).toHaveAttribute('href', `/configuracion/origenes/${origen.id}/planilla`)
   await falta.click()
-  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${origen.id}/formulas$`))
+  await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${origen.id}/planilla(\\?|$)`))
   await expect(page.getByRole('heading', { name: origen.nombre, level: 1 })).toBeVisible()
 })

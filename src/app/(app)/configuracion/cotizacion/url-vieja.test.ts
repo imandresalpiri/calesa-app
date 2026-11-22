@@ -10,14 +10,16 @@ describe('la URL vieja de Configuración › Cotización', () => {
   })
 
   it('cada pestaña de un origen va a su pestaña en la página del origen', () => {
-    expect(destinoDeLaUrlVieja({ seccion: 'formula', origen: A })).toBe(`${ORIGEN}/formula`)
-    expect(destinoDeLaUrlVieja({ seccion: 'diseno', origen: A })).toBe(`${ORIGEN}/formula/hoja`)
-    expect(destinoDeLaUrlVieja({ seccion: 'tarjeta', origen: A })).toBe(`${ORIGEN}/formula/tarjeta`)
-    expect(destinoDeLaUrlVieja({ seccion: 'tablas', origen: A })).toBe(`${ORIGEN}/tablas`)
+    expect(destinoDeLaUrlVieja({ seccion: 'formula', origen: A })).toBe(`${ORIGEN}/planilla`)
+    expect(destinoDeLaUrlVieja({ seccion: 'diseno', origen: A })).toBe(`${ORIGEN}/hoja`)
+    expect(destinoDeLaUrlVieja({ seccion: 'tarjeta', origen: A })).toBe(`${ORIGEN}/tarjeta`)
+    expect(destinoDeLaUrlVieja({ seccion: 'tablas', origen: A })).toBe(
+      `${ORIGEN}/planilla?panel=tablas`,
+    )
   })
 
-  it('con sólo el origen, su Fórmula', () => {
-    expect(destinoDeLaUrlVieja({ origen: A })).toBe(`${ORIGEN}/formula`)
+  it('con sólo el origen, su Planilla', () => {
+    expect(destinoDeLaUrlVieja({ origen: A })).toBe(`${ORIGEN}/planilla`)
   })
 
   it('los niveles van a Catálogos, con sus paneles', () => {
@@ -54,9 +56,9 @@ describe('la URL vieja de Configuración › Cotización', () => {
   it('conserva los demás parámetros de un origen', () => {
     expect(
       destinoDeLaUrlVieja({ seccion: 'tablas', origen: A, tabla: 't1', panel: 'publicar-tabla' }),
-    ).toBe(`${ORIGEN}/tablas?tabla=t1&panel=publicar-tabla`)
+    ).toBe(`${ORIGEN}/planilla?panel=tablas&tabla=t1&accion=publicar-tabla`)
     expect(destinoDeLaUrlVieja({ seccion: 'diseno', origen: A, vista: '412' })).toBe(
-      `${ORIGEN}/formula/hoja?vista=412`,
+      `${ORIGEN}/hoja?vista=412`,
     )
   })
 

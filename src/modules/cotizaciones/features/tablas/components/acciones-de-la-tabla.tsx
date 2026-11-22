@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { AccionesDeLaEdicion } from '@/shared/ui/edicion-a-pantalla-completa'
 import { EsquinaDeAcciones, MasAcciones } from '@/shared/ui/lista'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { useApertura } from '@/shared/ui/use-apertura'
@@ -15,14 +14,16 @@ import type { TablaDeReferencia } from '../../../entities/tablas/lectura'
 import {
   PANEL_COLUMNAS_DE_TABLA,
   PANEL_DESACTIVAR_TABLA,
+  claveDeLaAccion,
   rutaDeLasTablas,
+  type LugarDeLasTablas,
 } from '../../../entities/tablas/rutas'
 import { menuDeTablaEnElEditor, menuDeTablaEnLaLista } from './acciones-de-tabla'
 import { DesactivarTablaDiferido, PanelDeColumnasDiferido } from './diferidos'
 
 // Un panel de la tabla abierta por la URL: con cambios de filas sin publicar no se abre (se avisa y se limpia la URL); cada apertura aceptada empieza de cero.
-function usePanelDeLaTabla(panel: string, motivo: string | null) {
-  const url = usePanelPorUrl(panel)
+function usePanelDeLaTabla(panel: string, motivo: string | null, lugar: LugarDeLasTablas) {
+  const url = usePanelPorUrl(panel, [], { clave: claveDeLaAccion(lugar) })
   const apertura = useApertura(url.abierto)
   const rechazada = useRevisionAlAbrir(
     url.abierto ? `${panel}:${String(apertura)}` : null,
@@ -38,45 +39,42 @@ function usePanelDeLaTabla(panel: string, motivo: string | null) {
 export function AccionesDelEditor({
   tabla,
   origenId,
+  lugar,
   cambios,
-  alDescartar,
 }: {
   tabla: TablaDeReferencia
   origenId: string | null
+  lugar: LugarDeLasTablas
   cambios: boolean
-  // Sólo en la edición a pantalla completa: «Descartar los cambios» en el «⋯».
-  alDescartar?: () => void
 }) {
   const columnas = usePanelDeLaTabla(
     PANEL_COLUMNAS_DE_TABLA,
     cambios ? AVISO_CON_CAMBIOS_DE_FILAS : null,
+    lugar,
   )
   const desactivar = usePanelDeLaTabla(
     PANEL_DESACTIVAR_TABLA,
     cambios ? AVISO_CON_CAMBIOS_DE_FILAS_AL_DESACTIVAR : null,
+    lugar,
   )
   return (
     <>
-      {/* En la edición a pantalla completa el «⋯» va a la barra de arriba. */}
-      <AccionesDeLaEdicion orden={3}>
-        <EsquinaDeAcciones>
-          <MasAcciones
-            nombre={tabla.nombre}
-            id={`tabla-${tabla.id}`}
-            conBorde
-            acciones={menuDeTablaEnElEditor({
-              cambios,
-              alAbrirColumnas: () => {
-                columnas.abrir()
-              },
-              alDesactivar: () => {
-                desactivar.abrir()
-              },
-              ...(alDescartar ? { alDescartar } : {}),
-            })}
-          />
-        </EsquinaDeAcciones>
-      </AccionesDeLaEdicion>
+      <EsquinaDeAcciones>
+        <MasAcciones
+          nombre={tabla.nombre}
+          id={`tabla-${tabla.id}`}
+          conBorde
+          acciones={menuDeTablaEnElEditor({
+            cambios,
+            alAbrirColumnas: () => {
+              columnas.abrir()
+            },
+            alDesactivar: () => {
+              desactivar.abrir()
+            },
+          })}
+        />
+      </EsquinaDeAcciones>
       {columnas.montado ? (
         <PanelDeColumnasDiferido
           key={columnas.apertura}
@@ -93,6 +91,7 @@ export function AccionesDelEditor({
           alCerrar={desactivar.cerrar}
           tabla={tabla}
           origenId={origenId}
+          lugar={lugar}
         />
       ) : null}
     </>
@@ -102,10 +101,10 @@ export function AccionesDelEditor({
 // El «⋯» de una tabla en la lista: cada línea lleva a la tabla abierta (con su panel), donde se sabe si hay cambios de filas sin publicar.
 export function AccionesDeLaTablaEnLaLista({
   tabla,
-  origenId,
+  lugar,
 }: {
   tabla: Pick<TablaDeReferencia, 'id' | 'nombre'>
-  origenId: string | null
+  lugar: LugarDeLasTablas
 }) {
   const router = useRouter()
   return (
@@ -114,13 +113,13 @@ export function AccionesDeLaTablaEnLaLista({
         nombre={tabla.nombre}
         acciones={menuDeTablaEnLaLista({
           alEditarFilas: () => {
-            router.push(rutaDeLasTablas(origenId, tabla.id))
+            router.push(rutaDeLasTablas(lugar, tabla.id))
           },
           alAbrirColumnas: () => {
-            router.push(rutaDeLasTablas(origenId, tabla.id, PANEL_COLUMNAS_DE_TABLA))
+            router.push(rutaDeLasTablas(lugar, tabla.id, PANEL_COLUMNAS_DE_TABLA))
           },
           alDesactivar: () => {
-            router.push(rutaDeLasTablas(origenId, tabla.id, PANEL_DESACTIVAR_TABLA))
+            router.push(rutaDeLasTablas(lugar, tabla.id, PANEL_DESACTIVAR_TABLA))
           },
         })}
       />

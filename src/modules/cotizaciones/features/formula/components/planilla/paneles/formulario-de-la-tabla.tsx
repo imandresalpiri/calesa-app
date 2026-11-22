@@ -75,7 +75,7 @@ export function FormularioDeLaTabla(p: Props) {
         etiqueta="Tabla"
         ayuda={
           p.tablas?.length === 0
-            ? 'Este origen aún no tiene tablas: se crean en la pestaña Tablas.'
+            ? 'Este origen aún no tiene tablas: se crean en «Tablas», en la barra de la fórmula.'
             : undefined
         }
         opciones={conColumnas((p.tablas ?? []).map((t) => t.clave))}

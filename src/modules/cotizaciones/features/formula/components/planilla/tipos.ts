@@ -1,6 +1,6 @@
 // Lo que la sesión le pasa a la planilla de la fórmula (sin código: lo importan la sesión y la planilla, que va por `diferido()`).
 import type { ComponentType, Dispatch, SetStateAction } from 'react'
-import type { EstadoDeLaEdicion } from '@/shared/lib/edicion'
+import type { EstadoDeLaEdicion } from '../../../../entities/estado-de-la-edicion'
 import type { Diseno } from '../../../../entities/diseno'
 import type { UnidadDeEjemplo } from '../../../../entities/formula/unidad-de-ejemplo'
 import type {
@@ -21,7 +21,7 @@ export type PropsDeLaPlanilla = {
   formulaDelOrigenId: string
   // «Sobre el borrador de <persona>.» o «Sobre la versión N publicada.»
   sobre: string
-  // El estado de lo guardado (Borrador · Publicada vN) que la edición a pantalla completa dice arriba; sin ella, nada.
+  // El estado de lo guardado (Borrador · Publicada vN) que dice la barra de la fórmula; sin ella, nada.
   estadoGuardado: EstadoDeLaEdicion
   // La unidad de ejemplo y el modo elegido viven en la sesión: se pierden al recargar.
   unidad: UnidadDeEjemplo

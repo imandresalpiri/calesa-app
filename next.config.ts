@@ -58,12 +58,6 @@ const nextConfig: NextConfig = {
         destination: '/configuracion/origenes/nuevo',
         permanent: true,
       },
-      // Una fórmula del origen sin parte abre su planilla (308, con su consulta).
-      {
-        source: `/configuracion/origenes/:id(${ID})/formulas/:formula(${ID})`,
-        destination: '/configuracion/origenes/:id/formulas/:formula/planilla',
-        permanent: true,
-      },
       // Las páginas de Configuración › Cotización y Logística que se mudaron a la página de cada origen y a Catálogos (308, con su
       // consulta). Las raíces (`/configuracion/cotizacion`, `/flujos`, `/logistica`) dependen de la consulta o del permiso: son `route.ts`.
       {
@@ -104,27 +98,27 @@ const nextConfig: NextConfig = {
       },
       {
         source: `/configuracion/cotizacion/:origen(${ID})/formula`,
-        destination: '/configuracion/origenes/:origen/formula',
+        destination: '/configuracion/origenes/:origen/planilla',
         permanent: true,
       },
       {
         source: `/configuracion/cotizacion/:origen(${ID})/hoja`,
-        destination: '/configuracion/origenes/:origen/formula/hoja',
+        destination: '/configuracion/origenes/:origen/hoja',
         permanent: true,
       },
       {
         source: `/configuracion/cotizacion/:origen(${ID})/tarjeta`,
-        destination: '/configuracion/origenes/:origen/formula/tarjeta',
+        destination: '/configuracion/origenes/:origen/tarjeta',
         permanent: true,
       },
       {
         source: `/configuracion/cotizacion/:origen(${ID})/tablas`,
-        destination: '/configuracion/origenes/:origen/tablas',
+        destination: '/configuracion/origenes/:origen/planilla?panel=tablas',
         permanent: true,
       },
       {
         source: `/configuracion/cotizacion/:origen(${ID})`,
-        destination: '/configuracion/origenes/:origen/formula',
+        destination: '/configuracion/origenes/:origen/planilla',
         permanent: true,
       },
       {

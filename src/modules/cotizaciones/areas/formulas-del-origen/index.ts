@@ -1,6 +1,6 @@
 // La API de servidor del área `formulas-del-origen` de `cotizaciones`. Sale por el `index.ts` de la raíz, que sólo la reexporta.
 //
-// `leerFormulasDelOrigen(origenId)`: la lista de la pestaña «Fórmulas». `leerLaFormulaDelOrigen(origenId, id)`: la fórmula que abre su editor (`[formula]/layout.tsx`),
+// `leerFormulasDelOrigen(origenId)`: la lista del selector de la barra de la fórmula. `leerLaFormulaDelOrigen(origenId, id)`: la elegida en `?formula=` de Planilla, Hoja y Tarjeta,
 // nula si no es de ese origen o no se ve. `origenesParaCopiar()`: de qué orígenes copia quien mira (la puesta en marcha lo pasa a «Empezar la fórmula»).
 export { leerFormulasDelOrigen, leerLaFormulaDelOrigen } from './composicion'
 export type { FormulaAbierta, ActivaDelOrigen } from '../../infra/formulas-del-origen/formula'

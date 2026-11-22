@@ -6,10 +6,8 @@ Toda la configuración se escribe por RPC con la versión del flujo. Abiertos (`
 
 ## Entra y sale
 
-- Entra: configuración del dueño en la pestaña Flujo de cada origen (`/configuracion/origenes/<id>/flujo`) y en Repuestos › Flujo de repuestos
+- Entra: configuración del dueño en la pestaña Fases de cada origen (`/configuracion/origenes/<id>/fases`) y en Repuestos › Flujo de repuestos
   (`/configuracion/repuestos/flujo`), cada una con un **flujo fijo** (`FlujoFijo`: `{ origenId }` o `{ ambito: 'repuestos' }`); llamadas a mover desde `logistica` y `repuestos`.
-- **A pantalla completa** (glosario «Edición a pantalla completa»): la pestaña Flujo de un origen se edita en `?editar=si` (lo decide la página); los botones de `BarraDelFlujo`
-  van envueltos en `<AccionesDeLaEdicion>` y suben a la barra de arriba. El flujo no tiene borrador (se guarda en el acto) y no dice estado. `?fase=` y `?seccion=` solos no entran al modo.
 - Sale por `index.ts`: `leerFasesDeOrigen(origenId)` → `FaseResumen[]` (id, nombre, color, orden, inicial, final, activa; también las jubiladas), que usa
   `vehiculos` para mostrar y filtrar la fase. Del área `mover`: `leerFlujoDeOrigen(origenId)` → `FlujoDeOrigen | null` (`flujoId`, `reglasActivas` y por fase
   `notaObligatoria`, `permiteContenedor`, `permiteAduana`, `demoraDias`; error visible si una lista llega al tope) y `reglaActiva(flujo, regla)`. Por `client.ts`,
@@ -250,7 +248,7 @@ jubilada|eliminada, version}`. Los conteos de `_fase_uso` llegan como tope + 1 (
 - Clave de dato nueva = caso en `_requisito_dato_cumplido()` **y** en `claves_dato_requisito()`, o la UI la ofrece y la RPC la rechaza.
 - `fases.demora_dias`: NULL hereda `ajustes_empresa.demora_dias_default`, 0 apaga la alerta. Un solo lector del umbral (`alertas_demora`).
 - El vehículo nace en la fase inicial **sólo si no hay nada que decidir** (`vehiculo_crear`: exactamente una inicial activa, que no pide nota, sin requisitos bloqueantes pendientes ni roles que excluyan a quien crea), con su fila en `historial_fases` (`de_fase_id` nulo). Si no, nace sin fase y la primera transición explícita (`cambiar_fase`) lo pone en una inicial. Entrar al nacer no pide `flujos.mover`.
-- Un origen recién creado tiene flujo y reglas pero **ninguna fase**: `leerFasesDeOrigen()` devuelve una lista vacía. Su pestaña Flujo ofrece copiar
+- Un origen recién creado tiene flujo y reglas pero **ninguna fase**: `leerFasesDeOrigen()` devuelve una lista vacía. Su pestaña Fases ofrece copiar
   las de otro origen.
 - Una columna nueva en `fases`, `fases_requisitos` o `tipos_documento` que deba viajar en la copia se suma también a `flujo_copiar_fases`: si no, el
   flujo copiado nace sin ella.

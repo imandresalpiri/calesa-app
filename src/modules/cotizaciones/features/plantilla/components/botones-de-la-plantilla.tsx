@@ -3,13 +3,13 @@
 import { MoreHorizontalIcon } from 'lucide-react'
 import { useId } from 'react'
 import { Button } from '@/shared/ui/button'
-import { AccionesDeLaEdicion } from '@/shared/ui/edicion-a-pantalla-completa'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
+import { AccionesEnLaBarra } from '../../barra-de-la-formula/components'
 import { motivoParaNoPublicar } from '../../../entities/plantilla/publicar-la-plantilla'
 
 type Props = {
@@ -42,9 +42,9 @@ export function BotonesDeLaPlantilla({
   const motivo = motivoParaNoPublicar({ esperada, hayCambios })
   const idDeGuardar = useId()
   return (
-    // Vacío (sin motivos que decir) no ocupa lugar: en la edición a pantalla completa los botones van a la barra de arriba y acá quedan sólo sus motivos.
+    // Vacío (sin motivos que decir) no ocupa lugar: en la página del origen los botones van a la barra de la fórmula y acá quedan sólo sus motivos.
     <div className="flex flex-wrap items-center justify-end gap-2 empty:hidden">
-      <AccionesDeLaEdicion orden={1}>
+      <AccionesEnLaBarra orden={1}>
         <Button
           type="button"
           className="min-h-11 md:min-h-9"
@@ -54,8 +54,8 @@ export function BotonesDeLaPlantilla({
         >
           {guardar.enCurso ? 'Guardando…' : 'Guardar borrador'}
         </Button>
-      </AccionesDeLaEdicion>
-      <AccionesDeLaEdicion orden={2}>
+      </AccionesEnLaBarra>
+      <AccionesEnLaBarra orden={2}>
         <Button
           type="button"
           variant="outline"
@@ -66,9 +66,9 @@ export function BotonesDeLaPlantilla({
         >
           Publicar…
         </Button>
-      </AccionesDeLaEdicion>
+      </AccionesEnLaBarra>
       {esperada === null ? null : (
-        <AccionesDeLaEdicion orden={3}>
+        <AccionesEnLaBarra orden={3}>
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="Más acciones de la tarjeta"
@@ -83,7 +83,7 @@ export function BotonesDeLaPlantilla({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </AccionesDeLaEdicion>
+        </AccionesEnLaBarra>
       )}
       {guardar.motivo === null ? null : (
         <p

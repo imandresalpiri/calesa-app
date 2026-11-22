@@ -11,7 +11,7 @@ import { Seguir } from '../seguir'
 
 export const metadata: Metadata = { title: 'Puesta en marcha: Flujo' }
 
-// Paso 3: las fases del origen, con el editor de la pestaña Flujo (sin fases, ofrece «Empezar con las fases de…» otro origen).
+// Paso 3: las fases del origen, con el editor de la pestaña Fases (sin fases, ofrece «Empezar con las fases de…» otro origen).
 export default async function PasoFlujo({
   params,
   searchParams,

@@ -151,7 +151,5 @@ export function useGuardadoDelEditor(args: Args) {
     // Lo aplicado no es lo guardado: «Publicar…» espera (se publica lo guardado).
     hayCambios,
     guardar,
-    // Tira lo aplicado y no guardado que la pestaña conserva (al salir de la edición a pantalla completa con «Descartar»).
-    limpiar,
   }
 }

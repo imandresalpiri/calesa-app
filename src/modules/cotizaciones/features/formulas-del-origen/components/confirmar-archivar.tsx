@@ -12,20 +12,19 @@ type Props = {
   alCerrar: () => void
   origenId: string
   formula: Pick<FormulaDeLaLista, 'id' | 'nombre' | 'actualizadoEn'>
-  // Desde la cabeza del editor: al entrar se vuelve a la lista.
-  volverALaLista: boolean
+  // Es la fórmula elegida en la barra: al entrar se va a esta ruta (la pestaña con la de trabajo); si no, se vuelve a leer la pantalla.
+  salirA: string | null
 }
 
 export const DESCRIPCION_DE_ARCHIVAR =
   'Deja de verse en la lista y no se puede activar; sus versiones y las cotizaciones que la usaron quedan. Se encuentra en «Archivadas».'
 
-// «Archivar «<nombre>»» (`?panel=archivar-formula&formula=<id>`), con la versión que se leyó.
-export function ConfirmarArchivar({ abierto, alCerrar, origenId, formula, volverALaLista }: Props) {
+// «Archivar «<nombre>»» (`?panel=archivar-formula&cual=<id>`), con la versión que se leyó.
+export function ConfirmarArchivar({ abierto, alCerrar, origenId, formula, salirA }: Props) {
   const archivar = useAction(archivarFormulaDelOrigen)
   const estado = useConfirmarEnLaFormula({
-    origenId,
     alCerrar,
-    volverALaLista,
+    salirA,
     pedir: () =>
       enviarAccion(
         archivar.executeAsync({ id: formula.id, origenId, esperada: formula.actualizadoEn }),

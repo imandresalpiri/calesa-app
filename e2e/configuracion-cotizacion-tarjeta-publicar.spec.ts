@@ -50,11 +50,10 @@ test.beforeEach(() => {
   borrarLasPlantillasDelOrigen(origenId())
 })
 
-const URL_DE_LA_TARJETA = () => urlDeLaFormula(origenId(), 'tarjeta')
-
+// `extra` va como consulta de `urlDeLaFormula()`: la URL ya lleva `?formula=`, y pegarle otro `?` lo volvería parte del id.
 async function abrirTarjeta(page: Page, extra = '') {
   await entrar(page, configuradora, { fresco: true })
-  await page.goto(`${URL_DE_LA_TARJETA()}${extra}`)
+  await page.goto(urlDeLaFormula(origenId(), 'tarjeta', extra))
   await expect(page.getByRole('heading', { name: /^Tarjeta de / })).toBeVisible()
 }
 

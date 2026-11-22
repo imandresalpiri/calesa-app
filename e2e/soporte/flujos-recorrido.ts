@@ -138,7 +138,7 @@ export async function quitarRequisito(page: Page, descripcion: string): Promise<
 
 // La franja de «Revisar» del flujo del origen, abierta.
 export async function franjaAbierta(page: Page, origenId: string): Promise<Locator> {
-  await page.goto(`/configuracion/origenes/${origenId}/flujo`)
+  await page.goto(`/configuracion/origenes/${origenId}/fases`)
   const franja = page.getByRole('region', { name: 'Revisar el flujo' })
   const resumen = franja.getByRole('button', { name: /^Revisar:/ })
   await expect(resumen).toBeVisible()

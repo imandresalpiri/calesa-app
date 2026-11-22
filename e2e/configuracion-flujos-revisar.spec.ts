@@ -117,7 +117,7 @@ test(`${P} la franja marca la fase sin salida y la espera cruzada, abre la fase 
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origen.id}/flujo`)
+  await page.goto(`/configuracion/origenes/${origen.id}/fases`)
   const franja = page.getByRole('region', { name: 'Revisar el flujo' })
   const resumen = franja.getByRole('button', { name: /^Revisar:/ })
   await expect(resumen).toHaveText(/2 avisos/)

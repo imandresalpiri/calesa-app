@@ -3,7 +3,7 @@ import type { Route } from 'next'
 import Link from 'next/link'
 import { connection } from 'next/server'
 import { MenuDeLaPuestaEnMarcha } from '@/modules/origenes/pantallas/puesta-en-marcha'
-import { rutaDeParteDelOrigen } from '@/shared/lib/rutas'
+import { rutaDelOrigen } from '@/shared/lib/rutas'
 import { Skeleton } from '@/shared/ui/skeleton'
 import { abrirLaPuestaEnMarcha } from './abrir'
 
@@ -17,7 +17,7 @@ export async function CabeceraDeLaPuestaEnMarcha({ id }: { id: string }) {
     return null
   }
   const { origen } = abierta
-  const pagina = rutaDeParteDelOrigen(origen.id, 'datos')
+  const pagina = rutaDelOrigen(origen.id)
   return (
     <div className="grid min-w-0 gap-2">
       <Link

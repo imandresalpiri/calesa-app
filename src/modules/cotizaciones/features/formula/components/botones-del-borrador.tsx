@@ -9,7 +9,7 @@ type Props = {
   alDescartar?: () => void
   // Hay cambios aplicados sin guardar: «Publicar…» espera, con su motivo a la vista.
   publicarEspera?: boolean
-  // En la edición a pantalla completa «Publicar…» está en la barra de arriba (`PublicarDelBorrador`): acá queda su motivo y «Descartar…».
+  // En la página del origen «Publicar…» está en la barra de la fórmula (`PublicarDelBorrador`): acá queda su motivo y «Descartar…».
   publicarEnLaBarra?: boolean
 }
 

@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useId, useRef } from 'react'
+import { TriangleAlertIcon } from 'lucide-react'
+import { useEffect, useId, useRef, type ReactElement, type ReactNode } from 'react'
 import { PistaDeDesborde } from './pista-de-desborde'
 import { Tabs, TabsList, TabsTrigger } from './tabs'
 import { traerLaAbiertaALaVista } from './traer-la-abierta-a-la-vista'
@@ -9,10 +10,20 @@ import { useDesborde } from './use-desborde'
 type Props = {
   // Con `motivo`, la pestaña se ve apagada (no se elige) y el motivo se dice en una línea bajo la barra: lo que la persona no puede abrir no se
   // esconde (docs/UX.md › Reglas transversales).
-  pestanas: readonly { clave: string; titulo: string; motivo?: string | undefined }[]
+  // Con `aviso`, lo que le falta: un ⚠, y el texto también en el nombre accesible de la pestaña.
+  pestanas: readonly {
+    clave: string
+    titulo: string
+    motivo?: string | undefined
+    aviso?: string | undefined
+  }[]
   // La abierta (vive en la URL de quien usa la barra) y qué hace elegir otra.
   valor: string
   alElegir: (clave: string) => void
+  // Cómo se envuelve una pestaña con aviso (que no está apagada): la página del origen le pone su tooltip (`ConTooltip`). Va por aquí para que el tooltip no
+  // viaje en cada pantalla que usa la barra.
+  conAviso?:
+    ((aviso: string, pestana: ReactElement<Record<string, unknown>>) => ReactNode) | undefined
 }
 
 // La barra de pestañas de una pantalla de Configuración. En el celular, y con el texto al 200 %, no entran todas: la barra se desplaza dentro
@@ -36,7 +47,41 @@ function enLista(titulos: string[]): string {
     : `${titulos.slice(0, -1).join(', ')} y ${titulos.at(-1) ?? ''}`
 }
 
-export function PestanasConDesborde({ pestanas, valor, alElegir }: Props) {
+// Una pestaña: apagada con su motivo (descrito bajo la barra) o, con algo pendiente, con su ⚠ (el texto también en su nombre accesible) y lo que sume `conAviso`.
+function PestanaDeLaBarra({
+  pestana,
+  idDelMotivo,
+  conAviso,
+}: {
+  pestana: Props['pestanas'][number]
+  idDelMotivo: string
+  conAviso: Props['conAviso']
+}) {
+  const disparador = (
+    <TabsTrigger
+      value={pestana.clave}
+      className="px-3"
+      disabled={Boolean(pestana.motivo)}
+      aria-describedby={pestana.motivo ? idDelMotivo : undefined}
+      // El nombre con lo que falta, entero: un `sr-only` suelto suma un espacio antes del punto en Chrome.
+      aria-label={pestana.aviso ? `${pestana.titulo}. ${pestana.aviso}` : undefined}
+    >
+      {pestana.titulo}
+      {pestana.aviso ? (
+        <TriangleAlertIcon
+          aria-hidden
+          data-aviso-de-la-pestana=""
+          className="size-3.5 text-(--color-aviso-ink)"
+        />
+      ) : null}
+    </TabsTrigger>
+  )
+  return pestana.aviso && !pestana.motivo && conAviso
+    ? conAviso(pestana.aviso, disparador)
+    : disparador
+}
+
+export function PestanasConDesborde({ pestanas, valor, alElegir, conAviso }: Props) {
   const idDelMotivo = useId()
   const motivos = motivosDe(pestanas)
   const lista = useRef<HTMLDivElement>(null)
@@ -72,15 +117,12 @@ export function PestanasConDesborde({ pestanas, valor, alElegir }: Props) {
           className="h-11 w-full max-w-full justify-start overflow-x-auto md:h-8 md:w-fit"
         >
           {pestanas.map((pestana) => (
-            <TabsTrigger
+            <PestanaDeLaBarra
               key={pestana.clave}
-              value={pestana.clave}
-              className="px-3"
-              disabled={Boolean(pestana.motivo)}
-              aria-describedby={pestana.motivo ? idDelMotivo : undefined}
-            >
-              {pestana.titulo}
-            </TabsTrigger>
+              pestana={pestana}
+              idDelMotivo={idDelMotivo}
+              conAviso={conAviso}
+            />
           ))}
         </TabsList>
         <PistaDeDesborde {...desborde} />

@@ -43,4 +43,12 @@ export type RepositorioPerfil = {
     actualizadoEnEsperado: string
   }) => Promise<Resultado<{ actualizadoEn: string }>>
   guardarPreferencia: (usuarioId: string, preferencia: Preferencia) => Promise<Resultado<null>>
+  // Una preferencia que no viaja en la sesión (`origenes.ultima_pestana`), por la PK; sin fila, `null`.
+  leerPreferencia: (usuarioId: string, clave: string) => Promise<Resultado<unknown>>
+  // La escribe tal cual: quien llama ya validó la forma (la base vuelve a hacerlo con su CHECK).
+  escribirPreferencia: (
+    usuarioId: string,
+    clave: string,
+    valor: unknown,
+  ) => Promise<Resultado<null>>
 }

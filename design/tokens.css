@@ -41,7 +41,6 @@
   --sidebar: 15.5rem;
   --sidebar-plegado: 3.5rem; /* el menú lateral plegado a sólo íconos */
   --topbar: 3.25rem;
-  --barra-de-la-edicion: 3.25rem; /* la barra de la edición a pantalla completa; en el modo `--topbar` vale esto (globals.css) */
 
   /* --- Marca (default neutro; la empresa lo pisa en runtime) ------------ */
   --color-primario: #3b5bdb; /* = ajustes_empresa.color_acento cuando está cargado */

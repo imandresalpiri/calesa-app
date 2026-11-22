@@ -59,10 +59,7 @@ export function Marco({
       <LateralPlegable marca={marca} navegacion={navegacion} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header
-          data-oculto-al-editar=""
-          className="@container sticky top-0 z-30 flex h-(--topbar) shrink-0 items-center gap-2 border-b border-(--color-line) bg-(--color-surface) px-2 md:px-5"
-        >
+        <header className="@container sticky top-0 z-30 flex h-(--topbar) shrink-0 items-center gap-2 border-b border-(--color-line) bg-(--color-surface) px-2 md:px-5">
           <MenuMovil titulo={nombreEmpresa}>
             {navegacion}
             {tipoCambio ? (

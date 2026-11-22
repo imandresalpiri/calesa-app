@@ -1,16 +1,11 @@
 import type { ClaveDePaso, PasoParaCotizar } from '@/modules/origenes'
 import { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'
-import {
-  RUTAS,
-  rutaDeConfiguracionDeCotizacion,
-  rutaDeParteDelOrigen,
-  type ParteDelOrigen,
-} from '@/shared/lib/rutas'
+import { RUTAS, rutaDeParteDelOrigen, rutaDelOrigen, type ParteDelOrigen } from '@/shared/lib/rutas'
 import { MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR, MOTIVO_SIN_CONFIGURAR_EL_FLUJO } from './pestanas'
 
-// A dónde lleva cada paso de «Para cotizar y mover»: a la pestaña del origen donde se arregla, con el permiso que pide en ese origen.
-// La Fórmula, a la lista de las fórmulas; la Tarjeta, a la ruta corta (`…/formula/tarjeta`), que lleva a la de la fórmula de trabajo. Datos con aviso (un origen de subasta sin apibara) lleva a Empresa › Integraciones, que es
-// donde se activa: la pestaña Datos no la enciende.
+// A dónde lleva cada paso de «Para cotizar y mover» (el inicio de Configuración): a la pestaña del origen donde se arregla, con el permiso que pide en ese
+// origen. El Flujo, a Fases; la Fórmula, a la Planilla y la Tarjeta, a la suya (las dos con la fórmula de trabajo); Datos, al drawer de los datos
+// (`?panel=datos`). Datos con aviso (un origen de subasta sin apibara) lleva a Empresa › Integraciones, que es donde se activa: los datos no la encienden.
 export type PasoConDestino = PasoParaCotizar & {
   ruta: string
   // Sin el permiso, el paso se dice sin enlace y con este motivo.
@@ -23,20 +18,24 @@ const A_LA_PESTANA = (parte: ParteDelOrigen) => (origenId: string) =>
   rutaDeParteDelOrigen(origenId, parte)
 
 export const DESTINOS_DE_PASO: Record<ClaveDePaso, Destino> = {
-  datos: { ruta: A_LA_PESTANA('datos'), permiso: null, motivo: '' },
+  datos: {
+    ruta: (origenId) => rutaDelOrigen(origenId, { panel: 'datos' }),
+    permiso: null,
+    motivo: '',
+  },
   campos: { ruta: A_LA_PESTANA('campos'), permiso: null, motivo: '' },
   flujo: {
-    ruta: A_LA_PESTANA('flujo'),
+    ruta: A_LA_PESTANA('fases'),
     permiso: 'flujos.configurar',
     motivo: MOTIVO_SIN_CONFIGURAR_EL_FLUJO,
   },
   formula: {
-    ruta: A_LA_PESTANA('formulas'),
+    ruta: A_LA_PESTANA('planilla'),
     permiso: 'cotizaciones.configurar',
     motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
   },
   tarjeta: {
-    ruta: (origenId) => rutaDeConfiguracionDeCotizacion(origenId, 'tarjeta'),
+    ruta: A_LA_PESTANA('tarjeta'),
     permiso: 'cotizaciones.configurar',
     motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
   },
@@ -64,4 +63,27 @@ export function conDestino(
     const abre = destino.permiso === null || puede(permisos, destino.permiso, enEsteOrigen)
     return { ...paso, ruta: destino.ruta(origenId), motivo: abre ? null : destino.motivo }
   })
+}
+
+// La pestaña donde se arregla cada paso, para el ⚠ de la barra de pestañas. Datos no tiene pestaña (su aviso, el de apibara, se arregla en Integraciones).
+const PESTANA_DEL_PASO: Record<ClaveDePaso, ParteDelOrigen | null> = {
+  datos: null,
+  campos: 'campos',
+  flujo: 'fases',
+  formula: 'planilla',
+  tarjeta: 'tarjeta',
+}
+
+// Lo que le falta a cada pestaña, con la frase del paso (`pasosQueFaltan()`: un origen inactivo no tiene faltas). Sin falta, la pestaña no está.
+export function faltaDeCadaPestana(
+  faltan: readonly PasoParaCotizar[],
+): Partial<Record<ParteDelOrigen, string>> {
+  const faltas: Partial<Record<ParteDelOrigen, string>> = {}
+  for (const paso of faltan) {
+    const pestana = PESTANA_DEL_PASO[paso.clave]
+    if (pestana !== null && paso.estado !== 'listo') {
+      faltas[pestana] = paso.frase
+    }
+  }
+  return faltas
 }

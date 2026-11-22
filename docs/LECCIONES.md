@@ -151,6 +151,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Un hijo que registra algo en el estado de un padre al montarse (las líneas del «⋯» de la guardada) lo hace en `useLayoutEffect`: el `setState` de un `useEffect`
   de la hidratación se aplica recién cuando termina de hidratarse lo que llega tras `<Suspense>`, y entretanto el padre dibuja sin eso. Un `ref` que también es un
   objeto de contexto con un `RefObject` adentro hace que el compilador marque `ref={ctx.funcion}`: la función va en su propio contexto.
+- Un `redirects()` de `next.config.ts` cuyo destino fija un parámetro (`?panel=tablas`) lo junta con el mismo parámetro de la consulta que llega, no lo
+  reemplaza. Si la URL vieja puede traerlo con otro sentido, la redirección va en un `route.ts` que traduce la consulta (`urls-viejas/tablas.ts`).
 
 ## Módulos y JS en frío
 
@@ -158,7 +160,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Dale a cada superficie su propio `diferidos.tsx`: un `diferido()` de nivel superior es efecto de módulo y no se descarta aunque la pantalla no lo reexporte.
 - Mide con `presupuesto-js` antes de importar `<Badge>` u otra utilidad de `shared` en la carga en frío de una pantalla pesada: `<Badge>` arrastra Base UI (+8,5 KB).
 - Saca un componente de un `pantallas/<área>.ts` ajeno a la ruta por su propio `pantallas/<área>-<pantalla>.ts`: importar de un barril con Client Components de otra pantalla puede arrastrarlos al JS en frío (el detalle de un proyecto cargaba el listado y «Nuevo proyecto», +5 %).
-- Haz que un `loading.tsx` importe sólo el esqueleto, nunca la pantalla ni el barril de `pantallas/`: baja su chunk dos veces en frío.
+- Haz que un `loading.tsx` importe sólo el esqueleto, nunca la pantalla ni el barril de `pantallas/`: baja su chunk dos veces en frío. Tampoco un barril de `shared/ui` con Client Components (`tarjetas-de-ajustes`): importa el archivo del esqueleto. El `loading.tsx` de un segmento con hijos (`configuracion/origenes/`) viaja en todas las páginas de debajo (las seis pestañas de un origen subían 6,4 KB).
 - No pongas un `page.tsx` que sólo redirige en un segmento con hijos: pide su `loading.tsx`, y el esqueleto de cada nivel viaja en el HTML de todas las páginas de debajo (dos veces). La redirección fija va a `redirects()` de `next.config.ts`.
 - Manda al navegador las acciones ya calculadas por el servidor, no `permisos.ts` ni las reglas: importarlas suma JS en frío a la ruta.
 - Pasa al cliente sólo lo que dibuja (`contextoParaElNavegador()`): las props viajan en el primer HTML (≈ 100 B por nodo y por fila) y las del layout, en el de todas las pantallas (30 acciones de la paleta suman 7 KB a `/perfil`).

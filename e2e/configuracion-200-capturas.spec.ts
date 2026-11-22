@@ -72,17 +72,22 @@ const PANTALLAS = [
   ['empresa-integraciones', () => '/configuracion/empresa/integraciones'],
   ['empresa-comprobantes', () => '/configuracion/empresa/comprobantes'],
   ['origenes', () => '/configuracion/origenes'],
-  ['origen-datos', () => `/configuracion/origenes/${origen.id}/datos`],
+  ['origen-datos', () => `/configuracion/origenes/${origen.id}/campos?panel=datos`],
   ['origen-campos', () => `/configuracion/origenes/${origen.id}/campos`],
   ['origen-categorias', () => `/configuracion/origenes/${origen.id}/categorias`],
-  ['origen-flujo', () => `/configuracion/origenes/${origen.id}/flujo`],
-  ['origen-formulas', () => `/configuracion/origenes/${origen.id}/formulas`],
-  ['origen-formula', () => urlDeLaFormula(origen.id, 'planilla')],
-  ['origen-tablas', () => `/configuracion/origenes/${origen.id}/tablas`],
-  ['origen-tablas-nueva', () => `/configuracion/origenes/${origen.id}/tablas?panel=nueva-tabla`],
+  ['origen-fases', () => `/configuracion/origenes/${origen.id}/fases`],
+  ['origen-planilla', () => urlDeLaFormula(origen.id, 'planilla')],
+  ['origen-hoja', () => urlDeLaFormula(origen.id, 'hoja')],
+  ['origen-tarjeta', () => urlDeLaFormula(origen.id, 'tarjeta')],
+  ['origen-tablas', () => `/configuracion/origenes/${origen.id}/planilla?panel=tablas`],
+  [
+    'origen-tablas-nueva',
+    () => `/configuracion/origenes/${origen.id}/planilla?panel=tablas&accion=nueva-tabla`,
+  ],
   [
     'origen-tablas-columnas',
-    () => `/configuracion/origenes/${origen.id}/tablas?tabla=${tabla}&panel=columnas-de-tabla`,
+    () =>
+      `/configuracion/origenes/${origen.id}/planilla?panel=tablas&tabla=${tabla}&accion=columnas-de-tabla`,
   ],
   ['leads-campos', () => '/configuracion/leads/campos'],
   ['leads-tarjetas', () => '/configuracion/leads'],
@@ -135,14 +140,19 @@ async function selectorDeIconos(page: Page, info: Parameters<typeof capturar>[1]
 
 for (const zoom of ['100', '200'] as const) {
   test(`Configuración y sus pantallas al ${zoom} %`, async ({ page }, info) => {
+    // Recorre cada pantalla de Configuración (las seis pestañas del origen y los paneles de sus tablas): al 200 % pasa de los 30 s de siempre.
+    test.setTimeout(90_000)
     if (zoom === '200') await textoGrandeAlCargar(page)
     await entrar(page, r.t.personas.duena)
     for (const [nombre, url] of PANTALLAS) {
       if (zoom === '100' && !AL_CIEN.has(nombre)) continue
       await page.goto(url())
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-      // Un panel por la URL (las tablas de referencia): se captura abierto.
-      if (url().includes('panel=')) await expect(page.getByRole('dialog')).toBeVisible()
+      // Con un panel abierto por la URL, la página queda detrás con `aria-hidden`: el título se mira igual.
+      await expect(
+        page.getByRole('heading', { level: 1, includeHidden: url().includes('panel=') }),
+      ).toBeVisible()
+      // Un panel por la URL (las tablas de referencia): se captura abierto; con `accion=`, el de la tabla va encima del drawer «Tablas».
+      if (url().includes('panel=')) await expect(page.getByRole('dialog').last()).toBeVisible()
       // La barra de secciones se desplaza hasta la abierta recién al hidratar: se captura con ella ya a la vista.
       if ((await page.getByRole('tablist').count()) > 0) {
         await aLaVistaAlAcomodarse(

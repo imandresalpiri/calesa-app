@@ -11,7 +11,7 @@ type Props = {
   tablaPedida: string | undefined
 }
 
-// Las tablas de referencia (4.23-3), leídas en el servidor con la sesión de quien mira y detrás de `<Suspense>`: en la pestaña «Tablas» de un origen, las suyas
+// Las tablas de referencia (4.23-3), leídas en el servidor con la sesión de quien mira y detrás de `<Suspense>`: en el drawer «Tablas» de un origen, las suyas
 // y las compartidas; en Catálogos › Tablas compartidas, sólo las de origen nulo. La base vuelve a decidir (policy `tablas_referencia: leer`). Una lectura que
 // falla sube al `error.tsx` de la ruta, que ofrece «Reintentar». Con `?tabla=`, el editor ocupa el lugar de la lista (como el de la fórmula).
 export async function SeccionDeLasTablas({ destino, tablaPedida }: Props) {

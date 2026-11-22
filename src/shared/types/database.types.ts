@@ -9202,6 +9202,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      _preferencia_ultima_pestana_valida: { Args: { p_valor: Json }; Returns: boolean }
       _preparar_publicacion: {
         Args: { p_def: Json; p_diseno: Json; p_ignorar_retirados: boolean; p_params: Json }
         Returns: Json

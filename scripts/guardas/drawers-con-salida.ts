@@ -101,6 +101,11 @@ export const DRAWERS_DEL_NUCLEO: Record<string, RegistroDeDrawer> = {
     mecanismo: 'propio',
   },
   // --- origenes
+  // «Datos» de la página de un origen (`?panel=datos`): el formulario, diferido, dice que tiene cambios y pide preguntar al cerrar (no tiene borrador).
+  'src/modules/origenes/features/origenes/components/datos/drawer-de-datos.tsx': {
+    formulario: 'src/modules/origenes/features/origenes/components/datos/datos-en-el-drawer.tsx',
+    mecanismo: 'contexto',
+  },
   'src/modules/origenes/features/categorias/components/panel-de-categoria.tsx': {
     formulario: 'src/modules/origenes/features/categorias/components/panel-de-categoria.tsx',
     mecanismo: 'contexto',

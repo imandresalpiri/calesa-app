@@ -5,7 +5,7 @@ import {
   conVuelta,
   rutaDeConfiguracionDeCotizacion,
   rutaDeLaFormula,
-  rutaDeLasFormulas,
+  rutaDelOrigen,
   rutaDeParteDelOrigen,
   rutaDeLaPuestaEnMarcha,
   PARTES_DE_LA_FORMULA,
@@ -211,65 +211,67 @@ describe('conVuelta', () => {
 describe('rutaDeConfiguracionDeCotizacion', () => {
   const O = '11111111-1111-4111-8111-111111111111'
 
-  it('lleva a cada pestaña del cotizador en la página del origen, en su orden', () => {
+  it('lleva a cada pestaña del cotizador en la página del origen, en su orden; las tablas, a su drawer en la planilla', () => {
     expect(PESTANAS_DE_COTIZACION.map((p) => rutaDeConfiguracionDeCotizacion(O, p))).toEqual([
-      `/configuracion/origenes/${O}/formula`,
-      `/configuracion/origenes/${O}/formula/hoja`,
-      `/configuracion/origenes/${O}/formula/tarjeta`,
-      `/configuracion/origenes/${O}/tablas`,
+      `/configuracion/origenes/${O}/planilla`,
+      `/configuracion/origenes/${O}/hoja`,
+      `/configuracion/origenes/${O}/tarjeta`,
+      `/configuracion/origenes/${O}/planilla?panel=tablas`,
     ])
   })
 
-  it('codifica la consulta en su orden y el id', () => {
+  it('el panel de una tabla pasa a `accion`; codifica la consulta y el id', () => {
     expect(
       rutaDeConfiguracionDeCotizacion(O, 'tablas', { tabla: 't 1', panel: 'publicar-tabla' }),
-    ).toBe(`/configuracion/origenes/${O}/tablas?tabla=t+1&panel=publicar-tabla`)
+    ).toBe(`/configuracion/origenes/${O}/planilla?panel=tablas&tabla=t+1&accion=publicar-tabla`)
     expect(rutaDeConfiguracionDeCotizacion('a/b', 'formula')).toBe(
-      '/configuracion/origenes/a%2Fb/formula',
+      '/configuracion/origenes/a%2Fb/planilla',
     )
   })
 
   it('sin consulta (o vacía) no lleva «?»', () => {
-    expect(rutaDeConfiguracionDeCotizacion(O, 'hoja', {})).toBe(
-      `/configuracion/origenes/${O}/formula/hoja`,
-    )
+    expect(rutaDeConfiguracionDeCotizacion(O, 'hoja', {})).toBe(`/configuracion/origenes/${O}/hoja`)
   })
 })
 
-describe('rutaDeLasFormulas y rutaDeLaFormula', () => {
+describe('rutaDeLaFormula', () => {
   const O = '11111111-1111-4111-8111-111111111111'
   const F = '22222222-2222-4222-8222-222222222222'
-  it('la lista y cada parte de una fórmula, con su consulta', () => {
-    expect(rutaDeLasFormulas(O)).toBe(`/configuracion/origenes/${O}/formulas`)
-    expect(rutaDeLasFormulas(O, { panel: 'nueva-formula' })).toBe(
-      `/configuracion/origenes/${O}/formulas?panel=nueva-formula`,
-    )
+  it('cada pestaña de la fórmula con la elegida primero y el resto de su consulta; sin fórmula, la de trabajo', () => {
     expect(PARTES_DE_LA_FORMULA.map((parte) => rutaDeLaFormula(O, F, parte))).toEqual([
-      `/configuracion/origenes/${O}/formulas/${F}/planilla`,
-      `/configuracion/origenes/${O}/formulas/${F}/hoja`,
-      `/configuracion/origenes/${O}/formulas/${F}/tarjeta`,
+      `/configuracion/origenes/${O}/planilla?formula=${F}`,
+      `/configuracion/origenes/${O}/hoja?formula=${F}`,
+      `/configuracion/origenes/${O}/tarjeta?formula=${F}`,
     ])
     expect(rutaDeLaFormula('a/b', F, 'planilla', { fila: 'n1' })).toBe(
-      `/configuracion/origenes/a%2Fb/formulas/${F}/planilla?fila=n1`,
+      `/configuracion/origenes/a%2Fb/planilla?formula=${F}&fila=n1`,
+    )
+    expect(rutaDeLaFormula(O, null, 'hoja', { vista: '412' })).toBe(
+      `/configuracion/origenes/${O}/hoja?vista=412`,
     )
   })
 })
 
-describe('rutaDeParteDelOrigen', () => {
+describe('rutaDeParteDelOrigen y rutaDelOrigen', () => {
   const O = '11111111-1111-4111-8111-111111111111'
 
   it('lleva a cada pestaña del origen, en su orden, con su consulta', () => {
     expect(PARTES_DEL_ORIGEN.map((parte) => rutaDeParteDelOrigen(O, parte))).toEqual([
-      `/configuracion/origenes/${O}/datos`,
+      `/configuracion/origenes/${O}/fases`,
+      `/configuracion/origenes/${O}/planilla`,
+      `/configuracion/origenes/${O}/hoja`,
+      `/configuracion/origenes/${O}/tarjeta`,
       `/configuracion/origenes/${O}/campos`,
       `/configuracion/origenes/${O}/categorias`,
-      `/configuracion/origenes/${O}/flujo`,
-      `/configuracion/origenes/${O}/formulas`,
-      `/configuracion/origenes/${O}/tablas`,
     ])
-    expect(rutaDeParteDelOrigen(O, 'flujo', { fase: 'f', vista: 'lista' })).toBe(
-      `/configuracion/origenes/${O}/flujo?fase=f&vista=lista`,
+    expect(rutaDeParteDelOrigen(O, 'fases', { fase: 'f', vista: 'lista' })).toBe(
+      `/configuracion/origenes/${O}/fases?fase=f&vista=lista`,
     )
+  })
+
+  it('la página sin pestaña, con su consulta', () => {
+    expect(rutaDelOrigen(O)).toBe(`/configuracion/origenes/${O}`)
+    expect(rutaDelOrigen(O, { panel: 'datos' })).toBe(`/configuracion/origenes/${O}?panel=datos`)
   })
 })
 

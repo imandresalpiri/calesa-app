@@ -10,6 +10,7 @@ import {
 import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar-formula'
 import { sembrarBorradorDeNFilas } from './soporte/formula-editor'
 import { leerBorrador } from './soporte/formula-editor-guardar'
+import { esLaQueRecuerdaLaPestana } from './soporte/pestanas-del-origen'
 import {
   borrarLoDePrevia,
   claveDeVolumen,
@@ -134,7 +135,11 @@ test('con 600 filas: 500 dibujadas con su aviso y su tope de nodos, «Buscar fil
   await escribirEnLaCelda(page, celdaDe(page, 'fila_599'), `=${remate}*2`)
   const pedidos: number[] = []
   page.on('request', (r) => {
-    if (r.method() === 'POST' && r.headers()['next-action'] !== undefined) {
+    if (
+      r.method() === 'POST' &&
+      r.headers()['next-action'] !== undefined &&
+      !esLaQueRecuerdaLaPestana(r)
+    ) {
       pedidos.push(Buffer.byteLength(r.postData() ?? ''))
     }
   })

@@ -29,7 +29,6 @@ export function LateralPlegable({ marca, navegacion }: Props) {
   return (
     <aside
       data-barra-lateral=""
-      data-oculto-al-editar=""
       data-plegado={plegado ? '' : undefined}
       className="group/lateral sticky top-0 hidden h-dvh w-(--sidebar) shrink-0 flex-col border-r border-(--color-line) bg-(--color-surface) data-plegado:w-(--sidebar-plegado) md:flex"
     >

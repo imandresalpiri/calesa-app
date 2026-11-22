@@ -10,12 +10,12 @@ const origenes = (cuantos: number) =>
 const gestiona: Permisos = [{ clave: 'origenes.gestionar', origenId: null, alcance: 'todos' }]
 
 describe('subseccionesDeOrigenes', () => {
-  it('uno por origen, a su pestaña Datos, marcado por el origen', () => {
+  it('uno por origen, a su página (la última pestaña), marcado por el origen', () => {
     expect(subseccionesDeOrigenes(origenes(1), gestiona)).toEqual([
       {
         clave: id(1),
         titulo: 'Origen 1',
-        ruta: `/configuracion/origenes/${id(1)}/datos`,
+        ruta: `/configuracion/origenes/${id(1)}`,
         marca: `/configuracion/origenes/${id(1)}`,
       },
     ])

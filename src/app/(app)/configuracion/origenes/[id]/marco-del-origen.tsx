@@ -1,23 +1,25 @@
-import { ChevronLeftIcon } from 'lucide-react'
 import type { Route } from 'next'
 import Link from 'next/link'
 import { connection } from 'next/server'
-import { integracionActiva } from '@/modules/empresa'
 import { requerirSesion } from '@/modules/equipo'
-import { pasosParaCotizarYMover } from '@/modules/origenes'
-import { MenuDelOrigen, ParaCotizarYMover } from '@/modules/origenes/pantallas/origen'
+import { leerOrigenes, pasosQueFaltan } from '@/modules/origenes'
+import { BotonDeDatos, DrawerDeDatos, MenuDelOrigen } from '@/modules/origenes/pantallas/origen'
+import { datosO } from '@/shared/lib/errores'
 import { puede } from '@/shared/lib/permisos'
-import { RUTAS } from '@/shared/lib/rutas'
 import { Badge } from '@/shared/ui/badge'
+import { buttonVariants } from '@/shared/ui/button'
 import { pestanasDelOrigen, puedeAbrirElOrigen } from '../acceso'
-import { conDestino } from '../pasos'
+import { faltaDeCadaPestana } from '../pasos'
 import { leerElOrigen } from './abrir-origen'
+import { MigasDelOrigen } from './migas-del-origen'
 import { PestanasDeLaRuta } from './pestanas-de-la-ruta'
-import { puestaEnMarchaEnLaTira } from './puesta-en-marcha-en-la-tira'
+import { seguirLaPuestaEnMarcha } from './seguir-la-puesta-en-marcha'
+import type { OrigenDelSelector } from './selector-de-origen'
 
-// El encabezado de la página de un origen, común a sus seis pestañas: la vuelta a la lista; el punto de color, el nombre, «Activo» o
-// «Inactivo» y, para quien gestiona orígenes, el «⋯» arriba a la derecha; «Para cotizar y mover» con un paso por pestaña (o «Inactivo»; sin fórmula activa, con el paso «Pendiente» y «Seguir la puesta en marcha»);
-// y las pestañas, con las que no abre apagadas y su motivo. Para quien no abre el origen no dibuja nada: la pestaña dice por qué.
+// La cabecera de la página de un origen, común a sus seis pestañas: las migas («Configuración › Orígenes › ● <Origen> ▾», con el selector para saltar a otro);
+// el punto de color, el nombre y, si lo está, «Inactivo»; a la derecha «Seguir la puesta en marcha» (mientras no tenga fórmula activa), «Datos» (su drawer,
+// `?panel=datos`; en el celular va en el «⋯») y el «⋯»; y las pestañas, con las que no abre apagadas y su motivo y un ⚠ en la que tiene algo pendiente. Para
+// quien no abre el origen no dibuja nada: la pestaña dice por qué.
 export async function MarcoDelOrigen({ id }: { id: string }) {
   // Sin esto, el armado del cascarón de un origen nuevo lee la sesión al prerenderizar (`Date.now()` de supabase-js).
   await connection()
@@ -25,22 +27,35 @@ export async function MarcoDelOrigen({ id }: { id: string }) {
   if (!puedeAbrirElOrigen(sesion.permisos, id)) {
     return null
   }
-  const origen = await leerElOrigen(id)
-  const [apibaraActiva, puestaEnMarcha] = await Promise.all([
-    origen.tipo === 'subasta' ? integracionActiva('apibara') : false,
-    puestaEnMarchaEnLaTira(sesion.permisos, origen),
-  ])
-  const tira = pasosParaCotizarYMover(origen, { apibaraActiva })
+  const [origen, todos] = await Promise.all([leerElOrigen(id), leerOrigenes().then(datosO)])
+  const seguir = await seguirLaPuestaEnMarcha(sesion.permisos, origen)
+  const puedeGestionar = puede(sesion.permisos, 'origenes.gestionar')
+  // El ⚠ de cada pestaña: lo que falta, sin el paso Datos (el aviso de apibara se arregla en Integraciones y no tiene pestaña).
+  const faltas = faltaDeCadaPestana(pasosQueFaltan(origen, { apibaraActiva: true }))
+  const pestanas = pestanasDelOrigen(sesion.permisos, origen.id).map((pestana) => {
+    const aviso = faltas[pestana.clave]
+    return aviso === undefined ? pestana : { ...pestana, aviso }
+  })
+  const origenes: OrigenDelSelector[] = todos
+    .filter((uno) => puedeAbrirElOrigen(sesion.permisos, uno.id))
+    .map((uno) => ({
+      id: uno.id,
+      nombre: uno.nombre,
+      color: uno.color,
+      abiertas: pestanasDelOrigen(sesion.permisos, uno.id)
+        .filter((pestana) => pestana.motivo === undefined)
+        .map((pestana) => pestana.clave),
+    }))
+  const actual = origenes.find((uno) => uno.id === origen.id) ?? {
+    id: origen.id,
+    nombre: origen.nombre,
+    color: origen.color,
+    abiertas: [],
+  }
   return (
-    <div className="grid min-w-0 gap-4">
-      <Link
-        href={RUTAS.origenes as Route}
-        className="-ml-1 inline-flex min-h-11 w-fit items-center gap-1 rounded-(--radius-md) pr-2 pl-1 text-(length:--text-sm) text-(--color-ink-soft) outline-none hover:text-(--color-ink) focus-visible:shadow-(--shadow-focus) md:min-h-8"
-      >
-        <ChevronLeftIcon aria-hidden className="size-4 shrink-0" />
-        Orígenes
-      </Link>
-      <div className="flex min-w-0 items-start justify-between gap-3">
+    <div className="grid min-w-0 gap-3">
+      <MigasDelOrigen actual={actual} origenes={origenes} />
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span
             aria-hidden
@@ -50,27 +65,23 @@ export async function MarcoDelOrigen({ id }: { id: string }) {
           <h1 className="min-w-0 text-(length:--text-xl) font-semibold break-words text-(--color-ink)">
             {origen.nombre}
           </h1>
-          {origen.activo ? (
-            <Badge className="bg-(--color-positivo-soft) text-(--color-positivo-ink)">Activo</Badge>
-          ) : (
-            <Badge variant="outline">Inactivo</Badge>
-          )}
+          {origen.activo ? null : <Badge variant="outline">Inactivo</Badge>}
         </div>
-        {puede(sesion.permisos, 'origenes.gestionar') ? <MenuDelOrigen origen={origen} /> : null}
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {seguir === null ? null : (
+            <Link
+              href={seguir as Route}
+              className={buttonVariants({ className: 'min-h-11 md:min-h-9' })}
+            >
+              Seguir la puesta en marcha
+            </Link>
+          )}
+          <BotonDeDatos />
+          <MenuDelOrigen origen={origen} puedeGestionar={puedeGestionar} />
+        </div>
       </div>
-      {tira.inactivo ? (
-        <ParaCotizarYMover inactivo />
-      ) : (
-        <ParaCotizarYMover
-          pasos={conDestino(tira.pasos, sesion.permisos, origen.id)}
-          pendiente={puestaEnMarcha.pendiente}
-          seguir={puestaEnMarcha.seguir}
-        />
-      )}
-      <PestanasDeLaRuta
-        pestanas={pestanasDelOrigen(sesion.permisos, origen.id)}
-        sinSegmento="datos"
-      />
+      <PestanasDeLaRuta origenId={origen.id} pestanas={pestanas} />
+      <DrawerDeDatos origen={origen} puedeGestionar={puedeGestionar} />
     </div>
   )
 }

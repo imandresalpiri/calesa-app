@@ -46,4 +46,20 @@ describe('lineasDelOrigen', () => {
     expect(lineas.find((l) => l.clave === 'eliminar')).toMatchObject({ deshabilitada: true })
     expect(lineas.at(-1)).toMatchObject({ tipo: 'nota', clave: 'motivo' })
   })
+
+  it('en el celular, Datos primero y separado de lo demás', () => {
+    const lineas = lineasDelOrigen(origen(true), { conDatos: true })
+    expect(lineas.slice(0, 2)).toEqual([
+      { tipo: 'accion', clave: 'datos', etiqueta: 'Datos' },
+      { tipo: 'separador', clave: 'separador' },
+    ])
+    expect(lineas[2]).toMatchObject({ clave: 'desactivar' })
+  })
+
+  it('sin gestionar orígenes, sólo Datos (en el celular) o nada', () => {
+    expect(lineasDelOrigen(origen(true), { conDatos: true, gestiona: false })).toEqual([
+      { tipo: 'accion', clave: 'datos', etiqueta: 'Datos' },
+    ])
+    expect(lineasDelOrigen(origen(true), { gestiona: false })).toEqual([])
+  })
 })

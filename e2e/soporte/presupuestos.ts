@@ -47,6 +47,15 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   // planilla y la tarjeta en vivo van con `diferido()`). Provisionales hasta su primera medición en el e2e: lo medido más un 5 %, a la decena. Con «Para todos los orígenes» (T512: la tarjeta tocable y su límite de error en el barril de tarjetas de ajustes) el paso Fórmula midió 461,4 KB: 470 (regla del 5 %).
   '/configuracion/origenes/nuevo': 420,
   '/configuracion/origenes/[id]/puesta-en-marcha/formula': 470,
+  // Las pestañas de la página del origen, con la subasta de la semilla: lo medido antes de las pestañas planas más un 5 %, a la decena (Fases era la
+  // pestaña Flujo; Planilla, Hoja y Tarjeta, el editor de una fórmula). Medido el 2026-11-21: 442,9 · 496,0 · 410,8 · 418,1 · 407,1 · 405,1
+  // (`docs/RENDIMIENTO.md`). La barra de la fórmula y la cabecera con las migas viajan en las seis.
+  '/configuracion/origenes/[id]/fases': 460,
+  '/configuracion/origenes/[id]/planilla': 510,
+  '/configuracion/origenes/[id]/hoja': 420,
+  '/configuracion/origenes/[id]/tarjeta': 430,
+  '/configuracion/origenes/[id]/campos': 420,
+  '/configuracion/origenes/[id]/categorias': 410,
 }
 
 // Lo que aporta la ficha del lead **entera** al documento sobre `/perfil`, en KB (T33: con todo a la vista, `?seccion=` sólo dice a qué bloque

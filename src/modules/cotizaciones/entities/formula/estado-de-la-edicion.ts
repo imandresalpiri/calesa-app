@@ -1,7 +1,7 @@
-import { estadoDeUnaPieza, type EstadoDeLaEdicion } from '@/shared/lib/edicion'
+import { estadoDeUnaPieza, type EstadoDeLaEdicion } from '../estado-de-la-edicion'
 import type { LecturaDeLaFormula } from './versiones'
 
-// El estado de lo guardado de la fórmula de un origen, para la barra de la edición a pantalla completa: su borrador (con quién lo guardó) o, sin él, la publicada.
+// El estado de lo guardado de la fórmula de un origen, para la barra de la fórmula: su borrador (con quién lo guardó) o, sin él, la publicada.
 // Lo no guardado de la planilla lo suma quien la edita.
 export function estadoDeLaFormulaGuardada(
   lectura: Pick<LecturaDeLaFormula, 'borrador' | 'publicada'>,

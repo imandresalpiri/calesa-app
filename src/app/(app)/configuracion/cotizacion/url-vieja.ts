@@ -1,14 +1,15 @@
 import {
+  CLAVE_DE_LA_ACCION_DE_LA_TABLA,
   RUTAS,
   rutaDeConfiguracionDeCotizacion,
   type PestanaDeCotizacion,
 } from '@/shared/lib/rutas'
 import { conElPanelDeOrigenes, conParametros, type ParametrosDeLaUrl } from '../con-parametros'
 
-// Configuración › Cotización ya no existe: lo de cada origen vive en su página (`/configuracion/origenes/<id>/formula|formula/hoja|formula/tarjeta|tablas`)
+// Configuración › Cotización ya no existe: lo de cada origen vive en su página (`/configuracion/origenes/<id>/planilla|hoja|tarjeta`, las tablas en su drawer `?panel=tablas`)
 // y lo global en Catálogos y en Orígenes («Para todos los orígenes»). Los enlaces de cuando era una página con pestañas (`?seccion=`, `?origen=`) siguen funcionando:
 // - `?seccion=niveles` → su catálogo; `?seccion=colores|tonos|vigencia|ajustes` → el modal de su tarjeta en Orígenes (`?panel=colores|vigencia`; si traía su propio `?panel=`, ése manda).
-// - `?seccion=formula|diseno|tarjeta|tablas&origen=<id>` → esa pestaña del origen; `?origen=<id>` sin sección → su Fórmula.
+// - `?seccion=formula|diseno|tarjeta|tablas&origen=<id>` → esa pestaña del origen (`tablas`: la Planilla con el drawer, y el `?panel=` de la tabla en `accion`); `?origen=<id>` sin sección → su Planilla.
 // - Una pestaña de un origen sin origen (o con uno que no es un id), o sin nada → la lista de orígenes, sin parámetros (eran de un origen).
 // Los demás parámetros (`?panel=`, `?version=`, `?tabla=`, `?tono=`, `?nivel=`, `?vista=`…) viajan con él, salvo hacia la lista. Ningún
 // destino lleva `seccion` ni `origen`: no vuelve a redirigir. No mira permisos: cada página comprueba los suyos.
@@ -53,6 +54,13 @@ export function destinoDeLaUrlVieja(parametros: ParametrosDeLaUrl): string {
   const pestana = seccion === undefined ? 'formula' : DEL_ORIGEN[seccion]
   if (pestana === undefined || origen === undefined || !ID.test(origen)) {
     return RUTAS.origenes
+  }
+  if (pestana === 'tablas') {
+    const { panel: deLaTabla, ...sinPanel } = resto
+    return conParametros(rutaDeConfiguracionDeCotizacion(origen, pestana), {
+      ...sinPanel,
+      [CLAVE_DE_LA_ACCION_DE_LA_TABLA]: deLaTabla,
+    })
   }
   return conParametros(rutaDeConfiguracionDeCotizacion(origen, pestana), resto)
 }

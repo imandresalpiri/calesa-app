@@ -2,11 +2,11 @@ import { puede, type Permisos } from '@/shared/lib/permisos'
 import { RUTAS, rutaDeParteDelOrigen } from '@/shared/lib/rutas'
 import { conParametros, type ParametrosDeLaUrl } from '../con-parametros'
 
-// Configuración › Flujos ya no existe: el flujo de cada origen es la pestaña Flujo de su página, el de repuestos vive en Repuestos y los tipos
+// Configuración › Flujos ya no existe: el flujo de cada origen es la pestaña Fases de su página, el de repuestos vive en Repuestos y los tipos
 // de documento de la empresa en Catálogos. Sus enlaces (`?origen=`, `?ambito=`, `?seccion=`, `?fase=`) siguen funcionando:
 // - `?ambito=repuestos` → el flujo de repuestos.
 // - `?seccion=documentos` sin `flujos.configurar` (quien sólo gestionaba los catálogos de logística los veía en la página) → Tipos de documento.
-// - `?origen=<id>` → la pestaña Flujo de ese origen (la pestaña dice si no se abre).
+// - `?origen=<id>` → la pestaña Fases de ese origen (la pestaña dice si no se abre).
 // - Sin origen: el del primer origen donde configura el flujo; si no hay, el de repuestos con `repuestos.configurar`; si no, Tipos de documento.
 // `?seccion=` sigue siendo la sección del panel (`reglas`, `documentos`) y viaja con `fase`, `vista`, `panel` y los demás; `origen` y
 // `ambito` no (ya están en la ruta). Hacia Tipos de documento no viaja `seccion`.
@@ -30,11 +30,11 @@ export function destinoDeLaUrlVieja(
   }
   const origen = primero(parametros['origen'])
   if (origen !== undefined && origen !== '') {
-    return con(rutaDeParteDelOrigen(origen, 'flujo'))
+    return con(rutaDeParteDelOrigen(origen, 'fases'))
   }
   const configura = origenes.find((uno) => puede(permisos, 'flujos.configurar', uno.id))
   if (configura !== undefined) {
-    return con(rutaDeParteDelOrigen(configura.id, 'flujo'))
+    return con(rutaDeParteDelOrigen(configura.id, 'fases'))
   }
   return puede(permisos, 'repuestos.configurar') ? con(RUTAS.flujoDeRepuestos) : aDocumentos
 }

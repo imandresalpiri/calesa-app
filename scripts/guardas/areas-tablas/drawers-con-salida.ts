@@ -3,7 +3,12 @@
 import type { RegistroDeDrawer } from '../drawers-con-salida'
 
 export const REGISTRO: Record<string, RegistroDeDrawer> = {
-  // `?panel=nueva-tabla`: el nombre, para quién y las columnas.
+  // `?panel=tablas` sobre Planilla, Hoja o Tarjeta: la lista y el editor de una tabla, cuyo trabajo queda en su borrador de la pestaña del navegador.
+  'src/modules/cotizaciones/features/tablas/components/drawer-de-las-tablas.tsx': {
+    sinFormulario:
+      'es el marco de la lista y del editor de tablas; lo editado en una tabla queda en su borrador de la pestaña del navegador, así que cerrar no pierde nada',
+  },
+  // `?panel=nueva-tabla` (en el drawer, `&accion=nueva-tabla`): el nombre, para quién y las columnas.
   'src/modules/cotizaciones/features/tablas/components/panel-de-nueva-tabla.tsx': {
     formulario: 'src/modules/cotizaciones/features/tablas/components/panel-de-nueva-tabla.tsx',
     mecanismo: 'contexto',

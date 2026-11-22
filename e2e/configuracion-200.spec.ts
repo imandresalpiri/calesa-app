@@ -92,25 +92,22 @@ const PANTALLAS: Pantalla[] = [
     ],
   },
   {
-    titulo: 'la página de un origen › Datos',
-    url: DE_UN_ORIGEN('datos'),
+    titulo: 'la página de un origen › Fases',
+    url: DE_UN_ORIGEN('fases'),
     controles: (page) => [
       [page.getByRole('button', { name: `Más acciones de ${origen.nombre}` }), 'el «⋯» del origen'],
     ],
   },
-  { titulo: 'la página de un origen › Campos', url: DE_UN_ORIGEN('campos') },
-  { titulo: 'la página de un origen › Categorías', url: DE_UN_ORIGEN('categorias') },
-  { titulo: 'la página de un origen › Flujo', url: DE_UN_ORIGEN('flujo') },
-  { titulo: 'la página de un origen › Fórmulas', url: DE_UN_ORIGEN('formulas') },
   {
-    titulo: 'la página de un origen › una fórmula › Planilla',
+    titulo: 'la página de un origen › Planilla',
     url: () => urlDeLaFormula(origen.id, 'planilla'),
   },
   {
-    titulo: 'la página de un origen › una fórmula › Hoja',
+    titulo: 'la página de un origen › Hoja',
     url: () => urlDeLaFormula(origen.id, 'hoja'),
   },
-  { titulo: 'la página de un origen › Tablas', url: DE_UN_ORIGEN('tablas') },
+  { titulo: 'la página de un origen › Campos', url: DE_UN_ORIGEN('campos') },
+  { titulo: 'la página de un origen › Categorías', url: DE_UN_ORIGEN('categorias') },
   { titulo: 'Leads › Campos', url: () => '/configuracion/leads/campos' },
   { titulo: 'Leads', url: () => '/configuracion/leads' },
   {
@@ -180,11 +177,8 @@ async function dentroDe(lugar: Locator, selector: string, que: string): Promise<
   )
 }
 
-// 5a-29 y 5a-30: la página de un origen al 200 %: la clave interna cabe en su tarjeta (se parte, no se corta) y cada paso de «Para cotizar y mover»
-// cabe en la página y se lee entero (la tira se parte en dos columnas en vez de apretar su texto).
-test('al 200 %: en la página de un origen la clave interna y cada paso de «Para cotizar y mover» caben', async ({
-  page,
-}, info) => {
+// 5a-29: los datos de un origen al 200 %: la clave interna cabe en su drawer (se parte, no se corta).
+test('al 200 %: en los datos de un origen la clave interna cabe', async ({ page }, info) => {
   await textoGrandeAlCargar(page)
   await entrar(page)
   // Una clave de 28 caracteres en monoespaciada: al 200 % no cabe en una línea.
@@ -192,16 +186,10 @@ test('al 200 %: en la página de un origen la clave interna y cada paso de «Par
     'Origen de clave larga',
     `clave_interna_${info.project.name}`,
   )
-  await page.goto(`/configuracion/origenes/${conClaveLarga.id}/datos`)
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await dentroDe(page.locator('dd.font-mono').first(), 'main', 'la clave interna')
-  const tira = page.getByRole('region', { name: 'Para cotizar y mover' })
-  const pasos = tira.getByRole('listitem')
-  await expect(pasos).toHaveCount(5)
-  for (let i = 0; i < 5; i++) {
-    await dentroDe(pasos.nth(i), 'main', `el paso ${String(i + 1)}`)
-  }
-  await sinTextoCortado(tira)
+  await page.goto(`/configuracion/origenes/${conClaveLarga.id}/campos?panel=datos`)
+  const datos = page.getByRole('dialog', { name: 'Datos del origen' })
+  await expect(datos).toBeVisible()
+  await dentroDe(datos.locator('dd.font-mono').first(), '[role="dialog"]', 'la clave interna')
 })
 
 // 5a-28: el modal de apibara (la dirección del servicio y las plataformas) no pasa del relleno de su cuerpo con el texto al 200 % desde la carga.

@@ -1,10 +1,14 @@
 import type { NextRequest } from 'next/server'
-import { redirigirALaFormula } from '../redirigir'
+import { deLaBusqueda, redireccionPermanente } from '../../../../con-parametros'
+import { destinoSinFormula } from '../../urls-viejas/formula'
 
-// La ruta corta `/configuracion/origenes/[id]/formula/hoja`: un 308 a la hoja de la fórmula de trabajo (`../url-vieja.ts`).
+// La ruta corta `/configuracion/origenes/[id]/formula/hoja` (de cuando un origen tenía una sola fórmula): un 308 a la pestaña Hoja sin `?formula=` (la de
+// trabajo es la de por defecto), con su consulta.
 export async function GET(
   peticion: NextRequest,
   { params }: RouteContext<'/configuracion/origenes/[id]/formula/hoja'>,
 ) {
-  return redirigirALaFormula(peticion, (await params).id, 'hoja')
+  return redireccionPermanente(
+    destinoSinFormula((await params).id, 'hoja', deLaBusqueda(peticion.nextUrl.searchParams)),
+  )
 }

@@ -32,8 +32,9 @@ const destinoDe = (ruta: string): string => {
   if (ruta === '/cotizaciones/nuevo') {
     return `${ruta}?origen=${sql("select id from public.origenes where clave = 'subasta_usa'")}`
   }
-  if (ruta === '/configuracion/origenes/[id]/puesta-en-marcha/formula') {
-    return `/configuracion/origenes/${sql("select id from public.origenes where clave = 'subasta_usa'")}/puesta-en-marcha/formula`
+  // La puesta en marcha y las pestañas de la página del origen, con la subasta de la semilla (la Planilla, Hoja y Tarjeta, con su fórmula activa).
+  if (ruta.startsWith('/configuracion/origenes/[id]/')) {
+    return ruta.replace('[id]', sql("select id from public.origenes where clave = 'subasta_usa'"))
   }
   if (ruta === '/logistica/fase/[fase]') {
     // La lista de la primera fase de logística de la subasta de la semilla, con su origen.

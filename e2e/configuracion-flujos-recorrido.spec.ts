@@ -53,7 +53,7 @@ let esperasDeRepuestosAntes: string | null = null
 const delOrigen = fasesDelOrigen(ORIGEN)
 const idDeFase = (nombre: string): string => faseDe(ORIGEN, nombre)
 const urlDeFase = (nombre: string) =>
-  `/configuracion/origenes/${origenId}/flujo?vista=lista&fase=${idDeFase(nombre)}`
+  `/configuracion/origenes/${origenId}/fases?vista=lista&fase=${idDeFase(nombre)}`
 const comoDuena = (consulta: string): string => comoPersona(duena, consulta)
 
 test.beforeAll(async ({}, info) => {
@@ -87,14 +87,13 @@ test(`${P} la dueña crea un origen y arma 5 fases con sus salidas`, async ({ pa
   await panel.getByRole('button', { name: 'Crear origen' }).click()
   await expect(page.getByText(`Origen «${ORIGEN}» creado`)).toBeVisible()
 
-  // Creado, sigue en la puesta en marcha; desde la página del origen, «Para cotizar y mover» lleva a la pestaña Flujo, que nace sin fases.
+  // Creado, sigue en la puesta en marcha; en la página del origen la pestaña Fases lleva su ⚠ y nace sin fases.
   await delAltaASuPagina(page)
   await expect(page.getByRole('heading', { name: ORIGEN, level: 1 })).toBeVisible()
   await page
-    .getByRole('region', { name: 'Para cotizar y mover' })
-    .getByRole('link', { name: /Flujo/ })
+    .getByRole('tab', { name: 'Fases. Sin fases: sus vehículos no se pueden mover' })
     .click()
-  await expect(page).toHaveURL(/\/configuracion\/origenes\/[^/]+\/flujo$/)
+  await expect(page).toHaveURL(/\/configuracion\/origenes\/[^/]+\/fases$/)
   origenId = new URL(page.url()).pathname.split('/')[3] ?? ''
   expect(origenId).toBe(sql(`select id from public.origenes where nombre = ${literal(ORIGEN)}`))
   await expect(page.getByRole('heading', { name: 'Fases', level: 2 })).toBeVisible()
@@ -224,7 +223,7 @@ test(`${P} un vehículo nuevo nace en la inicial, se mueve por SQL y jubilar su 
   expect(sql(`select fase_id from public.vehiculos where id = '${vehiculo}'`)).toBe(puerto)
 
   // Con historial y una unidad adentro, «Puerto» no se elimina: se jubila.
-  await page.goto(`/configuracion/origenes/${origenId}/flujo?vista=lista`)
+  await page.goto(`/configuracion/origenes/${origenId}/fases?vista=lista`)
   await elegirDelMenu(page, PUERTO, 'Jubilar o eliminar')
   const dialogo = page.getByRole('dialog', { name: new RegExp(`Jubilar fase «${PUERTO}»`) })
   await expect(dialogo).toContainText(`Se jubila «${PUERTO}»`)

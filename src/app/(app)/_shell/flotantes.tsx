@@ -8,7 +8,6 @@ export function Flotantes({ children }: { children?: ReactNode }) {
   return (
     <div
       data-flotantes=""
-      data-oculto-al-editar=""
       className="pointer-events-none fixed right-4 bottom-20 z-40 flex items-center gap-2 *:pointer-events-auto md:bottom-4"
     >
       <CopiarElEnlaceDeLaPagina />

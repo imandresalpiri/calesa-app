@@ -15,7 +15,7 @@ import { leerAutores, leerEstado, leerPaginaSinAutores } from './consulta-de-ver
 
 type Cliente = SupabaseClient<Database>
 
-// La planilla de una fórmula del origen, en el servidor (la que abre la ruta `…/formulas/<fórmula>/planilla`): lo suyo con la sesión de quien mira.
+// La planilla de una fórmula del origen, en el servidor (la que abre la pestaña `…/planilla?formula=<fórmula>`): lo suyo con la sesión de quien mira.
 export async function getFormulaDelOrigen(
   formula: FormulaDelOrigen,
 ): Promise<Resultado<LecturaDeLaFormula>> {

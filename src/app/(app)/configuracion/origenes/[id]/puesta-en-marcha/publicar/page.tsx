@@ -16,7 +16,7 @@ import { Seguir } from '../seguir'
 export const metadata: Metadata = { title: 'Puesta en marcha: Publicar' }
 
 // Paso 6: qué se publica de la fórmula de trabajo (la planilla y la tarjeta) y «Publicar…», que la activa con su nota y lleva a «Listo». Con la fórmula
-// ya activa no hay nada que publicar: va a «Listo». La lista es la de la pestaña Fórmulas (tope 50, una lectura).
+// ya activa no hay nada que publicar: va a «Listo». La lista es la de la barra de la fórmula (tope 50, una lectura).
 export default async function PasoPublicar({
   params,
 }: PageProps<'/configuracion/origenes/[id]/puesta-en-marcha/publicar'>) {

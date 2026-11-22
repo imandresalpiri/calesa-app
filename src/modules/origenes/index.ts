@@ -34,6 +34,7 @@ export type { DatoClave, DatoClaveResuelto } from './entities/datos-clave'
 // Configuración › Orígenes: lo que lee la lista y el detalle de un origen
 export { leerOrigenes } from './composicion'
 export type { OrigenConUso } from './entities/origen'
+export { PANEL_DATOS_DEL_ORIGEN } from './entities/origen'
 
 // «Para cotizar y mover»: lo que le falta a un origen, en cinco pasos con su estado
 export {
@@ -56,7 +57,7 @@ export {
   estadoDelPaso,
   pasoAnterior,
   pasoPendiente,
-  pendienteEnLaTira,
+  siguePendienteLaPuestaEnMarcha,
   pasoSiguiente,
   type EstadoDeLaPuestaEnMarcha,
   type EstadoDelPaso,

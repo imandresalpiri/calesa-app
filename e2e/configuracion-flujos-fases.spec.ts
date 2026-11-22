@@ -83,7 +83,7 @@ async function cerrarInspector(page: Page) {
 
 test('la dueña crea fases, sube una y elimina otra', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origenId}/flujo?vista=lista`)
+  await page.goto(`/configuracion/origenes/${origenId}/fases?vista=lista`)
   await expect(page.getByRole('heading', { name: 'Fases', level: 2 })).toBeVisible()
   await expect(nombresEnPantalla(page)).toHaveCount(0)
 
@@ -133,7 +133,7 @@ test('la dueña crea fases, sube una y elimina otra', async ({ page }) => {
 
 test('la dueña edita los datos de una fase en el inspector', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origenId}/flujo?vista=lista`)
+  await page.goto(`/configuracion/origenes/${origenId}/fases?vista=lista`)
   for (const nombre of ['E2E 5.04 Puerto', 'E2E 5.04 Aduana', 'E2E 5.04 Cierre']) {
     const modal = await crearFase(page, nombre, 'Intermedia')
     await expect(modal).toBeHidden()
@@ -220,7 +220,7 @@ test('la dueña jubila una fase con historial y la reactiva', async ({ page }) =
     where fl.origen_id = ${origen} and f.nombre = 'E2E 5.04 Aduana'
   `)
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origenId}/flujo?vista=lista`)
+  await page.goto(`/configuracion/origenes/${origenId}/fases?vista=lista`)
   const fila = page.getByRole('row').filter({ hasText: 'E2E 5.04 Aduana' })
   await expect(fila).not.toContainText('Jubilada')
 

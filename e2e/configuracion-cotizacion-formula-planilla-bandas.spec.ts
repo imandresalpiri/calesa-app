@@ -2,6 +2,7 @@
 import { formatearMonto } from '../src/shared/lib/formato'
 import { expect, test, type Page } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
+import { barraDeLaFormula } from './soporte/barra-de-la-formula'
 import {
   borrarPersonasDePrueba,
   borrarRolesDePrueba,
@@ -63,7 +64,7 @@ async function elegir(page: Page, renglon: string) {
 }
 
 async function delMenuDeLaPlanilla(page: Page, renglon: string) {
-  await planilla(page).getByRole('button', { name: 'Más acciones de la planilla' }).click()
+  await barraDeLaFormula(page).getByRole('button', { name: 'Más acciones de la planilla' }).click()
   await elegir(page, renglon)
 }
 

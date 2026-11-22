@@ -18,12 +18,10 @@ type Salida = () => void
 // Un enlace a la misma ruta con otra búsqueda (`?seccion=` de una pestaña) también pregunta: cambia lo que se dibuja y el formulario se va.
 // Al descartar, el enlace frenado se sigue con `router.push(destino)`: un `replace` o `scroll={false}` del `<Link>` no se conservan.
 // `propia`: lo que está dentro (la barra) no cuenta como salir.
-// `alRecargar: false`: recargar no pregunta (la edición a pantalla completa guarda lo editado en la pestaña; la pregunta del navegador trabaría).
 export function useSalidaConCambios(
   hayCambios: boolean,
   alDescartar: () => void,
   propia?: RefObject<HTMLElement | null>,
-  { alRecargar = true }: { alRecargar?: boolean } = {},
 ) {
   const router = useRouter()
   const [pendiente, setPendiente] = useState<Salida | null>(null)
@@ -71,9 +69,7 @@ export function useSalidaConCambios(
         routerRef.current.push(destino as Route)
       })
     }
-    if (alRecargar) {
-      window.addEventListener('beforeunload', alDescargar)
-    }
+    window.addEventListener('beforeunload', alDescargar)
     document.addEventListener('click', alTocar, true)
     const desanotar = anotarCambiosSinGuardar((salir) => {
       setPendiente(() => salir)
@@ -85,7 +81,7 @@ export function useSalidaConCambios(
       // Guardar o descartar suelta lo frenado: al volver a escribir, no reaparece una salida vieja.
       setPendiente(null)
     }
-  }, [hayCambios, propia, alRecargar])
+  }, [hayCambios, propia])
 
   return {
     pendiente: hayCambios && pendiente !== null,

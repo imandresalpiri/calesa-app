@@ -1,24 +1,22 @@
 'use client'
 
 import { ChevronDownIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { textoDelTope } from '@/shared/lib/conteo'
 import { TOPE_DE_LO_CARGADO } from '@/shared/lib/paginacion'
 import { AvisoDeTope } from '@/shared/ui/aviso-de-tope'
 import { Button } from '@/shared/ui/button'
-import type { AccionDeMenu } from '@/shared/ui/lista'
 import type { FormulaDeLaLista } from '../../../entities/formulas-del-origen/lista'
 import type { useArchivadas } from '../hooks/use-archivadas'
-import { FilaDeFormula } from './fila-de-formula'
 
 type Props = {
-  origenId: string
   archivadas: ReturnType<typeof useArchivadas>
-  menuDe: (formula: FormulaDeLaLista) => AccionDeMenu[]
+  // Cómo se dibuja cada una (la fila del selector).
+  fila: (formula: FormulaDeLaLista) => ReactNode
 }
 
 // «Archivadas»: plegada; al abrirse lee la primera página desde el navegador y «Ver más» suma la siguiente. Una archivada sólo se renombra o se copia.
-export function Archivadas({ origenId, archivadas, menuDe }: Props) {
+export function Archivadas({ archivadas, fila }: Props) {
   const [abierta, setAbierta] = useState(false)
   const { estado, formulas } = archivadas
   return (
@@ -39,15 +37,8 @@ export function Archivadas({ origenId, archivadas, menuDe }: Props) {
       </Button>
       <div id="formulas-archivadas" hidden={!abierta} className="grid min-w-0 gap-2">
         {formulas.length > 0 ? (
-          <ul aria-label="Fórmulas archivadas" className="grid grid-cols-[minmax(0,1fr)] gap-2">
-            {formulas.map((formula) => (
-              <FilaDeFormula
-                key={formula.id}
-                origenId={origenId}
-                formula={formula}
-                acciones={menuDe(formula)}
-              />
-            ))}
+          <ul aria-label="Fórmulas archivadas" className="grid grid-cols-[minmax(0,1fr)] gap-0.5">
+            {formulas.map(fila)}
           </ul>
         ) : estado.tipo === 'lista' ? (
           <p className="text-(length:--text-sm) text-(--color-ink-soft)">

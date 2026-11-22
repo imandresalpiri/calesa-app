@@ -9,7 +9,7 @@ import { EstadoError, EstadoVacio } from '@/shared/ui/estados'
 type Props = {
   // `sin_origenes`: la persona ve la logística pero ningún origen la tiene encendida. `sin_fases`: el origen todavía no tiene flujo. `error`: no se pudo leer (los orígenes o la cadena).
   tipo: 'sin_origenes' | 'sin_fases' | 'error'
-  // «Configurar el flujo»: la pestaña Flujo del origen, sólo para quien tiene `flujos.configurar`.
+  // «Configurar el flujo»: la pestaña Fases del origen, sólo para quien tiene `flujos.configurar`.
   enlaceAlFlujo?: string | undefined
 }
 

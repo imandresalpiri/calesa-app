@@ -2,7 +2,6 @@
 
 import { formatearNumero } from '@/shared/lib/formato'
 import { Button } from '@/shared/ui/button'
-import { AccionesDeLaEdicion } from '@/shared/ui/edicion-a-pantalla-completa'
 import { useRegional } from '@/shared/ui/regional'
 import { avisarExito } from '@/shared/ui/toasts'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
@@ -10,6 +9,7 @@ import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import { filasParaPublicar } from '../../../entities/tablas/edicion'
 import type { PublicacionDeTabla } from '../../../entities/tablas/publicacion'
 import type { TablaDeReferencia } from '../../../entities/tablas/lectura'
+import { claveDeLaAccion, type LugarDeLasTablas } from '../../../entities/tablas/rutas'
 import { destinoDeCamino } from '../../../entities/tablas/vista-del-editor'
 import type { BorradorDeTablaEnUso } from '../hooks/use-borrador-de-tabla'
 import type { FilasDeTabla } from '../hooks/use-filas-de-tabla'
@@ -19,6 +19,7 @@ type Props = {
   tabla: TablaDeReferencia
   edicion: FilasDeTabla
   borrador: BorradorDeTablaEnUso
+  lugar: LugarDeLasTablas
 }
 
 export const PANEL_PUBLICAR_TABLA = 'publicar-tabla'
@@ -36,9 +37,9 @@ const avisoDePublicada = (
 
 // «Publicar» del editor de tablas (4.23-3, C9): apagado sin cambios o con una celda marcada; abre `?panel=publicar-tabla`. Entró: se cierra, se avisa y la ruta
 // revalidada vuelve a montar el editor con la versión nueva.
-export function PublicarTabla({ tabla, edicion, borrador }: Props) {
+export function PublicarTabla({ tabla, edicion, borrador, lugar }: Props) {
   const { locale } = useRegional()
-  const panel = usePanelPorUrl(PANEL_PUBLICAR_TABLA)
+  const panel = usePanelPorUrl(PANEL_PUBLICAR_TABLA, [], { clave: claveDeLaAccion(lugar) })
   const montado = useAbiertoAlgunaVez(panel.abierto)
   const { estado, cambios, error } = edicion
   const bloqueo = !cambios
@@ -51,20 +52,16 @@ export function PublicarTabla({ tabla, edicion, borrador }: Props) {
       {cambios && error ? (
         <p className="text-(length:--text-sm) text-(--color-peligro-ink)">{CON_ERROR}</p>
       ) : null}
-      {/* En la edición a pantalla completa «Publicar» va a la barra de arriba, como acción principal. */}
-      <AccionesDeLaEdicion orden={2}>
-        <Button
-          type="button"
-          className="min-h-11 md:min-h-9"
-          disabled={bloqueo !== null}
-          title={bloqueo?.mensaje}
-          onClick={() => {
-            panel.abrir()
-          }}
-        >
-          Publicar
-        </Button>
-      </AccionesDeLaEdicion>
+      <Button
+        type="button"
+        className="min-h-11 md:min-h-9"
+        disabled={bloqueo !== null}
+        onClick={() => {
+          panel.abrir()
+        }}
+      >
+        Publicar
+      </Button>
       {montado ? (
         <ModalDePublicarTablaDiferido
           abierto={panel.abierto}

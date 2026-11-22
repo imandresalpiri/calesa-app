@@ -1,4 +1,4 @@
-// Lo que mandan «Nueva fórmula», «Renombrar», «Archivar», «Eliminar» y «Activar» de la pestaña «Fórmulas» (docs/COTIZADOR.md › «Fórmulas del origen»). La forma
+// Lo que mandan «Nueva fórmula», «Renombrar», «Archivar», «Eliminar» y «Activar» de la barra de la fórmula (docs/COTIZADOR.md › «Fórmulas del origen»). La forma
 // va aquí; las reglas (nombre repetido, el tope, la fórmula en uso, la tarjeta que no sirve) las dice la base con su mensaje y su campo.
 import { z } from 'zod'
 import { LARGO_DEL_NOMBRE } from '../../../entities/formula-del-origen'

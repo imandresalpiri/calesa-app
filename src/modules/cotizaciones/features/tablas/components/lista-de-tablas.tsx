@@ -10,7 +10,7 @@ import { TOPE_DE_TABLAS, type TablaDeReferencia } from '../../../entities/tablas
 import { AccionesDeLaTablaEnLaLista } from './acciones-de-la-tabla'
 import { BotonDeNuevaTabla } from './boton-de-nueva-tabla'
 import {
-  origenIdDelDestino,
+  lugarDelDestino,
   rutaDeLasTablas,
   type DestinoDeLasTablas,
 } from '../../../entities/tablas/rutas'
@@ -35,9 +35,9 @@ function Publicada({ tabla }: { tabla: TablaDeReferencia }) {
 export function ListaDeTablas({ destino, lectura }: Props) {
   const { locale } = useRegional()
   const origen = destino === 'compartidas' ? null : destino.origen
-  const origenId = origenIdDelDestino(destino)
+  const lugar = lugarDelDestino(destino)
   const enElTope = lectura.hayMas || lectura.tablas.length >= TOPE_DE_TABLAS
-  const nueva = <BotonDeNuevaTabla origen={origen} enElTope={enElTope} />
+  const nueva = <BotonDeNuevaTabla origen={origen} lugar={lugar} enElTope={enElTope} />
   return (
     <>
       {lectura.tablas.length === 0 ? (
@@ -64,7 +64,7 @@ export function ListaDeTablas({ destino, lectura }: Props) {
                 <div className="grid min-w-0 flex-1 gap-1">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                     <Link
-                      href={rutaDeLasTablas(origenId, tabla.id)}
+                      href={rutaDeLasTablas(lugar, tabla.id)}
                       className="font-semibold break-words text-(--color-ink) underline-offset-4 hover:underline"
                     >
                       {tabla.nombre}
@@ -79,7 +79,7 @@ export function ListaDeTablas({ destino, lectura }: Props) {
                   </div>
                   <Publicada tabla={tabla} />
                 </div>
-                <AccionesDeLaTablaEnLaLista tabla={tabla} origenId={origenId} />
+                <AccionesDeLaTablaEnLaLista tabla={tabla} lugar={lugar} />
               </li>
             ))}
           </ul>

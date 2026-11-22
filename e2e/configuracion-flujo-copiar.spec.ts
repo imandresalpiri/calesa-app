@@ -85,7 +85,7 @@ test.afterAll(async () => {
 
 test('E2E escritorio: empieza el flujo con las fases de otro origen', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${destino.id}/flujo?vista=lista`)
+  await page.goto(`/configuracion/origenes/${destino.id}/fases?vista=lista`)
   await expect(
     page.getByText(`El flujo de ${destino.nombre} todavía no tiene fases.`),
   ).toBeVisible()
@@ -128,7 +128,7 @@ test('E2E escritorio: empieza el flujo con las fases de otro origen', async ({ p
 
 test('E2E escritorio: empieza en blanco', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${enBlanco.id}/flujo?vista=lista`)
+  await page.goto(`/configuracion/origenes/${enBlanco.id}/fases?vista=lista`)
   await page.getByRole('button', { name: 'Empezar en blanco' }).click()
   const modal = page.getByRole('dialog', { name: 'Nueva fase' })
   await expect(modal).toBeVisible()

@@ -69,7 +69,7 @@ test.afterAll(async () => {
 
 test('la dueña agrega dos salidas, ve sus chips, recarga y quita una', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origen.id}/flujo?vista=lista&fase=${compra}`)
+  await page.goto(`/configuracion/origenes/${origen.id}/fases?vista=lista&fase=${compra}`)
   const inspector = page.getByRole('dialog').filter({ hasText: 'Salidas y quién mueve' })
   await expect(inspector).toBeVisible()
   await expect(inspector.getByText('Esta fase no tiene salidas')).toBeVisible()
@@ -108,7 +108,7 @@ test('la dueña agrega dos salidas, ve sus chips, recarga y quita una', async ({
   ])
 
   // Recargar: siguen.
-  await page.goto(`/configuracion/origenes/${origen.id}/flujo?vista=lista&fase=${compra}`)
+  await page.goto(`/configuracion/origenes/${origen.id}/fases?vista=lista&fase=${compra}`)
   await expect(inspector).toBeVisible()
   await expect(inspector.getByText(`${P} Comprar → ${PUERTO}`)).toBeVisible()
   await expect(inspector.getByText('Pide nota', { exact: true })).toBeVisible()
@@ -139,7 +139,7 @@ test('la dueña agrega dos salidas, ve sus chips, recarga y quita una', async ({
 // recarga: siguen. Lo que decide `_puede_mover` ya lo prueba la base; aquí se ve que la interfaz lo guarda y lo dice.
 test('la dueña limita la fase a un rol, edita la salida y la limita a un rol', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/origenes/${origen.id}/flujo?vista=lista&fase=${compra}`)
+  await page.goto(`/configuracion/origenes/${origen.id}/fases?vista=lista&fase=${compra}`)
   const inspector = page.getByRole('dialog').filter({ hasText: 'Salidas y quién mueve' })
   await expect(inspector).toBeVisible()
 
@@ -179,7 +179,7 @@ test('la dueña limita la fase a un rol, edita la salida y la limita a un rol', 
   ).toBe('1')
 
   // Recargar: siguen, y la forma reabre con lo guardado.
-  await page.goto(`/configuracion/origenes/${origen.id}/flujo?vista=lista&fase=${compra}`)
+  await page.goto(`/configuracion/origenes/${origen.id}/fases?vista=lista&fase=${compra}`)
   await expect(inspector).toBeVisible()
   await expect(inspector.getByText(`${P} Comprar ya → ${PUERTO}`)).toBeVisible()
   await expect(inspector.getByText('Pide nota', { exact: true })).toBeHidden()

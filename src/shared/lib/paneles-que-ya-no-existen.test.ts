@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  conLaFormulaDelPanel,
+  destinoConLaFormulaDelPanel,
+  destinoSinLaEdicion,
   destinoSinLosPanelesQueYaNoExisten,
   sinLosPanelesQueYaNoExisten,
 } from './paneles-que-ya-no-existen'
 
-const PARTE = (parte: string) => `/configuracion/origenes/o-1/formulas/f-1/${parte}`
+const PARTE = (parte: string) => `/configuracion/origenes/o-1/${parte}`
 
 describe('destinoSinLosPanelesQueYaNoExisten', () => {
   it('el Modo avanzado va a la misma planilla, sin el panel y con el resto de la consulta', () => {
@@ -76,5 +79,58 @@ describe('sinLosPanelesQueYaNoExisten', () => {
     })
     const sin = { x: '1' }
     expect(sinLosPanelesQueYaNoExisten(sin)).toBe(sin)
+  })
+})
+
+describe('destinoSinLaEdicion', () => {
+  const sin = (ruta: string, consulta: string) =>
+    destinoSinLaEdicion(ruta, new URLSearchParams(consulta))
+
+  it('quita `editar=si` en Configuración y deja el resto de la consulta', () => {
+    expect(sin('/configuracion/origenes/o-1/planilla', 'panel=tablas&editar=si')).toBe(
+      '/configuracion/origenes/o-1/planilla?panel=tablas',
+    )
+    expect(sin('/configuracion/origenes/o-1/fases', 'editar=si')).toBe(
+      '/configuracion/origenes/o-1/fases',
+    )
+  })
+
+  it('otro `editar`, otra sección o sin él siguen', () => {
+    expect(sin('/configuracion/origenes/o-1/fases', 'editar=requisito&fase=f')).toBeNull()
+    expect(sin('/cotizaciones/c-1', 'editar=si')).toBeNull()
+    expect(sin('/configuracion/origenes/o-1/fases', '')).toBeNull()
+  })
+})
+
+describe('conLaFormulaDelPanel y destinoConLaFormulaDelPanel', () => {
+  it('pasa `formula` a `cual` en un panel de una fórmula; lo demás queda', () => {
+    expect(conLaFormulaDelPanel({ panel: 'activar-formula', formula: 'f-1', vista: 'x' })).toEqual({
+      panel: 'activar-formula',
+      cual: 'f-1',
+      vista: 'x',
+    })
+    const otro = { panel: 'nueva-formula', copia: 'f-1' }
+    expect(conLaFormulaDelPanel(otro)).toBe(otro)
+    const yaNueva = { panel: 'activar-formula', formula: 'f-1', cual: 'f-2' }
+    expect(conLaFormulaDelPanel(yaNueva)).toBe(yaNueva)
+  })
+
+  it('en «Publicar» de la puesta en marcha, 308 con `cual`; en otra ruta o sin el panel, nada', () => {
+    const publicar = '/configuracion/origenes/o-1/puesta-en-marcha/publicar'
+    expect(
+      destinoConLaFormulaDelPanel(
+        publicar,
+        new URLSearchParams('panel=activar-formula&formula=f-1'),
+      ),
+    ).toBe(`${publicar}?panel=activar-formula&cual=f-1`)
+    expect(
+      destinoConLaFormulaDelPanel(publicar, new URLSearchParams('panel=activar-formula&cual=f-1')),
+    ).toBeNull()
+    expect(
+      destinoConLaFormulaDelPanel(
+        '/configuracion/origenes/o-1/planilla',
+        new URLSearchParams('panel=activar-formula&formula=f-1'),
+      ),
+    ).toBeNull()
   })
 })
