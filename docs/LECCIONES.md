@@ -336,6 +336,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Prueba un registro por área con el área simulada, nunca con el archivo real: la prueba cae en cuanto alguien registra algo.
 - Un componente que empieza a usar `useRouter()` o un hook de nuqs rompe los tests de todo lo que lo dibuja («invariant expected app router to be mounted»,
   «nuqs requires an adapter»): esos tests montan con `withNuqsTestingAdapter()` y mockean `next/navigation`; lo que la URL escribe llega tarde (`waitFor`).
+- jsdom (dom-accessibility-api) no toma el `aria-label` de un nodo referido por `aria-describedby` al calcular la descripción (sólo el texto): un test de
+  descripción sobre un candado con `aria-label` afirma el `aria-describedby` y el `aria-label`, y la descripción de verdad se prueba en Chromium (CDP, `e2e/xcell-teclado.spec.ts`).
 
 ## CI, entorno y herramientas
 

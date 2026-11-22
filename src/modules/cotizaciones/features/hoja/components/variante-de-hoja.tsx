@@ -11,8 +11,9 @@ type Props = {
   alElegir: (clave: string) => void
 }
 
-// La variante (Moto, Auto gasolina…): una sola opción a la vez, con radios nativos (una parada de Tab, las flechas cambian de opción). Los chips toman el tono de su
-// sección (`--tono-*`, con el neutro de respaldo); el marcado vuelve a la tinta de siempre sobre el primario (sólo la tinta del tono tiene el AA validado sobre su fondo).
+// La variante (Moto, Auto gasolina…): una sola opción a la vez, con radios nativos (una parada de Tab, las flechas cambian de opción). Los chips son píldoras, como en V1,
+// con el tono de su sección (`--tono-*`, con el neutro de respaldo); la elegida va rellena del primario con su tinta (`sobre-primario`, AA en `design/tokens.test.ts`).
+// 44 px con el dedo (también en una tablet), 36 con puntero fino.
 export function VarianteDeHoja({ item, elegida, alElegir }: Props) {
   const nombre = useId()
   return (
@@ -28,7 +29,7 @@ export function VarianteDeHoja({ item, elegida, alElegir }: Props) {
         {item.opciones.map((opcion) => (
           <label
             key={opcion.clave}
-            className="flex min-h-11 cursor-pointer items-center rounded-(--radius-md) border border-[color:var(--tono-borde,var(--color-line))] bg-[color:var(--tono-fondo,var(--color-surface))] px-3 text-(length:--text-sm) text-[color:var(--tono-tinta,var(--color-ink))] has-checked:border-(--color-primario) has-checked:bg-(--color-primario-soft) has-checked:font-medium has-checked:text-(--color-ink) has-focus-visible:shadow-(--shadow-focus) has-disabled:cursor-not-allowed has-disabled:opacity-70 md:min-h-9"
+            className="flex min-h-[44px] cursor-pointer items-center rounded-(--radius-pill) border border-[color:var(--tono-borde,var(--color-line))] bg-[color:var(--tono-fondo,var(--color-surface))] px-3 text-(length:--text-sm) text-[color:var(--tono-tinta,var(--color-ink))] has-checked:border-(--color-primario) has-checked:bg-(--color-primario) has-checked:font-medium has-checked:text-(--color-sobre-primario) has-focus-visible:shadow-(--shadow-focus) has-disabled:cursor-not-allowed has-disabled:opacity-70 md:pointer-fine:min-h-9"
           >
             <input
               type="radio"

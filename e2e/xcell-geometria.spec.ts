@@ -59,7 +59,7 @@ const problemasDeCaja = (page: Page): Promise<string[]> =>
       const marco = celda.getBoundingClientRect()
       const hitos = [
         ...celda.querySelectorAll(
-          '[id$="e"], [data-parada="10"], [data-parada="11"], [data-parada="12"], :scope > button, :scope > input, :scope > p',
+          '[id$="e"], [data-parada="10"], [data-parada="11"], [data-parada="12"], [data-parada="13"], :scope > button, :scope > input, :scope > p',
         ),
       ]
       hitos.forEach((a, i) => {
@@ -229,15 +229,16 @@ async function accionesConFoco(page: Page, info: TestInfo, nombre: string): Prom
   const celda = page.locator('[data-caso="todas-las-acciones"]')
   await celda.scrollIntoViewIfNeeded()
   await celda.locator('[data-parada="0"]').focus()
+  // Las flechas recorren 0 · 1 · ⚙ (11) · ayuda (12) · ↺ (13), el orden de V1.
   for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight')
-  await expect(celda.locator('[data-parada="12"]')).toBeFocused()
+  await expect(celda.locator('[data-parada="13"]')).toBeFocused()
   await page.keyboard.press('ArrowLeft')
-  await expect(celda.locator('[data-parada="11"]')).toBeFocused()
+  await expect(celda.locator('[data-parada="12"]')).toBeFocused()
+  await expect(celda.locator('[data-parada="12"]')).toHaveAttribute('aria-label', /^Ayuda de /)
   await expect(celda.locator('[data-parada="11"]')).toHaveAttribute(
     'aria-label',
     /^Cambiar el valor por defecto de /,
   )
-  await expect(celda.locator('[data-parada="10"]')).toHaveAttribute('aria-label', /^Ayuda de /)
   expect(await problemasDeCaja(page)).toEqual([])
   await capturar(page, info, `${nombre}-acciones-con-foco`)
   await celda.locator('[data-parada="0"]').focus()

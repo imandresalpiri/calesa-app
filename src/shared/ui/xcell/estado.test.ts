@@ -219,17 +219,32 @@ describe('candadosDe y notasDe (4.13-3c)', () => {
     expect(candadosDe(undefined, 'Nivel.', false).candados.secundario).toBeUndefined()
   })
 
-  it('una nota por texto distinto; cada lado nombra el aviso y su candado; la entrada, sólo el aviso', () => {
+  it('un candado por texto distinto; cada lado nombra el aviso y su candado; la entrada, sólo el aviso', () => {
     const aviso = { texto: 'Error.', esError: true }
     const n = notasDe('x', aviso, { principal: 'A', secundario: undefined }, true)
-    expect(n.notas.map((m) => m.nota.texto)).toEqual(['Error.', 'A'])
-    expect(n.deLado).toEqual({ principal: 'xn xc1', secundario: 'xn' })
+    expect(n.aviso).toEqual({ id: 'xn', nota: aviso })
+    expect(n.candados).toEqual([{ id: 'xc0', texto: 'A' }])
+    expect(n.deLado).toEqual({ principal: 'xn xc0', secundario: 'xn' })
     expect(n.deLaEntrada).toBe('xn')
     const iguales = notasDe('x', undefined, { principal: 'A', secundario: 'A' }, true)
-    expect(iguales.notas).toHaveLength(1)
+    expect(iguales.aviso).toBeUndefined()
+    expect(iguales.candados).toHaveLength(1)
     expect(iguales.deLado).toEqual({ principal: 'xc0', secundario: 'xc0' })
     expect(iguales.deLaEntrada).toBeUndefined()
     const distintos = notasDe('x', undefined, { principal: 'A', secundario: 'B' }, true)
+    expect(distintos.candados.map((c) => c.texto)).toEqual(['A', 'B'])
     expect(distintos.deLado).toEqual({ principal: 'xc0', secundario: 'xc1' })
+  })
+
+  it('el error y el candado conviven: el error no es un candado aunque diga lo mismo', () => {
+    const n = notasDe(
+      'x',
+      { texto: 'A', esError: true },
+      { principal: 'A', secundario: undefined },
+      false,
+    )
+    expect(n.aviso?.nota.texto).toBe('A')
+    expect(n.candados).toEqual([{ id: 'xc0', texto: 'A' }])
+    expect(n.deLado.principal).toBe('xn xc0')
   })
 })

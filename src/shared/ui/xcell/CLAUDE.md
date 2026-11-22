@@ -6,8 +6,9 @@ no lee la base y **no calcula nada**. Dice «esta celda pasó a N» (`onCommit`)
 ## Entra y sale
 
 - Entra: `@/shared/lib` (`formato`, `color`, `numero-tipeado`), `../monto`, `../regional`, `../live`, `../lista/simbolos-de-lista` (los trazos de los iconos).
-- Sale: `index.ts` → `XCell`, `EstiloDeTonos`, `SimbolosDeXCell` y los tipos; la usa la hoja de `cotizaciones`. También `BOTON_DEL_VALOR` y `ENTRADA`
-  (`clases.ts`): el estilo de lo editable, para otra superficie que marca así sus celdas (la planilla de la fórmula de `cotizaciones`). `xcell.soporte.tsx` (`celda()`, `abrir()`,
+- Sale: `index.ts` → `XCell`, `EstiloDeTonos`, `SimbolosDeXCell` y los tipos; la usan la hoja de `cotizaciones` y la de ítems de `repuestos`. También
+  `BOTON_DEL_VALOR` y `ENTRADA` (`clases.ts`: el estilo de lo editable, para otra superficie que quiera marcar así sus celdas) y `XCELL_COMPACTA` (la celda
+  densa de una tabla: la pone `repuestos` en el contenedor de sus celdas). `xcell.soporte.tsx` (`celda()`, `abrir()`,
   `BASE`) es **sólo de las pruebas** (importa vitest y testing-library; `scripts/mapa.sh` no lista los `.soporte.`).
 - La hoja monta **una vez** `<SimbolosDeXCell/>` (los iconos y la descripción que anuncia las flechas) y `<EstiloDeTonos tonos={…}/>` (las filas de
   `tonos`, que lee ella; `shared` no las busca).
@@ -15,7 +16,7 @@ no lee la base y **no calcula nada**. Dice «esta celda pasó a N» (`onCommit`)
 ## El contrato con la hoja (props primitivas)
 
 `id, label, format ('monto'|'porcentaje'|'numero'), currency?, decimals?` (sólo la vista), `value, defaultValue?, suggested, overridden,
-disabledReason?, secondaryDisabledReason?, tone?, error?, secondaryId?, secondaryValue?, secondaryFormat?, secondaryDecimals?, hasHelp?, hasSettings?, onHelp?(id), onSettings?(id), onCommit(id, valor|null), onReset(id)`.
+disabledReason?, secondaryDisabledReason?, tone?, error?, secondaryId?, secondaryValue?, secondaryFormat?, secondaryDecimals?, secondaryProminent?, hasHelp?, hasSettings?, onHelp?(id), onSettings?(id), onCommit(id, valor|null), onReset(id)`.
 
 - `suggested = fuentes[id] === 'sugerido'` y `overridden = fuentes[id] === 'override'`: con `value`, `defaultValue` y `suggested` no se distingue
   «modificado» de «input» en un sobrescribible (con un override el motor no calcula el sugerido).
@@ -29,6 +30,9 @@ disabledReason?, secondaryDisabledReason?, tone?, error?, secondaryId?, secondar
 - **El par porcentaje–monto es una celda con dos lados**, editables los dos: el principal es el nodo de la celda y el secundario `secondaryId`. Cada uno
   emite `onCommit(suId, valor)`; ↺ emite `onReset(id)` con el id de la celda. **La hoja traduce:** editar el % quita el override del monto (`COTIZADOR.md` ›
   «El par porcentaje-monto») y ↺ quita los dos.
+- **`secondaryProminent`** (el diseño dice `secundario: 'monto'`: el % es el valor de la celda, «14.94 % $181»): el secundario va **primero en el DOM**
+  (el orden visual, el de Tab y el de las flechas coinciden) y grande, y el principal detrás, chico. `data-parada` sale de ese orden (el primero es 0, el
+  que busca la hoja y el que recibe el foco tras ↺). Los ids que emiten `onCommit` y `onReset` no cambian.
 
 ## La ayuda y el ⚙
 
@@ -41,22 +45,38 @@ disabledReason?, secondaryDisabledReason?, tone?, error?, secondaryId?, secondar
 - **Modo Live:** siguen. Los botones no dicen cifras; lo que abran pasa sus cifras por `<Monto>` cuando es una celda de dinero (un factor `raw` de la
   ayuda de una tabla queda a la vista). La cabecera no lee `useLive()`: encender Live no la dibuja de nuevo.
 - Nombres: «Ayuda de {label}», «Cambiar el valor por defecto de {label}», «Volver al valor por defecto de {label}». Iconos del sprite: `xcell-ayuda`,
-  `xcell-ajustes`.
+  `xcell-ajustes` (los reguladores de V1, como el ⚙ de la cabecera de la hoja).
 - **El atajo se anuncia.** El valor, con acciones, lleva `aria-keyshortcuts="ArrowRight"` **y** `aria-describedby` a «Más acciones con la flecha derecha.»
   (NVDA y JAWS no leen `aria-keyshortcuts`). El texto vive **una vez por hoja** en `<SimbolosDeXCell/>` (`hidden`, que sigue contando para
-  `aria-describedby`), después de la nota. En los dos lados de un par; sin acciones, nada. Lo prueba `e2e/xcell-teclado.spec.ts` con CDP.
-- **Una fila, como la XCell de V1:** rótulo · valor(es) · acciones, hermanos en la raíz (`RotuloDeXCell` y `AccionesDeXCell`, sin envoltorio). El rótulo crece desde
-  6 rem; lo que no cabe baja de línea y `justify-end` lo deja a la derecha, el valor y las acciones juntos. Entre acciones, 8 px (el contorno del foco ocupa 4).
+  `aria-describedby`), después del aviso y del candado. En los dos lados de un par; sin acciones, nada (el candado no cuenta: su motivo ya está en la
+  descripción). Lo prueba `e2e/xcell-teclado.spec.ts` con CDP.
+
+## El aspecto: la celda de V1
+
+- **Una fila de 56 px** (`RAIZ`: `min-h-[var(--xcell-alto,56px)]`, en px: es un mínimo y no crece con el texto): rótulo · valor(es) · acciones, hermanos en
+  la raíz (`RotuloDeXCell` y `AccionesDeXCell`, sin envoltorio). El rótulo crece desde 6 rem; lo que no cabe baja de línea y `justify-end` lo deja a la
+  derecha, el valor y las acciones juntos. Entre acciones, 8 px (el contorno del foco ocupa 4). En el celular cada valor y acción mide 44 px (la celda, unos
+  60 px).
+- **El rótulo**, a 16 px del borde (8 de relleno y 8 de `--xcell-sangria`), en 1,3 veces la letra de la hoja (`--xcell-letra-rotulo`) y con el peso heredado.
+- **El lado grande** (el monto; con `secondaryProminent`, el %) en 1,5 veces la letra de la hoja y negrita (`--xcell-letra-valor`), en la monoespaciada; **el
+  chico**, en la letra de la hoja (`--text-sm`), de peso normal y gris. La entrada lleva la letra de su lado (`ENTRADA_GRANDE`, `ENTRADA_CHICA`).
+- **Las acciones, en el orden de V1:** candado · ⚙ · ayuda · ↺ (paradas 10, 11, 12 y 13). **El lugar de la marca «Editado a mano»** es el primer hijo de la
+  ranura de acciones, antes del candado: un `<span>` con su texto y sin parada. Hoy no se dibuja (ningún nodo).
+- Todo sigue a `--text-sm`, así la «Letra» de una sección sigue escalando la celda.
 
 ## Estados (`data-estado`, suman)
 
-`normal` · `sugerido` (punto + «Sugerido» para el lector) · `modificado` (anillo interior en la tinta + ↺) · `deshabilitado` (candado + el motivo escrito,
+`normal` · `sugerido` (punto + «Sugerido» para el lector) · `modificado` (anillo interior en la tinta + ↺) · `deshabilitado` (el candado con su motivo,
 borde discontinuo y gris con su monto: la raíz pisa `--tono-fondo|borde|tinta` con `surface-2`, `line-strong` e `ink-soft`, que pasan AA; `aria-disabled`, no
 `disabled`), **sólo con todos los lados bloqueados** (otra variante, condición apagada, un nivel). Ningún estado es sólo color.
 
-**Las notas (`notasDe()` en `estado.ts`).** Primero el aviso de lo tipeado o, si no hay, el `error` (`role=alert`): describe a todos los lados. Después el
-candado de cada lado bloqueado, **una nota por texto distinto**. El error y un candado **conviven**. Cada botón describe, en orden, el aviso o el error,
-**su** candado y el atajo; la entrada abierta, sólo el aviso o el error.
+**El aviso y los candados (`notasDe()` en `estado.ts`).** El aviso de lo tipeado o, si no hay, el `error` va **escrito** bajo la celda (`role=alert`) y
+describe a todos los lados. El motivo de un candado **no se escribe**: cada lado bloqueado tiene su candado en la fila de acciones, **uno por texto
+distinto**, un `<span role="img" aria-label="{motivo}" tabIndex={-1}>` con el icono (los mismos 3 nodos que una nota). Es el blanco del
+`aria-describedby` de su lado (la descripción toma el `aria-label` del nodo referido; jsdom no lo hace, Chromium sí: lo prueba
+`e2e/xcell-teclado.spec.ts` por CDP) y su **globo** (el `::after` de `CANDADO`, con `content: attr(aria-label)`: ningún nodo más) muestra el motivo al pasar
+el puntero o al enfocarlo con →; `Esc` vuelve al valor y lo cierra. El error y un candado **conviven**. Cada botón describe, en orden, el aviso o el error,
+**su** candado y el atajo; la entrada abierta, sólo el aviso o el error. Ningún estado es sólo color: el candado y el borde discontinuo lo dicen.
 
 ## Qué emite y quién valida
 
@@ -71,8 +91,8 @@ candado de cada lado bloqueado, **una nota por texto distinto**. El error y un c
 
 ## Teclado
 
-- **Una parada de `Tab` por valor** (dos en un par). Las acciones llevan `tabIndex -1` y se alcanzan con `→` / `←` desde el valor (valor → secundario →
-  ayuda → ⚙ → ↺); `Esc` en una acción vuelve al valor. Las flechas son **de la celda**: la hoja no las usa entre celdas; en la entrada mueven el cursor.
+- **Una parada de `Tab` por valor** (dos en un par). Las acciones y el candado llevan `tabIndex -1` y se alcanzan con `→` / `←` desde el valor, en el orden en
+  que se ven (valor → el otro lado → candado → ⚙ → ayuda → ↺); `Esc` en una acción o en el candado vuelve al valor. Las flechas son **de la celda**: la hoja no las usa entre celdas; en la entrada mueven el cursor.
 - Tipear un carácter abre la edición con él (el `keydown` se frena: si no, se inserta dos veces, «55»); Enter, F2 y el clic abren con el valor
   seleccionado; Retroceso o Supr abren vacía.
 - Enter confirma y devuelve el foco al valor (el `keydown` se frena: si no, su `keypress` vuelve a abrir). `Esc` cancela (y no sube al modal). `Tab`
@@ -92,16 +112,17 @@ candado de cada lado bloqueado, **una nota por texto distinto**. El error y un c
   `data-form-type="other"`. **Chrome ignora `autocomplete="off"` en un `password` y no tiene marca propia: el riesgo queda** y no se puede probar (el
   Chromium de Playwright no trae gestor); los tests afirman que las marcas están. Descartados: `autocomplete="one-time-code"` (el celular ofrecería los
   códigos de los SMS) y `type="text"` con sólo el CSS (el valor queda en el árbol de accesibilidad; `docs/DECISIONES.md`).
-- **Lo que pisa quien la contiene:** el relleno de la celda lee `--xcell-relleno` y la separación entre sus filas `--xcell-separacion`, con respaldo
-  igual a lo de siempre (8 y 6 px): la sección «compacta» de la hoja los pone a 4 y 2 px. La letra sigue `--text-sm` (la hoja la pisa con la «Letra»
-  de una pieza) y el peso se hereda (el «Énfasis» fuerte); la etiqueta queda en `font-medium`. El blanco táctil de 44 px no cambia.
+- **Lo que pisa quien la contiene:** `--xcell-relleno` y `--xcell-separacion` (8 y 6 px; la sección «compacta» de la hoja los pone a 4 y 2 px y el alto,
+  `--xcell-alto`, a 40 px), `--xcell-sangria` (8 px), `--xcell-letra-rotulo` y `--xcell-letra-valor` (1,3 y 1,5 veces `--text-sm`). La letra sigue
+  `--text-sm` (la hoja la pisa con la «Letra» de una pieza) y el peso del rótulo se hereda (el «Énfasis» fuerte). `XCELL_COMPACTA` los pone para una tabla
+  densa (sin alto mínimo, sin sangría y todo en `--text-sm`). El blanco táctil de 44 px no cambia.
 - **Tamaños:** el rótulo se corta con «…» (`truncate`) y el texto completo va en `title` y en el nombre del grupo. **El valor nunca se corta**
-  (`whitespace-nowrap`, `shrink-0`, desde 6 rem): va en la monoespaciada de los tokens (`font-mono`, Geist Mono) con `tabular-nums` y semibold, y los separadores
-  son los de `formato.ts`. El porcentaje de un par, como en V1, chico (`text-xs`), de peso normal y gris (sin tono, `ink-soft`; con tono, la tinta del tono). La
-  entrada toma el ancho medido del botón al abrirse (`LadoDeXCell`) y mide 44 px en px: abrir no mueve nada. El anillo del modificado es **interior**
+  (`whitespace-nowrap`, `shrink-0`; el grande desde 6 rem, el chico desde 3,5): va en la monoespaciada de los tokens (`font-mono`, Geist Mono) con
+  `tabular-nums`, y los separadores son los de `formato.ts`. El lado chico va gris (sin tono, `ink-soft`; con tono, la tinta del tono). Sin valor, «Sin
+  valor» en la letra del texto (`data-vacio`), con el mismo alto. La entrada toma el ancho medido del botón al abrirse (`LadoDeXCell`) y mide 44 px en px: abrir no mueve nada. El anillo del modificado es **interior**
   (`ring-inset`) y el foco, un contorno **exterior**: se ven a la vez.
-- **Nodos por celda:** los fija `xcell-hoja.test.tsx` (normal 7, par 8; la ayuda o el ⚙ suman 3 cada uno; el peor, par modificado con un lado bloqueado,
-  error, ayuda y ⚙: 23). Iconos por sprite (2 nodos cada uno). Topes de 300 celdas: 3.100 en el banco (`e2e/xcell-teclado.spec.ts`) y 3.200 en la mezcla de
+- **Nodos por celda:** los fija `xcell-hoja.test.tsx` (normal 7, par 8; la ayuda, el ⚙ o un candado suman 3 cada uno; el peor, par modificado con un lado
+  bloqueado, error, ayuda y ⚙: 23). Iconos por sprite (2 nodos cada uno). Topes de 300 celdas: 3.100 en el banco (`e2e/xcell-teclado.spec.ts`) y 3.200 en la mezcla de
   `xcell-hoja.test.tsx` (mide 3.185). Un nodo más por celda son 300: lo ven los dos.
 
 ## Cómo se prueba

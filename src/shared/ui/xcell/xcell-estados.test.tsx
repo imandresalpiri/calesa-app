@@ -12,8 +12,9 @@ describe('los estados', () => {
     const c = celda()
     expect(c.raiz.dataset['estado']).toBe('normal')
     expect(c.raiz.textContent).not.toContain('Sugerido')
-    expect(c.parada(12)).toBeNull()
+    expect(c.parada(13)).toBeNull()
     expect(c.raiz.querySelector('p')).toBeNull()
+    expect(c.raiz.querySelector('[role="img"]')).toBeNull()
   })
 
   it('sugerido: el punto, dicho también en texto', () => {
@@ -26,12 +27,12 @@ describe('los estados', () => {
   it('modificado: ↺ que dice a qué vuelve, sin la cifra', () => {
     const conDefecto = celda({ overridden: true, defaultValue: 100 })
     expect(conDefecto.raiz.dataset['estado']).toBe('modificado')
-    const boton = conDefecto.parada(12)
+    const boton = conDefecto.parada(13)
     expect(boton?.getAttribute('aria-label')).toBe('Volver al valor por defecto de Fees')
     expect(conDefecto.raiz.textContent).not.toContain('100')
     cleanup()
     const sinDefecto = celda({ overridden: true })
-    expect(sinDefecto.parada(12)?.getAttribute('aria-label')).toBe('Volver al sugerido de Fees')
+    expect(sinDefecto.parada(13)?.getAttribute('aria-label')).toBe('Volver al sugerido de Fees')
   })
 
   it('modificado no muestra el punto de sugerido', () => {
@@ -73,18 +74,32 @@ describe('los estados', () => {
 describe('deshabilitada', () => {
   const motivo = 'Se apaga cuando no hay garantía'
 
-  it('dice su motivo escrito, con su candado, y se alcanza con el teclado', () => {
+  it('el candado va en las acciones con su motivo de nombre y de descripción del valor, sin una nota escrita, y se alcanza con el teclado', () => {
     const c = celda({ disabledReason: motivo })
     expect(c.raiz.dataset['estado']).toBe('deshabilitado')
-    const nota = c.raiz.querySelector('p')
-    expect(nota?.textContent).toBe(motivo)
-    expect(nota?.querySelector('use')?.getAttribute('href')).toBe('#xcell-candado')
+    expect(c.raiz.querySelector('p')).toBeNull()
+    const candado = screen.getByRole('img', { name: motivo })
+    expect(candado.querySelector('use')?.getAttribute('href')).toBe('#xcell-candado')
+    expect(candado.getAttribute('tabindex')).toBe('-1')
+    expect(candado.getAttribute('data-parada')).toBe('10')
+    // El globo es el `::after` del mismo nodo: lee su `aria-label`.
+    expect(candado.className).toContain('after:content-[attr(aria-label)]')
     const boton = c.parada(0)
     expect(boton?.getAttribute('aria-disabled')).toBe('true')
     expect(boton?.hasAttribute('disabled')).toBe(false)
-    expect(boton?.getAttribute('aria-describedby')).toBe(nota?.id)
+    // La descripción del valor es el `aria-label` del candado que nombra (accname, paso 2C). jsdom (dom-accessibility-api) no lee el `aria-label` de un
+    // nodo referido al describir: Chromium sí, y lo prueba `e2e/xcell-teclado.spec.ts` por CDP.
+    expect(boton?.getAttribute('aria-describedby')).toBe(candado.id)
     boton?.focus()
     expect(document.activeElement).toBe(boton)
+  })
+
+  it('el error queda escrito bajo la celda (`role=alert`) y convive con el candado', () => {
+    const c = celda({ disabledReason: motivo, error: 'Fuera de rango' })
+    const alerta = c.raiz.querySelector('p[role="alert"]')
+    expect(alerta?.textContent).toBe('Fuera de rango')
+    const candado = screen.getByRole('img', { name: motivo })
+    expect(c.parada(0)?.getAttribute('aria-describedby')).toBe(`${alerta?.id ?? ''} ${candado.id}`)
   })
 
   it('no abre la edición: ni con un clic ni tipeando ni con F2', () => {
@@ -100,14 +115,16 @@ describe('deshabilitada', () => {
 
   it('no ofrece ↺ aunque venga modificada', () => {
     const c = celda({ disabledReason: motivo, overridden: true })
-    expect(c.parada(12)).toBeNull()
+    expect(c.parada(13)).toBeNull()
   })
 
-  it('un motivo muy largo se escribe entero (se parte, no se corta)', () => {
+  it('un motivo muy largo queda entero en el nombre del candado, y su globo lo parte', () => {
     const largo = 'No se puede editar porque '.repeat(20).trim()
     const c = celda({ disabledReason: largo })
-    expect(c.raiz.querySelector('p')?.textContent).toBe(largo)
-    expect(c.raiz.querySelector('p')?.className).toContain('[overflow-wrap:anywhere]')
+    const candado = c.raiz.querySelector('[role="img"]')
+    expect(candado?.getAttribute('aria-label')).toBe(largo)
+    expect(candado?.className).toContain('after:whitespace-normal')
+    expect(candado?.className).toContain('after:max-w-64')
   })
 
   it('si se deshabilita mientras se edita, la edición se va', () => {
@@ -158,15 +175,28 @@ describe('la etiqueta', () => {
     expect(valor?.className).not.toMatch(/truncate|text-ellipsis/)
   })
 
-  it('el monto va en la monoespaciada; el porcentaje de un par, chico y de peso normal', () => {
+  it('el monto va grande en la monoespaciada y en negrita; el porcentaje de un par, chico y de peso normal', () => {
     const c = celda({ secondaryId: 'pct', secondaryFormat: 'porcentaje', secondaryValue: 0.1 })
     const monto = c.raiz.querySelector('[data-parada="0"]')
     const porcentaje = c.raiz.querySelector('[data-parada="1"]')
     expect(monto?.className).toMatch(/\bfont-mono\b/)
     expect(monto?.className).toMatch(/\btabular-nums\b/)
-    expect(porcentaje?.className).toMatch(/\btext-xs\b/)
+    expect(monto?.className).toMatch(/\bfont-bold\b/)
+    expect(monto?.className).toContain('var(--xcell-letra-valor,calc(var(--text-sm)*1.5))')
+    expect(porcentaje?.className).toContain('text-(length:--text-sm)')
     expect(porcentaje?.className).toMatch(/\bfont-normal\b/)
     expect(porcentaje?.className).toContain('var(--color-ink-soft)')
+  })
+
+  it('sin valor: «Sin valor» en la letra del texto (`data-vacio`), sin cambiar el alto', () => {
+    const c = celda({ value: null })
+    const valor = c.parada(0)
+    expect(valor?.textContent).toBe('Sin valor')
+    expect(valor?.hasAttribute('data-vacio')).toBe(true)
+    expect(valor?.className).toContain('data-[vacio]:font-sans')
+    expect(c.raiz.className).toContain('min-h-[var(--xcell-alto,56px)]')
+    cleanup()
+    expect(celda().parada(0)?.hasAttribute('data-vacio')).toBe(false)
   })
 
   it('el grupo se llama como la etiqueta', () => {

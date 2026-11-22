@@ -722,9 +722,26 @@ las trampas, en `docs/LECCIONES.md`.
 - **La hoja abierta la firma la base.** `cotizacion_hoja()` devuelve `abierta` con HMAC (clave en Vault); crear, evaluar y la ayuda de tabla reciben `p_abierta` y calculan con esa versión. Firma también la huella de las tarifas de la apertura, no sus valores: `crear` la compara con las que reconstruye del historial, porque un `cambiado_en` anterior a la apertura puede confirmar después. Cotizar pide `crear` y `ver` del origen.
 - **Cotizar encima.** La N+1 nace al tocar (`cotizacion_encima`), siempre preventa, con lo guardado de la última de la cadena; índice parcial `cotizaciones_encima_unica`. Quien no ve la N+1 sólo sabe que existe.
 - **Revisiones con totales por clave.** El diff se compara después de recortar (`_cotizacion_diff_recortado()`); «Ir a una fecha» es `p_hasta` exclusivo en `cotizacion_revisiones()`, anclando y paginando por id.
-- **La celda (XCell) va en una fila, como la de V1:** rótulo · valor(es) · acciones. El rótulo se corta con «…» y el texto completo va en `title` (y en el
-  nombre del grupo); el monto, en la monoespaciada, nunca se corta y baja de línea antes de encimarse; el % de un par, chico y gris al lado (con tono, en la
-  tinta del tono: el gris sobre un color no garantiza AA). Sin el envoltorio de la cabecera: un nodo menos por celda paga los de los pasos.
+- **La hoja con el aspecto de V1:** el de las capturas de V1, con los tokens y en clases y variables sobre los nodos de siempre (ningún nodo más por celda ni
+  por sección).
+  - **La celda (XCell) va en una fila:** rótulo · valor(es) · acciones, de 56 px (`--xcell-alto`, en px: no crece con el texto). El rótulo va a 1,3 veces la
+    letra de la hoja y se corta con «…» (el texto completo, en `title` y en el nombre del grupo); el monto, a 1,5 veces, en negrita y en la monoespaciada,
+    nunca se corta y baja de línea antes de encimarse; el % de un par, chico y gris al lado (con tono, en la tinta del tono: un gris sobre un color no
+    garantiza AA). Todo sigue a `--text-sm`, así la «Letra» del aspecto escala la celda. Sin el envoltorio de la cabecera: un nodo menos por celda paga los
+    de los pasos.
+  - **La celda densa de `repuestos` se queda densa:** la hoja de ítems es una tabla, no la hoja de cotizar; `XCELL_COMPACTA` en su contenedor apaga el alto,
+    la sangría y las letras de V1.
+  - **El candado de un lado bloqueado va en la fila de acciones**, con su motivo como nombre (`aria-label`), descripción del valor y globo en el `::after`
+    del mismo nodo al pasar el puntero o enfocarlo: tres nodos, los de la nota escrita que reemplaza. El aviso o el error sigue escrito bajo la celda.
+  - **El orden de las acciones es candado · ⚙ · ? · ↺**, el de V1; las flechas siguen ese orden. El candado no cuenta para anunciar el atajo: su motivo ya es
+    la descripción.
+  - **Un par cuyo secundario es el monto dibuja el % grande y primero** (`secondaryProminent`): el orden visual y el de Tab coinciden y los ids que emite la
+    celda no cambian. La semilla deja sus impuestos en `porcentaje` (cambiarla movería el corpus y la tarea de oro).
+  - **El total va en una tarjeta de superficie invertida** (la tinta de fondo y el papel de letra: oscura en claro y clara en oscuro, como V1), pegada al
+    borde de arriba del resumen, en su lugar de hoy; el rótulo es la etiqueta del nodo en mayúsculas por CSS.
+  - **«Avanzado» es un botón a lo ancho con los reguladores**, y el modal conserva su título (el término del glosario); es grande (56 rem: un `tercio` va a
+    tres columnas) y sus secciones van sin marco. Los títulos que esconde son la descripción del botón, sin escribirse; «Hay datos por revisar.» sí se
+    escribe: es un estado.
 - **El modo elegido se dibuja aunque no sea visible; la visibilidad no es una regla de guardado.** Los modos visibles son sólo del encabezado
   (`modosDelEncabezado()`): `_cotizacion_modo` sigue aceptando cualquier modo del diseño, así una guardada vieja no pierde el suyo. Una cotización nueva abre con
   el modo por defecto y «Ver total» por defecto; una guardada, con lo suyo.

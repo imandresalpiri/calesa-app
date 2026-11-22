@@ -61,7 +61,9 @@ test('Transferencia: el monto calculado lleva su candado y el porcentaje se tipe
   const transferencia = celda(page, 'transferencia')
   await expect(transferencia.locator('[data-parada="0"]')).toHaveAttribute('aria-disabled', 'true')
   await expect(transferencia.locator('[data-parada="1"]')).not.toHaveAttribute('aria-disabled')
-  await expect(transferencia).toContainText('Se calcula con los demás datos.')
+  await expect(
+    transferencia.getByRole('img', { name: 'Se calcula con los demás datos.' }),
+  ).toBeVisible()
   // `aria-disabled` es «deshabilitado» para Playwright: el clic se fuerza para ver que el lado bloqueado no abre.
   await transferencia.locator('[data-parada="0"]').click({ force: true })
   await expect(transferencia.locator('input')).toHaveCount(0)

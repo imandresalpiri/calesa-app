@@ -117,6 +117,8 @@ El módulo se parte por **área**, como `logistica`: `features|entities|infra/<�
   caja; local = (costo + logística + caja) × (1 + recargo); el unitario al múltiplo de `redondeo` (mitad hacia arriba) y × cantidad. Exacta con `decimal.ts`
   (enteros a escala fija, nunca `float`). `casos-del-cotizador.json` corre en `formula.test.ts` y en `supabase/tests/areas/repuestos/cotizador.sql` (copia
   literal; `casos.test.ts` cae si difieren). La fórmula de la base es `_repuesto_cotizacion_linea`: cambiar una exige cambiar la otra y el JSON.
+- La `XCell` de la hoja editable, del panel del ítem y del drawer de ítems nuevos va **densa**: su contenedor lleva `XCELL_COMPACTA` (`@/shared/ui/xcell`),
+  sin el alto ni las letras de la celda de V1 de la hoja de cotizar.
 - `entities/cotizador/hoja-editable.ts`: lo que emite una `XCell` pasa a texto exacto (`montoDeCelda`, `cantidadDeCelda`); `calcularHoja` sólo informa;
   `pedidoDeGuardar` nunca manda totales ni sugerencias (↺ de la logística = `null`). El error de una línea llega a su celda por `details` + `hint`
   (`errores.ts`). Montos leídos como texto (`::text`), nulo nunca 0.

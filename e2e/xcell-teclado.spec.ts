@@ -87,8 +87,8 @@ test('las flechas llegan a ↺ y Enter lo acciona; el foco vuelve al valor', asy
   await abrir(page)
   await valorDe(page, 'modificado').focus()
   await page.keyboard.press('ArrowRight')
-  expect(await enfoque(page)).toEqual({ caso: 'modificado', donde: '12' })
-  await expect(page.locator('[data-caso="modificado"] [data-parada="12"]')).toHaveAttribute(
+  expect(await enfoque(page)).toEqual({ caso: 'modificado', donde: '13' })
+  await expect(page.locator('[data-caso="modificado"] [data-parada="13"]')).toHaveAttribute(
     'aria-label',
     'Volver al valor por defecto de Factor de depreciación',
   )
@@ -149,32 +149,44 @@ test('el valor anuncia las flechas sólo cuando la celda tiene acciones', async 
   expect(deshabilitada).toContain(TEXTO_DEL_ATAJO)
 })
 
-test('las flechas llegan a la ayuda, al ⚙ y a ↺; Enter las acciona y el foco se queda', async ({
+test('las flechas llegan al ⚙, a la ayuda y a ↺ en el orden en que se ven; Enter las acciona y el foco se queda', async ({
   page,
 }) => {
   await abrir(page)
   await valorDe(page, 'todas-las-acciones').focus()
-  for (const parada of ['1', '10', '11', '12']) {
+  for (const parada of ['1', '11', '12', '13']) {
     await page.keyboard.press('ArrowRight')
     expect(await enfoque(page)).toEqual({ caso: 'todas-las-acciones', donde: parada })
   }
   await page.keyboard.press('ArrowLeft')
   await page.keyboard.press('Enter')
-  expect(await page.evaluate(() => window.__ajustes)).toEqual(['todo'])
-  expect(await enfoque(page)).toEqual({ caso: 'todas-las-acciones', donde: '11' })
+  expect(await page.evaluate(() => window.__ayudas)).toEqual(['todo'])
+  expect(await enfoque(page)).toEqual({ caso: 'todas-las-acciones', donde: '12' })
   await page.keyboard.press('ArrowLeft')
   await page.keyboard.press('Space')
-  expect(await page.evaluate(() => window.__ayudas)).toEqual(['todo'])
+  expect(await page.evaluate(() => window.__ajustes)).toEqual(['todo'])
   // Esc en una acción vuelve al valor, y la celda no se ofrece por Tab: de la última celda con acciones se pasa a la que sigue.
   await page.keyboard.press('Escape')
   expect(await enfoque(page)).toEqual({ caso: 'todas-las-acciones', donde: '0' })
-  // Deshabilitada: la ayuda y el ⚙ se alcanzan; ↺ no existe.
+  // Deshabilitada: primero el candado (su globo se ve al enfocarlo), después el ⚙ y la ayuda; ↺ no existe.
   await valorDe(page, 'deshabilitado-con-acciones').focus()
   await page.keyboard.press('ArrowRight')
+  expect(await enfoque(page)).toEqual({ caso: 'deshabilitado-con-acciones', donde: '10' })
+  const candado = page.locator('[data-caso="deshabilitado-con-acciones"] [role="img"]')
+  await expect(candado).toHaveAccessibleName('Se activa con el interruptor de garantía.')
+  expect(
+    await candado.evaluate((e) => getComputedStyle(e, '::after').display),
+    'el globo con el motivo',
+  ).not.toBe('none')
   await page.keyboard.press('ArrowRight')
-  expect(await enfoque(page)).toEqual({ caso: 'deshabilitado-con-acciones', donde: '11' })
   await page.keyboard.press('ArrowRight')
-  expect(await enfoque(page)).toEqual({ caso: 'deshabilitado-con-acciones', donde: '11' })
+  expect(await enfoque(page)).toEqual({ caso: 'deshabilitado-con-acciones', donde: '12' })
+  await page.keyboard.press('ArrowRight')
+  expect(await enfoque(page)).toEqual({ caso: 'deshabilitado-con-acciones', donde: '12' })
+  await page.keyboard.press('ArrowLeft')
+  await page.keyboard.press('ArrowLeft')
+  await page.keyboard.press('Escape')
+  expect(await enfoque(page)).toEqual({ caso: 'deshabilitado-con-acciones', donde: '0' })
 })
 
 test('un par con un lado bloqueado: Tab llega a los dos, el bloqueado no abre y sólo él dice su candado', async ({

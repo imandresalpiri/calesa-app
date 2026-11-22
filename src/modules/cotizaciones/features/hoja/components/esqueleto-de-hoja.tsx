@@ -14,7 +14,7 @@ export function EsqueletoDeHoja() {
           <Skeleton className="h-5 w-32" />
           <div className="grid gap-3 sm:grid-cols-2">
             {Array.from({ length: 4 }, (_, celda) => (
-              <Skeleton key={celda} className="h-16 w-full" />
+              <Skeleton key={celda} className="h-14 w-full" />
             ))}
           </div>
         </div>

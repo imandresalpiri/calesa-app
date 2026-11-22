@@ -12,6 +12,7 @@ import { MONEDA_DEL_PRIMER_RESULTADO } from '../../../entities/primer-resultado'
 import type { EstadoDeRecalculo } from '../../../entities/recalculo'
 import { TotalEnMonedaLocal } from './total-en-moneda-local'
 import { ValorDeNodo } from './valor-de-nodo'
+import { CIFRA_DEL_TOTAL, ETIQUETA_DEL_TOTAL, TARJETA_DEL_TOTAL } from './clases-del-total'
 
 // Las piezas del resumen de la hoja (`ResumenDeHoja`): el total con sus avisos, el detalle y el fallo del recálculo. Las comparte la hoja en par (los dos totales).
 
@@ -127,7 +128,7 @@ export function SecundariosDelResumen({
   )
 }
 
-// El total del resumen con su opción del detalle y sus avisos (la hoja de siempre; la hoja en par pone los dos totales).
+// El total del resumen en su tarjeta, la opción del detalle (fuera de la tarjeta) y sus avisos (la hoja de siempre; la hoja en par pone los dos totales).
 export function CabezaDelResumen({
   tarjeta,
   total,
@@ -147,22 +148,17 @@ export function CabezaDelResumen({
 }) {
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <span className="text-(length:--text-sm) font-medium [overflow-wrap:anywhere] text-(--color-ink-soft)">
-          {tarjeta.etiqueta}
-        </span>
-        <strong
-          data-total=""
-          className="text-(length:--text-xl) font-semibold text-(--color-ink) tabular-nums"
-        >
+      <div data-tarjeta-del-total="" className={TARJETA_DEL_TOTAL}>
+        <span className={ETIQUETA_DEL_TOTAL}>{tarjeta.etiqueta}</span>
+        <strong data-total="" className={CIFRA_DEL_TOTAL}>
           {total.tipo === 'valor' ? (
             <Monto valor={total.usd} moneda={MONEDA_DEL_PRIMER_RESULTADO} />
           ) : (
             '—'
           )}
         </strong>
-        <BotonDelDetalle plegado={plegado} alternar={alternar} idDelDetalle={idDelDetalle} />
       </div>
+      <BotonDelDetalle plegado={plegado} alternar={alternar} idDelDetalle={idDelDetalle} />
       <AvisosDelTotal total={total} estado={estado} variante={variante} />
     </>
   )

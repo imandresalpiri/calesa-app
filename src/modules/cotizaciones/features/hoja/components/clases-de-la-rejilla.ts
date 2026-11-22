@@ -94,7 +94,7 @@ export const SEPARACION = {
 export const DENSIDAD = {
   comoda: '',
   compacta:
-    '[--xcell-relleno:calc(var(--spacing)*1)] [--xcell-separacion:calc(var(--spacing)*0.5)]',
+    '[--xcell-relleno:calc(var(--spacing)*1)] [--xcell-separacion:calc(var(--spacing)*0.5)] [--xcell-alto:40px]',
 } as const
 // La letra pisa `--text-sm` (la de la XCell, los chips, las leyendas y la franja) con otro token que nadie pisa: sin ciclos.
 export const LETRA = {
@@ -102,11 +102,11 @@ export const LETRA = {
   normal: '',
   grande: '[--text-sm:var(--text-base)]',
 } as const
-// El título de una sección sube con la letra grande y no baja con la chica.
+// El título de una sección, como en V1: chico, en mayúsculas por CSS y en la tinta suave. Sube con la letra grande y no baja con la chica.
 export const TITULO = {
-  chica: 'text-(length:--text-base) font-semibold text-(--color-ink)',
-  normal: 'text-(length:--text-base) font-semibold text-(--color-ink)',
-  grande: 'text-(length:--text-lg) font-semibold text-(--color-ink)',
+  chica: 'text-(length:--text-xs) font-semibold tracking-wide text-(--color-ink-soft) uppercase',
+  normal: 'text-(length:--text-xs) font-semibold tracking-wide text-(--color-ink-soft) uppercase',
+  grande: 'text-(length:--text-sm) font-semibold tracking-wide text-(--color-ink-soft) uppercase',
 } as const
 // El peso se hereda (valor, entrada y chips); las etiquetas conservan el suyo.
 export const ENFASIS = { normal: '', fuerte: 'font-semibold' } as const
@@ -167,7 +167,18 @@ export function claseDeLaSeccionEnLaRejilla(seccion: AspectoDeSeccion): string {
 }
 
 // El marco de la sección: su relleno, su densidad, su letra y su énfasis; con tono, el borde del tono (sin él, el de siempre). El fondo queda en el token.
-export function claseDelMarcoDeLaSeccion(seccion: AspectoDeSeccion): string {
+// Sin marco (las secciones del modal «Avanzado», como en V1): sin borde, fondo ni relleno; conserva el contenedor, la densidad, la letra y el énfasis.
+export function claseDelMarcoDeLaSeccion(
+  seccion: AspectoDeSeccion,
+  { sinMarco = false }: { sinMarco?: boolean } = {},
+): string {
+  if (sinMarco) {
+    return unir(
+      '@container grid min-w-0 content-start gap-3',
+      DENSIDAD[seccion.densidad ?? 'comoda'],
+      deTexto(seccion),
+    )
+  }
   const borde =
     seccion.tono === undefined
       ? 'border-(--color-line)'
