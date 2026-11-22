@@ -202,6 +202,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** La planilla de la fórmula a 1280 px con la tarjeta al costado (36 rem): # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
+  desplazando la grilla. Angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`).
 - **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px, los tercios del modal «Avanzado», un par con un lado bloqueado en el celular) baja sus
   acciones a una segunda línea: la celda mide 88 px en vez de 56 y las de la misma fila no se alinean. Achicar el rótulo antes que bajar las acciones
   (`clases.ts` de la XCell).
