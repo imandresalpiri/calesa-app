@@ -95,7 +95,7 @@ test('Integraciones: las tres tarjetas con su estado y «Configurar» de apibara
   }
 
   const tarjeta = page.getByRole('region', { name: 'apibara', exact: true })
-  await tarjeta.getByRole('button', { name: 'Configurar', exact: true }).click()
+  await tarjeta.getByRole('button', { name: 'Configurar apibara', exact: true }).click()
   const modal = page.getByRole('dialog', { name: 'Configurar apibara' })
   await modal.getByLabel('Dirección del servicio').fill('https://api.apibara.tech/v3')
   await modal.getByRole('button', { name: 'Guardar', exact: true }).click()
@@ -109,7 +109,7 @@ test('Comprobantes: la tarjeta abre su modal con ?panel=serie', async ({ page })
   await page.goto('/configuracion/empresa/comprobantes')
   await page
     .getByRole('region', { name: 'Serie de comprobantes' })
-    .getByRole('button', { name: 'Cambiar serie' })
+    .getByRole('button', { name: 'Cambiar la serie', exact: true })
     .click()
   await expect(page).toHaveURL(/panel=serie/)
   await expect(page.getByRole('dialog', { name: 'Cambiar serie' })).toBeVisible()

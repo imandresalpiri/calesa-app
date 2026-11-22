@@ -60,7 +60,7 @@ test('de fábrica: la tarjeta abre la lista con «Editar» y cada tipo trae su i
   // La tarjeta resume los tipos activos y «Editar» abre la lista en su modal.
   const tarjeta = page.getByRole('region', { name: 'Tipos de seguimiento', exact: true })
   await expect(tarjeta.getByText('Llamada', { exact: true })).toBeVisible()
-  await tarjeta.getByRole('button', { name: 'Editar', exact: true }).click()
+  await tarjeta.getByRole('button', { name: 'Editar Tipos de seguimiento', exact: true }).click()
   await expect(listaDeSeguimientos(page)).toBeVisible()
   await expect(page).toHaveURL(/panel=seguimientos(&|$)/)
   // Los de fábrica, con el icono del catálogo al que migró el que tenían.

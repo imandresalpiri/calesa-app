@@ -51,7 +51,7 @@ test('E1 la dueña cambia la serie: el aviso y «Próximo comprobante» dicen el
   await expect(page.locator('[data-serie-vigente]')).toHaveText(antes.serie)
 
   const tarjeta = page.getByRole('region', { name: 'Serie de comprobantes' })
-  await tarjeta.getByRole('button', { name: 'Cambiar serie' }).click()
+  await tarjeta.getByRole('button', { name: 'Cambiar la serie', exact: true }).click()
   const dialogo = page.getByRole('dialog', { name: 'Cambiar serie' })
   await dialogo.getByLabel('Serie', { exact: true }).fill('e2e-serie')
   await dialogo.getByRole('button', { name: 'Guardar' }).click()

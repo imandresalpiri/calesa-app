@@ -190,7 +190,8 @@ test('la dueña arma categorías: agrega, sube, desactiva y no elimina una con g
   expect(ordenDeLasNuestras()).toBe('e2e-cat-uno,e2e-cat-dos')
 
   // Subir la segunda: el orden de todas se reescribe 0..n−1 (lo único que prueba el `upsert`).
-  await panel.getByRole('button', { name: 'Subir E2E Cat dos', exact: true }).click()
+  await panel.getByRole('button', { name: 'Más acciones de E2E Cat dos' }).click()
+  await page.getByRole('menuitem', { name: 'Subir', exact: true }).click()
   await expect.poll(ordenDeLasNuestras).toBe('e2e-cat-dos,e2e-cat-uno')
   expect(
     sql(

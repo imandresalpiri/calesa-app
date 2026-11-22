@@ -48,7 +48,7 @@ test('E2E la base arriba, los tipos de cambio por par y el tope de «En la barra
   // La moneda base arriba: «Cambiar» abre su modal.
   const base = tarjeta(page, 'Moneda base')
   await expect(base).toContainText('USD')
-  await base.getByRole('button', { name: 'Cambiar', exact: true }).click()
+  await base.getByRole('button', { name: 'Cambiar la moneda base', exact: true }).click()
   const modalDeBase = page.getByRole('dialog', { name: 'Moneda base' })
   await expect(modalDeBase).toBeVisible()
   await page.keyboard.press('Escape')
@@ -80,7 +80,7 @@ test('E2E la base arriba, los tipos de cambio por par y el tope de «En la barra
   // Abajo: las monedas activas con «Gestionar» (la lista de hoy) y «Al compartir».
   const monedas = tarjeta(page, 'Monedas activas')
   await expect(monedas).toContainText('BOB')
-  await monedas.getByRole('button', { name: 'Gestionar', exact: true }).click()
+  await monedas.getByRole('button', { name: 'Gestionar las monedas', exact: true }).click()
   const lista = page.getByRole('dialog', { name: 'Monedas' })
   await lista.getByRole('button', { name: /BOB/ }).first().click()
   await expect(page).toHaveURL(/moneda=BOB/)

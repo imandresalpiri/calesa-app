@@ -143,7 +143,7 @@ test('la tarjeta abre la lista con «Editar» y su «⋯» ofrece «Nuevo tipo»
   await page.goto('/configuracion/leads')
   const tarjeta = page.getByRole('region', { name: 'Tipos de lead', exact: true })
   await expect(tarjeta.getByText('Prospecto', { exact: true }).first()).toBeVisible()
-  await tarjeta.getByRole('button', { name: 'Editar', exact: true }).click()
+  await tarjeta.getByRole('button', { name: 'Editar Tipos de lead', exact: true }).click()
   await expect(listaDeTipos(page)).toBeVisible()
   await expect(page).toHaveURL(/panel=tipos(&|$)/)
   await page.keyboard.press('Escape')

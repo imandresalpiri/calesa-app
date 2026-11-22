@@ -13,6 +13,7 @@ import {
 import {
   ajustesGuardados,
   editarTarjeta,
+  esperarEdicionApagada,
   estadoDeApibara,
   pedirSecreto,
   restaurarEmpresa,
@@ -192,8 +193,7 @@ test('sin el permiso de ajustes, Datos de la empresa sale deshabilitada con el m
   await suya.getByRole('region').getByRole('link', { name: 'Empresa', exact: true }).click()
   await expect(suya.getByText(MOTIVO_SIN_PERMISO)).toBeVisible()
   for (const titulo of ['Identidad', 'Región', 'Datos legales y de contacto', 'Políticas']) {
-    const tarjeta = suya.getByRole('region', { name: titulo, exact: true })
-    await expect(tarjeta.getByRole('button', { name: 'Editar', exact: true })).toBeDisabled()
+    await esperarEdicionApagada(suya, titulo)
   }
   // Un `?panel=` a mano no abre el modal: se avisa y se limpia.
   await suya.goto('/configuracion/empresa?panel=identidad')

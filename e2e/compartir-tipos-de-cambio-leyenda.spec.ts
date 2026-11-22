@@ -10,6 +10,7 @@ import {
   darRolDePrueba,
 } from './soporte/base'
 import {
+  esperarEdicionApagada,
   restaurarEmpresa,
   tomarInstantaneaDeEmpresa,
   type InstantaneaDeEmpresa,
@@ -62,7 +63,7 @@ test.afterAll(async () => {
 const editar = (page: Page) =>
   page
     .getByRole('region', { name: 'Al compartir', exact: true })
-    .getByRole('button', { name: 'Editar', exact: true })
+    .getByRole('button', { name: 'Editar la leyenda', exact: true })
 
 async function entrar(page: Page, correo: string) {
   await page.goto('/ingreso')
@@ -131,7 +132,7 @@ test('sin permiso para los tipos de cambio «Editar» está apagado y el motivo 
 }) => {
   await entrar(page, ajustista)
   await page.goto('/configuracion/empresa/monedas')
-  await expect(editar(page)).toBeDisabled()
+  await esperarEdicionApagada(page, 'Al compartir', 'Editar la leyenda…')
   await expect(
     page
       .getByText(

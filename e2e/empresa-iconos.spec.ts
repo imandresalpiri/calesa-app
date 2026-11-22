@@ -4,6 +4,7 @@ import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './so
 import {
   ajustesGuardados,
   editarTarjeta,
+  esperarEdicionApagada,
   restaurarEmpresa,
   tomarInstantaneaDeEmpresa,
   type InstantaneaDeEmpresa,
@@ -52,7 +53,7 @@ test('carga el logo al guardar, regenera los íconos y el manifest los sirve', a
 
   // Sin logo no hay de dónde dibujarlos: la tarjeta de íconos no abre y dice por qué.
   const tarjetaDeIconos = page.getByRole('region', { name: 'Íconos de la app', exact: true })
-  await expect(tarjetaDeIconos.getByRole('button', { name: 'Editar', exact: true })).toBeDisabled()
+  await esperarEdicionApagada(page, 'Íconos de la app')
   await expect(tarjetaDeIconos.getByText('Carga el logo y guarda')).toBeVisible()
 
   const identidad = await editarTarjeta(page, 'Identidad')
