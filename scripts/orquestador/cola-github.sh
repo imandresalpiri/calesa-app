@@ -72,10 +72,12 @@ espejo_issue() { # el JSON de un issue abierto con `cola`
   n=$(jq -r .number <<<"$j")
   id="T$n"
   # La spec es el prompt de una sesión autónoma: sólo entra el issue de quien puede escribir en el repo.
+  # La marca de ajeno sólo evita repetir el log: cada vuelta lo vuelve a mirar y, si ahora pasa (la app recién reconocida), la quita.
   if ! con_permiso "$j"; then
     [ -f "$EST/.ajenos/$n" ] || { mkdir -p "$EST/.ajenos" && touch "$EST/.ajenos/$n" && log "issue #$n: lo abrió alguien sin permiso de escritura en el repo: no entra a la cola"; }
     return 0
   fi
+  if [ -f "$EST/.ajenos/$n" ]; then rm -f "$EST/.ajenos/$n" && log "issue #$n: ahora entra a la cola"; fi
   err=$(mktemp)
   gen=$(node "$SPEC_ISSUE" de-issue <<<"$j" 2>"$err")
   rc=$?

@@ -75,7 +75,7 @@ type Issue = {
   autor?: string
   login?: string
   tipo?: string
-  // El id de la app que lo abrió (`performed_via_github_app.id`).
+  // `performed_via_github_app.id`: nulo cuando la app abre con su token de instalación; así llega de GitHub.
   app?: number
   created_at?: string
   comentarios: {
@@ -88,6 +88,8 @@ type Issue = {
 }
 type Gh = {
   repo: string
+  // El login de la app del orquestador en los issues que crea con su token (gh-falso.mjs; `mi-app[bot]` si falta).
+  loginApp?: string
   siguiente: number
   siguienteComentario: number
   issues: Record<string, Issue>

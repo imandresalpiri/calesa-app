@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { Drawer } from '@/shared/ui/drawer'
 import { EsqueletoListado } from '@/shared/ui/esqueletos'
 import { useUltimo } from '@/shared/ui/use-ultimo'
-import { SimbolosDeXCell } from '@/shared/ui/xcell'
+import { SimbolosDeXCell, XCELL_COMPACTA } from '@/shared/ui/xcell'
 import type { FilaDeItem } from '../../../entities/nucleo/item'
 import { AvisoDeCerrado, AvisoDeConflictoDeLaHoja } from './avisos-de-la-hoja'
 import type { ContextoDeLaHoja } from './contexto-de-la-hoja'
@@ -65,7 +65,7 @@ export function PanelDelItemEnLaHoja({
       desplazamiento="propio"
       focoAlCerrar={focoAlCerrar}
     >
-      <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className={`flex h-full min-h-0 flex-col gap-3 ${XCELL_COMPACTA}`}>
         <SimbolosDeXCell />
         <div className="grid shrink-0 gap-2 empty:hidden">
           {cerrado ? <AvisoDeCerrado /> : null}

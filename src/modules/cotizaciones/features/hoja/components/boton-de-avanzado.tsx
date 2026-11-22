@@ -1,7 +1,7 @@
 'use client'
 
-import { ChevronRightIcon } from 'lucide-react'
-import type { Ref } from 'react'
+import { Settings2Icon } from 'lucide-react'
+import { useId, type Ref } from 'react'
 import { COLUMNAS_DE_LA_SECCION } from './clases-de-la-rejilla'
 
 type Props = {
@@ -15,33 +15,40 @@ type Props = {
 
 export const AVISO_POR_REVISAR = 'Hay datos por revisar.'
 
-// El botón «Avanzado» (paso 4.13-4a): va en el lugar de la primera sección avanzada (en la rejilla, como una sección «Automática») y dice qué hay detrás. Lo que abre es un modal con su URL (`ModalDeAvanzado`).
+// El botón «Avanzado» (paso 4.13-4a), como el de V1: a lo ancho de la rejilla, centrado, con los reguladores (el ícono del ⚙ de la cabecera, que ya viaja)
+// y su nombre. Va en el lugar de la primera sección avanzada. Qué hay detrás (los títulos) es su descripción, sin escribirse; «Hay datos por revisar.» sí se
+// escribe: es un estado. Lo que abre es un modal con su URL (`ModalDeAvanzado`).
 export function BotonDeAvanzado({ titulos, porRevisar, alAbrir, boton }: Props) {
+  const id = useId()
+  const idDeLosTitulos = `${id}t`
+  const idDelAviso = `${id}a`
+  const describe = [titulos === '' ? null : idDeLosTitulos, porRevisar ? idDelAviso : null]
+    .filter((x) => x !== null)
+    .join(' ')
   return (
-    <div data-avanzado="" className={`${COLUMNAS_DE_LA_SECCION.AUTOMATICA} min-w-0`}>
+    <div data-avanzado="" className={`${COLUMNAS_DE_LA_SECCION[12]} min-w-0`}>
       <button
         ref={boton}
         type="button"
         onClick={alAbrir}
-        aria-describedby={porRevisar ? 'aviso-de-avanzado' : undefined}
-        className="flex min-h-[44px] w-full min-w-0 items-center gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-4 text-left transition outline-none hover:bg-(--color-surface-2) focus-visible:shadow-(--shadow-focus)"
+        aria-describedby={describe === '' ? undefined : describe}
+        className="flex min-h-[44px] w-full min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) px-4 py-3 text-(length:--text-base) font-semibold text-(--color-ink) transition outline-none hover:bg-(--color-surface-2) focus-visible:shadow-(--shadow-focus)"
       >
-        <span className="grid min-w-0 flex-1 gap-1">
-          <span className="text-(length:--text-base) font-semibold text-(--color-ink)">
-            Avanzado
+        <Settings2Icon aria-hidden className="size-4 shrink-0" />
+        <span>Avanzado</span>
+        {titulos === '' ? null : (
+          <span id={idDeLosTitulos} hidden>
+            {titulos}
           </span>
-          {titulos === '' ? null : (
-            <span className="text-(length:--text-sm) break-words text-(--color-ink-soft)">
-              {titulos}
-            </span>
-          )}
-          {porRevisar ? (
-            <span id="aviso-de-avanzado" className="text-(length:--text-sm) text-(--color-ink)">
-              {AVISO_POR_REVISAR}
-            </span>
-          ) : null}
-        </span>
-        <ChevronRightIcon aria-hidden className="size-4 shrink-0" />
+        )}
+        {porRevisar ? (
+          <span
+            id={idDelAviso}
+            className="basis-full text-center text-(length:--text-sm) font-normal text-(--color-ink)"
+          >
+            {AVISO_POR_REVISAR}
+          </span>
+        ) : null}
       </button>
     </div>
   )

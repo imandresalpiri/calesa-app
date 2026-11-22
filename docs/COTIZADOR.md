@@ -959,6 +959,9 @@ esta cotización» es el único puente hacia la abierta.
 
 La celda (`src/shared/ui/xcell/CLAUDE.md`) no valida rango, obligatorio ni entero (lo dice la base en `faltantes`), no decide permisos ni
 abre nada: **la hoja traduce** (editar el % quita el override del monto; ↺ quita los dos) y pasa los mismos callbacks a todas las celdas.
+El par de la celda es siempre el monto (principal) y su `pct` (secundario); `secundario.como` del diseño dice cuál se lee primero: con `porcentaje`,
+«$181 14,94 %»; con `monto`, `secondaryProminent` y la celda dibuja el % primero y grande y el monto chico detrás («14,94 % $181»). Los ids que emite
+cada lado no cambian.
 
 En `/cotizaciones/[id]` se dibujan además «Revisiones» (`cotizacion_revisiones`, de a 20 por cursor), la cadena (`anterior`, `encima`) y
 «Cotizar encima» (`cotizacion_encima`, con un intento que sólo se conserva tras una pérdida); el botón sale con `puede_cotizar_encima`, no

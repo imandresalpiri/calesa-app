@@ -1,11 +1,11 @@
-import { spawn, spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, it } from 'vitest'
 import { cuerpo, escenario, TIEMPO } from './prueba/escenario'
 
 // La cola en los issues: dependencias por rama de otro repo, issues cerrados a mano, sin red, yaml roto, rama repetida y el
-// límite de la API, con un gh falso (prueba/escenario.ts).
+// límite de la API, y quién abre el issue (un workflow, la app del orquestador), con un gh falso (prueba/escenario.ts). La entrada, en
+// cola-github-entrada.test.ts.
 
 it(
   'cola en issues › una dependencia por rama de otro repo (y del kit) se da por integrada sólo con su PR integrado y el token de esa cuenta',
@@ -240,65 +240,6 @@ it(
 )
 
 it(
-  'cola en issues › la entrada se publica de a un proceso: con el candado tomado por otro, espera y no abre un issue de más',
-  async () => {
-    const t = escenario()
-    mkdirSync(join(t.datos, 'entrada'))
-    writeFileSync(
-      join(t.datos, 'entrada/nueva.md'),
-      '---\ntitulo: una nueva\nrama: feat/nueva\n---\n',
-    )
-    mkdirSync(join(t.datos, 'estado'), { recursive: true })
-    const candado = join(t.datos, 'estado/.entrada.lock')
-    // Otro proceso (la vuelta del bucle) publicando: tiene el candado.
-    const otro = spawn('flock', [candado, 'sleep', '30'])
-    while (spawnSync('flock', ['-n', candado, 'true']).status === 0)
-      await new Promise((r) => setTimeout(r, 50))
-    try {
-      expect(t.orqCon({ ENTRADA_ESPERA_S: '1' }, 'entrada').estado).toBe(0)
-      expect(t.gh().issues).toEqual({})
-      expect(existsSync(join(t.datos, 'entrada/nueva.md'))).toBe(true)
-      expect(t.log()).toContain('la entrada la está publicando otro proceso')
-    } finally {
-      otro.kill()
-    }
-    await new Promise((r) => otro.once('exit', r))
-    t.orq('entrada')
-    expect(Object.keys(t.gh().issues)).toEqual(['5'])
-    expect(existsSync(join(t.datos, 'entrada/nueva.md'))).toBe(false)
-  },
-  TIEMPO,
-)
-
-it(
-  'cola en issues › una spec de la entrada con la rama de una tarea integrada no se publica y queda con su motivo',
-  () => {
-    const t = escenario()
-    t.issue(5, cuerpo('feat/cinco'))
-    t.orq('espejo')
-    t.ponerEst('T5', 'estado', 'integrado')
-    mkdirSync(join(t.datos, 'entrada'))
-    writeFileSync(
-      join(t.datos, 'entrada/otra.md'),
-      '---\ntitulo: otra vez\nrama: feat/cinco\n---\n',
-    )
-    expect(t.orq('entrada').estado).toBe(0)
-    expect(Object.keys(t.gh().issues)).toEqual(['5'])
-    expect(readFileSync(join(t.datos, 'entrada/otra.md.error'), 'utf8')).toContain(
-      'la rama «feat/cinco» ya es de T5, que está integrada',
-    )
-    // Con otra rama, se publica.
-    writeFileSync(
-      join(t.datos, 'entrada/otra.md'),
-      '---\ntitulo: otra vez\nrama: feat/cinco-2\n---\n',
-    )
-    t.orq('entrada')
-    expect(t.cola()).toEqual(['T5-cinco.md', 'T6-cinco-2.md'])
-  },
-  TIEMPO,
-)
-
-it(
   'cola en issues › un issue con `cola` que la lista de abiertos todavía no trae no se avisa como si le hubieran quitado la etiqueta',
   () => {
     const t = escenario()
@@ -316,6 +257,47 @@ it(
     })
     t.orq('espejo')
     expect(t.log()).toContain('T5: el issue #5 está abierto pero ya no tiene la etiqueta cola')
+  },
+  TIEMPO,
+)
+
+it(
+  'cola en issues › el issue que abre la app del orquestador con su token de instalación entra a la cola y se sincroniza; otro bot o una persona sin escritura, no',
+  () => {
+    // Sin la instalación: token_gh no intenta ser la app (el HOME temporal no tiene su clave).
+    const t = escenario('APP_ID="123"\nAPP_INSTALACION=""\nAPP_LOGIN="mi-app[bot]"\n')
+    t.issue(50, cuerpo('feat/de-la-app-50'))
+    t.issue(51, cuerpo('feat/otro-bot-51'))
+    t.issue(52, cuerpo('feat/persona-52'))
+    t.cambiarGh((g) => {
+      // La forma que devuelve GitHub (gh api repos/{owner}/{repo}/issues/<n>) para un issue de la app con su token de instalación:
+      // CONTRIBUTOR, de tipo Bot, con su login `<slug>[bot]` y sin performed_via_github_app.
+      Object.assign(g.issues[50]!, { autor: 'CONTRIBUTOR', login: 'mi-app[bot]', tipo: 'Bot' })
+      Object.assign(g.issues[51]!, { autor: 'CONTRIBUTOR', login: 'renovate[bot]', tipo: 'Bot' })
+      Object.assign(g.issues[52]!, { autor: 'CONTRIBUTOR', login: 'alguien', tipo: 'User' })
+    })
+    // Una vuelta anterior lo marcó como ajeno.
+    mkdirSync(join(t.datos, 'estado/.ajenos'), { recursive: true })
+    writeFileSync(join(t.datos, 'estado/.ajenos/50'), '')
+    t.orq('espejo')
+    expect(t.cola()).toEqual(['T50-de-la-app-50.md'])
+    expect(t.est('T50', 'issue')).toBe('50')
+    expect(existsSync(join(t.datos, 'estado/.ajenos/50'))).toBe(false)
+    expect(t.log()).toContain('issue #50: ahora entra a la cola')
+    expect(t.log()).toContain('issue #51: lo abrió alguien sin permiso de escritura')
+    expect(t.log()).toContain('issue #52: lo abrió alguien sin permiso de escritura')
+
+    // Lo que la persona cambia en el issue llega al archivo; cerrarlo a mano la omite.
+    t.cambiarGh((g) => {
+      g.issues[50]!.body = g.issues[50]!.body.replace('Lo de siempre.', 'Lo que cambió la persona.')
+    })
+    t.orq('espejo')
+    expect(t.spec('T50-de-la-app-50.md')).toContain('Lo que cambió la persona.')
+    t.cambiarGh((g) => {
+      g.issues[50]!.state = 'closed'
+    })
+    t.orq('espejo')
+    expect(t.est('T50', 'estado')).toBe('omitida')
   },
   TIEMPO,
 )

@@ -15,6 +15,10 @@ type Props = {
   // Lo que describe al botón de este lado y a la entrada abierta (que nunca nombra un candado).
   idDeLaNota: string | undefined
   idDeLaNotaDeLaEntrada: string | undefined
+  // El lado que se lee primero va grande (el monto o, en un par con el monto de secundario, el %); el otro, chico.
+  grande: boolean
+  // Su lugar entre los valores (0 el primero que se ve): el orden de las flechas.
+  parada: number
   bloqueada: boolean
   soloEsteLado: boolean
   conAtajo: boolean
@@ -31,6 +35,7 @@ export function LadoDeXCell(props: Props) {
     return (
       <EntradaDeXCell
         ancho={ancho}
+        grande={props.grande}
         texto={e.edicion.texto}
         seleccion={e.edicion.seleccion}
         nombre={lado === 'principal' ? etiqueta : `${etiqueta}, ${datos.formato}`}
@@ -46,6 +51,8 @@ export function LadoDeXCell(props: Props) {
     <BotonDelValor
       lado={lado}
       datos={datos}
+      grande={props.grande}
+      parada={props.parada}
       moneda={props.moneda}
       idDelBoton={props.idDelBoton}
       idDeLaEtiqueta={props.idDeLaEtiqueta}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { SimbolosDeXCell } from '@/shared/ui/xcell'
+import { SimbolosDeXCell, XCELL_COMPACTA } from '@/shared/ui/xcell'
 import { TOPE_DE_LINEAS } from '../../../entities/cotizador/formula'
 import type { CotizacionLeida, LineaDeLectura } from '../../../entities/cotizador/hoja-de-lectura'
 import {
@@ -58,7 +58,7 @@ export function HojaEditable({
   }
   return (
     <form
-      className="grid gap-6"
+      className={`grid gap-6 ${XCELL_COMPACTA}`}
       noValidate
       onSubmit={(evento) => {
         evento.preventDefault()

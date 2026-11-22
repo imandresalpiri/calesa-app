@@ -17,13 +17,21 @@ type Props = {
   acciones: AccionesDeHoja
   // Sólo en la rejilla de las secciones de la hoja lleva sus columnas y filas: en el modal «Avanzado» (un `grid` sin pistas) un `col-span-12` crearía 11 de más.
   enLaRejilla?: boolean
+  // Sin borde, fondo ni relleno: las secciones del modal «Avanzado».
+  sinMarco?: boolean
 }
 
 // Una sección de la hoja, con su título y sus ítems en el orden declarado. Es su propio contenedor (`@container`): el ancho de sus celdas depende del ancho de la
 // sección y no del de la pantalla, así el texto al 200 % colapsa solo a una columna. Su aspecto (relleno, separación, densidad, letra, énfasis y tono) va en
 // clases sobre los mismos nodos; con tono, `data-tono` lo pasa a sus celdas sin tono de grupo, a sus franjas y a sus chips.
-export function SeccionDeHoja({ seccion, contexto, acciones, enLaRejilla = false }: Props) {
-  const marco = claseDelMarcoDeLaSeccion(seccion)
+export function SeccionDeHoja({
+  seccion,
+  contexto,
+  acciones,
+  enLaRejilla = false,
+  sinMarco = false,
+}: Props) {
+  const marco = claseDelMarcoDeLaSeccion(seccion, { sinMarco })
   return (
     <section
       data-seccion={seccion.id}

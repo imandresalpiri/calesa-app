@@ -118,12 +118,13 @@ describe('HojaDeCotizar: la hoja dibujada desde el diseño', () => {
 
   it('el candado dice su motivo y el estado del recálculo manda: la celda apagada dice con qué se habilita', () => {
     montar()
-    const cuentaEsp = within(document.querySelector('[data-nodo="cuenta_esp"]') as HTMLElement)
-    expect(cuentaEsp.getByText('Se habilita con «Cuenta especial».')).toBeTruthy()
-    const soloMoto = within(document.querySelector('[data-nodo="solo_moto"]') as HTMLElement)
-    expect(soloMoto.getByText('Sólo en Moto.')).toBeTruthy()
-    const vehiculo = within(document.querySelector('[data-nodo="del_vehiculo"]') as HTMLElement)
-    expect(vehiculo.getByText('Viene del vehículo.')).toBeTruthy()
+    const candado = (nodo: string) =>
+      within(document.querySelector(`[data-nodo="${nodo}"]`) as HTMLElement)
+    expect(
+      candado('cuenta_esp').getByRole('img', { name: 'Se habilita con «Cuenta especial».' }),
+    ).toBeTruthy()
+    expect(candado('solo_moto').getByRole('img', { name: 'Sólo en Moto.' })).toBeTruthy()
+    expect(candado('del_vehiculo').getByRole('img', { name: 'Viene del vehículo.' })).toBeTruthy()
   })
 })
 

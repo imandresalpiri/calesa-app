@@ -46,6 +46,7 @@ pedido_listo() { # json-del-issue json-del-hilo — su autor tiene permiso, va e
     [ -f "$EST/.ajenos/P$n" ] || { mkdir -p "$EST/.ajenos" && touch "$EST/.ajenos/P$n" && log "pedido #$n: lo abrió alguien sin permiso de escritura en el repo: no se redacta"; }
     return 1
   fi
+  if [ -f "$EST/.ajenos/P$n" ]; then rm -f "$EST/.ajenos/P$n" && log "pedido #$n: ahora se redacta"; fi
   hasta=$(est_get "P$n" espera_hasta)
   [ -n "$hasta" ] && [ "$(date +%s)" -lt "$hasta" ] && return 1
   jq -e '.rondas == 0 or .respondida' <<<"$2" >/dev/null

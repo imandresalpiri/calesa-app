@@ -159,3 +159,28 @@ verificar_app() {
   echo "· la app no debe estar en el bypass del ruleset de main: su PR también espera al CI"
   return "$ok"
 }
+
+# La línea de `verificar` sobre cómo se reconoce a la app en un issue (identidad_app en github.sh; token_gh ya corrió). 1 si no se
+# reconocería: sin login, o un APP_LOGIN distinto del que dice GitHub (la caché del token).
+verificar_login_app() {
+  local cache=""
+  if [ -z "${APP_ID:-}" ]; then
+    echo "· sin la app: sólo entra a la cola el issue de quien puede escribir en el repo"
+    return 0
+  fi
+  if [ "${ORQ_SIN_APP:-0}" = 1 ]; then
+    echo "· ORQ_SIN_APP=1: un issue que abra la app no entra a la cola"
+    return 0
+  fi
+  identidad_app
+  if [ -z "$APP_RECONOCIDA_LOGIN" ]; then
+    echo "✗ no sé el login de la app: los issues que abre (entrada, cierre, kit, dependencias) no entran a la cola. Pon APP_LOGIN=\"<slug>[bot]\" en scripts/orquestador/config.env"
+    return 1
+  fi
+  app_configurada && cache=$(bash "$TOKEN_APP" --bot 2>/dev/null)
+  if [ -n "${APP_LOGIN:-}" ] && [ -n "$cache" ] && [ "$APP_LOGIN" != "$cache" ]; then
+    echo "✗ APP_LOGIN ($APP_LOGIN) no es el login de la app ($cache): corrígelo en config.env"
+    return 1
+  fi
+  echo "✓ un issue de $APP_RECONOCIDA_LOGIN entra a la cola como uno de la persona"
+}

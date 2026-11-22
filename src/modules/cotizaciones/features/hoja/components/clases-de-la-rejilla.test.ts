@@ -26,7 +26,6 @@ const ANTES = {
   seccion:
     '@container grid min-w-0 content-start gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-4',
   celdas: 'grid grid-cols-12 gap-x-0 gap-y-3 @lg:gap-x-3',
-  titulo: 'text-(length:--text-base) font-semibold text-(--color-ink)',
   cabecera: 'grid min-w-0 gap-3',
 } as const
 
@@ -37,6 +36,10 @@ const conAspecto = (d: unknown) =>
     (s) =>
       s.ancho !== undefined || s.items.some((i) => i.tipo !== 'celda' && i.ancho !== undefined),
   )
+
+// El título de una sección, como en V1 (chico, en mayúsculas y en la tinta suave), con o sin aspecto.
+const TITULO =
+  'text-(length:--text-xs) font-semibold tracking-wide text-(--color-ink-soft) uppercase'
 
 // Los diseños de antes: los de las tres semillas y los válidos del juego sin aspecto (los de las celdas con ancho en número entran aparte).
 const viejos: [string, Diseno][] = [
@@ -60,7 +63,7 @@ describe('un diseño viejo se ve igual', () => {
       expect(claseDeLaSeccionEnLaRejilla(s)).toBe(COLUMNAS_DE_LA_SECCION.AUTOMATICA)
       expect(claseDelMarcoDeLaSeccion(s)).toBe(ANTES.seccion)
       expect(claseDeLaRejillaDeCeldas(s)).toBe(ANTES.celdas)
-      expect(claseDelTitulo(s)).toBe(ANTES.titulo)
+      expect(claseDelTitulo(s)).toBe(TITULO)
       for (const i of s.items) {
         const antes =
           i.tipo === 'celda'
@@ -125,12 +128,18 @@ describe('el aspecto en clases', () => {
       tono: 'verde',
     } as const
     expect(claseDelMarcoDeLaSeccion(s)).toBe(
-      '@container grid min-w-0 content-start gap-3 rounded-(--radius-card) border border-[color:var(--tono-borde,var(--color-line))] bg-(--color-surface) p-6 [--xcell-relleno:calc(var(--spacing)*1)] [--xcell-separacion:calc(var(--spacing)*0.5)] [--text-sm:var(--text-base)] font-semibold',
+      '@container grid min-w-0 content-start gap-3 rounded-(--radius-card) border border-[color:var(--tono-borde,var(--color-line))] bg-(--color-surface) p-6 [--xcell-relleno:calc(var(--spacing)*1)] [--xcell-separacion:calc(var(--spacing)*0.5)] [--xcell-alto:40px] [--text-sm:var(--text-base)] font-semibold',
     )
     expect(claseDeLaRejillaDeCeldas(s)).toBe('grid grid-cols-12 gap-x-0 gap-y-2 @lg:gap-x-2')
-    expect(claseDelTitulo(s)).toBe('text-(length:--text-lg) font-semibold text-(--color-ink)')
+    expect(claseDelTitulo(s)).toBe(
+      'text-(length:--text-sm) font-semibold tracking-wide text-(--color-ink-soft) uppercase',
+    )
     // La letra chica no achica el título.
-    expect(claseDelTitulo({ letra: 'chica' })).toBe(ANTES.titulo)
+    expect(claseDelTitulo({ letra: 'chica' })).toBe(TITULO)
+    // Sin marco (el modal «Avanzado»): sin borde, fondo ni relleno; la densidad y la letra quedan.
+    expect(claseDelMarcoDeLaSeccion(s, { sinMarco: true })).toBe(
+      '@container grid min-w-0 content-start gap-3 [--xcell-relleno:calc(var(--spacing)*1)] [--xcell-separacion:calc(var(--spacing)*0.5)] [--xcell-alto:40px] [--text-sm:var(--text-base)] font-semibold',
+    )
   })
 
   it('la cabecera es una caja sólo con tono o relleno', () => {
