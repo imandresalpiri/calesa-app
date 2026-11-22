@@ -624,9 +624,20 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
     `?panel=publicar-tarjeta|descartar-plantilla` y `?referencia=ejemplo`. En el drawer de las tablas, las del origen y las compartidas que usa (una
     compartida tapada por una propia va «Tapada por la de <origen>»); `&tabla=<id>` (el editor) y
     `&accion=publicar-tabla|nueva-tabla|columnas-de-tabla|desactivar-tabla`. Una compartida se edita ahí con el aviso de a quién le cambia.
-  - **Campos** (`/campos`): «Datos clave (n de 4)» en orden con «Subir», «Bajar» y «Quitar», «Datos comunes» con su estrella, y el layout de campos
-    con la estrella en cada campo activo y `?campo=` (cada estrella o botón guarda al instante; con 4, las demás se apagan con «Ya hay 4 datos clave:
-    quita uno para sumar este.»; vacíos, «Sin datos clave: la ficha mostrará los de fábrica de su tipo.»). **Categorías** (`/categorias`,
+  - **Campos** (`/campos`, «Campos del origen»; el editor de campos de `shared/ui/campos`, a todo el ancho, sin tope): arriba el buscador
+    («Buscar campo», `?q=`, sin tildes, filtra en el cliente) y «Nuevo campo» (principal, `?campo=nuevo`). Luego «Datos clave (n de 4)»: cuatro
+    casillas en orden (de 1 a 4 columnas según el ancho); una llena dice el dato, se arrastra a otra y su «⋯» tiene «Subir», «Bajar» y «Quitar de
+    los datos clave»; una libre dice «Libre» y recibe un campo o un dato común soltado encima. Cada cambio guarda al instante; con 4, «Hacer dato
+    clave» se apaga con «Ya hay 4 datos clave: quita uno para sumar este.» (y soltar encima lo dice); vacíos, «Sin datos clave: la ficha mostrará
+    los de fábrica de su tipo.». Después «Comunes» (los datos comunes, insignia «Común» y «Dato clave» si lo es; su «⋯» lo hace o lo quita) y los
+    grupos del layout (dos columnas desde 64 rem). Cada fila: el asa (arrastre dentro de su grupo; también con teclado: Espacio, flechas,
+    Espacio), el nombre, `tipo · clave` y las insignias («Requerido», «De fábrica», «Principal», las banderas en fila, «Dato clave»), y un «⋯»
+    (Editar · Hacer dato clave o Quitar de los datos clave · Subir · Bajar · Desactivar · Eliminar…; lo imposible, apagado con su motivo).
+    Tocar la fila abre el panel `?campo=<id>` (`&eliminar=1`: «Eliminar…» abre preguntando); las banderas se cambian ahí. Desactivar es
+    reversible con «Deshacer» (si era dato clave, el «⋯» avisa «También sale de los datos clave.»). «Desactivados» va plegado y sin número.
+    Con una búsqueda no hay asas; sin coincidencias, «Nada coincide con «…».» y «Limpiar». Conflicto `PT409` dentro del panel con «Recargar»,
+    que conserva lo escrito. Sin `origenes.gestionar`: el aviso con su motivo, «Nuevo campo» apagado, sin asas, el «⋯» sólo con «Ver» y el
+    panel sin «Guardar». **Categorías** (`/categorias`,
     `?categoria=`). Las dos se abren con el origen; sin `origenes.gestionar`, todo deshabilitado con su motivo.
   - `/<id>` sola responde 308 (por persona) a la **última pestaña** que esa persona abrió en ese origen si todavía la abre o, si no, a la primera que
     abre; `/<id>?seccion=…` a su parte, conservando `?campo=`, `?categoria=` y `?panel=`. Una pestaña que no abre, por URL: «No puedes abrir esta
@@ -1005,9 +1016,10 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 ### Leads: configuración (estados propios)
 
-- **Campos** (`leads.campos.gestionar`; sin él, apagada en el menú): activos agrupados como en el formulario, con tipo, clave e
-  interruptores («En la tabla», «Filtrable», «Solo la cartera») que guardan solos; desactivados plegados con «Reactivar»; «De fábrica».
-  Fijos: teléfono, nombre, tipo y que el lead tenga origen.
+- **Campos** (`leads.campos.gestionar`; sin él, apagada en el menú): el mismo editor de campos que un origen, sin casillas ni «Comunes»:
+  buscador y «Nuevo campo», los grupos como en el formulario con sus insignias («En la tabla», «Filtrable», «Solo la cartera», «De fábrica»),
+  el arrastre dentro del grupo, el «⋯» y el panel `?campo=`; «Desactivados» plegado, con «Activar» en su «⋯». Fijos: teléfono, nombre, tipo y
+  que el lead tenga origen.
 - **Impacto, siempre con números y dentro del panel:** volver requerido (cuántos leads no podrán guardarse hasta completarlo); cambiar el
   tipo o eliminar con datos; sacar una opción en uso; dejar de ser «solo la cartera». Conflicto con «Recargar».
 - **Orígenes del lead, tipos de lead y tipos de seguimiento** (modales `?panel=origenes|tipos|seguimientos`, patrón de `shared/ui/lista`, sin título
