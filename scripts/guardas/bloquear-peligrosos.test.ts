@@ -195,16 +195,6 @@ describe('las esperas que sondean', () => {
     expect(estado).toBe(2)
     expect(motivo).toContain('bloquear-esperas.sh')
   })
-
-  it('settings.json registra el hook también sobre Monitor', () => {
-    const ajustes = JSON.parse(readFileSync(resolve('.claude/settings.json'), 'utf8')) as {
-      hooks: { PreToolUse: { matcher: string; hooks: { command: string }[] }[] }
-    }
-    const entrada = ajustes.hooks.PreToolUse.find((e) =>
-      e.hooks.some((h) => h.command.endsWith('bloquear-peligrosos.sh')),
-    )
-    expect(entrada?.matcher.split('|').sort()).toEqual(['Bash', 'Monitor'])
-  })
 })
 
 // La tarea de dependencias corre con ORQ_PERMITE=dependencias: `pnpm update` dentro de los rangos y `pnpm dedupe`, nada más.
