@@ -1,5 +1,5 @@
 // Bloque «Recordatorios de hoy»: mis pendientes con hora hasta el fin del día de la empresa; uno de un día anterior que sigue
-// sin completarse se marca «Vencido». Lee por la entrada pública de `leads`, con su RLS. «Ver todas» lleva a la agenda con sólo recordatorios.
+// sin completarse se marca «Vencido». Lee por la entrada pública de `leads`, con su RLS. «Ver todos» (sólo con tope) lleva a la agenda con sólo recordatorios.
 import { leerRecordatoriosDeHoy, finDeHoy, rutaDeSeguimientos } from '@/modules/leads'
 import { cantidadAcotada } from '@/shared/lib/conteo'
 import { diaEnZona, formatearFechaHora, formatearHora } from '@/shared/lib/fechas'
@@ -41,7 +41,7 @@ export const CuerpoRecordatorios: CuerpoDeBloque = async ({ bloque, zona }) => {
           plural: 'recordatorios',
         })}
       />
-      <VerTodasDelBloque ruta="/agenda?ver=recordatorio" />
+      <VerTodasDelBloque bloque={bloque} ruta="/agenda?ver=recordatorio" hayMas={hayMas} />
     </>
   )
 }

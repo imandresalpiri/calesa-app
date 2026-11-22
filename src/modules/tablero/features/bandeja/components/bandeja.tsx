@@ -69,7 +69,7 @@ export function Bandeja({ nombre, permisos, sinRol, zona = ZONA_POR_DEFECTO }: P
             <MarcoDeBloque key={montaje.bloque.clave} bloque={montaje.bloque}>
               <LimiteDeBloque>
                 <Suspense fallback={<EsqueletoDeBloque />}>
-                  <MontajeDeBloque montaje={montaje} zona={zona} />
+                  <MontajeDeBloque montaje={montaje} zona={zona} permisos={permisos} />
                 </Suspense>
               </LimiteDeBloque>
             </MarcoDeBloque>

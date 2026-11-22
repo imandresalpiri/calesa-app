@@ -15,7 +15,7 @@ import { sql } from './soporte/sql'
 import { borrarVehiculosDe } from './soporte/vehiculos'
 
 // Los bloques de repuestos de Inicio (8.13-4): un vehículo con un proyecto de repuestos y un ítem «En tránsito» → la dueña lo ve en «Repuestos por mover» y en «Esperas que destraban
-// vehículos» (ésta con el título del vehículo), abre la fila y llega al panel del ítem, y «Ver todas» lleva a la Cadena; quien sólo tiene `repuestos.ver` no ve «Repuestos por mover»
+// vehículos» (ésta con el título del vehículo), abre la fila y llega al panel del ítem; sin tope no hay «Ver todas»; quien sólo tiene `repuestos.ver` no ve «Repuestos por mover»
 // pero sí las esperas. El ítem nace con una fase_desde antigua para quedar entre los primeros cinco aunque la base traiga otros.
 test.describe.configure({ mode: 'serial' })
 
@@ -86,7 +86,7 @@ test.afterAll(async () => {
 
 const region = (page: Page, nombre: string) => page.getByRole('region', { name: nombre })
 
-test('la dueña ve el ítem en los dos bloques, abre su panel y «Ver todas» lleva a la Cadena', async ({
+test('la dueña ve el ítem en los dos bloques, abre su panel; sin tope no hay «Ver todas»', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
@@ -104,10 +104,8 @@ test('la dueña ve el ítem en los dos bloques, abre su panel y «Ver todas» ll
     esperas.getByRole('link', { name: `E2E Inicio ${proyecto} · ${REPUESTO}` }),
   ).toBeVisible()
 
-  await porMover.getByRole('link', { name: 'Ver todas' }).click()
-  await expect(page).toHaveURL(/\/repuestos\?vista=cadena/)
+  await expect(porMover.getByRole('link', { name: 'Ver todas' })).toHaveCount(0)
 
-  await page.goto('/')
   await region(page, 'Repuestos por mover').getByRole('link', { name: REPUESTO }).click()
   await expect(page).toHaveURL(new RegExp(`/repuestos/${proyectoDeRepuestos}\\?item=${item}`))
   await expect(
