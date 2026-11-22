@@ -660,12 +660,12 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   editor de su pestaña y no llevan tope propio.
 - La página de un origen y Catálogos: cada pestaña y cada catálogo carga sólo su pantalla (`pantallas/origen-*`, `formula|diseno|plantilla|tablas|diseno-colores|configuracion`).
   JS en frío de las seis pestañas (KB gz, `medirJsEnFrio()` sobre `.next-e2e`, medido el 2026-11-21; topes en `e2e/soporte/presupuestos.ts`):
-  `/configuracion/origenes/<id>/fases` 444,1 (tope 460), `/planilla` 497,2 (tope 510; la planilla, por `PlanillaDiferida`; sus paneles, «¿Cómo se
-  escribe?» y el drawer «Versiones», en su `diferido()`; el arrastre del número va con eventos de puntero, sin dnd-kit), `/hoja` 411,9 (tope 420; dnd-kit y
-  el editor del diseño, en su `diferido()`), `/tarjeta` 419,2 (tope 430; dibuja en frío el aviso de menos de 1.024 px y arma la lectura del lienzo; el
-  editor llega por `diferido()`), `/campos` 408,2 (tope 420) y `/categorias` 406,2 (tope 410). Contra lo de antes de las pestañas planas (flujo 431,8,
-  planilla 478,3, hoja 393,4, tarjeta 400,4, campos 392,4, categorías 390,4) suben entre 2,8 % y 4,7 %: las migas con el selector de origen, el drawer
-  «Datos» y su botón, el tooltip del ⚠ y, en las tres de la fórmula, la barra (el selector con su popover, el estado, «Versiones», «Tablas» y el lugar de
+  `/configuracion/origenes/<id>/fases` 442,9 (tope 460), `/planilla` 496,0 (tope 510; la planilla, por `PlanillaDiferida`; sus paneles, «¿Cómo se
+  escribe?» y el drawer «Versiones», en su `diferido()`; el arrastre del número va con eventos de puntero, sin dnd-kit), `/hoja` 410,8 (tope 420; dnd-kit y
+  el editor del diseño, en su `diferido()`), `/tarjeta` 418,1 (tope 430; dibuja en frío el aviso de menos de 1.024 px y arma la lectura del lienzo; el
+  editor llega por `diferido()`), `/campos` 407,1 (tope 420) y `/categorias` 405,1 (tope 410). Contra lo de antes de las pestañas planas (flujo 431,8,
+  planilla 478,3, hoja 393,4, tarjeta 400,4, campos 392,4, categorías 390,4) suben entre 2,6 % y 4,4 %: las migas con el selector de origen, el drawer
+  «Datos» y su botón, el tooltip del ⚠ (que sólo lleva la página del origen: `PestanasConDesborde` lo recibe por `conAviso`) y, en las tres de la fórmula, la barra (el selector con su popover, el estado, «Versiones», «Tablas» y el lugar de
   «Guardar» y «Publicar…»): regla del 5 %. La lista del selector (con las archivadas), los paneles de cada fórmula (nueva, renombrar, activar, archivar,
   eliminar) y los de las tablas van por `diferido()`; la lista de las tablas se lee en el servidor sólo con `?panel=tablas`. `/configuracion/catalogos/colores` 356,8, `/niveles` 366,7,
   `/vigencia` 359,3, `/puertos`, `/navieras` y `/categorias-de-gasto` 356,4, `/tipos-de-documento` 370,4, `/tablas` 368,1. La cabecera del origen (migas,

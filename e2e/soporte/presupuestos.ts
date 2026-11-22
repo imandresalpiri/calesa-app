@@ -48,7 +48,7 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   '/configuracion/origenes/nuevo': 420,
   '/configuracion/origenes/[id]/puesta-en-marcha/formula': 460,
   // Las pestañas de la página del origen, con la subasta de la semilla: lo medido antes de las pestañas planas más un 5 %, a la decena (Fases era la
-  // pestaña Flujo; Planilla, Hoja y Tarjeta, el editor de una fórmula). Medido el 2026-11-21: 444,1 · 497,2 · 411,9 · 419,2 · 408,2 · 406,2
+  // pestaña Flujo; Planilla, Hoja y Tarjeta, el editor de una fórmula). Medido el 2026-11-21: 442,9 · 496,0 · 410,8 · 418,1 · 407,1 · 405,1
   // (`docs/RENDIMIENTO.md`). La barra de la fórmula y la cabecera con las migas viajan en las seis.
   '/configuracion/origenes/[id]/fases': 460,
   '/configuracion/origenes/[id]/planilla': 510,
