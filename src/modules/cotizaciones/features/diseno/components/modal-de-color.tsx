@@ -37,11 +37,8 @@ export function ModalDeColor({ abierto, alCerrar, colores, original, noDisponibl
         ? { descripcion: `La clave «${original.clave}» no cambia: la nombran los grupos.` }
         : {})}
       focoInicial={() => document.getElementById(IDS.nombre)}
-      focoAlCerrar={() =>
-        (original
-          ? document.querySelector<HTMLElement>(`[data-editar-color="${original.id}"]`)
-          : null) ?? true
-      }
+      // Al cerrarse vuelve la lista de colores, que se queda con el foco.
+      focoAlCerrar={() => false}
       formulario={formulario}
       noDisponible={noDisponible}
       detalleDelConflicto="Lo que escribiste sigue acá."

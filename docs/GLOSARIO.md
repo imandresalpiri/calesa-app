@@ -687,7 +687,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Tramo (de un error de texto)** — `Tramo`, `ErrorDeCompilacion` (`entities/motivos-del-compilador.ts`): dónde está el error (`desde`,
   `largo`; `linea`, `columna`).
 - **Vigencia** — `ajustes_empresa.vigencia_dias` (7 por defecto, de 1 a 365): días que vale una cotización desde el día de su `creado_en`
-  (ver «Ajustes de cotización»). Se configura en Catálogos › Vigencia (`/configuracion/catalogos/vigencia`).
+  (ver «Ajustes de cotización»). Se configura en Orígenes › «Para todos los orígenes» › Vigencia (`/configuracion/origenes?panel=vigencia`).
 - **Vencida** — derivada: `creado_en` + vigencia < hoy, por día en la zona de la empresa (`vence_el`, `vencida` de
   `cotizacion_hoja_guardada()`). No es un estado guardado.
 - **Cotizar encima (N+1)** — `cotizacion_encima()`, `cotizacion_padre_id`, `version`: la versión nueva de una cotización (otra cotización,
@@ -721,7 +721,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   título del vehículo (`vehiculos.titulo`) ni el de la opción de la variante (`titulo_opcion`).
 - **Ajustes de cotización** — `AjustesDeCotizacion` (`empresa`): la vigencia, de `ajustes_empresa`; los cambia
   `empresa_guardar_ajustes_de_cotizacion()` con `cotizaciones.configurar` en todos los orígenes y la versión de la fila (Configuración ›
-  Cotización › General › Vigencia).
+  Orígenes › «Para todos los orígenes» › Vigencia).
 - **Intento (de una cotización)** — `id` uuid del cliente: `cotizacion_crear` (`p_id`), `cotizacion_guardar` (`p_intento`): repetirlo devuelve
   lo mismo (`repetido: true`); con otros datos, `intento_reusado`.
 - **Hoja abierta (versión y hora)** — `abierta` de `cotizacion_hoja()`; `p_abierta` de `cotizacion_crear` y `cotizacion_evaluar`: versión,
@@ -1141,7 +1141,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   líneas «Para la persona» (`docs/DESPLIEGUE.md`). No: «deploy de prueba».
 - **Tarjeta de ajustes** — `<TarjetaDeAjustes>`, `<TarjetasDeAjustes>` (`@/shared/ui/tarjetas-de-ajustes`): cada bloque de una página de ajustes de
   Configuración, con su título, los valores guardados a la vista (texto, muestras, el logo; no campos), la acción principal («Editar», «Configurar») y su «⋯»;
-  se edita en un modal (`?panel=<tarjeta>`). No es la «tarjeta de la lista» ni la «tarjeta de la cotización».
+  se edita en un modal (`?panel=<tarjeta>`). Una **tarjeta tocable** (`<TarjetaTocable>`) no lleva «Editar» suelto: sólo su «⋯» y tocarla la abre. No es la «tarjeta de la lista» ni la «tarjeta de la cotización».
+- **Para todos los orígenes** — el bloque de Configuración › Orígenes, arriba de la lista de orígenes, con las tarjetas de ajustes de lo que vale para todas las cotizaciones de la empresa: **Colores** y **Vigencia**. No es «Tablas compartidas» (Catálogos).
 - **Editor de texto con variables** — `<EditorConVariables>` (`@/shared/ui/editor-con-variables`): para un texto configurable con variables; una `<textarea>` con las
   variables resaltadas, un **botón de variable** por cada una que ese texto acepta (inserta `{clave}` en el cursor o sobre lo seleccionado), el contador, el aviso de
   las que no acepta y la vista previa con datos de ejemplo. «Botón de variable» no es la «Ficha» (la del lead o la del vehículo). Hoy lo usa el Mensaje del portal.

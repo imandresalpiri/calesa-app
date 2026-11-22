@@ -6,9 +6,9 @@ import { CATALOGOS_DE_LOGISTICA } from './catalogos-de-logistica'
 
 // La entrada de Configuración › Catálogos en el registro: lo que es de toda la empresa y no de un origen, una sub-ruta por catálogo
 // (`/configuracion/catalogos/<clave>`), en tres tramos del menú:
-// - «Cotizaciones»: Colores y Vigencia con `cotizaciones.configurar` en algún origen; Niveles y Quién crea y quién ve con los permisos de la matriz de
-//   Roles (cada nivel es un permiso; el cuadro escribe `cotizaciones.crear`, `.ver` y `.privadas.ver`) y, para quien configura sin ver los roles,
-//   apagadas con su motivo.
+// - «Cotizaciones»: Niveles y Quién crea y quién ve, con los permisos de la matriz de Roles (cada nivel es un permiso; el cuadro escribe
+//   `cotizaciones.crear`, `.ver` y `.privadas.ver`) y, para quien configura sin ver los roles, apagadas con su motivo. Colores y Vigencia ya no son
+//   catálogos: son tarjetas de «Para todos los orígenes» en Configuración › Orígenes.
 // - «Logística»: los catálogos que llena el módulo (`catalogos-de-logistica.ts`), cada uno con su permiso, y Tipos de documento: los cambia quien
 //   gestiona los catálogos de logística y los lee quien configura un flujo.
 // - Tablas compartidas, sin rótulo: las tablas de referencia sin origen, con `cotizaciones.configurar`.
@@ -18,15 +18,6 @@ import { CATALOGOS_DE_LOGISTICA } from './catalogos-de-logistica'
 export const MOTIVO_SIN_VER_ROLES = 'Te falta el permiso «Ver roles».'
 
 const DE_COTIZACIONES = [
-  {
-    clave: 'colores',
-    titulo: 'Colores',
-    descripcion: 'Los colores de la hoja y de la tarjeta, para toda la empresa.',
-    palabras: ['color', 'tema', 'tarjeta', 'cotización'],
-    ruta: RUTAS.coloresDeCotizacion,
-    permisos: ['cotizaciones.configurar'],
-    grupo: 'Cotizaciones',
-  },
   {
     clave: 'niveles',
     titulo: 'Niveles',
@@ -45,15 +36,6 @@ const DE_COTIZACIONES = [
     ruta: RUTAS.quienCreaYQuienVe,
     permisos: ['equipo.roles.ver', 'equipo.roles.gestionar'],
     motivoSinPermiso: MOTIVO_SIN_VER_ROLES,
-    grupo: 'Cotizaciones',
-  },
-  {
-    clave: 'vigencia',
-    titulo: 'Vigencia',
-    descripcion: 'Cuántos días vale una cotización.',
-    palabras: ['días', 'vence', 'caducidad', 'validez', 'cotización'],
-    ruta: RUTAS.vigenciaDeCotizacion,
-    permisos: ['cotizaciones.configurar'],
     grupo: 'Cotizaciones',
   },
 ] as const satisfies readonly SubseccionDeConfiguracion[]
@@ -104,12 +86,10 @@ export const SECCION_DE_CATALOGOS: SeccionDeConfiguracion = {
   clave: 'catalogos',
   titulo: 'Catálogos',
   descripcion:
-    'Lo que es de toda la empresa: colores, niveles, quién crea y quién ve y vigencia de las cotizaciones, puertos, navieras, gastos, documentos y tablas compartidas.',
+    'Lo que es de toda la empresa: niveles y quién crea y quién ve de las cotizaciones, puertos, navieras, gastos, documentos y tablas compartidas.',
   palabras: [
-    'colores',
     'niveles',
     'quién crea y quién ve',
-    'vigencia',
     'puertos',
     'navieras',
     'gastos',

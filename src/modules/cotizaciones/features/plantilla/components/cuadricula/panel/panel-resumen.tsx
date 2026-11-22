@@ -27,7 +27,7 @@ type Props = {
 }
 
 // Sin nada elegido, «Resumen»: las columnas con su ancho (que se edita en número), «Σ ancho N / 1.600 px» y «Sumar columna»; la paleta (los colores del catálogo,
-// sólo para ver: se editan en «General › Colores») y el tamaño contra el tope de 24 KiB, que es el que manda.
+// sólo para ver: se editan en «Orígenes › Colores») y el tamaño contra el tope de 24 KiB, que es el que manda.
 export function PanelResumen({ plantilla, tonos, bytes, hacer, ocupado }: Props) {
   const { locale } = useRegional()
   const kib = (n: number) => formatearNumero(n / 1024, { decimales: 1, locale })
@@ -87,7 +87,7 @@ export function PanelResumen({ plantilla, tonos, bytes, hacer, ocupado }: Props)
           href={RUTAS.coloresDeCotizacion}
           className="text-(length:--text-sm) text-(--color-primario-ink) underline-offset-2 hover:underline"
         >
-          Editar en General › Colores
+          Editar en Orígenes › Colores
         </Link>
       </SeccionDelPanel>
       <p

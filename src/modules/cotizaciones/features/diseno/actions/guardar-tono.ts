@@ -20,6 +20,6 @@ export const guardarTono = actionClient
       return fallo('sin_permiso', MOTIVO_SIN_PERMISO_DE_TONOS)
     }
     const hecho = comoResultado(await repositorioDeTonos.guardar(parsedInput))
-    if (hecho.ok) revalidatePath(RUTAS.catalogos, 'layout')
+    if (hecho.ok) revalidatePath(RUTAS.origenes, 'layout')
     return hecho
   })

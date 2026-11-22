@@ -130,11 +130,11 @@ test('E2E el menú marca la sección actual y salta a otra', async ({ page }) =>
     'page',
   )
   await expect(catalogos).not.toHaveAttribute('aria-current')
-  // Catálogos tampoco tiene índice: abre el primer catálogo (Colores) y despliega sus tramos.
+  // Catálogos tampoco tiene índice: abre el primer catálogo (Niveles) y despliega sus tramos.
   await catalogos.click()
-  await expect(page).toHaveURL('/configuracion/catalogos/colores')
+  await expect(page).toHaveURL('/configuracion/catalogos/niveles')
   await expect(catalogos).toHaveAttribute('aria-current', 'true')
-  await expect(menu(page).getByRole('link', { name: 'Colores', exact: true })).toHaveAttribute(
+  await expect(menu(page).getByRole('link', { name: 'Niveles', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )
