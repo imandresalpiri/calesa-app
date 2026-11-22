@@ -22,6 +22,8 @@ describe('ponerDatoClave', () => {
   it('nunca más allá del último ni antes del primero', () => {
     expect(ponerDatoClave([anio], color, 3)).toEqual([anio, color])
     expect(ponerDatoClave([anio], color, -2)).toEqual([color, anio])
+    expect(ponerDatoClave([anio, vin, marca], anio, 9)).toEqual([vin, marca, anio])
+    expect(ponerDatoClave([anio, vin, marca], marca, -1)).toEqual([marca, anio, vin])
   })
 
   it('con 4, uno nuevo no reemplaza a nadie', () => {
@@ -48,6 +50,7 @@ describe('moverDatoClaveA', () => {
     expect(moverDatoClaveA([anio, vin], 0, 2)).toEqual([anio, vin])
     expect(moverDatoClaveA([anio, vin], 5, 0)).toEqual([anio, vin])
     expect(moverDatoClaveA([anio, vin], 1, -1)).toEqual([anio, vin])
+    expect(moverDatoClaveA([anio, vin, color], -1, 0)).toEqual([anio, vin, color])
   })
 })
 

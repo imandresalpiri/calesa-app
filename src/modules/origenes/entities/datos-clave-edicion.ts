@@ -37,7 +37,7 @@ export function ponerDatoClave(
 ): DatoClave[] {
   const desde = lista.findIndex((otro) => mismoDato(otro, dato))
   if (desde >= 0) {
-    return moverDatoClaveA(lista, desde, posicion)
+    return moverDatoClaveA(lista, desde, Math.max(0, Math.min(posicion, lista.length - 1)))
   }
   if (lista.length >= TOPE_DE_DATOS_CLAVE) {
     return [...lista]
@@ -52,9 +52,12 @@ export function moverDatoClaveA(
   desde: number,
   hasta: number,
 ): DatoClave[] {
+  if (desde < 0 || desde >= lista.length || hasta < 0 || hasta >= lista.length) {
+    return [...lista]
+  }
   const copia = [...lista]
   const [movido] = copia.splice(desde, 1)
-  if (movido === undefined || hasta < 0 || hasta >= lista.length) {
+  if (movido === undefined) {
     return [...lista]
   }
   copia.splice(hasta, 0, movido)
