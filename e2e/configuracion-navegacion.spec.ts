@@ -13,7 +13,7 @@ import {
 } from './soporte/base'
 import { PREFIJO_CLAVE_E2E, crearOrigenDePrueba } from './soporte/origenes'
 
-// La navegación de Configuración: el menú son cuatro grupos (Empresa y equipo, Ventas, Operación, Web) sin Cotización, Flujos ni Logística; desde cada
+// La navegación de Configuración: el menú son los grupos Empresa y equipo, Ventas y Web (Operación y Catálogos ya no tienen nada: lo de cada área vive donde se usa) sin Cotización, Flujos ni Logística; desde cada
 // sección (salvo la página de un origen, que tiene sus migas) se vuelve al inicio con «‹ Configuración»; el menú (también en el inicio) marca la sección actual y salta a otra; quien sólo configura los
 // leads ve sólo «Ventas › Leads»; y el inicio dice en Orígenes lo que le falta a cada origen, con su enlace a la pestaña.
 
@@ -92,11 +92,10 @@ test('E2E desde cada sección del menú se vuelve al inicio de Configuración', 
       .evaluateAll((enlaces) => enlaces.map((enlace) => enlace.getAttribute('href') ?? ''))
   ).filter((ruta) => !/^\/configuracion\/origenes\/(?!nuevo)[^/]+/.test(ruta))
   expect(rutas.length).toBeGreaterThanOrEqual(9)
-  // Cotización, Flujos y Logística ya no son secciones: lo de cada origen vive en su página y lo global en Catálogos.
+  // Cotización, Flujos y Logística ya no son secciones: lo de cada origen vive en su página y Catálogos ya no es una sección.
   for (const [grupo, secciones] of [
     ['Empresa y equipo', ['Empresa', 'Equipo', 'Roles y permisos']],
     ['Ventas', ['Leads', 'Orígenes']],
-    ['Operación', ['Catálogos']],
   ] as const) {
     await expect(
       menu(page).getByRole('list', { name: grupo, exact: true }).locator(':scope > li > a'),
@@ -123,7 +122,6 @@ test('E2E el menú marca la sección actual y salta a otra', async ({ page }) =>
   await page.goto('/configuracion/leads')
   await expect(page).toHaveURL('/configuracion/leads')
   const leads = menu(page).getByRole('link', { name: 'Leads', exact: true })
-  const catalogos = menu(page).getByRole('link', { name: 'Catálogos', exact: true })
   await expect(leads).toHaveAttribute('aria-current', 'page')
   await menu(page).getByRole('link', { name: 'Campos', exact: true }).click()
   await expect(page).toHaveURL('/configuracion/leads/campos')
@@ -132,15 +130,11 @@ test('E2E el menú marca la sección actual y salta a otra', async ({ page }) =>
     'aria-current',
     'page',
   )
-  await expect(catalogos).not.toHaveAttribute('aria-current')
-  // Catálogos tampoco tiene índice: abre el primer catálogo que queda (Tablas compartidas). Los de logística viven en Logística › Configuración, no en el menú.
-  await catalogos.click()
-  await expect(page).toHaveURL('/configuracion/catalogos/tablas')
-  await expect(catalogos).toHaveAttribute('aria-current', 'true')
+  // Catálogos ya no está en el menú: sus tablas, en el drawer de cada origen; los de logística, en Logística › Configuración.
+  await expect(menu(page).getByRole('link', { name: 'Catálogos', exact: true })).toHaveCount(0)
   await expect(
     menu(page).getByRole('link', { name: 'Tablas compartidas', exact: true }),
-  ).toHaveAttribute('aria-current', 'page')
-  await expect(leads).not.toHaveAttribute('aria-current')
+  ).toHaveCount(0)
   await expect(menu(page).getByRole('link', { name: 'Puertos', exact: true })).toHaveCount(0)
 })
 

@@ -30,7 +30,7 @@ const desactivar = (alElegir: () => void, deshabilitada: boolean): AccionDeMenu 
 
 const SEPARADOR: AccionDeMenu = { tipo: 'separador', clave: 'antes-de-desactivar' }
 
-// El «⋯» de una tabla en la lista: Editar filas · Columnas · ─ · Desactivar. Los tres llevan a la tabla abierta (`?tabla=<id>`, con su `?panel=`), donde se sabe
+// El «⋯» de una tabla en la lista: Editar filas (la principal: tocar la fila la abre) · Columnas · ─ · Desactivar. Los tres llevan a la tabla abierta (`?tabla=<id>`, con su `?panel=`), donde se sabe
 // si hay cambios de filas sin publicar.
 export function menuDeTablaEnLaLista({
   alEditarFilas,
@@ -38,7 +38,13 @@ export function menuDeTablaEnLaLista({
   alDesactivar,
 }: Quehaceres & { alEditarFilas: () => void }): AccionDeMenu[] {
   return [
-    { tipo: 'accion', clave: 'editar-filas', etiqueta: 'Editar filas', alElegir: alEditarFilas },
+    {
+      tipo: 'accion',
+      clave: 'editar-filas',
+      etiqueta: 'Editar filas',
+      principal: true,
+      alElegir: alEditarFilas,
+    },
     columnas(alAbrirColumnas, false),
     SEPARADOR,
     desactivar(alDesactivar, false),

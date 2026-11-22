@@ -315,7 +315,7 @@ describe('Cotizaciones en Roles', () => {
 })
 
 describe('Catálogos', () => {
-  it('los de logística viven en Logística y las tablas compartidas, bajo /configuracion/catalogos', () => {
+  it('los de logística viven en Logística; las tablas compartidas son una URL vieja bajo /configuracion/catalogos que redirige', () => {
     expect([
       RUTAS.configuracionDeLogistica,
       RUTAS.puertosDeLogistica,

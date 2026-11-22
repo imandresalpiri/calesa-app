@@ -6,12 +6,7 @@ import { formatearNumero } from '@/shared/lib/formato'
 import { useRegional } from '@/shared/ui/regional'
 import type { TablaDeReferencia } from '../../../entities/tablas/lectura'
 import { AccionesDelEditor } from './acciones-de-la-tabla'
-import {
-  lugarDelDestino,
-  origenIdDelDestino,
-  rutaDeLasTablas,
-  type DestinoDeLasTablas,
-} from '../../../entities/tablas/rutas'
+import { rutaDeLasTablas, type DestinoDeLasTablas } from '../../../entities/tablas/rutas'
 
 type Props = {
   tabla: TablaDeReferencia
@@ -33,7 +28,7 @@ export function EncabezadoDelEditor({ tabla, destino, cambios }: Props) {
     <div className="flex min-w-0 items-start gap-2">
       <div className="grid min-w-0 flex-1 gap-1 text-(length:--text-sm)">
         <Link
-          href={rutaDeLasTablas(lugarDelDestino(destino))}
+          href={rutaDeLasTablas(destino.en)}
           className="w-fit text-(--color-ink-soft) underline-offset-4 hover:underline"
         >
           Volver a las tablas
@@ -42,18 +37,14 @@ export function EncabezadoDelEditor({ tabla, destino, cambios }: Props) {
           Editar {tabla.nombre}
         </h3>
         <p className="text-(--color-ink-soft)">{publicada.join(' · ')}</p>
-        {destino === 'compartidas' ? (
-          <p className="text-(--color-ink)">
-            Publicarla cambia la de cada origen que la usa y no tiene la propia.
-          </p>
-        ) : tabla.compartida ? (
+        {tabla.compartida ? (
           <p className="text-(--color-ink)">
             Compartida: la usan los orígenes que no tienen una propia con la clave {tabla.clave}.
             Publicarla publica la versión siguiente de la fórmula de cada uno y pide que configures
             todos esos orígenes.
           </p>
         ) : null}
-        {destino !== 'compartidas' && tabla.tapada ? (
+        {tabla.tapada ? (
           <p className="text-(--color-ink)">
             {destino.origen.nombre} usa su propia «{tabla.nombre}»: publicar esta no le cambia nada;
             sí a los demás orígenes que la usan.
@@ -62,8 +53,8 @@ export function EncabezadoDelEditor({ tabla, destino, cambios }: Props) {
       </div>
       <AccionesDelEditor
         tabla={tabla}
-        origenId={origenIdDelDestino(destino)}
-        lugar={lugarDelDestino(destino)}
+        origenId={destino.origen.id}
+        lugar={destino.en}
         cambios={cambios}
       />
     </div>

@@ -159,7 +159,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   arman `rutaDeLaFormula(origenId, formulaId | null, parte, consulta?)`, `rutaDeParteDelOrigen(origenId, parte, consulta?)` y
   `rutaDeConfiguracionDeCotizacion(origenId, 'formula'|'hoja'|'tarjeta'|'tablas', consulta?)` (para los enlaces de antes), de `@/shared/lib/rutas`; las actions de la planilla, la hoja, la tarjeta y las tablas revalidan `RUTAS.origenes` con `'layout'`. Lo de toda la
   empresa está en Configuración › Orígenes › «Para todos los orígenes» (colores y vigencia: tarjetas con su modal; las actions de los colores revalidan
-  `RUTAS.origenes` con `'layout'`) y en Configuración › Catálogos (las tablas compartidas, `/configuracion/catalogos/tablas`) y, para los niveles de acceso, en la matriz de Roles
+  `RUTAS.origenes` con `'layout'`) y, para los niveles de acceso, en la matriz de Roles
   (sus actions revalidan `RUTAS.roles`). Planilla, Hoja y Tarjeta reciben `formula: FormulaDelOrigen` de su página (`abrirLaFormulaDeLaPestana()`) y leen y escriben **esa** fórmula del origen (la de la URL):
   cada lectura va por su id y cada escritura lo manda (`p_formula_del_origen`); sus `key` llevan el id de la fórmula. Las RPC sin id y una pestaña sin `?formula=` usan la
   **fórmula de trabajo** (glosario; `leerFormulaDeTrabajoSobre()` de `infra/queries/formula-de-trabajo.ts`, espejo de `_fdo_de_trabajo()`). El ⚙ de la
@@ -173,9 +173,10 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
 - Los `loading.tsx` de la hoja importan `pantallas/esqueleto-de-hoja.ts`, nunca el barril de su pantalla (con él, el HTML en frío baja dos chunks casi
   iguales). El núcleo del guardado (`useNucleoDelGuardado`: pendiente, un envío a la vez, reintento al volver la red) es el mismo de la hoja nueva y de la
   guardada. `hoja-de-una-guardada.ts` viaja al navegador sin Zod; su lectura es `hoja-de-una-guardada-lectura.ts` (sólo servidor).
-- **Tablas de referencia** (área `tablas`; `/configuracion/origenes/<id>/tablas?tabla=`, `cotizaciones.configurar`): `SeccionDeLasTablas` con `destino` = `{ origen }` lee la
-  lista del origen y las compartidas; con `'compartidas'` (Catálogos › Tablas compartidas, `/configuracion/catalogos/tablas`), sólo las compartidas
-  (`leerTablasCompartidas()`, el mismo tope y orden). Tope 100; una compartida tapada por una propia va `tapada`; con `?tabla=` de esa lista, el editor por `diferido()` de a 100 filas.
+- **Tablas de referencia** (área `tablas`; `/configuracion/origenes/<id>/tablas?tabla=`, `cotizaciones.configurar`): `SeccionDeLasTablas` con `destino` = `{ origen, en }` lee la
+  lista del origen y las compartidas que recibe (`leerTablasDeReferencia()`) y `ListaDeTablas` la parte en dos grupos, «De <origen>» y «Compartidas»; ya no hay un destino
+  «compartidas» ni página en Catálogos: `/configuracion/catalogos/tablas` es un 308 de `src/app` que usa `leerDondeSeUsaLaTabla(tablaId, candidatos)` (de quién es la tabla y qué
+  orígenes candidatos tienen una propia con su clave: la PK y `tablas_referencia_origen_id_clave_key`). Tope 100; una compartida tapada por una propia va `tapada`; con `?tabla=` de esa lista, el editor por `diferido()` de a 100 filas.
   `leerTablaParaEditar()` lee **todas** las filas por cursor `(orden, id)` hasta 2.001: con una fila que no se lee o más de 2.000 no devuelve nada, porque
   publicar reemplaza todas. Se edita en memoria y se valida con el espejo de la base (`entities/tablas/validacion.ts`, `TOPE_DE_FILAS` = 2.000); el
   borrador va por versión en `sessionStorage` (pausado mientras publica) y el editor lleva `key` id:versión. «Publicar» (`?panel=publicar-tabla`,

@@ -2,7 +2,7 @@ import { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'
 import { RUTAS } from '@/shared/lib/rutas'
 
 // Los destinos de búsqueda de Configuración: lo que el buscador encuentra y que no es una sección ni una sub-sección del registro porque no tiene ruta
-// propia, sino un modal de una página con su `?panel=` («Orígenes › Colores» abre `/configuracion/origenes?panel=colores`). El buscador los lee junto al registro
+// propia, sino un modal de una página con su `?panel=` («Orígenes › Colores» abre `/configuracion/origenes?panel=colores`) o una URL que redirige («Orígenes › Tablas compartidas» abre el drawer «Tablas» de un origen). El buscador los lee junto al registro
 // (`secciones.ts` los suma a la sección de cada uno; el de un bloque de la matriz de Roles lleva su `?bloque=`); el menú y el selector de sección no los dibujan. Una página de Configuración que pasa una tarjeta a otra
 // con modal suma aquí su destino, así «colores» o «vigencia» siguen encontrándose.
 // No mira permisos al abrir: la página comprueba los suyos. Aquí sólo decide a quién se ofrece (`destinosDeLaSeccion`).
@@ -35,6 +35,15 @@ export const DESTINOS_DE_BUSQUEDA: readonly DestinoDeBusqueda[] = [
     ruta: RUTAS.vigenciaDeCotizacion,
     permisos: ['cotizaciones.configurar'],
     palabras: ['días', 'vence', 'caducidad', 'validez', 'cotización', 'para todos los orígenes'],
+  },
+  {
+    // La URL vieja de las tablas compartidas: un 308 al drawer «Tablas» del primer origen que la persona configura (`catalogos/tablas/route.ts`).
+    clave: 'tablas-compartidas',
+    seccion: 'origenes',
+    titulo: 'Tablas compartidas',
+    ruta: RUTAS.tablasCompartidas,
+    permisos: ['cotizaciones.configurar'],
+    palabras: ['tablas', 'referencia', 'depreciación', 'transporte', 'aranceles'],
   },
   {
     clave: 'niveles-de-acceso',

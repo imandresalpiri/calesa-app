@@ -20,17 +20,20 @@ describe('los destinos de búsqueda de Configuración', () => {
     expect(DESTINOS_DE_BUSQUEDA.map((d) => [d.seccion, d.titulo, d.ruta])).toEqual([
       ['origenes', 'Colores', '/configuracion/origenes?panel=colores'],
       ['origenes', 'Vigencia', '/configuracion/origenes?panel=vigencia'],
+      ['origenes', 'Tablas compartidas', '/configuracion/catalogos/tablas'],
       ['roles', 'Niveles de acceso', '/configuracion/roles?bloque=cotizaciones'],
       ['roles', 'Quién crea y quién ve', '/configuracion/roles?bloque=cotizaciones'],
     ])
   })
 
-  it('cada uno es de una sección del registro y su ruta, sin consulta, tiene su página o su route.ts', () => {
+  it('cada uno es de una sección del registro y su ruta, sin consulta, tiene su página o su route.ts (la de una URL vieja que redirige no está bajo su sección)', () => {
     for (const destino of DESTINOS_DE_BUSQUEDA) {
       const seccion = SECCIONES.find((s) => s.clave === destino.seccion)
       expect(seccion, destino.clave).toBeDefined()
       const [ruta] = destino.ruta.split('?')
-      expect(ruta?.startsWith(seccion?.ruta ?? '#'), destino.clave).toBe(true)
+      if (destino.clave !== 'tablas-compartidas') {
+        expect(ruta?.startsWith(seccion?.ruta ?? '#'), destino.clave).toBe(true)
+      }
       const existe =
         existsSync(path.join(APP, ruta ?? '', 'page.tsx')) ||
         existsSync(path.join(APP, ruta ?? '', 'route.ts'))
@@ -39,7 +42,9 @@ describe('los destinos de búsqueda de Configuración', () => {
   })
 
   it('el panel de cada ruta es uno de los que abre el bloque «Para todos los orígenes»', () => {
-    for (const destino of DESTINOS_DE_BUSQUEDA.filter((d) => d.seccion === 'origenes')) {
+    for (const destino of DESTINOS_DE_BUSQUEDA.filter(
+      (d) => d.seccion === 'origenes' && d.clave !== 'tablas-compartidas',
+    )) {
       const panel = new URL(destino.ruta, 'http://localhost').searchParams.get('panel')
       expect(PANELES_PARA_TODOS as readonly (string | null)[], destino.clave).toContain(panel)
     }
@@ -69,7 +74,7 @@ describe('los destinos de búsqueda de Configuración', () => {
   it('se ofrecen a quien tiene sus permisos y, sin ellos, a nadie; no llevan los permisos al navegador', () => {
     expect(
       destinosDeLaSeccion('origenes', con('cotizaciones.configurar')).map((d) => d.clave),
-    ).toEqual(['colores', 'vigencia'])
+    ).toEqual(['colores', 'vigencia', 'tablas-compartidas'])
     expect(destinosDeLaSeccion('origenes', con('origenes.gestionar'))).toEqual([])
     expect(destinosDeLaSeccion('catalogos', con('cotizaciones.configurar'))).toEqual([])
     expect(

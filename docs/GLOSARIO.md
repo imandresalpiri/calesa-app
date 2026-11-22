@@ -137,8 +137,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Tarjeta, Publicar y **Listo** («Cotizar con <origen>»). El avance se deriva de lo que hay (campos, fases, fórmula de trabajo, fórmula activa), sin
   guardar un «paso actual»: cada paso guarda con sus botones, «Seguir» va al siguiente y la raíz lleva al que falta. Un paso sin el permiso en ese
   origen se salta y dice su motivo. Se retoma con «Seguir la puesta en marcha» de la página del origen. No: «asistente», «wizard», «onboarding».
-- **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos/<clave>`: lo que es de toda la empresa y no de un origen ni de la logística; hoy, las
-  Tablas compartidas. Los niveles de acceso y Quién crea y quién ve viven en la matriz de Roles; Colores y Vigencia, en Orígenes; Puertos, Navieras, Categorías de gasto y
+- **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos`: ya sin páginas ni lugar en el menú (sólo redirige las URL viejas). Las tablas compartidas viven en el
+  drawer de las tablas de cada origen; los niveles de acceso y Quién crea y quién ve, en la matriz de Roles; Colores y Vigencia, en Orígenes; Puertos, Navieras, Categorías de gasto y
   Tipos de documento, en Logística › Configuración. No es el catálogo de repuestos ni el de apibara.
 - **Configuración de logística** — `/logistica/configuracion/<clave>` (`RUTAS.configuracionDeLogistica`): la página de Logística con las pestañas Puertos, Navieras, Categorías de gasto y
   Tipos de documento; se entra con el botón ⚙ «Configurar» de la cabecera de Logística. No: «Catálogos de logística» como sección de Configuración.
@@ -535,7 +535,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Columna de una tabla de referencia** — un elemento de `tablas_referencia.columnas`: clave (no cambia), etiqueta (su nombre) y tipo número, año
   o texto (no cambia).
 - **Crear una tabla de referencia** — `tabla_referencia_crear()`: nombre (de él sale la clave, que no cambia), para un origen o compartida, y sus
-  columnas; nace en la versión 1 sin filas. «Nueva tabla» en el drawer de las tablas de un origen («Tablas» en la barra de la fórmula) o en Catálogos › Tablas compartidas.
+  columnas; nace en la versión 1 sin filas. «Nueva tabla» en el drawer de las tablas de un origen («Tablas» en la barra de la fórmula) o la misma «Nueva tabla» eligiendo «Compartida con todos los orígenes».
 - **Cambiar las columnas** — `tabla_referencia_columnas()`: renombrar, ordenar, sumar y quitar columnas de una tabla; sube su versión sin
   publicar la N+1 de ninguna fórmula y borra de las filas la clave quitada.
 - **Tabla desactivada** — `tablas_referencia.activa = false` (`tabla_referencia_desactivar()`): sale de las listas y de BUSCARV; no se deshace
@@ -543,7 +543,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Tabla o columna en uso** — `_tabla_referencia_usos()`: la nombra la publicada o el borrador de una fórmula del origen sin archivar, en un
   origen que recibe la tabla. Una tabla en uso no se desactiva y una columna en uso no se quita.
 - **Tabla compartida** — tabla de referencia con `origen_id` nulo: la usan los orígenes sin una propia de esa clave; la propia la **tapa** (va
-  `tapada` en la lista de ese origen). Se edita en Catálogos › Tablas compartidas o desde el drawer de las tablas de un origen que la usa, con el aviso
+  `tapada` en la lista de ese origen). Se ve en el grupo «Compartidas» del drawer de las tablas de cada origen que la recibe (las propias, en «De <origen>») y se edita ahí, con el aviso
   de a quién le cambia; publicarla pide `cotizaciones.configurar` en cada origen que la usa.
 - **Tarjeta de la cotización** — `<TarjetaDeCotizacion>`, `geometriaDeLaTarjeta()`: la vista previa tipo Excel de una cotización, lo que ve el
   cliente: la misma en la vista previa, el PDF, la imagen y «Copiar texto». No es la **tarjeta de la lista** (cada ítem de la vista Tarjetas de un
@@ -1176,7 +1176,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Tarjeta de ajustes** — `<TarjetaDeAjustes>`, `<TarjetasDeAjustes>` (`@/shared/ui/tarjetas-de-ajustes`): cada bloque de una página de ajustes de
   Configuración, con su título, los valores guardados a la vista (texto, muestras, el logo; no campos), la acción principal («Editar», «Configurar») y su «⋯»;
   se edita en un modal (`?panel=<tarjeta>`). Una **tarjeta tocable** (`<TarjetaTocable>`) no lleva «Editar» suelto: sólo su «⋯» y tocarla la abre. No es la «tarjeta de la lista» ni la «tarjeta de la cotización».
-- **Para todos los orígenes** — el bloque de Configuración › Orígenes, arriba de la lista de orígenes, con las tarjetas de ajustes de lo que vale para todas las cotizaciones de la empresa: **Colores** y **Vigencia**. No es «Tablas compartidas» (Catálogos).
+- **Para todos los orígenes** — el bloque de Configuración › Orígenes, arriba de la lista de orígenes, con las tarjetas de ajustes de lo que vale para todas las cotizaciones de la empresa: **Colores** y **Vigencia**. No es «Tablas compartidas» (el grupo «Compartidas» del drawer de las tablas de un origen).
 - **Editor de texto con variables** — `<EditorConVariables>` (`@/shared/ui/editor-con-variables`): para un texto configurable con variables; una `<textarea>` con las
   variables resaltadas, un **botón de variable** por cada una que ese texto acepta (inserta `{clave}` en el cursor o sobre lo seleccionado), el contador, el aviso de
   las que no acepta y la vista previa con datos de ejemplo. «Botón de variable» no es la «Ficha» (la del lead o la del vehículo). Hoy lo usa el Mensaje del portal.

@@ -4,7 +4,6 @@ import { Aviso } from '@/shared/ui/aviso'
 import { leerTablaParaEditar } from '../../../areas/tablas/composicion'
 import type { TablaDeReferencia } from '../../../entities/tablas/lectura'
 import {
-  lugarDelDestino,
   rutaDeLasTablas,
   type DestinoDeLasTablas,
   type LugarDeLasTablas,
@@ -30,18 +29,14 @@ function NoSeEdita({ mensaje, lugar }: { mensaje: string; lugar: LugarDeLasTabla
   )
 }
 
-// `?tabla=<id>` (4.23-3, C4): se abre sólo si está en la lista (la del origen o la de las compartidas). Se lee entera (`leerTablaParaEditar`); la que no está, no se ve o pasa de 2.000 filas lo
+// `?tabla=<id>` (4.23-3, C4): se abre sólo si está en la lista (una del origen o una compartida que recibe). Se lee entera (`leerTablaParaEditar`); la que no está, no se ve o pasa de 2.000 filas lo
 // dice con «Volver a las tablas». Otro fallo sube al `error.tsx` con «Reintentar». `tapada` sale del ítem de la lista (la lectura de una tabla no la sabe).
 export async function TablaAbierta({ destino, item }: Props) {
-  const lugar = lugarDelDestino(destino)
+  const lugar = destino.en
   if (!item) {
     return (
       <NoSeEdita
-        mensaje={
-          destino === 'compartidas'
-            ? 'No encontramos esa tabla compartida.'
-            : `No encontramos esa tabla de referencia en ${destino.origen.nombre}.`
-        }
+        mensaje={`No encontramos esa tabla de referencia en ${destino.origen.nombre}.`}
         lugar={lugar}
       />
     )

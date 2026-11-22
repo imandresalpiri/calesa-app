@@ -20,8 +20,8 @@ import { crearTabla } from '../actions/crear-tabla'
 export type ParaQuien = 'origen' | 'compartida'
 
 type Opciones = {
-  // El origen de la pestaña (nulo en Catálogos, donde la tabla siempre es compartida).
-  origenId: string | null
+  // El origen del drawer: con «Sólo de <origen>» la tabla es suya; con «Compartida con todos los orígenes», sin origen.
+  origenId: string
   // Dónde se dibujan las tablas: al entrar se abre ahí la nueva.
   lugar: LugarDeLasTablas
 }
@@ -59,7 +59,7 @@ export function useNuevaTabla({ origenId, lugar }: Opciones) {
   const crear = useAction(crearTabla)
   const envio = useUnEnvioALaVez()
 
-  const destino = origenId !== null && para === 'origen' ? origenId : null
+  const destino = para === 'origen' ? origenId : null
   const columnas = columnasParaEnviar(edicion)
   const hayCambios = nombre.trim() !== '' || columnas.some((c) => c.etiqueta !== '')
 
