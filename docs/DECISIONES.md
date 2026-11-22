@@ -1302,6 +1302,16 @@ las trampas, en `docs/LECCIONES.md`.
 
 - **Inicio es la bandeja.** Los widgets personalizables viven sólo en `/tablero`; widgets en Inicio, exportar una gráfica y comparar períodos quedan fuera.
 - **Bloques de Inicio en el servidor**, cada uno tras su `<Suspense>`; 5 por bloque leyendo 6; cada uno lleva su límite de error (`<LimiteDeBloque>`): lo que falla al leer o al dibujar apaga sólo ese bloque. «Recordatorios de hoy» incluye los vencidos; «Sin seguimiento» = mi cartera, creado hace > 24 h.
+- **«Ver todos» en cada bloque de Inicio, sólo en el tope.** Bajo el tope el bloque ya muestra todo y el enlace sobraría (menos ruido); en el tope (5, el sexto lo dice) lleva a la lista completa ya filtrada. Se dibuja sólo si
+  quien mira puede abrir el destino (si no, el bloque sigue con su conteo). El género vive en el catálogo (`BloqueBandeja.verTodos`: «Ver todas» personas, tareas, alertas y esperas; «Ver todos» lo demás). Los que antes lo mostraban siempre
+  (recordatorios, tareas, trabados, por aprobar, demora, repuestos) lo muestran sólo con tope y conservan su destino. Descartado: un enlace fijo en el título (ruido con listas cortas) y el número del total (nunca un total exacto).
+- **«Leads sin seguimiento» abre `/leads?sin_seguimiento=si` sin `alcance`: «míos».** Es lo que cuenta el bloque (mi cartera). Quien elige «Todos» a mano con el filtro puesto ve los leads sin seguimiento de lo que esa persona ve (la misma
+  definición, otra población): el chip y el panel lo dicen. El filtro es una condición de columnas de `leads_vista`/`leads_cartera_vista` (`ultimo_seguimiento_en is null` y `creado_en < ahora − 24 h`) sin índice propio; el «No» del
+  panel de filtros (siempre ofrece Todos/Sí/No) es el contrario lógico: con algún seguimiento o creado hace menos de 24 h. Medido con 212.000 leads (`medir-escala.sql`, `docs/RENDIMIENTO.md`).
+- **«Personas sin rol» abre `/configuracion/equipo?estado=sin_rol`.** Un filtro más de `equipo_lista()` (activa, no bloqueada y sin fila en `usuarios_roles`, la definición del bloque) y no un estado de la persona: la insignia no cambia.
+- **El «Ver todos» de los turnos de la web es un panel en Inicio (`?panel=turnos`), no una pantalla.** Todos mis turnos sin confirmar (asignados y vencidos), de a 20 con «Ver más» por cursor `(vence_en, id)` hasta 200, con
+  «Contacté» y «Vincular a lead» en cada uno. Lee en el navegador al abrirse y al volver a la pestaña (un turno pudo vencer o reasignarse) y no se relee por props: «Contacté» quita el turno localmente
+  para no soltar las páginas cargadas. «Vincular a lead» reemplaza `?panel=turnos` por `?panel=vincular-turno` (un solo modal a la vez; «atrás» vuelve al panel).
 - **La conversión cuenta por la clase del tipo de lead** y por `cliente_desde`, que sólo pone el paso de prospecto a cliente (un alta como cliente no infla la tasa); `conversion_desde` cubre a los clientes de antes. La tasa puede pasar de 1.
 - **Ranking por dueño vigente**: sin dueño o en baja cuenta en el total y no en el ranking.
 - **El margen del mes cuenta cada vehículo en el mes de su último pago confirmado vivo.** Un mes pasado cambia si se confirma o anula un pago: no se presenta como cerrado.

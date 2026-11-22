@@ -46,7 +46,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 ### Logística
 
 - **[—]** «Documentos por aprobar» de Inicio sólo trae los documentos de vehículos (`_bandeja_por_aprobar`): quien sólo aprueba los de repuestos no ve el bloque. Sumar los de los ítems pide ampliar esa RPC y su medición.
-- **[—]** Un bloque «Leads sin seguimiento» y «Personas sin rol» no llevan a una lista filtrada: ni `/leads` ni Equipo tienen ese filtro (cada fila abre su ficha o a la persona).
 - **[—]** Un bloque «Subastas sin resolver» en Inicio — hoy es un grupo de la bandeja del día de `/logistica` y «Subasta: Sin resolver» en el inventario.
 - **[A1c]** Avisos sin salida: el bloqueo de eliminar una fase no enlaza «las fases que esperan» ni «las unidades en ella» (`ImpactoDeFase` sólo trae conteos; pide los ids); «Editar grupo» con más unidades de las que se muestran y «súbelo por partes» de documentos de un grupo de más de 100 no dicen el paso siguiente; «No pudimos leer los títulos» del panel de fuera de regla no ofrece «Reintentar».
 - **[6-2]** Publicar en la vitrina mueve la versión de la ficha (`vehiculo_vitrina` usa `vehiculos.actualizado_en`) — una columna `vitrina_actualizado_en` que la RPC exija y devuelva.
