@@ -1,27 +1,45 @@
 // El contenido de las celdas del editor de la tarjeta: poner un contenido (texto, dato, logo o vacío) en lo elegido, escribir el texto de una celda en el lugar y
-// vaciar (Supr). Un texto llega a 300 caracteres (code points, como la base) y no lleva «{{» (no mezcla texto y variables). Vaciar deja `{tipo: 'vacio'}` y quita
-// entera la celda sin estilo ni combinación: se dibuja igual y ahorra bytes. Puro.
+// vaciar (Supr). Un texto llega a 300 caracteres (code points, como la base) y no lleva «{{» (nada interpola); un texto con datos suma esos 300 entre sus partes de
+// texto y lleva hasta 20 partes, y se pone normalizado (`contenidoDeLasPartes()`). Vaciar deja `{tipo: 'vacio'}` y quita entera la celda sin estilo ni combinación: se
+// dibuja igual y ahorra bytes. Puro.
 import {
   MAXIMO_DE_CARACTERES_DE_UN_TEXTO,
+  MAXIMO_DE_PARTES_DE_UN_TEXTO,
   type CeldaDeLaTarjeta,
   type ContenidoDeLaCelda,
   type PlantillaEnCuadricula,
+  type TextoConDatos,
+  type TextoSimple,
 } from '../../cuadricula-de-la-tarjeta'
 import { caracteres } from '../../json-de-la-base'
+import { caracteresDeLasPartes } from '../../texto-con-datos'
 import { idNuevo, idsNuevos } from './ids-nuevos'
 import { medido } from './limites'
 import { celdaEn, celdasConAnclaEn, dentro, mapaDeLaGrilla, rectEn } from './mapa-de-la-grilla'
 import { casillasVacias, celdaNueva, combinada, enPlural, idsDeCeldas, iguales } from './piezas'
+import { contenidoDeLasPartes, MOTIVO_DE_LAS_PARTES } from './texto-con-datos'
 import { rechazo, type Pos, type Rect, type ResultadoDeEdicion } from './tipos'
 
 export const MOTIVOS_DEL_TEXTO = {
   largo: 'Un texto llega a 300 caracteres.',
   llaves: 'Un texto no lleva «{{».',
+  partes: MOTIVO_DE_LAS_PARTES,
 } as const
 
 export function motivoDelTexto(texto: string): string | null {
   if (caracteres(texto) > MAXIMO_DE_CARACTERES_DE_UN_TEXTO) return MOTIVOS_DEL_TEXTO.largo
   return texto.includes('{{') ? MOTIVOS_DEL_TEXTO.llaves : null
+}
+
+// Lo mismo para un texto o un texto con datos: los 300 caracteres suman sus partes de texto, cada una sin «{{», y van hasta 20 partes.
+export function motivoDelContenidoDeTexto(c: TextoSimple | TextoConDatos): string | null {
+  if (!('partes' in c)) return motivoDelTexto(c.texto)
+  if (caracteresDeLasPartes(c.partes) > MAXIMO_DE_CARACTERES_DE_UN_TEXTO)
+    return MOTIVOS_DEL_TEXTO.largo
+  if (c.partes.length > MAXIMO_DE_PARTES_DE_UN_TEXTO) return MOTIVOS_DEL_TEXTO.partes
+  return c.partes.some((p) => typeof p === 'string' && p.includes('{{'))
+    ? MOTIVOS_DEL_TEXTO.llaves
+    : null
 }
 
 const VACIO: ContenidoDeLaCelda = { tipo: 'vacio' }
@@ -54,10 +72,12 @@ export function vaciar(p: PlantillaEnCuadricula, r: Rect): ResultadoDeEdicion {
 export function ponerContenido(
   p: PlantillaEnCuadricula,
   r: Rect,
-  contenido: ContenidoDeLaCelda,
+  pedido: ContenidoDeLaCelda,
 ): ResultadoDeEdicion {
-  if (contenido.tipo === 'vacio') return vaciar(p, r)
-  const motivo = contenido.tipo === 'texto' ? motivoDelTexto(contenido.texto) : null
+  if (pedido.tipo === 'vacio') return vaciar(p, r)
+  const contenido =
+    pedido.tipo === 'texto' && 'partes' in pedido ? contenidoDeLasPartes(pedido.partes) : pedido
+  const motivo = contenido.tipo === 'texto' ? motivoDelContenidoDeTexto(contenido) : null
   if (motivo !== null) return rechazo(motivo)
   const mapa = mapaDeLaGrilla(p)
   const enR = new Set(celdasConAnclaEn(mapa, p, r).map((c) => c.indice))

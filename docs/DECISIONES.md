@@ -796,13 +796,22 @@ las trampas, en `docs/LECCIONES.md`.
 - **La plantilla lee la fórmula con lo que mira `validarPlantilla()`** (`looseObject`, `lectura-sobre.ts`), no con `esquemaDefinicion`: no se rompe con cada cambio de la fórmula. Guardar valida la forma; lo que cruza con la fórmula lo rechaza publicar.
 - **La tarjeta de la cotización es una cuadrícula declarativa.** La forma 2 de la plantilla (columnas, filas y celdas libres, como en V1) se valida
   espejo en TS y SQL con listas cerradas (variables, `mostrar`, `ocultar_si`, 8 tamaños de letra) y nodos por id; los colores son una clave del
-  catálogo o `auto`, nunca un hex suelto (un texto libre podría nombrar cualquier nodo; un hex, saltarse el catálogo). Un texto no mezcla texto y
-  variables: nada de `{{…}}`. Tope de **24 KiB** del texto del `jsonb`: la plantilla más grande de V1 (USA) mide 12.154 bytes (11.036 en JSON
+  catálogo o `auto`, nunca un hex suelto (un texto libre podría nombrar cualquier nodo; un hex, saltarse el catálogo). Un texto mezcla texto y
+  datos sólo como `partes` (strings y datos, en una sola forma: nunca dos strings seguidos ni uno vacío, al menos un dato; sin datos es `texto`); `{{` sigue
+  rechazado: nada interpola. Tope de **24 KiB** del texto del `jsonb`: la plantilla más grande de V1 (USA) mide 12.154 bytes (11.036 en JSON
   compacto; China 9.573, Compra dealer 9.745, Oficina 7.110), el doble a KiB enteros; la réplica de V1 USA en forma 2
   (`entities/tarjeta/plantilla-como-v1-usa.json`: 6 columnas, 16 filas, 56 celdas) mide 14.755. La forma 1 conserva su tope de 32 KB. Las claves de
   `estilo` y las combinaciones son opcionales con su valor por omisión (ahorran bytes) y `bordes` es un objeto por lado (un lado gana sobre `todos`).
   Los mensajes de la forma 2 nombran la celda o la fila, nunca el nodo: no exponen un id restringido. Sin subtotales por grupo: serían dinero calculado
   fuera de la base.
+- **El texto con datos se guarda en partes, no con marcas.** `{tipo: 'texto', partes: ["Comisión giro ", {tipo: 'dato', …}]}`: cada parte, un string o el
+  mismo dato de una celda «Dato», así la forma, el aplanado (`datosNombrados()`) y las reglas de nodos ya lo miran sin un parser en dos lenguajes, sigue siendo
+  `tipo: 'texto'` para los retoques y la conversión de la forma 1 no se entera. Una sola escritura posible (el editor normaliza: junta los textos, quita los
+  vacíos y sin datos escribe `texto`), así el tope de 20 partes mide algo real y dos plantillas iguales se comparan iguales. Las ramas de unas condiciones y
+  la lista de respaldo siguen con texto simple.
+- **Un dato sin valor dentro de un texto no escribe nada.** El «—» de una celda «Dato» dentro de una frase se leería como parte del texto: «Comisión giro »
+  queda así. Un monto adentro va en `tramos` (sólo entonces) para que el HTML lo dibuje con `<Monto>` y el Modo Live lo tape; no lleva la segunda línea en Bs
+  del total. El PDF, la imagen y «Copiar texto» usan las líneas, con cifras.
 - **La forma 1 se convierte al leerla y no se migra.** `cotizacion_tarjeta` convierte la publicada (`_plantilla_convertir()`, espejo
   `convertirPlantilla()`) con la misma apariencia y la vuelve a validar como cuadrícula. Los ids de la
   conversión son deterministas (el de la fila sale del nodo, `n_<nodo>`; el de la celda, de su fila y su columna; uno de más de 41 caracteres se acorta

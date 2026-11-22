@@ -1015,8 +1015,10 @@ convierte al abrirla y se guarda convertida cuando quien edita guarda.
 celdas: [{id, fila, columna, abarca_columnas?, abarca_filas?, contenido, estilo?}]}`. Columnas de 24 a 640 px (hasta 16, **ancho total ≤ 1.600**);
 filas de 16 a 240 px (hasta 120) con `ocultar_si` `nunca` | `no_aplica` | `no_aplica_o_cero`, referido al `nodo` de la fila (obligatorio con esas dos
 y ausente con las otras), o `condiciones`, con su `si` (de 1 a 3 condiciones unidas con Y: la fila no se dibuja si se cumplen todas); hasta 1.000 celdas, con combinaciones de 1 a 16 columnas y 1 a 120 filas; ids con la forma de un id y únicos; una
-posición sin celda es una celda vacía sin estilo. **Contenido:** `{tipo: 'texto', texto}` (0 a 300 caracteres, sin `{{`: un texto no mezcla texto y
-variables), `{tipo: 'dato', variable}` (`empresa_nombre` —el nombre de la empresa de sus ajustes—, `fecha_larga`, `numero`, `titulo` —el título de la cotización sin el de respaldo «Cotización n.º N»,
+posición sin celda es una celda vacía sin estilo. **Contenido:** `{tipo: 'texto', texto}` (0 a 300 caracteres, sin `{{`: nada interpola),
+`{tipo: 'texto', partes}` (el **texto con datos**: de 1 a 20 partes, cada una un texto literal —un string no vacío, sin `{{` y nunca junto a otro— o un dato
+como el de `{tipo: 'dato'}`; al menos un dato y hasta 300 caracteres sumando los textos; `texto` y `partes` juntos son una clave de más; se dibuja con el mismo
+formato que «Dato», un dato sin valor no escribe nada —ni «—»— y un monto adentro va con `<Monto>` en el HTML), `{tipo: 'dato', variable}` (`empresa_nombre` —el nombre de la empresa de sus ajustes—, `fecha_larga`, `numero`, `titulo` —el título de la cotización sin el de respaldo «Cotización n.º N»,
 `tituloAparteDelNumero()`; en la hoja nueva, el que se está escribiendo—, `titulo_opcion`, `asesor_nombre`, `asesor_iniciales`, `cliente_nombre`,
 `vehiculo_titulo`, `vehiculo_lote`, `vehiculo_vin`, `vence_el`, `modo_tc`, `asesor_telefono` —el WhatsApp del asesor tal como lo guardó en su perfil—,
 `asesor_cargo`), `{tipo: 'dato', nodo, mostrar}` (`monto`, `etiqueta`, `descripcion`,
@@ -1055,8 +1057,8 @@ DETAIL y el `donde` en HINT; el primer rechazo manda. Con `def` nulo, sólo la f
   condición que el nodo no puede responder: `opcion` sobre lo que no es la variante o con una clave que no tiene, `encendido` o `apagado` sobre lo que no es
   una bandera, un número sobre la variante). El `donde` nombra la fila o la celda y el mensaje también, **nunca el nodo**. `grupo_*` y `nodo_sin_lugar` no
   aplican. Las reglas de las variables y de los nodos miran **todo dato que la cuadrícula nombra, aplanado y en orden** (`datosNombrados()`, espejo
-  `_plantilla_cuadricula_datos()`): las filas (su nodo y los de sus condiciones) y después las celdas (su dato, los de su lista o, de sus condiciones, rama
-  por rama las condiciones y su contenido, y el «si no»). Un nodo de una condición que no es del nivel «todos» es `nodo_restringido`, como el de una celda.
+  `_plantilla_cuadricula_datos()`): las filas (su nodo y los de sus condiciones) y después las celdas (su dato, los de su lista, los de las partes de un texto con datos o, de sus
+  condiciones, rama por rama las condiciones y su contenido, y el «si no»). Las ramas y el «si no» siguen con un texto simple. Un nodo de una condición que no es del nivel «todos» es `nodo_restringido`, como el de una celda.
 - **Forma 1**, en este orden: `forma` (la clave o el índice), `grupo_inexistente`, `grupo_repetido`, `grupo_faltante` (la tarjeta lleva **todos** los
   grupos de la fórmula: lo que se ve suma el total), `tono_inexistente` (sólo con `tonos`), `nodo_inexistente` y `nodo_sin_lugar` (una clave de
   `etiquetas`/`leyendas` es un miembro de un grupo, el total o lo aparte de `tarjeta_total`), `nodo_restringido` (un miembro, el total o lo aparte sin
@@ -1189,8 +1191,8 @@ permiso, también a la dueña. La plantilla es la **publicada hoy** de la fórmu
 'sin_plantilla'}` sin regla ni `donde` (la tarjeta «por omisión»). Con ella, `{estado: 'lista', plantilla: {version}, definicion: <forma 2>, nodos:
 [{id, etiqueta, descripcion, grupo, pct}], grupos: [{id, etiqueta, plazo, bucket}], tipos_de_cambio: {buckets: {b: {nombre, nodo}}, modos: {clave:
 {b: {nombre, nodo}}}}, modos: [{clave, nombre}], variante: {nodo, opciones: [{clave, titulo}]} | null, colores: [{clave, hex}], total: {nodo},
-moneda_bs}`, **sólo lo que la cuadrícula nombra**: los nodos de las filas y de las celdas, también los de sus listas de respaldo, ramas y condiciones (todo
-dato de `_plantilla_cuadricula_datos()`; y el `pct` de un `porcentaje`, sólo entonces), los grupos de
+moneda_bs}`, **sólo lo que la cuadrícula nombra**: los nodos de las filas y de las celdas, también los de sus listas de respaldo, ramas, condiciones y las partes
+de un texto con datos (todo dato de `_plantilla_cuadricula_datos()`; y el `pct` de un `porcentaje`, sólo entonces), los grupos de
 un `tc_*` o un `plazo`, el tipo de cambio de esos buckets por su `nombre` de `tipos_cambio` (nulo si no hay uno activo) y su nodo (del nivel «todos»:
 lo exige la plantilla; su valor sale del snapshot), los modos si se muestra `modo_tc`, la variante si se muestra `titulo_opcion` y es del nivel
 «todos», y los colores del catálogo que nombran los estilos. **Ningún id, etiqueta ni texto de un nodo sin `ver: todos` sale, para nadie** (K4 de
@@ -1201,7 +1203,8 @@ lo exige la plantilla; su valor sale del snapshot), los modos si se muestra `mod
 
 Los **retoques de la tarjeta** cambian textos y ocultan filas de la tarjeta de **una** cotización guardada, sin tocar la plantilla del origen. Se
 guardan en `cotizaciones.tarjeta_retoques`: `{celdas?: {<id de celda>: texto}, filas_ocultas?: [<id de fila>]}` (nula: la tarjeta tal cual la
-plantilla). Sólo el texto de las celdas `texto` de la cuadrícula y filas enteras: nunca las celdas de `dato` (montos, etiquetas, tipos de cambio,
+plantilla). Sólo el texto de las celdas `texto` de la cuadrícula (también un texto con datos: el retoque la reemplaza entera
+por un texto fijo, y el campo arranca con su texto resuelto, contra el que se compara: reponerlo no es un retoque, `textosConDatosResueltos()`) y filas enteras: nunca las celdas de `dato` (montos, etiquetas, tipos de cambio,
 variables), las de una lista de respaldo o unas condiciones (aunque la rama que se dibuja sea un texto: `celda_no_es_texto`; el modo dice «Esta celda cambia
 según la cotización: no se retoca.»), el logo, los colores, los tamaños, las columnas ni las combinaciones. Una fila que se oculta según condiciones se
 puede ocultar a mano.

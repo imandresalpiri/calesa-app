@@ -96,7 +96,10 @@ export const MAXIMO_DE_CELDAS = 1000
 export const ANCHO_TOTAL_MAXIMO = 1600
 export const ANCHO_DE_COLUMNA = { minimo: 24, maximo: 640 } as const
 export const ALTO_DE_FILA = { minimo: 16, maximo: 240 } as const
+// Un texto suma a lo sumo 300 caracteres (code points) y un texto con datos, a lo sumo 20 partes entre texto y datos: su copia en `_plantilla_cuadricula_forma()` y
+// `_plantilla_cuadricula_partes()`.
 export const MAXIMO_DE_CARACTERES_DE_UN_TEXTO = 300
+export const MAXIMO_DE_PARTES_DE_UN_TEXTO = 20
 // El texto del `jsonb` (`octet_length(definicion::text)`): el doble de la plantilla de V1 más grande, a KiB enteros (docs/DECISIONES.md).
 export const TOPE_EN_BYTES_DE_LA_CUADRICULA = 24576
 
@@ -134,9 +137,17 @@ export type CondicionDeLaTarjeta =
   | { readonly es: (typeof ES_CON_NUMERO)[number]; readonly nodo: string; readonly a: number }
   | { readonly es: 'opcion'; readonly nodo: string; readonly opcion: string }
 
+// Un texto fijo.
+export type TextoSimple = { readonly tipo: 'texto'; readonly texto: string }
+
+// Una parte de un texto con datos: un texto literal (un string, nunca vacío ni junto a otro) o un dato.
+export type ParteDelTexto = string | DatoDeLaCelda
+
+// El texto con datos (glosario): un texto que mezcla texto literal y datos, en partes (de 1 a 20, con al menos un dato). Sin datos se escribe `TextoSimple`.
+export type TextoConDatos = { readonly tipo: 'texto'; readonly partes: readonly ParteDelTexto[] }
+
 // Lo que muestra una rama de unas condiciones: un texto, un dato o nada.
-export type ContenidoSimple =
-  { readonly tipo: 'texto'; readonly texto: string } | DatoDeLaCelda | { readonly tipo: 'vacio' }
+export type ContenidoSimple = TextoSimple | DatoDeLaCelda | { readonly tipo: 'vacio' }
 
 // «Si <condiciones, unidas con Y> → <contenido>».
 export type RamaDeLaTarjeta = {
@@ -156,7 +167,8 @@ export type FilaDeLaTarjeta = {
 }
 
 export type ContenidoDeLaCelda =
-  | { readonly tipo: 'texto'; readonly texto: string }
+  | TextoSimple
+  | TextoConDatos
   | DatoDeLaCelda
   | { readonly tipo: 'logo' }
   // La foto de perfil del asesor (quien mira o comparte la tarjeta); sin foto, sus iniciales en un círculo.

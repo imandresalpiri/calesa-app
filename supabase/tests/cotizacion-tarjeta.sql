@@ -250,7 +250,7 @@ begin
 end $$;
 rollback;
 
--- @test tarjeta K4: por cada nivel (costos y uno creado con nivel_crear), un nodo del nivel no sale ni por su id, ni por su etiqueta, ni por su descripción, ni por el texto de la plantilla: en la forma 1 (miembro de la N+1, nombrado por una plantilla metida directo o suelto) y en la cuadrícula (un dato de etiqueta, de monto y de descripción, el nodo de una fila, el pct de un porcentaje, el tipo de cambio de un bucket y las condiciones: una lista de respaldo, una condición sobre el nodo o sobre un dato, una rama, el «si no» y la condición de una fila)
+-- @test tarjeta K4: por cada nivel (costos y uno creado con nivel_crear), un nodo del nivel no sale ni por su id, ni por su etiqueta, ni por su descripción, ni por el texto de la plantilla: en la forma 1 (miembro de la N+1, nombrado por una plantilla metida directo o suelto) y en la cuadrícula (un dato de etiqueta, de monto y de descripción, el nodo de una fila, el pct de un porcentaje, el tipo de cambio de un bucket, las condiciones: una lista de respaldo, una condición sobre el nodo o sobre un dato, una rama, el «si no» y la condición de una fila; y un texto con datos que lo nombra por etiqueta, monto, descripción o el pct de un porcentaje)
 begin;
 do $$
 declare
@@ -281,7 +281,12 @@ begin
                                      "si_no": {"tipo": "vacio"}}]'),
     'si_no', pg_temp.ct_cuadricula('[{"tipo": "condiciones", "ramas": [{"si": [{"es": "cero", "nodo": "pub"}], "contenido": {"tipo": "vacio"}}],
                                       "si_no": {"tipo": "dato", "nodo": "cent", "mostrar": "etiqueta"}}]'),
-    'fila_condicion', pg_temp.ct_cuadricula('[{"tipo": "texto", "texto": "Fila"}]', '{"ocultar_si": "condiciones", "si": [{"es": "no_cero", "nodo": "cent"}]}'));
+    'fila_condicion', pg_temp.ct_cuadricula('[{"tipo": "texto", "texto": "Fila"}]', '{"ocultar_si": "condiciones", "si": [{"es": "no_cero", "nodo": "cent"}]}'),
+    -- Un texto con datos: cada dato de sus partes es un dato nombrado (el centinela por etiqueta, monto o descripción, y el porcentaje de `pp`, cuyo pct es del nivel).
+    'partes_etiqueta', pg_temp.ct_cuadricula('[{"tipo": "texto", "partes": ["Valor ", {"tipo": "dato", "nodo": "pub", "mostrar": "monto"}, " y ", {"tipo": "dato", "nodo": "cent", "mostrar": "etiqueta"}]}]'),
+    'partes_monto', pg_temp.ct_cuadricula('[{"tipo": "texto", "partes": ["Valor ", {"tipo": "dato", "nodo": "cent", "mostrar": "monto"}]}]'),
+    'partes_descripcion', pg_temp.ct_cuadricula('[{"tipo": "texto", "partes": [{"tipo": "dato", "variable": "titulo"}, " · ", {"tipo": "dato", "nodo": "cent", "mostrar": "descripcion"}]}]'),
+    'partes_pct', pg_temp.ct_cuadricula('[{"tipo": "texto", "partes": ["Par ", {"tipo": "dato", "nodo": "pp", "mostrar": "porcentaje"}]}]'));
   foreach v_nivel in array array['costos', (select clave from public.cotizaciones_niveles where nombre = 'Gerencia CT')] loop
     v_i := v_i + 1; v_tag := 'k4n' || v_i;
     insert into public.origenes (clave, nombre) values ('ct_k4a_' || v_i, 'CT K4 A ' || v_i) returning id into o_a;
@@ -305,7 +310,7 @@ begin
                                                     jsonb_build_object('clave', 'cotizaciones.nivel.' || v_nivel || '.editar')));
     foreach v_quien in array array[duena, asesora] loop
       foreach v_caso in array array['i', 'ii', 'iii', 'etiqueta', 'monto', 'descripcion', 'fila', 'pct', 'tipo_de_cambio', 'abierta', 'respaldo', 'condicion',
-                                     'condicion_de_dato', 'rama', 'si_no', 'fila_condicion'] loop
+                                     'condicion_de_dato', 'rama', 'si_no', 'fila_condicion', 'partes_etiqueta', 'partes_monto', 'partes_descripcion', 'partes_pct'] loop
         if v_cuadriculas ? v_caso then perform pg_temp.ct_publicar(o_d, v_cuadriculas -> v_caso); end if;
         r := pg_temp.ct_tarjeta(v_quien, case v_caso when 'i' then f_i when 'ii' then f_ii when 'iii' then f_iii else f_iv end);
         if r ? 'error' then raise exception 'nivel %, caso %: %', v_nivel, v_caso, r; end if;
@@ -420,6 +425,27 @@ begin
      or r -> 'modos' <> '[{"clave": "paralelo", "nombre": "Paralelo"}, {"clave": "unificado", "nombre": "Unificado"}]'
      or r #>> '{variante,nodo}' is distinct from 'variante' then
     raise exception 'el porcentaje, el plazo, los modos o la variante: %', r;
+  end if;
+end $$;
+rollback;
+
+-- @test tarjeta K9: un texto con datos (el porcentaje de transferencia y el nombre del cliente) sale tal cual; `nodos` trae `transferencia` con su `pct` y nada de más
+begin;
+do $$
+declare
+  duena constant uuid := '00000000-0000-0000-0000-000000000001'; o uuid := (select id from public.origenes where clave = 'subasta_usa'); f uuid; r jsonb; v_def jsonb;
+begin
+  select id into f from public.formulas where origen_id = o and version = 1;
+  v_def := pg_temp.ct_cuadricula('[{"tipo": "texto", "partes": ["Comisión giro ", {"tipo": "dato", "nodo": "transferencia", "mostrar": "porcentaje"},
+                                                                 " para ", {"tipo": "dato", "variable": "cliente_nombre"}]}]');
+  perform pg_temp.ct_publicar(o, v_def);
+  r := pg_temp.ct_tarjeta(duena, f);
+  if r ->> 'estado' is distinct from 'lista' then raise exception 'no está lista: %', r; end if;
+  if r -> 'definicion' is distinct from v_def then raise exception 'la definición no sale tal cual: %', r -> 'definicion'; end if;
+  if (select array_agg(x ->> 'id' order by x ->> 'id') from jsonb_array_elements(r -> 'nodos') x) is distinct from array['transferencia', 'transferencia_pct']
+     or (select x ->> 'pct' from jsonb_array_elements(r -> 'nodos') x where x ->> 'id' = 'transferencia') is distinct from 'transferencia_pct'
+     or r -> 'grupos' <> '[]' or r -> 'tipos_de_cambio' <> '{"buckets": {}, "modos": {}}' or r -> 'modos' <> '[]' or r -> 'variante' <> 'null' then
+    raise exception 'viaja de más o de menos: %', r;
   end if;
 end $$;
 rollback;

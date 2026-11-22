@@ -5,6 +5,7 @@ import {
   type PlantillaEnCuadricula,
 } from '../../cuadricula-de-la-tarjeta'
 import type { Geometria } from '../geometria-de-la-tarjeta'
+import { textoDeLasPartes } from '../../texto-con-datos'
 
 export type FilaDelModo = {
   id: string
@@ -92,11 +93,16 @@ export function motivoParaNoRetocar({
 
 const LARGO_DEL_NOMBRE = 30
 
-// Cómo se nombra una celda de texto para la persona: su texto de la plantilla (cortado) o, vacía, su id.
+// Cómo se nombra una celda de texto para la persona: su texto de la plantilla (cortado; de un texto con datos, sus partes de texto) o, vacía, su id.
 export function nombreDeLaCelda(plantilla: PlantillaEnCuadricula | null, id: string): string {
-  const celda = plantilla?.celdas.find((c) => c.id === id)
-  const texto =
-    celda?.contenido.tipo === 'texto' ? celda.contenido.texto.replace(/\s+/g, ' ').trim() : ''
+  const contenido = plantilla?.celdas.find((c) => c.id === id)?.contenido
+  const literal =
+    contenido?.tipo !== 'texto'
+      ? ''
+      : 'partes' in contenido
+        ? textoDeLasPartes(contenido.partes)
+        : contenido.texto
+  const texto = literal.replace(/\s+/g, ' ').trim()
   if (texto === '') return id
   const letras = [...texto]
   return letras.length > LARGO_DEL_NOMBRE ? `${letras.slice(0, LARGO_DEL_NOMBRE).join('')}…` : texto

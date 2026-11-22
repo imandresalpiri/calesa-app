@@ -10,6 +10,7 @@ import {
 import { primerDato } from '../../../../../entities/plantilla/edicion/condiciones'
 import { motivoDelTexto } from '../../../../../entities/plantilla/edicion/contenido'
 import { caracteres } from '../../../../../entities/json-de-la-base'
+import { textoDeLasPartes } from '../../../../../entities/texto-con-datos'
 import type { ContextoDePlantilla } from '../../../../../entities/plantilla/validar-plantilla'
 import { ArmadorDeCondicionesDiferido, ListaDeRespaldoDiferida } from './diferidos'
 import { ElegirDato } from './elegir-dato'
@@ -90,7 +91,8 @@ function CampoDelTexto({
   )
 }
 
-const textoDe = (c: ContenidoDeLaCelda | null) => (c?.tipo === 'texto' ? c.texto : '')
+const textoDe = (c: ContenidoDeLaCelda | null) =>
+  c?.tipo !== 'texto' ? '' : 'partes' in c ? textoDeLasPartes(c.partes) : c.texto
 
 // Elegir el tipo: Texto (con el texto de antes si lo tenía), Logo, Foto del asesor o Vacío cambian la celda; Dato espera a que se elija uno.
 function contenidoDelTipo(t: Tipo, actual: ContenidoDeLaCelda | null): ContenidoDeLaCelda | null {

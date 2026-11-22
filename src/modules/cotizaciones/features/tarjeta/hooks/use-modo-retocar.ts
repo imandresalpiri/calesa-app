@@ -140,9 +140,10 @@ function useEnvioDelModo({
   }
 }
 
-// Lo guardado que aplica a la cuadrícula de hoy, lo que se mandaría y si difieren.
+// Lo guardado que aplica a la cuadrícula de hoy, lo que se mandaría y si difieren (un texto con datos se compara con su texto resuelto, `resueltos`).
 function useCambiosDelModo(
   plantilla: PlantillaEnCuadricula | null,
+  resueltos: ReadonlyMap<string, string>,
   guardados: RetoquesDeLaTarjeta | null,
   modo: ReturnType<typeof modoDeRetoques>,
 ) {
@@ -154,30 +155,32 @@ function useCambiosDelModo(
     [plantilla, guardados],
   )
   const paraGuardar = useMemo(
-    () => (plantilla === null ? null : retoquesParaGuardar(modo.borrador, plantilla)),
-    [plantilla, modo.borrador],
+    () => (plantilla === null ? null : retoquesParaGuardar(modo.borrador, plantilla, resueltos)),
+    [plantilla, resueltos, modo.borrador],
   )
   const hayCambios =
     modo.retocando &&
     plantilla !== null &&
-    !mismosRetoques(paraGuardar, retoquesParaGuardar(delGuardado.aplican, plantilla))
+    !mismosRetoques(paraGuardar, retoquesParaGuardar(delGuardado.aplican, plantilla, resueltos))
   return { delGuardado, paraGuardar, hayCambios }
 }
 
 // El modo «Retocar» de la vista previa de una guardada: el borrador (de los guardados que aplican), lo elegido, si hay cambios, el envío y sus fallos. Vive en
 // la vista previa (que ya es diferida): su interfaz se pide aparte, al empezar. `plantilla` es la cuadrícula que se dibuja, sin retocar (nula: la tarjeta por
-// omisión, sin textos).
+// omisión, sin textos); `resueltos`, el texto resuelto de cada texto con datos (`textosConDatosResueltos()`).
 export function useModoRetocar({
   estado,
   cotizacionId,
   retoque,
   plantilla,
+  resueltos,
 }: {
   // El del reductor (`useEstadoDelModo()`): va aparte porque el modelo de la tarjeta dibuja el borrador y el modo necesita la plantilla que lee el modelo.
   estado: ReturnType<typeof useEstadoDelModo>
   cotizacionId: string | null
   retoque: RetoqueDeLaPagina | undefined
   plantilla: PlantillaEnCuadricula | null
+  resueltos: ReadonlyMap<string, string>
 }) {
   const [modo, despachar] = estado
   const guardados = retoque?.retoques ?? null
@@ -186,7 +189,12 @@ export function useModoRetocar({
     actualizadoEn: retoque?.actualizadoEn ?? '',
     despachar,
   })
-  const { delGuardado, paraGuardar, hayCambios } = useCambiosDelModo(plantilla, guardados, modo)
+  const { delGuardado, paraGuardar, hayCambios } = useCambiosDelModo(
+    plantilla,
+    resueltos,
+    guardados,
+    modo,
+  )
 
   function listo() {
     if (!hayCambios || plantilla === null) {

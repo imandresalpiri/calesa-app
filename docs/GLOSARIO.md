@@ -559,8 +559,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Configuración dice cuáles y por qué con la referencia elegida: «Ocultas con esta referencia (N)».
 - **Dato de la tarjeta** — `{tipo: 'dato', …}` de una celda: una variable de la cotización (`VARIABLES_DE_LA_TARJETA`: `empresa_nombre`, «Nombre de
   la empresa»; `fecha_larga`, `numero`, `asesor_nombre`, `asesor_telefono` «WhatsApp del asesor», `asesor_cargo` «Cargo del asesor»…) o un nodo de la fórmula con qué mostrar (`MOSTRAR`: `monto`, `etiqueta`, `descripcion`, `porcentaje`, `tc_nombre`, `tc_valor`,
-  `plazo`). Un texto no mezcla texto y variables. En el editor, «Dato» dice «Cuál dato»: «Uno», «El primero con valor» (una **lista de respaldo**) o
+  `plazo`). También va adentro de un **texto con datos**. En el editor, «Dato» dice «Cuál dato»: «Uno», «El primero con valor» (una **lista de respaldo**) o
   «Según condiciones» (las **condiciones de la tarjeta**).
+- **Texto con datos** — `{tipo: 'texto', partes}` de una celda de la tarjeta: un texto que mezcla texto literal y datos de la tarjeta insertados («Comisión giro
+  4,2 %», con el porcentaje de cada cotización); de 1 a 20 partes, al menos un dato y hasta 300 caracteres de texto. Un dato sin valor no escribe nada. En el
+  editor es «Contenido: Texto» con «Insertar dato», y cada dato insertado se ve como una **pastilla** (`TextoConDatos`, `entities/texto-con-datos.ts`).
+- **Pastilla** — un dato insertado en un texto con datos, como lo dibuja el campo del editor de la tarjeta: un solo carácter que dice el nombre del dato
+  («% Transferencia a USA», «Nombre del cliente»), que se borra entero y se toca para cambiarlo. No es el «Botón de variable» del editor de texto con variables.
 - **Lista de respaldo** — `{tipo: 'respaldo', datos}` de una celda de la tarjeta, «El primero con valor» en el editor: de 2 a 5 datos de la tarjeta en orden;
   la tarjeta muestra el primero que tiene valor y, si ninguno, la celda vacía (`resolverElContenido()`). No es el título de respaldo de la cotización
   («Cotización n.º N»).
@@ -1152,7 +1157,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   variables resaltadas, un **botón de variable** por cada una que ese texto acepta (inserta `{clave}` en el cursor o sobre lo seleccionado), el contador, el aviso de
   las que no acepta y la vista previa con datos de ejemplo. «Botón de variable» no es la «Ficha» (la del lead o la del vehículo). Hoy lo usa el Mensaje del portal.
 - **Variable de un texto** — `{clave}` dentro de un texto configurable (`partesDelTexto()`, `@/shared/lib/texto-con-variables`): toda `{…}` cuenta, y la que el texto no acepta se
-  rechaza. No es el «Dato de la tarjeta» (una celda de la tarjeta de la cotización, que no mezcla texto con datos).
+  rechaza. No es el «Dato de la tarjeta» (una celda de la tarjeta de la cotización) ni el «Texto con datos» (sus partes, sin llaves).
 - **Estado de un documento legal** — `estadoDeLegal()` (`web`): `publicada` (hay un texto guardado: es el que muestra el sitio) · `sin-publicar` (nunca se escribió);
   es el badge de la tarjeta de cada documento de «Legales». Guardar publica: no hay «Borrador» ni «Programada» (son de las guías). No: «versión», «borrador».
 - **Estado de la integración** — `estadoDeIntegracion()` (`empresa`): `activa` · `apagada` · `falta_la_clave`; es el badge de la tarjeta de cada integración.
