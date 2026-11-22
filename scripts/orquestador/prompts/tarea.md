@@ -49,6 +49,7 @@ y los codemods siguen bloqueados.
   `test:e2e:completo` salvo que la spec lo pida (el cierre de la construcción corre el Nivel 3): si la tarea dispara el Nivel 2, lo corre
   el CI. Todo en **una** corrida en segundo plano y un solo aviso al terminar: cada aviso de un proceso en segundo plano relee todo el
   contexto de la sesión.
+- **Esperar no es sondear:** lo largo (`verificar.sh`, `e2e-afectados.mjs --correr`, `db:probar`) se lanza con `run_in_background` y se espera su aviso; no leas el log hasta que llegue, no armes bucles de espera ni un Monitor de intervalo, y tras tu `RESULTADO` no rearmes esperas. El hook `PreToolUse` rechaza un Bash en primer plano que sondea y un Monitor que sólo cuenta tiempo.
 - Lo temporal (logs, capturas, guiones de prueba) va en `$TMPDIR`, que es de esta tarea; nunca en `/tmp`, que es de toda la máquina.
 - Nadie prueba a mano. Lo que sería «pruébalo tú» es un e2e. En las pantallas nuevas o rehechas, además, haz tú el recorrido
   (levanta la app del carril, entra con una cuenta creada como en los e2e, toma capturas en escritorio y celular y míralas) y di en el PR qué viste.
