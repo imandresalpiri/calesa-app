@@ -9,6 +9,7 @@ import {
   darRolDePrueba,
 } from './soporte/base'
 import { CLAVE, entrar, esMovil } from './soporte/inventario'
+import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 
 // Los avisos de la matriz de Roles no se dibujan en línea: un «!» junto al nombre de cada rol que los tiene (en el celular, en la barra «Rol a la vista») y
@@ -80,9 +81,10 @@ const modalDe = (page: Page, titulo: string) => page.getByRole('dialog', { name:
 
 test('sin avisos en línea: ni bajo el título ni bajo el nombre de un rol; el «!» de la página los trae', async ({
   page,
-}) => {
+}, info) => {
   await entrar(page, duena)
   await abrirMatriz(page)
+  await capturar(page, info, 'matriz-de-la-duena')
   await expect(page.getByText(AVISO_CON_PERMISO)).toHaveCount(0)
   await expect(page.getByText(MOTIVO_NO_DOMINADO)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Roles y permisos', level: 1 })).toHaveText(
@@ -93,6 +95,7 @@ test('sin avisos en línea: ni bajo el título ni bajo el nombre de un rol; el �
   await expect(modal).toBeVisible()
   await expect(modal.getByText(AVISO_CON_PERMISO)).toBeVisible()
   await expect(page).toHaveURL(/panel=avisos-de-la-pagina/)
+  await capturar(page, info, 'avisos-de-la-pagina')
   await page.keyboard.press('Escape')
   await expect(modal).toHaveCount(0)
   await expect(page).not.toHaveURL(/panel=/)
@@ -113,9 +116,10 @@ test('un rol sin avisos no tiene botón; el de sistema avisa que no se elimina',
 
 test('quien no domina un rol lo ve en su «!»: con cantidad, por URL, con teclado y el foco vuelve', async ({
   page,
-}) => {
+}, info) => {
   await entrar(page, gestora)
   await abrirMatriz(page, rolPoderoso())
+  await capturar(page, info, 'matriz-de-la-gestora')
   await expect(page.getByText(MOTIVO_NO_DOMINADO)).toHaveCount(0)
 
   const boton = botonDe(page, rolPoderoso())
@@ -126,6 +130,7 @@ test('quien no domina un rol lo ve en su «!»: con cantidad, por URL, con tecla
   await expect(modal.getByText(MOTIVO_NO_DOMINADO)).toBeVisible()
   await expect(page).toHaveURL(/panel=avisos/)
   await expect(page).toHaveURL(/rol=/)
+  await capturar(page, info, 'avisos-del-rol')
   await page.keyboard.press('Escape')
   await expect(modal).toHaveCount(0)
   await expect(boton).toBeFocused()

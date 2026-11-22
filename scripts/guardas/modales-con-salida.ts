@@ -80,6 +80,10 @@ export const MODALES: Record<string, RegistroDeModal> = {
     sinFormulario:
       '«Preferencias» del perfil: cada opción se aplica y se guarda al elegirla; no hay nada tipeado que se pierda al cerrar («Listo» sólo cierra)',
   },
+  'src/modules/equipo/features/roles/components/avisos-de-roles.tsx': {
+    sinFormulario:
+      '«Avisos de <rol>» de la matriz de Roles: de sólo lectura, sin un campo que perder',
+  },
   // --- flujos
   'src/modules/flujos/features/fases/components/resultado-de-la-copia.tsx': {
     sinFormulario:
