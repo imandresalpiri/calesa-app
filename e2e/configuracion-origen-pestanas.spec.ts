@@ -128,6 +128,7 @@ test('E2E la entrada recuerda la última pestaña que cada persona abrió en cad
   )
 
   // Otra persona no hereda lo de la dueña: la mixta entra a A por la primera que abre (Planilla).
+  await page.context().clearCookies()
   await entrar(page, mixta, { fresco: true })
   expect((await redireccion(page, `/configuracion/origenes/${a.id}`)).a).toBe(
     `/configuracion/origenes/${a.id}/planilla`,

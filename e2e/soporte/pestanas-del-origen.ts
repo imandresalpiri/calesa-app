@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Page, type Request } from '@playwright/test'
 
 export type PestanaDelOrigenEnE2e =
   'Fases' | 'Planilla' | 'Hoja' | 'Tarjeta' | 'Campos' | 'Categorías'
@@ -29,3 +29,8 @@ export async function enLaPestana(
     page.getByRole('tab', { name: nombreDeLaPestana(titulo), selected: true, includeHidden }),
   ).toBeVisible()
 }
+
+// La Server Action que recuerda la pestaña abierta (`recordarLaPestana`, sus argumentos llevan `parte`): sale sola al montar las pestañas, sin esperar, y puede
+// caer después de que un spec empiece a contar los pedidos de lo que prueba. Esos conteos la descartan con esto.
+export const esLaQueRecuerdaLaPestana = (pedido: Request): boolean =>
+  (pedido.postData() ?? '').includes('"parte":')

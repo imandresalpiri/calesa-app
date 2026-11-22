@@ -80,6 +80,8 @@ async function crearLaTabla(page: Page) {
 async function publicarUnaFila(page: Page, editor: Locator) {
   // Una fila y publicar: la versión 2.
   await editor.getByRole('button', { name: 'Sumar una fila' }).click()
+  // La fila nueva se lleva el foco dos cuadros después: tipear antes lo manda a «Puerto».
+  await expect(editor.getByLabel('Puerto, fila 1')).toBeFocused()
   await editor.getByLabel('Puerto, fila 1').fill('Arica')
   await editor.getByLabel('Año, fila 1').fill('2024')
   await editor.getByLabel('Monto, fila 1').fill('150')

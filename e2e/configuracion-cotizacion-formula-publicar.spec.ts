@@ -1,7 +1,7 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
 import { abrirLasVersiones } from './soporte/barra-de-la-formula'
-import { enLaPestana } from './soporte/pestanas-del-origen'
+import { enLaPestana, esLaQueRecuerdaLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
   PREFIJO_ROL_E2E,
@@ -86,7 +86,7 @@ test('quien configura el origen publica su borrador con nota; sin nota no se pid
   await abrirFormula(page, alDia.id)
   const acciones: string[] = []
   page.on('request', (pedido) => {
-    if (pedido.headers()['next-action']) {
+    if (pedido.headers()['next-action'] && !esLaQueRecuerdaLaPestana(pedido)) {
       acciones.push(pedido.url())
     }
   })

@@ -2,7 +2,6 @@
 // «⋯» de la fila activa y el arrastre por el número de fila. Las celdas se buscan por la fila (`data-fila`, el id del nodo) y la columna: el número de una fila
 // cambia al insertar o mover, y la fórmula de prueba suma las suyas antes. `a1De()` lee el nombre que tiene ahora («C7»).
 import { expect, type Locator, type Page } from '@playwright/test'
-import { barraDeLaFormula } from './barra-de-la-formula'
 import { enLaPestana } from './pestanas-del-origen'
 import { abrirLaFormula } from './rutas-de-la-formula'
 import { literal, sql } from './sql'
@@ -24,9 +23,9 @@ export const entradaDeLaCelda = (page: Page) => grilla(page).getByRole('combobox
 export const sugerencias = (page: Page) =>
   planilla(page).getByRole('listbox', { name: 'Sugerencias' })
 export const guardado = (page: Page) => planilla(page).locator('[data-guardado] [role="status"]')
-// «Guardar el borrador» va en la barra de la fórmula, arriba de la planilla.
+// «Guardar el borrador»: en la página del origen va en la barra de la fórmula, arriba de la planilla; en la puesta en marcha, que no tiene barra, en la planilla.
 export const guardar = (page: Page) =>
-  barraDeLaFormula(page).getByRole('button', { name: 'Guardar el borrador', exact: true })
+  page.getByRole('button', { name: 'Guardar el borrador', exact: true })
 
 // El nombre A1 de la celda de esa fila hoy («C7»).
 export async function a1De(

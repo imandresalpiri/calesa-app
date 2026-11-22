@@ -218,7 +218,8 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'cotizacion/<origen>/tablas': {
     de: () => `/configuracion/cotizacion/${a.id}/tablas?tabla=${UNA_TABLA}`,
-    a: () => `/configuracion/origenes/${a.id}/planilla?panel=tablas&tabla=${UNA_TABLA}`,
+    // `next.config.ts` pone la consulta pedida antes que la del destino.
+    a: () => `/configuracion/origenes/${a.id}/planilla?tabla=${UNA_TABLA}&panel=tablas`,
   },
   'cotizacion/<origen>': {
     de: () => `/configuracion/cotizacion/${a.id}?x=1`,
