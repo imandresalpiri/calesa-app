@@ -455,7 +455,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   `?origen=`, `q`, `demoradas`, `por_aprobar`, `contenedor`, `booking`, `naviera`, `cursor`), `/logistica/bandeja/[grupo]` (un grupo entero: `demorados`, `trabados`, `por-aprobar`, `por-vencer`,
   `llegadas`, `salidas`, `sin-resolver`; `cursor`), `/logistica/vehiculo/[id]` (la página de la unidad, a la que lleva todo vehículo y la notificación de demora; `?hueco=documentos` abre esa
   pestaña o ese bloque; **meta:** en escritorio, a 1440×900 y a 1280×800, la unidad entra sin desplazar la página, y mover, subir y anotar se hacen sin salir de ella), `/embarques`, `/aduana`, `/gastos` (`?ver=gastos|pagos`). La página de la unidad tiene el hueco «Repuestos» (con `repuestos.ver`): «Espera N repuestos», cada ítem con su proyecto,
-  «Para pasar a «X» espera que llegue a «Y».» y el enlace a su panel; sin espera, «Este vehículo no espera ningún repuesto.». Ver «Logística: estados propios».
+  «Para pasar a «X» espera que llegue a «Y».» y el enlace a su panel; sin espera, «Este vehículo no espera ningún repuesto.». Ver «Logística: estados propios». **Configurar:** el ⚙ «Configurar» (con `logistica.catalogos.gestionar`) lleva a «Logística (config)»; está en toda página de Logística, a la derecha de la barra, y
+  es la página actual (`aria-current`) mientras estás en la configuración.
 - **Repuestos** — `/repuestos` (`repuestos.ver`): proyectos por cursor `numero` (`?q=` de 3 letras o un número,
   `?estado=abiertos|cerrados|todos`, `?por=`, `?cursor=`) con número, vehículo o «Externo», cliente, estado derivado, ítems («200+») y
   última actividad; «Nuevo proyecto» (`repuestos.editar`, `N`, `?panel=nuevo-proyecto`, `&vehiculo=<id>` lo abre vinculado, `&lead=<id>` con el
@@ -566,16 +567,25 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (`/comprobantes`, con `empresa.ajustes.gestionar`: la tarjeta con la serie vigente y el próximo comprobante, y «Cambiar serie» en su modal, con versión; sin el
   permiso, apagada con «Pide el permiso «Ajustes de la empresa».» y su URL abre Datos). Las URLs viejas redirigen en el servidor
   (`url-vieja.ts`): `?seccion=` a su sub-ruta, y `?tc=`, `?moneda=` y los `?panel=` de crear (con o sin `?seccion=`) a Monedas con ellos.
-- **Catálogos** — `/configuracion/catalogos` (cualquiera de los permisos de sus catálogos): lo que es de toda la empresa y no de un origen. No
+- **Catálogos** — `/configuracion/catalogos` (`cotizaciones.configurar`): lo de toda la empresa que no es de un origen ni de la logística. No
   tiene página propia ni pestañas: la raíz abre (308, por persona) la primera sub-sección que la persona puede abrir, o el inicio de Configuración.
-  Cada catálogo es una sub-ruta con su `h1` y su frase, en dos tramos del menú. Los niveles de acceso y «Quién crea y quién ve» ya no son catálogos: viven en la matriz de
-  Roles, bloque «Cotizaciones»; sus rutas de antes (`/niveles`, `/quien-crea-y-quien-ve`) responden 308 a `/configuracion/roles?bloque=cotizaciones` con el resto de la consulta. Los colores y la
-  vigencia, tampoco: son tarjetas de «Para todos los orígenes» (Orígenes). **«Logística»** — «Puertos» (`/puertos`: nombre, país, código, orden y activo), «Navieras» (`/navieras`: nombre y activa;
-  sin «Eliminar»: se desactivan) y «Categorías de gasto» (`/categorias-de-gasto`: nombre, propósito de la lista fija de la base, orden y activa; una con
-  gastos no se elimina), con `logistica.catalogos.gestionar` y sólo si algún área llena el catálogo, y «Tipos de documento» (`/tipos-de-documento`: los
-  de la empresa; los cambia quien gestiona los catálogos de logística y los leen quien configura un flujo o los repuestos); y, sin rótulo,
-  **«Tablas compartidas»** (`/tablas`, `cotizaciones.configurar`; `?tabla=<id>`, `?panel=publicar-tabla|nueva-tabla|columnas-de-tabla|desactivar-tabla`): las tablas de referencia sin origen, con el
-  aviso de a qué orígenes les cambia. Sin título de bloque ni segunda frase: «Nuevo …» arriba a la derecha y la lista. Ver «Logística: estados propios».
+  Hoy es **«Tablas compartidas»** (`/tablas`; `?tabla=<id>`, `?panel=publicar-tabla|nueva-tabla|columnas-de-tabla|desactivar-tabla`): las tablas de referencia sin origen, con el
+  aviso de a qué orígenes les cambia. Sin título de bloque ni segunda frase: «Nuevo …» arriba a la derecha y la lista. Los catálogos de la logística viven en
+  Logística › Configuración («Logística (config)»); sus rutas de antes (`/configuracion/catalogos/puertos|navieras|categorias-de-gasto|tipos-de-documento` y
+  `/configuracion/logistica/…`) responden 308 ahí, con la consulta. Los niveles de acceso y «Quién crea y quién ve» viven en la matriz de Roles, bloque «Cotizaciones»
+  (`/niveles` y `/quien-crea-y-quien-ve` responden 308 a `/configuracion/roles?bloque=cotizaciones`); los colores y la vigencia, en «Para todos los orígenes» (Orígenes).
+- **Logística (config)** — `/logistica/configuracion` (cualquiera de los permisos de sus pestañas): una página dentro de Logística con la tira de pestañas **Puertos ·
+  Navieras · Categorías de gasto · Tipos de documento** (`PestanasConDesborde`, una sub-ruta por pestaña: `/puertos`, `/navieras`, `/categorias-de-gasto`,
+  `/tipos-de-documento`) y el `h1` «Configuración de logística». La raíz abre (308, por persona) la primera pestaña que la persona puede abrir. Cada pestaña es el
+  editor de su catálogo a todo el ancho: «Nuevo …» arriba a la derecha y la lista; la fila abre «Editar …» con un toque o con Enter (para el lector de pantalla,
+  «Editar <nombre>») y su «⋯» (Editar primero) trae el resto, sin botón «Editar» ni flechas de orden a la vista; el orden de puertos y categorías es un número del
+  modal. Puertos (nombre, país, código, orden y activo), Navieras (nombre y activa; sin «Eliminar»: se desactivan) y Categorías de gasto (nombre, propósito de la
+  lista fija de la base, orden y activa; una con gastos no se elimina) con `logistica.catalogos.gestionar` y sólo si algún área llena el catálogo. Tipos de
+  documento (los de toda la empresa) con ese permiso para cambiarlos y de sólo lectura, con el motivo, con `flujos.configurar` o `repuestos.configurar`; sus flechas de orden
+  se quedan (ordenan por RPC). **Entrada:** el botón ⚙ «Configurar» (nombre accesible «Configurar la logística») en la fila de la cabecera de Logística, a la derecha de la barra, en toda
+  página de Logística y sólo con `logistica.catalogos.gestionar`; en la configuración lleva `aria-current="page"` y ningún enlace de la barra queda marcado. Una pestaña
+  sin permiso va apagada con su motivo y su URL dice «No tienes permiso para ver esto» (cada página comprueba la suya). El buscador de Configuración las sigue encontrando
+  («puertos», «navieras», «gastos», «documentos», «logística»: «Logística › Puertos»…) y lleva aquí. Ver «Logística: estados propios».
 - **Repuestos (config)** — `/configuracion/repuestos` (`repuestos.configurar`) abre `/flujo`. **Flujo de repuestos** (`/configuracion/repuestos/flujo`):
   el editor del flujo (el de la pestaña Fases de un origen) sobre el flujo de los repuestos, sin selector. **Catálogos** (`/configuracion/repuestos/catalogos`):
   tipo de pieza, condición, vía de transporte y país de origen (agregar, editar nombre, orden y activo, desactivar, eliminar sin uso; tope 200 por
@@ -637,8 +647,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     `/configuracion/cotizacion/<origen>/formula|hoja|tarjeta|tablas` (y `/<origen>` solo) a su pestaña del origen, `/configuracion/cotizacion/general[/colores|/vigencia]`,
     `/configuracion/catalogos/colores|vigencia` y `?seccion=tonos|colores|ajustes|vigencia` a `/configuracion/origenes?panel=colores|vigencia` (si la URL vieja
     trae su propio `?panel=`, manda ése y va solo), `general/niveles` y `?seccion=niveles` a Catálogos, `/configuracion/flujos?origen=` a sus Fases (`?ambito=repuestos` al de repuestos;
-    sin origen, el primero que la persona configura), `?seccion=documentos` sin `flujos.configurar` a Tipos de documento, y `/configuracion/logistica/*`
-    a su catálogo. Lo que no se resuelve, a la lista de orígenes.
+    sin origen, el primero que la persona configura), `?seccion=documentos` sin `flujos.configurar` a Logística › Configuración › Tipos de documento, y `/configuracion/logistica/*`
+    a su pestaña. Lo que no se resuelve, a la lista de orígenes.
   - Estados: cargando con el esqueleto del marco (migas, cabecera y pestañas) y el de cada pestaña; error con reintentar y PT409 los de cada editor.
 - **Nuevo origen** — `/configuracion/origenes/nuevo` (`origenes.gestionar`; sin él, «No puedes …» con su motivo): `h1` «Nuevo origen», a la izquierda el
   paso a paso de la puesta en marcha (Datos el actual, los demás todavía sin enlace) y el formulario de Datos (tipo, nombre, sustantivo y género, color,
@@ -1029,7 +1039,7 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 - **Entrada:** la pestaña Fases de un origen con `flujos.configurar` en ese origen, y Repuestos › Flujo de repuestos con `repuestos.configurar`;
   sin el permiso, la pestaña va apagada con su motivo y su URL dice «No puedes abrir esta pestaña». Los tipos de documento de la empresa, sin
-  diagrama ni panel, en Catálogos › Tipos de documento.
+  diagrama ni panel, en Logística › Configuración › Tipos de documento.
 - **Sin selector:** cada página abre un flujo fijo, nunca el de otro origen. Vacíos: el flujo sin fases («El flujo de <origen> todavía no tiene
   fases.»); el flujo que desapareció.
 - **Empezar el flujo** (el vacío del flujo sin fases): «Cópialo de otro origen y ajústalo, o arma las fases una por una.» con «Empezar con las
@@ -1086,8 +1096,8 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 ### Flujos: tipos de documento (estados propios)
 
-Orígenes › un origen › Flujo › «Tipos de documento» de la barra del flujo, en su panel (`?seccion=documentos`), y Catálogos › Tipos de documento
-(`/configuracion/catalogos/tipos-de-documento`: los de la empresa, en la página). Hermana de «Tipos de seguimiento» (patrón de `shared/ui/lista`, orden con
+Orígenes › un origen › Flujo › «Tipos de documento» de la barra del flujo, en su panel (`?seccion=documentos`), y Logística › Configuración › Tipos de documento
+(`/logistica/configuracion/tipos-de-documento`: los de la empresa, en la página, a todo el ancho y sin título de grupo; la fila dice «Editar <nombre>»). Hermana de «Tipos de seguimiento» (patrón de `shared/ui/lista`, orden con
 teclado, «⋯», modal por URL), con **dos grupos**, **sólo lectura con motivo** y **una lista que se relee** (ninguna RPC la devuelve).
 
 - **Grupos:** «De toda la empresa» (`logistica.catalogos.gestionar`) y, bajo el selector, «Sólo de este flujo» (`flujos.configurar` o
@@ -1309,8 +1319,8 @@ y enfoca su título).
   de la declaración»: «Quitar» marca (con «Deshacer»), buscador (3, hasta 10) con «Agregar» y «Guardar vehículos» manda todo junto (hasta
   200); con canal queda todo apagado: la composición queda fija. «Asignar canal» es un `<Confirmar>` en `?panel=canal` con el selector
   adentro; pide al menos un vehículo. El canal no se quita.
-- **Catálogos › Logística:** sin `logistica.catalogos.gestionar`, sus catálogos no están en el menú y su URL abre el primer catálogo que la persona
-  abre (sin ninguno, el inicio de Configuración). **Categorías de gasto:** esqueleto, vacío, error con «Reintentar»; el «⋯» lleva Editar,
+- **Catálogos › Logística:** sin `logistica.catalogos.gestionar`, no hay ⚙ «Configurar» en la cabecera de Logística, la pestaña va apagada con su motivo y su URL dice «No tienes permiso para ver esto»
+  (la raíz abre la primera pestaña que la persona abre). Cada catálogo conserva su tope y su aviso. **Categorías de gasto:** esqueleto, vacío, error con «Reintentar»; el «⋯» lleva Editar,
   Activar/Desactivar y Eliminar (`?panel=eliminar-categoria&categoria=<id>`; con gastos el diálogo dice que está en uso, propone
   desactivarla y no se cierra); el orden es un número del modal; una de propósito «Tributos» no cambia de propósito (Aduana la lee).
   **Prorratear** (hueco del resumen de un grupo, `?panel=prorratear`): muestra cuánto le toca a cada unidad y la suma antes de confirmar;
