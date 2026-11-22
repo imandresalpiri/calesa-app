@@ -7,7 +7,8 @@ import { NoSeAbre } from '../../no-se-abre'
 
 export const metadata: Metadata = { title: 'Campos del origen' }
 
-// Configuración › Orígenes › un origen › Campos: los datos clave, los datos comunes y el layout de campos, con los desactivados al final.
+// Configuración › Orígenes › un origen › Campos: las casillas de dato clave, los datos comunes y los campos por grupo, con los desactivados
+// plegados al final.
 // En un origen de subasta, quien gestiona ve además lo que apibara trajo y el origen todavía no tiene como campo.
 export default async function PaginaCamposDelOrigen({
   params,
@@ -25,20 +26,18 @@ export default async function PaginaCamposDelOrigen({
   // Si no se pudo averiguar, el editor sigue: es un aviso, no la pantalla.
   const datosNuevos = nuevos?.ok ? nuevos.data : []
   return (
-    <div className="grid min-w-0 gap-4">
-      <div className="grid gap-6">
-        {datosNuevos.length > 0 ? (
-          <DatosNuevosDeApibara origenId={origen.id} datos={datosNuevos} />
-        ) : null}
-        <EditorDeCampos
-          origenId={origen.id}
-          tipoDeOrigen={origen.tipo}
-          campos={campos}
-          puedeGestionar={puedeGestionar}
-          datosClave={origen.datosClave}
-          versionDelOrigen={origen.actualizadoEn}
-        />
-      </div>
+    <div className="grid min-w-0 gap-6">
+      {datosNuevos.length > 0 ? (
+        <DatosNuevosDeApibara origenId={origen.id} datos={datosNuevos} />
+      ) : null}
+      <EditorDeCampos
+        origenId={origen.id}
+        tipoDeOrigen={origen.tipo}
+        campos={campos}
+        puedeGestionar={puedeGestionar}
+        datosClave={origen.datosClave}
+        versionDelOrigen={origen.actualizadoEn}
+      />
     </div>
   )
 }

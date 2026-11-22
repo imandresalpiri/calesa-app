@@ -1,64 +1,67 @@
-import {
-  destinoDeMovimiento,
-  type CampoBase,
-  type GrupoDeCampos,
-  type Sentido,
-} from '@/shared/lib/campos'
-import type { ReactNode } from 'react'
-import { FilaDeCampo } from './fila-de-campo'
-import type { BanderaDeCampo } from './tipos'
+'use client'
 
-type Props<Campo extends CampoBase> = {
-  grupos: readonly GrupoDeCampos<Campo>[]
-  // Todos, también los desactivados: el orden se mide sobre el layout entero.
-  campos: readonly Campo[]
-  banderas: readonly BanderaDeCampo[]
-  insignias?: ((campo: Campo) => readonly string[]) | undefined
-  accionDeFila?: ((campo: Campo) => ReactNode) | undefined
-  puedeGestionar: boolean
-  ocupado: boolean
-  alAbrir: (id: string) => void
-  alMover: (campo: Campo, sentido: Sentido) => void
-  alCambiarBandera: (campo: Campo, clave: string, valor: boolean) => void
+import { destinoDeMovimiento, idDeFila, type CampoBase } from '@/shared/lib/campos'
+import type { Envoltorios, PropsDelCuerpo, TextosDeCasilla } from './cuerpo'
+
+type Props = Pick<
+  PropsDelCuerpo,
+  | 'grupos'
+  | 'todos'
+  | 'insignias'
+  | 'llaves'
+  | 'casillas'
+  | 'puedeGestionar'
+  | 'conAsa'
+  | 'alElegir'
+> & { envoltorios: Envoltorios }
+
+// El id de la lista de un grupo para el arrastre: un campo sólo se ordena dentro del suyo.
+export const idDeGrupo = (nombre: string | null) => `grupo:${nombre ?? ''}`
+
+function textosDe(casillas: NonNullable<Props['casillas']>): TextosDeCasilla {
+  const { insignia, hacer, quitar, motivoTope, notaAlDesactivar, zona } = casillas
+  return { insignia, hacer, quitar, motivoTope, notaAlDesactivar, zona }
 }
 
-// Los campos activos, un bloque por grupo, en el orden del layout.
-export function GruposDeCampos<Campo extends CampoBase>(props: Props<Campo>) {
-  const { grupos, campos, banderas, insignias, accionDeFila, puedeGestionar, ocupado } = props
-  const { alAbrir, alMover, alCambiarBandera } = props
+// Los campos activos, un bloque por grupo, en el orden del layout; desde 64 rem, en dos columnas.
+export function GruposDeCampos(props: Props) {
+  const { grupos, todos, insignias, llaves, casillas, puedeGestionar, conAsa, alElegir } = props
+  const { Lista, Fila } = props.envoltorios
+  const enCasillas = new Set(casillas?.lista.map((casilla) => casilla.llave))
+  const textos = casillas ? textosDe(casillas) : null
+  const topeLleno = casillas !== null && casillas.lista.length >= casillas.tope
+  const casillaDe = (campo: CampoBase) => {
+    const llave = llaves.get(campo.id)
+    return textos === null || llave === undefined
+      ? null
+      : { textos, es: enCasillas.has(llave), topeLleno }
+  }
   return (
-    <>
+    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 @min-[64rem]/campos:grid-cols-2">
       {grupos.map((grupo) => (
-        <div key={grupo.nombre ?? 'sin-grupo'} className="grid gap-2">
+        <div key={grupo.nombre ?? 'sin-grupo'} className="grid min-w-0 gap-2">
           <h3 className="text-(length:--text-sm) font-medium text-(--color-ink-soft)">
             {grupo.nombre ?? 'Sin grupo'}
           </h3>
-          <ul className="divide-y divide-(--color-line) overflow-hidden rounded-(--radius-card) border border-(--color-line) bg-(--color-surface)">
-            {grupo.campos.map((campo) => (
-              <FilaDeCampo
-                key={campo.id}
-                campo={campo}
-                banderas={banderas}
-                insignias={insignias?.(campo) ?? []}
-                accion={accionDeFila?.(campo)}
-                puedeGestionar={puedeGestionar}
-                ocupado={ocupado}
-                puedeSubir={destinoDeMovimiento(campos, campo.id, 'subir') !== null}
-                puedeBajar={destinoDeMovimiento(campos, campo.id, 'bajar') !== null}
-                alAbrir={() => {
-                  alAbrir(campo.id)
-                }}
-                alMover={(sentido) => {
-                  alMover(campo, sentido)
-                }}
-                alCambiarBandera={(clave, valor) => {
-                  alCambiarBandera(campo, clave, valor)
-                }}
-              />
-            ))}
-          </ul>
+          <Lista id={idDeGrupo(grupo.nombre)} ids={grupo.campos.map((campo) => idDeFila(campo.id))}>
+            <ul className="grid grid-cols-[minmax(0,1fr)] divide-y divide-(--color-line) rounded-(--radius-card) border border-(--color-line) bg-(--color-surface)">
+              {grupo.campos.map((campo) => (
+                <Fila
+                  key={campo.id}
+                  campo={campo}
+                  insignias={insignias.get(campo.id) ?? []}
+                  puedeGestionar={puedeGestionar}
+                  puedeSubir={destinoDeMovimiento(todos, campo.id, 'subir') !== null}
+                  puedeBajar={destinoDeMovimiento(todos, campo.id, 'bajar') !== null}
+                  casilla={casillaDe(campo)}
+                  conAsa={conAsa}
+                  alElegir={alElegir}
+                />
+              ))}
+            </ul>
+          </Lista>
         </div>
       ))}
-    </>
+    </div>
   )
 }

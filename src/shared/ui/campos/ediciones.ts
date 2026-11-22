@@ -48,19 +48,21 @@ export function edicionesDeCampos<
   return {
     crear: async (nuevo) => {
       const resultado = resultadoDeAccion(await conRed(creando.executeAsync(nuevo)))
-      return cerrarConAviso(resultado, `Campo «${nuevo.etiqueta.trim()}» creado`)
+      // Un rechazo lo dice el panel, junto a «Crear campo».
+      return cerrarConAviso(resultado, `Campo «${nuevo.etiqueta.trim()}» creado`, 'todo')
     },
+    // Un conflicto lo dice el panel, con «Recargar».
     guardar: async (campo, cambios) =>
-      cerrarConAviso(await guardar(campo, cambios), `Campo «${campo.etiqueta}» guardado`),
-    // Una bandera (en tarjeta, filtrable, solo la cartera): sin toast, el interruptor ya lo dice.
-    cambiarBandera: async (campo, cambios) => cerrarConAviso(await guardar(campo, cambios), null),
-    // Desactivar y reactivar son reversibles: se hace y se ofrece «Deshacer» con la versión nueva.
+      cerrarConAviso(await guardar(campo, cambios), `Campo «${campo.etiqueta}» guardado`, [
+        'conflicto',
+      ]),
+    // Desactivar y activar son reversibles: se hace y se ofrece «Deshacer» con la versión nueva.
     cambiarActivo: async (campo, activo) => {
       const resultado = cerrarConAviso(await guardar(campo, soloActivo(activo)), null)
       if (resultado.ok) {
         const deshacer = resultado.data.actualizadoEn
         avisarConDeshacer(
-          activo ? `«${campo.etiqueta}» reactivado` : `«${campo.etiqueta}» desactivado`,
+          activo ? `«${campo.etiqueta}» activado` : `«${campo.etiqueta}» desactivado`,
           () => {
             void guardar(campo, soloActivo(!activo), deshacer).then((vuelta) =>
               cerrarConAviso(vuelta, null),

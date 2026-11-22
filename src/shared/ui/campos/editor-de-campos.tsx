@@ -1,16 +1,23 @@
 'use client'
 
-import { PlusIcon } from 'lucide-react'
-import { parseAsString, useQueryStates } from 'nuqs'
-import { useState } from 'react'
-import { agruparCampos, destinoDeMovimiento, type CampoBase } from '@/shared/lib/campos'
+import { useDeferredValue, useId } from 'react'
+import { agruparCampos, camposQueCoinciden, coincide, type CampoBase } from '@/shared/lib/campos'
 import { Aviso } from '@/shared/ui/aviso'
-import { Button } from '@/shared/ui/button'
-import { EstadoVacio } from '@/shared/ui/estados'
-import { CamposDesactivados } from './campos-desactivados'
-import { GruposDeCampos } from './grupos-de-campos'
+import { CabeceraDelEditor } from './cabecera-del-editor'
+import type { PropsDelCuerpo } from './cuerpo'
+import { CuerpoDelEditor } from './cuerpo-del-editor'
+import { CuerpoConArrastreDiferido } from './diferidos'
+import { insigniasDeLosCampos, llavesDeLosCampos } from './insignias'
 import { PanelDeCampo } from './panel-de-campo'
-import type { ConfiguracionDeCampos, EdicionesDeCampos } from './tipos'
+import type {
+  CasillasDelEditor,
+  ConfiguracionDeCampos,
+  EdicionesDeCampos,
+  FijosDelEditor,
+} from './tipos'
+import { useAccionesDelEditor } from './use-acciones-del-editor'
+import { useOrdenOptimista } from './use-orden-optimista'
+import { useParametrosDelEditor } from './use-parametros-del-editor'
 
 type Props<Campo extends CampoBase, Cambios extends object, Nuevo> = {
   // Todos, también los desactivados, en el orden del layout.
@@ -18,129 +25,86 @@ type Props<Campo extends CampoBase, Cambios extends object, Nuevo> = {
   puedeGestionar: boolean
   configuracion: ConfiguracionDeCampos<Campo, Cambios, Nuevo>
   ediciones: EdicionesDeCampos<Cambios, Nuevo>
+  // En un origen, las casillas de dato clave y los datos comunes; en los leads, nada.
+  casillas?: CasillasDelEditor | null
+  fijos?: FijosDelEditor | null
 }
 
-const CAMPO_NUEVO = 'nuevo'
-
-function CabeceraDelEditor({
-  titulo,
-  puedeGestionar,
-  alCrear,
-}: {
-  titulo: string
-  puedeGestionar: boolean
-  alCrear: () => void
-}) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <h2 id="campos-titulo" className="text-(length:--text-lg) font-medium text-(--color-ink)">
-        {titulo}
-      </h2>
-      <Button
-        variant="outline"
-        className="h-11 md:h-8"
-        disabled={!puedeGestionar}
-        onClick={alCrear}
-      >
-        <PlusIcon aria-hidden />
-        Nuevo campo
-      </Button>
-    </div>
-  )
-}
-
-// Una edición a la vez: cada una manda la versión que vio, y la siguiente espera a la nueva.
-function useUnaEdicionALaVez() {
-  const [ocupado, setOcupado] = useState(false)
-  async function conBloqueo(trabajo: () => Promise<unknown>) {
-    setOcupado(true)
-    try {
-      await trabajo()
-    } finally {
-      setOcupado(false)
-    }
-  }
-  return { ocupado, conBloqueo }
-}
-
-// La pestaña «Campos»: el layout agrupado como lo ve el formulario. Cada bandera guarda sola;
-// el resto de un campo se edita en su panel (`?campo=`).
+// La pantalla «Campos» de un origen y de los leads: buscar, «Nuevo campo», las casillas de dato clave (si las hay), los grupos con sus
+// filas (tocar abre el panel `?campo=`; el «⋯» tiene el resto) y los desactivados, plegados. El orden se cambia arrastrando el asa
+// (diferido) o con «Subir» y «Bajar» del «⋯»; con una búsqueda escrita no se arrastra.
 export function EditorDeCampos<Campo extends CampoBase, Cambios extends object, Nuevo>(
   props: Props<Campo, Cambios, Nuevo>,
 ) {
-  const { campos, puedeGestionar, configuracion, ediciones } = props
+  const { campos, puedeGestionar, configuracion, ediciones, casillas = null, fijos = null } = props
   const { textos } = configuracion
-  const [{ campo: abierto }, setParametros] = useQueryStates(
-    { campo: parseAsString },
-    { shallow: false },
-  )
-  const { ocupado, conBloqueo } = useUnaEdicionALaVez()
-  const grupos = agruparCampos(campos)
-  const desactivados = campos.filter((campo) => !campo.activo)
-  const cerrar = () => void setParametros({ campo: null })
-  const campoAbierto =
-    abierto === CAMPO_NUEVO ? CAMPO_NUEVO : (campos.find((campo) => campo.id === abierto) ?? null)
-  const banderasDeFila = configuracion.banderas.filter((bandera) => bandera.enFila)
+  const url = useParametrosDelEditor()
+  const tituloId = useId()
+  const orden = useOrdenOptimista(campos, ediciones.mover)
+  const consulta = useDeferredValue(url.consulta)
+  const enOrden = orden.lista
+  const coinciden = camposQueCoinciden(enOrden, consulta)
+  const ocupado = ediciones.enCurso || orden.moviendo || casillas?.enCurso === true
+  const insignias = insigniasDeLosCampos({
+    campos: enOrden,
+    delModulo: configuracion.insignias,
+    banderas: configuracion.banderas,
+    casillas,
+  })
+  const acciones = useAccionesDelEditor({
+    enOrden,
+    ocupado,
+    casillas,
+    ediciones,
+    mover: orden.mover,
+    abrir: url.abrir,
+  })
+
+  const cuerpo: PropsDelCuerpo = {
+    titulo: textos.titulo,
+    tituloId,
+    grupos: agruparCampos(coinciden),
+    todos: enOrden,
+    desactivados: coinciden.filter((campo) => !campo.activo),
+    insignias,
+    llaves: llavesDeLosCampos(enOrden, casillas),
+    fijos: fijos && {
+      ...fijos,
+      filas: fijos.filas.filter((fila) => coincide(fila.etiqueta, consulta)),
+    },
+    casillas,
+    consulta,
+    sinCampos: !enOrden.some((campo) => campo.activo),
+    vacioTitulo: textos.vacioTitulo,
+    vacioDescripcion: textos.vacioDescripcion,
+    motivoSinPermiso: textos.motivoSinPermiso,
+    puedeGestionar,
+    ocupado,
+    conAsa: puedeGestionar && consulta.trim() === '',
+    ...acciones,
+    alLimpiar: url.limpiar,
+    alCrear: url.crear,
+  }
 
   return (
-    <section aria-labelledby="campos-titulo" className="grid gap-4">
+    <section aria-labelledby={tituloId} className="@container/campos grid gap-4">
       <CabeceraDelEditor
-        titulo={textos.titulo}
+        consulta={url.consulta}
         puedeGestionar={puedeGestionar}
-        alCrear={() => void setParametros({ campo: CAMPO_NUEVO })}
+        busqueda={url.busqueda}
+        alBuscar={url.buscar}
+        alCrear={url.crear}
       />
       {puedeGestionar ? null : <Aviso>{textos.motivoSinPermiso}</Aviso>}
-      {grupos.length === 0 ? (
-        <EstadoVacio
-          titulo={textos.vacioTitulo}
-          descripcion={textos.vacioDescripcion}
-          accion={
-            puedeGestionar ? (
-              <Button onClick={() => void setParametros({ campo: CAMPO_NUEVO })}>
-                Agregar un campo
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <GruposDeCampos
-          grupos={grupos}
-          campos={campos}
-          banderas={banderasDeFila}
-          insignias={configuracion.insignias}
-          accionDeFila={configuracion.accionDeFila}
-          puedeGestionar={puedeGestionar}
-          ocupado={ocupado || ediciones.enCurso}
-          alAbrir={(id) => void setParametros({ campo: id })}
-          alMover={(campo, sentido) => {
-            const destino = destinoDeMovimiento(campos, campo.id, sentido)
-            if (destino) {
-              void conBloqueo(() => ediciones.mover(campo, destino.despuesDe))
-            }
-          }}
-          alCambiarBandera={(campo, clave, valor) => {
-            void conBloqueo(() =>
-              ediciones.cambiarBandera(campo, configuracion.conBandera(clave, valor)),
-            )
-          }}
-        />
-      )}
-      {desactivados.length > 0 ? (
-        <CamposDesactivados
-          campos={desactivados}
-          deshabilitado={!puedeGestionar || ocupado || ediciones.enCurso}
-          alReactivar={(campo) => {
-            void conBloqueo(() => ediciones.cambiarActivo(campo, true))
-          }}
-        />
-      ) : null}
+      {puedeGestionar ? <CuerpoConArrastreDiferido {...cuerpo} /> : <CuerpoDelEditor {...cuerpo} />}
       <PanelDeCampo
-        campo={campoAbierto}
+        campo={url.abiertoEntre(campos)}
+        eliminar={url.eliminar}
         todos={campos}
         puedeGestionar={puedeGestionar}
         configuracion={configuracion}
         ediciones={ediciones}
-        alCerrar={cerrar}
+        alCerrar={url.cerrar}
       />
     </section>
   )

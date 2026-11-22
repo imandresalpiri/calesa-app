@@ -12,10 +12,13 @@ export {
   banderaDe,
   rangoDelFormulario,
   type BanderaDeCampo,
+  type CasillaDelEditor,
+  type CasillasDelEditor,
   type ConfiguracionDeCampos,
   type ContextoDelHueco,
   type DeLaFila,
   type EdicionesDeCampos,
+  type FijosDelEditor,
   type TextosDelEditor,
   type ValoresDeCampo,
 } from './tipos'
