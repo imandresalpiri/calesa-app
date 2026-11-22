@@ -48,7 +48,7 @@ function Preferencias({ zonaElegida, abrir }: { zonaElegida: string | null; abri
   const { zonaHoraria } = useRegional()
   const vistos = usePreferenciaDeVistos()
   return (
-    <TarjetaEditable titulo="Preferencias" panel="preferencias" motivo={null} abrir={abrir}>
+    <TarjetaEditable titulo="Preferencias" motivo={null} abrir={abrir}>
       <ValoresDeLaTarjeta
         filas={[
           { etiqueta: 'Tema', valor: tema ?? '…' },
@@ -68,7 +68,7 @@ export function TarjetasDelPerfil({ zonaElegida, ...tu }: Props) {
   const paneles = usePanelesDelPerfil()
   return (
     <>
-      <TarjetaEditable titulo="Tú" panel="tu" motivo={null} abrir={paneles.tu.abrir}>
+      <TarjetaEditable titulo="Tú" motivo={null} abrir={paneles.tu.abrir}>
         <div className="flex min-w-0 items-center gap-3">
           <Avatar nombre={tu.nombre} url={tu.avatarUrl} lado={56} />
           <div className="grid min-w-0 gap-0.5">

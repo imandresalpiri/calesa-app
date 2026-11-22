@@ -1,17 +1,22 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
-import { MuestraDeColor, TarjetaDeAjustes, TarjetasDeAjustes, ValoresDeLaTarjeta } from '.'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  MuestraDeColor,
+  TarjetaDeAjustes,
+  TarjetaEditable,
+  TarjetasDeAjustes,
+  ValoresDeLaTarjeta,
+} from '.'
 
 afterEach(cleanup)
 
 describe('TarjetaDeAjustes', () => {
-  it('es una región con el nombre de su título, con la acción y el «⋯» en la cabecera', () => {
+  it('es una región con el nombre de su título, con su «⋯» en la cabecera', () => {
     render(
       <TarjetasDeAjustes etiqueta="Ajustes de la empresa">
         <TarjetaDeAjustes
           titulo="Identidad"
           estado={<span>Activa</span>}
-          accion={<button type="button">Editar</button>}
           acciones={<button type="button">Más acciones de Identidad</button>}
         >
           <p>Cuerpo</p>
@@ -22,7 +27,6 @@ describe('TarjetaDeAjustes', () => {
     expect(within(region).getByRole('heading', { name: 'Identidad', level: 2 })).toBeTruthy()
     const cabecera = region.querySelector('header')
     expect(cabecera).not.toBeNull()
-    expect(within(cabecera as HTMLElement).getByRole('button', { name: 'Editar' })).toBeTruthy()
     expect(
       within(cabecera as HTMLElement).getByRole('button', { name: 'Más acciones de Identidad' }),
     ).toBeTruthy()
@@ -51,5 +55,54 @@ describe('MuestraDeColor', () => {
   it('dice el color en texto, no sólo lo pinta', () => {
     render(<MuestraDeColor color="#0b5fff" />)
     expect(screen.getByText('#0b5fff')).toBeTruthy()
+  })
+})
+
+describe('TarjetaEditable', () => {
+  it('no dibuja ningún botón de acción suelto: sólo el botón de la tarjeta y su «⋯»', () => {
+    render(
+      <TarjetaEditable titulo="Identidad" motivo={null} abrir={() => undefined}>
+        <p>Cuerpo</p>
+      </TarjetaEditable>,
+    )
+    const region = screen.getByRole('region', { name: 'Identidad' })
+    const nombres = within(region)
+      .getAllByRole('button')
+      .map((boton) => boton.getAttribute('aria-label'))
+    expect(nombres).toEqual(['Editar Identidad', 'Más acciones de Identidad'])
+  })
+
+  it('tocar la tarjeta abre la acción principal', () => {
+    const abrir = vi.fn()
+    render(
+      <TarjetaEditable titulo="Identidad" motivo={null} abrir={abrir}>
+        <p>Cuerpo</p>
+      </TarjetaEditable>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Editar Identidad' }))
+    expect(abrir).toHaveBeenCalledTimes(1)
+  })
+
+  it('el orden del DOM, el del teclado, es la tarjeta y después su «⋯», hermanos', () => {
+    render(
+      <TarjetaEditable titulo="Identidad" motivo={null} abrir={() => undefined}>
+        <p>Cuerpo</p>
+      </TarjetaEditable>,
+    )
+    const [tarjeta, mas] = screen.getAllByRole('button')
+    expect(tarjeta?.getAttribute('aria-label')).toBe('Editar Identidad')
+    expect(mas?.getAttribute('aria-label')).toBe('Más acciones de Identidad')
+    expect(tarjeta?.contains(mas ?? null)).toBe(false)
+    expect(tarjeta?.compareDocumentPosition(mas as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it('sin permiso la tarjeta no abre nada y el «⋯» sigue', () => {
+    render(
+      <TarjetaEditable titulo="Identidad" motivo="No tienes permiso." abrir={() => undefined}>
+        <p>Cuerpo</p>
+      </TarjetaEditable>,
+    )
+    expect(screen.queryByRole('button', { name: 'Editar Identidad' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Más acciones de Identidad' })).toBeTruthy()
   })
 })

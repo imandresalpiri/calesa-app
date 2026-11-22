@@ -41,6 +41,7 @@ export function lineasDeLaPersona(
       tipo: 'accion',
       clave: 'roles',
       etiqueta: 'Cambiar sus roles',
+      principal: true,
       deshabilitada: sinDominar,
       despuesDeCerrar: true,
       alElegir: hacer.verRoles,
@@ -91,6 +92,24 @@ export function lineasDeLaPersona(
 }
 
 type Props = { persona: PersonaDelEquipo; lista: AccionesDeLaLista }
+
+// Lo que abre tocar la fila o la tarjeta de una persona: su acción principal, «Cambiar sus roles» (la primera del «⋯»). Nada si la persona no tiene «⋯»,
+// si esa línea sale apagada o no está: otra primera acción (generar un enlace, bloquear) no se dispara de un toque.
+export function alAbrirPersona(
+  persona: PersonaDelEquipo,
+  lista: AccionesDeLaLista,
+): (() => void) | undefined {
+  if (!lista.puedeGestionar || persona.estado === 'baja' || lista.deshabilitado) {
+    return undefined
+  }
+  const acciones = accionesSobre(persona, lista.yoId)
+  if (!acciones.roles || acciones.motivoApagado !== null) {
+    return undefined
+  }
+  return () => {
+    lista.alVerRoles(persona)
+  }
+}
 
 // El «⋯» de una persona («Más acciones de …», como en toda lista). Quien sólo ve el equipo, y una persona dada de baja, no lo tienen.
 export function MenuDePersona({ persona, lista }: Props) {

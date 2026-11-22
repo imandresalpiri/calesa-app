@@ -50,7 +50,6 @@ function TarjetaDeLegal({
   return (
     <TarjetaEditable
       titulo={TEXTOS_DE_LEGALES[clave].titulo}
-      panel={clave}
       motivo={null}
       abrir={abrir}
       estado={<Badge variant={VARIANTE[estado]}>{ETIQUETA_DEL_ESTADO_DE_LEGAL[estado]}</Badge>}

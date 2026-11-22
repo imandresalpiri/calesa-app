@@ -7,8 +7,10 @@ import { ToqueDeLaTarjeta } from './toque-de-la-tarjeta'
 
 type Props = {
   titulo: string
-  // La acción principal, como el «⋯» la nombra («Editar colores…»); sin los puntos suspensivos es el nombre del botón que cubre la tarjeta.
+  // La acción principal: el nombre del botón que cubre la tarjeta («Editar colores») y, con «…», su línea en el «⋯».
   accion: string
+  // Cómo la dice el «⋯» si no es `<accion>…` («Editar…»).
+  etiquetaDelMenu?: string
   abrir: () => void
   // Por qué no se puede editar (o `null`): apaga la acción en el «⋯», lo dice ahí y la tarjeta no abre nada.
   motivo: string | null
@@ -23,6 +25,7 @@ type Props = {
 export function TarjetaTocable({
   titulo,
   accion,
+  etiquetaDelMenu,
   abrir,
   motivo,
   estado,
@@ -33,7 +36,7 @@ export function TarjetaTocable({
     {
       tipo: 'accion',
       clave: 'editar',
-      etiqueta: `${accion}…`,
+      etiqueta: etiquetaDelMenu ?? `${accion}…`,
       principal: true,
       deshabilitada: motivo !== null,
       despuesDeCerrar: true,

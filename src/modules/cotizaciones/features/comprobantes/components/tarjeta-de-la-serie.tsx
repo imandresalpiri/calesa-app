@@ -1,9 +1,7 @@
 'use client'
 
-import { MasAcciones } from '@/shared/ui/lista'
 import {
-  BotonDeLaTarjeta,
-  TarjetaDeAjustes,
+  TarjetaTocable,
   TarjetasDeAjustes,
   ValoresDeLaTarjeta,
 } from '@/shared/ui/tarjetas-de-ajustes'
@@ -22,7 +20,7 @@ type Props = {
   puedeCambiar: boolean
 }
 
-// La serie de comprobantes de Configuración › Empresa › Comprobantes: la vigente y el próximo número a la vista, y «Cambiar serie» abre su modal
+// La serie de comprobantes de Configuración › Empresa › Comprobantes: la vigente y el próximo número a la vista, y su «⋯» («Cambiar la serie…») abre su modal
 // (`?panel=serie`). Un `?panel=serie` sin permiso se avisa y se limpia.
 export function TarjetaDeLaSerie({ vigente, puedeCambiar }: Props) {
   const panel = usePanelPorUrl('serie')
@@ -33,37 +31,14 @@ export function TarjetaDeLaSerie({ vigente, puedeCambiar }: Props) {
   return (
     <>
       <TarjetasDeAjustes etiqueta="Comprobantes">
-        <TarjetaDeAjustes
+        <TarjetaTocable
           titulo="Serie de comprobantes"
-          accion={
-            <BotonDeLaTarjeta
-              panel="serie"
-              etiqueta="Cambiar serie"
-              deshabilitado={motivo !== null}
-            />
-          }
-          acciones={
-            <MasAcciones
-              nombre="Serie de comprobantes"
-              acciones={[
-                {
-                  tipo: 'accion',
-                  clave: 'cambiar',
-                  etiqueta: 'Cambiar serie',
-                  principal: true,
-                  deshabilitada: motivo !== null,
-                  despuesDeCerrar: true,
-                  alElegir: panel.abrir,
-                },
-                ...(motivo === null
-                  ? []
-                  : [{ tipo: 'nota', clave: 'motivo', texto: motivo } as const]),
-              ]}
-            />
-          }
+          accion="Cambiar la serie"
+          motivo={motivo}
+          abrir={panel.abrir}
         >
           <ValoresDeLaTarjeta filas={filasDeLaSerie(vigente)} />
-        </TarjetaDeAjustes>
+        </TarjetaTocable>
       </TarjetasDeAjustes>
       {montar ? (
         <ModalDeLaSerieDiferido abierto={abierto} alCerrar={panel.cerrar} vigente={vigente} />

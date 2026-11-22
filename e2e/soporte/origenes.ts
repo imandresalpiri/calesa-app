@@ -161,7 +161,8 @@ export async function irAParte(page: Page, parte: string) {
 // La tarjeta de un origen en `/configuracion/origenes` (lleva la insignia de su tipo), no el sub-ítem del menú, que lleva sólo el nombre.
 export function tarjetaDelOrigen(page: Page, nombre: string) {
   return page
-    .getByRole('link', { name: new RegExp(nombre) })
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('link', { name: new RegExp(`^Abrir .*${nombre}`) }) })
     .filter({ has: page.getByText(/^(Subasta|Manual)$/) })
 }
 

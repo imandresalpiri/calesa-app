@@ -7,7 +7,14 @@ import {
   crearDuenaDePrueba,
 } from './soporte/base'
 import { descartarAviso } from './soporte/inventario'
-import { cerrarMenu, elegirDelMenu, lineaDelMenu } from './soporte/lista-de-catalogo'
+import {
+  cerrarMenu,
+  elegirDelMenu,
+  elegirDelMenuConTeclado,
+  lineaApagada,
+  lineaDelMenu,
+  masAccionesDe,
+} from './soporte/lista-de-catalogo'
 import { borrarLeadsDePrueba, crearLead } from './soporte/leads'
 import { abrirConN, dialogo } from './soporte/alta'
 import { telefonoAlAzar } from './soporte/leads-alta'
@@ -144,16 +151,14 @@ test('se ordena con el teclado: sube, baja y el foco se queda en el botón', asy
   const antes = (await nombresEnPantalla(page)).filter((n) => n.startsWith(PREFIJO_DE_ORIGEN_E2E))
   expect(antes).toEqual([primero, segundo, tercero])
 
-  const subir = page.getByRole('button', { name: `Subir ${tercero}` })
-  await subir.focus()
-  await page.keyboard.press('Enter')
+  await elegirDelMenuConTeclado(page, tercero, 'Subir')
   await expect
     .poll(async () =>
       (await nombresEnPantalla(page)).filter((n) => n.startsWith(PREFIJO_DE_ORIGEN_E2E)),
     )
     .toEqual([primero, tercero, segundo])
-  // El foco siguió al botón de esa fila, que ahora está un lugar más arriba.
-  await expect(subir).toBeFocused()
+  // El foco volvió al «⋯» de esa fila, que ahora está un lugar más arriba.
+  await expect(masAccionesDe(page, tercero)).toBeFocused()
   await expect(page.getByRole('status').filter({ hasText: 'quedó en el lugar' })).toContainText(
     tercero,
   )
@@ -166,17 +171,15 @@ test('se ordena con el teclado: sube, baja y el foco se queda en el botón', asy
   )
 
   // Bajarlo de nuevo, otra vez con el teclado.
-  const bajar = page.getByRole('button', { name: `Bajar ${tercero}` })
-  await bajar.focus()
-  await page.keyboard.press('Space')
+  await elegirDelMenuConTeclado(page, tercero, 'Bajar', 'Space')
   await expect
     .poll(async () =>
       (await nombresEnPantalla(page)).filter((n) => n.startsWith(PREFIJO_DE_ORIGEN_E2E)),
     )
     .toEqual([primero, segundo, tercero])
-  // Quedó último de todos: «Bajar» se apagó y el foco pasó a «Subir», que sigue a mano.
-  await expect(bajar).toBeDisabled()
-  await expect(subir).toBeFocused()
+  // Quedó último de todos: «Bajar» se apagó en su «⋯», donde el foco se queda.
+  await expect(masAccionesDe(page, tercero)).toBeFocused()
+  expect(await lineaApagada(page, tercero, 'Bajar')).toBe(true)
 })
 
 test('desactivar: el alta no lo ofrece, la ficha lo conserva y se puede editar; «Deshacer» lo vuelve', async ({

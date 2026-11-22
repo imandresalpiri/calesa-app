@@ -56,7 +56,9 @@ const tarjeta = (page: Page, titulo: string) =>
   page.getByRole('region', { name: titulo, exact: true })
 
 async function abrirModal(page: Page, titulo: string, dialogo: string) {
-  await tarjeta(page, titulo).getByRole('button', { name: 'Editar', exact: true }).click()
+  await tarjeta(page, titulo)
+    .getByRole('button', { name: `Editar ${titulo}`, exact: true })
+    .click()
   const modal = page.getByRole('dialog', { name: dialogo, exact: true })
   await expect(modal).toBeVisible()
   return modal

@@ -44,8 +44,10 @@ test('la dueña cambia el máximo y enciende la regla, y se guarda', async ({ pa
   await page.goto('/configuracion/leads')
   const tarjeta = page.getByRole('region', { name: 'Teléfonos extra', exact: true })
   await expect(tarjeta).toContainText('6')
-  await expect(tarjeta.getByRole('button', { name: 'Números repetidos' })).toHaveCount(0)
-  await tarjeta.getByRole('button', { name: 'Editar', exact: true }).click()
+  await tarjeta.getByRole('button', { name: 'Más acciones de Teléfonos extra' }).click()
+  await expect(page.getByRole('menuitem', { name: 'Números repetidos' })).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await tarjeta.getByRole('button', { name: 'Editar Teléfonos extra', exact: true }).click()
   const modal = page.getByRole('dialog', { name: 'Teléfonos extra', exact: true })
   const maximo = modal.getByLabel('Máximo de teléfonos extra')
   await expect(maximo).toHaveValue('6')
@@ -67,7 +69,8 @@ test('la dueña cambia el máximo y enciende la regla, y se guarda', async ({ pa
   // Se relee desde la base: la tarjeta lo dice y ofrece «Números repetidos».
   await page.reload()
   await expect(tarjeta).toContainText('3')
-  await expect(tarjeta.getByRole('button', { name: 'Números repetidos' })).toBeVisible()
+  await tarjeta.getByRole('button', { name: 'Más acciones de Teléfonos extra' }).click()
+  await expect(page.getByRole('menuitem', { name: 'Números repetidos' })).toBeVisible()
 })
 
 test('con un choque ya sembrado, la lista lo muestra enmascarado y con enlace al lead', async ({
@@ -92,8 +95,9 @@ test('con un choque ya sembrado, la lista lo muestra enmascarado y con enlace al
   await page.goto('/configuracion/leads')
   await page
     .getByRole('region', { name: 'Teléfonos extra', exact: true })
-    .getByRole('button', { name: 'Números repetidos' })
+    .getByRole('button', { name: 'Más acciones de Teléfonos extra' })
     .click()
+  await page.getByRole('menuitem', { name: 'Números repetidos' }).click()
   const modal = page.getByRole('dialog', { name: 'Números repetidos', exact: true })
   await expect(modal).toBeVisible()
   const fila = modal.getByRole('listitem').filter({ hasText: repetido.nombre })

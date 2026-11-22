@@ -1,5 +1,4 @@
-import { MasAcciones } from '@/shared/ui/lista'
-import { BotonDeLaTarjeta, TarjetaDeAjustes } from '@/shared/ui/tarjetas-de-ajustes'
+import { TarjetaTocable } from '@/shared/ui/tarjetas-de-ajustes'
 import { MOTIVO_MONEDA_BASE_CON_DATOS, MOTIVO_SIN_PERMISO_AJUSTES } from '../../../entities/motivos'
 import type { Moneda } from '../../../entities/tipos-cambio'
 
@@ -24,30 +23,11 @@ export function TarjetaDeMonedaBase({
 }: Props) {
   const motivo = puedeEditar ? null : MOTIVO_SIN_PERMISO_AJUSTES
   return (
-    <TarjetaDeAjustes
+    <TarjetaTocable
       titulo="Moneda base"
-      accion={
-        <BotonDeLaTarjeta panel="moneda-base" etiqueta="Cambiar" deshabilitado={!puedeEditar} />
-      }
-      acciones={
-        <MasAcciones
-          nombre="Moneda base"
-          acciones={[
-            {
-              tipo: 'accion',
-              clave: 'cambiar',
-              etiqueta: 'Cambiar',
-              principal: true,
-              despuesDeCerrar: true,
-              deshabilitada: !puedeEditar,
-              alElegir: alCambiar,
-            },
-            ...(motivo === null
-              ? []
-              : ([{ tipo: 'nota', clave: 'motivo', texto: motivo }] as const)),
-          ]}
-        />
-      }
+      accion="Cambiar la moneda base"
+      motivo={motivo}
+      abrir={alCambiar}
     >
       <p className="flex flex-wrap items-baseline gap-x-2 text-(--color-ink)">
         <span className="font-mono text-(length:--text-2xl) font-semibold">{codigo}</span>
@@ -63,6 +43,6 @@ export function TarjetaDeMonedaBase({
             ? MOTIVO_MONEDA_BASE_CON_DATOS
             : 'Los montos se guardan en esta moneda.')}
       </p>
-    </TarjetaDeAjustes>
+    </TarjetaTocable>
   )
 }

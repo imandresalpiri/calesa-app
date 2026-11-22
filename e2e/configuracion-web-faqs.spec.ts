@@ -99,7 +99,7 @@ test('crear, publicar, ordenar, despublicar y eliminar: lo que ve la web públic
   await expect(page.getByText('Pregunta guardada.')).toBeVisible()
   await expect(panel(page)).toBeHidden()
   expect((await faqsPublicas(PREFIJO)).map((f) => f.pregunta)).toEqual([primera, segunda])
-  await page.getByRole('button', { name: `Subir ${segunda}`, exact: true }).click()
+  await elegirDelMenu(page, segunda, 'Subir')
   await expect
     .poll(async () => (await faqsPublicas(PREFIJO)).map((f) => f.pregunta))
     .toEqual([segunda, primera])

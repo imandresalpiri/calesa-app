@@ -361,14 +361,14 @@ test('«Rol a la vista» al 200 %: el nombre y el control de cada permiso caben 
       .first()
     await aLaVistaSinDesplazar(control, `el control de ${clave}`)
   }
-  // El encabezado del rol (su nombre, cortado con «…», y «Eliminar») también está a la vista. En escritorio ese botón está en la columna del
+  // El encabezado del rol (su nombre, cortado con «…», y su «⋯») también está a la vista. En escritorio ese botón está en la columna del
   // rol, al final de una tabla que se desplaza por diseño.
   if (esMovil(page)) {
     await aLaVistaSinDesplazar(
       page.getByRole('button', {
-        name: new RegExp(`^Eliminar el rol ${PREFIJO_ROL_E2E}Supervisión`),
+        name: new RegExp(`^Más acciones de ${PREFIJO_ROL_E2E}Supervisión`),
       }),
-      'el botón de eliminar el rol largo',
+      'el «⋯» del rol largo',
     )
   }
 })

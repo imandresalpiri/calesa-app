@@ -14,12 +14,12 @@ import {
   UnaSolaVista,
 } from '../lista'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
-import { BotonesDeOrden } from './botones-de-orden'
+import { accionesConOrden } from './acciones-de-orden'
 import type { Direccion, FilaDeCatalogo } from './tipos'
 
 type Props = {
   filas: readonly FilaDeCatalogo[]
-  // Distingue los ids de los botones de orden y del «⋯» entre una pestaña y otra.
+  // Distingue los ids del «⋯» entre una pestaña y otra (`useFocoTrasMover`).
   prefijo: string
   // Qué dice la columna de uso: «Leads», «Seguimientos».
   columnaDeUso: string
@@ -28,7 +28,7 @@ type Props = {
   alMover: (id: string, direccion: Direccion) => void
   // El verbo de lo que abre la fila para el lector de pantalla («Editar Puertos»); sin él, «Abrir».
   verbo?: string
-  // Un catálogo que no se ordena con botones (su orden es un número del formulario) no dibuja «Subir» y «Bajar»: la fila es su nombre, su estado y su «⋯».
+  // Un catálogo que no se ordena desde la lista (su orden es un número del formulario) no lleva «Subir» y «Bajar» en el «⋯».
   sinOrden?: boolean
 }
 
@@ -68,13 +68,25 @@ function Insignias({ fila }: { fila: FilaDeCatalogo }) {
   )
 }
 
+// El «⋯» de la fila: lo del módulo y, salvo en un catálogo que no se ordena desde la lista, «Subir» y «Bajar».
+function accionesDeLaFila(
+  fila: FilaDeCatalogo,
+  alMover: Props['alMover'],
+  sinOrden: boolean | undefined,
+) {
+  return sinOrden
+    ? fila.acciones
+    : accionesConOrden(fila, (direccion) => {
+        alMover(fila.id, direccion)
+      })
+}
+
 function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover, verbo, sinOrden }: Props) {
   return (
     <TablaDeLista>
       <TableHeader>
         <TableRow>
           <CabeceraPegada lado="nombre">Nombre</CabeceraPegada>
-          {sinOrden ? null : <TableHead>Orden</TableHead>}
           <TableHead>Estado</TableHead>
           <TableHead>{columnaDeUso}</TableHead>
           <CabeceraPegada lado="acciones">
@@ -101,21 +113,6 @@ function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover, verbo, sinOrden
                 <Insignias fila={fila} />
               </span>
             </CeldaPegada>
-            {sinOrden ? null : (
-              <TableCell className="py-0">
-                <BotonesDeOrden
-                  prefijo={prefijo}
-                  id={fila.id}
-                  nombre={fila.nombre}
-                  puedeSubir={fila.puedeSubir}
-                  puedeBajar={fila.puedeBajar}
-                  motivoSinOrden={fila.motivoSinOrden}
-                  alMover={(direccion) => {
-                    alMover(fila.id, direccion)
-                  }}
-                />
-              </TableCell>
-            )}
             <TableCell className="whitespace-nowrap">
               {fila.activo ? ESTADO_ACTIVO : 'No se ofrece en lo nuevo'}
             </TableCell>
@@ -123,7 +120,7 @@ function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover, verbo, sinOrden
             <CeldaPegada lado="acciones">
               <MasAcciones
                 nombre={fila.nombre}
-                acciones={fila.acciones}
+                acciones={accionesDeLaFila(fila, alMover, sinOrden)}
                 id={`${prefijo}-${fila.id}-mas`}
               />
             </CeldaPegada>
@@ -146,7 +143,7 @@ function Tarjetas({ filas, prefijo, alAbrir, alMover, verbo, sinOrden }: Props) 
           acciones={
             <MasAcciones
               nombre={fila.nombre}
-              acciones={fila.acciones}
+              acciones={accionesDeLaFila(fila, alMover, sinOrden)}
               id={`${prefijo}-${fila.id}-mas`}
             />
           }
@@ -168,19 +165,6 @@ function Tarjetas({ filas, prefijo, alAbrir, alMover, verbo, sinOrden }: Props) 
             <span aria-hidden>·</span>
             <span>{fila.uso}</span>
           </p>
-          {sinOrden ? null : (
-            <BotonesDeOrden
-              prefijo={prefijo}
-              id={fila.id}
-              nombre={fila.nombre}
-              puedeSubir={fila.puedeSubir}
-              puedeBajar={fila.puedeBajar}
-              motivoSinOrden={fila.motivoSinOrden}
-              alMover={(direccion) => {
-                alMover(fila.id, direccion)
-              }}
-            />
-          )}
         </TarjetaDeLista>
       ))}
     </ul>
@@ -189,8 +173,8 @@ function Tarjetas({ filas, prefijo, alAbrir, alMover, verbo, sinOrden }: Props) 
 
 // La lista de un catálogo configurable con el patrón de lista (`@/shared/ui/lista`): una sola vista elegida en el servidor —la tabla desde
 // 768 px, tarjetas por debajo—, con el nombre y el «⋯» a la vista aunque la tabla se desplace; un clic en cualquier parte de la fila abre su
-// edición. «Subir» y «Bajar» (con el teclado, sin arrastrar) están a la vista; lo demás —activar, el «por defecto», editar y eliminar— va
-// en el «⋯», con el motivo cuando una acción no se puede. Sin `<Switch>`: el estado se dice con texto y se cambia desde el menú.
+// edición. Todo lo demás va en el «⋯», sin botones sueltos: editar, «Subir» y «Bajar» (con el teclado, sin arrastrar), activar, el «por defecto» y
+// eliminar, con el motivo cuando una acción no se puede. Sin `<Switch>`: el estado se dice con texto y se cambia desde el menú.
 export function ListaDeCatalogo(props: Props) {
   return (
     <UnaSolaVista tabla={() => <Tabla {...props} />} tarjetas={() => <Tarjetas {...props} />} />

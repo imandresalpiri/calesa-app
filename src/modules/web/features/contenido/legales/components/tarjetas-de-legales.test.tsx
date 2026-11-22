@@ -22,7 +22,7 @@ const legales: LegalesDelSitio = {
 afterEach(cleanup)
 
 describe('TarjetasDeLegales', () => {
-  it('una tarjeta por documento, con su estado, un extracto y «Editar»', () => {
+  it('una tarjeta por documento, con su estado, un extracto y su «⋯»', () => {
     const Con = withNuqsTestingAdapter()
     render(
       <Con>
@@ -37,6 +37,7 @@ describe('TarjetasDeLegales', () => {
     const privacidad = screen.getByRole('region', { name: 'Política de privacidad' })
     expect(privacidad.textContent).toContain('Sin publicar')
     expect(privacidad.textContent).toContain('Todavía no se escribió')
-    expect(screen.getAllByRole('button', { name: 'Editar' })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: /^Editar / })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: /^Más acciones de / })).toHaveLength(2)
   })
 })

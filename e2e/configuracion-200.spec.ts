@@ -192,7 +192,7 @@ test('al 200 %: nada del modal de apibara pasa del relleno de su cuerpo', async 
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page
     .getByRole('region', { name: 'apibara', exact: true })
-    .getByRole('button', { name: 'Configurar', exact: true })
+    .getByRole('button', { name: 'Configurar apibara', exact: true })
     .click()
   const dialogo = page.getByRole('dialog', { name: 'Configurar apibara' })
   await expect(dialogo).toBeVisible()

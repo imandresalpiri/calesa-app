@@ -228,7 +228,7 @@ test('un origen creado en Configuración aparece en el alta sin recargar la pág
   // La lista de orígenes se abre desde su tarjeta, sin recargar: lo leído se conserva.
   await page
     .getByRole('region', { name: 'Orígenes del lead' })
-    .getByRole('button', { name: 'Editar', exact: true })
+    .getByRole('button', { name: 'Editar Orígenes del lead', exact: true })
     .click()
   await expect(listaDeOrigenes(page)).toBeVisible()
   const nuevo = `${PREFIJO_DE_ORIGEN_E2E} contexto ${String(Date.now())}`

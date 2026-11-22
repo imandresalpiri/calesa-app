@@ -45,7 +45,7 @@ test('las seis tarjetas están en una página y cada «Editar» abre su modal po
   for (const { tarjeta, dialogo, panel } of TARJETAS) {
     const region = page.getByRole('region', { name: tarjeta, exact: true })
     await expect(region, tarjeta).toBeVisible()
-    await region.getByRole('button', { name: 'Editar', exact: true }).click()
+    await region.getByRole('button', { name: `Editar ${tarjeta}`, exact: true }).click()
     await expect(page, tarjeta).toHaveURL(new RegExp(`[?&]panel=${panel}$`))
     const modal = page.getByRole('dialog', { name: dialogo, exact: true })
     await expect(modal, tarjeta).toBeVisible()

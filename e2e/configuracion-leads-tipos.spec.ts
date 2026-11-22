@@ -13,6 +13,7 @@ import { descartarAviso } from './soporte/inventario'
 import {
   cerrarMenu,
   elegirDelMenu,
+  elegirDelMenuConTeclado,
   lineaApagada,
   lineaDelMenu,
   masAccionesDe,
@@ -143,7 +144,7 @@ test('la tarjeta abre la lista con «Editar» y su «⋯» ofrece «Nuevo tipo»
   await page.goto('/configuracion/leads')
   const tarjeta = page.getByRole('region', { name: 'Tipos de lead', exact: true })
   await expect(tarjeta.getByText('Prospecto', { exact: true }).first()).toBeVisible()
-  await tarjeta.getByRole('button', { name: 'Editar', exact: true }).click()
+  await tarjeta.getByRole('button', { name: 'Editar Tipos de lead', exact: true }).click()
   await expect(listaDeTipos(page)).toBeVisible()
   await expect(page).toHaveURL(/panel=tipos(&|$)/)
   await page.keyboard.press('Escape')
@@ -204,12 +205,10 @@ test('se ordena con el teclado: sube, baja y el foco se queda en el botón', asy
     (await nombresEnPantalla(page)).filter((n) => n.startsWith(PREFIJO_DE_TIPO_E2E))
   expect(await propios()).toEqual([primero, segundo, tercero])
 
-  const subir = page.getByRole('button', { name: `Subir ${tercero}` })
-  await subir.focus()
-  await page.keyboard.press('Enter')
+  await elegirDelMenuConTeclado(page, tercero, 'Subir')
   await expect.poll(propios).toEqual([primero, tercero, segundo])
-  // El foco siguió al botón de esa fila, que ahora está un lugar más arriba, y el lector lo anunció.
-  await expect(subir).toBeFocused()
+  // El foco volvió al «⋯» de esa fila, que ahora está un lugar más arriba, y el lector lo anunció.
+  await expect(masAccionesDe(page, tercero)).toBeFocused()
   await expect(page.getByRole('status').filter({ hasText: 'quedó en el lugar' })).toContainText(
     tercero,
   )
@@ -223,13 +222,11 @@ test('se ordena con el teclado: sube, baja y el foco se queda en el botón', asy
   )
 
   // Bajarlo de nuevo, otra vez con el teclado.
-  const bajar = page.getByRole('button', { name: `Bajar ${tercero}` })
-  await bajar.focus()
-  await page.keyboard.press('Space')
+  await elegirDelMenuConTeclado(page, tercero, 'Bajar', 'Space')
   await expect.poll(propios).toEqual([primero, segundo, tercero])
-  // Quedó último de todos: «Bajar» se apagó y el foco pasó a «Subir», que sigue a mano.
-  await expect(bajar).toBeDisabled()
-  await expect(subir).toBeFocused()
+  // Quedó último de todos: «Bajar» se apagó en su «⋯», donde el foco se queda.
+  await expect(masAccionesDe(page, tercero)).toBeFocused()
+  expect(await lineaApagada(page, tercero, 'Bajar')).toBe(true)
 })
 
 // @sin-celular: igual en pasos y elementos en escritorio y celular, y su JS del celular lo ejecuta otra prueba que se queda (scripts/comparar-anchos.mjs, 5a-fix-3)

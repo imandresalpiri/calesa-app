@@ -1,7 +1,6 @@
 'use client'
 
-import { Trash2Icon } from 'lucide-react'
-import { Button } from '@/shared/ui/button'
+import { MasAcciones } from '@/shared/ui/lista'
 import { avisosDelRol, tituloDeAvisosDelRol } from '../../../entities/avisos-de-roles'
 import { motivoDeNoEliminar, personasConElRol, type RolConConcesiones } from '../../../entities/rol'
 import { BotonDeAvisos } from './boton-de-avisos'
@@ -18,7 +17,8 @@ type Props = {
   alAvisos?: () => void
 }
 
-// La cabecera de la columna de un rol: quién es, cuántas personas lo tienen y, si tiene avisos, el «!» que los abre.
+// La cabecera de la columna de un rol: quién es, cuántas personas lo tienen, si tiene avisos el «!» que los abre y su «⋯» («Más acciones de <rol>») con «Eliminar el rol…»
+// (apagada con su motivo). Su única acción es destructiva: la cabecera no abre nada al tocarla.
 export function EncabezadoRol({ rol, puedeGestionar, dominado, alEliminar, alAvisos }: Props) {
   const motivo = motivoDeNoEliminar(rol, dominado)
   const avisos = avisosDelRol(rol, { dominado, puedeGestionar })
@@ -36,21 +36,22 @@ export function EncabezadoRol({ rol, puedeGestionar, dominado, alEliminar, alAvi
           />
         ) : null}
         {puedeGestionar ? (
-          <span title={motivo ?? undefined} className="ml-auto shrink-0 pl-1">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={
-                motivo
-                  ? `Eliminar el rol ${rol.nombre}. ${motivo}`
-                  : `Eliminar el rol ${rol.nombre}`
-              }
-              disabled={motivo !== null}
-              onClick={alEliminar}
-            >
-              <Trash2Icon aria-hidden />
-            </Button>
-          </span>
+          <MasAcciones
+            nombre={rol.nombre}
+            acciones={[
+              {
+                tipo: 'accion',
+                clave: 'eliminar',
+                etiqueta: 'Eliminar el rol…',
+                destructiva: true,
+                deshabilitada: motivo !== null,
+                alElegir: alEliminar,
+              },
+              ...(motivo === null
+                ? []
+                : ([{ tipo: 'nota', clave: 'motivo', texto: motivo }] as const)),
+            ]}
+          />
         ) : null}
       </div>
       <span className="text-(length:--text-xs) text-(--color-ink-faint)">

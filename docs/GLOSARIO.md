@@ -1178,8 +1178,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   (base, pruebas, advisors, jobs, buckets, Vault, funciones, variables, build) sin tocar la nube; termina en «listo» o con lo que falta y las
   líneas «Para la persona» (`docs/DESPLIEGUE.md`). No: «deploy de prueba».
 - **Tarjeta de ajustes** — `<TarjetaDeAjustes>`, `<TarjetasDeAjustes>` (`@/shared/ui/tarjetas-de-ajustes`): cada bloque de una página de ajustes de
-  Configuración, con su título, los valores guardados a la vista (texto, muestras, el logo; no campos), la acción principal («Editar», «Configurar») y su «⋯»;
-  se edita en un modal (`?panel=<tarjeta>`). Una **tarjeta tocable** (`<TarjetaTocable>`) no lleva «Editar» suelto: sólo su «⋯» y tocarla la abre. No es la «tarjeta de la lista» ni la «tarjeta de la cotización».
+  Configuración, con su título, los valores guardados a la vista (texto, muestras, el logo; no campos), y, arriba a la derecha, sólo su «⋯» con la lista única de sus acciones («Editar…» primero);
+  se edita en un modal (`?panel=<tarjeta>`) y tocarla abre la primera acción (`<TarjetaEditable>`, `<TarjetaTocable>`: un botón con nombre «Editar <título>», hermano del «⋯»). Nunca lleva un botón de acción suelto. No es la «tarjeta de la lista» ni la «tarjeta de la cotización».
 - **Para todos los orígenes** — el bloque de Configuración › Orígenes, arriba de la lista de orígenes, con las tarjetas de ajustes de lo que vale para todas las cotizaciones de la empresa: **Colores** y **Vigencia**. No es «Tablas compartidas» (el grupo «Compartidas» del drawer de las tablas de un origen).
 - **Editor de texto con variables** — `<EditorConVariables>` (`@/shared/ui/editor-con-variables`): para un texto configurable con variables; una `<textarea>` con las
   variables resaltadas, un **botón de variable** por cada una que ese texto acepta (inserta `{clave}` en el cursor o sobre lo seleccionado), el contador, el aviso de

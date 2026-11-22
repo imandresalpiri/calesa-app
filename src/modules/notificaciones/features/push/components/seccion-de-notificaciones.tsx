@@ -57,7 +57,7 @@ export function SeccionDeNotificaciones({
   const encendidos = contarEncendidos(preferencias.apagados, TIPOS)
   return (
     <>
-      <TarjetaEditable titulo="Notificaciones" panel="notificaciones" motivo={null} abrir={abrir}>
+      <TarjetaEditable titulo="Notificaciones" motivo={null} abrir={abrir}>
         <InterruptorDePush push={push} />
         <ValoresDeLaTarjeta
           filas={[

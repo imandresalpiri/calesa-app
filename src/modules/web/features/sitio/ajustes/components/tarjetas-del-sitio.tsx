@@ -50,7 +50,7 @@ function Tarjeta({
   vacio?: string
 }) {
   return (
-    <TarjetaEditable titulo={titulo} panel={panel} motivo={null} abrir={paneles[panel].abrir}>
+    <TarjetaEditable titulo={titulo} motivo={null} abrir={paneles[panel].abrir}>
       {filas.length === 0 && vacio ? (
         <p className="text-(length:--text-sm) text-(--color-ink-faint)">{vacio}</p>
       ) : (

@@ -81,7 +81,7 @@ test('E2E escritorio · encender la web pública, guardar dirección y secreto, 
   await expect(web.getByText('Falta la clave', { exact: true }).first()).toBeVisible()
 
   // Sin https no se guarda; el loopback sí, porque la base del e2e es local.
-  await web.getByRole('button', { name: 'Configurar' }).click()
+  await web.getByRole('button', { name: 'Configurar la web pública', exact: true }).click()
   const configurar = page.getByRole('dialog', { name: 'Configurar la web pública' })
   const direccion = configurar.getByLabel('Dirección de revalidación')
   await direccion.fill('http://ejemplo.com')

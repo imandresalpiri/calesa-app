@@ -1,21 +1,8 @@
-import { MasAcciones, type AccionDeMenu } from '@/shared/ui/lista'
 import { Badge } from '@/shared/ui/badge'
-import {
-  BotonDeLaTarjeta,
-  TarjetaDeAjustes,
-  ValoresDeLaTarjeta,
-} from '@/shared/ui/tarjetas-de-ajustes'
+import { TarjetaTocable, ValoresDeLaTarjeta } from '@/shared/ui/tarjetas-de-ajustes'
 import { MOTIVO_SIN_PERMISO_TIPOS_CAMBIO } from '../../../entities/motivos'
 import type { LeyendaDeTiposCambio } from '../../../entities/compartir-tipos-cambio'
 import type { Moneda } from '../../../entities/tipos-cambio'
-
-// La acción principal de una tarjeta secundaria en su «⋯», con el motivo si no se puede.
-function accionesDe(acciones: AccionDeMenu[], motivo: string | null): AccionDeMenu[] {
-  return [
-    ...acciones,
-    ...(motivo === null ? [] : ([{ tipo: 'nota', clave: 'motivo', texto: motivo }] as const)),
-  ]
-}
 
 type PropsDeMonedas = {
   monedas: readonly Moneda[]
@@ -35,38 +22,22 @@ export function TarjetaDeMonedasActivas({
 }: PropsDeMonedas) {
   const motivo = puedeGestionar ? null : MOTIVO_SIN_PERMISO_TIPOS_CAMBIO
   return (
-    <TarjetaDeAjustes
+    <TarjetaTocable
       titulo="Monedas activas"
-      accion={
-        <BotonDeLaTarjeta panel="monedas" etiqueta="Gestionar" deshabilitado={!puedeGestionar} />
-      }
-      acciones={
-        <MasAcciones
-          nombre="Monedas activas"
-          acciones={accionesDe(
-            [
-              {
-                tipo: 'accion',
-                clave: 'gestionar',
-                etiqueta: 'Gestionar',
-                principal: true,
-                despuesDeCerrar: true,
-                deshabilitada: !puedeGestionar,
-                alElegir: alGestionar,
-              },
-              {
-                tipo: 'accion',
-                clave: 'nueva',
-                etiqueta: 'Nueva moneda',
-                despuesDeCerrar: true,
-                deshabilitada: !puedeGestionar,
-                alElegir: alCrear,
-              },
-            ],
-            motivo,
-          )}
-        />
-      }
+      accion="Gestionar las monedas"
+      etiquetaDelMenu="Gestionar monedas…"
+      motivo={motivo}
+      abrir={alGestionar}
+      extra={[
+        {
+          tipo: 'accion',
+          clave: 'nueva',
+          etiqueta: 'Nueva moneda',
+          despuesDeCerrar: true,
+          deshabilitada: !puedeGestionar,
+          alElegir: alCrear,
+        },
+      ]}
     >
       <ul className="flex flex-wrap gap-2">
         {monedas.map((moneda) => (
@@ -80,7 +51,7 @@ export function TarjetaDeMonedasActivas({
           </li>
         ))}
       </ul>
-    </TarjetaDeAjustes>
+    </TarjetaTocable>
   )
 }
 
@@ -94,30 +65,11 @@ type PropsDeLeyenda = {
 export function TarjetaAlCompartir({ leyenda, puedeGestionar, alEditar }: PropsDeLeyenda) {
   const motivo = puedeGestionar ? null : MOTIVO_SIN_PERMISO_TIPOS_CAMBIO
   return (
-    <TarjetaDeAjustes
+    <TarjetaTocable
       titulo="Al compartir"
-      accion={
-        <BotonDeLaTarjeta panel="leyenda" etiqueta="Editar" deshabilitado={!puedeGestionar} />
-      }
-      acciones={
-        <MasAcciones
-          nombre="Al compartir"
-          acciones={accionesDe(
-            [
-              {
-                tipo: 'accion',
-                clave: 'editar',
-                etiqueta: 'Editar',
-                principal: true,
-                despuesDeCerrar: true,
-                deshabilitada: !puedeGestionar,
-                alElegir: alEditar,
-              },
-            ],
-            motivo,
-          )}
-        />
-      }
+      accion="Editar la leyenda"
+      motivo={motivo}
+      abrir={alEditar}
     >
       <ValoresDeLaTarjeta
         filas={[
@@ -127,6 +79,6 @@ export function TarjetaAlCompartir({ leyenda, puedeGestionar, alEditar }: PropsD
           },
         ]}
       />
-    </TarjetaDeAjustes>
+    </TarjetaTocable>
   )
 }

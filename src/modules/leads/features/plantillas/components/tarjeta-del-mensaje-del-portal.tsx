@@ -6,7 +6,6 @@ import { TarjetaEditable } from '@/shared/ui/tarjetas-de-ajustes'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import { PANEL_RESTABLECER_PORTAL, type AjustesDeLeads } from '../../../entities/ajustes-de-leads'
-import { PANEL_DEL_PORTAL } from '../../../entities/paneles-de-la-configuracion'
 import { MENSAJE_DE_FABRICA, VARIABLES_DEL_MENSAJE } from '../../../entities/portal-mensaje'
 import { useFamiliaDelPanel } from '../../configuracion/hooks/use-familia-del-panel'
 import { ModalDelMensajeDelPortalDiferido, RestablecerPortalDiferido } from './diferidos'
@@ -29,7 +28,6 @@ export function TarjetaDelMensajeDelPortal({ portal, empresa, direccion }: Props
     <>
       <TarjetaEditable
         titulo="Mensaje del portal"
-        panel={PANEL_DEL_PORTAL}
         motivo={null}
         abrir={familia.abrir}
         estado={deFabrica ? <Badge variant="secondary">De fábrica</Badge> : undefined}

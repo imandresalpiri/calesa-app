@@ -3,9 +3,10 @@
 import { PlusIcon } from 'lucide-react'
 import type { Route } from 'next'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { textoDelTope } from '@/shared/lib/conteo'
 import { TOPE_DE_LA_LISTA_DE_ORIGENES } from '@/shared/lib/paginacion'
-import { RUTAS } from '@/shared/lib/rutas'
+import { RUTAS, rutaDelOrigen } from '@/shared/lib/rutas'
 import { Aviso } from '@/shared/ui/aviso'
 import { AvisoDeTope } from '@/shared/ui/aviso-de-tope'
 import { Button, buttonVariants } from '@/shared/ui/button'
@@ -13,6 +14,10 @@ import { EstadoVacio } from '@/shared/ui/estados'
 import { MOTIVO_SIN_PERMISO_ORIGENES } from '../../../entities/motivos'
 import type { OrigenConUso } from '../../../entities/origen'
 import { faltasDeLaTarjeta } from '../../../entities/pasos'
+import { useEliminarOrigenDeLaLista } from '../hooks/use-eliminar-origen-de-la-lista'
+import { useOrigenes } from '../hooks/use-origenes'
+import { accionesDeLaTarjeta } from './acciones-de-la-tarjeta'
+import { ConfirmarEliminarOrigenDiferido } from './diferidos'
 import { TarjetaDeOrigen } from './tarjeta-de-origen'
 
 type Props = {
@@ -43,9 +48,13 @@ function BotonNuevo({ puedeGestionar }: { puedeGestionar: boolean }) {
   )
 }
 
-// Los orígenes que la persona abre como tarjetas, también los desactivados, con su estado y lo que les falta. Abrir uno lleva a su página;
+// Los orígenes que la persona abre como tarjetas, también los desactivados, con su estado y lo que les falta. Abrir uno lleva a su página (la tarjeta entera, o «Abrir» en su «⋯», que lleva además activar, desactivar y eliminar);
 // crear lleva a `/configuracion/origenes/nuevo` (`?panel=nuevo`, el enlace de antes, responde 308 ahí). Son decenas: se dibujan hasta el tope, con su aviso.
 export function ListaDeOrigenes({ origenes, hayMas, puedeGestionar, apibaraActiva }: Props) {
+  const router = useRouter()
+  const ediciones = useOrigenes()
+  const eliminacion = useEliminarOrigenDeLaLista(origenes, ediciones)
+
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -79,12 +88,32 @@ export function ListaDeOrigenes({ origenes, hayMas, puedeGestionar, apibaraActiv
               key={origen.id}
               origen={origen}
               faltas={faltasDeLaTarjeta(origen, { apibaraActiva })}
+              acciones={accionesDeLaTarjeta(origen, {
+                gestiona: puedeGestionar,
+                enCurso: ediciones.enCurso,
+                abrir: () => {
+                  router.push(rutaDelOrigen(origen.id) as Route)
+                },
+                cambiarActivo: (activo) => void ediciones.cambiarActivo(origen, activo),
+                pedirEliminar: () => {
+                  eliminacion.abrir(origen.id)
+                },
+              })}
             />
           ))}
         </ul>
       )}
       {hayMas ? (
         <AvisoDeTope texto={textoDelTope(TOPE_DE_LA_LISTA_DE_ORIGENES, { orden: 'primeros' })} />
+      ) : null}
+      {eliminacion.montar && eliminacion.origen ? (
+        <ConfirmarEliminarOrigenDiferido
+          origen={eliminacion.origen}
+          abierto={eliminacion.abierto}
+          enCurso={eliminacion.enCurso}
+          alCerrar={eliminacion.cerrar}
+          alConfirmar={eliminacion.eliminar}
+        />
       ) : null}
     </div>
   )

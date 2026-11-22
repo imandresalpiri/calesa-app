@@ -3,8 +3,12 @@ import {
   MOTIVO_DOMINANCIA_SIN_LEER,
   MOTIVO_PERSONA_NO_DOMINADA,
 } from '../../../entities/dominancia'
-import { MOTIVO_CUENTA_PROPIA, accionesSobre } from '../../../entities/persona'
-import { lineasDeLaPersona } from './menu-persona'
+import {
+  MOTIVO_CUENTA_PROPIA,
+  accionesSobre,
+  type PersonaDelEquipo,
+} from '../../../entities/persona'
+import { alAbrirPersona, lineasDeLaPersona, type AccionesDeLaLista } from './menu-persona'
 
 const hacer = {
   verRoles: vi.fn(),
@@ -134,5 +138,33 @@ describe('las líneas del «⋯» sobre quien no domino (9-1)', () => {
     )
     expect(lineas.some((l) => l.tipo === 'nota')).toBe(false)
     expect(lineas.filter((l) => l.tipo === 'accion').some((l) => l.deshabilitada)).toBe(false)
+  })
+})
+
+describe('lo que abre tocar la fila de una persona', () => {
+  const lista = (extra: Partial<AccionesDeLaLista> = {}): AccionesDeLaLista => ({
+    yoId: 'yo',
+    puedeGestionar: true,
+    deshabilitado: false,
+    alVerRoles: vi.fn(),
+    alCambiarBloqueo: vi.fn(),
+    alDarDeBaja: vi.fn(),
+    alGenerarEnlace: vi.fn(),
+    ...extra,
+  })
+  const persona = (extra: Partial<PersonaDelEquipo> = {}) =>
+    ({ id: 'a', estado: 'activa', dominada: true, ...extra }) as PersonaDelEquipo
+
+  it('es «Cambiar sus roles», la primera línea del «⋯»', () => {
+    const acciones = lista()
+    alAbrirPersona(persona(), acciones)?.()
+    expect(acciones.alVerRoles).toHaveBeenCalledTimes(1)
+  })
+
+  it('nada si quien mira sólo lee, la persona está de baja o la acción sale apagada', () => {
+    expect(alAbrirPersona(persona(), lista({ puedeGestionar: false }))).toBeUndefined()
+    expect(alAbrirPersona(persona({ estado: 'baja' }), lista())).toBeUndefined()
+    expect(alAbrirPersona(persona({ dominada: false }), lista())).toBeUndefined()
+    expect(alAbrirPersona(persona(), lista({ deshabilitado: true }))).toBeUndefined()
   })
 })

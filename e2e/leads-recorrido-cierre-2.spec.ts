@@ -264,7 +264,7 @@ test('Dalia · el panel de un tipo de cambio guardando, y el aviso con la tipogr
 }, info) => {
   await entrar(page, r.t.personas.duena)
   await page.goto('/configuracion/empresa/monedas')
-  await page.getByRole('button', { name: /^Abrir Oficial/ }).click()
+  await page.getByRole('button', { name: /^Editar Oficial/ }).click()
   const panel = page.getByRole('dialog')
   await expect(panel.getByRole('heading', { name: 'Oficial' })).toBeVisible()
   const valor = panel.getByLabel(/^Valor/)

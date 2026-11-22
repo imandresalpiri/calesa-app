@@ -51,6 +51,21 @@ export async function elegirDelMenu(page: Page, nombre: string, linea: string): 
   await (await lineaDelMenu(page, nombre, linea)).click()
 }
 
+// Elige una línea del «⋯» de la fila con el teclado: el «⋯» toma el foco, Enter abre el menú y Enter o Espacio elige la línea. Al terminar, el foco vuelve
+// al «⋯» de esa fila (aunque la fila se haya movido).
+export async function elegirDelMenuConTeclado(
+  page: Page,
+  nombre: string,
+  linea: string,
+  tecla: 'Enter' | 'Space' = 'Enter',
+): Promise<void> {
+  await masAccionesDe(page, nombre).focus()
+  await page.keyboard.press('Enter')
+  const item = menuDe(page, nombre).getByRole('menuitem', { name: linea, exact: true })
+  await expect(item).toBeVisible()
+  await item.press(tecla)
+}
+
 // Activa o desactiva con el «⋯»: la línea dice lo contrario del estado de hoy.
 export async function alternarActivo(page: Page, nombre: string): Promise<void> {
   await masAccionesDe(page, nombre).click()

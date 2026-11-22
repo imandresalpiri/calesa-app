@@ -282,8 +282,26 @@ export async function pedirSecreto(persona?: {
 // Abre el modal de una tarjeta de ajustes con su «Editar» y devuelve el diálogo (`?panel=<tarjeta>`).
 export async function editarTarjeta(page: Page, titulo: string): Promise<Locator> {
   const tarjeta = page.getByRole('region', { name: titulo, exact: true })
-  await tarjeta.getByRole('button', { name: 'Editar', exact: true }).click()
+  await tarjeta.getByRole('button', { name: `Editar ${titulo}`, exact: true }).click()
   const dialogo = page.getByRole('dialog', { name: titulo, exact: true })
   await expect(dialogo).toBeVisible()
   return dialogo
+}
+
+// Una tarjeta sin permiso para editar: no tiene botón que la abra y su «⋯» ofrece la acción apagada (`etiqueta`, p. ej. «Editar…»).
+export async function esperarEdicionApagada(
+  page: Page,
+  titulo: string,
+  etiqueta: string | RegExp = /^Editar/,
+): Promise<void> {
+  const tarjeta = page.getByRole('region', { name: titulo, exact: true })
+  await expect(
+    tarjeta.getByRole('button', { name: /^(Editar|Configurar|Cambiar|Gestionar)/ }),
+  ).toHaveCount(0)
+  await tarjeta.getByRole('button', { name: `Más acciones de ${titulo}`, exact: true }).click()
+  // El menú de ESTA tarjeta: mientras el anterior se cierra, el de otra puede estar abriéndose.
+  const menu = page.getByRole('menu', { name: `Más acciones de ${titulo}`, exact: true })
+  await expect(menu.getByRole('menuitem', { name: etiqueta })).toBeDisabled()
+  await page.keyboard.press('Escape')
+  await expect(menu).toBeHidden()
 }
