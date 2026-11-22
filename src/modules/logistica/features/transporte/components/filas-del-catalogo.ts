@@ -37,8 +37,6 @@ function accionesDe<T extends { id: string; activo: boolean }>(
   ]
 }
 
-const MOTIVO_SIN_ORDEN = 'El orden se cambia en «Editar».'
-
 // Los puertos como filas de la lista de catálogo, ya en su orden (`orden`, luego `nombre`). El orden se cambia en «Editar» (un número), no con botones: intercambiar dos serían dos escrituras sin transacción.
 export function filasDePuertos(
   puertos: readonly PuertoDeCatalogo[],
@@ -54,7 +52,6 @@ export function filasDePuertos(
     acciones: accionesDe(puerto, quehaceres),
     puedeSubir: false,
     puedeBajar: false,
-    motivoSinOrden: MOTIVO_SIN_ORDEN,
   }))
 }
 
@@ -73,6 +70,5 @@ export function filasDeNavieras(
     acciones: accionesDe(naviera, quehaceres),
     puedeSubir: false,
     puedeBajar: false,
-    motivoSinOrden: 'Las navieras se listan por nombre.',
   }))
 }

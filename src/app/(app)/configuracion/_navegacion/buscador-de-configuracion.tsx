@@ -3,6 +3,7 @@
 import { SearchIcon } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import { Input } from '@/shared/ui/input'
+import type { DestinoFueraDelNavegador } from '../destinos-de-busqueda'
 import type { GrupoDelNavegador } from '../secciones'
 import { ResultadosDeLaBusqueda } from './resultados-de-la-busqueda'
 import { useBuscadorDeConfiguracion } from './use-buscador-de-configuracion'
@@ -21,23 +22,29 @@ const CLASE_DEL_CAMPO: Record<VarianteDelBuscador, string> = {
   panel: 'h-[44px] pl-8 md:h-9',
 }
 
+// Una sola lista vacía: un valor por defecto nuevo en cada dibujo rehacería la búsqueda.
+const SIN_DESTINOS_FUERA: readonly DestinoFueraDelNavegador[] = []
+
 const CLASE_DEL_PANEL =
   'absolute inset-x-0 top-full z-30 mt-1 max-h-[60vh] overflow-y-auto rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-1 shadow-(--shadow-lg)'
 
 export function BuscadorDeConfiguracion({
   grupos,
+  fuera = SIN_DESTINOS_FUERA,
   variante,
   sinCampoEn,
   children,
 }: {
   grupos: readonly GrupoDelNavegador[]
+  // Lo que se encuentra y no es de Configuración (Logística › Puertos).
+  fuera?: readonly DestinoFueraDelNavegador[]
   variante: VarianteDelBuscador
   // La ruta donde este buscador no dibuja su campo (el inicio, donde el buscador es el de la página): queda sólo `children`.
   sinCampoEn?: string
   children?: ReactNode
 }) {
   const id = useId()
-  const b = useBuscadorDeConfiguracion(id, grupos, sinCampoEn)
+  const b = useBuscadorDeConfiguracion(id, grupos, sinCampoEn, fuera)
   const enPanel = variante === 'panel'
   const abierto = b.buscando && !(enPanel && b.cerrado)
   return (

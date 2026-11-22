@@ -42,9 +42,9 @@ describe('la URL vieja de Configuración › Flujos', () => {
       '/configuracion/repuestos/flujo',
     )
     expect(destinoDeLaUrlVieja({}, con('logistica.catalogos.gestionar'), ORIGENES)).toBe(
-      '/configuracion/catalogos/tipos-de-documento',
+      '/logistica/configuracion/tipos-de-documento',
     )
-    expect(destinoDeLaUrlVieja({}, flujos, [])).toBe('/configuracion/catalogos/tipos-de-documento')
+    expect(destinoDeLaUrlVieja({}, flujos, [])).toBe('/logistica/configuracion/tipos-de-documento')
   })
 
   it('`?seccion=documentos` sin `flujos.configurar` va a Tipos de documento, sin la sección', () => {
@@ -54,7 +54,7 @@ describe('la URL vieja de Configuración › Flujos', () => {
         con('logistica.catalogos.gestionar'),
         ORIGENES,
       ),
-    ).toBe('/configuracion/catalogos/tipos-de-documento?panel=nuevo-tipo')
+    ).toBe('/logistica/configuracion/tipos-de-documento?panel=nuevo-tipo')
   })
 
   it('nunca devuelve origen ni ambito', () => {

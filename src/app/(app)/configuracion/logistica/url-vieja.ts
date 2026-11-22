@@ -1,7 +1,7 @@
 import { conParametros, type ParametrosDeLaUrl } from '../con-parametros'
 
-// Logística era una página con pestañas (`?seccion=puertos|navieras|categorias-de-gasto`) y después una sección con una sub-ruta por catálogo;
-// hoy sus catálogos viven en Catálogos. Esos enlaces siguen funcionando: `?seccion=` va a la sub-ruta del catálogo, con los `?panel=` que traiga
+// Logística era una página con pestañas (`?seccion=puertos|navieras|categorias-de-gasto`) y después una sección de Configuración con una sub-ruta por catálogo;
+// hoy sus catálogos viven en Logística › Configuración. Esos enlaces siguen funcionando: `?seccion=` va a la pestaña del catálogo, con los `?panel=` que traiga
 // (las sub-rutas `/configuracion/logistica/<catálogo>` las redirige `next.config.ts`). Un `seccion` que no es un catálogo que la persona
 // puede abrir (o ninguno) va al primero, como antes. null si no hay ningún catálogo que abrir. Ningún destino lleva `seccion`: no vuelve a redirigir.
 export function destinoDeLaUrlVieja(

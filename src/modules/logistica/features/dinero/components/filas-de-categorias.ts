@@ -60,6 +60,5 @@ export function filasDeCategorias(
     acciones: accionesDeCategoria(categoria, quehaceres),
     puedeSubir: false,
     puedeBajar: false,
-    motivoSinOrden: 'El orden se cambia en «Editar».',
   }))
 }

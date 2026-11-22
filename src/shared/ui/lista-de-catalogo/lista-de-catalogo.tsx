@@ -26,14 +26,30 @@ type Props = {
   // Qué abre un clic en la fila (o Enter sobre su nombre): editarla.
   alAbrir: (id: string) => void
   alMover: (id: string, direccion: Direccion) => void
+  // El verbo de lo que abre la fila para el lector de pantalla («Editar Puertos»); sin él, «Abrir».
+  verbo?: string
+  // Un catálogo que no se ordena con botones (su orden es un número del formulario) no dibuja «Subir» y «Bajar»: la fila es su nombre, su estado y su «⋯».
+  sinOrden?: boolean
 }
 
 // Los textos de estado: una fila apagada se sigue nombrando, con «Desactivado»: sus datos la conservan pero no se ofrece en lo nuevo.
 const ESTADO_ACTIVO = 'Activo'
 
-function Nombre({ fila, clases }: { fila: FilaDeCatalogo; clases?: string }) {
+function Nombre({
+  fila,
+  clases,
+  verbo,
+}: {
+  fila: FilaDeCatalogo
+  clases?: string
+  verbo: string | undefined
+}) {
   return (
-    <AbrirResumen nombre={fila.nombre} className={cn('max-w-72 min-w-0 truncate', clases)}>
+    <AbrirResumen
+      nombre={fila.nombre}
+      {...(verbo === undefined ? {} : { verbo })}
+      className={cn('max-w-72 min-w-0 truncate', clases)}
+    >
       {fila.nombre}
     </AbrirResumen>
   )
@@ -52,13 +68,13 @@ function Insignias({ fila }: { fila: FilaDeCatalogo }) {
   )
 }
 
-function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover }: Props) {
+function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover, verbo, sinOrden }: Props) {
   return (
     <TablaDeLista>
       <TableHeader>
         <TableRow>
           <CabeceraPegada lado="nombre">Nombre</CabeceraPegada>
-          <TableHead>Orden</TableHead>
+          {sinOrden ? null : <TableHead>Orden</TableHead>}
           <TableHead>Estado</TableHead>
           <TableHead>{columnaDeUso}</TableHead>
           <CabeceraPegada lado="acciones">
@@ -77,23 +93,29 @@ function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover }: Props) {
             <CeldaPegada lado="nombre">
               <span className="flex min-w-0 items-center gap-2">
                 <IconoDelCatalogo clave={fila.icono} className="text-(--color-ink-soft)" />
-                <Nombre fila={fila} clases={fila.activo ? undefined : 'text-(--color-ink-soft)'} />
+                <Nombre
+                  fila={fila}
+                  verbo={verbo}
+                  clases={fila.activo ? undefined : 'text-(--color-ink-soft)'}
+                />
                 <Insignias fila={fila} />
               </span>
             </CeldaPegada>
-            <TableCell className="py-0">
-              <BotonesDeOrden
-                prefijo={prefijo}
-                id={fila.id}
-                nombre={fila.nombre}
-                puedeSubir={fila.puedeSubir}
-                puedeBajar={fila.puedeBajar}
-                motivoSinOrden={fila.motivoSinOrden}
-                alMover={(direccion) => {
-                  alMover(fila.id, direccion)
-                }}
-              />
-            </TableCell>
+            {sinOrden ? null : (
+              <TableCell className="py-0">
+                <BotonesDeOrden
+                  prefijo={prefijo}
+                  id={fila.id}
+                  nombre={fila.nombre}
+                  puedeSubir={fila.puedeSubir}
+                  puedeBajar={fila.puedeBajar}
+                  motivoSinOrden={fila.motivoSinOrden}
+                  alMover={(direccion) => {
+                    alMover(fila.id, direccion)
+                  }}
+                />
+              </TableCell>
+            )}
             <TableCell className="whitespace-nowrap">
               {fila.activo ? ESTADO_ACTIVO : 'No se ofrece en lo nuevo'}
             </TableCell>
@@ -112,7 +134,7 @@ function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover }: Props) {
   )
 }
 
-function Tarjetas({ filas, prefijo, alAbrir, alMover }: Props) {
+function Tarjetas({ filas, prefijo, alAbrir, alMover, verbo, sinOrden }: Props) {
   return (
     <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
       {filas.map((fila) => (
@@ -133,6 +155,7 @@ function Tarjetas({ filas, prefijo, alAbrir, alMover }: Props) {
             <IconoDelCatalogo clave={fila.icono} className="text-(--color-ink-soft)" />
             <Nombre
               fila={fila}
+              verbo={verbo}
               clases={cn(
                 'text-(length:--text-base) font-medium',
                 fila.activo ? 'text-(--color-ink)' : 'text-(--color-ink-soft)',
@@ -145,17 +168,19 @@ function Tarjetas({ filas, prefijo, alAbrir, alMover }: Props) {
             <span aria-hidden>·</span>
             <span>{fila.uso}</span>
           </p>
-          <BotonesDeOrden
-            prefijo={prefijo}
-            id={fila.id}
-            nombre={fila.nombre}
-            puedeSubir={fila.puedeSubir}
-            puedeBajar={fila.puedeBajar}
-            motivoSinOrden={fila.motivoSinOrden}
-            alMover={(direccion) => {
-              alMover(fila.id, direccion)
-            }}
-          />
+          {sinOrden ? null : (
+            <BotonesDeOrden
+              prefijo={prefijo}
+              id={fila.id}
+              nombre={fila.nombre}
+              puedeSubir={fila.puedeSubir}
+              puedeBajar={fila.puedeBajar}
+              motivoSinOrden={fila.motivoSinOrden}
+              alMover={(direccion) => {
+                alMover(fila.id, direccion)
+              }}
+            />
+          )}
         </TarjetaDeLista>
       ))}
     </ul>

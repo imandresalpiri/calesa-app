@@ -11,6 +11,22 @@ import {
 // Un id en una ruta de `redirects()` (la sintaxis de path-to-regexp).
 const ID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
 
+// Los catálogos de logística viven en Logística › Configuración (`/logistica/configuracion/<clave>`), con su consulta (`?panel=`, `puerto`, `naviera`, `categoria`, `tipo`…). Las
+// de Configuración › Logística, que ya habían pasado por Catálogos, van directo a su pestaña en un solo salto.
+const REDIRECCIONES_DE_LOGISTICA = [
+  {
+    source:
+      '/configuracion/catalogos/:catalogo(puertos|navieras|categorias-de-gasto|tipos-de-documento)',
+    destination: '/logistica/configuracion/:catalogo',
+    permanent: true,
+  },
+  {
+    source: '/configuracion/logistica/:catalogo(puertos|navieras|categorias-de-gasto)',
+    destination: '/logistica/configuracion/:catalogo',
+    permanent: true,
+  },
+]
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   typedRoutes: true,
@@ -121,11 +137,7 @@ const nextConfig: NextConfig = {
         destination: '/configuracion/origenes/:origen/planilla',
         permanent: true,
       },
-      {
-        source: '/configuracion/logistica/:catalogo(puertos|navieras|categorias-de-gasto)',
-        destination: '/configuracion/catalogos/:catalogo',
-        permanent: true,
-      },
+      ...REDIRECCIONES_DE_LOGISTICA,
     ])
   },
   headers() {

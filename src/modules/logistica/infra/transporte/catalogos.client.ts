@@ -1,4 +1,4 @@
-// Los puertos y las navieras de Configuración › Catálogos, leídos desde el navegador (6.08-1): todos, también los desactivados, y sin recordar nada (la lista se relee tras cada escritura).
+// Los puertos y las navieras de Logística › Configuración, leídos desde el navegador (6.08-1): todos, también los desactivados, y sin recordar nada (la lista se relee tras cada escritura).
 // Son catálogos de la empresa (decenas de filas): `.limit(201)` y `cortarAlTope` a 200, con `<AvisoDeTope>` si había más. Índices: `puertos_pkey` y `navieras_pkey` (tablas de decenas de filas).
 import { cortarAlTope } from '@/shared/lib/conteo'
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'

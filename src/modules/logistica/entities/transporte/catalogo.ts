@@ -251,7 +251,7 @@ export function textoDeErrorDeCatalogo(
   }
 }
 
-// Los paneles de «Puertos» y «Navieras» en Configuración › Catálogos: `?panel=nuevo-puerto`, `?panel=editar-puerto&puerto=<id>`, `?panel=nueva-naviera` y `?panel=editar-naviera&naviera=<id>`.
+// Los paneles de «Puertos» y «Navieras» en Logística › Configuración: `?panel=nuevo-puerto`, `?panel=editar-puerto&puerto=<id>`, `?panel=nueva-naviera` y `?panel=editar-naviera&naviera=<id>`.
 export const PANEL_NUEVO_PUERTO = 'nuevo-puerto'
 export const PANEL_EDITAR_PUERTO = 'editar-puerto'
 export const CLAVE_DE_PUERTO = 'puerto'

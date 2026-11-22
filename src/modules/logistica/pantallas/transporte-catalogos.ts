@@ -1,4 +1,4 @@
-// Los catálogos de logística de `/configuracion/catalogos/*` del área `transporte` de `logistica` (6.01, llenado en 6.08-1): «Puertos» y «Navieras». Sólo `src/app` importa este archivo (`.claude/rules/modulos.md`).
+// Los catálogos de logística de `/logistica/configuracion/*` del área `transporte` de `logistica` (6.01, llenado en 6.08-1): «Puertos» y «Navieras». Sólo `src/app` importa este archivo (`.claude/rules/modulos.md`).
 import type { CatalogoDeLogistica } from '../entities/nucleo/enlaces'
 import {
   NavierasDeTransporteDiferido,

@@ -44,7 +44,7 @@ function Cargando({ etiqueta }: { etiqueta: string }) {
   )
 }
 
-// La forma de un catálogo de transporte de Configuración › Catálogos (6.08-1): el botón de «Nuevo» (el título y la frase los dice la página), los cinco estados y la lista de catálogo. Es un catálogo de la empresa (decenas de filas): no se pagina;
+// La forma de un catálogo de transporte de Logística › Configuración (6.08-1): el botón de «Nuevo» (el título y la frase los dice la página), los cinco estados y la lista de catálogo. Es un catálogo de la empresa (decenas de filas): no se pagina;
 // con el tope se avisa. Quien lo usa pone el hook, las filas y el modal.
 export function CatalogoDeTransporte<T>({
   clave,
@@ -89,6 +89,8 @@ export function CatalogoDeTransporte<T>({
           columnaDeUso={columnaDeUso}
           alAbrir={alAbrir}
           alMover={() => undefined}
+          verbo="Editar"
+          sinOrden
         />
       ) : null}
       {lectura.tipo === 'listo' && lectura.hayMas ? (

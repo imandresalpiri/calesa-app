@@ -33,7 +33,7 @@ const CONFIG: ConfigDelCatalogo<NavieraDeCatalogo> = {
   avisoDesactivado: 'Naviera desactivada.',
 }
 
-// Configuración › Catálogos › Navieras (6.08-1): se crean, renombran, activan y desactivan; no se eliminan. Escribir lo exige `logistica.catalogos.gestionar` (la RLS de la tabla); la página ya lo pide.
+// Logística › Configuración › Navieras (6.08-1): se crean, renombran, activan y desactivan; no se eliminan. Escribir lo exige `logistica.catalogos.gestionar` (la RLS de la tabla); la página ya lo pide.
 export function NavierasDeTransporte() {
   const datos = useCatalogoDeTransporte(CONFIG)
   const navieras = datos.lectura.tipo === 'listo' ? datos.lectura.filas : null
