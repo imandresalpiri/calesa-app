@@ -1,9 +1,6 @@
 'use client'
 
-import {
-  useEdicionAPantallaCompleta,
-  useEnLaEdicion,
-} from '@/shared/ui/edicion-a-pantalla-completa'
+import { useEstadoEnLaBarra } from '../../../barra-de-la-formula/hooks/use-estado-en-la-barra'
 import { estadoDeLaTarjeta } from '../../../../entities/plantilla/estado-de-la-edicion'
 import type { useEditorDeLaCuadricula } from '../../hooks/use-editor-de-la-cuadricula'
 import type { useGuardarLaPlantilla } from '../../hooks/use-guardar-la-plantilla'
@@ -17,16 +14,11 @@ type Props = {
   guardar: ReturnType<typeof useGuardarLaPlantilla>
 }
 
-// Lo de arriba del editor de la tarjeta: sus botones de versiones. Fuera de la edición a pantalla completa, bajo el encabezado propio («Tarjeta de <Origen>», de dónde
-// nace); dentro, los botones suben a la barra de la edición junto al estado (`useEdicionAPantallaCompleta`) y «Salir» pregunta si hay cambios sin guardar.
+// Lo de arriba del editor de la tarjeta: el encabezado («Tarjeta de <Origen>», de dónde nace) con sus botones de versiones, que en la página del origen suben a la
+// barra de la fórmula junto al estado (`useEstadoEnLaBarra`).
 export function CabezaDelEditor({ props, editor, guardar }: Props) {
-  const enLaEdicion = useEnLaEdicion()
   const { origen, esperada, publicada } = props
-  useEdicionAPantallaCompleta({
-    estado: estadoDeLaTarjeta({ hayCambios: editor.hayCambios, esperada, publicada }),
-    hayCambios: editor.hayCambios,
-    alDescartar: editor.limpiar,
-  })
+  useEstadoEnLaBarra(estadoDeLaTarjeta({ hayCambios: editor.hayCambios, esperada, publicada }))
   const botones = (
     <BotonesDeLaPlantilla
       esperada={esperada}
@@ -42,9 +34,7 @@ export function CabezaDelEditor({ props, editor, guardar }: Props) {
       alDescartar={props.alDescartar}
     />
   )
-  return enLaEdicion ? (
-    botones
-  ) : (
+  return (
     <EncabezadoDelEditor
       origen={origen}
       de={props.de}

@@ -1,6 +1,6 @@
 // Lo que la sesión le pasa a la planilla de la fórmula (sin código: lo importan la sesión y la planilla, que va por `diferido()`).
 import type { ComponentType, Dispatch, SetStateAction } from 'react'
-import type { EstadoDeLaEdicion } from '@/shared/lib/edicion'
+import type { EstadoDeLaEdicion } from '../../../../entities/estado-de-la-edicion'
 import type { Diseno } from '../../../../entities/diseno'
 import type { UnidadDeEjemplo } from '../../../../entities/formula/unidad-de-ejemplo'
 import type {

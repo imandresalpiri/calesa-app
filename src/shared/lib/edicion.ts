@@ -1,4 +1,4 @@
-// La edición a pantalla completa (docs/GLOSARIO.md › «Edición a pantalla completa»): el modo en que una pieza clave de Configuración (la planilla, la hoja, la
+// La edición a pantalla completa: el modo en que una pieza clave de Configuración (la planilla, la hoja, la
 // tarjeta, una tabla, el flujo) ocupa toda la ventana. Vive en la URL (`?editar=si`) para que recargar lo mantenga, y lo decide la página en el servidor. Este
 // archivo no sabe de cotizaciones ni de flujos: sólo la clave, el estado que se dibuja en la barra y su texto.
 

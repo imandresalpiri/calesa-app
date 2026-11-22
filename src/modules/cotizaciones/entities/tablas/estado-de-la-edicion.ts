@@ -1,6 +1,6 @@
-import { estadoDeUnaPieza, type EstadoDeLaEdicion } from '@/shared/lib/edicion'
+import { estadoDeUnaPieza, type EstadoDeLaEdicion } from '../estado-de-la-edicion'
 
-// El estado de una tabla de referencia para la barra de la edición a pantalla completa: lo no publicado (las filas cambiadas, que viven en la pestaña) manda; si no, la
+// El estado de una tabla de referencia para la barra de la fórmula: lo no publicado (las filas cambiadas, que viven en la pestaña) manda; si no, la
 // versión publicada con quién la publicó. Una tabla no tiene borrador guardado: sus cambios son «Cambios sin guardar» hasta que se publican.
 export function estadoDeLaTabla(args: {
   cambios: boolean

@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEnLaEdicion } from '@/shared/ui/edicion-a-pantalla-completa'
 import { useState, useTransition, type ComponentType } from 'react'
+import { useEnLaBarra } from '../../barra-de-la-formula/components'
 import type { CatalogoDeTablas } from '../../../entities/compilador'
 import { estadoDeLaFormulaGuardada } from '../../../entities/formula/estado-de-la-edicion'
 import { mismaVersion, otraSesion, type SobreQueVersion } from '../../../entities/formula/sesion'
@@ -58,7 +58,7 @@ export function FormulaDelOrigen({
   tiposDeCambio,
 }: Props) {
   const panel = usePanelDeLaFormula()
-  const enLaEdicion = useEnLaEdicion()
+  const enLaBarra = useEnLaBarra()
   const router = useRouter()
   const [vuelta, setVuelta] = useState(0)
   const [pendientes, setPendientes] = useState(false)
@@ -88,9 +88,9 @@ export function FormulaDelOrigen({
         formula={formula}
         panel={panel}
         publicarEspera={pendientes}
-        publicarEnLaBarra={enLaEdicion}
+        publicarEnLaBarra={enLaBarra}
       />
-      {enLaEdicion && formula.borrador && !borradorAtrasado(formula.borrador, formula.publicada) ? (
+      {enLaBarra && formula.borrador && !borradorAtrasado(formula.borrador, formula.publicada) ? (
         <PublicarDelBorrador alPublicar={panel.abrirPublicar} espera={pendientes} />
       ) : null}
       {sobre ? (

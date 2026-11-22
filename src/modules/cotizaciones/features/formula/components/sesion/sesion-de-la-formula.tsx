@@ -1,7 +1,7 @@
 'use client'
 
 import { useLayoutEffect, useState, type ComponentType } from 'react'
-import type { EstadoDeLaEdicion } from '@/shared/lib/edicion'
+import type { EstadoDeLaEdicion } from '../../../../entities/estado-de-la-edicion'
 import { modoInicial } from '../../../../entities/cabecera-de-la-hoja'
 import type { CatalogoDeTablas } from '../../../../entities/compilador'
 import type { FormulaParaEditar } from '../../../../entities/formula/edicion'

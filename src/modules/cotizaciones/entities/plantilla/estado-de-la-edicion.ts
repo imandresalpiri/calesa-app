@@ -1,6 +1,6 @@
-import { estadoDeUnaPieza, type EstadoDeLaEdicion } from '@/shared/lib/edicion'
+import { estadoDeUnaPieza, type EstadoDeLaEdicion } from '../estado-de-la-edicion'
 
-// El estado de la tarjeta de un origen para la barra de la edición a pantalla completa: lo no guardado manda; después el borrador (`esperada`, su hora de guardado, no
+// El estado de la tarjeta de un origen para la barra de la fórmula: lo no guardado manda; después el borrador (`esperada`, su hora de guardado, no
 // nulo si lo hay) y, sin él, la publicada con su versión.
 export function estadoDeLaTarjeta(args: {
   hayCambios: boolean
