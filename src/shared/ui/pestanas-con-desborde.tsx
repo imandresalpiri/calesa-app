@@ -1,17 +1,16 @@
 'use client'
 
 import { TriangleAlertIcon } from 'lucide-react'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, type ReactElement, type ReactNode } from 'react'
 import { PistaDeDesborde } from './pista-de-desborde'
 import { Tabs, TabsList, TabsTrigger } from './tabs'
-import { ConTooltip } from './tooltip'
 import { traerLaAbiertaALaVista } from './traer-la-abierta-a-la-vista'
 import { useDesborde } from './use-desborde'
 
 type Props = {
   // Con `motivo`, la pestaña se ve apagada (no se elige) y el motivo se dice en una línea bajo la barra: lo que la persona no puede abrir no se
   // esconde (docs/UX.md › Reglas transversales).
-  // Con `aviso`, lo que le falta: un ⚠ con su tooltip, y el texto también en el nombre accesible de la pestaña.
+  // Con `aviso`, lo que le falta: un ⚠, y el texto también en el nombre accesible de la pestaña.
   pestanas: readonly {
     clave: string
     titulo: string
@@ -21,6 +20,10 @@ type Props = {
   // La abierta (vive en la URL de quien usa la barra) y qué hace elegir otra.
   valor: string
   alElegir: (clave: string) => void
+  // Cómo se envuelve una pestaña con aviso (que no está apagada): la página del origen le pone su tooltip (`ConTooltip`). Va por aquí para que el tooltip no
+  // viaje en cada pantalla que usa la barra.
+  conAviso?:
+    ((aviso: string, pestana: ReactElement<Record<string, unknown>>) => ReactNode) | undefined
 }
 
 // La barra de pestañas de una pantalla de Configuración. En el celular, y con el texto al 200 %, no entran todas: la barra se desplaza dentro
@@ -44,13 +47,15 @@ function enLista(titulos: string[]): string {
     : `${titulos.slice(0, -1).join(', ')} y ${titulos.at(-1) ?? ''}`
 }
 
-// Una pestaña: apagada con su motivo (descrito bajo la barra) o, con algo pendiente, con su ⚠ y su tooltip (el texto también en su nombre accesible).
+// Una pestaña: apagada con su motivo (descrito bajo la barra) o, con algo pendiente, con su ⚠ (el texto también en su nombre accesible) y lo que sume `conAviso`.
 function PestanaDeLaBarra({
   pestana,
   idDelMotivo,
+  conAviso,
 }: {
   pestana: Props['pestanas'][number]
   idDelMotivo: string
+  conAviso: Props['conAviso']
 }) {
   const disparador = (
     <TabsTrigger
@@ -71,16 +76,12 @@ function PestanaDeLaBarra({
       ) : null}
     </TabsTrigger>
   )
-  return pestana.aviso && !pestana.motivo ? (
-    <ConTooltip texto={pestana.aviso} lado="bottom">
-      {disparador}
-    </ConTooltip>
-  ) : (
-    disparador
-  )
+  return pestana.aviso && !pestana.motivo && conAviso
+    ? conAviso(pestana.aviso, disparador)
+    : disparador
 }
 
-export function PestanasConDesborde({ pestanas, valor, alElegir }: Props) {
+export function PestanasConDesborde({ pestanas, valor, alElegir, conAviso }: Props) {
   const idDelMotivo = useId()
   const motivos = motivosDe(pestanas)
   const lista = useRef<HTMLDivElement>(null)
@@ -116,7 +117,12 @@ export function PestanasConDesborde({ pestanas, valor, alElegir }: Props) {
           className="h-11 w-full max-w-full justify-start overflow-x-auto md:h-8 md:w-fit"
         >
           {pestanas.map((pestana) => (
-            <PestanaDeLaBarra key={pestana.clave} pestana={pestana} idDelMotivo={idDelMotivo} />
+            <PestanaDeLaBarra
+              key={pestana.clave}
+              pestana={pestana}
+              idDelMotivo={idDelMotivo}
+              conAviso={conAviso}
+            />
           ))}
         </TabsList>
         <PistaDeDesborde {...desborde} />

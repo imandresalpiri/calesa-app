@@ -13,6 +13,7 @@ import {
 } from '@/shared/lib/rutas'
 import { PestanasConDesborde } from '@/shared/ui/pestanas-con-desborde'
 import { salirSinPerder } from '@/shared/ui/salida-con-cambios'
+import { ConTooltip } from '@/shared/ui/tooltip'
 
 type Props = {
   origenId: string
@@ -46,6 +47,11 @@ export function PestanasDeLaRuta({ origenId, pestanas }: Props) {
     <PestanasConDesborde
       pestanas={pestanas}
       valor={abierta ?? ''}
+      conAviso={(aviso, pestana) => (
+        <ConTooltip texto={aviso} lado="bottom">
+          {pestana}
+        </ConTooltip>
+      )}
       alElegir={(elegida) => {
         const pestana = pestanas.find((una) => una.clave === elegida)
         if (pestana === undefined || elegida === abierta) {
