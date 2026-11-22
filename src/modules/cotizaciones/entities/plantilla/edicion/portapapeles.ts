@@ -7,6 +7,7 @@ import type {
   EstiloDeLaCelda,
   PlantillaEnCuadricula,
 } from '../../cuadricula-de-la-tarjeta'
+import { textoDeLasPartes } from '../../texto-con-datos'
 import { MOTIVO_DE_LA_COMBINACION_CORTADA } from './combinar'
 import { escribirTexto, motivoDelTexto } from './contenido'
 import { idsNuevos } from './ids-nuevos'
@@ -99,13 +100,15 @@ export function pegar(p: PlantillaEnCuadricula, pos: Pos, b: Bloque): ResultadoD
   })
 }
 
-// El texto del bloque en TSV para el portapapeles del sistema: el de las celdas de texto (sin tabuladores ni saltos adentro), vacío lo demás.
+// El texto del bloque en TSV para el portapapeles del sistema: el de las celdas de texto (sin tabuladores ni saltos adentro; de un texto con datos, sólo sus partes
+// de texto), vacío lo demás.
 export function textoDelBloque(b: Bloque): string {
   const filas = Array.from({ length: b.filas }, () => new Array<string>(b.columnas).fill(''))
   for (const c of b.celdas) {
     const fila = filas[c.df]
-    if (fila !== undefined && c.contenido.tipo === 'texto' && c.dk < b.columnas)
-      fila[c.dk] = c.contenido.texto.replace(/[\t\r\n]+/g, ' ')
+    if (fila === undefined || c.contenido.tipo !== 'texto' || c.dk >= b.columnas) continue
+    const texto = 'partes' in c.contenido ? textoDeLasPartes(c.contenido.partes) : c.contenido.texto
+    fila[c.dk] = texto.replace(/[\t\r\n]+/g, ' ')
   }
   return filas.map((f) => f.join('\t')).join('\n')
 }

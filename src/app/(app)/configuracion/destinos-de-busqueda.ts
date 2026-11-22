@@ -3,7 +3,7 @@ import { RUTAS } from '@/shared/lib/rutas'
 
 // Los destinos de búsqueda de Configuración: lo que el buscador encuentra y que no es una sección ni una sub-sección del registro porque no tiene ruta
 // propia, sino un modal de una página con su `?panel=` («Orígenes › Colores» abre `/configuracion/origenes?panel=colores`). El buscador los lee junto al registro
-// (`secciones.ts` los suma a la sección de cada uno); el menú y el selector de sección no los dibujan. Una página de Configuración que pasa una tarjeta a otra
+// (`secciones.ts` los suma a la sección de cada uno; el de un bloque de la matriz de Roles lleva su `?bloque=`); el menú y el selector de sección no los dibujan. Una página de Configuración que pasa una tarjeta a otra
 // con modal suma aquí su destino, así «colores» o «vigencia» siguen encontrándose.
 // No mira permisos al abrir: la página comprueba los suyos. Aquí sólo decide a quién se ofrece (`destinosDeLaSeccion`).
 export type DestinoDeBusqueda = {
@@ -35,6 +35,22 @@ export const DESTINOS_DE_BUSQUEDA: readonly DestinoDeBusqueda[] = [
     ruta: RUTAS.vigenciaDeCotizacion,
     permisos: ['cotizaciones.configurar'],
     palabras: ['días', 'vence', 'caducidad', 'validez', 'cotización', 'para todos los orígenes'],
+  },
+  {
+    clave: 'niveles-de-acceso',
+    seccion: 'roles',
+    titulo: 'Niveles de acceso',
+    ruta: RUTAS.cotizacionesEnRoles,
+    permisos: ['equipo.roles.ver', 'equipo.roles.gestionar'],
+    palabras: ['niveles', 'nivel de acceso', 'celdas', 'ver', 'editar', 'cotización'],
+  },
+  {
+    clave: 'quien-crea-y-quien-ve',
+    seccion: 'roles',
+    titulo: 'Quién crea y quién ve',
+    ruta: RUTAS.cotizacionesEnRoles,
+    permisos: ['equipo.roles.ver', 'equipo.roles.gestionar'],
+    palabras: ['quién crea', 'quién ve', 'privadas', 'crear', 'origen', 'cotización'],
   },
 ]
 

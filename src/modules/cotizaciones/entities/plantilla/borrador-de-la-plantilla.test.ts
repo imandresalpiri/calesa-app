@@ -99,7 +99,9 @@ const cuadricula = (): PlantillaEnCuadricula => ({
   celdas: [{ id: 'c', fila: 'f', columna: 'a', contenido: { tipo: 'texto', texto: 'Hola' } }],
 })
 const textos = (q: PlantillaEnCuadricula) =>
-  q.celdas.flatMap((c) => (c.contenido.tipo === 'texto' ? [c.contenido.texto] : []))
+  q.celdas.flatMap((c) =>
+    c.contenido.tipo === 'texto' && 'texto' in c.contenido ? [c.contenido.texto] : [],
+  )
 const nodos = (q: PlantillaEnCuadricula) =>
   q.celdas.flatMap((c) =>
     c.contenido.tipo === 'dato' && 'nodo' in c.contenido ? [c.contenido.nodo] : [],

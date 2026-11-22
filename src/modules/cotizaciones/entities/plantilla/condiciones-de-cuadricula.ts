@@ -49,8 +49,8 @@ export function revisarDatoDeUnaCelda(c: Objeto, donde: string): Rechazo {
   return enLista(campo(c, 'mostrar'), MOSTRAR) ? null : formaRota(`${donde}.mostrar`)
 }
 
-// Un dato suelto (en una lista, una rama o una condición): un objeto con `tipo` `dato`.
-function revisarDato(d: unknown, donde: string): Rechazo {
+// Un dato suelto (en una lista, una rama, una condición o un texto con datos): un objeto con `tipo` `dato`.
+export function revisarDato(d: unknown, donde: string): Rechazo {
   if (!esObjetoJsonb(d)) return formaRota(donde)
   if (campo(d, 'tipo') !== 'dato') return formaRota(`${donde}.tipo`)
   return revisarDatoDeUnaCelda(d, donde)

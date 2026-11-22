@@ -13,19 +13,18 @@ import {
   abrirNiveles,
   borrarNivelesDePrueba,
   elegirDelMenu,
-  filaDeNivel,
+  insigniaDeRetirado,
   llenarNivelesHasta,
   masAccionesDe,
   menuDe,
   modalDeNivel,
   nivelEnLaBase,
   ponerNivelEnUso,
-  retirados,
   sembrarNivel,
 } from './soporte/niveles'
 import { capturar, sinScrollHorizontal } from './soporte/recorrido'
 
-// Los casos no felices de Configuración › Catálogos › Niveles (paso 4.09-2): el nombre vacío, repetido, largo o de una clave que ya existe; un nivel
+// Los casos no felices de los niveles de acceso en la matriz de Roles (paso 4.09-2, T511): el nombre vacío, repetido, largo o de una clave que ya existe; un nivel
 // en uso (se retira, no se elimina, y lo dice la base); una pestaña vieja que intenta eliminar uno que otra persona puso en uso; el tope de 10 con los
 // retirados dentro; dos personas editando el mismo nivel; una URL que nombra uno que no existe; y una URL que nombra uno que no existe. Quién ve qué está en `*-permisos`.
 test.describe.configure({ mode: 'serial' })
@@ -86,7 +85,7 @@ test('el nombre vacío, repetido con otras mayúsculas, de más de 40 caracteres
   await modal.getByRole('button', { name: 'Descartar' }).click()
 
   // Renombrar con el nombre de otro, tampoco.
-  await page.getByRole('button', { name: `Abrir ${nombre('Clave')}`, exact: true }).click()
+  await elegirDelMenu(page, nombre('Clave'), 'Renombrar')
   const edicion = modalDeNivel(page, 'Renombrar nivel')
   await edicion.getByLabel('Nombre').fill('costos')
   await edicion.getByRole('button', { name: 'Guardar' }).click()
@@ -102,8 +101,6 @@ test('un nivel en uso: Eliminar apagado con el motivo de la base y Retirar al la
   ponerNivelEnUso(uso.clave)
   await entrar(page, duena)
   await abrirNiveles(page)
-  const fila = filaDeNivel(page, uso.nombre)
-  await expect(fila.getByText('En uso', { exact: true })).toBeVisible()
   await masAccionesDe(page, uso.nombre).click()
   await expect(page.getByRole('menuitem', { name: 'Retirar', exact: true })).toBeEnabled()
   await expect(page.getByRole('menuitem', { name: 'Eliminar', exact: true })).toBeDisabled()
@@ -116,7 +113,7 @@ test('un nivel en uso: Eliminar apagado con el motivo de la base y Retirar al la
   // Una URL que pide eliminarlo no abre y dice por qué.
   await noAbre(
     page,
-    `/configuracion/catalogos/niveles?panel=eliminar-nivel&nivel=${uso.id}`,
+    `/configuracion/roles?bloque=cotizaciones&panel=eliminar-nivel&nivel=${uso.id}`,
     /Está en 2 celdas de 1 origen/,
     /panel=eliminar-nivel/,
   )
@@ -131,7 +128,7 @@ test('un nivel en uso: Eliminar apagado con el motivo de la base y Retirar al la
 
   // Retirarlo: sí. Ya retirado sigue en uso: no se elimina, y el motivo no le ofrece retirarse otra vez.
   await elegirDelMenu(page, uso.nombre, 'Retirar')
-  await expect(retirados(page).getByText(uso.nombre, { exact: true })).toBeVisible()
+  await expect(insigniaDeRetirado(page, uso.nombre)).toHaveCount(2)
   await masAccionesDe(page, uso.nombre).click()
   await expect(page.getByRole('menuitem', { name: 'Eliminar', exact: true })).toBeDisabled()
   await expect(menuDe(page, uso.nombre)).toContainText(
@@ -148,7 +145,6 @@ test('una pestaña vieja que intenta eliminar uno que otra persona puso en uso: 
   const viejo = sembrarNivel(nombre('Pestaña vieja'))
   await entrar(page, duena)
   await abrirNiveles(page)
-  await expect(filaDeNivel(page, viejo.nombre).getByText('Sin uso')).toBeVisible()
   // Otra persona lo puso en uso (un borrador de fórmula) mientras esta pantalla seguía abierta.
   ponerNivelEnUso(viejo.clave)
   await elegirDelMenu(page, viejo.nombre, 'Eliminar')
@@ -157,8 +153,10 @@ test('una pestaña vieja que intenta eliminar uno que otra persona puso en uso: 
   await expect(dialogo).toBeHidden()
   await expect(page.getByText(/Está en 2 celdas de 1 origen/).first()).toBeVisible()
   await capturar(page, info, 'niveles-pestana-vieja')
-  // La lista se vuelve a leer: ahora lo muestra en uso, con Eliminar apagado.
-  await expect(filaDeNivel(page, viejo.nombre).getByText('En uso', { exact: true })).toBeVisible()
+  // La lista se vuelve a leer: ahora el menú lo muestra en uso, con Eliminar apagado.
+  await masAccionesDe(page, viejo.nombre).click()
+  await expect(page.getByRole('menuitem', { name: 'Eliminar', exact: true })).toBeDisabled()
+  await page.keyboard.press('Escape')
   expect(nivelEnLaBase(viejo.nombre)).toBeDefined()
 })
 
@@ -169,7 +167,6 @@ test('el tope de 10: los retirados cuentan, «Nuevo nivel» se apaga diciendo po
   llenarNivelesHasta(10)
   await entrar(page, duena)
   await abrirNiveles(page)
-  await expect(page.getByText('10 de 10 niveles posibles.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Nuevo nivel' })).toBeDisabled()
   await expect(
     page.getByText(
@@ -181,12 +178,12 @@ test('el tope de 10: los retirados cuentan, «Nuevo nivel» se apaga diciendo po
   // Retirar uno no libera lugar: sigue contando.
   const rellenoReal = `${PREFIJO_DE_NIVEL_E2E} relleno 01`
   await elegirDelMenu(page, rellenoReal, 'Retirar')
-  await expect(retirados(page).getByText(rellenoReal, { exact: true })).toBeVisible()
+  await expect(insigniaDeRetirado(page, rellenoReal)).toHaveCount(2)
   await expect(page.getByRole('button', { name: 'Nuevo nivel' })).toBeDisabled()
   // Por la URL tampoco abre, y dice el motivo.
   await noAbre(
     page,
-    '/configuracion/catalogos/niveles?panel=nuevo-nivel',
+    '/configuracion/roles?bloque=cotizaciones&panel=nuevo-nivel',
     /Ya hay 10 niveles, que es el máximo/,
     /panel=nuevo-nivel/,
   )
@@ -202,7 +199,6 @@ test('el tope de 10: los retirados cuentan, «Nuevo nivel» se apaga diciendo po
   const dialogo = page.getByRole('dialog', { name: `Eliminar el nivel «${rellenoReal}»` })
   await dialogo.getByRole('button', { name: 'Eliminar nivel' }).click()
   await expect(dialogo).toBeHidden()
-  await expect(page.getByText('9 de 10 niveles posibles.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Nuevo nivel' })).toBeEnabled()
   borrarNivelesDePrueba()
 })
@@ -214,7 +210,7 @@ test('dos personas renombrando el mismo nivel: la segunda ve el conflicto, lo es
   const base = sembrarNivel(nombre('Conflicto'))
   await entrar(page, duena)
   await abrirNiveles(page)
-  await page.getByRole('button', { name: `Abrir ${base.nombre}`, exact: true }).click()
+  await elegirDelMenu(page, base.nombre, 'Renombrar')
   const primera = modalDeNivel(page, 'Renombrar nivel')
   await primera.getByLabel('Nombre').fill(nombre('Conflicto A'))
 
@@ -222,7 +218,7 @@ test('dos personas renombrando el mismo nivel: la segunda ve el conflicto, lo es
   const otra = await contexto.newPage()
   await entrar(otra, duena, { fresco: true })
   await abrirNiveles(otra)
-  await otra.getByRole('button', { name: `Abrir ${base.nombre}`, exact: true }).click()
+  await elegirDelMenu(otra, base.nombre, 'Renombrar')
   const segunda = modalDeNivel(otra, 'Renombrar nivel')
   await segunda.getByLabel('Nombre').fill(nombre('Conflicto B'))
   await segunda.getByRole('button', { name: 'Guardar' }).click()
@@ -249,13 +245,13 @@ test('una URL que nombra un nivel que no existe, o uno que no se puede cambiar, 
   await entrar(page, duena)
   await noAbre(
     page,
-    `/configuracion/catalogos/niveles?panel=renombrar-nivel&nivel=${INEXISTENTE}`,
+    `/configuracion/roles?bloque=cotizaciones&panel=renombrar-nivel&nivel=${INEXISTENTE}`,
     'Ese nivel ya no existe.',
     /panel=renombrar-nivel/,
   )
   await noAbre(
     page,
-    `/configuracion/catalogos/niveles?panel=eliminar-nivel&nivel=${INEXISTENTE}`,
+    `/configuracion/roles?bloque=cotizaciones&panel=eliminar-nivel&nivel=${INEXISTENTE}`,
     'Ese nivel ya no existe.',
     /panel=eliminar-nivel/,
   )
@@ -263,7 +259,7 @@ test('una URL que nombra un nivel que no existe, o uno que no se puede cambiar, 
   const todos = nivelEnLaBase('Todos')
   await noAbre(
     page,
-    `/configuracion/catalogos/niveles?panel=renombrar-nivel&nivel=${todos?.id ?? ''}`,
+    `/configuracion/roles?bloque=cotizaciones&panel=renombrar-nivel&nivel=${todos?.id ?? ''}`,
     'El nivel «Todos» no se renombra.',
     /panel=renombrar-nivel/,
   )

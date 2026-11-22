@@ -29,8 +29,6 @@ export type PermisoDelCatalogo = {
   nivel?: NivelDelPermiso
 }
 
-export const SUFIJO_DE_NIVEL_RETIRADO = ' (retirado)'
-
 export type GrupoDePermisos = {
   modulo: ModuloPermiso
   titulo: string
@@ -75,8 +73,8 @@ function permisoDesde(fila: z.infer<typeof esquemaCatalogo>[number]): PermisoDel
     {
       clave: fila.clave,
       modulo: moduloDe(fila.clave),
-      // Un nivel retirado sigue en la matriz (lo que se le dio sigue valiendo): se dice en el nombre, como un origen «(inactivo)».
-      nombre: retirado ? `${fila.nombre}${SUFIJO_DE_NIVEL_RETIRADO}` : fila.nombre,
+      // Un nivel retirado sigue en la matriz (lo que se le dio sigue valiendo): el nombre no cambia y la fila lleva la insignia «Retirado».
+      nombre: fila.nombre,
       descripcion: fila.descripcion,
       porOrigen: fila.por_origen,
       conAlcance: fila.con_alcance,
@@ -138,6 +136,55 @@ export function agruparPorModulo(catalogo: readonly PermisoDelCatalogo[]): Grupo
       permisos: catalogo.filter((permiso) => permiso.modulo === modulo),
     }))
     .filter((grupo) => grupo.permisos.length > 0)
+}
+
+// El módulo cuyo bloque lleva los niveles de acceso (el patrón `cotizaciones.nivel.<clave>.ver|editar` de `@/shared/lib/permisos`).
+export const MODULO_DE_LOS_NIVELES: ModuloPermiso = 'cotizaciones'
+
+// Un nivel de acceso de la matriz: sus dos filas (`Ver` y `Editar`, en ese orden) bajo el rótulo «Niveles de acceso».
+export type NivelDeLaMatriz = NivelDelPermiso & { permisos: PermisoDelCatalogo[] }
+
+// Un bloque se dibuja en partes: los permisos de siempre y, donde está la primera fila de nivel, los niveles juntos.
+export type ParteDelGrupo =
+  | { tipo: 'permisos'; permisos: PermisoDelCatalogo[] }
+  | { tipo: 'niveles'; niveles: NivelDeLaMatriz[] }
+
+// Las partes de un bloque. Los niveles van donde está la primera fila de nivel (cada nivel con sus filas, en el orden de entrada) y los demás
+// permisos quedan antes y después, sin moverse. Sin ninguna fila de nivel (instalación nueva: sólo «Todos», que no genera permisos) el bloque
+// de los niveles lleva igual su parte, al final, si la matriz tiene huecos de niveles (`conNiveles`): ahí vive «+ Nuevo nivel».
+export function partesDelGrupo(
+  grupo: GrupoDePermisos,
+  { conNiveles }: { conNiveles: boolean },
+): ParteDelGrupo[] {
+  const partes: ParteDelGrupo[] = []
+  const niveles = new Map<string, NivelDeLaMatriz>()
+  let lugarDeNiveles: ParteDelGrupo | null = null
+  let corriente: PermisoDelCatalogo[] | null = null
+  for (const permiso of grupo.permisos) {
+    if (permiso.nivel) {
+      const { clave, nombre, retirado } = permiso.nivel
+      const nivel = niveles.get(clave) ?? { clave, nombre, retirado, permisos: [] }
+      niveles.set(clave, nivel)
+      nivel.permisos.push(permiso)
+      if (!lugarDeNiveles) {
+        lugarDeNiveles = { tipo: 'niveles', niveles: [] }
+        partes.push(lugarDeNiveles)
+      }
+      corriente = null
+      continue
+    }
+    if (!corriente) {
+      corriente = []
+      partes.push({ tipo: 'permisos', permisos: corriente })
+    }
+    corriente.push(permiso)
+  }
+  if (lugarDeNiveles?.tipo === 'niveles') {
+    lugarDeNiveles.niveles = [...niveles.values()]
+  } else if (conNiveles && grupo.modulo === MODULO_DE_LOS_NIVELES) {
+    partes.push({ tipo: 'niveles', niveles: [] })
+  }
+  return partes
 }
 
 // Un permiso que no se acota por origen ni distingue alcance es un sí o un no.

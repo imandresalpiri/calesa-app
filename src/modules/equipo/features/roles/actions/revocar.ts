@@ -18,7 +18,6 @@ export const revocar = actionClient
     const revocado = await repositorioRoles.revocar(parsedInput)
     if (revocado.ok) {
       revalidatePath(RUTAS.roles)
-      revalidatePath(RUTAS.quienCreaYQuienVe)
     }
     return revocado
   })

@@ -5,6 +5,7 @@ import { calculoDePrueba, CONTEXTO_DE_PRUEBA, crudaDeLaTarjeta } from './tarjeta
 import {
   datoDibujado,
   fueraDeLaVersion,
+  parteDibujada,
   tieneValor,
   type EntradaDelContenido,
 } from './valor-del-dato'
@@ -67,5 +68,54 @@ describe('datoDibujado y fueraDeLaVersion', () => {
     expect(fueraDeLaVersion(entrada(), 'remate')).toBe(false)
     expect(fueraDeLaVersion(entrada(calculoDePrueba({ estados: new Map() })), 'total')).toBe(false)
     expect(fueraDeLaVersion(entrada(calculoDePrueba({ estados: null })), 'ya_no_esta')).toBe(false)
+  })
+})
+
+describe('parteDibujada (un dato dentro de un texto con datos)', () => {
+  const c = calculoDePrueba({
+    valores: new Map<string, number | string | null>([
+      ['variante', 'gasolina'],
+      ['remate', 1000],
+      ['flete', 300],
+      ['flete_pct', 0.042],
+      ['tc_oficial', 6.96],
+      ['garantia', null],
+      ['total', 1355],
+    ]),
+  })
+  const dato = (nodo: string, mostrar: string) => ({ tipo: 'dato', nodo, mostrar }) as never
+
+  it('cada «qué mostrar» con el formato de una celda «Dato»', () => {
+    const mismo = (d: ReturnType<typeof dato>) => {
+      const r = datoDibujado(entrada(c), d)
+      return r.tipo === 'texto' ? r.lineas.join('\n') : null
+    }
+    const r = parteDibujada(entrada(c), monto('remate'))
+    const m = datoDibujado(entrada(c), monto('remate'))
+    expect(m.tipo === 'monto' && typeof r !== 'string' && r.texto === m.texto).toBe(true)
+    expect(r).toMatchObject({ valor: 1000, moneda: 'USD' })
+    expect(parteDibujada(entrada(c), dato('flete', 'porcentaje'))).toMatch(/^4,2\s?%$/)
+    for (const mostrar of [
+      'porcentaje',
+      'etiqueta',
+      'descripcion',
+      'tc_nombre',
+      'tc_valor',
+      'plazo',
+    ])
+      expect(
+        parteDibujada(entrada(c), dato(mostrar === 'porcentaje' ? 'flete' : 'remate', mostrar)),
+      ).toBe(mismo(dato(mostrar === 'porcentaje' ? 'flete' : 'remate', mostrar)))
+    expect(parteDibujada(entrada(c), dato('remate', 'tc_nombre'))).toBe('Dólar oficial')
+    expect(parteDibujada(entrada(c), { tipo: 'dato', variable: 'numero' })).toBe('12')
+  })
+
+  it('sin valor o si el nodo no aplica no escribe nada (nunca «—»)', () => {
+    expect(parteDibujada(entrada(c), monto('garantia'))).toBe('')
+    expect(parteDibujada(entrada(c), monto('fees'))).toBe('')
+    expect(parteDibujada(entrada(c), dato('fees', 'etiqueta'))).toBe('')
+    expect(parteDibujada(entrada(c), dato('garantia', 'descripcion'))).toBe('')
+    expect(parteDibujada(entrada(), dato('flete', 'porcentaje'))).toBe('')
+    expect(parteDibujada(entrada(), { tipo: 'dato', variable: 'cliente_nombre' })).toBe('')
   })
 })

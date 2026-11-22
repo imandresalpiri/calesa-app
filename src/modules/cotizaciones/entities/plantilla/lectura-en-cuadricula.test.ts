@@ -140,3 +140,28 @@ describe('lecturaEnCuadricula', () => {
     expect(l.colores).toEqual([{ clave: 'verde', hex: '#00aa00' }])
   })
 })
+
+describe('lecturaEnCuadricula con un texto con datos', () => {
+  it('un porcentaje dentro de un texto con datos trae el `pct` del par; un tipo de cambio, su grupo', () => {
+    const l = lecturaEnCuadricula(
+      plantilla([
+        celda('a', {
+          tipo: 'texto',
+          partes: [
+            'Comisión ',
+            { tipo: 'dato', nodo: 'comision', mostrar: 'porcentaje' },
+            ' · ',
+            { tipo: 'dato', nodo: 'remate', mostrar: 'tc_nombre' },
+          ],
+        }),
+      ]),
+      contexto,
+      TONOS,
+    )
+    expect(l.nodos.find((n) => n.id === 'comision')?.pct).toBe('comision_pct')
+    expect(l.tiposDeCambio.buckets).toEqual([
+      { bucket: 'exterior', nombre: 'TC paralelo', nodo: 'tc_ext' },
+    ])
+    expect(l.grupos.map((g) => g.id)).toEqual(['compra'])
+  })
+})

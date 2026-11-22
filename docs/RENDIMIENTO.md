@@ -349,7 +349,8 @@ que asserta `pnpm db:medir:volumen` o el e2e. Mide `medir-escala.sql` salvo que 
   dígitos, 0 pedidos con 1 o 2 (`e2e/equipo-busqueda-minima.spec.ts`); `lista-equipo.tsx` no llama a `setParametros` si `q` no cambia.
   Miniatura de 96 px. `medir-equipo.sql` (10.000 y 100.000 personas; no crece más de 1,5 veces, piso 60 buffers).
 - Roles: `roles_personas()` hasta 1.001 por rol («más de 1.000 personas»), `usuarios_roles_rol_idx`, ≤ 150 buffers. La matriz no pagina:
-  80 filas de catálogo + hasta 18 de niveles (`_niveles_tope()` = 10; 9 que generan permisos × 2) (`e2e/roles-niveles.spec.ts`).
+  80 filas de catálogo + hasta 18 de niveles (`_niveles_tope()` = 10; 9 que generan permisos × 2) más el renglón de «Todos», el rótulo y el pie del grupo (`e2e/roles-niveles.spec.ts`). El código
+  de los niveles (el «⋯», los modales) y el del cuadro de «Quién crea y quién ve» se piden al usarse (`diferido()`).
 
 ### Baja de una persona
 
@@ -614,7 +615,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `/leads` 560, `/leads/[id]` 590, `/perfil` 440, `/vehiculos` 530, `/vehiculos/[id]` 540 (531,8 medidos con la cotización privada, los dos botones del marco y la cuenta regresiva de la subasta: regla del 5 %), `/cotizaciones` 400 (con las tarjetas de la lista, la imagen de la tarjeta en frío y el hook de los menús de las filas que comparte con las fichas),
   `/cotizaciones/nuevo` 470 (469,3 medidos con la hoja con el aspecto de V1, el interruptor «Privada» y los botones «Recargar la página» y «Copiar el enlace de esta página» del marco; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
   (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 480,1 medidos con «Hacer privada», la insignia y los dos botones del marco: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
-  `/logistica/fase/[fase]` 390, `/logistica/vehiculo/[id]` 470, `/configuracion/catalogos/quien-crea-y-quien-ve` 420 (provisional hasta su primera medición);
+  `/logistica/fase/[fase]` 390, `/logistica/vehiculo/[id]` 470, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
   `/cotizaciones/papelera` 440 (en su spec).
 - Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 558,3 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
@@ -673,7 +674,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   planilla 478,3, hoja 393,4, tarjeta 400,4, campos 392,4, categorías 390,4) suben entre 2,6 % y 4,4 %: las migas con el selector de origen, el drawer
   «Datos» y su botón, el tooltip del ⚠ (que sólo lleva la página del origen: `PestanasConDesborde` lo recibe por `conAviso`) y, en las tres de la fórmula, la barra (el selector con su popover, el estado, «Versiones», «Tablas» y el lugar de
   «Guardar» y «Publicar…»): regla del 5 %. La lista del selector (con las archivadas), los paneles de cada fórmula (nueva, renombrar, activar, archivar,
-  eliminar) y los de las tablas van por `diferido()`; la lista de las tablas se lee en el servidor sólo con `?panel=tablas`. `/configuracion/catalogos/niveles` 366,7,
+  eliminar) y los de las tablas van por `diferido()`; la lista de las tablas se lee en el servidor sólo con `?panel=tablas`. `/configuracion/roles` 388,2 (la matriz con los niveles y el resumen plegable; tope 410, sin medida de antes: la ruta no tenía presupuesto),
   `/puertos`, `/navieras` y `/categorias-de-gasto` 356,4, `/tipos-de-documento` 370,4, `/tablas` 368,1. La cabecera del origen (migas,
   encabezado, «Datos», el «⋯» y las pestañas con su ⚠) lee `origenes_resumen()` una vez por pedido (`leerElOrigen`, con `cache()`, la comparten la cabecera y
   la pestaña) y la lista de orígenes del selector (`leerOrigenes()`, la misma que el menú); no lee apibara: nada cuenta ni crece con las cotizaciones.

@@ -4,11 +4,16 @@ import {
   rutaDeConfiguracionDeCotizacion,
   type PestanaDeCotizacion,
 } from '@/shared/lib/rutas'
-import { conElPanelDeOrigenes, conParametros, type ParametrosDeLaUrl } from '../con-parametros'
+import {
+  conElBloqueDeRoles,
+  conElPanelDeOrigenes,
+  conParametros,
+  type ParametrosDeLaUrl,
+} from '../con-parametros'
 
 // Configuración › Cotización ya no existe: lo de cada origen vive en su página (`/configuracion/origenes/<id>/planilla|hoja|tarjeta`, las tablas en su drawer `?panel=tablas`)
-// y lo global en Catálogos y en Orígenes («Para todos los orígenes»). Los enlaces de cuando era una página con pestañas (`?seccion=`, `?origen=`) siguen funcionando:
-// - `?seccion=niveles` → su catálogo; `?seccion=colores|tonos|vigencia|ajustes` → el modal de su tarjeta en Orígenes (`?panel=colores|vigencia`; si traía su propio `?panel=`, ése manda).
+// y lo global en Roles (los niveles) y en Orígenes («Para todos los orígenes»). Los enlaces de cuando era una página con pestañas (`?seccion=`, `?origen=`) siguen funcionando:
+// - `?seccion=niveles` → el bloque «Cotizaciones» de Roles (`?bloque=cotizaciones`); `?seccion=colores|tonos|vigencia|ajustes` → el modal de su tarjeta en Orígenes (`?panel=colores|vigencia`; si traía su propio `?panel=`, ése manda).
 // - `?seccion=formula|diseno|tarjeta|tablas&origen=<id>` → esa pestaña del origen (`tablas`: la Planilla con el drawer, y el `?panel=` de la tabla en `accion`); `?origen=<id>` sin sección → su Planilla.
 // - Una pestaña de un origen sin origen (o con uno que no es un id), o sin nada → la lista de orígenes, sin parámetros (eran de un origen).
 // Los demás parámetros (`?panel=`, `?version=`, `?tabla=`, `?tono=`, `?nivel=`, `?vista=`…) viajan con él, salvo hacia la lista. Ningún
@@ -19,10 +24,6 @@ const DEL_ORIGEN: Readonly<Record<string, PestanaDeCotizacion>> = {
   hoja: 'hoja',
   tarjeta: 'tarjeta',
   tablas: 'tablas',
-}
-
-const DE_CATALOGOS: Readonly<Record<string, string>> = {
-  niveles: RUTAS.nivelesDeCotizacion,
 }
 
 // Lo de toda la empresa que ahora es una tarjeta de Orígenes: la clave de su `?panel=`.
@@ -43,9 +44,8 @@ export function destinoDeLaUrlVieja(parametros: ParametrosDeLaUrl): string {
   const resto = Object.fromEntries(
     Object.entries(parametros).filter(([nombre]) => nombre !== 'origen'),
   )
-  const catalogo = seccion === undefined ? undefined : DE_CATALOGOS[seccion]
-  if (catalogo !== undefined) {
-    return conParametros(catalogo, resto)
+  if (seccion === 'niveles') {
+    return conElBloqueDeRoles(resto)
   }
   const panel = seccion === undefined ? undefined : DE_ORIGENES[seccion]
   if (panel !== undefined) {

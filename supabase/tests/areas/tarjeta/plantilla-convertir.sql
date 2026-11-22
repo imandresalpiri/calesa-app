@@ -1,5 +1,6 @@
 -- `_plantilla_convertir()`: la plantilla de hoy (forma 1) convertida a la cuadrícula al leerla. T1 corre el juego espejo
--- `src/modules/cotizaciones/entities/plantilla/casos-de-conversion.json` (tabla `_juego_de_conversion`), el que genera `convertirPlantilla()` de TS.
+-- `src/modules/cotizaciones/entities/plantilla/casos-de-conversion.json` (tabla `_juego_de_conversion`), el que genera `convertirPlantilla()` de TS. T5 convierte
+-- la forma 1 de las tarjetas de USA (`entities/plantilla/plantillas-v1-de-las-semillas.json`, tabla `_plantillas_v1_de_las_semillas`): su semilla ya es forma 2.
 -- docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)». Cada bloque abre su transacción y la revierte.
 
 -- @test plantilla-convertir T1: cada caso del juego da exactamente la cuadrícula que da convertirPlantilla() de TS (igualdad de jsonb)
@@ -25,17 +26,22 @@ begin
 end $$;
 rollback;
 
--- @test plantilla-convertir T2: la plantilla v1 de cada origen (la de su semilla o la mínima de seed.sql) se convierte contra la v1 de su fórmula y lo convertido valida como cuadrícula
+-- @test plantilla-convertir T2: la plantilla v1 de cada origen (la de su semilla o la mínima de seed.sql) vale contra la v1 de su fórmula: la de forma 1 se convierte y lo convertido valida como cuadrícula; la de forma 2 (USA) valida tal cual, con el tope
 begin;
 do $$
-declare r record; v_conv jsonb; v_n int := 0;
+declare r record; v_conv jsonb; v_n int := 0; v_cuadriculas text[] := '{}';
 begin
   for r in select o.clave, p.definicion as pla, f.definicion as def, f.diseno, f.visibilidad
              from public.origenes o join public.plantillas_tarjeta p on p.origen_id = o.id and p.version = 1
              join public.formulas f on f.origen_id = o.id and f.version = 1 loop
     v_n := v_n + 1;
     perform public.validar_plantilla(r.pla, r.def, r.diseno, r.visibilidad, null);
-    v_conv := public._plantilla_convertir(r.pla, r.def, r.diseno, r.visibilidad, array(select t.clave from public.tonos t));
+    if r.pla ? 'forma' then
+      v_cuadriculas := v_cuadriculas || r.clave;
+      v_conv := r.pla;
+    else
+      v_conv := public._plantilla_convertir(r.pla, r.def, r.diseno, r.visibilidad, array(select t.clave from public.tonos t));
+    end if;
     begin
       perform public._plantilla_cuadricula_forma(v_conv, false);
       perform public._plantilla_cuadricula_nodos(v_conv, r.def, r.diseno, r.visibilidad, null);
@@ -47,6 +53,37 @@ begin
     end if;
   end loop;
   if v_n < 3 then raise exception 'sólo % orígenes con plantilla y fórmula v1', v_n; end if;
+  if (select array_agg(x order by x) from unnest(v_cuadriculas) x) is distinct from array['planilla_usa', 'subasta_usa'] then
+    raise exception 'las sembradas en forma 2 son las de USA: %', v_cuadriculas;
+  end if;
+end $$;
+rollback;
+
+-- @test plantilla-convertir T5: la forma 1 de cada tarjeta de USA (el fixture), convertida con la v1 sembrada de su fórmula, es la forma 2 sembrada salvo la leyenda de la transferencia, que allí es «Comisión giro » y su porcentaje
+begin;
+do $$
+declare r record; v_conv jsonb; v_leyenda jsonb; v_i int; v_n int := 0;
+begin
+  for r in select o.clave, x.doc -> o.clave as v1, p.definicion as pla, f.definicion as def, f.diseno, f.visibilidad
+             from public.origenes o join public.plantillas_tarjeta p on p.origen_id = o.id and p.version = 1
+             join public.formulas f on f.origen_id = o.id and f.version = 1 cross join pg_temp._plantillas_v1_de_las_semillas x
+            where o.clave in ('subasta_usa', 'planilla_usa') loop
+    v_n := v_n + 1;
+    if r.v1 is null or r.v1 ? 'forma' then raise exception 'el fixture no trae la forma 1 de %', r.clave; end if;
+    v_conv := public._plantilla_convertir(r.v1, r.def, r.diseno, r.visibilidad, array(select t.clave from public.tonos t));
+    select c.n - 1, c.v -> 'contenido' into strict v_i, v_leyenda
+      from jsonb_array_elements(v_conv -> 'celdas') with ordinality c (v, n) where c.v ->> 'id' = 'c_n_transferencia_leyenda';
+    if v_leyenda <> '{"tipo": "dato", "nodo": "transferencia", "mostrar": "descripcion"}' then
+      raise exception '%: la leyenda convertida es %', r.clave, v_leyenda;
+    end if;
+    v_conv := jsonb_set(v_conv, array['celdas', v_i::text, 'contenido'],
+                        '{"tipo": "texto", "partes": ["Comisión giro ", {"tipo": "dato", "nodo": "transferencia", "mostrar": "porcentaje"}]}');
+    if v_conv is distinct from r.pla then
+      raise exception '%: la conversión no es la sembrada (claves distintas: %)', r.clave,
+        (select string_agg(k, ', ') from jsonb_object_keys(r.pla) k where v_conv -> k is distinct from r.pla -> k);
+    end if;
+  end loop;
+  if v_n <> 2 then raise exception 'esperaba las dos tarjetas de USA, hubo %', v_n; end if;
 end $$;
 rollback;
 

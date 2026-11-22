@@ -1,6 +1,7 @@
 // Las celdas de la forma 2, espejo de la parte de `_plantilla_cuadricula_forma()` que las recorre: por celda, en este orden, la clave de más, `id`, `fila`,
 // `columna`, `abarca_columnas` (1 a 16), `abarca_filas` (1 a 120), `contenido` según su `tipo` y `estilo`. Cada `donde` es su ruta con índice
-// (`celdas[3].estilo.tamano`). Un texto no mezcla texto y variables: `{{` se rechaza. La lista de respaldo y las condiciones, en `condiciones-de-cuadricula.ts`.
+// (`celdas[3].estilo.tamano`). Un texto es `{tipo, texto}` (sin «{{»: nada interpola) o, si lleva datos, `{tipo, partes}` (`texto-con-datos-de-cuadricula.ts`); la
+// lista de respaldo y las condiciones, en `condiciones-de-cuadricula.ts`.
 import {
   ALINEAR,
   ALINEAR_VERTICAL,
@@ -25,6 +26,7 @@ import {
   revisarRespaldo,
   textoAdmitido,
 } from './condiciones-de-cuadricula'
+import { revisarPartes } from './texto-con-datos-de-cuadricula'
 
 const CLAVES_DE_UNA_CELDA = new Set([
   'id',
@@ -46,6 +48,7 @@ const TIPOS = [
 ] as const
 const SOLO_EL_TIPO = new Set(['tipo'])
 const DEL_TEXTO = new Set(['tipo', 'texto'])
+const DEL_TEXTO_CON_DATOS = new Set(['tipo', 'partes'])
 const CLAVES_DEL_ESTILO = new Set([
   'fondo',
   'texto',
@@ -59,14 +62,21 @@ const CLAVES_DEL_ESTILO = new Set([
 // En este orden se revisan los lados.
 const LADOS_DE_LOS_BORDES = ['todos', 'arriba', 'derecha', 'abajo', 'izquierda'] as const
 
+// Un texto fijo o, con `partes`, un texto con datos (`partes` y `texto` juntos son una clave de más).
+function revisarTexto(c: Record<string, unknown>, donde: string): RechazoDePlantilla | null {
+  if (Object.hasOwn(c, 'partes')) {
+    if (conClaveDeMas(c, DEL_TEXTO_CON_DATOS)) return formaRota(donde)
+    return revisarPartes(campo(c, 'partes'), `${donde}.partes`)
+  }
+  if (conClaveDeMas(c, DEL_TEXTO)) return formaRota(donde)
+  return textoAdmitido(campo(c, 'texto')) ? null : formaRota(`${donde}.texto`)
+}
+
 function revisarContenido(c: unknown, donde: string): RechazoDePlantilla | null {
   if (!esObjetoJsonb(c)) return formaRota(donde)
   const tipo = campo(c, 'tipo')
   if (!enLista(tipo, TIPOS)) return formaRota(`${donde}.tipo`)
-  if (tipo === 'texto') {
-    if (conClaveDeMas(c, DEL_TEXTO)) return formaRota(donde)
-    return textoAdmitido(campo(c, 'texto')) ? null : formaRota(`${donde}.texto`)
-  }
+  if (tipo === 'texto') return revisarTexto(c, donde)
   if (tipo === 'dato') return revisarDatoDeUnaCelda(c, donde)
   if (tipo === 'respaldo') return revisarRespaldo(c, donde)
   if (tipo === 'condiciones') return revisarCondiciones(c, donde)

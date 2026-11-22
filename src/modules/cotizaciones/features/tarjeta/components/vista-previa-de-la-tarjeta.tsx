@@ -58,6 +58,7 @@ function useVistaPrevia(props: Props) {
     cotizacionId: props.pagina.cotizacionId,
     retoque: props.pagina.retoque,
     plantilla,
+    resueltos: modelo.resueltos,
   })
   const cierre = useCierreConCambios({
     hayCambios: modo.hayCambios,

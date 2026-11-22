@@ -221,7 +221,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** La burbuja del chat tapa contenido en el celular: el «⋯» de la primera fila de una lista de Configuración a la vista al abrir (390 px, la pestaña «Campos» de un origen), la esquina de «Guardar» de la barra de cambios sin guardar (Configuración › Leads › «Mensaje del portal»), y al 200 % el borde derecho del valor de una tarjeta de ajustes (la dirección de apibara) y la última línea de una página — reservar su lugar al pie del contenido y subirla mientras la barra está a la vista, como los avisos (`data-pie-de-panel`).
 - **[—]** El selector de embudo de la vista de embudo no se cierra al elegir otro (`DropdownMenuRadioItem` de Base UI no cierra al hacer clic): en el
   celular el menú queda sobre las pestañas de etapas hasta tocar afuera (`selector-de-embudo.tsx`; `closeOnClick` en el ítem).
-- **[—]** Configuración › Catálogos › Niveles repite el título de la página en el `h2` de su lista («Niveles de acceso», con «Nuevo nivel»): llevar la acción principal junto al `h1` y quitar el `h2`.
 - **[—]** En el menú de Configuración (10 rem) el motivo de una sub-sección apagada larga ocupa cinco renglones («Te falta el permiso
   «Gestionar los campos de los leads».»): acortarlo o mostrarlo al enfocar.
 - **[—]** «Cotizar» del título de «Cotizaciones de este vehículo» (`src/app/(app)/vehiculos/[id]/bloque-cotizaciones.tsx`) se ve sin borde: `buttonVariants()` sin `cn()` deja ganar el `border-transparent` de la base.

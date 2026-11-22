@@ -112,12 +112,99 @@ begin
   values (v_origen, 1, 'publicada', v_def, v_params, v_diseno, public._preparar_publicacion(v_def, v_params, v_diseno, false), 'Fórmula inicial', now());
 end $$;
 
--- La plantilla de la tarjeta de planilla_usa (4.18-1): la de la vista previa 08 de `docs/referencias/cotizador-actual.md` (sus tres grupos con su tono, el «TOTAL DÓLARES»
--- con su leyenda, la nota y el logo), sin la columna del tipo de cambio: su hoja no dibuja tipos de cambio y la regla cuenta lo que no se dibuja como
--- oculto (S0 del 4.18-1, contestada el 2026-11-06). Valida contra la fórmula v1 (`supabase/tests/plantilla-validar.sql`, T5).
-update public.plantillas_tarjeta p set definicion = $j${"grupos": [{"grupo": "compra", "tono": "verde"}, {"grupo": "logistica", "tono": "amarillo"}, {"grupo": "aduana", "tono": "naranja"}],
-   "etiquetas": {"garantia": "GARANTÍA PARA LA PARTICIPACIÓN"},
-   "total": {"etiqueta": "TOTAL DÓLARES", "leyenda": "Todo con papeles, fuera de Aduana Nacional Cochabamba (No incluye reparación)"},
-   "nota": "Nota: Esta es una cotización referencial; los montos pueden variar con el tipo de cambio.",
-   "logo": true, "columnas": {"leyenda": true, "tipo_cambio": false, "plazo": true}}$j$::jsonb
+-- La plantilla de la tarjeta de planilla_usa (4.18-1), en forma 2: la cuadrícula que da `_plantilla_convertir()` de la de la vista previa 08 de
+-- `docs/referencias/cotizador-actual.md` (sus tres grupos con su tono, el «TOTAL DÓLARES» con su leyenda, la nota y el logo), sin la columna del tipo de
+-- cambio: su hoja no dibuja tipos de cambio y la regla cuenta lo que no se dibuja como oculto (S0 del 4.18-1, contestada el 2026-11-06). La leyenda de
+-- la transferencia es un texto con datos: «Comisión giro » y su porcentaje, el de cada cotización. Esa forma 1 está en
+-- `entities/plantilla/plantillas-v1-de-las-semillas.json`. Valida contra la fórmula v1 (`supabase/tests/semilla-cotizador.sql`).
+update public.plantillas_tarjeta p set definicion = $j${
+  "forma": 2,
+  "columnas": [
+    {"id": "grupo", "ancho": 100},
+    {"id": "concepto", "ancho": 190},
+    {"id": "monto", "ancho": 130},
+    {"id": "leyenda", "ancho": 170},
+    {"id": "plazo", "ancho": 90}
+  ],
+  "filas": [
+    {"id": "titulo", "alto": 34, "ocultar_si": "nunca"},
+    {"id": "fecha", "alto": 25, "ocultar_si": "nunca"},
+    {"id": "numero", "alto": 42, "ocultar_si": "nunca"},
+    {"id": "asesor", "alto": 25, "ocultar_si": "nunca"},
+    {"id": "vehiculo", "alto": 28, "ocultar_si": "nunca"},
+    {"id": "cabecera", "alto": 25, "ocultar_si": "nunca"},
+    {"id": "n_remate", "alto": 40, "nodo": "remate", "ocultar_si": "no_aplica"},
+    {"id": "n_fees", "alto": 40, "nodo": "fees", "ocultar_si": "no_aplica"},
+    {"id": "n_transferencia", "alto": 25, "nodo": "transferencia", "ocultar_si": "no_aplica"},
+    {"id": "n_cuenta_especial", "alto": 25, "nodo": "cuenta_especial", "ocultar_si": "no_aplica"},
+    {"id": "n_grua", "alto": 25, "nodo": "grua", "ocultar_si": "no_aplica"},
+    {"id": "n_transporte_bolivia", "alto": 40, "nodo": "transporte_bolivia", "ocultar_si": "no_aplica"},
+    {"id": "n_transporte_chile", "alto": 25, "nodo": "transporte_chile", "ocultar_si": "no_aplica"},
+    {"id": "n_comision", "alto": 25, "nodo": "comision", "ocultar_si": "no_aplica"},
+    {"id": "n_documentacion", "alto": 40, "nodo": "documentacion", "ocultar_si": "no_aplica"},
+    {"id": "n_export", "alto": 25, "nodo": "export", "ocultar_si": "no_aplica"},
+    {"id": "n_nacionalizacion", "alto": 42, "nodo": "nacionalizacion", "ocultar_si": "no_aplica"},
+    {"id": "total", "alto": 72, "ocultar_si": "nunca"},
+    {"id": "a_garantia", "alto": 25, "nodo": "garantia", "ocultar_si": "no_aplica"},
+    {"id": "nota", "alto": 24, "ocultar_si": "nunca"}
+  ],
+  "celdas": [
+    {"id": "c_titulo_grupo", "fila": "titulo", "estilo": {"tamano": 18, "negrita": true}, "columna": "grupo", "contenido": {"tipo": "dato", "variable": "titulo_opcion"}, "abarca_columnas": 4},
+    {"id": "c_logo", "fila": "titulo", "columna": "plazo", "contenido": {"tipo": "logo"}, "abarca_filas": 4},
+    {"id": "c_fecha_grupo", "fila": "fecha", "columna": "grupo", "contenido": {"tipo": "dato", "variable": "fecha_larga"}},
+    {"id": "c_fecha_concepto", "fila": "fecha", "columna": "concepto", "contenido": {"tipo": "dato", "variable": "titulo"}, "abarca_columnas": 3},
+    {"id": "c_numero_grupo", "fila": "numero", "columna": "grupo", "contenido": {"tipo": "texto", "texto": "Cotización n.º"}},
+    {"id": "c_numero_concepto", "fila": "numero", "columna": "concepto", "contenido": {"tipo": "dato", "variable": "numero"}, "abarca_columnas": 3},
+    {"id": "c_asesor_grupo", "fila": "asesor", "columna": "grupo", "contenido": {"tipo": "texto", "texto": "Asesor:"}},
+    {"id": "c_asesor_concepto", "fila": "asesor", "columna": "concepto", "contenido": {"tipo": "dato", "variable": "asesor_nombre"}, "abarca_columnas": 3},
+    {"id": "c_vehiculo_grupo", "fila": "vehiculo", "estilo": {"tamano": 14, "negrita": true}, "columna": "grupo", "contenido": {"tipo": "dato", "variable": "vehiculo_titulo"}, "abarca_columnas": 5},
+    {"id": "c_cabecera_grupo", "fila": "cabecera", "columna": "grupo", "contenido": {"tipo": "vacio"}, "abarca_columnas": 4},
+    {"id": "c_cabecera_plazo", "fila": "cabecera", "estilo": {"bordes": {"todos": "fino"}, "tamano": 11, "alinear": "centro", "negrita": true}, "columna": "plazo", "contenido": {"tipo": "texto", "texto": "Plazo"}},
+    {"id": "c_n_remate_grupo", "fila": "n_remate", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "negrita": true, "alinear_vertical": "arriba"}, "columna": "grupo", "contenido": {"tipo": "texto", "texto": "Compra"}, "abarca_filas": 4},
+    {"id": "c_n_remate_concepto", "fila": "n_remate", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "remate", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_remate_monto", "fila": "n_remate", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "remate", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_remate_leyenda", "fila": "n_remate", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "remate", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_remate_plazo", "fila": "n_remate", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "alinear": "centro"}, "columna": "plazo", "contenido": {"nodo": "remate", "tipo": "dato", "mostrar": "plazo"}, "abarca_filas": 4},
+    {"id": "c_n_fees_concepto", "fila": "n_fees", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "fees", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_fees_monto", "fila": "n_fees", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "fees", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_fees_leyenda", "fila": "n_fees", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "fees", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_transferencia_concepto", "fila": "n_transferencia", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "transferencia", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_transferencia_monto", "fila": "n_transferencia", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "transferencia", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_transferencia_leyenda", "fila": "n_transferencia", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"tipo": "texto", "partes": ["Comisión giro ", {"tipo": "dato", "nodo": "transferencia", "mostrar": "porcentaje"}]}},
+    {"id": "c_n_cuenta_especial_concepto", "fila": "n_cuenta_especial", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "cuenta_especial", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_cuenta_especial_monto", "fila": "n_cuenta_especial", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "cuenta_especial", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_cuenta_especial_leyenda", "fila": "n_cuenta_especial", "estilo": {"fondo": "verde", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "cuenta_especial", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_grua_grupo", "fila": "n_grua", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "negrita": true, "alinear_vertical": "arriba"}, "columna": "grupo", "contenido": {"tipo": "texto", "texto": "Logística"}, "abarca_filas": 6},
+    {"id": "c_n_grua_concepto", "fila": "n_grua", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "grua", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_grua_monto", "fila": "n_grua", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "grua", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_grua_leyenda", "fila": "n_grua", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "grua", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_grua_plazo", "fila": "n_grua", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "alinear": "centro"}, "columna": "plazo", "contenido": {"nodo": "grua", "tipo": "dato", "mostrar": "plazo"}, "abarca_filas": 6},
+    {"id": "c_n_transporte_bolivia_concepto", "fila": "n_transporte_bolivia", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "transporte_bolivia", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_transporte_bolivia_monto", "fila": "n_transporte_bolivia", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "transporte_bolivia", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_transporte_bolivia_leyenda", "fila": "n_transporte_bolivia", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "transporte_bolivia", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_transporte_chile_concepto", "fila": "n_transporte_chile", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "transporte_chile", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_transporte_chile_monto", "fila": "n_transporte_chile", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "transporte_chile", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_transporte_chile_leyenda", "fila": "n_transporte_chile", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "transporte_chile", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_comision_concepto", "fila": "n_comision", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "comision", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_comision_monto", "fila": "n_comision", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "comision", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_comision_leyenda", "fila": "n_comision", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "comision", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_documentacion_concepto", "fila": "n_documentacion", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "documentacion", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_documentacion_monto", "fila": "n_documentacion", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "documentacion", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_documentacion_leyenda", "fila": "n_documentacion", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "documentacion", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_export_concepto", "fila": "n_export", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "export", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_export_monto", "fila": "n_export", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "export", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_export_leyenda", "fila": "n_export", "estilo": {"fondo": "amarillo", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "export", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_nacionalizacion_grupo", "fila": "n_nacionalizacion", "estilo": {"fondo": "naranja", "bordes": {"todos": "fino"}, "negrita": true, "alinear_vertical": "arriba"}, "columna": "grupo", "contenido": {"tipo": "texto", "texto": "Aduana"}},
+    {"id": "c_n_nacionalizacion_concepto", "fila": "n_nacionalizacion", "estilo": {"fondo": "naranja", "bordes": {"todos": "fino"}}, "columna": "concepto", "contenido": {"nodo": "nacionalizacion", "tipo": "dato", "mostrar": "etiqueta"}},
+    {"id": "c_n_nacionalizacion_monto", "fila": "n_nacionalizacion", "estilo": {"fondo": "naranja", "bordes": {"todos": "fino"}, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "nacionalizacion", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_n_nacionalizacion_leyenda", "fila": "n_nacionalizacion", "estilo": {"fondo": "naranja", "bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"nodo": "nacionalizacion", "tipo": "dato", "mostrar": "descripcion"}},
+    {"id": "c_n_nacionalizacion_plazo", "fila": "n_nacionalizacion", "estilo": {"fondo": "naranja", "bordes": {"todos": "fino"}, "alinear": "centro"}, "columna": "plazo", "contenido": {"nodo": "nacionalizacion", "tipo": "dato", "mostrar": "plazo"}},
+    {"id": "c_total_grupo", "fila": "total", "estilo": {"bordes": {"todos": "fino"}, "tamano": 14, "negrita": true}, "columna": "grupo", "contenido": {"tipo": "texto", "texto": "TOTAL DÓLARES"}, "abarca_columnas": 2},
+    {"id": "c_total_monto", "fila": "total", "estilo": {"bordes": {"todos": "fino"}, "tamano": 14, "alinear": "derecha", "negrita": true}, "columna": "monto", "contenido": {"nodo": "total", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_total_leyenda", "fila": "total", "estilo": {"bordes": {"todos": "fino"}, "tamano": 11}, "columna": "leyenda", "contenido": {"tipo": "texto", "texto": "Todo con papeles, fuera de Aduana Nacional Cochabamba (No incluye reparación)"}},
+    {"id": "c_a_garantia_grupo", "fila": "a_garantia", "estilo": {"bordes": {"todos": "fino"}}, "columna": "grupo", "contenido": {"tipo": "texto", "texto": "GARANTÍA PARA LA PARTICIPACIÓN"}, "abarca_columnas": 2},
+    {"id": "c_a_garantia_monto", "fila": "a_garantia", "estilo": {"bordes": {"todos": "fino"}, "alinear": "derecha"}, "columna": "monto", "contenido": {"nodo": "garantia", "tipo": "dato", "mostrar": "monto"}},
+    {"id": "c_nota_grupo", "fila": "nota", "estilo": {"tamano": 11, "cursiva": true}, "columna": "grupo", "contenido": {"tipo": "texto", "texto": "Nota: Esta es una cotización referencial; los montos pueden variar con el tipo de cambio."}, "abarca_columnas": 5}
+  ]
+}$j$::jsonb
   from public.origenes o where o.id = p.origen_id and o.clave = 'planilla_usa' and p.version = 1;
