@@ -134,8 +134,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   guardar un «paso actual»: cada paso guarda con sus botones, «Seguir» va al siguiente y la raíz lleva al que falta. Un paso sin el permiso en ese
   origen se salta y dice su motivo. Se retoma con «Seguir la puesta en marcha» de la página del origen. No: «asistente», «wizard», «onboarding».
 - **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos/<clave>`: lo que es de toda la empresa y no de un origen, en
-  tres tramos: «Cotizaciones» (Colores, Niveles, Quién crea y quién ve, Vigencia), «Logística» (Puertos, Navieras, Categorías de gasto, Tipos de documento) y las Tablas
-  compartidas. No es el catálogo de repuestos ni el de apibara.
+  dos tramos: «Logística» (Puertos, Navieras, Categorías de gasto, Tipos de documento) y las Tablas compartidas. Los niveles de acceso y Quién crea y quién ve
+  viven en la matriz de Roles; Colores y Vigencia, en Orígenes. No es el catálogo de repuestos ni el de apibara.
 - **Flujo de repuestos** — `/configuracion/repuestos/flujo` (`FLUJO_DE_REPUESTOS_EN_CONFIGURACION`): el flujo de los repuestos, que se configura en
   la sección Repuestos con el mismo editor que la pestaña Fases de un origen.
 - **Fórmula pendiente** — origen sin **fórmula activa** (`origenes_resumen().formula_publicada`): un origen nuevo no se cotiza hasta publicar la primera.
@@ -792,9 +792,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `_hoja_datos_del_vehiculo()`: qué columna de la tabla de una celda casa con qué campo del vehículo (`tipo` ← `tipo_vehiculo`); se elige
   entre las filas de `cotizacion_tabla` en el panel del vehículo (`datosParaElegirDe()`, `guardarDatoDelVehiculo`).
 - **Nivel de acceso** — `cotizaciones_niveles` / permisos `cotizaciones.nivel.<clave>.ver|editar` (`permisos.nivel_clave`) /
-  `nivel_crear|renombrar|retirar|restaurar|eliminar()`: quién ve y edita una celda o sección.
+  `nivel_crear|renombrar|retirar|restaurar|eliminar()`: quién ve y edita una celda o sección. En la matriz de Roles se rotulan «Niveles de acceso» (bloque «Cotizaciones»);
+  «Todos» es el renglón fijo, sin celdas.
 - **Quién crea y quién ve** — `entities/cuadro-de-cotizaciones.ts` de `equipo` (`celdaDelCuadro()`, `cambiosDelCuadro()`),
-  `/configuracion/catalogos/quien-crea-y-quien-ve`: el cuadro rol × lugar («Todos los orígenes» o un origen) con «Crea» (`cotizaciones.crear`) y «Ve»,
+  el resumen plegable del bloque «Cotizaciones» de la matriz de Roles (`/configuracion/roles?bloque=cotizaciones`): el cuadro rol × lugar («Todos los orígenes» o un origen) con «Crea» (`cotizaciones.crear`) y «Ve»,
   una escalera de cuatro escalones (`Ve`): «No ve», «Sólo las suyas» (`cotizaciones.ver` con «lo propio»), «Todas menos las privadas» (con «todo») y
   «Todas, también las privadas» (además `cotizaciones.privadas.ver`). Escribe en la matriz de Roles; no es otro permiso. No: «visibilidad», «alcance».
 - **Retirar un nivel** — `nivel_retirar()` / `cotizaciones_niveles.retirado_en`: deja de ofrecerse.

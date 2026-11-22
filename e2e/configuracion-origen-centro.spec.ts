@@ -202,7 +202,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'cotizacion/general/niveles': {
     de: () => '/configuracion/cotizacion/general/niveles?panel=nuevo-nivel',
-    a: () => '/configuracion/catalogos/niveles?panel=nuevo-nivel',
+    a: () => '/configuracion/roles?panel=nuevo-nivel&bloque=cotizaciones',
   },
   'cotizacion/<origen>/formula': {
     de: () => `/configuracion/cotizacion/${a.id}/formula?version=2`,
@@ -236,7 +236,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'cotizacion ?seccion=niveles': {
     de: () => '/configuracion/cotizacion?seccion=niveles',
-    a: () => '/configuracion/catalogos/niveles',
+    a: () => '/configuracion/roles?bloque=cotizaciones',
   },
   'cotizacion ?seccion=tablas&origen&tabla': {
     de: () => `/configuracion/cotizacion?seccion=tablas&origen=${a.id}&tabla=${UNA_TABLA}`,
@@ -276,7 +276,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   // /configuracion/catalogos (route.ts, por persona): no tiene página propia.
   'catalogos sin nada': {
     de: () => '/configuracion/catalogos',
-    a: () => '/configuracion/catalogos/niveles',
+    a: () => '/configuracion/catalogos/puertos',
   },
   // /configuracion/origenes/<id> (route.ts, por persona: sin pestaña recordada, la primera que abre).
   'origenes/<id> ?seccion=campos&campo': {

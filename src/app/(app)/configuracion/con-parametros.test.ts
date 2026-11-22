@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  conElBloqueDeRoles,
   conElPanelDeOrigenes,
   conParametros,
   deLaBusqueda,
@@ -72,6 +73,27 @@ describe('conElPanelDeOrigenes', () => {
   it('un panel vacío cuenta como ninguno', () => {
     expect(conElPanelDeOrigenes(ORIGENES, 'colores', { panel: '' })).toBe(
       `${ORIGENES}?panel=colores`,
+    )
+  })
+})
+
+describe('conElBloqueDeRoles', () => {
+  it('sin consulta, Roles con el bloque de cotizaciones', () => {
+    expect(conElBloqueDeRoles({})).toBe('/configuracion/roles?bloque=cotizaciones')
+  })
+
+  it('el bloque va primero y el resto de la consulta se conserva, sin `seccion`', () => {
+    expect(conElBloqueDeRoles({ seccion: 'niveles', panel: 'renombrar-nivel', nivel: 'abc' })).toBe(
+      '/configuracion/roles?bloque=cotizaciones&panel=renombrar-nivel&nivel=abc',
+    )
+    expect(conElBloqueDeRoles({ origen: 'xyz' })).toBe(
+      '/configuracion/roles?bloque=cotizaciones&origen=xyz',
+    )
+  })
+
+  it('un `bloque` previo se pisa: queda uno solo', () => {
+    expect(conElBloqueDeRoles({ bloque: 'logistica', panel: 'nuevo-nivel' })).toBe(
+      '/configuracion/roles?bloque=cotizaciones&panel=nuevo-nivel',
     )
   })
 })

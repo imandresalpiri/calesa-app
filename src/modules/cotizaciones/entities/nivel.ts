@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { compararNombresDeNivel } from '@/shared/lib/permisos'
 
-// Un nivel de acceso de la hoja (D7, paso 4.09): quién ve y quién edita una celda o una sección. Se configura en Configuración › Catálogos ›
-// Niveles. Estas reglas son espejo de `nivel_*()` y `_nivel_nombre()`: la base las vuelve a decir, con
+// Un nivel de acceso de la hoja (D7, paso 4.09): quién ve y quién edita una celda o una sección. Se configura en Configuración › Roles
+// (el bloque «Cotizaciones» de la matriz). Estas reglas son espejo de `nivel_*()` y `_nivel_nombre()`: la base las vuelve a decir, con
 // estos mismos textos, si algo llega de otro lado.
 //
 // **La pantalla no razona por el nombre ni por la clave de un nivel.** Qué admite cada uno lo dice la fila (`seRenombra`, `seRetira`,
@@ -107,6 +107,11 @@ export function respuestaDeNivelesDesde(crudo: unknown): RespuestaDeNiveles | nu
 // El que ninguna acción toca (el de «todos»): se lee y no se cambia.
 export function esNivelFijo(nivel: NivelDeAcceso): boolean {
   return !nivel.seRenombra && !nivel.seRetira && !nivel.seElimina
+}
+
+// Lo que se dice de «Todos», el nivel que nadie cambia, en la matriz de Roles: que no se cambia y quién lo ve.
+export function fraseDelNivelFijo(): string {
+  return 'No se cambia · Lo ve quien ve la cotización'
 }
 
 export type NivelesSeparados = {
@@ -271,11 +276,11 @@ export function motivoParaNoAbrirNivel(
   return motivoDeUrlDeNivel(lista.niveles, id)
 }
 
-// Lo que anuncia el lector de pantalla cuando una fila cambia de grupo.
+// Lo que anuncia el lector de pantalla cuando un nivel se retira o se restaura.
 export function anuncioDeRetiro(nombre: string): string {
-  return `«${nombre}» pasó a Retirados.`
+  return `«${nombre}» quedó retirado.`
 }
 
 export function anuncioDeRestauracion(nombre: string): string {
-  return `«${nombre}» volvió a los niveles en uso.`
+  return `«${nombre}» volvió a estar en uso.`
 }

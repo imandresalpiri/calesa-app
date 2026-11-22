@@ -10,6 +10,7 @@ import {
   anuncioDeRetiro,
   esNivelFijo,
   firmaDeNiveles,
+  fraseDelNivelFijo,
   listaDeNivelesDesde,
   motivoDeUrlDeNivel,
   motivoParaNoAbrirNivel,
@@ -320,8 +321,12 @@ describe('firma y anuncios', () => {
     expect(firmaDeNiveles({ tope: 11, niveles: [nivel(1)] })).not.toBe(igual)
   })
 
-  it('anuncia el cambio de grupo', () => {
-    expect(anuncioDeRetiro('Gerencia')).toBe('«Gerencia» pasó a Retirados.')
-    expect(anuncioDeRestauracion('Gerencia')).toBe('«Gerencia» volvió a los niveles en uso.')
+  it('dice de «Todos» que no se cambia y quién lo ve', () => {
+    expect(fraseDelNivelFijo()).toBe('No se cambia · Lo ve quien ve la cotización')
+  })
+
+  it('anuncia el retiro y la restauración', () => {
+    expect(anuncioDeRetiro('Gerencia')).toBe('«Gerencia» quedó retirado.')
+    expect(anuncioDeRestauracion('Gerencia')).toBe('«Gerencia» volvió a estar en uso.')
   })
 })

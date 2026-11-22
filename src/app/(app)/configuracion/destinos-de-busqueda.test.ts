@@ -11,10 +11,12 @@ const con = (...claves: ClavePermiso[]): Permisos =>
   claves.map((clave) => ({ clave, origenId: null, alcance: 'todos' as const }))
 
 describe('los destinos de búsqueda de Configuración', () => {
-  it('son los colores y la vigencia, en Orígenes', () => {
+  it('son los colores y la vigencia, en Orígenes, y los niveles y quién crea y quién ve, en Roles', () => {
     expect(DESTINOS_DE_BUSQUEDA.map((d) => [d.seccion, d.titulo, d.ruta])).toEqual([
       ['origenes', 'Colores', '/configuracion/origenes?panel=colores'],
       ['origenes', 'Vigencia', '/configuracion/origenes?panel=vigencia'],
+      ['roles', 'Niveles de acceso', '/configuracion/roles?bloque=cotizaciones'],
+      ['roles', 'Quién crea y quién ve', '/configuracion/roles?bloque=cotizaciones'],
     ])
   })
 
@@ -32,10 +34,26 @@ describe('los destinos de búsqueda de Configuración', () => {
   })
 
   it('el panel de cada ruta es uno de los que abre el bloque «Para todos los orígenes»', () => {
-    for (const destino of DESTINOS_DE_BUSQUEDA) {
+    for (const destino of DESTINOS_DE_BUSQUEDA.filter((d) => d.seccion === 'origenes')) {
       const panel = new URL(destino.ruta, 'http://localhost').searchParams.get('panel')
       expect(PANELES_PARA_TODOS as readonly (string | null)[], destino.clave).toContain(panel)
     }
+  })
+
+  it('los de Roles dejan a la vista el bloque «Cotizaciones» y se ofrecen sólo con `equipo.roles.*`', () => {
+    for (const destino of DESTINOS_DE_BUSQUEDA.filter((d) => d.seccion === 'roles')) {
+      const url = new URL(destino.ruta, 'http://localhost')
+      expect(url.searchParams.get('bloque'), destino.clave).toBe('cotizaciones')
+      expect(destino.permisos, destino.clave).toEqual([
+        'equipo.roles.ver',
+        'equipo.roles.gestionar',
+      ])
+    }
+    expect(destinosDeLaSeccion('roles', con('equipo.roles.ver')).map((d) => d.clave)).toEqual([
+      'niveles-de-acceso',
+      'quien-crea-y-quien-ve',
+    ])
+    expect(destinosDeLaSeccion('roles', con('cotizaciones.configurar'))).toEqual([])
   })
 
   it('los claves no se repiten dentro de una sección', () => {

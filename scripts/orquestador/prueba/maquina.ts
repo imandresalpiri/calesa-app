@@ -195,7 +195,14 @@ export function matarTodo(m: Maquina) {
     }
   }
   for (const pid of sesionesDe) spawnSync('pkill', ['-KILL', '-s', String(pid)])
-  for (const s of sesiones(m)) if (vivo(s.pid)) process.kill(s.pid, 'SIGKILL')
+  for (const s of sesiones(m)) {
+    try {
+      process.kill(s.pid, 'SIGKILL')
+    } catch (e) {
+      // Ya murió entre mirarlo y matarlo (ESRCH): es lo que se buscaba.
+      if ((e as NodeJS.ErrnoException).code !== 'ESRCH') throw e
+    }
+  }
   // Un proceso recién matado puede alcanzar a crear un archivo mientras se borra la carpeta (ENOTEMPTY): se reintenta.
   rmSync(m.raiz, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
 }

@@ -20,6 +20,8 @@ const MOTIVO_NO_DOMINADO =
   'Este rol tiene permisos que tú no tienes: no puedes cambiarlo ni asignarlo.'
 const AVISO_CON_PERMISO = 'Cada cambio se guarda solo.'
 const AVISO_SIN_PERMISO = 'Para cambiarlo hace falta el permiso de gestionar roles.'
+// Sin gestionar roles, la página suma el aviso del resumen «Quién crea y quién ve»: el botón dice cuántos son.
+const AVISO_DEL_RESUMEN_SIN_PERMISO = 'Para cambiarlo te falta el permiso «Gestionar roles».'
 
 let proyecto = ''
 let duena = ''
@@ -178,8 +180,8 @@ test('quien sólo ve roles: la página explica por qué no cambia nada y ningún
   await abrirMatriz(page)
   await expect(page.getByText(AVISO_SIN_PERMISO)).toHaveCount(0)
   await expect(page.getByRole('button', { name: /^Avisos de E2E/ })).toHaveCount(0)
-  await botonDe(page, 'Roles y permisos').click()
-  await expect(
-    modalDe(page, 'Avisos de Roles y permisos').getByText(AVISO_SIN_PERMISO),
-  ).toBeVisible()
+  await botonDe(page, 'Roles y permisos (2)').click()
+  const modal = modalDe(page, 'Avisos de Roles y permisos')
+  await expect(modal.getByText(AVISO_SIN_PERMISO)).toBeVisible()
+  await expect(modal.getByText(AVISO_DEL_RESUMEN_SIN_PERMISO)).toBeVisible()
 })

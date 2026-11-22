@@ -1,16 +1,20 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import type { Permisos } from '@/shared/lib/permisos'
-import { CabeceraPegada } from '@/shared/ui/lista'
-import { TableBody, TableCell, TableHead, TableRow } from '@/shared/ui/table'
+import { TableBody, TableHead, TableRow } from '@/shared/ui/table'
 import {
-  concesionesDelPermiso,
+  MODULO_DE_LOS_NIVELES,
+  partesDelGrupo,
   type GrupoDePermisos,
   type OrigenDeLaMatriz,
 } from '../../../entities/matriz'
 import type { RolConConcesiones } from '../../../entities/rol'
 import type { CambioDeConcesion } from '../hooks/use-matriz'
-import { CeldaConcesion } from './celda-concesion'
+import { FilaAnchaDeLaMatriz } from './fila-ancha-de-la-matriz'
+import { FilaDePermiso } from './fila-de-permiso'
+import type { HuecosDeNivelesEnLaMatriz } from './huecos-de-niveles'
+import { NivelesDelGrupo } from './niveles-del-grupo'
 
 // Lo que la tabla sabe de cada columna, ya resuelto una vez para todas sus celdas.
 export type ColumnaDeRol = {
@@ -26,57 +30,63 @@ type Props = {
   origenes: readonly OrigenDeLaMatriz[]
   misPermisos: Permisos
   alAplicar: (rol: RolConConcesiones, cambio: CambioDeConcesion) => void
+  // Los niveles de cotizaciones (huecos); sin ellos las filas de nivel se agrupan igual, sin «⋯» ni pie.
+  niveles?: HuecosDeNivelesEnLaMatriz
+  // «Quién crea y quién ve» plegable, debajo del título del bloque de cotizaciones.
+  resumen?: ReactNode
 }
 
-// Los permisos de un módulo: su título y un renglón por permiso, con una celda por rol.
-export function GrupoMatriz({ grupo, columnas, origenes, misPermisos, alAplicar }: Props) {
+// Los permisos de un módulo: su título y un renglón por permiso, con una celda por rol. En «Cotizaciones» llevan, además, el resumen de «Quién crea y
+// quién ve» y los niveles de acceso agrupados bajo su rótulo.
+export function GrupoMatriz({
+  grupo,
+  columnas,
+  origenes,
+  misPermisos,
+  alAplicar,
+  ...extra
+}: Props) {
+  const esDeLosNiveles = grupo.modulo === MODULO_DE_LOS_NIVELES
   return (
     <TableBody>
       <TableRow className="bg-(--color-paper-dim) hover:bg-(--color-paper-dim)">
         <TableHead
+          id={`bloque-${grupo.modulo}`}
           scope="colgroup"
           colSpan={columnas.length + 1}
-          className="sticky top-[calc(var(--alto-cabecera-roles,0px)-1px)] z-20 h-8 bg-(--color-paper-dim) text-(length:--text-xs) font-semibold tracking-wide text-(--color-ink-soft)"
+          className="sticky top-[calc(var(--alto-cabecera-roles,0px)-1px)] z-20 h-8 scroll-mt-(--alto-cabecera-roles) bg-(--color-paper-dim) text-(length:--text-xs) font-semibold tracking-wide text-(--color-ink-soft)"
         >
           {/* El título del módulo abarca todas las columnas: él solo se queda a la vista mientras la tabla se desplaza. */}
           <span className="sticky left-3 inline-block">{grupo.titulo}</span>
         </TableHead>
       </TableRow>
-      {grupo.permisos.map((permiso) => (
-        <TableRow key={permiso.clave} data-permiso={permiso.clave}>
-          <CabeceraPegada
-            lado="nombre"
-            scope="row"
-            className="min-w-44 py-2 font-normal whitespace-normal"
-          >
-            <span
-              data-nombre-de-permiso
-              className="block text-(length:--text-sm) text-(--color-ink)"
-            >
-              {permiso.nombre}
-            </span>
-            <span className="block text-(length:--text-xs) text-(--color-ink-faint)">
-              {permiso.descripcion}
-            </span>
-          </CabeceraPegada>
-          {columnas.map(({ rol, editable, ocupado }) => (
-            <TableCell key={rol.id}>
-              <CeldaConcesion
-                permiso={permiso}
-                rolNombre={rol.nombre}
-                delPermiso={concesionesDelPermiso(rol.concesiones, permiso.clave)}
-                origenes={origenes}
-                misPermisos={misPermisos}
-                editable={editable}
-                ocupado={ocupado}
-                alAplicar={(cambio) => {
-                  alAplicar(rol, cambio)
-                }}
-              />
-            </TableCell>
-          ))}
-        </TableRow>
-      ))}
+      {esDeLosNiveles && extra.resumen ? (
+        <FilaAnchaDeLaMatriz columnas={columnas.length}>{extra.resumen}</FilaAnchaDeLaMatriz>
+      ) : null}
+      {partesDelGrupo(grupo, { conNiveles: extra.niveles !== undefined }).map((parte, indice) =>
+        parte.tipo === 'permisos' ? (
+          parte.permisos.map((permiso) => (
+            <FilaDePermiso
+              key={permiso.clave}
+              permiso={permiso}
+              columnas={columnas}
+              origenes={origenes}
+              misPermisos={misPermisos}
+              alAplicar={alAplicar}
+            />
+          ))
+        ) : (
+          <NivelesDelGrupo
+            key={`niveles-${String(indice)}`}
+            niveles={parte.niveles}
+            huecos={extra.niveles}
+            columnas={columnas}
+            origenes={origenes}
+            misPermisos={misPermisos}
+            alAplicar={alAplicar}
+          />
+        ),
+      )}
     </TableBody>
   )
 }
