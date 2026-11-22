@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { BLOQUEA, CON_DEPENDENCIAS, PASA } from './bloquear-peligrosos.casos'
+import { BLOQUEA_ESPERAS, PASA_ESPERAS, type CasoDeEspera } from './bloquear-esperas.casos'
 import { BLOQUEA_SECRETOS, PASA_SECRETOS } from './bloquear-secretos.casos'
 
 // `bloquear-peligrosos.sh` es el hook PreToolUse de Bash: lo irreversible, lo de afuera, las dependencias y saltarse el candado de
@@ -50,12 +51,24 @@ function escribirLista(dir: string, texto: string) {
 // del hook.
 function correr(
   command: string,
-  opciones: { cwd?: string; hook?: string; agente?: string; permite?: string } = {},
+  opciones: {
+    cwd?: string
+    hook?: string
+    agente?: string
+    permite?: string
+    herramienta?: string
+    segundoPlano?: boolean
+  } = {},
 ) {
   const r = spawnSync('bash', [opciones.hook ?? HOOK], {
     input: JSON.stringify({
-      tool_name: 'Bash',
-      tool_input: { command },
+      tool_name: opciones.herramienta ?? 'Bash',
+      tool_input: {
+        command,
+        ...(opciones.segundoPlano === undefined
+          ? {}
+          : { run_in_background: opciones.segundoPlano }),
+      },
       cwd: opciones.cwd ?? enMain,
       ...(opciones.agente ? { agent_type: opciones.agente } : {}),
     }),
@@ -142,6 +155,55 @@ describe('los secretos de GitHub', () => {
     })
     expect(estado).toBe(2)
     expect(motivo).toContain('bloquear-secretos.sh')
+  })
+})
+
+// Esperar un proceso largo sondeándolo paga un turno con todo el contexto en cada vuelta: se lanza con `run_in_background` y se espera
+// el aviso (bloquear-esperas.sh).
+describe('las esperas que sondean', () => {
+  const correrEspera = (c: CasoDeEspera) =>
+    correr(c.comando, {
+      cwd: enOtra,
+      ...(c.herramienta ? { herramienta: c.herramienta } : {}),
+      ...(c.segundoPlano === undefined ? {} : { segundoPlano: c.segundoPlano }),
+    })
+
+  it.each(BLOQUEA_ESPERAS)('bloquea: $herramienta $comando', (caso) => {
+    const { estado, motivo } = correrEspera(caso)
+    expect({ estado, motivo: motivo.includes('run_in_background') }).toEqual({
+      estado: 2,
+      motivo: true,
+    })
+  })
+
+  it.each(PASA_ESPERAS)('deja pasar: $herramienta $comando', (caso) => {
+    expect(correrEspera(caso).estado).toBe(0)
+  })
+
+  it('sin bloquear-esperas.sh al lado, el hook bloquea todo', () => {
+    const suelto = join(raiz, 'hook-sin-esperas')
+    mkdirSync(suelto)
+    for (const f of [
+      'bloquear-peligrosos.sh',
+      'bloquear-peligrosos-dependencias.sh',
+      'bloquear-secretos.sh',
+    ])
+      copyFileSync(resolve('.claude/hooks', f), join(suelto, f))
+    const { estado, motivo } = correr('git status', {
+      hook: join(suelto, 'bloquear-peligrosos.sh'),
+    })
+    expect(estado).toBe(2)
+    expect(motivo).toContain('bloquear-esperas.sh')
+  })
+
+  it('settings.json registra el hook también sobre Monitor', () => {
+    const ajustes = JSON.parse(readFileSync(resolve('.claude/settings.json'), 'utf8')) as {
+      hooks: { PreToolUse: { matcher: string; hooks: { command: string }[] }[] }
+    }
+    const entrada = ajustes.hooks.PreToolUse.find((e) =>
+      e.hooks.some((h) => h.command.endsWith('bloquear-peligrosos.sh')),
+    )
+    expect(entrada?.matcher.split('|').sort()).toEqual(['Bash', 'Monitor'])
   })
 })
 
