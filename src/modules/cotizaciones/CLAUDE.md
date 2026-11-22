@@ -159,8 +159,8 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   arman `rutaDeLaFormula(origenId, formulaId | null, parte, consulta?)`, `rutaDeParteDelOrigen(origenId, parte, consulta?)` y
   `rutaDeConfiguracionDeCotizacion(origenId, 'formula'|'hoja'|'tarjeta'|'tablas', consulta?)` (para los enlaces de antes), de `@/shared/lib/rutas`; las actions de la planilla, la hoja, la tarjeta y las tablas revalidan `RUTAS.origenes` con `'layout'`. Lo de toda la
   empresa está en Configuración › Orígenes › «Para todos los orígenes» (colores y vigencia: tarjetas con su modal; las actions de los colores revalidan
-  `RUTAS.origenes` con `'layout'`) y en Configuración › Catálogos (niveles y las tablas compartidas, `/configuracion/catalogos/*`; los niveles revalidan
-  `RUTAS.catalogos`). Planilla, Hoja y Tarjeta reciben `formula: FormulaDelOrigen` de su página (`abrirLaFormulaDeLaPestana()`) y leen y escriben **esa** fórmula del origen (la de la URL):
+  `RUTAS.origenes` con `'layout'`) y en Configuración › Catálogos (las tablas compartidas, `/configuracion/catalogos/tablas`) y, para los niveles de acceso, en la matriz de Roles
+  (sus actions revalidan `RUTAS.roles`). Planilla, Hoja y Tarjeta reciben `formula: FormulaDelOrigen` de su página (`abrirLaFormulaDeLaPestana()`) y leen y escriben **esa** fórmula del origen (la de la URL):
   cada lectura va por su id y cada escritura lo manda (`p_formula_del_origen`); sus `key` llevan el id de la fórmula. Las RPC sin id y una pestaña sin `?formula=` usan la
   **fórmula de trabajo** (glosario; `leerFormulaDeTrabajoSobre()` de `infra/queries/formula-de-trabajo.ts`, espejo de `_fdo_de_trabajo()`). El ⚙ de la
   hoja (celda y cabecera) lee y cambia la publicada de la **activa**. Los avisos de la copia (`AvisosDeLaCopia`, `entities/avisos-de-la-copia.ts`) y los
