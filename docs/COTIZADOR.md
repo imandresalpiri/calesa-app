@@ -296,8 +296,8 @@ FALSO])`; `REDONDEAR(x; n)`; `PORCENTAJE_DE(x; pct)`; `DEPRECIAR(x; tabla; sobre
   búsqueda (sólo una `constante` o un `calculo` llevan `texto`). La variante es valor sólo de la exacta (`variante_en_calculo` en la de
   tramo). La tabla y la columna se revisan contra **el catálogo del origen** (`ContextoDeCompilacion.tablas`: clave y columnas de las
   tablas activas del origen y las compartidas; con la misma clave manda la del origen, como al calcular): `tabla_inexistente`,
-  `tabla_sin_columnas`, `columna_inexistente`. Sin catálogo (la lectura falló), `tablas_sin_leer`: lo demás compila igual. El área
-  `formula` lo lee en el servidor (`leerCatalogoDeTablas()`, `tablas_referencia` por `tablas_referencia_origen_id_clave_key`, tope
+  `tabla_sin_columnas`, `columna_inexistente`. Sin catálogo (la lectura falló), `tablas_sin_leer`: lo demás compila igual. El núcleo lo
+  lee en el servidor para las áreas `formula` y `diseno` (`leerCatalogoDeTablas()`, `tablas_referencia` por `tablas_referencia_origen_id_clave_key`, tope
   `TOPE_DE_TABLAS_DEL_CATALOGO` = 100). Publicar no cambia: la tabla viva se lee al calcular y la congelada manda.
 - **Formato:** una comparación, `es_opcion`, Y u O auxiliar es `raw` (vale 1 o 0), y también la raíz de una fila nueva; una fila que ya
   existía conserva su formato.

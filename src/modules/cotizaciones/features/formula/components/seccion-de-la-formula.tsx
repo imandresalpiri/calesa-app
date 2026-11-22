@@ -1,6 +1,8 @@
 import type { ComponentType } from 'react'
 import { datosO } from '@/shared/lib/errores'
-import { leerCatalogoDeTablas, leerFormulaDelOrigen } from '../../../areas/formula/composicion'
+import { leerFormulaDelOrigen } from '../../../areas/formula/composicion'
+import { leerCatalogoDeTablas } from '../../../areas/nucleo/composicion'
+import { tablasParaElCompilador } from '../../../entities/catalogo-de-tablas'
 import type { FormulaDelOrigen as LaFormula } from '../../../entities/formula-del-origen'
 import type {
   LecturaDeLaTarjetaEnVivo,
@@ -53,7 +55,7 @@ export async function SeccionDeLaFormula({
       formulaDelOrigenId={formula.id}
       formula={datosO(leida)}
       tarjeta={deLaTarjeta}
-      tablas={tablas}
+      tablas={tablasParaElCompilador(tablas)}
       TarjetaEnVivo={TarjetaEnVivo}
       NuevoColor={NuevoColor}
       puedeCambiarTiposDeCambio={puedeCambiarTiposDeCambio}

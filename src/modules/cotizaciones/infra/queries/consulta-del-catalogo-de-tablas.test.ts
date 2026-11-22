@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it } from 'vitest'
 import type { Database } from '@/shared/types/database.types'
-import { TOPE_DE_TABLAS_DEL_CATALOGO } from '../../entities/formula/catalogo-de-tablas'
+import { TOPE_DE_TABLAS_DEL_CATALOGO } from '../../entities/catalogo-de-tablas'
 import { consultaDelCatalogo, leerCatalogoDeTablasSobre } from './consulta-del-catalogo-de-tablas'
 
 type Llamada = [string, ...unknown[]]
@@ -28,9 +28,19 @@ function clienteFalso(respuesta: { data: unknown; error: { message: string } | n
 }
 
 const ORIGEN = '11111111-1111-4111-8111-111111111111'
-const fila = (clave: string, origen: string | null, columnas: string[]) => ({
+const ID = (n: number) => `22222222-2222-4222-8222-${String(n).padStart(12, '0')}`
+const fila = (n: number, clave: string, origen: string | null, columnas: string[]) => ({
+  id: ID(n),
   clave,
+  nombre: `Tabla ${clave}`,
   origen_id: origen,
+  columnas: columnas.map((c) => ({ clave: c, etiqueta: c.toUpperCase(), tipo: 'numero' })),
+})
+const deLaTabla = (n: number, clave: string, compartida: boolean, columnas: string[]) => ({
+  id: ID(n),
+  clave,
+  nombre: `Tabla ${clave}`,
+  compartida,
   columnas: columnas.map((c) => ({ clave: c, etiqueta: c.toUpperCase(), tipo: 'numero' })),
 })
 
@@ -40,7 +50,7 @@ describe('consultaDelCatalogo', () => {
     void consultaDelCatalogo(cliente, ORIGEN)
     expect(llamadas).toEqual([
       ['from', 'tablas_referencia'],
-      ['select', 'clave, origen_id, columnas'],
+      ['select', 'id, clave, nombre, origen_id, columnas'],
       ['eq', 'activa', true],
       ['or', `origen_id.eq.${ORIGEN},origen_id.is.null`],
       ['order', 'clave'],
@@ -51,24 +61,24 @@ describe('consultaDelCatalogo', () => {
 })
 
 describe('leerCatalogoDeTablasSobre', () => {
-  it('una por clave (la del origen tapa a la compartida) con las claves de sus columnas', async () => {
+  it('una por clave (la del origen tapa a la compartida) con su id, su nombre y sus columnas', async () => {
     const { cliente } = clienteFalso({
       data: [
-        fila('aranceles', null, ['anio', 'tasa']),
-        fila('fletes', ORIGEN, ['desde', 'hasta', 'monto']),
-        fila('fletes', null, ['monto']),
+        fila(1, 'aranceles', null, ['anio', 'tasa']),
+        fila(2, 'fletes', ORIGEN, ['desde', 'hasta', 'monto']),
+        fila(3, 'fletes', null, ['monto']),
       ],
       error: null,
     })
     expect(await leerCatalogoDeTablasSobre(cliente, ORIGEN)).toEqual([
-      { clave: 'aranceles', columnas: ['anio', 'tasa'] },
-      { clave: 'fletes', columnas: ['desde', 'hasta', 'monto'] },
+      deLaTabla(1, 'aranceles', true, ['anio', 'tasa']),
+      deLaTabla(2, 'fletes', false, ['desde', 'hasta', 'monto']),
     ])
   })
 
   it('más allá del tope no entra', async () => {
     const muchas = Array.from({ length: TOPE_DE_TABLAS_DEL_CATALOGO + 1 }, (_, i) =>
-      fila(`t${String(i).padStart(3, '0')}`, ORIGEN, ['monto']),
+      fila(i, `t${String(i).padStart(3, '0')}`, ORIGEN, ['monto']),
     )
     const { cliente } = clienteFalso({ data: muchas, error: null })
     expect(await leerCatalogoDeTablasSobre(cliente, ORIGEN)).toHaveLength(
@@ -80,7 +90,7 @@ describe('leerCatalogoDeTablasSobre', () => {
     const conError = clienteFalso({ data: null, error: { message: 'permission denied' } })
     expect(await leerCatalogoDeTablasSobre(conError.cliente, ORIGEN)).toBeNull()
     const rara = clienteFalso({
-      data: [{ clave: 'x', origen_id: null, columnas: 'no' }],
+      data: [{ id: ID(1), clave: 'x', nombre: 'X', origen_id: null, columnas: 'no' }],
       error: null,
     })
     expect(await leerCatalogoDeTablasSobre(rara.cliente, ORIGEN)).toBeNull()

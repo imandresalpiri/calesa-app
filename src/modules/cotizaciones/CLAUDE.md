@@ -206,8 +206,8 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `hoja-de-la-planilla.ts`); las operaciones de fila (`insertar-fila.ts`, `mover-fila.ts`, `eliminar-fila.ts`, `tipo-de-celda.ts`) y de banda (`bandas.ts`)
   son puras y devuelven la fórmula nueva o el motivo. `?panel=editar-formula` (el Modo avanzado) y `?panel=plantillas-de-v1` («Empezar desde una plantilla»), que ya no existen,
   responden 308 a la misma parte de la fórmula, sin ese panel, desde el proxy (`destinoSinLosPanelesQueYaNoExisten()`, `src/shared/lib/paneles-que-ya-no-existen.ts`). El
-  catálogo de tablas del origen (`leerCatalogoDeTablas()`: clave y columnas de las `tablas_referencia` activas del origen y las compartidas, la del origen
-  gana; tope 100; nulo si falla) lo lee la sección en paralelo con la fórmula y llega a la sesión para revisar BUSCARV al compilar. La unidad
+  catálogo de tablas del origen (`leerCatalogoDeTablas()` del núcleo, `infra/queries/catalogo-de-tablas.ts`: id, clave, nombre y columnas de las `tablas_referencia`
+  activas del origen y las compartidas, la del origen gana; tope 100; nulo si falla; `tablasParaElCompilador()` lo proyecta) lo lee la sección en paralelo con la fórmula y llega a la sesión para revisar BUSCARV al compilar. La unidad
   de ejemplo y el modo viven en la sesión; «Publicar…» espera con cambios aplicados sin guardar (`alCambiarPendientes`, en `useLayoutEffect`). La `key` de la
   sesión es `<origen>:<vuelta>:<sesión>` (`otraSesion()`). La página pasa `tarjeta` (la promesa de `leerLaTarjetaDeTrabajo()`), `TarjetaEnVivo` y
   `puedeCambiarTiposDeCambio` y los tipos de cambio de la empresa (`tiposDeCambio`, clave y nombre, para «Tipo de celda»). Las celdas editables usan `BOTON_DEL_VALOR` y `ENTRADA` de `@/shared/ui/xcell`; los colores de las bandas, `leerTonosDelCatalogo()`
