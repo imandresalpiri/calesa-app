@@ -32,13 +32,16 @@ type Props = {
 export function PestanasDeLaRuta({ origenId, pestanas }: Props) {
   const router = useRouter()
   const segmento = useSelectedLayoutSegment()
-  const abierta = pestanas.find((pestana) => pestana.clave === segmento)?.clave ?? null
+  const laAbierta = pestanas.find((pestana) => pestana.clave === segmento)
+  const abierta = laAbierta?.clave ?? null
+  // Una apagada (`motivo`) no se recuerda: la entrada la saltaría igual.
+  const recordable = laAbierta !== undefined && laAbierta.motivo === undefined
   const [formula] = useQueryState(CLAVE_DE_LA_FORMULA, parseAsString)
   useEffect(() => {
-    if (abierta !== null) {
+    if (recordable && abierta !== null) {
       void recordarLaPestana({ origenId, parte: abierta })
     }
-  }, [origenId, abierta])
+  }, [origenId, abierta, recordable])
   return (
     <PestanasConDesborde
       pestanas={pestanas}
