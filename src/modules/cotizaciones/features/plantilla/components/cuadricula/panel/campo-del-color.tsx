@@ -4,7 +4,7 @@ import { COLOR_AUTOMATICO } from '../../../../../entities/cuadricula-de-la-tarje
 import { contrasteDeLaTarjeta } from '../../../../../entities/colores'
 import type { TonoDelCatalogo } from '../../../../../entities/plantilla/lectura-de-la-plantilla'
 
-// El aviso suave de contraste de la tarjeta (el de «General › Colores»): nunca frena.
+// El aviso suave de contraste de la tarjeta (el de «Orígenes › Colores»): nunca frena.
 export const AVISO_DE_CONTRASTE = 'Con este color el texto de la tarjeta se lee con dificultad.'
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
   conAviso?: boolean
 }
 
-// «Fondo» o «Texto»: «Automático» y los colores del catálogo (`tonos`, «General › Colores») como muestras que se eligen (`radiogroup`). Un color sin hex no se ofrece.
+// «Fondo» o «Texto»: «Automático» y los colores del catálogo (`tonos`, «Orígenes › Colores») como muestras que se eligen (`radiogroup`). Un color sin hex no se ofrece.
 export function CampoDelColor({ etiqueta, valor, tonos, alElegir, conAviso = false }: Props) {
   const conHex = tonos.filter((t) => t.hex !== undefined)
   const elegido = conHex.find((t) => t.clave === valor)

@@ -6,10 +6,23 @@ import {
   type Tono,
 } from './tonos'
 
+// La lista de colores en su modal (`?panel=colores`), la que abre la tarjeta «Colores» de Configuración › Orígenes. Los tres de abajo salen de ella y, al
+// cerrarse, vuelven a ella: dentro de la familia hay un solo modal abierto a la vez.
+export const PANEL_DE_COLORES = 'colores'
 export const PANEL_NUEVO_TONO = 'nuevo-tono'
 export const PANEL_EDITAR_TONO = 'editar-tono'
 // La confirmación de eliminar uno (`?panel=eliminar-tono&tono=<id>`). Las URL conservan el nombre técnico.
 export const PANEL_ELIMINAR_TONO = 'eliminar-tono'
+export const PANELES_DE_COLORES = [
+  PANEL_DE_COLORES,
+  PANEL_NUEVO_TONO,
+  PANEL_EDITAR_TONO,
+  PANEL_ELIMINAR_TONO,
+] as const
+
+// Cuántos colores dibuja la tarjeta antes de decir «y N más».
+export const COLORES_EN_LA_TARJETA = 6
+
 // El id del color que se edita o se elimina, en la URL.
 export const CLAVE_DE_TONO = 'tono'
 
@@ -19,6 +32,11 @@ export const tonoPorId = (tonos: readonly Tono[], id: string | null): Tono | nul
   id === null ? null : (tonos.find((t) => t.id === id) ?? null)
 
 export const alTopeDeTonos = (lista: ListaDeTonos): boolean => lista.tonos.length >= lista.tope
+
+// Los colores de la tarjeta: los primeros `tope` de la lista (ya viene por nombre) y cuántos quedan fuera. Cuenta lo leído: ningún total más allá de eso.
+export function resumirColores(tonos: readonly Tono[], tope: number = COLORES_EN_LA_TARJETA) {
+  return { visibles: tonos.slice(0, tope), mas: Math.max(0, tonos.length - tope) }
+}
 
 // El mismo texto que la base da al crear con el tope lleno.
 export const textoDelTopeDeTonos = (tope: number): string =>
