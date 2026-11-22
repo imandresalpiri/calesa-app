@@ -863,23 +863,25 @@ pnpm db:medir:volumen`): invocadora, páginas de `MAXIMO_DE_PAGINA_DE_COTIZACION
   contigua en la papelera dentro de un índice entero se lee antes de descartarse. Los `count(*)` por origen de `origenes_resumen()` y del
   borrado de un origen recorren la tabla (tope 100 ms con las 50.000 sembradas; el total exacto está en `docs/PENDIENTES.md`).
 - **La hoja en par** (glosario: «Variante en par»; `e2e/cotizar-hermanas.spec.ts`): la celda gemela suma los nodos de una celda y ninguno más; con la fórmula de
-  prueba (una común y una en par) `[data-hoja]` mide 116 nodos (tope de la hoja, 500). Lo del par va en su chunk diferido (`PantallaDeCotizarEnParDiferida`,
+  prueba (una común y una en par) `[data-hoja]` mide 116 nodos (su prueba la topa en 500; el techo de la hoja es 525). Lo del par va en su chunk diferido (`PantallaDeCotizarEnParDiferida`,
   `PantallaDeUnParGuardadoDiferida`): en frío sólo viajan el ítem que reparte las celdas en par y las piezas del resumen. JS en frío medido: `/cotizaciones/nuevo`
   462,6 KB en 29 chunks (tope 465) y `/cotizaciones/[id]` 475,0 de 480. Al abrir la hoja nueva en par, dos primeros cálculos en paralelo
   (`recalcularAlAbrirEnPar()`); la guardada en par, cuatro llamadas desde el servidor en paralelo (las dos hojas y sus dos `cotizacion_evaluar`). Recalcular, dos
   pedidos por pausa (uno en vuelo por columna). En la base, crear y guardar en par cuestan lo de dos altas o dos guardados (llaman dos veces a
   `cotizacion_crear` y `cotizacion_guardar`, que miden `medir-cotizacion-crear.sql` y `medir-cotizacion-guardar.sql`); `cotizaciones_hermana_unica` sostiene
   quién apunta a una cotización (la papelera y el `set null` de la purga).
-- La hoja dibujada (`e2e/cotizar-hoja-200.spec.ts`, 100 % y 200 %): `[data-hoja]` más «Avanzado» abierto ≤ 500 nodos con la fórmula más
-  grande, como quien cotiza sin ⚙ (~12 nodos por celda: la celda en una fila no lleva el envoltorio de la cabecera); mide 457 al abrir y 478 usada, con los
-  pasos de la hoja (de 5 a 8 nodos: la fila, sus 4 botones y el texto de cada punto). Lo que sume nodos a la hoja se para y se reporta. El aspecto
+- La hoja dibujada (`e2e/cotizar-hoja-200.spec.ts`, 100 % y 200 %): `[data-hoja]` más «Avanzado» abierto ≤ 525 nodos con la fórmula más
+  grande, como quien cotiza sin ⚙ (~12 nodos por celda: la celda en una fila no lleva el envoltorio de la cabecera); mide 458 al abrir y 502 usada, con los
+  pasos de la hoja (de 5 a 8 nodos: la fila, sus 4 botones y el texto de cada punto) y un cálculo pisado (24 nodos: la región del aviso, 1, en frío; el aviso de la
+  primera vez, 11, y la línea del resumen, ≈ 5, con `diferido()`; la marca y «Calculado» de la celda, 7). El techo es 500 más un 5 % (`docs/DECISIONES.md` ›
+  «Pisar un cálculo»): lo que sume nodos a la hoja va con `diferido()` y, si pasa de 525, se recorta. El aspecto
   (rejilla, espacios, letra y color) va en clases y variables sobre los nodos de siempre: ningún nodo por celda ni por sección. Al abrir,
   2 llamadas desde el servidor (+ `leerVehiculo` con un vehículo en la URL, + `leerClienteElegido` con un `?lead=`, + `integracionActiva`
   con `vehiculos.crear` en un origen de subasta, todas en el mismo `Promise.all`) y ninguna del navegador hasta abrir un panel; después un
   pedido por pausa de tecleo, con 1 en vuelo como máximo (`e2e/cotizar-hoja.spec.ts`).
 - El ⚙ de una constante (`e2e/cotizar-ajuste-constante.spec.ts`): como quien configura, cada ⚙ son exactamente 3 nodos (botón, `svg`,
-  `use`), el ⚙ de la cabecera son 7 (la fila junto a los modos, el botón, su `svg` y sus cuatro trazos) y la subasta ≤ 585 nodos (techo 600; mide 527 al abrir
-  y 551 usada); las dos personas ven las mismas celdas. Ningún pedido al abrir la hoja ni al pasar por una
+  `use`), el ⚙ de la cabecera son 7 (la fila junto a los modos, el botón, su `svg` y sus cuatro trazos) y la subasta ≤ 585 nodos (techo 600; mide 528 al abrir
+  y 575 usada, con un cálculo pisado); las dos personas ven las mismas celdas. Ningún pedido al abrir la hoja ni al pasar por una
   celda; abrir un ⚙ lee una fila, la publicada de la activa (`formulas_del_origen_activa_unica` y `formulas_publicada_unica`), ≤ 70 B. Panel, hook, lectura y action con `diferido()`.
 - El ⚙ de un tipo de cambio (`e2e/cotizar-ajuste-tipo-cambio.spec.ts`): una llamada a `formula_tipo_cambio_del_nodo()`, ≤ 247 B; tras
   cambiarlo la hoja no relee. Bloque, hooks y action de `empresa` van con el panel por `diferido()`.

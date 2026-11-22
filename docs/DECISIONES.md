@@ -781,7 +781,9 @@ las trampas, en `docs/LECCIONES.md`.
   es un `tabla`, `tramo` o `calculo` es par sólo si el nodo es `sobrescribible`. Un cálculo que se pisa sólo por su celda no gana el punto de «sugerido» sin
   override (un punto en cada cálculo sería ruido). `calculados` no se guarda: en una guardada, «Calculado» es lo que daría hoy (las tablas y el vehículo de
   hoy, como «Lo de hoy»). La marca es un lápiz con nombre (un chip con texto ensanchaba la celda), el aviso va en línea sobre las secciones (un toast se
-  pierde) y «Calculado» es texto a la vista (en un `title` no lo ven el celular ni el lector).
+  pierde) y «Calculado» es texto a la vista (en un `title` no lo ven el celular ni el lector). Con un cálculo pisado, la hoja más grande, usada, pasa el
+  techo de 500 nodos por menos del 5 % aunque el aviso y la línea del resumen van con `diferido()`: el techo de la hoja (como quien cotiza sin ⚙) es 525,
+  500 más un 5 % por la regla de presupuestos de la tanda (`docs/RENDIMIENTO.md`); lo que pase de 525 se recorta.
 - **Revisiones con totales por clave.** El diff se compara después de recortar (`_cotizacion_diff_recortado()`); «Ir a una fecha» es `p_hasta` exclusivo en `cotizacion_revisiones()`, anclando y paginando por id.
 - **La hoja con el aspecto de V1:** el de las capturas de V1, con los tokens y en clases y variables sobre los nodos de siempre (ningún nodo más por celda ni
   por sección).
