@@ -19,6 +19,7 @@ type Props = {
   misPermisos: Permisos
   puedeGestionar: boolean
   alEliminar: (rolId: string) => void
+  alAvisos: (rolId: string) => void
   alAplicar: (rol: RolConConcesiones, cambio: CambioDeConcesion) => void
 }
 
@@ -49,6 +50,9 @@ export function TablaDeRoles(props: Props) {
                 dominado={rolDominado(misPermisos, rol.concesiones)}
                 alEliminar={() => {
                   props.alEliminar(rol.id)
+                }}
+                alAvisos={() => {
+                  props.alAvisos(rol.id)
                 }}
               />
             </TableHead>

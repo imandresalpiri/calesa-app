@@ -5,11 +5,14 @@ import { CORTE_DE_LA_TABLA } from '@/shared/lib/ancho'
 import type { Permisos } from '@/shared/lib/permisos'
 import { useAlMenos } from '@/shared/ui/ancho-de-pantalla'
 import { EstadoVacio } from '@/shared/ui/estados'
+import { avisosDelRol } from '../../../entities/avisos-de-roles'
 import { rolDominado } from '../../../entities/dominancia'
 import type { GrupoDePermisos, OrigenDeLaMatriz } from '../../../entities/matriz'
 import type { RolConConcesiones } from '../../../entities/rol'
+import { useAvisosDeRoles } from '../hooks/use-avisos-de-roles'
 import { useMatriz } from '../hooks/use-matriz'
 import { CabeceraMatriz } from './cabecera-matriz'
+import { AvisosDeRolesAlAbrir } from './avisos-de-roles-al-abrir'
 import { EliminarRol } from './eliminar-rol'
 import type { ColumnaDeRol } from './grupo-matriz'
 import { ListaDelRol } from './lista-del-rol'
@@ -37,6 +40,8 @@ export function MatrizDeRoles({ roles, grupos, origenes, misPermisos, puedeGesti
   // Una sola vista, la que dice el ancho: la tabla desde 768 px (todos los roles) y, por debajo, la lista de un rol (5a-16).
   const enTabla = useAlMenos(CORTE_DE_LA_TABLA)
   const aLaVista = roles.find((rol) => rol.id === rolElegido) ?? roles[0]
+  const dominaElRol = (rol: RolConConcesiones) => rolDominado(misPermisos, rol.concesiones)
+  const avisos = useAvisosDeRoles({ roles, misPermisos, puedeGestionar, enTabla })
 
   if (grupos.length === 0 || !aLaVista) {
     return (
@@ -49,9 +54,13 @@ export function MatrizDeRoles({ roles, grupos, origenes, misPermisos, puedeGesti
 
   const columnas: ColumnaDeRol[] = roles.map((rol) => ({
     rol,
-    editable: puedeGestionar && rolDominado(misPermisos, rol.concesiones),
+    editable: puedeGestionar && dominaElRol(rol),
     ocupado: rolEnCurso === rol.id,
   }))
+  const cantidadDeAvisos = avisosDelRol(aLaVista, {
+    dominado: dominaElRol(aLaVista),
+    puedeGestionar,
+  }).length
   const columnaALaVista = columnas.find(({ rol }) => rol.id === aLaVista.id) ?? columnas[0]
 
   return (
@@ -59,11 +68,14 @@ export function MatrizDeRoles({ roles, grupos, origenes, misPermisos, puedeGesti
       <CabeceraMatriz
         puedeGestionar={puedeGestionar}
         alCrearRol={() => void setParametros({ panel: 'nuevo-rol' })}
+        alAvisos={avisos.abrirDeLaPagina}
       />
       <SelectorDeRol
         roles={roles}
         valor={aLaVista.id}
         alCambiar={(rol) => void setParametros({ rol })}
+        cantidadDeAvisos={cantidadDeAvisos}
+        alAvisos={avisos.abrirDeUnRol}
       />
       <div className="min-w-0 overflow-clip rounded-(--radius-card) border border-(--color-line) bg-(--color-surface)">
         {enTabla || !columnaALaVista ? (
@@ -74,6 +86,7 @@ export function MatrizDeRoles({ roles, grupos, origenes, misPermisos, puedeGesti
             misPermisos={misPermisos}
             puedeGestionar={puedeGestionar}
             alEliminar={(rolId) => void setParametros({ eliminar: rolId })}
+            alAvisos={avisos.abrirDeUnRol}
             alAplicar={(rol, cambio) => void aplicar(rol, cambio)}
           />
         ) : (
@@ -83,7 +96,7 @@ export function MatrizDeRoles({ roles, grupos, origenes, misPermisos, puedeGesti
             origenes={origenes}
             misPermisos={misPermisos}
             puedeGestionar={puedeGestionar}
-            dominado={rolDominado(misPermisos, columnaALaVista.rol.concesiones)}
+            dominado={dominaElRol(columnaALaVista.rol)}
             alEliminar={() => void setParametros({ eliminar: columnaALaVista.rol.id })}
             alAplicar={(cambio) => void aplicar(columnaALaVista.rol, cambio)}
           />
@@ -94,6 +107,7 @@ export function MatrizDeRoles({ roles, grupos, origenes, misPermisos, puedeGesti
         alCerrar={() => void setParametros({ panel: null })}
         alCrear={(rol) => void setParametros({ panel: null, rol })}
       />
+      <AvisosDeRolesAlAbrir estado={avisos} />
       <EliminarRol
         rol={roles.find((rol) => rol.id === eliminar) ?? null}
         alCerrar={() => void setParametros({ eliminar: null })}
