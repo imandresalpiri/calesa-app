@@ -26,7 +26,7 @@ import { Button } from './button'
 //
 // Uso: `export const ModalDeX = diferido(() => import('./modal-de-x').then((m) => m.ModalDeX))`, y se
 // monta con `useAbiertoAlgunaVez(abierto)` cuando es un modal. Sólo corre en el navegador: en el
-// servidor dibuja nada (igual que `ssr: false`).
+// servidor dibuja nada (igual que `ssr: false`), salvo `enFrio`.
 
 type Cargador<P> = () => Promise<ComponentType<P> | { default: ComponentType<P> }>
 
@@ -39,6 +39,10 @@ type Opciones<P> = {
   // Con `aviso: 'aqui'`, lo que se dibuja bajo el aviso si el código no llegó, con las mismas props: una versión que no lo necesita (la
   // lista de fases bajo el diagrama del flujo). Así la pantalla sigue sirviendo sin red.
   respaldo?: (props: P) => ReactNode
+  // La versión que no necesita el código, con las mismas props (la lista de campos sin el arrastre): se dibuja en el servidor, durante la
+  // hidratación y mientras llega el código (en vez del esqueleto), y bajo el aviso si no llega (en vez del respaldo). Así lo que se ve no
+  // espera al código y no salta cuando llega.
+  enFrio?: (props: P) => ReactNode
 }
 
 export const ESPERA_DEL_REINTENTO_MS = 400
@@ -110,7 +114,7 @@ const SIN_SUSCRIPCION = () => () => {}
 
 export function diferido<P extends object>(
   cargar: Cargador<P>,
-  { esqueleto = null, aviso = 'pantalla', respaldo }: Opciones<P> = {},
+  { esqueleto = null, aviso = 'pantalla', respaldo, enFrio }: Opciones<P> = {},
 ): ComponentType<P> {
   let resuelto: ComponentType<P> | undefined
 
@@ -135,21 +139,24 @@ export function diferido<P extends object>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const Perezoso = useMemo(() => lazy(pedir), [intento])
     if (!enElNavegador) {
-      return null
+      return enFrio ? enFrio(props) : null
     }
     if (yaCargado && resuelto) {
       return createElement(resuelto, props)
     }
+    const debajo = respaldo ?? enFrio
     return (
       <LimiteDeCarga
         key={intento}
         aviso={aviso}
-        respaldo={aviso === 'aqui' && respaldo ? respaldo(props) : null}
+        respaldo={aviso === 'aqui' && debajo ? debajo(props) : null}
         alReintentar={() => {
           setIntento((n) => n + 1)
         }}
       >
-        <Suspense fallback={esqueleto}>{createElement(Perezoso, props)}</Suspense>
+        <Suspense fallback={enFrio ? enFrio(props) : esqueleto}>
+          {createElement(Perezoso, props)}
+        </Suspense>
       </LimiteDeCarga>
     )
   }
