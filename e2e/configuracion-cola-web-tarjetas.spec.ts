@@ -296,9 +296,23 @@ test('a 1920 px la página ocupa el ancho del área y las tarjetas van en más d
     expect(medidas.seccion).toBeGreaterThan(medidas.principal * 0.8)
     expect(medidas.seccion).toBeGreaterThan(768)
     expect(medidas.desborde).toBeLessThanOrEqual(0)
-    const a = await tarjetaDe(page, ANA).boundingBox()
-    const b = await tarjetaDe(page, BRUNO).boundingBox()
-    expect(a && b && Math.abs(a.y - b.y) < 4 && a.x !== b.x).toBe(true)
+    // Dos tarjetas de la rueda en la misma fila: la rejilla tiene más de una columna.
+    const filas = await page.evaluate(
+      ({ uno, otro }) => {
+        const cajas = [
+          ...document.querySelectorAll('section[aria-labelledby="rueda-titulo"] article'),
+        ]
+        const de = (nombre: string) =>
+          cajas.find((caja) => caja.textContent.includes(nombre))?.getBoundingClientRect()
+        const a = de(uno)
+        const b = de(otro)
+        return a && b
+          ? { mismaFila: Math.abs(a.top - b.top) < 4, distintaColumna: a.left !== b.left }
+          : null
+      },
+      { uno: ANA, otro: BRUNO },
+    )
+    expect(filas).toEqual({ mismaFila: true, distintaColumna: true })
   } finally {
     await contexto.close()
   }
