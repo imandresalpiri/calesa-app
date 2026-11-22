@@ -6,9 +6,11 @@ import type { HojaLista } from '../../../entities/hoja'
 import type { useHoja } from '../hooks/use-hoja'
 import { CabeceraDeHoja } from './cabecera-de-hoja'
 import { PasosDeLaHoja, type PasosDeLaPagina } from './pasos-de-la-hoja'
+import { RegionDelAvisoDePisado } from './pisadas'
 import { SeccionesDeLaHoja } from './secciones-de-la-hoja'
 
-// La columna de la izquierda: lo que se pone encima (el aviso de versión de una guardada), la cabecera (modos y «Ver total Bs»), los pasos y las secciones del diseño.
+// La columna de la izquierda: lo que se pone encima (el aviso de versión de una guardada), la cabecera (modos y «Ver total Bs»), los pasos, el aviso de la primera vez
+// que se pisa un cálculo y las secciones del diseño.
 export function ColumnaDeLaHoja({
   hoja,
   h,
@@ -44,6 +46,7 @@ export function ColumnaDeLaHoja({
         formula={hoja.formula}
       />
       {pasos ? <PasosDeLaHoja pasos={pasos} respuesta={h.respuesta} /> : null}
+      <RegionDelAvisoDePisado visible={h.avisoDePisado} alCerrar={h.cerrarAvisoDePisado} />
       <SeccionesDeLaHoja
         secciones={secciones}
         contexto={contexto}

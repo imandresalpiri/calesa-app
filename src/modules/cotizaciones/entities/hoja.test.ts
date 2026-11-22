@@ -122,6 +122,20 @@ describe('hojaDesde: el tipo del porcentaje de un par (4-31)', () => {
       expect(leida?.tipo === 'celda' && leida.secundario?.tipoDeNodo).toBe(tipo)
     }
   })
+
+  it('el porcentaje sigue al monto sólo si la base lo dice (`sigue_al_monto`)', () => {
+    const cruda = lista()
+    const sin = hojaDesde(cruda) as HojaLista
+    const sinLeida = sin.secciones[0]?.items[2]
+    expect(sinLeida?.tipo === 'celda' && sinLeida.secundario?.sigueAlMonto).toBeUndefined()
+    const celda = cruda.secciones[0]?.items[2] as { secundario: { sigue_al_monto?: boolean } }
+    celda.secundario.sigue_al_monto = true
+    const con = hojaDesde(cruda) as HojaLista
+    const conLeida = con.secciones[0]?.items[2]
+    expect(conLeida?.tipo === 'celda' && conLeida.secundario?.sigueAlMonto).toBe(true)
+    celda.secundario.sigue_al_monto = false
+    expect(hojaDesde(cruda)).toBeNull()
+  })
 })
 
 describe('hojaDesde: lo que la base no promete', () => {

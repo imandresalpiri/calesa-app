@@ -83,6 +83,7 @@ end $$;
 rollback;
 
 -- @test cotizacion_revisiones: R2 y R3 las etiquetas son exactamente las de lo que nombran los diffs recortados de la página: ni lo oculto, ni lo que no cambió; sin etiqueta, el id
+-- `calculos` (el formato de cada cálculo nombrado, para decir qué se pisó) sigue la misma regla: acá sólo el total es un cálculo.
 begin;
 do $$
 declare
@@ -92,19 +93,19 @@ declare
   c uuid := pg_temp.ra_terreno(ana, sn); r jsonb;
 begin
   r := pg_temp.ra_corre(duena, format('select public.cotizacion_revisiones(%L)', c));
-  if r -> 'etiquetas' is distinct from '{"nodos": {"visible": "Visible", "sin_etq": "sin_etq", "oculto": "Oculto", "total": "Total"}, "grupos": {"gv": "Grupo visible", "gk": "Grupo costos"}}'::jsonb then
+  if r -> 'etiquetas' is distinct from '{"nodos": {"visible": "Visible", "sin_etq": "sin_etq", "oculto": "Oculto", "total": "Total"}, "grupos": {"gv": "Grupo visible", "gk": "Grupo costos"}, "calculos": {"total": "usd"}}'::jsonb then
     raise exception 'R2: la dueña: %', r -> 'etiquetas';
   end if;
   -- Sin «costos»: ni el nodo oculto que cambió ni su grupo (ni la etiqueta del uno ni la del otro en toda la respuesta).
   r := pg_temp.ra_corre(sin, format('select public.cotizacion_revisiones(%L)', c));
-  if r ? 'error' or r -> 'etiquetas' is distinct from '{"nodos": {"visible": "Visible", "sin_etq": "sin_etq", "total": "Total"}, "grupos": {"gv": "Grupo visible"}}'::jsonb then
+  if r ? 'error' or r -> 'etiquetas' is distinct from '{"nodos": {"visible": "Visible", "sin_etq": "sin_etq", "total": "Total"}, "grupos": {"gv": "Grupo visible"}, "calculos": {"total": "usd"}}'::jsonb then
     raise exception 'R2/R3: sin costos: %', coalesce(r -> 'etiquetas', r);
   end if;
   if r::text like '%Oculto%' or r::text like '%Grupo costos%' or r::text like '%"oculto"%' or r::text like '%"gk"%' then raise exception 'R2/R3: sin costos recibe algo de costos: %', r; end if;
   -- Con cursor, las de esa página: la más vieja sola (la de Ana) y la más nueva sola (sin_etq).
   r := pg_temp.ra_corre(sin, format('select public.cotizacion_revisiones(%L, %s, 1)', c, (select min(id) + 1 from public.cotizaciones_revisiones where cotizacion_id = c)));
-  if r -> 'etiquetas' is distinct from '{"nodos": {"visible": "Visible", "total": "Total"}, "grupos": {"gv": "Grupo visible"}}'::jsonb then raise exception 'R2: con cursor: %', r -> 'etiquetas'; end if;
+  if r -> 'etiquetas' is distinct from '{"nodos": {"visible": "Visible", "total": "Total"}, "grupos": {"gv": "Grupo visible"}, "calculos": {"total": "usd"}}'::jsonb then raise exception 'R2: con cursor: %', r -> 'etiquetas'; end if;
   r := pg_temp.ra_corre(sin, format('select public.cotizacion_revisiones(%L, null, 1)', c));
-  if r -> 'etiquetas' is distinct from '{"nodos": {"sin_etq": "sin_etq", "total": "Total"}, "grupos": {}}'::jsonb then raise exception 'R2: la primera página de una: %', r -> 'etiquetas'; end if;
+  if r -> 'etiquetas' is distinct from '{"nodos": {"sin_etq": "sin_etq", "total": "Total"}, "grupos": {}, "calculos": {"total": "usd"}}'::jsonb then raise exception 'R2: la primera página de una: %', r -> 'etiquetas'; end if;
 end $$;
 rollback;

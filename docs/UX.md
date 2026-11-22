@@ -167,6 +167,12 @@ Estados propios:
 - **Desactualizada:** al guardar una nueva, la fórmula o un tipo de cambio cambió desde que se abrió; el resumen ofrece «Usar la versión
   nueva» o «Guardar con la versión N». Editar una vieja usa SU versión. **Vencida:** pasó la vigencia de la empresa; se dice en el listado
   y en los avisos de la vista previa (la tarjeta y el PDF, que recibe el cliente, no lo llevan), y se recotiza encima.
+- **Un cálculo pisado** (`docs/COTIZADOR.md` › «Pisar un cálculo»): toda celda calculada que se ve se escribe encima si el nivel lo deja
+  (el total no). La celda lleva el lápiz «Editado a mano» (no ensancha la celda), «Calculado: $480» debajo (con `<Monto>`, a la vista
+  también en el celular y para el lector) y ↺ «Volver al calculado». La primera pisada de la hoja muestra, sobre las secciones, «Pisaste
+  un cálculo: queda fijo aunque cambien los datos. ↺ lo devuelve.»: en línea, sin bloquear ni robar el foco, anunciado una vez; ✕
+  «Cerrar el aviso» (44 px en el celular) lo cierra y el foco va a la primera celda; no vuelve en esa hoja. El detalle del resumen lista
+  lo pisado («Editado a mano: Transferencia a USA $500, calculado $480»); la tarjeta, el PDF y la imagen no lo marcan.
 - **Guardar:** la hoja pasa a la tarjeta «Cotización n.º N guardada» con total y «Cotizar otra». Sin lead, apagado («Para guardar, elige el
   cliente en «Cliente».»); con el total nulo o recalculando, también. El borrador vuelve al recargar.
 - **El recálculo falla o no hay red:** conserva lo tipeado, «No se pudo recalcular» con «Reintentar», no deja guardar con un total viejo; si

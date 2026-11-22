@@ -33,7 +33,11 @@ const pagina = (
   data: {
     revisiones,
     siguiente,
-    etiquetas: { nodos: new Map([['pub', 'Precio publicado']]), grupos: new Map() },
+    etiquetas: {
+      nodos: new Map([['pub', 'Precio publicado']]),
+      grupos: new Map(),
+      calculos: new Map(),
+    },
   },
 })
 
@@ -136,6 +140,7 @@ describe('PanelDeRevisiones', () => {
             ['b', 'Igual'],
           ]),
           grupos: new Map(),
+          calculos: new Map(),
         },
       },
     })

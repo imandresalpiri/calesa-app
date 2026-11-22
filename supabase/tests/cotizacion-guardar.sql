@@ -357,7 +357,7 @@ begin
   -- Lo oculto no viaja: se mira la forma de la respuesta y los valores del diff, nunca su texto (el uuid y la fecha de una revisión son al azar).
   if (select array_agg(x order by x) from jsonb_object_keys(r) x) is distinct from array['etiquetas', 'hay_mas', 'revisiones', 'siguiente'] then raise exception 'la respuesta trae otras claves: %', r; end if;
   -- Las etiquetas (4.15-2) son de lo que viaja: una revisión de sólo lo oculto no nombra nada.
-  if r -> 'etiquetas' is distinct from '{"nodos": {}, "grupos": {}}'::jsonb then raise exception 'las etiquetas delatan lo oculto: %', r -> 'etiquetas'; end if;
+  if r -> 'etiquetas' is distinct from '{"nodos": {}, "grupos": {}, "calculos": {}}'::jsonb then raise exception 'las etiquetas delatan lo oculto: %', r -> 'etiquetas'; end if;
   if exists (select 1 from jsonb_array_elements(r -> 'revisiones') e
               where (select array_agg(x order by x) from jsonb_object_keys(e) x) is distinct from array['autor', 'creado_en', 'diff', 'id', 'usuario_id']) then
     raise exception 'una revisión trae otras claves: %', r;

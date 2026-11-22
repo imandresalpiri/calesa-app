@@ -4,7 +4,7 @@ import { entradasDeLoGuardado } from './entradas-de-lo-guardado'
 import { hojaDePrueba } from './hoja-de-prueba.soporte'
 import type { LoGuardado } from './hoja-de-una-guardada'
 
-// Lo que la hoja manda de lo guardado para que abrir y guardar sin tocar nada no cambie nada (C4): el espejo de `_cotizacion_entradas_de` (`base.sql:1450-1476`) sobre lo que la hoja
+// Lo que la hoja manda de lo guardado para que abrir y guardar sin tocar nada no cambie nada (C4): el espejo de `_cotizacion_entradas_de()` sobre lo que la hoja
 // dibuja.
 const hoja = hojaDePrueba({ modos: [{ clave: 'unificado', nombre: 'Unificado' }] })
 const indice = indiceDeHoja(hoja.secciones, hoja.cabecera.modos)
@@ -95,6 +95,16 @@ describe('entradasDeLoGuardado: el par porcentaje-monto', () => {
       guardado({ fees_pct: 0.1, fees: 99 }, { fees_pct: 'override', fees: 'override' }),
     )
     expect(como(pisado.overrides)).toEqual({ fees: 99 })
+  })
+
+  it('con el monto pisado, el porcentaje que no sigue al monto (un pct compartido) entra igual', () => {
+    const e = entradas(
+      guardado(
+        { transf_pct: 0.05, transferencia: 500 },
+        { transf_pct: 'override', transferencia: 'override' },
+      ),
+    )
+    expect(como(e.overrides)).toEqual({ transf_pct: 0.05, transferencia: 500 })
   })
 })
 

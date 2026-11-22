@@ -10,6 +10,7 @@ import {
   type Estado,
   type Faltante,
   type Fuente,
+  type Valor,
   type ValorGuardado,
 } from './motor-contexto'
 import { revisarEntrada, type Entrada } from './motor-entrada'
@@ -30,6 +31,9 @@ export type Resultado = {
   faltantes: Faltante[]
   // Los overrides que no se aplicaron, con su motivo: los de nodos en el orden de la lista, después los inexistentes.
   overrides_descartados: Descartado[]
+  // Lo que daría cada cálculo pisado con celda (y el pct de su par pisado) sin lo escrito. Sólo con alguno: si no, no
+  // está (docs/COTIZADOR.md › «Pisar un cálculo»).
+  calculados?: Record<string, Valor>
 }
 
 // `formula` es la salida de `validarFormula()`. Un modo reemplaza `buckets` y `total_en`; sin modo, los de la
@@ -57,5 +61,6 @@ export function evaluar(
     totales,
     faltantes: ev.faltantes,
     overrides_descartados: ev.descartados,
+    ...(ev.calculados.size > 0 && { calculados: Object.fromEntries(recorrer(ev.calculados, m)) }),
   }
 }

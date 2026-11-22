@@ -1,6 +1,6 @@
 -- evaluar_formula() contra evaluar() de TS (paso 4.06, prompt 1; docs/COTIZADOR.md › «El motor»).
 -- `scripts/probar-schema.mjs` carga antes los JSON en tablas temporales (la base no lee archivos del repo):
---   _juego_del_motor   ← src/modules/cotizaciones/entities/casos-del-motor.json (los 90 casos del motor, para ver sus nombres)
+--   _juego_del_motor   ← src/modules/cotizaciones/entities/casos-del-motor.json (los 100 casos del motor, para ver sus nombres)
 --   _corpus_del_motor  ← supabase/tests/corpus-del-motor.json (el juego con el resultado entero de evaluar(), el corpus diferencial,
 --                         las fórmulas y las sintéticas de escala)
 -- La igualdad es exacta: cada número se compara como float8, sin tolerancia; los tipos tienen que ser los mismos (un NaN o un
@@ -80,7 +80,7 @@ begin
   end loop;
 end $$;
 
--- @test motor: los 90 casos del juego dan el resultado entero de evaluar(), igual hasta el último bit
+-- @test motor: los 100 casos del juego dan el resultado entero de evaluar(), igual hasta el último bit
 do $$
 declare v_malos text[]; v_n int; v_nombres text[]; v_del_juego text[];
 begin
@@ -89,7 +89,7 @@ begin
     from pg_temp.paridad_motor((select doc -> 'juego' from _corpus_del_motor), (select doc -> 'formulas' from _corpus_del_motor)) p
    where not p.ok;
   v_n := jsonb_array_length((select doc -> 'juego' from _corpus_del_motor));
-  if v_n <> 90 then raise exception 'el juego tiene % casos, no 90', v_n; end if;
+  if v_n <> 100 then raise exception 'el juego tiene % casos, no 100', v_n; end if;
   -- Son los de casos-del-motor.json, con sus nombres y en su orden.
   select array_agg(c ->> 'nombre') into v_nombres from jsonb_array_elements((select doc -> 'juego' from _corpus_del_motor)) c;
   select array_agg(c ->> 'nombre') into v_del_juego from jsonb_array_elements((select doc -> 'casos' from _juego_del_motor)) c;

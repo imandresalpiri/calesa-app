@@ -321,6 +321,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 
 - Un texto visible que cambia (etiqueta, `aria-label`, botón, título) se busca en los e2e antes de publicar, y también los localizadores no exactos que el texto nuevo cumpliría («Recargar la página» vuelve ambiguo un `getByRole('button', { name: 'Recargar' })` de otra pantalla si el botón va en el marco): lo hace `node scripts/e2e-afectados.mjs`, que los corre con `--correr`. El CI corre el completo cuando la rama toca un disparador del Nivel 2, pero en local sólo corre lo que se nombra.
 - Si sumas algo al marco o al menú (entrada, campana, burbuja, pestaña), grepea `e2e/`: mueve paradas de Tab, pedidos contados, pestañas contadas, topes de JS y lo que tapa un `fixed`.
+- Si sumas nodos a la hoja de cotizar (una marca de la celda, un aviso, una línea del resumen), corre `e2e/cotizar-hoja-200.spec.ts` antes de publicar: mide el techo de nodos de `[data-hoja]` con la hoja usada, y los afectados, con su tope de 40, pueden dejarlo fuera.
 - Marca `esDelMarco` todo pedido nuevo que haga el marco: los specs que cuentan pedidos de su pantalla los excluyen y si no, caen.
 - Una revalidación del navegador (un 304 contra su caché) Playwright la ve como un 200 sin bytes nuevos: el 304 se prueba con `page.request.get(url, { headers: { 'if-none-match': etag } })`, y lo del navegador se cuenta por pedidos y bytes, no por estado.
 - Mide la tarea de oro y todo recorrido que cruza el marco con teclas, toques y KLM con tope, nunca con reloj ni con la cuenta exacta de paradas de Tab: varias sesiones en una máquina dan rojos falsos y cada entrada nueva del marco pondría en rojo PR ajenos.
@@ -424,6 +425,9 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 ### cotizaciones
 
 - Para «difiere de lo guardado» compara valores y totales, no sólo el total: una celda puede cambiar sin moverlo.
+- Un cálculo del motor hecho aparte en la misma pasada (lo calculado de un pisado, `calcularAparte()`) guarda y repone el largo de `faltantes`, la fuente
+  y el estado del nodo, en TS y en el espejo SQL: evaluar un nodo escribe en lo compartido de la pasada, y sin reponer, un pisado suma faltantes que no
+  existen o cambia el estado de lo que ya quedó escrito.
 - Compara un `jsonb` leído de la base con lo que se edita sin mirar el orden de las claves (`mismoJson()`): la base las devuelve ordenadas por largo y un
   `JSON.stringify` dice «hay cambios» para siempre tras guardar (y `useBorradorDeEstado`, que compara el texto, guarda un «recuperado» falso).
 - Un logo para un dibujo del servidor pasa por `logoParaDibujar()`: react-pdf y satori no leen WebP ni SVG con estilos, y `sharp` lo pasa a PNG.

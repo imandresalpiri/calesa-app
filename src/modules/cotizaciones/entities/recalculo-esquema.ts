@@ -41,4 +41,6 @@ export const esquemaRecalculo = z.object({
     .optional(),
   // Algo faltó en un nodo que quien mira no ve: se dice que falta, sin decir qué.
   hay_faltantes_ocultos: z.boolean().optional(),
+  // Lo que daría cada cálculo pisado sin lo escrito (docs/COTIZADOR.md › «Pisar un cálculo»): sólo de lo que quien mira ve; sin pisados no viene.
+  calculados: z.record(z.string(), numero).optional(),
 })

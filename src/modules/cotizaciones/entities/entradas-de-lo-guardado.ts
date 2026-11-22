@@ -2,7 +2,7 @@ import { ENTRADAS_VACIAS, type Entradas, type IndiceDeHoja } from './entradas'
 import type { TipoDeNodoDeHoja } from './hoja'
 import type { LoGuardado } from './hoja-de-una-guardada'
 
-// Lo que se sobrescribe con un override (`_cotizacion_entradas_de`, `base.sql:1450-1476`): lo demás es un input, una bandera, la variante o un dato del vehículo.
+// Lo que se sobrescribe con un override (`_cotizacion_entradas_de()`): lo demás es un input, una bandera, la variante o un dato del vehículo.
 const SE_SOBRESCRIBEN: ReadonlySet<TipoDeNodoDeHoja> = new Set([
   'constante',
   'tipo_cambio',
@@ -40,8 +40,12 @@ function tipeadoYSobrescrito(indice: IndiceDeHoja, guardado: LoGuardado) {
   const overrides = new Map<string, number>()
   for (const [id, { celda, lado }] of indice.lados) {
     const tipo = lado === 'principal' ? celda.tipoDeNodo : celda.secundario?.tipoDeNodo
-    // El porcentaje de un par cuyo monto está sobrescrito («pisado») no entra: el monto manda.
-    const pisado = lado === 'secundario' && guardado.fuentes.get(celda.nodo) === 'override'
+    // El porcentaje de un par cuyo monto está sobrescrito («pisado») no entra: el monto manda. Sólo si sigue al monto (`sigueAlMonto`, el espejo
+    // de `v_pisados` en la base): el de un par por la hoja con un pct compartido es lo tipeado y entra.
+    const pisado =
+      lado === 'secundario' &&
+      celda.secundario?.sigueAlMonto === true &&
+      guardado.fuentes.get(celda.nodo) === 'override'
     if (tipo === undefined || pisado) {
       continue
     }
@@ -57,8 +61,8 @@ function tipeadoYSobrescrito(indice: IndiceDeHoja, guardado: LoGuardado) {
   return { inputs, overrides }
 }
 
-// Las entradas con que abre la hoja de una guardada y con que se recalcula: **lo guardado**, el espejo de `_cotizacion_entradas_de` sobre lo que la hoja dibuja. Abrirla y guardarla sin
-// tocar nada no cambia nada: un nodo editable que la hoja no manda queda «sin tipear» (`_cotizacion_conservar`, `base.sql:1371`), así que mandar menos borraría lo tipeado.
+// Las entradas con que abre la hoja de una guardada y con que se recalcula: **lo guardado**, el espejo de `_cotizacion_entradas_de()` sobre lo que la hoja dibuja. Abrirla y guardarla sin
+// tocar nada no cambia nada: un nodo editable que la hoja no manda queda «sin tipear» (`_cotizacion_conservar()`), así que mandar menos borraría lo tipeado.
 // Lo que la hoja no dibuja (lo oculto) no entra: la base lo conserva.
 export function entradasDeLoGuardado(
   indice: IndiceDeHoja,

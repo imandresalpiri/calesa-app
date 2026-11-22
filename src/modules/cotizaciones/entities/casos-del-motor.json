@@ -1,5 +1,5 @@
 {
-  "descripcion": "Casos del motor con su resultado esperado (docs/COTIZADOR.md › «El motor»). Los lee motor.test.ts y, desde 4.06, la prueba de paridad de evaluar_formula(). Una fórmula es la de un caso de casos-de-formula.json («formula_de») o la del caso. En la entrada, inputs, banderas, tipos_cambio, vehiculo, tablas y overrides que faltan valen {}; «variante» que falta quiere decir sin clave (vale la por_defecto). Sin «decimales», cada número esperado es el doble exacto; con «decimales», se compara con esa precisión. «valores» y «totales» nombran sólo lo que el caso fija, y cada grupo de «totales» dice si se dibuja. «estados», si está, nombra todos los nodos que no están activos (el resto está activo). «fuentes», si está, es el mapa entero, en el orden de la lista. «faltantes» es la lista entera; «overrides_descartados» también, y si falta es [].",
+  "descripcion": "Casos del motor con su resultado esperado (docs/COTIZADOR.md › «El motor»). Los lee motor.test.ts y, desde 4.06, la prueba de paridad de evaluar_formula(). Una fórmula es la de un caso de casos-de-formula.json («formula_de») o la del caso. En la entrada, inputs, banderas, tipos_cambio, vehiculo, tablas y overrides que faltan valen {}; «variante» que falta quiere decir sin clave (vale la por_defecto). Sin «decimales», cada número esperado es el doble exacto; con «decimales», se compara con esa precisión. «valores» y «totales» nombran sólo lo que el caso fija, y cada grupo de «totales» dice si se dibuja. «estados», si está, nombra todos los nodos que no están activos (el resto está activo). «fuentes», si está, es el mapa entero, en el orden de la lista. «faltantes» es la lista entera; «overrides_descartados» también, y si falta es []. «calculados», si está, es el objeto entero (lo que daría cada cálculo pisado con celda, de «pisables»); si falta, el resultado no lo trae.",
   "casos": [
     {
       "nombre": "ip generalizado: híbrido, con su ruta de transporte",
@@ -9836,6 +9836,1561 @@
             "ref": "anio"
           }
         ]
+      }
+    },
+    {
+      "nombre": "pisar: el monto de un par sin sobrescribible reescribe su pct exclusivo, lo que depende se recalcula y se da lo calculado",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "remate",
+            "tipo": "input",
+            "etiqueta": "Remate"
+          },
+          {
+            "id": "fees",
+            "tipo": "constante",
+            "etiqueta": "Fees"
+          },
+          {
+            "id": "transferencia_pct",
+            "tipo": "constante",
+            "etiqueta": "Transferencia %",
+            "formato": "pct"
+          },
+          {
+            "id": "transferencia",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["remate", "fees"],
+            "pct": "transferencia_pct",
+            "etiqueta": "Transferencia a USA"
+          },
+          {
+            "id": "flete",
+            "tipo": "tabla",
+            "tabla": "fletes",
+            "match": {
+              "ruta": "ruta"
+            },
+            "columna": "precio",
+            "etiqueta": "Flete"
+          },
+          {
+            "id": "seguro",
+            "tipo": "tramo",
+            "tabla": "seguros",
+            "sobre": "remate",
+            "columna": "v",
+            "etiqueta": "Seguro"
+          },
+          {
+            "id": "subtotal",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["remate", "fees", "transferencia", "flete", "seguro"],
+            "etiqueta": "Subtotal"
+          },
+          {
+            "id": "iva_pct",
+            "tipo": "constante",
+            "etiqueta": "IVA %",
+            "formato": "pct"
+          },
+          {
+            "id": "iva",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["subtotal"],
+            "pct": "iva_pct",
+            "etiqueta": "IVA"
+          },
+          {
+            "id": "otro",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["fees"],
+            "pct": "iva_pct",
+            "etiqueta": "Otro"
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["subtotal", "iva", "otro"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {
+        "fees": 600,
+        "transferencia_pct": 0.125,
+        "iva_pct": 0.5,
+        "tablas": {
+          "fletes": [
+            {
+              "ruta": "houston",
+              "precio": 1100
+            }
+          ],
+          "seguros": [
+            {
+              "desde": 0,
+              "hasta": 100000,
+              "v": 200
+            }
+          ]
+        }
+      },
+      "entrada": {
+        "inputs": {
+          "remate": 7400
+        },
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "vehiculo": {
+          "ruta": "houston"
+        },
+        "pisables": [
+          "transferencia",
+          "flete",
+          "seguro",
+          "subtotal",
+          "iva",
+          "otro",
+          "total",
+          "remate",
+          "fees"
+        ],
+        "overrides": {
+          "transferencia": 1200
+        }
+      },
+      "esperado": {
+        "valores": {
+          "transferencia_pct": 0.15,
+          "transferencia": 1200,
+          "subtotal": 10500,
+          "iva": 5250,
+          "otro": 300,
+          "total": 16050
+        },
+        "fuentes": {
+          "tc": "default",
+          "remate": "input",
+          "fees": "default",
+          "transferencia_pct": "override",
+          "transferencia": "override",
+          "iva_pct": "default"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 16050,
+          "usd": 16050,
+          "suma_usd": 16050
+        },
+        "faltantes": [],
+        "calculados": {
+          "transferencia_pct": 0.125,
+          "transferencia": 1000
+        }
+      }
+    },
+    {
+      "nombre": "pisar: el pct de un par sin sobrescribible lo escribe la persona y el monto es la base por él",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "remate",
+            "tipo": "input",
+            "etiqueta": "Remate"
+          },
+          {
+            "id": "fees",
+            "tipo": "constante",
+            "etiqueta": "Fees"
+          },
+          {
+            "id": "transferencia_pct",
+            "tipo": "constante",
+            "etiqueta": "Transferencia %",
+            "formato": "pct"
+          },
+          {
+            "id": "transferencia",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["remate", "fees"],
+            "pct": "transferencia_pct",
+            "etiqueta": "Transferencia a USA"
+          },
+          {
+            "id": "flete",
+            "tipo": "tabla",
+            "tabla": "fletes",
+            "match": {
+              "ruta": "ruta"
+            },
+            "columna": "precio",
+            "etiqueta": "Flete"
+          },
+          {
+            "id": "seguro",
+            "tipo": "tramo",
+            "tabla": "seguros",
+            "sobre": "remate",
+            "columna": "v",
+            "etiqueta": "Seguro"
+          },
+          {
+            "id": "subtotal",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["remate", "fees", "transferencia", "flete", "seguro"],
+            "etiqueta": "Subtotal"
+          },
+          {
+            "id": "iva_pct",
+            "tipo": "constante",
+            "etiqueta": "IVA %",
+            "formato": "pct"
+          },
+          {
+            "id": "iva",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["subtotal"],
+            "pct": "iva_pct",
+            "etiqueta": "IVA"
+          },
+          {
+            "id": "otro",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["fees"],
+            "pct": "iva_pct",
+            "etiqueta": "Otro"
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["subtotal", "iva", "otro"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {
+        "fees": 600,
+        "transferencia_pct": 0.125,
+        "iva_pct": 0.5,
+        "tablas": {
+          "fletes": [
+            {
+              "ruta": "houston",
+              "precio": 1100
+            }
+          ],
+          "seguros": [
+            {
+              "desde": 0,
+              "hasta": 100000,
+              "v": 200
+            }
+          ]
+        }
+      },
+      "entrada": {
+        "inputs": {
+          "remate": 7400
+        },
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "vehiculo": {
+          "ruta": "houston"
+        },
+        "pisables": [
+          "transferencia",
+          "flete",
+          "seguro",
+          "subtotal",
+          "iva",
+          "otro",
+          "total",
+          "remate",
+          "fees"
+        ],
+        "overrides": {
+          "transferencia_pct": 0.25
+        }
+      },
+      "esperado": {
+        "valores": {
+          "transferencia_pct": 0.25,
+          "transferencia": 2000,
+          "subtotal": 11300,
+          "iva": 5650,
+          "total": 17250
+        },
+        "fuentes": {
+          "tc": "default",
+          "remate": "input",
+          "fees": "default",
+          "transferencia_pct": "override",
+          "iva_pct": "default"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 17250,
+          "usd": 17250,
+          "suma_usd": 17250
+        },
+        "faltantes": []
+      }
+    },
+    {
+      "nombre": "pisar: con la base cambiada queda el monto escrito y el pct se recalcula",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "remate",
+            "tipo": "input",
+            "etiqueta": "Remate"
+          },
+          {
+            "id": "fees",
+            "tipo": "constante",
+            "etiqueta": "Fees"
+          },
+          {
+            "id": "transferencia_pct",
+            "tipo": "constante",
+            "etiqueta": "Transferencia %",
+            "formato": "pct"
+          },
+          {
+            "id": "transferencia",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["remate", "fees"],
+            "pct": "transferencia_pct",
+            "etiqueta": "Transferencia a USA"
+          },
+          {
+            "id": "flete",
+            "tipo": "tabla",
+            "tabla": "fletes",
+            "match": {
+              "ruta": "ruta"
+            },
+            "columna": "precio",
+            "etiqueta": "Flete"
+          },
+          {
+            "id": "seguro",
+            "tipo": "tramo",
+            "tabla": "seguros",
+            "sobre": "remate",
+            "columna": "v",
+            "etiqueta": "Seguro"
+          },
+          {
+            "id": "subtotal",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["remate", "fees", "transferencia", "flete", "seguro"],
+            "etiqueta": "Subtotal"
+          },
+          {
+            "id": "iva_pct",
+            "tipo": "constante",
+            "etiqueta": "IVA %",
+            "formato": "pct"
+          },
+          {
+            "id": "iva",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["subtotal"],
+            "pct": "iva_pct",
+            "etiqueta": "IVA"
+          },
+          {
+            "id": "otro",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["fees"],
+            "pct": "iva_pct",
+            "etiqueta": "Otro"
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["subtotal", "iva", "otro"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {
+        "fees": 600,
+        "transferencia_pct": 0.125,
+        "iva_pct": 0.5,
+        "tablas": {
+          "fletes": [
+            {
+              "ruta": "houston",
+              "precio": 1100
+            }
+          ],
+          "seguros": [
+            {
+              "desde": 0,
+              "hasta": 100000,
+              "v": 200
+            }
+          ]
+        }
+      },
+      "entrada": {
+        "inputs": {
+          "remate": 15400
+        },
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "vehiculo": {
+          "ruta": "houston"
+        },
+        "pisables": [
+          "transferencia",
+          "flete",
+          "seguro",
+          "subtotal",
+          "iva",
+          "otro",
+          "total",
+          "remate",
+          "fees"
+        ],
+        "overrides": {
+          "transferencia": 1200
+        }
+      },
+      "esperado": {
+        "valores": {
+          "transferencia_pct": 0.075,
+          "transferencia": 1200,
+          "seguro": 200,
+          "subtotal": 18500,
+          "iva": 9250,
+          "total": 28050
+        },
+        "fuentes": {
+          "tc": "default",
+          "remate": "input",
+          "fees": "default",
+          "transferencia_pct": "override",
+          "transferencia": "override",
+          "iva_pct": "default"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 28050,
+          "usd": 28050,
+          "suma_usd": 28050
+        },
+        "faltantes": [],
+        "calculados": {
+          "transferencia_pct": 0.125,
+          "transferencia": 2000
+        }
+      }
+    },
+    {
+      "nombre": "pisar: una tabla, un tramo y un cálculo con celda dan lo calculado, y un pct compartido no se reescribe",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "remate",
+            "tipo": "input",
+            "etiqueta": "Remate"
+          },
+          {
+            "id": "fees",
+            "tipo": "constante",
+            "etiqueta": "Fees"
+          },
+          {
+            "id": "transferencia_pct",
+            "tipo": "constante",
+            "etiqueta": "Transferencia %",
+            "formato": "pct"
+          },
+          {
+            "id": "transferencia",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["remate", "fees"],
+            "pct": "transferencia_pct",
+            "etiqueta": "Transferencia a USA"
+          },
+          {
+            "id": "flete",
+            "tipo": "tabla",
+            "tabla": "fletes",
+            "match": {
+              "ruta": "ruta"
+            },
+            "columna": "precio",
+            "etiqueta": "Flete"
+          },
+          {
+            "id": "seguro",
+            "tipo": "tramo",
+            "tabla": "seguros",
+            "sobre": "remate",
+            "columna": "v",
+            "etiqueta": "Seguro"
+          },
+          {
+            "id": "subtotal",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["remate", "fees", "transferencia", "flete", "seguro"],
+            "etiqueta": "Subtotal"
+          },
+          {
+            "id": "iva_pct",
+            "tipo": "constante",
+            "etiqueta": "IVA %",
+            "formato": "pct"
+          },
+          {
+            "id": "iva",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["subtotal"],
+            "pct": "iva_pct",
+            "etiqueta": "IVA"
+          },
+          {
+            "id": "otro",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["fees"],
+            "pct": "iva_pct",
+            "etiqueta": "Otro"
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["subtotal", "iva", "otro"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {
+        "fees": 600,
+        "transferencia_pct": 0.125,
+        "iva_pct": 0.5,
+        "tablas": {
+          "fletes": [
+            {
+              "ruta": "houston",
+              "precio": 1100
+            }
+          ],
+          "seguros": [
+            {
+              "desde": 0,
+              "hasta": 100000,
+              "v": 200
+            }
+          ]
+        }
+      },
+      "entrada": {
+        "inputs": {
+          "remate": 7400
+        },
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "vehiculo": {
+          "ruta": "houston"
+        },
+        "pisables": [
+          "transferencia",
+          "flete",
+          "seguro",
+          "subtotal",
+          "iva",
+          "otro",
+          "total",
+          "remate",
+          "fees"
+        ],
+        "overrides": {
+          "flete": 900,
+          "seguro": 250,
+          "iva": 5000
+        }
+      },
+      "esperado": {
+        "valores": {
+          "flete": 900,
+          "seguro": 250,
+          "subtotal": 10150,
+          "iva_pct": 0.5,
+          "iva": 5000,
+          "otro": 300,
+          "total": 15450
+        },
+        "fuentes": {
+          "tc": "default",
+          "remate": "input",
+          "fees": "default",
+          "transferencia_pct": "default",
+          "flete": "override",
+          "seguro": "override",
+          "iva_pct": "default",
+          "iva": "override"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 15450,
+          "usd": 15450,
+          "suma_usd": 15450
+        },
+        "faltantes": [],
+        "calculados": {
+          "flete": 1100,
+          "seguro": 200,
+          "iva": 5075
+        }
+      }
+    },
+    {
+      "nombre": "pisar: lo calculado puede quedar sin valor, sin anotar su faltante",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "remate",
+            "tipo": "input",
+            "etiqueta": "Remate"
+          },
+          {
+            "id": "fees",
+            "tipo": "constante",
+            "etiqueta": "Fees"
+          },
+          {
+            "id": "transferencia_pct",
+            "tipo": "constante",
+            "etiqueta": "Transferencia %",
+            "formato": "pct"
+          },
+          {
+            "id": "transferencia",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["remate", "fees"],
+            "pct": "transferencia_pct",
+            "etiqueta": "Transferencia a USA"
+          },
+          {
+            "id": "flete",
+            "tipo": "tabla",
+            "tabla": "fletes",
+            "match": {
+              "ruta": "ruta"
+            },
+            "columna": "precio",
+            "etiqueta": "Flete"
+          },
+          {
+            "id": "seguro",
+            "tipo": "tramo",
+            "tabla": "seguros",
+            "sobre": "remate",
+            "columna": "v",
+            "etiqueta": "Seguro"
+          },
+          {
+            "id": "subtotal",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["remate", "fees", "transferencia", "flete", "seguro"],
+            "etiqueta": "Subtotal"
+          },
+          {
+            "id": "iva_pct",
+            "tipo": "constante",
+            "etiqueta": "IVA %",
+            "formato": "pct"
+          },
+          {
+            "id": "iva",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["subtotal"],
+            "pct": "iva_pct",
+            "etiqueta": "IVA"
+          },
+          {
+            "id": "otro",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["fees"],
+            "pct": "iva_pct",
+            "etiqueta": "Otro"
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["subtotal", "iva", "otro"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {
+        "fees": 600,
+        "transferencia_pct": 0.125,
+        "iva_pct": 0.5,
+        "tablas": {
+          "fletes": [
+            {
+              "ruta": "houston",
+              "precio": 1100
+            }
+          ],
+          "seguros": [
+            {
+              "desde": 0,
+              "hasta": 100000,
+              "v": 200
+            }
+          ]
+        }
+      },
+      "entrada": {
+        "inputs": {
+          "remate": 7400
+        },
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "vehiculo": {},
+        "pisables": [
+          "transferencia",
+          "flete",
+          "seguro",
+          "subtotal",
+          "iva",
+          "otro",
+          "total",
+          "remate",
+          "fees"
+        ],
+        "overrides": {
+          "flete": 900
+        }
+      },
+      "esperado": {
+        "valores": {
+          "flete": 900,
+          "subtotal": 10100,
+          "iva": 5050,
+          "total": 15450
+        },
+        "fuentes": {
+          "tc": "default",
+          "remate": "input",
+          "fees": "default",
+          "transferencia_pct": "default",
+          "flete": "override",
+          "iva_pct": "default"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 15450,
+          "usd": 15450,
+          "suma_usd": 15450
+        },
+        "faltantes": [],
+        "calculados": {
+          "flete": null
+        }
+      }
+    },
+    {
+      "nombre": "pisar: el total y lo que no tiene celda no se pisan",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "remate",
+            "tipo": "input",
+            "etiqueta": "Remate"
+          },
+          {
+            "id": "fees",
+            "tipo": "constante",
+            "etiqueta": "Fees"
+          },
+          {
+            "id": "transferencia_pct",
+            "tipo": "constante",
+            "etiqueta": "Transferencia %",
+            "formato": "pct"
+          },
+          {
+            "id": "transferencia",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["remate", "fees"],
+            "pct": "transferencia_pct",
+            "etiqueta": "Transferencia a USA"
+          },
+          {
+            "id": "flete",
+            "tipo": "tabla",
+            "tabla": "fletes",
+            "match": {
+              "ruta": "ruta"
+            },
+            "columna": "precio",
+            "etiqueta": "Flete"
+          },
+          {
+            "id": "seguro",
+            "tipo": "tramo",
+            "tabla": "seguros",
+            "sobre": "remate",
+            "columna": "v",
+            "etiqueta": "Seguro"
+          },
+          {
+            "id": "subtotal",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["remate", "fees", "transferencia", "flete", "seguro"],
+            "etiqueta": "Subtotal"
+          },
+          {
+            "id": "iva_pct",
+            "tipo": "constante",
+            "etiqueta": "IVA %",
+            "formato": "pct"
+          },
+          {
+            "id": "iva",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["subtotal"],
+            "pct": "iva_pct",
+            "etiqueta": "IVA"
+          },
+          {
+            "id": "otro",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["fees"],
+            "pct": "iva_pct",
+            "etiqueta": "Otro"
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["subtotal", "iva", "otro"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {
+        "fees": 600,
+        "transferencia_pct": 0.125,
+        "iva_pct": 0.5,
+        "tablas": {
+          "fletes": [
+            {
+              "ruta": "houston",
+              "precio": 1100
+            }
+          ],
+          "seguros": [
+            {
+              "desde": 0,
+              "hasta": 100000,
+              "v": 200
+            }
+          ]
+        }
+      },
+      "entrada": {
+        "inputs": {
+          "remate": 7400
+        },
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "vehiculo": {
+          "ruta": "houston"
+        },
+        "pisables": ["transferencia", "flete", "seguro", "iva", "otro", "total"],
+        "overrides": {
+          "subtotal": 5,
+          "total": 1
+        }
+      },
+      "esperado": {
+        "valores": {
+          "subtotal": 10300,
+          "total": 15750
+        },
+        "fuentes": {
+          "tc": "default",
+          "remate": "input",
+          "fees": "default",
+          "transferencia_pct": "default",
+          "iva_pct": "default"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 15750,
+          "usd": 15750,
+          "suma_usd": 15750
+        },
+        "faltantes": [],
+        "overrides_descartados": [
+          {
+            "id": "subtotal",
+            "motivo": "no_sobrescribible"
+          },
+          {
+            "id": "total",
+            "motivo": "no_sobrescribible"
+          }
+        ]
+      }
+    },
+    {
+      "nombre": "pisar: con la base del par en 0 el pct queda sin valor y lo calculado del monto es 0",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "remate",
+            "tipo": "input",
+            "etiqueta": "Remate"
+          },
+          {
+            "id": "fees",
+            "tipo": "constante",
+            "etiqueta": "Fees"
+          },
+          {
+            "id": "transferencia_pct",
+            "tipo": "constante",
+            "etiqueta": "Transferencia %",
+            "formato": "pct"
+          },
+          {
+            "id": "transferencia",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["remate", "fees"],
+            "pct": "transferencia_pct",
+            "etiqueta": "Transferencia a USA"
+          },
+          {
+            "id": "flete",
+            "tipo": "tabla",
+            "tabla": "fletes",
+            "match": {
+              "ruta": "ruta"
+            },
+            "columna": "precio",
+            "etiqueta": "Flete"
+          },
+          {
+            "id": "seguro",
+            "tipo": "tramo",
+            "tabla": "seguros",
+            "sobre": "remate",
+            "columna": "v",
+            "etiqueta": "Seguro"
+          },
+          {
+            "id": "subtotal",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["remate", "fees", "transferencia", "flete", "seguro"],
+            "etiqueta": "Subtotal"
+          },
+          {
+            "id": "iva_pct",
+            "tipo": "constante",
+            "etiqueta": "IVA %",
+            "formato": "pct"
+          },
+          {
+            "id": "iva",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["subtotal"],
+            "pct": "iva_pct",
+            "etiqueta": "IVA"
+          },
+          {
+            "id": "otro",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["fees"],
+            "pct": "iva_pct",
+            "etiqueta": "Otro"
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["subtotal", "iva", "otro"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {
+        "fees": 600,
+        "transferencia_pct": 0.125,
+        "iva_pct": 0.5,
+        "tablas": {
+          "fletes": [
+            {
+              "ruta": "houston",
+              "precio": 1100
+            }
+          ],
+          "seguros": [
+            {
+              "desde": 0,
+              "hasta": 100000,
+              "v": 200
+            }
+          ]
+        }
+      },
+      "entrada": {
+        "inputs": {
+          "remate": 0
+        },
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "vehiculo": {
+          "ruta": "houston"
+        },
+        "pisables": [
+          "transferencia",
+          "flete",
+          "seguro",
+          "subtotal",
+          "iva",
+          "otro",
+          "total",
+          "remate",
+          "fees"
+        ],
+        "overrides": {
+          "fees": 0,
+          "transferencia": 50
+        }
+      },
+      "esperado": {
+        "valores": {
+          "transferencia_pct": null,
+          "transferencia": 50,
+          "seguro": 200,
+          "subtotal": 1350,
+          "iva": 675,
+          "otro": 0,
+          "total": 2025
+        },
+        "fuentes": {
+          "tc": "default",
+          "remate": "input",
+          "fees": "override",
+          "transferencia_pct": "override",
+          "transferencia": "override",
+          "iva_pct": "default"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 2025,
+          "usd": 2025,
+          "suma_usd": 2025
+        },
+        "faltantes": [
+          {
+            "codigo": "division_por_cero",
+            "donde": "transferencia_pct"
+          }
+        ],
+        "calculados": {
+          "transferencia_pct": 0.125,
+          "transferencia": 0
+        }
+      }
+    },
+    {
+      "nombre": "pisar: sin pisables sólo se pisa lo sobrescribible",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "remate",
+            "tipo": "input",
+            "etiqueta": "Remate"
+          },
+          {
+            "id": "fees",
+            "tipo": "constante",
+            "etiqueta": "Fees"
+          },
+          {
+            "id": "transferencia_pct",
+            "tipo": "constante",
+            "etiqueta": "Transferencia %",
+            "formato": "pct"
+          },
+          {
+            "id": "transferencia",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["remate", "fees"],
+            "pct": "transferencia_pct",
+            "etiqueta": "Transferencia a USA"
+          },
+          {
+            "id": "flete",
+            "tipo": "tabla",
+            "tabla": "fletes",
+            "match": {
+              "ruta": "ruta"
+            },
+            "columna": "precio",
+            "etiqueta": "Flete"
+          },
+          {
+            "id": "seguro",
+            "tipo": "tramo",
+            "tabla": "seguros",
+            "sobre": "remate",
+            "columna": "v",
+            "etiqueta": "Seguro"
+          },
+          {
+            "id": "subtotal",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["remate", "fees", "transferencia", "flete", "seguro"],
+            "etiqueta": "Subtotal"
+          },
+          {
+            "id": "iva_pct",
+            "tipo": "constante",
+            "etiqueta": "IVA %",
+            "formato": "pct"
+          },
+          {
+            "id": "iva",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["subtotal"],
+            "pct": "iva_pct",
+            "etiqueta": "IVA"
+          },
+          {
+            "id": "otro",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["fees"],
+            "pct": "iva_pct",
+            "etiqueta": "Otro"
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["subtotal", "iva", "otro"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {
+        "fees": 600,
+        "transferencia_pct": 0.125,
+        "iva_pct": 0.5,
+        "tablas": {
+          "fletes": [
+            {
+              "ruta": "houston",
+              "precio": 1100
+            }
+          ],
+          "seguros": [
+            {
+              "desde": 0,
+              "hasta": 100000,
+              "v": 200
+            }
+          ]
+        }
+      },
+      "entrada": {
+        "inputs": {
+          "remate": 7400
+        },
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "vehiculo": {
+          "ruta": "houston"
+        },
+        "overrides": {
+          "transferencia": 1200,
+          "flete": 900
+        }
+      },
+      "esperado": {
+        "valores": {
+          "transferencia_pct": 0.125,
+          "transferencia": 1000,
+          "flete": 1100,
+          "total": 15750
+        },
+        "fuentes": {
+          "tc": "default",
+          "remate": "input",
+          "fees": "default",
+          "transferencia_pct": "default",
+          "iva_pct": "default"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 15750,
+          "usd": 15750,
+          "suma_usd": 15750
+        },
+        "faltantes": [],
+        "overrides_descartados": [
+          {
+            "id": "transferencia",
+            "motivo": "no_sobrescribible"
+          },
+          {
+            "id": "flete",
+            "motivo": "no_sobrescribible"
+          }
+        ]
+      }
+    },
+    {
+      "nombre": "pisar: un cálculo con celda apagado por su condición o fuera de la variante descarta lo escrito",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "v",
+            "tipo": "opcion",
+            "etiqueta": "Variante",
+            "opciones": [
+              {
+                "clave": "a",
+                "etiqueta": "A",
+                "titulo": "Opción a"
+              },
+              {
+                "clave": "b",
+                "etiqueta": "B",
+                "titulo": "Opción b"
+              }
+            ],
+            "por_defecto": "a"
+          },
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "f",
+            "tipo": "bandera",
+            "etiqueta": "F",
+            "formato": "raw"
+          },
+          {
+            "id": "k",
+            "tipo": "constante",
+            "etiqueta": "K"
+          },
+          {
+            "id": "c1",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["k"],
+            "etiqueta": "C1",
+            "condicion": "f"
+          },
+          {
+            "id": "c2",
+            "tipo": "calculo",
+            "op": "multiplicar",
+            "de": ["k", "k"],
+            "etiqueta": "C2",
+            "solo_en": ["b"]
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["k", "c1", "c2"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {
+        "k": 10
+      },
+      "entrada": {
+        "variante": "a",
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "overrides": {
+          "c1": 5,
+          "c2": 7
+        },
+        "pisables": ["c1", "c2"]
+      },
+      "esperado": {
+        "valores": {
+          "c1": 0,
+          "c2": 0,
+          "total": 10
+        },
+        "estados": {
+          "c1": "condicion_apagada",
+          "c2": "fuera_de_variante"
+        },
+        "fuentes": {
+          "tc": "default",
+          "k": "default"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 10,
+          "usd": 10,
+          "suma_usd": 10
+        },
+        "faltantes": [],
+        "overrides_descartados": [
+          {
+            "id": "c1",
+            "motivo": "condicion_apagada"
+          },
+          {
+            "id": "c2",
+            "motivo": "fuera_de_variante"
+          }
+        ]
+      }
+    },
+    {
+      "nombre": "pisar: el pct exclusivo de un par puede ser un input, y lo calculado no le cambia la fuente",
+      "definicion": {
+        "nodos": [
+          {
+            "id": "tc",
+            "tipo": "tipo_cambio",
+            "clave": "oficial",
+            "etiqueta": "tc",
+            "formato": "raw"
+          },
+          {
+            "id": "a",
+            "tipo": "input",
+            "etiqueta": "A"
+          },
+          {
+            "id": "p",
+            "tipo": "input",
+            "etiqueta": "P",
+            "formato": "pct"
+          },
+          {
+            "id": "m",
+            "tipo": "calculo",
+            "op": "porcentaje_de",
+            "de": ["a"],
+            "pct": "p",
+            "etiqueta": "M"
+          },
+          {
+            "id": "total",
+            "tipo": "calculo",
+            "op": "suma",
+            "de": ["a", "m"],
+            "etiqueta": "Total",
+            "salida": "total",
+            "bucket": "x"
+          }
+        ],
+        "buckets": {
+          "x": "tc"
+        }
+      },
+      "params": {},
+      "entrada": {
+        "inputs": {
+          "a": 1000,
+          "p": 0.25
+        },
+        "tipos_cambio": {
+          "oficial": 1
+        },
+        "overrides": {
+          "m": 300
+        },
+        "pisables": ["m"]
+      },
+      "esperado": {
+        "valores": {
+          "p": 0.3,
+          "m": 300,
+          "total": 1300
+        },
+        "fuentes": {
+          "tc": "default",
+          "a": "input",
+          "p": "override",
+          "m": "override"
+        },
+        "totales": {
+          "grupos": {},
+          "bs": 1300,
+          "usd": 1300,
+          "suma_usd": 1300
+        },
+        "faltantes": [],
+        "calculados": {
+          "p": 0.25,
+          "m": 250
+        }
       }
     }
   ]

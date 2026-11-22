@@ -1,6 +1,7 @@
 // La entrada del motor (docs/COTIZADOR.md › «El motor»): lo tipeado, las banderas, los tipos de cambio por clave,
-// los campos del vehículo, las tablas vivas, la variante elegida y los overrides. `esquemaEntrada` es para quien la
-// recibe desde afuera; `evaluar` confía en el tipo y la lee siempre por `Map`, nunca indexando un objeto.
+// los campos del vehículo, las tablas vivas, la variante elegida, los overrides y los cálculos con celda en la hoja.
+// `esquemaEntrada` es para quien la recibe desde afuera; `evaluar` confía en el tipo y la lee siempre por `Map` o `Set`,
+// nunca indexando un objeto.
 import { z } from 'zod'
 import { esquemaFila, type FilaDeTabla } from './formula'
 import { buscar, mapaDe, recorrer, type Medidor } from './medidor'
@@ -23,6 +24,9 @@ export const esquemaEntrada = z.strictObject({
   // Por id de nodo: lo que la persona escribió sobre un default o un sugerido (un tipo de cambio también: el de la
   // empresa viene en `tipos_cambio`). El que no se aplica no es un error: se devuelve con su motivo.
   overrides: z.record(esquemaId, z.number()),
+  // Los ids que la hoja dibuja en una celda (docs/COTIZADOR.md › «Pisar un cálculo»): un `tabla`, `tramo` o `calculo` de
+  // la lista que no es el total acepta override aunque no sea `sobrescribible`. Sin la lista, sólo lo `sobrescribible`.
+  pisables: z.array(esquemaId).optional(),
 })
 
 export type Entrada = z.infer<typeof esquemaEntrada>
@@ -34,6 +38,7 @@ export type MapasDeEntrada = {
   vehiculo: ReadonlyMap<string, number | string | null>
   tablas: ReadonlyMap<string, readonly FilaDeTabla[]>
   overrides: ReadonlyMap<string, number>
+  pisables: ReadonlySet<string>
 }
 
 export function mapasDe(entrada: Entrada, m: Medidor): MapasDeEntrada {
@@ -44,6 +49,7 @@ export function mapasDe(entrada: Entrada, m: Medidor): MapasDeEntrada {
     vehiculo: mapaDe(entrada.vehiculo, m),
     tablas: mapaDe(entrada.tablas, m),
     overrides: mapaDe(entrada.overrides, m),
+    pisables: new Set(recorrer(entrada.pisables ?? [], m)),
   }
 }
 

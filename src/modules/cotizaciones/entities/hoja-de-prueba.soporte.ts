@@ -58,6 +58,7 @@ const itemsDeCeldas = () => [
       formato: 'pct',
       ajustes: false,
       editable: true,
+      sigue_al_monto: true,
     },
   }),
   celda('transferencia', 'calculo', {
@@ -81,6 +82,7 @@ const itemsDeCeldas = () => [
       ajustes: false,
       editable: false,
       motivo: { codigo: 'nivel', nivel: 'Gerencia' },
+      sigue_al_monto: true,
     },
   }),
   celda('cuenta_esp', 'input', { condicion: 'cuenta' }),
@@ -163,6 +165,7 @@ type Mapas = {
   usd?: number | null
   faltantes?: RespuestaDeRecalculo['faltantes']
   hayFaltantesOcultos?: boolean
+  calculados?: Record<string, number | null>
 }
 
 export const respuestaDePrueba = (m: Mapas = {}): RespuestaDeRecalculo => ({
@@ -173,4 +176,5 @@ export const respuestaDePrueba = (m: Mapas = {}): RespuestaDeRecalculo => ({
   faltantes: m.faltantes ?? [],
   descartados: [],
   hayFaltantesOcultos: m.hayFaltantesOcultos ?? false,
+  calculados: new Map(Object.entries(m.calculados ?? {})),
 })

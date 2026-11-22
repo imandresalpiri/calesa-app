@@ -72,7 +72,7 @@ export function AvisosDelTotal({
 }
 
 // Pliega y abre el detalle del resumen al pie (4-50). Al costado (`@4xl/hoja`) no se dibuja: ahí el detalle se ve siempre. Sin ícono: la hoja más grande
-// está a pocos nodos del techo de 500 (`cotizar-hoja-200.spec.ts`). Alto en px, como Live: con el texto al 200 % no dobla y el resumen plegado ocupa menos.
+// está a pocos nodos de su techo de 525 (`cotizar-hoja-200.spec.ts`). Alto en px, como Live: con el texto al 200 % no dobla y el resumen plegado ocupa menos.
 export function BotonDelDetalle({
   plegado,
   alternar,

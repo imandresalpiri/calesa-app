@@ -68,6 +68,11 @@ export const PUNTO = 'size-2 shrink-0 rounded-full bg-[color:var(--tono-tinta,va
 
 export const NOTA = `flex min-w-0 basis-full items-start gap-1 text-xs [overflow-wrap:anywhere] ${TINTA}`
 
+// La marca «Editado a mano» de un cálculo pisado: el lápiz, primero en la fila de acciones. No es un control: sin blanco táctil ni foco.
+export const MARCA = `inline-flex shrink-0 items-center ${TINTA}`
+// «Calculado: $480» bajo la celda pisada, a la altura del rótulo y en la letra chica del lado chico (con tono, la tinta del tono: un gris no garantiza AA).
+export const CALCULADO = `min-w-0 basis-full ps-[var(--xcell-sangria,8px)] text-xs [overflow-wrap:anywhere] ${TINTA_CHICA}`
+
 // La celda densa de una tabla (la hoja de ítems de `repuestos`): sin el alto, la sangría ni las letras de la de V1. Va en el contenedor de sus celdas.
 export const XCELL_COMPACTA =
   '[--xcell-alto:auto] [--xcell-sangria:0px] [--xcell-letra-rotulo:var(--text-sm)] [--xcell-letra-valor:var(--text-sm)]'

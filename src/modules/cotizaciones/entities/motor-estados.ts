@@ -49,9 +49,11 @@ export function decidirEstados(ev: Evaluacion): void {
 }
 
 // El pct de un par activo cuyo monto trae override, si el pct también está activo, no se calcula: lo escribe el par
-// con monto ÷ base (docs/COTIZADOR.md › «El par porcentaje-monto»). El pct va antes en la lista: su estado ya está.
+// con monto ÷ base (docs/COTIZADOR.md › «El par porcentaje-monto»). Es par el `sobrescribible` o el que la hoja vuelve
+// par (`ev.pares`). El pct va antes en la lista: su estado ya está.
 function marcarPisado(ev: Evaluacion, n: Nodo): void {
-  if (n.tipo !== 'calculo' || n.op !== 'porcentaje_de' || n.sobrescribible !== true) return
+  if (n.tipo !== 'calculo' || n.op !== 'porcentaje_de') return
+  if (n.sobrescribible !== true && !esta(ev.pares, n.id, ev.m)) return
   if (buscar(ev.entrada.overrides, n.id, ev.m) === undefined) return
   if (buscar(ev.estados, n.pct, ev.m) === 'activo') ev.pisados.add(n.pct)
 }

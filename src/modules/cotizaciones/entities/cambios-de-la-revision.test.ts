@@ -177,3 +177,81 @@ describe('cambiosDeLaRevision › la marca de privada', () => {
     ).toEqual(['Pasó a final', 'La hizo pública'])
   })
 })
+
+describe('cambiosDeLaRevision › un cálculo pisado o devuelto al calculado', () => {
+  // `flete` y `seguro` son cálculos que quien mira ve; `fob`, un dato.
+  const calculos = new Map([
+    ['flete', 'usd'],
+    ['seguro', 'pct'],
+  ] as const)
+  const conCalculos = (diff: Record<string, unknown>, vehiculo = null) =>
+    cambiosDeLaRevision(diff, etiquetas, vehiculo, calculos)
+
+  it('pisado: la fuente pasó a override en un cálculo, con de cuánto a cuánto y su formato, en vez de «Cambió «X»»', () => {
+    const r = conCalculos({
+      valores: { de: { flete: 480, fob: 1 }, a: { flete: 500, fob: 2 } },
+      fuentes: { de: {}, a: { flete: 'override', fob: 'input' } },
+    })
+    expect(r.vistos).toEqual([
+      {
+        tipo: 'pisado',
+        etiqueta: 'Flete',
+        valores: { de: 480, a: 500 },
+        formato: 'usd',
+      },
+      'Cambió «FOB»',
+    ])
+    expect(r.masN).toBe(0)
+  })
+
+  it('devuelto: la fuente dejó de ser override; los dos van primero, por etiqueta', () => {
+    const r = conCalculos({
+      valores: { de: { seguro: 0.05, flete: 500 }, a: { seguro: 0.04, flete: 480 } },
+      fuentes: { de: { flete: 'override' }, a: { seguro: 'override' } },
+    })
+    expect(r.vistos.map((c) => (typeof c === 'string' ? c : `${c.tipo} ${c.etiqueta}`))).toEqual([
+      'devuelto Flete',
+      'pisado Seguro',
+    ])
+  })
+
+  it('pisado con lo mismo que daba: sin montos; un valor que falta, nulo', () => {
+    const igual = conCalculos({ fuentes: { de: {}, a: { flete: 'override' } } })
+    expect(igual.vistos).toEqual([
+      { tipo: 'pisado', etiqueta: 'Flete', valores: null, formato: 'usd' },
+    ])
+    const sinValor = conCalculos({
+      valores: { de: { flete: null }, a: { flete: 500 } },
+      fuentes: { de: {}, a: { flete: 'override' } },
+    })
+    expect(sinValor.vistos[0]).toMatchObject({ valores: { de: null, a: 500 } })
+  })
+
+  it('un override sobre algo que no es un cálculo que quien mira ve, o que siguió pisado, es «Cambió «X»»', () => {
+    const r = conCalculos({
+      valores: { de: { fob: 1, flete: 500 }, a: { fob: 2, flete: 510 } },
+      fuentes: { de: { flete: 'override' }, a: { fob: 'override', flete: 'override' } },
+    })
+    expect(r.vistos).toEqual(['Cambió «Flete»', 'Cambió «FOB»'])
+    // Sin los cálculos (la lectura de antes), todo se dice como siempre.
+    const sin = cambiosDeLaRevision({ fuentes: { de: {}, a: { flete: 'override' } } }, etiquetas)
+    expect(sin.vistos).toEqual(['Cambió «Flete»'])
+  })
+
+  it('el vehículo nombrado sigue primero y lo pisado cuenta para «y N más»', () => {
+    const r = cambiosDeLaRevision(
+      {
+        vehiculo_id: { de: 'x', a: 'y' },
+        valores: { de: { flete: 480, pub: 1, zeta: 1 }, a: { flete: 500, pub: 2, zeta: 2 } },
+        fuentes: { de: {}, a: { flete: 'override' } },
+      },
+      etiquetas,
+      { de: { titulo: 'A' }, a: { titulo: 'B' } },
+      calculos,
+    )
+    expect(r.vistos[0]).toBe('Cambió el vehículo: A → B')
+    expect(r.vistos[1]).toMatchObject({ tipo: 'pisado', etiqueta: 'Flete' })
+    expect(r.vistos[2]).toBe('Cambió «Precio publicado»')
+    expect(r.masN).toBe(1)
+  })
+})

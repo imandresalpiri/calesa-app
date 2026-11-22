@@ -94,6 +94,13 @@ const override = (nombre: string, filtro: (n: Objeto) => boolean) =>
     return `${id}=${String(valor)}`
   })
 
+// Suma `id` a los cálculos con celda (`pisables`) de la entrada, sin repetirlo.
+function pisable(c: Llamada, id: string): void {
+  const lista = c.entrada['pisables']
+  if (!Array.isArray(lista)) c.entrada['pisables'] = [id]
+  else if (!lista.includes(id)) lista.push(id)
+}
+
 // Los nodos `de` de un par, para dejar su base en 0.
 function basesDelPar(par: Objeto): string[] {
   const de = par['de']
@@ -174,6 +181,34 @@ export const MUTADORES_DE_ENTRADA: readonly MutadorDelMotor[] = [
       else sub(c, 'overrides')[base] = 0
     }
     return idDe(par.n)
+  }),
+  // Los cálculos con celda (`pisables`): pisar uno que no es sobrescribible (el total también, que se descarta), el monto de un
+  // par por la hoja, la lista sin override y la lista con uno de menos.
+  m('pisar_con_celda', (c, azar) => {
+    const id = nodo(c, azar, fijo)
+    if (id === undefined) return null
+    pisable(c, id)
+    const valor = numero(azar)
+    sub(c, 'overrides')[id] = valor
+    return `${id}=${String(valor)}`
+  }),
+  m('pisar_par_por_la_hoja', (c, azar) => {
+    const id = nodo(c, azar, (n) => esOp('porcentaje_de')(n) && n['sobrescribible'] !== true)
+    if (id === undefined) return null
+    pisable(c, id)
+    sub(c, 'overrides')[id] = numero(azar)
+    return id
+  }),
+  m('pisable_sin_override', (c, azar) => {
+    const id = nodo(c, azar)
+    if (id === undefined) return null
+    pisable(c, id)
+    return id
+  }),
+  m('pisable_quitado', (c, azar) => {
+    const lista = c.entrada['pisables']
+    if (!Array.isArray(lista) || lista.length === 0) return null
+    return String(lista.splice(azar.entero(lista.length), 1)[0])
   }),
   // La variante.
   m('variante_otra', (c, azar) => {
