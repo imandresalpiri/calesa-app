@@ -671,8 +671,10 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
 - **Roles** — `/configuracion/roles` (`equipo.roles.*`): matriz roles × permisos por módulo; desde 768 px la columna «Permiso» queda pegada
   a la izquierda y la fila con los nombres de los roles arriba, a ras del borde, sin hueco (la tarjeta se desplaza por dentro y, con la página al final, su borde de arriba queda a ras de la barra superior), con el título del módulo pegado debajo, a ras de ella; cada
   celda guarda sola. En móvil, un rol a la vez (`?rol=`) y como lista (permiso, explicación y control debajo): la barra «Rol a la vista» queda
-  pegada bajo la barra superior y el título del módulo en curso, debajo de ella.
-  `?panel=nuevo-rol`, `?eliminar=`.
+  pegada bajo la barra superior y el título del módulo en curso, debajo de ella. Ningún aviso en línea: un «!» junto al nombre de cada rol que
+  los tiene (en el celular, en la barra «Rol a la vista», 44 px) abre «Avisos de <rol>» (sin avisos, sin botón) y otro junto al título abre «Avisos
+  de Roles y permisos».
+  `?panel=nuevo-rol`, `?panel=avisos&rol=`, `?panel=avisos-de-la-pagina` (también `?panel=avisos` sin `rol`), `?eliminar=`.
 - **Datos** — `/datos` (todos: «Mis leads»; todo: `datos.exportar.todo`): `?seccion=exportar|importar`, con la barra siempre; sin permiso
   para importar nada (`leads.crear`, `datos.importar.todo` o `vehiculos.crear` en algún origen), «Importar» apagada con su motivo y
   pedirla abre «Exportar».
@@ -2121,8 +2123,8 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   qué no se puede bloquear ni dar de baja. Dar de baja confirma nombrando a la persona y cuántos leads van al limbo (hasta 1.000); con
   muchos sigue por lotes («Pasando sus leads…»). Invitar: si el correo falla, el enlace queda a la vista.
 - **Roles:** «Recibir turnos de la web» es un interruptor más de la matriz; un rol sin él vende igual pero no recibe turnos. Rol que no
-  dominas: columna de sólo lectura con motivo; permiso que no tienes: celda deshabilitada con motivo; conflicto «Otra persona cambió este
-  rol · Recargar».
+  dominas: columna de sólo lectura, con su motivo en «Avisos de <rol>»; permiso que no tienes: celda deshabilitada con el motivo en su descripción;
+  conflicto «Otra persona cambió este rol · Recargar» (sigue arriba: no es un aviso del rol).
 
 ## Decisiones de UX
 

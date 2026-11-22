@@ -11,6 +11,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Dominancia** — `rol_dominado()`, `concesion_dominada()` / `entities/dominancia.ts`: nadie otorga, edita, asigna ni quita lo que no tiene.
   Sobre la persona, `persona_dominada()` / `personas_dominadas()`: nadie bloquea, da de baja ni cambia los roles de quien tiene permisos que él
   no cubre (el dueño sí).
+- **Avisos de un rol** — `entities/avisos-de-roles.ts` (`avisosDelRol()`, `avisosDeLaPagina()`): por qué un rol no se puede cambiar o eliminar (no lo
+  dominas, es de sistema, tiene personas) y qué dice la página de Roles. Se leen en un modal que abre el «!» junto al nombre del rol o al título.
 - **Guardián** — `rbac_guardian()`: siempre queda alguien que opera y gestiona roles y personas; el rol dueño conserva los permisos de equipo.
 - **Invitado** — `app_metadata.invitado` / `perfiles.invitado_en` / `invitarPersona()`: cuenta creada por alguien del equipo, con un rol,
   aunque el registro esté cerrado.
