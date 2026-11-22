@@ -19,12 +19,7 @@ const P = 'E2E T38'
 const A = `${P} A`
 const B = `${P} B`
 const C = `${P} C`
-const SECCIONES = [
-  'Datos',
-  'Requisitos para entrar',
-  'Salidas y quién mueve',
-  'Reglas que la afectan',
-]
+const SECCIONES = ['Requisitos para entrar', 'Salidas y quién mueve', 'Reglas que la afectan']
 
 let duena = ''
 let origen = { id: '', nombre: '' }
@@ -100,7 +95,7 @@ test('E2E T38 el diagrama dibuja fases y salidas, abre el panel de una fase, gua
   await expect(caja(page, B)).toHaveAccessibleDescription(/1 aviso de Revisar/)
   await capturar(page, info, 'diagrama')
 
-  // El panel de A: sus cuatro bloques a la vista, sin acordeones; la descripción se guarda por la RPC.
+  // El panel de A abre en «Reglas», con sus tres bloques a la vista, sin acordeones; la descripción (pestaña «Identidad») se guarda por la RPC.
   await caja(page, A).click()
   await expect(page).toHaveURL(new RegExp(`fase=${fases[A] ?? ''}`))
   const panel = page.getByRole('dialog', { name: A })
@@ -108,6 +103,7 @@ test('E2E T38 el diagrama dibuja fases y salidas, abre el panel de una fase, gua
     await expect(panel.getByRole('heading', { name: seccion, level: 3 })).toBeVisible()
   }
   await expect(panel.locator('details')).toHaveCount(0)
+  await panel.getByRole('tab', { name: 'Identidad' }).click()
   await panel.getByLabel('Descripción', { exact: true }).fill('Donde empieza todo')
   await panel.getByRole('button', { name: 'Guardar', exact: true }).click()
   await expect
@@ -117,14 +113,16 @@ test('E2E T38 el diagrama dibuja fases y salidas, abre el panel de una fase, gua
     .toBe('Donde empieza todo')
   await capturar(page, info, 'panel-de-la-fase')
 
-  // «Mover después» con el teclado: A pasa detrás de B y el foco sigue en el botón. Antes, la versión nueva del flujo (la que dejó «Guardar»).
+  // «Mover después» desde el «⋯» del panel, con el teclado: A pasa detrás de B y el foco sigue en el «⋯». Antes, la versión nueva del flujo (la que dejó «Guardar»).
+  // La pestaña va en la URL: recargar la deja donde estaba.
   await page.reload()
-  await expect(panel.getByRole('heading', { name: 'Datos', level: 3 })).toBeVisible()
-  const despues = panel.getByRole('button', { name: 'Mover después', exact: true })
-  await despues.focus()
+  await expect(panel.getByRole('tab', { name: 'Identidad', selected: true })).toBeVisible()
+  const mas = panel.getByRole('button', { name: `Más acciones de ${A}`, exact: true })
+  await mas.focus()
   await page.keyboard.press('Enter')
+  await page.getByRole('menuitem', { name: 'Mover después', exact: true }).click()
   await expect.poll(ordenEnLaBase).toEqual([B, A, C])
-  await expect(despues).toBeFocused()
+  await expect(mas).toBeFocused()
 
   // Arrastrar C hasta el principio: soltada a la izquierda de todo, cae en la primera columna. Con el panel cerrado y la vista de entrada, que con tres fases
   // las muestra todas sin animar (tras «Ver todo el flujo» las cajas siguen moviéndose un momento).
@@ -180,6 +178,8 @@ test('E2E T38 la lista abre el mismo panel y no ensancha la página con el texto
   await sinScrollHorizontal(page)
   await capturar(page, info, 'lista-al-200')
   await nombres.filter({ hasText: A }).click()
-  await expect(panel.getByRole('heading', { name: 'Datos', level: 3 })).toBeVisible()
+  await expect(
+    panel.getByRole('heading', { name: 'Requisitos para entrar', level: 3 }),
+  ).toBeVisible()
   await capturar(page, info, 'panel-al-200')
 })

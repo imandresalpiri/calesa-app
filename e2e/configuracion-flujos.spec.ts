@@ -108,7 +108,7 @@ test('la dueña ve las fases de un origen en orden, abre el flujo de repuestos y
   await expect(page).toHaveURL(new RegExp(`fase=${primera.id}`))
   const inspector = page.getByRole('dialog')
   await expect(inspector.getByRole('heading', { name: primera.nombre })).toBeVisible()
-  for (const bloque of ['Datos', 'Salidas y quién mueve', 'Requisitos para entrar']) {
+  for (const bloque of ['Salidas y quién mueve', 'Requisitos para entrar']) {
     await expect(inspector.getByRole('heading', { name: bloque, exact: true })).toBeVisible()
   }
   await page.reload()

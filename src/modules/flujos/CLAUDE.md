@@ -29,8 +29,8 @@ Toda la configuración se escribe por RPC con la versión del flujo. Abiertos (`
 - `features/configuracion/` (núcleo): `<PantallaDelFlujo fijo>` (Server Component async, por `pantallas/configuracion.ts`; sin selector: abre la entrada
   de `entradaFija()`, que nunca cae en otra, o «sin flujo» si quien mira no lo configura), la barra del flujo,
   las fases como **diagrama** (`components/diagrama/`, `diferido()`) o lista (`?vista=diagrama|lista`, `useVistaDelFlujo`, `shallow` + `replace`; debajo de
-  768 px sólo la lista) y el **panel del flujo** (`panel-del-flujo.tsx`, `<Drawer alCostado>` desde 1024 px): una fase (`?fase=`, `ContenidoDeLaFase`, sus
-  bloques a la vista con `<BloquesALaVista>`) o una sección (`?seccion=reglas|documentos`, lo que dibuja el servidor por `secciones`); gana `?seccion=`
+  768 px sólo la lista) y el **panel del flujo** (`panel-del-flujo.tsx`, `<Drawer alCostado>` desde 1024 px): una fase (`?fase=`, `ContenidoDeLaFase`: avisos de «Revisar» y tres
+  pestañas del hueco `pestanas`; el «⋯» de `bloques.acciones` va en el encabezado del `<Drawer acciones>`) o una sección (`?seccion=reglas|documentos`, lo que dibuja el servidor por `secciones`); gana `?seccion=`
   (`entities/panel-del-flujo.ts`). Abrir una fase o sección limpia `CLAVES_DEL_PANEL_DE_FASE`.
 - **Diagrama:** `entities/disposicion-del-diagrama.ts` (`disponerDiagrama`: una columna por fase en su orden, rectas a la siguiente, ramas arriba, vueltas
   atrás abajo, carriles sin cruces, puertos repartidos; medidas desde `rem`) y `entities/vista-del-diagrama.ts` (dónde cae lo que se suelta, `vistaInicial`,
@@ -42,10 +42,10 @@ Toda la configuración se escribe por RPC con la versión del flujo. Abiertos (`
   `avisarConflicto()`; no sale por `client.ts`.
 - **Huecos** (`HuecosDelFlujo`): `proveedorDeRevisar` (llena `ContextoDeMarcasDelDiagrama`), `franjaDeRevisar`, `ordenDeFases` (llena
   `ContextoDeOrdenDeFases`: arrastrar y «Mover antes/después»), `accionesDeLaLista` (en la barra), `sinFases` (en lugar del vacío), `accionesDeFila`, `salidasDeFila` y
-  `bloques.acciones|datos|salidas|requisitos|reglas` del panel. Son componentes de cliente opcionales que se registran en
+  `bloques.acciones|pestanas|salidas|requisitos|reglas` del panel. Son componentes de cliente opcionales que se registran en
   `src/app/(app)/configuracion/_flujo/huecos.ts` (`_flujo/` es el editor que comparten las dos páginas: `editor-del-flujo.tsx`, los huecos, las secciones del
   panel y lo fuera de regla); los dos contextos son del núcleo (el núcleo no importa áreas) y sin proveedor no marcan nada ni ordenan
-  («No se puede ordenar desde aquí.»). El panel está en `drawers-con-salida.ts` con el formulario de «Datos» (`formulario-de-datos-de-la-fase.tsx`,
+  («No se puede ordenar desde aquí.»). El panel está en `drawers-con-salida.ts` con el formulario de la fase (`formulario-de-datos-de-la-fase.tsx`,
   mecanismo `contexto`).
 
 ## Áreas
@@ -114,13 +114,19 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
   `<AccionesDeLaLista>`, que sigue montada al llenarse el flujo; la action `copiarFases` exige `flujos.configurar` en los dos orígenes. Lo saltado
   (`entities/fases/copiar-fases.ts`: `textoDeLoSaltado`, `motivoDelRechazoDeCopiar`) se dice en el mismo modal (`resultado-de-la-copia.tsx`).
 - **Ordenar:** `<ProveedorDeOrden>` (`ordenDeFases`) da `fase_mover` al diagrama (arrastrar: el orden se ve en el acto y vuelve atrás si falla) y a
-  `<AccionesDelPanel>` (`bloques.acciones`: «Mover antes», «Mover después», «Jubilar o eliminar»). Con `truncado.fases` todo orden se apaga con
+  `<AccionesDelPanel>` (`bloques.acciones`, el «⋯» del panel: «Mover antes», «Mover después», «Jubilar o eliminar», con su motivo debajo si están apagadas;
+  `accionesDelPanelDeFase`). Con `truncado.fases` todo orden se apaga con
   `MOTIVO_LISTA_CORTADA` (`motivoSinOrdenDeFases`), también «Subir/Bajar» de la lista.
 - **Reglas que la afectan:** `<ReglasDeLaFase>` (`bloques.reglas`, `entities/fases/reglas-de-la-fase.ts`): cada regla de `REGLA_DEL_INTERRUPTOR` (menos las que
   no existen en repuestos) con su estado y si la fase la tiene marcada; «Cambiar las reglas del flujo» abre `?seccion=reglas` en el mismo panel.
-- **Panel › Datos:** `<DatosDeLaFase>` (`bloques.datos`), cinco `<Bloque>`s (a la vista dentro del panel) con `<InterruptorConMotivo>` (la regla apagada
-  lo deshabilita).
-  `useFormularioDeDatos` manda a `fase_guardar` sólo `cambiosParaGuardar`, borrador `fase-<id>` en `sessionStorage`; se reinicia con `key` (`fase.id` + versión).
+- **Panel › pestañas:** `<PestanasDeLaFase>` (`bloques.pestanas`, recibe `reglas`: los tres bloques que arma el núcleo) pone `<PestanasConDesborde>` con **Reglas**
+  (abre primero), **Identidad** y **Ajustes**, las tres montadas (`keepMounted`), y el aviso de una fase jubilada con «Reactivar» encima. La pestaña va en
+  `?pestana=` (`usePestanaDeFase`, `replace`; `CLAVE_DE_PESTANA_DE_FASE` y `'pestana'` en `CLAVES_DEL_PANEL_DE_FASE`: abrir otra fase la limpia). Un campo con error
+  lleva a su pestaña (`pestanaDelCampo`, `entities/fases/bloques-de-fase.ts`) y las pestañas con error o cambios se marcan (`marcas-de-las-pestanas.ts`).
+  Identidad y Ajustes son **un** formulario (`<FormularioDeDatosDeLaFase>`: Ajustes son cuatro `<Bloque>`s a la vista con `<InterruptorConMotivo>`; la regla apagada
+  lo deshabilita; «Guardar» y «Cancelar» sólo en esas dos pestañas).
+  `useFormularioDeDatos` manda a `fase_guardar` sólo `cambiosParaGuardar`, borrador `fase-<id>` en `sessionStorage`; **el formulario** (no Reglas) se reinicia
+  con `key` (`fase.id` + versión): lo que está en Reglas no se desmonta al guardar.
   «En el flujo» lleva «Es la subasta» (`fases.es_subasta`, la **fase de subasta**): sólo en el flujo de un origen de tipo subasta
   (`FlujoParaConfigurar.origenEsSubasta`, del tipo del origen embebido; fuera, apagado con `motivoDeEsSubasta`) y nunca con «Es final». Puede haber
   varias. La lee `vehiculos` para calcular la situación del vehículo.

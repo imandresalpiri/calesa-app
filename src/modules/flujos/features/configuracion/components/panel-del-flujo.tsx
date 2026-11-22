@@ -23,7 +23,7 @@ type Props = {
   huecos: HuecosDelFlujo
 }
 
-// El panel del flujo: un `<Drawer>` al costado con todo lo de una fase (`?fase=<id>`) o lo del flujo entero (`?seccion=reglas|documentos`). Desde 1024 px no es
+// El panel del flujo: un `<Drawer>` al costado con todo lo de una fase (`?fase=<id>`, con el «⋯» de sus acciones arriba a la derecha y sus tres pestañas) o lo del flujo entero (`?seccion=reglas|documentos`). Desde 1024 px no es
 // modal (el diagrama sigue a la vista y tocar otra fase cambia el panel sin cerrarlo); más angosto, el drawer modal de siempre. Se pide recién al abrirlo
 // (`diferidos.tsx`).
 export function PanelDelFlujo({
@@ -38,6 +38,7 @@ export function PanelDelFlujo({
 }: Props) {
   const alCostado = useAlMenos(CORTE_DEL_PANEL)
   const deFase = mostrado.tipo === 'fase'
+  const Acciones = huecos.bloques?.acciones
   return (
     <Drawer
       abierto={abierto}
@@ -46,6 +47,7 @@ export function PanelDelFlujo({
       descripcion={deFase ? `Fase de ${nombreDelFlujo}` : `Del flujo de ${nombreDelFlujo}`}
       ancho="amplio"
       alCostado={alCostado}
+      acciones={deFase && Acciones ? <Acciones flujo={flujo} fase={mostrado.fase} /> : undefined}
     >
       {deFase ? (
         <ContenidoDeLaFase

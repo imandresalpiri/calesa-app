@@ -1,6 +1,5 @@
 'use client'
 
-import { Bloque } from '@/shared/ui/bloque'
 import { Campo } from '@/shared/ui/campo'
 import { SelectorDeIcono } from '@/shared/ui/selector-de-icono'
 import { ID_DE_CAMPO_DE_FASE } from '../../../entities/fases/bloques-de-fase'
@@ -12,16 +11,10 @@ import { CampoDeTextoLargo } from './campo-de-texto-largo'
 import type { PropsDeBloque } from './props-de-bloque'
 import { SelectorDeColor } from './selector-de-color'
 
-// «Identidad»: cómo se ve y se llama la fase. Abierto por omisión.
-export function BloqueIdentidad({
-  valores,
-  errores,
-  escribir,
-  deshabilitado,
-  conError,
-}: PropsDeBloque) {
+// «Identidad»: cómo se ve y se llama la fase. Es toda la pestaña «Identidad»: la pestaña ya lo titula, así que no lleva un bloque con el mismo nombre.
+export function BloqueIdentidad({ valores, errores, escribir, deshabilitado }: PropsDeBloque) {
   return (
-    <Bloque titulo="Identidad" forzarAbierto={conError}>
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <Campo
         nombre={ID_DE_CAMPO_DE_FASE.nombre}
         etiqueta="Nombre"
@@ -64,6 +57,6 @@ export function BloqueIdentidad({
           escribir({ icono: icono ?? '' }, 'icono')
         }}
       />
-    </Bloque>
+    </div>
   )
 }

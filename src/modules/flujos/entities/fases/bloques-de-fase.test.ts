@@ -2,10 +2,15 @@ import { describe, expect, it } from 'vitest'
 import {
   BLOQUES_DE_FASE,
   CAMPOS_DEL_BLOQUE,
+  PESTANAS_DE_FASE,
+  PESTANA_DEL_BLOQUE,
   CAMPOS_EN_ORDEN_VISUAL,
   ID_DE_CAMPO_DE_FASE,
   bloqueDelCampo,
   bloquesConError,
+  pestanaDelCampo,
+  pestanaPedida,
+  pestanasDeLosCampos,
   primerCampoConError,
 } from './bloques-de-fase'
 import { CAMPOS_DE_FASE } from './reglas-de-fase'
@@ -39,5 +44,45 @@ describe('bloques de la fase', () => {
     expect([...bloquesConError({ es_final: 'x', alias_portal: 'y', visible_portal: 'z' })]).toEqual(
       ['en-el-flujo', 'web-y-portal'],
     )
+  })
+
+  it('cada bloque está en una pestaña, y «Reglas» no tiene campos del formulario', () => {
+    for (const bloque of BLOQUES_DE_FASE) {
+      expect(PESTANAS_DE_FASE).toContain(PESTANA_DEL_BLOQUE[bloque])
+      expect(PESTANA_DEL_BLOQUE[bloque]).not.toBe('reglas')
+    }
+    expect(PESTANAS_DE_FASE[0]).toBe('reglas')
+  })
+
+  it('cada campo con error lleva a la pestaña de su bloque', () => {
+    for (const campo of CAMPOS_DE_FASE) {
+      expect(pestanaDelCampo(campo), campo).toBe(PESTANA_DEL_BLOQUE[bloqueDelCampo(campo)])
+    }
+    expect(pestanaDelCampo('nombre')).toBe('identidad')
+    expect(pestanaDelCampo('icono')).toBe('identidad')
+    expect(pestanaDelCampo('es_final')).toBe('ajustes')
+    expect(pestanaDelCampo('alerta_cada_horas')).toBe('ajustes')
+    expect(pestanaDelCampo('permite_aduana')).toBe('ajustes')
+    expect(pestanaDelCampo('alias_portal')).toBe('ajustes')
+  })
+
+  it('marca las pestañas que tienen un campo con error o con cambios', () => {
+    expect([...pestanasDeLosCampos([])]).toEqual([])
+    expect([...pestanasDeLosCampos(['es_final', 'alias_portal'])]).toEqual(['ajustes'])
+    expect([...pestanasDeLosCampos(['alias_portal', 'nombre'])].sort()).toEqual([
+      'ajustes',
+      'identidad',
+    ])
+  })
+
+  it('la URL pide una pestaña; sin ella o con otro valor, Reglas', () => {
+    expect(pestanaPedida(null)).toBe('reglas')
+    expect(pestanaPedida(undefined)).toBe('reglas')
+    expect(pestanaPedida('')).toBe('reglas')
+    expect(pestanaPedida('datos')).toBe('reglas')
+    expect(pestanaPedida('Identidad')).toBe('reglas')
+    expect(pestanaPedida('reglas')).toBe('reglas')
+    expect(pestanaPedida('identidad')).toBe('identidad')
+    expect(pestanaPedida('ajustes')).toBe('ajustes')
   })
 })

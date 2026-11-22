@@ -1122,7 +1122,15 @@ las trampas, en `docs/LECCIONES.md`.
   oculta (`proOptions.hideAttribution`): es un enlace externo en inglés y la licencia lo permite.
 - **El panel del flujo no es modal desde 1024 px** (`<Drawer alCostado>`): el diagrama sigue a la vista y tocar otra fase cambia el panel sin
   cerrarlo; más angosto, el drawer modal. Sus bloques van a la vista (`<BloquesALaVista>`), no plegados: la persona pidió que editar no fuera «puros
-  acordeones». Con `?seccion=` y `?fase=` a la vez gana la sección. Las reglas y los tipos de documento se abren ahí; sin barra de pestañas.
+  acordeones». Con `?seccion=` y `?fase=` a la vez gana la sección. Las reglas y los tipos de documento se abren ahí.
+- **El panel de una fase va en tres pestañas, con «Reglas» primero** (la persona, 2026-11-21: lo que más se edita son los requisitos, las salidas y las reglas): «Reglas»
+  (requisitos, salidas y reglas que la afectan), «Identidad» (nombre, descripción, color, icono) y «Ajustes» (en el flujo, demora, transporte y aduana, web y
+  portal). Identidad y Ajustes **siguen siendo un solo formulario** con un solo «Guardar» (`fase_guardar` manda sólo lo
+  que cambió): partirlo en dos guardados es otra decisión. La pestaña vive en `?pestana=` (reemplaza el historial) y las tres quedan montadas: cambiar de
+  pestaña no pierde lo escrito. «Mover antes/después» y «Jubilar o eliminar» pasan al «⋯» del panel, junto a la ✕ (`<Drawer acciones>`): el foco no necesita
+  seguirlo, porque el «⋯» no cambia de lugar. El aviso de una fase jubilada, con su «Reactivar», va sobre las pestañas y no dentro de Ajustes: es un estado de
+  toda la fase y debe verse desde Reglas. Reglas queda fuera del `key` del formulario (una escritura de requisitos o salidas sube la versión y reiniciaría
+  lo que se está editando en ellos); por eso las marcas de las pestañas suben del formulario a la barra por un aviso (`alMarcar`), no por el estado.
 - **Arrastrar sí ordena las fases** (a diferencia de mover unidades): es configuración de quien la tiene, con «Mover antes/después» de teclado, y se
   apaga con la lista cortada. **Crear una salida arrastrando, no:** sin teclado ni celular, suma interacción a un formulario que ya tiene destino,
   acción y «pide nota».

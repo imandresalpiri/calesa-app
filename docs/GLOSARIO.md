@@ -497,8 +497,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Constante** — nodo `constante` + `params`: valor por defecto versionado que el ⚙ de la XCell cambia.
 - **Versión del flujo** — `flujos.actualizado_en` como texto ISO: la lee el editor del flujo y la devuelve cada escritura para detectar
   cambio ajeno (`PT409`); `useVersionDelFlujo()` la entrega a las acciones.
-- **Inspector de fase** — lo de una fase en el panel del flujo (`?fase=<id>`, `ContenidoDeLaFase`): sus avisos y acciones y cuatro bloques a la vista,
-  «Datos», «Requisitos para entrar», «Salidas y quién mueve» y «Reglas que la afectan».
+- **Inspector de fase** — lo de una fase en el panel del flujo (`?fase=<id>`, `ContenidoDeLaFase`): arriba sus avisos y el «⋯» con sus acciones (mover y
+  jubilar o eliminar) y debajo tres **pestañas de la fase**: «Reglas» (abre primero: «Requisitos para entrar», «Salidas y quién mueve» y «Reglas que la
+  afectan»), «Identidad» y «Ajustes».
+- **Pestañas de la fase** — `PESTANAS_DE_FASE` (`entities/fases/bloques-de-fase.ts`), `?fase=<id>&pestana=reglas|identidad|ajustes`: «Reglas», «Identidad»
+  (nombre, descripción, color, icono) y «Ajustes» («En el flujo», «Alerta por demora», «Transporte y aduana», «Web y portal»). Identidad y Ajustes son un solo
+  formulario y un solo «Guardar». No: «Datos» (el nombre de cuando era un solo bloque), «tabs».
 - **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Fases de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
   del flujo entero, «Reglas del flujo» o «Tipos de documento» (`?seccion=reglas|documentos`); gana `?seccion=`. No: «sidebar», «inspector» para
   lo del flujo.
@@ -1055,7 +1059,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   origen de subasta, el de siempre cuando «Subasta» tiene valor. Va por tramos (`TRAMOS_DEL_CIERRE`): las vivas por su cierre, las vivas sin fecha y el resto por
   alta; el cursor lleva su tramo (`<tramo>~<cursor>`, `entities/cursor-del-cierre.ts`).
 - **Atajo «Sin resolver»** — `<AtajoSinResolver>` / `sinResolverDe()`: botón arriba del inventario de un origen de subasta con las pendientes (hasta `TOPE_DE_SIN_RESOLVER`, «99+»); pone o quita «Subasta: Sin resolver».
-- **Fase de subasta** — `fases.es_subasta` / «Es la subasta» (Datos de la fase): la fase que representa la subasta en el flujo de un origen
+- **Fase de subasta** — `fases.es_subasta` / «Es la subasta» (pestaña Ajustes de la fase): la fase que representa la subasta en el flujo de un origen
   de subasta; puede haber varias. Sin ninguna, «Revisar» avisa `sin_fase_de_subasta` y nada figura «Sin resolver».
 - **Resultado de la subasta** — `vehiculos.subasta_resultado` (`ganada` | `no_ganada`), con `subasta_resuelta_por` y `subasta_resuelta_en`:
   lo escriben sólo las RPC de resolver; nunca se infiere de apibara; si la subasta vuelve a estar viva, se limpia.

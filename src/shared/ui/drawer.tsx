@@ -51,6 +51,8 @@ type Props = {
   // Al costado de la pantalla y no modal: sin fondo, lo de atrás se sigue usando (tocar otra cosa no lo cierra; Esc y la ✕ sí). Para un panel que
   // acompaña a la pantalla en un escritorio ancho (el de una fase del flujo); en angosto va modal, como todos.
   alCostado?: boolean
+  // El «⋯» del panel (`<MasAcciones>`): arriba a la derecha, junto a la ✕. El título deja lugar para los dos.
+  acciones?: ReactNode
   children: ReactNode
 }
 
@@ -88,17 +90,20 @@ function clasesDelPanel(
 function CuerpoDelPanel({
   titulo,
   descripcion,
+  acciones,
   desplazamiento,
   children,
-}: Pick<Props, 'titulo' | 'descripcion' | 'children'> & {
+}: Pick<Props, 'titulo' | 'descripcion' | 'acciones' | 'children'> & {
   desplazamiento: NonNullable<Props['desplazamiento']>
 }) {
   return (
     <>
-      <SheetHeader className="border-b border-(--color-line) pr-12">
+      <SheetHeader className={cn('border-b border-(--color-line)', acciones ? 'pr-24' : 'pr-12')}>
         <SheetTitle>{titulo}</SheetTitle>
         {descripcion ? <SheetDescription>{descripcion}</SheetDescription> : null}
       </SheetHeader>
+      {/* Junto a la ✕ (`absolute top-3 right-3`, 2 rem): a su izquierda, centrado con ella (el «⋯» mide 44 px en el celular y 32 desde `md`). */}
+      {acciones ? <div className="absolute top-1.5 right-12 z-10 md:top-3">{acciones}</div> : null}
       <div
         className={
           desplazamiento === 'propio'
@@ -110,6 +115,22 @@ function CuerpoDelPanel({
       </div>
     </>
   )
+}
+
+// El pie del panel: el `pie` que pasa quien lo usa o, si hay que preguntar por lo escrito, la pregunta en su lugar.
+function PieDelPanelAbierto({
+  pie,
+  pregunta,
+  children,
+}: {
+  pie: ReactNode
+  pregunta: boolean
+  children: ReactNode
+}) {
+  const contenido = pregunta ? children : pie
+  return contenido ? (
+    <SheetFooter className="border-t border-(--color-line)">{contenido}</SheetFooter>
+  ) : null
 }
 
 // Panel lateral: el segundo nivel de cualquier pantalla (crear, editar, ver una ficha sin salir
@@ -130,6 +151,7 @@ export function Drawer({
   alto,
   focoAlCerrar,
   alCostado = false,
+  acciones,
   children,
 }: Props) {
   const [hayCambios, setHayCambios] = useState(false)
@@ -159,12 +181,6 @@ export function Drawer({
     () => ({ anotar, salida: { confirmando, seguir, descartar } }),
     [anotar, confirmando, seguir, descartar],
   )
-  const pieAMostrar =
-    confirmando && (pie || preguntaAlCerrar) ? (
-      <ConfirmarDescarte alSeguir={seguir} alDescartar={descartar} />
-    ) : (
-      pie
-    )
 
   return (
     <ContextoDeCambios value={registro}>
@@ -186,12 +202,17 @@ export function Drawer({
           {...ajuste.propsDelPanel}
         >
           {ajuste.asa}
-          <CuerpoDelPanel titulo={titulo} descripcion={descripcion} desplazamiento={desplazamiento}>
+          <CuerpoDelPanel
+            titulo={titulo}
+            descripcion={descripcion}
+            acciones={acciones}
+            desplazamiento={desplazamiento}
+          >
             {children}
           </CuerpoDelPanel>
-          {pieAMostrar ? (
-            <SheetFooter className="border-t border-(--color-line)">{pieAMostrar}</SheetFooter>
-          ) : null}
+          <PieDelPanelAbierto pie={pie} pregunta={confirmando && (!!pie || preguntaAlCerrar)}>
+            <ConfirmarDescarte alSeguir={seguir} alDescartar={descartar} />
+          </PieDelPanelAbierto>
         </SheetContent>
       </Sheet>
     </ContextoDeCambios>
