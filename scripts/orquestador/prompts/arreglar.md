@@ -9,7 +9,7 @@ Primero entiende el estado: `git log --oneline origin/main..HEAD`, `git status -
 
 - **Choque con main:** `git fetch origin && git merge origin/main` (nunca rebase ni push forzado), resuelve conservando lo de las dos
   partes, commitea. Si una migración de esta rama quedó con fecha anterior a una ya integrada, créala de nuevo con
-  `pnpm exec supabase migration new` y borra la vieja de la rama (el CI exige el orden). Después `pnpm db:reset`, `pnpm db:types`.
+  `pnpm exec supabase migration new` y borra la vieja de la rama (el CI exige el orden). Después `pnpm db:reset`, `pnpm db:types` y `pnpm db:revisar` (lo que el job «Base» del CI compara de la base).
 - **Sacado de la cola de integración:** el CI del grupo (tu rama combinada con main y los PR de delante) cayó con tu PR en verde. Lo de
   delante suele estar ya en main: `git fetch origin && git merge origin/main`, reproduce lo caído y arregla la causa. Si es el orden de
   migraciones, la migración nueva con fecha de hoy (lo de arriba).
