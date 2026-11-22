@@ -29,9 +29,11 @@ export type HuecosDelFlujo = {
   salidasDeFila?: ComponentType<DeUnaFase>
   // Dentro del panel de una fase.
   bloques?: {
-    // Arriba de todo: «Mover antes», «Mover después» y «Jubilar o eliminar».
+    // El «⋯» arriba a la derecha del panel (lo dibuja el `<Drawer>`): «Mover antes», «Mover después» y «Jubilar o eliminar».
     acciones?: ComponentType<DeUnaFase>
-    datos?: ComponentType<DeUnaFase>
+    // El cuerpo del panel en tres pestañas: «Reglas» (abre primero; lleva `reglas`, lo que dibujan los huecos de requisitos, salidas y reglas), «Identidad» y
+    // «Ajustes» (un solo formulario). Sin él, el panel muestra `reglas` y una lectura de los datos, sin pestañas.
+    pestanas?: ComponentType<DeUnaFase & { reglas: ReactNode }>
     salidas?: ComponentType<DeUnaFaseConRoles>
     requisitos?: ComponentType<DeUnaFase>
     // «Reglas que la afectan».

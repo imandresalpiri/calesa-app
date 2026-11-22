@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { FaseParaConfigurar } from '../flujo'
 import {
   VALORES_DE_FASE_NUEVA,
+  camposConCambios,
   cambiosParaGuardar,
   datosParaCrear,
   errorDeEnvio,
@@ -154,5 +155,20 @@ describe('erroresDeFaseNueva y errorDeEnvio', () => {
       aviso: 'Vitrina apagada.',
     })
     expect(errorDeEnvio(undefined, 'Algo.')).toEqual({ errores: {}, aviso: 'Algo.' })
+  })
+})
+
+describe('campos con cambios', () => {
+  it('sin cambios no hay ninguno', () => {
+    expect(camposConCambios(valoresDeFase(FASE), valoresDeFase(FASE))).toEqual([])
+  })
+
+  it('dice los campos de la base cuyo valor escrito difiere del guardado', () => {
+    const escrito = { ...valoresDeFase(FASE), nombre: 'Otro', demoraDias: '7', esFinal: true }
+    expect(camposConCambios(escrito, valoresDeFase(FASE))).toEqual([
+      'nombre',
+      'demora_dias',
+      'es_final',
+    ])
   })
 })
