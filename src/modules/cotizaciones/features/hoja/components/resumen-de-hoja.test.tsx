@@ -70,4 +70,13 @@ describe('ResumenDeHoja › el resumen fijo', () => {
     resumen(null, respuestaDePrueba({ usd: 2350, estados: { garantia: 'condicion_apagada' } }))
     expect(screen.queryByText('Garantía')).toBeNull()
   })
+
+  it('el total va en su tarjeta, la primera pieza del resumen, y la opción del detalle fuera de ella', () => {
+    resumen(null)
+    const tarjeta = document.querySelector('[data-tarjeta-del-total]')
+    expect(screen.getByLabelText('Resumen').firstElementChild).toBe(tarjeta)
+    expect(tarjeta?.querySelector('[data-total]')?.textContent).toMatch(/2[.,\s]?350/)
+    const detalle = screen.getByRole('button', { name: /el detalle$/ })
+    expect(tarjeta?.contains(detalle)).toBe(false)
+  })
 })

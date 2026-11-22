@@ -7,6 +7,12 @@ import { rotuloEnPar, type ParDeHoja } from '../../../../entities/hoja-en-par'
 import { MONEDA_DEL_PRIMER_RESULTADO } from '../../../../entities/primer-resultado'
 import type { EstadoDeRecalculo } from '../../../../entities/recalculo'
 import { AvisoDeFallo, AvisosDelTotal } from '../partes-del-resumen'
+import {
+  CIFRA_DEL_TOTAL,
+  ETIQUETA_DEL_TOTAL,
+  TARJETA_DE_COSTADO,
+  TARJETA_DEL_TOTAL,
+} from '../clases-del-total'
 import { TotalEnMonedaLocal } from '../total-en-moneda-local'
 
 type Columna = { contexto: ContextoDeHoja; estado: EstadoDeRecalculo; alReintentar: () => void }
@@ -33,15 +39,12 @@ export function TotalesEnPar({
         const total = totalDelResumen(columna.contexto)
         return (
           <div key={opcion.clave} className="grid gap-1">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <span className="text-(length:--text-sm) font-medium [overflow-wrap:anywhere] text-(--color-ink-soft)">
-                {rotuloEnPar(tarjeta.etiqueta, opcion)}
-              </span>
-              <strong
-                data-total=""
-                data-opcion={opcion.clave}
-                className="text-(length:--text-xl) font-semibold text-(--color-ink) tabular-nums"
-              >
+            <div
+              data-tarjeta-del-total=""
+              className={lado === 0 ? TARJETA_DEL_TOTAL : TARJETA_DE_COSTADO}
+            >
+              <span className={ETIQUETA_DEL_TOTAL}>{rotuloEnPar(tarjeta.etiqueta, opcion)}</span>
+              <strong data-total="" data-opcion={opcion.clave} className={CIFRA_DEL_TOTAL}>
                 {total.tipo === 'valor' ? (
                   <Monto valor={total.usd} moneda={MONEDA_DEL_PRIMER_RESULTADO} />
                 ) : (

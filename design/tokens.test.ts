@@ -98,6 +98,13 @@ const pares: Par[] = [
     minimo: TEXTO,
     medir: (tema: Tema) => contraste(color(tema, 'sobre-primario').hex, opacos(tema, fondo)),
   })),
+  // El papel sobre la tinta: la tarjeta del total del cotizador, de superficie invertida.
+  {
+    arriba: 'paper',
+    fondo: 'ink',
+    minimo: TEXTO,
+    medir: (tema: Tema) => contraste(color(tema, 'paper').hex, opacos(tema, 'ink')),
+  },
   // La tinta sobre las celdas del cotizador, que en oscuro son un velo sobre la tarjeta.
   ...['celda-input', 'celda-fijo', 'celda-atencion'].map((fondo) => ({
     arriba: 'ink',
