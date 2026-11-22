@@ -202,7 +202,9 @@ test('una celda cuya bandera esconde el nivel llega apagada y sin nombrar nada; 
   await page.context().clearCookies()
   await entrar(page, todos, { fresco: true })
   await page.goto(`/cotizaciones/nuevo?origen=${origen.id}`)
-  await expect(celda(page, 'cond_oc')).toContainText('Está apagada en esta hoja.')
+  await expect(
+    celda(page, 'cond_oc').getByRole('img', { name: 'Está apagada en esta hoja.' }),
+  ).toBeVisible()
   await expect(page.getByRole('switch', { name: /OCULTAB/ })).toHaveCount(0)
   await tipear(page, 'pub', '1')
   await expect.poll(() => vigilante.respuestas.length).toBe(1)
@@ -234,7 +236,9 @@ test('lo que se ve y no se edita lleva su motivo; con el nivel se edita', async 
   await page.context().clearCookies()
   await entrar(page, costos, { fresco: true })
   await page.goto(`/cotizaciones/nuevo?origen=${origen.id}`)
-  await expect(celda(page, 'solo_n')).not.toContainText('Lo edita quien tiene el nivel')
+  await expect(
+    celda(page, 'solo_n').getByRole('img', { name: /^Lo edita quien tiene el nivel/ }),
+  ).toHaveCount(0)
   await tipear(page, 'solo_n', '60')
   await expect(page.locator('[data-total]')).toContainText('65,00')
 })
