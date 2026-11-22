@@ -101,7 +101,6 @@ const PANTALLAS = [
   ['catalogos-navieras', () => '/logistica/configuracion/navieras'],
   ['catalogos-categorias', () => '/logistica/configuracion/categorias-de-gasto'],
   ['catalogos-tipos-de-documento', () => '/logistica/configuracion/tipos-de-documento'],
-  ['catalogos-tablas', () => '/configuracion/catalogos/tablas'],
   ['repuestos-flujo', () => '/repuestos/configuracion/flujo'],
   ['repuestos-catalogos', () => '/repuestos/configuracion/catalogos'],
   ['repuestos-cotizador', () => '/repuestos/configuracion/cotizador'],

@@ -130,7 +130,7 @@ describe('leerDondeSeUsaLaTabla', () => {
     const uso = await leerDondeSeUsaLaTabla(cliente, COMPARTIDA, [ORIGEN, OTRO])
     expect(uso).toEqual({ ok: true, data: { propiaDe: null, conPropia: [ORIGEN] } })
     expect(llamadas.map((l) => [l.filtros, l.limite])).toEqual([
-      [['eq:id'], null],
+      [['eq:id', 'eq:activa'], null],
       [['eq:clave', 'eq:activa', 'in:origen_id'], 2],
     ])
   })

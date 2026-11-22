@@ -99,6 +99,7 @@ export async function leerDondeSeUsaLaTabla(
     .from('tablas_referencia')
     .select('origen_id, clave')
     .eq('id', tablaId)
+    .eq('activa', true)
     .maybeSingle()
   if (error) return { ok: false, error: errorDePostgrest(error) }
   if (!data) return ok(null)
