@@ -54,6 +54,10 @@ porcentaje-monto** es un `porcentaje_de` sobrescribible y su `pct`: **manda el m
 monto, `valores[pct]` guarda monto ÷ base y `fuentes[pct] = override`. Ningún otro nodo lee ese `pct`, y acepta un valor
 (`aceptaValor()` en `nodos.ts`; si no, `par_mal_tipado`).
 
+**Al cotizar, `sobrescribible` no limita qué se pisa:** manda la hoja («Pisar un cálculo», abajo). Sigue decidiendo el punto de
+«sugerido», el par de esta regla, `atajos_no_sobrescribible`, `par_sin_secundario`, `pct_compartido` y el motor sin `pisables` (el editor
+y la paridad).
+
 ### La variante y el interruptor
 
 Un nodo fuera de su variante (`solo_en`) o con `condicion` apagada vale 0 sin leer sus referencias, no guarda override y se dibuja
@@ -169,7 +173,8 @@ Un `match` que nombra la variante compara la clave elegida (texto) con la column
 
 **Precedencia: override > sugerido.** Un nodo activo con override vale el override y **no calcula su sugerido**. ↺ lo quita.
 `constante`: `default` u `override`. `tipo_cambio`: `default` (el de la empresa) u `override` (≤ 0 es sin valor).
-`tabla`/`tramo`/`calculo` sobrescribible: `sugerido` u `override`. `input` sin `sugerido_de`: `input` (su override se descarta como
+`tabla`/`tramo`/`calculo` sobrescribible: `sugerido` u `override`; uno que sólo se pisa por su celda (`pisables`): `override` o sin
+fuente. `input` sin `sugerido_de`: `input` (su override se descarta como
 `no_sobrescribible`; lo tipeado va en `inputs`); con `sugerido_de`: tipeado (`override`) o el del nodo que nombra (`sugerido`). Lo demás
 no tiene fuente y su override se descarta `no_sobrescribible`.
 
@@ -197,6 +202,14 @@ pct vale monto ÷ base. Un pct compartido no se reescribe: el monto queda fijo y
 **`calculados`:** lo que daría cada cálculo pisado (en `pisables` y con override) sin lo escrito, calculado aparte en la misma pasada
 sin tocar `valores`, `fuentes`, `faltantes` ni los totales (`calcularAparte()` de `motor-nodos.ts`). Con el pct del par pisado, también
 el del pct (lo que valdría sin el pisado), y el monto se calcula con él. Sin pisados no viaja.
+
+**En la hoja:** la celda de un cálculo se edita con el nivel de siempre (`_hoja_estado()`; sin él, el candado con su motivo `{nivel}`); la
+del total sigue con `se_calcula`. Lo que no tiene celda (el total, los subtotales, un `campo_vehiculo`, las banderas, la variante) nunca
+se pisa. La celda pisada dice «Editado a mano» (el lápiz), «Calculado: $480» (de `calculados`, en el formato del lado pisado) y ↺
+«Volver al calculado»; la primera pisada de cada hoja abierta muestra un aviso en línea que no bloquea («Pisaste un cálculo: queda fijo
+aunque cambien los datos. ↺ lo devuelve.»), también por un atajo, y no vuelve hasta que la hoja se monte otra vez. El resumen lista lo
+pisado que cuenta («Editado a mano: Transferencia a USA $500, calculado $480»), en el orden de la hoja. **La tarjeta, el PDF y la imagen
+no lo marcan**: dibujan el valor y nada más. Las revisiones dicen «Pisó «X»: $480 → $500» y «Volvió al calculado «X»» (`cotizacion_revisiones()`).
 
 ### `sugerido_de` y `requerido_si`
 
@@ -651,7 +664,8 @@ La lectura de una cotización: lo que quien llama no ve no viaja (`supabase/test
 - **`cotizacion_revisiones(cotización, antes?, tamaño?, hasta?)`:** página por cursor; `hasta` (instante exclusivo) la empieza en la más
   nueva con `creado_en < hasta` (`cotizaciones_revisiones_cotizacion_creado_idx`; sin ninguna, vacía; la guarda va primero). Cada `diff`
   va recortado, cada fila con su `autor` (`{id, nombre}`) y la página con las `etiquetas` de los nodos y grupos que nombran sus diffs ya
-  recortados.
+  recortados, más `calculos` (id → formato) de los cálculos entre ellos: con él, `cambiosDeLaRevision()` dice «Pisó «X»: $480 → $500»
+  (la fuente pasa a `override`) o «Volvió al calculado «X»» (deja de serlo), con los montos de `diff.valores`.
 - **`formula_para_cotizar(origen)`** y la lectura de `formulas`: sólo con `cotizaciones.configurar`.
 - **`cotizacion_tabla(clave, cotización | origen, abierta?)`:** sólo las columnas que leen los nodos que quien llama ve, de SU versión: la
   de la cotización, la de la hoja abierta o la publicada.
@@ -817,6 +831,9 @@ el mismo texto.
 - `publicada: {id, version}` (la de la fórmula activa de hoy del origen, o nula), `vence_el` y `vencida`: el día de `creado_en` en la zona de la empresa +
   `ajustes_empresa.vigencia_dias`, vencida si ese día ya pasó (por día, no por hora);
 - `anterior: {id, numero, version}` si se ve; `encima`, la versión nueva viva: `{id, numero, version}` si se ve, `{"oculta": true}` si no;
+- lo pisado de una guardada sale de `fuentes` (`override` sobre un cálculo con celda, `entradasDeLoGuardado()`), y su «Calculado» es lo que
+  daría **hoy**, con las tablas y el vehículo de hoy (el primer recálculo, como `difiereAlAbrir()`); cotizar encima lo lleva como
+  cualquier override, y si la celda no está en la N+1 se descarta `no_sobrescribible`;
 - `puede_cotizar_encima`: `cotizaciones.crear` del origen, ve su lead (o no lleva y tiene `cotizaciones.crear.sin_lead`), ve su vehículo (o no lleva y tiene `cotizaciones.crear.sin_vehiculo`), sin versión nueva
   viva y con publicada.
 
@@ -962,11 +979,12 @@ opción, que se apuntan por `hermana_id`.
 cual la plantilla; «Retoques de la tarjeta», abajo); `hermana_id` (la **cotización hermana** de una variante en par; nula si no tiene; purgar una la pone en
 nulo en la otra sin mover su versión). **Nada se lee directo** (sale por `cotizacion_leer()`,
 recortado por el nivel; `total_base`, `modo_tc`, `ver_total_bs`, `titulo`, `titulo_manual`, `tarjeta_retoques` y `hermana_id` sí son legibles) **ni se escribe directo**: se
-crea con `cotizacion_crear()`, se edita con `cotizacion_guardar()` y se retoca con `cotizacion_retocar_tarjeta()`.
+crea con `cotizacion_crear()`, se edita con `cotizacion_guardar()` y se retoca con `cotizacion_retocar_tarjeta()`. **`calculados` (lo que
+daría un cálculo pisado) no se guarda**: viaja sólo en la respuesta de `cotizacion_evaluar()`, recortado por el nivel.
 
 ## Binding con la XCell
 
-Cada `input`, `constante`, `tipo_cambio` y nodo `sobrescribible` es una `XCell` (el par es una sola): `value` de `valores[id]`,
+Cada `input`, `constante`, `tipo_cambio`, nodo `sobrescribible` y cálculo que la hoja dibuja es una `XCell` (el par es una sola): `value` de `valores[id]`,
 `suggested` de `fuentes[id] === 'sugerido'`, `overridden` de `'override'`, `disabledReason` si su `condicion` está apagada o es de otra
 variante, y ⚙ (`hasSettings`/`onSettings(id)`) si es `constante` con `cotizaciones.configurar` del origen (→ `formula_cambiar_constante`)
 o `tipo_cambio` con `empresa.tipos_cambio.gestionar` (→ `tipo_cambio_guardar`). El ⚙ cambia el default global (N+1); «Aplicar también a
@@ -977,6 +995,10 @@ abre nada: **la hoja traduce** (editar el % quita el override del monto; ↺ qui
 El par de la celda es siempre el monto (principal) y su `pct` (secundario); `secundario.como` del diseño dice cuál se lee primero: con `porcentaje`,
 «$181 14,94 %»; con `monto`, `secondaryProminent` y la celda dibuja el % primero y grande y el monto chico detrás («14,94 % $181»). Los ids que emite
 cada lado no cambian.
+
+Lo pisado sale de lo escrito, no de la respuesta (`ladoPisado()` de `entities/binding-pisado.ts`: el principal primero, y si no, un secundario
+que es un cálculo): la celda recibe `handEdited`, `calculatedValue` y `calculatedFormat`, y ↺ dice «Volver al calculado»; una constante escrita
+sigue con «Volver al valor por defecto». Con el monto escrito, el % de un par que `sigueAlMonto` es el de la respuesta, no uno tipeado antes.
 
 En `/cotizaciones/[id]` se dibujan además «Revisiones» (`cotizacion_revisiones`, de a 20 por cursor), la cadena (`anterior`, `encima`) y
 «Cotizar encima» (`cotizacion_encima`, con un intento que sólo se conserva tras una pérdida); el botón sale con `puede_cotizar_encima`, no
@@ -994,7 +1016,7 @@ desde el navegador** (`infra/recalculo.client.ts`). Tope de nodos del DOM de la 
   nunca llega a la pantalla.**
 - **Props (`entities/binding.ts`):** `value` es lo tipeado y pendiente, si no `valores[id]` de la última respuesta; `disabledReason`
   sale primero de los `estados` del recálculo y después del `motivo` de la lectura. **Entradas (`entities/entradas.ts`):** un `input`
-  va a `inputs`; constante, tipo de cambio o sobrescribible, a `overrides`; **el porcentaje de un par quita el override del monto**.
+  va a `inputs`; constante, tipo de cambio o cálculo (sobrescribible o con celda), a `overrides`; **el porcentaje de un par quita el override del monto**.
 - **Lo que se dibuja de una celda apagada sale de `estados` del recálculo, nunca de la lectura** (que quita `condicion` y
   `requerido_si` si su bandera no se ve): quien no ve la bandera no puede mandarla, así que la celda vuelve `condicion_apagada` con 0 y
   la hoja dice «Está apagada en esta hoja.» sin nombrar nada ni esconderla.

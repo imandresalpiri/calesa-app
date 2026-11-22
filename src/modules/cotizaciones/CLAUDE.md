@@ -391,6 +391,12 @@ puedeRetocar }`, de `HojaDeUnaGuardada`; la hoja nueva no lo pasa) y el modelo l
   marca para los e2e `data-nodo`, `data-atajos`, `data-seccion`, `data-avanzado`, `data-cabecera`, `data-secciones`, `data-modo`, `data-total-bs`,
   `data-pie-de-panel`.
 - El par con `secundario.como === 'monto'` manda `secondaryProminent` a la XCell (`propsDeCelda()`): el % primero y grande, el monto chico detrás.
+- **Lo pisado** (`docs/COTIZADOR.md` › «Pisar un cálculo»; glosario: «Editado a mano»): `entities/binding-pisado.ts` (`ladoPisado()` y `propsDelPisado()`: la
+  marca, «Calculado» y ↺ «Volver al calculado» de la XCell, con `formatoDeCelda()` de `formato-de-celda.ts`; `esPisadoNuevo()`, si lo escrito abre el aviso) y
+  `entities/pisadas-de-la-hoja.ts` (`pisadasDeLaHoja()`, la lista del resumen). Lo calculado llega en `calculados` de la respuesta (`calculadoDe()`, recortado por
+  el nivel; nunca se guarda) y el porcentaje de un par con el monto escrito, de la respuesta (`secundario.sigueAlMonto`). El aviso de la primera pisada
+  (`useAvisoDePisado()` en `useHoja`; `features/hoja/components/pisadas/`: `RegionDelAvisoDePisado` en frío sobre las secciones, el aviso y la lista del resumen por
+  `diferido()`) no vuelve hasta remontar la hoja. Las revisiones nombran el cálculo con `etiquetas.calculos` de `cotizacion_revisiones()` (`cambiosDeLaRevision()`).
 - El resumen al pie se pliega (`useResumenPlegado`): «Ver el detalle» / «Ocultar el detalle» esconde el total en moneda local, los secundarios y el modo;
   el total, sus avisos, lo guardado, la región viva y el pie quedan. Nace plegado con la fuente raíz ≥ 24 px; al costado (`@4xl/hoja`) no hay botón. El
   modo de tipo de cambio es parte de `Entradas`; «Ver total Bs» no (no cambia el cálculo), pero vuelve con el borrador.

@@ -655,6 +655,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Pisar un cálculo** — escribir un valor encima de una celda calculada al cotizar (`tabla`, `tramo` o `calculo` que no es el total, si la hoja
   lo dibuja en una celda: `pisables`, `esPisable()`); queda fijo aunque cambien los datos y su celda queda «Editado a mano». Lo que daba es
   `calculados` («Calculado: $480»). No: «sobrescribir» (es la marca `sobrescribible` de la fórmula).
+- **Editado a mano** — la marca de una celda con un cálculo pisado: el lápiz (`role="img"`), `handEdited` de la `XCell`, `ladoPisado()`; va con
+  «Calculado: …» y ↺ «Volver al calculado». Sólo en la hoja y en el resumen («Editado a mano: Transferencia a USA $500, calculado $480»); la
+  tarjeta, el PDF y la imagen no la llevan. No: «modificado» (el anillo de todo override, también el de una constante).
 - **Variante en par** — «Se cotiza en par», `en_par` del nodo `opcion` de exactamente dos opciones (`par_sin_dos_opciones`); `ParDeHoja`, `nodosEnPar()` /
   `_nodos_en_par()`: la hoja no dibuja sus chips y lo que cambia según la opción va en dos celdas («Transporte · 20 pies» | «Transporte · 40 pies»); guardar crea
   dos **cotizaciones hermanas**. No es el **Par porcentaje-monto**.

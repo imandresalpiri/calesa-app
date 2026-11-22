@@ -45,7 +45,7 @@ import { elegirEnElMenu } from './soporte/menu-de-la-guardada'
 import { sql } from './soporte/sql'
 import { cargarVehiculos, vehiculoPorTitulo } from './soporte/vehiculos'
 
-// Pisar un cálculo al cotizar (`docs/COTIZADOR.md` › «Pisar un cálculo», `docs/UX.md` › «Cotización: hoja (estados propios)»): sobre cualquier cálculo con celda
+// Pisar un cálculo al cotizar (`docs/COTIZADOR.md` › «Pisar un cálculo», `docs/UX.md` › «Flujo 2 — Cotizar»): sobre cualquier cálculo con celda
 // se escribe si el nivel lo deja; la celda dice «Editado a mano» y lo calculado, la primera pisada de la hoja avisa una vez y ↺ vuelve al calculado. En la hoja
 // de la subasta de la semilla: la transferencia (un `porcentaje_de` que no es sobrescribible) se vuelve par al pisar el monto y su porcentaje sale de lo escrito.
 test.describe.configure({ mode: 'serial' })
