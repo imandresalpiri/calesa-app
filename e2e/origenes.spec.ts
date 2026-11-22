@@ -22,7 +22,7 @@ import {
   tarjetaDelOrigen,
 } from './soporte/origenes'
 import { apagarApibara } from './soporte/apibara'
-import { elegirDelMenu, filaDelCampo, lineaApagada } from './soporte/editor-de-campos'
+import { abrirElCampo, elegirDelMenu, filaDelCampo, lineaApagada } from './soporte/editor-de-campos'
 import { descartarAviso } from './soporte/inventario'
 import { ingresar } from './soporte/pasos'
 
@@ -196,7 +196,7 @@ test('se edita el layout de campos y se refleja', async ({ page }) => {
   const corea = await origenDeLaBase('corea')
 
   // Una bandera se elige en el panel del campo y la fila la dice como insignia.
-  await page.getByRole('button', { name: 'Editar Motor', exact: true }).click()
+  await abrirElCampo(page, 'Motor')
   const delMotor = page.getByRole('dialog')
   await delMotor.getByRole('switch', { name: 'Filtrable', checked: false }).click()
   await delMotor.getByRole('button', { name: 'Guardar' }).click()

@@ -7,6 +7,7 @@ import {
   crearDuenaDePrueba,
 } from './soporte/base'
 import {
+  abrirElMenu,
   casillasEnOrden,
   elegirDelMenu,
   filaDelCampo,
@@ -103,7 +104,7 @@ test('E2E escritorio: elegir, ordenar y quitar los datos clave de un origen se g
   expect(await casillasEnOrden(page)).toEqual(['Año', 'Kilometraje', COLOR, 'Categoría'])
 
   // Desactivar el campo lo saca de los datos clave en la misma llamada (el «⋯» lo avisa).
-  await page.getByRole('button', { name: `Más acciones de ${COLOR}`, exact: true }).click()
+  await abrirElMenu(page, COLOR)
   await expect(page.getByText('También sale de los datos clave.')).toBeVisible()
   await page.getByRole('menuitem', { name: 'Desactivar', exact: true }).click()
   await descartarAviso(page, `«${COLOR}» desactivado`)
