@@ -333,13 +333,13 @@ fórmula de trabajo.
   constante (un cálculo pasa a valor fijo); en una fila que se llena al cotizar, C no toma un número (se dice que su ejemplo va en Ejemplo) y
   vacía no cambia nada. Ejemplo se escribe sólo en esas filas (`escribirEnElEjemplo()`: número, Sí/No u opción); en un valor fijo dice que se
   escribe en C y en lo demás que se calcula sola. Un tipo de cambio y una tabla no se escriben en C. `fx ▾` (`insertarFuncion()`) pone la
-  función con el cursor entre los paréntesis (`=SUMA()` si no había `=`).
-- **Qué muestra cada columna** (`contenidoDeLaFila()`, una vez por fórmula de trabajo, no al tipear): C, el valor fijo, el cálculo en A1
-  («=C5+C7») o de dónde sale en corto; Ejemplo, nada en un valor fijo (la misma cifra no se dibuja dos veces), lo de la unidad en las filas que
-  se llenan al cotizar y la cifra en las demás. «De dónde sale» completo va en la línea bajo la barra. Mientras el cursor espera un operando, un clic en otra celda inserta su referencia (Shift+clic, un
-  rango); cada referencia lleva su color en el orden en que aparece (`referenciasTipeadas()`, `--viz-series-*` en ciclo), la leyenda y el
+  función con el cursor antes del paréntesis que cierra (`=SUMA()` en vacío; sin `=`, envuelve lo escrito: `=SUMA(100)`). Mientras el
+  cursor espera un operando, un clic en otra celda inserta su referencia (Shift+clic, un rango); cada referencia lleva su color en el orden en que aparece (`referenciasTipeadas()`, `--viz-series-*` en ciclo), la leyenda y el
   borde de su celda. El autocompletar (`sugerencias()`) ofrece las funciones, los conceptos de arriba («Remate → C5»), las bandas («Primer
   pago → SUMA(primer_pago)») y, en BUSCARV, las tablas y sus columnas; «¿Cómo se escribe?» explica las diez (`FUNCIONES_DE_LA_AYUDA`).
+- **Qué muestra cada columna** (`contenidoDeLaFila()`, una vez por fórmula de trabajo, no al tipear): C, el valor fijo, el cálculo en A1
+  («=C5+C7») o de dónde sale en corto; Ejemplo, nada en un valor fijo (la misma cifra no se dibuja dos veces), lo de la unidad en las filas que
+  se llenan al cotizar y la cifra en las demás. «De dónde sale» completo va en la línea bajo la barra.
 - **Filas:** `insertarFila()` (arriba o abajo: un «Valor fijo» en 0 llamado «Fila nueva», con la banda de la de referencia; el id sale de
   `idDeFilaNueva()` y nunca se ve), `duplicarFila()` (id nuevo, el texto recompilado en su lugar y la `pct` absorbida clonada),
   `moverFila()` (Alt+↑/↓, arrastrar el número y «Mover esta fila debajo de la N»: bajar r debajo de t vale si ninguna fila de (r, t] la
