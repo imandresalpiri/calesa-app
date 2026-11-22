@@ -4,6 +4,7 @@ import { useEffect, useRef, type MouseEvent, type PointerEvent } from 'react'
 import type { PlantillaEnCuadricula } from '../../../entities/cuadricula-de-la-tarjeta'
 import type { PiezaDeLaCapa } from '../../../entities/plantilla/edicion/disposicion'
 import { extenderHasta, seleccionarCelda } from '../../../entities/plantilla/edicion/seleccion'
+import { seEscribeEnElLugar } from '../../../entities/plantilla/edicion/texto-con-datos'
 import type { Pos, Rect } from '../../../entities/plantilla/edicion/tipos'
 import type { EditorDeLaCuadricula } from './use-editor-de-la-cuadricula'
 
@@ -25,10 +26,7 @@ export function posDe(objetivo: EventTarget | null): Pos | null {
   return f === undefined || k === undefined || Number.isNaN(f) || Number.isNaN(k) ? null : { f, k }
 }
 
-const escribible = (pieza: PiezaDeLaCapa | null) =>
-  pieza?.celda == null ||
-  pieza.celda.contenido.tipo === 'texto' ||
-  pieza.celda.contenido.tipo === 'vacio'
+const escribible = (pieza: PiezaDeLaCapa | null) => seEscribeEnElLugar(pieza?.celda?.contenido)
 
 const fuera = (r: Rect | null, p: Pos) =>
   r === null || p.f < r.f0 || p.f > r.f1 || p.k < r.k0 || p.k > r.k1

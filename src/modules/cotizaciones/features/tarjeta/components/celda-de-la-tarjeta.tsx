@@ -1,8 +1,9 @@
-import type { CSSProperties } from 'react'
+import { Fragment, type CSSProperties } from 'react'
 import { COLOR_TINTA } from '@/shared/config/app'
 import { Monto } from '@/shared/ui/monto'
 import { RELLENO_DE_LA_CELDA } from '../../../entities/tarjeta/estilo-de-la-celda'
 import type { CeldaDibujada } from '../../../entities/tarjeta/geometria-de-la-tarjeta'
+import type { TramoDelTexto } from '../../../entities/tarjeta/valor-del-dato'
 import { FotoDelAsesorDeLaCelda } from './foto-del-asesor-de-la-celda'
 import { LogoDeLaCelda } from './logo-de-la-celda'
 
@@ -48,6 +49,19 @@ function estiloDe(c: CeldaDibujada): CSSProperties {
 
 type Logo = { nombre: string; url: string } | null
 
+// Un texto con datos que lleva un monto, por tramos: cada monto con `<Monto>` (el Modo Live lo tapa) y nunca su texto entero, que dejaría la cifra a la vista.
+function TextoPorTramos({ tramos }: { tramos: readonly TramoDelTexto[] }) {
+  return (
+    <span>
+      {tramos.map((t, i) => (
+        <Fragment key={i}>
+          {typeof t === 'string' ? t : <Monto valor={t.valor} moneda={t.moneda} />}
+        </Fragment>
+      ))}
+    </span>
+  )
+}
+
 function Contenido({
   celda,
   logo,
@@ -60,6 +74,7 @@ function Contenido({
   const c = celda.contenido
   switch (c.tipo) {
     case 'texto':
+      if (c.tramos !== undefined) return <TextoPorTramos tramos={c.tramos} />
       return c.lineas.length === 0 ? null : <span>{c.lineas.join('\n')}</span>
     case 'monto':
       return (
@@ -90,8 +105,8 @@ function Contenido({
   }
 }
 
-// Una celda de la tarjeta, con sus `data-*` para las pruebas (la fila, la columna, el nodo y qué muestra, la variable, el color y el total). Los montos van con
-// `<Monto>`: el Modo Live los tapa. La celda logo dibuja sólo el logo, a la medida de la celda (`<LogoDeLaCelda>`); si no carga, `alFallarElLogo`. La foto del
+// Una celda de la tarjeta, con sus `data-*` para las pruebas (la fila, la columna, el nodo y qué muestra, la variable, el color, el total y el texto con datos).
+// Los montos van con `<Monto>`, también los de un texto con datos: el Modo Live los tapa. La celda logo dibuja sólo el logo, a la medida de la celda (`<LogoDeLaCelda>`); si no carga, `alFallarElLogo`. La foto del
 // asesor, `<FotoDelAsesorDeLaCelda>` (sin foto, sus iniciales en un círculo).
 export function CeldaDeLaTarjeta({
   celda,
@@ -112,6 +127,7 @@ export function CeldaDeLaTarjeta({
       {...(m.variable === undefined ? {} : { 'data-variable': m.variable })}
       {...(m.color === undefined ? {} : { 'data-color': m.color })}
       {...(m.total === true ? { 'data-total-usd': '' } : {})}
+      {...(m.conDatos === true ? { 'data-texto-con-datos': '' } : {})}
       style={estiloDe(celda)}
     >
       <Contenido celda={celda} logo={logo} alFallarElLogo={alFallarElLogo} />

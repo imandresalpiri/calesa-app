@@ -170,6 +170,18 @@
             ],
             "si_no": { "tipo": "texto", "texto": "Sin seguro" }
           }
+        },
+        {
+          "id": "c_con_datos",
+          "fila": "f",
+          "columna": "a",
+          "contenido": {
+            "tipo": "texto",
+            "partes": [
+              "Comisión giro ",
+              { "tipo": "dato", "nodo": "transferencia", "mostrar": "porcentaje" }
+            ]
+          }
         }
       ]
     }
@@ -707,6 +719,12 @@
       "plantilla": "con_reglas",
       "retoques": { "celdas": { "c_condiciones": "x" } },
       "motivo": { "regla": "celda_no_es_texto", "donde": "celdas.c_condiciones" }
+    },
+    {
+      "nombre": "un texto con datos es una celda de texto: el retoque la reemplaza por un texto fijo",
+      "plantilla": "con_reglas",
+      "retoques": { "celdas": { "c_con_datos": "Comisión giro 5 % (acordado)" } },
+      "valida": true
     },
     {
       "nombre": "una fila que se oculta según condiciones se oculta a mano, y su celda de texto se retoca",

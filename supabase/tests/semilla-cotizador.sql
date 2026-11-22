@@ -85,6 +85,27 @@ begin
   end if;
 end $$;
 
+-- @test semilla: la tarjeta v1 de subasta_usa y planilla_usa es una cuadrícula (forma 2) de hasta 24 KiB que vale contra la v1 de su fórmula, con la comisión del giro y su porcentaje en la leyenda de la transferencia
+do $$
+declare r record; v_n int := 0;
+begin
+  for r in select o.clave, p.definicion as pla, f.definicion as def, f.diseno, f.visibilidad
+             from public.origenes o join public.plantillas_tarjeta p on p.origen_id = o.id and p.version = 1 and p.estado = 'publicada'
+             join public.formulas f on f.origen_id = o.id and f.version = 1
+            where o.clave in ('subasta_usa', 'planilla_usa') loop
+    v_n := v_n + 1;
+    if r.pla ->> 'forma' is distinct from '2' then raise exception 'la tarjeta de % no es forma 2', r.clave; end if;
+    if octet_length(r.pla::text) > 24576 then raise exception 'la tarjeta de % pesa % bytes: pasa los 24 KiB', r.clave, octet_length(r.pla::text); end if;
+    perform public.validar_plantilla(r.pla, r.def, r.diseno, r.visibilidad, array(select t.clave from public.tonos t));
+    if (select c -> 'contenido' from jsonb_array_elements(r.pla -> 'celdas') c where c ->> 'id' = 'c_n_transferencia_leyenda')
+       is distinct from '{"tipo": "texto", "partes": ["Comisión giro ", {"tipo": "dato", "nodo": "transferencia", "mostrar": "porcentaje"}]}' then
+      raise exception 'la leyenda de la transferencia de %: %', r.clave,
+        (select c from jsonb_array_elements(r.pla -> 'celdas') c where c ->> 'id' = 'c_n_transferencia_leyenda');
+    end if;
+  end loop;
+  if v_n <> 2 then raise exception 'esperaba las tarjetas de subasta_usa y planilla_usa, hay %', v_n; end if;
+end $$;
+
 -- @test semilla: cada fórmula y cada diseño sembrados pasan por lo mismo que publicar (fórmula, diseño con los niveles y los tonos de la base) y su visibilidad es la compilada
 do $$
 declare r record; v_niv text[]; v_ret text[]; v_tonos text[];

@@ -112,3 +112,28 @@ describe('lecturaRetocada', () => {
     })
   })
 })
+
+describe('aplicarRetoques sobre un texto con datos', () => {
+  it('una celda con un texto con datos se retoca como un texto: el retoque la reemplaza por un texto fijo', () => {
+    const conDatos = {
+      ...P,
+      celdas: P.celdas.map((c) =>
+        c.id === 'c_saludo'
+          ? {
+              ...c,
+              contenido: {
+                tipo: 'texto' as const,
+                partes: ['Hola ', { tipo: 'dato' as const, variable: 'cliente_nombre' }],
+              },
+            }
+          : c,
+      ),
+    }
+    const r = aplicarRetoques(conDatos, { celdas: { c_saludo: 'Hola Juan, con descuento' } })
+    expect(celda(r, 'c_saludo')?.contenido).toEqual({
+      tipo: 'texto',
+      texto: 'Hola Juan, con descuento',
+    })
+    expect(r.noAplican).toBe(0)
+  })
+})

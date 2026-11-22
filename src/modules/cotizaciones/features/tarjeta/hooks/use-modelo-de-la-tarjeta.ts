@@ -15,6 +15,7 @@ import {
 import type { RetoquesDeLaTarjeta } from '../../../entities/cuadricula-de-la-tarjeta'
 import type { LecturaDeLaTarjeta } from '../../../entities/tarjeta/lectura-de-la-tarjeta'
 import { lecturaRetocada } from '../../../entities/tarjeta/retoques/aplicar-retoques'
+import { textosConDatosResueltos } from '../../../entities/tarjeta/retoques/para-guardar'
 import { tituloDeLaHermana } from '../../../entities/titulo-en-par'
 import { useTituloDeLaCotizacion } from '../../hoja/hooks/use-titulo-de-la-cotizacion'
 import { useLecturaDeLaTarjeta, type EstadoDeLaLectura } from './use-lectura-de-la-tarjeta'
@@ -40,6 +41,8 @@ type Entrada = {
 }
 
 // Lo ahora, una vez por montaje: el modal se monta al abrirse y la fecha de hoy no cambia mientras está abierto.
+const SIN_RESUELTOS: ReadonlyMap<string, string> = new Map()
+
 function useHoy(): string {
   const [hoy] = useState(() => new Date().toISOString())
   return hoy
@@ -62,6 +65,8 @@ export function useModeloDeLaTarjeta({
   lectura: LecturaDeLaTarjeta | null
   contexto: ContextoDeLaCotizacion
   geometria: Geometria | null
+  // El texto resuelto de cada texto con datos de la plantilla sin retocar (lo que compara «Retocar»).
+  resueltos: ReadonlyMap<string, string>
   noAplican: number
 } {
   const { estado, reintentar } = useLecturaDeLaTarjeta(formulaId)
@@ -93,12 +98,20 @@ export function useModeloDeLaTarjeta({
           }),
     [retocada, calculo, contexto, monedaBs, locale],
   )
+  const resueltos = useMemo(
+    () =>
+      lectura?.estado === 'lista'
+        ? textosConDatosResueltos({ tarjeta: lectura, calculo, contexto, monedaBs, locale })
+        : SIN_RESUELTOS,
+    [lectura, calculo, contexto, monedaBs, locale],
+  )
   return {
     estado,
     reintentar,
     lectura,
     contexto,
     geometria,
+    resueltos,
     noAplican: retocada?.noAplican ?? 0,
   }
 }

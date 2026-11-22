@@ -1,6 +1,6 @@
 // Todo dato que nombra la cuadrícula, aplanado y en orden, espejo de `_plantilla_cuadricula_datos()`: lo que miran las reglas de las variables y de los nodos, la
 // lectura del lienzo y el contexto del navegador. Primero las filas (el nodo que la decide y los de sus condiciones) y después las celdas (su dato, los de su lista
-// de respaldo o, de sus condiciones, rama por rama las condiciones y su contenido, y el «si no»). Una condición sobre un dato trae su dato con `es`; una sobre un
+// de respaldo, los de su texto con datos en orden o, de sus condiciones, rama por rama las condiciones y su contenido, y el «si no»). Una condición sobre un dato trae su dato con `es`; una sobre un
 // nodo, su nodo con `es` y su `opcion`. Puro y lineal; se llama sobre una cuadrícula que ya pasó la forma.
 import type {
   CeldaDeLaTarjeta,
@@ -53,6 +53,8 @@ function deLaCelda(c: CeldaDeLaTarjeta): DatoNombrado[] {
   const x = c.contenido
   if (x.tipo === 'dato') return [delDato(l, x)]
   if (x.tipo === 'respaldo') return x.datos.map((d) => delDato(l, d))
+  if (x.tipo === 'texto' && 'partes' in x)
+    return x.partes.flatMap((p) => (typeof p === 'string' ? [] : [delDato(l, p)]))
   if (x.tipo !== 'condiciones') return []
   return [
     ...x.ramas.flatMap((r) => [

@@ -1,6 +1,25 @@
 import { describe, expect, it } from 'vitest'
 import { mismosRetoques, retoquesParaGuardar } from './para-guardar'
+import type { PlantillaEnCuadricula } from '../../cuadricula-de-la-tarjeta'
 import { CUADRICULA_DE_RETOQUES as P } from './retoques.soporte'
+
+const SIN = new Map<string, string>()
+
+// La de los retoques con «Hola» como texto con datos: «Hola » + el nombre del cliente.
+const CON_DATOS: PlantillaEnCuadricula = {
+  ...P,
+  celdas: P.celdas.map((c) =>
+    c.id === 'c_saludo'
+      ? {
+          ...c,
+          contenido: {
+            tipo: 'texto',
+            partes: ['Hola ', { tipo: 'dato', variable: 'cliente_nombre' }],
+          },
+        }
+      : c,
+  ),
+}
 
 describe('retoquesParaGuardar', () => {
   it('deja sólo lo que aplica y quita los textos iguales al de la plantilla', () => {
@@ -11,6 +30,7 @@ describe('retoquesParaGuardar', () => {
           filas_ocultas: ['f_otra'],
         },
         P,
+        SIN,
       ),
     ).toEqual({ celdas: { constructor: 'Chau' } })
   })
@@ -23,6 +43,7 @@ describe('retoquesParaGuardar', () => {
           filas_ocultas: ['constructor', 'f_titulo', 'constructor'],
         },
         P,
+        SIN,
       ),
     ).toEqual({
       celdas: { c_saludo: 'A', constructor: 'B' },
@@ -31,9 +52,27 @@ describe('retoquesParaGuardar', () => {
   })
 
   it('sin nada que guardar, nulo', () => {
-    expect(retoquesParaGuardar(null, P)).toBeNull()
-    expect(retoquesParaGuardar({}, P)).toBeNull()
-    expect(retoquesParaGuardar({ celdas: { c_saludo: 'Hola' }, filas_ocultas: [] }, P)).toBeNull()
+    expect(retoquesParaGuardar(null, P, SIN)).toBeNull()
+    expect(retoquesParaGuardar({}, P, SIN)).toBeNull()
+    expect(
+      retoquesParaGuardar({ celdas: { c_saludo: 'Hola' }, filas_ocultas: [] }, P, SIN),
+    ).toBeNull()
+  })
+
+  it('un texto con datos se compara con su texto resuelto: igual no es un retoque', () => {
+    const resueltos = new Map([['c_saludo', 'Hola Ana']])
+    expect(
+      retoquesParaGuardar({ celdas: { c_saludo: 'Hola Ana' } }, CON_DATOS, resueltos),
+    ).toBeNull()
+    expect(
+      retoquesParaGuardar({ celdas: { c_saludo: 'Hola, Ana' } }, CON_DATOS, resueltos),
+    ).toEqual({ celdas: { c_saludo: 'Hola, Ana' } })
+  })
+
+  it('sin su texto resuelto, todo texto de un texto con datos cuenta como retoque', () => {
+    expect(retoquesParaGuardar({ celdas: { c_saludo: 'Hola Ana' } }, CON_DATOS, SIN)).toEqual({
+      celdas: { c_saludo: 'Hola Ana' },
+    })
   })
 })
 

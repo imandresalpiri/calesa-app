@@ -34,7 +34,6 @@ import {
   publicarComoLaDuena,
   publicarConLaComisionEnCostos,
   rgbDe,
-  subasta,
   urlDeLaHoja,
 } from './soporte/tarjeta-cuadricula'
 import { literal, sql } from './soporte/sql'
@@ -49,6 +48,15 @@ test.describe.configure({ mode: 'serial' })
 const REPLICA = JSON.parse(
   readFileSync('src/modules/cotizaciones/entities/tarjeta/plantilla-como-v1-usa.json', 'utf8'),
 ) as unknown
+// La forma 1 de la subasta (su semilla ya es forma 2).
+const FORMA_1 = (
+  JSON.parse(
+    readFileSync(
+      'src/modules/cotizaciones/entities/plantilla/plantillas-v1-de-las-semillas.json',
+      'utf8',
+    ),
+  ) as { subasta_usa: unknown }
+).subasta_usa
 const NOMBRE_DE_LA_DUENA = 'Teresa Cuadrícula'
 
 let duena = ''
@@ -88,11 +96,10 @@ test.beforeAll(async ({}, info) => {
   vehiculos.grupos = await crearVehiculo(origenes.grupos, `Tarjeta grupos Hilux ${proyecto}`)
   await publicarComoLaDuena(duena, origenes.replica, REPLICA)
   await publicarComoLaDuena(duena, origenes.nivel, REPLICA)
-  // La forma 1: la plantilla v1 sembrada de la subasta, publicada tal cual (sin migrar).
+  // La forma 1: la de la subasta antes de sembrarse en forma 2 (el fixture), publicada tal cual (sin migrar).
   sql(`
     insert into public.plantillas_tarjeta (origen_id, estado, version, definicion, nota, publicado_en)
-    select ${literal(origenes.grupos)}::uuid, 'publicada', 1, p.definicion, 'E2E T310 forma 1', now()
-      from public.plantillas_tarjeta p where p.origen_id = ${literal(subasta())}::uuid and p.version = 1`)
+    values (${literal(origenes.grupos)}::uuid, 'publicada', 1, ${literal(JSON.stringify(FORMA_1))}::jsonb, 'E2E T310 forma 1', now())`)
 })
 
 test.afterAll(async ({}, info) => {

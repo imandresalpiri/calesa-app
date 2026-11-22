@@ -4,6 +4,7 @@
 import {
   MOSTRAR,
   VARIABLES_DE_LA_TARJETA,
+  type DatoDeLaCelda,
   type Mostrar,
   type VariableDeLaTarjeta,
 } from '../../cuadricula-de-la-tarjeta'
@@ -142,4 +143,15 @@ export function acotarDatos(
     return tomados.length === 0 ? [] : [{ ...g, nodos: tomados }]
   })
   return { grupos: acotados, hayMas }
+}
+
+// Lo que dice la pastilla de un dato en un texto con datos: una variable, su nombre («Nombre del cliente»); un nodo, su etiqueta con `monto`, «% <etiqueta>» con
+// `porcentaje` («% Transferencia a USA») y «<etiqueta> · <qué muestra>» con lo demás. Un nodo que no está, su id.
+export function nombreDeLaPastilla(d: DatoDeLaCelda, contexto: ContextoDePlantilla): string {
+  if ('variable' in d) return nombreDeLaVariable(d.variable)
+  const n = (contexto.definicion.nodos ?? []).find((x) => x.id === d.nodo)
+  const etiqueta = n?.etiqueta || d.nodo
+  if (d.mostrar === 'monto') return etiqueta
+  if (d.mostrar === 'porcentaje') return `% ${etiqueta}`
+  return `${etiqueta} · ${nombreDeMostrar(d.mostrar)}`
 }

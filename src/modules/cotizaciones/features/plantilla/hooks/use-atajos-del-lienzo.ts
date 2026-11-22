@@ -6,13 +6,14 @@ import { anclaEn, celdaEn } from '../../../entities/plantilla/edicion/mapa-de-la
 import { copiar, textoDelBloque } from '../../../entities/plantilla/edicion/portapapeles'
 import type { AccionDelEditor } from '../../../entities/plantilla/edicion/reductor'
 import { casillaActiva, rangoDe } from '../../../entities/plantilla/edicion/seleccion'
+import { seEscribeEnElLugar } from '../../../entities/plantilla/edicion/texto-con-datos'
 import type { EditorDeLaCuadricula } from './use-editor-de-la-cuadricula'
 
 type Args = {
   editor: EditorDeLaCuadricula
   // Los índices de las filas que se dibujan con la referencia: las flechas saltan las demás.
   visibles: readonly number[]
-  // Un dato o el logo no se escriben en el lugar: Enter o F2 llevan al campo «Contenido» del panel.
+  // Un dato, el logo o un texto con datos no se escriben en el lugar: Enter o F2 llevan al panel (al campo «Texto» de un texto con datos, a «Contenido» lo demás).
   alEditarContenido: () => void
   alAbrirMenu: () => void
   // Desde la columna A, ← va al asa de la fila; desde la primera fila, ↑ va al borde de la cabecera de la columna.
@@ -20,7 +21,8 @@ type Args = {
   alSalirPorArriba: (columna: number) => void
 }
 
-type Contexto = Args & { escribible: boolean }
+// `escribible`: tipear una letra reemplaza lo de la celda (un texto, también con datos, o nada); `enElLugar`: Enter o F2 la escriben ahí (`seEscribeEnElLugar()`).
+type Contexto = Args & { escribible: boolean; enElLugar: boolean }
 
 const conTexto = (tipo: string | undefined) =>
   tipo === undefined || tipo === 'texto' || tipo === 'vacio'
@@ -53,7 +55,7 @@ function mover(a: Extract<AccionDelTeclado, { tipo: 'mover' }>, c: Contexto): bo
 const MANEJADORES: { readonly [T in AccionDelTeclado['tipo']]: Manejador<T> } = {
   mover,
   editar: (_, c) => {
-    if (c.escribible) return hecho(c, { tipo: 'empezarAEscribir', visibles: c.visibles })
+    if (c.enElLugar) return hecho(c, { tipo: 'empezarAEscribir', visibles: c.visibles })
     c.alEditarContenido()
     return true
   },
@@ -84,12 +86,12 @@ const MANEJADORES: { readonly [T in AccionDelTeclado['tipo']]: Manejador<T> } = 
 // llega como `paste` (el texto del sistema va a la celda activa).
 export function useAtajosDelLienzo(args: Args) {
   const { estado, hacer, mapa, plantilla } = args.editor
-  const tipoActivo = () =>
+  const contenidoActivo = () =>
     celdaEn(
       mapa,
       plantilla,
       anclaEn(mapa, plantilla, casillaActiva(estado.seleccion, args.visibles)),
-    )?.celda.contenido.tipo
+    )?.celda.contenido
   return {
     alTeclear: (e: KeyboardEvent<HTMLElement>) => {
       // Sólo con el foco en la grilla: el asa de una fila (dnd-kit escucha sus flechas en la ventana) y el borde de una cabecera atienden las suyas.
@@ -103,7 +105,12 @@ export function useAtajosDelLienzo(args: Args) {
       })
       if (accion === null) return
       const manejar = MANEJADORES[accion.tipo] as Manejador<AccionDelTeclado['tipo']>
-      const tomada = manejar(accion, { ...args, escribible: conTexto(tipoActivo()) })
+      const activo = contenidoActivo()
+      const tomada = manejar(accion, {
+        ...args,
+        escribible: conTexto(activo?.tipo),
+        enElLugar: seEscribeEnElLugar(activo),
+      })
       if (tomada || accion.tipo === 'copiar') e.stopPropagation()
       if (tomada) e.preventDefault()
     },
