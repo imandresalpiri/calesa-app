@@ -23,7 +23,6 @@ export const crearTabla = actionClient
     const hecho = await repositorioDeTablas.crear(parsedInput)
     if (hecho.ok) {
       revalidatePath(RUTAS.origenes, 'layout')
-      revalidatePath(RUTAS.catalogos, 'layout')
     }
     return hecho
   })

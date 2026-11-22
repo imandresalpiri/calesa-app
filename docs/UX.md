@@ -525,7 +525,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   últimos 5 cambios del registro como frases, cada uno a su detalle en `/actividad`, y «Ver toda la actividad»; esqueleto, «Sin cambios en
   los últimos N días.» y error con «Reintentar»; sin `actividad.ver` no se dibuja.
 - **Configuración** — `/configuracion/*` (permiso de cada sección): inicio en `/configuracion/inicio` (`/configuracion` redirige con 308 y su consulta)
-  - secciones, del registro `secciones.ts`: «Empresa y equipo» (Empresa, Equipo, Roles) · «Ventas» (Leads, Orígenes) · «Operación» (Catálogos) · «Web» (Sitio web, Cola web). En **toda** página de Configuración, el inicio
+  - secciones, del registro `secciones.ts`: «Empresa y equipo» (Empresa, Equipo, Roles) · «Ventas» (Leads, Orígenes) · «Web» (Sitio web, Cola web). En **toda** página de Configuración, el inicio
     incluido (layout de `/configuracion`): a la izquierda el **menú de Configuración** desde 1024 px y con 44 rem de contenedor (con el texto al 200 % pasa
     al selector), de tres niveles que no se confunden: el **grupo** es un rótulo en mayúscula chica (no es enlace), la **sección** un renglón con su ícono del
     catálogo y su nombre (la abierta, en negrita; la página, con acento y `aria-current="page"`) y **sólo la sección abierta** despliega sus sub-secciones,
@@ -566,14 +566,6 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (`/comprobantes`, con `empresa.ajustes.gestionar`: la tarjeta con la serie vigente y el próximo comprobante, y «Cambiar serie» en su modal, con versión; sin el
   permiso, apagada con «Pide el permiso «Ajustes de la empresa».» y su URL abre Datos). Las URLs viejas redirigen en el servidor
   (`url-vieja.ts`): `?seccion=` a su sub-ruta, y `?tc=`, `?moneda=` y los `?panel=` de crear (con o sin `?seccion=`) a Monedas con ellos.
-- **Catálogos** — `/configuracion/catalogos`: ya no tiene páginas ni lugar en el menú; sólo redirige (308, por persona) al inicio de Configuración. Las **tablas compartidas** se ven,
-  se crean y se editan en el drawer «Tablas» de cada origen: `/configuracion/catalogos/tablas` (con `?tabla=` y `?panel=`) responde 308 al drawer del primer origen que la
-  persona configura y que usa esa tabla (el primero, en el orden de la lista de orígenes, que la recibe: sin una propia con su clave; el dueño, si es propia), con
-  `?panel=tablas&tabla=<id>` y el panel viejo de la tabla en `accion`; sin tabla, al drawer del primer origen que configura; con una `?tabla=` que no existe o que
-  ninguno de los suyos usa, al drawer del primero sin la tabla; sin ningún origen que configure, al inicio. El buscador la encuentra como «Orígenes › Tablas compartidas». Los catálogos de la logística viven en
-  Logística › Configuración («Logística (config)»); sus rutas de antes (`/configuracion/catalogos/puertos|navieras|categorias-de-gasto|tipos-de-documento` y
-  `/configuracion/logistica/…`) responden 308 ahí, con la consulta. Los niveles de acceso y «Quién crea y quién ve» viven en la matriz de Roles, bloque «Cotizaciones»
-  (`/niveles` y `/quien-crea-y-quien-ve` responden 308 a `/configuracion/roles?bloque=cotizaciones`); los colores y la vigencia, en «Para todos los orígenes» (Orígenes).
 - **Logística (config)** — `/logistica/configuracion` (cualquiera de los permisos de sus pestañas): una página dentro de Logística con la tira de pestañas **Puertos ·
   Navieras · Categorías de gasto · Tipos de documento** (`PestanasConDesborde`, una sub-ruta por pestaña: `/puertos`, `/navieras`, `/categorias-de-gasto`,
   `/tipos-de-documento`) y el `h1` «Configuración de logística». La raíz abre (308, por persona) la primera pestaña que la persona puede abrir. Cada pestaña es el
@@ -661,7 +653,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     `/<id>/tablas` a `/planilla?panel=tablas` (su panel, en `accion`), `?seccion=flujo|formula|formulas|tablas|datos` a su pestaña o su drawer,
     `/configuracion/cotizacion/<origen>/formula|hoja|tarjeta|tablas` (y `/<origen>` solo) a su pestaña del origen, `/configuracion/cotizacion/general[/colores|/vigencia]`,
     `/configuracion/catalogos/colores|vigencia` y `?seccion=tonos|colores|ajustes|vigencia` a `/configuracion/origenes?panel=colores|vigencia` (si la URL vieja
-    trae su propio `?panel=`, manda ése y va solo), `general/niveles` y `?seccion=niveles` a Catálogos, `/configuracion/flujos?origen=` a sus Fases (`?ambito=repuestos` al de repuestos;
+    trae su propio `?panel=`, manda ése y va solo), `general/niveles` y `?seccion=niveles` al bloque «Cotizaciones» de Roles, `/configuracion/flujos?origen=` a sus Fases (`?ambito=repuestos` al de repuestos;
     sin origen, el primero que la persona configura), `?seccion=documentos` sin `flujos.configurar` a Logística › Configuración › Tipos de documento, y `/configuracion/logistica/*`
     a su pestaña. Lo que no se resuelve, a la lista de orígenes.
   - Estados: cargando con el esqueleto del marco (migas, cabecera y pestañas) y el de cada pestaña; error con reintentar y PT409 los de cada editor.
@@ -1335,7 +1327,7 @@ y enfoca su título).
   de la declaración»: «Quitar» marca (con «Deshacer»), buscador (3, hasta 10) con «Agregar» y «Guardar vehículos» manda todo junto (hasta
   200); con canal queda todo apagado: la composición queda fija. «Asignar canal» es un `<Confirmar>` en `?panel=canal` con el selector
   adentro; pide al menos un vehículo. El canal no se quita.
-- **Catálogos › Logística:** sin `logistica.catalogos.gestionar`, no hay ⚙ «Configurar» en la cabecera de Logística, la pestaña va apagada con su motivo y su URL dice «No tienes permiso para ver esto»
+- **Logística (config): estados:** sin `logistica.catalogos.gestionar`, no hay ⚙ «Configurar» en la cabecera de Logística, la pestaña va apagada con su motivo y su URL dice «No tienes permiso para ver esto»
   (la raíz abre la primera pestaña que la persona abre). Cada catálogo conserva su tope y su aviso. **Categorías de gasto:** esqueleto, vacío, error con «Reintentar»; el «⋯» lleva Editar,
   Activar/Desactivar y Eliminar (`?panel=eliminar-categoria&categoria=<id>`; con gastos el diálogo dice que está en uso, propone
   desactivarla y no se cierra); el orden es un número del modal; una de propósito «Tributos» no cambia de propósito (Aduana la lee).

@@ -1,9 +1,9 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { ShieldCheckIcon } from 'lucide-react'
 import type { Permisos } from '@/shared/lib/permisos'
 import { NAVEGACION } from '../_shell/navegacion'
-import { SECCION_DE_CATALOGOS } from './catalogos/seccion'
 import { PERMISOS_DE_EMPRESA, SECCION_DE_EMPRESA } from './empresa/seccion'
 import { SECCION_DE_LEADS } from './leads/seccion'
 import {
@@ -25,30 +25,23 @@ describe('secciones de configuración', () => {
   const porClave = (clave: string) =>
     SECCIONES.find((seccion: SeccionDeConfiguracion) => seccion.clave === clave)
 
-  it('son las de hoy, ordenadas por grupo: Ventas = Leads, Orígenes; Operación = Catálogos', () => {
+  it('son las de hoy, ordenadas por grupo: Ventas = Leads, Orígenes; sin Catálogos', () => {
     expect(SECCIONES.map((seccion) => seccion.clave)).toEqual([
       'empresa',
       'equipo',
       'roles',
       'leads',
       'origenes',
-      'catalogos',
       'web',
       'cola-web',
     ])
-    expect(porClave('catalogos')).toBe(SECCION_DE_CATALOGOS)
-    expect(porClave('catalogos')?.grupo).toBe('operacion')
+    expect(porClave('catalogos')).toBeUndefined()
     expect(porClave('repuestos')).toBeUndefined()
     expect(porClave('leads')).toBe(SECCION_DE_LEADS)
   })
 
-  it('los grupos son los cuatro, en su orden, y cada sección está en uno de ellos y en su orden', () => {
-    expect(GRUPOS.map((grupo) => grupo.titulo)).toEqual([
-      'Empresa y equipo',
-      'Ventas',
-      'Operación',
-      'Web',
-    ])
+  it('los grupos son los tres, en su orden, y cada sección está en uno de ellos y en su orden', () => {
+    expect(GRUPOS.map((grupo) => grupo.titulo)).toEqual(['Empresa y equipo', 'Ventas', 'Web'])
     const orden = GRUPOS.map((grupo) => grupo.clave)
     const lugares = SECCIONES.map((seccion: SeccionDeConfiguracion) => orden.indexOf(seccion.grupo))
     expect(lugares.every((lugar) => lugar >= 0)).toBe(true)
@@ -170,9 +163,9 @@ const SECCION_DE_PRUEBA: SeccionDeConfiguracion = {
   descripcion: 'Una sección de prueba.',
   palabras: ['piezas', 'flujo'],
   ruta: '/configuracion/repuestos',
-  Icono: SECCION_DE_CATALOGOS.Icono,
+  Icono: ShieldCheckIcon,
   permisos: ['repuestos.configurar'],
-  grupo: 'operacion',
+  grupo: 'ventas',
   subsecciones: [],
 }
 
@@ -227,8 +220,8 @@ describe('sub-secciones de configuración', () => {
   it('al navegador no viajan iconos, permisos ni frases, las palabras sí, y el motivo sólo en la apagada', () => {
     const [grupo] = paraElNavegador([
       {
-        clave: 'operacion',
-        titulo: 'Operación',
+        clave: 'ventas',
+        titulo: 'Ventas',
         secciones: [conSubseccionesVisibles(conSub, repuestos)],
       },
     ])
@@ -276,8 +269,8 @@ describe('sub-secciones agrupadas de configuración', () => {
     }
     const [grupo] = paraElNavegador([
       {
-        clave: 'operacion',
-        titulo: 'Operación',
+        clave: 'ventas',
+        titulo: 'Ventas',
         secciones: [conSubseccionesVisibles(conGrupo, repuestos)],
       },
     ])

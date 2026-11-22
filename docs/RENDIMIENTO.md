@@ -585,7 +585,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 - Imágenes de un ítem: `limit 9` por `repuestos_items_imagenes_item_id_idx`, sólo al abrir el panel; el trigger cuenta con `limit 8` bajo
   un candado por ítem. **Excepción a «nunca el original»:** sin miniatura y con `unoptimized`, cada imagen baja el WebP de ≤ 1600 px (≤ 8
   por panel abierto).
-- Catálogos de Configuración: 4 × `limit 201` por PostgREST (decenas de filas); tope 200 con `<AvisoDeTope>`.
+- Catálogos de logística (Logística › Configuración): 4 × `limit 201` por PostgREST (decenas de filas); tope 200 con `<AvisoDeTope>`.
 - Configuración del cotizador (`/repuestos/configuracion/cotizador`): tres lecturas en paralelo bajo `repuestos.cotizar` o
   `repuestos.configurar`: la configuración por su PK (`order by id desc`, la primera es la vigente) tope 20 + 1, los tramos por
   `repuestos_tramos_logistica_moneda_idx` y las cajas por `repuestos_cajas_moneda_monto_key`, tope 200 + 1 cada una, con `<AvisoDeTope>`.

@@ -130,9 +130,9 @@ test('E2E escritorio · quien configura un origen no abre uno ajeno ni los nivel
   await page.goto(`${CATALOGOS}/niveles`)
   await expect(page).toHaveURL(/\/configuracion\/roles\?bloque=cotizaciones$/)
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
-  // Catálogos ya no abre nada: al inicio. Las tablas compartidas redirigen al drawer del origen que ella configura.
+  // La raíz vieja de Catálogos lleva a Colores en Orígenes; las tablas compartidas, al drawer del origen que ella configura.
   await page.goto(CATALOGOS)
-  await expect(page).toHaveURL('/configuracion/inicio')
+  await expect(page).toHaveURL(/\/configuracion\/origenes\?panel=colores$/)
   await page.goto(`${CATALOGOS}/tablas`)
   await expect(page).toHaveURL(new RegExp(`${ORIGENES}/${sinFormula.id}/planilla\\?panel=tablas$`))
 })

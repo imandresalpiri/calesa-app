@@ -25,7 +25,7 @@ describe('marcaDelEnlace', () => {
   })
 
   it('otra sección, un prefijo sin barra o el inicio no marcan', () => {
-    expect(marcaDelEnlace('/configuracion/catalogos', '/configuracion/leads')).toBeUndefined()
+    expect(marcaDelEnlace('/configuracion/origenes', '/configuracion/leads')).toBeUndefined()
     expect(marcaDelEnlace('/configuracion/web-cola', '/configuracion/web')).toBeUndefined()
     expect(marcaDelEnlace('/configuracion', '/configuracion/empresa')).toBeUndefined()
   })
