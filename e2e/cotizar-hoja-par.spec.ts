@@ -9,8 +9,8 @@ import {
 import { vigilarRecalculos } from './soporte/cotizar'
 import { sql } from './soporte/sql'
 
-// El par porcentaje–monto en la hoja de la subasta sembrada (paso 4.13-3c): un candado por lado. Transferencia se calcula (el monto no se edita) y su porcentaje, una
-// constante, se tipea: antes la celda entera quedaba bloqueada con el motivo del monto.
+// El par porcentaje–monto en la hoja de la subasta sembrada: cada lado se escribe por su cuenta. Transferencia se calcula y su monto se pisa al cotizar (lo recorre
+// `cotizar-pisar-calculo.spec.ts`); su porcentaje, una constante, se tipea y tiene su ↺, sin la marca de un cálculo pisado.
 test.describe.configure({ mode: 'serial' })
 
 let duena = ''
@@ -53,26 +53,18 @@ async function tipear(page: Page, nodo: string, parada: number, texto: string): 
   await expect(entrada).toBeHidden()
 }
 
-test('Transferencia: el monto calculado lleva su candado y el porcentaje se tipea y recalcula', async ({
-  page,
-}) => {
+test('Transferencia: el porcentaje se tipea y recalcula sin pisar el monto', async ({ page }) => {
   const vigilante = await vigilarRecalculos(page)
   await abrir(page)
   const transferencia = celda(page, 'transferencia')
-  await expect(transferencia.locator('[data-parada="0"]')).toHaveAttribute('aria-disabled', 'true')
+  await expect(transferencia.locator('[data-parada="0"]')).not.toHaveAttribute('aria-disabled')
   await expect(transferencia.locator('[data-parada="1"]')).not.toHaveAttribute('aria-disabled')
-  await expect(
-    transferencia.getByRole('img', { name: 'Se calcula con los demás datos.' }),
-  ).toBeVisible()
-  // `aria-disabled` es «deshabilitado» para Playwright: el clic se fuerza para ver que el lado bloqueado no abre.
-  await transferencia.locator('[data-parada="0"]').click({ force: true })
-  await expect(transferencia.locator('input')).toHaveCount(0)
   await tipear(page, 'transferencia', 1, '5')
   await expect
     .poll(() => vigilante.pedidos.at(-1)?.p_entradas.overrides)
     .toEqual({ transferencia_pct: 0.05 })
   await expect(transferencia.getByRole('button', { name: /^Volver al/ })).toBeVisible()
-  await expect(transferencia.locator('[data-parada="0"]')).toHaveAttribute('aria-disabled', 'true')
+  await expect(transferencia.getByRole('img', { name: 'Editado a mano' })).toHaveCount(0)
 })
 
 // 4-25: la celda lee con el locale de la empresa (es-BO): «1.234» es mil doscientos treinta y cuatro y «1.5» no sale, con su aviso.
