@@ -17,7 +17,7 @@ type Props = {
   monedasActivas: readonly string[]
 }
 
-// Configuración › Repuestos › «Cotizador» (8.12-2, C8–C9): la fórmula vigente con su historial, los tramos de logística y las cajas por moneda. Lo lee la
+// Repuestos › Configuración › «Cotizador» (8.12-2, C8–C9): la fórmula vigente con su historial, los tramos de logística y las cajas por moneda. Lo lee la
 // página en el servidor; cada action renueva la ruta (`revalidatePath`). Escribir lo exige `repuestos.configurar` (la RLS); la página ya lo pide.
 export function ConfiguracionDelCotizador({ lectura, monedasActivas }: Props) {
   const grupos = agruparPorMoneda(monedasActivas, lectura.tramos, lectura.cajas)

@@ -96,9 +96,11 @@ test('la dueña ve las fases de un origen en orden, abre el flujo de repuestos y
     if (fase.final) await expect(fila).toContainText('Final')
   }
 
-  // Repuestos › Flujo de repuestos: las fases son las del otro flujo.
-  await page.goto('/configuracion/repuestos/flujo?vista=lista')
-  await expect(page.getByRole('heading', { name: 'Flujo de repuestos', level: 1 })).toBeVisible()
+  // Repuestos › Configuración › Flujo: las fases son las del otro flujo.
+  await page.goto('/repuestos/configuracion/flujo?vista=lista')
+  await expect(
+    page.getByRole('heading', { name: 'Configuración de repuestos', level: 1 }),
+  ).toBeVisible()
   await expect(nombres).toHaveText(repuestos.map((f) => f.nombre))
 
   // El inspector de una fase: por un clic, y también por la URL tras recargar.
@@ -123,7 +125,7 @@ test('la dueña ve las fases de un origen en orden, abre el flujo de repuestos y
 
   // Un id que no es de una fase del flujo no abre nada.
   await page.goto(
-    '/configuracion/repuestos/flujo?vista=lista&fase=00000000-0000-4000-8000-000000000000',
+    '/repuestos/configuracion/flujo?vista=lista&fase=00000000-0000-4000-8000-000000000000',
   )
   await expect(nombres).toHaveText(repuestos.map((f) => f.nombre))
   await expect(page.getByRole('dialog')).toBeHidden()
@@ -153,7 +155,7 @@ test('una asesora no abre el flujo de un origen ni el de repuestos', async ({ pa
   await page.goto(`/configuracion/origenes/${idDelOrigen('subasta_usa')}/fases`)
   await expect(page.getByText('No puedes abrir este origen')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Fases', level: 2 })).toBeHidden()
-  await page.goto('/configuracion/repuestos/flujo')
+  await page.goto('/repuestos/configuracion/flujo')
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Fases', level: 2 })).toBeHidden()
 })

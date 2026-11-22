@@ -466,7 +466,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 - **Repuestos** — `/repuestos` (`repuestos.ver`): proyectos por cursor `numero` (`?q=` de 3 letras o un número,
   `?estado=abiertos|cerrados|todos`, `?por=`, `?cursor=`) con número, vehículo o «Externo», cliente, estado derivado, ítems («200+») y
   última actividad; «Nuevo proyecto» (`repuestos.editar`, `N`, `?panel=nuevo-proyecto`, `&vehiculo=<id>` lo abre vinculado, `&lead=<id>` con el
-  cliente elegido; `?nuevo=proyecto` lo conserva en la URL debajo de «Nuevo lead»).
+  cliente elegido; `?nuevo=proyecto` lo conserva en la URL debajo de «Nuevo lead»); con `repuestos.configurar`, el ⚙ «Configurar» en la fila de filtros de las tres vistas (a «Repuestos (config)»).
   - `/repuestos/[id]`: la cabecera dice **de qué vehículo es**, en un recuadro bajo el título: la miniatura de su portada, el título enlazado a su ficha, el
     VIN o el lote (con los dos, «VIN X · Lote N»), el origen y la situación; sin vehículo, «Proyecto externo · sin vehículo» con la etiqueta y el VIN escritos;
     debajo, el cliente y las notas. «Cerrar proyecto» o «Reabrir proyecto» (y «Eliminar proyecto» sin ítems: sin confirmación, con «Deshacer»); bajo la
@@ -531,8 +531,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   últimos 5 cambios del registro como frases, cada uno a su detalle en `/actividad`, y «Ver toda la actividad»; esqueleto, «Sin cambios en
   los últimos N días.» y error con «Reintentar»; sin `actividad.ver` no se dibuja.
 - **Configuración** — `/configuracion/*` (permiso de cada sección): inicio en `/configuracion/inicio` (`/configuracion` redirige con 308 y su consulta)
-  - secciones, del registro `secciones.ts`: «Empresa y equipo» (Empresa, Equipo, Roles) · «Ventas» (Leads, Orígenes) · «Operación» (Catálogos,
-    Repuestos) · «Web» (Sitio web, Cola web). En **toda** página de Configuración, el inicio
+  - secciones, del registro `secciones.ts`: «Empresa y equipo» (Empresa, Equipo, Roles) · «Ventas» (Leads, Orígenes) · «Operación» (Catálogos) · «Web» (Sitio web, Cola web). En **toda** página de Configuración, el inicio
     incluido (layout de `/configuracion`): a la izquierda el **menú de Configuración** desde 1024 px y con 44 rem de contenedor (con el texto al 200 % pasa
     al selector), de tres niveles que no se confunden: el **grupo** es un rótulo en mayúscula chica (no es enlace), la **sección** un renglón con su ícono del
     catálogo y su nombre (la abierta, en negrita; la página, con acento y `aria-current="page"`) y **sólo la sección abierta** despliega sus sub-secciones,
@@ -592,13 +591,17 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   página de Logística y sólo con `logistica.catalogos.gestionar`; en la configuración lleva `aria-current="page"` y ningún enlace de la barra queda marcado. Una pestaña
   sin permiso va apagada con su motivo y su URL dice «No tienes permiso para ver esto» (cada página comprueba la suya). El buscador de Configuración las sigue encontrando
   («puertos», «navieras», «gastos», «documentos», «logística»: «Logística › Puertos»…) y lleva aquí. Ver «Logística: estados propios».
-- **Repuestos (config)** — `/configuracion/repuestos` (`repuestos.configurar`) abre `/flujo`. **Flujo de repuestos** (`/configuracion/repuestos/flujo`):
-  el editor del flujo (el de la pestaña Fases de un origen) sobre el flujo de los repuestos, sin selector. **Catálogos** (`/configuracion/repuestos/catalogos`):
-  tipo de pieza, condición, vía de transporte y país de origen (agregar, editar nombre, orden y activo, desactivar, eliminar sin uso; tope 200 por
-  catálogo con `<AvisoDeTope>`; `?panel=nuevo-valor&catalogo=`, `editar-valor&valor=`, `eliminar-valor&valor=`). **Cotizador de repuestos**
-  (`/configuracion/repuestos/cotizador`): «Fórmula» con «Publicar cambios» (publica una versión nueva: no es una barra de «Guardar») y su
-  historial, «Tramos de logística» y «Cajas» por moneda con sus modales en la URL (`?panel=tramo|caja`). Las URLs viejas
-  `?seccion=catalogos|cotizador` redirigen a su sub-ruta con sus `?panel=`, `tramo`, `caja` y `moneda` (sin `?seccion=` ni panel, a Flujo).
+- **Repuestos (config)** — `/repuestos/configuracion` (`repuestos.configurar`; la raíz abre `/flujo` con un 308): la página de Repuestos con un `h1` «Configuración de repuestos» y una tira de pestañas,
+  cada una una sub-ruta, a todo el ancho; en el celular la tira se desplaza con la abierta a la vista. Se entra con el ⚙ «Configurar» (nombre accesible «Configurar los repuestos»; 44 px y sólo el
+  ícono en el celular, con su texto desde 768 px) de la fila de filtros de `/repuestos`, junto a «Vista y opciones» y «Nuevo proyecto», en las tres vistas y sólo con `repuestos.configurar`. **Flujo**
+  (`/repuestos/configuracion/flujo`): el editor del flujo (el de la pestaña Fases de un origen) sobre el flujo de los repuestos, sin selector. **Cotizador** (`/repuestos/configuracion/cotizador`):
+  «Fórmula» con «Publicar cambios» (publica una versión nueva: no es una barra de «Guardar») y su historial, «Tramos de logística» y «Cajas» por moneda con sus modales en la URL
+  (`?panel=tramo|caja`); cada tramo y cada caja es una fila con sólo su «⋯» («Editar…»), y un toque la abre. **Catálogos** (`/repuestos/configuracion/catalogos`): tipo de pieza, condición, vía de
+  transporte y país de origen (agregar, editar nombre, orden y activo, desactivar, eliminar sin uso; tope 200 por catálogo con `<AvisoDeTope>`; `?panel=nuevo-valor&catalogo=`,
+  `editar-valor&valor=`, `eliminar-valor&valor=`); la fila se nombra «Editar <nombre>», un toque la abre y su «⋯» trae «Editar» primero; sin «Editar» ni flechas a la vista. Sin `repuestos.configurar`,
+  cada pestaña dice «No tienes permiso» y no hay ⚙. Las URLs viejas (`/configuracion/repuestos`, con `?seccion=catalogos|cotizador` y sus `?panel=`; `/configuracion/repuestos/<pestaña>`;
+  `/configuracion/flujos?ambito=repuestos`) redirigen con 308 y su consulta a su pestaña (sin `?seccion=` ni panel, a Flujo). El buscador de Configuración sigue encontrando «Flujo de repuestos»,
+  «Cotizador de repuestos» y «Catálogos de repuestos» y lleva aquí. Estados: esqueleto con la forma de cada pestaña; error de lectura con «Reintentar»; ver «Flujos: configuración (estados propios)».
 - **Orígenes** — `/configuracion/origenes` (`origenes.gestionar`, `flujos.configurar` o `cotizaciones.configurar`, cada una **en ese origen**): la
   frase «De dónde vienen los vehículos: sus datos, campos y categorías, su flujo, su fórmula y sus tablas.», «Nuevo origen» (un enlace a
   `/configuracion/origenes/nuevo`; `?panel=nuevo` responde 308 ahí con su consulta; sin `origenes.gestionar`, apagado con su motivo) y, como tarjetas, sólo los orígenes que la persona abre (dos columnas desde 40 rem de contenedor; una al 200 % y en el celular; tope 100
@@ -1055,7 +1058,7 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 ### Flujos: configuración (estados propios)
 
-- **Entrada:** la pestaña Fases de un origen con `flujos.configurar` en ese origen, y Repuestos › Flujo de repuestos con `repuestos.configurar`;
+- **Entrada:** la pestaña Fases de un origen con `flujos.configurar` en ese origen, y Repuestos › Configuración › Flujo con `repuestos.configurar`;
   sin el permiso, la pestaña va apagada con su motivo y su URL dice «No puedes abrir esta pestaña». Los tipos de documento de la empresa, sin
   diagrama ni panel, en Logística › Configuración › Tipos de documento.
 - **Sin selector:** cada página abre un flujo fijo, nunca el de otro origen. Vacíos: el flujo sin fases («El flujo de <origen> todavía no tiene
@@ -2083,6 +2086,7 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   principio»; error de `(app)`; sin `repuestos.ver`, «No tienes permiso».
 - **Sin «Anterior»:** «Siguiente» y, con cursor, «Volver al principio». Más de 200 ítems se escribe «200+».
 - **Vista «Stock»:** «Proyectos», «Cadena» y «Stock» en «Vista y opciones» › «Qué ver» (en «Stock», que no tiene barra, el botón va solo arriba a la izquierda; cambiar no conserva filtros ni página; «Nuevo proyecto» sólo en «Proyectos»).
+- **⚙ «Configurar»:** con `repuestos.configurar`, un enlace con nombre «Configurar los repuestos» en la fila de filtros de las tres vistas (en Stock, junto a «Vista y opciones»), a `/repuestos/configuracion`; sin la clave no se dibuja. Ver «Repuestos (config)».
   Columnas: ítem, proyecto (`#N` · vehículo, con «Cerrado»), en stock y desde; sin filtros, por cursor. Vacío: «No hay repuestos en
   stock.» con «Lo que sobra de un ítem se pasa a stock desde la hoja de su proyecto.». La fila abre el ítem en la hoja de su proyecto con
   su panel de stock. El «⋯» (sólo con `repuestos.editar`, también con el proyecto cerrado): «Reasignar a un proyecto» (destino abierto,

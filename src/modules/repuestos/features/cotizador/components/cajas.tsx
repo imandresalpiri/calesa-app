@@ -1,6 +1,6 @@
 'use client'
 
-import { PencilIcon, PlusIcon } from 'lucide-react'
+import { PlusIcon } from 'lucide-react'
 import { AvisoDeTope } from '@/shared/ui/aviso-de-tope'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
@@ -10,6 +10,7 @@ import {
   TOPE_DE_CAJAS,
   type GrupoDeMoneda,
 } from '../../../entities/cotizador/filas-de-configuracion'
+import { FilaDeConfiguracion } from './fila-de-configuracion'
 
 type Props = {
   grupos: readonly GrupoDeMoneda[]
@@ -51,27 +52,18 @@ export function Cajas({ grupos, hayMas, alAgregar, alEditar }: Props) {
           {grupo.cajas.length === 0 ? (
             <EstadoVacio compacto titulo={`Sin cajas en ${grupo.moneda}.`} />
           ) : (
-            <ul className="grid gap-1.5">
+            <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,22rem),1fr))] gap-2">
               {grupo.cajas.map((caja, i) => (
-                <li
+                <FilaDeConfiguracion
                   key={caja.id}
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-(--radius-md) bg-(--color-surface-2) px-3 py-2 text-(length:--text-sm)"
+                  nombre={`la caja ${String(i + 1)} en ${grupo.moneda}`}
+                  alEditar={() => {
+                    alEditar(grupo.moneda, caja.id)
+                  }}
                 >
                   <Monto valor={Number(caja.monto)} moneda={grupo.moneda} />
                   {caja.activa ? null : <Badge variant="outline">Inactiva</Badge>}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ms-auto min-h-11 md:min-h-7"
-                    aria-label={`Editar la caja ${String(i + 1)} en ${grupo.moneda}`}
-                    onClick={() => {
-                      alEditar(grupo.moneda, caja.id)
-                    }}
-                  >
-                    <PencilIcon aria-hidden />
-                    Editar
-                  </Button>
-                </li>
+                </FilaDeConfiguracion>
               ))}
             </ul>
           )}

@@ -331,6 +331,5 @@ describe('Catálogos', () => {
       '/logistica/configuracion/tipos-de-documento',
       '/configuracion/catalogos/tablas',
     ])
-    expect(RUTAS.flujoDeRepuestos).toBe('/configuracion/repuestos/flujo')
   })
 })

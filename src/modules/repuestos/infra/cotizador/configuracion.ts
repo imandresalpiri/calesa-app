@@ -17,7 +17,7 @@ import {
 
 const NO_SE_LEYO = 'No se pudo cargar la configuración del cotizador.'
 
-// La configuración del cotizador para Configuración › Repuestos › «Cotizador» (8.12-2, C4), con el cliente de quien pide (leer pide
+// La configuración del cotizador para Repuestos › Configuración › «Cotizador» (8.12-2, C4), con el cliente de quien pide (leer pide
 // `repuestos.cotizar` o `repuestos.configurar`). Tablas de configuración de decenas de filas, con tope + 1 (`escala.md`): la configuración por su PK
 // (`order by id desc`: la primera es la vigente), los tramos por `repuestos_tramos_logistica_moneda_idx` y las cajas por el único `(moneda, monto)`.
 export async function leerConfiguracionDelCotizador(): Promise<

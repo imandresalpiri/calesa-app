@@ -73,13 +73,13 @@ describe('buscarEnConfiguracion', () => {
     expect(caminos('portal', [])).toEqual([])
   })
 
-  it('lo de un origen se busca en Orígenes, con los colores y la vigencia de todas las cotizaciones; los niveles, en Roles; lo global, en Catálogos', () => {
+  it('lo de un origen se busca en Orígenes, con los colores y la vigencia de todas las cotizaciones; los niveles, en Roles; lo global, en Catálogos; lo de repuestos ya no es de Configuración', () => {
     expect(caminos('fórmula')[0]).toBe('Orígenes')
     expect(caminos('flujo')).toContain('Orígenes')
     expect(caminos('colores')[0]).toBe('Orígenes › Colores')
     expect(caminos('niveles')[0]).toBe('Roles y permisos › Niveles de acceso')
     expect(caminos('tablas compartidas')[0]).toBe('Catálogos › Tablas compartidas')
-    expect(caminos('flujo de repuestos')[0]).toBe('Repuestos › Flujo de repuestos')
+    expect(caminos('flujo de repuestos')).toEqual([])
   })
 
   it('cada origen que suma el menú se encuentra por su nombre y abre su página (la última pestaña)', () => {
@@ -172,5 +172,54 @@ describe('los destinos de búsqueda de Logística', () => {
   it('sin destinos de afuera no hay nada; sin el permiso, tampoco', () => {
     expect(caminos('puertos')).toEqual([])
     expect(destinosFueraDeConfiguracion([])).toEqual([])
+  })
+})
+
+describe('los destinos de búsqueda de Repuestos', () => {
+  const fuera = destinosFueraDeConfiguracion(TODO)
+  const encontrados = (texto: string) =>
+    buscarEnConfiguracion(grupos, texto, fuera).map((r) => [r.camino, r.ruta])
+
+  it('el flujo, el cotizador y los catálogos de repuestos se encuentran y llevan a Repuestos › Configuración', () => {
+    expect(encontrados('flujo de repuestos')[0]).toEqual([
+      'Repuestos › Flujo de repuestos',
+      '/repuestos/configuracion/flujo',
+    ])
+    expect(encontrados('cotizador de repuestos')[0]).toEqual([
+      'Repuestos › Cotizador de repuestos',
+      '/repuestos/configuracion/cotizador',
+    ])
+    expect(encontrados('catálogos de repuestos')[0]).toEqual([
+      'Repuestos › Catálogos de repuestos',
+      '/repuestos/configuracion/catalogos',
+    ])
+  })
+
+  it('las palabras de siempre los siguen encontrando', () => {
+    const porPalabra: [string, string][] = [
+      ['fases', 'Repuestos › Flujo de repuestos'],
+      ['requisitos', 'Repuestos › Flujo de repuestos'],
+      ['fórmula', 'Repuestos › Cotizador de repuestos'],
+      ['tramos', 'Repuestos › Cotizador de repuestos'],
+      ['cajas', 'Repuestos › Cotizador de repuestos'],
+      ['tipo de pieza', 'Repuestos › Catálogos de repuestos'],
+      ['condición', 'Repuestos › Catálogos de repuestos'],
+      ['país de origen', 'Repuestos › Catálogos de repuestos'],
+    ]
+    for (const [palabra, camino] of porPalabra) {
+      expect(
+        encontrados(palabra).map(([c]) => c),
+        palabra,
+      ).toContain(camino)
+    }
+  })
+
+  it('sin repuestos.configurar no se ofrecen', () => {
+    const sinClave = destinosFueraDeConfiguracion(
+      TODO.filter((permiso) => permiso.clave !== 'repuestos.configurar'),
+    )
+    expect(
+      buscarEnConfiguracion(grupos, 'cotizador de repuestos', sinClave).map((r) => r.camino),
+    ).toEqual([])
   })
 })

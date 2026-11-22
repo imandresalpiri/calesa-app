@@ -46,6 +46,6 @@ describe('textoDelImpacto', () => {
 describe('hrefDeFase', () => {
   it('abre el inspector del flujo de un origen o el de repuestos', () => {
     expect(hrefDeFase(G(5), G(6))).toBe(`/configuracion/origenes/${G(5)}/fases?fase=${G(6)}`)
-    expect(hrefDeFase('repuestos', G(6))).toBe(`/configuracion/repuestos/flujo?fase=${G(6)}`)
+    expect(hrefDeFase('repuestos', G(6))).toBe(`/repuestos/configuracion/flujo?fase=${G(6)}`)
   })
 })
