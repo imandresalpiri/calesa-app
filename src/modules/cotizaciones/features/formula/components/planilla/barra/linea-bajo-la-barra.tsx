@@ -23,46 +23,66 @@ type Props = {
 // Al menos un renglón, haya algo que decir o no: elegir una celda no mueve la grilla.
 export const RENGLON_BAJO_LA_BARRA = 'min-h-[1lh] min-w-0 text-(length:--text-sm)'
 
-// La línea bajo la barra sin nada escrito: de dónde sale la fila elegida, en palabras (lo que la fórmula hace con ella), y, separado por «·», lo que el último
-// cambio soltó de la fila y, en un tipo de cambio, el camino a Empresa › Monedas (no se versiona). Lo que dice su texto tras un ⚙ (reescrito o «ya no manda»)
-// va debajo, sólo cuando pasa.
+type Pieza = { clave: string; etiqueta?: string; texto: string }
+
+// Lo que dice la línea, en orden: de dónde sale, lo soltado y que el tipo de cambio no se versiona.
+function piezasDe(dicho: string, soltados: readonly string[], conMonedas: boolean): Pieza[] {
+  const piezas: Pieza[] = []
+  if (dicho !== '') piezas.push({ clave: 'dicho', etiqueta: 'De dónde sale: ', texto: dicho })
+  if (soltados.length > 0) {
+    const nombres = soltados.map((s) => SOLTADOS[s] ?? s).join(', ')
+    piezas.push({ clave: 'soltados', texto: `Al aplicar se soltó: ${nombres}.` })
+  }
+  if (conMonedas) {
+    piezas.push({
+      clave: 'monedas',
+      texto: 'El tipo de cambio no se versiona: cambia varias veces por semana.',
+    })
+  }
+  return piezas
+}
+
+// La línea bajo la barra sin nada escrito, en un solo renglón (lo largo se corta con «…» y va entero en `title`; elegir otra celda no mueve la grilla): de dónde
+// sale la fila elegida, en palabras (lo que la fórmula hace con ella), y, separado por «·», lo que el último cambio soltó de la fila y, en un tipo de cambio, que
+// no se versiona, con el camino a Empresa › Monedas siempre a la vista. Lo que dice su texto tras un ⚙ (reescrito o «ya no manda») va debajo, sólo cuando pasa.
 export function LineaBajoLaBarra({ planilla, fila, puedeCambiarTiposDeCambio }: Props) {
   const { aplicada } = planilla.editor
   const soltados = aplicada?.id === fila.id ? aplicada.soltados : []
   const texto = planilla.editor.filas.find((f) => f.id === fila.id)?.texto
-  const dicho = planilla.calculo.dichas.get(fila.id) ?? ''
-  const partes = [
-    dicho === '' ? null : (
-      <span key="dicho">
-        De dónde sale: <span className="text-(--color-ink)">{dicho}</span>
-      </span>
-    ),
-    soltados.length === 0 ? null : (
-      <span key="soltados">
-        Al aplicar se soltó: {soltados.map((s) => SOLTADOS[s] ?? s).join(', ')}.
-      </span>
-    ),
-    fila.tipo === 'tipo_de_cambio' && puedeCambiarTiposDeCambio ? (
-      <span key="monedas">
-        El tipo de cambio no se versiona: cambia varias veces por semana.{' '}
-        <Link
-          href={RUTAS.monedasDeEmpresa as Route}
-          className="text-(--color-primario-ink) underline"
-        >
-          Cambiar en Empresa › Monedas
-        </Link>
-      </span>
-    ) : null,
-  ].filter((p) => p !== null)
+  const conMonedas = fila.tipo === 'tipo_de_cambio' && puedeCambiarTiposDeCambio
+  const piezas = piezasDe(planilla.calculo.dichas.get(fila.id) ?? '', soltados, conMonedas)
   return (
     <div
       data-linea-bajo-la-barra=""
       className={`grid gap-1 text-(--color-ink-soft) ${RENGLON_BAJO_LA_BARRA}`}
     >
-      {partes.length === 0 ? null : (
-        <p className="min-w-0 break-words">
-          {partes.flatMap((p, i) => (i === 0 ? [p] : [<span key={`s${String(i)}`}> · </span>, p]))}
-        </p>
+      {piezas.length === 0 ? null : (
+        <div className="flex min-w-0 items-baseline gap-1">
+          <p
+            className="min-w-0 truncate"
+            title={piezas.map((p) => `${p.etiqueta ?? ''}${p.texto}`).join(' · ')}
+          >
+            {piezas.map((p, i) => (
+              <span key={p.clave}>
+                {i === 0 ? null : ' · '}
+                {p.etiqueta}
+                {p.etiqueta === undefined ? (
+                  p.texto
+                ) : (
+                  <span className="text-(--color-ink)">{p.texto}</span>
+                )}
+              </span>
+            ))}
+          </p>
+          {conMonedas ? (
+            <Link
+              href={RUTAS.monedasDeEmpresa as Route}
+              className="shrink-0 whitespace-nowrap text-(--color-primario-ink) underline"
+            >
+              Cambiar en Empresa › Monedas
+            </Link>
+          ) : null}
+        </div>
       )}
       {texto === undefined || texto.modo === 'campos' ? null : (
         <EstadoDelTexto texto={texto} sinTexto />
