@@ -715,8 +715,9 @@ las trampas, en `docs/LECCIONES.md`.
   que da la fila con la unidad de ejemplo, y donde se escribe esa unidad). Regla: la misma cifra no se dibuja dos veces en una fila (un valor fijo deja
   Ejemplo vacío). «De dónde sale» es una sola línea bajo la barra, de la fila elegida; los tipos de celda, un popover «?»; la única guía, el placeholder
   «Escribe = y toca las celdas: =C5+C7», a la vista al entrar (la barra no toma la activa hasta que se elige una celda); `fx ▾` inserta una función sin saber escribirla. «Totales» y la tarjeta abren al costado (`?costado=`, un
-  `Drawer` no modal desde 1024 px, cerrados al entrar; con uno abierto la planilla reserva su ancho a la derecha, porque si no tapa la columna Ejemplo
-  y el «⋯» de cada fila), y el estado del guardado va en la barra de la fórmula de la página (que ya dice sobre qué versión
+  `Drawer` no modal desde 1024 px, cerrados al entrar; con uno abierto la página del origen reserva su ancho a la derecha (28 rem «Totales», 36 rem
+  la tarjeta: su layout mira `data-con-costado` con `:has`; en la puesta en marcha, la planilla) y la fila de la barra se parte si no cabe, porque si no tapa la
+  columna Ejemplo, el «⋯» de cada fila y los botones de la barra), y el estado del guardado va en la barra de la fórmula de la página (que ya dice sobre qué versión
   se edita: «Sobre…» queda sólo en la puesta en marcha). La clave interna de Ejemplo sigue siendo `D` (`data-celda="D5"`, la acción de la fila en la
   URL, los e2e): sólo cambia el nombre visible, «Ejemplo 5». Un número en la C de una fila del asesor no la vuelve valor fijo en silencio: lo dice y
   pide «Tipo de celda». Si lo nuevo pasa el presupuesto de JS en frío de una ruta por ≤ 5 %, se sube el tope con su motivo (`docs/RENDIMIENTO.md`);
