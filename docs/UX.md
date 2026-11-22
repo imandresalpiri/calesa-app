@@ -1512,19 +1512,28 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   (sin reintento solo). Por URL sin borrador: avisa y limpia.
 - **Planilla** (la vista por defecto, sobre el borrador o, sin él, la publicada; sin ninguna, el vacío de la publicada y no hay planilla; la única
   forma de editar la fórmula): lee la versión desde el navegador al abrir la pestaña (esqueleto, error con «Reintentar», versión que ya no se
-  abre). Arriba «Sobre…», el «⋯» de la planilla («Nueva banda…», «Total y tipos de cambio…», «Unidad de ejemplo: volver a ceros», apagado en
-  ceros, y «¿Cómo se escribe?») y «Guardar el borrador»; debajo, la leyenda de los ocho tipos de celda (el fondo que cada uno da a C) y la
-  **Barra de fórmula**, que queda fija bajo la cabecera de la página al desplazarse. La cuadrícula (`role="grid"`, «Filas de la fórmula de
+  abre). A todo el ancho, sin guías a la vista. En la barra de la fórmula de la página van «Guardar el borrador» con su línea de estado en letra chica
+  y el «⋯» de la planilla («Nueva banda…», «Total y tipos de cambio…», «Unidad de ejemplo: volver a ceros», apagado en ceros, y «¿Cómo se
+  escribe?»); «Sobre…» sólo en la puesta en marcha (en la página lo dice el estado de la barra). Los avisos del guardado (conflicto, errores, lo
+  que el diseño no muestra) van arriba de la planilla. La **Barra de fórmula** queda fija bajo la cabecera de la página al desplazarse: el nombre
+  de la celda («C5», «Ejemplo 5»), `fx ▾` (inserta una función; apagado con su motivo: «Toca una celda para escribir una fórmula.», «Las
+  funciones van en C.» o el de la celda), el texto (vacío, «Escribe = y toca las celdas: =C5+C7»; al entrar no hay celda elegida y se ve esa guía), y a la derecha «Totales», «Tarjeta» y «?»
+  (un popover con los ocho tipos de celda y el fondo que cada uno da a C). Debajo, una sola línea con la fila elegida: «De dónde sale: …», lo
+  que el último cambio soltó, lo que dice el texto tras un ⚙ (reescrito o «ya no manda») y, en un tipo de cambio, el camino a Empresa ›
+  Monedas. La cuadrícula (`role="grid"`, «Filas de la fórmula de
   <origen>»), con las filas en el orden en que se calculan: «#» (el número, el mismo al buscar; arrastrarlo mueve la fila), «A · concepto»,
-  «B · %», «C · valor» (con la unidad de ejemplo; sin cifra, «—» con su motivo en el `title` y para el lector) y «D · de dónde sale». Cada tramo
-  de una banda lleva su cabecera (color, etiqueta, «Plazo: …», «Tipo de cambio: …» del modo elegido y su «⋯»); las filas sin banda, ninguna.
-  Hasta 500 filas con aviso y «Buscar fila» (por concepto: «Ninguna fila tiene «x» en el concepto.»); sin filas, «Esta fórmula no tiene
-  filas.» con «Sumar la primera fila». **Al costado** (cuando la planilla mide 72 rem o más; si no, debajo): «Totales» (el total en dólares y
-  en la moneda local con el modo elegido, la base imponible y lo aparte, cada uno con `<Monto>` y cómo sale; lo aparte apagado dice por qué) y
-  «Tarjeta de la cotización» (la plantilla de esta fórmula, el borrador si hay, con la unidad de ejemplo y el selector de modo «Tipo de
-  cambio» con dos o más modos; sin plantilla, «Esta fórmula todavía no tiene tarjeta.» con «La imagen que recibe el cliente»; si no se leyó,
-  «Reintentar»). En el celular y con el texto al 200 % la cuadrícula se desplaza de costado en su marco con «#» y A pegadas y la barra a lo
-  ancho; la página no se ensancha.
+  «B · %», «C · valor» (lo que guarda la fórmula: el valor fijo, el cálculo en A1 como «=C5+C7» o, en lo que no se escribe, de dónde sale en
+  corto) y «Ejemplo» (glosario: «Ejemplo (columna)»: lo que da la fila con la unidad de ejemplo; nada en un valor fijo, porque su número ya
+  está en C; se escribe en las filas que se llenan al cotizar; sin cifra, «—» con su motivo en el `title` y para el lector). Cada tramo de una
+  banda lleva su cabecera en una línea (la muestra del color, etiqueta, «Plazo: …», «Tipo de cambio: …» del modo elegido y su «⋯»; lo largo
+  se recorta con su `title`; en un marco angosto se parte en dos); las filas sin banda, ninguna. Hasta 500 filas con aviso y «Buscar fila»
+  (por concepto: «Ninguna fila tiene «x» en el concepto.»); sin filas, «Esta fórmula no tiene filas.» con «Sumar la primera fila».
+  **Al costado** (`?costado=totales|tarjeta`, cerrados al entrar; uno a la vez; desde 1024 px no son modales y la página del origen (en la puesta en
+  marcha, la planilla) se corre a la izquierda el ancho del panel para que nada quede debajo, ni la barra de la fórmula, más angosto son el drawer modal): «Totales» (el total en dólares y en la moneda local con el modo elegido, la base imponible y lo aparte, cada
+  uno con `<Monto>` y cómo sale; lo aparte apagado dice por qué) y «Tarjeta de la cotización» (la plantilla de esta fórmula, el borrador si
+  hay, con la unidad de ejemplo y el selector de modo «Tipo de cambio» con dos o más modos; sin plantilla, «Esta fórmula todavía no tiene
+  tarjeta.» con «La imagen que recibe el cliente»; si no se leyó, «Reintentar»). En el celular y con el texto al 200 % la cuadrícula se
+  desplaza de costado en su marco con «#» y A pegadas y la barra se parte en dos líneas; la página no se ensancha.
 - **Escribir, como en Excel:** una celda activa que mueven las flechas, Tab y Shift+Tab, Enter y Shift+Enter, Inicio y Fin, Ctrl+Inicio y
   Ctrl+Fin y RePág y AvPág. F2, doble clic o una tecla escriben en ella (el mismo texto se ve en la barra, que también se edita); Enter o Tab
   aplican y pasan a la de abajo o a la de la derecha, `Ctrl/Cmd+Enter` aplica desde la barra y Esc descarta. Con «=», un clic o un toque en
@@ -1532,12 +1541,15 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   («C5 Remate · C7 Fees») bajo la barra y el borde del mismo color en su celda. Las sugerencias (funciones con su firma y un ejemplo, conceptos
   de arriba, bandas y, en BUSCARV, tablas y columnas) se eligen con ↑/↓ y Enter o Tab. Un error queda bajo la barra (`role="alert"`) con su
   tramo ondulado y la edición abierta (`aria-invalid`): «C12 está más abajo: una fórmula sólo usa filas de arriba.» con «Mover esta fila debajo
-  de la 12», «Una fila no se usa a sí misma (C7).», las columnas A y D, una B sin %, un rango fuera de SUMA, MAX o MIN; pisar un valor del ⚙
+  de la 12», «Una fila no se usa a sí misma (C7).», la columna A, Ejemplo («D5: Ejemplo no se usa en una fórmula: es la unidad de ejemplo. En
+  una fórmula va C5.»), una B sin %, un rango fuera de SUMA, MAX o MIN; pisar un valor del ⚙
   pide «Pisar el valor». Con texto sin aplicar, lo demás espera: «Aplica o descarta lo que escribes en la planilla.». Una celda que no se
-  escribe lo dice: «Esta celda no se escribe: <de dónde sale>. Cambia su tipo en «Tipo de celda».»; D, «D dice de dónde sale el valor: se
-  calcula sola.». Lo escrito en la B o la C de un valor fijo escribe `params` y reescribe su texto como el ⚙, sin preguntar; en una fila del
-  asesor, un dato del vehículo, un interruptor o la variante es la unidad de ejemplo (no se guarda). Bajo la barra, sin nada escrito: lo que
-  el último cambio soltó, lo que dice el texto tras un ⚙ (reescrito o «ya no manda») y, en un tipo de cambio, el camino a Empresa › Monedas.
+  escribe lo dice: «Esta celda no se escribe: <de dónde sale>. Cambia su tipo en «Tipo de celda».»; Ejemplo de un cálculo, «Ejemplo es lo que
+  da esta fila con la unidad de ejemplo: se calcula sola.», y el de un valor fijo, «El valor fijo se escribe en C5.». Lo escrito en la B o la C
+  de un valor fijo escribe `params` y reescribe su texto como el ⚙, sin preguntar. En una fila del asesor, un dato del vehículo, un interruptor
+  o la variante, la unidad de ejemplo se escribe en Ejemplo (no se guarda); su C no toma un número: «Esta celda la escribe el asesor al
+  cotizar: el ejemplo va en la columna Ejemplo. Para un valor fijo, cambia su tipo en «Tipo de celda».» (o «Esta celda se llena al cotizar:
+  …»), y vacía no cambia nada. En Live, los montos de C (valor fijo) y de Ejemplo pasan por `<Monto>` y su entrada va como contraseña.
 - **Filas:** el «⋯» de la fila activa (arriba a la derecha de la fila, `Acciones de la fila N`) y el clic derecho abren la misma lista:
   «Insertar arriba», «Insertar abajo» (la fila nueva, «Fila nueva», un valor fijo en 0 con la banda de la de referencia, abre su concepto
   elegido para escribir), «Duplicar», «Mover arriba» y «Mover abajo» (Alt+↑ y Alt+↓; apagados en la primera y la última), «Tipo de celda ›»,
@@ -1563,7 +1575,10 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   fila, que nace con ella) y el «⋯» de cada cabecera: «Renombrar, color, plazo y tipo de cambio…» (`?panel=banda&banda=<id>`, «Banda «X»») y
   «Quitar banda» (sus filas quedan sin banda, con «Se quitó la banda «X».» y «Deshacer»; apagado con su motivo si un texto la nombra o la usa
   la tarjeta). El panel: «Etiqueta», «Plazo de pago» (opcional), «Color» (del catálogo, leído al montarse; si no se leyó, «No se pudieron leer
-  los colores de la empresa.»), «Tipo de cambio» (una fila «Tipo de cambio» de la fórmula; con modos en la hoja, cada modo elige el de cada
+  los colores de la empresa.» con «Reintentar») con «+ Nuevo color» debajo (sólo con `cotizaciones.configurar`; apagado hasta leer los colores):
+  abre «Nuevo color» (`?color=nuevo`, el modal de la sección de colores: nombre, color y cómo se ve; «Ya hay 48 colores, que es el máximo.
+  Elimina uno que ningún grupo use.», «Ya hay un color «X».», sin red conserva lo escrito y reintenta al volver), lo crea en el catálogo y lo
+  deja elegido, y al cerrar el foco vuelve a «Color»; «Tipo de cambio» (una fila «Tipo de cambio» de la fórmula; con modos en la hoja, cada modo elige el de cada
   banda y uno que no tiene bucket se rechaza: «La hoja tiene modos de tipo de cambio: suma este tipo de cambio primero en cada modo, en
   «Hoja».») y sus filas, con «Quitar» y «Sumar una fila» (sin banda, una fila no entra en el total); «Crear banda» o «Aplicar». Arrastrar una
   fila a un tramo de otra banda le pone esa banda. Un rechazo de la fórmula (el doble conteo, «… se contaría dos veces.»; una banda vacía) va a

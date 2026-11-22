@@ -33,7 +33,7 @@ import {
 
 // El texto de una fila en la planilla (`docs/UX.md` › «Cotización: fórmula (estados propios)»): la barra de fórmula lo lee en A1 y lo compila al aplicar, con el error
 // bajo la barra y lo escrito a la vista. Cierra 4-6 (2.001 caracteres) y 4-5 (tras un ⚙ el texto dice el valor nuevo, o que ya no manda, y recompilar no pisa el ⚙
-// sin preguntar). Lo aplicado vive en la pestaña del navegador hasta guardar: vuelve al recargar, con «Descartar». Los valores de C salen de la unidad de ejemplo
+// sin preguntar). Lo aplicado vive en la pestaña del navegador hasta guardar: vuelve al recargar, con «Descartar». Los valores de Ejemplo salen de la unidad de ejemplo
 // en 0, el tipo de cambio de hoy y la tabla que manda (la del origen sobre la compartida; la que la fórmula congeló, sobre las dos).
 test.describe.configure({ mode: 'serial' })
 
@@ -177,16 +177,16 @@ test('lo aplicado vuelve al recargar, con su «Descartar»', async ({ page }) =>
   await expect(textoDeLaBarra(page)).toHaveValue(`=${pub}*4%`)
 })
 
-test('los valores de C: la unidad de ejemplo, el tipo de cambio de hoy y la tabla que manda', async ({
+test('los valores de Ejemplo: la unidad de ejemplo, el tipo de cambio de hoy y la tabla que manda', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
   await abrirPlanilla(page, delOrigen.id)
-  await expect(celdaDe(page, 'doble')).toContainText(/1\.800,00/)
-  await expect(celdaDe(page, 'tc')).toContainText(String(TC))
-  await expect(celdaDe(page, 'factor')).toContainText('0,25')
+  await expect(celdaDe(page, 'doble', 'D')).toContainText(/1\.800,00/)
+  await expect(celdaDe(page, 'tc', 'D')).toContainText(String(TC))
+  await expect(celdaDe(page, 'factor', 'D')).toContainText('0,25')
   await abrirPlanilla(page, soloCompartida.id)
-  await expect(celdaDe(page, 'factor')).toContainText('0,5')
+  await expect(celdaDe(page, 'factor', 'D')).toContainText('0,5')
   await abrirPlanilla(page, congelada.id)
-  await expect(celdaDe(page, 'factor')).toContainText('0,9')
+  await expect(celdaDe(page, 'factor', 'D')).toContainText('0,9')
 })

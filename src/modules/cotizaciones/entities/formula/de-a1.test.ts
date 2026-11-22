@@ -60,7 +60,14 @@ const RECHAZOS = [
   ['=C40', TOTAL, 'fila_inexistente', 'C40 no existe: la planilla llega hasta la fila 8.', 1, 3],
   ['=C0', TOTAL, 'fila_inexistente', 'C0 no existe: la planilla llega hasta la fila 8.', 1, 2],
   ['=A2*2', TOTAL, 'columna_a', 'A2 es el concepto: en una fórmula va C2 (valor) o B2 (%).', 1, 2],
-  ['=D2', TOTAL, 'columna_d', 'D2 es «de dónde sale»: en una fórmula va C2.', 1, 2],
+  [
+    '=D2',
+    TOTAL,
+    'columna_ejemplo',
+    'D2: Ejemplo no se usa en una fórmula: es la unidad de ejemplo. En una fórmula va C2.',
+    1,
+    2,
+  ],
   [
     '=E2',
     TOTAL,

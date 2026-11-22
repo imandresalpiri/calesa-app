@@ -684,7 +684,7 @@ las trampas, en `docs/LECCIONES.md`.
   la lista hace `router.refresh()`, la cabeza aplica el nombre nuevo y archivar o eliminar desde el editor vuelven a la lista por `salirSinPerder()`.
 - **Los avisos de la copia quedan hasta «Ocultar»** (sin preguntar; `sessionStorage`, por fórmula): dicen qué tablas se crearon y qué datos del vehículo
   faltan, y se leen al llegar a la planilla, no en un toast que se va. Los datos que faltan siguen marcados en sus filas mientras falten, sin el aviso.
-- **La fórmula se ve y se edita como planilla con referencias A1; se guardan ids.** A · concepto, B · %, C · valor, D · de dónde sale. `C5` y `B9` son
+- **La fórmula se ve y se edita como planilla con referencias A1; se guardan ids.** A · concepto, B · %, C · valor, Ejemplo (ver «La planilla con la grilla y la barra de fórmula»). `C5` y `B9` son
   del navegador (`aA1()` al mostrar, `deA1()` antes de compilar): `nodo.texto` nunca lleva una celda, así que insertar, mover o eliminar filas no reescribe
   ningún texto. No hay editor en texto aparte. Una sola copia de trabajo, la de la sesión; las
   tarjetas de la publicada y del borrador no llevan «Editar». La sesión se vuelve a montar con «Recargar» o si la versión cambia por algo que no hizo
@@ -708,14 +708,29 @@ las trampas, en `docs/LECCIONES.md`.
   puede decirlo, queda «el texto ya no manda» y «Pisar el valor» rige sólo al recompilar ese texto en la barra de fórmula.
 - **«Publicar…» espera mientras haya cambios aplicados sin guardar** («Guarda el borrador antes de publicar: se publica lo guardado.»): publicar algo
   distinto de lo que muestra la planilla sería un error de dinero.
-- **La planilla en el celular y con el texto al 200 %** se desplaza de costado en su marco con «#» y A pegadas (D se parte en líneas): las dos cosas
-  pasan con el mismo ancho angosto y se eligió la del celular en vez de bajar B–D bajo A. «Totales» y la tarjeta van al costado cuando la planilla mide
-  72 rem o más (una consulta de contenedor, no `xl`): a 1.280 px la columna de Configuración deja ≈ 52 rem y la tabla quedaría apretada.
+- **La planilla en el celular y con el texto al 200 %** se desplaza de costado en su marco con «#» y A pegadas: las dos cosas pasan con el mismo ancho
+  angosto y se eligió la del celular en vez de bajar B y las demás bajo A.
+- **La planilla con la grilla y la barra de fórmula** (sin preguntar): lo que se edita va a todo el ancho y nada más está a la vista. La grilla tiene A ·
+  concepto, B · %, C · valor (lo que guarda la fórmula: el valor fijo, el cálculo en A1 o, en lo que no guarda, de dónde sale en corto) y Ejemplo (lo
+  que da la fila con la unidad de ejemplo, y donde se escribe esa unidad). Regla: la misma cifra no se dibuja dos veces en una fila (un valor fijo deja
+  Ejemplo vacío). «De dónde sale» es una sola línea bajo la barra, de la fila elegida; los tipos de celda, un popover «?»; la única guía, el placeholder
+  «Escribe = y toca las celdas: =C5+C7», a la vista al entrar (la barra no toma la activa hasta que se elige una celda); `fx ▾` inserta una función sin saber escribirla. «Totales» y la tarjeta abren al costado (`?costado=`, un
+  `Drawer` no modal desde 1024 px, cerrados al entrar; con uno abierto la página del origen reserva su ancho a la derecha (28 rem «Totales», 36 rem
+  la tarjeta: su layout mira `data-con-costado` con `:has`; en la puesta en marcha, la planilla) y la fila de la barra se parte si no cabe, porque si no tapa la
+  columna Ejemplo, el «⋯» de cada fila y los botones de la barra), y el estado del guardado va en la barra de la fórmula de la página (que ya dice sobre qué versión
+  se edita: «Sobre…» queda sólo en la puesta en marcha). La clave interna de Ejemplo sigue siendo `D` (`data-celda="D5"`, la acción de la fila en la
+  URL, los e2e): sólo cambia el nombre visible, «Ejemplo 5». Un número en la C de una fila del asesor no la vuelve valor fijo en silencio: lo dice y
+  pide «Tipo de celda». Si lo nuevo pasa el presupuesto de JS en frío de una ruta por ≤ 5 %, se sube el tope con su motivo (`docs/RENDIMIENTO.md`);
+  más obliga a diferir. Descartados: la columna D a la vista junto a Ejemplo (repetía el número), el costado fijo en columna (le quita ancho a la
+  grilla), convertir en silencio una celda del asesor en valor fijo y un modo de sólo lectura nuevo (la pestaña ya pide `cotizaciones.configurar`).
+- **«+ Nuevo color» desde la banda, por un hueco** (sin preguntar): el área `formula` no importa `diseno`; el modal de la sección de colores llega por
+  `NuevoColor` (`entities/nuevo-color.ts`), que `src/app` pasa sólo con `cotizaciones.configurar`. Abre `?color=nuevo` (no `?panel=`: es el del panel de
+  la banda, debajo) y el color creado se suma al catálogo leído sin releerlo.
 - **La tarjeta en vivo** dibuja la plantilla de la fórmula de trabajo leída con su fórmula publicada (sus etiquetas) y los valores de la fórmula de trabajo; «Ver total»
   sale del diseño (`ver_total_bs_por_defecto`, apagado sin él) y no se cambia en la planilla.
 - **Qué hace lo que se escribe en C** (sin preguntar): en un valor fijo, un número cambia el valor y `=` la vuelve cálculo; en un cálculo, `=` recompila y
-  un número la vuelve valor fijo; en las filas del asesor, dato del vehículo, interruptor y variante, un número es el valor de la unidad de ejemplo y `=`
-  la vuelve cálculo; el tipo de cambio y la tabla no se escriben («Cambia su tipo en «Tipo de celda».»). El id de una fila no cambia; un negativo no se
+  un número la vuelve valor fijo; en las filas del asesor, dato del vehículo, interruptor y variante, `=` la vuelve cálculo, un número se rechaza (su
+  ejemplo va en Ejemplo) y vacío no cambia nada; el tipo de cambio y la tabla no se escriben («Cambia su tipo en «Tipo de celda».»). El id de una fila no cambia; un negativo no se
   escribe en el texto; tope 2.000 por fila en UTF-16, del texto guardado (con ids). `key` = `<origen>:<vuelta>:<sesión>`.
 - **Bandas.** «Nueva banda» pide etiqueta, color, plazo, tipo de cambio y al menos una fila, y va al final de `grupos`; si la fórmula no tiene `total_en`,
   toma el tipo de cambio de la banda. Quitar una banda deja sus filas sin banda. Arrastrar una fila a un tramo le pone esa banda; a un tramo sin banda, se

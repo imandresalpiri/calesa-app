@@ -203,6 +203,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 ## Pulido de interfaz
 
 - **[—]** En Logística › Configuración › Navieras la lista tiene dos columnas «Estado» («Activo» y «Activa»): `columnaDeUso="Estado"` en `navieras-de-transporte.tsx` repite el título de la columna de estado; ponerle otro («Uso» o quitarla).
+- **[—]** La planilla de la fórmula a 1280 px con la tarjeta al costado (36 rem): # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
+  desplazando la grilla. Angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`).
 - **[—]** En el celular al 200 %, el «⋯» del panel de la fase queda más arriba que la ✕ (el «⋯» va en rem y la ✕ en px): alinear sus centros (`drawer.tsx`, `acciones`).
 - **[—]** `e2e/cierre-pendientes-capturas.spec.ts` falla en `movil` (también en `main`): en la sub-ruta `datos` del origen, el título no queda a la vista porque el panel «Datos del origen» está abierto.
 - **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px, los tercios del modal «Avanzado», un par con un lado bloqueado en el celular) baja sus
@@ -214,7 +216,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** La imagen de la tarjeta quita el recuadro al cargar (`onLoad`) y la grande del resumen puede verse un instante como un marco gris vacío hasta que el
   navegador la decodifica: pasar a «lista» tras `img.decode()` (`imagen-de-la-tarjeta.tsx`, `useCargaDeLaImagen()`).
 - **[—]** En el celular (≈ 390–412 px), «+ Nuevo» de la barra superior tapa la palabra «Buscar» del buscador («Bu» cortado; cede su ancho con `min-w-0` sin cortar el texto), también con un solo tipo de cambio: dibujar sólo la lupa cuando no cabe la palabra.
-- **[—]** En el celular (390 px), el «⋯» de la fila activa de la planilla de la fórmula queda al final de la fila, tras la D: llegar a él desplaza la cuadrícula
+- **[—]** En el celular (390 px), el «⋯» de la fila activa de la planilla de la fórmula queda al final de la fila, en Ejemplo: llegar a él desplaza la cuadrícula
   de costado y esconde la C. Fijarlo a la derecha como `#` y A van fijas a la izquierda (`fila-de-la-cuadricula.tsx`).
 - **[—]** `<Opciones>` (`src/shared/ui/opciones.tsx`): el radio `sr-only` es absoluto sin un `relative` en su etiqueta, y con las opciones en dos renglones cae bajo otra (el «Cómo empieza» de «Nueva fórmula»): sumar `relative` a la etiqueta.
 - **[—]** La burbuja del chat tapa contenido en el celular: el «⋯» de la primera fila de una lista de Configuración a la vista al abrir (390 px, la pestaña «Campos» de un origen), la esquina de «Guardar» de la barra de cambios sin guardar (Configuración › Leads › «Mensaje del portal»), y al 200 % el borde derecho del valor de una tarjeta de ajustes (la dirección de apibara) y la última línea de una página — reservar su lugar al pie del contenido y subirla mientras la barra está a la vista, como los avisos (`data-pie-de-panel`).

@@ -20,7 +20,7 @@ import {
   renumerar,
   type TramoDeTexto,
 } from '../../../entities/formula/referencias-tipeadas'
-import { MOTIVO_DE_D, type TextoDeLaCelda } from '../../../entities/formula/texto-de-la-celda'
+import type { TextoDeLaCelda } from '../../../entities/formula/texto-de-la-celda'
 import type { CeldaActiva } from './use-cuadricula'
 import type { EditorDeLaFormula } from './use-editor-de-la-formula'
 import { ESPERA_A_LA_FILA } from './use-guardar-borrador.soporte'
@@ -48,7 +48,13 @@ type Args = {
   alCambiarUnidad: (cambio: CambioDeLaUnidad) => void
 }
 
-type Apertura = { en: LugarDeLaEdicion; tipeado?: string; elegirTodo?: boolean }
+// `cursor`: dónde queda el cursor en lo tipeado (`fx`: entre los paréntesis de la función); sin él, al final.
+export type Apertura = {
+  en: LugarDeLaEdicion
+  tipeado?: string
+  elegirTodo?: boolean
+  cursor?: number
+}
 
 // La edición que abre una celda, o nula (con el aviso de por qué no se escribe).
 function edicionAlAbrir(
@@ -57,10 +63,6 @@ function edicionAlAbrir(
   libre: boolean,
   textoDe: (celda: CeldaActiva) => TextoDeLaCelda,
 ): EdicionDeLaCelda | null {
-  if (celda.col === 'D') {
-    avisar(MOTIVO_DE_D)
-    return null
-  }
   if (!libre) {
     avisar(ESPERA_A_LA_FILA)
     return null
@@ -76,7 +78,7 @@ function edicionAlAbrir(
     id: celda.id,
     col: celda.col,
     texto,
-    cursor: texto.length,
+    cursor: Math.min(a.cursor ?? texto.length, texto.length),
     ultima: null,
     error: null,
     en: a.en,
@@ -128,7 +130,9 @@ export function useEdicionConReferencias({ editor, hoja, locale, textoDe, alCamb
       return false
     }
     if (r.tipo === 'unidad') alCambiarUnidad(r.cambio)
-    else if (!editor.cambiar(r.formula, { id: e.id, soltados: r.soltados })) {
+    else if (r.tipo === 'nada') {
+      // Nada que cambiar: se cierra como si se aplicara.
+    } else if (!editor.cambiar(r.formula, { id: e.id, soltados: r.soltados })) {
       avisar('Espera a que se guarde el borrador.')
       return false
     }

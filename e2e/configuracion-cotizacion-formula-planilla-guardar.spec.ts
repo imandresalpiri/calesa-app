@@ -1,6 +1,7 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
+import { detalleDelEstado, estadoDeLaBarra } from './soporte/barra-de-la-formula'
 import {
   borrarPersonasDePrueba,
   borrarRolesDePrueba,
@@ -97,6 +98,12 @@ async function laComisionDice(page: Page, resto: string) {
   await expect(textoDeLaBarra(page)).toHaveValue(`=${await a1De(page, 'pub')}${resto}`)
 }
 
+// La barra de la fórmula dice sobre qué se edita: el borrador, con quién lo guardó.
+async function borradorDe(page: Page, autor: string) {
+  await expect(estadoDeLaBarra(page)).toHaveText('Borrador')
+  await expect(detalleDelEstado(page)).toHaveText(autor)
+}
+
 async function publicar(page: Page, nota: string) {
   await page.getByRole('button', { name: 'Publicar…' }).click()
   const modal = page.getByRole('dialog', { name: 'Publicar el borrador' })
@@ -118,7 +125,7 @@ test('G1: sobre la publicada crea el borrador con su diseño; el segundo guardad
 }) => {
   await entrar(page, duena, { fresco: true })
   await abrirPlanilla(page, crea.id)
-  await expect(planilla(page)).toContainText('Sobre la versión 1 publicada.')
+  await expect(estadoDeLaBarra(page)).toHaveText('Publicada v1')
   await escribirLaComision(page, '*5%')
   const lecturas: string[] = []
   page.on('request', (r) => {
@@ -133,7 +140,7 @@ test('G1: sobre la publicada crea el borrador con su diseño; el segundo guardad
   expect(primero!.params[AUXILIAR_DEL_PORCENTAJE]).toBe(0.05)
   expect(primero!.version_origen_id).toBe(laPublicada)
   expect(JSON.stringify(primero!.diseno)).toBe(JSON.stringify(JSON.parse(disenoDe(laPublicada))))
-  await expect(planilla(page)).toContainText('Sobre el borrador de Gema Guarda.')
+  await borradorDe(page, 'Gema Guarda')
 
   // Sin salir de la planilla: otro cambio y otro guardado pisan el mismo borrador con la hora que devolvió el primero.
   await escribirLaComision(page, '*6%')
@@ -197,7 +204,7 @@ test('G3: si otra persona guardó, el texto de la base con «Recargar», que tra
   const yaHay = alerta(page, 'Ya hay un borrador')
   await expect(yaHay).toContainText('Ya hay un borrador: lo empezó Otto Otra')
   await yaHay.getByRole('button', { name: 'Recargar', exact: true }).click()
-  await expect(planilla(page)).toContainText('Sobre el borrador de Otto Otra.')
+  await borradorDe(page, 'Otto Otra')
   await laComisionDice(page, '*4%')
 })
 

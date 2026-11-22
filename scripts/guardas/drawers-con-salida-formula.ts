@@ -40,4 +40,12 @@ export const DRAWERS_DE_LA_FORMULA: Record<string, RegistroDeDrawer> = {
     {
       sinFormulario: 'La ayuda de cómo se escribe una fórmula: sólo lectura.',
     },
+  // Los paneles al costado de la planilla (`?costado=`): «Totales» y la tarjeta en vivo sólo se leen.
+  'src/modules/cotizaciones/features/formula/components/planilla/paneles/panel-de-los-totales.tsx':
+    {
+      sinFormulario: 'los totales con la unidad de ejemplo: sólo se leen',
+    },
+  'src/modules/cotizaciones/features/formula/components/planilla/paneles/panel-de-la-tarjeta.tsx': {
+    sinFormulario: 'la tarjeta en vivo: sólo se lee; elegir el modo no escribe nada',
+  },
 }

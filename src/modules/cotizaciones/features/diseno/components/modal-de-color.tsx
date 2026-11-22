@@ -2,20 +2,18 @@
 
 import { Campo } from '@/shared/ui/campo'
 import { ModalDeFormulario } from '@/shared/ui/modal-de-formulario'
-import { LARGO_MAXIMO_DEL_NOMBRE_DE_TONO, type Tono } from '../../../entities/diseno/tonos'
-import type { Colores } from '../hooks/use-colores'
-import { useFormularioDeColor } from '../hooks/use-formulario-de-color'
+import { LARGO_MAXIMO_DEL_NOMBRE_DE_TONO } from '../../../entities/diseno/tonos'
+import { useFormularioDeColor, type QueSeEdita } from '../hooks/use-formulario-de-color'
 import { CampoDeColor } from './campo-de-color'
 import { ComoSeVeElColor } from './como-se-ve-el-color'
 
-type Props = {
+type Props = QueSeEdita & {
   abierto: boolean
   alCerrar: () => void
-  colores: Colores
-  // Nulo = «Nuevo color».
-  original: Tono | null
   // Ya no se puede guardar lo escrito (otra persona eliminó el color que se editaba).
   noDisponible: string | null
+  // A dónde va el foco al cerrar. Por defecto, a ningún lado: la lista de colores, que vuelve al cerrarse el modal, se queda con él.
+  focoAlCerrar?: () => HTMLElement | boolean
 }
 
 const IDS = { formulario: 'color', nombre: 'nombre', hex: 'hex' } as const
@@ -24,8 +22,9 @@ const IDS = { formulario: 'color', nombre: 'nombre', hex: 'hex' } as const
 // en la hoja y en la tarjeta. Del nombre sale la clave, que no cambia nunca (la nombran los grupos de una fórmula). El contrato del modal (preguntar antes de cerrar
 // con algo escrito, no cerrarse mientras guarda, el conflicto con «Recargar» que conserva lo escrito) es de `ModalDeFormulario`. Quien lo monta le da una `key` por
 // apertura: cada una empieza de cero, con un id de intento nuevo.
-export function ModalDeColor({ abierto, alCerrar, colores, original, noDisponible }: Props) {
-  const formulario = useFormularioDeColor({ colores, original, alCerrar, abierto })
+export function ModalDeColor(props: Props) {
+  const { abierto, alCerrar, original, noDisponible } = props
+  const formulario = useFormularioDeColor(props)
 
   return (
     <ModalDeFormulario
@@ -37,8 +36,7 @@ export function ModalDeColor({ abierto, alCerrar, colores, original, noDisponibl
         ? { descripcion: `La clave «${original.clave}» no cambia: la nombran los grupos.` }
         : {})}
       focoInicial={() => document.getElementById(IDS.nombre)}
-      // Al cerrarse vuelve la lista de colores, que se queda con el foco.
-      focoAlCerrar={() => false}
+      focoAlCerrar={props.focoAlCerrar ?? (() => false)}
       formulario={formulario}
       noDisponible={noDisponible}
       detalleDelConflicto="Lo que escribiste sigue acá."

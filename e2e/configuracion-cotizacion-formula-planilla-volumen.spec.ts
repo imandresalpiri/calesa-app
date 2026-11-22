@@ -20,6 +20,7 @@ import {
 } from './soporte/formula-editor-previa'
 import {
   a1De,
+  abrirCostado,
   abrirPlanilla,
   celdaDe,
   escribirEnLaCelda,
@@ -28,6 +29,7 @@ import {
   guardado,
   guardar,
   planilla,
+  totalesDelCostado as totales,
 } from './soporte/planilla'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
@@ -90,7 +92,6 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-const totales = (page: Page) => planilla(page).getByRole('region', { name: 'Totales' })
 const buscar = (page: Page) => page.getByRole('searchbox', { name: 'Buscar fila' })
 
 // Cuenta los pedidos de lo de prueba por tabla de la base.
@@ -173,11 +174,12 @@ test('con 600 filas y una tabla, abrir hace 3 pedidos de lo de prueba y ninguno 
   const cuenta = contar(page)
   await abrirPlanilla(page, conTabla.id)
   await expect(filaDe(page, 'fila_495')).toBeVisible()
-  await expect(celdaDe(page, 't_1')).toContainText('1')
+  await expect(celdaDe(page, 't_1', 'D')).toContainText('1')
   expect(cuenta).toEqual({ tipos: 1, tablas: 1, filas: 1 })
   const remate = await a1De(page, 'remate')
   await buscar(page).fill('Fila 599')
   await escribirEnLaCelda(page, celdaDe(page, 'fila_599'), `=${remate}*2`)
+  await abrirCostado(page, 'Totales')
   await expect(totales(page).getByText('Total en dólares')).toBeVisible()
   expect(cuenta).toEqual({ tipos: 1, tablas: 1, filas: 1 })
 })
@@ -187,7 +189,8 @@ test('una tabla de 999 filas se usa; las de 1.000 y 1.001 dan su aviso y no se u
 }) => {
   await entrar(page, duena, { fresco: true })
   await abrirPlanilla(page, enormes.id)
-  await expect(celdaDe(page, 't_1')).toContainText('1')
+  await expect(celdaDe(page, 't_1', 'D')).toContainText('1')
+  await abrirCostado(page, 'Totales')
   for (const sufijo of ['1000', '1001']) {
     await expect(totales(page)).toContainText(
       `La tabla «${claveDeVolumen(proyecto, sufijo)}» tiene 1.000 filas o más: la vista previa no la lee.`,
@@ -199,8 +202,9 @@ test('dos tablas de 600 filas se leen enteras, en dos pedidos de filas', async (
   await entrar(page, duena, { fresco: true })
   const cuenta = contar(page)
   await abrirPlanilla(page, dosDeSeiscientas.id)
-  await expect(celdaDe(page, 't_1')).toContainText('1')
-  await expect(celdaDe(page, 't_2')).toContainText('1')
+  await expect(celdaDe(page, 't_1', 'D')).toContainText('1')
+  await expect(celdaDe(page, 't_2', 'D')).toContainText('1')
+  await abrirCostado(page, 'Totales')
   await expect(totales(page)).not.toContainText('no se pudo leer entera')
   expect(cuenta).toEqual({ tipos: 1, tablas: 1, filas: 2 })
 })

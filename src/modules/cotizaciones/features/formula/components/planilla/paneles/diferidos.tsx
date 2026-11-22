@@ -15,3 +15,9 @@ export const PanelDelTipoDeCeldaDiferido = diferido(() =>
 export const PanelComoSeEscribeDiferido = diferido(() =>
   import('./panel-como-se-escribe').then((m) => m.PanelComoSeEscribe),
 )
+export const PanelDeLosTotalesDiferido = diferido(() =>
+  import('./panel-de-los-totales').then((m) => m.PanelDeLosTotales),
+)
+export const PanelDeLaTarjetaDiferido = diferido(() =>
+  import('./panel-de-la-tarjeta').then((m) => m.PanelDeLaTarjeta),
+)

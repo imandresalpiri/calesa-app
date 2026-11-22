@@ -193,9 +193,13 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   borrador y las versiones (`VistaDeLaFormula`) y abajo la sesión de edición (`SesionDeLaFormula` por `diferido()`: lee la versión desde el navegador y
   llama **una vez** a `useEditorDeLaFormula`), que dibuja la planilla (`components/planilla/`, por `diferido()`; lo que arma, `usePlanilla()`), sobre la misma
   fórmula del origen. **La planilla edita como una hoja de cálculo** (`docs/COTIZADOR.md` › «La planilla»): la cuadrícula `role="grid"` (`cuadricula/`, la celda
-  activa por `aria-activedescendant`, eventos delegados), la barra de fórmula (`barra/`: el texto en A1 pintado por referencia, la leyenda, las sugerencias y
-  el error con su tramo), el «⋯» y el clic derecho de cada fila y banda (`menu/`) y los paneles por URL (`paneles/`: banda, «Total y tipos de cambio», «Tipo
-  de celda» y «¿Cómo se escribe?»). Lo guardado sigue en ids: A1 es sólo del navegador (`entities/formula/referencias-a1.ts` sobre la hoja numerada de
+  activa por `aria-activedescendant`, eventos delegados; columnas # · A concepto · B % · C valor · Ejemplo, con la clave interna `D` para Ejemplo y lo que
+  muestra cada una de `contenidoDeLaFila()`, calculado una vez por fórmula de trabajo en `useEdicionDeLaPlanilla`), la barra de fórmula (`barra/`: el nombre de
+  la celda, `fx ▾` con `useFuncionEnLaBarra` e `insertarFuncion()`, el texto en A1 pintado por referencia con su placeholder, la leyenda, las sugerencias, el
+  error con su tramo, «Totales», «Tarjeta» y el «?» de los tipos de celda; debajo, `LineaBajoLaBarra`: «De dónde sale: …» de la fila elegida), el «⋯» y el
+  clic derecho de cada fila y banda (`menu/`) y los paneles por URL (`paneles/`: banda, «Total y tipos de cambio», «Tipo de celda» y «¿Cómo se escribe?»; al
+  costado, `?costado=totales|tarjeta`, `Drawer alCostado` desde `CORTE_DEL_PANEL`). En la página, «Guardar el borrador» y su línea de estado suben a la barra
+  de la fórmula y «Sobre…» no se dibuja (`useEnLaBarra()`); en la puesta en marcha, los dos van arriba de la planilla. Lo guardado sigue en ids: A1 es sólo del navegador (`entities/formula/referencias-a1.ts` sobre la hoja numerada de
   `hoja-de-la-planilla.ts`); las operaciones de fila (`insertar-fila.ts`, `mover-fila.ts`, `eliminar-fila.ts`, `tipo-de-celda.ts`) y de banda (`bandas.ts`)
   son puras y devuelven la fórmula nueva o el motivo. `?panel=editar-formula` (el Modo avanzado) y `?panel=plantillas-de-v1` («Empezar desde una plantilla»), que ya no existen,
   responden 308 a la misma parte de la fórmula, sin ese panel, desde el proxy (`destinoSinLosPanelesQueYaNoExisten()`, `src/shared/lib/paneles-que-ya-no-existen.ts`). El
@@ -245,7 +249,8 @@ no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o inc
   dnd-kit sólo viaja en el `diferido()` de la pestaña. El color sale del catálogo de colores (`catalogo` nulo si no se leyó: no se elige y `contextoDelEditor()`
   cuenta los colores que el diseño ya nombra); un rechazo de forma del aspecto va bajo su select (`campoDelRechazo()`). «Guardar el borrador» (`formula_guardar_borrador`, con la esperada de la publicada o la hora del borrador) manda `definicion` y
   `params` sin cambios. El área `diseno` replica la lectura y escritura de `formula` porque un área no importa otra.
-- **Los colores** (Configuración › Orígenes › «Para todos los orígenes» › Colores, `cotizaciones.configurar`; `?panel=colores` abre la lista y `nuevo-tono|editar-tono|eliminar-tono&tono=<id>`
+- **Los colores** (Configuración › Orígenes › «Para todos los orígenes» › Colores, `cotizaciones.configurar`; también se crean al vuelo desde el panel de una banda de la
+  planilla, «El color nuevo de la planilla» en «Los huecos»; `?panel=colores` abre la lista y `nuevo-tono|editar-tono|eliminar-tono&tono=<id>`
   son ventanas hermanas que vuelven a ella con `usePanelPorUrl(…, { volverA })` y `useFamiliaDeColores()`; URL con el nombre técnico). `SeccionDeLosColores` (la lectura, `pantallas/diseno-colores.ts`) dibuja
   `TarjetaDeColores`: hasta `COLORES_EN_LA_TARJETA` por nombre y «y N más» (`resumirColores()`); tocarla o su «⋯» abre `ColoresDelCatalogoDiferido` (el modal de la lista; la fila, `FilaDeColor`, es
   tocable con `ToqueDeLaTarjeta` y lleva sólo su «⋯»). Las actions revalidan `RUTAS.origenes` con `'layout'`. Son de la empresa, un nombre y un #hex, y se guardan al instante (`tono_crear(p_id, p_nombre, p_hex)`, `tono_guardar` con
@@ -345,8 +350,13 @@ puedeRetocar }`, de `HojaDeUnaGuardada`; la hoja nueva no lo pasa) y el modelo l
   origen con `leerLaTarjetaDeTrabajo({ id, nombre })` (`index.ts`; la lectura de la pestaña «Tarjeta», nunca rechaza: `lista`, `sin_tarjeta` o `no_se_leyo`) y
   `lecturaDeLaTarjetaDeTrabajo()` (pura: el borrador antes que la publicada, leída con la fórmula publicada y sólo con lo del nivel «todos»). El área `tarjeta` la
   dibuja con `TarjetaEnVivo` (`pantallas/tarjeta-formula.ts`, con su propio `diferidos.tsx`: el del área viaja con la hoja): `geometriaDeLaTarjeta()` con
-  `CONTEXTO_DE_EJEMPLO`, `role="group"` «Tarjeta de la cotización» y `data-tarjeta-de-cotizacion`, achicada a su columna. El área `formula` arma el cálculo con la
+  `CONTEXTO_DE_EJEMPLO`, `role="group"` «Tarjeta de la cotización» y `data-tarjeta-de-cotizacion`, achicada a su panel (`?costado=tarjeta`). El área `formula` arma el cálculo con la
   unidad de ejemplo (`calculoDeLaUnidad()`: sólo los ids que la lectura nombra; sin cifra, las filas a la vista sin valores) y `src/app` une las tres.
+- **El color nuevo de la planilla** (los tipos sin código de `entities/nuevo-color.ts`: `ColorCreado`, `PropsDelNuevoColor`): «+ Nuevo color» bajo el selector de
+  color del panel de una banda (`comunes/nuevo-color-del-grupo.tsx`, `?color=nuevo`, una clave propia porque `?panel=` es el de la banda). El área `diseno` lo
+  dibuja con `NuevoColorAlVuelo` (`pantallas/diseno-nuevo-color.ts`, con su `diferidos.tsx`): el `ModalDeColor` de la sección de colores con `ColoresParaCrear`
+  (los colores leídos, el tope, `crear` y `enCurso`), y el color creado sale de la lista que devuelve `tono_crear()` por el id del intento (`colorCreadoDe()`).
+  La planilla lo suma sin releer (`useTonos().sumar`) y lo deja elegido. Las dos páginas lo pasan sólo con `cotizaciones.configurar` (sin origen, como la action).
 
 ## Archivos clave
 
@@ -357,8 +367,8 @@ puedeRetocar }`, de `HojaDeUnaGuardada`; la hoja nueva no lo pasa) y el modelo l
   tope de 40 ítems, `demasiados_items`, primero tras la forma); juegos `casos-de-{formula,diseno}.json` (regla nueva = su caso).
 - La planilla de la fórmula (área `formula`; `docs/COTIZADOR.md` › «La planilla»), pura y con su test: `entities/formula/hoja-de-la-planilla.ts` (la hoja
   numerada, la `pct` que absorbe la B y los tramos de banda), `referencias-a1.ts` y `de-a1.ts` (ids ↔ A1, con el mapa de los tramos de error),
-  `referencias-tipeadas.ts` (colores, leyenda y bordes de lo tipeado), `autocompletar.ts` y `ayuda-de-funciones.ts`, `texto-de-la-celda.ts` y
-  `escrito-en-la-celda.ts` (qué abre y qué hace lo escrito en cada columna), `teclas-de-la-cuadricula.ts`, `filas-a-la-vista.ts` (buscar y el tope sin
+  `referencias-tipeadas.ts` (colores, leyenda y bordes de lo tipeado), `autocompletar.ts` y `ayuda-de-funciones.ts`, `insertar-funcion.ts` (`fx ▾`),
+  `contenido-de-c.ts` (qué muestran C y Ejemplo), `texto-de-la-celda.ts` y `escrito-en-la-celda.ts` (qué abre y qué hace lo escrito en cada columna), `teclas-de-la-cuadricula.ts`, `filas-a-la-vista.ts` (buscar y el tope sin
   renumerar), las operaciones de fila (`insertar-fila.ts`, `mover-fila.ts` y `eliminar-fila.ts` sobre `usos-de-la-fila.ts`), `tipo-de-celda.ts` y
   `tipo-de-celda-nodos.ts`, `opciones-de-la-variante.ts`, las bandas (`bandas.ts`, `buckets.ts`, `total-de-la-formula.ts`, `sumas-de-banda.ts`),
   `mensaje-en-a1.ts` y `params-para-validar.ts`; en el núcleo, `entities/nodos-del-diseno.ts` (lo que la hoja muestra: la planilla no lo borra).
