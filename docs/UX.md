@@ -568,10 +568,9 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (`url-vieja.ts`): `?seccion=` a su sub-ruta, y `?tc=`, `?moneda=` y los `?panel=` de crear (con o sin `?seccion=`) a Monedas con ellos.
 - **Catálogos** — `/configuracion/catalogos` (cualquiera de los permisos de sus catálogos): lo que es de toda la empresa y no de un origen. No
   tiene página propia ni pestañas: la raíz abre (308, por persona) la primera sub-sección que la persona puede abrir, o el inicio de Configuración.
-  Cada catálogo es una sub-ruta con su `h1` y su frase, en tres tramos del menú: **«Cotizaciones»** — «Niveles» (`/niveles`, `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|
-eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con «Te falta el permiso «Ver roles».»), «Quién crea y quién ve»
-  (`/quien-crea-y-quien-ve`, los mismos permisos y el mismo motivo; `?origen=<id>`); los colores y la vigencia ya no son catálogos: son tarjetas de «Para todos los orígenes»
-  (Orígenes). **«Logística»** — «Puertos» (`/puertos`: nombre, país, código, orden y activo), «Navieras» (`/navieras`: nombre y activa;
+  Cada catálogo es una sub-ruta con su `h1` y su frase, en dos tramos del menú. Los niveles de acceso y «Quién crea y quién ve» ya no son catálogos: viven en la matriz de
+  Roles, bloque «Cotizaciones»; sus rutas de antes (`/niveles`, `/quien-crea-y-quien-ve`) responden 308 a `/configuracion/roles?bloque=cotizaciones` con el resto de la consulta. Los colores y la
+  vigencia, tampoco: son tarjetas de «Para todos los orígenes» (Orígenes). **«Logística»** — «Puertos» (`/puertos`: nombre, país, código, orden y activo), «Navieras» (`/navieras`: nombre y activa;
   sin «Eliminar»: se desactivan) y «Categorías de gasto» (`/categorias-de-gasto`: nombre, propósito de la lista fija de la base, orden y activa; una con
   gastos no se elimina), con `logistica.catalogos.gestionar` y sólo si algún área llena el catálogo, y «Tipos de documento» (`/tipos-de-documento`: los
   de la empresa; los cambia quien gestiona los catálogos de logística y los leen quien configura un flujo o los repuestos); y, sin rótulo,
@@ -694,6 +693,9 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
   los tiene (en el celular, en la barra «Rol a la vista», 44 px) abre «Avisos de <rol>» (sin avisos, sin botón) y otro junto al título abre «Avisos
   de Roles y permisos».
   `?panel=nuevo-rol`, `?panel=avisos&rol=`, `?panel=avisos-de-la-pagina` (también `?panel=avisos` sin `rol`), `?eliminar=`.
+  **El bloque «Cotizaciones»** lleva, además, los niveles de acceso y «Quién crea y quién ve» (ver «Cotización: niveles de acceso y quién crea y quién ve»):
+  `?bloque=<módulo>` deja a la vista el bloque de ese módulo (hoy sólo lo usa `?bloque=cotizaciones`; las URLs viejas de Catálogos responden 308 ahí).
+  Un rol que no existe aún: «Todavía no hay roles» con «Crea uno con «Nuevo rol»…».
 - **Datos** — `/datos` (todos: «Mis leads»; todo: `datos.exportar.todo`): `?seccion=exportar|importar`, con la barra siempre; sin permiso
   para importar nada (`leads.crear`, `datos.importar.todo` o `vehiculos.crear` en algún origen), «Importar» apagada con su motivo y
   pedirla abre «Exportar».
@@ -1332,21 +1334,40 @@ y enfoca su título).
   texto) y «Subir/Bajar X»; guarda al cambiar, sin «Guardar», con los controles apagados mientras guarda; «Restablecer» vuelve al de
   fábrica (apagado si ya está así). Todos ocultos: «Ocultaste todos los widgets».
 
-### Cotización: niveles de acceso (estados propios)
+### Cotización: niveles de acceso y quién crea y quién ve (estados propios)
 
-Configuración › Catálogos › Niveles (`/configuracion/catalogos/niveles`). Hermana de «Tipos de seguimiento»; **un nivel retirado se deshace** y **el motivo de por
-qué no se elimina viene de la base**.
+Configuración › Roles (`/configuracion/roles?bloque=cotizaciones`), dentro del bloque «Cotizaciones» de la matriz. **Un nivel retirado se deshace** y **el motivo de por
+qué no se elimina viene de la base**. `?bloque=cotizaciones` desplaza la página hasta el bloque (el título del módulo, o su sección en el celular).
 
-- **Quién entra:** `equipo.roles.ver` o `equipo.roles.gestionar` (cada nivel es un permiso de la matriz de Roles); sin ninguno, «No tienes
-  permiso para ver esto». Con sólo `ver` se lee: sin «Nuevo nivel», «⋯» ni clic.
-- **Lista:** el fijo «Todos» (sin «⋯» ni clic) y los niveles en uso; debajo «Retirados». Fila: estado y «Sin uso»/«En uso»; pie «N de 10
-  niveles posibles.». «⋯»: Renombrar · Retirar/Restaurar (guardan solos, con «Deshacer») · Eliminar. «Costos» se renombra y retira, no se
-  elimina.
-- **Eliminar con uso:** apagado, con lo que dice la base; sin uso confirma nombrándolo (`?panel=eliminar-nivel&nivel=<id>`). Nuevo y
-  renombrar: modal por URL (`?panel=nuevo-nivel`, `renombrar-nivel&nivel=<id>`); vacío, > 40 o repetido se rechaza junto al campo. **Tope**
-  10 contando «todos» y retirados. Estados: esqueleto, error con «Reintentar», lista llena.
-- **Dónde se nota:** cada nivel son **dos permisos por origen** (`Ver el nivel «X»`, `Editar el nivel «X»`) en Roles; el dueño los recibe
-  al nacer.
+- **Quién entra:** quien ve la matriz (`equipo.roles.ver` o `gestionar`). Con sólo `ver` se lee: sin «+ Nuevo nivel», sin «⋯» y el resumen con los valores en texto; el motivo
+  «Para cambiarlo te falta el permiso «Gestionar roles».» está en «Avisos de Roles y permisos» (el «!» del título), no en línea.
+- **Niveles de acceso:** un rótulo con ese nombre dentro del bloque y, debajo, «Todos» (renglón fijo con «No se cambia · Lo ve quien ve la cotización», sin celdas ni «⋯») y
+  las dos filas de cada nivel (`Ver el nivel «X»`, `Editar el nivel «X»`, con sus celdas por origen). El «⋯» del nivel (Renombrar · Retirar/Restaurar, que guardan solos con
+  «Deshacer» · Eliminar) va en la primera fila. Un nivel retirado se apaga y lleva la insignia «Retirado» en sus dos filas; el aviso (`aria-live`) dice ««X» quedó retirado.». «Costos»
+  se renombra y retira, no se elimina. «+ Nuevo nivel» va al pie del grupo; en el tope (10 contando «todos» y retirados) se apaga y el motivo queda a la vista. En el celular, el mismo
+  grupo va en la lista del rol a la vista.
+- **Eliminar con uso:** apagado, con lo que dice la base; sin uso confirma nombrándolo (`?panel=eliminar-nivel&nivel=<id>`). Nuevo y renombrar: modal por URL
+  (`?panel=nuevo-nivel`, `renombrar-nivel&nivel=<id>`); vacío, > 40 o repetido se rechaza junto al campo. Estados: si la lista de niveles no carga, «No pudimos cargar los
+  niveles de acceso.» con «Reintentar» en el lugar del renglón de «Todos»; la matriz sigue.
+- **Dónde se nota:** cada nivel son **dos permisos por origen**; el dueño los recibe al nacer.
+
+#### Quién crea y quién ve
+
+Un resumen plegable arriba del bloque «Cotizaciones»: por rol, si crea cotizaciones y cuáles ve. Entra cerrado (botón con `aria-expanded`), salvo que la URL traiga
+`?origen=<id>`; su código se pide al abrir. Son tres permisos de la matriz de Roles (`cotizaciones.crear`, `cotizaciones.ver`, `cotizaciones.privadas.ver`) dichos en un cuadro;
+cada cambio guarda solo, por las mismas RPC que la matriz y con las mismas versiones de rol (un cambio en la matriz y otro en el cuadro no chocan entre sí).
+
+- **Lugar:** «Origen» (`?origen=<id>`) con «Todos los orígenes» y cada origen (los desactivados con «(inactivo)»), sólo con dos orígenes o más o si algún
+  rol ya tiene uno de los tres permisos en un origen suelto; sin él, «Todos los orígenes». En un origen vale también lo de «Todos los orígenes»: lo que
+  está por debajo de eso queda apagado con «Lo tiene en «Todos los orígenes»: para quitarlo, cámbialo ahí.».
+- **El cuadro:** desde 768 px una tabla Rol | Crea | Ve; por debajo, un renglón por rol en la misma tarjeta. «Crea» es un interruptor (`Crea: <rol>`);
+  «Ve», un `<select>` nativo (`Ve: <rol>`) con «No ve» · «Sólo las suyas» · «Todas menos las privadas» · «Todas, también las privadas»; debajo, una
+  leyenda de cada escalón. Lo que quien mira no tiene no se da: la opción queda apagada con «No puedes dar un permiso que no tienes.». Un rol con permisos
+  que quien mira no tiene se lee, con el motivo de la matriz bajo su nombre.
+- **Guardar:** una elección puede ser dos RPC sobre el rol (dar «ver» y después las privadas; al bajar, al revés), en orden y con la versión que devolvió
+  la anterior; mientras viajan, la fila muestra lo elegido y espera. Conflicto (`PT409`): `AvisoDeConflicto` con lo que dice la base y «Recargar». Si cae
+  después de guardar una parte: «Se guardó sólo una parte: recarga para ver cómo quedó.» con «Recargar». Otro error, el toast con su mensaje.
+- **Estados:** carga con la matriz (un esqueleto de tres renglones mientras llega su código); sin roles, «Crea uno con «Nuevo rol» para decidir quién crea y quién ve cotizaciones.».
 
 ### Cotización: privada (estados propios)
 
@@ -1367,27 +1388,6 @@ la base; la pantalla sólo ofrece la marca a quien la creó y la dibuja.
 - **Marcarla final:** la pregunta de siempre suma «Al marcarla final deja de ser privada: la verá todo el que ve las cotizaciones de su origen.».
 - **Sin permiso:** la privada ajena no existe: no está en el listado, la búsqueda, el buscador, «De este vehículo» ni los relacionados, y su URL dice
   «Esta cotización ya no está disponible: no existe o ya no tienes acceso.».
-
-### Cotización: quién crea y quién ve (estados propios)
-
-Configuración › Catálogos › Quién crea y quién ve (`/configuracion/catalogos/quien-crea-y-quien-ve`): por rol, si crea cotizaciones y cuáles ve. Son tres
-permisos de la matriz de Roles (`cotizaciones.crear`, `cotizaciones.ver`, `cotizaciones.privadas.ver`) dichos en un cuadro; cada cambio guarda solo, por
-las mismas RPC que la matriz.
-
-- **Quién entra:** `equipo.roles.ver` o `equipo.roles.gestionar`; sin ninguno, «No tienes permiso para ver esto» (en el menú, apagada con «Te falta el
-  permiso «Ver roles».»). Sin `gestionar` se lee: los valores en texto y, arriba, «Para cambiarlo te falta el permiso «Gestionar roles».».
-- **Lugar:** «Origen» (`?origen=<id>`) con «Todos los orígenes» y cada origen (los desactivados con «(inactivo)»), sólo con dos orígenes o más o si algún
-  rol ya tiene uno de los tres permisos en un origen suelto; sin él, «Todos los orígenes». En un origen vale también lo de «Todos los orígenes»: lo que
-  está por debajo de eso queda apagado con «Lo tiene en «Todos los orígenes»: para quitarlo, cámbialo ahí.».
-- **El cuadro:** desde 768 px una tabla Rol | Crea | Ve; por debajo, un renglón por rol en la misma tarjeta. «Crea» es un interruptor (`Crea: <rol>`);
-  «Ve», un `<select>` nativo (`Ve: <rol>`) con «No ve» · «Sólo las suyas» · «Todas menos las privadas» · «Todas, también las privadas»; debajo, una
-  leyenda de cada escalón. Lo que quien mira no tiene no se da: la opción queda apagada con «No puedes dar un permiso que no tienes.». Un rol con permisos
-  que quien mira no tiene se lee, con el motivo de la matriz bajo su nombre.
-- **Guardar:** una elección puede ser dos RPC sobre el rol (dar «ver» y después las privadas; al bajar, al revés), en orden y con la versión que devolvió
-  la anterior; mientras viajan, la fila muestra lo elegido y espera. Conflicto (`PT409`): `AvisoDeConflicto` con lo que dice la base y «Recargar». Si cae
-  después de guardar una parte: «Se guardó sólo una parte: recarga para ver cómo quedó.» con «Recargar». Otro error, el toast con su mensaje.
-- **Estados:** esqueleto de tabla (`loading.tsx` y el `Suspense`); error de lectura, el de la pantalla con «Reintentar»; sin roles, «Todavía no hay
-  roles».
 
 ### Cotización: comentarios (estados propios)
 
@@ -1473,8 +1473,7 @@ barra de la fórmula; la activa es la que se cotiza.
 Configuración › Orígenes › un origen › Planilla (`/configuracion/origenes/<id>/planilla?formula=<fórmula>`): ver,
 publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` elige esa fila al abrir y se borra de la URL.
 
-- **Quién entra:** `cotizaciones.configurar` en ese origen, aunque no tenga los permisos de los niveles (entonces «Niveles» va apagada con su
-  motivo). La base vuelve a decidir: la policy `formulas: leer` sólo deja ver los orígenes con la clave.
+- **Quién entra:** `cotizaciones.configurar` en ese origen, aunque no tenga los permisos de los niveles. La base vuelve a decidir: la policy `formulas: leer` sólo deja ver los orígenes con la clave.
 - **Origen:** la página es la de ese origen (también inactivo); para cambiar de origen, el selector de las migas (conserva la pestaña). Sin la clave en
   el origen, la pestaña Planilla va apagada con su motivo; un origen ajeno, «No puedes abrir este origen».
 - **Arriba:** la publicada (versión, nota, quién y cuándo) o, sin ella, que no se puede cotizar en el origen; el borrador si hay (de quién,

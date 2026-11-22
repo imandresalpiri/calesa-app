@@ -596,7 +596,7 @@ sólo lee `cotizaciones` y escribe `cotizaciones_aprobadas` tras el candado de a
   «todos», «La lectura de la tarjeta (4.18-1)») y los montos con `cotizacion_leer`, y `validar_plantilla` rechaza un nodo que no sea del
   nivel «todos». El primer resultado de la aprobada (`totales.usd`) viaja a todo el que ve la cotización: es lo que la tarjeta del total dibuja a «todos». Un inventario (`cotizaciones-visibilidad.sql`) registra toda función que pueda devolver esas columnas o `formulas.*`.
 - **Límite:** un nodo restringido, único oculto de una suma visible, se deduce restando; el editor del diseño lo avisa.
-- **Pantalla:** `/configuracion/catalogos/niveles` (`docs/UX.md`). `niveles_con_uso()` devuelve `{tope, niveles}` con
+- **Pantalla:** la matriz de Roles, bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`; `docs/UX.md`). `niveles_con_uso()` devuelve `{tope, niveles}` con
   banderas `se_renombra`, `se_retira`, `se_elimina` y `motivo_de_uso`: la UI no razona por nombre ni clave. En TS los permisos de un
   nivel se reconocen por su forma (`esClaveDeNivel()`), no están en `CLAVES_PERMISO`.
 
