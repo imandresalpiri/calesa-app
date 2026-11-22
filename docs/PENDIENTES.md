@@ -202,6 +202,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** En el celular al 200 %, el «⋯» del panel de la fase queda más arriba que la ✕ (el «⋯» va en rem y la ✕ en px): alinear sus centros (`drawer.tsx`, `acciones`).
+- **[—]** `e2e/cierre-pendientes-capturas.spec.ts` falla en `movil` (también en `main`): en la sub-ruta `datos` del origen, el título no queda a la vista porque el panel «Datos del origen» está abierto.
 - **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px, los tercios del modal «Avanzado», un par con un lado bloqueado en el celular) baja sus
   acciones a una segunda línea: la celda mide 88 px en vez de 56 y las de la misma fila no se alinean. Achicar el rótulo antes que bajar las acciones
   (`clases.ts` de la XCell).
