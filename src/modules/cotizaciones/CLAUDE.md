@@ -122,6 +122,9 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   previa», sólo con `ContextoDeLaVistaPrevia`. El nombre del botón es su etiqueta; el punto, su descripción (un texto `hidden`), su `title` y `data-punto` con
   guiones. Fuera del orden de Tab (la tarea de oro no suma paradas). Sin `pasos` (pruebas, vista previa del
   diseño) no se dibujan. La línea de arriba de «Avanzado» sale de `explicacionDelAvanzado()`; los enlaces de la ayuda de texto, de `enlacesDeLaAyuda()`.
+- **El aspecto de V1** (`docs/DECISIONES.md` › «La hoja con el aspecto de V1»): «Avanzado» es un botón a lo ancho (`BotonDeAvanzado`: los títulos que esconde,
+  en un `hidden` por `aria-describedby`) y su modal es `ancho="grande"` con las secciones `sinMarco` (`SeccionDeHoja`, `claseDelMarcoDeLaSeccion()`). El total
+  del resumen va en la tarjeta del total (`clases-del-total.ts`: `CabezaDelResumen` y, en par, una por total en `TotalesEnPar`), con «Ver el detalle» fuera.
 - `index.ts`: `recalcularAlAbrir()` va DESPUÉS de leer la hoja (4-28), con `modoInicial()` (el modo por defecto del diseño o, sin él, el primero); `contarCotizacionesDelVehiculo()`
   («Cotizado (n)») es acotado y con la RLS de quien mira; `rutaDeLaHoja()` la usan «Cotizar» de `/vehiculos` y de `/leads/[id]`;
   `datosDelVehiculoDeLaHoja(hoja)` dice qué campo del vehículo casa con qué tabla (qué se elige lo decide `vehiculos`). Lo consumen `logistica`, `chat`,
