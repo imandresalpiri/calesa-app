@@ -1588,7 +1588,8 @@ Excel. Edita el **borrador** de la plantilla (sólo la forma 2, la cuadrícula),
     con la referencia no reciben el cursor.
   - **Escribir en el lugar:** Enter, F2 o doble clic sobre una celda de texto o vacía abren el campo «Texto de la celda» encima, con «n de 300» y su motivo
     («Un texto llega a 300 caracteres.», «Un texto no lleva «{{».»); tipear una letra empieza a escribir reemplazando. Enter confirma (el cursor queda en la
-    celda), Shift+Enter es un salto de línea, Esc descarta, salir confirma. Sobre un dato o el logo, Enter o F2 llevan al campo «Contenido» del panel. Un
+    celda), Shift+Enter es un salto de línea, Esc descarta, salir confirma. Sobre un dato o el logo, Enter o F2 llevan al campo «Contenido» del panel; sobre un texto con datos (y con doble clic), a su campo «Texto», sin
+    escribir en el lugar (perdería los datos). Un
     texto que empieza con «=» es texto: la tarjeta no tiene fórmulas propias.
   - **Atajos:** Supr o Retroceso vacían; Ctrl/Cmd+C copia lo elegido (en el editor, con contenido, formato y combinaciones; al sistema, su texto en TSV) y
     Ctrl/Cmd+V lo pega desde la celda del cursor (sin nada copiado en el editor, el texto del sistema va a la celda activa); Ctrl/Cmd+Z deshace y
@@ -1608,7 +1609,10 @@ Excel. Edita el **borrador** de la plantilla (sólo la forma 2, la cuadrícula),
   - **Nada, «Resumen»:** «Columnas» (cada una con su ancho en número), «Σ ancho N / 1.600 px», «Sumar columna»; «Paleta» (los colores del catálogo, sólo para
     ver) con «Editar en Orígenes › Colores»; «Tamaño: n de 24 KiB».
   - **Una celda, un rango o columnas** (aplicado a todas): la ruta («Fila 4 › Columna «C · Monto»»); con columnas, su «Ancho»; «Contenido» (Texto | Dato |
-    Logo | Vacío; el texto con «n de 300»; «Dato» con «Cuál dato» (Uno | El primero con valor | Según condiciones) y, con «Uno», «Buscar un dato», las
+    Logo | Vacío; el texto con «n de 300» (sólo el texto, sin los datos) y su motivo, y «Insertar dato», que abre el buscador de «Dato» en línea con
+    «Listo» y pone el dato en el cursor como una pastilla («% Transferencia a USA»; marcada con el tono de aviso si ya no está o es restringido): Retroceso o Supr
+    junto a ella la borran entera, tocarla abre el buscador para cambiarla, con más de 20 partes «Insertar dato» se apaga con «Un texto lleva hasta 20 partes
+    entre texto y datos.» al lado, y Ctrl/Cmd+Z dentro del campo deshace como en el lienzo (insertar, cambiar o quitar un dato es su propio paso); «Dato» con «Cuál dato» (Uno | El primero con valor | Según condiciones) y, con «Uno», «Buscar un dato», las
     variables «De la cotización» y los nodos de la fórmula del nivel «todos» por grupo, a lo sumo 50 con «Escribe para acotar.», un restringido que la
     plantilla ya nombra marcado «Restringido», y «Qué mostrar» con lo que admite el nodo); «Color» (fondo y texto: «Automático» y las muestras del catálogo; con un fondo en el que no se lee, el aviso suave «Con este color el texto de la
     tarjeta se lee con dificultad.», que nunca frena); «Formato» (negrita, cursiva, tamaño de los 8 pasos, alineación horizontal y vertical); «Bordes» (el
@@ -1699,7 +1703,8 @@ El modo «Retocar la tarjeta» de «Vista previa» en una guardada (`/cotizacion
   «Ocultar la fila «…»», u ojo «Mostrar la fila «…»»); la píldora «Ocultar fila» o «Mostrar fila» sale al pasar, con el foco o con la fila elegida. Una fila
   oculta se ve atenuada. Elegir una fila suma debajo «Fila «…»» con «Ocultar fila» o «Mostrar fila» a 44 px (y, desde una celda de dato, «Esta celda
   muestra un dato de la cotización: no se retoca.»).
-- **El campo:** «Texto de la celda», sin `maxLength`, con «n de 300» (code points) y, si pasa, «Tiene N caracteres: el máximo es 300.»; Enter lo deja
+- **El campo:** «Texto de la celda», sin `maxLength`, arranca con lo que muestra la celda (un texto con datos, resuelto: «Comisión giro 4,2 %»; dejarlo
+  igual no es un retoque), con «n de 300» (code points) y, si pasa, «Tiene N caracteres: el máximo es 300.»; Enter lo deja
   (aunque sea largo: la celda queda marcada), Mayús+Enter es un salto de línea, Esc lo cancela. Va encima de la celda (al menos 240 px, dentro de la
   tarjeta) si la tarjeta se ve casi a su tamaño y la celda es ancha; si no (el celular, el texto al 200 %, una celda angosta), a lo ancho bajo la tarjeta,
   traído a la vista y con el foco.

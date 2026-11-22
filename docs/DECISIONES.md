@@ -812,6 +812,14 @@ las trampas, en `docs/LECCIONES.md`.
 - **Un dato sin valor dentro de un texto no escribe nada.** El «—» de una celda «Dato» dentro de una frase se leería como parte del texto: «Comisión giro »
   queda así. Un monto adentro va en `tramos` (sólo entonces) para que el HTML lo dibuje con `<Monto>` y el Modo Live lo tape; no lleva la segunda línea en Bs
   del total. El PDF, la imagen y «Copiar texto» usan las líneas, con cifras.
+- **El campo del texto con datos es un `contentEditable` propio, sin librería.** Las pastillas son `<span contenteditable="false">` que dibuja el hook, no
+  React; lo que se tipea lo escribe el navegador y se lee de vuelta, y Enter, pegar, Retroceso y Supr junto a una pastilla, las flechas junto a ella y
+  Ctrl+Z los maneja el modelo puro (`edicion/texto-con-datos.ts`, posiciones en unidades: cada code unit, 1; cada pastilla, 1), así todos los navegadores
+  hacen lo mismo. Un editor de texto enriquecido pesaría decenas de KB para un campo de 300 caracteres. Insertar, cambiar o **quitar** un dato es su propio
+  paso de deshacer (sin `clave`); lo tipeado se junta por clave, como en los demás campos del panel.
+- **Un texto con datos no se escribe en el lugar.** Enter, F2 o doble clic sobre él llevan al campo «Texto» del panel, como sobre un dato: el campo del
+  lienzo es texto plano y perdería los datos. Tipear una letra lo reemplaza, como en cualquier celda de texto. Copiarlo como texto (TSV) pone sólo sus
+  partes de texto (el sistema no sabe de datos); la copia interna de celdas las conserva.
 - **La forma 1 se convierte al leerla y no se migra.** `cotizacion_tarjeta` convierte la publicada (`_plantilla_convertir()`, espejo
   `convertirPlantilla()`) con la misma apariencia y la vuelve a validar como cuadrícula. Los ids de la
   conversión son deterministas (el de la fila sale del nodo, `n_<nodo>`; el de la celda, de su fila y su columna; uno de más de 41 caracteres se acorta

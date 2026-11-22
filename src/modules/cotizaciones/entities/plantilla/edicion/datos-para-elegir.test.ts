@@ -4,6 +4,7 @@ import {
   acotarDatos,
   mostrarQueAdmite,
   nodosParaElegir,
+  nombreDeLaPastilla,
   nombreDeLaVariable,
   nombreDeMostrar,
   VARIABLES_PARA_ELEGIR,
@@ -156,5 +157,25 @@ describe('nodosParaElegir con etiquetas repetidas', () => {
       'Transporte (transporte_chile)',
       'Grúa',
     ])
+  })
+})
+
+describe('nombreDeLaPastilla', () => {
+  it('una variable por su nombre; un nodo por su etiqueta, «% …» con el porcentaje, «… · qué muestra» con lo demás; uno que no está, su id', () => {
+    expect(nombreDeLaPastilla({ tipo: 'dato', variable: 'cliente_nombre' }, contexto)).toBe(
+      'Nombre del cliente',
+    )
+    expect(nombreDeLaPastilla({ tipo: 'dato', nodo: 'remate', mostrar: 'monto' }, contexto)).toBe(
+      'Remate',
+    )
+    expect(
+      nombreDeLaPastilla({ tipo: 'dato', nodo: 'comision', mostrar: 'porcentaje' }, contexto),
+    ).toBe('% Comisión')
+    expect(nombreDeLaPastilla({ tipo: 'dato', nodo: 'grua', mostrar: 'plazo' }, contexto)).toBe(
+      'Grúa · Plazo',
+    )
+    expect(nombreDeLaPastilla({ tipo: 'dato', nodo: 'borrado', mostrar: 'monto' }, contexto)).toBe(
+      'borrado',
+    )
   })
 })

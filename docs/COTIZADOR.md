@@ -1166,6 +1166,13 @@ publicar valida contra la publicada de **esa** fórmula. Guardar el borrador, pu
   regla de la grilla. Ids nuevos: el menor libre en base 36 (`c1`, `f1`, `k1`). El reductor (`reductor.ts`) une selección, operaciones, el bloque
   copiado, la celda en la que se escribe y el historial (`historial.ts`: instantáneas, tope 100, lo escrito en un campo se junta por clave hasta que
   cambia la selección); la barra y el menú prueban cada operación en seco (`disponibilidad.ts`) para apagarla con el motivo del reductor.
+- **El texto con datos** (`entities/plantilla/edicion/texto-con-datos.ts`, sobre `entities/texto-con-datos.ts`): el campo de «Contenido: Texto» es un
+  `contentEditable` con «Insertar dato», que abre el buscador de «Dato» y pone una **pastilla** en el cursor (su nombre: «% Transferencia a USA»). El modelo
+  cuenta posiciones en unidades (cada code unit, 1; cada pastilla, 1) y maneja Enter, pegar, Retroceso y Supr junto a una pastilla (la borra entera) y las
+  flechas; lo escrito se **normaliza** (junta los textos seguidos, quita los vacíos y, sin datos, escribe `{tipo: 'texto', texto}`). «n de 300» cuenta sólo
+  el texto; pasar de 20 partes apaga «Insertar dato» con su motivo. Insertar o cambiar un dato es su propio paso de deshacer; lo tipeado se junta por clave.
+  En el lienzo, Enter o F2 (o doble clic) sobre una celda con datos lleva al campo del panel, sin escribir en el lugar; copiar como texto (TSV) pone sólo sus
+  partes de texto y la copia interna de celdas las conserva.
 - **«Cuál dato» y las condiciones:** «Dato» lleva «Cuál dato» (Uno | El primero con valor | Según condiciones) y «Ocultar la fila», «Según condiciones».
   Lo que se arma vive en un **borrador del panel** (`useBorradorDeLaRegla()`, sobre `entities/plantilla/edicion/condiciones.ts` y
   `borradores-de-la-celda.ts`): se manda al reductor sólo entero y distinto de lo que hay (la celda o la fila no cambian a medias); lo que cambia afuera
