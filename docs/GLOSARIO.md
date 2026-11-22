@@ -27,6 +27,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Preferencia** — `preferencias_usuario` / `Preferencias`: elección de interfaz por persona (densidad, tema), igual en todos sus dispositivos.
 - **Menú plegado** — `menu.plegado` / `Preferencias.menuPlegado`, `useMenuPlegado()`, `<LateralPlegable>` (`_shell/`): el menú lateral de escritorio reducido a una columna de sólo
   íconos, con su nombre en `title` y para el lector y el contador de Chat como punto. Se alterna con «Plegar menú» / «Desplegar menú» o `Ctrl/Cmd+B`. No: «colapsado», «mini», «compacto» (la densidad es otra cosa).
+- **Última pestaña del origen** — `origenes.ultima_pestana` / `PestanasRecordadas`, `recordarLaPestana()` (`equipo/entities/ultima-pestana.ts`): la pestaña que cada
+  persona abrió por última vez en cada origen (hasta 30 orígenes). Entrar a `/configuracion/origenes/<id>` lleva ahí; sin recordar, a Fases. No viaja en `Preferencias`.
 - **Zona de quien mira** — `preferencias_usuario.zona_horaria` / `useRegional().zonaDeLaPersona`: en qué zona ve cada persona las fechas de
   subasta (`/perfil` › Preferencias › «Zona horaria»); sin elegir, la de la empresa. Lo demás sigue en la zona de la empresa.
 - **Cuenta regresiva del cierre** — `cuentaDelCierre()` (`vehiculos/entities/cuenta-regresiva-del-cierre.ts`), `<CuentaRegresivaDelCierre>`: lo que le falta a una subasta
@@ -748,13 +750,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Hoja (pestaña)** — `/configuracion/origenes/<id>/formulas/<fórmula>/hoja`, clave `hoja` de `SUBPESTANAS_DE_LA_FORMULA`: el nombre en la UI de la
   pestaña del editor de una fórmula del origen donde se edita el diseño de la hoja («Cómo se ve y se llena la cotización.»). El término técnico sigue siendo «Diseño de la hoja»
   (`features/diseno/`); la «Hoja» de cotizar es la pantalla donde se cotiza.
-- **Edición a pantalla completa** — `<EdicionAPantallaCompleta>` (`src/shared/ui/edicion-a-pantalla-completa/`), `enLaEdicion()` (`src/shared/lib/edicion.ts`), `?editar=si`:
-  el modo en que el editor de una pieza clave de Configuración (la planilla, la hoja, la tarjeta, una tabla, el flujo) ocupa toda la ventana: se ocultan el menú lateral
-  de la app, la barra superior y el menú de Configuración (`data-oculto-al-editar`, CSS en `globals.css`) y arriba queda una barra propia con «‹ Salir», el camino, el
-  título, el estado y las acciones del editor (`<AccionesDeLaEdicion>`). Se entra con «Editar» (`<EntrarALaEdicion>`); la URL lo conserva al recargar. No: «modo
-  focus», «pantalla de edición», «editor expandido».
-- **Estado de la edición** — `EstadoDeLaEdicion` (`src/shared/lib/edicion.ts`): lo que dice la barra de la edición a pantalla completa de lo que se edita: «Cambios sin
-  guardar», «Borrador» o «Publicada vN» (lo no guardado manda). El flujo no lleva estado: se guarda en el acto.
+- **Barra de la fórmula** — `BarraDeLaFormulaDelOrigen`, `<ConLaBarraDeLaFormula>`, `<AccionesEnLaBarra>` (`cotizaciones/features/barra-de-la-formula/`): la
+  barra de arriba de las pestañas Planilla, Hoja y Tarjeta de la página del origen: el selector «Fórmula: X (activa) ▾» (la elegida va en `?formula=`), el estado de
+  lo que se edita, «Versiones», «Tablas» y los botones del editor (Guardar, Publicar), que cada editor manda a la ranura con `<AccionesEnLaBarra>`. Fuera de la
+  página del origen (la puesta en marcha) los botones quedan en su lugar. No: «barra de edición», «toolbar».
+- **Estado de la edición** — `EstadoDeLaEdicion` (`cotizaciones/entities/estado-de-la-edicion.ts`), `useEstadoEnLaBarra()`: lo que dice la barra de la fórmula de lo que
+  se edita: «Cambios sin guardar», «Borrador» o «Publicada vN» (lo no guardado manda).
 - **Aspecto** — claves planas y opcionales del diseño de la hoja / `entities/aspecto-de-la-hoja.ts`, `features/hoja/components/clases-de-la-rejilla.ts`:
   cómo se ve una pieza, de escalas cerradas (nunca px, CSS ni hex). Ítem: ancho, alto, letra y énfasis; sección: ancho, alto, relleno,
   separación, densidad, letra, énfasis y color (clave `tono`); cabecera: color, relleno, letra y énfasis. Sin la clave, lo de siempre; el editor quita la clave

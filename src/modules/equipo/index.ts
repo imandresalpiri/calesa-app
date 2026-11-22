@@ -13,6 +13,9 @@ export {
   requerirSesionDeEnlace,
 } from './features/auth/sesion'
 export { nombreVisible, sinRol, type Sesion } from './entities/sesion'
+// La última pestaña de cada origen (la lee la entrada a `/configuracion/origenes/<id>`).
+export { leerLasPestanasRecordadas } from './features/perfil/pestanas-recordadas'
+export type { PestanasRecordadas } from './entities/ultima-pestana'
 // `puede()` y el catálogo viven en `shared` para que `entities/` de cualquier módulo los use
 // (docs/DECISIONES.md); se reexportan porque esta es su puerta natural.
 export { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'

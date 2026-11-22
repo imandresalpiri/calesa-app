@@ -1,6 +1,7 @@
 import 'server-only'
 import { conflicto, errorDePostgrest, ok } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/server'
+import type { Json } from '@/shared/types/database.types'
 import type { RepositorioPerfil } from '../entities/repositorios'
 
 const actualizar: RepositorioPerfil['actualizar'] = async (pedido) => {
@@ -45,4 +46,39 @@ const guardarPreferencia: RepositorioPerfil['guardarPreferencia'] = async (
   return ok(null)
 }
 
-export const perfilSupabase: RepositorioPerfil = { actualizar, guardarPreferencia }
+const leerPreferencia: RepositorioPerfil['leerPreferencia'] = async (usuarioId, clave) => {
+  const supabase = await createClient()
+  // Por la PK `(usuario_id, clave)`: una fila.
+  const { data, error } = await supabase
+    .from('preferencias_usuario')
+    .select('valor')
+    .eq('usuario_id', usuarioId)
+    .eq('clave', clave)
+    .limit(1)
+  if (error) {
+    return { ok: false, error: errorDePostgrest(error) }
+  }
+  return ok(data[0]?.valor ?? null)
+}
+
+const escribirPreferencia: RepositorioPerfil['escribirPreferencia'] = async (
+  usuarioId,
+  clave,
+  valor,
+) => {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('preferencias_usuario')
+    .upsert({ usuario_id: usuarioId, clave, valor: valor as NonNullable<Json> })
+  if (error) {
+    return { ok: false, error: errorDePostgrest(error) }
+  }
+  return ok(null)
+}
+
+export const perfilSupabase: RepositorioPerfil = {
+  actualizar,
+  guardarPreferencia,
+  leerPreferencia,
+  escribirPreferencia,
+}

@@ -12,6 +12,8 @@ export type { ParamsDeVista, VistaGuardada } from './entities/vista'
 // Las preferencias de la persona que se guardan desde otra pantalla (`tablero.widgets`, `vehiculos.vista`, `cotizaciones.vista`, `cotizaciones.agrupar`, `leads.embudo_de_la_ficha`): la acción valida con `esquemaPreferencia` y escribe sólo en la fila de quien
 // actúa (la RLS lo repite); aquí sólo se reexporta, como `completarRecordatorio` en `leads/client.ts`.
 export { guardarPreferencia } from './features/perfil/actions/guardar-preferencia'
+// La última pestaña abierta en un origen: la escribe la barra de pestañas al cambiar (sin aviso si falla).
+export { recordarLaPestana } from './features/perfil/actions/recordar-la-pestana'
 export {
   CLAVE_DE_AGRUPAR_COTIZACIONES,
   CLAVE_DE_EMBUDO_DE_LA_FICHA,
