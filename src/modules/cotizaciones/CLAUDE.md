@@ -113,7 +113,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   recálculo. El enlace (`rutaDeComparar`) y la lectura de `ids` (`idsParaComparar`: 2 o 3 guids distintos, en minúsculas, en el orden de la URL) son del
   núcleo (`entities/ruta-de-comparar.ts`): los usan «De este vehículo» y la lista agrupada.
 - La hoja guarda en la URL lo que abre (se borra al guardar): `?panel=avanzado`, `?panel=vista-previa` (la tarjeta; sólo con `<ProveedorDeLaTarjeta>`,
-  también para quien sólo ve; en una guardada dibuja lo guardado), `?ayuda=texto|tabla&nodo=<id>` (sólo lectura; la URL no abre lo que la hoja no dibuja)
+  también para quien sólo ve; en una guardada dibuja lo guardado), `?ayuda=bloques&nodo=<id>` (la ayuda en bloques, glosario: «Ayuda (de una celda)»; `texto` y `tabla`, de antes, abren lo mismo y se reemplazan por `bloques`; la URL no abre lo que la hoja no dibuja)
   y, con el proveedor del área, `?ajuste=celda&nodo=<id>` (el ⚙, también dentro de «Avanzado») y `?ajuste=cabecera` (el ⚙ de la cabecera: «Configuración por
   defecto de <Origen>», junto a los modos; sólo con `cabecera.ajustes` de la base y el hueco `AjusteDeLaCabecera` lleno).
 - **Los pasos de la hoja** (`<PasosDeLaHoja>`, `entities/pasos-de-la-hoja.ts`, en `ColumnaDeLaHoja` debajo de `CabeceraDeHoja`): `src/app` pasa `pasos`
@@ -121,7 +121,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   guardada, sólo «Vehículo» si la barra no es `solo_mostrar`). «Hoja» suelta `panel`, `ayuda`, `ajuste` y `nodo` y enfoca la primera celda que se edita; «Vista
   previa», sólo con `ContextoDeLaVistaPrevia`. El nombre del botón es su etiqueta; el punto, su descripción (un texto `hidden`), su `title` y `data-punto` con
   guiones. Fuera del orden de Tab (la tarea de oro no suma paradas). Sin `pasos` (pruebas, vista previa del
-  diseño) no se dibujan. La línea de arriba de «Avanzado» sale de `explicacionDelAvanzado()`; los enlaces de la ayuda de texto, de `enlacesDeLaAyuda()`.
+  diseño) no se dibujan. La línea de arriba de «Avanzado» sale de `explicacionDelAvanzado()`; el título y los bloques de la ayuda, de `tituloDeLaAyuda()` y `bloquesDeLaAyuda()`.
 - **El aspecto de V1** (`docs/DECISIONES.md` › «La hoja con el aspecto de V1»): «Avanzado» es un botón a lo ancho (`BotonDeAvanzado`: los títulos que esconde,
   en un `hidden` por `aria-describedby`) y su modal es `ancho="grande"` con las secciones `sinMarco` (`SeccionDeHoja`, `claseDelMarcoDeLaSeccion()`). El total
   del resumen va en la tarjeta del total (`clases-del-total.ts`: `CabezaDelResumen` y, en par, una por total en `TotalesEnPar`), con «Ver el detalle» fuera. Con la
@@ -131,8 +131,8 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   («Cotizado (n)») es acotado y con la RLS de quien mira; `rutaDeLaHoja()` la usan «Cotizar» de `/vehiculos` y de `/leads/[id]`;
   `datosDelVehiculoDeLaHoja(hoja)` dice qué campo del vehículo casa con qué tabla (qué se elige lo decide `vehiculos`). Lo consumen `logistica`, `chat`,
   `buscador`, `web` (precio público), `tablero`.
-- `client.ts`: `useLectorDeOpciones()`, las opciones de un dato del vehículo (los textos de su columna en `cotizacion_tabla`, 5 min con
-  `memoriaDeLectura()`): con él la página arma el lector del panel del vehículo (`vehiculos` no conoce `cotizaciones`). La celda sin valor de un campo que
+- `client.ts`: `useLectorDeOpciones()`, las opciones de un dato del vehículo (los textos de su columna en `cotizacion_tabla`, 5 min en la
+  memoria de tablas que comparte con la ayuda, `memoriaDeLaTabla()`): con él la página arma el lector del panel del vehículo (`vehiculos` no conoce `cotizaciones`). La celda sin valor de un campo que
   se elige (`seEligen`; `campo_sin_valor`, `fila_sin_coincidencia`) dice «Elige el dato del vehículo en «Vehículo»…».
 - **«Revisiones»** (`?panel=revisiones`): lee `cotizacion_revisiones` desde el navegador por `composicion-revisiones.client.ts`, con «Ver más» por
   cursor (el id de la última); lo leído es de una versión (`actualizadoEn`). La RPC recorta cada diff al nivel de quien mira; `cambiosDeLaRevision()` da el

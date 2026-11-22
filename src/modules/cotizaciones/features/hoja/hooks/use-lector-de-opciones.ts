@@ -1,33 +1,13 @@
 'use client'
 
 import { useCallback } from 'react'
-import { memoriaDeLectura, type MemoriaDeLectura } from '@/shared/lib/memoria-de-lectura'
-import { leerTablaDeAyuda } from '../../../composicion.client'
 import {
   leerOpcionesCon,
   type OpcionesDelDato,
   type TablaDelDato,
 } from '../../../entities/dato-del-vehiculo'
-import type { TablaDeAyuda } from '../../../entities/tabla-de-ayuda'
 import type { Resultado } from '@/shared/lib/errores'
-
-// Una tabla vale 5 minutos con la misma hoja abierta: volver a abrir el panel del vehículo no la vuelve a leer. Guardar el dato trae otra hoja abierta y la lee de nuevo.
-const VIDA_MS = 5 * 60 * 1000
-const memorias = new Map<string, MemoriaDeLectura<TablaDeAyuda>>()
-
-function memoriaDe(origenId: string, abierta: string, tabla: string) {
-  const clave = `${abierta}\u0000${tabla}`
-  let memoria = memorias.get(clave)
-  if (!memoria) {
-    memoria = memoriaDeLectura(
-      () =>
-        leerTablaDeAyuda({ tabla, de: { tipo: 'abierta', origenId, abierta, vehiculoId: null } }),
-      VIDA_MS,
-    )
-    memorias.set(clave, memoria)
-  }
-  return memoria
-}
+import { memoriaDeLaTabla } from './memoria-de-tablas'
 
 export type LectorDeOpciones = (
   tablas: readonly TablaDelDato[],
@@ -43,7 +23,12 @@ export function useLectorDeOpciones({
   abierta: string
 }): LectorDeOpciones {
   return useCallback(
-    (tablas) => leerOpcionesCon((tabla) => memoriaDe(origenId, abierta, tabla).leer(), tablas),
+    (tablas) =>
+      leerOpcionesCon(
+        (tabla) =>
+          memoriaDeLaTabla({ tipo: 'abierta', origenId, abierta, vehiculoId: null }, tabla).leer(),
+        tablas,
+      ),
     [origenId, abierta],
   )
 }

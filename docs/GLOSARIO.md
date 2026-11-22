@@ -857,7 +857,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   diseños guardados son 12, 6 y 4), alto, letra, énfasis, ayuda y niveles. Se mueve dentro de su sección o a otra (hereda el nivel de la nueva: el
   inspector lo avisa).
 - **Ayuda (de una celda)** — `ayuda` de una `celda` (`AyudaDeDiseno`): una lista de 1 a 8 **bloques de la ayuda** que abre «Ayuda de X» en un
-  panel de sólo lectura (`?ayuda=texto|tabla&nodo=<id>`); cada tabla se lee con la hoja abierta. La de antes (`{texto, enlaces?}` o `{tabla}`)
+  panel de sólo lectura (`?ayuda=bloques&nodo=<id>`; `texto` y `tabla`, de antes, abren lo mismo); cada tabla se lee con la hoja abierta. La de antes (`{texto, enlaces?}` o `{tabla}`)
   se sigue aceptando y se lee como bloques (`ayudaEnBloques()`, espejo de `_diseno_bloques_de_la_ayuda()`): un texto (más sus enlaces) o una
   tabla con todas sus columnas que no llena nada.
 - **Bloque de la ayuda** — `BloqueDeAyuda` (`entities/diseno.ts`): cada parte de la ayuda de una celda, en orden. `titulo` (hasta 80

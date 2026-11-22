@@ -74,6 +74,30 @@ export function columnasDeLaTabla(tabla: TablaDeAyuda): ColumnaDeTabla[] {
   }))
 }
 
+// Las columnas que dibuja un bloque: sin lista (la ayuda de antes, o «todas»), las de la tabla; con lista, las pedidas que la tabla tiene, en el orden del bloque. Las que la tabla
+// ya no tiene van a `faltan`, para avisar a quien configura (a los demás no se les dice nada: la columna no se dibuja).
+export function columnasDelBloque(
+  tabla: TablaDeAyuda,
+  pedidas: readonly string[] | null,
+): { columnas: ColumnaDeTabla[]; faltan: string[] } {
+  const todas = columnasDeLaTabla(tabla)
+  if (pedidas === null) {
+    return { columnas: todas, faltan: [] }
+  }
+  const porClave = new Map(todas.map((c) => [c.clave, c]))
+  const columnas: ColumnaDeTabla[] = []
+  const faltan: string[] = []
+  for (const clave of pedidas) {
+    const columna = porClave.get(clave)
+    if (columna) {
+      columnas.push(columna)
+    } else {
+      faltan.push(clave)
+    }
+  }
+  return { columnas, faltan }
+}
+
 // Lo que una celda de la tabla dibuja: una cifra (la pantalla decide si es dinero) o un texto.
 export type CeldaDeTabla =
   { tipo: 'cifra'; valor: number; texto: string } | { tipo: 'texto'; texto: string }

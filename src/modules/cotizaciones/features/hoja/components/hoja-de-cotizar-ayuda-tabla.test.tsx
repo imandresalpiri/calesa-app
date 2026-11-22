@@ -93,7 +93,9 @@ const leida = (mas: Partial<TablaDeAyuda> = {}): Resultado<TablaDeAyuda> => ({
   data: { ...TABLA, ...mas },
 })
 
-const hoja = hojaDeTablas()
+// La tabla de una ayuda se recuerda por hoja abierta en la memoria del módulo: cada prueba, con la suya.
+let hoja = hojaDeTablas()
+let vuelta = 0
 const montar = (busqueda = '') =>
   render(
     <NuqsTestingAdapter searchParams={busqueda}>
@@ -115,12 +117,23 @@ const abrir = async (nombre: string) => {
 }
 
 beforeEach(() => {
+  vuelta += 1
+  const base = hojaDeTablas()
+  hoja = { ...base, abierta: `${base.abierta}.${String(vuelta)}` }
   window.sessionStorage.clear()
   leerTablaDeAyuda.mockReset()
   refresh.mockReset()
   leerTablaDeAyuda.mockResolvedValue(leida())
+  // Un `matchMedia` de mentira: la pantalla es ancha (la ayuda entra al costado).
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+  )
 })
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 describe('HojaDeCotizar: la ayuda de una tabla', () => {
   it('no lee nada al abrir la hoja; el botón abre el panel y lee con la hoja abierta, sin cotización', async () => {
@@ -135,7 +148,7 @@ describe('HojaDeCotizar: la ayuda de una tabla', () => {
     })
   })
 
-  it('una celda con ayuda de texto sigue abriendo su texto, no una tabla', async () => {
+  it('una celda con sólo texto en su ayuda no lee ninguna tabla', async () => {
     montar()
     fireEvent.click(screen.getByRole('button', { name: 'Ayuda de T1' }))
     expect(await screen.findByText('Cómo se usa t1')).toBeTruthy()
@@ -206,11 +219,12 @@ describe('HojaDeCotizar: lo que dibuja la ayuda de una tabla', () => {
     expect(within(panel).queryByRole('table')).toBeNull()
   })
 
-  it('si la lectura llegó a su tope, lo dice al pie sin esconder las filas', async () => {
+  it('si la lectura llegó a su tope, lo dice al pie sin esconder las filas, con el camino a la configuración', async () => {
     leerTablaDeAyuda.mockResolvedValue(leida({ hayMas: true }))
     montar()
     const panel = await abrir('A1')
-    expect(await within(panel).findByText('Mostrando las 2 primeras filas.')).toBeTruthy()
+    const tope = await within(panel).findByText(/^Mostrando las 2 primeras filas\./)
+    expect(tope.textContent).toContain('Hay más filas: mira la tabla en la configuración.')
     expect(within(panel).getAllByRole('row')).toHaveLength(3)
   })
 })
@@ -245,28 +259,43 @@ describe('HojaDeCotizar: los fallos de la ayuda de una tabla', () => {
     },
   )
 
-  it('cada apertura vuelve a leer', async () => {
-    montar()
-    const panel = await abrir('A1')
-    await within(panel).findByRole('columnheader', { name: 'Año' })
-    fireEvent.click(within(panel).getByRole('button', { name: 'Cerrar' }))
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).toBeNull()
+  it('volver a abrirla con la misma hoja abierta no la lee de nuevo y la dibuja de una vez; un fallo no se recuerda', async () => {
+    leerTablaDeAyuda.mockResolvedValueOnce({
+      ok: false,
+      error: { codigo: 'inesperado', mensaje: 'x' },
     })
-    await abrir('A1')
+    montar()
+    const cerrar = async (panel: HTMLElement) => {
+      fireEvent.click(within(panel).getByRole('button', { name: 'Cerrar' }))
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBeNull()
+      })
+    }
+    let panel = await abrir('A1')
+    await within(panel).findByRole('alert')
+    await cerrar(panel)
+    panel = await abrir('A1')
+    await within(panel).findByRole('columnheader', { name: 'Año' })
+    await cerrar(panel)
+    panel = await abrir('A1')
+    expect(within(panel).getByRole('columnheader', { name: 'Año' })).toBeTruthy()
+    expect(within(panel).queryByLabelText('Cargando la tabla')).toBeNull()
     expect(leerTablaDeAyuda).toHaveBeenCalledTimes(2)
   })
 })
 
-describe('HojaDeCotizar: ?ayuda=tabla&nodo=', () => {
-  it('abre la ayuda de una celda con tabla de la hoja', async () => {
+describe('HojaDeCotizar: ?ayuda=bloques&nodo=', () => {
+  it('abre la ayuda de una celda con tabla de la hoja; la URL de antes (`tabla`), también', async () => {
+    montar('?ayuda=bloques&nodo=a1')
+    expect(await screen.findByRole('dialog', { name: 'Ayuda de A1' })).toBeTruthy()
+    cleanup()
     montar('?ayuda=tabla&nodo=a1')
     expect(await screen.findByRole('dialog', { name: 'Ayuda de A1' })).toBeTruthy()
   })
 
-  it('no abre una celda de texto, una sin ayuda, un id inventado ni una de «Avanzado» con el modal cerrado', async () => {
-    for (const nodo of ['t1', 's1', 'no_existe', 'y1']) {
-      montar(`?ayuda=tabla&nodo=${nodo}`)
+  it('no abre una celda sin ayuda, un id inventado ni una de «Avanzado» con el modal cerrado', async () => {
+    for (const nodo of ['s1', 'no_existe', 'y1']) {
+      montar(`?ayuda=bloques&nodo=${nodo}`)
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).toBeNull()
       })
@@ -275,16 +304,8 @@ describe('HojaDeCotizar: ?ayuda=tabla&nodo=', () => {
     expect(leerTablaDeAyuda).not.toHaveBeenCalled()
   })
 
-  it('«texto» no abre una celda con tabla', async () => {
-    montar('?ayuda=texto&nodo=a1')
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).toBeNull()
-    })
-    expect(leerTablaDeAyuda).not.toHaveBeenCalled()
-  })
-
   it('la ayuda de una celda de «Avanzado» se abre encima del modal y al cerrarla el foco vuelve a su botón, con el modal abierto', async () => {
-    montar('?panel=avanzado&ayuda=tabla&nodo=y1')
+    montar('?panel=avanzado&ayuda=bloques&nodo=y1')
     const panel = await screen.findByRole('dialog', { name: 'Ayuda de Y1' })
     expect(document.querySelector('[data-avanzado-cuerpo]')).not.toBeNull()
     await within(panel).findByRole('columnheader', { name: 'Año' })

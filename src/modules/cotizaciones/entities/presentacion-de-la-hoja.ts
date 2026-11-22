@@ -1,5 +1,5 @@
 import { itemSeDibuja, propsDeCelda, type ContextoDeHoja } from './binding'
-import type { BloqueEnLaHoja, CeldaDeHoja, EnlaceDeLaAyuda, SeccionDeHoja } from './hoja'
+import type { BloqueEnLaHoja, CeldaDeHoja, SeccionDeHoja } from './hoja'
 
 // Lo que la hoja dibuja en cada lugar (paso 4.13-4a, `docs/COTIZADOR.md` › «El diseño de la hoja (D7)»): las secciones `principal` en su orden, y las `avanzado` juntas detrás de **un**
 // botón «Avanzado» que va donde estaba la primera de ellas. Puro: la hoja recibe sólo las secciones que se dibujan (`seccionSeDibuja`).
@@ -40,54 +40,29 @@ export const hayDatosPorRevisar = (
   c: ContextoDeHoja,
 ): boolean => celdasQueSeDibujan(secciones, c).some((celda) => propsDeCelda(celda, c).error)
 
-// La ayuda de una celda llega como bloques (`ayuda-de-la-hoja.ts`); hasta que se abra entera, su botón abre el texto (con sus enlaces) si tiene algún bloque
-// que no es una tabla, y si no la primera tabla: el texto, los enlaces y la tabla salen del primer bloque de cada tipo.
-export type TipoDeAyuda = 'texto' | 'tabla'
+// La ayuda de una celda llega como bloques (`ayuda-de-la-hoja.ts`) y se abre entera en un panel: su título es el texto del primer bloque de título, que no se repite en el
+// cuerpo; sin él, «Ayuda de <rótulo>».
+export const tituloDeLaAyuda = (celda: CeldaDeHoja): string =>
+  celda.ayuda?.find((b) => b.tipo === 'titulo')?.texto ?? `Ayuda de ${celda.etiqueta}`
 
-const primero = <T extends BloqueEnLaHoja['tipo']>(
-  celda: CeldaDeHoja,
-  tipo: T,
-): Extract<BloqueEnLaHoja, { tipo: T }> | undefined =>
-  celda.ayuda?.find((b): b is Extract<BloqueEnLaHoja, { tipo: T }> => b.tipo === tipo)
+// Los bloques que dibuja el cuerpo del panel, en su orden: todos menos el primer título (ya es el del panel). Sin ayuda, ninguno.
+export function bloquesDeLaAyuda(celda: CeldaDeHoja): readonly BloqueEnLaHoja[] {
+  const ayuda = celda.ayuda ?? []
+  const titulo = ayuda.findIndex((b) => b.tipo === 'titulo')
+  return titulo < 0 ? ayuda : ayuda.filter((_, i) => i !== titulo)
+}
 
-export const tipoDeAyuda = (celda: CeldaDeHoja): TipoDeAyuda | null =>
-  celda.ayuda === null ? null : celda.ayuda.some((b) => b.tipo !== 'tabla') ? 'texto' : 'tabla'
-
-// El texto de la ayuda de una celda (el del primer bloque de texto o, sin él, el del título), o nulo si no tiene.
-export const ayudaDeTexto = (celda: CeldaDeHoja): string | null =>
-  (primero(celda, 'texto') ?? primero(celda, 'titulo'))?.texto ?? null
-
-// Los enlaces de la ayuda de una celda (hasta 5, todos `https://`: el esquema de la hoja ya lo exigió), en su orden; vacío si no tiene.
-export const enlacesDeLaAyuda = (celda: CeldaDeHoja): readonly EnlaceDeLaAyuda[] =>
-  primero(celda, 'enlaces')?.enlaces ?? []
-
-// La clave de la primera tabla de la ayuda de una celda, o nulo si no tiene.
-export const tablaDeAyuda = (celda: CeldaDeHoja): string | null =>
-  primero(celda, 'tabla')?.tabla ?? null
-
-// El tipo de ayuda de cada celda de estas secciones, por nodo (para que el callback único de las celdas sepa qué abrir sin cambiar).
-export const tiposDeAyuda = (secciones: readonly SeccionDeHoja[]): Map<string, TipoDeAyuda> =>
-  new Map(
-    secciones
-      .flatMap((s) => s.items)
-      .flatMap((item) => {
-        const tipo = item.tipo === 'celda' ? tipoDeAyuda(item) : null
-        return item.tipo === 'celda' && tipo !== null ? [[item.nodo, tipo] as const] : []
-      }),
-  )
-
-// La celda a la que apunta `?nodo=` si se dibuja ahora en estas secciones y su ayuda es de ese tipo; si no (otro nivel, un id inventado, una ayuda de otro tipo, una celda
-// apagada), nada: la URL no abre lo que la hoja no muestra.
+// La celda a la que apunta `?nodo=` si se dibuja ahora en estas secciones y tiene ayuda; si no (otro nivel, un id inventado, una celda sin ayuda, una apagada), nada: la URL no
+// abre lo que la hoja no muestra.
 export const celdaConAyuda = (
   secciones: readonly SeccionDeHoja[],
   nodo: string | null,
-  tipo: TipoDeAyuda,
   c: ContextoDeHoja,
 ): CeldaDeHoja | null =>
   nodo === null
     ? null
     : (celdasQueSeDibujan(secciones, c).find(
-        (celda) => celda.nodo === nodo && tipoDeAyuda(celda) === tipo,
+        (celda) => celda.nodo === nodo && celda.ayuda !== null,
       ) ?? null)
 
 // La celda a la que apunta `?nodo=` si se dibuja ahora en estas secciones y la base le dio el ⚙ (en ella o en su secundario); si no (otro nivel, un id inventado, una celda sin
