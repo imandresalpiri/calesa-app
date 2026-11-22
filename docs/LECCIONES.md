@@ -341,7 +341,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 
 ## CI, entorno y herramientas
 
-- Un archivo que una herramienta regenera (`.eslintcache`) va a `.gitignore` antes de su primer commit; si ya está versionado, sale con `git rm --cached` en su propio commit, nunca se restaura a mano en cada sesión. (kit)
+- Un archivo que una herramienta regenera (`.eslintcache`) va a `.gitignore` antes de su primer commit; si ya está versionado, sale con `git rm --cached` en su propio commit, nunca se restaura a mano en cada sesión. `scripts/guardas/ignorados.test.ts` (`pnpm test`) cae si algo versionado está ignorado; una excepción a propósito va como `!ruta` en `.gitignore`. (kit)
 - Espera un proceso en segundo plano con su aviso (`run_in_background`): un bucle de `sleep`/`until`, un `tail` repetido del log o un Monitor de intervalo pagan un turno con todo el contexto en cada vuelta; el hook `bloquear-esperas.sh` lo rechaza. (kit)
 - Tras reescribir un doc con un guion (python, sed), compara sus líneas antes y después: un guion que escribe el contenido dos veces lo duplica sin que git, el lint ni el mapa lo vean. (kit)
 - Antes de publicar una migración, corre `pnpm db:revisar`: es lo que el job «Base» del CI compara de la base (`db:lint`, advisors, `db:lint` contra su lista e inventario); `pnpm db:lint` solo no corre los advisors ni compara contra la lista. (kit)

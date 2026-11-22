@@ -155,6 +155,8 @@ export const PASA = [
   'git log --oneline -5',
   'git diff HEAD~1',
   'git add .',
+  'git rm --cached .eslintcache',
+  'git rm --cached -q test-salidas/x.log',
   'git commit -m "feat(config): algo"',
   'git commit -am "x"',
   'git restore --staged src/a.ts',
