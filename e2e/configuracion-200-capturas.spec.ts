@@ -1,6 +1,7 @@
 import { expect, test, type Page } from './soporte/prueba'
 import { entrar } from './soporte/alta'
 import { borrarPersonasDePrueba, correoDePrueba, crearPersona } from './soporte/base'
+import { abrirElCampo, abrirElMenu } from './soporte/editor-de-campos'
 import { borrarOrigenes, crearOrigenDePrueba } from './soporte/origenes'
 import {
   PREFIJO_DE_ORIGEN_E2E,
@@ -114,11 +115,27 @@ const AL_CIEN = new Set([
   'empresa-monedas',
   'empresa-integraciones',
   'origen-datos',
+  'origen-campos',
+  'leads-campos',
   'origen-tablas-nueva',
   'origen-tablas-columnas',
   'equipo',
   'roles',
 ])
+
+// El editor de campos del origen con su código cargado (las asas), el «⋯» de un campo y su panel abierto tocando la fila.
+async function editorDeCampos(page: Page, info: Parameters<typeof capturar>[1], zoom: string) {
+  await page.goto(`/configuracion/origenes/${origen.id}/campos`)
+  await expect(page.getByRole('button', { name: 'Mover «Color»', exact: true })).toBeVisible()
+  await abrirElMenu(page, 'Color')
+  await capturar(page, info, `campos-menu-${zoom}`)
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await abrirElCampo(page, 'Color')
+  await capturar(page, info, `campos-panel-${zoom}`)
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toBeHidden()
+}
 
 async function selectorDeIconos(page: Page, info: Parameters<typeof capturar>[1], zoom: string) {
   await page.goto('/configuracion/leads?panel=seguimientos')
@@ -187,6 +204,7 @@ for (const zoom of ['100', '200'] as const) {
         await capturar(page, info, `roles-desplazada-${zoom}`)
       }
     }
+    await editorDeCampos(page, info, zoom)
     await selectorDeIconos(page, info, zoom)
     // c.3: la ficha de un lead con el origen inactivo y su icono.
     await irAFicha(page, r.uno.id)
