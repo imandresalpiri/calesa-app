@@ -39,7 +39,7 @@ import { literal, sql } from './soporte/sql'
 // cálculo, el valor fijo o de dónde sale) y Ejemplo, lo que da con la unidad de ejemplo; «=» y el clic en las celdas arman una suma; `fx` › SUMA con un rango por
 // Shift+clic; lo que escribe el asesor se tipea en Ejemplo; «Totales» y «Tarjeta» se abren al costado desde la barra, de a uno, sin mover la celda activa; y
 // «+ Nuevo color» en el panel de una banda crea el color y lo deja elegido. La fórmula de prueba con texto (`formula-editor.ts`): `pub` («Pública») lo escribe el
-// asesor, `con_ayuda` es un valor fijo de 5, `comision` = `=pub*4%` y `x_celda` lo escribe el asesor (en 0, debajo de las dos).
+// asesor, `con_ayuda` es un valor fijo de 5, `comision` = `=pub*4%` y `x_sub` un cálculo sin banda (suma `x_celda`, en 0).
 test.describe.configure({ mode: 'serial' })
 
 let proyecto = ''
@@ -149,8 +149,10 @@ test('fx › SUMA deja «=SUMA()» con el cursor adentro; el clic y el Shift+cli
   // Al entrar no hay celda elegida: la barra muestra su guía y `fx` está apagado.
   await expect(barra(page)).toContainText('Escribe = y toca las celdas: =C5+C7')
   await expect(botonDeFunciones(page)).toHaveAttribute('aria-disabled', 'true')
-  // `x_celda` lo escribe el asesor: su C abre vacía y `fx` la vuelve cálculo.
-  await celdaDe(page, 'x_celda').click()
+  // En `x_sub` (un cálculo sin banda), «=» en la barra y `fx`: la función entra tras el «=».
+  await celdaDe(page, 'x_sub').click()
+  await texto.fill('=')
+  await expect(texto).toBeFocused()
   await botonDeFunciones(page).click()
   await page.getByRole('menuitem', { name: /^SUMA\(/ }).click()
   await expect(page.getByRole('menu')).toHaveCount(0)
@@ -164,8 +166,8 @@ test('fx › SUMA deja «=SUMA()» con el cursor adentro; el clic y el Shift+cli
   await expect(texto).toHaveValue(`=SUMA(${pub}:${conAyuda})`)
   await capturar(page, info, 'suma-con-un-rango')
   await texto.press('Enter')
-  await expect(celdaDe(page, 'x_celda')).toHaveText(`=SUMA(${pub}:${conAyuda})`)
-  await expect(celdaDe(page, 'x_celda', 'D')).toContainText(usd(5))
+  await expect(celdaDe(page, 'x_sub')).toHaveText(`=SUMA(${pub}:${conAyuda})`)
+  await expect(celdaDe(page, 'x_sub', 'D')).toContainText(usd(5))
 })
 
 test('«Totales» y «Tarjeta» cerrados al entrar; se abren de a uno desde la barra y cerrarlos deja la celda activa como estaba', async ({
