@@ -26,12 +26,13 @@ export const ACCIONES = 'flex shrink-0 items-center gap-2'
 // El valor, en la monoespaciada de los tokens (`--font-mono`) con cifras tabulares: nunca se corta (no se parte ni se achica) y, si no cabe junto al rótulo,
 // baja a su fila a la derecha. La entrada que lo reemplaza toma el ancho medido del botón (`LadoDeXCell`). Sin valor («Sin valor», `data-vacio`), en la
 // letra del texto: no parece una cifra y el alto no cambia (el mínimo es de la raíz).
-const CAJA_SIN_BORDE = `${BLANCO_TACTIL} block shrink-0 rounded-sm text-right font-mono leading-5 whitespace-nowrap tabular-nums data-[vacio]:font-sans data-[vacio]:font-normal data-[vacio]:text-(length:--text-sm)`
+const CAJA_SIN_BORDE = `${BLANCO_TACTIL} block shrink-0 rounded-sm text-right font-mono whitespace-nowrap tabular-nums data-[vacio]:font-sans data-[vacio]:font-normal data-[vacio]:text-(length:--text-sm)`
 // El lado grande (el monto; en un par con el monto de secundario, el %) en 1,5 veces la letra de la hoja y negrita (`--xcell-letra-valor`); el chico, en
-// la letra de la hoja y de peso normal, como el «13.00 %» de V1.
+// la letra de la hoja y de peso normal, como el «13.00 %» de V1. El alto de línea del grande es relativo a su letra y no menor que el normal de la fuente:
+// un `<input>` no baja de ese (el botón sí), y con uno más chico la entrada medía 2 px más que el botón que reemplaza.
 const GRANDE =
-  'min-w-[6rem] text-[length:var(--xcell-letra-valor,calc(var(--text-sm)*1.5))] font-bold'
-const CHICO = 'min-w-[3.5rem] text-(length:--text-sm) font-normal'
+  'min-w-[6rem] text-[length:var(--xcell-letra-valor,calc(var(--text-sm)*1.5))] leading-[1.5] font-bold'
+const CHICO = 'min-w-[3.5rem] text-(length:--text-sm) leading-5 font-normal'
 const RELLENO = 'border-0 px-2 py-1'
 // El lado bloqueado de un par cuyo otro lado se edita (4.13-3c, P3): su caja lleva el borde discontinuo que, con la celda entera bloqueada, lleva la celda.
 // El relleno pierde el píxel del borde: la caja mide lo mismo que la del otro lado.
