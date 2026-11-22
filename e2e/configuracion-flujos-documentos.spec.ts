@@ -76,7 +76,7 @@ test('la dueña crea un tipo del flujo con vencimiento, lo edita y lo sube de or
   await expect(page.getByRole('button', { name: 'Editar BL', exact: true })).toBeVisible()
   // Los del flujo, en su panel: sólo los suyos.
   await abrirDocumentos(page)
-  await expect(page.getByRole('heading', { name: 'De toda la empresa', level: 2 })).toHaveCount(0)
+  await expect(page.locator('section[aria-label="De toda la empresa"]')).toHaveCount(0)
   const flujo = seccionDelGrupo(page, 'flujo')
 
   // Crear con vencimiento «renovar»: 365 días de vigencia y aviso a los 30.

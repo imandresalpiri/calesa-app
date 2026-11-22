@@ -43,7 +43,7 @@ export function BotonDeConfigurar() {
       aria-label="Configurar la logística"
       aria-current={actual ? 'page' : undefined}
       className={cn(
-        'inline-flex min-h-11 items-center gap-1.5 rounded-(--radius-pill) px-3 text-(length:--text-sm) text-(--color-ink-soft) hover:text-(--color-ink) md:min-h-8',
+        'ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-(--radius-pill) px-3 text-(length:--text-sm) text-(--color-ink-soft) hover:text-(--color-ink) md:min-h-8',
         actual && 'bg-(--color-surface) font-medium text-(--color-ink)',
       )}
     >

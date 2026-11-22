@@ -71,7 +71,10 @@ export function borrarTiposDeDocumentoDePrueba(): void {
 export type Grupo = 'empresa' | 'flujo'
 
 export const seccionDelGrupo = (page: Page, grupo: Grupo): Locator =>
-  page.locator(`section[aria-labelledby="titulo-de-tipos-${grupo}"]`)
+  // Los de la empresa no dibujan su título (es el de la pestaña): la región lleva su nombre en `aria-label`; los de un flujo, `aria-labelledby`.
+  grupo === 'empresa'
+    ? page.locator('section[aria-label="De toda la empresa"]')
+    : page.locator(`section[aria-labelledby="titulo-de-tipos-${grupo}"]`)
 
 // Los de un flujo: en el panel de la pestaña Fases del origen (`?seccion=documentos`), sólo los de ese flujo.
 export async function abrirDocumentos(page: Page, origenId = origenDeLaSubasta()): Promise<void> {
@@ -82,7 +85,7 @@ export async function abrirDocumentos(page: Page, origenId = origenDeLaSubasta()
 // Los de toda la empresa: Logística › Configuración › Tipos de documento.
 export async function abrirLosDeLaEmpresa(page: Page, consulta = ''): Promise<void> {
   await page.goto(`/logistica/configuracion/tipos-de-documento${consulta}`)
-  await expect(page.getByRole('heading', { name: 'De toda la empresa', level: 2 })).toBeVisible()
+  await expect(seccionDelGrupo(page, 'empresa')).toBeVisible()
 }
 
 // Los nombres de las filas de un grupo, en el orden en que se ven.

@@ -100,6 +100,7 @@ test('E2E el ⚙ Configurar sale en toda página de Logística con el permiso y 
   await expect(
     page.getByRole('navigation', { name: 'Logística' }).locator('a[aria-current="page"]'),
   ).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Nuevo puerto' }).first()).toBeVisible()
   await capturar(page, info, 'configuracion-puertos')
 })
 
@@ -191,9 +192,7 @@ for (const catalogo of [
   })
 }
 
-test('E2E Tipos de documento: con el permiso de logística se cambian y con `flujos.configurar` sólo se leen', async ({
-  page,
-}, info) => {
+test('E2E Tipos de documento: con el permiso de logística se cambian', async ({ page }, info) => {
   await entrar(page, duena, { fresco: true })
   await page.goto(`${RAIZ}/tipos-de-documento`)
   await expect(page.getByRole('tab', { name: 'Tipos de documento' })).toHaveAttribute(
@@ -203,7 +202,11 @@ test('E2E Tipos de documento: con el permiso de logística se cambian y con `flu
   await expect(page.getByRole('button', { name: 'Nuevo tipo' })).toBeEnabled()
   await expect(nombreDeLaFila(page, 'BL')).toBeVisible()
   await capturar(page, info, 'tipos-de-documento')
+})
 
+test('E2E con flujos.configurar sin el permiso de logística, Tipos de documento es de sólo lectura', async ({
+  page,
+}, info) => {
   await entrar(page, lectora, { fresco: true })
   // La raíz abre la primera pestaña que puede abrir: la única.
   await page.goto(RAIZ)
