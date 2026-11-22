@@ -8,7 +8,7 @@ import { confirmarContacto } from '../../actions/confirmar-contacto'
 
 // «Contacté» de una tarjeta (8.05-1): un toque, sin confirmación ni «Deshacer». Una escritura a la vez; al `ok` se relee Inicio y la tarjeta se va; si falla, el motivo
 // queda en la tarjeta y el botón vuelve.
-export function useConfirmarTurno(solicitud: string) {
+export function useConfirmarTurno(solicitud: string, alConfirmar?: () => void) {
   const router = useRouter()
   const { mandar, enCurso } = useUnEnvioALaVez()
   const [error, setError] = useState<string | null>(null)
@@ -22,6 +22,8 @@ export function useConfirmarTurno(solicitud: string) {
       )
       if (envio === null) return
       if (envio.ok) {
+        // El panel «Ver todos» saca el turno de su lista; el bloque de Inicio se relee.
+        alConfirmar?.()
         router.refresh()
       } else {
         setError(envio.error.mensaje)

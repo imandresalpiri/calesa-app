@@ -17,10 +17,23 @@ export type Turno = {
   estado: EstadoDeTurno
 }
 
-// Pide `tope + 1` filas y devuelve hasta `tope` con si había más (nunca un total). Sólo los turnos de quien lee.
+// Dónde sigue la lista de mis turnos: el último que se vio. Las vigentes (`asignada`) van antes que las `vencida`, cada grupo con su orden (`ordenarTurnos`),
+// así que el cursor dice de qué grupo es, su `vence_en` y su id: una clave estable que no se corre aunque otro turno venza o se confirme (nada de `offset`).
+export type CursorDeMisTurnos = { grupo: EstadoDeTurno; venceEn: string | null; id: string }
+
+// Pide `tope + 1` filas y devuelve hasta `tope` con si había más (nunca un total). Sólo los turnos de quien lee. `desde`: lo que sigue después de ese cursor
+// (sin él, la primera página: lo que lee el bloque de Inicio).
 export type LectorDeMisTurnos = (pedido: {
   tope: number
+  desde?: CursorDeMisTurnos | null
 }) => Promise<Resultado<{ filas: Turno[]; hayMas: boolean }>>
+
+// El panel «Turnos de la web sin confirmar» carga de a `TAMANO_DE_VER_MAS` y hasta acá; pasado el tope dice que hay más y manda a confirmar los de arriba.
+export const TOPE_DE_TURNOS_CARGADOS = 200
+
+export function cursorDelTurno(turno: Turno): CursorDeMisTurnos {
+  return { grupo: turno.estado, venceEn: turno.venceEn, id: turno.id }
+}
 
 function aMs(iso: string): number {
   return Date.parse(iso)

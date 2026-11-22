@@ -58,6 +58,10 @@ export const REGISTRO: Record<string, RegistroDeDrawer> = {
     formulario: 'src/modules/web/features/contenido/testimonios/components/panel-de-testimonio.tsx',
     mecanismo: 'contexto',
   },
+  // El «Ver todos» de «Turnos de la web sin confirmar» en Inicio (`?panel=turnos`): sólo lista mis turnos; lo que se hace con uno («Contacté», «Vincular a lead») es de su tarjeta.
+  'src/modules/web/features/turnos/panel/components/panel-de-turnos.tsx': {
+    sinFormulario: 'sólo lista mis turnos sin confirmar; no guarda nada tipeado',
+  },
   // «Registrar consentimiento» de un testimonio (8.02-2): el canal y las casillas escritas quedan en su borrador y preguntan al salir.
   'src/modules/web/features/contenido/testimonios/components/panel-de-consentimiento.tsx': {
     formulario:
