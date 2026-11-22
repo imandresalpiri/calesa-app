@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RecalculoInicial } from '../../../entities/apertura'
+import { esPisadoNuevo } from '../../../entities/binding-pisado'
 import {
   alternarBandera,
   confirmar,
@@ -17,6 +18,7 @@ import {
 import { ofreceVerTotalBs, verTotalBsAlAbrir } from '../../../entities/cabecera-de-la-hoja'
 import type { HojaLista } from '../../../entities/hoja'
 import type { DeDondeCalcula } from '../../../entities/pedido-de-recalculo'
+import { useAvisoDePisado } from './use-aviso-de-pisado'
 import { useBorradorDeHoja } from './use-borrador-de-hoja'
 import { usePedirRecalculo } from './use-pedir-recalculo'
 import { useRecalculo } from './use-recalculo'
@@ -36,15 +38,22 @@ export type AccionesDeHoja = {
   alAjustar?: (nodo: string) => void
 }
 
-// Los callbacks de las celdas, todos sobre la misma puerta (`cambiar`).
+// Los callbacks de las celdas, todos sobre la misma puerta (`cambiar`, que llama al cambio una vez y en el manejador del evento). Lo escrito o el atajo que pisa
+// un cálculo sin pisar enciende el aviso de la primera vez (`avisoDePisado`, que se cierra con `cerrarAvisoDePisado`).
 function useAcciones(
   cambiar: (cambio: (antes: Entradas) => Entradas) => void,
   indice: IndiceDeHoja,
-): AccionesDeHoja {
-  return useMemo<AccionesDeHoja>(
+) {
+  const { alPisar, ...aviso } = useAvisoDePisado()
+  const acciones = useMemo<AccionesDeHoja>(
     () => ({
       alConfirmar: (id, valor) => {
-        cambiar((e) => confirmar(e, { indice }, id, valor))
+        cambiar((e) => {
+          if (esPisadoNuevo(indice, e, id, valor)) {
+            alPisar()
+          }
+          return confirmar(e, { indice }, id, valor)
+        })
       },
       alRestablecer: (id) => {
         cambiar((e) => restablecer(e, indice, id))
@@ -59,11 +68,17 @@ function useAcciones(
         cambiar((e) => elegirModo(e, clave))
       },
       alElegirAtajo: (nodo, posicion, valor) => {
-        cambiar((e) => elegirAtajo(e, { indice }, nodo, { posicion, valor }))
+        cambiar((e) => {
+          if (esPisadoNuevo(indice, e, nodo, valor)) {
+            alPisar()
+          }
+          return elegirAtajo(e, { indice }, nodo, { posicion, valor })
+        })
       },
     }),
-    [cambiar, indice],
+    [cambiar, indice, alPisar],
   )
+  return { acciones, ...aviso }
 }
 
 // Cómo abre la hoja: de dónde calcula (C1) y con qué entradas y «Ver total Bs» (C2). Sin nada, la hoja nueva: por su hoja abierta, el origen y el vehículo; con las entradas vacías
@@ -162,7 +177,7 @@ export function useHoja({
     alDescartar: borrador?.alDescartar ?? (() => {}),
   })
 
-  const acciones = useAcciones(cambiar, indice)
+  const deLasCeldas = useAcciones(cambiar, indice)
 
   return {
     indice,
@@ -174,7 +189,8 @@ export function useHoja({
     // Con lo que abrió la hoja: contra eso se mide si hay algo que guardar.
     iniciales,
     verTotalBsInicial,
-    acciones,
+    // `acciones`, y el aviso de la primera vez que se pisa un cálculo.
+    ...deLasCeldas,
     reponer,
     ...recalculo,
   }

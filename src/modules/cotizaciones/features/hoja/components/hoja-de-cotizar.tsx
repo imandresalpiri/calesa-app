@@ -7,6 +7,7 @@ import { EstiloDeTonos, SimbolosDeXCell } from '@/shared/ui/xcell'
 import type { RecalculoInicial } from '../../../entities/apertura'
 import type { CalculoDeLaTarjeta } from '../../../entities/calculo-de-la-tarjeta'
 import { seccionSeDibuja, type ContextoDeHoja } from '../../../entities/binding'
+import { hayPisadas } from '../../../entities/binding-pisado'
 import { nombreDelModo } from '../../../entities/cabecera-de-la-hoja'
 import type { HojaLista } from '../../../entities/hoja'
 import {
@@ -22,6 +23,7 @@ import { useHoja, type AperturaDeHoja } from '../hooks/use-hoja'
 import { AvisoDelGuardado } from './aviso-de-guardado'
 import { ColumnaDeLaHoja } from './columna-de-la-hoja'
 import type { PasosDeLaPagina } from './pasos-de-la-hoja'
+import { ListaDePisadasDiferida } from './pisadas'
 import { ResumenDeHoja } from './resumen-de-hoja'
 import { VistaPreviaDeLaHojaViva } from './vista-previa-de-la-hoja'
 
@@ -147,6 +149,11 @@ function ResumenDeLaHoja({
       totalGuardado={totalGuardado}
       vistaPrevia={<VistaPreviaDeLaHojaViva hoja={hoja} h={h} {...laTarjeta} />}
       interruptor={interruptor}
+      pisadas={
+        hayPisadas(contexto.indice, contexto.entradas) ? (
+          <ListaDePisadasDiferida contexto={contexto} />
+        ) : null
+      }
       avisoDeGuardado={
         guardado === null || boton === null ? null : (
           <AvisoDelGuardado

@@ -40,6 +40,8 @@ type Props = {
   totales?: ReactNode
   // El interruptor «Privada» de la hoja nueva (`InterruptorPrivada`): va sobre el pie, a la vista aunque el resumen esté plegado. Nulo, no se dibuja.
   interruptor?: ReactNode
+  // Lo pisado (`ListaDePisadasDiferida`): lo primero del detalle, bajo el total y sus avisos. Nulo sin nada pisado.
+  pisadas?: ReactNode
 }
 
 export type BotonDeGuardar = {
@@ -137,6 +139,7 @@ export function ResumenDeHoja({
   vistaPrevia = null,
   totales = null,
   interruptor,
+  pisadas,
 }: Props) {
   const total = totalDelResumen(contexto)
   const viejo = estado.tipo !== 'al_dia'
@@ -167,6 +170,7 @@ export function ResumenDeHoja({
       {totalGuardado}
       {/* Plegado sólo esconde lo secundario: el total, sus avisos, lo guardado, la región viva y «Guardar» quedan siempre a la vista. */}
       <div id={idDelDetalle} className={plegado ? 'hidden @4xl/hoja:contents' : 'contents'}>
+        {pisadas}
         {totales === null ? (
           <SecundariosDelResumen
             tarjeta={tarjeta}

@@ -81,6 +81,19 @@ export function useHojaEnPar({
     },
     [verA, verB],
   )
-  const h: ColumnaDeLaHoja = { ...a, acciones, alCambiarVerTotalBs }
+  // El aviso de la primera vez es de la hoja: lo enciende lo pisado en cualquiera de las dos y cerrarlo lo cierra en las dos.
+  const { cerrarAvisoDePisado: cerrarA } = a
+  const { cerrarAvisoDePisado: cerrarB } = b
+  const cerrarAvisoDePisado = useCallback(() => {
+    cerrarA()
+    cerrarB()
+  }, [cerrarA, cerrarB])
+  const h: ColumnaDeLaHoja = {
+    ...a,
+    acciones,
+    alCambiarVerTotalBs,
+    avisoDePisado: a.avisoDePisado || b.avisoDePisado,
+    cerrarAvisoDePisado,
+  }
   return { h, columnas: [a, b] as const }
 }
