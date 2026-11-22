@@ -61,6 +61,7 @@ const props = (extra: Partial<PropsDeLaSesion> = {}): PropsDeLaSesion => ({
   tarjeta: { estado: 'sin_tarjeta' },
   tablas: [],
   TarjetaEnVivo: () => null,
+  NuevoColor: null,
   puedeCambiarTiposDeCambio: false,
   tiposDeCambio: [],
   ...extra,

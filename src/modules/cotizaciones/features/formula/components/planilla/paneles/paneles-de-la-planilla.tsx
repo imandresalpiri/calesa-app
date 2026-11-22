@@ -23,7 +23,7 @@ export function PanelesDeLaPlanilla({ p, planilla }: { p: PropsDeLaPlanilla; pla
   const tarjeta = useAbiertoAlgunaVez(paneles.tarjeta.abierto)
   return (
     <>
-      {banda ? <PanelDeLaBandaDiferido planilla={planilla} /> : null}
+      {banda ? <PanelDeLaBandaDiferido planilla={planilla} NuevoColor={p.NuevoColor} /> : null}
       {total ? <PanelDelTotalDiferido planilla={planilla} /> : null}
       {tipo ? (
         <PanelDelTipoDeCeldaDiferido

@@ -345,8 +345,13 @@ puedeRetocar }`, de `HojaDeUnaGuardada`; la hoja nueva no lo pasa) y el modelo l
   origen con `leerLaTarjetaDeTrabajo({ id, nombre })` (`index.ts`; la lectura de la pestaña «Tarjeta», nunca rechaza: `lista`, `sin_tarjeta` o `no_se_leyo`) y
   `lecturaDeLaTarjetaDeTrabajo()` (pura: el borrador antes que la publicada, leída con la fórmula publicada y sólo con lo del nivel «todos»). El área `tarjeta` la
   dibuja con `TarjetaEnVivo` (`pantallas/tarjeta-formula.ts`, con su propio `diferidos.tsx`: el del área viaja con la hoja): `geometriaDeLaTarjeta()` con
-  `CONTEXTO_DE_EJEMPLO`, `role="group"` «Tarjeta de la cotización» y `data-tarjeta-de-cotizacion`, achicada a su columna. El área `formula` arma el cálculo con la
+  `CONTEXTO_DE_EJEMPLO`, `role="group"` «Tarjeta de la cotización» y `data-tarjeta-de-cotizacion`, achicada a su panel (`?costado=tarjeta`). El área `formula` arma el cálculo con la
   unidad de ejemplo (`calculoDeLaUnidad()`: sólo los ids que la lectura nombra; sin cifra, las filas a la vista sin valores) y `src/app` une las tres.
+- **El color nuevo de la planilla** (los tipos sin código de `entities/nuevo-color.ts`: `ColorCreado`, `PropsDelNuevoColor`): «+ Nuevo color» bajo el selector de
+  color del panel de una banda (`comunes/nuevo-color-del-grupo.tsx`, `?color=nuevo`, una clave propia porque `?panel=` es el de la banda). El área `diseno` lo
+  dibuja con `NuevoColorAlVuelo` (`pantallas/diseno-nuevo-color.ts`, con su `diferidos.tsx`): el `ModalDeColor` de la sección de colores con `ColoresParaCrear`
+  (los colores leídos, el tope, `crear` y `enCurso`), y el color creado sale de la lista que devuelve `tono_crear()` por el id del intento (`colorCreadoDe()`).
+  La planilla lo suma sin releer (`useTonos().sumar`) y lo deja elegido. Las dos páginas lo pasan sólo con `cotizaciones.configurar` (sin origen, como la action).
 
 ## Archivos clave
 

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ComponentType } from 'react'
 import { Drawer } from '@/shared/ui/drawer'
 import type { Grupo } from '../../../../../entities/formula'
 import type { ErrorDelGrupo } from '../../../../../entities/formula/grupos'
 import { filaDe } from '../../../../../entities/formula/hoja-de-la-planilla'
+import type { PropsDelNuevoColor } from '../../../../../entities/nuevo-color'
 import {
   CLAVE_DE_LA_BANDA,
   CLAVE_DE_LA_PRIMERA_FILA,
@@ -48,9 +49,15 @@ function queMuestra(planilla: Planilla) {
   }
 }
 
-// El panel de una banda (D13, D20): crear o editar su etiqueta, color, plazo, tipo de cambio y filas, todo junto. Al aplicar se cierra y el foco vuelve a la grilla;
+// El panel de una banda (D13, D20): crear o editar su etiqueta, color (o crear uno con «+ Nuevo color»), plazo, tipo de cambio y filas, todo junto. Al aplicar se cierra y el foco vuelve a la grilla;
 // un rechazo queda junto a su campo. Una banda que ya no está lo dice. El formulario lleva `key` por apertura: cada vez empieza de cero.
-export function PanelDeLaBanda({ planilla }: { planilla: Planilla }) {
+export function PanelDeLaBanda({
+  planilla,
+  NuevoColor,
+}: {
+  planilla: Planilla
+  NuevoColor: ComponentType<PropsDelNuevoColor> | null
+}) {
   const { bandas } = planilla
   const muestra = queMuestra(planilla)
   const [errores, setErrores] = useState(SIN_ERRORES)
@@ -99,6 +106,8 @@ export function PanelDeLaBanda({ planilla }: { planilla: Planilla }) {
           }}
           alCancelar={cerrar}
           alReintentarTonos={bandas.tonos.reintentar}
+          NuevoColor={NuevoColor}
+          alCrearColor={bandas.tonos.sumar}
         />
       )}
     </Drawer>
