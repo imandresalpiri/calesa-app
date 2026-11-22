@@ -12,7 +12,8 @@ import { DebajoDeLaBarra } from './debajo-de-la-barra'
 import { ErrorBajoLaBarra } from './error-bajo-la-barra'
 import { LeyendaDeReferencias } from './leyenda-de-referencias'
 import { ListaDeSugerencias } from './lista-de-sugerencias'
-import { TextoDeLaBarra } from './texto-de-la-barra'
+import { BotonDeFunciones } from './boton-de-funciones'
+import { EJEMPLO_DE_LA_BARRA, TextoDeLaBarra } from './texto-de-la-barra'
 
 type Props = { planilla: Planilla; puedeCambiarTiposDeCambio: boolean }
 
@@ -87,15 +88,10 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
         >
           {activa === null ? '—' : nombreDeLaCelda(activa.celda.col, activa.fila.numero)}
         </span>
-        <span
-          aria-hidden
-          className="flex min-h-[44px] items-center font-serif text-(--color-ink-soft) italic md:pointer-fine:min-h-9"
-        >
-          fx
-        </span>
+        <BotonDeFunciones funcion={planilla.funcion} />
         <div className="min-w-0 flex-1 basis-60">
           {activa === null ? (
-            <p className={CAJA_QUIETA}>Elige una celda.</p>
+            <p className={CAJA_QUIETA}>{EJEMPLO_DE_LA_BARRA}</p>
           ) : activa.quieto !== null && e === null ? (
             <p className={CAJA_QUIETA}>{activa.quieto}</p>
           ) : (
