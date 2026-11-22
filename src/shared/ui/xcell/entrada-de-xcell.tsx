@@ -3,7 +3,7 @@
 import type { ChangeEvent, FocusEvent, KeyboardEvent } from 'react'
 import { Input } from '@base-ui/react/input'
 import { useLive } from '../live'
-import { ENTRADA } from './clases'
+import { ENTRADA_CHICA, ENTRADA_GRANDE } from './clases'
 
 export type TeclaDeCierre = 'enter' | 'tab' | 'esc'
 
@@ -19,6 +19,8 @@ type Props = {
   alPerderElFoco: () => void
   // El ancho del botón que reemplaza (en px); nulo si no se midió.
   ancho: number | null
+  // La letra del botón que reemplaza.
+  grande: boolean
 }
 
 // Un campo de contraseña que se vacía solo invita a «Guardar contraseña». Las marcas de 1Password, LastPass, Bitwarden y Dashlane lo
@@ -80,7 +82,7 @@ export function EntradaDeXCell(props: Props) {
       aria-invalid={invalido || undefined}
       aria-describedby={describedby}
       data-seleccion={seleccion}
-      className={ENTRADA}
+      className={props.grande ? ENTRADA_GRANDE : ENTRADA_CHICA}
       style={props.ancho === null ? undefined : { width: props.ancho }}
       value={texto}
       onChange={(evento: ChangeEvent<HTMLInputElement>) => {

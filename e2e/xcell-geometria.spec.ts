@@ -59,7 +59,7 @@ const problemasDeCaja = (page: Page): Promise<string[]> =>
       const marco = celda.getBoundingClientRect()
       const hitos = [
         ...celda.querySelectorAll(
-          '[id$="e"], [data-parada="10"], [data-parada="11"], [data-parada="12"], :scope > button, :scope > input, :scope > p',
+          '[id$="e"], [data-parada="10"], [data-parada="11"], [data-parada="12"], [data-parada="13"], :scope > button, :scope > input, :scope > p',
         ),
       ]
       hitos.forEach((a, i) => {

@@ -16,12 +16,15 @@ const PAR: Partial<XCellProps> = {
 const MOTIVO = 'Se calcula con los demás datos.'
 const OTRO = 'Lo fija la empresa.'
 
-// Las notas que nombra el `aria-describedby` de un elemento, por su texto.
+// Lo que nombra el `aria-describedby` de un elemento, por lo que dice: el nombre de un candado o el texto del aviso.
 const descritoPor = (c: ReturnType<typeof celda>, e: Element | null) =>
   (e?.getAttribute('aria-describedby') ?? '')
     .split(' ')
     .filter((id) => id !== '')
-    .map((id) => c.raiz.ownerDocument.getElementById(id)?.textContent ?? '')
+    .map((id) => {
+      const nodo = c.raiz.ownerDocument.getElementById(id)
+      return nodo?.getAttribute('aria-label') ?? nodo?.textContent ?? ''
+    })
 
 function noAbre(c: ReturnType<typeof celda>, parada: number) {
   const boton = c.parada(parada) as HTMLElement
@@ -71,7 +74,7 @@ describe('el candado por lado del par', () => {
   it('un lado bloqueado: sin `deshabilitado` y con ↺; los dos: con `deshabilitado` y sin ↺', () => {
     const uno = celda({ ...PAR, overridden: true, disabledReason: MOTIVO })
     expect(uno.raiz.dataset['estado']).not.toContain('deshabilitado')
-    expect(uno.parada(12)).not.toBeNull()
+    expect(uno.parada(13)).not.toBeNull()
     cleanup()
     const dos = celda({
       ...PAR,
@@ -80,12 +83,12 @@ describe('el candado por lado del par', () => {
       secondaryDisabledReason: OTRO,
     })
     expect(dos.raiz.dataset['estado']).toContain('deshabilitado')
-    expect(dos.parada(12)).toBeNull()
+    expect(dos.parada(13)).toBeNull()
   })
 })
 
-describe('las notas del candado por lado', () => {
-  it('`aria-describedby`: el lado bloqueado nombra su candado, el editable no; el mismo motivo en los dos, una nota', () => {
+describe('los candados por lado', () => {
+  it('`aria-describedby`: el lado bloqueado nombra su candado, el editable no; el mismo motivo en los dos, un candado', () => {
     const uno = celda({ ...PAR, disabledReason: MOTIVO })
     expect(descritoPor(uno, uno.parada(0))).toEqual([MOTIVO])
     expect(descritoPor(uno, uno.parada(1))).toEqual([])
@@ -95,12 +98,13 @@ describe('las notas del candado por lado', () => {
     expect(descritoPor(distintos, distintos.parada(1))).toEqual([OTRO])
     cleanup()
     const iguales = celda({ ...PAR, disabledReason: MOTIVO, secondaryDisabledReason: MOTIVO })
-    expect(iguales.raiz.querySelectorAll('p')).toHaveLength(1)
+    expect(iguales.raiz.querySelectorAll('[role="img"]')).toHaveLength(1)
+    expect(iguales.raiz.querySelector('p')).toBeNull()
     expect(descritoPor(iguales, iguales.parada(0))).toEqual([MOTIVO])
     expect(descritoPor(iguales, iguales.parada(1))).toEqual([MOTIVO])
   })
 
-  it('con un error y un lado bloqueado se ven las dos notas, y el error describe a los dos', () => {
+  it('con un error y un lado bloqueado se ven el error escrito y el candado, y el error describe a los dos', () => {
     const ERROR = 'Tiene que estar entre 0 y 100.'
     const c = celda({ ...PAR, disabledReason: MOTIVO, error: ERROR })
     expect(c.raiz.querySelector('[role="alert"]')?.textContent).toBe(ERROR)
