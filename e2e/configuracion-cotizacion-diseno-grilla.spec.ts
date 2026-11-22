@@ -23,8 +23,8 @@ import { literal, sql } from './soporte/sql'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
 // La rejilla de la hoja (docs/UX.md › «Cotización: hoja (estados propios)»; docs/GLOSARIO.md › «Aspecto» y «Rejilla de la hoja»): en el editor, el ancho de una
-// celda a 8 de 12, el orden de las secciones arrastrando y con el teclado, la densidad compacta y un tono en una sección, en vivo en la vista previa, y el borrador
-// que pasa la validación de la base al publicarse. Una cotización de una versión con ese aspecto lo dibuja; una de la versión vieja se ve como siempre, y el PDF no
+// celda a 8 de 12, el orden de las celdas arrastrando y el de las secciones con Alt+flechas, la densidad compacta y un tono en una sección, en vivo en el lienzo
+// (la hoja a 1.280 px), y el borrador que pasa la validación de la base al publicarse. Una cotización de una versión con ese aspecto lo dibuja; una de la versión vieja se ve como siempre, y el PDF no
 // cambia. El editor (Configuración) va sólo en escritorio; la hoja, en los dos proyectos, sobre un segundo origen con las dos versiones sembradas.
 test.describe.configure({ mode: 'serial' })
 
@@ -70,17 +70,22 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-const seccionDelEditor = (page: Page, id: string) => page.locator(`li[data-seccion="${id}"]`)
-const vistaPrevia = (page: Page) => page.locator('[data-vista-previa] [data-hoja-de-prueba]')
-const asaDeLaSeccion = (page: Page, titulo: string) =>
-  page.getByRole('button', { name: `Mover la sección «${titulo}»`, exact: true })
-const asaDeLaCelda = (page: Page, etiqueta: string) =>
-  page.getByRole('button', { name: `Mover «${etiqueta}»`, exact: true })
+const lienzo = (page: Page) => page.locator('[data-lienzo-de-la-hoja]')
+const seccionDelEditor = (page: Page, id: string) =>
+  lienzo(page).locator(`section[data-seccion="${id}"]`)
+const inspector = (page: Page) => page.locator('aside[data-inspector-de-la-hoja]')
+const boton = (page: Page, pieza: string) => page.locator(`[data-elegir="${pieza}"]`)
 const nodosDe = (lista: Locator, atributo: string) =>
   lista.evaluateAll((nodos, a) => nodos.map((n) => n.getAttribute(a)), atributo)
 const idsDe = (lista: Locator) => nodosDe(lista, 'data-seccion')
-const ordenDelEditor = (page: Page) => idsDe(page.locator('li[data-seccion]'))
+const ordenDelEditor = (page: Page) => idsDe(lienzo(page).locator('section[data-seccion]'))
 const ordenDe = (lugar: Locator) => idsDe(lugar.locator('[data-secciones] [data-seccion]'))
+
+// Elige una pieza en el lienzo; una sección, por su título (el centro cae sobre sus piezas).
+async function elegir(page: Page, pieza: string) {
+  await boton(page, pieza).click(pieza.startsWith('seccion-') ? { position: { x: 24, y: 6 } } : {})
+  await expect(inspector(page)).toHaveAttribute('data-pieza', pieza)
+}
 
 // La celda (la XCell) de un nodo: su relleno, su fondo y su tramo en la rejilla de su sección.
 async function celda(lugar: Locator, nodo: string) {
@@ -111,32 +116,15 @@ async function medidaDeLaSeccion(lugar: Locator, id: string) {
   })
 }
 
-// Arrastra la fila de `origen` sobre la de `destino` (la de arriba) con el puntero, por sus asas. Primero centra la fila de destino: así las dos asas quedan a la
-// vista y nada desplaza la página a mitad del gesto. El puntero va en pasos cortos (`steps`: el sensor toma la fila tras 4 px y la lleva con cada paso), con
-// `force` (la fila arrastrada tapa el asa de destino).
-async function arrastrar(page: Page, filaDeDestino: Locator, origen: string, destino: string) {
-  await filaDeDestino.evaluate((fila) => {
-    fila.scrollIntoView({ block: 'center' })
-  })
-  await asaDeLaCelda(page, origen).dragTo(asaDeLaCelda(page, destino), {
-    steps: 25,
-    force: true,
-    targetPosition: { x: 22, y: 16 },
-  })
-}
+// El aspecto de la sección elegida, plegado en el inspector: abrirlo.
+const abrirElAspecto = (page: Page) =>
+  inspector(page).locator('[data-aspecto-de-la-seccion] summary').click()
 
-// Mueve una sección un lugar con el teclado sobre su asa, esperando cada paso (el sensor engancha las flechas recién después de tomarla): tomada, el asa
-// queda `aria-pressed`; cada movimiento y la suelta se anuncian.
-async function moverConElTeclado(page: Page, titulo: string, flecha: string, lugar: number) {
-  const anuncio = (texto: string) => expect(page.getByText(texto, { exact: true })).toBeAttached()
-  const asa = asaDeLaSeccion(page, titulo)
-  await asa.focus()
-  await page.keyboard.press('Space')
-  await expect(asa).toHaveAttribute('aria-pressed', 'true')
-  await page.keyboard.press(flecha)
-  await anuncio(`«la sección ${titulo}» va en el lugar ${String(lugar)} de 3.`)
-  await page.keyboard.press('Space')
-  await anuncio(`Soltaste «la sección ${titulo}» en el lugar ${String(lugar)} de 3.`)
+// Mueve una sección un lugar con el teclado: elegida, Alt+flecha sobre ella (el foco vuelve a la sección movida).
+async function moverConElTeclado(page: Page, id: string, flecha: string) {
+  await elegir(page, `seccion-${id}`)
+  await page.keyboard.press(`Alt+${flecha}`)
+  await expect(boton(page, `seccion-${id}`)).toBeFocused()
 }
 
 // La XCell de un nodo (el primer hijo de su lugar en la rejilla).
@@ -149,57 +137,43 @@ test('G1: el ancho de 8 de 12, el orden arrastrando y con el teclado, la densida
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await abrirLaFormula(page, editor.id, 'hoja')
+  await abrirLaFormula(page, editor.id, 'hoja', 'vista=1280')
   await enLaPestana(page, 'Hoja')
+  await expect(lienzo(page)).toHaveAttribute('data-vista', '1280')
 
   // «Base» a lo ancho (12 columnas) y «Precio» en 8 de 12.
   const base = seccionDelEditor(page, 'base')
-  await base.locator('[data-aspecto-de-la-seccion] summary').click()
-  await base.getByLabel('Ancho en la hoja').selectOption('12')
-  await page
-    .locator('li[data-celda="precio"]')
-    .getByLabel('Ancho', { exact: true })
-    .selectOption('8')
+  await elegir(page, 'seccion-base')
+  await abrirElAspecto(page)
+  await inspector(page).getByLabel('Ancho en la hoja').selectOption('12')
+  await elegir(page, 'precio')
+  await inspector(page).getByLabel('Ancho', { exact: true }).selectOption('8')
 
-  // Arrastrar «Flete» sobre «Precio» con el puntero los cambia de lugar (dos filas a la vista: una sección entera mide casi una pantalla, y arrastrar de
-  // una a otra obligaría a desplazar la página a mitad del gesto). La vista previa va cerrada: cambia de alto con el diseño y movería lo de abajo.
-  await arrastrar(page, page.locator('li[data-celda="precio"]'), 'Flete', 'Precio')
+  // Arrastrar «Flete» sobre «Precio» con el puntero los cambia de lugar: nada se mueve mientras se arrastra y el cambio cae al soltar.
+  await boton(page, 'flete').dragTo(boton(page, 'precio'), { steps: 20, force: true })
   await expect
-    .poll(() => nodosDe(base.locator('li[data-celda]'), 'data-celda'))
+    .poll(() => nodosDe(base.locator('[data-rejilla-de-celdas] > [data-pieza]'), 'data-pieza'))
     .toEqual(['flete', 'precio'])
-  // Las secciones, con el teclado sobre su asa: Espacio la toma, la flecha la mueve y Espacio la suelta; cada paso se anuncia (y el siguiente lo espera).
-  await moverConElTeclado(page, 'Resumen', 'ArrowUp', 2)
+  // Las secciones, con el teclado: elegida, Alt+↑ la sube un lugar y Alt+↓ la baja.
+  await moverConElTeclado(page, 'resumen', 'ArrowUp')
   await expect.poll(() => ordenDelEditor(page)).toEqual(['base', 'resumen', 'extras'])
-  await moverConElTeclado(page, 'Base', 'ArrowDown', 2)
+  await moverConElTeclado(page, 'base', 'ArrowDown')
   await expect.poll(() => ordenDelEditor(page)).toEqual(['resumen', 'base', 'extras'])
 
   // «Base» compacta y con el tono.
-  await base.getByLabel('Densidad').selectOption('compacta')
-  await base.getByLabel('Color').selectOption({ label: `E2E ${tono}` })
+  await elegir(page, 'seccion-base')
+  await abrirElAspecto(page)
+  await inspector(page).getByLabel('Densidad').selectOption('compacta')
+  await inspector(page)
+    .getByLabel('Color')
+    .selectOption({ label: `E2E ${tono}` })
 
-  // La vista previa a 1.280 px dibuja todo sin guardar: el orden, «Precio» en 8 de 12, el tono y las celdas compactas (4 px de relleno) con su fondo.
-  await page.getByRole('button', { name: 'Vista previa', exact: true }).click()
-  await page
-    .getByRole('group', { name: 'Ancho de la vista previa' })
-    .getByRole('button', { name: '1.280 px', exact: true })
-    .click()
-  await expect(page.locator('[data-vista-previa]')).toHaveAttribute('data-ancho', '1280')
-  await expect.poll(() => ordenDe(vistaPrevia(page))).toEqual(['resumen', 'base', 'extras'])
-  await expect
-    .poll(() =>
-      nodosDe(vistaPrevia(page).locator('[data-seccion="base"] [data-nodo]'), 'data-nodo'),
-    )
-    .toEqual(['flete', 'precio'])
-  await expect(vistaPrevia(page).locator('[data-nodo="precio"]')).toHaveCSS(
-    'grid-column-end',
-    'span 8',
-  )
-  await expect(vistaPrevia(page).locator('[data-seccion="base"]')).toHaveAttribute(
-    'data-tono',
-    tono,
-  )
-  await expect(xcellDe(vistaPrevia(page), 'precio')).toHaveCSS('padding-top', '4px')
-  await expect(xcellDe(vistaPrevia(page), 'precio')).toHaveCSS('background-color', FONDO_DEL_TONO)
+  // El lienzo a 1.280 px dibuja todo sin guardar: el orden, «Precio» en 8 de 12, el tono y las celdas compactas (4 px de relleno) con su fondo.
+  await expect.poll(() => ordenDe(lienzo(page))).toEqual(['resumen', 'base', 'extras'])
+  await expect(base.locator('[data-pieza="precio"]')).toHaveCSS('grid-column-end', 'span 8')
+  await expect(base).toHaveAttribute('data-tono', tono)
+  await expect(xcellDe(base, 'precio')).toHaveCSS('padding-top', '4px')
+  await expect(xcellDe(base, 'precio')).toHaveCSS('background-color', FONDO_DEL_TONO)
 
   // Guardar el borrador: queda el aspecto y el orden, y la base lo valida entero al publicarlo.
   await page.getByRole('button', { name: 'Guardar el borrador', exact: true }).click()

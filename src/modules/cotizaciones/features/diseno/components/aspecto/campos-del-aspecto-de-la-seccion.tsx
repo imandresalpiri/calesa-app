@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { Bloque } from '@/shared/ui/bloque'
 import type { Tono } from '@/shared/ui/xcell'
 import {
@@ -33,6 +34,8 @@ type Props = {
   colores: readonly Tono[]
   ocupado: boolean
   error: ErrorDelAspecto
+  // Lo que va bajo el selector de color («+ Nuevo color» del editor de la hoja); nada si no se pasa.
+  bajoElColor?: ReactNode
   alPoner: (cambios: CambioDeAspectoDeSeccion) => void
 }
 
@@ -94,6 +97,7 @@ export function CamposDelAspectoDeLaSeccion({
   ocupado,
   error,
   alPoner,
+  bajoElColor = null,
 }: Props) {
   const base = `${s.id}-aspecto`
   const columnas = s.ancho ?? SECCION_AUTOMATICA.columnas
@@ -128,6 +132,7 @@ export function CamposDelAspectoDeLaSeccion({
             alPoner({ tono })
           }}
         />
+        {bajoElColor}
       </div>
     </Bloque>
   )

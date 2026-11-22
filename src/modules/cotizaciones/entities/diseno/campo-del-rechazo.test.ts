@@ -17,8 +17,7 @@ describe('campoDelRechazo', () => {
     expect(campoDelRechazo('diseno.secciones.1.items.1.alto', d)).toStrictEqual({
       pieza: 'item',
       seccionId: 't',
-      tipo: 'subtotal',
-      nodo: 'neto',
+      item: { tipo: 'subtotal', nodo: 'neto' },
       clave: 'alto',
     })
     expect(campoDelRechazo('diseno.cabecera.tono', d)).toStrictEqual({

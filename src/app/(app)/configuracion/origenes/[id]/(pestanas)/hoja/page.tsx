@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
 import { SeccionDelDiseno } from '@/modules/cotizaciones/pantallas/diseno'
+import { PublicarEnLaHoja } from '@/modules/cotizaciones/pantallas/formula-publicar'
+import { puede } from '@/shared/lib/permisos'
 import { NoSeAbre } from '../../no-se-abre'
 import { abrirLaFormulaDeLaPestana, formulaPedida } from '../_formula/abrir-formula'
 import { MarcoDeLaFormula } from '../_formula/marco-de-la-formula'
 
 export const metadata: Metadata = { title: 'Hoja de la fórmula' }
 
-// Configuración › Orígenes › un origen › Hoja: cómo se ve y se llena la cotización (el diseño de la hoja) de la fórmula elegida (`?formula=<id>`; sin ella, la de
-// trabajo), bajo la barra de la fórmula. Con `?vista=412|1280|200`, la vista previa en vivo; desde `xl`, al costado.
+// Configuración › Orígenes › un origen › Hoja: el editor de la hoja (el diseño) de la fórmula elegida (`?formula=<id>`; sin ella, la de trabajo), bajo la barra
+// de la fórmula, con «Publicar…» del área `formula` en la barra (un área no importa otra: los une la página).
 export default async function PaginaDeLaHoja({
   params,
   searchParams,
@@ -21,10 +23,16 @@ export default async function PaginaDeLaHoja({
   return (
     <MarcoDeLaFormula abierta={abierta} parte="hoja" consulta={consulta}>
       {abierta.formula ? (
-        <SeccionDelDiseno
-          origen={{ id: abierta.origen.id, nombre, activo }}
-          formula={abierta.formula}
-        />
+        <>
+          <SeccionDelDiseno
+            origen={{ id: abierta.origen.id, nombre, activo }}
+            formula={abierta.formula}
+            puedeCrearNiveles={puede(abierta.sesion.permisos, 'equipo.roles.gestionar')}
+            // El catálogo de colores es de la empresa: como `tono_crear()`, sin origen.
+            puedeCrearColores={puede(abierta.sesion.permisos, 'cotizaciones.configurar')}
+          />
+          <PublicarEnLaHoja origen={{ id: abierta.origen.id, nombre }} formula={abierta.formula} />
+        </>
       ) : null}
     </MarcoDeLaFormula>
   )

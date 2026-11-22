@@ -1835,36 +1835,52 @@ Configuración › Orígenes › «Para todos los orígenes» › Vigencia (tarj
 
 ### Cotización: hoja (estados propios)
 
-Configuración › Orígenes › un origen › Hoja (`/configuracion/origenes/<id>/hoja?formula=<fórmula>`, el diseño de la hoja): secciones, celdas, ítems, cabecera y tarjeta del total de la hoja, su orden, su
-aspecto en la rejilla de 12 y su vista previa.
+Configuración › Orígenes › un origen › Hoja (`/configuracion/origenes/<id>/hoja?formula=<fórmula>`, el editor de la hoja): la hoja de verdad dibujada en un lienzo,
+donde se elige cada pieza (sección, celda, ítem, cabecera, tarjeta del total) y se edita en el inspector de la hoja, a la derecha. Lo que no tiene lugar en la hoja se
+suma desde «Sin lugar en la hoja».
 
 - **Quién entra y origen:** como «Fórmula».
 - **Qué abre:** el borrador o, sin él, la publicada. Sin versión o sin diseño lo dice (aquí no se crea uno). Cargando,
-  `EsqueletoFormulario`; una lectura que falla sube al «Reintentar» de la ruta.
-- **Secciones y celdas:** por sección, «Título» (≤ 80; vacío lo quita), «Dónde va» (Principal | Avanzado), «Quién la ve» y «Quién la
-  edita»; por celda, «Ancho» («12 columnas (toda la fila)» … «6 columnas (la mitad)» … «4 columnas (un tercio)» … «1 columna»; un ancho
-  guardado con nombre se muestra por su número y, al elegir, se escribe el número), «Quién la ve» y «Quién la edita». Niveles: «Todos» y los vivos; uno retirado
-  que el diseño usa se muestra «(retirado)». Elegir quién ve alinea quién edita. **Lo que no admite nivel** (el total y lo que va aparte,
-  o una sección que los tiene): «Quién la ve» apagado con su motivo.
-- **Ítems que no son celda:** por celda, «Ayuda con una tabla» (las que nombra la fórmula) o «Ayuda con un texto» (≤ 300): una quita la
-  otra. El texto lleva hasta 5 enlaces: «Agregar enlace» (apagado con «Hasta 5 enlaces.» o, sin texto, «Escribe primero el texto de la
-  ayuda.»), «Título del enlace N» (≤ 60) y «Dirección del enlace N» validados al tipear («Escribe un título.», «Hasta 60 caracteres.»,
-  «Tiene que empezar con https://.», «No puede llevar espacios ni tildes.») y «Quitar»; borrar el texto se lleva los enlaces. Atajos: «Columna de los chips» y «Cuántos chips (1 a 12)». Interruptor: «Habilita» (apagado, deshabilita lo que condiciona) o
-  «Muestra» (apagado, no lo dibuja). Variante y subtotal se ven y no se editan.
-- **Ordenar:** cada sección y cada ítem tienen su asa («Mover la sección «Base»», «Mover «Precio»», 44 px): se arrastra (las secciones en su
-  lista, los ítems dentro de su sección: pasar uno a otra sección cambiaría quién lo ve) o, con el foco en el asa, Espacio la toma, las
-  flechas la mueven, Espacio la suelta y Esc cancela. Las instrucciones y cada paso se anuncian («Tomaste «Precio».», ««Precio» va en el
-  lugar 2 de 3.», «Soltaste…», «Se canceló: «Precio» volvió a su lugar.»). Mientras guarda, las asas esperan (`aria-disabled`).
+  el esqueleto del lienzo y el inspector; una lectura que falla sube al «Reintentar» de la ruta.
+- **El lienzo:** la hoja con los componentes de cotizar, cifras de prueba (datos en 0; si la fórmula aún no calcula, sin cifras) y el diseño **en edición** (lo
+  aplicado aunque no se haya guardado). Es la de quien lo ve todo: las secciones «Avanzado» van debajo, en un recuadro «Detrás del botón «Avanzado» de la hoja:». Lo que dibuja va `inert`
+  (ninguna celda recibe el foco); encima de cada pieza, su botón «Elegir «Precio»» (de una sección, «Elegir la sección «Base»», tocando su título).
+  **Vistas** («Vista de la hoja», `aria-pressed`, 44 px): «Celular» (412 px), «Laptop» (1.280), «Grande» (1.920) y «Texto al 200 %» (412 con el texto al doble),
+  en `?vista=` (recargar la conserva; cambiarla no suma al historial); sin `?vista=`, la que corresponde a la ventana. La hoja se achica para entrar (CSS `zoom`):
+  la página no se ensancha.
+- **Elegir:** el clic o Enter elige la pieza (`?pieza=`: un nodo, `seccion-<id>`, `atajos-<nodo>`, `cabecera-de-la-hoja`, `tarjeta-del-total`; recargar la
+  conserva). Elegida, lleva el contorno, su «⋯» («Mover antes», «Mover después», «Quitar») y, si es una celda o un ítem con ancho, el borde de ancho («Ancho de
+  «Precio»: 6 de 12 columnas»). Sin nada elegido, el inspector lista «Sin lugar en la hoja (N)» con «Agregar «Aduana»» por fila (va al final de la primera
+  sección principal y queda elegida); sin filas sin lugar, el lienzo ocupa todo el ancho.
+- **Mover:** arrastrar una pieza (a 6 px de tocarla) a otro lugar de su sección **o de otra**, o una sección entre las secciones; una marca dice dónde cae y el
+  cambio llega al soltar. Con el teclado, Alt+↑/↓ sobre la elegida (una pieza en el borde de su sección pasa a la vecina) y el «⋯». Cada movida se
+  anuncia («Moviste «Precio» a «Extras», posición 2 de 3.»). **Mover a una sección con otro nivel** lo dice en el inspector hasta la próxima elección («Ahora la ve
+  «Costos»: antes la veían todos.»); si queda `editar_sin_ver` o `nivel_no_admitido`, la pieza va marcada. **El total** no va a una sección avanzada ni con nivel:
+  el «+» no lo ofrece, Alt+↓ no entra y la regla se dice en la sección y en la pieza.
+- **Ancho:** el borde derecho de la pieza elegida se arrastra (encaja en columnas de 12) o Alt+←/→ con el foco en la pieza; también «Ancho» en el inspector.
+- **Sumar:** el «+» de cada sección y entre piezas («Sumar una pieza aquí», un popover con lo que cabe ahí: «Celda de una fila», «Tarjeta del total»…; con 40 piezas,
+  apagado: «La hoja ya tiene 40 piezas: quita una para sumar otra.»; un borrador pasado del tope lo dice en la sección y al publicar). Al pie, «+ Sección
+  principal» y «+ Sección avanzada»: nace vacía, con su título, y queda elegida.
+- **Quitar:** «Quitar» del «⋯» lo hace en el acto, con «Quitaste «Aduana».» y «Deshacer» (es reversible; la fila vuelve a «Sin lugar en la hoja»).
+- **El inspector:** el título de la pieza y sus campos, en bloques. **Sección:** «Título» (≤ 80; vacío lo quita), «Dónde va» (Principal | Avanzado), «Quién la ve»
+  y «Quién la edita». **Celda:** «Rótulo» y «Formato» (editan la fila de la fórmula: guardar manda la definición editada), «Ancho» («12 columnas (toda la fila)»
+  … «1 columna»), «Quién la ve», «Quién la edita» y la ayuda: «Ayuda con una tabla» (las que nombra la fórmula) o «Ayuda con un texto» (≤ 300; una quita la
+  otra) con hasta 5 enlaces: «Agregar enlace» (apagado con «Hasta 5 enlaces.» o, sin texto, «Escribe primero el texto de la ayuda.»), «Título del enlace N»
+  (≤ 60) y «Dirección del enlace N» validados al tipear («Escribe un título.», «Hasta 60 caracteres.», «Tiene que empezar con https://.», «No puede llevar
+  espacios ni tildes.») y «Quitar». Atajos: «Columna de los chips» y «Cuántos chips (1 a 12)». Interruptor: «Qué hace»: «Habilita» o «Muestra». Variante y
+  subtotal se ven y no se editan. Niveles: «Todos» y los vivos; uno retirado que el diseño usa, «<nombre> (retirado)». Elegir quién ve alinea quién edita. **Lo
+  que no admite nivel** (el total y lo que va aparte, o una sección que los tiene): «Quién la ve» apagado con su motivo. Con `equipo.roles.gestionar`, «+ Nuevo
+  nivel» (el modal de Roles, `?panel=nuevo-nivel`; el creado queda elegido; en el tope, apagado con su motivo). **Una fila que ya no está en la fórmula**
+  (`nodo_inexistente`): «Esta fila ya no está en la fórmula.» con «Quitar la pieza».
 - **Aspecto** (un bloque «Aspecto» plegado en cada pieza; no se escribe el valor por defecto, se quita): por sección, «Ancho en la hoja»
   («Automático (la mitad, si hay lugar)» y de 12 a 1 columna), «Alto» (Automático | 2, 3 o 4 filas), «Relleno» (Chico | Medio | Grande),
   «Separación entre celdas» (Chica | Media | Grande), «Densidad» (Compacta | Cómoda), «Letra» (Chica | Normal | Grande), «Énfasis»
-  (Normal | Fuerte) y «Color» («Sin color» y los colores del catálogo, con su muestra); por ítem, «Alto», «Letra» y «Énfasis» (y «Ancho» en
-  los que no son celda); en la cabecera, «Color», «Relleno», «Letra» y «Énfasis». **El alto de una pieza de 12 columnas** se apaga con «Con 12
-  columnas ocupa su fila: el alto no cambia nada.». Un color que el catálogo ya no tiene se ve «<clave> (no está en el catálogo)» y el aviso
-  dice «La sección «base» usa un color que no está en el catálogo.» (publicar lo rechaza); **sin catálogo** («Color» apagado con «No se pudo
-  leer el catálogo de colores.») nada se marca y la vista previa va sin colores. Un valor fuera de su escala (sólo si llegara de la base) va
-  bajo su select (`aria-invalid`) y en el aviso. Un diseño viejo se abre con «Automático», «Medio», «Cómoda», «Normal» y su ancho con
-  nombre por su número.
+  (Normal | Fuerte) y «Color» («Sin color» y los colores del catálogo, con su muestra, y «+ Nuevo color», `?color=nuevo`: el creado queda elegido; en el tope,
+  «Ya hay 48 colores…»); por ítem, «Alto», «Letra» y «Énfasis»; en la cabecera, «Color», «Relleno», «Letra» y «Énfasis». **El alto de una pieza de 12
+  columnas** se apaga con «Con 12 columnas ocupa su fila: el alto no cambia nada.». Un color que el catálogo ya no tiene se ve «<clave> (no está en el
+  catálogo)» y el aviso dice «La sección «base» usa un color que no está en el catálogo.» (publicar lo rechaza); **sin catálogo** («Color» apagado con «No se
+  pudo leer el catálogo de colores.») nada se marca y el lienzo va sin colores. Un valor fuera de su escala (sólo si llegara de la base) va bajo su select
+  (`aria-invalid`) y en el aviso. Un diseño viejo se abre con «Automático», «Medio», «Cómoda», «Normal» y su ancho con nombre por su número.
 - **Cabecera de la hoja:** «Ofrecer «Ver total en moneda local»» (la hoja lo muestra apagado) y los modos de tipo de cambio: nombre, «Tipo
   de cambio de <bucket>» por bucket de la fórmula, «Total en» y «Quitar el modo» (sin confirmar: es borrador). «Sumar un modo» copia los
   tipos de cambio de la fórmula, con la clave derivada del nombre (no cambia al renombrar). Sin total en moneda local o sin tipos de cambio
@@ -1873,22 +1889,20 @@ aspecto en la rejilla de 12 y su vista previa.
   «Opciones visibles en el encabezado»; se guardan en el borrador. Quitar un modo o apagar «Ver total» limpian lo que nombraban.
 - **Tarjeta del total:** lo que muestran el resumen y el PDF (repite lo que la hoja dibuja): «Total» (los nodos marcados como total; con
   uno solo, apagado) y «Mostrar «<nodo>» junto al total» por cada nodo «aparte»; uno elegido que dejó de ser «aparte» se sigue mostrando
-  para poder quitarlo.
+  para poder quitarlo. Se ubica como pieza (`{ tipo: 'total' }`) en una sección principal sin nivel, una sola vez: la hoja la dibuja ahí desde `@4xl` y el
+  resumen esconde la suya (a cada ancho, una sola tarjeta grande); sin ubicar, va en el resumen como siempre.
 - **Avisos** (`role="status"`, no apagan «Guardar»): lo que alguien sin un nivel puede deducir restando («Quien no tiene el nivel «X»
-  puede deducir «Y»…», 3 y «Y N más.») y «Revisa el diseño: <regla de la base>» cuando lo aplicado no pasaría al publicar.
-- **Guardar el borrador:** «No hay cambios por guardar.», «Guardando…» (los campos esperan), «Se guardó el borrador.». Conflicto: el texto
-  de la base con «Recargar» (lo no guardado se pierde); sin permiso, sin respuesta, regla y error, cada uno con su mensaje. Lo no guardado
-  vuelve al volver a la pestaña, con «Recuperamos…».
-- **Vista previa:** el botón «Vista previa» (`aria-expanded`) abre la hoja dibujada con el diseño **en edición** (lo aplicado aunque no se
-  haya guardado) y escribe `?vista=412|1280|200` (otro valor, cerrada; recargar la conserva; cambiar el ancho no suma al historial). «Ancho
-  de la vista previa»: 412 px, 1.280 px y 200 % (`aria-pressed`, 44 px). Es el mismo componente de la hoja dentro de un marco que se
-  desplaza de costado (la página no se ensancha): a 412 el resumen va debajo, a 1.280 al costado, 200 % es el celular con el texto al
-  doble. Con cifras de prueba (datos en 0; si la fórmula aún no calcula, se dibuja sin cifras). Dibuja el orden y el aspecto en vivo con la
-  misma rejilla que la hoja. Es la de quien lo ve todo y sólo se ve: sin
-  foco, sin acciones, sin tocar la URL de la hoja. Las secciones «Avanzado» no se dibujan y se dice cuántas. Diseño vacío: «No hay nada que
-  dibujar.» Su código se pide al abrirla (`diferido()`); un color que no llega deja la hoja sin colores. Abierta y desde `xl`, va al costado
-  del editor, pegada arriba al desplazarse; cerrada, el botón queda en su lugar. Por debajo de `xl`, en línea.
-- **200 %:** la fila de campos de una celda va en columna bajo `@container` estrecho (el resto, `.claude/rules/ui.md`).
+  puede deducir «Y»…», 3 y «Y N más.») y «Revisa el diseño: <regla de la base>» cuando lo aplicado no pasaría al publicar; la pieza del rechazo va marcada en
+  el lienzo y el aviso lleva «Ir a la pieza» (`?pieza=`).
+- **Guardar el borrador:** «No hay cambios por guardar.», «Guardando…» (el lienzo y los campos esperan), «Se guardó el borrador.». Conflicto (`PT409`): el texto
+  de la base con «Recargar» (lo no guardado se pierde); sin permiso, sin respuesta, regla y error, cada uno con su mensaje y los cambios quedan. Lo no guardado
+  vuelve al volver a la pestaña, con «Recuperamos lo que habías escrito y no guardaste.» y «Descartar». **Salir con cambios** (otra pestaña, otro origen):
+  la barra «Cambios sin guardar» con «Seguir editando» y «Descartar».
+- **Publicar…:** en la barra de la fórmula, junto a «Guardar el borrador» (el mismo panel `?panel=publicar-formula` de la Planilla). Con cambios sin guardar,
+  apagado: «Guarda el borrador antes de publicar.». Publicada, el editor sigue sobre la versión nueva, sin cambios.
+- **Celular (< 1.024 px):** el editor no se usa: «Este editor se usa en una pantalla de al menos 1.024 px.» y debajo la hoja a 412 px en sólo lectura (sin
+  inspector ni botones).
+- **200 %:** el lienzo se achica igual; el inspector pasa a una columna bajo `@container` estrecho, con blancos de 44 px (el resto, `.claude/rules/ui.md`).
 
 ### Cotización: colores (estados propios)
 

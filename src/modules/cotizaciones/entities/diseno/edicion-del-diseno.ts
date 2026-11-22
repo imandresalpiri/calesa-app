@@ -33,7 +33,8 @@ export type DisenoParaEditar = {
 export type EsperadaDeGuardarDiseno =
   { sobre: 'publicada'; publicadaId: string } | { sobre: 'borrador'; actualizadoEn: string }
 
-// Lo que se manda a `formula_guardar_borrador()`: la definición y los `params` salen como se leyeron.
+// Lo que se manda a `formula_guardar_borrador()`: la definición de trabajo (la leída con el rótulo y el formato que se editaron en el inspector,
+// `definicionConNodos()`; la base la valida con `validar_formula()`) y los `params` como se leyeron.
 export type PedidoDeGuardarDiseno = {
   origenId: string
   formulaDelOrigenId: string
@@ -64,17 +65,18 @@ export type BaseDelDiseno = Pick<
 >
 
 // Sobre la publicada crea el borrador (su id como esperada, la nota nula: la de la publicada es de su publicación); sobre el borrador lo pisa con su hora y su nota.
+// `trabajo.definicion` es la de trabajo, con lo editado de cada nodo.
 export function pedidoDeGuardarDiseno(
   base: BaseDelDiseno,
-  leida: Pick<DisenoParaEditar, 'definicion' | 'params'>,
+  trabajo: Pick<DisenoParaEditar, 'definicion' | 'params'>,
   diseno: Diseno,
   origenId: string,
 ): PedidoDeGuardarDiseno {
   const comun = {
     origenId,
     formulaDelOrigenId: base.formulaDelOrigenId,
-    definicion: leida.definicion,
-    params: leida.params,
+    definicion: trabajo.definicion,
+    params: trabajo.params,
     diseno,
   }
   return base.estado === 'publicada'
@@ -184,6 +186,6 @@ function iguales(a: unknown, b: unknown): boolean {
   return clavesA.length === clavesB.length && clavesA.every((k) => iguales(ra[k], rb[k]))
 }
 
-// O(nodos), una vez por cambio aplicado.
-export const hayCambiosEnElDiseno = (guardado: Diseno, trabajo: Diseno) =>
+// O(nodos), una vez por cambio aplicado. Sirve para el diseño solo y para lo que guarda el editor de la hoja (el diseño y lo editado de cada nodo).
+export const hayCambiosEnElDiseno = <T extends object>(guardado: T, trabajo: T) =>
   guardado !== trabajo && !iguales(guardado, trabajo)

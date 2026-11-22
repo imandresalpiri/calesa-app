@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { Diseno } from '../../../entities/diseno'
+import type { ClaveDePieza, Diseno, EnlaceDeAyuda, SeccionDeDiseno } from '../../../entities/diseno'
 import type { PorDefecto } from '../../../entities/cabecera-por-defecto'
+import { ponerColumnas } from '../../../entities/diseno/ancho-de-la-pieza'
 import {
   ponerModo,
   ponerPorDefecto,
@@ -15,7 +16,6 @@ import {
   alternarSecundario,
   ponerTotalDeLaTarjeta,
 } from '../../../entities/diseno/edicion-de-la-tarjeta'
-import type { EnlaceDeAyuda } from '../../../entities/diseno'
 import {
   ponerAtajos,
   ponerAyuda,
@@ -34,18 +34,34 @@ import {
   type CambioDeAspectoDeLaCabecera,
   type CambioDeAspectoDeSeccion,
 } from '../../../entities/diseno/edicion-del-aspecto'
-import { moverItem, moverSeccion } from '../../../entities/diseno/orden-del-diseno'
-import type { ItemDeDiseno } from '../../../entities/diseno'
+import { ponerSeccion } from '../../../entities/diseno/edicion-del-diseno'
+import { ponerNiveles, type CambioDeNiveles } from '../../../entities/diseno/niveles'
+import { moverSeccion } from '../../../entities/diseno/orden-del-diseno'
+import { ubicarElTotal } from '../../../entities/diseno/total-de-la-hoja'
 import type { Definicion } from '../../../entities/formula'
 
 export type EdicionesDelDiseno = ReturnType<typeof edicionesDelDiseno>
 
-// Las operaciones puras de ítems, cabecera, tarjeta, aspecto y orden, atadas a `aplicar` del editor: ningún componente llama a una operación pura directo.
+// Las operaciones puras de piezas, secciones, cabecera, tarjeta y aspecto, atadas a `aplicar` del editor: ningún componente llama a una operación pura directo.
+// Una pieza se nombra por su `ClaveDePieza` (su sección y su nodo, o la tarjeta del total).
 function edicionesDelDiseno(
   aplicar: (cambio: (d: Diseno) => Diseno) => void,
   definicion: Definicion,
 ) {
   return {
+    ponerSeccion: (
+      seccion: string,
+      cambios: { titulo?: string; presentacion?: SeccionDeDiseno['presentacion'] },
+    ) => {
+      aplicar((d) => ponerSeccion(d, seccion, cambios))
+    },
+    // Sin `nodo`, los de la sección; con él, los de su celda.
+    ponerNiveles: (seccion: string, nodo: string | undefined, cambios: CambioDeNiveles) => {
+      aplicar((d) => ponerNiveles(d, nodo === undefined ? { seccion } : { seccion, nodo }, cambios))
+    },
+    ponerColumnas: (clave: ClaveDePieza, columnas: number) => {
+      aplicar((d) => ponerColumnas(d, clave, columnas))
+    },
     ponerAtajos: (seccion: string, nodo: string, cambios: { columna?: string; filas?: number }) => {
       aplicar((d) => ponerAtajos(d, seccion, nodo, cambios))
     },
@@ -85,24 +101,21 @@ function edicionesDelDiseno(
     alternarSecundario: (nodo: string) => {
       aplicar((d) => alternarSecundario(d, nodo))
     },
+    // «Ubicar en la hoja» de un diseño sin la pieza del total.
+    ubicarElTotal: () => {
+      aplicar(ubicarElTotal)
+    },
     ponerAspectoDeSeccion: (seccion: string, cambios: CambioDeAspectoDeSeccion) => {
       aplicar((d) => ponerAspectoDeSeccion(d, seccion, cambios))
     },
-    ponerAspectoDeItem: (
-      seccion: string,
-      item: { tipo: ItemDeDiseno['tipo']; nodo: string },
-      cambios: CambioDeAspectoDeItem,
-    ) => {
-      aplicar((d) => ponerAspectoDeItem(d, seccion, item, cambios))
+    ponerAspectoDeItem: (clave: ClaveDePieza, cambios: CambioDeAspectoDeItem) => {
+      aplicar((d) => ponerAspectoDeItem(d, clave.seccion, clave, cambios))
     },
     ponerAspectoDeLaCabecera: (cambios: CambioDeAspectoDeLaCabecera) => {
       aplicar((d) => ponerAspectoDeLaCabecera(d, cambios))
     },
     moverSeccion: (desde: number, hasta: number) => {
       aplicar((d) => moverSeccion(d, desde, hasta))
-    },
-    moverItem: (seccion: string, desde: number, hasta: number) => {
-      aplicar((d) => moverItem(d, seccion, desde, hasta))
     },
   }
 }

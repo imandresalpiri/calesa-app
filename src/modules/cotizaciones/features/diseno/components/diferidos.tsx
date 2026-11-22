@@ -2,7 +2,8 @@
 
 import { diferido } from '@/shared/ui/diferido'
 
-// La pestaña «Diseño» (4.22-2) trae el validador del diseño y el editor: la página del origen no los carga para mostrar sus otras pestañas.
+// La pestaña «Hoja» trae el validador del diseño, el editor de la hoja (con la hoja de cotizar y dnd-kit): la página del origen no los carga para mostrar sus
+// otras pestañas.
 export const DisenoDelOrigenDiferido = diferido(
   () => import('./diseno-del-origen').then((modulo) => modulo.DisenoDelOrigen),
   { aviso: 'aqui' },
@@ -23,10 +24,4 @@ export const ModalDeColorDiferido = diferido(() =>
 // La confirmación de eliminar un color se pide al abrirse (`useAbiertoAlgunaVez()`).
 export const EliminarColorDiferido = diferido(() =>
   import('./eliminar-color').then((modulo) => modulo.EliminarColor),
-)
-
-// La vista previa de la hoja (4.22-5) trae la hoja de cotizar entera; abrir la pestaña «Diseño» no la carga, sólo «Vista previa».
-export const VistaPreviaDelDisenoDiferido = diferido(
-  () => import('./vista-previa-del-diseno').then((modulo) => modulo.VistaPreviaDelDiseno),
-  { aviso: 'aqui' },
 )

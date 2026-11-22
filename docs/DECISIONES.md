@@ -801,8 +801,12 @@ las trampas, en `docs/LECCIONES.md`.
     la descripción.
   - **Un par cuyo secundario es el monto dibuja el % grande y primero** (`secondaryProminent`): el orden visual y el de Tab coinciden y los ids que emite la
     celda no cambian. La semilla deja sus impuestos en `porcentaje` (cambiarla movería el corpus y la tarea de oro).
-  - **El total va en una tarjeta de superficie invertida** (la tinta de fondo y el papel de letra: oscura en claro y clara en oscuro, como V1), pegada al
-    borde de arriba del resumen, en su lugar de hoy; el rótulo es la etiqueta del nodo en mayúsculas por CSS.
+  - **El total va en una tarjeta de superficie invertida** (la tinta de fondo y el papel de letra: oscura en claro y clara en oscuro, como V1), arriba
+    del resumen o donde el diseño la ubica (la pieza `{ tipo: 'total' }`); el rótulo es la etiqueta del nodo en mayúsculas por CSS.
+  - **A cada ancho, un solo total grande, sólo con CSS.** Con la pieza, ella se ve desde `@4xl/hoja` (al costado) y la del resumen se esconde ahí; por
+    debajo, al revés (en el celular, al pie). El resumen se queda con los avisos del total, los secundarios, el modo, Live y «Guardar»: lo que se hace con
+    el total no se mueve. Dos totales grandes en escritorio repetirían la cifra que más importa en dos lugares. En par, la pieza no dibuja nada: manda
+    `TotalesEnPar`, que ya dibuja los dos totales. La pieza viaja en frío con la hoja (el tope de `/cotizaciones/nuevo`, en `docs/RENDIMIENTO.md`).
   - **«Avanzado» es un botón a lo ancho con los reguladores**, y el modal conserva su título (el término del glosario); es grande (56 rem: un `tercio` va a
     tres columnas) y sus secciones van sin marco. Los títulos que esconde son la descripción del botón, sin escribirse; «Hay datos por revisar.» sí se
     escribe: es un estado.
@@ -997,16 +1001,35 @@ las trampas, en `docs/LECCIONES.md`.
   se oculta según condiciones sí se oculta a mano.
 - **El aspecto de la hoja es declarativo, cerrado y plano.** Claves opcionales junto a las de siempre (`ancho`, `alto`, `relleno`, `separacion`, `densidad`, `letra`, `enfasis`, `tono`), de escalas
   cerradas y validadas igual en TS y en SQL: nada de px, CSS ni hex. No se llaman `estilo`, `clase` ni `color` (el juego las rechaza). Sin la clave, lo de siempre, así un diseño viejo se ve igual;
-  el editor quita la clave en vez de escribir el valor por defecto. La cabecera no lleva ancho ni alto (va sola en su fila) y la tarjeta del resumen no lleva aspecto (es fija).
+  el editor quita la clave en vez de escribir el valor por defecto. La cabecera no lleva ancho ni alto (va sola en su fila); la tarjeta del resumen no lleva aspecto (es fija) y la pieza
+  del total lleva el de todo ítem (ancho, alto, letra y énfasis).
 - **La regla de los 16 rem.** Una pieza de N columnas toma su ancho cuando le tocan 16 rem o más (`mitad` desde 32 rem, `tercio` desde 48); si no, la fila entera. Los cortes
   van en rem, así al 200 % la rejilla colapsa sola, y bajo el primer corte no hay hueco de columna. Una sección sin ancho es «Automática» (la mitad desde 64 rem). El alto son filas de
   la rejilla desde el mismo corte. Todo en clases y variables sobre los nodos de siempre: la hoja está al borde de su tope de nodos.
 - **El color de una sección no pinta su fondo.** Su borde, sus celdas sin grupo, sus franjas y sus chips toman el color; el fondo, el título y los textos sueltos (leyendas, interruptor) quedan en
   los tokens: la base sólo garantiza el AA de la tinta sobre el fondo derivado, no del texto de la interfaz sobre él. El color del grupo gana en su celda; un chip marcado vuelve al primario.
   Es el catálogo de colores (sin lista nueva de tokens): ya es de la empresa y con contraste garantizado.
-- **Las celdas se ordenan dentro de su sección.** Pasar un ítem a otra sección cambiaría quién lo ve (hereda el nivel de la sección); para eso sigue el JSON del diseño. Se ordena con dnd-kit (sólo
-  en la pestaña «Hoja», con `diferido()`) y su sensor de teclado sobre el asa, con anuncios en español.
-- **El PDF, la tarjeta y el resumen no siguen el aspecto.** Siguen con su plantilla (la cuadrícula): el aspecto es de la hoja en pantalla (la de cotizar y la de una guardada, que son el mismo componente).
+- **La hoja se edita sobre su vista.** El lienzo es la hoja de verdad (los componentes de cotizar, con cifras de prueba) y cada pieza se elige en él y se edita en un inspector al costado: lo que
+  se configura se ve como lo verá quien cotiza, sin un formulario por sección. Lo que dibuja la hoja va `inert` bajo un botón por pieza, así ninguna XCell recibe el foco ni el clic.
+  El rótulo y el formato que se editan en el inspector viajan en la `definicion` del mismo Guardar (`edicion-de-nodos.ts`). El servidor no la limita a esos dos campos:
+  es la misma action, la misma RPC y el mismo `cotizaciones.configurar` con que la Planilla edita la fórmula entera, así que no da nada que ese permiso no diera.
+- **Las piezas se mueven entre secciones, y el editor avisa el nivel.** Una pieza hereda el nivel de su sección: moverla puede cambiar quién la ve. En vez de prohibirlo, el inspector lo dice
+  («Ahora la ve «Costos»: antes la veían todos.») y una combinación inválida (`editar_sin_ver`, `nivel_no_admitido`) queda marcada como cualquier rechazo. Se arrastra con el dnd-kit que ya
+  estaba (un `DndContext`, un `SortableContext` por sección), sólo en el `diferido()` de la pestaña; nada se reordena mientras se arrastra (el lienzo está escalado y una traslación se
+  escalaría dos veces): una marca dice dónde cae y el cambio llega al soltar. Con el teclado, Alt+flechas y el «⋯» de la pieza.
+- **El lienzo se escala con CSS `zoom`, no con `transform: scale`.** Un hijo de 412, 1.280 o 1.920 px con `zoom = min(1, disponible / ancho)` («Texto al 200 %»: 206 px con `zoom: 2`). Con
+  `zoom`, `getBoundingClientRect` y el puntero coinciden con lo dibujado, que es lo que miden dnd-kit y el borde de ancho; con `transform` habría que corregir cada medida.
+- **Las cifras del lienzo salen de `cifrasDelDiseno()`** (datos en 0, `UNIDAD_EN_CEROS`), no de la unidad de ejemplo de la Planilla: el área `diseno` no importa `formula`, y una hoja de
+  ejemplo sirve para ver el diseño, no para revisar el cálculo.
+- **La tarjeta del total es una pieza `{ tipo: 'total' }` sin `nodo`, no un `tarjeta_total.lugar`.** El nodo del total sigue sólo en `tarjeta_total.nodo`: el PDF, la tarjeta de la cotización,
+  la plantilla, la visibilidad compilada y `nodosDelDiseno` no cambian. Como pieza se mueve, se suma y se quita como las demás, con su aspecto; un `lugar` aparte pediría otro editor y
+  otro índice. Tres reglas propias con `donde` = la sección (`total_repetido`, `total_en_avanzado`, `total_con_nivel`): `nivel_no_admitido@nodo` sería ambiguo si el total también tiene
+  una celda.
+- **El PDF y la tarjeta no siguen el aspecto ni el lugar del total.** Siguen con su plantilla (la cuadrícula): el aspecto y la pieza del total son de la hoja en pantalla (la de cotizar y la
+  de una guardada, que son el mismo componente); el resumen sólo esconde su tarjeta grande cuando la hoja la dibuja.
+- **«Publicar…» también en la barra de la Hoja, del área `formula`.** El editor de la hoja no publica por su cuenta: `src/app` compone el mismo «Publicar…» de la Planilla
+  (`pantallas/formula-publicar.ts`, `AccionesEnLaBarra orden={2}`), que espera apagado mientras haya cambios sin guardar («Guarda el borrador antes de publicar.»). Un área no importa
+  otra, y un segundo «Publicar…» propio del diseño repetiría el panel, sus rechazos y su conflicto.
 - **«Compartir la cotización»: el texto se arma en el navegador, con las cifras ya escritas por el servidor.** `GET /cotizaciones/<id>/compartir` manda
   `DatosParaCompartir` una vez por apertura: los montos salen de la **geometría de la tarjeta de lo guardado** (`lineasDeLaTarjeta()`, sólo lo del nivel
   «todos», K4) con el formato del PDF, nunca de `valores` sueltos; el vehículo, sólo si quien pide lo ve. `textoParaCompartir()` (puro) arma el texto en cada

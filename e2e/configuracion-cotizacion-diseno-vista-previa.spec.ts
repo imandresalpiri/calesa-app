@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from './soporte/prueba'
+import { expect, test, type Page } from './soporte/prueba'
 import { enLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
@@ -12,9 +12,9 @@ import { leerElBorradorDelDiseno, publicarFormulaDeTresSumandos } from './soport
 import { sinScrollHorizontal } from './soporte/recorrido'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
-// La vista previa de la pestaña «Diseño» (4.22-5, `docs/UX.md` › «Cotización: hoja (estados propios)»): el diseño en edición dibujado con los componentes de la hoja a 412 px, a
-// 1.280 px y a 412 con el texto al doble. Un recorrido: la elección va en la URL, cada ancho dispara sus cortes, la página no se ensancha, lo que se edita se ve sin guardar y la hoja
-// de prueba no se toca.
+// Las vistas del editor de la hoja (`docs/UX.md` › «Cotización: hoja (estados propios)»): el lienzo es la hoja dibujada con los componentes de cotizar a 412, 1.280
+// y 1.920 px y a 412 con el texto al doble, achicada para entrar. En escritorio la elección va en la URL, sobrevive a recargar y en cada vista se elige una pieza y
+// se edita, sin guardar y sin tocar la base; lo que dibuja la hoja no recibe el foco. Por debajo de 1.024 px (el celular), la hoja en sólo lectura con su aviso.
 test.describe.configure({ mode: 'serial' })
 
 let duena = ''
@@ -37,94 +37,85 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-const marco = (page: Page) => page.locator('[data-vista-previa]')
-const hoja = (page: Page) => page.locator('[data-vista-previa] [data-hoja-de-prueba]')
-const tituloDeLaHoja = (page: Page) => hoja(page).locator('[data-seccion="base"] h2')
+const lienzo = (page: Page) => page.locator('[data-lienzo-de-la-hoja]')
+const vistas = (page: Page) => page.getByRole('group', { name: 'Vista de la hoja' })
+const inspector = (page: Page) => page.locator('aside[data-inspector-de-la-hoja]')
+const tituloDeLaBase = (page: Page) => lienzo(page).locator('section[data-seccion="base"] h2')
 
-async function caja(l: Locator) {
-  const c = await l.boundingBox()
-  expect(c).not.toBeNull()
-  return c!
+async function elegirLaVista(page: Page, nombre: string, vista: string) {
+  await vistas(page).getByRole('button', { name: nombre, exact: true }).click()
+  await expect(vistas(page).getByRole('button', { name: nombre, exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(page).toHaveURL(new RegExp(`vista=${vista}(&|$)`))
+  await expect(lienzo(page)).toHaveAttribute('data-vista', vista)
 }
 
-async function elegir(page: Page, nombre: string, ancho: string) {
-  await page
-    .getByRole('group', { name: 'Ancho de la vista previa' })
-    .getByRole('button', { name: nombre, exact: true })
-    .click()
-  await expect(marco(page)).toHaveAttribute('data-ancho', ancho)
-  await expect(hoja(page)).toBeVisible()
-}
+const VISTAS = [
+  { nombre: 'Celular', vista: '412' },
+  { nombre: 'Grande', vista: '1920' },
+  { nombre: 'Texto al 200 %', vista: '200' },
+  { nombre: 'Laptop', vista: '1280' },
+] as const
 
-test('V1: la vista previa va a 412, a 1.280 y a 200 %, sigue al diseño sin guardar y no se toca', async ({
+// @sin-celular: el editor de la hoja se usa desde 1.024 px; en el celular se ve en sólo lectura y eso lo prueba V2.
+test('V1: las cuatro vistas dibujan la hoja a su ancho, van en la URL y en cada una se edita sin guardar', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
   await abrirLaFormula(page, origen.id, 'hoja')
   await enLaPestana(page, 'Hoja')
-  const boton = page.getByRole('button', { name: 'Vista previa', exact: true })
-  await expect(boton).toHaveAttribute('aria-expanded', 'false')
-  await expect(marco(page)).toHaveCount(0)
-
-  // 412: una columna y el resumen debajo; la página no se ensancha.
-  await boton.click()
-  await expect(boton).toHaveAttribute('aria-expanded', 'true')
-  await expect(page).toHaveURL(/vista=412/)
-  await expect(marco(page)).toHaveAttribute('data-ancho', '412')
-  await expect(hoja(page)).toBeVisible()
-  await expect(
-    page.getByText('Cifras de prueba: los datos en 0; no son las de una cotización.'),
-  ).toBeVisible()
-  const secciones = hoja(page).locator('[data-secciones]')
-  const resumen = hoja(page).locator('[data-resumen]')
-  await expect(resumen).toBeVisible()
-  expect((await caja(resumen)).y).toBeGreaterThanOrEqual(
-    (await caja(secciones)).y + (await caja(secciones)).height - 1,
+  // Sin `?vista=`, la de la ventana: 1.280 px es la laptop.
+  await expect(lienzo(page)).toHaveAttribute('data-vista', '1280')
+  await expect(vistas(page).getByRole('button', { name: 'Laptop', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
   )
-  await sinScrollHorizontal(page)
-  const alto412 = (await caja(tituloDeLaHoja(page))).height
-
-  // 1.280: el marco se desplaza y el resumen queda al costado; la página sigue igual.
-  await elegir(page, '1.280 px', '1280')
-  const medidas = await marco(page).evaluate((e) => ({
-    total: e.scrollWidth,
-    visible: e.clientWidth,
-  }))
-  expect(medidas.total).toBeGreaterThanOrEqual(1280)
-  expect(medidas.visible).toBeLessThan(1280)
-  const costado = await caja(hoja(page).locator('[data-secciones]'))
-  const resumenAlLado = await caja(hoja(page).locator('[data-resumen]'))
-  expect(resumenAlLado.x).toBeGreaterThanOrEqual(costado.x + costado.width - 1)
-  await sinScrollHorizontal(page)
-
-  // 200 %: el texto mide el doble y la página sigue sin ensancharse.
-  await elegir(page, '200 %', '200')
-  const alto200 = (await caja(tituloDeLaHoja(page))).height
-  expect(alto200).toBeGreaterThanOrEqual(alto412 * 1.8)
-  await sinScrollHorizontal(page)
-
-  // Recargar deja el ancho elegido.
+  await elegirLaVista(page, 'Texto al 200 %', '200')
   await page.reload()
-  await expect(marco(page)).toHaveAttribute('data-ancho', '200')
-  await expect(hoja(page)).toBeVisible()
+  await expect(lienzo(page)).toHaveAttribute('data-vista', '200')
 
-  // Cambiar un título se ve en la vista previa sin guardar: no se escribe nada en la base.
-  await page.locator('li[data-seccion="base"]').getByLabel('Título').first().fill('Base nueva')
-  await expect(tituloDeLaHoja(page)).toHaveText('Base nueva')
+  for (const { nombre, vista } of VISTAS) {
+    await elegirLaVista(page, nombre, vista)
+    await lienzo(page)
+      .locator('[data-elegir="seccion-base"]')
+      .click({ position: { x: 24, y: 6 } })
+    await expect(inspector(page)).toHaveAttribute('data-pieza', 'seccion-base')
+    const titulo = inspector(page).getByLabel('Título')
+    await titulo.fill(`Base ${nombre}`)
+    await titulo.press('Tab')
+    await expect(tituloDeLaBase(page)).toHaveText(`Base ${nombre}`)
+  }
   expect(leerElBorradorDelDiseno(origen.id)).toBeNull()
 
-  // La hoja de prueba sólo se ve: no se enfoca nada de adentro y la URL no cambia.
-  const url = page.url()
-  const enfocado = await hoja(page).evaluate((raiz) => {
-    const campo = raiz.querySelector<HTMLElement>('input, button')
+  // Lo que dibuja la hoja va `inert`: ninguna celda recibe el foco.
+  const enfocado = await lienzo(page).evaluate((raiz) => {
+    const campo = raiz.querySelector<HTMLElement>('[inert] input, [inert] button')
     campo?.focus()
-    return campo !== null && raiz.contains(document.activeElement)
+    return (
+      campo !== null && raiz.contains(document.activeElement) && campo === document.activeElement
+    )
   })
   expect(enfocado).toBe(false)
-  expect(page.url()).toBe(url)
+})
 
-  // «Vista previa» la cierra.
-  await boton.click()
-  await expect(marco(page)).toHaveCount(0)
-  await expect(page).not.toHaveURL(/vista=/)
+test('V2: por debajo de 1.024 px la hoja se ve a 412 en sólo lectura, con el aviso, sin el inspector', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 412, height: 900 })
+  await entrar(page, duena, { fresco: true })
+  await abrirLaFormula(page, origen.id, 'hoja')
+  await enLaPestana(page, 'Hoja')
+  const soloLectura = page.locator('[data-hoja-solo-lectura]')
+  await expect(
+    soloLectura
+      .getByRole('status')
+      .filter({ hasText: 'Este editor se usa en una pantalla de al menos 1.024 px.' }),
+  ).toBeVisible()
+  await expect(soloLectura.locator('[data-lienzo-de-la-hoja]')).toHaveAttribute('data-vista', '412')
+  await expect(soloLectura.locator('[data-seccion="base"]')).toBeVisible()
+  await expect(page.locator('[data-editor-de-la-hoja]')).toHaveCount(0)
+  await expect(page.locator('[data-elegir]')).toHaveCount(0)
+  await sinScrollHorizontal(page)
 })

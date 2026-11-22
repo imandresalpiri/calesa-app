@@ -66,12 +66,27 @@ function celdaDe(
   }
 }
 
-function itemDe(
+function varianteDe(item: Extract<ItemDeDiseno, { tipo: 'variante' }>, n: Nodo): ItemDeHoja | null {
+  if (n.tipo !== 'opcion') return null
+  return {
+    ...FICHA_VACIA,
+    tipo: 'variante',
+    nodo: n.id,
+    etiqueta: n.etiqueta,
+    opciones: n.opciones.map((o) => ({ clave: o.clave, etiqueta: o.etiqueta, titulo: o.titulo })),
+    porDefecto: n.por_defecto ?? null,
+    ...aspectoDeItemConAncho(item),
+  }
+}
+
+// Un ítem del diseño como lo dibuja la hoja (nulo si su nodo no está en la fórmula). La tarjeta del total toma el nodo de `tarjeta_total`.
+export function itemDe(
   item: ItemDeDiseno,
   nodos: ReadonlyMap<string, Nodo>,
   tonosDeGrupo: ReadonlyMap<string, string>,
+  totalId: string,
 ): ItemDeHoja | null {
-  const n = nodos.get(item.nodo)
+  const n = nodos.get(item.tipo === 'total' ? totalId : item.nodo)
   if (n === undefined) {
     return null
   }
@@ -82,21 +97,7 @@ function itemDe(
       // Sin tablas no hay chips: la hoja no dibuja unos atajos vacíos.
       return { tipo: 'atajos', nodo: n.id, chips: [], ...aspectoDeItemConAncho(item) }
     case 'variante':
-      return n.tipo === 'opcion'
-        ? {
-            ...FICHA_VACIA,
-            tipo: 'variante',
-            nodo: n.id,
-            etiqueta: n.etiqueta,
-            opciones: n.opciones.map((o) => ({
-              clave: o.clave,
-              etiqueta: o.etiqueta,
-              titulo: o.titulo,
-            })),
-            porDefecto: n.por_defecto ?? null,
-            ...aspectoDeItemConAncho(item),
-          }
-        : null
+      return varianteDe(item, n)
     case 'interruptor':
       return {
         ...FICHA_VACIA,
@@ -114,6 +115,14 @@ function itemDe(
         etiqueta: n.etiqueta,
         formato: formatoDe(n),
         tono: tonoDe(n, tonosDeGrupo),
+        ...aspectoDeItemConAncho(item),
+      }
+    case 'total':
+      return {
+        tipo: 'total',
+        nodo: n.id,
+        etiqueta: n.etiqueta,
+        formato: formatoDe(n),
         ...aspectoDeItemConAncho(item),
       }
     default: {
@@ -141,7 +150,9 @@ export function hojaDeLaVistaPrevia(
   const nodos = new Map(definicion.nodos.map((n) => [n.id, n]))
   const tonosDeGrupo = new Map((definicion.grupos ?? []).map((g) => [g.id, g.tono]))
   const secciones: SeccionDeHoja[] = diseno.secciones.flatMap((s) => {
-    const items = s.items.flatMap((i) => itemDe(i, nodos, tonosDeGrupo) ?? [])
+    const items = s.items.flatMap(
+      (i) => itemDe(i, nodos, tonosDeGrupo, diseno.tarjeta_total.nodo) ?? [],
+    )
     return items.length === 0
       ? []
       : [

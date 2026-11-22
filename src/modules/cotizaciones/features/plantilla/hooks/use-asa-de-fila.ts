@@ -10,7 +10,7 @@ const sinAnimar = () =>
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// El asa de una fila del lienzo (como `useFilaOrdenable` del diseño: un área no importa otra): su nodo, que se desplaza mientras se arrastra, y su botón, lo único
+// El asa de una fila del lienzo: su nodo, que se desplaza mientras se arrastra, y su botón, lo único
 // que la toma, con el puntero o con el teclado. Mientras el editor guarda, no se mueve.
 export function useAsaDeFila(id: string, ocupado: boolean) {
   const {

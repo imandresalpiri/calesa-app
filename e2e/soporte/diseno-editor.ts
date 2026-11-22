@@ -211,6 +211,27 @@ export function publicarLaVersionConAspecto(origenId: string, tono: string): voi
     end $f$`)
 }
 
+// El diseño de tres sumandos con la tarjeta del total como pieza (`{ tipo: 'total' }`) en «Resumen», junto a la celda del total: en la hoja de cotizar se ve una
+// sola tarjeta grande por ancho (en la sección desde `@4xl/hoja`; por debajo, la del resumen al pie).
+export function disenoConElTotal() {
+  const [base, extras, resumen] = diseno.secciones
+  return {
+    ...diseno,
+    secciones: [base, extras, { ...resumen, items: [celda('total'), { tipo: 'total' }] }],
+  }
+}
+
+// Publica la versión 1 de un origen con la fórmula de tres sumandos y la tarjeta del total en «Resumen».
+export function publicarFormulaConElTotal(origenId: string): void {
+  sql(`
+    do $f$
+    declare v_def jsonb := ${json(definicion)}; v_par jsonb := '{}'::jsonb; v_dis jsonb := ${json(disenoConElTotal())};
+    begin
+      insert into public.formulas (origen_id, version, estado, definicion, params, diseno, visibilidad, nota, publicado_en)
+      values (${literal(origenId)}::uuid, 1, 'publicada', v_def, v_par, v_dis, public._preparar_publicacion(v_def, v_par, v_dis, false), 'E2E total', now());
+    end $f$`)
+}
+
 // Un tono propio del recorrido (los colores del amarillo de la semilla, que pasan el AA). Se borra después que las fórmulas que lo nombran.
 export function crearTonoDePrueba(clave: string): void {
   sql(`
