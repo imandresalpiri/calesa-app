@@ -28,11 +28,14 @@ const rotulo = (proyecto: string) => `Agenda e2e ${proyecto}`
 // Los chips: los de la hoja del día (una tarea vencida sale también en «Pendientes»).
 const hojaDe = (page: Page) => page.getByRole('region', { name: 'Hoja del día' })
 
-// La tecla N abre «Nuevo» (insiste hasta que la página termina de hidratar) y ahí se elige qué agendar.
+// La tecla N abre «Nuevo» y ahí se elige qué agendar. El atajo de la agenda existe recién cuando hidrató; antes, la «n» la toma el «Nuevo
+// lead» del marco (de respaldo): se lo cierra y se insiste. Con el panel pedido (la URL lo dice) no se vuelve a pulsar.
 async function nuevoEnLaAgenda(page: Page, que: 'Evento' | 'Tarea') {
   const modal = page.getByRole('dialog', { name: 'Nuevo', exact: true })
   await expect(async () => {
-    await page.keyboard.press('n')
+    const url = page.url()
+    if (url.includes('panel=nuevo-lead')) await page.keyboard.press('Escape')
+    else if (!url.includes('panel=nuevo-en-la-agenda')) await page.keyboard.press('n')
     await expect(modal).toBeVisible({ timeout: 1000 })
   }).toPass()
   await modal.getByRole('button', { name: new RegExp(`^${que}`) }).click()
