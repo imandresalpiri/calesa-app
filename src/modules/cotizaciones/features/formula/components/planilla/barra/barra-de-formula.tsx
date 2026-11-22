@@ -22,10 +22,10 @@ const CAJA_QUIETA =
   'min-h-[44px] min-w-0 rounded-(--radius-md) border border-dashed border-(--color-line) px-3 py-2.5 text-(length:--text-sm) text-(--color-ink-soft) break-words md:pointer-fine:min-h-9 md:pointer-fine:py-1.5'
 const BOTON = 'min-h-[44px] md:pointer-fine:min-h-9'
 
-// Lo que la barra muestra de la celda activa: su texto si se escribe; si no, por qué (o un monto con el Modo Live).
+// Lo que la barra muestra de la celda activa: su texto si se escribe; si no, por qué (o un monto con el Modo Live). Nulo hasta que se elige una celda.
 function textoDeLaCelda(planilla: Planilla, live: boolean) {
   const { cuadricula, edicion, hoja } = planilla
-  const celda = edicion.edicion ?? cuadricula.activa
+  const celda = edicion.edicion ?? cuadricula.activaElegida
   if (celda === null) return null
   const fila = filaDe(hoja, hoja.numeroDe.get(celda.id) ?? 0)
   if (fila === undefined) return null

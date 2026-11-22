@@ -189,7 +189,7 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     acciones,
     funcion: useFuncionEnLaBarra({
       edicion,
-      activa: cuadricula.activa,
+      activa: cuadricula.activaElegida,
       textoDe: ed.textoDe,
       elegir: cuadricula.elegir,
       idDelTexto: idsDeLaEdicion(filas.prefijo).texto,

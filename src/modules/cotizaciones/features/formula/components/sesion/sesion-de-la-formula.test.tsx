@@ -102,7 +102,8 @@ describe('SesionDeLaFormula', () => {
     for (const columna of ['A · concepto', 'B · %', 'C · valor', 'Ejemplo']) {
       expect(screen.getByRole('columnheader', { name: columna })).toBeTruthy()
     }
-    expect(screen.getByPlaceholderText('Escribe = y toca las celdas: =C5+C7')).toBeTruthy()
+    // Al entrar no hay celda elegida: la barra muestra su guía.
+    expect(screen.getByText('Escribe = y toca las celdas: =C5+C7')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Modo avanzado/ })).toBeNull()
   })
 
