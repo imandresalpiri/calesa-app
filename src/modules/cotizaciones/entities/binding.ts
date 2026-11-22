@@ -38,6 +38,8 @@ export type PropsDeCelda = {
   secondaryId: string | undefined
   secondaryValue: number | null | undefined
   secondaryFormat: FormatoDeXCell | undefined
+  // El diseño dice que el secundario del par es el monto (`secundario: 'monto'`): el % va primero y grande, «14.94 % $181».
+  secondaryProminent: true | undefined
 }
 
 // El formato de un nodo de la fórmula en el de la celda. Un `usd` se imprime en dólares; un `moneda`, en la moneda base de la empresa (sin código: `<Monto>` la toma de ella).
@@ -227,9 +229,28 @@ export function propsDeCelda(celda: CeldaDeHoja, c: ContextoDeHoja): PropsDeCeld
     secondaryDisabledReason: candados.secundario,
     tone: celda.tono ?? undefined,
     error: errorDe(celda, value, candados, c),
-    secondaryId: secundario?.nodo,
-    secondaryValue: secundario ? valorDelSecundario(secundario.nodo, c) : undefined,
-    secondaryFormat: secundario ? formatoDeCelda(secundario.formato) : undefined,
+    ...propsDelSecundario(secundario, c),
+  }
+}
+
+// El secundario del par: su id, su valor, su formato y si se lee primero.
+function propsDelSecundario(
+  secundario: CeldaDeHoja['secundario'],
+  c: ContextoDeHoja,
+): Pick<PropsDeCelda, 'secondaryId' | 'secondaryValue' | 'secondaryFormat' | 'secondaryProminent'> {
+  if (secundario === null) {
+    return {
+      secondaryId: undefined,
+      secondaryValue: undefined,
+      secondaryFormat: undefined,
+      secondaryProminent: undefined,
+    }
+  }
+  return {
+    secondaryId: secundario.nodo,
+    secondaryValue: valorDelSecundario(secundario.nodo, c),
+    secondaryFormat: formatoDeCelda(secundario.formato),
+    secondaryProminent: secundario.como === 'monto' || undefined,
   }
 }
 

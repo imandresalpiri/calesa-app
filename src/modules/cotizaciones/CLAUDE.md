@@ -385,6 +385,7 @@ puedeRetocar }`, de `HojaDeUnaGuardada`; la hoja nueva no lo pasa) y el modelo l
   sus columnas sólo en la rejilla de las secciones (en el modal «Avanzado», un `grid` sin pistas, no); el color de una sección va en `data-tono`. `features/hoja/`
   marca para los e2e `data-nodo`, `data-atajos`, `data-seccion`, `data-avanzado`, `data-cabecera`, `data-secciones`, `data-modo`, `data-total-bs`,
   `data-pie-de-panel`.
+- El par con `secundario.como === 'monto'` manda `secondaryProminent` a la XCell (`propsDeCelda()`): el % primero y grande, el monto chico detrás.
 - El resumen al pie se pliega (`useResumenPlegado`): «Ver el detalle» / «Ocultar el detalle» esconde el total en moneda local, los secundarios y el modo;
   el total, sus avisos, lo guardado, la región viva y el pie quedan. Nace plegado con la fuente raíz ≥ 24 px; al costado (`@4xl/hoja`) no hay botón. El
   modo de tipo de cambio es parte de `Entradas`; «Ver total Bs» no (no cambia el cálculo), pero vuelve con el borrador.

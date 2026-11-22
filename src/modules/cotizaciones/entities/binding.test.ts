@@ -89,6 +89,20 @@ describe('propsDeCelda: el valor, el origen del valor y el tono', () => {
     expect(props('fees', contexto(r, e))).toMatchObject({ secondaryValue: 0.2, overridden: true })
   })
 
+  it('con `secundario: monto` el porcentaje va primero y grande (`secondaryProminent`); con `porcentaje` o sin par, no', () => {
+    const r = respuestaDePrueba({ valores: { fees: 1300, fees_pct: 0.1368 } })
+    expect(props('fees', contexto(r)).secondaryProminent).toBeUndefined()
+    expect(props('remate', contexto(r)).secondaryProminent).toBeUndefined()
+    const fees = celda('fees')
+    if (fees.secundario === null) throw new Error('fees no es un par')
+    const comoMonto = { ...fees, secundario: { ...fees.secundario, como: 'monto' as const } }
+    expect(propsDeCelda(comoMonto, contexto(r))).toMatchObject({
+      id: 'fees',
+      secondaryId: 'fees_pct',
+      secondaryProminent: true,
+    })
+  })
+
   it('«Volver al valor por defecto» sólo en una constante o un tipo de cambio; lo demás vuelve al sugerido', () => {
     const c = contexto(respuestaDePrueba())
     expect(props('iva_c', c).defaultValue).toBeNull()
