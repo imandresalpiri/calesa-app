@@ -1,4 +1,4 @@
-// Lo que el e2e de los tipos de documento (Catálogos › Tipos de documento y el panel del flujo) prepara y mira en la base del Supabase LOCAL. Todo tipo que crea un e2e lleva este prefijo en su
+// Lo que el e2e de los tipos de documento (Logística › Configuración › Tipos de documento y el panel del flujo) prepara y mira en la base del Supabase LOCAL. Todo tipo que crea un e2e lleva este prefijo en su
 // nombre: es lo único que la limpieza borra (con los requisitos que lo usen, antes: la FK es `restrict`).
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
@@ -79,20 +79,20 @@ export async function abrirDocumentos(page: Page, origenId = origenDeLaSubasta()
   await expect(page.getByRole('heading', { name: 'Sólo de este flujo', level: 2 })).toBeVisible()
 }
 
-// Los de toda la empresa: Configuración › Catálogos › Tipos de documento.
+// Los de toda la empresa: Logística › Configuración › Tipos de documento.
 export async function abrirLosDeLaEmpresa(page: Page, consulta = ''): Promise<void> {
-  await page.goto(`/configuracion/catalogos/tipos-de-documento${consulta}`)
+  await page.goto(`/logistica/configuracion/tipos-de-documento${consulta}`)
   await expect(page.getByRole('heading', { name: 'De toda la empresa', level: 2 })).toBeVisible()
 }
 
 // Los nombres de las filas de un grupo, en el orden en que se ven.
 export async function nombresDelGrupo(page: Page, grupo: Grupo): Promise<string[]> {
   const botones = await seccionDelGrupo(page, grupo)
-    .getByRole('button', { name: /^Abrir / })
+    .getByRole('button', { name: /^(Abrir|Editar) / })
     .all()
   const nombres: string[] = []
   for (const boton of botones) {
-    nombres.push(((await boton.getAttribute('aria-label')) ?? '').replace(/^Abrir /, ''))
+    nombres.push(((await boton.getAttribute('aria-label')) ?? '').replace(/^(Abrir|Editar) /, ''))
   }
   return nombres
 }

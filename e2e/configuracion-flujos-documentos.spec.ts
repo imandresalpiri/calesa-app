@@ -73,7 +73,7 @@ test('la dueña crea un tipo del flujo con vencimiento, lo edita y lo sube de or
   await entrar(page, duena, { fresco: true })
   // Los de toda la empresa de la semilla, en Catálogos.
   await abrirLosDeLaEmpresa(page)
-  await expect(page.getByRole('button', { name: 'Abrir BL', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Editar BL', exact: true })).toBeVisible()
   // Los del flujo, en su panel: sólo los suyos.
   await abrirDocumentos(page)
   await expect(page.getByRole('heading', { name: 'De toda la empresa', level: 2 })).toHaveCount(0)
