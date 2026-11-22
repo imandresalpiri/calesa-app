@@ -58,17 +58,16 @@ function PestanaDeLaBarra({
       className="px-3"
       disabled={Boolean(pestana.motivo)}
       aria-describedby={pestana.motivo ? idDelMotivo : undefined}
+      // El nombre con lo que falta, entero: un `sr-only` suelto suma un espacio antes del punto en Chrome.
+      aria-label={pestana.aviso ? `${pestana.titulo}. ${pestana.aviso}` : undefined}
     >
       {pestana.titulo}
       {pestana.aviso ? (
-        <>
-          <span className="sr-only">. {pestana.aviso}</span>
-          <TriangleAlertIcon
-            aria-hidden
-            data-aviso-de-la-pestana=""
-            className="size-3.5 text-(--color-aviso-ink)"
-          />
-        </>
+        <TriangleAlertIcon
+          aria-hidden
+          data-aviso-de-la-pestana=""
+          className="size-3.5 text-(--color-aviso-ink)"
+        />
       ) : null}
     </TabsTrigger>
   )
