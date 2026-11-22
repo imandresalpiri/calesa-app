@@ -8,9 +8,10 @@ import { useGrillaQuieta } from '../../../hooks/use-grilla-quieta'
 import type { Planilla } from '../../../hooks/use-planilla'
 import { idsDeLaEdicion } from '../ids-de-la-edicion'
 import { esMontoQueSeEscribe } from '../monto-secreto'
-import { DebajoDeLaBarra } from './debajo-de-la-barra'
+import { AccionesDeLaBarraDeFormula } from './acciones-de-la-barra-de-formula'
 import { ErrorBajoLaBarra } from './error-bajo-la-barra'
 import { LeyendaDeReferencias } from './leyenda-de-referencias'
+import { LineaBajoLaBarra } from './linea-bajo-la-barra'
 import { ListaDeSugerencias } from './lista-de-sugerencias'
 import { BotonDeFunciones } from './boton-de-funciones'
 import { EJEMPLO_DE_LA_BARRA, TextoDeLaBarra } from './texto-de-la-barra'
@@ -36,18 +37,9 @@ function textoDeLaCelda(planilla: Planilla, live: boolean) {
       : t.editable
         ? null
         : t.motivo
-  return {
-    celda,
-    fila,
-    nombre,
-    texto: t.editable ? t.texto : '',
-    quieto,
-    motivo: t.editable ? null : t.motivo,
-  }
+  return { celda, fila, nombre, texto: t.editable ? t.texto : '', quieto }
 }
 
-// La barra de fórmula (D15, D16): la celda activa («C5»), `fx` y lo que se escribe con sus referencias de color, su leyenda, el autocompletar y el error con su
-// salida; escribiendo, «Aplicar» y «Descartar». Va pegada arriba (también en el celular).
 // Con algo escrito: «Aplicar» (sin mover la celda activa) y «Descartar».
 function AplicarODescartar({ planilla }: { planilla: Planilla }) {
   return (
@@ -68,6 +60,9 @@ function AplicarODescartar({ planilla }: { planilla: Planilla }) {
   )
 }
 
+// La barra de fórmula (D15, D16), como la de Excel: la celda activa («C5», «Ejemplo 5»), `fx ▾` (las funciones), lo que se escribe con sus referencias de color
+// (vacío, la única guía: «Escribe = y toca las celdas: =C5+C7»), su leyenda, el autocompletar y el error con su salida; escribiendo, «Aplicar» y «Descartar». A la
+// derecha, «?» (los tipos de celda). Debajo, sin nada escrito, una línea: de dónde sale la fila elegida. Va pegada arriba (también en el celular).
 export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
   const { live } = useLive()
   const e = planilla.edicion.edicion
@@ -104,6 +99,7 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
           )}
         </div>
         {e === null ? null : <AplicarODescartar planilla={planilla} />}
+        <AccionesDeLaBarraDeFormula />
       </div>
       <LeyendaDeReferencias leyenda={planilla.leyenda} anuncio={planilla.anuncio} />
       <ListaDeSugerencias sugerencias={planilla.sugerencias} ids={ids} />
@@ -119,10 +115,9 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
         />
       )}
       {e === null && activa !== null ? (
-        <DebajoDeLaBarra
+        <LineaBajoLaBarra
           planilla={planilla}
           fila={activa.fila}
-          motivo={activa.motivo}
           puedeCambiarTiposDeCambio={puedeCambiarTiposDeCambio}
         />
       ) : null}

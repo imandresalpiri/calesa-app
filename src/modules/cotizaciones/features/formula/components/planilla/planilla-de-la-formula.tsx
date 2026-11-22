@@ -8,7 +8,6 @@ import { BarraDeFormula } from './barra/barra-de-formula'
 import { GuardarBorrador } from './comunes/guardar-borrador'
 import { RechazoDeArriba } from './comunes/rechazo-de-arriba'
 import { CuadriculaDeLaPlanilla } from './cuadricula'
-import { LeyendaDeTipos } from './menu/leyenda-de-tipos'
 import { MenuDeLaPlanilla } from './menu/menu-de-la-planilla'
 import { PanelesDeLaPlanilla } from './paneles/paneles-de-la-planilla'
 import { TarjetaDeLaUnidad } from './tarjeta-de-la-unidad'
@@ -17,7 +16,7 @@ import { TotalesDeLaUnidad } from './totales-de-la-unidad'
 
 const SIN_TONOS: never[] = []
 
-// Arriba de la planilla: sobre qué versión se edita, su «⋯», «Guardar el borrador» y cómo se escribe en ella.
+// Arriba de la planilla: sobre qué versión se edita, su «⋯» y «Guardar el borrador».
 function CabeceraDeLaPlanilla({ p, planilla }: { p: PropsDeLaPlanilla; planilla: Planilla }) {
   const { guardado } = p.editor
   return (
@@ -40,10 +39,6 @@ function CabeceraDeLaPlanilla({ p, planilla }: { p: PropsDeLaPlanilla; planilla:
         }}
         alRecargar={p.alRecargar}
       />
-      <p className="text-(length:--text-sm) text-(--color-ink)">
-        Elige una celda y escribe, como en una hoja de cálculo: un número es un valor fijo y lo que
-        empieza con «=» es un cálculo.
-      </p>
     </>
   )
 }
@@ -65,7 +60,6 @@ export function PlanillaDeLaFormula(p: PropsDeLaPlanilla) {
       {/* Al costado sólo si la planilla tiene lugar (un contenedor, no la pantalla: con el texto al 200 % o la columna de Configuración, la cuadrícula no se aprieta). */}
       <div className="grid min-w-0 gap-4 @6xl/formula:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         <div className="grid min-w-0 content-start gap-3">
-          <LeyendaDeTipos />
           <BarraDeFormula
             planilla={planilla}
             puedeCambiarTiposDeCambio={p.puedeCambiarTiposDeCambio}
