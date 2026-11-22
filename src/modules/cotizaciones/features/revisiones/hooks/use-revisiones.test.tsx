@@ -35,7 +35,11 @@ const pagina = (desde: number, cuantas: number, siguiente: number | null): Respu
   data: {
     revisiones: Array.from({ length: cuantas }, (_, i) => revision(desde - i)),
     siguiente,
-    etiquetas: { nodos: new Map([[`n${String(desde)}`, 'Etiqueta']]), grupos: new Map() },
+    etiquetas: {
+      nodos: new Map([[`n${String(desde)}`, 'Etiqueta']]),
+      grupos: new Map(),
+      calculos: new Map(),
+    },
   },
 })
 

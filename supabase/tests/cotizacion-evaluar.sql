@@ -3,12 +3,14 @@
 --   _corpus_del_motor ← supabase/tests/corpus-del-motor.json (el juego de 100 casos, el corpus diferencial y las fórmulas)
 -- La paridad: para cada caso REPRODUCIBLE se siembran en la base lo que `cotizacion_evaluar()` lee (la fórmula publicada del origen, sus
 -- tablas con `orden` = la posición de la fila, los tipos de cambio, el vehículo con sus campos) y se llama con lo que la persona tipea
--- (inputs, banderas, overrides, variante). Tiene que dar EXACTAMENTE lo que `evaluar()` da con la entrada entera: el resultado, o el
+-- (inputs, banderas, overrides, variante); los `pisables` de la entrada no los manda nadie: se siembran como celdas del diseño, de donde
+-- la base los arma (`_cotizacion_pisables()`). Tiene que dar EXACTAMENTE lo que `evaluar()` da con la entrada entera: el resultado, o el
 -- error de llamada con su código y su `donde`.
 -- Un caso no es reproducible si pide lo que la base no puede guardar o no deja pasar: un tipo de cambio con más de 6 decimales (la
 -- tabla es numeric(18,6)), un año fuera de 1900–2100, un campo cuyo nombre no es la clave de un campo del origen (con punto, de una
--- letra o con mayúsculas), un valor del vehículo que no es número ni texto, una entrada sin alguno de sus seis miembros, o una tabla de
--- la entrada que la fórmula no lee con una forma que `evaluar()` rechazaría. Cada salto se cuenta por su motivo y el conteo se asserta.
+-- letra o con mayúsculas), un valor del vehículo que no es número ni texto, una entrada sin alguno de sus seis miembros, unos `pisables`
+-- que no son una lista de ids (el diseño no dibuja eso), o una tabla de la entrada que la fórmula no lee con una forma que `evaluar()`
+-- rechazaría. Cada salto se cuenta por su motivo y el conteo se asserta.
 
 -- @test cotizacion_evaluar: ayudantes (la igualdad exacta de dos jsonb y un caso de paridad en su propia subtransacción)
 create or replace function pg_temp.iguales(a jsonb, b jsonb)
@@ -49,6 +51,7 @@ declare
   v_ent jsonb := case when v_texto ? 'entrada' then (v_texto ->> 'entrada')::jsonb else p_caso -> 'entrada' end;
   v_modo jsonb := case when v_texto ? 'modo' then (v_texto ->> 'modo')::jsonb else p_caso -> 'modo' end;
   v_esp jsonb := p_caso -> 'esperado';
+  v_dis jsonb := '{}'::jsonb;
   v_entradas jsonb;
   v_miembro text;
   r record;
@@ -61,9 +64,19 @@ begin
 
   -- ¿Se puede reproducir?
   if jsonb_typeof(v_ent) <> 'object' then salto := 'entrada que no es un objeto'; return next; return; end if;
-  if v_ent ? 'pisables' then salto := 'entrada con pisables'; return next; return; end if;
+  if v_ent ? 'pisables' then
+    if jsonb_typeof(v_ent -> 'pisables') <> 'array' then salto := 'pisables que no son una lista de ids'; return next; return; end if;
+    if exists (select 1 from jsonb_array_elements(v_ent -> 'pisables') p
+                where jsonb_typeof(p) <> 'string' or p #>> '{}' !~ '^[a-z][a-z0-9_]{0,40}$') then
+      salto := 'pisables que no son una lista de ids'; return next; return;
+    end if;
+    -- Una celda por id: la base arma `pisables` con las que son un cálculo que no es el total, lo mismo que el motor pisa (`esPisable()`).
+    select jsonb_build_object('secciones', jsonb_build_array(jsonb_build_object('items',
+             coalesce(jsonb_agg(jsonb_build_object('tipo', 'celda', 'nodo', p #>> '{}')), '[]'::jsonb))))
+      into v_dis from jsonb_array_elements(v_ent -> 'pisables') p;
+  end if;
   if exists (select 1 from jsonb_object_keys(v_ent) k
-              where k not in ('inputs', 'banderas', 'tipos_cambio', 'vehiculo', 'tablas', 'variante', 'overrides')) then
+              where k not in ('inputs', 'banderas', 'tipos_cambio', 'vehiculo', 'tablas', 'variante', 'overrides', 'pisables')) then
     salto := 'entrada con una clave de más'; return next; return;
   end if;
   foreach v_miembro in array array['inputs', 'banderas', 'tipos_cambio', 'vehiculo', 'tablas', 'overrides'] loop
@@ -118,10 +131,10 @@ begin
     end if;
   end loop;
 
-  -- La siembra, dentro de una subtransacción que se deshace. (Las fórmulas de acá llevan `diseno` y `visibilidad` vacíos: cotizacion_evaluar() no los lee y el
-  -- `check` de las publicadas sólo pide que existan.)
+  -- La siembra, dentro de una subtransacción que se deshace. (Las fórmulas de acá llevan `visibilidad` vacía y del `diseno` sólo las celdas de los
+  -- `pisables`: cotizacion_evaluar() no lee más y el `check` de las publicadas sólo pide que existan.)
   begin
-    update public.formulas set definicion = v_def, params = v_par where id = p_formula;
+    update public.formulas set definicion = v_def, params = v_par, diseno = v_dis where id = p_formula;
     insert into public.tablas_referencia (origen_id, clave, nombre, columnas)
       select p_origen, k, k, '[]'::jsonb from jsonb_object_keys(v_ent -> 'tablas') k;
     insert into public.tablas_referencia_filas (tabla_id, valores, orden)
@@ -201,10 +214,10 @@ begin
   raise notice 'cotizacion_evaluar: % casos del juego y % del corpus reproducidos (% resultados, % errores de llamada); saltos: %',
     v_corridos_juego, v_corridos_corpus, v_resultados, v_errores, coalesce(v_saltos, 'ninguno');
   -- Un corpus que se salta casi todo no compara nada.
-  if v_corridos_juego < 80 or v_corridos_corpus < 540 then
+  if v_corridos_juego < 80 or v_corridos_corpus < 580 then
     raise exception 'sólo se reprodujeron % del juego y % del corpus; saltos: %', v_corridos_juego, v_corridos_corpus, v_saltos;
   end if;
-  if v_resultados < 420 or v_errores < 200 then
+  if v_resultados < 440 or v_errores < 200 then
     raise exception 'lo reproducido tiene % resultados y % errores de llamada', v_resultados, v_errores;
   end if;
   select array_agg(format('[%s] %s: esperado %s, visto %s', grupo, nombre, esperado, visto)) into v_malos

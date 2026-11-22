@@ -60,6 +60,21 @@ describe('revisionesDesde: la página de revisiones de la base', () => {
     expect(r?.etiquetas.nodos.get('constructor')).toBe('Raro')
     expect(r?.etiquetas.nodos.get('toString')).toBeUndefined()
   })
+
+  it('el formato de cada cálculo nombrado llega en `calculos`; sin la clave, vacío', () => {
+    const con = revisionesDesde(
+      respuesta([fila(1)], {
+        etiquetas: { nodos: { t: 'Transferencia' }, grupos: {}, calculos: { t: 'usd', p: 'pct' } },
+      }),
+    )
+    expect(con?.etiquetas.calculos.get('t')).toBe('usd')
+    expect(con?.etiquetas.calculos.get('p')).toBe('pct')
+    expect(revisionesDesde(respuesta([fila(1)]))?.etiquetas.calculos.size).toBe(0)
+    const raro = respuesta([fila(1)], {
+      etiquetas: { nodos: {}, grupos: {}, calculos: { t: 'euros' } },
+    })
+    expect(revisionesDesde(raro)).toBeNull()
+  })
 })
 
 describe('autorDeLaRevision', () => {

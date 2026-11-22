@@ -7924,6 +7924,7 @@ export type Database = {
         Returns: Json
       }
       _cotizacion_modo: { Args: { p_formula: string; p_modo_tc: string }; Returns: Json }
+      _cotizacion_pisables: { Args: { p_def: Json; p_diseno: Json }; Returns: Json }
       _cotizacion_primer_resultado: { Args: { p_totales: Json }; Returns: Record<string, unknown> }
       _cotizacion_puede_guardar: {
         Args: {

@@ -59,6 +59,8 @@ const esquemaSecundario = z
     tipo_nodo: z.enum(TIPOS_DE_NODO),
     formato: z.enum(FORMATOS),
     ajustes: z.boolean(),
+    // Con el monto escrito, el porcentaje lo calcula el par (`_cotizacion_hoja()`): no es lo tipeado. Sin la clave, el porcentaje no sigue al monto.
+    sigue_al_monto: z.literal(true).optional(),
     ...edicion,
   })
   .refine(coherente, ERROR_DE_MOTIVO)

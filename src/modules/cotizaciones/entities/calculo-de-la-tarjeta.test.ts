@@ -18,6 +18,7 @@ const respuesta = (
   faltantes: [],
   descartados: [],
   hayFaltantesOcultos: false,
+  calculados: new Map(),
 })
 
 function guardada(mas: Record<string, unknown> = {}) {

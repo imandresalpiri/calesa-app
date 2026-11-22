@@ -16,6 +16,7 @@ const cruda = () => ({
   faltantes: [{ codigo: 'requerido_sin_valor', donde: 'remate', ref: 'cuenta' }],
   overrides_descartados: [{ id: 'x', motivo: 'nodo_inexistente' }],
   hay_faltantes_ocultos: true,
+  calculados: { transferencia: 480, constructor: null },
 })
 
 describe('recalculoDesde: lo que devuelve cotizacion_evaluar a quien cotiza', () => {
@@ -36,11 +37,24 @@ describe('recalculoDesde: lo que devuelve cotizacion_evaluar a quien cotiza', ()
     expect(r?.hayFaltantesOcultos).toBe(true)
   })
 
-  it('lo que la base no manda (descartados, faltantes ocultos) queda vacío y un total sin valor es null', () => {
-    const { overrides_descartados: _a, hay_faltantes_ocultos: _b, ...resto } = cruda()
+  it('lee lo que daría cada cálculo pisado (`calculados`) con Map, también el nulo', () => {
+    const calculados = recalculoDesde(cruda())?.calculados
+    expect(calculados?.get('transferencia')).toBe(480)
+    expect(calculados?.get('constructor')).toBeNull()
+    expect(calculados?.has('toString')).toBe(false)
+  })
+
+  it('lo que la base no manda (descartados, faltantes ocultos, calculados) queda vacío y un total sin valor es null', () => {
+    const {
+      overrides_descartados: _a,
+      hay_faltantes_ocultos: _b,
+      calculados: _c,
+      ...resto
+    } = cruda()
     const r = recalculoDesde({ ...resto, totales: { usd: null, bs: null, suma_usd: null } })
     expect(r?.descartados).toEqual([])
     expect(r?.hayFaltantesOcultos).toBe(false)
+    expect(r?.calculados.size).toBe(0)
     expect(r?.totales.usd).toBeNull()
   })
 
@@ -49,6 +63,7 @@ describe('recalculoDesde: lo que devuelve cotizacion_evaluar a quien cotiza', ()
     expect(recalculoDesde({})).toBeNull()
     expect(recalculoDesde({ ...cruda(), estados: { remate: 'raro' } })).toBeNull()
     expect(recalculoDesde({ ...cruda(), faltantes: [{ codigo: 'otro', donde: 'x' }] })).toBeNull()
+    expect(recalculoDesde({ ...cruda(), calculados: { transferencia: '480' } })).toBeNull()
   })
 
   it('las listas cerradas que viajan al navegador son las del motor', () => {

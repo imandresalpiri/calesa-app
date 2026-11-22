@@ -186,7 +186,7 @@ dos: manda el monto. Base 0 y manda el %: monto 0; base 0 con override del monto
 ### Pisar un cálculo
 
 **Qué se pisa lo dice la hoja, no la fórmula** (glosario: «Pisar un cálculo»). La entrada suma `pisables?` (ids): los cálculos que la
-hoja dibuja en una celda (en la base, `_diseno_pisables()`; el editor, la paridad y el corpus no la mandan). Un `tabla`, `tramo` o
+hoja dibuja en una celda (en la base, `_cotizacion_pisables()`; el editor, la paridad y el corpus no la mandan). Un `tabla`, `tramo` o
 `calculo` que no es el total (`esPisable()`) y está en la lista acepta un override como uno `sobrescribible`; sin override no tiene
 fuente (`sugerido` es de los sobrescribibles). Lo escrito sobre algo que no está en la lista se descarta `no_sobrescribible`.
 

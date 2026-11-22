@@ -33,6 +33,7 @@ export function cifrasDelDiseno(definicion: unknown, params: unknown): Respuesta
       faltantes: r.faltantes,
       descartados: r.overrides_descartados,
       hayFaltantesOcultos: false,
+      calculados: new Map(),
     }
   } catch (error) {
     if (error instanceof ErrorDelMotor) {
