@@ -1,13 +1,16 @@
-import { ACCIONES, BOTON_DE_ACCION, CANDADO, ETIQUETA, PUNTO } from './clases'
+import { ACCIONES, BOTON_DE_ACCION, CANDADO, ETIQUETA, MARCA, PUNTO } from './clases'
 import type { CandadoConId } from './estado'
 import {
   IconoDeXCell,
   ID_DE_AJUSTES,
   ID_DE_AYUDA,
+  ID_DE_EDITADO,
   ID_DE_RESTABLECER,
   ID_DEL_CANDADO,
   type IdDeIcono,
 } from './simbolos-de-xcell'
+
+export const EDITADO_A_MANO = 'Editado a mano'
 
 // Las acciones se recorren con las flechas desde el valor (no son paradas de Tab), en el orden en que se ven, como en V1: candado → ⚙ → ayuda → ↺.
 export const PARADA_DE_ACCIONES_DESDE = 10
@@ -24,12 +27,14 @@ type PropsDelRotulo = {
 
 type PropsDeLasAcciones = {
   label: string
+  // El id de la marca «Editado a mano» (un cálculo pisado) o `undefined` sin ella: describe a los lados (`notasDe()`).
+  marca: string | undefined
   // Uno por motivo distinto de los lados bloqueados (`notasDe()`): su id es el que nombra el `aria-describedby` de su lado.
   candados: CandadoConId[]
   // Se dibujan si la hoja las pide (`hasHelp`, `hasSettings`) y ofrece con qué responder; la celda no decide permisos ni abre nada.
   alAyudar: (() => void) | null
   alAjustar: (() => void) | null
-  // `null` = sin ↺; si no, lo que dice («Volver al valor por defecto» o «Volver al sugerido»).
+  // `null` = sin ↺; si no, lo que dice («Volver al valor por defecto», «Volver al calculado» o «Volver al sugerido»).
   restablecer: string | null
   alRestablecer: () => void
 }
@@ -94,13 +99,23 @@ function CandadoDeXCell({ id, texto }: CandadoConId) {
   )
 }
 
+// La marca de un cálculo pisado: el lápiz con su nombre (`role=img`, como el candado) y el mismo texto en `title` para el puntero. No es parada: lo dice
+// también la descripción de los lados (es el blanco de su `aria-describedby`). Ningún estado es sólo color: el anillo del modificado y este lápiz con su nombre.
+function MarcaDeEditado({ id }: { id: string }) {
+  return (
+    <span id={id} role="img" aria-label={EDITADO_A_MANO} title={EDITADO_A_MANO} className={MARCA}>
+      <IconoDeXCell id={ID_DE_EDITADO} />
+    </span>
+  )
+}
+
 // Al final de la fila, detrás del valor: la ranura de las acciones, que siempre existe para que aparecer o irse una acción no mueva el resto. El orden es
-// el de V1: candado · ⚙ · ayuda · ↺. El lugar de la marca «Editado a mano» es el primer hijo de esta ranura, antes del candado: un `<span>` con su texto,
-// sin parada (hoy no se dibuja: ningún nodo mientras no se use).
+// el de V1: candado · ⚙ · ayuda · ↺, y antes de todo, sin parada, la marca «Editado a mano» de un cálculo pisado (3 nodos, sólo en esa celda).
 export function AccionesDeXCell(props: PropsDeLasAcciones) {
-  const { label, candados, alAyudar, alAjustar, restablecer, alRestablecer } = props
+  const { label, marca, candados, alAyudar, alAjustar, restablecer, alRestablecer } = props
   return (
     <span className={ACCIONES}>
+      {marca === undefined ? null : <MarcaDeEditado id={marca} />}
       {candados.map((candado) => (
         <CandadoDeXCell key={candado.id} id={candado.id} texto={candado.texto} />
       ))}

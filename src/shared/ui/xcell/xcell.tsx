@@ -6,9 +6,17 @@ import { Fragment, memo, useId, useRef, type KeyboardEvent } from 'react'
 import { useRegional } from '../regional'
 import { AccionesDeXCell, PARADA_DE_ACCIONES_DESDE, RotuloDeXCell } from './cabecera-de-xcell'
 import { RAIZ } from './clases'
-import { accionesDe, candadosDe, estadosDe, notaDe, notasDe, type FormatoDeXCell } from './estado'
+import {
+  accionesDe,
+  candadosDe,
+  estadosDe,
+  notaDe,
+  notasDe,
+  type FormatoDeXCell,
+  type NotasDeXCell,
+} from './estado'
 import { LadoDeXCell } from './lado-de-xcell'
-import { NotaDeXCell } from './nota-de-xcell'
+import { CalculadoDeXCell, NotaDeXCell } from './nota-de-xcell'
 import { useEdicion, type DatosDeLado, type Lado } from './use-edicion'
 
 export type XCellProps = {
@@ -20,11 +28,17 @@ export type XCellProps = {
   // Sólo la vista; lo que se edita siempre lleva la precisión completa.
   decimals?: number | undefined
   value: number | null
-  // Lo trae una constante o un tipo de cambio. Sin él, ↺ vuelve «al sugerido».
+  // Lo trae una constante o un tipo de cambio. Sin él, ↺ vuelve «al calculado» (con `handEdited`) o «al sugerido».
   defaultValue?: number | null | undefined
   suggested: boolean
   // `fuentes[id] === 'override'`: la persona cambió un default o un sugerido.
   overridden: boolean
+  // Lo escrito pisó un cálculo (`docs/COTIZADOR.md` › «Pisar un cálculo»): la marca «Editado a mano» y, con `calculatedValue`, lo que daría sin lo escrito
+  // («Calculado: $480», en `calculatedFormat` y `calculatedDecimals`; `null` es «—»). Sin `calculatedValue` (el recálculo no llegó), sólo la marca.
+  handEdited?: boolean | undefined
+  calculatedValue?: number | null | undefined
+  calculatedFormat?: FormatoDeXCell | undefined
+  calculatedDecimals?: number | undefined
   // El candado (en las acciones, con el motivo de nombre y de descripción del lado); la celda se lee y se alcanza con el teclado, pero no abre la edición. En un par es el del principal: cada lado tiene el suyo.
   disabledReason?: string | undefined
   // El candado del secundario de un par (4.13-3c); sin él, el porcentaje se edita aunque el monto esté bloqueado.
@@ -91,6 +105,34 @@ function teclasDeLaCelda(evento: KeyboardEvent<HTMLDivElement>, valor: HTMLEleme
   }
 }
 
+// El orden en que se ven (y se recorren con Tab y las flechas) los lados: el grande primero.
+function ordenDeLados(hayPar: boolean, secundarioPrimero: boolean | undefined): Lado[] {
+  if (!hayPar) {
+    return ['principal']
+  }
+  return secundarioPrimero === true ? ['secundario', 'principal'] : ['principal', 'secundario']
+}
+
+// Lo que va escrito bajo la celda: el aviso de lo tipeado o el error y, en una celda pisada, lo que daría sin lo escrito.
+function PieDeXCell({ notas, props }: { notas: NotasDeXCell; props: XCellProps }) {
+  return (
+    <>
+      {notas.aviso === undefined ? null : (
+        <NotaDeXCell id={notas.aviso.id} nota={notas.aviso.nota} />
+      )}
+      {notas.calculado === undefined ? null : (
+        <CalculadoDeXCell
+          id={notas.calculado}
+          valor={props.calculatedValue ?? null}
+          formato={props.calculatedFormat ?? props.format}
+          moneda={props.currency}
+          decimales={props.calculatedDecimals}
+        />
+      )}
+    </>
+  )
+}
+
 function XCellBase(props: XCellProps) {
   const { id, label, currency, suggested, overridden, onReset } = props
   const { locale } = useRegional()
@@ -110,13 +152,11 @@ function XCellBase(props: XCellProps) {
     onCommit: props.onCommit,
   })
   const aviso = notaDe(edicion.edicion?.aviso, props.error)
-  const notas = notasDe(uid, aviso, candados, hayPar)
-  // El orden en que se ven (y se recorren con Tab y las flechas) los lados: el grande primero.
-  const orden: Lado[] = !hayPar
-    ? ['principal']
-    : props.secondaryProminent === true
-      ? ['secundario', 'principal']
-      : ['principal', 'secundario']
+  const notas = notasDe(uid, aviso, candados, {
+    marca: props.handEdited === true,
+    calculado: props.calculatedValue !== undefined,
+  })
+  const orden = ordenDeLados(hayPar, props.secondaryProminent)
 
   const lado = (cual: Lado) => (
     <LadoDeXCell
@@ -160,6 +200,7 @@ function XCellBase(props: XCellProps) {
       ))}
       <AccionesDeXCell
         label={label}
+        marca={notas.marca}
         candados={notas.candados}
         alAyudar={acciones.alAyudar}
         alAjustar={acciones.alAjustar}
@@ -170,9 +211,7 @@ function XCellBase(props: XCellProps) {
           onReset(id)
         }}
       />
-      {notas.aviso === undefined ? null : (
-        <NotaDeXCell id={notas.aviso.id} nota={notas.aviso.nota} />
-      )}
+      <PieDeXCell notas={notas} props={props} />
     </div>
   )
 }

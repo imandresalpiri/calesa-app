@@ -33,6 +33,7 @@ export type EntradaDeAcciones = {
   overridden: boolean
   bloqueada: boolean
   defaultValue?: number | null | undefined
+  handEdited?: boolean | undefined
   hasHelp?: boolean | undefined
   hasSettings?: boolean | undefined
   onHelp?: ((id: string) => void) | undefined
@@ -42,7 +43,7 @@ export type EntradaDeAcciones = {
 export type Acciones = {
   alAyudar: (() => void) | null
   alAjustar: (() => void) | null
-  // `null` = sin ↺; si no, lo que dice («Volver al valor por defecto» o «Volver al sugerido»; nunca la cifra).
+  // `null` = sin ↺; si no, lo que dice («Volver al valor por defecto», «Volver al calculado» o «Volver al sugerido»; nunca la cifra).
   restablecer: string | null
   // ¿Hay algo que se alcance con →? Lo anuncia el valor.
   hay: boolean
@@ -64,18 +65,22 @@ export function accionesDe(e: EntradaDeAcciones): Acciones {
           onSettings(id)
         }
       : null
-  const restablecer =
-    e.overridden && !e.bloqueada
-      ? e.defaultValue === undefined
-        ? 'Volver al sugerido'
-        : 'Volver al valor por defecto'
-      : null
+  const restablecer = e.overridden && !e.bloqueada ? aDondeVuelve(e) : null
   return {
     alAyudar,
     alAjustar,
     restablecer,
     hay: alAyudar !== null || alAjustar !== null || restablecer !== null,
   }
+}
+
+// A dónde vuelve ↺: el valor por defecto de una constante o un tipo de cambio; lo que la fórmula calcula, en un cálculo pisado (`docs/COTIZADOR.md` ›
+// «Pisar un cálculo»); si no, el sugerido (el de la logística de una línea de `repuestos`).
+function aDondeVuelve(e: EntradaDeAcciones): string {
+  if (e.defaultValue !== undefined) {
+    return 'Volver al valor por defecto'
+  }
+  return e.handEdited === true ? 'Volver al calculado' : 'Volver al sugerido'
 }
 
 export type Tipeado = { ok: true; valor: number | null } | { ok: false; aviso: string }
@@ -173,53 +178,73 @@ export type NotaConId = { id: string; nota: Nota }
 // El candado de un lado bloqueado (uno por texto distinto): su motivo es su nombre y la descripción del lado.
 export type CandadoConId = { id: string; texto: string }
 
+// Lo que dice una celda pisada (un cálculo con lo escrito encima): la marca «Editado a mano» y, si llegó lo que daría sin lo escrito, su nota.
+export type Pisada = { marca: boolean; calculado: boolean }
+
+export const SIN_PISAR: Pisada = { marca: false, calculado: false }
+
 export type NotasDeXCell = {
   // El aviso de lo tipeado o el error, escrito bajo la celda (`role=alert`).
   aviso: NotaConId | undefined
+  // Los ids de la marca «Editado a mano» y de la nota «Calculado: …», si se dibujan.
+  marca: string | undefined
+  calculado: string | undefined
   // Los candados, en la fila de acciones.
   candados: CandadoConId[]
-  // Lo que describe cada botón: el aviso o el error, y SU candado (nunca el del otro lado).
+  // Lo que describe cada botón: el aviso o el error, la marca y lo calculado, y SU candado (nunca el del otro lado).
   deLado: Record<Lado, string | undefined>
   // La entrada abierta: sólo el aviso o el error (su lado no tiene candado: si lo tuviera no estaría abierta).
   deLaEntrada: string | undefined
 }
 
-// El aviso de una celda y sus candados, con sus ids y a quién describe cada uno: el aviso o el error describe a todos los lados y el candado de cada lado
-// bloqueado, a ese lado; un candado por texto distinto (dos lados con el mismo motivo dan uno solo, que describe a los dos). El error y un candado conviven:
-// un lado bloqueado nunca queda sin su motivo.
-export function notasDe(
-  prefijo: string,
-  aviso: Nota | undefined,
-  candados: Candados,
-  hayPar: boolean,
-): NotasDeXCell {
-  const idDelAviso = aviso === undefined ? undefined : `${prefijo}n`
-  const deCandados: CandadoConId[] = []
-  const idDelCandado: Partial<Record<Lado, string>> = {}
-  const lados: Lado[] = hayPar ? ['principal', 'secundario'] : ['principal']
-  for (const lado of lados) {
+// Un candado por texto distinto, con su id, y el id del que toca a cada lado (dos lados con el mismo motivo comparten uno).
+function candadosConId(prefijo: string, candados: Candados) {
+  const lista: CandadoConId[] = []
+  const deLado: Partial<Record<Lado, string>> = {}
+  for (const lado of ['principal', 'secundario'] as const) {
     const texto = motivo(candados[lado])
     if (texto === undefined) {
       continue
     }
-    const igual = deCandados.find((c) => c.texto === texto)
-    const id = igual?.id ?? `${prefijo}c${String(deCandados.length)}`
+    const igual = lista.find((c) => c.texto === texto)
+    const id = igual?.id ?? `${prefijo}c${String(lista.length)}`
     if (igual === undefined) {
-      deCandados.push({ id, texto })
+      lista.push({ id, texto })
     }
-    idDelCandado[lado] = id
+    deLado[lado] = id
   }
-  const unir = (...ids: (string | undefined)[]) => {
-    const presentes = ids.filter((id) => id !== undefined)
-    return presentes.length === 0 ? undefined : presentes.join(' ')
-  }
+  return { lista, deLado }
+}
+
+const unir = (...ids: (string | undefined)[]) => {
+  const presentes = ids.filter((id) => id !== undefined)
+  return presentes.length === 0 ? undefined : presentes.join(' ')
+}
+
+// El aviso de una celda y sus candados, con sus ids y a quién describe cada uno: el aviso o el error describe a todos los lados y el candado de cada lado
+// bloqueado, a ese lado; un candado por texto distinto (dos lados con el mismo motivo dan uno solo, que describe a los dos). El error y un candado conviven:
+// un lado bloqueado nunca queda sin su motivo. La marca «Editado a mano» y lo calculado son de la celda: describen a todos los lados, después del aviso.
+// Sin par, `candadosDe()` ya deja el secundario sin candado.
+export function notasDe(
+  prefijo: string,
+  aviso: Nota | undefined,
+  candados: Candados,
+  pisada: Pisada = SIN_PISAR,
+): NotasDeXCell {
+  const idDelAviso = aviso === undefined ? undefined : `${prefijo}n`
+  const idDeLaMarca = pisada.marca ? `${prefijo}m` : undefined
+  const idDelCalculado = pisada.marca && pisada.calculado ? `${prefijo}k` : undefined
+  const conId = candadosConId(prefijo, candados)
+  const deLaCelda = [idDelAviso, idDeLaMarca, idDelCalculado]
   return {
     aviso:
-      aviso === undefined || idDelAviso === undefined ? undefined : { id: idDelAviso, nota: aviso },
-    candados: deCandados,
+      idDelAviso === undefined || aviso === undefined ? undefined : { id: idDelAviso, nota: aviso },
+    marca: idDeLaMarca,
+    calculado: idDelCalculado,
+    candados: conId.lista,
     deLado: {
-      principal: unir(idDelAviso, idDelCandado.principal),
-      secundario: unir(idDelAviso, idDelCandado.secundario),
+      principal: unir(...deLaCelda, conId.deLado.principal),
+      secundario: unir(...deLaCelda, conId.deLado.secundario),
     },
     deLaEntrada: idDelAviso,
   }
