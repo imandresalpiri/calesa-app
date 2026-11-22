@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import casos from '../casos-de-diseno.json'
-import { esquemaDiseno, type Diseno } from '../diseno'
+import { esquemaDiseno, nodoDelItem, type Diseno } from '../diseno'
 import { esquemaDefinicion } from '../formula'
 import { validarDiseno } from '../validar-diseno'
 import { nodosPorId } from './admite-nivel'
@@ -30,7 +30,9 @@ function congelar<T>(valor: T): T {
   return valor
 }
 const itemDe = (d: Diseno, seccion: string, tipo: string, nodo: string) =>
-  d.secciones.find((s) => s.id === seccion)?.items.find((i) => i.tipo === tipo && i.nodo === nodo)
+  d.secciones
+    .find((s) => s.id === seccion)
+    ?.items.find((i) => i.tipo === tipo && nodoDelItem(i) === nodo)
 const valida = (d: Diseno) => validarDiseno(definicion, d, juego.contexto).ok
 
 describe('atajos', () => {

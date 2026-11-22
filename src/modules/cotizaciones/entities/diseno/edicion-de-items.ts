@@ -11,6 +11,8 @@ import {
   type Diseno,
   type EnlaceDeAyuda,
   type ItemDeDiseno,
+  type PiezaEnLaSeccion,
+  esLaPieza,
 } from '../diseno'
 import type { Definicion } from '../formula'
 import type { NodosPorId } from './admite-nivel'
@@ -20,19 +22,18 @@ export const MAXIMO_DE_LA_AYUDA = 300
 
 export type AyudaDeCelda = NonNullable<CeldaDeDiseno['ayuda']>
 
-// Cambia el primer ítem de ese tipo y nodo en la sección.
-function enItem(
+// Cambia la primera pieza así en la sección (`esLaPieza`).
+export function enItem(
   diseno: Diseno,
-  donde: { seccion: string; tipo: ItemDeDiseno['tipo']; nodo: string },
+  donde: PiezaEnLaSeccion & { seccion: string },
   cambiar: (item: ItemDeDiseno) => ItemDeDiseno,
 ): Diseno {
-  const { tipo, nodo: nodoId } = donde
   return conSeccion(diseno, donde.seccion, (s) => {
     let hecho = false
     return {
       ...s,
       items: s.items.map((it) => {
-        if (hecho || it.tipo !== tipo || it.nodo !== nodoId) return it
+        if (hecho || !esLaPieza(it, donde)) return it
         hecho = true
         return cambiar(it)
       }),

@@ -69,12 +69,15 @@ export type Estado = {
   apariciones: Map<string, Aparicion>
   atajos: AtajoVisto[]
   atajosVistos: Set<string>
+  // Si una sección ya trajo la tarjeta del total (`total_repetido`).
+  totalVisto: boolean
 }
 
 export const estadoVacio = (): Estado => ({
   apariciones: new Map(),
   atajos: [],
   atajosVistos: new Set(),
+  totalVisto: false,
 })
 
 // El nivel existe y no está retirado. «todos» siempre existe y nunca se retira. Los dos rechazos nombran dónde se usa.

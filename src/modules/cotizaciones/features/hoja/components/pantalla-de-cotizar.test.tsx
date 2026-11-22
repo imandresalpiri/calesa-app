@@ -264,3 +264,35 @@ describe('PantallaDeCotizar › el borrador', () => {
     expect(ejecutar).not.toHaveBeenCalled()
   })
 })
+
+// Con la tarjeta del total ubicada en una sección, un solo total grande a cada ancho: la pieza desde `@4xl/hoja` y la del resumen por debajo (jsdom no evalúa
+// las consultas de contenedor: se miran las clases).
+describe('PantallaDeCotizar › la tarjeta del total', () => {
+  const conElTotal = (hoja: HojaLista): HojaLista => ({
+    ...hoja,
+    secciones: hoja.secciones.map((s, i) =>
+      i === 0
+        ? {
+            ...s,
+            items: [
+              ...s.items,
+              { tipo: 'total', nodo: 'total', etiqueta: 'TOTAL', formato: 'usd' },
+            ],
+          }
+        : s,
+    ),
+  })
+  const clases = (marca: string) => document.querySelector(`[data-tarjeta-del-total="${marca}"]`)
+
+  it('con la pieza, la hoja la dibuja desde @4xl y el resumen esconde la suya ahí', () => {
+    render(pantalla(conElTotal(hojaDePrueba())))
+    expect(clases('pieza')?.parentElement?.className).toMatch(/(^| )hidden @4xl\/hoja:block( |$)/)
+    expect(clases('')?.className).toContain('@4xl/hoja:hidden')
+  })
+
+  it('sin la pieza, sólo la tarjeta del resumen, siempre a la vista', () => {
+    render(pantalla(hojaDePrueba()))
+    expect(clases('pieza')).toBeNull()
+    expect(clases('')?.className).not.toContain('@4xl/hoja:hidden')
+  })
+})

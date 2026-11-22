@@ -4,19 +4,23 @@ import { useCallback, useMemo, useState } from 'react'
 import { useUnEnvioALaVez } from '@/shared/ui/use-un-envio-a-la-vez'
 import type { Diseno } from '../../../entities/diseno'
 import { nodosPorId } from '../../../entities/diseno/admite-nivel'
-import { avisosDeDeduccion } from '../../../entities/diseno/aviso-de-deduccion'
-import { campoDelRechazo } from '../../../entities/diseno/campo-del-rechazo'
-import { deduccionesDelDiseno } from '../../../entities/diseno/deduccion'
+import {
+  definicionConNodos,
+  ponerEtiqueta,
+  ponerFormato,
+  SIN_CAMBIOS_DE_NODOS,
+  type CambiosDeNodos,
+} from '../../../entities/diseno/edicion-de-nodos'
 import {
   contextoDelEditor,
-  ponerAncho,
-  ponerSeccion,
   type DisenoParaEditar,
   type NivelDelDiseno,
 } from '../../../entities/diseno/edicion-del-diseno'
-import { ponerNiveles, type CambioDeNiveles } from '../../../entities/diseno/niveles'
-import { validarDiseno } from '../../../entities/validar-diseno'
+import type { Formato } from '../../../entities/nodos'
+import { operacionesDeLaHoja } from './operaciones-de-la-hoja'
+import { useAvisoDeNivel } from './use-aviso-de-nivel'
 import { useGuardadoDelDiseno } from './use-guardar-diseno'
+import { useRevisionDelDiseno } from './use-revision-del-diseno'
 
 type Args = {
   origenId: string
@@ -28,12 +32,17 @@ type Args = {
   catalogo: readonly string[] | null
 }
 
-// El estado de la pestaña «Diseño» (4.22-2): el diseño de trabajo, que cambia sólo por las operaciones puras de `edicion-del-diseno.ts` y `niveles.ts`; lo que
-// `validarDiseno()` rechaza tras cada cambio (queda aplicado y se dice, no apaga «Guardar»); el aviso «se deduce restando»; y el guardado.
+// El estado del editor de la hoja: el diseño de trabajo y lo editado de las filas (rótulo y formato: son de la fórmula y van en la `definicion` que se guarda);
+// lo que `validarDiseno()` rechaza tras cada cambio, con la pieza a la que apunta (queda aplicado y se marca, no apaga «Guardar»); el aviso «se deduce restando»;
+// y el guardado.
 export function useEditorDelDiseno({ origenId, leida, disenoLeido, niveles, catalogo }: Args) {
   const envio = useUnEnvioALaVez()
   const [trabajo, setTrabajo] = useState<Diseno>(disenoLeido)
-  const { definicion } = leida
+  const [nodosEditados, setNodosEditados] = useState<CambiosDeNodos>(SIN_CAMBIOS_DE_NODOS)
+  const definicion = useMemo(
+    () => definicionConNodos(leida.definicion, nodosEditados),
+    [leida.definicion, nodosEditados],
+  )
 
   const nodos = useMemo(() => nodosPorId(definicion), [definicion])
   const nombresDeNodos = useMemo(
@@ -51,69 +60,60 @@ export function useEditorDelDiseno({ origenId, leida, disenoLeido, niveles, cata
     [definicion, niveles, catalogo, disenoDelContexto],
   )
 
-  // Una vez por cambio: la revisión de la base en espejo y el aviso.
-  const rechazo = useMemo(() => {
-    const r = validarDiseno(definicion, trabajo, contexto)
-    if (r.ok) return null
-    const { mensaje, donde, campo } = r.error
-    const seccion = donde === undefined ? undefined : trabajo.secciones.find((s) => s.id === donde)
-    const legible =
-      donde === undefined
-        ? null
-        : (seccion?.titulo ??
-          (seccion === undefined && donde === 'cabecera' ? 'la cabecera' : undefined) ??
-          nombresDeNodos.get(donde) ??
-          donde)
-    // Un rechazo de forma del aspecto va también bajo su select.
-    return { mensaje, donde: legible, lugar: campoDelRechazo(campo, trabajo) }
-  }, [definicion, trabajo, contexto, nombresDeNodos])
-  const avisos = useMemo(
-    () =>
-      avisosDeDeduccion(deduccionesDelDiseno(definicion, trabajo), {
-        nodos: nombresDeNodos,
-        niveles: nombresDeNiveles,
-      }),
-    [definicion, trabajo, nombresDeNodos, nombresDeNiveles],
-  )
+  const { rechazo, avisos, bloqueo } = useRevisionDelDiseno({
+    definicion,
+    trabajo,
+    contexto,
+    nombresDeNodos,
+    nombresDeNiveles,
+  })
 
   const aplicar = useCallback((cambio: (d: Diseno) => Diseno) => {
     setTrabajo(cambio)
   }, [])
+  const aviso = useAvisoDeNivel(nombresDeNiveles)
 
   const guardado = useGuardadoDelDiseno({
     origenId,
     leida,
     disenoLeido,
     trabajo,
+    nodos: nodosEditados,
+    definicion,
+    bloqueo,
     envio,
-    alReemplazar: setTrabajo,
+    alReemplazar: ({ diseno, nodos: repuestos }) => {
+      setTrabajo(diseno)
+      setNodosEditados(repuestos)
+    },
   })
 
   return {
     trabajo,
+    definicion,
     nodos,
     nombresDeNodos,
+    nombresDeNiveles,
     rechazo,
     avisos,
+    bloqueo,
     guardado,
+    aviso,
     // Mientras guarda, nada cambia.
     ocupado: envio.enCurso,
-    // Aplica una operación pura sobre el diseño de trabajo (las de ítems, cabecera y tarjeta: `use-ediciones-del-diseno.ts`).
+    // Aplica una operación pura sobre el diseño de trabajo (las de ítems, cabecera, tarjeta y aspecto: `use-ediciones-del-diseno.ts`).
     aplicar,
-    ponerSeccion: (seccionId: string, cambios: Parameters<typeof ponerSeccion>[2]) => {
-      setTrabajo((d) => ponerSeccion(d, seccionId, cambios))
+    ponerEtiqueta: (nodo: string, texto: string) => {
+      setNodosEditados((c) => ponerEtiqueta(c, nodo, texto))
     },
-    ponerAncho: (seccionId: string, nodoId: string, ancho: Parameters<typeof ponerAncho>[3]) => {
-      setTrabajo((d) => ponerAncho(d, seccionId, nodoId, ancho))
+    ponerFormato: (nodo: string, formato: Formato) => {
+      setNodosEditados((c) => ponerFormato(c, nodo, formato))
     },
-    ponerNiveles: (seccionId: string, nodoId: string | undefined, cambios: CambioDeNiveles) => {
-      setTrabajo((d) =>
-        ponerNiveles(
-          d,
-          nodoId === undefined ? { seccion: seccionId } : { seccion: seccionId, nodo: nodoId },
-          cambios,
-        ),
-      )
-    },
+    ...operacionesDeLaHoja(trabajo, setTrabajo, {
+      etiquetas: nombresDeNodos,
+      anotar: aviso.anotar,
+    }),
   }
 }
+
+export type EditorDelDiseno = ReturnType<typeof useEditorDelDiseno>

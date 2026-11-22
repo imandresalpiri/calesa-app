@@ -16,9 +16,10 @@ import {
 } from './soporte/diseno-editor'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
-// La pestaña «Diseño», ítems, cabecera y tarjeta (4.22-3, `docs/UX.md` › «Cotización: hoja (estados propios)»): el camino feliz en escritorio. Se enciende «Ver total en moneda local»,
-// se suma el modo «Paralelo» y se le cambian sus tipos de cambio, el interruptor pasa de «Habilita» a «Muestra», una celda gana su ayuda con un texto y la tarjeta muestra la garantía
-// junto al total. Nada avisa «Revisa el diseño»; «Guardar el borrador» lo escribe con la definición y los `params` de la publicada tal cual, y recargar lo vuelve a mostrar.
+// La pestaña «Hoja», ítems, cabecera y tarjeta (4.22-3, `docs/UX.md` › «Cotización: hoja (estados propios)»): el camino feliz en escritorio, eligiendo cada pieza en
+// el lienzo y editándola en el inspector. Se enciende «Ver total en moneda local», se suma el modo «Paralelo» y se le cambian sus tipos de cambio, el interruptor
+// pasa de «Habilita» a «Muestra», una celda gana su ayuda con un texto y la tarjeta muestra la garantía junto al total. Nada avisa «Revisa el diseño»; «Guardar
+// el borrador» lo escribe con la definición y los `params` de la publicada tal cual, y recargar lo vuelve a mostrar.
 test.describe.configure({ mode: 'serial' })
 
 let duena = ''
@@ -41,12 +42,17 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-const cabecera = (page: Page) => page.locator('[data-cabecera-del-diseno]')
-const tarjeta = (page: Page) => page.locator('[data-tarjeta-del-diseno]')
-const modo = (page: Page, clave: string) => page.locator(`li[data-modo="${clave}"]`)
-const interruptor = (page: Page) => page.locator('li[data-item="interruptor:extra"]')
-const ayudaDelPrecio = (page: Page) =>
-  page.locator('li[data-celda="precio"]').getByLabel('Ayuda con un texto')
+// Cada pieza se elige en el lienzo (`data-elegir`, el valor de `?pieza=`) y se edita en el inspector.
+const inspector = (page: Page) => page.locator('aside[data-inspector-de-la-hoja]')
+async function elegir(page: Page, pieza: string) {
+  await page.locator(`[data-elegir="${pieza}"]`).click()
+  await expect(inspector(page)).toHaveAttribute('data-pieza', pieza)
+}
+const cabecera = (page: Page) => inspector(page).locator('[data-cabecera-del-diseno]')
+const tarjeta = (page: Page) => inspector(page).locator('[data-tarjeta-del-diseno]')
+const modo = (page: Page, clave: string) => cabecera(page).locator(`li[data-modo="${clave}"]`)
+const queHace = (page: Page) => inspector(page).getByLabel('Qué hace')
+const ayuda = (page: Page) => inspector(page).getByLabel('Ayuda con un texto')
 const guardar = (page: Page) =>
   page.getByRole('button', { name: 'Guardar el borrador', exact: true })
 const estado = (page: Page) => page.locator('[data-guardado] [role="status"]')
@@ -58,7 +64,21 @@ const garantia = (page: Page) =>
 async function abrirElDiseno(page: Page) {
   await abrirLaFormula(page, origen.id, 'hoja')
   await enLaPestana(page, 'Hoja')
-  await expect(cabecera(page)).toBeVisible()
+  await expect(page.locator('[data-elegir="cabecera-de-la-hoja"]')).toBeVisible()
+}
+
+// Lo que el recorrido deja: cada pieza, elegida, muestra lo suyo.
+async function vuelveLoGuardado(page: Page) {
+  await elegir(page, 'cabecera-de-la-hoja')
+  await expect(verTotal(page)).toBeChecked()
+  await expect(modo(page, 'paralelo').getByLabel('Tipo de cambio de origen')).toHaveValue('tc_b')
+  await expect(modo(page, 'paralelo').getByLabel('Total en')).toHaveValue('tc_a')
+  await elegir(page, 'extra')
+  await expect(queHace(page)).toHaveValue('muestra')
+  await elegir(page, 'precio')
+  await expect(ayuda(page)).toHaveValue('El precio de la subasta')
+  await elegir(page, 'tarjeta-del-total')
+  await expect(garantia(page)).toBeChecked()
 }
 
 test('D2: cabecera, modos, interruptor, ayuda y tarjeta se editan y se guardan; lo guardado vuelve', async ({
@@ -66,19 +86,24 @@ test('D2: cabecera, modos, interruptor, ayuda y tarjeta se editan y se guardan; 
 }) => {
   await entrar(page, duena, { fresco: true })
   await abrirElDiseno(page)
-  await expect(verTotal(page)).not.toBeChecked()
-  await expect(interruptor(page).getByLabel('Qué hace')).toHaveValue('habilita')
-  await expect(garantia(page)).not.toBeChecked()
   await expect(guardar(page)).toBeDisabled()
 
+  await elegir(page, 'cabecera-de-la-hoja')
+  await expect(verTotal(page)).not.toBeChecked()
   await verTotal(page).click()
   await cabecera(page).getByLabel('Nombre del modo').fill('Paralelo')
   await cabecera(page).getByRole('button', { name: 'Sumar un modo', exact: true }).click()
   await expect(modo(page, 'paralelo')).toBeVisible()
   await modo(page, 'paralelo').getByLabel('Tipo de cambio de origen').selectOption('tc_b')
   await modo(page, 'paralelo').getByLabel('Total en').selectOption('tc_a')
-  await interruptor(page).getByLabel('Qué hace').selectOption('muestra')
-  await ayudaDelPrecio(page).fill('El precio de la subasta')
+
+  await elegir(page, 'extra')
+  await expect(queHace(page)).toHaveValue('habilita')
+  await queHace(page).selectOption('muestra')
+  await elegir(page, 'precio')
+  await ayuda(page).fill('El precio de la subasta')
+  await elegir(page, 'tarjeta-del-total')
+  await expect(garantia(page)).not.toBeChecked()
   await garantia(page).click()
 
   await expect(page.locator('[data-avisos-del-diseno]')).not.toContainText('Revisa el diseño')
@@ -107,12 +132,7 @@ test('D2: cabecera, modos, interruptor, ayuda y tarjeta se editan y se guardan; 
   expect(definicionYParamsComoLaPublicada(origen.id)).toBe(true)
 
   await abrirElDiseno(page)
-  await expect(verTotal(page)).toBeChecked()
-  await expect(modo(page, 'paralelo').getByLabel('Tipo de cambio de origen')).toHaveValue('tc_b')
-  await expect(modo(page, 'paralelo').getByLabel('Total en')).toHaveValue('tc_a')
-  await expect(interruptor(page).getByLabel('Qué hace')).toHaveValue('muestra')
-  await expect(ayudaDelPrecio(page)).toHaveValue('El precio de la subasta')
-  await expect(garantia(page)).toBeChecked()
+  await vuelveLoGuardado(page)
   await expect(estado(page)).toHaveText('No hay cambios por guardar.')
 })
 
@@ -121,6 +141,7 @@ test('D3: lo de por defecto de la cabecera y un enlace de la ayuda se editan con
 }) => {
   await entrar(page, duena, { fresco: true })
   await abrirElDiseno(page)
+  await elegir(page, 'cabecera-de-la-hoja')
   await cabecera(page).getByLabel('Nombre del modo').fill('Unificado')
   await cabecera(page).getByRole('button', { name: 'Sumar un modo', exact: true }).click()
   await expect(modo(page, 'unificado')).toBeVisible()
@@ -136,7 +157,8 @@ test('D3: lo de por defecto de la cabecera y un enlace de la ayuda se editan con
     .getByRole('checkbox', { name: 'Mostrar el total en moneda local por defecto' })
     .click()
 
-  const precio = page.locator('li[data-celda="precio"]')
+  await elegir(page, 'precio')
+  const precio = inspector(page)
   await precio.getByRole('button', { name: 'Agregar enlace' }).click()
   await precio.getByLabel('Título del enlace 1').fill('Copart')
   await precio.getByLabel('Dirección del enlace 1').fill('http://www.copart.com/')

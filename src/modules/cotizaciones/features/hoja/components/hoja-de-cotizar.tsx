@@ -9,7 +9,7 @@ import type { CalculoDeLaTarjeta } from '../../../entities/calculo-de-la-tarjeta
 import { seccionSeDibuja, type ContextoDeHoja } from '../../../entities/binding'
 import { hayPisadas } from '../../../entities/binding-pisado'
 import { nombreDelModo } from '../../../entities/cabecera-de-la-hoja'
-import type { HojaLista } from '../../../entities/hoja'
+import { hayTotalEnLaHoja, type HojaLista } from '../../../entities/hoja'
 import {
   eleccionesDeUnaGuardada,
   type EleccionesDeLaHoja,
@@ -149,6 +149,7 @@ function ResumenDeLaHoja({
       totalGuardado={totalGuardado}
       vistaPrevia={<VistaPreviaDeLaHojaViva hoja={hoja} h={h} {...laTarjeta} />}
       interruptor={interruptor}
+      totalEnLaHoja={hayTotalEnLaHoja(hoja)}
       pisadas={
         hayPisadas(contexto.indice, contexto.entradas) ? (
           <ListaDePisadasDiferida contexto={contexto} />

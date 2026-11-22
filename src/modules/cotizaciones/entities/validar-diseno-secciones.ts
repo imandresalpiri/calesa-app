@@ -1,6 +1,12 @@
 // §2 y §3 de `validarDiseno()`: las secciones, ítem por ítem, y la tarjeta del total. Un ítem se revisa entero, en el orden de la
 // fila, antes del siguiente; lo que cruza ítems (dónde se dibuja cada nodo, los atajos) queda en el `Estado` para §4 y §5.
-import { NIVEL_TODOS, type CeldaDeDiseno, type Diseno, type ItemDeDiseno } from './diseno'
+import {
+  NIVEL_TODOS,
+  type CeldaDeDiseno,
+  type Diseno,
+  type ItemConNodo,
+  type SeccionDeDiseno,
+} from './diseno'
 import { buscar, esta, recorrer } from './medidor'
 import { fallo, type FalloDeDiseno } from './motivos-de-diseno'
 import type { Nodo } from './nodos'
@@ -19,17 +25,31 @@ export function revisarSecciones(ix: Indice, d: Diseno, e: Estado): FalloDeDisen
     if (editaSinVer(s.nivel_ver, s.nivel_editar)) return fallo('editar_sin_ver', { donde: s.id })
     const heredados = { ver: s.nivel_ver ?? NIVEL_TODOS, editar: s.nivel_editar ?? NIVEL_TODOS }
     for (const item of recorrer(s.items, ix.m)) {
-      const rechazo = revisarItem(ix, e, item, heredados)
+      const rechazo =
+        item.tipo === 'total' ? revisarTotal(e, s, heredados) : revisarItem(ix, e, item, heredados)
       if (rechazo !== undefined) return rechazo
     }
   }
   return undefined
 }
 
+// La tarjeta del total como pieza: una sola en el diseño, en una sección principal y sin nivel de ver (el total lo ven todos). `donde` es la
+// sección; no nombra un nodo (su nodo es el de `tarjeta_total`, que revisa §3) ni cuenta como dibujo de uno.
+function revisarTotal(e: Estado, s: SeccionDeDiseno, sec: Niveles): FalloDeDiseno | undefined {
+  const repetido = e.totalVisto
+  const avanzada = s.presentacion === 'avanzado'
+  const conNivel = sec.ver !== NIVEL_TODOS
+  if (repetido) return fallo('total_repetido', { donde: s.id })
+  if (avanzada) return fallo('total_en_avanzado', { donde: s.id })
+  if (conNivel) return fallo('total_con_nivel', { donde: s.id })
+  e.totalVisto = true
+  return undefined
+}
+
 function revisarItem(
   ix: Indice,
   e: Estado,
-  item: ItemDeDiseno,
+  item: ItemConNodo,
   sec: Niveles,
 ): FalloDeDiseno | undefined {
   const nodo = buscar(ix.nodos, item.nodo, ix.m)
@@ -49,7 +69,7 @@ function revisarItem(
 }
 
 // Que el nodo sea de la clase que el ítem dibuja, en el orden de cada ítem.
-function revisarTipo(ix: Indice, item: ItemDeDiseno, nodo: Nodo): FalloDeDiseno | undefined {
+function revisarTipo(ix: Indice, item: ItemConNodo, nodo: Nodo): FalloDeDiseno | undefined {
   const donde = nodo.id
   switch (item.tipo) {
     case 'celda':
@@ -98,7 +118,7 @@ function interruptorHace(ix: Indice, efecto: 'habilita' | 'muestra', bandera: st
 // secundario y la bandera de un interruptor (4-9): se dibujan con el nivel de su ítem, y la base los manda igual.
 function revisarNivelAbierto(
   ix: Indice,
-  item: ItemDeDiseno,
+  item: ItemConNodo,
   nodo: Nodo,
   ver: string,
 ): FalloDeDiseno | undefined {
@@ -120,7 +140,7 @@ const editaSinVer = (ver: string | undefined, editar: string | undefined) =>
   (ver ?? NIVEL_TODOS) !== NIVEL_TODOS && (editar ?? NIVEL_TODOS) === NIVEL_TODOS
 
 function revisarEditarSinVer(
-  item: ItemDeDiseno,
+  item: ItemConNodo,
   nodo: Nodo,
   propios: Niveles,
 ): FalloDeDiseno | undefined {
@@ -145,7 +165,7 @@ type Dibujo = { nodo: Nodo; propios: Niveles; sec: Niveles }
 function registrar(
   ix: Indice,
   e: Estado,
-  item: ItemDeDiseno,
+  item: ItemConNodo,
   dibujo: Dibujo,
 ): FalloDeDiseno | undefined {
   const { nodo, propios, sec } = dibujo

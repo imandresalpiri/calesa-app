@@ -133,9 +133,9 @@ function filas(
 }
 
 // Lo que el lugar de un ítem lee: lo comparten el ítem de la hoja y el del diseño.
-type LugarDelItem = (
+export type LugarDelItem = (
   | { tipo: 'celda'; ancho: AnchoDeCelda }
-  | { tipo: 'atajos' | 'variante' | 'interruptor' | 'subtotal'; ancho?: number }
+  | { tipo: 'atajos' | 'variante' | 'interruptor' | 'subtotal' | 'total'; ancho?: number }
 ) & { alto?: number; letra?: Letra; enfasis?: Enfasis }
 
 // Un ítem en la rejilla de su sección: sus columnas (la celda, con nombre o en número; los demás, toda la fila si no dicen), sus filas desde el mismo corte

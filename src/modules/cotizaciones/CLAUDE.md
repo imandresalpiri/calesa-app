@@ -124,7 +124,9 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   diseño) no se dibujan. La línea de arriba de «Avanzado» sale de `explicacionDelAvanzado()`; los enlaces de la ayuda de texto, de `enlacesDeLaAyuda()`.
 - **El aspecto de V1** (`docs/DECISIONES.md` › «La hoja con el aspecto de V1»): «Avanzado» es un botón a lo ancho (`BotonDeAvanzado`: los títulos que esconde,
   en un `hidden` por `aria-describedby`) y su modal es `ancho="grande"` con las secciones `sinMarco` (`SeccionDeHoja`, `claseDelMarcoDeLaSeccion()`). El total
-  del resumen va en la tarjeta del total (`clases-del-total.ts`: `CabezaDelResumen` y, en par, una por total en `TotalesEnPar`), con «Ver el detalle» fuera.
+  del resumen va en la tarjeta del total (`clases-del-total.ts`: `CabezaDelResumen` y, en par, una por total en `TotalesEnPar`), con «Ver el detalle» fuera. Con la
+  pieza `{ tipo: 'total' }` (`hayTotalEnLaHoja()`), `TotalDeHoja` la dibuja en su sección desde `@4xl/hoja` y el resumen esconde la suya ahí; por debajo, al revés:
+  a cada ancho, una sola tarjeta grande (sus avisos siguen en el resumen).
 - `index.ts`: `recalcularAlAbrir()` va DESPUÉS de leer la hoja (4-28), con `modoInicial()` (el modo por defecto del diseño o, sin él, el primero); `contarCotizacionesDelVehiculo()`
   («Cotizado (n)») es acotado y con la RLS de quien mira; `rutaDeLaHoja()` la usan «Cotizar» de `/vehiculos` y de `/leads/[id]`;
   `datosDelVehiculoDeLaHoja(hoja)` dice qué campo del vehículo casa con qué tabla (qué se elige lo decide `vehiculos`). Lo consumen `logistica`, `chat`,
@@ -213,7 +215,9 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
 - **La barra de la fórmula** (glosario): en las pestañas Planilla, Hoja y Tarjeta de la página del origen los botones del editor («Guardar el borrador»,
   «Publicar…», «⋯») van envueltos en `<AccionesEnLaBarra orden>` del núcleo (`features/barra-de-la-formula/`) y suben a la ranura de la barra; sin
   `<ConLaBarraDeLaFormula>` (la puesta en marcha) se dibujan donde estaban. El estado lo registra cada editor con `useEstadoEnLaBarra()`, de una función pura por área
-  (`estadoDeLaFormulaGuardada()`, `estadoDeLaHoja()`, `estadoDeLaTarjeta()`).
+  (`estadoDeLaFormulaGuardada()`, `estadoDeLaHoja()`, `estadoDeLaTarjeta()`). En la Hoja, «Publicar…» (orden 2) es del área `formula` y lo compone la página
+  (`PublicarEnLaHoja`, `pantallas/formula-publicar.ts`: el mismo panel `?panel=publicar-formula` y sus modales): se ve con un borrador al día y espera, apagado con
+  «Guarda el borrador antes de publicar.», mientras el editor de la hoja registra cambios sin guardar.
 - **El PDF** (área `tarjeta`): `GET /cotizaciones/[id]/pdf` (`requerirSesion()`; 404 en texto igual al de la página para lo que no existe, está en la
   papelera o no se ve; `rutaDelPdf(id)`) arma la página (fecha del último guardado en la zona de `leerAjustes()`, que falla en vez de dar lo de fábrica) y
   pide `pdfDeUnaGuardada()` con el contexto de `contextoDeLaPagina()` (el cliente sólo con `leads.ver`: `src/app/(app)/cotizaciones/datos-de-la-tarjeta.ts`, que
@@ -241,15 +245,31 @@ no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o inc
   huella y el armado. `/cotizaciones/[id]/portada` (la ruta vieja) es un 308 a `/imagen` con su consulta (`next.config.ts`). El componente `<ImagenDeLaTarjeta>` sale por
   `pantallas/tarjeta-imagen.ts` (marco de la proporción que le den, pedida a la vista y de a cuatro por página con `useCargaDeLaImagen()`, recuadro con el total, visor por `diferido()` con la clave de
   `claveDelVisorDeLaImagen()`, que acepta también la de antes, `portada-…`; Modo Live por CSS en `globals.css`).
-- **El diseño** (la pestaña «Hoja»: `/configuracion/origenes/<id>/hoja?formula=<fórmula>`, `cotizaciones.configurar`): lee el borrador o la publicada y los niveles de
-  `cotizaciones_niveles` (no de `niveles_con_uso()`); edita secciones, celdas (ver y editar juntos con `ponerNiveles()`; `admiteNivel` apaga lo que la base
-  rechazaría con `nivel_no_admitido`), atajos, interruptor, ayuda, modos, la tarjeta del total (variante y subtotal no se editan) y **el aspecto** de cada
-  pieza (`components/aspecto/`, operaciones puras en `entities/diseno/edicion-del-aspecto.ts`: el valor por defecto quita la clave), con el aviso «se deduce
-  restando» (sin bloquear). **Ordena** secciones e ítems (estos dentro de su sección: `entities/diseno/orden-del-diseno.ts`) con dnd-kit y su sensor de
-  teclado (`components/orden/`, `hooks/use-fila-ordenable.ts`: los callbacks del asa van desestructurados, el compilador de React toma un `x.ref` por un ref);
-  dnd-kit sólo viaja en el `diferido()` de la pestaña. El color sale del catálogo de colores (`catalogo` nulo si no se leyó: no se elige y `contextoDelEditor()`
-  cuenta los colores que el diseño ya nombra); un rechazo de forma del aspecto va bajo su select (`campoDelRechazo()`). «Guardar el borrador» (`formula_guardar_borrador`, con la esperada de la publicada o la hora del borrador) manda `definicion` y
-  `params` sin cambios. El área `diseno` replica la lectura y escritura de `formula` porque un área no importa otra.
+- **El editor de la hoja** (la pestaña «Hoja»: `/configuracion/origenes/<id>/hoja?formula=<fórmula>`, `cotizaciones.configurar`; glosario: «Inspector de la
+  hoja»): lee el borrador o la publicada y los niveles de `cotizaciones_niveles` (no de `niveles_con_uso()`) y edita **sobre la hoja**: el lienzo
+  (`components/editor/`) dibuja el diseño de trabajo con las piezas de cotizar (`hojaDeLaVistaPrevia()`, `ItemDeHoja`, `TotalDeHoja`, `CabeceraDeHoja`,
+  `ResumenDeHoja`, cada una `inert` bajo su botón «Elegir «Precio»» con `data-pieza` y `data-elegir`) y a la derecha el inspector (`components/inspector/`) edita
+  la pieza elegida, que va en `?pieza=` (`entities/diseno/pieza-de-la-hoja.ts`: el id del nodo, `atajos-<nodo>`, `seccion-<id>`, `tarjeta-del-total`,
+  `cabecera-de-la-hoja`; `usePiezaElegida()`); sin nada elegido, «Sin lugar en la hoja (N)» (`filasSinLugar()`, espejo de `nodo_sin_seccion`: «Agregar» la suma al
+  final de la primera sección principal). Cada pieza: el rótulo y el formato de su fila (editan la `definicion` que se guarda: `entities/diseno/edicion-de-nodos.ts`),
+  ver y editar juntos con `ponerNiveles()` (`admiteNivel` apaga lo que la base rechazaría con `nivel_no_admitido`), atajos, interruptor, ayuda, modos, la tarjeta
+  del total (variante y subtotal comparten inspector) y **el aspecto** (`components/aspecto/`, `entities/diseno/edicion-del-aspecto.ts`: el valor por defecto
+  quita la clave), con el aviso «se deduce restando» (sin bloquear). **Mover y sumar:** arrastrar la pieza entera (dnd-kit con `PointerSensor` a 6 px; nada se
+  reordena mientras se arrastra, la marca dice dónde cae: el lienzo va con `zoom`), Alt+↑/↓ y el «⋯» (Mover antes, Mover después, Quitar con «Deshacer»)
+  dentro de su sección o a otra (`moverItemA()` de `orden-del-diseno.ts`; si cambia quién la ve, `avisoDelCambioDeNivel()` lo dice en el inspector); el ancho, con
+  el borde (`useAnchoConBorde()`), Alt+←/→ o el select (`ancho-de-la-pieza.ts`); el «+» de cada sección («Sumar una pieza aquí», `ofertasParaSumar()` con el tope
+  de 40 y las reglas del total de `total-de-la-hoja.ts`) y «+ Sección principal / avanzada» (`insercion-del-diseno.ts`). **Las vistas** (`?vista=412|1280|1920|200`,
+  `useVistaDelEditor()`; sin ella, la de la ventana): el lienzo es un hijo de ese ancho en px achicado con CSS `zoom` (`MarcoEscalado`, `escalaDelLienzo()`; los
+  cortes `@4xl/hoja` miran al hijo; «Texto al 200 %» es 206 px con `zoom: 2`). **Por debajo de 1.024 px**, la hoja a 412 en sólo lectura con «Este editor se usa en
+  una pantalla de al menos 1.024 px.» (`HojaSoloLectura`). «+ Nuevo nivel» (con `equipo.roles.gestionar`: `NuevoNivelAlVuelo` del núcleo monta una vez el modal de
+  la matriz, `?panel=nuevo-nivel`) y «+ Nuevo color» bajo el color de una sección (con `cotizaciones.configurar`: `NuevoColorDeLaSeccion`, `?color=nuevo`) dejan
+  elegido lo creado y lo suman a lo leído (`useCreadosAlVuelo()`) hasta que la página lo traiga. El color sale del catálogo (`catalogo` nulo si no se leyó: no se
+  elige y `contextoDelEditor()` cuenta los colores que el diseño ya nombra); un rechazo de forma del aspecto va bajo su select (`campoDelRechazo()`) y uno de la base,
+  en su pieza (`lugarDelRechazo()`). «Guardar el borrador» (`formula_guardar_borrador`, con la esperada de la publicada o la hora del borrador) manda la
+  `definicion` editada y los `params`; salir con cambios pregunta (`BarraDeCambiosSinGuardar`) y el borrador de la pestaña va por
+  `hoja-editor:<origen>:<versión>:<actualizadoEn>` (`useGuardadoDelDiseno()`). La `key` del editor no lleva la versión (guardar no lo remonta); la remontan «Recargar» y una versión que cambió
+  por otra cosa (`pideOtroEditor()`: «Publicar…» de la barra). dnd-kit sólo viaja en el `diferido()` de la pestaña. El área `diseno` replica la lectura y escritura
+  de `formula` porque un área no importa otra.
 - **Los colores** (Configuración › Orígenes › «Para todos los orígenes» › Colores, `cotizaciones.configurar`; también se crean al vuelo desde el panel de una banda de la
   planilla, «El color nuevo de la planilla» en «Los huecos»; `?panel=colores` abre la lista y `nuevo-tono|editar-tono|eliminar-tono&tono=<id>`
   son ventanas hermanas que vuelven a ella con `usePanelPorUrl(…, { volverA })` y `useFamiliaDeColores()`; URL con el nombre técnico). `SeccionDeLosColores` (la lectura, `pantallas/diseno-colores.ts`) dibuja
@@ -260,11 +280,10 @@ no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o inc
   con el juego `supabase/tests/casos-de-colores.json`. El modal muestra en vivo la hoja y la tarjeta (`como-se-ve-el-color.tsx`) y avisa sin bloquear si el
   texto de la tarjeta no se lee. Un color en uso: 23503 con la fórmula que lo usa. Componentes y hooks se llaman «color»; tabla, RPC, actions, schemas e
   infra conservan «tono».
-- **La vista previa del diseño** (`?vista=412|1280|200`; abierta y desde `xl`, al costado del editor): `hojaDeLaVistaPrevia()` espeja `_cotizacion_hoja()` (con el aspecto y los colores de las secciones
-  que dibuja y de la cabecera) **sin niveles, tablas ni `dato_del_vehiculo`**; usa la misma rejilla que la hoja (`CONTENEDOR_DE_SECCIONES`,
+- **La hoja del lienzo** (el editor de la hoja y su sólo lectura): `hojaDeLaVistaPrevia()` espeja `_cotizacion_hoja()` (con el aspecto y los colores de las
+  secciones que dibuja y de la cabecera, y la pieza del total) **sin niveles, tablas ni `dato_del_vehiculo`**; usa la misma rejilla que la hoja (`CONTENEDOR_DE_SECCIONES`,
   `REJILLA_DE_SECCIONES`, `enLaRejilla`); `cifrasDelDiseno()` evalúa con datos en 0 y nunca lanza. Dibuja con las piezas del núcleo y **no con `LugaresDeLaHoja`** (lee
-  `?ayuda=` y `?panel=`, que chocarían con la pestaña); un hijo de ancho propio en px dentro de una caja con scroll (los cortes `@4xl/hoja` y `@5xl` miran al
-  hijo); «200 %» es 206 px con `zoom: 2`. Va `inert`, en un `diferido()` aparte.
+  `?ayuda=` y `?panel=`, que chocarían con la pestaña); lo que dibuja va `inert`.
 - Depende de `leads`, `vehiculos`, `empresa` (tipos de cambio; los ajustes, en `armarLaImagen()`) y `equipo` (`<VistasGuardadas>`); los orígenes entran por props desde `src/app`.
 
 ## Áreas

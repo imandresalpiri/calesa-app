@@ -155,7 +155,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-45]** `cotizaciones.moneda_mostrar` y `cotizaciones.plantilla_id` no tienen uso real (`moneda_mostrar` sólo viaja por `cotizaciones_listado()`) — migración que la recree sin ellas, con su medición y `db:types`.
 - **[—]** `VAPID_PRIVATE_KEY` y `VAPID_SUBJECT` están en `esquemaDelServidor` (`src/shared/config/esquemas.ts`) y en `.env.example`, pero sólo los lee la función `push` — dejarlos sólo en `esquemaDeLasFunciones`.
 - **[—]** Copias que deberían subir al núcleo o a `shared`: el esquema de la nota de publicar, `FILAS_POR_PEDIDO`, `MARCAS_DE_GESTORES`, `valorTipeado`, `diasParaLaPurga`/`textoDePurga`, las lecturas de tonos, `normalizar` de la XCell y la subida por hash a bucket privado.
-- **[—]** Dos arrastres con dnd-kit que se parecen: `cotizaciones/features/diseno/components/orden/` y `shared/ui/campos/arrastre/` — unificarlos en un `shared/ui/orden` (asa, sensores, anuncios en español, coordenadas por contenedor).
+- **[—]** Dos arrastres con dnd-kit que se parecen: el de las filas del lienzo de la tarjeta (`cotizaciones/features/plantilla/hooks/use-asa-de-fila.ts`) y `shared/ui/campos/arrastre/` — unificarlos en un `shared/ui/orden` (asa, sensores, anuncios en español, coordenadas por contenedor).
 - **[—]** `e2e/configuracion-200-capturas.spec.ts` captura un panel por la URL apenas se ve el diálogo, sin esperar lo que trae su `diferido()`: «Datos del origen» y «Columnas de…» salen vacíos en la hoja — esperar un texto del cuerpo antes de `capturar()`.
 - **[—]** «Ver comprobante» duplicado en repuestos y logística (`ver-comprobante.ts` y `useComprobante.ver`); `XCell` no tiene `emptyLabel`.
 - **[—]** Las guardas de áreas (`areas-de-cotizaciones`, `-flujos`, `-logistica`, `areas-b/areas-de-web`, `areas-c/areas-de-repuestos`) son cinco copias de la misma lógica, y los registros de `<Confirmar>`, `<Drawer>` y RPC paginadas están partidos en `areas-b/`, `areas-c/`, `*-formula.ts` y `*-papelera.ts` — unificar en una guarda parametrizada y un registro por módulo.
@@ -209,6 +209,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** En Logística › Configuración › Navieras la lista tiene dos columnas «Estado» («Activo» y «Activa»): `columnaDeUso="Estado"` en `navieras-de-transporte.tsx` repite el título de la columna de estado; ponerle otro («Uso» o quitarla).
 - **[—]** La planilla de la fórmula a 1280 px con la tarjeta al costado (36 rem): # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
   desplazando la grilla. Angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`).
+- **[—]** En el editor de la hoja, el «+» de la pieza elegida no se achica con el lienzo: con la vista 1.280 en una ventana de 1.280 (el lienzo a ≈ 0,3)
+  tapa la mitad de abajo de una pieza baja, como la tarjeta del total y su cifra. Darle un tamaño que siga la escala o sacarlo fuera de la pieza (`features/diseno/components/editor/`).
 - **[—]** En el celular al 200 %, el «⋯» del panel de la fase queda más arriba que la ✕ (el «⋯» va en rem y la ✕ en px): alinear sus centros (`drawer.tsx`, `acciones`).
 - **[—]** `e2e/cierre-pendientes-capturas.spec.ts` falla en `movil` (también en `main`): en la sub-ruta `datos` del origen, el título no queda a la vista porque el panel «Datos del origen» está abierto.
 - **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px, los tercios del modal «Avanzado», un par con un lado bloqueado en el celular) baja sus

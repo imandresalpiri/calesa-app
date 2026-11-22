@@ -229,6 +229,55 @@ begin
   if v_n < 3 then raise exception 'sólo % diseños con atajos', v_n; end if;
 end $$;
 
+-- @test publicar: la tarjeta del total como pieza publica, queda en el diseño y no cambia la visibilidad (igual con y sin ella, en las capturas y en cada diseño válido del juego que la trae); en una sección avanzada, publicar la rechaza
+do $$
+declare
+  o uuid := pg_temp.preparar(); v_d jsonb; v_mal jsonb; v_avanzada text; c jsonb; f jsonb; d jsonb; v_sin jsonb; v_n int := 0;
+begin
+  -- La pieza al principio de la primera sección principal sin nivel de ver de las capturas con «costos» (39 ítems: con ella, 40, el tope).
+  v_d := jsonb_set(pg_temp.diseno_costos(), '{secciones}', (
+    select jsonb_agg(case when q.n = (select min(q2.n) from jsonb_array_elements(pg_temp.diseno_costos() -> 'secciones') with ordinality q2(s, n)
+                                       where q2.s ->> 'presentacion' = 'principal' and not q2.s ? 'nivel_ver')
+                          then jsonb_set(q.s, '{items}', '[{"tipo": "total", "ancho": 6, "enfasis": "fuerte"}]'::jsonb || (q.s -> 'items')) else q.s end order by q.n)
+      from jsonb_array_elements(pg_temp.diseno_costos() -> 'secciones') with ordinality q(s, n)));
+  if v_d = pg_temp.diseno_costos() then raise exception 'las capturas no tienen una sección principal sin nivel de ver'; end if;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  set local role authenticated;
+  perform public.formula_guardar_borrador(o, pg_temp.def_capturas(), pg_temp.params_capturas(), v_d, p_actualizado_en_esperado => pg_temp.hora_del_borrador(o));
+  perform public.formula_publicar(o, 'Con la pieza del total');
+  reset role;
+  if (select diseno from public.formulas where origen_id = o and estado = 'publicada') is distinct from v_d then raise exception 'la publicada no trae el diseño con la pieza'; end if;
+  if (select visibilidad from public.formulas where origen_id = o and estado = 'publicada') is distinct from public._compilar_visibilidad(pg_temp.def_capturas(), pg_temp.diseno_costos())
+     or public._compilar_visibilidad(pg_temp.def_capturas(), v_d) is distinct from public._compilar_visibilidad(pg_temp.def_capturas(), pg_temp.diseno_costos()) then
+    raise exception 'la pieza del total cambia la visibilidad';
+  end if;
+  -- En la primera sección avanzada: publicar la rechaza con su regla y la sección, y no hay v2.
+  v_avanzada := (select s ->> 'id' from jsonb_array_elements(pg_temp.diseno_costos() -> 'secciones') with ordinality q(s, n) where s ->> 'presentacion' = 'avanzado' order by n limit 1);
+  v_mal := jsonb_set(pg_temp.diseno_costos(), '{secciones}', (
+    select jsonb_agg(case when s ->> 'id' = v_avanzada then jsonb_set(s, '{items}', (s -> 'items') || '[{"tipo": "total"}]'::jsonb) else s end order by n)
+      from jsonb_array_elements(pg_temp.diseno_costos() -> 'secciones') with ordinality q(s, n)));
+  set local role authenticated;
+  perform public.formula_guardar_borrador(o, pg_temp.def_capturas(), pg_temp.params_capturas(), v_mal, p_actualizado_en_esperado => pg_temp.hora_del_borrador(o));
+  perform pg_temp.espera(format($f$select public.formula_publicar(%L, 'En la avanzada')$f$, o), '22023:total_en_avanzado@' || v_avanzada);
+  reset role;
+  if (select max(version) from public.formulas where origen_id = o) <> 1 then raise exception 'se publicó la pieza en una sección avanzada'; end if;
+  -- Cada diseño válido del juego que la trae compila lo mismo sin ella.
+  for c in select x from _juego_de_diseno j, jsonb_array_elements(j.doc -> 'casos') x where (x ->> 'valida')::boolean and x::text like '%"tipo": "total"%' loop
+    f := case when c ? 'formula' then (select doc -> 'formulas' -> (c ->> 'formula') from _juego_de_diseno)
+              else (select k.value from _juego_de_formula j, jsonb_array_elements(j.doc -> 'casos') k where k.value ->> 'nombre' = c ->> 'formula_de') end;
+    d := c -> 'diseno';
+    v_sin := jsonb_set(d, '{secciones}', (select jsonb_agg(jsonb_set(s, '{items}', coalesce((select jsonb_agg(i order by o2) from jsonb_array_elements(s -> 'items') with ordinality t(i, o2)
+                                                                                           where i ->> 'tipo' <> 'total'), '[]'::jsonb)) order by n)
+                                           from jsonb_array_elements(d -> 'secciones') with ordinality q(s, n)));
+    if v_sin = d then raise exception '«%» no trae la pieza', c ->> 'nombre'; end if;
+    if public._compilar_visibilidad(f -> 'definicion', d) is distinct from public._compilar_visibilidad(f -> 'definicion', v_sin) then
+      raise exception 'la pieza del total cambia la visibilidad en «%»', c ->> 'nombre'; end if;
+    v_n := v_n + 1;
+  end loop;
+  if v_n < 3 then raise exception 'sólo % diseños válidos con la pieza del total', v_n; end if;
+  perform pg_temp.limpiar(o);
+end $$;
+
 -- @test publicar: un nivel retirado se rechaza al publicar y no frena el ⚙, que copia el diseño y vuelve a compilar la misma visibilidad
 do $$
 declare

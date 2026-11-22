@@ -7,3 +7,6 @@ export const TARJETA_DE_COSTADO = TARJETA
 export const ETIQUETA_DEL_TOTAL =
   'text-(length:--text-xs) font-medium tracking-wider uppercase [overflow-wrap:anywhere]'
 export const CIFRA_DEL_TOTAL = 'text-(length:--text-2xl) font-semibold tabular-nums'
+// La tarjeta del total donde el diseño la ubica (una pieza de su sección): la misma superficie, con sus esquinas y sin sangrar.
+export const TARJETA_EN_LA_SECCION =
+  'grid content-center gap-1 rounded-(--radius-card) bg-(--color-ink) p-5 text-(--color-paper)'

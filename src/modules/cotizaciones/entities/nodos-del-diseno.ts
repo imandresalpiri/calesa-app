@@ -10,6 +10,8 @@ export function nodosDelDiseno(diseno: Diseno, definicion: Pick<Definicion, 'nod
   const nodos = new Set<string>()
   for (const seccion of diseno.secciones) {
     for (const item of seccion.items) {
+      // La tarjeta del total no nombra un nodo: el suyo es el de `tarjeta_total`, que va abajo.
+      if (item.tipo === 'total') continue
       nodos.add(item.nodo)
       const n = porId.get(item.nodo)
       const conPct = item.tipo === 'celda' && item.secundario !== undefined

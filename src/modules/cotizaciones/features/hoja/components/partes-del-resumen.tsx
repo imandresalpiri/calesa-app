@@ -137,6 +137,7 @@ export function CabezaDelResumen({
   plegado,
   alternar,
   idDelDetalle,
+  totalEnLaHoja = false,
 }: {
   tarjeta: HojaLista['tarjetaTotal']
   total: ReturnType<typeof totalDelResumen>
@@ -145,10 +146,15 @@ export function CabezaDelResumen({
   plegado: boolean
   alternar: () => void
   idDelDetalle: string
+  // El diseño ubica la tarjeta del total en una sección: al costado se ve ésa y ésta queda sólo para el celular (al pie).
+  totalEnLaHoja?: boolean
 }) {
   return (
     <>
-      <div data-tarjeta-del-total="" className={TARJETA_DEL_TOTAL}>
+      <div
+        data-tarjeta-del-total=""
+        className={totalEnLaHoja ? `${TARJETA_DEL_TOTAL} @4xl/hoja:hidden` : TARJETA_DEL_TOTAL}
+      >
         <span className={ETIQUETA_DEL_TOTAL}>{tarjeta.etiqueta}</span>
         <strong data-total="" className={CIFRA_DEL_TOTAL}>
           {total.tipo === 'valor' ? (

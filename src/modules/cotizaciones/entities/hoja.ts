@@ -103,8 +103,15 @@ export type SubtotalDeHoja = AspectoDeItemConAncho & {
   tono: string | null
   enPar?: true
 }
+// La tarjeta del total como pieza de una sección: su nodo (el de la tarjeta), su etiqueta y su formato; el monto es el total del resumen.
+export type TotalDeHoja = AspectoDeItemConAncho & {
+  tipo: 'total'
+  nodo: string
+  etiqueta: string
+  formato: Formato
+}
 export type ItemDeHoja =
-  CeldaDeHoja | AtajosDeHoja | VarianteDeHoja | InterruptorDeHoja | SubtotalDeHoja
+  CeldaDeHoja | AtajosDeHoja | VarianteDeHoja | InterruptorDeHoja | SubtotalDeHoja | TotalDeHoja
 
 export type SeccionDeHoja = AspectoDeSeccion & {
   id: string
@@ -225,6 +232,14 @@ function itemDe(i: Crudo<typeof esquemaItem>): ItemDeHoja {
         ...(i.en_par ? { enPar: true as const } : {}),
         ...aspectoDeItemConAncho(i),
       }
+    case 'total':
+      return {
+        tipo: 'total',
+        nodo: i.nodo,
+        etiqueta: i.etiqueta,
+        formato: i.formato,
+        ...aspectoDeItemConAncho(i),
+      }
     default: {
       const _: never = i
       return _
@@ -283,3 +298,7 @@ export function hojaDesde(crudo: unknown): HojaParaCotizar | null {
   }
   return listaDe(h)
 }
+
+// Si el diseño ubica la tarjeta del total en una sección (sólo puede ir en una principal): el resumen esconde la suya al costado.
+export const hayTotalEnLaHoja = (h: Pick<DisenoDeHoja, 'secciones'>): boolean =>
+  h.secciones.some((s) => s.presentacion === 'principal' && s.items.some((i) => i.tipo === 'total'))

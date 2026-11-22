@@ -95,6 +95,9 @@ function renglonesDelItem(item: ItemDeHoja, leer: Lector): Renglon[] {
     case 'atajos':
       // Los chips de una tabla no suman fila: su nodo ya tiene su celda (`atajos_sin_celda`).
       return []
+    case 'total':
+      // La tarjeta del total tampoco: su nodo va con lo aparte de la tarjeta, al final.
+      return []
     default: {
       const _: never = item
       return _

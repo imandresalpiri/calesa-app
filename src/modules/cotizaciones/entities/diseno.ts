@@ -129,6 +129,13 @@ const esquemaSubtotal = z.strictObject({
   nodo: esquemaId,
   ...anchoDeItem,
 })
+// La tarjeta del total como pieza (docs/GLOSARIO.md › «Tarjeta del total»): dice dónde se dibuja y su aspecto. No lleva `nodo`: el nodo del total y
+// sus secundarios siguen en `tarjeta_total` (una sola fuente). A lo sumo una por diseño, en una sección principal y sin nivel (las reglas
+// `total_repetido`, `total_en_avanzado` y `total_con_nivel`). Sin la pieza, el total se dibuja en el resumen fijo, como siempre.
+const esquemaTotal = z.strictObject({
+  tipo: z.literal('total'),
+  ...anchoDeItem,
+})
 
 const esquemaItem = z.discriminatedUnion('tipo', [
   esquemaCelda,
@@ -136,6 +143,7 @@ const esquemaItem = z.discriminatedUnion('tipo', [
   esquemaVariante,
   esquemaInterruptor,
   esquemaSubtotal,
+  esquemaTotal,
 ])
 
 // El orden de las secciones es el del DOM, de lectura y del `Tab`. Sin `ancho`, la sección es «Automática» (toda la fila o, con lugar, la mitad).
@@ -156,7 +164,8 @@ const esquemaSeccion = z.strictObject({
   items: z.array(esquemaItem).min(1),
 })
 
-// La tarjeta no se ubica en el diseño (es el resumen fijo): sólo dice qué muestra.
+// Lo que muestra la tarjeta del total: su nodo y sus secundarios. Dónde se dibuja lo dice la pieza `{ tipo: 'total' }` de una sección; sin ella, va
+// en el resumen fijo.
 const esquemaTarjeta = z.strictObject({ nodo: esquemaId, secundarios: z.array(esquemaId) })
 
 // El orden de las claves es el que Zod recorre para dar su primer error: cabecera, secciones, tarjeta (`validar_diseno()` lo copia).
@@ -171,6 +180,9 @@ export type ModoDeTipoDeCambio = Diseno['cabecera']['modos'][number]
 export type SeccionDeDiseno = Diseno['secciones'][number]
 export type ItemDeDiseno = SeccionDeDiseno['items'][number]
 export type CeldaDeDiseno = Extract<ItemDeDiseno, { tipo: 'celda' }>
+export type TotalDeDiseno = Extract<ItemDeDiseno, { tipo: 'total' }>
+// Un ítem que dibuja un nodo de la fórmula (todos menos la tarjeta del total).
+export type ItemConNodo = Exclude<ItemDeDiseno, { tipo: 'total' }>
 export type CabeceraDeDiseno = Diseno['cabecera']
 export type AyudaDeDiseno = NonNullable<CeldaDeDiseno['ayuda']>
 export type EnlaceDeAyuda = z.infer<typeof esquemaEnlace>
@@ -180,3 +192,24 @@ export type Separacion = (typeof SEPARACIONES)[number]
 export type DensidadDeSeccion = (typeof DENSIDADES_DE_SECCION)[number]
 export type Letra = (typeof LETRAS)[number]
 export type Enfasis = (typeof ENFASIS)[number]
+
+// El nodo que dibuja un ítem, o nada si es la tarjeta del total (su nodo es el de `tarjeta_total`).
+export function nodoDelItem(item: ItemDeDiseno): string | null {
+  return item.tipo === 'total' ? null : item.nodo
+}
+
+export const esItemConNodo = (item: ItemDeDiseno): item is ItemConNodo => item.tipo !== 'total'
+
+// Una pieza dentro de su sección: la de un nodo (con su tipo: unos atajos y su celda comparten el nodo) o la tarjeta del total. Las ediciones la
+// buscan así; el nodo de los ítems que no son atajos no se repite en un diseño válido (`nodo_repetido`), y en uno que no lo es gana el primero.
+export type PiezaEnLaSeccion = { tipo: ItemConNodo['tipo']; nodo: string } | { tipo: 'total' }
+export type ClaveDePieza = PiezaEnLaSeccion & { seccion: string }
+
+export function esLaPieza(item: ItemDeDiseno, pieza: PiezaEnLaSeccion): boolean {
+  if (item.tipo !== pieza.tipo) return false
+  return item.tipo === 'total' || ('nodo' in pieza && item.nodo === pieza.nodo)
+}
+
+// La pieza de un ítem, sin la sección.
+export const piezaDelItem = (item: ItemDeDiseno): PiezaEnLaSeccion =>
+  item.tipo === 'total' ? { tipo: 'total' } : { tipo: item.tipo, nodo: item.nodo }

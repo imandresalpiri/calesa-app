@@ -19,7 +19,9 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   // `diferido()`) midió 462,6 KB en 29 chunks: entra en 465. Con la cotización privada (T413: el interruptor «Privada», «Hacer privada» del «⋯» de la guardada y la
   // insignia) y los botones «Recargar la página» y «Copiar el enlace de esta página» del marco, 466,6 KB en 29 chunks: 470 (regla del 5 %). Con el pisado de un
   // cálculo (T521: la marca y «Calculado» de la celda, el aviso y su región; el aviso y la lista del resumen van con `diferido()`), 469,4 KB en 30 chunks: entra en 470.
-  '/cotizaciones/nuevo': 470,
+  // Con la tarjeta del total como pieza de una sección (T522: `TotalDeHoja` y su caso en la lectura de la hoja; nada del editor), 473,9 KB en 31 chunks: 480 (regla
+  // del 5 %).
+  '/cotizaciones/nuevo': 480,
   // La página de una cotización guardada (4.15-3), con una cotización sembrada en la subasta de la semilla: el mismo marco y la misma hoja, sin las barras del vehículo y del cliente: medido 438,6 KB en 27 chunks, más un 2 % hacia arriba. Con la burbuja del chat en el marco (7.11-1: el botón, el contador y su store; el panel y Realtime van con `diferido()`) pasó de 447,3 a 449,2 KB en 28 chunks: 452. Con las acciones de los avisos (`avisarError` con `<AccionesDelAviso>`, que importa `toasts.ts`) llegó a 452,2: 460 (regla del 5 %). Con el título de la cotización (T307: su proveedor sobre la cabecera y la hoja, y la cáscara de la barra del vehículo, que va con `diferido()`) llegó a 463,7 KB en 30 chunks: 470 (regla del 5 %). Con la cabecera compacta (T321: el «⋯» con su menú de Base UI y las líneas que suman las áreas, en vez de
   // ocho botones) llegó a 472,0 KB en 29 chunks: 480 (regla del 5 %). Con la hoja en par (T317, la guardada de una hermana va con `diferido()`), 475,0 KB en 30 chunks. Con la
   // cotización privada (T413: «Hacer privada» del «⋯» y la insignia) y los botones «Recargar la página» y «Copiar el enlace de esta página» del marco, 480,1 KB en 30 chunks: 490

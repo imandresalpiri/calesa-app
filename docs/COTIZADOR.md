@@ -431,13 +431,15 @@ tarjeta_total: {nodo, secundarios[]} }`.
   par porcentaje-monto es una sola celda**, con `secundario`); `atajos` (un nodo `tabla` sobrescribible, su `columna` y hasta 12
   `filas` como chips); `variante` (el nodo `opcion` como chips; obligatoria si hay variante); `interruptor` (una `bandera` con `efecto`
   `habilita`, que deshabilita lo que condiciona, o `muestra`, que apagada no lo dibuja; toda bandera que condiciona algo o pide un dato
-  tiene su interruptor); `subtotal` (un `calculo` como franja).
+  tiene su interruptor); `subtotal` (un `calculo` como franja); `total` (**la tarjeta del total como pieza**: sin `nodo`, que sigue en
+  `tarjeta_total.nodo`, con el aspecto de todo ítem; dice en qué sección y lugar la dibuja la hoja; sin ella, la tarjeta va en el resumen).
 - **El aspecto** (`docs/GLOSARIO.md` › «Aspecto»): claves planas y opcionales, de escalas cerradas; sin la clave, lo de siempre. Ítem:
   `ancho` (la celda, obligatorio: `completo`|`mitad`|`tercio` o un entero de 1 a 12, y los con nombre valen 12, 6 y 4; los demás ítems, un
   entero de 1 a 12, sin él la fila entera), `alto` (1 a 4 filas), `letra` (`chica`|`normal`|`grande`) y `enfasis` (`normal`|`fuerte`).
   Sección: `ancho` (1 a 12; sin él, «Automática»), `alto`, `relleno` (`chico`|`medio`|`grande`), `separacion` (`chica`|`media`|`grande`),
   `densidad` (`compacta`|`comoda`), `letra`, `enfasis` y `tono` (una clave del catálogo). Cabecera: `tono`, `relleno`, `letra` y `enfasis`
-  (no lleva ancho ni alto: va sola en su fila). Los enteros se leen como JS (`0.99999999999999999` es 1). La tarjeta no lleva aspecto.
+  (no lleva ancho ni alto: va sola en su fila). Los enteros se leen como JS (`0.99999999999999999` es 1). La tarjeta del resumen no lleva
+  aspecto; la pieza `total`, el de todo ítem.
   Lo dibuja la **rejilla de la hoja** (`entities/rejilla-de-la-hoja.ts`, clases en `features/hoja/components/clases-de-la-rejilla.ts`): una
   pieza de N columnas toma su ancho cuando le tocan 16 rem; el PDF y la tarjeta no lo siguen.
 - **`tarjeta_total`:** el nodo total y sus `secundarios` (`aparte`). Un nodo aparece a lo sumo una vez. Nivel efectivo de un ítem: el
@@ -448,14 +450,16 @@ tarjeta_total: {nodo, secundarios[]} }`.
 ### Las reglas
 
 **Primero la forma (`forma`)**, el Zod de `diseno.ts`; **después, el tamaño (`demasiados_items`)**: a lo sumo 40 ítems sumando todas las
-secciones (principal o avanzado; la cabecera y la tarjeta no cuentan), con `donde` = la sección en la que la suma pasa del tope
-(`MAXIMO_DE_ITEMS_DEL_DISENO`; en la base, `_diseno_maximo_de_items()`). El borrador lo admite; publicar lo rechaza. **Después, 34 reglas
+secciones (principal o avanzado; la cabecera y `tarjeta_total` no cuentan, la pieza `total` sí), con `donde` = la sección en la que la suma pasa del tope
+(`MAXIMO_DE_ITEMS_DEL_DISENO`; en la base, `_diseno_maximo_de_items()`). El borrador lo admite; publicar lo rechaza. **Después, 37 reglas
 cruzadas** con código estable (lista en `entities/motivos-de-diseno.ts`; `donde` = id del nodo, sección, modo o grupo; en la base,
 `hint`), en pasadas: §1 los modos; §1b lo que la cabecera trae por defecto, todas con `donde` = `cabecera` y en este orden:
 `modo_por_defecto_inexistente`, cada modo visible en orden (`modo_visible_inexistente` y después `modo_visible_repetido`),
 `modo_por_defecto_oculto` (el modo por defecto efectivo —el escrito o el primero— no está entre los visibles; también la lista vacía) y
 `ver_total_bs_por_defecto_no_ofrecido` (encendido sin `ver_total_bs`; apagado siempre vale); §2–5 las secciones, la tarjeta, los atajos y la
-cobertura; §6 `tono_inexistente`, que revisa el tono de cada grupo, después el de la cabecera (`donde` = `cabecera`) y después el de cada
+cobertura (en §2, la pieza `total` se revisa entera antes de buscar un nodo, con `donde` = su sección: `total_repetido` —una sola en el
+diseño—, `total_en_avanzado` —sólo en una sección principal— y `total_con_nivel` —su sección no lleva `nivel_ver`: la ven todos—; no es el
+dibujo de un nodo, así que no cuenta para `nodo_repetido`, los atajos ni la cobertura); §6 `tono_inexistente`, que revisa el tono de cada grupo, después el de la cabecera (`donde` = `cabecera`) y después el de cada
 sección (`donde` = su id); §7 `ayuda_enlace_no_https` (`donde` = el nodo de la celda): la URL de un enlace de la ayuda cumple
 `^https://[!-~]+$` (ASCII imprimible sin espacios, la misma clase en JS y en Postgres: `URL_DE_ENLACE`). La forma de un enlace (de 1 a 5,
 `{titulo, url}`, los largos) es `forma`. Las de nivel: `nivel_no_admitido` (el total, lo `aparte` o la variante con nivel efectivo de ver que no es «todos»: la base
@@ -472,6 +476,7 @@ la pide.
 - **`formulas.diseno` y `formulas.visibilidad`** (jsonb): nulas sólo en un borrador. **Publicar exige el diseño** (22023
   `diseno_faltante`; `check` `formulas_publicada_con_diseno`, también en las archivadas).
 - **Guardar:** `formula_guardar_borrador(origen, definición, params, diseño, nota?, …)` valida la fórmula y sólo la **forma** del diseño.
+  Desde la Hoja, la definición va con los rótulos y formatos que el inspector editó (`edicion-de-nodos.ts`; sin cambios, la leída).
   **Publicar** (`formula_publicar()` → `_publicar_formula()`; el ⚙ y revertir → `_publicar_version()`): toma el borrador `for update` y
   los tonos de sus grupos y de su diseño (`_tonos_de_grupos()` y `_tonos_del_diseno()`) `for key share`, valida fórmula y diseño completo
   (`_preparar_publicacion()`) y compila `visibilidad`. Dos a la vez: PT409 («Versiones (4.20-1)»). `validar_diseno()` lee las secciones
@@ -772,7 +777,8 @@ lo que la hoja necesita para dibujarse. No lee `cotizaciones` ni el snapshot. **
 y `cotizaciones.ver` del origen); sin versión publicada, `{estado: 'sin_publicar', origen, puede_configurar}`; con ella, `{estado: 'lista',
 formula: {id, version}, abierta_en, abierta, cabecera, secciones, tarjeta_total, tonos}`. La `cabecera` es `{modos,
 ver_total_bs, moneda_bs, ajustes}` más su aspecto y, sólo si el diseño las trae, `modo_por_defecto`, `ver_total_bs_por_defecto` y
-`modos_visibles` (las copia tal cual: la hoja calcula lo efectivo).
+`modos_visibles` (las copia tal cual: la hoja calcula lo efectivo). La pieza `total` viaja a todos en su sección y su lugar
+(`{tipo: 'total', nodo, etiqueta, formato}` con su aspecto: el nodo de `tarjeta_total`), salvo con una variante en par; sin ella, como siempre.
 
 - **`cabecera.ajustes` (el ⚙ de la cabecera):** `cotizaciones.configurar` del origen **y** al menos un modo. La base decide quién lo ve,
   como el `ajustes` de cada celda; la hoja no mira permisos. Una cotización nueva abre con el modo por defecto (`modoInicial()`: el modo por

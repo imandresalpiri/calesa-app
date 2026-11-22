@@ -1,7 +1,7 @@
 // Dónde va un rechazo de forma del aspecto en el editor del diseño: de la ruta (`campo` de `forma`, la de Zod: `diseno.secciones.0.relleno`,
 // `diseno.secciones.2.items.1.alto`, `diseno.cabecera.tono`) a la pieza y la clave, para dibujar el error bajo su select. Nulo si no es una clave del aspecto
 // (el aviso general lo dice igual).
-import type { Diseno, ItemDeDiseno } from '../diseno'
+import { piezaDelItem, type Diseno, type PiezaEnLaSeccion } from '../diseno'
 
 const DEL_ITEM = ['ancho', 'alto', 'letra', 'enfasis']
 const DE_LA_SECCION = [
@@ -19,7 +19,7 @@ const DE_LA_CABECERA = ['tono', 'relleno', 'letra', 'enfasis']
 export type LugarDelRechazo =
   | { pieza: 'cabecera'; clave: string }
   | { pieza: 'seccion'; seccionId: string; clave: string }
-  | { pieza: 'item'; seccionId: string; tipo: ItemDeDiseno['tipo']; nodo: string; clave: string }
+  | { pieza: 'item'; seccionId: string; item: PiezaEnLaSeccion; clave: string }
 
 const indice = (texto: string | undefined) =>
   texto !== undefined && /^\d+$/.test(texto) ? Number(texto) : undefined
@@ -43,7 +43,7 @@ function deLaSeccion(
   }
   const it = a === 'items' ? s.items[indice(b) ?? -1] : undefined
   if (it === undefined || clave === undefined || !DEL_ITEM.includes(clave)) return null
-  return { pieza: 'item', seccionId: s.id, tipo: it.tipo, nodo: it.nodo, clave }
+  return { pieza: 'item', seccionId: s.id, item: piezaDelItem(it), clave }
 }
 
 export function campoDelRechazo(campo: string | undefined, d: Diseno): LugarDelRechazo | null {

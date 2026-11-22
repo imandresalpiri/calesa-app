@@ -18,6 +18,8 @@ import {
   type Enfasis,
   type ItemDeDiseno,
   type Letra,
+  type PiezaEnLaSeccion,
+  esLaPieza,
   type Relleno,
   type Separacion,
 } from '../diseno'
@@ -129,11 +131,11 @@ function anchoDe(item: ItemDeDiseno, ancho: AnchoDeCelda | null | undefined): De
   return entero(ancho, COLUMNAS_DE_LA_REJILLA) ? ancho : undefined
 }
 
-// El primer ítem de ese tipo y ese nodo en la sección (como `ponerAncho`).
+// La primera pieza así en la sección (`esLaPieza`).
 export function ponerAspectoDeItem(
   d: Diseno,
   seccionId: string,
-  item: { tipo: ItemDeDiseno['tipo']; nodo: string },
+  item: PiezaEnLaSeccion,
   c: CambioDeAspectoDeItem,
 ): Diseno {
   return conSeccion(d, seccionId, (s) => {
@@ -141,7 +143,7 @@ export function ponerAspectoDeItem(
     return {
       ...s,
       items: s.items.map((it) => {
-        if (hecho || it.tipo !== item.tipo || it.nodo !== item.nodo) return it
+        if (hecho || !esLaPieza(it, item)) return it
         hecho = true
         return aplicar(it, { ancho: anchoDe(it, c.ancho), alto: filasDe(c.alto), ...deTexto(c) })
       }),

@@ -11,6 +11,7 @@ import type {
   BorradorDelDisenoGuardado,
   DisenoParaEditar,
 } from '../../../entities/diseno/edicion-del-diseno'
+import { SIN_CAMBIOS_DE_NODOS } from '../../../entities/diseno/edicion-de-nodos'
 import { ponerNiveles } from '../../../entities/diseno/niveles'
 import { useGuardadoDelDiseno } from './use-guardar-diseno'
 
@@ -54,6 +55,9 @@ const montar = (l: DisenoParaEditar, trabajo = diseno) =>
         leida: l,
         disenoLeido: diseno,
         trabajo: t,
+        nodos: SIN_CAMBIOS_DE_NODOS,
+        definicion: formulaDePrueba,
+        bloqueo: null,
         envio,
         alReemplazar: () => undefined,
       }),

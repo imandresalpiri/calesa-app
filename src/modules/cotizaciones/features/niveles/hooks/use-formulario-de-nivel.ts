@@ -7,6 +7,7 @@ import {
   CLAVE_DEL_NOMBRE,
   normalizarNombreDeNivel,
   validarNivel,
+  type ListaDeNiveles,
   type NivelDeAcceso,
 } from '../../../entities/nivel'
 import { useRespuestaDelFormulario } from './use-respuesta-del-formulario'
@@ -19,12 +20,14 @@ type Args = {
   alCerrar: () => void
   // Cerrado (se descartó o se fue con «atrás»), lo que esperaba la red no sale.
   abierto: boolean
+  // Al crearse uno: su id y la lista que devolvió la base (el editor de la hoja lo deja elegido donde se pidió).
+  alCrear?: (id: string, lista: ListaDeNiveles) => void
 }
 
 // El estado del modal de un nivel: el nombre, el motivo junto al campo, el envío. El id del intento nace al abrir y se conserva en cada
 // reintento (guardar dos veces lo mismo no duplica). Un conflicto espera la versión nueva (la trae «Recargar») y **conserva lo escrito**; sin
 // conexión, lo escrito queda y sale solo al volver. Un envío a la vez lo cuida `useNiveles`: devuelve nulo si ya había uno en vuelo.
-export function useFormularioDeNivel({ niveles, original, alCerrar, abierto }: Args) {
+export function useFormularioDeNivel({ niveles, original, alCerrar, abierto, alCrear }: Args) {
   const router = useRouter()
   const [intento] = useState(() => crypto.randomUUID())
   const [nombre, setNombre] = useState(original?.nombre ?? '')
@@ -43,7 +46,9 @@ export function useFormularioDeNivel({ niveles, original, alCerrar, abierto }: A
     }
     respuesta.setAviso(null)
     if (!original) {
-      return respuesta.aplicar(await niveles.crear(intento, validado.nombre))
+      const envio = await niveles.crear(intento, validado.nombre)
+      if (envio?.ok && envio.data.id !== null) alCrear?.(envio.data.id, envio.data.lista)
+      return respuesta.aplicar(envio)
     }
     // Sin cambio no hay nada que guardar: se cierra.
     if (validado.nombre === original.nombre) {

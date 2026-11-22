@@ -10,7 +10,7 @@ import {
 import { elegir, type Azar, type Json, type Objeto } from './mutadores-de-formula'
 
 type Objetivo = (e: Entrada, azar: Azar) => Objeto | undefined
-const TIPOS = ['celda', 'atajos', 'variante', 'interruptor', 'subtotal']
+const TIPOS = ['celda', 'atajos', 'variante', 'interruptor', 'subtotal', 'total']
 const unaSeccion: Objetivo = (e, azar) => elegir(azar, secciones(e))
 const unItem =
   (...tipos: string[]): Objetivo =>

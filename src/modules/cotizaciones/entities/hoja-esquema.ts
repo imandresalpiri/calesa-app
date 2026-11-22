@@ -164,12 +164,22 @@ const esquemaSubtotal = z.object({
   ...anchoDeItem,
 })
 
+// La tarjeta del total donde el diseño la ubica (viaja a todos: el total lo ven todos). `nodo` es el de `tarjeta`; el monto sale de los totales.
+const esquemaTotal = z.object({
+  tipo: z.literal('total'),
+  nodo: esquemaId,
+  etiqueta: z.string().min(1),
+  formato: z.enum(FORMATOS),
+  ...anchoDeItem,
+})
+
 export const esquemaItem = z.discriminatedUnion('tipo', [
   esquemaCelda,
   esquemaAtajos,
   esquemaVariante,
   esquemaInterruptor,
   esquemaSubtotal,
+  esquemaTotal,
 ])
 
 const esquemaSeccion = z.object({

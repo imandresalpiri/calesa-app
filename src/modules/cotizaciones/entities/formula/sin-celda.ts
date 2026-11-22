@@ -27,7 +27,7 @@ function aparecen(definicion: Definicion, diseno: Diseno): Set<string> {
   const vistos = new Set<string>()
   for (const seccion of diseno.secciones) {
     for (const item of seccion.items) {
-      if (item.tipo === 'atajos') continue
+      if (item.tipo === 'atajos' || item.tipo === 'total') continue
       vistos.add(item.nodo)
       const nodo = porId.get(item.nodo)
       if (item.tipo === 'celda' && item.secundario !== undefined && nodo?.tipo === 'calculo') {

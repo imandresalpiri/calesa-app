@@ -5,8 +5,8 @@ import { EstiloDeTonos, SimbolosDeXCell } from '@/shared/ui/xcell'
 import { seccionSeDibuja, type ContextoDeHoja } from '../../../entities/binding'
 import type { HojaDeLaVistaPrevia } from '../../../entities/diseno/hoja-del-diseno'
 import { entradasIniciales, indiceDeHoja } from '../../../entities/entradas'
+import { hayTotalEnLaHoja } from '../../../entities/hoja'
 import type { RespuestaDeRecalculo } from '../../../entities/recalculo'
-import type { AccionesDeHoja } from '../../hoja/hooks/use-hoja'
 import { CabeceraDeHoja } from '../../hoja/components/cabecera-de-hoja'
 import {
   CONTENEDOR_DE_SECCIONES,
@@ -14,25 +14,13 @@ import {
 } from '../../hoja/components/clases-de-la-rejilla'
 import { ResumenDeHoja } from '../../hoja/components/resumen-de-hoja'
 import { SeccionDeHoja } from '../../hoja/components/seccion-de-hoja'
+import { ACCIONES_QUIETAS, ESTADO_AL_DIA, nada } from './editor/acciones-quietas'
 
 type Props = { hoja: HojaDeLaVistaPrevia; respuesta: RespuestaDeRecalculo | null }
 
-const nada = () => undefined
-// La hoja de prueba sólo se ve: sus acciones no hacen nada (y el marco la pone `inert`).
-const ACCIONES_QUIETAS: AccionesDeHoja = {
-  alConfirmar: nada,
-  alRestablecer: nada,
-  alAlternarBandera: nada,
-  alElegirVariante: nada,
-  alElegirModo: nada,
-  alElegirAtajo: nada,
-}
-
-const ESTADO_AL_DIA = { tipo: 'al_dia' } as const
-
 const plural = (n: number) => (n === 1 ? 'sección va' : 'secciones van')
 
-// La hoja de cotizar con el diseño que se edita (4.22-5): los mismos componentes de la hoja de verdad (cabecera, secciones y resumen), con su misma rejilla y sus mismos cortes por contenedor, sobre cifras
+// La hoja de cotizar con el diseño (la del celular, en sólo lectura): los mismos componentes de la hoja de verdad (cabecera, secciones y resumen), con su misma rejilla y sus mismos cortes por contenedor, sobre cifras
 // de prueba. No usa `LugaresDeLaHoja` (arrastra `?ayuda=` y `?panel=` de la URL, que aquí chocarían con la pestaña) ni dibuja las secciones «avanzado»: las nombra aparte.
 export function HojaDePrueba({ hoja, respuesta }: Props) {
   const indice = useMemo(
@@ -99,6 +87,7 @@ export function HojaDePrueba({ hoja, respuesta }: Props) {
           alRecargar={nada}
           guardar={null}
           avisoDeGuardado={null}
+          totalEnLaHoja={hayTotalEnLaHoja(hoja)}
         />
       </div>
     </div>

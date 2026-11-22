@@ -112,6 +112,6 @@ describe('index.ts del módulo cotizaciones: el diseño de la hoja', () => {
     expect(EFECTOS_DE_INTERRUPTOR).toEqual(['habilita', 'muestra'])
     expect(MAXIMO_DE_ATAJOS).toBe(12)
     expect(NIVEL_TODOS).toBe('todos')
-    expect(REGLAS_DE_DISENO).toHaveLength(36)
+    expect(REGLAS_DE_DISENO).toHaveLength(39)
   })
 })

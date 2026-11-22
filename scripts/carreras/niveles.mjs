@@ -1,5 +1,5 @@
 // Las carreras de los niveles de acceso (paso 4.09, prompts 1 y 2): dos `nivel_crear` con la misma clave, eliminar un nivel mientras otra persona publica un diseño que
-// lo nombra (en los dos órdenes), eliminar contra retirar y renombrar, y restaurar contra retirar y contra eliminar (4-12). Cada una abre una transacción de A y deja a B esperando un lock (el arnés de
+// lo nombra (en los dos órdenes, también con la tarjeta del total como pieza), eliminar contra retirar y renombrar, y restaurar contra retirar y contra eliminar (4-12). Cada una abre una transacción de A y deja a B esperando un lock (el arnés de
 // `scripts/carreras.mjs`): si B no espera, la carrera no se probó. Trabaja en niveles y orígenes propios (prefijo «Carreras»).
 // Después de cada una vale el invariante: ninguna versión publicada o archivada nombra un nivel que no existe.
 import { PERSONAS, PREFIJO, comoPersona } from './terreno.mjs'
@@ -43,6 +43,21 @@ const disenoCon = (clave) => ({
   ],
   tarjeta_total: { nodo: 'total', secundarios: [] },
 })
+// La tarjeta del total como pieza (`{ tipo: 'total' }`) en una sección que nombra el nivel `clave` sólo para editar: la pieza la ven todos, así que la
+// sección no lleva nivel de ver.
+const disenoConLaPieza = (clave) => ({
+  cabecera: { modos: [], ver_total_bs: false },
+  secciones: [
+    {
+      id: 'resumen',
+      presentacion: 'principal',
+      nivel_editar: clave,
+      items: [{ tipo: 'total', ancho: 6, enfasis: 'fuerte' }, celda('a'), celda('b')],
+    },
+    { id: 'abierta', presentacion: 'principal', items: [celda('c'), celda('d')] },
+  ],
+  tarjeta_total: { nodo: 'total', secundarios: [] },
+})
 
 let numero = 0
 // Un nivel con sus dos permisos (en una sola sentencia: el trigger diferido los exige al cerrar) y un origen propio. `retirado`: nace ya retirado.
@@ -67,11 +82,11 @@ async function terreno(db, etiqueta, retirado = false) {
   return { id: nivel.id, clave, v: nivel.v, origen: origen.id }
 }
 
-const publica = (t, nota) => ({
+const publica = (t, nota, diseno = disenoCon) => ({
   persona,
   consulta: `with g as (select public.formula_guardar_borrador($1, $2::jsonb, '{}'::jsonb, $3::jsonb) as id)
              select public.formula_publicar($1, $4) as r from g`,
-  args: [t.origen, JSON.stringify(definicion), JSON.stringify(disenoCon(t.clave)), nota],
+  args: [t.origen, JSON.stringify(definicion), JSON.stringify(diseno(t.clave)), nota],
 })
 
 // El invariante de 4.09: ninguna versión publicada o archivada nombra, en su diseño o su visibilidad, un nivel que no existe.
@@ -104,6 +119,15 @@ const permisos = async (db, clave) =>
     (await db.query(`select count(*) as n from public.permisos where nivel_clave = $1`, [clave]))
       .rows[0].n,
   )
+// La versión publicada del origen trae la pieza del total.
+const publicadaConLaPieza = async (db, origen) =>
+  (
+    await db.query(
+      `select exists (select 1 from public.formulas f, jsonb_array_elements(f.diseno -> 'secciones') s, jsonb_array_elements(s -> 'items') i
+                       where f.origen_id = $1 and f.estado = 'publicada' and i ->> 'tipo' = 'total') as r`,
+      [origen],
+    )
+  ).rows[0].r === true
 const versiones = async (db, origen) =>
   Number(
     (
@@ -195,6 +219,54 @@ export async function carrerasDeNiveles({ orquesta, carrera, espero, conectar, e
         (await existe(orquesta, t.clave)) &&
         (await permisos(orquesta, t.clave)) === 2 &&
         (await versiones(orquesta, t.origen)) === 1 &&
+        (await invariante(orquesta)),
+      { a: r.a, b: r.b },
+    )
+  }
+
+  // Con la tarjeta del total como pieza. Retirar el nivel mientras se publica no es carrera: retirar toma la fila `for no key update` (cambia
+  // `retirado_en`, que no es clave) y publicar, `for key share`; no chocan, B nunca espera y un nivel retirado sigue valiendo en una versión
+  // publicada. Eliminar sí choca (`for update`): es la carrera que cabe.
+  console.log(
+    'Eliminar un nivel mientras se publica un diseño con la tarjeta del total en una sección que lo nombra',
+  )
+  {
+    const t = await terreno(orquesta, 'eliminapieza')
+    const r = await carrera(orquesta, {
+      a: { persona, sql: 'public.nivel_eliminar($1, $2::timestamptz)', args: [t.id, t.v] },
+      b: publica(t, 'Con la pieza', disenoConLaPieza),
+    })
+    // La pieza no tapa al nivel: al llegar, publicar lo busca, no está y lo dice en la sección de la pieza.
+    espero(
+      'elimina primero: publicar da nivel_inexistente (22023) en «resumen» y no queda versión, ni nivel, ni permisos',
+      r.a.ok &&
+        r.b.codigo === '22023' &&
+        r.b.hint === 'resumen' &&
+        !(await existe(orquesta, t.clave)) &&
+        (await permisos(orquesta, t.clave)) === 0 &&
+        (await versiones(orquesta, t.origen)) === 0 &&
+        (await invariante(orquesta)),
+      { a: r.a, b: r.b },
+    )
+  }
+
+  console.log(
+    'Publicar un diseño con la tarjeta del total en una sección que nombra un nivel mientras se lo elimina',
+  )
+  {
+    const t = await terreno(orquesta, 'publicapieza')
+    const r = await carrera(orquesta, {
+      a: publica(t, 'Primero publica con la pieza', disenoConLaPieza),
+      b: { persona, sql: 'public.nivel_eliminar($1, $2::timestamptz)', args: [t.id, t.v] },
+    })
+    espero(
+      'publica primero: eliminar da nivel_en_uso (23503) y el nivel, sus permisos y la versión con la pieza siguen',
+      r.a.ok &&
+        r.b.codigo === '23503' &&
+        (await existe(orquesta, t.clave)) &&
+        (await permisos(orquesta, t.clave)) === 2 &&
+        (await versiones(orquesta, t.origen)) === 1 &&
+        (await publicadaConLaPieza(orquesta, t.origen)) &&
         (await invariante(orquesta)),
       { a: r.a, b: r.b },
     )

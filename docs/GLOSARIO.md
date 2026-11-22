@@ -789,16 +789,25 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Hoja (pestaña)** — `/configuracion/origenes/<id>/hoja` (`?formula=<id>`), clave `hoja` de `PARTES_DEL_ORIGEN`: el nombre en la UI de la
   pestaña de la página del origen donde se edita el diseño de la hoja de una fórmula («Cómo se ve y se llena la cotización.»). El término técnico sigue siendo «Diseño de la hoja»
   (`features/diseno/`); la «Hoja» de cotizar es la pantalla donde se cotiza.
+- **Inspector de la hoja** — `InspectorDeLaHoja` (`cotizaciones/features/diseno/components/inspector/`), `?pieza=`: el panel a la derecha del lienzo del
+  editor de la hoja con lo que se edita de la pieza elegida (una celda, unos atajos, una variante, un interruptor, un subtotal, una sección, la cabecera o la
+  tarjeta del total): rótulo y formato, columnas, niveles, ayuda y aspecto. Sin pieza elegida muestra «Sin lugar en la hoja (N)», las filas que la fórmula
+  muestra y la hoja todavía no ubica. La pieza va en la URL (`textoDeLaPieza()`, `entities/diseno/pieza-de-la-hoja.ts`); Esc o «×» lo cierran. No es el
+  **Inspector de fase**. No: «panel de propiedades», «formulario de la pieza».
+- **Pieza (de la hoja)** — `PiezaDeLaHoja` (`entities/diseno/pieza-de-la-hoja.ts`, `?pieza=`) y `ClaveDePieza` (`entities/diseno.ts`): lo que se elige en el lienzo del editor de la
+  hoja: una sección (`seccion-<id>`), un ítem del diseño (una celda, unos atajos, una variante, un interruptor o un subtotal, por su nodo; la tarjeta del total,
+  `tarjeta-del-total`) o la cabecera (`cabecera-de-la-hoja`). Se elige, se mueve, se suma y se quita en el lienzo, y se edita en el inspector.
 - **Barra de la fórmula** — `BarraDeLaFormulaDelOrigen`, `<ConLaBarraDeLaFormula>`, `<AccionesEnLaBarra>` (`cotizaciones/features/barra-de-la-formula/`): la
   barra de arriba de las pestañas Planilla, Hoja y Tarjeta de la página del origen: el selector «Fórmula: X (activa) ▾» (la elegida va en `?formula=`), el estado de
-  lo que se edita, «Versiones» (el drawer de las publicadas, `?panel=versiones`), «Tablas» (el drawer de las tablas, `?panel=tablas`) y los botones del editor (Guardar, Publicar), que cada editor manda a la ranura con `<AccionesEnLaBarra>`. Fuera de la
+  lo que se edita, «Versiones» (el drawer de las publicadas, `?panel=versiones`), «Tablas» (el drawer de las tablas, `?panel=tablas`) y los botones del editor (Guardar, Publicar), que cada editor manda a la ranura con `<AccionesEnLaBarra>`. En la Hoja,
+  «Publicar…» es el de la Planilla (`PublicarEnLaHoja`), que espera mientras haya cambios sin guardar. Fuera de la
   página del origen (la puesta en marcha) los botones quedan en su lugar. No: «barra de edición», «toolbar».
 - **Estado de la edición** — `EstadoDeLaEdicion` (`cotizaciones/entities/estado-de-la-edicion.ts`), `useEstadoEnLaBarra()`: lo que dice la barra de la fórmula de lo que
   se edita: «Cambios sin guardar», «Borrador» o «Publicada vN» (lo no guardado manda).
 - **Aspecto** — claves planas y opcionales del diseño de la hoja / `entities/aspecto-de-la-hoja.ts`, `features/hoja/components/clases-de-la-rejilla.ts`:
   cómo se ve una pieza, de escalas cerradas (nunca px, CSS ni hex). Ítem: ancho, alto, letra y énfasis; sección: ancho, alto, relleno,
   separación, densidad, letra, énfasis y color (clave `tono`); cabecera: color, relleno, letra y énfasis. Sin la clave, lo de siempre; el editor quita la clave
-  en vez de escribir el valor por defecto. El PDF, la tarjeta y el resumen no lo siguen.
+  en vez de escribir el valor por defecto. El PDF y la tarjeta no lo siguen.
 - **Rejilla de la hoja** — `entities/rejilla-de-la-hoja.ts` (`corteDe()`, `columnasDeLaCelda()`): las 12 columnas de cada sección (sus ítems) y
   las 12 de las secciones. Una pieza de N columnas toma su ancho cuando le tocan 16 rem o más; si no, la fila entera. Una sección sin ancho es
   «Automática» (la mitad desde 64 rem del contenedor de las secciones).
@@ -845,15 +854,18 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Sección (de la hoja)** — `diseno.secciones[]`: bloque de ítems con título, presentación (`principal` o `avanzado`), nivel opcional y su
   aspecto (ancho y alto en la rejilla de las secciones, relleno, separación, densidad, letra, énfasis y color). Su orden es el de la hoja.
 - **Celda (de la hoja)** — ítem `celda` del diseño: la `XCell` de un nodo: ancho (de 1 a 12 columnas; `completo`, `mitad` y `tercio` de los
-  diseños guardados son 12, 6 y 4), alto, letra, énfasis, ayuda y niveles. Se ordena dentro de su sección.
+  diseños guardados son 12, 6 y 4), alto, letra, énfasis, ayuda y niveles. Se mueve dentro de su sección o a otra (hereda el nivel de la nueva: el
+  inspector lo avisa).
 - **Ayuda (de una celda)** — `ayuda` de una `celda`: texto o tabla de referencia que abre «Ayuda de X» en un panel de sólo lectura
   (`?ayuda=texto|tabla&nodo=<id>`); la tabla se lee con la hoja abierta. El texto puede llevar hasta 5 **enlaces** (`ayuda.enlaces[]`,
   `EnlaceDeAyuda`: título de hasta 60 caracteres y URL `https://`), que se abren en otra pestaña bajo «Consulta estas fuentes».
 - **Secundario (de una celda)** — `secundario` de una `celda`: el % (o monto) junto al valor en un `porcentaje_de`; obligatorio si el monto se
   sobrescribe. Va chico y detrás; con `como: 'monto'` el % va grande y primero (`secondaryProminent` de la XCell).
 - **Subtotal (de la hoja)** — ítem `subtotal` del diseño: un nodo de cálculo dibujado como franja (el «CIF» de «avanzado»).
-- **Tarjeta del total** — `diseno.tarjeta_total`: resumen fijo (al pie en celular): nodo total y secundarios; no se ubica en el diseño. El total
-  va en una tarjeta de superficie invertida pegada arriba del resumen, con la etiqueta en mayúsculas (`clases-del-total.ts`).
+- **Tarjeta del total** — `diseno.tarjeta_total` (nodo total y secundarios) y la pieza `{ tipo: 'total' }` del diseño (`TotalDeHoja`): la tarjeta de
+  superficie invertida con el total, la etiqueta en mayúsculas (`clases-del-total.ts`). La pieza dice en qué sección principal y lugar se dibuja, con el
+  aspecto de todo ítem; va una sola, en una sección principal que ven todos (`total_repetido`, `total_en_avanzado`, `total_con_nivel`). Con la pieza, en
+  escritorio se dibuja en su sección y el resumen no la repite; en el celular sigue en el resumen fijo al pie. Sin ella (un diseño de antes), arriba del resumen.
 - **Contexto del diseño** — `ContextoDeDiseno` / argumentos de `validar_diseno()`: niveles existentes y retirados y claves de los colores; «todos»
   siempre existe.
 - **Visibilidad (de un nodo)** — `formulas.visibilidad` / `_compilar_visibilidad()`: `{nodo: {ver, editar}}` por nivel, compilado al publicar.
