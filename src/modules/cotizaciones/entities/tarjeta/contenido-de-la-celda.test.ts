@@ -5,6 +5,7 @@ import type { ContenidoDeLaCelda } from '../cuadricula-de-la-tarjeta'
 import { textoConDatosDibujado } from './contenido-de-la-celda'
 import { geometriaDeLaTarjeta, type CeldaDibujada, type Geometria } from './geometria-de-la-tarjeta'
 import { tarjetaDesde, type TarjetaLista } from './lectura-de-la-tarjeta'
+import { filasDelModo } from './retoques/modo-de-la-tarjeta'
 import {
   calculoDePrueba,
   CONTEXTO_DE_PRUEBA,
@@ -118,6 +119,17 @@ describe('el texto con datos en la geometría', () => {
       }),
     )
     expect(g.ocultas.find((o) => o.fila === 'n_fees')?.etiqueta).toBe('Fees de la cotización 12')
+  })
+
+  it('un texto con un monto no nombra su fila (el Modo Live no taparía la cifra en un nombre): va el siguiente texto o el nodo', () => {
+    const g = geometria(tarjetaCon({ c_fees: { tipo: 'texto', partes: ['Fees ', TOTAL] } }))
+    expect(g.ocultas.find((o) => o.fila === 'n_fees')?.etiqueta).toBe('Fees')
+    const conLaNota = geometria(
+      tarjetaCon({ c_asesor_rotulo: { tipo: 'texto', partes: ['Total ', TOTAL] } }),
+    )
+    const asesor = filasDelModo(conLaNota, new Set()).find((f) => f.id === 'asesor')
+    expect(asesor?.rotulo).not.toMatch(/1\.355/)
+    expect(asesor?.rotulo).not.toBe('')
   })
 
   it('«Copiar texto» lo copia con cifras', () => {

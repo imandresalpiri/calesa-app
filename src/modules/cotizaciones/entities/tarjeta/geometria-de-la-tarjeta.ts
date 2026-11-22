@@ -122,10 +122,11 @@ function marcaDelDato(
   return { nodo: dato.nodo, mostrar: dato.mostrar, ...(total ? { total: true as const } : {}) }
 }
 
-// El rótulo de una fila: el primer texto (o la etiqueta de un nodo) de sus celdas, en orden de columna.
+// El rótulo de una fila: el primer texto (o la etiqueta de un nodo) de sus celdas, en orden de columna. Nunca un texto con un monto (`tramos`): un nombre no
+// lleva una cifra, que el Modo Live no taparía.
 function rotuloDe(celdas: readonly CeldaDibujada[], porDefecto: string): string {
   for (const c of celdas) {
-    if (c.contenido.tipo !== 'texto') continue
+    if (c.contenido.tipo !== 'texto' || c.contenido.tramos !== undefined) continue
     const t = c.contenido.lineas.join(' ').trim()
     if (t !== '') return t
   }

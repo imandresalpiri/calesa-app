@@ -17,12 +17,14 @@ export type FilaDelModo = {
   rotulo: string
 }
 
-// Las filas que se dibujan, con su rótulo (el primer texto de sus celdas, en orden de columna) y si el borrador las oculta. La geometría es la del modo (con
-// las filas ocultas dibujadas).
+// Las filas que se dibujan, con su rótulo (el primer texto de sus celdas, en orden de columna, salvo uno con un monto: el Modo Live no lo taparía en un nombre)
+// y si el borrador las oculta. La geometría es la del modo (con las filas ocultas dibujadas).
 export function filasDelModo(geometria: Geometria, ocultas: ReadonlySet<string>): FilaDelModo[] {
   return geometria.filas.map((f, i) => {
     const texto = geometria.celdas
-      .filter((c) => c.fila === f.id && c.contenido.tipo === 'texto')
+      .filter(
+        (c) => c.fila === f.id && c.contenido.tipo === 'texto' && c.contenido.tramos === undefined,
+      )
       .map((c) => (c.contenido.tipo === 'texto' ? c.contenido.lineas.join(' ').trim() : ''))
       .find((t) => t !== '')
     return {

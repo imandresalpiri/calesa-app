@@ -1215,7 +1215,9 @@ plantilla). Sólo el texto de las celdas `texto` de la cuadrícula (también un 
 por un texto fijo, y el campo arranca con su texto resuelto, contra el que se compara: reponerlo no es un retoque, `textosConDatosResueltos()`) y filas enteras: nunca las celdas de `dato` (montos, etiquetas, tipos de cambio,
 variables), las de una lista de respaldo o unas condiciones (aunque la rama que se dibuja sea un texto: `celda_no_es_texto`; el modo dice «Esta celda cambia
 según la cotización: no se retoca.»), el logo, los colores, los tamaños, las columnas ni las combinaciones. Una fila que se oculta según condiciones se
-puede ocultar a mano.
+puede ocultar a mano. Con el Modo Live, un texto con datos que lleva un monto no abre su campo (dice «Este texto lleva un monto: apaga el Modo Live para
+cambiarlo.») y su botón lo nombra con el monto tapado («•••», `entities/tarjeta/retoques/live-del-modo.ts`); el rótulo de una fila nunca es un texto con
+un monto (en el modo y en las filas ocultas: ningún nombre lleva una cifra).
 
 - **`validar_retoques(retoques, plantilla)`**: STABLE, invocadora, `search_path` vacío, sin leer tablas; 22023 con la regla en DETAIL y el `donde` en
   HINT; el primer rechazo manda. Con la plantilla nula, toda celda y toda fila es inexistente. En este orden: `forma` (el objeto, `retoques`),

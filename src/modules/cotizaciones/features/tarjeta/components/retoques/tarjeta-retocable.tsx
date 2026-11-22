@@ -1,8 +1,13 @@
 'use client'
 
 import { useState, type PointerEvent } from 'react'
+import { useLive } from '@/shared/ui/live'
 import type { PlantillaEnCuadricula } from '../../../../entities/cuadricula-de-la-tarjeta'
 import type { Geometria } from '../../../../entities/tarjeta/geometria-de-la-tarjeta'
+import {
+  campoTapadoPorLive,
+  MOTIVO_DEL_TEXTO_CON_UN_MONTO,
+} from '../../../../entities/tarjeta/retoques/live-del-modo'
 import { filaEnY } from '../../../../entities/tarjeta/retoques/modo-de-la-tarjeta'
 import type { ModoRetocar } from '../../hooks/use-modo-retocar'
 import { useTarjetaRetocable } from '../../hooks/use-tarjeta-retocable'
@@ -21,15 +26,17 @@ type Props = {
   plantilla: PlantillaEnCuadricula
 }
 
-// El campo de la celda elegida, con el texto del borrador (o el de la plantilla, si todavía no se retocó).
+// El campo de la celda elegida, con el texto del borrador (o el de la plantilla, si todavía no se retocó); con Live, tapado si lleva un monto.
 function CampoDeLaElegida({
   modo,
   t,
   geometria,
+  live,
 }: {
   modo: ModoRetocar
   t: DeLaTarjeta
   geometria: Geometria
+  live: boolean
 }) {
   const { celdaElegida: celda, lugar } = t
   if (celda === undefined || lugar === null) return null
@@ -42,6 +49,7 @@ function CampoDeLaElegida({
       escala={t.escala}
       anchoDelMarco={geometria.ancho * t.escala}
       error={t.errorDe('celda', celda.id)}
+      tapado={campoTapadoPorLive(celda, live) ? MOTIVO_DEL_TEXTO_CON_UN_MONTO : null}
       enCurso={modo.enCurso}
       alEscribir={(texto) => {
         modo.escribir(celda.id, texto)
@@ -57,10 +65,12 @@ function CapaDeCeldas({
   modo,
   t,
   geometria,
+  live,
 }: {
   modo: ModoRetocar
   t: DeLaTarjeta
   geometria: Geometria
+  live: boolean
 }) {
   const { escala } = t
   return (
@@ -87,6 +97,7 @@ function CapaDeCeldas({
             elegida={t.celdaElegida?.id === c.id}
             largo={t.largo === c.id}
             rotulo={t.porId.get(c.fila)?.rotulo ?? c.fila}
+            live={live}
             enCurso={modo.enCurso}
             alTocar={() => {
               if (esTexto) modo.elegirCelda(c.id)
@@ -96,7 +107,7 @@ function CapaDeCeldas({
         )
       })}
       {t.lugar === 'en_la_celda' ? (
-        <CampoDeLaElegida modo={modo} t={t} geometria={geometria} />
+        <CampoDeLaElegida modo={modo} t={t} geometria={geometria} live={live} />
       ) : null}
     </div>
   )
@@ -106,6 +117,7 @@ function CapaDeCeldas({
 // de filas y, con algo elegido, el campo de la celda (encima de ella o bajo la tarjeta) o la fila elegida.
 export function TarjetaRetocable({ modo, geometria, logo, plantilla }: Props) {
   const { ref, ...t } = useTarjetaRetocable(modo, geometria, plantilla)
+  const { live } = useLive()
   const [bajoElPuntero, setBajoElPuntero] = useState<string | null>(null)
   const [conFoco, setConFoco] = useState<string | null>(null)
   const alMover = (e: PointerEvent<HTMLDivElement>) => {
@@ -124,7 +136,7 @@ export function TarjetaRetocable({ modo, geometria, logo, plantilla }: Props) {
           }}
         >
           <TarjetaDeCotizacion geometria={geometria} logo={logo} />
-          <CapaDeCeldas modo={modo} t={t} geometria={geometria} />
+          <CapaDeCeldas modo={modo} t={t} geometria={geometria} live={live} />
         </div>
         <CanalDeFilas
           filas={t.filas}
@@ -138,7 +150,7 @@ export function TarjetaRetocable({ modo, geometria, logo, plantilla }: Props) {
         />
       </div>
       {t.lugar === 'ancho_del_modal' ? (
-        <CampoDeLaElegida modo={modo} t={t} geometria={geometria} />
+        <CampoDeLaElegida modo={modo} t={t} geometria={geometria} live={live} />
       ) : null}
       {t.filaElegida === undefined ? null : (
         <FilaElegida
