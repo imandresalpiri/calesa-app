@@ -40,8 +40,14 @@ const esquemaDeLaCondicion = z.discriminatedUnion('es', [
 ])
 const condiciones = z.array(esquemaDeLaCondicion).min(1)
 const esquemaSimple = z.union([texto, esquemaDelDato, vacio])
+// El texto con datos: sus partes, cada una un texto o un dato.
+const textoConDatos = z.object({
+  tipo: z.literal('texto'),
+  partes: z.array(z.union([z.string(), esquemaDelDato])).min(1),
+})
 
 const esquemaDelContenido = z.union([
+  textoConDatos,
   texto,
   esquemaDelDato,
   z.object({ tipo: z.literal('logo') }),

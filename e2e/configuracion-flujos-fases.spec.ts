@@ -148,16 +148,18 @@ test('la dueña edita los datos de una fase en el inspector', async ({ page }) =
 
   // Una fase no es inicial y final a la vez: lo dice la regla junto al interruptor y la base no recibe nada.
   let inspector = await abrirInspector(page, 'E2E 5.04 Compra')
+  await expect(inspector.getByRole('tab', { name: 'Reglas', selected: true })).toBeVisible()
+  await inspector.getByRole('tab', { name: 'Identidad' }).click()
+  await expect(inspector.getByLabel('Nombre', { exact: true })).toBeVisible()
+  await inspector.getByRole('tab', { name: 'Ajustes' }).click()
   for (const bloque of [
-    'Identidad',
     'En el flujo',
     'Alerta por demora',
     'Transporte y aduana',
     'Web y portal',
   ]) {
-    await expect(inspector.getByText(bloque, { exact: true })).toBeVisible()
+    await expect(inspector.getByRole('heading', { name: bloque, level: 3 })).toBeVisible()
   }
-  await inspector.getByText('En el flujo', { exact: true }).click()
   await inspector.getByRole('switch', { name: 'Es final' }).click()
   await inspector.getByRole('button', { name: 'Guardar', exact: true }).click()
   await expect(inspector.getByText('Una fase no puede ser inicial y final a la vez.')).toBeVisible()
@@ -167,26 +169,28 @@ test('la dueña edita los datos de una fase en el inspector', async ({ page }) =
 
   // Marcar otra inicial no desmarca la primera: se avisa. La descripción se guarda y sobrevive a recargar.
   inspector = await abrirInspector(page, 'E2E 5.04 Puerto')
-  await inspector.getByText('En el flujo', { exact: true }).click()
+  await inspector.getByRole('tab', { name: 'Ajustes' }).click()
   await inspector.getByRole('switch', { name: 'Es inicial' }).click()
   await expect(
     inspector.getByText('Ya es inicial «E2E 5.04 Compra»', { exact: false }),
   ).toBeVisible()
+  await inspector.getByRole('tab', { name: /^Identidad/ }).click()
   await inspector.getByLabel('Descripción', { exact: true }).fill('Donde espera el vehículo')
   await inspector.getByRole('button', { name: 'Guardar', exact: true }).click()
   await expect(page.getByText('Fase «E2E 5.04 Puerto» guardada.')).toBeVisible()
   await page.reload()
   inspector = page.getByRole('dialog')
+  await expect(inspector.getByRole('tab', { name: 'Identidad', selected: true })).toBeVisible()
   await expect(inspector.getByLabel('Descripción', { exact: true })).toHaveValue(
     'Donde espera el vehículo',
   )
-  await inspector.getByText('En el flujo', { exact: true }).click()
+  await inspector.getByRole('tab', { name: 'Ajustes' }).click()
   await expect(inspector.getByRole('switch', { name: 'Es inicial' })).toBeChecked()
   await cerrarInspector(page)
 
   // Visible en el portal pide el nombre para el cliente: el error va junto al campo, con el foco.
   inspector = await abrirInspector(page, 'E2E 5.04 Cierre')
-  await inspector.getByText('Web y portal', { exact: true }).click()
+  await inspector.getByRole('tab', { name: 'Ajustes' }).click()
   await inspector.getByRole('switch', { name: 'Visible en el portal' }).click()
   await inspector.getByRole('button', { name: 'Guardar', exact: true }).click()
   await expect(
@@ -199,7 +203,7 @@ test('la dueña edita los datos de una fase en el inspector', async ({ page }) =
   await expect(page.getByText('Fase «E2E 5.04 Cierre» guardada.')).toBeVisible()
   await page.reload()
   inspector = page.getByRole('dialog')
-  await inspector.getByText('Web y portal', { exact: true }).click()
+  await expect(inspector.getByRole('tab', { name: 'Ajustes', selected: true })).toBeVisible()
   await expect(inspector.getByLabel('Nombre para el cliente', { exact: false })).toHaveValue(
     'Cierre del trámite',
   )

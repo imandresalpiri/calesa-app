@@ -21,7 +21,6 @@ export const eliminarNivel = actionClient
     const hecho = comoResultado(await repositorioDeNiveles.eliminar(parsedInput))
     if (hecho.ok) {
       // La pantalla de niveles y la matriz de Roles (que muestra los permisos de cada nivel) cambian con él.
-      revalidatePath(RUTAS.catalogos, 'layout')
       revalidatePath(RUTAS.roles)
     }
     return hecho

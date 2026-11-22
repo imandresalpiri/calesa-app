@@ -1,24 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import type { CeldaDeLaTarjeta, PlantillaEnCuadricula } from '../cuadricula-de-la-tarjeta'
-import { leer, sembrada, SEMILLAS, type Clave } from '../semilla-lectura'
+import { plantillaV1DeLaSemilla, sembrada, SEMILLAS, type Clave } from '../semilla-lectura'
 import { convertirPlantilla } from './convertir-plantilla'
 import type { Plantilla } from './forma-de-plantilla'
 import type { ContextoDeNodos, DefinicionParaPlantilla } from './nodos-de-plantilla'
 import { validarPlantilla } from './validar-plantilla'
 
-// La semántica de la conversión sobre las plantillas sembradas (`supabase/semillas/cotizador-*.sql`, la copia que lee `semilla-lectura.ts`): las mismas filas
+// La semántica de la conversión sobre la forma 1 de cada semilla (`plantillaV1DeLaSemilla()`: la de USA, del fixture; la de oficina, sembrada): las mismas filas
 // por grupo con su color, el título del grupo que abarca a sus miembros, cada miembro con `no_aplica`, el total, lo aparte, la nota y el logo. El espejo exacto
 // con la base es el juego `casos-de-conversion.json`; que lo convertido valide contra la visibilidad compilada de verdad, T2 de `plantilla-convertir.sql`.
 const TONOS = ['verde', 'amarillo', 'naranja']
 
-function plantillaSembrada(clave: Clave): Plantilla {
-  const sql = leer(SEMILLAS[clave])
-  const m = /update public\.plantillas_tarjeta p set definicion = \$j\$([\s\S]*?)\$j\$::jsonb/.exec(
-    sql,
-  )
-  if (m?.[1] === undefined) throw new Error(`${clave}: sin plantilla`)
-  return JSON.parse(m[1]) as Plantilla
-}
+const plantillaSembrada = (clave: Clave) => plantillaV1DeLaSemilla(clave) as Plantilla
 
 // Todo del nivel «todos»: la regla de qué viaja la prueba la base; aquí, la forma.
 function contextoDe(clave: Clave): ContextoDeNodos {

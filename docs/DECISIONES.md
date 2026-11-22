@@ -238,7 +238,7 @@ las trampas, en `docs/LECCIONES.md`.
   versión: un cambio ajeno no borra lo escrito, se dice en el panel (`PT409`) con «Recargar», que trae lo guardado y conserva lo tipeado.
   Los leads conservan su puerta: sin `leads.campos.gestionar` no se entra (el origen sí se ve en sólo lectura con su motivo).
 - **Las redirecciones que dependen de la consulta o de la persona van en un `route.ts` con 308.** Las fijas, en `next.config.ts` (`:origen` restringido a un uuid, para no tragarse `general`); las de las raíces sin índice (`/configuracion/catalogos`, `/configuracion/origenes/<id>`) y las URL viejas (`/configuracion/cotizacion|flujos|logistica`), en un `route.ts` con su `url-vieja.ts` puro y probado, que conserva la consulta salvo lo que la ruta nueva ya dice (`seccion`, `origen`, `ambito`). Una que depende de los permisos lleva `Cache-Control: private, no-store` (`redireccionPermanente(destino, { porPersona: true })`): un 308 se cachea y otra persona en el mismo navegador iría al destino de la primera. Lo que no se resuelve va a la lista de orígenes o al inicio de Configuración, nunca a un error.
-- **Catálogos: lo de toda la empresa, en tramos del menú y sin pestañas.** Niveles y Quién crea y quién ve (de las cotizaciones), Puertos, Navieras, Categorías de gasto y Tipos de documento (de la logística) y las Tablas compartidas, cada uno su sub-ruta `/configuracion/catalogos/<clave>`; el menú los agrupa con un rótulo por tramo («Cotizaciones», «Logística») y las Tablas compartidas van sin rótulo (uno de un solo ítem repite el nombre). Tipos de documento conserva sus tres permisos: los cambia quien gestiona los catálogos de logística y los leen quien configura un flujo o los repuestos. Las tablas compartidas se editan también desde el drawer de las tablas de un origen que las usa, con el aviso de a quién le cambian.
+- **Catálogos: lo de toda la empresa, en tramos del menú y sin pestañas.** Puertos, Navieras, Categorías de gasto y Tipos de documento (de la logística) y las Tablas compartidas, cada uno su sub-ruta `/configuracion/catalogos/<clave>`; el menú los agrupa con un rótulo («Logística») y las Tablas compartidas van sin rótulo (uno de un solo ítem repite el nombre). Tipos de documento conserva sus tres permisos: los cambia quien gestiona los catálogos de logística y los leen quien configura un flujo o los repuestos. Las tablas compartidas se editan también desde el drawer de las tablas de un origen que las usa, con el aviso de a quién le cambian.
 - **Colores y Vigencia viven en Orígenes, en «Para todos los orígenes».** Lo que vale para todas las cotizaciones de la empresa se configura donde la persona ya busca «de dónde vienen y cómo se cotizan»: arriba de la lista de orígenes, dos tarjetas de ajustes (Colores y Vigencia) con su modal por `?panel=colores|vigencia`, no catálogos con página. Cada tarjeta lleva sólo su «⋯» y tocarla la abre: una tarjeta tocable es un botón que la cubre (`absolute inset-0`) con las acciones `relative` por encima, para que ningún interactivo quede dentro de otro y el teclado vea un botón con nombre («Editar colores») y el «⋯» aparte. La lista de colores es el modal «Colores»; «Nuevo», «Editar» y «Eliminar» son ventanas hermanas que vuelven a la lista al cerrar (`usePanelPorUrl` con `volverA`, como la familia de Leads) y conservan sus nombres de `?panel=` técnicos. Cada tarjeta lee lo suyo tras su `<Suspense>` y su límite de error: una lectura que falla deja esa tarjeta con «Reintentar» y la lista de orígenes sigue. Sin `cotizaciones.configurar` el bloque no se dibuja; por URL el panel no abre y se limpia. Las URLs viejas (`/catalogos/colores|vigencia`, `/cotizacion/general[/…]`, `?seccion=tonos|colores|ajustes|vigencia`) redirigen con 308 a `/configuracion/origenes?panel=…`, y si traen su propio `?panel=` manda ése. El buscador de Configuración los sigue encontrando por una lista de «destinos de búsqueda» (`destinos-de-busqueda.ts`) que viaja como campo opcional de cada sección en lo que recibe el navegador: el menú y el selector la ignoran. `src/app` repite como literales los dos nombres de panel que sus módulos exportan (no puede importar sus `entities`); el e2e los cubre.
 - **El flujo de repuestos se configura en Repuestos.** `/configuracion/repuestos/flujo`, primera sub-sección de la sección (sin `?seccion=` ni panel, la raíz abre ahí), con el mismo editor que la pestaña Fases de un origen (`fijo`, sin selector: una página nunca abre otro flujo).
 - **La lista de orígenes son tarjetas con lo que les falta.** Tipo, activo o inactivo y las faltas en corto (`faltasDeLaTarjeta()`): sin el paso de los permisos (aviso blando, como en el inicio) y nada en un origen inactivo. Descartada una tabla compacta: no deja ver las faltas sin ruido.
@@ -806,13 +806,30 @@ las trampas, en `docs/LECCIONES.md`.
 - **La plantilla lee la fórmula con lo que mira `validarPlantilla()`** (`looseObject`, `lectura-sobre.ts`), no con `esquemaDefinicion`: no se rompe con cada cambio de la fórmula. Guardar valida la forma; lo que cruza con la fórmula lo rechaza publicar.
 - **La tarjeta de la cotización es una cuadrícula declarativa.** La forma 2 de la plantilla (columnas, filas y celdas libres, como en V1) se valida
   espejo en TS y SQL con listas cerradas (variables, `mostrar`, `ocultar_si`, 8 tamaños de letra) y nodos por id; los colores son una clave del
-  catálogo o `auto`, nunca un hex suelto (un texto libre podría nombrar cualquier nodo; un hex, saltarse el catálogo). Un texto no mezcla texto y
-  variables: nada de `{{…}}`. Tope de **24 KiB** del texto del `jsonb`: la plantilla más grande de V1 (USA) mide 12.154 bytes (11.036 en JSON
+  catálogo o `auto`, nunca un hex suelto (un texto libre podría nombrar cualquier nodo; un hex, saltarse el catálogo). Un texto mezcla texto y
+  datos sólo como `partes` (strings y datos, en una sola forma: nunca dos strings seguidos ni uno vacío, al menos un dato; sin datos es `texto`); `{{` sigue
+  rechazado: nada interpola. Tope de **24 KiB** del texto del `jsonb`: la plantilla más grande de V1 (USA) mide 12.154 bytes (11.036 en JSON
   compacto; China 9.573, Compra dealer 9.745, Oficina 7.110), el doble a KiB enteros; la réplica de V1 USA en forma 2
   (`entities/tarjeta/plantilla-como-v1-usa.json`: 6 columnas, 16 filas, 56 celdas) mide 14.755. La forma 1 conserva su tope de 32 KB. Las claves de
   `estilo` y las combinaciones son opcionales con su valor por omisión (ahorran bytes) y `bordes` es un objeto por lado (un lado gana sobre `todos`).
   Los mensajes de la forma 2 nombran la celda o la fila, nunca el nodo: no exponen un id restringido. Sin subtotales por grupo: serían dinero calculado
   fuera de la base.
+- **El texto con datos se guarda en partes, no con marcas.** `{tipo: 'texto', partes: ["Comisión giro ", {tipo: 'dato', …}]}`: cada parte, un string o el
+  mismo dato de una celda «Dato», así la forma, el aplanado (`datosNombrados()`) y las reglas de nodos ya lo miran sin un parser en dos lenguajes, sigue siendo
+  `tipo: 'texto'` para los retoques y la conversión de la forma 1 no se entera. Una sola escritura posible (el editor normaliza: junta los textos, quita los
+  vacíos y sin datos escribe `texto`), así el tope de 20 partes mide algo real y dos plantillas iguales se comparan iguales. Las ramas de unas condiciones y
+  la lista de respaldo siguen con texto simple.
+- **Un dato sin valor dentro de un texto no escribe nada.** El «—» de una celda «Dato» dentro de una frase se leería como parte del texto: «Comisión giro »
+  queda así. Un monto adentro va en `tramos` (sólo entonces) para que el HTML lo dibuje con `<Monto>` y el Modo Live lo tape; no lleva la segunda línea en Bs
+  del total. El PDF, la imagen y «Copiar texto» usan las líneas, con cifras.
+- **El campo del texto con datos es un `contentEditable` propio, sin librería.** Las pastillas son `<span contenteditable="false">` que dibuja el hook, no
+  React; lo que se tipea lo escribe el navegador y se lee de vuelta, y Enter, pegar, Retroceso y Supr junto a una pastilla, las flechas junto a ella y
+  Ctrl+Z los maneja el modelo puro (`edicion/texto-con-datos.ts`, posiciones en unidades: cada code unit, 1; cada pastilla, 1), así todos los navegadores
+  hacen lo mismo. Un editor de texto enriquecido pesaría decenas de KB para un campo de 300 caracteres. Insertar, cambiar o **quitar** un dato es su propio
+  paso de deshacer (sin `clave`); lo tipeado se junta por clave, como en los demás campos del panel.
+- **Un texto con datos no se escribe en el lugar.** Enter, F2 o doble clic sobre él llevan al campo «Texto» del panel, como sobre un dato: el campo del
+  lienzo es texto plano y perdería los datos. Tipear una letra lo reemplaza, como en cualquier celda de texto. Copiarlo como texto (TSV) pone sólo sus
+  partes de texto (el sistema no sabe de datos); la copia interna de celdas las conserva.
 - **La forma 1 se convierte al leerla y no se migra.** `cotizacion_tarjeta` convierte la publicada (`_plantilla_convertir()`, espejo
   `convertirPlantilla()`) con la misma apariencia y la vuelve a validar como cuadrícula. Los ids de la
   conversión son deterministas (el de la fila sale del nodo, `n_<nodo>`; el de la celda, de su fila y su columna; uno de más de 41 caracteres se acorta
@@ -821,6 +838,11 @@ las trampas, en `docs/LECCIONES.md`.
   no se ocultaría con sus miembros; la combinada se acorta sola). El color: el de la plantilla si sigue en el catálogo, si no el del grupo. Los altos se
   estiman con aritmética entera (igual en TS y SQL). Una forma 1 cuya conversión rompe una regla de la cuadrícula es `sin_plantilla`; lo convertido no
   se mide contra los 24 KiB (lo acotan la forma 1 y la fórmula).
+- **Las tarjetas sembradas de USA son forma 2.** `subasta_usa` y `planilla_usa` siembran la conversión de su forma 1 con la leyenda de la transferencia como
+  texto con datos («Comisión giro » y el porcentaje de cada cotización), que la forma 1 no puede decir: su descripción fija («Comisión giro 4%») no cambiaba con el
+  porcentaje de la cotización. Lo sembrado va legible (cada columna, fila y celda en su línea) y vale contra la v1 con el tope de 24 KiB. La forma 1
+  de las dos queda en `entities/plantilla/plantillas-v1-de-las-semillas.json`: la conversión se sigue probando con una plantilla real (T5 de
+  `plantilla-convertir.sql`, `convertir-plantilla.test.ts`). La de oficina sigue en forma 1: la conversión al leer sigue sembrada.
 - **Un solo modelo de dibujo para HTML, PDF e imagen.** `geometriaDeLaTarjeta()` da, por celda visible, su rectángulo en px, su contenido resuelto y
   su estilo, y los tres la pintan con posiciones absolutas: es lo único que entienden igual el HTML, react-pdf y satori (`next/og` no tiene `grid`; una
   `<table>` como la de V1 no la dibujan react-pdf ni satori). El HTML escala con `min(1, ancho del contenedor / ancho)` como una imagen (la página nunca
@@ -1068,6 +1090,7 @@ las trampas, en `docs/LECCIONES.md`.
   y «De este vehículo» dentro del resumen montan la misma pregunta y `desde` evita que abran dos. «De este vehículo», las tarjetas de la ficha y Comparar no
   preguntan por la marca leída (la de la tarjeta es sólo la insignia y pudo cambiar): abren la pregunta con el rechazo de la base. En la
   guardada, hacerla privada o pública y aprobar una privada esperan a que se guarden los cambios, y al entrar la página se vuelve a leer (la versión cambió).
+- **Los niveles de acceso y «Quién crea y quién ve» viven en la matriz de Roles, dentro de «Cotizaciones».** Cada nivel ya era dos permisos de esa matriz: tenerlos en otra pantalla partía en dos una misma decisión (quién ve qué). Las dos filas de un nivel van bajo el rótulo «Niveles de acceso», con «Todos» como renglón fijo sin celdas, el «⋯» del nivel en su primera fila y «+ Nuevo nivel» al pie del grupo. «Quién crea y quién ve» es un resumen plegable arriba del bloque (cerrado, salvo con `?origen=`). Se descartó: el resumen arriba de toda la tarjeta (se aleja del bloque que resume), una fila aparte por nivel para el «⋯» (suma 9 filas) y un modal para el resumen (se pidió plegable). `?bloque=<módulo>` deja el bloque a la vista; las rutas viejas de Catálogos son un `route.ts` con 308. Todo lo escribe quien tiene `equipo.roles.gestionar`; con sólo `ver`, se lee. La composición es una render prop en un Client Component de la ruta (`matriz-con-niveles.tsx`): `equipo` no importa `cotizaciones` (el contrato es el tipo estructural `HuecosDeNivelesEnLaMatriz`). El cuadro y la matriz comparten el ref de versiones de rol (`useVersionesDeRoles`) para no chocar consigo mismos (`PT409`).
 - **«Quién crea y quién ve», un cuadro sobre la matriz, no otro permiso.** Escribe `cotizaciones.crear`, `cotizaciones.ver` (propios o todos) y
   `cotizaciones.privadas.ver` con las mismas RPC de Roles, en «Todos los orígenes» o en el origen de `?origen=` (no una grilla rol × origen completa: no cabe
   en el celular y la matriz ya es esa grilla). Suma «No ve» como cuarto escalón; «Sólo las suyas» es «lo propio», que incluye las de sus clientes, y la
@@ -1117,7 +1140,15 @@ las trampas, en `docs/LECCIONES.md`.
   oculta (`proOptions.hideAttribution`): es un enlace externo en inglés y la licencia lo permite.
 - **El panel del flujo no es modal desde 1024 px** (`<Drawer alCostado>`): el diagrama sigue a la vista y tocar otra fase cambia el panel sin
   cerrarlo; más angosto, el drawer modal. Sus bloques van a la vista (`<BloquesALaVista>`), no plegados: la persona pidió que editar no fuera «puros
-  acordeones». Con `?seccion=` y `?fase=` a la vez gana la sección. Las reglas y los tipos de documento se abren ahí; sin barra de pestañas.
+  acordeones». Con `?seccion=` y `?fase=` a la vez gana la sección. Las reglas y los tipos de documento se abren ahí.
+- **El panel de una fase va en tres pestañas, con «Reglas» primero** (la persona, 2026-11-21: lo que más se edita son los requisitos, las salidas y las reglas): «Reglas»
+  (requisitos, salidas y reglas que la afectan), «Identidad» (nombre, descripción, color, icono) y «Ajustes» (en el flujo, demora, transporte y aduana, web y
+  portal). Identidad y Ajustes **siguen siendo un solo formulario** con un solo «Guardar» (`fase_guardar` manda sólo lo
+  que cambió): partirlo en dos guardados es otra decisión. La pestaña vive en `?pestana=` (reemplaza el historial) y las tres quedan montadas: cambiar de
+  pestaña no pierde lo escrito. «Mover antes/después» y «Jubilar o eliminar» pasan al «⋯» del panel, junto a la ✕ (`<Drawer acciones>`): el foco no necesita
+  seguirlo, porque el «⋯» no cambia de lugar. El aviso de una fase jubilada, con su «Reactivar», va sobre las pestañas y no dentro de Ajustes: es un estado de
+  toda la fase y debe verse desde Reglas. Reglas queda fuera del `key` del formulario (una escritura de requisitos o salidas sube la versión y reiniciaría
+  lo que se está editando en ellos); por eso las marcas de las pestañas suben del formulario a la barra por un aviso (`alMarcar`), no por el estado.
 - **Arrastrar sí ordena las fases** (a diferencia de mover unidades): es configuración de quien la tiene, con «Mover antes/después» de teclado, y se
   apaga con la lista cortada. **Crear una salida arrastrando, no:** sin teclado ni celular, suma interacción a un formulario que ya tiene destino,
   acción y «pide nota».

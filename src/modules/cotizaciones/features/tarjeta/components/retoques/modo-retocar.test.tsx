@@ -1,9 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Resultado } from '@/shared/lib/errores'
+import { CLASE_LIVE } from '@/shared/ui/guion-live'
 import type { LecturaDeLaTarjeta } from '../../../../entities/tarjeta/lectura-de-la-tarjeta'
 import { tarjetaDesde } from '../../../../entities/tarjeta/lectura-de-la-tarjeta'
-import { calculoDePrueba, crudaDeLaTarjeta } from '../../../../entities/tarjeta/tarjeta.soporte'
+import {
+  calculoDePrueba,
+  crudaDeLaTarjeta,
+  DEFINICION_DE_PRUEBA,
+} from '../../../../entities/tarjeta/tarjeta.soporte'
 
 // «Retocar» en la vista previa de una guardada y el modo «Retocar la tarjeta» (que llega con `diferido()`), con la lectura y la action simuladas.
 type Pedido = { resolver: (r: Resultado<LecturaDeLaTarjeta>) => void }
@@ -20,8 +25,8 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
 import VistaPreviaDeLaTarjeta, { type DatosDeLaPagina } from '../vista-previa-de-la-tarjeta'
 
-const lista = (): Resultado<LecturaDeLaTarjeta> => {
-  const lectura = tarjetaDesde(crudaDeLaTarjeta())
+const lista = (mas: Record<string, unknown> = {}): Resultado<LecturaDeLaTarjeta> => {
+  const lectura = tarjetaDesde(crudaDeLaTarjeta(mas))
   if (lectura === null) {
     throw new Error('no se lee')
   }
@@ -166,5 +171,62 @@ describe('<VistaPreviaDeLaTarjeta>: el modo «Retocar»', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
     expect(await screen.findByRole('heading', { name: 'Vista previa' })).toBeTruthy()
     expect(retocarLaTarjeta).not.toHaveBeenCalled()
+  })
+})
+
+// El rótulo del asesor como un texto con datos que lleva el total: con Live, la cifra no va en el nombre del botón ni en un campo.
+const conElTotalEnElRotulo = () =>
+  lista({
+    definicion: {
+      ...DEFINICION_DE_PRUEBA,
+      celdas: DEFINICION_DE_PRUEBA.celdas.map((c) =>
+        c.id === 'c_asesor_rotulo'
+          ? {
+              ...c,
+              contenido: {
+                tipo: 'texto',
+                partes: ['Total ', { tipo: 'dato', nodo: 'total', mostrar: 'monto' }],
+              },
+            }
+          : c,
+      ),
+    },
+  })
+
+describe('<VistaPreviaDeLaTarjeta>: el modo «Retocar» con el Modo Live', () => {
+  beforeEach(() => {
+    Element.prototype.scrollIntoView = () => undefined
+  })
+  afterEach(() => {
+    document.documentElement.classList.remove(CLASE_LIVE)
+  })
+
+  it('un texto con un monto se nombra con la cifra tapada y su campo no se abre: dice que hay que apagar Live', async () => {
+    document.documentElement.classList.add(CLASE_LIVE)
+    dibujar({ pagina: guardada() })
+    pedidos[0]?.resolver(conElTotalEnElRotulo())
+    fireEvent.click(await screen.findByRole('button', { name: 'Retocar' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Cambiar el texto «Total •••»' }))
+    expect(
+      await screen.findByText('Este texto lleva un monto: apaga el Modo Live para cambiarlo.'),
+    ).toBeTruthy()
+    expect(screen.queryByRole('textbox', { name: 'Texto de la celda' })).toBeNull()
+    // La tarjeta lleva la cifra en el DOM dentro de <Monto> (el CSS la tapa): lo que no puede llevarla es un nombre accesible.
+    expect(
+      [...document.querySelectorAll('[aria-label]')].some((e) =>
+        /1\.355/.test(e.getAttribute('aria-label') ?? ''),
+      ),
+    ).toBe(false)
+  })
+
+  it('sin Live, el mismo texto abre su campo con la cifra', async () => {
+    dibujar({ pagina: guardada() })
+    pedidos[0]?.resolver(conElTotalEnElRotulo())
+    fireEvent.click(await screen.findByRole('button', { name: 'Retocar' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: /^Cambiar el texto «Total .*1\.355/ }),
+    )
+    const campo = await screen.findByRole('textbox', { name: 'Texto de la celda' })
+    expect((campo as HTMLTextAreaElement).value).toMatch(/^Total .*1\.355/)
   })
 })

@@ -96,7 +96,6 @@ const PANTALLAS = [
   ['leads-seguimientos', () => '/configuracion/leads?panel=seguimientos'],
   ['leads-mensaje-del-portal', () => '/configuracion/leads?panel=portal'],
   ['origenes-colores', () => '/configuracion/origenes?panel=colores'],
-  ['catalogos-niveles', () => '/configuracion/catalogos/niveles'],
   ['origenes-vigencia', () => '/configuracion/origenes?panel=vigencia'],
   ['catalogos-puertos', () => '/configuracion/catalogos/puertos'],
   ['catalogos-navieras', () => '/configuracion/catalogos/navieras'],

@@ -17,14 +17,14 @@ import {
   abrirNiveles,
   borrarNivelesDePrueba,
   filaDeNivel,
+  rotuloDeNiveles,
   nivelEnLaBase,
-  nombresAbribles,
   sembrarNivel,
 } from './soporte/niveles'
 import { capturar, crearAsesoraDeLaSemilla } from './soporte/recorrido'
 
-// Quién ve qué en Configuración › Catálogos › Niveles (paso 4.09-2): quien sólo lee los roles (`equipo.roles.ver`) ve la lista sin «Nuevo nivel» ni
-// «⋯» y la base no le deja escribir; la asesora, sin ninguno de los dos permisos, no ve la pantalla ni la tarjeta en Configuración.
+// Quién ve qué en los niveles de acceso de la matriz de Roles (paso 4.09-2, T511): quien sólo lee los roles (`equipo.roles.ver`) ve los niveles sin
+// «+ Nuevo nivel» ni «⋯» y la base no le deja escribir; la asesora, sin ninguno de los dos permisos, no ve la pantalla ni la tarjeta en Configuración.
 test.describe.configure({ mode: 'serial' })
 
 let lectora = ''
@@ -63,27 +63,23 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-test('quien sólo lee los roles ve la lista sin «Nuevo nivel» ni «⋯», y la base no le deja escribir', async ({
+test('quien sólo lee los roles ve los niveles sin «Nuevo nivel» ni «⋯», y la base no le deja escribir', async ({
   page,
 }, info) => {
   const visible = sembrarNivel(nombre('Para leer'))
   await page.context().clearCookies()
   await entrar(page, lectora, { fresco: true })
   await page.goto('/configuracion/inicio')
-  await expect(
-    page.getByRole('region').getByRole('link', { name: 'Catálogos', exact: true }),
-  ).toBeVisible()
-  await abrirNiveles(page)
+  await abrirNiveles(page, false)
+  await expect(rotuloDeNiveles(page)).toBeVisible()
   await expect(filaDeNivel(page, visible.nombre)).toBeVisible()
-  await expect(page.getByText(/de 10 niveles posibles\./)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Nuevo nivel' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: /^Más acciones de / })).toHaveCount(0)
-  await expect(nombresAbribles(page)).toHaveCount(0)
   await capturar(page, info, 'niveles-solo-lectura')
   // Escribiendo la URL tampoco abre un formulario.
   await noAbre(
     page,
-    '/configuracion/catalogos/niveles?panel=nuevo-nivel',
+    '/configuracion/roles?bloque=cotizaciones&panel=nuevo-nivel',
     'No tienes permiso para cambiar los niveles de acceso.',
     /panel=nuevo-nivel/,
   )
@@ -106,7 +102,7 @@ test('la asesora sin permisos de roles no ve la pantalla, ni la tarjeta en Confi
 }, info) => {
   await page.context().clearCookies()
   await entrar(page, asesora, { fresco: true })
-  await page.goto('/configuracion/catalogos/niveles')
+  await page.goto('/configuracion/roles?bloque=cotizaciones')
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Niveles de acceso' })).toHaveCount(0)
   await capturar(page, info, 'niveles-asesora-sin-permiso')

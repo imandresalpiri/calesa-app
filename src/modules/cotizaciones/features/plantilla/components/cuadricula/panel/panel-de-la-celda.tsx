@@ -141,6 +141,12 @@ export function PanelDeLaCelda({
           alCambiar={(contenido, clave) => {
             hacer({ tipo: 'contenido', contenido, ...(clave === undefined ? {} : { clave }) })
           }}
+          alDeshacer={() => {
+            hacer({ tipo: 'deshacer' })
+          }}
+          alRehacer={() => {
+            hacer({ tipo: 'rehacer' })
+          }}
         />
       </SeccionDelPanel>
       <SeccionDelColor

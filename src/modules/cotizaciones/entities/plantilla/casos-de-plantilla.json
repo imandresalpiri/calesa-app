@@ -13160,6 +13160,1436 @@
       "valida": true
     },
     {
+      "nombre": "texto con datos: texto, una variable y un porcentaje",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Comisión ",
+                {
+                  "tipo": "dato",
+                  "nodo": "comision",
+                  "mostrar": "porcentaje"
+                },
+                " para ",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "valida": true
+    },
+    {
+      "nombre": "texto con datos: sólo datos",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                {
+                  "tipo": "dato",
+                  "variable": "numero"
+                },
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "valida": true
+    },
+    {
+      "nombre": "texto con datos: 20 partes (el tope)",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "p0 ",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                },
+                "p1 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                "p2 ",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                },
+                "p3 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                "p4 ",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                },
+                "p5 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                "p6 ",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                },
+                "p7 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                "p8 ",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                },
+                "p9 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "valida": true
+    },
+    {
+      "nombre": "texto con datos: 300 caracteres repartidos, con un emoji que cuenta como uno",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "🚗xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                },
+                "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+              ]
+            }
+          }
+        ]
+      },
+      "valida": true
+    },
+    {
+      "nombre": "texto con datos: 21 partes",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                },
+                " p0 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " p1 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " p2 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " p3 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " p4 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " p5 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " p6 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " p7 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " p8 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " p9 ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes"
+      }
+    },
+    {
+      "nombre": "texto con datos: sin partes",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": []
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes"
+      }
+    },
+    {
+      "nombre": "texto con datos: las partes no son un arreglo",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": "Hola"
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes"
+      }
+    },
+    {
+      "nombre": "texto con datos: sin ningún dato",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": ["Hola"]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes"
+      }
+    },
+    {
+      "nombre": "texto con datos: 301 caracteres repartidos",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                },
+                "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes"
+      }
+    },
+    {
+      "nombre": "texto con datos: un texto vacío",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes[0]"
+      }
+    },
+    {
+      "nombre": "texto con datos: dos textos seguidos",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          },
+          {
+            "id": "b",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "t",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "texto": "Cliente"
+            }
+          },
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "b",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Hola ",
+                "y chau",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[1].contenido.partes[1]"
+      }
+    },
+    {
+      "nombre": "texto con datos: un texto con una variable entre llaves",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                },
+                " de {{numero}}"
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes[1]"
+      }
+    },
+    {
+      "nombre": "texto con datos: un número",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": ["Total ", 5]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes[1]"
+      }
+    },
+    {
+      "nombre": "texto con datos: una parte de tipo texto",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Total ",
+                {
+                  "tipo": "texto",
+                  "texto": "x"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes[1].tipo"
+      }
+    },
+    {
+      "nombre": "texto con datos: un mostrar desconocido",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Total ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "total"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes[1].mostrar"
+      }
+    },
+    {
+      "nombre": "texto con datos: el id de un nodo mal formado",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                {
+                  "tipo": "dato",
+                  "nodo": "Total",
+                  "mostrar": "monto"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes[0].nodo"
+      }
+    },
+    {
+      "nombre": "texto con datos: una variable con una clave de más",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Hola ",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre",
+                  "mostrar": "monto"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido.partes[1]"
+      }
+    },
+    {
+      "nombre": "texto con datos: texto y partes juntos",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "texto": "Hola",
+              "partes": [
+                "Hola ",
+                {
+                  "tipo": "dato",
+                  "variable": "cliente_nombre"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[0].contenido"
+      }
+    },
+    {
+      "nombre": "texto con datos: una variable que no existe",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          },
+          {
+            "id": "b",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "t",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "texto": "Fecha"
+            }
+          },
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "b",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Hoy es ",
+                {
+                  "tipo": "dato",
+                  "variable": "fecha_corta"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "variable_inexistente",
+        "donde": "celdas.x"
+      }
+    },
+    {
+      "nombre": "texto con datos: un nodo que no existe",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Seguro ",
+                {
+                  "tipo": "dato",
+                  "nodo": "seguro",
+                  "mostrar": "monto"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "nodo_inexistente",
+        "donde": "celdas.x"
+      }
+    },
+    {
+      "nombre": "texto con datos: el porcentaje de un nodo que no es de un par",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Remate ",
+                {
+                  "tipo": "dato",
+                  "nodo": "remate",
+                  "mostrar": "porcentaje"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "mostrar_no_admitido",
+        "donde": "celdas.x"
+      }
+    },
+    {
+      "nombre": "texto con datos: un nodo de un nivel",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Valor ",
+                {
+                  "tipo": "dato",
+                  "nodo": "cif",
+                  "mostrar": "etiqueta"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "nodo_restringido",
+        "donde": "celdas.x"
+      }
+    },
+    {
+      "nombre": "texto con datos: el porcentaje con su pct de un nivel",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Comisión ",
+                {
+                  "tipo": "dato",
+                  "nodo": "comision",
+                  "mostrar": "porcentaje"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "visibilidad": {
+        "tc_ext": {
+          "ver": "todos"
+        },
+        "tc_adu": {
+          "ver": "todos"
+        },
+        "tc_uni": {
+          "ver": "todos"
+        },
+        "remate": {
+          "ver": "todos"
+        },
+        "fees": {
+          "ver": "todos"
+        },
+        "grua": {
+          "ver": "todos"
+        },
+        "nacionalizacion": {
+          "ver": "todos"
+        },
+        "cif": {
+          "ver": "costos"
+        },
+        "garantia": {
+          "ver": "todos"
+        },
+        "total": {
+          "ver": "todos"
+        },
+        "comision_pct": {
+          "ver": "costos"
+        },
+        "comision": {
+          "ver": "todos"
+        }
+      },
+      "motivo": {
+        "regla": "nodo_restringido",
+        "donde": "celdas.x"
+      }
+    },
+    {
+      "nombre": "texto con datos: el tipo de cambio del bucket de su grupo, de un nivel",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Compra a ",
+                {
+                  "tipo": "dato",
+                  "nodo": "remate",
+                  "mostrar": "tc_nombre"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "visibilidad": {
+        "tc_ext": {
+          "ver": "costos"
+        },
+        "tc_adu": {
+          "ver": "todos"
+        },
+        "tc_uni": {
+          "ver": "todos"
+        },
+        "remate": {
+          "ver": "todos"
+        },
+        "fees": {
+          "ver": "todos"
+        },
+        "grua": {
+          "ver": "todos"
+        },
+        "nacionalizacion": {
+          "ver": "todos"
+        },
+        "cif": {
+          "ver": "costos"
+        },
+        "garantia": {
+          "ver": "todos"
+        },
+        "total": {
+          "ver": "todos"
+        },
+        "comision_pct": {
+          "ver": "todos"
+        },
+        "comision": {
+          "ver": "todos"
+        }
+      },
+      "motivo": {
+        "regla": "tipo_de_cambio_restringido",
+        "donde": "celdas.x"
+      }
+    },
+    {
+      "nombre": "texto con datos: el primer rechazo manda: un dato de adentro antes que el de una celda posterior",
+      "formula": "mini",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "a",
+            "ancho": 200
+          },
+          {
+            "id": "b",
+            "ancho": 200
+          }
+        ],
+        "filas": [
+          {
+            "id": "f",
+            "alto": 24,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "x",
+            "fila": "f",
+            "columna": "a",
+            "contenido": {
+              "tipo": "texto",
+              "partes": [
+                "Total ",
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                " y ",
+                {
+                  "tipo": "dato",
+                  "nodo": "seguro",
+                  "mostrar": "monto"
+                }
+              ]
+            }
+          },
+          {
+            "id": "y",
+            "fila": "f",
+            "columna": "b",
+            "contenido": {
+              "tipo": "dato",
+              "nodo": "otro",
+              "mostrar": "monto"
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "nodo_inexistente",
+        "donde": "celdas.x"
+      }
+    },
+    {
+      "nombre": "texto con datos: las partes en una rama son una clave de más",
+      "formula": "variante",
+      "plantilla": {
+        "forma": 2,
+        "columnas": [
+          {
+            "id": "concepto",
+            "ancho": 200
+          },
+          {
+            "id": "monto",
+            "ancho": 120
+          }
+        ],
+        "filas": [
+          {
+            "id": "cabeza",
+            "alto": 30,
+            "ocultar_si": "nunca"
+          },
+          {
+            "id": "precio",
+            "alto": 24,
+            "ocultar_si": "no_aplica",
+            "nodo": "precio"
+          },
+          {
+            "id": "aviso",
+            "alto": 20,
+            "ocultar_si": "condiciones",
+            "si": [
+              {
+                "es": "opcion",
+                "nodo": "motor",
+                "opcion": "gasolina"
+              }
+            ]
+          },
+          {
+            "id": "total",
+            "alto": 32,
+            "ocultar_si": "nunca"
+          }
+        ],
+        "celdas": [
+          {
+            "id": "titulo",
+            "fila": "cabeza",
+            "columna": "concepto",
+            "contenido": {
+              "tipo": "respaldo",
+              "datos": [
+                {
+                  "tipo": "dato",
+                  "variable": "titulo"
+                },
+                {
+                  "tipo": "dato",
+                  "variable": "vehiculo_titulo"
+                }
+              ]
+            }
+          },
+          {
+            "id": "seguro",
+            "fila": "cabeza",
+            "columna": "monto",
+            "contenido": {
+              "tipo": "condiciones",
+              "ramas": [
+                {
+                  "si": [
+                    {
+                      "es": "encendido",
+                      "nodo": "seguro"
+                    }
+                  ],
+                  "contenido": {
+                    "tipo": "texto",
+                    "partes": [
+                      "Con ",
+                      {
+                        "tipo": "dato",
+                        "nodo": "precio",
+                        "mostrar": "monto"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "si_no": {
+                "tipo": "vacio"
+              }
+            }
+          },
+          {
+            "id": "precio_concepto",
+            "fila": "precio",
+            "columna": "concepto",
+            "contenido": {
+              "tipo": "dato",
+              "nodo": "precio",
+              "mostrar": "etiqueta"
+            }
+          },
+          {
+            "id": "precio_monto",
+            "fila": "precio",
+            "columna": "monto",
+            "contenido": {
+              "tipo": "condiciones",
+              "ramas": [
+                {
+                  "si": [
+                    {
+                      "es": "mayor",
+                      "nodo": "precio",
+                      "a": 1000
+                    },
+                    {
+                      "es": "no_vacio",
+                      "dato": {
+                        "tipo": "dato",
+                        "nodo": "precio",
+                        "mostrar": "monto"
+                      }
+                    }
+                  ],
+                  "contenido": {
+                    "tipo": "dato",
+                    "nodo": "precio",
+                    "mostrar": "monto"
+                  }
+                }
+              ],
+              "si_no": {
+                "tipo": "texto",
+                "texto": "A consultar"
+              }
+            }
+          },
+          {
+            "id": "aviso",
+            "fila": "aviso",
+            "columna": "concepto",
+            "abarca_columnas": 2,
+            "contenido": {
+              "tipo": "texto",
+              "texto": "Sólo diésel"
+            }
+          },
+          {
+            "id": "total_etiqueta",
+            "fila": "total",
+            "columna": "concepto",
+            "contenido": {
+              "tipo": "texto",
+              "texto": "TOTAL"
+            }
+          },
+          {
+            "id": "total_monto",
+            "fila": "total",
+            "columna": "monto",
+            "contenido": {
+              "tipo": "respaldo",
+              "datos": [
+                {
+                  "tipo": "dato",
+                  "nodo": "total",
+                  "mostrar": "monto"
+                },
+                {
+                  "tipo": "dato",
+                  "nodo": "precio",
+                  "mostrar": "monto"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "motivo": {
+        "regla": "forma",
+        "donde": "celdas[1].contenido.ramas[0].contenido"
+      }
+    },
+    {
       "nombre": "condiciones: la lista de respaldo, las condiciones de una celda y las de una fila",
       "formula": "variante",
       "plantilla": {

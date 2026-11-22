@@ -42,7 +42,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/public/**' },
     ],
   },
-  // Las URL fijas de la vieja Configuración › Cotización y › Logística van a la página del origen y a Catálogos, con su consulta. Aquí y no en un
+  // Las URL fijas de la vieja Configuración › Cotización y › Logística van a la página del origen y a Catálogos (y los niveles, a Roles), con su consulta. Aquí y no en un
   // `page.tsx`: una página que sólo redirige pide su `loading.tsx` y la redirección es del navegador. `general` va antes que `:origen`, y
   // `:origen` es un uuid de un solo segmento. Las que dependen de la consulta o de la persona son `route.ts`.
   // `/configuracion` solo no dibuja nada: el inicio vive en `/configuracion/inicio` (308, con su consulta). `/configuracion/inicio` no choca con
@@ -93,7 +93,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/configuracion/cotizacion/general/niveles',
-        destination: '/configuracion/catalogos/niveles',
+        destination: '/configuracion/roles?bloque=cotizaciones',
         permanent: true,
       },
       {

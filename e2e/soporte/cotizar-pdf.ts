@@ -92,7 +92,9 @@ export type Snapshot = {
   etiquetas: Record<string, string>
 }
 
-// Lo guardado de una cotización con lo de SU versión de la fórmula que pide la cuenta, y la etiqueta del total de la plantilla publicada de su origen.
+// Lo guardado de una cotización con lo de SU versión de la fórmula que pide la cuenta, y la etiqueta del total de la plantilla publicada de su origen. De una
+// cuadrícula (las semillas de USA) se leen con la disposición de la conversión: el primer texto de la fila `total` y el texto de la fila `a_<nodo>` (columna
+// `grupo`) o `n_<nodo>` (columna `concepto`).
 export function snapshotDe(id: string): Snapshot {
   return JSON.parse(
     sql(`
@@ -101,11 +103,18 @@ export function snapshotDe(id: string): Snapshot {
         'grupos', f.definicion -> 'grupos', 'nodos', f.definicion -> 'nodos', 'buckets', f.definicion -> 'buckets',
         'totalEn', f.definicion ->> 'total_en', 'modos', f.diseno -> 'cabecera' -> 'modos',
         'locale', (select locale from public.ajustes_empresa where id = 1),
-        'etiquetaDelTotal', coalesce((select p.definicion -> 'total' ->> 'etiqueta' from public.plantillas_tarjeta p
-          where p.origen_id = c.origen_id order by p.version desc limit 1), 'Total'),
-        'etiquetas', coalesce((select p.definicion -> 'etiquetas' from public.plantillas_tarjeta p
-          where p.origen_id = c.origen_id order by p.version desc limit 1), '{}'::jsonb))
+        'etiquetaDelTotal', coalesce(pl.d -> 'total' ->> 'etiqueta',
+          (select x.c -> 'contenido' ->> 'texto' from jsonb_array_elements(pl.d -> 'celdas') with ordinality x (c, o)
+            where x.c ->> 'fila' = 'total' and x.c -> 'contenido' ? 'texto' order by x.o limit 1), 'Total'),
+        'etiquetas', coalesce(pl.d -> 'etiquetas',
+          (select jsonb_object_agg(substr(x.c ->> 'fila', 3), x.c -> 'contenido' ->> 'texto')
+             from jsonb_array_elements(pl.d -> 'celdas') x (c)
+            where x.c -> 'contenido' ? 'texto'
+              and ((left(x.c ->> 'fila', 2) = 'a_' and x.c ->> 'columna' = 'grupo')
+                or (left(x.c ->> 'fila', 2) = 'n_' and x.c ->> 'columna' = 'concepto'))), '{}'::jsonb))
         from public.cotizaciones c join public.formulas f on f.id = c.formula_id
+        left join lateral (select p.definicion as d from public.plantillas_tarjeta p
+                            where p.origen_id = c.origen_id order by p.version desc limit 1) pl on true
        where c.id = ${literal(id)}::uuid`),
   ) as Snapshot
 }

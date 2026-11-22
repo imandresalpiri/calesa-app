@@ -17,12 +17,10 @@ describe('la sección Catálogos de Configuración', () => {
     expect(existsSync(path.join(APP, 'configuracion/catalogos/route.ts'))).toBe(true)
   })
 
-  it('tres tramos: Cotizaciones (Niveles y Quién crea y quién ve), Logística y Tablas compartidas sin rótulo', () => {
+  it('dos tramos: Logística y Tablas compartidas sin rótulo', () => {
     expect(
       SECCION_DE_CATALOGOS.subsecciones.map((sub) => [sub.titulo, sub.ruta, sub.grupo ?? null]),
     ).toEqual([
-      ['Niveles', '/configuracion/catalogos/niveles', 'Cotizaciones'],
-      ['Quién crea y quién ve', '/configuracion/catalogos/quien-crea-y-quien-ve', 'Cotizaciones'],
       ['Puertos', '/configuracion/catalogos/puertos', 'Logística'],
       ['Navieras', '/configuracion/catalogos/navieras', 'Logística'],
       ['Categorías de gasto', '/configuracion/catalogos/categorias-de-gasto', 'Logística'],
@@ -40,23 +38,17 @@ describe('la sección Catálogos de Configuración', () => {
   it('se abre con cualquiera de los permisos de sus catálogos', () => {
     expect([...SECCION_DE_CATALOGOS.permisos].sort()).toEqual([
       'cotizaciones.configurar',
-      'equipo.roles.gestionar',
-      'equipo.roles.ver',
       'flujos.configurar',
       'logistica.catalogos.gestionar',
       'repuestos.configurar',
     ])
   })
 
-  it('quien configura la cotización sin ver los roles: Niveles y Quién crea y quién ve apagadas con su motivo', () => {
+  it('quien configura la cotización sólo ve las tablas compartidas', () => {
     const visibles = conSubseccionesVisibles(SECCION_DE_CATALOGOS, con('cotizaciones.configurar'))
     expect(visibles.subsecciones.map((sub) => [sub.clave, sub.apagada ?? false])).toEqual([
-      ['niveles', true],
-      ['quien-crea-y-quien-ve', true],
       ['tablas', false],
     ])
-    expect(visibles.subsecciones[0]?.motivoSinPermiso).toBe('Te falta el permiso «Ver roles».')
-    expect(visibles.subsecciones[1]?.motivoSinPermiso).toBe('Te falta el permiso «Ver roles».')
   })
 
   it('quien configura un flujo sólo ve los tipos de documento, y la sección abre ahí', () => {
@@ -88,12 +80,11 @@ describe('la sección Catálogos de Configuración', () => {
   })
 })
 
-describe('Colores y Vigencia en Catálogos', () => {
-  it('Colores y Vigencia ya no son catálogos: sus rutas viejas sólo redirigen (route.ts), sin página', () => {
+describe('Lo que se mudó de Catálogos', () => {
+  it('Colores, Vigencia, Niveles y Quién crea y quién ve ya no son catálogos: sus rutas viejas sólo redirigen (route.ts), sin página', () => {
     const claves = SECCION_DE_CATALOGOS.subsecciones.map((sub) => sub.clave)
-    expect(claves).not.toContain('colores')
-    expect(claves).not.toContain('vigencia')
-    for (const vieja of ['colores', 'vigencia']) {
+    for (const vieja of ['colores', 'vigencia', 'niveles', 'quien-crea-y-quien-ve']) {
+      expect(claves).not.toContain(vieja)
       expect(existsSync(path.join(APP, 'configuracion/catalogos', vieja, 'route.ts')), vieja).toBe(
         true,
       )

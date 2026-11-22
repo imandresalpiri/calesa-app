@@ -4,7 +4,7 @@ import type { AnchoDeLaImagen } from '../ruta-de-la-hoja'
 
 // La versión del dibujo: se sube cuando cambia cómo se dibuja la imagen (`infra/tarjeta/imagen/`, `geometriaDeLaTarjeta()`, `webp-de-la-tarjeta.ts`,
 // `logo-de-la-tarjeta.ts`), y la imagen que el navegador guardó deja de valer.
-export const VERSION_DEL_DIBUJO = 4
+export const VERSION_DEL_DIBUJO = 5
 
 // Una ETag fuerte: los mismos bytes para la misma huella, persona, versión y ancho (`g`, la grande). La huella ya es de quien pide; su id va igual, por si dos
 // personas comparten navegador.

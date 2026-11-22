@@ -95,6 +95,27 @@ describe('contextoParaElNavegador', () => {
   it('nodosNombradosPor: los de las filas y los de las celdas', () => {
     expect([...nodosNombradosPor(nombrando('fees', 'cif'))]).toEqual(['fees', 'cif'])
   })
+
+  it('un restringido nombrado dentro de un texto con datos viaja marcado', () => {
+    const conDatos: PlantillaEnCuadricula = {
+      ...VACIA,
+      celdas: [
+        {
+          id: 'c',
+          fila: 'f',
+          columna: 'a',
+          contenido: {
+            tipo: 'texto',
+            partes: ['Valor ', { tipo: 'dato', nodo: 'cif', mostrar: 'etiqueta' }],
+          },
+        },
+      ],
+    }
+    expect([...nodosNombradosPor(conDatos)]).toEqual(['cif'])
+    const r = contextoParaElNavegador(mini(), conDatos)
+    expect((r.definicion.nodos ?? []).map((n) => n.id)).toContain('cif')
+    expect(r.visibilidad).toMatchObject({ cif: { ver: 'costos' } })
+  })
 })
 
 describe('contextoParaElNavegador: ids y el juego', () => {

@@ -204,6 +204,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** En el celular al 200 %, el «⋯» del panel de la fase queda más arriba que la ✕ (el «⋯» va en rem y la ✕ en px): alinear sus centros (`drawer.tsx`, `acciones`).
+- **[—]** `e2e/cierre-pendientes-capturas.spec.ts` falla en `movil` (también en `main`): en la sub-ruta `datos` del origen, el título no queda a la vista porque el panel «Datos del origen» está abierto.
 - **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px, los tercios del modal «Avanzado», un par con un lado bloqueado en el celular) baja sus
   acciones a una segunda línea: la celda mide 88 px en vez de 56 y las de la misma fila no se alinean. Achicar el rótulo antes que bajar las acciones
   (`clases.ts` de la XCell).
@@ -219,7 +221,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** La burbuja del chat tapa contenido en el celular: el «⋯» de la primera fila de una lista de Configuración a la vista al abrir (390 px, la pestaña «Campos» de un origen), la esquina de «Guardar» de la barra de cambios sin guardar (Configuración › Leads › «Mensaje del portal»), y al 200 % el borde derecho del valor de una tarjeta de ajustes (la dirección de apibara) y la última línea de una página — reservar su lugar al pie del contenido y subirla mientras la barra está a la vista, como los avisos (`data-pie-de-panel`).
 - **[—]** El selector de embudo de la vista de embudo no se cierra al elegir otro (`DropdownMenuRadioItem` de Base UI no cierra al hacer clic): en el
   celular el menú queda sobre las pestañas de etapas hasta tocar afuera (`selector-de-embudo.tsx`; `closeOnClick` en el ítem).
-- **[—]** Configuración › Catálogos › Niveles repite el título de la página en el `h2` de su lista («Niveles de acceso», con «Nuevo nivel»): llevar la acción principal junto al `h1` y quitar el `h2`.
 - **[—]** En el menú de Configuración (10 rem) el motivo de una sub-sección apagada larga ocupa cinco renglones («Te falta el permiso
   «Gestionar los campos de los leads».»): acortarlo o mostrarlo al enfocar.
 - **[—]** «Cotizar» del título de «Cotizaciones de este vehículo» (`src/app/(app)/vehiculos/[id]/bloque-cotizaciones.tsx`) se ve sin borde: `buttonVariants()` sin `cn()` deja ganar el `border-transparent` de la base.
@@ -247,7 +248,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** `logistica_bandeja` de Inicio con el alcance «propios» recorre la fase entera (su rama por fila no parte de `_logistica_lo_propio`): pasarla a esa lectura y medirla con volumen.
 - **[—]** Con más de 10.001 vehículos propios en un origen, sólo el resumen de la cadena lo avisa («+»): los grupos de la bandeja del día y la lista de una fase de ese alcance no dicen que `_logistica_lo_propio` cortó (`_bandeja_dia_alcance` podría devolver un `cortado`).
 - **[—]** `/logistica/gastos` todavía abre el panel de la unidad en un drawer (`?vehiculo=`): llevarlo a `/logistica/vehiculo/[id]` como el resto de logística y borrar `drawer-de-la-unidad.tsx` y `clave-de-unidad.ts`.
-- **[—]** Con el texto al 200 % en el celular, el pie fijo de «Datos» («Cancelar», «Guardar») ocupa medio panel de la fase: lo de arriba se lee desplazando.
+- **[—]** Con el texto al 200 % en el celular, el pie fijo de Identidad y Ajustes («Cancelar», «Guardar») ocupa medio panel de la fase: lo de arriba se lee desplazando.
 - **[—]** Las 200 compras por proyecto llevan `<AvisoDeTope>` sin camino a lo antiguo — filtro por fecha si aparece.
 - **[—]** En un campo privado de cartera, los avisos de rango y de opciones que sacas cuentan sólo los leads de tu cartera y no lo dicen (`resumenDeImpacto` de leads).
 - **[—]** En escritorio con el texto al 200 % la barra mide menos de 24 rem y el tipo de cambio no se dibuja; el menú que lo trae es sólo del celular (`md:hidden`): no queda a mano.

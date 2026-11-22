@@ -11,14 +11,14 @@ import type { GrupoDePermisos, OrigenDeLaMatriz } from '../../../entities/matriz
 import type { RolConConcesiones } from '../../../entities/rol'
 import { useAvisosDeRoles } from '../hooks/use-avisos-de-roles'
 import { useMatriz } from '../hooks/use-matriz'
+import { useBloqueALaVista } from '../hooks/use-bloque-a-la-vista'
+import { useVersionesDeRoles } from '../hooks/use-versiones-de-roles'
+import { columnasDeLaMatriz } from './columnas-de-la-matriz'
+import { CuerpoDeLaMatriz } from './cuerpo-de-la-matriz'
 import { CabeceraMatriz } from './cabecera-matriz'
-import { AvisosDeRolesAlAbrir } from './avisos-de-roles-al-abrir'
-import { EliminarRol } from './eliminar-rol'
-import type { ColumnaDeRol } from './grupo-matriz'
-import { ListaDelRol } from './lista-del-rol'
-import { NuevoRol } from './nuevo-rol'
+import type { HuecosDeNivelesEnLaMatriz } from './huecos-de-niveles'
 import { SelectorDeRol } from './selector-de-rol'
-import { TablaDeRoles } from './tabla-de-roles'
+import { VentanasDeLaMatriz } from './ventanas-de-la-matriz'
 
 type Props = {
   roles: RolConConcesiones[]
@@ -28,22 +28,32 @@ type Props = {
   // Con qué se dibuja la dominancia: lo que la persona no tiene, no lo puede dar.
   misPermisos: Permisos
   puedeGestionar: boolean
+  // Los niveles de acceso de cotizaciones (los junta la ruta). Sin ellos, las filas de nivel se agrupan igual, sin «⋯» ni «+ Nuevo nivel».
+  niveles?: HuecosDeNivelesEnLaMatriz
 }
 
-// Roles × permisos. Cada celda guarda sola; el panel abierto y el rol a la vista viven en la URL.
-export function MatrizDeRoles({ roles, grupos, origenes, misPermisos, puedeGestionar }: Props) {
-  const [{ rol: rolElegido, panel, eliminar }, setParametros] = useQueryStates(
+// Roles × permisos. Cada celda guarda sola; el panel abierto y el rol a la vista viven en la URL. `?bloque=<módulo>` deja a la vista el bloque de ese módulo.
+export function MatrizDeRoles({
+  roles,
+  grupos,
+  origenes,
+  misPermisos,
+  puedeGestionar,
+  niveles,
+}: Props) {
+  const [{ rol: rolElegido }, setParametros] = useQueryStates(
     { rol: parseAsString, panel: parseAsString, eliminar: parseAsString },
     { shallow: false },
   )
-  const { aplicar, rolEnCurso } = useMatriz()
-  // Una sola vista, la que dice el ancho: la tabla desde 768 px (todos los roles) y, por debajo, la lista de un rol (5a-16).
+  const versiones = useVersionesDeRoles()
+  const { aplicar, rolEnCurso } = useMatriz(versiones)
   const enTabla = useAlMenos(CORTE_DE_LA_TABLA)
   const aLaVista = roles.find((rol) => rol.id === rolElegido) ?? roles[0]
   const dominaElRol = (rol: RolConConcesiones) => rolDominado(misPermisos, rol.concesiones)
   const avisos = useAvisosDeRoles({ roles, misPermisos, puedeGestionar, enTabla })
+  useBloqueALaVista(grupos.length > 0 && aLaVista !== undefined)
 
-  if (grupos.length === 0 || !aLaVista) {
+  if (grupos.length === 0) {
     return (
       <EstadoVacio
         titulo="Todavía no hay permisos que repartir"
@@ -51,17 +61,8 @@ export function MatrizDeRoles({ roles, grupos, origenes, misPermisos, puedeGesti
       />
     )
   }
-
-  const columnas: ColumnaDeRol[] = roles.map((rol) => ({
-    rol,
-    editable: puedeGestionar && dominaElRol(rol),
-    ocupado: rolEnCurso === rol.id,
-  }))
-  const cantidadDeAvisos = avisosDelRol(aLaVista, {
-    dominado: dominaElRol(aLaVista),
-    puedeGestionar,
-  }).length
-  const columnaALaVista = columnas.find(({ rol }) => rol.id === aLaVista.id) ?? columnas[0]
+  const columnas = columnasDeLaMatriz(roles, { misPermisos, puedeGestionar, rolEnCurso })
+  const columnaALaVista = columnas.find(({ rol }) => rol.id === aLaVista?.id) ?? columnas[0]
 
   return (
     <div className="grid gap-4">
@@ -70,47 +71,44 @@ export function MatrizDeRoles({ roles, grupos, origenes, misPermisos, puedeGesti
         alCrearRol={() => void setParametros({ panel: 'nuevo-rol' })}
         alAvisos={avisos.abrirDeLaPagina}
       />
-      <SelectorDeRol
-        roles={roles}
-        valor={aLaVista.id}
-        alCambiar={(rol) => void setParametros({ rol })}
-        cantidadDeAvisos={cantidadDeAvisos}
-        alAvisos={avisos.abrirDeUnRol}
-      />
-      <div className="min-w-0 overflow-clip rounded-(--radius-card) border border-(--color-line) bg-(--color-surface)">
-        {enTabla || !columnaALaVista ? (
-          <TablaDeRoles
+      {aLaVista && columnaALaVista ? (
+        <>
+          <SelectorDeRol
+            roles={roles}
+            valor={aLaVista.id}
+            alCambiar={(rol) => void setParametros({ rol })}
+            cantidadDeAvisos={
+              avisosDelRol(aLaVista, { dominado: dominaElRol(aLaVista), puedeGestionar }).length
+            }
+            alAvisos={avisos.abrirDeUnRol}
+          />
+          <CuerpoDeLaMatriz
+            enTabla={enTabla}
             grupos={grupos}
             columnas={columnas}
+            columnaALaVista={columnaALaVista}
             origenes={origenes}
             misPermisos={misPermisos}
             puedeGestionar={puedeGestionar}
+            dominado={dominaElRol(aLaVista)}
+            niveles={niveles}
+            versiones={versiones}
             alEliminar={(rolId) => void setParametros({ eliminar: rolId })}
             alAvisos={avisos.abrirDeUnRol}
             alAplicar={(rol, cambio) => void aplicar(rol, cambio)}
           />
-        ) : (
-          <ListaDelRol
-            grupos={grupos}
-            columna={columnaALaVista}
-            origenes={origenes}
-            misPermisos={misPermisos}
-            puedeGestionar={puedeGestionar}
-            dominado={dominaElRol(columnaALaVista.rol)}
-            alEliminar={() => void setParametros({ eliminar: columnaALaVista.rol.id })}
-            alAplicar={(cambio) => void aplicar(columnaALaVista.rol, cambio)}
-          />
-        )}
-      </div>
-      <NuevoRol
-        abierto={puedeGestionar && panel === 'nuevo-rol'}
-        alCerrar={() => void setParametros({ panel: null })}
-        alCrear={(rol) => void setParametros({ panel: null, rol })}
-      />
-      <AvisosDeRolesAlAbrir estado={avisos} />
-      <EliminarRol
-        rol={roles.find((rol) => rol.id === eliminar) ?? null}
-        alCerrar={() => void setParametros({ eliminar: null })}
+        </>
+      ) : (
+        <EstadoVacio
+          titulo="Todavía no hay roles"
+          descripcion="Crea uno con «Nuevo rol» para repartir permisos."
+        />
+      )}
+      <VentanasDeLaMatriz
+        roles={roles}
+        puedeGestionar={puedeGestionar}
+        avisos={avisos}
+        niveles={niveles}
       />
     </div>
   )

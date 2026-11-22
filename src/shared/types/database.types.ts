@@ -9142,6 +9142,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      _plantilla_cuadricula_partes: {
+        Args: { p_donde: string; p_partes: Json }
+        Returns: undefined
+      }
       _plantilla_cuadricula_rechazar: {
         Args: { p_donde: string; p_regla: string }
         Returns: undefined

@@ -138,8 +138,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   guardar un «paso actual»: cada paso guarda con sus botones, «Seguir» va al siguiente y la raíz lleva al que falta. Un paso sin el permiso en ese
   origen se salta y dice su motivo. Se retoma con «Seguir la puesta en marcha» de la página del origen. No: «asistente», «wizard», «onboarding».
 - **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos/<clave>`: lo que es de toda la empresa y no de un origen, en
-  tres tramos: «Cotizaciones» (Colores, Niveles, Quién crea y quién ve, Vigencia), «Logística» (Puertos, Navieras, Categorías de gasto, Tipos de documento) y las Tablas
-  compartidas. No es el catálogo de repuestos ni el de apibara.
+  dos tramos: «Logística» (Puertos, Navieras, Categorías de gasto, Tipos de documento) y las Tablas compartidas. Los niveles de acceso y Quién crea y quién ve
+  viven en la matriz de Roles; Colores y Vigencia, en Orígenes. No es el catálogo de repuestos ni el de apibara.
 - **Flujo de repuestos** — `/configuracion/repuestos/flujo` (`FLUJO_DE_REPUESTOS_EN_CONFIGURACION`): el flujo de los repuestos, que se configura en
   la sección Repuestos con el mismo editor que la pestaña Fases de un origen.
 - **Fórmula pendiente** — origen sin **fórmula activa** (`origenes_resumen().formula_publicada`): un origen nuevo no se cotiza hasta publicar la primera.
@@ -502,8 +502,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Constante** — nodo `constante` + `params`: valor por defecto versionado que el ⚙ de la XCell cambia.
 - **Versión del flujo** — `flujos.actualizado_en` como texto ISO: la lee el editor del flujo y la devuelve cada escritura para detectar
   cambio ajeno (`PT409`); `useVersionDelFlujo()` la entrega a las acciones.
-- **Inspector de fase** — lo de una fase en el panel del flujo (`?fase=<id>`, `ContenidoDeLaFase`): sus avisos y acciones y cuatro bloques a la vista,
-  «Datos», «Requisitos para entrar», «Salidas y quién mueve» y «Reglas que la afectan».
+- **Inspector de fase** — lo de una fase en el panel del flujo (`?fase=<id>`, `ContenidoDeLaFase`): arriba sus avisos y el «⋯» con sus acciones (mover y
+  jubilar o eliminar) y debajo tres **pestañas de la fase**: «Reglas» (abre primero: «Requisitos para entrar», «Salidas y quién mueve» y «Reglas que la
+  afectan»), «Identidad» y «Ajustes».
+- **Pestañas de la fase** — `PESTANAS_DE_FASE` (`entities/fases/bloques-de-fase.ts`), `?fase=<id>&pestana=reglas|identidad|ajustes`: «Reglas», «Identidad»
+  (nombre, descripción, color, icono) y «Ajustes» («En el flujo», «Alerta por demora», «Transporte y aduana», «Web y portal»). Identidad y Ajustes son un solo
+  formulario y un solo «Guardar». No: «Datos» (el nombre de cuando era un solo bloque), «tabs».
 - **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Fases de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
   del flujo entero, «Reglas del flujo» o «Tipos de documento» (`?seccion=reglas|documentos`); gana `?seccion=`. No: «sidebar», «inspector» para
   lo del flujo.
@@ -564,8 +568,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Configuración dice cuáles y por qué con la referencia elegida: «Ocultas con esta referencia (N)».
 - **Dato de la tarjeta** — `{tipo: 'dato', …}` de una celda: una variable de la cotización (`VARIABLES_DE_LA_TARJETA`: `empresa_nombre`, «Nombre de
   la empresa»; `fecha_larga`, `numero`, `asesor_nombre`, `asesor_telefono` «WhatsApp del asesor», `asesor_cargo` «Cargo del asesor»…) o un nodo de la fórmula con qué mostrar (`MOSTRAR`: `monto`, `etiqueta`, `descripcion`, `porcentaje`, `tc_nombre`, `tc_valor`,
-  `plazo`). Un texto no mezcla texto y variables. En el editor, «Dato» dice «Cuál dato»: «Uno», «El primero con valor» (una **lista de respaldo**) o
+  `plazo`). También va adentro de un **texto con datos**. En el editor, «Dato» dice «Cuál dato»: «Uno», «El primero con valor» (una **lista de respaldo**) o
   «Según condiciones» (las **condiciones de la tarjeta**).
+- **Texto con datos** — `{tipo: 'texto', partes}` de una celda de la tarjeta: un texto que mezcla texto literal y datos de la tarjeta insertados («Comisión giro
+  4,2 %», con el porcentaje de cada cotización); de 1 a 20 partes, al menos un dato y hasta 300 caracteres de texto. Un dato sin valor no escribe nada. En el
+  editor es «Contenido: Texto» con «Insertar dato», y cada dato insertado se ve como una **pastilla** (`TextoConDatos`, `entities/texto-con-datos.ts`).
+- **Pastilla** — un dato insertado en un texto con datos, como lo dibuja el campo del editor de la tarjeta: un solo carácter que dice el nombre del dato
+  («% Transferencia a USA», «Nombre del cliente»), que se borra entero y se toca para cambiarlo. No es el «Botón de variable» del editor de texto con variables.
 - **Lista de respaldo** — `{tipo: 'respaldo', datos}` de una celda de la tarjeta, «El primero con valor» en el editor: de 2 a 5 datos de la tarjeta en orden;
   la tarjeta muestra el primero que tiene valor y, si ninguno, la celda vacía (`resolverElContenido()`). No es el título de respaldo de la cotización
   («Cotización n.º N»).
@@ -788,9 +797,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `_hoja_datos_del_vehiculo()`: qué columna de la tabla de una celda casa con qué campo del vehículo (`tipo` ← `tipo_vehiculo`); se elige
   entre las filas de `cotizacion_tabla` en el panel del vehículo (`datosParaElegirDe()`, `guardarDatoDelVehiculo`).
 - **Nivel de acceso** — `cotizaciones_niveles` / permisos `cotizaciones.nivel.<clave>.ver|editar` (`permisos.nivel_clave`) /
-  `nivel_crear|renombrar|retirar|restaurar|eliminar()`: quién ve y edita una celda o sección.
+  `nivel_crear|renombrar|retirar|restaurar|eliminar()`: quién ve y edita una celda o sección. En la matriz de Roles se rotulan «Niveles de acceso» (bloque «Cotizaciones»);
+  «Todos» es el renglón fijo, sin celdas.
 - **Quién crea y quién ve** — `entities/cuadro-de-cotizaciones.ts` de `equipo` (`celdaDelCuadro()`, `cambiosDelCuadro()`),
-  `/configuracion/catalogos/quien-crea-y-quien-ve`: el cuadro rol × lugar («Todos los orígenes» o un origen) con «Crea» (`cotizaciones.crear`) y «Ve»,
+  el resumen plegable del bloque «Cotizaciones» de la matriz de Roles (`/configuracion/roles?bloque=cotizaciones`): el cuadro rol × lugar («Todos los orígenes» o un origen) con «Crea» (`cotizaciones.crear`) y «Ve»,
   una escalera de cuatro escalones (`Ve`): «No ve», «Sólo las suyas» (`cotizaciones.ver` con «lo propio»), «Todas menos las privadas» (con «todo») y
   «Todas, también las privadas» (además `cotizaciones.privadas.ver`). Escribe en la matriz de Roles; no es otro permiso. No: «visibilidad», «alcance».
 - **Retirar un nivel** — `nivel_retirar()` / `cotizaciones_niveles.retirado_en`: deja de ofrecerse.
@@ -1050,7 +1060,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   origen de subasta, el de siempre cuando «Subasta» tiene valor. Va por tramos (`TRAMOS_DEL_CIERRE`): las vivas por su cierre, las vivas sin fecha y el resto por
   alta; el cursor lleva su tramo (`<tramo>~<cursor>`, `entities/cursor-del-cierre.ts`).
 - **Atajo «Sin resolver»** — `<AtajoSinResolver>` / `sinResolverDe()`: botón arriba del inventario de un origen de subasta con las pendientes (hasta `TOPE_DE_SIN_RESOLVER`, «99+»); pone o quita «Subasta: Sin resolver».
-- **Fase de subasta** — `fases.es_subasta` / «Es la subasta» (Datos de la fase): la fase que representa la subasta en el flujo de un origen
+- **Fase de subasta** — `fases.es_subasta` / «Es la subasta» (pestaña Ajustes de la fase): la fase que representa la subasta en el flujo de un origen
   de subasta; puede haber varias. Sin ninguna, «Revisar» avisa `sin_fase_de_subasta` y nada figura «Sin resolver».
 - **Resultado de la subasta** — `vehiculos.subasta_resultado` (`ganada` | `no_ganada`), con `subasta_resuelta_por` y `subasta_resuelta_en`:
   lo escriben sólo las RPC de resolver; nunca se infiere de apibara; si la subasta vuelve a estar viva, se limpia.
@@ -1157,7 +1167,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   variables resaltadas, un **botón de variable** por cada una que ese texto acepta (inserta `{clave}` en el cursor o sobre lo seleccionado), el contador, el aviso de
   las que no acepta y la vista previa con datos de ejemplo. «Botón de variable» no es la «Ficha» (la del lead o la del vehículo). Hoy lo usa el Mensaje del portal.
 - **Variable de un texto** — `{clave}` dentro de un texto configurable (`partesDelTexto()`, `@/shared/lib/texto-con-variables`): toda `{…}` cuenta, y la que el texto no acepta se
-  rechaza. No es el «Dato de la tarjeta» (una celda de la tarjeta de la cotización, que no mezcla texto con datos).
+  rechaza. No es el «Dato de la tarjeta» (una celda de la tarjeta de la cotización) ni el «Texto con datos» (sus partes, sin llaves).
 - **Estado de un documento legal** — `estadoDeLegal()` (`web`): `publicada` (hay un texto guardado: es el que muestra el sitio) · `sin-publicar` (nunca se escribió);
   es el badge de la tarjeta de cada documento de «Legales». Guardar publica: no hay «Borrador» ni «Programada» (son de las guías). No: «versión», «borrador».
 - **Estado de la integración** — `estadoDeIntegracion()` (`empresa`): `activa` · `apagada` · `falta_la_clave`; es el badge de la tarjeta de cada integración.

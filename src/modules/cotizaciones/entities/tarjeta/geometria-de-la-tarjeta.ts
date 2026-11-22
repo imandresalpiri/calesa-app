@@ -8,6 +8,7 @@ import type { CalculoDeLaTarjeta } from '../calculo-de-la-tarjeta'
 import type {
   CeldaDeLaTarjeta,
   ContenidoDeLaCelda,
+  DatoDeLaCelda,
   FilaDeLaTarjeta,
 } from '../cuadricula-de-la-tarjeta'
 import type { MotivoDeLaOculta } from '../vista-previa-de-la-plantilla'
@@ -16,6 +17,7 @@ import {
   aplica,
   contenidoDibujado,
   esElTotal,
+  textoConDatosDibujado,
   valorDelNodo,
   type ContenidoDibujado,
   type EntradaDelContenido,
@@ -33,6 +35,8 @@ export type MarcaDeLaCelda = {
   color?: string
   // El monto del total.
   total?: true
+  // Un texto con datos (para «Copiar texto» es un texto literal: no lleva `nodo` ni `variable`).
+  conDatos?: true
 }
 
 export type CeldaDibujada = {
@@ -100,24 +104,29 @@ function marcaDe(
   contenido: ContenidoDibujado,
 ): MarcaDeLaCelda {
   const color = colorDelFondo(c.estilo, e.tarjeta.colores)
-  const dato = resuelto.tipo === 'dato' ? resuelto : null
   return {
-    ...(dato !== null && 'nodo' in dato ? { nodo: dato.nodo, mostrar: dato.mostrar } : {}),
-    ...(dato !== null && 'variable' in dato ? { variable: dato.variable } : {}),
+    ...(resuelto.tipo === 'dato' ? marcaDelDato(e, resuelto, contenido) : {}),
     ...(color === null ? {} : { color }),
-    ...(contenido.tipo === 'monto' &&
-    dato !== null &&
-    'nodo' in dato &&
-    e.tarjeta.total.nodo === dato.nodo
-      ? { total: true as const }
-      : {}),
+    ...(resuelto.tipo === 'texto' && 'partes' in resuelto ? { conDatos: true as const } : {}),
   }
 }
 
-// El rótulo de una fila: el primer texto (o la etiqueta de un nodo) de sus celdas, en orden de columna.
+// Lo que marca un dato: su nodo y qué muestra (y si es el monto del total) o su variable.
+function marcaDelDato(
+  e: EntradaDelContenido,
+  dato: DatoDeLaCelda,
+  contenido: ContenidoDibujado,
+): MarcaDeLaCelda {
+  if ('variable' in dato) return { variable: dato.variable }
+  const total = contenido.tipo === 'monto' && e.tarjeta.total.nodo === dato.nodo
+  return { nodo: dato.nodo, mostrar: dato.mostrar, ...(total ? { total: true as const } : {}) }
+}
+
+// El rótulo de una fila: el primer texto (o la etiqueta de un nodo) de sus celdas, en orden de columna. Nunca un texto con un monto (`tramos`): un nombre no
+// lleva una cifra, que el Modo Live no taparía.
 function rotuloDe(celdas: readonly CeldaDibujada[], porDefecto: string): string {
   for (const c of celdas) {
-    if (c.contenido.tipo !== 'texto') continue
+    if (c.contenido.tipo !== 'texto' || c.contenido.tramos !== undefined) continue
     const t = c.contenido.lineas.join(' ').trim()
     if (t !== '') return t
   }
@@ -250,9 +259,11 @@ function contenidoDeRotulo(e: EntradaDelContenido, c: CeldaDeLaTarjeta): CeldaDi
   const contenido: ContenidoDibujado =
     r.tipo === 'dato' && 'nodo' in r && r.mostrar === 'etiqueta'
       ? { tipo: 'texto', lineas: [e.tarjeta.nodos.get(r.nodo)?.etiqueta ?? ''] }
-      : r.tipo === 'texto'
-        ? { tipo: 'texto', lineas: r.texto.split('\n') }
-        : { tipo: 'vacio' }
+      : r.tipo === 'texto' && 'partes' in r
+        ? textoConDatosDibujado(e, r.partes)
+        : r.tipo === 'texto'
+          ? { tipo: 'texto', lineas: r.texto.split('\n') }
+          : { tipo: 'vacio' }
   return {
     id: c.id,
     fila: c.fila,

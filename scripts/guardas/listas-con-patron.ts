@@ -6,6 +6,12 @@
 export const LISTAS_SIN_PATRON: Record<string, string> = {
   'src/modules/equipo/features/roles/components/matriz-de-roles.tsx':
     'es una matriz de permisos (roles contra permisos), no una lista de registros: no tiene resumen ni «⋯» por fila',
+  'src/modules/equipo/features/roles/components/fila-ancha-de-la-matriz.tsx':
+    'es una fila de la matriz de permisos que ocupa todo el ancho (el renglón de «Todos», la cabeza y el pie de los niveles), no una lista de registros: no tiene resumen ni «⋯» por fila',
+  'src/modules/equipo/features/roles/components/grupo-matriz.tsx':
+    'es un bloque de la matriz de permisos (roles contra permisos de un módulo), no una lista de registros: no tiene resumen ni «⋯» por fila',
+  'src/modules/equipo/features/roles/components/niveles-del-grupo.tsx':
+    'son las filas de los niveles de acceso dentro de la matriz de permisos (el «⋯» de cada nivel va en su primera fila), no una lista de registros: no tiene resumen por fila',
   'src/modules/equipo/features/roles/components/quien-crea-y-quien-ve/quien-crea-y-quien-ve.tsx':
     'es el cuadro «Quién crea y quién ve» (roles contra tres permisos de cotizaciones), no una lista de registros: no tiene resumen ni «⋯» por fila',
   'src/modules/equipo/features/roles/components/quien-crea-y-quien-ve/tabla-del-cuadro.tsx':
