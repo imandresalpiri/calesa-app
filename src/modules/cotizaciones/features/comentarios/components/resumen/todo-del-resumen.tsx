@@ -122,6 +122,7 @@ export function TodoDelResumen({ cotizacionId, puedeAdjuntar, alElegirPestana }:
               key={`${entrada.tipo}:${entrada.id}`}
               entrada={entrada}
               etiquetas={linea.etiquetasDeRevisiones}
+              calculos={linea.calculosDeRevisiones}
             />
           ))}
         </ol>

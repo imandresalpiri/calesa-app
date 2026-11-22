@@ -85,6 +85,10 @@ export function useLineaDeTiempo(cotizacionId: string) {
     etiquetasDeRevisiones: new Map(
       revisiones.paginas.flatMap((pagina) => [...pagina.etiquetas.nodos]),
     ),
+    // Los cálculos que quien mira ve: la revisión dice lo pisado y lo devuelto con sus montos.
+    calculosDeRevisiones: new Map(
+      revisiones.paginas.flatMap((pagina) => [...pagina.etiquetas.calculos]),
+    ),
     leyendo,
     todasLeidas: todasLeidas(lecturas),
     fallos,
