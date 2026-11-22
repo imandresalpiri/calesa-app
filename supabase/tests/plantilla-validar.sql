@@ -95,8 +95,11 @@ begin
     if v_clave = 'planilla_usa' then
       -- Su diseño no dibuja tipos de cambio (S0 del 4.18-1): su plantilla nace sin la columna.
       if exists (select 1 from jsonb_each(f.definicion -> 'buckets') b where f.visibilidad ? (b.value #>> '{}')) then raise exception 'planilla_usa ya dibuja un tipo de cambio: S0 cambió'; end if;
+      -- Ni la columna ni un dato de un tipo de cambio en ningún lugar de la cuadrícula (celdas, listas, condiciones, textos con datos).
       if exists (select 1 from public.plantillas_tarjeta p, jsonb_array_elements(p.definicion -> 'columnas') c
-                  where p.origen_id = f.origen_id and p.version = 1 and c ->> 'id' = 'tipo_cambio') then
+                  where p.origen_id = f.origen_id and p.version = 1 and c ->> 'id' = 'tipo_cambio')
+         or exists (select 1 from public.plantillas_tarjeta p, public._plantilla_cuadricula_datos(p.definicion) d
+                     where p.origen_id = f.origen_id and p.version = 1 and d.mostrar in ('tc_nombre', 'tc_valor')) then
         raise exception 'la plantilla de planilla_usa nombra los tipos de cambio que su hoja no dibuja';
       end if;
       continue;
