@@ -142,8 +142,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Tipos de documento, en Logística › Configuración. No es el catálogo de repuestos ni el de apibara.
 - **Configuración de logística** — `/logistica/configuracion/<clave>` (`RUTAS.configuracionDeLogistica`): la página de Logística con las pestañas Puertos, Navieras, Categorías de gasto y
   Tipos de documento; se entra con el botón ⚙ «Configurar» de la cabecera de Logística. No: «Catálogos de logística» como sección de Configuración.
-- **Flujo de repuestos** — `/configuracion/repuestos/flujo` (`FLUJO_DE_REPUESTOS_EN_CONFIGURACION`): el flujo de los repuestos, que se configura en
-  la sección Repuestos con el mismo editor que la pestaña Fases de un origen.
+- **Configuración de repuestos** — `/repuestos/configuracion/<flujo|cotizador|catalogos>` (`RUTAS.configuracionDeRepuestos`): la página de Repuestos con las pestañas Flujo, Cotizador y Catálogos; se entra
+  con el botón ⚙ «Configurar» (nombre accesible «Configurar los repuestos») de la fila de filtros de `/repuestos`. No: «Configuración › Repuestos» como sección de Configuración.
+- **Flujo de repuestos** — `/repuestos/configuracion/flujo` (`RUTAS.flujoDeRepuestos`): el flujo de los repuestos, que se configura en la primera pestaña de la configuración de repuestos
+  con el mismo editor que la pestaña Fases de un origen.
 - **Fórmula pendiente** — origen sin **fórmula activa** (`origenes_resumen().formula_publicada`): un origen nuevo no se cotiza hasta publicar la primera.
 - **Vehículo** — `vehiculos`: el dato central; recorre el flujo de su origen.
 - **Atributos** — `vehiculos.atributos`, `leads.atributos`: campos del layout que no son columna. En un lead se leen por `leads_vista`, recortados.

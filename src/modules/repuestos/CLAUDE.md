@@ -13,7 +13,7 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
 - **`proyectos`** — `index.ts`: `proyectoDe(vehiculoId)` (el proyecto vivo de un vehículo, con `cache()`: lo usa la ficha del vehículo para su enlace
   corto «Repuestos · Proyecto #N» y para redirigir `?seccion=repuestos` a `rutaDelProyecto(id)`), `esquemaDelListado`, `pedidoDelListado`,
   `leerCursorDeProyectos`, `leerProyectosDelListado` (cursor = `numero`, sin «Anterior»), `estadoDelProyecto`. `pantallas/proyectos.ts`:
-  `<ListadoDeProyectos>`, `<BotonNuevoProyecto>`, `useNuevoProyectoPorUrl`, `buscarProyectoAbierto`. `pantallas/proyectos-detalle.ts` (`/repuestos/[id]`):
+  `<ListadoDeProyectos>`, `<BotonNuevoProyecto>`, `useNuevoProyectoPorUrl` (`<ListadoDeProyectos>` y `<CadenaDeRepuestos>` reciben `acciones`: el ⚙ «Configurar» que arma `src/app`), `buscarProyectoAbierto`. `pantallas/proyectos-detalle.ts` (`/repuestos/[id]`):
   `<CabeceraDeProyecto>`, `<VehiculoQueNoSeVe>`.
   `pantallas/proyectos-nuevo.ts` (sólo la composición diferida de `src/app`, `nuevo-proyecto-abierto.tsx`): `<DrawerDeNuevoProyecto>` y sus tipos
   (`BuscadorDeProyecto`, `LectorDelLeadDelVehiculo`, `LeadDeLaUrl`). **El cliente en «Nuevo proyecto»** (glosario: «Cliente (de un proyecto)»): con
@@ -58,8 +58,8 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
   confirmar y anular `logistica.pagos.confirmar`; un pago de proyecto no lleva lead (`pago_guardar` da 22023, hint `lead_id`).
   Un pago vivo cumple `proyecto.pago_cliente`: `pago_anular` y `pago_eliminar` no quitan el último si un ítem vivo está en una fase que lo pide. Las dos pestañas sólo
   existen con `repuestos.costos.ver` (`panelesDisponibles(permisos)` en `src/app`; sin él la URL deja sólo la hoja y no se lee nada de costos).
-- **`cotizador`** — `/repuestos/configuracion/cotizador` («Cotizador de repuestos»): `leerConfiguracionDelCotizador()` (vigente, historial tope 20, tramos y cajas tope
-  200), `<ConfiguracionDelCotizador>` (`pantallas/cotizador-configuracion.ts`), modales `?panel=tramo|caja&tramo|caja=<id|nuevo>&moneda=`.
+- **`cotizador`** — `/repuestos/configuracion/cotizador` (pestaña «Cotizador» de Repuestos › Configuración, la página que abre el ⚙ «Configurar» de `/repuestos`): `leerConfiguracionDelCotizador()` (vigente, historial tope 20, tramos y cajas tope
+  200), `<ConfiguracionDelCotizador>` (`pantallas/cotizador-configuracion.ts`), modales `?panel=tramo|caja&tramo|caja=<id|nuevo>&moneda=`; cada tramo y cada caja es una `<FilaDeConfiguracion>` (tarjeta de la lista con sólo su «⋯» y un toque que abre «Editar»).
   `?pestana=cotizaciones` de `/repuestos/[id]`, sólo con `repuestos.cotizar`: `leerCotizacionesDelProyecto` (tope 50), `CotizacionesDelProyectoDiferido`
   (`pantallas/cotizador.ts`). `/repuestos/[id]/cotizaciones/[cotizacion]`: `leerCotizacion(proyectoId, id)`, `<HojaDeLectura>` (los montos guardados,
   nada se recalcula) o, si es borrador con proyecto abierto y snapshot válido, `<HojaEditable key={actualizadoEn}>` y `<AccionesDeCotizacion>`
