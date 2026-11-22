@@ -71,7 +71,7 @@ locale)`, el único lector de un número tipeado.
 - `ui/barra-de-cambios-sin-guardar.tsx`: `<BarraDeCambiosSinGuardar>` (la barra pegada abajo de un formulario de página) sobre
   `ui/use-salida-con-cambios.ts` (`useSalidaConCambios()`: enlaces frenados en la captura según `lib/destino-de-un-clic.ts`, `beforeunload` y
   `anotarCambiosSinGuardar()` de `ui/salida-con-cambios.ts`; el «atrás» no se frena).
-- `ui/estados/`, `ui/esqueletos/`; `ui/toasts.ts` (`avisarError()`, `avisarConDeshacer()`), `ui/sonner.tsx`, `ui/pie-del-panel.tsx`,
+- `ui/estados/`, `ui/esqueletos/` (sin tope de ancho; `EsqueletoFormulario` sólo para un formulario, `EsqueletoTarjetas` con las columnas de `<TarjetasDeAjustes>`); `ui/toasts.ts` (`avisarError()`, `avisarConDeshacer()`), `ui/sonner.tsx`, `ui/pie-del-panel.tsx`,
   `ui/zona-de-archivos.tsx`. `types/database.types.ts`: lo genera `pnpm db:types`; no se edita.
 
 ## No se rompe

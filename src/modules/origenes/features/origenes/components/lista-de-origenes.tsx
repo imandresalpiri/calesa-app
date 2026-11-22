@@ -82,7 +82,7 @@ export function ListaDeOrigenes({ origenes, hayMas, puedeGestionar, apibaraActiv
           }
         />
       ) : (
-        <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 @min-[40rem]/configuracion:grid-cols-2">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,20rem),1fr))] gap-3">
           {origenes.map((origen) => (
             <TarjetaDeOrigen
               key={origen.id}

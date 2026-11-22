@@ -6,7 +6,7 @@ vista y un modal para editar. Sólo dibuja: no lee la base ni guarda nada.
 ## Entra y sale
 
 - Sale (`index.ts`):
-  - `<TarjetasDeAjustes etiqueta>`: el tablero. Columnas CSS por contenedor (`@container/ajustes`: 1, 2 desde `@2xl`, 3 desde `@5xl`); sin `'use client'`.
+  - `<TarjetasDeAjustes etiqueta>`: el tablero. Columnas CSS de ancho mínimo (`columns-[20rem]`, en `rem`: con el texto al 200 % queda una); sin tope de ancho, en 1920 px entran más; sin `'use client'`.
   - `<TarjetaDeAjustes titulo estado? acciones? toque?>`: una región con nombre (el `h2`); la cabecera lleva el título y su `<Badge>` a la izquierda y el «⋯» a la derecha, **nunca un botón de acción suelto**. Las
     acciones llegan como **nodos** (`<MasAcciones>`, `<ToqueDeLaTarjeta>`): la tarjeta es sólo texto y viaja en frío. Con `toque`, el cuerpo deja pasar el clic al botón que cubre la tarjeta y sólo
     recupera el suyo un enlace, un interruptor o un botón de adentro.

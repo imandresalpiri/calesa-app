@@ -23,7 +23,7 @@ export default async function PaginaComprobantesDeLaEmpresa() {
     redirigir(primeraSubseccionAbierta(SECCION_DE_EMPRESA, permisos) ?? RUTAS.empresa)
   }
   return (
-    <div className="grid max-w-6xl gap-4">
+    <div className="grid gap-4">
       <EncabezadoDeConfiguracion {...SUBSECCION_DE_COMPROBANTES} />
       <SerieDeComprobantes puedeCambiar />
     </div>

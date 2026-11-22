@@ -15,7 +15,7 @@ export default async function PaginaIntegracionesDeLaEmpresa() {
     return <EstadoSinPermiso />
   }
   return (
-    <div className="grid max-w-6xl gap-4">
+    <div className="grid gap-4">
       <EncabezadoDeConfiguracion {...INTEGRACIONES_DE_LA_EMPRESA} />
       <SeccionIntegraciones puedeEditar={puede(permisos, 'empresa.ajustes.gestionar')} />
     </div>

@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Mi perfil' }
 export default async function PaginaPerfil() {
   const sesion = await requerirSesion()
   return (
-    <div className="grid max-w-6xl gap-4">
+    <div className="grid gap-4">
       <h1 className="text-(length:--text-xl) font-semibold text-(--color-ink)">Mi perfil</h1>
       <TarjetasDeAjustes etiqueta="Mi perfil">
         <TarjetasDelPerfil
