@@ -1,9 +1,10 @@
 'use client'
 
-import { LockIcon, Trash2Icon } from 'lucide-react'
+import { Trash2Icon } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
-import { MOTIVO_ROL_NO_DOMINADO } from '../../../entities/dominancia'
+import { avisosDelRol, tituloDeAvisosDelRol } from '../../../entities/avisos-de-roles'
 import { motivoDeNoEliminar, personasConElRol, type RolConConcesiones } from '../../../entities/rol'
+import { BotonDeAvisos } from './boton-de-avisos'
 import { RoleBadge } from './role-badge'
 
 type Props = {
@@ -13,19 +14,29 @@ type Props = {
   // Domina este rol: cada permiso que el rol tiene, ella también.
   dominado: boolean
   alEliminar: () => void
+  // Abre «Avisos de <rol>». Sin él, la cabecera no lleva el «!» (en el celular está en la barra «Rol a la vista»).
+  alAvisos?: () => void
 }
 
-// La cabecera de la columna de un rol: quién es, cuántas personas lo tienen y, si no se puede
-// cambiar, por qué.
-export function EncabezadoRol({ rol, puedeGestionar, dominado, alEliminar }: Props) {
+// La cabecera de la columna de un rol: quién es, cuántas personas lo tienen y, si tiene avisos, el «!» que los abre.
+export function EncabezadoRol({ rol, puedeGestionar, dominado, alEliminar, alAvisos }: Props) {
   const motivo = motivoDeNoEliminar(rol, dominado)
+  const avisos = avisosDelRol(rol, { dominado, puedeGestionar })
 
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-1 py-1 font-normal md:min-w-36">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1">
         <RoleBadge rol={rol} className="min-w-0" />
+        {alAvisos && avisos.length > 0 ? (
+          <BotonDeAvisos
+            titulo={tituloDeAvisosDelRol(rol.nombre)}
+            cantidad={avisos.length}
+            alAbrir={alAvisos}
+            className="shrink-0"
+          />
+        ) : null}
         {puedeGestionar ? (
-          <span title={motivo ?? undefined} className="shrink-0">
+          <span title={motivo ?? undefined} className="ml-auto shrink-0 pl-1">
             <Button
               variant="ghost"
               size="icon-sm"
@@ -45,12 +56,6 @@ export function EncabezadoRol({ rol, puedeGestionar, dominado, alEliminar }: Pro
       <span className="text-(length:--text-xs) text-(--color-ink-faint)">
         {personasConElRol(rol.personas)}
       </span>
-      {puedeGestionar && !dominado ? (
-        <span className="flex items-start gap-1 text-(length:--text-xs) whitespace-normal text-(--color-ink-soft)">
-          <LockIcon aria-hidden className="mt-0.5 size-3 shrink-0" />
-          {MOTIVO_ROL_NO_DOMINADO}
-        </span>
-      ) : null}
     </div>
   )
 }

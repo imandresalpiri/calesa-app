@@ -24,6 +24,8 @@ Autenticación, perfiles, roles y permisos (RBAC puro), invitaciones, bloqueo, b
   espejo del `check` `preferencias_ultima_pestana_valida`, que valida la forma y no los nombres): **no** viaja en `ProveedorPreferencias`. La lee sólo la entrada
   a `/configuracion/origenes/<id>` (`leerLasPestanasRecordadas(usuarioId)` de `index.ts`, por la PK; si falla, `{}`) y la escribe `recordarLaPestana({ origenId,
 parte })` de `client.ts` (lee, funde con `conLaPestana()` y hace upsert; sin revalidar). Prueba: `supabase/tests/areas/equipo/preferencia-de-la-ultima-pestana.sql`.
+- `entities/avisos-de-roles.ts` — los avisos de la matriz de Roles (`avisosDelRol()`, `avisosDeLaPagina()`): no se dibujan en línea; `features/roles/hooks/use-avisos-de-roles.ts`
+  los lleva a un modal diferido por URL (`?panel=avisos&rol=`, `?panel=avisos-de-la-pagina`) que abren los botones «!» (`boton-de-avisos.tsx`).
 - `entities/dominancia.ts` — espejo de `concesion_dominada()` y `rol_dominado()`. `puede()` y el catálogo de claves: `@/shared/lib/permisos`.
 - «Quién crea y quién ve» (glosario; `pantallas/quien-crea-y-quien-ve.ts`, la página en `src/app/(app)/configuracion/catalogos/`): el cuadro rol × lugar sobre
   `cotizaciones.crear`, `.ver` y `.privadas.ver`. Las reglas en `entities/cuadro-de-cotizaciones.ts`: `celdaDelCuadro()` (en un origen suma lo de «Todos los
