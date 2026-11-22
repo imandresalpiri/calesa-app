@@ -51,9 +51,15 @@ export async function accionDeLaFormula(
 }
 
 // «Versiones» de la barra en la Planilla: abre su drawer (`?panel=versiones`) con la lista de versiones de la fórmula elegida («Revertir» en cada archivada).
+// Antes de hidratar el clic no vale: se insiste hasta que la URL lo pida (y no más, para no sumar entradas al historial).
 export async function abrirLasVersiones(page: Page): Promise<Locator> {
-  await barraDeLaFormula(page).getByRole('button', { name: 'Versiones', exact: true }).click()
+  const boton = barraDeLaFormula(page).getByRole('button', { name: 'Versiones', exact: true })
   const drawer = page.getByRole('dialog', { name: 'Versiones' })
-  await expect(drawer).toBeVisible()
+  await expect(async () => {
+    if (!page.url().includes('panel=versiones')) {
+      await boton.click()
+    }
+    await expect(drawer).toBeVisible({ timeout: 1_000 })
+  }).toPass()
   return drawer
 }
