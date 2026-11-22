@@ -133,7 +133,7 @@ test('E2E escritorio · crear una tabla propia y una compartida desde el drawer'
       nueva.getByRole('radio', { name: 'Compartida con todos los orígenes' }),
     ).toBeVisible()
     if (compartida)
-      await nueva.getByRole('radio', { name: 'Compartida con todos los orígenes' }).check()
+      await nueva.getByText('Compartida con todos los orígenes', { exact: true }).click()
     await nueva.getByLabel('Nombre', { exact: true }).fill(nombre)
     await nueva.getByLabel('Nombre de la columna 1').fill('Factor')
     await nueva.getByRole('button', { name: 'Crear tabla' }).click()

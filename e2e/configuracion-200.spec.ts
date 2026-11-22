@@ -115,10 +115,6 @@ const PANTALLAS: Pantalla[] = [
     titulo: 'Logística › Configuración › Tipos de documento',
     url: () => '/logistica/configuracion/tipos-de-documento',
   },
-  {
-    titulo: 'la página de un origen › Planilla › Tablas',
-    url: () => urlDeLaFormula(origen.id, 'planilla', 'panel=tablas'),
-  },
   { titulo: 'Repuestos › Flujo de repuestos', url: () => '/repuestos/configuracion/flujo' },
   {
     titulo: 'Equipo',
