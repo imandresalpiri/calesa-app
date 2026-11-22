@@ -12,7 +12,7 @@ recibe actualizaciones sueltas: una rama, un PR que se integra solo con el CI en
 
 - **Equipo y permisos:** registro e invitaciones, roles libres sobre un catálogo fijo de permisos, por origen y con alcance, dominancia
   sobre la persona, bajas con traspaso de cartera, «Ver como».
-- **Empresa y orígenes:** ajustes, monedas y tipos de cambio, integraciones (apibara, web pública), campos por origen con rango. Datos de la empresa, Integraciones, la serie de Comprobantes, Ajustes y Legales del sitio web y el perfil son tarjetas con lo guardado a la vista y un modal por tarjeta (`?panel=`), sin acordeones ni barra de cambios sin guardar. Cada origen tiene su página en
+- **Empresa y orígenes:** ajustes, monedas y tipos de cambio, integraciones (apibara, web pública), campos por origen con rango. Datos de la empresa, Integraciones, la serie de Comprobantes, Ajustes y Legales del sitio web, la política de la cola web y el perfil son tarjetas con lo guardado a la vista y un modal por tarjeta (`?panel=`), sin acordeones ni barra de cambios sin guardar. Cada origen tiene su página en
   Configuración (datos, campos, categorías, flujo, fórmula y tablas) con lo que le falta para cotizar y mover; lo de toda la empresa, en Catálogos. Un
   origen nuevo se crea en una página y sigue por su puesta en marcha (Campos, Flujo, Fórmula, Tarjeta y Publicar, un paso por página con el editor de su
   pestaña) hasta «Cotizar con <origen>»; se puede salir a mitad y retomarla desde la página del origen.
