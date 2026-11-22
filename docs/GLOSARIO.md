@@ -497,8 +497,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Constante** — nodo `constante` + `params`: valor por defecto versionado que el ⚙ de la XCell cambia.
 - **Versión del flujo** — `flujos.actualizado_en` como texto ISO: la lee el editor del flujo y la devuelve cada escritura para detectar
   cambio ajeno (`PT409`); `useVersionDelFlujo()` la entrega a las acciones.
-- **Inspector de fase** — lo de una fase en el panel del flujo (`?fase=<id>`, `ContenidoDeLaFase`): sus avisos y acciones y cuatro bloques a la vista,
-  «Datos», «Requisitos para entrar», «Salidas y quién mueve» y «Reglas que la afectan».
+- **Inspector de fase** — lo de una fase en el panel del flujo (`?fase=<id>`, `ContenidoDeLaFase`): arriba sus avisos y el «⋯» con sus acciones (mover y
+  jubilar o eliminar) y debajo tres **pestañas de la fase**: «Reglas» (abre primero: «Requisitos para entrar», «Salidas y quién mueve» y «Reglas que la
+  afectan»), «Identidad» y «Ajustes».
+- **Pestañas de la fase** — `PESTANAS_DE_FASE` (`entities/fases/bloques-de-fase.ts`), `?fase=<id>&pestana=reglas|identidad|ajustes`: «Reglas», «Identidad»
+  (nombre, descripción, color, icono) y «Ajustes» («En el flujo», «Alerta por demora», «Transporte y aduana», «Web y portal»). Identidad y Ajustes son un solo
+  formulario y un solo «Guardar». No: «Datos» (el nombre de cuando era un solo bloque), «tabs».
 - **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Fases de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
   del flujo entero, «Reglas del flujo» o «Tipos de documento» (`?seccion=reglas|documentos`); gana `?seccion=`. No: «sidebar», «inspector» para
   lo del flujo.
@@ -559,8 +563,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Configuración dice cuáles y por qué con la referencia elegida: «Ocultas con esta referencia (N)».
 - **Dato de la tarjeta** — `{tipo: 'dato', …}` de una celda: una variable de la cotización (`VARIABLES_DE_LA_TARJETA`: `empresa_nombre`, «Nombre de
   la empresa»; `fecha_larga`, `numero`, `asesor_nombre`, `asesor_telefono` «WhatsApp del asesor», `asesor_cargo` «Cargo del asesor»…) o un nodo de la fórmula con qué mostrar (`MOSTRAR`: `monto`, `etiqueta`, `descripcion`, `porcentaje`, `tc_nombre`, `tc_valor`,
-  `plazo`). Un texto no mezcla texto y variables. En el editor, «Dato» dice «Cuál dato»: «Uno», «El primero con valor» (una **lista de respaldo**) o
+  `plazo`). También va adentro de un **texto con datos**. En el editor, «Dato» dice «Cuál dato»: «Uno», «El primero con valor» (una **lista de respaldo**) o
   «Según condiciones» (las **condiciones de la tarjeta**).
+- **Texto con datos** — `{tipo: 'texto', partes}` de una celda de la tarjeta: un texto que mezcla texto literal y datos de la tarjeta insertados («Comisión giro
+  4,2 %», con el porcentaje de cada cotización); de 1 a 20 partes, al menos un dato y hasta 300 caracteres de texto. Un dato sin valor no escribe nada. En el
+  editor es «Contenido: Texto» con «Insertar dato», y cada dato insertado se ve como una **pastilla** (`TextoConDatos`, `entities/texto-con-datos.ts`).
+- **Pastilla** — un dato insertado en un texto con datos, como lo dibuja el campo del editor de la tarjeta: un solo carácter que dice el nombre del dato
+  («% Transferencia a USA», «Nombre del cliente»), que se borra entero y se toca para cambiarlo. No es el «Botón de variable» del editor de texto con variables.
 - **Lista de respaldo** — `{tipo: 'respaldo', datos}` de una celda de la tarjeta, «El primero con valor» en el editor: de 2 a 5 datos de la tarjeta en orden;
   la tarjeta muestra el primero que tiene valor y, si ninguno, la celda vacía (`resolverElContenido()`). No es el título de respaldo de la cotización
   («Cotización n.º N»).
@@ -1046,7 +1055,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   origen de subasta, el de siempre cuando «Subasta» tiene valor. Va por tramos (`TRAMOS_DEL_CIERRE`): las vivas por su cierre, las vivas sin fecha y el resto por
   alta; el cursor lleva su tramo (`<tramo>~<cursor>`, `entities/cursor-del-cierre.ts`).
 - **Atajo «Sin resolver»** — `<AtajoSinResolver>` / `sinResolverDe()`: botón arriba del inventario de un origen de subasta con las pendientes (hasta `TOPE_DE_SIN_RESOLVER`, «99+»); pone o quita «Subasta: Sin resolver».
-- **Fase de subasta** — `fases.es_subasta` / «Es la subasta» (Datos de la fase): la fase que representa la subasta en el flujo de un origen
+- **Fase de subasta** — `fases.es_subasta` / «Es la subasta» (pestaña Ajustes de la fase): la fase que representa la subasta en el flujo de un origen
   de subasta; puede haber varias. Sin ninguna, «Revisar» avisa `sin_fase_de_subasta` y nada figura «Sin resolver».
 - **Resultado de la subasta** — `vehiculos.subasta_resultado` (`ganada` | `no_ganada`), con `subasta_resuelta_por` y `subasta_resuelta_en`:
   lo escriben sólo las RPC de resolver; nunca se infiere de apibara; si la subasta vuelve a estar viva, se limpia.
@@ -1153,7 +1162,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   variables resaltadas, un **botón de variable** por cada una que ese texto acepta (inserta `{clave}` en el cursor o sobre lo seleccionado), el contador, el aviso de
   las que no acepta y la vista previa con datos de ejemplo. «Botón de variable» no es la «Ficha» (la del lead o la del vehículo). Hoy lo usa el Mensaje del portal.
 - **Variable de un texto** — `{clave}` dentro de un texto configurable (`partesDelTexto()`, `@/shared/lib/texto-con-variables`): toda `{…}` cuenta, y la que el texto no acepta se
-  rechaza. No es el «Dato de la tarjeta» (una celda de la tarjeta de la cotización, que no mezcla texto con datos).
+  rechaza. No es el «Dato de la tarjeta» (una celda de la tarjeta de la cotización) ni el «Texto con datos» (sus partes, sin llaves).
 - **Estado de un documento legal** — `estadoDeLegal()` (`web`): `publicada` (hay un texto guardado: es el que muestra el sitio) · `sin-publicar` (nunca se escribió);
   es el badge de la tarjeta de cada documento de «Legales». Guardar publica: no hay «Borrador» ni «Programada» (son de las guías). No: «versión», «borrador».
 - **Estado de la integración** — `estadoDeIntegracion()` (`empresa`): `activa` · `apagada` · `falta_la_clave`; es el badge de la tarjeta de cada integración.

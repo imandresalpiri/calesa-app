@@ -5,6 +5,8 @@ import {
   COLOR_NEUTRO_DE_FASE,
   errorDeColorDeFase,
   errorDeNombreDeFase,
+  esCampoDeFase,
+  type CampoDeFase,
   type DatosDeFase,
   type ValoresDeFase,
 } from './reglas-de-fase'
@@ -90,6 +92,13 @@ export function cambiosParaGuardar(
     ]),
   ) as CambiosDeFase
   return Object.keys(cambios).length === 0 ? null : cambios
+}
+
+// Los campos cuyo valor escrito difiere del guardado (en el orden de la base): dicen qué pestaña del panel lleva cambios sin guardar.
+export function camposConCambios(valores: ValoresDeFase, guardado: ValoresDeFase): CampoDeFase[] {
+  return CLAVES.filter(([, campo]) => valores[campo] !== guardado[campo]).flatMap(([clave]) =>
+    esCampoDeFase(clave) ? [clave] : [],
+  )
 }
 
 // Lo que se elige al crear una fase desde la lista.

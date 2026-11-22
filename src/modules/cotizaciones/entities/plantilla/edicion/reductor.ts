@@ -43,10 +43,10 @@ function copiarLoElegido(e: EstadoDelEditor): EstadoDelEditor {
   return { ...e, bloque, rechazo: null, anuncio: decir(e, texto) }
 }
 
-// El texto de la celda de una casilla, si es un texto.
+// El texto de la celda de una casilla, si es un texto fijo (un texto con datos no se escribe en el lugar: se edita en el panel).
 function textoEn(p: PlantillaEnCuadricula, mapa: MapaDeLaGrilla, pos: Pos): string {
   const c = celdaEn(mapa, p, pos)?.celda.contenido
-  return c?.tipo === 'texto' ? c.texto : ''
+  return c?.tipo === 'texto' && 'texto' in c ? c.texto : ''
 }
 
 function empezarAEscribir(

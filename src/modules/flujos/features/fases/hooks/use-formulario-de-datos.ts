@@ -11,6 +11,7 @@ import {
   contextoDelFlujo,
   esCampoDeFase,
   validarFase,
+  type CampoDeFase,
   type ErroresDeFase,
 } from '../../../entities/fases/reglas-de-fase'
 import type { FaseParaConfigurar, FlujoParaConfigurar } from '../../../entities/flujo'
@@ -19,17 +20,22 @@ import { useEscrituraDeFases } from './use-escritura-de-fases'
 import { usePedidosDeFases } from './use-pedidos-de-fases'
 import { useValoresDeFase } from './use-valores-de-fase'
 
-type Args = { flujo: FlujoParaConfigurar; fase: FaseParaConfigurar }
+type Args = {
+  flujo: FlujoParaConfigurar
+  fase: FaseParaConfigurar
+  // Lleva la pestaña a la del primer campo con error, antes de enfocarlo.
+  alIrAlCampo?: (campo: CampoDeFase) => void
+}
 
-// El estado del formulario de «Datos» de una fase en el inspector: 17 campos, así que con borrador en `sessionStorage` (uno por fase). `enviar` valida
+// El estado del formulario de «Identidad» y «Ajustes» de una fase en el panel: 18 campos, así que con borrador en `sessionStorage` (uno por fase). `enviar` valida
 // con el espejo de la base (`validarFase`), manda sólo lo que cambió (`cambiosParaGuardar`) y deja el motivo junto a cada campo; el foco va al primer
 // error en el orden en que se ven. Un conflicto lo dice el aviso del flujo (con «Recargar») y lo escrito queda; sin conexión, sale solo al volver.
 // Tras guardar, la página trae la fase y la versión nuevas y quien monta el formulario lo reinicia con una `key`.
-export function useFormularioDeDatos({ flujo, fase }: Args) {
+export function useFormularioDeDatos({ flujo, fase, alIrAlCampo }: Args) {
   const { conflicto } = useVersionDelFlujo()
   const escritura = useEscrituraDeFases()
   const pedir = usePedidosDeFases(flujo)
-  const campos = useValoresDeFase(fase)
+  const campos = useValoresDeFase(fase, alIrAlCampo)
   const { valores } = campos
   const [pendiente, setPendiente] = useState<{ desde: number } | null>(null)
 
@@ -77,6 +83,8 @@ export function useFormularioDeDatos({ flujo, fase }: Args) {
     valores,
     errores: campos.errores,
     conError: campos.conError,
+    pestanasConError: campos.pestanasConError,
+    pestanasConCambios: campos.pestanasConCambios,
     enCurso: escritura.enCurso,
     enLinea,
     esperandoConexion: pendiente !== null,

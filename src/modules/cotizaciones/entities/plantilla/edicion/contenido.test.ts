@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { MAXIMO_DE_CARACTERES_DE_UN_TEXTO } from '../../cuadricula-de-la-tarjeta'
+import {
+  MAXIMO_DE_CARACTERES_DE_UN_TEXTO,
+  type DatoDeLaCelda,
+  type ParteDelTexto,
+} from '../../cuadricula-de-la-tarjeta'
 import {
   MOTIVOS_DEL_TEXTO,
   escribirTexto,
+  motivoDelContenidoDeTexto,
   motivoDelTexto,
   ponerContenido,
   vaciar,
@@ -37,7 +42,45 @@ describe('motivoDelTexto', () => {
   })
 })
 
+const PCT: DatoDeLaCelda = { tipo: 'dato', nodo: 'comision', mostrar: 'porcentaje' }
+
+describe('motivoDelContenidoDeTexto', () => {
+  it('un texto con datos suma sus partes de texto, va hasta 20 partes y ninguna lleva «{{»', () => {
+    const mitad = 'x'.repeat(MAXIMO_DE_CARACTERES_DE_UN_TEXTO / 2)
+    expect(motivoDelContenidoDeTexto({ tipo: 'texto', partes: [mitad, PCT, mitad] })).toBeNull()
+    expect(motivoDelContenidoDeTexto({ tipo: 'texto', partes: [mitad, PCT, `${mitad}x`] })).toBe(
+      MOTIVOS_DEL_TEXTO.largo,
+    )
+    const veintiuna: ParteDelTexto[] = [PCT]
+    for (let k = 0; k < 10; k++) veintiuna.push('a', PCT)
+    expect(motivoDelContenidoDeTexto({ tipo: 'texto', partes: veintiuna })).toBe(
+      MOTIVOS_DEL_TEXTO.partes,
+    )
+    expect(motivoDelContenidoDeTexto({ tipo: 'texto', partes: ['Hola {{x}} ', PCT] })).toBe(
+      MOTIVOS_DEL_TEXTO.llaves,
+    )
+    expect(motivoDelContenidoDeTexto({ tipo: 'texto', texto: '{{x}}' })).toBe(
+      MOTIVOS_DEL_TEXTO.llaves,
+    )
+  })
+})
+
 describe('ponerContenido', () => {
+  it('un texto con datos se pone normalizado y, sin datos, como texto fijo', () => {
+    const r = ponerContenido(P, rect(0, 0), {
+      tipo: 'texto',
+      partes: ['Comisión ', '', 'giro ', PCT],
+    })
+    expect(celdaPorId(plantillaDe(r), 'a')?.contenido).toEqual({
+      tipo: 'texto',
+      partes: ['Comisión giro ', PCT],
+    })
+    const sinDatos = ponerContenido(P, rect(0, 0), { tipo: 'texto', partes: ['A'] })
+    expect(sinDatos.ok && sinDatos.plantilla).toBe(P)
+    expect(motivoDe(ponerContenido(P, rect(0, 0), { tipo: 'texto', partes: ['{{', PCT] }))).toBe(
+      MOTIVOS_DEL_TEXTO.llaves,
+    )
+  })
   it('lo toman las celdas de lo elegido y las casillas vacías reciben una celda nueva', () => {
     const r = ponerContenido(P, rect(0, 0, 0, 2), { tipo: 'dato', variable: 'fecha_larga' })
     const p = plantillaDe(r)

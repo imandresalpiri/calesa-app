@@ -198,8 +198,16 @@ const DATOS_DE_PRUEBA = {
     _plantilla_como_v1_usa: 'src/modules/cotizaciones/entities/tarjeta/plantilla-como-v1-usa.json',
   },
   // El juego espejo de la conversión de la plantilla de la tarjeta a la cuadrícula: lo genera TS con `convertirPlantilla()`.
+  // Con la forma 1 de las tarjetas de USA (su semilla ya es forma 2): T5 la convierte y la compara con la sembrada.
   'areas/tarjeta/plantilla-convertir.sql': {
     _juego_de_conversion: 'src/modules/cotizaciones/entities/plantilla/casos-de-conversion.json',
+    _plantillas_v1_de_las_semillas:
+      'src/modules/cotizaciones/entities/plantilla/plantillas-v1-de-las-semillas.json',
+  },
+  // La forma 1 de las tarjetas de USA: la de K3 y K5, que publican una forma 1 sobre `subasta_usa`.
+  'cotizacion-tarjeta.sql': {
+    _plantillas_v1_de_las_semillas:
+      'src/modules/cotizaciones/entities/plantilla/plantillas-v1-de-las-semillas.json',
   },
   // El juego espejo de los retoques de la tarjeta de una cotización: lo corre también Vitest (`entities/tarjeta/retoques/validar-retoques.test.ts`).
   'areas/tarjeta/retoques.sql': {

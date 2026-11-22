@@ -65,10 +65,11 @@ export function useLienzoDelEditor({
     disponible,
     nombrados,
     nombreDe,
-    // Enter o F2 sobre un dato o el logo: al campo «Contenido» del panel.
+    // Enter o F2 sobre un dato o el logo: al campo «Contenido» del panel; sobre un texto con datos, a su campo «Texto», que está junto a «Contenido».
     alEditarContenido: () => {
       const nodo = enfoque.current
-      ;(nodo?.querySelector<HTMLElement>('[aria-checked="true"]') ?? nodo)?.focus()
+      const texto = nodo?.parentElement?.querySelector<HTMLElement>('[data-campo-del-texto]')
+      ;(texto ?? nodo?.querySelector<HTMLElement>('[aria-checked="true"]') ?? nodo)?.focus()
     },
   }
 }

@@ -1,0 +1,63 @@
+{
+  "_nota": "Las tarjetas de subasta_usa y planilla_usa en forma 1, como eran antes de sembrarse en forma 2: la entrada de las pruebas de la conversión (`convertir-plantilla.test.ts`, `semilla.test.ts`, `plantilla-convertir.sql` T5). Convertidas con la fórmula v1 de su origen dan la forma 2 sembrada, salvo la leyenda de la transferencia, que allí es un texto con datos.",
+  "subasta_usa": {
+    "logo": true,
+    "nota": "Nota: Esta es una cotización referencial; los montos pueden variar con el tipo de cambio.",
+    "total": {
+      "leyenda": "Todo con papeles, fuera de Aduana Nacional Cochabamba (No incluye reparación)",
+      "etiqueta": "TOTAL DÓLARES"
+    },
+    "grupos": [
+      {
+        "tono": "verde",
+        "grupo": "compra"
+      },
+      {
+        "tono": "amarillo",
+        "grupo": "logistica"
+      },
+      {
+        "tono": "naranja",
+        "grupo": "aduana"
+      }
+    ],
+    "columnas": {
+      "plazo": true,
+      "leyenda": true,
+      "tipo_cambio": true
+    },
+    "etiquetas": {
+      "garantia": "GARANTÍA PARA LA PARTICIPACIÓN"
+    }
+  },
+  "planilla_usa": {
+    "logo": true,
+    "nota": "Nota: Esta es una cotización referencial; los montos pueden variar con el tipo de cambio.",
+    "total": {
+      "leyenda": "Todo con papeles, fuera de Aduana Nacional Cochabamba (No incluye reparación)",
+      "etiqueta": "TOTAL DÓLARES"
+    },
+    "grupos": [
+      {
+        "tono": "verde",
+        "grupo": "compra"
+      },
+      {
+        "tono": "amarillo",
+        "grupo": "logistica"
+      },
+      {
+        "tono": "naranja",
+        "grupo": "aduana"
+      }
+    ],
+    "columnas": {
+      "plazo": true,
+      "leyenda": true,
+      "tipo_cambio": false
+    },
+    "etiquetas": {
+      "garantia": "GARANTÍA PARA LA PARTICIPACIÓN"
+    }
+  }
+}

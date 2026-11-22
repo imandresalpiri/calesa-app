@@ -1,7 +1,8 @@
 // Lo que vale y cómo se dibuja un dato de una celda de la tarjeta (una variable de la cotización o algo de un nodo: su monto, etiqueta, descripción, porcentaje,
 // tipo de cambio o plazo, D6, D8, D17 y D18 de T310), y si tiene valor (lo que mira la lista de respaldo y la condición «está vacío»). Va aparte del contenido de
 // la celda porque lo usan el contenido y las condiciones (`condiciones-de-la-celda.ts`), que se importan en ese orden. Un dato de un nodo que no aplica queda
-// vacío; un monto nulo, «—». Los montos con `formatearMonto()` (el texto de `<Monto>` y del PDF); en pantalla los tapa `<Monto>` en Modo Live.
+// vacío; un monto nulo, «—». Los montos con `formatearMonto()` (el texto de `<Monto>` y del PDF); en pantalla los tapa `<Monto>` en Modo Live. Dentro de un texto con
+// datos (`parteDibujada()`) va el mismo formato, pero sin valor no escribe nada (nunca «—»).
 import { formatearMonto, formatearNumero, formatearPorcentaje } from '@/shared/lib/formato'
 import type { CalculoDeLaTarjeta } from '../calculo-de-la-tarjeta'
 import type { DatoDeLaCelda, Mostrar } from '../cuadricula-de-la-tarjeta'
@@ -11,8 +12,11 @@ import type { TarjetaLista, TipoDeCambioDeLaTarjeta } from './lectura-de-la-tarj
 export const SIN_DATO = '—'
 
 export type MontoDibujado = { valor: number; moneda: string; texto: string }
+// Un tramo de un texto con datos: un texto (con sus saltos de línea adentro) o un monto, que en pantalla va con `<Monto>`.
+export type TramoDelTexto = string | MontoDibujado
 export type ContenidoDibujado =
-  | { tipo: 'texto'; lineas: string[] }
+  // `tramos`, sólo en un texto con datos que lleva un monto: el HTML lo dibuja por tramos para que Live lo tape; el PDF, la imagen y «Copiar texto» leen `lineas`.
+  | { tipo: 'texto'; lineas: string[]; tramos?: readonly TramoDelTexto[] }
   | ({ tipo: 'monto'; segunda: MontoDibujado | null } & MontoDibujado)
   | { tipo: 'logo' }
   // La foto del asesor: su URL (nula sin foto: el círculo con las iniciales; `''` en las cifras de ejemplo: la muestra punteada «Foto»), sus iniciales y su nombre.
@@ -140,6 +144,28 @@ export function datoDibujado(e: EntradaDelContenido, d: DatoDeLaCelda): Contenid
   return 'variable' in d
     ? textoDibujado(textoDeLaVariable(e, d.variable))
     : delNodo(e, d.nodo, d.mostrar)
+}
+
+// Un dato dentro de un texto con datos: el mismo formato que en una celda «Dato», un monto aparte (para `<Monto>`) y, sin valor o si no aplica, nada.
+export function parteDibujada(e: EntradaDelContenido, d: DatoDeLaCelda): TramoDelTexto {
+  if ('variable' in d) return textoDeLaVariable(e, d.variable)
+  if (!aplica(e, d.nodo)) return ''
+  const crudo = CRUDOS[d.mostrar](e, d.nodo)
+  if (d.mostrar === 'monto')
+    return typeof crudo === 'number'
+      ? {
+          valor: crudo,
+          moneda: 'USD',
+          texto: formatearMonto(crudo, { moneda: 'USD', locale: e.locale }),
+        }
+      : ''
+  if (d.mostrar === 'porcentaje')
+    return typeof crudo === 'number' ? formatearPorcentaje(crudo, { locale: e.locale }) : ''
+  if (d.mostrar === 'tc_valor')
+    return typeof crudo === 'number'
+      ? formatearNumero(crudo, { decimales: 4, locale: e.locale })
+      : ''
+  return typeof crudo === 'string' ? crudo : ''
 }
 
 // Si un dato tiene valor: un texto que no queda vacío sin los espacios de los bordes, o un número (también el 0). Un nulo no; un nodo que no aplica, tampoco.

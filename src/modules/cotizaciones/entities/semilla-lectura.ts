@@ -49,6 +49,23 @@ export function sembrada(clave: Clave) {
   }
 }
 
+// La plantilla de la tarjeta de una semilla (`update public.plantillas_tarjeta … $j$…$j$`): forma 2 en las de USA, forma 1 en oficina.
+export function plantillaDeLaSemilla(clave: Clave): unknown {
+  const m = /update public\.plantillas_tarjeta p set definicion = \$j\$([\s\S]*?)\$j\$::jsonb/.exec(
+    leer(SEMILLAS[clave]),
+  )
+  if (m?.[1] === undefined) throw new Error(`${clave}: sin plantilla`)
+  return JSON.parse(m[1])
+}
+
+// La forma 1 de cada semilla: las de USA, del fixture (`plantilla/plantillas-v1-de-las-semillas.json`: su semilla ya es forma 2); la de oficina, la sembrada.
+export function plantillaV1DeLaSemilla(clave: Clave): unknown {
+  const fixture = JSON.parse(leer('./plantilla/plantillas-v1-de-las-semillas.json')) as Partial<
+    Record<Clave, unknown>
+  >
+  return fixture[clave] ?? plantillaDeLaSemilla(clave)
+}
+
 // Los tipos de cambio de seed.sql: [clave, valor, es_default].
 export function tiposDeCambio(): Record<string, { valor: number; defecto: boolean }> {
   const sql = leer('../../../../supabase/seed.sql')
