@@ -13,10 +13,19 @@ import {
 import type { Colores } from './use-colores'
 import { useRespuestaDeColor } from './use-respuesta-de-color'
 
-type Args = {
-  colores: Colores
-  // Nulo = «Nuevo color».
-  original: Tono | null
+// Lo que el formulario necesita para crear: los colores que hay (para el nombre repetido y el tope), crear y si hay un envío en curso. «Nuevo color» al vuelo
+// (el de la banda) lo arma sin la lista entera; «Editar color» pide además guardar (`Colores`).
+export type ColoresParaCrear = {
+  lista: { tonos: readonly Pick<Tono, 'id' | 'nombre'>[]; tope: number }
+  enCurso: boolean
+  crear: Colores['crear']
+}
+
+// Nulo = «Nuevo color».
+export type QueSeEdita =
+  { original: null; colores: ColoresParaCrear } | { original: Tono; colores: Colores }
+
+type Args = QueSeEdita & {
   alCerrar: () => void
   // Cerrado (se descartó o se fue con «atrás»), lo que esperaba la red no sale.
   abierto: boolean
@@ -28,7 +37,8 @@ const sinMotivo = (errores: Record<string, string>, ...claves: string[]) =>
 // El estado del modal de un color: el nombre y el hex tal cual se escriben, el motivo junto a cada campo y el envío. El id del intento nace al abrir y se conserva en
 // cada reintento. Al enviar, `validarTono()` pone el motivo junto al campo y nada sale; lo que la base rechaza vuelve igual. Un contraste bajo en la tarjeta no
 // frena nada (es un aviso). Un conflicto espera la versión nueva (la trae «Recargar») y **conserva lo escrito**; sin conexión, lo escrito queda y sale solo al volver.
-export function useFormularioDeColor({ colores, original, alCerrar, abierto }: Args) {
+export function useFormularioDeColor(args: Args) {
+  const { colores, original, alCerrar, abierto } = args
   const router = useRouter()
   const [intento] = useState(() => crypto.randomUUID())
   const [nombre, setNombre] = useState(original?.nombre ?? '')
@@ -51,15 +61,15 @@ export function useFormularioDeColor({ colores, original, alCerrar, abierto }: A
       return false
     }
     respuesta.setAviso(null)
-    if (!original)
+    if (args.original === null)
       return respuesta.aplicar(await colores.crear(intento, validado.nombre, validado.hex))
-    const cambios = cambiosDeUnTono(original, validado)
+    const cambios = cambiosDeUnTono(args.original, validado)
     // Sin cambio no hay nada que guardar: se cierra.
     if (cambios.nombre === undefined && cambios.hex === undefined) {
       alCerrar()
       return true
     }
-    return respuesta.aplicar(await colores.guardar(original, cambios))
+    return respuesta.aplicar(await args.colores.guardar(args.original, cambios))
   }
 
   const enLinea = useReintentoAlVolver(abierto ? respuesta.pendiente : null, () => enviar())

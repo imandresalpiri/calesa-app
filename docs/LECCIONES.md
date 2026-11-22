@@ -227,6 +227,10 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Una columna que recupera su posición al volver a una pantalla (`usePosicionDeLasColumnas()`) insiste unos segundos: al mostrarse de nuevo el contenido se acomoda y el navegador achica el desplazamiento al tope de ese momento; reponer una sola vez deja la posición equivocada.
 - Un modal de formulario queda montado al cerrarse: lo tipeado sigue en su estado y, en un campo controlado, en el `value` del documento. Un secreto o una
   clave se borra al cerrar (`useModalDeSecreto`), y el e2e que dice «la clave no vuelve» mira `page.content()` con el modal ya cerrado.
+- Un modal con formulario que se abre desde otro formulario (`NuevoColorDelGrupo` en el panel de una banda) va en un portal, pero sus eventos suben por el árbol
+  de React: su `submit` llega al `onSubmit` del formulario de afuera. Ese `onSubmit` sale con `evento.target !== evento.currentTarget`.
+- Lo que aparece bajo una barra al elegir algo (la línea bajo la barra de la fórmula) tiene alto fijo, aunque no haya nada elegido: si crece, lo de abajo baja y el
+  segundo clic de un doble clic cae en otra fila.
 - La cabecera de una tarjeta (título, estado, botones) lleva un `basis` en rem en el título: sin él, con el texto al 200 % el título se aplasta junto a los botones
   en vez de partir la cabecera en dos líneas.
 

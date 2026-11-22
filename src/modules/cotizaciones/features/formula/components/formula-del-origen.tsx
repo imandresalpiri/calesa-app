@@ -17,6 +17,7 @@ import { AvisosDeLaCopia } from './avisos-de-la-copia'
 import { AccionesDeLaFormula } from './acciones-de-la-formula'
 import { SesionDeLaFormulaDiferida } from './diferidos'
 import type { TipoDeCambioDeLaEmpresa } from './planilla/tipos'
+import type { PropsDelNuevoColor } from '../../../entities/nuevo-color'
 import { PublicarDelBorrador } from './publicar-del-borrador'
 import { VistaDeLaFormula } from './vista-de-la-formula'
 
@@ -31,6 +32,7 @@ type Props = {
   // Las tablas que BUSCARV puede nombrar; null si no se pudieron leer.
   tablas: CatalogoDeTablas
   TarjetaEnVivo: ComponentType<PropsDeLaTarjetaEnVivo>
+  NuevoColor: ComponentType<PropsDelNuevoColor> | null
   puedeCambiarTiposDeCambio: boolean
   tiposDeCambio: readonly TipoDeCambioDeLaEmpresa[]
 }
@@ -54,6 +56,7 @@ export function FormulaDelOrigen({
   tarjeta,
   tablas,
   TarjetaEnVivo,
+  NuevoColor,
   puedeCambiarTiposDeCambio,
   tiposDeCambio,
 }: Props) {
@@ -107,6 +110,7 @@ export function FormulaDelOrigen({
           tarjeta={tarjeta}
           tablas={tablas}
           TarjetaEnVivo={TarjetaEnVivo}
+          NuevoColor={NuevoColor}
           puedeCambiarTiposDeCambio={puedeCambiarTiposDeCambio}
           tiposDeCambio={tiposDeCambio}
         />

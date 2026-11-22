@@ -44,6 +44,7 @@ function PlanillaDePrueba({ leida }: { leida: FormulaParaEditar }) {
       alRecargar={() => undefined}
       tarjeta={{ estado: 'sin_tarjeta' }}
       TarjetaEnVivo={() => null}
+      NuevoColor={null}
       puedeCambiarTiposDeCambio={false}
       tiposDeCambio={[]}
     />

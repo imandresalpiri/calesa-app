@@ -115,6 +115,9 @@ export function TablaDeLaCuadricula({
       onKeyDown={(e) => {
         cuadricula.teclear(e, acciones.teclado)
       }}
+      onFocus={(e) => {
+        if (e.target === e.currentTarget) cuadricula.alEnfocar()
+      }}
     >
       <CabeceraDeLaCuadricula />
       {planilla.tramos.map((tramo, i) => {

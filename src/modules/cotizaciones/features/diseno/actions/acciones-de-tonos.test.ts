@@ -41,7 +41,7 @@ vi.mock('../../../areas/diseno/composicion', () => {
   }
 })
 
-const { crearTono } = await import('./crear-tono')
+const { crearTono, crearTonoAlVuelo } = await import('./crear-tono')
 const { guardarTono } = await import('./guardar-tono')
 const { eliminarTono } = await import('./eliminar-tono')
 
@@ -131,6 +131,25 @@ describe('las actions del catálogo de colores', () => {
       expect(respuesta.data).toBeUndefined()
       expect(respuesta.validationErrors).toBeDefined()
     }
+    expect(h.llamadas).toEqual([])
+  })
+})
+
+describe('«Nuevo color» al vuelo', () => {
+  it('T4 · el color al vuelo pide el permiso, crea igual y no revalida la página', async () => {
+    expect((await crearTonoAlVuelo({ id: ID, nombre: 'Dorado', hex: '#31869b' })).data).toEqual({
+      ok: true,
+      data: lista,
+    })
+    expect(h.llamadas.map((l) => l.que)).toEqual(['crear'])
+    expect(h.revalidatePath).not.toHaveBeenCalled()
+
+    h.llamadas.length = 0
+    h.permisos = [{ clave: 'cotizaciones.ver', origen_id: null, alcance: 'todos' }]
+    expect((await crearTonoAlVuelo({ id: ID, nombre: 'Dorado', hex: '#31869b' })).data).toEqual({
+      ok: false,
+      error: { codigo: 'sin_permiso', mensaje: MOTIVO_SIN_PERMISO_DE_TONOS },
+    })
     expect(h.llamadas).toEqual([])
   })
 })

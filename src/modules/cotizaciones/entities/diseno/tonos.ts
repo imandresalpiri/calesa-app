@@ -48,8 +48,8 @@ export function normalizarHex(texto: string): string | null {
 export type PedidoDeValidarTono = {
   nombre: string
   hex: string
-  // Los colores que hay, para el nombre repetido y el tope.
-  tonos: readonly Tono[]
+  // Los colores que hay, para el nombre repetido y el tope (sólo se leen su id y su nombre).
+  tonos: readonly Pick<Tono, 'id' | 'nombre'>[]
   tope?: number
   // El que se edita (no cuenta contra sí mismo ni contra el tope), o nada al crear.
   original: Tono | null

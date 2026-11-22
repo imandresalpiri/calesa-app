@@ -314,7 +314,7 @@ fórmula de trabajo.
 
 - **La hoja** (`hojaDeLaPlanilla()`): las filas en el orden de evaluación (`definicion.nodos`), numeradas de 1 a n. Es el único orden, porque
   «una fórmula sólo usa filas de arriba» sólo es cierto si se ve ese; el tipo de cada fila lo dice el color de su celda, no una banda.
-  Columnas: A concepto, B %, C valor y D de dónde sale. **La B absorbe el %:** una constante `pct` raíz que sólo nombra un `porcentaje_de`
+  Columnas: A concepto, B %, C valor y Ejemplo (`contenidoDeLaFila()`). **La B absorbe el %:** una constante `pct` raíz que sólo nombra un `porcentaje_de`
   raíz como su `pct` no tiene fila propia; se ve y se escribe en la B de esa fila y se mueve, duplica y borra con ella (`pctAbsorbidas()`).
   Un `pct` compartido o que es un `input` conserva su fila. Una **banda** es un tramo de filas seguidas con el mismo `grupo`, con su
   cabecera (etiqueta, plazo y tipo de cambio) y sin número; un grupo partido en dos tramos lleva dos cabeceras.
@@ -322,18 +322,24 @@ fórmula de trabajo.
   (`remate+fees`) como `=C5+C7`; `deA1()` traduce lo tipeado a ids antes de `compilarFila()` y devuelve cada tramo de error al texto
   tipeado (`tramoEnLoTipeado()`). No distingue mayúsculas, `$` se acepta y se ignora, un nombre con forma A1 siempre es una celda y un id
   tipeado sin esa forma se acepta. Insertar, mover o borrar filas no toca ningún texto. `deA1()` rechaza con su tramo una fila de más abajo
-  (con «Mover esta fila debajo de la N» si `puedeMover()`), la propia fila, una que no existe, las columnas A y D y una B sin % o con un %
+  (con «Mover esta fila debajo de la N» si `puedeMover()`), la propia fila, una que no existe, la columna A, Ejemplo y una B sin % o con un %
   escrito en la fórmula. Los mensajes del compilador y de `validarFormula()` nombran «C5 (Remate)» (`nombrar` del contexto, `mensajeEnA1()`).
 - **Rangos:** `C5:C9`, sólo dentro de `SUMA`, `MAX` y `MIN`, en la columna C y con filas de arriba. Se guarda la lista de ids
   (`SUMA(a; b; c)`) y al mostrar tres o más filas seguidas vuelven a ser un rango. No hay recálculo automático: con una fila insertada en
   medio se ve `SUMA(C5:C6; C8:C10)`.
 - **Escribir** (`textoDeLaCelda()` abre la edición, `aplicarLoEscrito()` la aplica): A, el concepto (hasta 80 caracteres); B, el % de la
-  fila; C según su tipo de celda. Con `=` se compila: una constante, una fila del asesor, un dato del vehículo, un interruptor o una variante
-  pasan a cálculo. Sin `=`, el valor de una constante (un cálculo pasa a valor fijo) o el de la unidad de ejemplo. Un tipo de cambio y una
-  tabla no se escriben en C y D nunca. Mientras el cursor espera un operando, un clic en otra celda inserta su referencia (Shift+clic, un
-  rango); cada referencia lleva su color en el orden en que aparece (`referenciasTipeadas()`, `--viz-series-*` en ciclo), la leyenda y el
+  fila; C según su tipo de celda; Ejemplo, el valor de la unidad de ejemplo. **Qué se escribe dónde:** C es lo que guarda la fórmula. Con `=`
+  se compila: una constante, una fila del asesor, un dato del vehículo, un interruptor o una variante pasan a cálculo. Sin `=`, el valor de una
+  constante (un cálculo pasa a valor fijo); en una fila que se llena al cotizar, C no toma un número (se dice que su ejemplo va en Ejemplo) y
+  vacía no cambia nada. Ejemplo se escribe sólo en esas filas (`escribirEnElEjemplo()`: número, Sí/No u opción); en un valor fijo dice que se
+  escribe en C y en lo demás que se calcula sola. Un tipo de cambio y una tabla no se escriben en C. `fx ▾` (`insertarFuncion()`) pone la
+  función con el cursor antes del paréntesis que cierra (`=SUMA()` en vacío; sin `=`, envuelve lo escrito: `=SUMA(100)`). Mientras el
+  cursor espera un operando, un clic en otra celda inserta su referencia (Shift+clic, un rango); cada referencia lleva su color en el orden en que aparece (`referenciasTipeadas()`, `--viz-series-*` en ciclo), la leyenda y el
   borde de su celda. El autocompletar (`sugerencias()`) ofrece las funciones, los conceptos de arriba («Remate → C5»), las bandas («Primer
   pago → SUMA(primer_pago)») y, en BUSCARV, las tablas y sus columnas; «¿Cómo se escribe?» explica las diez (`FUNCIONES_DE_LA_AYUDA`).
+- **Qué muestra cada columna** (`contenidoDeLaFila()`, una vez por fórmula de trabajo, no al tipear): C, el valor fijo, el cálculo en A1
+  («=C5+C7») o de dónde sale en corto; Ejemplo, nada en un valor fijo (la misma cifra no se dibuja dos veces), lo de la unidad en las filas que
+  se llenan al cotizar y la cifra en las demás. «De dónde sale» completo va en la línea bajo la barra.
 - **Filas:** `insertarFila()` (arriba o abajo: un «Valor fijo» en 0 llamado «Fila nueva», con la banda de la de referencia; el id sale de
   `idDeFilaNueva()` y nunca se ve), `duplicarFila()` (id nuevo, el texto recompilado en su lugar y la `pct` absorbida clonada),
   `moverFila()` (Alt+↑/↓, arrastrar el número y «Mover esta fila debajo de la N»: bajar r debajo de t vale si ninguna fila de (r, t] la

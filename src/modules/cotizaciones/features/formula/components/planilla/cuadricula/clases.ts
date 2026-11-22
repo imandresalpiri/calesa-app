@@ -1,5 +1,6 @@
-// Las clases de la cuadrícula de la planilla: # y A van pegadas a la izquierda (con fondo propio) al desplazarse de costado, en el celular y con el texto al 200 %;
-// D se parte en líneas y nunca se corta. El fondo de la C dice el tipo de celda (la leyenda de tipos usa los mismos).
+// Las clases de la cuadrícula de la planilla: # y A van pegadas a la izquierda (con fondo propio) al desplazarse de costado, en el celular y con el texto al 200 %.
+// El texto de una C (una fórmula, de dónde sale) se recorta con «…» y va entero en su `title` y en la barra. El fondo de la C dice el tipo de celda (la leyenda
+// de tipos usa los mismos). Ejemplo deja lugar a la derecha para el «⋯» de la fila.
 import type { TipoDeCelda } from '../../../../../entities/formula/tipo-de-celda'
 
 export const COLUMNAS = 5
@@ -10,7 +11,10 @@ export const NUMERO = `${CELDA} sticky left-0 z-10 w-10 cursor-grab bg-(--color-
 export const CONCEPTO = `${CELDA} sticky left-10 z-10 min-w-48 border-r bg-(--color-surface) text-left break-words`
 export const PORCENTAJE = `${CELDA} w-28 text-right tabular-nums`
 export const VALOR = `${CELDA} w-40 text-right tabular-nums`
-export const DE_DONDE_SALE = `${CELDA} relative min-w-56 pr-12 text-(--color-ink-soft) break-words`
+export const VALOR_TEXTO = `${CELDA} w-40 text-left`
+// Lo de adentro de una C con texto: una línea, recortada.
+export const TEXTO_RECORTADO = 'block max-w-56 truncate'
+export const EJEMPLO = `${CELDA} relative w-40 pr-12 text-right tabular-nums`
 // La celda activa: un contorno por dentro (no mueve nada); la que se escribe, además, sin relleno (la entrada ocupa la celda).
 export const ACTIVA = 'outline-2 -outline-offset-2 outline-(--color-primario-ink)'
 export const EN_EDICION = 'p-0'
@@ -35,5 +39,5 @@ export const NOMBRE_DE_LA_COLUMNA = {
   A: 'concepto',
   B: '%',
   C: 'valor',
-  D: 'de dónde sale',
+  D: 'ejemplo',
 } as const

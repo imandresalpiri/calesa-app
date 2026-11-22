@@ -3,15 +3,18 @@
 import { Button } from '@/shared/ui/button'
 import { useLive } from '@/shared/ui/live'
 import { filaDe } from '../../../../../entities/formula/hoja-de-la-planilla'
+import { nombreDeLaCelda } from '../../../../../entities/formula/texto-de-la-celda'
 import { useGrillaQuieta } from '../../../hooks/use-grilla-quieta'
 import type { Planilla } from '../../../hooks/use-planilla'
 import { idsDeLaEdicion } from '../ids-de-la-edicion'
 import { esMontoQueSeEscribe } from '../monto-secreto'
-import { DebajoDeLaBarra } from './debajo-de-la-barra'
+import { AccionesDeLaBarraDeFormula } from './acciones-de-la-barra-de-formula'
 import { ErrorBajoLaBarra } from './error-bajo-la-barra'
 import { LeyendaDeReferencias } from './leyenda-de-referencias'
+import { LineaBajoLaBarra, RENGLON_BAJO_LA_BARRA } from './linea-bajo-la-barra'
 import { ListaDeSugerencias } from './lista-de-sugerencias'
-import { TextoDeLaBarra } from './texto-de-la-barra'
+import { BotonDeFunciones } from './boton-de-funciones'
+import { EJEMPLO_DE_LA_BARRA, TextoDeLaBarra } from './texto-de-la-barra'
 
 type Props = { planilla: Planilla; puedeCambiarTiposDeCambio: boolean }
 
@@ -19,35 +22,24 @@ const CAJA_QUIETA =
   'min-h-[44px] min-w-0 rounded-(--radius-md) border border-dashed border-(--color-line) px-3 py-2.5 text-(length:--text-sm) text-(--color-ink-soft) break-words md:pointer-fine:min-h-9 md:pointer-fine:py-1.5'
 const BOTON = 'min-h-[44px] md:pointer-fine:min-h-9'
 
-// Lo que la barra muestra de la celda activa: su texto si se escribe; si no, por qué (D, «de dónde sale», o un monto con el Modo Live).
+// Lo que la barra muestra de la celda activa: su texto si se escribe; si no, por qué (o un monto con el Modo Live). Nulo hasta que se elige una celda.
 function textoDeLaCelda(planilla: Planilla, live: boolean) {
   const { cuadricula, edicion, hoja } = planilla
-  const celda = edicion.edicion ?? cuadricula.activa
+  const celda = edicion.edicion ?? cuadricula.activaElegida
   if (celda === null) return null
   const fila = filaDe(hoja, hoja.numeroDe.get(celda.id) ?? 0)
   if (fila === undefined) return null
-  const nombre = `${celda.col}${String(fila.numero)}, ${fila.nodo.etiqueta}`
+  const nombre = `${nombreDeLaCelda(celda.col, fila.numero)}, ${fila.nodo.etiqueta}`
   const t = planilla.textoDe(celda)
   const quieto =
     live && esMontoQueSeEscribe(fila.nodo, celda.col)
       ? 'Con el Modo Live, el monto se escribe en la celda.'
-      : celda.col === 'D'
-        ? (planilla.calculo.dichas.get(fila.id) ?? '')
-        : t.editable
-          ? null
-          : t.motivo
-  return {
-    celda,
-    fila,
-    nombre,
-    texto: t.editable ? t.texto : '',
-    quieto,
-    motivo: t.editable ? null : t.motivo,
-  }
+      : t.editable
+        ? null
+        : t.motivo
+  return { celda, fila, nombre, texto: t.editable ? t.texto : '', quieto }
 }
 
-// La barra de fórmula (D15, D16): la celda activa («C5»), `fx` y lo que se escribe con sus referencias de color, su leyenda, el autocompletar y el error con su
-// salida; escribiendo, «Aplicar» y «Descartar». Va pegada arriba (también en el celular).
 // Con algo escrito: «Aplicar» (sin mover la celda activa) y «Descartar».
 function AplicarODescartar({ planilla }: { planilla: Planilla }) {
   return (
@@ -68,6 +60,9 @@ function AplicarODescartar({ planilla }: { planilla: Planilla }) {
   )
 }
 
+// La barra de fórmula (D15, D16), como la de Excel: la celda activa («C5», «Ejemplo 5»), `fx ▾` (las funciones), lo que se escribe con sus referencias de color
+// (vacío, la única guía: «Escribe = y toca las celdas: =C5+C7»), su leyenda, el autocompletar y el error con su salida; escribiendo, «Aplicar» y «Descartar». A la
+// derecha, «?» (los tipos de celda). Debajo, sin nada escrito, una línea: de dónde sale la fila elegida. Va pegada arriba (también en el celular).
 export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
   const { live } = useLive()
   const e = planilla.edicion.edicion
@@ -81,22 +76,18 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
       data-barra-de-formula=""
       className="sticky top-(--topbar) z-20 grid min-w-0 gap-1.5 border-b border-(--color-line) bg-(--color-surface) py-2"
     >
-      <div className="flex min-w-0 flex-wrap items-start gap-2 sm:flex-nowrap">
+      {/* En una línea sólo si cabe: con un panel al costado la planilla se angosta y la fila se parte en vez de meterse debajo del panel. */}
+      <div className="flex min-w-0 flex-wrap items-start gap-2 @2xl/formula:flex-nowrap">
         <span
           data-celda-de-la-barra=""
-          className="flex min-h-[44px] w-14 shrink-0 items-center justify-center rounded-(--radius-md) border border-(--color-line) font-mono text-(length:--text-sm) md:pointer-fine:min-h-9"
+          className="flex min-h-[44px] w-auto min-w-14 shrink-0 items-center justify-center rounded-(--radius-md) border border-(--color-line) px-2 font-mono text-(length:--text-sm) whitespace-nowrap md:pointer-fine:min-h-9"
         >
-          {activa === null ? '—' : `${activa.celda.col}${String(activa.fila.numero)}`}
+          {activa === null ? '—' : nombreDeLaCelda(activa.celda.col, activa.fila.numero)}
         </span>
-        <span
-          aria-hidden
-          className="flex min-h-[44px] items-center font-serif text-(--color-ink-soft) italic md:pointer-fine:min-h-9"
-        >
-          fx
-        </span>
+        <BotonDeFunciones funcion={planilla.funcion} />
         <div className="min-w-0 flex-1 basis-60">
           {activa === null ? (
-            <p className={CAJA_QUIETA}>Elige una celda.</p>
+            <p className={CAJA_QUIETA}>{EJEMPLO_DE_LA_BARRA}</p>
           ) : activa.quieto !== null && e === null ? (
             <p className={CAJA_QUIETA}>{activa.quieto}</p>
           ) : (
@@ -109,6 +100,7 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
           )}
         </div>
         {e === null ? null : <AplicarODescartar planilla={planilla} />}
+        <AccionesDeLaBarraDeFormula paneles={planilla.paneles} />
       </div>
       <LeyendaDeReferencias leyenda={planilla.leyenda} anuncio={planilla.anuncio} />
       <ListaDeSugerencias sugerencias={planilla.sugerencias} ids={ids} />
@@ -123,14 +115,16 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
           }}
         />
       )}
-      {e === null && activa !== null ? (
-        <DebajoDeLaBarra
+      {/* Sin celda elegida, su renglón queda reservado: si no, el primer clic lo agrega, la grilla baja y el segundo clic de un doble clic cae en otra fila. */}
+      {e !== null ? null : activa === null ? (
+        <div data-linea-bajo-la-barra="" aria-hidden className={RENGLON_BAJO_LA_BARRA} />
+      ) : (
+        <LineaBajoLaBarra
           planilla={planilla}
           fila={activa.fila}
-          motivo={activa.motivo}
           puedeCambiarTiposDeCambio={puedeCambiarTiposDeCambio}
         />
-      ) : null}
+      )}
     </section>
   )
 }

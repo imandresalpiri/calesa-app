@@ -1,8 +1,9 @@
 // Qué hace lo que se escribe en una celda de la planilla (D11 del cambio de la planilla). A: el concepto. B: el valor del % (una constante). C, según su tipo:
 // algo con «=» se traduce de A1 a ids (`deA1()`) y se compila (`compilarFila()`, con «Pisar el valor» como siempre); una fila del asesor, un dato del vehículo,
-// un interruptor o una variante pasan antes a valor fijo. Sin «=»: el valor de una constante, un cálculo que pasa a valor fijo, o el valor de la unidad de
-// ejemplo (lo que escribe el asesor, el dato del vehículo, «Sí»/«No», la opción). Un tipo de cambio o una tabla no se escriben. Un error deja la edición abierta
-// con su tramo en lo tipeado. Puro y nunca lanza; no toca lo que recibe.
+// un interruptor o una variante pasan antes a valor fijo. Sin «=»: el valor de una constante o un cálculo que pasa a valor fijo; en una fila que se llena al
+// cotizar, un número no se guarda (el ejemplo va en la columna Ejemplo) y vacío no cambia nada. Ejemplo (clave interna `D`): el valor de la unidad de ejemplo
+// (lo que escribe el asesor, el dato del vehículo, «Sí»/«No», la opción). Un tipo de cambio o una tabla no se escriben. Un error deja la edición abierta con su
+// tramo en lo tipeado. Puro y nunca lanza; no toca lo que recibe.
 import { leerNumeroTipeado } from '@/shared/lib/numero-tipeado'
 import type { CatalogoDeTablas, Tramo } from '../compilador'
 import type { Formula } from '../formula'
@@ -13,7 +14,13 @@ import { deA1, tramoEnLoTipeado } from './de-a1'
 import { bDe, filaDe, hojaDeLaPlanilla, type HojaDeLaPlanilla } from './hoja-de-la-planilla'
 import { mensajeEnA1 } from './mensaje-en-a1'
 import { nombrarConLaHoja } from './referencias-a1'
-import { MOTIVO_SIN_PORCENTAJE, opcionElegida } from './texto-de-la-celda'
+import {
+  esDeLaUnidad,
+  MOTIVO_DEL_EJEMPLO,
+  MOTIVO_SIN_PORCENTAJE,
+  motivoDelEjemploDeUnValorFijo,
+  opcionElegida,
+} from './texto-de-la-celda'
 import { cambiarTipo } from './tipo-de-celda'
 import type { UnidadDeEjemplo, ValorDelVehiculo } from './unidad-de-ejemplo'
 import { cambiarValorDeConstante } from './valor-en-la-planilla'
@@ -41,8 +48,10 @@ export type LoAplicado =
   | { readonly tipo: 'formula'; readonly formula: Formula; readonly soltados: readonly string[] }
   | { readonly tipo: 'unidad'; readonly cambio: CambioDeLaUnidad }
   | { readonly tipo: 'error'; readonly error: ErrorDeLaCelda }
+  // Nada que cambiar (la C vacía de una fila que se llena al cotizar).
+  | { readonly tipo: 'nada' }
 
-export type ColumnaQueSeEscribe = 'A' | 'B' | 'C'
+export type ColumnaQueSeEscribe = 'A' | 'B' | 'C' | 'D'
 
 export type PedidoDeLaCelda = {
   readonly formula: Formula
@@ -60,6 +69,12 @@ export const MENSAJE_SIN_CONCEPTO = 'Escribe el concepto.'
 export const MENSAJE_DEL_CALCULO_VACIO = 'Escribe un número o una fórmula que empiece con «=».'
 export const MENSAJE_NO_SE_ESCRIBE = 'Esta celda no se escribe. Cambia su tipo en «Tipo de celda».'
 export const MENSAJE_SI_O_NO = 'Escribe «Sí» o «No».'
+const PARA_UN_VALOR_FIJO =
+  'el ejemplo va en la columna Ejemplo. Para un valor fijo, cambia su tipo en «Tipo de celda».'
+export const MENSAJE_DEL_ASESOR_EN_C = `Esta celda la escribe el asesor al cotizar: ${PARA_UN_VALOR_FIJO}`
+export const MENSAJE_AL_COTIZAR_EN_C = `Esta celda se llena al cotizar: ${PARA_UN_VALOR_FIJO}`
+export const mensajeDeFormulaEnElEjemplo = (numero: number) =>
+  `Ejemplo es el valor de la unidad de ejemplo: la fórmula va en C${String(numero)}.`
 
 const error = (mensaje: string, de: Partial<ErrorDeLaCelda> = {}): LoAplicado => ({
   tipo: 'error',
@@ -188,7 +203,11 @@ function escribirEnLaUnidad(p: PedidoDeLaCelda, nodo: Nodo): LoAplicado {
 
 function escribirValor(p: PedidoDeLaCelda, nodo: Nodo): LoAplicado {
   if (NO_SE_ESCRIBEN.has(nodo.tipo)) return error(MENSAJE_NO_SE_ESCRIBE)
-  if (nodo.tipo !== 'constante' && nodo.tipo !== 'calculo') return escribirEnLaUnidad(p, nodo)
+  // La C de una fila que se llena al cotizar: vacía no cambia nada; un número no se guarda (no se vuelve valor fijo en silencio).
+  if (esDeLaUnidad(nodo)) {
+    if (p.texto.trim() === '') return { tipo: 'nada' }
+    return error(nodo.tipo === 'input' ? MENSAJE_DEL_ASESOR_EN_C : MENSAJE_AL_COTIZAR_EN_C)
+  }
   if (nodo.tipo === 'calculo' && p.texto.trim() === '') return error(MENSAJE_DEL_CALCULO_VACIO)
   const leido = valorTipeado(p.texto, formatoDe(nodo), p.locale, null)
   if (!leido.ok) return error(leido.aviso)
@@ -198,11 +217,22 @@ function escribirValor(p: PedidoDeLaCelda, nodo: Nodo): LoAplicado {
   return r.ok ? formula(r.formula) : error(r.mensaje)
 }
 
+// Ejemplo: sólo en una fila que se llena al cotizar, sin «=».
+function escribirEnElEjemplo(p: PedidoDeLaCelda, nodo: Nodo): LoAplicado {
+  if (!esDeLaUnidad(nodo))
+    return error(
+      nodo.tipo === 'constante' ? motivoDelEjemploDeUnValorFijo(p.numero) : MOTIVO_DEL_EJEMPLO,
+    )
+  if (p.texto.trimStart().startsWith('=')) return error(mensajeDeFormulaEnElEjemplo(p.numero))
+  return escribirEnLaUnidad(p, nodo)
+}
+
 export function aplicarLoEscrito(p: PedidoDeLaCelda): LoAplicado {
   const fila = filaDe(p.hoja, p.numero)
   if (fila === undefined) return error('Esa fila ya no está.')
   if (p.col === 'A') return escribirConcepto(p, fila.nodo)
   if (p.col === 'B') return escribirPorcentaje(p)
+  if (p.col === 'D') return escribirEnElEjemplo(p, fila.nodo)
   return p.texto.trimStart().startsWith('=')
     ? compilarEnLaCelda(p, fila.nodo)
     : escribirValor(p, fila.nodo)
@@ -224,7 +254,7 @@ export function unidadConElCambio(u: UnidadDeEjemplo, cambio: CambioDeLaUnidad):
   }
 }
 
-// La barra espaciadora en la C de un interruptor lo da vuelta; en la de una variante, pasa a la opción siguiente. Nulo en otra celda.
+// La barra espaciadora en el Ejemplo de un interruptor lo da vuelta; en la de una variante, pasa a la opción siguiente. Nulo en otra celda.
 export function cambioAlAlternar(nodo: Nodo, u: UnidadDeEjemplo): CambioDeLaUnidad | null {
   if (nodo.tipo === 'bandera')
     return { tipo: 'bandera', id: nodo.id, valor: u.banderas[nodo.id] !== true }

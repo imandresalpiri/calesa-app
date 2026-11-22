@@ -22,10 +22,45 @@ export const celda = (page: Page, a1: string) => grilla(page).locator(`[data-cel
 export const entradaDeLaCelda = (page: Page) => grilla(page).getByRole('combobox')
 export const sugerencias = (page: Page) =>
   planilla(page).getByRole('listbox', { name: 'Sugerencias' })
-export const guardado = (page: Page) => planilla(page).locator('[data-guardado] [role="status"]')
+// La línea del guardado: en la barra de la fórmula (fuera de la planilla) o, en la puesta en marcha, arriba de ella.
+export const guardado = (page: Page) => page.locator('[data-guardado] [role="status"]')
 // «Guardar el borrador»: en la página del origen va en la barra de la fórmula, arriba de la planilla; en la puesta en marcha, que no tiene barra, en la planilla.
 export const guardar = (page: Page) =>
   page.getByRole('button', { name: 'Guardar el borrador', exact: true })
+
+// `fx ▾` de la barra de fórmula: el menú de las funciones. Apagado (`aria-disabled`) si no hay una C que se pueda escribir.
+export const botonDeFunciones = (page: Page) =>
+  barra(page).getByRole('button', { name: 'Insertar una función', exact: true })
+
+// Los paneles al costado de la barra de fórmula (`?costado=totales|tarjeta`). Van en un portal, fuera de la planilla: se buscan en la página.
+export type Costado = 'Totales' | 'Tarjeta'
+const TITULO_DEL_COSTADO: Record<Costado, string> = {
+  Totales: 'Totales',
+  Tarjeta: 'Tarjeta de la cotización',
+}
+export const botonDelCostado = (page: Page, cual: Costado) =>
+  barra(page).getByRole('button', { name: cual, exact: true })
+export const costado = (page: Page, cual: Costado) =>
+  page.getByRole('dialog', { name: TITULO_DEL_COSTADO[cual], exact: true })
+// «Totales» dentro de su panel abierto.
+export const totalesDelCostado = (page: Page) =>
+  costado(page, 'Totales').getByRole('region', { name: 'Totales', exact: true })
+// La tarjeta en vivo dentro de su panel abierto.
+export const tarjetaDelCostado = (page: Page) =>
+  costado(page, 'Tarjeta').locator('[data-tarjeta-de-cotizacion]')
+
+// Abre «Totales» o «Tarjeta» con su botón de la barra y espera el panel. Antes de hidratar el clic no vale: se insiste hasta que la URL lo pida (y no más,
+// para no sumar entradas al historial). Si ya está abierto, no lo toca.
+export async function abrirCostado(page: Page, cual: Costado): Promise<Locator> {
+  const panel = costado(page, cual)
+  const clave = `costado=${cual === 'Totales' ? 'totales' : 'tarjeta'}`
+  await expect(async () => {
+    if (!page.url().includes(clave)) await botonDelCostado(page, cual).click()
+    await expect(panel).toBeVisible({ timeout: 1_000 })
+  }).toPass()
+  await expect(botonDelCostado(page, cual)).toHaveAttribute('aria-expanded', 'true')
+  return panel
+}
 
 // El nombre A1 de la celda de esa fila hoy («C7»).
 export async function a1De(

@@ -13,6 +13,7 @@ import type {
 } from '../../../entities/tarjeta-en-vivo'
 import type { FilaDeLaHoja } from '../../../entities/formula/hoja-de-la-planilla'
 import type { TipoDeCelda } from '../../../entities/formula/tipo-de-celda'
+import { idsDeLaEdicion } from '../components/planilla/ids-de-la-edicion'
 import type { PropsDeLaPlanilla } from '../components/planilla/tipos'
 import { useAccionesDeLaCuadricula } from './use-acciones-de-la-cuadricula'
 import { useBandasDeLaPlanilla } from './use-bandas-de-la-planilla'
@@ -22,6 +23,7 @@ import { useCamposQueFaltan } from './use-campos-que-faltan'
 import { useCuadricula } from './use-cuadricula'
 import type { EdicionConReferencias } from './use-edicion-con-referencias'
 import { useEdicionDeLaPlanilla } from './use-edicion-de-la-planilla'
+import { useFuncionEnLaBarra } from './use-funcion-en-la-barra'
 import { useOperacionesDeFila, type OperacionesDeFila } from './use-operaciones-de-fila'
 import { usePanelesDeLaPlanilla, type PanelesDeLaPlanilla } from './use-paneles-de-la-planilla'
 
@@ -68,6 +70,18 @@ function tipoDeCambioDeLa(editor: PropsDeLaPlanilla['editor'], calculo: CalculoD
           : undefined
         : calculo.delModo.buckets.find((b) => b.bucket === bucket)?.nodo
     return id === undefined ? bucket : (calculo.dicho.nodos.get(id)?.etiqueta ?? id)
+  }
+}
+
+// «Unidad de ejemplo: volver a ceros» y si «Totales» muestra el total en Bs.
+function deLaUnidadYElTotal(p: PropsDeLaPlanilla) {
+  const cabecera = p.diseno?.cabecera
+  return {
+    enCeros: enCeros(p.unidad),
+    volverACeros: () => {
+      p.alCambiarUnidad(UNIDAD_EN_CEROS)
+    },
+    verTotalBs: (cabecera?.ver_total_bs ?? false) && (cabecera?.ver_total_bs_por_defecto ?? false),
   }
 }
 
@@ -162,7 +176,6 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     enfocar,
     anunciar: setAnuncio,
   })
-  const cabecera = p.diseno?.cabecera
   const paneles = usePanelesDeLaPlanilla()
   const cierre = useCierreYMenu({ edicion, cuadricula, enfocar, ops, paneles, calculo })
   return {
@@ -174,6 +187,13 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     calculo,
     ops,
     acciones,
+    funcion: useFuncionEnLaBarra({
+      edicion,
+      activa: cuadricula.activaElegida,
+      textoDe: ed.textoDe,
+      elegir: cuadricula.elegir,
+      idDelTexto: idsDeLaEdicion(filas.prefijo).texto,
+    }),
     bandas: useBandasDeLaPlanilla({ editor, conModos: calculo.modos.length > 0, tarjeta }),
     paneles,
     faltan: useCamposQueFaltan(p.origen.id, editor.trabajo.definicion.nodos),
@@ -183,11 +203,7 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     alCambiarUnidad,
     ...cierre,
     tipoDeCambioDe: tipoDeCambioDeLa(editor, calculo),
-    enCeros: enCeros(p.unidad),
-    volverACeros: () => {
-      p.alCambiarUnidad(UNIDAD_EN_CEROS)
-    },
-    verTotalBs: (cabecera?.ver_total_bs ?? false) && (cabecera?.ver_total_bs_por_defecto ?? false),
+    ...deLaUnidadYElTotal(p),
   }
 }
 

@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect, useId, useState } from 'react'
-import { Button } from '@/shared/ui/button'
+import { useEffect, useId, useState, type ComponentType } from 'react'
 import { Campo } from '@/shared/ui/campo'
-import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
 import type { Grupo } from '../../../../../entities/formula'
 import type { OpcionDeTipoDeCambio } from '../../../../../entities/formula/buckets'
 import type {
@@ -16,6 +14,8 @@ import { useCambiosSinGuardar } from '@/shared/ui/cambios-del-panel'
 import { PieDelPanel } from '@/shared/ui/pie-del-panel'
 import { useMiembrosDelGrupo } from '../../../hooks/use-miembros-del-grupo'
 import type { EstadoDeLosTonos } from '../../../hooks/use-tonos'
+import type { ColorCreado, PropsDelNuevoColor } from '../../../../../entities/nuevo-color'
+import { EstadoDeLosTonosDelFormulario, SelectoresDelGrupo } from './selectores-del-grupo'
 import { FilasDelGrupo, type FilaCandidata, type FilaDelGrupo } from './filas-del-grupo'
 
 type Props = {
@@ -31,49 +31,14 @@ type Props = {
   alAplicar: (cambios: CambiosDelGrupo, contexto: ContextoDelGrupo) => void
   alCancelar: () => void
   alReintentarTonos: () => void
+  // «+ Nuevo color» (área `diseno`, por el hueco); nulo sin `cotizaciones.configurar`. Lo creado se suma al catálogo leído.
+  NuevoColor: ComponentType<PropsDelNuevoColor> | null
+  alCrearColor: (color: ColorCreado) => void
   // «Crear banda» al crearla.
   etiquetaDeAplicar?: string
 }
 
 const ORDEN: CampoDelGrupo[] = ['etiqueta', 'plazo', 'tono', 'tipo_de_cambio', 'miembros']
-
-function opcionesDeTono(tonos: EstadoDeLosTonos, actual: string) {
-  if (tonos.tipo === 'leyendo') return [{ valor: actual, etiqueta: 'Cargando los colores…' }]
-  if (tonos.tipo === 'error') return [{ valor: actual, etiqueta: actual }]
-  const opciones = tonos.tonos.map((t) => ({ valor: t.clave, etiqueta: t.nombre }))
-  // Un tono que ya no está en el catálogo se ve por su clave y no deja aplicar hasta elegir otro.
-  return tonos.claves.has(actual) ? opciones : [{ valor: actual, etiqueta: actual }, ...opciones]
-}
-
-function EstadoDeLosTonosDelFormulario({
-  tonos,
-  alReintentar,
-}: {
-  tonos: EstadoDeLosTonos
-  alReintentar: () => void
-}) {
-  if (tonos.tipo === 'listo') return null
-  if (tonos.tipo === 'leyendo') {
-    return (
-      <p className="text-(length:--text-sm) text-(--color-ink-soft)">
-        Esperando los tonos de la empresa.
-      </p>
-    )
-  }
-  return (
-    <div className="flex flex-wrap items-center gap-2 text-(length:--text-sm) text-(--color-peligro-ink)">
-      <p role="alert">No se pudieron leer los colores de la empresa.</p>
-      <Button
-        type="button"
-        variant="outline"
-        className="min-h-11 md:min-h-9"
-        onClick={alReintentar}
-      >
-        Reintentar
-      </Button>
-    </div>
-  )
-}
 
 function CamposDeTexto(p: {
   uid: string
@@ -103,52 +68,6 @@ function CamposDeTexto(p: {
         ayuda="Opcional."
         onChange={(evento) => {
           p.alCambiarPlazo(evento.target.value)
-        }}
-      />
-    </>
-  )
-}
-
-function SelectoresDelGrupo(p: {
-  uid: string
-  tono: string
-  tipoDeCambio: string
-  tonos: EstadoDeLosTonos
-  tiposDeCambio: readonly OpcionDeTipoDeCambio[]
-  conModos: boolean
-  deError: (campo: CampoDelGrupo) => string | undefined
-  alCambiarTono: (tono: string) => void
-  alCambiarTipoDeCambio: (id: string) => void
-}) {
-  return (
-    <>
-      <CampoSeleccion
-        nombre={`${p.uid}-tono`}
-        etiqueta="Color"
-        opciones={opcionesDeTono(p.tonos, p.tono)}
-        value={p.tono}
-        disabled={p.tonos.tipo !== 'listo'}
-        error={p.deError('tono')}
-        ayuda="La tarjeta usa el color que elija su plantilla, si elige uno."
-        onChange={(evento) => {
-          p.alCambiarTono(evento.target.value)
-        }}
-      />
-      <CampoSeleccion
-        nombre={`${p.uid}-tipo_de_cambio`}
-        etiqueta="Tipo de cambio"
-        opciones={p.tiposDeCambio.map((o) => ({
-          valor: o.id,
-          etiqueta: `${o.etiqueta} (${o.clave})`,
-          ...(o.motivo === null ? {} : { deshabilitada: true }),
-        }))}
-        value={p.tipoDeCambio}
-        error={p.deError('tipo_de_cambio')}
-        ayuda={
-          p.conModos ? 'En la hoja, cada modo elige el tipo de cambio de cada banda.' : undefined
-        }
-        onChange={(evento) => {
-          p.alCambiarTipoDeCambio(evento.target.value)
         }}
       />
     </>
@@ -197,20 +116,10 @@ function useEstadoDelGrupo({ grupo, miembros, candidatas, tiposDeCambio }: Props
 export function FormularioDelGrupo(props: Props) {
   const { grupo, miembros, errores, tonos, tiposDeCambio, conModos, alCancelar } = props
   const uid = useId()
-  const {
-    filas,
-    etiqueta,
-    setEtiqueta,
-    plazo,
-    setPlazo,
-    tono,
-    setTono,
-    tipoDeCambio,
-    setTipoDeCambio,
-    hayCambios,
-  } = useEstadoDelGrupo(props)
+  const e = useEstadoDelGrupo(props)
+  const { filas, etiqueta, plazo, tono, tipoDeCambio } = e
   const deError = (campo: CampoDelGrupo) => errores.find((e) => e.campo === campo)?.mensaje
-  useCambiosSinGuardar(hayCambios, undefined, { preguntaAlCerrar: true })
+  useCambiosSinGuardar(e.hayCambios, undefined, { preguntaAlCerrar: true })
 
   // Al abrir el foco va a la etiqueta; con errores nuevos, al primero.
   useEffect(() => {
@@ -225,6 +134,8 @@ export function FormularioDelGrupo(props: Props) {
       aria-label={grupo.etiqueta === '' ? 'Nueva banda' : `Banda ${grupo.etiqueta}`}
       className="grid min-w-0 gap-4"
       onSubmit={(evento) => {
+        // El envío de «Nuevo color» (otro formulario, en el portal de su modal) sube hasta acá por el árbol de React: no es aplicar la banda.
+        if (evento.target !== evento.currentTarget) return
         evento.preventDefault()
         if (tonos.tipo !== 'listo') return
         props.alAplicar(
@@ -243,8 +154,8 @@ export function FormularioDelGrupo(props: Props) {
         etiqueta={etiqueta}
         plazo={plazo}
         deError={deError}
-        alCambiarEtiqueta={setEtiqueta}
-        alCambiarPlazo={setPlazo}
+        alCambiarEtiqueta={e.setEtiqueta}
+        alCambiarPlazo={e.setPlazo}
       />
       <SelectoresDelGrupo
         uid={uid}
@@ -254,8 +165,10 @@ export function FormularioDelGrupo(props: Props) {
         tiposDeCambio={tiposDeCambio}
         conModos={conModos}
         deError={deError}
-        alCambiarTono={setTono}
-        alCambiarTipoDeCambio={setTipoDeCambio}
+        alCambiarTono={e.setTono}
+        alCambiarTipoDeCambio={e.setTipoDeCambio}
+        NuevoColor={props.NuevoColor}
+        alCrearColor={props.alCrearColor}
       />
       <FilasDelGrupo
         uid={uid}

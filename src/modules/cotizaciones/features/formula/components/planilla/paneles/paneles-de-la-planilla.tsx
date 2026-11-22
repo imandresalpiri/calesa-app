@@ -2,39 +2,39 @@
 
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import type { Planilla } from '../../../hooks/use-planilla'
-import type { TipoDeCambioDeLaEmpresa } from '../tipos'
+import type { PropsDeLaPlanilla } from '../tipos'
 import {
   PanelComoSeEscribeDiferido,
   PanelDeLaBandaDiferido,
+  PanelDeLaTarjetaDiferido,
+  PanelDeLosTotalesDiferido,
   PanelDelTipoDeCeldaDiferido,
   PanelDelTotalDiferido,
 } from './diferidos'
 
-type Props = {
-  planilla: Planilla
-  origen: { id: string; nombre: string }
-  tiposDeCambio: readonly TipoDeCambioDeLaEmpresa[]
-}
-
 // Los paneles de la planilla, montados una vez cada uno desde que se abren (el código llega con la primera apertura y el panel se desliza al cerrar).
-export function PanelesDeLaPlanilla({ planilla, origen, tiposDeCambio }: Props) {
+export function PanelesDeLaPlanilla({ p, planilla }: { p: PropsDeLaPlanilla; planilla: Planilla }) {
   const { paneles } = planilla
   const banda = useAbiertoAlgunaVez(paneles.banda.abierto || paneles.nuevaBanda.abierto)
   const total = useAbiertoAlgunaVez(paneles.total.abierto)
   const tipo = useAbiertoAlgunaVez(paneles.tipo.abierto)
   const ayuda = useAbiertoAlgunaVez(paneles.ayuda.abierto)
+  const totales = useAbiertoAlgunaVez(paneles.totales.abierto)
+  const tarjeta = useAbiertoAlgunaVez(paneles.tarjeta.abierto)
   return (
     <>
-      {banda ? <PanelDeLaBandaDiferido planilla={planilla} /> : null}
+      {banda ? <PanelDeLaBandaDiferido planilla={planilla} NuevoColor={p.NuevoColor} /> : null}
       {total ? <PanelDelTotalDiferido planilla={planilla} /> : null}
       {tipo ? (
         <PanelDelTipoDeCeldaDiferido
           planilla={planilla}
-          origen={origen}
-          tiposDeCambio={tiposDeCambio}
+          origen={p.origen}
+          tiposDeCambio={p.tiposDeCambio}
         />
       ) : null}
       {ayuda ? <PanelComoSeEscribeDiferido planilla={planilla} /> : null}
+      {totales ? <PanelDeLosTotalesDiferido p={p} planilla={planilla} /> : null}
+      {tarjeta ? <PanelDeLaTarjetaDiferido p={p} planilla={planilla} /> : null}
     </>
   )
 }

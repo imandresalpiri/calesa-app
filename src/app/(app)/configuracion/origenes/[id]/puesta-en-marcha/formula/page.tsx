@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { leerLaTarjetaDeLaFormula, origenesParaCopiar } from '@/modules/cotizaciones'
 import { EmpezarLaFormula } from '@/modules/cotizaciones/pantallas/formulas-del-origen-empezar'
 import { SeccionDeLaFormula } from '@/modules/cotizaciones/pantallas/formula'
+import { NuevoColorAlVueloDiferido } from '@/modules/cotizaciones/pantallas/diseno-nuevo-color'
 import { TarjetaEnVivoDiferida } from '@/modules/cotizaciones/pantallas/tarjeta-formula'
 import { getTiposCambio } from '@/modules/empresa'
 import { leerOrigenes } from '@/modules/origenes'
@@ -73,6 +74,12 @@ function Planilla({
         formula={formula}
         tarjeta={leerLaTarjetaDeLaFormula(origen, formula.id)}
         TarjetaEnVivo={TarjetaEnVivoDiferida}
+        // El catálogo de colores es de la empresa: como `tono_crear()`, sin origen.
+        NuevoColor={
+          puede(abierta.sesion.permisos, 'cotizaciones.configurar')
+            ? NuevoColorAlVueloDiferido
+            : null
+        }
         tiposDeCambio={getTiposCambio().then((tipos) =>
           tipos.map(({ clave, nombre: elNombre }) => ({ clave, nombre: elNombre })),
         )}
