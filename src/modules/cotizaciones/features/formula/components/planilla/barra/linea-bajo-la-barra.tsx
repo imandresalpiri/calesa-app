@@ -20,6 +20,9 @@ type Props = {
   puedeCambiarTiposDeCambio: boolean
 }
 
+// Al menos un renglón, haya algo que decir o no: elegir una celda no mueve la grilla.
+export const RENGLON_BAJO_LA_BARRA = 'min-h-[1lh] min-w-0 text-(length:--text-sm)'
+
 // La línea bajo la barra sin nada escrito: de dónde sale la fila elegida, en palabras (lo que la fórmula hace con ella), y, separado por «·», lo que el último
 // cambio soltó de la fila y, en un tipo de cambio, el camino a Empresa › Monedas (no se versiona). Lo que dice su texto tras un ⚙ (reescrito o «ya no manda»)
 // va debajo, sólo cuando pasa.
@@ -54,7 +57,7 @@ export function LineaBajoLaBarra({ planilla, fila, puedeCambiarTiposDeCambio }: 
   return (
     <div
       data-linea-bajo-la-barra=""
-      className="grid min-w-0 gap-1 text-(length:--text-sm) text-(--color-ink-soft)"
+      className={`grid gap-1 text-(--color-ink-soft) ${RENGLON_BAJO_LA_BARRA}`}
     >
       {partes.length === 0 ? null : (
         <p className="min-w-0 break-words">

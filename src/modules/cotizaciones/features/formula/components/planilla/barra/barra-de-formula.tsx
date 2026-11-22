@@ -11,7 +11,7 @@ import { esMontoQueSeEscribe } from '../monto-secreto'
 import { AccionesDeLaBarraDeFormula } from './acciones-de-la-barra-de-formula'
 import { ErrorBajoLaBarra } from './error-bajo-la-barra'
 import { LeyendaDeReferencias } from './leyenda-de-referencias'
-import { LineaBajoLaBarra } from './linea-bajo-la-barra'
+import { LineaBajoLaBarra, RENGLON_BAJO_LA_BARRA } from './linea-bajo-la-barra'
 import { ListaDeSugerencias } from './lista-de-sugerencias'
 import { BotonDeFunciones } from './boton-de-funciones'
 import { EJEMPLO_DE_LA_BARRA, TextoDeLaBarra } from './texto-de-la-barra'
@@ -115,13 +115,16 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
           }}
         />
       )}
-      {e === null && activa !== null ? (
+      {/* Sin celda elegida, su renglón queda reservado: si no, el primer clic lo agrega, la grilla baja y el segundo clic de un doble clic cae en otra fila. */}
+      {e !== null ? null : activa === null ? (
+        <div data-linea-bajo-la-barra="" aria-hidden className={RENGLON_BAJO_LA_BARRA} />
+      ) : (
         <LineaBajoLaBarra
           planilla={planilla}
           fila={activa.fila}
           puedeCambiarTiposDeCambio={puedeCambiarTiposDeCambio}
         />
-      ) : null}
+      )}
     </section>
   )
 }
