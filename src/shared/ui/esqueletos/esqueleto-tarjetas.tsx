@@ -17,15 +17,10 @@ export function EsqueletoDeUnaTarjeta() {
 // Patrón «tarjetas de ajustes»: el título de la página y las tarjetas en la misma grilla de columnas que las de verdad.
 export function EsqueletoTarjetas({ tarjetas = 4 }: Props) {
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      aria-label="Cargando los ajustes"
-      className="grid max-w-6xl gap-4"
-    >
+    <div role="status" aria-busy="true" aria-label="Cargando los ajustes" className="grid gap-4">
       <Skeleton className="h-7 w-48" />
       <div className="@container/ajustes min-w-0">
-        <div className="columns-1 gap-4 @2xl/ajustes:columns-2 @5xl/ajustes:columns-3">
+        <div className="columns-[20rem] gap-4">
           {Array.from({ length: tarjetas }, (_, tarjeta) => (
             <EsqueletoDeUnaTarjeta key={tarjeta} />
           ))}
