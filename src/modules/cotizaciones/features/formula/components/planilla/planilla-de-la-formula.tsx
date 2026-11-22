@@ -1,7 +1,7 @@
 'use client'
 
 import { EstiloDeTonos } from '@/shared/ui/xcell'
-import { AccionesEnLaBarra } from '../../../barra-de-la-formula/components'
+import { AccionesEnLaBarra, useEnLaBarra } from '../../../barra-de-la-formula/components'
 import { useEstadoEnLaBarra } from '../../../barra-de-la-formula/hooks/use-estado-en-la-barra'
 import { usePlanilla, type Planilla } from '../../hooks/use-planilla'
 import { BarraDeFormula } from './barra/barra-de-formula'
@@ -14,17 +14,23 @@ import type { PropsDeLaPlanilla } from './tipos'
 
 const SIN_TONOS: never[] = []
 
-// Arriba de la planilla: sobre qué versión se edita, su «⋯» y «Guardar el borrador».
+// Arriba de la planilla: su «⋯» y «Guardar el borrador» (en la página del origen, los dos en la barra de la fórmula, cuyo estado ya dice sobre qué versión se edita;
+// en la puesta en marcha, acá con «Sobre…»).
 function CabeceraDeLaPlanilla({ p, planilla }: { p: PropsDeLaPlanilla; planilla: Planilla }) {
   const { guardado } = p.editor
+  const enLaBarra = useEnLaBarra()
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-(length:--text-sm) text-(--color-ink-soft)">{p.sobre}</p>
+      {enLaBarra ? (
         <AccionesEnLaBarra orden={3}>
           <MenuDeLaPlanilla planilla={planilla} />
         </AccionesEnLaBarra>
-      </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-(length:--text-sm) text-(--color-ink-soft)">{p.sobre}</p>
+          <MenuDeLaPlanilla planilla={planilla} />
+        </div>
+      )}
       <GuardarBorrador
         nombreDelOrigen={p.origen.nombre}
         enCurso={guardado.enCurso}

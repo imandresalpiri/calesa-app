@@ -22,7 +22,8 @@ export const celda = (page: Page, a1: string) => grilla(page).locator(`[data-cel
 export const entradaDeLaCelda = (page: Page) => grilla(page).getByRole('combobox')
 export const sugerencias = (page: Page) =>
   planilla(page).getByRole('listbox', { name: 'Sugerencias' })
-export const guardado = (page: Page) => planilla(page).locator('[data-guardado] [role="status"]')
+// La línea del guardado: en la barra de la fórmula (fuera de la planilla) o, en la puesta en marcha, arriba de ella.
+export const guardado = (page: Page) => page.locator('[data-guardado] [role="status"]')
 // «Guardar el borrador»: en la página del origen va en la barra de la fórmula, arriba de la planilla; en la puesta en marcha, que no tiene barra, en la planilla.
 export const guardar = (page: Page) =>
   page.getByRole('button', { name: 'Guardar el borrador', exact: true })

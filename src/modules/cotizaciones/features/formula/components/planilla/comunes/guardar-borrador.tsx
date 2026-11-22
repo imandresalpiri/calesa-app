@@ -56,30 +56,35 @@ function lineaDe(estado: EstadoDelGuardado, motivo: string | null, enCurso: bool
   return motivo ?? ''
 }
 
-// «Guardar el borrador» del editor (4.21-3b-1, C5 a C7), arriba de la lista: el botón con la línea de por qué espera o de lo que pasó, el conflicto con
-// «Recargar» y el aviso de lo que el diseño no muestra. Tras guardar y sin cambios, «Se guardó el borrador.» ocupa el lugar de «No hay cambios por guardar.».
+// «Guardar el borrador» del editor (4.21-3b-1, C5 a C7): el botón con la línea de por qué espera o de lo que pasó (en la barra de la fórmula; en la puesta en
+// marcha, arriba de la planilla) y, arriba de la planilla, el conflicto con «Recargar» y el aviso de lo que el diseño no muestra. Tras guardar y sin cambios, «Se guardó el borrador.» ocupa el lugar de «No hay cambios por guardar.».
 export function GuardarBorrador(props: Props) {
   const { estado, motivo, enCurso } = props
   const conflicto = estado.tipo === 'conflicto' ? estado.mensaje : null
   const error = textoDelError(estado, props.nombreDelOrigen)
+  const linea = lineaDe(estado, motivo, enCurso)
   return (
-    <div data-guardado className="grid min-w-0 gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        {/* En la página del origen el botón va a la barra de la fórmula; la línea de estado y los avisos quedan acá. */}
-        <AccionesEnLaBarra orden={1}>
+    <div className="grid min-w-0 gap-2 empty:hidden">
+      {/* En la página del origen el botón y su línea van a la barra de la fórmula (la línea, chica y antes del botón); los avisos quedan acá. */}
+      <AccionesEnLaBarra orden={1}>
+        <div data-guardado className="flex min-w-0 items-center gap-2">
+          <p
+            role="status"
+            title={linea || undefined}
+            className="max-w-40 min-w-0 truncate text-(length:--text-xs) text-(--color-ink-soft) sm:max-w-64"
+          >
+            {linea}
+          </p>
           <Button
             type="button"
-            className="min-h-11 md:min-h-9"
+            className="min-h-11 shrink-0 md:min-h-9"
             disabled={motivo !== null || enCurso || conflicto !== null}
             onClick={props.alGuardar}
           >
             {enCurso ? 'Guardando…' : 'Guardar el borrador'}
           </Button>
-        </AccionesEnLaBarra>
-        <p role="status" className="min-w-0 text-(length:--text-sm) text-(--color-ink-soft)">
-          {lineaDe(estado, motivo, enCurso)}
-        </p>
-      </div>
+        </div>
+      </AccionesEnLaBarra>
       {conflicto !== null ? (
         <div role="alert" className={`grid gap-2 ${AVISO}`}>
           <p>{conflicto}</p>
