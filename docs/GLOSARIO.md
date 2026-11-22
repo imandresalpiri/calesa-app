@@ -1083,7 +1083,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `scripts/orquestador/integracion.sh`): prueba cada PR en verde combinado con `main` y los de delante, y lo integra. Nunca «cola» a
   secas: la cola es la del orquestador (los issues `cola`).
 - **App del orquestador** — la GitHub App `imandresalpiri-orquestador` (`APP_ID` en `scripts/orquestador/config.env`,
-  `scripts/orquestador/token-app.sh`, `app.sh`): con ella el orquestador y sus sesiones escriben en GitHub. No: «bot» a secas.
+  `scripts/orquestador/token-app.sh`, `app.sh`): con ella el orquestador y sus sesiones escriben en GitHub. Su login es
+  `imandresalpiri-orquestador[bot]` (`APP_LOGIN`): así se reconoce el issue que abre. No: «bot» a secas.
 - **E2E afectados** — `node scripts/e2e-afectados.mjs [--correr]`: los e2e que una rama puede romper aunque no sean de su módulo (los
   dirigidos, los que nombran un texto visible que cambió o que un texto nuevo vuelve ambiguo, y los de las pantallas de un compartido), con
   tope de 40; se corren en local antes de publicar. No son los **dirigidos** del CI (`scripts/e2e-dirigidos.mjs`), que son un subconjunto.

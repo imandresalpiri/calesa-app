@@ -20,8 +20,9 @@ kit_aplica() { ! es_el_kit && [ -f "$REPO/.kit/version" ] && [ -f "$REPO/scripts
 # ------------------------------------------------------------------------------------------------ del kit al proyecto, cada semana
 
 # Devuelve 1 sólo si GitHub no respondió al listar los issues de este repo (el espejo lo trata como sin red). Sólo cuenta un issue
-# `kit` abierto por quien puede escribir en el repo. La marca de la semana resuelta queda en estado/.kit-semana; la espera tras un
-# fallo al mirar el kit, en estado/.kit-reintento (epoch), y los fallos seguidos, en estado/.kit-fallos.
+# `kit` abierto por quien puede escribir en el repo o por la app del orquestador (alguno_con_permiso). La marca de la semana resuelta
+# queda en estado/.kit-semana; la espera tras un fallo al mirar el kit, en estado/.kit-reintento (epoch), y los fallos seguidos, en
+# estado/.kit-fallos.
 kit_semanal() {
   [ "${KIT_SEMANAL:-si}" = si ] || return 0
   kit_aplica || return 0
@@ -30,8 +31,7 @@ kit_semanal() {
   [ "$(cat "$EST/.kit-semana" 2>/dev/null)" = "$semana" ] && return 0
   [ "$(date +%s)" -lt "$(cat "$EST/.kit-reintento" 2>/dev/null || echo 0)" ] && return 0
   salida=$(ghc api --paginate "repos/{owner}/{repo}/issues?labels=kit&state=open&per_page=100") || return 1
-  if jq -s -e --argjson ok "$CON_PERMISO" --arg app "${APP_ID:-}" "$JQ_CON_PERMISO"'[add[]? | select(has("pull_request") | not)
-      | select(con_permiso($ok; $app))] | length > 0' <<<"$salida" >/dev/null; then
+  if alguno_con_permiso "$salida"; then
     echo "$semana" >"$EST/.kit-semana"
     return 0
   fi
