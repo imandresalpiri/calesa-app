@@ -6,7 +6,7 @@ Autenticación, perfiles, roles y permisos (RBAC puro), invitaciones, bloqueo, b
 
 - Entra: sesión de Supabase Auth (email+contraseña, Google), enlaces de correos de Auth, gestión del equipo y roles, la cookie `perspectiva`.
 - `index.ts`: sesión (`requerirSesion()`, `getPermisos()`, `puede()`, `sinRol()`), acceso (`canjearAcceso()`, `cerrarSiInactiva()`, `cerrarSesion`…),
-  equipo (`leerEquipo(filtro)`: 100 primeras por nombre; `leerPersona`, `leerMatriz`, `leerVistas`…), y para `tablero` `leerPersonasSinRol({ tope })`.
+  equipo (`leerEquipo(filtro)`: 100 primeras por nombre; `leerPersona`, `leerMatriz`, `leerVistas`…), y para `tablero` `leerPersonasSinRol({ tope })` y `rutaDeLasPersonasSinRol()` (`/configuracion/equipo?estado=sin_rol`: el filtro «Sin rol» de `equipo_lista()`, la misma definición del bloque).
 - `client.ts`: `usePerspectiva()`, `<RoleBadge>`, `<VistasGuardadas>` (una sección de «Vista y opciones»), `guardarPreferencia`. `shell.ts` / `shell.client.ts`: sesión, proveedores y
   `<BannerPerspectiva>`.
 - Lo consumen todos. Depende de `empresa`. **Nunca de `origenes`**: la página pasa los orígenes a la matriz y al cuadro «Quién crea y quién ve» por props.

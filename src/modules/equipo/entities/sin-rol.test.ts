@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { personasSinRolDesde, rutaDeLaPersona } from './sin-rol'
+import { personasSinRolDesde, rutaDeLaPersona, rutaDeLasPersonasSinRol } from './sin-rol'
 
 const ID = '4a1f5b0e-6f0a-4f6e-9a55-1b6e2a1f0c11'
 
@@ -33,5 +33,11 @@ describe('personasSinRolDesde', () => {
 describe('rutaDeLaPersona', () => {
   it('abre Equipo con la persona', () => {
     expect(rutaDeLaPersona(ID)).toBe(`/configuracion/equipo?persona=${ID}`)
+  })
+})
+
+describe('rutaDeLasPersonasSinRol', () => {
+  it('abre Equipo con el filtro «Sin rol» puesto', () => {
+    expect(rutaDeLasPersonasSinRol()).toBe('/configuracion/equipo?estado=sin_rol')
   })
 })
