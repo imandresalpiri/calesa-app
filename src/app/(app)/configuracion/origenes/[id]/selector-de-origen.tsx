@@ -85,7 +85,7 @@ export function SelectorDeOrigen({ actual, origenes }: Props) {
             type="button"
             variant="ghost"
             aria-label={`Cambiar de origen (ahora ${actual.nombre})`}
-            className="-ml-1 min-h-11 max-w-full min-w-0 shrink gap-1.5 px-1.5 text-(length:--text-sm) font-medium text-(--color-ink) md:min-h-8"
+            className="-ml-1 min-h-11 min-w-0 shrink gap-1.5 px-1.5 text-(length:--text-sm) font-medium text-(--color-ink) md:min-h-8"
           />
         }
       >

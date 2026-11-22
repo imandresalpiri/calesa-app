@@ -32,7 +32,7 @@ export function MigasDelOrigen({
           </Link>
         </li>
         <li aria-hidden>{separador}</li>
-        {/* `flex`: el selector se achica (y corta el nombre) sólo si no cabe; con `max-w-full` en un `li` de bloque, Chrome lo cortaba con lugar de sobra. */}
+        {/* `flex`: el selector se achica (y corta el nombre) sólo si no cabe. Sin `max-w-full` en el botón: con su `-ml-1`, el `li` mide 4 px menos que él y lo cortaba con lugar de sobra. */}
         <li className="flex min-w-0">
           <SelectorDeOrigen actual={actual} origenes={origenes} />
         </li>
