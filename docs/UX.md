@@ -461,7 +461,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   `?origen=`, `q`, `demoradas`, `por_aprobar`, `contenedor`, `booking`, `naviera`, `cursor`), `/logistica/bandeja/[grupo]` (un grupo entero: `demorados`, `trabados`, `por-aprobar`, `por-vencer`,
   `llegadas`, `salidas`, `sin-resolver`; `cursor`), `/logistica/vehiculo/[id]` (la página de la unidad, a la que lleva todo vehículo y la notificación de demora; `?hueco=documentos` abre esa
   pestaña o ese bloque; **meta:** en escritorio, a 1440×900 y a 1280×800, la unidad entra sin desplazar la página, y mover, subir y anotar se hacen sin salir de ella), `/embarques`, `/aduana`, `/gastos` (`?ver=gastos|pagos`). La página de la unidad tiene el hueco «Repuestos» (con `repuestos.ver`): «Espera N repuestos», cada ítem con su proyecto,
-  «Para pasar a «X» espera que llegue a «Y».» y el enlace a su panel; sin espera, «Este vehículo no espera ningún repuesto.». Ver «Logística: estados propios».
+  «Para pasar a «X» espera que llegue a «Y».» y el enlace a su panel; sin espera, «Este vehículo no espera ningún repuesto.». Ver «Logística: estados propios». **Configurar:** el ⚙ «Configurar» (con `logistica.catalogos.gestionar`) lleva a «Logística (config)»; está en toda página de Logística, a la derecha de la barra, y
+  es la página actual (`aria-current`) mientras estás en la configuración.
 - **Repuestos** — `/repuestos` (`repuestos.ver`): proyectos por cursor `numero` (`?q=` de 3 letras o un número,
   `?estado=abiertos|cerrados|todos`, `?por=`, `?cursor=`) con número, vehículo o «Externo», cliente, estado derivado, ítems («200+») y
   última actividad; «Nuevo proyecto» (`repuestos.editar`, `N`, `?panel=nuevo-proyecto`, `&vehiculo=<id>` lo abre vinculado, `&lead=<id>` con el
@@ -572,17 +573,25 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (`/comprobantes`, con `empresa.ajustes.gestionar`: la tarjeta con la serie vigente y el próximo comprobante, y «Cambiar serie» en su modal, con versión; sin el
   permiso, apagada con «Pide el permiso «Ajustes de la empresa».» y su URL abre Datos). Las URLs viejas redirigen en el servidor
   (`url-vieja.ts`): `?seccion=` a su sub-ruta, y `?tc=`, `?moneda=` y los `?panel=` de crear (con o sin `?seccion=`) a Monedas con ellos.
-- **Catálogos** — `/configuracion/catalogos` (cualquiera de los permisos de sus catálogos): lo que es de toda la empresa y no de un origen. No
+- **Catálogos** — `/configuracion/catalogos` (`cotizaciones.configurar`): lo de toda la empresa que no es de un origen ni de la logística. No
   tiene página propia ni pestañas: la raíz abre (308, por persona) la primera sub-sección que la persona puede abrir, o el inicio de Configuración.
-  Cada catálogo es una sub-ruta con su `h1` y su frase, en tres tramos del menú: **«Cotizaciones»** — «Niveles» (`/niveles`, `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|
-eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con «Te falta el permiso «Ver roles».»), «Quién crea y quién ve»
-  (`/quien-crea-y-quien-ve`, los mismos permisos y el mismo motivo; `?origen=<id>`); los colores y la vigencia ya no son catálogos: son tarjetas de «Para todos los orígenes»
-  (Orígenes). **«Logística»** — «Puertos» (`/puertos`: nombre, país, código, orden y activo), «Navieras» (`/navieras`: nombre y activa;
-  sin «Eliminar»: se desactivan) y «Categorías de gasto» (`/categorias-de-gasto`: nombre, propósito de la lista fija de la base, orden y activa; una con
-  gastos no se elimina), con `logistica.catalogos.gestionar` y sólo si algún área llena el catálogo, y «Tipos de documento» (`/tipos-de-documento`: los
-  de la empresa; los cambia quien gestiona los catálogos de logística y los leen quien configura un flujo o los repuestos); y, sin rótulo,
-  **«Tablas compartidas»** (`/tablas`, `cotizaciones.configurar`; `?tabla=<id>`, `?panel=publicar-tabla|nueva-tabla|columnas-de-tabla|desactivar-tabla`): las tablas de referencia sin origen, con el
-  aviso de a qué orígenes les cambia. Sin título de bloque ni segunda frase: «Nuevo …» arriba a la derecha y la lista. Ver «Logística: estados propios».
+  Hoy es **«Tablas compartidas»** (`/tablas`; `?tabla=<id>`, `?panel=publicar-tabla|nueva-tabla|columnas-de-tabla|desactivar-tabla`): las tablas de referencia sin origen, con el
+  aviso de a qué orígenes les cambia. Sin título de bloque ni segunda frase: «Nuevo …» arriba a la derecha y la lista. Los catálogos de la logística viven en
+  Logística › Configuración («Logística (config)»); sus rutas de antes (`/configuracion/catalogos/puertos|navieras|categorias-de-gasto|tipos-de-documento` y
+  `/configuracion/logistica/…`) responden 308 ahí, con la consulta. Los niveles de acceso y «Quién crea y quién ve» viven en la matriz de Roles, bloque «Cotizaciones»
+  (`/niveles` y `/quien-crea-y-quien-ve` responden 308 a `/configuracion/roles?bloque=cotizaciones`); los colores y la vigencia, en «Para todos los orígenes» (Orígenes).
+- **Logística (config)** — `/logistica/configuracion` (cualquiera de los permisos de sus pestañas): una página dentro de Logística con la tira de pestañas **Puertos ·
+  Navieras · Categorías de gasto · Tipos de documento** (`PestanasConDesborde`, una sub-ruta por pestaña: `/puertos`, `/navieras`, `/categorias-de-gasto`,
+  `/tipos-de-documento`) y el `h1` «Configuración de logística». La raíz abre (308, por persona) la primera pestaña que la persona puede abrir. Cada pestaña es el
+  editor de su catálogo a todo el ancho: «Nuevo …» arriba a la derecha y la lista; la fila abre «Editar …» con un toque o con Enter (para el lector de pantalla,
+  «Editar <nombre>») y su «⋯» (Editar primero) trae el resto, sin botón «Editar» ni flechas de orden a la vista; el orden de puertos y categorías es un número del
+  modal. Puertos (nombre, país, código, orden y activo), Navieras (nombre y activa; sin «Eliminar»: se desactivan) y Categorías de gasto (nombre, propósito de la
+  lista fija de la base, orden y activa; una con gastos no se elimina) con `logistica.catalogos.gestionar` y sólo si algún área llena el catálogo. Tipos de
+  documento (los de toda la empresa) con ese permiso para cambiarlos y de sólo lectura, con el motivo, con `flujos.configurar` o `repuestos.configurar`; sus flechas de orden
+  se quedan (ordenan por RPC). **Entrada:** el botón ⚙ «Configurar» (nombre accesible «Configurar la logística») en la fila de la cabecera de Logística, a la derecha de la barra, en toda
+  página de Logística y sólo con `logistica.catalogos.gestionar`; en la configuración lleva `aria-current="page"` y ningún enlace de la barra queda marcado. Una pestaña
+  sin permiso va apagada con su motivo y su URL dice «No tienes permiso para ver esto» (cada página comprueba la suya). El buscador de Configuración las sigue encontrando
+  («puertos», «navieras», «gastos», «documentos», «logística»: «Logística › Puertos»…) y lleva aquí. Ver «Logística: estados propios».
 - **Repuestos (config)** — `/configuracion/repuestos` (`repuestos.configurar`) abre `/flujo`. **Flujo de repuestos** (`/configuracion/repuestos/flujo`):
   el editor del flujo (el de la pestaña Fases de un origen) sobre el flujo de los repuestos, sin selector. **Catálogos** (`/configuracion/repuestos/catalogos`):
   tipo de pieza, condición, vía de transporte y país de origen (agregar, editar nombre, orden y activo, desactivar, eliminar sin uso; tope 200 por
@@ -630,9 +639,20 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
     `?panel=publicar-tarjeta|descartar-plantilla` y `?referencia=ejemplo`. En el drawer de las tablas, las del origen y las compartidas que usa (una
     compartida tapada por una propia va «Tapada por la de <origen>»); `&tabla=<id>` (el editor) y
     `&accion=publicar-tabla|nueva-tabla|columnas-de-tabla|desactivar-tabla`. Una compartida se edita ahí con el aviso de a quién le cambia.
-  - **Campos** (`/campos`): «Datos clave (n de 4)» en orden con «Subir», «Bajar» y «Quitar», «Datos comunes» con su estrella, y el layout de campos
-    con la estrella en cada campo activo y `?campo=` (cada estrella o botón guarda al instante; con 4, las demás se apagan con «Ya hay 4 datos clave:
-    quita uno para sumar este.»; vacíos, «Sin datos clave: la ficha mostrará los de fábrica de su tipo.»). **Categorías** (`/categorias`,
+  - **Campos** (`/campos`, «Campos del origen»; el editor de campos de `shared/ui/campos`, a todo el ancho, sin tope): arriba el buscador
+    («Buscar campo», `?q=`, sin tildes, filtra en el cliente) y «Nuevo campo» (principal, `?campo=nuevo`). Luego «Datos clave (n de 4)»: cuatro
+    casillas en orden (de 1 a 4 columnas según el ancho); una llena dice el dato, se arrastra a otra y su «⋯» tiene «Subir», «Bajar» y «Quitar de
+    los datos clave»; una libre dice «Libre» y recibe un campo o un dato común soltado encima. Cada cambio guarda al instante; con 4, «Hacer dato
+    clave» se apaga con «Ya hay 4 datos clave: quita uno para sumar este.» (y soltar encima lo dice); vacíos, «Sin datos clave: la ficha mostrará
+    los de fábrica de su tipo.». Después «Comunes» (los datos comunes, insignia «Común» y «Dato clave» si lo es; su «⋯» lo hace o lo quita) y los
+    grupos del layout (dos columnas desde 64 rem). Cada fila: el asa (arrastre dentro de su grupo; también con teclado: Espacio, flechas,
+    Espacio), el nombre, `tipo · clave` y las insignias («Requerido», «De fábrica», «Principal», las banderas en fila, «Dato clave»), y un «⋯»
+    (Editar · Hacer dato clave o Quitar de los datos clave · Subir · Bajar · Desactivar · Eliminar…; lo imposible, apagado con su motivo).
+    Tocar la fila abre el panel `?campo=<id>` (`&eliminar=1`: «Eliminar…» abre preguntando); las banderas se cambian ahí. Desactivar es
+    reversible con «Deshacer» (si era dato clave, el «⋯» avisa «También sale de los datos clave.»). «Desactivados» va plegado y sin número.
+    Con una búsqueda no hay asas; sin coincidencias, «Nada coincide con «…».» y «Limpiar». Conflicto `PT409` dentro del panel con «Recargar»,
+    que conserva lo escrito. Sin `origenes.gestionar`: el aviso con su motivo, «Nuevo campo» apagado, sin asas, el «⋯» sólo con «Ver» y el
+    panel sin «Guardar». **Categorías** (`/categorias`,
     `?categoria=`). Las dos se abren con el origen; sin `origenes.gestionar`, todo deshabilitado con su motivo.
   - `/<id>` sola responde 308 (por persona) a la **última pestaña** que esa persona abrió en ese origen si todavía la abre o, si no, a la primera que
     abre; `/<id>?seccion=…` a su parte, conservando `?campo=`, `?categoria=` y `?panel=`. Una pestaña que no abre, por URL: «No puedes abrir esta
@@ -644,8 +664,8 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
     `/configuracion/cotizacion/<origen>/formula|hoja|tarjeta|tablas` (y `/<origen>` solo) a su pestaña del origen, `/configuracion/cotizacion/general[/colores|/vigencia]`,
     `/configuracion/catalogos/colores|vigencia` y `?seccion=tonos|colores|ajustes|vigencia` a `/configuracion/origenes?panel=colores|vigencia` (si la URL vieja
     trae su propio `?panel=`, manda ése y va solo), `general/niveles` y `?seccion=niveles` a Catálogos, `/configuracion/flujos?origen=` a sus Fases (`?ambito=repuestos` al de repuestos;
-    sin origen, el primero que la persona configura), `?seccion=documentos` sin `flujos.configurar` a Tipos de documento, y `/configuracion/logistica/*`
-    a su catálogo. Lo que no se resuelve, a la lista de orígenes.
+    sin origen, el primero que la persona configura), `?seccion=documentos` sin `flujos.configurar` a Logística › Configuración › Tipos de documento, y `/configuracion/logistica/*`
+    a su pestaña. Lo que no se resuelve, a la lista de orígenes.
   - Estados: cargando con el esqueleto del marco (migas, cabecera y pestañas) y el de cada pestaña; error con reintentar y PT409 los de cada editor.
 - **Nuevo origen** — `/configuracion/origenes/nuevo` (`origenes.gestionar`; sin él, «No puedes …» con su motivo): `h1` «Nuevo origen», a la izquierda el
   paso a paso de la puesta en marcha (Datos el actual, los demás todavía sin enlace) y el formulario de Datos (tipo, nombre, sustantivo y género, color,
@@ -700,6 +720,9 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
   los tiene (en el celular, en la barra «Rol a la vista», 44 px) abre «Avisos de <rol>» (sin avisos, sin botón) y otro junto al título abre «Avisos
   de Roles y permisos».
   `?panel=nuevo-rol`, `?panel=avisos&rol=`, `?panel=avisos-de-la-pagina` (también `?panel=avisos` sin `rol`), `?eliminar=`.
+  **El bloque «Cotizaciones»** lleva, además, los niveles de acceso y «Quién crea y quién ve» (ver «Cotización: niveles de acceso y quién crea y quién ve»):
+  `?bloque=<módulo>` deja a la vista el bloque de ese módulo (hoy sólo lo usa `?bloque=cotizaciones`; las URLs viejas de Catálogos responden 308 ahí).
+  Un rol que no existe aún: «Todavía no hay roles» con «Crea uno con «Nuevo rol»…».
 - **Datos** — `/datos` (todos: «Mis leads»; todo: `datos.exportar.todo`): `?seccion=exportar|importar`, con la barra siempre; sin permiso
   para importar nada (`leads.crear`, `datos.importar.todo` o `vehiculos.crear` en algún origen), «Importar» apagada con su motivo y
   pedirla abre «Exportar».
@@ -1011,9 +1034,10 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 ### Leads: configuración (estados propios)
 
-- **Campos** (`leads.campos.gestionar`; sin él, apagada en el menú): activos agrupados como en el formulario, con tipo, clave e
-  interruptores («En la tabla», «Filtrable», «Solo la cartera») que guardan solos; desactivados plegados con «Reactivar»; «De fábrica».
-  Fijos: teléfono, nombre, tipo y que el lead tenga origen.
+- **Campos** (`leads.campos.gestionar`; sin él, apagada en el menú): el mismo editor de campos que un origen, sin casillas ni «Comunes»:
+  buscador y «Nuevo campo», los grupos como en el formulario con sus insignias («En la tabla», «Filtrable», «Solo la cartera», «De fábrica»),
+  el arrastre dentro del grupo, el «⋯» y el panel `?campo=`; «Desactivados» plegado, con «Activar» en su «⋯». Fijos: teléfono, nombre, tipo y
+  que el lead tenga origen.
 - **Impacto, siempre con números y dentro del panel:** volver requerido (cuántos leads no podrán guardarse hasta completarlo); cambiar el
   tipo o eliminar con datos; sacar una opción en uso; dejar de ser «solo la cartera». Conflicto con «Recargar».
 - **Orígenes del lead, tipos de lead y tipos de seguimiento** (modales `?panel=origenes|tipos|seguimientos`, patrón de `shared/ui/lista`, sin título
@@ -1033,7 +1057,7 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 - **Entrada:** la pestaña Fases de un origen con `flujos.configurar` en ese origen, y Repuestos › Flujo de repuestos con `repuestos.configurar`;
   sin el permiso, la pestaña va apagada con su motivo y su URL dice «No puedes abrir esta pestaña». Los tipos de documento de la empresa, sin
-  diagrama ni panel, en Catálogos › Tipos de documento.
+  diagrama ni panel, en Logística › Configuración › Tipos de documento.
 - **Sin selector:** cada página abre un flujo fijo, nunca el de otro origen. Vacíos: el flujo sin fases («El flujo de <origen> todavía no tiene
   fases.»); el flujo que desapareció.
 - **Empezar el flujo** (el vacío del flujo sin fases): «Cópialo de otro origen y ajústalo, o arma las fases una por una.» con «Empezar con las
@@ -1090,8 +1114,8 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 ### Flujos: tipos de documento (estados propios)
 
-Orígenes › un origen › Flujo › «Tipos de documento» de la barra del flujo, en su panel (`?seccion=documentos`), y Catálogos › Tipos de documento
-(`/configuracion/catalogos/tipos-de-documento`: los de la empresa, en la página). Hermana de «Tipos de seguimiento» (patrón de `shared/ui/lista`, orden con
+Orígenes › un origen › Flujo › «Tipos de documento» de la barra del flujo, en su panel (`?seccion=documentos`), y Logística › Configuración › Tipos de documento
+(`/logistica/configuracion/tipos-de-documento`: los de la empresa, en la página, a todo el ancho y sin título de grupo; la fila dice «Editar <nombre>»). Hermana de «Tipos de seguimiento» (patrón de `shared/ui/lista`, orden con
 teclado, «⋯», modal por URL), con **dos grupos**, **sólo lectura con motivo** y **una lista que se relee** (ninguna RPC la devuelve).
 
 - **Grupos:** «De toda la empresa» (`logistica.catalogos.gestionar`) y, bajo el selector, «Sólo de este flujo» (`flujos.configurar` o
@@ -1313,8 +1337,8 @@ y enfoca su título).
   de la declaración»: «Quitar» marca (con «Deshacer»), buscador (3, hasta 10) con «Agregar» y «Guardar vehículos» manda todo junto (hasta
   200); con canal queda todo apagado: la composición queda fija. «Asignar canal» es un `<Confirmar>` en `?panel=canal` con el selector
   adentro; pide al menos un vehículo. El canal no se quita.
-- **Catálogos › Logística:** sin `logistica.catalogos.gestionar`, sus catálogos no están en el menú y su URL abre el primer catálogo que la persona
-  abre (sin ninguno, el inicio de Configuración). **Categorías de gasto:** esqueleto, vacío, error con «Reintentar»; el «⋯» lleva Editar,
+- **Catálogos › Logística:** sin `logistica.catalogos.gestionar`, no hay ⚙ «Configurar» en la cabecera de Logística, la pestaña va apagada con su motivo y su URL dice «No tienes permiso para ver esto»
+  (la raíz abre la primera pestaña que la persona abre). Cada catálogo conserva su tope y su aviso. **Categorías de gasto:** esqueleto, vacío, error con «Reintentar»; el «⋯» lleva Editar,
   Activar/Desactivar y Eliminar (`?panel=eliminar-categoria&categoria=<id>`; con gastos el diálogo dice que está en uso, propone
   desactivarla y no se cierra); el orden es un número del modal; una de propósito «Tributos» no cambia de propósito (Aduana la lee).
   **Prorratear** (hueco del resumen de un grupo, `?panel=prorratear`): muestra cuánto le toca a cada unidad y la suma antes de confirmar;
@@ -1345,21 +1369,40 @@ y enfoca su título).
   texto) y «Subir/Bajar X»; guarda al cambiar, sin «Guardar», con los controles apagados mientras guarda; «Restablecer» vuelve al de
   fábrica (apagado si ya está así). Todos ocultos: «Ocultaste todos los widgets».
 
-### Cotización: niveles de acceso (estados propios)
+### Cotización: niveles de acceso y quién crea y quién ve (estados propios)
 
-Configuración › Catálogos › Niveles (`/configuracion/catalogos/niveles`). Hermana de «Tipos de seguimiento»; **un nivel retirado se deshace** y **el motivo de por
-qué no se elimina viene de la base**.
+Configuración › Roles (`/configuracion/roles?bloque=cotizaciones`), dentro del bloque «Cotizaciones» de la matriz. **Un nivel retirado se deshace** y **el motivo de por
+qué no se elimina viene de la base**. `?bloque=cotizaciones` desplaza la página hasta el bloque (el título del módulo, o su sección en el celular).
 
-- **Quién entra:** `equipo.roles.ver` o `equipo.roles.gestionar` (cada nivel es un permiso de la matriz de Roles); sin ninguno, «No tienes
-  permiso para ver esto». Con sólo `ver` se lee: sin «Nuevo nivel», «⋯» ni clic.
-- **Lista:** el fijo «Todos» (sin «⋯» ni clic) y los niveles en uso; debajo «Retirados». Fila: estado y «Sin uso»/«En uso»; pie «N de 10
-  niveles posibles.». «⋯»: Renombrar · Retirar/Restaurar (guardan solos, con «Deshacer») · Eliminar. «Costos» se renombra y retira, no se
-  elimina.
-- **Eliminar con uso:** apagado, con lo que dice la base; sin uso confirma nombrándolo (`?panel=eliminar-nivel&nivel=<id>`). Nuevo y
-  renombrar: modal por URL (`?panel=nuevo-nivel`, `renombrar-nivel&nivel=<id>`); vacío, > 40 o repetido se rechaza junto al campo. **Tope**
-  10 contando «todos» y retirados. Estados: esqueleto, error con «Reintentar», lista llena.
-- **Dónde se nota:** cada nivel son **dos permisos por origen** (`Ver el nivel «X»`, `Editar el nivel «X»`) en Roles; el dueño los recibe
-  al nacer.
+- **Quién entra:** quien ve la matriz (`equipo.roles.ver` o `gestionar`). Con sólo `ver` se lee: sin «+ Nuevo nivel», sin «⋯» y el resumen con los valores en texto; el motivo
+  «Para cambiarlo te falta el permiso «Gestionar roles».» está en «Avisos de Roles y permisos» (el «!» del título), no en línea.
+- **Niveles de acceso:** un rótulo con ese nombre dentro del bloque y, debajo, «Todos» (renglón fijo con «No se cambia · Lo ve quien ve la cotización», sin celdas ni «⋯») y
+  las dos filas de cada nivel (`Ver el nivel «X»`, `Editar el nivel «X»`, con sus celdas por origen). El «⋯» del nivel (Renombrar · Retirar/Restaurar, que guardan solos con
+  «Deshacer» · Eliminar) va en la primera fila. Un nivel retirado se apaga y lleva la insignia «Retirado» en sus dos filas; el aviso (`aria-live`) dice ««X» quedó retirado.». «Costos»
+  se renombra y retira, no se elimina. «+ Nuevo nivel» va al pie del grupo; en el tope (10 contando «todos» y retirados) se apaga y el motivo queda a la vista. En el celular, el mismo
+  grupo va en la lista del rol a la vista.
+- **Eliminar con uso:** apagado, con lo que dice la base; sin uso confirma nombrándolo (`?panel=eliminar-nivel&nivel=<id>`). Nuevo y renombrar: modal por URL
+  (`?panel=nuevo-nivel`, `renombrar-nivel&nivel=<id>`); vacío, > 40 o repetido se rechaza junto al campo. Estados: si la lista de niveles no carga, «No pudimos cargar los
+  niveles de acceso.» con «Reintentar» en el lugar del renglón de «Todos»; la matriz sigue.
+- **Dónde se nota:** cada nivel son **dos permisos por origen**; el dueño los recibe al nacer.
+
+#### Quién crea y quién ve
+
+Un resumen plegable arriba del bloque «Cotizaciones»: por rol, si crea cotizaciones y cuáles ve. Entra cerrado (botón con `aria-expanded`), salvo que la URL traiga
+`?origen=<id>`; su código se pide al abrir. Son tres permisos de la matriz de Roles (`cotizaciones.crear`, `cotizaciones.ver`, `cotizaciones.privadas.ver`) dichos en un cuadro;
+cada cambio guarda solo, por las mismas RPC que la matriz y con las mismas versiones de rol (un cambio en la matriz y otro en el cuadro no chocan entre sí).
+
+- **Lugar:** «Origen» (`?origen=<id>`) con «Todos los orígenes» y cada origen (los desactivados con «(inactivo)»), sólo con dos orígenes o más o si algún
+  rol ya tiene uno de los tres permisos en un origen suelto; sin él, «Todos los orígenes». En un origen vale también lo de «Todos los orígenes»: lo que
+  está por debajo de eso queda apagado con «Lo tiene en «Todos los orígenes»: para quitarlo, cámbialo ahí.».
+- **El cuadro:** desde 768 px una tabla Rol | Crea | Ve; por debajo, un renglón por rol en la misma tarjeta. «Crea» es un interruptor (`Crea: <rol>`);
+  «Ve», un `<select>` nativo (`Ve: <rol>`) con «No ve» · «Sólo las suyas» · «Todas menos las privadas» · «Todas, también las privadas»; debajo, una
+  leyenda de cada escalón. Lo que quien mira no tiene no se da: la opción queda apagada con «No puedes dar un permiso que no tienes.». Un rol con permisos
+  que quien mira no tiene se lee, con el motivo de la matriz bajo su nombre.
+- **Guardar:** una elección puede ser dos RPC sobre el rol (dar «ver» y después las privadas; al bajar, al revés), en orden y con la versión que devolvió
+  la anterior; mientras viajan, la fila muestra lo elegido y espera. Conflicto (`PT409`): `AvisoDeConflicto` con lo que dice la base y «Recargar». Si cae
+  después de guardar una parte: «Se guardó sólo una parte: recarga para ver cómo quedó.» con «Recargar». Otro error, el toast con su mensaje.
+- **Estados:** carga con la matriz (un esqueleto de tres renglones mientras llega su código); sin roles, «Crea uno con «Nuevo rol» para decidir quién crea y quién ve cotizaciones.».
 
 ### Cotización: privada (estados propios)
 
@@ -1380,27 +1423,6 @@ la base; la pantalla sólo ofrece la marca a quien la creó y la dibuja.
 - **Marcarla final:** la pregunta de siempre suma «Al marcarla final deja de ser privada: la verá todo el que ve las cotizaciones de su origen.».
 - **Sin permiso:** la privada ajena no existe: no está en el listado, la búsqueda, el buscador, «De este vehículo» ni los relacionados, y su URL dice
   «Esta cotización ya no está disponible: no existe o ya no tienes acceso.».
-
-### Cotización: quién crea y quién ve (estados propios)
-
-Configuración › Catálogos › Quién crea y quién ve (`/configuracion/catalogos/quien-crea-y-quien-ve`): por rol, si crea cotizaciones y cuáles ve. Son tres
-permisos de la matriz de Roles (`cotizaciones.crear`, `cotizaciones.ver`, `cotizaciones.privadas.ver`) dichos en un cuadro; cada cambio guarda solo, por
-las mismas RPC que la matriz.
-
-- **Quién entra:** `equipo.roles.ver` o `equipo.roles.gestionar`; sin ninguno, «No tienes permiso para ver esto» (en el menú, apagada con «Te falta el
-  permiso «Ver roles».»). Sin `gestionar` se lee: los valores en texto y, arriba, «Para cambiarlo te falta el permiso «Gestionar roles».».
-- **Lugar:** «Origen» (`?origen=<id>`) con «Todos los orígenes» y cada origen (los desactivados con «(inactivo)»), sólo con dos orígenes o más o si algún
-  rol ya tiene uno de los tres permisos en un origen suelto; sin él, «Todos los orígenes». En un origen vale también lo de «Todos los orígenes»: lo que
-  está por debajo de eso queda apagado con «Lo tiene en «Todos los orígenes»: para quitarlo, cámbialo ahí.».
-- **El cuadro:** desde 768 px una tabla Rol | Crea | Ve; por debajo, un renglón por rol en la misma tarjeta. «Crea» es un interruptor (`Crea: <rol>`);
-  «Ve», un `<select>` nativo (`Ve: <rol>`) con «No ve» · «Sólo las suyas» · «Todas menos las privadas» · «Todas, también las privadas»; debajo, una
-  leyenda de cada escalón. Lo que quien mira no tiene no se da: la opción queda apagada con «No puedes dar un permiso que no tienes.». Un rol con permisos
-  que quien mira no tiene se lee, con el motivo de la matriz bajo su nombre.
-- **Guardar:** una elección puede ser dos RPC sobre el rol (dar «ver» y después las privadas; al bajar, al revés), en orden y con la versión que devolvió
-  la anterior; mientras viajan, la fila muestra lo elegido y espera. Conflicto (`PT409`): `AvisoDeConflicto` con lo que dice la base y «Recargar». Si cae
-  después de guardar una parte: «Se guardó sólo una parte: recarga para ver cómo quedó.» con «Recargar». Otro error, el toast con su mensaje.
-- **Estados:** esqueleto de tabla (`loading.tsx` y el `Suspense`); error de lectura, el de la pantalla con «Reintentar»; sin roles, «Todavía no hay
-  roles».
 
 ### Cotización: comentarios (estados propios)
 
@@ -1486,8 +1508,7 @@ barra de la fórmula; la activa es la que se cotiza.
 Configuración › Orígenes › un origen › Planilla (`/configuracion/origenes/<id>/planilla?formula=<fórmula>`): ver,
 publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` elige esa fila al abrir y se borra de la URL.
 
-- **Quién entra:** `cotizaciones.configurar` en ese origen, aunque no tenga los permisos de los niveles (entonces «Niveles» va apagada con su
-  motivo). La base vuelve a decidir: la policy `formulas: leer` sólo deja ver los orígenes con la clave.
+- **Quién entra:** `cotizaciones.configurar` en ese origen, aunque no tenga los permisos de los niveles. La base vuelve a decidir: la policy `formulas: leer` sólo deja ver los orígenes con la clave.
 - **Origen:** la página es la de ese origen (también inactivo); para cambiar de origen, el selector de las migas (conserva la pestaña). Sin la clave en
   el origen, la pestaña Planilla va apagada con su motivo; un origen ajeno, «No puedes abrir este origen».
 - **Arriba:** la publicada (versión, nota, quién y cuándo) o, sin ella, que no se puede cotizar en el origen; el borrador si hay (de quién,
@@ -1509,19 +1530,28 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   (sin reintento solo). Por URL sin borrador: avisa y limpia.
 - **Planilla** (la vista por defecto, sobre el borrador o, sin él, la publicada; sin ninguna, el vacío de la publicada y no hay planilla; la única
   forma de editar la fórmula): lee la versión desde el navegador al abrir la pestaña (esqueleto, error con «Reintentar», versión que ya no se
-  abre). Arriba «Sobre…», el «⋯» de la planilla («Nueva banda…», «Total y tipos de cambio…», «Unidad de ejemplo: volver a ceros», apagado en
-  ceros, y «¿Cómo se escribe?») y «Guardar el borrador»; debajo, la leyenda de los ocho tipos de celda (el fondo que cada uno da a C) y la
-  **Barra de fórmula**, que queda fija bajo la cabecera de la página al desplazarse. La cuadrícula (`role="grid"`, «Filas de la fórmula de
+  abre). A todo el ancho, sin guías a la vista. En la barra de la fórmula de la página van «Guardar el borrador» con su línea de estado en letra chica
+  y el «⋯» de la planilla («Nueva banda…», «Total y tipos de cambio…», «Unidad de ejemplo: volver a ceros», apagado en ceros, y «¿Cómo se
+  escribe?»); «Sobre…» sólo en la puesta en marcha (en la página lo dice el estado de la barra). Los avisos del guardado (conflicto, errores, lo
+  que el diseño no muestra) van arriba de la planilla. La **Barra de fórmula** queda fija bajo la cabecera de la página al desplazarse: el nombre
+  de la celda («C5», «Ejemplo 5»), `fx ▾` (inserta una función; apagado con su motivo: «Toca una celda para escribir una fórmula.», «Las
+  funciones van en C.» o el de la celda), el texto (vacío, «Escribe = y toca las celdas: =C5+C7»; al entrar no hay celda elegida y se ve esa guía), y a la derecha «Totales», «Tarjeta» y «?»
+  (un popover con los ocho tipos de celda y el fondo que cada uno da a C). Debajo, una sola línea con la fila elegida: «De dónde sale: …», lo
+  que el último cambio soltó, lo que dice el texto tras un ⚙ (reescrito o «ya no manda») y, en un tipo de cambio, el camino a Empresa ›
+  Monedas. La cuadrícula (`role="grid"`, «Filas de la fórmula de
   <origen>»), con las filas en el orden en que se calculan: «#» (el número, el mismo al buscar; arrastrarlo mueve la fila), «A · concepto»,
-  «B · %», «C · valor» (con la unidad de ejemplo; sin cifra, «—» con su motivo en el `title` y para el lector) y «D · de dónde sale». Cada tramo
-  de una banda lleva su cabecera (color, etiqueta, «Plazo: …», «Tipo de cambio: …» del modo elegido y su «⋯»); las filas sin banda, ninguna.
-  Hasta 500 filas con aviso y «Buscar fila» (por concepto: «Ninguna fila tiene «x» en el concepto.»); sin filas, «Esta fórmula no tiene
-  filas.» con «Sumar la primera fila». **Al costado** (cuando la planilla mide 72 rem o más; si no, debajo): «Totales» (el total en dólares y
-  en la moneda local con el modo elegido, la base imponible y lo aparte, cada uno con `<Monto>` y cómo sale; lo aparte apagado dice por qué) y
-  «Tarjeta de la cotización» (la plantilla de esta fórmula, el borrador si hay, con la unidad de ejemplo y el selector de modo «Tipo de
-  cambio» con dos o más modos; sin plantilla, «Esta fórmula todavía no tiene tarjeta.» con «La imagen que recibe el cliente»; si no se leyó,
-  «Reintentar»). En el celular y con el texto al 200 % la cuadrícula se desplaza de costado en su marco con «#» y A pegadas y la barra a lo
-  ancho; la página no se ensancha.
+  «B · %», «C · valor» (lo que guarda la fórmula: el valor fijo, el cálculo en A1 como «=C5+C7» o, en lo que no se escribe, de dónde sale en
+  corto) y «Ejemplo» (glosario: «Ejemplo (columna)»: lo que da la fila con la unidad de ejemplo; nada en un valor fijo, porque su número ya
+  está en C; se escribe en las filas que se llenan al cotizar; sin cifra, «—» con su motivo en el `title` y para el lector). Cada tramo de una
+  banda lleva su cabecera en una línea (la muestra del color, etiqueta, «Plazo: …», «Tipo de cambio: …» del modo elegido y su «⋯»; lo largo
+  se recorta con su `title`; en un marco angosto se parte en dos); las filas sin banda, ninguna. Hasta 500 filas con aviso y «Buscar fila»
+  (por concepto: «Ninguna fila tiene «x» en el concepto.»); sin filas, «Esta fórmula no tiene filas.» con «Sumar la primera fila».
+  **Al costado** (`?costado=totales|tarjeta`, cerrados al entrar; uno a la vez; desde 1024 px no son modales y la página del origen (en la puesta en
+  marcha, la planilla) se corre a la izquierda el ancho del panel para que nada quede debajo, ni la barra de la fórmula, más angosto son el drawer modal): «Totales» (el total en dólares y en la moneda local con el modo elegido, la base imponible y lo aparte, cada
+  uno con `<Monto>` y cómo sale; lo aparte apagado dice por qué) y «Tarjeta de la cotización» (la plantilla de esta fórmula, el borrador si
+  hay, con la unidad de ejemplo y el selector de modo «Tipo de cambio» con dos o más modos; sin plantilla, «Esta fórmula todavía no tiene
+  tarjeta.» con «La imagen que recibe el cliente»; si no se leyó, «Reintentar»). En el celular y con el texto al 200 % la cuadrícula se
+  desplaza de costado en su marco con «#» y A pegadas y la barra se parte en dos líneas; la página no se ensancha.
 - **Escribir, como en Excel:** una celda activa que mueven las flechas, Tab y Shift+Tab, Enter y Shift+Enter, Inicio y Fin, Ctrl+Inicio y
   Ctrl+Fin y RePág y AvPág. F2, doble clic o una tecla escriben en ella (el mismo texto se ve en la barra, que también se edita); Enter o Tab
   aplican y pasan a la de abajo o a la de la derecha, `Ctrl/Cmd+Enter` aplica desde la barra y Esc descarta. Con «=», un clic o un toque en
@@ -1529,12 +1559,15 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   («C5 Remate · C7 Fees») bajo la barra y el borde del mismo color en su celda. Las sugerencias (funciones con su firma y un ejemplo, conceptos
   de arriba, bandas y, en BUSCARV, tablas y columnas) se eligen con ↑/↓ y Enter o Tab. Un error queda bajo la barra (`role="alert"`) con su
   tramo ondulado y la edición abierta (`aria-invalid`): «C12 está más abajo: una fórmula sólo usa filas de arriba.» con «Mover esta fila debajo
-  de la 12», «Una fila no se usa a sí misma (C7).», las columnas A y D, una B sin %, un rango fuera de SUMA, MAX o MIN; pisar un valor del ⚙
+  de la 12», «Una fila no se usa a sí misma (C7).», la columna A, Ejemplo («D5: Ejemplo no se usa en una fórmula: es la unidad de ejemplo. En
+  una fórmula va C5.»), una B sin %, un rango fuera de SUMA, MAX o MIN; pisar un valor del ⚙
   pide «Pisar el valor». Con texto sin aplicar, lo demás espera: «Aplica o descarta lo que escribes en la planilla.». Una celda que no se
-  escribe lo dice: «Esta celda no se escribe: <de dónde sale>. Cambia su tipo en «Tipo de celda».»; D, «D dice de dónde sale el valor: se
-  calcula sola.». Lo escrito en la B o la C de un valor fijo escribe `params` y reescribe su texto como el ⚙, sin preguntar; en una fila del
-  asesor, un dato del vehículo, un interruptor o la variante es la unidad de ejemplo (no se guarda). Bajo la barra, sin nada escrito: lo que
-  el último cambio soltó, lo que dice el texto tras un ⚙ (reescrito o «ya no manda») y, en un tipo de cambio, el camino a Empresa › Monedas.
+  escribe lo dice: «Esta celda no se escribe: <de dónde sale>. Cambia su tipo en «Tipo de celda».»; Ejemplo de un cálculo, «Ejemplo es lo que
+  da esta fila con la unidad de ejemplo: se calcula sola.», y el de un valor fijo, «El valor fijo se escribe en C5.». Lo escrito en la B o la C
+  de un valor fijo escribe `params` y reescribe su texto como el ⚙, sin preguntar. En una fila del asesor, un dato del vehículo, un interruptor
+  o la variante, la unidad de ejemplo se escribe en Ejemplo (no se guarda); su C no toma un número: «Esta celda la escribe el asesor al
+  cotizar: el ejemplo va en la columna Ejemplo. Para un valor fijo, cambia su tipo en «Tipo de celda».» (o «Esta celda se llena al cotizar:
+  …»), y vacía no cambia nada. En Live, los montos de C (valor fijo) y de Ejemplo pasan por `<Monto>` y su entrada va como contraseña.
 - **Filas:** el «⋯» de la fila activa (arriba a la derecha de la fila, `Acciones de la fila N`) y el clic derecho abren la misma lista:
   «Insertar arriba», «Insertar abajo» (la fila nueva, «Fila nueva», un valor fijo en 0 con la banda de la de referencia, abre su concepto
   elegido para escribir), «Duplicar», «Mover arriba» y «Mover abajo» (Alt+↑ y Alt+↓; apagados en la primera y la última), «Tipo de celda ›»,
@@ -1560,7 +1593,10 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   fila, que nace con ella) y el «⋯» de cada cabecera: «Renombrar, color, plazo y tipo de cambio…» (`?panel=banda&banda=<id>`, «Banda «X»») y
   «Quitar banda» (sus filas quedan sin banda, con «Se quitó la banda «X».» y «Deshacer»; apagado con su motivo si un texto la nombra o la usa
   la tarjeta). El panel: «Etiqueta», «Plazo de pago» (opcional), «Color» (del catálogo, leído al montarse; si no se leyó, «No se pudieron leer
-  los colores de la empresa.»), «Tipo de cambio» (una fila «Tipo de cambio» de la fórmula; con modos en la hoja, cada modo elige el de cada
+  los colores de la empresa.» con «Reintentar») con «+ Nuevo color» debajo (sólo con `cotizaciones.configurar`; apagado hasta leer los colores):
+  abre «Nuevo color» (`?color=nuevo`, el modal de la sección de colores: nombre, color y cómo se ve; «Ya hay 48 colores, que es el máximo.
+  Elimina uno que ningún grupo use.», «Ya hay un color «X».», sin red conserva lo escrito y reintenta al volver), lo crea en el catálogo y lo
+  deja elegido, y al cerrar el foco vuelve a «Color»; «Tipo de cambio» (una fila «Tipo de cambio» de la fórmula; con modos en la hoja, cada modo elige el de cada
   banda y uno que no tiene bucket se rechaza: «La hoja tiene modos de tipo de cambio: suma este tipo de cambio primero en cada modo, en
   «Hoja».») y sus filas, con «Quitar» y «Sumar una fila» (sin banda, una fila no entra en el total); «Crear banda» o «Aplicar». Arrastrar una
   fila a un tramo de otra banda le pone esa banda. Un rechazo de la fórmula (el doble conteo, «… se contaría dos veces.»; una banda vacía) va a

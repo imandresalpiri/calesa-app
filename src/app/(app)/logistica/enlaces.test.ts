@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { Permisos } from '@/shared/lib/permisos'
-import { enlacesDeLogistica, esEnlaceActual } from './enlaces'
+import {
+  conBotonDeConfigurar,
+  enlacesDeLogistica,
+  esEnlaceActual,
+  esLaConfiguracion,
+} from './enlaces'
 
 const concede = (clave: string, origenId: string | null = null): Permisos[number] => ({
   clave: clave as Permisos[number]['clave'],
@@ -62,5 +67,27 @@ describe('el enlace actual', () => {
     expect(esEnlaceActual(aduana, '/logistica/aduana/algo')).toBe(true)
     expect(esEnlaceActual(aduana, '/logistica')).toBe(false)
     expect(esEnlaceActual(aduana, '/logistica/aduanas')).toBe(false)
+  })
+})
+
+describe('el botón «Configurar»', () => {
+  it('lo ve quien gestiona los catálogos de logística, en algún origen; nadie más', () => {
+    expect(conBotonDeConfigurar([concede('logistica.catalogos.gestionar')])).toBe(true)
+    expect(conBotonDeConfigurar([concede('logistica.catalogos.gestionar', 'o1')])).toBe(true)
+    expect(conBotonDeConfigurar([])).toBe(false)
+    expect(conBotonDeConfigurar([concede('flujos.configurar'), concede('logistica.ver')])).toBe(
+      false,
+    )
+  })
+
+  it('la configuración es su página y sus pestañas; la barra no marca ningún enlace ahí', () => {
+    expect(esLaConfiguracion('/logistica/configuracion')).toBe(true)
+    expect(esLaConfiguracion('/logistica/configuracion/puertos')).toBe(true)
+    expect(esLaConfiguracion('/logistica/configuracion-x')).toBe(false)
+    expect(esLaConfiguracion('/logistica/gastos')).toBe(false)
+    const enlaces = enlacesDeLogistica([concede('logistica.ver', 'o1')])
+    for (const enlace of enlaces) {
+      expect(esEnlaceActual(enlace, '/logistica/configuracion/navieras'), enlace.titulo).toBe(false)
+    }
   })
 })

@@ -9,6 +9,9 @@ import {
   type CampoBase,
   type ResumenDeImpacto,
 } from '@/shared/lib/campos'
+import type { ErrorApp } from '@/shared/lib/errores'
+import { useConflictoHastaLaVersion } from '@/shared/ui/use-conflicto-hasta-la-version'
+import { useAlAbrir } from './use-borrador-del-campo'
 import type {
   ConfiguracionDeCampos,
   EdicionesDeCampos,
@@ -23,6 +26,8 @@ type Args<Campo extends CampoBase, Cambios extends object, Nuevo> = {
   todos: readonly Campo[]
   configuracion: ConfiguracionDeCampos<Campo, Cambios, Nuevo>
   ediciones: EdicionesDeCampos<Cambios, Nuevo>
+  // «Eliminar…» del «⋯» (`&eliminar=1`): al abrir, cuenta y muestra el aviso de eliminar (uno de fábrica no se elimina).
+  eliminarAlAbrir?: boolean
   alTerminar: () => void
 }
 
@@ -39,7 +44,8 @@ function conDefectoVigente(valores: ValoresDeCampo): ValoresDeCampo {
 }
 
 type ResultadoDeGuardar =
-  | { estado: 'guardado' | 'sin_cambios' | 'fallo' }
+  | { estado: 'guardado' | 'sin_cambios' }
+  | { estado: 'fallo'; error: ErrorApp }
   | { estado: 'pregunta'; resumen: ResumenDeImpacto }
 
 // Guarda los cambios de un campo. Un cambio que puede tocar datos se cuenta primero; con algo
@@ -57,7 +63,7 @@ async function guardarCambios<Campo extends CampoBase, Cambios extends object, N
   if (!confirmado && configuracion.necesitaVistaPrevia(editado, cambios)) {
     const conteo = await ediciones.vistaPrevia(editado.id, rangoDe(cambios))
     if (!conteo.ok) {
-      return { estado: 'fallo' }
+      return { estado: 'fallo', error: conteo.error }
     }
     const resumen = configuracion.resumenDeImpacto(editado, cambios, conteo.data)
     if (resumen.bloquea || resumen.avisos.length > 0) {
@@ -65,7 +71,7 @@ async function guardarCambios<Campo extends CampoBase, Cambios extends object, N
     }
   }
   const resultado = await ediciones.guardar(editado, cambios)
-  return { estado: resultado.ok ? 'guardado' : 'fallo' }
+  return resultado.ok ? { estado: 'guardado' } : { estado: 'fallo', error: resultado.error }
 }
 
 // Lo que la persona escribe en el formulario y lo que se le avisa. Cualquier cambio descarta el
@@ -102,6 +108,43 @@ function useEstadoDelFormulario(inicial: ValoresDeCampo) {
   }
 }
 
+// Eliminar pide primero contar: el aviso dice si se puede; confirmar lo elimina.
+function eliminacion<Campo extends CampoBase, Cambios extends object, Nuevo>({
+  campo,
+  configuracion,
+  ediciones,
+  setAviso,
+  alTerminar,
+}: Omit<Args<Campo, Cambios, Nuevo>, 'todos' | 'eliminarAlAbrir'> & {
+  setAviso: (aviso: Aviso | null) => void
+}) {
+  return {
+    pedirEliminar: async () => {
+      if (campo === null) {
+        return
+      }
+      const conteo = await ediciones.vistaPrevia(campo.id)
+      if (conteo.ok) {
+        setAviso({
+          modo: 'eliminar',
+          resumen: configuracion.resumenDeEliminacion(campo, conteo.data),
+        })
+      }
+    },
+    confirmarEliminar: async () => {
+      if (campo === null) {
+        return
+      }
+      const resultado = await ediciones.eliminar(campo)
+      if (resultado.ok) {
+        alTerminar()
+      } else {
+        setAviso(null)
+      }
+    },
+  }
+}
+
 // El estado de crear o editar un campo, con el aviso de impacto que va antes de guardar un cambio
 // que toca datos ya cargados.
 export function useFormularioDeCampo<Campo extends CampoBase, Cambios extends object, Nuevo>(
@@ -113,6 +156,10 @@ export function useFormularioDeCampo<Campo extends CampoBase, Cambios extends ob
   )
   // Lo que había al abrir: contra eso se mide si algo se escribió.
   const [inicial] = useState(() => JSON.stringify(valores))
+  // Otra persona guardó este campo (`PT409`): se dice en el panel hasta que «Recargar» trae la versión nueva.
+  const [conflicto, setConflicto] = useConflictoHastaLaVersion(campo?.actualizadoEn ?? null)
+  // Un rechazo al crear que no va junto a un dato (sin red, sin permiso): se dice en el panel, junto a «Crear campo».
+  const [rechazo, setRechazo] = useState<string | null>(null)
 
   const clave =
     campo?.clave ??
@@ -127,6 +174,8 @@ export function useFormularioDeCampo<Campo extends CampoBase, Cambios extends ob
       alTerminar()
     } else if (resultado.error.codigo === 'duplicado') {
       setErrores({ clave: configuracion.textos.claveDuplicada })
+    } else if (resultado.error.codigo !== 'validacion') {
+      setRechazo(resultado.error.mensaje)
     }
     return resultado.ok
   }
@@ -139,36 +188,28 @@ export function useFormularioDeCampo<Campo extends CampoBase, Cambios extends ob
     })
     if (resultado.estado === 'pregunta') {
       setAviso({ modo: 'guardar', resumen: resultado.resumen })
-    } else if (resultado.estado !== 'fallo') {
+    } else if (resultado.estado === 'fallo') {
+      if (resultado.error.codigo === 'conflicto') {
+        setConflicto(resultado.error.mensaje)
+      }
+    } else {
       alTerminar()
     }
     return resultado.estado === 'guardado' || resultado.estado === 'sin_cambios'
   }
 
-  async function pedirEliminar() {
-    if (campo === null) {
-      return
+  const { pedirEliminar, confirmarEliminar } = eliminacion({
+    campo,
+    configuracion,
+    ediciones,
+    setAviso,
+    alTerminar,
+  })
+  useAlAbrir(() => {
+    if (args.eliminarAlAbrir === true && campo !== null && !campo.esSistema) {
+      void pedirEliminar()
     }
-    const conteo = await ediciones.vistaPrevia(campo.id)
-    if (conteo.ok) {
-      setAviso({
-        modo: 'eliminar',
-        resumen: configuracion.resumenDeEliminacion(campo, conteo.data),
-      })
-    }
-  }
-
-  async function confirmarEliminar() {
-    if (campo === null) {
-      return
-    }
-    const resultado = await ediciones.eliminar(campo)
-    if (resultado.ok) {
-      alTerminar()
-    } else {
-      setAviso(null)
-    }
-  }
+  })
 
   return {
     valores: { ...valores, clave },
@@ -177,7 +218,10 @@ export function useFormularioDeCampo<Campo extends CampoBase, Cambios extends ob
     ...cambios,
     aviso,
     errores,
+    conflicto,
+    rechazo,
     enviar: async () => {
+      setRechazo(null)
       // El rango se revisa antes de enviar, con los textos de la base, y se dice junto al dato.
       const problema = problemaDelRango(valores)
       if (problema) {

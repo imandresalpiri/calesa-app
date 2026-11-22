@@ -155,6 +155,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-45]** `cotizaciones.moneda_mostrar` y `cotizaciones.plantilla_id` no tienen uso real (`moneda_mostrar` sólo viaja por `cotizaciones_listado()`) — migración que la recree sin ellas, con su medición y `db:types`.
 - **[—]** `VAPID_PRIVATE_KEY` y `VAPID_SUBJECT` están en `esquemaDelServidor` (`src/shared/config/esquemas.ts`) y en `.env.example`, pero sólo los lee la función `push` — dejarlos sólo en `esquemaDeLasFunciones`.
 - **[—]** Copias que deberían subir al núcleo o a `shared`: el esquema de la nota de publicar, `FILAS_POR_PEDIDO`, `MARCAS_DE_GESTORES`, `valorTipeado`, `diasParaLaPurga`/`textoDePurga`, las lecturas de tonos, `normalizar` de la XCell y la subida por hash a bucket privado.
+- **[—]** Dos arrastres con dnd-kit que se parecen: `cotizaciones/features/diseno/components/orden/` y `shared/ui/campos/arrastre/` — unificarlos en un `shared/ui/orden` (asa, sensores, anuncios en español, coordenadas por contenedor).
+- **[—]** `e2e/configuracion-200-capturas.spec.ts` captura un panel por la URL apenas se ve el diálogo, sin esperar lo que trae su `diferido()`: «Datos del origen» y «Columnas de…» salen vacíos en la hoja — esperar un texto del cuerpo antes de `capturar()`.
 - **[—]** «Ver comprobante» duplicado en repuestos y logística (`ver-comprobante.ts` y `useComprobante.ver`); `XCell` no tiene `emptyLabel`.
 - **[—]** Las guardas de áreas (`areas-de-cotizaciones`, `-flujos`, `-logistica`, `areas-b/areas-de-web`, `areas-c/areas-de-repuestos`) son cinco copias de la misma lógica, y los registros de `<Confirmar>`, `<Drawer>` y RPC paginadas están partidos en `areas-b/`, `areas-c/`, `*-formula.ts` y `*-papelera.ts` — unificar en una guarda parametrizada y un registro por módulo.
 - **[—]** `lead_telefonos_leer()` no tiene uso en la app — quitarla en una migración con sus pruebas SQL.
@@ -202,6 +204,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** En Logística › Configuración › Navieras la lista tiene dos columnas «Estado» («Activo» y «Activa»): `columnaDeUso="Estado"` en `navieras-de-transporte.tsx` repite el título de la columna de estado; ponerle otro («Uso» o quitarla).
+- **[—]** La planilla de la fórmula a 1280 px con la tarjeta al costado (36 rem): # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
+  desplazando la grilla. Angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`).
 - **[—]** En el celular al 200 %, el «⋯» del panel de la fase queda más arriba que la ✕ (el «⋯» va en rem y la ✕ en px): alinear sus centros (`drawer.tsx`, `acciones`).
 - **[—]** `e2e/cierre-pendientes-capturas.spec.ts` falla en `movil` (también en `main`): en la sub-ruta `datos` del origen, el título no queda a la vista porque el panel «Datos del origen» está abierto.
 - **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px, los tercios del modal «Avanzado», un par con un lado bloqueado en el celular) baja sus
@@ -213,13 +218,12 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** La imagen de la tarjeta quita el recuadro al cargar (`onLoad`) y la grande del resumen puede verse un instante como un marco gris vacío hasta que el
   navegador la decodifica: pasar a «lista» tras `img.decode()` (`imagen-de-la-tarjeta.tsx`, `useCargaDeLaImagen()`).
 - **[—]** En el celular (≈ 390–412 px), «+ Nuevo» de la barra superior tapa la palabra «Buscar» del buscador («Bu» cortado; cede su ancho con `min-w-0` sin cortar el texto), también con un solo tipo de cambio: dibujar sólo la lupa cuando no cabe la palabra.
-- **[—]** En el celular (390 px), el «⋯» de la fila activa de la planilla de la fórmula queda al final de la fila, tras la D: llegar a él desplaza la cuadrícula
+- **[—]** En el celular (390 px), el «⋯» de la fila activa de la planilla de la fórmula queda al final de la fila, en Ejemplo: llegar a él desplaza la cuadrícula
   de costado y esconde la C. Fijarlo a la derecha como `#` y A van fijas a la izquierda (`fila-de-la-cuadricula.tsx`).
 - **[—]** `<Opciones>` (`src/shared/ui/opciones.tsx`): el radio `sr-only` es absoluto sin un `relative` en su etiqueta, y con las opciones en dos renglones cae bajo otra (el «Cómo empieza» de «Nueva fórmula»): sumar `relative` a la etiqueta.
 - **[—]** La burbuja del chat tapa contenido en el celular: el «⋯» de la primera fila de una lista de Configuración a la vista al abrir (390 px, la pestaña «Campos» de un origen), la esquina de «Guardar» de la barra de cambios sin guardar (Configuración › Leads › «Mensaje del portal»), y al 200 % el borde derecho del valor de una tarjeta de ajustes (la dirección de apibara) y la última línea de una página — reservar su lugar al pie del contenido y subirla mientras la barra está a la vista, como los avisos (`data-pie-de-panel`).
 - **[—]** El selector de embudo de la vista de embudo no se cierra al elegir otro (`DropdownMenuRadioItem` de Base UI no cierra al hacer clic): en el
   celular el menú queda sobre las pestañas de etapas hasta tocar afuera (`selector-de-embudo.tsx`; `closeOnClick` en el ítem).
-- **[—]** Configuración › Catálogos › Niveles repite el título de la página en el `h2` de su lista («Niveles de acceso», con «Nuevo nivel»): llevar la acción principal junto al `h1` y quitar el `h2`.
 - **[—]** En el menú de Configuración (10 rem) el motivo de una sub-sección apagada larga ocupa cinco renglones («Te falta el permiso
   «Gestionar los campos de los leads».»): acortarlo o mostrarlo al enfocar.
 - **[—]** «Cotizar» del título de «Cotizaciones de este vehículo» (`src/app/(app)/vehiculos/[id]/bloque-cotizaciones.tsx`) se ve sin borde: `buttonVariants()` sin `cn()` deja ganar el `border-transparent` de la base.

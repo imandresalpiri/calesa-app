@@ -27,7 +27,7 @@ export const leerOfertaDeTransporte: LectorDeOferta = cache(async (flujoId) => {
 })
 
 // Los puertos y navieras activos, para marcarlos. Son catálogos de decenas de filas (puertos_pkey, navieras_pkey: no hay filtro por índice que
-// importe), con `tope + 1` leídas para decir si hay más. Se cargan en Configuración › Catálogos; acá sólo se leen.
+// importe), con `tope + 1` leídas para decir si hay más. Se cargan en Logística › Configuración; acá sólo se leen.
 export const leerCatalogoDeTransporte: LectorDeCatalogoDeTransporte = cache(async () => {
   const supabase = await createClient()
   const [puertos, navieras] = await Promise.all([

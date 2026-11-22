@@ -13,6 +13,7 @@ import type {
   LecturaDeLaTarjetaEnVivo,
   PropsDeLaTarjetaEnVivo,
 } from '../../../../entities/tarjeta-en-vivo'
+import type { PropsDelNuevoColor } from '../../../../entities/nuevo-color'
 import { useEditorDeLaFormula } from '../../hooks/use-editor-de-la-formula'
 import { useLecturaDeLaDefinicion } from '../../hooks/use-lectura-de-la-definicion'
 import { PlanillaDiferida } from '../planilla/diferidos'
@@ -39,6 +40,8 @@ export type PropsDeLaSesion = {
   // El catálogo de tablas del origen, con el que se compila BUSCARV; null si no se pudo leer.
   tablas: CatalogoDeTablas
   TarjetaEnVivo: ComponentType<PropsDeLaTarjetaEnVivo>
+  // «+ Nuevo color» del panel de una banda (área `diseno`); nulo sin `cotizaciones.configurar`.
+  NuevoColor: ComponentType<PropsDelNuevoColor> | null
   puedeCambiarTiposDeCambio: boolean
   // Los tipos de cambio de la empresa: «Tipo de celda › Tipo de cambio».
   tiposDeCambio: readonly TipoDeCambioDeLaEmpresa[]
@@ -83,6 +86,7 @@ function SesionLista({ leida, ...p }: PropsDeLaSesion & { leida: FormulaParaEdit
       alRecargar={p.alRecargar}
       tarjeta={p.tarjeta}
       TarjetaEnVivo={p.TarjetaEnVivo}
+      NuevoColor={p.NuevoColor}
       puedeCambiarTiposDeCambio={p.puedeCambiarTiposDeCambio}
       tiposDeCambio={p.tiposDeCambio}
     />

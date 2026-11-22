@@ -110,17 +110,10 @@ const PANTALLAS: Pantalla[] = [
   { titulo: 'la página de un origen › Categorías', url: DE_UN_ORIGEN('categorias') },
   { titulo: 'Leads › Campos', url: () => '/configuracion/leads/campos' },
   { titulo: 'Leads', url: () => '/configuracion/leads' },
+  { titulo: 'Logística › Configuración › Puertos', url: () => '/logistica/configuracion/puertos' },
   {
-    titulo: 'Catálogos › Niveles',
-    url: () => '/configuracion/catalogos/niveles',
-    controles: (page) => [
-      [page.getByRole('button', { name: /^Más acciones de / }).first(), 'el «⋯» del primer nivel'],
-    ],
-  },
-  { titulo: 'Catálogos › Puertos', url: () => '/configuracion/catalogos/puertos' },
-  {
-    titulo: 'Catálogos › Tipos de documento',
-    url: () => '/configuracion/catalogos/tipos-de-documento',
+    titulo: 'Logística › Configuración › Tipos de documento',
+    url: () => '/logistica/configuracion/tipos-de-documento',
   },
   { titulo: 'Catálogos › Tablas compartidas', url: () => '/configuracion/catalogos/tablas' },
   { titulo: 'Repuestos › Flujo de repuestos', url: () => '/configuracion/repuestos/flujo' },

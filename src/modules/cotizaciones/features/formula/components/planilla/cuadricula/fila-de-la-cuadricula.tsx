@@ -4,8 +4,12 @@ import { TriangleAlertIcon } from 'lucide-react'
 import { memo, type ReactNode } from 'react'
 import { cn } from '@/shared/lib/utils'
 import { textoDelCampoQueFalta } from '../../../../../entities/campos-que-faltan'
+import type { ContenidoDeLaFila } from '../../../../../entities/formula/contenido-de-c'
 import type { FilaDeLaHoja } from '../../../../../entities/formula/hoja-de-la-planilla'
-import type { ColumnaDeLaPlanilla } from '../../../../../entities/formula/texto-de-la-celda'
+import {
+  nombreDeLaCelda,
+  type ColumnaDeLaPlanilla,
+} from '../../../../../entities/formula/texto-de-la-celda'
 import type { CifraDeLaFila } from '../../../../../entities/formula/vista-previa'
 import { idDeLaCelda } from '../../../hooks/use-cuadricula'
 import {
@@ -14,15 +18,16 @@ import {
   CELDA,
   COLUMNAS,
   CONCEPTO,
-  DE_DONDE_SALE,
+  EJEMPLO,
   EN_EDICION,
   FONDO_DEL_TIPO,
   NOMBRE_DE_LA_COLUMNA,
   NUMERO,
   PORCENTAJE,
   VALOR,
+  VALOR_TEXTO,
 } from './clases'
-import { ContenidoDeB, ContenidoDeC } from './contenido-de-la-celda'
+import { ContenidoDeB, ContenidoDeC, ContenidoDelEjemplo } from './contenido-de-la-celda'
 import type { ValorDeLaUnidad } from './valor-de-la-unidad'
 
 export type PropsDeLaFila = {
@@ -44,7 +49,8 @@ export type PropsDeLaFila = {
   unidad: ValorDeLaUnidad | undefined
   cifra: CifraDeLaFila
   leyendo: boolean
-  dicho: string
+  // Qué muestran C y Ejemplo (calculado una vez por fórmula de trabajo: el mismo objeto mientras no cambie).
+  contenido: ContenidoDeLaFila
   rechazo: string | null
   falta: string | null
   // Al arrastrar: si la fila cae antes o después de esta, y si es la que se arrastra.
@@ -68,20 +74,35 @@ function celda(p: PropsDeLaFila, col: Col, clase: string, color?: number) {
   } as const
 }
 
+// «C5, Remate, valor»; la columna Ejemplo, «Ejemplo 5, Remate».
 const nombre = (p: PropsDeLaFila, col: Col) =>
-  `${col}${String(p.fila.numero)}, ${p.fila.nodo.etiqueta}, ${NOMBRE_DE_LA_COLUMNA[col]}`
+  col === 'D'
+    ? `${nombreDeLaCelda(col, p.fila.numero)}, ${p.fila.nodo.etiqueta}`
+    : `${nombreDeLaCelda(col, p.fila.numero)}, ${p.fila.nodo.etiqueta}, ${NOMBRE_DE_LA_COLUMNA[col]}`
 
-// B y C: el nombre dice la celda, la fila y la columna; el valor se lee por `aria-describedby` (nunca un monto en `aria-label`).
-function CeldaConValor(p: PropsDeLaFila & { col: 'B' | 'C'; clase: string; children: ReactNode }) {
+const BORDE = { B: 'bordeB', C: 'bordeC' } as const
+
+// B, C y Ejemplo: el nombre dice la celda, la fila y la columna; el valor se lee por `aria-describedby` (nunca un monto en `aria-label`). `extra` va fuera del valor
+// (el «⋯» de la fila, en Ejemplo).
+function CeldaConValor(
+  p: PropsDeLaFila & {
+    col: 'B' | 'C' | 'D'
+    clase: string
+    vacia: boolean
+    extra?: ReactNode
+    children: ReactNode
+  },
+) {
   const id = idDeLaCelda(p.prefijo, { id: p.fila.id, col: p.col })
-  const vacia = p.col === 'B' && p.b === undefined
+  const enEdicion = p.enEdicion === p.col
   return (
     <td
-      {...celda(p, p.col, p.clase, p.col === 'B' ? p.bordeB : p.bordeC)}
+      {...celda(p, p.col, p.clase, p.col === 'D' ? undefined : p[BORDE[p.col]])}
       aria-label={nombre(p, p.col)}
-      aria-describedby={p.enEdicion === p.col || vacia ? undefined : `${id}-v`}
+      aria-describedby={enEdicion || p.vacia ? undefined : `${id}-v`}
     >
-      {p.enEdicion === p.col ? p.entrada : vacia ? null : <span id={`${id}-v`}>{p.children}</span>}
+      {enEdicion ? p.entrada : p.vacia ? null : <span id={`${id}-v`}>{p.children}</span>}
+      {p.extra}
     </td>
   )
 }
@@ -110,8 +131,8 @@ const MARCA_AL_SOLTAR = {
   despues: '[&>*]:border-b-2 [&>*]:border-b-(--color-primario-ink)',
 } as const
 
-// Una fila de la cuadrícula: # (el asa para arrastrarla), A (el concepto), B (el %), C (el valor, con el fondo de su tipo de celda) y D (de dónde sale; en la activa,
-// su «⋯»). Debajo, si lo hay, el rechazo de `validarFormula()` que la nombra. `memo` con valores simples: la planilla dibuja hasta 500.
+// Una fila de la cuadrícula: # (el asa para arrastrarla), A (el concepto), B (el %), C (lo que guarda la fórmula, con el fondo de su tipo de celda) y Ejemplo (lo
+// que da con la unidad de ejemplo; en la activa, su «⋯»). Debajo, si lo hay, el rechazo de `validarFormula()` que la nombra. `memo` con valores simples: la planilla dibuja hasta 500.
 export const FilaDeLaCuadricula = memo(function FilaDeLaCuadricula(p: PropsDeLaFila) {
   const { fila } = p
   return (
@@ -128,22 +149,35 @@ export const FilaDeLaCuadricula = memo(function FilaDeLaCuadricula(p: PropsDeLaF
           {fila.numero}
         </th>
         <Concepto {...p} />
-        <CeldaConValor {...p} col="B" clase={PORCENTAJE}>
+        <CeldaConValor {...p} col="B" clase={PORCENTAJE} vacia={p.b === undefined}>
           {p.b === undefined ? null : <ContenidoDeB valor={p.b} />}
         </CeldaConValor>
-        <CeldaConValor {...p} col="C" clase={cn(VALOR, FONDO_DEL_TIPO[fila.tipo])}>
-          <ContenidoDeC
+        <CeldaConValor
+          {...p}
+          col="C"
+          clase={cn(
+            p.contenido.c.tipo === 'valor_fijo' ? VALOR : VALOR_TEXTO,
+            FONDO_DEL_TIPO[fila.tipo],
+          )}
+          vacia={false}
+        >
+          <ContenidoDeC nodo={fila.nodo} contenido={p.contenido.c} constante={p.constante} />
+        </CeldaConValor>
+        <CeldaConValor
+          {...p}
+          col="D"
+          clase={EJEMPLO}
+          vacia={p.contenido.ejemplo === 'nada'}
+          extra={p.menu}
+        >
+          <ContenidoDelEjemplo
             nodo={fila.nodo}
-            constante={p.constante}
+            ejemplo={p.contenido.ejemplo}
             unidad={p.unidad}
             cifra={p.cifra}
             leyendo={p.leyendo}
           />
         </CeldaConValor>
-        <td {...celda(p, 'D', DE_DONDE_SALE)} aria-label={`${nombre(p, 'D')}: ${p.dicho}`}>
-          {p.dicho}
-          {p.menu}
-        </td>
       </tr>
       {p.rechazo === null ? null : (
         <tr>

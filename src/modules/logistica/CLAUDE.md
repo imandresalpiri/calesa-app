@@ -153,8 +153,8 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   **Prorratear:** `pantallas/dinero-grupo.ts`, hueco del resumen de un grupo (`logistica.gastos.editar`; no en el de una declaración). `entities/dinero/reparto.ts`
   repite la aritmética de centavos de `gastos_prorratear` (los que sobran, a los primeros) sólo para la vista previa. El `lote` es el id del intento: se
   conserva si no se sabe qué pasó y se renueva al cambiar lo escrito o al rechazar la base.
-  **Categorías de gasto** (`logistica.catalogos.gestionar`): escritura directa bajo la RLS; `categoria.ts` fija los propósitos del `check` de la base.
-- **Área `transporte`.** **Catálogos:** `pantallas/transporte-catalogos.ts`, sub-rutas «Puertos» y «Navieras» de Configuración › Catálogos (`/configuracion/catalogos/puertos` y `/navieras`)
+  **Categorías de gasto** (pestaña `/logistica/configuracion/categorias-de-gasto`, `logistica.catalogos.gestionar`; sin flechas de orden: el orden es el número del modal): escritura directa bajo la RLS; `categoria.ts` fija los propósitos del `check` de la base.
+- **Área `transporte`.** **Catálogos:** `pantallas/transporte-catalogos.ts`, pestañas «Puertos» y «Navieras» de Logística › Configuración (`/logistica/configuracion/puertos` y `/navieras`; el ⚙ «Configurar» de la cabecera de Logística entra, con `logistica.catalogos.gestionar`; la página, su tira de pestañas y su permiso por pestaña son de `src/app/(app)/logistica/configuracion/`)
   (`logistica.catalogos.gestionar`; cada catálogo trae su `clave` —el último tramo de su sub-ruta— y su frase). Escritura directa bajo la RLS (`infra/transporte/catalogos.ts`): 0 filas = «No tienes permiso…», nunca éxito; sin versión.
   **No hay «Eliminar»** (borrar dejaría nulos los transportes y vaciaría la oferta): se desactiva. `entities/transporte/catalogo.ts` valida (nombre 1–80, país
   ≤ 60, código ≤ 12 en mayúsculas sin espacios, orden 0–32.767); un puerto **sin país** no lo cubre la unicidad de la base (`NULL ≠ NULL`): la action lo mira,

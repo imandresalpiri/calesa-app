@@ -4,6 +4,13 @@ import { expect, type Locator, type Page } from '@playwright/test'
 // los botones del editor de la pestaña («Guardar el borrador», «Publicar…», su «⋯»), que llegan a la barra por un portal al hidratar.
 export const barraDeLaFormula = (page: Page): Locator => page.locator('[data-barra-de-la-formula]')
 
+// El estado de la pieza que se edita (`textoDelEstado()`: «Cambios sin guardar», «Borrador» o «Publicada vN»). El detalle de al lado (quién guardó el
+// borrador) se ve desde `md`.
+export const estadoDeLaBarra = (page: Page): Locator =>
+  barraDeLaFormula(page).locator('[data-estado-de-la-edicion]')
+export const detalleDelEstado = (page: Page): Locator =>
+  estadoDeLaBarra(page).locator('xpath=following-sibling::span[1]')
+
 export const selectorDeFormula = (page: Page): Locator =>
   barraDeLaFormula(page).getByRole('button', { name: /^(Fórmula: |Sin fórmulas)/ })
 

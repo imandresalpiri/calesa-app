@@ -16,7 +16,6 @@ import {
   a1De,
   abrirPlanilla,
   celdaDe,
-  filaDe,
   guardado,
   guardar,
   planilla,
@@ -95,13 +94,13 @@ test('la comisión con SI, MAX y BUSCARV se escribe en la planilla, se publica y
   )
   await expect(barra).toHaveValue(`=BUSCARV(${pub}; "no_existe"; "monto")`)
 
-  // (2) La fórmula del ejemplo se aplica y «De dónde sale» la dice con las etiquetas y la tabla.
+  // (2) La fórmula del ejemplo se aplica y «De dónde sale», bajo la barra con la fila elegida, la dice con las etiquetas y la tabla.
   await barra.fill(texto(pub))
   await barra.press('Enter')
   await expect(planilla(page).getByRole('alert')).toHaveCount(0)
   await celdaDe(page, 'comision').click()
   await expect(barra).toHaveValue(texto(pub))
-  await expect(filaDe(page, 'comision')).toContainText(
+  await expect(planilla(page).locator('[data-linea-bajo-la-barra]')).toContainText(
     '(el mayor de (Pública × 0,1) y 150) si Pública > 1.000, si no de la tabla fletes por Pública',
   )
 

@@ -41,7 +41,9 @@ etiqueta }` o `{ de: 'campo', clave, etiqueta, campoId }`, con los de fábrica s
   `_origen_datos_clave_de_fabrica()`, con el juego común `casos-de-datos-clave.json` que corren Vitest y `db:probar`), `entities/origen.ts` (`motivoParaNoEliminar()` ↔ `origen_eliminar()`), `entities/preconfiguraciones.ts`
   (`origen_preconfigurar_campos()`, `origen_crear_flujo()`), `entities/catalogo-apibara.ts` (`_apibara_catalogo()`; también contra
   `e2e/fixtures/apibara/`), `CLAVES_RESERVADAS` de `entities/campo.ts` (`_origen_clave_reservada()`).
-- **El motor de campos es de `shared`** (`lib/campos`, `ui/campos`); acá, `CampoDeLayout` = `CampoBase` + lo propio del origen.
+- **El motor de campos es de `shared`** (`lib/campos`, `ui/campos`); acá, `CampoDeLayout` = `CampoBase` + lo propio del origen. La pestaña Campos
+  es `features/campos/components/editor-de-campos.tsx`: arma para el editor de `shared` las casillas de dato clave (`hooks/use-datos-clave.ts`:
+  poner, quitar y mover de a un cambio, con lo puro en `entities/datos-clave-edicion.ts`) y los «Comunes» (`DATOS_COMUNES` del tipo).
 - `entities/pasos.ts`: `pasosParaCotizarYMover()` y `faltasDeLaTarjeta()` (la lista, en corto), con su test. `src/app/(app)/configuracion/origenes/pasos.ts`:
   a dónde lleva cada paso y su motivo sin permiso en ese origen (test contra las pantallas existentes); `acceso.ts` y `pestanas.ts`: las pestañas, su
   permiso en el origen y su motivo.

@@ -25,7 +25,6 @@ import { MOTIVO_SIN_PERMISO_ORIGENES } from '../../entities/motivos'
 import { ESTILO_DE_CLAVE } from '../../entities/nombre'
 import type { TipoDeOrigen } from '../../entities/origen'
 import type { esquemaCrearCampo } from './schemas/campos'
-import type { ReactNode } from 'react'
 import type { z } from 'zod'
 
 type NuevoCampo = z.input<typeof esquemaCrearCampo>
@@ -100,7 +99,7 @@ function cambiosDe(campo: CampoDeLayout, valores: ValoresDeCampo): CambiosDeCamp
 }
 
 const TEXTOS: TextosDelEditor = {
-  titulo: 'Layout de campos',
+  titulo: 'Campos del origen',
   vacioTitulo: 'Este origen no tiene campos activos',
   vacioDescripcion:
     'Sus vehículos sólo llevarán los datos comunes: marca, modelo, año, VIN, lote y precio.',
@@ -207,8 +206,6 @@ type Contenedor = {
   origenId: string
   tipoDeOrigen: TipoDeOrigen
   principal?: PrincipalActual | null
-  // La estrella de los datos clave en cada fila (la arma el editor del módulo, que tiene la lista).
-  accionDeFila?: (campo: CampoDeLayout) => ReactNode
 }
 
 // Cómo el editor compartido arma, guarda y dice el layout de campos de un origen.
@@ -216,7 +213,6 @@ export function configuracionDeOrigen({
   origenId,
   tipoDeOrigen,
   principal = null,
-  accionDeFila,
 }: Contenedor): ConfiguracionDeCampos<CampoDeLayout, CambiosDeCampo, NuevoCampo> {
   return {
     textos: TEXTOS,
@@ -243,7 +239,6 @@ export function configuracionDeOrigen({
       ...rangoDelFormulario(valores),
     }),
     cambiosDe,
-    conBandera: (clave, valor) => ({ [clave]: valor }),
     necesitaVistaPrevia,
     resumenDeImpacto: (campo, cambios, impacto: ImpactoDeCampo): ResumenDeImpacto =>
       resumenDeImpacto(campo, cambios, impacto),
@@ -251,6 +246,5 @@ export function configuracionDeOrigen({
       resumenDeEliminacion(campo, impacto),
     hueco: huecoDelOrigen(tipoDeOrigen, principal),
     insignias: (campo) => (campo.principal ? ['Principal'] : []),
-    ...(accionDeFila ? { accionDeFila } : {}),
   }
 }

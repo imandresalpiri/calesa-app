@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   PANEL_NUEVO_DE_VEHICULOS,
+  PARAMETRO_DEL_BLOQUE,
   RUTAS,
   conVuelta,
   rutaDeConfiguracionDeCotizacion,
@@ -307,23 +308,27 @@ describe('Colores y vigencia de las cotizaciones', () => {
   })
 })
 
+describe('Cotizaciones en Roles', () => {
+  it('los niveles y quién crea y quién ve se enlazan al bloque «Cotizaciones» de la matriz', () => {
+    expect(RUTAS.cotizacionesEnRoles).toBe(`${RUTAS.roles}?${PARAMETRO_DEL_BLOQUE}=cotizaciones`)
+  })
+})
+
 describe('Catálogos', () => {
-  it('lo global de la empresa vive bajo /configuracion/catalogos', () => {
+  it('los de logística viven en Logística y las tablas compartidas, bajo /configuracion/catalogos', () => {
     expect([
-      RUTAS.nivelesDeCotizacion,
-      RUTAS.quienCreaYQuienVe,
+      RUTAS.configuracionDeLogistica,
       RUTAS.puertosDeLogistica,
       RUTAS.navierasDeLogistica,
       RUTAS.categoriasDeGastoDeLogistica,
       RUTAS.tiposDeDocumento,
       RUTAS.tablasCompartidas,
     ]).toEqual([
-      '/configuracion/catalogos/niveles',
-      '/configuracion/catalogos/quien-crea-y-quien-ve',
-      '/configuracion/catalogos/puertos',
-      '/configuracion/catalogos/navieras',
-      '/configuracion/catalogos/categorias-de-gasto',
-      '/configuracion/catalogos/tipos-de-documento',
+      '/logistica/configuracion',
+      '/logistica/configuracion/puertos',
+      '/logistica/configuracion/navieras',
+      '/logistica/configuracion/categorias-de-gasto',
+      '/logistica/configuracion/tipos-de-documento',
       '/configuracion/catalogos/tablas',
     ])
     expect(RUTAS.flujoDeRepuestos).toBe('/configuracion/repuestos/flujo')

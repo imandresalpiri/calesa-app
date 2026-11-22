@@ -16,7 +16,6 @@ const listo = () => Promise.resolve(ok(undefined))
 const ediciones: EdicionesDeCampos<CambiosDeCampoDeLead, z.input<typeof esquemaCrearCampo>> = {
   crear: listo,
   guardar: listo,
-  cambiarBandera: listo,
   cambiarActivo: listo,
   mover: listo,
   eliminar: listo,
@@ -72,6 +71,8 @@ describe('el formulario de un campo de lead, en una carga limpia', () => {
         puedeGestionar
         configuracion={configuracion}
         ediciones={ediciones}
+        eliminar={false}
+        alRecargar={vi.fn()}
         alCerrar={vi.fn()}
       />,
     )

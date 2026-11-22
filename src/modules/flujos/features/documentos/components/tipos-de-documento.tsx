@@ -14,7 +14,7 @@ type Props = {
   nombreDelFlujo: string | null
 }
 
-// Los tipos de documento de un grupo: los de toda la empresa (Catálogos › Tipos de documento) o los del flujo (su panel). El grupo viene de la página
+// Los tipos de documento de un grupo: los de toda la empresa (Logística › Configuración › Tipos de documento) o los del flujo (su panel). El grupo viene de la página
 // (las escrituras no devuelven la lista: la página se vuelve a leer); el modal y la confirmación por la URL son los mismos para los dos.
 export function TiposDeDocumento({ vistas, nombreDelFlujo }: Props) {
   const tipos = useTiposDeDocumento(vistas)

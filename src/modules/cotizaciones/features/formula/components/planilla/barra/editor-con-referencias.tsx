@@ -60,7 +60,7 @@ export function EditorConReferencias({ valor, refs, tramoDelError, className, ..
         autoComplete="off"
         className={cn(
           CAJA,
-          '[field-sizing:content] resize-none overflow-hidden bg-transparent text-transparent caret-(--color-ink) outline-none selection:bg-(--color-info-soft)',
+          '[field-sizing:content] resize-none overflow-hidden bg-transparent text-transparent caret-(--color-ink) outline-none selection:bg-(--color-info-soft) placeholder:text-(--color-ink-faint)',
           className,
         )}
         onScroll={(e) => {

@@ -7,6 +7,9 @@ import { idsDeLaEdicion } from '../ids-de-la-edicion'
 import { alTeclearEnLaEdicion } from '../teclas-de-la-edicion'
 import { EditorConReferencias } from './editor-con-referencias'
 
+// La única guía de la planilla: el texto de ejemplo de la barra vacía.
+export const EJEMPLO_DE_LA_BARRA = 'Escribe = y toca las celdas: =C5+C7'
+
 type Props = {
   planilla: Planilla
   celda: CeldaActiva
@@ -36,6 +39,7 @@ function ariaDelTexto(planilla: Planilla, enLaBarra: boolean) {
 export function TextoDeLaBarra({ planilla, celda, nombre, texto }: Props) {
   const { edicion, sugerencias } = planilla
   const e = edicion.edicion
+  const ids = idsDeLaEdicion(planilla.prefijo)
   const campo = useRef<HTMLTextAreaElement>(null)
   const enLaBarra = e?.en === 'barra'
   const cursor = e?.cursor ?? 0
@@ -51,6 +55,8 @@ export function TextoDeLaBarra({ planilla, celda, nombre, texto }: Props) {
   return (
     <EditorConReferencias
       ref={campo}
+      id={ids.texto}
+      placeholder={EJEMPLO_DE_LA_BARRA}
       valor={e?.texto ?? texto}
       refs={planilla.refs}
       tramoDelError={e?.error?.tramo ?? null}

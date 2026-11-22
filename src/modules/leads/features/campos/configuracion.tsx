@@ -245,7 +245,6 @@ export function configuracionDeLeads({
       }
     },
     cambiosDe,
-    conBandera: (clave, valor) => ({ [clave]: valor }),
     necesitaVistaPrevia,
     resumenDeImpacto: (campo, cambios, impacto: ImpactoDeCampo) =>
       resumenDeImpacto(

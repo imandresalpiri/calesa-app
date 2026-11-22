@@ -2,6 +2,10 @@ import { connection } from 'next/server'
 import { cache } from 'react'
 import { requerirSesion } from '@/modules/equipo'
 import { getOrigenes } from '@/modules/origenes'
+import {
+  destinosFueraDeConfiguracion,
+  type DestinoFueraDelNavegador,
+} from '../destinos-de-busqueda'
 import { gruposVisibles, paraElNavegador, type GrupoDelNavegador } from '../secciones'
 import { conOrigenesEnElMenu, subseccionesDeOrigenes } from './origenes-del-menu'
 
@@ -20,4 +24,11 @@ export const gruposDeQuienMira = cache(async (): Promise<GrupoDelNavegador[]> =>
   return origenes.ok
     ? conOrigenesEnElMenu(grupos, subseccionesDeOrigenes(origenes.data, permisos))
     : grupos
+})
+
+// Lo que el buscador encuentra y no es de Configuración (Logística › Puertos), según los permisos de quien mira. Una vez por request, como `gruposDeQuienMira`.
+export const destinosFueraDeQuienMira = cache(async (): Promise<DestinoFueraDelNavegador[]> => {
+  await connection()
+  const { permisos } = await requerirSesion()
+  return destinosFueraDeConfiguracion(permisos)
 })

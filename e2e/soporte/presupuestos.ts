@@ -30,6 +30,8 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   '/cotizaciones/comparar': 380,
   // La bandeja del día y la cadena como gráfica (T19): medido 365,0 KB en 26 chunks (el kanban marcaba 401,0), más un 5 % hacia arriba a la decena.
   '/logistica': 390,
+  // Logística › Configuración (T513): el marco de Logística con la tira de pestañas y el catálogo de Puertos.
+  '/logistica/configuracion/puertos': 390,
   // La lista de una fase (T19): medido 367,0 KB en 27 chunks, más un 5 % hacia arriba a la decena.
   '/logistica/fase/[fase]': 390,
   // El detalle de un vehículo en logística (T20), con el vehículo medido de la subasta de la semilla: medido 438,9 KB en 28 chunks antes de las zonas y 442,3 KB en 27 después, más un 5 % hacia arriba a la decena.
@@ -40,10 +42,10 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   '/vehiculos/[id]': 540,
   // La ficha de un lead (T33), sin tope hasta las dos columnas: medido 548,5 KB en 36 chunks con pestañas y 554,7 KB en 36 con todo a la vista
   // (el marco de bloques, el índice y el resumen de seguimientos), con un lead recién creado; más un 5 % hacia arriba a la decena.
-  '/leads/[id]': 590,
-  // «Quién crea y quién ve» (T413), la primera de Configuración con presupuesto: el marco de Catálogos, el cuadro (tabla, `Switch`, `<select>` nativos) y las
-  // actions de la matriz de Roles. Provisional hasta su primera medición en el e2e: se fija con lo medido más un 5 %, a la decena.
-  '/configuracion/catalogos/quien-crea-y-quien-ve': 420,
+  '/leads/[id]': 595,
+  // La matriz de Roles con los niveles de acceso y «Quién crea y quién ve» adentro (T511), sin tope hasta entonces: medido 388,2 KB en 29 chunks (la matriz, el «⋯» y los
+  // modales de los niveles y el cuadro van con `diferido()`); más un 5 % hacia arriba a la decena. «Quién crea y quién ve» tenía 420 en Catálogos, con su marco.
+  '/configuracion/roles': 410,
   // La puesta en marcha de un origen (T420): `/nuevo` (el paso a paso y el formulario del alta) y el paso Fórmula con la planilla de la subasta de la semilla (la
   // planilla y la tarjeta en vivo van con `diferido()`). Provisionales hasta su primera medición en el e2e: lo medido más un 5 %, a la decena. Con «Para todos los orígenes» (T512: la tarjeta tocable y su límite de error en el barril de tarjetas de ajustes) el paso Fórmula midió 461,4 KB: 470 (regla del 5 %).
   '/configuracion/origenes/nuevo': 420,

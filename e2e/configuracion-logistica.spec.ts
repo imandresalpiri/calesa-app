@@ -16,11 +16,10 @@ import {
 import { crearAsesoraDeLaSemilla } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 
-// Configuración › Catálogos › Logística (6.01-3, 6.08-1, 6.11-4, `docs/UX.md` › «Logística: estados propios»): quien tiene `logistica.catalogos.gestionar` entra a
-// «Puertos», «Navieras» y «Categorías de gasto», cada una en su sub-ruta y su renglón del menú, y Catálogos figura en el hub; la asesora de la semilla no
-// tiene la clave y no entra. Se crea, renombra, desactiva y elimina una categoría propia; se crea una naviera y se ve en la oferta de transporte de un
-// flujo, se desactiva, y se crea un puerto y su repetido se rechaza junto al nombre. Lo de la prueba se limpia por su nombre. Las redirecciones de las
-// URLs viejas las prueba `configuracion-origen-centro.spec.ts`.
+// Logística › Configuración (T513, `docs/UX.md` › «Logística (config)»): quien tiene `logistica.catalogos.gestionar` entra a «Puertos», «Navieras» y
+// «Categorías de gasto», cada una en su sub-ruta; la asesora de la semilla no tiene la clave y no entra. Se crea, renombra, desactiva y elimina una
+// categoría propia; se crea una naviera y se ve en la oferta de transporte de un flujo, se desactiva, y se crea un puerto y su repetido se rechaza junto
+// al nombre. Lo de la prueba se limpia por su nombre. La entrada ⚙, la tira de pestañas y las redirecciones las prueba `logistica-configuracion.spec.ts`.
 test.describe.configure({ mode: 'serial' })
 
 let duena = ''
@@ -53,40 +52,28 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-test('quien gestiona los catálogos ve Puertos, Navieras y Categorías de gasto y el hub lista Catálogos', async ({
+test('quien gestiona los catálogos abre cada pestaña por su sub-ruta y el panel por la URL', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto('/configuracion/catalogos/puertos')
-  // Sus tres sub-rutas están en el menú, en ese orden, cada una con su título y su frase.
-  await expect(page.getByRole('heading', { name: 'Puertos', level: 1 })).toBeVisible()
+  await page.goto('/logistica/configuracion/puertos')
   await expect(
-    page.getByText('Los puertos de embarque y de llegada, con su país y su código.'),
+    page.getByRole('heading', { name: 'Configuración de logística', level: 1 }),
   ).toBeVisible()
-  const menu = page.getByRole('navigation', { name: 'Secciones de Configuración' })
-  await expect(menu.getByRole('link', { name: 'Puertos' })).toHaveAttribute('aria-current', 'page')
-  await expect(menu.getByRole('link', { name: 'Navieras' })).toBeVisible()
-  await menu.getByRole('link', { name: 'Categorías de gasto' }).click()
-  await expect(page).toHaveURL(/\/configuracion\/catalogos\/categorias-de-gasto$/)
-  await expect(page.getByRole('heading', { name: 'Categorías de gasto', level: 1 })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Puertos' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'Navieras' })).toBeVisible()
+  await page.getByRole('tab', { name: 'Categorías de gasto' }).click()
+  await expect(page).toHaveURL(/\/logistica\/configuracion\/categorias-de-gasto$/)
+  await expect(page.getByRole('button', { name: 'Nueva categoría' }).first()).toBeVisible()
 
   // El panel se abre por la URL.
-  await page.goto('/configuracion/catalogos/puertos?panel=nuevo-puerto')
+  await page.goto('/logistica/configuracion/puertos?panel=nuevo-puerto')
   await expect(page.getByRole('dialog', { name: 'Nuevo puerto' })).toBeVisible()
-
-  await page.goto('/configuracion/inicio')
-  // El hub es el `main`: la navegación del marco tiene su entrada «Catálogos» aparte.
-  await expect(
-    page
-      .getByRole('main')
-      .getByRole('region')
-      .getByRole('link', { name: /^Catálogos/ }),
-  ).toBeVisible()
 })
 
 test('crear, renombrar, desactivar y eliminar una categoría de gasto', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto('/configuracion/catalogos/categorias-de-gasto')
+  await page.goto('/logistica/configuracion/categorias-de-gasto')
   const nueva = page.getByRole('dialog', { name: 'Nueva categoría' })
 
   await page.getByRole('button', { name: 'Nueva categoría' }).first().click()
@@ -140,7 +127,7 @@ test('crear una naviera, verla ofrecida en la oferta de un flujo y desactivarla'
     "select id from public.origenes where clave = 'subasta_usa'",
   )}/flujo?seccion=reglas`
   await entrar(page, duena, { fresco: true })
-  await page.goto('/configuracion/catalogos/navieras')
+  await page.goto('/logistica/configuracion/navieras')
   const nueva = page.getByRole('dialog', { name: 'Nueva naviera' })
   await page.getByRole('button', { name: 'Nueva naviera' }).first().click()
   await nueva.getByLabel('Nombre').fill(NAVIERA)
@@ -164,7 +151,7 @@ test('crear una naviera, verla ofrecida en la oferta de un flujo y desactivarla'
   await expect(page.getByRole('group', { name: 'Navieras' })).toContainText(NAVIERA)
 
   // Desactivarla: sigue en la lista, «Inactiva», y ya no se ofrece.
-  await page.goto('/configuracion/catalogos/navieras')
+  await page.goto('/logistica/configuracion/navieras')
   await alternarActivo(page, NAVIERA)
   await expect(filaDeCatalogo(page, NAVIERA).getByText('Inactiva')).toBeVisible()
   await page.goto(reglas)
@@ -175,7 +162,7 @@ test('crear un puerto con país y código y ver rechazado el repetido junto al n
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto('/configuracion/catalogos/puertos')
+  await page.goto('/logistica/configuracion/puertos')
   const nuevo = page.getByRole('dialog', { name: 'Nuevo puerto' })
   await page.getByRole('button', { name: 'Nuevo puerto' }).first().click()
   await nuevo.getByLabel('Nombre').fill(PUERTO)
@@ -196,11 +183,11 @@ test('crear un puerto con país y código y ver rechazado el repetido junto al n
   await expect(nombreDeLaFila(page, PUERTO)).toHaveCount(1)
 })
 
-test('la asesora de la semilla no entra a los catálogos de logística', async ({ page }) => {
+test('la asesora de la semilla no entra a la configuración de logística', async ({ page }) => {
   await entrar(page, asesora, { fresco: true })
-  await page.goto('/configuracion/catalogos/puertos')
+  await page.goto('/logistica/configuracion/puertos')
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Puertos' })).toHaveCount(0)
-  await page.goto('/configuracion/catalogos/navieras')
+  await page.goto('/logistica/configuracion/navieras')
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
 })

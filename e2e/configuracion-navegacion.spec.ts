@@ -133,19 +133,15 @@ test('E2E el menú marca la sección actual y salta a otra', async ({ page }) =>
     'page',
   )
   await expect(catalogos).not.toHaveAttribute('aria-current')
-  // Catálogos tampoco tiene índice: abre el primer catálogo (Niveles) y despliega sus tramos.
+  // Catálogos tampoco tiene índice: abre el primer catálogo que queda (Tablas compartidas). Los de logística viven en Logística › Configuración, no en el menú.
   await catalogos.click()
-  await expect(page).toHaveURL('/configuracion/catalogos/niveles')
+  await expect(page).toHaveURL('/configuracion/catalogos/tablas')
   await expect(catalogos).toHaveAttribute('aria-current', 'true')
-  await expect(menu(page).getByRole('link', { name: 'Niveles', exact: true })).toHaveAttribute(
-    'aria-current',
-    'page',
-  )
+  await expect(
+    menu(page).getByRole('link', { name: 'Tablas compartidas', exact: true }),
+  ).toHaveAttribute('aria-current', 'page')
   await expect(leads).not.toHaveAttribute('aria-current')
-  for (const tramo of ['Cotizaciones', 'Logística']) {
-    await expect(menu(page).getByRole('list', { name: tramo, exact: true })).toBeVisible()
-  }
-  await expect(menu(page).getByRole('link', { name: 'Tablas compartidas' })).toBeVisible()
+  await expect(menu(page).getByRole('link', { name: 'Puertos', exact: true })).toHaveCount(0)
 })
 
 test('E2E con sólo configurar los leads se ve sólo «Ventas › Leads»', async ({ page }) => {

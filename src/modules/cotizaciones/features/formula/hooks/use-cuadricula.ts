@@ -102,9 +102,15 @@ export function useCuadricula({ ids, editando, prefijo }: Args) {
       ir({ key: e.key, shift: e.shiftKey, ctrl: e.ctrlKey || e.metaKey })
     if (hecho) e.preventDefault()
   }
+  // Llegar a la grilla con el teclado elige la activa: desde ahí la barra la muestra.
+  const alEnfocar = () => {
+    if (elegida === null && activa !== null) setElegida(activa)
+  }
   // Enter, Tab y sus Shift al aplicar desde la entrada de la celda.
   const moverCon = (key: string, shift: boolean) => {
     ir({ key, shift, ctrl: false })
   }
-  return { activa, idActiva, elegir: setElegida, teclear, moverCon }
+  // La activa sólo si alguien ya eligió una celda (clic, teclas, foco o `?fila=`): al entrar es nula y la barra muestra su guía.
+  const activaElegida = elegida === null ? null : activa
+  return { activa, activaElegida, idActiva, elegir: setElegida, teclear, alEnfocar, moverCon }
 }

@@ -2,18 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { destinoDeLaUrlVieja } from './url-vieja'
 
 const abiertos = [
-  { clave: 'puertos', ruta: '/configuracion/catalogos/puertos' },
-  { clave: 'navieras', ruta: '/configuracion/catalogos/navieras' },
-  { clave: 'categorias-de-gasto', ruta: '/configuracion/catalogos/categorias-de-gasto' },
+  { clave: 'puertos', ruta: '/logistica/configuracion/puertos' },
+  { clave: 'navieras', ruta: '/logistica/configuracion/navieras' },
+  { clave: 'categorias-de-gasto', ruta: '/logistica/configuracion/categorias-de-gasto' },
+  { clave: 'tipos-de-documento', ruta: '/logistica/configuracion/tipos-de-documento' },
 ]
 
-describe('la URL vieja de Configuración › Logística, en Catálogos', () => {
-  it('`?seccion=` va a la sub-ruta de su catálogo', () => {
+describe('la URL vieja de Configuración › Logística, en Logística › Configuración', () => {
+  it('`?seccion=` va a la pestaña de su catálogo', () => {
     expect(destinoDeLaUrlVieja({ seccion: 'navieras' }, abiertos)).toBe(
-      '/configuracion/catalogos/navieras',
+      '/logistica/configuracion/navieras',
     )
     expect(destinoDeLaUrlVieja({ seccion: 'categorias-de-gasto' }, abiertos)).toBe(
-      '/configuracion/catalogos/categorias-de-gasto',
+      '/logistica/configuracion/categorias-de-gasto',
     )
   })
 
@@ -23,26 +24,26 @@ describe('la URL vieja de Configuración › Logística, en Catálogos', () => {
         { seccion: 'navieras', panel: 'editar-naviera', naviera: 'n-1' },
         abiertos,
       ),
-    ).toBe('/configuracion/catalogos/navieras?panel=editar-naviera&naviera=n-1')
+    ).toBe('/logistica/configuracion/navieras?panel=editar-naviera&naviera=n-1')
   })
 
-  it('sin `seccion`, o con una ajena, abre el primero (y conserva el panel)', () => {
-    expect(destinoDeLaUrlVieja({}, abiertos)).toBe('/configuracion/catalogos/puertos')
+  it('sin `seccion`, o con una ajena, abre la primera pestaña (y conserva el panel)', () => {
+    expect(destinoDeLaUrlVieja({}, abiertos)).toBe('/logistica/configuracion/puertos')
     expect(destinoDeLaUrlVieja({ seccion: 'basura' }, abiertos)).toBe(
-      '/configuracion/catalogos/puertos',
+      '/logistica/configuracion/puertos',
     )
     expect(destinoDeLaUrlVieja({ panel: 'nuevo-puerto' }, abiertos)).toBe(
-      '/configuracion/catalogos/puertos?panel=nuevo-puerto',
+      '/logistica/configuracion/puertos?panel=nuevo-puerto',
     )
   })
 
-  it('un catálogo que la persona no puede abrir va al primero que sí', () => {
+  it('una pestaña que la persona no puede abrir va a la primera que sí', () => {
     expect(destinoDeLaUrlVieja({ seccion: 'puertos' }, abiertos.slice(1))).toBe(
-      '/configuracion/catalogos/navieras',
+      '/logistica/configuracion/navieras',
     )
   })
 
-  it('sin ningún catálogo que abrir, no hay destino', () => {
+  it('sin ninguna pestaña que abrir, no hay destino', () => {
     expect(destinoDeLaUrlVieja({ seccion: 'puertos' }, [])).toBeNull()
   })
 })

@@ -99,9 +99,9 @@ describe('QuienCreaYQuienVe', () => {
     expect(ve).toHaveAccessibleDescription(MOTIVO_HEREDADO)
   })
 
-  it('sin «Gestionar roles», sólo lectura con el motivo', () => {
+  it('sin «Gestionar roles», sólo lectura: el motivo ya no va en línea (está en el «!» de la página)', () => {
     cuadro({ puedeGestionar: false })
-    expect(screen.getByText(MOTIVO_SIN_GESTIONAR_ROLES)).toBeInTheDocument()
+    expect(screen.queryByText(MOTIVO_SIN_GESTIONAR_ROLES)).toBeNull()
     expect(screen.queryByRole('combobox', { name: 'Ve: Ventas' })).toBeNull()
     expect(screen.getByText('Sólo las suyas')).toBeInTheDocument()
   })

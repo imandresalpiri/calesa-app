@@ -16,7 +16,7 @@ export default async function PaginaCamposDeLeads() {
     return <EstadoSinPermiso />
   }
   return (
-    <div className="grid max-w-3xl gap-4">
+    <div className="grid min-w-0 gap-4">
       <EncabezadoDeConfiguracion {...CAMPOS_DE_LEADS} />
       <SeccionCampos />
     </div>

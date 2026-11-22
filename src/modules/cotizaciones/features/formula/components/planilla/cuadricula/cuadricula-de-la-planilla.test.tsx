@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { celdaDe, dibujarLaPlanilla, filasDibujadas } from '../planilla-de-prueba.soporte'
 
@@ -89,5 +89,38 @@ describe('CuadriculaDeLaPlanilla: el teclado sobre la grilla (D19)', () => {
     const menu = screen.getByRole('button', { name: /Acciones de la fila/ })
     fireEvent.keyDown(menu, { key: 'ArrowDown' })
     expect(activa()).toBe(celdaDe('despacho', 'C').id)
+  })
+})
+
+describe('CuadriculaDeLaPlanilla: C guarda la fórmula y Ejemplo es la unidad de ejemplo', () => {
+  it('la cabecera dice Ejemplo, sin letra; la misma cifra no se dibuja dos veces en una fila', async () => {
+    dibujarLaPlanilla(FILAS)
+    const titulos = screen.getAllByRole('columnheader').map((th) => th.textContent)
+    expect(titulos).toContain('Ejemplo')
+    expect(titulos.join(' ')).not.toContain('de dónde sale')
+    // Un cálculo: su texto en C y la cifra en Ejemplo.
+    expect(celdaDe('total', 'C').textContent).toMatch(/^=C\d+\+C\d+$/)
+    await waitFor(() => {
+      expect(celdaDe('total', 'D').textContent).toContain('900')
+    })
+    expect(celdaDe('total', 'C').textContent).not.toContain('900')
+    // Un valor fijo: el número en C y Ejemplo vacío.
+    expect(celdaDe('despacho', 'C').textContent).toContain('900')
+    expect(celdaDe('despacho', 'D').textContent).toBe('')
+  })
+
+  it('lo que escribe el asesor se tipea en Ejemplo y cambia la suma; su C sigue diciendo de dónde sale', async () => {
+    dibujarLaPlanilla(FILAS)
+    expect(celdaDe('remate', 'C').textContent).toBe('lo escribe el asesor')
+    fireEvent.click(celdaDe('remate', 'D'))
+    tecla('F2')
+    const entrada = screen.getByRole('combobox', { name: /^Ejemplo \d+, Remate$/ })
+    fireEvent.change(entrada, { target: { value: '1000' } })
+    fireEvent.keyDown(entrada, { key: 'Enter' })
+    expect(celdaDe('remate', 'D').textContent).toContain('1.000')
+    await waitFor(() => {
+      expect(celdaDe('total', 'D').textContent).toContain('940')
+    })
+    expect(celdaDe('remate', 'C').textContent).toBe('lo escribe el asesor')
   })
 })

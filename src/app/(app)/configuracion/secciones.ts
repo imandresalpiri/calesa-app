@@ -39,7 +39,7 @@ export type SubseccionDeConfiguracion = {
   permisos: readonly ClavePermiso[]
   // Con motivo, quien no tiene sus permisos la ve apagada en el menú y en el selector, con el motivo; sin él, no la ve.
   motivoSinPermiso?: string
-  // El rótulo que agrupa sub-secciones seguidas en el menú («Cotizaciones», «Logística» de Catálogos).
+  // El rótulo que agrupa sub-secciones seguidas en el menú (ninguna sección lo usa hoy).
   grupo?: string
 }
 

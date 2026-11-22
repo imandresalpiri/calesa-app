@@ -38,7 +38,7 @@ const CONFIG: ConfigDelCatalogo<PuertoDeCatalogo> = {
   avisoDesactivado: 'Puerto desactivado.',
 }
 
-// Configuración › Catálogos › Puertos (6.08-1): se crean, renombran, ordenan (con un número), activan y desactivan; no se eliminan. Escribir lo exige `logistica.catalogos.gestionar` (la RLS de la tabla);
+// Logística › Configuración › Puertos (6.08-1): se crean, renombran, ordenan (con un número), activan y desactivan; no se eliminan. Escribir lo exige `logistica.catalogos.gestionar` (la RLS de la tabla);
 // la página ya lo pide.
 export function PuertosDeTransporte() {
   const datos = useCatalogoDeTransporte(CONFIG)

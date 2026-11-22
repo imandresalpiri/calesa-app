@@ -227,6 +227,10 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Una columna que recupera su posición al volver a una pantalla (`usePosicionDeLasColumnas()`) insiste unos segundos: al mostrarse de nuevo el contenido se acomoda y el navegador achica el desplazamiento al tope de ese momento; reponer una sola vez deja la posición equivocada.
 - Un modal de formulario queda montado al cerrarse: lo tipeado sigue en su estado y, en un campo controlado, en el `value` del documento. Un secreto o una
   clave se borra al cerrar (`useModalDeSecreto`), y el e2e que dice «la clave no vuelve» mira `page.content()` con el modal ya cerrado.
+- Un modal con formulario que se abre desde otro formulario (`NuevoColorDelGrupo` en el panel de una banda) va en un portal, pero sus eventos suben por el árbol
+  de React: su `submit` llega al `onSubmit` del formulario de afuera. Ese `onSubmit` sale con `evento.target !== evento.currentTarget`.
+- Lo que aparece bajo una barra al elegir algo (la línea bajo la barra de la fórmula) tiene alto fijo, aunque no haya nada elegido: si crece, lo de abajo baja y el
+  segundo clic de un doble clic cae en otra fila.
 - La cabecera de una tarjeta (título, estado, botones) lleva un `basis` en rem en el título: sin él, con el texto al 200 % el título se aplasta junto a los botones
   en vez de partir la cabecera en dos líneas.
 
@@ -280,6 +284,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - En el celular una fila de tabla es una tarjeta: un localizador por fila funciona en escritorio y cae en `movil`.
 - Antes de un atajo de teclado o un Tab espera el estado final (`toHaveValue`, resultados, hidratación, la sección y el foco en su lugar): antes de hidratar la `N` la toma el «Nuevo lead» del marco, y un Tab mientras llega contenido manda el foco al `body`.
 - Un clic antes de hidratar se pierde: reintenta con tope corto hasta que la URL pida el panel y para si ya lo pide, porque cada clic de más suma una entrada al historial y rompe «atrás».
+- Lo que `diferido({ enFrio })` dibuja en el servidor se ve antes de hidratar y antes de que llegue su código: espera lo que sólo trae el código cargado (el asa «Mover «…»» del editor de campos) o insiste con `abrirElMenu()` / `abrirElCampo()` de `e2e/soporte/editor-de-campos.ts`.
 - Un clic que abre un visor o un modal se afirma (visible) y se cierra (`toBeHidden()`) antes del clic siguiente: si no, el siguiente cae sobre él y la prueba pasa sólo cuando el primero llegó antes de hidratar.
 - Arma la espera de un pedido antes del clic con `conRespuesta(page, coincide, accion, espera)` de `e2e/soporte/esperas.ts`, con tope propio: recibe la acción, no una promesa ya creada.
 - Sin red, espera el texto del pendiente, no el `requestfailed`: el evento no prueba lo que ve la persona.

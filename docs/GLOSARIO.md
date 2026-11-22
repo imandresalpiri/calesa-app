@@ -90,7 +90,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Secreto de una integración** — `integraciones.secreto_guardado_en` / `integracion_guardar_secreto()`: clave de API en Vault.
 - **Origen** — `origenes`: de dónde viene un vehículo (subasta USA, China, oficina…); tipo subasta o manual.
 - **Layout de campos** — `origenes_campos` / `leads_campos`: campos de un vehículo (o lead) y cómo se muestran, filtran y editan; motor
-  `shared/lib/campos`.
+  `shared/lib/campos`. Se edita con el editor de campos de `shared/ui/campos` (`<EditorDeCampos>`), el mismo en un origen y en los leads.
 - **Preconfiguración** — `origen_preconfigurar_campos()`: campos que nacen con el origen según su tipo (subasta/apibara o manual).
 - **Categoría** — `categorias`: agrupación dentro de un origen (marca, segmento).
 - **Sustantivo del origen** — `origenes.sustantivo`: cómo se llama lo que entra por ese origen («vehículo», «unidad», «lote»).
@@ -102,9 +102,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Campo principal** — `origenes_campos.principal`: identifica al vehículo en la lista y en logística; uno por origen como mucho,
   activo y no de monto; sin él, el título.
 - **Datos clave** — `origenes.datos_clave` / `DatoClave`, `leerDatosClave()`, `origen_datos_clave_guardar()`: los hasta 4 datos, en orden,
-  que la ficha de un vehículo muestra primero. Los elige cada origen en «Campos» (la estrella, «Datos clave (n de 4)»); cada uno es un dato
+  que la ficha de un vehículo muestra primero. Los elige cada origen en «Campos», en sus cuatro casillas de dato clave («Datos clave (n de 4)»;
+  «Hacer dato clave» y «Quitar de los datos clave» en el «⋯», o soltando un campo en una casilla libre); cada uno es un dato
   común o un campo activo del origen. Vacíos = los de fábrica de su tipo (subasta: plataforma, enlace de la subasta, kilometraje y año;
   manual: año, kilometraje, VIN y categoría). La ficha del vehículo los dibuja en «Datos principales» (columna izquierda, `datosClaveDelVehiculo()`).
+- **Casilla de dato clave** — `CasillasDelEditor` / `CasillaDelEditor` (`shared/ui/campos`): uno de los 4 lugares de «Datos clave (n de 4)» en el
+  editor de campos de un origen. Llena, dice el dato y su lugar, se arrastra a otra o se sube, baja y quita desde su «⋯»; libre, recibe un campo
+  o un dato común soltado encima. Con las 4 llenas no se reemplaza: primero se quita una. Los leads no tienen casillas.
 - **Ficha completa (del vehículo)** — `<ModalDeFichaCompleta>`, `?ver=ficha`: el «Ver más» de «Datos principales» en la ficha del vehículo. Un modal
   grande, de sólo lectura y con tipografía de vitrina, para mostrarle el vehículo a un cliente: las fotos con su tira, los datos comunes, «Precio» y
   todos los grupos del layout del origen. `?seccion=ficha` la abre.
@@ -133,9 +137,11 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Tarjeta, Publicar y **Listo** («Cotizar con <origen>»). El avance se deriva de lo que hay (campos, fases, fórmula de trabajo, fórmula activa), sin
   guardar un «paso actual»: cada paso guarda con sus botones, «Seguir» va al siguiente y la raíz lleva al que falta. Un paso sin el permiso en ese
   origen se salta y dice su motivo. Se retoma con «Seguir la puesta en marcha» de la página del origen. No: «asistente», «wizard», «onboarding».
-- **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos/<clave>`: lo que es de toda la empresa y no de un origen, en
-  tres tramos: «Cotizaciones» (Colores, Niveles, Quién crea y quién ve, Vigencia), «Logística» (Puertos, Navieras, Categorías de gasto, Tipos de documento) y las Tablas
-  compartidas. No es el catálogo de repuestos ni el de apibara.
+- **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos/<clave>`: lo que es de toda la empresa y no de un origen ni de la logística; hoy, las
+  Tablas compartidas. Los niveles de acceso y Quién crea y quién ve viven en la matriz de Roles; Colores y Vigencia, en Orígenes; Puertos, Navieras, Categorías de gasto y
+  Tipos de documento, en Logística › Configuración. No es el catálogo de repuestos ni el de apibara.
+- **Configuración de logística** — `/logistica/configuracion/<clave>` (`RUTAS.configuracionDeLogistica`): la página de Logística con las pestañas Puertos, Navieras, Categorías de gasto y
+  Tipos de documento; se entra con el botón ⚙ «Configurar» de la cabecera de Logística. No: «Catálogos de logística» como sección de Configuración.
 - **Flujo de repuestos** — `/configuracion/repuestos/flujo` (`FLUJO_DE_REPUESTOS_EN_CONFIGURACION`): el flujo de los repuestos, que se configura en
   la sección Repuestos con el mismo editor que la pestaña Fases de un origen.
 - **Fórmula pendiente** — origen sin **fórmula activa** (`origenes_resumen().formula_publicada`): un origen nuevo no se cotiza hasta publicar la primera.
@@ -143,7 +149,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Atributos** — `vehiculos.atributos`, `leads.atributos`: campos del layout que no son columna. En un lead se leen por `leads_vista`, recortados.
 - **Dato común** — `camposComunes()` / columnas de `vehiculos`: lo que tiene todo vehículo y es columna (título, marca, año, VIN, precio…).
   Como dato clave valen marca, modelo, año, VIN, categoría, kilometraje, placado y, en subasta, lote, plataforma y enlace de la subasta
-  (`DATOS_COMUNES` de `origenes`, por el nombre de su columna: `anio`, `categoria_id`, `url_origen`).
+  (`DATOS_COMUNES` de `origenes`, por el nombre de su columna: `anio`, `categoria_id`, `url_origen`). En el editor de campos van en el grupo
+  «Comunes», con la insignia «Común» (`FijosDelEditor`).
 - **Sin fase** — `vehiculos.fase_id` nulo / `<BadgeDeFase>` (dentro de `<BadgeDeSituacion>`): aún no entró al flujo de su origen; lo ubica quien mueve.
 - **Inventario** — `/vehiculos` / `<ListadoDeVehiculos>`: listado de vehículos, una pestaña por origen; con «propios» se lee por
   `vehiculos_inventario()` (por rutas, filtros en SQL), con «todos» por PostgREST (`fuenteDelInventario()`).
@@ -677,26 +684,36 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `texto`; una fila numerada de la planilla.
 - **Planilla de la fórmula** — `PlanillaDeLaFormula` (`features/formula/components/planilla/`), `hojaDeLaPlanilla()`: la pestaña «Planilla» del editor de
   una fórmula del origen, que se edita como una hoja de cálculo (`role="grid"`): las filas en el orden en que se calculan, numeradas de 1 a n, con A ·
-  concepto, B · %, C · valor y D · de dónde sale. Se escribe en la celda o en la **Barra de fórmula**, con **Referencias (de la planilla)**; las filas se
-  insertan, duplican, mueven y eliminan desde su «⋯», el clic derecho, Alt+↑/↓ o arrastrando su número. Es el único editor de la fórmula.
+  concepto, B · %, C · valor (lo que guarda la fórmula) y **Ejemplo (columna)**. Se escribe en la celda o en la **Barra de fórmula**, con **Referencias
+  (de la planilla)**; las filas se insertan, duplican, mueven y eliminan desde su «⋯», el clic derecho, Alt+↑/↓ o arrastrando su número. «Totales» y la
+  tarjeta en vivo abren al costado (`?costado=totales|tarjeta`). Es el único editor de la fórmula.
 - **Banda (de la planilla)** — `TramoDeLaHoja` (`entities/formula/hoja-de-la-planilla.ts`): un tramo de filas seguidas con el mismo grupo, con su cabecera
   (etiqueta, plazo y tipo de cambio) y el color del grupo; un grupo partido en dos tramos son dos bandas. Se crea, renombra, colorea y quita desde su «⋯»
   o el de la planilla (`bandas.ts`). Las filas sin grupo no llevan cabecera.
-- **De dónde sale** — `deDondeSale()` (`entities/formula/de-donde-sale.ts`), la columna D de la planilla: lo que calcula una fila, en palabras y con
-  las etiquetas de lo que nombra («(Remate + Fees) × 4 %», «monto fijo»).
-- **Unidad de ejemplo** — `UnidadDeEjemplo` (`entities/formula/unidad-de-ejemplo.ts`): lo que se escribe en C en las filas del asesor, los datos del
-  vehículo, los interruptores y la variante para ver el efecto de cada cambio en C, «Totales» y la tarjeta en vivo. Arranca en ceros como las «Cifras
+- **De dónde sale** — `deDondeSale()` (`entities/formula/de-donde-sale.ts`): lo que calcula una fila, en palabras y con las etiquetas de lo que nombra
+  («(Remate + Fees) × 4 %», «monto fijo»). Se lee en la línea bajo la **Barra de fórmula** («De dónde sale: …», la de la fila elegida) y, en lo que la
+  fórmula no guarda como número ni como texto (lo que escribe el asesor, un dato del vehículo, un tipo de cambio, una tabla…), en su C.
+- **Ejemplo (columna)** — la última columna de la planilla (`contenidoDeLaFila()`, `entities/formula/contenido-de-c.ts`; clave interna `D`:
+  `data-celda="D5"`, se nombra «Ejemplo 5»): lo que da la fila con la **Unidad de ejemplo**. Nada en un valor fijo (su número ya está en C: la misma cifra
+  no se dibuja dos veces), el valor de la unidad en las filas que se llenan al cotizar (se escribe ahí, nunca en su C) y la cifra en las demás. No se usa en
+  una fórmula: «D5: Ejemplo no se usa en una fórmula: es la unidad de ejemplo. En una fórmula va C5.». No: «columna D», «valor de prueba».
+- **Nuevo color al vuelo** — `NuevoColorAlVuelo` (área `diseno`, por el hueco `NuevoColor`: `entities/nuevo-color.ts`): «+ Nuevo color» bajo el selector de
+  color del panel de una banda (`?color=nuevo`); crea el color en el catálogo con `tono_crear()` y lo deja elegido en la banda, sin releer.
+- **Unidad de ejemplo** — `UnidadDeEjemplo` (`entities/formula/unidad-de-ejemplo.ts`): lo que se escribe en la **Ejemplo (columna)** de las filas del
+  asesor, los datos del vehículo, los interruptores y la variante para ver el efecto de cada cambio en Ejemplo, «Totales» y la tarjeta en vivo. Arranca en ceros como las «Cifras
   de prueba», vuelve a ceros desde el «⋯» de la planilla y no se guarda.
-- **Barra de fórmula** — `BarraDeFormula` (`components/planilla/barra/`), fija arriba de la cuadrícula: la celda activa, «fx» y su texto, el mismo que se
-  edita en la celda (uno solo a la vez), con cada referencia pintada de su color, la leyenda, las sugerencias y el error con su tramo.
+- **Barra de fórmula** — `BarraDeFormula` (`components/planilla/barra/`), fija arriba de la cuadrícula: el nombre de la celda activa («C5», «Ejemplo 5»),
+  `fx ▾` (inserta una función, `insertarFuncion()`), su texto (el mismo que se edita en la celda, uno solo a la vez; vacío, «Escribe = y toca las celdas:
+  =C5+C7»), con cada referencia pintada de su color, la leyenda, las sugerencias y el error con su tramo; a la derecha «Totales», «Tarjeta» y «?» (los
+  tipos de celda). Debajo, una línea: «De dónde sale: …» de la fila elegida. No es la **Barra de la fórmula** (la de la página: estado, guardar, publicar).
 - **Referencia (de la planilla)** — `C5`, `B9` (`entities/formula/referencias-a1.ts`): cómo un cálculo de la planilla nombra otra fila, como en
   Excel: `C<n>` es el valor de la fila n y `B<n>` su %. Se guarda el id del nodo (`nodo.texto` con ids) y se muestra como A1 (`aA1()`); lo tipeado
   pasa a ids antes de compilar (`deA1()`). Insertar, mover o borrar filas cambia lo que se muestra, nunca lo guardado. No distingue mayúsculas; los
   `$` se aceptan y se ignoran.
 - **Rango (de la planilla)** — `C5:C9`: las filas seguidas de la columna C, sólo dentro de `SUMA`, `MAX` o `MIN`. Se guarda como la lista de ids
   (`SUMA(a; b; c)`) y una función con 3 filas o más muestra cada corrida de filas seguidas como rango. No es el **Rango (de la tarjeta)**.
-- **Celda de la planilla** — una casilla de la cuadrícula de la planilla (`role="gridcell"`): la columna (A concepto, B %, C valor, D de dónde sale) de
-  una fila numerada. Se nombra con su **Referencia (de la planilla)**. No es la **Celda (de la hoja)** (la `XCell` del diseño) ni la **Celda de la tarjeta**.
+- **Celda de la planilla** — una casilla de la cuadrícula de la planilla (`role="gridcell"`): la columna (A concepto, B %, C valor, Ejemplo) de una fila
+  numerada. Se nombra con su **Referencia (de la planilla)**. No es la **Celda (de la hoja)** (la `XCell` del diseño) ni la **Celda de la tarjeta**.
 - **Tipo de celda** — `TipoDeCelda`, `cambiarTipo()` (`entities/formula/tipo-de-celda.ts`): qué es una fila, con su nombre en la UI: «Valor fijo»
   (`constante`), «Cálculo» (`calculo`), «Lo escribe el asesor» (`input`), «Dato del vehículo» (`campo_vehiculo`), «Tipo de cambio» (`tipo_cambio`),
   «Interruptor Sí/No» (`bandera`), «De una tabla» (`tabla`; un `tramo` se ve así y no se ofrece) y «Variante» (`opcion`, una por fórmula). Un número
@@ -799,9 +816,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `_hoja_datos_del_vehiculo()`: qué columna de la tabla de una celda casa con qué campo del vehículo (`tipo` ← `tipo_vehiculo`); se elige
   entre las filas de `cotizacion_tabla` en el panel del vehículo (`datosParaElegirDe()`, `guardarDatoDelVehiculo`).
 - **Nivel de acceso** — `cotizaciones_niveles` / permisos `cotizaciones.nivel.<clave>.ver|editar` (`permisos.nivel_clave`) /
-  `nivel_crear|renombrar|retirar|restaurar|eliminar()`: quién ve y edita una celda o sección.
+  `nivel_crear|renombrar|retirar|restaurar|eliminar()`: quién ve y edita una celda o sección. En la matriz de Roles se rotulan «Niveles de acceso» (bloque «Cotizaciones»);
+  «Todos» es el renglón fijo, sin celdas.
 - **Quién crea y quién ve** — `entities/cuadro-de-cotizaciones.ts` de `equipo` (`celdaDelCuadro()`, `cambiosDelCuadro()`),
-  `/configuracion/catalogos/quien-crea-y-quien-ve`: el cuadro rol × lugar («Todos los orígenes» o un origen) con «Crea» (`cotizaciones.crear`) y «Ve»,
+  el resumen plegable del bloque «Cotizaciones» de la matriz de Roles (`/configuracion/roles?bloque=cotizaciones`): el cuadro rol × lugar («Todos los orígenes» o un origen) con «Crea» (`cotizaciones.crear`) y «Ve»,
   una escalera de cuatro escalones (`Ve`): «No ve», «Sólo las suyas» (`cotizaciones.ver` con «lo propio»), «Todas menos las privadas» (con «todo») y
   «Todas, también las privadas» (además `cotizaciones.privadas.ver`). Escribe en la matriz de Roles; no es otro permiso. No: «visibilidad», «alcance».
 - **Retirar un nivel** — `nivel_retirar()` / `cotizaciones_niveles.retirado_en`: deja de ofrecerse.
@@ -889,9 +907,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Tipo de documento** — `tipos_documento` / `tipo_documento_crear()`: qué documento pide el ciclo (Título, BL…); de la empresa (`flujo_id`
   nulo) o de un flujo; formatos y vencimiento (`ninguno`, `solicitar`, `renovar`, con `aviso_dias`). En uso se desactiva. No: «clase de documento».
 - **Transporte** — `transportes`: naviera, puertos, contenedor, booking y fechas de UNA unidad.
-- **Puerto** — `puertos`: origen o destino de un transporte; nombre, país y código opcionales, `orden`, `activo`. Catálogo en Configuración ›
-  Catálogos › Puertos; se desactiva, no se elimina. No: «terminal», «destino».
-- **Naviera** — `navieras`: la empresa que lleva el contenedor; nombre y `activo`. Catálogo en Configuración › Catálogos › Navieras; se
+- **Puerto** — `puertos`: origen o destino de un transporte; nombre, país y código opcionales, `orden`, `activo`. Catálogo en Logística ›
+  Configuración › Puertos; se desactiva, no se elimina. No: «terminal», «destino».
+- **Naviera** — `navieras`: la empresa que lleva el contenedor; nombre y `activo`. Catálogo en Logística › Configuración › Navieras; se
   desactiva; cada flujo ofrece las suyas (`flujos_transporte_oferta`). No: «línea marítima», «carrier».
 - **Embarque / Contenedor** — grupo por `transportes.booking` / `contenedor`: agrupación, no entidad.
 - **Grupo (de transporte)** — unidades que comparten `booking` o `contenedor`; no es entidad: `transporte_grupos()` lo cuenta y

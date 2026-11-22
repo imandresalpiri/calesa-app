@@ -11,6 +11,22 @@ import {
 // Un id en una ruta de `redirects()` (la sintaxis de path-to-regexp).
 const ID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
 
+// Los catálogos de logística viven en Logística › Configuración (`/logistica/configuracion/<clave>`), con su consulta (`?panel=`, `puerto`, `naviera`, `categoria`, `tipo`…). Las
+// de Configuración › Logística, que ya habían pasado por Catálogos, van directo a su pestaña en un solo salto.
+const REDIRECCIONES_DE_LOGISTICA = [
+  {
+    source:
+      '/configuracion/catalogos/:catalogo(puertos|navieras|categorias-de-gasto|tipos-de-documento)',
+    destination: '/logistica/configuracion/:catalogo',
+    permanent: true,
+  },
+  {
+    source: '/configuracion/logistica/:catalogo(puertos|navieras|categorias-de-gasto)',
+    destination: '/logistica/configuracion/:catalogo',
+    permanent: true,
+  },
+]
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   typedRoutes: true,
@@ -42,7 +58,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/public/**' },
     ],
   },
-  // Las URL fijas de la vieja Configuración › Cotización y › Logística van a la página del origen y a Catálogos, con su consulta. Aquí y no en un
+  // Las URL fijas de la vieja Configuración › Cotización y › Logística van a la página del origen y a Catálogos (y los niveles, a Roles), con su consulta. Aquí y no en un
   // `page.tsx`: una página que sólo redirige pide su `loading.tsx` y la redirección es del navegador. `general` va antes que `:origen`, y
   // `:origen` es un uuid de un solo segmento. Las que dependen de la consulta o de la persona son `route.ts`.
   // `/configuracion` solo no dibuja nada: el inicio vive en `/configuracion/inicio` (308, con su consulta). `/configuracion/inicio` no choca con
@@ -93,7 +109,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/configuracion/cotizacion/general/niveles',
-        destination: '/configuracion/catalogos/niveles',
+        destination: '/configuracion/roles?bloque=cotizaciones',
         permanent: true,
       },
       {
@@ -121,11 +137,7 @@ const nextConfig: NextConfig = {
         destination: '/configuracion/origenes/:origen/planilla',
         permanent: true,
       },
-      {
-        source: '/configuracion/logistica/:catalogo(puertos|navieras|categorias-de-gasto)',
-        destination: '/configuracion/catalogos/:catalogo',
-        permanent: true,
-      },
+      ...REDIRECCIONES_DE_LOGISTICA,
     ])
   },
   headers() {

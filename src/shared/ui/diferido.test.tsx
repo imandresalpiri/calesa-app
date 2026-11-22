@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
+import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ESPERA_DEL_REINTENTO_MS, MENSAJE_SIN_CONEXION, diferido } from './diferido'
 
@@ -120,6 +121,40 @@ describe('diferido: respaldo', () => {
     await avanzar(0)
     expect(screen.queryByText('Lista de Ana')).toBeNull()
     expect(screen.getByText('Hola Ana')).toBeTruthy()
+  })
+})
+
+describe('diferido: en frío', () => {
+  conRelojFalso()
+
+  it('en el servidor y mientras llega el código dibuja la versión en frío con las mismas props', async () => {
+    let entregar: (modulo: typeof Hola) => void = () => {}
+    const Perezoso = diferido(() => new Promise<typeof Hola>((listo) => (entregar = listo)), {
+      aviso: 'aqui',
+      esqueleto: <p>Cargando…</p>,
+      enFrio: ({ nombre }) => <p>Lista de {nombre}</p>,
+    })
+    expect(renderToString(<Perezoso nombre="Ana" />)).toContain('Lista de <!-- -->Ana')
+    render(<Perezoso nombre="Ana" />)
+    await avanzar(0)
+    expect(screen.getByText('Lista de Ana')).toBeTruthy()
+    expect(screen.queryByText('Cargando…')).toBeNull()
+    entregar(Hola)
+    await avanzar(0)
+    expect(screen.queryByText('Lista de Ana')).toBeNull()
+    expect(screen.getByText('Hola Ana')).toBeTruthy()
+  })
+
+  it('si el código no llega, dibuja el aviso y la versión en frío debajo', async () => {
+    const cargar = vi.fn<() => Promise<typeof Hola>>().mockRejectedValue(new Error('sin red'))
+    const Perezoso = diferido(cargar, {
+      aviso: 'aqui',
+      enFrio: ({ nombre }) => <p>Lista de {nombre}</p>,
+    })
+    render(<Perezoso nombre="Ana" />)
+    await avanzar(ESPERA_DEL_REINTENTO_MS)
+    expect(screen.getByRole('alert').textContent).toContain(MENSAJE_SIN_CONEXION)
+    expect(screen.getByText('Lista de Ana')).toBeTruthy()
   })
 })
 

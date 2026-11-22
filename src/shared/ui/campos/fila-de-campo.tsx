@@ -1,110 +1,61 @@
 'use client'
 
-import { ArrowDownIcon, ArrowUpIcon, PencilIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
-import {
-  MOTIVO_PRIMERO_DE_SU_GRUPO,
-  MOTIVO_ULTIMO_DE_SU_GRUPO,
-  type CampoBase,
-  type Sentido,
-} from '@/shared/lib/campos'
-import { Button } from '@/shared/ui/button'
-import { Switch } from '@/shared/ui/switch'
+import { memo } from 'react'
+import { MasAcciones } from '@/shared/ui/lista'
+import { ToqueDeLaTarjeta } from '@/shared/ui/tarjetas-de-ajustes'
+import { accionesDeCampo } from './acciones-de-campo'
+import type { PropsDeFila } from './cuerpo'
+import { LugarDelAsa } from './lugar-del-asa'
 import { NombreDeCampo } from './nombre-de-campo'
-import { banderaDe, type BanderaDeCampo } from './tipos'
 
-type Props = {
-  campo: CampoBase
-  // Las que se guardan solas desde la fila.
-  banderas: readonly BanderaDeCampo[]
-  // Lo propio del módulo que dice la fila (un cambio que todavía se está aplicando).
-  insignias?: readonly string[]
-  // Un control propio del módulo, antes de «Editar» (la estrella de un dato clave).
-  accion?: ReactNode
-  puedeGestionar: boolean
-  // Mientras algo se guarda no se toca nada: cada edición manda la versión que vio.
-  ocupado: boolean
-  puedeSubir: boolean
-  puedeBajar: boolean
-  alAbrir: () => void
-  alMover: (sentido: Sentido) => void
-  alCambiarBandera: (clave: string, valor: boolean) => void
-}
-
-// Un campo del layout: su orden, sus banderas y el panel para el resto.
-export function FilaDeCampo(props: Props) {
-  const {
+// Un campo del layout: el asa (con permiso y sin búsqueda), su nombre con sus insignias y su «⋯». Sin botones sueltos: tocar la fila
+// hace la primera acción del «⋯» («Editar <etiqueta>», o «Ver» sin permiso), y el asa y el «⋯» van encima, aparte (un interactivo no va
+// dentro de otro). Con el arrastre, la fila se desplaza mientras se arrastra (`alMontar`, `estilo`).
+export const FilaDeCampo = memo(function FilaDeCampo(props: PropsDeFila) {
+  const { campo, insignias, puedeGestionar, puedeSubir, puedeBajar, casilla, conAsa, alElegir } =
+    props
+  const { alMontar, estilo, asa } = props
+  const acciones = accionesDeCampo({
     campo,
-    banderas,
-    insignias = [],
-    accion,
     puedeGestionar,
-    ocupado,
     puedeSubir,
     puedeBajar,
-  } = props
-  const { alAbrir, alMover, alCambiarBandera } = props
-  const sinEditar = !puedeGestionar || ocupado
+    datoClave:
+      casilla === null
+        ? null
+        : {
+            es: casilla.es,
+            motivo: casilla.topeLleno ? casilla.textos.motivoTope : null,
+            hacer: casilla.textos.hacer,
+            quitar: casilla.textos.quitar,
+          },
+    notaAlDesactivar: casilla?.es ? casilla.textos.notaAlDesactivar : null,
+    alElegir: (accion) => {
+      alElegir(campo.id, accion)
+    },
+  })
   return (
-    <li className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2">
-      <div className="order-1 flex shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-11 md:size-8"
-          aria-label={`Subir ${campo.etiqueta}`}
-          title={puedeSubir ? undefined : MOTIVO_PRIMERO_DE_SU_GRUPO}
-          disabled={sinEditar || !puedeSubir}
-          onClick={() => {
-            alMover('subir')
-          }}
-        >
-          <ArrowUpIcon aria-hidden />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-11 md:size-8"
-          aria-label={`Bajar ${campo.etiqueta}`}
-          title={puedeBajar ? undefined : MOTIVO_ULTIMO_DE_SU_GRUPO}
-          disabled={sinEditar || !puedeBajar}
-          onClick={() => {
-            alMover('bajar')
-          }}
-        >
-          <ArrowDownIcon aria-hidden />
-        </Button>
-      </div>
+    <li
+      ref={alMontar}
+      style={estilo}
+      data-campo={campo.clave}
+      className="relative flex min-w-0 items-center gap-1 bg-(--color-surface) py-1 pr-1 pl-3 has-[[data-slot=toque-de-la-tarjeta]:hover]:bg-(--color-surface-2) has-[>[data-asa]]:pl-0"
+    >
+      <ToqueDeLaTarjeta
+        etiqueta={`${puedeGestionar ? 'Editar' : 'Ver'} ${campo.etiqueta}`}
+        abrir={() => {
+          alElegir(campo.id, 'abrir')
+        }}
+      />
+      {conAsa ? (
+        <span data-asa className="relative z-10 flex shrink-0">
+          {asa ?? <LugarDelAsa />}
+        </span>
+      ) : null}
       <NombreDeCampo campo={campo} insignias={insignias} />
-      <div className="order-4 flex w-full flex-wrap items-center gap-x-4 gap-y-1 md:order-3 md:w-auto">
-        {banderas.map(({ clave, etiqueta }) => (
-          <label
-            key={clave}
-            className="flex min-h-11 items-center gap-2 text-(length:--text-sm) text-(--color-ink-soft) md:min-h-8"
-          >
-            <Switch
-              size="sm"
-              aria-label={`${campo.etiqueta}: ${etiqueta.toLowerCase()}`}
-              checked={banderaDe(campo, clave)}
-              disabled={sinEditar}
-              onCheckedChange={(valor) => {
-                alCambiarBandera(clave, valor)
-              }}
-            />
-            {etiqueta}
-          </label>
-        ))}
-      </div>
-      {accion ? <div className="order-3 flex md:order-4">{accion}</div> : null}
-      <Button
-        variant="outline"
-        className="order-3 h-11 md:order-4 md:h-8"
-        aria-label={`${puedeGestionar ? 'Editar' : 'Ver'} ${campo.etiqueta}`}
-        onClick={alAbrir}
-      >
-        <PencilIcon aria-hidden />
-        {puedeGestionar ? 'Editar' : 'Ver'}
-      </Button>
+      <span className="relative z-10 flex shrink-0">
+        <MasAcciones nombre={campo.etiqueta} acciones={acciones} />
+      </span>
     </li>
   )
-}
+})

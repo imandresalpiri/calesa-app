@@ -35,7 +35,8 @@ function referenciaDe(hoja: HojaDeLaPlanilla, celda: CeldaActiva, numero: number
     : { ref: `C${String(numero)}`, etiqueta: fila.nodo.etiqueta }
 }
 
-// Supr: un valor fijo o un % que es constante quedan en 0; lo que escribe el asesor, en 0 en la unidad de ejemplo. Nada más se vacía (una fórmula no se borra así).
+// Supr: un valor fijo (en C) o un % que es constante quedan en 0; lo que escribe el asesor (en Ejemplo), en 0 en la unidad de ejemplo. Nada más se vacía (una
+// fórmula no se borra así).
 function vaciar(a: Args, celda: CeldaActiva) {
   const numero = a.hoja.numeroDe.get(celda.id) ?? 0
   const nodo = filaDe(a.hoja, numero)?.nodo
@@ -45,9 +46,10 @@ function vaciar(a: Args, celda: CeldaActiva) {
     if (b !== null && delPct?.tipo === 'constante') a.ops.vaciar(b.id)
     return
   }
-  if (celda.col !== 'C' || nodo === undefined) return
-  if (nodo.tipo === 'constante') a.ops.vaciar(nodo.id)
-  else if (nodo.tipo === 'input') a.alCambiarUnidad({ tipo: 'input', id: nodo.id, valor: 0 })
+  if (nodo === undefined) return
+  if (celda.col === 'C' && nodo.tipo === 'constante') a.ops.vaciar(nodo.id)
+  else if (celda.col === 'D' && nodo.tipo === 'input')
+    a.alCambiarUnidad({ tipo: 'input', id: nodo.id, valor: 0 })
 }
 
 // Lo que hacen las teclas que no mueven y el clic en una celda (D15): sin edición, el clic elige; con edición, inserta la referencia de esa celda si el cursor
@@ -69,7 +71,7 @@ export function useAccionesDeLaCuadricula(a: Args) {
     alternar: (celda) => {
       const nodo = filaDe(hoja, hoja.numeroDe.get(celda.id) ?? 0)?.nodo
       const cambio =
-        celda.col === 'C' && nodo !== undefined ? cambioAlAlternar(nodo, a.unidad) : null
+        celda.col === 'D' && nodo !== undefined ? cambioAlAlternar(nodo, a.unidad) : null
       if (cambio !== null) a.alCambiarUnidad(cambio)
       return cambio !== null
     },

@@ -10,10 +10,8 @@ import {
 } from './datos-clave'
 import {
   MOTIVO_SIN_PERMISO_DATOS_CLAVE,
-  conDatoClave,
   esDatoClave,
   motivoParaNoMarcar,
-  moverDatoClave,
   sinDatoClave,
 } from './datos-clave-edicion'
 
@@ -79,26 +77,13 @@ describe('editar la lista', () => {
   const color: DatoClave = { campo: 'color' }
   const cuatro: DatoClave[] = [anio, vin, { comun: 'marca' }, { comun: 'modelo' }]
 
-  it('suma al final, no repite y no pasa de 4', () => {
-    expect(conDatoClave([anio], color)).toEqual([anio, color])
-    expect(conDatoClave([anio], { comun: 'anio' })).toEqual([anio])
-    expect(conDatoClave(cuatro, color)).toEqual(cuatro)
-  })
-
   it('quita sólo el dato elegido; un común y un campo con la misma clave son distintos', () => {
     expect(sinDatoClave([anio, color, vin], color)).toEqual([anio, vin])
     expect(sinDatoClave([vin, { campo: 'vin' }], { campo: 'vin' })).toEqual([vin])
     expect(esDatoClave([vin], { campo: 'vin' })).toBe(false)
   })
 
-  it('sube y baja con el vecino; en los bordes no cambia', () => {
-    expect(moverDatoClave([anio, vin, color], 2, 'subir')).toEqual([anio, color, vin])
-    expect(moverDatoClave([anio, vin, color], 0, 'bajar')).toEqual([vin, anio, color])
-    expect(moverDatoClave([anio, vin], 0, 'subir')).toEqual([anio, vin])
-    expect(moverDatoClave([anio, vin], 1, 'bajar')).toEqual([anio, vin])
-  })
-
-  it('la estrella se apaga sin permiso y, con 4, en los no marcados', () => {
+  it('hacer dato clave se apaga sin permiso y, con 4, en los no marcados', () => {
     expect(motivoParaNoMarcar({ lista: [], dato: anio, puedeGestionar: false })).toBe(
       MOTIVO_SIN_PERMISO_DATOS_CLAVE,
     )

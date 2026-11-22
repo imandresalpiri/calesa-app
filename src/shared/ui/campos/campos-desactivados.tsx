@@ -1,39 +1,31 @@
+'use client'
+
 import type { CampoBase } from '@/shared/lib/campos'
 import { Bloque } from '@/shared/ui/bloque'
-import { Button } from '@/shared/ui/button'
+import type { PropsDelCuerpo } from './cuerpo'
+import { FilaDeCampo } from './fila-de-campo'
 
-type DelCampo = Pick<CampoBase, 'id' | 'etiqueta'>
-
-type Props<Campo extends DelCampo> = {
-  campos: readonly Campo[]
-  deshabilitado: boolean
-  alReactivar: (campo: Campo) => void
+type Props = Pick<PropsDelCuerpo, 'insignias' | 'puedeGestionar' | 'alElegir'> & {
+  campos: readonly CampoBase[]
 }
 
-// Los campos que se sacaron del formulario. Sus datos siguen guardados: reactivarlos los devuelve.
-export function CamposDesactivados<Campo extends DelCampo>({
-  campos,
-  deshabilitado,
-  alReactivar,
-}: Props<Campo>) {
+// Los campos que se sacaron del formulario, plegados y sin conteo. Sus datos siguen guardados: «Activar» del «⋯» los devuelve.
+export function CamposDesactivados({ campos, insignias, puedeGestionar, alElegir }: Props) {
   return (
-    <Bloque titulo={`Campos desactivados (${campos.length})`} plegado>
-      <ul className="grid gap-2">
+    <Bloque titulo="Desactivados" plegado>
+      <ul className="grid grid-cols-[minmax(0,1fr)] divide-y divide-(--color-line) rounded-(--radius-card) border border-(--color-line) bg-(--color-surface)">
         {campos.map((campo) => (
-          <li key={campo.id} className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-(length:--text-sm) text-(--color-ink)">{campo.etiqueta}</span>
-            <Button
-              variant="outline"
-              className="h-11 md:h-8"
-              disabled={deshabilitado}
-              aria-label={`Reactivar ${campo.etiqueta}`}
-              onClick={() => {
-                alReactivar(campo)
-              }}
-            >
-              Reactivar
-            </Button>
-          </li>
+          <FilaDeCampo
+            key={campo.id}
+            campo={campo}
+            insignias={insignias.get(campo.id) ?? []}
+            puedeGestionar={puedeGestionar}
+            puedeSubir={false}
+            puedeBajar={false}
+            casilla={null}
+            conAsa={false}
+            alElegir={alElegir}
+          />
         ))}
       </ul>
     </Bloque>

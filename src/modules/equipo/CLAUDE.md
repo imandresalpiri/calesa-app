@@ -9,7 +9,7 @@ Autenticación, perfiles, roles y permisos (RBAC puro), invitaciones, bloqueo, b
   equipo (`leerEquipo(filtro)`: 100 primeras por nombre; `leerPersona`, `leerMatriz`, `leerVistas`…), y para `tablero` `leerPersonasSinRol({ tope })` y `rutaDeLasPersonasSinRol()` (`/configuracion/equipo?estado=sin_rol`: el filtro «Sin rol» de `equipo_lista()`, la misma definición del bloque).
 - `client.ts`: `usePerspectiva()`, `<RoleBadge>`, `<VistasGuardadas>` (una sección de «Vista y opciones»), `guardarPreferencia`, `recordarLaPestana`. `shell.ts` / `shell.client.ts`: sesión, proveedores y
   `<BannerPerspectiva>`.
-- Lo consumen todos. Depende de `empresa`. **Nunca de `origenes`**: la página pasa los orígenes a la matriz y al cuadro «Quién crea y quién ve» por props.
+- Lo consumen todos. Depende de `empresa`. **Nunca de `origenes`**: la página pasa los orígenes a la matriz y al cuadro «Quién crea y quién ve» por props. Los niveles de acceso de `cotizaciones` entran a la matriz como huecos (`HuecosDeNivelesEnLaMatriz`, `features/roles/components/huecos-de-niveles.ts`): `equipo` no importa `cotizaciones`; los une una render prop en la ruta.
 
 ## Archivos clave
 
@@ -26,12 +26,12 @@ Autenticación, perfiles, roles y permisos (RBAC puro), invitaciones, bloqueo, b
 parte })` de `client.ts` (lee, funde con `conLaPestana()` y hace upsert; sin revalidar). Prueba: `supabase/tests/areas/equipo/preferencia-de-la-ultima-pestana.sql`.
 - `entities/avisos-de-roles.ts` — los avisos de la matriz de Roles (`avisosDelRol()`, `avisosDeLaPagina()`): no se dibujan en línea; `features/roles/hooks/use-avisos-de-roles.ts`
   los lleva a un modal diferido por URL (`?panel=avisos&rol=`, `?panel=avisos-de-la-pagina`) que abren los botones «!» (`boton-de-avisos.tsx`).
+- `entities/matriz.ts` — `partesDelGrupo(grupo, { conNiveles })`: parte un grupo en permisos sueltos y los niveles de acceso (los de `cotizaciones.nivel.*`, juntos donde está el primero; sólo `cotizaciones`, `MODULO_DE_LOS_NIVELES`). `?bloque=<módulo>` deja a la vista el bloque (`useBloqueALaVista`, `#bloque-<módulo>`).
 - `entities/dominancia.ts` — espejo de `concesion_dominada()` y `rol_dominado()`. `puede()` y el catálogo de claves: `@/shared/lib/permisos`.
-- «Quién crea y quién ve» (glosario; `pantallas/quien-crea-y-quien-ve.ts`, la página en `src/app/(app)/configuracion/catalogos/`): el cuadro rol × lugar sobre
+- «Quién crea y quién ve» (glosario; `features/roles/components/resumen-de-quien-crea.tsx` lo dibuja plegable en el bloque «Cotizaciones» de la matriz, y su código se pide al abrir): el cuadro rol × lugar sobre
   `cotizaciones.crear`, `.ver` y `.privadas.ver`. Las reglas en `entities/cuadro-de-cotizaciones.ts`: `celdaDelCuadro()` (en un origen suma lo de «Todos los
   orígenes», como la base), `cambiosDelCuadro()` (mínimos y en orden: quitar las privadas, cambiar `ver`, dar las privadas; `null` si lo heredado ya da más),
-  `opcionesDelCuadro()` y `filaDelCuadro()` (dominancia y sólo lectura), `conSelectorDeLugar()`. Escribe con las actions de la matriz (`otorgar`, `revocar`, que
-  revalidan las dos rutas) en secuencia por `features/roles/hooks/use-cuadro.ts` (la versión en un ref; PT409 en la primera, `AvisoDeConflicto`; después,
+  `opcionesDelCuadro()` y `filaDelCuadro()` (dominancia y sólo lectura), `conSelectorDeLugar()`. Escribe con las actions de la matriz (`otorgar`, `revocar`) en secuencia por `features/roles/hooks/use-cuadro.ts` (la versión en `useVersionesDeRoles`, que comparte con `useMatriz`; PT409 en la primera, `AvisoDeConflicto`; después,
   «Se guardó sólo una parte»). `CambioDeConcesion` vive en `entities/matriz.ts`.
 - `entities/vista.ts` — `RUTA_DE_PANTALLA`: un listado nuevo que guarda vistas se suma ahí (hoy leads, vehículos y cotizaciones; la columna `pantalla` es texto, sin migración).
 - `infra/invitaciones.ts` — **la excepción del cliente admin**: `conAdminDeAuth()` comprueba `equipo.usuarios.gestionar` y entrega sólo `auth.admin`

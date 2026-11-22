@@ -1,5 +1,5 @@
 // Un tipo de documento (Título, BL, Declaración de importación… y los que la empresa o un flujo agreguen): lo que se le pide a quien sube un
-// documento y cuándo vence. Se configura en Catálogos › Tipos de documento y en el panel del flujo. Estas reglas son espejo de `_tipo_documento_validar()` y
+// documento y cuándo vence. Se configura en Logística › Configuración › Tipos de documento y en el panel del flujo. Estas reglas son espejo de `_tipo_documento_validar()` y
 // `_tipo_documento_de_jsonb()`: la base las vuelve a decir, con estos mismos textos y estos mismos
 // campos en el `hint`, si algo llega de otro lado. Aquí sirven para mostrar el error junto al campo sin ir a la base.
 //

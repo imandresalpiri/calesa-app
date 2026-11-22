@@ -1,4 +1,5 @@
-// La fila de títulos de la cuadrícula: #, A · concepto, B · %, C · valor, D · de dónde sale (# y A pegadas a la izquierda, como sus celdas).
+// La fila de títulos de la cuadrícula: #, A · concepto, B · %, C · valor y Ejemplo, sin letra: no se nombra en una fórmula (# y A pegadas a la izquierda, como
+// sus celdas).
 const TITULO =
   'border-b border-(--color-line-strong) bg-(--color-surface) px-2 py-2 text-left text-(length:--text-xs) font-semibold text-(--color-ink-soft)'
 
@@ -19,8 +20,8 @@ export function CabeceraDeLaCuadricula() {
         <th scope="col" className={`${TITULO} text-right`}>
           C · valor
         </th>
-        <th scope="col" className={TITULO}>
-          D · de dónde sale
+        <th scope="col" className={`${TITULO} pr-12 text-right`}>
+          Ejemplo
         </th>
       </tr>
     </thead>

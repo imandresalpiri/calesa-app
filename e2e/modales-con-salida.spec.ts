@@ -199,7 +199,10 @@ test('nuevo embudo: con algo escrito pregunta; un nombre repetido se dice junto 
   const abrir = () => elegirEnVistaYOpciones(page, 'Nuevo embudo…')
   const dialogo = page.getByRole('dialog', { name: 'Nuevo embudo' })
 
+  // El modal se abre cuando «Vista y opciones» terminó de cerrarse (`cerrarYLuego`, 100 ms): un Esc antes no lo cierra a él, y el
+  // `toBeHidden` pasaría sin que hubiera modal. Como en «Nuevo rol», el Esc va con el foco ya en su campo.
   await abrir()
+  await expect(dialogo.getByLabel('Nombre')).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(dialogo).toBeHidden()
 

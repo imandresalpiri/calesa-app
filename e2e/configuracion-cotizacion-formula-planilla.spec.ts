@@ -15,19 +15,23 @@ import { publicarPlantillaDeLaMini } from './soporte/plantilla'
 import { literal, sql } from './soporte/sql'
 import {
   a1De,
+  abrirCostado,
   abrirPlanilla,
+  barra,
   celdaDe,
   escribirEnLaCelda,
-  filaDe,
   guardado,
   guardar,
   planilla,
+  tarjetaDelCostado,
   textoDeLaBarra,
+  totalesDelCostado,
 } from './soporte/planilla'
 
 // La planilla de la fórmula (`docs/UX.md` › «Cotización: fórmula (estados propios)»): la pestaña «Planilla» del origen, una hoja de cálculo con las
-// cuatro columnas de V1 y la frase; cambiar un valor fijo en C mueve «Totales» y la tarjeta en vivo; un cálculo se lee y se escribe en la barra de fórmula con
-// referencias A1 y se guarda con ids; la unidad de ejemplo se tipea en la C de lo que escribe el asesor; se guarda el borrador y se publica con nota.
+// columnas A, B, C y Ejemplo y la guía de la barra; cambiar un valor fijo en C mueve «Totales» y la tarjeta en vivo (los paneles al costado, abiertos a la vez no:
+// se mira uno y después el otro); un cálculo se lee y se escribe en la barra de fórmula con referencias A1 y se guarda con ids; la unidad de ejemplo se tipea en
+// Ejemplo de lo que escribe el asesor; se guarda el borrador y se publica con nota.
 // La fórmula de prueba con texto (`formula-editor.ts`): `con_ayuda` es una constante de 5 en el grupo `gpub`, `pub` un input del mismo grupo (en la variante por
 // defecto), `comision` = `=pub*4%` (fuera del total) y lo demás vale 0; el total en dólares es la moneda local ÷ el mismo tipo de cambio. La tarjeta es la de grupos
 // (forma 1) con sus dos grupos, publicada.
@@ -66,24 +70,25 @@ test('la planilla: valor fijo, barra de fórmula en A1, unidad de ejemplo, guard
   await entrar(page, duena, { fresco: true })
   await abrirPlanilla(page, origen.id)
 
-  // (1) La grilla con sus cuatro columnas y la frase.
-  for (const columna of ['A · concepto', 'B · %', 'C · valor', 'D · de dónde sale']) {
+  // (1) La grilla con sus columnas y la guía de la barra.
+  for (const columna of ['A · concepto', 'B · %', 'C · valor', 'Ejemplo']) {
     await expect(
       planilla(page).getByRole('columnheader', { name: columna, exact: true }),
     ).toBeVisible()
   }
-  await expect(
-    planilla(page).getByText(/Elige una celda y escribe, como en una hoja de cálculo/),
-  ).toBeVisible()
-  const totales = planilla(page).getByRole('region', { name: 'Totales' })
-  const tarjeta = planilla(page).locator('[data-tarjeta-de-cotizacion]')
+  await expect(barra(page)).toContainText('Escribe = y toca las celdas: =C5+C7')
+  const totales = totalesDelCostado(page)
+  const tarjeta = tarjetaDelCostado(page)
+  await abrirCostado(page, 'Totales')
   await expect(totales).toContainText(usd(5))
+  await abrirCostado(page, 'Tarjeta')
   await expect(tarjeta).toContainText(usd(5))
 
-  // (2) Cambiar un valor fijo en C: «Totales» y la tarjeta en vivo cambian.
+  // (2) Cambiar un valor fijo en C: «Totales» y la tarjeta en vivo cambian (desde 1024 px el panel no tapa la grilla).
   await escribirEnLaCelda(page, celdaDe(page, 'con_ayuda'), '7')
-  await expect(totales).toContainText(usd(7))
   await expect(tarjeta).toContainText(usd(7))
+  await abrirCostado(page, 'Totales')
+  await expect(totales).toContainText(usd(7))
 
   // (3) Elegir un cálculo: la barra lo muestra en A1; se reescribe ahí y Enter aplica.
   const pub = await a1De(page, 'pub')
@@ -98,10 +103,11 @@ test('la planilla: valor fijo, barra de fórmula en A1, unidad de ejemplo, guard
   await celdaDe(page, FILA_CON_TEXTO.id).click()
   await expect(texto).toHaveValue(`=${pub}*5%`)
 
-  // (4) La unidad de ejemplo: tipear «Pública» mueve el cálculo y los totales.
-  await escribirEnLaCelda(page, celdaDe(page, 'pub'), '100')
-  await expect(filaDe(page, FILA_CON_TEXTO.id)).toContainText(usd(5))
+  // (4) La unidad de ejemplo: tipear «Pública» en Ejemplo mueve el cálculo y los totales.
+  await escribirEnLaCelda(page, celdaDe(page, 'pub', 'D'), '100')
+  await expect(celdaDe(page, FILA_CON_TEXTO.id, 'D')).toContainText(usd(5))
   await expect(totales).toContainText(usd(107))
+  await abrirCostado(page, 'Tarjeta')
   await expect(tarjeta).toContainText(usd(107))
 
   // (5) Guardar el borrador y publicarlo con nota: lo guardado nombra ids, nunca la celda.

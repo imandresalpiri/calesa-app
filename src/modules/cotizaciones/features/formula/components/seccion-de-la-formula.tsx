@@ -6,6 +6,7 @@ import type {
   LecturaDeLaTarjetaEnVivo,
   PropsDeLaTarjetaEnVivo,
 } from '../../../entities/tarjeta-en-vivo'
+import type { PropsDelNuevoColor } from '../../../entities/nuevo-color'
 import { FormulaDelOrigen } from './formula-del-origen'
 import type { TipoDeCambioDeLaEmpresa } from './planilla/tipos'
 
@@ -20,6 +21,8 @@ type Props = {
   tarjeta: Promise<LecturaDeLaTarjetaEnVivo>
   // El dibujo de la tarjeta en vivo (área `tarjeta`): lo pasa la página; este área no la importa.
   TarjetaEnVivo: ComponentType<PropsDeLaTarjetaEnVivo>
+  // «+ Nuevo color» del panel de una banda (área `diseno`): la página lo pasa sólo con `cotizaciones.configurar` (sin origen, como `tono_crear()`); si no, nulo.
+  NuevoColor: ComponentType<PropsDelNuevoColor> | null
   // `empresa.tipos_cambio.gestionar`: la banda «Tipo de cambio» ofrece «Cambiar en Empresa › Monedas».
   puedeCambiarTiposDeCambio: boolean
   // Los tipos de cambio de la empresa (`empresa`, que este módulo no lee aquí): la página los pide sin esperarlos. Nunca rechaza (sin lectura, ninguno).
@@ -34,6 +37,7 @@ export async function SeccionDeLaFormula({
   formula,
   tarjeta,
   TarjetaEnVivo,
+  NuevoColor,
   puedeCambiarTiposDeCambio,
   tiposDeCambio,
 }: Props) {
@@ -51,6 +55,7 @@ export async function SeccionDeLaFormula({
       tarjeta={deLaTarjeta}
       tablas={tablas}
       TarjetaEnVivo={TarjetaEnVivo}
+      NuevoColor={NuevoColor}
       puedeCambiarTiposDeCambio={puedeCambiarTiposDeCambio}
       tiposDeCambio={tipos}
     />

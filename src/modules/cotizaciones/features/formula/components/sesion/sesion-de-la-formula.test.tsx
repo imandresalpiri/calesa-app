@@ -61,6 +61,7 @@ const props = (extra: Partial<PropsDeLaSesion> = {}): PropsDeLaSesion => ({
   tarjeta: { estado: 'sin_tarjeta' },
   tablas: [],
   TarjetaEnVivo: () => null,
+  NuevoColor: null,
   puedeCambiarTiposDeCambio: false,
   tiposDeCambio: [],
   ...extra,
@@ -92,16 +93,17 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('SesionDeLaFormula', () => {
-  it('mientras lee, el esqueleto en la planilla; leída, la cuadrícula con sus columnas y la frase', async () => {
+  it('mientras lee, el esqueleto en la planilla; leída, la cuadrícula con sus columnas y la guía de la barra', async () => {
     dibujar(props())
     expect(screen.getByRole('region', { name: 'Planilla de la fórmula' })).toBeTruthy()
     expect(screen.getByLabelText('Cargando la lista')).toBeTruthy()
     await responder()
     expect(screen.getByRole('grid', { name: 'Filas de la fórmula de Japón' })).toBeTruthy()
-    for (const columna of ['A · concepto', 'B · %', 'C · valor', 'D · de dónde sale']) {
+    for (const columna of ['A · concepto', 'B · %', 'C · valor', 'Ejemplo']) {
       expect(screen.getByRole('columnheader', { name: columna })).toBeTruthy()
     }
-    expect(screen.getByText(/Elige una celda y escribe, como en una hoja de cálculo/)).toBeTruthy()
+    // Al entrar no hay celda elegida: la barra muestra su guía.
+    expect(screen.getByText('Escribe = y toca las celdas: =C5+C7')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Modo avanzado/ })).toBeNull()
   })
 

@@ -13,6 +13,7 @@ import { MARCA, borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/
 import { publicarFormulaConTexto } from './soporte/formula-editor'
 import { leerBorrador } from './soporte/formula-editor-guardar'
 import {
+  abrirCostado,
   abrirPlanilla,
   arrastrarFila,
   filaDe,
@@ -21,6 +22,7 @@ import {
   guardar,
   menuDeLaFila,
   planilla,
+  totalesDelCostado as totales,
 } from './soporte/planilla'
 import { sql } from './soporte/sql'
 
@@ -50,7 +52,6 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-const totales = (page: Page) => planilla(page).getByRole('region', { name: 'Totales' })
 const cabecera = (page: Page, grupo: string) => grilla(page).locator(`tr[data-banda="${grupo}"]`)
 const enLaBanda = (page: Page, grupo: string, fila: string) =>
   grilla(page).locator(`tbody[data-grupo="${grupo}"] tr[data-fila="${fila}"]`)
@@ -128,6 +129,8 @@ test('el panel de una banda, pasar una fila arrastrando, el doble conteo, «Tota
 
   await entrar(page, duena, { fresco: true })
   await abrirPlanilla(page, origen.id)
+  // «Totales» al costado, abierto mientras se edita (desde 1024 px no es modal).
+  await abrirCostado(page, 'Totales')
   await expect(totales(page)).toContainText(enBs(5 * oficial))
 
   await editarPublica(page, otroTono)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Permisos } from '@/shared/lib/permisos'
+import { destinosFueraDeConfiguracion } from '../destinos-de-busqueda'
 import { gruposVisibles, paraElNavegador, type GrupoDelNavegador } from '../secciones'
 import { TOPE_DE_RESULTADOS, buscarEnConfiguracion, normalizar } from './buscar'
 import { conOrigenesEnElMenu, subseccionesDeOrigenes } from './origenes-del-menu'
@@ -17,6 +18,7 @@ const TODO: Permisos = [
   'web.ajustes.gestionar',
   'web.contenido.gestionar',
   'web.cola.gestionar',
+  'logistica.catalogos.gestionar',
 ].map((clave) => ({ clave, origenId: null, alcance: 'todos' }) as Permisos[number])
 
 const grupos = paraElNavegador(gruposVisibles(TODO))
@@ -71,11 +73,11 @@ describe('buscarEnConfiguracion', () => {
     expect(caminos('portal', [])).toEqual([])
   })
 
-  it('lo de un origen se busca en Orígenes, con los colores y la vigencia de todas las cotizaciones; lo global, en Catálogos', () => {
+  it('lo de un origen se busca en Orígenes, con los colores y la vigencia de todas las cotizaciones; los niveles, en Roles; lo global, en Catálogos', () => {
     expect(caminos('fórmula')[0]).toBe('Orígenes')
     expect(caminos('flujo')).toContain('Orígenes')
     expect(caminos('colores')[0]).toBe('Orígenes › Colores')
-    expect(caminos('niveles')[0]).toBe('Catálogos › Niveles')
+    expect(caminos('niveles')[0]).toBe('Roles y permisos › Niveles de acceso')
     expect(caminos('tablas compartidas')[0]).toBe('Catálogos › Tablas compartidas')
     expect(caminos('flujo de repuestos')[0]).toBe('Repuestos › Flujo de repuestos')
   })
@@ -125,5 +127,50 @@ describe('los destinos de búsqueda de Orígenes', () => {
     expect(caminos('colores', soloOrigenes)).toEqual([])
     expect(caminos('vigencia', soloOrigenes)).toEqual([])
     expect(caminos('orígenes', soloOrigenes)).toEqual(['Orígenes'])
+  })
+})
+
+describe('los destinos de búsqueda de Logística', () => {
+  const fuera = destinosFueraDeConfiguracion(TODO)
+  const encontrados = (texto: string) =>
+    buscarEnConfiguracion(grupos, texto, fuera).map((r) => [r.camino, r.ruta])
+
+  it('puertos, navieras, gastos y tipos de documento se encuentran y llevan a Logística › Configuración', () => {
+    expect(encontrados('puertos')[0]).toEqual([
+      'Logística › Puertos',
+      '/logistica/configuracion/puertos',
+    ])
+    expect(encontrados('navieras')[0]).toEqual([
+      'Logística › Navieras',
+      '/logistica/configuracion/navieras',
+    ])
+    expect(encontrados('categorías de gasto')[0]).toEqual([
+      'Logística › Categorías de gasto',
+      '/logistica/configuracion/categorias-de-gasto',
+    ])
+    expect(encontrados('gastos')[0]).toEqual([
+      'Logística › Categorías de gasto',
+      '/logistica/configuracion/categorias-de-gasto',
+    ])
+    expect(encontrados('tipos de documento')[0]).toEqual([
+      'Logística › Tipos de documento',
+      '/logistica/configuracion/tipos-de-documento',
+    ])
+    expect(encontrados('documentos')).toContainEqual([
+      'Logística › Tipos de documento',
+      '/logistica/configuracion/tipos-de-documento',
+    ])
+  })
+
+  it('«logística» los encuentra a todos', () => {
+    const caminosDe = encontrados('logística').map(([camino]) => camino)
+    for (const titulo of ['Puertos', 'Navieras', 'Categorías de gasto', 'Tipos de documento']) {
+      expect(caminosDe).toContain(`Logística › ${titulo}`)
+    }
+  })
+
+  it('sin destinos de afuera no hay nada; sin el permiso, tampoco', () => {
+    expect(caminos('puertos')).toEqual([])
+    expect(destinosFueraDeConfiguracion([])).toEqual([])
   })
 })

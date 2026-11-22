@@ -1,3 +1,4 @@
+import type { DestinoFueraDelNavegador } from '../destinos-de-busqueda'
 import type { GrupoDelNavegador } from '../secciones'
 
 // La búsqueda de Configuración: sobre lo que el menú ya recibe (secciones y sub-secciones que la persona puede abrir, con las `palabras` que
@@ -70,6 +71,19 @@ function candidatas(grupos: readonly GrupoDelNavegador[]): Candidata[] {
   )
 }
 
+// Los destinos de otra área (Logística › Puertos): se encuentran como una sub-sección, con el área por delante en su camino.
+function candidatasFuera(fuera: readonly DestinoFueraDelNavegador[]): Candidata[] {
+  return fuera.map((destino) => ({
+    clave: `${destino.lugar}-${destino.clave}`,
+    camino: `${destino.lugar} › ${destino.titulo}`,
+    ruta: destino.ruta,
+    esSub: true,
+    propio: separar(destino.titulo),
+    titulos: separar(`${destino.lugar} ${destino.titulo}`),
+    palabras: separar(destino.palabras.join(' ')),
+  }))
+}
+
 const empieza = (palabras: readonly string[], p: string) =>
   palabras.some((una) => una.startsWith(p))
 
@@ -91,15 +105,19 @@ const largoDelTitulo = ({ candidata, nota }: { candidata: Candidata; nota: numbe
 export function buscarEnConfiguracion(
   grupos: readonly GrupoDelNavegador[],
   texto: string,
+  // Lo que se encuentra y no es de Configuración (`destinosFueraDeConfiguracion()`): el menú no lo dibuja.
+  fuera: readonly DestinoFueraDelNavegador[] = [],
 ): ResultadoDeBusqueda[] {
   const palabras = separar(texto)
   if (palabras.length === 0) {
     return []
   }
-  const aciertos = candidatas(grupos).flatMap((candidata, orden) => {
-    const nota = puntaje(candidata, palabras)
-    return nota === null ? [] : [{ candidata, nota, orden }]
-  })
+  const aciertos = [...candidatas(grupos), ...candidatasFuera(fuera)].flatMap(
+    (candidata, orden) => {
+      const nota = puntaje(candidata, palabras)
+      return nota === null ? [] : [{ candidata, nota, orden }]
+    },
+  )
   // Dos que abren la misma pantalla (la sección y su sub-sección índice): se queda la sub-sección, que dice más, con el mejor puntaje de las dos
   // y el lugar de la primera.
   const porRuta = new Map<string, (typeof aciertos)[number]>()

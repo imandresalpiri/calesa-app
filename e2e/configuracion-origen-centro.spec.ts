@@ -202,7 +202,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'cotizacion/general/niveles': {
     de: () => '/configuracion/cotizacion/general/niveles?panel=nuevo-nivel',
-    a: () => '/configuracion/catalogos/niveles?panel=nuevo-nivel',
+    a: () => '/configuracion/roles?panel=nuevo-nivel&bloque=cotizaciones',
   },
   'cotizacion/<origen>/formula': {
     de: () => `/configuracion/cotizacion/${a.id}/formula?version=2`,
@@ -227,7 +227,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'logistica/navieras': {
     de: () => '/configuracion/logistica/navieras?panel=nueva-naviera',
-    a: () => '/configuracion/catalogos/navieras?panel=nueva-naviera',
+    a: () => '/logistica/configuracion/navieras?panel=nueva-naviera',
   },
   // /configuracion/cotizacion (route.ts).
   'cotizacion sin nada': {
@@ -236,7 +236,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'cotizacion ?seccion=niveles': {
     de: () => '/configuracion/cotizacion?seccion=niveles',
-    a: () => '/configuracion/catalogos/niveles',
+    a: () => '/configuracion/roles?bloque=cotizaciones',
   },
   'cotizacion ?seccion=tablas&origen&tabla': {
     de: () => `/configuracion/cotizacion?seccion=tablas&origen=${a.id}&tabla=${UNA_TABLA}`,
@@ -257,7 +257,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'flujos ?seccion=documentos, sin configurar un flujo': {
     de: () => '/configuracion/flujos?seccion=documentos',
-    a: () => '/configuracion/catalogos/tipos-de-documento',
+    a: () => '/logistica/configuracion/tipos-de-documento',
     quien: 'logistica',
   },
   'flujos sin nada': {
@@ -267,16 +267,16 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   // /configuracion/logistica (route.ts, por persona).
   'logistica ?seccion=navieras': {
     de: () => '/configuracion/logistica?seccion=navieras',
-    a: () => '/configuracion/catalogos/navieras',
+    a: () => '/logistica/configuracion/navieras',
   },
   'logistica sin nada': {
     de: () => '/configuracion/logistica',
-    a: () => '/configuracion/catalogos/puertos',
+    a: () => '/logistica/configuracion/puertos',
   },
   // /configuracion/catalogos (route.ts, por persona): no tiene página propia.
   'catalogos sin nada': {
     de: () => '/configuracion/catalogos',
-    a: () => '/configuracion/catalogos/niveles',
+    a: () => '/configuracion/catalogos/tablas',
   },
   // /configuracion/origenes/<id> (route.ts, por persona: sin pestaña recordada, la primera que abre).
   'origenes/<id> ?seccion=campos&campo': {

@@ -2,6 +2,7 @@
 
 import { useLive } from '@/shared/ui/live'
 import { filaDe, type FilaDeLaHoja } from '../../../../../entities/formula/hoja-de-la-planilla'
+import { nombreDeLaCelda } from '../../../../../entities/formula/texto-de-la-celda'
 import type { EdicionDeLaCelda } from '../../../hooks/use-edicion-con-referencias'
 import type { Planilla } from '../../../hooks/use-planilla'
 import { idsDeLaEdicion } from '../ids-de-la-edicion'
@@ -12,7 +13,9 @@ import { EntradaDeLaCelda } from './entrada-de-la-celda'
 const nombreDe = (e: EdicionDeLaCelda, fila: FilaDeLaHoja | undefined) =>
   fila === undefined
     ? NOMBRE_DE_LA_COLUMNA[e.col]
-    : `${e.col}${String(fila.numero)}, ${fila.nodo.etiqueta}, ${NOMBRE_DE_LA_COLUMNA[e.col]}`
+    : e.col === 'D'
+      ? `${nombreDeLaCelda(e.col, fila.numero)}, ${fila.nodo.etiqueta}`
+      : `${nombreDeLaCelda(e.col, fila.numero)}, ${fila.nodo.etiqueta}, ${NOMBRE_DE_LA_COLUMNA[e.col]}`
 
 // La entrada de la celda en edición, unida a la planilla: el mismo texto, sugerencias y error que la barra de fórmula.
 export function EntradaDeLaPlanilla({

@@ -4,12 +4,14 @@ import type { Nodo } from '../nodos'
 import {
   aplicarLoEscrito,
   cambioAlAlternar,
+  MENSAJE_AL_COTIZAR_EN_C,
+  MENSAJE_DEL_ASESOR_EN_C,
   unidadConElCambio,
   type PedidoDeLaCelda,
 } from './escrito-en-la-celda'
 import { conNodoAntes, FORMULA_A1 } from './hoja-a1.soporte'
 import { hojaDeLaPlanilla } from './hoja-de-la-planilla'
-import { textoDeLaCelda, type ContextoDelTexto } from './texto-de-la-celda'
+import { MOTIVO_DEL_EJEMPLO, textoDeLaCelda, type ContextoDelTexto } from './texto-de-la-celda'
 import { UNIDAD_EN_CEROS } from './unidad-de-ejemplo'
 
 // 1 TC oficial · 2 Remate (asesor) · 3 Fees (valor fijo 100) · 4 Flete (asesor) · 5 Agencia (B5 absorbida, 4 %) · 6 Seguro (B6 en su texto, 2 %) · 7 CIF · 8 Total.
@@ -65,13 +67,33 @@ describe('aplicarLoEscrito', () => {
     expect(g.params.constantes['cif']).toBe(1000)
   })
 
-  it('un número en lo que escribe el asesor es el valor de la unidad de ejemplo; «=» lo vuelve cálculo', () => {
-    expect(aplicarLoEscrito(pedido(2, 'C', '5.000'))).toEqual({
+  it('en Ejemplo, un número en lo que escribe el asesor es el valor de la unidad de ejemplo; en C, «=» lo vuelve cálculo', () => {
+    expect(aplicarLoEscrito(pedido(2, 'D', '5.000'))).toEqual({
       tipo: 'unidad',
       cambio: { tipo: 'input', id: 'remate', valor: 5000 },
     })
     const f = formulaDe(aplicarLoEscrito(pedido(4, 'C', '=C3/2')))
     expect(nodo(f, 'flete')).toMatchObject({ tipo: 'calculo', texto: '=fees/2' })
+  })
+
+  it('en la C de lo que escribe el asesor, un número no se guarda (no se vuelve valor fijo) y vacío no cambia nada', () => {
+    expect(aplicarLoEscrito(pedido(2, 'C', '5.000'))).toMatchObject({
+      tipo: 'error',
+      error: { mensaje: MENSAJE_DEL_ASESOR_EN_C },
+    })
+    expect(aplicarLoEscrito(pedido(2, 'C', '  '))).toEqual({ tipo: 'nada' })
+  })
+
+  it('Ejemplo no se escribe en un valor fijo, un cálculo ni con «=»', () => {
+    expect(aplicarLoEscrito(pedido(3, 'D', '5'))).toMatchObject({
+      error: { mensaje: 'El valor fijo se escribe en C3.' },
+    })
+    expect(aplicarLoEscrito(pedido(7, 'D', '5'))).toMatchObject({
+      error: { mensaje: MOTIVO_DEL_EJEMPLO },
+    })
+    expect(aplicarLoEscrito(pedido(2, 'D', '=C3'))).toMatchObject({
+      error: { mensaje: 'Ejemplo es el valor de la unidad de ejemplo: la fórmula va en C2.' },
+    })
   })
 
   it('el tipo de cambio no se escribe; un cálculo vacío pide algo', () => {
@@ -112,11 +134,14 @@ describe('aplicarLoEscrito: interruptor y variante', () => {
       ],
     } as Nodo
     const f = conNodoAntes(conNodoAntes(FORMULA_A1, bandera, 'tc'), opcion, 'tc')
-    expect(aplicarLoEscrito(pedido(1, 'C', 'sí', f))).toMatchObject({
+    expect(aplicarLoEscrito(pedido(1, 'D', 'sí', f))).toMatchObject({
       cambio: { tipo: 'bandera', valor: true },
     })
-    expect(aplicarLoEscrito(pedido(1, 'C', 'quizá', f))).toMatchObject({ tipo: 'error' })
-    expect(aplicarLoEscrito(pedido(2, 'C', 'aerea', f))).toMatchObject({
+    expect(aplicarLoEscrito(pedido(1, 'D', 'quizá', f))).toMatchObject({ tipo: 'error' })
+    expect(aplicarLoEscrito(pedido(1, 'C', 'sí', f))).toMatchObject({
+      error: { mensaje: MENSAJE_AL_COTIZAR_EN_C },
+    })
+    expect(aplicarLoEscrito(pedido(2, 'D', 'aerea', f))).toMatchObject({
       cambio: { tipo: 'variante', clave: 'aire' },
     })
     // La barra espaciadora: el interruptor se da vuelta y la variante pasa a la opción siguiente.
@@ -141,16 +166,27 @@ describe('textoDeLaCelda', () => {
     deDondeSale: 'el tipo de cambio oficial',
   })
 
-  it('C de un cálculo abre su fórmula en A1; la de un valor fijo, su número; la del asesor, la unidad', () => {
+  it('C de un cálculo abre su fórmula en A1; la de un valor fijo, su número; la del asesor, vacía', () => {
     expect(textoDeLaCelda(8, 'C', ctx('=cif+agencia'))).toEqual({ editable: true, texto: '=C7+C5' })
     expect(textoDeLaCelda(3, 'C', ctx(null))).toEqual({ editable: true, texto: '100' })
-    expect(textoDeLaCelda(2, 'C', ctx(null))).toEqual({ editable: true, texto: '1500' })
+    expect(textoDeLaCelda(2, 'C', ctx(null))).toEqual({ editable: true, texto: '' })
   })
 
-  it('B abre el % en puntos; un tipo de cambio y D no se escriben', () => {
+  it('Ejemplo abre la unidad en lo que escribe el asesor; en un valor fijo o un cálculo dice por qué no', () => {
+    expect(textoDeLaCelda(2, 'D', ctx(null))).toEqual({ editable: true, texto: '1500' })
+    expect(textoDeLaCelda(3, 'D', ctx(null))).toEqual({
+      editable: false,
+      motivo: 'El valor fijo se escribe en C3.',
+    })
+    expect(textoDeLaCelda(8, 'D', ctx(null))).toEqual({
+      editable: false,
+      motivo: MOTIVO_DEL_EJEMPLO,
+    })
+  })
+
+  it('B abre el % en puntos; un tipo de cambio no se escribe', () => {
     expect(textoDeLaCelda(5, 'B', ctx(null))).toEqual({ editable: true, texto: '4' })
     expect(textoDeLaCelda(1, 'C', ctx(null))).toMatchObject({ editable: false })
-    expect(textoDeLaCelda(3, 'D', ctx(null))).toMatchObject({ editable: false })
     expect(textoDeLaCelda(3, 'B', ctx(null))).toMatchObject({ editable: false })
   })
 })

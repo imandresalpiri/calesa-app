@@ -7,6 +7,7 @@ import type {
   LecturaDeLaTarjetaEnVivo,
   PropsDeLaTarjetaEnVivo,
 } from '../../../../entities/tarjeta-en-vivo'
+import type { PropsDelNuevoColor } from '../../../../entities/nuevo-color'
 import type { EditorDeLaFormula } from '../../hooks/use-editor-de-la-formula'
 
 // Un tipo de cambio de la empresa (`getTiposCambio()`): lo que ofrece «Tipo de celda › Tipo de cambio».
@@ -32,6 +33,8 @@ export type PropsDeLaPlanilla = {
   alRecargar: () => void
   tarjeta: LecturaDeLaTarjetaEnVivo
   TarjetaEnVivo: ComponentType<PropsDeLaTarjetaEnVivo>
+  // «+ Nuevo color» del panel de una banda: lo llena el área `diseno` (este módulo no la importa); sin `cotizaciones.configurar`, no llega y no se ofrece.
+  NuevoColor: ComponentType<PropsDelNuevoColor> | null
   puedeCambiarTiposDeCambio: boolean
   tiposDeCambio: readonly TipoDeCambioDeLaEmpresa[]
 }

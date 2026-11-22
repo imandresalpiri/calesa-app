@@ -4,7 +4,7 @@ import { BuscadorDeConfiguracion } from './_navegacion/buscador-de-configuracion
 import { CabeceraDeConfiguracion } from './_navegacion/cabecera-de-configuracion'
 import { MarcoSegunLaRuta } from './_navegacion/en-una-seccion'
 import { FueraDeLaPaginaDelOrigen } from './_navegacion/fuera-de-la-pagina-del-origen'
-import { gruposDeQuienMira } from './_navegacion/grupos-de-quien-mira'
+import { destinosFueraDeQuienMira, gruposDeQuienMira } from './_navegacion/grupos-de-quien-mira'
 import { MenuDeConfiguracion } from './_navegacion/menu-de-configuracion'
 import { ICONO_DE_SECCION } from './secciones'
 
@@ -48,7 +48,7 @@ export default function LayoutDeConfiguracion({ children }: { children: ReactNod
 }
 
 async function MenuLateral() {
-  const grupos = await gruposDeQuienMira()
+  const [grupos, fuera] = await Promise.all([gruposDeQuienMira(), destinosFueraDeQuienMira()])
   if (grupos.length === 0) {
     return null
   }
@@ -56,6 +56,7 @@ async function MenuLateral() {
     <div className={CLASE_DEL_MENU}>
       <BuscadorDeConfiguracion
         grupos={grupos}
+        fuera={fuera}
         variante="menu"
         sinCampoEn={RUTAS.inicioDeConfiguracion}
       >
@@ -66,7 +67,7 @@ async function MenuLateral() {
 }
 
 async function Cabecera() {
-  const grupos = await gruposDeQuienMira()
+  const [grupos, fuera] = await Promise.all([gruposDeQuienMira(), destinosFueraDeQuienMira()])
   if (grupos.length === 0) {
     return null
   }
@@ -76,7 +77,7 @@ async function Cabecera() {
       claseEnElInicio={`grid grid-cols-[minmax(0,1fr)] gap-2 ${OCULTA_CON_MENU}`}
       claseEnUnaSeccion="grid grid-cols-[minmax(0,1fr)] gap-2"
     >
-      <CabeceraDeConfiguracion grupos={grupos} />
+      <CabeceraDeConfiguracion grupos={grupos} fuera={fuera} />
     </MarcoSegunLaRuta>
   )
 }

@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import { requerirSesion } from '@/modules/equipo'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { BuscadorDeConfiguracion } from '../_navegacion/buscador-de-configuracion'
-import { gruposDeQuienMira } from '../_navegacion/grupos-de-quien-mira'
+import { destinosFueraDeQuienMira, gruposDeQuienMira } from '../_navegacion/grupos-de-quien-mira'
 import { leerFaltas } from '../lectura-de-que-falta'
 import type { SeccionConFaltas } from '../que-falta'
 import { QueFaltaDeLaSeccion } from '../que-falta-de-la-seccion'
@@ -30,11 +30,11 @@ export default async function PaginaInicioDeConfiguracion() {
   }
   // Una sola lectura, que esperan las tarjetas que la usan. No lanza.
   const faltas = leerFaltas(sesion.permisos)
-  const delNavegador = await gruposDeQuienMira()
+  const [delNavegador, fuera] = await Promise.all([gruposDeQuienMira(), destinosFueraDeQuienMira()])
   return (
     <div className="@container/inicio grid max-w-5xl gap-4">
       <h1 className="text-(length:--text-xl) font-semibold text-(--color-ink)">Configuración</h1>
-      <BuscadorDeConfiguracion grupos={delNavegador} variante="pagina">
+      <BuscadorDeConfiguracion grupos={delNavegador} fuera={fuera} variante="pagina">
         <div className="columns-[minmax(0,1fr)] gap-4 @min-[40rem]/inicio:columns-2">
           {grupos.map((grupo) => {
             const idDelTitulo = `grupo-${grupo.clave}`
