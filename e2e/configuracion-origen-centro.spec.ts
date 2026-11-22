@@ -197,7 +197,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   // Las fijas de next.config.ts. Colores y Vigencia viven en Orígenes (`?panel=`): un `?panel=` propio manda y va solo.
   'cotizacion/general': {
     de: () => '/configuracion/cotizacion/general?x=1',
-    a: () => '/configuracion/origenes?panel=colores&x=1',
+    a: () => '/configuracion/origenes?x=1&panel=colores',
   },
   'cotizacion/general/niveles': {
     de: () => '/configuracion/cotizacion/general/niveles?panel=nuevo-nivel',
