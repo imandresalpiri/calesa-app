@@ -283,7 +283,8 @@ test('E2E /configuracion/flujos?seccion=documentos sin flujos.configurar va a Ti
 }) => {
   await entrar(page, sinPermiso, { fresco: true })
   await redirige(page, '/configuracion/flujos?seccion=documentos', `${RAIZ}/tipos-de-documento`)
-  await redirige(page, '/configuracion/logistica', `${RAIZ}/puertos`)
+  // Sin ninguna pestaña que abrir, la URL vieja de logística va al inicio de Configuración (nunca a un error).
+  await redirige(page, '/configuracion/logistica', '/configuracion/inicio')
 })
 
 test('E2E el buscador de Configuración encuentra «puertos» y «tipos de documento» y lleva a Logística', async ({
