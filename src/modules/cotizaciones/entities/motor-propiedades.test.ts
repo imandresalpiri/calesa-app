@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Formula } from './formula'
 import { evaluar } from './motor'
 import { esquemaEntrada, type Entrada } from './motor-entrada'
-import { aceptaValor } from './nodos'
+import { aceptaValor, esPisable } from './nodos'
 import { validarFormula } from './validar'
 
 type Caso = {
@@ -95,11 +95,14 @@ describe('evaluar es una función pura', () => {
     }
   })
 
-  it('las fuentes son las de los nodos activos que aceptan un valor, en el orden de la lista', () => {
+  it('las fuentes son las de los nodos activos que aceptan un valor o son un cálculo con celda escrito, en el orden de la lista', () => {
     for (const c of casos()) {
       const r = evaluar(c.formula, c.entrada)
+      const conCelda = new Set(c.entrada.pisables ?? [])
+      const escrito = (id: string) => conCelda.has(id) && Object.hasOwn(c.entrada.overrides, id)
       const esperadas = c.formula.definicion.nodos
-        .filter((n) => r.estados[n.id] === 'activo' && aceptaValor(n))
+        .filter((n) => r.estados[n.id] === 'activo')
+        .filter((n) => aceptaValor(n) || (esPisable(n) && escrito(n.id)))
         .map((n) => n.id)
       expect(Object.keys(r.fuentes), c.nombre).toEqual(esperadas)
     }
@@ -131,5 +134,50 @@ describe('evaluar es una función pura', () => {
     const esperado = [{ codigo: 'campo_sin_valor', donde: 't', ref: 'campo_a' }]
     expect(evaluar(formula({ a: 'campo_a', b: 'campo_b' }), entrada).faltantes).toEqual(esperado)
     expect(evaluar(formula({ b: 'campo_b', a: 'campo_a' }), entrada).faltantes).toEqual(esperado)
+  })
+})
+
+// docs/COTIZADOR.md › «Pisar un cálculo».
+describe('pisar un cálculo con celda', () => {
+  const sinEscribir = (e: Entrada): Entrada => {
+    const copia: Entrada = { ...e, overrides: {} }
+    delete copia.pisables
+    return copia
+  }
+
+  it('nombrar todos los nodos en pisables sin escribir nada no cambia el resultado', () => {
+    for (const c of casos()) {
+      const sinLista = sinEscribir(c.entrada)
+      const conLista = { ...sinLista, pisables: c.formula.definicion.nodos.map((n) => n.id) }
+      expect(evaluar(c.formula, conLista), c.nombre).toEqual(evaluar(c.formula, sinLista))
+    }
+  })
+
+  // El par queda fuera: su pct pasa a monto ÷ base, que no siempre vuelve al mismo doble.
+  it('escribir sobre un cálculo con celda lo que ya daba deja todo igual y lo calculado es ese valor', () => {
+    let pisados = 0
+    for (const c of casos()) {
+      const base = {
+        ...sinEscribir(c.entrada),
+        pisables: c.formula.definicion.nodos.map((n) => n.id),
+      }
+      const r = evaluar(c.formula, base)
+      for (const n of c.formula.definicion.nodos) {
+        const v = r.valores[n.id]
+        if (!esPisable(n) || r.estados[n.id] !== 'activo' || typeof v !== 'number') continue
+        if (n.tipo === 'calculo' && n.op === 'porcentaje_de') continue
+        const pisado = evaluar(c.formula, { ...base, overrides: { [n.id]: v } })
+        const que = `${c.nombre} › ${n.id}`
+        expect(pisado.valores, que).toEqual(r.valores)
+        expect(pisado.estados, que).toEqual(r.estados)
+        expect(pisado.totales, que).toEqual(r.totales)
+        expect(pisado.faltantes, que).toEqual(r.faltantes)
+        expect(pisado.overrides_descartados, que).toEqual([])
+        expect(pisado.calculados, que).toEqual({ [n.id]: v })
+        expect(pisado.fuentes[n.id], que).toBe('override')
+        pisados += 1
+      }
+    }
+    expect(pisados).toBeGreaterThanOrEqual(100)
   })
 })

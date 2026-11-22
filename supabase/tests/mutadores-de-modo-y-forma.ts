@@ -147,6 +147,11 @@ export const MUTADORES_DE_FORMA_DE_ENTRADA: readonly MutadorDelMotor[] = [
     else sub(c, 'vehiculo')['a'.repeat(81)] = 1
     return 'vehiculo'
   }),
+  m('forma_pisables_mala', (c, azar) => {
+    c.entrada['pisables'] =
+      elegir<Json>(azar, ['x', null, 5, {}, ['Mal'], [1], [null], ['a', 2]]) ?? null
+    return 'pisables'
+  }),
   m('forma_tabla_mala', (c, azar) => {
     const malas: Json[] = [{}, [1], [{ a: true }], [{ Mal: 1 }], [{ a: 'x'.repeat(201) }], 'x']
     sub(c, 'tablas')['t_mala'] = elegir(azar, malas) ?? {}

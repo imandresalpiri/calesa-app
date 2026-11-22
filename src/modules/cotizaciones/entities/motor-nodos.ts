@@ -43,8 +43,20 @@ function estadoDe(ev: Evaluacion, id: string): Estado {
 
 // Un override aplicado manda; si no, se calcula (el sugerido, el default o lo tipeado).
 function valorActivo(ev: Evaluacion, n: NodoDeValor): Valor {
-  const v = sobrescrito(ev, n)
+  const v = sobrescrito(ev, n, calcularAparte)
   return v === undefined ? valorCalculado(ev, n) : v
+}
+
+// Lo que daría un nodo sin lo escrito, sin dejar rastro: se reponen los faltantes que anote y la fuente que cambie
+// (un input la pone al calcularse). No cambia `valores`, `fuentes`, `faltantes` ni los totales.
+function calcularAparte(ev: Evaluacion, n: NodoDeValor): Valor {
+  const largo = ev.faltantes.length
+  const fuente = buscar(ev.fuentes, n.id, ev.m)
+  const v = asentar(ev, valorCalculado(ev, n), n.id)
+  ev.faltantes.length = largo
+  if (fuente === undefined) ev.fuentes.delete(n.id)
+  else ev.fuentes.set(n.id, fuente)
+  return v
 }
 
 function valorCalculado(ev: Evaluacion, n: NodoDeValor): Valor {

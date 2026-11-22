@@ -183,6 +183,21 @@ Base = Σde de izquierda a derecha. **Con override del monto, el pct está «pis
 fuente es `override` y vale monto ÷ base. Sin override: monto = base × pct (`sugerido`). Override sólo del pct: monto = base × pct. Los
 dos: manda el monto. Base 0 y manda el %: monto 0; base 0 con override del monto: pct null y `division_por_cero` en el pct.
 
+### Pisar un cálculo
+
+**Qué se pisa lo dice la hoja, no la fórmula** (glosario: «Pisar un cálculo»). La entrada suma `pisables?` (ids): los cálculos que la
+hoja dibuja en una celda (en la base, `_diseno_pisables()`; el editor, la paridad y el corpus no la mandan). Un `tabla`, `tramo` o
+`calculo` que no es el total (`esPisable()`) y está en la lista acepta un override como uno `sobrescribible`; sin override no tiene
+fuente (`sugerido` es de los sobrescribibles). Lo escrito sobre algo que no está en la lista se descarta `no_sobrescribible`.
+
+**El par por la hoja:** un `porcentaje_de` no `sobrescribible`, en `pisables`, cuyo `pct` es una constante o un input que ningún otro
+nodo nombra (`pctsExclusivos()` de `motor-pares.ts`; `_motor_pcts_exclusivos()`), es un par porcentaje-monto: con el monto escrito, el
+pct vale monto ÷ base. Un pct compartido no se reescribe: el monto queda fijo y el pct, como estaba.
+
+**`calculados`:** lo que daría cada cálculo pisado (en `pisables` y con override) sin lo escrito, calculado aparte en la misma pasada
+sin tocar `valores`, `fuentes`, `faltantes` ni los totales (`calcularAparte()` de `motor-nodos.ts`). Con el pct del par pisado, también
+el del pct (lo que valdría sin el pisado), y el monto se calcula con él. Sin pisados no viaja.
+
 ### `sugerido_de` y `requerido_si`
 
 «Tipeado» es que la clave está en `inputs`, aunque valga 0. `sugerido_de` sin tipear vale lo del nodo que nombra (`sugerido`);

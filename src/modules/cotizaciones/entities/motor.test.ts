@@ -35,6 +35,8 @@ const esquemaEsperado = z.strictObject({
   overrides_descartados: z
     .array(z.strictObject({ id: z.string(), motivo: z.enum(MOTIVOS_DE_DESCARTE) }))
     .optional(),
+  // Lo que daría cada cálculo pisado con celda; si falta, el resultado no lo trae.
+  calculados: z.record(z.string(), numero).optional(),
 })
 const esquemaJuego = z.strictObject({
   descripcion: z.string(),
@@ -93,6 +95,14 @@ function compararValores(r: Resultado, c: Caso) {
   }
 }
 
+function compararCalculados(r: Resultado, c: Caso) {
+  const esperados = c.esperado.calculados
+  if (esperados === undefined) return expect(r.calculados, 'calculados').toBeUndefined()
+  expect(Object.keys(r.calculados ?? {}), 'calculados').toEqual(Object.keys(esperados))
+  for (const [id, v] of Object.entries(esperados))
+    igual(r.calculados?.[id], v, c, `calculados.${id}`)
+}
+
 function compararTotales(r: Resultado, c: Caso) {
   const { grupos, ...totales } = c.esperado.totales ?? {}
   for (const [clave, v] of Object.entries(totales)) {
@@ -128,6 +138,7 @@ describe('casos-del-motor.json', () => {
     compararValores(r, c)
     compararTotales(r, c)
     compararMapas(r, c, formula)
+    compararCalculados(r, c)
     expect(r.faltantes).toEqual(c.esperado.faltantes)
     expect(r.overrides_descartados).toEqual(c.esperado.overrides_descartados ?? [])
   })

@@ -651,6 +651,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Valor sugerido / modificado** — `cotizaciones.fuentes` (`sugerido` / `override`), `sobrescribible`: sugerido lo propone tabla, tramo o
   cálculo; modificado lo sobrescribió el asesor. No: `lookup`.
 - **Par porcentaje-monto** — `calculo porcentaje_de` `sobrescribible` y su `pct`: celda editable por monto o %; manda el monto si se sobrescribió.
+  También el de una celda de la hoja cuyo `pct` es una constante o un input que sólo él nombra (`paresDeLaHoja()`).
+- **Pisar un cálculo** — escribir un valor encima de una celda calculada al cotizar (`tabla`, `tramo` o `calculo` que no es el total, si la hoja
+  lo dibuja en una celda: `pisables`, `esPisable()`); queda fijo aunque cambien los datos y su celda queda «Editado a mano». Lo que daba es
+  `calculados` («Calculado: $480»). No: «sobrescribir» (es la marca `sobrescribible` de la fórmula).
 - **Variante en par** — «Se cotiza en par», `en_par` del nodo `opcion` de exactamente dos opciones (`par_sin_dos_opciones`); `ParDeHoja`, `nodosEnPar()` /
   `_nodos_en_par()`: la hoja no dibuja sus chips y lo que cambia según la opción va en dos celdas («Transporte · 20 pies» | «Transporte · 40 pies»); guardar crea
   dos **cotizaciones hermanas**. No es el **Par porcentaje-monto**.
