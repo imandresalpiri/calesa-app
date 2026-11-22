@@ -110,13 +110,6 @@ const PANTALLAS: Pantalla[] = [
   { titulo: 'la página de un origen › Categorías', url: DE_UN_ORIGEN('categorias') },
   { titulo: 'Leads › Campos', url: () => '/configuracion/leads/campos' },
   { titulo: 'Leads', url: () => '/configuracion/leads' },
-  {
-    titulo: 'Catálogos › Niveles',
-    url: () => '/configuracion/catalogos/niveles',
-    controles: (page) => [
-      [page.getByRole('button', { name: /^Más acciones de / }).first(), 'el «⋯» del primer nivel'],
-    ],
-  },
   { titulo: 'Catálogos › Puertos', url: () => '/configuracion/catalogos/puertos' },
   {
     titulo: 'Catálogos › Tipos de documento',

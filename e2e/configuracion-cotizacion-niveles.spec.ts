@@ -13,19 +13,18 @@ import {
   concesionesDelPermiso,
   elegirDelMenu,
   filaDeNivel,
+  insigniaDeRetirado,
+  rotuloDeNiveles,
   masAccionesDe,
   modalDeNivel,
   nivelEnLaBase,
-  nombresAbribles,
   permisosDeNivel,
-  retirados,
-  sembrarNivel,
 } from './soporte/niveles'
-import { aLaVistaSinDesplazar, capturar, sinScrollHorizontal, tactil } from './soporte/recorrido'
+import { capturar, sinScrollHorizontal } from './soporte/recorrido'
 
-// El recorrido de Configuración › Catálogos › Niveles (paso 4.09-2): los dos de fábrica, crear (con sus dos permisos para el dueño), renombrar,
-// cerrar con algo escrito, retirar y restaurar con «Deshacer», eliminar uno sin uso, el foco y el texto al 200 %. Con la dueña, en escritorio y
-// celular. Lo que se juzga mirando, en `E2E_CAPTURAS=e2e-capturas/niveles`. Los casos no felices están en `*-casos`.
+// El recorrido de los niveles de acceso en la matriz de Roles, bloque «Cotizaciones» (paso 4.09-2, T511): los dos de fábrica, crear (con sus dos
+// permisos para el dueño), renombrar desde su «⋯», cerrar con algo escrito, retirar y restaurar con «Deshacer», y eliminar uno sin uso. Con la dueña, en
+// escritorio y celular. Los casos no felices están en `*-casos`; el recorrido de los redirects y del resumen, en `roles-niveles-en-la-matriz`.
 test.describe.configure({ mode: 'serial' })
 
 let duena = ''
@@ -53,19 +52,22 @@ test('de fábrica: «Todos» sólo se lee, «Costos» se renombra y retira pero 
   await entrar(page, duena)
   await page.goto('/configuracion/inicio')
   // Por el buscador del inicio, que está en escritorio y en el celular (el menú, sólo en escritorio).
-  await page.getByRole('searchbox', { name: 'Buscar en Configuración' }).fill('niveles')
-  await page.getByRole('link', { name: 'Catálogos › Niveles', exact: true }).click()
-  await expect(page).toHaveURL(/\/configuracion\/catalogos\/niveles$/)
-  await expect(page.getByRole('heading', { name: 'Niveles', level: 1 })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Niveles de acceso', level: 2 })).toBeVisible()
-  await expect(page.getByText(/de 10 niveles posibles\./)).toBeVisible()
+  await page.getByRole('searchbox', { name: 'Buscar en Configuración' }).fill('niveles de acceso')
+  await page
+    .getByRole('link', { name: /Niveles de acceso/ })
+    .first()
+    .click()
+  await expect(page).toHaveURL(/\/configuracion\/roles\?bloque=cotizaciones/)
+  await expect(rotuloDeNiveles(page)).toBeVisible()
 
   // «Todos»: se lee y no se cambia. Ni «⋯» ni clic para abrirlo.
   const todos = filaDeNivel(page, 'Todos')
   await expect(todos).toBeVisible()
-  await expect(todos.getByText('Lo ve quien ve la cotización')).toBeVisible()
+  await expect(
+    todos.getByText('No se cambia · Lo ve quien ve la cotización', { exact: true }),
+  ).toBeVisible()
+  await expect(insigniaDeRetirado(page, 'Todos')).toHaveCount(0)
   await expect(masAccionesDe(page, 'Todos')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Abrir Todos' })).toHaveCount(0)
 
   // «Costos»: Renombrar y Retirar sí, Eliminar apagado con el motivo de la base (las hojas de fábrica lo nombran).
   await masAccionesDe(page, 'Costos').click()
@@ -96,7 +98,7 @@ test('crear un nivel: nace con sus dos permisos y se los concede al dueño', asy
   await expect(nuevo).toBeHidden()
   await expect(page).not.toHaveURL(/panel=/)
   await expect(filaDeNivel(page, gerencia)).toBeVisible()
-  await expect(filaDeNivel(page, gerencia).getByText('Sin uso')).toBeVisible()
+  await expect(insigniaDeRetirado(page, gerencia)).toHaveCount(0)
 
   const creado = nivelEnLaBase(gerencia)
   expect(creado).toBeDefined()
@@ -110,7 +112,7 @@ test('crear un nivel: nace con sus dos permisos y se los concede al dueño', asy
   expect(concesionesDelPermiso(`cotizaciones.nivel.${clave}.editar`)).toBeGreaterThan(0)
 })
 
-test('renombrar con un clic en la fila: cambia el nombre y el de sus permisos, no la clave', async ({
+test('renombrar desde su «⋯»: cambia el nombre y el de sus permisos, no la clave', async ({
   page,
 }) => {
   const antes = nombre('Gerencia')
@@ -118,7 +120,7 @@ test('renombrar con un clic en la fila: cambia el nombre y el de sus permisos, n
   const original = nivelEnLaBase(antes)
   await entrar(page, duena)
   await abrirNiveles(page)
-  await page.getByRole('button', { name: `Abrir ${antes}`, exact: true }).click()
+  await elegirDelMenu(page, antes, 'Renombrar')
   const modal = modalDeNivel(page, 'Renombrar nivel')
   await expect(modal).toBeVisible()
   await expect(page).toHaveURL(/panel=renombrar-nivel&nivel=/)
@@ -127,7 +129,7 @@ test('renombrar con un clic en la fila: cambia el nombre y el de sus permisos, n
   await modal.getByRole('button', { name: 'Guardar' }).click()
   await expect(modal).toBeHidden()
   expect(nivelEnLaBase(antes)?.actualizado_en).toBe(original?.actualizado_en)
-  await page.getByRole('button', { name: `Abrir ${antes}`, exact: true }).click()
+  await elegirDelMenu(page, antes, 'Renombrar')
   await modal.getByLabel('Nombre').fill(despues)
   await modal.getByRole('button', { name: 'Guardar' }).click()
   await expect(modal).toBeHidden()
@@ -158,24 +160,20 @@ test('cerrar el modal con algo escrito pregunta; descartar o seguir editando', a
   await expect(modal).toBeHidden()
 })
 
-test('retirar pasa el nivel a «Retirados», con «Deshacer» y el foco en su «⋯»; restaurar lo devuelve', async ({
+test('retirar marca el nivel «Retirado», con «Deshacer» y el foco en su «⋯»; restaurar lo devuelve', async ({
   page,
 }, info) => {
   const dir = nombre('Dirección')
   await entrar(page, duena)
   await abrirNiveles(page)
-  await expect(retirados(page)).toHaveCount(0)
+  await expect(insigniaDeRetirado(page, dir)).toHaveCount(0)
   await elegirDelMenu(page, dir, 'Retirar')
   await expect(page.getByText(`«${dir}» retirado.`)).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Retirados', level: 3 })).toBeVisible()
-  await expect(retirados(page).getByText(dir, { exact: true })).toBeVisible()
+  await expect(insigniaDeRetirado(page, dir)).toHaveCount(2)
   await expect(
-    filaDeNivel(page, dir)
-      .getByText(/Retirado el /)
-      .first(),
-  ).toBeVisible()
-  await expect(page.getByRole('status').filter({ hasText: 'pasó a Retirados' })).toBeAttached()
-  // El foco sigue en el «⋯» de esa fila, aunque ahora la dibuja otra sección.
+    page.getByRole('status').filter({ hasText: `«${dir}» quedó retirado.` }),
+  ).toBeAttached()
+  // El foco sigue en el «⋯» de su fila.
   await expect(masAccionesDe(page, dir)).toBeFocused()
   expect(nivelEnLaBase(dir)?.retirado_en).not.toBeNull()
   // Los permisos y las concesiones siguen: lo que ya lo usa se sigue filtrando igual.
@@ -184,17 +182,17 @@ test('retirar pasa el nivel a «Retirados», con «Deshacer» y el foco en su «
 
   // «Deshacer» lo devuelve a los niveles en uso.
   await page.getByRole('button', { name: 'Deshacer' }).click()
-  await expect(retirados(page)).toHaveCount(0)
+  await expect(insigniaDeRetirado(page, dir)).toHaveCount(0)
   await expect.poll(() => nivelEnLaBase(dir)?.retirado_en ?? null).toBeNull()
 
   // Retirarlo de nuevo y restaurarlo desde su «⋯».
   await elegirDelMenu(page, dir, 'Retirar')
-  await expect(retirados(page).getByText(dir, { exact: true })).toBeVisible()
+  await expect(insigniaDeRetirado(page, dir)).toHaveCount(2)
   await masAccionesDe(page, dir).click()
   await expect(page.getByRole('menuitem', { name: 'Retirar', exact: true })).toHaveCount(0)
   await page.getByRole('menuitem', { name: 'Restaurar', exact: true }).click()
   await expect(page.getByText(`«${dir}» restaurado.`)).toBeVisible()
-  await expect(retirados(page)).toHaveCount(0)
+  await expect(insigniaDeRetirado(page, dir)).toHaveCount(0)
   await expect(masAccionesDe(page, dir)).toBeFocused()
   await expect.poll(() => nivelEnLaBase(dir)?.retirado_en ?? null).toBeNull()
 })
@@ -203,11 +201,11 @@ test('«Costos» también se retira y se restaura, y no se pierde su nombre', as
   await entrar(page, duena)
   await abrirNiveles(page)
   await elegirDelMenu(page, 'Costos', 'Retirar')
-  await expect(retirados(page).getByText('Costos', { exact: true })).toBeVisible()
+  await expect(insigniaDeRetirado(page, 'Costos')).toHaveCount(2)
   await masAccionesDe(page, 'Costos').click()
   await expect(page.getByRole('menuitem', { name: 'Eliminar', exact: true })).toBeDisabled()
   await page.getByRole('menuitem', { name: 'Restaurar', exact: true }).click()
-  await expect(retirados(page)).toHaveCount(0)
+  await expect(insigniaDeRetirado(page, 'Costos')).toHaveCount(0)
   await expect.poll(() => nivelEnLaBase('Costos')?.retirado_en ?? null).toBeNull()
 })
 
@@ -229,33 +227,4 @@ test('eliminar uno sin uso: pide confirmar nombrándolo y se lleva el nivel y su
   expect(nivelEnLaBase(dir)).toBeUndefined()
   expect(permisosDeNivel(clave)).toEqual([])
   expect(concesionesDelPermiso(`cotizaciones.nivel.${clave}.ver`)).toBe(0)
-})
-
-test('al 200 %: la página no se ensancha y el nombre y el «⋯» de cada fila están a la vista', async ({
-  page,
-}, info) => {
-  // Del largo máximo que admite la base (40): el nombre se corta con «…» y el «⋯» sigue a la vista.
-  sembrarNivel(nombre('Largo largo largo'))
-  sembrarNivel(nombre('Retirado largo'), { retirado: true })
-  await entrar(page, duena)
-  await abrirNiveles(page)
-  await page.evaluate(() => {
-    document.documentElement.style.fontSize = '200%'
-  })
-  await sinScrollHorizontal(page)
-  const filas = page.getByRole('button', { name: /^Más acciones de / })
-  const total = await filas.count()
-  expect(total).toBeGreaterThan(2)
-  for (const n of [0, 1, total - 1]) {
-    await aLaVistaSinDesplazar(filas.nth(n), `el «⋯» de la fila ${String(n + 1)}`)
-  }
-  const nombres = nombresAbribles(page)
-  for (const n of [0, (await nombres.count()) - 1]) {
-    await aLaVistaSinDesplazar(nombres.nth(n), `el nombre de la fila ${String(n + 1)}`)
-  }
-  await tactil(page, filas.first())
-  await capturar(page, info, 'niveles-200')
-  await page.evaluate(() => {
-    document.documentElement.style.fontSize = ''
-  })
 })

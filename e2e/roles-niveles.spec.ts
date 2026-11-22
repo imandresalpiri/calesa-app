@@ -21,7 +21,7 @@ import { aLaVistaSinDesplazar, capturar, sinScrollHorizontal } from './soporte/r
 import { sesionDe } from './soporte/leads-alta'
 import { literal, sql } from './soporte/sql'
 
-// Los permisos de un nivel de acceso en la matriz de Roles (paso 4.09-2): aparecen en «Cotizaciones» con el nombre del nivel, en su orden, se dan por
+// Los permisos de un nivel de acceso en la matriz de Roles (paso 4.09-2, T511): aparecen en «Cotizaciones», bajo «Niveles de acceso», con el nombre del nivel, en su orden, se dan por
 // origen con `rbac_otorgar`, «Ver como» los refleja, y con el tope de niveles (18 filas más) la matriz sigue cabiendo al 200 % en los dos anchos.
 test.describe.configure({ mode: 'serial' })
 
@@ -68,6 +68,8 @@ async function abrirMatriz(page: Page, rolAVer: string | null = rol) {
   if (rolAVer !== null && esMovil(page)) {
     await page.getByLabel('Rol a la vista').selectOption({ label: rolAVer })
   }
+  // El «⋯» de un nivel llega con su código al hidratar: un clic en una celda antes se pierde.
+  await expect(page.getByRole('button', { name: /^Más acciones de / }).first()).toBeVisible()
 }
 
 const filasDeNivel = (page: Page) => page.locator('[data-permiso^="cotizaciones.nivel."]')
@@ -81,7 +83,7 @@ async function clavesDeLasFilas(page: Page, selector: string): Promise<string[]>
   return claves
 }
 
-test('los permisos de cada nivel están en «Cotizaciones», por nombre y «Ver» antes de «Editar», y el retirado lo dice', async ({
+test('los permisos de cada nivel están en «Cotizaciones», por nombre y «Ver» antes de «Editar», y el retirado lo dice con su insignia', async ({
   page,
 }, info) => {
   await entrar(page, duena)
@@ -94,7 +96,7 @@ test('los permisos de cada nivel están en «Cotizaciones», por nombre y «Ver�
     `cotizaciones.nivel.${clave}.ver`,
     `cotizaciones.nivel.${clave}.editar`,
   ]
-  // «Costos» es de fábrica; después los de prueba, por nombre. Los de nivel van al final del grupo, después de los demás de «Cotizaciones».
+  // «Costos» es de fábrica; después los de prueba, por nombre. Los de nivel van juntos, bajo su rótulo, dentro del grupo de «Cotizaciones».
   const deNivel = claves.filter((c) => c.startsWith('cotizaciones.nivel.'))
   expect(deNivel).toEqual([...de('costos'), ...de(alfa), ...de(beta), ...de(gamma)])
   const primeroDeNivel = claves.findIndex((c) => c.startsWith('cotizaciones.nivel.'))
@@ -112,9 +114,16 @@ test('los permisos de cada nivel están en «Cotizaciones», por nombre y «Ver�
     `Editar el nivel «${nombre('Alfa')}»`,
     `Ver el nivel «${nombre('Beta')}»`,
     `Editar el nivel «${nombre('Beta')}»`,
-    `Ver el nivel «${nombre('Gamma')}» (retirado)`,
-    `Editar el nivel «${nombre('Gamma')}» (retirado)`,
+    `Ver el nivel «${nombre('Gamma')}»`,
+    `Editar el nivel «${nombre('Gamma')}»`,
   ])
+  // El retirado lo dice con su insignia (una por fila); los demás, no.
+  await expect(
+    page.locator('[data-permiso^="cotizaciones.nivel."]').getByText('Retirado', { exact: true }),
+  ).toHaveCount(2)
+  await expect(
+    page.locator(`[data-nivel="${gamma}"]`).getByText('Retirado', { exact: true }),
+  ).toHaveCount(2)
   await filasDeNivel(page).first().scrollIntoViewIfNeeded()
   await capturar(page, info, 'matriz-con-niveles')
 })

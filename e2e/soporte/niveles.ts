@@ -1,4 +1,4 @@
-// Lo que los e2e de Configuración › Catálogos › Niveles y de la matriz de Roles preparan y miran en la base del Supabase LOCAL. Todo nivel que
+// Lo que los e2e de los niveles de acceso (la matriz de Roles, bloque «Cotizaciones») preparan y miran en la base del Supabase LOCAL. Todo nivel que
 // crea un e2e lleva este prefijo en su nombre (y `e2e_4_09` en su clave): es lo único que la limpieza borra, junto con sus dos permisos y los
 // borradores de fórmula que lo nombren. El tope de niveles es de toda la base (10, con «todos» y los retirados): `llenarNivelesHasta()` cuenta lo
 // que ya hay, que otros specs o `db:carreras` pueden haber dejado.
@@ -107,42 +107,51 @@ export function borrarNivelesDePrueba(): void {
 }
 
 // --- La pantalla --------------------------------------------------------------------------------------
+// Los niveles de acceso viven en la matriz de Roles, dentro del bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`): cada nivel son dos
+// filas (`Ver el nivel «X»` y `Editar el nivel «X»`, con `data-permiso` y `data-nivel`) y su «⋯» está en la primera.
+
+export const RUTA_DE_NIVELES = '/configuracion/roles?bloque=cotizaciones'
+
+// El rótulo del grupo: `th` en la tabla, `h3` en la lista de un rol (celular).
+export const rotuloDeNiveles = (page: Page): Locator =>
+  page.getByText('Niveles de acceso', { exact: true }).first()
 
 export async function abrirNiveles(page: Page): Promise<void> {
-  await page.goto('/configuracion/catalogos/niveles')
-  await expect(page.getByRole('heading', { name: 'Niveles de acceso', level: 2 })).toBeVisible()
+  await page.goto(RUTA_DE_NIVELES)
+  await expect(rotuloDeNiveles(page)).toBeVisible()
 }
 
-// La fila (la `<tr>` de la tabla o el `<li>` de la tarjeta del celular, según el ancho) que dice ese nombre, también la del nivel fijo, que no se abre.
+// La fila de «Ver» de ese nivel (la `<tr>` de la tabla o el `<li>` de la lista del celular, según el ancho); la del nivel fijo («Todos», sin celdas) es su renglón.
 export const filaDeNivel = (page: Page, nombre: string): Locator =>
-  page.locator('tr, li').filter({ has: page.getByText(nombre, { exact: true }) })
+  nombre === 'Todos'
+    ? page.locator('[data-nivel-fijo]').filter({ hasText: nombre })
+    : page
+        .locator('tr[data-nivel], li[data-nivel]')
+        .filter({ has: page.getByText(`Ver el nivel «${nombre}»`, { exact: true }) })
+
+// Las dos filas (Ver y Editar) de ese nivel.
+export const filasDelNivel = (page: Page, nombre: string): Locator =>
+  page
+    .locator('tr[data-nivel], li[data-nivel]')
+    .filter({ has: page.getByText(new RegExp(`^(Ver|Editar) el nivel «${nombre}»$`)) })
+
+// La insignia «Retirado» de ese nivel (una por fila: dos).
+export const insigniaDeRetirado = (page: Page, nombre: string): Locator =>
+  filasDelNivel(page, nombre).getByText('Retirado', { exact: true })
 
 // Lo de la lista (el «⋯», sus líneas) es común a las pestañas de Configuración que lo dibujan: `soporte/lista-de-catalogo.ts`.
 export { cerrarMenu, elegirDelMenu, lineaDelMenu, masAccionesDe, menuDe } from './lista-de-catalogo'
 
-const seccion = (page: Page): Locator =>
-  page.locator('section[aria-labelledby="titulo-de-niveles"]')
-
-// Los nombres de las filas que se abren (las que se pueden renombrar), en el orden en que se ven.
+// Los nombres de los niveles que se ven, en el orden en que están (uno por nivel, de su fila «Ver»).
 export async function nombresDeNiveles(page: Page): Promise<string[]> {
-  const botones = await seccion(page)
-    .getByRole('button', { name: /^Abrir / })
-    .all()
-  const nombres: string[] = []
-  for (const boton of botones) {
-    nombres.push(((await boton.getAttribute('aria-label')) ?? '').replace(/^Abrir /, ''))
-  }
-  return nombres
+  const textos = await page.locator('[data-nivel] [data-nombre-de-permiso]').allTextContents()
+  return textos.flatMap((texto) => {
+    const nombre = /^Ver el nivel «(.*)»$/u.exec(texto)?.[1]
+    return nombre === undefined ? [] : [nombre]
+  })
 }
-
-export const nombresAbribles = (page: Page): Locator =>
-  seccion(page).getByRole('button', { name: /^Abrir / })
 
 export const modalDeNivel = (
   page: Page,
   titulo: 'Nuevo nivel de acceso' | 'Renombrar nivel',
 ): Locator => page.getByRole('dialog', { name: titulo })
-
-// La sección «Retirados»: sus filas son las de los niveles retirados.
-export const retirados = (page: Page): Locator =>
-  page.locator('section[aria-labelledby="titulo-de-retirados"]')
