@@ -7,7 +7,7 @@ import {
   pasoAnterior,
   pasoPendiente,
   pasoSiguiente,
-  pendienteEnLaTira,
+  siguePendienteLaPuestaEnMarcha,
   type PermisosDeLaPuestaEnMarcha,
 } from './puesta-en-marcha'
 
@@ -117,19 +117,16 @@ describe('enMarcha', () => {
   })
 })
 
-describe('pendienteEnLaTira', () => {
-  it('el paso que toca, con Publicar en el de la fórmula, y nada sin puesta en marcha', () => {
-    expect(pendienteEnLaTira(estado({ camposActivos: 1, fases: 1 }))).toBe('formula')
-    expect(
-      pendienteEnLaTira(estado({ camposActivos: 1, fases: 1 }, { hayFormulaDeTrabajo: true })),
-    ).toBe('formula')
-    expect(pendienteEnLaTira(estado())).toBe('campos')
-    expect(pendienteEnLaTira(estado({ formulaPublicada: true }))).toBeNull()
+describe('siguePendienteLaPuestaEnMarcha', () => {
+  it('mientras siga y quede un paso que la persona pueda hacer', () => {
+    expect(siguePendienteLaPuestaEnMarcha(estado({ camposActivos: 1, fases: 1 }))).toBe(true)
+    expect(siguePendienteLaPuestaEnMarcha(estado())).toBe(true)
+    expect(siguePendienteLaPuestaEnMarcha(estado({ formulaPublicada: true }))).toBe(false)
     const sinCotizador = estado(
       { camposActivos: 1, fases: 1 },
       { permisos: { ...TODOS, cotizador: false } },
     )
-    expect(pendienteEnLaTira(sinCotizador)).toBeNull()
+    expect(siguePendienteLaPuestaEnMarcha(sinCotizador)).toBe(false)
   })
 })
 

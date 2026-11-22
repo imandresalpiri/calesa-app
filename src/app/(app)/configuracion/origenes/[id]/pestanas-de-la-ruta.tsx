@@ -2,33 +2,62 @@
 
 import type { Route } from 'next'
 import { useRouter, useSelectedLayoutSegment } from 'next/navigation'
+import { parseAsString, useQueryState } from 'nuqs'
+import { useEffect } from 'react'
+import { recordarLaPestana } from '@/modules/equipo/client'
+import {
+  CLAVE_DE_LA_FORMULA,
+  esParteDeLaFormula,
+  rutaDeLaFormula,
+  type ParteDelOrigen,
+} from '@/shared/lib/rutas'
 import { PestanasConDesborde } from '@/shared/ui/pestanas-con-desborde'
 import { salirSinPerder } from '@/shared/ui/salida-con-cambios'
 
 type Props = {
-  // Las pestañas, con su ruta ya resuelta; con `motivo`, apagada.
-  pestanas: readonly { clave: string; titulo: string; ruta: string; motivo?: string }[]
-  // La pestaña que vive en la ruta del layout, sin segmento propio (`…/formula` es «Fórmula»; `…/formula/hoja`, «Hoja»).
-  sinSegmento: string
+  origenId: string
+  // Las pestañas, con su ruta ya resuelta; con `motivo`, apagada; con `aviso`, lo que le falta (⚠).
+  pestanas: readonly {
+    clave: ParteDelOrigen
+    titulo: string
+    ruta: string
+    motivo?: string
+    aviso?: string
+  }[]
 }
 
-// Las pestañas de un layout de Configuración (las de un origen y las de su Fórmula). Cada una es una sub-ruta y la abierta sale del segmento
-// de la URL; elegir navega y suelta los parámetros de la otra (`?panel=`, `?tabla=`, `?version=`, `?vista=`); con una barra de cambios sin
-// guardar, antes pregunta (`salirSinPerder()`).
-export function PestanasDeLaRuta({ pestanas, sinSegmento }: Props) {
+// Las pestañas de la página de un origen. Cada una es una sub-ruta y la abierta sale del segmento de la URL; elegir navega y suelta los parámetros de la otra
+// (`?panel=`, `?tabla=`, `?fase=`), salvo la fórmula elegida entre Planilla, Hoja y Tarjeta (`?formula=`); con una barra de cambios sin guardar, antes
+// pregunta (`salirSinPerder()`). La abierta se recuerda por persona y origen (la próxima entrada a `/configuracion/origenes/<id>` va a ésa), sin esperar.
+export function PestanasDeLaRuta({ origenId, pestanas }: Props) {
   const router = useRouter()
-  const valor = useSelectedLayoutSegment() ?? sinSegmento
+  const segmento = useSelectedLayoutSegment()
+  const abierta = pestanas.find((pestana) => pestana.clave === segmento)?.clave ?? null
+  const [formula] = useQueryState(CLAVE_DE_LA_FORMULA, parseAsString)
+  useEffect(() => {
+    if (abierta !== null) {
+      void recordarLaPestana({ origenId, parte: abierta })
+    }
+  }, [origenId, abierta])
   return (
     <PestanasConDesborde
       pestanas={pestanas}
-      valor={valor}
+      valor={abierta ?? ''}
       alElegir={(elegida) => {
-        const ruta = pestanas.find((pestana) => pestana.clave === elegida)?.ruta
-        if (ruta !== undefined && elegida !== valor) {
-          salirSinPerder(() => {
-            router.push(ruta as Route)
-          })
+        const pestana = pestanas.find((una) => una.clave === elegida)
+        if (pestana === undefined || elegida === abierta) {
+          return
         }
+        const ruta =
+          formula !== null &&
+          abierta !== null &&
+          esParteDeLaFormula(abierta) &&
+          esParteDeLaFormula(pestana.clave)
+            ? rutaDeLaFormula(origenId, formula, pestana.clave)
+            : pestana.ruta
+        salirSinPerder(() => {
+          router.push(ruta as Route)
+        })
       }}
     />
   )

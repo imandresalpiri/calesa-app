@@ -5,8 +5,8 @@ import { puedeAbrirElOrigen } from '../origenes/acceso'
 import type { GrupoDelNavegador, SubseccionDelNavegador } from '../secciones'
 
 // Los sub-ítems de Orígenes en el menú: uno por origen que la persona abre (alguno de los permisos de la sección en ese origen), en el orden
-// del catálogo y con tope; con más, «Ver todos los orígenes» lleva a la lista. Cada uno abre la pestaña Datos (la primera, que abre todo el
-// que abre el origen) y se marca en todas sus pestañas (`marca`). El registro (`secciones.ts`) no lee la base: los suma quien arma el menú.
+// del catálogo y con tope; con más, «Ver todos los orígenes» lleva a la lista. Cada uno abre su página (`/configuracion/origenes/<id>`: la última
+// pestaña que la persona usó ahí) y se marca en todas sus pestañas (`marca`). El registro (`secciones.ts`) no lee la base: los suma quien arma el menú.
 export const VER_TODOS_LOS_ORIGENES = 'Ver todos los orígenes'
 
 export function subseccionesDeOrigenes(

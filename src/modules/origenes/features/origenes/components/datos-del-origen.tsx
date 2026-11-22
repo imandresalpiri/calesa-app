@@ -5,12 +5,8 @@ import { plataformasConocidas } from '@/shared/lib/apibara'
 import { enfocarPrimerError, errorDeCampo } from '@/shared/lib/formularios'
 import { Aviso } from '@/shared/ui/aviso'
 import { BarraDeCambiosSinGuardar } from '@/shared/ui/barra-de-cambios-sin-guardar'
-import { MOTIVO_SIN_PERMISO_ORIGENES, MOTIVO_TIPO_NO_CAMBIA } from '../../../entities/motivos'
-import {
-  ETIQUETA_DE_TIPO_DE_ORIGEN,
-  huellaDelOrigen,
-  type OrigenConUso,
-} from '../../../entities/origen'
+import { MOTIVO_SIN_PERMISO_ORIGENES } from '../../../entities/motivos'
+import { huellaDelOrigen, type OrigenConUso } from '../../../entities/origen'
 import { useOrigenes } from '../hooks/use-origenes'
 import {
   hayCambiosEnElOrigen,
@@ -18,27 +14,9 @@ import {
   type ValoresDeOrigen,
 } from '../hooks/use-valores-de-origen'
 import { CamposDeOrigen } from './campos-de-origen'
+import { FichaDelOrigen } from './datos/ficha-del-origen'
 
 type Props = { origen: OrigenConUso; puedeGestionar: boolean }
-
-// Lo que no se edita: el tipo y la clave interna salen de cuando se creó el origen.
-function FichaDelOrigen({ origen }: { origen: OrigenConUso }) {
-  return (
-    <dl className="grid gap-1 text-(length:--text-sm)">
-      <div className="flex flex-wrap gap-x-2">
-        <dt className="text-(--color-ink-soft)">Tipo</dt>
-        <dd className="font-medium text-(--color-ink)">
-          {ETIQUETA_DE_TIPO_DE_ORIGEN[origen.tipo]}
-        </dd>
-      </div>
-      <div className="flex min-w-0 flex-wrap gap-x-2">
-        <dt className="text-(--color-ink-soft)">Clave interna</dt>
-        <dd className="min-w-0 font-mono break-all text-(--color-ink)">{origen.clave}</dd>
-      </div>
-      <p className="text-(--color-ink-faint)">{MOTIVO_TIPO_NO_CAMBIA}</p>
-    </dl>
-  )
-}
 
 type PropsDelFormulario = Props & {
   idFormulario: string
@@ -153,7 +131,7 @@ function ContenidoDelOrigen({ origen, puedeGestionar }: Props) {
   )
 }
 
-// La parte «Datos». Lleva de `key` lo que el formulario muestra (no la versión): desactivar el origen o marcar un dato clave toca la misma
+// El paso «Datos» de la puesta en marcha (en la página del origen, el drawer «Datos»: `datos/`). Lleva de `key` lo que el formulario muestra (no la versión): desactivar el origen o marcar un dato clave toca la misma
 // fila y no le borra lo tipeado; guardar (uno mismo u otra persona) sí lo reinicia desde lo guardado, y la barra se va.
 export function DatosDelOrigen({ origen, puedeGestionar }: Props) {
   return (

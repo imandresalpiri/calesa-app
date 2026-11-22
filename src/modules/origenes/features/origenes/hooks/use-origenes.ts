@@ -29,6 +29,13 @@ export function useOrigenes() {
       ),
     guardar: async (edicion: z.input<typeof esquemaGuardarOrigen>, exito: string) =>
       cerrarConAviso(await guardar(edicion), exito),
+    // Los datos del drawer: el conflicto (`PT409`) no va en un toast, lo dice el formulario con «Recargar» (docs/UX.md › Conflictos).
+    guardarDatos: async (edicion: z.input<typeof esquemaGuardarOrigen>, exito: string) => {
+      const resultado = await guardar(edicion)
+      return resultado.ok || resultado.error.codigo !== 'conflicto'
+        ? cerrarConAviso(resultado, exito)
+        : resultado
+    },
     // Reversible: se hace y se ofrece «Deshacer», con la versión que devolvió el cambio.
     cambiarActivo: async (
       origen: { id: string; nombre: string; actualizadoEn: string },
