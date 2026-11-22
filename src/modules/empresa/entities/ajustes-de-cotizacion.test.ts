@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { Permisos } from '@/shared/lib/permisos'
-import { ajustesDeCotizacionDesde, puedeCambiarAjustesDeCotizacion } from './ajustes-de-cotizacion'
+import {
+  ajustesDeCotizacionDesde,
+  MOTIVO_DE_VIGENCIA_INVALIDA,
+  puedeCambiarAjustesDeCotizacion,
+  textoDeLaVigencia,
+  validarVigencia,
+} from './ajustes-de-cotizacion'
 
 const USA = '11111111-1111-4111-8111-111111111111'
 const COREA = '22222222-2222-4222-8222-222222222222'
@@ -49,5 +55,30 @@ describe('puedeCambiarAjustesDeCotizacion', () => {
         { clave: 'cotizaciones.ver', origenId: null, alcance: 'todos' },
       ]),
     ).toBe(false)
+  })
+})
+
+describe('validarVigencia', () => {
+  it('acepta los días enteros de 1 a 365, con espacios de más', () => {
+    expect(validarVigencia('30')).toStrictEqual({ ok: true, dias: 30 })
+    expect(validarVigencia(' 1 ')).toStrictEqual({ ok: true, dias: 1 })
+    expect(validarVigencia('365')).toStrictEqual({ ok: true, dias: 365 })
+  })
+
+  it('rechaza lo que no es un entero del rango, con el motivo de la base', () => {
+    for (const texto of ['', '0', '366', '-3', '1.5', '1e2', 'abc', '1000']) {
+      expect(validarVigencia(texto), texto).toStrictEqual({
+        ok: false,
+        motivo: MOTIVO_DE_VIGENCIA_INVALIDA,
+      })
+    }
+    expect(MOTIVO_DE_VIGENCIA_INVALIDA).toBe('La vigencia va de 1 a 365 días.')
+  })
+})
+
+describe('textoDeLaVigencia', () => {
+  it('dice «día» en singular', () => {
+    expect(textoDeLaVigencia(1)).toBe('1 día')
+    expect(textoDeLaVigencia(30)).toBe('30 días')
   })
 })

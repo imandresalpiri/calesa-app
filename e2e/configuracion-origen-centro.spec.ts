@@ -195,10 +195,10 @@ type Redireccion = {
 }
 
 const REDIRECCIONES: Record<string, Redireccion> = {
-  // Las fijas de next.config.ts.
+  // Las fijas de next.config.ts. Colores y Vigencia viven en Orígenes (`?panel=`): un `?panel=` propio manda y va solo.
   'cotizacion/general': {
     de: () => '/configuracion/cotizacion/general?x=1',
-    a: () => '/configuracion/catalogos/colores?x=1',
+    a: () => '/configuracion/origenes?x=1&panel=colores',
   },
   'cotizacion/general/niveles': {
     de: () => '/configuracion/cotizacion/general/niveles?panel=nuevo-nivel',
@@ -276,7 +276,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   // /configuracion/catalogos (route.ts, por persona): no tiene página propia.
   'catalogos sin nada': {
     de: () => '/configuracion/catalogos',
-    a: () => '/configuracion/catalogos/colores',
+    a: () => '/configuracion/catalogos/niveles',
   },
   // /configuracion/origenes/<id> (route.ts, por persona: sin pestaña recordada, la primera que abre).
   'origenes/<id> ?seccion=campos&campo': {

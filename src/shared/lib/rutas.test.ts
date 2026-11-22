@@ -300,23 +300,26 @@ describe('rutaDeLaPuestaEnMarcha', () => {
   })
 })
 
+describe('Colores y vigencia de las cotizaciones', () => {
+  it('se configuran en Orígenes, cada uno en el modal de su tarjeta', () => {
+    expect(RUTAS.coloresDeCotizacion).toBe('/configuracion/origenes?panel=colores')
+    expect(RUTAS.vigenciaDeCotizacion).toBe('/configuracion/origenes?panel=vigencia')
+  })
+})
+
 describe('Catálogos', () => {
   it('lo global de la empresa vive bajo /configuracion/catalogos', () => {
     expect([
-      RUTAS.coloresDeCotizacion,
       RUTAS.nivelesDeCotizacion,
       RUTAS.quienCreaYQuienVe,
-      RUTAS.vigenciaDeCotizacion,
       RUTAS.puertosDeLogistica,
       RUTAS.navierasDeLogistica,
       RUTAS.categoriasDeGastoDeLogistica,
       RUTAS.tiposDeDocumento,
       RUTAS.tablasCompartidas,
     ]).toEqual([
-      '/configuracion/catalogos/colores',
       '/configuracion/catalogos/niveles',
       '/configuracion/catalogos/quien-crea-y-quien-ve',
-      '/configuracion/catalogos/vigencia',
       '/configuracion/catalogos/puertos',
       '/configuracion/catalogos/navieras',
       '/configuracion/catalogos/categorias-de-gasto',

@@ -5,6 +5,7 @@ import {
   hayCambiosEnElTono,
   motivoParaNoAbrirTono,
   motivoParaNoEliminarTono,
+  resumirColores,
 } from './panel-de-tonos'
 import { derivarColores } from '../colores'
 import type { Tono } from './tonos'
@@ -55,5 +56,14 @@ describe('el panel de colores', () => {
     expect(hayCambiosEnElTono(null, '', '#31869b')).toBe(false)
     expect(hayCambiosEnElTono(null, 'Nuevo', '#31869b')).toBe(true)
     expect(hayCambiosEnElTono(null, '', '#000000')).toBe(true)
+  })
+
+  it('la tarjeta: muestra los primeros y cuenta cuántos quedan fuera, sólo de lo leído', () => {
+    const ocho = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((id) => tono(id, id.toUpperCase()))
+    const { visibles, mas } = resumirColores(ocho, 6)
+    expect(visibles.map((t) => t.id)).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
+    expect(mas).toBe(2)
+    expect(resumirColores(ocho.slice(0, 6), 6)).toEqual({ visibles: ocho.slice(0, 6), mas: 0 })
+    expect(resumirColores([], 6)).toEqual({ visibles: [], mas: 0 })
   })
 })

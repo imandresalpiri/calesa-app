@@ -22,16 +22,34 @@ describe('la URL vieja de Configuración › Cotización', () => {
     expect(destinoDeLaUrlVieja({ origen: A })).toBe(`${ORIGEN}/planilla`)
   })
 
-  it('lo general va a Catálogos, con sus paneles', () => {
+  it('los niveles van a Catálogos, con sus paneles', () => {
     expect(destinoDeLaUrlVieja({ seccion: 'niveles', panel: 'nuevo-nivel' })).toBe(
       '/configuracion/catalogos/niveles?panel=nuevo-nivel',
     )
-    expect(destinoDeLaUrlVieja({ seccion: 'tonos', panel: 'editar-tono', tono: 'azul' })).toBe(
-      '/configuracion/catalogos/colores?panel=editar-tono&tono=azul',
+  })
+
+  it('los colores y la vigencia van al modal de su tarjeta en Orígenes', () => {
+    expect(destinoDeLaUrlVieja({ seccion: 'colores' })).toBe(
+      '/configuracion/origenes?panel=colores',
     )
-    expect(destinoDeLaUrlVieja({ seccion: 'colores' })).toBe('/configuracion/catalogos/colores')
+    expect(destinoDeLaUrlVieja({ seccion: 'tonos' })).toBe('/configuracion/origenes?panel=colores')
     expect(destinoDeLaUrlVieja({ seccion: 'ajustes', origen: A })).toBe(
-      '/configuracion/catalogos/vigencia',
+      '/configuracion/origenes?panel=vigencia',
+    )
+    expect(destinoDeLaUrlVieja({ seccion: 'vigencia' })).toBe(
+      '/configuracion/origenes?panel=vigencia',
+    )
+  })
+
+  it('el panel propio de la URL vieja manda y el resto de la consulta viaja', () => {
+    expect(destinoDeLaUrlVieja({ seccion: 'tonos', panel: 'editar-tono', tono: 'azul' })).toBe(
+      '/configuracion/origenes?panel=editar-tono&tono=azul',
+    )
+    expect(
+      destinoDeLaUrlVieja({ seccion: 'colores', panel: ['eliminar-tono', 'x'], tono: 't' }),
+    ).toBe('/configuracion/origenes?panel=eliminar-tono&tono=t')
+    expect(destinoDeLaUrlVieja({ seccion: 'colores', x: '1' })).toBe(
+      '/configuracion/origenes?panel=colores&x=1',
     )
   })
 

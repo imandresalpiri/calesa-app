@@ -1,8 +1,11 @@
 // Las páginas de ajustes como tarjetas resumen que se editan en un modal (docs/GLOSARIO.md › Tarjeta de ajustes).
 export { BotonDeLaTarjeta } from './boton-de-la-tarjeta'
+export { LimiteDeTarjeta } from './limite-de-tarjeta'
 export { ListaCorta, resumirLista, type FilaDeListaCorta } from './lista-corta'
 export { MuestraDeColor } from './muestra-de-color'
 export { TarjetaDeAjustes } from './tarjeta-de-ajustes'
 export { TarjetaEditable } from './tarjeta-editable'
+export { TarjetaTocable } from './tarjeta-tocable'
+export { ToqueDeLaTarjeta } from './toque-de-la-tarjeta'
 export { TarjetasDeAjustes } from './tarjetas-de-ajustes'
 export { ValoresDeLaTarjeta, type FilaDeValores } from './valores-de-la-tarjeta'

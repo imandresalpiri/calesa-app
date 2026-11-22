@@ -15,9 +15,15 @@ vista y un modal para editar. Sólo dibuja: no lee la base ni guarda nada.
     línea del «⋯» (apagada, dice el `motivo`), con `extra` después. La usan Empresa, Sitio web, Legales y Leads.
   - `<ListaCorta filas tope vacio>`: las primeras `tope` activas de un catálogo (icono, nombre, insignias de texto) y «y N más · M desactivados»; sin `'use client'`. La usa Leads.
   - `<BotonDeLaTarjeta panel etiqueta deshabilitado?>`: `'use client'`; abre `?panel=<panel>` con `usePanelPorUrl()`.
+  - `<TarjetaTocable titulo accion abrir motivo estado? extra?>`: `'use client'`; la tarjeta que se abre **sin botón suelto**: sólo su «⋯» (`<accion>…` como primera línea, apagada con el
+    `motivo`) y tocar la tarjeta la abre. Con el teclado la tarjeta es un botón con nombre (`<accion>`) y el «⋯» va aparte (`Más acciones de <título>`). Con `motivo` la tarjeta no abre nada.
+    Lo dibuja con `<ToqueDeLaTarjeta etiqueta abrir datosDelBoton?>` (`'use client'`): un botón que cubre la tarjeta (`absolute inset-0`) mientras las acciones van `relative` por encima, así ningún
+    interactivo queda dentro de otro; la fila de una lista que se abre al tocarla lo usa igual (`FilaDeColor`). La usa «Para todos los orígenes».
+  - `<LimiteDeTarjeta titulo>`: `'use client'`; el límite de error de una tarjeta que lee por su cuenta: si la lectura falla, esa tarjeta dice «No pudimos cargar «título»» con «Reintentar» (`router.refresh`) y las demás
+    cosas de la página siguen.
 - Aparte, en `src/shared/ui/`: `use-envio-con-version.ts` (`useEnvioConVersion()`, el guardado de un modal con versión) y
   `esqueletos/esqueleto-tarjetas.tsx` (`<EsqueletoTarjetas tarjetas>`, la misma grilla para `loading.tsx`).
-- Lo usan las páginas de Empresa, Integraciones, Comprobantes y Sitio web (Ajustes y Legales); Monedas (con la tarjeta de cada tipo de cambio) y el perfil (tarjetas de tres módulos en un mismo tablero; `<EsqueletoDeUnaTarjeta>` para el `<Suspense>` de cada una). No lo importan `layout.tsx` ni `_shell`.
+- Lo usan las páginas de Empresa, Integraciones, Orígenes («Para todos los orígenes»), Comprobantes y Sitio web (Ajustes y Legales); Monedas (con la tarjeta de cada tipo de cambio) y el perfil (tarjetas de tres módulos en un mismo tablero; `<EsqueletoDeUnaTarjeta>` para el `<Suspense>` de cada una). No lo importan `layout.tsx` ni `_shell`.
 
 ## No se rompe
 

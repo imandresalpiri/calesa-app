@@ -8,10 +8,11 @@ export const DisenoDelOrigenDiferido = diferido(
   { aviso: 'aqui' },
 )
 
-// La pestaña «Colores»: el catálogo se pide al abrirla; Catálogos no lo carga para mostrar sus otras secciones.
+// La lista de colores en su modal (con el estado de todo lo que se hace en ella): se pide la primera vez que se abre algún panel de su familia
+// (`useFamiliaDeColores().montar`); la tarjeta de Orígenes sólo dibuja el resumen.
 export const ColoresDelCatalogoDiferido = diferido(
   () => import('./colores-del-catalogo').then((modulo) => modulo.ColoresDelCatalogo),
-  { aviso: 'aqui' },
+  { aviso: 'pantalla' },
 )
 
 // «Nuevo color» y «Editar color» (con la derivación de sus muestras) se piden recién al abrirse (`useAbiertoAlgunaVez()`): la lista no los carga para mostrarse.

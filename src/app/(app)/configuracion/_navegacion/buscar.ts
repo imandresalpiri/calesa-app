@@ -1,7 +1,7 @@
 import type { GrupoDelNavegador } from '../secciones'
 
 // La búsqueda de Configuración: sobre lo que el menú ya recibe (secciones y sub-secciones que la persona puede abrir, con las `palabras` que
-// declara el registro, y los orígenes que el menú suma), sin pedir nada más. Una sub-sección apagada (sin permiso) no se ofrece. Se compara sin acentos ni mayúsculas y cada palabra escrita tiene que ser el comienzo de una palabra del título (con el de
+// declara el registro, los orígenes que el menú suma y los destinos de búsqueda: un modal con su `?panel=`), sin pedir nada más. Una sub-sección apagada (sin permiso) no se ofrece. Se compara sin acentos ni mayúsculas y cada palabra escrita tiene que ser el comienzo de una palabra del título (con el de
 // su sección) o de sus palabras: «logo» no encuentra «Catálogos».
 export type ResultadoDeBusqueda = {
   clave: string
@@ -55,7 +55,17 @@ function candidatas(grupos: readonly GrupoDelNavegador[]): Candidata[] {
           },
         ]
       })
-      return [propia, ...subs]
+      // Los destinos de búsqueda de la sección (un modal con su `?panel=`): se encuentran como una sub-sección, pero el menú no los dibuja.
+      const destinos = (seccion.destinos ?? []).map((destino): Candidata => ({
+        clave: `${seccion.clave}-${destino.clave}`,
+        camino: `${seccion.titulo} › ${destino.titulo}`,
+        ruta: destino.ruta,
+        esSub: true,
+        propio: separar(destino.titulo),
+        titulos: separar(`${seccion.titulo} ${destino.titulo}`),
+        palabras: separar(destino.palabras.join(' ')),
+      }))
+      return [propia, ...subs, ...destinos]
     }),
   )
 }

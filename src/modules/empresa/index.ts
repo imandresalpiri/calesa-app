@@ -19,10 +19,11 @@ export { zonasHorarias } from './entities/regional'
 export { getTiposCambio, leerHistorial, leerUltimosCambios } from './composicion'
 export type { TipoCambio } from './entities/tipos-cambio'
 
-// Configuración › Catálogos › Vigencia (4.20-4b): la vigencia de las cotizaciones
+// Configuración › Orígenes › «Para todos los orígenes» › Vigencia (4.20-4b): la vigencia de las cotizaciones
 export { leerAjustesDeCotizacion } from './composicion'
 export { puedeCambiarAjustesDeCotizacion } from './entities/ajustes-de-cotizacion'
 export type { AjustesDeCotizacion } from './entities/ajustes-de-cotizacion'
+export { MOTIVO_SIN_PERMISO_AJUSTES_DE_COTIZACION } from './entities/motivos'
 
 // Compartir los tipos de cambio con un cliente: las rutas `/tipos-de-cambio/texto` y `/tipos-de-cambio/imagen` (sesión y ids de la URL) y la leyenda
 export { leerLeyendaDeTiposCambio, responderCompartirTiposCambio } from './composicion'

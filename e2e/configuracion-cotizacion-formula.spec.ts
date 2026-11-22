@@ -94,8 +94,8 @@ test('quien sólo configura la fórmula de un origen entra por el hub y el menú
   await expect(page.getByRole('heading', { name: 'Publicada: versión 26' })).toBeVisible()
   // Los niveles tampoco se abren escribiendo la URL: van al primer catálogo que abre.
   await page.goto('/configuracion/catalogos/niveles')
-  await expect(page).toHaveURL(/\/configuracion\/catalogos\/colores$/)
-  await expect(page.getByRole('heading', { name: 'Colores', level: 1 })).toBeVisible()
+  await expect(page).toHaveURL(/\/configuracion\/catalogos\/tablas$/)
+  await expect(page.getByRole('heading', { name: 'Tablas compartidas', level: 1 })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Niveles de acceso' })).toHaveCount(0)
   // Un origen que no es suyo no se abre.
   await abrirLaFormula(page, grande.id, 'planilla')

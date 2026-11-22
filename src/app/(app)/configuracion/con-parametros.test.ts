@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { conParametros, deLaBusqueda, redireccionPermanente } from './con-parametros'
+import {
+  conElPanelDeOrigenes,
+  conParametros,
+  deLaBusqueda,
+  redireccionPermanente,
+} from './con-parametros'
 
 describe('conParametros', () => {
   it('quita `seccion` y conserva lo demás, en su orden', () => {
@@ -41,6 +46,32 @@ describe('redireccionPermanente', () => {
     expect(redireccionPermanente('/x').headers.get('Cache-Control')).toBeNull()
     expect(redireccionPermanente('/x', { porPersona: true }).headers.get('Cache-Control')).toBe(
       'private, no-store',
+    )
+  })
+})
+
+describe('conElPanelDeOrigenes', () => {
+  const ORIGENES = '/configuracion/origenes'
+
+  it('sin panel propio, el de la tarjeta y el resto de la consulta', () => {
+    expect(conElPanelDeOrigenes(ORIGENES, 'colores', {})).toBe(`${ORIGENES}?panel=colores`)
+    expect(conElPanelDeOrigenes(ORIGENES, 'vigencia', { x: '1', seccion: 'ajustes' })).toBe(
+      `${ORIGENES}?panel=vigencia&x=1`,
+    )
+  })
+
+  it('el panel propio manda, y es uno solo', () => {
+    expect(
+      conElPanelDeOrigenes(ORIGENES, 'colores', { panel: 'editar-tono', tono: 'abc', x: '1' }),
+    ).toBe(`${ORIGENES}?panel=editar-tono&tono=abc&x=1`)
+    expect(conElPanelDeOrigenes(ORIGENES, 'colores', { panel: ['eliminar-tono', 'otro'] })).toBe(
+      `${ORIGENES}?panel=eliminar-tono`,
+    )
+  })
+
+  it('un panel vacío cuenta como ninguno', () => {
+    expect(conElPanelDeOrigenes(ORIGENES, 'colores', { panel: '' })).toBe(
+      `${ORIGENES}?panel=colores`,
     )
   })
 })

@@ -12,7 +12,7 @@ import {
 } from './soporte/base'
 import { sql } from './soporte/sql'
 
-// Configuración › Catálogos › «Vigencia» (4.20-4b, `docs/UX.md` › «Cotización: vigencia (estados propios)»): la vigencia (si el vehículo y el lead son
+// Configuración › Orígenes › tarjeta y modal «Vigencia» (4.20-4b, `docs/UX.md` › «Cotización: vigencia (estados propios)»): la vigencia (si el vehículo y el lead son
 // obligatorios se decide por rol y origen en «Roles y permisos»; la línea de abajo lleva allí). La ve quien tiene `cotizaciones.configurar` en algún origen y la cambia quien la tiene en todos. El conflicto de versión lo prueba la T3 de
 // `supabase/tests/empresa-ajustes-de-cotizacion.sql`. La fila es única: se restaura al final (el e2e corre con un solo worker).
 test.describe.configure({ mode: 'serial' })
@@ -56,22 +56,21 @@ test.afterAll(async () => {
 })
 
 const vigencia = (page: Page) => page.getByLabel('Vigencia (días)')
-const menu = (page: Page) => page.getByRole('navigation', { name: 'Secciones de Configuración' })
+const modal = (page: Page) => page.getByRole('dialog', { name: 'Vigencia', exact: true })
 
-test('la dueña cambia la vigencia desde el hub y queda guardada; la línea de «Roles y permisos» la lleva allí', async ({
+test('la dueña cambia la vigencia desde su tarjeta de Orígenes y queda guardada; la línea de «Roles y permisos» la lleva allí', async ({
   page,
 }) => {
   sql('update public.ajustes_empresa set vigencia_dias = 15')
   await entrar(page, duena, { fresco: true })
-  await page.goto('/configuracion/inicio')
-  await page.getByRole('region').getByRole('link', { name: 'Catálogos', exact: true }).click()
-  await menu(page).getByRole('link', { name: 'Vigencia', exact: true }).click()
-  await expect(page).toHaveURL(/\/configuracion\/catalogos\/vigencia$/)
-  await expect(menu(page).getByRole('link', { name: 'Vigencia', exact: true })).toHaveAttribute(
-    'aria-current',
-    'page',
-  )
-  await expect(page.getByRole('heading', { name: 'Vigencia', level: 1 })).toBeVisible()
+  await page.goto('/configuracion/origenes')
+  await expect(
+    page.getByRole('heading', { name: 'Para todos los orígenes', level: 2 }),
+  ).toBeVisible()
+  await expect(page.getByText('15 días', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Editar vigencia', exact: true }).click()
+  await expect(page).toHaveURL(/\/configuracion\/origenes\?panel=vigencia$/)
+  await expect(modal(page)).toBeVisible()
   await expect(vigencia(page)).toHaveValue('15')
   await expect(
     page.getByText(
@@ -83,38 +82,43 @@ test('la dueña cambia la vigencia desde el hub y queda guardada; la línea de �
     '/configuracion/roles',
   )
 
-  // La barra aparece al cambiar el campo; descartar vuelve a lo guardado y la esconde.
-  await expect(page.getByRole('button', { name: 'Guardar' })).toHaveCount(0)
-  await vigencia(page).fill('20')
-  await expect(page.getByText('Tienes cambios sin guardar', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Descartar' }).click()
-  await expect(vigencia(page)).toHaveValue('15')
-  await expect(page.getByText('Tienes cambios sin guardar', { exact: true })).toBeHidden()
+  // Un valor fuera de 1–365 no sale y dice por qué junto al campo.
+  await vigencia(page).fill('400')
+  await modal(page).getByRole('button', { name: 'Guardar', exact: true }).click()
+  await expect(modal(page).getByText('La vigencia va de 1 a 365 días.')).toBeVisible()
+  expect(sql('select vigencia_dias from public.ajustes_empresa')).toBe('15')
 
-  // Con cambios, ir a otro catálogo pregunta.
   await vigencia(page).fill('30')
-  await menu(page).getByRole('link', { name: 'Colores', exact: true }).click()
-  await page.getByRole('button', { name: 'Seguir editando' }).click()
-  await expect(page).toHaveURL(/catalogos\/vigencia$/)
-  await expect(vigencia(page)).toHaveValue('30')
-
-  await page.getByRole('button', { name: 'Guardar' }).click()
+  await modal(page).getByRole('button', { name: 'Guardar', exact: true }).click()
+  await expect(modal(page)).toBeHidden()
   await expect(page.getByText('Vigencia guardada')).toBeVisible()
   expect(sql('select vigencia_dias from public.ajustes_empresa')).toBe('30')
 
   await page.reload()
-  await expect(vigencia(page)).toHaveValue('30')
+  await expect(page.getByText('30 días', { exact: true })).toBeVisible()
 })
 
-test('quien configura un solo origen ve la vigencia apagada, con el motivo y sin barra', async ({
+test('quien configura un solo origen ve la vigencia en su tarjeta, con el motivo y sin poder abrirla', async ({
   page,
 }) => {
   await entrar(page, configuradora, { fresco: true })
-  await page.goto('/configuracion/catalogos/vigencia')
-  await expect(page.getByRole('heading', { name: 'Vigencia', level: 1 })).toBeVisible()
+  await page.goto('/configuracion/origenes')
+  await expect(
+    page.getByRole('heading', { name: 'Para todos los orígenes', level: 2 }),
+  ).toBeVisible()
   await expect(
     page.getByText('Cambiar estos ajustes pide configurar el cotizador en todos los orígenes.'),
   ).toBeVisible()
-  await expect(vigencia(page)).toBeDisabled()
-  await expect(page.getByRole('button', { name: 'Guardar' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Editar vigencia', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Más acciones de Vigencia', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Editar vigencia…' })).toBeDisabled()
+  await page.keyboard.press('Escape')
+
+  // Por la dirección tampoco abre: el panel se limpia.
+  await page.goto('/configuracion/origenes?panel=vigencia')
+  await expect(
+    page.getByRole('heading', { name: 'Para todos los orígenes', level: 2 }),
+  ).toBeVisible()
+  await expect(modal(page)).toHaveCount(0)
+  await expect(page).toHaveURL(/\/configuracion\/origenes$/)
 })
