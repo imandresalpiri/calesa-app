@@ -502,13 +502,13 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 - **Notificaciones** — `/notificaciones` (todos): lista; la campana trae las que piden acción. Arriba, «Preferencias de avisos» a
   `/perfil#notificaciones`.
 - **Perfil** — `/perfil` (todos): cinco tarjetas de ajustes (`<TarjetasDeAjustes>`: una columna en el celular, dos y tres según el ancho de la página) con lo guardado a la vista;
-  lo que se edita abre su modal (`?panel=`), sin plegables y sin desplazar a 1440×900. Cada una lleva «Editar» a la vista y como primera línea de su «⋯».
+  lo que se edita abre su modal (`?panel=`), sin plegables y sin desplazar a 1440×900. Cada una lleva sólo su «⋯» («Editar…» primero) y tocarla abre su modal (regla «El «⋯» en Configuración y Perfil»).
   - **Tú** (`?panel=tu`): la foto, el nombre y el correo; el modal edita foto y nombre (con versión: un cambio ajeno dice «Recargar» y conserva lo tipeado). El correo no se cambia desde acá.
   - **Preferencias** (`?panel=preferencias`): tema, densidad, ítems por página, zona horaria de las subastas y «Marcar lo que abrí» (con cuánto lo recuerda y si marca el último) como texto; el modal
     las ofrece, se aplican y se guardan al elegirlas (sin «Guardar»; «Listo» lo cierra).
-  - **Turnos de la web:** «Disponible para recibir turnos» a la vista en la tarjeta (apagado, la ruleta no le reparte; el pegajoso sí); si su rol no recibe turnos, deshabilitado con el motivo.
+  - **Turnos de la web:** «Disponible para recibir turnos» a la vista en la tarjeta (el interruptor es el valor que la tarjeta muestra: sin «⋯»; apagado, la ruleta no le reparte; el pegajoso sí); si su rol no recibe turnos, deshabilitado con el motivo.
   - **Tu ficha en la web** (`?panel=ficha`): WhatsApp, cargo, identificador, especialidades, la presentación y si está visible; dice «Se usa en lo que compartes» (la tarjeta de la cotización lleva estos datos). El modal edita todo
-    eso y «Aparecer en la web», con versión. Mirando como otro rol, «Editar» queda apagado con el motivo.
+    eso y «Aparecer en la web», con versión. Mirando como otro rol, «Editar…» queda apagada en el «⋯» con el motivo.
   - **Notificaciones** (`?panel=notificaciones`; `/perfil#notificaciones` también lo abre y quita el ancla): el push de este navegador a la vista como interruptor y cuántos avisos por tipo y navegadores hay;
     el modal trae un interruptor por tipo del catálogo (sólo apagan el push, no la campana) y «Tus navegadores» con «Quitar». Con el interruptor a la vista y deshabilitado, dice por qué: el rol no recibe push, la empresa no lo activó
     (y dónde), falta la clave pública, el navegador no lo admite o lo bloqueó; mientras revisa, «Revisando este navegador…». Si no se pueden leer los avisos, la tarjeta dice «No se pudieron cargar tus avisos» con «Reintentar».
@@ -547,7 +547,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     fórmula», enlazada a la pestaña del primer paso), «Falta activar apibara» una vez en Empresa; sólo de orígenes activos y lo que la persona puede hacer (no el paso de los
     permisos), con su enlace al paso; hasta 3 y «Y N más». Llega después de las tarjetas; si no se puede leer, la tarjeta queda con su frase.
 - **Leads (config)** — `/configuracion/leads` (`leads.configurar`: la página de tarjetas; `leads.campos.gestionar`: «Campos»), con «Campos» como única
-  sub-sección del menú de Configuración (`configuracion/leads/seccion.ts`). Seis tarjetas con `<TarjetasDeAjustes>`, cada una con «Editar» (y en su «⋯») que
+  sub-sección del menú de Configuración (`configuracion/leads/seccion.ts`). Seis tarjetas con `<TarjetasDeAjustes>`, cada una con su «⋯» («Editar…» primero; tocarla también) que
   abre su modal por `?panel=`: «Tipos de lead» (`tipos`), «Orígenes del lead» (`origenes`) y «Tipos de seguimiento» (`seguimientos`), con la insignia o los
   primeros ítems y «y N más» (las listas, en el modal, con «Nuevo …» en el pie; Nuevo/Editar/Eliminar son otro modal que vuelve a la lista:
   `?panel=nuevo-origen`/`editar-origen&origen=<id>`, `nuevo-tipo`/`editar-tipo&tipo=<id>`/`eliminar-tipo&tipo=<id>`…); «Embudo» (`embudo`: la plantilla como mini-kanban
@@ -560,10 +560,10 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   «…».» y su URL lleva a las tarjetas. Las URL viejas (`/origenes`, `/tipos`, `/seguimientos`, `/embudo`, `/portal`, `/telefonos` y `?seccion=`) redirigen con el panel y el resto de la
   consulta. Sin ninguno de los dos permisos, «No tienes permiso» y la sección no está en el menú ni en el inicio.
 - **Empresa** — `/configuracion/empresa` (`empresa.*`), cuatro sub-rutas en el menú de Configuración (`configuracion/empresa/seccion.ts`):
-  «Datos de la empresa» (la índice, `/configuracion/empresa`: sus tarjetas de ajustes con modal), «Monedas y tipos de cambio» (`/monedas`: la **moneda base** arriba con «Cambiar»,
+  «Datos de la empresa» (la índice, `/configuracion/empresa`: sus tarjetas de ajustes con modal), «Monedas y tipos de cambio» (`/monedas`: la **moneda base** arriba con «Cambiar la moneda base…» en su «⋯»,
   un grupo por **par de monedas** con sus tipos de cambio como tarjetas —valor, quién y cuándo, «En la barra» con su tope de 3— y «Tipo de cambio» por par, y abajo
-  las monedas activas con «Gestionar» y «Al compartir» con «Editar»; modales `?panel=moneda-base|monedas|leyenda`, paneles `?tc=`, `?moneda=`, crear en `?panel=`/`?par=`), «Integraciones» (`/integraciones`) y «Comprobantes»
-  (`/comprobantes`, con `empresa.ajustes.gestionar`: la tarjeta con la serie vigente y el próximo comprobante, y «Cambiar serie» en su modal, con versión; sin el
+  las monedas activas con «Gestionar monedas…» y «Al compartir» con «Editar la leyenda…» en su «⋯»; modales `?panel=moneda-base|monedas|leyenda`, paneles `?tc=`, `?moneda=`, crear en `?panel=`/`?par=`), «Integraciones» (`/integraciones`) y «Comprobantes»
+  (`/comprobantes`, con `empresa.ajustes.gestionar`: la tarjeta con la serie vigente y el próximo comprobante, y «Cambiar la serie…» en su «⋯», que abre su modal con versión; sin el
   permiso, apagada con «Pide el permiso «Ajustes de la empresa».» y su URL abre Datos). Las URLs viejas redirigen en el servidor
   (`url-vieja.ts`): `?seccion=` a su sub-ruta, y `?tc=`, `?moneda=` y los `?panel=` de crear (con o sin `?seccion=`) a Monedas con ellos.
 - **Logística (config)** — `/logistica/configuracion` (cualquiera de los permisos de sus pestañas): una página dentro de Logística con la tira de pestañas **Puertos ·
@@ -591,7 +591,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   «Cotizador de repuestos» y «Catálogos de repuestos» y lleva aquí. Estados: esqueleto con la forma de cada pestaña; error de lectura con «Reintentar»; ver «Flujos: configuración (estados propios)».
 - **Orígenes** — `/configuracion/origenes` (`origenes.gestionar`, `flujos.configurar` o `cotizaciones.configurar`, cada una **en ese origen**): la
   frase «De dónde vienen los vehículos: sus datos, campos y categorías, su flujo, su fórmula y sus tablas.», «Nuevo origen» (un enlace a
-  `/configuracion/origenes/nuevo`; `?panel=nuevo` responde 308 ahí con su consulta; sin `origenes.gestionar`, apagado con su motivo) y, como tarjetas, sólo los orígenes que la persona abre (dos columnas desde 40 rem de contenedor; una al 200 % y en el celular; tope 100
+  `/configuracion/origenes/nuevo`; `?panel=nuevo` responde 308 ahí con su consulta; sin `origenes.gestionar`, apagado con su motivo) y, como tarjetas con su «⋯» («Abrir» primero y, con `origenes.gestionar`, «Desactivar|Activar» y «Eliminar origen»), sólo los orígenes que la persona abre (dos columnas desde 40 rem de contenedor; una al 200 % y en el celular; tope 100
   con `<AvisoDeTope>`): punto de color, nombre, «Subasta|Manual», «Activo|Inactivo», lo que falta en corto o «Nada pendiente», y vehículos y
   cotizaciones; la tarjeta entera abre sus Datos. **Arriba de la lista, «Para todos los orígenes»** (`h2`; sólo con `cotizaciones.configurar` en algún origen, y la página
   sin `max-w-4xl`): lo que vale para todas las cotizaciones de la empresa, en dos tarjetas de ajustes lado a lado (apiladas en el celular y al 200 %), cada una con su modal
@@ -681,9 +681,9 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   motivo, y su URL abre la primera que sí. `?seccion=ajustes|legales|guias|faqs|testimonios` redirige a su sub-ruta y conserva el resto de la URL
   (`?panel=`, `?q=`). «Ajustes»: la fila única del sitio en cinco tarjetas con lo guardado a la vista, sin acordeones ni barra de cambios (Identidad del sitio: nombre y lema ·
   Contacto: WhatsApp de respaldo, horario y dirección · Redes · SEO · Vitrina: moneda secundaria y orígenes visibles, avisando en el modal qué vehículos dejan
-  de verse), cada una con «Editar» y «⋯» que abren su modal (`?panel=identidad|contacto|redes|seo|vitrina`) con su «Guardar»; con versión, sin red y conflicto
+  de verse), cada una con su «⋯» («Editar…») y el toque en la tarjeta, que abren su modal (`?panel=identidad|contacto|redes|seo|vitrina`) con su «Guardar»; con versión, sin red y conflicto
   («Recargar» conserva lo tipeado); cerrar un modal con cambios pregunta. «Legales»: una tarjeta por documento (términos, privacidad) con su estado («Publicada»
-  o «Sin publicar»), un extracto, su última edición y «Editar», que abre su modal con el título y el editor (`?panel=terminos|privacidad`, con borrador); las
+  o «Sin publicar»), un extracto, su última edición y «Editar…» en su «⋯» (o tocarla), que abre su modal con el título y el editor (`?panel=terminos|privacidad`, con borrador); las
   dos páginas entran enteras a 1440×900. «Guías» (con categorías) y su editor
   `/configuracion/web/guias/[id]` (documento con imágenes; publicar, programar o despublicar con `web.guias.publicar`; «Borrador», «Programada»,
   «Publicada»; «← Guías» vuelve a la lista). «Preguntas frecuentes»: panel por URL, reordenar, eliminar con confirmación. «Testimonios»: con su
@@ -702,13 +702,14 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   mismas rejillas, vacío por bloque, «Mostrando las primeras N habilitadas» al tope, sin permiso («No tienes permiso»). En el celular, las tarjetas en una columna.
 - **Equipo** — `/configuracion/equipo` (`equipo.usuarios.*`): tabla desde 768 px, tarjetas debajo, panel lateral. `?q=&estado=` se
   resuelven en el servidor («jose» encuentra «José»); dibuja las 100 primeras por nombre y lo dice al pie; la persona se gestiona desde su
-  «⋯», sin resumen. `?panel=invitar`; `?persona=`; `?baja=`.
+  «⋯» y tocar la fila o la tarjeta abre su acción principal («Cambiar sus roles», si está a su alcance), sin resumen. `?panel=invitar`; `?persona=`; `?baja=`.
 - **Roles** — `/configuracion/roles` (`equipo.roles.*`): matriz roles × permisos por módulo; desde 768 px la columna «Permiso» queda pegada
   a la izquierda y la fila con los nombres de los roles arriba, a ras del borde, sin hueco (la tarjeta se desplaza por dentro y, con la página al final, su borde de arriba queda a ras de la barra superior), con el título del módulo pegado debajo, a ras de ella; cada
   celda guarda sola. En móvil, un rol a la vez (`?rol=`) y como lista (permiso, explicación y control debajo): la barra «Rol a la vista» queda
   pegada bajo la barra superior y el título del módulo en curso, debajo de ella. Ningún aviso en línea: un «!» junto al nombre de cada rol que
   los tiene (en el celular, en la barra «Rol a la vista», 44 px) abre «Avisos de <rol>» (sin avisos, sin botón) y otro junto al título abre «Avisos
   de Roles y permisos».
+  La cabecera de cada rol lleva su «⋯» («Más acciones de <rol>») con «Eliminar el rol…» (apagada con su motivo); su única acción es destructiva, así que tocar la cabecera no hace nada.
   `?panel=nuevo-rol`, `?panel=avisos&rol=`, `?panel=avisos-de-la-pagina` (también `?panel=avisos` sin `rol`), `?eliminar=`.
   **El bloque «Cotizaciones»** lleva, además, los niveles de acceso y «Quién crea y quién ve» (ver «Cotización: niveles de acceso y quién crea y quién ve»):
   `?bloque=<módulo>` deja a la vista el bloque de ese módulo (hoy sólo lo usa `?bloque=cotizaciones`; las URLs viejas de Catálogos responden 308 ahí).
@@ -747,6 +748,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 
 ## Reglas transversales
 
+- **El «⋯» en Configuración y Perfil:** toda tarjeta y toda fila lleva sólo su «⋯» arriba a la derecha, con la lista única de acciones de su entidad, aunque tenga una sola. Ningún botón de acción suelto («Editar», «Gestionar», «Cambiar», «Configurar», «Subir», «Bajar», una papelera). Tocar la tarjeta o la fila (fuera del «⋯») abre su acción principal, la primera del «⋯»; con el teclado, la tarjeta es un botón con nombre («Editar <título>», «Abrir <origen>») y el «⋯» va aparte («Más acciones de <título>»): orden de foco la tarjeta y después su «⋯», sin un interactivo dentro de otro. Sin permiso, el «⋯» lleva la acción apagada con su motivo; una tarjeta sin acciones no dibuja «⋯» ni clic. Una acción destructiva nunca es la principal de un toque. «Subir» y «Bajar» van en el «⋯» (apagadas con su motivo) y el foco vuelve al «⋯» de la fila movida. Siguen a la vista los interruptores que guardan al instante (son el valor que la tarjeta muestra), los enlaces del texto y las acciones de la página («Nuevo …», «Invitar»). Fuera de Configuración y Perfil, toda tarjeta, fila y ficha lleva su «⋯» arriba a la derecha como siempre.
 - **Recargar y copiar el enlace (marco, toda pantalla con sesión):** en la barra superior, a la izquierda del buscador, «Recargar la página» (ícono, recarga completa del
   navegador; con cambios sin guardar pregunta el navegador, como con F5); en una barra de menos de 28 rem (el celular angosto) no entra y queda al pie del menú. Abajo a la derecha, a la izquierda del botón del chat, «Copiar el enlace de esta página»
   (flotante, secundario: más chico, contorno y sin relleno de acento): copia la URL de ahora con su consulta y avisa «Enlace copiado.»; si el portapapeles falla, un modal
@@ -899,26 +901,26 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 - **Entrar:** `empresa.ajustes.gestionar` o `empresa.tipos_cambio.gestionar`; cada sub-sección se edita con su permiso, sin él
   deshabilitada con el motivo arriba; sin ninguno, «sin permiso». Cada sub-ruta tiene su esqueleto.
 - **Datos de la empresa:** cinco **tarjetas de ajustes** (Identidad, Región, Datos legales y de contacto, Políticas, Íconos de la app) que muestran
-  lo guardado («Sin dato» si falta); «Editar» (y la primera línea del «⋯») abre su modal (`?panel=identidad|region|datos-legales|politicas|iconos`),
+  lo guardado («Sin dato» si falta); tocar la tarjeta o «Editar…» en su «⋯» abre su modal (`?panel=identidad|region|datos-legales|politicas|iconos`),
   con «Cancelar» y «Guardar»: sin cambios guardar cierra; con cambios, Esc pregunta «Seguir editando» o «Descartar». Mientras guarda, el modal
   se apaga. Color sin contraste, logo inválido y zona inexistente: motivo junto al campo. Sin conexión, lo tipeado
   queda y se guarda solo al volver; Datos legales repone su borrador con el «Descartar» de su aviso. Sin `empresa.ajustes.gestionar`, se ve todo con
-  «Editar» apagado y el motivo; «Íconos de la app» sin logo, apagado con su motivo; «Volver a los íconos neutros» va en el «⋯». PT409: «Recargar».
-- **Monedas y tipos de cambio:** arriba la **moneda base** (código, nombre y símbolo) con «Cambiar», que abre su modal (`?panel=moneda-base`): con datos cargados
-  el campo queda apagado con su motivo; sin `empresa.ajustes.gestionar`, «Cambiar» apagado. Debajo, un grupo por **par de monedas** (el de la base primero) con una
+  «Editar…» apagada en el «⋯» y el motivo; «Íconos de la app» sin logo, apagado con su motivo; «Volver a los íconos neutros» va en el «⋯». PT409: «Recargar».
+- **Monedas y tipos de cambio:** arriba la **moneda base** (código, nombre y símbolo) con «Cambiar la moneda base…» en su «⋯» (o tocando la tarjeta), que abre su modal (`?panel=moneda-base`): con datos cargados
+  el campo queda apagado con su motivo; sin `empresa.ajustes.gestionar`, apagada. Debajo, un grupo por **par de monedas** (el de la base primero) con una
   tarjeta por tipo de cambio: nombre, «★ Por defecto» o «Inactivo», el valor grande, «Cambiado por X · fecha» y el interruptor «En la barra», que guarda al
   tocarlo (apagado con su motivo si el tipo está inactivo o ya hay 3: «quita uno para sumar este»). La tarjeta abre su panel (`?tc=`: el valor y su historial; el
   por defecto no se desactiva; nada se borra); el «⋯» lleva «Cambiar el valor» y «Usar por defecto». «Tipo de cambio» de cada par abre el panel de crear con
-  las dos monedas elegidas (`?par=`); con un solo par o ninguno, la pantalla dice cómo empezar. Al pie, secundarias: «Monedas activas» (chips) con «Gestionar»
-  (la lista de hoy en un modal; una moneda se abre en su panel) y «Al compartir» con la leyenda y «Editar» (modal con «n de 120»; vacía, no se muestra;
-  `PT409` con «Recargar»). Sin `empresa.tipos_cambio.gestionar`, todo a la vista y «Gestionar», «Editar» e interruptores apagados con su motivo.
-  **Comprobantes:** una tarjeta «Serie de comprobantes» con la serie vigente y el próximo comprobante; «Cambiar serie» abre su modal (`?panel=serie`) y guarda con su versión (`PT409` con «Recargar»).
+  las dos monedas elegidas (`?par=`); con un solo par o ninguno, la pantalla dice cómo empezar. Al pie, secundarias: «Monedas activas» (chips) con «Gestionar monedas…» en su «⋯»
+  (la lista de hoy en un modal; una moneda se abre en su panel) y «Al compartir» con la leyenda y «Editar la leyenda…» (modal con «n de 120»; vacía, no se muestra;
+  `PT409` con «Recargar»). Sin `empresa.tipos_cambio.gestionar`, todo a la vista y esas líneas del «⋯» e interruptores apagados con su motivo.
+  **Comprobantes:** una tarjeta «Serie de comprobantes» con la serie vigente y el próximo comprobante; «Cambiar la serie…» en su «⋯» abre su modal (`?panel=serie`) y guarda con su versión (`PT409` con «Recargar»).
   **Integraciones:** una tarjeta por integración (apibara, Web pública, Avisos push) con su estado («Activa», «Apagada» o «Falta la clave») junto al
-  título, lo guardado como texto (la clave sólo dice «Guardada el …»: no se muestra nunca) y el interruptor, que guarda al instante. «Configurar»
-  (dirección y plataformas de apibara, dirección de revalidación) y la clave o el secreto («Cargar la clave», «Reemplazar la clave») son modales
+  título, lo guardado como texto (la clave sólo dice «Guardada el …»: no se muestra nunca) y el interruptor, que guarda al instante. «Configurar…»
+  en el «⋯» (o tocando la tarjeta: dirección y plataformas de apibara, dirección de revalidación) y la clave o el secreto («Cargar la clave», «Reemplazar la clave») son modales
   distintos (`?panel=apibara|clave-apibara|web-publica|secreto-web-publica`), una escritura cada uno. «Ver uso» y «Probar» van en el «⋯» y su
   resultado, en la tarjeta; apagados con su motivo («Guarda la dirección para probar.»). apibara no se activa sin su clave. Sin
-  `empresa.ajustes.gestionar`: todo a la vista con «Configurar» e interruptores apagados y el motivo arriba; un `?panel=` a mano se rechaza.
+  `empresa.ajustes.gestionar`: todo a la vista con «Configurar…» apagada e interruptores apagados y el motivo arriba; un `?panel=` a mano se rechaza.
 
 ### Vehículos (estados propios)
 

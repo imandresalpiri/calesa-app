@@ -52,6 +52,8 @@ parte })` de `client.ts` (lee, funde con `conLaPestana()` y hace upsert; sin rev
   - Quién registra: el resumen o panel por URL (`parametro`) o la página con `<RegistrarVisto>`; uno por apertura. Usan las marcas cotizaciones,
     repuestos, agenda, logística, vehículos y leads (lista y kanban).
 
+- La lista del equipo (`features/equipo/components/`): tocar la fila o la tarjeta de una persona abre su acción principal, «Cambiar sus roles» (`alAbrirPersona()`: nada si no hay «⋯», si sale apagada o si la persona está dada de baja); el resto vive sólo en su «⋯». Roles: la cabecera de un rol lleva su «⋯» con «Eliminar el rol…» (destructiva: tocar la cabecera no hace nada).
+
 ## Tablas
 
 `perfiles` (el avatar o su fallo **no mueven `actualizado_en`**), `equipo_bajas` (`terminada_en` nulo = en curso), `roles`, `permisos` (catálogo fijo),

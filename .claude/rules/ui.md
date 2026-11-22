@@ -23,7 +23,7 @@ Antes de construir una pantalla, lee su fila en `docs/UX.md` (patrón, roles, es
 - Formularios en bloques `<Bloque titulo>` plegables; los secundarios nacen plegados. Su cuerpo es
   una grilla `minmax(0, 1fr)`. Salvo dentro de `<BloquesALaVista>` (el panel del flujo), donde van a la vista: una sección con su
   `h3` (`h4` anidado). Salvo también las páginas de ajustes de Configuración (Empresa, Integraciones, Comprobantes, Sitio web › Ajustes y Legales, Cola web › Política, Leads) y el perfil (`/perfil`):
-  `<TarjetasDeAjustes>` con un `ModalDeFormulario` por tarjeta (`@/shared/ui/tarjetas-de-ajustes`, `useEnvioConVersion()`), sin acordeones.
+  `<TarjetasDeAjustes>` con un `ModalDeFormulario` por tarjeta (`@/shared/ui/tarjetas-de-ajustes`, `useEnvioConVersion()`), sin acordeones. Ahí (y en `/perfil`) toda tarjeta y toda fila lleva **sólo su «⋯»** con la lista única de sus acciones —una sola, también—: nada de «Editar», «Gestionar» o «Subir» sueltos; tocar la tarjeta (un botón con nombre, hermano del «⋯») abre la primera, y una destructiva nunca es la primera de un toque.
 
 ## Destructivas, paneles y modales
 
@@ -60,6 +60,7 @@ Antes de construir una pantalla, lee su fila en `docs/UX.md` (patrón, roles, es
   En una lista con ficha y sin resumen (vehículos y leads) abre su ficha: `href` en la fila o la tarjeta y `<EnlaceDeLaFila>`
   en el nombre (Ctrl o el botón del medio abren otra pestaña; con texto elegido no navega).
   Lo vigila `scripts/guardas/listas-con-patron.ts`.
+- En Configuración y Perfil las filas de una lista (`<ListaDeCatalogo>`) llevan «Subir» y «Bajar» en su «⋯» (apagadas con su motivo) y el foco vuelve al «⋯» de la fila movida (`useFocoTrasMover`).
 - El «⋯» de una tarjeta de la lista va en `<EsquinaDeAcciones>` (`TarjetaDeLista acciones` ya la usa; sobre una foto, `sobreImagen`, y la
   casilla con `lado="izquierda"`), nunca suelto en el contenido ni en el pie; en la tabla, en `CeldaPegada lado="acciones"`.
 - Una lista de tarjetas no ensancha la página con el texto al 200 %: `<ul>` con
