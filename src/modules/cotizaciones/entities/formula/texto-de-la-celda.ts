@@ -17,7 +17,8 @@ export const nombreDeLaCelda = (col: ColumnaDeLaPlanilla, numero: number) =>
   col === 'D' ? `Ejemplo ${String(numero)}` : `${col}${String(numero)}`
 
 export type TextoDeLaCelda =
-  | { readonly editable: true; readonly texto: string }
+  // `enPuntos`: el texto es un % en puntos («10» = 10 %), el de un valor fijo en %; `fx ▾` lo envuelve con su «%».
+  | { readonly editable: true; readonly texto: string; readonly enPuntos?: true }
   | { readonly editable: false; readonly motivo: string }
 
 export type ContextoDelTexto = {
@@ -87,10 +88,11 @@ export const esDeLaUnidad = (nodo: Nodo) =>
   nodo.tipo === 'campo_vehiculo'
 
 function textoDeC(nodo: Nodo, ctx: ContextoDelTexto): TextoDeLaCelda {
-  if (nodo.tipo === 'constante')
-    return escribe(
-      textoInicial(ctx.formula.params.constantes[nodo.id] ?? 0, formatoDe(nodo), ctx.locale),
-    )
+  if (nodo.tipo === 'constante') {
+    const formato = formatoDe(nodo)
+    const texto = textoInicial(ctx.formula.params.constantes[nodo.id] ?? 0, formato, ctx.locale)
+    return formato === 'pct' ? { editable: true, texto, enPuntos: true } : escribe(texto)
+  }
   if (nodo.tipo === 'calculo')
     return escribe(ctx.textoConIds === null ? '' : formulaEnA1(ctx.textoConIds, ctx.hoja))
   // Una fila que se llena al cotizar abre vacía: un «=» la vuelve cálculo.
