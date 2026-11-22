@@ -134,6 +134,8 @@ export function FormularioDelGrupo(props: Props) {
       aria-label={grupo.etiqueta === '' ? 'Nueva banda' : `Banda ${grupo.etiqueta}`}
       className="grid min-w-0 gap-4"
       onSubmit={(evento) => {
+        // El envío de «Nuevo color» (otro formulario, en el portal de su modal) sube hasta acá por el árbol de React: no es aplicar la banda.
+        if (evento.target !== evento.currentTarget) return
         evento.preventDefault()
         if (tonos.tipo !== 'listo') return
         props.alAplicar(
