@@ -1,3 +1,5 @@
+'use client'
+
 import type { Route } from 'next'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
@@ -15,76 +17,127 @@ import {
   type FilaDelTablero,
   type Tablero,
 } from '../../../../entities/cola/tablero'
-import { FilaDeLaRueda } from './fila-de-la-rueda'
+import {
+  ConfirmarQuitarDeLaRuedaDiferido,
+  ModalDeEditarEnLaRuedaDiferido,
+} from '../../rueda/components/diferidos'
+import { usePanelesDeLaRueda } from '../../rueda/hooks/use-paneles-de-la-rueda'
+import { REJILLA_DE_TARJETAS } from './rejilla-de-tarjetas'
 import { SeccionDeLaCola } from './seccion-de-la-cola'
+import { TarjetaDeLaPersona } from './tarjeta-de-la-persona'
 
 type Props = {
   tablero: Tablero
-  // Quien mira puede abrir Roles: el grupo aparte lleva el enlace.
+  // Quien mira puede abrir Roles: el grupo aparte y el aviso de «Editar…» llevan el enlace.
   puedeVerRoles: boolean
-  // La acción principal de la sección, junto a su título («Agregar a la rueda»).
+  // La acción principal del bloque, junto a su título («Agregar a la rueda»).
   accion?: ReactNode
 }
 
-const LISTA = 'grid grid-cols-[minmax(0,1fr)] gap-2'
-
-// «En la rueda»: quién recibe los turnos y, debajo, las habilitadas que hoy no pueden recibirlos: por su rol (ninguno tiene «Recibir turnos de la web») o
-// por su cuenta. Las de la rueda van numeradas en el orden de la ruleta (`ordenDeLaRueda`, espejo de la base: el número no promete el próximo turno) y, al
-// final, las que hoy no reciben uno nuevo, con su motivo. Los dos grupos aparte son parte de la sección, con su propio título.
+// «En la rueda»: quién recibe los turnos, una tarjeta por persona en rejilla, y debajo las habilitadas que hoy no pueden recibirlos: por su rol (ninguno tiene
+// «Recibir turnos de la web») o por su cuenta. Las de la rueda van numeradas en el orden de la ruleta (`ordenDeLaRueda`, espejo de la base: el número no promete
+// el próximo turno) y, al final, las que hoy no reciben uno nuevo, con su motivo. Los dos grupos aparte son parte del bloque, con su propio título.
+// Cada tarjeta lleva su «⋯» («Editar…» y «Quitar de la rueda»); los dos modales se piden la primera vez que se abren y viven en la URL (`?panel=…&para=`).
 export function RuedaDeLaCola({ tablero, puedeVerRoles, accion }: Props) {
   const grupos = agruparTablero(tablero.filas)
   const { elegibles, fuera } = ordenDeLaRueda(grupos.rueda)
+  const paneles = usePanelesDeLaRueda(tablero.filas)
+  const tarjeta = (fila: FilaDelTablero, extra: { puesto?: number; motivo?: string } = {}) => (
+    <TarjetaDeLaPersona
+      key={fila.usuarioId}
+      fila={fila}
+      {...extra}
+      alEditar={(elegida) => {
+        paneles.editar.abrir(elegida.usuarioId)
+      }}
+      alQuitar={(elegida) => {
+        paneles.quitar.abrir(elegida.usuarioId)
+      }}
+    />
+  )
   return (
-    <SeccionDeLaCola
-      id="rueda-titulo"
-      titulo={TEXTO_EN_LA_RUEDA}
-      descripcion="Quién recibe los turnos, en el orden de la ruleta."
-      accion={accion}
-      className="gap-4"
-    >
-      {tablero.hayMas ? (
-        <AvisoDeTope
-          texto={`Mostrando las primeras ${formatearNumero(TOPE_DEL_EQUIPO)} habilitadas, por nombre.`}
+    <>
+      <SeccionDeLaCola id="rueda-titulo" titulo={TEXTO_EN_LA_RUEDA} accion={accion}>
+        {tablero.hayMas ? (
+          <AvisoDeTope
+            texto={`Mostrando las primeras ${formatearNumero(TOPE_DEL_EQUIPO)} habilitadas, por nombre.`}
+          />
+        ) : null}
+        {elegibles.length === 0 && fuera.length === 0 ? (
+          <EstadoVacio compacto titulo="Nadie en la rueda." />
+        ) : (
+          <>
+            {elegibles.length > 0 ? (
+              <ol className={REJILLA_DE_TARJETAS}>
+                {elegibles.map((fila, i) => tarjeta(fila, { puesto: i + 1 }))}
+              </ol>
+            ) : null}
+            {fuera.length > 0 ? (
+              <ul className={REJILLA_DE_TARJETAS}>
+                {fuera.map(({ fila, motivo }) =>
+                  tarjeta(fila, {
+                    motivo: `Hoy no recibe turnos nuevos: ${MOTIVO_FUERA[motivo]}.`,
+                  }),
+                )}
+              </ul>
+            ) : null}
+          </>
+        )}
+        <GrupoAparte
+          id="sin-rol-titulo"
+          titulo={TEXTO_HABILITADA_SIN_ROL}
+          filas={grupos.porRol}
+          dibujar={tarjeta}
+        >
+          Están habilitadas, pero ningún rol suyo tiene «Recibir turnos de la web».{' '}
+          {puedeVerRoles ? (
+            <Link href={RUTAS.roles as Route} className="underline">
+              Se cambia en Roles.
+            </Link>
+          ) : (
+            'Se cambia en Roles.'
+          )}
+        </GrupoAparte>
+        <GrupoAparte
+          id="cuenta-titulo"
+          titulo={TEXTO_CUENTA_INACTIVA}
+          filas={grupos.porCuenta}
+          dibujar={tarjeta}
+        >
+          Su cuenta está bloqueada o dada de baja: no recibe turnos aunque siga habilitada.
+        </GrupoAparte>
+      </SeccionDeLaCola>
+      <ModalesDeLaRueda paneles={paneles} puedeVerRoles={puedeVerRoles} />
+    </>
+  )
+}
+
+type PropsDeModales = {
+  paneles: ReturnType<typeof usePanelesDeLaRueda>
+  puedeVerRoles: boolean
+}
+
+// Los dos modales de la rueda: se piden la primera vez que se abren (`montar`) y viven en la URL.
+function ModalesDeLaRueda({ paneles, puedeVerRoles }: PropsDeModales) {
+  return (
+    <>
+      {paneles.editar.montar && paneles.editar.fila ? (
+        <ModalDeEditarEnLaRuedaDiferido
+          abierto={paneles.editar.abierto}
+          alCerrar={paneles.editar.cerrar}
+          fila={paneles.editar.fila}
+          sigueEnLaRueda={paneles.editar.sigue}
+          puedeVerRoles={puedeVerRoles}
         />
       ) : null}
-      {elegibles.length === 0 && fuera.length === 0 ? (
-        <EstadoVacio compacto titulo="Nadie en la rueda." />
-      ) : (
-        <>
-          {elegibles.length > 0 ? (
-            <ol className={LISTA}>
-              {elegibles.map((fila, i) => (
-                <FilaDeLaRueda key={fila.usuarioId} fila={fila} puesto={i + 1} />
-              ))}
-            </ol>
-          ) : null}
-          {fuera.length > 0 ? (
-            <ul className={LISTA}>
-              {fuera.map(({ fila, motivo }) => (
-                <FilaDeLaRueda
-                  key={fila.usuarioId}
-                  fila={fila}
-                  motivo={`Hoy no recibe turnos nuevos: ${MOTIVO_FUERA[motivo]}.`}
-                />
-              ))}
-            </ul>
-          ) : null}
-        </>
-      )}
-      <GrupoAparte id="sin-rol-titulo" titulo={TEXTO_HABILITADA_SIN_ROL} filas={grupos.porRol}>
-        Están habilitadas, pero ningún rol suyo tiene «Recibir turnos de la web».{' '}
-        {puedeVerRoles ? (
-          <Link href={RUTAS.roles as Route} className="underline">
-            Se cambia en Roles.
-          </Link>
-        ) : (
-          'Se cambia en Roles.'
-        )}
-      </GrupoAparte>
-      <GrupoAparte id="cuenta-titulo" titulo={TEXTO_CUENTA_INACTIVA} filas={grupos.porCuenta}>
-        Su cuenta está bloqueada o dada de baja: no recibe turnos aunque siga habilitada.
-      </GrupoAparte>
-    </SeccionDeLaCola>
+      {paneles.quitar.montar ? (
+        <ConfirmarQuitarDeLaRuedaDiferido
+          abierto={paneles.quitar.abierto}
+          alCerrar={paneles.quitar.cerrar}
+          fila={paneles.quitar.fila}
+        />
+      ) : null}
+    </>
   )
 }
 
@@ -92,11 +145,12 @@ type PropsDeGrupo = {
   id: string
   titulo: string
   filas: readonly FilaDelTablero[]
+  dibujar: (fila: FilaDelTablero) => ReactNode
   children: ReactNode
 }
 
 // Un grupo aparte sólo se dibuja si tiene a alguien.
-function GrupoAparte({ id, titulo, filas, children }: PropsDeGrupo) {
+function GrupoAparte({ id, titulo, filas, dibujar, children }: PropsDeGrupo) {
   if (filas.length === 0) {
     return null
   }
@@ -108,11 +162,7 @@ function GrupoAparte({ id, titulo, filas, children }: PropsDeGrupo) {
         </h3>
         <p className="text-(length:--text-sm) text-(--color-ink-soft)">{children}</p>
       </div>
-      <ul className={LISTA}>
-        {filas.map((fila) => (
-          <FilaDeLaRueda key={fila.usuarioId} fila={fila} />
-        ))}
-      </ul>
+      <ul className={REJILLA_DE_TARJETAS}>{filas.map((fila) => dibujar(fila))}</ul>
     </section>
   )
 }

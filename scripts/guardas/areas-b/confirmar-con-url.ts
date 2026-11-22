@@ -55,4 +55,9 @@ export const REGISTRO: Record<string, ConfirmarConUrl> = {
     abre: 'src/modules/web/features/contenido/testimonios/hooks/use-eliminar-testimonio-por-url.ts',
     senal: 'PANEL_ELIMINAR_TESTIMONIO',
   },
+  // `?panel=quitar-de-la-rueda&para=<usuarioId>` (T515): quitar a alguien de la rueda de la cola web, desde el «⋯» de su tarjeta.
+  'src/modules/web/features/cola/rueda/components/confirmar-quitar-de-la-rueda.tsx': {
+    abre: 'src/modules/web/features/cola/rueda/hooks/use-paneles-de-la-rueda.ts',
+    senal: 'PANEL_QUITAR_DE_LA_RUEDA',
+  },
 }

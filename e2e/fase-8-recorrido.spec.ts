@@ -110,7 +110,7 @@ test('E2E R3 el tablero de la cola muestra la tasa de contacto nueva', async ({ 
   await page.goto('/configuracion/cola-web')
   await expect(page.getByRole('heading', { name: 'Cola web', level: 1 })).toBeVisible()
   const rueda = page.getByRole('region', { name: 'En la rueda' })
-  const fila = (nombre: string) => rueda.locator('li').filter({ hasText: nombre })
+  const fila = (nombre: string) => rueda.locator('article').filter({ hasText: nombre })
   // Una asignada sembrada más la del R1, y la del R1 contactada: 1 de 2. La otra sigue en 0 de 1.
   await expect(fila(laX().nombre)).toContainText(`Contacta el ${formatearPorcentaje(0.5)}`)
   await expect(fila(laY().nombre)).toContainText(`Contacta el ${formatearPorcentaje(0)}`)

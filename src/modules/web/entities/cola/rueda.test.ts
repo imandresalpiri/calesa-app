@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { MOTIVO_CUENTA_BLOQUEADA, configuracionNueva, personasParaLaRueda } from './rueda'
+import {
+  MOTIVO_CUENTA_BLOQUEADA,
+  MOTIVO_YA_NO_ESTA_EN_LA_RUEDA,
+  configuracionNueva,
+  motivoParaNoAbrirPersona,
+  personasParaLaRueda,
+} from './rueda'
 import type { FilaDelTablero } from './tablero'
 
 const ID = {
@@ -83,5 +89,19 @@ describe('configuracionNueva', () => {
       prioridad: 0,
       orden: 0,
     })
+  })
+})
+
+describe('motivoParaNoAbrirPersona', () => {
+  const filas = [fila(ID.activa), fila(ID.invitada)]
+
+  it('abre a quien está en el tablero', () => {
+    expect(motivoParaNoAbrirPersona(filas, ID.invitada)).toBeNull()
+  })
+
+  it('no abre a quien ya no está, ni sin `para`', () => {
+    expect(motivoParaNoAbrirPersona(filas, ID.baja)).toBe(MOTIVO_YA_NO_ESTA_EN_LA_RUEDA)
+    expect(motivoParaNoAbrirPersona(filas, null)).toBe(MOTIVO_YA_NO_ESTA_EN_LA_RUEDA)
+    expect(motivoParaNoAbrirPersona([], ID.activa)).toBe(MOTIVO_YA_NO_ESTA_EN_LA_RUEDA)
   })
 })

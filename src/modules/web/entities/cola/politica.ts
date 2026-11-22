@@ -1,3 +1,5 @@
+import { formatearNumero } from '@/shared/lib/formato'
+
 // La política de la cola web (8.04-2): las claves de `ajustes_web` que gobiernan la rueda. La lee el tablero (los avisos) y se edita (8.04-3) con
 // `web_ajustes_guardar`, con `actualizadoEn` como versión.
 export type PoliticaDeLaCola = {
@@ -34,10 +36,45 @@ export function politicaDesde(fila: FilaDePolitica): PoliticaDeLaCola {
   }
 }
 
-// El título y la frase de la sección «Política de la cola» (la dibujan el formulario y su esqueleto).
+// El título de la tarjeta (y de su modal) «Política de la cola».
 export const TITULO_DE_LA_POLITICA = 'Política de la cola'
-export const DESCRIPCION_DE_LA_POLITICA =
-  'Cuánto hay para contactar, cuántas abiertas por asesor y cuántos intentos.'
+
+// Los cuatro campos numéricos de la política: su nombre y su ayuda en el modal, y la etiqueta con que la tarjeta muestra su valor.
+export const CAMPOS_DE_LA_POLITICA = [
+  {
+    clave: 'ttlContactoMinutos',
+    etiqueta: 'Minutos para contactar',
+    ayuda: 'Lo que tiene el asesor antes de que el turno pase a otro.',
+  },
+  {
+    clave: 'diasPegajoso',
+    etiqueta: 'Días con el mismo asesor',
+    ayuda: 'Quien vuelve dentro de estos días va al asesor que ya lo atendió.',
+  },
+  {
+    clave: 'maxAbiertasDefault',
+    etiqueta: 'Cupo por defecto',
+    ayuda: 'Solicitudes abiertas por asesor cuando no tiene un cupo propio.',
+  },
+  {
+    clave: 'maxIntentos',
+    etiqueta: 'Intentos por solicitud',
+    ayuda: 'Cuántos asesores reciben la solicitud, uno tras otro, si nadie la contacta a tiempo.',
+  },
+] as const
+
+// Los valores guardados que muestra la tarjeta de la política, en el orden del modal: si la cola reparte («Activa» o «Apagada») y los cuatro números.
+export function filasDeLaPolitica(
+  politica: PoliticaDeLaCola,
+): { etiqueta: string; valor: string }[] {
+  return [
+    { etiqueta: 'Cola', valor: politica.colaActiva ? 'Activa' : 'Apagada' },
+    ...CAMPOS_DE_LA_POLITICA.map(({ clave, etiqueta }) => ({
+      etiqueta,
+      valor: formatearNumero(politica[clave]),
+    })),
+  ]
+}
 
 // Los rangos de cada clave, espejo de `_web_ajustes_validar` (la base decide; esto sólo pone el error junto al campo antes de enviar).
 export const LIMITES_DE_LA_POLITICA = {

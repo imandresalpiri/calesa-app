@@ -11,9 +11,9 @@ import {
   AgregarALaRueda,
   AvisosDeLaPolitica,
   ErrorDeLectura,
-  FormularioDeLaPolitica,
   RuedaDeLaCola,
   SinAsignar,
+  TarjetaDeLaPolitica,
 } from '@/modules/web/pantallas/cola'
 import type { Resultado } from '@/shared/lib/errores'
 import { puede, type Permisos } from '@/shared/lib/permisos'
@@ -26,10 +26,9 @@ type Props = {
 }
 
 // El cuerpo de Configuración › Cola web (8.04-2): tres lecturas en paralelo —la política, la primera página de «Sin asignar» y el tablero— y cada parte
-// con su error si no llegó, sin tapar las otras. Las secciones van en su orden: «Sin asignar», «En la rueda» (con «Agregar a la rueda») y «Política de la
-// cola». «Actualizar» y volver a la pestaña repiten las tres (`router.refresh()`). Con «Agregar a la rueda» abierto (8.04-3), una cuarta: la página del
-// equipo que cumple la búsqueda (sólo si quien mira ve el equipo). La política y su barra de cambios son hijas directas de esta grilla: la barra queda
-// pegada abajo de toda la página.
+// con su error si no llegó, sin tapar las otras. Los bloques van en su orden: «Sin asignar», «En la rueda» (con «Agregar a la rueda») y «Política de la
+// cola» (una tarjeta de ajustes que se edita en un modal). «Actualizar» y volver a la pestaña repiten las tres (`router.refresh()`). Con «Agregar a la rueda»
+// abierto (8.04-3), una cuarta: la página del equipo que cumple la búsqueda (sólo si quien mira ve el equipo).
 export async function TableroDeLaCola({ permisos, panel, busqueda }: Props) {
   const puedeVerEquipo =
     puede(permisos, 'equipo.usuarios.ver') || puede(permisos, 'equipo.usuarios.gestionar')
@@ -69,7 +68,7 @@ export async function TableroDeLaCola({ permisos, panel, busqueda }: Props) {
         <ErrorDeLectura titulo="No pudimos leer la rueda" mensaje={tablero.error.mensaje} />
       )}
       {politica.ok ? (
-        <FormularioDeLaPolitica key={politica.data.actualizadoEn} politica={politica.data} />
+        <TarjetaDeLaPolitica politica={politica.data} />
       ) : (
         <ErrorDeLectura
           titulo="No pudimos leer la política de la cola"
