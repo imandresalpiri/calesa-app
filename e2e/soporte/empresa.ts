@@ -299,6 +299,9 @@ export async function esperarEdicionApagada(
     tarjeta.getByRole('button', { name: /^(Editar|Configurar|Cambiar|Gestionar)/ }),
   ).toHaveCount(0)
   await tarjeta.getByRole('button', { name: `Más acciones de ${titulo}`, exact: true }).click()
-  await expect(page.getByRole('menuitem', { name: etiqueta })).toBeDisabled()
+  // El menú de ESTA tarjeta: mientras el anterior se cierra, el de otra puede estar abriéndose.
+  const menu = page.getByRole('menu', { name: `Más acciones de ${titulo}`, exact: true })
+  await expect(menu.getByRole('menuitem', { name: etiqueta })).toBeDisabled()
   await page.keyboard.press('Escape')
+  await expect(menu).toBeHidden()
 }

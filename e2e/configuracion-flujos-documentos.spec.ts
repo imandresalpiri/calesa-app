@@ -10,7 +10,12 @@ import {
   crearPersona,
   darRolDePrueba,
 } from './soporte/base'
-import { lineaApagada, masAccionesDe, menuDe } from './soporte/lista-de-catalogo'
+import {
+  elegirDelMenuConTeclado,
+  lineaApagada,
+  masAccionesDe,
+  menuDe,
+} from './soporte/lista-de-catalogo'
 import {
   PREFIJO_DE_TIPO_DE_DOCUMENTO_E2E,
   abrirDocumentos,
@@ -118,9 +123,7 @@ test('la dueña crea un tipo del flujo con vencimiento, lo edita y lo sube de or
   await abrirDocumentos(page)
   const antes = await nombresDelGrupo(page, 'flujo')
   expect(antes.indexOf(renombrado)).toBeLessThan(antes.indexOf(segundo))
-  const subir = page.getByRole('button', { name: `Subir ${segundo}`, exact: true })
-  await subir.focus()
-  await page.keyboard.press('Enter')
+  await elegirDelMenuConTeclado(page, segundo, 'Subir')
   await expect(
     page.getByRole('status').filter({ hasText: `«${segundo}» subió un lugar.` }),
   ).toBeAttached()
@@ -130,9 +133,9 @@ test('la dueña crea un tipo del flujo con vencimiento, lo edita y lo sube de or
       return despues.indexOf(segundo) < despues.indexOf(renombrado)
     })
     .toBe(true)
-  // Llegó al extremo y «Subir» se apagó: el foco pasa a «Bajar» de la misma fila.
-  await expect(subir).toBeDisabled()
-  await expect(page.getByRole('button', { name: `Bajar ${segundo}`, exact: true })).toBeFocused()
+  // Llegó al extremo: «Subir» se apagó en su «⋯», donde el foco se queda.
+  await expect(masAccionesDe(page, segundo)).toBeFocused()
+  expect(await lineaApagada(page, segundo, 'Subir')).toBe(true)
   expect(tipoEnLaBase(segundo)?.orden).toBeLessThan(tipoEnLaBase(renombrado)?.orden ?? 0)
 })
 
@@ -183,11 +186,7 @@ test('quien sólo configura el flujo ve los tipos de toda la empresa deshabilita
     'Los tipos de documento de toda la empresa los cambia quien gestiona los catálogos de logística.'
   await expect(empresa.getByRole('button', { name: 'Nuevo tipo' })).toBeDisabled()
   await expect(empresa.getByText(motivo)).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Subir BL', exact: true })).toBeDisabled()
-  await expect(page.getByRole('button', { name: 'Subir BL', exact: true })).toHaveAttribute(
-    'title',
-    motivo,
-  )
+  expect(await lineaApagada(page, 'BL', 'Subir')).toBe(true)
   expect(await lineaApagada(page, 'BL', 'Editar')).toBe(true)
   // Escribir la URL a mano no abre lo que no puede: no hay modal.
   await abrirLosDeLaEmpresa(page, '?panel=nuevo-tipo&de=empresa')
