@@ -71,14 +71,35 @@ const nextConfig: NextConfig = {
         destination: '/cotizaciones/:id/imagen',
         permanent: true,
       },
+      // Colores y Vigencia de las cotizaciones son tarjetas de Orígenes (`?panel=colores|vigencia`), en un solo salto. Si la URL vieja trae su propio `?panel=` (el de un
+      // color), ése manda y va solo: Next no reemplaza un parámetro repetido, así que cada regla con su `has` y su `missing`.
       {
         source: '/configuracion/cotizacion/general',
-        destination: '/configuracion/catalogos/colores',
+        has: [{ type: 'query', key: 'panel' }],
+        destination: '/configuracion/origenes',
         permanent: true,
       },
       {
-        source: '/configuracion/cotizacion/general/:parte(colores|niveles|vigencia)',
-        destination: '/configuracion/catalogos/:parte',
+        source: '/configuracion/cotizacion/general',
+        missing: [{ type: 'query', key: 'panel' }],
+        destination: '/configuracion/origenes?panel=colores',
+        permanent: true,
+      },
+      {
+        source: '/configuracion/cotizacion/general/:parte(colores|vigencia)',
+        has: [{ type: 'query', key: 'panel' }],
+        destination: '/configuracion/origenes',
+        permanent: true,
+      },
+      {
+        source: '/configuracion/cotizacion/general/:parte(colores|vigencia)',
+        missing: [{ type: 'query', key: 'panel' }],
+        destination: '/configuracion/origenes?panel=:parte',
+        permanent: true,
+      },
+      {
+        source: '/configuracion/cotizacion/general/niveles',
+        destination: '/configuracion/catalogos/niveles',
         permanent: true,
       },
       {

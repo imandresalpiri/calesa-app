@@ -24,9 +24,9 @@ describe('abrirCatalogo', () => {
 
   it('con el permiso de la sub-sección, la abre con su título', async () => {
     conSesion(con('cotizaciones.configurar'))
-    const abierto = await abrirCatalogo('colores')
+    const abierto = await abrirCatalogo('tablas')
     expect(abierto.sinPermiso).toBe(false)
-    expect(abierto.sinPermiso ? null : abierto.sub.titulo).toBe('Colores')
+    expect(abierto.sinPermiso ? null : abierto.sub.titulo).toBe('Tablas compartidas')
   })
 
   it('quien configura un flujo lee los tipos de documento', async () => {
@@ -36,13 +36,20 @@ describe('abrirCatalogo', () => {
 
   it('sin el permiso de esa, lleva a la primera que abre', async () => {
     conSesion(con('equipo.roles.ver'))
-    await expect(abrirCatalogo('colores')).rejects.toThrow(
+    await expect(abrirCatalogo('tablas')).rejects.toThrow(
       'redirige a /configuracion/catalogos/niveles',
+    )
+  })
+
+  it('Colores y Vigencia ya no son catálogos: no se abren aquí', async () => {
+    conSesion(con('cotizaciones.configurar'))
+    await expect(abrirCatalogo('colores')).rejects.toThrow(
+      'redirige a /configuracion/catalogos/tablas',
     )
   })
 
   it('sin ninguna, «No tienes permiso»', async () => {
     conSesion(con('leads.ver'))
-    expect(await abrirCatalogo('vigencia')).toEqual({ sinPermiso: true })
+    expect(await abrirCatalogo('tablas')).toEqual({ sinPermiso: true })
   })
 })

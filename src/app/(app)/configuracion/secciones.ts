@@ -2,6 +2,7 @@ import { MapPinIcon, ShieldCheckIcon, UsersRoundIcon, type LucideIcon } from 'lu
 import { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'
 import { RUTAS } from '@/shared/lib/rutas'
 import { SECCION_DE_CATALOGOS } from './catalogos/seccion'
+import { destinosDeLaSeccion, type DestinoDelNavegador } from './destinos-de-busqueda'
 import { SECCION_DE_COLA_WEB } from './cola-web/seccion'
 import { SECCION_DE_EMPRESA } from './empresa/seccion'
 import { SECCION_DE_LEADS } from './leads/seccion'
@@ -47,6 +48,8 @@ export type SubseccionVisible = SubseccionDeConfiguracion & { apagada?: true }
 
 export type SeccionVisible = Omit<SeccionDeConfiguracion, 'subsecciones'> & {
   subsecciones: readonly SubseccionVisible[]
+  // Lo que el buscador encuentra de ella y no es una sub-sección (`destinos-de-busqueda.ts`): sólo si tiene alguno.
+  destinos?: readonly DestinoDelNavegador[]
 }
 
 export type SeccionDeConfiguracion = {
@@ -144,6 +147,7 @@ export function conSubseccionesVisibles(
   seccion: SeccionDeConfiguracion,
   permisos: Permisos,
 ): SeccionVisible {
+  const destinos = destinosDeLaSeccion(seccion.clave, permisos)
   return {
     ...seccion,
     subsecciones: seccion.subsecciones.flatMap((sub): SubseccionVisible[] => {
@@ -152,6 +156,7 @@ export function conSubseccionesVisibles(
       }
       return sub.motivoSinPermiso === undefined ? [] : [{ ...sub, apagada: true }]
     }),
+    ...(destinos.length === 0 ? {} : { destinos }),
   }
 }
 
@@ -210,6 +215,8 @@ export type GrupoDelNavegador = {
     palabras?: readonly string[]
     // `motivo`, sólo en la apagada; `grupo` y `palabras`, sólo si la sub-sección los declara.
     subsecciones: SubseccionDelNavegador[]
+    // Lo que el buscador encuentra y el menú no dibuja (`destinos-de-busqueda.ts`), sólo si la sección lo tiene.
+    destinos?: readonly DestinoDelNavegador[]
   }[]
 }
 
@@ -222,6 +229,7 @@ export function paraElNavegador(grupos: readonly GrupoVisible[]): GrupoDelNavega
       titulo: seccion.titulo,
       ruta: seccion.ruta,
       ...(seccion.palabras === undefined ? {} : { palabras: seccion.palabras }),
+      ...(seccion.destinos === undefined ? {} : { destinos: seccion.destinos }),
       subsecciones: seccion.subsecciones.map((sub) => ({
         clave: sub.clave,
         titulo: sub.titulo,

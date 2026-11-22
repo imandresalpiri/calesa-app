@@ -71,10 +71,11 @@ describe('buscarEnConfiguracion', () => {
     expect(caminos('portal', [])).toEqual([])
   })
 
-  it('lo de un origen se busca en Orígenes; lo global, en Catálogos', () => {
+  it('lo de un origen se busca en Orígenes, con los colores y la vigencia de todas las cotizaciones; lo global, en Catálogos', () => {
     expect(caminos('fórmula')[0]).toBe('Orígenes')
     expect(caminos('flujo')).toContain('Orígenes')
-    expect(caminos('colores')[0]).toBe('Catálogos › Colores')
+    expect(caminos('colores')[0]).toBe('Orígenes › Colores')
+    expect(caminos('niveles')[0]).toBe('Catálogos › Niveles')
     expect(caminos('tablas compartidas')[0]).toBe('Catálogos › Tablas compartidas')
     expect(caminos('flujo de repuestos')[0]).toBe('Repuestos › Flujo de repuestos')
   })
@@ -94,5 +95,35 @@ describe('buscarEnConfiguracion', () => {
 
   it('dibuja como mucho el tope', () => {
     expect(buscarEnConfiguracion(grupos, 'e').length).toBeLessThanOrEqual(TOPE_DE_RESULTADOS)
+  })
+})
+
+describe('los destinos de búsqueda de Orígenes', () => {
+  it('los destinos de búsqueda llevan al modal de su tarjeta: colores, vigencia y sus palabras', () => {
+    const encontrados = (texto: string) =>
+      buscarEnConfiguracion(grupos, texto).map((r) => [r.camino, r.ruta])
+    expect(encontrados('colores')[0]).toEqual([
+      'Orígenes › Colores',
+      '/configuracion/origenes?panel=colores',
+    ])
+    expect(encontrados('vigencia')[0]).toEqual([
+      'Orígenes › Vigencia',
+      '/configuracion/origenes?panel=vigencia',
+    ])
+    for (const palabra of ['días', 'vence', 'caducidad', 'validez']) {
+      expect(caminos(palabra), palabra).toContain('Orígenes › Vigencia')
+    }
+    for (const palabra of ['color', 'tema']) {
+      expect(caminos(palabra), palabra).toContain('Orígenes › Colores')
+    }
+  })
+
+  it('sin cotizaciones.configurar no se ofrecen los destinos de Orígenes', () => {
+    const soloOrigenes = paraElNavegador(
+      gruposVisibles([{ clave: 'origenes.gestionar', origenId: null, alcance: 'todos' }]),
+    )
+    expect(caminos('colores', soloOrigenes)).toEqual([])
+    expect(caminos('vigencia', soloOrigenes)).toEqual([])
+    expect(caminos('orígenes', soloOrigenes)).toEqual(['Orígenes'])
   })
 })
