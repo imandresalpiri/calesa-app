@@ -5,11 +5,11 @@ import { Button } from '@/shared/ui/button'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import type { ColorCreado, PropsDelNuevoColor } from '../../../../../entities/nuevo-color'
+import { CLAVE_DEL_COLOR } from '../../../hooks/use-paneles-de-la-planilla'
 import type { EstadoDeLosTonos } from '../../../hooks/use-tonos'
 
 // `?color=nuevo`: una clave propia, porque `?panel=` ya lo ocupa el panel de la banda (el modal se abre sobre él y cerrarlo no lo toca).
-export const CLAVE_DEL_COLOR = 'color'
-export const COLOR_NUEVO = 'nuevo'
+const COLOR_NUEVO = 'nuevo'
 
 type Props = {
   NuevoColor: ComponentType<PropsDelNuevoColor>
