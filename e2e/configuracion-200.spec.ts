@@ -77,7 +77,20 @@ const PANTALLAS: Pantalla[] = [
   },
   { titulo: 'Empresa › Integraciones', url: () => '/configuracion/empresa/integraciones' },
   { titulo: 'Empresa › Comprobantes', url: () => '/configuracion/empresa/comprobantes' },
-  { titulo: 'Orígenes', url: () => '/configuracion/origenes' },
+  {
+    titulo: 'Orígenes',
+    url: () => '/configuracion/origenes',
+    controles: (page) => [
+      [
+        page.getByRole('button', { name: 'Más acciones de Colores' }),
+        'el «⋯» de la tarjeta Colores',
+      ],
+      [
+        page.getByRole('button', { name: 'Más acciones de Vigencia' }),
+        'el «⋯» de la tarjeta Vigencia',
+      ],
+    ],
+  },
   {
     titulo: 'la página de un origen › Datos',
     url: DE_UN_ORIGEN('datos'),
@@ -107,7 +120,6 @@ const PANTALLAS: Pantalla[] = [
       [page.getByRole('button', { name: /^Más acciones de / }).first(), 'el «⋯» del primer nivel'],
     ],
   },
-  { titulo: 'Catálogos › Colores', url: () => '/configuracion/catalogos/colores' },
   { titulo: 'Catálogos › Puertos', url: () => '/configuracion/catalogos/puertos' },
   {
     titulo: 'Catálogos › Tipos de documento',

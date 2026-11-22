@@ -157,8 +157,8 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
 consulta?)` y, para quien no conoce la fórmula, la ruta corta `rutaDeConfiguracionDeCotizacion(origenId, 'formula'|'hoja'|'tarjeta'|'tablas', consulta?)`
   (`/configuracion/origenes/<id>/formula|formula/hoja|formula/tarjeta`: un `route.ts` que responde 308 a la fórmula de trabajo, o a la lista si no hay),
   de `@/shared/lib/rutas`; las actions de la planilla, la hoja, la tarjeta y las tablas revalidan `RUTAS.origenes` con `'layout'`. Lo de toda la
-  empresa (colores, niveles, vigencia y las tablas compartidas) está en Configuración › Catálogos (`/configuracion/catalogos/*`; colores y niveles revalidan
-  `RUTAS.catalogos`). Planilla, Hoja y Tarjeta reciben `formula: FormulaDelOrigen` del layout y leen y escriben **esa** fórmula del origen (la de la URL):
+  empresa está en Configuración › Orígenes › «Para todos los orígenes» (colores y vigencia: tarjetas con su modal; las actions de los colores revalidan `RUTAS.origenes` con `'layout'`) y en
+  Configuración › Catálogos (niveles y las tablas compartidas, `/configuracion/catalogos/*`; los niveles revalidan `RUTAS.catalogos`). Planilla, Hoja y Tarjeta reciben `formula: FormulaDelOrigen` del layout y leen y escriben **esa** fórmula del origen (la de la URL):
   cada lectura va por su id y cada escritura lo manda (`p_formula_del_origen`); sus `key` llevan el id de la fórmula. Las RPC sin id y la ruta corta usan la
   **fórmula de trabajo** (glosario; `leerFormulaDeTrabajoSobre()` de `infra/queries/formula-de-trabajo.ts`, espejo de `_fdo_de_trabajo()`). El ⚙ de la
   hoja (celda y cabecera) lee y cambia la publicada de la **activa**. Los avisos de la copia (`AvisosDeLaCopia`, `entities/avisos-de-la-copia.ts`) y los
@@ -245,8 +245,10 @@ no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o inc
   dnd-kit sólo viaja en el `diferido()` de la pestaña. El color sale del catálogo de colores (`catalogo` nulo si no se leyó: no se elige y `contextoDelEditor()`
   cuenta los colores que el diseño ya nombra); un rechazo de forma del aspecto va bajo su select (`campoDelRechazo()`). «Guardar el borrador» (`formula_guardar_borrador`, con la esperada de la publicada o la hora del borrador) manda `definicion` y
   `params` sin cambios. El área `diseno` replica la lectura y escritura de `formula` porque un área no importa otra.
-- **Los colores** (`/configuracion/catalogos/colores`, `cotizaciones.configurar`; `?panel=nuevo-tono|editar-tono|eliminar-tono&tono=<id>`,
-  URL con el nombre técnico): son de la empresa, un nombre y un #hex, y se guardan al instante (`tono_crear(p_id, p_nombre, p_hex)`, `tono_guardar` con
+- **Los colores** (Configuración › Orígenes › «Para todos los orígenes» › Colores, `cotizaciones.configurar`; `?panel=colores` abre la lista y `nuevo-tono|editar-tono|eliminar-tono&tono=<id>`
+  son ventanas hermanas que vuelven a ella con `usePanelPorUrl(…, { volverA })` y `useFamiliaDeColores()`; URL con el nombre técnico). `SeccionDeLosColores` (la lectura, `pantallas/diseno-colores.ts`) dibuja
+  `TarjetaDeColores`: hasta `COLORES_EN_LA_TARJETA` por nombre y «y N más» (`resumirColores()`); tocarla o su «⋯» abre `ColoresDelCatalogoDiferido` (el modal de la lista; la fila, `FilaDeColor`, es
+  tocable con `ToqueDeLaTarjeta` y lleva sólo su «⋯»). Las actions revalidan `RUTAS.origenes` con `'layout'`. Son de la empresa, un nombre y un #hex, y se guardan al instante (`tono_crear(p_id, p_nombre, p_hex)`, `tono_guardar` con
   `{nombre?, hex?}` y `tono_eliminar` devuelven la lista entera). `entities/diseno/tonos.ts` espeja `_tono_nombre()` y `_tono_hex()` (los mismos textos);
   `entities/colores.ts` (núcleo: lo usan diseño, plantilla y tarjeta) espeja `_color_derivar()` (la hoja derivada con AA) y `_color_tinta_de_la_tarjeta()`,
   con el juego `supabase/tests/casos-de-colores.json`. El modal muestra en vivo la hoja y la tarjeta (`como-se-ve-el-color.tsx`) y avisa sin bloquear si el

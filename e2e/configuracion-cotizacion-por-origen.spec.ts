@@ -15,7 +15,7 @@ import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar
 import { abrirLaFormula, enElEditor } from './soporte/rutas-de-la-formula'
 
 // La cotización de cada origen en su página y lo de toda la empresa en Catálogos (`docs/UX.md` › «La página del origen» y «Catálogos»): la pestaña
-// Fórmula con sus sub-pestañas Fórmula · Hoja · Tarjeta y la pestaña Tablas, cada una su ruta; Colores, Niveles y Vigencia en Catálogos, por el
+// Fórmula con sus sub-pestañas Fórmula · Hoja · Tarjeta y la pestaña Tablas, cada una su ruta; Niveles y Quién crea y quién ve en Catálogos, por el
 // menú; y quién abre qué. Las redirecciones de las rutas de antes, la tira «Para cotizar y mover» y las pestañas apagadas por permiso:
 // `configuracion-origen-centro.spec.ts`.
 test.describe.configure({ mode: 'serial' })
@@ -110,29 +110,23 @@ test('E2E escritorio · las Fórmulas de un origen, el editor de una en sus pest
   await expect(page.getByText(`${conFormula.nombre} no tiene tablas de referencia.`)).toBeVisible()
 })
 
-test('E2E escritorio · Catálogos › Colores, Niveles y Vigencia, por el menú', async ({ page }) => {
+test('E2E escritorio · Catálogos › Niveles y Quién crea y quién ve, por el menú', async ({
+  page,
+}) => {
   await entrar(page, duena)
-  await page.goto(`${CATALOGOS}/colores`)
-  await enElCatalogo(
-    page,
-    new RegExp(`${CATALOGOS}/colores$`),
-    'Colores',
-    'Los colores de la hoja y de la tarjeta, para toda la empresa.',
-  )
-  await menu(page).getByRole('link', { name: 'Niveles', exact: true }).click()
+  await page.goto(`${CATALOGOS}/niveles`)
   await enElCatalogo(
     page,
     new RegExp(`${CATALOGOS}/niveles$`),
     'Niveles',
     'Quién ve y edita qué celdas.',
   )
-  await menu(page).getByRole('link', { name: 'Vigencia', exact: true }).click()
-  await enElCatalogo(
-    page,
-    new RegExp(`${CATALOGOS}/vigencia$`),
-    'Vigencia',
-    'Cuántos días vale una cotización.',
-  )
+  // Colores y Vigencia ya no son catálogos: viven en Orígenes (`configuracion-origenes-para-todos.spec.ts`).
+  for (const titulo of ['Colores', 'Vigencia']) {
+    await expect(menu(page).getByRole('link', { name: titulo, exact: true })).toHaveCount(0)
+  }
+  await menu(page).getByRole('link', { name: 'Quién crea y quién ve', exact: true }).click()
+  await expect(page).toHaveURL(new RegExp(`${CATALOGOS}/quien-crea-y-quien-ve$`))
 })
 
 test('E2E escritorio · quien configura un origen no abre uno ajeno, y en Catálogos Niveles va apagada', async ({
@@ -150,8 +144,8 @@ test('E2E escritorio · quien configura un origen no abre uno ajeno, y en Catál
   await page.goto(`${ORIGENES}/no-es-un-origen/tablas`)
   await expect(page.getByRole('heading', { name: 'Esta página no existe' })).toBeVisible()
   await page.goto(`${CATALOGOS}/niveles`)
-  await expect(page).toHaveURL(new RegExp(`${CATALOGOS}/colores$`))
-  await expect(page.getByRole('heading', { name: 'Colores', level: 1 })).toBeVisible()
+  await expect(page).toHaveURL(new RegExp(`${CATALOGOS}/tablas$`))
+  await expect(page.getByRole('heading', { name: 'Tablas compartidas', level: 1 })).toBeVisible()
   // Niveles y Quién crea y quién ve van apagadas con el mismo motivo: cada renglón lo declara por `aria-describedby`.
   for (const titulo of ['Niveles', 'Quién crea y quién ve']) {
     await expect(menu(page).getByRole('link', { name: titulo, exact: true })).toHaveCount(0)
@@ -166,8 +160,6 @@ test('E2E escritorio · quien sólo ve los roles abre sólo Catálogos › Nivel
   await page.goto(CATALOGOS)
   await expect(page).toHaveURL(new RegExp(`${CATALOGOS}/niveles$`))
   await expect(page.getByRole('heading', { name: 'Niveles', level: 1 })).toBeVisible()
-  await expect(menu(page).getByRole('link', { name: 'Colores', exact: true })).toHaveCount(0)
-  await expect(menu(page).getByRole('link', { name: 'Vigencia', exact: true })).toHaveCount(0)
   await page.goto(`${ORIGENES}/${conFormula.id}/formulas`)
   await expect(page.getByText('No puedes abrir este origen')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ver los orígenes' })).toHaveCount(0)

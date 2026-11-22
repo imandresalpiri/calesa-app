@@ -661,7 +661,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 - Configuración › Empresa (tarjetas de ajustes, cada modal con `diferido()` al abrirse por primera vez): JS en frío (KB gz, `.next-e2e`) `/empresa` 228,4, `/empresa/integraciones` 228,4, `/empresa/comprobantes` 358,9 (sin tope propio).
 - Configuración › Leads (seis tarjetas, cada modal con `diferido()` al abrirse por primera vez; sin tope propio): JS en frío (KB gz, `.next-e2e`, medido el 2026-11-20) `/configuracion/leads` 405,1 contra 458,9 de `/configuracion/empresa` medida en la misma corrida.
 - La puesta en marcha de un origen (topes en `e2e/soporte/presupuestos.ts`, medido el 2026-11-21): `/configuracion/origenes/nuevo` 389,7 (tope 420: el formulario de
-  Datos y el paso a paso; sin el marco del origen) y `/configuracion/origenes/<id>/puesta-en-marcha/formula` 452 (tope 460: la planilla del paso, por el mismo
+  Datos y el paso a paso; sin el marco del origen) y `/configuracion/origenes/<id>/puesta-en-marcha/formula` 461,4 (tope 470, medido el 2026-11-22 con el bloque «Para todos los orígenes»: la planilla del paso, por el mismo
   `diferido()` de la pestaña; «Empezar en blanco» y «Copiar la de otro origen», por `pantallas/formulas-del-origen-empezar`). Los otros pasos reusan el
   editor de su pestaña y no llevan tope propio.
 - La página de un origen y Catálogos: cada pestaña y cada catálogo carga sólo su pantalla (`pantallas/origen-*`, `formula|diseno|plantilla|tablas|diseno-colores|configuracion`).
@@ -670,12 +670,17 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   una fórmula (medido el 2026-11-21), `/formulas/<fórmula>/planilla` 478,3 (la planilla, por `PlanillaDiferida`; sus paneles y «¿Cómo se escribe?», en
   su `diferido()`; el arrastre del número va con eventos de puntero, sin dnd-kit), `/hoja` 393,4 (dnd-kit y el editor del diseño, en su `diferido()`), `/tarjeta` 400,4 (la
   pestaña dibuja en frío el aviso de menos de 1.024 px y arma la lectura del lienzo; el editor llega por `diferido()`; la cabeza del editor, con el nombre, el estado y el «⋯» de la fórmula, suma ≈ 6 KB a cada parte y
-  pasa su meta por ≤ 1 %: regla del 5 %), `/tablas` 392,5 («Nueva tabla» y el «⋯» de cada tabla en frío; sus paneles, por `diferido()`); `/configuracion/catalogos/colores` 356,8, `/niveles` 366,7,
-  `/vigencia` 359,3, `/puertos`, `/navieras` y `/categorias-de-gasto` 356,4, `/tipos-de-documento` 370,4, `/tablas` 368,1. El marco del origen (encabezado,
+  pasa su meta por ≤ 1 %: regla del 5 %), `/tablas` 392,5 («Nueva tabla» y el «⋯» de cada tabla en frío; sus paneles, por `diferido()`); `/configuracion/catalogos/niveles` 366,7,
+  `/puertos`, `/navieras` y `/categorias-de-gasto` 356,4, `/tipos-de-documento` 370,4, `/tablas` 368,1. El marco del origen (encabezado,
   «Para cotizar y mover» y las pestañas) lee `origenes_resumen()` una vez por pedido (`leerElOrigen`, con `cache()`, la comparten el marco y la pestaña) y,
   en un origen de subasta, si apibara está activa: nada cuenta ni crece con las cotizaciones. `/configuracion/origenes/<id>` y las rutas cortas
   (`/formula`, `/formula/hoja`, `/formula/tarjeta`: la fórmula de trabajo, una fila por `formulas_del_origen_origen_idx`, `limit 1`) redirigen con
   `route.ts` (308), sin `page.tsx` ni `loading.tsx` intermedios; `/formulas/<fórmula>` sola, por `next.config.ts`.
+- «Para todos los orígenes» (`/configuracion/origenes`, para quien tiene `cotizaciones.configurar` en algún origen; medido el 2026-11-22): JS en frío de la página 387,4 KB en
+  29 chunks (sin tope propio; con el modal abierto por `?panel=colores` pesa lo mismo: los modales de Colores y Vigencia llegan por `diferido()` al abrirlos). Cada tarjeta lee lo suyo tras su
+  `<Suspense>`: Colores, `tonos` (a lo sumo 48 filas, el tope de la base, por `tonos_pkey`/nombre; `limit` de la lectura) y Vigencia, la fila única de `ajustes_empresa`. Son dos lecturas
+  chicas más sobre el pedido de la página: no cuentan ni crecen con las cotizaciones, y el costo en frío es el del código de las dos tarjetas (la tarjeta tocable, su límite de error y la lista
+  corta de colores); la lista completa de colores (la fila con su «⋯») y el formulario de la vigencia sólo viajan al abrir.
 - Las fórmulas del origen (la pestaña «Fórmulas», `infra/formulas-del-origen/`): la lista lee 51 filas por `formulas_del_origen_origen_idx` (`limit 51`) y
   dibuja hasta 50 (el tope de `formula_del_origen_crear()`, 22023 hint `formulas`), con su versión publicada y si tiene tarjeta por los índices únicos
   parciales, sin conteo exacto: a las 50, «Nueva fórmula» apagada con su aviso. Las archivadas se leen sólo al abrir su sección, de a 20 por cursor

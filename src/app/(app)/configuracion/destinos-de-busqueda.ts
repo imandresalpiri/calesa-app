@@ -1,0 +1,50 @@
+import { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'
+import { RUTAS } from '@/shared/lib/rutas'
+
+// Los destinos de búsqueda de Configuración: lo que el buscador encuentra y que no es una sección ni una sub-sección del registro porque no tiene ruta
+// propia, sino un modal de una página con su `?panel=` («Orígenes › Colores» abre `/configuracion/origenes?panel=colores`). El buscador los lee junto al registro
+// (`secciones.ts` los suma a la sección de cada uno); el menú y el selector de sección no los dibujan. Una página de Configuración que pasa una tarjeta a otra
+// con modal suma aquí su destino, así «colores» o «vigencia» siguen encontrándose.
+// No mira permisos al abrir: la página comprueba los suyos. Aquí sólo decide a quién se ofrece (`destinosDeLaSeccion`).
+export type DestinoDeBusqueda = {
+  clave: string
+  // La clave de la sección del registro a la que pertenece: el camino que se muestra empieza por su título.
+  seccion: string
+  titulo: string
+  // La ruta con su consulta; sin ella, una página o un `route.ts` que existe.
+  ruta: string
+  // Se ofrece a quien tiene alguno de estos permisos (en algún origen).
+  permisos: readonly ClavePermiso[]
+  // Lo que la persona escribiría para encontrarlo además de su título, sin distinguir acentos ni mayúsculas.
+  palabras: readonly string[]
+}
+
+export const DESTINOS_DE_BUSQUEDA: readonly DestinoDeBusqueda[] = [
+  {
+    clave: 'colores',
+    seccion: 'origenes',
+    titulo: 'Colores',
+    ruta: RUTAS.coloresDeCotizacion,
+    permisos: ['cotizaciones.configurar'],
+    palabras: ['color', 'tema', 'tarjeta', 'cotización', 'para todos los orígenes'],
+  },
+  {
+    clave: 'vigencia',
+    seccion: 'origenes',
+    titulo: 'Vigencia',
+    ruta: RUTAS.vigenciaDeCotizacion,
+    permisos: ['cotizaciones.configurar'],
+    palabras: ['días', 'vence', 'caducidad', 'validez', 'cotización', 'para todos los orígenes'],
+  },
+]
+
+// Lo que el navegador recibe de un destino: sólo lo que el buscador usa (sin los permisos).
+export type DestinoDelNavegador = Pick<DestinoDeBusqueda, 'clave' | 'titulo' | 'ruta' | 'palabras'>
+
+// Los destinos de una sección que esta persona puede abrir.
+export function destinosDeLaSeccion(seccion: string, permisos: Permisos): DestinoDelNavegador[] {
+  return DESTINOS_DE_BUSQUEDA.filter(
+    (destino) =>
+      destino.seccion === seccion && destino.permisos.some((clave) => puede(permisos, clave)),
+  ).map(({ clave, titulo, ruta, palabras }) => ({ clave, titulo, ruta, palabras }))
+}

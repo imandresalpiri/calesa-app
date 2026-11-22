@@ -6,8 +6,8 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
 
 - Entra: Configuración › Empresa, cuatro sub-rutas (`src/app/(app)/configuracion/empresa/`): «Datos de la empresa» (`/configuracion/empresa`:
   `TarjetasDeLaEmpresa`, cinco tarjetas: Identidad, Región, Datos legales y de contacto, Políticas, Íconos de la app), «Monedas y tipos de cambio» (`/monedas`: `MonedasYTiposCambio`, tarjetas: la moneda base, un grupo por par con una `TarjetaDeTipoCambio` cada tipo, las monedas activas y «Al compartir»), «Integraciones» (`/integraciones`:
-  `TarjetasDeIntegraciones`, una tarjeta por integración con su estado), todas de `pantallas/configuracion-empresa.ts`, y «Comprobantes» (`/comprobantes`, del módulo `cotizaciones`). Configuración › Catálogos › Vigencia (`/configuracion/catalogos/vigencia`,
-  con la barra de cambios sin guardar): la vigencia de las cotizaciones (si el vehículo y el lead son obligatorios se decide por rol y origen, en «Roles y permisos»).
+  `TarjetasDeIntegraciones`, una tarjeta por integración con su estado), todas de `pantallas/configuracion-empresa.ts`, y «Comprobantes» (`/comprobantes`, del módulo `cotizaciones`). Configuración › Orígenes › «Para todos los orígenes» › Vigencia (`SeccionDeLaVigencia`, de
+  `pantallas/configuracion-cotizacion.ts`: `TarjetaDeVigencia` y su modal `?panel=vigencia`, con `useEnvioConVersion()`; la versión entra por props, nunca en la `key`): la vigencia de las cotizaciones (si el vehículo y el lead son obligatorios se decide por rol y origen, en «Roles y permisos»). Sin poder cambiarla (`puedeCambiarAjustesDeCotizacion`), la tarjeta no abre y el motivo (`MOTIVO_SIN_PERMISO_AJUSTES_DE_COTIZACION`) va en un `<Aviso>` de la página; `?panel=vigencia` sin permiso se limpia con `useRevisionAlAbrir`.
 - Sale (`index.ts`, **sin componentes**):
   - `getAjustes()`: lo mínimo de la empresa (nombre, logos, color, íconos, formato regional, zona, moneda base, registro abierto, primer registro), una
     lectura por request, sin sesión; nunca tumba (si la base no responde, identidad neutra con registro cerrado y error en el log). Lo usan `app/` y

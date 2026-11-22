@@ -1,10 +1,10 @@
 import { datosO } from '@/shared/lib/errores'
 import { leerTonosDelCatalogo } from '../../../areas/diseno/composicion'
-import { ColoresDelCatalogoDiferido } from './diferidos'
+import { TarjetaDeColores } from './tarjeta-de-colores'
 
-// Catálogos › Colores (clave técnica `tonos`), leída en el servidor con la sesión de quien mira y detrás de `<Suspense>`. La pestaña
-// ya pide `cotizaciones.configurar` y la base lo vuelve a pedir al escribir (la lectura la puede cualquiera con sesión). Una lectura que falla sube al `error.tsx` de
-// la ruta, que ofrece «Reintentar».
+// La tarjeta «Colores» de Configuración › Orígenes, leída en el servidor con la sesión de quien mira y detrás de su `<Suspense>`. Pide `cotizaciones.configurar` en algún
+// origen (lo comprueba la página) y la base lo vuelve a pedir al escribir (la lectura la puede cualquiera con sesión). Una lectura que falla sube hasta el límite de la
+// tarjeta, que ofrece «Reintentar»: la lista de orígenes no se cae.
 export async function SeccionDeLosColores() {
-  return <ColoresDelCatalogoDiferido lista={datosO(await leerTonosDelCatalogo())} />
+  return <TarjetaDeColores lista={datosO(await leerTonosDelCatalogo())} />
 }

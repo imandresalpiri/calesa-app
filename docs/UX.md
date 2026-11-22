@@ -568,11 +568,10 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (`url-vieja.ts`): `?seccion=` a su sub-ruta, y `?tc=`, `?moneda=` y los `?panel=` de crear (con o sin `?seccion=`) a Monedas con ellos.
 - **Catálogos** — `/configuracion/catalogos` (cualquiera de los permisos de sus catálogos): lo que es de toda la empresa y no de un origen. No
   tiene página propia ni pestañas: la raíz abre (308, por persona) la primera sub-sección que la persona puede abrir, o el inicio de Configuración.
-  Cada catálogo es una sub-ruta con su `h1` y su frase, en tres tramos del menú: **«Cotizaciones»** — «Colores» (`/colores`, `cotizaciones.configurar`;
-  `?panel=nuevo-tono|editar-tono|eliminar-tono&tono=<id>`), «Niveles» (`/niveles`, `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|
+  Cada catálogo es una sub-ruta con su `h1` y su frase, en tres tramos del menú: **«Cotizaciones»** — «Niveles» (`/niveles`, `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|
 eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con «Te falta el permiso «Ver roles».»), «Quién crea y quién ve»
-  (`/quien-crea-y-quien-ve`, los mismos permisos y el mismo motivo; `?origen=<id>`) y «Vigencia» (`/vigencia`,
-  `cotizaciones.configurar`); **«Logística»** — «Puertos» (`/puertos`: nombre, país, código, orden y activo), «Navieras» (`/navieras`: nombre y activa;
+  (`/quien-crea-y-quien-ve`, los mismos permisos y el mismo motivo; `?origen=<id>`); los colores y la vigencia ya no son catálogos: son tarjetas de «Para todos los orígenes»
+  (Orígenes). **«Logística»** — «Puertos» (`/puertos`: nombre, país, código, orden y activo), «Navieras» (`/navieras`: nombre y activa;
   sin «Eliminar»: se desactivan) y «Categorías de gasto» (`/categorias-de-gasto`: nombre, propósito de la lista fija de la base, orden y activa; una con
   gastos no se elimina), con `logistica.catalogos.gestionar` y sólo si algún área llena el catálogo, y «Tipos de documento» (`/tipos-de-documento`: los
   de la empresa; los cambia quien gestiona los catálogos de logística y los leen quien configura un flujo o los repuestos); y, sin rótulo,
@@ -589,7 +588,13 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
   frase «De dónde vienen los vehículos: sus datos, campos y categorías, su flujo, su fórmula y sus tablas.», «Nuevo origen» (un enlace a
   `/configuracion/origenes/nuevo`; `?panel=nuevo` responde 308 ahí con su consulta; sin `origenes.gestionar`, apagado con su motivo) y, como tarjetas, sólo los orígenes que la persona abre (dos columnas desde 40 rem de contenedor; una al 200 % y en el celular; tope 100
   con `<AvisoDeTope>`): punto de color, nombre, «Subasta|Manual», «Activo|Inactivo», lo que falta en corto o «Nada pendiente», y vehículos y
-  cotizaciones; la tarjeta entera abre sus Datos.
+  cotizaciones; la tarjeta entera abre sus Datos. **Arriba de la lista, «Para todos los orígenes»** (`h2`; sólo con `cotizaciones.configurar` en algún origen, y la página
+  sin `max-w-4xl`): lo que vale para todas las cotizaciones de la empresa, en dos tarjetas de ajustes lado a lado (apiladas en el celular y al 200 %), cada una con su modal
+  por `?panel=`: **Colores** (hasta 6 por nombre con su muestra y «y N más» sobre lo leído; sin ninguno, «Todavía no hay colores.») y **Vigencia** («N días»). Cada tarjeta lleva sólo su
+  «⋯» («Editar colores…», «Editar vigencia…»), sin «Editar» suelto, y tocarla abre el modal; con el teclado la tarjeta es un botón («Editar colores», «Editar vigencia») y el «⋯» va aparte
+  («Más acciones de Colores»). Sin poder cambiar la vigencia (pide `cotizaciones.configurar` en todos los orígenes), su «⋯» va apagado con el motivo, la tarjeta no abre nada y el motivo va
+  en un `<Aviso>` del bloque. Cada tarjeta lee lo suyo tras su `<Suspense>` y dentro de su límite: si falla, esa tarjeta dice «No pudimos cargar «Colores».» con «Reintentar» y la lista de
+  orígenes sigue. Por URL, `?panel=colores|vigencia` sin permiso no abre y se limpia. Ver «Cotización: colores» y «Cotización: vigencia».
 - **La página del origen** — `/configuracion/origenes/<id>/<pestaña>`: arriba «‹ Orígenes»; el punto de color, el nombre como `h1`, «Activo» o
   «Inactivo» y, con `origenes.gestionar`, el «⋯» arriba a la derecha (activar, desactivar, eliminar: `?panel=eliminar-origen`). Debajo, **«Para cotizar y
   mover»** (`h2`): cinco pasos —Datos, Campos, Flujo (con fases), Fórmula (una activa) y Tarjeta (la de la activa, publicada)— con ✓ «Listo», ⚠ o ✗ y una frase corta,
@@ -626,7 +631,8 @@ eliminar-nivel&nivel=<id>`; para quien configura sin ver los roles, apagada con 
     pestaña que no abre, por URL: «No puedes abrir esta pestaña», su motivo e «Ir a <la primera que abre>»; un origen ajeno, «No puedes abrir este
     origen» (con «Ver los orígenes» si abre otros), sin decirle si existe; a quien sí podría abrirlo, uno que no existe es un 404.
   - **Las URLs viejas** redirigen con 308 y su consulta: `/configuracion/cotizacion/<origen>/formula|hoja|tarjeta|tablas` (y `/<origen>` solo) a la
-    pestaña del origen (la fórmula, por su ruta corta), `?seccion=formula` del origen a `/formulas`, `/configuracion/cotizacion/general/*` y `?seccion=tonos|colores|niveles|ajustes|vigencia` a Catálogos,
+    pestaña del origen (la fórmula, por su ruta corta), `?seccion=formula` del origen a `/formulas`, `/configuracion/cotizacion/general[/colores|/vigencia]` y `?seccion=tonos|colores|ajustes|vigencia` a `/configuracion/origenes?panel=colores|vigencia`
+    (si la URL vieja trae su propio `?panel=`, manda ése y va solo), `/configuracion/catalogos/colores|vigencia` igual, y `general/niveles` y `?seccion=niveles` a Catálogos,
     `/configuracion/flujos?origen=` a su Flujo (`?ambito=repuestos` al de repuestos; sin origen, el primero que la persona configura), `?seccion=documentos`
     sin `flujos.configurar` a Tipos de documento, y `/configuracion/logistica/*` a su catálogo. Lo que no se resuelve, a la lista de orígenes.
 - **Nuevo origen** — `/configuracion/origenes/nuevo` (`origenes.gestionar`; sin él, «No puedes …» con su motivo): `h1` «Nuevo origen», a la izquierda el
@@ -1598,7 +1604,7 @@ Excel. Edita el **borrador** de la plantilla (sólo la forma 2, la cuadrícula),
     «Deshiciste: combinar.»).
 - **El panel** (a la derecha; debajo del lienzo con el texto al 200 %), según lo elegido:
   - **Nada, «Resumen»:** «Columnas» (cada una con su ancho en número), «Σ ancho N / 1.600 px», «Sumar columna»; «Paleta» (los colores del catálogo, sólo para
-    ver) con «Editar en General › Colores»; «Tamaño: n de 24 KiB».
+    ver) con «Editar en Orígenes › Colores»; «Tamaño: n de 24 KiB».
   - **Una celda, un rango o columnas** (aplicado a todas): la ruta («Fila 4 › Columna «C · Monto»»); con columnas, su «Ancho»; «Contenido» (Texto | Dato |
     Logo | Vacío; el texto con «n de 300»; «Dato» con «Cuál dato» (Uno | El primero con valor | Según condiciones) y, con «Uno», «Buscar un dato», las
     variables «De la cotización» y los nodos de la fórmula del nivel «todos» por grupo, a lo sumo 50 con «Escribe para acotar.», un restringido que la
@@ -1756,16 +1762,16 @@ Configuración › Orígenes › un origen › Tablas (`/configuracion/origenes/
 
 ### Cotización: vigencia (estados propios)
 
-Configuración › Catálogos › Vigencia (`/configuracion/catalogos/vigencia`): la vigencia, una fila para todas las cotizaciones.
+Configuración › Orígenes › «Para todos los orígenes» › Vigencia (tarjeta y modal `?panel=vigencia`): la vigencia, una fila para todas las cotizaciones.
 
 - **Quién:** la ve quien tiene `cotizaciones.configurar` en algún origen; la cambia quien la tiene en todos (la concesión sin origen). Sin
-  eso, el campo apagado con su motivo arriba y sin barra. La base lo vuelve a exigir en
+  eso, el «⋯» de la tarjeta apagado con su motivo, la tarjeta sin abrir nada y el motivo en un `<Aviso>` del bloque. La base lo vuelve a exigir en
   `empresa_guardar_ajustes_de_cotizacion()`.
-- **Formulario:** «Vigencia (días)» (1 a 365; fuera de rango, el motivo junto al campo con el foco), y una línea: «Si una
+- **Tarjeta:** «Vigencia» y «N días» (o «1 día»). Tocarla o «Editar vigencia…» abre el modal.
+- **Modal «Vigencia»:** «Vigencia (días)» (1 a 365; fuera de rango, «La vigencia va de 1 a 365 días.» junto al campo con el foco), y una línea: «Si una
   cotización pide vehículo y lead se decide por rol y origen en «Roles y permisos».», con el enlace «Ir a Roles y permisos» para quien ve o gestiona
-  los roles. Sin borrador. Esqueleto; si la lectura falla, el error de la ruta (nunca los de fábrica).
-- **Guardar:** la barra de cambios sin guardar («Tienes cambios sin guardar» · «Descartar» · «Guardar») aparece al cambiar el campo; salir
-  con cambios pregunta. «Guardando…» con el campo apagado; entró: «Vigencia guardada» y el formulario se monta con lo guardado. Otra persona cambió la fila
+  los roles. «Guardar» en el pie del modal; sin borrador. Esqueleto en la tarjeta; si la lectura falla, «Reintentar» en la tarjeta (nunca los de fábrica).
+- **Guardar:** «Guardando…» con el campo apagado; entró: «Vigencia guardada» y el modal se cierra. Cerrar con cambios pregunta. Otra persona cambió la fila
   (aquí o en Empresa): el texto de la base con «Recargar» y lo tipeado queda; igual sin conexión o sin permiso.
 - **Dónde se nota:** la vigencia mueve «Vencida», «vence el», la tarjeta y el PDF de todas las cotizaciones, también las guardadas (se
   calcula al leer).
@@ -1830,16 +1836,20 @@ aspecto en la rejilla de 12 y su vista previa.
 
 ### Cotización: colores (estados propios)
 
-Configuración › Catálogos › Colores (`/configuracion/catalogos/colores`; los paneles conservan el nombre técnico `tono`): el catálogo de colores de la
+Configuración › Orígenes › «Para todos los orígenes» › Colores (tarjeta y modal `?panel=colores`; los paneles conservan el nombre técnico `tono`): el catálogo de colores de la
 empresa, que nombran los grupos de una fórmula y las secciones y la cabecera del diseño. Es de **toda la empresa**, no de un origen, y **se
 guarda al instante** (cada color es una escritura propia; no entra en el borrador del diseño).
 
-- **Quién entra:** `cotizaciones.configurar` en algún origen (el primer catálogo del tramo «Cotizaciones»). Leer, cualquiera con sesión; la base
-  pide la clave en cada escritura (42501).
-- **Arriba:** el título «Colores» y su acción principal, «Nuevo color» (botón primario). Sin subtítulo.
-- **Lista:** por nombre, hasta 48 (tope de la base). Fila: nombre, clave en texto suave (no cambia nunca: la nombran los grupos), el hex como
-  lo pinta la tarjeta (de fondo, con su texto y el hex en mono) y las dos muestras de la hoja «Aa» («Claro» y «Oscuro», con los colores de
-  ese tema sea cual sea el de quien mira); «Editar» a la vista y un «⋯» («Más acciones de «nombre»») con «Eliminar». No se muestra cuántos hay.
+- **Quién entra:** `cotizaciones.configurar` en algún origen. Leer, cualquiera con sesión; la base pide la clave en cada escritura (42501). Sin él, el bloque no se dibuja y `?panel=colores`
+  no abre (se limpia).
+- **Tarjeta:** los primeros 6 por nombre, cada uno con su muestra, y «y N más» (sobre lo leído, nunca un total); sin ninguno, «Todavía no hay colores.». Tocarla o «Editar colores…» del
+  «⋯» abre la lista.
+- **Modal «Colores» (la lista):** «Nuevo color» arriba a la izquierda (primario) y «Cerrar» en el pie. Por nombre, hasta 48 (tope de la base). Fila: nombre, clave en texto suave (no cambia
+  nunca: la nombran los grupos), el hex como lo pinta la tarjeta (de fondo, con su texto y el hex en mono) y las dos muestras de la hoja «Aa» («Claro» y «Oscuro», con los colores de
+  ese tema sea cual sea el de quien mira). Sin «Editar» suelto: sólo su «⋯» («Más acciones de «nombre»») con «Editar…» y «Eliminar…», y tocar la fila abre «Editar»; con el teclado, la fila es
+  un botón («Editar «nombre»»). No se muestra cuántos hay.
+- **Nuevo, editar y eliminar** son ventanas hermanas de la lista (`?panel=nuevo-tono`, `editar-tono&tono=<id>`, `eliminar-tono&tono=<id>`): al cerrarlas —por guardar, cancelar o Esc— se vuelve a la
+  lista en un solo cambio de dirección.
 - **Nuevo y editar** (modal «Nuevo color» o «Editar color»; al editar, «La clave «x» no cambia: la nombran los grupos.»): «Nombre» (≤ 40,
   único) y «Color» (selector y campo `#rrggbb` con el mismo valor; nace en `#31869b`). Debajo, **en vivo**: «En la hoja», las muestras
   «Claro» y «Oscuro» con lo que derivará la base (contraste AA garantizado, no se avisa), y «En la tarjeta», el hex con el texto que se lee
@@ -1851,9 +1861,8 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   existe. Recarga para ver cómo quedó.»
 - **Eliminar** (desde el «⋯», `<Confirmar>` «Eliminar el color «x»»): la lista no sabe cuáles están en uso; si alguna versión de una fórmula
   lo nombra, la base responde cuál (23503), sale como aviso y el diálogo se cierra. No se deshace.
-- **Vacío** «Todavía no hay colores. Crea el primero.» con «Nuevo color»; **con 48**, «Nuevo color» apagado con su motivo («Ya hay 48
-  colores, que es el máximo. Elimina uno que ningún grupo use.»). `EsqueletoFormulario`; una lectura que falla sube al «Reintentar» de la
-  ruta. Sin conexión lo escrito queda y sale al volver.
+- **Vacío** «Todavía no hay colores. Crea el primero.» en la lista, con «Nuevo color» arriba; **con 48**, «Nuevo color» apagado con su motivo («Ya hay 48
+  colores, que es el máximo. Elimina uno que ningún grupo use.»). Esqueleto en la tarjeta; una lectura que falla deja esa tarjeta con «Reintentar». Sin conexión lo escrito queda y sale al volver.
 - **200 %:** cada fila apila nombre, muestras y acciones; el modal es `ModalDeFormulario`.
 
 ### Leads: listado (estados propios)

@@ -81,7 +81,7 @@ describe('guardarAjustesDeCotizacion', () => {
     expect(h.pedidos).toHaveLength(1)
     expect(h.pedidos[0]).toStrictEqual(pedido)
     expect(respuesta.data).toEqual(h.respuesta)
-    expect(h.cache.revalidatePath).toHaveBeenCalledWith('/configuracion/catalogos', 'layout')
+    expect(h.cache.revalidatePath).toHaveBeenCalledWith('/configuracion/origenes', 'layout')
     expect(h.cache.revalidatePath).toHaveBeenCalledWith('/configuracion/empresa')
   })
 

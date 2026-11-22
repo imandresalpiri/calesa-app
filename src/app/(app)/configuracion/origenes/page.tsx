@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { leerIntegraciones } from '@/modules/empresa'
+import { leerIntegraciones, puedeCambiarAjustesDeCotizacion } from '@/modules/empresa'
 import { leerOrigenes } from '@/modules/origenes'
 import { ListaDeOrigenes } from '@/modules/origenes/pantallas/origenes'
 import { puede, requerirSesion } from '@/modules/equipo'
@@ -8,13 +8,16 @@ import { datosO } from '@/shared/lib/errores'
 import { TOPE_DE_LA_LISTA_DE_ORIGENES } from '@/shared/lib/paginacion'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { puedeAbrirElOrigen, puedeAbrirOrigenes } from './acceso'
+import { ParaTodosLosOrigenes } from './para-todos-los-origenes'
+import { SinElBloque } from './sin-el-bloque'
 
 export const metadata: Metadata = { title: 'Orígenes' }
 
 // Configuración › Orígenes: las tarjetas de los orígenes que la persona abre (cualquiera de los tres permisos en ese origen), hasta
 // `TOPE_DE_LA_LISTA_DE_ORIGENES` y con su aviso, con lo que le falta a cada uno. Los edita quien tiene `origenes.gestionar`; quien
 // configura el flujo o la fórmula de uno lo ve deshabilitado, con el motivo (la base lo vuelve a comprobar). La integración de apibara se lee
-// sólo si hay un origen de subasta; si la lectura falla, cuenta como activa (como en el inicio): no se inventa una falta.
+// sólo si hay un origen de subasta; si la lectura falla, cuenta como activa (como en el inicio): no se inventa una falta. Arriba, «Para todos los orígenes»: los colores y
+// la vigencia de las cotizaciones, de toda la empresa, para quien tiene `cotizaciones.configurar` en algún origen (la vigencia la cambia quien la tiene en todos).
 export default async function PaginaOrigenes() {
   const sesion = await requerirSesion()
   if (!puedeAbrirOrigenes(sesion.permisos)) {
@@ -30,8 +33,20 @@ export default async function PaginaOrigenes() {
     apibaraActiva =
       !integraciones.ok || integraciones.data.some((una) => una.clave === 'apibara' && una.activa)
   }
+  const veLoDeTodos = puede(sesion.permisos, 'cotizaciones.configurar')
   return (
-    <div className="grid max-w-4xl gap-4">
+    <div className="grid gap-6">
+      {veLoDeTodos ? (
+        <ParaTodosLosOrigenes
+          puedeCambiarLaVigencia={puedeCambiarAjustesDeCotizacion(sesion.permisos)}
+          puedeIrARoles={
+            puede(sesion.permisos, 'equipo.roles.ver') ||
+            puede(sesion.permisos, 'equipo.roles.gestionar')
+          }
+        />
+      ) : (
+        <SinElBloque />
+      )}
       <ListaDeOrigenes
         origenes={origenes}
         hayMas={hayMas}

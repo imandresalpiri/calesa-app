@@ -26,13 +26,15 @@ export const RUTAS = {
   nuevoOrigen: '/configuracion/origenes/nuevo',
   configuracionDeLeads: '/configuracion/leads',
   camposDeLeads: '/configuracion/leads/campos',
-  // Catálogos: lo global de la empresa (los colores, los niveles, quién crea y quién ve y la vigencia de la cotización; los puertos, las
-  // navieras, las categorías de gasto y los tipos de documento de toda la empresa; las tablas compartidas). Lo de cada origen vive en su página.
+  // Los colores y la vigencia de las cotizaciones son de toda la empresa y se configuran en Orígenes, en las tarjetas de «Para todos los orígenes»: cada
+  // una abre su modal por `?panel=` (no son rutas: no se revalidan, se enlazan).
+  coloresDeCotizacion: '/configuracion/origenes?panel=colores',
+  vigenciaDeCotizacion: '/configuracion/origenes?panel=vigencia',
+  // Catálogos: lo global de la empresa (los niveles y quién crea y quién ve de la cotización; los puertos, las navieras, las categorías de gasto y los
+  // tipos de documento de toda la empresa; las tablas compartidas). Lo de cada origen vive en su página.
   catalogos: '/configuracion/catalogos',
-  coloresDeCotizacion: '/configuracion/catalogos/colores',
   nivelesDeCotizacion: '/configuracion/catalogos/niveles',
   quienCreaYQuienVe: '/configuracion/catalogos/quien-crea-y-quien-ve',
-  vigenciaDeCotizacion: '/configuracion/catalogos/vigencia',
   puertosDeLogistica: '/configuracion/catalogos/puertos',
   navierasDeLogistica: '/configuracion/catalogos/navieras',
   categoriasDeGastoDeLogistica: '/configuracion/catalogos/categorias-de-gasto',

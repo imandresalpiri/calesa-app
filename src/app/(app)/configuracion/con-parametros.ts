@@ -43,3 +43,21 @@ export function redireccionPermanente(destino: string, { porPersona = false } = 
   }
   return new Response(null, { status: 308, headers })
 }
+
+// La ruta de Orígenes con el modal de «Para todos los orígenes» que abre una URL vieja de Colores o de Vigencia: `?panel=<panel>` y el resto de la consulta de la
+// URL vieja. Si ya traía su propio `?panel=` (`nuevo-tono`, `editar-tono&tono=<id>`, `eliminar-tono&tono=<id>`), ése manda: un solo `panel`. Sin `seccion` ni `origen`.
+export function conElPanelDeOrigenes(
+  ruta: string,
+  panel: string,
+  parametros: ParametrosDeLaUrl,
+): string {
+  const propio = Array.isArray(parametros['panel']) ? parametros['panel'][0] : parametros['panel']
+  const resto = Object.fromEntries(
+    Object.entries(parametros).filter(([nombre]) => nombre !== 'panel'),
+  )
+  // El `panel` va primero, como lo escribe la app al abrir un modal; si traía el suyo, ése.
+  return conParametros(ruta, {
+    panel: propio === undefined || propio === '' ? panel : propio,
+    ...resto,
+  })
+}
