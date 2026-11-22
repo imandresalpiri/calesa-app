@@ -40,7 +40,7 @@ export function accionesDeApibara(datos: DeApibara): AccionDeMenu[] {
     accionQueAbre(
       {
         clave: 'configurar',
-        etiqueta: 'Configurar',
+        etiqueta: 'Configurar…',
         abrir: paneles.apibara.abrir,
         principal: true,
       },
@@ -82,7 +82,7 @@ export function accionesDeLaWeb(datos: DeLaWeb): AccionDeMenu[] {
     accionQueAbre(
       {
         clave: 'configurar',
-        etiqueta: 'Configurar',
+        etiqueta: 'Configurar…',
         abrir: paneles.webPublica.abrir,
         principal: true,
       },

@@ -9,7 +9,6 @@ import {
   TEXTO_SIN_ORIGENES_ACTIVOS,
   type OrigenDeLeadConUso,
 } from '../../../entities/origen-de-lead'
-import { PANEL_DE_ORIGENES } from '../../../entities/paneles-de-la-configuracion'
 import {
   accionDeNuevo,
   ACTIVAS_EN_LA_TARJETA,
@@ -27,7 +26,6 @@ export function TarjetaDeOrigenes({ origenes }: { origenes: readonly OrigenDeLea
     <>
       <TarjetaEditable
         titulo="Orígenes del lead"
-        panel={PANEL_DE_ORIGENES}
         motivo={null}
         abrir={familia.abrir}
         extra={accionDeNuevo(

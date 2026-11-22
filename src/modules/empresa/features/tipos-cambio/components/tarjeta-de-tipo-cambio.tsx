@@ -79,7 +79,7 @@ export function TarjetaDeTipoCambio(props: Props) {
         className="-m-2 grid gap-0.5 rounded-(--radius-md) p-2 text-left outline-none hover:bg-(--color-surface-3) focus-visible:shadow-(--shadow-focus)"
         onClick={alAbrir}
       >
-        <span className="sr-only">Abrir {tipo.nombre}: </span>
+        <span className="sr-only">Editar {tipo.nombre}: </span>
         <span className="text-(length:--text-sm) text-(--color-ink-faint)">
           1 {tipo.monedaDe} =
         </span>

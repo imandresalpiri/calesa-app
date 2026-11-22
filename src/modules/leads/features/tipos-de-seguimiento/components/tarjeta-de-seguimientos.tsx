@@ -2,7 +2,6 @@
 
 import { Aviso } from '@/shared/ui/aviso'
 import { ListaCorta, TarjetaEditable } from '@/shared/ui/tarjetas-de-ajustes'
-import { PANEL_DE_SEGUIMIENTOS } from '../../../entities/paneles-de-la-configuracion'
 import {
   alTopeDeTiposDeSeguimiento,
   sinTiposActivos,
@@ -26,7 +25,6 @@ export function TarjetaDeSeguimientos({ lista }: { lista: ListaDeTiposDeSeguimie
     <>
       <TarjetaEditable
         titulo="Tipos de seguimiento"
-        panel={PANEL_DE_SEGUIMIENTOS}
         motivo={null}
         abrir={familia.abrir}
         extra={accionDeNuevo(

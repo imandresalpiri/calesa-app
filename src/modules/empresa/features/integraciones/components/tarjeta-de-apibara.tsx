@@ -6,8 +6,8 @@ import { Interruptor } from '@/shared/ui/interruptor'
 import { MasAcciones } from '@/shared/ui/lista'
 import { useRegional } from '@/shared/ui/regional'
 import {
-  BotonDeLaTarjeta,
   TarjetaDeAjustes,
+  ToqueDeLaTarjeta,
   ValoresDeLaTarjeta,
   type FilaDeValores,
 } from '@/shared/ui/tarjetas-de-ajustes'
@@ -58,8 +58,10 @@ export function TarjetaDeApibara({ apibara, puedeEditar, paneles }: Props) {
       estado={
         <EstadoDeLaIntegracion estado={estadoDeIntegracion(apibara, { sinClavePublica: false })} />
       }
-      accion={
-        <BotonDeLaTarjeta panel="apibara" etiqueta="Configurar" deshabilitado={motivo !== null} />
+      toque={
+        motivo === null ? (
+          <ToqueDeLaTarjeta etiqueta="Configurar apibara" abrir={paneles.apibara.abrir} />
+        ) : undefined
       }
       acciones={
         <MasAcciones

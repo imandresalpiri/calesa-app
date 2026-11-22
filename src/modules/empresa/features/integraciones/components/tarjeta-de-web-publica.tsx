@@ -7,8 +7,8 @@ import { Interruptor } from '@/shared/ui/interruptor'
 import { MasAcciones } from '@/shared/ui/lista'
 import { useRegional } from '@/shared/ui/regional'
 import {
-  BotonDeLaTarjeta,
   TarjetaDeAjustes,
+  ToqueDeLaTarjeta,
   ValoresDeLaTarjeta,
 } from '@/shared/ui/tarjetas-de-ajustes'
 import {
@@ -72,12 +72,10 @@ export function TarjetaDeWebPublica({
           estado={estadoDeIntegracion(webPublica, { sinClavePublica: false })}
         />
       }
-      accion={
-        <BotonDeLaTarjeta
-          panel="web-publica"
-          etiqueta="Configurar"
-          deshabilitado={motivo !== null}
-        />
+      toque={
+        motivo === null ? (
+          <ToqueDeLaTarjeta etiqueta="Configurar la web pública" abrir={paneles.webPublica.abrir} />
+        ) : undefined
       }
       acciones={
         <MasAcciones

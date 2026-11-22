@@ -1,7 +1,6 @@
 'use client'
 
 import { ListaCorta, TarjetaEditable } from '@/shared/ui/tarjetas-de-ajustes'
-import { PANEL_DE_TIPOS } from '../../../entities/paneles-de-la-configuracion'
 import {
   alTopeDeTipos,
   NOMBRE_DE_CLASE,
@@ -25,7 +24,6 @@ export function TarjetaDeTipos({ lista }: { lista: ListaDeTipos }) {
     <>
       <TarjetaEditable
         titulo="Tipos de lead"
-        panel={PANEL_DE_TIPOS}
         motivo={null}
         abrir={familia.abrir}
         extra={accionDeNuevo(

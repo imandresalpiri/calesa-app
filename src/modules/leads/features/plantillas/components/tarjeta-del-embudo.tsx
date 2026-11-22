@@ -6,7 +6,6 @@ import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { PANEL_RESTABLECER_EMBUDO, type AjustesDeLeads } from '../../../entities/ajustes-de-leads'
 import type { Etapa } from '../../../entities/embudo'
-import { PANEL_DEL_EMBUDO } from '../../../entities/paneles-de-la-configuracion'
 import { useFamiliaDelPanel } from '../../configuracion/hooks/use-familia-del-panel'
 import { PuntoDeColor } from '../../etiquetas/components/insignia-de-etiqueta'
 import { ModalDePlantillaDelEmbudoDiferido, RestablecerEmbudoDiferido } from './diferidos'
@@ -58,7 +57,6 @@ export function TarjetaDelEmbudo({ embudo }: { embudo: AjustesDeLeads['embudo'] 
     <>
       <TarjetaEditable
         titulo="Embudo"
-        panel={PANEL_DEL_EMBUDO}
         motivo={null}
         abrir={familia.abrir}
         estado={embudo.deFabrica ? <Badge variant="secondary">De fábrica</Badge> : undefined}

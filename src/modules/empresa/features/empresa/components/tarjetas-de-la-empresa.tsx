@@ -63,13 +63,7 @@ function TarjetaDeIconos({
         ]
       : []
   return (
-    <TarjetaEditable
-      titulo="Íconos de la app"
-      panel="iconos"
-      motivo={motivo}
-      abrir={abrir}
-      extra={extra}
-    >
+    <TarjetaEditable titulo="Íconos de la app" motivo={motivo} abrir={abrir} extra={extra}>
       <div className="flex flex-wrap items-center gap-3">
         <Image
           src={props.iconoActualUrl}
@@ -153,38 +147,22 @@ export function TarjetasDeLaEmpresa(props: Props) {
     <>
       {puedeEditar ? null : <Aviso>{MOTIVO_SIN_PERMISO_AJUSTES}</Aviso>}
       <TarjetasDeAjustes etiqueta="Ajustes de la empresa">
-        <TarjetaEditable
-          titulo="Identidad"
-          panel="identidad"
-          motivo={motivo}
-          abrir={paneles.identidad.abrir}
-        >
+        <TarjetaEditable titulo="Identidad" motivo={motivo} abrir={paneles.identidad.abrir}>
           <ValoresDeLaTarjeta
             filas={filasDeIdentidad(ajustes, props.logoUrl, props.logoOscuroUrl)}
           />
         </TarjetaEditable>
-        <TarjetaEditable
-          titulo="Región"
-          panel="region"
-          motivo={motivo}
-          abrir={paneles.region.abrir}
-        >
+        <TarjetaEditable titulo="Región" motivo={motivo} abrir={paneles.region.abrir}>
           <ValoresDeLaTarjeta filas={filasDeRegion(ajustes)} />
         </TarjetaEditable>
         <TarjetaEditable
           titulo="Datos legales y de contacto"
-          panel="datos-legales"
           motivo={motivo}
           abrir={paneles.legales.abrir}
         >
           <ValoresDeLaTarjeta filas={filasDeDatosLegales(ajustes)} />
         </TarjetaEditable>
-        <TarjetaEditable
-          titulo="Políticas"
-          panel="politicas"
-          motivo={motivo}
-          abrir={paneles.politicas.abrir}
-        >
+        <TarjetaEditable titulo="Políticas" motivo={motivo} abrir={paneles.politicas.abrir}>
           <ValoresDeLaTarjeta filas={filasDePoliticas(ajustes)} />
         </TarjetaEditable>
         <TarjetaDeIconos props={props} motivo={motivos.iconos} abrir={paneles.iconos.abrir} />

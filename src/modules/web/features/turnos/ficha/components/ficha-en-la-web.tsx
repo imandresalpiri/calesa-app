@@ -23,7 +23,6 @@ export function FichaEnLaWeb({
     <>
       <TarjetaEditable
         titulo="Tu ficha en la web"
-        panel="ficha"
         motivo={miraOtroRol ? TEXTO_VER_COMO : null}
         abrir={abrir}
         estado={
