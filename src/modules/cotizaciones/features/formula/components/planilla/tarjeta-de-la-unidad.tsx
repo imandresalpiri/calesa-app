@@ -81,13 +81,15 @@ function Cuerpo({
   return <TarjetaEnVivo lectura={lectura} calculo={calculo} monedaBs={monedaBs} />
 }
 
-// La tarjeta de la cotización en vivo, al costado de la planilla: la plantilla de trabajo del origen con la unidad de ejemplo y el modo elegido (el mismo de «Totales»).
-// Sin plantilla, el enlace a «La imagen que recibe el cliente»; si no se leyó, «Reintentar» trae la pestaña de nuevo sin perder lo aplicado (la sesión no se vuelve a
-// montar).
+// La tarjeta de la cotización en vivo, en el panel al costado «Tarjeta de la cotización» (`?costado=tarjeta`, que pone el título): la plantilla de trabajo del origen
+// con la unidad de ejemplo y el modo elegido (el mismo de «Totales»). Sin plantilla, el enlace a «La imagen que recibe el cliente»; si no se leyó, «Reintentar» trae
+// la pestaña de nuevo sin perder lo aplicado (la sesión no se vuelve a montar).
 export function TarjetaDeLaUnidad(p: Props) {
   return (
-    <section className="grid min-w-0 gap-2 rounded-(--radius-lg) border border-(--color-line) bg-(--color-surface) p-3 text-(length:--text-sm)">
-      <h4 className="font-semibold text-(--color-ink)">Tarjeta de la cotización</h4>
+    <section
+      aria-label="Tarjeta de la cotización"
+      className="grid min-w-0 gap-2 text-(length:--text-sm)"
+    >
       <SelectorDeModo modos={p.modos} elegido={p.modo} alElegir={p.alElegirModo} />
       <Cuerpo {...p} />
     </section>

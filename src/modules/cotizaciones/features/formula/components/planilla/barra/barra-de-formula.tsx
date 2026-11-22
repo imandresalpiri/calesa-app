@@ -99,7 +99,7 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
           )}
         </div>
         {e === null ? null : <AplicarODescartar planilla={planilla} />}
-        <AccionesDeLaBarraDeFormula />
+        <AccionesDeLaBarraDeFormula paneles={planilla.paneles} />
       </div>
       <LeyendaDeReferencias leyenda={planilla.leyenda} anuncio={planilla.anuncio} />
       <ListaDeSugerencias sugerencias={planilla.sugerencias} ids={ids} />

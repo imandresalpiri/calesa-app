@@ -99,14 +99,11 @@ function Cuerpo(p: Props) {
 }
 
 // «Totales» de la planilla, con la unidad de ejemplo y el modo elegido (como «TOTALES» de V1): el total en dólares y en la moneda local, la base imponible y lo que va
-// aparte, cada uno con `<Monto>` y cómo sale. Cada estado dice qué pasa; el bloque se anuncia (`role="status"`) cuando un cambio lo mueve.
+// aparte, cada uno con `<Monto>` y cómo sale. Cada estado dice qué pasa; el bloque se anuncia (`role="status"`) cuando un cambio lo mueve. Va en el panel al costado
+// «Totales» (`?costado=totales`), que pone el título.
 export function TotalesDeLaUnidad(p: Props) {
   return (
-    <section
-      aria-label="Totales"
-      className="grid min-w-0 gap-2 rounded-(--radius-lg) border border-(--color-line) bg-(--color-surface) p-3 text-(length:--text-sm)"
-    >
-      <h4 className="font-semibold text-(--color-ink)">Totales</h4>
+    <section aria-label="Totales" className="grid min-w-0 gap-2 text-(length:--text-sm)">
       <Cuerpo {...p} />
     </section>
   )

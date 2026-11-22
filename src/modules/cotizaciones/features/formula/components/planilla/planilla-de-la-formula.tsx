@@ -10,9 +10,7 @@ import { RechazoDeArriba } from './comunes/rechazo-de-arriba'
 import { CuadriculaDeLaPlanilla } from './cuadricula'
 import { MenuDeLaPlanilla } from './menu/menu-de-la-planilla'
 import { PanelesDeLaPlanilla } from './paneles/paneles-de-la-planilla'
-import { TarjetaDeLaUnidad } from './tarjeta-de-la-unidad'
 import type { PropsDeLaPlanilla } from './tipos'
-import { TotalesDeLaUnidad } from './totales-de-la-unidad'
 
 const SIN_TONOS: never[] = []
 
@@ -43,9 +41,9 @@ function CabeceraDeLaPlanilla({ p, planilla }: { p: PropsDeLaPlanilla; planilla:
   )
 }
 
-// La planilla de la fórmula (glosario: «Planilla de la fórmula»; la única forma de editarla): la fórmula de trabajo como una hoja de cálculo, con la leyenda de los
-// tipos de celda y la barra de fórmula arriba, la cuadrícula (# · A concepto · B % · C valor · D de dónde sale) en bandas y, al costado cuando hay lugar (si no,
-// debajo), «Totales» y la tarjeta en vivo con la unidad de ejemplo. Los paneles (bandas, total, tipo de celda, ayuda) viven en la URL.
+// La planilla de la fórmula (glosario: «Planilla de la fórmula»; la única forma de editarla): la fórmula de trabajo como una hoja de cálculo a todo el ancho, con
+// la barra de fórmula arriba y la cuadrícula (# · A concepto · B % · C valor · Ejemplo) en bandas. «Totales» y la tarjeta en vivo abren al costado
+// (`?costado=`) desde la barra; los demás paneles (bandas, total, tipo de celda, ayuda) también viven en la URL.
 export function PlanillaDeLaFormula(p: PropsDeLaPlanilla) {
   const { editor } = p
   const planilla = usePlanilla(p)
@@ -57,38 +55,9 @@ export function PlanillaDeLaFormula(p: PropsDeLaPlanilla) {
       <EstiloDeTonos tonos={tonos.tipo === 'listo' ? tonos.tonos : SIN_TONOS} />
       <CabeceraDeLaPlanilla p={p} planilla={planilla} />
       <RechazoDeArriba rechazo={editor.rechazo} />
-      {/* Al costado sólo si la planilla tiene lugar (un contenedor, no la pantalla: con el texto al 200 % o la columna de Configuración, la cuadrícula no se aprieta). */}
-      <div className="grid min-w-0 gap-4 @6xl/formula:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-        <div className="grid min-w-0 content-start gap-3">
-          <BarraDeFormula
-            planilla={planilla}
-            puedeCambiarTiposDeCambio={p.puedeCambiarTiposDeCambio}
-          />
-          <CuadriculaDeLaPlanilla planilla={planilla} nombreDelOrigen={p.origen.nombre} />
-        </div>
-        <aside aria-label="Totales y tarjeta" className="grid min-w-0 content-start gap-4">
-          <TotalesDeLaUnidad
-            lectura={editor.lectura}
-            vista={planilla.calculo.vista}
-            lineas={planilla.calculo.lineas}
-            rechazo={editor.rechazo}
-            nombreDelOrigen={p.origen.nombre}
-            alReintentar={editor.reintentarLaLectura}
-          />
-          <TarjetaDeLaUnidad
-            origenId={p.origen.id}
-            formulaDelOrigenId={p.formulaDelOrigenId}
-            tarjeta={p.tarjeta}
-            TarjetaEnVivo={p.TarjetaEnVivo}
-            vista={planilla.calculo.vista}
-            modos={planilla.calculo.modos}
-            modo={p.modo}
-            alElegirModo={p.alElegirModo}
-            verTotalBs={planilla.verTotalBs}
-          />
-        </aside>
-      </div>
-      <PanelesDeLaPlanilla planilla={planilla} origen={p.origen} tiposDeCambio={p.tiposDeCambio} />
+      <BarraDeFormula planilla={planilla} puedeCambiarTiposDeCambio={p.puedeCambiarTiposDeCambio} />
+      <CuadriculaDeLaPlanilla planilla={planilla} nombreDelOrigen={p.origen.nombre} />
+      <PanelesDeLaPlanilla p={p} planilla={planilla} />
     </section>
   )
 }
