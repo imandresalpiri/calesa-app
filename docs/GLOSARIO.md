@@ -661,26 +661,36 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `texto`; una fila numerada de la planilla.
 - **Planilla de la fórmula** — `PlanillaDeLaFormula` (`features/formula/components/planilla/`), `hojaDeLaPlanilla()`: la pestaña «Planilla» del editor de
   una fórmula del origen, que se edita como una hoja de cálculo (`role="grid"`): las filas en el orden en que se calculan, numeradas de 1 a n, con A ·
-  concepto, B · %, C · valor y D · de dónde sale. Se escribe en la celda o en la **Barra de fórmula**, con **Referencias (de la planilla)**; las filas se
-  insertan, duplican, mueven y eliminan desde su «⋯», el clic derecho, Alt+↑/↓ o arrastrando su número. Es el único editor de la fórmula.
+  concepto, B · %, C · valor (lo que guarda la fórmula) y **Ejemplo (columna)**. Se escribe en la celda o en la **Barra de fórmula**, con **Referencias
+  (de la planilla)**; las filas se insertan, duplican, mueven y eliminan desde su «⋯», el clic derecho, Alt+↑/↓ o arrastrando su número. «Totales» y la
+  tarjeta en vivo abren al costado (`?costado=totales|tarjeta`). Es el único editor de la fórmula.
 - **Banda (de la planilla)** — `TramoDeLaHoja` (`entities/formula/hoja-de-la-planilla.ts`): un tramo de filas seguidas con el mismo grupo, con su cabecera
   (etiqueta, plazo y tipo de cambio) y el color del grupo; un grupo partido en dos tramos son dos bandas. Se crea, renombra, colorea y quita desde su «⋯»
   o el de la planilla (`bandas.ts`). Las filas sin grupo no llevan cabecera.
-- **De dónde sale** — `deDondeSale()` (`entities/formula/de-donde-sale.ts`), la columna D de la planilla: lo que calcula una fila, en palabras y con
-  las etiquetas de lo que nombra («(Remate + Fees) × 4 %», «monto fijo»).
-- **Unidad de ejemplo** — `UnidadDeEjemplo` (`entities/formula/unidad-de-ejemplo.ts`): lo que se escribe en C en las filas del asesor, los datos del
-  vehículo, los interruptores y la variante para ver el efecto de cada cambio en C, «Totales» y la tarjeta en vivo. Arranca en ceros como las «Cifras
+- **De dónde sale** — `deDondeSale()` (`entities/formula/de-donde-sale.ts`): lo que calcula una fila, en palabras y con las etiquetas de lo que nombra
+  («(Remate + Fees) × 4 %», «monto fijo»). Se lee en la línea bajo la **Barra de fórmula** («De dónde sale: …», la de la fila elegida) y, en lo que la
+  fórmula no guarda como número ni como texto (lo que escribe el asesor, un dato del vehículo, un tipo de cambio, una tabla…), en su C.
+- **Ejemplo (columna)** — la última columna de la planilla (`contenidoDeLaFila()`, `entities/formula/contenido-de-c.ts`; clave interna `D`:
+  `data-celda="D5"`, se nombra «Ejemplo 5»): lo que da la fila con la **Unidad de ejemplo**. Nada en un valor fijo (su número ya está en C: la misma cifra
+  no se dibuja dos veces), el valor de la unidad en las filas que se llenan al cotizar (se escribe ahí, nunca en su C) y la cifra en las demás. No se usa en
+  una fórmula: «D5: Ejemplo no se usa en una fórmula: es la unidad de ejemplo. En una fórmula va C5.». No: «columna D», «valor de prueba».
+- **Nuevo color al vuelo** — `NuevoColorAlVuelo` (área `diseno`, por el hueco `NuevoColor`: `entities/nuevo-color.ts`): «+ Nuevo color» bajo el selector de
+  color del panel de una banda (`?color=nuevo`); crea el color en el catálogo con `tono_crear()` y lo deja elegido en la banda, sin releer.
+- **Unidad de ejemplo** — `UnidadDeEjemplo` (`entities/formula/unidad-de-ejemplo.ts`): lo que se escribe en la **Ejemplo (columna)** de las filas del
+  asesor, los datos del vehículo, los interruptores y la variante para ver el efecto de cada cambio en Ejemplo, «Totales» y la tarjeta en vivo. Arranca en ceros como las «Cifras
   de prueba», vuelve a ceros desde el «⋯» de la planilla y no se guarda.
-- **Barra de fórmula** — `BarraDeFormula` (`components/planilla/barra/`), fija arriba de la cuadrícula: la celda activa, «fx» y su texto, el mismo que se
-  edita en la celda (uno solo a la vez), con cada referencia pintada de su color, la leyenda, las sugerencias y el error con su tramo.
+- **Barra de fórmula** — `BarraDeFormula` (`components/planilla/barra/`), fija arriba de la cuadrícula: el nombre de la celda activa («C5», «Ejemplo 5»),
+  `fx ▾` (inserta una función, `insertarFuncion()`), su texto (el mismo que se edita en la celda, uno solo a la vez; vacío, «Escribe = y toca las celdas:
+  =C5+C7»), con cada referencia pintada de su color, la leyenda, las sugerencias y el error con su tramo; a la derecha «Totales», «Tarjeta» y «?» (los
+  tipos de celda). Debajo, una línea: «De dónde sale: …» de la fila elegida. No es la **Barra de la fórmula** (la de la página: estado, guardar, publicar).
 - **Referencia (de la planilla)** — `C5`, `B9` (`entities/formula/referencias-a1.ts`): cómo un cálculo de la planilla nombra otra fila, como en
   Excel: `C<n>` es el valor de la fila n y `B<n>` su %. Se guarda el id del nodo (`nodo.texto` con ids) y se muestra como A1 (`aA1()`); lo tipeado
   pasa a ids antes de compilar (`deA1()`). Insertar, mover o borrar filas cambia lo que se muestra, nunca lo guardado. No distingue mayúsculas; los
   `$` se aceptan y se ignoran.
 - **Rango (de la planilla)** — `C5:C9`: las filas seguidas de la columna C, sólo dentro de `SUMA`, `MAX` o `MIN`. Se guarda como la lista de ids
   (`SUMA(a; b; c)`) y una función con 3 filas o más muestra cada corrida de filas seguidas como rango. No es el **Rango (de la tarjeta)**.
-- **Celda de la planilla** — una casilla de la cuadrícula de la planilla (`role="gridcell"`): la columna (A concepto, B %, C valor, D de dónde sale) de
-  una fila numerada. Se nombra con su **Referencia (de la planilla)**. No es la **Celda (de la hoja)** (la `XCell` del diseño) ni la **Celda de la tarjeta**.
+- **Celda de la planilla** — una casilla de la cuadrícula de la planilla (`role="gridcell"`): la columna (A concepto, B %, C valor, Ejemplo) de una fila
+  numerada. Se nombra con su **Referencia (de la planilla)**. No es la **Celda (de la hoja)** (la `XCell` del diseño) ni la **Celda de la tarjeta**.
 - **Tipo de celda** — `TipoDeCelda`, `cambiarTipo()` (`entities/formula/tipo-de-celda.ts`): qué es una fila, con su nombre en la UI: «Valor fijo»
   (`constante`), «Cálculo» (`calculo`), «Lo escribe el asesor» (`input`), «Dato del vehículo» (`campo_vehiculo`), «Tipo de cambio» (`tipo_cambio`),
   «Interruptor Sí/No» (`bandera`), «De una tabla» (`tabla`; un `tramo` se ve así y no se ofrece) y «Variante» (`opcion`, una por fórmula). Un número
