@@ -612,7 +612,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 
 - Topes (`PRESUPUESTO_DE_JS_EN_KB` de `e2e/soporte/presupuestos.ts`, lo medido más un 5 % a la decena; uno pasado por ≤ 5 % se sube con la regla del 5 %):
   `/leads` 560, `/leads/[id]` 590, `/perfil` 440, `/vehiculos` 530, `/vehiculos/[id]` 540 (531,8 medidos con la cotización privada, los dos botones del marco y la cuenta regresiva de la subasta: regla del 5 %), `/cotizaciones` 400 (con las tarjetas de la lista, la imagen de la tarjeta en frío y el hook de los menús de las filas que comparte con las fichas),
-  `/cotizaciones/nuevo` 470 (469,3 medidos con la hoja con el aspecto de V1, el interruptor «Privada» y los botones «Recargar la página» y «Copiar el enlace de esta página» del marco; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
+  `/cotizaciones/nuevo` 480 (470,4 medidos con la hoja con el aspecto de V1, el interruptor «Privada», los botones «Recargar la página» y «Copiar el enlace de esta página» del marco y la marca, «Calculado» y el aviso de un cálculo pisado: regla del 5 %; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
   (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 480,1 medidos con «Hacer privada», la insignia y los dos botones del marco: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
   `/logistica/fase/[fase]` 390, `/logistica/vehiculo/[id]` 470, `/configuracion/catalogos/quien-crea-y-quien-ve` 420 (provisional hasta su primera medición);
   `/cotizaciones/papelera` 440 (en su spec).
@@ -620,7 +620,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
   frío serían 450: va con `diferido()`; la imagen del resumen, sólo su cáscara: `CLAVE_DEL_VISOR` por el barril del visor sumaba 2,5 KB, se importa de
   `use-carrusel`), `/cotizaciones/[id]` 483,0 de 490 (la rejilla y el aspecto de la hoja pesan por sus tablas de clases; la barra del vehículo de la cabecera va con
-  `diferido()`, y con ella el panel de elegir otro vehículo en una preventa) y `/cotizaciones/nuevo` 469,3 de 470 (lo de la hoja en par va con `diferido()`; el
+  `diferido()`, y con ella el panel de elegir otro vehículo en una preventa) y `/cotizaciones/nuevo` 470,4 de 480 (lo de la hoja en par va con `diferido()`; el aviso de un cálculo pisado y la lista del resumen, también; el
   pedido del PDF va en su propia composición, sin la lectura de la tarjeta; el campo del título va con `diferido()` dentro del panel; los pasos de la hoja y el botón del ⚙ de la cabecera viajan en frío, su panel, los campos por defecto y los enlaces de la ayuda con
   `diferido()`) (`docs/PENDIENTES.md`).
 - La hoja no lleva al navegador `diseno.ts` ni su Zod: las constantes de la rejilla viven en `rejilla-de-la-hoja.ts` (importarlas de `diseno.ts` suma 1,7 KB a cada
