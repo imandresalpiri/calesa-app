@@ -6,7 +6,6 @@ import { NAVEGACION } from '../_shell/navegacion'
 import { SECCION_DE_CATALOGOS } from './catalogos/seccion'
 import { PERMISOS_DE_EMPRESA, SECCION_DE_EMPRESA } from './empresa/seccion'
 import { SECCION_DE_LEADS } from './leads/seccion'
-import { SECCION_DE_REPUESTOS } from './repuestos/seccion'
 import {
   GRUPOS,
   ICONO_DE_SECCION,
@@ -26,7 +25,7 @@ describe('secciones de configuración', () => {
   const porClave = (clave: string) =>
     SECCIONES.find((seccion: SeccionDeConfiguracion) => seccion.clave === clave)
 
-  it('son las de hoy, ordenadas por grupo: Ventas = Leads, Orígenes; Operación = Catálogos, Repuestos', () => {
+  it('son las de hoy, ordenadas por grupo: Ventas = Leads, Orígenes; Operación = Catálogos', () => {
     expect(SECCIONES.map((seccion) => seccion.clave)).toEqual([
       'empresa',
       'equipo',
@@ -34,13 +33,12 @@ describe('secciones de configuración', () => {
       'leads',
       'origenes',
       'catalogos',
-      'repuestos',
       'web',
       'cola-web',
     ])
     expect(porClave('catalogos')).toBe(SECCION_DE_CATALOGOS)
     expect(porClave('catalogos')?.grupo).toBe('operacion')
-    expect(porClave('repuestos')).toBe(SECCION_DE_REPUESTOS)
+    expect(porClave('repuestos')).toBeUndefined()
     expect(porClave('leads')).toBe(SECCION_DE_LEADS)
   })
 
@@ -57,7 +55,6 @@ describe('secciones de configuración', () => {
     expect(lugares).toEqual([...lugares].sort((a, b) => a - b))
     expect(porClave('equipo')?.grupo).toBe('empresa-y-equipo')
     expect(porClave('leads')?.grupo).toBe('ventas')
-    expect(porClave('repuestos')?.grupo).toBe('operacion')
     expect(porClave('cola-web')?.grupo).toBe('web')
   })
 
@@ -166,10 +163,23 @@ describe('grupos visibles de configuración', () => {
   })
 })
 
+// Una sección de prueba con la forma de una del registro (Repuestos ya no es de Configuración: la configuración vive en Repuestos).
+const SECCION_DE_PRUEBA: SeccionDeConfiguracion = {
+  clave: 'repuestos',
+  titulo: 'Repuestos',
+  descripcion: 'Una sección de prueba.',
+  palabras: ['piezas', 'flujo'],
+  ruta: '/configuracion/repuestos',
+  Icono: SECCION_DE_CATALOGOS.Icono,
+  permisos: ['repuestos.configurar'],
+  grupo: 'operacion',
+  subsecciones: [],
+}
+
 describe('sub-secciones de configuración', () => {
   // Una sección de prueba con una índice, una que pide otro permiso sin motivo y otra con motivo.
   const conSub: SeccionDeConfiguracion = {
-    ...SECCION_DE_REPUESTOS,
+    ...SECCION_DE_PRUEBA,
     subsecciones: [
       {
         clave: 'a',
@@ -226,7 +236,7 @@ describe('sub-secciones de configuración', () => {
       clave: 'repuestos',
       titulo: 'Repuestos',
       ruta: '/configuracion/repuestos',
-      palabras: SECCION_DE_REPUESTOS.palabras,
+      palabras: SECCION_DE_PRUEBA.palabras,
       subsecciones: [
         { clave: 'a', titulo: 'A', ruta: '/configuracion/repuestos' },
         {
@@ -252,7 +262,7 @@ describe('sub-secciones agrupadas de configuración', () => {
 
   it('el grupo viaja sólo si la sub-sección lo declara', () => {
     const conGrupo: SeccionDeConfiguracion = {
-      ...SECCION_DE_REPUESTOS,
+      ...SECCION_DE_PRUEBA,
       subsecciones: [
         {
           clave: 'x',

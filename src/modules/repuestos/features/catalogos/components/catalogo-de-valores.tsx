@@ -56,6 +56,8 @@ export function CatalogoDeValores({
           columnaDeUso="Orden"
           alAbrir={alEditar}
           alMover={() => undefined}
+          verbo="Editar"
+          sinOrden
         />
       )}
       {hayMas ? (

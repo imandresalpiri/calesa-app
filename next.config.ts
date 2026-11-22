@@ -27,6 +27,21 @@ const REDIRECCIONES_DE_LOGISTICA = [
   },
 ]
 
+// La configuración de los repuestos vive en Repuestos (`/repuestos/configuracion/<flujo|cotizador|catalogos>`), con su consulta (`?fase=`, `?seccion=`, `?panel=`, `tramo`, `caja`, `valor`…). Las
+// sub-rutas de cuando era de Configuración van directo a su pestaña, y la raíz de la configuración abre el flujo. Su raíz vieja (`/configuracion/repuestos`, con `?seccion=`) la resuelve su `route.ts`.
+const REDIRECCIONES_DE_REPUESTOS = [
+  {
+    source: '/configuracion/repuestos/:pestana(flujo|cotizador|catalogos)',
+    destination: '/repuestos/configuracion/:pestana',
+    permanent: true,
+  },
+  {
+    source: '/repuestos/configuracion',
+    destination: '/repuestos/configuracion/flujo',
+    permanent: true,
+  },
+]
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   typedRoutes: true,
@@ -138,6 +153,7 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       ...REDIRECCIONES_DE_LOGISTICA,
+      ...REDIRECCIONES_DE_REPUESTOS,
     ])
   },
   headers() {

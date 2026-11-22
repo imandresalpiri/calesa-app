@@ -1,4 +1,4 @@
-// Los paneles de los catálogos en Configuración › Repuestos (8.08-3): `?panel=nuevo-valor&catalogo=<clave>`, `?panel=editar-valor&valor=<id>` y
+// Los paneles de los catálogos en Repuestos › Configuración (8.08-3): `?panel=nuevo-valor&catalogo=<clave>`, `?panel=editar-valor&valor=<id>` y
 // `?panel=eliminar-valor&valor=<id>`. Un solo modal y un solo diálogo para los cuatro catálogos.
 export const PANEL_NUEVO_VALOR = 'nuevo-valor'
 export const PANEL_EDITAR_VALOR = 'editar-valor'

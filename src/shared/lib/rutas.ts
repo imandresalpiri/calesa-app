@@ -38,10 +38,6 @@ export const RUTAS = {
   // Catálogos: lo global de la empresa que no tiene otra área (las tablas compartidas). Lo de cada origen vive en su página.
   catalogos: '/configuracion/catalogos',
   tablasCompartidas: '/configuracion/catalogos/tablas',
-  configuracionDeRepuestos: '/configuracion/repuestos',
-  flujoDeRepuestos: '/configuracion/repuestos/flujo',
-  catalogosDeRepuestos: '/configuracion/repuestos/catalogos',
-  cotizadorDeRepuestos: '/configuracion/repuestos/cotizador',
   configuracionDeWeb: '/configuracion/web',
   ajustesDelSitio: '/configuracion/web/ajustes',
   legalesDelSitio: '/configuracion/web/legales',
@@ -66,6 +62,11 @@ export const RUTAS = {
   categoriasDeGastoDeLogistica: '/logistica/configuracion/categorias-de-gasto',
   tiposDeDocumento: '/logistica/configuracion/tipos-de-documento',
   repuestos: '/repuestos',
+  // La configuración de los repuestos vive en Repuestos: una sub-ruta por pestaña (Flujo, Cotizador, Catálogos). La raíz abre el flujo.
+  configuracionDeRepuestos: '/repuestos/configuracion',
+  flujoDeRepuestos: '/repuestos/configuracion/flujo',
+  cotizadorDeRepuestos: '/repuestos/configuracion/cotizador',
+  catalogosDeRepuestos: '/repuestos/configuracion/catalogos',
   cotizaciones: '/cotizaciones',
   nuevaCotizacion: '/cotizaciones/nuevo',
 } as const

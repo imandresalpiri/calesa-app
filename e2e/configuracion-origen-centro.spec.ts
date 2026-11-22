@@ -253,7 +253,7 @@ const REDIRECCIONES: Record<string, Redireccion> = {
   },
   'flujos ?ambito=repuestos': {
     de: () => '/configuracion/flujos?ambito=repuestos',
-    a: () => '/configuracion/repuestos/flujo',
+    a: () => '/repuestos/configuracion/flujo',
   },
   'flujos ?seccion=documentos, sin configurar un flujo': {
     de: () => '/configuracion/flujos?seccion=documentos',

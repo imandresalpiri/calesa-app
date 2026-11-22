@@ -14,7 +14,7 @@ const flujos = con('flujos.configurar')
 describe('la URL vieja de Configuración › Flujos', () => {
   it('`?ambito=repuestos` va al flujo de repuestos, con su fase', () => {
     expect(destinoDeLaUrlVieja({ ambito: 'repuestos', fase: 'f1' }, flujos, ORIGENES)).toBe(
-      '/configuracion/repuestos/flujo?fase=f1',
+      '/repuestos/configuracion/flujo?fase=f1',
     )
   })
 
@@ -39,7 +39,7 @@ describe('la URL vieja de Configuración › Flujos', () => {
 
   it('sin origen y sin configurar ninguno: repuestos o, si no, Tipos de documento', () => {
     expect(destinoDeLaUrlVieja({}, con('repuestos.configurar'), ORIGENES)).toBe(
-      '/configuracion/repuestos/flujo',
+      '/repuestos/configuracion/flujo',
     )
     expect(destinoDeLaUrlVieja({}, con('logistica.catalogos.gestionar'), ORIGENES)).toBe(
       '/logistica/configuracion/tipos-de-documento',

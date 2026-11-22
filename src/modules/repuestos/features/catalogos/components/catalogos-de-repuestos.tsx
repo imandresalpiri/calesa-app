@@ -13,7 +13,7 @@ import { EliminarValorDiferido, ModalDeValorDiferido } from './diferidos'
 
 type Props = { catalogos: Catalogos }
 
-// Configuración › Repuestos › Catálogos (8.08-3): los cuatro catálogos de los ítems, en su orden, con un solo modal para agregar o editar un valor y un solo diálogo para eliminarlo. Lo lee la
+// Repuestos › Configuración › Catálogos (8.08-3): los cuatro catálogos de los ítems, en su orden, con un solo modal para agregar o editar un valor y un solo diálogo para eliminarlo. Lo lee la
 // página en el servidor; cada action renueva la ruta (`revalidatePath`). Escribir lo exige `repuestos.configurar` (la RLS de la tabla); la página ya lo pide.
 export function CatalogosDeRepuestos({ catalogos }: Props) {
   const todos = CATALOGOS_DE_REPUESTOS.flatMap((c) => catalogos[c.clave].valores)

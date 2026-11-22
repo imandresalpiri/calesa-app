@@ -1,4 +1,4 @@
-// La API de servidor del área `cotizador` de `repuestos`: la configuración del cotizador para Configuración › Repuestos (8.12-2) y las cotizaciones
+// La API de servidor del área `cotizador` de `repuestos`: la configuración del cotizador para Repuestos › Configuración (8.12-2) y las cotizaciones
 // de un proyecto para su pestaña y su hoja (8.12-3). Sale por el `index.ts` de la raíz.
 export { leerConfiguracionDelCotizador } from '../../infra/cotizador/configuracion'
 export { leerCotizacion, leerCotizacionesDelProyecto } from '../../infra/cotizador/cotizaciones'
