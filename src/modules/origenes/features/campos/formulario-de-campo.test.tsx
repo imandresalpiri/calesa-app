@@ -19,7 +19,6 @@ const listo = () => Promise.resolve(ok(undefined))
 const ediciones: Ediciones = {
   crear: listo,
   guardar: listo,
-  cambiarBandera: listo,
   cambiarActivo: listo,
   mover: listo,
   eliminar: listo,
@@ -77,6 +76,8 @@ describe('el formulario de un campo de origen, en una carga limpia', () => {
         puedeGestionar
         configuracion={configuracion}
         ediciones={ediciones}
+        eliminar={false}
+        alRecargar={vi.fn()}
         alCerrar={vi.fn()}
       />,
     )

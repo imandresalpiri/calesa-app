@@ -22,6 +22,7 @@ import {
   tarjetaDelOrigen,
 } from './soporte/origenes'
 import { apagarApibara } from './soporte/apibara'
+import { abrirElCampo, elegirDelMenu, filaDelCampo, lineaApagada } from './soporte/editor-de-campos'
 import { descartarAviso } from './soporte/inventario'
 import { ingresar } from './soporte/pasos'
 
@@ -194,19 +195,21 @@ test('se edita el layout de campos y se refleja', async ({ page }) => {
   await irADetalle(page, MANUAL, 'Campos')
   const corea = await origenDeLaBase('corea')
 
-  // Una bandera guarda sola.
-  const motor = page.getByRole('switch', { name: 'Motor: filtrable' })
-  await expect(motor).not.toBeChecked()
-  await motor.click()
-  await expect(motor).toBeChecked()
+  // Una bandera se elige en el panel del campo y la fila la dice como insignia.
+  await abrirElCampo(page, 'Motor')
+  const delMotor = page.getByRole('dialog')
+  await delMotor.getByRole('switch', { name: 'Filtrable', checked: false }).click()
+  await delMotor.getByRole('button', { name: 'Guardar' }).click()
+  await descartarAviso(page, 'Campo «Motor» guardado')
+  await expect(filaDelCampo(page, 'Motor')).toContainText('Filtrable')
   await expect.poll(async () => (await campoDelOrigen(corea.id, 'motor')).filtrable).toBe(true)
 
-  // Subir y bajar: el orden se cambia con botones, sin arrastrar.
-  await page.getByRole('button', { name: 'Bajar Color' }).click()
+  // Subir y bajar desde el «⋯» de la fila (el arrastre tiene su propio spec).
+  await elegirDelMenu(page, 'Color', 'Bajar')
   await expect
     .poll(async () => (await camposDelOrigen(corea.id)).map((campo) => campo.clave).slice(0, 2))
     .toEqual(['transmision', 'color'])
-  await expect(page.getByRole('button', { name: 'Subir Transmisión' })).toBeDisabled()
+  await lineaApagada(page, 'Transmisión', 'Subir')
 
   // Un campo propio, con opciones.
   await page.getByRole('button', { name: 'Nuevo campo' }).click()
@@ -224,20 +227,17 @@ test('se edita el layout de campos y se refleja', async ({ page }) => {
   expect(kit).toMatchObject({ tipo: 'opcion', grupo: 'Venta', es_sistema: false, activo: true })
   expect(kit.opciones.map((opcion) => opcion.etiqueta)).toEqual(['Básico', 'Full'])
 
-  // Desactivarlo lo saca del layout (el dato se conserva) y se puede reactivar.
-  await page.getByRole('button', { name: 'Editar Kit de extras' }).click()
-  const edicion = page.getByRole('dialog')
-  await edicion.getByRole('switch', { name: 'Activo' }).click()
-  await edicion.getByRole('button', { name: 'Guardar' }).click()
-  await descartarAviso(page, 'Campo «Kit de extras» guardado')
-  await page.getByText(/Campos desactivados \(1\)/).click()
-  await page.getByRole('button', { name: 'Reactivar Kit de extras' }).click()
-  await expect(page.getByText('«Kit de extras» reactivado')).toBeVisible()
+  // Desactivarlo desde su «⋯» lo saca del layout (el dato se conserva) y «Activar» lo devuelve.
+  await elegirDelMenu(page, 'Kit de extras', 'Desactivar')
+  await descartarAviso(page, '«Kit de extras» desactivado')
+  await page.getByText('Desactivados', { exact: true }).click()
+  await elegirDelMenu(page, 'Kit de extras', 'Activar')
+  await expect(page.getByText('«Kit de extras» activado')).toBeVisible()
   await expect.poll(async () => (await campoDelOrigen(corea.id, 'kit_de_extras')).activo).toBe(true)
 
   // Lo que se guardó sobrevive a recargar.
   await page.reload()
-  await expect(page.getByRole('switch', { name: 'Motor: filtrable' })).toBeChecked()
+  await expect(filaDelCampo(page, 'Motor')).toContainText('Filtrable')
   await expect(page.getByRole('button', { name: 'Editar Kit de extras' })).toBeVisible()
 })
 
@@ -263,8 +263,8 @@ test('sin el permiso, la sección sale deshabilitada y dice por qué', async ({ 
   await irAParte(page, 'Campos')
   // Next conserva la pestaña anterior oculta: sólo cuenta lo que se ve.
   await expect(page.getByText(MOTIVO_SIN_PERMISO).filter({ visible: true })).toBeVisible()
-  await expect(page.getByRole('switch', { name: 'Motor: filtrable' })).toBeDisabled()
-  await expect(page.getByRole('button', { name: 'Subir Transmisión' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Ver Motor', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Mover «Transmisión»' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Nuevo campo' })).toBeDisabled()
 
   // Quien no tiene nada que ver con los orígenes no entra.

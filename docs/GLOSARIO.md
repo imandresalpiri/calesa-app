@@ -90,7 +90,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Secreto de una integración** — `integraciones.secreto_guardado_en` / `integracion_guardar_secreto()`: clave de API en Vault.
 - **Origen** — `origenes`: de dónde viene un vehículo (subasta USA, China, oficina…); tipo subasta o manual.
 - **Layout de campos** — `origenes_campos` / `leads_campos`: campos de un vehículo (o lead) y cómo se muestran, filtran y editan; motor
-  `shared/lib/campos`.
+  `shared/lib/campos`. Se edita con el editor de campos de `shared/ui/campos` (`<EditorDeCampos>`), el mismo en un origen y en los leads.
 - **Preconfiguración** — `origen_preconfigurar_campos()`: campos que nacen con el origen según su tipo (subasta/apibara o manual).
 - **Categoría** — `categorias`: agrupación dentro de un origen (marca, segmento).
 - **Sustantivo del origen** — `origenes.sustantivo`: cómo se llama lo que entra por ese origen («vehículo», «unidad», «lote»).
@@ -102,9 +102,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Campo principal** — `origenes_campos.principal`: identifica al vehículo en la lista y en logística; uno por origen como mucho,
   activo y no de monto; sin él, el título.
 - **Datos clave** — `origenes.datos_clave` / `DatoClave`, `leerDatosClave()`, `origen_datos_clave_guardar()`: los hasta 4 datos, en orden,
-  que la ficha de un vehículo muestra primero. Los elige cada origen en «Campos» (la estrella, «Datos clave (n de 4)»); cada uno es un dato
+  que la ficha de un vehículo muestra primero. Los elige cada origen en «Campos», en sus cuatro casillas de dato clave («Datos clave (n de 4)»;
+  «Hacer dato clave» y «Quitar de los datos clave» en el «⋯», o soltando un campo en una casilla libre); cada uno es un dato
   común o un campo activo del origen. Vacíos = los de fábrica de su tipo (subasta: plataforma, enlace de la subasta, kilometraje y año;
   manual: año, kilometraje, VIN y categoría). La ficha del vehículo los dibuja en «Datos principales» (columna izquierda, `datosClaveDelVehiculo()`).
+- **Casilla de dato clave** — `CasillasDelEditor` / `CasillaDelEditor` (`shared/ui/campos`): uno de los 4 lugares de «Datos clave (n de 4)» en el
+  editor de campos de un origen. Llena, dice el dato y su lugar, se arrastra a otra o se sube, baja y quita desde su «⋯»; libre, recibe un campo
+  o un dato común soltado encima. Con las 4 llenas no se reemplaza: primero se quita una. Los leads no tienen casillas.
 - **Ficha completa (del vehículo)** — `<ModalDeFichaCompleta>`, `?ver=ficha`: el «Ver más» de «Datos principales» en la ficha del vehículo. Un modal
   grande, de sólo lectura y con tipografía de vitrina, para mostrarle el vehículo a un cliente: las fotos con su tira, los datos comunes, «Precio» y
   todos los grupos del layout del origen. `?seccion=ficha` la abre.
@@ -143,7 +147,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Atributos** — `vehiculos.atributos`, `leads.atributos`: campos del layout que no son columna. En un lead se leen por `leads_vista`, recortados.
 - **Dato común** — `camposComunes()` / columnas de `vehiculos`: lo que tiene todo vehículo y es columna (título, marca, año, VIN, precio…).
   Como dato clave valen marca, modelo, año, VIN, categoría, kilometraje, placado y, en subasta, lote, plataforma y enlace de la subasta
-  (`DATOS_COMUNES` de `origenes`, por el nombre de su columna: `anio`, `categoria_id`, `url_origen`).
+  (`DATOS_COMUNES` de `origenes`, por el nombre de su columna: `anio`, `categoria_id`, `url_origen`). En el editor de campos van en el grupo
+  «Comunes», con la insignia «Común» (`FijosDelEditor`).
 - **Sin fase** — `vehiculos.fase_id` nulo / `<BadgeDeFase>` (dentro de `<BadgeDeSituacion>`): aún no entró al flujo de su origen; lo ubica quien mueve.
 - **Inventario** — `/vehiculos` / `<ListadoDeVehiculos>`: listado de vehículos, una pestaña por origen; con «propios» se lee por
   `vehiculos_inventario()` (por rutas, filtros en SQL), con «todos» por PostgREST (`fuenteDelInventario()`).

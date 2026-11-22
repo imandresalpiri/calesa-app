@@ -36,7 +36,7 @@ async function EditorDelPaso({ origen }: { origen: OrigenConUso }) {
   // Si no se pudo averiguar, el editor sigue: es un aviso, no la pantalla.
   const datosNuevos = nuevos?.ok ? nuevos.data : []
   return (
-    <div className="grid max-w-3xl gap-6">
+    <div className="grid min-w-0 gap-6">
       {datosNuevos.length > 0 ? (
         <DatosNuevosDeApibara origenId={origen.id} datos={datosNuevos} />
       ) : null}

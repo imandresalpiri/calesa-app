@@ -32,7 +32,10 @@ locale)`, el único lector de un número tipeado.
   `useVistaYOpciones()` (`cerrar`, `cerrarYLuego`: lo que abre otro panel corre al terminar de cerrarse), `CLASE_DE_OPCION`; `ui/por-pagina.tsx`, `ui/paginacion.tsx` (con `alIr`, sin ir al servidor),
   `ui/aviso-de-tope.tsx`, `ui/ir-a-una-fecha.tsx` y `ui/desde-una-fecha.tsx` (entregan un día `YYYY-MM-DD`; el instante lo arma quien lee).
 - `lib/campos/`: motor de campos configurables sin I/O (`TIPOS_DE_CAMPO`, `esquemaDeValor()`, `valorMostrado()`, `campoDeFormulario()`; `rango.ts`,
-  espejo de `_valor_fuera_de_rango` y `_campo_rango`). `ui/campos/`: `<EditorDeCampos>` (`campo-rango.tsx`), `<DatosPorGrupo>`, `<CampoDeFormulario>`.
+  espejo de `_valor_fuera_de_rango` y `_campo_rango`). `ui/campos/`: `<EditorDeCampos>` (el de todo layout: buscador `?q=` con `lib/campos/buscar.ts`, filas con insignias y un «⋯» de
+  `acciones-de-campo.ts`, el panel `?campo=` con el formulario diferido, «Desactivados» plegado; opcionales, `casillas` —las de dato clave,
+  `CasillasDelEditor`— y `fijos` —«Comunes», `FijosDelEditor`—; el arrastre en `arrastre/`, dnd-kit tras `diferido({ enFrio })`, y lo que
+  decide cada soltada, puro, en `lib/campos/soltar.ts`), `campo-rango.tsx`, `<DatosPorGrupo>`, `<CampoDeFormulario>`.
 - `lib/ancho.ts` (`anchoDeLaPeticion()`, `CORTE_DEL_TABLERO`/`CORTE_DE_LA_TABLA`/`CORTE_DEL_PANEL`), `ui/ancho-de-pantalla.tsx` (`useAlMenos()`).
 - `lib/atajos.ts` + `ui/atajos/`: `ATAJOS`, `teclasDelAtajo()`, `<ProveedorAtajos>`, `useAtajo()` (responde el último registrado); `<AyudaDeAtajos>`
   registra `?` y abre `<ListaDeAtajos>` por `diferido()`.

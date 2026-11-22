@@ -2,12 +2,10 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CampoBase } from '@/shared/lib/campos'
 import { FilaDeCampo } from './fila-de-campo'
-import type { BanderaDeCampo } from './tipos'
 
 afterEach(cleanup)
 
-// Un campo de cualquier módulo: lo base más las banderas que ese módulo ofrece.
-const CAMPO: CampoBase & { enTarjeta: boolean; filtrable: boolean } = {
+const CAMPO: CampoBase = {
   id: '00000000-0000-0000-0000-000000000001',
   clave: 'color',
   etiqueta: 'Color',
@@ -16,8 +14,6 @@ const CAMPO: CampoBase & { enTarjeta: boolean; filtrable: boolean } = {
   requerido: false,
   grupo: 'Vehículo',
   orden: 10,
-  enTarjeta: true,
-  filtrable: false,
   valorDefecto: null,
   minimo: null,
   maximo: null,
@@ -26,88 +22,61 @@ const CAMPO: CampoBase & { enTarjeta: boolean; filtrable: boolean } = {
   actualizadoEn: '2026-10-12T20:00:00+00:00',
 }
 
-const BANDERAS: BanderaDeCampo[] = [
-  { clave: 'enTarjeta', etiqueta: 'En tarjeta', ayuda: '', enFila: true },
-  { clave: 'filtrable', etiqueta: 'Filtrable', ayuda: '', enFila: true },
-]
-
 function fila(props: Partial<Parameters<typeof FilaDeCampo>[0]> = {}) {
-  const manejadores = { alAbrir: vi.fn(), alMover: vi.fn(), alCambiarBandera: vi.fn() }
+  const alElegir = vi.fn()
   render(
     <ul>
       <FilaDeCampo
         campo={CAMPO}
-        banderas={BANDERAS}
+        insignias={[]}
         puedeGestionar
-        ocupado={false}
         puedeSubir={false}
         puedeBajar
-        {...manejadores}
+        casilla={null}
+        conAsa={false}
+        alElegir={alElegir}
         {...props}
       />
     </ul>,
   )
-  return manejadores
+  return alElegir
 }
 
 describe('FilaDeCampo', () => {
-  it('una bandera manda su clave y el valor nuevo', () => {
-    const { alCambiarBandera } = fila()
-    fireEvent.click(screen.getByRole('switch', { name: 'Color: filtrable' }))
-    expect(alCambiarBandera).toHaveBeenCalledWith('filtrable', true)
+  it('tocar la fila abre el campo; el «⋯» va aparte', () => {
+    const alElegir = fila()
+    fireEvent.click(screen.getByRole('button', { name: 'Editar Color' }))
+    expect(alElegir).toHaveBeenCalledWith(CAMPO.id, 'abrir')
+    expect(screen.getByRole('button', { name: 'Más acciones de Color' })).toBeTruthy()
   })
 
-  it('cada interruptor refleja la propiedad del campo', () => {
+  it('sin permiso, la fila se ofrece sólo para ver', () => {
+    fila({ puedeGestionar: false })
+    expect(screen.getByRole('button', { name: 'Ver Color' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Editar Color' })).toBeNull()
+  })
+
+  it('dice su tipo y su clave', () => {
     fila()
-    expect(
-      screen.getByRole('switch', { name: 'Color: en tarjeta' }).getAttribute('aria-checked'),
-    ).toBe('true')
-    expect(
-      screen.getByRole('switch', { name: 'Color: filtrable' }).getAttribute('aria-checked'),
-    ).toBe('false')
+    expect(screen.getByText('color')).toBeTruthy()
   })
 
-  it('bajar manda el sentido; subir está apagado y dice por qué', () => {
-    const { alMover } = fila()
-    fireEvent.click(screen.getByRole('button', { name: 'Bajar Color' }))
-    expect(alMover).toHaveBeenCalledWith('bajar')
-    const subir = screen.getByRole('button', { name: 'Subir Color' })
-    expect(subir).toHaveProperty('disabled', true)
-    expect(subir.getAttribute('title')).toBe('Ya es el primero de su grupo.')
+  it('un campo de fábrica y uno requerido lo dicen con texto, antes de lo demás', () => {
+    fila({ campo: { ...CAMPO, requerido: true }, insignias: ['Dato clave', 'Filtrable'] })
+    const textos = [...document.querySelectorAll('[data-slot=badge]')].map(
+      (nodo) => nodo.textContent,
+    )
+    expect(textos).toEqual(['Requerido', 'De fábrica', 'Dato clave', 'Filtrable'])
   })
 
-  it('sin permiso, todo queda apagado y el panel se ofrece sólo para ver', () => {
-    fila({ puedeGestionar: false, puedeSubir: true })
-    expect(
-      screen.getByRole('switch', { name: 'Color: en tarjeta' }).hasAttribute('data-disabled'),
-    ).toBe(true)
-    expect(screen.getByRole('button', { name: 'Bajar Color' })).toHaveProperty('disabled', true)
-    expect(screen.getByRole('button', { name: 'Ver Color' })).toHaveProperty('disabled', false)
+  it('con el asa pedida y sin el arrastre todavía, guarda su lugar sin ser un botón', () => {
+    fila({ conAsa: true })
+    expect(document.querySelector('[data-asa] [aria-hidden]')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Mover/ })).toBeNull()
   })
 
-  it('mientras algo se guarda no se toca nada', () => {
-    fila({ ocupado: true })
-    expect(screen.getByRole('button', { name: 'Bajar Color' })).toHaveProperty('disabled', true)
-  })
-
-  it('un campo de fábrica y uno requerido lo dicen con texto', () => {
-    fila({ campo: { ...CAMPO, requerido: true } })
-    expect(screen.getByText('De fábrica')).toBeTruthy()
-    expect(screen.getByText('Requerido')).toBeTruthy()
-  })
-
-  it('dibuja la acción de la fila antes de «Editar»; sin ella, nada', () => {
-    fila({ accion: <button type="button">Marcar «Color» como dato clave</button> })
-    const accion = screen.getByRole('button', { name: 'Marcar «Color» como dato clave' })
-    const editar = screen.getByRole('button', { name: 'Editar Color' })
-    expect(accion.compareDocumentPosition(editar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    cleanup()
-    fila()
-    expect(screen.queryByRole('button', { name: /dato clave/ })).toBeNull()
-  })
-
-  it('lo que el módulo dice de un campo sale como insignia de texto', () => {
-    fila({ insignias: ['Pasando a privado'] })
-    expect(screen.getByText('Pasando a privado')).toBeTruthy()
+  it('con el arrastre, dibuja el asa que le dan', () => {
+    fila({ conAsa: true, asa: <button type="button">Mover «Color»</button> })
+    expect(screen.getByRole('button', { name: 'Mover «Color»' })).toBeTruthy()
   })
 })

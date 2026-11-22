@@ -15,7 +15,8 @@ import {
 } from '@/shared/lib/campos'
 
 // Un sí o no del campo que el módulo ofrece (en tarjeta, filtrable, solo la cartera…). `clave` es
-// el nombre de la propiedad del campo. `enFila` = guarda sola desde el interruptor de la fila.
+// el nombre de la propiedad del campo. Se edita en el panel del campo; `enFila` = encendida, la fila
+// lo dice como insignia («Filtrable»).
 export type BanderaDeCampo = {
   clave: string
   etiqueta: string
@@ -60,10 +61,10 @@ export type DeLaFila = Pick<CampoBase, 'id' | 'etiqueta' | 'actualizadoEn'>
 
 // Las operaciones: las del `useCampos()` de cada módulo. Toda edición manda la versión que vio.
 export type EdicionesDeCampos<Cambios, Nuevo> = {
+  // Un rechazo no se avisa con un toast: lo dice el panel, junto a «Crear campo».
   crear: (nuevo: Nuevo) => Promise<Resultado<unknown>>
+  // Un conflicto (`PT409`) no se avisa con un toast: lo dice el panel, con «Recargar».
   guardar: (campo: DeLaFila, cambios: Cambios) => Promise<Resultado<unknown>>
-  // Una bandera: sin aviso, el interruptor ya lo dice.
-  cambiarBandera: (campo: DeLaFila, cambios: Cambios) => Promise<Resultado<unknown>>
   cambiarActivo: (campo: DeLaFila, activo: boolean) => Promise<Resultado<unknown>>
   mover: (campo: DeLaFila, despuesDe: string | null) => Promise<Resultado<unknown>>
   eliminar: (campo: DeLaFila) => Promise<Resultado<unknown>>
@@ -75,7 +76,7 @@ export type EdicionesDeCampos<Cambios, Nuevo> = {
 }
 
 export type TextosDelEditor = {
-  // El encabezado del editor y lo que dice sin campos activos.
+  // El nombre de la región (un `h2` para el lector de pantalla) y lo que dice sin campos activos.
   titulo: string
   vacioTitulo: string
   vacioDescripcion: string
@@ -111,14 +112,54 @@ export type ConfiguracionDeCampos<Campo extends CampoBase, Cambios extends objec
   paraCrear: (valores: ValoresDeCampo) => Nuevo
   // Sólo lo que la persona cambió respecto de lo guardado.
   cambiosDe: (campo: Campo, valores: ValoresDeCampo) => Cambios
-  conBandera: (clave: string, valor: boolean) => Cambios
   necesitaVistaPrevia: (campo: Campo, cambios: Cambios) => boolean
   resumenDeImpacto: (campo: Campo, cambios: Cambios, impacto: ImpactoDeCampo) => ResumenDeImpacto
   resumenDeEliminacion: (campo: Campo, impacto: ImpactoDeCampo) => ResumenDeImpacto
   // Un hueco del formulario para lo propio del módulo (el bloque de apibara).
   hueco?: (contexto: ContextoDelHueco) => ReactNode
-  // Lo que la fila dice además de «Requerido» y «De fábrica» (un cambio que todavía se está aplicando).
+  // Lo que la fila dice además de «Requerido» y «De fábrica», antes de las banderas encendidas («Principal», un cambio de privacidad
+  // que todavía se está aplicando).
   insignias?: (campo: Campo) => readonly string[]
-  // Un control propio del módulo en la fila, antes de «Editar» (la estrella de los datos clave de un origen). Sin él, la fila no cambia.
-  accionDeFila?: (campo: Campo) => ReactNode
+}
+
+// Una casilla llena: un lugar con tope que el módulo ofrece (en un origen, un dato clave). `llave` la nombra en la lista del módulo.
+export type CasillaDelEditor = {
+  llave: string
+  etiqueta: string
+  // De dónde sale: «Dato común» o «Campo · <grupo>».
+  deDonde: string
+}
+
+// Las casillas de dato clave (docs/GLOSARIO.md › Casilla de dato clave): lugares en orden, con tope, que se llenan arrastrando un campo o
+// una fila fija, o con «Hacer dato clave» de su «⋯». Sin ellas (los leads), el editor no las dibuja.
+export type CasillasDelEditor = {
+  // «Datos clave»: el título dice además «(n de 4)», que es el tope, no un conteo.
+  titulo: string
+  // Cómo se nombran después de «en»: «los datos clave» («Mover «VIN» en los datos clave»).
+  zona: string
+  tope: number
+  // Lo que dice con todas vacías, y por qué no entra otro con el tope lleno.
+  vacio: string
+  motivoTope: string
+  // La insignia de lo que ya está en una casilla, las acciones del «⋯» y lo que se avisa al desactivar un campo que está en una.
+  insignia: string
+  hacer: string
+  quitar: string
+  notaAlDesactivar: string
+  lista: readonly CasillaDelEditor[]
+  // Un cambio en vuelo: hasta que vuelve, nada más se toca.
+  enCurso: boolean
+  // La llave de un campo en la lista del módulo.
+  llaveDeCampo: (campo: CampoBase) => string
+  // `posicion`: 0 = primero; uno que ya estaba cambia de lugar.
+  alPoner: (llave: string, posicion: number) => void
+  alQuitar: (llave: string) => void
+  alMover: (desde: number, hasta: number) => void
+}
+
+// Filas que no son campos del layout pero pueden ir a una casilla (en un origen, los datos comunes): no se editan ni se ordenan.
+export type FijosDelEditor = {
+  titulo: string
+  insignia: string
+  filas: readonly { llave: string; etiqueta: string }[]
 }

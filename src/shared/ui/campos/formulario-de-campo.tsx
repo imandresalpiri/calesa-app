@@ -5,20 +5,24 @@ import { nombresDeGrupo, type CampoBase } from '@/shared/lib/campos'
 import { enfocarPrimerError, errorDeCampo } from '@/shared/lib/formularios'
 import { Aviso } from '@/shared/ui/aviso'
 import { useCambiosSinGuardar } from '@/shared/ui/cambios-del-panel'
-import { useBorrador } from '@/shared/ui/use-borrador'
-import { AvisoDeImpacto } from './aviso-de-impacto'
+import { AvisosDelFormulario } from './avisos-del-formulario'
 import { CamposDeCampo } from './campos-de-campo'
 import { PieDelFormulario } from './pie-del-formulario'
 import type { ConfiguracionDeCampos, EdicionesDeCampos, ErroresDeCampo } from './tipos'
+import { useBorradorDelCampo } from './use-borrador-del-campo'
 import { useFormularioDeCampo } from './use-formulario-de-campo'
 
-type Props<Campo extends CampoBase, Cambios extends object, Nuevo> = {
+export type PropsDelFormulario<Campo extends CampoBase, Cambios extends object, Nuevo> = {
   // null = un campo nuevo.
   campo: Campo | null
   todos: readonly Campo[]
   puedeGestionar: boolean
   configuracion: ConfiguracionDeCampos<Campo, Cambios, Nuevo>
   ediciones: EdicionesDeCampos<Cambios, Nuevo>
+  // `&eliminar=1`: al abrir, cuenta y muestra el aviso de eliminar.
+  eliminar: boolean
+  // Trae lo guardado (otra persona guardó este campo); lo escrito queda.
+  alRecargar: () => void
   alCerrar: () => void
 }
 
@@ -44,28 +48,26 @@ function erroresDelFormulario(
 // Crear o editar un campo. Los cambios que pueden tocar datos ya cargados (cambiar el tipo,
 // volverlo requerido, sacar una opción) cuentan primero y muestran su aviso acá mismo.
 export function FormularioDeCampo<Campo extends CampoBase, Cambios extends object, Nuevo>(
-  props: Props<Campo, Cambios, Nuevo>,
+  props: PropsDelFormulario<Campo, Cambios, Nuevo>,
 ) {
-  const { campo, todos, puedeGestionar, configuracion, ediciones, alCerrar } = props
+  const { campo, todos, puedeGestionar, configuracion, ediciones, eliminar, alCerrar } = props
   const formulario = useRef<HTMLFormElement>(null)
   const estado = useFormularioDeCampo({
     campo,
     todos,
     configuracion,
     ediciones,
+    eliminarAlAbrir: eliminar && puedeGestionar,
     alTerminar: alCerrar,
   })
-  const borrador = useBorrador(
-    `${configuracion.textos.borrador}-${campo?.id ?? 'nuevo'}`,
+  const borrador = useBorradorDelCampo({
+    clave: `${configuracion.textos.borrador}-${campo?.id ?? 'nuevo'}`,
     formulario,
-    ['etiqueta', 'grupo', ...configuracion.textosLibres],
-    { activo: puedeGestionar, controlado: true },
-  )
-  // Un aviso que sale de la pantalla («Abrir ficha») con algo escrito pregunta en el pie; descartar tira el borrador.
-  useCambiosSinGuardar(puedeGestionar && estado.hayCambios, () => {
-    borrador.limpiar()
+    nombres: ['etiqueta', 'grupo', ...configuracion.textosLibres],
+    activo: puedeGestionar,
   })
-  const erroresDeValidacion = ediciones.errores.crear
+  // Un aviso que sale de la pantalla («Abrir ficha») con algo escrito pregunta en el pie; descartar tira el borrador.
+  useCambiosSinGuardar(puedeGestionar && estado.hayCambios, borrador.limpiar)
   const puedeEliminar = puedeGestionar && campo !== null && !campo.esSistema
 
   async function enviar() {
@@ -100,7 +102,7 @@ export function FormularioDeCampo<Campo extends CampoBase, Cambios extends objec
           banderas={configuracion.banderas}
           tipos={configuracion.tipos}
           gruposExistentes={nombresDeGrupo(todos)}
-          errores={erroresDelFormulario(estado.errores, erroresDeValidacion)}
+          errores={erroresDelFormulario(estado.errores, ediciones.errores.crear)}
           deshabilitado={!puedeGestionar}
         />
         {configuracion.hueco?.({
@@ -109,7 +111,13 @@ export function FormularioDeCampo<Campo extends CampoBase, Cambios extends objec
           deshabilitado: !puedeGestionar,
         })}
       </fieldset>
-      {estado.aviso ? <AvisoDeImpacto resumen={estado.aviso.resumen} /> : null}
+      <AvisosDelFormulario
+        impacto={estado.aviso}
+        conflicto={estado.conflicto}
+        rechazo={estado.rechazo}
+        enCurso={ediciones.enCurso}
+        alRecargar={props.alRecargar}
+      />
       {puedeGestionar ? (
         <PieDelFormulario
           esNuevo={campo === null}

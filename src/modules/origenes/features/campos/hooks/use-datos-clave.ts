@@ -7,9 +7,8 @@ import { resultadoDeAccion } from '@/shared/lib/formularios'
 import { avisarError } from '@/shared/ui/toasts'
 import type { DatoClave } from '../../../entities/datos-clave'
 import {
-  conDatoClave,
-  esDatoClave,
-  moverDatoClave,
+  moverDatoClaveA,
+  ponerDatoClave,
   sinDatoClave,
 } from '../../../entities/datos-clave-edicion'
 import { guardarDatosClave } from '../actions/guardar-datos-clave'
@@ -27,7 +26,7 @@ function errorSinRed(): ErrorApp {
 // Los datos clave de un origen en «Campos»: se guardan al instante, de forma optimista y de a un cambio. Cada cambio manda la lista entera
 // con la versión del origen y se queda con la que devuelve (marcas seguidas no chocan entre sí). Si falla, la lista vuelve atrás: con
 // conflicto, «Recargar»; sin red, «Reintentar», que repite el mismo cambio. Si llega otra versión por props y no hay nada en vuelo (otra
-// persona, o desactivar un campo que era dato clave), se arranca de las props. Sin aviso de éxito: la estrella ya lo dice.
+// persona, o desactivar un campo que era dato clave), se arranca de las props. Sin aviso de éxito: las casillas ya lo dicen.
 export function useDatosClave({ origenId, datosClave, versionDelOrigen }: Props) {
   const guardando = useAction(guardarDatosClave)
   const [lista, setLista] = useState<readonly DatoClave[]>(datosClave)
@@ -75,23 +74,26 @@ export function useDatosClave({ origenId, datosClave, versionDelOrigen }: Props)
     if (enCurso) {
       return
     }
-    void aplicar(calcular(lista), lista, version)
+    const nueva = calcular(lista)
+    // Lo que no cambia nada (uno nuevo con el tope lleno, soltar en su lugar) no viaja.
+    if (JSON.stringify(nueva) === JSON.stringify(lista)) {
+      return
+    }
+    void aplicar(nueva, lista, version)
   }
 
   return {
     lista,
     enCurso,
-    // La estrella: marca al final o quita si ya estaba.
-    alternar: (dato: DatoClave) => {
-      cambiar((actual) =>
-        esDatoClave(actual, dato) ? sinDatoClave(actual, dato) : conDatoClave(actual, dato),
-      )
+    // En ese lugar (0 = primero): uno nuevo entra ahí, uno que ya estaba cambia de lugar.
+    poner: (dato: DatoClave, posicion: number) => {
+      cambiar((actual) => ponerDatoClave(actual, dato, posicion))
     },
     quitar: (dato: DatoClave) => {
       cambiar((actual) => sinDatoClave(actual, dato))
     },
-    mover: (indice: number, sentido: 'subir' | 'bajar') => {
-      cambiar((actual) => moverDatoClave(actual, indice, sentido))
+    moverA: (desde: number, hasta: number) => {
+      cambiar((actual) => moverDatoClaveA(actual, desde, hasta))
     },
   }
 }

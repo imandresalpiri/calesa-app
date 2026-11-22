@@ -1,5 +1,5 @@
-import { EsqueletoFormulario } from '@/shared/ui/esqueletos'
+import { EsqueletoTabla } from '@/shared/ui/esqueletos'
 
 export default function CargandoCamposDeLeads() {
-  return <EsqueletoFormulario bloques={2} campos={4} />
+  return <EsqueletoTabla filas={8} columnas={2} />
 }

@@ -5,6 +5,7 @@ import {
   correoDePrueba,
   crearDuenaDePrueba,
 } from './soporte/base'
+import { abrirElCampo } from './soporte/editor-de-campos'
 import { descartarAviso } from './soporte/inventario'
 import { PREFIJO_CLAVE_E2E, borrarOrigenes, crearOrigenDePrueba } from './soporte/origenes'
 import { expect, test } from './soporte/prueba'
@@ -61,7 +62,7 @@ test('marcar «Lote interno» como principal lo vuelve el nombre del vehículo e
 
   // El panel del campo: el interruptor «Principal», con su ayuda, y la insignia en la fila del layout.
   await page.goto(`/configuracion/origenes/${origen.id}/campos`)
-  await page.getByRole('button', { name: `Editar ${ETIQUETA}` }).click()
+  await abrirElCampo(page, ETIQUETA)
   const panel = page.getByRole('dialog')
   await expect(panel.getByText(/Identifica al vehículo en la lista/)).toBeVisible()
   await panel.getByRole('switch', { name: 'Principal' }).click()

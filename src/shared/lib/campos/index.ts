@@ -16,7 +16,18 @@ export {
 } from './tipos'
 export { valorMostrado, type CampoMostrable, type ValorMostrado } from './mostrar'
 export { agruparCampos, nombresDeGrupo, type GrupoDeCampos } from './agrupar'
-export { destinoDeMovimiento, type Sentido } from './orden'
+export { aplicarMovimiento, destinoAlSoltar, destinoDeMovimiento, type Sentido } from './orden'
+export { camposQueCoinciden, coincide } from './buscar'
+export {
+  idDeCasilla,
+  idDeCasillaLibre,
+  idDeFijo,
+  idDeFila,
+  leerId,
+  queHaceLaSoltada,
+  type CasillasDeLaSoltada,
+  type QueHaceLaSoltada,
+} from './soltar'
 export { claveDeCampo, claveDeTexto, type EstiloDeClave } from './clave'
 export {
   LARGO_MAXIMO_DE_VALOR_DEFECTO,
@@ -51,6 +62,7 @@ export {
 } from './esquemas'
 export {
   MOTIVO_CAMPO_DE_FABRICA,
+  MOTIVO_OTRO_GRUPO,
   MOTIVO_PRIMERO_DE_SU_GRUPO,
   MOTIVO_ULTIMO_DE_SU_GRUPO,
 } from './motivos'

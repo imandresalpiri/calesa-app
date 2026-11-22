@@ -284,6 +284,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - En el celular una fila de tabla es una tarjeta: un localizador por fila funciona en escritorio y cae en `movil`.
 - Antes de un atajo de teclado o un Tab espera el estado final (`toHaveValue`, resultados, hidratación, la sección y el foco en su lugar): antes de hidratar la `N` la toma el «Nuevo lead» del marco, y un Tab mientras llega contenido manda el foco al `body`.
 - Un clic antes de hidratar se pierde: reintenta con tope corto hasta que la URL pida el panel y para si ya lo pide, porque cada clic de más suma una entrada al historial y rompe «atrás».
+- Lo que `diferido({ enFrio })` dibuja en el servidor se ve antes de hidratar y antes de que llegue su código: espera lo que sólo trae el código cargado (el asa «Mover «…»» del editor de campos) o insiste con `abrirElMenu()` / `abrirElCampo()` de `e2e/soporte/editor-de-campos.ts`.
 - Un clic que abre un visor o un modal se afirma (visible) y se cierra (`toBeHidden()`) antes del clic siguiente: si no, el siguiente cae sobre él y la prueba pasa sólo cuando el primero llegó antes de hidratar.
 - Arma la espera de un pedido antes del clic con `conRespuesta(page, coincide, accion, espera)` de `e2e/soporte/esperas.ts`, con tope propio: recibe la acción, no una promesa ya creada.
 - Sin red, espera el texto del pendiente, no el `requestfailed`: el evento no prueba lo que ve la persona.
