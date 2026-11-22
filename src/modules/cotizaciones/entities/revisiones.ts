@@ -2,10 +2,13 @@
 // recorta cada diff a lo que quien mira ve; acá sólo se lee con Zod. Todo lo que se busca por el id de un nodo es un `Map`: un id como «constructor» es legal.
 import { z } from 'zod'
 import { diaSiguiente, inicioDelDia } from '@/shared/lib/fechas'
+import { FORMATOS, type Formato } from './nodos'
 
 export type EtiquetasDeRevisiones = {
   nodos: ReadonlyMap<string, string>
   grupos: ReadonlyMap<string, string>
+  // El formato de los cálculos (tabla, tramo o calculo) que nombra la página: la revisión dice cuál se pisó y de cuánto a cuánto.
+  calculos: ReadonlyMap<string, Formato>
 }
 
 // Cómo se nombra un lado de un cambio de vehículo (T315): sin vehículo, uno que quien mira no ve (no existe, está en la papelera o no es de su alcance) o su título.
@@ -49,6 +52,7 @@ const esquema = z.object({
   etiquetas: z.object({
     nodos: z.record(z.string(), z.string()),
     grupos: z.record(z.string(), z.string()),
+    calculos: z.record(z.string(), z.enum(FORMATOS)).optional(),
   }),
 })
 
@@ -72,6 +76,7 @@ export function revisionesDesde(crudo: unknown): PaginaDeRevisiones | null {
     etiquetas: {
       nodos: new Map(Object.entries(r.etiquetas.nodos)),
       grupos: new Map(Object.entries(r.etiquetas.grupos)),
+      calculos: new Map(Object.entries(r.etiquetas.calculos ?? {})),
     },
   }
 }

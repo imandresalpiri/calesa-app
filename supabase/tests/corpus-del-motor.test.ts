@@ -67,9 +67,9 @@ describe('corpus-del-motor.json', () => {
     )
   })
 
-  it('el juego son los 90 casos de casos-del-motor.json, y todos se evalúan', () => {
+  it('el juego son los 100 casos de casos-del-motor.json, y todos se evalúan', () => {
     expect(corpus.juego.map((c) => c.nombre)).toEqual(juego.casos.map((c) => c.nombre))
-    expect(corpus.juego).toHaveLength(90)
+    expect(corpus.juego).toHaveLength(100)
     for (const c of corpus.juego) expect(Object.keys(c.esperado), c.nombre).toEqual(['resultado'])
   })
 
@@ -132,6 +132,7 @@ describe('lo que cubre el corpus de evaluar_formula()', () => {
       'tablas',
       'variante',
       'overrides',
+      'pisables',
       '-',
     ])
       expect(campos, campo).toContain(campo)
@@ -141,6 +142,8 @@ describe('lo que cubre el corpus de evaluar_formula()', () => {
     for (const campo of ['buckets', 'total_en', '-']) expect(camposDelModo, campo).toContain(campo)
     expect(errores.length).toBeGreaterThanOrEqual(60)
     expect(resultados.length).toBeGreaterThanOrEqual(300)
+    // Lo calculado de un cálculo pisado con celda (`pisables`).
+    expect(resultados.filter((r) => r.calculados !== undefined).length).toBeGreaterThanOrEqual(20)
   })
 
   it('las llamadas guardadas son válidas: la entrada y las fórmulas pasan su forma, y las dirigidas y mezcladas validan', () => {

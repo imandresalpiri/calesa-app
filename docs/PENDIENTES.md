@@ -204,6 +204,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** Al recargar una guardada con un cálculo pisado, «Editado a mano: …» entra al resumen después del primer dibujo (su lista va con `diferido()`) y empuja
+  «Modo de tipo de cambio» hacia abajo: reservarle el alto o dibujar su primera línea en frío (`features/hoja/components/pisadas/`).
 - **[—]** En Logística › Configuración › Navieras la lista tiene dos columnas «Estado» («Activo» y «Activa»): `columnaDeUso="Estado"` en `navieras-de-transporte.tsx` repite el título de la columna de estado; ponerle otro («Uso» o quitarla).
 - **[—]** La planilla de la fórmula a 1280 px con la tarjeta al costado (36 rem): # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
   desplazando la grilla. Angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`).

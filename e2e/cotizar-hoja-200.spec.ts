@@ -34,9 +34,12 @@ test.describe.configure({ mode: 'serial' })
 // techo (4,0 % de margen) y el paso lo reporta a la persona (P7).
 // Con el ⚙ (4.20-3b, P1 de la persona): el techo de 500 se mide como quien cotiza sin ⚙ (un rol con el nivel «costos» y sin `cotizaciones.configurar` ni
 // `empresa.tipos_cambio.gestionar`, que ve las mismas celdas), y quien configura tiene su tope: lo medido con la hoja usada más un 5 %, con techo en 600 y la misma regla.
-const TOPE_DE_NODOS = 500
+// Con un cálculo pisado (T521: la marca y «Calculado» de la celda, el aviso de la primera vez y su línea del resumen, los dos últimos con `diferido()`): 458 al
+// abrir y 502 usada. Pasa el techo por menos del 5 %: sube a 525 (500 más un 5 %, la regla de presupuestos de la tanda del 2026-11-21, `docs/DECISIONES.md` ›
+// «Pisar un cálculo»); más que eso, se recorta.
+const TOPE_DE_NODOS = 525
 // La dueña con ⚙ (4.20-3b): 532 al abrir (21 ⚙) y 557 usada (22: la garantía suma el suyo); más un 5 %, 585. Con la celda en una fila, los pasos y el ⚙ de la
-// cabecera (T312): 516 al abrir y 540 usada; sin ⚙, 446 y 467.
+// cabecera (T312): 516 al abrir y 540 usada; sin ⚙, 446 y 467. Con un cálculo pisado (T521): 528 al abrir y 575 usada.
 const TOPE_DE_NODOS_CON_AJUSTE = 585
 // Cada ⚙ son tres nodos (el botón, su `svg` y su `use`: `src/shared/ui/xcell/CLAUDE.md` › «Nodos por celda»).
 const NODOS_POR_AJUSTE = 3

@@ -42,6 +42,8 @@ export type SecundarioDeCelda = EdicionDeHoja & {
   como: (typeof SECUNDARIOS)[number]
   formato: Formato
   ajustes: boolean
+  // Con el monto escrito, el porcentaje lo calcula el par: no es lo tipeado (`entradasDeLoGuardado()`). Lo dice la base (`sigue_al_monto`).
+  sigueAlMonto?: true
 }
 
 export type EnlaceDeLaAyuda = { titulo: string; url: string }
@@ -180,6 +182,7 @@ function celdaDe(c: Crudo<typeof esquemaCelda>): CeldaDeHoja {
           como: c.secundario.como,
           formato: c.secundario.formato,
           ajustes: c.secundario.ajustes,
+          ...(c.secundario.sigue_al_monto ? { sigueAlMonto: true as const } : {}),
         }
       : null,
     ...(c.en_par ? { enPar: true as const } : {}),

@@ -246,6 +246,10 @@ export function aceptaValor(n: Nodo): boolean {
     }
   }
 }
+// Un cálculo que se pisa al cotizar si la hoja lo dibuja en una celda (docs/COTIZADOR.md › «Pisar un cálculo»): un `tabla`,
+// un `tramo` o un `calculo` que no es el total. `sobrescribible` ya no lo limita.
+export const esPisable = (n: Nodo): boolean =>
+  (n.tipo === 'tabla' || n.tipo === 'tramo' || n.tipo === 'calculo') && n.salida !== 'total'
 // `ninguno` (o nada) = sin bucket.
 export const bucketDe = (n: Pick<Nodo, 'bucket'>) =>
   n.bucket === undefined || n.bucket === 'ninguno' ? undefined : n.bucket

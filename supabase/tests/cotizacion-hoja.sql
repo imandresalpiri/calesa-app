@@ -211,13 +211,15 @@ begin
                                       'oscuro', jsonb_build_object('fondo', t.oscuro_fondo, 'borde', t.oscuro_borde, 'tinta', t.oscuro_tinta)) order by t.clave) into v_t
     from public.tonos t where t.clave in ('amarillo', 'naranja', 'verde');
   if r -> 'tonos' is distinct from v_t then raise exception 'los tonos no son los del catálogo: % contra %', r -> 'tonos', v_t; end if;
-  -- «Fees» (un cálculo sobrescribible) se edita; su par, el porcentaje, es una constante y tiene ⚙ (la dueña configura). «Transferencia» se calcula: no se edita y dice por qué.
+  -- «Fees» (un cálculo sobrescribible) se edita; su par, el porcentaje, es una constante, tiene ⚙ (la dueña configura) y sigue al monto. «Transferencia» se
+  -- calcula y también se edita (se pisa: docs/COTIZADOR.md › «Pisar un cálculo»), sin motivo; su porcentaje, que sólo ella nombra, sigue al monto.
   it := pg_temp.ch_item(r, 'celda', 'fees');
-  if (it ->> 'editable')::boolean is not true or (it ->> 'ajustes')::boolean is not false or it -> 'secundario' is distinct from '{"nodo": "fees_pct", "como": "porcentaje", "formato": "pct", "tipo_nodo": "constante", "editable": true, "ajustes": true}'::jsonb then
+  if (it ->> 'editable')::boolean is not true or (it ->> 'ajustes')::boolean is not false or it -> 'secundario' is distinct from '{"nodo": "fees_pct", "como": "porcentaje", "formato": "pct", "tipo_nodo": "constante", "editable": true, "ajustes": true, "sigue_al_monto": true}'::jsonb then
     raise exception 'fees: %', it;
   end if;
   it := pg_temp.ch_item(r, 'celda', 'transferencia');
-  if (it ->> 'editable')::boolean is not false or it -> 'motivo' is distinct from '{"codigo": "se_calcula"}'::jsonb or (it -> 'secundario' ->> 'editable')::boolean is not true then raise exception 'transferencia: %', it; end if;
+  if (it ->> 'editable')::boolean is not true or it ? 'motivo' or (it -> 'secundario' ->> 'editable')::boolean is not true
+     or it -> 'secundario' -> 'sigue_al_monto' is distinct from 'true'::jsonb then raise exception 'transferencia: %', it; end if;
   -- Un tipo de cambio: se edita y tiene ⚙ (la dueña gestiona los tipos de cambio). La variante y los interruptores se editan.
   it := pg_temp.ch_item(r, 'celda', 'tc_oficial');
   if (it ->> 'editable')::boolean is not true or (it ->> 'ajustes')::boolean is not true or it ->> 'tipo_nodo' is distinct from 'tipo_cambio' then raise exception 'tc_oficial: %', it; end if;
@@ -399,31 +401,44 @@ begin
 end $$;
 rollback;
 
--- @test cotizacion_hoja: el candado de cada celda es el del tipo de su nodo (espejo de aceptaValor), también en un par; una celda que no se calcula ni es del vehículo dice «no se edita» si su nivel de editar es nulo
+-- @test cotizacion_hoja: el candado de cada celda es el del tipo de su nodo (espejo de aceptaValor; un cálculo que no es el total, además, se pisa), también en un par, y el porcentaje sigue al monto sólo en un par de verdad; una celda que no se calcula ni es del vehículo dice «no se edita» si su nivel de editar es nulo
 begin;
 do $$
 declare
   duena constant uuid := '00000000-0000-0000-0000-000000000001';
-  v_clave text; o uuid; f public.formulas; r jsonb; i jsonb; n jsonb; v_espera boolean; v_cod text;
+  v_clave text; o uuid; f public.formulas; r jsonb; i jsonb; n jsonb; v_espera boolean; v_cod text; v_exclusivos text[]; v_sigue boolean;
+  v_pares int := 0; v_sigue_esperado jsonb;
 begin
   foreach v_clave in array array['subasta_usa', 'planilla_usa', 'oficina'] loop
     select x.id into o from public.origenes x where x.clave = v_clave;
     select * into f from public.formulas x where x.origen_id = o and x.estado = 'publicada';
+    v_exclusivos := public._motor_pcts_exclusivos(f.definicion -> 'nodos');
     r := pg_temp.ch_corre(duena, format('select public.cotizacion_hoja(%L)', o));
     for i in select h from jsonb_path_query(r, 'strict $.secciones[*].items[*]') h where h ->> 'tipo' = 'celda' loop
       select x into n from jsonb_array_elements(f.definicion -> 'nodos') x where x ->> 'id' = i ->> 'nodo';
-      v_espera := (n ->> 'tipo') in ('input', 'constante', 'tipo_cambio') or ((n ->> 'tipo') in ('tabla', 'tramo', 'calculo') and coalesce((n -> 'sobrescribible')::text = 'true', false));
+      v_espera := (n ->> 'tipo') in ('input', 'constante', 'tipo_cambio')
+               or ((n ->> 'tipo') in ('tabla', 'tramo', 'calculo') and (coalesce((n -> 'sobrescribible')::text = 'true', false) or (n ->> 'salida') is distinct from 'total'));
+      -- Sigue al monto el porcentaje de un par sobrescribible o el de una celda que no es el total con un pct que sólo ella nombra.
+      v_sigue := coalesce((n -> 'sobrescribible')::text = 'true', false) or ((n ->> 'salida') is distinct from 'total' and (n ->> 'pct') = any (v_exclusivos));
       if (i ->> 'editable')::boolean is distinct from v_espera or i ->> 'tipo_nodo' is distinct from n ->> 'tipo' then raise exception '%: % (%) debía ser editable=%: %', v_clave, i ->> 'nodo', n ->> 'tipo', v_espera, i; end if;
       v_cod := case when v_espera then null when n ->> 'tipo' = 'campo_vehiculo' then 'del_vehiculo' else 'se_calcula' end;
       if i -> 'motivo' ->> 'codigo' is distinct from v_cod then raise exception '%: % debía decir %: %', v_clave, i ->> 'nodo', v_cod, i; end if;
       if i ? 'secundario' then
         select x into n from jsonb_array_elements(f.definicion -> 'nodos') x where x ->> 'id' = i -> 'secundario' ->> 'nodo';
-        v_espera := (n ->> 'tipo') in ('input', 'constante', 'tipo_cambio') or ((n ->> 'tipo') in ('tabla', 'tramo', 'calculo') and coalesce((n -> 'sobrescribible')::text = 'true', false));
+        v_sigue_esperado := case when v_sigue then 'true'::jsonb end;
+        if i -> 'secundario' -> 'sigue_al_monto' is distinct from v_sigue_esperado then
+          raise exception '%: el secundario % debía seguir al monto=%: %', v_clave, i -> 'secundario' ->> 'nodo', v_sigue, i;
+        end if;
+        if v_sigue then v_pares := v_pares + 1; end if;
+        v_espera := (n ->> 'tipo') in ('input', 'constante', 'tipo_cambio')
+                 or ((n ->> 'tipo') in ('tabla', 'tramo', 'calculo') and (coalesce((n -> 'sobrescribible')::text = 'true', false) or (n ->> 'salida') is distinct from 'total'));
         if (i -> 'secundario' ->> 'editable')::boolean is distinct from v_espera then raise exception '%: el secundario % debía ser editable=%', v_clave, i -> 'secundario' ->> 'nodo', v_espera; end if;
       end if;
     end loop;
     if not pg_temp.ch_motivos_ok(r) then raise exception '%: motivos', v_clave; end if;
   end loop;
+  -- La semilla tiene pares que siguen al monto: la comprobación no es vacía.
+  if v_pares < 2 then raise exception 'sólo % pares siguen al monto en la semilla', v_pares; end if;
 end $$;
 rollback;
 

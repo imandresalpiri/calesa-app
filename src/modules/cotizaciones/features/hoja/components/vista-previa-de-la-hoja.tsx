@@ -20,7 +20,7 @@ type Props = Omit<PropsDeLaVistaPrevia, 'abierta' | 'cerrar'>
 // «Vista previa» (4.18-2): el modal con su URL (`?panel=vista-previa`; recargar lo abre y «atrás» lo cierra) y lo que lo abre: el botón del pie del resumen en la hoja nueva y,
 // en una guardada, su línea del «⋯» de la cabecera (sin un nodo en la hoja). Lo dibuja el área `tarjeta` por el hueco `ContextoDeLaVistaPrevia`: sin proveedor no hay botón,
 // línea ni nodo. El código del modal se pide la primera vez que se abre. Está también para quien sólo ve la cotización: ver la tarjeta no es guardar. El modal va en un
-// portal, fuera de `[data-hoja]` (la hoja está al borde de sus 500 nodos).
+// portal, fuera de `[data-hoja]` (la hoja está al borde de sus 525 nodos).
 export function VistaPreviaDeLaHoja(props: Props) {
   const area = useContext(ContextoDeLaVistaPrevia)
   const panel = usePanelPorUrl(PANEL_DE_VISTA_PREVIA)

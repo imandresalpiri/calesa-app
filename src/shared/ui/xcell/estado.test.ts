@@ -198,6 +198,9 @@ describe('accionesDe', () => {
 
   it('↺ dice a dónde vuelve, sin la cifra', () => {
     expect(accionesDe({ ...base, overridden: true }).restablecer).toBe('Volver al sugerido')
+    expect(accionesDe({ ...base, overridden: true, handEdited: true }).restablecer).toBe(
+      'Volver al calculado',
+    )
     expect(accionesDe({ ...base, overridden: true, defaultValue: 0.4 }).restablecer).toBe(
       'Volver al valor por defecto',
     )
@@ -221,30 +224,45 @@ describe('candadosDe y notasDe (4.13-3c)', () => {
 
   it('un candado por texto distinto; cada lado nombra el aviso y su candado; la entrada, sólo el aviso', () => {
     const aviso = { texto: 'Error.', esError: true }
-    const n = notasDe('x', aviso, { principal: 'A', secundario: undefined }, true)
+    const n = notasDe('x', aviso, { principal: 'A', secundario: undefined })
     expect(n.aviso).toEqual({ id: 'xn', nota: aviso })
     expect(n.candados).toEqual([{ id: 'xc0', texto: 'A' }])
     expect(n.deLado).toEqual({ principal: 'xn xc0', secundario: 'xn' })
     expect(n.deLaEntrada).toBe('xn')
-    const iguales = notasDe('x', undefined, { principal: 'A', secundario: 'A' }, true)
+    const iguales = notasDe('x', undefined, { principal: 'A', secundario: 'A' })
     expect(iguales.aviso).toBeUndefined()
     expect(iguales.candados).toHaveLength(1)
     expect(iguales.deLado).toEqual({ principal: 'xc0', secundario: 'xc0' })
     expect(iguales.deLaEntrada).toBeUndefined()
-    const distintos = notasDe('x', undefined, { principal: 'A', secundario: 'B' }, true)
+    const distintos = notasDe('x', undefined, { principal: 'A', secundario: 'B' })
     expect(distintos.candados.map((c) => c.texto)).toEqual(['A', 'B'])
     expect(distintos.deLado).toEqual({ principal: 'xc0', secundario: 'xc1' })
   })
 
   it('el error y el candado conviven: el error no es un candado aunque diga lo mismo', () => {
-    const n = notasDe(
-      'x',
-      { texto: 'A', esError: true },
-      { principal: 'A', secundario: undefined },
-      false,
-    )
+    const n = notasDe('x', { texto: 'A', esError: true }, { principal: 'A', secundario: undefined })
     expect(n.aviso?.nota.texto).toBe('A')
     expect(n.candados).toEqual([{ id: 'xc0', texto: 'A' }])
     expect(n.deLado.principal).toBe('xn xc0')
+  })
+
+  it('una celda pisada: la marca y lo calculado describen a los dos lados, después del aviso y antes del candado; la entrada, sólo el aviso', () => {
+    const aviso = { texto: 'Error.', esError: true }
+    const candados = { principal: undefined, secundario: 'B' }
+    const n = notasDe('x', aviso, candados, { marca: true, calculado: true })
+    expect([n.marca, n.calculado]).toEqual(['xm', 'xk'])
+    expect(n.deLado).toEqual({ principal: 'xn xm xk', secundario: 'xn xm xk xc0' })
+    expect(n.deLaEntrada).toBe('xn')
+    // Sin lo calculado (el recálculo no llegó), sólo la marca; sin la marca, nada (lo calculado sin pisar no se dice).
+    const sinCalculado = notasDe('x', undefined, candados, { marca: true, calculado: false })
+    expect([sinCalculado.marca, sinCalculado.calculado]).toEqual(['xm', undefined])
+    expect(sinCalculado.deLado).toEqual({ principal: 'xm', secundario: 'xm xc0' })
+    const sinMarca = notasDe('x', undefined, candados, { marca: false, calculado: true })
+    expect([sinMarca.marca, sinMarca.calculado, sinMarca.deLado.principal]).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ])
+    expect(notasDe('x', undefined, candados)).toEqual(sinMarca)
   })
 })

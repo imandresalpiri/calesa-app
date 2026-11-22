@@ -4,6 +4,7 @@ import type { FilaDeTabla, Formula } from './formula'
 import { buscar, mapaDe, recorrer, type Medidor } from './medidor'
 import { mapasDe, type Entrada, type MapasDeEntrada } from './motor-entrada'
 import { ErrorDelMotor } from './motor-errores'
+import { paresDeLaHoja } from './motor-pares'
 import type { Nodo, NodoOpcion } from './nodos'
 
 // Por qué un nodo quedó sin valor (docs/COTIZADOR.md › «El motor» › «Qué pasa cuando falta algo»).
@@ -61,6 +62,8 @@ export type Evaluacion = {
   // El estado de cada nodo y los grupos con algún miembro en la variante, decididos antes de calcular.
   estados: Map<string, Estado>
   dibujados: Set<string>
+  // Los `porcentaje_de` no `sobrescribible` que igual reescriben su pct, por su celda en la hoja (motor-pares.ts).
+  pares: ReadonlySet<string>
   // El pct de cada par activo cuyo monto trae override: no se calcula y vale monto ÷ base (motor-sobrescribir.ts).
   pisados: Set<string>
   // La fuente de cada nodo activo que acepta un valor, en el orden de la lista.
@@ -73,6 +76,8 @@ export type Evaluacion = {
   subtotales: Map<string, Valor>
   // Uno por cada null que nace, en el orden en que nace.
   faltantes: Faltante[]
+  // Lo que daría cada cálculo pisado con celda (y el pct de su par) sin lo escrito, en el orden de la lista.
+  calculados: Map<string, Valor>
   m: Medidor
 }
 
@@ -94,9 +99,10 @@ export function prepararEvaluacion(formula: Formula, entrada: Entrada, m: Medido
     if (n.tipo === 'opcion') opcion = n
   }
   if (total === undefined) throw sinValidar('no tiene un nodo con salida «total»')
+  const mapas = mapasDe(entrada, m)
   return {
     formula,
-    entrada: mapasDe(entrada, m),
+    entrada: mapas,
     nodos,
     total,
     constantes: mapaDe(formula.params.constantes, m),
@@ -105,12 +111,14 @@ export function prepararEvaluacion(formula: Formula, entrada: Entrada, m: Medido
     variante: undefined,
     estados: new Map(),
     dibujados: new Set(),
+    pares: paresDeLaHoja(formula.definicion.nodos, nodos, mapas.pisables, m),
     pisados: new Set(),
     fuentes: new Map(),
     descartados: [],
     valores: new Map(),
     subtotales: new Map(),
     faltantes: [],
+    calculados: new Map(),
     m,
   }
 }

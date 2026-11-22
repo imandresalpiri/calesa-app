@@ -12,6 +12,8 @@ export type RespuestaDeRecalculo = {
   faltantes: readonly Faltante[]
   descartados: readonly Descartado[]
   hayFaltantesOcultos: boolean
+  // Lo que daría cada cálculo pisado sin lo escrito («Calculado: $480»); vacío sin pisados.
+  calculados: ReadonlyMap<string, number | null>
 }
 
 // La respuesta de la base ya en la forma que usa la pantalla, o nulo si no es lo que la base promete.
@@ -29,6 +31,7 @@ export function recalculoDesde(crudo: unknown): RespuestaDeRecalculo | null {
     faltantes: r.faltantes,
     descartados: r.overrides_descartados ?? [],
     hayFaltantesOcultos: r.hay_faltantes_ocultos === true,
+    calculados: new Map(Object.entries(r.calculados ?? {})),
   }
 }
 

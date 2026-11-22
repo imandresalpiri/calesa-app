@@ -7,12 +7,15 @@ export const ID_DE_RESTABLECER = 'xcell-restablecer'
 export const ID_DEL_AVISO = 'xcell-aviso'
 export const ID_DE_AYUDA = 'xcell-ayuda'
 export const ID_DE_AJUSTES = 'xcell-ajustes'
+// El lápiz de «Editado a mano»: la marca de un cálculo pisado (`MarcaDeEditado`).
+export const ID_DE_EDITADO = 'xcell-editado'
 export const IDS_DE_ICONOS_DE_XCELL = [
   ID_DEL_CANDADO,
   ID_DE_RESTABLECER,
   ID_DEL_AVISO,
   ID_DE_AYUDA,
   ID_DE_AJUSTES,
+  ID_DE_EDITADO,
 ] as const
 
 // La descripción que anuncia las flechas: la comparten todos los valores que tienen acciones, así que va UNA vez por hoja (0 nodos por celda).
@@ -52,6 +55,10 @@ export function SimbolosDeXCell() {
             <path d="M19 7h-9" />
             <circle cx="17" cy="17" r="3" />
             <circle cx="7" cy="7" r="3" />
+          </g>
+          <g id={ID_DE_EDITADO}>
+            <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+            <path d="m15 5 4 4" />
           </g>
           <g id={ID_DEL_AVISO}>
             <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />

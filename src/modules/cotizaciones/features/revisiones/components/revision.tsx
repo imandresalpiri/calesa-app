@@ -4,21 +4,50 @@ import { Fragment } from 'react'
 import { fechaRelativa } from '@/shared/lib/fechas'
 import { Monto } from '@/shared/ui/monto'
 import { useRegional } from '@/shared/ui/regional'
-import { cambiosDeLaRevision } from '../../../entities/cambios-de-la-revision'
+import { cambiosDeLaRevision, type Cambio } from '../../../entities/cambios-de-la-revision'
+import type { Formato } from '../../../entities/nodos'
 import { autorDeLaRevision, type RevisionDeLaCotizacion } from '../../../entities/revisiones'
+import { ValorDeNodo } from '../../hoja/components/valor-de-nodo'
 
 type Props = {
   revision: RevisionDeLaCotizacion
   // Las etiquetas de los nodos que nombran los diffs leídos: sin etiqueta, el id.
   etiquetas: ReadonlyMap<string, string>
+  // Los cálculos que quien mira ve, con su formato: lo pisado y lo devuelto se dicen con sus montos. Sin ellos, «Cambió «X»».
+  calculos?: ReadonlyMap<string, Formato> | undefined
+}
+
+const claveDe = (cambio: Cambio) =>
+  typeof cambio === 'string' ? cambio : `${cambio.tipo}:${cambio.etiqueta}`
+
+// Un cambio: su texto o, el de un cálculo, «Pisó «X»: $480 → $500» (el dinero por `<Monto>`) y «Volvió al calculado «X»».
+function TextoDelCambio({ cambio }: { cambio: Cambio }) {
+  if (typeof cambio === 'string') {
+    return <span>{cambio}</span>
+  }
+  if (cambio.tipo === 'devuelto') {
+    return <span>Volvió al calculado «{cambio.etiqueta}»</span>
+  }
+  const { valores, formato } = cambio
+  return (
+    <span>
+      Pisó «{cambio.etiqueta}»
+      {valores === null ? null : (
+        <>
+          : <ValorDeNodo valor={valores.de} formato={formato} /> →{' '}
+          <ValorDeNodo valor={valores.a} formato={formato} />
+        </>
+      )}
+    </span>
+  )
 }
 
 // Lo de una revisión sin su marco (la lista del panel y la línea de tiempo del resumen le ponen cada una el suyo, una caja `grid` con `gap-1`; un nodo de más por fila cuenta en el
 // presupuesto de nodos del panel): quién y cuándo, qué cambió (las primeras tres cosas y «y N más») y,
 // si el nivel de quien mira lo deja ver, el total antes y después.
-export function ContenidoDeLaRevision({ revision, etiquetas }: Props) {
+export function ContenidoDeLaRevision({ revision, etiquetas, calculos }: Props) {
   const { zonaHoraria } = useRegional()
-  const cambios = cambiosDeLaRevision(revision.diff, etiquetas, revision.vehiculo)
+  const cambios = cambiosDeLaRevision(revision.diff, etiquetas, revision.vehiculo, calculos)
   return (
     <>
       <p className="font-medium [overflow-wrap:anywhere] text-(--color-ink)">
@@ -30,10 +59,10 @@ export function ContenidoDeLaRevision({ revision, etiquetas }: Props) {
         <>
           {cambios.vistos.length === 0 ? null : (
             <p className="[overflow-wrap:anywhere] text-(--color-ink-soft)">
-              {cambios.vistos.map((texto, i) => (
-                <Fragment key={`${String(i)}:${texto}`}>
+              {cambios.vistos.map((cambio, i) => (
+                <Fragment key={`${String(i)}:${claveDe(cambio)}`}>
                   {i === 0 ? null : ' · '}
-                  <span>{texto}</span>
+                  <TextoDelCambio cambio={cambio} />
                 </Fragment>
               ))}
               {cambios.masN > 0 ? (

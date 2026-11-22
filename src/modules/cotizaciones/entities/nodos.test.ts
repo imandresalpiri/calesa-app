@@ -6,6 +6,7 @@ import {
   daMonto,
   esCondicion,
   esMonto,
+  esPisable,
   esquemaNodo,
   formatoDe,
   sobrescribibleDe,
@@ -71,6 +72,22 @@ describe('lo que se lee de un nodo', () => {
         expect(aceptaValor(sobrescribible), `${nombre} sobrescribible`).toBe(true)
       }
     }
+  })
+
+  it('esPisable: tabla, tramo y cálculo que no son el total, sobrescribibles o no; lo demás nunca', () => {
+    const pisables = new Set(['tabla', 'tramo'])
+    for (const [nombre, crudo] of CASOS) {
+      const esperado = pisables.has(nombre) || crudo['tipo'] === 'calculo'
+      expect(esPisable(nodo(crudo)), nombre).toBe(esperado)
+      if (esperado) {
+        expect(
+          esPisable(nodo({ ...crudo, sobrescribible: true })),
+          `${nombre} sobrescribible`,
+        ).toBe(true)
+      }
+    }
+    const total = { id: 't', tipo: 'calculo', op: 'suma', de: ['a'], salida: 'total', bucket: 'x' }
+    expect(esPisable(nodo(total))).toBe(false)
   })
 
   it('bucketDe trata «ninguno» como sin bucket', () => {

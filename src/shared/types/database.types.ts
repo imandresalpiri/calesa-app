@@ -7924,6 +7924,7 @@ export type Database = {
         Returns: Json
       }
       _cotizacion_modo: { Args: { p_formula: string; p_modo_tc: string }; Returns: Json }
+      _cotizacion_pisables: { Args: { p_def: Json; p_diseno: Json }; Returns: Json }
       _cotizacion_primer_resultado: { Args: { p_totales: Json }; Returns: Record<string, unknown> }
       _cotizacion_puede_guardar: {
         Args: {
@@ -8860,6 +8861,7 @@ export type Database = {
       _motor_mas: { Args: { a: number; b: number }; Returns: number }
       _motor_menos: { Args: { a: number; b: number }; Returns: number }
       _motor_numero: { Args: { j: Json }; Returns: number }
+      _motor_pcts_exclusivos: { Args: { p_nodos: Json }; Returns: string[] }
       _motor_por: { Args: { a: number; b: number }; Returns: number }
       _motor_redondear: { Args: { n: number; x: number }; Returns: number }
       _motor_sin_leer: { Args: { p_quien: string; p_ref: string }; Returns: undefined }

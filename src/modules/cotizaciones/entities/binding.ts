@@ -2,7 +2,8 @@ import type { FormatoDeXCell } from '@/shared/ui/xcell'
 import type { Entradas, IndiceDeHoja } from './entradas'
 import type { CeldaDeHoja, ItemDeHoja, MotivoDeCandado, NodoDeTarjeta, SeccionDeHoja } from './hoja'
 import type { Estado } from './motor-contexto'
-import type { Formato } from './nodos'
+import { propsDelPisado, type PropsDelPisado } from './binding-pisado'
+import { formatoDeCelda, monedaDeFormato } from './formato-de-celda'
 import { primerResultado } from './primer-resultado'
 import type { RespuestaDeRecalculo } from './recalculo'
 import { textoDelFaltante } from './textos-de-faltantes'
@@ -40,18 +41,9 @@ export type PropsDeCelda = {
   secondaryFormat: FormatoDeXCell | undefined
   // El diseño dice que el secundario del par es el monto (`secundario: 'monto'`): el % va primero y grande, «14.94 % $181».
   secondaryProminent: true | undefined
-}
+} & PropsDelPisado
 
-// El formato de un nodo de la fórmula en el de la celda. Un `usd` se imprime en dólares; un `moneda`, en la moneda base de la empresa (sin código: `<Monto>` la toma de ella).
-const FORMATO_DE_CELDA: Record<Formato, FormatoDeXCell> = {
-  usd: 'monto',
-  moneda: 'monto',
-  pct: 'porcentaje',
-  raw: 'numero',
-}
-export const formatoDeCelda = (formato: Formato): FormatoDeXCell => FORMATO_DE_CELDA[formato]
-export const monedaDeFormato = (formato: Formato): string | undefined =>
-  formato === 'usd' ? 'USD' : undefined
+export { formatoDeCelda, monedaDeFormato } from './formato-de-celda'
 
 // ---------------------------------------------------------------------------------------------------------------------------------
 // Los textos
@@ -184,12 +176,14 @@ function errorDe(
   return principal && value === null ? FALTA_UN_DATO : undefined
 }
 
-function valorDelSecundario(nodo: string, c: ContextoDeHoja): number | null {
-  return (
-    c.entradas.overrides.get(nodo) ??
-    c.entradas.inputs.get(nodo) ??
-    numeroDe(c.respuesta?.valores.get(nodo))
-  )
+// Con el monto escrito, el porcentaje de un par lo escribe el par (`sigueAlMonto`): el de la respuesta, no uno tipeado antes.
+function valorDelSecundario(celda: CeldaDeHoja, nodo: string, c: ContextoDeHoja): number | null {
+  const loEscribeElPar =
+    celda.secundario?.sigueAlMonto === true && c.entradas.overrides.has(celda.nodo)
+  const tipeado = loEscribeElPar
+    ? undefined
+    : (c.entradas.overrides.get(nodo) ?? c.entradas.inputs.get(nodo))
+  return tipeado ?? numeroDe(c.respuesta?.valores.get(nodo))
 }
 
 const tieneValorPorDefecto = (celda: CeldaDeHoja) =>
@@ -220,7 +214,8 @@ export function propsDeCelda(celda: CeldaDeHoja, c: ContextoDeHoja): PropsDeCeld
     format: formatoDeCelda(celda.formato),
     currency: monedaDeFormato(celda.formato),
     value,
-    // Sólo una constante o un tipo de cambio tiene un valor por defecto («Volver al valor por defecto»); lo demás vuelve «al sugerido».
+    // Sólo una constante o un tipo de cambio tiene un valor por defecto («Volver al valor por defecto»); un cálculo pisado vuelve «al calculado» (`handEdited`)
+    // y lo demás, «al sugerido».
     defaultValue: tieneValorPorDefecto(celda) ? null : undefined,
     suggested:
       apagada === null && !overridden && c.respuesta?.fuentes.get(celda.nodo) === 'sugerido',
@@ -229,15 +224,17 @@ export function propsDeCelda(celda: CeldaDeHoja, c: ContextoDeHoja): PropsDeCeld
     secondaryDisabledReason: candados.secundario,
     tone: celda.tono ?? undefined,
     error: errorDe(celda, value, candados, c),
-    ...propsDelSecundario(secundario, c),
+    ...propsDelSecundario(celda, c),
+    ...propsDelPisado(celda, c.entradas, c.respuesta),
   }
 }
 
 // El secundario del par: su id, su valor, su formato y si se lee primero.
 function propsDelSecundario(
-  secundario: CeldaDeHoja['secundario'],
+  celda: CeldaDeHoja,
   c: ContextoDeHoja,
 ): Pick<PropsDeCelda, 'secondaryId' | 'secondaryValue' | 'secondaryFormat' | 'secondaryProminent'> {
+  const secundario = celda.secundario
   if (secundario === null) {
     return {
       secondaryId: undefined,
@@ -248,7 +245,7 @@ function propsDelSecundario(
   }
   return {
     secondaryId: secundario.nodo,
-    secondaryValue: valorDelSecundario(secundario.nodo, c),
+    secondaryValue: valorDelSecundario(celda, secundario.nodo, c),
     secondaryFormat: formatoDeCelda(secundario.formato),
     secondaryProminent: secundario.como === 'monto' || undefined,
   }
