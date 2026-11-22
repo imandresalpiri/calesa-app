@@ -16,6 +16,8 @@ type Props = {
     titulo: string
     motivo?: string | undefined
     aviso?: string | undefined
+    // Un punto en la pestaña (algo con errores, algo escrito sin guardar) y su texto en el nombre accesible: nunca sólo color.
+    marca?: { texto: string; tono: 'peligro' | 'info' } | undefined
   }[]
   // La abierta (vive en la URL de quien usa la barra) y qué hace elegir otra.
   valor: string
@@ -24,6 +26,8 @@ type Props = {
   // viaje en cada pantalla que usa la barra.
   conAviso?:
     ((aviso: string, pestana: ReactElement<Record<string, unknown>>) => ReactNode) | undefined
+  // Los paneles de las pestañas (`<TabsContent>`), si la pantalla los dibuja aquí (un panel de una fase); sin ellos, la barra sola y la ruta decide qué se ve.
+  children?: ReactNode
 }
 
 // La barra de pestañas de una pantalla de Configuración. En el celular, y con el texto al 200 %, no entran todas: la barra se desplaza dentro
@@ -47,6 +51,11 @@ function enLista(titulos: string[]): string {
     : `${titulos.slice(0, -1).join(', ')} y ${titulos.at(-1) ?? ''}`
 }
 
+function nombreAccesible(pestana: Props['pestanas'][number]): string | undefined {
+  const texto = pestana.aviso ?? pestana.marca?.texto
+  return texto ? `${pestana.titulo}. ${texto}` : undefined
+}
+
 // Una pestaña: apagada con su motivo (descrito bajo la barra) o, con algo pendiente, con su ⚠ (el texto también en su nombre accesible) y lo que sume `conAviso`.
 function PestanaDeLaBarra({
   pestana,
@@ -64,9 +73,16 @@ function PestanaDeLaBarra({
       disabled={Boolean(pestana.motivo)}
       aria-describedby={pestana.motivo ? idDelMotivo : undefined}
       // El nombre con lo que falta, entero: un `sr-only` suelto suma un espacio antes del punto en Chrome.
-      aria-label={pestana.aviso ? `${pestana.titulo}. ${pestana.aviso}` : undefined}
+      aria-label={nombreAccesible(pestana)}
     >
       {pestana.titulo}
+      {pestana.marca ? (
+        <span
+          aria-hidden
+          data-marca-de-la-pestana={pestana.marca.tono}
+          className={`size-2 shrink-0 rounded-full ${pestana.marca.tono === 'peligro' ? 'bg-(--color-peligro)' : 'bg-(--color-info)'}`}
+        />
+      ) : null}
       {pestana.aviso ? (
         <TriangleAlertIcon
           aria-hidden
@@ -81,7 +97,7 @@ function PestanaDeLaBarra({
     : disparador
 }
 
-export function PestanasConDesborde({ pestanas, valor, alElegir, conAviso }: Props) {
+export function PestanasConDesborde({ pestanas, valor, alElegir, conAviso, children }: Props) {
   const idDelMotivo = useId()
   const motivos = motivosDe(pestanas)
   const lista = useRef<HTMLDivElement>(null)
@@ -139,6 +155,7 @@ export function PestanasConDesborde({ pestanas, valor, alElegir, conAviso }: Pro
           ))}
         </div>
       ) : null}
+      {children}
     </Tabs>
   )
 }
