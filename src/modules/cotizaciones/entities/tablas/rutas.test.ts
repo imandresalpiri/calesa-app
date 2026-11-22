@@ -9,7 +9,7 @@ import {
 describe('rutaDeLasTablas', () => {
   it('lleva a la pestaña del origen y, si se pide, a la tabla', () => {
     expect(rutaDeLasTablas('o1')).toBe('/configuracion/origenes/o1/tablas')
-    expect(rutaDeLasTablas('o1', 't1')).toBe('/configuracion/origenes/o1/tablas?tabla=t1&editar=si')
+    expect(rutaDeLasTablas('o1', 't1')).toBe('/configuracion/origenes/o1/tablas?tabla=t1')
   })
 
   it('sin origen lleva a Catálogos › Tablas compartidas', () => {
@@ -24,7 +24,7 @@ describe('rutaDeLasTablas con un panel', () => {
       '/configuracion/origenes/o1/tablas?panel=nueva-tabla',
     )
     expect(rutaDeLasTablas('o1', 't1', PANEL_COLUMNAS_DE_TABLA)).toBe(
-      '/configuracion/origenes/o1/tablas?tabla=t1&editar=si&panel=columnas-de-tabla',
+      '/configuracion/origenes/o1/tablas?tabla=t1&panel=columnas-de-tabla',
     )
     expect(rutaDeLasTablas(null, undefined, PANEL_NUEVA_TABLA)).toBe(
       '/configuracion/catalogos/tablas?panel=nueva-tabla',

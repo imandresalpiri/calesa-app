@@ -200,12 +200,10 @@ consulta?)` y, para quien no conoce la fórmula, la ruta corta `rutaDeConfigurac
   sesión es `<origen>:<vuelta>:<sesión>` (`otraSesion()`). La página pasa `tarjeta` (la promesa de `leerLaTarjetaDeTrabajo()`), `TarjetaEnVivo` y
   `puedeCambiarTiposDeCambio` y los tipos de cambio de la empresa (`tiposDeCambio`, clave y nombre, para «Tipo de celda»). Las celdas editables usan `BOTON_DEL_VALOR` y `ENTRADA` de `@/shared/ui/xcell`; los colores de las bandas, `leerTonosDelCatalogo()`
   con claro y oscuro y `<EstiloDeTonos>`.
-- **La edición a pantalla completa** (glosario; `docs/UX.md` › «Edición a pantalla completa»): la planilla, la hoja, la tarjeta y una tabla de un origen se editan sin el
-  marco, en `?editar=si` (lo decide la página con `enLaEdicion()`; `rutaDeLasTablas(origen, tabla)` ya lo trae y `rutaDeLasTablas(null, …)`, las compartidas, no). El editor se
-  registra con `useEdicionAPantallaCompleta({ estado, hayCambios, alDescartar })` (de `@/shared/ui/edicion-a-pantalla-completa`) y sus acciones («Guardar el borrador», «Publicar…»,
-  «⋯») van envueltas en `<AccionesDeLaEdicion orden>`: en el modo suben a la barra, fuera de él se dibujan donde estaban. El estado sale de una función pura por área
-  (`estadoDeLaFormulaGuardada()`, `estadoDeLaHoja()`, `estadoDeLaTarjeta()`, `estadoDeLaTabla()`). En una tabla, «Publicar» y el «⋯» (con «Descartar los cambios») suben a la barra y
-  no hay barra de cambios abajo (`PieDelEditor`).
+- **La barra de la fórmula** (glosario): en las pestañas Planilla, Hoja y Tarjeta de la página del origen los botones del editor («Guardar el borrador»,
+  «Publicar…», «⋯») van envueltos en `<AccionesEnLaBarra orden>` del núcleo (`features/barra-de-la-formula/`) y suben a la ranura de la barra; sin
+  `<ConLaBarraDeLaFormula>` (la puesta en marcha) se dibujan donde estaban. El estado lo registra cada editor con `useEstadoEnLaBarra()`, de una función pura por área
+  (`estadoDeLaFormulaGuardada()`, `estadoDeLaHoja()`, `estadoDeLaTarjeta()`).
 - **El PDF** (área `tarjeta`): `GET /cotizaciones/[id]/pdf` (`requerirSesion()`; 404 en texto igual al de la página para lo que no existe, está en la
   papelera o no se ve; `rutaDelPdf(id)`) arma la página (fecha del último guardado en la zona de `leerAjustes()`, que falla en vez de dar lo de fábrica) y
   pide `pdfDeUnaGuardada()` con el contexto de `contextoDeLaPagina()` (el cliente sólo con `leads.ver`: `src/app/(app)/cotizaciones/datos-de-la-tarjeta.ts`, que

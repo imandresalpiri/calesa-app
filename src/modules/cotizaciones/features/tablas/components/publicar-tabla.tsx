@@ -2,7 +2,6 @@
 
 import { formatearNumero } from '@/shared/lib/formato'
 import { Button } from '@/shared/ui/button'
-import { AccionesDeLaEdicion } from '@/shared/ui/edicion-a-pantalla-completa'
 import { useRegional } from '@/shared/ui/regional'
 import { avisarExito } from '@/shared/ui/toasts'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
@@ -51,20 +50,16 @@ export function PublicarTabla({ tabla, edicion, borrador }: Props) {
       {cambios && error ? (
         <p className="text-(length:--text-sm) text-(--color-peligro-ink)">{CON_ERROR}</p>
       ) : null}
-      {/* En la edición a pantalla completa «Publicar» va a la barra de arriba, como acción principal. */}
-      <AccionesDeLaEdicion orden={2}>
-        <Button
-          type="button"
-          className="min-h-11 md:min-h-9"
-          disabled={bloqueo !== null}
-          title={bloqueo?.mensaje}
-          onClick={() => {
-            panel.abrir()
-          }}
-        >
-          Publicar
-        </Button>
-      </AccionesDeLaEdicion>
+      <Button
+        type="button"
+        className="min-h-11 md:min-h-9"
+        disabled={bloqueo !== null}
+        onClick={() => {
+          panel.abrir()
+        }}
+      >
+        Publicar
+      </Button>
       {montado ? (
         <ModalDePublicarTablaDiferido
           abierto={panel.abierto}

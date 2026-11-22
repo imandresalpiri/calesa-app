@@ -10,14 +10,11 @@ export default function LayoutDelOrigen({
 }: LayoutProps<'/configuracion/origenes/[id]'>) {
   return (
     <div className="grid min-w-0 gap-4">
-      {/* En la edición a pantalla completa el marco del origen se oculta (`data-oculto-al-editar`, globals.css). */}
-      <div data-oculto-al-editar="" className="min-w-0">
-        <Suspense fallback={<EsqueletoDelMarco />}>
-          {params.then(({ id }) => (
-            <MarcoDelOrigen id={id} />
-          ))}
-        </Suspense>
-      </div>
+      <Suspense fallback={<EsqueletoDelMarco />}>
+        {params.then(({ id }) => (
+          <MarcoDelOrigen id={id} />
+        ))}
+      </Suspense>
       {children}
     </div>
   )

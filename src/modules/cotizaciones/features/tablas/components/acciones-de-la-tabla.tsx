@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { AccionesDeLaEdicion } from '@/shared/ui/edicion-a-pantalla-completa'
 import { EsquinaDeAcciones, MasAcciones } from '@/shared/ui/lista'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { useApertura } from '@/shared/ui/use-apertura'
@@ -39,13 +38,10 @@ export function AccionesDelEditor({
   tabla,
   origenId,
   cambios,
-  alDescartar,
 }: {
   tabla: TablaDeReferencia
   origenId: string | null
   cambios: boolean
-  // Sólo en la edición a pantalla completa: «Descartar los cambios» en el «⋯».
-  alDescartar?: () => void
 }) {
   const columnas = usePanelDeLaTabla(
     PANEL_COLUMNAS_DE_TABLA,
@@ -57,26 +53,22 @@ export function AccionesDelEditor({
   )
   return (
     <>
-      {/* En la edición a pantalla completa el «⋯» va a la barra de arriba. */}
-      <AccionesDeLaEdicion orden={3}>
-        <EsquinaDeAcciones>
-          <MasAcciones
-            nombre={tabla.nombre}
-            id={`tabla-${tabla.id}`}
-            conBorde
-            acciones={menuDeTablaEnElEditor({
-              cambios,
-              alAbrirColumnas: () => {
-                columnas.abrir()
-              },
-              alDesactivar: () => {
-                desactivar.abrir()
-              },
-              ...(alDescartar ? { alDescartar } : {}),
-            })}
-          />
-        </EsquinaDeAcciones>
-      </AccionesDeLaEdicion>
+      <EsquinaDeAcciones>
+        <MasAcciones
+          nombre={tabla.nombre}
+          id={`tabla-${tabla.id}`}
+          conBorde
+          acciones={menuDeTablaEnElEditor({
+            cambios,
+            alAbrirColumnas: () => {
+              columnas.abrir()
+            },
+            alDesactivar: () => {
+              desactivar.abrir()
+            },
+          })}
+        />
+      </EsquinaDeAcciones>
       {columnas.montado ? (
         <PanelDeColumnasDiferido
           key={columnas.apertura}

@@ -82,18 +82,17 @@ async function publicarUnaFila(page: Page, editor: Locator) {
   await editor.getByLabel('Año, fila 1').fill('2024')
   await editor.getByLabel('Monto, fila 1').fill('150')
   await editor.getByLabel('Monto, fila 1').press('Tab')
-  // «Publicar» y el «⋯» de la tabla están en la barra de la edición a pantalla completa, fuera de la región del editor.
-  await page.getByRole('button', { name: 'Publicar', exact: true }).click()
+  await editor.getByRole('button', { name: 'Publicar' }).click()
   const publicar = page.getByRole('dialog', { name: `Publicar ${NOMBRE}` })
   await publicar.getByLabel('Nota').fill('E2E primera')
   await publicar.getByRole('button', { name: 'Publicar' }).click()
   await expect(page.getByText(`Publicaste la versión 2 de «${NOMBRE}».`)).toBeVisible()
-  await expect(page.getByText('Publicada v2')).toBeVisible()
+  await expect(editor.getByText('Sin cambios que publicar.')).toBeVisible()
 }
 
 async function cambiarLasColumnas(page: Page, editor: Locator) {
   // «Columnas»: renombrar «Monto», sumar «Recargo» y quitar «Año».
-  await page.getByRole('button', { name: `Más acciones de ${NOMBRE}` }).click()
+  await editor.getByRole('button', { name: `Más acciones de ${NOMBRE}` }).click()
   await page.getByRole('menuitem', { name: 'Columnas' }).click()
   const columnas = page.getByRole('dialog', { name: `Columnas de ${NOMBRE}` })
   await expect(columnas.getByText('Sin cambios en las columnas.')).toBeVisible()
@@ -143,7 +142,7 @@ async function quitarUnaColumnaEnUso(page: Page) {
   await enUso.getByRole('button', { name: 'Cancelar' }).click()
   await expect(enUso).toBeHidden()
   // El «⋯» de la lista abrió la tabla con su panel: se vuelve a la lista.
-  await page.getByRole('link', { name: 'Salir' }).click()
+  await page.getByRole('link', { name: 'Volver a las tablas' }).click()
   await expect(lista).toBeVisible()
 }
 

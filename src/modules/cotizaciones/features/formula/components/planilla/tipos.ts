@@ -21,7 +21,7 @@ export type PropsDeLaPlanilla = {
   formulaDelOrigenId: string
   // «Sobre el borrador de <persona>.» o «Sobre la versión N publicada.»
   sobre: string
-  // El estado de lo guardado (Borrador · Publicada vN) que la edición a pantalla completa dice arriba; sin ella, nada.
+  // El estado de lo guardado (Borrador · Publicada vN) que dice la barra de la fórmula; sin ella, nada.
   estadoGuardado: EstadoDeLaEdicion
   // La unidad de ejemplo y el modo elegido viven en la sesión: se pierden al recargar.
   unidad: UnidadDeEjemplo

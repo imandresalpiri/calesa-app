@@ -1,7 +1,6 @@
 // Dónde se editan las tablas de referencia (4.23-3): la pestaña «Tablas» de un origen (las suyas y las compartidas que usa) o Catálogos › Tablas
 // compartidas (sólo las de origen nulo), y sus URL.
 import type { Route } from 'next'
-import { CONSULTA_DE_LA_EDICION } from '@/shared/lib/edicion'
 import { RUTAS, rutaDeConfiguracionDeCotizacion } from '@/shared/lib/rutas'
 
 export type OrigenDeLasTablas = { id: string; nombre: string; activo: boolean }
@@ -20,17 +19,14 @@ export const PANEL_DESACTIVAR_TABLA = 'desactivar-tabla'
 export type PanelDeLasTablas =
   typeof PANEL_NUEVA_TABLA | typeof PANEL_COLUMNAS_DE_TABLA | typeof PANEL_DESACTIVAR_TABLA
 
-// `/configuracion/origenes/<origen>/tablas` o, sin origen, `/configuracion/catalogos/tablas`; con `tablaId`, `?tabla=<id>` (abre su editor) y, en un origen,
-// `&editar=si`: abrir una tabla es entrar a la edición a pantalla completa (docs/GLOSARIO.md); con `panel`, `&panel=` (o `?panel=` sin tabla).
+// `/configuracion/origenes/<origen>/tablas` o, sin origen, `/configuracion/catalogos/tablas`; con `tablaId`, `?tabla=<id>` (abre su editor); con `panel`,
+// `&panel=` (o `?panel=` sin tabla).
 export function rutaDeLasTablas(
   origenId: string | null,
   tablaId?: string,
   panel?: PanelDeLasTablas,
 ): Route {
-  const consulta = {
-    ...(tablaId ? { tabla: tablaId, ...(origenId === null ? {} : CONSULTA_DE_LA_EDICION) } : {}),
-    ...(panel ? { panel } : {}),
-  }
+  const consulta = { ...(tablaId ? { tabla: tablaId } : {}), ...(panel ? { panel } : {}) }
   const conConsulta = Object.keys(consulta).length > 0 ? consulta : undefined
   if (origenId === null) {
     const parametros = new URLSearchParams(conConsulta).toString()

@@ -12,7 +12,7 @@ type Props = {
   panel: PanelDeLaFormula
   // Hay cambios aplicados en la planilla sin guardar: «Publicar…» espera.
   publicarEspera: boolean
-  // «Publicar…» del borrador va en la barra de la edición a pantalla completa.
+  // «Publicar…» del borrador va en la barra de la fórmula (la página del origen).
   publicarEnLaBarra?: boolean
 }
 

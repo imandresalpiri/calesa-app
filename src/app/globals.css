@@ -61,11 +61,10 @@
   --ancho-del-aviso: min(22.25rem, calc(100vw - 2rem));
 }
 @media (min-width: 768px) {
-  body:has([data-barra-lateral]):not(:has([data-edicion-a-pantalla-completa])) {
+  body:has([data-barra-lateral]) {
     --ancho-del-aviso: calc(var(--sidebar) - 2rem);
   }
-  body:has([data-barra-lateral]):not(:has([data-edicion-a-pantalla-completa]))
-    [data-sonner-toaster][data-x-position] {
+  body:has([data-barra-lateral]) [data-sonner-toaster][data-x-position] {
     right: auto;
     left: var(--offset-left);
   }
@@ -87,30 +86,6 @@
   overflow: hidden;
   font-size: 0;
   box-shadow: 0 0 0 2px var(--color-surface);
-}
-
-/*
- * La edición a pantalla completa (`src/shared/ui/edicion-a-pantalla-completa/`): con su marca en la página, lo que lleva `data-oculto-al-editar` (la barra lateral, la
- * barra superior y la burbuja del chat de `(app)`, el menú y la cabecera de Configuración, las pestañas del origen) sale del diseño y del orden del Tab. Es CSS y no un
- * `fixed` porque `@container/configuracion` encierra lo `fixed` en su propio cuadro, y porque así el modo se ve desde el primer byte, sin parpadeo. La página sigue en
- * el flujo: sin relleno de los marcos (`#contenido`, `data-relleno-del-marco`), y `--topbar` pasa a ser el alto de la barra de la edición, así lo que se pega bajo la
- * barra superior (la barra de fórmula de la planilla, el aviso de «Ver como») se pega bajo la de la edición. El aviso (`sonner`) no se mueve junto a una barra lateral que no está.
- */
-html:has([data-edicion-a-pantalla-completa]) {
-  --topbar: var(--barra-de-la-edicion);
-}
-html:has([data-edicion-a-pantalla-completa]) [data-oculto-al-editar] {
-  display: none;
-}
-html:has([data-edicion-a-pantalla-completa]) #contenido,
-html:has([data-edicion-a-pantalla-completa]) [data-relleno-del-marco] {
-  padding: 0;
-}
-/* La barra del celular lleva dos renglones: «Salir», el título y el estado, y debajo las acciones a lo ancho. */
-@media (max-width: 767.98px) {
-  html:has([data-edicion-a-pantalla-completa]) {
-    --barra-de-la-edicion: 6.5rem;
-  }
 }
 
 /*

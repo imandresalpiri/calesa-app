@@ -8,8 +8,6 @@ Toda la configuración se escribe por RPC con la versión del flujo. Abiertos (`
 
 - Entra: configuración del dueño en la pestaña Flujo de cada origen (`/configuracion/origenes/<id>/flujo`) y en Repuestos › Flujo de repuestos
   (`/configuracion/repuestos/flujo`), cada una con un **flujo fijo** (`FlujoFijo`: `{ origenId }` o `{ ambito: 'repuestos' }`); llamadas a mover desde `logistica` y `repuestos`.
-- **A pantalla completa** (glosario «Edición a pantalla completa»): la pestaña Flujo de un origen se edita en `?editar=si` (lo decide la página); los botones de `BarraDelFlujo`
-  van envueltos en `<AccionesDeLaEdicion>` y suben a la barra de arriba. El flujo no tiene borrador (se guarda en el acto) y no dice estado. `?fase=` y `?seccion=` solos no entran al modo.
 - Sale por `index.ts`: `leerFasesDeOrigen(origenId)` → `FaseResumen[]` (id, nombre, color, orden, inicial, final, activa; también las jubiladas), que usa
   `vehiculos` para mostrar y filtrar la fase. Del área `mover`: `leerFlujoDeOrigen(origenId)` → `FlujoDeOrigen | null` (`flujoId`, `reglasActivas` y por fase
   `notaObligatoria`, `permiteContenedor`, `permiteAduana`, `demoraDias`; error visible si una lista llega al tope) y `reglaActiva(flujo, regla)`. Por `client.ts`,

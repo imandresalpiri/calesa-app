@@ -46,3 +46,19 @@ export function destinoSinLosPanelesQueYaNoExisten(
   const consulta = resto.toString()
   return consulta === '' ? ruta : `${ruta}?${consulta}`
 }
+
+// La edición a pantalla completa ya no existe: los editores se usan en su pestaña. A dónde va una ruta de Configuración con `?editar=si`: a la misma, sin
+// ese valor y con el resto de la consulta (`?editar=requisito` y los demás del flujo siguen). Nulo si no lo trae.
+export function destinoSinLaEdicion(ruta: string, busqueda: URLSearchParams): string | null {
+  if (!ruta.startsWith('/configuracion/') || !busqueda.getAll('editar').includes('si')) {
+    return null
+  }
+  const resto = new URLSearchParams()
+  for (const [nombre, valor] of busqueda) {
+    if (nombre !== 'editar' || valor !== 'si') {
+      resto.append(nombre, valor)
+    }
+  }
+  const consulta = resto.toString()
+  return consulta === '' ? ruta : `${ruta}?${consulta}`
+}

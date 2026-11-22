@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  destinoSinLaEdicion,
   destinoSinLosPanelesQueYaNoExisten,
   sinLosPanelesQueYaNoExisten,
 } from './paneles-que-ya-no-existen'
@@ -76,5 +77,25 @@ describe('sinLosPanelesQueYaNoExisten', () => {
     })
     const sin = { x: '1' }
     expect(sinLosPanelesQueYaNoExisten(sin)).toBe(sin)
+  })
+})
+
+describe('destinoSinLaEdicion', () => {
+  const sin = (ruta: string, consulta: string) =>
+    destinoSinLaEdicion(ruta, new URLSearchParams(consulta))
+
+  it('quita `editar=si` en Configuración y deja el resto de la consulta', () => {
+    expect(sin('/configuracion/origenes/o-1/tablas', 'tabla=t-1&editar=si')).toBe(
+      '/configuracion/origenes/o-1/tablas?tabla=t-1',
+    )
+    expect(sin('/configuracion/origenes/o-1/flujo', 'editar=si')).toBe(
+      '/configuracion/origenes/o-1/flujo',
+    )
+  })
+
+  it('otro `editar`, otra sección o sin él siguen', () => {
+    expect(sin('/configuracion/origenes/o-1/flujo', 'editar=requisito&fase=f')).toBeNull()
+    expect(sin('/cotizaciones/c-1', 'editar=si')).toBeNull()
+    expect(sin('/configuracion/origenes/o-1/flujo', '')).toBeNull()
   })
 })

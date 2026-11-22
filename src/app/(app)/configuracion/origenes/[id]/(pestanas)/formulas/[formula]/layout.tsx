@@ -11,22 +11,19 @@ export default function LayoutDeLaFormula({
 }: LayoutProps<'/configuracion/origenes/[id]/formulas/[formula]'>) {
   return (
     <div className="grid min-w-0 gap-4">
-      {/* En la edición a pantalla completa la cabeza se oculta (`data-oculto-al-editar`, globals.css): la barra de la edición la reemplaza. */}
-      <div data-oculto-al-editar="" className="min-w-0">
-        <Suspense
-          fallback={
-            <div className="grid gap-3">
-              <Skeleton className="h-5 w-24" />
-              <Skeleton className="h-7 w-72 max-w-full" />
-              <Skeleton className="h-9 w-64 max-w-full" />
-            </div>
-          }
-        >
-          {params.then(({ id, formula }) => (
-            <CabezaDelEditor origenId={id} formulaId={formula} />
-          ))}
-        </Suspense>
-      </div>
+      <Suspense
+        fallback={
+          <div className="grid gap-3">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-7 w-72 max-w-full" />
+            <Skeleton className="h-9 w-64 max-w-full" />
+          </div>
+        }
+      >
+        {params.then(({ id, formula }) => (
+          <CabezaDelEditor origenId={id} formulaId={formula} />
+        ))}
+      </Suspense>
       {children}
     </div>
   )
