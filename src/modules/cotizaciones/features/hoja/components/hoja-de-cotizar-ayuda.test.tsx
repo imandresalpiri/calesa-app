@@ -43,24 +43,27 @@ function hojaDeAvanzado(): HojaLista {
         id: 'x',
         titulo: 'Componentes CIF',
         presentacion: 'avanzado',
-        items: [celda('x1', { ayuda: { texto: 'Cómo se usa x1' } })],
+        items: [celda('x1', { ayuda: [{ tipo: 'texto', texto: 'Cómo se usa x1' }] })],
       },
       {
         id: 'b',
         titulo: 'Aduana',
         presentacion: 'principal',
         items: [
-          celda('b1', { ayuda: { texto: 'Cómo se usa b1' } }),
+          celda('b1', { ayuda: [{ tipo: 'texto', texto: 'Cómo se usa b1' }] }),
           celda('b3', {
-            ayuda: {
-              texto: 'Mira la subasta',
-              enlaces: [
-                { titulo: 'Copart', url: 'https://www.copart.com/' },
-                { titulo: 'IAA', url: 'https://www.iaai.com/' },
-              ],
-            },
+            ayuda: [
+              { tipo: 'texto', texto: 'Mira la subasta' },
+              {
+                tipo: 'enlaces',
+                enlaces: [
+                  { titulo: 'Copart', url: 'https://www.copart.com/' },
+                  { titulo: 'IAA', url: 'https://www.iaai.com/' },
+                ],
+              },
+            ],
           }),
-          celda('b2', { ayuda: { tabla: 'aduana' } }),
+          celda('b2', { ayuda: [{ tipo: 'tabla', tabla: 'aduana' }] }),
         ],
       },
       { id: 'y', titulo: 'Póliza', presentacion: 'avanzado', items: [celda('y1')] },

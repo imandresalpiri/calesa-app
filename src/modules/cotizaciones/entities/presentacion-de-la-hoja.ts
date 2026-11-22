@@ -1,5 +1,5 @@
 import { itemSeDibuja, propsDeCelda, type ContextoDeHoja } from './binding'
-import type { CeldaDeHoja, EnlaceDeLaAyuda, SeccionDeHoja } from './hoja'
+import type { BloqueEnLaHoja, CeldaDeHoja, EnlaceDeLaAyuda, SeccionDeHoja } from './hoja'
 
 // Lo que la hoja dibuja en cada lugar (paso 4.13-4a, `docs/COTIZADOR.md` › «El diseño de la hoja (D7)»): las secciones `principal` en su orden, y las `avanzado` juntas detrás de **un**
 // botón «Avanzado» que va donde estaba la primera de ellas. Puro: la hoja recibe sólo las secciones que se dibujan (`seccionSeDibuja`).
@@ -40,23 +40,30 @@ export const hayDatosPorRevisar = (
   c: ContextoDeHoja,
 ): boolean => celdasQueSeDibujan(secciones, c).some((celda) => propsDeCelda(celda, c).error)
 
-// La ayuda de una celda es un texto del diseño o una tabla de referencia (`ayuda: {texto}` o `ayuda: {tabla}`): lo que abre su botón lo decide la hoja.
+// La ayuda de una celda llega como bloques (`ayuda-de-la-hoja.ts`); hasta que se abra entera, su botón abre el texto (con sus enlaces) si tiene algún bloque
+// que no es una tabla, y si no la primera tabla: el texto, los enlaces y la tabla salen del primer bloque de cada tipo.
 export type TipoDeAyuda = 'texto' | 'tabla'
 
+const primero = <T extends BloqueEnLaHoja['tipo']>(
+  celda: CeldaDeHoja,
+  tipo: T,
+): Extract<BloqueEnLaHoja, { tipo: T }> | undefined =>
+  celda.ayuda?.find((b): b is Extract<BloqueEnLaHoja, { tipo: T }> => b.tipo === tipo)
+
 export const tipoDeAyuda = (celda: CeldaDeHoja): TipoDeAyuda | null =>
-  celda.ayuda === null ? null : 'texto' in celda.ayuda ? 'texto' : 'tabla'
+  celda.ayuda === null ? null : celda.ayuda.some((b) => b.tipo !== 'tabla') ? 'texto' : 'tabla'
 
-// El texto de la ayuda de una celda, o nulo si no tiene o es de una tabla.
+// El texto de la ayuda de una celda (el del primer bloque de texto o, sin él, el del título), o nulo si no tiene.
 export const ayudaDeTexto = (celda: CeldaDeHoja): string | null =>
-  celda.ayuda !== null && 'texto' in celda.ayuda ? celda.ayuda.texto : null
+  (primero(celda, 'texto') ?? primero(celda, 'titulo'))?.texto ?? null
 
-// Los enlaces de la ayuda de texto de una celda (hasta 5, todos `https://`: el esquema de la hoja ya lo exigió), en su orden; vacío si no tiene.
+// Los enlaces de la ayuda de una celda (hasta 5, todos `https://`: el esquema de la hoja ya lo exigió), en su orden; vacío si no tiene.
 export const enlacesDeLaAyuda = (celda: CeldaDeHoja): readonly EnlaceDeLaAyuda[] =>
-  celda.ayuda !== null && 'texto' in celda.ayuda ? (celda.ayuda.enlaces ?? []) : []
+  primero(celda, 'enlaces')?.enlaces ?? []
 
-// La clave de la tabla de la ayuda de una celda, o nulo si no tiene o es de texto.
+// La clave de la primera tabla de la ayuda de una celda, o nulo si no tiene.
 export const tablaDeAyuda = (celda: CeldaDeHoja): string | null =>
-  celda.ayuda !== null && 'tabla' in celda.ayuda ? celda.ayuda.tabla : null
+  primero(celda, 'tabla')?.tabla ?? null
 
 // El tipo de ayuda de cada celda de estas secciones, por nodo (para que el callback único de las celdas sepa qué abrir sin cambiar).
 export const tiposDeAyuda = (secciones: readonly SeccionDeHoja[]): Map<string, TipoDeAyuda> =>

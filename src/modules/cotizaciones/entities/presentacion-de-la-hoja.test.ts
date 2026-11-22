@@ -49,10 +49,14 @@ function hojaCon(secciones: unknown[]): HojaLista {
 const DOS_AVANZADAS = hojaCon([
   seccion('a', 'principal', 'A', [celda('a1')]),
   seccion('x', 'avanzado', 'Componentes CIF', [
-    celda('x1', { ayuda: { texto: 'Cómo se usa x1' } }),
+    celda('x1', { ayuda: [{ tipo: 'texto', texto: 'Cómo se usa x1' }] }),
   ]),
-  seccion('b', 'principal', 'B', [celda('b1', { ayuda: { texto: 'Cómo se usa b1' } })]),
-  seccion('y', 'avanzado', 'Póliza', [celda('y1', { ayuda: { tabla: 'poliza' } })]),
+  seccion('b', 'principal', 'B', [
+    celda('b1', { ayuda: [{ tipo: 'texto', texto: 'Cómo se usa b1' }] }),
+  ]),
+  seccion('y', 'avanzado', 'Póliza', [
+    celda('y1', { ayuda: [{ tipo: 'tabla', tabla: 'poliza' }] }),
+  ]),
 ])
 
 const contexto = (
@@ -164,7 +168,15 @@ describe('ayudaDeTexto y tablaDeAyuda: cada una, lo suyo', () => {
       { titulo: 'Copart', url: 'https://www.copart.com/' },
       { titulo: 'IAA', url: 'https://www.iaai.com/' },
     ]
-    expect(enlacesDeLaAyuda({ ...de('b1'), ayuda: { texto: 'Mira', enlaces } })).toEqual(enlaces)
+    expect(
+      enlacesDeLaAyuda({
+        ...de('b1'),
+        ayuda: [
+          { tipo: 'texto', texto: 'Mira' },
+          { tipo: 'enlaces', enlaces },
+        ],
+      }),
+    ).toEqual(enlaces)
     expect(enlacesDeLaAyuda(de('b1'))).toEqual([])
     expect(enlacesDeLaAyuda(de('y1'))).toEqual([])
     expect(enlacesDeLaAyuda(de('a1'))).toEqual([])

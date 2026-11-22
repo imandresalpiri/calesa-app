@@ -26,17 +26,23 @@ describe('hojaDesde: lo que la cabecera trae por defecto y los enlaces de la ayu
       if (!seccion) throw new Error('sin sección')
       const items = seccion.items.map((i) =>
         i.tipo === 'celda' && i.nodo === 'fees'
-          ? { ...i, ayuda: { texto: 'Mira', enlaces: [{ titulo: 'Copart', url }] } }
+          ? {
+              ...i,
+              ayuda: [
+                { tipo: 'texto', texto: 'Mira' },
+                { tipo: 'enlaces', enlaces: [{ titulo: 'Copart', url }] },
+              ],
+            }
           : i,
       )
       return hojaDesde({ ...cruda, secciones: [{ ...seccion, items }] })
     }
     const leida = conAyuda('https://www.copart.com/') as HojaLista
     const fees = leida.secciones[0]?.items.find((i) => i.nodo === 'fees')
-    expect(fees?.tipo === 'celda' ? fees.ayuda : null).toEqual({
-      texto: 'Mira',
-      enlaces: [{ titulo: 'Copart', url: 'https://www.copart.com/' }],
-    })
+    expect(fees?.tipo === 'celda' ? fees.ayuda : null).toEqual([
+      { tipo: 'texto', texto: 'Mira' },
+      { tipo: 'enlaces', enlaces: [{ titulo: 'Copart', url: 'https://www.copart.com/' }] },
+    ])
     expect(conAyuda('javascript:alert(1)')).toBeNull()
     expect(conAyuda('http://copart.com')).toBeNull()
   })

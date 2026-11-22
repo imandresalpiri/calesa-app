@@ -49,9 +49,9 @@ function hojaDeTablas(): HojaLista {
         titulo: 'Subasta',
         presentacion: 'principal',
         items: [
-          celda('a1', { ayuda: { tabla: 'aduana' } }),
-          celda('f1', { formato: 'raw', ayuda: { tabla: 'factores' } }),
-          celda('t1', { ayuda: { texto: 'Cómo se usa t1' } }),
+          celda('a1', { ayuda: [{ tipo: 'tabla', tabla: 'aduana' }] }),
+          celda('f1', { formato: 'raw', ayuda: [{ tipo: 'tabla', tabla: 'factores' }] }),
+          celda('t1', { ayuda: [{ tipo: 'texto', texto: 'Cómo se usa t1' }] }),
           celda('s1'),
         ],
       },
@@ -59,7 +59,7 @@ function hojaDeTablas(): HojaLista {
         id: 'y',
         titulo: 'Póliza',
         presentacion: 'avanzado',
-        items: [celda('y1', { ayuda: { tabla: 'poliza' } })],
+        items: [celda('y1', { ayuda: [{ tipo: 'tabla', tabla: 'poliza' }] })],
       },
     ],
   })

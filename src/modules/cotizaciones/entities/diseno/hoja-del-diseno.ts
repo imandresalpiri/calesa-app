@@ -8,9 +8,10 @@ import {
   aspectoDeItemConAncho,
   aspectoDeSeccion,
 } from '../aspecto-de-la-hoja'
-import type { Diseno, ItemDeDiseno } from '../diseno'
+import { ayudaEnBloques } from '../ayuda-en-bloques'
+import type { AyudaDeDiseno, Diseno, ItemDeDiseno } from '../diseno'
 import type { Definicion } from '../formula'
-import type { DisenoDeHoja, ItemDeHoja, NodoDeTarjeta, SeccionDeHoja } from '../hoja'
+import type { AyudaDeCelda, DisenoDeHoja, ItemDeHoja, NodoDeTarjeta, SeccionDeHoja } from '../hoja'
 import { condicionDe, soloEnDe, type Nodo } from '../nodos'
 
 // Un nodo sin formato propio se dibuja en dólares, como `coalesce(formato, 'usd')` de la base.
@@ -47,8 +48,7 @@ function celdaDe(
     ...aspectoDeItem(item),
     tono: tonoDe(n, tonosDeGrupo),
     ajustes: false,
-    // La hoja todavía no dibuja la ayuda en bloques: sólo la de antes.
-    ayuda: item.ayuda === undefined || Array.isArray(item.ayuda) ? null : item.ayuda,
+    ayuda: ayudaDeLaVistaPrevia(item.ayuda),
     datoDelVehiculo: null,
     soloEn: soloEnDe(n)?.slice() ?? null,
     condicion: condicionDe(n) ?? null,
@@ -65,6 +65,25 @@ function celdaDe(
           }
         : null,
   }
+}
+
+// La ayuda como la recibe la hoja (la de antes también, como bloques), sin recortes: la vista previa no tiene niveles ni tablas vivas (sin `casa` ni `id`).
+function ayudaDeLaVistaPrevia(ayuda: AyudaDeDiseno | undefined): AyudaDeCelda | null {
+  const bloques = ayudaEnBloques(ayuda)
+  if (bloques.length === 0) return null
+  return bloques.map((b) =>
+    b.tipo !== 'tabla'
+      ? b
+      : {
+          tipo: 'tabla',
+          tabla: b.tabla,
+          columnas:
+            b.columnas?.map((c) => ({ columna: c.columna, llena: c.llena ?? null })) ?? null,
+          resaltar: b.resaltar === true,
+          casa: null,
+          id: null,
+        },
+  )
 }
 
 function varianteDe(item: Extract<ItemDeDiseno, { tipo: 'variante' }>, n: Nodo): ItemDeHoja | null {
