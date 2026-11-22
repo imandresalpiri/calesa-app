@@ -199,7 +199,7 @@ test('E2E T518 el flujo de repuestos tiene las mismas pestañas, sin lo que no e
        where fl.ambito = 'repuestos' order by f.orden limit 1`,
   )
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/configuracion/repuestos/flujo?vista=lista&fase=${faseDeRepuestos}`)
+  await page.goto(`/repuestos/configuracion/flujo?vista=lista&fase=${faseDeRepuestos}`)
   const panel = page.getByRole('dialog')
   await expect(pestana(panel, 'Reglas', true)).toBeVisible()
   await expect(panel.getByRole('tab')).toHaveText(['Reglas', 'Identidad', 'Ajustes'])

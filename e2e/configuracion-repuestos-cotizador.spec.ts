@@ -29,9 +29,9 @@ test.afterAll(async () => {
 
 test('publicar la fórmula y agregar un tramo; uno que se cruza no se agrega', async ({ page }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto('/configuracion/repuestos/cotizador')
+  await page.goto('/repuestos/configuracion/cotizador')
   await expect(
-    page.getByRole('heading', { name: 'Cotizador de repuestos', level: 1 }),
+    page.getByRole('heading', { name: 'Configuración de repuestos', level: 1 }),
   ).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Fórmula', level: 2 })).toBeVisible()
 

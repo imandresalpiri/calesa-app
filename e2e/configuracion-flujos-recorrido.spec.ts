@@ -157,7 +157,7 @@ test(`${P} la dueña pide un documento, un dato y una espera; Revisar marca la f
   ).toBeVisible()
 
   // Desde el flujo de repuestos, esa fase espera a «Llegada»: las dos se esperan mutuamente.
-  const urlDeRepuestos = `/configuracion/repuestos/flujo?fase=${faseDeRepuestos}`
+  const urlDeRepuestos = `/repuestos/configuracion/flujo?fase=${faseDeRepuestos}`
   const deRepuestos = await inspectorDe(page, urlDeRepuestos, nombreDeRepuestos)
   const descripcionInversa = await agregarEsperaA(deRepuestos, LLEGADA)
   expect(descripcionInversa).not.toBe('')

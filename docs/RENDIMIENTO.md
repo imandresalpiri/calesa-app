@@ -586,7 +586,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   un candado por ítem. **Excepción a «nunca el original»:** sin miniatura y con `unoptimized`, cada imagen baja el WebP de ≤ 1600 px (≤ 8
   por panel abierto).
 - Catálogos de Configuración: 4 × `limit 201` por PostgREST (decenas de filas); tope 200 con `<AvisoDeTope>`.
-- Configuración del cotizador (`/configuracion/repuestos/cotizador`): tres lecturas en paralelo bajo `repuestos.cotizar` o
+- Configuración del cotizador (`/repuestos/configuracion/cotizador`): tres lecturas en paralelo bajo `repuestos.cotizar` o
   `repuestos.configurar`: la configuración por su PK (`order by id desc`, la primera es la vigente) tope 20 + 1, los tramos por
   `repuestos_tramos_logistica_moneda_idx` y las cajas por `repuestos_cajas_moneda_monto_key`, tope 200 + 1 cada una, con `<AvisoDeTope>`.
   Los modales se piden al abrirse (`diferido()`).
@@ -648,7 +648,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   su índice) al acercarse, y el layout activo al abrir la ficha completa. Sin caché de
   cliente: `router.refresh()` (también tras aprobar desde el bloque) y `revalidarVinculo()` vuelven a dibujar todos los bloques.
 - El flujo (la pestaña «Fases» de un origen, `/configuracion/origenes/<id>/fases`, con su tope, abajo, y
-  `/configuracion/repuestos/flujo`, 410,4 en 28, sin tope propio). El vacío de un flujo sin fases («Empezar con las fases de…») viaja con la
+  `/repuestos/configuracion/flujo`, 410,4 en 28, sin tope propio). El vacío de un flujo sin fases («Empezar con las fases de…») viaja con la
   página; su modal, con `diferido()`. De dónde copiar se lee sólo con el flujo vacío: una consulta por `fases` con tope de flujos. El diagrama (`@xyflow/react` y lo suyo) llega
   al dibujarse, con `diferido()`: un chunk de 62,6 KB gz (194,8 crudo) y 2,0 KB gz de CSS; ninguna otra ruta ni el marco lo nombran
   (`scripts/guardas/xyflow-diferido.test.ts`). Una sola lectura del flujo (los topes de `leerFlujoParaConfigurar`); hasta 200 cajas y 500

@@ -1,4 +1,4 @@
-// La configuración del cotizador de repuestos que se tipea en Configuración › Repuestos › «Cotizador» (8.12-2, C3). Pura y exacta: el número tipeado
+// La configuración del cotizador de repuestos que se tipea en Repuestos › Configuración › «Cotizador» (8.12-2, C3). Pura y exacta: el número tipeado
 // se lee con el lector único de `shared` (el decimal es el del locale y el otro separador sólo agrupa de a 3) y después se arma el texto exacto con
 // enteros a escala fija, sin `float`. El formulario manda a la action el **texto canónico** (`'1.3500'`), que la action vuelve a validar con
 // `decimalCanonico`. El recargo se tipea en % con 2 decimales y se guarda como fracción con 4: es el mismo entero (D19).

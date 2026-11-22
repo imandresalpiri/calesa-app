@@ -109,12 +109,11 @@ export const DINAMICAS: Record<string, (t: Terreno) => Destino> = {
   '/configuracion/web/guias/[id]': (t) => ({ url: `/configuracion/web/guias/${t.guia}` }),
 }
 
-// Sin sesión de recuperación, elegir la contraseña manda a pedir otro enlace: se barre lo que dibuja ese destino. Repuestos y Sitio web de
-// Configuración no dibujan nada sin sub-ruta: abren la primera que la dueña puede (`/flujo`, `/ajustes`), que el barrido recorre con su propia
+// Sin sesión de recuperación, elegir la contraseña manda a pedir otro enlace: se barre lo que dibuja ese destino. Sitio web de
+// Configuración no dibuja nada sin sub-ruta: abre la primera que la dueña puede (`/ajustes`), que el barrido recorre con su propia
 // entrada. Las raíces que redirigen con un `route.ts` (Catálogos, un origen, las URL viejas) no son páginas y no se barren.
 export const REDIRECCIONES: Record<string, string> = {
   '/auth/nueva-contrasena': '/recuperar',
-  '/configuracion/repuestos': '/configuracion/repuestos/flujo',
   '/configuracion/web': '/configuracion/web/ajustes',
 }
 

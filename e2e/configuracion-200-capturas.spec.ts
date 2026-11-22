@@ -102,9 +102,9 @@ const PANTALLAS = [
   ['catalogos-categorias', () => '/logistica/configuracion/categorias-de-gasto'],
   ['catalogos-tipos-de-documento', () => '/logistica/configuracion/tipos-de-documento'],
   ['catalogos-tablas', () => '/configuracion/catalogos/tablas'],
-  ['repuestos-flujo', () => '/configuracion/repuestos/flujo'],
-  ['repuestos-catalogos', () => '/configuracion/repuestos/catalogos'],
-  ['repuestos-cotizador', () => '/configuracion/repuestos/cotizador'],
+  ['repuestos-flujo', () => '/repuestos/configuracion/flujo'],
+  ['repuestos-catalogos', () => '/repuestos/configuracion/catalogos'],
+  ['repuestos-cotizador', () => '/repuestos/configuracion/cotizador'],
   ['equipo', () => '/configuracion/equipo'],
   ['roles', () => '/configuracion/roles'],
 ] as const

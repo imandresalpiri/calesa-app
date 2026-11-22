@@ -79,12 +79,15 @@ describe('los destinos de búsqueda de Configuración', () => {
 })
 
 describe('los destinos de búsqueda fuera de Configuración', () => {
-  it('son los cuatro catálogos de logística, en Logística › Configuración', () => {
+  it('son los cuatro catálogos de logística, en Logística › Configuración, y las tres pestañas de Repuestos › Configuración', () => {
     expect(DESTINOS_FUERA_DE_CONFIGURACION.map((d) => [d.lugar, d.titulo, d.ruta])).toEqual([
       ['Logística', 'Puertos', '/logistica/configuracion/puertos'],
       ['Logística', 'Navieras', '/logistica/configuracion/navieras'],
       ['Logística', 'Categorías de gasto', '/logistica/configuracion/categorias-de-gasto'],
       ['Logística', 'Tipos de documento', '/logistica/configuracion/tipos-de-documento'],
+      ['Repuestos', 'Flujo de repuestos', '/repuestos/configuracion/flujo'],
+      ['Repuestos', 'Cotizador de repuestos', '/repuestos/configuracion/cotizador'],
+      ['Repuestos', 'Catálogos de repuestos', '/repuestos/configuracion/catalogos'],
     ])
   })
 
@@ -109,6 +112,9 @@ describe('los destinos de búsqueda fuera de Configuración', () => {
     ])
     expect(destinosFueraDeConfiguracion(con('repuestos.configurar')).map((d) => d.clave)).toEqual([
       'tipos-de-documento',
+      'flujo-de-repuestos',
+      'cotizador-de-repuestos',
+      'catalogos-de-repuestos',
     ])
     expect(destinosFueraDeConfiguracion(con('cotizaciones.configurar'))).toEqual([])
   })

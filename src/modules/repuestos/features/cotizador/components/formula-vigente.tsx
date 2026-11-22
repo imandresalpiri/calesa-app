@@ -11,7 +11,7 @@ import { useFormulaVigente } from '../hooks/use-formula-vigente'
 
 type Props = { vigente: ConfiguracionDelCotizador | null }
 
-// El bloque «Fórmula» de Configuración › Repuestos › «Cotizador» (8.12-2, C8): la configuración vigente, editable, y «Publicar cambios», que agrega una
+// El bloque «Fórmula» de Repuestos › Configuración › «Cotizador» (8.12-2, C8): la configuración vigente, editable, y «Publicar cambios», que agrega una
 // nueva. Quien lo monta le da `key` = id de la vigente. Las cotizaciones que ya existen guardan su snapshot y no cambian.
 export function FormulaVigente({ vigente }: Props) {
   const f = useFormulaVigente(vigente)

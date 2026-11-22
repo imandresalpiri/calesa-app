@@ -7,7 +7,6 @@ import { SECCION_DE_COLA_WEB } from './cola-web/seccion'
 import { SECCION_DE_EMPRESA } from './empresa/seccion'
 import { SECCION_DE_LEADS } from './leads/seccion'
 import { PERMISOS_DE_ORIGENES } from './origenes/acceso'
-import { SECCION_DE_REPUESTOS } from './repuestos/seccion'
 import { SECCION_DE_WEB } from './web/seccion'
 
 // El registro de Configuración: la única fuente del inicio, del menú de Configuración y del selector de sección del celular. Cada
@@ -128,7 +127,6 @@ export const SECCIONES = [
     subsecciones: [],
   },
   SECCION_DE_CATALOGOS,
-  SECCION_DE_REPUESTOS,
   SECCION_DE_WEB,
   SECCION_DE_COLA_WEB,
 ] as const satisfies readonly SeccionDeConfiguracion[]

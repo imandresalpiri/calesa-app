@@ -47,7 +47,7 @@ function accionesDeValor(
 }
 
 // Los valores de un catálogo como filas de la lista de catálogo, ya en su orden (`orden`, luego `nombre`, de la lectura). La columna de uso dice el orden
-// (D29): el uso real no se lee. El orden se cambia en «Editar» (D21), no con botones.
+// (D29): el uso real no se lee. El orden se cambia en «Editar» (D21): la lista no dibuja «Subir» ni «Bajar» (`sinOrden`).
 export function filasDeValores(
   valores: readonly ValorDeCatalogo[],
   quehaceres: Quehaceres,

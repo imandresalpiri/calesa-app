@@ -4,7 +4,7 @@ import { conParametros, type ParametrosDeLaUrl } from '../con-parametros'
 
 // Configuración › Flujos ya no existe: el flujo de cada origen es la pestaña Fases de su página, el de repuestos vive en Repuestos y los tipos
 // de documento de la empresa en Logística › Configuración. Sus enlaces (`?origen=`, `?ambito=`, `?seccion=`, `?fase=`) siguen funcionando:
-// - `?ambito=repuestos` → el flujo de repuestos.
+// - `?ambito=repuestos` → el flujo de repuestos (Repuestos › Configuración).
 // - `?seccion=documentos` sin `flujos.configurar` (quien sólo gestionaba los catálogos de logística los veía en la página) → Tipos de documento.
 // - `?origen=<id>` → la pestaña Fases de ese origen (la pestaña dice si no se abre).
 // - Sin origen: el del primer origen donde configura el flujo; si no hay, el de repuestos con `repuestos.configurar`; si no, Tipos de documento.

@@ -96,7 +96,7 @@ test('E2E desde cada sección del menú se vuelve al inicio de Configuración', 
   for (const [grupo, secciones] of [
     ['Empresa y equipo', ['Empresa', 'Equipo', 'Roles y permisos']],
     ['Ventas', ['Leads', 'Orígenes']],
-    ['Operación', ['Catálogos', 'Repuestos']],
+    ['Operación', ['Catálogos']],
   ] as const) {
     await expect(
       menu(page).getByRole('list', { name: grupo, exact: true }).locator(':scope > li > a'),

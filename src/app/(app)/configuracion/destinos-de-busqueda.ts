@@ -54,7 +54,7 @@ export const DESTINOS_DE_BUSQUEDA: readonly DestinoDeBusqueda[] = [
   },
 ]
 
-// Un destino que el buscador de Configuración encuentra y que ya no es de Configuración: una página de otra área (Logística › Puertos). Se ofrece a quien tiene alguno de sus
+// Un destino que el buscador de Configuración encuentra y que ya no es de Configuración: una página de otra área (Logística › Puertos, Repuestos › Cotizador de repuestos). Se ofrece a quien tiene alguno de sus
 // permisos, con su camino («Logística › Puertos») y sin pertenecer a ninguna sección del registro: lo lee el buscador aparte. No mira permisos al abrir: la página comprueba los suyos.
 export type DestinoFueraDeConfiguracion = {
   clave: string
@@ -106,6 +106,38 @@ export const DESTINOS_FUERA_DE_CONFIGURACION: readonly DestinoFueraDeConfiguraci
     ruta: RUTAS.tiposDeDocumento,
     permisos: ['logistica.catalogos.gestionar', 'flujos.configurar', 'repuestos.configurar'],
     palabras: ['documentos', 'requisitos', 'archivos', 'catálogos', 'configuración'],
+  },
+  {
+    clave: 'flujo-de-repuestos',
+    lugar: 'Repuestos',
+    titulo: 'Flujo de repuestos',
+    ruta: RUTAS.flujoDeRepuestos,
+    permisos: ['repuestos.configurar'],
+    palabras: ['fases', 'reglas', 'requisitos', 'tipos de documento', 'mover', 'configuración'],
+  },
+  {
+    clave: 'cotizador-de-repuestos',
+    lugar: 'Repuestos',
+    titulo: 'Cotizador de repuestos',
+    ruta: RUTAS.cotizadorDeRepuestos,
+    permisos: ['repuestos.configurar'],
+    palabras: ['fórmula', 'tramos', 'cajas', 'logística', 'configuración'],
+  },
+  {
+    clave: 'catalogos-de-repuestos',
+    lugar: 'Repuestos',
+    titulo: 'Catálogos de repuestos',
+    ruta: RUTAS.catalogosDeRepuestos,
+    permisos: ['repuestos.configurar'],
+    palabras: [
+      'tipo de pieza',
+      'condición',
+      'vía',
+      'transporte',
+      'país',
+      'país de origen',
+      'configuración',
+    ],
   },
 ]
 

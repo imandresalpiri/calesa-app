@@ -6,8 +6,8 @@ Toda la configuración se escribe por RPC con la versión del flujo. Abiertos (`
 
 ## Entra y sale
 
-- Entra: configuración del dueño en la pestaña Fases de cada origen (`/configuracion/origenes/<id>/fases`) y en Repuestos › Flujo de repuestos
-  (`/configuracion/repuestos/flujo`), cada una con un **flujo fijo** (`FlujoFijo`: `{ origenId }` o `{ ambito: 'repuestos' }`); llamadas a mover desde `logistica` y `repuestos`.
+- Entra: configuración del dueño en la pestaña Fases de cada origen (`/configuracion/origenes/<id>/fases`) y en Repuestos › Configuración › Flujo
+  (`/repuestos/configuracion/flujo`), cada una con un **flujo fijo** (`FlujoFijo`: `{ origenId }` o `{ ambito: 'repuestos' }`); llamadas a mover desde `logistica` y `repuestos`.
 - Sale por `index.ts`: `leerFasesDeOrigen(origenId)` → `FaseResumen[]` (id, nombre, color, orden, inicial, final, activa; también las jubiladas), que usa
   `vehiculos` para mostrar y filtrar la fase. Del área `mover`: `leerFlujoDeOrigen(origenId)` → `FlujoDeOrigen | null` (`flujoId`, `reglasActivas` y por fase
   `notaObligatoria`, `permiteContenedor`, `permiteAduana`, `demoraDias`; error visible si una lista llega al tope) y `reglaActiva(flujo, regla)`. Por `client.ts`,

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { connection } from 'next/server'
-import { Suspense } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import { puede, requerirSesion } from '@/modules/equipo'
 import { MarcasDeVistoDeLaPagina } from '@/modules/equipo/pantallas/marcas-de-visto'
 import {
@@ -33,6 +33,7 @@ import { z } from 'zod'
 import { ListadoDeLaCadena } from './listado-de-la-cadena'
 import { ListadoDeStock } from './listado-de-stock'
 import { NuevoProyecto, type LeadResueltoDeLaUrl, type VehiculoDeLaUrl } from './nuevo-proyecto'
+import { BotonDeConfigurar } from './boton-de-configurar'
 import { grupoDeVista } from './vistas-de-repuestos'
 
 export const metadata: Metadata = { title: 'Repuestos' }
@@ -83,6 +84,27 @@ async function leadDeLaUrl(
   return { id: id ?? '', titulo: lead === null ? null : lead.nombre.trim() || 'Sin nombre' }
 }
 
+// Stock no tiene barra: «Vista y opciones» va solo, arriba a la izquierda, con el ⚙ al lado.
+function VistaDeStock({
+  parametros,
+  permisos,
+  configurar,
+}: {
+  parametros: Parametros
+  permisos: Permisos
+  configurar: ReactNode
+}) {
+  return (
+    <div className="grid gap-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <VistaYOpciones grupos={[grupoDeVista('stock')]} />
+        {configurar}
+      </div>
+      <ListadoDeStock parametros={parametros} puedeEditar={puede(permisos, 'repuestos.editar')} />
+    </div>
+  )
+}
+
 async function Listado({
   searchParams,
 }: {
@@ -93,6 +115,8 @@ async function Listado({
   if (!puede(sesion.permisos, 'repuestos.ver')) {
     return <EstadoSinPermiso />
   }
+  // El ⚙ «Configurar» (Repuestos › Configuración) va en la fila de filtros de las tres vistas, sólo con `repuestos.configurar`.
+  const configurar = puede(sesion.permisos, 'repuestos.configurar') ? <BotonDeConfigurar /> : null
   // La vista «Cadena» (`?vista=cadena`, 8.13-3): los ítems por fase del flujo de repuestos; con `?item=` abre el panel del ítem.
   if (esVistaDeLaCadena(unParametro(parametros[CLAVE_DE_VISTA_DE_LA_CADENA]))) {
     return (
@@ -101,6 +125,7 @@ async function Listado({
           parametros={parametros}
           permisos={sesion.permisos}
           opciones={[grupoDeVista('cadena')]}
+          acciones={configurar}
         />
       </div>
     )
@@ -108,16 +133,7 @@ async function Listado({
   // La vista «Stock» (`?vista=stock`, 8.10-3) no lee proyectos ni ofrece «Nuevo proyecto».
   if (esVistaDeStock(unParametro(parametros[CLAVE_DE_VISTA_DE_REPUESTOS]))) {
     return (
-      <div className="grid gap-4">
-        {/* Stock no tiene barra: «Vista y opciones» va solo, arriba a la izquierda. */}
-        <div className="flex">
-          <VistaYOpciones grupos={[grupoDeVista('stock')]} />
-        </div>
-        <ListadoDeStock
-          parametros={parametros}
-          puedeEditar={puede(sesion.permisos, 'repuestos.editar')}
-        />
-      </div>
+      <VistaDeStock parametros={parametros} permisos={sesion.permisos} configurar={configurar} />
     )
   }
   const esquema = esquemaDelListado()
@@ -150,6 +166,7 @@ async function Listado({
           esquema={esquema}
           estado={estado}
           porPagina={{ valor: tamano, opciones: tamanosHasta(MAXIMO_DE_PAGINA_DE_REPUESTOS) }}
+          acciones={configurar}
           nuevo={puedeEditar ? <BotonNuevoProyecto /> : null}
           opciones={[grupoDeVista('proyectos')]}
         />
