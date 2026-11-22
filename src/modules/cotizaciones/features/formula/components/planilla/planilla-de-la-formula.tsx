@@ -13,6 +13,10 @@ import { PanelesDeLaPlanilla } from './paneles/paneles-de-la-planilla'
 import type { PropsDeLaPlanilla } from './tipos'
 
 const SIN_TONOS: never[] = []
+// Lo que ocupa un panel al costado (el `Drawer` de la derecha: `sm:max-w-md`, `w-3/4`): con uno abierto y no modal, la planilla se corre para que la columna
+// Ejemplo, el «⋯» de cada fila y los botones de la barra no queden debajo; la grilla se desplaza de costado en su marco, con # y A pegadas. Desde 1024 px, en px
+// como `CORTE_DEL_PANEL` (más angosto el panel es modal y tapa todo).
+const CON_EL_COSTADO = 'min-[1024px]:pr-[min(28rem,75vw)]'
 
 // Arriba de la planilla: su «⋯» y «Guardar el borrador» (en la página del origen, los dos en la barra de la fórmula, cuyo estado ya dice sobre qué versión se edita;
 // en la puesta en marcha, acá con «Sobre…»).
@@ -56,8 +60,13 @@ export function PlanillaDeLaFormula(p: PropsDeLaPlanilla) {
   // La barra de la fórmula dice el estado de lo que se edita.
   useEstadoEnLaBarra(editor.guardado.hayCambios ? { tipo: 'cambios' } : p.estadoGuardado)
   const tonos = planilla.bandas.tonos.estado
+  const { totales, tarjeta } = planilla.paneles
+  const conCostado = totales.abierto || tarjeta.abierto
   return (
-    <section aria-label="Planilla de la fórmula" className="@container/formula grid min-w-0 gap-3">
+    <section
+      aria-label="Planilla de la fórmula"
+      className={`@container/formula grid min-w-0 gap-3 ${conCostado ? CON_EL_COSTADO : ''}`}
+    >
       <EstiloDeTonos tonos={tonos.tipo === 'listo' ? tonos.tonos : SIN_TONOS} />
       <CabeceraDeLaPlanilla p={p} planilla={planilla} />
       <RechazoDeArriba rechazo={editor.rechazo} />
