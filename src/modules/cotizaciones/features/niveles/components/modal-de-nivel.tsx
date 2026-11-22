@@ -5,6 +5,7 @@ import { ModalDeFormulario } from '@/shared/ui/modal-de-formulario'
 import {
   CLAVE_DEL_NOMBRE,
   LARGO_MAXIMO_DE_NIVEL,
+  type ListaDeNiveles,
   type NivelDeAcceso,
 } from '../../../entities/nivel'
 import { useFormularioDeNivel } from '../hooks/use-formulario-de-nivel'
@@ -18,6 +19,8 @@ type Props = {
   original: NivelDeAcceso | null
   // Ya no se puede guardar lo escrito (otra persona eliminó el nivel que se renombraba).
   noDisponible: string | null
+  // Al crearse uno: su id y la lista nueva (el editor de la hoja lo deja elegido donde se pidió).
+  alCrear?: (id: string, lista: ListaDeNiveles) => void
 }
 
 const IDS = { formulario: 'nivel', nombre: CLAVE_DEL_NOMBRE } as const
@@ -26,8 +29,15 @@ const IDS = { formulario: 'nivel', nombre: CLAVE_DEL_NOMBRE } as const
 // cambia nunca; renombrar cambia el nombre que se lee en el diseño y en Roles y permisos. El contrato del modal (preguntar antes de cerrar con
 // algo escrito, no cerrarse mientras guarda, el conflicto con «Recargar» que conserva lo escrito) es de `ModalDeFormulario`. Quien lo monta le
 // da una `key` por apertura: cada una empieza de cero, con un id de intento nuevo.
-export function ModalDeNivel({ abierto, alCerrar, niveles, original, noDisponible }: Props) {
-  const formulario = useFormularioDeNivel({ niveles, original, alCerrar, abierto })
+export function ModalDeNivel({
+  abierto,
+  alCerrar,
+  niveles,
+  original,
+  noDisponible,
+  alCrear,
+}: Props) {
+  const formulario = useFormularioDeNivel({ niveles, original, alCerrar, abierto, alCrear })
 
   return (
     <ModalDeFormulario
