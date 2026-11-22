@@ -116,9 +116,13 @@ export const RUTA_DE_NIVELES = '/configuracion/roles?bloque=cotizaciones'
 export const rotuloDeNiveles = (page: Page): Locator =>
   page.getByText('Niveles de acceso', { exact: true }).first()
 
-export async function abrirNiveles(page: Page): Promise<void> {
+// `conAcciones: false` para quien sólo lee (no tiene «⋯»). El «⋯» llega con su código al hidratar: un clic antes de eso se pierde.
+export async function abrirNiveles(page: Page, conAcciones = true): Promise<void> {
   await page.goto(RUTA_DE_NIVELES)
   await expect(rotuloDeNiveles(page)).toBeVisible()
+  if (conAcciones) {
+    await expect(page.getByRole('button', { name: /^Más acciones de / }).first()).toBeVisible()
+  }
 }
 
 // La fila de «Ver» de ese nivel (la `<tr>` de la tabla o el `<li>` de la lista del celular, según el ancho); la del nivel fijo («Todos», sin celdas) es su renglón.

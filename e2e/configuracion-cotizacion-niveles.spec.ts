@@ -191,7 +191,8 @@ test('retirar marca el nivel «Retirado», con «Deshacer» y el foco en su «�
   await masAccionesDe(page, dir).click()
   await expect(page.getByRole('menuitem', { name: 'Retirar', exact: true })).toHaveCount(0)
   await page.getByRole('menuitem', { name: 'Restaurar', exact: true }).click()
-  await expect(page.getByText(`«${dir}» restaurado.`)).toBeVisible()
+  // El «Deshacer» de antes pudo dejar su propio aviso a la vista: alcanza con uno.
+  await expect(page.getByText(`«${dir}» restaurado.`).first()).toBeVisible()
   await expect(insigniaDeRetirado(page, dir)).toHaveCount(0)
   await expect(masAccionesDe(page, dir)).toBeFocused()
   await expect.poll(() => nivelEnLaBase(dir)?.retirado_en ?? null).toBeNull()

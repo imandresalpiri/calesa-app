@@ -70,7 +70,7 @@ test('quien sólo lee los roles ve los niveles sin «Nuevo nivel» ni «⋯», y
   await page.context().clearCookies()
   await entrar(page, lectora, { fresco: true })
   await page.goto('/configuracion/inicio')
-  await abrirNiveles(page)
+  await abrirNiveles(page, false)
   await expect(rotuloDeNiveles(page)).toBeVisible()
   await expect(filaDeNivel(page, visible.nombre)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Nuevo nivel' })).toHaveCount(0)
