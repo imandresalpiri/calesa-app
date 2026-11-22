@@ -25,13 +25,14 @@ const acciones: AccionesDeHoja = {
 const MARCO_DE_SIEMPRE =
   '@container grid min-w-0 content-start gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-4'
 
-function dibujar(seccion: Seccion, enLaRejilla?: boolean) {
+function dibujar(seccion: Seccion, enLaRejilla?: boolean, sinMarco?: boolean) {
   const { container } = render(
     <SeccionDeHoja
       seccion={seccion}
       contexto={contexto}
       acciones={acciones}
       enLaRejilla={enLaRejilla}
+      sinMarco={sinMarco}
     />,
   )
   const nodo = container.querySelector('[data-seccion]')
@@ -62,5 +63,12 @@ describe('SeccionDeHoja', () => {
     expect(conAspecto.className).toContain('[--xcell-relleno:calc(var(--spacing)*1)]')
     expect(conAspecto.hasAttribute('style')).toBe(false)
     expect(conAspecto.querySelectorAll('*').length).toBe(sinAspecto.querySelectorAll('*').length)
+  })
+
+  it('sin marco (el modal «Avanzado»): sin borde, fondo ni relleno, con los mismos nodos', () => {
+    const sinMarco = dibujar({ ...vieja, tono: 'verde' }, false, true)
+    expect(sinMarco.className).toBe('@container grid min-w-0 content-start gap-3')
+    expect(sinMarco.getAttribute('data-tono')).toBe('verde')
+    expect(sinMarco.querySelectorAll('*').length).toBe(dibujar(vieja).querySelectorAll('*').length)
   })
 })

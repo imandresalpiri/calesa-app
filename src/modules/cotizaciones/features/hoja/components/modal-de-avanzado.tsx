@@ -42,7 +42,7 @@ function primerValor(): HTMLElement | true {
 }
 
 // «Avanzado» (paso 4.13-4a): las secciones avanzadas de la hoja en un modal con su URL (`?panel=avanzado`), con las mismas celdas, acciones y recálculo que la hoja. El
-// diálogo se monta recién al abrirse (`ModalDeAvanzadoDiferido`).
+// diálogo se monta recién al abrirse (`ModalDeAvanzadoDiferido`). Grande (56 rem: un `tercio` va a tres columnas) y con las secciones sin marco, como en V1.
 export function ModalDeAvanzado({
   abierto,
   alCerrar,
@@ -59,7 +59,7 @@ export function ModalDeAvanzado({
       abierto={abierto}
       alCerrar={alCerrar}
       titulo="Avanzado"
-      ancho="amplio"
+      ancho="grande"
       bloqueado={guardando}
       focoInicial={primerValor}
       focoAlCerrar={() => botonDeAvanzado.current ?? true}
@@ -77,6 +77,7 @@ export function ModalDeAvanzado({
             seccion={seccion}
             contexto={contexto}
             acciones={acciones}
+            sinMarco
           />
         ))}
       </div>

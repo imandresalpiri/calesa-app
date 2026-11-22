@@ -92,7 +92,7 @@ test('la subasta: «Avanzado» ocupa el lugar de «Componentes CIF», lista sus 
   // La hoja no dibuja las avanzadas: sus secciones y nodos son los principales, en el orden declarado.
   expect(await lista(page.locator('[data-hoja]'), 'data-seccion')).toEqual(orden.hoja.secciones)
   expect(await lista(page.locator('[data-hoja]'), 'data-nodo')).toEqual(orden.hoja.nodos)
-  await expect(boton(page)).toContainText('Componentes CIF · Impuestos · Póliza')
+  await expect(boton(page)).toHaveAccessibleDescription('Componentes CIF · Impuestos · Póliza')
   // El botón va justo después de la última principal que lo antecede (aduana); la garantía, que viene después, no se dibuja con su interruptor apagado: es el último lugar.
   const dom = await page
     .locator('[data-hoja] [data-seccion], [data-hoja] [data-avanzado]')
