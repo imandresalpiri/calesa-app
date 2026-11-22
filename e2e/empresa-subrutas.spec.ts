@@ -87,7 +87,7 @@ test('E2E sin «Ajustes de la empresa», Comprobantes está apagada con su motiv
 test('E2E las URLs viejas de Empresa llegan a su sub-ruta', async ({ page }) => {
   await entrar(page, duena)
   await page.goto('/configuracion/empresa/monedas')
-  await page.getByRole('button', { name: /^Abrir Oficial/ }).click()
+  await page.getByRole('button', { name: /^Editar Oficial/ }).click()
   await expect(page.getByRole('dialog').getByRole('heading', { name: 'Oficial' })).toBeVisible()
   const tc = new URL(page.url()).searchParams.get('tc') ?? ''
   expect(tc).not.toBe('')

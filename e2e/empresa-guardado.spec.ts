@@ -119,7 +119,7 @@ async function recibeElClic(boton: Locator): Promise<boolean> {
 test('los avisos no tapan los botones del panel, y su acción se pulsa', async ({ page }) => {
   await entrar(page, duena)
   await page.goto('/configuracion/empresa/monedas')
-  await page.getByRole('button', { name: /^Abrir Oficial/ }).click()
+  await page.getByRole('button', { name: /^Editar Oficial/ }).click()
   const panel = page.getByRole('dialog')
   await expect(panel.getByRole('heading', { name: 'Oficial' })).toBeVisible()
 

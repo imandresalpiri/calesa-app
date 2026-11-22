@@ -94,9 +94,10 @@ for (const zoom of ['100', '200'] as const) {
     await sinSolaparConPermiso(page, masDeMil)
     await expect(page.getByText(`${String(SEMBRADAS)} personas`)).toHaveCount(0)
     // Con personas adentro no se elimina: el motivo es el mismo con el tope.
-    await expect(
-      page.getByRole('button', { name: `Eliminar el rol ${muchos}. Quítaselo` }),
-    ).toBeDisabled()
+    await page.getByRole('button', { name: `Más acciones de ${muchos}`, exact: true }).click()
+    await expect(page.getByRole('menuitem', { name: 'Eliminar el rol…' })).toBeDisabled()
+    await expect(page.getByText(/Quítaselo/)).toBeVisible()
+    await page.keyboard.press('Escape')
     await sinScrollHorizontal(page)
 
     await verRol(page, pocos)

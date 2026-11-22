@@ -157,7 +157,7 @@ test('edita un tipo de cambio y aparece en la barra superior y en el historial',
   await expect(enLaBarra).toContainText('11,68')
 
   // Tocar el tipo de cambio abre su panel, con el valor listo para cambiar.
-  await page.getByRole('button', { name: /^Abrir Oficial/ }).click()
+  await page.getByRole('button', { name: /^Editar Oficial/ }).click()
   const panel = page.getByRole('dialog')
   await expect(panel.getByRole('heading', { name: 'Oficial' })).toBeVisible()
   await panel.getByLabel(/^Valor/).fill('7,13')

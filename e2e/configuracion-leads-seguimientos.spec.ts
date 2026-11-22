@@ -12,9 +12,11 @@ import {
   abrirTiposDeSeguimiento,
   borrarTiposDeSeguimientoDePrueba,
   elegirDelMenu,
+  elegirDelMenuConTeclado,
   elegirIcono,
   filaDeTipoDeSeguimiento,
   iconoDeLaFila,
+  lineaApagada,
   listaDeSeguimientos,
   masAccionesDe,
   nombresDeLaLista,
@@ -154,25 +156,21 @@ test('ordenar con el teclado: subir y bajar, el foco sigue y el lector oye el lu
   await abrirTiposDeSeguimiento(page)
   const antes = await nombresDeSeguimientoEnPantalla(page)
   expect(antes.indexOf(uno.nombre)).toBeLessThan(antes.indexOf(dos.nombre))
-  const subir = page.getByRole('button', { name: `Subir ${dos.nombre}`, exact: true })
-  await subir.focus()
-  await page.keyboard.press('Enter')
+  await elegirDelMenuConTeclado(page, dos.nombre, 'Subir')
   await expect(page.getByRole('status').filter({ hasText: 'quedó en el lugar' })).toContainText(
     `«${dos.nombre}» quedó en el lugar`,
   )
   const despues = await nombresDeSeguimientoEnPantalla(page)
   expect(despues.indexOf(dos.nombre)).toBeLessThan(despues.indexOf(uno.nombre))
-  await expect(subir).toBeFocused()
+  await expect(masAccionesDe(page, dos.nombre)).toBeFocused()
   expect((await tipoDeSeguimientoEnLaBase(dos.nombre))?.orden).toBeLessThan(
     (await tipoDeSeguimientoEnLaBase(uno.nombre))?.orden ?? 0,
   )
   // El primero de la lista no sube y lo dice.
   const primero = despues[0] ?? ''
-  await expect(page.getByRole('button', { name: `Subir ${primero}`, exact: true })).toBeDisabled()
+  expect(await lineaApagada(page, primero, 'Subir')).toBe(true)
   // Bajar uno vuelve a su lugar.
-  const bajar = page.getByRole('button', { name: `Bajar ${dos.nombre}`, exact: true })
-  await bajar.focus()
-  await page.keyboard.press('Enter')
+  await elegirDelMenuConTeclado(page, dos.nombre, 'Bajar')
   await expect
     .poll(async () => (await nombresDeSeguimientoEnPantalla(page)).indexOf(dos.nombre))
     .toBeGreaterThan((await nombresDeSeguimientoEnPantalla(page)).indexOf(uno.nombre) - 1)

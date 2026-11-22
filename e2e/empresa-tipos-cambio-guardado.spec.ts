@@ -39,7 +39,7 @@ test('mientras guarda no se puede teclear, y lo que se teclea al llegar lo guard
   await ingresar(page, duena, CLAVE)
   await expect(page).toHaveURL('/')
   await page.goto('/configuracion/empresa/monedas')
-  await page.getByRole('button', { name: /^Abrir Oficial/ }).click()
+  await page.getByRole('button', { name: /^Editar Oficial/ }).click()
   const panel = page.getByRole('dialog')
   const valor = panel.getByLabel(/^Valor/)
   await valor.fill('7,21')

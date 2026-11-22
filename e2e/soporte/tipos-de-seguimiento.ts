@@ -105,7 +105,14 @@ export async function abrirTiposDeSeguimiento(page: Page): Promise<void> {
 }
 
 // Lo de la lista (la fila, el «⋯», el icono) es común a las tres listas: `soporte/lista-de-catalogo.ts`.
-export { elegirDelMenu, elegirIcono, iconoDeLaFila, masAccionesDe } from './lista-de-catalogo'
+export {
+  elegirDelMenu,
+  elegirDelMenuConTeclado,
+  elegirIcono,
+  iconoDeLaFila,
+  lineaApagada,
+  masAccionesDe,
+} from './lista-de-catalogo'
 export const filaDeTipoDeSeguimiento = filaDeCatalogo
 export const nombresDeLaLista = (page: Page): Locator =>
   listaDeSeguimientos(page).getByRole('button', { name: /^Abrir / })
