@@ -350,6 +350,7 @@ test('E2E la asesora ve sus tareas sin fecha y completa un recordatorio', async 
   await page.goto('/')
   const misTareas = page.getByRole('region', { name: 'Mis tareas' })
   await expect(misTareas.getByRole('link', { name: new RegExp(sinFecha) })).toBeVisible()
-  await expect(misTareas.getByRole('link', { name: 'Ver todas' })).toBeVisible()
+  // Con una sola tarea el bloque no llega a su tope: «Ver todas» sólo se dibuja con tope (lo cubre `inicio-ver-todos.spec.ts`).
+  await expect(misTareas.getByRole('link', { name: 'Ver todas' })).toHaveCount(0)
   await expect(page.getByText(recordar)).toBeHidden()
 })
