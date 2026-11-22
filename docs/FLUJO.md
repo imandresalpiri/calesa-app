@@ -47,6 +47,11 @@ que haya sin commitear; lo ignorado no cuenta) en `verificado-<rama>` dentro del
 verificado» y sale en 0 sin correr nada; `--forzar` lo corre igual. Se pide una vez, al final, en segundo plano: no tras cada commit
 ni en serie. El CI no lo usa: sigue corriéndolo todo.
 
+Lo largo (esta verificación, los e2e afectados, `db:probar`) se lanza con `run_in_background` y se espera su aviso: cada vuelta de un
+bucle de espera relee todo el contexto de la sesión. `.claude/hooks/bloquear-esperas.sh` (parte de `bloquear-peligrosos.sh`, sobre `Bash`
+y `Monitor`) rechaza un Bash en primer plano con un bucle `until`/`while`/`for` con `sleep` o un `sleep` de más de 5 s, y un Monitor
+que sólo cuenta tiempo; con `run_in_background`, un `sleep` corto o un Monitor que lee un log, pasa. Mira el comando, no el guion que se corre.
+
 Rigor máximo (mutaciones, carreras, volumen) sólo en fórmulas del cotizador, dinero, RLS y permisos. La interfaz decide sus
 microdecisiones sola (`.claude/rules/ui.md`).
 

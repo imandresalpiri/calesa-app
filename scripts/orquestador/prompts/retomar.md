@@ -8,6 +8,8 @@ terminada y publicada según lo de abajo. Si hay cambios sin commitear que no sa
 si no, déjalos fuera con `git stash` y dilo en el PR. La verificación entera es `bash scripts/flujo/verificar.sh`, una vez al final y en
 segundo plano: si el árbol ya pasó, no corre nada.
 
+**Esperar no es sondear:** lo largo (`verificar.sh`, `e2e-afectados.mjs --correr`, `db:probar`) se lanza con `run_in_background` y se espera su aviso; no leas el log hasta que llegue, no armes bucles de espera ni un Monitor de intervalo, y tras tu `RESULTADO` no rearmes esperas. El hook `PreToolUse` rechaza un Bash en primer plano que sondea y un Monitor que sólo cuenta tiempo.
+
 ## Respuesta de la persona
 
 {{RESPUESTA}}

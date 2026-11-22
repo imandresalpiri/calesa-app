@@ -32,6 +32,7 @@ las trampas, en `docs/LECCIONES.md`.
   `esperando_ci` (sin estado nuevo, sin retener sus llaves de área, sin gastar `MAX_ARREGLOS`), y al integrarse la urgente se pone al día con main sin
   sesión. Sólo vale desde un arreglo con PR y con un spec y línea válidos; `MAX_AJENOS` (3) corta el ciclo si el spec sigue cayendo
   (`scripts/orquestador/ajeno-de-main.sh`).
+- **Las esperas que sondean se rechazan en el hook.** Decirlo en el prompt no alcanza (cada vuelta de sondeo relee todo el contexto): `bloquear-esperas.sh` rechaza un Bash en primer plano con un bucle con `sleep` o un `sleep` de más de 5 s, y un Monitor que sólo cuenta tiempo; `run_in_background` pasa. Lee el texto del comando como el resto del hook: un mensaje o un `grep` que nombre las dos cosas juntas también cae (el texto largo va por Write o `-F`), y un bucle dentro de un guion no se ve.
 
 ## Base de datos y permisos
 

@@ -342,7 +342,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 ## CI, entorno y herramientas
 
 - Un archivo que una herramienta regenera (`.eslintcache`) va a `.gitignore` antes de su primer commit; si ya está versionado, sale con `git rm --cached` en su propio commit, nunca se restaura a mano en cada sesión. (kit)
-- Espera un proceso en segundo plano con su aviso (`run_in_background`): un bucle de `sleep`/`until`, un `tail` repetido del log o un Monitor de intervalo pagan un turno con todo el contexto en cada vuelta. (kit)
+- Espera un proceso en segundo plano con su aviso (`run_in_background`): un bucle de `sleep`/`until`, un `tail` repetido del log o un Monitor de intervalo pagan un turno con todo el contexto en cada vuelta; el hook `bloquear-esperas.sh` lo rechaza. (kit)
 - Tras reescribir un doc con un guion (python, sed), compara sus líneas antes y después: un guion que escribe el contenido dos veces lo duplica sin que git, el lint ni el mapa lo vean. (kit)
 - Antes de publicar una migración, corre lo que el CI compara de la base: `pnpm db:lint > $TMPDIR/db-lint.txt` y `pnpm exec tsx scripts/despliegue/revisar-base.mjs advisors db-lint $TMPDIR/db-lint.txt inventario` (los advisors y el inventario no los corre `db:lint`). (kit)
 - Registra una RPC en `paginas-en-la-base.ts` en el mismo cambio que su primer `.rpc(`, no antes: `paginas.test.ts` rechaza una entrada sin llamador en `src/`.
