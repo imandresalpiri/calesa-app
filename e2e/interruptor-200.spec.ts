@@ -2,6 +2,7 @@ import { expect, test, type Page } from './soporte/prueba'
 import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
 import { ingresar } from './soporte/pasos'
 import { textoGrandeAlCargar } from './soporte/recorrido'
+import { literal, sql } from './soporte/sql'
 
 // 5a-20: el interruptor (`<Switch>`) con el texto al 200 %. La pista y el pulgar se medían en unidades distintas (la pista en px, el
 // pulgar en rem): al 200 % el pulgar medía 32 px, desbordaba la pista de 32 × 18,4 y se veía partido. Ahora van en rem. Al 200 % el
@@ -9,25 +10,47 @@ import { textoGrandeAlCargar } from './soporte/recorrido'
 // igual, píxel a píxel, que con la geometría de antes.
 
 const CLAVE = 'una-clave-de-prueba-9'
+// El requisito informativo que esta prueba siembra (y sólo ése borra): un interruptor `sm` sin marcar junto a los bloqueantes de la semilla.
+const NOTAS = 'E2E interruptor-200'
 
 let duena = ''
+// El inspector de «Comprado» del flujo de la planilla: sus requisitos bloqueantes de la semilla (`sm` marcados) y el informativo sembrado.
+let inspector = ''
+
+const borrarElRequisito = () =>
+  sql(`delete from public.fases_requisitos where notas like ${literal(`${NOTAS}%`)}`)
+
+function prepararElInspector(): string {
+  borrarElRequisito()
+  const fila = sql(
+    `select o.id || '|' || f.id from public.fases f join public.flujos fl on fl.id = f.flujo_id join public.origenes o on o.id = fl.origen_id
+      where o.clave = 'planilla_usa' and f.nombre = 'Comprado' limit 1`,
+  )
+  const [origenId = '', faseId = ''] = fila.split('|')
+  if (faseId === '') throw new Error('La semilla no tiene la fase «Comprado» de la planilla')
+  sql(
+    `insert into public.fases_requisitos (fase_id, tipo, bloqueante, clave_dato, notas, orden)
+       select '${faseId}', 'dato', false, 'vehiculo.vin', ${literal(NOTAS)}, coalesce(max(orden), 0) + 1
+         from public.fases_requisitos where fase_id = '${faseId}'`,
+  )
+  return `/configuracion/origenes/${origenId}/fases?fase=${faseId}`
+}
 
 test.beforeAll(async ({}, info) => {
   await borrarPersonasDePrueba()
   duena = correoDePrueba(`duena-interruptor-${info.project.name}`)
   await crearDuenaDePrueba({ email: duena, contrasena: CLAVE, nombre: 'Dalia Interruptor' })
+  inspector = prepararElInspector()
 })
 
 test.afterAll(async () => {
+  borrarElRequisito()
   await borrarPersonasDePrueba()
 })
 
-// Pantallas con interruptores de los dos tamaños: la matriz (normal), Integraciones (normal, con su texto) y los campos de leads (`sm`).
-const PANTALLAS = [
-  '/configuracion/roles',
-  '/configuracion/empresa/integraciones',
-  '/configuracion/leads/campos',
-]
+// Pantallas con interruptores de los dos tamaños: la matriz (normal), Integraciones (normal, con su texto) y los requisitos de una fase
+// (`sm`, «Bloqueante»).
+const pantallas = () => ['/configuracion/roles', '/configuracion/empresa/integraciones', inspector]
 
 async function entrar(page: Page) {
   await page.goto('/ingreso')
@@ -77,9 +100,14 @@ async function medir(page: Page): Promise<Medida[]> {
 
 async function recorrer(page: Page, tamano: '' | '200%'): Promise<Medida[]> {
   const todas: Medida[] = []
-  for (const url of PANTALLAS) {
+  for (const url of pantallas()) {
     await page.goto(url)
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    if (url === inspector) {
+      await expect(
+        page.locator('[data-slot=switch][data-size=sm][aria-checked=false]'),
+      ).toBeVisible()
+    }
     await ponerElTexto(page, tamano)
     todas.push(...(await medir(page)))
   }

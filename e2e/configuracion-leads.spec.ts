@@ -8,6 +8,7 @@ import {
   darRolDePrueba,
   PREFIJO_ROL_E2E,
 } from './soporte/base'
+import { elegirDelMenu, filaDelCampo } from './soporte/editor-de-campos'
 import { descartarAviso } from './soporte/inventario'
 import { borrarCamposDeLeadDePrueba, campoDeLead, camposDeLead, crearLead } from './soporte/leads'
 import { ingresar } from './soporte/pasos'
@@ -96,8 +97,8 @@ test('los campos de fábrica están, uno es privado y ninguno se elimina', async
     await expect(page.getByRole('button', { name: `Editar ${etiqueta}` })).toBeVisible()
   }
   // La dirección nace «solo la cartera», como el teléfono; la ciudad, no.
-  await expect(page.getByRole('switch', { name: 'Dirección: solo la cartera' })).toBeChecked()
-  await expect(page.getByRole('switch', { name: 'Ciudad: solo la cartera' })).not.toBeChecked()
+  await expect(filaDelCampo(page, 'Dirección')).toContainText('Solo la cartera')
+  await expect(filaDelCampo(page, 'Ciudad')).not.toContainText('Solo la cartera')
 
   // Un campo de fábrica se edita, pero no cambia de tipo ni se elimina.
   await page.getByRole('button', { name: 'Editar Edad' }).click()
@@ -132,7 +133,7 @@ test('se crea un campo de opciones, se ordena, se vuelve privado y se desactiva'
     activo: true,
   })
 
-  // Ordenar: el orden se cambia con botones; sube un lugar dentro de su grupo. La base local puede
+  // Ordenar: «Subir» del «⋯» (el arrastre tiene su propio spec); sube un lugar dentro de su grupo. La base local puede
   // tener campos de quien la usa en el mismo grupo: se mira que suba un lugar entre los del grupo,
   // no dónde queda en total.
   const delGrupo = async () =>
@@ -142,14 +143,16 @@ test('se crea un campo de opciones, se ordena, se vuelve privado y se desactiva'
   const antes = await delGrupo()
   const lugarAntes = antes.indexOf(CLAVE_DEL_CAMPO)
   expect(lugarAntes).toBeGreaterThan(antes.indexOf('genero'))
-  await page.getByRole('button', { name: `Subir ${ETIQUETA}` }).click()
+  await elegirDelMenu(page, ETIQUETA, 'Subir')
   await expect.poll(async () => (await delGrupo()).indexOf(CLAVE_DEL_CAMPO)).toBe(lugarAntes - 1)
 
-  // Marcarlo «solo la cartera» guarda solo, como cualquier bandera.
-  const privado = page.getByRole('switch', { name: `${ETIQUETA}: solo la cartera` })
-  await expect(privado).not.toBeChecked()
-  await privado.click()
-  await expect(privado).toBeChecked()
+  // Marcarlo «solo la cartera» se hace en su panel, como cualquier bandera; la fila lo dice.
+  await page.getByRole('button', { name: `Editar ${ETIQUETA}` }).click()
+  const deLaCartera = page.getByRole('dialog')
+  await deLaCartera.getByRole('switch', { name: 'Solo la cartera' }).click()
+  await deLaCartera.getByRole('button', { name: 'Guardar' }).click()
+  await descartarAviso(page, `Campo «${ETIQUETA}» guardado`)
+  await expect(filaDelCampo(page, ETIQUETA)).toContainText('Solo la cartera')
   await expect.poll(async () => (await campoDeLead(CLAVE_DEL_CAMPO)).solo_cartera).toBe(true)
 
   // Volverlo requerido avisa, dentro del panel, cuánto pedirá el alta rápida.
@@ -163,20 +166,17 @@ test('se crea un campo de opciones, se ordena, se vuelve privado y se desactiva'
   expect((await campoDeLead(CLAVE_DEL_CAMPO)).requerido).toBe(false)
   await edicion.getByRole('button', { name: 'Cancelar' }).click()
 
-  // Desactivarlo lo saca del layout (el dato se conserva) y se puede reactivar.
-  await page.getByRole('button', { name: `Editar ${ETIQUETA}` }).click()
-  const desactivar = page.getByRole('dialog')
-  await desactivar.getByRole('switch', { name: 'Activo' }).click()
-  await desactivar.getByRole('button', { name: 'Guardar' }).click()
-  await descartarAviso(page, `Campo «${ETIQUETA}» guardado`)
-  await page.getByText(/Campos desactivados \(1\)/).click()
-  await page.getByRole('button', { name: `Reactivar ${ETIQUETA}` }).click()
-  await expect(page.getByText(`«${ETIQUETA}» reactivado`)).toBeVisible()
+  // Desactivarlo desde su «⋯» lo saca del layout (el dato se conserva) y «Activar» lo devuelve.
+  await elegirDelMenu(page, ETIQUETA, 'Desactivar')
+  await descartarAviso(page, `«${ETIQUETA}» desactivado`)
+  await page.getByText('Desactivados', { exact: true }).click()
+  await elegirDelMenu(page, ETIQUETA, 'Activar')
+  await expect(page.getByText(`«${ETIQUETA}» activado`)).toBeVisible()
   await expect.poll(async () => (await campoDeLead(CLAVE_DEL_CAMPO)).activo).toBe(true)
 
   // Lo que se guardó sobrevive a recargar.
   await page.reload()
-  await expect(page.getByRole('switch', { name: `${ETIQUETA}: solo la cartera` })).toBeChecked()
+  await expect(filaDelCampo(page, ETIQUETA)).toContainText('Solo la cartera')
 })
 
 test('un campo con datos no cambia de tipo ni se elimina: se desactiva', async ({ page }) => {

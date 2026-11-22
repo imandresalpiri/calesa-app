@@ -6,16 +6,22 @@ import {
   correoDePrueba,
   crearDuenaDePrueba,
 } from './soporte/base'
+import {
+  casillasEnOrden,
+  elegirDelMenu,
+  filaDelCampo,
+  lineaApagada,
+} from './soporte/editor-de-campos'
 import { descartarAviso } from './soporte/inventario'
 import { PREFIJO_CLAVE_E2E, borrarOrigenes, crearOrigenDePrueba } from './soporte/origenes'
-import { expect, test, type Page } from './soporte/prueba'
+import { expect, test } from './soporte/prueba'
 import { agregarCampo } from './soporte/vehiculos'
 
 // @sin-celular-archivo: Configuración › Orígenes no se prueba en celular; pruebas sólo en lo clave (la persona, 2026-11-08)
 
 // Los datos clave de un origen en «Campos»: el enlace viejo `?seccion=campos` lleva a la sub-ruta; un origen manual nace con los 4 de
-// fábrica (Año, Kilometraje, VIN, Categoría) y la estrella de un campo se apaga con el tope a la vista; quitar uno, marcar el campo y
-// subirlo se guardan al instante, sobreviven a recargar y quedan así en la base; desactivar el campo lo saca. El permiso, la versión, los
+// fábrica (Año, Kilometraje, VIN, Categoría) y «Hacer dato clave» de un campo se apaga con el tope a la vista; quitar uno, hacer dato clave
+// el campo y subirlo se guardan al instante, sobreviven a recargar y quedan así en la base; desactivar el campo lo saca. El permiso, la versión, los
 // topes y la limpieza los prueba `supabase/tests/areas/origenes/datos-clave.sql`; la carrera, `carreras.mjs`.
 test.describe.configure({ mode: 'serial' })
 
@@ -38,12 +44,6 @@ async function datosClaveDeLaBase(id: string): Promise<unknown> {
     throw new Error(`No se pudo leer el origen: ${error.message}`)
   }
   return data.datos_clave
-}
-
-// El bloque es una `<section>` con su `h2`: una región con ese nombre. Lo que dice cada fila, en orden (el nombre de cada dato).
-async function enOrden(page: Page): Promise<string[]> {
-  const filas = page.getByRole('region', { name: /^Datos clave \(\d de 4\)$/ }).locator('ol > li')
-  return (await filas.locator('span.font-medium').allTextContents()).map((texto) => texto.trim())
 }
 
 test.beforeAll(async ({}, info) => {
@@ -73,27 +73,21 @@ test('E2E escritorio: elegir, ordenar y quitar los datos clave de un origen se g
   await page.goto(`/configuracion/origenes/${origen.id}?seccion=campos`)
   await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${origen.id}/campos$`))
   await expect(page.getByRole('heading', { name: 'Datos clave (4 de 4)', level: 2 })).toBeVisible()
-  expect(await enOrden(page)).toEqual(['Año', 'Kilometraje', 'VIN', 'Categoría'])
+  expect(await casillasEnOrden(page)).toEqual(['Año', 'Kilometraje', 'VIN', 'Categoría'])
 
-  // Con 4, la estrella del campo se apaga con el motivo a la vista.
-  const estrellaDelColor = page.getByRole('button', { name: `Marcar «${COLOR}» como dato clave` })
-  await expect(estrellaDelColor).toHaveAttribute('aria-disabled', 'true')
-  await expect(page.getByText(TOPE)).toBeVisible()
+  // Con 4, «Hacer dato clave» del campo se apaga con el motivo a la vista.
+  await expect(page.getByText(TOPE).first()).toBeVisible()
+  await lineaApagada(page, COLOR, 'Hacer dato clave')
 
-  // Quitar VIN deja 3; marcar el campo lo suma al final; subirlo lo deja tercero. Cada cambio espera al anterior.
-  await page.getByRole('button', { name: 'Quitar «VIN»', exact: true }).click()
+  // Quitar VIN deja 3; hacer dato clave el campo lo suma al final; subirlo lo deja tercero. Cada cambio espera al anterior.
+  await elegirDelMenu(page, 'VIN en los datos clave', 'Quitar de los datos clave')
   await expect(page.getByRole('heading', { name: 'Datos clave (3 de 4)', level: 2 })).toBeVisible()
-  await expect(estrellaDelColor).not.toHaveAttribute('aria-disabled', 'true')
-  await estrellaDelColor.click()
+  await elegirDelMenu(page, COLOR, 'Hacer dato clave')
   await expect(page.getByRole('heading', { name: 'Datos clave (4 de 4)', level: 2 })).toBeVisible()
-  await expect(
-    page.getByRole('button', { name: `Quitar «${COLOR}» de los datos clave` }),
-  ).toHaveAttribute('aria-pressed', 'true')
-  const subir = page.getByRole('button', { name: `Subir «${COLOR}»`, exact: true })
-  await expect(subir).not.toHaveAttribute('aria-disabled', 'true')
-  expect(await enOrden(page)).toEqual(['Año', 'Kilometraje', 'Categoría', COLOR])
-  await subir.click()
-  await expect.poll(() => enOrden(page)).toEqual(['Año', 'Kilometraje', COLOR, 'Categoría'])
+  await expect(filaDelCampo(page, COLOR)).toContainText('Dato clave')
+  expect(await casillasEnOrden(page)).toEqual(['Año', 'Kilometraje', 'Categoría', COLOR])
+  await elegirDelMenu(page, `${COLOR} en los datos clave`, 'Subir')
+  await expect.poll(() => casillasEnOrden(page)).toEqual(['Año', 'Kilometraje', COLOR, 'Categoría'])
 
   // Queda así en la base y sobrevive a recargar.
   await expect
@@ -106,16 +100,15 @@ test('E2E escritorio: elegir, ordenar y quitar los datos clave de un origen se g
     ])
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Datos clave (4 de 4)', level: 2 })).toBeVisible()
-  expect(await enOrden(page)).toEqual(['Año', 'Kilometraje', COLOR, 'Categoría'])
+  expect(await casillasEnOrden(page)).toEqual(['Año', 'Kilometraje', COLOR, 'Categoría'])
 
-  // Desactivar el campo lo saca de los datos clave en la misma llamada.
-  await page.getByRole('button', { name: `Editar ${COLOR}` }).click()
-  const panel = page.getByRole('dialog')
-  await panel.getByRole('switch', { name: 'Activo' }).click()
-  await panel.getByRole('button', { name: 'Guardar' }).click()
-  await descartarAviso(page, `Campo «${COLOR}» guardado`)
+  // Desactivar el campo lo saca de los datos clave en la misma llamada (el «⋯» lo avisa).
+  await page.getByRole('button', { name: `Más acciones de ${COLOR}`, exact: true }).click()
+  await expect(page.getByText('También sale de los datos clave.')).toBeVisible()
+  await page.getByRole('menuitem', { name: 'Desactivar', exact: true }).click()
+  await descartarAviso(page, `«${COLOR}» desactivado`)
   await expect(page.getByRole('heading', { name: 'Datos clave (3 de 4)', level: 2 })).toBeVisible()
-  expect(await enOrden(page)).toEqual(['Año', 'Kilometraje', 'Categoría'])
+  expect(await casillasEnOrden(page)).toEqual(['Año', 'Kilometraje', 'Categoría'])
   await expect
     .poll(() => datosClaveDeLaBase(origen.id))
     .toEqual([{ comun: 'anio' }, { comun: 'kilometraje' }, { comun: 'categoria_id' }])
