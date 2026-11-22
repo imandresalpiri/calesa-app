@@ -8039,8 +8039,9 @@ export type Database = {
         Returns: boolean
       }
       _diseno_auxiliares: { Args: { p_def: Json }; Returns: Json }
+      _diseno_ayudas: { Args: { p_def: Json; p_secs: Json; p_tablas: Json }; Returns: undefined }
+      _diseno_bloques_de_la_ayuda: { Args: { p: Json }; Returns: Json }
       _diseno_cabecera: { Args: { p_cab: Json }; Returns: undefined }
-      _diseno_enlaces: { Args: { p_secs: Json }; Returns: undefined }
       _diseno_forma: { Args: { p_diseno: Json }; Returns: undefined }
       _diseno_forma_item: { Args: { p_i: Json }; Returns: boolean }
       _diseno_maximo_de_items: { Args: Record<PropertyKey, never>; Returns: number }
@@ -9210,7 +9211,13 @@ export type Database = {
       }
       _preferencia_ultima_pestana_valida: { Args: { p_valor: Json }; Returns: boolean }
       _preparar_publicacion: {
-        Args: { p_def: Json; p_diseno: Json; p_ignorar_retirados: boolean; p_params: Json }
+        Args: {
+          p_def: Json
+          p_diseno: Json
+          p_ignorar_retirados: boolean
+          p_params: Json
+          p_tablas?: Json
+        }
         Returns: Json
       }
       _proyecto_fase_que_pide_pago: { Args: { p_proyecto: string }; Returns: string }
@@ -9681,6 +9688,7 @@ export type Database = {
           origen_id: string
         }[]
       }
+      _tablas_del_catalogo: { Args: { p_origen: string }; Returns: Json }
       _tablero_conversion_desde: { Args: Record<PropertyKey, never>; Returns: string }
       _tablero_ventana: {
         Args: { p_desde: string; p_hasta: string }
@@ -12111,6 +12119,7 @@ export type Database = {
           p_diseno: Json
           p_niveles: string[]
           p_retirados: string[]
+          p_tablas?: Json
           p_tonos: string[]
         }
         Returns: undefined

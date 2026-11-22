@@ -1,6 +1,6 @@
 // Los mutadores del corpus de `validar_diseno()` para lo que la cabecera trae por defecto y los enlaces de la ayuda: los de forma, uno por
 // marca (D77–D80 de `_diseno_forma()`, D81–D85 de `_diseno_forma_item()`), y los cruzados, uno por regla de `_diseno_cabecera()` (§1b) y de
-// `_diseno_enlaces()` (§7), más dos que dejan el diseño válido para que las mezclas los combinen con otros.
+// `_diseno_ayudas()` (§7), más dos que dejan el diseño válido para que las mezclas los combinen con otros.
 import {
   deTipo,
   itemsDe,

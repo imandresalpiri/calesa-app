@@ -57,6 +57,9 @@ const QUE_NOMBRA: Record<ReglaDeDiseno, QueNombra> = {
   nodo_sin_seccion: 'sin_lugar',
   tono_inexistente: 'tono',
   ayuda_enlace_no_https: 'nodo',
+  ayuda_tabla_inexistente: 'nodo',
+  ayuda_columna_inexistente: 'nodo',
+  ayuda_llena_no_acepta_valor: 'nodo',
 }
 
 // Una pieza del lienzo, o una fila de la fórmula sin lugar en la hoja (`nodo_sin_seccion`: la lista «Sin lugar en la hoja»).

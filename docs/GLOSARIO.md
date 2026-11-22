@@ -856,9 +856,17 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Celda (de la hoja)** — ítem `celda` del diseño: la `XCell` de un nodo: ancho (de 1 a 12 columnas; `completo`, `mitad` y `tercio` de los
   diseños guardados son 12, 6 y 4), alto, letra, énfasis, ayuda y niveles. Se mueve dentro de su sección o a otra (hereda el nivel de la nueva: el
   inspector lo avisa).
-- **Ayuda (de una celda)** — `ayuda` de una `celda`: texto o tabla de referencia que abre «Ayuda de X» en un panel de sólo lectura
-  (`?ayuda=texto|tabla&nodo=<id>`); la tabla se lee con la hoja abierta. El texto puede llevar hasta 5 **enlaces** (`ayuda.enlaces[]`,
-  `EnlaceDeAyuda`: título de hasta 60 caracteres y URL `https://`), que se abren en otra pestaña bajo «Consulta estas fuentes».
+- **Ayuda (de una celda)** — `ayuda` de una `celda` (`AyudaDeDiseno`): una lista de 1 a 8 **bloques de la ayuda** que abre «Ayuda de X» en un
+  panel de sólo lectura (`?ayuda=texto|tabla&nodo=<id>`); cada tabla se lee con la hoja abierta. La de antes (`{texto, enlaces?}` o `{tabla}`)
+  se sigue aceptando y se lee como bloques (`ayudaEnBloques()`, espejo de `_diseno_bloques_de_la_ayuda()`): un texto (más sus enlaces) o una
+  tabla con todas sus columnas que no llena nada.
+- **Bloque de la ayuda** — `BloqueDeAyuda` (`entities/diseno.ts`): cada parte de la ayuda de una celda, en orden. `titulo` (hasta 80
+  caracteres), `texto` (hasta 1.000, con saltos de línea y `**negrita**`), `enlaces` (de 1 a 5, `EnlaceDeAyuda`: título de hasta 60 caracteres
+  y URL `https://`, que se abren en otra pestaña) o `tabla` (hasta 3 por ayuda): una tabla de referencia del origen o compartida, por su
+  clave; las `columnas` que muestra (de 1 a 20; sin ellas, todas las que quien mira lee), cada una con la celda que **llena** al tocar uno de
+  sus valores (un nodo con celda en el diseño que acepta un valor: `ayuda_llena_no_acepta_valor`), y `resaltar`, la fila que casa con el
+  vehículo. Publicar a mano revisa la tabla y sus columnas contra el catálogo del origen (`ayuda_tabla_inexistente`,
+  `ayuda_columna_inexistente`).
 - **Secundario (de una celda)** — `secundario` de una `celda`: el % (o monto) junto al valor en un `porcentaje_de`; obligatorio si el monto se
   sobrescribe. Va chico y detrás; con `como: 'monto'` el % va grande y primero (`secondaryProminent` de la XCell).
 - **Subtotal (de la hoja)** — ítem `subtotal` del diseño: un nodo de cálculo dibujado como franja (el «CIF» de «avanzado»).

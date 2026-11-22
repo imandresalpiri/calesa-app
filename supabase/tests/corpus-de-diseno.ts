@@ -20,6 +20,7 @@ import { MUTADORES_DEL_ASPECTO } from './mutadores-de-diseno-aspecto'
 import { MUTADORES_DE_FORMA_DE_DISENO } from './mutadores-de-diseno-forma'
 import { MUTADORES_DE_MODOS, MUTADORES_DE_SECCIONES } from './mutadores-de-diseno'
 import { MUTADORES_POR_DEFECTO } from './mutadores-de-diseno-por-defecto'
+import { MUTADORES_DE_LAS_AYUDAS } from './mutadores-de-diseno-ayudas'
 import { clonar, type ContextoJson, type MutadorDeDiseno } from './mutadores-de-diseno-base'
 import { elegir, type Azar, type Json, type Objeto } from './mutadores-de-formula'
 
@@ -37,6 +38,7 @@ export const MUTADORES_CRUZADOS_DE_DISENO: readonly MutadorDeDiseno[] = [
   ...MUTADORES_DE_COBERTURA,
   ...MUTADORES_VALIDOS,
   ...MUTADORES_DEL_ASPECTO,
+  ...MUTADORES_DE_LAS_AYUDAS,
 ]
 export { MUTADORES_DE_FORMA_DE_DISENO }
 

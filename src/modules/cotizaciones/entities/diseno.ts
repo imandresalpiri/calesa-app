@@ -73,24 +73,77 @@ const esquemaCabecera = z.strictObject({
   modos_visibles: z.array(esquemaId).optional(),
 })
 
-// Cuántos enlaces lleva la ayuda de texto de una celda, y el largo de un título y de una URL (en caracteres, como `char_length`).
+// Cuántos enlaces lleva un bloque de enlaces de la ayuda de una celda, y el largo de un título y de una URL (en caracteres, como `char_length`).
 export const MAXIMO_DE_ENLACES = 5
 export const MAXIMO_DEL_TITULO_DEL_ENLACE = 60
 export const MAXIMO_DE_LA_URL_DEL_ENLACE = 2000
 // La URL de un enlace: `https://` y ASCII imprimible sin espacios. `[!-~]` (de `!` a `~`) y sin la bandera `u`: la misma clase en JS y en
-// Postgres (`\S` difiere con Unicode). La usan `revisarEnlaces()` y el esquema de la hoja: un `href` nunca recibe algo que no sea `https://`.
+// Postgres (`\S` difiere con Unicode). La usan `revisarAyudas()` y el esquema de la hoja: un `href` nunca recibe algo que no sea `https://`.
 export const URL_DE_ENLACE = /^https:\/\/[!-~]+$/
-// Un enlace de la ayuda: que la URL sea `https://` no es la forma sino la regla `ayuda_enlace_no_https` (`validar-diseno-enlaces.ts`).
+// Un enlace de la ayuda: que la URL sea `https://` no es la forma sino la regla `ayuda_enlace_no_https` (`validar-diseno-ayudas.ts`).
 export const esquemaEnlace = z.strictObject({
   titulo: texto(MAXIMO_DEL_TITULO_DEL_ENLACE),
   url: z.string().min(1).max(MAXIMO_DE_LA_URL_DEL_ENLACE),
 })
 
-// Una ayuda es la tabla de referencia que se abre o un texto (con hasta 5 enlaces), no las dos.
+// La ayuda de una celda (docs/GLOSARIO.md › «Ayuda (de una celda)») es una lista de bloques («Bloque de la ayuda»): títulos, textos (con `**negrita**`),
+// enlaces y hasta 3 tablas de referencia. Los topes son de forma, como el largo de un texto; el texto se cuenta en caracteres (`char_length`).
+export const MAXIMO_DE_BLOQUES = 8
+export const MAXIMO_DE_TABLAS_EN_LA_AYUDA = 3
+export const MAXIMO_DEL_TITULO_DE_LA_AYUDA = 80
+export const MAXIMO_DEL_TEXTO_DE_LA_AYUDA = 1000
+// Las columnas que muestra un bloque de tabla: el tope de columnas de una tabla de referencia (`TOPE_DE_COLUMNAS` del área `tablas`, que el núcleo no
+// importa; un test del área los compara).
+export const MAXIMO_DE_COLUMNAS_EN_LA_AYUDA = 20
+// El largo del texto de la ayuda de antes (`{texto, enlaces?}`), que se sigue aceptando.
+export const MAXIMO_DE_LA_AYUDA_DE_ANTES = 300
+export const TIPOS_DE_BLOQUE = ['titulo', 'texto', 'enlaces', 'tabla'] as const
+
+// Una columna que muestra un bloque de tabla y, si la tiene, la celda que llena (el id de un nodo: la regla `ayuda_llena_no_acepta_valor`).
+const esquemaColumnaDeLaAyuda = z.strictObject({ columna: esquemaId, llena: esquemaId.optional() })
+const esquemaBloqueDeAyuda = z.discriminatedUnion('tipo', [
+  z.strictObject({ tipo: z.literal('titulo'), texto: texto(MAXIMO_DEL_TITULO_DE_LA_AYUDA) }),
+  z.strictObject({ tipo: z.literal('texto'), texto: texto(MAXIMO_DEL_TEXTO_DE_LA_AYUDA) }),
+  z.strictObject({
+    tipo: z.literal('enlaces'),
+    enlaces: z.array(esquemaEnlace).min(1).max(MAXIMO_DE_ENLACES),
+  }),
+  // Sin `columnas`, todas las de la tabla. Que la tabla y sus columnas existan lo dice el catálogo (`ayuda_tabla_inexistente`, `ayuda_columna_inexistente`).
+  z.strictObject({
+    tipo: z.literal('tabla'),
+    tabla: esquemaId,
+    columnas: z
+      .array(esquemaColumnaDeLaAyuda)
+      .min(1)
+      .max(MAXIMO_DE_COLUMNAS_EN_LA_AYUDA)
+      .optional(),
+    resaltar: z.boolean().optional(),
+  }),
+])
+const esquemaBloques = z
+  .array(esquemaBloqueDeAyuda)
+  .min(1)
+  .max(MAXIMO_DE_BLOQUES)
+  .superRefine((bloques, ctx) => {
+    if (bloques.filter((b) => b.tipo === 'tabla').length > MAXIMO_DE_TABLAS_EN_LA_AYUDA) {
+      ctx.addIssue({ code: 'custom', message: 'Hasta 3 tablas por ayuda.' })
+    }
+    bloques.forEach((b, i) => {
+      if (b.tipo !== 'tabla' || b.columnas === undefined) return
+      const vistas = new Set(b.columnas.map((c) => c.columna))
+      if (vistas.size !== b.columnas.length) {
+        ctx.addIssue({ code: 'custom', message: 'Una columna repetida.', path: [i, 'columnas'] })
+      }
+    })
+  })
+
+// La ayuda: la lista de bloques o, como se guardaba antes y se sigue aceptando (la N+1 de una tabla vuelve a validar diseños guardados), la tabla
+// de referencia que se abre o un texto (con hasta 5 enlaces). La de antes se lee como bloques (`ayudaEnBloques()`); el editor sólo escribe bloques.
 const esquemaAyuda = z.union([
+  esquemaBloques,
   z.strictObject({ tabla: esquemaId }),
   z.strictObject({
-    texto: texto(300),
+    texto: texto(MAXIMO_DE_LA_AYUDA_DE_ANTES),
     enlaces: z.array(esquemaEnlace).min(1).max(MAXIMO_DE_ENLACES).optional(),
   }),
 ])
@@ -186,6 +239,9 @@ export type ItemConNodo = Exclude<ItemDeDiseno, { tipo: 'total' }>
 export type CabeceraDeDiseno = Diseno['cabecera']
 export type AyudaDeDiseno = NonNullable<CeldaDeDiseno['ayuda']>
 export type EnlaceDeAyuda = z.infer<typeof esquemaEnlace>
+export type BloqueDeAyuda = z.infer<typeof esquemaBloqueDeAyuda>
+export type ColumnaDeLaAyuda = z.infer<typeof esquemaColumnaDeLaAyuda>
+export type TipoDeBloque = BloqueDeAyuda['tipo']
 export type AnchoDeCelda = CeldaDeDiseno['ancho']
 export type Relleno = (typeof RELLENOS)[number]
 export type Separacion = (typeof SEPARACIONES)[number]

@@ -113,7 +113,7 @@ begin
 end $$;
 rollback;
 
--- @test tablas desactivar: en uso por un nodo, por la copia congelada, por la ayuda del diseño o por el borrador es 23503 con quién
+-- @test tablas desactivar: en uso por un nodo, por la copia congelada, por la ayuda del diseño (también en bloques) o por el borrador es 23503 con quién
 begin;
 select pg_temp.td_preparar();
 do $$
@@ -131,6 +131,12 @@ begin
   delete from public.formulas where origen_id = o;
   perform pg_temp.td_formula(o, 'publicada', '[{"id":"r","tipo":"input"}]', '{}',
     '{"secciones": [{"titulo": "S", "items": [{"tipo": "celda", "nodo": "r", "ayuda": {"tabla": "td_sola"}}]}]}');
+  perform pg_temp.td_igual(pg_temp.td_error(a, pg_temp.td_sql(t.id, 1)), c_pub);
+  -- Sólo un bloque de la ayuda en bloques, después de otro (el jsonpath `lax` recorre el arreglo).
+  delete from public.formulas where origen_id = o;
+  perform pg_temp.td_formula(o, 'publicada', '[{"id":"r","tipo":"input"}]', '{}',
+    '{"secciones": [{"titulo": "S", "items": [{"tipo": "celda", "nodo": "r", "ayuda": [{"tipo": "titulo", "texto": "Tarifas"},
+      {"tipo": "tabla", "tabla": "td_sola", "columnas": [{"columna": "monto"}]}]}]}]}');
   perform pg_temp.td_igual(pg_temp.td_error(a, pg_temp.td_sql(t.id, 1)), c_pub);
   -- La publicada y el borrador.
   perform pg_temp.td_formula(o, 'borrador', '[{"id":"r","tipo":"input"},{"id":"d","tipo":"calculo","op":"depreciar","de":["r"],"tabla":"td_sola","sobre":"r","columna":"monto"}]');

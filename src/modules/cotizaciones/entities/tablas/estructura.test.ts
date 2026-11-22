@@ -2,7 +2,8 @@
 import { PGlite } from '@electric-sql/pglite'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { definicionSql } from '../../../../../scripts/lib/definicion-sql'
-import { claveDeColumna, claveDeLaTabla, esTipoDeColumna } from './estructura'
+import { MAXIMO_DE_COLUMNAS_EN_LA_AYUDA } from '../diseno'
+import { claveDeColumna, claveDeLaTabla, esTipoDeColumna, TOPE_DE_COLUMNAS } from './estructura'
 
 const NOMBRES = [
   'Fletes por puerto',
@@ -102,5 +103,11 @@ describe('esTipoDeColumna', () => {
     expect(esTipoDeColumna('anio')).toBe(true)
     expect(esTipoDeColumna('texto')).toBe(true)
     expect(esTipoDeColumna('booleano')).toBe(false)
+  })
+})
+
+describe('TOPE_DE_COLUMNAS', () => {
+  it('es el tope de columnas de un bloque de tabla de la ayuda (el núcleo no importa el área)', () => {
+    expect(MAXIMO_DE_COLUMNAS_EN_LA_AYUDA).toBe(TOPE_DE_COLUMNAS)
   })
 })

@@ -47,7 +47,8 @@ function celdaDe(
     ...aspectoDeItem(item),
     tono: tonoDe(n, tonosDeGrupo),
     ajustes: false,
-    ayuda: item.ayuda ?? null,
+    // La hoja todavía no dibuja la ayuda en bloques: sólo la de antes.
+    ayuda: item.ayuda === undefined || Array.isArray(item.ayuda) ? null : item.ayuda,
     datoDelVehiculo: null,
     soloEn: soloEnDe(n)?.slice() ?? null,
     condicion: condicionDe(n) ?? null,

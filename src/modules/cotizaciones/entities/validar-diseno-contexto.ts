@@ -1,5 +1,5 @@
 // Lo que comparten las pasadas de `validarDiseno()`: el índice de la fórmula (cada id con su nodo, el total y qué banderas condicionan
-// algo), los conjuntos del contexto (niveles, retirados, tonos) y lo que las secciones van dejando (dónde se dibuja cada nodo).
+// algo), los conjuntos del contexto (niveles, retirados, tonos, tablas) y lo que las secciones van dejando (dónde se dibuja cada nodo).
 import { auxiliaresDe } from './compilador-auxiliares'
 import type { Definicion } from './formula'
 import { esta, recorrer, type Medidor } from './medidor'
@@ -15,7 +15,12 @@ export type ContextoDeDiseno = {
   retirados: readonly string[]
   // Las claves del catálogo de tonos de la empresa.
   tonos: readonly string[]
+  // El catálogo de tablas del origen (las activas propias y las compartidas que recibe), con las claves de sus columnas. Sin él (nulo o ausente) no se
+  // revisa que la tabla y las columnas de una ayuda existan: la N+1 de una tabla no lo trae, publicar a mano sí.
+  tablas?: readonly TablaDelContexto[] | null
 }
+
+export type TablaDelContexto = { clave: string; columnas: readonly string[] }
 
 export type Indice = {
   def: Definicion
@@ -28,6 +33,8 @@ export type Indice = {
   niveles: ReadonlySet<string>
   retirados: ReadonlySet<string>
   tonos: ReadonlySet<string>
+  // Cada tabla del catálogo con sus columnas; nulo sin catálogo. Una clave repetida: gana la última, como `jsonb_object_agg`.
+  tablas: ReadonlyMap<string, ReadonlySet<string>> | null
   // Cuántos buckets tiene la fórmula: un modo los llena todos.
   nBuckets: number
   m: Medidor
@@ -52,9 +59,20 @@ export function indexar(def: Definicion, contexto: ContextoDeDiseno, m: Medidor)
     niveles: new Set(recorrer(contexto.niveles, m)),
     retirados: new Set(recorrer(contexto.retirados, m)),
     tonos: new Set(recorrer(contexto.tonos, m)),
+    tablas: tablasDe(contexto.tablas ?? null, m),
     nBuckets: Array.from(recorrer(Object.keys(def.buckets ?? {}), m)).length,
     m,
   }
+}
+
+function tablasDe(
+  tablas: readonly TablaDelContexto[] | null,
+  m: Medidor,
+): Map<string, ReadonlySet<string>> | null {
+  if (tablas === null) return null
+  const mapa = new Map<string, ReadonlySet<string>>()
+  for (const t of recorrer(tablas, m)) mapa.set(t.clave, new Set(recorrer(t.columnas, m)))
+  return mapa
 }
 
 // Con qué niveles se dibuja un nodo la primera vez: en su celda, como el porcentaje que muestra una celda, en un subtotal, en los chips

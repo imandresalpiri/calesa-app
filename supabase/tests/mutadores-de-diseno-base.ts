@@ -4,7 +4,12 @@
 // definición de la fórmula, que sólo se lee.
 import { clonar, elegir, esObjeto, type Azar, type Json, type Objeto } from './mutadores-de-formula'
 
-export type ContextoJson = { niveles: string[]; retirados: string[]; tonos: string[] }
+export type ContextoJson = {
+  niveles: string[]
+  retirados: string[]
+  tonos: string[]
+  tablas?: { clave: string; columnas: string[] }[]
+}
 export type Entrada = { diseno: Json; contexto: ContextoJson; definicion: Objeto }
 export type MutadorDeDiseno = {
   nombre: string

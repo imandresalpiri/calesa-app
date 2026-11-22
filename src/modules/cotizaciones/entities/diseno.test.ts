@@ -6,9 +6,14 @@ import {
   EFECTOS_DE_INTERRUPTOR,
   esquemaDiseno,
   MAXIMO_DE_ATAJOS,
+  MAXIMO_DE_BLOQUES,
+  MAXIMO_DE_TABLAS_EN_LA_AYUDA,
+  MAXIMO_DEL_TEXTO_DE_LA_AYUDA,
+  MAXIMO_DEL_TITULO_DE_LA_AYUDA,
   NIVEL_TODOS,
   PRESENTACIONES,
   SECUNDARIOS,
+  TIPOS_DE_BLOQUE,
 } from './diseno'
 import { validarFormula } from './validar'
 import { validarDiseno } from './validar-diseno'
@@ -90,6 +95,7 @@ describe('esquemaDiseno', () => {
     expect(EFECTOS_DE_INTERRUPTOR).toEqual(['habilita', 'muestra'])
     expect(MAXIMO_DE_ATAJOS).toBe(12)
     expect(NIVEL_TODOS).toBe('todos')
+    expect(TIPOS_DE_BLOQUE).toEqual(['titulo', 'texto', 'enlaces', 'tabla'])
   })
 
   it('ningún objeto del diseño es un registro: la clave de cada colección va adentro', () => {
@@ -140,5 +146,40 @@ describe('disenoSintetico', () => {
       (x as { nivel_editar?: string }).nivel_editar,
     ])
     for (const retirado of s.contexto.retirados) expect(usados).not.toContain(retirado)
+  })
+})
+
+describe('esquemaDiseno: la ayuda en bloques', () => {
+  it('hasta 8 bloques y 3 tablas, sin repetir una columna en un bloque; la de antes sigue valiendo', () => {
+    const ayuda = (a: unknown) =>
+      esquemaDiseno.safeParse(poner(base(), ['secciones', 0, 'items', 0, 'ayuda'], a)).success
+    const texto = (n: number) => ({ tipo: 'texto', texto: 'x'.repeat(n) })
+    const tabla = (clave: string, columnas?: string[]) =>
+      columnas === undefined
+        ? { tipo: 'tabla', tabla: clave }
+        : { tipo: 'tabla', tabla: clave, columnas: columnas.map((columna) => ({ columna })) }
+    expect(ayuda(Array.from({ length: MAXIMO_DE_BLOQUES }, () => texto(1)))).toBe(true)
+    expect(ayuda(Array.from({ length: MAXIMO_DE_BLOQUES + 1 }, () => texto(1)))).toBe(false)
+    expect(ayuda([])).toBe(false)
+    expect(MAXIMO_DE_TABLAS_EN_LA_AYUDA).toBe(3)
+    expect(ayuda(['a', 'b', 'c'].map((c) => tabla(c)))).toBe(true)
+    expect(ayuda(['a', 'b', 'c', 'd'].map((c) => tabla(c)))).toBe(false)
+    expect(ayuda([texto(MAXIMO_DEL_TEXTO_DE_LA_AYUDA)])).toBe(true)
+    expect(ayuda([texto(MAXIMO_DEL_TEXTO_DE_LA_AYUDA + 1)])).toBe(false)
+    expect(ayuda([{ tipo: 'titulo', texto: '😀'.repeat(MAXIMO_DEL_TITULO_DE_LA_AYUDA) }])).toBe(
+      true,
+    )
+    expect(ayuda([{ tipo: 'titulo', texto: '😀'.repeat(MAXIMO_DEL_TITULO_DE_LA_AYUDA + 1) }])).toBe(
+      false,
+    )
+    expect(ayuda([tabla('fletes', ['monto', 'desde'])])).toBe(true)
+    expect(ayuda([tabla('fletes', ['monto', 'monto'])])).toBe(false)
+    expect(ayuda([{ ...tabla('fletes'), resaltar: 'si' }])).toBe(false)
+    // La de antes, tal cual; un bloque suelto (sin la lista) no es ninguna de las dos.
+    expect(ayuda({ tabla: 'fletes' })).toBe(true)
+    expect(
+      ayuda({ texto: 'Mira.', enlaces: [{ titulo: 'Copart', url: 'https://www.copart.com/' }] }),
+    ).toBe(true)
+    expect(ayuda({ tipo: 'texto', texto: 'Mira.' })).toBe(false)
   })
 })

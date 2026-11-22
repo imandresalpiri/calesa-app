@@ -20,7 +20,7 @@ import { conSeccion } from './edicion-del-diseno'
 
 export const MAXIMO_DE_LA_AYUDA = 300
 
-export type AyudaDeCelda = NonNullable<CeldaDeDiseno['ayuda']>
+export type AyudaDeCelda = Exclude<NonNullable<CeldaDeDiseno['ayuda']>, readonly unknown[]>
 
 // Cambia la primera pieza así en la sección (`esLaPieza`).
 export function enItem(
@@ -106,7 +106,10 @@ export function ponerAyuda(
     if (it.tipo !== 'celda') return it
     const { ayuda: anterior, ...resto } = it
     if (limpia === null) return resto
-    const enlaces = anterior !== undefined && 'texto' in anterior ? anterior.enlaces : undefined
+    const enlaces =
+      anterior !== undefined && !Array.isArray(anterior) && 'texto' in anterior
+        ? anterior.enlaces
+        : undefined
     return {
       ...resto,
       ayuda:
@@ -125,7 +128,8 @@ function conEnlaces(
   cambiar: (enlaces: readonly EnlaceDeAyuda[]) => EnlaceDeAyuda[],
 ): Diseno {
   return enItem(diseno, { seccion: seccionId, tipo: 'celda', nodo: nodoId }, (it) => {
-    if (it.tipo !== 'celda' || it.ayuda === undefined || !('texto' in it.ayuda)) return it
+    if (it.tipo !== 'celda' || it.ayuda === undefined || Array.isArray(it.ayuda)) return it
+    if (!('texto' in it.ayuda)) return it
     const { enlaces: antes, ...texto } = it.ayuda
     const despues = cambiar(antes ?? [])
     return { ...it, ayuda: despues.length === 0 ? texto : { ...texto, enlaces: despues } }

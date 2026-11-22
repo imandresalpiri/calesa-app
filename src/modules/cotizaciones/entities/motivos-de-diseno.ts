@@ -42,6 +42,9 @@ export const REGLAS_DE_DISENO = [
   'nodo_sin_seccion',
   'tono_inexistente',
   'ayuda_enlace_no_https',
+  'ayuda_tabla_inexistente',
+  'ayuda_columna_inexistente',
+  'ayuda_llena_no_acepta_valor',
 ] as const
 
 export type ReglaDeDiseno = (typeof REGLAS_DE_DISENO)[number]
@@ -53,6 +56,8 @@ export type DatosDeRechazoDeDiseno = {
   nivel?: string
   campo?: string
   pieza?: 'grupo' | 'cabecera' | 'seccion'
+  // La tabla de la columna que falta (`ayuda_columna_inexistente`).
+  tabla?: string
 }
 
 export type RechazoDeDiseno = {
@@ -132,6 +137,12 @@ const MENSAJES: Record<ReglaDeDiseno, (d: DatosDeRechazoDeDiseno) => string> = {
       : `${d.pieza === 'seccion' ? 'La sección' : 'El grupo'} ${q(d.donde)} usa un color que no está en el catálogo.`,
   ayuda_enlace_no_https: (d) =>
     `Un enlace de la ayuda de ${q(d.donde)} tiene que empezar con https:// y no llevar espacios.`,
+  ayuda_tabla_inexistente: (d) =>
+    `La ayuda de ${q(d.donde)} usa la tabla ${q(d.ref)}, que este origen no tiene o está desactivada.`,
+  ayuda_columna_inexistente: (d) =>
+    `La ayuda de ${q(d.donde)} muestra la columna ${q(d.ref)}, que la tabla ${q(d.tabla)} ya no tiene.`,
+  ayuda_llena_no_acepta_valor: (d) =>
+    `En la ayuda de ${q(d.donde)}, la columna ${q(d.ref)} llena una celda que no acepta un valor: elige un dato que se tipea, una constante o un cálculo que se puede pisar.`,
 }
 
 export function rechazoDeDiseno(
