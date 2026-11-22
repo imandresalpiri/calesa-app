@@ -76,7 +76,8 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
       data-barra-de-formula=""
       className="sticky top-(--topbar) z-20 grid min-w-0 gap-1.5 border-b border-(--color-line) bg-(--color-surface) py-2"
     >
-      <div className="flex min-w-0 flex-wrap items-start gap-2 sm:flex-nowrap">
+      {/* En una línea sólo si cabe: con un panel al costado la planilla se angosta y la fila se parte en vez de meterse debajo del panel. */}
+      <div className="flex min-w-0 flex-wrap items-start gap-2 @2xl/formula:flex-nowrap">
         <span
           data-celda-de-la-barra=""
           className="flex min-h-[44px] w-auto min-w-14 shrink-0 items-center justify-center rounded-(--radius-md) border border-(--color-line) px-2 font-mono text-(length:--text-sm) whitespace-nowrap md:pointer-fine:min-h-9"
