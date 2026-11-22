@@ -1501,7 +1501,7 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   escribe?»); «Sobre…» sólo en la puesta en marcha (en la página lo dice el estado de la barra). Los avisos del guardado (conflicto, errores, lo
   que el diseño no muestra) van arriba de la planilla. La **Barra de fórmula** queda fija bajo la cabecera de la página al desplazarse: el nombre
   de la celda («C5», «Ejemplo 5»), `fx ▾` (inserta una función; apagado con su motivo: «Toca una celda para escribir una fórmula.», «Las
-  funciones van en C.» o el de la celda), el texto (vacío, «Escribe = y toca las celdas: =C5+C7»), y a la derecha «Totales», «Tarjeta» y «?»
+  funciones van en C.» o el de la celda), el texto (vacío, «Escribe = y toca las celdas: =C5+C7»; al entrar no hay celda elegida y se ve esa guía), y a la derecha «Totales», «Tarjeta» y «?»
   (un popover con los ocho tipos de celda y el fondo que cada uno da a C). Debajo, una sola línea con la fila elegida: «De dónde sale: …», lo
   que el último cambio soltó, lo que dice el texto tras un ⚙ (reescrito o «ya no manda») y, en un tipo de cambio, el camino a Empresa ›
   Monedas. La cuadrícula (`role="grid"`, «Filas de la fórmula de
@@ -1512,8 +1512,8 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   banda lleva su cabecera en una línea (la muestra del color, etiqueta, «Plazo: …», «Tipo de cambio: …» del modo elegido y su «⋯»; lo largo
   se recorta con su `title`; en un marco angosto se parte en dos); las filas sin banda, ninguna. Hasta 500 filas con aviso y «Buscar fila»
   (por concepto: «Ninguna fila tiene «x» en el concepto.»); sin filas, «Esta fórmula no tiene filas.» con «Sumar la primera fila».
-  **Al costado** (`?costado=totales|tarjeta`, cerrados al entrar; uno a la vez; desde 1024 px no son modales y la grilla se sigue usando, más
-  angosto son el drawer modal): «Totales» (el total en dólares y en la moneda local con el modo elegido, la base imponible y lo aparte, cada
+  **Al costado** (`?costado=totales|tarjeta`, cerrados al entrar; uno a la vez; desde 1024 px no son modales y la planilla se corre a la izquierda
+  el ancho del panel para que nada quede debajo, más angosto son el drawer modal): «Totales» (el total en dólares y en la moneda local con el modo elegido, la base imponible y lo aparte, cada
   uno con `<Monto>` y cómo sale; lo aparte apagado dice por qué) y «Tarjeta de la cotización» (la plantilla de esta fórmula, el borrador si
   hay, con la unidad de ejemplo y el selector de modo «Tipo de cambio» con dos o más modos; sin plantilla, «Esta fórmula todavía no tiene
   tarjeta.» con «La imagen que recibe el cliente»; si no se leyó, «Reintentar»). En el celular y con el texto al 200 % la cuadrícula se
