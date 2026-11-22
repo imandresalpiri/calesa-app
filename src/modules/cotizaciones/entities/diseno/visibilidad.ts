@@ -34,7 +34,7 @@ function dibujadoPorElDiseno(diseno: Diseno, nodos: Map<string, Nodo>): Map<stri
   const conPct: [string, Par][] = []
   for (const s of diseno.secciones) {
     for (const it of s.items) {
-      if (!TIPOS_QUE_CUENTAN.has(it.tipo)) continue
+      if (it.tipo === 'total' || !TIPOS_QUE_CUENTAN.has(it.tipo)) continue
       const par = parDelItem(it, s)
       dibujado.set(it.nodo, par)
       const pct = pctDeLaCelda(it, nodos)

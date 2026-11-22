@@ -19,6 +19,9 @@ export const REGLAS_DE_DISENO = [
   'seccion_duplicada',
   'nivel_inexistente',
   'nivel_retirado',
+  'total_repetido',
+  'total_en_avanzado',
+  'total_con_nivel',
   'nodo_inexistente',
   'celda_no_es_valor',
   'secundario_sin_porcentaje',
@@ -89,6 +92,10 @@ const MENSAJES: Record<ReglaDeDiseno, (d: DatosDeRechazoDeDiseno) => string> = {
   nivel_inexistente: (d) => `${q(d.donde)} usa el nivel ${q(d.nivel)}, que no existe.`,
   nivel_retirado: (d) =>
     `${q(d.donde)} usa el nivel ${q(d.nivel)}, que está retirado: elige otro para esta celda o sección.`,
+  total_repetido: (d) => `La sección ${q(d.donde)} ya tiene la tarjeta del total.`,
+  total_en_avanzado: () => 'La tarjeta del total no va en una sección avanzada.',
+  total_con_nivel: (d) =>
+    `La tarjeta del total la ven todos: la sección ${q(d.donde)} tiene un nivel.`,
   nodo_inexistente: (d) => `El diseño nombra ${q(d.donde)}, que no es un nodo de la fórmula.`,
   celda_no_es_valor: (d) =>
     `${q(d.donde)} no se dibuja como celda: la variante va como chips y una bandera como interruptor.`,

@@ -20,7 +20,8 @@ function porcentajeDe(nodos: NodosPorId, nodo: Nodo | undefined): Nodo | undefin
 
 // ¿El ítem puede ser de un nivel restringido? Atajos no se dibujan con valor y no entran en la regla.
 export function itemAdmiteNivel(item: ItemDeDiseno, nodos: NodosPorId): boolean {
-  if (item.tipo === 'variante') return false
+  // La tarjeta del total la ven todos (`total_con_nivel`), como la variante.
+  if (item.tipo === 'variante' || item.tipo === 'total') return false
   if (item.tipo === 'atajos') return true
   const nodo = nodos.get(item.nodo)
   if (sinNivel(nodo)) return false

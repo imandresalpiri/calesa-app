@@ -167,14 +167,15 @@ export const MUTADORES_DE_FORMA_DE_DISENO: readonly MutadorDeDiseno[] = [
   ),
   forma(
     'D41',
-    unItem('celda', 'atajos', 'variante', 'interruptor', 'subtotal'),
+    unItem('celda', 'atajos', 'variante', 'interruptor', 'subtotal', 'total'),
     poner('tipo', 'grafico'),
   ),
   forma(
     'D42',
-    unItem('celda', 'atajos', 'variante', 'interruptor', 'subtotal'),
+    unItem('celda', 'atajos', 'variante', 'interruptor', 'subtotal', 'total'),
     poner('color', '#ff0000'),
   ),
+  // La tarjeta del total no lleva `nodo` (con uno cae en D42).
   forma(
     'D43',
     unItem('celda', 'atajos', 'variante', 'interruptor', 'subtotal'),

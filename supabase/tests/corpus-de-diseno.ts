@@ -9,6 +9,7 @@ import type { Definicion } from '@/modules/cotizaciones/entities/formula'
 import { validarDiseno } from '@/modules/cotizaciones/entities/validar-diseno'
 import { azarCon, enOrdenDeJsonb } from './corpus-de-formula'
 import { MUTADORES_DE_ITEMS } from './mutadores-de-diseno-items'
+import { MUTADORES_DE_LA_PIEZA_DEL_TOTAL } from './mutadores-de-diseno-pieza-del-total'
 import { MUTADORES_DE_NIVELES } from './mutadores-de-diseno-niveles'
 import {
   MUTADORES_DE_COBERTURA,
@@ -30,6 +31,7 @@ export const MUTADORES_CRUZADOS_DE_DISENO: readonly MutadorDeDiseno[] = [
   ...MUTADORES_POR_DEFECTO,
   ...MUTADORES_DE_SECCIONES,
   ...MUTADORES_DE_ITEMS,
+  ...MUTADORES_DE_LA_PIEZA_DEL_TOTAL,
   ...MUTADORES_DE_NIVELES,
   ...MUTADORES_DE_TARJETA,
   ...MUTADORES_DE_COBERTURA,

@@ -104,7 +104,8 @@ create or replace function pg_temp.ch_item(p jsonb, p_tipo text, p_nodo text) re
   select i from jsonb_path_query(p, 'strict $.secciones[*].items[*]') i where i ->> 'tipo' = p_tipo and i ->> 'nodo' = p_nodo limit 1
 $f$;
 
--- Una fórmula publicada por el camino de publicar con lo oculto en todas las formas (D7): un nivel `p_nivel` y centinelas con la marca `p_tag`.
+-- Una fórmula publicada por el camino de publicar con lo oculto en todas las formas (D7): un nivel `p_nivel` y centinelas con la marca `p_tag`. La tarjeta del
+-- total va como pieza al final de la sección abierta.
 create or replace function pg_temp.ch_formula(p_origen uuid, p_nivel text, p_tag text) returns uuid language plpgsql as $f$
 declare
   v_def jsonb; v_par jsonb; v_dis jsonb; v_id uuid;
@@ -147,7 +148,8 @@ begin
         jsonb_build_object('tipo', 'celda', 'nodo', 'dep', 'ancho', 'mitad'),
         jsonb_build_object('tipo', 'celda', 'nodo', 'cond_oc', 'ancho', 'mitad'),
         jsonb_build_object('tipo', 'celda', 'nodo', 'con_ayuda', 'ancho', 'mitad', 'ayuda', jsonb_build_object('tabla', 'ch_tabla')),
-        jsonb_build_object('tipo', 'celda', 'nodo', 'anio', 'ancho', 'mitad'))),
+        jsonb_build_object('tipo', 'celda', 'nodo', 'anio', 'ancho', 'mitad'),
+        jsonb_build_object('tipo', 'total', 'ancho', 6, 'letra', 'grande'))),
       jsonb_build_object('id', 'solo_editar', 'titulo', 'Sólo editar', 'presentacion', 'principal', 'nivel_editar', p_nivel, 'items', jsonb_build_array(
         jsonb_build_object('tipo', 'celda', 'nodo', 'solo_n', 'ancho', 'completo'))),
       jsonb_build_object('id', 'del_nivel', 'titulo', 'SECCION-' || p_tag, 'presentacion', 'principal', 'nivel_ver', p_nivel, 'nivel_editar', p_nivel, 'items', jsonb_build_array(
@@ -564,7 +566,8 @@ rollback;
 -- @test cotizacion_hoja: por cada nivel (los de fábrica y uno creado con nivel_crear), sin su permiso no llega ningún id, etiqueta, ayuda, título, tono ni valor del nivel; con él, sí; «ver como» no cambia lo que decide la base
 -- Cada fórmula (`pg_temp.ch_formula`) pone lo oculto en toda forma: una celda y su ayuda de texto, un interruptor, un subtotal, una sección entera con su título, un tipo de cambio que un modo
 -- nombra, unos atajos y una celda de tabla con valores centinela, un grupo sólo de nodos del nivel con su tono, una celda visible condicionada (y requerida) por la bandera del nivel, y
--- una ayuda de tabla que sólo lee la celda del nivel. Se compara por claves y hojas: la lista exacta de ítems que debe llegar a cada persona, escrita a mano.
+-- una ayuda de tabla que sólo lee la celda del nivel, y la tarjeta del total como pieza (llega a todos). Se compara por claves y hojas: la lista exacta de ítems que
+-- debe llegar a cada persona, escrita a mano.
 begin;
 do $$
 declare
@@ -581,7 +584,7 @@ begin
   v_niveles := array(select clave from public.cotizaciones_niveles where clave <> 'todos' order by clave);
   if cardinality(v_niveles) < 2 or not 'costos' = any (v_niveles) or not 'gerencia_ch' = any (v_niveles) then raise exception 'esperaba al menos costos y el creado: %', v_niveles; end if;
   -- Lo que llega a quien no tiene el nivel, y a quien sí (en el orden del diseño).
-  v_abierta := array['variante:v', 'interruptor:activar', 'celda:tc', 'celda:pub', 'celda:dep', 'celda:cond_oc', 'celda:con_ayuda', 'celda:anio', 'celda:solo_n'];
+  v_abierta := array['variante:v', 'interruptor:activar', 'celda:tc', 'celda:pub', 'celda:dep', 'celda:cond_oc', 'celda:con_ayuda', 'celda:anio', 'total:total', 'celda:solo_n'];
   v_todo := v_abierta || array['interruptor:oculta_b', 'celda:tc_x', 'celda:x_celda', 'atajos:x_tabla', 'celda:x_tabla', 'subtotal:x_sub'];
   foreach v_nivel in array v_niveles loop
     v_i := v_i + 1;
@@ -643,6 +646,10 @@ begin
         end if;
         it := pg_temp.ch_item(r, 'celda', 'cond_oc');
         if it ->> 'condicion' is distinct from 'oculta_b' or it ->> 'requerido_si' is distinct from 'oculta_b' then raise exception 'nivel %: «%» no recibe la condición de la celda: %', v_nivel, v_txt, it; end if;
+      end if;
+      -- La tarjeta del total como pieza: a todos, en su lugar de la sección abierta, con el nodo de la tarjeta y su aspecto.
+      if r -> 'secciones' -> 0 -> 'items' -> 8 is distinct from '{"tipo": "total", "nodo": "total", "etiqueta": "Total", "formato": "usd", "ancho": 6, "letra": "grande"}'::jsonb then
+        raise exception 'nivel %: la pieza del total de «%»: %', v_nivel, v_txt, r -> 'secciones' -> 0 -> 'items' -> 8;
       end if;
       -- Los modos: sólo clave y nombre, para todos (sus buckets nombran el tipo de cambio del nivel).
       if r -> 'cabecera' -> 'modos' is distinct from '[{"clave": "m1", "nombre": "Modo uno"}]'::jsonb or pg_temp.ch_textos(r -> 'cabecera') && array['buckets', 'total_en'] then
