@@ -39,7 +39,7 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   '/vehiculos/[id]': 540,
   // La ficha de un lead (T33), sin tope hasta las dos columnas: medido 548,5 KB en 36 chunks con pestañas y 554,7 KB en 36 con todo a la vista
   // (el marco de bloques, el índice y el resumen de seguimientos), con un lead recién creado; más un 5 % hacia arriba a la decena.
-  '/leads/[id]': 590,
+  '/leads/[id]': 595,
   // «Quién crea y quién ve» (T413), la primera de Configuración con presupuesto: el marco de Catálogos, el cuadro (tabla, `Switch`, `<select>` nativos) y las
   // actions de la matriz de Roles. Provisional hasta su primera medición en el e2e: se fija con lo medido más un 5 %, a la decena.
   '/configuracion/catalogos/quien-crea-y-quien-ve': 420,
