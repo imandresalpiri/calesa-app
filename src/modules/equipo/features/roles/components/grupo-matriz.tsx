@@ -36,7 +36,7 @@ export function GrupoMatriz({ grupo, columnas, origenes, misPermisos, alAplicar 
         <TableHead
           scope="colgroup"
           colSpan={columnas.length + 1}
-          className="sticky top-(--alto-cabecera-roles,0px) z-20 h-8 bg-(--color-paper-dim) text-(length:--text-xs) font-semibold tracking-wide text-(--color-ink-soft)"
+          className="sticky top-[calc(var(--alto-cabecera-roles,0px)-2px)] z-20 h-8 bg-(--color-paper-dim) text-(length:--text-xs) font-semibold tracking-wide text-(--color-ink-soft)"
         >
           {/* El título del módulo abarca todas las columnas: él solo se queda a la vista mientras la tabla se desplaza. */}
           <span className="sticky left-3 inline-block">{grupo.titulo}</span>

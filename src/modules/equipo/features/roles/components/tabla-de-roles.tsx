@@ -33,7 +33,9 @@ export function TablaDeRoles(props: Props) {
   useAltoPegado(cabecera, '--alto-cabecera-roles')
   return (
     // `scroll-pl-44`: el ancho de «Permiso» (`min-w-44`): una columna a la que se desplaza la tabla no queda debajo de la fija (5a-33).
-    <Table contenedor="scroll-pl-44 max-h-[calc(100dvh-var(--topbar)-1rem)] overflow-y-auto">
+    // `max-h`: la pantalla menos la barra superior y el relleno de abajo del marco (`md:pb-14` = 3.5rem): con la página desplazada hasta el
+    // final la tarjeta queda con su borde de arriba a ras de la barra superior, ni tapada por ella ni con un hueco.
+    <Table contenedor="scroll-pl-44 max-h-[calc(100dvh-var(--topbar)-3.5rem)] overflow-y-auto">
       <TableHeader ref={cabecera} className="sticky top-0 z-30 bg-(--color-surface)">
         <TableRow>
           <CabeceraPegada lado="nombre" className="top-0 z-30 min-w-44 align-bottom">
