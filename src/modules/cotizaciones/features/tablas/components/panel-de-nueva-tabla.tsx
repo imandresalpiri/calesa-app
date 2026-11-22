@@ -17,15 +17,22 @@ import { EditorDeColumnas } from './editor-de-columnas'
 type Props = {
   abierto: boolean
   alCerrar: () => void
-  // El origen de la pestaña; nulo en Catálogos (la tabla nace compartida y no se pregunta).
-  origen: OrigenDeLasTablas | null
+  // El origen del drawer: la tabla nace suya o compartida con todos los orígenes.
+  origen: OrigenDeLasTablas
   // Dónde se dibujan las tablas: al entrar se abre ahí la nueva.
   lugar: LugarDeLasTablas
 }
 
+// Qué pasa con cada opción, bajo el título del panel; la compartida la usan los orígenes que no tienen una propia con su clave.
+const DESCRIPCION: Record<ParaQuien, string> = {
+  origen: 'Nace vacía y sin publicar: después le sumas filas y la publicas.',
+  compartida:
+    'La usan los orígenes que no tienen una propia con su clave. Nace vacía y sin publicar.',
+}
+
 const OPCIONES: readonly { valor: ParaQuien; etiqueta: (origen: string) => string }[] = [
-  { valor: 'origen', etiqueta: (origen) => `Sólo ${origen}` },
-  { valor: 'compartida', etiqueta: () => 'Compartida: la usan los orígenes sin una propia' },
+  { valor: 'origen', etiqueta: (origen) => `Sólo de ${origen}` },
+  { valor: 'compartida', etiqueta: () => 'Compartida con todos los orígenes' },
 ]
 
 function CampoParaQuien({ nueva, origen }: { nueva: NuevaTabla; origen: string }) {
@@ -106,10 +113,10 @@ function CampoDelNombre({ nueva }: { nueva: NuevaTabla }) {
   )
 }
 
-// «Nueva tabla» (`?panel=nueva-tabla`): el nombre (con la clave que sale de él y no cambia), para quién es (sólo en un origen) y las columnas. Quien lo monta le
+// «Nueva tabla» (`?panel=nueva-tabla`): el nombre (con la clave que sale de él y no cambia), para quién es («Sólo de <origen>» o «Compartida con todos los orígenes») y las columnas. Quien lo monta le
 // da `key` por apertura: cada apertura es un intento nuevo, con su id. Al entrar se abre la tabla nueva para sumarle filas.
 export function PanelDeNuevaTabla({ abierto, alCerrar, origen, lugar }: Props) {
-  const nueva = useNuevaTabla({ origenId: origen?.id ?? null, lugar })
+  const nueva = useNuevaTabla({ origenId: origen.id, lugar })
   const idFormulario = useId()
   const formulario = useRef<HTMLFormElement>(null)
   return (
@@ -117,11 +124,7 @@ export function PanelDeNuevaTabla({ abierto, alCerrar, origen, lugar }: Props) {
       abierto={abierto}
       alCerrar={alCerrar}
       titulo="Nueva tabla"
-      descripcion={
-        origen
-          ? 'Nace vacía y sin publicar: después le sumas filas y la publicas.'
-          : 'Compartida: la usan los orígenes que no tienen una propia con su clave. Nace vacía y sin publicar.'
-      }
+      descripcion={DESCRIPCION[nueva.para]}
       ancho="amplio"
       pie={
         <PieDelPanel
@@ -151,7 +154,7 @@ export function PanelDeNuevaTabla({ abierto, alCerrar, origen, lugar }: Props) {
           </Aviso>
         ) : null}
         <CampoDelNombre nueva={nueva} />
-        {origen ? <CampoParaQuien nueva={nueva} origen={origen.nombre} /> : null}
+        <CampoParaQuien nueva={nueva} origen={origen.nombre} />
         <EditorDeColumnas
           edicion={nueva.edicion}
           editar={nueva.editar}

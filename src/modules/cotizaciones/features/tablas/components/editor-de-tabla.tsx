@@ -6,7 +6,7 @@ import { avisar, avisarConDeshacer } from '@/shared/ui/toasts'
 import type { FilaEditable } from '../../../entities/tablas/edicion'
 import type { TablaDeReferencia } from '../../../entities/tablas/lectura'
 import type { EstadoDelEditor } from '../../../entities/tablas/vista-del-editor'
-import { lugarDelDestino, type DestinoDeLasTablas } from '../../../entities/tablas/rutas'
+import type { DestinoDeLasTablas } from '../../../entities/tablas/rutas'
 import { useBorradorAlAbrir, useBorradorDeTabla } from '../hooks/use-borrador-de-tabla'
 import { useFilasDeTabla } from '../hooks/use-filas-de-tabla'
 import { AvisoDelPrimerError } from './aviso-del-primer-error'
@@ -102,12 +102,7 @@ export function EditorDeTabla({ tabla, filas, destino }: Props) {
         alElegir={edicion.setPagina}
       />
       <BarraDeCambios cambios={cambios} alDescartar={descartar}>
-        <PublicarTabla
-          tabla={tabla}
-          edicion={edicion}
-          borrador={borrador}
-          lugar={lugarDelDestino(destino)}
-        />
+        <PublicarTabla tabla={tabla} edicion={edicion} borrador={borrador} />
       </BarraDeCambios>
     </section>
   )

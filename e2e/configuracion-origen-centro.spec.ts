@@ -273,10 +273,11 @@ const REDIRECCIONES: Record<string, Redireccion> = {
     de: () => '/configuracion/logistica',
     a: () => '/logistica/configuracion/puertos',
   },
-  // /configuracion/catalogos (route.ts, por persona): no tiene página propia.
+  // /configuracion/catalogos (route.ts, por persona): no tiene página propia ni nada que abrir: al inicio de Configuración. Las tablas compartidas, en
+  // `configuracion-tablas-drawer.spec.ts`.
   'catalogos sin nada': {
     de: () => '/configuracion/catalogos',
-    a: () => '/configuracion/catalogos/tablas',
+    a: () => '/configuracion/inicio',
   },
   // /configuracion/origenes/<id> (route.ts, por persona: sin pestaña recordada, la primera que abre).
   'origenes/<id> ?seccion=campos&campo': {

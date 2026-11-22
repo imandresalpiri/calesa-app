@@ -1,6 +1,7 @@
 'use client'
 
 import { formatearNumero } from '@/shared/lib/formato'
+import { CLAVE_DE_LA_ACCION_DE_LA_TABLA } from '@/shared/lib/rutas'
 import { Button } from '@/shared/ui/button'
 import { useRegional } from '@/shared/ui/regional'
 import { avisarExito } from '@/shared/ui/toasts'
@@ -9,7 +10,6 @@ import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import { filasParaPublicar } from '../../../entities/tablas/edicion'
 import type { PublicacionDeTabla } from '../../../entities/tablas/publicacion'
 import type { TablaDeReferencia } from '../../../entities/tablas/lectura'
-import { claveDeLaAccion, type LugarDeLasTablas } from '../../../entities/tablas/rutas'
 import { destinoDeCamino } from '../../../entities/tablas/vista-del-editor'
 import type { BorradorDeTablaEnUso } from '../hooks/use-borrador-de-tabla'
 import type { FilasDeTabla } from '../hooks/use-filas-de-tabla'
@@ -19,7 +19,6 @@ type Props = {
   tabla: TablaDeReferencia
   edicion: FilasDeTabla
   borrador: BorradorDeTablaEnUso
-  lugar: LugarDeLasTablas
 }
 
 export const PANEL_PUBLICAR_TABLA = 'publicar-tabla'
@@ -37,9 +36,9 @@ const avisoDePublicada = (
 
 // «Publicar» del editor de tablas (4.23-3, C9): apagado sin cambios o con una celda marcada; abre `?panel=publicar-tabla`. Entró: se cierra, se avisa y la ruta
 // revalidada vuelve a montar el editor con la versión nueva.
-export function PublicarTabla({ tabla, edicion, borrador, lugar }: Props) {
+export function PublicarTabla({ tabla, edicion, borrador }: Props) {
   const { locale } = useRegional()
-  const panel = usePanelPorUrl(PANEL_PUBLICAR_TABLA, [], { clave: claveDeLaAccion(lugar) })
+  const panel = usePanelPorUrl(PANEL_PUBLICAR_TABLA, [], { clave: CLAVE_DE_LA_ACCION_DE_LA_TABLA })
   const montado = useAbiertoAlgunaVez(panel.abierto)
   const { estado, cambios, error } = edicion
   const bloqueo = !cambios

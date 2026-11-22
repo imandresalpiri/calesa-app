@@ -62,7 +62,6 @@ export function DrawerDeLasTablas({ children }: Props) {
           void escribir(SIN_LAS_TABLAS, { scroll: false })
         }}
         titulo="Tablas de referencia"
-        descripcion="Las de este origen y las compartidas que usa."
         ancho="amplio"
       >
         {children ?? <EsqueletoFormulario bloques={2} campos={4} />}

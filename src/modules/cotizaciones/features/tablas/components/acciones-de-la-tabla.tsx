@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { CLAVE_DE_LA_ACCION_DE_LA_TABLA } from '@/shared/lib/rutas'
 import { EsquinaDeAcciones, MasAcciones } from '@/shared/ui/lista'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { useApertura } from '@/shared/ui/use-apertura'
@@ -14,7 +15,6 @@ import type { TablaDeReferencia } from '../../../entities/tablas/lectura'
 import {
   PANEL_COLUMNAS_DE_TABLA,
   PANEL_DESACTIVAR_TABLA,
-  claveDeLaAccion,
   rutaDeLasTablas,
   type LugarDeLasTablas,
 } from '../../../entities/tablas/rutas'
@@ -22,8 +22,8 @@ import { menuDeTablaEnElEditor, menuDeTablaEnLaLista } from './acciones-de-tabla
 import { DesactivarTablaDiferido, PanelDeColumnasDiferido } from './diferidos'
 
 // Un panel de la tabla abierta por la URL: con cambios de filas sin publicar no se abre (se avisa y se limpia la URL); cada apertura aceptada empieza de cero.
-function usePanelDeLaTabla(panel: string, motivo: string | null, lugar: LugarDeLasTablas) {
-  const url = usePanelPorUrl(panel, [], { clave: claveDeLaAccion(lugar) })
+function usePanelDeLaTabla(panel: string, motivo: string | null) {
+  const url = usePanelPorUrl(panel, [], { clave: CLAVE_DE_LA_ACCION_DE_LA_TABLA })
   const apertura = useApertura(url.abierto)
   const rechazada = useRevisionAlAbrir(
     url.abierto ? `${panel}:${String(apertura)}` : null,
@@ -43,19 +43,17 @@ export function AccionesDelEditor({
   cambios,
 }: {
   tabla: TablaDeReferencia
-  origenId: string | null
+  origenId: string
   lugar: LugarDeLasTablas
   cambios: boolean
 }) {
   const columnas = usePanelDeLaTabla(
     PANEL_COLUMNAS_DE_TABLA,
     cambios ? AVISO_CON_CAMBIOS_DE_FILAS : null,
-    lugar,
   )
   const desactivar = usePanelDeLaTabla(
     PANEL_DESACTIVAR_TABLA,
     cambios ? AVISO_CON_CAMBIOS_DE_FILAS_AL_DESACTIVAR : null,
-    lugar,
   )
   return (
     <>
@@ -98,7 +96,7 @@ export function AccionesDelEditor({
   )
 }
 
-// El «⋯» de una tabla en la lista: cada línea lleva a la tabla abierta (con su panel), donde se sabe si hay cambios de filas sin publicar.
+// El «⋯» de una tabla en la lista, encima del toque de la fila: cada línea lleva a la tabla abierta (con su panel), donde se sabe si hay cambios de filas sin publicar.
 export function AccionesDeLaTablaEnLaLista({
   tabla,
   lugar,
@@ -108,7 +106,7 @@ export function AccionesDeLaTablaEnLaLista({
 }) {
   const router = useRouter()
   return (
-    <EsquinaDeAcciones>
+    <EsquinaDeAcciones className="relative">
       <MasAcciones
         nombre={tabla.nombre}
         acciones={menuDeTablaEnLaLista({

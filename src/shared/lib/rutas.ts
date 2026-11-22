@@ -35,7 +35,8 @@ export const RUTAS = {
   // una abre su modal por `?panel=` (no son rutas: no se revalidan, se enlazan).
   coloresDeCotizacion: '/configuracion/origenes?panel=colores',
   vigenciaDeCotizacion: '/configuracion/origenes?panel=vigencia',
-  // Catálogos: lo global de la empresa que no tiene otra área (las tablas compartidas). Lo de cada origen vive en su página.
+  // Catálogos ya no tiene páginas: `catalogos` y `tablasCompartidas` son URL viejas que sólo redirigen (`route.ts`). Las tablas de referencia, propias y compartidas, viven en
+  // el drawer «Tablas» de cada origen (`?panel=tablas`).
   catalogos: '/configuracion/catalogos',
   tablasCompartidas: '/configuracion/catalogos/tablas',
   configuracionDeWeb: '/configuracion/web',

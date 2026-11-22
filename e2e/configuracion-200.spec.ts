@@ -115,7 +115,6 @@ const PANTALLAS: Pantalla[] = [
     titulo: 'Logística › Configuración › Tipos de documento',
     url: () => '/logistica/configuracion/tipos-de-documento',
   },
-  { titulo: 'Catálogos › Tablas compartidas', url: () => '/configuracion/catalogos/tablas' },
   { titulo: 'Repuestos › Flujo de repuestos', url: () => '/repuestos/configuracion/flujo' },
   {
     titulo: 'Equipo',

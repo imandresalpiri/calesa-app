@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { ClavePermiso, Permisos } from '@/shared/lib/permisos'
-import { conSubseccionesVisibles, primeraSubseccionAbierta } from '../secciones'
+import { conSubseccionesVisibles, primeraSubseccionAbierta, seccionesVisibles } from '../secciones'
 import { SECCION_DE_CATALOGOS } from './seccion'
 
 const con = (...claves: ClavePermiso[]): Permisos =>
@@ -17,41 +17,15 @@ describe('la sección Catálogos de Configuración', () => {
     expect(existsSync(path.join(APP, 'configuracion/catalogos/route.ts'))).toBe(true)
   })
 
-  it('sólo queda Tablas compartidas, sin rótulo: la logística vive en Logística › Configuración', () => {
-    expect(
-      SECCION_DE_CATALOGOS.subsecciones.map((sub) => [sub.titulo, sub.ruta, sub.grupo ?? null]),
-    ).toEqual([['Tablas compartidas', '/configuracion/catalogos/tablas', null]])
-  })
-
-  it('cada catálogo lleva a una página que existe', () => {
-    for (const sub of SECCION_DE_CATALOGOS.subsecciones) {
-      expect(existsSync(path.join(APP, sub.ruta, 'page.tsx')), sub.clave).toBe(true)
+  it('ya no tiene sub-secciones ni permisos: nadie la ve y no hay a dónde abrir', () => {
+    expect(SECCION_DE_CATALOGOS.subsecciones).toEqual([])
+    expect([...SECCION_DE_CATALOGOS.permisos]).toEqual([])
+    for (const clave of ['cotizaciones.configurar', 'logistica.catalogos.gestionar'] as const) {
+      const permisos = con(clave)
+      expect(conSubseccionesVisibles(SECCION_DE_CATALOGOS, permisos).subsecciones).toEqual([])
+      expect(primeraSubseccionAbierta(SECCION_DE_CATALOGOS, permisos)).toBeNull()
+      expect(seccionesVisibles(permisos).map((s) => s.clave)).not.toContain('catalogos')
     }
-  })
-
-  it('se abre sólo con `cotizaciones.configurar`', () => {
-    expect([...SECCION_DE_CATALOGOS.permisos]).toEqual(['cotizaciones.configurar'])
-  })
-
-  it('quien configura la cotización ve las tablas compartidas, y la sección abre ahí', () => {
-    const permisos = con('cotizaciones.configurar')
-    const visibles = conSubseccionesVisibles(SECCION_DE_CATALOGOS, permisos)
-    expect(visibles.subsecciones.map((sub) => [sub.clave, sub.apagada ?? false])).toEqual([
-      ['tablas', false],
-    ])
-    expect(primeraSubseccionAbierta(SECCION_DE_CATALOGOS, permisos)).toBe(
-      '/configuracion/catalogos/tablas',
-    )
-  })
-
-  it('quien sólo gestiona los catálogos de logística o configura un flujo no ve nada aquí', () => {
-    for (const clave of ['logistica.catalogos.gestionar', 'flujos.configurar'] as const) {
-      expect(primeraSubseccionAbierta(SECCION_DE_CATALOGOS, con(clave))).toBeNull()
-    }
-  })
-
-  it('sin permisos, nada que abrir', () => {
-    expect(primeraSubseccionAbierta(SECCION_DE_CATALOGOS, [])).toBeNull()
   })
 })
 
@@ -62,16 +36,16 @@ describe('Lo que se mudó de Catálogos', () => {
     }
   })
 
-  it('Colores, Vigencia, Niveles y Quién crea y quién ve ya no son catálogos: sus rutas viejas sólo redirigen (route.ts), sin página', () => {
-    const claves = SECCION_DE_CATALOGOS.subsecciones.map((sub) => sub.clave)
-    for (const vieja of ['colores', 'vigencia', 'niveles', 'quien-crea-y-quien-ve']) {
-      expect(claves).not.toContain(vieja)
+  it('Tablas, Colores, Vigencia, Niveles y Quién crea y quién ve ya no son catálogos: sus rutas viejas sólo redirigen (route.ts), sin página', () => {
+    for (const vieja of ['tablas', 'colores', 'vigencia', 'niveles', 'quien-crea-y-quien-ve']) {
       expect(existsSync(path.join(APP, 'configuracion/catalogos', vieja, 'route.ts')), vieja).toBe(
         true,
       )
-      expect(existsSync(path.join(APP, 'configuracion/catalogos', vieja, 'page.tsx')), vieja).toBe(
-        false,
-      )
+      for (const pagina of ['page.tsx', 'loading.tsx']) {
+        expect(existsSync(path.join(APP, 'configuracion/catalogos', vieja, pagina)), vieja).toBe(
+          false,
+        )
+      }
     }
   })
 })

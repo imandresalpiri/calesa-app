@@ -9,22 +9,17 @@ import { urlDeLaFormula } from './soporte/rutas-de-la-formula'
 import { literal, sql } from './soporte/sql'
 
 // Crear tablas de referencia y cambiar sus columnas desde el drawer «Tablas» de la Planilla del origen (`docs/COTIZADOR.md` › «Crear, columnas y desactivar»):
-// «Nueva tabla», sus filas y su publicación, «Columnas» (renombrar, sumar y quitar), la columna en uso que la base rechaza, la clave repetida y «Desactivar»; y
-// una compartida desde Catálogos.
+// «Nueva tabla», sus filas y su publicación, «Columnas» (renombrar, sumar y quitar), la columna en uso que la base rechaza, la clave repetida y «Desactivar»;
+// (la compartida, en `configuracion-tablas-drawer.spec.ts`).
 // El PT409, los permisos de otro origen y los topes los prueban `supabase/tests/areas/tablas/` y las carreras.
 
 let origen = { id: '', nombre: '' }
 let duena = ''
 const NOMBRE = 'E2E Fletes por puerto'
-const COMPARTIDA = 'E2E Compartida nueva'
-
-const borrarCompartidasDePrueba = () =>
-  sql(`delete from public.tablas_referencia where origen_id is null and clave like 'e2e\\_%'`)
 
 test.beforeAll(async ({}, info) => {
   const proyecto = info.project.name
   borrarOrigenesDeCotizar()
-  borrarCompartidasDePrueba()
   await borrarPersonasDePrueba()
   duena = correoDePrueba(`duena-tablas-crear-${proyecto}`)
   await crearDuenaDePrueba({ email: duena, contrasena: CONTRASENA, nombre: 'Tita Tablas' })
@@ -35,7 +30,6 @@ test.beforeAll(async ({}, info) => {
 
 test.afterAll(async () => {
   borrarOrigenesDeCotizar()
-  borrarCompartidasDePrueba()
   await borrarPersonasDePrueba()
 })
 
@@ -52,7 +46,7 @@ async function crearLaTabla(page: Page) {
   const nueva = page.getByRole('dialog', { name: 'Nueva tabla' })
   await nueva.getByLabel('Nombre', { exact: true }).fill(NOMBRE)
   await expect(nueva.getByText('e2e_fletes_por_puerto', { exact: true })).toBeVisible()
-  await expect(nueva.getByRole('radio', { name: `Sólo ${origen.nombre}` })).toBeChecked()
+  await expect(nueva.getByRole('radio', { name: `Sólo de ${origen.nombre}` })).toBeChecked()
   await nueva.getByLabel('Nombre de la columna 1').fill('Puerto')
   await nueva.getByLabel('Tipo de Puerto').selectOption('texto')
   await nueva.getByRole('button', { name: 'Sumar una columna' }).click()
@@ -130,7 +124,7 @@ async function cambiarLasColumnas(page: Page, editor: Locator) {
 // Una columna que lee la fórmula publicada no se quita: lo dice la base y nada cambia.
 async function quitarUnaColumnaEnUso(page: Page) {
   await page.goto(urlDeLaFormula(origen.id, 'planilla', 'panel=tablas'))
-  const lista = page.getByRole('list', { name: `Tablas de referencia de ${origen.nombre}` })
+  const lista = page.getByRole('list', { name: `De ${origen.nombre}` })
   await lista.getByRole('button', { name: 'Más acciones de Factores vivos' }).click()
   await page.getByRole('menuitem', { name: 'Columnas' }).click()
   const enUso = page.getByRole('dialog', { name: 'Columnas de Factores vivos' })
@@ -166,7 +160,7 @@ async function repetirElNombre(page: Page) {
 }
 
 async function desactivarLaTabla(page: Page) {
-  const lista = page.getByRole('list', { name: `Tablas de referencia de ${origen.nombre}` })
+  const lista = page.getByRole('list', { name: `De ${origen.nombre}` })
   // «Desactivar»: vuelve a la lista, sin la tabla.
   await lista.getByRole('button', { name: `Más acciones de ${NOMBRE}` }).click()
   await page.getByRole('menuitem', { name: 'Desactivar' }).click()
@@ -178,7 +172,7 @@ async function desactivarLaTabla(page: Page) {
       `/configuracion/origenes/${origen.id}/planilla\\?formula=[0-9a-f-]{36}&panel=tablas$`,
     ),
   )
-  await expect(lista.getByRole('link', { name: NOMBRE })).toBeHidden()
+  await expect(lista.getByRole('button', { name: `Editar ${NOMBRE}` })).toBeHidden()
   expect(deLaTabla('e2e_fletes_por_puerto', 'activa')).toBe('f')
 }
 
@@ -191,28 +185,4 @@ test('E2E escritorio · camino feliz: crear una tabla, cambiar sus columnas y de
   await quitarUnaColumnaEnUso(page)
   await repetirElNombre(page)
   await desactivarLaTabla(page)
-})
-
-test('E2E escritorio · camino feliz: crear una tabla compartida en Catálogos', async ({ page }) => {
-  await entrar(page, duena, { fresco: true })
-  await page.goto('/configuracion/catalogos/tablas')
-  await page.getByRole('button', { name: 'Nueva tabla' }).click()
-  const nueva = page.getByRole('dialog', { name: 'Nueva tabla' })
-  await expect(nueva.getByRole('radio')).toHaveCount(0)
-  await nueva.getByLabel('Nombre', { exact: true }).fill(COMPARTIDA)
-  await nueva.getByLabel('Nombre de la columna 1').fill('Factor')
-  await nueva.getByRole('button', { name: 'Crear tabla' }).click()
-  await expect(page.getByRole('heading', { name: `Editar ${COMPARTIDA}` })).toBeVisible()
-  expect(
-    sql(
-      `select count(*) from public.tablas_referencia where origen_id is null and clave = 'e2e_compartida_nueva' and activa`,
-    ),
-  ).toBe('1')
-
-  await page.goto(urlDeLaFormula(origen.id, 'planilla', 'panel=tablas'))
-  const fila = page
-    .getByRole('list', { name: `Tablas de referencia de ${origen.nombre}` })
-    .getByRole('listitem')
-    .filter({ has: page.getByRole('link', { name: COMPARTIDA }) })
-  await expect(fila.getByText('Compartida', { exact: true })).toBeVisible()
 })

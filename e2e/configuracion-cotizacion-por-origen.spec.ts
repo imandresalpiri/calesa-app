@@ -94,9 +94,7 @@ test('E2E escritorio · la fórmula de un origen en Planilla, Hoja y Tarjeta, y 
   await expect(page).toHaveURL(new RegExp(`${ORIGENES}/${id}/tarjeta\\?.*panel=tablas`))
   const tablas = page.getByRole('dialog', { name: 'Tablas de referencia' })
   // El origen del spec no tiene tablas: el drawer dibuja su vacío (con tablas, la lista; `configuracion-cotizacion-tablas.spec.ts`).
-  await expect(
-    tablas.getByText(`${conFormula.nombre} no tiene tablas de referencia.`),
-  ).toBeVisible()
+  await expect(tablas.getByText(`${conFormula.nombre} no tiene tablas propias.`)).toBeVisible()
 })
 
 test('E2E escritorio · Niveles y Quién crea y quién ve ya no son catálogos: sus rutas de antes llevan a Roles', async ({
@@ -132,9 +130,11 @@ test('E2E escritorio · quien configura un origen no abre uno ajeno ni los nivel
   await page.goto(`${CATALOGOS}/niveles`)
   await expect(page).toHaveURL(/\/configuracion\/roles\?bloque=cotizaciones$/)
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
+  // Catálogos ya no abre nada: al inicio. Las tablas compartidas redirigen al drawer del origen que ella configura.
   await page.goto(CATALOGOS)
-  await expect(page).toHaveURL(new RegExp(`${CATALOGOS}/tablas$`))
-  await expect(page.getByRole('heading', { name: 'Tablas compartidas', level: 1 })).toBeVisible()
+  await expect(page).toHaveURL('/configuracion/inicio')
+  await page.goto(`${CATALOGOS}/tablas`)
+  await expect(page).toHaveURL(new RegExp(`${ORIGENES}/${sinFormula.id}/planilla\\?panel=tablas$`))
 })
 
 test('E2E escritorio · quien sólo ve los roles abre los niveles de Roles y ningún origen', async ({

@@ -1,5 +1,5 @@
 // Un cliente que se porta como PostgREST para probar la lectura de las tablas de referencia (4.23-2): sólo para las pruebas. Aplica `eq`, el `or` del cursor
-// `(orden, id)` y el de los orígenes, `is`, `order` y `limit`, y **recorta toda respuesta a `maxRows`** aunque se pida más (el `max_rows` del despliegue).
+// `(orden, id)` y el de los orígenes, `is`, `in`, `order` y `limit`, y **recorta toda respuesta a `maxRows`** aunque se pida más (el `max_rows` del despliegue).
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/shared/types/database.types'
 
@@ -59,6 +59,11 @@ export function clienteSimulado(datos: Record<string, Fila[]>, maxRows = 1000) {
         is(columna: string, valor: null) {
           llamada.filtros.push(`is:${columna}`)
           filas = filas.filter((f) => f[columna] === valor)
+          return constructor
+        },
+        in(columna: string, valores: unknown[]) {
+          llamada.filtros.push(`in:${columna}`)
+          filas = filas.filter((f) => valores.includes(f[columna]))
           return constructor
         },
         or(condicion: string) {

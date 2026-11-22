@@ -566,10 +566,11 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (`/comprobantes`, con `empresa.ajustes.gestionar`: la tarjeta con la serie vigente y el próximo comprobante, y «Cambiar serie» en su modal, con versión; sin el
   permiso, apagada con «Pide el permiso «Ajustes de la empresa».» y su URL abre Datos). Las URLs viejas redirigen en el servidor
   (`url-vieja.ts`): `?seccion=` a su sub-ruta, y `?tc=`, `?moneda=` y los `?panel=` de crear (con o sin `?seccion=`) a Monedas con ellos.
-- **Catálogos** — `/configuracion/catalogos` (`cotizaciones.configurar`): lo de toda la empresa que no es de un origen ni de la logística. No
-  tiene página propia ni pestañas: la raíz abre (308, por persona) la primera sub-sección que la persona puede abrir, o el inicio de Configuración.
-  Hoy es **«Tablas compartidas»** (`/tablas`; `?tabla=<id>`, `?panel=publicar-tabla|nueva-tabla|columnas-de-tabla|desactivar-tabla`): las tablas de referencia sin origen, con el
-  aviso de a qué orígenes les cambia. Sin título de bloque ni segunda frase: «Nuevo …» arriba a la derecha y la lista. Los catálogos de la logística viven en
+- **Catálogos** — `/configuracion/catalogos`: ya no tiene páginas ni lugar en el menú; sólo redirige (308, por persona) al inicio de Configuración. Las **tablas compartidas** se ven,
+  se crean y se editan en el drawer «Tablas» de cada origen: `/configuracion/catalogos/tablas` (con `?tabla=` y `?panel=`) responde 308 al drawer del primer origen que la
+  persona configura y que usa esa tabla (el primero, en el orden de la lista de orígenes, que la recibe: sin una propia con su clave; el dueño, si es propia), con
+  `?panel=tablas&tabla=<id>` y el panel viejo de la tabla en `accion`; sin tabla, al drawer del primer origen que configura; con una `?tabla=` que no existe o que
+  ninguno de los suyos usa, al drawer del primero sin la tabla; sin ningún origen que configure, al inicio. El buscador la encuentra como «Orígenes › Tablas compartidas». Los catálogos de la logística viven en
   Logística › Configuración («Logística (config)»); sus rutas de antes (`/configuracion/catalogos/puertos|navieras|categorias-de-gasto|tipos-de-documento` y
   `/configuracion/logistica/…`) responden 308 ahí, con la consulta. Los niveles de acceso y «Quién crea y quién ve» viven en la matriz de Roles, bloque «Cotizaciones»
   (`/niveles` y `/quien-crea-y-quien-ve` responden 308 a `/configuracion/roles?bloque=cotizaciones`); los colores y la vigencia, en «Para todos los orígenes» (Orígenes).
@@ -633,7 +634,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     versiones y sus tablas.»): la planilla, con `?panel=publicar-formula`, `revertir-formula&version=<id>` y `descartar-borrador`, y los de la planilla
     («Cotización: fórmula (estados propios)»); `?panel=editar-formula` y `?panel=plantillas-de-v1` responden 308 a la misma parte, sin el panel.
     «Hoja» («Cómo se ve y se llena la cotización.»): `?vista=412|1280|200`, desde `xl` al costado. «Tarjeta» («La imagen que recibe el cliente.»):
-    `?panel=publicar-tarjeta|descartar-plantilla` y `?referencia=ejemplo`. En el drawer de las tablas, las del origen y las compartidas que usa (una
+    `?panel=publicar-tarjeta|descartar-plantilla` y `?referencia=ejemplo`. En el drawer de las tablas, en dos grupos: «De <origen>» y «Compartidas» (una
     compartida tapada por una propia va «Tapada por la de <origen>»); `&tabla=<id>` (el editor) y
     `&accion=publicar-tabla|nueva-tabla|columnas-de-tabla|desactivar-tabla`. Una compartida se edita ahí con el aviso de a quién le cambia.
   - **Campos** (`/campos`, «Campos del origen»; el editor de campos de `shared/ui/campos`, a todo el ancho, sin tope): arriba el buscador
@@ -1771,18 +1772,19 @@ El modo «Retocar la tarjeta» de «Vista previa» en una guardada (`/cotizacion
 ### Cotización: tablas (estados propios)
 
 Configuración › Orígenes › un origen › «Tablas» de la barra de la fórmula (el drawer `?panel=tablas` sobre Planilla, Hoja o Tarjeta; sus paneles van en
-`&accion=`; las compartidas, también en Catálogos › Tablas compartidas, `/configuracion/catalogos/tablas`): crear tablas de referencia, cambiar sus columnas, desactivarlas y editar y publicar sus filas
+`&accion=`; las compartidas se editan ahí, por cualquiera de los orígenes que las reciben): crear tablas de referencia, cambiar sus columnas, desactivarlas y editar y publicar sus filas
 (`tabla_referencia_crear|columnas|desactivar|publicar()`).
 
 - **En el drawer:** abrir una tabla (`&tabla=<id>`) cambia la lista por su editor dentro del mismo drawer, con «Volver a las tablas»; cerrar el drawer con
   cambios sin guardar pregunta antes. Las tablas se leen al abrir el drawer, no con la pestaña.
 - **Quién entra y origen:** como «Fórmula»; cambiar de origen con el selector de las migas lleva a la misma pestaña del otro, sin el drawer.
-- **Lista:** las tablas activas del origen y las compartidas, por clave: nombre como enlace a `?tabla=<id>`, clave, «Compartida» y
-  «Tapada por la de <Origen>» (`<Badge>`) y «Versión N · <persona> · <cuándo>», y su «⋯» («Editar filas», «Columnas», «Desactivar»: lleva a la
-  tabla con ese panel). «Nueva tabla» arriba a la derecha; vacía: «<Origen> no tiene tablas de referencia.» con «Nueva tabla» en el mismo bloque. Tope
-  100 con aviso y «Nueva tabla» apagado con su motivo. Esqueleto y error de la ruta.
-- **Nueva tabla** (`?panel=nueva-tabla`, un `<Drawer>`): «Nombre» (debajo, «Clave: `x` · no cambia después»), para quién (sólo con origen: «Sólo
-  <Origen>» o «Compartida: la usan los orígenes sin una propia»; en Catálogos siempre compartida) y las columnas (nombre, tipo número, año o texto y
+- **Lista:** dos grupos, cada uno con su título: **«De <Origen>»** (las propias, con «Nueva tabla» arriba a la derecha; vacío: «<Origen> no tiene tablas propias.») y
+  **«Compartidas»** (las que recibe; sin ninguna, el grupo no se dibuja). Cada fila: nombre, clave, «Tapada por la de <Origen>» (`<Badge>`, una compartida que una propia tapa) y
+  «Versión N · <persona> · <cuándo>», con sólo su «⋯» («Editar filas», «Columnas», «Desactivar»: lleva a la tabla con ese panel). Tocar la fila (fuera del «⋯») abre «Editar
+  filas» (`?tabla=<id>`); con el teclado la fila es un botón con nombre («Editar <nombre>») y el «⋯» va aparte («Más acciones de <nombre>»). Tope 100 con aviso y «Nueva
+  tabla» apagado con su motivo. Esqueleto y error de la ruta.
+- **Nueva tabla** (`?panel=nueva-tabla`, un `<Drawer>`): «Nombre» (debajo, «Clave: `x` · no cambia después»), para quién («Sólo de
+  <Origen>» o «Compartida con todos los orígenes»; bajo el título del panel, qué significa cada una: la compartida la usan los orígenes sin una propia con su clave) y las columnas (nombre, tipo número, año o texto y
   clave, que sigue al nombre hasta tocarla; «Subir», «Bajar», «Quitar»; «Sumar una columna» hasta 20, apagado en el tope con su motivo). «Crear tabla» /
   «Creando…»; un rechazo de la base va junto a su campo con el foco (la clave tomada, junto al nombre) y uno sin campo, arriba. Sin conexión, el aviso
   arriba y lo escrito queda (repetir devuelve la misma tabla). Entró: «Creaste «X». Suma sus filas y publícala.» y abre la tabla. Cerrar con algo escrito

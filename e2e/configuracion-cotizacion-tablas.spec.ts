@@ -48,8 +48,8 @@ test('E2E escritorio · camino feliz: editar, sumar, mover y publicar una tabla 
     new RegExp(`/configuracion/origenes/${origen.id}/planilla\\?(.*&)?panel=tablas(&|$)`),
   )
   const drawer = page.getByRole('dialog', { name: 'Tablas de referencia' })
-  const lista = drawer.getByRole('list', { name: `Tablas de referencia de ${origen.nombre}` })
-  await lista.getByRole('link', { name: 'Factores vivos' }).click()
+  const lista = drawer.getByRole('list', { name: `De ${origen.nombre}` })
+  await lista.getByRole('button', { name: 'Editar Factores vivos' }).click()
 
   const editor = drawer.getByRole('region', { name: 'Editar Factores vivos' })
   await expect(editor.getByRole('heading', { name: 'Editar Factores vivos' })).toBeVisible()

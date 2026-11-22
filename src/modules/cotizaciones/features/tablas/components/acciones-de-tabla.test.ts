@@ -23,6 +23,9 @@ describe('menuDeTablaEnLaLista', () => {
       'desactivar',
     ])
     expect(apagadas(lineas)).toEqual([])
+    expect(lineas.filter((l) => l.tipo === 'accion' && l.principal).map((l) => l.clave)).toEqual([
+      'editar-filas',
+    ])
     for (const linea of lineas) if (linea.tipo === 'accion') linea.alElegir()
     expect(quehaceres.alEditarFilas).toHaveBeenCalledOnce()
     expect(quehaceres.alAbrirColumnas).toHaveBeenCalledOnce()
