@@ -1,7 +1,6 @@
 import { MapPinIcon, ShieldCheckIcon, UsersRoundIcon, type LucideIcon } from 'lucide-react'
 import { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'
 import { RUTAS } from '@/shared/lib/rutas'
-import { SECCION_DE_CATALOGOS } from './catalogos/seccion'
 import { destinosDeLaSeccion, type DestinoDelNavegador } from './destinos-de-busqueda'
 import { SECCION_DE_COLA_WEB } from './cola-web/seccion'
 import { SECCION_DE_EMPRESA } from './empresa/seccion'
@@ -19,7 +18,6 @@ import { SECCION_DE_WEB } from './web/seccion'
 export const GRUPOS = [
   { clave: 'empresa-y-equipo', titulo: 'Empresa y equipo' },
   { clave: 'ventas', titulo: 'Ventas' },
-  { clave: 'operacion', titulo: 'Operación' },
   { clave: 'web', titulo: 'Web' },
 ] as const
 
@@ -126,7 +124,6 @@ export const SECCIONES = [
     grupo: 'ventas',
     subsecciones: [],
   },
-  SECCION_DE_CATALOGOS,
   SECCION_DE_WEB,
   SECCION_DE_COLA_WEB,
 ] as const satisfies readonly SeccionDeConfiguracion[]

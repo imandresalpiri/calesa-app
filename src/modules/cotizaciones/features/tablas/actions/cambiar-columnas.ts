@@ -27,7 +27,6 @@ export const cambiarColumnas = actionClient
       const hecho = await repositorioDeTablas.cambiarColumnas(pedido)
       if (hecho.ok) {
         revalidatePath(RUTAS.origenes, 'layout')
-        revalidatePath(RUTAS.catalogos, 'layout')
       }
       return hecho
     },

@@ -91,7 +91,6 @@ describe('publicarTabla', () => {
     expect(h.pedidos).toEqual([{ ...pedido, nota: 'precios de noviembre' }])
     expect(respuesta.data).toEqual({ ok: true, data: { version: 4, formulas: [] } })
     expect(h.cache.revalidatePath).toHaveBeenCalledWith(RUTAS.origenes, 'layout')
-    expect(h.cache.revalidatePath).toHaveBeenCalledWith(RUTAS.catalogos, 'layout')
   })
 
   it('con un conflicto no revalida y devuelve el mensaje de la base', async () => {

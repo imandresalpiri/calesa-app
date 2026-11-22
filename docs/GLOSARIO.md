@@ -137,9 +137,6 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Tarjeta, Publicar y **Listo** («Cotizar con <origen>»). El avance se deriva de lo que hay (campos, fases, fórmula de trabajo, fórmula activa), sin
   guardar un «paso actual»: cada paso guarda con sus botones, «Seguir» va al siguiente y la raíz lleva al que falta. Un paso sin el permiso en ese
   origen se salta y dice su motivo. Se retoma con «Seguir la puesta en marcha» de la página del origen. No: «asistente», «wizard», «onboarding».
-- **Catálogos (Configuración)** — `SECCION_DE_CATALOGOS`, `/configuracion/catalogos`: ya sin páginas ni lugar en el menú (sólo redirige las URL viejas). Las tablas compartidas viven en el
-  drawer de las tablas de cada origen; los niveles de acceso y Quién crea y quién ve, en la matriz de Roles; Colores y Vigencia, en Orígenes; Puertos, Navieras, Categorías de gasto y
-  Tipos de documento, en Logística › Configuración. No es el catálogo de repuestos ni el de apibara.
 - **Configuración de logística** — `/logistica/configuracion/<clave>` (`RUTAS.configuracionDeLogistica`): la página de Logística con las pestañas Puertos, Navieras, Categorías de gasto y
   Tipos de documento; se entra con el botón ⚙ «Configurar» de la cabecera de Logística. No: «Catálogos de logística» como sección de Configuración.
 - **Configuración de repuestos** — `/repuestos/configuracion/<flujo|cotizador|catalogos>` (`RUTAS.configuracionDeRepuestos`): la página de Repuestos con las pestañas Flujo, Cotizador y Catálogos; se entra

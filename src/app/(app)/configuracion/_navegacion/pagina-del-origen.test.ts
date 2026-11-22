@@ -15,6 +15,6 @@ describe('esLaPaginaDelOrigen', () => {
     expect(esLaPaginaDelOrigen('/configuracion/origenes')).toBe(false)
     expect(esLaPaginaDelOrigen('/configuracion/origenes/nuevo')).toBe(false)
     expect(esLaPaginaDelOrigen(`/configuracion/origenes/${ID}/puesta-en-marcha/datos`)).toBe(false)
-    expect(esLaPaginaDelOrigen('/configuracion/catalogos/colores')).toBe(false)
+    expect(esLaPaginaDelOrigen('/configuracion/roles')).toBe(false)
   })
 })

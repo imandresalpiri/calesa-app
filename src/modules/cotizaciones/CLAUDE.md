@@ -175,7 +175,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   guardada. `hoja-de-una-guardada.ts` viaja al navegador sin Zod; su lectura es `hoja-de-una-guardada-lectura.ts` (sólo servidor).
 - **Tablas de referencia** (área `tablas`; `/configuracion/origenes/<id>/tablas?tabla=`, `cotizaciones.configurar`): `SeccionDeLasTablas` con `destino` = `{ origen, en }` lee la
   lista del origen y las compartidas que recibe (`leerTablasDeReferencia()`) y `ListaDeTablas` la parte en dos grupos, «De <origen>» y «Compartidas»; ya no hay un destino
-  «compartidas» ni página en Catálogos: `/configuracion/catalogos/tablas` es un 308 de `src/app` que usa `leerDondeSeUsaLaTabla(tablaId, candidatos)` (de quién es la tabla y qué
+  «compartidas» ni sección de Configuración: `/configuracion/catalogos/tablas` (URL vieja) es un 308 de `src/app` que usa `leerDondeSeUsaLaTabla(tablaId, candidatos)` (de quién es la tabla y qué
   orígenes candidatos tienen una propia con su clave: la PK y `tablas_referencia_origen_id_clave_key`). Tope 100; una compartida tapada por una propia va `tapada`; con `?tabla=` de esa lista, el editor por `diferido()` de a 100 filas.
   `leerTablaParaEditar()` lee **todas** las filas por cursor `(orden, id)` hasta 2.001: con una fila que no se lee o más de 2.000 no devuelve nada, porque
   publicar reemplaza todas. Se edita en memoria y se valida con el espejo de la base (`entities/tablas/validacion.ts`, `TOPE_DE_FILAS` = 2.000); el

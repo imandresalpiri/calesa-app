@@ -95,7 +95,6 @@ describe('crearTabla', () => {
       },
     ])
     expect(h.cache.revalidatePath).toHaveBeenCalledWith(RUTAS.origenes, 'layout')
-    expect(h.cache.revalidatePath).toHaveBeenCalledWith(RUTAS.catalogos, 'layout')
   })
 
   it('una clave de columna que no cumple el patrón no llega a la base', async () => {

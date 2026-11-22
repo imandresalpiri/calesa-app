@@ -26,7 +26,6 @@ export const desactivarTabla = actionClient
       const hecho = await repositorioDeTablas.desactivar(pedido)
       if (hecho.ok) {
         revalidatePath(RUTAS.origenes, 'layout')
-        revalidatePath(RUTAS.catalogos, 'layout')
       }
       return hecho
     },
