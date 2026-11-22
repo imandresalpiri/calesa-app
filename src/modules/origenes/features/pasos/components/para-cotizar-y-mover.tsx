@@ -25,7 +25,7 @@ type Props =
   | { inactivo: true }
 
 // «Para cotizar y mover»: lo que le falta a un origen, en una fila de cinco pasos (ícono, nombre y una frase corta) que en el celular se
-// parte en dos columnas. Cada paso lleva a su pestaña; sin el permiso, se dice el motivo debajo, sin enlace. Durante la puesta en marcha, el
+// parte en dos columnas (una sola si el texto está grande y no caben: el «Pendiente» no se parte). Cada paso lleva a su pestaña; sin el permiso, se dice el motivo debajo, sin enlace. Durante la puesta en marcha, el
 // paso que le toca dice «Pendiente» y junto al título va «Seguir la puesta en marcha», la única acción principal del bloque. Un origen
 // inactivo dice sólo «Inactivo». Sin JS: es del servidor.
 export function ParaCotizarYMover(props: Props) {
@@ -54,7 +54,7 @@ export function ParaCotizarYMover(props: Props) {
           Inactivo: no recibe vehículos ni cotizaciones nuevos.
         </p>
       ) : (
-        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,9rem),1fr))] gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {props.pasos.map((paso) => (
             <li key={paso.clave} className="min-w-0">
               <Paso paso={paso} pendiente={paso.clave === props.pendiente} />
