@@ -10,6 +10,10 @@
 // kit, otro proyecto) lo atiende gh-falso-git.mjs. Lo del cierre de la tanda (cierre-tanda.test.ts) vive en `ci`: `main` (el sha de
 // `commits/main`), `corridas` (las de `run list` y `run view`; `workflow run` suma una en cola sobre `main`) y `artefactos` (por corrida,
 // `{ ruta: texto }`, lo que baja `run download`; sin ellos, falla como una corrida sin artefactos).
+// Un issue sale con la forma de la API real (copiada de `gh api repos/{owner}/{repo}/issues/<n>`): `autor` es su author_association,
+// `login` y `tipo` su usuario, y `app` llena performed_via_github_app (nulo si no). El que crea la app del orquestador con su token de
+// instalación (ORQ_GH_TOKEN_APP=1) nace como lo devuelve GitHub: CONTRIBUTOR, Bot, `loginApp` (o `mi-app[bot]`) y sin
+// performed_via_github_app, que GitHub sólo llena cuando la app actúa en nombre de una persona.
 import { spawnSync } from 'node:child_process'
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -123,6 +127,9 @@ if (args[0] === 'api') {
       state: 'open',
       created_at: ahora(),
       comentarios: [],
+      ...(process.env['ORQ_GH_TOKEN_APP'] === '1'
+        ? { autor: 'CONTRIBUTOR', login: e.loginApp ?? 'mi-app[bot]', tipo: 'Bot' }
+        : {}),
     }
     guardar()
     imprimir(issueDeApi(e.issues[n]))

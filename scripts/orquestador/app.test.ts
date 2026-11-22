@@ -34,10 +34,11 @@ beforeAll(() => {
 })
 afterAll(() => rmSync(raiz, { recursive: true, force: true }))
 
-/** El escenario con la app configurada (APP_ID 123, instalación 77) y su clave en `rutaClave`. */
-function conApp(rutaClave = clave) {
+/** El escenario con la app configurada (APP_ID 123, instalación 77) y su clave en `rutaClave`. Sin APP_LOGIN: el login de la app
+ * sale de la caché del token (`mi-app[bot]`, del `GET /app` del curl falso); `extra` suma o pisa configuración. */
+function conApp(rutaClave = clave, extra = '') {
   const t = escenario(
-    `APP_ID="123"\nAPP_INSTALACION="77"\nAPP_CLAVE="${rutaClave}"\nexport APP_API="http://github.falso"\n`,
+    `APP_ID="123"\nAPP_INSTALACION="77"\nAPP_CLAVE="${rutaClave}"\nAPP_LOGIN=""\nexport APP_API="http://github.falso"\n${extra}`,
   )
   const falso = join(t.falso, 'curl')
   mkdirSync(falso)
@@ -152,21 +153,32 @@ describe('sin la clave', () => {
 })
 
 describe('quién es de confianza', () => {
-  const issueDeApp = (id: number) =>
+  // La forma que devuelve GitHub (gh api repos/{owner}/{repo}/issues/<n>) para un issue que la app abre con su token de instalación:
+  // CONTRIBUTOR, de tipo Bot, con su login `<slug>[bot]` y sin performed_via_github_app.
+  const issueDeApp = (login: string, extra: object = {}) =>
     JSON.stringify({
-      author_association: 'NONE',
-      user: { login: 'mi-app[bot]', type: 'Bot' },
-      performed_via_github_app: { id },
+      author_association: 'CONTRIBUTOR',
+      user: { login, type: 'Bot' },
+      performed_via_github_app: null,
+      ...extra,
     })
 
   it(
     'con_permiso acepta un issue de la app del orquestador y rechaza el de otra app',
     () => {
       const t = conApp()
+      const propio = issueDeApp('mi-app[bot]')
+      // Si GitHub llenara performed_via_github_app, también vale el id.
+      const porId = issueDeApp('otro-nombre[bot]', { performed_via_github_app: { id: 123 } })
       const r = t.lineas(
-        `con_permiso '${issueDeApp(123)}' && echo propia; con_permiso '${issueDeApp(999)}' || echo ajena`,
+        [
+          `token_gh; con_permiso '${propio}' && echo propia`,
+          `con_permiso '${porId}' && echo por-id`,
+          `con_permiso '${issueDeApp('otra-app[bot]')}' || echo ajena`,
+          `ORQ_SIN_APP=1 con_permiso '${propio}' || echo apagada`,
+        ].join('; '),
       )
-      expect(r.filter(Boolean)).toEqual(['propia', 'ajena'])
+      expect(r.filter(Boolean)).toEqual(['propia', 'por-id', 'ajena', 'apagada'])
     },
     TIEMPO,
   )
@@ -185,13 +197,48 @@ describe('quién es de confianza', () => {
       ] as const) {
         t.issue(n, 'x', [etiqueta])
         t.cambiarGh((g) => {
-          Object.assign(g.issues[n] ?? {}, { autor: 'NONE', tipo: 'Bot', app: 123 })
+          Object.assign(g.issues[n] ?? {}, {
+            autor: 'CONTRIBUTOR',
+            login: 'mi-app[bot]',
+            tipo: 'Bot',
+          })
         })
       }
-      const r = t.funciones('KIT_SEMANAL=si; kit_semanal; cierre_abierto && echo hay-cierre')
+      const r = t.funciones(
+        'token_gh; KIT_SEMANAL=si; kit_semanal; cierre_abierto && echo hay-cierre',
+      )
       expect(r.salida).toContain('hay-cierre')
       expect(existsSync(join(t.datos, 'estado/.kit-semana'))).toBe(true)
       expect(t.llamadas().filter((l) => l.args.includes('POST'))).toEqual([])
+    },
+    TIEMPO,
+  )
+})
+
+describe('verificar', () => {
+  it(
+    'verificar_login_app dice cómo se reconoce a la app',
+    () => {
+      const linea = (t: ReturnType<typeof conApp>, guion: string) => t.lineas(guion).filter(Boolean)
+      expect(
+        linea(
+          conApp(clave, 'APP_LOGIN="mi-app[bot]"\n'),
+          'token_gh; verificar_login_app; echo "rc=$?"',
+        ),
+      ).toEqual(['✓ un issue de mi-app[bot] entra a la cola como uno de la persona', 'rc=0'])
+      expect(
+        linea(
+          conApp(clave, 'APP_LOGIN="otra[bot]"\n'),
+          'token_gh; verificar_login_app; echo "rc=$?"',
+        ),
+      ).toEqual([
+        '✗ APP_LOGIN (otra[bot]) no es el login de la app (mi-app[bot]): corrígelo en config.env',
+        'rc=1',
+      ])
+      expect(linea(conApp(clave, 'ORQ_SIN_APP=1\n'), 'verificar_login_app; echo "rc=$?"')).toEqual([
+        '· ORQ_SIN_APP=1: un issue que abra la app no entra a la cola',
+        'rc=0',
+      ])
     },
     TIEMPO,
   )
