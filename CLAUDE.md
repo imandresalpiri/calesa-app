@@ -16,7 +16,7 @@ chat, agenda y la web pública. Una empresa por despliegue. Sólo español, de t
 ## Comandos
 
 `pnpm dev` (:3000) · `test` · `lint` · `typecheck` · `test:e2e <spec>` · `test:e2e:completo` · `db:reset` · `db:types` ·
-`db:probar` (`db:probar:rapido` al trabajar) · `db:lint` · `db:carreras` · `db:medir:volumen` · `db:aplastar` · `bash scripts/mapa.sh` ·
+`db:probar` (`db:probar:rapido` al trabajar) · `db:lint` · `db:revisar` (lo que el CI compara de la base) · `db:carreras` · `db:medir:volumen` · `db:aplastar` · `bash scripts/mapa.sh` ·
 `bash scripts/flujo/publicar.sh`. La base y el e2e van con candado (`scripts/candado.sh`).
 
 ## Arquitectura: monolito modular

@@ -248,7 +248,7 @@ revisar_supabase() {
   [ "$remoto" = 1 ] && [ "$sub $sub2" != "db diff" ] && return 0
   case "$sub $sub2" in
     "db reset" | "db lint" | "db diff" | "gen types")
-      bloquear "supabase $sub $sub2 usa la base local, que es de una a la vez: pasa por el candado (pnpm db:reset | db:lint | db:diff | db:types)." ;;
+      bloquear "supabase $sub $sub2 usa la base local, que es de una a la vez: pasa por el candado (pnpm db:reset | db:lint | db:revisar | db:diff | db:types)." ;;
   esac
 }
 

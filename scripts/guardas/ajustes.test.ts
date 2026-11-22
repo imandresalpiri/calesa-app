@@ -112,6 +112,7 @@ const CON_CANDADO = [
   'db:medir',
   'db:carreras',
   'db:lint',
+  'db:revisar',
   'db:sembrar-volumen',
   'db:medir:volumen',
   'test:e2e',
