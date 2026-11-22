@@ -1,3 +1,4 @@
+import { cn } from 'cn'
 import Link from 'next/link'
 import { CLAVE_DE_LA_COPIA, PANEL_NUEVA_FORMULA } from '@/modules/cotizaciones'
 import { CLAVE_DE_PANEL } from '@/shared/lib/filtros'
@@ -27,7 +28,7 @@ export function AvisoDeLaArchivada({ origenId, formulaId, parte }: Props) {
         </Link>
         <Link
           href={rutaDeParteDelOrigen(origenId, parte)}
-          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
         >
           Ir a la fórmula de trabajo
         </Link>

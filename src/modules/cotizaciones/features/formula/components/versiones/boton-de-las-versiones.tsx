@@ -1,5 +1,6 @@
 'use client'
 
+import { cn } from 'cn'
 import { HistoryIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -51,7 +52,8 @@ export function BotonDeLasVersiones({ origenId, formulaId, parte }: Props) {
           router.push(href)
         })
       }}
-      className={buttonVariants({ variant: 'outline', className: 'min-h-11 md:min-h-9' })}
+      // Sin `cn()` el `border-transparent` de la base le gana al borde de «outline».
+      className={cn(buttonVariants({ variant: 'outline', className: 'min-h-11 md:min-h-9' }))}
     >
       {contenido}
     </Link>
