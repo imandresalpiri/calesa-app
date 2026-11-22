@@ -22,7 +22,7 @@ export default async function PaginaDeLeads({ searchParams }: PageProps<'/config
   const { permisos } = await requerirSesion()
   if (puede(permisos, PERMISO_DE_LAS_TARJETAS)) {
     return (
-      <div className="grid max-w-6xl gap-4">
+      <div className="grid gap-4">
         <EncabezadoDeConfiguracion {...SECCION_DE_LEADS} />
         <SeccionDeLeads />
       </div>

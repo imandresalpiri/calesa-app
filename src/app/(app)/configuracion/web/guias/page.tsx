@@ -19,7 +19,7 @@ export default async function PaginaDeGuiasDelSitio({
     return <EstadoSinPermiso />
   }
   return (
-    <div className="grid max-w-3xl gap-4">
+    <div className="grid gap-4">
       <EncabezadoDeConfiguracion {...GUIAS_DEL_SITIO} />
       <SeccionGuias buscar={unParametro(parametros['q'])?.trim() || null} />
     </div>

@@ -15,7 +15,7 @@ export default async function PaginaDeTestimoniosDelSitio() {
     return <EstadoSinPermiso />
   }
   return (
-    <div className="grid max-w-3xl gap-4">
+    <div className="grid gap-4">
       <EncabezadoDeConfiguracion {...TESTIMONIOS_DEL_SITIO} />
       <SeccionTestimonios />
     </div>

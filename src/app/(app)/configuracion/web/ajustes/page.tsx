@@ -15,7 +15,7 @@ export default async function PaginaDeAjustesDelSitio() {
     return <EstadoSinPermiso />
   }
   return (
-    <div className="grid max-w-6xl gap-4">
+    <div className="grid gap-4">
       <EncabezadoDeConfiguracion {...AJUSTES_DEL_SITIO} />
       <SeccionAjustes />
     </div>

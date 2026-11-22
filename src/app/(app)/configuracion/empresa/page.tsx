@@ -31,7 +31,7 @@ export default async function PaginaDatosDeLaEmpresa({
     return <EstadoSinPermiso />
   }
   return (
-    <div className="grid max-w-6xl gap-4">
+    <div className="grid gap-4">
       <EncabezadoDeConfiguracion {...DATOS_DE_LA_EMPRESA} />
       <SeccionEmpresa puedeEditar={puede(permisos, 'empresa.ajustes.gestionar')} />
     </div>

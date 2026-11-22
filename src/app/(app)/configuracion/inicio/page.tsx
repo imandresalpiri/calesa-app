@@ -32,10 +32,10 @@ export default async function PaginaInicioDeConfiguracion() {
   const faltas = leerFaltas(sesion.permisos)
   const [delNavegador, fuera] = await Promise.all([gruposDeQuienMira(), destinosFueraDeQuienMira()])
   return (
-    <div className="@container/inicio grid max-w-5xl gap-4">
+    <div className="@container/inicio grid gap-4">
       <h1 className="text-(length:--text-xl) font-semibold text-(--color-ink)">Configuración</h1>
       <BuscadorDeConfiguracion grupos={delNavegador} fuera={fuera} variante="pagina">
-        <div className="columns-[minmax(0,1fr)] gap-4 @min-[40rem]/inicio:columns-2">
+        <div className="columns-[20rem] gap-4">
           {grupos.map((grupo) => {
             const idDelTitulo = `grupo-${grupo.clave}`
             return (

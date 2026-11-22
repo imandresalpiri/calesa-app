@@ -13,9 +13,7 @@ type Props = {
 export function TarjetasDeAjustes({ etiqueta, children }: Props) {
   return (
     <div role="group" aria-label={etiqueta} className="@container/ajustes min-w-0">
-      <div className="columns-1 gap-4 @2xl/ajustes:columns-2 @5xl/ajustes:columns-3">
-        {children}
-      </div>
+      <div className="columns-[20rem] gap-4">{children}</div>
     </div>
   )
 }
