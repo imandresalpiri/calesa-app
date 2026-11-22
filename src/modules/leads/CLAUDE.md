@@ -17,7 +17,8 @@ Leads (prospectos y clientes) con teléfono principal único y enmascarado salvo
     proyecto». Aparte de `leerClienteElegido` para no tocar la hoja de cotizar.
   - Bandeja de Inicio (`tablero`): `leerRecordatoriosDeHoy({ hasta, tope })` (mis pendientes, `recordatorios_vista`) y
     `leerLeadsSinSeguimiento({ creadosAntesDe, tope })` (mi cartera sin seguimiento y de más de 24 h, `leads_cartera_vista`); piden `tope + 1` y
-    devuelven `{ filas, hayMas }` (`entities/bandeja.ts`: `finDeHoy()`, `creadoAntesDe()`, `rutaDeSeguimientos()`).
+    devuelven `{ filas, hayMas }` (`entities/bandeja.ts`: `finDeHoy()`, `creadoAntesDe()`, `rutaDeSeguimientos()`); `rutaDeLeadsSinSeguimiento()` (`/leads?sin_seguimiento=si`: el «Ver todos» de «Leads sin seguimiento»,
+    sin `alcance`: abre «míos») es el filtro «Sin seguimiento» del listado (`entities/filtro-sin-seguimiento.ts`: la misma definición, sobre `leads_vista` y `leads_cartera_vista`; con «Todos» elegido a mano filtra lo que esa persona ve).
 - Pantallas por `pantallas/<pantalla>.ts` (`listado`, `ficha`, `importar`, `papelera`, `configuracion`, `cotizar`,
   `turno`, `relacionados`, `proyecto-de-repuestos`; sólo `src/app`).
 - `client.ts`: reglas puras, tipos, `<AltaDeLead>`, `normalizarTelefono()`, `interpretarBusqueda()`, `MINIMO_DE_BUSQUEDA` (para `buscador`), la

@@ -15,10 +15,9 @@ import {
   type TerrenoPorRol,
 } from './soporte/inicio-por-rol'
 import { idDePersona } from './soporte/leads-alta'
-import { botonDeVistaYOpciones } from './soporte/vista-y-opciones'
 
-// Inicio (`/`) por rol: cada persona ve exactamente los bloques que le dan sus permisos, en el orden de `BLOQUES_BANDEJA`, y cada «Ver todas» lleva a la
-// lista ya filtrada con la misma URL que produce el filtro. Los roles de referencia de `docs/UX.md` › Roles: asesor, logística y repuestos (los de la semilla),
+// Inicio (`/`) por rol: cada persona ve exactamente los bloques que le dan sus permisos, en el orden de `BLOQUES_BANDEJA`; el «Ver todas» de cada bloque sólo
+// existe en su tope (con una fila no hay) y sus destinos están en `inicio-ver-todos.spec.ts` y `entities/bandeja.test.ts`. Los roles de referencia de `docs/UX.md` › Roles: asesor, logística y repuestos (los de la semilla),
 // la dueña, RRHH (sólo `equipo.*`), alguien sin permisos, alguien sin rol y alguien con dos roles (asesor + logística: la unión, sin repetir).
 test.describe.configure({ mode: 'serial' })
 
@@ -33,7 +32,7 @@ test.afterAll(async () => {
 })
 
 test.describe('asesor', () => {
-  test('ve sus bloques, ninguno de equipo ni de repuestos, y cada «Ver todas» abre la agenda ya filtrada', async ({
+  test('ve sus bloques, ninguno de equipo ni de repuestos, y sin «Ver todas» por debajo del tope', async ({
     page,
   }) => {
     await ir(page, t.correo.asesor)
@@ -44,58 +43,30 @@ test.describe('asesor', () => {
     const recordatorios = page.getByRole('region', { name: BLOQUES.recordatorios })
     await expect(recordatorios.getByText(`Recordar inicio por rol ${t.proyecto}`)).toBeVisible()
     await expect(recordatorios.getByText('1 recordatorio')).toBeVisible()
-    await expect(recordatorios.getByRole('link', { name: 'Ver todas' })).toHaveAttribute(
-      'href',
-      '/agenda?ver=recordatorio',
-    )
-    await recordatorios.getByRole('link', { name: 'Ver todas' }).click()
-    await expect(page).toHaveURL(/\/agenda\?ver=recordatorio$/)
-    // «Qué ver» va en «Vista y opciones», que dice lo elegido.
-    await expect(botonDeVistaYOpciones(page)).toContainText('Recordatorios')
-    await expect(botonDeVistaYOpciones(page)).not.toContainText('Tareas')
+    await expect(recordatorios.getByRole('link', { name: 'Ver todas' })).toHaveCount(0)
 
-    await page.goto('/')
     const tareas = page.getByRole('region', { name: BLOQUES.tareas })
     await expect(
       tareas.getByRole('link', { name: new RegExp(`Tarea inicio por rol ${t.proyecto}`) }),
     ).toBeVisible()
-    await expect(tareas.getByRole('link', { name: 'Ver todas' })).toHaveAttribute(
-      'href',
-      '/agenda?ver=tarea',
-    )
-    await tareas.getByRole('link', { name: 'Ver todas' }).click()
-    await expect(page).toHaveURL(/\/agenda\?ver=tarea$/)
-    await expect(botonDeVistaYOpciones(page)).toContainText('Tareas')
-    await expect(botonDeVistaYOpciones(page)).not.toContainText('Recordatorios')
+    await expect(tareas.getByRole('link', { name: 'Ver todas' })).toHaveCount(0)
   })
 })
 
 test.describe('logística', () => {
-  test('ve vehículos trabados, documentos por aprobar y demoras, y cada «Ver todas» abre su grupo', async ({
+  test('ve vehículos trabados, documentos por aprobar y demoras, sin «Ver todas» por debajo del tope', async ({
     page,
   }) => {
     await ir(page, t.correo.logistica)
     await expect(titulos(page)).toHaveText(DE_LOGISTICA)
     await sinBloquesCaidos(page)
 
-    const grupos: [string, string, string][] = [
-      [BLOQUES.trabados, '/logistica/bandeja/trabados', 'Trabados'],
-      [BLOQUES.porAprobar, '/logistica/bandeja/por-aprobar', 'Documentos por aprobar'],
-      [BLOQUES.demoras, '/logistica/bandeja/demorados', 'Demorados'],
-    ]
-    for (const [bloque, ruta, titulo] of grupos) {
-      await page.goto('/')
+    for (const bloque of [BLOQUES.trabados, BLOQUES.porAprobar, BLOQUES.demoras]) {
       const region = page.getByRole('region', { name: bloque })
       await expect(
         region.getByRole('link', { name: new RegExp(t.terreno.enB.titulo) }),
       ).toBeVisible()
-      await expect(region.getByRole('link', { name: 'Ver todas' })).toHaveAttribute('href', ruta)
-      await region.getByRole('link', { name: 'Ver todas' }).click()
-      await expect(page).toHaveURL(new RegExp(`${ruta}$`))
-      await expect(page.getByRole('heading', { name: titulo, level: 1 })).toBeVisible()
-      await expect(
-        page.getByRole('link', { name: t.terreno.enB.titulo, exact: true }),
-      ).toBeVisible()
+      await expect(region.getByRole('link', { name: 'Ver todas' })).toHaveCount(0)
     }
   })
 })
@@ -105,14 +76,11 @@ test.describe('repuestos', () => {
     await ir(page, t.correo.repuestos)
     await expect(titulos(page)).toHaveText(DE_REPUESTOS)
     await sinBloquesCaidos(page)
-    // «Ver todas» (si el bloque tiene filas) lleva a la Cadena de repuestos; la fila, al panel del ítem (`e2e/inicio-repuestos.spec.ts`).
+    // Con un par de ítems no llegan al tope: sin «Ver todas». La fila abre el panel del ítem (`e2e/inicio-repuestos.spec.ts`).
     for (const bloque of [BLOQUES.repuestosPorMover, BLOQUES.esperas]) {
-      const todas = page
-        .getByRole('region', { name: bloque })
-        .getByRole('link', { name: 'Ver todas' })
-      if ((await todas.count()) > 0) {
-        await expect(todas).toHaveAttribute('href', '/repuestos?vista=cadena')
-      }
+      await expect(
+        page.getByRole('region', { name: bloque }).getByRole('link', { name: 'Ver todas' }),
+      ).toHaveCount(0)
     }
   })
 })

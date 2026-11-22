@@ -44,3 +44,8 @@ export function rutaDeLaPersona(id: string): string {
   const valido = idDePersona(id)
   return valido ? `${RUTAS.equipo}?persona=${valido}` : RUTAS.equipo
 }
+
+// Configuración › Equipo con la lista de las personas sin rol: lo que cuenta el bloque de Inicio, con el filtro «Sin rol» puesto.
+export function rutaDeLasPersonasSinRol(): string {
+  return `${RUTAS.equipo}?estado=sin_rol`
+}

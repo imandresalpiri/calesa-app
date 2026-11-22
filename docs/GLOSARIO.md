@@ -966,6 +966,15 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Superficie pública** — esquema `web`: vistas y RPC que consume el repo de la web.
 - **Bandeja** — `/` / `<Bandeja>`: pantalla de inicio; lo que hay que hacer ahora.
 - **Bloque de la bandeja** — `BLOQUES_BANDEJA` / `bloquesVisibles()`: lista de pendientes del Inicio, según los permisos.
+- **Ver todos / Ver todas (de un bloque de la bandeja)** — `BloqueBandeja.verTodos`, `<VerTodasDelBloque>`: el enlace bajo la lista de un bloque, que lleva a la lista completa ya filtrada. Sólo
+  se dibuja cuando el bloque llegó a su tope (`hayMas`) y quien mira puede abrir el destino; el género es el de lo que lista el bloque («Ver todas» las personas, tareas,
+  alertas y esperas; «Ver todos» lo demás). No: «Ver más» (ése agrega filas a la misma lista).
+- **Sin seguimiento (filtro)** — `FILTRO_SIN_SEGUIMIENTO` / `?sin_seguimiento=si` del listado de leads: los leads sin ningún seguimiento y creados hace más de 24 horas, la misma
+  definición del bloque «Leads sin seguimiento» de Inicio (`creadoAntesDe()`). «No» es lo contrario: con algún seguimiento o creados hace menos. No: «sin actividad», «abandonados».
+- **Sin rol (filtro)** — `?estado=sin_rol` de `/configuracion/equipo`, `equipo_lista(p_estado => 'sin_rol')`: las personas activas, no bloqueadas y sin ninguna fila en
+  `usuarios_roles`; lo que cuenta el bloque «Personas sin rol» de Inicio. No es un estado de la persona (`estadoDePersona()`): no cambia lo que dice su insignia.
+- **Panel de turnos** — `?panel=turnos` en Inicio (`PanelDeTurnos`): todos mis turnos de la web sin confirmar (asignados y vencidos), de a 20 con «Ver más» hasta 200; es el «Ver todos» del bloque
+  «Turnos de la web sin confirmar». Cada turno lleva «Contacté» y «Vincular a lead».
 - **Bloque** — `<Bloque>`: sección plegable de un formulario o un panel.
 - **Bloque (de una ficha)** — `<BloqueDeFicha>`, `#<ancla>` (`src/shared/ui/ficha-en-bloques`): una parte de una ficha en dos columnas, siempre a la
   vista (no se pliega), con su ancla, su título `h2` (con su única acción a la derecha: `<TituloDeBloqueConAccion>`) y su error propio. No es `<Bloque>`,

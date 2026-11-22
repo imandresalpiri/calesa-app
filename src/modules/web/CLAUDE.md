@@ -13,8 +13,12 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
   `app/api/portal/*`): `ipDelPedido()`, `mismoOrigenDelPortal()`, `portalDisponible()`, `firmarSesionDelPortal()`, `leerSesionDelPortal()`,
   `contarIntentoDelPortal()`, `ingresarAlPortal()`, `leerEstadoDelPortal()`, `urlDeDocumentoDelPortal()`, `cambiarClaveDelPortal()`,
   `direccionDelSitioParaElPortal()`, `COOKIE_DEL_PORTAL`, `DURACION_DE_LA_SESION_S`, `opcionesDeLaCookieDelPortal()`, `SesionDelPortal`.
-  `areas/turnos/index.ts`: `leerMisTurnos({ tope })`, `confirmarContacto`; `areas/turnos/client.ts`: `<TarjetaTurno>`, `<ActualizarAlVolver>`,
-  `confirmarContacto` y las claves de URL del panel (los usan el bloque de Inicio de `tablero` y la campana).
+  `areas/turnos/index.ts`: `leerMisTurnos({ tope, desde? })` (por cursor `(vence_en, id)`: `CursorDeMisTurnos`, `cursorDelTurno()`), `rutaDelPanelDeTurnos()` (`/?panel=turnos`), `confirmarContacto`;
+  `areas/turnos/client.ts`: `<TarjetaTurno>`, `<ActualizarAlVolver>`, `confirmarContacto`, `PANEL_DE_TURNOS` y las claves de URL del panel (los usan el bloque de Inicio de `tablero` y la campana).
+  **Panel de turnos** (`features/turnos/panel/`, `pantallas/turnos-inicio.ts`: `PanelDeTurnosDiferido`; `src/app/(app)/_inicio/panel-de-turnos.tsx` lo monta con `?panel=turnos`): el «Ver todos» del bloque
+  «Turnos de la web sin confirmar». Lee en el navegador (`infra/turnos/mis-turnos.client.ts`, la misma `consulta-de-mis-turnos.ts` que el servidor) todos mis turnos `asignada` y `vencida` de a 20 con «Ver más» por cursor,
+  hasta 200 (`TOPE_DE_TURNOS_CARGADOS`) y entonces `<AvisoDeTope>`; relee la primera página al volver a la pestaña; cada turno es una `<TarjetaTurno>` con «Contacté» (lo quita de la lista) y «Vincular a lead»
+  (reemplaza `?panel=turnos` por `?panel=vincular-turno`).
 - Depende de: `vehiculos`, `leads`, `equipo`.
 
 ## Archivos clave

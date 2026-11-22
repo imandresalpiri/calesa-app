@@ -77,6 +77,7 @@ describe('esquemaDeFiltrosDeLeads', () => {
     expect(claves).toEqual([
       'tachados',
       'favoritos',
+      'sin_seguimiento',
       'tipo',
       'origen',
       'a.ciudad',
@@ -89,7 +90,7 @@ describe('esquemaDeFiltrosDeLeads', () => {
       esquema()
         .filtros.filter((f) => f.seccion === 'datos')
         .map((f) => f.clave),
-    ).toEqual(['tipo', 'origen', 'a.ciudad', 'a.edad', 'a.ci', 'a.signo'])
+    ).toEqual(['sin_seguimiento', 'tipo', 'origen', 'a.ciudad', 'a.edad', 'a.ci', 'a.signo'])
     expect(esquema().busqueda?.etiqueta).toBe('Buscar por nombre o número')
     expect(esquema().filtros.find((f) => f.clave === 'a.edad')?.etiqueta).toBe('EDAD')
   })
@@ -102,7 +103,12 @@ describe('esquemaDeFiltrosDeLeads', () => {
       verTodos: false,
       etiquetas: [],
     })
-    expect(sin.filtros.map((f) => f.clave)).toEqual(['tachados', 'favoritos', 'tipo'])
+    expect(sin.filtros.map((f) => f.clave)).toEqual([
+      'tachados',
+      'favoritos',
+      'sin_seguimiento',
+      'tipo',
+    ])
   })
 
   it('las opciones del filtro de tipo salen de la base: primero los activos y después los apagados «(inactivo)», con la clave en la URL', () => {
@@ -123,7 +129,7 @@ describe('esquemaDeFiltrosDeLeads', () => {
       verTodos: false,
       etiquetas: [],
     })
-    expect(sin.filtros.map((f) => f.clave)).toEqual(['tachados', 'favoritos'])
+    expect(sin.filtros.map((f) => f.clave)).toEqual(['tachados', 'favoritos', 'sin_seguimiento'])
   })
 
   it('sólo quien ve «todos» recibe la aclaración en un filtro privado', () => {

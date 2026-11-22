@@ -39,6 +39,8 @@ export async function condicionesDeLaPersona(entrada: {
     desdeLaCartera: !puedeVerTodos,
     idsDelNumero: ids.data,
     tipos,
+    // «Sin seguimiento» (hace más de 24 h) se mide con el reloj del servidor, el mismo del bloque de Inicio.
+    ahora: new Date().toISOString(),
   }
   return ok((aplicados) => {
     const condiciones = condicionesDeLeads(campos, aplicados, opciones)

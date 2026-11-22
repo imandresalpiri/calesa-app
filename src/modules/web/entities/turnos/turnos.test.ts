@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ordenarTurnos, type Turno } from './turnos'
+import { cursorDelTurno, ordenarTurnos, type Turno } from './turnos'
 
 function turno(id: string, estado: Turno['estado'], venceEn: string | null): Turno {
   return {
@@ -53,5 +53,20 @@ describe('ordenarTurnos', () => {
     ]
     ordenarTurnos(asignadas, [])
     expect(ids(asignadas)).toEqual(['b', 'a'])
+  })
+})
+
+describe('cursorDelTurno', () => {
+  it('toma el grupo, el vencimiento y el id: la clave de orden de la lista', () => {
+    expect(cursorDelTurno(turno('a', 'asignada', '2026-11-12T13:00:00.000Z'))).toEqual({
+      grupo: 'asignada',
+      venceEn: '2026-11-12T13:00:00.000Z',
+      id: 'a',
+    })
+    expect(cursorDelTurno(turno('d', 'vencida', null))).toEqual({
+      grupo: 'vencida',
+      venceEn: null,
+      id: 'd',
+    })
   })
 })

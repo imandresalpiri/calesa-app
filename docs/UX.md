@@ -242,14 +242,16 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 
 - **Acceso** — `/ingreso`, `/registro`, `/recuperar` (sin sesión): `?returnTo=`, `?aviso=`; `/registro` sólo con registro abierto o sin
   equipo; `/auth/nueva-contrasena` tras el enlace del correo.
-- **Inicio** — `/` (todos): bandeja por rol + widgets opcionales; bloques por permiso; cada contador lleva a la lista filtrada. «Turnos de
+- **Inicio** — `/` (todos): bandeja por rol + widgets opcionales; bloques por permiso; cada contador lleva a la lista filtrada. **«Ver todos» / «Ver todas»** bajo la lista de un bloque,
+  sólo cuando llega a su tope (5: debajo se ve todo) y quien mira puede abrir el destino (si no, el bloque sigue con su conteo y sin enlace): leads sin seguimiento →
+  `/leads?sin_seguimiento=si` (abre «míos»), personas sin rol → `/configuracion/equipo?estado=sin_rol`, turnos de la web → el panel `?panel=turnos`; los demás, a su lista de siempre. «Turnos de
   la web sin confirmar» (`leads.crear` o `web.cola.gestionar`: mis turnos con código, fuente y «Vence en…», «Contacté» en un toque y
-  «Vincular a lead»), «Documentos por aprobar» (`logistica.documentos.aprobar`: sólo los de vehículos), «Repuestos por mover» (`repuestos.mover`) y
+  «Vincular a lead»; el panel de «Ver todos» es un drawer con todos mis turnos sin confirmar, de a 20 con «Ver más» hasta 200, el aviso del tope, esqueleto, vacío y error con «Reintentar»), «Documentos por aprobar» (`logistica.documentos.aprobar`: sólo los de vehículos), «Repuestos por mover» (`repuestos.mover`) y
   «Esperas que destraban vehículos» (`repuestos.ver`). Cada bloque, con su `<Suspense>` y su límite de error: si falla (al leer o al dibujar), sólo ése
   dice el error con «Reintentar». Sin ningún bloque: «Tu rol todavía no tiene trabajo en la bandeja», con los bloques que existen y a quién pedir
   acceso; sin rol, «Aún no tienes un rol, avisa al dueño».
 - **Leads** — `/leads` (`leads.ver`): tabla + enlace a la ficha. «Míos» por defecto; con alcance «todos», `?alcance=`. Filtros del layout
-  (`a.<campo>`), tipo, origen, `?q=`, `?cursor=`, vistas guardadas; la fila y la tarjeta llevan a `/leads/<id>` (un `?lead=` viejo redirige a la ficha con
+  (`a.<campo>`), «Sin seguimiento» (Todos / Sí / No, `?sin_seguimiento=`; chip con su «×»), tipo, origen, `?q=`, `?cursor=`, vistas guardadas; la fila y la tarjeta llevan a `/leads/<id>` (un `?lead=` viejo redirige a la ficha con
   lo que pedía: ver «Leads: listado (estados propios)»); marcas
   `?tachados=`, `?favoritos=`, `?etiqueta=`; `?panel=etiquetas`. «Lista | Embudo» (en «Vista y opciones», con el alcance, las vistas guardadas, «Ítems
   por página» y «Más»: exportar, importar y papelera): `?vista=embudo&embudo=<id>` es el kanban de las oportunidades propias (`?etapa=` en el celular;

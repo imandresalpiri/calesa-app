@@ -17,7 +17,14 @@ describe('filtroDelEquipoDesde', () => {
       texto: 'José Núñez',
       estado: 'bloqueada',
     })
-    for (const estado of ['vigentes', 'activa', 'invitacion_pendiente', 'bloqueada', 'baja']) {
+    for (const estado of [
+      'vigentes',
+      'activa',
+      'invitacion_pendiente',
+      'bloqueada',
+      'baja',
+      'sin_rol',
+    ]) {
       expect(filtroDelEquipoDesde({ estado }).estado).toBe(estado)
     }
   })

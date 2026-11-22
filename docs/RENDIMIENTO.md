@@ -125,6 +125,10 @@ Bloque «Seguimiento» de la ficha y su «Ver todos» (`?todos=seguimientos`).
 - `turnos-web`: dos lecturas `limit 6` de `solicitudes_contacto_web` (`solicitudes_contacto_web_usuario_id_idx`; las `asignada`, por
   `solicitudes_web_asesor_abiertas_idx`) y, si hay vehículos, una de `web.vehiculos` por ids. La tarjeta sólo se monta con turnos; el panel
   de vincular va con `diferido()`.
+- «Ver todos» de cada bloque: un `<Link>` (sin JS ni lectura propia) que se dibuja sólo con el bloque en su tope. El panel de turnos (`?panel=turnos`) vive en el navegador: código con `diferido()` al primer
+  `?panel=turnos`, nada al cargar `/` en frío (`presupuesto-js`); lee a la apertura y al volver a la pestaña 2 consultas `limit 21` (vigentes y vencidas) más una de `web.vehiculos` por ids, y «Ver más» otras
+  dos por cursor `(vence_en, id)`, nunca `offset` ni conteo; tope 200 (`TOPE_DE_TURNOS_CARGADOS`) con aviso. Una persona recibe pocos turnos por día: tabla sin medición de volumen.
+- «Personas sin rol» → `equipo_lista(p_estado => 'sin_rol')`: la antijunta `not exists (… usuarios_roles)` camina `perfiles_vigentes_orden_idx` en el orden de la lista y se detiene en 101 (`limit`); una tabla de decenas de personas, sin medición de volumen.
 - `repuestos-por-mover` y `esperas-repuestos`: una lectura `limit 6` cada uno sobre `repuestos_items` (`repuestos_items_fase_id_idx`, orden
   `fase_desde`; sin índice propio: `docs/PENDIENTES.md`), con fase, proyecto y título embebidos. Server Components.
 
@@ -137,6 +141,8 @@ que asserta `pnpm db:medir:volumen` o el e2e. Mide `medir-escala.sql` salvo que 
 
 - Listado: 100 por cursor (`MAXIMO_DE_PAGINA_DE_LEADS`), `leads_listado_idx`; 30 ms página 1, 150 ms página profunda (100 por cursor). La
   policy se estima con `_lead_visible_para()` sobre `leads.cartera`.
+- Filtro «Sin seguimiento» (`?sin_seguimiento=si|no`, `ultimo_seguimiento_en is null and creado_en < ahora − 24 h`; su contrario, `is not null or creado_en >= …`): columnas de la fila sobre el orden del listado,
+  sin índice propio; se mide en `medir-escala.sql` («listado …: sin seguimiento» y «con seguimiento», «míos» y «todos»): «sin seguimiento» ≤ 100 ms y «con seguimiento» ≤ 150 ms (el contrario descarta más filas de la cartera).
 - Teléfonos extra: ≤ 20 por lead (el `check` de `telefonos_extra_maximo`), una sola respuesta con la lista entera, `leads_telefonos_unico (lead_id, telefono)`.
   El panel de edición, un pedido (`lead_ficha()` ya trae los extras y el máximo). Con «Los teléfonos extra cuentan como el principal» encendida,
   `_lead_verificar()` suma una búsqueda por `leads_telefonos_telefono_idx` sólo si el número no es principal de nadie.

@@ -16,8 +16,9 @@ Abierto: **9-14a** (la dueña no actúa sobre un lead ajeno sin tenerlo; `docs/P
 - `features/bandeja/bloques/<clave>.tsx` y `features/metricas/widgets/<clave>.tsx` — **un archivo por bloque o widget**, unidos por su `registro.ts`
   (un `Record` que exige todas las claves): quien llena un hueco edita sólo su archivo. Cada uno lee por la entrada pública del módulo dueño, tras su
   propio `<Suspense>` con `await connection()` (uno lento o caído no frena a los demás), con estado de error («Reintentar») y vacío. `<LimiteDeBloque>`
-  envuelve cada `<Suspense>`: un bloque que se rompe al dibujarse deja su marco con el error y «Reintentar», nunca la pantalla entera. «Ver todas» lo
-  dibuja cada bloque que lo necesita. El título del bloque lo pone el marco, no el bloque.
+  envuelve cada `<Suspense>`: un bloque que se rompe al dibujarse deja su marco con el error y «Reintentar», nunca la pantalla entera. «Ver todos» / «Ver todas»
+  (`BloqueBandeja.verTodos`, `<VerTodasDelBloque>`) lo dibuja cada bloque sólo cuando llegó a su tope (`hayMas`) y quien mira puede abrir el destino
+  (`ContextoDeBloque.permisos`); «Turnos de la web» abre el panel `?panel=turnos` de `web`. El título del bloque lo pone el marco, no el bloque.
 - `entities/widgets.ts` — `WIDGETS_TABLERO` (permisos, grupo de RPC, tamaño). `entities/cifras.ts`: una tasa nula es «Sin datos», nunca «0 %»; un margen
   nulo, «Sin venta registrada».
 - `infra/queries/metricas.ts` — una RPC por grupo de widgets, ventana ≤ 366 días: `tablero_leads` y `tablero_cotizaciones` (`tablero.metricas.ver`),

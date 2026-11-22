@@ -4,7 +4,8 @@ import { leerAjustes } from '@/modules/empresa'
 import { nombreVisible, requerirSesion, sinRol } from '@/modules/equipo'
 import { ZONA_POR_DEFECTO } from '@/shared/lib/fechas'
 import { puede } from '@/shared/lib/permisos'
-import { Bandeja } from '@/modules/tablero/pantallas/inicio'
+import { Bandeja, bloqueVisible } from '@/modules/tablero/pantallas/inicio'
+import { PanelDeTurnos } from './_inicio/panel-de-turnos'
 import { VincularTurno } from './_inicio/vincular-turno'
 
 export const metadata: Metadata = { title: 'Inicio' }
@@ -14,6 +15,7 @@ export default async function PaginaInicio() {
   // La sesión y los ajustes se leen al pedir la pantalla, no al prepararla.
   await connection()
   const [sesion, ajustes] = await Promise.all([requerirSesion(), leerAjustes()])
+  const bloqueDeTurnos = bloqueVisible(sesion.permisos, 'turnos-web')
   return (
     <>
       <Bandeja
@@ -23,6 +25,14 @@ export default async function PaginaInicio() {
         // Si no se pueden leer los ajustes: la zona por defecto (como el exportador de leads).
         zona={ajustes.ok ? ajustes.data.ajustes.zonaHoraria : ZONA_POR_DEFECTO}
       />
+      {/* «Ver todos» del bloque de turnos: todos mis turnos sin confirmar, de a 20 (`?panel=turnos`). */}
+      {bloqueDeTurnos ? (
+        <PanelDeTurnos
+          titulo={bloqueDeTurnos.titulo}
+          vacio={bloqueDeTurnos.vacio}
+          puedeVincular={puede(sesion.permisos, 'leads.ver')}
+        />
+      ) : null}
       {/* «Vincular a lead» de un turno de la web (8.05-1): el panel de `leads` con la action de `web`, que sólo `src/app` junta. */}
       <VincularTurno
         puedeCrear={puede(sesion.permisos, 'leads.crear')}

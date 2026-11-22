@@ -134,8 +134,9 @@ export function nombreDePersona(persona: Pick<PersonaDelEquipo, 'nombre' | 'emai
   return persona.nombre.trim() || persona.email || 'Sin nombre'
 }
 
-// El filtro de la lista. «vigentes» es lo que se ve al entrar: todas menos las dadas de baja.
-export const FILTROS_DE_ESTADO = ['vigentes', ...ESTADOS_PERSONA] as const
+// El filtro de la lista. «vigentes» es lo que se ve al entrar: todas menos las dadas de baja. «sin_rol» no es un estado de la persona sino lo que cuenta el
+// bloque «Personas sin rol» de Inicio: activas, no bloqueadas y sin ningún rol (`equipo_lista()` lo espeja).
+export const FILTROS_DE_ESTADO = ['vigentes', ...ESTADOS_PERSONA, 'sin_rol'] as const
 export type FiltroDeEstado = (typeof FILTROS_DE_ESTADO)[number]
 
 export const ETIQUETA_FILTRO: Record<FiltroDeEstado, string> = {
@@ -144,6 +145,7 @@ export const ETIQUETA_FILTRO: Record<FiltroDeEstado, string> = {
   invitacion_pendiente: 'Invitaciones pendientes',
   bloqueada: 'Bloqueadas',
   baja: 'Dadas de baja',
+  sin_rol: 'Sin rol',
 }
 
 // Lo que hay que saber antes de dar de baja a alguien (`equipo_vista_previa_baja()`): la base cuenta hasta 1.001,

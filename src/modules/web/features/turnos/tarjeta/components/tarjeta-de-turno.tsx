@@ -15,14 +15,16 @@ type Props = {
   ahora: string
   // «Vincular a lead» sólo si la persona puede ver leads: lo decide quien monta la tarjeta con `puede()`.
   puedeVincular?: boolean
+  // «Contacté» salió bien: el panel «Ver todos» saca el turno de su lista (el bloque no lo necesita: Inicio se relee).
+  alConfirmar?: () => void
 }
 
 // Un turno de la web sin confirmar (8.05-1): el código `#WEB-XXXX`, de dónde vino, el vehículo, cuánto falta (o «Vencido») y dos botones:
 // «Contacté» (un toque) y «Vincular a lead» (abre el panel por URL). Sin «Deshacer» ni confirmación: contactar es lo que se espera de quien recibe el turno.
-export function TarjetaTurno({ turno, ahora, puedeVincular = true }: Props) {
+export function TarjetaTurno({ turno, ahora, puedeVincular = true, alConfirmar }: Props) {
   const reloj = useCuentaRegresiva(turno.venceEn, ahora)
   const vencido = turno.estado === 'vencida' || reloj.vencido
-  const { confirmar, enCurso, error } = useConfirmarTurno(turno.id)
+  const { confirmar, enCurso, error } = useConfirmarTurno(turno.id, alConfirmar)
   const panel = usePanelPorUrl(PANEL_VINCULAR_TURNO, [CLAVE_DE_TURNO])
   return (
     <article

@@ -130,3 +130,4 @@ export {
   type ListaCorta,
   type RecordatorioDeHoy,
 } from './entities/bandeja'
+export { rutaDeLeadsSinSeguimiento } from './entities/filtro-sin-seguimiento'

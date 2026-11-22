@@ -1,5 +1,5 @@
 // Bloque «Esperas que destraban vehículos»: los repuestos en vuelo de proyectos que tienen un vehículo, de los que ese vehículo puede depender (8.13-4). Lee por la
-// entrada pública de `repuestos`. Cada fila nombra al vehículo y abre el panel del ítem; «Ver todas» lleva a la cadena. Sin el cruce exacto con la espera de la fase
+// entrada pública de `repuestos`. Cada fila nombra al vehículo y abre el panel del ítem; «Ver todas» (sólo con tope) lleva a la cadena. Sin el cruce exacto con la espera de la fase
 // del vehículo (abierto 8-13a): la fila dice qué ítem está en camino, no que el vehículo lo espere hoy.
 import {
   detalleDeEsperaDeInicio,
@@ -39,7 +39,7 @@ export const CuerpoEsperasRepuestos: CuerpoDeBloque = async ({ bloque }) => {
           plural: 'repuestos en espera',
         })}
       />
-      <VerTodasDelBloque ruta={rutaDeLaCadena()} />
+      <VerTodasDelBloque bloque={bloque} ruta={rutaDeLaCadena()} hayMas={hayMas} />
     </>
   )
 }
