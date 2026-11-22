@@ -1053,10 +1053,16 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
   frase; tope 200 con aviso.
 - **Panel del flujo** (`?fase=<id>` o `?seccion=reglas|documentos`, `<Drawer>` por URL; sobrevive a recargar, «atrás» y Esc lo cierran):
   desde 1024 px va al costado y no es modal (el diagrama sigue a la vista y tocar otra fase cambia el panel sin cerrarlo); más angosto, el
-  drawer modal. De una fase: sus avisos de «Revisar», «Mover antes», «Mover después» y «Jubilar o eliminar», y **cuatro bloques a la
-  vista** (sin acordeones): «Datos», «Requisitos para entrar», «Salidas y quién mueve» y «Reglas que la afectan» (cada regla del flujo
-  que deja o no encender un interruptor de la fase, con «Cambiar las reglas del flujo»). Los roles por nombre («otro rol» si no estaba
-  entre los 100 leídos). Gana `?seccion=` sobre `?fase=`; un id ajeno al flujo o una sección que no se ve se ignoran. Abrir otra fase o
+  drawer modal (en el celular, las pestañas a lo ancho con 44 px). De una fase: arriba el nombre (el título), su «⋯» a la derecha de la ✕ (Mover antes, Mover
+  después y Jubilar o eliminar, cada una apagada con su motivo debajo; el foco queda en el «⋯» al mover) y los avisos de «Revisar»; debajo, **tres pestañas**
+  (`&pestana=reglas|identidad|ajustes` en la URL: sin ella, o con otro valor, Reglas; cambiar de pestaña reemplaza la entrada del historial y abrir otra fase
+  vuelve a Reglas; las tres quedan montadas, así que lo escrito sobrevive): **Reglas** (abre primero; sin acordeones) con «Requisitos para entrar»,
+  «Salidas y quién mueve» y «Reglas que la afectan» (cada regla del flujo que deja o no encender un interruptor de la fase, con «Cambiar las reglas del
+  flujo»); **Identidad** (nombre, descripción, color e icono) y **Ajustes** («En el flujo», «Alerta por demora», «Transporte y aduana» y «Web y portal»).
+  Identidad y Ajustes son un solo formulario: un «Guardar» y un «Cancelar» al pie, que sólo se ven en esas dos pestañas. Una pestaña con un error adentro lleva
+  un punto rojo y «con errores» en su nombre accesible; con algo escrito sin guardar, un punto azul y «con cambios sin guardar». Al guardar con un error en la
+  pestaña que no se ve, el panel la abre y le da el foco al primer campo con error. Una fase jubilada lleva su aviso con «Reactivar» sobre las pestañas.
+  Los roles por nombre («otro rol» si no estaba entre los 100 leídos). Gana `?seccion=` sobre `?fase=`; un id ajeno al flujo o una sección que no se ve se ignoran. Abrir otra fase o
   sección limpia lo que abría la anterior.
 - **Conflicto:** «Otra persona cambió este flujo · Recargar» arriba cuando una escritura choca (`PT409`); se va al llegar la versión nueva.
   En un modal, «Recargar» va dentro y lo escrito queda.
@@ -1103,27 +1109,28 @@ Lo que el diagrama, la lista de fases y el panel › Datos suman a «Flujos: con
 - **Nueva fase** (`?panel=nueva-fase`): nombre, color de una paleta cerrada (con su nombre en texto) y tipo (Intermedia, Inicial, Final);
   se crea al final del flujo. Nombre repetido, junto al campo. Con 200 fases, apagado con su motivo.
 - **Ordenar:** arrastrar la caja en el diagrama (el orden nuevo se ve en el acto; si la base lo rechaza, vuelve atrás), «Mover antes» y
-  «Mover después» en el panel (con el teclado; el foco sigue en el botón al llegar el orden nuevo) y, en la lista, «Subir/Bajar X». Con
+  «Mover después» en el «⋯» del panel (con el teclado; el foco sigue en el «⋯» al llegar el orden nuevo) y, en la lista, «Subir/Bajar X». Con
   la lista cortada por el tope (más de 200 fases) todo se apaga con «Hay más de 200 fases: con la lista cortada no se puede ordenar.».
 - **Filas de la lista:** «Subir/Bajar X» y el «⋯»: activa → Editar · Jubilar o eliminar; jubilada → Editar · Reactivar (sin
   «Deshacer»).
 - **Jubilar o eliminar** (`?panel=eliminar-fase&quitar=<id>`, `<Confirmar>`): al abrirse lee qué usa la fase. Sin unidades ni historial se
   elimina (no se deshace); con ellas se jubila (siguen en ella, deja de ser destino, se puede reactivar). Bloqueada (otras fases la
   esperan, única inicial activa): el motivo y «Confirmar» apagado. Si el uso cambió en el medio, decide la base y el aviso lo dice.
-- **Panel › Datos** (`?fase=<id>`, `bloques.datos`): cinco bloques a la vista: **Identidad** (nombre, descripción, color,
-  icono), **En el flujo** (inicial, final, pide nota al entrar, es logística, «Es la subasta»: apagado con «Sólo en el flujo de un origen de
-  subasta.» fuera de uno), **Alerta por demora** (días: vacío usa la de la empresa, 0
+- **Panel › Identidad y Ajustes** (`?fase=<id>&pestana=identidad|ajustes`, `bloques.pestanas`): **Identidad** (nombre, descripción, color,
+  icono; sin bloque propio: la pestaña ya lo titula) y, a la vista en **Ajustes**, **En el flujo** (inicial, final, pide nota al entrar, es logística, «Es la
+  subasta»: apagado con «Sólo en el flujo de un origen de subasta.» fuera de uno), **Alerta por demora** (días: vacío usa la de la empresa, 0
   la apaga; repetir cada 1 a 720 horas), **Transporte y aduana** (permite contenedor, permite aduana, llegada de repuestos) y **Web y
-  portal** (se publica en la web, visible en el portal, nombre y descripción para el cliente). Manda sólo lo que cambió y queda abierto.
-  - Errores junto a su campo, con el foco en el primero (inicial y final a la vez; portal sin nombre para el cliente).
+  portal** (se publica en la web, visible en el portal, nombre y descripción para el cliente). Un solo formulario con un solo «Guardar»: manda sólo lo que cambió y queda abierto.
+  - Errores junto a su campo, con el foco en el primero (inicial y final a la vez; portal sin nombre para el cliente); con el error en la otra pestaña, ésta se abre.
     Marcar «Es inicial» no desmarca a la otra: avisa.
   - Una regla del flujo apagada (Aduana, Logística, Vitrina web, Portal del cliente) deja su interruptor deshabilitado con el motivo; en
     repuestos, «No existe en el flujo de repuestos.». Uno ya encendido siempre se puede apagar.
   - Borrador en `sessionStorage` por fase («Recuperamos…»); sin conexión, sale al volver. Una jubilada también se edita, con su aviso.
+  - Cerrar el panel con algo sin guardar en Identidad o Ajustes pregunta como siempre, aunque se esté en Reglas (la pestaña lleva su punto).
 
 ### Flujos: requisitos para entrar (estados propios)
 
-Bloque del panel de la fase (`?fase=<id>`): el resumen («Datos: 1 (bloquea)»), la lista y «Agregar requisito».
+Bloque de la pestaña «Reglas» del panel de la fase (`?fase=<id>`): el resumen («Datos: 1 (bloquea)»), la lista y «Agregar requisito».
 
 - **Fila:** descripción en una línea («Pagos confirmados: 50 % del precio», «Título · 1 a 3 archivos · PDF, JPG»; clave desconocida, «Dato:
   <clave>»), notas, interruptor «Bloqueante» (`aria-label` con la descripción), `<Badge>` «Bloqueante» o «Informativo», orden y «⋯» con
