@@ -508,7 +508,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   afectan»), «Identidad» y «Ajustes».
 - **Pestañas de la fase** — `PESTANAS_DE_FASE` (`entities/fases/bloques-de-fase.ts`), `?fase=<id>&pestana=reglas|identidad|ajustes`: «Reglas», «Identidad»
   (nombre, descripción, color, icono) y «Ajustes» («En el flujo», «Alerta por demora», «Transporte y aduana», «Web y portal»). Identidad y Ajustes son un solo
-  formulario y un solo «Guardar». No: «Datos» (el nombre de cuando era un solo bloque), «tabs».
+  formulario y un solo «Guardar». No: «Datos», «tabs».
 - **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Fases de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
   del flujo entero, «Reglas del flujo» o «Tipos de documento» (`?seccion=reglas|documentos`); gana `?seccion=`. No: «sidebar», «inspector» para
   lo del flujo.
@@ -588,7 +588,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   unidas con Y. Un nodo que no está en la versión deja la condición sin respuesta y la rama se salta. No es la **Condición (de la fórmula)** ni la `condicion` de
   un nodo (el **interruptor**).
 - **Lienzo** — `LienzoDeLaPlantilla` (área `tarjeta`) con la capa del editor (`CapaDeEdicion`, `role="grid"`): la tarjeta de la cotización a escala
-  que se edita en la página del origen › Fórmula › Tarjeta, como un Excel (cabeceras de columna, asas de fila, selección, atajos). La dibuja el
+  que se edita en la pestaña Tarjeta de la página del origen, como un Excel (cabeceras de columna, asas de fila, selección, atajos). La dibuja el
   mismo modelo de dibujo que el PDF. No es el lienzo del diagrama del flujo.
 - **Rango (de la tarjeta)** — `Seleccion` de tipo `celdas` (`entities/plantilla/edicion/seleccion.ts`): las celdas de la tarjeta elegidas juntas en el lienzo (Shift+clic,
   arrastrar, Shift+flechas); se agranda hasta contener entera cada combinación que corta. Lo que se combina, se vacía, se copia o recibe un formato. No es el **Rango (de un campo)**.
@@ -787,7 +787,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Diseño de la hoja** — `formulas.diseno` / `entities/diseno.ts`, `validarDiseno()`, `validar_diseno()`: cómo se ve la hoja de un origen
   (secciones, celdas, atajos, variantes, interruptores, modos, tarjeta) y el aspecto de cada pieza en la rejilla de la hoja.
 - **Hoja (pestaña)** — `/configuracion/origenes/<id>/hoja` (`?formula=<id>`), clave `hoja` de `PARTES_DEL_ORIGEN`: el nombre en la UI de la
-  pestaña de la página del origen donde se edita el diseño de la hoja de una fórmula («Cómo se ve y se llena la cotización.»). El término técnico sigue siendo «Diseño de la hoja»
+  pestaña de la página del origen donde se edita el diseño de la hoja de una fórmula («Cómo se ve y se llena la cotización.»). El término técnico es «Diseño de la hoja»
   (`features/diseno/`); la «Hoja» de cotizar es la pantalla donde se cotiza.
 - **Inspector de la hoja** — `InspectorDeLaHoja` (`cotizaciones/features/diseno/components/inspector/`), `?pieza=`: el panel a la derecha del lienzo del
   editor de la hoja con lo que se edita de la pieza elegida (una celda, unos atajos, una variante, un interruptor, un subtotal, una sección, la cabecera o la
@@ -857,9 +857,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   diseños guardados son 12, 6 y 4), alto, letra, énfasis, ayuda y niveles. Se mueve dentro de su sección o a otra (hereda el nivel de la nueva: el
   inspector lo avisa).
 - **Ayuda (de una celda)** — `ayuda` de una `celda` (`AyudaDeDiseno`): una lista de 1 a 8 **bloques de la ayuda** que abre «Ayuda de X» en un
-  panel de sólo lectura (`?ayuda=bloques&nodo=<id>`; `texto` y `tabla`, de antes, abren lo mismo); cada tabla se lee con la hoja abierta. La de antes (`{texto, enlaces?}` o `{tabla}`)
-  se sigue aceptando y se lee como bloques (`ayudaEnBloques()`, espejo de `_diseno_bloques_de_la_ayuda()`): un texto (más sus enlaces) o una
-  tabla con todas sus columnas que no llena nada.
+  panel de sólo lectura (`?ayuda=bloques&nodo=<id>`; `?ayuda=texto` y `?ayuda=tabla` abren lo mismo); cada tabla se lee con la hoja abierta. Una
+  ayuda guardada como `{texto, enlaces?}` o `{tabla}` también se acepta y se lee como bloques (`ayudaEnBloques()`, espejo de
+  `_diseno_bloques_de_la_ayuda()`): un texto (más sus enlaces) o una tabla con todas sus columnas que no llena nada.
 - **Bloque de la ayuda** — `BloqueDeAyuda` (`entities/diseno.ts`): cada parte de la ayuda de una celda, en orden. `titulo` (hasta 80
   caracteres), `texto` (hasta 1.000, con saltos de línea y `**negrita**`), `enlaces` (de 1 a 5, `EnlaceDeAyuda`: título de hasta 60 caracteres
   y URL `https://`, que se abren en otra pestaña) o `tabla` (hasta 3 por ayuda): una tabla de referencia del origen o compartida, por su
@@ -873,7 +873,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Tarjeta del total** — `diseno.tarjeta_total` (nodo total y secundarios) y la pieza `{ tipo: 'total' }` del diseño (`TotalDeHoja`): la tarjeta de
   superficie invertida con el total, la etiqueta en mayúsculas (`clases-del-total.ts`). La pieza dice en qué sección principal y lugar se dibuja, con el
   aspecto de todo ítem; va una sola, en una sección principal que ven todos (`total_repetido`, `total_en_avanzado`, `total_con_nivel`). Con la pieza, en
-  escritorio se dibuja en su sección y el resumen no la repite; en el celular sigue en el resumen fijo al pie. Sin ella (un diseño de antes), arriba del resumen.
+  escritorio se dibuja en su sección y el resumen no la repite; en el celular va en el resumen fijo al pie. Sin ella, arriba del resumen.
 - **Contexto del diseño** — `ContextoDeDiseno` / argumentos de `validar_diseno()`: niveles existentes y retirados y claves de los colores; «todos»
   siempre existe.
 - **Visibilidad (de un nodo)** — `formulas.visibilidad` / `_compilar_visibilidad()`: `{nodo: {ver, editar}}` por nivel, compilado al publicar.
@@ -888,7 +888,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   «Sólo de este flujo» se crean en el destino. Lo que no se copia tal cual se dice. Su par es **Empezar en blanco** («Nueva fase»).
 - **Transición** — `fases_transiciones`: paso permitido entre dos fases, con acción y nota obligatoria.
 - **Salida de una fase** — en la interfaz, una transición vista desde la fase de la que parte («Salidas y quién mueve»); la que llega es una
-  **entrada**. En tipos, tablas y RPC sigue siendo `transicion`.
+  **entrada**. En tipos, tablas y RPC es `transicion`.
 - **Requisito** — `fases_requisitos` (documento | dato | espera): qué pide una fase para entrar; bloqueante o informativo.
 - **Espera** — requisito `espera`: un vehículo espera a sus repuestos / un repuesto a su vehículo.
 - **Regla del flujo** — `flujos_reglas`: capacidad encendida/apagada (vitrina, portal, aduana, esperas…).
@@ -1167,7 +1167,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `pantallas/<área>-<pantalla>.ts`; vacío es un objeto sin componentes y no dibuja nada.
 - **Menú de Configuración** — `MenuDeConfiguracion`, `gruposVisibles()`, `paraElNavegador()` (`configuracion/_navegacion/`): el menú agrupado a la
   izquierda de cada sección de Configuración; donde no cabe, el **selector de sección** (`SelectorDeSeccion`). No va en el inicio.
-- **Grupo de Configuración** — `GRUPOS`, `GrupoDeConfiguracion` (`configuracion/secciones.ts`): Empresa y equipo · Ventas · Operación · Web;
+- **Grupo de Configuración** — `GRUPOS`, `GrupoDeConfiguracion` (`configuracion/secciones.ts`): Empresa y equipo · Ventas · Web;
   junta las secciones en el inicio, el menú y el selector. No: «área».
 - **Sub-sección (de Configuración)** — `SubseccionDeConfiguracion`: una sub-ruta de una sección, registrada en `SECCIONES` con su título, su
   frase (`descripcion`, la que dibuja la página bajo su `h1` con `EncabezadoDeConfiguracion`) y sus permisos; el menú la dibuja debajo de su
@@ -1203,7 +1203,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Para todos los orígenes** — el bloque de Configuración › Orígenes, arriba de la lista de orígenes, con las tarjetas de ajustes de lo que vale para todas las cotizaciones de la empresa: **Colores** y **Vigencia**. No es «Tablas compartidas» (el grupo «Compartidas» del drawer de las tablas de un origen).
 - **Editor de texto con variables** — `<EditorConVariables>` (`@/shared/ui/editor-con-variables`): para un texto configurable con variables; una `<textarea>` con las
   variables resaltadas, un **botón de variable** por cada una que ese texto acepta (inserta `{clave}` en el cursor o sobre lo seleccionado), el contador, el aviso de
-  las que no acepta y la vista previa con datos de ejemplo. «Botón de variable» no es la «Ficha» (la del lead o la del vehículo). Hoy lo usa el Mensaje del portal.
+  las que no acepta y la vista previa con datos de ejemplo. «Botón de variable» no es la «Ficha» (la del lead o la del vehículo). Lo usa el Mensaje del portal.
 - **Variable de un texto** — `{clave}` dentro de un texto configurable (`partesDelTexto()`, `@/shared/lib/texto-con-variables`): toda `{…}` cuenta, y la que el texto no acepta se
   rechaza. No es el «Dato de la tarjeta» (una celda de la tarjeta de la cotización) ni el «Texto con datos» (sus partes, sin llaves).
 - **Estado de un documento legal** — `estadoDeLegal()` (`web`): `publicada` (hay un texto guardado: es el que muestra el sitio) · `sin-publicar` (nunca se escribió);
