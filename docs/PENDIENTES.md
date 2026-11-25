@@ -32,7 +32,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Los modos de tipo de cambio se editan en «Hoja», no en la planilla de la fórmula.
 - **[—]** Editor de la tarjeta: arrastrar el borde de una fila del lienzo para cambiar su alto (hoy, el campo «Alto» del panel).
 - **[—]** Una bandera que sólo lee la `prueba` de un `elegir` o un término de `Y`/`O` (`SI(nuevo; 100; 50)`) no pide su interruptor en el diseño al publicar (§5 de `validar_diseno()` y `revisarCobertura()` sólo cuentan la `condicion`): decidir si una condición también lo exige.
-- **[—]** Editor del diseño: sumar y quitar secciones o ítems, y pasar un ítem de una sección a otra (hoy se ordena dentro de la suya).
 - **[—]** En la primera publicación de un origen (las dos esperadas nulas), el borrador puede nacer sobre una v1 que otra persona publicó entre medio — decidir si la esperada nula deja de valer.
 - **[—]** «Compartir la cotización» no tiene el asistente de IA de V1 para reescribir el texto («hazlo más corto», «más profesional»…) ni su editor de imagen 9:16 (la historia de WhatsApp o Instagram con la foto y la cotización): hoy se comparte la imagen de la tarjeta o las fotos tal cual — decidir si vuelven y, la IA, con qué proveedor.
 - **[—]** Tablas de referencia: reactivar una desactivada (hoy no se deshace y su clave queda tomada), renombrarla (su nombre; la clave no cambia) y hacer propia una compartida (copiarla al origen con sus filas; hoy se crea una propia vacía con otra clave).
@@ -110,14 +109,16 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** La tabla de la ayuda con más columnas de las que caben deja las de texto de una letra de ancho al 100 % («Año», «Tipo de vehículo»): las cifras no
   se parten y el texto lleva `wrap-anywhere`, cuyo mínimo es un carácter (`tabla-de-la-ayuda.tsx`, `fila-de-la-ayuda.tsx`) — un ancho mínimo por columna de
   texto; cierre: `sinTextoCortado` en la prueba de la tabla ancha de `cotizar-hoja-ayuda-tabla.spec.ts`.
-- **[—]** e2e que caen de vez en cuando en `main` o en el CI de PR ajenos: `leads-ficha-derecha` (1 de 3), `leads-ficha-desplazamiento-interno` (depende de la geometría), `chat-menciones:87` (el foco), y sin causa vista `accesibilidad` en `movil`, `leads-alta` y `cotizaciones-papelera-enviar` — se arreglan si caen dos noches seguidas (`.claude/rules/e2e.md`).
+- **[—]** e2e que caen de vez en cuando en `main` o en el CI de PR ajenos: `agenda:208` (la tecla «n» llega antes de hidratar y abre «Nuevo lead»), `modales-con-salida:194` (Esc antes de que abra el modal), `scripts/orquestador/maquina.test.ts` (`kill ESRCH`), `edicion-de-la-tabla-en-la-ayuda.test.tsx` («+ Añadir fila» no deja el foco en la fila nueva con la máquina cargada), `leads-ficha-derecha` (1 de 3), `leads-ficha-desplazamiento-interno` (depende de la geometría), `chat-menciones:87` (el foco), y sin causa vista `accesibilidad` en `movil`, `leads-alta` y `cotizaciones-papelera-enviar` — se arreglan si caen dos noches seguidas (`.claude/rules/e2e.md`).
+  `cotizaciones-listado` E6 y E8 caen en el CI y pasan en local (la tecla N abre `panel=nuevo-lead` en vez de la hoja; «Ver todas» pierde `clase=preventa`):
+  esperar la hidratación o el `href` ya filtrado antes de actuar.
 
 ## Deuda técnica
 
 ### Rendimiento y escala
 
 - **[—]** El listado de cotizaciones de la dueña con 100 filas mide 50.003 B comprimidos con la siembra de volumen, sobre su tope de 49.500 (`e2e/listas-por-pagina-volumen.spec.ts`) — medir qué lo sube (la imagen de la tarjeta en la lista es candidata) y recortar o subir el tope con la regla del 5 %.
-- **[—]** Retirar `vehiculo_interesados()`: la app no la llama; `humo.sql` y `numero-global.sql` la siguen probando — migración que la quite y sus sondas.
+- **[—]** Retirar `vehiculo_interesados()` y `lead_telefonos_leer()`: la app no las llama; sus pruebas SQL (`humo.sql`, `numero-global.sql`…) las siguen probando — migración que las quite con sus sondas.
 - **[4-79]** `origenes_resumen()` cuenta con `count(*)` exacto vehículos y cotizaciones por origen, contra la regla de escala, y el inicio de Configuración la lee para lo que falta sin usar esos conteos — `limit n + 1` por origen con `conteoCorto()` o quitar el número; para el inicio, una lectura de los pasos sin contar si con volumen pesa.
 - **[4-67]** El conteo de exportar (`contarLeadsHasta`) de una cartera recién sembrada de 5.001 elige `Seq Scan on leads` tras `analyze` (≈ 3 s) — cierre: páginas sin seq scan, que no crecen y bajo 50 ms en `db:medir:volumen`.
 - **[4-77]** Cada lectura con la policy de `cotizaciones` paga ≈ 160–240 buffers fijos (`mis_permisos()`), sin reproducir — causa sin medir; arreglarlo toca una `security definer` de todas las policies.
@@ -155,7 +156,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ### Limpieza y código
 
-- **[—]** La vista previa del diseño de la hoja (Configuración › Hoja) no dibuja la variante en par (`hojaDeLaVistaPrevia()` no trae `par`); la planilla de la fórmula sí la dice («Se cotiza en par» en «Tipo de celda › Variante»).
+- **[—]** `src/modules/empresa/features/tipos-cambio/hooks/use-guardar-leyenda.ts` no lo importa nadie: quitarlo.
+- **[—]** El lienzo de la hoja (la pestaña Hoja del origen) no dibuja la variante en par (`hojaDeLaVistaPrevia()` no trae `par`); la planilla de la fórmula sí la dice («Se cotiza en par» en «Tipo de celda › Variante»).
 - **[—]** En la vista previa de las hermanas, «Copiar texto» copia sólo el de la tarjeta de la cotización abierta (no une los dos).
 - **[—]** `medir-cotizacion-crear.sql` y `medir-cotizacion-guardar.sql` no tienen un caso en par: crear y guardar en par llaman dos veces a lo que ya miden.
 - **[4-45]** `cotizaciones.moneda_mostrar` y `cotizaciones.plantilla_id` no tienen uso real (`moneda_mostrar` sólo viaja por `cotizaciones_listado()`) — migración que la recree sin ellas, con su medición y `db:types`.
@@ -165,7 +167,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** `e2e/configuracion-200-capturas.spec.ts` captura un panel por la URL apenas se ve el diálogo, sin esperar lo que trae su `diferido()`: «Datos del origen» y «Columnas de…» salen vacíos en la hoja — esperar un texto del cuerpo antes de `capturar()`.
 - **[—]** «Ver comprobante» duplicado en repuestos y logística (`ver-comprobante.ts` y `useComprobante.ver`); `XCell` no tiene `emptyLabel`.
 - **[—]** Las guardas de áreas (`areas-de-cotizaciones`, `-flujos`, `-logistica`, `areas-b/areas-de-web`, `areas-c/areas-de-repuestos`) son cinco copias de la misma lógica, y los registros de `<Confirmar>`, `<Drawer>` y RPC paginadas están partidos en `areas-b/`, `areas-c/`, `*-formula.ts` y `*-papelera.ts` — unificar en una guarda parametrizada y un registro por módulo.
-- **[—]** `lead_telefonos_leer()` no tiene uso en la app — quitarla en una migración con sus pruebas SQL.
 - **[—]** Repuestos sube imágenes con `subirPorHash` desde el hook — debería ir a `infra/items/imagenes.client.ts`.
 - **[—]** Huérfanos de Storage: `storage_gc_encolar_huerfanos` sólo barre `vehiculos`; quedan los de `repuestos` y `cotizaciones` (subidas cuyo registro falló), imágenes de guías y fotos de testimonios web subidas y nunca guardadas.
 - **[—]** El CSV de una importación que el job deja `fallida` tras 24 h sin avance no se borra (ni el objeto de un borrado fallido en el navegador), y un error que se repite reintenta cada 2 min esas 24 h.
@@ -182,19 +183,21 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** `logistica/entities/dinero/reparto.test.ts` («para cualquier monto…», ~2700 casos) pasa de los 5 s de Vitest con la máquina cargada (`pnpm test` junto a `db:probar`) — menos casos o un `timeout` propio.
 - **[—]** `scripts/demo/sembrar.mjs` no siembra proyectos de repuestos, eventos ni tareas de la agenda, ni vehículos fuera de la primera fase del flujo: la demo muestra esas pantallas vacías.
 - **[—]** `bloquear-peligrosos.sh` lee el texto del comando: un agregar que no aparece en él (dentro de `bash guion.sh`, armado con `printf`/`base64`, un `.npmrc` o un `package.json` escritos con Write) no se mira — una guarda de CI que exija que toda dependencia nueva de `package.json` esté en `scripts/orquestador/dependencias-aprobadas.txt` y que el PR que suma a la lista lleve «Dependencias nuevas».
-- **[—]** `e2e/cotizaciones-listado.spec.ts` E6 y E8 fallan a veces en el CI y pasan en local: la tecla N abre `panel=nuevo-lead` en vez de la hoja, y «Ver todas» pierde `clase=preventa` — esperar la hidratación o el `href` ya filtrado antes de actuar.
 
 ### Flujo
 
-- **[—]** El orquestador une sin sesión sólo los choques en `docs/*.md`: sumar las fichas `src/modules/*/CLAUDE.md` y `.claude/rules/*.md` — 8 de los 11 choques de la tanda del 2026-11-21 tocaban docs o fichas y 3 abrieron sesión sólo por eso.
-- **[—]** Los arreglos van primero al soltarse un carril, pero esperan a que termine una sesión de tarea (2–4 h): 28 esperaron 751 min en total (máx. 135) — sin salida clara (¿reservar un carril si hay un PR por arreglar?).
-- **[—]** Ninguna guarda ve un término repetido en `docs/GLOSARIO.md` (un guion de una sesión duplicó 879 líneas y entró a `main`): que `mapa.sh --check` falle con un término o un título repetido en un doc.
-- **[—]** El «Final del log» del job caído llega vacío a 7 de 21 prompts de arreglo (`gh run view --log-failed` se vacía al rato): el orquestador lo guarda al ver el rojo, o lo pide por la API de jobs.
-- **[—]** `vitest.config.mts` corta un test a los 5 s en local y a los 15 s en CI: con la máquina cargada (3 sesiones) dio 17 timeouts en 8 tareas que obligaron a repetir `verificar.sh` — 15 s también en local.
-- **[—]** Una sesión cortada por «API Error: No response from API» se retoma desde cero (una retoma costó US$34 y 151 min): retomarla con `claude --resume <id>`.
-- **[—]** `verificar.sh` no corre `shellcheck`, que el Nivel 1 del CI sí corre sobre `*.sh` (ya cayó dos veces): correrlo, o fallar si falta, cuando la rama toca un `.sh`.
-- **[—]** El estado `por_arreglar` no se limpia si el PR se integra antes de que arranque el arreglo: se lanzó uno 36 s después de integrado.
-- **[—]** Probar `AUTOCOMPACT_SESION` en ≈ 200k para las sesiones de tarea: compactan hacia los 268k y la lectura de caché es el 59 % del costo (68–76 % en las caras) — comparar el costo por tarea en el cierre siguiente.
+- **[—]** El orquestador une sin sesión sólo los choques en `docs/*.md`: sumar las fichas `src/modules/*/CLAUDE.md` y `.claude/rules/*.md`, que son la mayoría de los choques y abren sesión sólo por eso.
+- **[—]** Los arreglos van primero al soltarse un carril, pero esperan a que termine una sesión de tarea (2–4 h) — sin salida clara (¿reservar un carril si hay un PR por arreglar?).
+- **[—]** Ninguna guarda ve un término repetido en `docs/GLOSARIO.md` (un bloque duplicado entra a `main`): que `mapa.sh --check` falle con un término o un título repetido en un doc.
+- **[—]** El «Final del log» del job caído puede llegar vacío al prompt de arreglo (`gh run view --log-failed` no devuelve nada mientras la corrida sigue, y los jobs que no son e2e se mandan antes): pedirlo por la API de jobs (`actions/jobs/<job>/logs`) con las anotaciones del check-run. Y `ES_INFRA` (`scripts/orquestador/sin-sesion.sh`) no reconoce un puerto ocupado del runner («address already in use», «un puerto de la pila estaba ocupado»): abre una sesión que sólo puede relanzar con un commit vacío.
+- **[—]** `vitest.config.mts` corta un test a los 5 s en local y a los 15 s en CI: con la máquina cargada (varias sesiones) da timeouts que obligan a repetir `verificar.sh` (sobre todo `reparto.test.ts`) — 15 s también en local, o que `verificar.sh` reintente una vez sólo los archivos caídos.
+- **[—]** `verificar.sh` no corre `shellcheck`, que el Nivel 1 del CI sí corre sobre `*.sh`: correrlo, o fallar si falta, cuando la rama toca un `.sh`.
+- **[—]** El estado `por_arreglar` no se limpia si el PR se integra antes de que arranque el arreglo: puede lanzarse un arreglo sobre un PR ya integrado.
+- **[—]** El hook de esperas (`.claude/hooks/bloquear-esperas.sh`) no ve otras formas de esperar: leer `tasks/<id>.output` antes de su aviso, `ScheduleWakeup` sin nada que esperar, `echo esperando` de relleno y el mismo bucle relanzado con `run_in_background` tras el rechazo. Y rechaza de más: el `for … sleep` dentro del heredoc de un guion python.
+- **[—]** Las sesiones editan casi siempre con un heredoc de python o `sed -i` en vez de Edit, así que el lint por archivo del hook `PostToolUse` casi no corre: llevar el ESLint de los archivos tocados al hook `Stop`, o que el prompt pida Edit.
+- **[—]** El plan entero (35–61 KB) va dentro del prompt de la tarea y se relee tras cada compactación: dejarlo en `estado/<ID>/plan.md` y que el prompt lo nombre.
+- **[—]** Traer el flujo del kit vuelve a pegar las lecciones `(kit)` que el proyecto ya tiene, en otra sección y con «(calesa-app, PR #n)»: el traer del kit omite las que ya están en `docs/LECCIONES.md`.
+- **[—]** Probar `AUTOCOMPACT_SESION` en ≈ 200k (hoy 300000) para las sesiones de tarea: la lectura de caché es la mayor parte del costo — comparar el costo por tarea en el cierre siguiente.
 
 ### Límites aceptados
 
@@ -210,26 +213,25 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** La lista de fases del flujo deja «Subir» y «Bajar» a la vista (`flujos/features/fases/components/acciones-de-fila.tsx`) y las demás filas de Configuración los llevan en el «⋯»: decidir si es la excepción (ordenar con el teclado) o pasarlos al «⋯».
 - **[—]** Al recargar una guardada con un cálculo pisado, «Editado a mano: …» entra al resumen después del primer dibujo (su lista va con `diferido()`) y empuja
   «Modo de tipo de cambio» hacia abajo: reservarle el alto o dibujar su primera línea en frío (`features/hoja/components/pisadas/`).
 - **[—]** En Logística › Configuración › Navieras la lista tiene dos columnas «Estado» («Activo» y «Activa»): `columnaDeUso="Estado"` en `navieras-de-transporte.tsx` repite el título de la columna de estado; ponerle otro («Uso» o quitarla).
-- **[—]** La planilla de la fórmula a 1280 px con la tarjeta al costado (36 rem): # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
-  desplazando la grilla. Angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`).
+- **[—]** La planilla de la fórmula angosta: a 1280 px con la tarjeta al costado (36 rem), # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
+  desplazando la grilla — angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`); en el celular (390 px), el «⋯» de la fila
+  activa queda al final, en Ejemplo, y llegar a él esconde la C — fijarlo a la derecha como `#` y A van fijas a la izquierda (`fila-de-la-cuadricula.tsx`).
 - **[—]** En el editor de la hoja, el «+» de la pieza elegida no se achica con el lienzo: con la vista 1.280 en una ventana de 1.280 (el lienzo a ≈ 0,3)
   tapa la mitad de abajo de una pieza baja, como la tarjeta del total y su cifra. Darle un tamaño que siga la escala o sacarlo fuera de la pieza (`features/diseno/components/editor/`).
 - **[—]** En el celular al 200 %, el «⋯» del panel de la fase queda más arriba que la ✕ (el «⋯» va en rem y la ✕ en px): alinear sus centros (`drawer.tsx`, `acciones`).
-- **[—]** `e2e/cierre-pendientes-capturas.spec.ts` falla en `movil` (también en `main`): en la sub-ruta `datos` del origen, el título no queda a la vista porque el panel «Datos del origen» está abierto.
-- **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px, los tercios del modal «Avanzado», un par con un lado bloqueado en el celular) baja sus
-  acciones a una segunda línea: la celda mide 88 px en vez de 56 y las de la misma fila no se alinean. Achicar el rótulo antes que bajar las acciones
-  (`clases.ts` de la XCell).
+- **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px con el resumen al costado, los tercios del modal «Avanzado», un par con un lado bloqueado
+  en el celular) baja sus acciones (el % y el ⚙ de un par) a una segunda línea: la celda mide 88 px en vez de 56 y las de la misma fila no se alinean; V1 los
+  dejaba en la misma fila. Achicar el rótulo o la caja del valor (`min-w-[6rem]`) antes que bajar las acciones (`clases.ts` de la XCell).
 - **[—]** En el celular, el paso a paso de la puesta en marcha (seis filas arriba) baja el contenido de cada paso casi a media pantalla, y en
   «Listo» deja «Cotizar con <origen>» bajo el pliegue: plegarlo a una línea («Paso 3 de 6 · Flujo») que abre la lista (`paso-a-paso.tsx`).
 - **[—]** Cabecera del resumen de la cotización en el celular: al 200 % ocupa casi toda la pantalla (el monto se corta contra el borde y las pestañas quedan debajo, sin desplazamiento del drawer, que va con `desplazamiento="propio"`) — que el drawer se desplace cuando la cabecera no deja alto a las pestañas, o plegarla a título y total; y la fila «Creada» parte su valor bajo la etiqueta — dejar la etiqueta con el primer tramo del valor (`resumen-de-cotizacion.tsx`, `cabecera-del-resumen.tsx`).
 - **[—]** La imagen de la tarjeta quita el recuadro al cargar (`onLoad`) y la grande del resumen puede verse un instante como un marco gris vacío hasta que el
   navegador la decodifica: pasar a «lista» tras `img.decode()` (`imagen-de-la-tarjeta.tsx`, `useCargaDeLaImagen()`).
 - **[—]** En el celular (≈ 390–412 px), «+ Nuevo» de la barra superior tapa la palabra «Buscar» del buscador («Bu» cortado; cede su ancho con `min-w-0` sin cortar el texto), también con un solo tipo de cambio: dibujar sólo la lupa cuando no cabe la palabra.
-- **[—]** En el celular (390 px), el «⋯» de la fila activa de la planilla de la fórmula queda al final de la fila, en Ejemplo: llegar a él desplaza la cuadrícula
-  de costado y esconde la C. Fijarlo a la derecha como `#` y A van fijas a la izquierda (`fila-de-la-cuadricula.tsx`).
 - **[—]** `<Opciones>` (`src/shared/ui/opciones.tsx`): el radio `sr-only` es absoluto sin un `relative` en su etiqueta, y con las opciones en dos renglones cae bajo otra (el «Cómo empieza» de «Nueva fórmula»): sumar `relative` a la etiqueta.
 - **[—]** La burbuja del chat tapa contenido en el celular: el «⋯» de la primera fila de una lista de Configuración a la vista al abrir (390 px, la pestaña «Campos» de un origen), la esquina de «Guardar» de la barra de cambios sin guardar (Configuración › Leads › «Mensaje del portal»), y al 200 % el borde derecho del valor de una tarjeta de ajustes (la dirección de apibara) y la última línea de una página — reservar su lugar al pie del contenido y subirla mientras la barra está a la vista, como los avisos (`data-pie-de-panel`).
 - **[—]** El selector de embudo de la vista de embudo no se cierra al elegir otro (`DropdownMenuRadioItem` de Base UI no cierra al hacer clic): en el
@@ -248,8 +250,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[R7]** Blancos táctiles bajo 44 px en componentes de toda pantalla (`Tabs`, `Switch`, `Checkbox`, `Popover` de Roles, «Nuevo lead» del marco, «Saltar al contenido», «Abrir» de las listas, el botón de 32 px): 121 en `BLANCOS_CONOCIDOS` — rediseño; se cierra vaciando la lista.
 - **[R7]** R7 sólo es dura en `RUTAS_DE_LAS_FASES_5_A_9` (`e2e/soporte/accesibilidad-conocidos.ts`); fuera quedan 5 blancos (`/`, `/leads` ×2, `/leads/[id]` → `tel:`, las partes de `/configuracion/origenes/[id]/…`) — se cierra ampliándola a toda la app.
 - **[4-50]** El resumen fijo de la hoja no cabe entero al 200 % con la página arriba (con la barra del cliente a la vista).
-- **[—]** En una celda angosta de la hoja (media sección con el resumen al costado, 1280 px) el % y el ⚙ de un par bajan a la fila de abajo, a la
-  derecha del monto; V1 los dejaba en la misma fila. Medir si con la caja del valor más angosta (hoy `min-w-[6rem]`) entran sin encimarse.
 - **[—]** La barra del vehículo de la hoja desborda la página al 200 % en el celular cuando dice «Obligatorio»: la insignia es `shrink-0` junto a «Selecciona
   un vehículo» (`vehiculos/…/contenido-de-la-barra.tsx`) — que la insignia baje de línea (`flex-wrap`) y afirmarlo con `sinScrollHorizontal()` en `cotizar-panel-del-vehiculo`.
 - **[4-47]** La ayuda de una tabla corta en 1.000 filas sin enlace al editor, y una tabla congelada sin copia viva sale con claves en vez de etiquetas — falta el enlace y congelar `columnas` (espera a la baja de tablas).

@@ -282,8 +282,7 @@ que asserta `pnpm db:medir:volumen` o el e2e. Mide `medir-escala.sql` salvo que 
   sólo ella pide `creado_en` (en las pestañas pasaría el tope de bytes). Sin medir, como en el inventario: el `lote` en el `or` y el texto que
   no coincide (recorre el origen).
 - El alta se pide al abrirse y lee el layout activo desde el navegador (`useLayoutActivo()`): la diferencia del documento entre la dueña y
-  un rol sin `vehiculos.crear` ≤ 40.000 B sin comprimir (`e2e/cotizar-panel-crear-vehiculo.spec.ts`; con el layout en el documento eran
-  69.098).
+  un rol sin `vehiculos.crear` ≤ 40.000 B sin comprimir (`e2e/cotizar-panel-crear-vehiculo.spec.ts`).
 - Historial en pantalla: al desplegarlo, de a 21 por cursor, con el autor embebido (una lectura por PK de `perfiles` por fila, ≤ 21: límite
   sin assert) y «Ver más» hasta 500, que ofrece «Ver todas en Cotizaciones» (`/cotizaciones?vehiculo=`).
   `e2e/cotizar-historial-del-vehiculo.spec.ts`:
@@ -480,8 +479,8 @@ inferior), que no se dibuja hasta abrirse: la carga sólo paga el botón. En el 
   12 KB; lista de la fase ≤ 10 / 200 ms y 24 KB.
 - Lo medido se arma en una transacción que se revierte: `session_replication_role = replica`, 195.000 vehículos con la fase 3 en 15.000 y después 105.000 más a ella (sumar y no mover: mover deja filas
   muertas en los índices y cambia lo que se mide).
-- JS en frío (`e2e/presupuesto-js.spec.ts`): `/logistica` ≤ 390 KB (medido 365,0 en 26 chunks) y `/logistica/fase/[fase]` ≤ 390 KB (medido 367,0 en 27 chunks): sobre lo medido más un 5 %, a la decena.
-- JS en frío de Logística › Configuración (`/logistica/configuracion/puertos`, el marco de Logística con la tira de pestañas y el catálogo de Puertos; las otras pestañas pesan lo mismo, cada una su editor): ≤ 390 KB (medido 365,6 en 28 chunks). El ⚙ «Configurar» vive en la `sub-navegacion` que ya viaja con `/logistica` (sin JS nuevo más que su icono): `/logistica` midió 373,8 KB, dentro de su 390. Cada catálogo conserva su tope y su aviso; sin consulta nueva ni volumen propio (decenas de filas).
+- JS en frío (`e2e/presupuesto-js.spec.ts`): `/logistica` ≤ 390 KB (medido 373,8, con el ⚙ «Configurar») y `/logistica/fase/[fase]` ≤ 390 KB (medido 367,0 en 27 chunks): sobre lo medido más un 5 %, a la decena.
+- JS en frío de Logística › Configuración (`/logistica/configuracion/puertos`, el marco de Logística con la tira de pestañas y el catálogo de Puertos; las otras pestañas pesan lo mismo, cada una su editor): ≤ 390 KB (medido 365,6 en 28 chunks). El ⚙ «Configurar» vive en la `sub-navegacion` que ya viaja con `/logistica` (sin JS más que su icono). Cada catálogo conserva su tope y su aviso; sin consulta nueva ni volumen propio (decenas de filas).
 - JS en frío del detalle de un vehículo (`/logistica/vehiculo/[id]`): ≤ 470 KB (medido 446,1; el popover de relacionados, cada hueco y el modal «Pedírselo a alguien» van con `diferido()`), sobre lo medido más un 5 %, a la decena.
 - **Acciones de «Qué falta»** (`/logistica/vehiculo/[id]`): sin lectura nueva; viajan en la respuesta de la action de siempre (≈ 150 a 250 B por falta) y
   `por_revisar` sale del mismo `count` por `documentos_unidad_tipo_idx`. Se dibuja un botón por falta y el «⋯» sólo con más. «Pedírselo a alguien» llega
@@ -614,14 +613,14 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 
 - Topes (`PRESUPUESTO_DE_JS_EN_KB` de `e2e/soporte/presupuestos.ts`, lo medido más un 5 % a la decena; uno pasado por ≤ 5 % se sube con la regla del 5 %):
   `/leads` 560, `/leads/[id]` 595 (590,2 medidos con el `enFrio` de `diferido()`, que viaja en el marco: regla del 5 %), `/perfil` 440, `/vehiculos` 530, `/vehiculos/[id]` 540 (531,8 medidos con la cotización privada, los dos botones del marco y la cuenta regresiva de la subasta: regla del 5 %), `/cotizaciones` 400 (con las tarjetas de la lista, la imagen de la tarjeta en frío y el hook de los menús de las filas que comparte con las fichas),
-  `/cotizaciones/nuevo` 480 (473,9 medidos el 2026-11-22 con la tarjeta del total como pieza de una sección, `TotalDeHoja`: regla del 5 %; antes, 469,4 con la hoja con el aspecto de V1, el interruptor «Privada», los botones «Recargar la página» y «Copiar el enlace de esta página» del marco y la marca, «Calculado» y la región del aviso de un cálculo pisado; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
-  (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 480,1 medidos con «Hacer privada», la insignia y los dos botones del marco: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
+  `/cotizaciones/nuevo` 480 (473,9 medidos con la hoja con el aspecto de V1, la tarjeta del total como pieza de una sección (`TotalDeHoja`), el interruptor «Privada», los botones «Recargar la página» y «Copiar el enlace de esta página» del marco y la marca, «Calculado» y la región del aviso de un cálculo pisado: regla del 5 %; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
+  (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 487,5 medidos con «Hacer privada», la insignia y los dos botones del marco: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
   `/logistica/fase/[fase]` 390, `/logistica/vehiculo/[id]` 470, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
   `/cotizaciones/papelera` 440 (en su spec).
-- Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 558,3 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
+- Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 590,2 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
   frío serían 450: va con `diferido()`; la imagen del resumen, sólo su cáscara: `CLAVE_DEL_VISOR` por el barril del visor sumaba 2,5 KB, se importa de
-  `use-carrusel`), `/cotizaciones/[id]` 487,5 de 490 (medido el 2026-11-22; la rejilla y el aspecto de la hoja pesan por sus tablas de clases; la barra del vehículo de la cabecera va con
+  `use-carrusel`), `/cotizaciones/[id]` 487,5 de 490 (la rejilla y el aspecto de la hoja pesan por sus tablas de clases; la barra del vehículo de la cabecera va con
   `diferido()`, y con ella el panel de elegir otro vehículo en una preventa) y `/cotizaciones/nuevo` 473,9 de 480 (la tarjeta del total como pieza viaja en frío con la hoja: es una pieza más; nada del editor; lo de la hoja en par va con `diferido()`; el aviso de un cálculo pisado y la lista del resumen, también; el
   pedido del PDF va en su propia composición, sin la lectura de la tarjeta; el campo del título va con `diferido()` dentro del panel; los pasos de la hoja y el botón del ⚙ de la cabecera viajan en frío, su panel, los campos por defecto y los enlaces de la ayuda con
   `diferido()`) (`docs/PENDIENTES.md`).
@@ -661,27 +660,26 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   Los orígenes que la persona abre entran al menú como sub-ítems de «Orígenes» al pedir la página (`getOrigenes(true)`, con `cache()`, tope 20 con
   «Ver todos»): no cruzan como código, son enlaces del mismo menú.
 - Configuración › Empresa (tarjetas de ajustes, cada modal con `diferido()` al abrirse por primera vez): JS en frío (KB gz, `.next-e2e`) `/empresa` 228,4, `/empresa/integraciones` 228,4, `/empresa/comprobantes` 358,9 (sin tope propio).
-- Configuración › Leads (seis tarjetas, cada modal con `diferido()` al abrirse por primera vez; sin tope propio): JS en frío (KB gz, `.next-e2e`, medido el 2026-11-20) `/configuracion/leads` 405,1 contra 458,9 de `/configuracion/empresa` medida en la misma corrida.
-- La puesta en marcha de un origen (topes en `e2e/soporte/presupuestos.ts`, medido el 2026-11-21): `/configuracion/origenes/nuevo` 389,7 (tope 420: el formulario de
-  Datos y el paso a paso; sin el marco del origen) y `/configuracion/origenes/<id>/puesta-en-marcha/formula` 461,4 (tope 470, medido el 2026-11-22 con el bloque «Para todos los orígenes»: la planilla del paso, por el mismo
+- Configuración › Leads (seis tarjetas, cada modal con `diferido()` al abrirse por primera vez; sin tope propio): JS en frío (KB gz, `.next-e2e`) `/configuracion/leads` 405,1 contra 458,9 de `/configuracion/empresa` medida en la misma corrida.
+- La puesta en marcha de un origen (topes en `e2e/soporte/presupuestos.ts`): `/configuracion/origenes/nuevo` 389,7 (tope 420: el formulario de
+  Datos y el paso a paso; sin el marco del origen) y `/configuracion/origenes/<id>/puesta-en-marcha/formula` 461,4 (tope 470, con el bloque «Para todos los orígenes»: la planilla del paso, por el mismo
   `diferido()` de la pestaña; «Empezar en blanco» y «Copiar la de otro origen», por `pantallas/formulas-del-origen-empezar`). Los otros pasos reusan el
   editor de su pestaña y no llevan tope propio.
-- La página de un origen y Catálogos: cada pestaña y cada catálogo carga sólo su pantalla (`pantallas/origen-*`, `formula|diseno|plantilla|tablas|diseno-colores|configuracion`).
-  JS en frío de las seis pestañas (KB gz, `medirJsEnFrio()` sobre `.next-e2e`, medido el 2026-11-21; topes en `e2e/soporte/presupuestos.ts`):
+- La página de un origen: cada pestaña carga sólo su pantalla (`pantallas/origen-*`, `formula|diseno|plantilla|tablas|diseno-colores|configuracion`).
+  JS en frío de las seis pestañas (KB gz, `medirJsEnFrio()` sobre `.next-e2e`; topes en `e2e/soporte/presupuestos.ts`):
   `/configuracion/origenes/<id>/fases` 442,9 (tope 460), `/planilla` 496,0 (tope 510; la planilla, por `PlanillaDiferida`; sus paneles, «¿Cómo se
-  escribe?» y el drawer «Versiones», en su `diferido()`; el arrastre del número va con eventos de puntero, sin dnd-kit), `/hoja` 414,5 (tope 420, medido el 2026-11-22; dnd-kit, el lienzo y el
+  escribe?» y el drawer «Versiones», en su `diferido()`; el arrastre del número va con eventos de puntero, sin dnd-kit), `/hoja` 414,5 (tope 420; dnd-kit, el lienzo y el
   inspector del editor de la hoja, en su `diferido()`; «Publicar…» suma su botón, su modal va en el suyo; «+ Nuevo nivel» y «+ Nuevo color», en otro), `/tarjeta` 418,1 (tope 430; dibuja en frío el aviso de menos de 1.024 px y arma la lectura del lienzo; el
-  editor llega por `diferido()`), `/campos` 407 (tope 420; el editor de campos de `shared`: el arrastre y el formulario del campo van en su `diferido()` y la búsqueda filtra en el cliente) y `/categorias` 405,1 (tope 410). Contra lo de antes de las pestañas planas (flujo 431,8,
-  planilla 478,3, hoja 393,4, tarjeta 400,4, campos 392,4, categorías 390,4) suben entre 2,6 % y 4,4 %: las migas con el selector de origen, el drawer
+  editor llega por `diferido()`), `/campos` 407 (tope 420; el editor de campos de `shared`: el arrastre y el formulario del campo van en su `diferido()` y la búsqueda filtra en el cliente) y `/categorias` 405,1 (tope 410). Cada pestaña paga en frío las migas con el selector de origen, el drawer
   «Datos» y su botón, el tooltip del ⚠ (que sólo lleva la página del origen: `PestanasConDesborde` lo recibe por `conAviso`) y, en las tres de la fórmula, la barra (el selector con su popover, el estado, «Versiones», «Tablas» y el lugar de
-  «Guardar» y «Publicar…»): regla del 5 %. La lista del selector (con las archivadas), los paneles de cada fórmula (nueva, renombrar, activar, archivar,
-  eliminar) y los de las tablas van por `diferido()`; la lista de las tablas se lee en el servidor sólo con `?panel=tablas`. `/configuracion/roles` 388,2 (la matriz con los niveles y el resumen plegable; tope 410, sin medida de antes: la ruta no tenía presupuesto),
-  `/puertos`, `/navieras` y `/categorias-de-gasto` 356,4, `/tipos-de-documento` 370,4, `/tablas` 368,1. La cabecera del origen (migas,
+  «Guardar» y «Publicar…»). La lista del selector (con las archivadas), los paneles de cada fórmula (nueva, renombrar, activar, archivar,
+  eliminar) y los de las tablas van por `diferido()`; la lista de las tablas se lee en el servidor sólo con `?panel=tablas`. `/configuracion/roles` 388,2 (la matriz con los niveles y el resumen plegable; tope 410).
+  La cabecera del origen (migas,
   encabezado, «Datos», el «⋯» y las pestañas con su ⚠) lee `origenes_resumen()` una vez por pedido (`leerElOrigen`, con `cache()`, la comparten la cabecera y
   la pestaña) y la lista de orígenes del selector (`leerOrigenes()`, la misma que el menú); no lee apibara: nada cuenta ni crece con las cotizaciones.
   `/configuracion/origenes/<id>` responde 308 a la última pestaña de la persona (`origenes.ultima_pestana`, una fila por su PK) con `route.ts`, sin
-  `page.tsx` ni `loading.tsx` intermedios; las URLs viejas (`/datos`, `/flujo`, `/formulas/…`, `/formula/…`, `/tablas`), también con `route.ts` y 308.
-- «Para todos los orígenes» (`/configuracion/origenes`, para quien tiene `cotizaciones.configurar` en algún origen; medido el 2026-11-22): JS en frío de la página 387,4 KB en
+  `page.tsx` ni `loading.tsx` intermedios; `/datos`, `/flujo`, `/formulas/…`, `/formula/…` y `/tablas` redirigen también con `route.ts` y 308.
+- «Para todos los orígenes» (`/configuracion/origenes`, para quien tiene `cotizaciones.configurar` en algún origen): JS en frío de la página 387,4 KB en
   29 chunks (sin tope propio; con el modal abierto por `?panel=colores` pesa lo mismo: los modales de Colores y Vigencia llegan por `diferido()` al abrirlos). Cada tarjeta lee lo suyo tras su
   `<Suspense>`: Colores, `tonos` (a lo sumo 48 filas, el tope de la base, por `tonos_pkey`/nombre; `limit` de la lectura) y Vigencia, la fila única de `ajustes_empresa`. Son dos lecturas
   chicas más sobre el pedido de la página: no cuentan ni crecen con las cotizaciones, y el costo en frío es el del código de las dos tarjetas (la tarjeta tocable, su límite de error y la lista
@@ -692,7 +690,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   hasta 500 con `<AvisoDeTope>`. «Copia de otro origen» ofrece los orígenes de `getOrigenes(true)` (tope 100) y lee las fórmulas del elegido desde el
   navegador (tope 51). La elegida (`?formula=`) se lee por PK en su origen con `cache()`
   (`abrirLaFormulaDeLaPestana`) y versiones, borrador y tarjeta por los índices de esa fórmula; las versiones, sólo en la Planilla. Tablas de configuración (≤ 50 vivas por origen): sin `db:medir:volumen`.
-- Configuración › Orígenes: la lista de tarjetas, 382,8 KB gz en frío en 26 chunks (`medirJsEnFrio()`); muestra sólo los orígenes que la persona
+- Configuración › Orígenes: la lista de tarjetas (su JS en frío, el de «Para todos los orígenes», arriba) muestra sólo los orígenes que la persona
   abre, con su tira de pasos de la misma lectura. Sin `diferido()` nuevo: el bloque de datos clave se ve apenas carga «Campos».
 - «Vista y opciones» en las barras de los listados: en frío viaja sólo el botón (el panel, `Popover`, `Sheet` y las secciones van con `diferido()`); el
   botón viaja con `FilterShell` aunque la lista no lo dibuje.
@@ -781,7 +779,7 @@ fallar.
   la inicial y la guardada son el mismo objeto. La referencia es una fila de `cotizaciones_listado()` por `cotizaciones_origen_creado_idx` más las lecturas
   del PDF, en paralelo con la plantilla, recortada a los nodos del contexto reducido. El editor (lienzo, panel, dnd-kit y atajos: 26,4 KB gz, más dnd-kit, 15,0, el chunk que comparte con el orden del diseño), el modal de
   publicar y el diálogo de descartar van por `diferido()`; «Dato» dibuja 50 («Escribe para acotar.»). Deshacer guarda hasta 100 instantáneas en memoria.
-  `pantallas/tarjeta-plantilla.ts` no entra a la hoja. La página del origen no tiene presupuesto de JS.
+  `pantallas/tarjeta-plantilla.ts` no entra a la hoja. El JS en frío de la pestaña, en «JS en frío» (`/tarjeta`, tope 430).
 - Planilla de la fórmula (`e2e/configuracion-cotizacion-formula-planilla-volumen.spec.ts`): abrir la pestaña lee una fila de `formulas` por
   `formulas_pkey` (`definicion`, `params`, `estado`, `diseno`, `nota`) desde el navegador: con 600 filas ≤ 80.900 B; también el terreno de la
   vista previa (abajo) y el catálogo de colores (≤ 48 filas, seis columnas de colores); en el servidor, en paralelo con la fórmula, la plantilla de
@@ -866,8 +864,8 @@ pnpm db:medir:volumen`): invocadora, páginas de `MAXIMO_DE_PAGINA_DE_COTIZACION
   borrado de un origen recorren la tabla (tope 100 ms con las 50.000 sembradas; el total exacto está en `docs/PENDIENTES.md`).
 - **La hoja en par** (glosario: «Variante en par»; `e2e/cotizar-hermanas.spec.ts`): la celda gemela suma los nodos de una celda y ninguno más; con la fórmula de
   prueba (una común y una en par) `[data-hoja]` mide 116 nodos (su prueba la topa en 500; el techo de la hoja es 525). Lo del par va en su chunk diferido (`PantallaDeCotizarEnParDiferida`,
-  `PantallaDeUnParGuardadoDiferida`): en frío sólo viajan el ítem que reparte las celdas en par y las piezas del resumen. JS en frío medido: `/cotizaciones/nuevo`
-  462,6 KB en 29 chunks (tope 465) y `/cotizaciones/[id]` 475,0 de 480. Al abrir la hoja nueva en par, dos primeros cálculos en paralelo
+  `PantallaDeUnParGuardadoDiferida`): en frío sólo viajan el ítem que reparte las celdas en par y las piezas del resumen (el JS en frío de `/cotizaciones/nuevo` y
+  `/cotizaciones/[id]`, en «JS en frío»). Al abrir la hoja nueva en par, dos primeros cálculos en paralelo
   (`recalcularAlAbrirEnPar()`); la guardada en par, cuatro llamadas desde el servidor en paralelo (las dos hojas y sus dos `cotizacion_evaluar`). Recalcular, dos
   pedidos por pausa (uno en vuelo por columna). En la base, crear y guardar en par cuestan lo de dos altas o dos guardados (llaman dos veces a
   `cotizacion_crear` y `cotizacion_guardar`, que miden `medir-cotizacion-crear.sql` y `medir-cotizacion-guardar.sql`); `cotizaciones_hermana_unica` sostiene

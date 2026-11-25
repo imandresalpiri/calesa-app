@@ -255,8 +255,8 @@ la lista (`supabase/tests/evaluar-formula.sql`).
 ### En la base
 
 `cotizacion_evaluar(p_entradas, p_cotizacion, p_origen, p_vehiculo, p_modo, p_modo_tc, p_abierta)` y su ayudante `_cotizacion_armar()`
-(`security definer`; armar comprueba y lee, la otra llama a `evaluar_formula()`); ver también «En la base (4.10-1)» y «La hoja abierta
-(4.13-3a)».
+(`security definer`; armar comprueba y lee, la otra llama a `evaluar_formula()`); ver también «En la base» de «Niveles de acceso» (la lectura de una
+cotización) y «La hoja abierta».
 
 - **Llamada:** exactamente uno de `p_cotizacion` y `p_origen` (si no, `llamada_invalida`). **Con una cotización:** SU fórmula
   (`formula_id`, nunca la vigente), SUS tipos de cambio congelados y SU vehículo. **Con un origen:** la fórmula publicada
@@ -429,7 +429,7 @@ tarjeta_total: {nodo, secundarios[]} }`.
   `titulo`, `texto` (con saltos de línea y `**negrita**`, lo único que se interpreta), `enlaces` (de 1 a 5 `{titulo, url}` —título de 1 a 60
   caracteres, URL `https://` de hasta 2000—) y hasta 3 `tabla` (`{tabla, columnas?: [{columna, llena?}], resaltar?}`: sin `columnas`, todas las de
   la tabla en su orden y sin llenar nada; `llena`, el nodo de la celda que recibe el valor tocado; `resaltar`, la fila que casa con el vehículo).
-  La ayuda de antes (`{texto, enlaces?}` o `{tabla}`) se sigue aceptando y se lee como bloques (`ayudaEnBloques()`, espejo de
+  Una ayuda `{texto, enlaces?}` o `{tabla}` también se acepta y se lee como bloques (`ayudaEnBloques()`, espejo de
   `_diseno_bloques_de_la_ayuda()`); el editor la guarda en bloques en cuanto se toca. `nivel_ver?`, `nivel_editar?`; **el
   candado se deriva** —cálculo, dato del vehículo, condición apagada, otra variante o nivel que falta— y siempre dice su motivo; **el
   par porcentaje-monto es una sola celda**, con `secundario`); `atajos` (un nodo `tabla` sobrescribible, su `columna` y hasta 12
@@ -468,7 +468,7 @@ sección (`donde` = su id); §7 la ayuda, celda por celda en el orden del diseñ
 `_diseno_ayudas()`; `donde` = el nodo de la celda): `ayuda_enlace_no_https` (la URL de un enlace cumple `^https://[!-~]+$`, ASCII imprimible sin
 espacios, la misma clase en JS y en Postgres: `URL_DE_ENLACE`); **sólo con el catálogo de tablas del origen** (el que trae publicar a mano,
 `_tablas_del_catalogo()`: las activas del origen y las compartidas, la del origen gana), `ayuda_tabla_inexistente` y, columna por columna,
-`ayuda_columna_inexistente` (la ayuda de antes, `{tabla}`, no se mira contra el catálogo: la hoja la deja caer si no está); y siempre
+`ayuda_columna_inexistente` (una ayuda `{tabla}`, sin bloques, no se mira contra el catálogo: la hoja la deja caer si no está); y siempre
 `ayuda_llena_no_acepta_valor` (lo que `llena` nombra es un nodo con celda en el diseño —o el porcentaje de una con secundario— que la hoja deja
 escribir: un dato que se tipea, una constante o un cálculo que se puede pisar; un tipo de cambio, no). Sin catálogo (el borrador, la N+1 de una
 tabla, el ⚙, revertir) esas dos no corren: la N+1 de una tabla publica aunque la ayuda nombre una columna que ya no está, y el editor lo marca en el
@@ -489,7 +489,7 @@ la pide.
   Desde la Hoja, la definición va con los rótulos y formatos que el inspector editó (`edicion-de-nodos.ts`; sin cambios, la leída).
   **Publicar** (`formula_publicar()` → `_publicar_formula()`; el ⚙ y revertir → `_publicar_version()`): toma el borrador `for update` y
   los tonos de sus grupos y de su diseño (`_tonos_de_grupos()` y `_tonos_del_diseno()`) `for key share`, valida fórmula y diseño completo
-  (`_preparar_publicacion()`) y compila `visibilidad`. Dos a la vez: PT409 («Versiones (4.20-1)»). `validar_diseno()` lee las secciones
+  (`_preparar_publicacion()`) y compila `visibilidad`. Dos a la vez: PT409 («Versiones»). `validar_diseno()` lee las secciones
   del diseño una vez a una variable: un diseño fuera de línea (TOAST) se relee entero en cada `->`.
 - **`visibilidad`** = `{nodo: {ver, editar}}` con **claves de nivel**, no permisos (`_compilar_visibilidad()`): cada ítem da su nodo con
   su nivel efectivo (y el `pct` de una celda con `secundario`); el total y lo `aparte` tienen `ver: todos`; lo que no se dibuja entra
@@ -641,8 +641,8 @@ sólo lee `cotizaciones` y escribe `cotizaciones_aprobadas` tras el candado de a
 - **Un nivel** es una fila de `cotizaciones_niveles` (sembrada con «todos» y «costos»). Cada uno, salvo «todos», genera dos permisos por
   origen, `cotizaciones.nivel.<clave>.ver` y `….editar`, en la matriz de Roles. «Todos» usa `cotizaciones.ver` y
   `cotizaciones.crear`/`cotizaciones.editar`. Al publicar, el diseño se compila a `formulas.visibilidad`, lo único que lee la base.
-- **Lo que no se ve no viaja** («En la base (4.10-1)»): la tarjeta y el PDF leen lo que dibujan con `cotizacion_tarjeta` (sólo lo del nivel
-  «todos», «La lectura de la tarjeta (4.18-1)») y los montos con `cotizacion_leer`, y `validar_plantilla` rechaza un nodo que no sea del
+- **Lo que no se ve no viaja** («En la base», abajo): la tarjeta y el PDF leen lo que dibujan con `cotizacion_tarjeta` (sólo lo del nivel
+  «todos», «La lectura de la tarjeta») y los montos con `cotizacion_leer`, y `validar_plantilla` rechaza un nodo que no sea del
   nivel «todos». El primer resultado de la aprobada (`totales.usd`) viaja a todo el que ve la cotización: es lo que la tarjeta del total dibuja a «todos». Un inventario (`cotizaciones-visibilidad.sql`) registra toda función que pueda devolver esas columnas o `formulas.*`.
 - **Límite:** un nodo restringido, único oculto de una suma visible, se deduce restando; el editor del diseño lo avisa.
 - **Pantalla:** la matriz de Roles, bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`; `docs/UX.md`). `niveles_con_uso()` devuelve `{tope, niveles}` con
@@ -707,7 +707,7 @@ totales, tipos_cambio, repetido}`, recortado por `_cotizacion_respuesta()` (el r
    `cotizaciones.final.gestionar`.
 2. **El intento** (`p_id`, lo manda el cliente): un candado consultivo por id ordena dos llamadas a la vez; si el id existe y es **mío,
    de este origen y de una cotización viva**, se devuelve con `repetido: true`; un id ajeno no se mira (42501 en el `insert`, para no
-   servir de sonda). Después se lee la hoja abierta («La hoja abierta (4.13-3a)»).
+   servir de sonda). Después se lee la hoja abierta («La hoja abierta»).
 3. **El lead es obligatorio** (22023 `lead`, el primero que se mira) salvo con `cotizaciones.crear.sin_lead` de ese origen, y nunca en una final; con uno, tiene que verlo quien llama (`leads.ver`); se bloquea con `for key share`. Una final pide además el lead en
    la cartera con `leads.editar` y lo toma `for no key update`.
 4. **El vehículo:** obligatorio (22023 `vehiculo`) salvo con `cotizaciones.crear.sin_vehiculo` de ese origen, y siempre en una final.
@@ -731,7 +731,7 @@ totales, tipos_cambio, repetido}`, recortado por `_cotizacion_respuesta()` (el r
 9. **El `insert`:** el índice único `cotizaciones_final_por_vehiculo` da 23505. Una final: «Crear una final».
 
 Candados: intento, lead, vehículo, fórmula; una final, además el lead `for no key update` y, después del cálculo, las vivas del vehículo.
-«Desactualizada» vive en `cotizacion_crear()`: «Cómo se guarda (4.10-3)».
+«Desactualizada» vive en `cotizacion_crear()`: «Cómo se guarda».
 
 ### Cómo se guarda
 
@@ -812,7 +812,7 @@ ver_total_bs, moneda_bs, ajustes}` más su aspecto y, sólo si el diseño las tr
   (congelada sin viva activa) y `filas` también (tabla vacía: el motor da `tabla_sin_filas` y la pantalla lo dice).
 - **Una celda** lleva `nodo`, `etiqueta`, `tipo_nodo`, `formato`, `ancho`, `tono`, `editable`, `motivo`, `ajustes`, `ayuda`,
   `dato_del_vehiculo`, `solo_en` y `condicion`/`requerido_si` **sólo si su bandera se ve**. **`editable`:** `editar` de `_nodos_visibles()`
-  **y** que el nodo acepte un valor. **`ayuda`:** sus bloques (la de antes, ya leída como bloques); título, texto y enlaces tal cual. Un bloque
+  **y** que el nodo acepte un valor. **`ayuda`:** sus bloques (una `{texto, enlaces?}` o `{tabla}`, ya leída como bloques); título, texto y enlaces tal cual. Un bloque
   de tabla viaja si la tabla existe (congelada en la versión o viva) y quien mira la lee —configura el origen, algún nodo que ve la lee o el
   bloque nombra sus columnas—, con sus `columnas` (una que llena un nodo que no se ve no llena nada), `resaltar`, `casa` (sólo con `resaltar`:
   cómo casa una fila con la hoja, del `match` del primer nodo `tabla` que se ve y la lee; si una entrada no se resuelve, no casa) e `id` (el de la
