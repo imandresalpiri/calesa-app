@@ -14,17 +14,9 @@ export {
 export { MAXIMO_DE_PAGINA_DE_VEHICULOS } from './entities/vehiculo'
 // De dónde se lee una página del inventario: quien ve «propios» por `vehiculos_inventario()`, el resto por la tabla (4.16-2b)
 export { fuenteDelInventario, type FuenteDelInventario } from './entities/fuente-del-inventario'
-// Un `/vehiculos?vehiculo=<id>` viejo (la lista ya no tiene resumen): a dónde redirige, en la ficha.
-export { destinoDelEnlaceViejo } from './entities/enlace-viejo-del-resumen'
-// Un `/vehiculos?panel=vitrina-rapida&para=<id>` viejo (el panel chico de publicar ya no existe): a dónde redirige, al panel completo de la vitrina.
-export { destinoDeLaVitrinaRapida } from './entities/enlace-viejo-de-la-vitrina-rapida'
 // Los paneles del «⋯» del vehículo (T336): sus claves de la URL, lo que el servidor lee al abrirse y la plantilla de las rutas que arma `src/app`
 // («Ver actividad» de cada fila).
 export { PANEL_ACTUALIZAR_LOS_DATOS, PANEL_DE_IMAGENES } from './features/acciones/claves'
-export {
-  CLAVE_DE_FICHA_COMPLETA,
-  FICHA_COMPLETA,
-} from './features/ficha/components/ficha-completa/claves'
 export { PANEL_DE_VITRINA } from './features/vitrina/claves'
 export { datosDelPanelDeImagenes } from './features/fotos/lecturas'
 export { MARCADOR_DE_VEHICULO } from './entities/ruta-por-vehiculo'
@@ -81,8 +73,8 @@ export {
   type OrdenDelInventario,
 } from './entities/filtros-de-subasta'
 export { leerCursorDelCierre } from './entities/cursor-del-cierre'
-// El `?situacion=` viejo: 308 al equivalente (`vehiculos/enlace-viejo/route.ts`), y las vistas guardadas leídas con las claves nuevas
-export { conSituacionTraducida, destinoDeLaSituacionVieja } from './entities/situacion-vieja'
+// Las vistas guardadas con el `situacion` de antes, leídas con las claves nuevas
+export { conSituacionTraducida } from './entities/situacion-vieja'
 
 // La vitrina: qué se ve en la web pública y quién publica. Las dos lecturas no tumban la pantalla
 export {

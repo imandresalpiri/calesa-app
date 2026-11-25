@@ -278,11 +278,10 @@ test('E2E ficha izquierda · «Datos principales» con los datos clave del orige
   await expect(page.getByRole('dialog', { name: t.principal.titulo })).toBeVisible()
 })
 
-test('E2E ficha izquierda · `?seccion=fotos` abre el visor', async ({ page }) => {
+test('E2E ficha izquierda · `?visor=` abre el visor en su foto', async ({ page }) => {
   await entrar(page, duena)
-  await page.goto(`/vehiculos/${t.principal.id}?seccion=fotos`)
-  await expect(page).toHaveURL(new RegExp(`[?&]visor=${t.principal.id}&foto=1`))
-  await expect(page.locator('[data-visor-de-imagenes]').getByText('1 de 3')).toBeVisible()
+  await page.goto(`/vehiculos/${t.principal.id}?visor=${t.principal.id}&foto=2`)
+  await expect(page.locator('[data-visor-de-imagenes]').getByText('2 de 3')).toBeVisible()
 })
 
 test('E2E ficha izquierda · sin permisos: vitrina apagada con su motivo, sin enlaces cortos ni costo estimado', async ({

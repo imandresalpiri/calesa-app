@@ -1,8 +1,7 @@
 // Los bloques de la derecha de la ficha de un vehículo (docs/UX.md › Vehículo), en el orden de su índice: sólo lo de ventas. Cada uno se dibuja sólo
 // con su permiso y, si no está, tampoco sale en el índice (sin ninguno, la derecha queda vacía y sin índice). La vitrina no es un bloque: se publica desde el
-// panel «Publicar en la web…» (`?panel=vitrina`) y se ve en el ícono de la foto; `?seccion=vitrina` redirige a ese panel (`secciones-viejas.ts`).
-// Lo que es de logística y de repuestos va por los enlaces cortos de la cabecera, y sus enlaces viejos (`?seccion=documentos`…) redirigen
-// (`secciones-viejas.ts`). Lo leen el servidor (la página) y el test: nada de cliente acá.
+// panel «Publicar en la web…» (`?panel=vitrina`) y se ve en el ícono de la foto. Lo que es de logística y de repuestos va por los enlaces cortos de la
+// cabecera. Lo leen el servidor (la página) y el test: nada de cliente acá.
 import { puede, type Permisos } from '@/shared/lib/permisos'
 
 export const BLOQUES_DE_LA_FICHA = [

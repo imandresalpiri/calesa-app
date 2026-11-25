@@ -14,8 +14,6 @@ import {
   leerCursorDelCierre,
   MARCADOR_DE_VEHICULO,
   ordenElegido,
-  destinoDeLaVitrinaRapida,
-  destinoDelEnlaceViejo,
   entradaDeRefresco,
   editablesDe,
   eliminablesDe,
@@ -38,7 +36,6 @@ import { datosO } from '@/shared/lib/errores'
 import { CLAVE_DE_CURSOR, CLAVE_DE_POR_PAGINA, leerFiltros } from '@/shared/lib/filtros'
 import type { Permisos } from '@/shared/lib/permisos'
 import { leerCursor, leerPorPagina, tamanoDePagina, tamanosHasta } from '@/shared/lib/paginacion'
-import { redirigir } from '@/shared/lib/navegacion'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { aprobadasDeLaPagina } from './aprobadas'
@@ -68,27 +65,6 @@ function delMenu(permisos: Permisos, origenId: string, filas: readonly Vehiculo[
             ),
             puedeConfigurar: puede(permisos, 'empresa.ajustes.gestionar'),
           },
-  }
-}
-
-// Un enlace viejo al resumen (`?vehiculo=<id>`, con su `panel`, `visor`, `foto`, `pestana` y `editar`): la lista ya no tiene resumen, así que va a la
-// ficha con lo que pedía. `redirect()` es 307 en la carga y `replace` en una navegación de la app: no suma al historial. Fuera de todo `try`.
-function redirigirElEnlaceViejo(parametros: Awaited<PageProps<'/vehiculos'>['searchParams']>) {
-  const destino = destinoDelEnlaceViejo({
-    vehiculo: unParametro(parametros['vehiculo']),
-    panel: unParametro(parametros['panel']),
-    visor: unParametro(parametros['visor']),
-    foto: unParametro(parametros['foto']),
-    pestana: unParametro(parametros['pestana']),
-    editar: unParametro(parametros['editar']),
-  })
-  if (destino) {
-    redirigir(destino)
-  }
-  // El panel chico de publicar ya no existe: su enlace abre el panel completo de la vitrina, con el resto de la consulta.
-  const vitrina = destinoDeLaVitrinaRapida(parametros)
-  if (vitrina) {
-    redirigir(vitrina)
   }
 }
 
@@ -202,7 +178,6 @@ function SinOrigenes() {
 // filtros y la página vienen en la URL, y lo que no corresponde se ignora.
 export default async function PaginaVehiculos({ searchParams }: PageProps<'/vehiculos'>) {
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
-  redirigirElEnlaceViejo(parametros)
   const visibles = origenesVisibles(sesion.permisos, datosO(await getOrigenes(true)))
   const origen = origenElegido(visibles, unParametro(parametros['origen']))
   if (!origen) return <SinOrigenes />

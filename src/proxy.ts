@@ -22,25 +22,12 @@ export async function proxy(request: NextRequest) {
     esAccion: request.headers.has('next-action'),
   })
   if (decision.tipo === 'seguir') {
-    return esElInventarioViejo(request.nextUrl.pathname, busqueda)
-      ? conLasCookies(
-          NextResponse.rewrite(new URL(`${INVENTARIO_VIEJO}?${query}`, request.nextUrl.origin)),
-          respuesta,
-        )
-      : respuesta
+    return respuesta
   }
   return conLasCookies(
     NextResponse.redirect(new URL(decision.destino, request.nextUrl.origin)),
     respuesta,
   )
-}
-
-// El inventario con el filtro «Situación» de antes (`?situacion=`) cambió para siempre: lo atiende la ruta que lo traduce y responde 308. Desde
-// `page.tsx` saldría 200 (la página redirige ya mandado su esqueleto) y el proxy no conoce los filtros de `vehiculos`.
-const INVENTARIO_VIEJO = '/vehiculos/enlace-viejo'
-
-function esElInventarioViejo(ruta: string, busqueda: URLSearchParams): boolean {
-  return ruta === '/vehiculos' && busqueda.has('situacion')
 }
 
 // Si la sesión se refrescó en este request, las cookies nuevas viajan con la respuesta.

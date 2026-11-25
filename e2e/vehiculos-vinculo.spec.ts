@@ -139,14 +139,14 @@ test('el interés de su lead se ve en el otro vehículo, que no puede editar', a
   await expect(interesados(page).getByText('Lo quiere en blanco')).toBeVisible()
   await expect(interesados(page).getByText(/lo marcó Ada Asesora/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Editar' })).toHaveCount(0)
-  // Sin poder editarlo, el «⋯» tiene «Editar imágenes» apagado; `?seccion=fotos` sólo abre el visor.
+  // Sin poder editarlo, el «⋯» tiene «Editar imágenes» apagado; el visor (`?visor=`) sólo muestra.
   await page
     .getByRole('button', { name: `Más acciones de ${SUELTO}` })
     .first()
     .click()
   await expect(page.getByRole('menuitem', { name: 'Editar imágenes', exact: true })).toBeDisabled()
   await page.keyboard.press('Escape')
-  await page.goto(`/vehiculos/${suelto}?seccion=fotos`)
+  await page.goto(`/vehiculos/${suelto}?visor=${suelto}&foto=1`)
   await expect(page.locator('[data-visor-de-imagenes]')).toBeVisible()
   await expect(
     page.locator('[data-visor-de-imagenes]').getByText('No tiene fotos todavía.'),

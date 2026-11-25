@@ -11,7 +11,7 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
 - Las actions **no salen por los barriles** (las importan en relativo sus hooks) y comprueban su permiso con `puede()` antes de la base. Lo que cruza áreas
   lo compone `src/app/(app)/repuestos/` (render prop, hueco o props).
 - **`proyectos`** — `index.ts`: `proyectoDe(vehiculoId)` (el proyecto vivo de un vehículo, con `cache()`: lo usa la ficha del vehículo para su enlace
-  corto «Repuestos · Proyecto #N» y para redirigir `?seccion=repuestos` a `rutaDelProyecto(id)`), `esquemaDelListado`, `pedidoDelListado`,
+  corto «Repuestos · Proyecto #N» y para «Ver el proyecto de repuestos» de un aviso de la papelera, con `rutaDelProyecto(id)`), `esquemaDelListado`, `pedidoDelListado`,
   `leerCursorDeProyectos`, `leerProyectosDelListado` (cursor = `numero`, sin «Anterior»), `estadoDelProyecto`. `pantallas/proyectos.ts`:
   `<ListadoDeProyectos>`, `<BotonNuevoProyecto>`, `useNuevoProyectoPorUrl` (`<ListadoDeProyectos>` y `<CadenaDeRepuestos>` reciben `acciones`: el ⚙ «Configurar» que arma `src/app`), `buscarProyectoAbierto`. `pantallas/proyectos-detalle.ts` (`/repuestos/[id]`):
   `<CabeceraDeProyecto>`, `<VehiculoQueNoSeVe>`.

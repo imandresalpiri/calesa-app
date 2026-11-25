@@ -18,7 +18,7 @@ import { literal, sql } from './soporte/sql'
 import { sembrarFotos } from './soporte/vehiculos-lista'
 
 // La ficha del vehículo en dos columnas (`docs/UX.md` › Vehículo): a la derecha, sólo lo de ventas —«Cotizaciones de este vehículo», «Relacionados»,
-// y «Actividad reciente»—, y los enlaces viejos a lo que se fue redirigen (`secciones-viejas.test.ts`). Sobre el vehículo `uno` del terreno de
+// y «Actividad reciente»—; una `?seccion=` que no es uno de esos bloques no hace nada. Sobre el vehículo `uno` del terreno de
 // «Qué falta», con un vinculado, dos interesados, dos cotizaciones (la más vieja, la aprobada) y dos fotos. Qué bloque ve quién: `bloques.test.ts`.
 test.describe.configure({ mode: 'serial' })
 
@@ -178,7 +178,7 @@ test('E2E ficha en dos columnas · «Actividad reciente» lleva a toda la activi
   await expect(actividad.getByRole('listitem').last()).toContainText(`creó ${titulo}`)
 })
 
-test('E2E ficha en dos columnas · la vitrina no es un bloque: `?seccion=vitrina` abre su panel y la insignia dice si se ve', async ({
+test('E2E ficha en dos columnas · la vitrina no es un bloque: se publica en su panel y la insignia dice si se ve', async ({
   page,
 }, info) => {
   sql(
@@ -188,14 +188,7 @@ test('E2E ficha en dos columnas · la vitrina no es un bloque: `?seccion=vitrina
   await alaFicha(page)
   await expect(region(page, 'Vitrina')).toHaveCount(0)
   await expect(indice(page).getByRole('link', { name: 'Vitrina' })).toHaveCount(0)
-  // El enlace viejo abre el panel, conserva el resto de la consulta y reemplaza la entrada del historial.
-  await page.goto('/perfil')
-  await page.goto(`/vehiculos/${id}?seccion=vitrina&visor=${id}&foto=1`)
-  await expect(page).toHaveURL(new RegExp(`/vehiculos/${id}\\?visor=${id}&foto=1&panel=vitrina$`))
-  await page.goBack()
-  await expect(page).toHaveURL(/\/perfil$/)
-  await page.goto(`/vehiculos/${id}?seccion=vitrina`)
-  await expect(page).toHaveURL(new RegExp(`/vehiculos/${id}\\?panel=vitrina$`))
+  await page.goto(`/vehiculos/${id}?panel=vitrina`)
   await expect(page.getByRole('dialog', { name: 'Publicar en la web' })).toBeVisible()
 
   // Publicado, la ficha sigue sin bloque: lo dice la insignia de la izquierda.
@@ -208,26 +201,16 @@ test('E2E ficha en dos columnas · la vitrina no es un bloque: `?seccion=vitrina
   await capturar(page, info, 'vitrina-publicada')
 })
 
-test('E2E ficha en dos columnas · los enlaces viejos redirigen o llevan a su bloque', async ({
+test('E2E ficha en dos columnas · cada URL abre lo suyo y una sección que no es un bloque no hace nada', async ({
   page,
 }) => {
   await entrar(page, duena)
-  // `?seccion=ficha` abre la ficha completa; `?seccion=fotos`, el visor.
-  await page.goto(`/vehiculos/${id}?seccion=ficha`)
-  await expect(page).toHaveURL(new RegExp(`/vehiculos/${id}\\?ver=ficha$`))
+  // `?ver=ficha` abre la ficha completa; `?visor=`, el visor.
+  await page.goto(`/vehiculos/${id}?ver=ficha`)
   await expect(page.getByRole('dialog')).toBeVisible()
-  await page.goto(`/vehiculos/${id}?seccion=fotos`)
-  await expect(page).toHaveURL(new RegExp(`[?&]visor=${id}&foto=1`))
+  await page.goto(`/vehiculos/${id}?visor=${id}&foto=1`)
   await expect(page.locator('[data-visor-de-imagenes]')).toBeVisible()
-  // Lo de logística, a la unidad; una redirección reemplaza la entrada (atrás no vuelve a la ficha).
-  await page.goto('/perfil')
-  await page.goto(`/vehiculos/${id}?seccion=documentos`)
-  await expect(page).toHaveURL(new RegExp(`/logistica/vehiculo/${id}\\?hueco=documentos$`))
-  await page.goBack()
-  await expect(page).toHaveURL(/\/perfil$/)
-  await page.goto(`/vehiculos/${id}?seccion=fase`)
-  await expect(page).toHaveURL(new RegExp(`/logistica/vehiculo/${id}$`))
-  // Sin proyecto de repuestos, `?seccion=repuestos` se queda arriba de la ficha.
+  // `?seccion=repuestos` no es un bloque: la URL queda como está y la ficha, arriba.
   await alaFicha(page, '?seccion=repuestos')
   await expect(page).toHaveURL(new RegExp(`/vehiculos/${id}\\?seccion=repuestos$`))
   await expect(page.getByRole('heading', { name: titulo, level: 1 })).toBeInViewport()
@@ -255,7 +238,7 @@ test('E2E ficha en dos columnas · sin permisos, sólo «Relacionados» y sin vi
   await expect(region(page, 'Actividad reciente')).toHaveCount(0)
   await expect(region(page, 'Vitrina')).toHaveCount(0)
   await capturar(page, info, 'sin-permisos')
-  // Sin logística, sus enlaces viejos se quedan arriba de la ficha.
+  // `?seccion=documentos` no es un bloque: la ficha se queda arriba.
   await alaFicha(page, '?seccion=documentos')
   await expect(page).toHaveURL(new RegExp(`/vehiculos/${id}\\?seccion=documentos$`))
   await expect(page.getByRole('heading', { name: titulo, level: 1 })).toBeInViewport()
