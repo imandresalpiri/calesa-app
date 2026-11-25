@@ -172,8 +172,7 @@ test('la dueña arma categorías: agrega, sube, desactiva y no elimina una con g
   page,
 }) => {
   await entrar(page, duena)
-  await page.goto('/configuracion/web?seccion=guias')
-  await expect(page).toHaveURL(/\/configuracion\/web\/guias$/)
+  await page.goto('/configuracion/web/guias')
   await page.getByRole('button', { name: 'Categorías', exact: true }).click()
   const panel = page.getByRole('dialog', { name: 'Categorías de las guías' })
   await expect(panel).toBeVisible()

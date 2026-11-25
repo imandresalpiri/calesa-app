@@ -61,17 +61,14 @@ test('PT409: si otra persona guardó antes, «Recargar» conserva lo tipeado y �
   ).toContainText('Autos de la Tarjeta')
 })
 
-test('con ?panel= en la URL abre el modal de su tarjeta, y un viejo ?seccion= va a su sub-ruta con el panel', async ({
-  page,
-}) => {
+test('con ?panel= en la URL abre el modal de su tarjeta', async ({ page }) => {
   await entrar(page, duena)
   await page.goto('/configuracion/web/ajustes?panel=seo')
   await expect(page.getByRole('dialog', { name: 'SEO', exact: true })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog', { name: 'SEO', exact: true })).toBeHidden()
 
-  await page.goto('/configuracion/web?seccion=legales&panel=privacidad')
-  await expect(page).toHaveURL(/\/configuracion\/web\/legales\?panel=privacidad$/)
+  await page.goto('/configuracion/web/legales?panel=privacidad')
   await expect(
     page.getByRole('dialog', { name: 'Política de privacidad', exact: true }),
   ).toBeVisible()

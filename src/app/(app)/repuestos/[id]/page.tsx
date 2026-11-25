@@ -27,7 +27,6 @@ import { leerMonedasYTiposCambio } from '@/modules/empresa'
 import { leerLeadParaEnlazar } from '@/modules/leads'
 import { leerVehiculo } from '@/modules/vehiculos'
 import { datosO } from '@/shared/lib/errores'
-import { redirigir } from '@/shared/lib/navegacion'
 import type { Permisos } from '@/shared/lib/permisos'
 import { RUTAS, unParametro } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
@@ -36,12 +35,7 @@ import { EsqueletoListado } from '@/shared/ui/esqueletos'
 import { ItemAbierto } from '../item-abierto'
 import { HojaDelProyecto } from './hoja-del-proyecto'
 import { CargandoUnProyectoCuerpo } from './loading'
-import {
-  CLAVE_DEL_PANEL_DEL_PASO,
-  panelAbiertoDe,
-  panelesDisponibles,
-  redireccionDeEnlaceViejo,
-} from './paneles'
+import { CLAVE_DEL_PANEL_DEL_PASO, panelAbiertoDe, panelesDisponibles } from './paneles'
 import { SeccionDeCompras } from './seccion-compras'
 import { SeccionDeCotizaciones } from './seccion-cotizaciones'
 import { EsqueletoDelVehiculo, VehiculoDelProyecto } from './vehiculo-del-proyecto'
@@ -99,15 +93,12 @@ async function Proyecto({
   if (!puede(sesion.permisos, 'repuestos.ver')) {
     return <EstadoSinPermiso />
   }
-  // Sin la clave de un panel no se lee nada suyo: `?pestana=compras` sin `repuestos.costos.ver` deja sólo la hoja. Un enlace viejo (`?panel=compra…` o de pagos sin
-  // `?pestana=`) va a la misma URL con su panel.
+  // Sin la clave de un panel no se lee nada suyo: `?pestana=compras` sin `repuestos.costos.ver` deja sólo la hoja.
   // Un id que no es guid no existe: se dice igual que uno ajeno, y nunca entra a una URL armada.
   if (!z.guid().safeParse(id).success) {
     return <NoDisponible />
   }
   const disponibles = panelesDisponibles(sesion.permisos)
-  const redireccion = redireccionDeEnlaceViejo(id, parametros, disponibles)
-  if (redireccion !== null) redirigir(redireccion)
   const proyecto = datosO(await leerProyecto(id))
   if (proyecto === null) {
     return <NoDisponible />

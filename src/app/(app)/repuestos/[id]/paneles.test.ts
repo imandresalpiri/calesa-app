@@ -1,12 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ClavePermiso, Permisos } from '@/shared/lib/permisos'
-import {
-  panelAbiertoDe,
-  panelesDisponibles,
-  redireccionDeEnlaceViejo,
-  rutaDeRegistrarCompra,
-  rutaDelPanel,
-} from './paneles'
+import { panelAbiertoDe, panelesDisponibles, rutaDeRegistrarCompra, rutaDelPanel } from './paneles'
 
 // Las constantes llegan por el `index.ts` de los módulos, que alcanza su composición (`server-only`): en Vitest el import llega entero y cae.
 vi.mock('server-only', () => ({}))
@@ -39,31 +33,6 @@ describe('los paneles bajo los pasos', () => {
     expect(panelAbiertoDe('items', todos)).toBeNull()
     expect(panelAbiertoDe('nada', todos)).toBeNull()
     expect(panelAbiertoDe(undefined, todos)).toBeNull()
-  })
-})
-
-describe('los enlaces viejos', () => {
-  const todos = panelesDisponibles(con('repuestos.costos.ver', 'repuestos.cotizar'))
-
-  it('`?panel=compra` sin pestaña va con `pestana=compras`, conservando lo demás', () => {
-    expect(redireccionDeEnlaceViejo(P, { panel: 'compra', compra: 'nueva' }, todos)).toBe(
-      `/repuestos/${P}?panel=compra&compra=nueva&pestana=compras`,
-    )
-  })
-
-  it('los paneles de pagos van con `pestana=pagos`', () => {
-    for (const panel of ['pago', 'confirmar-pago', 'eliminar-pago', 'anular-pago']) {
-      expect(redireccionDeEnlaceViejo(P, { panel, pago: 'x' }, todos)).toBe(
-        `/repuestos/${P}?panel=${panel}&pago=x&pestana=pagos`,
-      )
-    }
-  })
-
-  it('con pestaña, otro panel o sin permiso: no se redirige', () => {
-    expect(redireccionDeEnlaceViejo(P, { panel: 'compra', pestana: 'compras' }, todos)).toBeNull()
-    expect(redireccionDeEnlaceViejo(P, { panel: 'stock', item: 'x' }, todos)).toBeNull()
-    expect(redireccionDeEnlaceViejo(P, {}, todos)).toBeNull()
-    expect(redireccionDeEnlaceViejo(P, { panel: 'compra' }, [])).toBeNull()
   })
 })
 

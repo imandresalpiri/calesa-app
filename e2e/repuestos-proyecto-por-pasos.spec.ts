@@ -223,7 +223,7 @@ test('registrar un pago desde su paso: el hito pasa a «Registrado»', async ({ 
   await expect(paso(page, 'pago')).toContainText('3 de 3 · Registrado')
 })
 
-test('?pestana=compras abre la pestaña Compras; el enlace viejo de una compra redirige', async ({
+test('?pestana=compras abre la pestaña Compras, también con el formulario de una compra', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
@@ -233,8 +233,7 @@ test('?pestana=compras abre la pestaña Compras; el enlace viejo de una compra r
     'true',
   )
   await expect(page.getByRole('region', { name: 'Margen del proyecto' })).toBeVisible()
-  await page.goto(`/repuestos/${proyecto}?panel=compra&compra=nueva`)
-  await expect(page).toHaveURL(/[?&]pestana=compras/)
+  await page.goto(`/repuestos/${proyecto}?pestana=compras&panel=compra&compra=nueva`)
   await expect(page.getByRole('dialog', { name: 'Registrar compra' })).toBeVisible()
 })
 

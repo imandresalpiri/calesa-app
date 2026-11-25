@@ -18,7 +18,7 @@ export type TarjetaDeLaEmpresa = (typeof TARJETAS_DE_LA_EMPRESA)[number]
 // Datos: es la de arriba de Monedas y tipos de cambio, que guarda lo mismo (la fila de ajustes, su versión y su RPC).
 export type TarjetaConCampos = Exclude<TarjetaDeLaEmpresa, 'iconos'> | 'moneda-base'
 
-// El `?panel=` de cada tarjeta: su nombre. No chocan con los de Monedas (`nuevo-tipo-cambio`, `nueva-moneda`) que `url-vieja.ts` redirige.
+// El `?panel=` de cada tarjeta: su nombre.
 export const PANEL_DE_LA_TARJETA: Record<TarjetaDeLaEmpresa, TarjetaDeLaEmpresa> = {
   identidad: 'identidad',
   region: 'region',

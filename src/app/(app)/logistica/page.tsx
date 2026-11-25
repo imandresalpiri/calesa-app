@@ -21,14 +21,12 @@ import { EsqueletoDeLaBandeja } from '@/modules/logistica/pantallas/alertas-esqu
 import { EsqueletoDeLaGrafica } from '@/modules/logistica/pantallas/cadena-esqueletos'
 import { DrawerDelLote, ProveedorDeLaSeleccion } from '@/modules/logistica/pantallas/mover'
 import { cumpleElMinimo } from '@/shared/lib/filtros'
-import { redirigir } from '@/shared/lib/navegacion'
 import type { Permisos } from '@/shared/lib/permisos'
 import { rutaDeParteDelOrigen, unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { BandejaDeLaPortada } from './bandeja-del-dia'
 import { MarcasDeLogistica } from './marcas-de-logistica'
 import { resolverElOrigen } from './origen-de-la-cadena'
-import { destinoDeLaUrlVieja } from './url-vieja'
 
 export const metadata: Metadata = { title: 'Logística' }
 
@@ -124,10 +122,6 @@ async function Portada({
   const { permisos } = sesion
   if (!puede(permisos, 'logistica.ver')) {
     return <EstadoSinPermiso />
-  }
-  const destino = destinoDeLaUrlVieja(parametros)
-  if (destino !== null) {
-    redirigir(destino)
   }
 
   const resuelto = await resolverElOrigen(

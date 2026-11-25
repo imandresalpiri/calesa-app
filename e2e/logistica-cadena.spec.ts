@@ -16,7 +16,7 @@ import {
 
 // La cadena de `/logistica` (6.03), en escritorio: la gráfica de un origen de tres fases y una jubilada (una línea con una fase por punto, en el orden de la base, con su número y el demorado dicho con
 // texto), el clic en una fase que lleva a su lista (filtros en la URL, búsqueda, «Siguientes» en una fase de 51), el clic en un vehículo que lleva a su página (nunca un drawer), «dónde está», las
-// pestañas de origen (el vecino sin permiso no está) y las URL viejas del kanban que se redirigen.
+// pestañas de origen (el vecino sin permiso no está) y la fase que ya no está.
 test.describe.configure({ mode: 'serial' })
 
 let proyecto = ''
@@ -195,21 +195,8 @@ test('E2E las pestañas de origen: el vecino sin permiso no está y cambiar de o
   await expect(page.getByText('No tienes permiso', { exact: false })).toBeVisible()
 })
 
-test('E2E las URL del kanban viejo se redirigen: ?vehiculo= a la página de la unidad y ?fase= a la lista', async ({
-  page,
-}) => {
+test('E2E una fase que ya no está lo dice, con el camino a la cadena', async ({ page }) => {
   await entrar(page, terreno.persona, { fresco: true })
-  await page.goto(`/logistica?origen=${terreno.a.id}&vehiculo=${terreno.demorado.id}`)
-  await expect(page).toHaveURL(new RegExp(`/logistica/vehiculo/${terreno.demorado.id}$`))
-  await page.goto(`/logistica?origen=${terreno.a.id}&fase=${terreno.fases.transito}`)
-  await expect(page).toHaveURL(
-    new RegExp(`/logistica/fase/${terreno.fases.transito}\\?origen=${terreno.a.id}`),
-  )
-  // Un id que no es válido se ignora y queda la portada.
-  await page.goto(`/logistica?origen=${terreno.a.id}&vehiculo=no-es-un-id`)
-  await expect(page).toHaveURL(/\/logistica\?/)
-  await expect(page.locator('ol a[data-fase]')).toHaveCount(5)
-  // Una fase que ya no está lo dice, con el camino a la cadena.
   await page.goto(`/logistica/fase/abc?origen=${terreno.a.id}`)
   await expect(page.getByText('Esta fase ya no está en la cadena de este origen.')).toBeVisible()
   await page.getByRole('link', { name: 'Ver la cadena' }).click()

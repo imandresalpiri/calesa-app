@@ -76,7 +76,7 @@ test('una unidad que no existe, o un id que no es válido, dice que ya no está 
   }
 })
 
-// `/logistica` dibuja la gráfica de la cadena y ningún panel: abrir un vehículo es ir a su página, nunca un drawer. La URL vieja del drawer (`?vehiculo=<id>`) lleva a esa página.
+// `/logistica` dibuja la gráfica de la cadena y ningún panel: abrir un vehículo es ir a su página, nunca un drawer.
 test('/logistica dibuja la gráfica de la cadena y ningún panel', async ({ page }) => {
   await entrar(page, terreno.conLogistica, { fresco: true })
   await page.goto('/logistica')
@@ -87,27 +87,7 @@ test('/logistica dibuja la gráfica de la cadena y ningún panel', async ({ page
   await expect(page.getByRole('dialog')).toHaveCount(0)
 })
 
-test('?vehiculo=<id> lleva a la página de la unidad, sin drawer', async ({ page }) => {
-  await entrar(page, terreno.conLogistica, { fresco: true })
-  await page.goto(`/logistica?vehiculo=${terreno.enFase.id}&fase=${terreno.fase.id}`)
-  await expect(page).toHaveURL(new RegExp(`/logistica/vehiculo/${terreno.enFase.id}$`))
-  await expect(page.getByRole('heading', { name: terreno.enFase.titulo })).toBeVisible()
-  await expect(page.locator('#contenido').getByText('Desde hace 3 días en esta fase')).toBeVisible()
-  await expect(page.getByRole('dialog')).toHaveCount(0)
-})
-
-test('?vehiculo= con una unidad que no existe dice que ya no está disponible; con un id inválido queda la portada', async ({
-  page,
-}) => {
-  await entrar(page, terreno.conLogistica, { fresco: true })
-  await page.goto('/logistica?vehiculo=00000000-0000-4000-8000-000000000000')
-  await expect(page.getByText('Este vehículo ya no está disponible')).toBeVisible()
-  await page.goto('/logistica?vehiculo=no-es-un-id')
-  await expect(page).toHaveURL(/\/logistica\?/)
-  await expect(page.locator(`a[data-fase="${terreno.fase.id}"]`)).toBeVisible()
-})
-
-test('con sólo vehiculos.ver ni /logistica ni la lista de una fase ni la URL vieja muestran la unidad', async ({
+test('con sólo vehiculos.ver ni /logistica ni la lista de una fase muestran la unidad', async ({
   page,
 }) => {
   await entrar(page, terreno.sinLogistica, { fresco: true })
@@ -115,8 +95,6 @@ test('con sólo vehiculos.ver ni /logistica ni la lista de una fase ni la URL vi
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
   await expect(page.locator(`a[data-fase="${terreno.fase.id}"]`)).toHaveCount(0)
   await page.goto(`/logistica/fase/${terreno.fase.id}?origen=${terreno.origen.id}`)
-  await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
-  await page.goto(`/logistica?vehiculo=${terreno.enFase.id}`)
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
   await expect(page.getByText(terreno.enFase.titulo)).toHaveCount(0)
 })
