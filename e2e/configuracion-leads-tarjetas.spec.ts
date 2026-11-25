@@ -10,8 +10,7 @@ import {
 // @sin-celular-archivo: las pantallas de Configuración no llevan e2e en el celular (.claude/rules/e2e.md › «Pruebas: sólo lo clave»)
 
 // Configuración › Leads en una sola página (T433), contra la app compilada: las seis tarjetas, cada «Editar» abre su modal por `?panel=` y el
-// modal de un ítem (Nuevo tipo) vuelve a la lista de su tarjeta al cerrarse. Las redirecciones de las URL viejas están en `configuracion-leads.spec.ts`
-// y lo que guarda cada tarjeta, en sus specs.
+// modal de un ítem (Nuevo tipo) vuelve a la lista de su tarjeta al cerrarse. Lo que guarda cada tarjeta, en sus specs.
 let duena = ''
 
 test.beforeAll(async ({}, info) => {

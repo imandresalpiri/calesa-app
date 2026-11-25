@@ -236,40 +236,6 @@ test('sin el permiso de los campos, «Campos» está apagada con su motivo y su 
   await expect(page.getByRole('heading', { name: 'Leads', level: 1 })).toBeVisible()
 })
 
-test('las URL viejas llegan a la página de tarjetas con su panel abierto', async ({ page }) => {
-  await entrar(page, duena)
-  // La sub-ruta vieja, con su panel y el resto de la consulta.
-  await page.goto('/configuracion/leads/tipos?panel=nuevo-tipo')
-  await expect(page).toHaveURL('/configuracion/leads?panel=nuevo-tipo')
-  await expect(page.getByRole('dialog', { name: 'Nuevo tipo' })).toBeVisible()
-  // El `?seccion=` viejo pasa a ser el panel de la lista.
-  await page.goto('/configuracion/leads?seccion=tipos')
-  await expect(page).toHaveURL('/configuracion/leads?panel=tipos')
-  await expect(page.getByRole('dialog', { name: 'Tipos de lead' })).toBeVisible()
-})
-
-// Las seis sub-rutas viejas son una redirección permanente que conserva el panel y el resto de la consulta.
-for (const [vieja, panel] of [
-  ['origenes', 'origenes'],
-  ['tipos', 'tipos'],
-  ['seguimientos', 'seguimientos'],
-  ['embudo', 'embudo'],
-  ['portal', 'portal'],
-  ['telefonos', 'telefonos'],
-] as const) {
-  test(`/configuracion/leads/${vieja} redirige (308) a ?panel=${panel}`, async ({ page }) => {
-    await entrar(page, duena)
-    const sin = await page.request.get(`/configuracion/leads/${vieja}`, { maxRedirects: 0 })
-    expect(sin.status()).toBe(308)
-    expect(sin.headers()['location']).toMatch(new RegExp(`/configuracion/leads\\?panel=${panel}$`))
-    const con = await page.request.get(`/configuracion/leads/${vieja}?panel=otro&x=1`, {
-      maxRedirects: 0,
-    })
-    expect(con.status()).toBe(308)
-    expect(con.headers()['location']).toContain('x=1')
-  })
-}
-
 test('dos personas editando el mismo campo: la segunda ve el conflicto', async ({
   page,
   browser,

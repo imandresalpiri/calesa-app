@@ -43,18 +43,15 @@ Leads (prospectos y clientes) con teléfono principal único y enmascarado salvo
   (`leads/[id]/bloque-cotizaciones.tsx`) y `cotizaciones/pantallas/lead`; la composición vive en `src/app/(app)/leads/[id]/bloques.tsx`), `/leads/papelera`,
   `/leads/importar` (`leads.crear`), `POST /leads/exportar` (`leads.exportar`), `/configuracion/leads` (`leads.configurar`: `ConfiguracionDeLeads`, seis tarjetas con su modal por `?panel=`, `features/configuracion/` y los `features/` de cada una;
   Tipos de lead, Orígenes, Seguimientos, Embudo, Mensaje del portal y Teléfonos extra con su «Números repetidos») y `/configuracion/leads/campos` (`EditorDeCamposDeLead`,
-  `leads.campos.gestionar` con las `lead_campo_*`). Las seis sub-rutas viejas y `?seccion=` redirigen a `?panel=<clave>`: `entities/paneles-de-la-configuracion.ts`
-  (`destinoDeLaSubrutaVieja()`, `destinoDeLaSeccionVieja()`, las familias de paneles de cada tarjeta). El Mensaje del portal usa `EditorConVariables` de `shared`.
+  `leads.campos.gestionar` con las `lead_campo_*`). Los paneles de cada tarjeta, por familia: `entities/paneles-de-la-configuracion.ts`. El Mensaje del
+  portal usa `EditorConVariables` de `shared`.
   Los teléfonos se administran en el panel de edición (la ficha sólo los lee, en los datos clave y en «Ver más»): «Cambiar el principal» (cartera y `leads.editar`, sólo en la ficha;
   apagado con cambios escritos) pasa a `?panel=cambiar-telefono` reemplazando la entrada; «Agregar teléfono» es `?extra=nuevo` dentro del panel. Con la cartera y
-  `leads.telefonos_extra.editar` sin `leads.editar`, «Editar teléfonos» abre el mismo panel en modo teléfonos («Teléfonos de <nombre>», sólo los teléfonos). Un
-  `?panel=agregar-telefono` viejo se reemplaza por `?panel=editar-lead&extra=nuevo` (o se quita sin permiso: `reemplazoDelPanelViejo()`).
+  `leads.telefonos_extra.editar` sin `leads.editar`, «Editar teléfonos» abre el mismo panel en modo teléfonos («Teléfonos de <nombre>», sólo los teléfonos).
   Todo modal en `?panel=` (`PANEL_*`); los de una fila llevan `para=<id>`.
 - La lista lleva a la ficha, sin resumen: la fila, la tarjeta y la tarjeta del kanban (a `?seccion=oportunidades`) son enlaces (`EnlaceDeLaFila` en el nombre,
-  `href` en `FilaDeLista`/`TarjetaDeLista`, `manejadoresDelClic` en el kanban, cuyo `<Link>` lleva `data-enlace-de-la-fila`). Un `/leads?lead=<id>` viejo
-  redirige en el servidor (`destinoDelEnlaceViejo()`, `entities/enlace-viejo-del-resumen.ts`) a la ficha con su `pestana`, `panel` o `extra`, filtrado por los
-  permisos de la sesión y sin leer el lead. Con `?vista=embudo`, `?lead=` es el **embudo filtrado por lead** (`entities/embudo-del-lead.ts`,
-  `rutaDelEmbudoDelLead()`): gana al enlace viejo salvo que pida algo que sólo el resumen abría (`pestana`, sus paneles, `extra`, `seguimiento`, `recordatorio`).
+  `href` en `FilaDeLista`/`TarjetaDeLista`, `manejadoresDelClic` en el kanban, cuyo `<Link>` lleva `data-enlace-de-la-fila`). Con `?vista=embudo`, `?lead=`
+  es el **embudo filtrado por lead** (`entities/embudo-del-lead.ts`, `rutaDelEmbudoDelLead()`); en la lista, `?lead=` no hace nada.
   `leerVistaDeEmbudo` lo valida con `leerLeadParaEnlazar` (el que no se ve vuelve `leadIgnorado` y la vista lo quita con `replace`); el chip
   (`ChipDelLead`) ocupa el lugar de la búsqueda, que no aplica.
 - «Nueva oportunidad…» del «⋯» (`?panel=oportunidad-rapida&para=<id>` en la lista y el kanban; sin `para` en la ficha, `NuevaOportunidadDelLead`;

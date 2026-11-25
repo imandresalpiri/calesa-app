@@ -76,15 +76,6 @@ test('la ficha dibuja los dos en «Datos», y el tipo del seguimiento en la lín
   await capturar(page, info, 'iconos-ficha-seguimientos')
 })
 
-test('`?lead=<id>&pestana=seguimientos` de antes lleva a la ficha con el icono del seguimiento', async ({
-  page,
-}) => {
-  await entrar(page, r.t.personas.duena)
-  await page.goto(`/leads?lead=${r.uno.id}&pestana=seguimientos`)
-  await expect(page).toHaveURL(new RegExp(`/leads/${r.uno.id}\\?seccion=seguimientos`))
-  await conUnIcono(page.getByRole('article', { name: 'Llamada de los iconos' }), 'telefono')
-})
-
 test('sin icono no se dibuja nada; una clave desconocida se dibuja neutra y nada se rompe; un tipo apagado sigue nombrando y con su icono', async ({
   page,
 }) => {

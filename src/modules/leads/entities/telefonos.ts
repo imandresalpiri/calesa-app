@@ -5,7 +5,6 @@
 // Supabase.
 import { z } from 'zod'
 import { alcanceDe, type Permisos } from '@/shared/lib/permisos'
-import { PANEL_EDITAR_LEAD } from './edicion'
 import type { LeadDeFicha, TelefonoExtra } from './ficha'
 import { normalizarTelefono } from './telefono'
 import { verificacionDesde, type Verificacion } from './verificacion'
@@ -28,25 +27,6 @@ export const ETIQUETA_DEL_ANTERIOR = 'Anterior'
 // El valor de `?panel=` que abre el cambio del principal. Comparte la clave con la edición de la
 // ficha: no pueden estar abiertos a la vez.
 export const PANEL_CAMBIAR_TELEFONO = 'cambiar-telefono'
-
-// El de «Agregar teléfono» de antes, cuando el modal vivía en la ficha: un enlace guardado con él sigue valiendo
-// (`reemplazoDelPanelViejo()`).
-export const PANEL_AGREGAR_TELEFONO = 'agregar-telefono'
-
-// Qué hacer con un `?panel=agregar-telefono` viejo en la ficha: el modal ahora vive en el panel de edición, así que se reemplaza por la
-// edición con «Agregar teléfono» abierto (`?panel=editar-lead&extra=nuevo`) si quien mira puede agregar teléfonos, o se quita si no. Nulo: no
-// es el viejo, no se toca.
-export function reemplazoDelPanelViejo(
-  panel: string | null,
-  puedeAgregarTelefono: boolean,
-): { panel: string; extra: string } | { panel: null; extra: null } | null {
-  if (panel !== PANEL_AGREGAR_TELEFONO) {
-    return null
-  }
-  return puedeAgregarTelefono
-    ? { panel: PANEL_EDITAR_LEAD, extra: VALOR_DE_EXTRA_NUEVO }
-    : { panel: null, extra: null }
-}
 
 // Las claves del formulario son las que pone la base en el `hint` de un error.
 export const CLAVE_DE_TELEFONO = { telefono: 'telefono', etiqueta: 'etiqueta' } as const

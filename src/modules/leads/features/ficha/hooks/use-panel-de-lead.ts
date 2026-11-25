@@ -18,7 +18,7 @@ const PANELES = new Set([
 ])
 
 // Qué panel de la ficha está abierto, en la URL (`?panel=editar-lead`, `cambiar-telefono`, `compartir-lead`, `transferir-lead` o
-// `salir-lead`; el viejo `agregar-telefono` lo reemplaza la ficha por `editar-lead&extra=nuevo`). Comparten la clave: no pueden estar
+// `salir-lead`). Comparten la clave: no pueden estar
 // abiertos a la vez. Abrir suma al historial («atrás» lo cierra; tras recargar, devuelve el foco a quien lo abrió: `vuelta-del-foco.ts`).
 // Sin `shallow: false`: abrirlo no necesita al servidor, la ficha ya está. Cerrar quita también `para` (el lead del panel de edición abierto
 // desde el «⋯» de la lista o del kanban: `useEdicionDesdeLaLista()`).

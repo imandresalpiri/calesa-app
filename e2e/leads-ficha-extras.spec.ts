@@ -30,7 +30,7 @@ import {
 } from './soporte/leads-ficha-telefonos'
 
 // Los teléfonos extra de la ficha, que se administran en el panel de edición (la ficha los muestra sólo para leer): agregar (un modal
-// con su URL, `?panel=editar-lead&extra=nuevo`; el viejo `?panel=agregar-telefono` lleva ahí), rotular y quitar en la fila, «Deshacer», sus reglas junto al campo, el máximo de la empresa (6 de fábrica) y lo que ve (y no puede)
+// con su URL, `?panel=editar-lead&extra=nuevo`), rotular y quitar en la fila, «Deshacer», sus reglas junto al campo, el máximo de la empresa (6 de fábrica) y lo que ve (y no puede)
 // quien no tiene el lead en su cartera.
 test.describe.configure({ mode: 'serial' })
 
@@ -145,10 +145,9 @@ test('con el máximo de extras no se agrega otro, y la ficha lo dice', async ({ 
   await abrirPanelConTelefonos(page)
   await expect(botonAgregarTelefono(page)).toBeDisabled()
   await expect(page.getByText(/hasta 6 teléfonos extra/)).toBeVisible()
-  // Escribir la URL a mano tampoco lo abre (la vieja lleva a la edición, sin el modal).
-  await irAFicha(page, lead.id, '?panel=agregar-telefono')
+  // Escribir la URL a mano tampoco lo abre: queda la edición, sin el modal.
+  await irAFicha(page, lead.id, '?panel=editar-lead&extra=nuevo')
   await expect(panelConTelefonos(page)).toBeVisible()
-  await expect(page).toHaveURL(/panel=editar-lead&extra=nuevo/)
   await expect(modalDeExtra(page)).toHaveCount(0)
 })
 
@@ -222,9 +221,8 @@ test('la dueña con «todos» y sin cartera no ve ninguna acción y la base la r
   await irAFicha(page, ajeno.id, '?panel=cambiar-telefono')
   await expect(tituloDeLaFicha(page, ajeno.nombre)).toBeVisible()
   await expect(panelDeTelefono(page)).toHaveCount(0)
-  await irAFicha(page, ajeno.id, '?panel=agregar-telefono')
+  await irAFicha(page, ajeno.id, '?panel=editar-lead&extra=nuevo')
   await expect(tituloDeLaFicha(page, ajeno.nombre)).toBeVisible()
-  await expect(page).not.toHaveURL(/panel=/)
   await expect(modalDeExtra(page)).toHaveCount(0)
   await expect(panelConTelefonos(page)).toHaveCount(0)
 

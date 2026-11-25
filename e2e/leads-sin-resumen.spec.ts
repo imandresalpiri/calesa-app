@@ -1,10 +1,9 @@
 import { expect, test, type Page } from './soporte/prueba'
 import { entrar } from './soporte/alta'
 import { idDe } from './soporte/leads'
-import { completoCon, modalDeExtra, nacional } from './soporte/leads-ficha-telefonos'
-import { NO_DISPONIBLE, idDeLead, nuevoLead, type LeadDePrueba } from './soporte/leads-ficha'
+import { completoCon, nacional } from './soporte/leads-ficha-telefonos'
+import { nuevoLead, type LeadDePrueba } from './soporte/leads-ficha'
 import {
-  AJENO_CARLOS,
   delLead,
   irALeads,
   limpiarListado,
@@ -13,16 +12,12 @@ import {
 } from './soporte/leads-listado'
 import { abrirMenuDelLead } from './soporte/leads-marcas'
 import { irAlEmbudo, oportunidad, tarjeta, verEtapa } from './soporte/leads-oportunidades'
-import {
-  meterRecordatorio,
-  modalDeRecordatorio,
-  modalDeSeguimiento,
-} from './soporte/leads-seguimientos'
+import { meterRecordatorio, modalDeRecordatorio } from './soporte/leads-seguimientos'
 import { capturar } from './soporte/recorrido'
 
 // La lista de leads lleva a la ficha (T340, `docs/UX.md` › «Leads: listado (estados propios)»): la fila, la tarjeta y la tarjeta del kanban son
 // un enlace a `/leads/<id>` (el nombre es el `<a>`; el resto navega igual, sin recargar), Ctrl abre otra pestaña y lo propio de la fila (el «⋯»,
-// «Recordatorio») hace lo suyo. No hay resumen: un `/leads?lead=<id>` viejo redirige a la ficha con lo que pedía y la sesión puede abrir. El clic
+// «Recordatorio») hace lo suyo. El clic
 // en una celda, el enlace de un campo, el teclado y el 200 %, en `leads-listado-patron.spec.ts`. Capturas: `E2E_CAPTURAS=e2e-capturas/t340`.
 test.describe.configure({ mode: 'serial' })
 
@@ -151,46 +146,4 @@ test('E2E en el kanban, un clic en la tarjeta lleva a las oportunidades del lead
   await expect(page).toHaveURL(new RegExp(`${ficha()}\\?seccion=oportunidades$`))
   await expect(tituloDeLaFicha(page)).toBeVisible()
   expect(await sigueSinRecargar(page)).toBe(true)
-})
-
-test('E2E los enlaces viejos del resumen redirigen a la ficha con lo suyo, sin sumar al historial', async ({
-  page,
-}, info) => {
-  await entrar(page, t.personas.berta)
-
-  await page.goto(`/leads?lead=${lead.id}&pestana=seguimientos`)
-  await expect(page).toHaveURL(new RegExp(`${ficha()}\\?seccion=seguimientos$`))
-  await expect(
-    page.getByRole('heading', { name: 'Seguimiento', exact: true, level: 2 }),
-  ).toBeFocused()
-
-  await page.goto(`/leads?lead=${lead.id}&panel=anotar-seguimiento`)
-  await expect(page).toHaveURL(new RegExp(`${ficha()}\\?panel=anotar-seguimiento$`))
-  await expect(modalDeSeguimiento(page, 'Anotar')).toBeVisible()
-  await capturar(page, info, 'enlace-viejo-anotar')
-
-  await page.goto(`/leads?lead=${lead.id}&extra=nuevo`)
-  await expect(page).toHaveURL(new RegExp(`${ficha()}\\?panel=editar-lead&extra=nuevo$`))
-  // El modal del extra va encima del panel de edición: Esc lo cierra y queda el panel.
-  await expect(modalDeExtra(page)).toBeVisible()
-  await page.keyboard.press('Escape')
-  await expect(modalDeExtra(page)).toHaveCount(0)
-  await expect(page.getByRole('dialog', { name: `Editar ${lead.nombre}` })).toBeVisible()
-
-  // Un panel que no era del resumen, los filtros y el cursor se quitan.
-  await page.goto(`/leads?lead=${lead.id}&q=abc&cursor=xyz&panel=etiquetas`)
-  await expect(page).toHaveURL(new RegExp(`${ficha()}$`))
-  await expect(tituloDeLaFicha(page)).toBeVisible()
-
-  // Uno ajeno (Berta ve sólo lo suyo) llega a la ficha, que no dice de quién es.
-  await page.goto(`/leads?lead=${await idDeLead(AJENO_CARLOS)}`)
-  await expect(page.getByText(NO_DISPONIBLE)).toBeVisible()
-  await expect(page.getByText(AJENO_CARLOS)).toHaveCount(0)
-
-  // La redirección reemplaza: «atrás» vuelve a donde se estaba, no al enlace viejo.
-  await page.goto('/perfil')
-  await page.goto(`/leads?lead=${lead.id}`)
-  await expect(page).toHaveURL(new RegExp(`${ficha()}$`))
-  await page.goBack()
-  await expect(page).toHaveURL(/\/perfil$/)
 })

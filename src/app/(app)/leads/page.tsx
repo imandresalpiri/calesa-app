@@ -6,11 +6,8 @@ import { leerVistas, puede, requerirSesion } from '@/modules/equipo'
 import {
   CLAVE_DE_VISTA,
   VISTA_EMBUDO,
-  destinoDelEnlaceViejo,
   leerListadoDeLeads,
   leerVistaDeEmbudo,
-  puedeEditarLead,
-  puedeEditarTelefonosExtra,
 } from '@/modules/leads'
 import {
   EsqueletoDeTablero,
@@ -20,40 +17,11 @@ import {
 import { datosO } from '@/shared/lib/errores'
 import { ZONA_POR_DEFECTO } from '@/shared/lib/fechas'
 import type { ParametrosDeUrl } from '@/shared/lib/filtros'
-import type { Permisos } from '@/shared/lib/permisos'
-import { redirigir } from '@/shared/lib/navegacion'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { rutasDelMenuDeLaPagina } from './rutas-del-menu'
 
 export const metadata: Metadata = { title: 'Leads' }
-
-// Un enlace viejo al resumen (`?lead=<id>`, con su `pestana`, `panel` o `extra`): la lista ya no tiene resumen, así que va a la ficha con lo
-// que pedía y la sesión puede abrir (sin leer el lead: la cartera la decide la ficha). `redirect()` es 307 en la carga y `replace` en una
-// navegación de la app: no suma al historial. Fuera de todo `try`.
-function redirigirElEnlaceViejo(
-  parametros: Awaited<PageProps<'/leads'>['searchParams']>,
-  permisos: Permisos,
-) {
-  const destino = destinoDelEnlaceViejo(
-    {
-      lead: unParametro(parametros['lead']),
-      vista: unParametro(parametros[CLAVE_DE_VISTA]),
-      pestana: unParametro(parametros['pestana']),
-      panel: unParametro(parametros['panel']),
-      extra: unParametro(parametros['extra']),
-      seguimiento: unParametro(parametros['seguimiento']),
-      recordatorio: unParametro(parametros['recordatorio']),
-    },
-    {
-      editar: puedeEditarLead(permisos, true),
-      telefonos: puedeEditarTelefonosExtra(permisos, true),
-    },
-  )
-  if (destino) {
-    redirigir(destino)
-  }
-}
 
 // Los leads que la persona puede ver. Quién ve qué lo decide la base (`leads_vista` y la RLS de
 // `leads`): «propios» sólo lo de su cartera; «todos», todo, con el teléfono enmascarado y sin los
@@ -66,7 +34,6 @@ export default async function PaginaLeads({ searchParams }: PageProps<'/leads'>)
       <EstadoSinPermiso descripcion="No tienes permiso para ver leads. Pídeselo a quien administra los roles." />
     )
   }
-  redirigirElEnlaceViejo(parametros, sesion.permisos)
   // La vista de embudo: el kanban de las oportunidades propias. Los filtros de la lista no aplican.
   if (unParametro(parametros[CLAVE_DE_VISTA] ?? undefined) === VISTA_EMBUDO) {
     return (
