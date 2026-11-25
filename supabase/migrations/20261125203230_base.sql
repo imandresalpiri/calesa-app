@@ -1,5 +1,5 @@
--- La base: el esquema y los datos de catálogo de las 21 migraciones anteriores (hasta 20261121104012_formula_quitar_plantillas_de_v1.sql), aplastadas el
--- 2026-11-21 con `pnpm db:aplastar` (scripts/db/aplastar.sh), que comprobó que deja la misma base. **No se edita**:
+-- La base: el esquema y los datos de catálogo de las 9 migraciones anteriores (hasta 20261122222422_cotizaciones_ayuda_en_la_hoja.sql), aplastadas el
+-- 2026-11-25 con `pnpm db:aplastar` (scripts/db/aplastar.sh), que comprobó que deja la misma base. **No se edita**:
 -- todo cambio es una migración nueva (`supabase migration new`), y una guarda de `pnpm test` fija el sha256 de este archivo
 -- (scripts/guardas/orden-de-migraciones.test.ts). Las migraciones que reemplaza están en git, en el commit anterior al que las aplastó.
 --
@@ -3013,6 +3013,7 @@ declare
   v_def jsonb;
   v_par jsonb;
   v_visib jsonb;
+  v_dis jsonb;
   v_cong jsonb;
   v_ids text[];
   v_tablas text[];
@@ -3062,21 +3063,21 @@ begin
       end if;
       v_vehiculo := p_vehiculo;
     end if;
-    select f.definicion, f.params, f.visibilidad into v_def, v_par, v_visib from public.formulas f where f.id = v_formula;  -- formulas_pkey
+    select f.definicion, f.params, f.visibilidad, f.diseno into v_def, v_par, v_visib, v_dis from public.formulas f where f.id = v_formula;  -- formulas_pkey
   else
     perform public.assert_permiso('cotizaciones.crear', p_origen);
     v_origen := p_origen;
     v_vehiculo := p_vehiculo;
     if p_formula is not null then
       -- La versión que se abrió (D2, «Guardar con la N»): una publicada o archivada de este origen.
-      select f.id, f.definicion, f.params, f.visibilidad into v_formula, v_def, v_par, v_visib
+      select f.id, f.definicion, f.params, f.visibilidad, f.diseno into v_formula, v_def, v_par, v_visib, v_dis
         from public.formulas f where f.id = p_formula and f.origen_id = p_origen and f.estado in ('publicada', 'archivada');   -- formulas_pkey
       if not found then
         perform public._motor_fallar('llamada_invalida', 'p_formula', 'La versión de la hoja no es de este origen.');
       end if;
     else
       v_formula := public._publicada_de_la_activa(p_origen);                                   -- la publicada de la fórmula activa
-      select f.id, f.definicion, f.params, f.visibilidad into v_formula, v_def, v_par, v_visib
+      select f.id, f.definicion, f.params, f.visibilidad, f.diseno into v_formula, v_def, v_par, v_visib, v_dis
         from public.formulas f where f.id = v_formula;                                           -- formulas_pkey
       if not found then
         perform public._motor_fallar('origen_sin_formula', null, 'Este origen no tiene una fórmula publicada.');
@@ -3182,7 +3183,9 @@ begin
       'tipos_cambio', v_tc,
       'vehiculo', v_veh,
       'tablas', v_tab,
-      'overrides', case when p_entradas ? 'overrides' then p_entradas -> 'overrides' else '{}'::jsonb end)
+      'overrides', case when p_entradas ? 'overrides' then p_entradas -> 'overrides' else '{}'::jsonb end,
+      -- Los cálculos que la hoja de esa versión dibuja en una celda: lo escrito sobre ellos se acepta (docs/COTIZADOR.md › «Pisar un cálculo»).
+      'pisables', public._cotizacion_pisables(v_def, v_dis))
     || case when p_entradas ? 'variante' then jsonb_build_object('variante', p_entradas -> 'variante') else '{}'::jsonb end,
     v_formula,
     v_origen,
@@ -3190,13 +3193,14 @@ begin
     v_tc_cambiado,
     -- Lo guardado, para completar lo que quien llama no ve o no edita (cotizacion_conservar): sólo con una cotización.
     case when p_cotizacion is not null then jsonb_build_object('valores', v_valores, 'fuentes', v_fuentes) end;
-end $$;
+end
+$$;
 
 
 ALTER FUNCTION "public"."_cotizacion_armar"("p_entradas" "jsonb", "p_cotizacion" "uuid", "p_origen" "uuid", "p_vehiculo" "uuid", "p_formula" "uuid", "p_abierta_en" timestamp with time zone, "p_con_la_abierta" boolean) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_cotizacion_armar"("p_entradas" "jsonb", "p_cotizacion" "uuid", "p_origen" "uuid", "p_vehiculo" "uuid", "p_formula" "uuid", "p_abierta_en" timestamp with time zone, "p_con_la_abierta" boolean) IS 'Arma la fórmula (con su id, su origen y su visibilidad; con p_formula, esa versión), las tablas vivas que ella nombra y no congeló, los tipos de cambio (con p_abierta_en, si alguno cambió desde entonces), los campos del vehículo (con una cotización, el suyo o el p_vehiculo que se pase) y, con una cotización, lo guardado, para evaluar_formula(). Comprueba los permisos como la policy. La llaman cotizacion_evaluar y cotizacion_crear; docs/COTIZADOR.md › «En la base (4.06-2)», «(4.10-1)» y «Cómo se guarda (4.10-3)».';
+COMMENT ON FUNCTION "public"."_cotizacion_armar"("p_entradas" "jsonb", "p_cotizacion" "uuid", "p_origen" "uuid", "p_vehiculo" "uuid", "p_formula" "uuid", "p_abierta_en" timestamp with time zone, "p_con_la_abierta" boolean) IS 'Arma la fórmula (con su id, su origen y su visibilidad; con p_formula, esa versión), las tablas vivas que ella nombra y no congeló, los tipos de cambio (con p_abierta_en, si alguno cambió desde entonces), los campos del vehículo (con una cotización, el suyo o el p_vehiculo que se pase), los cálculos que su diseño dibuja en una celda (pisables) y, con una cotización, lo guardado, para evaluar_formula(). Comprueba los permisos como la policy. La llaman cotizacion_evaluar, cotizacion_crear, cotizacion_guardar y cotizacion_encima; docs/COTIZADOR.md › «En la base (4.06-2)», «(4.10-1)», «Cómo se guarda (4.10-3)» y «Pisar un cálculo».';
 
 
 
@@ -3490,10 +3494,19 @@ declare
   v_valores jsonb := case when jsonb_typeof(p_valores) = 'object' then p_valores else '{}'::jsonb end;
   v_fuentes jsonb := case when jsonb_typeof(p_fuentes) = 'object' then p_fuentes else '{}'::jsonb end;
   v_pisados jsonb; v_in jsonb; v_ba jsonb; v_ov jsonb; v_var jsonb;
+  v_exclusivos text[] := '{}'::text[];
 begin
+  -- El pct de un par con el monto escrito lo calculó el par: el de un `sobrescribible` y el de un par por la hoja (un monto escrito que no es
+  -- `sobrescribible` tuvo celda, y su pct es exclusivo). Los pcts exclusivos se buscan sólo si hay un monto así.
+  if exists (select 1 from jsonb_array_elements(v_nodos) m
+              where m ->> 'tipo' = 'calculo' and m ->> 'op' = 'porcentaje_de' and (m -> 'sobrescribible') is distinct from 'true'::jsonb
+                and v_fuentes ->> (m ->> 'id') = 'override') then
+    v_exclusivos := public._motor_pcts_exclusivos(v_nodos);
+  end if;
   select coalesce(jsonb_object_agg(m ->> 'pct', true), '{}'::jsonb) into v_pisados
     from jsonb_array_elements(v_nodos) m
-   where m ->> 'tipo' = 'calculo' and m ->> 'op' = 'porcentaje_de' and (m -> 'sobrescribible') = 'true'::jsonb and (m ->> 'pct') is not null and v_fuentes ->> (m ->> 'id') = 'override';
+   where m ->> 'tipo' = 'calculo' and m ->> 'op' = 'porcentaje_de' and (m ->> 'pct') is not null and v_fuentes ->> (m ->> 'id') = 'override'
+     and ((m -> 'sobrescribible') = 'true'::jsonb or ((m ->> 'salida') is distinct from 'total' and (m ->> 'pct') = any (v_exclusivos)));
   select coalesce(jsonb_object_agg(n ->> 'id', v_valores -> (n ->> 'id')), '{}'::jsonb) into v_in
     from jsonb_array_elements(v_nodos) n
    where n ->> 'tipo' = 'input' and not v_pisados ? (n ->> 'id') and v_fuentes ->> (n ->> 'id') in ('input', 'override') and jsonb_typeof(v_valores -> (n ->> 'id')) = 'number';
@@ -3505,7 +3518,8 @@ begin
     from jsonb_array_elements(v_nodos) n where n ->> 'tipo' = 'bandera' and jsonb_typeof(v_valores -> (n ->> 'id')) = 'number';
   select v_valores -> (n ->> 'id') into v_var from jsonb_array_elements(v_nodos) n where n ->> 'tipo' = 'opcion' limit 1;
   return jsonb_build_object('inputs', v_in, 'banderas', v_ba, 'overrides', v_ov) || case when jsonb_typeof(v_var) = 'string' then jsonb_build_object('variante', v_var) else '{}'::jsonb end;
-end $$;
+end
+$$;
 
 
 ALTER FUNCTION "public"."_cotizacion_entradas_de"("p_def" "jsonb", "p_valores" "jsonb", "p_fuentes" "jsonb") OWNER TO "postgres";
@@ -3565,6 +3579,7 @@ declare
   v_nodos jsonb; v_grupos jsonb; v_niveles jsonb; v_visib jsonb; v_lee jsonb; v_vivas jsonb; v_opcion text; v_opcion_ok boolean;
   v_secciones jsonb; v_claves text[]; v_tarjeta jsonb; v_tonos jsonb; v_moneda_bs text; v_datos jsonb; v_cab jsonb;
   v_par_nodo text; v_en_par text[] := '{}'::text[]; v_par jsonb;
+  v_exclusivos text[]; v_total jsonb; v_casa jsonb;
 begin
   select * into fo from public.formulas x where x.id = p_formula;
   v_cfg := public.tiene_permiso('cotizaciones.configurar', p_origen);
@@ -3572,6 +3587,7 @@ begin
   select coalesce(array_agg(n.nodo), '{}'), coalesce(jsonb_object_agg(n.nodo, true) filter (where n.editar), '{}'::jsonb) into v_arr, v_editables from public._nodos_visibles(p_formula) n;
   v_ctx := public._cotizacion_contexto(v_arr, fo.definicion, fo.visibilidad);
   v_ok := v_ctx -> 'ok';
+  v_exclusivos := public._motor_pcts_exclusivos(fo.definicion -> 'nodos');
   -- Copias en memoria de lo que se busca por nodo (un jsonb que viene de la tabla se vuelve a leer entero en cada operador).
   v_nodos := coalesce((select jsonb_object_agg(n ->> 'id', n) from jsonb_array_elements(coalesce(fo.definicion -> 'nodos', '[]'::jsonb)) n), '{}'::jsonb);
   -- La moneda en que se escribe el total en Bs: la `moneda_a` del tipo de cambio ACTIVO que nombra el `total_en` de esta versión (una fila: tipos_cambio_clave_key).
@@ -3586,13 +3602,38 @@ begin
     v_editables := '{}'::jsonb;
     v_visib := '{}'::jsonb;
   end if;
-  -- Las tablas que lee algún nodo que quien llama ve (la regla de `cotizacion_tabla()`) y las que existen vivas para este origen.
+  -- Las tablas que lee algún nodo que quien llama ve (la regla de `cotizacion_tabla()`) y las que existen vivas para este origen, con el id de la viva (la del
+  -- origen antes que la compartida de la misma clave, como `cotizacion_tabla()`; tablas_referencia_origen_id_clave_key).
   v_lee := coalesce((select jsonb_object_agg(t.nombre, true)
                        from (select distinct n ->> 'tabla' as nombre from jsonb_array_elements(coalesce(fo.definicion -> 'nodos', '[]'::jsonb)) n
                               where (n ->> 'tabla') is not null and n ->> 'id' = any (v_arr)) t), '{}'::jsonb);
-  v_vivas := coalesce((select jsonb_object_agg(r.clave, true) from public.tablas_referencia r where r.activa and (r.origen_id = p_origen or r.origen_id is null)), '{}'::jsonb);
+  v_vivas := coalesce((select jsonb_object_agg(t.clave, t.id)
+                         from (select distinct on (r.clave) r.clave, r.id from public.tablas_referencia r
+                                where r.activa and (r.origen_id = p_origen or r.origen_id is null)
+                                order by r.clave, r.origen_id nulls last) t), '{}'::jsonb);
   -- El dato del vehículo de cada nodo `tabla` (4.14-2c2), armado una vez; viaja sólo en la celda de un nodo que se ve.
   v_datos := public._hoja_datos_del_vehiculo(v_nodos, p_origen, fo.params -> 'tablas', v_vivas);
+  -- «Tu vehículo» de la ayuda en bloques (`resaltar`): por cada tabla, cómo casa una fila con esta hoja, del `match` del primer nodo `tabla` que se ve y la lee
+  -- (en el orden de la definición). Cada entrada nombra un nodo que se ve o un dato del vehículo (la regla de `_hoja_datos_del_vehiculo()`); un nodo
+  -- `campo_vehiculo` casa por su dato, que no es de ningún nivel. Si alguna entrada no se resuelve, la tabla no casa: con una parte del `match` se marcaría
+  -- una fila que no es la del vehículo.
+  v_casa := coalesce((
+    select jsonb_object_agg(t.tabla, p.casa)
+      from (select distinct on (n.value ->> 'tabla') n.value ->> 'tabla' as tabla, n.value -> 'match' as m
+              from jsonb_array_elements(coalesce(fo.definicion -> 'nodos', '[]'::jsonb)) with ordinality n (value, ord)
+             where n.value ->> 'tipo' = 'tabla' and n.value ->> 'id' = any (v_arr) and jsonb_typeof(n.value -> 'match') = 'object'
+             order by n.value ->> 'tabla', n.ord) t
+     cross join lateral (
+       select jsonb_agg(case when x.campo is null then jsonb_build_object('columna', x.columna, 'nodo', x.nodo)
+                             else jsonb_build_object('columna', x.columna, 'campo', x.campo) end order by x.columna collate "C") as casa,
+              bool_and(case when x.campo is null then x.nodo = any (v_arr)
+                            else x.campo in ('anio', 'marca', 'modelo', 'kilometraje', 'precio')
+                                 or exists (select 1 from public.origenes_campos oc where oc.origen_id = p_origen and oc.clave = x.campo and oc.activo) end) as ok
+         from jsonb_each_text(t.m) e
+        cross join lateral (select e.key as columna, e.value as nodo,
+                                   case when not v_nodos ? e.value then e.value
+                                        when v_nodos -> e.value ->> 'tipo' = 'campo_vehiculo' then v_nodos -> e.value ->> 'campo' end as campo) x) p
+     where p.ok and p.casa is not null), '{}'::jsonb);
   select n ->> 'id' into v_opcion from jsonb_array_elements(coalesce(fo.definicion -> 'nodos', '[]'::jsonb)) n where n ->> 'tipo' = 'opcion' limit 1;
   v_opcion_ok := v_opcion is not null and v_ok ? v_opcion;
   -- La variante en par (glosario: «Variante en par»): viaja a todo el que abre la hoja, aunque su nivel esconda el nodo (las etiquetas de sus dos opciones
@@ -3605,6 +3646,14 @@ begin
                               from jsonb_array_elements(v_nodos -> v_par_nodo -> 'opciones') with ordinality x (o, k)));
   end if;
 
+  -- La tarjeta del total como pieza (glosario: «Tarjeta del total»): su nodo es el de `tarjeta_total` y viaja a todo el que abre, como la tarjeta (el
+  -- total lo ven todos); con una variante en par no viaja (el par dibuja un total por opción).
+  if v_par_nodo is null and v_nodos ? (fo.diseno -> 'tarjeta_total' ->> 'nodo') then
+    v_total := jsonb_build_object('tipo', 'total', 'nodo', fo.diseno -> 'tarjeta_total' ->> 'nodo',
+                                  'etiqueta', v_nodos -> (fo.diseno -> 'tarjeta_total' ->> 'nodo') ->> 'etiqueta',
+                                  'formato', coalesce(v_nodos -> (fo.diseno -> 'tarjeta_total' ->> 'nodo') ->> 'formato', 'usd'));
+  end if;
+
   -- El aspecto de cada ítem y de cada sección se copia del diseño ya leído (con `->`: un número de columnas sigue siendo un número); sin él,
   -- la clave no viaja. Los niveles de una sección (`nivel_*`) nunca viajan.
   with it as (
@@ -3612,14 +3661,15 @@ begin
       from jsonb_array_elements(fo.diseno -> 'secciones') with ordinality s (value, ord)
      cross join lateral jsonb_array_elements(s.value -> 'items') with ordinality i (value, ord)
   ), vis as (
-    -- Sólo viaja lo que su nodo (y, en un par, su porcentaje) permite.
+    -- Sólo viaja lo que su nodo (y, en un par, su porcentaje) permite; la tarjeta del total, si hay `v_total`.
     select it.*, v_nodos -> it.nid as n,
            jsonb_strip_nulls(jsonb_build_object('ancho', it.item -> 'ancho', 'alto', it.item -> 'alto', 'letra', it.item -> 'letra',
                                                 'enfasis', it.item -> 'enfasis')) as asp
       from it
-     where v_ok ? it.nid and v_nodos ? it.nid
-       and not (it.t = 'variante' and v_par_nodo is not null)
-       and (it.t <> 'celda' or not (it.item ? 'secundario') or v_ok ? (v_nodos -> it.nid ->> 'pct'))
+     where (v_ok ? it.nid and v_nodos ? it.nid
+            and not (it.t = 'variante' and v_par_nodo is not null)
+            and (it.t <> 'celda' or not (it.item ? 'secundario') or v_ok ? (v_nodos -> it.nid ->> 'pct')))
+        or (it.t = 'total' and v_total is not null)
   ), obj as (
     select vis.so, vis.io, vis.cab,
            case when vis.t in ('celda', 'subtotal') then v_grupos ->> (vis.n ->> 'grupo') end as tono,
@@ -3628,14 +3678,26 @@ begin
                  'tipo', 'celda', 'nodo', vis.nid, 'etiqueta', vis.n ->> 'etiqueta', 'tipo_nodo', vis.n ->> 'tipo',
                  'formato', coalesce(vis.n ->> 'formato', 'usd'),
                  'tono', v_grupos ->> (vis.n ->> 'grupo'),
-                 'ayuda', case
-                            when (vis.item -> 'ayuda') ? 'texto' then jsonb_build_object('texto', vis.item -> 'ayuda' ->> 'texto')
-                                                                      || jsonb_strip_nulls(jsonb_build_object('enlaces', vis.item -> 'ayuda' -> 'enlaces'))
-                            when (vis.item -> 'ayuda') ? 'tabla'
-                                 and (v_cfg or v_lee ? (vis.item -> 'ayuda' ->> 'tabla'))
-                                 and ((jsonb_typeof(fo.params -> 'tablas') = 'object' and (fo.params -> 'tablas') ? (vis.item -> 'ayuda' ->> 'tabla'))
-                                      or v_vivas ? (vis.item -> 'ayuda' ->> 'tabla'))
-                              then jsonb_build_object('tabla', vis.item -> 'ayuda' ->> 'tabla') end,
+                 -- La ayuda leída como bloques (la de antes también), nula si no queda ninguno. Título, texto y enlaces tal cual; una tabla, si existe
+                 -- (congelada en la versión o viva) y quien llama puede leerla: configura, algún nodo que ve la lee o el bloque nombra sus columnas (las suma
+                 -- `cotizacion_tabla()`). Una columna que llena un nodo que no se ve no llena nada; `casa`, sólo con `resaltar`; el id de la viva, sólo a quien
+                 -- configura.
+                 'ayuda', (select jsonb_agg(case when b.value ->> 'tipo' = 'tabla' then
+                                                   jsonb_build_object('tipo', 'tabla', 'tabla', b.value ->> 'tabla')
+                                                   || case when jsonb_typeof(b.value -> 'columnas') = 'array' then jsonb_build_object('columnas',
+                                                        (select jsonb_agg(jsonb_build_object('columna', c.value ->> 'columna',
+                                                                                             'llena', case when (c.value ->> 'llena') = any (v_arr) then c.value ->> 'llena' end)
+                                                                          order by c.ord)
+                                                           from jsonb_array_elements(b.value -> 'columnas') with ordinality c (value, ord))) else '{}'::jsonb end
+                                                   || case when (b.value -> 'resaltar') = 'true'::jsonb
+                                                             then jsonb_build_object('resaltar', true, 'casa', v_casa -> (b.value ->> 'tabla')) else '{}'::jsonb end
+                                                   || case when v_cfg then jsonb_build_object('id', v_vivas -> (b.value ->> 'tabla')) else '{}'::jsonb end
+                                                 else b.value end order by b.ord)
+                             from jsonb_array_elements(public._diseno_bloques_de_la_ayuda(vis.item -> 'ayuda')) with ordinality b (value, ord)
+                            where b.value ->> 'tipo' <> 'tabla'
+                               or (((jsonb_typeof(fo.params -> 'tablas') = 'object' and (fo.params -> 'tablas') ? (b.value ->> 'tabla'))
+                                    or v_vivas ? (b.value ->> 'tabla'))
+                                   and (v_cfg or v_lee ? (b.value ->> 'tabla') or jsonb_typeof(b.value -> 'columnas') = 'array'))),
                  'dato_del_vehiculo', v_datos -> vis.nid,
                  'en_par', case when vis.nid = any (v_en_par) then true end,
                  'solo_en', case when v_opcion_ok then vis.n -> 'solo_en' end,
@@ -3643,7 +3705,11 @@ begin
                  'requerido_si', case when v_ok ? (vis.n ->> 'requerido_si') then vis.n ->> 'requerido_si' end,
                  'secundario', case when vis.item ? 'secundario' then
                      jsonb_build_object('nodo', vis.n ->> 'pct', 'como', vis.item ->> 'secundario', 'tipo_nodo', v_nodos -> (vis.n ->> 'pct') ->> 'tipo',
-                                        'formato', coalesce(v_nodos -> (vis.n ->> 'pct') ->> 'formato', 'usd'))
+                                        'formato', coalesce(v_nodos -> (vis.n ->> 'pct') ->> 'formato', 'usd'),
+                                        -- Con el monto escrito, el pct lo calcula el par (`sobrescribible`, o por la hoja con su pct exclusivo): no es lo tipeado.
+                                        'sigue_al_monto', case when (vis.n -> 'sobrescribible') = 'true'::jsonb
+                                                                 or ((vis.n ->> 'salida') is distinct from 'total' and (vis.n ->> 'pct') = any (v_exclusivos))
+                                                               then true end)
                      || public._hoja_estado(v_nodos -> (vis.n ->> 'pct'), true, v_editables ? (vis.n ->> 'pct'),
                                             v_visib -> (vis.n ->> 'pct') ->> 'editar', v_niveles ->> (v_visib -> (vis.n ->> 'pct') ->> 'editar'), v_cfg, v_tc) end))
                || public._hoja_estado(vis.n, true, v_editables ? vis.nid, v_visib -> vis.nid ->> 'editar', v_niveles ->> (v_visib -> vis.nid ->> 'editar'), v_cfg, v_tc)
@@ -3667,6 +3733,7 @@ begin
                  'tipo', 'subtotal', 'nodo', vis.nid, 'etiqueta', vis.n ->> 'etiqueta', 'formato', coalesce(vis.n ->> 'formato', 'usd'),
                  'tono', v_grupos ->> (vis.n ->> 'grupo'), 'en_par', case when vis.nid = any (v_en_par) then true end))
                || vis.asp
+             when 'total' then v_total || vis.asp
            end as o
       from vis
   ), secs as (
@@ -3721,13 +3788,14 @@ begin
     'tarjeta_total', v_tarjeta,
     'tonos', v_tonos,
     'par', v_par);
-end $$;
+end
+$$;
 
 
 ALTER FUNCTION "public"."_cotizacion_hoja"("p_formula" "uuid", "p_origen" "uuid", "p_edita" boolean) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_cotizacion_hoja"("p_formula" "uuid", "p_origen" "uuid", "p_edita" boolean) IS 'El diseño de una versión de la fórmula recortado al nivel de quien llama: ítems cuyo nodo se ve, con su candado y su motivo, ayudas (el texto con sus enlaces, o la tabla), el dato del vehículo de una celda de tabla (dato_del_vehiculo), atajos, modos (clave y nombre), la moneda del total en Bs (moneda_bs), si quien llama tiene el ⚙ de la cabecera (ajustes), tarjeta y tonos (los de los grupos de sus celdas, de las secciones que dibuja y de la cabecera). Con una variante en par, par (nodo, etiqueta y las dos opciones con su clave y etiqueta, para todo el que abre) y en_par en cada celda y subtotal que cambia según la opción (_nodos_en_par); el ítem de la variante no viaja. Copia el aspecto (ancho, alto, letra y énfasis de cada ítem; ancho, alto, relleno, separación, densidad, letra, énfasis y tono de cada sección; tono, relleno, letra y énfasis de la cabecera) y lo que la cabecera trae por defecto (modo_por_defecto, ver_total_bs_por_defecto, modos_visibles) sólo si el diseño lo trae; nunca los niveles. Con p_edita falso (quien no puede guardar esa cotización) nada es editable y el motivo no es un nivel. De nadie; la llaman cotizacion_hoja y cotizacion_hoja_guardada. docs/COTIZADOR.md › «La lectura que abre la hoja (4.13-1)».';
+COMMENT ON FUNCTION "public"."_cotizacion_hoja"("p_formula" "uuid", "p_origen" "uuid", "p_edita" boolean) IS 'El diseño de una versión de la fórmula recortado al nivel de quien llama: ítems cuyo nodo se ve, con su candado y su motivo, la ayuda como bloques (título, texto con su negrita, enlaces y tablas; la de antes también: _diseno_bloques_de_la_ayuda), cada tabla con sus columnas (llena, sólo hacia un nodo que se ve), resaltar con casa (cómo casa una fila con la hoja: el match del primer nodo tabla que se ve, sólo con nodos que se ven y datos del vehículo; un campo_vehiculo, por su dato) y el id de la viva a quien configura, el dato del vehículo de una celda de tabla (dato_del_vehiculo), atajos, modos (clave y nombre), la moneda del total en Bs (moneda_bs), si quien llama tiene el ⚙ de la cabecera (ajustes), tarjeta y tonos (los de los grupos de sus celdas, de las secciones que dibuja y de la cabecera). El secundario de un par dice si su pct sigue al monto escrito (sigue_al_monto). Con una variante en par, par (nodo, etiqueta y las dos opciones con su clave y etiqueta, para todo el que abre) y en_par en cada celda y subtotal que cambia según la opción (_nodos_en_par); el ítem de la variante no viaja. Copia el aspecto (ancho, alto, letra y énfasis de cada ítem; ancho, alto, relleno, separación, densidad, letra, énfasis y tono de cada sección; tono, relleno, letra y énfasis de la cabecera) y lo que la cabecera trae por defecto (modo_por_defecto, ver_total_bs_por_defecto, modos_visibles) sólo si el diseño lo trae; nunca los niveles. Con p_edita falso (quien no puede guardar esa cotización) nada es editable y el motivo no es un nivel. De nadie; la llaman cotizacion_hoja y cotizacion_hoja_guardada. docs/COTIZADOR.md › «La lectura que abre la hoja (4.13-1)».';
 
 
 
@@ -3798,6 +3866,39 @@ COMMENT ON FUNCTION "public"."_cotizacion_modo"("p_formula" "uuid", "p_modo_tc" 
 
 
 
+CREATE OR REPLACE FUNCTION "public"."_cotizacion_pisables"("p_def" "jsonb", "p_diseno" "jsonb") RETURNS "jsonb"
+    LANGUAGE "sql" STABLE
+    SET "search_path" TO ''
+    AS $$
+  with nodos as (
+    select distinct on (x.value ->> 'id') x.value ->> 'id' as id, x.value as n
+      from jsonb_array_elements(case when jsonb_typeof(p_def -> 'nodos') = 'array' then p_def -> 'nodos' else '[]'::jsonb end)
+           with ordinality as x(value, pos)
+     order by x.value ->> 'id', x.pos desc
+  ), celdas as (
+    select i.value as item
+      from jsonb_array_elements(case when jsonb_typeof(p_diseno -> 'secciones') = 'array' then p_diseno -> 'secciones' else '[]'::jsonb end) as s(value)
+     cross join lateral jsonb_array_elements(case when jsonb_typeof(s.value -> 'items') = 'array' then s.value -> 'items' else '[]'::jsonb end) as i(value)
+     where i.value ->> 'tipo' = 'celda'
+  ), ids as (
+    select c.item ->> 'nodo' as id from celdas c
+    union
+    select n.n ->> 'pct' from celdas c join nodos n on n.id = c.item ->> 'nodo' where c.item ? 'secundario'
+  )
+  select coalesce(jsonb_agg(ids.id order by ids.id collate "C"), '[]'::jsonb)
+    from ids
+    join nodos n on n.id = ids.id
+   where n.n ->> 'tipo' in ('tabla', 'tramo', 'calculo') and (n.n ->> 'salida') is distinct from 'total';
+$$;
+
+
+ALTER FUNCTION "public"."_cotizacion_pisables"("p_def" "jsonb", "p_diseno" "jsonb") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_cotizacion_pisables"("p_def" "jsonb", "p_diseno" "jsonb") IS 'Interna: los ids de los cálculos (tabla, tramo o calculo que no es el total) que el diseño dibuja en una celda, con el pct de su secundario; la entrada `pisables` del motor. De nadie; la llama _cotizacion_armar. docs/COTIZADOR.md › «Pisar un cálculo».';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."_cotizacion_primer_resultado"("p_totales" "jsonb", OUT "monto" numeric, OUT "moneda" "text") RETURNS "record"
     LANGUAGE "sql" STABLE
     SET "search_path" TO ''
@@ -3845,6 +3946,11 @@ begin
       v_out := v_out || jsonb_build_object(k, coalesce((select jsonb_object_agg(e.key, e.value) from jsonb_each(p_res -> k) e where v_ok ? e.key), '{}'::jsonb));
     end if;
   end loop;
+  -- Lo calculado de un cálculo pisado (sólo de evaluar_formula): lo que se ve, y nada si no queda ninguno (un objeto vacío diría que hay uno oculto).
+  if jsonb_typeof(p_res -> 'calculados') = 'object' then
+    v_t := (select jsonb_object_agg(e.key, e.value) from jsonb_each(p_res -> 'calculados') e where v_ok ? e.key);
+    if v_t is not null then v_out := v_out || jsonb_build_object('calculados', v_t); end if;
+  end if;
 
   if jsonb_typeof(p_res -> 'tipos_cambio') = 'object' then
     v_out := v_out || jsonb_build_object('tipos_cambio', coalesce((select jsonb_object_agg(e.key, e.value) from jsonb_each(p_res -> 'tipos_cambio') e where not v_tc ? e.key), '{}'::jsonb));
@@ -3882,13 +3988,14 @@ begin
        where v_ok ? (e.value ->> 'id') or not v_ids ? (e.value ->> 'id')), '[]'::jsonb));
   end if;
   return v_out;
-end $$;
+end
+$$;
 
 
 ALTER FUNCTION "public"."_cotizacion_recorte"("p_res" "jsonb", "p_ctx" "jsonb") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_cotizacion_recorte"("p_res" "jsonb", "p_ctx" "jsonb") IS 'El recorte por nivel de lo que tiene una cotización o calcula evaluar_formula(), con el contexto de _cotizacion_contexto(): sólo lo visible, el total y lo aparte, y los subtotales de los grupos que se ven enteros. De nadie; la llaman cotizacion_leer, cotizacion_evaluar y cotizacion_revisiones. docs/COTIZADOR.md › «En la base (4.10-1)».';
+COMMENT ON FUNCTION "public"."_cotizacion_recorte"("p_res" "jsonb", "p_ctx" "jsonb") IS 'El recorte por nivel de lo que tiene una cotización o calcula evaluar_formula(), con el contexto de _cotizacion_contexto(): sólo lo visible (también lo calculado de un cálculo pisado, calculados, que se omite si no queda nada), el total y lo aparte, y los subtotales de los grupos que se ven enteros. De nadie; la llaman cotizacion_leer, cotizacion_evaluar y cotizacion_revisiones. docs/COTIZADOR.md › «En la base (4.10-1)».';
 
 
 
@@ -4865,6 +4972,125 @@ $_$;
 ALTER FUNCTION "public"."_diseno_auxiliares"("p_def" "jsonb") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."_diseno_ayudas"("p_def" "jsonb", "p_secs" "jsonb", "p_tablas" "jsonb") RETURNS "void"
+    LANGUAGE "plpgsql" STABLE
+    SET "search_path" TO ''
+    AS $_$
+declare
+  v_secs jsonb := p_secs;
+  v_cat jsonb;
+  v_aceptan jsonb;
+  v_it jsonb;
+  v_cat_de_la_celda jsonb;
+  v_nodo text;
+  v_b jsonb;
+  v_tabla text;
+  v_cols jsonb;
+  v_c jsonb;
+begin
+  -- El catálogo como conjuntos: una clave repetida se queda con la última (como el `Map` de TS).
+  if jsonb_typeof(p_tablas) = 'array' then
+    select coalesce(jsonb_object_agg(t.value ->> 'clave',
+                                     (select coalesce(jsonb_object_agg(c.value, true), '{}'::jsonb)
+                                        from jsonb_array_elements_text(t.value -> 'columnas') c)
+                                     order by t.ord), '{}'::jsonb)
+      into v_cat
+      from jsonb_array_elements(p_tablas) with ordinality as t(value, ord);
+  end if;
+
+  for v_it in
+    select it.value
+      from jsonb_array_elements(v_secs) with ordinality as s(value, so)
+     cross join lateral jsonb_array_elements(s.value -> 'items') with ordinality as it(value, io)
+     where it.value ->> 'tipo' = 'celda' and it.value ? 'ayuda'
+     order by s.so, it.io
+  loop
+    v_nodo := v_it ->> 'nodo';
+    v_cat_de_la_celda := case when jsonb_typeof(v_it -> 'ayuda') = 'array' then v_cat end;
+    for v_b in
+      select b.value from jsonb_array_elements(public._diseno_bloques_de_la_ayuda(v_it -> 'ayuda')) with ordinality as b(value, bo) order by b.bo
+    loop
+      if v_b ->> 'tipo' = 'enlaces' then
+        if exists (select 1 from jsonb_array_elements(v_b -> 'enlaces') e where (e.value ->> 'url') !~ '^https://[!-~]+$') then
+          perform public._formula_rechazar('ayuda_enlace_no_https', v_nodo,
+            format('Un enlace de la ayuda de «%s» tiene que empezar con https:// y no llevar espacios.', v_nodo));
+        end if;
+      elsif v_b ->> 'tipo' = 'tabla' then
+        v_tabla := v_b ->> 'tabla';
+        v_cols := null;
+        if v_cat_de_la_celda is not null then
+          if not (v_cat_de_la_celda ? v_tabla) then
+            perform public._formula_rechazar('ayuda_tabla_inexistente', v_nodo,
+              format('La ayuda de «%s» usa la tabla «%s», que este origen no tiene o está desactivada.', v_nodo, v_tabla));
+          end if;
+          v_cols := v_cat_de_la_celda -> v_tabla;
+        end if;
+        for v_c in
+          select c.value from jsonb_array_elements(coalesce(v_b -> 'columnas', '[]'::jsonb)) with ordinality as c(value, co) order by c.co
+        loop
+          if v_cols is not null and not (v_cols ? (v_c ->> 'columna')) then
+            perform public._formula_rechazar('ayuda_columna_inexistente', v_nodo,
+              format('La ayuda de «%s» muestra la columna «%s», que la tabla «%s» ya no tiene.', v_nodo, v_c ->> 'columna', v_tabla));
+          end if;
+          continue when not (v_c ? 'llena');
+          -- Las celdas que aceptan un valor, una vez, con la primera columna que llena.
+          if v_aceptan is null then
+            with nodos as (
+              select coalesce(jsonb_object_agg(n.value ->> 'id', n.value), '{}'::jsonb) as m
+                from jsonb_array_elements(coalesce(p_def -> 'nodos', '[]'::jsonb)) n
+            ), celdas as (
+              select it.value as it, nodos.m -> (it.value ->> 'nodo') as n, nodos.m
+                from jsonb_array_elements(v_secs) s
+               cross join lateral jsonb_array_elements(s.value -> 'items') it
+               cross join nodos
+               where it.value ->> 'tipo' = 'celda'
+            ), candidatos as (
+              select c.n from celdas c
+              union all
+              select c.m -> (c.n ->> 'pct') from celdas c
+               where c.it ? 'secundario' and c.n ->> 'tipo' = 'calculo' and c.n ->> 'op' = 'porcentaje_de'
+            )
+            select coalesce(jsonb_object_agg(x.n ->> 'id', true), '{}'::jsonb)
+              into v_aceptan
+              from candidatos x
+             where x.n ->> 'id' is not null
+               and (x.n ->> 'tipo' in ('input', 'constante')
+                    or (x.n ->> 'tipo' in ('tabla', 'tramo', 'calculo') and (x.n ->> 'salida') is distinct from 'total'));
+          end if;
+          if not (v_aceptan ? (v_c ->> 'llena')) then
+            perform public._formula_rechazar('ayuda_llena_no_acepta_valor', v_nodo,
+              format('En la ayuda de «%s», la columna «%s» llena una celda que no acepta un valor: elige un dato que se tipea, una constante o un cálculo que se puede pisar.',
+                     v_nodo, v_c ->> 'columna'));
+          end if;
+        end loop;
+      end if;
+    end loop;
+  end loop;
+end;
+$_$;
+
+
+ALTER FUNCTION "public"."_diseno_ayudas"("p_def" "jsonb", "p_secs" "jsonb", "p_tablas" "jsonb") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."_diseno_bloques_de_la_ayuda"("p" "jsonb") RETURNS "jsonb"
+    LANGUAGE "sql" STABLE
+    SET "search_path" TO ''
+    AS $$
+  select case
+    when jsonb_typeof(p) = 'array' then p
+    when jsonb_typeof(p) = 'object' and p ? 'tabla' then jsonb_build_array(jsonb_build_object('tipo', 'tabla', 'tabla', p -> 'tabla'))
+    when jsonb_typeof(p) = 'object' and p ? 'texto' then
+      jsonb_build_array(jsonb_build_object('tipo', 'texto', 'texto', p -> 'texto'))
+      || case when p ? 'enlaces' then jsonb_build_array(jsonb_build_object('tipo', 'enlaces', 'enlaces', p -> 'enlaces')) else '[]'::jsonb end
+    else '[]'::jsonb
+  end
+$$;
+
+
+ALTER FUNCTION "public"."_diseno_bloques_de_la_ayuda"("p" "jsonb") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."_diseno_cabecera"("p_cab" "jsonb") RETURNS "void"
     LANGUAGE "plpgsql" STABLE
     SET "search_path" TO ''
@@ -4916,33 +5142,6 @@ $$;
 
 
 ALTER FUNCTION "public"."_diseno_cabecera"("p_cab" "jsonb") OWNER TO "postgres";
-
-
-CREATE OR REPLACE FUNCTION "public"."_diseno_enlaces"("p_secs" "jsonb") RETURNS "void"
-    LANGUAGE "plpgsql" STABLE
-    SET "search_path" TO ''
-    AS $_$
-declare
-  v_secs jsonb := p_secs;
-  v_nodo text;
-begin
-  select it.value ->> 'nodo'
-    into v_nodo
-    from jsonb_array_elements(v_secs) with ordinality as s(value, so)
-   cross join lateral jsonb_array_elements(s.value -> 'items') with ordinality as it(value, io)
-   cross join lateral jsonb_array_elements(coalesce(it.value -> 'ayuda' -> 'enlaces', '[]'::jsonb)) with ordinality as e(value, eo)
-   where (e.value ->> 'url') !~ '^https://[!-~]+$'
-   order by s.so, it.io, e.eo
-   limit 1;
-  if v_nodo is not null then
-    perform public._formula_rechazar('ayuda_enlace_no_https', v_nodo,
-      format('Un enlace de la ayuda de «%s» tiene que empezar con https:// y no llevar espacios.', v_nodo));
-  end if;
-end;
-$_$;
-
-
-ALTER FUNCTION "public"."_diseno_enlaces"("p_secs" "jsonb") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."_diseno_forma"("p_diseno" "jsonb") RETURNS "void"
@@ -5187,6 +5386,12 @@ declare
   v_a jsonb;
   v_es jsonb;
   v_e jsonb;
+  v_b jsonb;
+  v_bt text;
+  v_cs jsonb;
+  v_c jsonb;
+  v_vistas jsonb;
+  v_tablas int;
   v_num numeric;
   v_f float8;
   v_clave text;
@@ -5200,11 +5405,13 @@ begin
     when 'variante' then array['tipo', 'nodo', 'ancho', 'alto', 'letra', 'enfasis']
     when 'interruptor' then array['tipo', 'nodo', 'efecto', 'ancho', 'alto', 'letra', 'enfasis']
     when 'subtotal' then array['tipo', 'nodo', 'ancho', 'alto', 'letra', 'enfasis']
+    when 'total' then array['tipo', 'ancho', 'alto', 'letra', 'enfasis']
   end;
   if v_permitidas is null then /*D41*/ return false; end if;
   -- Una clave que el tipo no lleva (también «__proto__», «clase» o «color») es un error, no se ignora.
   if (p_i - v_permitidas) <> '{}'::jsonb then /*D42*/ return false; end if;
-  if (jsonb_typeof(p_i -> 'nodo') = 'string' and (p_i ->> 'nodo') ~ c_id) is not true then /*D43*/ return false; end if;
+  -- La tarjeta del total no nombra un nodo (el suyo es el de `tarjeta_total`): un `nodo` en ella ya cayó en D42.
+  if v_tipo <> 'total' and (jsonb_typeof(p_i -> 'nodo') = 'string' and (p_i ->> 'nodo') ~ c_id) is not true then /*D43*/ return false; end if;
 
   if v_tipo = 'celda' then
     -- El ancho de una celda es obligatorio: uno con nombre de los diseños guardados (12, 6 y 4 columnas) o un número de columnas (abajo).
@@ -5222,12 +5429,69 @@ begin
     if p_i ? 'nivel_editar' and (jsonb_typeof(p_i -> 'nivel_editar') = 'string' and (p_i ->> 'nivel_editar') ~ c_id) is not true then
       /*D47*/ return false;
     end if;
-    -- La ayuda es la tabla que se abre o un texto (con hasta 5 enlaces, cada uno con su título y su URL), no las dos. Que la URL sea `https://` es la
-    -- regla `ayuda_enlace_no_https` (`_diseno_enlaces()`), no la forma.
+    -- La ayuda son sus bloques (docs/GLOSARIO.md › «Bloque de la ayuda»), o la de antes: la tabla que se abre o un texto (con hasta 5 enlaces, cada
+    -- uno con su título y su URL), no las dos. Que la URL sea `https://`, que la tabla y sus columnas existan y que una columna llene una celda que
+    -- acepta un valor son reglas de `_diseno_ayudas()`, no la forma.
     if p_i ? 'ayuda' then
       v_a := p_i -> 'ayuda';
-      if jsonb_typeof(v_a) is distinct from 'object' then /*D48*/ return false; end if;
-      if v_a ? 'tabla' then
+      if jsonb_typeof(v_a) = 'array' then
+        if jsonb_array_length(v_a) not between 1 and 8 then /*D86*/ return false; end if;
+        v_tablas := 0;
+        for j in 0 .. jsonb_array_length(v_a) - 1 loop
+          v_b := v_a -> j;
+          v_bt := case when jsonb_typeof(v_b) = 'object' and jsonb_typeof(v_b -> 'tipo') = 'string' then v_b ->> 'tipo' end;
+          if v_bt is null or v_bt not in ('titulo', 'texto', 'enlaces', 'tabla') then /*D87*/ return false; end if;
+          if v_bt = 'titulo' then
+            if (v_b - array['tipo', 'texto']) <> '{}'::jsonb
+               or (jsonb_typeof(v_b -> 'texto') = 'string' and char_length(v_b ->> 'texto') between 1 and 80) is not true then
+              /*D88*/ return false;
+            end if;
+          elsif v_bt = 'texto' then
+            if (v_b - array['tipo', 'texto']) <> '{}'::jsonb
+               or (jsonb_typeof(v_b -> 'texto') = 'string' and char_length(v_b ->> 'texto') between 1 and 1000) is not true then
+              /*D89*/ return false;
+            end if;
+          elsif v_bt = 'enlaces' then
+            v_es := v_b -> 'enlaces';
+            if (v_b - array['tipo', 'enlaces']) <> '{}'::jsonb or jsonb_typeof(v_es) is distinct from 'array' then /*D90*/ return false; end if;
+            if jsonb_array_length(v_es) not between 1 and 5 then /*D90*/ return false; end if;
+            for k in 0 .. jsonb_array_length(v_es) - 1 loop
+              v_e := v_es -> k;
+              if jsonb_typeof(v_e) is distinct from 'object' or (v_e - array['titulo', 'url']) <> '{}'::jsonb then /*D91*/ return false; end if;
+              if (jsonb_typeof(v_e -> 'titulo') = 'string' and char_length(v_e ->> 'titulo') between 1 and 60) is not true then /*D92*/ return false; end if;
+              if (jsonb_typeof(v_e -> 'url') = 'string' and char_length(v_e ->> 'url') between 1 and 2000) is not true then /*D93*/ return false; end if;
+            end loop;
+          else
+            if (v_b - array['tipo', 'tabla', 'columnas', 'resaltar']) <> '{}'::jsonb
+               or (jsonb_typeof(v_b -> 'tabla') = 'string' and (v_b ->> 'tabla') ~ c_id) is not true then
+              /*D94*/ return false;
+            end if;
+            if v_b ? 'columnas' then
+              v_cs := v_b -> 'columnas';
+              if jsonb_typeof(v_cs) is distinct from 'array' then /*D95*/ return false; end if;
+              -- Hasta las columnas que admite una tabla de referencia (`MAXIMO_DE_COLUMNAS_EN_LA_AYUDA`), sin repetir ninguna.
+              if jsonb_array_length(v_cs) not between 1 and 20 then /*D95*/ return false; end if;
+              v_vistas := '{}'::jsonb;
+              for k in 0 .. jsonb_array_length(v_cs) - 1 loop
+                v_c := v_cs -> k;
+                if jsonb_typeof(v_c) is distinct from 'object' then /*D96*/ return false; end if;
+                if (v_c - array['columna', 'llena']) <> '{}'::jsonb
+                   or (jsonb_typeof(v_c -> 'columna') = 'string' and (v_c ->> 'columna') ~ c_id) is not true
+                   or (v_c ? 'llena' and (jsonb_typeof(v_c -> 'llena') = 'string' and (v_c ->> 'llena') ~ c_id) is not true) then
+                  /*D96*/ return false;
+                end if;
+                if v_vistas ? (v_c ->> 'columna') then /*D97*/ return false; end if;
+                v_vistas := v_vistas || jsonb_build_object(v_c ->> 'columna', true);
+              end loop;
+            end if;
+            if v_b ? 'resaltar' and jsonb_typeof(v_b -> 'resaltar') is distinct from 'boolean' then /*D98*/ return false; end if;
+            v_tablas := v_tablas + 1;
+          end if;
+        end loop;
+        -- Hasta 3 tablas en una ayuda (`MAXIMO_DE_TABLAS_EN_LA_AYUDA`): cada una se lee al abrirla.
+        if v_tablas > 3 then /*D99*/ return false; end if;
+      elsif jsonb_typeof(v_a) is distinct from 'object' then /*D48*/ return false;
+      elsif v_a ? 'tabla' then
         if (v_a - 'tabla') <> '{}'::jsonb then /*D49*/ return false; end if;
         if (jsonb_typeof(v_a -> 'tabla') = 'string' and (v_a ->> 'tabla') ~ c_id) is not true then /*D50*/ return false; end if;
       elsif v_a ? 'texto' then
@@ -5431,6 +5695,10 @@ declare
   v_efecto text;
   v_pct text;
   v_esp boolean;
+  v_total_visto boolean := false;                         -- ya hay una tarjeta del total en el diseño
+  v_repetido boolean;
+  v_avanzada boolean;
+  v_con_nivel boolean;
   j int;
   l int;
 begin
@@ -5458,6 +5726,24 @@ begin
     for k in 0 .. jsonb_array_length(v_its) - 1 loop
       v_it := v_its -> k;
       v_tipo := v_it ->> 'tipo';
+      -- La tarjeta del total como pieza: una sola en el diseño, en una sección principal y sin nivel de ver (el total lo ven todos). `donde` es la
+      -- sección; no nombra un nodo (el suyo es el de `tarjeta_total`, que revisa §3) ni cuenta como dibujo de uno.
+      if v_tipo = 'total' then
+        v_repetido := v_total_visto;
+        v_avanzada := (v_s ->> 'presentacion') = 'avanzado';
+        v_con_nivel := v_hver <> 'todos';
+        if v_repetido then
+          perform public._formula_rechazar('total_repetido', v_sid, format('La sección «%s» ya tiene la tarjeta del total.', v_sid));
+        end if;
+        if v_avanzada then
+          perform public._formula_rechazar('total_en_avanzado', v_sid, 'La tarjeta del total no va en una sección avanzada.');
+        end if;
+        if v_con_nivel then
+          perform public._formula_rechazar('total_con_nivel', v_sid, format('La tarjeta del total la ven todos: la sección «%s» tiene un nivel.', v_sid));
+        end if;
+        v_total_visto := true;
+        continue;
+      end if;
       v_nodo := v_it ->> 'nodo';
       j := (p_pos ->> v_nodo)::int;
       if j is null then
@@ -6279,6 +6565,8 @@ declare
 begin
   if v_estado = 'vigentes' then
     v_estado_donde := 'p.activo';
+  elsif v_estado = 'sin_rol' then
+    v_estado_donde := 'p.activo and not p.bloqueado and not exists (select 1 from public.usuarios_roles ur where ur.usuario_id = p.id)';
   elsif v_estado in ('activa', 'invitacion_pendiente', 'bloqueada', 'baja') then
     v_estado_donde := format('public._estado_de_persona(p.activo, p.bloqueado, p.invitado_en, p.invitacion_aceptada_en) = %L', v_estado);
   else
@@ -8392,7 +8680,8 @@ CREATE OR REPLACE FUNCTION "public"."_hoja_estado"("p_nodo" "jsonb", "p_celda" b
     from (select t.tipo, t.acepta, coalesce(p_edita, false) and (not p_celda or t.acepta) as ok
             from (select p_nodo ->> 'tipo' as tipo,
                          (p_nodo ->> 'tipo') in ('input', 'constante', 'tipo_cambio')
-                         or ((p_nodo ->> 'tipo') in ('tabla', 'tramo', 'calculo') and coalesce((p_nodo -> 'sobrescribible') = 'true'::jsonb, false)) as acepta) t) e;
+                         or ((p_nodo ->> 'tipo') in ('tabla', 'tramo', 'calculo')
+                             and (coalesce((p_nodo -> 'sobrescribible') = 'true'::jsonb, false) or (p_nodo ->> 'salida') is distinct from 'total')) as acepta) t) e;
 $$;
 
 
@@ -11175,7 +11464,14 @@ begin
     return 'overrides';
   end if;
 
-  if (p_e - array['inputs', 'banderas', 'tipos_cambio', 'vehiculo', 'tablas', 'variante', 'overrides']) <> '{}'::jsonb then return ''; end if;
+  -- Los cálculos con celda en la hoja: un arreglo de ids.
+  if p_e ? 'pisables' and (jsonb_typeof(p_e -> 'pisables') = 'array'
+                           and not exists (select 1 from jsonb_array_elements(p_e -> 'pisables') x
+                                            where (jsonb_typeof(x) = 'string' and (x #>> '{}') ~ c_id) is not true)) is not true then
+    return 'pisables';
+  end if;
+
+  if (p_e - array['inputs', 'banderas', 'tipos_cambio', 'vehiculo', 'tablas', 'variante', 'overrides', 'pisables']) <> '{}'::jsonb then return ''; end if;
   return null;
 end;
 $_$;
@@ -11239,6 +11535,44 @@ $$;
 
 
 ALTER FUNCTION "public"."_motor_numero"("j" "jsonb") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."_motor_pcts_exclusivos"("p_nodos" "jsonb") RETURNS "text"[]
+    LANGUAGE "sql" STABLE
+    SET "search_path" TO ''
+    AS $$
+  with n as (
+    select x.value as v, x.pos from jsonb_array_elements(p_nodos) with ordinality as x(value, pos)
+  ), tipos as (
+    select distinct on (n.v ->> 'id') n.v ->> 'id' as id, n.v ->> 'tipo' as tipo from n order by n.v ->> 'id', n.pos desc
+  ), exclusivos as (
+    -- Un solo lector: el primero y el último que lo nombran son el mismo nodo.
+    select r.id
+      from n
+     cross join lateral (
+       select e.id from jsonb_array_elements_text(case when jsonb_typeof(n.v -> 'de') = 'array' then n.v -> 'de' else '[]'::jsonb end) as e(id)
+       union all
+       select e.id from unnest(array[n.v ->> 'pct', n.v ->> 'sobre', n.v ->> 'prueba', n.v ->> 'condicion', n.v ->> 'requerido_si',
+                                     n.v ->> 'sugerido_de']) as e(id)
+       union all
+       select e.value from jsonb_each_text(case when jsonb_typeof(n.v -> 'match') = 'object' then n.v -> 'match' else '{}'::jsonb end) as e
+     ) as r(id)
+     where r.id is not null
+     group by r.id
+    having min(n.pos) = max(n.pos)
+  )
+  select coalesce(array_agg(t.id order by t.id collate "C"), '{}'::text[])
+    from tipos t
+    join exclusivos x on x.id = t.id
+   where t.tipo in ('constante', 'input');
+$$;
+
+
+ALTER FUNCTION "public"."_motor_pcts_exclusivos"("p_nodos" "jsonb") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_motor_pcts_exclusivos"("p_nodos" "jsonb") IS 'Interna: las constantes y los inputs que nombra un solo nodo de la lista (un pct exclusivo de su par). Espejo de pctsExclusivos() (entities/motor-pares.ts). docs/COTIZADOR.md › «Pisar un cálculo».';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."_motor_por"("a" double precision, "b" double precision) RETURNS double precision
@@ -13036,6 +13370,13 @@ CREATE OR REPLACE FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" 
       from celdas c cross join lateral jsonb_array_elements(c.x -> 'datos') with ordinality d (x, j)
      where c.x ->> 'tipo' = 'respaldo'
     union all
+    -- Los datos de un texto con datos, en su orden (k de 1 a 20: cabe en los 100 de la celda). El `case`, porque `jsonb_array_elements` lanza sobre lo que no
+    -- es un arreglo; los textos de las partes no nombran nada.
+    select c.base + p.k, 'celdas', c.cual, p.x, null
+      from celdas c cross join lateral jsonb_array_elements(
+             case when jsonb_typeof(c.x -> 'partes') = 'array' then c.x -> 'partes' else '[]'::jsonb end) with ordinality p (x, k)
+     where c.x ->> 'tipo' = 'texto' and jsonb_typeof(p.x) = 'object'
+    union all
     select r.base + (r.j - 1) * 4 + s.m, 'celdas', r.cual, null, s.x
       from ramas r cross join lateral jsonb_array_elements(r.rama -> 'si') with ordinality s (x, m)
     union all
@@ -13056,7 +13397,7 @@ $$;
 ALTER FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" "jsonb") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" "jsonb") IS 'Interna: todo dato que nombra la cuadrícula de la tarjeta (filas y celdas, con sus listas de respaldo y sus condiciones), aplanado y en orden; espejo de entities/plantilla/datos-de-la-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
+COMMENT ON FUNCTION "public"."_plantilla_cuadricula_datos"("p_plantilla" "jsonb") IS 'Interna: todo dato que nombra la cuadrícula de la tarjeta (filas y celdas, con sus listas de respaldo, sus condiciones y los datos de un texto con datos), aplanado y en orden; espejo de entities/plantilla/datos-de-la-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
 
 
 
@@ -13136,14 +13477,18 @@ begin
       perform public._plantilla_cuadricula_rechazar('forma', v_d || '.abarca_filas');
     end if;
 
-    -- El contenido: texto (0 a 300 caracteres, sin `{{`), dato (una variable o un nodo con qué mostrar), la lista de respaldo (hasta 5 datos), las condiciones
-    -- (de 1 a 4 ramas {si, contenido} y el «si no»), logo, foto del asesor o vacío.
+    -- El contenido: texto (0 a 300 caracteres, sin `{{`), texto con datos (`partes`: textos y datos, `_plantilla_cuadricula_partes()`), dato (una variable o
+    -- un nodo con qué mostrar), la lista de respaldo (hasta 5 datos), las condiciones (de 1 a 4 ramas {si, contenido} y el «si no»), logo, foto del asesor o vacío.
     v_x := v_c -> 'contenido';
     v_dc := v_d || '.contenido';
     if jsonb_typeof(v_x) is distinct from 'object' then perform public._plantilla_cuadricula_rechazar('forma', v_dc); end if;
     v_t := case when jsonb_typeof(v_x -> 'tipo') = 'string' then v_x ->> 'tipo' end;
     if v_t is null or v_t not in ('texto', 'dato', 'respaldo', 'condiciones', 'logo', 'vacio', 'foto_del_asesor') then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.tipo'); end if;
-    if v_t = 'texto' then
+    if v_t = 'texto' and v_x ? 'partes' then
+      -- `texto` y `partes` son excluyentes: con los dos, `texto` es una clave de más.
+      if exists (select 1 from jsonb_object_keys(v_x) k where k not in ('tipo', 'partes')) then perform public._plantilla_cuadricula_rechazar('forma', v_dc); end if;
+      perform public._plantilla_cuadricula_partes(v_x -> 'partes', v_dc || '.partes');
+    elsif v_t = 'texto' then
       if exists (select 1 from jsonb_object_keys(v_x) k where k not in ('tipo', 'texto')) then perform public._plantilla_cuadricula_rechazar('forma', v_dc); end if;
       if jsonb_typeof(v_x -> 'texto') is distinct from 'string' then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.texto'); end if;
       if char_length(v_x ->> 'texto') > 300 or strpos(v_x ->> 'texto', '{{') > 0 then perform public._plantilla_cuadricula_rechazar('forma', v_dc || '.texto'); end if;
@@ -13272,7 +13617,7 @@ $$;
 ALTER FUNCTION "public"."_plantilla_cuadricula_forma"("p_plantilla" "jsonb", "p_con_tope" boolean) OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_plantilla_cuadricula_forma"("p_plantilla" "jsonb", "p_con_tope" boolean) IS 'Interna: la forma 2 de la plantilla de la tarjeta (la cuadrícula) y las reglas de la grilla, espejo de entities/plantilla/forma-de-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
+COMMENT ON FUNCTION "public"."_plantilla_cuadricula_forma"("p_plantilla" "jsonb", "p_con_tope" boolean) IS 'Interna: la forma 2 de la plantilla de la tarjeta (la cuadrícula, con sus textos con datos) y las reglas de la grilla, espejo de entities/plantilla/forma-de-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
 
 
 
@@ -13362,6 +13707,44 @@ ALTER FUNCTION "public"."_plantilla_cuadricula_nodos"("p_plantilla" "jsonb", "p_
 
 
 COMMENT ON FUNCTION "public"."_plantilla_cuadricula_nodos"("p_plantilla" "jsonb", "p_def" "jsonb", "p_diseno" "jsonb", "p_visibilidad" "jsonb", "p_tonos" "text"[]) IS 'Interna: lo que la forma 2 de la plantilla de la tarjeta cruza con la versión y el catálogo, espejo de entities/plantilla/nodos-de-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_plantilla_cuadricula_partes"("p_partes" "jsonb", "p_donde" "text") RETURNS "void"
+    LANGUAGE "plpgsql" STABLE
+    SET "search_path" TO ''
+    AS $$
+declare
+  v_n int; v_parte jsonb; v_dk text; v_largo int := 0; v_datos int := 0; v_anterior_es_texto boolean := false;
+begin
+  -- Espejo de `MAXIMO_DE_PARTES_DE_UN_TEXTO` y `MAXIMO_DE_CARACTERES_DE_UN_TEXTO` (`entities/cuadricula-de-la-tarjeta.ts`).
+  if jsonb_typeof(p_partes) is distinct from 'array' then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+  v_n := jsonb_array_length(p_partes);
+  if v_n not between 1 and 20 then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+  for k in 0 .. v_n - 1 loop
+    v_parte := p_partes -> k;
+    v_dk := format('%s[%s]', p_donde, k);
+    if jsonb_typeof(v_parte) = 'string' then
+      if v_parte #>> '{}' = '' or strpos(v_parte #>> '{}', '{{') > 0 or v_anterior_es_texto then
+        perform public._plantilla_cuadricula_rechazar('forma', v_dk);
+      end if;
+      v_largo := v_largo + char_length(v_parte #>> '{}');
+      v_anterior_es_texto := true;
+    else
+      perform public._plantilla_cuadricula_dato(v_parte, v_dk);
+      v_datos := v_datos + 1;
+      v_anterior_es_texto := false;
+    end if;
+  end loop;
+  if v_datos = 0 or v_largo > 300 then perform public._plantilla_cuadricula_rechazar('forma', p_donde); end if;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_plantilla_cuadricula_partes"("p_partes" "jsonb", "p_donde" "text") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_plantilla_cuadricula_partes"("p_partes" "jsonb", "p_donde" "text") IS 'Interna: la forma de las partes de un texto con datos de la cuadrícula de la tarjeta, espejo de revisarPartes() en entities/plantilla/texto-con-datos-de-cuadricula.ts. docs/COTIZADOR.md › «Plantilla de tarjeta (PDF)».';
 
 
 
@@ -13792,7 +14175,30 @@ $$;
 ALTER FUNCTION "public"."_portal_vigente"("p_lead" "uuid", "p_otorgado_en" timestamp with time zone) OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."_preparar_publicacion"("p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_ignorar_retirados" boolean) RETURNS "jsonb"
+CREATE OR REPLACE FUNCTION "public"."_preferencia_ultima_pestana_valida"("p_valor" "jsonb") RETURNS boolean
+    LANGUAGE "sql" IMMUTABLE
+    SET "search_path" TO ''
+    AS $_$
+  select jsonb_typeof(p_valor) = 'object'
+     and (select count(*) from (select 1 from jsonb_object_keys(p_valor) limit 31) k) <= 30
+     and not exists (
+       select 1
+         from jsonb_each(p_valor) e
+        where e.key !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+           or jsonb_typeof(e.value) <> 'string'
+           or (e.value #>> '{}') !~ '^[a-z]{1,20}$'
+     )
+$_$;
+
+
+ALTER FUNCTION "public"."_preferencia_ultima_pestana_valida"("p_valor" "jsonb") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."_preferencia_ultima_pestana_valida"("p_valor" "jsonb") IS 'Forma de la preferencia origenes.ultima_pestana: objeto de hasta 30 entradas uuid → nombre de pestaña en minúsculas.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."_preparar_publicacion"("p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_ignorar_retirados" boolean, "p_tablas" "jsonb" DEFAULT NULL::"jsonb") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
@@ -13809,12 +14215,14 @@ begin
   select coalesce(array_agg(t.clave), '{}') into v_tonos from public.tonos t;
   select n.niveles, case when p_ignorar_retirados then '{}'::text[] else n.retirados end into v_niv, v_ret from public._niveles_de_cotizacion() n;
   perform public.validar_formula(p_def, p_params);
-  perform public.validar_diseno(p_def, p_diseno, v_niv, v_ret, v_tonos);
+  -- El catálogo de tablas lo trae sólo publicar a mano (`_publicar_formula`): la N+1 de una tabla publica aunque la ayuda nombre una columna que
+  -- ya no está (el bloque lo avisa y el editor marca la regla).
+  perform public.validar_diseno(p_def, p_diseno, v_niv, v_ret, v_tonos, p_tablas);
   return public._compilar_visibilidad(p_def, p_diseno);
 end; $$;
 
 
-ALTER FUNCTION "public"."_preparar_publicacion"("p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_ignorar_retirados" boolean) OWNER TO "postgres";
+ALTER FUNCTION "public"."_preparar_publicacion"("p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_ignorar_retirados" boolean, "p_tablas" "jsonb") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."_proyecto_fase_que_pide_pago"("p_proyecto" "uuid") RETURNS "text"
@@ -13888,7 +14296,8 @@ begin
     perform public._fdo_exigir_campos(v_b.definicion, p_origen);
   end if;
 
-  v_vis := public._preparar_publicacion(v_b.definicion, v_b.params, v_b.diseno, p_ignorar_retirados);
+  -- Con el catálogo de tablas del origen: la ayuda de una celda no publica una tabla o una columna que el origen no tiene.
+  v_vis := public._preparar_publicacion(v_b.definicion, v_b.params, v_b.diseno, p_ignorar_retirados, public._tablas_del_catalogo(p_origen));
 
   select coalesce(max(version), 0) + 1 into v_ver from public.formulas where formula_del_origen_id = v_fdo.id;   -- formulas_formula_del_origen_id_version_key
   update public.formulas set estado = 'archivada' where id = v_pub;
@@ -15127,14 +15536,19 @@ CREATE OR REPLACE FUNCTION "public"."_revision_etiquetas"("p_def" "jsonb", "p_fi
     'nodos', coalesce((select jsonb_object_agg(n.id, coalesce((select x ->> 'etiqueta' from jsonb_array_elements(coalesce(p_def -> 'nodos', '[]'::jsonb)) x where x ->> 'id' = n.id limit 1), n.id))
                          from nodos n), '{}'::jsonb),
     'grupos', coalesce((select jsonb_object_agg(g.id, coalesce((select x ->> 'etiqueta' from jsonb_array_elements(coalesce(p_def -> 'grupos', '[]'::jsonb)) x where x ->> 'id' = g.id limit 1), g.id))
-                          from grupos g), '{}'::jsonb));
+                          from grupos g), '{}'::jsonb),
+    -- Los cálculos (tabla, tramo o calculo) que la página nombra, con su formato: la revisión dice cuál se pisó y de cuánto a cuánto.
+    'calculos', coalesce((select jsonb_object_agg(n.id, coalesce(x.n ->> 'formato', 'usd'))
+                            from nodos n
+                            cross join lateral (select y as n from jsonb_array_elements(coalesce(p_def -> 'nodos', '[]'::jsonb)) y where y ->> 'id' = n.id limit 1) x
+                           where x.n ->> 'tipo' in ('tabla', 'tramo', 'calculo')), '{}'::jsonb));
 $$;
 
 
 ALTER FUNCTION "public"."_revision_etiquetas"("p_def" "jsonb", "p_filas" "jsonb") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."_revision_etiquetas"("p_def" "jsonb", "p_filas" "jsonb") IS 'Las etiquetas de los nodos y los grupos que nombran los diffs de unas revisiones ya recortadas ({nodos: {id: etiqueta}, grupos: {id: etiqueta}}; sin etiqueta, el id). Pura y de nadie: la llama cotizacion_revisiones con la página que va a devolver.';
+COMMENT ON FUNCTION "public"."_revision_etiquetas"("p_def" "jsonb", "p_filas" "jsonb") IS 'Las etiquetas de los nodos y los grupos que nombran los diffs de unas revisiones ya recortadas ({nodos: {id: etiqueta}, grupos: {id: etiqueta}}; sin etiqueta, el id) y el formato de los cálculos que nombran (calculos: {id: formato}; tabla, tramo o calculo). Pura y de nadie: la llama cotizacion_revisiones con la página que va a devolver.';
 
 
 
@@ -16002,6 +16416,24 @@ ALTER FUNCTION "public"."_tabla_referencia_usos"("p_tabla" "uuid") OWNER TO "pos
 
 COMMENT ON FUNCTION "public"."_tabla_referencia_usos"("p_tabla" "uuid") IS 'Las fórmulas (publicada o borrador) de cada origen que recibe la tabla y la usan, con las columnas que nombran sus nodos. docs/COTIZADOR.md › «Crear, columnas y desactivar».';
 
+
+
+CREATE OR REPLACE FUNCTION "public"."_tablas_del_catalogo"("p_origen" "uuid") RETURNS "jsonb"
+    LANGUAGE "sql" STABLE
+    SET "search_path" TO ''
+    AS $$
+  select coalesce(jsonb_agg(jsonb_build_object('clave', t.clave,
+                                               'columnas', (select coalesce(jsonb_agg(c.value ->> 'clave' order by c.ord), '[]'::jsonb)
+                                                              from jsonb_array_elements(t.columnas) with ordinality as c(value, ord)))
+                            order by t.clave), '[]'::jsonb)
+    from (select distinct on (r.clave) r.clave, r.columnas
+            from public.tablas_referencia r                                                      -- tablas_referencia_origen_id_clave_key
+           where r.activa and (r.origen_id = p_origen or r.origen_id is null)
+           order by r.clave, r.origen_id nulls last) t
+$$;
+
+
+ALTER FUNCTION "public"."_tablas_del_catalogo"("p_origen" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."_tablero_conversion_desde"() RETURNS "date"
@@ -23023,7 +23455,8 @@ begin
   v_nodos := coalesce(v_def -> 'nodos', '[]'::jsonb);
   v_cfg := public.tiene_permiso('cotizaciones.configurar', v_origen);
 
-  -- Las columnas que leen los nodos que quien llama ve (sin configurar). Si ninguno la lee, la tabla es como si no existiera.
+  -- Las columnas que leen los nodos que quien llama ve (sin configurar) y las que muestra la ayuda en bloques de una celda que ve. Si ninguno la lee, la
+  -- tabla es como si no existiera.
   if not v_cfg then
     v_visibles := coalesce(array(select n.nodo from public._nodos_visibles(v_formula) n), '{}');
     v_vis := coalesce((select jsonb_object_agg(x, true) from unnest(v_visibles) x), '{}'::jsonb);
@@ -23038,6 +23471,13 @@ begin
         from jsonb_array_elements(coalesce(v_diseno -> 'secciones', '[]'::jsonb)) s, jsonb_array_elements(coalesce(s -> 'items', '[]'::jsonb)) it,
              jsonb_array_elements(v_nodos) n
        where it ->> 'tipo' = 'atajos' and n ->> 'id' = it ->> 'nodo' and n ->> 'tabla' = p_tabla and v_vis ? (n ->> 'id') and (it ->> 'columna') is not null
+      -- Las columnas que nombra un bloque de tabla de la ayuda de una celda que se ve, en el diseño de esa versión. Un bloque sin lista (la ayuda de antes)
+      -- no suma nada: muestra lo que ya se lee.
+      union select c ->> 'columna'
+        from jsonb_array_elements(coalesce(v_diseno -> 'secciones', '[]'::jsonb)) s, jsonb_array_elements(coalesce(s -> 'items', '[]'::jsonb)) it,
+             jsonb_array_elements(case when jsonb_typeof(it -> 'ayuda') = 'array' then it -> 'ayuda' else '[]'::jsonb end) b,
+             jsonb_array_elements(case when jsonb_typeof(b -> 'columnas') = 'array' then b -> 'columnas' else '[]'::jsonb end) c
+       where it ->> 'tipo' = 'celda' and v_vis ? (it ->> 'nodo') and b ->> 'tipo' = 'tabla' and b ->> 'tabla' = p_tabla
     ) x where c is not null;
     if v_permitidas is null then
       raise exception 'No tienes acceso a esa tabla.' using errcode = '42501';
@@ -23074,7 +23514,7 @@ end $$;
 ALTER FUNCTION "public"."cotizacion_tabla"("p_tabla" "text", "p_cotizacion" "uuid", "p_origen" "uuid", "p_abierta" "text") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."cotizacion_tabla"("p_tabla" "text", "p_cotizacion" "uuid", "p_origen" "uuid", "p_abierta" "text") IS 'Una tabla de referencia con sólo las columnas que leen los nodos que quien llama ve (la entera, a quien configura el origen); la copia congelada de la versión manda. La versión es la de la cotización, la de la hoja abierta (p_abierta, por origen) o la publicada; por origen pide cotizaciones.crear y cotizaciones.ver. Sin acceso, el error de una tabla que no existe. docs/COTIZADOR.md › «En la base (4.10-1)» y «La hoja abierta (4.13-3a)».';
+COMMENT ON FUNCTION "public"."cotizacion_tabla"("p_tabla" "text", "p_cotizacion" "uuid", "p_origen" "uuid", "p_abierta" "text") IS 'Una tabla de referencia con sólo las columnas que leen los nodos que quien llama ve y las que muestra la ayuda en bloques de una celda que ve (la entera, a quien configura el origen); la copia congelada de la versión manda. La versión es la de la cotización, la de la hoja abierta (p_abierta, por origen) o la publicada; por origen pide cotizaciones.crear y cotizaciones.ver. Sin acceso, el error de una tabla que no existe. docs/COTIZADOR.md › «En la base (4.10-1)», «La hoja abierta (4.13-3a)» y «El diseño de la hoja (D7)».';
 
 
 
@@ -26029,6 +26469,8 @@ declare
   v_tc jsonb;
   v_veh jsonb;
   v_ov jsonb;
+  v_pis text[] := '{}'::text[];       -- los ids con celda en la hoja (`pisables`)
+  v_pares text[] := '{}'::text[];     -- los `porcentaje_de` que la hoja vuelve par (motor-pares.ts)
   v_ids text[];
   v_tipos text[];
   v_pos jsonb;                -- id → posición (1..n); con un id repetido, la última, como el `nodos.set` de TS
@@ -26046,6 +26488,9 @@ declare
   v_estado text[];
   v_enc boolean[];
   v_pisado boolean[];
+  v_pct_celda boolean[];      -- el pct pisado de un par con celda: su calculado hace falta para el del par
+  v_calc_pct float8[];        -- lo que daría ese pct sin el pisado
+  v_calc jsonb := '{}'::jsonb;       -- `calculados`: id → lo que daría sin lo escrito
   v_lugar jsonb;              -- id de grupo → su lugar (1..g)
   v_grupo_ids text[];
   v_dib boolean[];
@@ -26073,6 +26518,11 @@ declare
   v_t float8;
   v_tiene_ov boolean;
   v_acepta boolean;
+  v_con_celda boolean;
+  v_aparte boolean;           -- con override aplicado sobre un cálculo con celda: se calcula aparte, sin dejar rastro
+  v_falt_n int;
+  v_fuente_antes text;
+  v_x_antes float8;
   v_resuelto boolean;
   v_leer_de boolean;
   v_de jsonb;
@@ -26139,6 +26589,18 @@ begin
   v_tc := p_entrada -> 'tipos_cambio';
   v_veh := p_entrada -> 'vehiculo';
   v_ov := p_entrada -> 'overrides';
+  v_pis := array(select jsonb_array_elements_text(coalesce(p_entrada -> 'pisables', '[]'::jsonb)));
+  if cardinality(v_pis) > 0 then
+    -- paresDeLaHoja: un `porcentaje_de` con celda, no `sobrescribible` y que no es el total, cuyo pct es exclusivo (primero, los exclusivos).
+    v_pares := public._motor_pcts_exclusivos(v_nodos);
+    v_pares := array(select x.value ->> 'id'
+                       from jsonb_array_elements(v_nodos) x
+                      where x.value ->> 'tipo' = 'calculo' and x.value ->> 'op' = 'porcentaje_de'
+                        and (x.value -> 'sobrescribible') is distinct from 'true'::jsonb
+                        and (x.value ->> 'salida') is distinct from 'total'
+                        and (x.value ->> 'id') = any (v_pis)
+                        and (x.value ->> 'pct') = any (v_pares));
+  end if;
 
   -- prepararEvaluacion: el índice de nodos, a lo sumo un `opcion` y exactamente un total (el primero con `salida: total`).
   select coalesce(array_agg(x.value ->> 'id' order by x.pos), '{}'::text[]),
@@ -26198,6 +26660,8 @@ begin
   v_estado := array_fill(null::text, array[v_n]);
   v_enc := array_fill(false, array[v_n]);
   v_pisado := array_fill(false, array[v_n]);
+  v_pct_celda := array_fill(false, array[v_n]);
+  v_calc_pct := array_fill(null::float8, array[v_n]);
   v_dib := array_fill(false, array[v_ng]);
   for i in 1 .. v_n loop
     v_nodo := v_nodos -> (i - 1);
@@ -26224,10 +26688,14 @@ begin
       g := (v_lugar ->> (v_nodo ->> 'grupo'))::int;
       if g is not null then /*P6c*/ v_dib[g] := true; end if;
     end if;
+    -- Es par el `sobrescribible` o el que la hoja vuelve par; si el par tiene celda, su pct pisado se calcula aparte.
     if v_est = 'activo' and v_tipo = 'calculo' and v_nodo ->> 'op' = 'porcentaje_de'
-       and (v_nodo -> 'sobrescribible') = 'true'::jsonb and v_ov ? v_ids[i] then
+       and ((v_nodo -> 'sobrescribible') = 'true'::jsonb or v_ids[i] = any (v_pares)) and v_ov ? v_ids[i] then
       j := (v_pos ->> (v_nodo ->> 'pct'))::int;
-      if v_estado[j] = 'activo' then /*P6d*/ v_pisado[j] := true; end if;
+      if v_estado[j] = 'activo' then
+        /*P6d*/ v_pisado[j] := true;
+        v_pct_celda[j] := v_pct_celda[j] or ((v_nodo ->> 'salida') is distinct from 'total' and v_ids[i] = any (v_pis));
+      end if;
     end if;
   end loop;
 
@@ -26311,6 +26779,7 @@ begin
     v_x := null;
     v_resuelto := false;
     v_leer_de := false;
+    v_aparte := false;
     v_xov := null;
     if v_est <> 'activo' then
       -- P7: un nodo inactivo vale 0 sin leer nada, y su override se descarta con su estado.
@@ -26321,20 +26790,25 @@ begin
       -- P8 sobrescrito: el override antes del cálculo, por tipo. P10: la fuente, sólo de los activos que aceptan un valor.
       v_acepta := v_tipo in ('input', 'constante', 'tipo_cambio')
                   or (v_tipo in ('tabla', 'tramo', 'calculo') and coalesce((v_nodo -> 'sobrescribible') = 'true'::jsonb, false));
+      -- Un cálculo con celda en la hoja (que no es el total) acepta override aunque no sea `sobrescribible`.
+      v_con_celda := v_tipo in ('tabla', 'tramo', 'calculo') and (v_nodo ->> 'salida') is distinct from 'total' and v_id = any (v_pis);
       if v_pisado[i] then
-        -- El pct de un par cuyo monto manda no se calcula: vale null hasta que llega el par.
+        -- El pct de un par cuyo monto manda no se calcula: vale null hasta que llega el par. Si el par tiene celda, lo que daría va aparte.
         /*P8a*/ v_fuente[i] := 'override';
         v_x := null;
         v_resuelto := true;
-      elsif v_tipo = 'input' or not v_acepta then
+        v_aparte := v_pct_celda[i];
+      elsif v_tipo = 'input' or not (v_acepta or v_con_celda) then
         if v_tiene_ov then v_desc := array_append(v_desc, v_id || '|no_sobrescribible'); end if;
       else
-        /*P10*/ v_fuente[i] := case when v_tiene_ov then 'override'
-                                    when v_tipo in ('constante', 'tipo_cambio') then 'default'
-                                    else 'sugerido' end;
+        -- Un cálculo que se pisa sólo por su celda no lleva fuente sin override: no gana el punto de «sugerido».
+        if v_tiene_ov then /*P10*/ v_fuente[i] := 'override';
+        elsif v_acepta then v_fuente[i] := case when v_tipo in ('constante', 'tipo_cambio') then 'default' else 'sugerido' end;
+        end if;
         if v_tiene_ov then
           v_xov := public._motor_numero(v_ov -> v_id);
           v_resuelto := true;
+          v_aparte := v_con_celda;
           if v_op = 'porcentaje_de' then
             -- Si manda el monto y el pct está pisado, el par lo reescribe más abajo (monto ÷ base).
             v_leer_de := v_pisado[(v_pos ->> (v_nodo ->> 'pct'))::int] is true;
@@ -26351,7 +26825,7 @@ begin
 
     -- P1 sumar: ((d0 + d1) + d2)… en el orden de `de`; se leen todos los términos aunque uno sea null. Lo piden `suma`,
     -- `porcentaje_de` y el par cuyo monto manda (que lee su base sólo si su pct está pisado).
-    if v_leer_de or (not v_resuelto and v_op in ('suma', 'porcentaje_de')) then
+    if v_leer_de or ((not v_resuelto or v_aparte) and v_op in ('suma', 'porcentaje_de')) then
       v_de := v_nodo -> 'de';
       v_base := 0;
       v_nulo := false;
@@ -26365,27 +26839,20 @@ begin
       end loop;
     end if;
 
-    -- El par: si manda el monto, el pct vale monto ÷ base (null si la base es 0, con su faltante en el pct, o si es null).
-    if v_leer_de then
-      jp := (v_pos ->> (v_nodo ->> 'pct'))::int;
-      v_y := null;
-      if not v_nulo then
-        if v_base = 0 then
-          /*P8b*/ v_falt := array_append(v_falt, 'division_por_cero|' || v_ids[jp] || '|');
-        else
-          v_y := public._motor_entre(v_xov, v_base);
-        end if;
+    -- calcularAparte: con un override aplicado sobre un cálculo con celda (o en el pct pisado de un par con celda), lo que daría sin él. Se
+    -- reponen los faltantes, la fuente y el valor; el par lee su pct con lo que daría sin el pisado. No cambia valores, fuentes ni faltantes.
+    if v_aparte then
+      v_falt_n := cardinality(v_falt);
+      v_fuente_antes := v_fuente[i];
+      v_x_antes := v_x;
+      v_x := null;
+      if v_leer_de then
+        jp := (v_pos ->> (v_nodo ->> 'pct'))::int;
+        v_val[jp] := v_calc_pct[jp];
       end if;
-      if v_y is not null and not (abs(v_y) < 'Infinity'::float8) then
-        v_falt := array_append(v_falt, 'fuera_de_rango|' || v_ids[jp] || '|');
-        v_y := null;
-      end if;
-      v_val[jp] := case when v_y = 0 then 0::float8 else v_y end;
-      v_hecho[jp] := true;
-      v_leible[jp] := true;
     end if;
 
-    if not v_resuelto then
+    if not v_resuelto or v_aparte then
       -- valorCalculado: el default, lo tipeado o el sugerido.
       if v_tipo = 'input' then
         v_sug := v_nodo ->> 'sugerido_de';
@@ -26693,6 +27160,37 @@ begin
       end if;
     end if;
 
+    if v_aparte then
+      if v_x is not null and not (abs(v_x) < 'Infinity'::float8) then v_x := null; end if;
+      v_x := case when v_x = 0 then 0::float8 else v_x end;
+      if v_pisado[i] then v_calc_pct[i] := v_x; end if;
+      v_calc := v_calc || jsonb_build_object(v_id, coalesce(to_jsonb(v_x), 'null'::jsonb));
+      v_falt := v_falt[1:v_falt_n];
+      v_fuente[i] := v_fuente_antes;
+      v_x := v_x_antes;
+      if v_leer_de then v_val[jp] := null; end if;
+    end if;
+
+    -- El par: si manda el monto, el pct vale monto ÷ base (null si la base es 0, con su faltante en el pct, o si es null).
+    if v_leer_de then
+      jp := (v_pos ->> (v_nodo ->> 'pct'))::int;
+      v_y := null;
+      if not v_nulo then
+        if v_base = 0 then
+          /*P8b*/ v_falt := array_append(v_falt, 'division_por_cero|' || v_ids[jp] || '|');
+        else
+          v_y := public._motor_entre(v_xov, v_base);
+        end if;
+      end if;
+      if v_y is not null and not (abs(v_y) < 'Infinity'::float8) then
+        v_falt := array_append(v_falt, 'fuera_de_rango|' || v_ids[jp] || '|');
+        v_y := null;
+      end if;
+      v_val[jp] := case when v_y = 0 then 0::float8 else v_y end;
+      v_hecho[jp] := true;
+      v_leible[jp] := true;
+    end if;
+
     -- asentar: lo que no es finito queda null con `fuera_de_rango`, y −0 vale 0 (JSON y jsonb no lo distinguen).
     if v_x is not null and not (abs(v_x) < 'Infinity'::float8) then
       v_falt := array_append(v_falt, 'fuera_de_rango|' || v_id || '|');
@@ -26809,7 +27307,9 @@ begin
                     from unnest(v_falt) with ordinality as f(dato, orden)),
     'overrides_descartados', (select coalesce(jsonb_agg(jsonb_build_object('id', split_part(d.dato, '|', 1), 'motivo', split_part(d.dato, '|', 2))
                                                         order by d.orden), '[]'::jsonb)
-                                from unnest(v_desc) with ordinality as d(dato, orden)));
+                                from unnest(v_desc) with ordinality as d(dato, orden)))
+    -- Lo calculado de los pisados con celda, sólo si hay alguno: sin él la salida es la de siempre.
+    || case when v_calc = '{}'::jsonb then '{}'::jsonb else jsonb_build_object('calculados', v_calc) end;
 end;
 $$;
 
@@ -26817,7 +27317,7 @@ $$;
 ALTER FUNCTION "public"."evaluar_formula"("p_def" "jsonb", "p_params" "jsonb", "p_entrada" "jsonb", "p_modo" "jsonb") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."evaluar_formula"("p_def" "jsonb", "p_params" "jsonb", "p_entrada" "jsonb", "p_modo" "jsonb") IS 'El motor del cotizador, espejo de evaluar() de TS: valores, estados, fuentes, totales, faltantes y overrides descartados. Pura: recibe las tablas vivas en la entrada. docs/COTIZADOR.md › «El motor».';
+COMMENT ON FUNCTION "public"."evaluar_formula"("p_def" "jsonb", "p_params" "jsonb", "p_entrada" "jsonb", "p_modo" "jsonb") IS 'El motor del cotizador, espejo de evaluar() de TS: valores, estados, fuentes, totales, faltantes, overrides descartados y, si se pisó un cálculo con celda (pisables), calculados. Pura: recibe las tablas vivas en la entrada. docs/COTIZADOR.md › «El motor» y «Pisar un cálculo».';
 
 
 
@@ -41798,7 +42298,7 @@ $$;
 ALTER FUNCTION "public"."usuario_tiene_permiso"("p_usuario" "uuid", "p_clave" "text") OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[]) RETURNS "void"
+CREATE OR REPLACE FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[], "p_tablas" "jsonb" DEFAULT NULL::"jsonb") RETURNS "void"
     LANGUAGE "plpgsql" STABLE
     SET "search_path" TO ''
     AS $$
@@ -41905,13 +42405,14 @@ begin
     end if;
   end loop;
 
-  -- §7 los enlaces de la ayuda de cada celda son `https://`.
-  perform public._diseno_enlaces(v_secs);
+  -- §7 la ayuda de cada celda: sus enlaces son `https://`; con el catálogo de tablas (`p_tablas`, null sin él), sus tablas y columnas existen; y
+  -- una columna que llena nombra una celda que acepta un valor.
+  perform public._diseno_ayudas(p_def, v_secs, p_tablas);
 end;
 $$;
 
 
-ALTER FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[]) OWNER TO "postgres";
+ALTER FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[], "p_tablas" "jsonb") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."validar_formula"("p_def" "jsonb", "p_params" "jsonb") RETURNS "void"
@@ -46201,6 +46702,7 @@ CREATE TABLE IF NOT EXISTS "public"."preferencias_usuario" (
     CONSTRAINT "preferencias_embudo_de_la_ficha_valida" CHECK ((("clave" <> 'leads.embudo_de_la_ficha'::"text") OR (("jsonb_typeof"("valor") = 'string'::"text") AND (("valor" #>> '{}'::"text"[]) ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'::"text")))),
     CONSTRAINT "preferencias_menu_plegado_valida" CHECK ((("clave" <> 'menu.plegado'::"text") OR ("jsonb_typeof"("valor") = 'boolean'::"text"))),
     CONSTRAINT "preferencias_por_pagina_valida" CHECK ((("clave" <> 'listas.por_pagina'::"text") OR ("valor" = ANY (ARRAY['10'::"jsonb", '25'::"jsonb", '50'::"jsonb", '100'::"jsonb"])))),
+    CONSTRAINT "preferencias_ultima_pestana_valida" CHECK ((("clave" <> 'origenes.ultima_pestana'::"text") OR "public"."_preferencia_ultima_pestana_valida"("valor"))),
     CONSTRAINT "preferencias_vista_de_cotizaciones_valida" CHECK ((("clave" <> 'cotizaciones.vista'::"text") OR ("valor" = ANY (ARRAY['"tabla"'::"jsonb", '"tarjetas"'::"jsonb"])))),
     CONSTRAINT "preferencias_vista_de_vehiculos_valida" CHECK ((("clave" <> 'vehiculos.vista'::"text") OR ("valor" = ANY (ARRAY['"tabla"'::"jsonb", '"tarjetas"'::"jsonb"])))),
     CONSTRAINT "preferencias_vistos_valida" CHECK ((("clave" <> 'vistos'::"text") OR (("jsonb_typeof"("valor") = 'object'::"text") AND ((NOT ("valor" ? 'dias'::"text")) OR (("valor" -> 'dias'::"text") = ANY (ARRAY['7'::"jsonb", '30'::"jsonb", '90'::"jsonb", '365'::"jsonb"]))) AND ((NOT ("valor" ? 'activado'::"text")) OR ("jsonb_typeof"(("valor" -> 'activado'::"text")) = 'boolean'::"text")) AND ((NOT ("valor" ? 'ultimo'::"text")) OR ("jsonb_typeof"(("valor" -> 'ultimo'::"text")) = 'boolean'::"text")))))
@@ -53693,6 +54195,11 @@ GRANT ALL ON FUNCTION "public"."_cotizacion_modo"("p_formula" "uuid", "p_modo_tc
 
 
 
+REVOKE ALL ON FUNCTION "public"."_cotizacion_pisables"("p_def" "jsonb", "p_diseno" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_cotizacion_pisables"("p_def" "jsonb", "p_diseno" "jsonb") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."_cotizacion_primer_resultado"("p_totales" "jsonb", OUT "monto" numeric, OUT "moneda" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_cotizacion_primer_resultado"("p_totales" "jsonb", OUT "monto" numeric, OUT "moneda" "text") TO "service_role";
 
@@ -53816,15 +54323,21 @@ GRANT ALL ON FUNCTION "public"."_diseno_auxiliares"("p_def" "jsonb") TO "service
 
 
 
+REVOKE ALL ON FUNCTION "public"."_diseno_ayudas"("p_def" "jsonb", "p_secs" "jsonb", "p_tablas" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_diseno_ayudas"("p_def" "jsonb", "p_secs" "jsonb", "p_tablas" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_diseno_ayudas"("p_def" "jsonb", "p_secs" "jsonb", "p_tablas" "jsonb") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_diseno_bloques_de_la_ayuda"("p" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_diseno_bloques_de_la_ayuda"("p" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_diseno_bloques_de_la_ayuda"("p" "jsonb") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."_diseno_cabecera"("p_cab" "jsonb") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_diseno_cabecera"("p_cab" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."_diseno_cabecera"("p_cab" "jsonb") TO "service_role";
-
-
-
-REVOKE ALL ON FUNCTION "public"."_diseno_enlaces"("p_secs" "jsonb") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_diseno_enlaces"("p_secs" "jsonb") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."_diseno_enlaces"("p_secs" "jsonb") TO "service_role";
 
 
 
@@ -54818,6 +55331,12 @@ GRANT ALL ON FUNCTION "public"."_motor_numero"("j" "jsonb") TO "service_role";
 
 
 
+REVOKE ALL ON FUNCTION "public"."_motor_pcts_exclusivos"("p_nodos" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_motor_pcts_exclusivos"("p_nodos" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_motor_pcts_exclusivos"("p_nodos" "jsonb") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."_motor_por"("a" double precision, "b" double precision) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_motor_por"("a" double precision, "b" double precision) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."_motor_por"("a" double precision, "b" double precision) TO "service_role";
@@ -55163,6 +55682,12 @@ GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_nodos"("p_plantilla" "json
 
 
 
+REVOKE ALL ON FUNCTION "public"."_plantilla_cuadricula_partes"("p_partes" "jsonb", "p_donde" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_partes"("p_partes" "jsonb", "p_donde" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_partes"("p_partes" "jsonb", "p_donde" "text") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."_plantilla_cuadricula_rechazar"("p_regla" "text", "p_donde" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_rechazar"("p_regla" "text", "p_donde" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."_plantilla_cuadricula_rechazar"("p_regla" "text", "p_donde" "text") TO "service_role";
@@ -55248,8 +55773,14 @@ GRANT ALL ON FUNCTION "public"."_portal_vigente"("p_lead" "uuid", "p_otorgado_en
 
 
 
-REVOKE ALL ON FUNCTION "public"."_preparar_publicacion"("p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_ignorar_retirados" boolean) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_preparar_publicacion"("p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_ignorar_retirados" boolean) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."_preferencia_ultima_pestana_valida"("p_valor" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_preferencia_ultima_pestana_valida"("p_valor" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_preferencia_ultima_pestana_valida"("p_valor" "jsonb") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_preparar_publicacion"("p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_ignorar_retirados" boolean, "p_tablas" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_preparar_publicacion"("p_def" "jsonb", "p_params" "jsonb", "p_diseno" "jsonb", "p_ignorar_retirados" boolean, "p_tablas" "jsonb") TO "service_role";
 
 
 
@@ -55677,6 +56208,11 @@ GRANT ALL ON FUNCTION "public"."_tabla_referencia_usada_en"("p_tabla" "uuid", "p
 
 REVOKE ALL ON FUNCTION "public"."_tabla_referencia_usos"("p_tabla" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_tabla_referencia_usos"("p_tabla" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_tablas_del_catalogo"("p_origen" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_tablas_del_catalogo"("p_origen" "uuid") TO "service_role";
 
 
 
@@ -59149,9 +59685,9 @@ GRANT ALL ON FUNCTION "public"."usuario_tiene_permiso"("p_usuario" "uuid", "p_cl
 
 
 
-REVOKE ALL ON FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[]) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[]) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[]) TO "service_role";
+REVOKE ALL ON FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[], "p_tablas" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[], "p_tablas" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validar_diseno"("p_def" "jsonb", "p_diseno" "jsonb", "p_niveles" "text"[], "p_retirados" "text"[], "p_tonos" "text"[], "p_tablas" "jsonb") TO "service_role";
 
 
 
