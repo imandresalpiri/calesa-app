@@ -18,7 +18,7 @@ import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
 // La pestaña «Hoja», ítems, cabecera y tarjeta (4.22-3, `docs/UX.md` › «Cotización: hoja (estados propios)»): el camino feliz en escritorio, eligiendo cada pieza en
 // el lienzo y editándola en el inspector. Se enciende «Ver total en moneda local», se suma el modo «Paralelo» y se le cambian sus tipos de cambio, el interruptor
-// pasa de «Habilita» a «Muestra», una celda gana su ayuda con un texto y la tarjeta muestra la garantía junto al total. Nada avisa «Revisa el diseño»; «Guardar
+// pasa de «Habilita» a «Muestra», una celda gana un bloque de texto en su ayuda y la tarjeta muestra la garantía junto al total. Nada avisa «Revisa el diseño»; «Guardar
 // el borrador» lo escribe con la definición y los `params` de la publicada tal cual, y recargar lo vuelve a mostrar.
 test.describe.configure({ mode: 'serial' })
 
@@ -52,7 +52,13 @@ const cabecera = (page: Page) => inspector(page).locator('[data-cabecera-del-dis
 const tarjeta = (page: Page) => inspector(page).locator('[data-tarjeta-del-diseno]')
 const modo = (page: Page, clave: string) => cabecera(page).locator(`li[data-modo="${clave}"]`)
 const queHace = (page: Page) => inspector(page).getByLabel('Qué hace')
-const ayuda = (page: Page) => inspector(page).getByLabel('Ayuda con un texto')
+const ayuda = (page: Page) =>
+  inspector(page).locator('[data-bloque-de-la-ayuda="texto"]').getByLabel('Texto', { exact: true })
+// «+ Bloque» de la ayuda de la celda elegida: el menú con Título, Texto, Enlaces y Tabla.
+async function sumarBloque(page: Page, tipo: 'Texto' | 'Enlaces') {
+  await inspector(page).getByRole('button', { name: 'Bloque', exact: true }).click()
+  await page.getByRole('menuitem', { name: tipo, exact: true }).click()
+}
 const guardar = (page: Page) =>
   page.getByRole('button', { name: 'Guardar el borrador', exact: true })
 const estado = (page: Page) => page.locator('[data-guardado] [role="status"]')
@@ -101,6 +107,7 @@ test('D2: cabecera, modos, interruptor, ayuda y tarjeta se editan y se guardan; 
   await expect(queHace(page)).toHaveValue('habilita')
   await queHace(page).selectOption('muestra')
   await elegir(page, 'precio')
+  await sumarBloque(page, 'Texto')
   await ayuda(page).fill('El precio de la subasta')
   await elegir(page, 'tarjeta-del-total')
   await expect(garantia(page)).not.toBeChecked()
@@ -126,7 +133,7 @@ test('D2: cabecera, modos, interruptor, ayuda y tarjeta se editan y se guardan; 
   const items = diseno.secciones.find((s) => s.id === 'datos')?.items
   expect(items?.find((i) => i.tipo === 'interruptor')).toMatchObject({ efecto: 'muestra' })
   expect(items?.find((i) => i.nodo === 'precio')).toMatchObject({
-    ayuda: { texto: 'El precio de la subasta' },
+    ayuda: [{ tipo: 'texto', texto: 'El precio de la subasta' }],
   })
   expect(diseno.tarjeta_total).toStrictEqual({ nodo: 'total', secundarios: ['garantia'] })
   expect(definicionYParamsComoLaPublicada(origen.id)).toBe(true)
@@ -136,7 +143,7 @@ test('D2: cabecera, modos, interruptor, ayuda y tarjeta se editan y se guardan; 
   await expect(estado(page)).toHaveText('No hay cambios por guardar.')
 })
 
-test('D3: lo de por defecto de la cabecera y un enlace de la ayuda se editan con su validación y se guardan en el borrador', async ({
+test('D3: lo de por defecto de la cabecera y un bloque de enlaces de la ayuda se editan con su validación y se guardan en el borrador', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
@@ -159,7 +166,7 @@ test('D3: lo de por defecto de la cabecera y un enlace de la ayuda se editan con
 
   await elegir(page, 'precio')
   const precio = inspector(page)
-  await precio.getByRole('button', { name: 'Agregar enlace' }).click()
+  await sumarBloque(page, 'Enlaces')
   await precio.getByLabel('Título del enlace 1').fill('Copart')
   await precio.getByLabel('Dirección del enlace 1').fill('http://www.copart.com/')
   await expect(precio.getByText('Tiene que empezar con https://.')).toBeVisible()
@@ -176,9 +183,9 @@ test('D3: lo de por defecto de la cabecera y un enlace de la ayuda se editan con
   })
   const item = diseno?.secciones.flatMap((s) => s.items).find((i) => i.nodo === 'precio')
   expect(item).toMatchObject({
-    ayuda: {
-      texto: 'El precio de la subasta',
-      enlaces: [{ titulo: 'Copart', url: 'https://www.copart.com/' }],
-    },
+    ayuda: [
+      { tipo: 'texto', texto: 'El precio de la subasta' },
+      { tipo: 'enlaces', enlaces: [{ titulo: 'Copart', url: 'https://www.copart.com/' }] },
+    ],
   })
 })

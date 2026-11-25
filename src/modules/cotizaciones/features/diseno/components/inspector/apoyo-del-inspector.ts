@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Tono } from '@/shared/ui/xcell'
+import type { TablaDelCatalogoDelOrigen } from '../../../../entities/catalogo-de-tablas'
 import type { ClaveDePieza } from '../../../../entities/diseno'
 import type { LugarDelRechazo } from '../../../../entities/diseno/campo-del-rechazo'
 import type { NivelDelDiseno } from '../../../../entities/diseno/edicion-del-diseno'
@@ -13,8 +14,10 @@ export type ApoyoDelInspector = {
   editor: EditorDelDiseno
   ediciones: EdicionesDelDiseno
   niveles: readonly NivelDelDiseno[]
-  // Las tablas de referencia que nombra la fórmula, para la ayuda de una celda.
-  tablas: readonly string[]
+  // El origen (el grupo «De <origen>» y el enlace «Abrir en Tablas» de un bloque de tabla).
+  origen: { id: string; nombre: string }
+  // El catálogo de tablas del origen, para la ayuda de una celda; nulo si no se leyó (el select ofrece las que nombra la fórmula).
+  catalogoDeTablas: readonly TablaDelCatalogoDelOrigen[] | null
   // El catálogo de colores (nulo si no se leyó: el color no se elige) y sus colores para las muestras.
   catalogo: readonly TonoDelCatalogo[] | null
   colores: readonly Tono[]
@@ -47,4 +50,17 @@ export function errorDelAspecto(editor: EditorDelDiseno, donde: Donde): ErrorDel
   const lugar = rechazo?.lugar ?? null
   if (rechazo === null || lugar === null || !esEsteLugar(lugar, donde)) return null
   return { clave: lugar.clave, mensaje: rechazo.mensaje }
+}
+
+// El bloque de la ayuda de esta celda donde está el rechazo de forma (`campoDelRechazo()`), si es suyo: el inspector lo marca.
+export function errorDelBloque(
+  editor: EditorDelDiseno,
+  donde: { seccion: string; nodo: string },
+): { bloque: number; mensaje: string } | null {
+  const rechazo = editor.rechazo
+  const lugar = rechazo?.lugar ?? null
+  if (rechazo === null || lugar?.pieza !== 'bloque') return null
+  return lugar.seccionId === donde.seccion && lugar.nodo === donde.nodo
+    ? { bloque: lugar.bloque, mensaje: rechazo.mensaje }
+    : null
 }

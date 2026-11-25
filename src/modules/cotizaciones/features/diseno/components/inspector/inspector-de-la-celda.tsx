@@ -9,10 +9,9 @@ import {
 import { celdaAdmiteNivel } from '../../../../entities/diseno/admite-nivel'
 import { columnasDeLaCelda } from '../../../../entities/rejilla-de-la-hoja'
 import { CamposDelAspectoDelItem, errorDe, SelectorDeColumnas } from '../aspecto'
-import { CamposDeLaAyuda } from '../campos-de-la-ayuda'
 import { SelectorDeNivel } from '../selector-de-nivel'
-import { accionesDeLaAyuda } from './acciones-de-la-ayuda'
 import { errorDelAspecto, type ApoyoDelInspector } from './apoyo-del-inspector'
+import { AyudaDeLaCelda } from './ayuda'
 import { CamposDelNodo } from './campos-del-nodo'
 
 export const SIN_NIVEL_EN_LA_CELDA = 'El total y lo que va aparte los ve todo el mundo.'
@@ -65,7 +64,6 @@ export function InspectorDeLaCelda({ seccion, celda, apoyo }: Props) {
   const nodo = editor.definicion.nodos.find((n) => n.id === celda.nodo)
   const base = `${seccion.id}__${celda.nodo}`
   const error = errorDelAspecto(editor, { pieza: 'item', clave })
-  const ayuda = accionesDeLaAyuda(ediciones, seccion.id, celda.nodo)
   return (
     <div className="grid min-w-0 gap-3">
       {nodo === undefined ? null : (
@@ -93,14 +91,7 @@ export function InspectorDeLaCelda({ seccion, celda, apoyo }: Props) {
         }}
       />
       <NivelesDeLaCelda seccion={seccion} celda={celda} apoyo={apoyo} />
-      <CamposDeLaAyuda
-        base={base}
-        ayuda={celda.ayuda}
-        tablas={apoyo.tablas}
-        ocupado={editor.ocupado}
-        alPonerAyuda={ayuda.alPonerAyuda}
-        enlaces={ayuda.enlaces}
-      />
+      <AyudaDeLaCelda seccion={seccion.id} celda={celda} apoyo={apoyo} />
       <CamposDelAspectoDelItem
         base={base}
         item={celda}

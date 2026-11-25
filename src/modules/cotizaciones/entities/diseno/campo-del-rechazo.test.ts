@@ -26,6 +26,18 @@ describe('campoDelRechazo', () => {
     })
   })
 
+  it('lo de la ayuda de una celda va a su bloque, con el resto de la ruta', () => {
+    expect(campoDelRechazo('diseno.secciones.1.items.0.ayuda.2.enlaces.0.url', d)).toStrictEqual({
+      pieza: 'bloque',
+      seccionId: 't',
+      nodo: 'c',
+      bloque: 2,
+      clave: 'enlaces.0.url',
+    })
+    expect(campoDelRechazo('diseno.secciones.1.items.0.ayuda', d)).toBeNull()
+    expect(campoDelRechazo('diseno.secciones.1.items.1.ayuda.0.texto', d)).toBeNull()
+  })
+
   it('lo que no es del aspecto o no existe no tiene lugar', () => {
     for (const campo of [
       undefined,

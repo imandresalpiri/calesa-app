@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { ClaveDePieza, Diseno, EnlaceDeAyuda, SeccionDeDiseno } from '../../../entities/diseno'
+import type { ClaveDePieza, Diseno, SeccionDeDiseno } from '../../../entities/diseno'
 import type { PorDefecto } from '../../../entities/cabecera-por-defecto'
 import { ponerColumnas } from '../../../entities/diseno/ancho-de-la-pieza'
 import {
@@ -16,16 +16,7 @@ import {
   alternarSecundario,
   ponerTotalDeLaTarjeta,
 } from '../../../entities/diseno/edicion-de-la-tarjeta'
-import {
-  ponerAtajos,
-  ponerAyuda,
-  ponerEfecto,
-  ponerEnlace,
-  quitarEnlace,
-  sumarEnlace,
-  type AyudaDeCelda,
-  type DondeDelEnlace,
-} from '../../../entities/diseno/edicion-de-items'
+import { ponerAtajos, ponerEfecto } from '../../../entities/diseno/edicion-de-items'
 import {
   ponerAspectoDeItem,
   ponerAspectoDeLaCabecera,
@@ -39,6 +30,7 @@ import { ponerNiveles, type CambioDeNiveles } from '../../../entities/diseno/niv
 import { moverSeccion } from '../../../entities/diseno/orden-del-diseno'
 import { ubicarElTotal } from '../../../entities/diseno/total-de-la-hoja'
 import type { Definicion } from '../../../entities/formula'
+import { edicionesDeLaAyuda } from './ediciones-de-la-ayuda'
 
 export type EdicionesDelDiseno = ReturnType<typeof edicionesDelDiseno>
 
@@ -68,18 +60,8 @@ function edicionesDelDiseno(
     ponerEfecto: (seccion: string, nodo: string, efecto: Parameters<typeof ponerEfecto>[3]) => {
       aplicar((d) => ponerEfecto(d, seccion, nodo, efecto))
     },
-    ponerAyuda: (seccion: string, nodo: string, ayuda: AyudaDeCelda | null) => {
-      aplicar((d) => ponerAyuda(d, seccion, nodo, ayuda))
-    },
-    sumarEnlace: (seccion: string, nodo: string) => {
-      aplicar((d) => sumarEnlace(d, seccion, nodo))
-    },
-    ponerEnlace: (donde: DondeDelEnlace, cambios: Partial<EnlaceDeAyuda>) => {
-      aplicar((d) => ponerEnlace(d, donde, cambios))
-    },
-    quitarEnlace: (donde: DondeDelEnlace) => {
-      aplicar((d) => quitarEnlace(d, donde))
-    },
+    // Los bloques de la ayuda de una celda.
+    ayuda: edicionesDeLaAyuda(aplicar),
     ponerVerTotalBs: (valor: boolean) => {
       aplicar((d) => ponerVerTotalBs(d, valor))
     },

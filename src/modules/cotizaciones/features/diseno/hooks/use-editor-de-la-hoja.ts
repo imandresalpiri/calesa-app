@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import type { Tono } from '@/shared/ui/xcell'
+import type { TablaDelCatalogoDelOrigen } from '../../../entities/catalogo-de-tablas'
 import type { ClaveDePieza, Diseno } from '../../../entities/diseno'
-import { tablasParaAyuda } from '../../../entities/diseno/edicion-de-items'
 import type { DisenoParaEditar, NivelDelDiseno } from '../../../entities/diseno/edicion-del-diseno'
 import { itemParaSumar } from '../../../entities/diseno/ofertas-para-sumar'
 import {
@@ -20,12 +20,13 @@ import { useEditorDelDiseno } from './use-editor-del-diseno'
 import { usePiezaElegida } from './use-pieza-elegida'
 
 type Args = {
-  origenId: string
+  origen: { id: string; nombre: string }
   leida: DisenoParaEditar
   disenoLeido: Diseno
   niveles: readonly NivelDelDiseno[]
   tonos: readonly Tono[]
   catalogo: readonly TonoDelCatalogo[] | null
+  tablas: readonly TablaDelCatalogoDelOrigen[] | null
   nuevoNivel: ApoyoDelInspector['nuevoNivel']
   alCrearColor: ApoyoDelInspector['alCrearColor']
 }
@@ -33,26 +34,34 @@ type Args = {
 // El editor de la hoja entero: el diseño de trabajo y sus ediciones, la pieza elegida (`?pieza=`), lo que el lienzo anuncia y lo que el inspector hace fuera
 // de la pieza («Agregar» una fila sin lugar, quitar una pieza cuya fila ya no está, «Ubicar en la hoja» la tarjeta del total).
 export function useEditorDeLaHoja({
-  origenId,
+  origen,
   leida,
   disenoLeido,
   niveles,
   tonos,
   catalogo,
+  tablas,
   nuevoNivel,
   alCrearColor,
 }: Args) {
   const claves = useMemo(() => catalogo?.map((t) => t.clave) ?? null, [catalogo])
-  const editor = useEditorDelDiseno({ origenId, leida, disenoLeido, niveles, catalogo: claves })
+  const editor = useEditorDelDiseno({
+    origenId: origen.id,
+    leida,
+    disenoLeido,
+    niveles,
+    catalogo: claves,
+    tablas,
+  })
   const ediciones = useEdicionesDelDiseno(editor.aplicar, leida.definicion)
-  const tablas = useMemo(() => tablasParaAyuda(leida.definicion), [leida.definicion])
   const { pieza: elegida, elegir } = usePiezaElegida()
   const [anuncio, setAnuncio] = useState('')
   const apoyo: ApoyoDelInspector = {
     editor,
     ediciones,
     niveles,
-    tablas,
+    origen,
+    catalogoDeTablas: tablas,
     catalogo,
     colores: tonos,
     nuevoNivel,

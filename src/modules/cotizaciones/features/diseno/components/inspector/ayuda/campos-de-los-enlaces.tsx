@@ -6,10 +6,10 @@ import {
   MAXIMO_DE_ENLACES,
   MAXIMO_DE_LA_URL_DEL_ENLACE,
   type EnlaceDeAyuda,
-} from '../../../entities/diseno'
-import { rechazoDelEnlace } from '../../../entities/diseno/edicion-de-items'
+} from '../../../../../entities/diseno'
+import { rechazoDelEnlace } from '../../../../../entities/diseno/edicion-de-la-ayuda'
 
-// Lo que el editor hace con los enlaces de la ayuda de una celda.
+// Lo que el editor hace con los enlaces de un bloque de enlaces.
 export type AccionesDeLosEnlaces = {
   sumar: () => void
   poner: (posicion: number, cambios: Partial<EnlaceDeAyuda>) => void
@@ -19,16 +19,13 @@ export type AccionesDeLosEnlaces = {
 type Props = {
   base: string
   enlaces: readonly EnlaceDeAyuda[]
-  // Sin texto no hay ayuda a la que sumarle un enlace.
-  hayTexto: boolean
   ocupado: boolean
   acciones: AccionesDeLosEnlaces
 }
 
 export const HASTA_CINCO_ENLACES = `Hasta ${String(MAXIMO_DE_ENLACES)} enlaces.`
-export const PRIMERO_EL_TEXTO = 'Escribe primero el texto de la ayuda.'
 
-// Un enlace: su título y su URL, cada uno con lo que se rechaza al tipear, y «Quitar».
+// Un enlace: su título y su URL, cada uno con lo que se rechaza al tipear, y «Quitar» (nulo: el único del bloque, que se quita con el bloque).
 function EnlaceEditable({
   nombre,
   numero,
@@ -42,7 +39,7 @@ function EnlaceEditable({
   enlace: EnlaceDeAyuda
   ocupado: boolean
   alPoner: (cambios: Partial<EnlaceDeAyuda>) => void
-  alQuitar: () => void
+  alQuitar: (() => void) | null
 }) {
   const rechazo = rechazoDelEnlace(enlace)
   return (
@@ -74,29 +71,27 @@ function EnlaceEditable({
           alPoner({ url: evento.target.value })
         }}
       />
-      <Button
-        variant="ghost"
-        className="min-h-11 md:min-h-9 @md:mt-6"
-        disabled={ocupado}
-        aria-label={`Quitar el enlace ${String(numero)}`}
-        onClick={alQuitar}
-      >
-        Quitar
-      </Button>
+      {alQuitar === null ? null : (
+        <Button
+          variant="ghost"
+          className="min-h-11 md:min-h-9 @md:mt-6"
+          disabled={ocupado}
+          aria-label={`Quitar el enlace ${String(numero)}`}
+          onClick={alQuitar}
+        >
+          Quitar
+        </Button>
+      )}
     </li>
   )
 }
 
-// Los enlaces de la ayuda de texto de una celda (hasta 5): título y URL validados al tipear (el espejo de lo que rechaza la base), «Quitar» cada uno y «Agregar
-// enlace», apagado con su motivo.
-export function CamposDeLosEnlaces({ base, enlaces, hayTexto, ocupado, acciones }: Props) {
-  const motivo = !hayTexto
-    ? PRIMERO_EL_TEXTO
-    : enlaces.length >= MAXIMO_DE_ENLACES
-      ? HASTA_CINCO_ENLACES
-      : null
+// Los enlaces de un bloque de enlaces (de 1 a 5): título y URL validados al tipear (el espejo de lo que rechaza la base), «Quitar» cada uno (salvo el único) y
+// «Agregar enlace», apagado con su motivo.
+export function CamposDeLosEnlaces({ base, enlaces, ocupado, acciones }: Props) {
+  const motivo = enlaces.length >= MAXIMO_DE_ENLACES ? HASTA_CINCO_ENLACES : null
   return (
-    <div className="grid min-w-0 gap-2 @md:col-span-2">
+    <div className="grid min-w-0 gap-2">
       {enlaces.length > 0 ? (
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
           {enlaces.map((enlace, i) => (
@@ -109,9 +104,13 @@ export function CamposDeLosEnlaces({ base, enlaces, hayTexto, ocupado, acciones 
               alPoner={(cambios) => {
                 acciones.poner(i, cambios)
               }}
-              alQuitar={() => {
-                acciones.quitar(i)
-              }}
+              alQuitar={
+                enlaces.length === 1
+                  ? null
+                  : () => {
+                      acciones.quitar(i)
+                    }
+              }
             />
           ))}
         </ul>

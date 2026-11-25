@@ -1,5 +1,5 @@
 import { datosO } from '@/shared/lib/errores'
-import { leerNivelesDeAcceso } from '../../../areas/nucleo/composicion'
+import { leerCatalogoDeTablas, leerNivelesDeAcceso } from '../../../areas/nucleo/composicion'
 import {
   leerDisenoDelOrigen,
   leerNivelesDelDiseno,
@@ -22,7 +22,8 @@ type Props = {
 }
 
 // La pestaña «Hoja» de la Fórmula de un origen (Configuración › Orígenes) (el diseño de la hoja, 4.22-2), leída en el servidor con la sesión de quien mira y detrás de
-// `<Suspense>`: el borrador o la publicada, los niveles, los colores y, con `equipo.roles.gestionar`, la lista de niveles con su tope («+ Nuevo nivel»). La base
+// `<Suspense>`: el borrador o la publicada, los niveles, los colores, el catálogo de tablas del origen (la ayuda de una celda) y, con `equipo.roles.gestionar`,
+// la lista de niveles con su tope («+ Nuevo nivel»). La base
 // vuelve a decidir (policy `formulas: leer`). Una lectura del diseño o de los niveles que falla sube al `error.tsx` de la ruta, que ofrece «Reintentar».
 export async function SeccionDelDiseno({
   origen,
@@ -30,11 +31,12 @@ export async function SeccionDelDiseno({
   puedeCrearNiveles,
   puedeCrearColores,
 }: Props) {
-  const [leida, niveles, catalogo, lista] = await Promise.all([
+  const [leida, niveles, catalogo, lista, tablas] = await Promise.all([
     leerDisenoDelOrigen(formula.id),
     leerNivelesDelDiseno(),
     leerTonosDelCatalogo(),
     puedeCrearNiveles ? leerNivelesDeAcceso() : null,
+    leerCatalogoDeTablas(origen.id),
   ])
   // El tono es adorno: si su lectura falla, la vista previa se dibuja sin colores, el color de una sección no se elige (`catalogo` nulo) y la pestaña sigue.
   const tonos = catalogo.ok
@@ -54,6 +56,8 @@ export async function SeccionDelDiseno({
       catalogo={
         catalogo.ok ? catalogo.data.tonos.map((t) => ({ clave: t.clave, nombre: t.nombre })) : null
       }
+      // Las tablas para la ayuda de una celda: si el catálogo no se leyó, el inspector ofrece las que nombra la fórmula y la pestaña sigue.
+      tablas={tablas}
       // «+ Nuevo nivel» es un atajo: si su lista no se leyó, no se ofrece y la pestaña sigue.
       listaDeNiveles={lista?.ok ? lista.data : null}
       puedeCrearColores={puedeCrearColores && catalogo.ok}

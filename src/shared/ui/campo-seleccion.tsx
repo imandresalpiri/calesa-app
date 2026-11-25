@@ -10,13 +10,29 @@ type Props = Omit<ComponentProps<'select'>, 'id' | 'children'> & {
   nombre: string
   etiqueta: string
   opciones: readonly Opcion[]
+  // Más opciones, agrupadas bajo su título (`<optgroup>`), después de las sueltas.
+  grupos?: readonly { etiqueta: string; opciones: readonly Opcion[] }[]
   ayuda?: string
   error?: string
 }
 
+const dibujarOpcion = (opcion: Opcion) => (
+  <option key={opcion.valor} value={opcion.valor} disabled={opcion.deshabilitada}>
+    {opcion.etiqueta}
+  </option>
+)
+
 // Elegir una entre varias dentro de un formulario no controlado. Es un <select> nativo: se lee
 // con `valoresDe()` como cualquier campo, y en el celular abre el selector del sistema.
-export function CampoSeleccion({ nombre, etiqueta, opciones, ayuda, error, ...resto }: Props) {
+export function CampoSeleccion({
+  nombre,
+  etiqueta,
+  opciones,
+  grupos = [],
+  ayuda,
+  error,
+  ...resto
+}: Props) {
   const idAyuda = ayuda ? `${nombre}-ayuda` : undefined
   const idError = error ? `${nombre}-error` : undefined
   const descritoPor = [idError, idAyuda].filter(Boolean).join(' ') || undefined
@@ -36,10 +52,11 @@ export function CampoSeleccion({ nombre, etiqueta, opciones, ayuda, error, ...re
         )}
         {...resto}
       >
-        {opciones.map((opcion) => (
-          <option key={opcion.valor} value={opcion.valor} disabled={opcion.deshabilitada}>
-            {opcion.etiqueta}
-          </option>
+        {opciones.map(dibujarOpcion)}
+        {grupos.map((grupo) => (
+          <optgroup key={grupo.etiqueta} label={grupo.etiqueta}>
+            {grupo.opciones.map(dibujarOpcion)}
+          </optgroup>
         ))}
       </select>
       {error ? (

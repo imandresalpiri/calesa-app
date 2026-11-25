@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useUnEnvioALaVez } from '@/shared/ui/use-un-envio-a-la-vez'
+import type { TablaDelCatalogoDelOrigen } from '../../../entities/catalogo-de-tablas'
 import type { Diseno } from '../../../entities/diseno'
 import { nodosPorId } from '../../../entities/diseno/admite-nivel'
 import {
@@ -16,6 +17,7 @@ import {
   type DisenoParaEditar,
   type NivelDelDiseno,
 } from '../../../entities/diseno/edicion-del-diseno'
+import type { Definicion } from '../../../entities/formula'
 import type { Formato } from '../../../entities/nodos'
 import { operacionesDeLaHoja } from './operaciones-de-la-hoja'
 import { useAvisoDeNivel } from './use-aviso-de-nivel'
@@ -30,12 +32,34 @@ type Args = {
   niveles: readonly NivelDelDiseno[]
   // Las claves del catálogo de tonos; nulo si no se pudo leer (el color de una sección no se elige y nada se marca como fuera del catálogo).
   catalogo: readonly string[] | null
+  // El catálogo de tablas del origen; nulo si no se pudo leer (no se revisa que la tabla y las columnas de una ayuda existan).
+  tablas: readonly TablaDelCatalogoDelOrigen[] | null
+}
+
+// Los nombres de las filas y de los niveles (los mensajes del rechazo y del aviso de nivel).
+function useNombres(definicion: Definicion, niveles: readonly NivelDelDiseno[]) {
+  const nombresDeNodos = useMemo(
+    () => new Map(definicion.nodos.map((n) => [n.id, n.etiqueta])),
+    [definicion],
+  )
+  const nombresDeNiveles = useMemo(
+    () => new Map(niveles.map((n) => [n.clave, n.nombre])),
+    [niveles],
+  )
+  return { nombresDeNodos, nombresDeNiveles }
 }
 
 // El estado del editor de la hoja: el diseño de trabajo y lo editado de las filas (rótulo y formato: son de la fórmula y van en la `definicion` que se guarda);
 // lo que `validarDiseno()` rechaza tras cada cambio, con la pieza a la que apunta (queda aplicado y se marca, no apaga «Guardar»); el aviso «se deduce restando»;
 // y el guardado.
-export function useEditorDelDiseno({ origenId, leida, disenoLeido, niveles, catalogo }: Args) {
+export function useEditorDelDiseno({
+  origenId,
+  leida,
+  disenoLeido,
+  niveles,
+  catalogo,
+  tablas,
+}: Args) {
   const envio = useUnEnvioALaVez()
   const [trabajo, setTrabajo] = useState<Diseno>(disenoLeido)
   const [nodosEditados, setNodosEditados] = useState<CambiosDeNodos>(SIN_CAMBIOS_DE_NODOS)
@@ -45,19 +69,17 @@ export function useEditorDelDiseno({ origenId, leida, disenoLeido, niveles, cata
   )
 
   const nodos = useMemo(() => nodosPorId(definicion), [definicion])
-  const nombresDeNodos = useMemo(
-    () => new Map(definicion.nodos.map((n) => [n.id, n.etiqueta])),
-    [definicion],
-  )
-  const nombresDeNiveles = useMemo(
-    () => new Map(niveles.map((n) => [n.clave, n.nombre])),
-    [niveles],
-  )
+  const { nombresDeNodos, nombresDeNiveles } = useNombres(definicion, niveles)
   // Sin catálogo, los tonos que el diseño nombra cuentan como del catálogo: el contexto sigue al diseño de trabajo.
   const disenoDelContexto = catalogo === null ? trabajo : undefined
   const contexto = useMemo(
-    () => contextoDelEditor(definicion, niveles, catalogo, disenoDelContexto),
-    [definicion, niveles, catalogo, disenoDelContexto],
+    () =>
+      contextoDelEditor(definicion, niveles, {
+        tonos: catalogo,
+        diseno: disenoDelContexto,
+        tablas,
+      }),
+    [definicion, niveles, catalogo, disenoDelContexto, tablas],
   )
 
   const { rechazo, avisos, bloqueo } = useRevisionDelDiseno({

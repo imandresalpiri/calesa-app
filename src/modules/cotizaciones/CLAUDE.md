@@ -280,7 +280,12 @@ no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o inc
   de 40 y las reglas del total de `total-de-la-hoja.ts`) y «+ Sección principal / avanzada» (`insercion-del-diseno.ts`). **Las vistas** (`?vista=412|1280|1920|200`,
   `useVistaDelEditor()`; sin ella, la de la ventana): el lienzo es un hijo de ese ancho en px achicado con CSS `zoom` (`MarcoEscalado`, `escalaDelLienzo()`; los
   cortes `@4xl/hoja` miran al hijo; «Texto al 200 %» es 206 px con `zoom: 2`). **Por debajo de 1.024 px**, la hoja a 412 en sólo lectura con «Este editor se usa en
-  una pantalla de al menos 1.024 px.» (`HojaSoloLectura`). «+ Nuevo nivel» (con `equipo.roles.gestionar`: `NuevoNivelAlVuelo` del núcleo monta una vez el modal de
+  una pantalla de al menos 1.024 px.» (`HojaSoloLectura`). **La ayuda de una celda** (`components/inspector/ayuda/`, glosario: «Bloque de la ayuda»): sus bloques en orden con su «⋯» (Mover antes, Mover después, Quitar
+  con «Deshacer»; Alt+↑/↓) y «+ Bloque» (Título, Texto, Enlaces, Tabla; apagado con su motivo: `motivoParaSumar()`, `tablaParaElBloqueNuevo()`); las operaciones, puras,
+  en `entities/diseno/edicion-de-la-ayuda.ts` y `tabla-del-bloque.ts`, y atadas en `hooks/ediciones-de-la-ayuda.ts`. Un bloque de tabla elige la tabla del catálogo
+  (`leerCatalogoDeTablas()`, que la sección lee en paralelo; en dos grupos, «De <origen>» y «Compartidas»; nulo: las que nombra la fórmula), sus columnas con la celda que
+  llena cada una (`celdasQueAceptanValor()`) y «Resaltar la fila del vehículo»; «Abrir en Tablas» abre el drawer de tablas de la pestaña con ella. El rechazo de forma
+  de un bloque marca el bloque (`errorDelBloque()`). «+ Nuevo nivel» (con `equipo.roles.gestionar`: `NuevoNivelAlVuelo` del núcleo monta una vez el modal de
   la matriz, `?panel=nuevo-nivel`) y «+ Nuevo color» bajo el color de una sección (con `cotizaciones.configurar`: `NuevoColorDeLaSeccion`, `?color=nuevo`) dejan
   elegido lo creado y lo suman a lo leído (`useCreadosAlVuelo()`) hasta que la página lo traiga. El color sale del catálogo (`catalogo` nulo si no se leyó: no se
   elige y `contextoDelEditor()` cuenta los colores que el diseño ya nombra); un rechazo de forma del aspecto va bajo su select (`campoDelRechazo()`) y uno de la base,

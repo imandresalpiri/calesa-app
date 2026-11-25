@@ -140,11 +140,28 @@ describe('el ancho en columnas y el catálogo de tonos', () => {
 
   it('el contexto suma el catálogo a los tonos de los grupos; sin catálogo, los que el diseño nombra', () => {
     const d = disenoDe([seccion('s', [celda('a')], { tono: 'verde' })])
-    expect(contextoDelEditor(formulaDePrueba, [], ['verde', 'azul']).tonos).toStrictEqual([
+    expect(
+      contextoDelEditor(formulaDePrueba, [], { tonos: ['verde', 'azul'] }).tonos,
+    ).toStrictEqual(['verde', 'azul'])
+    expect(contextoDelEditor(formulaDePrueba, [], { tonos: null, diseno: d }).tonos).toStrictEqual([
       'verde',
-      'azul',
     ])
-    expect(contextoDelEditor(formulaDePrueba, [], null, d).tonos).toStrictEqual(['verde'])
     expect(contextoDelEditor(formulaDePrueba, []).tonos).toStrictEqual([])
+  })
+
+  it('el catálogo de tablas del origen va con sus claves y columnas; sin él, nada', () => {
+    const tablas = [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        clave: 'iva',
+        nombre: 'IVA',
+        compartida: false,
+        columnas: [{ clave: 'tipo', etiqueta: 'Tipo', tipo: 'texto' }],
+      },
+    ]
+    expect(contextoDelEditor(formulaDePrueba, [], { tablas }).tablas).toStrictEqual([
+      { clave: 'iva', columnas: ['tipo'] },
+    ])
+    expect(contextoDelEditor(formulaDePrueba, [], { tablas: null })).not.toHaveProperty('tablas')
   })
 })
