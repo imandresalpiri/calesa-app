@@ -88,7 +88,14 @@ test('el botón de la celda abre la tabla con su URL, sus columnas con etiqueta 
   await expect(ayuda).toContainText(NOMBRE_DE_LA_TABLA)
   expect(enLaUrl(page, 'ayuda')).toBe('bloques')
   expect(enLaUrl(page, 'nodo')).toBe('con_ayuda')
-  await expect(ayuda.getByRole('columnheader')).toHaveText(['Año', 'Tipo de vehículo', 'Factor'])
+  // La dueña configura el origen: la edición (su propio código diferido) suma «Acciones» al final; se espera a que llegue.
+  await expect(ayuda.getByRole('button', { name: 'Editar la fila 1' })).toBeVisible()
+  await expect(ayuda.getByRole('columnheader')).toHaveText([
+    'Año',
+    'Tipo de vehículo',
+    'Factor',
+    'Acciones',
+  ])
   await expect(ayuda.getByRole('row')).toHaveCount(4)
   // El año sin separador de miles; el factor, dinero de la celda (dólares), con sus dos decimales.
   await expect(ayuda.getByRole('cell', { name: '2018', exact: true })).toBeVisible()
@@ -202,7 +209,9 @@ for (const zoom of [100, 200]) {
       await textoGrandeAlCargar(page)
     }
     await abrir(page, url('&ayuda=bloques&nodo=con_ayuda', ancha.id))
-    await expect(panel(page).getByRole('columnheader')).toHaveCount(9)
+    // Las nueve de la tabla y «Acciones», que la edición de quien configura suma al llegar.
+    await expect(panel(page).getByRole('button', { name: 'Editar la fila 1' })).toBeVisible()
+    await expect(panel(page).getByRole('columnheader')).toHaveCount(10)
     await sinScrollHorizontal(page)
     const region = panel(page).getByRole('region')
     // Lo que no entra queda detrás: el contenedor se desplaza y la pista del borde derecho lo avisa.
