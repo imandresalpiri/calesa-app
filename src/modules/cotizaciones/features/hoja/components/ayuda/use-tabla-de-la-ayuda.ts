@@ -15,5 +15,13 @@ export function useTablaDeLaAyuda(tabla: string, de: DeDondeCalcula) {
     recordada !== null && leer.lectura.estado === 'leyendo'
       ? { estado: 'leido', dato: recordada }
       : leer.lectura
-  return { lectura, reintentar: leer.reintentar }
+  return {
+    lectura,
+    reintentar: leer.reintentar,
+    // La tabla cambió (se publicó desde la ayuda y la hoja no tiene una versión nueva): lo recordado ya no vale.
+    olvidarYLeer: () => {
+      memoria.olvidar()
+      leer.reintentar()
+    },
+  }
 }

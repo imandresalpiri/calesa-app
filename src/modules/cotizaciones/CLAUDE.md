@@ -179,6 +179,18 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   Sin `alAplicar` (la hoja en par, el lienzo del editor) nada se elige. «Tu vehículo» (`resaltar`): `filaDelVehiculo()` (`entities/fila-del-vehiculo.ts`, igualdad
   estricta como el motor, la primera gana) con los valores de los nodos del recálculo y `valoresDelVehiculo` del `ContextoDeHoja`, que arma `src/app` con
   `valoresParaCasar()` de `vehiculos` sobre `camposQueCasanLaAyuda(hoja)` (de `index.ts`).
+- **Editar una tabla desde la ayuda** (área `tablas`; glosario: «Bloque de la ayuda»): en la hoja nueva de quien configura el origen (`src/app` pone
+  `ProveedorDeLaEdicionDeLaTabla` de `pantallas/tablas-hoja.ts` con `puede(…, 'cotizaciones.configurar', origen)`), un bloque de tabla con el id de la tabla viva y
+  sin Modo Live dibuja el hueco `ContextoDeLaEdicionDeLaTabla` (`features/hoja/components/ayuda/hueco-de-la-edicion.tsx`; sus props, `PropsDeLaEdicionDeLaTabla`
+  de `huecos.ts`) por `diferido()` (`features/tablas/components/ayuda/`; mientras llega, la tabla quieta). ✎, 🗑 o «+ Añadir fila» leen la tabla viva entera
+  (`leerTablaParaEditarEnElNavegador()`, `areas/tablas/composicion.client.ts`; más de 2.000 filas o una que no se lee: «Esta tabla se edita en la configuración.») y
+  lo pedido se hace al llegar, salvo si cambió desde que se abrió la hoja (`tablaCambio()`: sólo se abre, con el aviso). Lo puro en `entities/tablas/edicion-en-la-ayuda.ts`
+  (una fila abierta a la vez, las quitadas tachadas con «Volver», «Cancelar» saca la sumada vacía); «Guardar» publica la tabla entera con `publicarTabla` (versión leída,
+  nota «Desde la ayuda de «<rótulo>».», `useGuardadoEnLaAyuda`: PT409 con «Recargar», el 22023 de una celda en su campo, sin red sale al volver). Sin borrador: cerrar
+  la ayuda con cambios pregunta (`useCambiosSinGuardar(…, { preguntaAlCerrar: true })`). Publicada, si una fórmula de este origen pasó a la versión siguiente
+  (`origenId` del `ContextoDeHoja`), `router.refresh()`: la hoja vuelve con otra abierta y el borrador repone lo tipeado (`loQueNoVuelve()` avisa si algo no volvió);
+  si a los 10 s sigue ahí, «Recargar». Si no, la tabla se lee de nuevo (`olvidarYLeer()`). En una guardada o con Live, a quien configura sólo «Editar en la
+  configuración» (`?tabla=<id>` del drawer de tablas).
 - Los `loading.tsx` de la hoja importan `pantallas/esqueleto-de-hoja.ts`, nunca el barril de su pantalla (con él, el HTML en frío baja dos chunks casi
   iguales). El núcleo del guardado (`useNucleoDelGuardado`: pendiente, un envío a la vez, reintento al volver la red) es el mismo de la hoja nueva y de la
   guardada. `hoja-de-una-guardada.ts` viaja al navegador sin Zod; su lectura es `hoja-de-una-guardada-lectura.ts` (sólo servidor).
@@ -349,6 +361,9 @@ por `pantallas/<área>-<pantalla>.ts`. Un hueco vacío es un objeto sin componen
   `Junto` sólo si quien mira lo vería (si no, «Más» quedaría vacío); lo llena `pantallas/papelera-listado.ts`.
 - **La lista** (`HuecosDeLaLista`, `features/listado/components/tipos.ts`): `Imagen` (la imagen de cada tarjeta, en frío: `pantallas/tarjeta-imagen.ts`) y
   `Comparar` (las casillas y «Comparar» del modal de un grupo, `CompararDelGrupoDiferido` de `pantallas/aprobada-listado.ts`); los une `listado-con-acciones.tsx`.
+- **La edición de una tabla desde la ayuda:** `ContextoDeLaEdicionDeLaTabla` (un componente con `PropsDeLaEdicionDeLaTabla`: la tabla viva, el rótulo de la celda, lo
+  que la ayuda dibuja, el enlace a la configuración y `alPublicada`, que dice si la hoja vuelve con otra versión o se relee la tabla); lo llena
+  `ProveedorDeLaEdicionDeLaTabla` (`pantallas/tablas-hoja.ts`). Detalle arriba, en «Editar una tabla desde la ayuda».
 - **La vista previa de la tarjeta:** `ContextoDeLaVistaPrevia` (`features/hoja/components/hueco-de-la-vista-previa.tsx`) lleva `dibujar(props)`
   y `compartir()` (lo que la cabecera de una guardada dibuja a la vista: «Compartir»); la llena
   `<ProveedorDeLaTarjeta>` (`pantallas/tarjeta.ts`) con la cáscara del modal y lo que sabe la página (vehículo, asesor, número, logo). El modal lee

@@ -87,11 +87,12 @@ function SinDatosQueVer() {
   )
 }
 
-// Lo que ven las celdas: el índice, lo tipeado, la última respuesta, los campos que se eligen en el panel del vehículo y los datos del vehículo para la ayuda.
+// Lo que ven las celdas: el índice, lo tipeado, la última respuesta, los campos que se eligen en el panel del vehículo, y los datos del vehículo y el origen para la ayuda.
 function useContextoDeLaHoja(
   h: ReturnType<typeof useHoja>,
   seEligen: ReadonlySet<string> | undefined,
   valoresDelVehiculo: Readonly<Record<string, number | string>> | undefined,
+  origenId: string,
 ) {
   return useMemo<ContextoDeHoja>(
     () => ({
@@ -100,8 +101,9 @@ function useContextoDeLaHoja(
       respuesta: h.respuesta,
       ...(seEligen ? { seEligen } : {}),
       ...(valoresDelVehiculo ? { valoresDelVehiculo } : {}),
+      origenId,
     }),
-    [h.indice, h.entradas, h.respuesta, seEligen, valoresDelVehiculo],
+    [h.indice, h.entradas, h.respuesta, seEligen, valoresDelVehiculo, origenId],
   )
 }
 
@@ -203,7 +205,7 @@ function useArmadoDeLaHoja(p: Props) {
     borrador: p.borrador,
     ...p.abre,
   })
-  const contexto = useContextoDeLaHoja(h, p.seEligen, p.valoresDelVehiculo)
+  const contexto = useContextoDeLaHoja(h, p.seEligen, p.valoresDelVehiculo, p.hoja.origen.id)
   const { boton, hayCambios } = useBotonesDeGuardar({
     h,
     contexto,

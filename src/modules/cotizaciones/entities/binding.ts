@@ -23,6 +23,8 @@ export type ContextoDeHoja = {
   // Los datos del vehículo con que casa una tabla de la ayuda («Tu vehículo»: `valoresParaCasar()` de `vehiculos`, que manda la página). Sin ellos no se marca ninguna fila
   // que case por un dato del vehículo.
   valoresDelVehiculo?: Readonly<Record<string, number | string>>
+  // El origen de la hoja: la ayuda lleva a quien configura a sus tablas («Editar en la configuración») y sabe si publicar una tabla le dio una versión nueva.
+  origenId?: string
 }
 
 export type PropsDeCelda = {

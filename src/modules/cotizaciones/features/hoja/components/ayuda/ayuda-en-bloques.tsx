@@ -61,6 +61,7 @@ function BloquesDeLaAyuda({ celda, lectura, contexto, alElegir }: PropsDeLosBloq
                 lectura={lectura}
                 dinero={dinero}
                 contexto={contexto}
+                rotulo={celda.etiqueta}
                 alElegir={alElegir}
               />
             )

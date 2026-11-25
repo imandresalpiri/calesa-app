@@ -1,32 +1,31 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { cn } from 'cn'
 import { textoDelTope } from '@/shared/lib/conteo'
 import { TAMANO_DE_VER_MAS } from '@/shared/lib/paginacion'
 import { AvisoDeTope } from '@/shared/ui/aviso-de-tope'
 import { Button } from '@/shared/ui/button'
 import { useLive } from '@/shared/ui/live'
-import { Monto } from '@/shared/ui/monto'
 import { PistaDeDesborde } from '@/shared/ui/pista-de-desborde'
 import { useRegional } from '@/shared/ui/regional'
 import { useDesborde } from '@/shared/ui/use-desborde'
 import { nombreDelValor, type DestinoDeLaAyuda } from '../../../entities/destino-de-la-ayuda'
 import { filasAMostrar } from '../../../entities/fila-del-vehiculo'
+import type { ColumnaDeTabla, TablaDeAyuda } from '../../../entities/tabla-de-ayuda'
 import {
-  celdaDeTabla,
-  type CeldaDeTabla,
-  type ColumnaDeTabla,
-  type FilaDeTabla,
-  type TablaDeAyuda,
-} from '../../../entities/tabla-de-ayuda'
+  FilaDeLaAyuda,
+  type DineroDeLaAyuda,
+  type Eleccion,
+  type FilaEditadaDeLaAyuda,
+} from './fila-de-la-ayuda'
 
 export type PropsDeLaTablaDeLaAyuda = {
   tabla: TablaDeAyuda
   // Las que dibuja el bloque (`columnasDelBloque`), en su orden.
   columnas: readonly ColumnaDeTabla[]
   // Si la celda que abre la ayuda es dinero (P13): sus cifras pasan por `<Monto>` con la moneda de la celda (nula, la de la empresa) y el Modo Live las tapa. Nulo, a la vista.
-  dinero: { moneda: string | undefined } | null
+  dinero: DineroDeLaAyuda
   // Las columnas cuyas cifras llenan una celda que quien mira puede tipear ahora (`destinosDelBloque`), por su clave. Sin ellas o sin `alElegir`, todo es texto.
   llenaPor?: ReadonlyMap<string, DestinoDeLaAyuda> | undefined
   alElegir?: ((destino: DestinoDeLaAyuda, valor: number) => void) | undefined
@@ -34,11 +33,12 @@ export type PropsDeLaTablaDeLaAyuda = {
   filaResaltada?: number | null | undefined
 }
 
-// Cómo se elige un valor: el destino de cada columna, qué hace el clic y el nombre del botón (con el Modo Live ya resuelto).
-type Eleccion = {
-  llenaPor: ReadonlyMap<string, DestinoDeLaAyuda>
-  alElegir: (destino: DestinoDeLaAyuda, valor: number) => void
-  nombre: (destino: DestinoDeLaAyuda, valor: number) => string
+// Lo que suma la edición desde la ayuda (el hueco `EdicionDeLaTabla`, del área `tablas`): qué pone en cada fila, la fila abierta (siempre entre las dibujadas) y lo de
+// debajo de las filas («+ Añadir fila», sus avisos). Sin ella, la tabla sólo se consulta.
+export type EdicionEnLaTablaDeLaAyuda = {
+  fila: (indice: number) => FilaEditadaDeLaAyuda
+  abierta: number | null
+  pie: ReactNode
 }
 
 const esCifra = (columna: ColumnaDeTabla) => columna.tipo === 'numero'
@@ -73,84 +73,6 @@ function PieDeLaTabla({
   ) : null
 }
 
-function ContenidoDeLaCelda({
-  celda,
-  dinero,
-}: {
-  celda: CeldaDeTabla
-  dinero: PropsDeLaTablaDeLaAyuda['dinero']
-}) {
-  return celda.tipo === 'cifra' && dinero !== null ? (
-    <Monto valor={celda.valor} moneda={dinero.moneda} />
-  ) : (
-    celda.texto
-  )
-}
-
-// Una fila: cada cifra de una columna que llena es un botón que la escribe en su celda (lo que se ve no cambia; el nombre dice qué hace). La del vehículo va resaltada y
-// con «Tu vehículo» delante de su primer valor.
-function FilaDeLaAyuda({
-  fila,
-  columnas,
-  dinero,
-  eleccion,
-  delVehiculo,
-}: {
-  fila: FilaDeTabla
-  columnas: readonly ColumnaDeTabla[]
-  dinero: PropsDeLaTablaDeLaAyuda['dinero']
-  eleccion: Eleccion | null
-  delVehiculo: boolean
-}) {
-  const { locale } = useRegional()
-  return (
-    <tr
-      data-fila-del-vehiculo={delVehiculo ? '' : undefined}
-      className={cn(
-        'border-b border-(--color-line) last:border-b-0',
-        delVehiculo && 'bg-(--color-primario-soft)',
-      )}
-    >
-      {columnas.map((columna, j) => {
-        const celda = celdaDeTabla(fila[columna.clave], columna.tipo, locale)
-        const destino = eleccion?.llenaPor.get(columna.clave)
-        const contenido = <ContenidoDeLaCelda celda={celda} dinero={dinero} />
-        return (
-          <td
-            key={columna.clave}
-            className={cn(
-              'px-3 py-2 align-top',
-              celda.tipo === 'cifra'
-                ? 'text-right whitespace-nowrap tabular-nums'
-                : 'wrap-anywhere',
-            )}
-          >
-            {delVehiculo && j === 0 ? (
-              <span className="me-2 inline-flex rounded-4xl bg-(--color-primario) px-2 py-0.5 text-(length:--text-xs) font-medium whitespace-nowrap text-(--color-sobre-primario)">
-                Tu vehículo
-              </span>
-            ) : null}
-            {eleccion && destino && celda.tipo === 'cifra' ? (
-              <button
-                type="button"
-                aria-label={eleccion.nombre(destino, celda.valor)}
-                className="-mx-2 -my-1 inline-flex min-h-11 min-w-11 items-center justify-end rounded-(--radius-sm) px-2 font-medium text-(--color-primario-ink) underline decoration-dotted underline-offset-4 outline-none hover:bg-(--color-paper-dim) focus-visible:shadow-(--shadow-focus)"
-                onClick={() => {
-                  eleccion.alElegir(destino, celda.valor)
-                }}
-              >
-                {contenido}
-              </button>
-            ) : (
-              contenido
-            )}
-          </td>
-        )
-      })}
-    </tr>
-  )
-}
-
 function useEleccion(
   llenaPor: PropsDeLaTablaDeLaAyuda['llenaPor'],
   alElegir: PropsDeLaTablaDeLaAyuda['alElegir'],
@@ -177,12 +99,14 @@ export function TablaDeLaAyuda({
   llenaPor,
   alElegir,
   filaResaltada = null,
-}: PropsDeLaTablaDeLaAyuda) {
+  edicion = null,
+}: PropsDeLaTablaDeLaAyuda & { edicion?: EdicionEnLaTablaDeLaAyuda | null }) {
   const contenedor = useRef<HTMLDivElement>(null)
   const desborde = useDesborde(contenedor)
   const eleccion = useEleccion(llenaPor, alElegir)
   const [pedidas, setPedidas] = useState(TAMANO_DE_VER_MAS)
-  const filas = tabla.filas.slice(0, filasAMostrar(pedidas, filaResaltada))
+  const aLaVista = Math.max(filaResaltada ?? -1, edicion?.abierta ?? -1)
+  const filas = tabla.filas.slice(0, filasAMostrar(pedidas, aLaVista === -1 ? null : aLaVista))
   return (
     <div className="grid min-w-0 gap-3">
       <div className="relative min-w-0">
@@ -208,6 +132,14 @@ export function TablaDeLaAyuda({
                     {columna.etiqueta}
                   </th>
                 ))}
+                {edicion ? (
+                  <th
+                    scope="col"
+                    className="sticky top-0 z-10 border-b border-(--color-line) bg-(--color-surface) px-2 py-2"
+                  >
+                    <span className="sr-only">Acciones</span>
+                  </th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
@@ -220,6 +152,7 @@ export function TablaDeLaAyuda({
                   dinero={dinero}
                   eleccion={eleccion}
                   delVehiculo={i === filaResaltada}
+                  editada={edicion ? edicion.fila(i) : null}
                 />
               ))}
             </tbody>
@@ -234,6 +167,7 @@ export function TablaDeLaAyuda({
           setPedidas(filas.length + TAMANO_DE_VER_MAS)
         }}
       />
+      {edicion?.pie}
     </div>
   )
 }
