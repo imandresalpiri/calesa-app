@@ -17,7 +17,8 @@ import { PieDeLaEdicion } from './pie-de-la-edicion'
 
 // La tabla de un bloque de la ayuda, editable por quien configura (el hueco `EdicionDeLaTabla`; `docs/UX.md` › «La ayuda»). Primero, la de la hoja con ✎ y 🗑 por
 // fila y «+ Añadir fila»: el primer toque lee la tabla viva y lo pedido se hace al llegar. Con ella, se dibujan sus filas (sin botones que llenan ni «Tu vehículo»: lo
-// que se ve es lo que se publica), una abierta a la vez, y la barra con «Guardar». Lo editado no tiene borrador: cerrar la ayuda con cambios pregunta.
+// que se ve es lo que se publica), una abierta a la vez, y la barra con «Guardar»; cerrar una fila sin nada editado vuelve a la de la hoja. Lo editado no tiene borrador:
+// cerrar la ayuda con cambios pregunta.
 export function EdicionDeLaTablaEnLaAyuda({
   tabla,
   rotulo,

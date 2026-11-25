@@ -130,6 +130,18 @@ export function useEdicionEnLaAyuda(args: ArgsDeLaEdicion) {
     setTextos(textosDe(columnas, edicion, edicion.editando, locale))
   }
 
+  function descartar() {
+    setLeida(null)
+    setTextos({})
+    setRechazo(null)
+  }
+
+  // Al cerrar una fila sin nada editado, la tabla vuelve a la de la hoja: con los botones que llenan una celda y «Tu vehículo».
+  function cerrar(edicion: EdicionEnLaAyuda) {
+    if (edicion.editando === null && !hayCambiosEnLaAyuda(edicion)) descartar()
+    else cambiar(edicion)
+  }
+
   // Lo que se vería con lo tipeado en la fila abierta ya aplicado: con eso se sabe si hay cambios y es lo que «Guardar» publica.
   const aplicada = leida ? aplicarFila(leida.edicion, columnas, textos, locale) : null
   return {
@@ -161,24 +173,20 @@ export function useEdicionEnLaAyuda(args: ArgsDeLaEdicion) {
       setRechazo((antes) => (antes?.clave === clave ? null : antes))
     },
     listo: () => {
-      if (aplicada) cambiar(aplicada)
+      if (aplicada) cerrar(aplicada)
     },
     cancelar: () => {
-      if (leida) cambiar(cancelarFila(leida.edicion))
+      if (leida) cerrar(cancelarFila(leida.edicion))
     },
     volver: (filaId: string) => {
-      if (leida) cambiar(volver(leida.edicion, filaId))
+      if (leida) cerrar(volver(leida.edicion, filaId))
     },
     // El rechazo de una celda al guardar: su fila abierta, con el mensaje en el campo.
     mostrarRechazo: (edicion: EdicionEnLaAyuda, enLaFila: RechazoEnLaFila) => {
       cambiar(edicion)
       setRechazo(enLaFila)
     },
-    descartar: () => {
-      setLeida(null)
-      setTextos({})
-      setRechazo(null)
-    },
+    descartar,
   }
 }
 

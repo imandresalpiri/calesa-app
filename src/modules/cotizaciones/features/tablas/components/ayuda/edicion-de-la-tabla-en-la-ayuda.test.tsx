@@ -52,6 +52,20 @@ const leida = (filas = FILAS) =>
     filas: filas.map((valores, i) => ({ id: `f${String(i)}`, valores: { ...valores, nota: 'x' } })),
   })
 
+// «IVA» llena la celda «IVA %»: en la tabla de la hoja, cada cifra es un botón «Usar …».
+const LLENA_POR = new Map([
+  [
+    'iva',
+    {
+      nodo: 'iva',
+      celda: 'iva',
+      lado: 'principal' as const,
+      etiqueta: 'IVA %',
+      formato: 'pct' as const,
+    },
+  ],
+])
+
 function montar(alPublicada: PropsDeLaEdicionDeLaTabla['alPublicada'] = () => 'tabla') {
   render(
     <EdicionDeLaTablaEnLaAyuda
@@ -67,6 +81,8 @@ function montar(alPublicada: PropsDeLaEdicionDeLaTabla['alPublicada'] = () => 't
         },
         columnas: COLUMNAS,
         dinero: null,
+        llenaPor: LLENA_POR,
+        alElegir: vi.fn(),
       }}
       enLaConfiguracion={<a href="/configuracion">Editar en la configuración</a>}
       quieta={null}
@@ -128,8 +144,22 @@ describe('editar la tabla desde la ayuda', () => {
     expect(volver.closest('tr')).toHaveAttribute('data-quitada')
     expect(screen.getByText('Cambios sin guardar.')).toBeInTheDocument()
     fireEvent.click(volver)
-    expect(screen.getByText('Sin cambios.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled()
+    // Sin nada editado, vuelve la tabla de la hoja: sin barra y con las cifras que llenan la celda.
+    expect(screen.queryByRole('button', { name: 'Guardar' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /^Usar .* en IVA %$/ })).toHaveLength(2)
+  })
+
+  it('✎ y «Cancelar» sin cambios vuelven a la tabla de la hoja, con los botones que llenan la celda', async () => {
+    leer.mockResolvedValue(leida())
+    montar()
+    expect(screen.getAllByRole('button', { name: /^Usar .* en IVA %$/ })).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: 'Editar la fila 2' }))
+    await screen.findByRole('textbox', { name: 'IVA, fila 2' })
+    // Mientras se edita, lo que se ve es lo que se publica: sin botones que llenan.
+    expect(screen.queryByRole('button', { name: /^Usar / })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByText('Sin cambios.')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /^Usar .* en IVA %$/ })).toHaveLength(2)
   })
 })
 
@@ -152,7 +182,7 @@ describe('editar la tabla desde la ayuda: lo que no sale', () => {
     expect(await screen.findByRole('textbox', { name: 'Tipo, fila 3' })).toHaveFocus()
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-    expect(screen.getByText('Sin cambios.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Guardar' })).not.toBeInTheDocument()
   })
 
   it('otra persona publicó antes (PT409): el conflicto con «Recargar» y «Guardar» apagado', async () => {
