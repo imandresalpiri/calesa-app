@@ -53,16 +53,37 @@ export function mezclar3({ propio, base, nuevo, union = false }) {
 }
 
 /**
- * Sin las lecciones `… (kit)` del proyecto que el kit ya absorbió: la misma línea, hasta el paréntesis final, con otro sufijo
- * (`(<repo>, PR #<n>)`). Puro.
+ * Sin las lecciones `… (kit)` del proyecto que el kit ya absorbió: la misma viñeta, hasta el paréntesis final, con otro sufijo
+ * (`(<repo>, PR #<n>)`). Una viñeta lleva sus líneas de continuación (las sangradas que la siguen) y se compara sin sus saltos de
+ * línea: la del proyecto se quita entera aunque el kit la tenga partida de otra forma. Puro.
  * @param {string} md
  */
 export function quitarRepetidas(md) {
-  const deKit = (l) => /^\s*- .*\(kit\)\s*$/.test(l)
-  const clave = (l) => l.replace(/\s*\([^()]*\)\s*$/, '').trim()
   const lineas = md.split('\n')
-  const otras = new Set(lineas.filter((l) => /^\s*- .*\)\s*$/.test(l) && !deKit(l)).map(clave))
-  return lineas.filter((l) => !(deKit(l) && otras.has(clave(l)))).join('\n')
+  /** @type {number[][]} los índices de las líneas de cada viñeta */
+  const vinetas = []
+  /** @type {number[] | null} */
+  let actual = null
+  lineas.forEach((l, i) => {
+    if (/^\s*- /.test(l)) vinetas.push((actual = [i]))
+    else if (actual && /^\s+\S/.test(l)) actual.push(i)
+    else actual = null
+  })
+  const texto = (/** @type {number[]} */ v) => v.map((i) => lineas[i]).join(' ')
+  const clave = (/** @type {string} */ t) =>
+    t
+      .replace(/\s*\([^()]*\)\s*$/, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  const deKit = (/** @type {string} */ t) => /\(kit\)\s*$/.test(t)
+  const otras = new Set(
+    vinetas
+      .map(texto)
+      .filter((t) => /\)\s*$/.test(t) && !deKit(t))
+      .map(clave),
+  )
+  const fuera = new Set(vinetas.filter((v) => deKit(texto(v)) && otras.has(clave(texto(v)))).flat())
+  return lineas.filter((_, i) => !fuera.has(i)).join('\n')
 }
 
 /** @typedef {{ contenido: Buffer, modo: number }} Archivo */
