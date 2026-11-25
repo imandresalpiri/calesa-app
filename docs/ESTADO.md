@@ -50,7 +50,7 @@ recibe actualizaciones sueltas: una rama, un PR que se integra solo con el CI en
   (los dos proyectos) sobre `86322259` cayó en dos specs de `movil` con el texto al 200 % (el diagrama del flujo y el resumen de la hoja):
   lo sigue el issue `noche-roja` #495. El último Nivel 3 con celular (sobre `20815f1c`): 898 en verde, 31 saltadas, 0 caídas, 38,2 min.
 - **CI:** Nivel 1, «Base» si cambia código, los e2e dirigidos (o el completo de escritorio en 8 bloques) y `Listo · todo en verde`.
-- **Base:** una sola migración (`20261122222422_base.sql`), aplastada con la huella de la base idéntica (`pnpm db:aplastar`).
+- **Base:** una sola migración (`20261125203230_base.sql`), aplastada con la huella de la base idéntica (`pnpm db:aplastar`).
 - **Despliegue:** el ensayo en seco en `listo` (`pnpm despliegue:en-seco`).
 
 ## Al borde
