@@ -69,6 +69,7 @@ lanzar_redaccion() {
   gh_en_espera && return 0
   redaccion_viva && return 0
   [ "$(turnos_libres)" -gt 0 ] || return 0
+  uso_semanal_alto >/dev/null && return 0 # la redacción es de plan y del nivel capaz: con la cuenta al borde del límite semanal, espera
   local pedidos j n hilo d
   pedidos=$(pedidos_abiertos) || { sin_red; return 0; }
   for d in "$EST"/P*/; do
@@ -210,11 +211,12 @@ claude_de_redaccion() { # prompt ronda
     fallo_de_redaccion "se pasó de ${TIEMPO_MAX_REDACCION:-45m}"
     return 1
   fi
+  anotar_uso_semanal "$salida"
   if { [ "$rc" != 0 ] || [ "$es_error" = true ] || [ -z "$RESULTADO_JSON" ]; } && es_limite_del_plan "$salida"; then
     # No gasta nada: vuelve a esperar a que pase la pausa.
     etiquetas_del_pedido "" cola:corriendo
     est_set "$ID" estado ""
-    pausar_por_limite "$ID (la redacción del pedido #$N)"
+    pausar_por_limite "$ID (la redacción del pedido #$N)" "$salida"
     return 1
   fi
   if [ "$rc" != 0 ] && [ -z "$RESULTADO_JSON" ]; then
