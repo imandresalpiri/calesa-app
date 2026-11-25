@@ -1158,7 +1158,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `imandresalpiri-orquestador[bot]` (`APP_LOGIN`): así se reconoce el issue que abre. No: «bot» a secas.
 - **E2E afectados** — `node scripts/e2e-afectados.mjs [--correr]`: los e2e que una rama puede romper aunque no sean de su módulo (los
   dirigidos, los que nombran un texto visible que cambió o que un texto nuevo vuelve ambiguo, y los de las pantallas de un compartido), con
-  tope de 40; se corren en local antes de publicar. No son los **dirigidos** del CI (`scripts/e2e-dirigidos.mjs`), que son un subconjunto.
+  tope de 40; se corren en local antes de publicar. Entran siempre, sin tope: los de las pantallas tocadas que nombran un texto que la rama
+  quita o pasa al «⋯», y los de presupuesto (JS en frío, nodos) de cada pantalla tocada. No son los **dirigidos** del CI (`scripts/e2e-dirigidos.mjs`), que son un subconjunto.
 - **Área (de un módulo)** — una parte de un módulo: sus carpetas `features/<área>/`, `entities/<área>/`, `infra/<área>/`, sus entradas
   `areas/<área>/` y `pantallas/<área>.ts`. No importa otra área (`cotizaciones`).
 - **Núcleo (de un módulo)** — lo que comparten las áreas de un módulo (en `cotizaciones`: la hoja, guardar, el motor…); no importa ningún área.

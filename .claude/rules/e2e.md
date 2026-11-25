@@ -29,7 +29,8 @@ paths:
 
 - Nivel 1, toda actualización: los e2e afectados (`node scripts/e2e-afectados.mjs --correr`: los dirigidos a lo
   tocado, los que nombran un texto visible que cambió o que un texto nuevo vuelve ambiguo, y los de las pantallas
-  de un compartido; tope de 40), en `escritorio` y, si es interfaz (regla de abajo), también en `movil`; las
+  de un compartido, y siempre, sin contar para el tope, los que nombran un texto que la rama quita o pasa al «⋯» en una pantalla tocada y los
+  de presupuesto de cada pantalla tocada; tope de 40), en `escritorio` y, si es interfaz (regla de abajo), también en `movil`; las
   pruebas de lo tocado (`pnpm exec vitest related --run <archivos>`) y `scripts/guardas`. `lint` y `typecheck` los corre el hook del commit (lefthook); la suite entera, la skill
   `entregar` antes de publicar. El CI del PR vuelve a correr todo y es la autoridad (`docs/FLUJO.md`).
 - Nivel 2, sólo si la actualización toca uno de estos seis disparadores y ningún otro: (1) lo compartido,

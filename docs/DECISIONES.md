@@ -1515,3 +1515,9 @@ las trampas, en `docs/LECCIONES.md`.
   ignora un texto que nombran más de 12 specs («Guardar», «Cancelar», «Cerrar») y un localizador que tienen más de 40: el choque de un
   localizador no exacto (strict mode) se cuenta aparte del texto que se nombra porque es una rotura cierta en toda pantalla que lo dibuja.
   Lee también `src/**/*.ts` (los avisos de las acciones), no sólo `.tsx`. No cambia lo que corre el CI (`scripts/e2e-dirigidos.mjs`).
+  Dos reglas pasan por encima del tope. Un texto que la rama **quita** no se descarta por común: entran los specs de las pantallas tocadas
+  que lo nombran (los de otras no), hasta 120, y el resumen dice cuántos entraron por cada regla. Un texto que se **agrega** como línea de
+  un menú (`etiqueta: '…'`, `<DropdownMenuItem>`) y nombran más de 12 specs cuenta como quitado de la vista: el diff no ve de dónde salió
+  el botón cuando su archivo no cambia, y «pasó al «⋯»» es lo que casi siempre significa. El spec de presupuesto de cada pantalla tocada
+  (`presupuestos.mjs`: el que mide JS o nodos y nombra la URL de una pantalla a la que llega un archivo del diff, o el de la tabla de JS por
+  ruta si la lista la nombra) entra siempre y no cuenta para el tope; un archivo que llega a toda pantalla sólo mueve al de la tabla.
