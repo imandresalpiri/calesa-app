@@ -322,6 +322,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 ### El marco y las cuentas de pedidos
 
 - Un texto visible que cambia (etiqueta, `aria-label`, botón, título) se busca en los e2e antes de publicar, y también los localizadores no exactos que el texto nuevo cumpliría («Recargar la página» vuelve ambiguo un `getByRole('button', { name: 'Recargar' })` de otra pantalla si el botón va en el marco): lo hace `node scripts/e2e-afectados.mjs`, que los corre con `--correr`. El CI corre el completo cuando la rama toca un disparador del Nivel 2, pero en local sólo corre lo que se nombra.
+- Si la rama quita un texto visible que muchos specs nombran («Editar», «Subir», «Bajar») o lo mueve al «⋯», `e2e-afectados` lo descarta por común: busca con `git grep` los specs que lo nombran en las pantallas que tocaste y córrelos tú. (kit)
 - Si sumas algo al marco o al menú (entrada, campana, burbuja, pestaña), grepea `e2e/`: mueve paradas de Tab, pedidos contados, pestañas contadas, topes de JS y lo que tapa un `fixed`.
 - Si sumas nodos a la hoja de cotizar (una marca de la celda, un aviso, una línea del resumen), corre `e2e/cotizar-hoja-200.spec.ts` antes de publicar: mide el techo de nodos de `[data-hoja]` con la hoja usada, y los afectados, con su tope de 40, pueden dejarlo fuera.
 - Marca `esDelMarco` todo pedido nuevo que haga el marco: los specs que cuentan pedidos de su pantalla los excluyen y si no, caen.

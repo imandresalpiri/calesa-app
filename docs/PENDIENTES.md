@@ -109,7 +109,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** La tabla de la ayuda con más columnas de las que caben deja las de texto de una letra de ancho al 100 % («Año», «Tipo de vehículo»): las cifras no
   se parten y el texto lleva `wrap-anywhere`, cuyo mínimo es un carácter (`tabla-de-la-ayuda.tsx`, `fila-de-la-ayuda.tsx`) — un ancho mínimo por columna de
   texto; cierre: `sinTextoCortado` en la prueba de la tabla ancha de `cotizar-hoja-ayuda-tabla.spec.ts`.
-- **[—]** e2e que caen de vez en cuando en `main` o en el CI de PR ajenos: `leads-ficha-derecha` (1 de 3), `leads-ficha-desplazamiento-interno` (depende de la geometría), `chat-menciones:87` (el foco), y sin causa vista `accesibilidad` en `movil`, `leads-alta` y `cotizaciones-papelera-enviar` — se arreglan si caen dos noches seguidas (`.claude/rules/e2e.md`).
+- **[—]** e2e que caen de vez en cuando en `main` o en el CI de PR ajenos: `agenda:208` (la tecla «n» llega antes de hidratar y abre «Nuevo lead»), `modales-con-salida:194` (Esc antes de que abra el modal), `scripts/orquestador/maquina.test.ts` (`kill ESRCH`), `leads-ficha-derecha` (1 de 3), `leads-ficha-desplazamiento-interno` (depende de la geometría), `chat-menciones:87` (el foco), y sin causa vista `accesibilidad` en `movil`, `leads-alta` y `cotizaciones-papelera-enviar` — se arreglan si caen dos noches seguidas (`.claude/rules/e2e.md`).
   `cotizaciones-listado` E6 y E8 caen en el CI y pasan en local (la tecla N abre `panel=nuevo-lead` en vez de la hoja; «Ver todas» pierde `clase=preventa`):
   esperar la hidratación o el `href` ya filtrado antes de actuar.
 
@@ -156,6 +156,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ### Limpieza y código
 
+- **[—]** `src/modules/empresa/features/tipos-cambio/hooks/use-guardar-leyenda.ts` no lo importa nadie: quitarlo.
 - **[—]** El lienzo de la hoja (la pestaña Hoja del origen) no dibuja la variante en par (`hojaDeLaVistaPrevia()` no trae `par`); la planilla de la fórmula sí la dice («Se cotiza en par» en «Tipo de celda › Variante»).
 - **[—]** En la vista previa de las hermanas, «Copiar texto» copia sólo el de la tarjeta de la cotización abierta (no une los dos).
 - **[—]** `medir-cotizacion-crear.sql` y `medir-cotizacion-guardar.sql` no tienen un caso en par: crear y guardar en par llaman dos veces a lo que ya miden.
@@ -188,11 +189,14 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** El orquestador une sin sesión sólo los choques en `docs/*.md`: sumar las fichas `src/modules/*/CLAUDE.md` y `.claude/rules/*.md`, que son la mayoría de los choques y abren sesión sólo por eso.
 - **[—]** Los arreglos van primero al soltarse un carril, pero esperan a que termine una sesión de tarea (2–4 h) — sin salida clara (¿reservar un carril si hay un PR por arreglar?).
 - **[—]** Ninguna guarda ve un término repetido en `docs/GLOSARIO.md` (un bloque duplicado entra a `main`): que `mapa.sh --check` falle con un término o un título repetido en un doc.
-- **[—]** El «Final del log» del job caído puede llegar vacío al prompt de arreglo (`gh run view --log-failed` se vacía al rato): el orquestador lo guarda al ver el rojo, o lo pide por la API de jobs.
-- **[—]** `vitest.config.mts` corta un test a los 5 s en local y a los 15 s en CI: con la máquina cargada (varias sesiones) da timeouts que obligan a repetir `verificar.sh` — 15 s también en local.
-- **[—]** Una sesión cortada por «API Error: No response from API» se retoma desde cero: retomarla con `claude --resume <id>`.
+- **[—]** El «Final del log» del job caído puede llegar vacío al prompt de arreglo (`gh run view --log-failed` no devuelve nada mientras la corrida sigue, y los jobs que no son e2e se mandan antes): pedirlo por la API de jobs (`actions/jobs/<job>/logs`) con las anotaciones del check-run. Y `ES_INFRA` (`scripts/orquestador/sin-sesion.sh`) no reconoce un puerto ocupado del runner («address already in use», «un puerto de la pila estaba ocupado»): abre una sesión que sólo puede relanzar con un commit vacío.
+- **[—]** `vitest.config.mts` corta un test a los 5 s en local y a los 15 s en CI: con la máquina cargada (varias sesiones) da timeouts que obligan a repetir `verificar.sh` (sobre todo `reparto.test.ts`) — 15 s también en local, o que `verificar.sh` reintente una vez sólo los archivos caídos.
 - **[—]** `verificar.sh` no corre `shellcheck`, que el Nivel 1 del CI sí corre sobre `*.sh`: correrlo, o fallar si falta, cuando la rama toca un `.sh`.
 - **[—]** El estado `por_arreglar` no se limpia si el PR se integra antes de que arranque el arreglo: puede lanzarse un arreglo sobre un PR ya integrado.
+- **[—]** El hook de esperas (`.claude/hooks/bloquear-esperas.sh`) no ve otras formas de esperar: leer `tasks/<id>.output` antes de su aviso, `ScheduleWakeup` sin nada que esperar, `echo esperando` de relleno y el mismo bucle relanzado con `run_in_background` tras el rechazo. Y rechaza de más: el `for … sleep` dentro del heredoc de un guion python.
+- **[—]** Las sesiones editan casi siempre con un heredoc de python o `sed -i` en vez de Edit, así que el lint por archivo del hook `PostToolUse` casi no corre: llevar el ESLint de los archivos tocados al hook `Stop`, o que el prompt pida Edit.
+- **[—]** El plan entero (35–61 KB) va dentro del prompt de la tarea y se relee tras cada compactación: dejarlo en `estado/<ID>/plan.md` y que el prompt lo nombre.
+- **[—]** Traer el flujo del kit vuelve a pegar las lecciones `(kit)` que el proyecto ya tiene, en otra sección y con «(calesa-app, PR #n)»: el traer del kit omite las que ya están en `docs/LECCIONES.md`.
 - **[—]** Probar `AUTOCOMPACT_SESION` en ≈ 200k (hoy 300000) para las sesiones de tarea: la lectura de caché es la mayor parte del costo — comparar el costo por tarea en el cierre siguiente.
 
 ### Límites aceptados
@@ -209,6 +213,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** La lista de fases del flujo deja «Subir» y «Bajar» a la vista (`flujos/features/fases/components/acciones-de-fila.tsx`) y las demás filas de Configuración los llevan en el «⋯»: decidir si es la excepción (ordenar con el teclado) o pasarlos al «⋯».
 - **[—]** Al recargar una guardada con un cálculo pisado, «Editado a mano: …» entra al resumen después del primer dibujo (su lista va con `diferido()`) y empuja
   «Modo de tipo de cambio» hacia abajo: reservarle el alto o dibujar su primera línea en frío (`features/hoja/components/pisadas/`).
 - **[—]** En Logística › Configuración › Navieras la lista tiene dos columnas «Estado» («Activo» y «Activa»): `columnaDeUso="Estado"` en `navieras-de-transporte.tsx` repite el título de la columna de estado; ponerle otro («Uso» o quitarla).
