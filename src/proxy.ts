@@ -1,10 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { decidirAcceso } from '@/shared/lib/rutas'
-import {
-  destinoConLaFormulaDelPanel,
-  destinoSinLaEdicion,
-  destinoSinLosPanelesQueYaNoExisten,
-} from '@/shared/lib/paneles-que-ya-no-existen'
 import { actualizarSesion } from '@/shared/lib/supabase/proxy'
 
 // Next 16: `proxy.ts` (antes `middleware.ts`) va al nivel de `app/`, no adentro.
@@ -27,19 +22,6 @@ export async function proxy(request: NextRequest) {
     esAccion: request.headers.has('next-action'),
   })
   if (decision.tipo === 'seguir') {
-    // El Modo avanzado, «Empezar desde una plantilla» y la edición a pantalla completa (`?editar=si`) ya no existen, y un panel de una fórmula nombra la suya
-    // en `&cual=`: 308 a la misma ruta, sin ellos o traducida (una action sigue: repetiría el POST).
-    const sinElPanel = request.headers.has('next-action')
-      ? null
-      : (destinoSinLosPanelesQueYaNoExisten(request.nextUrl.pathname, busqueda) ??
-        destinoSinLaEdicion(request.nextUrl.pathname, busqueda) ??
-        destinoConLaFormulaDelPanel(request.nextUrl.pathname, busqueda))
-    if (sinElPanel !== null) {
-      return conLasCookies(
-        NextResponse.redirect(new URL(sinElPanel, request.nextUrl.origin), 308),
-        respuesta,
-      )
-    }
     return esElInventarioViejo(request.nextUrl.pathname, busqueda)
       ? conLasCookies(
           NextResponse.rewrite(new URL(`${INVENTARIO_VIEJO}?${query}`, request.nextUrl.origin)),

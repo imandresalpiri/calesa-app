@@ -68,7 +68,7 @@ function CampoDeLaNota({
   )
 }
 
-// «Activar «<nombre>»» (`?panel=activar-formula&formula=<id>`): qué se publica (los borradores de la planilla y de la tarjeta), qué cambia para cotizar y la nota.
+// «Activar «<nombre>»» (`?panel=activar-formula&cual=<id>`): qué se publica (los borradores de la planilla y de la tarjeta), qué cambia para cotizar y la nota.
 // Lleva lo que se vio de cada pieza: si algo cambió, PT409 con «Recargar». Un rechazo que nombra una fila, un lugar de la tarjeta o una sub-pestaña ofrece ir ahí.
 export function ModalDeActivar({ abierto, alCerrar, origen, formula, activa, alActivar }: Props) {
   const cerrarYReleer = useCerrarYReleer()

@@ -24,7 +24,7 @@ type Props = {
   alListo: string
 }
 
-// El paso «Publicar» de la puesta en marcha: qué se publica y «Publicar…», que abre el modal de activar la fórmula (`?panel=activar-formula&formula=<id>`),
+// El paso «Publicar» de la puesta en marcha: qué se publica y «Publicar…», que abre el modal de activar la fórmula (`?panel=activar-formula&cual=<id>`),
 // con su nota, su PT409 y, si la base la rechaza, el lugar que hay que arreglar («Ir a la celda»). Al publicar se sigue a «Listo».
 export function PublicarLaFormula({ origen, formula, activa, alListo }: Props) {
   const router = useRouter()

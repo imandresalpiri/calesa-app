@@ -222,8 +222,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   costado, `?costado=totales|tarjeta`, `Drawer alCostado` desde `CORTE_DEL_PANEL`). En la página, «Guardar el borrador» y su línea de estado suben a la barra
   de la fórmula y «Sobre…» no se dibuja (`useEnLaBarra()`); en la puesta en marcha, los dos van arriba de la planilla. Lo guardado sigue en ids: A1 es sólo del navegador (`entities/formula/referencias-a1.ts` sobre la hoja numerada de
   `hoja-de-la-planilla.ts`); las operaciones de fila (`insertar-fila.ts`, `mover-fila.ts`, `eliminar-fila.ts`, `tipo-de-celda.ts`) y de banda (`bandas.ts`)
-  son puras y devuelven la fórmula nueva o el motivo. `?panel=editar-formula` (el Modo avanzado) y `?panel=plantillas-de-v1` («Empezar desde una plantilla»), que ya no existen,
-  responden 308 a la misma parte de la fórmula, sin ese panel, desde el proxy (`destinoSinLosPanelesQueYaNoExisten()`, `src/shared/lib/paneles-que-ya-no-existen.ts`). El
+  son puras y devuelven la fórmula nueva o el motivo. El
   catálogo de tablas del origen (`leerCatalogoDeTablas()` del núcleo, `infra/queries/catalogo-de-tablas.ts`: id, clave, nombre y columnas de las `tablas_referencia`
   activas del origen y las compartidas, la del origen gana; tope 100; nulo si falla; `tablasParaElCompilador()` lo proyecta) lo lee la sección en paralelo con la fórmula y llega a la sesión para revisar BUSCARV al compilar. La unidad
   de ejemplo y el modo viven en la sesión; «Publicar…» espera con cambios aplicados sin guardar (`alCambiarPendientes`, en `useLayoutEffect`). La `key` de la

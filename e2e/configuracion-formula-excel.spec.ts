@@ -25,7 +25,6 @@ import {
   sugerencias,
   textoDeLaBarra,
 } from './soporte/planilla'
-import { enElEditor, urlDeLaFormula } from './soporte/rutas-de-la-formula'
 import { literal, sql } from './soporte/sql'
 
 // La fórmula como hoja de cálculo, de punta a punta (`docs/COTIZADOR.md` › «El editor»): referencias A1 con el clic, la fila insertada que corre las referencias,
@@ -213,7 +212,7 @@ async function quitarGuardarYPublicar(page: Page, id: string) {
   expect(guardadoComo).not.toMatch(/\b[A-D]\d+\b/)
 }
 
-test('la fórmula como excel: referencias con el clic, filas, tipos, bandas, funciones, mover, publicar y la URL vieja', async ({
+test('la fórmula como excel: referencias con el clic, filas, tipos, bandas, funciones, mover y publicar', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
@@ -226,16 +225,4 @@ test('la fórmula como excel: referencias con el clic, filas, tipos, bandas, fun
   await funcionesConSugerencias(page, siguiente(pub), siguiente(conAyuda))
   await referenciaHaciaAbajo(page, seguro)
   await quitarGuardarYPublicar(page, seguro)
-
-  // (8) La URL vieja del Modo avanzado termina en la planilla, sin el panel.
-  await page.goto(urlDeLaFormula(origen.id, 'planilla', '?panel=editar-formula'))
-  await expect(page).toHaveURL(enElEditor(origen.id, 'planilla'))
-  await expect(page).not.toHaveURL(/panel=/)
-  await expect(grilla(page)).toBeVisible()
-
-  // (9) «Empezar desde una plantilla» ya no existe: su URL vieja termina igual y la cabeza no ofrece el botón.
-  await page.goto(urlDeLaFormula(origen.id, 'planilla', '?panel=plantillas-de-v1'))
-  await expect(page).toHaveURL(enElEditor(origen.id, 'planilla'))
-  await expect(page).not.toHaveURL(/panel=/)
-  await expect(page.getByRole('button', { name: 'Empezar desde una plantilla' })).toHaveCount(0)
 })
