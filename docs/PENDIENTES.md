@@ -107,6 +107,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Tras pasar a stock, el estado derivado de la cabecera del proyecto de repuestos (pendientes) sólo se actualiza al volver a entrar.
 - **[—]** «Actividad reciente» de la ficha del vehículo escribe el cambio de lead con su id («Lead de …: — → dbe6287c-…»): va el nombre del lead,
   o sin el id si quien mira no lo ve.
+- **[—]** La tabla de la ayuda con más columnas de las que caben deja las de texto de una letra de ancho al 100 % («Año», «Tipo de vehículo»): las cifras no
+  se parten y el texto lleva `wrap-anywhere`, cuyo mínimo es un carácter (`tabla-de-la-ayuda.tsx`, `fila-de-la-ayuda.tsx`) — un ancho mínimo por columna de
+  texto; cierre: `sinTextoCortado` en la prueba de la tabla ancha de `cotizar-hoja-ayuda-tabla.spec.ts`.
 - **[—]** e2e que caen de vez en cuando en `main` o en el CI de PR ajenos: `leads-ficha-derecha` (1 de 3), `leads-ficha-desplazamiento-interno` (depende de la geometría), `chat-menciones:87` (el foco), y sin causa vista `accesibilidad` en `movil`, `leads-alta` y `cotizaciones-papelera-enviar` — se arreglan si caen dos noches seguidas (`.claude/rules/e2e.md`).
 
 ## Deuda técnica
