@@ -38,6 +38,12 @@ las trampas, en `docs/LECCIONES.md`.
   lanzan planes, sesiones del nivel capaz ni la redacción de un pedido hasta que la semana se renueve (las de arreglo, cortas, sí): la tarea sigue
   esperando en su cola, sin pausa compartida que frene también a los arreglos. Un `resetsAt` inválido no anula el texto: se prueba el «resets …» antes
   de caer al plazo por defecto (`scripts/orquestador/README.md` › «Límite del plan»).
+- **Una sesión que termina sin `RESULTADO` por esperar un aviso o por un error de la API se sigue, no se retoma.** Cerró el turno con un
+  `task_started` sin su `task_notification`, o la cortó «No response from API»: `claude -p --resume <session_id>` en el mismo worktree y carril
+  (el carril se suelta después, no antes) conserva la conversación; una retoma nueva la reconstruye desde los archivos (US$2–14 la primera vez,
+  US$34 la segunda). `MAX_SEGUIR` (2) por sesión, sin gastar `MAX_RETOMAS`; sin `session_id`, un `--resume` que falla o sin pendientes ni error de
+  la API, la retoma de siempre. Se sigue aunque la rama ya tenga PR: la sesión seguida termina con su `RESULTADO` y su resultado se revisa como el
+  de cualquiera (`scripts/orquestador/README.md` › «Una sesión que termina sin `RESULTADO` se sigue»).
 - **Las esperas que sondean se rechazan en el hook.** Decirlo en el prompt no alcanza (cada vuelta de sondeo relee todo el contexto): `bloquear-esperas.sh` rechaza un Bash en primer plano con un bucle con `sleep` o un `sleep` de más de 5 s, y un Monitor que sólo cuenta tiempo; `run_in_background` pasa. Lee el texto del comando como el resto del hook: un mensaje o un `grep` que nombre las dos cosas juntas también cae (el texto largo va por Write o `-F`), y un bucle dentro de un guion no se ve.
 
 ## Base de datos y permisos
