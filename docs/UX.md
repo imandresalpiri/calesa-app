@@ -133,8 +133,8 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
    globo al pasar el puntero, al tocarlo o al llegar con →, y es la descripción del valor. Los títulos de sección van chicos y en mayúsculas;
    las franjas de subtotal, con el valor en la monoespaciada. «Avanzado» es un botón a lo ancho con los reguladores (lo que esconde es su
    descripción; «Hay datos por revisar.» va escrito) y abre un modal grande con sus secciones sin marco. Arriba del modal «Avanzado», «Tocar un valor lo cambia sólo en esta
-   cotización.» y, a quien tiene el ⚙, «El ⚙ cambia el valor por defecto de las cotizaciones nuevas.». La ayuda de texto de una celda puede
-   traer hasta 5 enlaces («Consulta estas fuentes», una tarjeta por enlace que abre en otra pestaña). Lo **sugerido** lleva un punto; sobrescrito queda **modificado** (anillo y ↺). Atajos (chips
+   cotización.» y, a quien tiene el ⚙, «El ⚙ cambia el valor por defecto de las cotizaciones nuevas.». La ayuda de una celda va en bloques
+   (un enlace es una tarjeta bajo «Consulta estas fuentes» que abre en otra pestaña). Lo **sugerido** lleva un punto; sobrescrito queda **modificado** (anillo y ↺). Atajos (chips
    de año) y **variante** (Moto, Auto Gasolina…) en píldoras, la elegida rellena del primario; **interruptores** (habilitar fila, mostrar
    garantía) sin caja, con el switch y su rótulo a la derecha (el motivo de uno apagado va escrito debajo). **Una celda que quien mira no puede
    ver no se dibuja ni llega**; una que no puede editar va con candado y su motivo. **Recalcula en la base** 150 ms después de la última
@@ -147,8 +147,22 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      afecta a toda la empresa (las guardadas conservan el suyo) y «Valor nuevo» (con Modo Live, como una celda); al cambiarlo la hoja se
      reabre con el valor nuevo y lo tipeado vuelve. Sin fila o desactivado, dice dónde se cambia; en una guardada, que se cambia en
      Configuración › Empresa › Monedas y que la cotización conserva el suyo.
-   - **La ayuda** («Ayuda de X») abre un panel de sólo lectura con su texto o su tabla de referencia (la de la hoja abierta; cargando, sin
-     filas, tope de 1.000 filas, fallo con «Reintentar» o «Recargar»); con Modo Live sus cifras se tapan.
+   - **La ayuda** («Ayuda de X», `?ayuda=bloques&nodo=`) abre un panel con sus bloques en orden: el primer título va de nombre del panel (sin
+     él, «Ayuda de <rótulo>») y no se repite; un texto con sus saltos de línea y su **negrita**; los enlaces; y cada tabla (la de la hoja abierta,
+     sólo las columnas que el bloque nombra, en su orden; cargando, sin filas, tope de 1.000 filas, fallo con «Reintentar» o «Recargar»). Con Modo
+     Live las cifras de dinero se tapan. **Llenar una celda:** en una columna que llena una celda, cada cifra es un botón («Usar 14,94 % en IVA %»)
+     si esa celda se dibuja y se edita; tocarlo la escribe (como tipearla, con «Editado a mano» si pisa un cálculo), cierra la ayuda, deja el foco en
+     la celda y avisa «IVA % = 14,94 %» con «Deshacer» (con Live y una celda de dinero, sin la cifra). **«Tu vehículo»:** con un vehículo elegido,
+     la fila que casa con él va marcada y dice «Tu vehículo» delante de su primer valor. Una tabla que ya no está no se dibuja.
+   - **Editar la tabla desde la ayuda** (sólo en la hoja nueva, a quien configura el origen, sin Modo Live): ✎ «Editar la fila N», 🗑 «Quitar la fila
+     N» (tachada, con «Volver la fila N») y «+ Añadir fila»; se edita una fila a la vez, en sus campos («Factor, fila 2», con «Listo» o Enter y
+     «Cancelar»), y no se dibujan los botones de valor ni «Tu vehículo» (vuelven al cerrar una fila sin nada editado). El primer toque lee la tabla entera («Abriendo…»); si cambió desde que se abrió la hoja, sólo se abre con «La tabla cambió
+     desde que abriste la hoja: estás editando la de hoy.»; más de 2.000 filas o una que no se lee, «Esta tabla se edita en la configuración.». Al pie,
+     «Cambios sin guardar.» (o «Corrige la celda marcada para guardar.») con «Descartar» y «Guardar» («Guardando…»), que publica la tabla con la nota «Desde la ayuda de «<rótulo>».»: «Tabla
+     publicada (versión N).», y la hoja vuelve con la versión nueva de la fórmula y lo tipeado («Poniendo la hoja al día con la tabla nueva…»; a los
+     10 s, «Recargar»). Otra persona publicó entre medio: su nombre y cuándo, con «Recargar», y lo editado sigue; una celda que la base rechaza, en su
+     campo. Cerrar la ayuda con cambios pregunta. En una guardada o con Live, a quien configura sólo «Editar en la configuración» (el drawer de tablas
+     con esa tabla).
 4. **Resumen fijo:** total en la **tarjeta del total** (pegada arriba, de superficie invertida, con la etiqueta chica en mayúsculas y el monto
    grande; en par, una por opción; «Ver el detalle» va fuera de ella) (y en moneda local si se pidió con «Ver total en moneda local», apagado al nacer y sólo si la versión da su
    moneda), garantía si está a la vista, modo de tipo de cambio y toggle **Live**; al pie en el celular (alto máximo 40 % de la ventana) y
@@ -1798,6 +1812,9 @@ Configuración › Orígenes › un origen › «Tablas» de la barra de la fór
   Si es compartida, a qué orígenes les cambia.
 - **Desactivar** (`?tabla=<id>&panel=desactivar-tabla`, `<Confirmar>` «Desactivar «X»»; apagado con cambios sin publicar): no se deshace y la clave
   queda tomada. En uso: el texto de la base con las fórmulas que la usan. Sin conexión, el aviso dentro y queda abierto; conflicto, «Recargar» dentro.
+- **Desde la ayuda de la hoja:** quien configura el origen edita las filas de una tabla en la ayuda de una celda de la hoja nueva y «Guardar» la publica
+  con la misma RPC y sus mismos rechazos (Flujo 2 › «Editar la tabla desde la ayuda»); en el inspector de la hoja, «Abrir en Tablas» abre este drawer
+  con la tabla del bloque.
   Entró: «Desactivaste «X».» y vuelve a la lista.
 - **Abrir una:** sólo si está en la lista del origen elegido; si no, o si ya no está o pasa de 2.000 filas, su motivo con «Volver a las
   tablas». El editor (con `diferido()`) ocupa el lugar de la lista: «Volver a las tablas» (no pregunta: el borrador conserva lo hecho),
@@ -1865,10 +1882,16 @@ suma desde «Sin lugar en la hoja».
 - **Quitar:** «Quitar» del «⋯» lo hace en el acto, con «Quitaste «Aduana».» y «Deshacer» (es reversible; la fila vuelve a «Sin lugar en la hoja»).
 - **El inspector:** el título de la pieza y sus campos, en bloques. **Sección:** «Título» (≤ 80; vacío lo quita), «Dónde va» (Principal | Avanzado), «Quién la ve»
   y «Quién la edita». **Celda:** «Rótulo» y «Formato» (editan la fila de la fórmula: guardar manda la definición editada), «Ancho» («12 columnas (toda la fila)»
-  … «1 columna»), «Quién la ve», «Quién la edita» y la ayuda: «Ayuda con una tabla» (las que nombra la fórmula) o «Ayuda con un texto» (≤ 300; una quita la
-  otra) con hasta 5 enlaces: «Agregar enlace» (apagado con «Hasta 5 enlaces.» o, sin texto, «Escribe primero el texto de la ayuda.»), «Título del enlace N»
-  (≤ 60) y «Dirección del enlace N» validados al tipear («Escribe un título.», «Hasta 60 caracteres.», «Tiene que empezar con https://.», «No puede llevar
-  espacios ni tildes.») y «Quitar». Atajos: «Columna de los chips» y «Cuántos chips (1 a 12)». Interruptor: «Qué hace»: «Habilita» o «Muestra». Variante y
+  … «1 columna»), «Quién la ve», «Quién la edita» y **«Ayuda»**: sus bloques en orden («Sin ayuda: la celda no muestra el botón «?».»), cada uno con su «⋯» («Mover
+  antes», «Mover después», Alt+↑/↓ con el foco en él; el foco vuelve a su «⋯»; «Quitar» con «Deshacer»), y «+ Bloque» (Título, Texto, Enlaces o Tabla; nace
+  vacío al final, el de tabla con la primera tabla del origen que la ayuda no usa; cada tipo, apagado con su motivo: «Hasta 8 bloques.», «Hasta 3 tablas por ayuda.»,
+  «Este origen no tiene tablas.»). Un bloque vacío o con un rechazo se marca con «Completa este bloque.». **Título** (≤ 80) y **Texto** (≤ 1.000, «Escribe
+  **así** para negrita.»). **Enlaces** (de 1 a 5): «Título del enlace N» (≤ 60) y «Dirección del enlace N» validados al tipear («Escribe un título.», «Hasta
+  60 caracteres.», «Tiene que empezar con https://.», «No puede llevar espacios ni tildes.»), «Quitar el enlace N» (no el único) y «Agregar enlace» (apagado
+  con «Hasta 5 enlaces.»). **Tabla:** «Tabla» (en dos grupos, «De <Origen>» y «Compartidas»; sin catálogo, «No pudimos leer las tablas del origen.» y las
+  que nombra la fórmula), «Abrir en Tablas» (el drawer de tablas de la pestaña con ella, sin perder lo armado), sus columnas en el orden de la tabla, cada
+  una con «Mostrar «<columna>»» («Muestra al menos una columna.») y «<columna>» llena la celda» («Ninguna» o una celda que acepta un valor; una que ya no,
+  «Esa celda no acepta un valor en la hoja.»), y «Resaltar la fila del vehículo». Atajos: «Columna de los chips» y «Cuántos chips (1 a 12)». Interruptor: «Qué hace»: «Habilita» o «Muestra». Variante y
   subtotal se ven y no se editan. Niveles: «Todos» y los vivos; uno retirado que el diseño usa, «<nombre> (retirado)». Elegir quién ve alinea quién edita. **Lo
   que no admite nivel** (el total y lo que va aparte, o una sección que los tiene): «Quién la ve» apagado con su motivo. Con `equipo.roles.gestionar`, «+ Nuevo
   nivel» (el modal de Roles, `?panel=nuevo-nivel`; el creado queda elegido; en el tope, apagado con su motivo). **Una fila que ya no está en la fórmula**

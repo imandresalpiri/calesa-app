@@ -817,8 +817,29 @@ las trampas, en `docs/LECCIONES.md`.
   de Tab** (`tabIndex -1`): la tarea de oro «cotizar» no suma paradas (lo pidió la persona) y con el teclado lo mismo se alcanza por las barras, «Vista previa»
   del resumen y las celdas. El nombre de cada botón es lo que se ve («Vehículo», sin chocar con el de la barra, «Vehículo: …»); el punto es su descripción y su
   `title`.
-- **Los enlaces de la ayuda piden texto** (`{texto, enlaces?}`: no hay ayuda de sólo enlaces; borrar el texto se los lleva). Su URL se valida en la base, en el
-  esquema del diseño **y** en el de la hoja (`URL_DE_ENLACE`), con `rel="noopener noreferrer"`.
+- **La ayuda de una celda es una lista de bloques** (glosario: «Bloque de la ayuda»): título, texto, enlaces y tabla, en el orden que se elige, hasta 8 y
+  hasta 3 tablas. La URL de un enlace se valida en la base, en el esquema del diseño **y** en el de la hoja (`URL_DE_ENLACE`), con `rel="noopener noreferrer"`.
+  El texto sólo interpreta saltos de línea y `**negrita**` (nada de HTML ni Markdown entero: es lo que pedía la ayuda de V1 y no abre una puerta a dibujar lo
+  que escribe quien configura). La nota bajo una tabla es un bloque de texto, no un campo de la tabla. **La ayuda de antes** (`{texto, enlaces?}`, `{tabla}`)
+  se sigue aceptando y se lee como bloques en la base y en TS (`_diseno_bloques_de_la_ayuda()`, `ayudaEnBloques()`): sin migración de datos, ninguna versión
+  publicada cambia; el editor la escribe en bloques al tocarla. Descartadas: convertir los diseños guardados con una migración (reescribe versiones publicadas,
+  que son inmutables) y un texto enriquecido (más JS y más superficie por una negrita).
+- **Llenar una celda desde la ayuda** es tipear: `alAplicar()` de la hoja, con «Editado a mano» si pisa un cálculo y «Deshacer» que repone lo de antes sólo si
+  la hoja sigue como la dejó el clic. Un tipo de cambio no se llena: en la hoja no se tipea (cambiarlo es de la empresa). La columna que llena una celda que
+  quien mira no ve viaja sin `llena`. Descartadas: llenar sin cerrar la ayuda (la celda llenada queda tapada) y elegir la fila entera (una fila llena varias
+  celdas: un error se nota tarde).
+- **«Tu vehículo» casa como el motor** (igualdad estricta, la primera fila gana) con el `match` del primer nodo `tabla` visible que lee la tabla; si una entrada
+  no se resuelve, no se marca nada: con una parte del `match` se marcaría una fila que no es la del vehículo.
+- **El catálogo de tablas se revisa sólo al publicar a mano** (`ayuda_tabla_inexistente`, `ayuda_columna_inexistente`): la N+1 de una tabla, el ⚙ y revertir no
+  lo miran, porque si no una ayuda que nombra una columna quitada trabaría publicar la tabla; el editor marca el bloque. Una tabla que sólo nombra una ayuda
+  no se congela en la versión ni genera N+1: se lee viva. Un bloque sin `columnas` (la ayuda de antes) no suma columnas a lo que `cotizacion_tabla()` deja
+  leer: muestra lo que ya se lee.
+- **Editar la tabla desde la ayuda es publicarla entera, sobre la viva** (área `tablas`): se edita en memoria, una fila a la vez, con un solo «Guardar» que
+  llama a `tabla_referencia_publicar()` con la versión leída; sin borrador en la pestaña (cerrar la ayuda con cambios pregunta). Se lee la tabla viva al primer
+  toque; si cambió desde que se abrió la hoja, sólo se abre (lo pedido se haría sobre filas que la persona no vio). Publicada, si una fórmula del origen pasó a
+  la versión siguiente, la hoja se vuelve a abrir con ella y el borrador repone lo tipeado; lo que no vuelve (`loQueNoVuelve()`) se avisa con un texto genérico
+  (sin nombrar celdas que tal vez ya no existen). Sólo en la hoja nueva sin Modo Live: en una guardada o con Live, «Editar en la configuración». Descartadas:
+  guardar cada fila al salir de ella (una publicación por fila: N+1 versiones de cada fórmula) y editar la copia congelada (no es lo que se cotiza después).
 - **«Ver total Bs» se guarda con la cotización.** `ver_total_bs` validado contra el diseño de esa versión; `moneda_bs` sale del TC de `total_en`; si es nula no hay interruptor. El modo de TC es parte de las entradas.
 - **La ayuda de tabla.** Si la celda es de dinero, cada cifra pasa por `<Monto>`; sólo columnas declaradas; tope 1.000 filas. `dato_del_vehiculo` (columna ← campo de texto) guarda en el vehículo por `vehiculo_guardar` y recarga.
 - **Paneles de la hoja.** Vehículo y cliente leen desde el navegador y escriben su URL con `nuqs` + `replace`; elegir cliente conserva lo tipeado (borrador por persona, origen y vehículo); «Nuevo lead» es el del shell con `?elegir=`.
@@ -1015,6 +1036,12 @@ las trampas, en `docs/LECCIONES.md`.
   («Ahora la ve «Costos»: antes la veían todos.») y una combinación inválida (`editar_sin_ver`, `nivel_no_admitido`) queda marcada como cualquier rechazo. Se arrastra con el dnd-kit que ya
   estaba (un `DndContext`, un `SortableContext` por sección), sólo en el `diferido()` de la pestaña; nada se reordena mientras se arrastra (el lienzo está escalado y una traslación se
   escalaría dos veces): una marca dice dónde cae y el cambio llega al soltar. Con el teclado, Alt+flechas y el «⋯» de la pieza.
+- **La ayuda se arma en el inspector, bloque por bloque.** «+ Bloque» es un menú (Título, Texto, Enlaces, Tabla; cada tipo apagado con su motivo) y el bloque
+  nace vacío al final, marcado con «Completa este bloque.» hasta llenarlo; uno de tabla nace con la primera tabla del origen que la ayuda no usa (las propias
+  antes que las compartidas). Cada bloque se mueve con su «⋯» o Alt+↑/↓ (el foco vuelve a su «⋯») y se quita con «Deshacer», que lo devuelve sobre el diseño
+  de ese momento. Las columnas de un bloque se eligen sobre las de la tabla, en su orden: todas a la vista y sin llenar nada se guarda sin `columnas`. «Abrir en
+  Tablas» abre el drawer de tablas de la pestaña (`?panel=tablas&tabla=`), sin salir del editor ni perder lo armado. Descartadas: un botón por tipo (cuatro
+  botones bajo cada celda) y llevar a la Planilla para ver la tabla (dejaba el editor con cambios sin guardar).
 - **El lienzo se escala con CSS `zoom`, no con `transform: scale`.** Un hijo de 412, 1.280 o 1.920 px con `zoom = min(1, disponible / ancho)` («Texto al 200 %»: 206 px con `zoom: 2`). Con
   `zoom`, `getBoundingClientRect` y el puntero coinciden con lo dibujado, que es lo que miden dnd-kit y el borde de ancho; con `transform` habría que corregir cada medida.
 - **Las cifras del lienzo salen de `cifrasDelDiseno()`** (datos en 0, `UNIDAD_EN_CEROS`), no de la unidad de ejemplo de la Planilla: el área `diseno` no importa `formula`, y una hoja de
