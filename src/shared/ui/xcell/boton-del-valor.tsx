@@ -56,6 +56,8 @@ export function BotonDelValor(props: Props) {
       id={idDelBoton}
       type="button"
       data-parada={props.parada}
+      // Qué lado de la celda es: quien lleva el foco a un lado (la ayuda, tras usar un valor) lo busca por aquí.
+      data-lado={lado}
       data-vacio={datos.valor === null ? '' : undefined}
       className={claseDelBoton(props.grande, props.soloEsteLado)}
       aria-labelledby={`${idDeLaEtiqueta} ${idDelBoton}`}

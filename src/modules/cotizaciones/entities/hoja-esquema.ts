@@ -79,16 +79,34 @@ const aspectoComun = {
   tono: esquemaId.optional(),
 }
 
-// Los enlaces de la ayuda de texto: la URL se vuelve a mirar aquí (`URL_DE_ENLACE`), así un `href` nunca recibe algo que no sea `https://`.
-const esquemaAyuda = z.union([
-  z.object({ tabla: esquemaId }),
+// La ayuda como bloques (`ayuda-de-la-hoja.ts`). La URL de un enlace se vuelve a mirar aquí (`URL_DE_ENLACE`), así un `href` nunca recibe algo que no sea
+// `https://`.
+const esquemaCasa = z.union([
+  z.object({ columna: esquemaId, nodo: esquemaId }),
+  z.object({ columna: esquemaId, campo: esquemaCampo }),
+])
+const esquemaBloqueDeLaHoja = z.discriminatedUnion('tipo', [
+  z.object({ tipo: z.literal('titulo'), texto: z.string().min(1) }),
+  z.object({ tipo: z.literal('texto'), texto: z.string().min(1) }),
   z.object({
-    texto: z.string().min(1),
+    tipo: z.literal('enlaces'),
     enlaces: z
       .array(z.object({ titulo: z.string().min(1), url: z.string().regex(URL_DE_ENLACE) }))
+      .min(1),
+  }),
+  z.object({
+    tipo: z.literal('tabla'),
+    tabla: esquemaId,
+    columnas: z
+      .array(z.object({ columna: esquemaId, llena: esquemaId.optional() }))
+      .min(1)
       .optional(),
+    resaltar: z.literal(true).optional(),
+    casa: z.array(esquemaCasa).min(1).optional(),
+    id: z.guid().optional(),
   }),
 ])
+export const esquemaAyudaDeLaHoja = z.array(esquemaBloqueDeLaHoja).min(1)
 
 // Qué columna de la tabla de una celda casa con qué dato del vehículo (4.14-2c2): las filas para elegirlo las da `cotizacion_tabla`.
 const esquemaDatoDelVehiculo = z.object({
@@ -107,7 +125,7 @@ export const esquemaCelda = z
     ...aspectoDeItem,
     tono: esquemaId.optional(),
     ajustes: z.boolean(),
-    ayuda: esquemaAyuda.optional(),
+    ayuda: esquemaAyudaDeLaHoja.optional(),
     dato_del_vehiculo: esquemaDatoDelVehiculo.optional(),
     solo_en: z.array(esquemaId).optional(),
     condicion: esquemaId.optional(),

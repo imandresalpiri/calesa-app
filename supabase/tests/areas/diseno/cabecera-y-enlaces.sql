@@ -58,6 +58,9 @@ begin
     ('{"ver_total_bs": false, "ver_total_bs_por_defecto": true}', null, 'ver_total_bs_por_defecto_no_ofrecido', 'cabecera',
      '«Ver total» no puede salir encendido por defecto si la cabecera no lo ofrece.'),
     ('{}', '{"texto": "Mira.", "enlaces": [{"titulo": "Copart", "url": "http://www.copart.com/"}]}', 'ayuda_enlace_no_https', 'a',
+     'Un enlace de la ayuda de «a» tiene que empezar con https:// y no llevar espacios.'),
+    ('{}', '[{"tipo": "texto", "texto": "Mira."}, {"tipo": "enlaces", "enlaces": [{"titulo": "Copart", "url": "https://www.copart.com/"},
+            {"titulo": "IAAI", "url": "https://www.iaai.com/ lote"}]}]', 'ayuda_enlace_no_https', 'a',
      'Un enlace de la ayuda de «a» tiene que empezar con https:// y no llevar espacios.')
   ) as t(cab, ayuda, regla, donde, mensaje) loop
     v := pg_temp.cye_rechazo(r.cab, r.ayuda);

@@ -107,6 +107,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Tras pasar a stock, el estado derivado de la cabecera del proyecto de repuestos (pendientes) sólo se actualiza al volver a entrar.
 - **[—]** «Actividad reciente» de la ficha del vehículo escribe el cambio de lead con su id («Lead de …: — → dbe6287c-…»): va el nombre del lead,
   o sin el id si quien mira no lo ve.
+- **[—]** La tabla de la ayuda con más columnas de las que caben deja las de texto de una letra de ancho al 100 % («Año», «Tipo de vehículo»): las cifras no
+  se parten y el texto lleva `wrap-anywhere`, cuyo mínimo es un carácter (`tabla-de-la-ayuda.tsx`, `fila-de-la-ayuda.tsx`) — un ancho mínimo por columna de
+  texto; cierre: `sinTextoCortado` en la prueba de la tabla ancha de `cotizar-hoja-ayuda-tabla.spec.ts`.
 - **[—]** e2e que caen de vez en cuando en `main` o en el CI de PR ajenos: `leads-ficha-derecha` (1 de 3), `leads-ficha-desplazamiento-interno` (depende de la geometría), `chat-menciones:87` (el foco), y sin causa vista `accesibilidad` en `movil`, `leads-alta` y `cotizaciones-papelera-enviar` — se arreglan si caen dos noches seguidas (`.claude/rules/e2e.md`).
 
 ## Deuda técnica
@@ -135,6 +138,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Las lecturas de cotizaciones de quien ve «todos» sin `cotizaciones.privadas.ver` descartan las privadas ajenas sobre las rutas de siempre: leen de más en proporción a ellas, y la siembra de volumen no tiene privadas — sembrar un 10 % de privadas ajenas y una persona con «todos» sin el permiso en `medir-cotizaciones-listado.sql`, `medir-cotizaciones-buscar.sql`, `medir-cotizaciones-de-este-vehiculo.sql` (también las tarjetas de la ficha del vehículo) y `medir-relacionados.sql`; cierre: sin `Seq Scan`, bloques con 250.000 ≤ 1,2 × los de 50.000 + 20 y ≤ 50 ms.
 - **[—]** `_cotizacion_cadena` devuelve `{"oculta": true}` cuando la versión de encima es una privada ajena: delata que existe (`docs/DECISIONES.md` › «Cotizaciones privadas») — si molesta, saltarla en la cadena como si no existiera; cierre: un caso en `supabase/tests/areas/cotizaciones/privadas.sql`.
 - **[—]** `medir-cotizaciones-de-este-vehiculo.sql` a veces no lee `cotizaciones_origen_creado_idx` ni `cotizaciones_aprobadas_pkey`: el plan depende de cuándo se tomaron las estadísticas de `cotizaciones_aprobadas` (otra corrida pasa) — un `analyze` de `cotizaciones_aprobadas` tras sembrar, antes de medir.
+- **[—]** `medir-cotizacion-hoja.sql` cae en `main` (`db:medir`, fuera del CI): con todo el aspecto la hoja lee 38–39 bloques de `formulas` (su TOAST) y sin él
+  32–33 — candidato: en una función el registro `fo` guarda el diseño sin destoastear y cada una de sus diez `fo.diseno` lo vuelve a leer; leerlo
+  una vez en una variable. Cierre: la medición pasa.
 - **[—]** Tope de 40 ítems por diseño: `subasta_usa` tiene 39 — para crecer, subir `_diseno_maximo_de_items()` y la constante midiendo la hoja, o partir la hoja.
 
 ### Archivos y funciones sobre el tope

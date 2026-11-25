@@ -21,7 +21,7 @@ type Props = {
   contexto: ContextoDeHoja
   acciones: AccionesDeHoja
   guardando: boolean
-  // De dónde lee la ayuda de una tabla: de donde calcula esta hoja.
+  // De dónde leen las tablas de la ayuda: de donde calcula esta hoja.
   de: DeDondeCalcula
   // La versión de la fórmula y «Recargar»: sólo los usa el ajuste de una celda, si un área llenó el hueco.
   formula: { id: string; version: number }
@@ -43,7 +43,7 @@ export function LugaresDeLaHoja(props: Props) {
   return <LugaresConAjuste Ajuste={area.Ajuste} {...props} />
 }
 
-// Las secciones principales en su orden, con «Avanzado» (el botón y su modal) donde estaba la primera avanzada, y la ayuda (de texto o de una tabla) de sus celdas: quien guarda
+// Las secciones principales en su orden, con «Avanzado» (el botón y su modal) donde estaba la primera avanzada, y la ayuda en bloques de sus celdas: quien guarda
 // en la URL cuál se abre es la hoja, y el callback que reciben las celdas es uno solo (la `XCell` está en `memo`). El ajuste de una celda va en el mismo lugar que la ayuda:
 // con las secciones principales aquí y con las avanzadas dentro del modal.
 export function LugaresDibujados({
@@ -55,7 +55,8 @@ export function LugaresDibujados({
   ajuste,
   alAjustar,
 }: PropsDeLosLugares) {
-  const { ayuda, alAyudar } = useAyudaDeLaHoja(secciones, de)
+  // Mientras guarda, la hoja no se toca (`inert`): la ayuda, que va por un portal fuera de ella, tampoco escribe.
+  const { ayuda, alAyudar } = useAyudaDeLaHoja(de, guardando ? undefined : deLaHoja.alAplicar)
   const acciones = useMemo(
     () => ({ ...deLaHoja, alAyudar, ...(alAjustar ? { alAjustar } : {}) }),
     [deLaHoja, alAyudar, alAjustar],

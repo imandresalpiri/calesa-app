@@ -20,9 +20,9 @@ import {
 import { MARCA } from './soporte/cotizar-formula'
 import { sinScrollHorizontal, sinTextoCortado, textoGrandeAlCargar } from './soporte/recorrido'
 
-// La ayuda de texto de una celda de la hoja de cotizar (paso 4.13-4a, `docs/UX.md` › «Cotizar»): el botón «Ayuda de X» de la celda abre un panel de sólo lectura con su URL
-// (`?ayuda=texto&nodo=<id>`) y, al cerrarlo, el foco vuelve a ese botón. La celda de la hoja (`pub`) y la de «Avanzado» (`x_celda`, que abre su ayuda encima del modal) tienen cada
-// una la suya; la ayuda de una tabla es del 4.13-4c y la URL no abre lo que la hoja no muestra.
+// La ayuda de una celda de la hoja de cotizar (`docs/UX.md` › «Cotizar»): el botón «Ayuda de X» de la celda abre un panel de sólo lectura con sus bloques y su URL
+// (`?ayuda=bloques&nodo=<id>`; la de antes, `texto`, abre lo mismo) y, al cerrarlo, el foco vuelve a ese botón. La celda de la hoja (`pub`) y la de «Avanzado» (`x_celda`, que abre
+// su ayuda encima del modal) tienen cada una la suya; las tablas de la ayuda tienen su spec y la URL no abre lo que la hoja no muestra.
 test.describe.configure({ mode: 'serial' })
 
 let origen = { id: '', nombre: '' }
@@ -83,7 +83,7 @@ test('la ayuda de una celda de la hoja abre su texto con su URL; al cerrarla con
   await abrir(page)
   await botonDeAyuda(page, 'Pública').click()
   await expect(panel(page, 'Pública')).toContainText(AYUDA_DE_LA_HOJA)
-  expect(enLaUrl(page, 'ayuda')).toBe('texto')
+  expect(enLaUrl(page, 'ayuda')).toBe('bloques')
   expect(enLaUrl(page, 'nodo')).toBe('pub')
   await abiertaDeVerdad(panel(page, 'Pública'))
   await page.keyboard.press('Escape')
@@ -92,11 +92,12 @@ test('la ayuda de una celda de la hoja abre su texto con su URL; al cerrarla con
   await expect(botonDeAyuda(page, 'Pública')).toBeFocused()
 })
 
-test('recargada con su URL la ayuda se abre, y al cerrarla el foco vuelve al botón de su celda', async ({
+test('recargada con la URL de antes la ayuda se abre y la URL pasa a `bloques`; al cerrarla el foco vuelve al botón de su celda', async ({
   page,
 }) => {
   await abrir(page, url('&ayuda=texto&nodo=pub'))
   await expect(panel(page, 'Pública')).toContainText(AYUDA_DE_LA_HOJA)
+  await expect.poll(() => enLaUrl(page, 'ayuda')).toBe('bloques')
   await abiertaDeVerdad(panel(page, 'Pública'))
   await page.keyboard.press('Escape')
   await expect(panel(page, 'Pública')).toBeHidden()
@@ -125,7 +126,7 @@ test('la ayuda de una celda de «Avanzado» se abre encima del modal: Esc cierra
 test('recargada con el modal y la ayuda en la URL, se abren los dos y Esc cierra primero la ayuda', async ({
   page,
 }) => {
-  await abrir(page, url('&panel=avanzado&ayuda=texto&nodo=x_celda'))
+  await abrir(page, url('&panel=avanzado&ayuda=bloques&nodo=x_celda'))
   await expect(panel(page, `ETIQ-${MARCA}`)).toContainText(AYUDA_DE_AVANZADO)
   // Con la ayuda encima, el modal queda detrás (oculto a los lectores de pantalla): se lo busca por su cuerpo.
   await expect(page.locator('[data-avanzado-cuerpo]')).toBeAttached()
@@ -136,12 +137,12 @@ test('recargada con el modal y la ayuda en la URL, se abren los dos y Esc cierra
   await expect(botonDeAyuda(page, `ETIQ-${MARCA}`)).toBeFocused()
 })
 
-test('la URL no abre lo que la hoja no muestra: una celda de «Avanzado» con el modal cerrado, una de tabla, un id inventado', async ({
+test('la URL no abre lo que la hoja no muestra: una celda de «Avanzado» con el modal cerrado, un id inventado', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  for (const nodo of ['x_celda', 'con_ayuda', 'no_existe']) {
-    await page.goto(url(`&ayuda=texto&nodo=${nodo}`))
+  for (const nodo of ['x_celda', 'no_existe']) {
+    await page.goto(url(`&ayuda=bloques&nodo=${nodo}`))
     await paginaQuieta(page)
     await expect(page.getByRole('dialog')).toHaveCount(0)
     await expect(page.getByText(AYUDA_DE_AVANZADO)).toHaveCount(0)
@@ -150,7 +151,7 @@ test('la URL no abre lo que la hoja no muestra: una celda de «Avanzado» con el
 
 test('quien no ve «Avanzado» no recibe su ayuda aunque la URL la nombre', async ({ page }) => {
   await entrar(page, todos, { fresco: true })
-  await page.goto(url('&panel=avanzado&ayuda=texto&nodo=x_celda'))
+  await page.goto(url('&panel=avanzado&ayuda=bloques&nodo=x_celda'))
   await paginaQuieta(page)
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.locator('body')).not.toContainText(AYUDA_DE_AVANZADO)
@@ -182,7 +183,7 @@ for (const zoom of [100, 200]) {
     if (zoom === 200) {
       await textoGrandeAlCargar(page)
     }
-    await abrir(page, url('&ayuda=texto&nodo=pub'))
+    await abrir(page, url('&ayuda=bloques&nodo=pub'))
     await expect(panel(page, 'Pública')).toContainText(AYUDA_DE_LA_HOJA)
     await sinScrollHorizontal(page)
     await sinTextoCortado(panel(page, 'Pública'))

@@ -11,7 +11,7 @@ import { fallo, type FalloDeDiseno } from './motivos-de-diseno'
 import { estadoVacio, indexar, type ContextoDeDiseno, type Indice } from './validar-diseno-contexto'
 import { revisarCabecera } from './validar-diseno-cabecera'
 import { revisarAtajos, revisarCobertura, revisarTonos } from './validar-diseno-cobertura'
-import { revisarEnlaces } from './validar-diseno-enlaces'
+import { revisarAyudas } from './validar-diseno-ayudas'
 import { revisarModos } from './validar-diseno-modos'
 import { revisarSecciones, revisarTarjeta } from './validar-diseno-secciones'
 
@@ -38,7 +38,7 @@ export function validarDiseno(
 }
 
 // Las pasadas que cruzan el diseño con la fórmula, en el orden de `validar_diseno()`: §1 los modos, §1b lo que la cabecera trae por defecto,
-// §2–5 las secciones, la tarjeta, los atajos y la cobertura, §6 los tonos y §7 los enlaces de la ayuda.
+// §2–5 las secciones, la tarjeta, los atajos y la cobertura, §6 los tonos y §7 la ayuda de cada celda.
 function primerRechazo(ix: Indice, d: Diseno): FalloDeDiseno | undefined {
   const e = estadoVacio()
   return (
@@ -49,7 +49,7 @@ function primerRechazo(ix: Indice, d: Diseno): FalloDeDiseno | undefined {
     revisarAtajos(ix, e) ??
     revisarCobertura(ix, e) ??
     revisarTonos(ix, d) ??
-    revisarEnlaces(ix, d)
+    revisarAyudas(ix, d)
   )
 }
 

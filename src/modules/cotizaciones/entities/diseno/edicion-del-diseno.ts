@@ -10,6 +10,7 @@ import {
   COLUMNAS_DE_LA_REJILLA,
   PRESENTACIONES,
 } from '../diseno'
+import { tablasParaElCompilador, type TablaDelCatalogoDelOrigen } from '../catalogo-de-tablas'
 import type { Definicion } from '../formula'
 import type { ContextoDeDiseno } from '../validar-diseno'
 
@@ -142,15 +143,20 @@ export function ponerAncho(
   })
 }
 
-// Lo que `validarDiseno()` necesita saber del mundo: los niveles (también los retirados), los retirados y los tonos: los del catálogo de la empresa más los de
-// los grupos de la propia definición (los de los grupos son de la fórmula: `tono_inexistente` de un grupo la dice la base al publicar). Si el catálogo no se
-// pudo leer (`null`), también los que el diseño ya nombra: sin catálogo no hay una falsa alarma.
+// Lo que `validarDiseno()` necesita saber del mundo: los niveles (también los retirados), los retirados, los tonos (los del catálogo de la empresa más los de
+// los grupos de la propia definición: `tono_inexistente` de un grupo la dice la base al publicar) y el catálogo de tablas del origen (la tabla y las columnas
+// de un bloque de la ayuda). Si el catálogo de tonos no se pudo leer (`null`), también los que el diseño ya nombra: sin catálogo no hay una falsa alarma. Sin
+// el de tablas, no se revisa que existan (como la N+1 de una tabla).
 export function contextoDelEditor(
   definicion: Definicion,
   niveles: readonly NivelDelDiseno[],
-  catalogo: readonly string[] | null = null,
-  diseno?: Diseno,
+  catalogos: {
+    tonos?: readonly string[] | null
+    diseno?: Diseno | undefined
+    tablas?: readonly TablaDelCatalogoDelOrigen[] | null
+  } = {},
 ): ContextoDeDiseno {
+  const { tonos: catalogo = null, diseno, tablas = null } = catalogos
   const delDiseno =
     catalogo !== null || diseno === undefined
       ? []
@@ -168,6 +174,7 @@ export function contextoDelEditor(
         ...delDiseno,
       ]),
     ],
+    ...(tablas === null ? {} : { tablas: tablasParaElCompilador(tablas) }),
   }
 }
 

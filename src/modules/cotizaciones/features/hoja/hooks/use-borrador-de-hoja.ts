@@ -1,15 +1,19 @@
 'use client'
 
 import { useMemo } from 'react'
+import { avisar } from '@/shared/ui/toasts'
 import { useBorradorDeEstado } from '@/shared/ui/use-borrador-de-estado'
 import {
   entradasComoBorrador,
   entradasDelBorrador,
   esDescarte,
+  loQueNoVuelve,
   verTotalBsDelBorrador,
   type BorradorDeHoja,
 } from '../../../entities/borrador-de-hoja'
 import type { Entradas, IndiceDeHoja } from '../../../entities/entradas'
+
+const LO_QUE_NO_VUELVE = 'Lo tipeado volvió, salvo lo que esta versión de la hoja ya no tiene.'
 
 // El borrador de la hoja (4-29) sobre `useBorradorDeEstado` (sin tocarlo): al abrir, lo tipeado y no guardado vuelve contra la hoja de ahora con el aviso «Recuperamos…» y
 // «Descartar». Reponer pasa por la misma puerta que una confirmación y saca **un** recálculo: la excepción escrita a «sin efecto que dispare un pedido» (4.13-2). «Descartar»
@@ -56,6 +60,9 @@ export function useBorradorDeHoja({
       }
       const leido = { ...vacio, ...cambios }
       reponer(entradasDelBorrador(leido, indice), verTotalBsDelBorrador(leido, ofrece))
+      if (loQueNoVuelve(leido, indice)) {
+        avisar(LO_QUE_NO_VUELVE)
+      }
     },
   })
 }

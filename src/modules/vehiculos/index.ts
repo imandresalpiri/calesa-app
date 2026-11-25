@@ -57,7 +57,7 @@ export { elegidoDesde, type VehiculoElegido } from './entities/panel-para-cotiza
 export { avisoDeSubastaCerrada } from './features/panel-para-cotizar/lecturas'
 export type { DatosDelAviso as DatosDelAvisoDeSubastaCerrada } from './entities/subasta-cerrada'
 // El dato del elegido que se elige entre las filas de una tabla de la hoja (4.14-2c3): qué datos de la hoja se ofrecen, con su valor y la versión
-export { datosParaElegirDe, type ParaElegir } from './entities/dato-para-elegir'
+export { datosParaElegirDe, valoresParaCasar, type ParaElegir } from './entities/dato-para-elegir'
 
 // Qué ve y qué puede hacer la persona
 export {

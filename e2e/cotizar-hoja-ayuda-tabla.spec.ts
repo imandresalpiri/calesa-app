@@ -26,8 +26,8 @@ import {
 } from './soporte/cotizar-guardar'
 import { sinScrollHorizontal, sinTextoCortado, textoGrandeAlCargar } from './soporte/recorrido'
 
-// La ayuda de una tabla de una celda de la hoja de cotizar (paso 4.13-4c2, `docs/UX.md` › «Cotizar»): el botón «Ayuda de X» de la celda abre un panel de sólo lectura con la tabla
-// de referencia de la hoja ABIERTA (`cotizacion_tabla` con `p_abierta`) y su URL (`?ayuda=tabla&nodo=<id>`); al cerrarlo el foco vuelve a ese botón. La celda es `con_ayuda`
+// La tabla de la ayuda de una celda de la hoja de cotizar (`docs/UX.md` › «Cotizar»): el botón «Ayuda de X» de la celda abre un panel de sólo lectura con la tabla de referencia
+// de la hoja ABIERTA (`cotizacion_tabla` con `p_abierta`) y su URL (`?ayuda=bloques&nodo=<id>`; la de antes, `tabla`, abre lo mismo); al cerrarlo el foco vuelve a ese botón. La celda es `con_ayuda`
 // (una constante en dólares) y su tabla `ch_tabla`, que sólo lee un nodo del nivel «costos»: quien no lo ve no recibe ni el botón.
 test.describe.configure({ mode: 'serial' })
 
@@ -86,9 +86,16 @@ test('el botón de la celda abre la tabla con su URL, sus columnas con etiqueta 
   await botonDeAyuda(page).click()
   const ayuda = panel(page)
   await expect(ayuda).toContainText(NOMBRE_DE_LA_TABLA)
-  expect(enLaUrl(page, 'ayuda')).toBe('tabla')
+  expect(enLaUrl(page, 'ayuda')).toBe('bloques')
   expect(enLaUrl(page, 'nodo')).toBe('con_ayuda')
-  await expect(ayuda.getByRole('columnheader')).toHaveText(['Año', 'Tipo de vehículo', 'Factor'])
+  // La dueña configura el origen: la edición (su propio código diferido) suma «Acciones» al final; se espera a que llegue.
+  await expect(ayuda.getByRole('button', { name: 'Editar la fila 1' })).toBeVisible()
+  await expect(ayuda.getByRole('columnheader')).toHaveText([
+    'Año',
+    'Tipo de vehículo',
+    'Factor',
+    'Acciones',
+  ])
   await expect(ayuda.getByRole('row')).toHaveCount(4)
   // El año sin separador de miles; el factor, dinero de la celda (dólares), con sus dos decimales.
   await expect(ayuda.getByRole('cell', { name: '2018', exact: true })).toBeVisible()
@@ -101,11 +108,12 @@ test('el botón de la celda abre la tabla con su URL, sus columnas con etiqueta 
   await expect(botonDeAyuda(page)).toBeFocused()
 })
 
-test('recargada con su URL la tabla se abre, y al cerrarla el foco vuelve al botón de su celda', async ({
+test('recargada con la URL de antes la tabla se abre y la URL pasa a `bloques`; al cerrarla el foco vuelve al botón de su celda', async ({
   page,
 }) => {
   await abrir(page, url('&ayuda=tabla&nodo=con_ayuda'))
   await expect(panel(page)).toContainText(NOMBRE_DE_LA_TABLA)
+  await expect.poll(() => enLaUrl(page, 'ayuda')).toBe('bloques')
   await expect(panel(page).getByRole('row')).toHaveCount(4)
   await abiertaDeVerdad(panel(page))
   await page.keyboard.press('Escape')
@@ -137,21 +145,17 @@ test('quien ve «todos» sin «costos» no tiene el botón y la URL no abre la t
   await page.goto(url())
   await paginaQuieta(page)
   await expect(botonDeAyuda(page)).toHaveCount(0)
-  await page.goto(url('&ayuda=tabla&nodo=con_ayuda'))
+  await page.goto(url('&ayuda=bloques&nodo=con_ayuda'))
   await paginaQuieta(page)
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.locator('body')).not.toContainText(NOMBRE_DE_LA_TABLA)
 })
 
-test('la URL no abre lo que la hoja no muestra: una celda sin ayuda de tabla, un id inventado, una ayuda de texto', async ({
+test('la URL no abre lo que la hoja no muestra: una celda sin ayuda, un id inventado', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  for (const resto of [
-    '&ayuda=tabla&nodo=pub',
-    '&ayuda=tabla&nodo=no_existe',
-    '&ayuda=texto&nodo=con_ayuda',
-  ]) {
+  for (const resto of ['&ayuda=bloques&nodo=pub', '&ayuda=bloques&nodo=no_existe']) {
     await page.goto(url(resto))
     await paginaQuieta(page)
     await expect(page.getByRole('dialog')).toHaveCount(0)
@@ -184,7 +188,7 @@ for (const zoom of [100, 200]) {
     if (zoom === 200) {
       await textoGrandeAlCargar(page)
     }
-    await abrir(page, url('&ayuda=tabla&nodo=con_ayuda'))
+    await abrir(page, url('&ayuda=bloques&nodo=con_ayuda'))
     await expect(panel(page)).toContainText(NOMBRE_DE_LA_TABLA)
     await sinScrollHorizontal(page)
     await sinTextoCortado(panel(page))
@@ -204,8 +208,10 @@ for (const zoom of [100, 200]) {
     if (zoom === 200) {
       await textoGrandeAlCargar(page)
     }
-    await abrir(page, url('&ayuda=tabla&nodo=con_ayuda', ancha.id))
-    await expect(panel(page).getByRole('columnheader')).toHaveCount(9)
+    await abrir(page, url('&ayuda=bloques&nodo=con_ayuda', ancha.id))
+    // Las nueve de la tabla y «Acciones», que la edición de quien configura suma al llegar.
+    await expect(panel(page).getByRole('button', { name: 'Editar la fila 1' })).toBeVisible()
+    await expect(panel(page).getByRole('columnheader')).toHaveCount(10)
     await sinScrollHorizontal(page)
     const region = panel(page).getByRole('region')
     // Lo que no entra queda detrás: el contenedor se desplaza y la pista del borde derecho lo avisa.

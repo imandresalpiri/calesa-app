@@ -5,7 +5,8 @@ import { esLaPieza, type ClaveDePieza, type Diseno, type ItemDeDiseno } from '..
 import { conSeccion } from './edicion-del-diseno'
 import { admiteElTotal } from './total-de-la-hoja'
 
-function mover<T>(lista: readonly T[], desde: number, hasta: number): readonly T[] | null {
+// Lleva el elemento `desde` al lugar `hasta` (contado sin él). Nulo si alguno cae fuera de la lista o son el mismo.
+export function mover<T>(lista: readonly T[], desde: number, hasta: number): readonly T[] | null {
   const dentro = (i: number) => Number.isInteger(i) && i >= 0 && i < lista.length
   if (!dentro(desde) || !dentro(hasta) || desde === hasta) return null
   const salida = [...lista]

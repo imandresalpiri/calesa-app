@@ -144,11 +144,8 @@ export const DRAWERS_DEL_NUCLEO: Record<string, RegistroDeDrawer> = {
     mecanismo: 'contexto',
   },
   // --- cotizaciones
-  'src/modules/cotizaciones/features/hoja/components/ayuda-de-celda.tsx': {
-    sinFormulario: 'de sólo lectura: el texto de ayuda de una celda de la hoja',
-  },
-  'src/modules/cotizaciones/features/hoja/components/ayuda-de-tabla.tsx': {
-    sinFormulario: 'de sólo lectura: la tabla de referencia de una celda de la hoja',
+  'src/modules/cotizaciones/features/hoja/components/ayuda/ayuda-en-bloques.tsx': {
+    sinFormulario: 'de sólo lectura: la ayuda en bloques de una celda de la hoja',
   },
   'src/modules/cotizaciones/features/listado/components/resumen-de-cotizacion.tsx': {
     sinFormulario: 'de sólo lectura: el resumen de una cotización del listado (4.16-4b)',

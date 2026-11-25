@@ -4,13 +4,7 @@ import { esquemaDiseno, nodoDelItem, type Diseno } from '../diseno'
 import { esquemaDefinicion } from '../formula'
 import { validarDiseno } from '../validar-diseno'
 import { nodosPorId } from './admite-nivel'
-import {
-  columnasParaAtajos,
-  ponerAtajos,
-  ponerAyuda,
-  ponerEfecto,
-  tablasParaAyuda,
-} from './edicion-de-items'
+import { columnasParaAtajos, ponerAtajos, ponerEfecto } from './edicion-de-items'
 
 const juego = casos as unknown as {
   contexto: { niveles: string[]; retirados: string[]; tonos: string[] }
@@ -70,36 +64,5 @@ describe('interruptor', () => {
       efecto: 'muestra',
     })
     expect(ponerEfecto(d, 'hoja', 'cuenta_especial_usa', 'otro' as 'muestra')).toStrictEqual(d)
-  })
-})
-
-describe('ayuda de una celda', () => {
-  const celda = (d: Diseno) => itemDe(d, 'logistica', 'celda', 'transporte_bolivia')
-
-  it('T4 · el texto quita la tabla, la tabla quita el texto, vacío quita la clave, 301 se cortan a 300', () => {
-    const d = congelar(capturas)
-    const texto = ponerAyuda(d, 'logistica', 'transporte_bolivia', { texto: 'Hola mundo ' })
-    expect(celda(texto)).toMatchObject({ ayuda: { texto: 'Hola mundo ' } })
-    expect(celda(texto)).not.toHaveProperty('ayuda.tabla')
-    const tabla = ponerAyuda(texto, 'logistica', 'transporte_bolivia', { tabla: 'depreciacion' })
-    expect(celda(tabla)).toMatchObject({ ayuda: { tabla: 'depreciacion' } })
-    expect(celda(tabla)).not.toHaveProperty('ayuda.texto')
-    expect(celda(ponerAyuda(tabla, 'logistica', 'transporte_bolivia', null))).not.toHaveProperty(
-      'ayuda',
-    )
-    expect(
-      celda(ponerAyuda(d, 'logistica', 'transporte_bolivia', { texto: '   ' })),
-    ).not.toHaveProperty('ayuda')
-    const largo = ponerAyuda(d, 'logistica', 'transporte_bolivia', { texto: 'x'.repeat(301) })
-    expect(JSON.stringify(celda(largo))).toContain('x'.repeat(300))
-    expect(JSON.stringify(celda(largo))).not.toContain('x'.repeat(301))
-    expect(valida(texto)).toBe(true)
-  })
-
-  it('T4 · tablasParaAyuda da las tablas que nombra la fórmula, en orden y sin repetir, con la actual', () => {
-    const tablas = tablasParaAyuda(definicion, 'otra')
-    expect(new Set(tablas).size).toBe(tablas.length)
-    expect(tablas).toContain('depreciacion')
-    expect(tablas).toContain('otra')
   })
 })

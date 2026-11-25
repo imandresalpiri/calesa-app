@@ -31,7 +31,7 @@ export const itemsDeLista = () => [
     tono: 'verde',
     ajustes: false,
     editable: true,
-    ayuda: { tabla: 'fees' },
+    ayuda: [{ tipo: 'tabla', tabla: 'fees' }],
     solo_en: ['moto'],
     condicion: 'cuenta',
     requerido_si: 'cuenta',

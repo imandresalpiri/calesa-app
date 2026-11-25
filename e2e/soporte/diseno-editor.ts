@@ -133,7 +133,7 @@ export type DisenoEnLaBase = {
         nodo: string
         ancho?: string | number
         efecto?: string
-        ayuda?: { texto?: string; tabla?: string }
+        ayuda?: { texto?: string; tabla?: string } | Record<string, unknown>[]
         nivel_ver?: string
         nivel_editar?: string
       }[]

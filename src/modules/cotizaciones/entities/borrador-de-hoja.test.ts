@@ -4,6 +4,7 @@ import {
   entradasComoBorrador,
   entradasDelBorrador,
   esDescarte,
+  loQueNoVuelve,
   verTotalBsDelBorrador,
 } from './borrador-de-hoja'
 import { ENTRADAS_VACIAS, entradasIniciales, indiceDeHoja, type Entradas } from './entradas'
@@ -64,6 +65,17 @@ describe('el borrador de la hoja', () => {
       modoTc: null,
       atajos: new Map(),
     })
+  })
+
+  it('loQueNoVuelve dice si algo de lo tipeado no vuelve contra la hoja de ahora', () => {
+    expect(loQueNoVuelve(entradasComoBorrador(TIPEADAS), INDICE)).toBe(false)
+    expect(loQueNoVuelve(VACIO, INDICE)).toBe(false)
+    expect(loQueNoVuelve({ inputs: [['ya_no_esta', 2]] }, INDICE)).toBe(true)
+    expect(loQueNoVuelve({ overrides: [['otro_viejo', 3]] }, INDICE)).toBe(true)
+    expect(loQueNoVuelve({ atajos: [['atajos_viejos', 1]] }, INDICE)).toBe(true)
+    expect(loQueNoVuelve({ banderas: ['bandera_vieja'] }, INDICE)).toBe(true)
+    expect(loQueNoVuelve({ variante: 'opcion_vieja' }, INDICE)).toBe(true)
+    expect(loQueNoVuelve({ modoTc: 'modo_viejo' }, INDICE)).toBe(true)
   })
 
   it('«constructor» y «__proto__» no se cuelan, y lo ilegible se ignora', () => {

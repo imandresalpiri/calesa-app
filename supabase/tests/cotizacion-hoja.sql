@@ -258,7 +258,7 @@ begin
   if exists (select 1 from unnest(pg_temp.ch_items(r)) i where split_part(i, ':', 2) = any (v_ocultos)) then raise exception 'un ítem de «costos» viaja'; end if;
   if not pg_temp.ch_motivos_ok(r) then raise exception 'motivos: %', r; end if;
   -- La ayuda de «Transporte» la leen celdas que ve: viaja. La de «Factor DP» sólo la lee una celda de «costos»: no viaja, ni los atajos de esa celda.
-  if pg_temp.ch_item(r, 'celda', 'transporte_bolivia') -> 'ayuda' is distinct from '{"tabla": "transporte_usa_bolivia"}'::jsonb then raise exception 'la ayuda de Transporte: %', pg_temp.ch_item(r, 'celda', 'transporte_bolivia'); end if;
+  if pg_temp.ch_item(r, 'celda', 'transporte_bolivia') -> 'ayuda' is distinct from '[{"tipo": "tabla", "tabla": "transporte_usa_bolivia"}]'::jsonb then raise exception 'la ayuda de Transporte: %', pg_temp.ch_item(r, 'celda', 'transporte_bolivia'); end if;
   if pg_temp.ch_item(r, 'atajos', 'factor_dp') is not null or pg_temp.ch_item(r, 'celda', 'factor_dp') is not null then raise exception 'viaja la celda o los atajos del factor'; end if;
   -- Sin permiso de configurar ni de tipos de cambio: ningún ⚙. Todo lo que se ve se edita, salvo lo que se calcula (con motivo).
   if exists (select 1 from jsonb_path_query(r, 'strict $.secciones[*].items[*]') i where (i ->> 'ajustes')::boolean is true)
@@ -395,8 +395,10 @@ begin
   -- Una congelada vacía manda aunque haya una viva: sin chips.
   update public.formulas set params = params || '{"tablas": {"ch_tabla": []}}' where id = f;
   if jsonb_array_length(pg_temp.ch_item(pg_temp.ch_corre(duena, format('select public.cotizacion_hoja(%L)', o)), 'atajos', 'x_tabla') -> 'chips') <> 0 then raise exception 'una congelada vacía cae a la viva'; end if;
-  -- La ayuda de la tabla viaja si existe (la congelada, aunque vacía); si no existe en ningún lado, la celda va sin ayuda aunque quien mira configure el origen.
-  if pg_temp.ch_item(pg_temp.ch_corre(duena, format('select public.cotizacion_hoja(%L)', o)), 'celda', 'con_ayuda') -> 'ayuda' is distinct from '{"tabla": "ch_tabla"}'::jsonb then raise exception 'la ayuda con una congelada vacía'; end if;
+  -- La ayuda de la tabla viaja si existe (la congelada, aunque vacía), como un bloque, con el id de la viva (la compartida: la del origen está desactivada) a quien
+  -- configura; si no existe en ningún lado, la celda va sin ayuda aunque quien mira configure el origen.
+  it := pg_temp.ch_item(pg_temp.ch_corre(duena, format('select public.cotizacion_hoja(%L)', o)), 'celda', 'con_ayuda');
+  if it -> 'ayuda' is distinct from jsonb_build_array(jsonb_build_object('tipo', 'tabla', 'tabla', 'ch_tabla', 'id', v_tabla)) then raise exception 'la ayuda con una congelada vacía: %', it; end if;
   update public.formulas set params = params - 'tablas' where id = f;
   update public.tablas_referencia set activa = false where id = v_tabla;
   if pg_temp.ch_item(pg_temp.ch_corre(duena, format('select public.cotizacion_hoja(%L)', o)), 'celda', 'con_ayuda') ? 'ayuda' then raise exception 'la ayuda de una tabla que no existe'; end if;
@@ -639,7 +641,7 @@ begin
         end if;
       else
         -- Con el nivel, llega todo, con su etiqueta, su ayuda de texto, sus chips y sus dos tonos.
-        if (pg_temp.ch_item(r, 'celda', 'x_celda') ->> 'etiqueta') is distinct from 'ETIQ-' || v_tag or (pg_temp.ch_item(r, 'celda', 'x_celda') -> 'ayuda' ->> 'texto') is distinct from 'AYUDA-' || v_tag
+        if (pg_temp.ch_item(r, 'celda', 'x_celda') ->> 'etiqueta') is distinct from 'ETIQ-' || v_tag or (pg_temp.ch_item(r, 'celda', 'x_celda') -> 'ayuda' -> 0 ->> 'texto') is distinct from 'AYUDA-' || v_tag
            or (r -> 'secciones' -> 2 ->> 'titulo') is distinct from 'SECCION-' || v_tag or jsonb_array_length(pg_temp.ch_item(r, 'atajos', 'x_tabla') -> 'chips') <> 3
            or (select array_agg(t ->> 'clave' order by t ->> 'clave') from jsonb_array_elements(r -> 'tonos') t) is distinct from array['naranja', 'verde'] then
           raise exception 'nivel %: «%» no recibe lo del nivel: %', v_nivel, v_txt, r;

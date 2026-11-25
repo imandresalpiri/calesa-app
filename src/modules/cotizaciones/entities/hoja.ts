@@ -26,6 +26,7 @@ import {
   type TipoDeNodoDeHoja,
 } from './hoja-esquema'
 import type { Formato } from './nodos'
+import { ayudaDeLaHoja, type AyudaDeCelda } from './ayuda-de-la-hoja'
 import type { ParDeHoja } from './hoja-en-par'
 
 // La hoja que la pantalla recibe de `cotizacion_hoja()` (paso 4.13): la respuesta leída con `hoja-esquema.ts` y en camelCase.
@@ -46,8 +47,13 @@ export type SecundarioDeCelda = EdicionDeHoja & {
   sigueAlMonto?: true
 }
 
-export type EnlaceDeLaAyuda = { titulo: string; url: string }
-export type AyudaDeCelda = { tabla: string } | { texto: string; enlaces?: EnlaceDeLaAyuda[] }
+export type {
+  AyudaDeCelda,
+  BloqueEnLaHoja,
+  CasaDeLaFila,
+  ColumnaDeLaAyudaEnLaHoja,
+  EnlaceDeLaAyuda,
+} from './ayuda-de-la-hoja'
 
 // La columna de la tabla de una celda y el dato del vehículo con que se busca (`tipo` ← `tipo_vehiculo`).
 export type DatoDelVehiculo = { tabla: string; columnas: { columna: string; campo: string }[] }
@@ -176,7 +182,7 @@ function celdaDe(c: Crudo<typeof esquemaCelda>): CeldaDeHoja {
     ...aspectoDeItem(c),
     tono: c.tono ?? null,
     ajustes: c.ajustes,
-    ayuda: c.ayuda ?? null,
+    ayuda: ayudaDeLaHoja(c.ayuda),
     datoDelVehiculo: c.dato_del_vehiculo ?? null,
     soloEn: c.solo_en ?? null,
     condicion: c.condicion ?? null,

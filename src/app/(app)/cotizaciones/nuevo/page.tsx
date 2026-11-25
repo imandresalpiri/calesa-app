@@ -17,15 +17,21 @@ import {
   ProveedorDelTitulo,
 } from '@/modules/cotizaciones/pantallas/cotizar'
 import { HUECOS_DE_FORMULA_EN_LA_HOJA } from '@/modules/cotizaciones/pantallas/formula-hoja'
+import { ProveedorDeLaEdicionDeLaTabla } from '@/modules/cotizaciones/pantallas/tablas-hoja'
 import { requerirSesion } from '@/modules/equipo'
 import { getOrigenes, type OrigenResumen } from '@/modules/origenes'
 import { datosO } from '@/shared/lib/errores'
-import type { Permisos } from '@/shared/lib/permisos'
+import { puede, type Permisos } from '@/shared/lib/permisos'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { ConProveedorDeLaHoja } from '../con-proveedor-de-la-hoja'
 import { asesorQueMira, oNulo } from '../datos-de-la-tarjeta'
-import { idDeUrl, type Quien, type VehiculoDeLaUrl } from '../vehiculo-de-la-hoja'
+import {
+  idDeUrl,
+  valoresDelVehiculoDe,
+  type Quien,
+  type VehiculoDeLaUrl,
+} from '../vehiculo-de-la-hoja'
 import { BarrasDeLaHoja } from './barras-de-la-hoja'
 import { PantallaDeLaHoja } from './pantalla-de-la-hoja'
 import { tarjetaDeLaHojaNueva, tituloDelElegido } from './tarjeta-de-la-hoja'
@@ -160,6 +166,21 @@ function SinHoja({
   )
 }
 
+// Quien configura el origen edita las tablas de la ayuda desde la hoja (el hueco del área `tablas`); los demás sólo las consultan.
+function ConLaEdicionDeLasTablas({
+  puedeConfigurar,
+  children,
+}: {
+  puedeConfigurar: boolean
+  children: ReactNode
+}) {
+  return puedeConfigurar ? (
+    <ProveedorDeLaEdicionDeLaTabla>{children}</ProveedorDeLaEdicionDeLaTabla>
+  ) : (
+    children
+  )
+}
+
 async function HojaDelOrigen({
   sesion,
   asesor,
@@ -215,20 +236,25 @@ async function HojaDelOrigen({
           permisos={sesion.permisos}
           tarjeta={tarjetaDeLaHojaNueva({ elegido, cliente, asesor: elAsesor })}
         >
-          <PantallaDeLaHoja
-            key={`${origen.id}:${leadUsado ?? '-'}:${vehiculoUsado ?? '-'}`}
-            hoja={apertura.hoja}
-            iniciales={[apertura.inicial, inicialDeLaSegunda]}
-            vehiculoId={vehiculoUsado}
-            vehiculoSoltado={vehiculoSoltado}
-            leadId={leadUsado}
-            obligatorios={obligatorios}
-            elecciones={elecciones}
-            personaId={sesion.usuarioId}
-            // La celda sin valor por un dato que quien mira elige en el panel dice dónde se elige (4.14-2c3).
-            seEligen={camposQueSeEligen(paraElegir)}
-            pasos={pasos}
-          />
+          <ConLaEdicionDeLasTablas
+            puedeConfigurar={puede(sesion.permisos, 'cotizaciones.configurar', origen.id)}
+          >
+            <PantallaDeLaHoja
+              key={`${origen.id}:${leadUsado ?? '-'}:${vehiculoUsado ?? '-'}`}
+              hoja={apertura.hoja}
+              iniciales={[apertura.inicial, inicialDeLaSegunda]}
+              vehiculoId={vehiculoUsado}
+              vehiculoSoltado={vehiculoSoltado}
+              leadId={leadUsado}
+              obligatorios={obligatorios}
+              elecciones={elecciones}
+              personaId={sesion.usuarioId}
+              // La celda sin valor por un dato que quien mira elige en el panel dice dónde se elige (4.14-2c3).
+              seEligen={camposQueSeEligen(paraElegir)}
+              valoresDelVehiculo={valoresDelVehiculoDe(apertura.hoja, elegido?.vehiculo ?? null)}
+              pasos={pasos}
+            />
+          </ConLaEdicionDeLasTablas>
         </ConProveedorDeLaHoja>
       </ConElTitulo>
     </>

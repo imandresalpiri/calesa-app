@@ -72,6 +72,31 @@ export function entradasDelBorrador(
   }
 }
 
+// Si algo del borrador no vuelve porque la hoja de ahora no lo tiene (la versión siguiente tras publicar una tabla desde la ayuda, otro nivel): un nodo, una bandera, una
+// opción, unos atajos o un modo. Lo que no se lee no cuenta (tampoco volvía).
+export function loQueNoVuelve(b: Readonly<Record<string, unknown>>, indice: IndiceDeHoja): boolean {
+  const leido = esquema.safeParse({
+    inputs: [],
+    banderas: [],
+    overrides: [],
+    variante: null,
+    modoTc: null,
+    atajos: [],
+    ...b,
+  })
+  if (!leido.success) return false
+  const { inputs, banderas, overrides, variante, modoTc, atajos } = leido.data
+  const sinLado = (lista: [string, number][]) => lista.some(([id]) => !indice.lados.has(id))
+  return (
+    sinLado(inputs) ||
+    sinLado(overrides) ||
+    sinLado(atajos) ||
+    banderas.some((nodo) => !indice.interruptores.has(nodo)) ||
+    (variante !== null && !indice.opciones.has(variante)) ||
+    (modoTc !== null && !indice.modos.has(modoTc))
+  )
+}
+
 // `useBorradorDeEstado` llama a lo mismo al reponer y al «Descartar»: al reponer cada clave difiere de la hoja vacía (`cambiosDeEstado`); al descartar, todas son iguales.
 export function esDescarte(
   cambios: Readonly<Record<string, unknown>>,

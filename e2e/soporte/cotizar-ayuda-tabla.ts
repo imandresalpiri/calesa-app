@@ -69,3 +69,53 @@ export function publicarLaVersionSiguienteConTabla(origenId: string, filas: unkn
       values (v1.origen_id, v1.version + 1, 'publicada', v1.definicion, jsonb_set(v1.params, '{tablas,ch_tabla}', ${json(filas)}), v1.diseno, v1.visibilidad, 'E2E 4.13-4c2 siguiente', now());
     end $f$`)
 }
+
+// La ayuda en bloques de `con_ayuda` (glosario: «Bloque de la ayuda»): un título (el del panel), un texto con negrita, un enlace y la tabla `ch_tabla` con dos columnas, el
+// factor llenando «Pública» (`pub`, un dato en dólares que todos tipean) y «Tu vehículo» (`resaltar`: casa por el año del vehículo, el `match` de `x_tabla`).
+export const TITULO_DE_LA_AYUDA = 'Cómo sale el factor'
+export const AYUDA_EN_BLOQUES = [
+  { tipo: 'titulo', texto: TITULO_DE_LA_AYUDA },
+  { tipo: 'texto', texto: 'El factor sale de **la tabla del año**.' },
+  { tipo: 'enlaces', enlaces: [{ titulo: 'Copart', url: 'https://www.copart.com/' }] },
+  {
+    tipo: 'tabla',
+    tabla: 'ch_tabla',
+    columnas: [{ columna: 'anio' }, { columna: 'factor', llena: 'pub' }],
+    resaltar: true,
+  },
+]
+
+// Publica en el origen la fórmula de prueba con la ayuda de `con_ayuda` en bloques y `ch_tabla` congelada con `filasDePrueba(base)`, y su copia viva con las mismas
+// filas (lo que quien configura edita desde la ayuda).
+export function publicarConAyudaEnBloques(origenId: string, base: number): void {
+  const { definicion, params, diseno } = formulaDePrueba()
+  const secciones = diseno.secciones.map((s) => ({
+    ...s,
+    items: s.items.map((it) =>
+      'nodo' in it && it.nodo === 'con_ayuda' ? { ...it, ayuda: AYUDA_EN_BLOQUES } : it,
+    ),
+  }))
+  const filas = filasDePrueba(base)
+  const enSql = filas.map((f, i) => `(v_tabla, ${json(f)}, ${String(i)})`).join(',\n             ')
+  sql(`
+    do $f$
+    declare v_def jsonb := ${json(definicion)}; v_par jsonb := ${json(params)}; v_dis jsonb := ${json({ ...diseno, secciones })};
+            v_tabla uuid;
+    begin
+      v_par := jsonb_set(v_par, '{tablas,ch_tabla}', ${json(filas)});
+      delete from public.formulas where origen_id = ${literal(origenId)}::uuid;
+      delete from public.tablas_referencia where origen_id = ${literal(origenId)}::uuid and clave = 'ch_tabla';
+      insert into public.tablas_referencia (origen_id, clave, nombre, columnas)
+      values (${literal(origenId)}::uuid, 'ch_tabla', ${literal(NOMBRE_DE_LA_TABLA)}, ${json(COLUMNAS)}) returning id into v_tabla;
+      insert into public.tablas_referencia_filas (tabla_id, valores, orden)
+      values ${enSql};
+      insert into public.formulas (origen_id, version, estado, definicion, params, diseno, visibilidad, nota, publicado_en)
+      values (${literal(origenId)}::uuid, 1, 'publicada', v_def, v_par, v_dis, public._preparar_publicacion(v_def, v_par, v_dis, false), 'E2E ayuda en bloques', now());
+    end $f$`)
+}
+
+// Lo que haría otra persona entre que se abre la tabla en la ayuda y «Guardar»: publicar la tabla viva (sube su versión).
+export function otraPublicacionDeLaTabla(origenId: string): void {
+  sql(`update public.tablas_referencia set version = version + 1
+         where origen_id = ${literal(origenId)}::uuid and clave = 'ch_tabla'`)
+}

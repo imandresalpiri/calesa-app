@@ -54,6 +54,34 @@ export function datosParaElegirDe(
     : { version: vehiculo.actualizadoEn, editable, datos: paraElegir }
 }
 
+// Las columnas fijas del vehículo que una tabla de la hoja puede nombrar; cualquier otro campo es un atributo del layout (espejo de los datos del vehículo que la base
+// arma para la fórmula).
+const COLUMNAS_FIJAS = ['anio', 'marca', 'modelo', 'kilometraje', 'precio'] as const
+type ColumnaFija = (typeof COLUMNAS_FIJAS)[number]
+const esColumnaFija = (campo: string): campo is ColumnaFija =>
+  (COLUMNAS_FIJAS as readonly string[]).includes(campo)
+
+const TOPE_DEL_TEXTO_PARA_CASAR = 200
+
+// Lo que casa una fila de la tabla de la ayuda con este vehículo («Tu vehículo»): el valor de cada campo pedido como lo lee la fórmula, un número finito o un texto de
+// hasta 200 caracteres, sin convertir; lo nulo o de otro tipo no viaja (la fila no se resalta). `vehiculos` no conoce la hoja: la página le pasa los campos.
+export function valoresParaCasar(
+  vehiculo: Pick<Vehiculo, ColumnaFija | 'atributos'>,
+  campos: readonly string[],
+): Record<string, number | string> {
+  const valores: Record<string, number | string> = {}
+  for (const campo of campos) {
+    const valor: unknown = esColumnaFija(campo) ? vehiculo[campo] : vehiculo.atributos[campo]
+    if (
+      (typeof valor === 'number' && Number.isFinite(valor)) ||
+      (typeof valor === 'string' && [...valor].length <= TOPE_DEL_TEXTO_PARA_CASAR)
+    ) {
+      valores[campo] = valor
+    }
+  }
+  return valores
+}
+
 // La opción que coincide con el valor del vehículo: por igualdad estricta de textos, como el motor.
 export const marcadaDe = (valor: string | null, opciones: readonly string[]): string | null =>
   valor !== null && opciones.includes(valor) ? valor : null

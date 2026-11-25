@@ -162,20 +162,21 @@ begin
   r := pg_temp.ceh_corre(q, format('select public.cotizacion_hoja(%L)', o));
   if r ? 'error' then raise exception 'la hoja de la dueña: %', r; end if;
   if jsonb_path_query_first(r, 'strict $.secciones[*].items[*] ? (@.nodo == "fees").ayuda') is distinct from
-     '{"texto": "Lo cobra la subasta.", "enlaces": [{"titulo": "Copart", "url": "https://www.copart.com/"}, {"titulo": "IAA", "url": "https://www.iaai.com/"}]}'::jsonb then
+     '[{"tipo": "texto", "texto": "Lo cobra la subasta."},
+       {"tipo": "enlaces", "enlaces": [{"titulo": "Copart", "url": "https://www.copart.com/"}, {"titulo": "IAA", "url": "https://www.iaai.com/"}]}]'::jsonb then
     raise exception 'la ayuda con enlaces: %', jsonb_path_query_first(r, 'strict $.secciones[*].items[*] ? (@.nodo == "fees")');
   end if;
-  if jsonb_path_query_first(r, 'strict $.secciones[*].items[*] ? (@.nodo == "fob").ayuda.enlaces[0].titulo') is distinct from '"Escondido"'::jsonb then
+  if jsonb_path_query_first(r, 'strict $.secciones[*].items[*] ? (@.nodo == "fob").ayuda[1].enlaces[0].titulo') is distinct from '"Escondido"'::jsonb then
     raise exception 'quien ve «costos» no recibe los enlaces de «fob»';
   end if;
-  -- Una ayuda de texto sin enlaces no trae la clave.
-  if exists (select 1 from jsonb_path_query(r, 'lax $.secciones[*].items[*] ? (@.ayuda.texto != "" && @.nodo != "fees" && @.nodo != "fob").ayuda') x where x ? 'enlaces') then
-    raise exception 'una ayuda sin enlaces trae la clave';
+  -- Una ayuda de texto sin enlaces no trae un bloque de enlaces.
+  if exists (select 1 from jsonb_path_query(r, 'strict $.secciones[*].items[*] ? (@.nodo != "fees" && @.nodo != "fob" && exists(@.ayuda)).ayuda[*] ? (@.tipo == "enlaces")')) then
+    raise exception 'una ayuda sin enlaces trae un bloque de enlaces';
   end if;
 
   r := pg_temp.ceh_corre(a, format('select public.cotizacion_hoja(%L)', o));
   if r ? 'error' then raise exception 'la hoja de la asesora: %', r; end if;
-  if jsonb_path_query_first(r, 'strict $.secciones[*].items[*] ? (@.nodo == "fees").ayuda.enlaces[1].url') is distinct from '"https://www.iaai.com/"'::jsonb then
+  if jsonb_path_query_first(r, 'strict $.secciones[*].items[*] ? (@.nodo == "fees").ayuda[1].enlaces[1].url') is distinct from '"https://www.iaai.com/"'::jsonb then
     raise exception 'la asesora no recibe los enlaces de «fees»';
   end if;
   if exists (select 1 from jsonb_path_query(r, 'strict $.secciones[*].items[*] ? (@.nodo == "fob")')) then raise exception 'la asesora recibe «fob»'; end if;

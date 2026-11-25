@@ -37,7 +37,7 @@ calculatedValue?, calculatedFormat?, calculatedDecimals?, disabledReason?, secon
   «El par porcentaje-monto») y ↺ quita los dos.
 - **`secondaryProminent`** (el diseño dice `secundario: 'monto'`: el % es el valor de la celda, «14.94 % $181»): el secundario va **primero en el DOM**
   (el orden visual, el de Tab y el de las flechas coinciden) y grande, y el principal detrás, chico. `data-parada` sale de ese orden (el primero es 0, el
-  que busca la hoja y el que recibe el foco tras ↺). Los ids que emiten `onCommit` y `onReset` no cambian.
+  que busca la hoja y el que recibe el foco tras ↺); `data-lado` (`principal` o `secundario`) dice qué lado es cada botón. Los ids que emiten `onCommit` y `onReset` no cambian.
 
 ## La ayuda y el ⚙
 

@@ -7,6 +7,7 @@ import type { CotizacionDeLaHoja } from '../../../entities/hoja-de-una-guardada'
 import type { DeDondeCalcula } from '../../../entities/pedido-de-recalculo'
 import type { EstadoDeRecalculo } from '../../../entities/recalculo'
 import type { AccionesDeHoja } from '../hooks/use-hoja'
+import type { PropsDeLaTablaDeLaAyuda } from './tabla-de-la-ayuda'
 
 // Los huecos de la hoja (4.15-6): lo que un área llena sin que el núcleo la importe. Son tipos y nada más: el núcleo (`features/hoja`) no importa ningún área, y las páginas
 // de `src/app` unen los dos (`pantallas/<área>-<pantalla>.ts`). Un hueco vacío es un objeto sin componentes: la página no dibuja nada para él.
@@ -88,6 +89,24 @@ export type HermanaEnLaVistaPrevia = {
     guardadaEl: string
     retoques: RetoquesDeLaTarjeta | null
   }
+}
+
+// Lo que recibe la edición de una tabla desde la ayuda de una celda (el hueco `EdicionDeLaTabla`, que llena el área `tablas` con su proveedor; glosario: «Bloque de la
+// ayuda»): la tabla viva (sólo a quien configura le llega su id), el rótulo de la celda (la nota de lo publicado: «Desde la ayuda de <rótulo>»), lo que la ayuda dibuja de
+// ella (la de la hoja, con sus columnas y sus botones) y qué hacer al publicar: la hoja vuelve a pedir la página con la versión nueva (`'hoja'`) o relee la tabla (`'tabla'`:
+// ninguna fórmula de este origen la usa, así que no hubo una versión siguiente).
+export type PropsDeLaEdicionDeLaTabla = {
+  tabla: { id: string; nombre: string }
+  rotulo: string
+  base: PropsDeLaTablaDeLaAyuda
+  // «Editar en la configuración» (el enlace del núcleo), para la tabla que no se edita aquí (más de 2.000 filas o una que no se lee). Nulo sin el origen.
+  enLaConfiguracion: ReactNode
+  // La tabla tal cual (o su vacío), sin la edición: lo que se ve mientras llega el código de la edición o si no llega.
+  quieta: ReactNode
+  alPublicada: (publicacion: {
+    version: number
+    formulas: readonly { origenId: string }[]
+  }) => 'hoja' | 'tabla'
 }
 
 export type HuecosDeLaHoja = {

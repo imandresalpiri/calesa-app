@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { Tono } from '@/shared/ui/xcell'
+import type { TablaDelCatalogoDelOrigen } from '../../../entities/catalogo-de-tablas'
 import type { DisenoParaEditar, NivelDelDiseno } from '../../../entities/diseno/edicion-del-diseno'
 import {
   mismaVersionDelEditor,
@@ -31,6 +32,8 @@ type Props = {
   tonos: readonly Tono[]
   // Sus claves y nombres para elegir el color; nulo si no se pudo leer.
   catalogo: readonly TonoDelCatalogo[] | null
+  // El catálogo de tablas del origen (la ayuda de una celda); nulo si no se pudo leer.
+  tablas: readonly TablaDelCatalogoDelOrigen[] | null
   // Los niveles con su tope, para «+ Nuevo nivel»: sólo con `equipo.roles.gestionar` (nulo sin él o si no se leyó).
   listaDeNiveles: ListaDeNiveles | null
   // `cotizaciones.configurar` (sin origen, como `tono_crear()`): ofrece «+ Nuevo color».
@@ -60,6 +63,7 @@ export function DisenoDelOrigen({
   leida,
   listaDeNiveles,
   puedeCrearColores,
+  tablas,
   ...leidos
 }: Props) {
   const router = useRouter()
@@ -96,6 +100,7 @@ export function DisenoDelOrigen({
       niveles={creados.niveles}
       tonos={creados.tonos}
       catalogo={creados.catalogo}
+      tablas={tablas}
       nuevoNivel={nuevoNivel}
       alCrearColor={puedeCrearColores ? creados.sumarColor : null}
       recargando={recargando}

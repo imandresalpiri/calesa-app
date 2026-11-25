@@ -3,6 +3,7 @@ import {
   argumentosDeTabla,
   celdaDeTabla,
   columnasDeLaTabla,
+  columnasDelBloque,
   resultadoDeTabla,
   tablaDesde,
   type TablaDeAyuda,
@@ -119,6 +120,33 @@ describe('columnasDeLaTabla', () => {
 
   it('sin columnas ni filas, nada', () => {
     expect(columnasDeLaTabla(tabla())).toEqual([])
+  })
+})
+
+describe('columnasDelBloque', () => {
+  const t = tabla({
+    columnas: [
+      { clave: 'anio', etiqueta: 'Año', tipo: 'anio' },
+      { clave: 'iva', etiqueta: 'IVA', tipo: 'numero' },
+      { clave: 'zona', etiqueta: 'Zona', tipo: 'texto' },
+    ],
+  })
+
+  it('sin lista, todas las de la tabla y nada que falte', () => {
+    expect(columnasDelBloque(t, null)).toEqual({ columnas: columnasDeLaTabla(t), faltan: [] })
+  })
+
+  it('con lista, las pedidas en el orden del bloque; la que la tabla ya no tiene va a `faltan`', () => {
+    const { columnas, faltan } = columnasDelBloque(t, ['zona', 'borrada', 'anio'])
+    expect(columnas.map((c) => c.clave)).toEqual(['zona', 'anio'])
+    expect(faltan).toEqual(['borrada'])
+  })
+
+  it('una copia sin columnas declaradas casa la lista con las claves de su primera fila', () => {
+    const copia = tabla({ filas: [{ desde: 2018, nota: 'x' }] })
+    expect(columnasDelBloque(copia, ['nota']).columnas).toEqual([
+      { clave: 'nota', etiqueta: 'nota', tipo: 'texto' },
+    ])
   })
 })
 

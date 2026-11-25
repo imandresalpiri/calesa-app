@@ -759,7 +759,9 @@ fallar.
   por nodo: cada llamada de más a una función con `set search_path` cuesta ~50 µs por ítem. **El aspecto no la hace crecer:** la hoja de
   las capturas con aspecto en la cabecera, en cada sección y en cada ítem lee los mismos bloques de cada relación que la de siempre (lo
   afirma la medición) y bajo el mismo tope de 10 ms (medido 5,0 sin y 5,4 con); pesa 3.045 B más (10.868 → 13.913 B, ~64 B por pieza, bajo
-  el tope de 16 KB). Un diseño sin aspecto, +0 B.
+  el tope de 16 KB). Un diseño sin aspecto, +0 B. **La ayuda en bloques cabe:** la de la captura 04 (dos títulos, un texto, dos tablas con
+  sus columnas, lo que llenan y «Tu vehículo», y dos enlaces) en las tres celdas de «Impuestos» pesa 13.106 B (+2.103 sobre las capturas) y
+  tarda 6,3 ms, bajo los mismos topes de 16 KB y 10 ms (lo afirma la medición).
 - La hoja de una guardada (`cotizacion_hoja_guardada()`, `medir-cotizacion-hoja-guardada.sql`, 50.000 y 250.000): ≤ 20 ms y 1.500
   buffers, razón de `cotizacion_crear`, 0 recorridos de `cotizaciones` (la anterior por la clave; la nueva viva por `cotizacion_padre_id`),
   `_nodos_visibles` 2 veces y la respuesta de la dueña ≤ 14.230 B. Guarda: buscar la nueva sin índice recorre.

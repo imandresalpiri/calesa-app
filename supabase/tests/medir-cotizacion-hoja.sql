@@ -15,7 +15,9 @@
 --     que lee lo que ve): ≤ 25 ms, lo que suma la firma ≤ 3 ms y los bytes de cada una; la asesora sin «costos» no la recibe;
 --   - las guardas: una copia que lee `cotizaciones` por una columna sin índice rompe el 0, y una que lee la tabla viva entera, sin `limit`, rompe el tope de bloques de `tablas_referencia_filas`;
 --   - **el aspecto no la hace crecer**: la hoja de las capturas con todo el aspecto (cabecera, cada sección y cada ítem) lee los mismos bloques de cada relación que la de siempre, tarda
---     bajo el mismo tope y sus bytes de más se anotan (el aspecto viaja con el diseño ya leído).
+--     bajo el mismo tope y sus bytes de más se anotan (el aspecto viaja con el diseño ya leído);
+--   - **la ayuda en bloques cabe**: la hoja de las capturas con la ayuda de la captura 04 (un título, un texto con negrita, dos tablas con sus columnas, lo que
+--     llenan y «Tu vehículo», y dos enlaces) en las tres celdas de «Impuestos» pesa a lo sumo el tope y tarda bajo el mismo tope; sus bytes de más se anotan.
 \set ON_ERROR_STOP 1
 \set carga `cat /proc/loadavg`
 vacuum public.cotizaciones;
@@ -99,6 +101,39 @@ begin
   insert into _o values ('aspecto', v_o, v_id, 0);
   raise notice 'medicion|cotizacion_hoja, bytes del diseño de las capturas (sin el aspecto)|%', octet_length(f0.diseno::text);
   raise notice 'medicion|cotizacion_hoja, bytes del diseño de las capturas (con todo el aspecto)|%', octet_length(d::text);
+end $$;
+-- Las capturas con la ayuda en bloques de la captura 04 en las tres celdas de «Impuestos» (cada tabla llena el porcentaje de su celda), sobre las tablas que
+-- la semilla congela.
+do $$
+declare f0 public.formulas; v_o uuid; v_id uuid; d jsonb; it jsonb; i int; k int;
+begin
+  select f.* into f0 from public.formulas f join _o on f.id = _o.formula where _o.clave = 'subasta_usa';
+  d := f0.diseno;
+  for i in 0 .. jsonb_array_length(d -> 'secciones') - 1 loop
+    for k in 0 .. jsonb_array_length(d -> 'secciones' -> i -> 'items') - 1 loop
+      it := d -> 'secciones' -> i -> 'items' -> k;
+      if it ->> 'tipo' = 'celda' and it ->> 'nodo' in ('ga', 'iva', 'ice') then
+        d := jsonb_set(d, array['secciones', i::text, 'items', k::text, 'ayuda'], jsonb_build_array(
+          jsonb_build_object('tipo', 'titulo', 'texto', 'Impuestos por tipo de vehículo'),
+          jsonb_build_object('tipo', 'texto', 'texto', 'El porcentaje sale del **tipo de vehículo** y del año. Toca un valor para usarlo en la celda; '
+                                                    || 'la fila de tu vehículo va resaltada.'),
+          jsonb_build_object('tipo', 'tabla', 'tabla', 'transporte_usa_bolivia', 'resaltar', true,
+                             'columnas', jsonb_build_array(jsonb_build_object('columna', 'tipo'), jsonb_build_object('columna', 'cliente', 'llena', (it ->> 'nodo') || '_pct'))),
+          jsonb_build_object('tipo', 'titulo', 'texto', 'ICE según año y cilindrada'),
+          jsonb_build_object('tipo', 'tabla', 'tabla', 'depreciacion', 'resaltar', true,
+                             'columnas', jsonb_build_array(jsonb_build_object('columna', 'anio'), jsonb_build_object('columna', 'factor', 'llena', (it ->> 'nodo') || '_pct'))),
+          jsonb_build_object('tipo', 'enlaces', 'enlaces', jsonb_build_array(
+            jsonb_build_object('titulo', 'Aduana Nacional', 'url', 'https://www.aduana.gob.bo/'),
+            jsonb_build_object('titulo', 'Arancel aduanero', 'url', 'https://www.aduana.gob.bo/aduana7/arancel')))));
+      end if;
+    end loop;
+  end loop;
+  perform public.validar_diseno(f0.definicion, d, array['costos'], '{}', array['amarillo', 'naranja', 'verde']);
+  insert into public.origenes (clave, nombre) values ('medir_hoja_ayuda', 'Medir hoja ayuda') returning id into v_o;
+  insert into public.formulas (origen_id, version, estado, definicion, params, diseno, visibilidad)
+  values (v_o, 1, 'publicada', f0.definicion, f0.params, d, f0.visibilidad) returning id into v_id;
+  insert into _o values ('ayuda', v_o, v_id, 0);
+  raise notice 'medicion|cotizacion_hoja, bytes del diseño de las capturas (con la ayuda en bloques)|%', octet_length(d::text);
 end $$;
 analyze public.formulas;
 analyze public.tablas_referencia_filas;
@@ -256,6 +291,7 @@ set local plan_cache_mode = force_generic_plan;
 set local role authenticated;
 select pg_temp.caso('duena, capturas', 'duena', 'subasta_usa');
 select pg_temp.caso('duena, capturas con aspecto', 'duena', 'aspecto');
+select pg_temp.caso('duena, capturas con la ayuda en bloques', 'duena', 'ayuda');
 select pg_temp.caso_bloques('duena, capturas', 'duena', 'subasta_usa');
 select pg_temp.caso_bloques('duena, capturas con aspecto', 'duena', 'aspecto');
 select pg_temp.caso('asesora, capturas', 'asesora', 'subasta_usa');
@@ -314,6 +350,11 @@ begin
     v_fallas := v_fallas || format(E'\n  la hoja de las capturas con aspecto tarda %s ms (tope %s)', round((select ms from _med where caso = 'duena, capturas con aspecto'), 2), c_ms);
   end if;
   raise notice 'medicion|cotizacion_hoja, bytes de más de la hoja de las capturas con todo el aspecto|%', (select bytes from _med where caso = 'duena, capturas con aspecto') - m.bytes;
+  -- La ayuda en bloques: bajo los mismos topes, y sus bytes de más anotados.
+  select * into g from _med where caso = 'duena, capturas con la ayuda en bloques';
+  if g.bytes > c_bytes then v_fallas := v_fallas || format(E'\n  la hoja de las capturas con la ayuda en bloques pesa %s bytes (tope %s)', g.bytes, c_bytes); end if;
+  if g.ms > c_ms then v_fallas := v_fallas || format(E'\n  la hoja de las capturas con la ayuda en bloques tarda %s ms (tope %s)', round(g.ms, 2), c_ms); end if;
+  raise notice 'medicion|cotizacion_hoja, bytes de más de la hoja de las capturas con la ayuda en bloques|%', g.bytes - m.bytes;
   if (select ms from _med where caso = 'duena, planilla') > c_ms then v_fallas := v_fallas || E'\n  la hoja de la planilla tarda más que el tope'; end if;
   if (select filas from _med where caso = 'duena, atajos de la tabla viva') > c_filas then
     v_fallas := v_fallas || format(E'\n  los atajos de la tabla viva piden %s bloques de tablas_referencia_filas (tope %s)', (select filas from _med where caso = 'duena, atajos de la tabla viva'), c_filas);

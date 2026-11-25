@@ -154,12 +154,16 @@ begin
 end $$;
 rollback;
 
--- @test tablas columnas: quitar una columna sin uso la borra de las filas
+-- @test tablas columnas: quitar una columna sin uso la borra de las filas, aunque la muestre la ayuda en bloques de una celda
 begin;
 select pg_temp.tk_preparar();
 do $$
 declare a uuid := '00000000-0000-4000-8000-00000000d00a'; t public.tablas_referencia := pg_temp.tk_tabla('tk_tarifas'); r jsonb;
 begin
+  -- Una ayuda no retiene la columna: su bloque deja de mostrarla y publicar a mano lo marca (`ayuda_columna_inexistente`).
+  update public.formulas f set diseno = '{"secciones": [{"titulo": "S", "items": [{"tipo": "celda", "nodo": "remate", "ayuda":
+      [{"tipo": "tabla", "tabla": "tk_tarifas", "columnas": [{"columna": "pais"}, {"columna": "libre"}]}]}]}]}'
+   where f.origen_id = t.origen_id and f.estado = 'publicada';
   r := pg_temp.tk_cambiar(a, t.id, pg_temp.tk_cols('tk_tarifas', '{libre}'), 1);
   perform pg_temp.tk_igual((pg_temp.tk_tabla('tk_tarifas')).nota, 'Columnas: quitó «Libre».');
   perform pg_temp.tk_igual((select count(*)::text from public.tablas_referencia_filas x where x.tabla_id = t.id and x.valores ? 'libre'), '0');

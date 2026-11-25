@@ -48,6 +48,8 @@ type Props = {
   totalGuardado?: ReactNode
   // Los campos del vehículo que quien mira elige en el panel del vehículo (4.14-2c3): la celda sin valor por uno de ellos dice dónde se elige.
   seEligen?: ReadonlySet<string> | undefined
+  // Los datos del vehículo con que casa una tabla de la ayuda («Tu vehículo»), que manda la página. Sin ellos, la ayuda no marca la fila del vehículo por sus datos.
+  valoresDelVehiculo?: Readonly<Record<string, number | string>> | undefined
   // De dónde calcula y con qué abre (C1, C2). Sin nada, la hoja nueva.
   abre?: AperturaDeHoja
   // Una cotización guardada que quien mira puede guardar (4.15-3): su guardado, su versión y si lo de hoy no es lo guardado. Con ella, `guardado` va nulo.
@@ -85,10 +87,12 @@ function SinDatosQueVer() {
   )
 }
 
-// Lo que ven las celdas: el índice, lo tipeado, la última respuesta y los campos que se eligen en el panel del vehículo.
+// Lo que ven las celdas: el índice, lo tipeado, la última respuesta, los campos que se eligen en el panel del vehículo, y los datos del vehículo y el origen para la ayuda.
 function useContextoDeLaHoja(
   h: ReturnType<typeof useHoja>,
   seEligen: ReadonlySet<string> | undefined,
+  valoresDelVehiculo: Readonly<Record<string, number | string>> | undefined,
+  origenId: string,
 ) {
   return useMemo<ContextoDeHoja>(
     () => ({
@@ -96,8 +100,10 @@ function useContextoDeLaHoja(
       entradas: h.entradas,
       respuesta: h.respuesta,
       ...(seEligen ? { seEligen } : {}),
+      ...(valoresDelVehiculo ? { valoresDelVehiculo } : {}),
+      origenId,
     }),
-    [h.indice, h.entradas, h.respuesta, seEligen],
+    [h.indice, h.entradas, h.respuesta, seEligen, valoresDelVehiculo, origenId],
   )
 }
 
@@ -199,7 +205,7 @@ function useArmadoDeLaHoja(p: Props) {
     borrador: p.borrador,
     ...p.abre,
   })
-  const contexto = useContextoDeLaHoja(h, p.seEligen)
+  const contexto = useContextoDeLaHoja(h, p.seEligen, p.valoresDelVehiculo, p.hoja.origen.id)
   const { boton, hayCambios } = useBotonesDeGuardar({
     h,
     contexto,

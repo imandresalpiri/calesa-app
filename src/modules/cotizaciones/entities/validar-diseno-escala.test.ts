@@ -45,6 +45,7 @@ const ARCHIVOS = [
   'validar-diseno-modos.ts',
   'validar-diseno-secciones.ts',
   'validar-diseno-cobertura.ts',
+  'validar-diseno-ayudas.ts',
 ]
 
 describe('validarDiseno con volumen', () => {

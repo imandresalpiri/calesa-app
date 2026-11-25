@@ -378,11 +378,11 @@ begin
      or has_function_privilege('anon', 'public.formula_guardar_borrador(uuid,jsonb,jsonb,jsonb,text,uuid,timestamptz,uuid)', 'execute') then
     raise exception 'los grants de formula_guardar_borrador'; end if;
   if exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-              where n.nspname = 'public' and p.proname in ('_publicar_formula', '_preparar_publicacion', '_compilar_visibilidad', '_niveles_de_cotizacion', '_niveles_del_diseno', 'formula_auditar',
+              where n.nspname = 'public' and p.proname in ('_publicar_formula', '_preparar_publicacion', '_tablas_del_catalogo', '_compilar_visibilidad', '_niveles_de_cotizacion', '_niveles_del_diseno', 'formula_auditar',
                                  '_publicar_version', '_version_publicada_por')
                 and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('authenticated', p.oid, 'execute'))) then
     raise exception 'un ayudante se puede ejecutar: %', (select string_agg(p.proname, ',') from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-      where n.nspname = 'public' and p.proname in ('_publicar_formula', '_preparar_publicacion', '_compilar_visibilidad', '_niveles_de_cotizacion', '_niveles_del_diseno', 'formula_auditar',
+      where n.nspname = 'public' and p.proname in ('_publicar_formula', '_preparar_publicacion', '_tablas_del_catalogo', '_compilar_visibilidad', '_niveles_de_cotizacion', '_niveles_del_diseno', 'formula_auditar',
                                  '_publicar_version', '_version_publicada_por')
         and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('authenticated', p.oid, 'execute')));
   end if;

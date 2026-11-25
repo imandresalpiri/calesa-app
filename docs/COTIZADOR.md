@@ -296,8 +296,8 @@ FALSO])`; `REDONDEAR(x; n)`; `PORCENTAJE_DE(x; pct)`; `DEPRECIAR(x; tabla; sobre
   búsqueda (sólo una `constante` o un `calculo` llevan `texto`). La variante es valor sólo de la exacta (`variante_en_calculo` en la de
   tramo). La tabla y la columna se revisan contra **el catálogo del origen** (`ContextoDeCompilacion.tablas`: clave y columnas de las
   tablas activas del origen y las compartidas; con la misma clave manda la del origen, como al calcular): `tabla_inexistente`,
-  `tabla_sin_columnas`, `columna_inexistente`. Sin catálogo (la lectura falló), `tablas_sin_leer`: lo demás compila igual. El área
-  `formula` lo lee en el servidor (`leerCatalogoDeTablas()`, `tablas_referencia` por `tablas_referencia_origen_id_clave_key`, tope
+  `tabla_sin_columnas`, `columna_inexistente`. Sin catálogo (la lectura falló), `tablas_sin_leer`: lo demás compila igual. El núcleo lo
+  lee en el servidor para las áreas `formula` y `diseno` (`leerCatalogoDeTablas()`, `tablas_referencia` por `tablas_referencia_origen_id_clave_key`, tope
   `TOPE_DE_TABLAS_DEL_CATALOGO` = 100). Publicar no cambia: la tabla viva se lee al calcular y la congelada manda.
 - **Formato:** una comparación, `es_opcion`, Y u O auxiliar es `raw` (vale 1 o 0), y también la raíz de una fila nueva; una fila que ya
   existía conserva su formato.
@@ -425,8 +425,12 @@ tarjeta_total: {nodo, secundarios[]} }`.
   guardado (`_cotizacion_modo` acepta cualquier modo del diseño).
 - **`secciones[]`, en orden** (el del DOM, de lectura y del `Tab`): `id`, `titulo?`, `presentacion` (`principal`/`avanzado`),
   `nivel_ver?`/`nivel_editar?` (los heredan sus ítems), `items[]`. Las `avanzado` van juntas en **un** modal «Avanzado».
-- **`items`:** `celda` (`nodo`, `ancho`, `secundario?`, `ayuda?` = una `tabla` o un `texto` con hasta 5 `enlaces` `{titulo, url}`
-  —título de 1 a 60 caracteres, URL `https://` de hasta 2000—, `nivel_ver?`, `nivel_editar?`; **el
+- **`items`:** `celda` (`nodo`, `ancho`, `secundario?`, `ayuda?` = de 1 a 8 **bloques** en orden (`docs/GLOSARIO.md` › «Bloque de la ayuda»):
+  `titulo`, `texto` (con saltos de línea y `**negrita**`, lo único que se interpreta), `enlaces` (de 1 a 5 `{titulo, url}` —título de 1 a 60
+  caracteres, URL `https://` de hasta 2000—) y hasta 3 `tabla` (`{tabla, columnas?: [{columna, llena?}], resaltar?}`: sin `columnas`, todas las de
+  la tabla en su orden y sin llenar nada; `llena`, el nodo de la celda que recibe el valor tocado; `resaltar`, la fila que casa con el vehículo).
+  La ayuda de antes (`{texto, enlaces?}` o `{tabla}`) se sigue aceptando y se lee como bloques (`ayudaEnBloques()`, espejo de
+  `_diseno_bloques_de_la_ayuda()`); el editor la guarda en bloques en cuanto se toca. `nivel_ver?`, `nivel_editar?`; **el
   candado se deriva** —cálculo, dato del vehículo, condición apagada, otra variante o nivel que falta— y siempre dice su motivo; **el
   par porcentaje-monto es una sola celda**, con `secundario`); `atajos` (un nodo `tabla` sobrescribible, su `columna` y hasta 12
   `filas` como chips); `variante` (el nodo `opcion` como chips; obligatoria si hay variante); `interruptor` (una `bandera` con `efecto`
@@ -451,7 +455,7 @@ tarjeta_total: {nodo, secundarios[]} }`.
 
 **Primero la forma (`forma`)**, el Zod de `diseno.ts`; **después, el tamaño (`demasiados_items`)**: a lo sumo 40 ítems sumando todas las
 secciones (principal o avanzado; la cabecera y `tarjeta_total` no cuentan, la pieza `total` sí), con `donde` = la sección en la que la suma pasa del tope
-(`MAXIMO_DE_ITEMS_DEL_DISENO`; en la base, `_diseno_maximo_de_items()`). El borrador lo admite; publicar lo rechaza. **Después, 37 reglas
+(`MAXIMO_DE_ITEMS_DEL_DISENO`; en la base, `_diseno_maximo_de_items()`). El borrador lo admite; publicar lo rechaza. **Después, 40 reglas
 cruzadas** con código estable (lista en `entities/motivos-de-diseno.ts`; `donde` = id del nodo, sección, modo o grupo; en la base,
 `hint`), en pasadas: §1 los modos; §1b lo que la cabecera trae por defecto, todas con `donde` = `cabecera` y en este orden:
 `modo_por_defecto_inexistente`, cada modo visible en orden (`modo_visible_inexistente` y después `modo_visible_repetido`),
@@ -460,9 +464,15 @@ cruzadas** con código estable (lista en `entities/motivos-de-diseno.ts`; `donde
 cobertura (en §2, la pieza `total` se revisa entera antes de buscar un nodo, con `donde` = su sección: `total_repetido` —una sola en el
 diseño—, `total_en_avanzado` —sólo en una sección principal— y `total_con_nivel` —su sección no lleva `nivel_ver`: la ven todos—; no es el
 dibujo de un nodo, así que no cuenta para `nodo_repetido`, los atajos ni la cobertura); §6 `tono_inexistente`, que revisa el tono de cada grupo, después el de la cabecera (`donde` = `cabecera`) y después el de cada
-sección (`donde` = su id); §7 `ayuda_enlace_no_https` (`donde` = el nodo de la celda): la URL de un enlace de la ayuda cumple
-`^https://[!-~]+$` (ASCII imprimible sin espacios, la misma clase en JS y en Postgres: `URL_DE_ENLACE`). La forma de un enlace (de 1 a 5,
-`{titulo, url}`, los largos) es `forma`. Las de nivel: `nivel_no_admitido` (el total, lo `aparte` o la variante con nivel efectivo de ver que no es «todos»: la base
+sección (`donde` = su id); §7 la ayuda, celda por celda en el orden del diseño y bloque por bloque (`revisarAyudas()`, espejo de
+`_diseno_ayudas()`; `donde` = el nodo de la celda): `ayuda_enlace_no_https` (la URL de un enlace cumple `^https://[!-~]+$`, ASCII imprimible sin
+espacios, la misma clase en JS y en Postgres: `URL_DE_ENLACE`); **sólo con el catálogo de tablas del origen** (el que trae publicar a mano,
+`_tablas_del_catalogo()`: las activas del origen y las compartidas, la del origen gana), `ayuda_tabla_inexistente` y, columna por columna,
+`ayuda_columna_inexistente` (la ayuda de antes, `{tabla}`, no se mira contra el catálogo: la hoja la deja caer si no está); y siempre
+`ayuda_llena_no_acepta_valor` (lo que `llena` nombra es un nodo con celda en el diseño —o el porcentaje de una con secundario— que la hoja deja
+escribir: un dato que se tipea, una constante o un cálculo que se puede pisar; un tipo de cambio, no). Sin catálogo (el borrador, la N+1 de una
+tabla, el ⚙, revertir) esas dos no corren: la N+1 de una tabla publica aunque la ayuda nombre una columna que ya no está, y el editor lo marca en el
+bloque. La forma de un bloque (los tipos, los topes, los largos, una columna repetida en el bloque) es `forma`. Las de nivel: `nivel_no_admitido` (el total, lo `aparte` o la variante con nivel efectivo de ver que no es «todos»: la base
 siempre manda el total y lo `aparte`) y `editar_sin_ver` (ver restringido con editar ausente o «todos»; **ver abierto con editar
 restringido vale**). El primero que falla manda. **La definición llega ya validada.** `validar_diseno(def, diseno, niveles, retirados,
 tonos)`: STABLE, invoker, `search_path` vacío, 22023 con la regla en DETAIL y `donde` en HINT.
@@ -802,8 +812,12 @@ ver_total_bs, moneda_bs, ajustes}` más su aspecto y, sólo si el diseño las tr
   (congelada sin viva activa) y `filas` también (tabla vacía: el motor da `tabla_sin_filas` y la pantalla lo dice).
 - **Una celda** lleva `nodo`, `etiqueta`, `tipo_nodo`, `formato`, `ancho`, `tono`, `editable`, `motivo`, `ajustes`, `ayuda`,
   `dato_del_vehiculo`, `solo_en` y `condicion`/`requerido_si` **sólo si su bandera se ve**. **`editable`:** `editar` de `_nodos_visibles()`
-  **y** que el nodo acepte un valor. **`ayuda`:** la tabla (si existe y se lee) o `{texto, enlaces?}`; los enlaces viajan con su celda y la
-  hoja vuelve a exigir `URL_DE_ENLACE` antes de dibujar un `href`. **`motivo`** (lo que no se edita): `se_calcula`, `del_vehiculo`, `nivel`
+  **y** que el nodo acepte un valor. **`ayuda`:** sus bloques (la de antes, ya leída como bloques); título, texto y enlaces tal cual. Un bloque
+  de tabla viaja si la tabla existe (congelada en la versión o viva) y quien mira la lee —configura el origen, algún nodo que ve la lee o el
+  bloque nombra sus columnas—, con sus `columnas` (una que llena un nodo que no se ve no llena nada), `resaltar`, `casa` (sólo con `resaltar`:
+  cómo casa una fila con la hoja, del `match` del primer nodo `tabla` que se ve y la lee; si una entrada no se resuelve, no casa) e `id` (el de la
+  tabla viva, sólo a `cotizaciones.configurar`: la edición desde la ayuda). Sin ningún bloque, `ayuda` es nula. Los enlaces viajan con su celda y la hoja vuelve a exigir `URL_DE_ENLACE` antes de dibujar un
+  `href`. **`motivo`** (lo que no se edita): `se_calcula`, `del_vehiculo`, `nivel`
   (con el **nombre** del nivel que falta) o `no_se_edita`. **`ajustes` (⚙):** una constante con `cotizaciones.configurar` del origen, o un tipo de cambio con
   `empresa.tipos_cambio.gestionar`.
 - **El modo por clave:** la hoja recibe los modos sin sus `buckets`; `cotizacion_evaluar(…, p_modo_tc)` acepta la clave de un modo de esa
@@ -826,7 +840,8 @@ el mismo texto.
 - **`cotizacion_evaluar` (por origen):** calcula con **la versión y las tarifas de la abierta**. Si ya no se puede usar,
   `abierta_vencida` y la hoja pide «Recargar» (de otro origen, borrador o inexistente: `abierta_no_disponible`).
 - **`cotizacion_tabla` (por origen):** la tabla de una ayuda sale de **la versión de la abierta** (su definición, su copia congelada y lo
-  que deja ver); los mismos errores que el recálculo y `llamada_invalida` con una cotización. La resuelve `_cotizacion_tabla_version()`
+  que deja ver; una que sólo nombra una ayuda, la viva: no tiene copia ni genera N+1); a las columnas que leen los nodos que quien mira ve
+  suma las que muestra la ayuda de una celda que se ve (un bloque sin `columnas` no suma ninguna); los mismos errores que el recálculo y `llamada_invalida` con una cotización. La resuelve `_cotizacion_tabla_version()`
   (de nadie).
 - **Cotizar pide `cotizaciones.crear` y `cotizaciones.ver` del origen** en `cotizacion_hoja`, `cotizacion_evaluar` y `cotizacion_tabla`
   por origen y en `cotizacion_crear`; `cotizacion_guardar` pide `cotizaciones.ver` y `cotizaciones.editar`.

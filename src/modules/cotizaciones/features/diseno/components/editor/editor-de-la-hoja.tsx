@@ -2,6 +2,7 @@
 
 import type { Tono } from '@/shared/ui/xcell'
 import { BarraDeCambiosSinGuardar } from '@/shared/ui/barra-de-cambios-sin-guardar'
+import type { TablaDelCatalogoDelOrigen } from '../../../../entities/catalogo-de-tablas'
 import type { Diseno } from '../../../../entities/diseno'
 import type {
   DisenoParaEditar,
@@ -27,6 +28,8 @@ type Props = {
   // Los colores del catálogo, para pintar la hoja y las muestras; sus claves y nombres para elegir (nulo si no se pudo leer).
   tonos: readonly Tono[]
   catalogo: readonly TonoDelCatalogo[] | null
+  // El catálogo de tablas del origen, para la ayuda de una celda (nulo si no se pudo leer).
+  tablas: readonly TablaDelCatalogoDelOrigen[] | null
   // «+ Nuevo nivel» del inspector; nulo sin `equipo.roles.gestionar`.
   nuevoNivel: ApoyoDelInspector['nuevoNivel']
   // «+ Nuevo color» de una sección; nulo sin `cotizaciones.configurar`.
@@ -43,7 +46,7 @@ const INSPECTOR_FIJO = 'sticky top-4 max-h-[calc(100dvh-2rem)] min-w-0 overflow-
 // «Sin lugar en la hoja (N)» si hay filas sin pieza; si no, el lienzo ocupa todo el ancho). Arriba, «Guardar el borrador», los avisos y las vistas; abajo, la
 // barra de los cambios sin guardar (salir con cambios pregunta). Cada cambio se aplica en el acto y `validarDiseno()` lo revisa; mientras guarda, todo espera.
 export function EditorDeLaHoja({ origen, recargando, alRecargar, ...lo }: Props) {
-  const hoja = useEditorDeLaHoja({ origenId: origen.id, ...lo })
+  const hoja = useEditorDeLaHoja({ origen, ...lo })
   const { editor, elegida } = hoja
   const { guardado } = editor
   const vista = useVistaDelEditor()

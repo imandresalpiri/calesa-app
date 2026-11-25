@@ -41,7 +41,7 @@ describe('hojaDesde: lo que abre la hoja de cotizar', () => {
       editable: true,
       motivo: null,
       ajustes: false,
-      ayuda: { tabla: 'fees' },
+      ayuda: [{ tipo: 'tabla', tabla: 'fees' }],
       soloEn: ['moto'],
       condicion: 'cuenta',
       requeridoSi: 'cuenta',

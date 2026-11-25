@@ -113,7 +113,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   recálculo. El enlace (`rutaDeComparar`) y la lectura de `ids` (`idsParaComparar`: 2 o 3 guids distintos, en minúsculas, en el orden de la URL) son del
   núcleo (`entities/ruta-de-comparar.ts`): los usan «De este vehículo» y la lista agrupada.
 - La hoja guarda en la URL lo que abre (se borra al guardar): `?panel=avanzado`, `?panel=vista-previa` (la tarjeta; sólo con `<ProveedorDeLaTarjeta>`,
-  también para quien sólo ve; en una guardada dibuja lo guardado), `?ayuda=texto|tabla&nodo=<id>` (sólo lectura; la URL no abre lo que la hoja no dibuja)
+  también para quien sólo ve; en una guardada dibuja lo guardado), `?ayuda=bloques&nodo=<id>` (la ayuda en bloques, glosario: «Ayuda (de una celda)»; `texto` y `tabla`, de antes, abren lo mismo y se reemplazan por `bloques`; la URL no abre lo que la hoja no dibuja)
   y, con el proveedor del área, `?ajuste=celda&nodo=<id>` (el ⚙, también dentro de «Avanzado») y `?ajuste=cabecera` (el ⚙ de la cabecera: «Configuración por
   defecto de <Origen>», junto a los modos; sólo con `cabecera.ajustes` de la base y el hueco `AjusteDeLaCabecera` lleno).
 - **Los pasos de la hoja** (`<PasosDeLaHoja>`, `entities/pasos-de-la-hoja.ts`, en `ColumnaDeLaHoja` debajo de `CabeceraDeHoja`): `src/app` pasa `pasos`
@@ -121,7 +121,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   guardada, sólo «Vehículo» si la barra no es `solo_mostrar`). «Hoja» suelta `panel`, `ayuda`, `ajuste` y `nodo` y enfoca la primera celda que se edita; «Vista
   previa», sólo con `ContextoDeLaVistaPrevia`. El nombre del botón es su etiqueta; el punto, su descripción (un texto `hidden`), su `title` y `data-punto` con
   guiones. Fuera del orden de Tab (la tarea de oro no suma paradas). Sin `pasos` (pruebas, vista previa del
-  diseño) no se dibujan. La línea de arriba de «Avanzado» sale de `explicacionDelAvanzado()`; los enlaces de la ayuda de texto, de `enlacesDeLaAyuda()`.
+  diseño) no se dibujan. La línea de arriba de «Avanzado» sale de `explicacionDelAvanzado()`; el título y los bloques de la ayuda, de `tituloDeLaAyuda()` y `bloquesDeLaAyuda()`.
 - **El aspecto de V1** (`docs/DECISIONES.md` › «La hoja con el aspecto de V1»): «Avanzado» es un botón a lo ancho (`BotonDeAvanzado`: los títulos que esconde,
   en un `hidden` por `aria-describedby`) y su modal es `ancho="grande"` con las secciones `sinMarco` (`SeccionDeHoja`, `claseDelMarcoDeLaSeccion()`). El total
   del resumen va en la tarjeta del total (`clases-del-total.ts`: `CabezaDelResumen` y, en par, una por total en `TotalesEnPar`), con «Ver el detalle» fuera. Con la
@@ -131,8 +131,8 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   («Cotizado (n)») es acotado y con la RLS de quien mira; `rutaDeLaHoja()` la usan «Cotizar» de `/vehiculos` y de `/leads/[id]`;
   `datosDelVehiculoDeLaHoja(hoja)` dice qué campo del vehículo casa con qué tabla (qué se elige lo decide `vehiculos`). Lo consumen `logistica`, `chat`,
   `buscador`, `web` (precio público), `tablero`.
-- `client.ts`: `useLectorDeOpciones()`, las opciones de un dato del vehículo (los textos de su columna en `cotizacion_tabla`, 5 min con
-  `memoriaDeLectura()`): con él la página arma el lector del panel del vehículo (`vehiculos` no conoce `cotizaciones`). La celda sin valor de un campo que
+- `client.ts`: `useLectorDeOpciones()`, las opciones de un dato del vehículo (los textos de su columna en `cotizacion_tabla`, 5 min en la
+  memoria de tablas que comparte con la ayuda, `memoriaDeLaTabla()`): con él la página arma el lector del panel del vehículo (`vehiculos` no conoce `cotizaciones`). La celda sin valor de un campo que
   se elige (`seEligen`; `campo_sin_valor`, `fila_sin_coincidencia`) dice «Elige el dato del vehículo en «Vehículo»…».
 - **«Revisiones»** (`?panel=revisiones`): lee `cotizacion_revisiones` desde el navegador por `composicion-revisiones.client.ts`, con «Ver más» por
   cursor (el id de la última); lo leído es de una versión (`actualizadoEn`). La RPC recorta cada diff al nivel de quien mira; `cambiosDeLaRevision()` da el
@@ -172,6 +172,25 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `calculoDeLoGuardado()` del núcleo).
 - Niveles: en la matriz de Roles, bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`; `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|eliminar-nivel&nivel=<id>`). `pantallas/configuracion.ts` sale `NivelesEnLaMatriz`: una render prop que da a la matriz de `equipo` los huecos (`cabeza`, `menuDelNivel`, `pie`, `ventanas`); la une `src/app/(app)/configuracion/roles/matriz-con-niveles.tsx`. Las rutas viejas de Catálogos responden 308.
 - Con Live, las cifras de la ayuda de una celda de dinero pasan por `<Monto>`; las de otra celda quedan a la vista.
+- **Llenar una celda desde la ayuda:** en un bloque de tabla, la cifra de una columna con `llena` es un botón si `destinoDeLaAyuda()` (`entities/destino-de-la-ayuda.ts`)
+  encuentra el lado de la celda dibujado y sin candado (`bloqueoDeLado`). Tocarla llama a `acciones.alAplicar(nodo, valor)` de `use-hoja.ts` (el mismo camino que
+  tipear, con «Editado a mano» si pisa un cálculo), cierra la ayuda, deja el foco en el botón del valor (`data-lado` de la XCell) y avisa «IVA % = 14,94 %» con
+  «Deshacer» (`useAplicarDesdeLaAyuda`), que repone lo de antes sólo si la hoja sigue como la dejó el clic. Con Live y un destino de dinero, el aviso no dice la cifra.
+  Sin `alAplicar` (la hoja en par, el lienzo del editor) nada se elige. «Tu vehículo» (`resaltar`): `filaDelVehiculo()` (`entities/fila-del-vehiculo.ts`, igualdad
+  estricta como el motor, la primera gana) con los valores de los nodos del recálculo y `valoresDelVehiculo` del `ContextoDeHoja`, que arma `src/app` con
+  `valoresParaCasar()` de `vehiculos` sobre `camposQueCasanLaAyuda(hoja)` (de `index.ts`).
+- **Editar una tabla desde la ayuda** (área `tablas`; glosario: «Bloque de la ayuda»): en la hoja nueva de quien configura el origen (`src/app` pone
+  `ProveedorDeLaEdicionDeLaTabla` de `pantallas/tablas-hoja.ts` con `puede(…, 'cotizaciones.configurar', origen)`), un bloque de tabla con el id de la tabla viva y
+  sin Modo Live dibuja el hueco `ContextoDeLaEdicionDeLaTabla` (`features/hoja/components/ayuda/hueco-de-la-edicion.tsx`; sus props, `PropsDeLaEdicionDeLaTabla`
+  de `huecos.ts`) por `diferido()` (`features/tablas/components/ayuda/`; mientras llega, la tabla quieta). ✎, 🗑 o «+ Añadir fila» leen la tabla viva entera
+  (`leerTablaParaEditarEnElNavegador()`, `areas/tablas/composicion.client.ts`; más de 2.000 filas o una que no se lee: «Esta tabla se edita en la configuración.») y
+  lo pedido se hace al llegar, salvo si cambió desde que se abrió la hoja (`tablaCambio()`: sólo se abre, con el aviso). Lo puro en `entities/tablas/edicion-en-la-ayuda.ts`
+  (una fila abierta a la vez, las quitadas tachadas con «Volver», «Cancelar» saca la sumada vacía); «Guardar» publica la tabla entera con `publicarTabla` (versión leída,
+  nota «Desde la ayuda de «<rótulo>».», `useGuardadoEnLaAyuda`: PT409 con «Recargar», el 22023 de una celda en su campo, sin red sale al volver). Sin borrador: cerrar
+  la ayuda con cambios pregunta (`useCambiosSinGuardar(…, { preguntaAlCerrar: true })`). Publicada, si una fórmula de este origen pasó a la versión siguiente
+  (`origenId` del `ContextoDeHoja`), `router.refresh()`: la hoja vuelve con otra abierta y el borrador repone lo tipeado (`loQueNoVuelve()` avisa si algo no volvió);
+  si a los 10 s sigue ahí, «Recargar». Si no, la tabla se lee de nuevo (`olvidarYLeer()`). En una guardada o con Live, a quien configura sólo «Editar en la
+  configuración» (`?tabla=<id>` del drawer de tablas).
 - Los `loading.tsx` de la hoja importan `pantallas/esqueleto-de-hoja.ts`, nunca el barril de su pantalla (con él, el HTML en frío baja dos chunks casi
   iguales). El núcleo del guardado (`useNucleoDelGuardado`: pendiente, un envío a la vez, reintento al volver la red) es el mismo de la hoja nueva y de la
   guardada. `hoja-de-una-guardada.ts` viaja al navegador sin Zod; su lectura es `hoja-de-una-guardada-lectura.ts` (sólo servidor).
@@ -206,8 +225,8 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `hoja-de-la-planilla.ts`); las operaciones de fila (`insertar-fila.ts`, `mover-fila.ts`, `eliminar-fila.ts`, `tipo-de-celda.ts`) y de banda (`bandas.ts`)
   son puras y devuelven la fórmula nueva o el motivo. `?panel=editar-formula` (el Modo avanzado) y `?panel=plantillas-de-v1` («Empezar desde una plantilla»), que ya no existen,
   responden 308 a la misma parte de la fórmula, sin ese panel, desde el proxy (`destinoSinLosPanelesQueYaNoExisten()`, `src/shared/lib/paneles-que-ya-no-existen.ts`). El
-  catálogo de tablas del origen (`leerCatalogoDeTablas()`: clave y columnas de las `tablas_referencia` activas del origen y las compartidas, la del origen
-  gana; tope 100; nulo si falla) lo lee la sección en paralelo con la fórmula y llega a la sesión para revisar BUSCARV al compilar. La unidad
+  catálogo de tablas del origen (`leerCatalogoDeTablas()` del núcleo, `infra/queries/catalogo-de-tablas.ts`: id, clave, nombre y columnas de las `tablas_referencia`
+  activas del origen y las compartidas, la del origen gana; tope 100; nulo si falla; `tablasParaElCompilador()` lo proyecta) lo lee la sección en paralelo con la fórmula y llega a la sesión para revisar BUSCARV al compilar. La unidad
   de ejemplo y el modo viven en la sesión; «Publicar…» espera con cambios aplicados sin guardar (`alCambiarPendientes`, en `useLayoutEffect`). La `key` de la
   sesión es `<origen>:<vuelta>:<sesión>` (`otraSesion()`). La página pasa `tarjeta` (la promesa de `leerLaTarjetaDeTrabajo()`), `TarjetaEnVivo` y
   `puedeCambiarTiposDeCambio` y los tipos de cambio de la empresa (`tiposDeCambio`, clave y nombre, para «Tipo de celda»). Las celdas editables usan `BOTON_DEL_VALOR` y `ENTRADA` de `@/shared/ui/xcell`; los colores de las bandas, `leerTonosDelCatalogo()`
@@ -261,7 +280,12 @@ no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o inc
   de 40 y las reglas del total de `total-de-la-hoja.ts`) y «+ Sección principal / avanzada» (`insercion-del-diseno.ts`). **Las vistas** (`?vista=412|1280|1920|200`,
   `useVistaDelEditor()`; sin ella, la de la ventana): el lienzo es un hijo de ese ancho en px achicado con CSS `zoom` (`MarcoEscalado`, `escalaDelLienzo()`; los
   cortes `@4xl/hoja` miran al hijo; «Texto al 200 %» es 206 px con `zoom: 2`). **Por debajo de 1.024 px**, la hoja a 412 en sólo lectura con «Este editor se usa en
-  una pantalla de al menos 1.024 px.» (`HojaSoloLectura`). «+ Nuevo nivel» (con `equipo.roles.gestionar`: `NuevoNivelAlVuelo` del núcleo monta una vez el modal de
+  una pantalla de al menos 1.024 px.» (`HojaSoloLectura`). **La ayuda de una celda** (`components/inspector/ayuda/`, glosario: «Bloque de la ayuda»): sus bloques en orden con su «⋯» (Mover antes, Mover después, Quitar
+  con «Deshacer»; Alt+↑/↓) y «+ Bloque» (Título, Texto, Enlaces, Tabla; apagado con su motivo: `motivoParaSumar()`, `tablaParaElBloqueNuevo()`); las operaciones, puras,
+  en `entities/diseno/edicion-de-la-ayuda.ts` y `tabla-del-bloque.ts`, y atadas en `hooks/ediciones-de-la-ayuda.ts`. Un bloque de tabla elige la tabla del catálogo
+  (`leerCatalogoDeTablas()`, que la sección lee en paralelo; en dos grupos, «De <origen>» y «Compartidas»; nulo: las que nombra la fórmula), sus columnas con la celda que
+  llena cada una (`celdasQueAceptanValor()`) y «Resaltar la fila del vehículo»; «Abrir en Tablas» abre el drawer de tablas de la pestaña con ella. El rechazo de forma
+  de un bloque marca el bloque (`errorDelBloque()`). «+ Nuevo nivel» (con `equipo.roles.gestionar`: `NuevoNivelAlVuelo` del núcleo monta una vez el modal de
   la matriz, `?panel=nuevo-nivel`) y «+ Nuevo color» bajo el color de una sección (con `cotizaciones.configurar`: `NuevoColorDeLaSeccion`, `?color=nuevo`) dejan
   elegido lo creado y lo suman a lo leído (`useCreadosAlVuelo()`) hasta que la página lo traiga. El color sale del catálogo (`catalogo` nulo si no se leyó: no se
   elige y `contextoDelEditor()` cuenta los colores que el diseño ya nombra); un rechazo de forma del aspecto va bajo su select (`campoDelRechazo()`) y uno de la base,
@@ -342,6 +366,9 @@ por `pantallas/<área>-<pantalla>.ts`. Un hueco vacío es un objeto sin componen
   `Junto` sólo si quien mira lo vería (si no, «Más» quedaría vacío); lo llena `pantallas/papelera-listado.ts`.
 - **La lista** (`HuecosDeLaLista`, `features/listado/components/tipos.ts`): `Imagen` (la imagen de cada tarjeta, en frío: `pantallas/tarjeta-imagen.ts`) y
   `Comparar` (las casillas y «Comparar» del modal de un grupo, `CompararDelGrupoDiferido` de `pantallas/aprobada-listado.ts`); los une `listado-con-acciones.tsx`.
+- **La edición de una tabla desde la ayuda:** `ContextoDeLaEdicionDeLaTabla` (un componente con `PropsDeLaEdicionDeLaTabla`: la tabla viva, el rótulo de la celda, lo
+  que la ayuda dibuja, el enlace a la configuración y `alPublicada`, que dice si la hoja vuelve con otra versión o se relee la tabla); lo llena
+  `ProveedorDeLaEdicionDeLaTabla` (`pantallas/tablas-hoja.ts`). Detalle arriba, en «Editar una tabla desde la ayuda».
 - **La vista previa de la tarjeta:** `ContextoDeLaVistaPrevia` (`features/hoja/components/hueco-de-la-vista-previa.tsx`) lleva `dibujar(props)`
   y `compartir()` (lo que la cabecera de una guardada dibuja a la vista: «Compartir»); la llena
   `<ProveedorDeLaTarjeta>` (`pantallas/tarjeta.ts`) con la cáscara del modal y lo que sabe la página (vehículo, asesor, número, logo). El modal lee

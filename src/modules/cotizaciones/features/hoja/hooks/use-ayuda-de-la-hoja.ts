@@ -1,51 +1,59 @@
 'use client'
 
+import { parseAsString, useQueryStates } from 'nuqs'
 import { useCallback, useEffect, useRef } from 'react'
 import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
-import type { SeccionDeHoja } from '../../../entities/hoja'
 import type { DeDondeCalcula } from '../../../entities/pedido-de-recalculo'
-import { tiposDeAyuda } from '../../../entities/presentacion-de-la-hoja'
-import { AYUDA_DE_TABLA, AYUDA_DE_TEXTO, CLAVE_DE_AYUDA, CLAVE_DEL_NODO } from './urls-de-la-hoja'
+import type { AccionesDeHoja } from './use-hoja'
+import {
+  AYUDA_EN_BLOQUES,
+  AYUDAS_DE_ANTES,
+  CLAVE_DE_AYUDA,
+  CLAVE_DEL_NODO,
+} from './urls-de-la-hoja'
 
-// Una ayuda abierta en la URL: el nodo que nombra (nulo si no hay una de su tipo abierta) y cómo cerrarla. Qué celda es y si se dibuja ahora lo resuelve quien la muestra
-// (`celdaConAyuda`): la URL no abre lo que la hoja no enseña.
-export type AyudaAbierta = {
+// La ayuda de una celda en la URL (`?ayuda=bloques&nodo=<id>`): recargar la abre y «atrás» la cierra. El nodo es nulo si no hay una abierta; qué celda es y si se dibuja ahora lo
+// resuelve quien la muestra (`celdaConAyuda`): la URL no abre lo que la hoja no enseña.
+export type AyudaDeLaHoja = {
   nodo: string | null
   cerrar: () => void
-}
-
-// Las dos ayudas de una celda en la URL (`?ayuda=texto&nodo=<id>` y `?ayuda=tabla&nodo=<id>`): recargar la abre y «atrás» la cierra.
-export type AyudaDeLaHoja = {
-  texto: AyudaAbierta
-  tabla: AyudaAbierta
-  // De dónde lee el panel de una tabla: el de la hoja montada, el mismo del recálculo.
+  // De dónde leen las tablas de la ayuda: el de la hoja montada, el mismo del recálculo.
   lectura: DeDondeCalcula
+  // Escribe en la hoja un valor de una tabla (`alAplicar` de las acciones). Sin él (mientras guarda, la hoja en par), los valores sólo se leen.
+  alAplicar: AccionesDeHoja['alAplicar']
 }
 
-export function useAyudaDeLaHoja(secciones: readonly SeccionDeHoja[], lectura: DeDondeCalcula) {
-  const deTexto = usePanelPorUrl(AYUDA_DE_TEXTO, [CLAVE_DEL_NODO], { clave: CLAVE_DE_AYUDA })
-  const deTabla = usePanelPorUrl(AYUDA_DE_TABLA, [CLAVE_DEL_NODO], { clave: CLAVE_DE_AYUDA })
-  // El callback que reciben todas las celdas es uno solo y no cambia (la `XCell` está en `memo`): abre con las últimas funciones de la URL y decide el tipo por la ayuda de la
-  // celda de ese nodo, con las últimas secciones.
-  const ultimo = useRef({ secciones, abrirTexto: deTexto.abrir, abrirTabla: deTabla.abrir })
+// Un enlace de antes (`?ayuda=texto` o `?ayuda=tabla`) abre la misma ayuda y la URL pasa a `bloques` sin sumar una entrada al historial.
+function useAyudaDeAntes() {
+  const [url, escribir] = useQueryStates({
+    [CLAVE_DE_AYUDA]: parseAsString,
+    [CLAVE_DEL_NODO]: parseAsString,
+  })
+  const deAntes = AYUDAS_DE_ANTES.has(url[CLAVE_DE_AYUDA] ?? '')
   useEffect(() => {
-    ultimo.current = { secciones, abrirTexto: deTexto.abrir, abrirTabla: deTabla.abrir }
+    if (deAntes) {
+      void escribir({ [CLAVE_DE_AYUDA]: AYUDA_EN_BLOQUES }, { history: 'replace' })
+    }
+  }, [deAntes, escribir])
+  return deAntes ? url[CLAVE_DEL_NODO] : null
+}
+
+export function useAyudaDeLaHoja(lectura: DeDondeCalcula, alAplicar: AccionesDeHoja['alAplicar']) {
+  const panel = usePanelPorUrl(AYUDA_EN_BLOQUES, [CLAVE_DEL_NODO], { clave: CLAVE_DE_AYUDA })
+  const deAntes = useAyudaDeAntes()
+  // El callback que reciben todas las celdas es uno solo y no cambia (la `XCell` está en `memo`): abre con la última función de la URL.
+  const abrir = useRef(panel.abrir)
+  useEffect(() => {
+    abrir.current = panel.abrir
   })
   const alAyudar = useCallback((nodo: string) => {
-    const { secciones: actuales, abrirTexto, abrirTabla } = ultimo.current
-    const abrir = tiposDeAyuda(actuales).get(nodo) === 'tabla' ? abrirTabla : abrirTexto
-    abrir({ [CLAVE_DEL_NODO]: nodo })
+    abrir.current({ [CLAVE_DEL_NODO]: nodo })
   }, [])
   const ayuda: AyudaDeLaHoja = {
-    texto: {
-      nodo: deTexto.abierto ? deTexto.valor(CLAVE_DEL_NODO) : null,
-      cerrar: deTexto.cerrar,
-    },
-    tabla: {
-      nodo: deTabla.abierto ? deTabla.valor(CLAVE_DEL_NODO) : null,
-      cerrar: deTabla.cerrar,
-    },
+    nodo: panel.abierto ? panel.valor(CLAVE_DEL_NODO) : deAntes,
+    cerrar: panel.cerrar,
     lectura,
+    alAplicar,
   }
   return { ayuda, alAyudar }
 }

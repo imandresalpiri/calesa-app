@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { NuqsTestingAdapter } from 'nuqs/adapters/testing'
+import { NuqsTestingAdapter, type UrlUpdateEvent } from 'nuqs/adapters/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RecalculoInicial } from '../../../entities/apertura'
 import { hojaDesde, type HojaLista } from '../../../entities/hoja'
@@ -43,24 +43,27 @@ function hojaDeAvanzado(): HojaLista {
         id: 'x',
         titulo: 'Componentes CIF',
         presentacion: 'avanzado',
-        items: [celda('x1', { ayuda: { texto: 'Cómo se usa x1' } })],
+        items: [celda('x1', { ayuda: [{ tipo: 'texto', texto: 'Cómo se usa x1' }] })],
       },
       {
         id: 'b',
         titulo: 'Aduana',
         presentacion: 'principal',
         items: [
-          celda('b1', { ayuda: { texto: 'Cómo se usa b1' } }),
+          celda('b1', { ayuda: [{ tipo: 'texto', texto: 'Cómo se usa b1' }] }),
           celda('b3', {
-            ayuda: {
-              texto: 'Mira la subasta',
-              enlaces: [
-                { titulo: 'Copart', url: 'https://www.copart.com/' },
-                { titulo: 'IAA', url: 'https://www.iaai.com/' },
-              ],
-            },
+            ayuda: [
+              { tipo: 'texto', texto: 'Mira la subasta' },
+              {
+                tipo: 'enlaces',
+                enlaces: [
+                  { titulo: 'Copart', url: 'https://www.copart.com/' },
+                  { titulo: 'IAA', url: 'https://www.iaai.com/' },
+                ],
+              },
+            ],
           }),
-          celda('b2', { ayuda: { tabla: 'aduana' } }),
+          celda('b2', { ayuda: [{ tipo: 'tabla', tabla: 'aduana' }] }),
         ],
       },
       { id: 'y', titulo: 'Póliza', presentacion: 'avanzado', items: [celda('y1')] },
@@ -77,9 +80,13 @@ const AL_DIA: RecalculoInicial = {
   estado: { tipo: 'al_dia' },
 }
 
-const montar = (busqueda = '', guardado: Guardado = QUIETO) =>
+const montar = (
+  busqueda = '',
+  guardado: Guardado = QUIETO,
+  onUrlUpdate?: (cambio: UrlUpdateEvent) => void,
+) =>
   render(
-    <NuqsTestingAdapter searchParams={busqueda}>
+    <NuqsTestingAdapter searchParams={busqueda} onUrlUpdate={onUrlUpdate}>
       <HojaDeCotizar
         hoja={hojaDeAvanzado()}
         inicial={AL_DIA}
@@ -92,10 +99,18 @@ const montar = (busqueda = '', guardado: Guardado = QUIETO) =>
     </NuqsTestingAdapter>,
   )
 
+// Un `matchMedia` de mentira: la pantalla es ancha (la ayuda entra al costado).
 beforeEach(() => {
   window.sessionStorage.clear()
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+  )
 })
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 describe('HojaDeCotizar: la ayuda de texto', () => {
   it('una celda con ayuda de texto tiene «Ayuda de X» y abre el texto', async () => {
@@ -111,11 +126,11 @@ describe('HojaDeCotizar: la ayuda de texto', () => {
     expect(screen.queryByRole('button', { name: 'Ayuda de A1' })).toBeNull()
   })
 
-  it('?ayuda=texto&nodo= abre la ayuda de una celda de la hoja; un nodo que no se dibuja no abre nada', async () => {
-    montar('?ayuda=texto&nodo=b1')
+  it('?ayuda=bloques&nodo= abre la ayuda de una celda de la hoja; un nodo que no se dibuja no abre nada', async () => {
+    montar('?ayuda=bloques&nodo=b1')
     expect(await screen.findByRole('dialog', { name: 'Ayuda de B1' })).toBeTruthy()
     cleanup()
-    montar('?ayuda=texto&nodo=x1')
+    montar('?ayuda=bloques&nodo=x1')
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull()
     })
@@ -123,7 +138,7 @@ describe('HojaDeCotizar: la ayuda de texto', () => {
   })
 
   it('los enlaces de la ayuda abren en otra pestaña, sin opener ni referrer, y su nombre lo dice', async () => {
-    montar('?ayuda=texto&nodo=b3')
+    montar('?ayuda=bloques&nodo=b3')
     const panel = await screen.findByRole('dialog', { name: 'Ayuda de B3' })
     expect(within(panel).getByRole('heading', { name: 'Consulta estas fuentes' })).toBeTruthy()
     const enlace = within(panel).getByRole('link', { name: /^Copart\s*\(abre en otra pestaña\)$/ })
@@ -133,8 +148,21 @@ describe('HojaDeCotizar: la ayuda de texto', () => {
     expect(within(panel).getAllByRole('link')).toHaveLength(2)
   })
 
+  it('una URL de antes (`?ayuda=texto`) abre la misma ayuda y pasa a `bloques` sin sumar una entrada al historial', async () => {
+    const onUrlUpdate = vi.fn<(cambio: UrlUpdateEvent) => void>()
+    montar('?ayuda=texto&nodo=b1', QUIETO, onUrlUpdate)
+    expect(await screen.findByRole('dialog', { name: 'Ayuda de B1' })).toBeTruthy()
+    await waitFor(() => {
+      expect(onUrlUpdate).toHaveBeenCalled()
+    })
+    const cambio = onUrlUpdate.mock.calls.at(-1)?.[0]
+    expect(cambio?.searchParams.get('ayuda')).toBe('bloques')
+    expect(cambio?.searchParams.get('nodo')).toBe('b1')
+    expect(cambio?.options.history).toBe('replace')
+  })
+
   it('una ayuda sin enlaces no dice «Consulta estas fuentes»', async () => {
-    montar('?ayuda=texto&nodo=b1')
+    montar('?ayuda=bloques&nodo=b1')
     const panel = await screen.findByRole('dialog', { name: 'Ayuda de B1' })
     expect(within(panel).queryByText('Consulta estas fuentes')).toBeNull()
   })

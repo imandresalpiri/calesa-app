@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import type { RecalculoInicial } from '../../../entities/apertura'
 import { esPisadoNuevo } from '../../../entities/binding-pisado'
 import {
@@ -36,6 +36,9 @@ export type AccionesDeHoja = {
   alAyudar?: (nodo: string) => void
   // El ⚙ de una celda (4.15-6a): lo pone la hoja si un área llenó el hueco (`ContextoDelAjuste`); sin él, ninguna celda lo dibuja.
   alAjustar?: (nodo: string) => void
+  // Un valor de la tabla de la ayuda (glosario: «Bloque de la ayuda», `llena`): lo escribe como si se tipeara y devuelve el «Deshacer», que repone lo de antes del clic
+  // sólo si la hoja sigue como la dejó (si no, no toca nada y devuelve `false`). Sin él (la hoja en par, el lienzo del editor), los valores de la ayuda no se tocan.
+  alAplicar?: (nodo: string, valor: number) => () => boolean
 }
 
 // Los callbacks de las celdas, todos sobre la misma puerta (`cambiar`, que llama al cambio una vez y en el manejador del evento). Lo escrito o el atajo que pisa
@@ -43,6 +46,8 @@ export type AccionesDeHoja = {
 function useAcciones(
   cambiar: (cambio: (antes: Entradas) => Entradas) => void,
   indice: IndiceDeHoja,
+  // Lo último tipeado (`ultimas` de `useHoja`): «Deshacer» de la ayuda mira si sigue siendo lo que dejó su clic.
+  ultimas: RefObject<Entradas>,
 ) {
   const { alPisar, ...aviso } = useAvisoDePisado()
   const acciones = useMemo<AccionesDeHoja>(
@@ -75,8 +80,28 @@ function useAcciones(
           return elegirAtajo(e, { indice }, nodo, { posicion, valor })
         })
       },
+      alAplicar: (nodo, valor) => {
+        // `cambiar` llama al cambio en el acto: al volver, el paso ya tiene lo de antes y lo de después.
+        const paso: { antes?: Entradas; despues?: Entradas } = {}
+        cambiar((e) => {
+          if (esPisadoNuevo(indice, e, nodo, valor)) {
+            alPisar()
+          }
+          paso.antes = e
+          paso.despues = confirmar(e, { indice }, nodo, valor)
+          return paso.despues
+        })
+        return () => {
+          const { antes, despues } = paso
+          if (antes === undefined || ultimas.current !== despues) {
+            return false
+          }
+          cambiar(() => antes)
+          return true
+        }
+      },
     }),
-    [cambiar, indice, alPisar],
+    [cambiar, indice, alPisar, ultimas],
   )
   return { acciones, ...aviso }
 }
@@ -177,7 +202,7 @@ export function useHoja({
     alDescartar: borrador?.alDescartar ?? (() => {}),
   })
 
-  const deLasCeldas = useAcciones(cambiar, indice)
+  const deLasCeldas = useAcciones(cambiar, indice, ultimas)
 
   return {
     indice,

@@ -11,6 +11,7 @@ const esquemaContexto = z.strictObject({
   niveles: z.array(z.string()),
   retirados: z.array(z.string()),
   tonos: z.array(z.string()),
+  tablas: z.array(z.strictObject({ clave: z.string(), columnas: z.array(z.string()) })).optional(),
 })
 const esquemaFormula = z.strictObject({ definicion: z.unknown(), params: z.unknown() })
 const esquemaCaso = z.object({

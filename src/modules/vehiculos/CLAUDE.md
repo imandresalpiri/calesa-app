@@ -40,6 +40,8 @@ Inventario de vehículos por origen con atributos dinámicos: listado con filtro
   - En «Elegido», el dato que casa con una tabla de la hoja se elige entre sus filas (`dato-del-elegido.tsx`, `datosParaElegirDe()`; a lo sumo 50,
     con «Buscar en las opciones»): un toque guarda con `guardarDatoDelVehiculo` (sólo ese atributo, con versión, por `vehiculo_guardar`); quien no
     edita lo ve sin elegir.
+  - `valoresParaCasar(vehiculo, campos)` (`entities/dato-para-elegir.ts`, de `index.ts`): los datos del vehículo con que la ayuda de la hoja resalta «Tu vehículo»
+    (las columnas fijas y los atributos pedidos, sin convertir; lo nulo o de otro tipo no viaja). `vehiculos` no conoce la hoja: los campos los pasa `src/app`.
   - **Subasta cerrada** (`features/panel-para-cotizar/`): `avisoDeSubastaCerrada()` (de `index.ts`, lee `leerSubasta` sólo si el vehículo es de un origen de
     subasta y no está en su fase) arma `DatosDelAviso`; `<AvisoDeSubastaCerrada>` (`pantallas/cotizar`, con `diferido()`) lo dibuja bajo la barra. La regla es
     `entities/subasta-cerrada.ts` (`subastaCerrada`, sobre la situación de la base). «Refrescar la subasta» pide un toque y usa `useRefrescoDeSubasta().consultar`

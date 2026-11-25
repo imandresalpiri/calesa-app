@@ -24,6 +24,7 @@ import {
 } from '../../infra/cotizaciones-en-par'
 import { nivelesSupabase } from '../../infra/niveles'
 import { cambiarPrivada } from '../../infra/privada'
+import { leerCatalogoDeTablas as catalogoDeTablas } from '../../infra/queries/catalogo-de-tablas'
 import { getHojaParaCotizar } from '../../infra/queries/hoja'
 import { getHojaDeUnaGuardada } from '../../infra/queries/hoja-de-una-guardada'
 import { contarCotizacionesDelVehiculo as contarDeInfra } from '../../infra/queries/historial-del-vehiculo'
@@ -47,3 +48,6 @@ export const creadorEnPar: CreadorEnPar = crearCotizacionesEnPar
 export const guardadorEnPar: GuardadorEnPar = guardarCotizacionesEnPar
 export const cotizadorEncimaEnPar: CotizadorEncimaEnPar = cotizarEncimaEnPar
 export const cambiadorDePrivada: CambiadorDePrivada = cambiarPrivada
+// El catálogo de tablas de un origen (las activas del origen y las compartidas, una por clave): lo leen la fórmula (BUSCARV) y el diseño (la ayuda);
+// null si no se pudo leer.
+export const leerCatalogoDeTablas = catalogoDeTablas

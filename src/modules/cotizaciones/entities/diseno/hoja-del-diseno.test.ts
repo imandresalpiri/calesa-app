@@ -51,7 +51,7 @@ describe('hojaDeLaVistaPrevia', () => {
       etiqueta: 'A',
       formato: 'usd',
       ancho: 'mitad',
-      ayuda: { texto: 'Una ayuda' },
+      ayuda: [{ tipo: 'texto', texto: 'Una ayuda' }],
       editable: true,
       motivo: null,
       ajustes: false,
@@ -73,6 +73,47 @@ describe('hojaDeLaVistaPrevia', () => {
     expect(hoja.secciones[0]?.items[1]).toMatchObject({ tono: null })
     // Sin ese tono en el catálogo, la celda sigue con su clave y la hoja no manda un tono que no existe.
     expect(hojaDeLaVistaPrevia(ORIGEN, d, conGrupo, []).tonos).toStrictEqual([])
+  })
+})
+
+describe('hojaDeLaVistaPrevia: la ayuda', () => {
+  it('T1 · la ayuda en bloques, sin recortes: una tabla sin cómo casa ni id de la viva, y sin ayuda, nula', () => {
+    const d = disenoDe([
+      seccion('s', [
+        celda('a', {
+          ayuda: [
+            { tipo: 'titulo', texto: 'Fletes' },
+            {
+              tipo: 'tabla',
+              tabla: 'fletes',
+              columnas: [{ columna: 'monto', llena: 'a' }, { columna: 'zona' }],
+              resaltar: true,
+            },
+            { tipo: 'tabla', tabla: 'otra' },
+          ],
+        }),
+        celda('c'),
+      ]),
+    ])
+    const [a, c] = hojaDeLaVistaPrevia(ORIGEN, d, formulaDePrueba, []).secciones[0]?.items ?? []
+    expect(a).toMatchObject({
+      ayuda: [
+        { tipo: 'titulo', texto: 'Fletes' },
+        {
+          tipo: 'tabla',
+          tabla: 'fletes',
+          columnas: [
+            { columna: 'monto', llena: 'a' },
+            { columna: 'zona', llena: null },
+          ],
+          resaltar: true,
+          casa: null,
+          id: null,
+        },
+        { tipo: 'tabla', tabla: 'otra', columnas: null, resaltar: false, casa: null, id: null },
+      ],
+    })
+    expect(c).toMatchObject({ ayuda: null })
   })
 })
 
