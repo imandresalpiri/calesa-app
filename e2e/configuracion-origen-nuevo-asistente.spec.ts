@@ -22,7 +22,7 @@ import { cargarVehiculos, vehiculoPorTitulo } from './soporte/vehiculos'
 
 // La puesta en marcha de un origen nuevo (`docs/UX.md` › «Puesta en marcha»): de «Nuevo origen» a «Cotizar con <origen>», paso por paso (Campos con los de
 // fábrica, Flujo copiado de un origen de la semilla, una fórmula en blanco con tres filas, la tarjeta por omisión y Publicar), salir a mitad y retomarla
-// desde la cabecera de la página del origen, y el 308 del panel de antes.
+// desde la cabecera de la página del origen.
 test.describe.configure({ mode: 'serial' })
 
 let proyecto = ''
@@ -182,13 +182,4 @@ test('E2E escritorio · poner en marcha un origen nuevo y cotizar con él', asyn
       `select total_base::numeric > 0 from public.cotizaciones where origen_id = ${literal(origenId)}::uuid and vehiculo_id = ${literal(vehiculo)}::uuid`,
     ),
   ).toBe('t')
-})
-
-test('E2E escritorio · el panel de antes responde 308 a la página del alta', async ({ page }) => {
-  await entrar(page, duena)
-  const respuesta = await page.request.get('/configuracion/origenes?panel=nuevo&x=1', {
-    maxRedirects: 0,
-  })
-  expect(respuesta.status()).toBe(308)
-  expect(respuesta.headers()['location']).toBe('/configuracion/origenes/nuevo?panel=nuevo&x=1')
 })

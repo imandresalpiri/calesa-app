@@ -22,7 +22,7 @@ import { asesorLeido, clienteDe, vehiculoDe, vehiculoDeLaTarjeta } from '../../d
 // navegador pregunta cada vez y, si nada cambió, recibe un 304 sin que se arme nada. Con «Ver como» (la interfaz muestra los permisos de otro rol) o sin el primer
 // recálculo (la tarjeta sale sólo con el total) o incompleta (una lectura falló o el logo o la foto no llegaron: con la ETag quedaría fija), `no-store` y sin ETag.
 // Lo que no existe, está en la papelera o no se ve es el mismo 404 que el PDF, nunca 403.
-// Si armarla falla, 500 `no-store`: nunca una vieja. `/portada` redirige aquí (308, `next.config.ts`).
+// Si armarla falla, 500 `no-store`: nunca una vieja.
 const NO_DISPONIBLE = 'Esta cotización ya no está disponible: no existe o ya no tienes acceso.'
 const NO_SE_PUDO = 'No se pudo armar la imagen. Vuelve a intentarlo.'
 const SIN_ADIVINAR = { 'X-Content-Type-Options': 'nosniff' }

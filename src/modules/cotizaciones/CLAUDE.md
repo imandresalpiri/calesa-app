@@ -159,7 +159,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `pantallas/tablas-drawer.ts`) abre el drawer `?panel=tablas` (`&tabla=<id>`, y el panel de la tabla en `&accion=`) con `SeccionDeLasTablas`, sin dejar la
   pestaña. Cada sección del módulo recibe el **origen abierto** (`{ id, nombre, activo }`) que `src/app` ya validó, sin selector propio; las URL las
   arman `rutaDeLaFormula(origenId, formulaId | null, parte, consulta?)`, `rutaDeParteDelOrigen(origenId, parte, consulta?)` y
-  `rutaDeConfiguracionDeCotizacion(origenId, 'formula'|'hoja'|'tarjeta'|'tablas', consulta?)` (para los enlaces de antes), de `@/shared/lib/rutas`; las actions de la planilla, la hoja, la tarjeta y las tablas revalidan `RUTAS.origenes` con `'layout'`. Lo de toda la
+  `consultaDelDrawerDeLasTablas(consulta?)` (el drawer «Tablas» sobre la Planilla), de `@/shared/lib/rutas`; las actions de la planilla, la hoja, la tarjeta y las tablas revalidan `RUTAS.origenes` con `'layout'`. Lo de toda la
   empresa está en Configuración › Orígenes › «Para todos los orígenes» (colores y vigencia: tarjetas con su modal; las actions de los colores revalidan
   `RUTAS.origenes` con `'layout'`) y, para los niveles de acceso, en la matriz de Roles
   (sus actions revalidan `RUTAS.roles`). Planilla, Hoja y Tarjeta reciben `formula: FormulaDelOrigen` de su página (`abrirLaFormulaDeLaPestana()`) y leen y escriben **esa** fórmula del origen (la de la URL):
@@ -170,7 +170,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   dibuja la planilla. La pestaña Tarjeta va a ancho completo y su página pide la referencia del lienzo sin esperarla
   (`origenes/[id]/(pestanas)/tarjeta/referencia.ts`, con `leerListadoDeCotizaciones()` y `UNA` del área `listado`, `leerHojaDeUnaGuardada()`, y `referenciaPlana()` y
   `calculoDeLoGuardado()` del núcleo).
-- Niveles: en la matriz de Roles, bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`; `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|eliminar-nivel&nivel=<id>`). `pantallas/configuracion.ts` sale `NivelesEnLaMatriz`: una render prop que da a la matriz de `equipo` los huecos (`cabeza`, `menuDelNivel`, `pie`, `ventanas`); la une `src/app/(app)/configuracion/roles/matriz-con-niveles.tsx`. Las rutas viejas de Catálogos responden 308.
+- Niveles: en la matriz de Roles, bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`; `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|eliminar-nivel&nivel=<id>`). `pantallas/configuracion.ts` sale `NivelesEnLaMatriz`: una render prop que da a la matriz de `equipo` los huecos (`cabeza`, `menuDelNivel`, `pie`, `ventanas`); la une `src/app/(app)/configuracion/roles/matriz-con-niveles.tsx`.
 - Con Live, las cifras de la ayuda de una celda de dinero pasan por `<Monto>`; las de otra celda quedan a la vista.
 - **Llenar una celda desde la ayuda:** en un bloque de tabla, la cifra de una columna con `llena` es un botón si `destinoDeLaAyuda()` (`entities/destino-de-la-ayuda.ts`)
   encuentra el lado de la celda dibujado y sin candado (`bloqueoDeLado`). Tocarla llama a `acciones.alAplicar(nodo, valor)` de `use-hoja.ts` (el mismo camino que
@@ -194,10 +194,9 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
 - Los `loading.tsx` de la hoja importan `pantallas/esqueleto-de-hoja.ts`, nunca el barril de su pantalla (con él, el HTML en frío baja dos chunks casi
   iguales). El núcleo del guardado (`useNucleoDelGuardado`: pendiente, un envío a la vez, reintento al volver la red) es el mismo de la hoja nueva y de la
   guardada. `hoja-de-una-guardada.ts` viaja al navegador sin Zod; su lectura es `hoja-de-una-guardada-lectura.ts` (sólo servidor).
-- **Tablas de referencia** (área `tablas`; `/configuracion/origenes/<id>/tablas?tabla=`, `cotizaciones.configurar`): `SeccionDeLasTablas` con `destino` = `{ origen, en }` lee la
+- **Tablas de referencia** (área `tablas`; `/configuracion/origenes/<id>/planilla?panel=tablas&tabla=`, `cotizaciones.configurar`): `SeccionDeLasTablas` con `destino` = `{ origen, en }` lee la
   lista del origen y las compartidas que recibe (`leerTablasDeReferencia()`) y `ListaDeTablas` la parte en dos grupos, «De <origen>» y «Compartidas»; ya no hay un destino
-  «compartidas» ni sección de Configuración: `/configuracion/catalogos/tablas` (URL vieja) es un 308 de `src/app` que usa `leerDondeSeUsaLaTabla(tablaId, candidatos)` (de quién es la tabla y qué
-  orígenes candidatos tienen una propia con su clave: la PK y `tablas_referencia_origen_id_clave_key`). Tope 100; una compartida tapada por una propia va `tapada`; con `?tabla=` de esa lista, el editor por `diferido()` de a 100 filas.
+  «compartidas» ni sección de Configuración, y el buscador de Configuración no las ofrece: viven en el drawer de cada origen. Tope 100; una compartida tapada por una propia va `tapada`; con `?tabla=` de esa lista, el editor por `diferido()` de a 100 filas.
   `leerTablaParaEditar()` lee **todas** las filas por cursor `(orden, id)` hasta 2.001: con una fila que no se lee o más de 2.000 no devuelve nada, porque
   publicar reemplaza todas. Se edita en memoria y se valida con el espejo de la base (`entities/tablas/validacion.ts`, `TOPE_DE_FILAS` = 2.000); el
   borrador va por versión en `sessionStorage` (pausado mientras publica) y el editor lleva `key` id:versión. «Publicar» (`?panel=publicar-tabla`,
@@ -261,7 +260,7 @@ ancho })` (en `features/tarjeta/` porque cruza con `empresa`: la hoja de lo guar
   `import()`) con el contexto de quien pide (`datos-de-la-tarjeta.ts`, como el PDF: el cliente sólo con `leads.ver`, y él como asesor). Con la ETag, `private,
 no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o incompleta (una lectura del contexto falló o no llegó el logo o la foto: `completa`),
   `no-store` y sin ETag; un fallo, 500 en texto. `Server-Timing` dice lo que tardó la
-  huella y el armado. `/cotizaciones/[id]/portada` (la ruta vieja) es un 308 a `/imagen` con su consulta (`next.config.ts`). El componente `<ImagenDeLaTarjeta>` sale por
+  huella y el armado. El componente `<ImagenDeLaTarjeta>` sale por
   `pantallas/tarjeta-imagen.ts` (marco de la proporción que le den, pedida a la vista y de a cuatro por página con `useCargaDeLaImagen()`, recuadro con el total, visor por `diferido()` con la clave de
   `claveDelVisorDeLaImagen()`, que acepta también la de antes, `portada-…`; Modo Live por CSS en `globals.css`).
 - **El editor de la hoja** (la pestaña «Hoja»: `/configuracion/origenes/<id>/hoja?formula=<fórmula>`, `cotizaciones.configurar`; glosario: «Inspector de la

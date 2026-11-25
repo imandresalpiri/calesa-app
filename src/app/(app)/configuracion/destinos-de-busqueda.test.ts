@@ -20,31 +20,23 @@ describe('los destinos de búsqueda de Configuración', () => {
     expect(DESTINOS_DE_BUSQUEDA.map((d) => [d.seccion, d.titulo, d.ruta])).toEqual([
       ['origenes', 'Colores', '/configuracion/origenes?panel=colores'],
       ['origenes', 'Vigencia', '/configuracion/origenes?panel=vigencia'],
-      ['origenes', 'Tablas compartidas', '/configuracion/catalogos/tablas'],
       ['roles', 'Niveles de acceso', '/configuracion/roles?bloque=cotizaciones'],
       ['roles', 'Quién crea y quién ve', '/configuracion/roles?bloque=cotizaciones'],
     ])
   })
 
-  it('cada uno es de una sección del registro y su ruta, sin consulta, tiene su página o su route.ts (la de una URL vieja que redirige no está bajo su sección)', () => {
+  it('cada uno es de una sección del registro y su ruta, sin consulta, está bajo esa sección y tiene su página', () => {
     for (const destino of DESTINOS_DE_BUSQUEDA) {
       const seccion = SECCIONES.find((s) => s.clave === destino.seccion)
       expect(seccion, destino.clave).toBeDefined()
       const [ruta] = destino.ruta.split('?')
-      if (destino.clave !== 'tablas-compartidas') {
-        expect(ruta?.startsWith(seccion?.ruta ?? '#'), destino.clave).toBe(true)
-      }
-      const existe =
-        existsSync(path.join(APP, ruta ?? '', 'page.tsx')) ||
-        existsSync(path.join(APP, ruta ?? '', 'route.ts'))
-      expect(existe, destino.ruta).toBe(true)
+      expect(ruta?.startsWith(seccion?.ruta ?? '#'), destino.clave).toBe(true)
+      expect(existsSync(path.join(APP, ruta ?? '', 'page.tsx')), destino.ruta).toBe(true)
     }
   })
 
   it('el panel de cada ruta es uno de los que abre el bloque «Para todos los orígenes»', () => {
-    for (const destino of DESTINOS_DE_BUSQUEDA.filter(
-      (d) => d.seccion === 'origenes' && d.clave !== 'tablas-compartidas',
-    )) {
+    for (const destino of DESTINOS_DE_BUSQUEDA.filter((d) => d.seccion === 'origenes')) {
       const panel = new URL(destino.ruta, 'http://localhost').searchParams.get('panel')
       expect(PANELES_PARA_TODOS as readonly (string | null)[], destino.clave).toContain(panel)
     }
@@ -74,7 +66,7 @@ describe('los destinos de búsqueda de Configuración', () => {
   it('se ofrecen a quien tiene sus permisos y, sin ellos, a nadie; no llevan los permisos al navegador', () => {
     expect(
       destinosDeLaSeccion('origenes', con('cotizaciones.configurar')).map((d) => d.clave),
-    ).toEqual(['colores', 'vigencia', 'tablas-compartidas'])
+    ).toEqual(['colores', 'vigencia'])
     expect(destinosDeLaSeccion('origenes', con('origenes.gestionar'))).toEqual([])
     expect(destinosDeLaSeccion('catalogos', con('cotizaciones.configurar'))).toEqual([])
     expect(
@@ -98,11 +90,7 @@ describe('los destinos de búsqueda fuera de Configuración', () => {
 
   it('cada ruta tiene su página y las claves no se repiten', () => {
     for (const destino of DESTINOS_FUERA_DE_CONFIGURACION) {
-      expect(
-        existsSync(path.join(APP, destino.ruta, 'page.tsx')) ||
-          existsSync(path.join(APP, destino.ruta, 'route.ts')),
-        destino.ruta,
-      ).toBe(true)
+      expect(existsSync(path.join(APP, destino.ruta, 'page.tsx')), destino.ruta).toBe(true)
     }
     const claves = DESTINOS_FUERA_DE_CONFIGURACION.map((d) => d.clave)
     expect(new Set(claves).size).toBe(claves.length)

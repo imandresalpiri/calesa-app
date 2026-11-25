@@ -8,40 +8,6 @@ import {
   validaLaCompilacion,
 } from './src/shared/config/esquemas'
 
-// Un id en una ruta de `redirects()` (la sintaxis de path-to-regexp).
-const ID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
-
-// Los catálogos de logística viven en Logística › Configuración (`/logistica/configuracion/<clave>`), con su consulta (`?panel=`, `puerto`, `naviera`, `categoria`, `tipo`…). Las
-// de Configuración › Logística, que ya habían pasado por Catálogos, van directo a su pestaña en un solo salto.
-const REDIRECCIONES_DE_LOGISTICA = [
-  {
-    source:
-      '/configuracion/catalogos/:catalogo(puertos|navieras|categorias-de-gasto|tipos-de-documento)',
-    destination: '/logistica/configuracion/:catalogo',
-    permanent: true,
-  },
-  {
-    source: '/configuracion/logistica/:catalogo(puertos|navieras|categorias-de-gasto)',
-    destination: '/logistica/configuracion/:catalogo',
-    permanent: true,
-  },
-]
-
-// La configuración de los repuestos vive en Repuestos (`/repuestos/configuracion/<flujo|cotizador|catalogos>`), con su consulta (`?fase=`, `?seccion=`, `?panel=`, `tramo`, `caja`, `valor`…). Las
-// sub-rutas de cuando era de Configuración van directo a su pestaña, y la raíz de la configuración abre el flujo. Su raíz vieja (`/configuracion/repuestos`, con `?seccion=`) la resuelve su `route.ts`.
-const REDIRECCIONES_DE_REPUESTOS = [
-  {
-    source: '/configuracion/repuestos/:pestana(flujo|cotizador|catalogos)',
-    destination: '/repuestos/configuracion/:pestana',
-    permanent: true,
-  },
-  {
-    source: '/repuestos/configuracion',
-    destination: '/repuestos/configuracion/flujo',
-    permanent: true,
-  },
-]
-
 const nextConfig: NextConfig = {
   cacheComponents: true,
   typedRoutes: true,
@@ -73,87 +39,17 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/public/**' },
     ],
   },
-  // Las URL fijas de la vieja Configuración › Cotización y › Logística van a la página del origen y a Catálogos (y los niveles, a Roles), con su consulta. Aquí y no en un
-  // `page.tsx`: una página que sólo redirige pide su `loading.tsx` y la redirección es del navegador. `general` va antes que `:origen`, y
-  // `:origen` es un uuid de un solo segmento. Las que dependen de la consulta o de la persona son `route.ts`.
-  // `/configuracion` solo no dibuja nada: el inicio vive en `/configuracion/inicio` (308, con su consulta). `/configuracion/inicio` no choca con
-  // ninguna sección: ninguna se llama «inicio». La ruta vieja de la imagen de la tarjeta va a la de hoy con su consulta (308: un enlace o una
-  // caché del navegador que la nombre sigue andando).
+  // Sólo las redirecciones estructurales (`scripts/guardas/sin-redirecciones.ts`): una ruta o un parámetro que se muda no deja redirección
+  // (`.claude/rules/rutas.md`). Aquí y no en un `page.tsx`: una página que sólo redirige pide su `loading.tsx` y la redirección es del navegador.
+  // `/configuracion` solo no dibuja nada: el inicio vive en `/configuracion/inicio`; la raíz de la configuración de los repuestos abre su flujo.
   redirects() {
     return Promise.resolve([
       { source: '/configuracion', destination: '/configuracion/inicio', permanent: true },
-      // «Nuevo origen» era un panel de la lista (`?panel=nuevo`): ahora es la página del primer paso de la puesta en marcha (308, con su consulta).
       {
-        source: '/configuracion/origenes',
-        has: [{ type: 'query', key: 'panel', value: 'nuevo' }],
-        destination: '/configuracion/origenes/nuevo',
+        source: '/repuestos/configuracion',
+        destination: '/repuestos/configuracion/flujo',
         permanent: true,
       },
-      // Las páginas de Configuración › Cotización y Logística que se mudaron a la página de cada origen y a Catálogos (308, con su
-      // consulta). Las raíces (`/configuracion/cotizacion`, `/flujos`, `/logistica`) dependen de la consulta o del permiso: son `route.ts`.
-      {
-        source: '/cotizaciones/:id/portada',
-        destination: '/cotizaciones/:id/imagen',
-        permanent: true,
-      },
-      // Colores y Vigencia de las cotizaciones son tarjetas de Orígenes (`?panel=colores|vigencia`), en un solo salto. Si la URL vieja trae su propio `?panel=` (el de un
-      // color), ése manda y va solo: Next no reemplaza un parámetro repetido, así que cada regla con su `has` y su `missing`.
-      {
-        source: '/configuracion/cotizacion/general',
-        has: [{ type: 'query', key: 'panel' }],
-        destination: '/configuracion/origenes',
-        permanent: true,
-      },
-      {
-        source: '/configuracion/cotizacion/general',
-        missing: [{ type: 'query', key: 'panel' }],
-        destination: '/configuracion/origenes?panel=colores',
-        permanent: true,
-      },
-      {
-        source: '/configuracion/cotizacion/general/:parte(colores|vigencia)',
-        has: [{ type: 'query', key: 'panel' }],
-        destination: '/configuracion/origenes',
-        permanent: true,
-      },
-      {
-        source: '/configuracion/cotizacion/general/:parte(colores|vigencia)',
-        missing: [{ type: 'query', key: 'panel' }],
-        destination: '/configuracion/origenes?panel=:parte',
-        permanent: true,
-      },
-      {
-        source: '/configuracion/cotizacion/general/niveles',
-        destination: '/configuracion/roles?bloque=cotizaciones',
-        permanent: true,
-      },
-      {
-        source: `/configuracion/cotizacion/:origen(${ID})/formula`,
-        destination: '/configuracion/origenes/:origen/planilla',
-        permanent: true,
-      },
-      {
-        source: `/configuracion/cotizacion/:origen(${ID})/hoja`,
-        destination: '/configuracion/origenes/:origen/hoja',
-        permanent: true,
-      },
-      {
-        source: `/configuracion/cotizacion/:origen(${ID})/tarjeta`,
-        destination: '/configuracion/origenes/:origen/tarjeta',
-        permanent: true,
-      },
-      {
-        source: `/configuracion/cotizacion/:origen(${ID})/tablas`,
-        destination: '/configuracion/origenes/:origen/planilla?panel=tablas',
-        permanent: true,
-      },
-      {
-        source: `/configuracion/cotizacion/:origen(${ID})`,
-        destination: '/configuracion/origenes/:origen/planilla',
-        permanent: true,
-      },
-      ...REDIRECCIONES_DE_LOGISTICA,
-      ...REDIRECCIONES_DE_REPUESTOS,
     ])
   },
   headers() {

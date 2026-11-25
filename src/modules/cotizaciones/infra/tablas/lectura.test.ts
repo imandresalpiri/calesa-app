@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { TABLA_DEMASIADO_GRANDE, TABLA_NO_ENCONTRADA } from '../../entities/tablas/lectura'
-import { leerDondeSeUsaLaTabla, leerTablaParaEditar, leerTablasDeReferencia } from './lectura'
+import { leerTablaParaEditar, leerTablasDeReferencia } from './lectura'
 import {
   clienteSimulado,
   filasDe,
-  id,
   ORIGEN,
   pedidosDe,
   TABLA,
@@ -106,42 +105,5 @@ describe('leerTablasDeReferencia', () => {
     const leida = await leerTablasDeReferencia(cliente, `${ORIGEN},origen_id.not.is.null`)
     expect(leida.ok).toBe(false)
     expect(llamadas).toEqual([])
-  })
-})
-
-describe('leerDondeSeUsaLaTabla', () => {
-  const COMPARTIDA = id(7)
-  const OTRO = id(9)
-  const compartida = { ...tablaDeLaBase(), id: COMPARTIDA, origen_id: null, clave: 'aranceles' }
-  const propia = { ...tablaDeLaBase(), id: id(8), origen_id: ORIGEN, clave: 'aranceles' }
-
-  it('una propia es de su origen: un pedido, sin mirar a los demás', async () => {
-    const { cliente, llamadas } = clienteSimulado({ tablas_referencia: [tablaDeLaBase()] })
-    const uso = await leerDondeSeUsaLaTabla(cliente, TABLA, [ORIGEN, OTRO])
-    expect(uso).toEqual({ ok: true, data: { propiaDe: ORIGEN, conPropia: [] } })
-    expect(llamadas).toHaveLength(1)
-  })
-
-  it('una compartida dice qué candidatos tienen una propia activa con su clave', async () => {
-    const inactiva = { ...propia, id: id(10), origen_id: OTRO, activa: false }
-    const { cliente, llamadas } = clienteSimulado({
-      tablas_referencia: [compartida, propia, inactiva],
-    })
-    const uso = await leerDondeSeUsaLaTabla(cliente, COMPARTIDA, [ORIGEN, OTRO])
-    expect(uso).toEqual({ ok: true, data: { propiaDe: null, conPropia: [ORIGEN] } })
-    expect(llamadas.map((l) => [l.filtros, l.limite])).toEqual([
-      [['eq:id', 'eq:activa'], null],
-      [['eq:clave', 'eq:activa', 'in:origen_id'], 2],
-    ])
-  })
-
-  it('una tabla que no existe, o un id que no es un guid, da nulo', async () => {
-    const { cliente, llamadas } = clienteSimulado({ tablas_referencia: [tablaDeLaBase()] })
-    expect(await leerDondeSeUsaLaTabla(cliente, id(99), [ORIGEN])).toEqual({ ok: true, data: null })
-    expect(await leerDondeSeUsaLaTabla(cliente, 'no-es-un-guid', [ORIGEN])).toEqual({
-      ok: true,
-      data: null,
-    })
-    expect(llamadas).toHaveLength(1)
   })
 })

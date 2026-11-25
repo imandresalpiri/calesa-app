@@ -63,11 +63,8 @@ test('quien configura repuestos entra al flujo y a los cuatro catálogos', async
   for (const catalogo of ['Tipo de pieza', 'Condición', 'Vía de transporte', 'País de origen']) {
     await expect(page.getByRole('heading', { name: catalogo, level: 2 })).toBeVisible()
   }
-  // La vieja `?seccion=cotizador` llega al cotizador con el modal que pedía; una `seccion` ajena, a los catálogos.
-  await page.goto('/configuracion/repuestos?seccion=basura')
-  await expect(page).toHaveURL(/\/repuestos\/configuracion\/catalogos$/)
-  await page.goto('/configuracion/repuestos?seccion=cotizador&panel=tramo&tramo=nuevo&moneda=USD')
-  await expect(page).toHaveURL(/\/repuestos\/configuracion\/cotizador\?panel=tramo/)
+  // Un enlace al cotizador abre el modal que pide.
+  await page.goto('/repuestos/configuracion/cotizador?panel=tramo&tramo=nuevo&moneda=USD')
   await expect(page.getByRole('dialog', { name: 'Agregar tramo en USD' })).toBeVisible()
 })
 
@@ -118,8 +115,7 @@ test('agregar, renombrar, desactivar y eliminar un tipo de pieza', async ({ page
 
 test('la asesora de la semilla no entra a Repuestos › Configuración', async ({ page }) => {
   await entrar(page, asesora, { fresco: true })
-  await page.goto('/configuracion/repuestos')
-  await expect(page).toHaveURL(/\/repuestos\/configuracion\/flujo$/)
+  await page.goto('/repuestos/configuracion/flujo')
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Tipo de pieza' })).toHaveCount(0)
   await page.goto('/repuestos/configuracion/cotizador')

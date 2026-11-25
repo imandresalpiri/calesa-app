@@ -16,7 +16,7 @@ export const RUTAS = {
   cierre: '/auth/cerrar',
   perfil: '/perfil',
   notificaciones: '/notificaciones',
-  // El inicio de Configuración. `/configuracion` solo redirige aquí en el servidor (`next.config.ts`).
+  // El inicio de Configuración. `/configuracion` solo lleva aquí en el servidor (`next.config.ts`).
   inicioDeConfiguracion: '/configuracion/inicio',
   equipo: '/configuracion/equipo',
   roles: '/configuracion/roles',
@@ -35,9 +35,6 @@ export const RUTAS = {
   // una abre su modal por `?panel=` (no son rutas: no se revalidan, se enlazan).
   coloresDeCotizacion: '/configuracion/origenes?panel=colores',
   vigenciaDeCotizacion: '/configuracion/origenes?panel=vigencia',
-  // Catálogos ya no existe: `tablasCompartidas` es una URL vieja que sólo redirige (`route.ts`) y el buscador de Configuración la usa. Las tablas de referencia, propias y
-  // compartidas, viven en el drawer «Tablas» de cada origen (`?panel=tablas`).
-  tablasCompartidas: '/configuracion/catalogos/tablas',
   configuracionDeWeb: '/configuracion/web',
   ajustesDelSitio: '/configuracion/web/ajustes',
   legalesDelSitio: '/configuracion/web/legales',
@@ -112,25 +109,12 @@ export function rutaDeParteDelOrigen(
   return conConsulta(`${RUTAS.origenes}/${encodeURIComponent(origenId)}/${parte}`, consulta)
 }
 
-// Lo que se configura del cotizador de un origen (los nombres de las rutas viejas `/configuracion/cotizacion/<origen>/<pestaña>`), en su orden.
-export const PESTANAS_DE_COTIZACION = ['formula', 'hoja', 'tarjeta', 'tablas'] as const
-
-export type PestanaDeCotizacion = (typeof PESTANAS_DE_COTIZACION)[number]
-
-// Dónde queda cada una en la página del origen: la Fórmula es la Planilla y las Tablas, su drawer sobre la Planilla (`?panel=tablas`).
-const EN_EL_ORIGEN: Record<PestanaDeCotizacion, ParteDeLaFormula> = {
-  formula: 'planilla',
-  hoja: 'hoja',
-  tarjeta: 'tarjeta',
-  tablas: 'planilla',
-}
-
-// El drawer de las tablas de un origen (`?panel=tablas`) y el panel de una tabla adentro (`&accion=publicar-tabla`: convive con el drawer, que ya usa
-// `panel`). Viven acá porque los nombran las rutas viejas y el área `tablas`.
+// El drawer de las tablas de un origen (`?panel=tablas`, sobre la Planilla) y el panel de una tabla adentro (`&accion=publicar-tabla`: convive con el drawer,
+// que ya usa `panel`). Viven acá porque los nombran el área `tablas` y los enlaces de otros módulos.
 export const PANEL_DE_LAS_TABLAS = 'tablas'
 export const CLAVE_DE_LA_ACCION_DE_LA_TABLA = 'accion'
 
-// La consulta de las tablas de antes (`?tabla=&panel=publicar-tabla`) en el drawer: `panel=tablas` y el panel de la tabla en `accion`.
+// La consulta del drawer de las tablas: `panel=tablas`, lo que traiga (`?tabla=`) y el panel de una tabla en `accion`.
 export function consultaDelDrawerDeLasTablas(
   consulta: Record<string, string> = {},
 ): Record<string, string> {
@@ -142,20 +126,6 @@ export function consultaDelDrawerDeLasTablas(
       ? {}
       : { [CLAVE_DE_LA_ACCION_DE_LA_TABLA]: panel }),
   }
-}
-
-// Una pestaña del cotizador de un origen, en la página del origen (`…/origenes/<id>/planilla|hoja|tarjeta`, las tablas en `…/planilla?panel=tablas`), con su
-// consulta en el orden en que viene (`?tabla=`); sin consulta, sin `?`. Sin `?formula=`: la de trabajo es la de por defecto.
-export function rutaDeConfiguracionDeCotizacion(
-  origenId: string,
-  pestana: PestanaDeCotizacion,
-  consulta?: Record<string, string>,
-): Route {
-  return rutaDeParteDelOrigen(
-    origenId,
-    EN_EL_ORIGEN[pestana],
-    pestana === 'tablas' ? consultaDelDrawerDeLasTablas(consulta) : consulta,
-  )
 }
 
 // Las pestañas de la página del origen que editan una fórmula: llevan la elegida en `?formula=<id>` (sin ella, la de trabajo).

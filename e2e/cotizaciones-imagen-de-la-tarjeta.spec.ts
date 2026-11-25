@@ -46,7 +46,7 @@ import {
 // La imagen de la tarjeta (`docs/COTIZADOR.md` › «La imagen de la tarjeta»): se arma al pedirla y para quien la pide, que es el asesor de la tarjeta. Ana (asesora)
 // crea; Luis (el dueño) la mira y la comparte: la vista previa, el texto de «Compartir», la imagen y el PDF dicen a Luis, con su WhatsApp, su cargo y su foto, y
 // Ana sigue como «Creado por». La lista pide sólo las miniaturas a la vista y de a cuatro; con la ETag de quien mira, 304; otro cargo u otra plantilla, otra ETag.
-// En Modo Live, borrosa y sin «Compartir»; la ruta vieja es un 308 a la de hoy y la clave vieja del visor lo abre; lo que no se ve, el 404 del PDF. Un origen
+// En Modo Live, borrosa y sin «Compartir»; la clave vieja del visor lo abre; lo que no se ve, el 404 del PDF. Un origen
 // propio con la fórmula de la subasta y la réplica de V1 con las celdas del asesor: nunca la plantilla de la semilla.
 test.describe.configure({ mode: 'serial' })
 
@@ -280,18 +280,9 @@ test('E2E otro cargo de quien mira u otra plantilla publicada dan otra ETag y ot
   expect(Buffer.compare(await conOtraPlantilla.body(), await conOtroCargo.body())).not.toBe(0)
 })
 
-// @sin-celular: la redirección la da el servidor y la clave del visor vive en la URL, iguales en cualquier ancho
-test('E2E la ruta vieja es un 308 a la de hoy con su consulta, y la clave vieja del visor lo abre', async ({
-  page,
-}) => {
+// @sin-celular: la clave del visor vive en la URL y abre el mismo diálogo en cualquier ancho
+test('E2E la clave vieja del visor lo abre', async ({ page }) => {
   await entrar(page, luis, { fresco: true })
-  const vieja = await page.request.get(`/cotizaciones/${guardada}/portada?ancho=480&intento=2`, {
-    maxRedirects: 0,
-  })
-  expect(vieja.status()).toBe(308)
-  expect(vieja.headers()['location']).toMatch(
-    new RegExp(`/cotizaciones/${guardada}/imagen\\?ancho=480&intento=2$`),
-  )
   await page.goto(listaDelOrigen(`&visor=portada-de-la-lista-${guardada}`))
   await expect(page.getByRole('dialog', { name: textoDeLaImagen(guardada) })).toBeVisible({
     timeout: 15_000,

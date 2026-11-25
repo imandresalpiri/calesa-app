@@ -1,6 +1,5 @@
 // Las tablas de referencia para editarlas (4.23-2), sobre el cliente que recibe (el del servidor, con la sesión de quien configura: la policy de lectura decide qué ve).
 //  - `leerTablasDeReferencia(origenId)`: las del origen y las compartidas, un pedido con tope (`tablas_referencia_origen_id_clave_key`).
-//  - `leerDondeSeUsaLaTabla(tablaId, candidatos)`: de quién es una tabla y qué orígenes tienen una propia con su clave (el 308 de las tablas compartidas).
 //  - `leerTablaParaEditar(tablaId)`: la tabla (su versión) y después **todas** sus filas por cursor `(orden, id)` (`tablas_referencia_filas_tabla_orden_idx`). Se para sólo con
 //    una página vacía o con el tope + 1: una página corta puede ser el `max_rows` del despliegue y no el final. Si alguien publica entre los pedidos, la versión leída es la
 //    vieja y publicar da PT409: nunca se pisan filas nuevas. Una fila que no se lee, o más de 2.000, y la tabla no se devuelve: publicarla a medias borraría lo que faltó.
@@ -21,7 +20,6 @@ import {
   TABLA_DEMASIADO_GRANDE,
   TABLA_NO_ENCONTRADA,
   TOPE_DE_TABLAS,
-  type DondeSeUsaLaTabla,
   type TablaDeReferencia,
 } from '../../entities/tablas/lectura'
 import { columnasDesde, TOPE_DE_FILAS } from '../../entities/tablas/validacion'
@@ -84,40 +82,6 @@ function listaDeTablas(
   }
   const { filas, hayMas } = cortarAlTope(tablas, TOPE_DE_TABLAS)
   return ok({ tablas: marcarTapadas(filas), hayMas })
-}
-
-// Dónde se usa una tabla, para llevar a ella la URL vieja de las tablas compartidas: de quién es (`origen_id`, nulo si es compartida) y, entre los orígenes
-// `candidatos`, los que tienen una propia activa con su clave. Dos pedidos por PK y por `tablas_referencia_origen_id_clave_key`, sin pasar de los candidatos. Nulo si la
-// tabla no existe o la policy no se la deja ver.
-export async function leerDondeSeUsaLaTabla(
-  cliente: Cliente,
-  tablaId: string,
-  candidatos: readonly string[],
-): Promise<Resultado<DondeSeUsaLaTabla | null>> {
-  if (!z.guid().safeParse(tablaId).success) return ok(null)
-  const { data, error } = await cliente
-    .from('tablas_referencia')
-    .select('origen_id, clave')
-    .eq('id', tablaId)
-    .eq('activa', true)
-    .maybeSingle()
-  if (error) return { ok: false, error: errorDePostgrest(error) }
-  if (!data) return ok(null)
-  if (data.origen_id !== null || candidatos.length === 0) {
-    return ok({ propiaDe: data.origen_id, conPropia: [] })
-  }
-  const propias = await cliente
-    .from('tablas_referencia')
-    .select('origen_id')
-    .eq('clave', data.clave)
-    .eq('activa', true)
-    .in('origen_id', [...candidatos])
-    .limit(candidatos.length)
-  if (propias.error) return { ok: false, error: errorDePostgrest(propias.error) }
-  return ok({
-    propiaDe: null,
-    conPropia: propias.data.flatMap((fila) => (fila.origen_id === null ? [] : [fila.origen_id])),
-  })
 }
 
 // Una página de filas activas en `(orden, id)` desde la última leída (sin cursor, la primera): `tablas_referencia_filas_tabla_orden_idx (tabla_id, orden, id)`.

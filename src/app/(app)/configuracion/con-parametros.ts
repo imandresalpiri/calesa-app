@@ -1,15 +1,12 @@
-import { PARAMETRO_DEL_BLOQUE, RUTAS } from '@/shared/lib/rutas'
-
 // Los parámetros de una página de Configuración tal como los entrega Next (`searchParams`).
 export type ParametrosDeLaUrl = Record<string, string | string[] | undefined>
 
-// La ruta con los parámetros de la URL vieja que siguen valiendo: todos menos `seccion`, que era la pestaña y ahora es la ruta. Los
-// `?panel=` (con lo que cada uno lleva: `puerto`, `valor`, `tramo`…) siguen abriendo lo suyo en la sub-ruta nueva. Un parámetro repetido
-// se conserva repetido; sin parámetros, la ruta sola (si ya trae consulta, se suman a ella). `quitar` cambia cuáles no siguen (los de Flujos, donde `seccion` sigue siendo la del panel).
+// La ruta con los parámetros de la consulta, salvo los de `quitar`: los `?panel=` (con lo que cada uno lleva: `puerto`, `valor`, `tramo`…) abren lo suyo en
+// el destino. Un parámetro repetido se conserva repetido; sin parámetros, la ruta sola (si ya trae consulta, se suman a ella).
 export function conParametros(
   ruta: string,
   parametros: ParametrosDeLaUrl,
-  quitar: readonly string[] = ['seccion'],
+  quitar: readonly string[] = [],
 ): string {
   const conservados = new URLSearchParams()
   for (const [nombre, valor] of Object.entries(parametros)) {
@@ -34,8 +31,8 @@ export function deLaBusqueda(busqueda: URLSearchParams): ParametrosDeLaUrl {
   return parametros
 }
 
-// La respuesta de un `route.ts` que sólo redirige: un 308 (permanente, y el navegador repite el método) con la ruta relativa en `Location`,
-// con su consulta. Una página que redirige tras su `loading.tsx` no da un 308: lo da el servidor, aquí o en `next.config.ts`. Con
+// La respuesta de un `route.ts` que sólo lleva a otra página (una redirección estructural: `scripts/guardas/sin-redirecciones.ts`): un 308 (permanente, y el
+// navegador repite el método) con la ruta relativa en `Location`, con su consulta. Una página que redirige tras su `loading.tsx` no da un 308: lo da el servidor. Con
 // `porPersona` (el destino sale de los permisos de quien pide), `Cache-Control: private, no-store`: el navegador guarda un 308 y, si no,
 // lo repetiría aunque cambien sus permisos.
 export function redireccionPermanente(destino: string, { porPersona = false } = {}): Response {
@@ -44,31 +41,4 @@ export function redireccionPermanente(destino: string, { porPersona = false } = 
     headers['Cache-Control'] = 'private, no-store'
   }
   return new Response(null, { status: 308, headers })
-}
-
-// La ruta de Orígenes con el modal de «Para todos los orígenes» que abre una URL vieja de Colores o de Vigencia: `?panel=<panel>` y el resto de la consulta de la
-// URL vieja. Si ya traía su propio `?panel=` (`nuevo-tono`, `editar-tono&tono=<id>`, `eliminar-tono&tono=<id>`), ése manda: un solo `panel`. Sin `seccion` ni `origen`.
-export function conElPanelDeOrigenes(
-  ruta: string,
-  panel: string,
-  parametros: ParametrosDeLaUrl,
-): string {
-  const propio = Array.isArray(parametros['panel']) ? parametros['panel'][0] : parametros['panel']
-  const resto = Object.fromEntries(
-    Object.entries(parametros).filter(([nombre]) => nombre !== 'panel'),
-  )
-  // El `panel` va primero, como lo escribe la app al abrir un modal; si traía el suyo, ése.
-  return conParametros(ruta, {
-    panel: propio === undefined || propio === '' ? panel : propio,
-    ...resto,
-  })
-}
-
-// La matriz de Roles con el bloque de cotizaciones a la vista que abre una URL vieja de Niveles o de Quién crea y quién ve: `?bloque=cotizaciones` primero y el resto de la
-// consulta de la URL vieja (`?panel=nuevo-nivel`, `?nivel=<id>`, `?origen=<id>`…). Sin `seccion` ni un `bloque` previo: el de esta ruta manda.
-export function conElBloqueDeRoles(parametros: ParametrosDeLaUrl): string {
-  const resto = Object.fromEntries(
-    Object.entries(parametros).filter(([nombre]) => nombre !== PARAMETRO_DEL_BLOQUE),
-  )
-  return conParametros(RUTAS.roles, { [PARAMETRO_DEL_BLOQUE]: 'cotizaciones', ...resto })
 }

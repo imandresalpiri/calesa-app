@@ -1,6 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { rutaDeConfiguracionDeCotizacion } from '@/shared/lib/rutas'
 import { CLASE_LIVE } from '@/shared/ui/guion-live'
 import type { ContextoDeHoja } from '../../../../entities/binding'
 import { ENTRADAS_VACIAS, indiceDeHoja } from '../../../../entities/entradas'
@@ -131,7 +130,7 @@ describe('BloqueDeTabla: la edición desde la ayuda', () => {
     const enlace = await screen.findByRole('link', { name: 'Editar en la configuración' })
     expect(enlace).toHaveAttribute(
       'href',
-      rutaDeConfiguracionDeCotizacion(ORIGEN, 'tablas', { tabla: TABLA_ID }),
+      `/configuracion/origenes/${ORIGEN}/planilla?panel=tablas&tabla=${TABLA_ID}`,
     )
     cleanup()
     document.documentElement.classList.add(CLASE_LIVE)

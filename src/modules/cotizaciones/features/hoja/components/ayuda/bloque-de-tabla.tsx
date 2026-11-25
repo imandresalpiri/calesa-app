@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { startTransition, useContext, type ComponentType } from 'react'
-import { rutaDeConfiguracionDeCotizacion } from '@/shared/lib/rutas'
+import { consultaDelDrawerDeLasTablas, rutaDeParteDelOrigen } from '@/shared/lib/rutas'
 import { EstadoVacio } from '@/shared/ui/estados'
 import { useLive } from '@/shared/ui/live'
 import type { ContextoDeHoja } from '../../../../entities/binding'
@@ -61,7 +61,11 @@ function TituloDeLaTabla({ nombre }: { nombre: string }) {
 function EditarEnLaConfiguracion({ origenId, tablaId }: { origenId: string; tablaId: string }) {
   return (
     <Link
-      href={rutaDeConfiguracionDeCotizacion(origenId, 'tablas', { tabla: tablaId })}
+      href={rutaDeParteDelOrigen(
+        origenId,
+        'planilla',
+        consultaDelDrawerDeLasTablas({ tabla: tablaId }),
+      )}
       className="inline-flex min-h-11 w-fit items-center text-(length:--text-sm) font-medium text-(--color-primario-ink) underline underline-offset-4 md:min-h-8"
     >
       Editar en la configuración

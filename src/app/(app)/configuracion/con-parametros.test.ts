@@ -1,24 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import {
-  conElBloqueDeRoles,
-  conElPanelDeOrigenes,
-  conParametros,
-  deLaBusqueda,
-  redireccionPermanente,
-} from './con-parametros'
+import { conParametros, deLaBusqueda, redireccionPermanente } from './con-parametros'
 
 describe('conParametros', () => {
-  it('quita `seccion` y conserva lo demás, en su orden', () => {
+  it('conserva todo, en su orden, salvo lo que se pide quitar', () => {
     expect(
       conParametros('/configuracion/x/y', { seccion: 'y', panel: 'nuevo', catalogo: 'tipo' }),
-    ).toBe('/configuracion/x/y?panel=nuevo&catalogo=tipo')
+    ).toBe('/configuracion/x/y?seccion=y&panel=nuevo&catalogo=tipo')
+    expect(conParametros('/configuracion/x/y', { seccion: 'y', panel: 'nuevo' }, ['seccion'])).toBe(
+      '/configuracion/x/y?panel=nuevo',
+    )
   })
 
-  it('sin parámetros que conservar, la ruta sola', () => {
+  it('sin parámetros que conservar, la ruta sola; con consulta, se suman a ella', () => {
     expect(conParametros('/configuracion/x/y', {})).toBe('/configuracion/x/y')
-    expect(conParametros('/configuracion/x/y', { seccion: 'y', otro: undefined })).toBe(
-      '/configuracion/x/y',
-    )
+    expect(conParametros('/configuracion/x/y', { otro: undefined })).toBe('/configuracion/x/y')
+    expect(conParametros('/x?a=1', { b: '2' })).toBe('/x?a=1&b=2')
   })
 
   it('un parámetro repetido se conserva repetido y se codifica', () => {
@@ -47,53 +43,6 @@ describe('redireccionPermanente', () => {
     expect(redireccionPermanente('/x').headers.get('Cache-Control')).toBeNull()
     expect(redireccionPermanente('/x', { porPersona: true }).headers.get('Cache-Control')).toBe(
       'private, no-store',
-    )
-  })
-})
-
-describe('conElPanelDeOrigenes', () => {
-  const ORIGENES = '/configuracion/origenes'
-
-  it('sin panel propio, el de la tarjeta y el resto de la consulta', () => {
-    expect(conElPanelDeOrigenes(ORIGENES, 'colores', {})).toBe(`${ORIGENES}?panel=colores`)
-    expect(conElPanelDeOrigenes(ORIGENES, 'vigencia', { x: '1', seccion: 'ajustes' })).toBe(
-      `${ORIGENES}?panel=vigencia&x=1`,
-    )
-  })
-
-  it('el panel propio manda, y es uno solo', () => {
-    expect(
-      conElPanelDeOrigenes(ORIGENES, 'colores', { panel: 'editar-tono', tono: 'abc', x: '1' }),
-    ).toBe(`${ORIGENES}?panel=editar-tono&tono=abc&x=1`)
-    expect(conElPanelDeOrigenes(ORIGENES, 'colores', { panel: ['eliminar-tono', 'otro'] })).toBe(
-      `${ORIGENES}?panel=eliminar-tono`,
-    )
-  })
-
-  it('un panel vacío cuenta como ninguno', () => {
-    expect(conElPanelDeOrigenes(ORIGENES, 'colores', { panel: '' })).toBe(
-      `${ORIGENES}?panel=colores`,
-    )
-  })
-})
-
-describe('conElBloqueDeRoles', () => {
-  it('sin consulta, Roles con el bloque de cotizaciones', () => {
-    expect(conElBloqueDeRoles({})).toBe('/configuracion/roles?bloque=cotizaciones')
-  })
-
-  it('el bloque va primero y el resto de la consulta se conserva, sin `seccion`', () => {
-    expect(conElBloqueDeRoles({ seccion: 'niveles', panel: 'renombrar-nivel', nivel: 'abc' })).toBe(
-      '/configuracion/roles?bloque=cotizaciones&panel=renombrar-nivel&nivel=abc',
-    )
-    expect(conElBloqueDeRoles({ origen: 'xyz' })).toBe(
-      '/configuracion/roles?bloque=cotizaciones&origen=xyz',
-    )
-  })
-
-  it('un `bloque` previo se pisa: queda uno solo', () => {
-    expect(conElBloqueDeRoles({ bloque: 'logistica', panel: 'nuevo-nivel' })).toBe(
-      '/configuracion/roles?bloque=cotizaciones&panel=nuevo-nivel',
     )
   })
 })
