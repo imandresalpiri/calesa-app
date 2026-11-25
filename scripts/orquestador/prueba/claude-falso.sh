@@ -6,6 +6,12 @@
 # Según CLAUDE_FALSO_MODO:
 #   trabada (por defecto)  duerme CLAUDE_FALSO_DUERME segundos y devuelve «RESULTADO: TRABADA …»
 #   limite                 dice por stderr que llegó al límite del plan y sale con 1
+#   limite-evento          como un límite real: un rate_limit_event rejected (resetsAt = $CLAUDE_FALSO_RESETS, epoch; tipo
+#                          $CLAUDE_FALSO_TIPO, por defecto seven_day) y un result con error cuyo texto es $CLAUDE_FALSO_TEXTO
+#                          (por defecto «You have hit your weekly limit»); duerme CLAUDE_FALSO_DUERME antes; sale con 1
+#   limite-texto           sólo el result con error y el texto de $CLAUDE_FALSO_TEXTO, sin evento; sale con 1
+#   uso                    un rate_limit_event allowed (seven_day, utilization $CLAUDE_FALSO_USO, resetsAt $CLAUDE_FALSO_RESETS) y
+#                          el resultado de «trabada»
 #   identidad              devuelve un resultado con modelUsage, como `claude -p --output-format json`
 #   salida                 devuelve como resultado el texto del archivo $CLAUDE_FALSO_SALIDA
 set -uo pipefail
@@ -28,9 +34,27 @@ anotar() { [ -n "${CLAUDE_FALSO_LOG:-}" ] && printf '%s\n' "$*" >>"$CLAUDE_FALSO
 anotar "inicio $(date +%s%N) $PWD ${modelo:-?} $$"
 case "${CLAUDE_FALSO_MODO:-trabada}" in
   limite)
-    echo "Claude usage limit reached. Your limit will reset at 5pm." >&2
+    echo "Claude usage limit reached." >&2
     anotar "fin $(date +%s%N) $$"
     exit 1
+    ;;
+  limite-evento)
+    sleep "${CLAUDE_FALSO_DUERME:-1}"
+    jq -nc --arg r "${CLAUDE_FALSO_RESETS:?falta CLAUDE_FALSO_RESETS}" --arg t "${CLAUDE_FALSO_TIPO:-seven_day}" \
+      '{type: "rate_limit_event", rate_limit_info: {status: "rejected", resetsAt: ($r | tonumber), rateLimitType: $t, utilization: 1}}'
+    jq -nc --arg t "${CLAUDE_FALSO_TEXTO:-You have hit your weekly limit}" '{type: "result", subtype: "success", is_error: true, result: $t}'
+    anotar "fin $(date +%s%N) $$"
+    exit 1
+    ;;
+  limite-texto)
+    jq -nc --arg t "${CLAUDE_FALSO_TEXTO:?falta CLAUDE_FALSO_TEXTO}" '{type: "result", subtype: "success", is_error: true, result: $t}'
+    anotar "fin $(date +%s%N) $$"
+    exit 1
+    ;;
+  uso)
+    jq -nc --arg r "${CLAUDE_FALSO_RESETS:?falta CLAUDE_FALSO_RESETS}" --arg u "${CLAUDE_FALSO_USO:?falta CLAUDE_FALSO_USO}" \
+      '{type: "rate_limit_event", rate_limit_info: {status: "allowed", resetsAt: ($r | tonumber), rateLimitType: "seven_day", utilization: ($u | tonumber)}}'
+    echo '{"type":"result","result":"RESULTADO: TRABADA prueba del claude falso","is_error":false}'
     ;;
   identidad)
     echo '{"type":"result","result":"Soy el modelo falso","modelUsage":{"modelo-falso":{}}}'
