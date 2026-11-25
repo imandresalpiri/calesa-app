@@ -233,6 +233,9 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   segundo clic de un doble clic cae en otra fila.
 - La cabecera de una tarjeta (título, estado, botones) lleva un `basis` en rem en el título: sin él, con el texto al 200 % el título se aplasta junto a los botones
   en vez de partir la cabecera en dos líneas.
+- Una ruta o un parámetro que se muda no deja redirección: se actualizan sus enlaces y, con una migración, sus datos guardados; la URL vieja da «no existe». Una redirección por cada mudanza se acumula y nadie la quita. (kit)
+- Un solo nivel de secciones por pantalla, a la vista: un acordeón o una sección dentro de otra esconden lo que hay y obligan a adivinar dónde está. Lo secundario va en un drawer o un modal con su URL. (kit)
+- Lo que cambia de contenido dentro de un área (cargar, editar, cambiar de vista, mostrar un aviso) no cambia su tamaño: alto fijo o reservado, y el esqueleto mide lo mismo que el contenido; si no, lo de abajo salta y el toque cae en otro lado. Se comprueba midiendo con `boundingBox()` antes y después.
 
 ## Realtime y notificaciones
 

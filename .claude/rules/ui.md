@@ -20,10 +20,19 @@ Antes de construir una pantalla, lee su fila en `docs/UX.md` (patrón, roles, es
   guarda borrador en `sessionStorage` por clave de formulario.
 - Envío deshabilitado mientras la acción está en curso (`useAction`); nunca doble envío. Un
   formulario que se reemplaza al llegar lo guardado (`key` con la versión) apaga sus campos mientras guarda.
-- Formularios en bloques `<Bloque titulo>` plegables; los secundarios nacen plegados. Su cuerpo es
-  una grilla `minmax(0, 1fr)`. Salvo dentro de `<BloquesALaVista>` (el panel del flujo), donde van a la vista: una sección con su
-  `h3` (`h4` anidado). Salvo también las páginas de ajustes de Configuración (Empresa, Integraciones, Comprobantes, Sitio web › Ajustes y Legales, Cola web › Política, Leads) y el perfil (`/perfil`):
-  `<TarjetasDeAjustes>` con un `ModalDeFormulario` por tarjeta (`@/shared/ui/tarjetas-de-ajustes`, `useEnvioConVersion()`), sin acordeones. Ahí (y en `/perfil`) toda tarjeta y toda fila lleva **sólo su «⋯»** con la lista única de sus acciones —una sola, también—: nada de «Editar», «Gestionar» o «Subir» sueltos; tocar la tarjeta (un botón con nombre, hermano del «⋯») abre la primera, y una destructiva nunca es la primera de un toque.
+- Un solo nivel de secciones por pantalla o panel, a la vista, cada una con su título (`h2` o `h3`, sin uno anidado debajo). Ningún
+  acordeón, bloque plegable (`<details>`), sección dentro de otra ni tarjeta dentro de otra. Lo secundario va en un drawer o un modal con su
+  URL (`?panel=`), abierto desde un botón con verbo o desde el «⋯». El cuerpo de una sección es una grilla `minmax(0, 1fr)`. Las páginas de
+  ajustes de Configuración (Empresa, Integraciones, Comprobantes, Sitio web › Ajustes y Legales, Cola web › Política, Leads) y el perfil
+  (`/perfil`) son `<TarjetasDeAjustes>` con un `ModalDeFormulario` por tarjeta (`@/shared/ui/tarjetas-de-ajustes`, `useEnvioConVersion()`).
+  Ahí (y en `/perfil`) toda tarjeta y toda fila lleva **sólo su «⋯»** con la lista única de sus acciones —una sola, también—: nada de
+  «Editar», «Gestionar» o «Subir» sueltos; tocar la tarjeta (un botón con nombre, hermano del «⋯») abre la primera, y una destructiva nunca
+  es la primera de un toque.
+- **Sin saltos de interfaz:** lo que cambia de contenido dentro de un área (cargar, editar, cambiar de vista, mostrar un aviso) no cambia el
+  tamaño del área: alto fijo o reservado, y el esqueleto mide lo mismo que el contenido. Se comprueba en el e2e midiendo con `boundingBox()`
+  antes y después.
+- Lo que hoy se dibuja con bloques plegables (`src/shared/ui/bloque.tsx` y sus usos) lo cambian `refactor/sin-acordeones-pantallas` y
+  `refactor/sin-acordeones-configuracion`; hasta entonces, lo viejo no es excusa para lo nuevo.
 
 ## Destructivas, paneles y modales
 

@@ -33,6 +33,8 @@ chat, agenda y la web pública. Una empresa por despliegue. Sólo español, de t
 
 - Código que se pide al usarse: `diferido()`, nunca `next/dynamic`. Un número que se muestra nunca es un total exacto. Toda lista para miles
   de filas; con volumen sólo la de una tabla que crece (`.claude/rules/escala.md`).
+- Una ruta o un parámetro que se muda no redirige: se actualizan todos sus enlaces y sus datos guardados en el mismo PR (`.claude/rules/rutas.md`).
+- Un solo nivel de secciones, a la vista: ningún acordeón ni sección dentro de otra; nada salta al cambiar de contenido (`.claude/rules/ui.md`).
 - Un archivo, una responsabilidad (> 300 líneas: se parte). Lleva test lo de `entities/` con dinero, fórmula o permisos (`.claude/rules/e2e.md`).
 - Zod en todo límite (formulario, action, params, RPC); ids con `z.guid()`. Errores como valores (`{ ok: false, error }`).
 - Ningún componente ni hook consulta Supabase: lecturas en `infra/`, mutaciones por Server Actions (`next-safe-action`), realtime en `*.client.ts`.
@@ -76,5 +78,5 @@ El título del PR sigue la misma regla: es el commit que queda en `main` (squash
 `--no-verify` · versiones nuevas sin verificarlas hoy · la secret key fuera del servidor o en `NEXT_PUBLIC_*` · desactivar una regla de lint ·
 una tabla sin RLS, un `security definer` sin `set search_path = ''`, `auth.uid()` suelto (va `(select auth.uid())`) · `if (rol === 'dueno')`
 en la UI (va `puede(permisos, clave, origen)`) · dinero sin `<Monto>` o fecha sin `formato.ts` · empujar `main`, forzar un push o integrar
-con el CI en rojo · historia en un doc («se encontró X y se arregló»: va la regla que lo evita, en `docs/LECCIONES.md`) · producción
+con el CI en rojo · una redirección por una ruta o un parámetro que se mudó · historia en un doc («se encontró X y se arregló»: va la regla que lo evita, en `docs/LECCIONES.md`) · producción
 (variables, secretos, Vercel): es de la persona (`docs/DESPLIEGUE.md`) · b_ip, la base en la nube de otra app.
