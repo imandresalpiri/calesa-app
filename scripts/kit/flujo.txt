@@ -69,6 +69,7 @@ scripts/kit/flujo.mjs
 scripts/kit/personalizar.mjs
 scripts/kit/mezcla.mjs
 scripts/kit/mezcla.test.ts
+scripts/kit/flujo-al-kit.test.ts
 scripts/kit/kit-gh.mjs
 scripts/kit/actualizar.mjs
 scripts/kit/actualizar.test.ts
