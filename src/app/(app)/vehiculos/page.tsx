@@ -8,7 +8,6 @@ import {
   MAXIMO_DE_PAGINA_DE_VEHICULOS,
   buscarVehiculos,
   condicionesDe,
-  conSituacionTraducida,
   esSubastaElegida,
   FILTRO_SUBASTA,
   leerCursorDelCierre,
@@ -237,7 +236,7 @@ export default async function PaginaVehiculos({ searchParams }: PageProps<'/vehi
       pagina={pagina}
       orden={orden}
       porPagina={{ valor: tamano, opciones: tamanosHasta(MAXIMO_DE_PAGINA_DE_VEHICULOS) }}
-      vistas={vistasDeOrigenesVisibles(datosO(vistas).map(conSituacionTraducida), visibles)}
+      vistas={vistasDeOrigenesVisibles(datosO(vistas), visibles)}
       puedeConfigurarCampos={puede(sesion.permisos, 'origenes.gestionar')}
       permisoDeAlta={permisoDeAlta(sesion.permisos, origen)}
       editables={[...editables]}

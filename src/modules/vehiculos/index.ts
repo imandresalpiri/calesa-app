@@ -74,7 +74,6 @@ export {
 } from './entities/filtros-de-subasta'
 export { leerCursorDelCierre } from './entities/cursor-del-cierre'
 // Las vistas guardadas con el `situacion` de antes, leídas con las claves nuevas
-export { conSituacionTraducida } from './entities/situacion-vieja'
 
 // La vitrina: qué se ve en la web pública y quién publica. Las dos lecturas no tumban la pantalla
 export {

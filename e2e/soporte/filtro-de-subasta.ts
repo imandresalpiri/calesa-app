@@ -159,22 +159,3 @@ export async function sembrarTerrenoDeSubasta(p: string): Promise<TerrenoDeSubas
   exigirSituaciones(t, filas.data ?? [])
   return { origen: origen.id, otro: otro.id, fases }
 }
-
-// Una vista guardada vieja (con `situacion`), como la dejó el filtro de antes.
-export async function guardarVistaVieja(
-  correo: string,
-  nombre: string,
-  params: Record<string, string>,
-): Promise<void> {
-  const cliente = admin()
-  const perfil = await cliente
-    .from('perfiles')
-    .select('id')
-    .eq('email', correo)
-    .single<{ id: string }>()
-  exigir(perfil.error, 'leer el perfil')
-  const { error } = await cliente
-    .from('vistas_guardadas')
-    .insert({ usuario_id: perfil.data?.id, pantalla: 'vehiculos', nombre, params })
-  exigir(error, 'guardar la vista vieja')
-}

@@ -10,7 +10,6 @@ import {
 import {
   RELLENO,
   borrarTerrenoDeSubasta,
-  guardarVistaVieja,
   sembrarTerrenoDeSubasta,
   titulosDeSubasta,
   type TerrenoDeSubasta,
@@ -207,9 +206,7 @@ test('E2E subasta filtro · «Cierre más próximo» ordena por tramos y pagina 
   await expect(page.getByText('Cierre más próximo primero')).toBeVisible()
 })
 
-test('E2E subasta filtro · una vista guardada vuelve a poner «Subasta», y una vieja se lee traducida', async ({
-  page,
-}) => {
+test('E2E subasta filtro · una vista guardada vuelve a poner «Subasta»', async ({ page }) => {
   await entrar(page, correo)
   await irA(page, '&subasta=no_ganadas&anio.min=2018')
   await exigirLista(page, ['noGanada'])
@@ -224,20 +221,15 @@ test('E2E subasta filtro · una vista guardada vuelve a poner «Subasta», y una
     },
   ])
 
-  // La que guardó el filtro de antes: se aplica con las claves nuevas y es «la de ahora».
-  await guardarVistaVieja(correo, 'Perdidas de antes', {
-    origen: terreno.origen,
-    situacion: 'no_ganada',
-  })
+  // Desde otro origen, la vista vuelve a su origen con «Subasta» puesta y es «la de ahora».
   await page.goto(`/vehiculos?origen=${terreno.otro}`)
   await abrirVistaYOpciones(page)
-  await page.getByRole('button', { name: 'Perdidas de antes', exact: true }).click()
+  await page.getByRole('button', { name: 'Las que perdimos', exact: true }).click()
   await expect(page).toHaveURL(/subasta=no_ganadas/)
-  await expect(page).not.toHaveURL(/situacion=/)
   await exigirLista(page, ['noGanada'])
   await expect(chips(page).getByText('Subasta: No ganadas')).toBeVisible()
   await abrirVistaYOpciones(page)
-  const actual = page.getByRole('button', { name: /^Perdidas de antes/ })
+  const actual = page.getByRole('button', { name: /^Las que perdimos/ })
   await expect(actual).toHaveAttribute('aria-current', 'true')
   await expect(actual).toContainText('la de ahora')
 })

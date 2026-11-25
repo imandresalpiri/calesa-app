@@ -78,8 +78,8 @@ Inventario de vehículos por origen con atributos dinámicos: listado con filtro
   justo después, «Orden» (`FILTRO_ORDEN`: `reciente` | `cierre`; su por defecto es `cierre` si «Subasta» tiene valor: `esSubastaElegida()` antes del esquema y
   `ordenElegido()` después). «Fase» (`FILTRO_FASE`) en todo origen: las fases y «Sin fase» como `columna_en` sobre `fase_id`. `condicionesDe(…, { ahora })` suelta
   `CONDICION_POR_DEFECTO` si se pide «No ganadas»; sin `ahora` las ventanas no filtran. Con `cierre`, `fuenteDelInventario()` va siempre por la función, el cursor es
-  `cursor-del-cierre.ts` (`<tramo>~<cursor>`) y `<UbicacionPorCierre>` dice «Cierre más próximo primero» o «Volver al principio». Las vistas guardadas con
-  `situacion` se leen con `conSituacionTraducida()`. `<AtajoSinResolver>` (`features/listado/`) recibe `sinResolver` (`ConteoAcotado | null`, de `sinResolverDe()`:
+  `cursor-del-cierre.ts` (`<tramo>~<cursor>`) y `<UbicacionPorCierre>` dice «Cierre más próximo primero» o «Volver al principio».
+  `<AtajoSinResolver>` (`features/listado/`) recibe `sinResolver` (`ConteoAcotado | null`, de `sinResolverDe()`:
   `tope + 1` por `vehiculos_situacion_idx`, «99+») y pone o quita `?subasta=sin_resolver`.
 - **Situación en la ficha** (`features/situacion/`, `pantallas/ficha.ts` › `<AvisoDeSituacion>`): «Sin resolver» con «La ganamos» (el `href` lo
   arma `src/app`: `vehiculos` no conoce `logistica`) y «No la ganamos» (`marcarNoGanada`, con «Deshacer» 10 s); «No ganada» con quién y cuándo
