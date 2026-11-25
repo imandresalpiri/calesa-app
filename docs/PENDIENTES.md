@@ -135,6 +135,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Las lecturas de cotizaciones de quien ve «todos» sin `cotizaciones.privadas.ver` descartan las privadas ajenas sobre las rutas de siempre: leen de más en proporción a ellas, y la siembra de volumen no tiene privadas — sembrar un 10 % de privadas ajenas y una persona con «todos» sin el permiso en `medir-cotizaciones-listado.sql`, `medir-cotizaciones-buscar.sql`, `medir-cotizaciones-de-este-vehiculo.sql` (también las tarjetas de la ficha del vehículo) y `medir-relacionados.sql`; cierre: sin `Seq Scan`, bloques con 250.000 ≤ 1,2 × los de 50.000 + 20 y ≤ 50 ms.
 - **[—]** `_cotizacion_cadena` devuelve `{"oculta": true}` cuando la versión de encima es una privada ajena: delata que existe (`docs/DECISIONES.md` › «Cotizaciones privadas») — si molesta, saltarla en la cadena como si no existiera; cierre: un caso en `supabase/tests/areas/cotizaciones/privadas.sql`.
 - **[—]** `medir-cotizaciones-de-este-vehiculo.sql` a veces no lee `cotizaciones_origen_creado_idx` ni `cotizaciones_aprobadas_pkey`: el plan depende de cuándo se tomaron las estadísticas de `cotizaciones_aprobadas` (otra corrida pasa) — un `analyze` de `cotizaciones_aprobadas` tras sembrar, antes de medir.
+- **[—]** `medir-cotizacion-hoja.sql` cae en `main` (`db:medir`, fuera del CI): con todo el aspecto la hoja lee 38–39 bloques de `formulas` (su TOAST) y sin él
+  32–33 — candidato: en una función el registro `fo` guarda el diseño sin destoastear y cada una de sus diez `fo.diseno` lo vuelve a leer; leerlo
+  una vez en una variable. Cierre: la medición pasa.
 - **[—]** Tope de 40 ítems por diseño: `subasta_usa` tiene 39 — para crecer, subir `_diseno_maximo_de_items()` y la constante midiendo la hoja, o partir la hoja.
 
 ### Archivos y funciones sobre el tope
