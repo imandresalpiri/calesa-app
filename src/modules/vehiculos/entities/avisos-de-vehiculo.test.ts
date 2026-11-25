@@ -12,20 +12,31 @@ import {
   type AlcanceDeAvisos,
   type VehiculoDelAviso,
 } from './avisos-de-vehiculo'
+import { MARCADOR_DE_VEHICULO } from './ruta-por-vehiculo'
+
+const DOCUMENTOS = `/logistica/vehiculo/${MARCADOR_DE_VEHICULO}?hueco=documentos`
 
 const TODO: AlcanceDeAvisos = {
   verLeads: true,
   verLogistica: true,
   verCotizaciones: true,
   verRepuestos: true,
+  documentos: DOCUMENTOS,
 }
 const NADA: AlcanceDeAvisos = {
   verLeads: false,
   verLogistica: false,
   verCotizaciones: false,
   verRepuestos: false,
+  documentos: DOCUMENTOS,
 }
-const VEHICULO: VehiculoDelAviso = { id: 'v1', leadId: 'l1', leadVisible: true, editable: true }
+const VEHICULO: VehiculoDelAviso = {
+  id: 'v1',
+  leadId: 'l1',
+  leadVisible: true,
+  editable: true,
+  proyecto: '/repuestos/p1',
+}
 
 const etiquetas = (causa: (typeof CAUSAS_DE_BLOQUEO)[number], v = VEHICULO, a = TODO) =>
   accionesDeBloqueo(causa, v, a).acciones.map((x) => x.etiqueta)
@@ -78,10 +89,10 @@ describe('el resto de las causas', () => {
     ['fase', 'Ver en logística', '/logistica/vehiculo/v1'],
     ['pagos', 'Ver en logística', '/logistica/vehiculo/v1'],
     ['aduana', 'Ver en logística', '/logistica/vehiculo/v1'],
-    ['documentos', 'Ver los documentos', '/vehiculos/v1?seccion=documentos'],
+    ['documentos', 'Ver los documentos', '/logistica/vehiculo/v1?hueco=documentos'],
     ['comprobante', 'Ver las cotizaciones', '/vehiculos/v1?seccion=cotizaciones'],
     ['final', 'Ver las cotizaciones', '/vehiculos/v1?seccion=cotizaciones'],
-    ['repuestos', 'Ver el proyecto de repuestos', '/vehiculos/v1?seccion=repuestos'],
+    ['repuestos', 'Ver el proyecto de repuestos', '/repuestos/p1'],
   ] as const)('%s lleva a %s', (causa, etiqueta, ruta) => {
     expect(accionesDeBloqueo(causa, VEHICULO, TODO).acciones).toEqual([
       { tipo: 'ir', etiqueta, ruta },
@@ -93,6 +104,10 @@ describe('el resto de las causas', () => {
       if (causa === 'vinculado') continue
       expect(accionesDeBloqueo(causa, VEHICULO, NADA)).toEqual({ acciones: [], pedido: null })
     }
+  })
+
+  it('sin el proyecto resuelto (la fila de la lista) no se ofrece verlo', () => {
+    expect(etiquetas('repuestos', { ...VEHICULO, proyecto: null })).toEqual([])
   })
 
   it('fase con y sin logistica.ver', () => {
@@ -159,7 +174,13 @@ describe('accionesDeError y esCausaDeBloqueo', () => {
   it('arma el vehículo del aviso con lo que la página resolvió', () => {
     expect(
       vehiculoDelAviso({ id: 'v1', leadId: 'l1' }, { editable: true, leadVisible: false }),
-    ).toEqual({ id: 'v1', leadId: 'l1', leadVisible: false, editable: true })
+    ).toEqual({ id: 'v1', leadId: 'l1', leadVisible: false, editable: true, proyecto: null })
+    expect(
+      vehiculoDelAviso(
+        { id: 'v1', leadId: null },
+        { editable: false, leadVisible: false, proyecto: '/repuestos/p1' },
+      ).proyecto,
+    ).toBe('/repuestos/p1')
   })
 
   it('reconoce todas las claves de la base y nada más', () => {
@@ -185,13 +206,14 @@ describe('alcanceDeAvisos y rutaParaDesvincular', () => {
       permiso('cotizaciones.ver', 'o2'),
       permiso('repuestos.ver'),
     ] as unknown as Permisos
-    expect(alcanceDeAvisos(permisos, 'o1')).toEqual({
+    expect(alcanceDeAvisos(permisos, 'o1', DOCUMENTOS)).toEqual({
       verLeads: true,
       verLogistica: true,
       verCotizaciones: false,
       verRepuestos: true,
+      documentos: DOCUMENTOS,
     })
-    expect(alcanceDeAvisos([] as unknown as Permisos, 'o1')).toEqual(NADA)
+    expect(alcanceDeAvisos([] as unknown as Permisos, 'o1', DOCUMENTOS)).toEqual(NADA)
   })
 
   it('quitar el vínculo siempre va a la ficha con el panel y el luego', () => {

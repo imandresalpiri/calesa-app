@@ -11,6 +11,7 @@ import {
 import type { ErrorApp } from '@/shared/lib/errores'
 import { puede, type Permisos } from '@/shared/lib/permisos'
 import { RUTAS, unidadDeLogistica } from '@/shared/lib/rutas'
+import { rutaDelVehiculo } from './ruta-por-vehiculo'
 import { PANEL_DESVINCULAR } from './vehiculos-del-lead'
 
 // Las claves que devuelve `_vehiculo_bloqueo()`. `cotizacion_papelera` sólo frena una purga, no un envío.
@@ -41,8 +42,9 @@ export function rutaParaDesvincular(vehiculoId: string): string {
   return `${RUTAS.vehiculos}/${vehiculoId}?${new URLSearchParams({ panel: PANEL_DESVINCULAR, [CLAVE_DE_LUEGO]: LUEGO_PAPELERA }).toString()}`
 }
 
-const rutaDeSeccion = (vehiculoId: string, seccion: string) =>
-  `${RUTAS.vehiculos}/${vehiculoId}?seccion=${seccion}`
+// «Ver las cotizaciones»: su bloque en la ficha (`?seccion=cotizaciones`).
+const rutaDeLasCotizaciones = (vehiculoId: string) =>
+  `${RUTAS.vehiculos}/${vehiculoId}?seccion=cotizaciones`
 
 // Verbo + objeto, nunca «Aceptar» (un test lo comprueba sobre este catálogo).
 export const ETIQUETA_DE_AVISO = {
@@ -56,29 +58,41 @@ export const ETIQUETA_DE_AVISO = {
   enviarAPapelera: 'Enviar a la papelera',
 } as const
 
-// Lo que quien mira puede abrir desde un aviso de un vehículo de un origen. Se resuelve en el servidor y viaja como booleanos.
+// Lo que quien mira puede abrir desde un aviso de un vehículo de un origen. Se resuelve en el servidor y viaja como booleanos, con la ruta de los
+// documentos.
 export type AlcanceDeAvisos = {
   verLeads: boolean
   verLogistica: boolean
   verCotizaciones: boolean
   verRepuestos: boolean
+  // «Ver los documentos»: la unidad de logística con sus documentos abiertos, como plantilla con `MARCADOR_DE_VEHICULO` (cada vehículo pone su id).
+  // La arma `src/app` con `logistica`, que este módulo no conoce.
+  documentos: string
 }
 
-export function alcanceDeAvisos(permisos: Permisos, origenId: string): AlcanceDeAvisos {
+export function alcanceDeAvisos(
+  permisos: Permisos,
+  origenId: string,
+  documentos: string,
+): AlcanceDeAvisos {
   return {
     verLeads: puede(permisos, 'leads.ver'),
     verLogistica: puede(permisos, 'logistica.ver', origenId),
     verCotizaciones: puede(permisos, 'cotizaciones.ver', origenId),
     verRepuestos: puede(permisos, 'repuestos.ver'),
+    documentos,
   }
 }
 
-// Del vehículo del aviso: su lead, si ese lead se puede abrir (lo dice la base: `vehiculos_con_lead_visible`) y si quien mira lo edita.
+// Del vehículo del aviso: su lead, si ese lead se puede abrir (lo dice la base: `vehiculos_con_lead_visible`), si quien mira lo edita y la ruta de su
+// proyecto de repuestos, si la página la resolvió (la ficha, con `repuestos.ver`: `repuestos` lo arma `src/app`). Sin ella, «Ver el proyecto de
+// repuestos» no se ofrece.
 export type VehiculoDelAviso = {
   id: string
   leadId: string | null
   leadVisible: boolean
   editable: boolean
+  proyecto: string | null
 }
 
 // «Ver en logística» vale para varias causas: la fase, los pagos y la aduana viven en la unidad de logística.
@@ -92,6 +106,19 @@ const aLogistica = (vehiculo: VehiculoDelAviso, alcance: AlcanceDeAvisos): Ofert
     puede: alcance.verLogistica,
   },
 ]
+
+// «Ver el proyecto de repuestos», sólo si la página resolvió la ruta del proyecto (la fila de la lista no la lee).
+function aRepuestos(vehiculo: VehiculoDelAviso, alcance: AlcanceDeAvisos): OfertaDeAviso[] {
+  if (vehiculo.proyecto === null) {
+    return []
+  }
+  return [
+    {
+      accion: { tipo: 'ir', etiqueta: ETIQUETA_DE_AVISO.verRepuestos, ruta: vehiculo.proyecto },
+      puede: alcance.verRepuestos,
+    },
+  ]
+}
 
 function ofertasDe(
   causa: CausaDeBloqueo,
@@ -135,7 +162,7 @@ function ofertasDe(
           accion: {
             tipo: 'ir',
             etiqueta: ETIQUETA_DE_AVISO.verDocumentos,
-            ruta: rutaDeSeccion(vehiculo.id, 'documentos'),
+            ruta: rutaDelVehiculo(alcance.documentos, vehiculo.id),
           },
           puede: alcance.verLogistica,
         },
@@ -148,22 +175,13 @@ function ofertasDe(
           accion: {
             tipo: 'ir',
             etiqueta: ETIQUETA_DE_AVISO.verCotizaciones,
-            ruta: rutaDeSeccion(vehiculo.id, 'cotizaciones'),
+            ruta: rutaDeLasCotizaciones(vehiculo.id),
           },
           puede: alcance.verCotizaciones,
         },
       ]
     case 'repuestos':
-      return [
-        {
-          accion: {
-            tipo: 'ir',
-            etiqueta: ETIQUETA_DE_AVISO.verRepuestos,
-            ruta: rutaDeSeccion(vehiculo.id, 'repuestos'),
-          },
-          puede: alcance.verRepuestos,
-        },
-      ]
+      return aRepuestos(vehiculo, alcance)
   }
 }
 
@@ -198,12 +216,16 @@ export function accionesDeError(
     : SIN_ACCIONES
 }
 
-// El vehículo de una fila, resumen o ficha, con lo que la página resolvió de él.
+// El vehículo de una fila o de la ficha, con lo que la página resolvió de él (la fila no lee su proyecto de repuestos).
 export function vehiculoDelAviso(
   vehiculo: { id: string; leadId: string | null },
-  { editable, leadVisible }: { editable: boolean; leadVisible: boolean },
+  {
+    editable,
+    leadVisible,
+    proyecto = null,
+  }: { editable: boolean; leadVisible: boolean; proyecto?: string | null },
 ): VehiculoDelAviso {
-  return { id: vehiculo.id, leadId: vehiculo.leadId, leadVisible, editable }
+  return { id: vehiculo.id, leadId: vehiculo.leadId, leadVisible, editable, proyecto }
 }
 
 // Lo que hace falta para decir qué se puede hacer si la base rechaza el envío (comprobante, documentos, pagos…): el vehículo con lo que la página

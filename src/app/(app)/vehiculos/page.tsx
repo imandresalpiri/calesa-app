@@ -42,6 +42,7 @@ import { redirigir } from '@/shared/lib/navegacion'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { aprobadasDeLaPagina } from './aprobadas'
+import { DOCUMENTOS_DEL_AVISO } from './documentos-del-aviso'
 import { ListadoConCompartir } from './listado-con-compartir'
 import { vehiculoEnEdicion } from './edicion'
 import { panelesDeLaUrl } from './paneles'
@@ -267,7 +268,7 @@ export default async function PaginaVehiculos({ searchParams }: PageProps<'/vehi
       editables={[...editables]}
       eliminables={[...eliminables]}
       leadsVisibles={[...leadsVisibles]}
-      alcance={alcanceDeAvisos(sesion.permisos, origen.id)}
+      alcance={alcanceDeAvisos(sesion.permisos, origen.id, DOCUMENTOS_DEL_AVISO)}
       verPapelera={puedeAbrirLaPapelera(sesion.permisos)}
       aprobadas={aprobadas}
       paraCotizar={paraCotizarDe(sesion.permisos, origen)}

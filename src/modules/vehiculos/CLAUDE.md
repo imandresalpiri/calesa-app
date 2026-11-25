@@ -184,7 +184,7 @@ SQL y, con `p_orden = 'cierre'`, por tramos con `p_cursor_tramo`; la usa `buscar
   **Publicado no es «en vitrina»:** la regla vive en `interno.vitrina_vehiculos`; la app no la copia. Vista previa: `vehiculo_vitrina_previa()`.
 - **Papelera, sólo por RPC y con resultado parcial** (cada vehículo con su versión, lote hasta 200; restaurar/purgar con la versión del lote).
   Enviar ofrece «Deshacer» 10 s. Lo que no entra lo decide `_vehiculo_bloqueo()` (`{causa, motivo}`; `_vehiculo_motivo_de_bloqueo` es su texto; la
-  causa viaja en `hint` y en `rechazados[].causa`, y `entities/avisos-de-vehiculo.ts` la vuelve acciones del aviso; una final activa frena aunque no tenga lead; purgar
+  causa viaja en `hint` y en `rechazados[].causa`, y `entities/avisos-de-vehiculo.ts` la vuelve acciones del aviso, que llevan a la ruta de hoy: «Ver los documentos» a la unidad de logística (`AlcanceDeAvisos.documentos`, plantilla con `MARCADOR_DE_VEHICULO` de `src/app/(app)/vehiculos/documentos-del-aviso.ts`) y «Ver el proyecto de repuestos» al proyecto (`VehiculoDelAviso.proyecto`, que sólo resuelve la ficha: en la lista no se ofrece); una final activa frena aunque no tenga lead; purgar
   frena con una cotización de otro lote de la papelera que lo nombra). Restaurar vuelve sin publicar. Purgar es irreversible (`<ConfirmarPurga>`). Se lee sólo por `vehiculos_papelera_listar()`. Un lead con
   vehículo vinculado no va a la papelera de leads.
 - **Vínculo e interesados, sólo por RPC** (`vehiculo_vincular`; `p_lead` nulo desvincula; bloquea el lead y luego el vehículo; reemplazar exige
