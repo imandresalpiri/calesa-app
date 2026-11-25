@@ -58,7 +58,8 @@ it(
     })
     expect(hasta).toBe(resets + MARGEN)
     expect(estado(a, 'T1', 'retomas')).toBe('')
-    expect(avisos(a, 'Pausa: límite del plan')).toBe(1)
+    // El estado queda por_retomar antes de que pausar_por_limite avise: se espera el aviso.
+    expect(await esperar(() => avisos(a, 'Pausa: límite del plan') === 1)).toBe(true)
   },
   TIEMPO,
 )
@@ -140,8 +141,11 @@ it(
       true,
     )
     expect(pausaDe(m)).toBe(resets + MARGEN)
+    // Una avisa y la otra sólo lo anota: se esperan las dos líneas antes de contar.
+    expect(await esperar(() => logDe(a).includes('también se cortó por el límite del plan'))).toBe(
+      true,
+    )
     expect(avisos(a, 'Pausa: límite del plan')).toBe(1)
-    expect(logDe(a)).toContain('también se cortó por el límite del plan')
 
     // La retoma sale cuando la pausa vence; la marca del comentario queda mientras se siga cortando.
     const pausa = estadoDeLaMaquina(m, 'pausa-hasta')
