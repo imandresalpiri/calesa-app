@@ -27,19 +27,22 @@ export function LaHermana({ hoja, delPar }: { hoja: HojaDeUnaGuardada; delPar: D
   )
 }
 
-// La hoja de la guardada: la de siempre o, con la hermana disponible, las dos juntas (la cáscara diferida: lo del par se pide sólo entonces).
+// La hoja de la guardada: la de siempre o, con la hermana disponible, las dos juntas (la cáscara diferida: lo del par se pide sólo entonces). En par la ayuda sólo se
+// consulta: sin «Tu vehículo» (`valoresDelVehiculo`, los datos del vehículo de la hoja que casan sus tablas).
 export function HojaDeLaGuardada({
   lectura,
   delPar,
   personaId,
   cambio,
   pasos,
+  valoresDelVehiculo,
 }: {
   lectura: Lectura
   delPar: DelPar
   personaId: string
   cambio: CambioPermitido
   pasos: Pasos
+  valoresDelVehiculo: Readonly<Record<string, number | string>> | undefined
 }) {
   const { hoja, inicial, vehiculoNuevo } = lectura
   const comun = {
@@ -61,5 +64,13 @@ export function HojaDeLaGuardada({
       />
     )
   }
-  return <PantallaDeUnaGuardada key={hoja.cotizacion.id} hoja={hoja} inicial={inicial} {...comun} />
+  return (
+    <PantallaDeUnaGuardada
+      key={hoja.cotizacion.id}
+      hoja={hoja}
+      inicial={inicial}
+      valoresDelVehiculo={valoresDelVehiculo}
+      {...comun}
+    />
+  )
 }

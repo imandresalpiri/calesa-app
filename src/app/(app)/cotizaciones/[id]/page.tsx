@@ -26,7 +26,7 @@ import {
   vehiculoDe,
   vehiculoDeLaTarjeta,
 } from '../datos-de-la-tarjeta'
-import { idDeUrl, type Quien } from '../vehiculo-de-la-hoja'
+import { idDeUrl, valoresDelVehiculoDe, type Quien } from '../vehiculo-de-la-hoja'
 import { HUECOS_DE_LA_GUARDADA, dibujarHuecos } from './huecos-de-la-guardada'
 import { HojaDeLaGuardada, LaHermana } from './hoja-de-la-guardada'
 import { esHermanaSola, leerElParDeLaGuardada } from './par-de-la-guardada'
@@ -213,6 +213,7 @@ async function Cotizacion({
               personaId={sesion.usuarioId}
               cambio={delVehiculo.cambio}
               pasos={pasosDeLaGuardada(delVehiculo.cambio, lectura.data)}
+              valoresDelVehiculo={valoresDelVehiculoDe(hoja.diseno, deLaHoja)}
             />
           </ConProveedorDeLaHoja>
         </ConElTituloDeLaGuardada>

@@ -4,6 +4,7 @@ import { parseAsString, useQueryStates } from 'nuqs'
 import { useCallback, useEffect, useRef } from 'react'
 import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import type { DeDondeCalcula } from '../../../entities/pedido-de-recalculo'
+import type { AccionesDeHoja } from './use-hoja'
 import {
   AYUDA_EN_BLOQUES,
   AYUDAS_DE_ANTES,
@@ -18,6 +19,8 @@ export type AyudaDeLaHoja = {
   cerrar: () => void
   // De dónde leen las tablas de la ayuda: el de la hoja montada, el mismo del recálculo.
   lectura: DeDondeCalcula
+  // Escribe en la hoja un valor de una tabla (`alAplicar` de las acciones). Sin él (mientras guarda, la hoja en par), los valores sólo se leen.
+  alAplicar: AccionesDeHoja['alAplicar']
 }
 
 // Un enlace de antes (`?ayuda=texto` o `?ayuda=tabla`) abre la misma ayuda y la URL pasa a `bloques` sin sumar una entrada al historial.
@@ -35,7 +38,7 @@ function useAyudaDeAntes() {
   return deAntes ? url[CLAVE_DEL_NODO] : null
 }
 
-export function useAyudaDeLaHoja(lectura: DeDondeCalcula) {
+export function useAyudaDeLaHoja(lectura: DeDondeCalcula, alAplicar: AccionesDeHoja['alAplicar']) {
   const panel = usePanelPorUrl(AYUDA_EN_BLOQUES, [CLAVE_DEL_NODO], { clave: CLAVE_DE_AYUDA })
   const deAntes = useAyudaDeAntes()
   // El callback que reciben todas las celdas es uno solo y no cambia (la `XCell` está en `memo`): abre con la última función de la URL.
@@ -50,6 +53,7 @@ export function useAyudaDeLaHoja(lectura: DeDondeCalcula) {
     nodo: panel.abierto ? panel.valor(CLAVE_DEL_NODO) : deAntes,
     cerrar: panel.cerrar,
     lectura,
+    alAplicar,
   }
   return { ayuda, alAyudar }
 }

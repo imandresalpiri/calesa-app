@@ -27,6 +27,8 @@ type PropsDeLaHoja = {
   elecciones: EleccionesDeLaHoja
   // Los pasos de la hoja: los paneles del vehículo y del cliente que la página sabe abrir (nulo el que no va).
   pasos?: PasosDeLaPagina
+  // Los datos del vehículo elegido con que casa una tabla de la ayuda («Tu vehículo»): van con él y se congelan con la hoja.
+  valoresDelVehiculo?: Readonly<Record<string, number | string>>
 }
 
 type Props = PropsDeLaHoja & {

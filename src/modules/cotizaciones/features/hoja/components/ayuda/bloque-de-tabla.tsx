@@ -1,6 +1,9 @@
 'use client'
 
 import { EstadoVacio } from '@/shared/ui/estados'
+import type { ContextoDeHoja } from '../../../../entities/binding'
+import { destinosDelBloque, type DestinoDeLaAyuda } from '../../../../entities/destino-de-la-ayuda'
+import { filaDelVehiculo } from '../../../../entities/fila-del-vehiculo'
 import type { BloqueEnLaHoja } from '../../../../entities/hoja'
 import type { DeDondeCalcula } from '../../../../entities/pedido-de-recalculo'
 import { pideRecargar } from '../../../../entities/recalculo'
@@ -15,6 +18,26 @@ type Props = {
   bloque: BloqueDeTablaEnLaHoja
   lectura: DeDondeCalcula
   dinero: PropsDeLaTablaDeLaAyuda['dinero']
+  contexto: ContextoDeHoja
+  // Escribe en la hoja una cifra de una columna que llena (`useAplicarDesdeLaAyuda`). Sin él, todas las cifras son texto.
+  alElegir: ((destino: DestinoDeLaAyuda, valor: number) => void) | undefined
+}
+
+// La fila de «Tu vehículo», sólo con un vehículo elegido que quien mira ve (`valoresDelVehiculo`, que manda la página) y si el bloque lo pide: los nodos que casan salen del
+// último recálculo y los campos, del vehículo.
+function filaResaltadaDe(
+  bloque: BloqueDeTablaEnLaHoja,
+  tabla: TablaDeAyuda,
+  contexto: ContextoDeHoja,
+): number | null {
+  const delVehiculo = contexto.valoresDelVehiculo
+  if (!bloque.resaltar || delVehiculo === undefined) {
+    return null
+  }
+  return filaDelVehiculo(tabla.filas, bloque.casa, {
+    deNodo: (nodo) => contexto.respuesta?.valores.get(nodo),
+    delVehiculo,
+  })
 }
 
 function TituloDeLaTabla({ nombre }: { nombre: string }) {
@@ -27,7 +50,13 @@ function TituloDeLaTabla({ nombre }: { nombre: string }) {
 
 // Lo leído: el nombre de la tabla arriba y sus filas con las columnas del bloque. A quien configura (sólo a él le llega el id de la tabla viva), el aviso de cada columna que
 // el bloque pide y la tabla ya no tiene; a los demás, la columna simplemente no se dibuja.
-function TablaLeida({ bloque, tabla, dinero }: Omit<Props, 'lectura'> & { tabla: TablaDeAyuda }) {
+function TablaLeida({
+  bloque,
+  tabla,
+  dinero,
+  contexto,
+  alElegir,
+}: Omit<Props, 'lectura'> & { tabla: TablaDeAyuda }) {
   const { columnas, faltan } = columnasDelBloque(
     tabla,
     bloque.columnas === null ? null : bloque.columnas.map((c) => c.columna),
@@ -45,7 +74,14 @@ function TablaLeida({ bloque, tabla, dinero }: Omit<Props, 'lectura'> & { tabla:
       {tabla.filas.length === 0 ? (
         <EstadoVacio compacto titulo="Esta tabla no tiene filas." />
       ) : (
-        <TablaDeLaAyuda tabla={tabla} columnas={columnas} dinero={dinero} />
+        <TablaDeLaAyuda
+          tabla={tabla}
+          columnas={columnas}
+          dinero={dinero}
+          llenaPor={alElegir ? destinosDelBloque(contexto, bloque.columnas) : undefined}
+          alElegir={alElegir}
+          filaResaltada={filaResaltadaDe(bloque, tabla, contexto)}
+        />
       )}
     </div>
   )
@@ -53,7 +89,7 @@ function TablaLeida({ bloque, tabla, dinero }: Omit<Props, 'lectura'> & { tabla:
 
 // Un bloque de tabla: lee la suya al montarse (de donde calcula la hoja) y resuelve sus estados sin tocar los demás bloques. Sin permiso (la tabla se desactivó o dejó de
 // verse), «Esta tabla ya no está disponible.», sin cifras.
-export function BloqueDeTabla({ bloque, lectura, dinero }: Props) {
+export function BloqueDeTabla({ bloque, lectura, ...resto }: Props) {
   const leer = useTablaDeLaAyuda(bloque.tabla, lectura)
   if (leer.lectura.estado === 'leyendo') {
     return <LeyendoLaTabla />
@@ -68,5 +104,5 @@ export function BloqueDeTabla({ bloque, lectura, dinero }: Props) {
       />
     )
   }
-  return <TablaLeida bloque={bloque} tabla={leer.lectura.dato} dinero={dinero} />
+  return <TablaLeida bloque={bloque} tabla={leer.lectura.dato} {...resto} />
 }

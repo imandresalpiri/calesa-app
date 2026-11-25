@@ -11,8 +11,14 @@ type Props = Omit<ComponentProps<typeof PantallaDeCotizar>, 'hoja' | 'inicial'> 
   iniciales: readonly [RecalculoInicial, RecalculoInicial | undefined]
 }
 
-// La hoja de siempre o, con la variante en par (glosario: «Variante en par»), la hoja con las dos opciones, que se pide sólo entonces (`diferido()`).
-export function PantallaDeLaHoja({ hoja, iniciales: [primera, segunda], ...props }: Props) {
+// La hoja de siempre o, con la variante en par (glosario: «Variante en par»), la hoja con las dos opciones, que se pide sólo entonces (`diferido()`). En par la ayuda sólo
+// se consulta: sin «Tu vehículo» (`valoresDelVehiculo`) ni valores que llenan.
+export function PantallaDeLaHoja({
+  hoja,
+  iniciales: [primera, segunda],
+  valoresDelVehiculo,
+  ...props
+}: Props) {
   if (hoja.par && segunda) {
     return (
       <PantallaDeCotizarEnParDiferida
@@ -22,5 +28,12 @@ export function PantallaDeLaHoja({ hoja, iniciales: [primera, segunda], ...props
       />
     )
   }
-  return <PantallaDeCotizar hoja={hoja} inicial={primera} {...props} />
+  return (
+    <PantallaDeCotizar
+      hoja={hoja}
+      inicial={primera}
+      valoresDelVehiculo={valoresDelVehiculo}
+      {...props}
+    />
+  )
 }

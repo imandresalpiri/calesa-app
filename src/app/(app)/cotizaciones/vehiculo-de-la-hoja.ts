@@ -1,7 +1,14 @@
 import { z } from 'zod'
+import { camposQueCasanLaAyuda, type HojaLista } from '@/modules/cotizaciones'
 import { integracionActiva } from '@/modules/empresa'
 import type { OrigenResumen } from '@/modules/origenes'
-import { editablesDe, leerVehiculo, permisoDeAlta } from '@/modules/vehiculos'
+import {
+  editablesDe,
+  leerVehiculo,
+  permisoDeAlta,
+  valoresParaCasar,
+  type Vehiculo,
+} from '@/modules/vehiculos'
 import type { AltaDelPanel } from '@/modules/vehiculos/pantallas/cotizar'
 import { puede, type Permisos } from '@/shared/lib/permisos'
 import { unParametro } from '@/shared/lib/rutas'
@@ -52,3 +59,11 @@ export async function altaDelPanelDe(
     apibara: { activa, puedeConfigurar: puede(permisos, 'empresa.ajustes.gestionar') },
   }
 }
+
+// Los datos del vehículo con que la ayuda de la hoja resalta «Tu vehículo»: sólo los campos que casa alguna de sus tablas (`camposQueCasanLaAyuda`), como los lee el
+// motor. Sin un vehículo que quien mira ve, nada: ninguna fila es la suya.
+export const valoresDelVehiculoDe = (
+  hoja: Pick<HojaLista, 'secciones'>,
+  vehiculo: Vehiculo | null,
+): Readonly<Record<string, number | string>> | undefined =>
+  vehiculo === null ? undefined : valoresParaCasar(vehiculo, camposQueCasanLaAyuda(hoja))

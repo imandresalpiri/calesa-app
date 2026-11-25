@@ -4,6 +4,7 @@ import {
   datosParaElegirDe,
   marcadaDe,
   opcionesADibujar,
+  valoresParaCasar,
   TOPE_DE_OPCIONES,
 } from './dato-para-elegir'
 
@@ -105,5 +106,38 @@ describe('opcionesADibujar: a lo sumo el tope, con la marcada siempre a la vista
       muchas.filter((o) => o.startsWith('op_5')),
     )
     expect(opcionesADibujar(muchas, null, ' op_57 ').dibujadas).toEqual(['op_57'])
+  })
+})
+
+describe('valoresParaCasar: los datos del vehículo con que casa la fila de la ayuda', () => {
+  const vehiculo = {
+    anio: 2018,
+    marca: 'Toyota',
+    modelo: null,
+    kilometraje: 54000,
+    precio: Number.NaN,
+    atributos: { tipo: 'Sedán', puertas: 4, nota: 'x'.repeat(201), vacio: '', lista: ['a'] },
+  }
+
+  it('las columnas fijas y los atributos pedidos, tal cual, sin convertir', () => {
+    expect(valoresParaCasar(vehiculo, ['anio', 'marca', 'tipo', 'puertas', 'vacio'])).toStrictEqual(
+      {
+        anio: 2018,
+        marca: 'Toyota',
+        tipo: 'Sedán',
+        puertas: 4,
+        vacio: '',
+      },
+    )
+  })
+
+  it('lo nulo, lo que no es número finito ni texto, un texto de más de 200 y lo que no existe no viajan', () => {
+    expect(
+      valoresParaCasar(vehiculo, ['modelo', 'precio', 'nota', 'lista', 'no_existe']),
+    ).toStrictEqual({})
+  })
+
+  it('sin campos pedidos, nada', () => {
+    expect(valoresParaCasar(vehiculo, [])).toStrictEqual({})
   })
 })

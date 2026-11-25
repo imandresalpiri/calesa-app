@@ -30,6 +30,8 @@ type PropsDeLaHoja = {
   inicial: RecalculoInicial
   // El vehículo elegido para cambiar el de una preventa (T315, `?vehiculo=`), con el que se hizo ese cálculo; nulo = el suyo. Va con la hoja: se congela mientras guarda.
   vehiculoNuevo: string | null
+  // Los datos del vehículo de la hoja (el elegido o el suyo) con que casa una tabla de la ayuda («Tu vehículo»); sin él, o si quien mira no lo ve, no viajan.
+  valoresDelVehiculo?: Readonly<Record<string, number | string>>
 }
 
 type Props = PropsDeLaHoja & {
@@ -125,6 +127,12 @@ function encimaDe(hoja: HojaDeUnaGuardada, personaId: string) {
   }
 }
 
+// Si la página trajo otra lectura de la hoja (los datos del vehículo de la ayuda llegan con ella: no se comparan).
+const otraLectura = (vistas: PropsDeLaHoja, props: PropsDeLaHoja) =>
+  vistas.hoja !== props.hoja ||
+  vistas.inicial !== props.inicial ||
+  vistas.vehiculoNuevo !== props.vehiculoNuevo
+
 // El marco de la hoja de una cotización guardada (`/cotizaciones/[id]`, 4.15-3). La hoja calcula por SU cotización (nunca por un origen) y abre con lo guardado como lo tipeado,
 // así abrirla sin tocar nada no deja borrador. Quien no la puede guardar la lee en sólo lectura (P13). **Lo de hoy no siempre es lo guardado:** el recálculo usa las tablas de
 // referencia y los datos del vehículo de hoy; si da otra cosa se dice y se muestra el total con que se guardó (C11, P2). Se decide una vez, al abrir: tipear después no lo cambia.
@@ -143,7 +151,7 @@ export function PantallaDeUnaGuardada({
   const [vuelta, setVuelta] = useState(0)
   const [vistas, setVistas] = useState<PropsDeLaHoja>(props)
   // El guardado se arma con la versión que se vio, no con la que llegue a medio guardar: la clave del borrador es la de la hoja que se ve.
-  const { hoja, inicial, vehiculoNuevo } = vistas
+  const { hoja, inicial, vehiculoNuevo, valoresDelVehiculo } = vistas
   const borrador = claveDelBorradorDeUnaGuardada({
     personaId,
     cotizacionId: hoja.cotizacion.id,
@@ -157,12 +165,7 @@ export function PantallaDeUnaGuardada({
   // «Recargar» sin que la versión se mueva: cuando la lectura llega, la hoja se vuelve a montar con ella. Si había un vehículo elegido, soltarlo ya pide la página.
   const lectura = useLecturaDeUnaGuardada(guardado.olvidarAviso, () => soltar({ shallow: false }))
   const congelada = guardado.estado.tipo === 'guardando'
-  if (
-    !congelada &&
-    (vistas.hoja !== props.hoja ||
-      vistas.inicial !== props.inicial ||
-      vistas.vehiculoNuevo !== props.vehiculoNuevo)
-  ) {
+  if (!congelada && otraLectura(vistas, props)) {
     setVistas(props)
     lectura.llego()
   }
@@ -179,6 +182,7 @@ export function PantallaDeUnaGuardada({
       vehiculoId={vehiculoId}
       // Un vehículo elegido que no se pudo usar lo dice la barra de la cabecera (`src/app`), junto a «Elegir otro vehículo».
       vehiculoSoltado={false}
+      valoresDelVehiculo={valoresDelVehiculo}
       leadId={hoja.cotizacion.leadId}
       guardado={null}
       abre={abre}

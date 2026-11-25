@@ -25,7 +25,12 @@ import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { ConProveedorDeLaHoja } from '../con-proveedor-de-la-hoja'
 import { asesorQueMira, oNulo } from '../datos-de-la-tarjeta'
-import { idDeUrl, type Quien, type VehiculoDeLaUrl } from '../vehiculo-de-la-hoja'
+import {
+  idDeUrl,
+  valoresDelVehiculoDe,
+  type Quien,
+  type VehiculoDeLaUrl,
+} from '../vehiculo-de-la-hoja'
 import { BarrasDeLaHoja } from './barras-de-la-hoja'
 import { PantallaDeLaHoja } from './pantalla-de-la-hoja'
 import { tarjetaDeLaHojaNueva, tituloDelElegido } from './tarjeta-de-la-hoja'
@@ -227,6 +232,7 @@ async function HojaDelOrigen({
             personaId={sesion.usuarioId}
             // La celda sin valor por un dato que quien mira elige en el panel dice dónde se elige (4.14-2c3).
             seEligen={camposQueSeEligen(paraElegir)}
+            valoresDelVehiculo={valoresDelVehiculoDe(apertura.hoja, elegido?.vehiculo ?? null)}
             pasos={pasos}
           />
         </ConProveedorDeLaHoja>

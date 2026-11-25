@@ -55,7 +55,8 @@ export function LugaresDibujados({
   ajuste,
   alAjustar,
 }: PropsDeLosLugares) {
-  const { ayuda, alAyudar } = useAyudaDeLaHoja(de)
+  // Mientras guarda, la hoja no se toca (`inert`): la ayuda, que va por un portal fuera de ella, tampoco escribe.
+  const { ayuda, alAyudar } = useAyudaDeLaHoja(de, guardando ? undefined : deLaHoja.alAplicar)
   const acciones = useMemo(
     () => ({ ...deLaHoja, alAyudar, ...(alAjustar ? { alAjustar } : {}) }),
     [deLaHoja, alAyudar, alAjustar],

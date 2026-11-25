@@ -172,6 +172,13 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `calculoDeLoGuardado()` del núcleo).
 - Niveles: en la matriz de Roles, bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`; `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|eliminar-nivel&nivel=<id>`). `pantallas/configuracion.ts` sale `NivelesEnLaMatriz`: una render prop que da a la matriz de `equipo` los huecos (`cabeza`, `menuDelNivel`, `pie`, `ventanas`); la une `src/app/(app)/configuracion/roles/matriz-con-niveles.tsx`. Las rutas viejas de Catálogos responden 308.
 - Con Live, las cifras de la ayuda de una celda de dinero pasan por `<Monto>`; las de otra celda quedan a la vista.
+- **Llenar una celda desde la ayuda:** en un bloque de tabla, la cifra de una columna con `llena` es un botón si `destinoDeLaAyuda()` (`entities/destino-de-la-ayuda.ts`)
+  encuentra el lado de la celda dibujado y sin candado (`bloqueoDeLado`). Tocarla llama a `acciones.alAplicar(nodo, valor)` de `use-hoja.ts` (el mismo camino que
+  tipear, con «Editado a mano» si pisa un cálculo), cierra la ayuda, deja el foco en el botón del valor (`data-lado` de la XCell) y avisa «IVA % = 14,94 %» con
+  «Deshacer» (`useAplicarDesdeLaAyuda`), que repone lo de antes sólo si la hoja sigue como la dejó el clic. Con Live y un destino de dinero, el aviso no dice la cifra.
+  Sin `alAplicar` (la hoja en par, el lienzo del editor) nada se elige. «Tu vehículo» (`resaltar`): `filaDelVehiculo()` (`entities/fila-del-vehiculo.ts`, igualdad
+  estricta como el motor, la primera gana) con los valores de los nodos del recálculo y `valoresDelVehiculo` del `ContextoDeHoja`, que arma `src/app` con
+  `valoresParaCasar()` de `vehiculos` sobre `camposQueCasanLaAyuda(hoja)` (de `index.ts`).
 - Los `loading.tsx` de la hoja importan `pantallas/esqueleto-de-hoja.ts`, nunca el barril de su pantalla (con él, el HTML en frío baja dos chunks casi
   iguales). El núcleo del guardado (`useNucleoDelGuardado`: pendiente, un envío a la vez, reintento al volver la red) es el mismo de la hoja nueva y de la
   guardada. `hoja-de-una-guardada.ts` viaja al navegador sin Zod; su lectura es `hoja-de-una-guardada-lectura.ts` (sólo servidor).
