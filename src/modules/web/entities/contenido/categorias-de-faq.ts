@@ -28,3 +28,28 @@ export function categoriasDeFaqDesde(datos: unknown): CategoriaDeFaq[] | null {
 export function ordenDeCategoriaNueva(ordenes: readonly number[]): number {
   return ordenes.length === 0 ? 10 : Math.max(...ordenes) + 10
 }
+
+/**
+ * Los órdenes al poner `id` después de `despuesDe` (nulo: primera): 10, 20, 30… y sólo las filas que cambian, con la versión leída para
+ * escribirlas. Nulo si `id` o `despuesDe` ya no están en la lista (otra persona la cambió).
+ */
+export function ordenesTrasMover(
+  lista: readonly CategoriaDeFaq[],
+  id: string,
+  despuesDe: string | null,
+): { id: string; actualizadoEn: string; orden: number }[] | null {
+  const movida = lista.find((categoria) => categoria.id === id)
+  const resto = lista.filter((categoria) => categoria.id !== id)
+  const posicion =
+    despuesDe === null ? 0 : resto.findIndex((categoria) => categoria.id === despuesDe) + 1
+  if (movida === undefined || posicion < 0 || (despuesDe !== null && posicion === 0)) {
+    return null
+  }
+  const nuevas = [...resto.slice(0, posicion), movida, ...resto.slice(posicion)]
+  return nuevas.flatMap((categoria, indice) => {
+    const orden = (indice + 1) * 10
+    return categoria.orden === orden
+      ? []
+      : [{ id: categoria.id, actualizadoEn: categoria.actualizadoEn, orden }]
+  })
+}

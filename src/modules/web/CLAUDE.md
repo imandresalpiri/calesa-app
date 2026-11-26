@@ -50,7 +50,9 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
   (el campo de la guía es un `<ComboDeCatalogo>` que también la crea: `crearCategoriaDesdeLaGuia`, sin revalidar);
   legales: `/configuracion/web/legales` (`web.ajustes.gestionar`, `guardarLegales`: uno o los dos documentos; cada modal manda el suyo).
 - `contenido` › FAQs y testimonios: lecturas con tope 100 + 1; actions con `web.contenido.gestionar`. La categoría de una FAQ se elige del
-  catálogo `web_categorias_faqs` (`leerCategoriasDeFaq()`, `<ComboDeCatalogo>` con «Crear categoría «x»»: `crearCategoriaDeFaq`, sin revalidar). La foto de un testimonio
+  catálogo `web_categorias_faqs` (`leerCategoriasDeFaq()`, `<ComboDeCatalogo>` con «Crear categoría «x»»: `crearCategoriaDeFaq`, sin revalidar); el
+  drawer «Categorías» (`?panel=categorias&quitar=<id>`, `features/contenido/categorias-de-faq/`) con `agregar|guardar|mover|quitarCategoriaDeFaq`, que
+  revalidan: escritura directa con la versión, mover por `ordenesTrasMover()` y quitar por `web_categoria_faq_eliminar`. La foto de un testimonio
   (`foto-de-testimonio.client.ts`) va a WebP, sube por hash al bucket `web` y se limpia con `quitarSiHuerfano`.
 - `cola`: `/configuracion/cola-web` (`pantallas/cola.ts`): una página a todo el ancho con «Sin asignar», «En la rueda» (con «Agregar a la rueda» junto al título y, dentro, los
   grupos de las habilitadas que hoy no reciben turnos) y «Política de la cola», cada una con su título (`SeccionDeLaCola`) y sus tarjetas en `REJILLA_DE_TARJETAS`

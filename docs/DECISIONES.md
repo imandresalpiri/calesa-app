@@ -53,8 +53,8 @@ las trampas, en `docs/LECCIONES.md`.
 - **`puede()` vive en `shared/lib/permisos.ts`.** Misma semántica que `tiene_permiso()`/`alcance_de()`; un test compara el catálogo con la base. Los niveles de cotización se reconocen por patrón (`esClaveDeNivel()`), no por lista.
 - **Un solo orden de candados entre RPC.** Lead (`for no key update`) → vehículo (`for key share`) → cotización y sus vivas por id → hijas (la cotización antes que sus reportes, la raíz antes que la respuesta). Purgar y restaurar toman en el mismo orden; invertirlo da 40P01.
 - **«No existe» y «no la ves» dan el mismo error.** Una lectura o escritura por id de algo que quien llama no puede ver responde igual que si no existiera (P0002, 42501 o PT409 según el área), para no filtrar que existe.
-- **Escritura directa bajo RLS en tablas que no otorgan permisos.** FAQs, testimonios (salvo `consent_*`), guías, categorías, tramos, cajas y preferencias van sin RPC; con versión, `.eq('actualizado_en', esperado)` y 0 filas se relee: conflicto, «ya no existe» o sin permiso.
-- **Sin versión, gana la última escritura.** Categorías, tramos, cajas y `cola_web_asesores` no tienen `actualizado_en`: decenas de filas que edita una persona a la vez. Ponerles versión es otra RPC; no se reabre sin un caso real.
+- **Escritura directa bajo RLS en tablas que no otorgan permisos.** FAQs, testimonios (salvo `consent_*`), guías, categorías (de guía y de FAQ, `web_categorias_faqs`), tramos, cajas y preferencias van sin RPC; con versión, `.eq('actualizado_en', esperado)` y 0 filas se relee: conflicto, «ya no existe» o sin permiso. Quitar una categoría de FAQ es RPC (`web_categoria_faq_eliminar`): mueve sus preguntas en el mismo paso.
+- **Sin versión, gana la última escritura.** Categorías de guía, tramos, cajas y `cola_web_asesores` no tienen `actualizado_en`: decenas de filas que edita una persona a la vez. Ponerles versión es otra RPC; no se reabre sin un caso real.
 - **Reordenar renumera 0…n−1 y escribe sólo las filas que cambian.** Con todas en 0 por defecto, intercambiar dos no ordenaría. No es atómico (aceptado); si la lista está cortada por el tope, mover se apaga con su motivo.
 - **La base no guarda secretos para llamar afuera.** `storage-gc` y `push` se disparan desde la base con un pase de un uso; las claves viven en Vault o en la función.
 - **RLS no esconde claves de un jsonb.** No hay marca «sensible» en campos: ocultar un dato exige columna más vista o RPC que recorte. Los costos van por logística bajo sus permisos.
@@ -67,6 +67,8 @@ las trampas, en `docs/LECCIONES.md`.
   el índice queda para las carreras. Se elige con `<ComboDeCatalogo>` de `shared/ui`, que busca igual que la base, ofrece el que existe con otra
   escritura en vez de crear y crea lo nuevo desde ahí (RPC `*_grupo_crear`, sin revalidar: lo escrito en el panel no se pierde). Renombrar cambia
   todos sus campos a la vez (es una referencia), el orden de los bloques es el del grupo y cambiar de grupo manda el campo al final del nuevo.
+  Se gestiona en un drawer por URL junto a la lista que lo usa (`shared/ui/catalogo-en-drawer`: «Grupos», «Categorías»); quitar uno con ítems
+  pide a dónde moverlos y lo hace en la misma escritura. Lo mismo para la categoría de una FAQ (`web_categorias_faqs`).
   Descartadas: un `<select>` nativo con la gestión aparte (no deja crear al elegir), conservar el `<datalist>` y normalizar al guardar (sigue
   sin decir qué grupos hay ni evita «Motor» y «Motores») y encabezados de grupo editables dentro del editor (mezcla ordenar campos con
   renombrar grupos en la misma lista).

@@ -9,6 +9,7 @@ import { EstadoVacio } from '@/shared/ui/estados'
 import { ListaDeCatalogo } from '@/shared/ui/lista-de-catalogo/lista-de-catalogo'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { TOPE_DE_FAQS, type Faq } from '../../../../entities/contenido/faqs'
+import { DrawerDeCategoriasDeFaq } from '../../categorias-de-faq/components/drawer-de-categorias-de-faq'
 import { useCategoriasDeFaq } from '../../categorias-de-faq/hooks/use-categorias-de-faq'
 import { useAperturaDeFaq } from '../hooks/use-apertura-de-faq'
 import { useEliminarFaqPorUrl } from '../hooks/use-eliminar-faq-por-url'
@@ -28,10 +29,17 @@ const PREFIJO = 'faq'
 const SIN_ORDEN_POR_EL_TOPE =
   'Hay más preguntas de las que se muestran; ordénalas desde las primeras.'
 
-// Su acción principal. El título y la frase los pone la página.
-function AccionesDeFaqs({ alNueva }: { alNueva: () => void }) {
+type PropsDeLasAcciones = {
+  alNueva: () => void
+  catalogo: ReturnType<typeof useCategoriasDeFaq>
+  faqs: readonly Faq[]
+}
+
+// «Categorías» y su acción principal. El título y la frase los pone la página.
+function AccionesDeFaqs({ alNueva, catalogo, faqs }: PropsDeLasAcciones) {
   return (
-    <div className="flex justify-end">
+    <div className="flex flex-wrap justify-end gap-2">
+      <DrawerDeCategoriasDeFaq catalogo={catalogo} faqs={faqs} />
       <Button className="h-11 max-sm:w-full md:h-8" onClick={alNueva}>
         <PlusIcon aria-hidden />
         Nueva pregunta
@@ -53,7 +61,7 @@ export function PreguntasFrecuentes({ faqs, hayMas, categorias }: PropsDePregunt
 
   return (
     <section className="grid gap-3" aria-label="Preguntas frecuentes">
-      <AccionesDeFaqs alNueva={apertura.abrirNueva} />
+      <AccionesDeFaqs alNueva={apertura.abrirNueva} catalogo={catalogo} faqs={faqs} />
       {faqs.length === 0 ? (
         <EstadoVacio
           compacto

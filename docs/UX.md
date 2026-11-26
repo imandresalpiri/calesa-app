@@ -691,7 +691,10 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   o «Sin publicar»), un extracto, su última edición y «Editar…» en su «⋯» (o tocarla), que abre su modal con el título y el editor (`?panel=terminos|privacidad`, con borrador); las
   dos páginas entran enteras a 1440×900. «Guías» (con categorías) y su editor
   `/configuracion/web/guias/[id]` (documento con imágenes; publicar, programar o despublicar con `web.guias.publicar`; «Borrador», «Programada»,
-  «Publicada»; «← Guías» vuelve a la lista). «Preguntas frecuentes»: panel por URL, reordenar, eliminar con confirmación. «Testimonios»: con su
+  «Publicada»; «← Guías» vuelve a la lista). «Preguntas frecuentes»: panel por URL, reordenar, eliminar con confirmación;
+  la categoría de una pregunta es un combo como el grupo de un campo («Crear categoría «x»», «Ya existe «X».») y «Categorías», junto a «Nueva pregunta»,
+  abre su drawer `?panel=categorias` (`&quitar=<id>`) como el de «Grupos» de Leads › Campos («Mover sus 3 preguntas a…», «Sin categoría»). La categoría de
+  una guía, también un combo que la crea. «Testimonios»: con su
   consentimiento (quién, cuándo, canal; ciudad, vehículo y foto por separado) y «Retirar». Las listas llevan su acción principal («Nueva …») sin repetir el
   título de la página.
 - **Cola web (config)** — `/configuracion/cola-web` (`web.cola.gestionar`): tarjetas en una rejilla que ocupa todo el ancho del área (sin tope de ancho; a 1920 px,

@@ -1,5 +1,6 @@
 // Las interfaces del área `contenido` de `web`: lo que la composición le da a quien lee o escribe las guías, categorías, legales,
 // preguntas frecuentes y testimonios. Las implementaciones (Supabase, bajo la RLS de `web.contenido.gestionar`) viven en `infra/contenido/`.
+import type { DestinoAlQuitar } from '@/shared/lib/catalogo'
 import type { ResultadoDeAccion } from '@/shared/lib/enviar-accion'
 import type { Resultado } from '@/shared/lib/errores'
 import type { DireccionDeOrden, ListaDeCategorias } from './categorias'
@@ -104,12 +105,27 @@ export type RepositorioDeFaqs = {
   mover: (pedido: { id: string; direccion: 'subir' | 'bajar' }) => Promise<ResultadoDeAccion<null>>
 }
 
-// Las categorías de FAQ (escritura directa bajo la RLS de `web.contenido.gestionar`). Un nombre que ya existe con otra escritura es
-// `duplicado` con el mensaje de la base («Ya existe «X».»).
+// Las categorías de FAQ (escritura directa bajo la RLS de `web.contenido.gestionar`; quitar, por RPC: mueve preguntas). Un nombre que ya
+// existe con otra escritura es `duplicado` con el mensaje de la base («Ya existe «X».»); un rechazo de un dato llega en `porCampo`
+// (`rechazoDelCatalogo()`: `nombre`, `items`, `destino`). Toda edición manda la versión que vio.
 export type EscritorDeCategoriasDeFaq = {
   // Nace al final del catálogo y se devuelve para elegirla.
-  crear: (nombre: string) => Promise<Resultado<CategoriaDeFaq>>
+  crear: (nombre: string) => Promise<ResultadoDeAccion<CategoriaDeFaq>>
+  // Renombrar o activar y desactivar. Devuelve la versión nueva.
+  guardar: (
+    pedido: EdicionDeCategoriaDeFaq<{ cambios: { nombre?: string; activo?: boolean } }>,
+  ) => Promise<ResultadoDeAccion<string>>
+  // Relee la lista y reescribe los órdenes que cambian, cada fila con su versión. No es atómico (D6).
+  mover: (
+    pedido: EdicionDeCategoriaDeFaq<{ despuesDe: string | null }>,
+  ) => Promise<ResultadoDeAccion<null>>
+  // `web_categoria_faq_eliminar`: sólo sin preguntas; con `mover`, pasan antes al destino (nulo: «Sin categoría»).
+  quitar: (
+    pedido: EdicionDeCategoriaDeFaq<{ destino: DestinoAlQuitar }>,
+  ) => Promise<ResultadoDeAccion<null>>
 }
+
+type EdicionDeCategoriaDeFaq<Datos> = { id: string; actualizadoEnEsperado: string } & Datos
 
 // Crear, guardar y eliminar un testimonio (escritura directa bajo la RLS de `web.contenido.gestionar`, 8.02-2).
 export type RepositorioDeTestimonios = {
