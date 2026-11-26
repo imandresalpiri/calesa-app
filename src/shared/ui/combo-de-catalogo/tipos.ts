@@ -27,6 +27,8 @@ export type PropsDelCombo = {
   // El catálogo pasó su tope: la lista dice que muestra los primeros.
   hayMas: boolean
   textos: TextosDelCombo
+  // El largo máximo de un nombre del catálogo (el de la base): lo escrito no pasa de ahí.
+  maximoDelNombre: number
   // Sin permiso para crear no se ofrece «Crear».
   puedeCrear: boolean
   alElegir: (id: string | null) => void
@@ -40,7 +42,7 @@ export type PropsDelCombo = {
 // Lo que recibe la lista (diferida): lo mismo, con el elegido ya resuelto y cerrar al elegir.
 export type PropsDeLaLista = Pick<
   PropsDelCombo,
-  'etiqueta' | 'valor' | 'elementos' | 'hayMas' | 'textos' | 'puedeCrear'
+  'etiqueta' | 'valor' | 'elementos' | 'hayMas' | 'textos' | 'maximoDelNombre' | 'puedeCrear'
 > & {
   alElegir: (id: string | null) => void
   alCrear: (nombre: string) => Promise<string | null>

@@ -71,6 +71,7 @@ export function ComboDeCatalogo(props: PropsDelCombo) {
             elementos={elementos}
             hayMas={props.hayMas}
             textos={textos}
+            maximoDelNombre={props.maximoDelNombre}
             puedeCrear={props.puedeCrear}
             alElegir={(id) => {
               props.alElegir(id)

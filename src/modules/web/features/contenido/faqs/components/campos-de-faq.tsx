@@ -6,6 +6,7 @@ import { ComboDeCatalogo, type TextosDelCombo } from '@/shared/ui/combo-de-catal
 import { Interruptor } from '@/shared/ui/interruptor'
 import { Label } from '@/shared/ui/label'
 import { Textarea } from '@/shared/ui/textarea'
+import { LARGO_DE_CATEGORIA } from '../../../../entities/contenido/categorias-de-faq'
 import { LARGO_DE_PREGUNTA, LARGO_DE_RESPUESTA } from '../../../../entities/contenido/faqs'
 import type { CategoriasDelCombo } from '../../categorias-de-faq/hooks/use-categorias-de-faq'
 import type { useFormularioDeFaq } from '../hooks/use-formulario-de-faq'
@@ -74,6 +75,7 @@ export function CamposDeFaq({ formulario: f, categorias }: Props) {
         elementos={categorias.lista}
         hayMas={categorias.hayMas}
         textos={TEXTOS_DEL_COMBO}
+        maximoDelNombre={LARGO_DE_CATEGORIA}
         puedeCrear
         alElegir={(categoriaId) => {
           f.cambiar({ categoriaId })

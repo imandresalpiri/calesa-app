@@ -2,6 +2,7 @@
 
 import {
   ETIQUETA_DE_TIPO_DE_CAMPO,
+  LARGO_DEL_NOMBRE_DE_GRUPO,
   MOTIVO_CAMPO_DE_FABRICA,
   tieneOpciones,
   tieneRango,
@@ -97,6 +98,7 @@ function CampoGrupo({ valor, alCambiar, grupos, error, deshabilitado }: PropsDeG
       elementos={grupos.lista}
       hayMas={grupos.hayMas}
       textos={TEXTOS_DEL_COMBO}
+      maximoDelNombre={LARGO_DEL_NOMBRE_DE_GRUPO}
       puedeCrear={grupos.puedeCrear && !deshabilitado}
       alElegir={alCambiar}
       alCrear={grupos.crear}

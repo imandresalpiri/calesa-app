@@ -56,7 +56,7 @@ export function ListaDelCombo(props: PropsDeLaLista) {
           setResaltada('')
         }}
         placeholder={textos.buscar}
-        maxLength={60}
+        maxLength={props.maximoDelNombre}
       />
       <NotasDelCombo
         existente={existente}

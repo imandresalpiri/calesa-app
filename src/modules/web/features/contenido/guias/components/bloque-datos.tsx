@@ -5,6 +5,7 @@ import { Bloque } from '@/shared/ui/bloque'
 import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
 import { ComboDeCatalogo, type TextosDelCombo } from '@/shared/ui/combo-de-catalogo'
 import { textoDelTope } from '@/shared/lib/conteo'
+import { MAXIMO_DEL_NOMBRE_DE_CATEGORIA } from '../../../../entities/contenido/categorias'
 import { TOPE_DE_OPCIONES_DE_GUIA, type OpcionesDeGuia } from '../../../../entities/contenido/guias'
 import { useCategoriasDeGuia } from '../hooks/use-categorias-de-guia'
 import type { ErroresDeGuia } from '../hooks/use-guardar-guia'
@@ -40,6 +41,7 @@ export function BloqueDatos({ valores, cambiar, errores, opciones, deshabilitado
         elementos={categorias.elementos}
         hayMas={categorias.hayMas}
         textos={TEXTOS_DEL_COMBO}
+        maximoDelNombre={MAXIMO_DEL_NOMBRE_DE_CATEGORIA}
         puedeCrear={!deshabilitado}
         alElegir={(categoriaId) => {
           cambiar({ categoriaId: categoriaId ?? '' })
