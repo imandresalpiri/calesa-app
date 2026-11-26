@@ -848,9 +848,11 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   cómo se ve una pieza, de escalas cerradas (nunca px, CSS ni hex). Ítem: ancho, alto, letra y énfasis; sección: ancho, alto, relleno,
   separación, densidad, letra, énfasis y color (clave `tono`); cabecera: color, relleno, letra y énfasis. Sin la clave, lo de siempre; el editor quita la clave
   en vez de escribir el valor por defecto. El PDF y la tarjeta no lo siguen.
-- **Rejilla de la hoja** — `entities/rejilla-de-la-hoja.ts` (`corteDe()`, `columnasDeLaCelda()`): las 12 columnas de cada sección (sus ítems) y
-  las 12 de las secciones. Una pieza de N columnas toma su ancho cuando le tocan 16 rem o más; si no, la fila entera. Una sección sin ancho es
-  «Automática» (la mitad desde 64 rem del contenedor de las secciones).
+- **Rejilla de la hoja** — `entities/rejilla-de-la-hoja.ts` (`corteDe()`, `corteDeLaRejilla()`, `columnasDeLaCelda()`): las 12 columnas de cada sección
+  (sus ítems) y las 12 de las secciones, con cada pieza en su **posición**. Una pieza de N columnas pide que le toquen 16 rem o más (`corteDe()`); el
+  **corte de la rejilla** es el de su pieza más exigente (`corteDeLaRejilla()`): desde ahí la rejilla entera dibuja las posiciones, con sus lugares libres
+  (una fila vacía mide 2,5 rem), y por debajo apila sus piezas en **orden de lectura**. Como los cortes van en rem, al 200 % apila sola. Una sección sin
+  ancho es «Automática» (la mitad desde 64 rem del contenedor de las secciones).
 - **Alto (filas)** — `alto` de un ítem o de una sección (1 a 4; sin él, «Automático»): cuántas filas de la rejilla ocupa. En la rejilla libre vale
   también a 12 columnas; apilada, desde el mismo corte que sus columnas y sólo si no ocupa la fila entera.
 - **Posición (en la rejilla)** — `posicion: { columna, fila }` de cada sección y de cada ítem del diseño (`esquemaPosicion`, `entities/diseno.ts`;
@@ -860,6 +862,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Lugar libre (de la rejilla)** — `lugarLibre()`, `primerLugarLibre()` (`entities/diseno/lugar-en-la-rejilla.ts`): un lugar donde la pieza entra sin
   pisar a otra ni salirse de las 12 columnas o de las 200 filas. Mover, cambiar el tamaño y sumar sólo ocupan lugares libres; sumar toma el primero en
   orden de lectura (fila y luego columna).
+- **Orden de lectura** — `enOrdenDeLectura()` (`entities/rejilla-de-la-hoja.ts`): las piezas de una rejilla por fila y luego por columna. Es el orden del
+  DOM, del `Tab`, del lector de pantalla y de la vista que apila; sumar toma el primer lugar libre en ese orden. No: «orden declarado».
 - **Bloque del avanzado** — `avanzado: { fila }` de la raíz del diseño, `data-bloque-del-avanzado`, la pieza `bloque-avanzado` del editor: la fila entera de
   la rejilla de las secciones con el total suelto, el botón «Avanzado» y el cierre. Sin la clave, va debajo de la última fila. El inspector lo rotula
   «Bloque «Avanzado»».

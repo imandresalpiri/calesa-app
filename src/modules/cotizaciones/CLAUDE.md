@@ -278,11 +278,19 @@ no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o inc
   final de la primera sección principal). Cada pieza: el rótulo y el formato de su fila (editan la `definicion` que se guarda: `entities/diseno/edicion-de-nodos.ts`),
   ver y editar juntos con `ponerNiveles()` (`admiteNivel` apaga lo que la base rechazaría con `nivel_no_admitido`), atajos, interruptor, ayuda, modos, la tarjeta
   del total (variante y subtotal comparten inspector) y **el aspecto** (`components/aspecto/`, `entities/diseno/edicion-del-aspecto.ts`: el valor por defecto
-  quita la clave), con el aviso «se deduce restando» (sin bloquear). **Mover y sumar:** arrastrar la pieza entera (dnd-kit con `PointerSensor` a 6 px; nada se
-  reordena mientras se arrastra, la marca dice dónde cae: el lienzo va con `zoom`), Alt+↑/↓ y el «⋯» (Mover antes, Mover después, Quitar con «Deshacer»)
-  dentro de su sección o a otra (`moverItemA()` de `orden-del-diseno.ts`; si cambia quién la ve, `avisoDelCambioDeNivel()` lo dice en el inspector); el ancho, con
-  el borde (`useAnchoConBorde()`), Alt+←/→ o el select (`ancho-de-la-pieza.ts`); el «+» de cada sección («Sumar una pieza aquí», `ofertasParaSumar()` con el tope
-  de 40 y las reglas del total de `total-de-la-hoja.ts`) y «+ Sección principal / avanzada» (`insercion-del-diseno.ts`). **Las vistas** (`?vista=412|1280|1920|200`,
+  quita la clave), con el aviso «se deduce restando» (sin bloquear). **Mover, el tamaño y sumar, en la rejilla libre** (glosario: «Posición (en la
+  rejilla)», «Lugar libre (de la rejilla)»): arrastrar la pieza entera (dnd-kit con `PointerSensor` a 6 px) a un lugar libre de su rejilla o de otra sección; los
+  destinos son las rejillas (`useDroppable` por sección, el de las secciones y el de cada avanzada), la celda sale de la esquina de lo arrastrado y de la
+  rejilla medida (`caida-bajo-el-punto.ts`, `medir-la-rejilla.ts`, `geometria-de-la-rejilla.ts`: el lienzo va con `zoom`) y nada se corre: la marca
+  (`MarcaEnLaRejilla`, `marcaDeLaCaida()` de `soltar-en-la-rejilla.ts`: libre, pisa, no entra, no va ahí o apilada) es lo único que cambia. Las movidas,
+  puras, en `mover-en-la-rejilla.ts` (`moverPiezaA()`, `moverSeccionA()`, `moverElBloque()`, `intercambiarAvanzadas()`, `pasoDeTeclado()`: Alt+flechas) y su
+  anuncio en `anuncios-de-la-rejilla.ts`; si cambia quién la ve, `avisoDelCambioDeNivel()` lo dice en el inspector. El tamaño: los bordes derecho e inferior
+  (`useTamanoConBorde()`, `BordesDelTamano`), Alt+Shift+flechas o el lugar del inspector («Columna · Fila · Ancho · Alto», `CamposDelLugar` con
+  `opcionesDelLugar()`: cada opción que no entra, apagada con su motivo), hasta donde entra (`tamanoQueEntra()` de `tamano-en-la-rejilla.ts`,
+  `anuncios-del-tamano.ts`). El «⋯» lleva a la sección anterior o siguiente y quita con «Deshacer»; el «+» de cada sección, a lo ancho en la fila que
+  sigue a la última («Sumar una pieza aquí», `ofertasParaSumar()` con el tope de 40 y las reglas del total de `total-de-la-hoja.ts`; lo sumado va al
+  `primerLugarLibre()`), y «+ Sección principal / avanzada» (`insercion-del-diseno.ts`). El bloque «Avanzado» es la pieza `bloque-avanzado`
+  (`BloqueDelLienzo`): sólo se mueve de fila. **Las vistas** (`?vista=412|1280|1920|200`,
   `useVistaDelEditor()`; sin ella, la de la ventana): el lienzo es un hijo de ese ancho en px achicado con CSS `zoom` (`MarcoEscalado`, `escalaDelLienzo()`; los
   cortes `@4xl/hoja` miran al hijo; «Texto al 200 %» es 206 px con `zoom: 2`). **Por debajo de 1.024 px**, la hoja a 412 en sólo lectura con «Este editor se usa en
   una pantalla de al menos 1.024 px.» (`HojaSoloLectura`). **La ayuda de una celda** (`components/inspector/ayuda/`, glosario: «Bloque de la ayuda»): sus bloques en orden con su «⋯» (Mover antes, Mover después, Quitar
@@ -311,7 +319,8 @@ no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o inc
   infra conservan «tono».
 - **La hoja del lienzo** (el editor de la hoja y su sólo lectura): `hojaDeLaVistaPrevia()` espeja `_cotizacion_hoja()` (con el aspecto y los colores de las
   secciones que dibuja y de la cabecera, y la pieza del total) **sin niveles, tablas ni `dato_del_vehiculo`**; usa la misma rejilla que la hoja (`CONTENEDOR_DE_SECCIONES`,
-  `REJILLA_DE_SECCIONES`, `enLaRejilla`); `cifrasDelDiseno()` evalúa con datos en 0 y nunca lanza. Dibuja con las piezas del núcleo y **no con `LugaresDeLaHoja`** (lee
+  `REJILLA_DE_SECCIONES`, `enLaRejilla`) con las mismas posiciones (`rejillaDeLasSecciones()` de `entities/posiciones-de-la-hoja.ts` y `seccionesDelLienzo()` de `entities/diseno/lienzo-de-la-hoja.ts`,
+  `clases-de-la-posicion.ts`), más una fila vacía para el «+»; `cifrasDelDiseno()` evalúa con datos en 0 y nunca lanza. Dibuja con las piezas del núcleo y **no con `LugaresDeLaHoja`** (lee
   `?ayuda=` y `?panel=`, que chocarían con la pestaña); lo que dibuja va `inert`.
 - Depende de `leads`, `vehiculos`, `empresa` (tipos de cambio; los ajustes, en `armarLaImagen()`) y `equipo` (`<VistasGuardadas>`); los orígenes entran por props desde `src/app`.
 

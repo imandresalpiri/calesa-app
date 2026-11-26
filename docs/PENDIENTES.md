@@ -180,6 +180,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** El grupo de los tipos de documento compartidos se llama `empresa` por dentro (`ClaveDeGrupo`, `VistasDeGrupos.empresa`, `?de=empresa`):
   renombrarlo a `compartidos` muda un parámetro, así que van en el mismo PR sus enlaces y los e2e (`.claude/rules/rutas.md`).
 - **[—]** El lienzo de la hoja (la pestaña Hoja del origen) no dibuja la variante en par (`hojaDeLaVistaPrevia()` no trae `par`); la planilla de la fórmula sí la dice («Se cotiza en par» en «Tipo de celda › Variante»).
+  En la rejilla libre pesa más: la hoja en par parte cada celda en dos columnas angostas y su sección suele quedar bajo el corte (apilada en orden de
+  lectura), y quien acomoda las piezas en el lienzo no lo ve.
 - **[—]** En la vista previa de las hermanas, «Copiar texto» copia sólo el de la tarjeta de la cotización abierta (no une los dos).
 - **[—]** `medir-cotizacion-crear.sql` y `medir-cotizacion-guardar.sql` no tienen un caso en par: crear y guardar en par llaman dos veces a lo que ya miden.
 - **[4-45]** `cotizaciones.moneda_mostrar` y `cotizaciones.plantilla_id` no tienen uso real (`moneda_mostrar` sólo viaja por `cotizaciones_listado()`) — migración que la recree sin ellas, con su medición y `db:types`.

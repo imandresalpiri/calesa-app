@@ -130,7 +130,8 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      de «Avanzado», los dos totales («Total · 20 pies», con `<Monto>`), cada uno con sus avisos y su «Reintentar»; «Guardar» crea las dos **cotizaciones
      hermanas** y lo guardado dice «Se guardaron las dos: n.º N (20 pies) y n.º M (40 pies).» con «Abrir la de 20 pies» y «Abrir la de 40 pies». El título se
      escribe sin la opción (su tope deja lugar a « · <etiqueta>»). La vista previa muestra las dos tarjetas, una bajo la otra.
-3. **La hoja:** secciones en el orden declarado; cada monto en una **XCell** (`Tab` avanza, tipear abre edición, `Esc` cancela) con el color
+3. **La hoja:** secciones y celdas en su lugar de la rejilla, con sus huecos (glosario: «Posición (en la rejilla)»); el DOM, el `Tab` y la vista que
+   apila (el celular, el texto al 200 %) van en **orden de lectura** (fila y luego columna); cada monto en una **XCell** (`Tab` avanza, tipear abre edición, `Esc` cancela) con el color
    de su grupo en borde y fondo, ayuda y ⚙ si el permiso lo da, **como un campo de alto fijo** (56 px como mínimo, como la de V1): tocar
    cualquier parte la edita y el rótulo flota; el aviso, el error y «Calculado» van dentro, en la línea de abajo del rótulo (cortados con «…»,
    enteros en un globo al enfocarla), así nada de la hoja salta. Rótulo grande (se corta con «…» y el completo va en `title`) · monto grande y
@@ -1944,22 +1945,32 @@ suma desde «Sin lugar en la hoja».
   en `?vista=` (recargar la conserva; cambiarla no suma al historial); sin `?vista=`, la que corresponde a la ventana. La hoja se achica para entrar (CSS `zoom`):
   la página no se ensancha.
 - **Elegir:** el clic o Enter elige la pieza (`?pieza=`: un nodo, `seccion-<id>`, `atajos-<nodo>`, `cabecera-de-la-hoja`, `tarjeta-del-total`; recargar la
-  conserva). Elegida, lleva el contorno, su «⋯» («Mover antes», «Mover después», «Quitar») y, si es una celda o un ítem con ancho, el borde de ancho («Ancho de
-  «Precio»: 6 de 12 columnas»). Sin nada elegido, el inspector lista «Sin lugar en la hoja (N)» con «Agregar «Aduana»» por fila (va al final de la primera
+  conserva). Elegida, lleva el contorno, su «⋯» («Mover a la sección anterior», «Mover a la sección siguiente», cada una apagada con «No hay una sección
+  antes donde entre.»; «Quitar») y sus dos bordes: el derecho («Ancho de «Precio»: 6 de 12 columnas») y el inferior («Alto de «Precio»: 2 filas»). El
+  bloque «Avanzado» (el total suelto, el botón y el cierre) es una pieza más: se elige, se mueve de fila y no tiene «⋯». Sin nada elegido, el inspector lista «Sin lugar en la hoja (N)» con «Agregar «Aduana»» por fila (va al final de la primera
   sección principal y queda elegida); sin filas sin lugar, el lienzo ocupa todo el ancho.
-- **Mover:** arrastrar una pieza (a 6 px de tocarla) a otro lugar de su sección **o de otra**, o una sección entre las secciones; una marca dice dónde cae y el
-  cambio llega al soltar. Con el teclado, Alt+↑/↓ sobre la elegida (una pieza en el borde de su sección pasa a la vecina) y el «⋯». Cada movida se
-  anuncia («Moviste «Precio» a «Extras», posición 2 de 3.»). **Mover a una sección con otro nivel** lo dice en el inspector hasta la próxima elección («Ahora la ve
+- **Mover:** arrastrar una pieza (a 6 px de tocarla) a un **lugar libre** de su sección **o de otra**, o una sección a uno de la rejilla de las secciones;
+  nada se corre mientras se arrastra: la marca, con el tamaño de la pieza, dice qué pasaría al soltar: libre («Columna 7, fila 2»), pisa («Ahí está
+  «Flete».»), no entra («No entra: «Precio» mide 6 columnas y desde la 9 quedan 4.»), no va ahí (el motivo de la tarjeta del total) o la vista apila («En
+  esta vista las piezas se apilan: elige una vista más ancha para acomodarlas.»). Soltar donde no entra no mueve a nadie. Una sección avanzada se suelta sobre
+  otra de su lista y se intercambian. Con el teclado, Alt+flechas sobre la elegida: una celda en esa dirección (una avanzada, un lugar de su lista; el bloque,
+  una fila). Cada movida se anuncia («Moviste «Precio» a la columna 7, fila 1.», «Moviste «Flete» a «Extras», columna 1, fila 2.») y la que no se hace dice
+  por qué («No se movió: ahí está «Precio».», «Ya está en la primera columna.»). **Mover a una sección con otro nivel** lo dice en el inspector hasta la próxima elección («Ahora la ve
   «Costos»: antes la veían todos.»); si queda `editar_sin_ver` o `nivel_no_admitido`, la pieza va marcada. **El total** no va a una sección avanzada ni con nivel:
   el «+» no lo ofrece, Alt+↓ no entra y la regla se dice en la sección y en la pieza.
-- **Ancho:** el borde derecho de la pieza elegida se arrastra (encaja en columnas de 12) o Alt+←/→ con el foco en la pieza; también «Ancho» en el inspector.
-- **Sumar:** el «+» de cada sección y entre piezas («Sumar una pieza aquí», un popover con lo que cabe ahí: «Celda de una fila», «Tarjeta del total»…; con 40 piezas,
-  apagado: «La hoja ya tiene 40 piezas: quita una para sumar otra.»; un borrador pasado del tope lo dice en la sección y al publicar). Al pie, «+ Sección
+- **Ancho y alto:** el borde derecho de la pieza elegida cambia su ancho (columnas de 12) y el inferior su alto (filas, hasta 4); mientras se arrastra se ve lo
+  que quedaría («6/12», «2 filas») y crece sólo hasta donde entra, sin empujar a nadie (el anuncio dice con qué se topó). Con el teclado, Alt+Shift+←/→ (una
+  columna) y Alt+Shift+↑/↓ (una fila) con el foco en la pieza. En la vista que apila los bordes no empiezan.
+- **El lugar en el inspector:** «Columna», «Fila», «Ancho» y «Alto» en una fila (en dos, si el inspector es angosto); cada opción que no entra va apagada con su
+  motivo («7 — se pisa con «Flete»», «8 — se sale de las 12 columnas»): cambiar uno nunca mueve ni achica a otra pieza. El «Ancho» de una sección empieza con
+  «Automático (la mitad, si hay lugar)». El bloque «Avanzado» sólo tiene «Fila»; una sección avanzada, nada (va en el orden de su lista, a todo el ancho).
+- **Sumar:** el «+» de cada sección, a lo ancho en la fila que sigue a la última («Sumar una pieza aquí», un popover con lo que cabe ahí: «Celda de una fila»,
+  «Tarjeta del total»…; con 40 piezas, apagado: «La hoja ya tiene 40 piezas: quita una para sumar otra.»; un borrador pasado del tope lo dice en la sección y al
+  publicar). Lo sumado va al primer lugar libre de la sección en orden de lectura. Al pie, «+ Sección
   principal» y «+ Sección avanzada»: nace vacía, con su título, y queda elegida.
 - **Quitar:** «Quitar» del «⋯» lo hace en el acto, con «Quitaste «Aduana».» y «Deshacer» (es reversible; la fila vuelve a «Sin lugar en la hoja»).
 - **El inspector:** el título de la pieza y sus campos, en bloques. **Sección:** «Título» (≤ 80; vacío lo quita), «Dónde va» (Principal | Avanzado), «Quién la ve»
-  y «Quién la edita». **Celda:** «Rótulo» y «Formato» (editan la fila de la fórmula: guardar manda la definición editada), «Ancho» («12 columnas (toda la fila)»
-  … «1 columna»), «Quién la ve», «Quién la edita» y **«Ayuda»**: sus bloques en orden («Sin ayuda: la celda no muestra el botón «?».»), cada uno con su «⋯» («Mover
+  y «Quién la edita». **Celda:** «Rótulo» y «Formato» (editan la fila de la fórmula: guardar manda la definición editada), «Quién la ve», «Quién la edita» y **«Ayuda»**: sus bloques en orden («Sin ayuda: la celda no muestra el botón «?».»), cada uno con su «⋯» («Mover
   antes», «Mover después», Alt+↑/↓ con el foco en él; el foco vuelve a su «⋯»; «Quitar» con «Deshacer»), y «+ Bloque» (Título, Texto, Enlaces o Tabla; nace
   vacío al final, el de tabla con la primera tabla del origen que la ayuda no usa; cada tipo, apagado con su motivo: «Hasta 8 bloques.», «Hasta 3 tablas por ayuda.»,
   «Este origen no tiene tablas.»). Un bloque vacío o con un rechazo se marca con «Completa este bloque.». **Título** (≤ 80) y **Texto** (≤ 1.000, «Escribe
@@ -1973,12 +1984,11 @@ suma desde «Sin lugar en la hoja».
   que no admite nivel** (el total y lo que va aparte, o una sección que los tiene): «Quién la ve» apagado con su motivo. Con `equipo.roles.gestionar`, «+ Nuevo
   nivel» (el modal de Roles, `?panel=nuevo-nivel`; el creado queda elegido; en el tope, apagado con su motivo). **Una fila que ya no está en la fórmula**
   (`nodo_inexistente`): «Esta fila ya no está en la fórmula.» con «Quitar la pieza».
-- **Aspecto** (una sección «Aspecto» a la vista en cada pieza; no se escribe el valor por defecto, se quita): por sección, «Ancho en la hoja»
-  («Automático (la mitad, si hay lugar)» y de 12 a 1 columna), «Alto» (Automático | 2, 3 o 4 filas), «Relleno» (Chico | Medio | Grande),
+- **Aspecto** (una sección «Aspecto» a la vista en cada pieza; no se escribe el valor por defecto, se quita): primero, el lugar («Columna», «Fila», «Ancho» y
+  «Alto»); por sección, «Relleno» (Chico | Medio | Grande),
   «Separación entre celdas» (Chica | Media | Grande), «Densidad» (Compacta | Cómoda), «Letra» (Chica | Normal | Grande), «Énfasis»
   (Normal | Fuerte) y «Color» («Sin color» y los colores del catálogo, con su muestra, y «+ Nuevo color», `?color=nuevo`: el creado queda elegido; en el tope,
-  «Ya hay 48 colores…»); por ítem, «Alto», «Letra» y «Énfasis»; en la cabecera, «Color», «Relleno», «Letra» y «Énfasis». **El alto de una pieza de 12
-  columnas** se apaga con «Con 12 columnas ocupa su fila: el alto no cambia nada.». Un color que el catálogo ya no tiene se ve «<clave> (no está en el
+  «Ya hay 48 colores…»); por ítem, «Letra» y «Énfasis»; en la cabecera, «Color», «Relleno», «Letra» y «Énfasis». Un color que el catálogo ya no tiene se ve «<clave> (no está en el
   catálogo)» y el aviso dice «La sección «base» usa un color que no está en el catálogo.» (publicar lo rechaza); **sin catálogo** («Color» apagado con «No se
   pudo leer el catálogo de colores.») nada se marca y el lienzo va sin colores. Un valor fuera de su escala (sólo si llegara de la base) va bajo su select
   (`aria-invalid`) y en el aviso. Un diseño viejo se abre con «Automático», «Medio», «Cómoda», «Normal» y su ancho con nombre por su número.

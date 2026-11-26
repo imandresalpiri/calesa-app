@@ -253,6 +253,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   clase la sigue pisando); antes de publicar se mide `renderToStaticMarkup()` contra `main`.
 - Una transición (`transition-transform`) sigue en curso cuando un e2e mide cajas justo después del cambio: espera el valor final del estilo
   (`getComputedStyle(e).scale`) antes de medir.
+- Bajo CSS `zoom` (el lienzo del editor de la hoja), `getComputedStyle` da px de CSS y `getBoundingClientRect` y el puntero, px de la pantalla: pasa
+  el punto a los px de la rejilla dividiendo por `caja.width / estilo.width` (`medir-la-rejilla.ts`) antes de buscar la celda.
 
 ## Realtime y notificaciones
 
@@ -323,7 +325,11 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - En una prueba `@sin-celular` no midas ni con una función propia del spec (la guarda la cuenta como ayudante que mide): afirma estilos con
   `toHaveCSS` y arrastra con `hover` en pasos (dnd-kit toma la fila en el primer movimiento y la lleva en los siguientes).
 - Un `dragTo` sobre dnd-kit suelta sin esperar la colisión del último paso y cae en otro lugar (en el editor de la hoja, al final de la
-  sección): arrastra con `mouse.down()` y `hover`, espera la marca de soltar (`data-destino` en la pieza) y recién entonces `mouse.up()`.
+  sección): arrastra con `mouse.down()` y `hover`, espera la marca de soltar (`data-marca-de-soltar`) y recién entonces `mouse.up()`
+  (`e2e/soporte/arrastre-del-lienzo.ts`). Para un lugar libre sin pieza encima que sirva de destino, avanza de a pasos y lee el texto de la marca
+  («Columna 7, fila 1»: `arrastrarHastaElLugar()`), sin medir.
+- Un spec de Configuración sin celular (`@sin-celular-archivo`) no puede medir ni cambiar el ancho: lo que la pantalla dibuja en otros anchos va en un
+  spec aparte, sin marca, que siembra su propio estado por SQL (el editor de la hoja y `cotizar-hoja-rejilla-libre.spec.ts`).
 - Antes de un arrastre con `page.mouse` (el número de una fila de la planilla) desplaza y recién después mide las cajas, con el destino al
   medio de la ventana: la cabecera y la barra pegadas tapan lo de arriba. Un `<Drawer>` que se cierra deja su fondo encima mientras sale y
   se traga el `pointerdown`: espera a que el asa reciba el puntero (`document.elementFromPoint`, `arrastrarFila()` de `e2e/soporte/planilla.ts`).
