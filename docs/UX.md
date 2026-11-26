@@ -2259,10 +2259,24 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
     Esqueleto, vacío, tope 200 con aviso, error en el panel con «Reintentar».
   - **Escribir:** «Registrar compra» arriba (también con la lista vacía); sin `repuestos.costos.editar` o con el proyecto cerrado, apagado
     con su motivo al lado y la fila sin «⋯». Drawer `?panel=compra&compra=<id|nueva>` (se recarga, «atrás» lo cierra, una que ya no está
-    avisa): ítem, proveedor, moneda, monto, fecha, comprobante (PDF o imagen ≤ 10 MB, se sube al elegir, «Ver comprobante» y «Quitar») y
-    notas; el equivalente en la base lo calcula el sistema al guardar. Motivos junto a su campo; conflicto con «Recargar»; sin conexión,
-    sale al volver; cerrar con algo escrito pregunta. Guardar relee lista y margen. «⋯» → «Editar» y «Eliminar» (sin preguntar, con
-    «Deshacer»). «Ver comprobante» pide una URL de 60 s al tocarlo.
+    avisa) con un título («Registrar compra» / «Editar compra») y la forma de todo panel de dinero: **arriba**, el monto con su moneda en un
+    solo campo grande, el estado («Sin registrar» / «Registrada»), la fecha y el proveedor; luego, a la vista y sin plegar, «Qué se compró»
+    (el ítem), «Notas» y «Comprobante de la compra». El equivalente en la base lo calcula el sistema al guardar y se lee bajo el monto.
+    **La zona del comprobante** está siempre a la vista, vacía («Arrastra aquí el comprobante o elígelo. PDF o imagen de hasta 10 MB.» y
+    «Elegir archivo» a 44 px en el celular) o con su vista previa (miniatura de una imagen, icono y nombre de un PDF), «Ver comprobante»
+    (URL de 60 s), «Reemplazar» y «Quitar»; sube al elegir o soltar y mide siempre lo mismo; el rechazo («Sólo PDF o imagen de hasta
+    10 MB.») y «Reintentar» salen en su renglón reservado. Un archivo por compra. Motivos junto a su campo; conflicto con «Recargar»; sin
+    conexión, sale al volver; cerrar con algo escrito pregunta. Guardar relee lista y margen. «⋯» → «Editar» y «Eliminar» (sin preguntar, con
+    «Deshacer»).
+- **Pagos** (`repuestos.costos.ver`): «Registrar pago» arriba (apagado con su motivo sin `repuestos.costos.editar` o con el proyecto cerrado) y la
+  lista de pagos del proyecto con su tope; cada pago con «Confirmar pago» (con `logistica.pagos.confirmar`), «Ver comprobante» y su «⋯»
+  («Editar» y «Eliminar» sólo sin confirmar; «Anular pago» sólo confirmado). Tocar un pago abre `?panel=pago&pago=<id|nuevo>`: «Registrar
+  pago» y «Editar pago» con la misma forma que la compra (arriba el monto con su moneda, el estado «Sin confirmar», la fecha y el concepto;
+  luego «Cómo se pagó» —método y tipo de cambio, que se apaga con su motivo en la moneda base—, «Notas» y «Comprobante» con la zona de
+  archivo de arriba). Un pago confirmado, o cualquiera sin permiso de editar, se abre como **«Pago»**, sólo lectura: el mismo orden con el
+  sello («Confirmado por … el …»), el comprobante con su vista previa y «Ver comprobante», y «Anular pago» con `logistica.pagos.confirmar`
+  (pasa a `?panel=anular-pago`, que pide el motivo). Un pago que ya no está avisa «Ese pago ya no está.». El hueco «Pagos» del vehículo
+  usa el mismo panel.
 - **Stock del ítem:** «Stock» en el «⋯» de la tarjeta, también sin `repuestos.editar` y con el proyecto cerrado; al lado, «En stock: N»
   (`<Badge>` de texto; con 0 nada). Abre `?panel=stock&item=<id>` (se recarga; «atrás» lo cierra; un ítem que ya no está avisa). Arriba
   «En stock: N de <cantidad>»; con `repuestos.editar` (también con el proyecto cerrado: los sobrantes nacen al terminar), «Pasar a stock»

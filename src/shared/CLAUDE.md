@@ -90,7 +90,10 @@ locale)`, el único lector de un número tipeado.
   `ui/use-salida-con-cambios.ts` (`useSalidaConCambios()`: enlaces frenados en la captura según `lib/destino-de-un-clic.ts`, `beforeunload` y
   `anotarCambiosSinGuardar()` de `ui/salida-con-cambios.ts`; el «atrás» no se frena).
 - `ui/estados/`, `ui/esqueletos/` (sin tope de ancho; `EsqueletoFormulario` sólo para un formulario, `EsqueletoTarjetas` con las columnas de `<TarjetasDeAjustes>`); `ui/toasts.ts` (`avisarError()`, `avisarConDeshacer()`), `ui/sonner.tsx`, `ui/pie-del-panel.tsx`,
-  `ui/zona-de-archivos.tsx`. `types/database.types.ts`: lo genera `pnpm db:types`; no se edita.
+  `ui/zona-de-archivos.tsx` (varios archivos; sólo los entrega). Los paneles de dinero (pago, compra, gasto): `ui/zona-de-archivo.tsx` (`<ZonaDeArchivo>`: un archivo, siempre a
+  la vista con el mismo alto, vacía o con su vista previa `miniatura-de-archivo.tsx`, «Ver», «Reemplazar», «Quitar», error y «Reintentar» en un renglón reservado) sobre
+  `use-archivo-de-la-zona.ts` (sube al elegir, recuerda el último para reintentar), `ui/campo-de-monto.tsx` (el monto grande con su moneda pegada en un campo),
+  `ui/grupo-de-campos.tsx` (una sección plana con su `h3`) y `ui/campo-de-notas.tsx` (tres renglones de alto fijo). `types/database.types.ts`: lo genera `pnpm db:types`; no se edita.
 
 ## No se rompe
 

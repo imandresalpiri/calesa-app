@@ -15,8 +15,8 @@ import {
 
 type Permisos = { puedeEditar: boolean | null; puedeConfirmar: boolean | null }
 
-// El formulario de un pago en la URL (`?panel=pago&pago=<id|nuevo>`): se puede recargar y «atrás» lo cierra. «Registrar» abre con `nuevo`; «Editar», con el id de uno sin confirmar de la lista.
-// Un id que no está, uno ya confirmado o sin permiso de editar no abre: se avisa y la URL se limpia, una vez, con la lista ya leída.
+// El panel de un pago en la URL (`?panel=pago&pago=<id|nuevo>`): se puede recargar y «atrás» lo cierra. «Registrar» abre con `nuevo`; tocar un pago, con su id (formulario si está sin confirmar y se puede
+// editar; si no, su lectura). Un id que no está, o `nuevo` sin permiso de editar, no abre: se avisa y la URL se limpia, una vez, con la lista ya leída.
 export function usePanelDePago(pagos: readonly Pago[] | null, permisos: Permisos) {
   const url = usePanelPorUrl(PANEL_PAGO, [CLAVE_DE_PAGO])
   const valor = url.valor(CLAVE_DE_PAGO)

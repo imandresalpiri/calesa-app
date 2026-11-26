@@ -13,6 +13,7 @@ type Props = {
   pago: Pago
   // Lo decide `accionesDelPago`: un confirmado nunca ofrece editar ni eliminar.
   acciones: AccionesDelPago
+  // Abre el panel del pago: su formulario o, si no se puede editar, su lectura.
   alEditar: () => void
   alEliminar: () => void
   alConfirmar: () => void
@@ -54,7 +55,7 @@ function accionesDeMenu({ acciones, alEditar, alEliminar, alAnular }: Props): Ac
 }
 
 // Un pago de la unidad: concepto, fecha, método, el monto en su moneda y, si no es la base, el equivalente que guardó la base (`monto_base`: acá nunca se calcula). Sin confirmar dice
-// «Sin confirmar» y, con la clave, ofrece «Confirmar pago»; confirmado muestra el sello (quién y cuándo) y ningún control de edición.
+// «Sin confirmar» y, con la clave, ofrece «Confirmar pago»; confirmado muestra el sello (quién y cuándo) y ningún control de edición. Tocarla abre su panel, también sin permiso de editar y con el pago confirmado (en lectura).
 export function FilaDePago(props: Props) {
   const { pago, acciones, alEditar, alConfirmar } = props
   const { monedaBase, zonaHoraria } = useRegional()
@@ -63,7 +64,7 @@ export function FilaDePago(props: Props) {
   const sello = textoDelSello(pago, zonaHoraria)
   return (
     <TarjetaDeLista
-      alAbrir={acciones.editar ? alEditar : undefined}
+      alAbrir={alEditar}
       acciones={
         menu.length > 0 ? (
           <MasAcciones nombre={nombre} acciones={menu} id={`pago-${pago.id}-mas`} />
@@ -71,13 +72,9 @@ export function FilaDePago(props: Props) {
       }
     >
       <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        {acciones.editar ? (
-          <AbrirResumen nombre={nombre} className="min-w-0 font-medium break-words">
-            {pago.concepto}
-          </AbrirResumen>
-        ) : (
-          <span className="min-w-0 font-medium break-words">{pago.concepto}</span>
-        )}
+        <AbrirResumen nombre={nombre} className="min-w-0 font-medium break-words">
+          {pago.concepto}
+        </AbrirResumen>
         <span className="text-(length:--text-sm) text-(--color-ink-soft)">
           {formatearFecha(pago.fecha, { zona: zonaHoraria })}
         </span>
