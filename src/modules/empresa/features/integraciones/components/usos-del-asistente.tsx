@@ -4,13 +4,13 @@ import { formatearNumero } from '@/shared/lib/formato'
 import { useRegional } from '@/shared/ui/regional'
 import { textoDelResto, type UsosDelMes } from '../../../entities/asistente-ia/usos'
 
-// Las personas que más usaron el asistente este mes: hasta 5 filas «Nombre · n» y «y N más». El alto se reserva para las 5 y el resto, así la
-// tarjeta mide lo mismo con o sin usos (`null`: no se pudieron leer).
+// Las personas que más usaron el asistente este mes: hasta 5 filas «Nombre · n» y «y N más» (`null`: no se pudieron leer). Con su alto, como
+// `<ListaCorta>`: llegan con la página y nada de esta pantalla las cambia, así que no hay salto que evitar, y el hueco de las seis líneas haría
+// desplazar la página a 1440×900 (`e2e/empresa-tarjetas.spec.ts`).
 export function UsosDelAsistente({ usos }: { usos: UsosDelMes | null }) {
   const { locale } = useRegional()
   return (
-    // `min-h-36`: seis líneas de `min-h-6` (las `TOPE_DE_USOS_A_LA_VISTA` personas y el resto), en rem: con el texto al 200 % crece con él.
-    <div className="min-h-36 text-(length:--text-sm)">
+    <div className="text-(length:--text-sm)">
       {usos === null ? (
         <p className="text-(--color-ink-soft)">No se pudieron leer los usos.</p>
       ) : usos.personas.length === 0 ? (

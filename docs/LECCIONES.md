@@ -238,6 +238,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Una ruta o un parámetro que se muda no deja redirección: se actualizan sus enlaces y, con una migración, sus datos guardados; la URL vieja da «no existe». Una redirección por cada mudanza se acumula y nadie la quita. (kit)
 - Un solo nivel de secciones por pantalla, a la vista: un acordeón o una sección dentro de otra esconden lo que hay y obligan a adivinar dónde está. Lo secundario va en un drawer o un modal con su URL. (kit)
 - Lo que cambia de contenido dentro de un área (cargar, editar, cambiar de vista, mostrar un aviso) no cambia su tamaño: alto fijo o reservado, y el esqueleto mide lo mismo que el contenido; si no, lo de abajo salta y el toque cae en otro lado. Se comprueba midiendo con `boundingBox()` antes y después.
+  Lo que llega con la página y nada de la pantalla cambia (una lista corta de una tarjeta de ajustes) no reserva el alto de su tope: en una página que
+  entra a 1440×900 (`e2e/empresa-tarjetas.spec.ts`) ese hueco vacío es lo que la hace desplazar.
 - Un alto fijo que tiene que contener texto sale de la letra (`max(44px, letra × 1,5 + relleno)`), no de un px literal: con la «Letra» grande o el texto al
   200 % un alto en px corta el valor. Lo que cambia de estado va en un lugar del mismo alto (una etiqueta que flota con `transform`, una línea cortada con «…»).
 - `container-type` crea un contexto de apilamiento: el globo (`::after`) de un nodo de adentro queda debajo del contenedor vecino que viene después. El

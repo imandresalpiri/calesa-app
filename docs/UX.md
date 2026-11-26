@@ -967,7 +967,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   `empresa.ajustes.gestionar`: todo a la vista con «Configurar…» apagada e interruptores apagados y el motivo arriba; un `?panel=` a mano se rechaza.
   **Asistente de IA:** la cuarta tarjeta. Lo guardado: Proveedor, Dirección, Modelo, Clave («Guardada el … · termina en ····abcd», «No se puede ver: sólo
   reemplazar.»; sin ella, «Falta la clave»), Prompt base (dos líneas o «Sin prompt base»), Atajos (los activos en su orden, tres con nombre y «y N más»; «Ninguno
-  activo») y «Usos de este mes» (hasta 5 personas «Nombre · n» y «y N más», alto reservado para las seis líneas; «Nadie lo usó este mes.»; si no se leyeron,
+  activo») y «Usos de este mes» (hasta 5 personas «Nombre · n» y «y N más», con su alto; «Nadie lo usó este mes.»; si no se leyeron,
   «No se pudieron leer los usos.»). El interruptor no enciende sin clave («Carga la clave para activarlo.»). En el «⋯»: «Configurar…» (también tocando la
   tarjeta; `?panel=asistente-ia`: DeepSeek llena la dirección y el modelo y se leen, «Otro proveedor» los deja escribir; si la dirección nueva cambia el
   origen con una clave guardada, el modal avisa antes de que se borra), «Editar el prompt base y los atajos…» (`?panel=indicaciones-asistente-ia`,
