@@ -16,7 +16,7 @@ const NOMBRE_DE: Record<Pestana, string> = {
 const seccion = (page: Page, pestana: Pestana): Locator =>
   page.locator(`section[aria-label="${NOMBRE_DE[pestana]}"]`)
 
-// El botón con el nombre de la fila: abre su edición con un clic (o Enter). Dice «Abrir <nombre>» y, en los catálogos de Logística › Configuración, «Editar <nombre>».
+// El botón con el nombre de la fila: abre su edición con un clic (o Enter). Dice «Abrir <nombre>» y, en los catálogos de logística de la pestaña Fases, «Editar <nombre>».
 export const nombreDeLaFila = (page: Page, nombre: string): Locator =>
   page.getByRole('button', {
     name: new RegExp(`^(Abrir|Editar) ${nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`),

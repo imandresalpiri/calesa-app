@@ -16,7 +16,6 @@ const PAGINAS = [
   '/configuracion/leads',
   '/configuracion/web',
   '/configuracion/cola-web',
-  '/logistica/configuracion',
   '/repuestos/configuracion',
   '/configuracion/equipo',
   '/configuracion/roles',

@@ -96,6 +96,34 @@ const PANTALLAS: Pantalla[] = [
     url: DE_UN_ORIGEN('fases'),
     controles: (page) => [
       [page.getByRole('button', { name: `Más acciones de ${origen.nombre}` }), 'el «⋯» del origen'],
+      [
+        page
+          .getByRole('group', { name: 'Catálogos' })
+          .getByRole('button', { name: 'Tipos de documento' }),
+        'el último catálogo de arriba del diagrama',
+      ],
+    ],
+  },
+  {
+    titulo: 'la página de un origen › Fases › Puertos',
+    url: DE_UN_ORIGEN('fases?panel=puertos'),
+    controles: (page) => [
+      [
+        page.getByRole('dialog', { name: 'Puertos' }).getByRole('button', { name: 'Nuevo puerto' }),
+        '«Nuevo puerto» del drawer',
+      ],
+    ],
+  },
+  {
+    titulo: 'la página de un origen › Fases › Tipos de documento',
+    url: DE_UN_ORIGEN('fases?panel=tipos-de-documento'),
+    controles: (page) => [
+      [
+        page
+          .getByRole('dialog', { name: 'Tipos de documento' })
+          .getByRole('button', { name: 'Nuevo tipo de documento' }),
+        '«Nuevo tipo de documento» del drawer',
+      ],
     ],
   },
   {
@@ -110,11 +138,6 @@ const PANTALLAS: Pantalla[] = [
   { titulo: 'la página de un origen › Categorías', url: DE_UN_ORIGEN('categorias') },
   { titulo: 'Leads › Campos', url: () => '/configuracion/leads/campos' },
   { titulo: 'Leads', url: () => '/configuracion/leads' },
-  { titulo: 'Logística › Configuración › Puertos', url: () => '/logistica/configuracion/puertos' },
-  {
-    titulo: 'Logística › Configuración › Tipos de documento',
-    url: () => '/logistica/configuracion/tipos-de-documento',
-  },
   { titulo: 'Repuestos › Flujo de repuestos', url: () => '/repuestos/configuracion/flujo' },
   {
     titulo: 'Equipo',

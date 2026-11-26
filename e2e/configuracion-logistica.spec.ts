@@ -7,19 +7,16 @@ import {
   correoDePrueba,
   crearDuenaDePrueba,
 } from './soporte/base'
-import {
-  alternarActivo,
-  elegirDelMenu,
-  filaDeCatalogo,
-  nombreDeLaFila,
-} from './soporte/lista-de-catalogo'
+import { alternarActivo, filaDeCatalogo, nombreDeLaFila } from './soporte/lista-de-catalogo'
 import { crearAsesoraDeLaSemilla } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
+import { drawerDe, origenPorClave, urlDelCatalogo } from './soporte/catalogos-en-fases'
 
-// Logística › Configuración (T513, `docs/UX.md` › «Logística (config)»): quien tiene `logistica.catalogos.gestionar` entra a «Puertos», «Navieras» y
-// «Categorías de gasto», cada una en su sub-ruta; la asesora de la semilla no tiene la clave y no entra. Se crea, renombra, desactiva y elimina una
-// categoría propia; se crea una naviera y se ve en la oferta de transporte de un flujo, se desactiva, y se crea un puerto y su repetido se rechaza junto
-// al nombre. Lo de la prueba se limpia por su nombre. La entrada ⚙, la tira de pestañas y las redirecciones las prueba `logistica-configuracion.spec.ts`.
+// Los catálogos de logística en los drawers de la pestaña Fases de un origen (`docs/UX.md` › «Catálogos de logística (drawer)»): quien tiene
+// `logistica.catalogos.gestionar` crea, renombra y desactiva una categoría «Sólo de <origen>» (no se eliminan) y su repetida se rechaza junto al nombre;
+// crea una naviera, la ve en la oferta de transporte del flujo de ese origen y la desactiva; crea un puerto con país y código y su repetido se rechaza. La
+// asesora de la semilla no abre el origen. Lo de la prueba se limpia por su nombre. La barra, «Para», tapar y los permisos los prueba
+// `configuracion-fases-catalogos*.spec.ts`.
 test.describe.configure({ mode: 'serial' })
 
 let duena = ''
@@ -35,6 +32,7 @@ const limpiarCatalogos = () => {
   sql(`delete from puertos where nombre like ${literal('Puerto e2e 6.08%')}`)
 }
 let asesora = ''
+const a = () => origenPorClave('subasta_usa')
 
 test.beforeAll(async ({}, info) => {
   const proyecto = info.project.name
@@ -52,31 +50,33 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-test('quien gestiona los catálogos abre cada pestaña por su sub-ruta y el panel por la URL', async ({
+test('quien gestiona los catálogos abre cada drawer desde arriba del diagrama y por la URL', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto('/logistica/configuracion/puertos')
-  await expect(
-    page.getByRole('heading', { name: 'Configuración de logística', level: 1 }),
-  ).toBeVisible()
-  await expect(page.getByRole('tab', { name: 'Puertos' })).toHaveAttribute('aria-selected', 'true')
-  await expect(page.getByRole('tab', { name: 'Navieras' })).toBeVisible()
-  await page.getByRole('tab', { name: 'Categorías de gasto' }).click()
-  await expect(page).toHaveURL(/\/logistica\/configuracion\/categorias-de-gasto$/)
-  await expect(page.getByRole('button', { name: 'Nueva categoría' }).first()).toBeVisible()
+  await page.goto(`/configuracion/origenes/${a().id}/fases`)
+  const catalogos = page.getByRole('group', { name: 'Catálogos' })
+  await catalogos.getByRole('button', { name: 'Categorías de gasto' }).click()
+  await expect(page).toHaveURL(/panel=categorias-de-gasto/)
+  const drawer = drawerDe(page, 'Categorías de gasto')
+  await expect(drawer.getByRole('button', { name: 'Nueva categoría' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(drawer).toBeHidden()
 
-  // El panel se abre por la URL.
-  await page.goto('/logistica/configuracion/puertos?panel=nuevo-puerto')
+  // El drawer y su modal se abren por la URL.
+  await page.goto(urlDelCatalogo(a().id, 'puertos', '&accion=nuevo-puerto'))
   await expect(page.getByRole('dialog', { name: 'Nuevo puerto' })).toBeVisible()
 })
 
-test('crear, renombrar, desactivar y eliminar una categoría de gasto', async ({ page }) => {
+test('crear, renombrar y desactivar una categoría de gasto «Sólo de» el origen', async ({
+  page,
+}) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto('/logistica/configuracion/categorias-de-gasto')
+  await page.goto(urlDelCatalogo(a().id, 'categorias-de-gasto'))
+  const drawer = drawerDe(page, 'Categorías de gasto')
   const nueva = page.getByRole('dialog', { name: 'Nueva categoría' })
 
-  await page.getByRole('button', { name: 'Nueva categoría' }).first().click()
+  await drawer.getByRole('button', { name: 'Nueva categoría' }).click()
   await nueva.getByLabel('Nombre').fill(NOMBRE)
   await nueva.getByLabel('Propósito').selectOption({ label: 'Otro' })
   await nueva.getByLabel('Orden').fill('90')
@@ -87,12 +87,10 @@ test('crear, renombrar, desactivar y eliminar una categoría de gasto', async ({
   await expect(fila.getByText('Otro')).toBeVisible()
 
   // Un nombre repetido lo dice la base junto al campo y no crea nada.
-  await page.getByRole('button', { name: 'Nueva categoría' }).first().click()
+  await drawer.getByRole('button', { name: 'Nueva categoría' }).click()
   await nueva.getByLabel('Nombre').fill(NOMBRE)
   await nueva.getByRole('button', { name: 'Crear categoría' }).click()
-  await expect(
-    nueva.getByText(`Ya hay una categoría «${NOMBRE}» compartida con todos los orígenes.`),
-  ).toBeVisible()
+  await expect(nueva.getByText(`Ya hay una categoría «${NOMBRE}» en ${a().nombre}.`)).toBeVisible()
   // Con algo escrito, cancelar pregunta antes de tirarlo.
   await nueva.getByRole('button', { name: 'Cancelar' }).click()
   await nueva.getByRole('button', { name: 'Descartar' }).click()
@@ -111,27 +109,18 @@ test('crear, renombrar, desactivar y eliminar una categoría de gasto', async ({
   // Desactivar: se sigue nombrando, con «Desactivado».
   await alternarActivo(page, renombrada)
   await expect(filaDeCatalogo(page, renombrada).getByText('Desactivado')).toBeVisible()
-
-  // Eliminar: el diálogo la nombra y, al confirmar, desaparece.
-  await elegirDelMenu(page, renombrada, 'Eliminar')
-  const eliminar = page.getByRole('dialog', { name: `Eliminar la categoría «${renombrada}»` })
-  await expect(eliminar).toBeVisible()
-  await eliminar.getByRole('button', { name: 'Eliminar categoría' }).click()
-  await expect(eliminar).toBeHidden()
-  await expect(nombreDeLaFila(page, renombrada)).toHaveCount(0)
 })
 
 test('crear una naviera, verla ofrecida en la oferta de un flujo y desactivarla', async ({
   page,
 }) => {
-  // Las reglas del flujo de un origen de la semilla (cada flujo nace con «Transporte» encendida, que es la que ofrece navieras).
-  const reglas = `/configuracion/origenes/${sql(
-    "select id from public.origenes where clave = 'subasta_usa'",
-  )}/fases?seccion=reglas`
+  // Las reglas del flujo del mismo origen (cada flujo nace con «Transporte» encendida, que es la que ofrece navieras).
+  const reglas = `/configuracion/origenes/${a().id}/fases?seccion=reglas`
   await entrar(page, duena, { fresco: true })
-  await page.goto('/logistica/configuracion/navieras')
+  await page.goto(urlDelCatalogo(a().id, 'navieras'))
+  const drawer = drawerDe(page, 'Navieras')
   const nueva = page.getByRole('dialog', { name: 'Nueva naviera' })
-  await page.getByRole('button', { name: 'Nueva naviera' }).first().click()
+  await drawer.getByRole('button', { name: 'Nueva naviera' }).click()
   await nueva.getByLabel('Nombre').fill(NAVIERA)
   await nueva.getByRole('button', { name: 'Crear naviera' }).click()
   await expect(nueva).toBeHidden()
@@ -140,22 +129,20 @@ test('crear una naviera, verla ofrecida en la oferta de un flujo y desactivarla'
   await expect(fila.getByText('Activa', { exact: true })).toBeVisible()
 
   // El mismo nombre no se repite: la base lo dice junto al campo.
-  await page.getByRole('button', { name: 'Nueva naviera' }).first().click()
+  await drawer.getByRole('button', { name: 'Nueva naviera' }).click()
   await nueva.getByLabel('Nombre').fill(NAVIERA)
   await nueva.getByRole('button', { name: 'Crear naviera' }).click()
-  await expect(
-    nueva.getByText(`Ya hay una naviera «${NAVIERA}» compartida con todos los orígenes.`),
-  ).toBeVisible()
+  await expect(nueva.getByText(`Ya hay una naviera «${NAVIERA}» en ${a().nombre}.`)).toBeVisible()
   await nueva.getByRole('button', { name: 'Cancelar' }).click()
   await nueva.getByRole('button', { name: 'Descartar' }).click()
   await expect(nueva).toBeHidden()
 
-  // La oferta de transporte de un flujo la ofrece.
+  // La oferta de transporte del flujo de ese origen la ofrece.
   await page.goto(reglas)
   await expect(page.getByRole('group', { name: 'Navieras' })).toContainText(NAVIERA)
 
   // Desactivarla: sigue en la lista, «Inactiva», y ya no se ofrece.
-  await page.goto('/logistica/configuracion/navieras')
+  await page.goto(urlDelCatalogo(a().id, 'navieras'))
   await alternarActivo(page, NAVIERA)
   await expect(filaDeCatalogo(page, NAVIERA).getByText('Inactiva')).toBeVisible()
   await page.goto(reglas)
@@ -166,9 +153,10 @@ test('crear un puerto con país y código y ver rechazado el repetido junto al n
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto('/logistica/configuracion/puertos')
+  await page.goto(urlDelCatalogo(a().id, 'puertos'))
+  const drawer = drawerDe(page, 'Puertos')
   const nuevo = page.getByRole('dialog', { name: 'Nuevo puerto' })
-  await page.getByRole('button', { name: 'Nuevo puerto' }).first().click()
+  await drawer.getByRole('button', { name: 'Nuevo puerto' }).click()
   await nuevo.getByLabel('Nombre').fill(PUERTO)
   await nuevo.getByLabel('País (opcional)').fill('Chile')
   await nuevo.getByLabel('Código (opcional)').fill('cl e2e')
@@ -176,24 +164,20 @@ test('crear un puerto con país y código y ver rechazado el repetido junto al n
   await expect(nuevo).toBeHidden()
   await expect(filaDeCatalogo(page, PUERTO).getByText('Chile · CLE2E')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Nuevo puerto' }).first().click()
+  await drawer.getByRole('button', { name: 'Nuevo puerto' }).click()
   await nuevo.getByLabel('Nombre').fill(PUERTO)
   await nuevo.getByLabel('País (opcional)').fill('Chile')
   await nuevo.getByRole('button', { name: 'Crear puerto' }).click()
-  await expect(
-    nuevo.getByText(`Ya hay un puerto «${PUERTO}» compartido con todos los orígenes.`),
-  ).toBeVisible()
+  await expect(nuevo.getByText(`Ya hay un puerto «${PUERTO}» en ${a().nombre}.`)).toBeVisible()
   await nuevo.getByRole('button', { name: 'Cancelar' }).click()
   await nuevo.getByRole('button', { name: 'Descartar' }).click()
   await expect(nuevo).toBeHidden()
   await expect(nombreDeLaFila(page, PUERTO)).toHaveCount(1)
 })
 
-test('la asesora de la semilla no entra a la configuración de logística', async ({ page }) => {
+test('la asesora de la semilla no abre los catálogos de un origen', async ({ page }) => {
   await entrar(page, asesora, { fresco: true })
-  await page.goto('/logistica/configuracion/puertos')
-  await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Puertos' })).toHaveCount(0)
-  await page.goto('/logistica/configuracion/navieras')
-  await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
+  await page.goto(urlDelCatalogo(a().id, 'puertos'))
+  await expect(page.getByText(/^No puedes abrir este (origen|pestaña)$/)).toBeVisible()
+  await expect(drawerDe(page, 'Puertos')).toHaveCount(0)
 })

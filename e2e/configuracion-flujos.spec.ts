@@ -74,7 +74,8 @@ test('la dueña ve las fases de un origen en orden, abre el flujo de repuestos y
   expect(repuestos.length).toBeGreaterThan(0)
 
   await entrar(page, duena, { fresco: true })
-  // La pestaña Fases del origen: las fases abren primero, como diagrama; las reglas y los tipos de documento se abren desde la barra del flujo, en su panel.
+  // La pestaña Fases del origen: las fases abren primero, como diagrama; las reglas se abren desde la barra del flujo, en su panel, y los tipos de documento
+  // desde los catálogos de arriba, en su drawer.
   await page.goto(`/configuracion/origenes/${idDelOrigen('subasta_usa')}/fases`)
   await expect(page.getByRole('heading', { name: subasta, level: 1 })).toBeVisible()
   await enLaPestana(page, 'Fases')

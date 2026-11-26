@@ -1,4 +1,4 @@
-// Lo que el e2e de los tipos de documento (Logística › Configuración › Tipos de documento y el panel del flujo) prepara y mira en la base del Supabase LOCAL. Todo tipo que crea un e2e lleva este prefijo en su
+// Lo que el e2e de los tipos de documento (el drawer «Tipos de documento» arriba del diagrama del flujo) prepara y mira en la base del Supabase LOCAL. Todo tipo que crea un e2e lleva este prefijo en su
 // nombre: es lo único que la limpieza borra (con los requisitos que lo usen, antes: la FK es `restrict`).
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
@@ -82,27 +82,26 @@ export function borrarTiposDeDocumentoDePrueba(): void {
 
 // --- La pantalla --------------------------------------------------------------------------------------
 
-export type Grupo = 'empresa' | 'flujo'
+export type Grupo = 'origen' | 'compartido'
 
+// Un grupo del drawer: «De <origen>» (los del flujo) o «Compartidos», por su título.
 export const seccionDelGrupo = (page: Page, grupo: Grupo): Locator =>
-  // Los compartidos se llaman «Compartidos» (solos, en su pestaña, por `aria-label`; en el panel del flujo, por su título); los de un flujo, por el suyo.
-  grupo === 'empresa'
-    ? page.getByRole('region', { name: 'Compartidos', exact: true })
-    : page.locator(`section[aria-labelledby="titulo-de-tipos-${grupo}"]`)
+  page.locator(`section[aria-labelledby="titulo-de-tipos-${grupo}"]`)
 
-// Los de un flujo: en el panel de la pestaña Fases del origen (`?seccion=documentos`), los de ese flujo («De <origen>») y debajo los compartidos.
-export async function abrirDocumentos(page: Page, origenId = origenDeLaSubasta()): Promise<void> {
-  await page.goto(`/configuracion/origenes/${origenId}/fases?seccion=documentos`)
+// El drawer «Tipos de documento» de la pestaña Fases del origen (`?panel=tipos-de-documento`): los de ese flujo («De <origen>») y debajo los compartidos.
+export async function abrirDocumentos(
+  page: Page,
+  origenId = origenDeLaSubasta(),
+  consulta = '',
+): Promise<void> {
+  await page.goto(`/configuracion/origenes/${origenId}/fases?panel=tipos-de-documento${consulta}`)
   await expect(
-    page.getByRole('heading', { name: `De ${nombreDelOrigen(origenId)}`, level: 2 }),
+    page.getByRole('heading', { name: `De ${nombreDelOrigen(origenId)}`, level: 3 }),
   ).toBeVisible()
 }
 
-// Los compartidos: Logística › Configuración › Tipos de documento.
-export async function abrirLosDeLaEmpresa(page: Page, consulta = ''): Promise<void> {
-  await page.goto(`/logistica/configuracion/tipos-de-documento${consulta}`)
-  await expect(seccionDelGrupo(page, 'empresa')).toBeVisible()
-}
+export const drawerDeTipos = (page: Page): Locator =>
+  page.getByRole('dialog', { name: 'Tipos de documento' })
 
 // Los nombres de las filas de un grupo, en el orden en que se ven.
 export async function nombresDelGrupo(page: Page, grupo: Grupo): Promise<string[]> {
@@ -118,8 +117,5 @@ export async function nombresDelGrupo(page: Page, grupo: Grupo): Promise<string[
 
 export const modalDeTipo = (
   page: Page,
-  titulo:
-    | 'Nuevo tipo de documento de este flujo'
-    | 'Nuevo tipo de documento compartido'
-    | 'Editar tipo de documento',
+  titulo: 'Nuevo tipo de documento' | 'Editar tipo de documento',
 ): Locator => page.getByRole('dialog', { name: titulo })
