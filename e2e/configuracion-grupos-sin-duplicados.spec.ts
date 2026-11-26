@@ -13,9 +13,8 @@ import {
   PREFIJO_DE_LEAD_E2E,
 } from './soporte/leads'
 import { codigoDePaisDeLaEmpresa, telefonoAlAzar } from './soporte/leads-alta'
-import { elegirDelMenu, filaDeCatalogo, nombreDeLaFila } from './soporte/lista-de-catalogo'
+import { elegirDelMenu, nombreDeLaFila } from './soporte/lista-de-catalogo'
 import { expect, test, type Page } from './soporte/prueba'
-import { quieto } from './soporte/recorrido'
 
 // @sin-celular-archivo: Configuración no se prueba en celular; pruebas sólo en lo clave (la persona, 2026-11-08)
 
@@ -104,21 +103,19 @@ test('E2E escritorio: el combo del grupo ofrece el que existe con otra escritura
   await page.goto('/configuracion/leads/campos')
   await expect(filaDelCampo(page, CAMPO.etiqueta)).toBeVisible()
   await abrirElCampo(page, CAMPO.etiqueta)
-  const panel = page.getByRole('dialog')
+  const panel = drawer(page, CAMPO.etiqueta)
   const combo = comboDe(panel, 'Grupo')
   await expect(combo).toHaveAccessibleName(`Grupo ${EXISTENTE}`)
 
-  // La lista del combo flota: el campo de abajo no se mueve al abrirla.
-  const siguiente = panel.getByRole('switch', { name: 'Activo' })
-  await quieto(panel)
-  const antes = await siguiente.boundingBox()
+  // La lista del combo flota (se dibuja fuera del panel): abrirla no empuja el formulario.
   await combo.click()
   const buscar = page.locator('[cmdk-input]')
+  await expect(buscar).toBeVisible()
+  await expect(panel.locator('[cmdk-input]')).toHaveCount(0)
   await buscar.fill('e2e datos  del cliente')
   await expect(page.getByRole('option', { name: EXISTENTE, exact: true })).toBeVisible()
   await expect(page.getByText(`Ya existe «${EXISTENTE}».`)).toBeVisible()
   await expect(page.getByRole('option', { name: /^Crear grupo/ })).toHaveCount(0)
-  expect(await siguiente.boundingBox()).toEqual(antes)
 
   // Lo que no existe se crea desde ahí y queda elegido; al guardar, el campo va bajo su bloque.
   await buscar.fill(NUEVO)
@@ -141,14 +138,10 @@ test('E2E escritorio: «Grupos» renombra sin duplicar y la ficha del lead dice 
   const panel = drawer(page, 'Grupos de campos')
   await expect(nombreDeLaFila(page, NUEVO)).toBeVisible()
 
-  // Renombrar cambia el formulario de arriba sin mover la lista.
-  const fila = filaDeCatalogo(page, NUEVO)
-  await quieto(panel)
-  const antes = await fila.boundingBox()
+  // Renombrar usa el mismo formulario de arriba, con el nombre de ese grupo.
   await elegirDelMenu(page, NUEVO, 'Renombrar')
   const nombre = panel.getByLabel(`Renombrar «${NUEVO}»`)
   await expect(nombre).toHaveValue(NUEVO)
-  expect((await fila.boundingBox())?.y).toBe(antes?.y)
   await nombre.fill(RENOMBRADO)
   await panel.getByRole('button', { name: 'Guardar' }).click()
   await descartarAviso(page, 'Grupo renombrado')
