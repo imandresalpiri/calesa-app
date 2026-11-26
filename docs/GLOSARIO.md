@@ -93,8 +93,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `shared/lib/campos`. Se edita con el editor de campos de `shared/ui/campos` (`<EditorDeCampos>`), el mismo en un origen y en los leads.
 - **Grupo de campos** — `leads_campos_grupos`, `origenes_campos_grupos` (uno por origen) / `GrupoDeCampos`, `campo.grupo_id`: bloque con nombre que
   ordena el formulario y la ficha. Se elige de un catálogo (`<ComboDeCatalogo>`), no se escribe: el nombre es único sin importar mayúsculas,
-  tildes ni espacios (`_nombre_de_catalogo()` ↔ `claveDeNombre()`), y lo nuevo se crea desde el combo («Crear grupo «x»»). Un campo sin grupo va
-  en «Otros datos». No: «sección», «bloque», ni los otros «Grupo» (de la hoja, de un vehículo, de transporte, de la bandeja).
+  tildes ni espacios (`_nombre_de_catalogo()` ↔ `claveDeNombre()`), y lo nuevo se crea desde el combo («Crear grupo «x»»). Se renombra, ordena,
+  desactiva y quita en el drawer «Grupos» (`?panel=grupos`); quitar uno con campos pide a dónde moverlos. Un campo sin grupo va en «Otros datos».
+  No: «sección», «bloque», ni los otros «Grupo» (de la hoja, de un vehículo, de transporte, de la bandeja).
 - **Preconfiguración** — `origen_preconfigurar_campos()`: campos que nacen con el origen según su tipo (subasta/apibara o manual).
 - **Categoría** — `categorias`: agrupación dentro de un origen (marca, segmento). No es el grupo de campos de un origen ni la categoría de una FAQ.
 - **Sustantivo del origen** — `origenes.sustantivo`: cómo se llama lo que entra por ese origen («vehículo», «unidad», «lote»).
@@ -1042,8 +1043,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Guía / FAQ / Testimonio** — `web_guias`, `web_faqs`, `web_testimonios`: contenido de la web pública; nace despublicado.
 - **Categoría de FAQ** — `web_categorias_faqs` / `CategoriaDeFaq`, `web_faqs.categoria_id`: agrupa las preguntas frecuentes en la web (que
   sigue recibiendo el nombre en `web.faqs.categoria`). Se elige de un catálogo (`<ComboDeCatalogo>`) con nombre único sin importar mayúsculas,
-  tildes ni espacios, como el grupo de campos; las categorías de guías (`web_categorias_guias`) tienen el mismo nombre único. No: «etiqueta», ni
-  la categoría de un origen.
+  tildes ni espacios, como el grupo de campos, y se gestiona en el drawer «Categorías» (`?panel=categorias`): quitar una con preguntas pide a
+  dónde moverlas. Las categorías de guías (`web_categorias_guias`) tienen el mismo nombre único. No: «etiqueta», ni la categoría de un origen.
 - **Programada** — guía con `web_guias.publicada_en` futura: aún no se ve (`estadoDeGuia()`: «Borrador», «Programada» o «Publicada»).
 - **Consentimiento (de un testimonio)** — `web_testimonio_consentir` / `web_testimonio_retirar`: quién lo registró, cuándo, por qué canal, y si
   se muestran ciudad, vehículo y foto. Cambiar nombre, texto o foto lo anula.
