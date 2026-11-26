@@ -5,12 +5,18 @@ import { Bloque } from '@/shared/ui/bloque'
 import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
 import { ComboDeCatalogo, type TextosDelCombo } from '@/shared/ui/combo-de-catalogo'
 import { textoDelTope } from '@/shared/lib/conteo'
+import { Campo } from '@/shared/ui/campo'
 import { MAXIMO_DEL_NOMBRE_DE_CATEGORIA } from '../../../../entities/contenido/categorias'
-import { TOPE_DE_OPCIONES_DE_GUIA, type OpcionesDeGuia } from '../../../../entities/contenido/guias'
+import {
+  MAXIMO_DEL_SLUG_DE_GUIA,
+  TOPE_DE_OPCIONES_DE_GUIA,
+  type OpcionesDeGuia,
+} from '../../../../entities/contenido/guias'
 import { useCategoriasDeGuia } from '../hooks/use-categorias-de-guia'
 import type { ErroresDeGuia } from '../hooks/use-guardar-guia'
 import type { ValoresDeGuia } from '../hooks/valores-de-guia'
 import { CampoDePortada } from './campo-de-portada'
+import { CampoDeResumen } from './campo-de-resumen'
 
 type Props = {
   valores: ValoresDeGuia
@@ -29,11 +35,30 @@ const TEXTOS_DEL_COMBO: TextosDelCombo = {
   inactivo: (nombre) => `Ya existe «${nombre}» (inactiva): actívala en «Categorías», en Guías.`,
 }
 
-// Categoría (del catálogo, o creada aquí), autor y portada. Las listas se leyeron con tope + 1: si hay más, lo dice.
-export function BloqueDatos({ valores, cambiar, errores, opciones, deshabilitado }: Props) {
+// Dirección, resumen, categoría (del catálogo, o creada aquí), autor y portada. Las listas se leyeron con tope + 1: si hay más, lo dice.
+export function CamposDeDatos({ valores, cambiar, errores, opciones, deshabilitado }: Props) {
   const categorias = useCategoriasDeGuia(opciones)
   return (
     <Bloque titulo="Datos" descripcion="Cómo se clasifica y se presenta la guía en el sitio.">
+      <Campo
+        nombre="slug"
+        etiqueta="Dirección"
+        ayuda={`Es la dirección de la guía en el sitio: /guias/${valores.slug || '…'}. Si ya está publicada, cambiarla rompe los enlaces que la nombran.`}
+        maxLength={MAXIMO_DEL_SLUG_DE_GUIA}
+        autoComplete="off"
+        value={valores.slug}
+        onChange={(evento) => {
+          cambiar({ slug: evento.target.value })
+        }}
+        error={errores['slug']}
+      />
+      <CampoDeResumen
+        valor={valores.resumen}
+        alCambiar={(resumen) => {
+          cambiar({ resumen })
+        }}
+        error={errores['resumen']}
+      />
       <ComboDeCatalogo
         nombre="categoriaId"
         etiqueta="Categoría"

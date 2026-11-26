@@ -66,6 +66,7 @@ export const MOTIVO_SIN_PERMISO_PARA_PUBLICAR = 'Tu rol no publica guías.'
 export const MOTIVO_SIN_PERMISO_PARA_GUIAS = 'No tienes permiso para cambiar las guías.'
 export const MOTIVO_SIN_TEXTO_PARA_PUBLICAR = 'Escribe el texto de la guía para publicarla.'
 export const MOTIVO_SIN_CONEXION_PARA_PUBLICAR = 'No hay conexión.'
+export const MOTIVO_SUBIENDO_IMAGENES = 'Espera a que terminen de subir las imágenes.'
 export const MOTIVO_DE_SLUG_REPETIDO = 'Ya hay una guía con esa dirección. Cambia el texto.'
 export const MOTIVO_DE_FECHA_PASADA = 'Elige una fecha futura.'
 
@@ -94,22 +95,36 @@ export function esSlugValido(slug: string): boolean {
   return slug.length >= 1 && slug.length <= MAXIMO_DEL_SLUG_DE_GUIA && SLUG.test(slug)
 }
 
-// El documento tiene algo que mostrar (texto o una imagen); si la lista blanca lo rechaza, el motivo va junto al editor.
+// El documento tiene algo que mostrar (texto, una imagen, una galería, un video o un botón); si la lista blanca lo rechaza, el motivo va junto al editor.
 export function tieneCuerpo(documento: unknown): boolean {
   const html = htmlDelDocumento(documento)
   return html.ok && html.html !== ''
 }
 
+// Por qué la lista blanca rechaza el documento (`null` si lo admite): «Publicar» lo dice.
+export function motivoDelCuerpo(documento: unknown): string | null {
+  const html = htmlDelDocumento(documento)
+  return html.ok ? null : html.motivo
+}
+
 export type PuedePublicar = { ok: true } | { ok: false; motivo: string }
 
-// Publicar, programar: con el permiso, con texto y con red, en ese orden. Despublicar sólo pide el permiso (`web.guias.publicar`).
-export function puedePublicar(situacion: {
+export type SituacionDeLaGuia = {
   permitido: boolean
   conCuerpo: boolean
   enLinea: boolean
-}): PuedePublicar {
+  // Lo que la lista blanca rechaza del documento (`motivoDelCuerpo`), o `null`.
+  motivoDelCuerpo: string | null
+}
+
+// Publicar, programar: con el permiso, con un cuerpo que la lista blanca admita, con texto y con red, en ese orden. Despublicar sólo pide el
+// permiso (`web.guias.publicar`).
+export function puedePublicar(situacion: SituacionDeLaGuia): PuedePublicar {
   if (!situacion.permitido) {
     return { ok: false, motivo: MOTIVO_SIN_PERMISO_PARA_PUBLICAR }
+  }
+  if (situacion.motivoDelCuerpo !== null) {
+    return { ok: false, motivo: situacion.motivoDelCuerpo }
   }
   if (!situacion.conCuerpo) {
     return { ok: false, motivo: MOTIVO_SIN_TEXTO_PARA_PUBLICAR }
@@ -139,36 +154,81 @@ export function rutaDeGuia(id: string): string {
 
 export const RUTA_DE_LA_LISTA_DE_GUIAS = RUTAS.guiasDelSitio
 
-// Las rutas de las imágenes del primer nivel de un documento (la base no las admite más adentro), sin repetir: lo que ya no está tras guardar se
-// quita del bucket si ninguna fila lo usa (`quitarSiHuerfano`).
+// Las rutas de las imágenes del primer nivel de un documento y de sus galerías (la base no las admite más adentro), sin repetir: lo que ya no está
+// tras guardar se quita del bucket si ninguna fila lo usa (`quitarSiHuerfano`).
 export function rutasDeImagenes(documento: unknown): string[] {
   const contenido = esObjeto(documento) ? documento['content'] : undefined
   const rutas = (Array.isArray(contenido) ? contenido : []).flatMap((nodo): string[] => {
-    const attrs = esObjeto(nodo) && nodo['type'] === 'image' ? nodo['attrs'] : undefined
-    const ruta = esObjeto(attrs) ? attrs['ruta'] : undefined
-    return typeof ruta === 'string' ? [ruta] : []
+    if (!esObjeto(nodo)) {
+      return []
+    }
+    const attrs = nodo['attrs']
+    if (nodo['type'] === 'image') {
+      const ruta = esObjeto(attrs) ? attrs['ruta'] : undefined
+      return typeof ruta === 'string' ? [ruta] : []
+    }
+    const imagenes = nodo['type'] === 'gallery' && esObjeto(attrs) ? attrs['imagenes'] : undefined
+    return (Array.isArray(imagenes) ? imagenes : []).flatMap((imagen): string[] => {
+      const ruta = esObjeto(imagen) ? imagen['ruta'] : undefined
+      return typeof ruta === 'string' ? [ruta] : []
+    })
   })
   return [...new Set(rutas)]
 }
 
-// Qué botones de publicación tiene cada estado: borrador → Publicar y Programar; programada → Publicar ahora y Despublicar; publicada → Despublicar.
-export function accionesDePublicacion(estado: EstadoDeGuia): {
-  publicar: 'Publicar' | 'Publicar ahora' | null
-  programar: boolean
-  despublicar: boolean
-} {
+export type AccionDeLaBarra = {
+  // `mantener` guarda sin cambiar el estado; las demás las ejecuta `publicar-guia`, `programar` y `despublicar`.
+  accion: 'mantener' | 'publicar' | 'publicar-ahora' | 'programar' | 'despublicar'
+  etiqueta: string
+  // Por qué está apagada (se dice a la vista); `null` = disponible.
+  motivo: string | null
+}
+
+export type AccionesDeLaBarra = {
+  principal: AccionDeLaBarra
+  segundo: AccionDeLaBarra | null
+  enElMenu: AccionDeLaBarra[]
+}
+
+// Qué ofrece la barra de arriba según el estado. Borrador → «Publicar» y «Guardar borrador», con «Programar…» en el «⋯»; programada y publicada →
+// «Actualizar» (guarda sin cambiar el estado), sin «Guardar borrador» (guardaría directo sobre lo publicado); «Publicar ahora» y «Despublicar» van
+// en el «⋯». Publicar y programar piden permiso, cuerpo válido con texto y red; «Despublicar» sólo el permiso; guardar no pide ninguno.
+export function accionesDeLaBarra(
+  estado: EstadoDeGuia,
+  situacion: SituacionDeLaGuia,
+): AccionesDeLaBarra {
+  const publicar = puedePublicar(situacion)
+  const motivoDePublicar = publicar.ok ? null : publicar.motivo
+  const despublicar: AccionDeLaBarra = {
+    accion: 'despublicar',
+    etiqueta: 'Despublicar',
+    motivo: situacion.permitido ? null : MOTIVO_SIN_PERMISO_PARA_PUBLICAR,
+  }
+  if (estado === 'borrador') {
+    return {
+      principal: { accion: 'publicar', etiqueta: 'Publicar', motivo: motivoDePublicar },
+      segundo: { accion: 'mantener', etiqueta: 'Guardar borrador', motivo: null },
+      enElMenu: [{ accion: 'programar', etiqueta: 'Programar…', motivo: motivoDePublicar }],
+    }
+  }
   return {
-    publicar:
-      estado === 'borrador' ? 'Publicar' : estado === 'programada' ? 'Publicar ahora' : null,
-    programar: estado === 'borrador',
-    despublicar: estado !== 'borrador',
+    principal: { accion: 'mantener', etiqueta: 'Actualizar', motivo: null },
+    segundo: null,
+    enElMenu:
+      estado === 'programada'
+        ? [
+            { accion: 'publicar-ahora', etiqueta: 'Publicar ahora', motivo: motivoDePublicar },
+            despublicar,
+          ]
+        : [despublicar],
   }
 }
 
-// El motivo a la vista bajo los botones: el de Publicar y Programar (permiso, texto, red) cuando el estado los ofrece; si no, el de Despublicar (sólo permiso).
+// El motivo a la vista en «Publicación»: el de Publicar y Programar (permiso, cuerpo, texto, red) cuando el estado los ofrece; si no, el de Despublicar
+// (sólo permiso).
 export function motivoDePublicacion(
   estado: EstadoDeGuia,
-  situacion: { permitido: boolean; conCuerpo: boolean; enLinea: boolean },
+  situacion: SituacionDeLaGuia,
 ): string | null {
   if (estado === 'publicada') {
     return situacion.permitido ? null : MOTIVO_SIN_PERMISO_PARA_PUBLICAR

@@ -21,6 +21,10 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Decisiones de producto que esperan a la persona
 
+### Sitio web
+
+- **[—]** `calesa-web` (el sitio, otro repo) dibuja `guia-galeria`, `guia-boton` y `guia-video` (el HTML está en `src/modules/web/CLAUDE.md` › `contenido`); hasta entonces se ven como un enlace y una imagen sueltos.
+
 ### Cotizaciones
 
 - **[—]** El dato del vehículo de una tabla (4.14-2c3) no se elige en el panel de una guardada: el lector de opciones lee `cotizacion_tabla` con la hoja abierta, que una guardada no tiene — falta uno por cotización (la celda dice «Falta un dato del vehículo.»).

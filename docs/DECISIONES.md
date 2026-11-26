@@ -1540,7 +1540,19 @@ las trampas, en `docs/LECCIONES.md`.
 - **La web pública es otro repo sobre el mismo Supabase.** Lee sólo el esquema `web`; ampliar `web.vehiculos` es deliberado, columna por columna, y `atributos` trae sólo campos `publico_web` activos.
 - **Revalidación sin variables de entorno.** URL en `integraciones.config.revalidar_url`, secreto en Vault; cola + job por minuto con triggers por sentencia, sin índice único ni `on conflict` (serializaba escrituras de vehículos).
 - **El job sólo envía a `https://`.** «Probar» acepta loopback sólo si la base del despliegue es loopback; la app rechaza IP internas literales. No se ataja lo que resuelve el DNS.
-- **El HTML del sitio lo deriva la base** (`_web_doc_html()` sobre ProseMirror con lista blanca; fuera de ella 22023, no se recorta). `minutos_lectura` sólo en la base.
+- **El HTML del sitio lo deriva la base** (`_web_doc_html()` sobre ProseMirror con lista blanca; fuera de ella 22023, no se recorta). `minutos_lectura` sólo en la base. La lista blanca del primer nivel
+  suma cuatro bloques de la guía: separador (`<hr>`), galería (1 a 12 imágenes `{ruta, alt}`), botón (texto de 1 a 60 y un enlace seguro) y video (sólo el enlace canónico de YouTube o Vimeo,
+  `<figure class="guia-video" data-video>` con un `<a>`, nunca un `<iframe>`: el sitio decide cómo incrustarlo). Los legales no los llevan (22023, hint `legales`) y las imágenes de una galería
+  cuentan en `storage_refcount('web', …)`.
+- **La página de una guía es un editor de bloques** (T581), como el de WordPress y a propósito sin dependencias nuevas: la interfaz va a mano sobre Tiptap. Barra fija arriba (volver a Guías,
+  deshacer y rehacer, estado, «Vista previa», la acción principal, la de al lado, el «⋯» y el interruptor del panel), el artículo centrado con el título grande sin etiqueta visible (su nombre es «Título»)
+  y un panel a la derecha con «Publicación» (estado, programar, datos, buscadores y eliminar) y «Bloque» (las opciones del bloque elegido). El panel se oculta y se acuerda por navegador
+  (`localStorage` `guia:panel`; sin acceso a él, abierto); debajo de 1024 px es un `<Drawer>` por URL (`?panel=lateral`). La vista previa es un modal por URL (`?panel=vista-previa`)
+  con el HTML que daría la base. Un bloque se inserta con «/» o con el «+» del párrafo vacío y se mueve o quita desde su barrita; un bloque que no es texto nunca queda de último (detrás va un párrafo vacío).
+  **Un botón o un video mal escritos no se guardan ni se recortan**: el editor dice el motivo en su lugar (la misma regla que la base: `motivoDelBloque`) y deja lo escrito. Las imágenes se suben
+  de dos en dos y «Guardar» espera a que terminen. `key={guia.actualizadoEn}` reinicia el editor tras guardar: **deshacer no cruza un guardado** (el costo de que lo guardado sea siempre la verdad).
+  Descartado: una barra de herramientas fija sobre el texto (con la barrita flotante el texto manda), `iframe` para el video (sería ejecutar HTML ajeno desde la base) y la galería como carrusel
+  (el sitio la dibuja).
 - **El `slug` sale del título al crear y después no lo sigue**: renombrar algo publicado no mueve su URL.
 - **Publicar una guía pone `publicada_en = ahora − 60 s`**: el reloj de Next no es el de la base. «Programar» pide al menos un minuto adelante.
 - **Categoría con guías no se borra** (la FK es `set null`, no falla sola): la action lo rechaza y la lista apaga «Eliminar» con motivo.

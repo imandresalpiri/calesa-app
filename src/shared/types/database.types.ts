@@ -10953,6 +10953,8 @@ export type Database = {
         Returns: Json
       }
       _web_ajustes_valor: { Args: { p_clave: string; p_valor: Json }; Returns: Json }
+      _web_doc_boton: { Args: { p_nodo: Json }; Returns: string }
+      _web_doc_galeria: { Args: { p_nodo: Json }; Returns: string }
       _web_doc_html: { Args: { p_doc: Json }; Returns: string }
       _web_doc_imagen: { Args: { p_nodo: Json }; Returns: string }
       _web_doc_marcas: { Args: { p_html: string; p_marcas: Json }; Returns: string }
@@ -10962,6 +10964,7 @@ export type Database = {
         Returns: string
       }
       _web_doc_ruta_valida: { Args: { p_ruta: string }; Returns: boolean }
+      _web_doc_video: { Args: { p_nodo: Json }; Returns: string }
       _web_html_escapar: { Args: { p_texto: string }; Returns: string }
       _web_legales_validar: { Args: { p_anterior: Json; p_legales: Json }; Returns: Json }
       _zarpe_estimado: { Args: { p_actual: string; p_cambios: Json }; Returns: string }

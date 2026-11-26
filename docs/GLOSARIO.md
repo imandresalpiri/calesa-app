@@ -1097,6 +1097,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   sigue recibiendo el nombre en `web.faqs.categoria`). Se elige de un catálogo (`<ComboDeCatalogo>`) con nombre único sin importar mayúsculas,
   tildes ni espacios, como el grupo de campos, y se gestiona en el drawer «Categorías» (`?panel=categorias`): quitar una con preguntas pide a
   dónde moverlas. Las categorías de guías (`web_categorias_guias`) tienen el mismo nombre único. No: «etiqueta», ni la categoría de un origen.
+- **Bloque (de la guía)** — `BloqueDeLaGuia` (`BLOQUES_DE_LA_GUIA`, `entities/contenido/bloques-de-la-guia.ts`): cada pieza del primer nivel del texto de una guía que se inserta con «/» o «+»: párrafo,
+  título grande o chico, lista con viñetas o numerada, cita, imagen, galería (1 a 12 imágenes), botón (texto y enlace), video (enlace de YouTube o Vimeo) y separador. Se mueve, se quita y se
+  configura (pestaña «Bloque» del panel) uno a uno. No: «sección», «widget», ni el «bloque» de la ayuda de una celda.
 - **Programada** — guía con `web_guias.publicada_en` futura: aún no se ve (`estadoDeGuia()`: «Borrador», «Programada» o «Publicada»).
 - **Consentimiento (de un testimonio)** — `web_testimonio_consentir` / `web_testimonio_retirar`: quién lo registró, cuándo, por qué canal, y si
   se muestran ciudad, vehículo y foto. Cambiar nombre, texto o foto lo anula.

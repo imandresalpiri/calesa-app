@@ -748,6 +748,10 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   «Cotizar lead» del «⋯» de la cabecera suma, para quien tiene `cotizaciones.crear`, `getOrigenes()` (una por request) y ~90 B.
 - «Nuevo lead» es un solo drawer: 1 montaje y 1 entrada animada por apertura, 1 lectura de cada pedido (`e2e/leads-alta-un-drawer.spec.ts`).
 
+- La página de una guía (`/configuracion/web/guias/[id]`, un editor de bloques; sin presupuesto propio: un documento con el editor en frío no es una pantalla que se pida a diario): medido
+  362,5 KB en 25 chunks contra 362,6 KB en 26 antes del editor de bloques. Todo el editor (Tiptap, los bloques, la barrita, el panel, la vista previa) viaja con `diferido()` al abrir la guía;
+  el esqueleto de `EsqueletoDeEditorDeArticulo` mide lo mismo que el artículo (sin saltos).
+
 ## Cotizador (fórmula, diseño, cotizaciones)
 
 Salvo que se diga otro, mide `pnpm db:medir` en la base de la semilla; el tope en ms es la mayor mediana de varias corridas × 3, el de

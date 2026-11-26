@@ -29,8 +29,9 @@ type Props = {
   pie?: ReactNode
   children?: ReactNode
   // «amplio» para lo que no entra en 384 px (un texto para copiar, una fila de atajos); «grande» para un dibujo que se escala a su ancho como una
-  // imagen (la tarjeta de la cotización): hasta 56 rem desde `sm`, y en el celular a lo ancho como todos.
-  ancho?: 'normal' | 'amplio' | 'grande'
+  // imagen (la tarjeta de la cotización): hasta 56 rem desde `sm`, y en el celular a lo ancho como todos; «completa» ocupa toda la pantalla, en
+  // cualquier ancho (la vista previa de una guía).
+  ancho?: 'normal' | 'amplio' | 'grande' | 'completa'
   // Mientras guarda: no se cierra con Esc, la ✕ ni el clic afuera (el pedido en vuelo podría volver
   // con el modal cerrado).
   bloqueado?: boolean
@@ -48,13 +49,18 @@ type Props = {
 }
 
 // El tamaño del diálogo: el ancho elegido y, si se pide, toda la pantalla en el celular.
-function clasesDelModal(ancho: 'normal' | 'amplio' | 'grande', completoEnCelular: boolean): string {
+function clasesDelModal(
+  ancho: 'normal' | 'amplio' | 'grande' | 'completa',
+  completoEnCelular: boolean,
+): string {
   return cn(
     'flex max-h-[calc(100dvh-2rem)] flex-col gap-0 p-0 max-sm:top-4 max-sm:translate-y-0',
     completoEnCelular &&
       'max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-h-none max-sm:max-w-none max-sm:translate-x-0 max-sm:rounded-none',
     ancho === 'amplio' && 'sm:max-w-lg',
     ancho === 'grande' && 'sm:max-w-4xl',
+    ancho === 'completa' &&
+      'top-0 left-0 h-dvh max-h-none max-w-none translate-x-0 translate-y-0 rounded-none sm:top-0 sm:left-0 sm:max-w-none sm:translate-x-0 sm:translate-y-0 sm:rounded-none',
   )
 }
 

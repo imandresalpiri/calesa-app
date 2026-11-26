@@ -12,6 +12,11 @@ export type RegistroDeModal =
   { propio: true } | { sinFormulario: string; tambien?: readonly string[] }
 
 export const MODALES: Record<string, RegistroDeModal> = {
+  // --- web
+  'src/modules/web/features/contenido/guias/components/vista-previa-de-la-guia.tsx': {
+    sinFormulario:
+      'sólo muestra cómo quedaría la guía (título, resumen y texto); lo escrito vive en la página de la guía, que guarda su borrador y pregunta al salir',
+  },
   // --- leads
   'src/modules/leads/features/etiquetas/components/dialogo-de-etiquetas.tsx': { propio: true },
   'src/modules/leads/features/portal/components/dialogo-de-otorgar.tsx': { propio: true },
