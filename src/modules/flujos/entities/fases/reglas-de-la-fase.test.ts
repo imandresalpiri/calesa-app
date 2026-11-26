@@ -24,6 +24,7 @@ const fase = (extra: Partial<FaseParaConfigurar> = {}): FaseParaConfigurar => ({
   aliasPortal: null,
   descripcionPortal: null,
   esSubasta: false,
+  posicion: null,
   ...extra,
 })
 

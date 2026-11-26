@@ -28,6 +28,7 @@ describe('<CotizacionGuardada>', () => {
     render(
       <CotizacionGuardada
         cotizacion={{ id: ID, numero: 12, totalUsd: 100, repetido: false }}
+        decimales={undefined}
         fueReenvio={false}
         alCotizarOtra={() => undefined}
       />,
@@ -40,5 +41,18 @@ describe('<CotizacionGuardada>', () => {
     expect(screen.getByRole('link', { name: 'Abrir la cotización' }).getAttribute('href')).toBe(
       `/cotizaciones/${ID}`,
     )
+  })
+
+  it('el total va con los «Decimales» de la celda del total, como en su tarjeta', () => {
+    render(
+      <CotizacionGuardada
+        cotizacion={{ id: ID, numero: 12, totalUsd: 1234.5678, repetido: false }}
+        decimales={0}
+        fueReenvio={false}
+        alCotizarOtra={() => undefined}
+      />,
+    )
+    const total = document.querySelector('[data-total-guardado] [data-monto-valor]')
+    expect(total?.textContent).toMatch(/1\.235$/)
   })
 })

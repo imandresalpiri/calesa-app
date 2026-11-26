@@ -795,6 +795,19 @@ las trampas, en `docs/LECCIONES.md`.
   «Aplicar también» va apagada en una guardada de sólo lectura y si la versión de la hoja no tiene el modo. Sin red dice «No hay conexión.» con «Reintentar»
   (reenviar es seguro: la base compara la esperada).
 - **El ⚙ de un tipo de cambio.** `formula_tipo_cambio_del_nodo()` (definer, pide `empresa.tipos_cambio.gestionar` y ver el nodo; todo rechazo da `null`); manda sólo `{id, actualizadoEnEsperado, valor}`.
+- **Los «Decimales» de una celda son del nodo y sólo de la vista** (`decimales`, 0 a 4; sin la clave, «Automático»): el motor no los lee y una versión
+  sin el dato se ve como antes, sin migrar datos. Se muestran redondeados con `redondear()` antes de `Intl` (`cifra-fija.ts`): formatear el doble con N
+  fijos da otra cifra en un casi empate, y la base redondea así. En un porcentaje son decimales de puntos (`redondear(x, n + 2)` sobre la fracción).
+- **Lo que no es una celda sigue con 2:** el total del listado, «De este vehículo», la cabecera de comparar, la línea del total de una revisión y el
+  resumen de una guardada son totales en la moneda base o la de mostrar, no la celda del total; el listado está medido al borde. El Bs de la hoja y de la
+  tarjeta es la celda del total en otra moneda: lleva sus decimales, y también «Total guardado» y el total de «Cotización n.º N guardada», que van junto a
+  la tarjeta del total de la hoja (dos cifras distintas del mismo total, a la vista, no se leen). El tipo de cambio de la tarjeta (`tc_valor`) sigue con 4: no es una celda que se elija.
+- **«Decimales…» es un panel propio** (`?panel=decimales&fila=<id>`), no un campo del panel del tipo de celda (no tiene formato y sólo abre para cuatro
+  tipos) ni un submenú con radios (no deja ver el ejemplo con su alto reservado). Usa `<Opciones>` (radios nativos con otra piel). Un rechazo no marca el
+  grupo `aria-invalid`: los radios sólo ofrecen valores válidos, el motivo es de la fórmula y se lee en su línea con el foco en el radio elegido.
+- **Un dato del vehículo que no es un número no ofrece «Decimales»**: la planilla lee `clave, tipo` de los campos del origen (una sola lectura, la de los
+  datos que faltan) y la regla pura no los conoce. Sin la lectura, sólo las columnas comunes de texto (`marca`, `modelo`) quedan fuera: elegir decimales
+  en un texto no cambia nada. El % que la B de una fila absorbe no tiene fila propia: queda en «Automático» desde la planilla.
 
 ### La hoja
 
@@ -1264,12 +1277,15 @@ las trampas, en `docs/LECCIONES.md`.
 - **`flujos.activo` no se edita ni se quita**: nadie lo lee ni lo escribe.
 - **Un ítem «Perdido» no frena al vehículo**: la regla vive en `_repuesto_ante_espera`.
 - **Tipos de documento.** `proposito` no se edita; una combinación inválida de vencimiento se rechaza, no se limpia; apagar `visible_portal_permitido` no oculta lo ya marcado; un tipo propio del flujo tapa al compartido de su clave («Los catálogos de logística son propios o compartidos, como las tablas»).
-- **El flujo se configura sobre un diagrama con disposición calculada** (`disponerDiagrama`, `@xyflow/react` detrás de `diferido()`): una columna por
-  fase en su orden, ramas arriba, vueltas atrás abajo, sin posiciones guardadas. Descartado: guardar posiciones (migración y deriva al reordenar),
-  una disposición automática genérica (dagre o elk: otra dependencia y cruces igual) y un panel acoplado en la página (le quita ancho al diagrama).
-  La lista sigue siendo la versión navegable y la única del celular (`?vista=diagrama|lista`, con `shallow` y `replace`: el servidor no depende de
-  ella, como `?hueco=`). Versión de la librería: la última de la mayor anterior si la nueva tiene menos de 14 días (12.12.1, MIT); la atribución se
-  oculta (`proOptions.hideAttribution`): es un enlace externo en inglés y la licencia lo permite.
+- **La posición de una fase es una sola, del flujo** (`fases.posicion_x|y`, en rem, `numeric(7,2)`): la ve igual todo el que configura. Sin ninguna
+  guardada, el diagrama usa el acomodo automático (`disponerDiagrama`: una columna por fase en su orden, ramas arriba, vueltas atrás abajo); al mover
+  la primera se guardan todas donde se ven, para que nada salte, y «Ordenar solo» vuelve al acomodo (deshacible). Una fase nueva sin posición va al
+  lado de la última. Descartados: la posición por persona (dos personas verían dos flujos distintos y nadie sabría cuál mira la otra), guardarla en
+  px (cambia con el tamaño del texto) y una disposición automática genérica (dagre o elk: otra dependencia y cruces igual). `@xyflow/react` va detrás de
+  `diferido()`; versión: la última de la mayor anterior si la nueva tiene menos de 14 días (12.12.1, MIT); la atribución se oculta
+  (`proOptions.hideAttribution`): es un enlace externo en inglés y la licencia lo permite. La lista sigue siendo la versión navegable; en el celular es la
+  vista por defecto y el diagrama se ve y se toca, sin mover ni vincular (`?vista=diagrama|lista`, con `shallow` y `replace`: el servidor no depende de
+  ella, como `?hueco=`).
 - **El panel del flujo no es modal desde 1024 px** (`<Drawer alCostado>`): el diagrama sigue a la vista y tocar otra fase cambia el panel sin
   cerrarlo; más angosto, el drawer modal. Sus bloques van a la vista (`<BloquesALaVista>`), no plegados: la persona pidió que editar no fuera «puros
   acordeones». Con `?seccion=` y `?fase=` a la vez gana la sección. Las reglas y los tipos de documento se abren ahí.
@@ -1281,9 +1297,20 @@ las trampas, en `docs/LECCIONES.md`.
   seguirlo, porque el «⋯» no cambia de lugar. El aviso de una fase jubilada, con su «Reactivar», va sobre las pestañas y no dentro de Ajustes: es un estado de
   toda la fase y debe verse desde Reglas. Reglas queda fuera del `key` del formulario (una escritura de requisitos o salidas sube la versión y reiniciaría
   lo que se está editando en ellos); por eso las marcas de las pestañas suben del formulario a la barra por un aviso (`alMarcar`), no por el estado.
-- **Arrastrar sí ordena las fases** (a diferencia de mover unidades): es configuración de quien la tiene, con «Mover antes/después» de teclado, y se
-  apaga con la lista cortada. **Crear una salida arrastrando, no:** sin teclado ni celular, suma interacción a un formulario que ya tiene destino,
-  acción y «pide nota».
+- **Arrastrar mueve, no ordena.** Una caja queda donde se la suelta y el orden del flujo (el que usan los destinos, la cadena y la lista) cambia sólo
+  con «Mover antes/después» del «⋯» o «Subir/Bajar» de la lista: con posiciones libres, «dónde cae» ya no dice un orden, y un arrastre para acomodar
+  el dibujo no debe cambiar por dónde pasan los vehículos. **Crear una salida arrastrando el asa, sí:** es lo que se espera de un diagrama, y el
+  panel sigue siendo el camino de teclado y de celular; la salida nace sin acción y se abre en edición para completarla. El id lo genera el gesto
+  (un `23505` sobre el id es la misma salida que ya entró).
+- **Posiciones en lote con la versión del flujo, todo o nada** (`fase_posiciones_guardar`, hasta 200): la excepción a la RPC de lote con resultado
+  parcial (`.claude/rules/datos.md`). Mover una caja puede guardar también las que no tenían posición, y «Ordenar solo» las mueve todas: un resultado a
+  medias dejaría el dibujo partido. Cuesta una escritura por soltar (la ráfaga de teclado va junta, 600 ms después de la última tecla). Las escrituras
+  seguidas del lienzo van en cola, cada una con la última versión conocida (la leída o la que devolvió la anterior, la más nueva); un `PT409` descarta
+  lo pendiente y la pila de deshacer en el acto y avisa con «Recargar».
+- **La posición no se audita ni mueve `actualizado_en` de la fase** (`trg_auditar_cambio` y `trg_actualizado_en` de `fases` con `when`, `web_revalidar` con
+  `update of`): es dibujo, no configuración; un arrastre no debe llenar la actividad ni revalidar la web. Sí mueve la versión del flujo (dos personas
+  que acomodan a la vez chocan, como con todo lo demás).
+- **El minimapa sólo desde 768 px y con 6 fases o más:** con pocas fases todo cabe y es ruido; en el celular le quita lugar al lienzo.
 - **Un `rol_sin_personas` de una salida queda en su fase:** la base no dice de qué salida es y no se adivina por el texto.
 
 ## Logística

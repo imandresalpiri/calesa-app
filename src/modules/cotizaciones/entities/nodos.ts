@@ -20,6 +20,9 @@ export type Formato = (typeof FORMATOS)[number]
 
 const texto = (max: number) => z.string().min(1).max(max)
 
+// Los «Decimales» de una celda van de 0 a este tope (el de `_formula_forma_nodo()`).
+export const MAXIMO_DE_DECIMALES = 4
+
 // El texto con que se escribió una fila (`=(remate+fees)*4%`), para que el editor lo muestre y lo recompile. Lo lleva la raíz que
 // compila `compilarExpresion()` (una `constante` o un `calculo`); el compilador no lo lee ni lo escribe. Se cuenta en caracteres,
 // como `char_length` de `validar_formula()`.
@@ -31,6 +34,9 @@ const base = {
   id: esquemaId,
   etiqueta: texto(80),
   formato: z.enum(FORMATOS).optional(),
+  // Los «Decimales» con que se muestra la celda (glosario): de 0 a 4; sin la clave, «Automático». Sólo la vista: el motor no la lee. Va justo
+  // después de `formato`, como su espejo en `_formula_forma_nodo()` (el primer rechazo cae en la misma ruta).
+  decimales: z.int().min(0).max(MAXIMO_DE_DECIMALES).optional(),
   descripcion: z.string().max(300).optional(),
   seccion: texto(60).optional(),
   color: z.enum(COLORES).optional(),

@@ -15,4 +15,4 @@ export { leerElTerrenoDePrueba } from '../../infra/formula/terreno-de-prueba.cli
 export type { PedidoDelTerreno } from '../../infra/formula/terreno-de-prueba.client'
 export { leerTonosDelCatalogo } from '../../infra/formula/tonos.client'
 export type { TonoDelCatalogo } from '../../infra/formula/tonos.client'
-export { leerClavesDeLosCampos } from '../../infra/formula/claves-de-los-campos.client'
+export { leerCamposDelOrigen } from '../../infra/formula/campos-del-origen.client'

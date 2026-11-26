@@ -1,5 +1,6 @@
-// El nodo de cada tipo de celda (D10 del cambio de la planilla): conserva el id, la etiqueta, la descripción, la salida y, si el nodo nuevo puede sumar, la banda. Lo
-// demás del nodo de antes (su texto, su variante o su interruptor) no pasa. Puro.
+// El nodo de cada tipo de celda (D10 del cambio de la planilla): conserva el id, la etiqueta, la descripción, la salida, si el nodo nuevo puede sumar, la banda
+// y, si se muestra como número, los decimales. Lo demás del nodo de antes (su texto, su variante o su interruptor) no pasa. Puro.
+import { aceptaDecimales } from '../decimales-de-celda'
 import type { Formato, Nodo } from '../nodos'
 import { puedeSumarAlGrupo } from './grupos'
 
@@ -69,7 +70,11 @@ export function nodoDelTipo(viejo: Nodo, pedido: PedidoDeTipo): Nodo {
     ...(viejo.salida === undefined ? {} : { salida: viejo.salida }),
     ...cuerpoDelTipo(viejo, pedido),
   } as Nodo
-  return viejo.grupo !== undefined && puedeSumarAlGrupo(nodo)
-    ? { ...nodo, grupo: viejo.grupo }
-    : nodo
+  const conDecimales =
+    viejo.decimales !== undefined && aceptaDecimales(nodo)
+      ? ({ ...nodo, decimales: viejo.decimales } as Nodo)
+      : nodo
+  return viejo.grupo !== undefined && puedeSumarAlGrupo(conDecimales)
+    ? { ...conDecimales, grupo: viejo.grupo }
+    : conDecimales
 }

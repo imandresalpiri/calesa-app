@@ -49,3 +49,48 @@ describe('el juego', () => {
     for (const c of juego.cascadas) expect(c.apagada).not.toBe(c.cae_por)
   })
 })
+
+describe('los decimales de una celda', () => {
+  const definicion = (decimales: unknown) => ({
+    nodos: [
+      { id: 'tc', tipo: 'tipo_cambio', clave: 'oficial', etiqueta: 'TC', formato: 'raw' },
+      { id: 'a', tipo: 'input', etiqueta: 'A', formato: 'usd', bucket: 'origen' },
+      {
+        id: 'total',
+        tipo: 'calculo',
+        op: 'suma',
+        de: ['a'],
+        etiqueta: 'Total',
+        salida: 'total',
+        decimales,
+      },
+    ],
+    buckets: { origen: 'tc' },
+  })
+
+  it('de 0 a 4 valen y no cambian lo validado; sin la clave, también', () => {
+    for (const d of [0, 4]) {
+      const r = validarFormula(definicion(d), {})
+      expect(r.ok, String(d)).toBe(true)
+      if (r.ok) expect(r.formula.definicion.nodos[2]?.decimales).toBe(d)
+    }
+    const { nodos, buckets } = definicion(0)
+    expect(
+      validarFormula({ nodos: nodos.map(({ decimales: _, ...n }) => n), buckets }, {}).ok,
+    ).toBe(true)
+  })
+
+  it('fuera de rango es `forma` en `definicion.nodos.2.decimales`, donde el nodo (como validar_formula)', () => {
+    for (const d of [5, -1, 2.5, '2']) {
+      const r = validarFormula(definicion(d), {})
+      expect(r.ok, String(d)).toBe(false)
+      if (!r.ok)
+        expect(r.error, String(d)).toMatchObject({
+          regla: 'forma',
+          donde: 'total',
+          campo: 'definicion.nodos.2.decimales',
+          mensaje: 'La fórmula no tiene la forma esperada en «definicion.nodos.2.decimales».',
+        })
+    }
+  })
+})

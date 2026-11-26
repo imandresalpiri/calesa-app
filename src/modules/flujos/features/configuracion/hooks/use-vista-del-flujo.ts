@@ -8,19 +8,18 @@ export const VISTAS_DEL_FLUJO = ['diagrama', 'lista'] as const
 export type VistaDelFlujo = (typeof VISTAS_DEL_FLUJO)[number]
 
 const VISTA = parseAsStringLiteral(VISTAS_DEL_FLUJO)
-  .withDefault('diagrama')
   // El servidor no depende de la vista: cambiarla no lo llama ni suma al historial (`docs/DECISIONES.md` › «Flujos»).
   .withOptions({ shallow: true, history: 'replace' })
 
-// Cómo se ven las fases (`?vista=diagrama|lista`): desde 768 px el diagrama primero y «Ver como lista» alterna; más angosto, sólo la lista (el diagrama no
-// cabe y la lista es la versión navegable).
+// Cómo se ven las fases (`?vista=diagrama|lista`): la elegida o, sin elegir, desde 768 px el diagrama y más angosto la lista. «Ver como diagrama» y «Ver como
+// lista» alternan en todo ancho: en el celular el diagrama se ve y se toca (no se arrastra ni se vincula, `angosto`).
 export function useVistaDelFlujo() {
   const [elegida, setElegida] = useQueryState('vista', VISTA)
-  const puedeDiagrama = useAlMenos(CORTE_DE_LA_TABLA)
-  const vista: VistaDelFlujo = puedeDiagrama ? elegida : 'lista'
+  const ancho = useAlMenos(CORTE_DE_LA_TABLA)
+  const vista: VistaDelFlujo = elegida ?? (ancho ? 'diagrama' : 'lista')
   return {
     vista,
-    puedeDiagrama,
+    angosto: !ancho,
     alternar: () => {
       void setElegida(vista === 'diagrama' ? 'lista' : 'diagrama')
     },

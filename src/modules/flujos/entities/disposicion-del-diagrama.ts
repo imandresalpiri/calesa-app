@@ -1,9 +1,12 @@
-// La disposición del diagrama del flujo (`DiagramaDelFlujo`): dónde va cada fase y por dónde pasa cada salida. Se calcula del orden de las fases, sin guardar
-// posiciones (`docs/DECISIONES.md` › «Flujos»): una columna por fase, de izquierda a derecha, en el orden de la base (las jubiladas en su lugar).
+// El acomodo automático del diagrama del flujo (`DiagramaDelFlujo`): dónde va cada fase sin posición guardada y la ruta de cada salida. Se calcula del
+// orden de las fases (`docs/DECISIONES.md` › «Flujos»): una columna por fase, de izquierda a derecha, en el orden de la base (las jubiladas en su lugar).
+// Con posiciones guardadas, las cajas van donde las dejaron y las flechas siguen su ruta (`disponerConPosiciones`, `trazado-de-salidas.ts`).
 // - Rectas: las salidas a la fase siguiente.
 // - Ramas (saltos hacia adelante): un arco arriba. Vueltas atrás: un arco abajo, también a la fase vecina (no pisa la recta).
 // - Sin cruces: los arcos se ubican del menor alcance al mayor; si el lado preferido cruza a otro, va al otro lado; si los dos cruzan, se queda en el
 //   preferido marcado `cruza` (raro y aceptado). El carril de un arco es uno más que el mayor de los arcos de su lado que quedan adentro.
+import { trazarSalida, type LimitesDelDibujo, type RutaDeSalida } from './trazado-de-salidas'
+
 // Puro: sin I/O ni React. Las medidas llegan en px, calculadas desde `rem` (`medidasDelDiagrama`): con el texto al 200 % el dibujo crece con él.
 
 export type MedidasDelDiagrama = {
@@ -43,6 +46,8 @@ export type FlechaDelDiagrama = {
   haciaAtras: boolean
   // El caso raro: cruza a otro arco en los dos lados.
   cruza: boolean
+  // Lo que lleva la flecha a donde estén las cajas (`trazarSalida`).
+  ruta: RutaDeSalida
 }
 
 export type DisposicionDelDiagrama = {
@@ -50,6 +55,8 @@ export type DisposicionDelDiagrama = {
   flechas: FlechaDelDiagrama[]
   ancho: number
   alto: number
+  // Lo que ocupa el dibujo; en el acomodo automático empieza en 0 y mide `ancho` × `alto`.
+  limites: LimitesDelDibujo
   medidas: MedidasDelDiagrama
 }
 
@@ -156,9 +163,7 @@ function flechaRecta(
   a: NodoDelDiagrama,
   m: MedidasDelDiagrama,
 ): FlechaDelDiagrama {
-  const medio = de.y + m.alto / 2
-  const inicio = { x: de.x + m.ancho, y: medio }
-  const fin = { x: a.x, y: medio }
+  const ruta: RutaDeSalida = { forma: 'recta', lado: null, carril: 0, puertoDe: 0, puertoA: 0 }
   return {
     id: t.id,
     de: t.deFaseId,
@@ -166,24 +171,27 @@ function flechaRecta(
     forma: 'recta',
     lado: null,
     carril: 0,
-    puntos: [inicio, fin],
-    etiqueta: { x: (inicio.x + fin.x) / 2, y: medio },
+    ...trazarSalida(de, a, ruta, m),
     haciaAtras: false,
     cruza: false,
+    ruta,
   }
 }
 
 function flechaArco(
   arco: Arco,
-  y: number,
+  cajas: { de: NodoDelDiagrama; a: NodoDelDiagrama },
   puertos: ReadonlyMap<string, number>,
   m: MedidasDelDiagrama,
 ): FlechaDelDiagrama {
-  const borde = arco.lado === 'arriba' ? y : y + m.alto
-  const nivel =
-    arco.lado === 'arriba' ? y - arco.carril * m.carril : y + m.alto + arco.carril * m.carril
-  const xDe = puertos.get(`${arco.id}|de`) ?? 0
-  const xA = puertos.get(`${arco.id}|a`) ?? 0
+  const { de, a } = cajas
+  const ruta: RutaDeSalida = {
+    forma: 'arco',
+    lado: arco.lado,
+    carril: arco.carril,
+    puertoDe: (puertos.get(`${arco.id}|de`) ?? de.x) - de.x,
+    puertoA: (puertos.get(`${arco.id}|a`) ?? a.x) - a.x,
+  }
   return {
     id: arco.id,
     de: arco.de,
@@ -191,15 +199,10 @@ function flechaArco(
     forma: 'arco',
     lado: arco.lado,
     carril: arco.carril,
-    puntos: [
-      { x: xDe, y: borde },
-      { x: xDe, y: nivel },
-      { x: xA, y: nivel },
-      { x: xA, y: borde },
-    ],
-    etiqueta: { x: (xDe + xA) / 2, y: nivel },
+    ...trazarSalida(de, a, ruta, m),
     haciaAtras: arco.hasta < arco.desde,
     cruza: arco.cruza,
+    ruta,
   }
 }
 
@@ -252,13 +255,10 @@ export function disponerDiagrama(
     const a = porId.get(salida.t.aFaseId)
     const arco = porArco.get(salida.t.id)
     if (!de || !a) return []
-    return [arco ? flechaArco(arco, y, puertos, m) : flechaRecta(salida, de, a, m)]
+    return [arco ? flechaArco(arco, { de, a }, puertos, m) : flechaRecta(salida, de, a, m)]
   })
-  return {
-    nodos,
-    flechas,
-    ancho: 2 * m.margen + Math.max(0, fases.length * m.ancho + (fases.length - 1) * m.separacion),
-    alto: 2 * m.margen + (carrilesArriba + mayorCarril(arcos, 'abajo')) * m.carril + m.alto,
-    medidas: m,
-  }
+  const ancho =
+    2 * m.margen + Math.max(0, fases.length * m.ancho + (fases.length - 1) * m.separacion)
+  const alto = 2 * m.margen + (carrilesArriba + mayorCarril(arcos, 'abajo')) * m.carril + m.alto
+  return { nodos, flechas, ancho, alto, limites: { x: 0, y: 0, ancho, alto }, medidas: m }
 }

@@ -510,7 +510,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Avisos de la copia** — `AvisoDeLaCopia` (`entities/avisos-de-la-copia.ts`), `avisos` de `formula_del_origen_crear()`: lo que copiar una fórmula de
   otro origen cambió o no pudo resolver —una tabla creada con las filas de la copia, una tabla del destino usada en su lugar, un dato del vehículo
   que el origen no tiene—. Se muestran arriba de la planilla de la copia hasta «Ocultar» (`sessionStorage`), y los datos que faltan quedan marcados
-  en su fila (`useCamposQueFaltan()`).
+  en su fila (`useCamposDeLaFormula()`).
 - **Nodo** — `definicion.nodos[]`: una línea de la fórmula: input, constante, tipo de cambio, campo, bandera, tabla, tramo, cálculo.
 - **Constante** — nodo `constante` + `params`: valor por defecto versionado que el ⚙ de la XCell cambia.
 - **Versión del flujo** — `flujos.actualizado_en` como texto ISO: la lee el editor del flujo y la devuelve cada escritura para detectar
@@ -524,8 +524,16 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Fases de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
   del flujo entero, «Reglas del flujo» o «Tipos de documento» (`?seccion=reglas|documentos`); gana `?seccion=`. No: «sidebar», «inspector» para
   lo del flujo.
-- **Diagrama del flujo** — `DiagramaDelFlujo` (`disponerDiagrama()`): las fases como cajas en su orden y las salidas como flechas (ramas arriba,
-  vueltas atrás abajo); apoyo visual del editor del flujo, la lista es la versión navegable. No: «grafo», «tablero».
+- **Diagrama del flujo** — `DiagramaDelFlujo`: las fases como cajas, cada una en su posición, y las salidas como flechas; ahí se mueven, se crean
+  y se vinculan. La lista es la versión navegable. No: «grafo», «tablero».
+- **Posición de la fase** — `fases.posicion_x|y` (rem) / `fase_posiciones_guardar()`: dónde se dibuja su caja en el diagrama; una sola, del flujo.
+  Nula = el acomodo automático. Mover una fase cambia su posición, nunca su orden. No: «coordenadas», «layout».
+- **Acomodo automático** — `disponerDiagrama()`: dónde va cada fase si no tiene posición (una columna por fase en su orden, ramas arriba, vueltas
+  atrás abajo); también la ruta de cada flecha.
+- **Ordenar solo** — «Ordenar solo» de la barra flotante del diagrama (`posicionesDeOrdenarSolo()`): vuelve todas las fases al acomodo automático,
+  con «Deshacer». No cambia el orden del flujo. No: «auto-layout», «reacomodar».
+- **Asa de la fase** — `AsaDeLaFase` («Crear una salida desde «X»»): el punto a la derecha de una caja del diagrama que se arrastra hasta otra para
+  crear una salida. No: «handle», «puerto»; no es el asa de una fila (arrastre de orden en una lista).
 - **Versión de la fórmula** — `formulas.version`: número de una publicada o archivada, por fórmula del origen (el borrador no tiene).
 - **Borrador de la fórmula** — `formulas.estado = 'borrador'`: a lo sumo uno por fórmula del origen, sin número; lo publicado no cambia hasta publicarlo.
   «Descartar…» (`<Confirmar>`) no se deshace. No es la «Pregunta al descartar» ni el «Borrador» de un formulario (`useBorrador()`).
@@ -718,6 +726,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **De dónde sale** — `deDondeSale()` (`entities/formula/de-donde-sale.ts`): lo que calcula una fila, en palabras y con las etiquetas de lo que nombra
   («(Remate + Fees) × 4 %», «monto fijo»). Se lee en la línea bajo la **Barra de fórmula** («De dónde sale: …», la de la fila elegida) y, en lo que la
   fórmula no guarda como número ni como texto (lo que escribe el asesor, un dato del vehículo, un tipo de cambio, una tabla…), en su C.
+- **Decimales (de una celda)** — `decimales` del nodo (0 a 4; `entities/decimales-de-celda.ts`, `decimalesDe()`), «Decimales…» del «⋯» de la fila de la
+  planilla (`?panel=decimales&fila=<id>`): con cuántos decimales se muestra el valor de esa celda en la hoja, la tarjeta de la cotización (y su PDF, su
+  imagen y su texto con datos), comparar, las revisiones y la columna Ejemplo. Sin la clave, **Automático**: lo de siempre en cada superficie. Sólo la
+  vista: se redondea mitad lejos del cero como `redondear()` y se muestra con N fijos (`cifra-fija.ts`); lo guardado y lo que se edita siguen completos.
+  En un porcentaje, decimales de puntos. No la lleva una celda que se ve como texto. No: «precisión», «formato numérico», «redondeo» (`redondear` es una
+  operación que cambia el valor).
 - **Ejemplo (columna)** — la última columna de la planilla (`contenidoDeLaFila()`, `entities/formula/contenido-de-c.ts`; clave interna `D`:
   `data-celda="D5"`, se nombra «Ejemplo 5»): lo que da la fila con la **Unidad de ejemplo**. Nada en un valor fijo (su número ya está en C: la misma cifra
   no se dibuja dos veces), el valor de la unidad en las filas que se llenan al cotizar (se escribe ahí, nunca en su C) y la cifra en las demás. No se usa en

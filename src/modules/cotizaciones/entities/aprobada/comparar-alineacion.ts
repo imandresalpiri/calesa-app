@@ -21,7 +21,15 @@ export type FormatoDeFila = Formato | 'texto'
 
 export type FilaDeComparar =
   | { tipo: 'seccion'; id: string; rotulo: string }
-  | { tipo: 'nodo'; nodo: string; rotulo: string; formato: FormatoDeFila; celdas: CeldaComparada[] }
+  | {
+      tipo: 'nodo'
+      nodo: string
+      rotulo: string
+      formato: FormatoDeFila
+      // Los «Decimales» del nodo (glosario), los de la primera columna que lo trae como su rótulo y su formato; sin la clave, «Automático».
+      decimales?: number
+      celdas: CeldaComparada[]
+    }
 
 // Una columna para alinear: la hoja leída o, si su lectura falló, nada (no aporta filas).
 export type ColumnaParaAlinear = HojaDeUnaGuardada | null
@@ -36,7 +44,16 @@ export const NO = 'No'
 const CLAVE_DE_TOTALES = 't'
 const claveDeSeccion = (id: string) => `s:${id}`
 
-type Renglon = { nodo: string; rotulo: string; formato: FormatoDeFila; valor: ValorComparado }
+type Renglon = {
+  nodo: string
+  rotulo: string
+  formato: FormatoDeFila
+  decimales?: number
+  valor: ValorComparado
+}
+
+const conDecimales = (decimales: number | undefined): { decimales?: number } =>
+  decimales === undefined ? {} : { decimales }
 type SeccionDeUnaColumna = {
   clave: string
   id: string
@@ -70,28 +87,46 @@ function textoDelInterruptor(valor: ValorComparado | undefined): string | null |
 }
 
 function renglonesDelItem(item: ItemDeHoja, leer: Lector): Renglon[] {
-  const con = (
-    nodo: string,
-    rotulo: string,
+  type Fila = { nodo: string; rotulo: string; formato: FormatoDeFila; decimales?: number }
+  const con = (f: Fila, valor: ValorComparado | undefined): Renglon[] =>
+    valor === undefined
+      ? []
+      : [
+          {
+            nodo: f.nodo,
+            rotulo: f.rotulo,
+            formato: f.formato,
+            ...conDecimales(f.decimales),
+            valor,
+          },
+        ]
+  const propia = (
+    i: { nodo: string; etiqueta: string },
     formato: FormatoDeFila,
-    valor: ValorComparado | undefined,
-  ): Renglon[] => (valor === undefined ? [] : [{ nodo, rotulo, formato, valor }])
+    decimales?: number,
+  ): Fila => ({ nodo: i.nodo, rotulo: i.etiqueta, formato, decimales })
   switch (item.tipo) {
     case 'celda': {
-      const principal = con(item.nodo, item.etiqueta, item.formato, numero(leer(item.nodo)))
+      const principal = con(propia(item, item.formato, item.decimales), numero(leer(item.nodo)))
       const s = item.secundario
       if (s === null) {
         return principal
       }
       const rotulo = `${item.etiqueta} (${s.formato === 'pct' ? '%' : 'monto'})`
-      return [...principal, ...con(s.nodo, rotulo, s.formato, numero(leer(s.nodo)))]
+      return [
+        ...principal,
+        ...con(
+          { nodo: s.nodo, rotulo, formato: s.formato, decimales: s.decimales },
+          numero(leer(s.nodo)),
+        ),
+      ]
     }
     case 'subtotal':
-      return con(item.nodo, item.etiqueta, item.formato, numero(leer(item.nodo)))
+      return con(propia(item, item.formato, item.decimales), numero(leer(item.nodo)))
     case 'variante':
-      return con(item.nodo, item.etiqueta, 'texto', textoDeLaVariante(item, leer(item.nodo)))
+      return con(propia(item, 'texto'), textoDeLaVariante(item, leer(item.nodo)))
     case 'interruptor':
-      return con(item.nodo, item.etiqueta, 'texto', textoDelInterruptor(leer(item.nodo)))
+      return con(propia(item, 'texto'), textoDelInterruptor(leer(item.nodo)))
     case 'atajos':
       // Los chips de una tabla no suman fila: su nodo ya tiene su celda (`atajos_sin_celda`).
       return []
@@ -135,7 +170,15 @@ export function seccionesDeUnaColumna(hoja: HojaDeUnaGuardada): SeccionDeUnaColu
       const valor = numero(leer(n.nodo))
       return valor === undefined
         ? []
-        : [{ nodo: n.nodo, rotulo: n.etiqueta, formato: n.formato, valor }]
+        : [
+            {
+              nodo: n.nodo,
+              rotulo: n.etiqueta,
+              formato: n.formato,
+              ...conDecimales(n.decimales),
+              valor,
+            },
+          ]
     }),
   )
   return [
@@ -169,7 +212,7 @@ export function diferenciaContraLaPrimera(
   return referencia === valor ? 'igual' : 'distinta'
 }
 
-type NodoUbicado = { rotulo: string; formato: FormatoDeFila; seccion: string }
+type NodoUbicado = { rotulo: string; formato: FormatoDeFila; decimales?: number; seccion: string }
 
 type Ubicacion = {
   secciones: string[]
@@ -188,7 +231,12 @@ function ubicarLosNodos(u: Ubicacion, seccion: SeccionDeUnaColumna): void {
     const ya = u.nodos.get(r.nodo)
     if (ya === undefined) {
       ultimo = ubicar(nodos, r.nodo, ultimo)
-      u.nodos.set(r.nodo, { rotulo: r.rotulo, formato: r.formato, seccion: seccion.clave })
+      u.nodos.set(r.nodo, {
+        rotulo: r.rotulo,
+        formato: r.formato,
+        ...conDecimales(r.decimales),
+        seccion: seccion.clave,
+      })
     } else if (ya.seccion === seccion.clave) {
       ultimo = nodos.indexOf(r.nodo)
     }
@@ -260,6 +308,7 @@ export function filasAlineadas(columnas: readonly ColumnaParaAlinear[]): FilaDeC
               nodo,
               rotulo: ubicado.rotulo,
               formato: ubicado.formato,
+              ...conDecimales(ubicado.decimales),
               celdas: valoresDe.map((valores) => celdaDe(nodo, valores, referencia)),
             },
           ]

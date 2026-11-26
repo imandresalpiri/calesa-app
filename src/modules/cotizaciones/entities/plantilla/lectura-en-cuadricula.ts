@@ -10,6 +10,10 @@ import type { ContextoDePlantilla } from './validar-plantilla'
 
 type DatoDeNodo = { nodo: string; mostrar: string }
 
+// Los «Decimales» del nodo, como `_hoja_decimales()` en `cotizacion_tarjeta`: sólo un número (la forma de la fórmula ya lo validó).
+const decimalesDe = (n: NodoParaPlantilla | undefined): number | undefined =>
+  typeof n?.decimales === 'number' ? n.decimales : undefined
+
 // Lo que la cuadrícula muestra de un nodo: en una celda, en su lista de respaldo, en sus condiciones (sobre un dato) o en una rama.
 const datosDe = (p: PlantillaEnCuadricula): DatoDeNodo[] => conNodoYMostrar(datosNombrados(p))
 
@@ -72,12 +76,17 @@ function nodosNombrados(
   const ids = new Set(datosNombrados(p).flatMap((d) => (d.nodo === null ? [] : [d.nodo])))
   return [...ids].map((id) => {
     const n = nodos.get(id)
+    const pct = conPorcentaje.has(id) ? pctDelPar(n, pcts) : null
+    const decimales = decimalesDe(n)
+    const delPct = pct === null ? undefined : decimalesDe(nodos.get(pct))
     return {
       id,
       etiqueta: n?.etiqueta || id,
       descripcion: n?.descripcion ?? null,
       grupo: n?.grupo ?? null,
-      pct: conPorcentaje.has(id) ? pctDelPar(n, pcts) : null,
+      pct,
+      ...(decimales === undefined ? {} : { decimales }),
+      ...(delPct === undefined ? {} : { decimalesDelPct: delPct }),
     }
   })
 }

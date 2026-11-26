@@ -650,11 +650,12 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   una su sub-ruta; la que no se abre va apagada con su motivo. La que tiene algo pendiente para cotizar (fases, una fórmula activa, la tarjeta
   publicada, los campos) lleva ⚠ con su frase en un tooltip (y para el lector de pantalla, en el nombre de la pestaña).
   - **Fases** (`/fases`, `flujos.configurar` en el origen; apagada con «Lo configura quien tiene el permiso «Configurar el flujo».»): el editor del
-    flujo de ese origen, sin selector. Las fases como **diagrama** (desde 768 px; `?vista=diagrama|lista`, «Ver como lista») o lista (el celular), con la
-    **barra del flujo** encima («Reglas del flujo», «Tipos de documento», la vista y «Nueva fase»). Tocar una fase abre el **panel del flujo** al costado
-    (`?fase=<id>`); las reglas y los tipos de documento se abren en el mismo panel (`?seccion=reglas|documentos`). Las fases se crean desde la barra, se
-    ordenan arrastrando o con «Mover antes/después» (y «Subir/Bajar» en la lista), se jubilan y reactivan; en el panel se editan y se agregan y quitan
-    salidas y requisitos. Ver «Flujos: configuración (estados propios)» y siguientes.
+    flujo de ese origen, sin selector. Las fases como **diagrama** (por defecto desde 768 px; `?vista=diagrama|lista`, «Ver como lista») o lista (por
+    defecto en el celular, con «Ver como diagrama»), con la **barra del flujo** encima («Reglas del flujo», «Tipos de documento», la vista y, en la lista,
+    «Nueva fase»). Tocar una fase abre el **panel del flujo** al costado (`?fase=<id>`); las reglas y los tipos de documento se abren en el mismo panel
+    (`?seccion=reglas|documentos`). En el diagrama las fases se mueven a donde se las deja, se crean con doble clic o desde su barra flotante y se vinculan
+    arrastrando su asa; se ordenan con «Mover antes/después» (y «Subir/Bajar» en la lista), se jubilan y reactivan; en el panel se editan y se agregan y
+    quitan salidas y requisitos. Ver «Flujos: configuración (estados propios)» y siguientes.
   - **Planilla · Hoja · Tarjeta** (`/planilla`, `/hoja`, `/tarjeta`, `cotizaciones.configurar` en el origen; apagadas con «Lo configura quien tiene el
     permiso «Configurar el cotizador».»): las tres comparten la **barra de la fórmula**, arriba: el selector «Fórmula: <nombre> (activa) ▾» (la lista
     de las fórmulas del origen, cada una con su «⋯», «Archivadas» y «Nueva fórmula»: «Cotización: fórmulas del origen (estados propios)»), el estado
@@ -1106,18 +1107,35 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
   <origen> copiadas.» y cierra; con algo saltado, el mismo modal dice «Listo. Esto no se copió:» con una línea por cosa («Y más…» pasadas 50) y
   «Listo». Un conflicto cierra el modal y avisa arriba con «Recargar»; otro rechazo queda en el modal. La URL con el flujo ya con fases o sin de
   dónde copiar no abre: se avisa y se limpia.
-- **Barra del flujo** (sobre las fases): «Fases» con «En el orden del flujo: toca una fase para editarla.», «Reglas del flujo» y «Tipos de
-  documento» (abren el panel, según los permisos), «Ver como lista» / «Ver como diagrama» (sólo desde 768 px), «Nueva fase» (no sin fases: lo
-  ofrece el vacío) y, si no se puede ordenar, el motivo en texto. Se parte en renglones; botones de 44 px en el celular.
-- **Diagrama** (`diferido()`, desde 768 px y por defecto): las fases como cajas en su orden, de izquierda a derecha (las jubiladas en su
-  lugar, apagadas y punteadas), con el borde de su color, el nombre, «Inicial», «Final», «Subasta» o «Jubilada», sus requisitos y quién la
-  mueve en corto y el ícono con sus avisos de «Revisar»; las salidas como flechas con su acción (rectas a la siguiente, ramas arriba,
-  vueltas atrás abajo, sin cruces; punteadas hacia una jubilada). Cada caja es un botón «Fase «X»» con todo eso en su descripción; tocarla
-  abre su panel y la centra en lo que el panel no tapa. Se arrastra de costado para ordenar (con el lugar donde cae marcado); la rueda
-  desplaza la página, el zoom va con «Acercar», «Alejar», «Ver todo el flujo», el pellizco o Ctrl + rueda. Es un apoyo visual: «Ver como
-  lista» es la versión para lector. Esqueleto del alto del lienzo mientras llega; si el código no llega, «Sin conexión…» con «Reintentar» y
-  la lista debajo. Muchas fases: el lienzo desplaza y hace zoom, la página no se ensancha.
-- **Lista de fases** (patrón de `shared/ui/lista`; la del celular y la de «Ver como lista»): en el orden de la base, nombre con su color
+- **Barra del flujo** (sobre las fases): «Fases» con «Toca una fase para editarla. El orden se cambia desde su «⋯».» (en la lista, «En el orden del
+  flujo: toca una fase para editarla.»), «Reglas del flujo» y «Tipos de documento» (abren el panel, según los permisos), «Ver como lista» / «Ver como
+  diagrama» (en todo ancho, con fases), «Nueva fase» sólo en la lista (en el diagrama va en su barra flotante; no sin fases: lo ofrece el vacío) y, si no
+  se puede ordenar, el motivo en texto. Se parte en renglones; botones de 44 px en el celular.
+- **Diagrama** (`diferido()`, por defecto desde 768 px; ocupa el alto que queda de la pestaña, mínimo 24 rem, medido: no salta al llegar): cada
+  fase como caja **donde se la dejó** (la posición es una, del flujo, para todos); sin ninguna movida, el acomodo automático en su orden, de
+  izquierda a derecha. Las jubiladas apagadas y punteadas; cada caja con el borde de su color, el nombre, «Inicial», «Final», «Subasta» o
+  «Jubilada», sus requisitos y quién la mueve en corto y el ícono con sus avisos de «Revisar»; las salidas como flechas con su acción, que siguen
+  a sus cajas (punteadas hacia una jubilada). Fondo de puntos cada 2 rem; las cajas caen en la rejilla de 1 rem.
+  - **Mover:** arrastrar una caja la deja ahí **sin cambiar el orden** (el orden va por el «⋯»); con una caja enfocada, las flechas la mueven
+    1 rem (con Shift, 10), la vista la sigue si sale del lienzo y la ráfaga se guarda junta. Se guarda al soltar; sin conexión, la línea de estado dice «Sin conexión: la posición se
+    guarda cuando vuelva.» y se reintenta sola; un conflicto lo descarta con el aviso del flujo. **Ctrl/Cmd+Z** deshace el último movimiento
+    (hasta 50; fuera de un campo).
+  - **Barra flotante** (arriba a la izquierda, «Herramientas del diagrama»): «Nueva fase» (nace en el centro de lo que se ve), «Ordenar solo»
+    (vuelve todas al acomodo automático, toast «Fases reacomodadas» con «Deshacer»; apagado si ya están ahí o con la lista cortada, con su
+    motivo), «Acercar», «Alejar», «Ver todo el flujo» y una línea de estado con alto reservado.
+  - **Crear:** doble clic en el vacío abre «Nueva fase» (`?panel=nueva-fase&en=x,y`); creada, nace ahí y se abre su panel.
+  - **Vincular:** el **asa de la fase** (el punto a su derecha, «Crear una salida desde «X»») se arrastra hasta otra caja: nace la salida (sin
+    acción) y se abre el panel de la fase de origen con esa salida en edición. Soltar en el vacío no crea nada; a sí misma, repetida o hacia
+    una jubilada, el motivo de la base aparece junto al punto unos segundos.
+  - **Flechas:** su etiqueta es un botón «Salida de «X» a «Y»»: tocarla abre esa salida en edición; enfocada, Supr la quita (con
+    `<Confirmar>`).
+  - Tocar una caja abre su panel y la centra en lo que el panel no tapa. La rueda desplaza el lienzo; Ctrl/Cmd + rueda o el pellizco, zoom.
+    Minimapa abajo a la derecha desde 768 px con 6 fases o más. Es un apoyo visual: «Ver como lista» es la versión para lector.
+  - **Celular:** con «Ver como diagrama» se ve y se toca (abrir una fase o una salida, zoom), sin asa ni arrastre: la línea de estado dice «Para
+    mover o vincular, usa una computadora.».
+  - Esqueleto del alto del lienzo mientras llega; si el código no llega, «Sin conexión…» con «Reintentar» y la lista debajo. Muchas fases: el
+    lienzo desplaza y hace zoom, la página no se ensancha.
+- **Lista de fases** (patrón de `shared/ui/lista`; la del celular por defecto y la de «Ver como lista»): en el orden de la base, nombre con su color
   (texto y color, nunca sólo color), las marcas, la insignia de «Revisar» («1 aviso») y las salidas; la fila abre el panel. Vacía, su
   frase; tope 200 con aviso.
 - **Panel del flujo** (`?fase=<id>` o `?seccion=reglas|documentos`, `<Drawer>` por URL; sobrevive a recargar, «atrás» y Esc lo cierran):
@@ -1181,10 +1199,10 @@ teclado, «⋯», modal por URL), con **dos grupos**, **sólo lectura con motivo
 
 Lo que el diagrama, la lista de fases y las pestañas Identidad y Ajustes del panel suman a «Flujos: configuración». Mismo patrón que «Tipos de documento».
 
-- **Nueva fase** (`?panel=nueva-fase`): nombre, color de una paleta cerrada (con su nombre en texto) y tipo (Intermedia, Inicial, Final);
-  se crea al final del flujo. Nombre repetido, junto al campo. Con 200 fases, apagado con su motivo.
-- **Ordenar:** arrastrar la caja en el diagrama (el orden nuevo se ve en el acto; si la base lo rechaza, vuelve atrás), «Mover antes» y
-  «Mover después» en el «⋯» del panel (con el teclado; el foco sigue en el «⋯» al llegar el orden nuevo) y, en la lista, «Subir/Bajar X». Con
+- **Nueva fase** (`?panel=nueva-fase`, «Se agrega al final del flujo.»): nombre, color de una paleta cerrada (con su nombre en texto) y tipo
+  (Intermedia, Inicial, Final); se crea al final del orden. Desde el diagrama (`&en=x,y`), nace donde se pidió y abre su panel; desde la lista, al
+  lado de la última y el modal se cierra. Nombre repetido, junto al campo. Con 200 fases, apagado con su motivo.
+- **Ordenar:** «Mover antes» y «Mover después» en el «⋯» del panel (con el teclado; el foco sigue en el «⋯» al llegar el orden nuevo) y, en la lista, «Subir/Bajar X». Con
   la lista cortada por el tope (más de 200 fases) todo se apaga con «Hay más de 200 fases: con la lista cortada no se puede ordenar.».
 - **Filas de la lista:** «Subir/Bajar X» y el «⋯»: activa → Editar · Jubilar o eliminar; jubilada → Editar · Reactivar (sin
   «Deshacer»).
@@ -1230,7 +1248,8 @@ Bloque de la pestaña «Reglas» del panel de la fase (`?fase=<id>`): el resumen
 ### Flujos: salidas y quién mueve (estados propios)
 
 Bloque de la pestaña «Reglas» del panel de la fase (`?fase=<id>`), las flechas del diagrama y los chips de la fila de la lista. «Salida» es una transición que
-sale de la fase; «entrada», una que llega. Una salida se agrega en el panel (no arrastrando de una caja a otra).
+sale de la fase; «entrada», una que llega. Una salida se agrega en el panel o arrastrando el asa de una caja a otra
+(«Flujos: configuración» › Diagrama).
 
 - **Quién puede mover a esta fase:** «Hoy pueden mover: Dueño, Logística» o «Cualquiera con el permiso de mover», con la nota de que quien
   puede mover a cualquier fase siempre puede. Selector de roles (vacío = cualquiera con el permiso) y «Guardar quién mueve». Un rol fuera
@@ -1240,7 +1259,7 @@ sale de la fase; «entrada», una que llega. Una salida se agrega en el panel (n
   «Pide nota» y «Jubilada» como `<Badge>`, «Editar» y «Quitar» (`aria-label` con el destino).
 - **Agregar salida** (estado local, en línea): destino (activas, distintas, que aún no son salida), acción (≤ 40; vacía, «Mover») y «Pide
   nota al mover». Sin destino posible, apagado con su motivo.
-- **Editar una salida** (en el lugar de la fila): el destino no cambia (para otro, quitar y crear); acción, nota y «Quién puede mover por
+- **Editar una salida** (en el lugar de la fila; `?editar=salida&editada=<id>`, así la abre una flecha del diagrama o la recién vinculada): el destino no cambia (para otro, quitar y crear); acción, nota y «Quién puede mover por
   esta salida» (vacío = la lista de la fase destino). Un «Guardar» manda lo que cambió; el foco vuelve a «Editar»; mientras, lo demás
   espera. Si acción y nota entraron y los roles no, sigue abierta con el motivo y otro «Guardar» manda lo que falta.
 - **Quitar** (`?eliminar=salida&salida=<id>`, `<Confirmar>`): irreversible, no mueve a nadie.
@@ -1633,7 +1652,7 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
 - **Filas:** el «⋯» de la fila activa (arriba a la derecha de la fila, `Acciones de la fila N`) y el clic derecho abren la misma lista:
   «Insertar arriba», «Insertar abajo» (la fila nueva, «Fila nueva», un valor fijo en 0 con la banda de la de referencia, abre su concepto
   elegido para escribir), «Duplicar», «Mover arriba» y «Mover abajo» (Alt+↑ y Alt+↓; apagados en la primera y la última), «Tipo de celda ›»,
-  «Banda ›» (cada banda, «Sin banda» y «Nueva banda…») y «Eliminar». Mover o arrastrar se rechaza con su motivo si rompe el orden: «C9 usa
+  «Decimales…» (sólo en una celda que se ve como número), «Banda ›» (cada banda, «Sin banda» y «Nueva banda…») y «Eliminar». Mover o arrastrar se rechaza con su motivo si rompe el orden: «C9 usa
   esta fila: no puede quedar arriba de ella.» o «Esta fila usa C5: no puede quedar arriba de ella.». «Eliminar» va apagado con su motivo si
   la usa otra fila («La usan C9 y C12.»), es un tipo de cambio de una banda o del total, la fila del total, la única de su banda, la muestra la
   hoja («La muestra la hoja: quítala en «Hoja» antes.») o la usa la tarjeta («La usa la tarjeta: quítala en «Tarjeta» antes.»); si entra, el
@@ -1643,6 +1662,17 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   motivo). Un dato del vehículo, un tipo de cambio, una tabla y la variante abren su panel («Tipo de celda: <tipo>»; la variante con sus
   opciones, la por defecto y «Se cotiza en par», apagada con menos o más de dos opciones: «Sólo una variante de dos opciones se cotiza en
   par.»). Un cambio que la fórmula no admite se rechaza con su motivo en A1 y la fila queda como estaba.
+- **Decimales** (`?panel=decimales&fila=<id>`, glosario «Decimales (de una celda)»): el drawer «Decimales» con `C<n> · <concepto>`, una sola sección con
+  «Cuántos decimales muestra»: «Automático», «0», «1», «2», «3» y «4» (radios a la vista, 44 px en el celular, que se parten al 200 %; marcado lo de la
+  versión, «Automático» si no tiene) y «Sólo cambia cómo se ve: la cuenta usa el valor completo.»; debajo, con alto reservado, «Se ve así: USD 1.234,57 →
+  USD 1.235» (una cifra fija: lo de «Automático» y lo elegido, que no salta al cambiar de opción; un porcentaje, en puntos) y la línea del motivo
+  (`aria-live`). Pie «Aplicar» y «Cancelar»; cerrar con algo elegido pregunta. «Aplicar» cambia la fórmula de trabajo (se guarda y publica como lo
+  demás), cierra y deja elegida la C de la fila. Estados: en el «⋯», el renglón no está en una bandera, la variante, una condición ni un dato del
+  vehículo que no es número, y va apagado con «Aplica o descarta lo que escribes en la planilla.» mientras la fila espera; por URL, una fila que ya no
+  está («Esa fila ya no está en la fórmula.»), una celda de texto («Esta celda muestra un texto: no lleva decimales.») o un dato que no es número
+  («Este dato del vehículo no es un número: no lleva decimales.»), sin «Aplicar»; un rechazo de la fórmula queda en la línea del motivo con lo elegido
+  y el foco en el radio. La hoja, la tarjeta y las demás superficies muestran la celda así (`docs/COTIZADOR.md` › «Los nodos»); el % que la B absorbe
+  queda en «Automático».
 - **«¿Cómo se escribe?»** (`?panel=como-se-escribe`, sólo lectura): las referencias (C5, B9, C5:C9), las diez funciones con su firma y un
   ejemplo, y las teclas de la planilla.
 - **Guardar el borrador:** espera con texto sin aplicar («Aplica o descarta lo que escribes en la planilla.»), si la fórmula no valida («Corrige

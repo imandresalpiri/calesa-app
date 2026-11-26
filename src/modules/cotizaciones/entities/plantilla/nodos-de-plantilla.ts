@@ -19,6 +19,8 @@ export type NodoParaPlantilla = {
   readonly op?: string | null
   readonly pct?: string | null
   readonly opciones?: readonly { readonly clave: string; readonly titulo: string }[] | null
+  // Los «Decimales» de la celda (glosario), que la tarjeta usa al dibujar su monto o su porcentaje. `validarPlantilla()` no los mira.
+  readonly decimales?: number | null
 }
 export type DefinicionParaPlantilla = {
   readonly nodos?: readonly NodoParaPlantilla[]

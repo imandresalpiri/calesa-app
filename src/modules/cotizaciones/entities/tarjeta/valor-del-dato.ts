@@ -2,7 +2,9 @@
 // tipo de cambio o plazo, D6, D8, D17 y D18 de T310), y si tiene valor (lo que mira la lista de respaldo y la condición «está vacío»). Va aparte del contenido de
 // la celda porque lo usan el contenido y las condiciones (`condiciones-de-la-celda.ts`), que se importan en ese orden. Un dato de un nodo que no aplica queda
 // vacío; un monto nulo, «—». Los montos con `formatearMonto()` (el texto de `<Monto>` y del PDF); en pantalla los tapa `<Monto>` en Modo Live. Dentro de un texto con
-// datos (`parteDibujada()`) va el mismo formato, pero sin valor no escribe nada (nunca «—»).
+// datos (`parteDibujada()`) va el mismo formato, pero sin valor no escribe nada (nunca «—»). El monto (y su segunda en Bs) y el porcentaje van con los «Decimales» de
+// su celda (glosario: «Decimales (de una celda)»; los del `pct` para el porcentaje); sin ellos, lo de siempre. El tipo de cambio, siempre con 4.
+import { formatearConDecimales } from '@/shared/lib/cifra-fija'
 import { formatearMonto, formatearNumero, formatearPorcentaje } from '@/shared/lib/formato'
 import type { CalculoDeLaTarjeta } from '../calculo-de-la-tarjeta'
 import type { DatoDeLaCelda, Mostrar } from '../cuadricula-de-la-tarjeta'
@@ -11,7 +13,8 @@ import type { TarjetaLista, TipoDeCambioDeLaTarjeta } from './lectura-de-la-tarj
 
 export const SIN_DATO = '—'
 
-export type MontoDibujado = { valor: number; moneda: string; texto: string }
+// `decimales`, sólo si la celda los trae: `<MontoConDecimales>` redondea `valor` igual que `texto`.
+export type MontoDibujado = { valor: number; moneda: string; texto: string; decimales?: number }
 // Un tramo de un texto con datos: un texto (con sus saltos de línea adentro) o un monto, que en pantalla va con `<Monto>`.
 export type TramoDelTexto = string | MontoDibujado
 export type ContenidoDibujado =
@@ -80,21 +83,42 @@ const CRUDOS: {
   },
 }
 
+function montoDibujado(
+  e: EntradaDelContenido,
+  nodo: string,
+  valor: number,
+  moneda: string,
+): MontoDibujado {
+  const decimales = e.tarjeta.nodos.get(nodo)?.decimales
+  const { locale } = e
+  return decimales === undefined
+    ? { valor, moneda, texto: formatearMonto(valor, { moneda, locale }) }
+    : {
+        valor,
+        moneda,
+        decimales,
+        texto: formatearConDecimales(valor, 'monto', { decimales, locale, moneda }),
+      }
+}
+
+// El porcentaje (la fracción) con los «Decimales» del `pct` del nodo.
+function textoDelPorcentaje(e: EntradaDelContenido, nodo: string, valor: number): string {
+  const decimales = e.tarjeta.nodos.get(nodo)?.decimalesDelPct
+  return decimales === undefined
+    ? formatearPorcentaje(valor, { locale: e.locale })
+    : formatearConDecimales(valor, 'porcentaje', { decimales, locale: e.locale })
+}
+
+// El total en Bs es la misma celda en otra moneda: con sus decimales.
 function monto(e: EntradaDelContenido, nodo: string, valor: number | null): ContenidoDibujado {
   if (valor === null) return textoDibujado(SIN_DATO)
-  const { calculo, monedaBs, locale } = e
+  const { calculo, monedaBs } = e
   const bs = calculo.totales.bs
   const segunda =
     esElTotal(e, nodo) && calculo.verTotalBs && monedaBs !== null && bs !== null
-      ? { valor: bs, moneda: monedaBs, texto: formatearMonto(bs, { moneda: monedaBs, locale }) }
+      ? montoDibujado(e, nodo, bs, monedaBs)
       : null
-  return {
-    tipo: 'monto',
-    valor,
-    moneda: 'USD',
-    texto: formatearMonto(valor, { moneda: 'USD', locale }),
-    segunda,
-  }
+  return { tipo: 'monto', ...montoDibujado(e, nodo, valor, 'USD'), segunda }
 }
 
 const comoTexto = (_e: EntradaDelContenido, _nodo: string, crudo: number | string | null) =>
@@ -109,10 +133,8 @@ const FORMATOS: {
   ) => ContenidoDibujado
 } = {
   monto: (e, nodo, crudo) => monto(e, nodo, numeroONulo(crudo)),
-  porcentaje: (e, _nodo, crudo) =>
-    textoDibujado(
-      typeof crudo === 'number' ? formatearPorcentaje(crudo, { locale: e.locale }) : SIN_DATO,
-    ),
+  porcentaje: (e, nodo, crudo) =>
+    textoDibujado(typeof crudo === 'number' ? textoDelPorcentaje(e, nodo, crudo) : SIN_DATO),
   tc_valor: (e, _nodo, crudo) =>
     textoDibujado(
       typeof crudo === 'number'
@@ -152,15 +174,9 @@ export function parteDibujada(e: EntradaDelContenido, d: DatoDeLaCelda): TramoDe
   if (!aplica(e, d.nodo)) return ''
   const crudo = CRUDOS[d.mostrar](e, d.nodo)
   if (d.mostrar === 'monto')
-    return typeof crudo === 'number'
-      ? {
-          valor: crudo,
-          moneda: 'USD',
-          texto: formatearMonto(crudo, { moneda: 'USD', locale: e.locale }),
-        }
-      : ''
+    return typeof crudo === 'number' ? montoDibujado(e, d.nodo, crudo, 'USD') : ''
   if (d.mostrar === 'porcentaje')
-    return typeof crudo === 'number' ? formatearPorcentaje(crudo, { locale: e.locale }) : ''
+    return typeof crudo === 'number' ? textoDelPorcentaje(e, d.nodo, crudo) : ''
   if (d.mostrar === 'tc_valor')
     return typeof crudo === 'number'
       ? formatearNumero(crudo, { decimales: 4, locale: e.locale })

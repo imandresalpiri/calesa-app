@@ -30,7 +30,7 @@ afterEach(cleanup)
 
 describe('RegionDelTotal', () => {
   it('sin ContextoDelTotal (el editor), sólo la tarjeta', () => {
-    render(<RegionDelTotal etiqueta="Total" contexto={contexto} />)
+    render(<RegionDelTotal etiqueta="Total" decimales={undefined} contexto={contexto} />)
     expect(document.querySelector('[data-tarjeta-del-total]')).not.toBeNull()
     expect(document.querySelector('[data-total-de-la-hoja]')).toBeNull()
   })
@@ -38,7 +38,7 @@ describe('RegionDelTotal', () => {
   it('mientras recalcula se marca ocupada y dice «Total desactualizado.» debajo de la tarjeta, fuera de ella', () => {
     render(
       <ContextoDelTotal value={del({ estado: { tipo: 'recalculando' } })}>
-        <RegionDelTotal etiqueta="Total" contexto={contexto} />
+        <RegionDelTotal etiqueta="Total" decimales={undefined} contexto={contexto} />
       </ContextoDelTotal>,
     )
     const region = document.querySelector<HTMLElement>('[data-total-de-la-hoja]')
@@ -58,11 +58,43 @@ describe('RegionDelTotal', () => {
           totalGuardado: <p>Total guardado</p>,
         })}
       >
-        <RegionDelTotal etiqueta="Total" contexto={contexto} />
+        <RegionDelTotal etiqueta="Total" decimales={undefined} contexto={contexto} />
       </ContextoDelTotal>,
     )
     const tarjeta = document.querySelector('[data-tarjeta-del-total]')
     expect(tarjeta?.contains(screen.getByText('No se puede usar ese vehículo.'))).toBe(false)
     expect(tarjeta?.contains(screen.getByText('Total guardado'))).toBe(false)
+  })
+
+  it('el total y el de la moneda local con los «Decimales» del total; sin ellos, 2', () => {
+    const conBs: ContextoDeHoja = {
+      ...contexto,
+      respuesta: {
+        ...respuestaDePrueba({ usd: 1234.5678 }),
+        totales: { usd: 1234.5678, bs: 8592.5649, sumaUsd: null },
+      },
+    }
+    const plano = (sel: string) =>
+      (document.querySelector(sel)?.querySelector('[data-monto-valor]')?.textContent ?? '').replace(
+        /[\u00a0\u202f]/g,
+        ' ',
+      )
+    const dibujar = (decimales: number | undefined) =>
+      render(
+        <ContextoDelTotal value={del({ monedaDelTotalBs: 'BOB' })}>
+          <RegionDelTotal etiqueta="Total" decimales={decimales} contexto={conBs} />
+        </ContextoDelTotal>,
+      )
+    dibujar(0)
+    expect(plano('[data-total]')).toBe('USD 1.235')
+    expect(plano('[data-total-bs]')).toBe('Bs 8.593')
+    cleanup()
+    dibujar(3)
+    expect(plano('[data-total]')).toBe('USD 1.234,568')
+    expect(plano('[data-total-bs]')).toBe('Bs 8.592,565')
+    cleanup()
+    dibujar(undefined)
+    expect(plano('[data-total]')).toBe('USD 1.234,57')
+    expect(plano('[data-total-bs]')).toBe('Bs 8.592,56')
   })
 })

@@ -34,6 +34,10 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
   612–770 px, con el menú y el resumen al costado), el total vive en el resumen y no dentro de la rejilla, y el ⚙ de los años no va junto a sus chips. Es del
   editor de la hoja sobre la vista (la tarjeta del total como pieza).
 - **[—]** Los modos de tipo de cambio se editan en «Hoja», no en la planilla de la fórmula.
+- **[—]** «Decimales» de los totales que no son una celda (el listado de cotizaciones, «De este vehículo», la cabecera de comparar, la línea del total de
+  una revisión y el resumen de una guardada): siguen con 2 — decidir si toman los de la celda del total (el listado está medido al borde).
+- **[—]** El % que la B de una fila absorbe (`=pub*4%`) no tiene «Decimales» propios en la planilla: queda en «Automático» — decidir si el panel de la
+  fila elige también los de su %.
 - **[—]** Editor de la tarjeta: arrastrar el borde de una fila del lienzo para cambiar su alto (hoy, el campo «Alto» del panel).
 - **[—]** Una bandera que sólo lee la `prueba` de un `elegir` o un término de `Y`/`O` (`SI(nuevo; 100; 50)`) no pide su interruptor en el diseño al publicar (§5 de `validar_diseno()` y `revisarCobertura()` sólo cuentan la `condicion`): decidir si una condición también lo exige.
 - **[—]** En la primera publicación de un origen (las dos esperadas nulas), el borrador puede nacer sobre una v1 que otra persona publicó entre medio — decidir si la esperada nula deja de valer.
@@ -240,6 +244,10 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** «Ayuda» abierta por la URL (`?panel=ayuda`) mientras lee deja el foco en «Elegir mis enlaces» del pie (el cuerpo todavía no tiene nada enfocable): llevarlo al título o a la ✕ (`src/app/(app)/_shell/ayuda/modal-de-ayuda.tsx`).
 - **[—]** El comprobante de «Registrar gasto» es el `<input type="file">` nativo: el navegador escribe «Choose File» y «No file chosen» en su idioma, no
   en el de la app — usar el botón «Elegir archivos» de los documentos de la unidad (`logistica/features/dinero/components/campo-de-comprobante.tsx`).
+- **[—]** En el diagrama del flujo, una caja movida encima de una flecha tapa su etiqueta (React Flow dibuja las cajas sobre las etiquetas): la salida sigue
+  abriéndose desde el panel o moviendo la caja; evaluar subir las etiquetas sobre las cajas (`flujos/features/configuracion/components/diagrama/flecha-de-salida.tsx`).
+- **[—]** El minimapa del diagrama del flujo usa los grises por defecto de React Flow, sin marco ni los tokens (`--color-surface`, `--color-line`): darle el
+  estilo del lienzo (`flujos/features/configuracion/components/diagrama/diagrama-del-flujo.tsx`).
 - **[—]** La lista de fases del flujo deja «Subir» y «Bajar» a la vista (`flujos/features/fases/components/acciones-de-fila.tsx`) y las demás filas de Configuración los llevan en el «⋯»: decidir si es la excepción (ordenar con el teclado) o pasarlos al «⋯».
 - **[—]** Al recargar una guardada con un cálculo pisado, «Editado a mano: …» entra al resumen después del primer dibujo (su lista va con `diferido()`) y empuja
   «Modo de tipo de cambio» hacia abajo: reservarle el alto o dibujar su primera línea en frío (`features/hoja/components/pisadas/`).

@@ -13,6 +13,7 @@ import {
   type PlantillaEnCuadricula,
   type TamanoDeLetra,
 } from '../cuadricula-de-la-tarjeta'
+import { MAXIMO_DE_DECIMALES } from '../nodos'
 
 // Lo que devuelve `cotizacion_tarjeta(p_formula)` leído con Zod, en la forma que usa la geometría: la cuadrícula (la forma 2, ya convertida si era de la forma 1)
 // y sólo lo que nombra, del nivel «todos» (K4 de `supabase/tests/cotizacion-tarjeta.sql`). Todo lo que se busca por el id de un nodo, un grupo, un bucket, un
@@ -105,6 +106,9 @@ export const esquemaDeLaCuadricula = z.object({
   ),
 })
 
+// Los «Decimales» de una celda (glosario), como los valida la forma de la fórmula.
+const decimales = z.int().min(0).max(MAXIMO_DE_DECIMALES)
+
 const tipoDeCambio = z.object({ nombre: z.string().nullable(), nodo: z.string().nullable() })
 const porBucket = z.record(z.string(), tipoDeCambio)
 
@@ -118,6 +122,8 @@ const esquemaListo = z.object({
       descripcion: z.string().nullable(),
       grupo: z.string().nullable(),
       pct: z.string().nullable(),
+      decimales: decimales.optional(),
+      decimales_del_pct: decimales.optional(),
     }),
   ),
   grupos: z.array(
@@ -148,6 +154,9 @@ export type NodoDeLaTarjeta = {
   descripcion: string | null
   grupo: string | null
   pct: string | null
+  // Los «Decimales» del nodo (su monto) y los del `pct` (su porcentaje); sin ellos, «Automático».
+  decimales?: number
+  decimalesDelPct?: number
 }
 export type GrupoDeLaTarjeta = { etiqueta: string; plazo: string | null; bucket: string | null }
 export type TipoDeCambioDeLaTarjeta = { nombre: string | null; nodo: string | null }
@@ -171,6 +180,15 @@ export type TarjetaLista = {
 
 export type LecturaDeLaTarjeta = TarjetaLista | { estado: 'sin_plantilla' }
 
+// Las dos claves sólo si llegaron: un nodo sin «Decimales» queda igual que antes.
+const decimalesDelNodo = (
+  decimales: number | undefined,
+  delPct: number | undefined,
+): Pick<NodoDeLaTarjeta, 'decimales' | 'decimalesDelPct'> => ({
+  ...(decimales === undefined ? {} : { decimales }),
+  ...(delPct === undefined ? {} : { decimalesDelPct: delPct }),
+})
+
 // La lectura plana (la de la vista previa de Configuración y la que cruza props) en la forma que usa la geometría.
 export function lecturaDesdeLaPlana(l: LecturaEnCuadricula): TarjetaLista {
   const modos = new Map<string, Map<string, TipoDeCambioDeLaTarjeta>>()
@@ -185,7 +203,13 @@ export function lecturaDesdeLaPlana(l: LecturaEnCuadricula): TarjetaLista {
     nodos: new Map(
       l.nodos.map((n) => [
         n.id,
-        { etiqueta: n.etiqueta, descripcion: n.descripcion, grupo: n.grupo, pct: n.pct },
+        {
+          etiqueta: n.etiqueta,
+          descripcion: n.descripcion,
+          grupo: n.grupo,
+          pct: n.pct,
+          ...decimalesDelNodo(n.decimales, n.decimalesDelPct),
+        },
       ]),
     ),
     grupos: new Map(
@@ -219,7 +243,13 @@ export function tarjetaDesde(crudo: unknown): LecturaDeLaTarjeta | null {
     nodos: new Map(
       t.nodos.map((n) => [
         n.id,
-        { etiqueta: n.etiqueta ?? '', descripcion: n.descripcion, grupo: n.grupo, pct: n.pct },
+        {
+          etiqueta: n.etiqueta ?? '',
+          descripcion: n.descripcion,
+          grupo: n.grupo,
+          pct: n.pct,
+          ...decimalesDelNodo(n.decimales, n.decimales_del_pct),
+        },
       ]),
     ),
     grupos: new Map(

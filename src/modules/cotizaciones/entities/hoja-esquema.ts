@@ -13,7 +13,7 @@ import {
   SEPARACIONES,
   URL_DE_ENLACE,
 } from './diseno'
-import { esquemaCampo, esquemaId, FORMATOS } from './nodos'
+import { esquemaCampo, esquemaId, FORMATOS, MAXIMO_DE_DECIMALES } from './nodos'
 
 // Lo que la hoja de cotizar lee al abrir (paso 4.13, `cotizacion_hoja()`): el diseño publicado de un origen RECORTADO al nivel de
 // quien mira, con lo que la hoja necesita para dibujarse sin otra consulta, la versión de la fórmula, la hora de la base y la hoja abierta firmada (`p_abierta` de
@@ -37,6 +37,9 @@ export type TipoDeNodoDeHoja = (typeof TIPOS_DE_NODO)[number]
 export type MotivoDeCandado =
   { codigo: 'se_calcula' | 'del_vehiculo' | 'no_se_edita' } | { codigo: 'nivel'; nivel: string }
 
+// Los «Decimales» de la celda (glosario): sin la clave, «Automático». `_cotizacion_hoja()` los copia del nodo sólo si los trae.
+const decimales = { decimales: z.int().min(0).max(MAXIMO_DE_DECIMALES).optional() }
+
 const esquemaMotivo = z.union([
   z.object({ codigo: z.enum(['se_calcula', 'del_vehiculo', 'no_se_edita']) }),
   z.object({ codigo: z.literal('nivel'), nivel: z.string().min(1) }),
@@ -58,6 +61,7 @@ const esquemaSecundario = z
     // El tipo del nodo del porcentaje (4-31): un `input` se edita en `inputs` y una constante en `overrides`; la hoja ya no lo adivina por la fuente de una respuesta.
     tipo_nodo: z.enum(TIPOS_DE_NODO),
     formato: z.enum(FORMATOS),
+    ...decimales,
     ajustes: z.boolean(),
     // Con el monto escrito, el porcentaje lo calcula el par (`_cotizacion_hoja()`): no es lo tipeado. Sin la clave, el porcentaje no sigue al monto.
     sigue_al_monto: z.literal(true).optional(),
@@ -121,6 +125,7 @@ export const esquemaCelda = z
     etiqueta: z.string().min(1),
     tipo_nodo: z.enum(TIPOS_DE_NODO),
     formato: z.enum(FORMATOS),
+    ...decimales,
     ancho: z.union([z.enum(ANCHOS), esquemaColumnas]),
     ...aspectoDeItem,
     tono: esquemaId.optional(),
@@ -177,6 +182,7 @@ const esquemaSubtotal = z.object({
   nodo: esquemaId,
   etiqueta: z.string().min(1),
   formato: z.enum(FORMATOS),
+  ...decimales,
   tono: esquemaId.optional(),
   en_par: z.literal(true).optional(),
   ...anchoDeItem,
@@ -188,6 +194,7 @@ const esquemaTotal = z.object({
   nodo: esquemaId,
   etiqueta: z.string().min(1),
   formato: z.enum(FORMATOS),
+  ...decimales,
   ...anchoDeItem,
 })
 
@@ -220,6 +227,7 @@ const esquemaDeNodoDeTarjeta = z.object({
   nodo: esquemaId,
   etiqueta: z.string().min(1),
   formato: z.enum(FORMATOS),
+  ...decimales,
 })
 const esquemaOrigen = z.object({ id: z.guid(), nombre: z.string().min(1) })
 const esquemaOpcionDelPar = z.object({ clave: esquemaId, etiqueta: z.string().min(1) })

@@ -160,3 +160,42 @@ describe('hojaDeLaVistaPrevia: el aspecto', () => {
     expect(hoja.tonos.map((t) => t.clave)).toStrictEqual(['costos', 'sobra'])
   })
 })
+
+describe('hojaDeLaVistaPrevia: los «Decimales» de cada celda', () => {
+  it('T1 · copia los del nodo a la celda, su porcentaje, el subtotal, el total y la tarjeta; sin ellos, ninguna clave', () => {
+    const conDecimales = esquemaDefinicion.parse({
+      ...formulaDePrueba,
+      nodos: formulaDePrueba.nodos.map((n) =>
+        n.id === 'a' || n.id === 'neto'
+          ? { ...n, decimales: 0 }
+          : n.id === 'tasa'
+            ? { ...n, decimales: 1 }
+            : n.id === 'total'
+              ? { ...n, decimales: 3 }
+              : n,
+      ),
+    })
+    const diseno = disenoDe([
+      seccion('s', [
+        celda('a'),
+        celda('b'),
+        celda('comision', { secundario: 'porcentaje' }),
+        { tipo: 'subtotal', nodo: 'neto' },
+        { tipo: 'total' },
+      ]),
+    ])
+    const hoja = hojaDeLaVistaPrevia(ORIGEN, diseno, conDecimales, [])
+    const items = hoja.secciones[0]?.items ?? []
+    const porNodo = new Map(items.map((i) => [i.nodo, i]))
+    expect(porNodo.get('a')).toMatchObject({ decimales: 0 })
+    expect(porNodo.get('b')).not.toHaveProperty('decimales')
+    expect(porNodo.get('comision')).not.toHaveProperty('decimales')
+    expect(porNodo.get('comision')).toMatchObject({ secundario: { nodo: 'tasa', decimales: 1 } })
+    expect(porNodo.get('neto')).toMatchObject({ tipo: 'subtotal', decimales: 0 })
+    expect(porNodo.get('total')).toMatchObject({ tipo: 'total', decimales: 3 })
+    expect(hoja.tarjetaTotal).toMatchObject({ nodo: 'total', decimales: 3 })
+    expect(
+      hojaDeLaVistaPrevia(ORIGEN, diseno, formulaDePrueba, []).tarjetaTotal,
+    ).not.toHaveProperty('decimales')
+  })
+})
