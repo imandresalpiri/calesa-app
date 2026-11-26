@@ -26,7 +26,12 @@ export type Caida =
   | { espacio: 'principales'; posicion: Posicion }
   | { espacio: 'avanzada'; seccion: string }
 
-// Qué cambia al soltar `p` en `caida`. Lo que no va ahí (una pieza en la rejilla de las secciones, una sección en la de otra) no se mueve.
+// Una sección principal: la única que va a la rejilla de las secciones (una avanzada cae en el bloque, sobre otra de su lista).
+const esPrincipal = (d: Diseno, seccion: string) =>
+  d.secciones.some((s) => s.id === seccion && s.presentacion !== 'avanzado')
+
+// Qué cambia al soltar `p` en `caida`. Lo que no va ahí (una pieza en la rejilla de las secciones, una sección en la de otra, una avanzada fuera de su
+// bloque) no se mueve.
 export function soltarEn(d: Diseno, p: PiezaDeLaHoja, caida: Caida): Movida {
   const noVa: Movida = { ok: false, motivo: 'no_esta' }
   switch (caida.espacio) {
@@ -36,7 +41,9 @@ export function soltarEn(d: Diseno, p: PiezaDeLaHoja, caida: Caida): Movida {
         : noVa
     case 'principales':
       if (p.pieza === 'bloque-avanzado') return moverElBloque(d, caida.posicion.fila)
-      return p.pieza === 'seccion' ? moverSeccionA(d, p.seccion, caida.posicion) : noVa
+      return p.pieza === 'seccion' && esPrincipal(d, p.seccion)
+        ? moverSeccionA(d, p.seccion, caida.posicion)
+        : noVa
     case 'avanzada':
       return p.pieza === 'seccion' ? intercambiarAvanzadas(d, p.seccion, caida.seccion) : noVa
     default: {

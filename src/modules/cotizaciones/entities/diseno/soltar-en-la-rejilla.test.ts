@@ -108,9 +108,16 @@ describe('la marca del total, el bloque y las avanzadas', () => {
   })
 
   it('lo que no va en ese espacio no tiene marca', () => {
-    expect(
-      marcaDeLaCaida(hoja, a, { espacio: 'principales', posicion: { columna: 1, fila: 3 } }),
-    ).toBeNull()
+    const enLasPrincipales = { espacio: 'principales', posicion: { columna: 7, fila: 3 } } as const
+    expect(marcaDeLaCaida(hoja, a, enLasPrincipales)).toBeNull()
+    // Una avanzada va en su bloque: en la rejilla de las secciones, aunque el lugar esté libre, ni marca ni movida.
+    const conAvanzada = disenoDe([
+      seccion('base', [celda('a')]),
+      seccion('av', [celda('comision')], { presentacion: 'avanzado' }),
+    ])
+    const av = { pieza: 'seccion', seccion: 'av' } as const
+    expect(marcaDeLaCaida(hojaDe(conAvanzada), av, enLasPrincipales)).toBeNull()
+    expect(soltarEn(conAvanzada, av, enLasPrincipales).ok).toBe(false)
   })
 })
 
