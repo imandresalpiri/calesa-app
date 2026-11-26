@@ -655,7 +655,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     reversible con «Deshacer» (si era dato clave, el «⋯» avisa «También sale de los datos clave.»). «Desactivados» va a la vista, debajo, y sin número.
     Con una búsqueda no hay asas; sin coincidencias, «Nada coincide con «…».» y «Limpiar». Conflicto `PT409` dentro del panel con «Recargar»,
     que conserva lo escrito. Sin `origenes.gestionar`: el aviso con su motivo, «Nuevo campo» apagado, sin asas, el «⋯» sólo con «Ver» y el
-    panel sin «Guardar». **Categorías** (`/categorias`,
+    panel sin «Guardar». El grupo de un campo y el drawer «Grupos» (`?panel=grupos`, junto a «Nuevo campo»), como en Leads › Campos, con el
+    catálogo del origen; sin `origenes.gestionar`, «Grupos» abre la lista de sólo lectura con el motivo. **Categorías** (`/categorias`,
     `?categoria=`). Las dos se abren con el origen; sin `origenes.gestionar`, todo deshabilitado con su motivo.
   - `/<id>` sola responde 308 (por persona) a la **última pestaña** que esa persona abrió en ese origen si todavía la abre o, si no, a la primera que
     abre (sin ninguna, a Fases), con su consulta entera. Una pestaña que no abre, por URL: «No puedes abrir esta

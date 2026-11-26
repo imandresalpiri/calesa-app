@@ -85,7 +85,10 @@ RPC: `origen_crear|guardar|eliminar`, `origen_datos_clave_guardar`, `origen_apib
 - El aviso de impacto va **dentro** del panel del campo; `origen_campo_impacto` cuenta también la papelera.
 - **Grupo de campos**: del catálogo del origen (FK compuesta `origenes_campos_grupo_fkey` con `origen_id`), un nombre por origen sin importar
   mayúsculas, tildes ni espacios. Lo que nace con texto (presets, apibara) pasa por `_origen_campo_grupo_asegurar()`. Elegir uno desactivado sólo
-  vale para conservar el que el campo ya tiene. Borrar el origen arrastra sus grupos.
+  vale para conservar el que el campo ya tiene. Borrar el origen arrastra sus grupos. El combo del panel de un campo crea con
+  `crearGrupoDelOrigen` (sin revalidar: el campo está a medio llenar); el drawer «Grupos» (`?panel=grupos&quitar=<id>`) con
+  `agregarGrupoDelOrigen`, `guardarGrupoDelOrigen`, `moverGrupoDelOrigen` y `quitarGrupoDelOrigen` (`origenes.gestionar`, revalidan
+  `/configuracion/origenes`; `hooks/use-grupos-del-origen.ts`). Sin el permiso, el drawer se abre de sólo lectura.
 - Categoría: un nivel de anidado, un nombre por lugar (sin mayúsculas); con subcategorías activas no se desactiva; con subcategorías o vehículos no se
   elimina.
 - Entra quien tiene `origenes.gestionar`; de sólo lectura, `flujos.configurar` o `cotizaciones.configurar`, cada uno **en ese origen** (la base
