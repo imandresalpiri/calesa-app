@@ -32,7 +32,7 @@ function montar(extra: Partial<Parameters<typeof CamposDelSeguimiento>[0]> = {})
 afterEach(cleanup)
 
 describe('CamposDelSeguimiento', () => {
-  it('tipo, cuándo fue, resumen, detalle y próximo contacto plegado; sin «Visible» ni vehículo', () => {
+  it('tipo, cuándo fue, resumen, detalle y el botón del próximo contacto; sin «Visible» ni vehículo', () => {
     montar()
     expect(screen.getByLabelText('Tipo de seguimiento')).toBeInTheDocument()
     expect(screen.getByText('Cuándo fue')).toBeInTheDocument()

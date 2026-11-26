@@ -199,6 +199,21 @@ test('sin la cartera no hay «Anotar» y la URL no lo abre', async ({ page }, in
   await expect(modalDeSeguimiento(page, 'Anotar')).toHaveCount(0)
 })
 
+test('sumar el próximo contacto no cambia el alto del modal', async ({ page }, info) => {
+  const lead = await leadDeBerta(`Seg Modal Alto ${info.project.name}`)
+  await entrar(page, t.personas.berta)
+  await irASeguimientos(page, lead.id)
+  const modal = await abrirAnotar(page)
+  const programar = modal.getByRole('button', { name: 'Programar próximo contacto' })
+  await expect(programar).toBeVisible()
+  const antes = await modal.boundingBox()
+  const contenido = await modal.evaluate((m) => m.scrollHeight)
+  await programar.click()
+  await expect(modal.getByRole('button', { name: 'Mañana 09:00' })).toBeFocused()
+  expect(await modal.boundingBox()).toEqual(antes)
+  expect(await modal.evaluate((m) => m.scrollHeight)).toBe(contenido)
+})
+
 test('en el celular el modal con el editor cabe, se desplaza y el pie se ve', async ({
   page,
 }, info) => {
