@@ -28,8 +28,9 @@ import {
   verTodosLosSeguimientos,
 } from './soporte/leads-seguimientos'
 import {
+  abrirAnteriores,
   botonVincularOMarcar,
-  desplegarAnteriores,
+  drawerDeAnteriores,
   panelAgregar,
   seccionVehiculos,
 } from './soporte/leads-vehiculos'
@@ -211,20 +212,25 @@ test('E2E «Cotizaciones»: «Cotizar» como «Cotizar lead» y sus cotizaciones
   await expect(bloque.getByRole('link', { name: 'Ver más' })).toHaveCount(0)
 })
 
-test('E2E «Vehículos»: «Vincular o marcar» en el título y los vínculos anteriores plegados', async ({
+test('E2E «Vehículos»: «Vincular o marcar» en el título y los vínculos anteriores en su drawer', async ({
   page,
 }) => {
   await abrirLaFicha(page, duena)
   await expect(titulo(page, 'Relacionados')).toHaveCount(0)
-  const anteriores = seccionVehiculos(page).getByRole('button', { name: 'Vínculos anteriores' })
-  await expect(anteriores).toHaveAttribute('aria-expanded', 'false')
-  await expect(
-    seccionVehiculos(page).getByRole('list', { name: 'Vínculos anteriores' }),
-  ).toHaveCount(0)
-  await expect((await desplegarAnteriores(page)).getByRole('listitem')).toHaveCount(1)
+  const boton = seccionVehiculos(page).getByRole('button', { name: 'Ver los vínculos anteriores' })
+  // En un drawer con su URL: el bloque no cambia de alto y, al cerrarlo, el foco vuelve al botón.
+  const antes = await seccionVehiculos(page).boundingBox()
+  await expect((await abrirAnteriores(page)).getByRole('listitem')).toHaveCount(1)
+  expect((await seccionVehiculos(page).boundingBox())?.height).toBe(antes?.height)
+  await page.keyboard.press('Escape')
+  await expect(drawerDeAnteriores(page)).toBeHidden()
+  await expect(boton).toBeFocused()
   await botonVincularOMarcar(page).click()
   await expect(page).toHaveURL(/panel=agregar-vehiculo/)
   await expect(panelAgregar(page)).toBeVisible()
+  // La URL compartida abre los vínculos anteriores.
+  await irAFicha(page, lead, '?panel=vinculos-anteriores')
+  await expect(drawerDeAnteriores(page).getByRole('listitem')).toHaveCount(1)
 })
 
 const tableroDelBloque = (bloque: Locator): Locator =>

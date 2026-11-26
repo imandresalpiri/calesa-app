@@ -203,16 +203,19 @@ export async function abrirAgregarVehiculo(page: Page): Promise<Locator> {
 export const botonVincularOMarcar = (page: Page): Locator =>
   relacionadosDelLead(page).getByRole('button', { name: 'Vincular o marcar', exact: true })
 
-// «Vínculos anteriores» al pie del bloque: plegados tras su botón (`aria-expanded`); lo despliega si está plegado y devuelve la lista.
-export async function desplegarAnteriores(page: Page): Promise<Locator> {
-  const boton = seccionVehiculos(page).getByRole('button', { name: 'Vínculos anteriores' })
+// «Ver los vínculos anteriores» al pie del bloque abre su drawer (`?panel=vinculos-anteriores`); devuelve la lista del drawer.
+export const drawerDeAnteriores = (page: Page): Locator =>
+  page.getByRole('dialog', { name: 'Vínculos anteriores' })
+export async function abrirAnteriores(page: Page): Promise<Locator> {
+  const boton = seccionVehiculos(page).getByRole('button', { name: 'Ver los vínculos anteriores' })
   await expect(async () => {
-    if ((await boton.getAttribute('aria-expanded')) !== 'true') {
+    if (!/[?&]panel=vinculos-anteriores/.test(page.url())) {
       await boton.click({ timeout: 2000 })
     }
-    await expect(boton).toHaveAttribute('aria-expanded', 'true', { timeout: 2000 })
+    await expect(page).toHaveURL(/[?&]panel=vinculos-anteriores/, { timeout: 2000 })
   }).toPass()
-  return seccionVehiculos(page).getByRole('list', { name: 'Vínculos anteriores' })
+  await expect(drawerDeAnteriores(page)).toBeVisible()
+  return drawerDeAnteriores(page).getByRole('list', { name: 'Vínculos anteriores' })
 }
 
 // Abre «Vincular o marcar un vehículo», busca y elige uno.

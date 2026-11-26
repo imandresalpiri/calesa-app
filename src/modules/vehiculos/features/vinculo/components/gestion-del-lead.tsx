@@ -6,12 +6,12 @@ import { useDesvincularPorUrl } from '../hooks/use-desvincular-por-url'
 import { usePanelAgregarVehiculo } from '../hooks/use-panel-agregar-vehiculo'
 import { useVinculo } from '../hooks/use-vinculo'
 import { ConfirmarDesvincularDiferido, PanelAgregarVehiculoDiferido } from './diferidos'
-import { HistorialDeVinculos } from './historial-de-vinculos'
+import { VinculosAnteriores } from './vinculos-anteriores'
 
 type Props = { leadId: string; leadNombre: string; datos: VehiculosDelLead }
 
-// Lo que va al pie del bloque «Vehículos» de la ficha del lead y no repite sus grupos: «Vínculos anteriores» plegados (sólo los de vehículos
-// que quien mira ve), el panel «Vincular o marcar un vehículo» (lo abre el botón del título, `VincularOMarcar`; con la cartera: `puedoActuar`;
+// Lo que va al pie del bloque «Vehículos» de la ficha del lead y no repite sus grupos: «Ver los vínculos anteriores» (un drawer con su URL; sólo los de
+// vehículos que quien mira ve), el panel «Vincular o marcar un vehículo» (lo abre el botón del título, `VincularOMarcar`; con la cartera: `puedoActuar`;
 // sin ella la URL no abre nada; acá se atiende la URL y la vuelta del foco) y la confirmación de desvincular, que pide quien no podría volver a
 // vincular (quien sí, desvincula en la fila con «Deshacer»).
 export function GestionDelLead({ leadId, leadNombre, datos }: Props) {
@@ -23,9 +23,7 @@ export function GestionDelLead({ leadId, leadNombre, datos }: Props) {
   const montarConfirmar = useAbiertoAlgunaVez(confirmacion.abierto)
   return (
     <>
-      {datos.historial.length > 0 ? (
-        <HistorialDeVinculos historial={datos.historial} hayMas={datos.hayMas.historial} />
-      ) : null}
+      <VinculosAnteriores historial={datos.historial} hayMas={datos.hayMas.historial} />
       {montarPanel ? (
         <PanelAgregarVehiculoDiferido
           abierto={agregando}

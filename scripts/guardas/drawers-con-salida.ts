@@ -22,6 +22,10 @@ export const DRAWERS_DEL_NUCLEO: Record<string, RegistroDeDrawer> = {
   'src/modules/vehiculos/features/relacionados/components/drawer-de-vinculos.tsx': {
     sinFormulario: 'sólo muestra el vínculo vigente de un vehículo y los anteriores',
   },
+  // «Ver los vínculos anteriores» al pie del bloque «Vehículos» de la ficha del lead (`?panel=vinculos-anteriores`).
+  'src/modules/vehiculos/features/vinculo/components/drawer-de-vinculos-anteriores.tsx': {
+    sinFormulario: 'sólo muestra los vínculos ya cerrados de un lead, leídos con la ficha',
+  },
   // --- leads
   // El único `<Drawer>` de «Nuevo lead»: monta el marco (siempre cerrado hasta que se abre) y el formulario, que tiene su estado afuera
   // para no perderlo al cerrar, dibuja adentro; la pregunta de descartar la hace él mismo (`useCierreConCambios`).
