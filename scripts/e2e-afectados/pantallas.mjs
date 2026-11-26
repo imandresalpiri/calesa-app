@@ -67,3 +67,27 @@ export function pantallasQueUsan(archivo, inverso) {
   const rutas = new Set(app.map(rutaDe).filter((r) => r !== null))
   return { rutas: [...rutas].sort(), todaPantalla: app.some(esDelMarco), app }
 }
+
+/**
+ * La URL de la pantalla de un archivo de `src/app/`: su carpeta sin grupos `(x)` ni carpetas privadas `_x`
+ * (`(app)/cotizaciones/[id]/_hoja/x.tsx` → `/cotizaciones/[id]`); `/` para la raíz.
+ */
+export function urlDe(archivo) {
+  const segmentos = archivo
+    .replace(/^src\/app\//, '')
+    .split('/')
+    .slice(0, -1)
+    .filter((s) => !/^[(_]/.test(s))
+  return `/${segmentos.join('/')}`
+}
+
+const escapar = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Cómo nombra un spec esa URL: entre comillas, con `${…}` o cualquier valor donde la ruta tiene `[id]`, y sin seguir con otro segmento. */
+export function patronDeUrl(url) {
+  const cuerpo = url
+    .split('/')
+    .map((s) => (/^\[.+\]$/.test(s) ? String.raw`(?:\$\{[^}]*\}|[^/'"\x60?#\s$]+)` : escapar(s)))
+    .join('/')
+  return new RegExp(String.raw`['"\x60]${cuerpo}(?=['"\x60?#\s)]|$)`)
+}

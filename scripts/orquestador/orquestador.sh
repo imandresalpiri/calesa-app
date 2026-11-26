@@ -339,6 +339,7 @@ lanzar() {
         *) continue ;;
       esac
       [ -n "$(est_get "$id" espera_carril_hasta)" ] && [ "$(date +%s)" -lt "$(est_get "$id" espera_carril_hasta)" ] && continue
+      frena_por_uso_semanal "$id" "$s" && continue
       est_set "$id" previo "$s"
       est_set "$id" estado corriendo
       rm -f "$EST/.terminada-avisada"
@@ -503,11 +504,20 @@ correr() {
   # Otro orquestador pudo llegar al límite del plan entre que el bucle miró y ahora.
   local hasta
   if hasta=$(pausa_compartida_hasta); then volver "pausa compartida por el límite del plan hasta las $(date -d "@$hasta" '+%H:%M')"; exit 0; fi
+  # Lo mismo con el uso semanal: otra sesión pudo subirlo entre que el bucle miró y ahora (antes de preparar el carril, que cuesta ≈ 75 s).
+  if frena_por_uso_semanal "$ID" "$PREVIO"; then volver "uso semanal al límite: espera a que se renueve"; exit 0; fi
   log "$ID: turno $TURNO de $TURNOS de la máquina"
   log "$ID: empieza ($PREVIO) en $WT"
   case "$PREVIO" in
     por_arreglar) comentar "$ID" "arreglo el PR #$(est_get "$ID" pr): $(head -n 1 "$EST/$ID/motivo.md" 2>/dev/null)" >/dev/null ;;
-    por_retomar) comentar "$ID" "retomo la tarea: $(est_get "$ID" motivo_retomar)" >/dev/null ;;
+    por_retomar)
+      # Tras un corte por el límite del plan, una sola vez por racha de cortes: no uno por cada relanzamiento que muere al instante.
+      if [[ "$(est_get "$ID" motivo_retomar)" == *"límite del plan"* ]]; then
+        [ -n "$(est_get "$ID" limite_comentado)" ] || { est_set "$ID" limite_comentado 1; comentar "$ID" "retomo la tarea: $(est_get "$ID" motivo_retomar)" >/dev/null; }
+      else
+        comentar "$ID" "retomo la tarea: $(est_get "$ID" motivo_retomar)" >/dev/null
+      fi
+      ;;
     *) comentar "$ID" "empiezo la tarea en la rama \`$RAMA\`." >/dev/null ;;
   esac
 
@@ -641,6 +651,7 @@ claude_en_el_worktree() { # nombre modelo effort modo prompt_archivo [args extra
   local nombre=$1 modelo=$2 effort=$3 modo=$4 prompt=$5
   shift 5
   local salida="$EST/$ID/$nombre.jsonl" rc compacta=()
+  SALIDA_ACTUAL=$salida
   mapfile -t compacta < <(args_autocompact)
   ln -sfn "$salida" "$EST/$ID/sesion-actual.jsonl"
   log "$ID: sesión $nombre ($modelo · $effort · $modo${PERMITE_SESION:+ · permite $PERMITE_SESION})"
@@ -661,14 +672,17 @@ claude_en_el_worktree() { # nombre modelo effort modo prompt_archivo [args extra
     retomar_luego "La sesión anterior ($nombre) se pasó de ${TIEMPO_MAX_SESION} y se cortó."
     return 1
   fi
+  anotar_uso_semanal "$salida"
   if { [ "$rc" != 0 ] || [ "$es_error" = true ] || [ -z "$RESULTADO_JSON" ]; } && es_limite_del_plan "$salida"; then
     soltar_carril
     est_set "$ID" motivo_retomar "La sesión anterior ($nombre) se cortó por el límite del plan de Claude."
     est_set "$ID" estado "$([ "$PREVIO" = por_arreglar ] && echo por_arreglar || echo por_retomar)"
-    pausar_por_limite "$ID"
+    pausar_por_limite "$ID" "$salida"
     return 1
   fi
-  if [ "$rc" != 0 ] && [ -z "$RESULTADO_JSON" ]; then
+  est_del "$ID" limite_comentado
+  # Un error de la API sin respuesta en una sesión de la tarea no se retoma aquí: despues_de_la_sesion la sigue con --resume.
+  if [ "$rc" != 0 ] && [ -z "$RESULTADO_JSON" ] && ! { [[ "$nombre" == sesion-* ]] && hay_que_seguir "$salida"; }; then
     soltar_carril
     retomar_luego "La sesión anterior ($nombre) terminó con error $rc sin resultado: $(tail -n 3 "$salida.err" | tr '\n' ' ')"
     return 1
@@ -678,17 +692,51 @@ claude_en_el_worktree() { # nombre modelo effort modo prompt_archivo [args extra
 
 # La salida de una sesión (el stream-json y su .err) dice que llegó al límite del plan de Claude. La usan esta sesión y la redacción
 # de un pedido (pedidos.sh).
-ES_LIMITE='usage limit|limit reached|hit your limit|limit will reset|resets at|out of (extra )?usage|rate[ _-]?limit'
+ES_LIMITE='usage limit|limit reached|hit your (weekly )?limit|limit will reset|resets at|out of (extra )?usage|rate[ _-]?limit'
 es_limite_del_plan() { # salida
   grep -qiE "$ES_LIMITE" "$1.err" <(tail -n 5 "$1")
 }
 
-# El límite es de la cuenta: la pausa es de todos los orquestadores de la máquina (si otro puso una más tardía, queda ésa).
-pausar_por_limite() { # quien (lo que se cortó, para el aviso)
-  local hasta=$(($(date +%s) + ${PAUSA_POR_LIMITE_MIN:-30} * 60))
-  fijar_pausa_compartida "$hasta" || log "no se pudo escribir la pausa compartida ($PAUSA_COMPARTIDA)"
+# El límite es de la cuenta: la pausa es de todos los orquestadores de la máquina (si otro puso una más tardía, queda ésa). Dura hasta
+# la hora en que el límite se renueva (maquina.sh › hora_de_fin_del_limite, de la salida de la sesión) más un margen; sin esa hora, el
+# PAUSA_POR_LIMITE_MIN de siempre. Avisa una vez por pausa: si ya había una que termina a la misma hora (o a menos de 5 min), no repite.
+pausar_por_limite() { # quien (lo que se cortó, para el aviso) [salida de la sesión: archivo .jsonl]
+  local hasta nueva origen="el plazo por defecto"
+  if [ -n "${2:-}" ] && hasta=$(hora_de_fin_del_limite "$2"); then
+    origen="la hora en que se renueva el límite"
+  else
+    hasta=$(($(date +%s) + ${PAUSA_POR_LIMITE_MIN:-30} * 60))
+  fi
+  nueva=$(fijar_pausa_compartida "$hasta") || log "no se pudo escribir la pausa compartida ($PAUSA_COMPARTIDA)"
   hasta=$(pausa_compartida_hasta) || hasta=$(($(date +%s) + ${PAUSA_POR_LIMITE_MIN:-30} * 60))
-  avisar "Pausa: límite del plan" "$1 se cortó por el límite de Claude. Reintento a las $(date -d "@$hasta" '+%H:%M') (vale para todos los orquestadores de la máquina)." low hourglass
+  if [ "$nueva" != nueva ]; then
+    log "$1 también se cortó por el límite del plan: la pausa ya corría hasta las $(date -d "@$hasta" '+%a %H:%M')"
+    return 0
+  fi
+  avisar "Pausa: límite del plan" "$1 se cortó por el límite de Claude. Reintento el $(date -d "@$hasta" '+%a %H:%M') ($origen; vale para todos los orquestadores de la máquina)." low hourglass
+}
+
+# La cuenta está al borde del límite semanal (UMBRAL_USO_SEMANAL, config.env): una sesión de plan o del nivel capaz (las que más gastan)
+# no se lanza hasta que la semana se renueve; las de arreglo, cortas, sí. Devuelve 0 si ésta debe esperar (y avisa una vez por renovación).
+sesion_pesada() { # id estado_previo — ¿es de plan o del nivel capaz?
+  local spec capaz
+  [ "$2" = por_arreglar ] && return 1
+  spec=$(spec_de "$1") || return 1
+  [ "$(campo "$spec" planificar)" = si ] && [ ! -s "$EST/$1/plan.md" ] && return 0
+  elegir_modelo "$spec" "" "$NIVEL_EJECUTAR" || return 1
+  capaz=$(modelo_de_nivel capaz) || return 1
+  [ "$ELEGIDO" = "$capaz" ]
+}
+
+frena_por_uso_semanal() { # id estado_previo
+  local hasta
+  hasta=$(uso_semanal_alto) || { rm -f "$EST/.uso-semanal-avisado"; return 1; }
+  sesion_pesada "$1" "$2" || return 1
+  if [ "$(cat "$EST/.uso-semanal-avisado" 2>/dev/null)" != "$hasta" ]; then
+    printf '%s\n' "$hasta" >"$EST/.uso-semanal-avisado"
+    avisar "Pausa: uso semanal" "La cuenta va por el $(awk '{printf "%d", $1 * 100}' "$USO_SEMANAL") % del límite semanal: no lanzo planes ni sesiones del nivel capaz hasta que se renueve ($(date -d "@$hasta" '+%a %H:%M')). Las de arreglo siguen." low hourglass
+  fi
+  return 0
 }
 
 # Con la pausa compartida por el límite en curso, cada PROBAR_PAUSA_MIN minutos una pregunta mínima al modelo capaz (el de casi todas
@@ -708,6 +756,55 @@ probar_fin_de_pausa() {
   quitar_pausa_compartida
   log "el modelo $modelo volvió a responder: quito la pausa por el límite del plan antes de que venza"
   avisar "Fin de la pausa" "Claude volvió a responder: sigo lanzando sin esperar a que venza la pausa." low arrow_forward
+}
+
+# Una sesión que terminó sin su línea RESULTADO se sigue en la misma conversación (`claude -p --resume`) si su salida dice por qué:
+# trabajo en segundo plano sin terminar al llegar el último `result` (un `task_started` sin su `task_notification` antes de él: la sesión
+# cerró el turno esperando un aviso) o un error de la API sin respuesta. Deja MOTIVO_SEGUIR y ID_SESION. Sin session_id no hay nada que
+# seguir. Puro sobre el archivo: las líneas rotas se saltan.
+ES_SIN_RESPUESTA='No response from API'
+motivo_de_seguir() { # salida.jsonl
+  local salida=$1 pendientes
+  MOTIVO_SEGUIR="" ID_SESION=""
+  ID_SESION=$(jq -rR 'fromjson? | .session_id? // empty' "$salida" 2>/dev/null | tail -n 1)
+  [[ "$ID_SESION" =~ ^[A-Za-z0-9_-]+$ ]] || { ID_SESION=""; return 1; }
+  pendientes=$(jq -cR 'fromjson? | select(.type == "result" or (.type == "system" and (.subtype == "task_started" or .subtype == "task_notification"))) | {type, subtype, task_id}' "$salida" 2>/dev/null |
+    jq -s 'reduce .[] as $e ({p: {}, s: null};
+      if $e.type == "result" then .s = (.p | keys)
+      elif $e.subtype == "task_started" then .p[($e.task_id // "" | tostring)] = true
+      else del(.p[($e.task_id // "" | tostring)]) end) | (.s // []) | length' 2>/dev/null)
+  if [ "${pendientes:-0}" -gt 0 ]; then
+    MOTIVO_SEGUIR="terminó con $pendientes tarea(s) en segundo plano sin terminar"
+  elif { [ "$(jq -r '.is_error // false' <<<"${RESULTADO_JSON:-}" 2>/dev/null)" = true ] && grep -qF "$ES_SIN_RESPUESTA" <<<"$RESULTADO_TEXTO"; } ||
+    tail -n 5 "$salida.err" 2>/dev/null | grep -qF "$ES_SIN_RESPUESTA"; then
+    MOTIVO_SEGUIR="la cortó un error de la API sin respuesta"
+  else
+    return 1
+  fi
+}
+
+# ¿Se puede seguir esta sesión? Quedan seguidas (MAX_SEGUIR por sesión) y su salida dice por qué terminó sin RESULTADO.
+hay_que_seguir() { # salida.jsonl
+  [ "${SEGUIDAS:-0}" -lt "${MAX_SEGUIR:-2}" ] && motivo_de_seguir "$1"
+}
+
+SEGUIR_MENSAJE="Sigue donde quedaste: espera el aviso de lo que lanzaste (o vuelve a lanzarlo si ya no corre) y termina con tu línea RESULTADO."
+
+# Sigue la sesión que acaba de terminar sin RESULTADO, en el mismo worktree y carril (antes de soltarlo), y después revisa su resultado
+# como el de cualquier sesión. Devuelve 1 si no corresponde seguirla (la retoma de siempre) y 0 si ya se ocupó de la tarea.
+seguir_la_sesion() {
+  local n p id motivo
+  [ -n "${SALIDA_ACTUAL:-}" ] && hay_que_seguir "$SALIDA_ACTUAL" || return 1
+  id=$ID_SESION
+  motivo=$MOTIVO_SEGUIR
+  SEGUIDAS=$((${SEGUIDAS:-0} + 1))
+  n=$(($(num "$ID" sesiones) + 1))
+  est_set "$ID" sesiones "$n"
+  p="$EST/$ID/prompt-$n-seguir.md"
+  printf '%s\n' "$SEGUIR_MENSAJE" >"$p"
+  log "$ID: sigo la sesión $id con --resume ($SEGUIDAS/${MAX_SEGUIR:-2}): $motivo"
+  claude_en_el_worktree "sesion-$n-seguir" "$SESION_MODELO" "$SESION_EFFORT" "$SESION_MODO" "$p" --resume "$id" "${SESION_EXTRA[@]}" || return 0
+  despues_de_la_sesion
 }
 
 retomar_luego() {
@@ -773,12 +870,16 @@ sesion() { # tarea | retomar | arreglar
   esac
   local extra=()
   [ -n "${HERRAMIENTAS_EXTRA:-}" ] && extra=(--allowedTools "$HERRAMIENTAS_EXTRA")
+  # Con lo que se lanzó se sigue después (seguir_la_sesion): el mismo modelo, effort, modo y herramientas.
+  SEGUIDAS=0 SESION_MODELO=$modelo SESION_EFFORT=$effort SESION_MODO=${MODO_EJECUTAR:-auto} SESION_EXTRA=("${extra[@]}")
   claude_en_el_worktree "sesion-$n-$tipo" "$modelo" "$effort" "${MODO_EJECUTAR:-auto}" "$p" "${extra[@]}"
 }
 
 despues_de_la_sesion() {
   local linea pr local_head remoto
   linea=$(grep -oE 'RESULTADO: (PUBLICADO #[0-9]+|TRABADA.*|AJENO.*)' <<<"$RESULTADO_TEXTO" | tail -n 1)
+  # Sin RESULTADO y con algo pendiente o un error de la API: se sigue la misma sesión, con el carril todavía puesto.
+  if [ -z "$linea" ] && seguir_la_sesion; then return; fi
   soltar_carril
 
   # Un e2e que cae también en main: la tarea espera a su urgente (ajeno-de-main.sh); si el AJENO no vale, es una trabada.

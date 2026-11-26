@@ -1,34 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { COMUN_AL_NOMBRAR, e2eAfectados } from './e2e-afectados/eleccion.mjs'
+import { elegir } from './e2e-afectados-ayuda'
+import { COMUN_AL_NOMBRAR } from './e2e-afectados/eleccion.mjs'
 
 // Los e2e que un cambio puede romper fuera de su módulo, para correrlos en local antes de publicar. Los dos casos que cayeron en el
 // CI y no en local (2026-11-20): el botón «Recargar la página» del marco chocó con `getByRole('button', { name: 'Recargar' })` de
 // `e2e/origenes.spec.ts:308` (strict mode), y el cambio de la ficha del vehículo (PR #462, que además tocaba `src/shared/lib`)
 // rompió `e2e/vehiculos-ficha-desplazamiento-interno.spec.ts:142`.
-
-type Archivos = Record<string, string>
-type Cambios = Record<string, { agregadas: string[]; quitadas: string[] }>
-
-function elegir(opciones: {
-  archivos: string[]
-  cambios?: Cambios
-  specs: Archivos
-  soportes?: Archivos
-  fuentes?: Archivos
-  tope?: number
-}) {
-  const todo: Archivos = { ...opciones.specs, ...opciones.soportes, ...opciones.fuentes }
-  return e2eAfectados({
-    archivos: opciones.archivos,
-    cambios: opciones.cambios ?? {},
-    specs: Object.keys(opciones.specs),
-    soportes: Object.keys(opciones.soportes ?? {}),
-    fuentes: Object.keys(opciones.fuentes ?? {}),
-    leer: (a: string) => todo[a] ?? null,
-    ...(opciones.tope === undefined ? {} : { tope: opciones.tope }),
-  })
-}
 
 const MARCO = {
   'src/app/(app)/layout.tsx':

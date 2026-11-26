@@ -11,19 +11,26 @@ import {
   specsQueNombran,
 } from '../e2e-dirigidos.mjs'
 import { esDelMarco, grafoInverso, pantallasQueUsan } from './pantallas.mjs'
-import { atrapa, localizadoresNoExactos, textosDeLasLineas } from './textos.mjs'
+import { presupuestosDeLasPantallas } from './presupuestos.mjs'
+import { atrapa, esFuenteDeSrc, localizadoresNoExactos, sumarA, textosDelDiff } from './textos.mjs'
+
+export { esFuenteDeSrc }
 
 export const TOPE = 40
 export const COMUN_AL_NOMBRAR = 12
 export const COMUN_AL_ATRAPAR = 40
 export const RUTAS_DE_TODA_PANTALLA = 6
+// Lo que entra aunque pase de TOPE: los specs de las pantallas tocadas que nombran un texto que la rama quita o pasa al «⋯» (cuentan para
+// el tope de los demás, hasta FORZADOS_DE_TEXTO) y los de presupuesto de esas pantallas (no cuentan).
+export const FORZADOS_DE_TEXTO = 3 * TOPE
 
 // Los puntos de cada razón, por lo seguro de la evidencia: el orden en que entran al tope. Un texto cuenta entero en las pantallas que
 // lo dibujan (las rutas a las que llega su archivo, o toda pantalla) y poco en las demás. Las palabras que el nombre del spec comparte
 // con lo tocado (`vehiculos/[id]/` → vehiculos, ficha) suman y desempatan.
 export const PUNTOS = {
   cambio: 1000, // cambió el spec o un ayudante suyo
-  quitado: 80, // nombra un texto que se fue
+  quitado: 80, // nombra un texto que se fue…
+  movido: 80, // … o que pasó al «⋯» (se agrega como línea de un menú y lo nombran muchos specs: dejó de estar a la vista)
   inicio: 70, // un localizador no exacto que el texto nuevo cumple desde su comienzo («Recargar» en «Recargar la página»)
   presupuestos: 70, // cambió el marco: los specs que miden presupuestos en toda pantalla (el JS del marco los mueve)…
   marco: 65, // … y los que prueban el marco
@@ -46,33 +53,12 @@ const GENERICAS = new Set(
   ),
 )
 
-export const esFuenteDeSrc = (a) =>
-  /^src\/.+\.(tsx?|mjs|js)$/.test(a) &&
-  !/\.(test|spec)\.[cm]?[jt]sx?$|\.d\.ts$|\.types\.ts$/.test(a)
 const palabras = (ruta) =>
   ruta
     .replace(/\[[^\]]+\]/g, 'ficha')
     .split(/[/._\-()]+/)
     .filter((p) => p.length >= 4 && !GENERICAS.has(p))
 const claveDeRuta = (ruta) => ({ prefijo: ruta, patron: new RegExp(`['"\`]/${ruta}\\b`) })
-const sumarA = (mapa, clave, valor) => {
-  if (!mapa.has(clave)) mapa.set(clave, new Set())
-  mapa.get(clave).add(valor)
-}
-
-/** Los textos netos de cada archivo de `src/` del diff: una línea que sólo cambió su clase no cambia su texto. */
-function textosDelDiff(cambios) {
-  const agregados = new Map()
-  const quitados = new Map()
-  for (const [archivo, c] of Object.entries(cambios)) {
-    if (!esFuenteDeSrc(archivo)) continue
-    const ag = new Set(textosDeLasLineas(c.agregadas ?? []))
-    const qu = new Set(textosDeLasLineas(c.quitadas ?? []))
-    for (const t of ag) if (!qu.has(t)) sumarA(agregados, t, archivo)
-    for (const t of qu) if (!ag.has(t)) sumarA(quitados, t, archivo)
-  }
-  return { agregados, quitados }
-}
 
 /**
  * La elección de los e2e afectados. `archivos`: los tocados; `cambios[archivo]`: `{ agregadas, quitadas }` (líneas del diff);
@@ -114,13 +100,24 @@ export function e2eAfectados({
       inverso ??= grafoInverso(fuentes, leer)
       const usa = pantallasQueUsan(archivo, inverso)
       const todaPantalla = usa.todaPantalla || usa.rutas.length > RUTAS_DE_TODA_PANTALLA
-      const enPantalla = new Set(todaPantalla ? [] : specsDeRutas(usa.rutas))
+      const deSusRutas = specsDeRutas(usa.rutas)
+      const enPantalla = new Set(todaPantalla ? [] : deSusRutas)
       const clave = claveDe(archivo)
-      if (clave) for (const s of specsQueNombran(clave, specs, leer)) enPantalla.add(s)
-      alcances.set(archivo, { ...usa, marco: usa.todaPantalla, todaPantalla, enPantalla })
+      const dirigidos = clave ? specsQueNombran(clave, specs, leer) : []
+      for (const s of dirigidos) enPantalla.add(s)
+      // Las pantallas que la rama toca de verdad: las rutas a las que llega aunque sean muchas (sólo el marco es toda pantalla).
+      const enRutas = new Set([...deSusRutas, ...dirigidos])
+      alcances.set(archivo, { ...usa, marco: usa.todaPantalla, todaPantalla, enPantalla, enRutas })
     }
     return alcances.get(archivo)
   }
+  // ¿Es el spec de una pantalla que la rama toca? Cuenta cualquier archivo de `src/` del diff, también uno borrado (un texto que se fue
+  // de él ya no tiene a quién llevar: su pantalla es la de lo demás que cambió).
+  const archivosDeSrc = archivos.filter(esFuenteDeSrc)
+  const enPantallaTocada = (spec) =>
+    archivosDeSrc.some((a) => {
+      return alcanceDe(a).enRutas.has(spec)
+    })
   const enSuPantalla = (spec, archivosDelTexto) =>
     [...archivosDelTexto].some((a) => {
       const alcance = alcanceDe(a)
@@ -162,17 +159,26 @@ export function e2eAfectados({
     ...new Set(archivosQueLoTienen.flatMap((a) => (esSpec(a) ? [a] : specsDelAyudante(a)))),
   ]
 
-  const { agregados, quitados } = textosDelDiff(cambios)
+  const { agregados, quitados, enMenu } = textosDelDiff(cambios)
   const textos = []
   const ignorados = []
   for (const texto of new Set([...agregados.keys(), ...quitados.keys()])) {
-    const llega = llegaA(dondeBuscar.filter((d) => d.texto.includes(texto)).map((d) => d.a))
+    let llega = llegaA(dondeBuscar.filter((d) => d.texto.includes(texto)).map((d) => d.a))
     if (llega.length === 0) continue
+    // Un texto que se fue de la vista (quitado, o pasado al «⋯») no se descarta por común: entran los specs de las pantallas tocadas.
+    const sale = !agregados.has(texto) || (enMenu.has(texto) && llega.length > COMUN_AL_NOMBRAR)
     if (llega.length > COMUN_AL_NOMBRAR) {
-      ignorados.push({ texto, como: 'nombra', specs: llega.length })
-      continue
+      if (!sale) {
+        ignorados.push({ texto, como: 'nombra', specs: llega.length })
+        continue
+      }
+      const deAca = llega.filter(enPantallaTocada)
+      if (deAca.length < llega.length)
+        ignorados.push({ texto, como: 'quitado', specs: llega.length - deAca.length })
+      llega = deAca
+      if (llega.length === 0) continue
     }
-    const se = agregados.has(texto) ? 'nombra' : 'quitado'
+    const se = !sale ? 'nombra' : agregados.has(texto) ? 'movido' : 'quitado'
     const de = new Set([...(agregados.get(texto) ?? []), ...(quitados.get(texto) ?? [])])
     textos.push({ texto, como: se, specs: llega, archivos: de })
   }
@@ -192,10 +198,15 @@ export function e2eAfectados({
       ignorados.push({ texto, como: 'atrapa', specs: llega.length })
     else textos.push({ texto, como: mejor.fuerza, specs: llega, archivos: agregados.get(mejor.t) })
   }
+  // Los specs que entran antes del tope, por regla: un texto que se fue de la vista de su pantalla, o el presupuesto de una pantalla tocada.
+  const porTexto = new Set()
+  const porPresupuesto = new Set()
   for (const t of textos) {
     for (const spec of t.specs) {
       const aca = enSuPantalla(spec, t.archivos)
       sumar(spec, aca ? PUNTOS[t.como] : PUNTOS.otraPantalla, `${t.como} «${t.texto}»`)
+      if ((t.como === 'quitado' || t.como === 'movido') && enPantallaTocada(spec))
+        porTexto.add(spec)
     }
   }
 
@@ -227,6 +238,18 @@ export function e2eAfectados({
   }
   for (const [spec, { puntos, razon }] of porPantalla) sumar(spec, puntos, razon)
 
+  // 4. El presupuesto de cada pantalla tocada: entra siempre, sin contar para el tope.
+  const presupuestos = presupuestosDeLasPantallas({
+    specs,
+    leer,
+    archivosDeSrc,
+    alcanceDe,
+  })
+  for (const { spec, razon } of presupuestos) {
+    sumar(spec, 0, `presupuesto de ${razon}`)
+    porPresupuesto.add(spec)
+  }
+
   // El orden: puntos y las palabras que el nombre del spec comparte con lo tocado.
   const lugares = [
     ...archivos.filter((a) => a.startsWith('src/')),
@@ -240,10 +263,21 @@ export function e2eAfectados({
   const ordenados = [...razones.entries()]
     .sort(([a, ra], [b, rb]) => rb.puntos - ra.puntos || a.localeCompare(b))
     .map(([spec]) => spec)
+  // Entran los de texto (hasta FORZADOS_DE_TEXTO, que cuentan para el tope) y los de presupuesto (no cuentan); el resto, hasta el tope.
+  const dePresupuesto = ordenados.filter((s) => porPresupuesto.has(s))
+  const deTexto = ordenados
+    .filter((s) => porTexto.has(s) && !porPresupuesto.has(s))
+    .slice(0, FORZADOS_DE_TEXTO)
+  const delResto = ordenados
+    .filter((s) => !porTexto.has(s) && !porPresupuesto.has(s))
+    .slice(0, Math.max(0, tope - deTexto.length))
+  const elegidosFinal = new Set([...deTexto, ...dePresupuesto, ...delResto])
   const ci = e2eDelCambio(archivos, specs, leer, soportes)
   return {
-    specs: ordenados.slice(0, tope).sort(),
-    fuera: ordenados.slice(tope),
+    specs: [...elegidosFinal].sort(),
+    fuera: ordenados.filter((s) => !elegidosFinal.has(s)),
+    porRegla: { texto: deTexto.length, presupuesto: dePresupuesto.length, puntos: delResto.length },
+    presupuestos,
     razones: Object.fromEntries([...razones].map(([s, r]) => [s, r.razones])),
     dirigidos: [...elegidos].sort(),
     textos: textos.map(({ texto, como, specs: s }) => ({ texto, como, specs: s })),

@@ -1,5 +1,5 @@
 // El resumen de una tanda en Markdown (≤ 6 KB), para que la sesión del cierre (plantillas/cerrar-tanda.md) encuentre las falencias con
-// datos: los totales (con las sesiones de retomar y de arreglar, gasten o no un intento), las trabas, los arreglos y los choques con
+// datos: los totales (con las sesiones de retomar, de seguir y de arreglar, gasten o no un intento), las trabas, los arreglos y los choques con
 // su motivo, los comandos de Bash que más se repitieron y los más lentos y, al final, cada tarea de la más cara a la más barata. Lo
 // que se recorta al pasar el tope es la cola de esa tabla, nunca los totales. Lo arma cierre-tanda.sh al publicar el cierre
 // (README.md › «El cierre de la tanda»).
@@ -195,7 +195,7 @@ export function armarResumen(tareas) {
     `- ${tareas.length} tareas · reloj de la tanda ${duracion(reloj)} · ${duracion(minutos)} de sesiones · ${dolares(costo)}`,
     `- Por modelo: ${modelos.length ? modelos.map(([m, v]) => `${m} ${Math.round((100 * v) / (sumaModelos || 1))} %`).join(' · ') : '—'}`,
     `- Retomas ${tareas.reduce((a, t) => a + t.retomas, 0)} · arreglos ${tareas.reduce((a, t) => a + t.arreglos, 0)} · trabadas ${tareas.filter((t) => t.log.trabas.length).length} (lo que gastó un intento)`,
-    `- Sesiones: ${sesionesDe('tarea')} · ${sesionesDe('retomar')} · ${sesionesDe('arreglar')}`,
+    `- Sesiones: ${sesionesDe('tarea')} · ${sesionesDe('retomar')} · ${sesionesDe('seguir')} · ${sesionesDe('arreglar')}`,
     lineaDeContexto(todas),
     '',
     '### Trabadas',

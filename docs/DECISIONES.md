@@ -32,6 +32,18 @@ las trampas, en `docs/LECCIONES.md`.
   `esperando_ci` (sin estado nuevo, sin retener sus llaves de área, sin gastar `MAX_ARREGLOS`), y al integrarse la urgente se pone al día con main sin
   sesión. Sólo vale desde un arreglo con PR y con un spec y línea válidos; `MAX_AJENOS` (3) corta el ciclo si el spec sigue cayendo
   (`scripts/orquestador/ajeno-de-main.sh`).
+- **El límite del plan se espera hasta su hora de renovación, y con la cuenta al borde no se lanza lo caro.** La pausa dura hasta el `resetsAt` del
+  `rate_limit_event` rechazado de la sesión (o el «resets 1pm» del `result`) más 2 min; sin hora, `PAUSA_POR_LIMITE_MIN`. Se avisa una vez por pausa
+  (otra sesión que deja una hora a menos de 5 min de la que ya corría sólo se anota). Con `utilization` semanal ≥ `UMBRAL_USO_SEMANAL` (0,95) no se
+  lanzan planes, sesiones del nivel capaz ni la redacción de un pedido hasta que la semana se renueve (las de arreglo, cortas, sí): la tarea sigue
+  esperando en su cola, sin pausa compartida que frene también a los arreglos. Un `resetsAt` inválido no anula el texto: se prueba el «resets …» antes
+  de caer al plazo por defecto (`scripts/orquestador/README.md` › «Límite del plan»).
+- **Una sesión que termina sin `RESULTADO` por esperar un aviso o por un error de la API se sigue, no se retoma.** Cerró el turno con un
+  `task_started` sin su `task_notification`, o la cortó «No response from API»: `claude -p --resume <session_id>` en el mismo worktree y carril
+  (el carril se suelta después, no antes) conserva la conversación; una retoma nueva la reconstruye desde los archivos (US$2–14 la primera vez,
+  US$34 la segunda). `MAX_SEGUIR` (2) por sesión, sin gastar `MAX_RETOMAS`; sin `session_id`, un `--resume` que falla o sin pendientes ni error de
+  la API, la retoma de siempre. Se sigue aunque la rama ya tenga PR: la sesión seguida termina con su `RESULTADO` y su resultado se revisa como el
+  de cualquiera (`scripts/orquestador/README.md` › «Una sesión que termina sin `RESULTADO` se sigue»).
 - **Las esperas que sondean se rechazan en el hook.** Decirlo en el prompt no alcanza (cada vuelta de sondeo relee todo el contexto): `bloquear-esperas.sh` rechaza un Bash en primer plano con un bucle con `sleep` o un `sleep` de más de 5 s, y un Monitor que sólo cuenta tiempo; `run_in_background` pasa. Lee el texto del comando como el resto del hook: un mensaje o un `grep` que nombre las dos cosas juntas también cae (el texto largo va por Write o `-F`), y un bucle dentro de un guion no se ve.
 
 ## Base de datos y permisos
@@ -1500,3 +1512,9 @@ las trampas, en `docs/LECCIONES.md`.
   ignora un texto que nombran más de 12 specs («Guardar», «Cancelar», «Cerrar») y un localizador que tienen más de 40: el choque de un
   localizador no exacto (strict mode) se cuenta aparte del texto que se nombra porque es una rotura cierta en toda pantalla que lo dibuja.
   Lee también `src/**/*.ts` (los avisos de las acciones), no sólo `.tsx`. No cambia lo que corre el CI (`scripts/e2e-dirigidos.mjs`).
+  Dos reglas pasan por encima del tope. Un texto que la rama **quita** no se descarta por común: entran los specs de las pantallas tocadas
+  que lo nombran (los de otras no), hasta 120, y el resumen dice cuántos entraron por cada regla. Un texto que se **agrega** como línea de
+  un menú (`etiqueta: '…'`, `<DropdownMenuItem>`) y nombran más de 12 specs cuenta como quitado de la vista: el diff no ve de dónde salió
+  el botón cuando su archivo no cambia, y «pasó al «⋯»» es lo que casi siempre significa. El spec de presupuesto de cada pantalla tocada
+  (`presupuestos.mjs`: el que mide JS o nodos y nombra la URL de una pantalla a la que llega un archivo del diff, o el de la tabla de JS por
+  ruta si la lista la nombra) entra siempre y no cuenta para el tope; un archivo que llega a toda pantalla sólo mueve al de la tabla.

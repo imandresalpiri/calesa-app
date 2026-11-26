@@ -134,7 +134,7 @@ it('por tarea: el ciclo, el plan y cada sesión con minutos, costo y turnos, las
   )
   expect(r).toContain('- Retomas 2 · arreglos 1 · trabadas 1 (lo que gastó un intento)')
   expect(r).toContain(
-    '- Sesiones: 2 de tarea ($6.00) · 0 de retomar ($0.00) · 0 de arreglar ($0.00)',
+    '- Sesiones: 2 de tarea ($6.00) · 0 de retomar ($0.00) · 0 de seguir ($0.00) · 0 de arreglar ($0.00)',
   )
   // Lo de toda la tanda va antes que la tabla, y la tabla va de la tarea más cara a la más barata.
   expect(r.indexOf('### Totales')).toBe(0)

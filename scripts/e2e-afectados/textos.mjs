@@ -93,3 +93,36 @@ export function atrapa(textoNuevo, localizador) {
   if (entero('^')) return 'inicio'
   return entero('(?<!\\p{L})') ? 'palabra' : 'parte'
 }
+
+export const esFuenteDeSrc = (a) =>
+  /^src\/.+\.(tsx?|mjs|js)$/.test(a) &&
+  !/\.(test|spec)\.[cm]?[jt]sx?$|\.d\.ts$|\.types\.ts$/.test(a)
+
+// Una línea que agrega una entrada del «⋯» (`AccionDeMenu`: `etiqueta: 'Subir'`) o de un menú de Base UI.
+const ENTRADA_DE_MENU = /\betiqueta:\s*['"`]|<(?:Dropdown)?Menu(?:Item|CheckboxItem|RadioItem)\b/
+
+/** Los textos netos de cada archivo de `src/` del diff: una línea que sólo cambió su clase no cambia su texto. */
+export function textosDelDiff(cambios) {
+  const agregados = new Map()
+  const quitados = new Map()
+  const enMenu = new Set()
+  const fueraDeMenu = new Set()
+  for (const [archivo, c] of Object.entries(cambios)) {
+    if (!esFuenteDeSrc(archivo)) continue
+    const ag = new Set(textosDeLasLineas(c.agregadas ?? []))
+    const qu = new Set(textosDeLasLineas(c.quitadas ?? []))
+    for (const t of ag) if (!qu.has(t)) sumarA(agregados, t, archivo)
+    for (const t of qu) if (!ag.has(t)) sumarA(quitados, t, archivo)
+    for (const linea of c.agregadas ?? [])
+      for (const t of textosDeLaLinea(linea))
+        (ENTRADA_DE_MENU.test(linea) ? enMenu : fueraDeMenu).add(t)
+  }
+  // Un texto «del menú» es el que sólo se agrega como línea de un menú: si también se dibuja suelto, sigue a la vista.
+  for (const t of fueraDeMenu) enMenu.delete(t)
+  return { agregados, quitados, enMenu }
+}
+
+export function sumarA(mapa, clave, valor) {
+  if (!mapa.has(clave)) mapa.set(clave, new Set())
+  mapa.get(clave).add(valor)
+}
