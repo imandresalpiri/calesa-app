@@ -98,7 +98,7 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      («Historial de cotizaciones» abre su modal, `?ver=historial`, que se lee al abrirse, con «Ver más»); la barra dice «Cotizado (n)». En «Elegido», el tipo de vehículo se elige entre las filas
      de la tabla, con el del vehículo marcado; un toque lo guarda en el vehículo, cierra el panel y la hoja recalcula (quien no puede editar
      el vehículo lo ve sin elegir; la celda sin valor dice que se elige en «Vehículo»).
-     **Ver la ficha sin perder la hoja:** cada tarjeta de vehículo (en las dos pestañas) y el «Elegido» llevan, al medio a la derecha, un enlace con el icono de abrir afuera («Ver <título> en Vehículos»,
+     **Ver la ficha sin perder la hoja:** cada tarjeta de vehículo (en las dos pestañas) y el «Elegido» llevan, al medio a la derecha, un enlace con el glifo ↗ de abrir afuera («Ver <título> en Vehículos»,
      44 px en el celular) a `/vehiculos/<id>` en otra pestaña; no elige ni cierra el panel, y tocar el resto de la tarjeta elige como siempre.
      **Subasta cerrada:** al elegir (o abrir con) un vehículo de un origen de subasta que sigue en el tramo de subasta con la subasta ya pasada
      («Sin resolver», «No ganada», o «En subasta» con el cierre vencido que la base aún no actualizó), un aviso bajo la barra del vehículo dice

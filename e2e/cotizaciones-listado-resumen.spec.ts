@@ -60,7 +60,7 @@ async function abrirConUnClic(page: Page, fila: Locator): Promise<void> {
     // La línea del autor de la tarjeta de la lista: texto (el título puede ser el enlace al vehículo y el cliente va enlazado a su ficha).
     await fila.locator('[data-autor-de-la-cotizacion]').click()
   } else {
-    await fila.getByRole('cell').nth(1).click()
+    await fila.getByRole('cell').nth(2).click()
   }
 }
 

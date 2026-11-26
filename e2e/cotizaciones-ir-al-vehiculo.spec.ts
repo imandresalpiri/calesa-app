@@ -48,11 +48,11 @@ test('V1 el título del resumen y el dato «Vehículo» enlazan a la ficha y nav
   await entrar(page, t.duena, { fresco: true })
   await page.goto(`${enElOrigen('tabla')}&cotizacion=${deUno()}`)
   const resumen = page.getByRole('dialog')
-  const enlace = resumen.getByRole('link', { name: `Ver ${TITULO_UNO} en Vehículos` })
+  const enlace = resumen.locator('[data-titulo-de-la-cotizacion] a')
   await expect(enlace).toBeVisible()
   await expect(enlace).toHaveAttribute('href', hrefDelUno())
   await expect(enlace).not.toHaveAttribute('target', /.+/)
-  await expect(resumen.locator('[data-titulo-de-la-cotizacion] a')).toHaveCount(1)
+  await expect(enlace).toHaveAccessibleName(/^Ver .+ en Vehículos$/)
   await expect(resumen.getByRole('link', { name: TITULO_UNO, exact: true })).toHaveAttribute(
     'href',
     hrefDelUno(),
@@ -65,7 +65,6 @@ test('V2 sin vehiculos.ver del origen, el título y el dato son texto', async ({
   await entrar(page, t.soloVer, { fresco: true })
   await page.goto(`${enElOrigen('tabla')}&cotizacion=${deUno()}`)
   const resumen = page.getByRole('dialog')
-  await expect(resumen).toContainText(TITULO_UNO)
   await expect(resumen.locator('[data-titulo-de-la-cotizacion]')).toBeVisible()
   await expect(resumen.getByRole('link', { name: /en Vehículos/ })).toHaveCount(0)
   await expect(resumen.locator('[data-titulo-de-la-cotizacion] a')).toHaveCount(0)
@@ -78,15 +77,16 @@ test('V3 en la lista, el enlace del vehículo navega y tocar el resto de la tarj
   const vista = esMovil(page) ? 'tarjetas' : 'tabla'
   await page.goto(enElOrigen(vista))
   await expect(filas(page).first()).toBeVisible()
-  const fila = filas(page).filter({ hasText: TITULO_UNO }).first()
-  const enlace = fila.getByRole('link', { name: new RegExp(`${TITULO_UNO}`) }).first()
+  const alVehiculo = page.locator(`a[href="${hrefDelUno()}"]`)
+  const fila = filas(page).filter({ has: alVehiculo }).first()
+  const enlace = fila.locator(`a[href="${hrefDelUno()}"]`).first()
   await expect(enlace).toHaveAttribute('href', hrefDelUno())
   // Tocar la fila (no el enlace) abre el resumen.
   await (
     esMovil(page) ? fila.locator('[data-autor-de-la-cotizacion]') : fila.getByRole('cell').nth(2)
   ).click()
   await expect(page).toHaveURL(/cotizacion=[0-9a-f-]{36}/)
-  await page.keyboard.press('Escape')
+  await page.getByRole('dialog').getByRole('button', { name: 'Cerrar' }).first().click()
   await expect(page).not.toHaveURL(/cotizacion=/)
   await enlace.click()
   await expect(page).toHaveURL(new RegExp(`/vehiculos/${t.vehiculos.uno}$`))

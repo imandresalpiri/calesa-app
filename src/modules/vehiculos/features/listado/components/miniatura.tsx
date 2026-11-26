@@ -1,7 +1,7 @@
-import { CarFrontIcon } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from 'cn'
 import { urlPublica } from '@/shared/lib/almacen'
+import { ID_DEL_ICONO_AUTO, IconoDeLista } from '@/shared/ui/lista'
 
 type Props = {
   // La miniatura de la portada del vehículo (ruta en el bucket `vehiculos`); sin fotos, el hueco.
@@ -33,7 +33,7 @@ export function Miniatura({ ruta, className }: Props) {
           className="object-cover"
         />
       ) : (
-        <CarFrontIcon className="size-5" />
+        <IconoDeLista id={ID_DEL_ICONO_AUTO} className="size-5" />
       )}
     </span>
   )

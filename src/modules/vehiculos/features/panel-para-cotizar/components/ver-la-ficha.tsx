@@ -1,6 +1,5 @@
 'use client'
 
-import { ExternalLinkIcon } from 'lucide-react'
 import type { Route } from 'next'
 import { RUTAS } from '@/shared/lib/rutas'
 import { cn } from 'cn'
@@ -24,11 +23,12 @@ export function VerLaFicha({
       rel="noopener"
       aria-label={`Ver ${titulo} en Vehículos`}
       className={cn(
-        'flex size-11 shrink-0 items-center justify-center rounded-(--radius-md) text-(--color-ink-soft) outline-none hover:bg-(--color-surface-3) hover:text-(--color-ink) focus-visible:shadow-(--shadow-focus) md:size-9',
+        'flex size-11 shrink-0 items-center justify-center rounded-(--radius-md) text-(length:--text-base) leading-none text-(--color-ink-soft) outline-none hover:bg-(--color-surface-3) hover:text-(--color-ink) focus-visible:shadow-(--shadow-focus) md:size-9',
         className,
       )}
     >
-      <ExternalLinkIcon aria-hidden className="size-4" />
+      {/* Un glifo y no un icono de trazos: veinte tarjetas son nodos del DOM (`e2e/cotizar-panel-del-vehiculo.spec.ts`). */}
+      ↗
     </a>
   )
 }
