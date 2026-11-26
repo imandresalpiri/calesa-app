@@ -258,6 +258,11 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   ruta con la caché del navegador, pasada a PNG en el navegador. El texto lo arma `textoParaCompartir()` (puro), con la firma del asesor (quien comparte: `DatosParaCompartir.asesor`; «Creado por» es `autor`, de
   `leerAutorDeLaCotizacion()`); los motivos de los botones, `motivosDeCompartir()`. Desde el navegador,
   por `areas/tarjeta/composicion-compartir.client.ts` (la importa sólo el panel). Lo genérico del navegador, `src/shared/lib/compartir.ts`.
+  **El asistente de IA** (glosario): `generarTextoConElAsistente` (un atajo) y `reescribirTextoConElAsistente` (una instrucción libre), en
+  `features/tarjeta/actions/asistente/` (`esquemaDeGenerar`, `esquemaDeReescribir`, con los topes de `@/modules/empresa/client`), no salen por ninguna entrada:
+  las importa el panel de compartir. Primero `leerCotizacionVisible()` (`cotizaciones_pkey`, sin la papelera, la RLS decide; sin acceso, `sin_permiso` sin tocar
+  el asistente) y después `redactarConElAsistente()` de `empresa`, con la firma de `leerAsesorQueMira()` y `puedeConfigurar` (`empresa.ajustes.gestionar`).
+  Dan `{ texto }` sin revalidar.
 - **La imagen de la tarjeta** (área `tarjeta`; glosario, `docs/COTIZADOR.md` › «La imagen de la tarjeta»): `GET /cotizaciones/[id]/imagen` (`rutaDeLaImagen(id,
 { ancho?, intento? })`, el mismo 404 que el PDF; `?ancho=480` es la miniatura de las listas y otro ancho se ignora; `?intento=`, sólo otra URL) se arma **al pedirla, para
   quien la pide**, y no se guarda. Lee la huella (`leerHuellaDeLaImagen()`, `cotizacion_imagen_huella()`; lo que no se ve, 404) y, con un `If-None-Match` que

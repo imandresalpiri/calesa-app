@@ -19,6 +19,7 @@ import {
 import { lecturaRetocada } from '../../entities/tarjeta/retoques/aplicar-retoques'
 import { getAsesorQueMira } from '../../infra/tarjeta/asesor-que-mira'
 import { getAutorDeLaCotizacion } from '../../infra/tarjeta/autor-de-la-cotizacion'
+import { getCotizacionVisible } from '../../infra/tarjeta/cotizacion-visible'
 import { getHuellaDeLaImagen } from '../../infra/tarjeta/huella-de-la-imagen'
 import { setRetoques } from '../../infra/tarjeta/retoques'
 import { fotoParaDibujar, logoParaDibujar } from '../../infra/tarjeta/logo-de-la-tarjeta'
@@ -36,6 +37,9 @@ export const leerHuellaDeLaImagen = getHuellaDeLaImagen
 
 // El vehículo de una cotización guardada (por clave primaria, sin la papelera), para las fotos de «Compartir la cotización».
 export const leerVehiculoDeLaCotizacion = getVehiculoDeLaCotizacion
+
+// Si quien pide ve una cotización guardada (por clave primaria, sin la papelera; la RLS decide): antes de redactar con el asistente de IA.
+export const leerCotizacionVisible = getCotizacionVisible
 
 // Los retoques de la tarjeta de una cotización (`cotizacion_retocar_tarjeta()`, con la sesión de quien retoca): la base pide poder guardarla y la versión.
 export const guardarLosRetoques = setRetoques
