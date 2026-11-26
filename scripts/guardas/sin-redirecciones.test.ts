@@ -64,6 +64,7 @@ describe('el detector', () => {
   it('un route.ts con redireccionPermanente() cae', () => {
     const texto = "export const GET = () => redireccionPermanente('/x')"
     expect(redireccionesEn(texto, 'ruta')).toEqual(['redireccionPermanente('])
+    expect(redireccionesEn('return new Response(null, { status: 303 })', 'ruta')).toEqual(['303'])
   })
 
   it('un 308 o un redirect() en un comentario no cuenta', () => {

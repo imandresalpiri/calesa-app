@@ -124,11 +124,11 @@ export function sinComentarios(texto: string): string {
 
 const LLAMADAS = /\b(?:redirigir|redirect|permanentRedirect|redireccionPermanente)\(/g
 // Un estado 30x escrito como número en un `route.ts` (`status: 307`, `vacia(302, …)`); fuera de un `route.ts` un 301 puede ser cualquier cosa.
-const ESTADOS = /\b30[1278]\b/g
+const ESTADOS = /\b30[12378]\b/g
 
 /**
  * Lo que redirige en un archivo de `src/app`: las llamadas (`redirigir(`, `redirect(`, `NextResponse.redirect(`, `permanentRedirect(`,
- * `redireccionPermanente(`) y, en un `route.ts`, un estado 301, 302, 307 o 308. Vacío si no redirige.
+ * `redireccionPermanente(`) y, en un `route.ts`, un estado 301, 302, 303, 307 o 308. Vacío si no redirige.
  */
 export function redireccionesEn(texto: string, tipo: 'ruta' | 'otro'): string[] {
   const codigo = sinComentarios(texto)
