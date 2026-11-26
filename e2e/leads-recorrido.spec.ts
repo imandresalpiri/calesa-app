@@ -198,10 +198,9 @@ test('B · la fila lleva a la ficha, «atrás» vuelve a la lista, y lo privado 
   await expect(page).toHaveURL(/\/leads$/)
   await expect(aLaVista(page.getByRole('link', { name: r.dos.nombre, exact: true }))).toBeVisible()
 
-  // La dueña ve el lead de Ana en «todos», pero no su seguimiento privado en la ficha (a la que lleva la pestaña de antes).
+  // La dueña abre la ficha del lead de Ana en su bloque «Seguimiento», pero no ve su seguimiento privado.
   await entrar(page, r.t.personas.duena)
-  await page.goto(`/leads?alcance=todos&lead=${r.uno.id}&pestana=seguimientos`)
-  await expect(page).toHaveURL(new RegExp(`/leads/${r.uno.id}\\?seccion=seguimientos`))
+  await page.goto(`/leads/${r.uno.id}?seccion=seguimientos`)
   const bloque = page.getByRole('region', { name: 'Seguimiento', exact: true })
   await expect(bloque).toBeVisible()
   await expect(bloque.getByText('Primera llamada del recorrido')).toHaveCount(0)
