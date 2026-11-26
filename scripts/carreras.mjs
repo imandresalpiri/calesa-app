@@ -67,6 +67,7 @@ import {
   carrerasDelPrincipal,
 } from '../supabase/tests/areas/origenes/carreras.mjs'
 import { carrerasDeLaBarra } from '../supabase/tests/areas/empresa/carreras.mjs'
+import { carrerasDelAsistente } from '../supabase/tests/areas/empresa/carreras-asistente-ia.mjs'
 import {
   carrerasDeTransporte,
   limpiarTransporte,
@@ -416,6 +417,7 @@ try {
   await carrerasDelPrincipal({ orquesta, carrera, espero })
   await carrerasDeDatosClave({ orquesta, carrera, espero })
   await carrerasDeLaBarra({ orquesta, carrera, espero })
+  await carrerasDelAsistente({ orquesta, carrera, espero })
   await carrerasDeTransporte({ orquesta, espero, conectar, esperarBloqueo })
   await carrerasDeCatalogosDeLogistica({ orquesta, carrera, espero })
   await carrerasDeAduana({ orquesta, espero, conectar, esperarBloqueo })

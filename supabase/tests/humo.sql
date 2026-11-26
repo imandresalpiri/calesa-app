@@ -1205,6 +1205,45 @@ do $$ begin
 end $$;
 reset role;
 
+-- @test empresa: los usos del asistente de IA los lee cada persona los suyos y quien gestiona la empresa, todos (policy «asistente_ia_usos: leer»; lo demás: areas/empresa/asistente-ia.sql)
+begin;
+do $$
+declare v_rol uuid; v_n int; v_codigo text;
+  v_quien uuid := '00000000-0000-4000-8000-0000000a5901';
+  v_otra uuid := '00000000-0000-4000-8000-0000000a5902';
+begin
+  insert into auth.users (id, email, raw_app_meta_data) values
+    (v_quien, 'humo.asistente@ejemplo.com', '{"invitado": true}'), (v_otra, 'humo.asistente.otra@ejemplo.com', '{"invitado": true}');
+  delete from public.usuarios_roles where usuario_id in (v_quien, v_otra);
+  insert into public.roles (clave, nombre) values ('humo_asistente', 'Humo asistente') returning id into v_rol;
+  insert into public.usuarios_roles (usuario_id, rol_id, es_principal) values (v_quien, v_rol, true), (v_otra, v_rol, true);
+  insert into public.roles_permisos (rol_id, permiso_clave, alcance) values (v_rol, 'leads.ver', 'todos');
+  insert into public.asistente_ia_usos (usuario_id, mes, usos) values (v_quien, date_trunc('month', now())::date, 3), (v_otra, date_trunc('month', now())::date, 4);
+  perform set_config('request.jwt.claim.sub', v_quien::text, true);
+  perform set_config('request.jwt.claim.role', 'authenticated', true);
+  perform set_config('request.jwt.claims', json_build_object('sub', v_quien, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_n from (select 1 from public.asistente_ia_usos where usuario_id = v_otra limit 1) x;
+  if v_n <> 0 then raise exception 'una persona leyó los usos de otra'; end if;
+  select count(*) into v_n from (select 1 from public.asistente_ia_usos where usuario_id = v_quien limit 1) x;
+  if v_n <> 1 then raise exception 'una persona no leyó sus usos'; end if;
+  begin
+    update public.asistente_ia_usos set usos = 99 where usuario_id = v_quien;
+    v_codigo := 'sin error';
+  exception when others then v_codigo := sqlstate;
+  end;
+  if v_codigo <> '42501' then raise exception 'el update directo de asistente_ia_usos dio %', v_codigo; end if;
+  -- La dueña (empresa.ajustes.gestionar) lee los de todos.
+  reset role;
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+  perform set_config('request.jwt.claims', json_build_object('sub', '00000000-0000-0000-0000-000000000001', 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into v_n from (select 1 from public.asistente_ia_usos where usuario_id in (v_quien, v_otra) limit 3) x;
+  if v_n <> 2 then raise exception 'quien gestiona leyó % filas de usos, no 2', v_n; end if;
+  reset role;
+end $$;
+rollback;
+
 -- @test origenes: crear es atómico y trae su flujo, sus reglas y sus campos; el nombre no se repite
 -- El catálogo de apibara es interno: se cuenta como dueño de la base y se lee de acá.
 create temp table catalogo_humo as select count(*)::int as n, count(clave_apibara)::int as con_ruta from public._apibara_catalogo();
