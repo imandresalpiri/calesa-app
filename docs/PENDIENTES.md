@@ -172,6 +172,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-45]** `cotizaciones.moneda_mostrar` y `cotizaciones.plantilla_id` no tienen uso real (`moneda_mostrar` sólo viaja por `cotizaciones_listado()`) — migración que la recree sin ellas, con su medición y `db:types`.
 - **[—]** `VAPID_PRIVATE_KEY` y `VAPID_SUBJECT` están en `esquemaDelServidor` (`src/shared/config/esquemas.ts`) y en `.env.example`, pero sólo los lee la función `push` — dejarlos sólo en `esquemaDeLasFunciones`.
 - **[—]** Copias que deberían subir al núcleo o a `shared`: el esquema de la nota de publicar, `FILAS_POR_PEDIDO`, `MARCAS_DE_GESTORES`, `valorTipeado`, `diasParaLaPurga`/`textoDePurga`, las lecturas de tonos, `normalizar` de la XCell y la subida por hash a bucket privado.
+- **[—]** Dos claves para «el mismo nombre de catálogo»: `_catalogo_clave()` ↔ `claveDeCatalogo` (`shared/lib/catalogos`: logística y tipos de documento, tabla
+  ASCII de tildes) y `_nombre_de_catalogo()` ↔ `claveDeNombre` (`shared/lib/catalogo`: grupos de campos y categorías, `unaccent`) — unificar en una
+  sola función y una sola carpeta; cambia qué nombres choca cada índice único, así que va con su migración y sus pruebas.
 - **[—]** Dos arrastres con dnd-kit que se parecen: el de las filas del lienzo de la tarjeta (`cotizaciones/features/plantilla/hooks/use-asa-de-fila.ts`) y `shared/ui/campos/arrastre/` — unificarlos en un `shared/ui/orden` (asa, sensores, anuncios en español, coordenadas por contenedor).
 - **[—]** `e2e/configuracion-200-capturas.spec.ts` captura un panel por la URL apenas se ve el diálogo, sin esperar lo que trae su `diferido()`: «Datos del origen» y «Columnas de…» salen vacíos en la hoja — esperar un texto del cuerpo antes de `capturar()`.
 - **[—]** «Ver comprobante» duplicado en repuestos y logística (`ver-comprobante.ts` y `useComprobante.ver`); `XCell` no tiene `emptyLabel`.
