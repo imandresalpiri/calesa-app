@@ -273,17 +273,23 @@ create or replace function public.embarque_guardar(p_id uuid, p_actualizado_en_e
 as $$
 declare
   c_claves constant text[] := array['booking', 'naviera_id', 'puerto_origen_id', 'puerto_destino_id', 'zarpe_el', 'eta_el', 'arribo_el', 'notas'];
-  e record; o public.datos_de_transporte; n public.datos_de_transporte; v_zarpe_est date; v_version timestamptz;
+  e record; o public.datos_de_transporte; n public.datos_de_transporte; v_zarpe_est date; v_version timestamptz; v_origen uuid; v_hay boolean;
 begin
   perform public.assert_activo();
+  -- El permiso antes del candado: quien no puede editar en el origen del embarque no espera a nadie, y sin la clave en ningún origen no distingue
+  -- uno que existe de uno que no.
+  if not (public.tiene_permiso('logistica.transporte.editar') or public.tiene_permiso('repuestos.editar')) then
+    raise exception 'No tienes permiso para editar los embarques de este origen.' using errcode = '42501';
+  end if;
+  select x.origen_id, true into v_origen, v_hay from public.embarques x where x.id = p_id;                           -- embarques_pkey
+  if coalesce(v_hay, false) and not public._entidad_creable(v_origen) then
+    raise exception 'No tienes permiso para editar los embarques de este origen.' using errcode = '42501';
+  end if;
   select x.id, x.origen_id, x.booking, x.naviera_id, x.puerto_origen_id, x.puerto_destino_id, x.zarpe_estimado_el, x.zarpe_el, x.eta_el,
          x.arribo_el, x.notas, x.actualizado_en
     into e from public.embarques x where x.id = p_id for no key update;                                                 -- embarques_pkey
   if e.id is null then
     raise exception 'Este embarque ya no existe. Recarga.' using errcode = 'PT409', hint = 'conflicto';
-  end if;
-  if not public._entidad_creable(e.origen_id) then
-    raise exception 'No tienes permiso para editar los embarques de este origen.' using errcode = '42501';
   end if;
   if not public._embarque_editable(p_id) then
     raise exception 'Hay unidades del embarque «%» que no puedes editar.', e.booking using errcode = '42501';
@@ -383,11 +389,19 @@ create or replace function public.contenedor_guardar(p_id uuid, p_actualizado_en
   language plpgsql security definer
   set search_path = ''
 as $$
-declare c record; d record; v_antes uuid; v_version timestamptz;
+declare c record; d record; v_antes uuid; v_version timestamptz; v_origen uuid; v_hay boolean;
 begin
   perform public.assert_activo();
-  -- Los embarques (el de ahora y el nuevo) antes que el contenedor.
-  select x.embarque_id into v_antes from public.contenedores x where x.id = p_id;                                        -- contenedores_pkey
+  -- El permiso antes del candado, como en embarque_guardar.
+  if not (public.tiene_permiso('logistica.transporte.editar') or public.tiene_permiso('repuestos.editar')) then
+    raise exception 'No tienes permiso para editar los contenedores de este origen.' using errcode = '42501';
+  end if;
+  select x.embarque_id, x.origen_id, true into v_antes, v_origen, v_hay from public.contenedores x where x.id = p_id;   -- contenedores_pkey
+  if coalesce(v_hay, false) and not public._entidad_creable(v_origen) then
+    raise exception 'No tienes permiso para editar los contenedores de este origen.' using errcode = '42501';
+  end if;
+  -- Los embarques (el de ahora y el nuevo) antes que el contenedor. Si se mudó de embarque entre la lectura y el candado, su versión ya no es la
+  -- que vio quien guarda: PT409 abajo.
   perform public._transporte_bloquear_entidades(
     array_remove(array[v_antes, case when p_cambios ? 'embarque_id' and pg_input_is_valid(p_cambios ->> 'embarque_id', 'uuid')
                                      then (p_cambios ->> 'embarque_id')::uuid end], null),
@@ -396,9 +410,6 @@ begin
     into c from public.contenedores x where x.id = p_id;
   if c.id is null then
     raise exception 'Este contenedor ya no existe. Recarga.' using errcode = 'PT409', hint = 'conflicto';
-  end if;
-  if not public._entidad_creable(c.origen_id) then
-    raise exception 'No tienes permiso para editar los contenedores de este origen.' using errcode = '42501';
   end if;
   if not public._contenedor_editable(p_id) then
     raise exception 'Hay unidades del contenedor «%» que no puedes editar.', c.numero using errcode = '42501';
