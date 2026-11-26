@@ -41,6 +41,8 @@ function ConError({ mensaje, reintentar }: { mensaje: string; reintentar: () => 
 
 type Unidades = { id: string; titulo: string }[]
 
+const SIN_ORIGENES: readonly string[] = []
+
 function Formulario({ unidades, opciones }: { unidades: Unidades; opciones: OpcionesDeGasto }) {
   const f = useProrrateo({ unidades, opciones })
   const hayMonto = f.valores.monto.trim() !== ''
@@ -87,7 +89,12 @@ function Formulario({ unidades, opciones }: { unidades: Unidades; opciones: Opci
 // base pide `logistica.gastos.editar` por cada unidad y escribe todo o nada. Sin la clave el hueco no se dibuja (lo decide quien monta el resumen: `permisos` y `regla` de `pantallas/dinero-grupo.ts`).
 export function HuecoDeProrrateo({ grupo }: { grupo: GrupoDeLogistica }) {
   const unidades = useUnidadesDelGrupo(grupo)
-  const lectura = useOpcionesDeGasto(true, 0)
+  // Las categorías dependen de los orígenes de las unidades: se leen cuando llegan.
+  const lectura = useOpcionesDeGasto(
+    unidades.tipo === 'listo',
+    0,
+    unidades.tipo === 'listo' ? unidades.dato.unidades.map((u) => u.origenId) : SIN_ORIGENES,
+  )
   if (unidades.tipo === 'cargando' || (unidades.tipo === 'listo' && lectura.tipo === 'cargando')) {
     return <Cargando />
   }

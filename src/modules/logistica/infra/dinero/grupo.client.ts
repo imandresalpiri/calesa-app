@@ -14,11 +14,13 @@ export const NO_SE_CARGARON_LAS_UNIDADES = 'No se pudieron cargar las unidades d
 const esquemaDeFilas = z.array(
   z.object({
     vehiculo_id: z.guid().nullable(),
-    vehiculos: z.object({ id: z.guid(), titulo: z.string() }).nullable(),
+    vehiculos: z.object({ id: z.guid(), titulo: z.string(), origen_id: z.guid() }).nullable(),
   }),
 )
 
-export type UnidadesDelGrupo = { unidades: UnidadDelReparto[]; hayMas: boolean }
+// Con su origen: qué categorías pueden usar todas (`categoriasParaElegir`).
+export type UnidadDeGrupoConOrigen = UnidadDelReparto & { origenId: string }
+export type UnidadesDelGrupo = { unidades: UnidadDeGrupoConOrigen[]; hayMas: boolean }
 
 /** Las unidades del grupo por título y luego por id (así «a las primeras» no cambia entre aperturas), sin repetidas; `hayMas` si pasan de 200. */
 export async function leerUnidadesDelGrupo(
@@ -26,7 +28,7 @@ export async function leerUnidadesDelGrupo(
 ): Promise<Resultado<UnidadesDelGrupo>> {
   const supabase = createClient()
   const tope = MAXIMO_DE_UNIDADES_POR_REPARTO + 1
-  const columnas = 'vehiculo_id, vehiculos(id, titulo)'
+  const columnas = 'vehiculo_id, vehiculos(id, titulo, origen_id)'
   const { data, error } =
     grupo.tipo === 'declaracion'
       ? await supabase
@@ -49,12 +51,12 @@ export async function leerUnidadesDelGrupo(
     return fallo('inesperado', NO_SE_CARGARON_LAS_UNIDADES)
   }
   const vistas = new Set<string>()
-  const unidades: UnidadDelReparto[] = []
+  const unidades: UnidadDeGrupoConOrigen[] = []
   for (const fila of filas.data) {
     const v = fila.vehiculos
     if (v && !vistas.has(v.id)) {
       vistas.add(v.id)
-      unidades.push({ id: v.id, titulo: v.titulo })
+      unidades.push({ id: v.id, titulo: v.titulo, origenId: v.origen_id })
     }
   }
   unidades.sort((a, b) => a.titulo.localeCompare(b.titulo, 'es') || a.id.localeCompare(b.id))

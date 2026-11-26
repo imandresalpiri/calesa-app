@@ -1,7 +1,9 @@
 import { z } from 'zod'
+import { textoDeUso as textoDeUsoDeCatalogo } from '../nucleo/catalogos'
 
-// Los catálogos de transporte (6.08-1): puertos y navieras de la empresa. Salen de la base (`puertos`, `navieras`); ningún texto fijo los nombra. Se escriben directo bajo la RLS de
-// `logistica.catalogos.gestionar` y no se borran: borrar deja nulos los transportes y vacía la oferta de los flujos, así que se desactivan.
+// Los catálogos de transporte (6.08-1): puertos y navieras, propios de un origen o compartidos con todos (`origen_id` nulo). Salen de la base (`puertos`, `navieras`); ningún
+// texto fijo los nombra. Se escriben sólo por RPC (`puerto_crear|guardar`, `naviera_crear|guardar`) con la versión de la fila, y no se borran: borrar dejaría nulos los
+// transportes y vaciaría la oferta de los flujos, así que se desactivan.
 export const LARGO_MAXIMO_DE_NOMBRE_DE_TRANSPORTE = 80
 export const LARGO_MAXIMO_DE_PAIS = 60
 export const LARGO_MAXIMO_DE_CODIGO = 12
@@ -10,41 +12,63 @@ export const TOPE_DE_CATALOGO_DE_TRANSPORTE = 200
 
 export type PuertoDeCatalogo = {
   id: string
+  // Nulo: compartido con todos los orígenes.
+  origenId: string | null
   nombre: string
   pais: string | null
   codigo: string | null
   activo: boolean
   orden: number
+  // La versión de la fila: la pide `puerto_guardar`.
+  actualizadoEn: string
 }
 
 export type NavieraDeCatalogo = {
   id: string
+  origenId: string | null
   nombre: string
   activo: boolean
+  actualizadoEn: string
 }
 
-const esquemaDePuerto = z.object({
-  id: z.guid(),
-  nombre: z.string(),
-  pais: z.string().nullable(),
-  codigo: z.string().nullable(),
-  activo: z.boolean(),
-  orden: z.number(),
-})
+const esquemaDePuerto = z
+  .object({
+    id: z.guid(),
+    origen_id: z.guid().nullable(),
+    nombre: z.string(),
+    pais: z.string().nullable(),
+    codigo: z.string().nullable(),
+    activo: z.boolean(),
+    orden: z.number(),
+    actualizado_en: z.string(),
+  })
+  .transform(({ origen_id, actualizado_en, ...resto }) => ({
+    ...resto,
+    origenId: origen_id,
+    actualizadoEn: actualizado_en,
+  }))
 
-const esquemaDeNaviera = z.object({
-  id: z.guid(),
-  nombre: z.string(),
-  activo: z.boolean(),
-})
+const esquemaDeNaviera = z
+  .object({
+    id: z.guid(),
+    origen_id: z.guid().nullable(),
+    nombre: z.string(),
+    activo: z.boolean(),
+    actualizado_en: z.string(),
+  })
+  .transform(({ origen_id, actualizado_en, ...resto }) => ({
+    ...resto,
+    origenId: origen_id,
+    actualizadoEn: actualizado_en,
+  }))
 
-/** Las filas de `puertos`; nulo si alguna no tiene la forma esperada. */
+/** Las filas de `puertos` (con `origen_id` y `actualizado_en`); nulo si alguna no tiene la forma esperada. */
 export function puertosDesde(datos: unknown): PuertoDeCatalogo[] | null {
   const leido = z.array(esquemaDePuerto).safeParse(datos)
   return leido.success ? leido.data : null
 }
 
-/** Las filas de `navieras`; nulo si alguna no tiene la forma esperada. */
+/** Las filas de `navieras` (con `origen_id` y `actualizado_en`); nulo si alguna no tiene la forma esperada. */
 export function navierasDesde(datos: unknown): NavieraDeCatalogo[] | null {
   const leido = z.array(esquemaDeNaviera).safeParse(datos)
   return leido.success ? leido.data : null
@@ -219,36 +243,16 @@ export function cambiosDeNaviera(
   return Object.keys(cambios).length === 0 ? null : cambios
 }
 
+// Lo que dice una action antes de escribir si quien pide no tiene `logistica.catalogos.gestionar` en ningún origen (o en el del propio que crea).
 export const SIN_PERMISO_PARA_LOS_CATALOGOS_DE_TRANSPORTE =
   'No tienes permiso para cambiar los catálogos de transporte.'
 
-/** Quién se repite: una naviera por nombre; un puerto por nombre y país. */
-export type RepetidoDeCatalogo =
-  { tipo: 'naviera'; nombre: string } | { tipo: 'puerto'; nombre: string; pais: string | null }
+// Lo que usa un puerto o una naviera (`_puerto_uso()`, `_naviera_uso()`): los transportes que lo tienen y la oferta de los flujos.
+const USADO_POR = ['transporte u oferta', 'transportes u ofertas'] as const
 
-/** El rechazo de un nombre repetido, dicho junto al campo «Nombre». */
-export function textoDeRepetido(repetido: RepetidoDeCatalogo): string {
-  if (repetido.tipo === 'naviera') {
-    return `Ya existe una naviera llamada «${repetido.nombre}».`
-  }
-  return repetido.pais === null
-    ? `Ya existe un puerto llamado «${repetido.nombre}» sin país.`
-    : `Ya existe un puerto «${repetido.nombre}» en ${repetido.pais}.`
-}
-
-/** El texto de lo que la base responde al escribir (por su código SQL); nulo si no es uno de los que se anticipan. */
-export function textoDeErrorDeCatalogo(
-  codigo: string,
-  repetido: RepetidoDeCatalogo,
-): string | null {
-  switch (codigo) {
-    case '23505':
-      return textoDeRepetido(repetido)
-    case '42501':
-      return SIN_PERMISO_PARA_LOS_CATALOGOS_DE_TRANSPORTE
-    default:
-      return null
-  }
+/** El aviso al desactivar un puerto (`femenino: false`) o una naviera (`true`) que se usa: «Desactivaste «X»: lo usan 12 transportes u ofertas; siguen mostrándolo.». */
+export function textoDeUso(nombre: string, uso: number, femenino: boolean): string {
+  return textoDeUsoDeCatalogo({ nombre, uso, femenino, usadoPor: USADO_POR })
 }
 
 // Los paneles de «Puertos» y «Navieras» en Logística › Configuración: `?panel=nuevo-puerto`, `?panel=editar-puerto&puerto=<id>`, `?panel=nueva-naviera` y `?panel=editar-naviera&naviera=<id>`.

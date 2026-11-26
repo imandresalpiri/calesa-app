@@ -18,10 +18,11 @@ function Bloque() {
   )
 }
 
-// La forma de los tipos de documento: un grupo con su encabezado y unas filas.
+// La forma de los tipos de documento en el panel del flujo: sus dos grupos (los del flujo y los compartidos), cada uno con su encabezado y unas filas.
 export function EsqueletoDeTipos() {
   return (
     <div className="grid gap-6" aria-busy="true" aria-label="Cargando los tipos de documento">
+      <Bloque />
       <Bloque />
     </div>
   )

@@ -5,24 +5,35 @@ import { ok } from '@/shared/lib/errores'
 import { ProveedorRegional } from '@/shared/ui/regional'
 
 const CATEGORIA = '0b6f1a0e-6a43-4c1e-9d3b-6c1d3f7a9e11'
+const ORIGEN = '44444444-4444-4444-8444-444444444444'
 const UNIDADES = [
-  { id: '11111111-1111-4111-8111-111111111111', titulo: 'Hilux' },
-  { id: '22222222-2222-4222-8222-222222222222', titulo: 'Frontier' },
-  { id: '33333333-3333-4333-8333-333333333333', titulo: 'Jimny' },
+  { id: '11111111-1111-4111-8111-111111111111', titulo: 'Hilux', origenId: ORIGEN },
+  { id: '22222222-2222-4222-8222-222222222222', titulo: 'Frontier', origenId: ORIGEN },
+  { id: '33333333-3333-4333-8333-333333333333', titulo: 'Jimny', origenId: ORIGEN },
 ]
 
-const lecturas = vi.hoisted(() => ({ unidades: [] as { id: string; titulo: string }[] }))
+const lecturas = vi.hoisted(() => ({
+  unidades: [] as { id: string; titulo: string; origenId: string }[],
+}))
 const prorratear = vi.hoisted(() => vi.fn())
 
 vi.mock('../../../areas/dinero/composicion.client', () => ({
   NO_SE_CARGARON_LAS_UNIDADES: 'No se pudieron cargar las unidades del grupo.',
   NO_SE_CARGARON_LAS_OPCIONES: 'No se pudieron cargar las opciones del gasto.',
   leerUnidadesDelGrupo: () => Promise.resolve(ok({ unidades: lecturas.unidades, hayMas: false })),
-  leerOpcionesDeGasto: () =>
+  leerOpcionesDeGasto: (origenes: string[]) =>
     Promise.resolve(
       ok({
+        origenes,
         categorias: [
-          { id: CATEGORIA, nombre: 'Flete', proposito: 'flete', activo: true, orden: 1 },
+          {
+            id: CATEGORIA,
+            origenId: null,
+            nombre: 'Flete',
+            proposito: 'flete',
+            activo: true,
+            orden: 1,
+          },
         ],
         monedas: [{ codigo: 'USD', nombre: 'Dólar', simbolo: '$' }],
         tiposDeCambio: [],

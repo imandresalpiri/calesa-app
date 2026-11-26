@@ -1,3 +1,5 @@
+import type { FilaPropiaOCompartida } from '@/shared/lib/catalogos/propios'
+import { alcanceDelCatalogo, type AlcanceDelCatalogo } from '../nucleo/alcance-del-catalogo'
 import type { UnidadDelGrupo, GrupoLeido } from './grupos'
 import {
   CAMPOS_DE_TRANSPORTE,
@@ -90,6 +92,20 @@ export function cambiosDelGrupo(
     }
   }
   return Object.keys(cambios).length === 0 ? null : cambios
+}
+
+/**
+ * Qué ofrecen los selectores de puertos y navieras: lo que pueden usar a la vez todas las unidades (la base aplica todo o nada). Con un solo origen, lo que usa ese origen; con varios, o
+ * con un ítem de repuestos, sólo los compartidos que no tapa ninguno: un propio fallaría en las demás. Lo común guardado que queda afuera se rotula.
+ */
+export function alcanceDelGrupo(
+  catalogo: readonly FilaPropiaOCompartida[],
+  unidades: readonly Pick<UnidadDelGrupo, 'origenId'>[],
+): AlcanceDelCatalogo {
+  return alcanceDelCatalogo(
+    catalogo,
+    unidades.map((u) => u.origenId),
+  )
 }
 
 /** Las versiones que vio el resumen, por transporte: lo que la base compara para no pisar a nadie. */

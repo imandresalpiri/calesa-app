@@ -19,7 +19,7 @@ const PANELES = {
   },
   documentos: {
     titulo: 'Tipos de documento',
-    // Sólo los de este flujo: los de toda la empresa viven en Logística › Configuración › Tipos de documento.
+    // Los de este flujo y los compartidos, marcados los que tapa (los compartidos también viven en Logística › Configuración › Tipos de documento).
     contenido: ({ permisos, fijo }: Pedido) => (
       <PantallaDeDocumentos
         grupos="flujo"

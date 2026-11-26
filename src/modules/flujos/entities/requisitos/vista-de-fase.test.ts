@@ -69,16 +69,22 @@ describe('requisitosDeLaFase y clavesQueFaltan', () => {
 })
 
 describe('tiposActivos y reglaDeEsperasActiva', () => {
-  it('sólo los tipos activos, en el orden leído', () => {
-    const tipo = (id: string, activo: boolean) => ({
+  it('sólo los tipos activos que el flujo no tapa, en el orden leído', () => {
+    const tipo = (id: string, activo: boolean, tapadoPor: string | null = null) => ({
       id,
       nombre: id,
       formatos: [],
       activo,
       delFlujo: false,
+      tapadoPor,
     })
     expect(
-      tiposActivos([tipo('a', true), tipo('b', false), tipo('c', true)]).map((t) => t.id),
+      tiposActivos([
+        tipo('a', true),
+        tipo('b', false),
+        tipo('c', true),
+        tipo('d', true, 'el de Miami'),
+      ]).map((t) => t.id),
     ).toEqual(['a', 'c'])
   })
 

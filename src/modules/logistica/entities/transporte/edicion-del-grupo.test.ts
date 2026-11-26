@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  alcanceDelGrupo,
   cambiosDelGrupo,
   esperadasDelGrupo,
   puedeEditarElGrupo,
@@ -11,6 +12,8 @@ import type { UnidadDelGrupo } from './grupos'
 import { VALORES_VACIOS_DE_TRANSPORTE } from './transporte'
 
 const NAVIERA = '11111111-1111-4111-8111-111111111111'
+const ORIGEN_A = '22222222-2222-4222-8222-22222222222a'
+const ORIGEN_B = '22222222-2222-4222-8222-22222222222b'
 
 function unidad(n: number, extra: Partial<UnidadDelGrupo> = {}): UnidadDelGrupo {
   return {
@@ -18,6 +21,7 @@ function unidad(n: number, extra: Partial<UnidadDelGrupo> = {}): UnidadDelGrupo 
     vehiculoId: `00000000-0000-4000-9000-00000000000${n}`,
     repuestoId: null,
     titulo: `Unidad ${n}`,
+    origenId: ORIGEN_A,
     faseId: null,
     fase: null,
     navieraId: NAVIERA,
@@ -166,5 +170,27 @@ describe('textos', () => {
     expect(textoDelRechazoDelGrupo('«Hilux» no admite contenedor.')).toBe(
       'No se cambió ninguna: «Hilux» no admite contenedor.',
     )
+  })
+})
+
+describe('alcanceDelGrupo', () => {
+  const catalogo = [
+    { id: 'arica', origenId: null, clave: 'arica', activo: true },
+    { id: 'iquique', origenId: null, clave: 'iquique', activo: true },
+    { id: 'arica-a', origenId: ORIGEN_A, clave: 'arica', activo: true },
+    { id: 'iquique-b', origenId: ORIGEN_B, clave: 'iquique', activo: true },
+  ]
+  const usables = (unidades: UnidadDelGrupo[]) =>
+    [...alcanceDelGrupo(catalogo, unidades).usables].sort()
+
+  it('con un solo origen ofrece lo que usa ese origen', () => {
+    expect(usables([unidad(1), unidad(2)])).toEqual(['arica-a', 'iquique'])
+  })
+
+  it('con varios orígenes, o con un ítem de repuestos, sólo los compartidos que ninguno tapa', () => {
+    expect(usables([unidad(1), unidad(2, { origenId: ORIGEN_B })])).toEqual([])
+    expect(usables([unidad(1), unidad(2, { origenId: null, vehiculoId: null })])).toEqual([
+      'iquique',
+    ])
   })
 })

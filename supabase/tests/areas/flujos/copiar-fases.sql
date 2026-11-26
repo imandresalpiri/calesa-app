@@ -251,9 +251,10 @@ begin
   f := pg_temp.cf_fase(c, 'CF Espera', 10, '{"es_inicial": true}');
   insert into public.fases_requisitos (fase_id, tipo, orden, espera_fase_id, espera_ambito) values (f, 'espera', 10, fr, 'hijos');
   update public.fases set activa = false where id = fr;
-  -- Y un tipo del flujo con el nombre de uno que el destino ya tenía (otras mayúsculas), con formatos que no caben en el de destino.
+  -- Y un tipo del flujo con el nombre de uno que el destino ya tenía (otras mayúsculas, una tilde y espacios de más: la misma clave), con formatos
+  -- que no caben en el de destino.
   tf := pg_temp.cf_tipo(c, 'CF Factura', true, '{application/pdf,image/png}');
-  td := pg_temp.cf_tipo(d, 'cf factura', true, '{image/png}');
+  td := pg_temp.cf_tipo(d, 'cf  fáctura ', true, '{image/png}');
   insert into public.fases_requisitos (fase_id, tipo, orden, tipo_documento_id, formatos) values (f, 'documento', 20, tf, '{application/pdf}');
   res := pg_temp.cf_bien('C2 jubilada y reusado', pg_temp.cf_copiar(yo, d, c));
   if res -> 'saltado' is distinct from

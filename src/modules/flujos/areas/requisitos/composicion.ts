@@ -12,7 +12,7 @@ import { leerImpactoDeRequisito as leerImpacto } from '../../infra/requisitos/im
 import { leerOpcionesDeRequisitos as leerOpciones } from '../../infra/requisitos/opciones'
 import { requisitosSupabase } from '../../infra/requisitos/escribir'
 
-// Los tipos de documento que un requisito nombra, de un flujo (los de toda la empresa y los suyos).
+// Los tipos de documento que un requisito nombra, de un flujo (los compartidos y los suyos).
 export const leerOpcionesDeRequisitos: LectorDeOpcionesDeRequisitos = leerOpciones
 
 // Cuántas unidades quedarían fuera de regla al volver bloqueante un requisito, y cuáles lo están hoy en un flujo.

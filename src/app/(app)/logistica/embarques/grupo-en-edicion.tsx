@@ -26,8 +26,8 @@ export async function GrupoEnEdicion({
   return (
     <DrawerDeEdicionDelGrupo
       grupo={datosO(grupo)}
-      navieras={navieras.map((n) => ({ id: n.id, nombre: n.nombre, activo: n.activo }))}
-      puertos={puertos.map((p) => ({ id: p.id, nombre: p.nombre, activo: p.activo }))}
+      navieras={navieras}
+      puertos={puertos}
       claveDeUrl={claveDeUrl}
     />
   )

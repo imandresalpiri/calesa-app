@@ -6,6 +6,7 @@ import { EstadoVacio } from '@/shared/ui/estados'
 import { Skeleton } from '@/shared/ui/skeleton'
 import { puede } from '@/shared/lib/permisos'
 import { ordenarTiposParaElegir } from '../../../entities/documentos/admision'
+import { tiposParaSubir } from '../../../entities/documentos/tipos-para-subir'
 import { destinoDelGrupo } from '../../../entities/documentos/destino'
 import type { GrupoDeLogistica } from '../../../entities/nucleo/grupo'
 import { useUnidadesDelGrupo, type DatoDelGrupo } from '../hooks/use-unidades-del-grupo'
@@ -14,6 +15,8 @@ import { ZonaParaSubir } from './zona-para-subir'
 
 export const MAS_DE_100_UNIDADES = 'Este grupo tiene más de 100 unidades: súbelo por partes.'
 export const GRUPO_SIN_UNIDADES = 'Este grupo no tiene unidades.'
+// Un grupo no mira los requisitos de cada unidad: ningún compartido tapado se ofrece.
+const SIN_REQUISITOS: readonly { tipoId: string }[] = []
 
 function titulo(n: number): string {
   return n === 1 ? 'Subir un documento a la unidad' : `Subir un documento a las ${n} unidades`
@@ -36,7 +39,7 @@ function ZonaDelGrupo({ dato }: { dato: DatoDelGrupo }) {
     <ZonaParaSubir
       destino={destino}
       titulo={titulo(destino.vehiculos.length)}
-      tipos={ordenarTiposParaElegir(dato.tipos, new Set())}
+      tipos={ordenarTiposParaElegir(tiposParaSubir(dato.tipos, SIN_REQUISITOS), new Set())}
       puedeSubir={puedeSubir}
     />
   )

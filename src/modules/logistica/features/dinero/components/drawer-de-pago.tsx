@@ -17,6 +17,8 @@ import { useFormularioDePago } from '../hooks/use-formulario-de-pago'
 import { useOpcionesDeGasto } from '../hooks/use-opciones-de-gasto'
 import { CamposDePago } from './campos-de-pago'
 
+const SIN_ORIGENES: readonly string[] = []
+
 type Props = {
   abierto: boolean
   alCerrar: () => void
@@ -96,7 +98,8 @@ function Cargando() {
 // El formulario de un pago (`?panel=pago&pago=<id|nuevo>`): «Registrar pago» y «Editar». Lee las monedas y los tipos de cambio al abrirse; el drawer se queda montado
 // (cerrado) y lo de adentro cambia del esqueleto al formulario. El contrato de cierre con algo escrito es de `<Drawer>` y `useCambiosSinGuardar`.
 export function DrawerDePago({ abierto, alCerrar, unidadId, original, apertura }: Props) {
-  const lectura = useOpcionesDeGasto(abierto, apertura)
+  // Un pago no elige categoría: le bastan las monedas y los tipos de cambio.
+  const lectura = useOpcionesDeGasto(abierto, apertura, SIN_ORIGENES)
   return (
     <Drawer
       abierto={abierto}

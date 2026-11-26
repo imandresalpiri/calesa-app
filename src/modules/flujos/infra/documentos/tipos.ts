@@ -19,7 +19,7 @@ import {
 
 const NO_SE_LEYO = 'No pudimos leer los tipos de documento. Vuelve a intentar.'
 
-// Un grupo (los de toda la empresa o los de un flujo), por el btree de `tipos_documento_flujo_id_nombre_key` (flujo_id primero), en el orden en que
+// Un grupo (los compartidos o los de un flujo), por el btree de `tipos_documento_flujo_clave_key` (flujo_id primero), en el orden en que
 // se ve y con `tope + 1` filas para saber si hay más. Es un catálogo de configuración: a lo sumo 100 por grupo. Leer es de cualquier cuenta con sesión.
 export const leerTiposDeDocumentoDelGrupo: LectorDeTiposDeDocumento = cache(async (flujoId) => {
   const supabase = await createClient()
@@ -48,7 +48,7 @@ export const leerTiposDeDocumentoDelGrupo: LectorDeTiposDeDocumento = cache(asyn
 // Cuánto usa cada tipo del grupo: la base da `42501` a quien no puede cambiar el grupo, así que sólo se pide si puede.
 export const leerUsoDeTiposDelGrupo: LectorDeUsoDeTipos = cache(async (flujoId) => {
   const supabase = await createClient()
-  // El tipo generado no admite nulo, pero la base sí (nulo = los de toda la empresa).
+  // El tipo generado no admite nulo, pero la base sí (nulo = los compartidos).
   const { data, error } = await supabase.rpc('tipos_documento_con_uso', {
     p_flujo: flujoId as string,
   })

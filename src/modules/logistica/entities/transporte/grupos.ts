@@ -43,6 +43,8 @@ export type UnidadDelGrupo = {
   vehiculoId: string | null
   repuestoId: string | null
   titulo: string
+  // El origen del vehículo; nulo en un ítem de repuestos (sólo usa catálogos compartidos).
+  origenId: string | null
   faseId: string | null
   fase: string | null
   navieraId: string | null
@@ -97,6 +99,7 @@ const esquemaDeUnidad = z.object({
   vehiculo_id: z.guid().nullable(),
   repuesto_id: z.guid().nullable(),
   titulo: z.string().nullable(),
+  origen_id: z.guid().nullable(),
   fase_id: z.guid().nullable(),
   fase: z.string().nullable(),
   naviera_id: z.guid().nullable(),
@@ -161,6 +164,7 @@ export function grupoDesde(datos: unknown): GrupoLeido | null {
       vehiculoId: u.vehiculo_id,
       repuestoId: u.repuesto_id,
       titulo: u.titulo ?? 'Sin título',
+      origenId: u.origen_id,
       faseId: u.fase_id,
       fase: u.fase,
       navieraId: u.naviera_id,

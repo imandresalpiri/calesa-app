@@ -112,10 +112,7 @@ export function CamposDeProrrateo({ opciones, formulario: f }: Props) {
         etiqueta="Categoría"
         opciones={[
           { valor: '', etiqueta: 'Elige una categoría' },
-          ...categoriasParaElegir(opciones.categorias, null).map((c) => ({
-            valor: c.id,
-            etiqueta: c.nombre,
-          })),
+          ...categoriasParaElegir(opciones.categorias, null, opciones.origenes),
         ]}
         value={f.valores.categoriaId}
         onChange={(evento) => {

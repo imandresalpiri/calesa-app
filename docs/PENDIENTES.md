@@ -58,6 +58,11 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[6-6]** Prorratear un gasto por el valor del vehículo u otro criterio; hoy se reparte en partes iguales — base e interfaz.
 - **[6-7]** Borrar una nota propia con una RPC `security definer` (el `update` da `42501`), que además impida a su autora cambiar el cuerpo de una nota de cambio de fase (hoy lo frena sólo la action).
 - **[—]** Vincular un pago a un lead: sin interfaz (el alta manda `p_lead` nulo).
+- **[—]** La lista de un origen con sus puertos, navieras y categorías de gasto propios y los compartidos que usa (el tapado con «Tapado por el de
+  <origen>», como las tablas en el drawer del origen) y crear uno «Sólo de <origen>»: hoy Logística › Configuración edita sólo los compartidos
+  y un propio no tiene pantalla — la base, las actions y los esquemas ya reciben el origen (`origenId`, hoy siempre nulo).
+- **[—]** Pasar un catálogo de logística de propio a compartido (o al revés) no se ofrece — decidir qué pasa con el compartido que tapaba y con
+  los permisos de cada origen que empezaría a usarlo.
 - **[—]** `/logistica/gastos` sin filtro por vehículo ni por proveedor — `gastos_listar` sólo filtra origen, categoría y fechas; pide migración.
 
 ### Repuestos
@@ -127,6 +132,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-14]** La página profunda del historial de un vehículo muy cotizado ordena sus cotizaciones (crece con las de ese vehículo, no con N) — límite sin assert.
 - **[4-65]** La pestaña de una clase de lead que quien mira no tiene recorre su cartera (hasta ≈ 400 ms con 80.000) — salida no hecha: copiar la clase en la cartera.
 - **[5a-40]** La baja de 200.000 leads tarda 9 corridas y 15 s porque ningún update de `cartera` es HOT (11 btree) — un índice que sostenga lo ajeno sin nombrar la cartera, sin romper `medir-escala.sql`; la persona aceptó el número actual.
+- **[—]** `leerCatalogosDeTransporte` (`/logistica/embarques`, «Editar grupo») lee hasta 200 puertos y 200 navieras de todos los orígenes y descarta
+  `hayMas`: con los propios por origen, lo que pasa del tope se ve «—» sin aviso — devolver `hayMas` con `<AvisoDeTope>` o leer por id lo que nombran los grupos.
 - **[6-5]** Medir `gastos_listar` y `pagos_listar` con volumen (≈ 50.000 filas, dueña con «todos» y una persona con «propios»): el filtro `en_cartera` por fila puede ir descartando al profundizar.
 - **[8-13c]** Índice `(fase_id, fase_desde, id)` en `repuestos_items` si la Cadena de repuestos y los bloques de Inicio llegan a miles — hoy alcanza `repuestos_items_fase_id_idx`.
 - **[—]** La planilla de la fórmula tarda ≈ 1 s en abrir con 600 filas y ≈ 2 s con 2.000 (O(filas × nodos), al abrir la pestaña) — una versión por lote de `textoVigente()`/`textoDeNodo()`.
@@ -157,6 +164,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 ### Limpieza y código
 
 - **[—]** `src/modules/empresa/features/tipos-cambio/hooks/use-guardar-leyenda.ts` no lo importa nadie: quitarlo.
+- **[—]** El grupo de los tipos de documento compartidos se llama `empresa` por dentro (`ClaveDeGrupo`, `VistasDeGrupos.empresa`, `?de=empresa`):
+  renombrarlo a `compartidos` muda un parámetro, así que van en el mismo PR sus enlaces y los e2e (`.claude/rules/rutas.md`).
 - **[—]** El lienzo de la hoja (la pestaña Hoja del origen) no dibuja la variante en par (`hojaDeLaVistaPrevia()` no trae `par`); la planilla de la fórmula sí la dice («Se cotiza en par» en «Tipo de celda › Variante»).
 - **[—]** En la vista previa de las hermanas, «Copiar texto» copia sólo el de la tarjeta de la cotización abierta (no une los dos).
 - **[—]** `medir-cotizacion-crear.sql` y `medir-cotizacion-guardar.sql` no tienen un caso en par: crear y guardar en par llaman dos veces a lo que ya miden.
@@ -208,11 +217,12 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** `cambiar_fase` acepta `p_fase_esperada` nulo; despublicar no revoca la URL de una foto; «Ver como» acota la interfaz, no las filas.
 - **[—]** `storage-gc`, `apibara` e `importar-csv` (Deno) quedan fuera de lint y typecheck; `lead_dormido_meses` y `demora_dias_default` no tienen interfaz (nada lee `lead_dormido_meses`).
 - **[—]** «Los teléfonos extra cuentan como el principal»: restaurar un lead de la papelera mira sólo su principal; un extra suyo que ya es de otro lead entra sin revisarse y aparece en «Números repetidos».
-- **[—]** Borrar una naviera mientras se aplica un grupo puede dar un `40P01` raro (carrera aceptada, sin cubrir).
 - **[—]** «De este vehículo» en la guardada: si entre el conteo del servidor y la lectura del bloque las otras dejan de verse, queda el título «De este vehículo» sin filas (raro; se arregla al recargar). La cabecera sin `cotizaciones.aprobar` dibuja la insignia del servidor, que no se pone al día si otra persona aprueba otra.
 
 ## Pulido de interfaz
 
+- **[—]** El comprobante de «Registrar gasto» es el `<input type="file">` nativo: el navegador escribe «Choose File» y «No file chosen» en su idioma, no
+  en el de la app — usar el botón «Elegir archivos» de los documentos de la unidad (`logistica/features/dinero/components/campo-de-comprobante.tsx`).
 - **[—]** La lista de fases del flujo deja «Subir» y «Bajar» a la vista (`flujos/features/fases/components/acciones-de-fila.tsx`) y las demás filas de Configuración los llevan en el «⋯»: decidir si es la excepción (ordenar con el teclado) o pasarlos al «⋯».
 - **[—]** Al recargar una guardada con un cálculo pisado, «Editado a mano: …» entra al resumen después del primer dibujo (su lista va con `diferido()`) y empuja
   «Modo de tipo de cambio» hacia abajo: reservarle el alto o dibujar su primera línea en frío (`features/hoja/components/pisadas/`).

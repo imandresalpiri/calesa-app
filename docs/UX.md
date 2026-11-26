@@ -587,8 +587,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   «Editar <nombre>») y su «⋯» (Editar primero) trae el resto, sin botón «Editar» ni flechas de orden a la vista; el orden de puertos y categorías es un número del
   modal. Puertos (nombre, país, código, orden y activo), Navieras (nombre y activa; sin «Eliminar»: se desactivan) y Categorías de gasto (nombre, propósito de la
   lista fija de la base, orden y activa; una con gastos no se elimina) con `logistica.catalogos.gestionar` y sólo si algún área llena el catálogo. Tipos de
-  documento (los de toda la empresa) con ese permiso para cambiarlos y de sólo lectura, con el motivo, con `flujos.configurar` o `repuestos.configurar`; se ordenan con «Subir» y
-  «Bajar» de su «⋯» (por RPC). **Entrada:** el botón ⚙ «Configurar» (nombre accesible «Configurar la logística») en la fila de la cabecera de Logística, a la derecha de la barra, en toda
+  documento (los compartidos) con ese permiso para cambiarlos y de sólo lectura, con el motivo, con `flujos.configurar` o `repuestos.configurar`; se ordenan con «Subir» y
+  «Bajar» de su «⋯» (por RPC). Las cuatro editan sólo lo compartido con todos los orígenes (los tipos propios de un flujo, en su panel). **Entrada:** el botón ⚙ «Configurar» (nombre accesible «Configurar la logística») en la fila de la cabecera de Logística, a la derecha de la barra, en toda
   página de Logística y sólo con `logistica.catalogos.gestionar`; en la configuración lleva `aria-current="page"` y ningún enlace de la barra queda marcado. Una pestaña
   sin permiso va apagada con su motivo y su URL dice «No tienes permiso para ver esto» (cada página comprueba la suya). El buscador de Configuración las sigue encontrando
   («puertos», «navieras», «gastos», «documentos», «logística»: «Logística › Puertos»…) y lleva aquí. Ver «Logística: estados propios».
@@ -1109,22 +1109,28 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 ### Flujos: tipos de documento (estados propios)
 
 Orígenes › un origen › Fases › «Tipos de documento» de la barra del flujo, en su panel (`?seccion=documentos`), y Logística › Configuración › Tipos de documento
-(`/logistica/configuracion/tipos-de-documento`: los de la empresa, en la página, a todo el ancho y sin título de grupo; la fila dice «Editar <nombre>»). Hermana de «Tipos de seguimiento» (patrón de `shared/ui/lista`, orden con
+(`/logistica/configuracion/tipos-de-documento`: los compartidos, en la página, a todo el ancho y sin título de grupo; la fila dice «Editar <nombre>»). Hermana de «Tipos de seguimiento» (patrón de `shared/ui/lista`, orden con
 teclado, «⋯», modal por URL), con **dos grupos**, **sólo lectura con motivo** y **una lista que se relee** (ninguna RPC la devuelve).
 
-- **Grupos:** «De toda la empresa» (`logistica.catalogos.gestionar`) y, bajo el selector, «Sólo de este flujo» (`flujos.configurar` o
-  `repuestos.configurar`), cada uno con su orden, tope («N de 100 tipos posibles.») y «Nuevo tipo».
+- **Grupos:** en el panel, «De <origen>» («Del flujo de repuestos»; «Sólo se piden en <origen>.»: `flujos.configurar`, `repuestos.configurar`
+  o `logistica.catalogos.gestionar` del origen) y debajo «Compartidos» («Se piden en cualquier flujo que los use y no los tape con uno propio.»:
+  `logistica.catalogos.gestionar` en cada origen que los usa), cada uno con su orden, tope («N de 100 tipos posibles.») y «Nuevo tipo».
+- **Tapado:** el compartido que el flujo tapa con un propio activo de su misma clave (mayúsculas, tildes y espacios de más no cuentan) lleva
+  «Tapado por el de <origen>» («… el del flujo de repuestos») en la línea de su nombre, sin salto; se sigue editando y lo que ya lo pide no
+  cambia. Un requisito nuevo no lo ofrece; el que ya lo pide lo nombra «X (tapado por el de <origen>)» y «Revisar» lo avisa (información).
 - **Filas:** nombre, insignias con texto («Renueva cada 365 días», «Pide fecha», «Portal», «Desactivado»), estado y uso acotado («más de
   50»; «—» a quien no puede cambiar el grupo). **Con uso, «Eliminar» está apagado**: se desactiva en lugar de eliminarse.
-- **Sin permiso sobre un grupo:** crear, editar y ordenar apagados con su motivo y un aviso de quién lo cambia; una URL escrita a mano no
+- **Sin permiso sobre un grupo:** crear, editar y ordenar apagados con su motivo y un aviso de quién lo cambia («Los tipos compartidos los
+  cambia quien configura la logística en cada origen que los usa.», «No puedes configurar los tipos de documento de este flujo.»); una URL escrita a mano no
   abre el modal: avisa y se limpia.
-- **Modal** (`?panel=nuevo-tipo&de=empresa|flujo`, `editar-tipo&tipo=<id>`): nombre, descripción, formatos (al menos uno), vencimiento («No
+- **Modal** (`?panel=nuevo-tipo&de=empresa|flujo`, `empresa` = los compartidos; `editar-tipo&tipo=<id>`): nombre, descripción, formatos (al menos uno), vencimiento («No
   vence», «Quien lo sube escribe la fecha», «Vence tantos días después de subido») con días de vigencia y de aviso (cambiar de modo vacía
   los que ya no aplican), «Se puede mostrar en el portal» (lo ya mostrado sigue) y, al editar, «Activo». Borrador en `sessionStorage` por
   grupo y tipo.
 - **Eliminar** (`?panel=eliminar-tipo&tipo=<id>`, `<Confirmar>`): sólo uno sin uso; si entre tanto llegó uso, la base lo desactiva y el
   aviso lo dice.
-- **Conflicto:** «Recargar» y lo escrito queda; uno que otra persona eliminó con el modal abierto lo dice. Esqueleto de dos bloques.
+- **Conflicto:** «Recargar» y lo escrito queda; uno que otra persona eliminó con el modal abierto lo dice. Un nombre repetido en el grupo
+  (23505) o un origen que lo usa sin permiso (42501) dicen el texto de la base. Esqueleto de dos bloques.
 
 ### Flujos: fases (estados propios)
 
@@ -1208,8 +1214,9 @@ el flujo; la base vuelve a decidir.
   con un envío en vuelo todos se apagan.
 - **Apagar con uso:** no escribe; bajo la regla dice qué fases o requisitos de espera la usan («más de 50») con un enlace al panel de cada una.
 - **Sin uso:** apaga al momento con toast y «Deshacer» (también al encender), que usa la última versión conocida del flujo.
-- **Oferta de transporte:** casillas de puertos de origen, de destino y navieras (activos), «Guardar oferta» y «Ofrecer todos»; sin
-  marcar ninguno, se ofrecen todos. Uno guardado y luego desactivado se ve «(inactivo)» para poder quitarlo. Tope 200 con aviso. Las
+- **Oferta de transporte:** casillas de puertos de origen, de destino y navieras activos que usa el origen del flujo (sus propios y los
+  compartidos que no tapa; el de repuestos, los compartidos), «Guardar oferta» y «Ofrecer todos»; sin marcar ninguno («Vacío: se ofrecen
+  todos.»), se ofrece todo lo que usa el origen. Uno guardado y luego desactivado se ve «(inactivo)» para poder quitarlo. Tope 200 con aviso. Las
   marcas sin guardar sobreviven a cambiar otra regla.
 - **Vacíos:** sin navieras o puertos (se cargan en Logística), sin flujos configurables, flujo que ya no existe.
 - **Conflicto:** «Recargar» arriba (lo marcado queda mientras la oferta guardada no cambie). Una regla que dejó de poder cambiarse se dice
@@ -1265,7 +1272,9 @@ y enfoca su título).
   «Elegir».
 - **Hueco «Transporte»:** «Ruta» (naviera, puertos de origen y destino), «Contenedor y booking» (en mayúsculas y sin espacios) y «Fechas y
   notas» (zarpe, ETA, arribo, notas ≤ 2.000) con un «Guardar» que manda sólo lo que cambió (apagado sin cambios, guardando o sin permiso).
-  El selector ofrece la oferta del flujo (vacía = todo lo activo) y siempre lo guardado, rotulado «(inactiva)» o «(fuera de la oferta)».
+  El selector ofrece la oferta del flujo que usa el origen (vacía = todo lo activo que usa el origen: sus propios y los compartidos que no tapa)
+  y siempre lo guardado, rotulado «(de otro origen)», «(tapado)», «(inactiva)» o «(fuera de la oferta)», en ese orden; nunca se vacía.
+  Rechazo de la base por algo de otro origen: «Esa naviera es de otro origen.», junto a su campo.
   Rechazos junto a su campo (ETA antes del zarpe, la fase no permite o exige contenedor) con el foco al primero; conflicto dentro del
   formulario con «Recargar», que conserva lo escrito. Sin `logistica.transporte.editar` del origen, campos apagados con su motivo. Vacíos:
   sin transporte cargado; sin navieras (con `logistica.catalogos.gestionar`, «Cargar navieras»). Guardar relee «Qué falta». Una unidad de
@@ -1307,10 +1316,12 @@ y enfoca su título).
   filtro con «Limpiar filtros», página sin filas con «Volver al principio» y error con «Reintentar». Sin permiso, «No tienes permiso para
   ver esto».
 - **`/logistica/gastos`** (`logistica.ver` y `logistica.gastos.ver` o `pagos.ver`): vista `?ver=gastos|pagos` (sólo con las dos claves;
-  cambiar no conserva filtros); filtros origen (con dos o más), categoría, «Sin confirmar» y rango de fecha; **ninguna suma**. La fila abre
+  cambiar no conserva filtros); filtros origen (con dos o más), categoría (de todos los orígenes: una propia se nombra «nombre · origen»),
+  «Sin confirmar» y rango de fecha; **ninguna suma**. La fila abre
   el panel de la unidad en un drawer (`?vehiculo=`) sin perder filtros ni página y la lista se relee al cerrarlo. El pago confirmado dice «Confirmado»
   con su fecha (quién, en el sello del panel). «Ver todos en Gastos» sale del tope de los huecos «Gastos» y «Pagos», filtrado por origen.
-- **`/logistica/embarques`** (`logistica.ver`): `?grupo=embarques|contenedores`; filtros naviera, puertos (de los catálogos activos),
+- **`/logistica/embarques`** (`logistica.ver`): `?grupo=embarques|contenedores`; filtros naviera, puertos (de los catálogos activos de
+  todos los orígenes: un propio se nombra «Arica · Miami»),
   estado («En tránsito», «Ya llegaron») y búsqueda por booking o contenedor (3). Fila: la clave (abre el resumen), naviera, ruta, zarpe,
   ETA, arribo y unidades acotadas («200+»; «Hay unidades que no ves.»); lo que difiere entre unidades dice «Varias», lo que ninguna tiene
   «—». Si la base revisó una parte sin llenar la página, lo dice y «Siguiente» sigue buscando. **Resumen** (`?booking=` o `?contenedor=`,
@@ -1318,7 +1329,8 @@ y enfoca su título).
   debajo, a la vista y cada uno con su permiso (la base lo exige por unidad): «Mover el grupo», «Subir un documento a las unidades» y
   «Prorratear un gasto entre las unidades». **«Editar grupo»** (con `logistica.transporte.editar` o `repuestos.editar`; `?panel=editar-grupo`
   **tapa** al resumen): ruta, contenedor y booking, fechas; un campo común sale con su valor, uno que difiere sale vacío con «Varios» y
-  dejarlo así no lo toca. «Guardar» manda lo tocado a todas o a ninguna («Se aplicó a las N unidades.»; conflicto «No se cambió ninguna:
+  dejarlo así no lo toca. Con unidades de un solo origen los selectores ofrecen lo que usa ese origen; de varios, sólo los compartidos que no
+  tapa ninguno (lo común que no cabe se ve rotulado). «Guardar» manda lo tocado a todas o a ninguna («Se aplicó a las N unidades.»; conflicto «No se cambió ninguna:
   <motivo>» con «Recargar»; el rechazo de una unidad junto a su campo con su título). Más de 200 unidades, ocultas o no editables: botón
   apagado con su motivo.
 - **`/logistica/aduana`** (`logistica.ver` lee, `logistica.aduana.gestionar` escribe): filtros `canal`, `pagada` y `q` por número. Fila:
@@ -1331,10 +1343,16 @@ y enfoca su título).
   de la declaración»: «Quitar» marca (con «Deshacer»), buscador (3, hasta 10) con «Agregar» y «Guardar vehículos» manda todo junto (hasta
   200); con canal queda todo apagado: la composición queda fija. «Asignar canal» es un `<Confirmar>` en `?panel=canal` con el selector
   adentro; pide al menos un vehículo. El canal no se quita.
-- **Logística (config): estados:** la entrada y las pestañas sin permiso, en «Logística (config)». Cada catálogo conserva su tope y su aviso. **Categorías de gasto:** esqueleto, vacío, error con «Reintentar»; el «⋯» lleva Editar,
+- **Logística (config): estados:** la entrada y las pestañas sin permiso, en «Logística (config)». Cada catálogo conserva su tope y su aviso.
+  Nombre repetido (23505), junto al nombre: «Ya hay un puerto «X» compartido con todos los orígenes.» o «… en <origen>.»; uno
+  desactivado lo dice tras el nombre («X» (desactivado)). Sin permiso en un origen que lo usa (42501), arriba: «No puedes cambiar «X»: lo usa <origen>, donde no puedes configurar la
+  logística.»; uno propio, «No puedes configurar la logística de <origen>.». Versión vieja o ya no existe («Ese puerto ya no existe.»):
+  «Recargar», que conserva lo escrito. Desactivar uno en uso: «Desactivaste «X»: lo usan N transportes u ofertas; siguen mostrándolo.»
+  («más de 50»). **Categorías de gasto:** esqueleto, vacío, error con «Reintentar»; el «⋯» lleva Editar,
   Activar/Desactivar y Eliminar (`?panel=eliminar-categoria&categoria=<id>`; con gastos el diálogo dice que está en uso, propone
   desactivarla y no se cierra); el orden es un número del modal; una de propósito «Tributos» no cambia de propósito (Aduana la lee).
-  **Prorratear** (hueco del resumen de un grupo, `?panel=prorratear`): muestra cuánto le toca a cada unidad y la suma antes de confirmar;
+  **Prorratear** (hueco del resumen de un grupo, `?panel=prorratear`): ofrece las categorías que usan todas las unidades (de varios orígenes,
+  sólo las compartidas que no tapa ninguno); muestra cuánto le toca a cada unidad y la suma antes de confirmar;
   sin unidades no hay nada que repartir; más de 200 no se reparte; el equivalente en base lo calcula la base.
 - **Estados de la página de la unidad:**
   - Cargando: `EsqueletoDeLaUnidad`, con la forma de las zonas (en `loading.tsx` y en el `Suspense`); un hueco, `EsqueletoDelHueco` mientras llega su código y después el suyo; la foto y los relacionados, esqueletos del mismo tamaño, sin salto.

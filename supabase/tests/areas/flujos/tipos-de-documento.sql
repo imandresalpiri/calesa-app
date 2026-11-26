@@ -1,5 +1,6 @@
--- Los tipos de documento se escriben sólo por RPC (5.03): el grupo global pide `logistica.catalogos.gestionar` y el de un flujo
--- `puede_configurar_flujo()`; la versión da PT409; en uso se desactiva y sin uso se borra; achicar los formatos que pide un requisito falla; la
+-- Los tipos de documento se escriben sólo por RPC (5.03): un compartido pide `logistica.catalogos.gestionar` en cada origen que lo usa (el que lo
+-- tapa con un propio activo de su clave no cuenta) y uno del flujo de un origen, `puede_configurar_flujo()` o esa clave en su origen; el nombre
+-- repetido dice su grupo; la versión da PT409; en uso se desactiva y sin uso se borra; achicar los formatos que pide un requisito falla; la
 -- escritura directa da 42501. Lo que valen los datos, en tipos-de-documento-datos.sql. Corre en PGlite (`pnpm db:probar`, después de la lista fija); cada bloque arma su terreno y lo revierte.
 
 -- @test tipos de documento: los ayudantes
@@ -24,6 +25,19 @@ exception when others then
   get stacked diagnostics v_hint = pg_exception_hint;
   reset role;
   return sqlstate || coalesce('/' || nullif(v_hint, ''), '');
+end $f$;
+
+-- El error de un SQL corrido como esa persona con su texto: «sqlstate: mensaje», o «sin error».
+create or replace function pg_temp.td_mensaje(p_quien uuid, p_sql text) returns text language plpgsql as $f$
+begin
+  perform pg_temp.td_como(p_quien);
+  set local role authenticated;
+  execute p_sql;
+  reset role;
+  return 'sin error';
+exception when others then
+  reset role;
+  return sqlstate || ': ' || sqlerrm;
 end $f$;
 
 -- La respuesta jsonb de una RPC corrida como esa persona (un error sube).
@@ -64,6 +78,21 @@ begin
   end loop;
 end $f$;
 
+-- Una persona más, con rol propio y las concesiones «clave@origen» (origen vacío: todos). Va después de td_preparar(): no nace dueña.
+create or replace function pg_temp.td_persona(p uuid, p_concesiones text[]) returns void language plpgsql as $f$
+declare v_rol uuid; c text;
+begin
+  insert into auth.users (id, email, raw_app_meta_data) values (p, p || '@ejemplo.com', '{"invitado": true}');
+  update public.perfiles set nombre = 'TD ' || substr(p::text, 33), invitacion_aceptada_en = now() where id = p;
+  delete from public.usuarios_roles where usuario_id = p;
+  insert into public.roles (clave, nombre) values ('td_rol_' || substr(p::text, 33), 'TD rol ' || substr(p::text, 33)) returning id into v_rol;
+  insert into public.usuarios_roles (usuario_id, rol_id, es_principal) values (p, v_rol, true);
+  foreach c in array p_concesiones loop
+    insert into public.roles_permisos (rol_id, permiso_clave, origen_id, alcance)
+    values (v_rol, split_part(c, '@', 1), nullif(split_part(c, '@', 2), '')::uuid, 'todos');
+  end loop;
+end $f$;
+
 create or replace function pg_temp.td_flujo(p_clave text) returns uuid language sql as $f$
   select f.id from public.flujos f join public.origenes o on o.id = f.origen_id where o.clave = p_clave
 $f$;
@@ -72,7 +101,7 @@ create or replace function pg_temp.td_version(p_id uuid) returns timestamptz lan
   select actualizado_en from public.tipos_documento where id = p_id
 $f$;
 
--- @test tipos de documento: crear pide el permiso de su grupo (global: catálogos; de flujo: configurar ese flujo)
+-- @test tipos de documento: crear pide el permiso de su grupo (compartido: catálogos; de flujo: configurar ese flujo o los catálogos de su origen)
 begin;
 select pg_temp.td_preparar();
 do $$
@@ -82,8 +111,6 @@ declare flor uuid := '00000000-0000-4000-8000-000000007d0f'; cata uuid := '00000
 begin
   r := pg_temp.td_codigo(flor, format('select public.tipo_documento_crear(gen_random_uuid(), null, %L)', '{"nombre":"Global de Flor"}'));
   if r <> '42501' then raise exception 'Flor creó un global: %', r; end if;
-  r := pg_temp.td_codigo(cata, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"De A por Cata"}'));
-  if r <> '42501' then raise exception 'Cata creó uno del flujo de A: %', r; end if;
   r := pg_temp.td_codigo(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fb, '{"nombre":"De B por Flor"}'));
   if r <> '42501' then raise exception 'Flor creó uno del flujo de B: %', r; end if;
   r := pg_temp.td_codigo(ana, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"De A por Ana"}'));
@@ -92,8 +119,10 @@ begin
   if r <> 'sin error' then raise exception 'Cata no creó un global: %', r; end if;
   r := pg_temp.td_codigo(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"De A por Flor"}'));
   if r <> 'sin error' then raise exception 'Flor no creó uno del flujo de A: %', r; end if;
-  if (select count(*) from (select 1 from public.tipos_documento where nombre in ('Global de Cata', 'De A por Flor') limit 3) q) <> 2 then
-    raise exception 'no quedaron los dos tipos creados';
+  r := pg_temp.td_codigo(cata, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"De A por Cata"}'));
+  if r <> 'sin error' then raise exception 'Cata, con los catálogos de A, no creó uno del flujo de A: %', r; end if;
+  if (select count(*) from (select 1 from public.tipos_documento where nombre in ('Global de Cata', 'De A por Flor', 'De A por Cata') limit 4) q) <> 3 then
+    raise exception 'no quedaron los tres tipos creados';
   end if;
 end $$;
 rollback;
@@ -110,8 +139,8 @@ begin
   if r <> '42501' then raise exception 'Flor guardó el global: %', r; end if;
   r := pg_temp.td_codigo(flor, format('select public.tipo_documento_guardar(%L, %L, %L)', g, '2000-01-01', '{"nombre":"Por Flor"}'));
   if r <> '42501' then raise exception 'Flor con versión vieja no recibió 42501 en el global: %', r; end if;
-  r := pg_temp.td_codigo(cata, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a), '{"nombre":"Por Cata"}'));
-  if r <> '42501' then raise exception 'Cata guardó el de A: %', r; end if;
+  r := pg_temp.td_codigo(cata, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a), '{"nombre":"De A por Cata"}'));
+  if r <> 'sin error' then raise exception 'Cata, con los catálogos de A, no guardó el de A: %', r; end if;
   r := pg_temp.td_codigo(ana, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a), '{"nombre":"Por Ana"}'));
   if r <> '42501' then raise exception 'Ana guardó el de A: %', r; end if;
   r := pg_temp.td_codigo(cata, format('select public.tipo_documento_guardar(%L, %L, %L)', g, pg_temp.td_version(g), '{"nombre":"Por Cata"}'));
@@ -136,8 +165,6 @@ declare flor uuid := '00000000-0000-4000-8000-000000007d0f'; cata uuid := '00000
 begin
   r := pg_temp.td_codigo(flor, format('select public.tipo_documento_mover(%L, %L)', g, pg_temp.td_version(g)));
   if r <> '42501' then raise exception 'Flor movió el global: %', r; end if;
-  r := pg_temp.td_codigo(cata, format('select public.tipo_documento_mover(%L, %L)', a, pg_temp.td_version(a)));
-  if r <> '42501' then raise exception 'Cata movió el de A: %', r; end if;
   r := pg_temp.td_codigo(ana, format('select public.tipo_documento_mover(%L, %L)', a, pg_temp.td_version(a)));
   if r <> '42501' then raise exception 'Ana movió el de A: %', r; end if;
   v := pg_temp.td_version(g);
@@ -153,6 +180,93 @@ begin
   if r <> 'sin error' then raise exception 'Flor no movió el de A: %', r; end if;
 end $$;
 rollback;
+-- @test tipos de documento: los catálogos de un origen, sin configurar su flujo, alcanzan para sus propios y no para los de otro origen
+begin;
+select pg_temp.td_preparar();
+do $$
+declare lia uuid := '00000000-0000-4000-8000-000000007d0e'; fa uuid := pg_temp.td_flujo('prueba_td_a'); fb uuid := pg_temp.td_flujo('prueba_td_b');
+        a uuid := '00000000-0000-4000-8000-000000007d02'; b uuid := gen_random_uuid(); r text;
+begin
+  perform pg_temp.td_persona(lia, array['logistica.catalogos.gestionar@' || (select id from public.origenes where clave = 'prueba_td_b')]);
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_crear(%L, %L, %L)', b, fb, '{"nombre":"De B por Lía"}'));
+  if r <> 'sin error' then raise exception 'Lía no creó uno del flujo de B: %', r; end if;
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_guardar(%L, %L, %L)', b, pg_temp.td_version(b), '{"nombre":"De B, otro"}'));
+  if r <> 'sin error' then raise exception 'Lía no guardó el de B: %', r; end if;
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_mover(%L, %L)', b, pg_temp.td_version(b)));
+  if r <> 'sin error' then raise exception 'Lía no movió el de B: %', r; end if;
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"De A por Lía"}'));
+  if r <> '42501' then raise exception 'Lía creó uno del flujo de A: %', r; end if;
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a), '{"nombre":"Por Lía"}'));
+  if r <> '42501' then raise exception 'Lía guardó el de A: %', r; end if;
+  r := pg_temp.td_mensaje(lia, format('select public.tipo_documento_crear(gen_random_uuid(), null, %L)', '{"nombre":"Global de Lía"}'));
+  if r !~ '^42501: No puedes cambiar «Global de Lía»: lo usaría .+, donde no puedes configurar la logística\.$' then
+    raise exception 'Lía creó un compartido que usarían orígenes donde no gestiona: %', r;
+  end if;
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_eliminar(%L, %L)', b, pg_temp.td_version(b)));
+  if r <> 'sin error' then raise exception 'Lía no eliminó el de B: %', r; end if;
+end $$;
+rollback;
+
+-- @test tipos de documento: un compartido pide los catálogos en cada origen que lo usa; el que lo tapa con un propio activo no cuenta
+begin;
+select pg_temp.td_preparar();
+do $$
+declare cata uuid := '00000000-0000-4000-8000-000000007d0c'; flor uuid := '00000000-0000-4000-8000-000000007d0f';
+        lia uuid := '00000000-0000-4000-8000-000000007d0e'; fa uuid := pg_temp.td_flujo('prueba_td_a'); fb uuid := pg_temp.td_flujo('prueba_td_b');
+        g uuid := '00000000-0000-4000-8000-000000007d01'; tb uuid := gen_random_uuid(); v_fase uuid := (select id from public.fases where nombre = 'TD fase');
+        c text[]; r text;
+begin
+  -- Lía gestiona los catálogos en todos los orígenes menos B.
+  select array_agg('logistica.catalogos.gestionar@' || o.id) into c from public.origenes o where o.clave <> 'prueba_td_b';
+  perform pg_temp.td_persona(lia, c);
+  r := pg_temp.td_mensaje(lia, format('select public.tipo_documento_guardar(%L, %L, %L)', g, pg_temp.td_version(g), '{"formatos":["application/pdf"]}'));
+  if r <> '42501: No puedes cambiar «TD global»: lo usa Prueba td B, donde no puedes configurar la logística.' then
+    raise exception 'Lía cambió un compartido que usa B: %', r;
+  end if;
+  r := pg_temp.td_mensaje(lia, format('select public.tipo_documento_crear(gen_random_uuid(), null, %L)', '{"nombre":"TD nuevo"}'));
+  if r <> '42501: No puedes cambiar «TD nuevo»: lo usaría Prueba td B, donde no puedes configurar la logística.' then
+    raise exception 'Lía creó un compartido que usaría B: %', r;
+  end if;
+  -- B los tapa con propios de la misma clave: ya no los usa. Un requisito que pedía el compartido lo sigue pidiendo.
+  insert into public.fases_requisitos (fase_id, tipo, tipo_documento_id) values (v_fase, 'documento', g);
+  perform pg_temp.td_json(cata, format('select public.tipo_documento_crear(%L, %L, %L)', tb, fb, '{"nombre":"td  GLÓBAL"}'));
+  perform pg_temp.td_json(cata, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fb, '{"nombre":"TD Nuevo "}'));
+  perform pg_temp.td_json(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"TD Global"}'));
+  if (select tipo_documento_id from public.fases_requisitos where fase_id = v_fase) <> g then raise exception 'tapar reescribió el requisito'; end if;
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_guardar(%L, %L, %L)', g, pg_temp.td_version(g), '{"formatos":["application/pdf"]}'));
+  if r <> 'sin error' then raise exception 'con B tapándolo, Lía no cambió el compartido: %', r; end if;
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_crear(gen_random_uuid(), null, %L)', '{"nombre":"td nuevo"}'));
+  if r <> 'sin error' then raise exception 'con B tapándolo, Lía no creó el compartido: %', r; end if;
+  -- Renombrarlo lo devuelve a B, que ya no lo tapa con el nombre nuevo.
+  r := pg_temp.td_mensaje(lia, format('select public.tipo_documento_guardar(%L, %L, %L)', g, pg_temp.td_version(g), '{"nombre":"TD otro"}'));
+  if r <> '42501: No puedes cambiar «TD global»: lo usa Prueba td B, donde no puedes configurar la logística.' then
+    raise exception 'Lía renombró un compartido que B pasaría a usar: %', r;
+  end if;
+  -- Un propio inactivo no tapa.
+  perform pg_temp.td_json(cata, format('select public.tipo_documento_guardar(%L, %L, %L)', tb, pg_temp.td_version(tb), '{"activo":false}'));
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_eliminar(%L, %L)', g, pg_temp.td_version(g)));
+  if r <> '42501' then raise exception 'con el propio de B inactivo, Lía eliminó el compartido: %', r; end if;
+  r := pg_temp.td_codigo(lia, format('select public.tipo_documento_mover(%L, %L)', g, pg_temp.td_version(g)));
+  if r <> '42501' then raise exception 'con el propio de B inactivo, Lía movió el compartido: %', r; end if;
+end $$;
+rollback;
+
+-- @test tipos de documento: el nombre repetido dice en qué grupo está (el origen, los compartidos o repuestos)
+begin;
+select pg_temp.td_preparar();
+do $$
+declare flor uuid := '00000000-0000-4000-8000-000000007d0f'; cata uuid := '00000000-0000-4000-8000-000000007d0c'; fa uuid := pg_temp.td_flujo('prueba_td_a');
+        r text;
+begin
+  r := pg_temp.td_mensaje(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"  td DE a"}'));
+  if r <> '23505: Ya hay un tipo de documento «TD de A» en Prueba td A.' then raise exception 'el repetido del origen dijo %', r; end if;
+  r := pg_temp.td_mensaje(cata, format('select public.tipo_documento_crear(gen_random_uuid(), null, %L)', '{"nombre":"TD GLÓBAL"}'));
+  if r <> '23505: Ya hay un tipo de documento «TD global» compartido con todos los orígenes.' then raise exception 'el repetido compartido dijo %', r; end if;
+  r := public._tipo_documento_repetido('Factura', (select id from public.flujos where ambito = 'repuestos'));
+  if r <> 'Ya hay un tipo de documento «Factura» en el flujo de repuestos.' then raise exception 'el repetido de repuestos dijo %', r; end if;
+end $$;
+rollback;
+
 -- @test tipos de documento: con otra versión guardar da PT409 y no cambia nada; sin diferencia no escribe
 begin;
 select pg_temp.td_preparar();
@@ -210,10 +324,10 @@ begin
   if r <> '42501' then raise exception 'Flor eliminó el global: %', r; end if;
   r := pg_temp.td_codigo(flor, 'select * from public.tipos_documento_con_uso(null)');
   if r <> '42501' then raise exception 'Flor contó el uso de los globales: %', r; end if;
-  r := pg_temp.td_codigo(cata, format('select public.tipo_documento_eliminar(%L, %L)', a, pg_temp.td_version(a)));
-  if r <> '42501' then raise exception 'Cata eliminó el de A: %', r; end if;
+  r := pg_temp.td_codigo(ana, format('select * from public.tipos_documento_con_uso(%L)', fa));
+  if r <> '42501' then raise exception 'Ana contó el uso de los de A: %', r; end if;
   r := pg_temp.td_codigo(cata, format('select * from public.tipos_documento_con_uso(%L)', fa));
-  if r <> '42501' then raise exception 'Cata contó el uso de los de A: %', r; end if;
+  if r <> 'sin error' then raise exception 'Cata, con los catálogos de A, no contó el uso de los de A: %', r; end if;
   r := pg_temp.td_codigo(ana, format('select public.tipo_documento_eliminar(%L, %L)', a, pg_temp.td_version(a)));
   if r <> '42501' then raise exception 'Ana eliminó el de A: %', r; end if;
   r := pg_temp.td_codigo(cata, 'select * from public.tipos_documento_con_uso(null)');

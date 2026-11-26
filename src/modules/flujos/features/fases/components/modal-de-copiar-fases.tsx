@@ -58,8 +58,8 @@ export function ModalDeCopiarFases({ abierto, alCerrar, flujo }: Props) {
       />
       <p className="text-(length:--text-sm) text-(--color-ink-faint)">
         Se copian las fases activas con sus salidas, quién mueve, los requisitos y las reglas del
-        flujo. Los tipos de documento de toda la empresa se usan tal cual; los de ese flujo se crean
-        en este.
+        flujo. Los tipos de documento compartidos se usan tal cual; los propios de ese origen se
+        crean en este, o se usa el que ya tenga el mismo nombre.
       </p>
     </ModalDeFormulario>
   )

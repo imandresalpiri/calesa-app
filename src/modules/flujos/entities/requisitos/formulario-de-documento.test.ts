@@ -14,8 +14,16 @@ const tipos: TipoParaRequisito[] = [
     formatos: ['application/pdf', 'image/jpeg'],
     activo: true,
     delFlujo: false,
+    tapadoPor: null,
   },
-  { id: 't2', nombre: 'Viejo', formatos: ['application/pdf'], activo: false, delFlujo: false },
+  {
+    id: 't2',
+    nombre: 'Viejo',
+    formatos: ['application/pdf'],
+    activo: false,
+    delFlujo: false,
+    tapadoPor: null,
+  },
 ]
 const borrador = (parcial: Partial<BorradorDeDocumento>): BorradorDeDocumento => ({
   ...BORRADOR_DE_DOCUMENTO_NUEVO,

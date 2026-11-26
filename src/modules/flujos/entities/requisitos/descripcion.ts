@@ -3,7 +3,7 @@
 import { formatearNumero } from '@/shared/lib/formato'
 import type { RequisitoParaConfigurar } from '../flujo'
 import { CLAVE_CON_PORCENTAJE, etiquetaDeClave } from './claves'
-import type { OpcionesDeRequisitos } from './opciones'
+import { nombreDelTipo, type OpcionesDeRequisitos } from './opciones'
 
 export const TEXTO_DE_TIPO_SIN_NOMBRE = 'Documento'
 export const TEXTO_DE_TIPO_QUE_YA_NO_EXISTE = 'Tipo de documento que ya no existe'
@@ -49,7 +49,11 @@ function descripcionDeDocumento(
 ): string {
   const tipo = opciones?.tipos.find((t) => t.id === r.tipoDocumentoId)
   const nombre =
-    opciones === null ? TEXTO_DE_TIPO_SIN_NOMBRE : (tipo?.nombre ?? TEXTO_DE_TIPO_QUE_YA_NO_EXISTE)
+    opciones === null
+      ? TEXTO_DE_TIPO_SIN_NOMBRE
+      : tipo
+        ? nombreDelTipo(tipo)
+        : TEXTO_DE_TIPO_QUE_YA_NO_EXISTE
   const formatos = r.formatos?.length ? r.formatos.map(etiquetaDeFormato).join(', ') : null
   return [nombre, textoDeArchivos(r.minArchivos, r.maxArchivos), formatos]
     .filter((parte) => parte !== null)

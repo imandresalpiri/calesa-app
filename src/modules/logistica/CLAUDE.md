@@ -13,7 +13,7 @@ La tarea de oro 3 la prueba `e2e/logistica-tarea-de-oro.spec.ts`. Abiertos (`doc
   `ORDEN_DE_HUECOS`, `refDeUnidad`, los tipos de la unidad y de los huecos; por `pantallas/unidad.ts`, `<PanelDeLaUnidad>` (los drawers: cabecera y una sección a la vista por hueco), que recibe `relacionados?: ReactNode` (el bloque «Relacionados» de un vehículo, bajo la cabecera y antes de los huecos; lo compone `src/app/(app)/logistica/unidad-abierta.tsx` con `leads.ver`: `logistica` no conoce `vehiculos/relacionados`); por `pantallas/unidad-pagina.ts`, `<PaginaDeLaUnidad>` (la página: cabecera compacta con `foto` y `relacionados` en una línea, y los huecos en zonas o en bloques con la barra «Mover»; lo compone `src/app/(app)/logistica/vehiculo/[id]/unidad-en-su-pagina.tsx`) y, por `pantallas/unidad-esqueletos.ts`, `EsqueletoDeLaUnidad` y `EsqueletoDeLaFoto` (sólo para `loading.tsx`: importar el barril de `unidad-pagina` bajaría su chunk dos veces); `ZONA_DEL_HUECO`, `zonasDeLaUnidad` y `pestanaInicial` (`entities/nucleo/zonas.ts`).
 - Área `cadena`: `leerResumenDeLaCadena(origenId)` (el número de cada fase: vehículos, demorados y trabados, con tope), `leerLaFase(pedido)` (una página de la lista de una fase,
   con los vehículos nombrados por el campo principal), `dondeEsta(busqueda)` (hasta 10, en todos los orígenes de la persona; texto corto no llama a la base),
-  `leerOrigenesDeLaCadena(permisos)` (las pestañas), `leerNavieras()`, `esquemaDeFiltrosDeLaCadena`, `pedidoDeLaCadena`, `claveDeFase`, `faseDeLaClave`, `rutaDeLaFase`, el cursor de una
+  `leerOrigenesDeLaCadena(permisos)` (las pestañas), `leerNavieras(origenId)` (las activas que usa el origen), `esquemaDeFiltrosDeLaCadena`, `pedidoDeLaCadena`, `claveDeFase`, `faseDeLaClave`, `rutaDeLaFase`, el cursor de una
   fase y las claves de URL de los filtros (`origen`, `q`, `demoradas`, `por_aprobar`, `contenedor`, `booking`, `naviera`).
 - Área `alertas`: `bandejaLogistica(tope)` (demoradas, trabados y por aprobar de quien mira; una lectura de `logistica_bandeja` por request con `cache()`),
   `detalleDeDemorada` y `detalleDeTrabado`, para los bloques de Inicio de `tablero`, que arman su «Ver todas» con `rutaDelGrupoDeLaBandeja`; y la bandeja del día:
@@ -120,7 +120,7 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   `revision.ts` (`quePuedeHacer`: cada acción oculta, habilitada o apagada con motivo). `pantallas/documentos-unidad.ts` declara «Documentos» (`logistica.ver`,
   sin regla); `?hueco=documentos` (`rutaDeLaUnidad(id, 'documentos')`) lo abre de entrada, y a eso lleva «Ver los documentos» del aviso del vehículo. El navegador lee con la sesión de quien mira (vivos con tope 50, URL firmada de
   60 s del bucket privado `documentos`).
-  **Subir:** en las zonas de la página, un botón «Subir documentos» abre `DrawerParaSubir` en `?subir=documentos` (clave propia: `?panel=` cerraría el drawer del ítem; `useEnZonas()` decide; sin `logistica.documentos.subir`, botón apagado con su motivo escrito; la zona de pestañas abre en Documentos con `?subir=` para que el hueco esté montado); se cierra solo al terminar sin fallos, con fallos queda abierto con «Reintentar los N que faltan». En bloques (celular, drawers, ítem) la bandeja sigue en línea. Con `&tipo_documento=<id>` (lo pone «Subir» de «Qué falta») la bandeja vacía arranca con ese tipo (`useBandeja(tipos, tipoPedido)`: nunca pisa lo elegido con archivos puestos) y un envío sin fallos lo quita; cada grupo de un tipo lleva `data-tipo-de-documento-id` («Revisar» lo enfoca). Las claves compartidas entre áreas (`CLAVE_DE_SUBIR`, `CLAVE_DEL_TIPO_A_SUBIR`, las del formulario de un pago y los atributos `data-tipo-de-documento-id` y `data-clave-de-dato`) viven en el núcleo (`entities/nucleo/paneles-de-la-unidad.ts`). La bandeja queda **sin subir** hasta enviar (`useBandeja`: formato del tipo, 25 MB, repetido por hash, hasta 20; aviso desde 10 MB); se sube por
+  **Subir:** en las zonas de la página, un botón «Subir documentos» abre `DrawerParaSubir` en `?subir=documentos` (clave propia: `?panel=` cerraría el drawer del ítem; `useEnZonas()` decide; sin `logistica.documentos.subir`, botón apagado con su motivo escrito; la zona de pestañas abre en Documentos con `?subir=` para que el hueco esté montado); se cierra solo al terminar sin fallos, con fallos queda abierto con «Reintentar los N que faltan». En bloques (celular, drawers, ítem) la bandeja sigue en línea. Con `&tipo_documento=<id>` (lo pone «Subir» de «Qué falta») la bandeja vacía arranca con ese tipo (`useBandeja(tipos, tipoPedido)`: nunca pisa lo elegido con archivos puestos) y un envío sin fallos lo quita; cada grupo de un tipo lleva `data-tipo-de-documento-id` («Revisar» lo enfoca). Las claves compartidas entre áreas (`CLAVE_DE_SUBIR`, `CLAVE_DEL_TIPO_A_SUBIR`, las del formulario de un pago y los atributos `data-tipo-de-documento-id` y `data-clave-de-dato`) viven en el núcleo (`entities/nucleo/paneles-de-la-unidad.ts`). Los tipos que ofrece son `tiposParaSubir()`: sin los compartidos que tapa un propio del flujo, salvo los que pide un requisito, rotulados «(tapado)». La bandeja queda **sin subir** hasta enviar (`useBandeja`: formato del tipo, 25 MB, repetido por hash, hasta 20; aviso desde 10 MB); se sube por
   hash (`<unidad>/<sha>.<ext>`) y recién entonces `registrarDocumentos` (`documento_registrar`, id del intento por archivo); cerrar con bandeja pregunta.
   **Revisar:** `revisarDocumento`, `editarDocumento`, `eliminarDocumento` → `documento_revisar|editar|eliminar` con la versión de la fila (`PT409` en la fila
   con `<AvisoDeConflicto>`, conserva lo escrito). Sin la clave nada se esconde: se apaga con el motivo. Editar y eliminar se ofrecen a quien tiene aprobar o
@@ -149,18 +149,29 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   `proyecto.pago_cliente`.
   **Lista:** `/logistica/gastos?ver=gastos|pagos` (`ENLACE_DE_DINERO` pide `logistica.gastos.ver`). `entities/dinero/listas.ts` manda sólo las claves que acepta
   cada RPC (una de más da `22023`); cursor `(fecha, id)` como instante a medianoche, sin «Anterior» ni sumas. La fila abre `?vehiculo=` de `/logistica`.
+  **Categorías del formulario:** las activas que usa el origen de la unidad (`categoriasParaElegir`; al prorratear, las que pueden usar todas las unidades) y, al
+  corregir, la del gasto rotulada «(de otro origen)», «(tapada)» o «(inactiva)». `useOpcionesDeGasto(abierto, apertura, origenes)` recuerda una lectura por juego de
+  orígenes (un pago no elige categoría: lee las compartidas). El filtro «Categoría» de la lista nombra una propia «<nombre> · <origen>».
   **Prorratear:** `pantallas/dinero-grupo.ts`, hueco del resumen de un grupo (`logistica.gastos.editar`; no en el de una declaración). `entities/dinero/reparto.ts`
   repite la aritmética de centavos de `gastos_prorratear` (los que sobran, a los primeros) sólo para la vista previa. El `lote` es el id del intento: se
   conserva si no se sabe qué pasó y se renueva al cambiar lo escrito o al rechazar la base.
-  **Categorías de gasto** (pestaña `/logistica/configuracion/categorias-de-gasto`, `logistica.catalogos.gestionar`; sin flechas de orden: el orden es el número del modal): escritura directa bajo la RLS; `categoria.ts` fija los propósitos del `check` de la base.
+  **Categorías de gasto** (pestaña `/logistica/configuracion/categorias-de-gasto`, `logistica.catalogos.gestionar`; sin flechas de orden: el orden es el número del modal): la pestaña
+  lista y crea las compartidas con todos los orígenes (`origen_id` nulo) y escribe por RPC (`categoria_gasto_crear|guardar|eliminar`) como los catálogos de transporte (abajo);
+  una con gastos no se elimina (23503: el diálogo dice el texto de la base, ««X» tiene gastos: desactívala.») y desactivar una con gastos avisa cuántos la usan. `categoria.ts` fija los propósitos del `check` de la base.
 - **Área `transporte`.** **Catálogos:** `pantallas/transporte-catalogos.ts`, pestañas «Puertos» y «Navieras» de Logística › Configuración (`/logistica/configuracion/puertos` y `/navieras`; el ⚙ «Configurar» de la cabecera de Logística entra, con `logistica.catalogos.gestionar`; la página, su tira de pestañas y su permiso por pestaña son de `src/app/(app)/logistica/configuracion/`)
-  (`logistica.catalogos.gestionar`; cada catálogo trae su `clave` —el último tramo de su sub-ruta— y su frase). Escritura directa bajo la RLS (`infra/transporte/catalogos.ts`): 0 filas = «No tienes permiso…», nunca éxito; sin versión.
+  (`logistica.catalogos.gestionar`; cada catálogo trae su `clave` —el último tramo de su sub-ruta— y su frase). Las pestañas listan y crean los compartidos con todos los
+  orígenes (`origen_id` nulo). Se escriben sólo por RPC (`puerto_crear|guardar`, `naviera_crear|guardar`; `infra/transporte/catalogos.ts`): crear lleva el id del intento
+  (nace al abrir el modal), guardar y activar o desactivar, la versión de la fila vigente de la lista (`useEnvioConVersion`: un `PT409` deja «Recargar», que relee la lista y
+  conserva lo escrito; en la fila, el aviso y la lista releída). La action pide `puede(…, 'logistica.catalogos.gestionar', origen)` antes de escribir y la base lo vuelve a
+  mirar (el origen del propio o todos los que usan el compartido); su rechazo se dice tal cual, junto al campo que nombra su `hint`. Desactivar uno en uso avisa cuántos
+  transportes u ofertas lo usan («más de 50» pasado el tope). Lo común con las categorías está en el núcleo (`entities/nucleo/catalogos.ts`, `infra/nucleo/catalogos.ts`).
   **No hay «Eliminar»** (borrar dejaría nulos los transportes y vaciaría la oferta): se desactiva. `entities/transporte/catalogo.ts` valida (nombre 1–80, país
-  ≤ 60, código ≤ 12 en mayúsculas sin espacios, orden 0–32.767); un puerto **sin país** no lo cubre la unicidad de la base (`NULL ≠ NULL`): la action lo mira,
-  pero dos altas simultáneas pueden duplicarlo. `<AvisoDeTope>` a 200.
+  ≤ 60, código ≤ 12 en mayúsculas sin espacios, orden 0–32.767); la unicidad es de la base, por origen y clave (sin mayúsculas, tildes ni espacios de más), también la
+  de un puerto sin país. `<AvisoDeTope>` a 200.
   **Hueco «Transporte»** (`pantallas/transporte-unidad.ts`; `logistica.ver`, regla `transporte`; sólo vehículos): escribe `guardarTransporte` →
-  `transporte_guardar` con la versión leída. Opciones = la oferta del flujo (vacía = todos los activos) **más lo ya guardado**, rotulado «(inactiva)» o «(fuera
-  de la oferta)» (`entities/transporte/oferta.ts`). `useBorradorDeTransporte` guarda los campos tocados: tras un `PT409`, «Recargar» trae la versión nueva y lo
+  `transporte_guardar` con la versión leída. Opciones = lo que ofrece el flujo y usa el origen de la unidad (oferta vacía = todo lo activo que usa: sus propios y
+  los compartidos que no tapa) **más lo ya guardado**, rotulado «(de otro origen)», «(tapado)»/«(tapada)», «(inactiva)» o «(fuera de la oferta)»
+  (`entities/transporte/oferta.ts`, `entities/nucleo/alcance-del-catalogo.ts`); lo guardado que no vino en la lectura del origen se pide aparte: nunca se vacía. `useBorradorDeTransporte` guarda los campos tocados: tras un `PT409`, «Recargar» trae la versión nueva y lo
   escrito sigue. Sin `logistica.transporte.editar` del origen, campos apagados con el motivo. `entities/transporte/transporte.ts` repite los textos de la base
   (contenedor y booking `^[A-Z0-9./-]{1,40}$` tras quitar **todo** espacio y pasar a mayúsculas; notas ≤ 2.000; ETA y arribo no antes del zarpe) sólo en lo
   que cambió; `porCampoDe` lleva el `hint` al campo. Un rechazo sin campo va en un aviso sobre «Guardar».
@@ -168,20 +179,23 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   (`?cursor=` es el id de una fila, validado con `z.guid()`, no con `leerCursor`; en `scripts/guardas/areas-b/paginas-en-la-base.ts`) y `transporte_grupo()`
   (≤ 200, `hay_mas`, `hay_ocultas`: nunca un total). `cortada` (la base paró a las 2.000 filas) ofrece «Seguir buscando». Filtros
   (`entities/transporte/filtros.ts`): `naviera`, `puerto_origen`, `puerto_destino` (sin opciones no se dibujan), `en_transito` (sin arribo), `q` por prefijo.
+  La página mezcla orígenes: `leerCatalogosDeTransporte` lee todos y nombra un propio «<nombre> · <origen>» (`nombreConOrigen`).
   La fila escribe lo común, «Varias»/«Varios» si difieren y «—» si ninguna lo tiene o el id ya no está en el catálogo, nunca el uuid (`textosDelGrupo`). El
   resumen (`?booking=` o `?contenedor=`) lista unidades con fase y ETA (sin «días en la fase»: sería N+1) y monta los huecos de grupo de `mover`, `documentos`
   y `dinero` (`src/app/(app)/logistica/embarques/huecos-del-grupo.ts`) por permiso en cualquier origen, **sin mirar la regla de flujo**; la base exige por unidad.
   **«Editar grupo»:** `?panel=editar-grupo` **tapa** al resumen (`src/app` dibuja uno u otro). El botón sale con `logistica.transporte.editar` o
   `repuestos.editar` (`puedeEditarTransporte`, sin origen). `entities/transporte/edicion-del-grupo.ts`: lo que difiere sale vacío y un «Varios» vacío nunca se
   vacía; las versiones esperadas son las que vio el resumen. `aplicarAlGrupo` → `transporte_grupo_aplicar` (todo o nada, **sin `notas`**, devuelve la clave
-  nueva si cambió contenedor o booking); `PT409` → «No se cambió ninguna: <motivo>» con «Recargar» que conserva lo escrito. Opciones: todos los activos (un
-  grupo cruza flujos; la base revisa oferta y fase por unidad).
+  nueva si cambió contenedor o booking); `PT409` → «No se cambió ninguna: <motivo>» con «Recargar» que conserva lo escrito. Opciones: los activos que pueden usar
+  todas las unidades (`alcanceDelGrupo`: con un origen, lo que usa; con varios o con un ítem, los compartidos que ninguno tapa) más lo común guardado, rotulado (un
+  grupo cruza flujos; la base revisa oferta, origen y fase por unidad).
 
 ## Tablas
 
 `documentos`, `puertos`, `navieras`, `transportes` (1:1 con la unidad), `declaraciones_aduana`, `declaraciones_vehiculos`, `categorias_gasto`, `gastos`, `pagos`, `notas`.
 RPC: `margen_vehiculo`, `alertas_demora` (cron), `storage_refcount`, `logistica_cadena_resumen`, `logistica_cadena_columna` (la lista de una fase), `logistica_bandeja_grupo` (índices `transportes_llegadas_idx` y `transportes_salidas_idx`) y los ayudantes `_logistica_lo_propio` y `_bandeja_dia_*`; mover vía `flujos`. La oferta de transporte es de `flujos` (`flujo_oferta_guardar`);
-logística sólo la lee con `flujo_oferta()`. Gastos y pagos se escriben sólo por RPC: `gasto_registrar`, `gasto_guardar`, `gasto_eliminar`, `gastos_prorratear`,
+logística sólo la lee con `flujo_oferta()`. Puertos, navieras y categorías de gasto (propios de un origen o compartidos) se escriben sólo por RPC: `puerto_crear|guardar`,
+`naviera_crear|guardar`, `categoria_gasto_crear|guardar|eliminar`. Gastos y pagos se escriben sólo por RPC: `gasto_registrar`, `gasto_guardar`, `gasto_eliminar`, `gastos_prorratear`,
 `pago_registrar`, `pago_registrar_proyecto`, `pago_guardar`, `pago_eliminar`, `pago_confirmar`, `pago_anular`; se leen por cursor con `gastos_listar` y
 `pagos_listar`. El bucket `comprobantes` lo abre `comprobante_puede` (la fila que nombra el objeto).
 **Alertas:** `trg_alertas_cerrar_al_mover` (en `historial_fases`) acciona los `demora_fase` abiertos de la unidad al moverla (`notificaciones_referencia_idx`).

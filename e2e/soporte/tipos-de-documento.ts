@@ -35,16 +35,30 @@ export function tipoEnLaBase(nombre: string): TipoDeDocumentoEnLaBase | null {
   return { id, activo: activo === 'true', orden: Number(orden), modo, vigencia, aviso }
 }
 
-// Un tipo del flujo de la subasta, al final de su grupo, por el camino de la base (sin la pantalla): para armar el terreno.
-export function sembrarTipoDelFlujo(nombre: string): TipoDeDocumentoEnLaBase {
+export function nombreDelOrigen(origenId: string): string {
+  return sql(`select nombre from public.origenes where id = '${origenId}'`)
+}
+
+// Un tipo del flujo de la subasta (o compartido, sin flujo), al final de su grupo, por el camino de la base (sin la pantalla): para armar el terreno.
+function sembrarTipo(nombre: string, flujoId: string | null): TipoDeDocumentoEnLaBase {
+  const flujo = flujoId === null ? 'null' : `'${flujoId}'`
+  const delGrupo = flujoId === null ? 'flujo_id is null' : `flujo_id = '${flujoId}'`
   sql(
     `insert into public.tipos_documento (flujo_id, nombre, orden)
-       select '${flujoDeLaSubasta()}', ${literal(nombre)}, coalesce(max(orden), 0) + 10
-         from public.tipos_documento where flujo_id = '${flujoDeLaSubasta()}'`,
+       select ${flujo}, ${literal(nombre)}, coalesce(max(orden), 0) + 10
+         from public.tipos_documento where ${delGrupo}`,
   )
   const sembrado = tipoEnLaBase(nombre)
   if (!sembrado) throw new Error(`No quedó el tipo de documento ${nombre}`)
   return sembrado
+}
+
+export function sembrarTipoDelFlujo(nombre: string): TipoDeDocumentoEnLaBase {
+  return sembrarTipo(nombre, flujoDeLaSubasta())
+}
+
+export function sembrarTipoCompartido(nombre: string): TipoDeDocumentoEnLaBase {
+  return sembrarTipo(nombre, null)
 }
 
 // Un requisito de documento de una fase del flujo de la subasta que pide este tipo: lo vuelve «en uso».
@@ -71,18 +85,20 @@ export function borrarTiposDeDocumentoDePrueba(): void {
 export type Grupo = 'empresa' | 'flujo'
 
 export const seccionDelGrupo = (page: Page, grupo: Grupo): Locator =>
-  // Los de la empresa no dibujan su título (es el de la pestaña): la región lleva su nombre en `aria-label`; los de un flujo, `aria-labelledby`.
+  // Los compartidos se llaman «Compartidos» (solos, en su pestaña, por `aria-label`; en el panel del flujo, por su título); los de un flujo, por el suyo.
   grupo === 'empresa'
-    ? page.locator('section[aria-label="De toda la empresa"]')
+    ? page.getByRole('region', { name: 'Compartidos', exact: true })
     : page.locator(`section[aria-labelledby="titulo-de-tipos-${grupo}"]`)
 
-// Los de un flujo: en el panel de la pestaña Fases del origen (`?seccion=documentos`), sólo los de ese flujo.
+// Los de un flujo: en el panel de la pestaña Fases del origen (`?seccion=documentos`), los de ese flujo («De <origen>») y debajo los compartidos.
 export async function abrirDocumentos(page: Page, origenId = origenDeLaSubasta()): Promise<void> {
   await page.goto(`/configuracion/origenes/${origenId}/fases?seccion=documentos`)
-  await expect(page.getByRole('heading', { name: 'Sólo de este flujo', level: 2 })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: `De ${nombreDelOrigen(origenId)}`, level: 2 }),
+  ).toBeVisible()
 }
 
-// Los de toda la empresa: Logística › Configuración › Tipos de documento.
+// Los compartidos: Logística › Configuración › Tipos de documento.
 export async function abrirLosDeLaEmpresa(page: Page, consulta = ''): Promise<void> {
   await page.goto(`/logistica/configuracion/tipos-de-documento${consulta}`)
   await expect(seccionDelGrupo(page, 'empresa')).toBeVisible()
@@ -104,6 +120,6 @@ export const modalDeTipo = (
   page: Page,
   titulo:
     | 'Nuevo tipo de documento de este flujo'
-    | 'Nuevo tipo de documento de toda la empresa'
+    | 'Nuevo tipo de documento compartido'
     | 'Editar tipo de documento',
 ): Locator => page.getByRole('dialog', { name: titulo })

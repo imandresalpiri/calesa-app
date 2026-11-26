@@ -19,7 +19,7 @@ type Props = {
   // Nulo = «Nuevo tipo».
   original: TipoDeDocumento | null
   grupo: ClaveDeGrupo
-  // El flujo del grupo (nulo = toda la empresa).
+  // El flujo del grupo (nulo = los compartidos).
   flujoId: string | null
   // Ya no se puede guardar lo escrito (otra persona eliminó el tipo que se editaba).
   noDisponible: string | null
@@ -32,7 +32,7 @@ function titulo(original: TipoDeDocumento | null, grupo: ClaveDeGrupo): string {
     return 'Editar tipo de documento'
   }
   return grupo === 'empresa'
-    ? 'Nuevo tipo de documento de toda la empresa'
+    ? 'Nuevo tipo de documento compartido'
     : 'Nuevo tipo de documento de este flujo'
 }
 

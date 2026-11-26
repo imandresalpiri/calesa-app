@@ -6,6 +6,7 @@ import {
   type TipoDeDocumento,
 } from '../../../entities/documentos/tipo-de-documento'
 import {
+  insigniaDeTapado,
   motivoDeSoloLectura,
   usoDe,
   type VistaDeGrupo,
@@ -22,9 +23,15 @@ export function textoDelVencimiento(tipo: TipoDeDocumento): string | null {
   return tipo.modo === 'solicitar' ? 'Pide fecha' : null
 }
 
-function insignias(tipo: TipoDeDocumento): string[] {
+// Junto al nombre, en la misma línea (llegan con la lista: no saltan): el vencimiento, «Portal» y, en un compartido que el flujo tapa, «Tapado por el de Miami».
+function insignias(vista: VistaDeGrupo, tipo: TipoDeDocumento): string[] {
   const vence = textoDelVencimiento(tipo)
-  return [...(vence === null ? [] : [vence]), ...(tipo.visiblePortal ? ['Portal'] : [])]
+  const tapado = insigniaDeTapado(vista, tipo)
+  return [
+    ...(tapado === null ? [] : [tapado]),
+    ...(vence === null ? [] : [vence]),
+    ...(tipo.visiblePortal ? ['Portal'] : []),
+  ]
 }
 
 // Los tipos de un grupo como filas de la lista de catálogo, en su orden. En un grupo de sólo lectura el orden se apaga con el motivo del permiso
@@ -42,7 +49,7 @@ export function filasDeTipos(
       nombre: tipo.nombre,
       icono: null,
       activo: tipo.activo,
-      insignias: insignias(tipo),
+      insignias: insignias(vista, tipo),
       uso: puedeCambiar && uso ? textoDelUso(uso) : '—',
       acciones: accionesDeTipo(tipo, { clave, puedeCambiar, uso }, quehaceres),
       puedeSubir: puedeCambiar && destinoDeTipo(grupo.tipos, tipo.id, 'subir') !== null,

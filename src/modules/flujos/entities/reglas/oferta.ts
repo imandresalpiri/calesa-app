@@ -1,5 +1,6 @@
 // La oferta de transporte de un flujo: qué puertos de origen, de destino y qué navieras se ofrecen al cargar el transporte. Lista vacía = se ofrecen todos.
 import { z } from 'zod'
+import { loQueUsaElOrigen, type FilaPropiaOCompartida } from '@/shared/lib/catalogos/propios'
 import { cortarAlTope } from '@/shared/lib/conteo'
 
 export const TOPE_DE_LA_OFERTA = 200
@@ -19,7 +20,7 @@ export type OfertaDeTransporte = {
   navieras: ElementoDeOferta[]
 }
 
-// Los puertos y navieras activos que se pueden marcar (se lee uno de más para saber si hay más).
+// Los puertos y navieras activos que usa el origen del flujo y se pueden marcar (se lee uno de más para saber si hay más).
 export type CatalogoDeTransporte = {
   puertos: ElementoDeOferta[]
   navieras: ElementoDeOferta[]
@@ -49,14 +50,31 @@ export function ofertaDesde(crudo: unknown): OfertaDeTransporte | null {
   }
 }
 
-// El catálogo desde lo que devolvieron las dos consultas (con `tope + 1` filas cada una).
-export function catalogoDesde(
-  puertos: readonly ElementoDeOferta[],
-  navieras: readonly ElementoDeOferta[],
+// Un puerto o una naviera leídos con su origen (nulo = compartido) y su clave (`claveDePuerto` o `claveDeCatalogo`); las navieras no tienen orden (0).
+export type FilaDelCatalogo = FilaPropiaOCompartida & { nombre: string; orden: number }
+
+// Lo que usa el origen, en el orden en que se ve: sus propios y los compartidos que no tapa (sin origen, el flujo de repuestos, sólo los compartidos).
+function loQueUsa(filas: readonly FilaDelCatalogo[], origenId: string | null): ElementoDeOferta[] {
+  return loQueUsaElOrigen(filas, origenId)
+    .sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre, 'es'))
+    .map(({ id, nombre, activo }) => ({ id, nombre, activo }))
+}
+
+// El catálogo del origen del flujo desde lo que devolvieron las dos consultas (con `tope + 1` filas cada una y los compartidos al final): se corta
+// antes de tapar, así el tope deja fuera un compartido antes que el propio que lo tapa.
+export function catalogoDelOrigen(
+  puertos: readonly FilaDelCatalogo[],
+  navieras: readonly FilaDelCatalogo[],
+  origenId: string | null,
 ): CatalogoDeTransporte {
   const p = cortarAlTope(puertos, TOPE_DE_LA_OFERTA)
   const n = cortarAlTope(navieras, TOPE_DE_LA_OFERTA)
-  return { puertos: p.filas, navieras: n.filas, hayMasPuertos: p.hayMas, hayMasNavieras: n.hayMas }
+  return {
+    puertos: loQueUsa(p.filas, origenId),
+    navieras: loQueUsa(n.filas, origenId),
+    hayMasPuertos: p.hayMas,
+    hayMasNavieras: n.hayMas,
+  }
 }
 
 // Lo que se puede marcar en un grupo: los activos del catálogo y, aparte, los ya guardados que dejaron de estar activos o que el tope dejó fuera:

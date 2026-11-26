@@ -11,7 +11,7 @@ import type { ImpactoDeRequisito } from './impacto'
 import type { OpcionesDeRequisitos } from './opciones'
 import type { VersionNueva } from './respuestas'
 
-// Lo que el bloque necesita nombrar y ofrecer, de un flujo: los tipos de documento (los de toda la empresa y los suyos) y las fases activas del otro
+// Lo que el bloque necesita nombrar y ofrecer, de un flujo: los tipos de documento (los compartidos, con los que tapa, y los suyos) y las fases activas del otro
 // ámbito, con `tope + 1` leídos por grupo.
 export type LectorDeOpcionesDeRequisitos = (pedido: {
   flujoId: string

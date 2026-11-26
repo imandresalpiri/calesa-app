@@ -1,5 +1,6 @@
 // Lo que la pantalla de tipos de documento muestra de cada grupo y qué se puede abrir desde la URL. Puro: la pantalla lee los dos grupos en el servidor y
 // estas reglas dicen, con texto, por qué algo no se abre o no se elimina (nunca un botón muerto sin motivo).
+import { quienTapa } from '../propios-del-flujo'
 import {
   tipoEnUso,
   textoDelUso,
@@ -9,26 +10,51 @@ import {
   type UsoDeTipo,
 } from './tipo-de-documento'
 
-// Un grupo tal como se dibuja: sus tipos, quién lo cambia y cuánto usa cada uno (sólo lo sabe quien puede cambiarlo: a los demás la base les dice 42501).
+// Los compartidos que tapa un propio activo del flujo que se ve: sus ids y la insignia que lo dice («Tapado por el de Miami»).
+export type TapadosDelGrupo = { ids: readonly string[]; insignia: string }
+
+// Un grupo tal como se dibuja: sus tipos, quién lo cambia, cuánto usa cada uno (sólo lo sabe quien puede cambiarlo: a los demás la base les dice 42501)
+// y, el de los compartidos en el panel de un flujo, cuáles tapa ese flujo (nulo en el resto).
 export type VistaDeGrupo = {
   grupo: GrupoDeTipos
   puedeCambiar: boolean
   uso: Record<string, UsoDeTipo> | null
+  tapados: TapadosDelGrupo | null
 }
 
-// Cada página dibuja un grupo: Logística › Configuración › Tipos de documento, el de toda la empresa; el panel del flujo, el de ese flujo (nulo si quien mira no lo
-// configura). El que la página no dibuja va nulo.
+// Logística › Configuración › Tipos de documento dibuja los compartidos; el panel del flujo, los de ese flujo y los compartidos (con los que tapa). El que
+// la página no dibuja va nulo. La clave `empresa` (también en la URL, `?de=empresa`) es el grupo de los compartidos.
 export type VistasDeGrupos = { empresa: VistaDeGrupo | null; flujo: VistaDeGrupo | null }
 
-export const MOTIVO_SOLO_LECTURA_DE_EMPRESA =
-  'Los tipos de documento de toda la empresa los cambia quien gestiona los catálogos de logística.'
+export const TITULO_DE_LOS_COMPARTIDOS = 'Compartidos'
+export const MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS =
+  'Los tipos compartidos los cambia quien configura la logística en cada origen que los usa.'
 export const MOTIVO_SOLO_LECTURA_DEL_FLUJO =
   'No puedes configurar los tipos de documento de este flujo.'
 export const MOTIVO_DE_TIPO_NO_DISPONIBLE = 'Ese tipo de documento ya no existe.'
 export const MOTIVO_DE_GRUPO_NO_DISPONIBLE = 'Esa lista de tipos de documento no está disponible.'
 
 export function motivoDeSoloLectura(clave: ClaveDeGrupo): string {
-  return clave === 'empresa' ? MOTIVO_SOLO_LECTURA_DE_EMPRESA : MOTIVO_SOLO_LECTURA_DEL_FLUJO
+  return clave === 'empresa' ? MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS : MOTIVO_SOLO_LECTURA_DEL_FLUJO
+}
+
+// El grupo de un flujo se nombra por su dueño: su origen («De Miami») o, sin origen, el flujo de repuestos.
+export function tituloDeLosPropios(origen: string | null): string {
+  return origen === null ? 'Del flujo de repuestos' : `De ${origen}`
+}
+
+export function detalleDeLosPropios(origen: string | null): string {
+  return `Sólo se piden en ${origen ?? 'el flujo de repuestos'}.`
+}
+
+// Los compartidos que tapa el flujo de este origen (nulo: el de repuestos), con su insignia.
+export function tapadosDelGrupo(ids: Iterable<string>, origen: string | null): TapadosDelGrupo {
+  return { ids: [...ids], insignia: `Tapado por ${quienTapa(origen)}` }
+}
+
+// La insignia de un tipo del grupo si el flujo que se ve lo tapa; nula si no.
+export function insigniaDeTapado(vista: VistaDeGrupo, tipo: TipoDeDocumento): string | null {
+  return vista.tapados?.ids.includes(tipo.id) ? vista.tapados.insignia : null
 }
 
 export function claveDeGrupoDe(valor: string | null): ClaveDeGrupo | null {

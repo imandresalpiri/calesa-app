@@ -8,6 +8,7 @@ import {
 } from '../../../areas/transporte/composicion.client'
 import {
   MENSAJE_PUERTO_YA_NO_ESTA,
+  textoDeUso,
   type PuertoDeCatalogo,
 } from '../../../entities/transporte/catalogo'
 import { guardarPuerto } from '../actions/guardar-puerto'
@@ -26,20 +27,16 @@ const CONFIG: ConfigDelCatalogo<PuertoDeCatalogo> = {
   mensajeDeLectura: NO_SE_CARGARON_LOS_PUERTOS,
   activar: (puerto, activo) =>
     enviarAccion(
-      guardarPuerto({
-        id: puerto.id,
-        nombre: puerto.nombre,
-        pais: puerto.pais,
-        cambios: { activo },
-      }),
+      guardarPuerto({ id: puerto.id, actualizadoEn: puerto.actualizadoEn, cambios: { activo } }),
       'No se pudo guardar el puerto.',
     ),
   avisoActivado: 'Puerto activado.',
   avisoDesactivado: 'Puerto desactivado.',
+  avisoDelUso: (puerto, uso) => textoDeUso(puerto.nombre, uso, false),
 }
 
-// Logística › Configuración › Puertos (6.08-1): se crean, renombran, ordenan (con un número), activan y desactivan; no se eliminan. Escribir lo exige `logistica.catalogos.gestionar` (la RLS de la tabla);
-// la página ya lo pide.
+// Logística › Configuración › Puertos (6.08-1): los compartidos con todos los orígenes se crean, renombran, ordenan (con un número), activan y desactivan; no se eliminan.
+// Escribir pide `logistica.catalogos.gestionar` (la action y, por RPC, la base); la página ya lo pide.
 export function PuertosDeTransporte() {
   const datos = useCatalogoDeTransporte(CONFIG)
   const puertos = datos.lectura.tipo === 'listo' ? datos.lectura.filas : null

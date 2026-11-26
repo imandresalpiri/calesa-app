@@ -324,6 +324,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Limpia en el orden de las FK soltando antes lo que frena (comprobantes con `restrict`, FK sin `on delete` como `ajustes_web.actualizado_por`), y un spec que siembra por SQL borra lo suyo también al empezar: un `afterAll` o una corrida caídos ensucian el siguiente.
 - Limpia sólo tu prefijo o tu origen (`borrarDineroDeEsteOrigen`), nunca `like 'E2E%'` ni todos los `e2e_%`: una limpieza amplia borra lo que otro spec en curso necesita.
 - No corras juntos dos specs que borran y siembran las mismas personas (`chat` y `chat-widget`): se pisan el terreno. Van en comandos aparte.
+- Corre un solo `pnpm test:e2e` a la vez en un worktree: compila `.next-e2e` (`scripts/compilar-e2e.sh`) antes de pedir el candado, así que el segundo reescribe el build que sirve el primero y le deja las páginas en blanco, aunque después caiga en el candado. Lanza el siguiente cuando termine el anterior.
 - Afirma una cifra compartida (tablero, margen, conteos del mes) por el aumento que causa tu acción con `≥`, nunca por un total: otros specs escriben en el mismo período.
 - Un spec que escribe un secreto real (Vault de apibara) toma su huella al empezar y la deja igual al final: si no, rompe a los demás.
 - Un embudo creado por `embudo_crear()` nace con «Nueva», «Ganada» y «Perdida», no con las etapas del de por defecto («Nuevo», «Ganado»…): nombra la etapa del embudo que usas.

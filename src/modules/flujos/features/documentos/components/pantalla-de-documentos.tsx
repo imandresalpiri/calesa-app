@@ -14,14 +14,19 @@ import {
   type FlujoFijo,
   type OrigenDelSelector,
 } from '../../../entities/selector-de-flujos'
-import type { VistaDeGrupo } from '../../../entities/documentos/vista-de-grupo'
+import {
+  tapadosDelGrupo,
+  type TapadosDelGrupo,
+  type VistaDeGrupo,
+} from '../../../entities/documentos/vista-de-grupo'
+import { compartidosTapados } from '../../../entities/propios-del-flujo'
 import { TiposDeDocumento } from './tipos-de-documento'
 
 type Props = { permisos: Permisos } & (
-  | // Logística › Configuración › Tipos de documento: los de toda la empresa.
+  | // Logística › Configuración › Tipos de documento: los compartidos.
     { grupos: 'empresa' }
   | {
-      // El panel del flujo: los «Sólo de este flujo».
+      // El panel del flujo: los suyos y los compartidos.
       grupos: 'flujo'
       fijo: FlujoFijo
       // Todos los orígenes del catálogo, también los inactivos, para nombrar el flujo: los compone la página (este módulo no depende de `origenes`).
@@ -35,26 +40,51 @@ async function leerGrupo(flujoId: string | null, puedeCambiar: boolean): Promise
     leerTiposDeDocumento(flujoId),
     puedeCambiar ? leerUsoDeTiposDeDocumento(flujoId) : null,
   ])
-  return { grupo: datosO(grupo), puedeCambiar, uso: uso === null ? null : datosO(uso) }
+  return {
+    grupo: datosO(grupo),
+    puedeCambiar,
+    uso: uso === null ? null : datosO(uso),
+    tapados: null,
+  }
 }
 
-// Los tipos de documento (5.09), leídos en el servidor con la sesión de quien mira y detrás de `<Suspense>`: en Logística › Configuración, los de toda la empresa (se
-// ven con `flujos.configurar`; se cambian con `logistica.catalogos.gestionar`); en el panel del flujo, los de ese flujo (uno que quien mira configura).
-// La base vuelve a decidir cada escritura. Una lectura que falla sube al `error.tsx` de `(app)`, que ofrece «Reintentar».
+// Los compartidos los cambia quien gestiona los catálogos de logística (la base pide la clave en cada origen que los usa).
+const leerCompartidos = (permisos: Permisos) =>
+  leerGrupo(null, puede(permisos, 'logistica.catalogos.gestionar'))
+
+// Los compartidos que tapa un propio activo del flujo, con la insignia que nombra su origen (nulo: el de repuestos).
+function tapadosPorElFlujo(
+  compartidos: VistaDeGrupo,
+  propios: VistaDeGrupo,
+  origen: string | null,
+): TapadosDelGrupo {
+  return tapadosDelGrupo(compartidosTapados(compartidos.grupo.tipos, propios.grupo.tipos), origen)
+}
+
+// Los tipos de documento (5.09), leídos en el servidor con la sesión de quien mira y detrás de `<Suspense>`: en Logística › Configuración, los compartidos
+// (se ven con `flujos.configurar`; se cambian con `logistica.catalogos.gestionar`); en el panel del flujo, los de ese flujo (uno que quien mira configura)
+// y los compartidos, marcados los que el flujo tapa. La base vuelve a decidir cada escritura. Una lectura que falla sube al `error.tsx` de `(app)`, que
+// ofrece «Reintentar».
 export async function PantallaDeDocumentos(props: Props) {
   if (props.grupos === 'empresa') {
-    const empresa = await leerGrupo(null, puede(props.permisos, 'logistica.catalogos.gestionar'))
-    return <TiposDeDocumento vistas={{ empresa, flujo: null }} nombreDelFlujo={null} />
+    const empresa = await leerCompartidos(props.permisos)
+    return <TiposDeDocumento vistas={{ empresa, flujo: null }} origen={null} />
   }
   const [flujos, listaDeOrigenes] = await Promise.all([
     leerFlujosConfigurables(props.permisos),
     props.origenes,
   ])
-  const entrada = entradaFija(armarSelector(datosO(flujos), datosO(listaDeOrigenes)), props.fijo)
+  const origenes = datosO(listaDeOrigenes)
+  const entrada = entradaFija(armarSelector(datosO(flujos), origenes), props.fijo)
   if (!entrada) {
     return <EstadoVacio Icono={WorkflowIcon} titulo={textoSinFlujo(props.fijo)} compacto />
   }
   // Un flujo configurable ya es uno que quien mira puede configurar.
-  const flujo = await leerGrupo(entrada.flujo.id, true)
-  return <TiposDeDocumento vistas={{ empresa: null, flujo }} nombreDelFlujo={entrada.titulo} />
+  const [flujo, compartidos] = await Promise.all([
+    leerGrupo(entrada.flujo.id, true),
+    leerCompartidos(props.permisos),
+  ])
+  const origen = origenes.find((o) => o.id === entrada.flujo.origenId)?.nombre ?? null
+  const empresa = { ...compartidos, tapados: tapadosPorElFlujo(compartidos, flujo, origen) }
+  return <TiposDeDocumento vistas={{ empresa, flujo }} origen={origen} />
 }

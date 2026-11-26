@@ -3,6 +3,7 @@ import { cortarAlTope } from '@/shared/lib/conteo'
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/server'
 import type { AmbitoDeFlujo } from '../../entities/flujo'
+import { compartidosTapados, quienTapa } from '../../entities/propios-del-flujo'
 import {
   TOPE_DE_FASES_PARA_REQUISITOS,
   TOPE_DE_FLUJOS_PARA_REQUISITOS,
@@ -14,16 +15,15 @@ import type { LectorDeOpcionesDeRequisitos } from '../../entities/requisitos/rep
 
 const NO_SE_LEYO = 'No pudimos leer los tipos de documento. Vuelve a intentar.'
 
-const COLUMNAS = 'id, nombre, formatos, activo'
-
 type Fila = { id: string; nombre: string; formatos: string[]; activo: boolean }
 
-const comoTipo = (f: Fila, delFlujo: boolean): TipoParaRequisito => ({
+const comoTipo = (f: Fila, delFlujo: boolean, tapadoPor: string | null): TipoParaRequisito => ({
   id: f.id,
   nombre: f.nombre,
   formatos: f.formatos,
   activo: f.activo,
   delFlujo,
+  tapadoPor,
 })
 
 // Las fases activas del otro ámbito (un vehículo espera a sus repuestos y un repuesto a su vehículo), con el nombre de su flujo. Los flujos por
@@ -79,28 +79,39 @@ async function leerFasesDelOtroFlujo(
   })
 }
 
-// Lo que un requisito nombra y ofrece, de un flujo: los tipos de documento que nombra (los de toda la empresa y los del flujo, cada grupo por el btree de
-// `tipos_documento_flujo_id_nombre_key`, flujo_id primero, en el orden en que se ven y con `tope + 1` filas para saber si hay más; incluye los inactivos: un
-// requisito que ya los nombra dice su nombre) y las fases que una espera puede esperar. Son catálogos de configuración: a lo sumo 100 por grupo.
+// Quién tapa en este flujo: su origen (lo trae cada propio; sin propios no hay nada tapado) o, en repuestos, el flujo de repuestos.
+function quienTapaEn(ambito: AmbitoDeFlujo, origen: string | null): string {
+  return quienTapa(ambito === 'repuestos' ? null : (origen ?? 'este origen'))
+}
+
+// Lo que un requisito nombra y ofrece, de un flujo: los tipos de documento que nombra (los compartidos y los del flujo, cada grupo por el btree de
+// `tipos_documento_flujo_clave_key`, flujo_id primero, en el orden en que se ven y con `tope + 1` filas para saber si hay más; incluye los inactivos: un
+// requisito que ya los nombra dice su nombre), con los compartidos que tapa un propio activo del flujo marcados, y las fases que una espera puede
+// esperar. Son catálogos de configuración: a lo sumo 100 por grupo.
 export const leerOpcionesDeRequisitos: LectorDeOpcionesDeRequisitos = async ({
   flujoId,
   ambito,
 }) => {
   const supabase = await createClient()
-  const leer = (flujo: string | null) => {
-    const consulta = supabase.from('tipos_documento').select(COLUMNAS)
-    return (flujo === null ? consulta.is('flujo_id', null) : consulta.eq('flujo_id', flujo))
+  const [compartidos, delFlujo, deEspera] = await Promise.all([
+    supabase
+      .from('tipos_documento')
+      .select('id, nombre, formatos, activo')
+      .is('flujo_id', null)
       .order('orden')
       .order('nombre')
-      .limit(TOPE_DE_TIPOS_PARA_REQUISITOS + 1)
-  }
-  const [empresa, delFlujo, deEspera] = await Promise.all([
-    leer(null),
-    leer(flujoId),
+      .limit(TOPE_DE_TIPOS_PARA_REQUISITOS + 1),
+    supabase
+      .from('tipos_documento')
+      .select('id, nombre, formatos, activo, flujo:flujos(origen:origenes(nombre))')
+      .eq('flujo_id', flujoId)
+      .order('orden')
+      .order('nombre')
+      .limit(TOPE_DE_TIPOS_PARA_REQUISITOS + 1),
     leerFasesDelOtroFlujo(ambito),
   ])
-  if (empresa.error) {
-    return { ok: false, error: errorDePostgrest(empresa.error) }
+  if (compartidos.error) {
+    return { ok: false, error: errorDePostgrest(compartidos.error) }
   }
   if (delFlujo.error) {
     return { ok: false, error: errorDePostgrest(delFlujo.error) }
@@ -108,11 +119,13 @@ export const leerOpcionesDeRequisitos: LectorDeOpcionesDeRequisitos = async ({
   if (!deEspera.ok) {
     return deEspera
   }
-  const dePrimero = cortarAlTope(empresa.data, TOPE_DE_TIPOS_PARA_REQUISITOS)
+  const dePrimero = cortarAlTope(compartidos.data, TOPE_DE_TIPOS_PARA_REQUISITOS)
   const deSegundo = cortarAlTope(delFlujo.data, TOPE_DE_TIPOS_PARA_REQUISITOS)
+  const tapados = compartidosTapados(dePrimero.filas, deSegundo.filas)
+  const quien = quienTapaEn(ambito, deSegundo.filas[0]?.flujo?.origen?.nombre ?? null)
   const tipos = [
-    ...dePrimero.filas.map((f) => comoTipo(f, false)),
-    ...deSegundo.filas.map((f) => comoTipo(f, true)),
+    ...dePrimero.filas.map((f) => comoTipo(f, false, tapados.has(f.id) ? quien : null)),
+    ...deSegundo.filas.map((f) => comoTipo(f, true, null)),
   ]
   return tipos.every((t) => typeof t.id === 'string' && typeof t.nombre === 'string')
     ? ok({

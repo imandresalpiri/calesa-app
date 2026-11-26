@@ -2,7 +2,7 @@
 // `_requisito_validar()`: la base vuelve a decir cada motivo, con el campo en el `hint`. Sin I/O.
 import { leerNumeroTipeado } from '@/shared/lib/numero-tipeado'
 import { MENSAJE_DE_NOTAS_LARGAS, validarNotas } from './notas'
-import type { TipoParaRequisito } from './opciones'
+import { seOfreceParaUnoNuevo, type TipoParaRequisito } from './opciones'
 
 export type BorradorDeDocumento = {
   tipoId: string
@@ -142,7 +142,7 @@ export function validarDocumento(
   tipos: readonly TipoParaRequisito[],
   locale: string,
 ): Validacion {
-  const tipo = tipos.find((t) => t.id === borrador.tipoId && t.activo)
+  const tipo = tipos.find((t) => t.id === borrador.tipoId && seOfreceParaUnoNuevo(t))
   const archivos = validarArchivos(borrador, tipo?.formatos ?? null, locale)
   const notas = validarNotas(borrador.notas)
   const errores: Partial<Record<CampoDeDocumento, string>> = {

@@ -3,13 +3,17 @@ import {
   borradorDeCategoria,
   BORRADOR_NUEVO_DE_CATEGORIA,
   cambiosDeCategoria,
+  categoriasDesde,
+  categoriasParaElegir,
   nombreDelProposito,
   PROPOSITOS_DE_CATEGORIA,
-  textoDeErrorDeCategoria,
+  textoDeUsoDeCategoria,
   validarCategoria,
   type BorradorDeCategoria,
   type CategoriaDeGasto,
 } from './categoria'
+
+const VERSION = '2026-11-25T12:00:00.000000+00:00'
 
 const borrador = (p: Partial<BorradorDeCategoria> = {}): BorradorDeCategoria => ({
   nombre: 'Maniobras',
@@ -77,10 +81,12 @@ describe('validarCategoria', () => {
 describe('cambiosDeCategoria', () => {
   const original: CategoriaDeGasto = {
     id: '0b6f1a0e-6a43-4c1e-9d3b-6c1d3f7a9e11',
+    origenId: null,
     nombre: 'Maniobras',
     proposito: 'otro',
     activo: true,
     orden: 10,
+    actualizadoEn: VERSION,
   }
 
   it('sin diferencias da nulo', () => {
@@ -106,28 +112,46 @@ describe('cambiosDeCategoria', () => {
   })
 })
 
-describe('textoDeErrorDeCategoria', () => {
-  it('un nombre repetido dice cuál', () => {
-    expect(textoDeErrorDeCategoria('23505', 'Flete')).toBe('Ya hay una categoría llamada «Flete».')
+describe('categoriasDesde', () => {
+  const fila = {
+    id: '0b6f1a0e-6a43-4c1e-9d3b-6c1d3f7a9e11',
+    origen_id: '00000000-0000-4000-8000-00000000000a',
+    nombre: 'Flete',
+    proposito: 'flete',
+    activo: true,
+    orden: 10,
+    actualizado_en: VERSION,
+  }
+
+  it('lee el origen (nulo = compartida) y la versión', () => {
+    expect(categoriasDesde([fila, { ...fila, origen_id: null }])).toEqual([
+      {
+        id: fila.id,
+        origenId: fila.origen_id,
+        nombre: 'Flete',
+        proposito: 'flete',
+        activo: true,
+        orden: 10,
+        actualizadoEn: VERSION,
+      },
+      expect.objectContaining({ origenId: null }),
+    ])
   })
 
-  it('una categoría en uso no se borra: dice que se desactive', () => {
-    expect(textoDeErrorDeCategoria('23503', 'Flete')).toBe(
-      '«Flete» está en uso: tiene gastos. Desactívala para que no se ofrezca en lo nuevo.',
-    )
+  it('una fila sin versión o con un origen que no es un id no se lee', () => {
+    expect(categoriasDesde([{ ...fila, actualizado_en: undefined }])).toBeNull()
+    expect(categoriasDesde([{ ...fila, origen_id: 'x' }])).toBeNull()
   })
+})
 
-  it('sin permiso lo dice con las palabras del catálogo', () => {
-    expect(textoDeErrorDeCategoria('42501', 'Flete')).toBe(
-      'No tienes permiso para configurar los catálogos de logística.',
+describe('textoDeUsoDeCategoria', () => {
+  it('dice cuántos gastos la usan, «más de 50» pasado el tope', () => {
+    expect(textoDeUsoDeCategoria('Flete', 3)).toBe(
+      'Desactivaste «Flete»: la usan 3 gastos; siguen mostrándola.',
     )
-  })
-
-  it('un propósito fuera de la lista y cualquier otro código tienen su texto', () => {
-    expect(textoDeErrorDeCategoria('23514', 'Flete')).toBe(
-      'Elige uno de los propósitos de la lista.',
+    expect(textoDeUsoDeCategoria('Flete', 51)).toBe(
+      'Desactivaste «Flete»: la usan más de 50 gastos; siguen mostrándola.',
     )
-    expect(textoDeErrorDeCategoria('XX000', 'Flete')).toBeNull()
   })
 })
 
@@ -142,14 +166,63 @@ describe('el formulario de una categoría', () => {
   it('uno que se edita arranca con lo guardado y sin cambios no hay nada que mandar', () => {
     const c: CategoriaDeGasto = {
       id: 'x',
+      origenId: null,
       nombre: 'Flete',
       proposito: null,
       activo: false,
       orden: 3,
+      actualizadoEn: VERSION,
     }
     const b = borradorDeCategoria(c)
     expect(b).toEqual({ nombre: 'Flete', proposito: '', activo: false, orden: '3' })
     const r = validarCategoria(b)
     expect(r.ok && cambiosDeCategoria(c, r.datos)).toBeNull()
+  })
+})
+
+describe('categoriasParaElegir', () => {
+  const A = '00000000-0000-4000-8000-00000000000a'
+  const B = '00000000-0000-4000-8000-00000000000b'
+  const cat = (
+    id: string,
+    nombre: string,
+    origenId: string | null,
+    p: Partial<CategoriaDeGasto> = {},
+  ) => ({
+    id,
+    origenId,
+    nombre,
+    proposito: null,
+    activo: true,
+    orden: 10,
+    actualizadoEn: VERSION,
+    ...p,
+  })
+  const CATEGORIAS = [
+    cat('flete', 'Flete', null),
+    cat('grua', 'Grúa', null, { orden: 5 }),
+    cat('vieja', 'Vieja', null, { activo: false }),
+    cat('flete-a', 'FLETE', A),
+    cat('chaperia-b', 'Chapería', B),
+  ]
+  const valores = (o: { valor: string }[]) => o.map((x) => x.valor)
+
+  it('ofrece lo que usa el origen, por orden y nombre: su propia y no la compartida que tapa, ni la de otro', () => {
+    expect(valores(categoriasParaElegir(CATEGORIAS, null, [A]))).toEqual(['grua', 'flete-a'])
+  })
+
+  it('con varios orígenes, sólo las compartidas que ninguno tapa; sin orígenes, las compartidas', () => {
+    expect(valores(categoriasParaElegir(CATEGORIAS, null, [A, B]))).toEqual(['grua'])
+    expect(valores(categoriasParaElegir(CATEGORIAS, null, []))).toEqual(['grua', 'flete'])
+  })
+
+  it('la del gasto que se corrige sigue, rotulada, aunque esté inactiva, tapada, sea de otro origen o no haya venido', () => {
+    const rotulo = (id: string, nombre = '') =>
+      categoriasParaElegir(CATEGORIAS, { id, nombre }, [A]).at(-1)?.etiqueta
+    expect(rotulo('vieja')).toBe('Vieja (inactiva)')
+    expect(rotulo('flete')).toBe('Flete (tapada)')
+    expect(rotulo('chaperia-b')).toBe('Chapería (de otro origen)')
+    expect(rotulo('otra', 'Maniobras')).toBe('Maniobras (de otro origen)')
+    expect(categoriasParaElegir(CATEGORIAS, { id: 'grua', nombre: 'Grúa' }, [A])).toHaveLength(2)
   })
 })

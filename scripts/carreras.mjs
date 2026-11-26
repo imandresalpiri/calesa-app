@@ -35,6 +35,7 @@ import { carrerasDeCandadosDePapelera } from './carreras/candados-papelera.mjs'
 import { carrerasDePurgaContraRestaurar } from './carreras/purga-contra-restaurar.mjs'
 import { carrerasDeConfiguracionDeLeads } from './carreras/configuracion-de-leads.mjs'
 import { carrerasDeTablas } from './carreras/tablas.mjs'
+import { carrerasDeCatalogosDeLogistica } from './carreras/catalogos-de-logistica.mjs'
 import { carrerasDeLaEstructuraDeTablas } from './carreras/tablas-estructura.mjs'
 import { carrerasDeMarcas } from './carreras/marcas.mjs'
 import { carrerasDeNumeros } from './carreras/numeros.mjs'
@@ -416,6 +417,7 @@ try {
   await carrerasDeDatosClave({ orquesta, carrera, espero })
   await carrerasDeLaBarra({ orquesta, carrera, espero })
   await carrerasDeTransporte({ orquesta, espero, conectar, esperarBloqueo })
+  await carrerasDeCatalogosDeLogistica({ orquesta, carrera, espero })
   await carrerasDeAduana({ orquesta, espero, conectar, esperarBloqueo })
   await carrerasDeStock({ orquesta, carrera, espero })
   await carrerasDelCotizador({ orquesta, carrera, espero, conectar })

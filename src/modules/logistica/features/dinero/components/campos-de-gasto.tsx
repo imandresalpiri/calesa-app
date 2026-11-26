@@ -128,19 +128,17 @@ function CampoDeTexto({
 
 // Los campos del formulario de un gasto: la categoría, el monto con su moneda, la fecha, el proveedor, las notas y el comprobante.
 export function CamposDeGasto({ unidadId, original, opciones, formulario: f }: Props) {
-  const categorias = categoriasParaElegir(opciones.categorias, original?.categoriaId ?? null)
+  const categorias = categoriasParaElegir(
+    opciones.categorias,
+    original ? { id: original.categoriaId, nombre: original.categoriaNombre } : null,
+    opciones.origenes,
+  )
   return (
     <>
       <CampoSeleccion
         nombre="gasto-categoria"
         etiqueta="Categoría"
-        opciones={[
-          { valor: '', etiqueta: 'Elige una categoría' },
-          ...categorias.map((c) => ({
-            valor: c.id,
-            etiqueta: c.activo ? c.nombre : `${c.nombre} (inactiva)`,
-          })),
-        ]}
+        opciones={[{ valor: '', etiqueta: 'Elige una categoría' }, ...categorias]}
         value={f.valores.categoriaId}
         onChange={(evento) => {
           f.escribir({ categoriaId: evento.target.value })

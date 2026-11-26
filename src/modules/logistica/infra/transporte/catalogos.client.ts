@@ -1,5 +1,6 @@
-// Los puertos y las navieras de Logística › Configuración, leídos desde el navegador (6.08-1): todos, también los desactivados, y sin recordar nada (la lista se relee tras cada escritura).
-// Son catálogos de la empresa (decenas de filas): `.limit(201)` y `cortarAlTope` a 200, con `<AvisoDeTope>` si había más. Índices: `puertos_pkey` y `navieras_pkey` (tablas de decenas de filas).
+// Los puertos y las navieras de Logística › Configuración, leídos desde el navegador (6.08-1): los compartidos con todos los orígenes (`origen_id` nulo), también los
+// desactivados, con su versión, y sin recordar nada (la lista se relee tras cada escritura). Son catálogos de decenas de filas: `.limit(201)` y `cortarAlTope` a 200, con
+// `<AvisoDeTope>` si había más. Índices: `puertos_origen_clave_key` y `navieras_origen_clave_key` (el origen va primero).
 import { cortarAlTope } from '@/shared/lib/conteo'
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/browser'
@@ -23,7 +24,8 @@ export async function leerPuertosDeConfiguracion(): Promise<
 > {
   const { data, error } = await createClient()
     .from('puertos')
-    .select('id, nombre, pais, codigo, activo, orden')
+    .select('id, origen_id, nombre, pais, codigo, activo, orden, actualizado_en')
+    .is('origen_id', null)
     .order('orden')
     .order('nombre')
     .limit(TOPE_DE_CATALOGO_DE_TRANSPORTE + 1)
@@ -43,7 +45,8 @@ export async function leerNavierasDeConfiguracion(): Promise<
 > {
   const { data, error } = await createClient()
     .from('navieras')
-    .select('id, nombre, activo')
+    .select('id, origen_id, nombre, activo, actualizado_en')
+    .is('origen_id', null)
     .order('nombre')
     .limit(TOPE_DE_CATALOGO_DE_TRANSPORTE + 1)
   if (error) {

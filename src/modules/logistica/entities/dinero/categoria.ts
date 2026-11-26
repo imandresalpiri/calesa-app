@@ -1,36 +1,73 @@
 import { z } from 'zod'
+import { claveDeCatalogo } from '@/shared/lib/catalogos/propios'
+import { alcanceDelCatalogo, rotuloPorOrigen } from '../nucleo/alcance-del-catalogo'
+import { textoDeUso } from '../nucleo/catalogos'
 
-// Una categoría de gasto (6.11-1): sale de la base (`categorias_gasto`), ningún texto fijo la nombra. `proposito` es de la lista fija de la base (tributos, flete…).
-const esquemaDeCategoria = z.object({
-  id: z.guid(),
-  nombre: z.string(),
-  proposito: z.string().nullable(),
-  activo: z.boolean(),
-  orden: z.number(),
-})
+// Una categoría de gasto (6.11-1): sale de la base (`categorias_gasto`), ningún texto fijo la nombra; propia de un origen o compartida con todos (`origen_id` nulo).
+// `proposito` es de la lista fija de la base (tributos, flete…). Se escribe sólo por RPC (`categoria_gasto_crear|guardar|eliminar`) con la versión de la fila.
+const esquemaDeCategoria = z
+  .object({
+    id: z.guid(),
+    origen_id: z.guid().nullable(),
+    nombre: z.string(),
+    proposito: z.string().nullable(),
+    activo: z.boolean(),
+    orden: z.number(),
+    actualizado_en: z.string(),
+  })
+  .transform(({ origen_id, actualizado_en, ...resto }) => ({
+    ...resto,
+    origenId: origen_id,
+    actualizadoEn: actualizado_en,
+  }))
 
 export type CategoriaDeGasto = {
   id: string
+  // Nulo: compartida con todos los orígenes.
+  origenId: string | null
   nombre: string
   proposito: string | null
   activo: boolean
   orden: number
+  // La versión de la fila: la piden `categoria_gasto_guardar` y `categoria_gasto_eliminar`.
+  actualizadoEn: string
 }
 
-/** Las filas de `categorias_gasto`; nulo si alguna no tiene la forma esperada. */
+/** Las filas de `categorias_gasto` (con `origen_id` y `actualizado_en`); nulo si alguna no tiene la forma esperada. */
 export function categoriasDesde(datos: unknown): CategoriaDeGasto[] | null {
   const leido = z.array(esquemaDeCategoria).safeParse(datos)
   return leido.success ? leido.data : null
 }
 
-/** Las que se ofrecen al cargar o corregir un gasto: las activas y, si se corrige uno viejo, la suya aunque se haya desactivado. */
+export type OpcionDeCategoria = { valor: string; etiqueta: string }
+
+/**
+ * Las que se ofrecen al cargar, corregir o repartir un gasto: las activas que usan los orígenes de sus unidades (con varios, sólo las compartidas que ninguno tapa: el reparto es todo o
+ * nada), por orden y nombre, y **siempre** la del gasto que se corrige, rotulada si ya no se ofrece: «(de otro origen)», «(tapada)» o «(inactiva)». Sólo se leen las compartidas y las de
+ * esos orígenes: la que no vino es de otro origen.
+ */
 export function categoriasParaElegir(
   categorias: readonly CategoriaDeGasto[],
-  actualId: string | null,
-): CategoriaDeGasto[] {
-  return categorias
-    .filter((c) => c.activo || c.id === actualId)
+  actual: { id: string; nombre: string } | null,
+  origenes: readonly string[],
+): OpcionDeCategoria[] {
+  const filas = categorias.map((c) => ({ ...c, clave: claveDeCatalogo(c.nombre) }))
+  const alcance = alcanceDelCatalogo(filas, origenes)
+  const opciones = filas
+    .filter((c) => c.activo && alcance.usables.has(c.id))
     .sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre, 'es'))
+    .map((c) => ({ valor: c.id, etiqueta: c.nombre }))
+  if (actual === null || opciones.some((o) => o.valor === actual.id)) {
+    return opciones
+  }
+  const leida = categorias.find((c) => c.id === actual.id)
+  const rotulo = leida
+    ? (rotuloPorOrigen(alcance, leida.id, true) ?? '(inactiva)')
+    : '(de otro origen)'
+  return [
+    ...opciones,
+    { valor: actual.id, etiqueta: `${leida?.nombre ?? actual.nombre} ${rotulo}` },
+  ]
 }
 
 // El `check` de `categorias_gasto.proposito` en la base: una lista cerrada, no un catálogo que la empresa edite (6.11-4, D8). `tributos` es el que lee Aduana para «tributos pagados».
@@ -136,21 +173,14 @@ export function cambiosDeCategoria(
   return Object.keys(cambios).length === 0 ? null : cambios
 }
 
+// Lo que dice una action antes de escribir si quien pide no tiene `logistica.catalogos.gestionar` en ningún origen (o en el de la propia que crea).
 export const SIN_PERMISO_PARA_LAS_CATEGORIAS =
   'No tienes permiso para configurar los catálogos de logística.'
 
-/** El texto de lo que la base responde al escribir una categoría (por su código SQL); nulo si no es uno de los que se anticipan. */
-export function textoDeErrorDeCategoria(codigo: string, nombre: string): string | null {
-  switch (codigo) {
-    case '23505':
-      return `Ya hay una categoría llamada «${nombre}».`
-    case '23503':
-      return `«${nombre}» está en uso: tiene gastos. Desactívala para que no se ofrezca en lo nuevo.`
-    case '23514':
-      return 'Elige uno de los propósitos de la lista.'
-    case '42501':
-      return SIN_PERMISO_PARA_LAS_CATEGORIAS
-    default:
-      return null
-  }
+// Lo que usa una categoría (`_categoria_gasto_uso()`): sus gastos.
+const USADA_POR = ['gasto', 'gastos'] as const
+
+/** El aviso al desactivar una categoría con gastos: «Desactivaste «X»: la usan 12 gastos; siguen mostrándola.». */
+export function textoDeUsoDeCategoria(nombre: string, uso: number): string {
+  return textoDeUso({ nombre, uso, femenino: true, usadoPor: USADA_POR })
 }

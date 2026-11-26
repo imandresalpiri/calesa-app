@@ -16,7 +16,7 @@ import { moverTipoDeDocumento } from '../actions/mover-tipo-de-documento'
 const MENSAJE_DE_VALIDACION = 'Revisa los campos marcados.'
 
 // Las cuatro Server Actions de los tipos de documento, como funciones que devuelven el envío (el resultado, o `sinRed` si no llegó al servidor).
-// Cada una manda el grupo (`flujoId`: nulo = toda la empresa) y la versión que se tenía en pantalla.
+// Cada una manda el grupo (`flujoId`: nulo = los compartidos) y la versión que se tenía en pantalla.
 export function usePedidosDeTipos() {
   const crear = useAction(crearTipoDeDocumento)
   const guardar = useAction(guardarTipoDeDocumento)

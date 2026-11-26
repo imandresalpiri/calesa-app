@@ -13,6 +13,7 @@
 --   R6. `salida_a_jubilada`: una salida hacia una fase jubilada, sin `sin_salida` ni `inalcanzable` de más.
 --   R7. Los códigos de antes siguen: `sin_inicial`, `orden_duplicado`, `inalcanzable`.
 --   R8. `sin_fase_de_subasta`: un origen de subasta sin ninguna fase marcada (activa o jubilada) lo da; con una, no; un origen manual, nunca.
+--   `tipo_documento_tapado` (un requisito pide un compartido que el flujo tapa con un propio), en `areas/flujos/revisar-tapado.sql`.
 
 -- Una persona activa con un rol propio y estas concesiones: 'clave' (global) o 'clave@<origen>'.
 create or replace function pg_temp.frv_persona(p_concesiones text[]) returns uuid language plpgsql as $f$

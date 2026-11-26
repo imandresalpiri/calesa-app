@@ -2,7 +2,7 @@
 // y mover es «después de X» (nulo = primero), como lo recibe `requisito_mover`.
 import type { AmbitoDeFlujo, FlujoParaConfigurar, RequisitoParaConfigurar } from '../flujo'
 import { CLAVES_POR_AMBITO } from './claves'
-import type { TipoParaRequisito } from './opciones'
+import { seOfreceParaUnoNuevo, type TipoParaRequisito } from './opciones'
 
 export type DireccionDeRequisito = 'subir' | 'bajar'
 
@@ -45,9 +45,9 @@ export function clavesQueFaltan(
   return CLAVES_POR_AMBITO[ambito].filter((clave) => !tiene.has(clave))
 }
 
-// Los tipos de documento que un requisito nuevo puede pedir: los activos, en el orden leído.
+// Los tipos de documento que un requisito nuevo puede pedir: los activos que el flujo no tapa, en el orden leído.
 export function tiposActivos(tipos: readonly TipoParaRequisito[]): TipoParaRequisito[] {
-  return tipos.filter((t) => t.activo)
+  return tipos.filter(seOfreceParaUnoNuevo)
 }
 
 // La regla «Esperas» del flujo (la base no deja pedir una espera con ella apagada).

@@ -13,9 +13,14 @@ type Lectura =
   | { tipo: 'error'; error: ErrorApp; reintentar: () => void }
   | { tipo: 'listo'; opciones: OpcionesDeGasto }
 
-// Las categorías, monedas y tipos de cambio del formulario (6.11-1): se leen al abrirse el panel (la lectura se recuerda un rato, así la segunda apertura es inmediata). `apertura`
-// cambia con cada apertura: una que falló vuelve a intentarlo.
-export function useOpcionesDeGasto(abierto: boolean, apertura: number): Lectura {
+// Las categorías, monedas y tipos de cambio del formulario (6.11-1): se leen al abrirse el panel (la lectura se recuerda un rato por juego de orígenes, así la segunda apertura es
+// inmediata). `apertura` cambia con cada apertura: una que falló vuelve a intentarlo. `origenes`: los de las unidades del gasto (vacío = sólo las categorías compartidas).
+export function useOpcionesDeGasto(
+  abierto: boolean,
+  apertura: number,
+  origenes: readonly string[],
+): Lectura {
+  const clave = [...new Set(origenes)].sort().join(',')
   const [lectura, setLectura] = useState<
     | { tipo: 'cargando' }
     | { tipo: 'error'; error: ErrorApp }
@@ -27,7 +32,7 @@ export function useOpcionesDeGasto(abierto: boolean, apertura: number): Lectura 
       return
     }
     let vigente = true
-    void leerOpcionesDeGasto()
+    void leerOpcionesDeGasto(clave === '' ? [] : clave.split(','))
       .catch(() => fallo('inesperado', NO_SE_CARGARON_LAS_OPCIONES))
       .then((resultado) => {
         if (vigente) {
@@ -41,7 +46,7 @@ export function useOpcionesDeGasto(abierto: boolean, apertura: number): Lectura 
     return () => {
       vigente = false
     }
-  }, [abierto, apertura, pedido])
+  }, [abierto, apertura, pedido, clave])
   return lectura.tipo === 'error'
     ? {
         ...lectura,

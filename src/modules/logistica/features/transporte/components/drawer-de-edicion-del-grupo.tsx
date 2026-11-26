@@ -5,14 +5,14 @@ import { Drawer } from '@/shared/ui/drawer'
 import { focoDeQuienAbrio } from '@/shared/ui/foco-de-quien-abre'
 import { puedeEditarElGrupo } from '../../../entities/transporte/edicion-del-grupo'
 import type { GrupoLeido } from '../../../entities/transporte/grupos'
-import type { ElementoDeOferta } from '../../../entities/transporte/oferta'
+import type { ElementoDelCatalogo } from '../../../entities/transporte/oferta'
 import { usePanelDelGrupo } from '../hooks/use-panel-del-grupo'
 import { FormularioDelGrupo } from './formulario-del-grupo'
 
 type Props = {
   grupo: GrupoLeido
-  navieras: readonly ElementoDeOferta[]
-  puertos: readonly ElementoDeOferta[]
+  navieras: readonly ElementoDelCatalogo[]
+  puertos: readonly ElementoDelCatalogo[]
   // El `?booking=` o `?contenedor=` de la página (lo pone `src/app`).
   claveDeUrl: string
 }
