@@ -24,9 +24,10 @@ function ariaDelTexto(planilla: Planilla, enLaBarra: boolean) {
   const ids = idsDeLaEdicion(planilla.prefijo)
   const conLista = planilla.sugerencias.lista.length > 0
   const conError = (planilla.edicion.edicion?.error ?? null) !== null
+  const describe = [conError ? ids.error : null, planilla.guia.firma ? ids.firma : null]
   return {
     'aria-invalid': conError ? true : undefined,
-    'aria-describedby': conError ? ids.error : undefined,
+    'aria-describedby': describe.filter((id) => id !== null).join(' ') || undefined,
     'aria-autocomplete': 'list',
     'aria-controls': conLista ? ids.lista : undefined,
     'aria-activedescendant':

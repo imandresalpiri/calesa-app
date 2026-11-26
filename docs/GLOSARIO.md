@@ -741,6 +741,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `fx ▾` (inserta una función, `insertarFuncion()`), su texto (el mismo que se edita en la celda, uno solo a la vez; vacío, «Escribe = y toca las celdas:
   =C5+C7»), con cada referencia pintada de su color, la leyenda, las sugerencias y el error con su tramo; a la derecha «Totales», «Tarjeta» y «?» (los
   tipos de celda). Debajo, una línea: «De dónde sale: …» de la fila elegida. No es la **Barra de la fórmula** (la de la página: estado, guardar, publicar).
+- **Firma en el cursor** — `firmaEnElCursor()` (`entities/formula/firma-en-el-cursor.ts`), `RenglonDeLaEdicion`: mientras se escribe dentro de una función en C, su
+  forma en el renglón bajo la barra de fórmula con el valor que se escribe en negrita («SI(condición; **si se cumple**; si no)»); gana la de más adentro. Sin
+  función y con el cursor esperando un operando, «Toca una celda para usarla.». No: «tooltip», «ayuda de argumentos».
 - **Referencia (de la planilla)** — `C5`, `B9` (`entities/formula/referencias-a1.ts`): cómo un cálculo de la planilla nombra otra fila, como en
   Excel: `C<n>` es el valor de la fila n y `B<n>` su %. Se guarda el id del nodo (`nodo.texto` con ids) y se muestra como A1 (`aA1()`); lo tipeado
   pasa a ids antes de compilar (`deA1()`). Insertar, mover o borrar filas cambia lo que se muestra, nunca lo guardado. No distingue mayúsculas; los

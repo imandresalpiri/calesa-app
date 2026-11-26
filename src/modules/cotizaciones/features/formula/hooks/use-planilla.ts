@@ -24,6 +24,7 @@ import { useCuadricula } from './use-cuadricula'
 import type { EdicionConReferencias } from './use-edicion-con-referencias'
 import { useEdicionDeLaPlanilla } from './use-edicion-de-la-planilla'
 import { useFuncionEnLaBarra } from './use-funcion-en-la-barra'
+import { useGuiaDeLaEdicion } from './use-guia-de-la-edicion'
 import { useOperacionesDeFila, type OperacionesDeFila } from './use-operaciones-de-fila'
 import { usePanelesDeLaPlanilla, type PanelesDeLaPlanilla } from './use-paneles-de-la-planilla'
 
@@ -123,6 +124,25 @@ function useCierreYMenu({ edicion, cuadricula, enfocar, ops, paneles, calculo }:
   }
 }
 
+// Lo que ayuda a escribir en la barra de fórmula: `fx ▾` y la guía del renglón bajo la barra (la firma en el cursor, tocar una celda).
+function useAyudasDeLaBarra(
+  edicion: EdicionConReferencias,
+  cuadricula: Cuadricula,
+  textoDe: ReturnType<typeof useEdicionDeLaPlanilla>['textoDe'],
+  prefijo: string,
+) {
+  return {
+    funcion: useFuncionEnLaBarra({
+      edicion,
+      activa: cuadricula.activaElegida,
+      textoDe,
+      elegir: cuadricula.elegir,
+      idDelTexto: idsDeLaEdicion(prefijo).texto,
+    }),
+    guia: useGuiaDeLaEdicion(edicion),
+  }
+}
+
 // Lo que dibuja la planilla de la fórmula (D1–D21 del cambio de la planilla), armado sobre la fórmula de trabajo de la sesión: la hoja numerada, el cálculo con la
 // unidad de ejemplo, la celda activa, la edición con referencias, las operaciones de fila y de banda, y los paneles.
 export function usePlanilla(p: PropsDeLaPlanilla) {
@@ -187,13 +207,7 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     calculo,
     ops,
     acciones,
-    funcion: useFuncionEnLaBarra({
-      edicion,
-      activa: cuadricula.activaElegida,
-      textoDe: ed.textoDe,
-      elegir: cuadricula.elegir,
-      idDelTexto: idsDeLaEdicion(filas.prefijo).texto,
-    }),
+    ...useAyudasDeLaBarra(edicion, cuadricula, ed.textoDe, filas.prefijo),
     bandas: useBandasDeLaPlanilla({ editor, conModos: calculo.modos.length > 0, tarjeta }),
     paneles,
     ...useCamposDeLaFormula(p.origen.id, editor.trabajo.definicion.nodos),
