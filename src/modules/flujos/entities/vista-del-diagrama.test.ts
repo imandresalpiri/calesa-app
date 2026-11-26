@@ -7,6 +7,7 @@ import {
   ordenAlSoltar,
   vistaInicial,
 } from './vista-del-diagrama'
+import { disponerConPosiciones } from './trazado-de-salidas'
 
 const m = medidasDelDiagrama(16)
 const fases = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `f${String(i)}` }))
@@ -66,6 +67,20 @@ describe('vistaInicial', () => {
     expect(vistaInicial(d, { ancho: 1000, alto: 500 }, 'f0').x).toBe(0)
     const ultima = vistaInicial(d, { ancho: 1000, alto: 500 }, 'f29')
     expect(ultima.x).toBeCloseTo(1000 - d.ancho * ultima.zoom)
+  })
+
+  it('con una fase a la izquierda o arriba del principio, la vista corre el dibujo para que entre', () => {
+    const auto = disponerDiagrama(fases(2), [], m)
+    const d = disponerConPosiciones(auto, new Map([['f0', { x: -800, y: -400 }]]))
+    expect(d.limites.x).toBe(-800 - m.margen)
+    const vista = vistaInicial(d, { ancho: 3000, alto: 2000 }, null)
+    expect(vista.zoom).toBe(1)
+    // El borde izquierdo del dibujo queda tan lejos del borde del lienzo como el derecho.
+    const izquierda = vista.x + d.limites.x * vista.zoom
+    const derecha = 3000 - (vista.x + (d.limites.x + d.limites.ancho) * vista.zoom)
+    expect(izquierda).toBeCloseTo(derecha)
+    const arriba = vista.y + d.limites.y * vista.zoom
+    expect(arriba).toBeCloseTo(2000 - (vista.y + (d.limites.y + d.limites.alto) * vista.zoom))
   })
 
   it('el centro para ver una fase se corre la mitad de lo tapado', () => {

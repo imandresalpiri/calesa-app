@@ -34,6 +34,8 @@ function faseFila(n: number, extra: Record<string, unknown> = {}) {
     alias_portal: 'En camino',
     descripcion_portal: null,
     es_subasta: false,
+    posicion_x: null,
+    posicion_y: null,
     ...extra,
   }
 }
@@ -89,6 +91,15 @@ describe('flujoParaConfigurarDesde', () => {
       notaObligatoria: true,
     })
     expect(flujo.rolesPorFase).toEqual([{ faseId: guid(1), rolId: guid(71) }])
+  })
+
+  it('lee la posición de la fase: las dos coordenadas o ninguna', () => {
+    const flujo = flujoParaConfigurarDesde(
+      filas({
+        fases: [faseFila(1, { es_inicial: true, posicion_x: 12.5, posicion_y: -3 }), faseFila(2)],
+      }),
+    )
+    expect(flujo.fases.map((f) => f.posicion)).toEqual([{ x: 12.5, y: -3 }, null])
   })
 
   it('dice si el flujo es el de un origen de subasta y lee es_subasta de cada fase', () => {

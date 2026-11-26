@@ -6,6 +6,8 @@ import { useId, useMemo, useRef } from 'react'
 import { cn } from 'cn'
 import { disponerDiagrama, medidasDelDiagrama } from '../../../../entities/disposicion-del-diagrama'
 import type { FlujoParaConfigurar } from '../../../../entities/flujo'
+import { enPx, posicionesEfectivas } from '../../../../entities/posiciones-del-diagrama'
+import { disponerConPosiciones } from '../../../../entities/trazado-de-salidas'
 import type { RolLeido } from '../../../../entities/lectura-de-fase'
 import { useMarcasDelDiagrama } from '../../hooks/use-marcas-del-diagrama'
 import { ALTO_DEL_LIENZO } from '../esqueleto-del-diagrama'
@@ -49,10 +51,11 @@ function useDiagrama({ flujo, roles, faseAbierta }: Props, rem: number) {
   const arrastre = useOrdenAlArrastrar(flujo, medidas)
   const marcas = useMarcasDelDiagrama()
   const { fases, puedeArrastrar } = arrastre
-  const disposicion = useMemo(
-    () => disponerDiagrama(fases, flujo.transiciones, medidas),
-    [fases, flujo.transiciones, medidas],
-  )
+  // El acomodo automático da la ruta de cada flecha; cada caja va a su posición guardada (o, sin ninguna, donde la puso el acomodo).
+  const disposicion = useMemo(() => {
+    const auto = disponerDiagrama(fases, flujo.transiciones, medidas)
+    return disponerConPosiciones(auto, enPx(posicionesEfectivas(fases, auto, rem), rem))
+  }, [fases, flujo.transiciones, medidas, rem])
   const base = useMemo(
     () =>
       nodosDelDiagrama({

@@ -1,10 +1,12 @@
 'use client'
 
-import { EdgeLabelRenderer, type EdgeProps } from '@xyflow/react'
+import { EdgeLabelRenderer, useInternalNode, type EdgeProps } from '@xyflow/react'
 import { TriangleAlertIcon } from 'lucide-react'
 import { cn } from 'cn'
 import type { Punto } from '../../../../entities/disposicion-del-diagrama'
 import { resumenDeMarcas } from '../../../../entities/marcas-del-diagrama'
+import { trazarSalida, type TrazoDeSalida } from '../../../../entities/trazado-de-salidas'
+import { useLienzo } from './contexto-del-lienzo'
 import type { FlechaDeSalida as Flecha } from './datos-del-diagrama'
 
 const RADIO = 8
@@ -36,17 +38,28 @@ function camino(puntos: readonly Punto[]): string {
   return d
 }
 
-// Una salida en el diagrama: el camino de la disposición (no el de los `<Handle>`), la flecha cerrada y el nombre de la acción (recortado, entero en el
+// El trazo por donde están ahora las dos cajas (también mientras se arrastra una): la ruta del acomodo llevada a sus posiciones.
+function useTrazo(source: string, target: string, data: Flecha['data']): TrazoDeSalida | null {
+  const de = useInternalNode(source)?.internals.positionAbsolute
+  const a = useInternalNode(target)?.internals.positionAbsolute
+  const { medidas } = useLienzo()
+  if (!data) return null
+  if (!de || !a) return data.flecha
+  return trazarSalida(de, a, data.flecha.ruta, medidas)
+}
+
+// Una salida en el diagrama: el camino de su ruta (no el de los `<Handle>`), la flecha cerrada y el nombre de la acción (recortado, entero en el
 // `title`). Punteada si va a una fase jubilada; con ícono y texto para el lector si «Revisar» la señala. Más fuerte si sale de la fase abierta; tenue si
 // toca la fase que se arrastra.
-export function FlechaDeSalida({ id, data, markerEnd }: EdgeProps<Flecha>) {
-  if (!data) return null
-  const { flecha, accion, haciaJubilada, marcas, resaltada, atenuada } = data
+export function FlechaDeSalida({ id, source, target, data, markerEnd }: EdgeProps<Flecha>) {
+  const trazo = useTrazo(source, target, data)
+  if (!data || !trazo) return null
+  const { accion, haciaJubilada, marcas, resaltada, atenuada } = data
   const avisos = resumenDeMarcas(marcas)
   return (
     <>
       <path
-        d={camino(flecha.puntos)}
+        d={camino(trazo.puntos)}
         data-salida-id={id}
         fill="none"
         markerEnd={markerEnd}
@@ -66,7 +79,7 @@ export function FlechaDeSalida({ id, data, markerEnd }: EdgeProps<Flecha>) {
         <div
           title={accion}
           style={{
-            transform: `translate(-50%, -50%) translate(${String(flecha.etiqueta.x)}px, ${String(flecha.etiqueta.y)}px)`,
+            transform: `translate(-50%, -50%) translate(${String(trazo.etiqueta.x)}px, ${String(trazo.etiqueta.y)}px)`,
           }}
           className={cn(
             'nodrag nopan pointer-events-auto absolute flex max-w-[9rem] items-center gap-1 rounded-(--radius-sm) border border-(--color-line) bg-(--color-surface) px-1.5 text-(length:--text-xs) text-(--color-ink-soft)',
