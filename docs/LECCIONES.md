@@ -312,7 +312,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Tras guardar en el panel de una fase, recarga antes de otra escritura del mismo flujo: si sale antes de que llegue la versión nueva, da `PT409`.
 - Compara y ordena fechas como timestamp (`Date.parse`), nunca como texto ISO: «…:23Z» queda por delante de «…:23.078Z» y un orden por texto puede borrar a la dueña.
 - En una prueba `@sin-celular` no midas ni con una función propia del spec (la guarda la cuenta como ayudante que mide): afirma estilos con
-  `toHaveCSS` y arrastra con `hover` en pasos (dnd-kit toma la fila en el primer movimiento y la lleva en los siguientes).
+  `toHaveCSS` y arrastra con `hover` en pasos (dnd-kit toma la fila en el primer movimiento y la lleva en los siguientes). El «sin saltos» de
+  una pantalla sin celular (Configuración) se fija en Vitest: el contenedor de alto reservado contiene lo de antes y lo de después.
 - Un `dragTo` sobre dnd-kit suelta sin esperar la colisión del último paso y cae en otro lugar (en el editor de la hoja, al final de la
   sección): arrastra con `mouse.down()` y `hover`, espera la marca de soltar (`data-destino` en la pieza) y recién entonces `mouse.up()`.
 - Antes de un arrastre con `page.mouse` (el número de una fila de la planilla) desplaza y recién después mide las cajas, con el destino al
