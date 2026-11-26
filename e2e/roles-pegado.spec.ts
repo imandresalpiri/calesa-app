@@ -30,6 +30,17 @@ async function entrar(page: Page) {
   await expect(page).toHaveURL('/')
   await page.goto('/configuracion/roles')
   await expect(page.getByRole('heading', { name: 'Roles y permisos' })).toBeVisible()
+  // La fila de los roles publica su alto al hidratar (`useAltoPegado`): recién entonces el título del módulo se pega debajo de ella.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document
+            .querySelector('thead')
+            ?.parentElement?.style.getPropertyValue('--alto-cabecera-roles') ?? '',
+      ),
+    )
+    .not.toBe('')
 }
 
 // Desplaza la matriz y devuelve lo que cuenta: el borde de arriba del contenedor que se desplaza, el de la fila de los roles, el borde de
