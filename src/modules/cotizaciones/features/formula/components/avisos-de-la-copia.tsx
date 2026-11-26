@@ -41,7 +41,7 @@ function ocultar(clave: string) {
 
 // Los avisos de la copia (docs/GLOSARIO.md) de una fórmula recién copiada de otro origen, arriba de su planilla: los guardó «Nueva fórmula» en `sessionStorage`
 // (`claveDeLosAvisos(id)`) y se leen con `useSyncExternalStore` (al hidratar, nada: el servidor no tiene `sessionStorage`). Siguen ahí al recargar la pestaña; «Ocultar» los borra. Los de tablas
-// abren el drawer «Tablas» sobre la planilla de esa fórmula. Los datos del vehículo que faltan quedan además marcados en sus filas (`useCamposQueFaltan()`).
+// abren el drawer «Tablas» sobre la planilla de esa fórmula. Los datos del vehículo que faltan quedan además marcados en sus filas (`useCamposDeLaFormula()`).
 export function AvisosDeLaCopia({
   origenId,
   formulaDelOrigenId,

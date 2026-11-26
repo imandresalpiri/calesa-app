@@ -17,13 +17,23 @@ const etiquetas = new Map([
   ['transf', 'Transferencia a USA'],
   ['comision', 'Comisión'],
 ])
-const calculos = new Map([
-  ['transf', 'usd'],
-  ['comision', 'pct'],
-] as const)
-const lineaDeCambios = (diff: Record<string, unknown>) => {
+const calculos = {
+  calculos: new Map([
+    ['transf', 'usd'],
+    ['comision', 'pct'],
+  ] as const),
+  decimales: new Map<string, number>(),
+}
+const lineaDeCambios = (
+  diff: Record<string, unknown>,
+  decimales: ReadonlyMap<string, number> = calculos.decimales,
+) => {
   const { container } = render(
-    <ContenidoDeLaRevision revision={revision(diff)} etiquetas={etiquetas} calculos={calculos} />,
+    <ContenidoDeLaRevision
+      revision={revision(diff)}
+      etiquetas={etiquetas}
+      calculos={{ ...calculos, decimales }}
+    />,
   )
   return container.querySelectorAll('p')[1]
 }
@@ -51,5 +61,29 @@ describe('ContenidoDeLaRevision › un cálculo pisado o devuelto', () => {
       fuentes: { de: { transf: 'override' }, a: {} },
     })
     expect(devuelto?.textContent).toBe('Volvió al calculado «Transferencia a USA»')
+  })
+
+  it('lo pisado con los «Decimales» del cálculo: «Pisó «Transferencia a USA»: USD 480 → USD 500» con 0, «4,2%» con 1', () => {
+    const plano = (t: string | null | undefined) => (t ?? '').replace(/[\u00a0\u202f]/g, ' ')
+    const monto = lineaDeCambios(
+      {
+        valores: { de: { transf: 480.4 }, a: { transf: 500.5 } },
+        fuentes: { de: {}, a: { transf: 'override' } },
+      },
+      new Map([['transf', 0]]),
+    )
+    const cifras = [...(monto?.querySelectorAll('[data-monto-valor]') ?? [])].map((n) =>
+      plano(n.textContent),
+    )
+    expect(cifras).toEqual(['USD 480', 'USD 501'])
+    cleanup()
+    const pct = lineaDeCambios(
+      {
+        valores: { de: { comision: 0.05 }, a: { comision: 0.04249 } },
+        fuentes: { de: {}, a: { comision: 'override' } },
+      },
+      new Map([['comision', 1]]),
+    )
+    expect(pct?.textContent).toBe('Pisó «Comisión»: 5,0% → 4,2%')
   })
 })

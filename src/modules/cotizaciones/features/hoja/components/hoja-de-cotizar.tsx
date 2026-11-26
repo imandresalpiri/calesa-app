@@ -199,7 +199,11 @@ export function HojaDeCotizar(props: Props) {
           privada={props.privada?.interruptor ?? null}
           totalSuelto={
             totalSuelto(dibujadas, false) ? (
-              <RegionDelTotal etiqueta={hoja.tarjetaTotal.etiqueta} contexto={contexto} />
+              <RegionDelTotal
+                etiqueta={hoja.tarjetaTotal.etiqueta}
+                decimales={hoja.tarjetaTotal.decimales}
+                contexto={contexto}
+              />
             ) : null
           }
           cierre={hayCierre(cierre) ? <CierreDeLaHoja {...cierre} /> : null}

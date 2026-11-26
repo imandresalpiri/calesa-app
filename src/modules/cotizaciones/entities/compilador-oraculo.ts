@@ -3,7 +3,7 @@
 // ∞ ni NaN), −0 vale 0 y dividir por 0 es null; una comparación vale 1 o 0 y la igualdad es exacta. Sólo para las pruebas.
 import { esDeCondicion, esDeFuncion, MIEMBROS, PARAMS, type Expr } from './compilador-generador'
 import type { Comparador } from './nodos'
-import { redondear } from './redondeo'
+import { redondear } from '@/shared/lib/redondeo'
 
 const normal = (x: number): number | null => (Number.isFinite(x) ? (x === 0 ? 0 : x) : null)
 

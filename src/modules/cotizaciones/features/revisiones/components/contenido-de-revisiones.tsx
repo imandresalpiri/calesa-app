@@ -46,7 +46,7 @@ export function ContenidoDeRevisiones({
               key={revision.id}
               revision={revision}
               etiquetas={revisiones.etiquetas.nodos}
-              calculos={revisiones.etiquetas.calculos}
+              calculos={revisiones.etiquetas}
             />
           ))}
         </ul>

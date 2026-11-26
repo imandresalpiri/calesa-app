@@ -19,7 +19,7 @@ import { useAccionesDeLaCuadricula } from './use-acciones-de-la-cuadricula'
 import { useBandasDeLaPlanilla } from './use-bandas-de-la-planilla'
 import { elegirTipo } from './elegir-tipo'
 import { useCalculoDeLaPlanilla, type CalculoDeLaPlanilla } from './use-calculo-de-la-planilla'
-import { useCamposQueFaltan } from './use-campos-que-faltan'
+import { useCamposDeLaFormula } from './use-campos-de-la-formula'
 import { useCuadricula } from './use-cuadricula'
 import type { EdicionConReferencias } from './use-edicion-con-referencias'
 import { useEdicionDeLaPlanilla } from './use-edicion-de-la-planilla'
@@ -196,7 +196,7 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     }),
     bandas: useBandasDeLaPlanilla({ editor, conModos: calculo.modos.length > 0, tarjeta }),
     paneles,
-    faltan: useCamposQueFaltan(p.origen.id, editor.trabajo.definicion.nodos),
+    ...useCamposDeLaFormula(p.origen.id, editor.trabajo.definicion.nodos),
     menu: { abierto: menuAbierto, alCambiar: setMenuAbierto },
     anuncio,
     enfocar,

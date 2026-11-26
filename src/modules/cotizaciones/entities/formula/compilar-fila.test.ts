@@ -220,6 +220,18 @@ describe('lo que la fila conserva (T5, C5)', () => {
     expect(r.soltados).toEqual(['sobrescribible'])
     expect(validaLaFormula(r.formula).ok).toBe(true)
   })
+
+  it('los decimales de la celda siguen al reescribirla y al volverla un valor fijo', () => {
+    const f = dos('=remate+fees', { decimales: 0 })
+    const r = bien(f, existente('x', '=remate*flete'))
+    expect(nodoDe(r.formula, 'x')).toMatchObject({ op: 'multiplicar', decimales: 0 })
+    expect(r.soltados).toEqual([])
+    expect(nodoDe(bien(f, existente('x', '=4')).formula, 'x')).toMatchObject({
+      tipo: 'constante',
+      decimales: 0,
+    })
+    expect(validaLaFormula(r.formula).ok).toBe(true)
+  })
 })
 
 describe('un texto que no compila (T6)', () => {

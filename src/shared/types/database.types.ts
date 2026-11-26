@@ -9244,6 +9244,7 @@ export type Database = {
         Args: { p_nodos: Json; p_origen: string; p_tablas: Json; p_vivas: Json }
         Returns: Json
       }
+      _hoja_decimales: { Args: { p_nodo: Json }; Returns: Json }
       _hoja_estado: {
         Args: {
           p_celda: boolean

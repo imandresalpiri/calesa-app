@@ -1,7 +1,7 @@
 // Los mutadores del corpus diferencial que rompen la forma (el Zod de nodos.ts y formula.ts; §0 de `validar_formula()`). Hay uno
 // por cada comprobación marcada `/*Fnn*/` en `_formula_forma_nodo()` y `_formula_forma()`, y cada uno deja ese defecto solo en su
 // nodo: así, con esa comprobación apagada (la prueba de mutación), el caso cambia. Los de las operaciones de condición, en
-// `mutadores-de-forma-condiciones.ts`.
+// `mutadores-de-forma-condiciones.ts`; los de los decimales de una celda, en `mutadores-de-forma-decimales.ts`.
 import {
   definicionDe,
   elegir,

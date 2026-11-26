@@ -99,6 +99,7 @@ export function PantallaDeCotizar({ leadId, personaId, seEligen, ...props }: Pro
     return (
       <CotizacionGuardada
         cotizacion={guardado.estado.cotizacion}
+        decimales={hoja.hoja.tarjetaTotal.decimales}
         fueReenvio={guardado.estado.fueReenvio}
         // Sin pedir la página: la hoja vuelve vacía con la abierta que ya tiene. Pedirla traería otra y la volvería a montar a medio tipear.
         alCotizarOtra={() => {

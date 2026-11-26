@@ -151,6 +151,7 @@ function TotalesDelPar({
   return (
     <RegionDelTotal
       etiqueta={hoja.tarjetaTotal.etiqueta}
+      decimales={hoja.tarjetaTotal.decimales}
       contexto={contextos[0]}
       totales={
         <TotalesEnPar

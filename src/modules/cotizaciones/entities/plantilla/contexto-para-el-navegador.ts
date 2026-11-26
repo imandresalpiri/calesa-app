@@ -41,6 +41,7 @@ function nodoReducido(n: NodoParaPlantilla, opcion: string | undefined): NodoPar
     ...(typeof n.tipo === 'string' ? { tipo: n.tipo } : {}),
     ...(textoONulo(n.op) === null ? {} : { op: n.op }),
     ...(textoONulo(n.pct) === null ? {} : { pct: n.pct }),
+    ...(typeof n.decimales === 'number' ? { decimales: n.decimales } : {}),
     ...(n.id === opcion
       ? { opciones: (n.opciones ?? []).map((o) => ({ clave: o.clave, titulo: o.titulo })) }
       : {}),

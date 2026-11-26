@@ -180,10 +180,13 @@ describe('cambiosDeLaRevision › la marca de privada', () => {
 
 describe('cambiosDeLaRevision › un cálculo pisado o devuelto al calculado', () => {
   // `flete` y `seguro` son cálculos que quien mira ve; `fob`, un dato.
-  const calculos = new Map([
-    ['flete', 'usd'],
-    ['seguro', 'pct'],
-  ] as const)
+  const calculos = {
+    calculos: new Map([
+      ['flete', 'usd'],
+      ['seguro', 'pct'],
+    ] as const),
+    decimales: new Map<string, number>(),
+  }
   const conCalculos = (diff: Record<string, unknown>, vehiculo = null) =>
     cambiosDeLaRevision(diff, etiquetas, vehiculo, calculos)
 
@@ -253,5 +256,33 @@ describe('cambiosDeLaRevision › un cálculo pisado o devuelto al calculado', (
     expect(r.vistos[1]).toMatchObject({ tipo: 'pisado', etiqueta: 'Flete' })
     expect(r.vistos[2]).toBe('Cambió «Precio publicado»')
     expect(r.masN).toBe(1)
+  })
+})
+
+describe('cambiosDeLaRevision › los «Decimales» de lo pisado', () => {
+  it('lo pisado lleva los «Decimales» del cálculo que los trae; sin ellos, ninguna clave', () => {
+    const r = cambiosDeLaRevision(
+      {
+        valores: { de: { flete: 480, seguro: 0.05 }, a: { flete: 500, seguro: 0.04 } },
+        fuentes: { de: {}, a: { flete: 'override', seguro: 'override' } },
+      },
+      etiquetas,
+      null,
+      {
+        calculos: new Map([
+          ['flete', 'usd'],
+          ['seguro', 'pct'],
+        ] as const),
+        decimales: new Map([['flete', 0]]),
+      },
+    )
+    expect(r.vistos[0]).toEqual({
+      tipo: 'pisado',
+      etiqueta: 'Flete',
+      valores: { de: 480, a: 500 },
+      formato: 'usd',
+      decimales: 0,
+    })
+    expect(Object.keys(r.vistos[1] ?? {})).not.toContain('decimales')
   })
 })

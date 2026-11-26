@@ -35,9 +35,11 @@ export function MarcaDeDiferencia({ diferencia }: { diferencia: Diferencia }) {
 function Valor({
   celda,
   formato,
+  decimales,
 }: {
   celda: Extract<Celda, { tipo: 'valor' }>
   formato: FormatoDeFila
+  decimales: number | undefined
 }) {
   if (formato === 'texto') {
     return typeof celda.valor === 'string' ? (
@@ -47,7 +49,11 @@ function Valor({
     )
   }
   return (
-    <ValorDeNodo valor={typeof celda.valor === 'number' ? celda.valor : null} formato={formato} />
+    <ValorDeNodo
+      valor={typeof celda.valor === 'number' ? celda.valor : null}
+      formato={formato}
+      decimales={decimales}
+    />
   )
 }
 
@@ -56,11 +62,14 @@ function Valor({
 export function CeldaComparada({
   celda,
   formato,
+  decimales,
   nodo,
   columna,
 }: {
   celda: Celda
   formato: FormatoDeFila
+  // Los «Decimales» de la fila (glosario); sin ellos, «Automático».
+  decimales: number | undefined
   nodo: string
   columna: string
 }) {
@@ -84,7 +93,7 @@ export function CeldaComparada({
         </>
       ) : celda.tipo === 'valor' ? (
         <>
-          <Valor celda={celda} formato={formato} />
+          <Valor celda={celda} formato={formato} decimales={decimales} />
           <MarcaDeDiferencia diferencia={celda.diferencia} />
         </>
       ) : null}

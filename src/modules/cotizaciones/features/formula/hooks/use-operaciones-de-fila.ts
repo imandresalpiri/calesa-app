@@ -14,6 +14,7 @@ import {
 } from '../../../entities/formula/insertar-fila'
 import { moverFila, type DestinoDeMover } from '../../../entities/formula/mover-fila'
 import { sumasDeBandaAlDia } from '../../../entities/formula/sumas-de-banda'
+import { cambiarDecimales } from '../../../entities/formula/decimales-de-la-fila'
 import { cambiarTipo, type PedidoDeTipo } from '../../../entities/formula/tipo-de-celda'
 import {
   indiceDeUsos,
@@ -34,7 +35,7 @@ type Args = {
   alCrear: (id: string, insertada: boolean) => void
 }
 
-// Insertar, duplicar, eliminar (con «Deshacer»), mover, poner en una banda, cambiar el tipo y vaciar una fila de la fórmula de trabajo (D7, D8, D10, D12, D13).
+// Insertar, duplicar, eliminar (con «Deshacer»), mover, poner en una banda, cambiar el tipo o los decimales y vaciar una fila de la fórmula de trabajo (D7, D8, D10, D12, D13).
 // Nada con una celda en edición ni mientras se guarda: lo dice un aviso. Un rechazo se dice con su motivo y la fórmula no cambia. Lo que cambia las filas de una
 // banda pone al día las filas que la suman (`sumasDeBandaAlDia()`).
 export function useOperacionesDeFila({ editor, hoja, usos, alCrear }: Args) {
@@ -98,6 +99,13 @@ export function useOperacionesDeFila({ editor, hoja, usos, alCrear }: Args) {
       const alDia = sumasDeBandaAlDia(trabajo, r.formula, tablas ?? undefined)
       if (!alDia.ok) return alDia.mensaje
       return editor.cambiar(alDia.formula) ? null : ESPERA_A_LA_FILA
+    },
+    // Los «Decimales» de la fila (`null`: «Automático»); el motivo si no se pudo (lo dice su panel), o nulo. No cambia el cálculo: ninguna suma de banda.
+    cambiarDecimales: (numero: number, decimales: number | null): string | null => {
+      if (!libre) return ESPERA_A_LA_FILA
+      const r = cambiarDecimales(trabajo, numero, decimales, hoja)
+      if (!r.ok) return r.mensaje
+      return editor.cambiar(r.formula) ? null : ESPERA_A_LA_FILA
     },
     // Supr en un valor fijo o en un %: lo pone en 0 (la fila no se borra).
     vaciar: (id: string) => puede() && conResultado(cambiarValorDeConstante(trabajo, id, 0)),

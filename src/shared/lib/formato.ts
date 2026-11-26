@@ -3,7 +3,9 @@
 
 export const LOCALE_POR_DEFECTO = 'es-BO'
 
-type OpcionesNumero = { locale?: string; decimales?: number }
+// `fijos`: los `decimales` también son el mínimo (con ceros de relleno). Sin él, son el máximo. Una cifra con decimales fijos se
+// redondea antes con `redondear()` (`cifra-fija.ts`): `Intl` no redondea como la base en un casi empate.
+type OpcionesNumero = { locale?: string; decimales?: number; fijos?: true }
 type OpcionesMonto = { moneda: string; locale?: string; decimales?: number }
 
 // Construir un Intl.NumberFormat es caro y una tabla lo pide cientos de veces con las mismas opciones.
@@ -25,10 +27,13 @@ function formateador(locale: string, opciones: Intl.NumberFormatOptions): Intl.N
   return existente
 }
 
-// Hasta `decimales` decimales, sin ceros de relleno: 1234.5 → «1.234,5».
+// Hasta `decimales` decimales, sin ceros de relleno: 1234.5 → «1.234,5». Con `fijos`, siempre `decimales`: «1.234,50».
 export function formatearNumero(valor: number, opciones: OpcionesNumero = {}): string {
-  const { locale = LOCALE_POR_DEFECTO, decimales = 2 } = opciones
-  return formateador(locale, { maximumFractionDigits: decimales }).format(valor)
+  const { locale = LOCALE_POR_DEFECTO, decimales = 2, fijos } = opciones
+  return formateador(locale, {
+    ...(fijos ? { minimumFractionDigits: decimales } : {}),
+    maximumFractionDigits: decimales,
+  }).format(valor)
 }
 
 // Siempre con los decimales de la moneda (2 por defecto): 1234.5 USD → «USD 1.234,50».
@@ -42,12 +47,14 @@ export function formatearMonto(valor: number, opciones: OpcionesMonto): string {
   }).format(valor)
 }
 
-// Recibe una fracción: 0.125 → «12,5%».
+// Recibe una fracción: 0.125 → «12,5%». Los `decimales` son los de los puntos (con `fijos` y 2, 0.125 → «12,50%»).
 export function formatearPorcentaje(fraccion: number, opciones: OpcionesNumero = {}): string {
-  const { locale = LOCALE_POR_DEFECTO, decimales = 1 } = opciones
-  return formateador(locale, { style: 'percent', maximumFractionDigits: decimales }).format(
-    fraccion,
-  )
+  const { locale = LOCALE_POR_DEFECTO, decimales = 1, fijos } = opciones
+  return formateador(locale, {
+    style: 'percent',
+    ...(fijos ? { minimumFractionDigits: decimales } : {}),
+    maximumFractionDigits: decimales,
+  }).format(fraccion)
 }
 
 // El texto que se abre para editar un número: la precisión completa (15 cifras significativas, las del cast de la base), sin

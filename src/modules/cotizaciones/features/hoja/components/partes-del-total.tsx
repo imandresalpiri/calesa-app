@@ -69,20 +69,26 @@ export function AvisosDelTotal({
   )
 }
 
-// Lo que la tarjeta suma aparte: el total en la moneda local (con «Ver total en moneda local») y los secundarios del diseño.
+// Lo que la tarjeta suma aparte: el total en la moneda local (con «Ver total en moneda local», con los decimales del total) y los secundarios del diseño.
 export function SecundariosDelTotal({
   secundarios,
   contexto,
   monedaDelTotalBs,
+  decimalesDelTotal,
 }: {
   secundarios: HojaLista['tarjetaTotal']['secundarios']
   contexto: ContextoDeHoja
   monedaDelTotalBs: string | null
+  decimalesDelTotal: number | undefined
 }) {
   return (
     <>
       {monedaDelTotalBs === null ? null : (
-        <TotalEnMonedaLocal respuesta={contexto.respuesta} moneda={monedaDelTotalBs} />
+        <TotalEnMonedaLocal
+          respuesta={contexto.respuesta}
+          moneda={monedaDelTotalBs}
+          decimales={decimalesDelTotal}
+        />
       )}
       <ul className="grid gap-1 empty:hidden">
         {secundariosDelResumen(secundarios, contexto.respuesta).map((s) => (
@@ -91,7 +97,7 @@ export function SecundariosDelTotal({
             className="flex flex-wrap items-baseline justify-between gap-x-4 text-(length:--text-sm) text-(--color-ink-soft)"
           >
             <span className="[overflow-wrap:anywhere]">{s.etiqueta}</span>
-            <ValorDeNodo valor={s.valor} formato={s.formato} />
+            <ValorDeNodo valor={s.valor} formato={s.formato} decimales={s.decimales} />
           </li>
         ))}
       </ul>
