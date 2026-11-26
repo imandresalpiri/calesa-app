@@ -6,8 +6,8 @@
 --   K1. Crear: el número normalizado y único en el origen (en otro, pasa); el reintento con el mismo id devuelve el mismo; tipo del catálogo, sello
 --       de hasta 40, embarque del mismo origen (de otro, 22023; uno que no existe, PT409); sin id o sin número, 23502.
 --   K2. Por origen: cada persona lee sólo los contenedores de su origen y no crea ni guarda en el otro (42501); sin origen, con repuestos.*; con
---       «propios», guarda el de sus vehículos y con uno ajeno adentro da 42501. Sin la clave en ningún origen, guardar da 42501 exista o no el
---       contenedor.
+--       «propios», guarda el de sus vehículos y con uno ajeno adentro da 42501. Crear en un origen que no existe, 22023 hint origen; sin la clave
+--       en ningún origen, guardar da 42501 exista o no el contenedor.
 --   K3. Guardar: sin versión, falla; con la vieja, PT409; renombrar se ve en sus unidades; un número que ya existe, 23505; sin cambios; número
 --       vacío, 23502; una clave que no es del contenedor, 22023; uno que ya no existe, PT409.
 --   K4. Entrar a un embarque (de otro origen, 22023): la unidad lee lo del embarque y no guarda nada propio; mudarse lee el nuevo; salir copia lo del
@@ -150,7 +150,7 @@ begin;
 do $$
 declare t jsonb := pg_temp.tco_terreno(); o uuid := (t ->> 'o')::uuid; o2 uuid := (t ->> 'o2')::uuid; a uuid; b uuid; rep uuid; pr uuid;
   c_a uuid := gen_random_uuid(); c_b uuid := gen_random_uuid(); c_r uuid := gen_random_uuid(); c_p uuid := gen_random_uuid(); q text;
-  nadie uuid;
+  todo uuid; nadie uuid;
 begin
   a := pg_temp.tco_persona(array['logistica.ver@' || o, 'logistica.transporte.editar@' || o]);
   b := pg_temp.tco_persona(array['logistica.ver@' || o2, 'logistica.transporte.editar@' || o2]);
@@ -174,6 +174,10 @@ begin
   insert into public.transportes (vehiculo_id, contenedor_id) values (pg_temp.tco_vehiculo(o, (t ->> 'fase')::uuid), c_p);
   perform pg_temp.tco_es('K2 propios con uno ajeno', pg_temp.tco_guardar(pr, c_p, '{"sello": "S2"}'), '42501');
   if (select sello from public.contenedores where id = c_p) is distinct from 'S1' then raise exception 'K2: no debía cambiar'; end if;
+  -- Con la clave en todos los orígenes, uno que no existe no llega a la FK.
+  todo := pg_temp.tco_persona(array['logistica.ver', 'logistica.transporte.editar']);
+  perform pg_temp.tco_es('K2 crear en un origen que no existe', pg_temp.tco_crear(todo, gen_random_uuid(), gen_random_uuid(), '{"numero": "CONTNO"}'),
+                         '22023', 'origen');
   nadie := pg_temp.tco_persona(array['logistica.ver']);
   perform pg_temp.tco_es('K2 sin la clave guarda uno que existe', pg_temp.tco_guardar(nadie, c_a, '{"notas": "x"}'), '42501');
   perform pg_temp.tco_es('K2 sin la clave guarda uno que no existe', pg_temp.tco_guardar(nadie, gen_random_uuid(), '{"notas": "x"}', now()), '42501');

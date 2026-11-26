@@ -6,7 +6,8 @@
 --   E1. Crear: la respuesta con sus claves exactas; el reintento con el mismo id devuelve el mismo (ya_existia) sin otra fila; el mismo id con otro
 --       booking, 23505 hint id; otro id con el mismo booking en el origen, 23505 hint booking (en otro origen, pasa); sin id o sin booking, 23502.
 --   E2. Por origen: cada persona lee sólo los embarques de su origen y no crea ni guarda en el otro (42501). Sin origen, con repuestos.*: quien
---       sólo tiene logística no lo crea ni lo lee. Sin la clave en ningún origen, guardar da 42501 exista o no el embarque.
+--       sólo tiene logística no lo crea ni lo lee. Crear en un origen que no existe, 22023 hint origen; sin la clave en ningún origen, guardar da
+--       42501 exista o no el embarque.
 --   E3. Con alcance «propios», crea el embarque y lo guarda con sus vehículos; con uno ajeno adentro, 42501.
 --   E4. Guardar: sin versión, falla; con la vieja, PT409; renombrar se ve en sus unidades; un booking que ya existe, 23505; sin cambios, la misma
 --       versión; booking vacío, 23502; una clave que no es del embarque, 22023; uno que ya no existe, PT409.
@@ -158,6 +159,9 @@ begin
   perform pg_temp.tem_es('E2 logística no guarda el de repuestos', pg_temp.tem_guardar(lo, e_r, '{"notas": "x"}'), '42501');
   perform pg_temp.tem_pasa('E2 repuestos guarda el suyo', pg_temp.tem_guardar(rep, e_r, '{"notas": "x"}'));
   perform pg_temp.tem_es('E2 repuestos no crea en un origen', pg_temp.tem_crear(rep, gen_random_uuid(), o, '{"booking": "BKREP3"}'), '42501');
+  -- Con la clave en todos los orígenes, uno que no existe no llega a la FK.
+  perform pg_temp.tem_es('E2 crear en un origen que no existe', pg_temp.tem_crear(lo, gen_random_uuid(), gen_random_uuid(), '{"booking": "BKNO"}'),
+                         '22023', 'origen');
   nadie := pg_temp.tem_persona(array['logistica.ver']);
   perform pg_temp.tem_es('E2 sin la clave guarda uno que existe', pg_temp.tem_guardar(nadie, e_a, '{"notas": "x"}'), '42501');
   perform pg_temp.tem_es('E2 sin la clave guarda uno que no existe', pg_temp.tem_guardar(nadie, gen_random_uuid(), '{"notas": "x"}', now()), '42501');

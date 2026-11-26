@@ -8779,6 +8779,7 @@ export type Database = {
       }
       _entidad_creable: { Args: { p_origen: string }; Returns: boolean }
       _entidad_editable: { Args: { p_contenedor: string; p_embarque: string }; Returns: boolean }
+      _entidad_origen_existe: { Args: { p_origen: string }; Returns: undefined }
       _entidad_respuesta: {
         Args: {
           p_actualizado_en: string

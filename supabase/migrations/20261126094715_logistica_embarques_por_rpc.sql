@@ -19,6 +19,21 @@ $$;
 revoke all on function public._entidad_creable(uuid) from public, anon, authenticated;
 grant execute on function public._entidad_creable(uuid) to service_role;
 
+-- Un origen que no existe: 22023 hint origen (con una concesión de todos los orígenes `_entidad_creable` da verdadero para cualquier id, y el
+-- insert caería en la FK sin un mensaje). Sin origen (de repuestos), nada que mirar.
+create or replace function public._entidad_origen_existe(p_origen uuid) returns void
+  language plpgsql stable security definer
+  set search_path = ''
+as $$
+begin
+  if p_origen is not null and not exists (select 1 from public.origenes o where o.id = p_origen) then      -- origenes_pkey
+    raise exception 'Ese origen no existe.' using errcode = '22023', hint = 'origen';
+  end if;
+end;
+$$;
+revoke all on function public._entidad_origen_existe(uuid) from public, anon, authenticated;
+grant execute on function public._entidad_origen_existe(uuid) to service_role;
+
 -- La naviera y los puertos nuevos de un embarque: activos, del origen o compartidos y, si la oferta de su tipo no está vacía, ofrecidos en el
 -- flujo de vehículos del origen (sin origen, en el de repuestos). Lo ya guardado no se revalida. Las fechas, si cambia alguna.
 create or replace function public._embarque_validar(p_origen uuid, o public.datos_de_transporte, n public.datos_de_transporte)
@@ -231,6 +246,7 @@ begin
   if not public._entidad_creable(p_origen) then
     raise exception 'No tienes permiso para crear embarques en este origen.' using errcode = '42501';
   end if;
+  perform public._entidad_origen_existe(p_origen);
   n := public._transporte_cambios(null::public.datos_de_transporte, p_datos - 'zarpe_estimado_el', c_claves);
   v_zarpe_est := public._zarpe_estimado(p_datos, null);
   select x.id, x.origen_id, x.booking, x.actualizado_en into e from public.embarques x where x.id = p_id;                -- embarques_pkey
@@ -348,6 +364,7 @@ begin
   if not public._entidad_creable(p_origen) then
     raise exception 'No tienes permiso para crear contenedores en este origen.' using errcode = '42501';
   end if;
+  perform public._entidad_origen_existe(p_origen);
   select * into d from public._contenedor_cambios(p_datos, null, null, null, null, null);
   select x.id, x.origen_id, x.numero, x.actualizado_en into c from public.contenedores x where x.id = p_id;            -- contenedores_pkey
   if c.id is null then
