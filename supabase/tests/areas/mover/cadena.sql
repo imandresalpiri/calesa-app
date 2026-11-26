@@ -233,14 +233,14 @@ begin
 end $$;
 rollback;
 
--- @test cadena: los filtros dejan la tarjeta esperada; filtro, fase o cursor malos dan 22023 con su hint (CA5)
+-- @test cadena: los filtros dejan la tarjeta esperada (por booking, también las de sus contenedores, con cursor y en «Sin fase»); filtro, fase o cursor malos dan 22023 con su hint (CA5)
 begin;
 do $$
 declare
   a uuid := pg_temp.mc_flujo(); o uuid := pg_temp.mc_origen_de(a); f uuid := pg_temp.mc_fase(a, 'mc uno', 10);
   fb uuid := pg_temp.mc_fase(pg_temp.mc_flujo(), 'mc otro', 10);
   duena uuid := pg_temp.mc_persona(array['logistica.ver', 'vehiculos.ver']);
-  v_dem uuid; v_apr uuid; v_tr uuid; v_q uuid; td uuid; nav uuid;
+  v_dem uuid; v_apr uuid; v_tr uuid; v_q uuid; td uuid; nav uuid; emb uuid; cont uuid; v_e uuid; v_sin uuid; r jsonb;
 begin
   update public.fases set demora_dias = 2 where id = f;
   perform pg_temp.mc_regla(a, true);
@@ -251,7 +251,10 @@ begin
   insert into public.tipos_documento (nombre) values ('mc factura ' || substr(gen_random_uuid()::text, 1, 6)) returning id into td;
   insert into public.documentos (vehiculo_id, tipo_documento_id) values (v_apr, td);   -- nace «subido»
   insert into public.navieras (nombre) values ('mc naviera') returning id into nav;
-  insert into public.transportes (vehiculo_id, naviera_id, contenedor, booking) values (v_tr, nav, 'ABCU1234567', 'BK778899');
+  -- El contenedor y la naviera llegan por las entidades: el contenedor, en el embarque que tiene la naviera.
+  insert into public.embarques (origen_id, booking, naviera_id) values (o, 'BK778899', nav) returning id into emb;
+  insert into public.contenedores (origen_id, numero, embarque_id) values (o, 'ABCU1234567', emb) returning id into cont;
+  insert into public.transportes (vehiculo_id, contenedor_id) values (v_tr, cont);
   perform pg_temp.mc_mismos('CA5 demoradas', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"demoradas": true}')), array[v_dem]);
   perform pg_temp.mc_mismos('CA5 por aprobar', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"por_aprobar": true}')), array[v_apr]);
   perform pg_temp.mc_mismos('CA5 contenedor', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"contenedor": " abcu1234567 "}')), array[v_tr]);
@@ -264,5 +267,21 @@ begin
   perform pg_temp.mc_es('CA5 naviera que no es uuid', pg_temp.mc_columna(duena, o, f, p_filtros => '{"naviera": "x"}'), '22023', 'filtros');
   perform pg_temp.mc_es('CA5 fase de otro origen', pg_temp.mc_columna(duena, o, fb), '22023', 'p_fase');
   perform pg_temp.mc_es('CA5 cursor sin p_desde', pg_temp.mc_columna(duena, o, f, null, v_q), '22023', 'cursor');
+  -- Por booking, las del embarque directas y las de sus contenedores (se leen desde las unidades de la entidad), por página y en «Sin fase».
+  v_e := pg_temp.mc_vehiculo(o, f, null, now() - interval '1 day');
+  insert into public.transportes (vehiculo_id, embarque_id) values (v_e, emb);
+  v_sin := pg_temp.mc_vehiculo(o, null);
+  insert into public.transportes (vehiculo_id, contenedor_id) values (v_sin, cont);
+  perform pg_temp.mc_mismos('CA5 booking', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"booking": "bk778899"}')), array[v_tr, v_e]);
+  r := pg_temp.mc_columna(duena, o, f, p_tope => 1, p_filtros => '{"booking": "bk778899"}');
+  -- La más antigua en la fase primero, y la página dice que hay más.
+  perform pg_temp.mc_mismos('CA5 booking, la primera página', pg_temp.mc_ids(r), array[v_e]);
+  if (r ->> 'hay_mas')::boolean is not true then
+    raise exception 'CA5 booking: la primera página debía tener más: %', r;
+  end if;
+  r := pg_temp.mc_columna(duena, o, f, r -> 'tarjetas' -> 0 ->> 'fase_desde', (r -> 'tarjetas' -> 0 ->> 'id')::uuid, 1, '{"booking": "bk778899"}');
+  perform pg_temp.mc_mismos('CA5 booking, con cursor', pg_temp.mc_ids(r), array[v_tr]);
+  perform pg_temp.mc_mismos('CA5 contenedor en «Sin fase»',
+    pg_temp.mc_ids(pg_temp.mc_columna(duena, o, null, p_filtros => '{"contenedor": "ABCU1234567"}')), array[v_sin]);
 end $$;
 rollback;

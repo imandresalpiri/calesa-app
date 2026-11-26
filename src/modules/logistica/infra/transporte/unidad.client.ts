@@ -1,8 +1,9 @@
-// Lo que el hueco «Transporte» de la unidad lee desde el navegador, con la sesión de quien mira (6.08-2): su fila de `transportes` (la RLS de lectura sigue), el flujo activo de su origen,
-// la oferta de ese flujo (`flujo_oferta`, `security invoker`) y los puertos y navieras que usa su origen (los compartidos y los propios de él) para nombrar lo ofrecido y lo ya guardado.
-// Cuatro pedidos en paralelo y, tras ellos, la oferta (necesita el flujo) y lo guardado que no vino (otro origen, o más allá del tope), sin nada por fila. Índices:
-// `transportes_vehiculo_id_key` (una fila por vehículo), `flujos` por origen y ámbito; puertos y navieras son tablas de decenas de filas (`.limit(201)`), ordenadas con los compartidos al
-// final para que el tope corte un compartido antes que el propio que lo tapa; lo guardado, por su pkey.
+// Lo que el hueco «Transporte» de la unidad lee desde el navegador, con la sesión de quien mira (6.08-2): su transporte con lo de su embarque (`transporte_leer`, que pide `logistica.ver`
+// del vehículo y trae el embarque y el contenedor con su versión y cuántos vehículos llevan), el flujo activo de su origen, la oferta de ese flujo (`flujo_oferta`, `security invoker`) y los
+// puertos y navieras que usa su origen (los compartidos y los propios de él) para nombrar lo ofrecido y lo ya guardado. Cuatro pedidos en paralelo y, tras ellos, la oferta (necesita el
+// flujo) y lo guardado que no vino (otro origen, o más allá del tope), sin nada por fila. Índices: `transportes_vehiculo_id_key` y las pkey de embarque y contenedor (en `transporte_leer`),
+// `flujos` por origen y ámbito; puertos y navieras son tablas de decenas de filas (`.limit(201)`), ordenadas con los compartidos al final para que el tope corte un compartido antes que el
+// propio que lo tapa; lo guardado, por su pkey.
 import { cortarAlTope } from '@/shared/lib/conteo'
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/browser'
@@ -17,17 +18,24 @@ import {
   type ElementoDelCatalogo,
   type OfertaDeTransporte,
 } from '../../entities/transporte/oferta'
-import { transporteDesde, type Transporte } from '../../entities/transporte/transporte'
+import {
+  lecturaDelTransporteDesde,
+  type ContenedorDeLaUnidad,
+  type EmbarqueDeLaUnidad,
+  type LecturaDelTransporte,
+} from '../../entities/transporte/lectura-de-la-unidad'
+import type { Transporte } from '../../entities/transporte/transporte'
 
 export const NO_SE_CARGO_EL_TRANSPORTE = 'No se pudo cargar el transporte.'
 
 const TOPE_DEL_CATALOGO = 200
-const COLUMNAS_DE_TRANSPORTE =
-  'id, naviera_id, puerto_origen_id, puerto_destino_id, contenedor, booking, zarpe_el, eta_el, arribo_el, notas, actualizado_en'
 
 export type TransporteDeLaUnidad = {
   // Nulo = la unidad todavía no tiene transporte cargado.
   transporte: Transporte | null
+  // El embarque y el contenedor en que va (nulos si va suelta o sin transporte), con la versión que se manda al guardar.
+  embarque: EmbarqueDeLaUnidad | null
+  contenedorDeLaUnidad: ContenedorDeLaUnidad | null
   // Nula si el origen no tiene un flujo activo para esta unidad (no se ofrece nada: se ofrece todo lo activo).
   oferta: OfertaDeTransporte | null
   navieras: ElementoDelCatalogo[]
@@ -58,11 +66,7 @@ function leerCatalogo(catalogo: Catalogo, origenId: string) {
 async function leerLoDeLaUnidad(unidad: UnidadLeida) {
   const supabase = createClient()
   return Promise.all([
-    supabase
-      .from('transportes')
-      .select(COLUMNAS_DE_TRANSPORTE)
-      .eq('vehiculo_id', unidad.id)
-      .limit(1),
+    supabase.rpc('transporte_leer', { p_vehiculo: unidad.id }),
     supabase
       .from('flujos')
       .select('id')
@@ -143,21 +147,27 @@ async function completarLosCatalogos(
   })
 }
 
+type LoDeLaUnidad = Omit<LecturaDelTransporte, 'transporte'> & { transporte: Transporte | null }
+const SIN_TRANSPORTE: LoDeLaUnidad = {
+  transporte: null,
+  embarque: null,
+  contenedorDeLaUnidad: null,
+}
+
 // Lo leído en paralelo, validado y con los catálogos cortados al tope; nulo si algo no tiene la forma esperada.
 function loLeidoDesde(
-  filas: readonly unknown[] | null,
+  datos: unknown,
   puertos: unknown,
   navieras: unknown,
-): ({ transporte: Transporte | null } & Catalogos) | null {
-  const fila0 = filas?.[0]
-  const transporte = fila0 === undefined ? null : transporteDesde(fila0)
+): (LoDeLaUnidad & Catalogos) | null {
+  const lectura = lecturaDelTransporteDesde(datos)
   const listaDePuertos = elementosDesde(puertos)
   const listaDeNavieras = elementosDesde(navieras)
-  if ((fila0 !== undefined && transporte === null) || !listaDePuertos || !listaDeNavieras) {
+  if (lectura === undefined || !listaDePuertos || !listaDeNavieras) {
     return null
   }
   return {
-    transporte,
+    ...(lectura ?? SIN_TRANSPORTE),
     puertos: cortarAlTope(listaDePuertos, TOPE_DEL_CATALOGO).filas,
     navieras: cortarAlTope(listaDeNavieras, TOPE_DEL_CATALOGO).filas,
   }
@@ -188,6 +198,8 @@ export async function leerTransporteDeLaUnidad(
   const { puertos: todosLosPuertos, navieras: todasLasNavieras } = catalogos.data
   return ok({
     transporte: leido.transporte,
+    embarque: leido.embarque,
+    contenedorDeLaUnidad: leido.contenedorDeLaUnidad,
     oferta: oferta.data,
     puertos: todosLosPuertos,
     navieras: todasLasNavieras,

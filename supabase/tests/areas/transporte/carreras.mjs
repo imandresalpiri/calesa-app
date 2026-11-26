@@ -1,12 +1,19 @@
 // Las carreras del transporte (paso 6.07-1, C20), con conexiones reales a la base del Supabase LOCAL. Ninguna termina en 40P01 ni deja un grupo a medias.
-//   K1. A guarda una unidad del grupo de 3 sin confirmar; B aplica al grupo con las versiones de antes: espera la fila y, cuando A confirma, PT409; las
-//       otras dos no cambian.
-//   K2. B aplica primero sin confirmar; A guarda una unidad con la versión de antes: espera y PT409; las 3 quedan con lo de B.
+// Los grupos son embarques: la ETA es del embarque y la cambia para sus tres unidades; las notas son de cada unidad.
+//   K1. A guarda las notas de una unidad del grupo de 3 sin confirmar; B aplica la ETA al grupo con las versiones de antes: espera y, cuando A
+//       confirma, PT409; la ETA no cambia y las notas son las de A.
+//   K2. A aplica la ETA al grupo sin confirmar; B guarda otra ETA desde una unidad con las versiones de antes: espera el embarque y PT409; las 3
+//       quedan con lo de A.
 //   K3. Dos unidades Ua < Ub por id de vehículo con sus transportes al revés (Tb < Ta). X tiene Ub tomada; aplicar al grupo y `cambiar_fase_lote` de
 //       las dos esperan, en los dos órdenes, y al soltar X pasan los dos. Con las unidades tomadas en el orden de `transportes.id` el segundo orden
 //       (aplicar primero) se trancaba: aplicar tenía Ub y esperaba Ua, el lote tenía Ua y esperaba Ub.
 //   K4. A vacía el contenedor sin confirmar y B mueve la unidad a una fase que lo exige: B espera y, cuando A confirma, no entra (23514). Al revés: B
 //       mueve primero y A, al vaciar, espera y recibe 23514; el contenedor sigue.
+//   K5. Dos personas ponen el mismo vehículo en contenedores distintos con la misma versión: una pasa y la otra espera la fila y da PT409; el
+//       vehículo queda en el de la primera y el de la segunda no existe.
+//   K6. Dos `transporte_guardar` crean a la vez el mismo booking nuevo en el mismo origen (dos vehículos): la segunda espera el índice único y se
+//       suma al embarque de la primera; queda un solo embarque, con los dos. Dos `embarque_crear` con ids distintos y el mismo booking: el segundo
+//       espera el índice único y da 23505; queda uno.
 // Las corre `scripts/carreras.mjs` (`pnpm db:carreras`) y, solas, `correr-carreras.mjs`. Terreno con el prefijo «Carreras»: el rol, los vehículos (con
 // sus transportes) y el origen los borra `limpiar()` de `scripts/carreras/terreno.mjs`; el historial y las notas de los movimientos, `limpiarTransporte()`.
 import {
@@ -32,17 +39,25 @@ export async function carrerasDeTransporte({ orquesta, espero, conectar, esperar
     sql: `public.transporte_grupo_aplicar('booking', $1, $2::jsonb, $3::jsonb)::text`,
     args: [booking, esperadas, JSON.stringify(cambios)],
   })
+  // `version` es la de `versionDe()`: la fila, su embarque y su contenedor.
   const guardar = (v, version, cambios) => ({
-    sql: `public.transporte_guardar($1, null, $2::timestamptz, $3::jsonb)::text`,
-    args: [v, version, JSON.stringify(cambios)],
+    sql: `public.transporte_guardar($1, null, $2::timestamptz, $3::jsonb, $4::timestamptz, $5::timestamptz)::text`,
+    args: [v, version.fila, JSON.stringify(cambios), version.embarque, version.contenedor],
   })
   const etas = async (booking) =>
     (
       await orquesta.query(
-        `select coalesce(eta_el::text, '-') as e from public.transportes where booking = $1 order by id`,
+        `select coalesce(eta_el::text, '-') as e from public.transportes_con_embarque where booking = $1 order by id`,
         [booking],
       )
     ).rows.map((r) => r.e)
+  const notas = async (booking) =>
+    (
+      await orquesta.query(
+        `select coalesce(notas, '-') as n from public.transportes_con_embarque where booking = $1 order by id`,
+        [booking],
+      )
+    ).rows.map((r) => r.n)
 
   console.log('Aplicar al grupo contra guardar una unidad')
   {
@@ -51,18 +66,20 @@ export async function carrerasDeTransporte({ orquesta, espero, conectar, esperar
       vs.push(await unidad(orquesta, t, { n: `k1 ${n}`, booking: 'CARR-K1' }))
     const esperadas = await esperadasDe(orquesta, 'CARR-K1')
     const { a, b } = await carrera({
-      a: guardar(vs[1], await versionDe(orquesta, vs[1]), { eta_el: '2026-12-01' }),
+      a: guardar(vs[1], await versionDe(orquesta, vs[1]), { notas: 'de A' }),
       b: aplicar('CARR-K1', esperadas, { eta_el: '2026-12-24' }),
     })
     const e = await etas('CARR-K1')
+    const n = await notas('CARR-K1')
     espero(
-      'K1: A guarda una unidad; B aplica al grupo, espera la fila y da PT409; sólo cambió la de A; sin 40P01',
+      'K1: A guarda las notas de una unidad; B aplica la ETA al grupo, espera y da PT409; sólo cambió la de A; sin 40P01',
       a.ok &&
         b.codigo === 'PT409' &&
-        e.filter((x) => x === '2026-12-01').length === 1 &&
-        e.filter((x) => x === '-').length === 2 &&
+        e.every((x) => x === '-') &&
+        n.filter((x) => x === 'de A').length === 1 &&
+        n.filter((x) => x === '-').length === 2 &&
         sinInterbloqueo(a, b),
-      { a, b, e },
+      { a, b, e, n },
     )
   }
   {
@@ -77,7 +94,7 @@ export async function carrerasDeTransporte({ orquesta, espero, conectar, esperar
     })
     const e = await etas('CARR-K2')
     espero(
-      'K2: A aplica al grupo; B guarda una unidad, espera la fila y da PT409; las 3 con lo de A; sin 40P01',
+      'K2: A aplica la ETA al grupo; B guarda otra desde una unidad, espera el embarque y da PT409; las 3 con lo de A; sin 40P01',
       a.ok && b.codigo === 'PT409' && e.every((x) => x === '2026-12-24') && sinInterbloqueo(a, b),
       { a, b, e },
     )
@@ -158,7 +175,7 @@ export async function carrerasDeTransporte({ orquesta, espero, conectar, esperar
     })
     const { contenedor } = await fila(
       orquesta,
-      `select contenedor from public.transportes where vehiculo_id = $1`,
+      `select contenedor from public.transportes_con_embarque where vehiculo_id = $1`,
       [v],
     )
     espero(
@@ -169,6 +186,72 @@ export async function carrerasDeTransporte({ orquesta, espero, conectar, esperar
         contenedor === 'CARRK4' &&
         sinInterbloqueo(a, b),
       { a, b, contenedor },
+    )
+  }
+
+  console.log('Dos personas ponen el mismo vehículo en contenedores distintos')
+  {
+    const v = await unidad(orquesta, t, { n: 'k5' })
+    const vieja = await versionDe(orquesta, v)
+    const { a, b } = await carrera({
+      a: guardar(v, vieja, { contenedor: 'CARRK5A' }),
+      b: guardar(v, vieja, { contenedor: 'CARRK5B' }),
+    })
+    const { contenedor } = await fila(
+      orquesta,
+      `select contenedor from public.transportes_con_embarque where vehiculo_id = $1`,
+      [v],
+    )
+    const { n } = await fila(
+      orquesta,
+      `select count(*)::int as n from public.contenedores where origen_id = $1 and numero = 'CARRK5B'`,
+      [t.origen],
+    )
+    espero(
+      'K5: A lo pone en un contenedor; B, con la misma versión, espera la fila y da PT409; queda en el de A y el de B no existe; sin 40P01',
+      a.ok && b.codigo === 'PT409' && contenedor === 'CARRK5A' && n === 0 && sinInterbloqueo(a, b),
+      { a, b, contenedor, n },
+    )
+  }
+
+  console.log('Dos guardados crean a la vez el mismo booking nuevo')
+  {
+    const v1 = await unidad(orquesta, t, { n: 'k6 1' })
+    const v2 = await unidad(orquesta, t, { n: 'k6 2' })
+    const { a, b } = await carrera({
+      a: guardar(v1, await versionDe(orquesta, v1), { booking: 'CARR-K6' }),
+      b: guardar(v2, await versionDe(orquesta, v2), { booking: 'CARR-K6' }),
+    })
+    const { embarques, unidades } = await fila(
+      orquesta,
+      `select (select count(*)::int from public.embarques e where e.origen_id = $1 and e.booking = 'CARR-K6') as embarques,
+              (select count(*)::int from public.transportes t join public.embarques e on e.id = t.embarque_id
+                where e.origen_id = $1 and e.booking = 'CARR-K6' and t.vehiculo_id = any ($2::uuid[])) as unidades`,
+      [t.origen, [v1, v2]],
+    )
+    espero(
+      'K6: los dos crean el mismo booking; B espera el índice único y se suma: un solo embarque con los dos; sin 40P01',
+      a.ok && b.ok && embarques === 1 && unidades === 2 && sinInterbloqueo(a, b),
+      { a, b, embarques, unidades },
+    )
+  }
+
+  console.log('Dos embarque_crear con el mismo booking')
+  {
+    const crear = (id) => ({
+      sql: `public.embarque_crear($1::uuid, $2::uuid, '{"booking": "CARR-K6B"}'::jsonb)::text`,
+      args: [id, t.origen],
+    })
+    const { a, b } = await carrera({ a: crear(crypto.randomUUID()), b: crear(crypto.randomUUID()) })
+    const { n } = await fila(
+      orquesta,
+      `select count(*)::int as n from public.embarques where origen_id = $1 and booking = 'CARR-K6B'`,
+      [t.origen],
+    )
+    espero(
+      'K6: dos embarque_crear con ids distintos y el mismo booking: B espera el índice único y da 23505; queda uno; sin 40P01',
+      a.ok && b.codigo === '23505' && n === 1 && sinInterbloqueo(a, b),
+      { a, b, n },
     )
   }
   await limpiarTransporte(orquesta)

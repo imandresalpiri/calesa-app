@@ -9,8 +9,8 @@ import type {
 } from '../../entities/transporte/repositorio-de-transporte'
 import { falloDeLaBase, inesperado, nuloParaLaBase } from './rpc'
 
-// El transporte se escribe sólo por RPC (6.07-1: `transporte_guardar`), con el cliente de quien pide: la base exige `logistica.transporte.editar` del origen y la versión. Una versión nula
-// crea (si ya existía, `PT409`); la clave ausente de `cambios` no cambia y `null` vacía.
+// El transporte se escribe sólo por RPC (6.07-1: `transporte_guardar`), con el cliente de quien pide: la base exige `logistica.transporte.editar` del origen y las versiones (la fila,
+// su embarque y su contenedor). Una versión nula crea (si ya existía, `PT409`); la clave ausente de `cambios` no cambia y `null` vacía.
 const esquemaDeGuardado = z.object({
   id: z.guid(),
   actualizado_en: z.string(),
@@ -60,6 +60,8 @@ export const transporteSupabase: RepositorioDeTransporte = {
       p_vehiculo: p.vehiculoId,
       p_repuesto: nuloParaLaBase(null),
       p_actualizado_en_esperado: nuloParaLaBase(p.actualizadoEnEsperado),
+      p_embarque_esperado: nuloParaLaBase(p.embarqueEsperado),
+      p_contenedor_esperado: nuloParaLaBase(p.contenedorEsperado),
       p_cambios: p.cambios,
     })
     return error ? falloDeLaBase(error) : respuesta(data)
