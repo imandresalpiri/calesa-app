@@ -800,7 +800,8 @@ las trampas, en `docs/LECCIONES.md`.
   fijos da otra cifra en un casi empate, y la base redondea así. En un porcentaje son decimales de puntos (`redondear(x, n + 2)` sobre la fracción).
 - **Lo que no es una celda sigue con 2:** el total del listado, «De este vehículo», la cabecera de comparar, la línea del total de una revisión y el
   resumen de una guardada son totales en la moneda base o la de mostrar, no la celda del total; el listado está medido al borde. El Bs de la hoja y de la
-  tarjeta es la celda del total en otra moneda: lleva sus decimales. El tipo de cambio de la tarjeta (`tc_valor`) sigue con 4: no es una celda que se elija.
+  tarjeta es la celda del total en otra moneda: lleva sus decimales, y también «Total guardado» y el total de «Cotización n.º N guardada», que van junto a
+  la tarjeta del total de la hoja (dos cifras distintas del mismo total, a la vista, no se leen). El tipo de cambio de la tarjeta (`tc_valor`) sigue con 4: no es una celda que se elija.
 - **«Decimales…» es un panel propio** (`?panel=decimales&fila=<id>`), no un campo del panel del tipo de celda (no tiene formato y sólo abre para cuatro
   tipos) ni un submenú con radios (no deja ver el ejemplo con su alto reservado). Usa `<Opciones>` (radios nativos con otra piel). Un rechazo no marca el
   grupo `aria-invalid`: los radios sólo ofrecen valores válidos, el motivo es de la fórmula y se lee en su línea con el foco en el radio elegido.

@@ -1,11 +1,13 @@
 'use client'
 
-import { Monto } from '@/shared/ui/monto'
+import { MontoConDecimales } from '@/shared/ui/monto-con-decimales'
 import { MONEDA_DEL_PRIMER_RESULTADO } from '../../../entities/primer-resultado'
 
 type Props = {
   // El total con que se guardó la cotización (`totales.usd`); nulo, no había.
   totalUsd: number | null
+  // Los «Decimales» de la celda del total (`tarjetaTotal.decimales`): la cifra va como la de la tarjeta de encima.
+  decimales: number | undefined
   // Lo de hoy no es lo guardado: una tabla de referencia o un dato del vehículo cambió desde que se guardó (C11).
   hayAviso: boolean
   // Se dice el total de antes: el de hoy es otro, o no hay uno de hoy.
@@ -16,7 +18,13 @@ type Props = {
 
 // Lo de hoy contra lo guardado (C11): al abrir una cotización guardada la hoja recalcula con SU versión y SUS tipos de cambio, pero con las tablas y los datos del vehículo de hoy.
 // Si eso no da lo guardado se dice, y si el total es otro, también el total con que se guardó: el snapshot es la autoridad. Quien sólo ve lee las dos cifras.
-export function TotalGuardado({ totalUsd, hayAviso, muestraElTotal, puedeGuardar }: Props) {
+export function TotalGuardado({
+  totalUsd,
+  decimales,
+  hayAviso,
+  muestraElTotal,
+  puedeGuardar,
+}: Props) {
   if (!hayAviso && !muestraElTotal) {
     return null
   }
@@ -29,7 +37,11 @@ export function TotalGuardado({ totalUsd, hayAviso, muestraElTotal, puedeGuardar
             {totalUsd === null ? (
               '—'
             ) : (
-              <Monto valor={totalUsd} moneda={MONEDA_DEL_PRIMER_RESULTADO} />
+              <MontoConDecimales
+                valor={totalUsd}
+                moneda={MONEDA_DEL_PRIMER_RESULTADO}
+                decimales={decimales}
+              />
             )}
           </strong>
         </p>

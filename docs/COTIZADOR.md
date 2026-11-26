@@ -39,7 +39,7 @@ Un nodo nuevo lleva su tipo en el Zod de `nodos.ts`, su caso en `referenciasDe()
 `_diseno_auxiliares()` y `_nodos_en_par()`), y el juego de prueba.
 
 **Los decimales de una celda** (glosario: «Decimales (de una celda)», `entities/decimales-de-celda.ts`): `decimales` dice con cuántos decimales se
-muestra el valor del nodo en todos lados (la hoja, sus subtotales, la tarjeta del total y su Bs, lo pisado, la tarjeta de la cotización con su PDF, su
+muestra el valor del nodo en todos lados (la hoja, sus subtotales, la tarjeta del total y su Bs, «Total guardado» y «Cotización n.º N guardada», lo pisado, la tarjeta de la cotización con su PDF, su
 imagen y su texto con datos, comparar, las revisiones y la columna Ejemplo de la planilla). **Sin la clave, «Automático»**: cada superficie muestra lo de
 siempre (2 en un monto, hasta 2 en un número o un porcentaje de la hoja, 1 en un porcentaje de la tarjeta), y una versión sin el dato se ve como antes.
 Sólo cambia la vista: el motor no la lee, lo guardado sigue a precisión completa y lo que se edita también (`formatearParaEditar()`). En un porcentaje son

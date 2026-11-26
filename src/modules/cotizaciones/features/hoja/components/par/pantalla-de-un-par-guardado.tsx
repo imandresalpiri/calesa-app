@@ -177,6 +177,7 @@ function totalGuardadoDe(
   return (
     <TotalGuardado
       totalUsd={hoja.guardado.totalUsd}
+      decimales={hoja.diseno.tarjetaTotal.decimales}
       hayAviso={p.hayAviso}
       muestraElTotal={muestraElTotalGuardado(hoja.guardado, inicial.respuesta)}
       puedeGuardar={p.puedeGuardar}
