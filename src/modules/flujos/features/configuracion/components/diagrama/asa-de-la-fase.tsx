@@ -34,7 +34,7 @@ export function AsaDeLaFase({ nombre, puedeVincular, lado }: Props) {
       type="source"
       position={Position.Right}
       isConnectable={puedeVincular}
-      aria-label={texto}
+      aria-label={puedeVincular ? texto : undefined}
       title={puedeVincular ? texto : undefined}
       className={puedeVincular ? ASA : OCULTO}
     />
