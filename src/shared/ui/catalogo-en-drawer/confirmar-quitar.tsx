@@ -49,7 +49,7 @@ export function ConfirmarQuitar({ url, lista, usos, textos, prefijo, enCurso, al
       {quitar.conItems ? (
         <CampoSeleccion
           nombre="destino-al-quitar"
-          etiqueta={`Mover sus ${cuantos} a…`}
+          etiqueta={quitar.n === 1 ? `Mover su ${textos.item.uno} a…` : `Mover sus ${cuantos} a…`}
           opciones={[
             { valor: SIN_DESTINO, etiqueta: textos.ninguno },
             ...destinos.map((otro) => ({ valor: otro.id, etiqueta: otro.nombre })),
