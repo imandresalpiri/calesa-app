@@ -39,20 +39,14 @@ type Pedido = {
 export function usePosicionesDelLienzo({ flujo, auto, rem, escribir }: Pedido) {
   const [pendientes, setPendientes] = useState<ReadonlyMap<string, PosicionPendiente>>(new Map())
   const pila = useRef<PasoDeDeshacer[]>([])
-  const rafaga = useRef<ReturnType<typeof setTimeout> | null>(null)
   const envio = useEnvioDePosiciones({
     escribir,
     setPendientes,
-    alConflicto: () => {
+    alDescartar: () => {
       pila.current = []
     },
   })
-  useEffect(
-    () => () => {
-      if (rafaga.current) clearTimeout(rafaga.current)
-    },
-    [],
-  )
+  const rafaga = useRafagaDelTeclado(envio.enviar)
 
   const leidas = useMemo(() => new Map(flujo.fases.map((f) => [f.id, f.posicion])), [flujo.fases])
   const vigentes = useMemo(
@@ -80,6 +74,7 @@ export function usePosicionesDelLienzo({ flujo, auto, rem, escribir }: Pedido) {
   }
 
   function deshacer() {
+    rafaga.cerrar()
     const sacado = sacarDeLaPila(pila.current)
     if (!sacado) return
     pila.current = sacado.pila
@@ -93,6 +88,7 @@ export function usePosicionesDelLienzo({ flujo, auto, rem, escribir }: Pedido) {
     yaEnElAcomodo: enElAcomodo(efectivas, auto, rem),
     // Un arrastre: se guarda al soltar.
     mover: (movidas: readonly { faseId: string; x: number; y: number }[]) => {
+      rafaga.cerrar()
       aplicar(cambiosAlMover(efectivas, enPantalla, movidas), true)
       envio.enviar()
     },
@@ -100,20 +96,48 @@ export function usePosicionesDelLienzo({ flujo, auto, rem, escribir }: Pedido) {
     moverConTeclado: (faseId: string, paso: Punto) => {
       const donde = efectivas.get(faseId)
       if (!donde) return
-      const primera = rafaga.current === null
-      if (rafaga.current) clearTimeout(rafaga.current)
       const movida = { faseId, x: donde.x + paso.x, y: donde.y + paso.y }
-      aplicar(cambiosAlMover(efectivas, enPantalla, [movida]), primera)
-      rafaga.current = setTimeout(() => {
-        rafaga.current = null
-        envio.enviar()
-      }, ESPERA_DEL_TECLADO_MS)
+      aplicar(cambiosAlMover(efectivas, enPantalla, [movida]), rafaga.tecla())
     },
     ordenarSolo: () => {
+      rafaga.cerrar()
       aplicar(posicionesDeOrdenarSolo(auto, rem), true)
       envio.enviar()
       avisarConDeshacer('Fases reacomodadas', deshacer)
     },
     deshacer,
+  }
+}
+
+// Una ráfaga de teclado: cada tecla reprograma el envío, y `tecla()` dice si abrió la ráfaga (sólo esa apila un paso de deshacer). Un arrastre, «Ordenar
+// solo» o deshacer la cierran: la tecla siguiente es otro paso. Al irse con una en curso, se envía lo que esperaba (no se pierde lo que se vio movido).
+function useRafagaDelTeclado(enviar: () => void) {
+  const reloj = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const enviarAlIrse = useRef(enviar)
+  useEffect(() => {
+    enviarAlIrse.current = enviar
+  })
+  useEffect(
+    () => () => {
+      if (reloj.current === null) return
+      clearTimeout(reloj.current)
+      enviarAlIrse.current()
+    },
+    [],
+  )
+  return {
+    tecla: () => {
+      const primera = reloj.current === null
+      if (reloj.current !== null) clearTimeout(reloj.current)
+      reloj.current = setTimeout(() => {
+        reloj.current = null
+        enviar()
+      }, ESPERA_DEL_TECLADO_MS)
+      return primera
+    },
+    cerrar: () => {
+      if (reloj.current !== null) clearTimeout(reloj.current)
+      reloj.current = null
+    },
   }
 }

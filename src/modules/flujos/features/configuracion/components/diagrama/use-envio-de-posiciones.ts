@@ -21,8 +21,8 @@ type Pendientes = ReadonlyMap<string, PosicionPendiente>
 type Pedido = {
   escribir: ReturnType<typeof useEscrituraDelLienzo>
   setPendientes: Dispatch<SetStateAction<Pendientes>>
-  // Un conflicto: lo pendiente ya no vale (y la pila de deshacer tampoco).
-  alConflicto: () => void
+  // Un conflicto u otro rechazo: lo que se rechazó ya no vale, y la pila de deshacer tampoco (sus pasos parten de lo que se veía).
+  alDescartar: () => void
 }
 
 const igual = (a: CambioDePosicion, b: CambioDePosicion) => a.x === b.x && a.y === b.y
@@ -52,7 +52,7 @@ function quitarDelLote(antes: Pendientes, lote: readonly CambioDePosicion[]) {
 
 // El envío de las posiciones del lienzo: todo lo que espera en un solo envío por la cola del lienzo (y lo que se movió mientras tanto, en el siguiente).
 // Sin red, lo del lote vuelve a esperar (si no se movió otra vez) y se reintenta solo al volver; otro rechazo devuelve esas cajas a lo leído.
-export function useEnvioDePosiciones({ escribir, setPendientes, alConflicto }: Pedido) {
+export function useEnvioDePosiciones({ escribir, setPendientes, alDescartar }: Pedido) {
   const fasesDelDiagrama = useFasesDelDiagrama()
   const proveedor = useRef(fasesDelDiagrama)
   const porEnviar = useRef(new Map<string, CambioDePosicion>())
@@ -79,10 +79,11 @@ export function useEnvioDePosiciones({ escribir, setPendientes, alConflicto }: P
     if (resultado.motivo === 'conflicto') {
       porEnviar.current = new Map()
       setPendientes(new Map())
-      alConflicto()
+      alDescartar()
       return false
     }
     setPendientes((antes) => quitarDelLote(antes, lote))
+    alDescartar()
     return true
   }
 
@@ -92,10 +93,13 @@ export function useEnvioDePosiciones({ escribir, setPendientes, alConflicto }: P
     const lote = [...porEnviar.current.values()]
     porEnviar.current = new Map()
     enviando.current = true
-    void escribir((version) => escritor.guardarPosiciones(lote, version)).then((resultado) => {
-      enviando.current = false
-      if (terminar(lote, resultado)) enviar()
-    })
+    // Un fallo inesperado (la action lanzó) cuenta como rechazo: el envío no queda trabado.
+    void escribir((version) => escritor.guardarPosiciones(lote, version))
+      .catch(() => ({ ok: false, motivo: 'rechazo' }) as const)
+      .then((resultado) => {
+        enviando.current = false
+        if (terminar(lote, resultado)) enviar()
+      })
   }
 
   const vuelta = useVueltaDeLaRed()
