@@ -1,6 +1,12 @@
 import { Extension, type Extensions } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { hrefSeguro } from '../../../entities/contenido/doc'
+import { Boton } from './bloques/boton'
+import { Galeria } from './bloques/galeria'
+import { ImagenDeLaGuia } from './bloques/imagen-de-la-guia'
+import { MarcadorDeVacio } from './bloques/marcador-de-vacio'
+import { TeclasDelMenu } from './bloques/teclas-del-menu'
+import { Video } from './bloques/video'
 import { ImagenDelSitio } from './imagen'
 
 export type ModoDelEditor = 'documento' | 'guia'
@@ -39,7 +45,8 @@ export function extensionesDelSitio(modo: ModoDelEditor): Extensions {
       dropcursor: false,
       link: LINK,
     }),
-    ImagenDelSitio,
+    modo === 'guia' ? ImagenDeLaGuia : ImagenDelSitio,
     SinSaltoConModEnter,
+    ...(modo === 'guia' ? [Galeria, Boton, Video, MarcadorDeVacio, TeclasDelMenu] : []),
   ]
 }
