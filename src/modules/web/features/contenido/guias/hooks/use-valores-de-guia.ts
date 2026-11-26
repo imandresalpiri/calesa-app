@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useBorradorDeEstado } from '@/shared/ui/use-borrador-de-estado'
 import type { GuiaCompleta } from '../../../../entities/contenido/guias'
-import { valoresDeGuia, type ValoresDeGuia } from './valores-de-guia'
+import { hayCambiosEnLaGuia, valoresDeGuia, type ValoresDeGuia } from './valores-de-guia'
 
 // Lo que la página de la guía edita, a partir de lo guardado, con su borrador en `sessionStorage` (el documento incluido): al volver se repone lo
 // escrito y se avisa con «Descartar». Quien la usa remonta el formulario con la versión de la guía como `key`.
@@ -19,5 +19,16 @@ export function useValoresDeGuia(guia: GuiaCompleta) {
     guardado,
     alReponer: cambiar,
   })
-  return { valores, cambiar, borrador }
+  // Descartar vuelve a lo guardado y borra el borrador.
+  const descartar = () => {
+    setValores(guardado)
+    borrador.limpiar()
+  }
+  return {
+    valores,
+    cambiar,
+    borrador,
+    hayCambios: hayCambiosEnLaGuia(valores, guardado),
+    descartar,
+  }
 }

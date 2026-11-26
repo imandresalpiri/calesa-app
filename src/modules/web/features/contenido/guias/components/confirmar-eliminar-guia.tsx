@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { enviarAccion } from '@/shared/lib/enviar-accion'
 import { Aviso } from '@/shared/ui/aviso'
-import { Button } from '@/shared/ui/button'
 import { Confirmar } from '@/shared/ui/confirmar'
 import { avisarExito } from '@/shared/ui/toasts'
 import {
@@ -20,7 +19,7 @@ import { useEliminarGuiaPorUrl } from '../hooks/use-eliminar-guia-por-url'
 
 const MENSAJE_DE_VALIDACION = 'No se pudo eliminar la guía. Recarga la página.'
 
-// «Eliminar guía» (`?eliminar=guia`; irreversible: pide confirmar y nombra la guía). Un rechazo o un conflicto se dice dentro del diálogo. Al
+// La confirmación de «Eliminar guía» (`?eliminar=guia`, que abre `<BotonEliminarGuia>`; irreversible: pide confirmar y nombra la guía). Un rechazo o un conflicto se dice dentro del diálogo. Al
 // eliminar, vuelve a la lista y retira del bucket las imágenes y la portada que ninguna otra guía use.
 export function ConfirmarEliminarGuia({ guia }: { guia: GuiaCompleta }) {
   const router = useRouter()
@@ -47,20 +46,12 @@ export function ConfirmarEliminarGuia({ guia }: { guia: GuiaCompleta }) {
 
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        className="min-h-11 text-(--color-peligro-ink) md:min-h-9"
-        onClick={() => {
-          setError(null)
-          url.abrir()
-        }}
-      >
-        Eliminar guía
-      </Button>
       <Confirmar
         abierto={url.abierto}
-        alCerrar={url.cerrar}
+        alCerrar={() => {
+          setError(null)
+          url.cerrar()
+        }}
         alConfirmar={confirmar}
         titulo={`Eliminar la guía «${guia.titulo}»`}
         descripcion="Sale de la web si estaba publicada y se borran sus imágenes. No se puede deshacer."

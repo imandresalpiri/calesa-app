@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { conRed, resultadoDeAccion } from '@/shared/lib/formularios'
 import { avisarError, avisarExito } from '@/shared/ui/toasts'
 import type { GuiaCompleta } from '../../../../entities/contenido/guias'
-import { rutasDeImagenes } from '../../../../entities/contenido/guias'
+import { motivoDelCuerpo, rutasDeImagenes } from '../../../../entities/contenido/guias'
 import type { PublicacionDeGuia } from '../../../../entities/contenido/repositorios'
 import { guardarGuia } from '../actions/guardar-guia'
 import { quitarImagenesHuerfanas } from './quitar-imagenes-huerfanas'
@@ -36,6 +36,12 @@ export function useGuardarGuia({ guia, valores, alGuardar }: Opciones) {
   const [porCampo, setPorCampo] = useState<ErroresDeGuia>({})
 
   async function guardar(publicacion: PublicacionDeGuia, mensaje: string): Promise<void> {
+    // Un bloque que la lista blanca no admite (un botón sin enlace, un video de otro sitio) no se envía: se dice en su lugar, con lo escrito intacto.
+    const rechazado = motivoDelCuerpo(valores.cuerpo)
+    if (rechazado !== null) {
+      setPorCampo({ cuerpo: rechazado })
+      return
+    }
     setPorCampo({})
     const respuesta = await conRed(
       executeAsync({

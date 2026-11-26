@@ -235,17 +235,3 @@ export function motivoDePublicacion(
   const puede = puedePublicar(situacion)
   return puede.ok ? null : puede.motivo
 }
-
-// Qué botones de publicación tiene cada estado (la barra de arriba usa `accionesDeLaBarra`).
-export function accionesDePublicacion(estado: EstadoDeGuia): {
-  publicar: 'Publicar' | 'Publicar ahora' | null
-  programar: boolean
-  despublicar: boolean
-} {
-  return {
-    publicar:
-      estado === 'borrador' ? 'Publicar' : estado === 'programada' ? 'Publicar ahora' : null,
-    programar: estado === 'borrador',
-    despublicar: estado !== 'borrador',
-  }
-}

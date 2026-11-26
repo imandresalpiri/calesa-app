@@ -9,7 +9,7 @@ import { FormularioDeGuia } from '@/modules/web/pantallas/guia'
 import { datosO } from '@/shared/lib/errores'
 import { buttonVariants } from '@/shared/ui/button'
 import { EstadoSinPermiso, EstadoVacio } from '@/shared/ui/estados'
-import { EsqueletoFormulario } from '@/shared/ui/esqueletos'
+import { EsqueletoDeEditorDeArticulo } from '@/shared/ui/esqueletos'
 
 export const metadata: Metadata = { title: 'Guía' }
 
@@ -19,9 +19,9 @@ const VOLVER = RUTA_DE_LA_LISTA_DE_GUIAS as Route
 export default function PaginaDeUnaGuia({ params }: PageProps<'/configuracion/web/guias/[id]'>) {
   return (
     <>
-      {/* El h1 va fuera del Suspense: está también cargando y sin permiso (9.12-5, R3). Sin cabecera visible: el formulario abre con su enlace «← Guías». */}
+      {/* El h1 va fuera del Suspense: está también cargando y sin permiso (9.12-5, R3). Sin cabecera visible: la barra del editor abre con su enlace «← Guías». */}
       <h1 className="sr-only">Editar guía</h1>
-      <Suspense fallback={<EsqueletoFormulario bloques={3} campos={4} />}>
+      <Suspense fallback={<EsqueletoDeEditorDeArticulo />}>
         <Guia params={params} />
       </Suspense>
     </>
@@ -56,20 +56,12 @@ async function Guia({ params }: { params: PageProps<'/configuracion/web/guias/[i
     await leerOpcionesDeGuia({ categoriaId: guia.categoriaId, autorId: guia.autorId }),
   )
   return (
-    <div className="grid max-w-3xl gap-4">
-      <Link
-        href={VOLVER}
-        className="inline-flex min-h-11 w-fit items-center text-(length:--text-sm) text-(--color-ink-soft) underline-offset-2 hover:underline md:min-h-0"
-      >
-        ← Guías
-      </Link>
-      <FormularioDeGuia
-        key={guia.actualizadoEn}
-        guia={guia}
-        opciones={opciones}
-        ahora={new Date().toISOString()}
-        puedePublicarGuias={puede(sesion.permisos, 'web.guias.publicar')}
-      />
-    </div>
+    <FormularioDeGuia
+      key={guia.actualizadoEn}
+      guia={guia}
+      opciones={opciones}
+      ahora={new Date().toISOString()}
+      puedePublicarGuias={puede(sesion.permisos, 'web.guias.publicar')}
+    />
   )
 }

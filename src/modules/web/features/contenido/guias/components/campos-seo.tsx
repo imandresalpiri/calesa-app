@@ -16,7 +16,7 @@ type Props = {
 }
 
 // El título y la descripción que ven los buscadores; vacíos, el sitio usa el título y el resumen.
-export function BloqueSeo({ valores, cambiar, errores }: Props) {
+export function CamposSeo({ valores, cambiar, errores }: Props) {
   return (
     <Bloque
       titulo="Para buscadores"

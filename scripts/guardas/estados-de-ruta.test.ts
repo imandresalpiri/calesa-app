@@ -61,8 +61,8 @@ describe('los esqueletos compartidos', () => {
     'src/app/(acceso)/esqueleto-acceso.tsx',
   ]
 
-  it('recorre los seis de shared/ui y el de acceso', () => {
-    expect(esqueletos.length).toBe(7)
+  it('recorre los siete de shared/ui y el de acceso', () => {
+    expect(esqueletos.length).toBe(8)
   })
 
   it('todo esqueleto lleva role="status", aria-busy y un aria-label «Cargando …»', () => {

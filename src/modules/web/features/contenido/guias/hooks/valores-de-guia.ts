@@ -31,3 +31,31 @@ export function valoresDeGuia(guia: GuiaCompleta): ValoresDeGuia {
     cuerpo: documentoLimpio(guia.cuerpoDoc),
   }
 }
+
+// El editor deja siempre un párrafo vacío al final (para seguir escribiendo después de una imagen o un botón): no es un cambio de la persona.
+function sinParrafosFinalesVacios(cuerpo: DocumentoDelSitio | null): unknown {
+  if (cuerpo === null) {
+    return null
+  }
+  const bloques = [...cuerpo.content]
+  while (bloques.length > 0) {
+    const ultimo = bloques[bloques.length - 1]
+    if (ultimo?.type === 'paragraph' && (ultimo.content?.length ?? 0) === 0) {
+      bloques.pop()
+    } else {
+      break
+    }
+  }
+  return bloques
+}
+
+// ¿Lo que se escribió difiere de lo guardado? Compara todo salvo los párrafos vacíos del final del cuerpo.
+export function hayCambiosEnLaGuia(valores: ValoresDeGuia, guardado: ValoresDeGuia): boolean {
+  const { cuerpo, ...resto } = valores
+  const { cuerpo: cuerpoGuardado, ...restoGuardado } = guardado
+  return (
+    JSON.stringify(resto) !== JSON.stringify(restoGuardado) ||
+    JSON.stringify(sinParrafosFinalesVacios(cuerpo)) !==
+      JSON.stringify(sinParrafosFinalesVacios(cuerpoGuardado))
+  )
+}
