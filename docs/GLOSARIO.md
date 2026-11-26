@@ -738,9 +738,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   asesor, los datos del vehículo, los interruptores y la variante para ver el efecto de cada cambio en Ejemplo, «Totales» y la tarjeta en vivo. Arranca en ceros como las «Cifras
   de prueba», vuelve a ceros desde el «⋯» de la planilla y no se guarda.
 - **Barra de fórmula** — `BarraDeFormula` (`components/planilla/barra/`), fija arriba de la cuadrícula: el nombre de la celda activa («C5», «Ejemplo 5»),
-  `fx ▾` (inserta una función, `insertarFuncion()`), su texto (el mismo que se edita en la celda, uno solo a la vez; vacío, «Escribe = y toca las celdas:
-  =C5+C7»), con cada referencia pintada de su color, la leyenda, las sugerencias y el error con su tramo; a la derecha «Totales», «Tarjeta» y «?» (los
-  tipos de celda). Debajo, una línea: «De dónde sale: …» de la fila elegida. No es la **Barra de la fórmula** (la de la página: estado, guardar, publicar).
+  `fx ▾` (inserta una función, `insertarFuncion()`), las **Operación rápida** y «¿Cómo se escribe?», su texto (el mismo que se edita en la celda, uno solo a
+  la vez; vacío, «Escribe = y toca las celdas: =C5+C7»), con cada referencia pintada de su color, el **Resultado al lado**, la leyenda, las sugerencias y el
+  error con su tramo; a la derecha «Totales», «Tarjeta» y «?» (los tipos de celda). Debajo, un renglón: «De dónde sale: …» de la fila elegida o, escribiendo,
+  la **Firma en el cursor**, «Siguiente» y, en el celular, «Elegir celda». No es la **Barra de la fórmula** (la de la página: estado, guardar, publicar).
 - **Firma en el cursor** — `firmaEnElCursor()` (`entities/formula/firma-en-el-cursor.ts`), `RenglonDeLaEdicion`: mientras se escribe dentro de una función en C, su
   forma en el renglón bajo la barra de fórmula con el valor que se escribe en negrita («SI(condición; **si se cumple**; si no)»); gana la de más adentro. Sin
   función y con el cursor esperando un operando, «Toca una celda para usarla.». No: «tooltip», «ayuda de argumentos».

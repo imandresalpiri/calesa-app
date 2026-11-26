@@ -803,7 +803,10 @@ fallar.
   la tarjeta (la lectura de la pestaña «Tarjeta», con lo que nombra). Nada se relee al tipear, al aplicar ni al insertar, mover o eliminar una
   fila. Dibuja hasta 500 filas (`TOPE_DE_LO_CARGADO`) con `<AvisoDeTope>` y «Buscar fila»: ≤ 6.300 nodos. El «⋯» y el clic derecho de las filas,
   las sugerencias y los bordes de las referencias son una sola instancia, no uno por fila; la sesión, la planilla, la tarjeta en vivo y los
-  paneles (banda, total, tipo de celda y «¿Cómo se escribe?») van por `diferido()`, y arrastrar el número usa eventos de puntero, sin dnd-kit.
+  paneles (banda, total, tipo de celda y «¿Cómo se escribe?», que abre el libro de la barra de fórmula) y el modal «Información de la fórmula» van por
+  `diferido()`, y arrastrar el número usa eventos de puntero, sin dnd-kit. El resultado al lado (`resultadoAlLado()`) compila, valida y evalúa la
+  fórmula entera una vez por pausa de 150 ms, O(filas), en el chunk de la planilla (`resultado-al-lado.escala.test.ts`: razón por fila ≤ 1,1 entre 60 y
+  600 filas); el e2e con volumen pide la cifra ≤ 1 s tras tipear en la última de 600.
   La hoja numerada (`hojaDeLaPlanilla()`), `aA1()`, `deA1()`, «de dónde sale», los usos de cada fila (`indiceDeUsos()`) y las bandas son O(filas),
   una vez por fórmula de trabajo; tipear en la unidad de ejemplo o cambiar el modo sólo vuelve a correr `evaluar()` (lineal). El estado de
   las filas es O(filas × nodos), una vez por fórmula de trabajo; filtrar y tipear no lo recalculan

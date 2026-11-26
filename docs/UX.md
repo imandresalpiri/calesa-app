@@ -1598,14 +1598,20 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
 - **Planilla** (la vista por defecto, sobre el borrador o, sin él, la publicada; sin ninguna, el vacío de la publicada y no hay planilla; la única
   forma de editar la fórmula): lee la versión desde el navegador al abrir la pestaña (esqueleto, error con «Reintentar», versión que ya no se
   abre). A todo el ancho, sin guías a la vista. En la barra de la fórmula de la página van «Guardar el borrador» con su línea de estado en letra chica
-  y el «⋯» de la planilla («Nueva banda…», «Total y tipos de cambio…», «Unidad de ejemplo: volver a ceros», apagado en ceros, y «¿Cómo se
-  escribe?»); «Sobre…» sólo en la puesta en marcha (en la página lo dice el estado de la barra). Los avisos del guardado (conflicto, errores, lo
+  y el «⋯» de la planilla («Nueva banda…», «Total y tipos de cambio…» y «Unidad de ejemplo: volver a ceros», apagado en ceros); «Sobre…» sólo en la puesta en marcha (en la página lo dice el estado de la barra). Los avisos del guardado (conflicto, errores, lo
   que el diseño no muestra) van arriba de la planilla. La **Barra de fórmula** queda fija bajo la cabecera de la página al desplazarse: el nombre
   de la celda («C5», «Ejemplo 5»), `fx ▾` (inserta una función; apagado con su motivo: «Toca una celda para escribir una fórmula.», «Las
-  funciones van en C.» o el de la celda), el texto (vacío, «Escribe = y toca las celdas: =C5+C7»; al entrar no hay celda elegida y se ve esa guía), y a la derecha «Totales», «Tarjeta» y «?»
-  (un popover con los ocho tipos de celda y el fondo que cada uno da a C). Debajo, una sola línea con la fila elegida: «De dónde sale: …», lo
-  que el último cambio soltó, lo que dice el texto tras un ⚙ (reescrito o «ya no manda») y, en un tipo de cambio, el camino a Empresa ›
-  Monedas. La cuadrícula (`role="grid"`, «Filas de la fórmula de
+  funciones van en C.» o el de la celda), las **operaciones rápidas** (grupo «Operaciones»: «Sumar», «Porcentaje de» y «Si… entonces…», con
+  su texto en una barra ancha y sólo el icono de 44 px debajo; apagadas con el mismo motivo que `fx`) y «¿Cómo se escribe?» (libro, a un
+  toque), el texto (vacío, «Escribe = y toca las celdas: =C5+C7»; al entrar no hay celda elegida y se ve esa guía), escribiendo una C la caja
+  del **resultado al lado** («Resultado con la unidad de ejemplo», `aria-live`: la cifra que daría, con los decimales de la celda, 150 ms
+  después de la última tecla; vacía con un texto que no compila, mientras se lee lo de prueba o antes de la pausa, nunca con una cifra vieja;
+  en una barra angosta va en su propio renglón), y a la derecha «Totales», «Tarjeta» y «?» (un popover con los ocho tipos de celda y el fondo
+  que cada uno da a C). Debajo, un solo renglón reservado (nada salta al entrar o salir de la edición): sin escribir, la fila elegida
+  («De dónde sale: …», lo que el último cambio soltó, lo que dice el texto tras un ⚙ —reescrito o «ya no manda»— y, en un tipo de cambio,
+  el camino a Empresa › Monedas); escribiendo, la firma de la función en que está el cursor con el valor que se escribe en negrita
+  («SI(condición; **si se cumple**; si no)», cortada con «…» y entera en su `title`) o, si el cursor espera un operando, «Toca una celda para
+  usarla.»; a la derecha, «Siguiente» (al próximo lugar por llenar, como Tab) y, en el celular, «Elegir celda» (44 px). La cuadrícula (`role="grid"`, «Filas de la fórmula de
   <origen>»), con las filas en el orden en que se calculan: «#» (el número, el mismo al buscar; arrastrarlo mueve la fila), «A · concepto»,
   «B · %», «C · valor» (lo que guarda la fórmula: el valor fijo, el cálculo en A1 como «=C5+C7» o, en lo que no se escribe, de dónde sale en
   corto) y «Ejemplo» (glosario: «Ejemplo (columna)»: lo que da la fila con la unidad de ejemplo; nada en un valor fijo, porque su número ya
@@ -1622,7 +1628,14 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
 - **Escribir, como en Excel:** una celda activa que mueven las flechas, Tab y Shift+Tab, Enter y Shift+Enter, Inicio y Fin, Ctrl+Inicio y
   Ctrl+Fin y RePág y AvPág. F2, doble clic o una tecla escriben en ella (el mismo texto se ve en la barra, que también se edita); Enter o Tab
   aplican y pasan a la de abajo o a la de la derecha, `Ctrl/Cmd+Enter` aplica desde la barra y Esc descarta. Con «=», un clic o un toque en
-  otra celda mientras el cursor espera un operando inserta su referencia (Shift+clic, un rango): cada referencia toma un color, con la leyenda
+  otra celda mientras el cursor espera un operando inserta su referencia (Shift+clic, un rango). Una operación rápida inserta su forma con
+  lugares por llenar (`=+`, `=PORCENTAJE_DE(; %)`, `=SI(; ; )`) y el cursor en el primero; sin «=», envuelve lo escrito. Tab (sin sugerencias
+  abiertas) o «Siguiente» llevan al próximo lugar y, sin ninguno, Tab aplica como siempre; tras tocar una celda en «Sumar», el cursor salta el
+  «+» (tocar C5 y C7 deja `=C5+C7`); Enter aplica siempre (un lugar vacío da «Falta un valor aquí: escribe un número o toca una celda.»). En
+  el celular, «Elegir celda» cierra el teclado y el renglón dice «Toca la celda que quieres usar.» con «Cancelar»: tocar una celda B o C inserta
+  su referencia y el foco vuelve al texto con el cursor en su lugar; otra columna, «Esa celda no entra en una fórmula: toca una de las columnas
+  B o C.»; nunca aplica. Apagado si el cursor no espera una celda: «Escribe un signo (+ - * / ;) antes de elegir otra celda.». Cada
+  referencia toma un color, con la leyenda
   («C5 Remate · C7 Fees») bajo la barra y el borde del mismo color en su celda. Las sugerencias (funciones con su firma y un ejemplo, conceptos
   de arriba, bandas y, en BUSCARV, tablas y columnas) se eligen con ↑/↓ y Enter o Tab. Un error queda bajo la barra (`role="alert"`) con su
   tramo ondulado y la edición abierta (`aria-invalid`): «C12 está más abajo: una fórmula sólo usa filas de arriba.» con «Mover esta fila debajo
@@ -1659,8 +1672,8 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   («Este dato del vehículo no es un número: no lleva decimales.»), sin «Aplicar»; un rechazo de la fórmula queda en la línea del motivo con lo elegido
   y el foco en el radio. La hoja, la tarjeta y las demás superficies muestran la celda así (`docs/COTIZADOR.md` › «Los nodos»); el % que la B absorbe
   queda en «Automático».
-- **«¿Cómo se escribe?»** (`?panel=como-se-escribe`, sólo lectura): las referencias (C5, B9, C5:C9), las diez funciones con su firma y un
-  ejemplo, y las teclas de la planilla.
+- **«¿Cómo se escribe?»** (`?panel=como-se-escribe`, sólo lectura; el libro de la barra de fórmula): las referencias (C5, B9, C5:C9), las
+  diez funciones con su firma y un ejemplo, y las teclas de la planilla.
 - **Guardar el borrador:** espera con texto sin aplicar («Aplica o descarta lo que escribes en la planilla.»), si la fórmula no valida («Corrige
   lo marcado para guardar.») o sin cambios («No hay cambios por guardar.»; un cambio del ⚙ cuenta). Sin confirmación. Sobre la
   publicada crea el borrador con su diseño; sobre el borrador lo pisa con su hora, sin releer. Conflicto: el texto de la base con
