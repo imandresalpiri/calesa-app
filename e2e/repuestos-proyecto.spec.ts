@@ -11,13 +11,7 @@ import {
   PREFIJO_ROL_E2E,
 } from './soporte/base'
 import { fotos } from './soporte/fotos'
-import {
-  abrirItem,
-  accionDelItem,
-  agregarItems,
-  filaDelItem,
-  tarjetaDe,
-} from './soporte/repuestos-tarjetas'
+import { abrirItem, accionDelItem, agregarItems, tarjetaDe } from './soporte/repuestos-tarjetas'
 import { sql } from './soporte/sql'
 
 // `/repuestos/[id]` (8.09-2): la dueña crea un proyecto externo, cae en su detalle, agrega dos ítems sólo con el teclado, pone un precio, recarga y siguen; cierra el proyecto (la hoja queda de lectura) y
@@ -101,22 +95,26 @@ test('la dueña crea un proyecto, carga dos ítems con el teclado en «Agregar �
   await expect(tarjetaDe(page, FARO)).toBeVisible()
   await expect(tarjetaDe(page, PARACHOQUES)).toBeVisible()
 
-  // Un precio con el teclado: en la celda del precio de la fila del ítem se tipea y Enter confirma; el ítem queda con la moneda de la empresa.
+  // Un precio con el teclado: «Cantidades y precios» se edita en su modal; en la celda del precio se tipea y Enter confirma; el ítem queda con la moneda de la empresa.
   const drawer = await abrirItem(page, FARO)
-  const precio = filaDelItem(drawer).getByRole('group', { name: 'Precio al cliente' })
+  await drawer.getByRole('button', { name: 'Editar Cantidades y precios' }).click()
+  const modal = page.getByRole('dialog', { name: 'Cantidades y precios' })
+  const precio = modal.getByRole('group', { name: 'Precio al cliente' })
   await precio.locator('[data-parada="0"]').focus()
   await page.keyboard.type('1250')
   await page.keyboard.press('Enter')
   await expect(precio).toContainText(/1\.?250/)
-  await expect(filaDelItem(drawer).getByLabel(`Moneda del ítem ${FARO}`)).not.toHaveValue('')
+  await expect(modal.getByLabel(`Moneda del ítem ${FARO}`)).not.toHaveValue('')
+  await modal.getByRole('button', { name: 'Listo' }).click()
+  await expect(modal).toBeHidden()
 
   // Recarga: los dos ítems y el precio siguen (el drawer sigue abierto: `?item=`).
   await page.reload()
   await expect(tarjetaDe(page, PARACHOQUES)).toBeVisible()
   await expect(
-    filaDelItem(page.getByRole('dialog', { name: FARO, exact: true })).getByRole('group', {
-      name: 'Precio al cliente',
-    }),
+    page
+      .getByRole('dialog', { name: FARO, exact: true })
+      .getByRole('region', { name: 'Cantidades y precios' }),
   ).toContainText(/1\.?250/)
 })
 
@@ -132,13 +130,13 @@ test('cerrar el proyecto deja la hoja de lectura, reabrir la devuelve y un ítem
   await expect(page.getByRole('button', { name: 'Agregar ítem', exact: true })).toHaveCount(0)
   await expect(tarjetaDe(page, FARO)).toBeVisible()
   const cerrada = await abrirItem(page, FARO)
-  await expect(cerrada.getByLabel(`Descripción del ítem ${FARO}`)).toHaveCount(0)
+  await expect(cerrada.getByRole('button', { name: /^Editar / })).toHaveCount(0)
   await page.keyboard.press('Escape')
   await expect(cerrada).toBeHidden()
 
   await page.getByRole('button', { name: 'Reabrir proyecto' }).click()
   const abierta = await abrirItem(page, FARO)
-  await expect(abierta.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
+  await expect(abierta.getByRole('button', { name: 'Editar Qué es' })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(abierta).toBeHidden()
 
@@ -159,7 +157,7 @@ test('quien sólo ve repuestos ve la hoja sin celdas editables, sin fila nueva y
   await expect(page.getByRole('button', { name: 'Agregar ítem', exact: true })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Cerrar proyecto' })).toHaveCount(0)
   const drawer = await abrirItem(page, FARO)
-  await expect(drawer.getByLabel(`Descripción del ítem ${FARO}`)).toHaveCount(0)
+  await expect(drawer.getByRole('button', { name: /^Editar / })).toHaveCount(0)
   await expect(drawer.locator('[data-xcell]')).toHaveCount(0)
   await page.keyboard.press('Escape')
   await expect(drawer).toBeHidden()
@@ -174,7 +172,9 @@ test('si otra persona cambia el ítem, guardar otra celda sale como conflicto y 
   await entrar(page, duena, { fresco: true })
   await page.goto(`/repuestos/${proyecto}`)
   const drawer = await abrirItem(page, FARO)
-  const descripcion = drawer.getByLabel(`Descripción del ítem ${FARO}`)
+  await drawer.getByRole('button', { name: 'Editar Qué es' }).click()
+  const modal = page.getByRole('dialog', { name: 'Qué es' })
+  const descripcion = modal.getByLabel(`Descripción del ítem ${FARO}`)
   await expect(descripcion).toBeVisible()
   sql(
     `update repuestos_items set precio_cliente = 99 where proyecto_id = '${proyecto}' and descripcion = '${FARO}' and eliminado_en is null`,
@@ -182,11 +182,13 @@ test('si otra persona cambia el ítem, guardar otra celda sale como conflicto y 
   await descripcion.fill(`${FARO} derecho`)
   await descripcion.press('Enter')
   await expect(
-    drawer.getByText('Otra persona cambió este ítem. Recarga para ver lo nuevo.'),
+    modal.getByText('Otra persona cambió este ítem. Recarga para ver lo nuevo.'),
   ).toBeVisible()
-  await drawer.getByRole('button', { name: 'Recargar', exact: true }).click()
-  await expect(drawer.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
-  await expect(drawer.getByRole('group', { name: 'Precio al cliente' })).toContainText(/99/)
+  await modal.getByRole('button', { name: 'Recargar', exact: true }).click()
+  await expect(modal.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
+  await modal.getByRole('button', { name: 'Listo' }).click()
+  await expect(modal).toBeHidden()
+  await expect(drawer.getByRole('region', { name: 'Cantidades y precios' })).toContainText(/99/)
 })
 
 test('las imágenes de un ítem: sube dos, siguen tras recargar, quita una con «Deshacer» y quita otra que queda en la cola', async ({

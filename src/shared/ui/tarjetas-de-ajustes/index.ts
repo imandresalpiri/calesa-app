@@ -2,6 +2,7 @@
 export { LimiteDeTarjeta } from './limite-de-tarjeta'
 export { ListaCorta, resumirLista, type FilaDeListaCorta } from './lista-corta'
 export { MuestraDeColor } from './muestra-de-color'
+export { ALTO_DEL_RESUMEN, ResumenDeLaTarjeta } from './resumen-de-la-tarjeta'
 export { TarjetaDeAjustes } from './tarjeta-de-ajustes'
 export { TarjetaEditable } from './tarjeta-editable'
 export { TarjetaTocable } from './tarjeta-tocable'

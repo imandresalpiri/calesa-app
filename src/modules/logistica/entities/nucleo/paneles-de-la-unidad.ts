@@ -13,6 +13,8 @@ export const CLAVE_DE_PAGO = 'pago'
 export const PAGO_NUEVO = 'nuevo'
 
 /** Cada grupo de un tipo en «Documentos» lleva el id del tipo: «Revisar» lo trae a la vista. */
+/** Cada hueco dibuja su bloque con este atributo: el atajo lo busca para saber si existe y a dónde ir. Vive en `entities` porque también lo usa un Server Component (un valor de un archivo `'use client'` no llega ahí como texto). */
+export const ATRIBUTO_DEL_BLOQUE = 'data-bloque-del-hueco'
 export const ATRIBUTO_DE_TIPO_DE_DOCUMENTO = 'data-tipo-de-documento-id'
 
 /** El campo que cumple una clave de dato de un requisito (`transporte.contenedor`…): «Completar» le lleva el foco. */

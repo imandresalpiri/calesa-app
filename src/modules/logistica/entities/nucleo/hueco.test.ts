@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Permisos } from '@/shared/lib/permisos'
 
-import { enElOrdenDelItem, huecosVisibles, ORDEN_DE_HUECOS, ORDEN_DEL_ITEM } from './hueco'
+import { huecosVisibles, ORDEN_DE_HUECOS } from './hueco'
 
 type H = Parameters<typeof huecosVisibles>[0][number]
 const hueco = (clave: string, permisos: H['permisos'] = [], regla: string | null = null) =>
@@ -135,22 +135,5 @@ describe('huecosVisibles de un ítem de repuesto (8.13-2)', () => {
       'que-falta',
       'notas',
     ])
-  })
-})
-
-describe('enElOrdenDelItem', () => {
-  it('«Qué falta» primero, el historial antes que las notas y lo desconocido al final', () => {
-    const llegan = ['que-falta', 'documentos', 'notas', 'historial', 'repuestos', 'transporte'].map(
-      (c) => hueco(c),
-    )
-    expect(claves(enElOrdenDelItem(llegan))).toEqual([
-      'que-falta',
-      'documentos',
-      'historial',
-      'notas',
-      'transporte',
-      'repuestos',
-    ])
-    expect(ORDEN_DEL_ITEM[0]).toBe('que-falta')
   })
 })

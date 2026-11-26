@@ -578,9 +578,9 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 - El vehículo de la cabecera de `/repuestos/[id]`: el vehículo por su PK (empieza en la página, en paralelo con la hoja) y, dentro de su `<Suspense>` y sólo
   con vehículo, `leerFasesDeOrigen` (≤ ~30 fases, `cache()` por pedido) y `getOrigenes(true)` (decenas, `cache()`); la hoja no espera ninguna. Su miniatura es
   la de 480 px (`ruta_miniatura`, `unoptimized`, `loading="lazy"`), nunca el original; los tres bloques del vehículo son de servidor.
-- El panel del ítem (`?item=`) monta sus secciones a la vista al abrirse: «Qué falta», imágenes (`limit 9`), documentos (50), historial y notas (20) y, con
-  `repuestos.costos.ver`, las compras del ítem (`TAMANO_DE_VER_MAS` + 1 por `repuestos_compras_item_id_idx`): siete lecturas acotadas al abrir.
-  En `/repuestos` (la Cadena) el panel va con `diferido()`.
+- El panel del ítem (`?item=`) lee al abrirse sólo lo que se ve: «Qué falta», las imágenes (`limit 9`, una sola lectura que comparten la portada y la tarjeta «Imágenes») y, con
+  `repuestos.costos.ver`, las compras del ítem (`TAMANO_DE_VER_MAS` + 1 por `repuestos_compras_item_id_idx`, una sola lectura para la tarjeta «Compras» y «Proveedor»). Documentos, historial y notas
+  muestran una línea fija y leen (50 y 20) al abrir su drawer. En la Cadena, sin la hoja, se suman la fila del ítem, los catálogos y las monedas (tres lecturas por id o de configuración). En `/repuestos` (la Cadena) el panel va con `diferido()`.
 - Imágenes de un ítem: `limit 9` por `repuestos_items_imagenes_item_id_idx`, sólo al abrir el panel; el trigger cuenta con `limit 8` bajo
   un candado por ítem. **Excepción a «nunca el original»:** sin miniatura y con `unoptimized`, cada imagen baja el WebP de ≤ 1600 px (≤ 8
   por panel abierto).

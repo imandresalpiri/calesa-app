@@ -19,6 +19,10 @@ vista y un modal para editar. Sólo dibuja: no lee la base ni guarda nada.
     `motivo`) y tocar la tarjeta la abre. Con el teclado la tarjeta es un botón con nombre (`<accion>`) y el «⋯» va aparte (`Más acciones de <título>`). Con `motivo` la tarjeta no abre nada.
     Lo dibuja con `<ToqueDeLaTarjeta etiqueta abrir datosDelBoton?>` (`'use client'`): un botón que cubre la tarjeta (`absolute inset-0`) mientras las acciones van `relative` por encima, así ningún
     interactivo queda dentro de otro; la fila de una lista que se abre al tocarla lo usa igual (`FilaDeColor`). La usan «Para todos los orígenes», Colores, Vigencia, Monedas (base, activas, «Al compartir»), Comprobantes y las dos integraciones (éstas con `<TarjetaDeAjustes toque>` y su «⋯» propio).
+  - `densidad="compacta"` (en `<TarjetaDeAjustes>` y `<TarjetaTocable>`): menos relleno y un alto mínimo fijo, para tarjetas que van en columnas con otras (el panel del ítem de repuestos). La tarjeta no cambia de alto al
+    llegar su contenido.
+  - `<ResumenDeLaTarjeta titulo estado alReintentar>`: `'use client'`; lo que dice una tarjeta que lee por su cuenta, en un alto fijo: `estado` `'leyendo'` (dos renglones de esqueleto), `'fallo'` («No pudimos mostrar
+    «título».» con «Reintentar») o `'leido'` (sus `children`). Sin saltos de interfaz: los tres miden lo mismo.
   - `<LimiteDeTarjeta titulo>`: `'use client'`; el límite de error de una tarjeta que lee por su cuenta: si la lectura falla, esa tarjeta dice «No pudimos cargar «título»» con «Reintentar» (`router.refresh`) y las demás
     cosas de la página siguen.
 - Aparte, en `src/shared/ui/`: `use-envio-con-version.ts` (`useEnvioConVersion()`, el guardado de un modal con versión) y

@@ -272,25 +272,19 @@ test('las pestañas no se mueven al cambiar de una a otra y la hoja vuelve como 
   await expect(hoja).toBeVisible()
 })
 
-test('el panel del ítem va sin acordeones, con «Qué falta» primero', async ({ page }) => {
+test('el panel del ítem va sin acordeones, con «Qué falta» primero y sus tarjetas', async ({
+  page,
+}) => {
   await entrar(page, duena, { fresco: true })
   await page.goto(`/repuestos/${proyecto}?item=${ids[A] ?? ''}`)
   const panel = page.getByRole('dialog', { name: A, exact: true })
-  await expect(panel.getByRole('heading', { name: A })).toBeVisible()
+  await expect(panel.getByRole('region', { name: 'Estado' })).toBeVisible()
   await expect(panel.locator('details')).toHaveCount(0)
   const orden = await panel
     .locator('[data-bloque-del-hueco]')
     .evaluateAll((secciones) => secciones.map((s) => s.getAttribute('data-bloque-del-hueco')))
-  expect(orden.slice(0, 7)).toEqual([
-    'que-falta',
-    'imagenes',
-    'stock',
-    'compras',
-    'documentos',
-    'historial',
-    'notas',
-  ])
-  await expect(panel.getByText('Este ítem no tiene compras registradas.')).toBeVisible()
+  expect(orden).toEqual(['que-falta', 'documentos', 'historial', 'notas'])
+  await expect(panel.getByRole('region', { name: 'Compras' })).toBeVisible()
   await expect(panel.getByText('Nada en stock.')).toBeVisible()
 })
 
@@ -307,6 +301,6 @@ test('sin `repuestos.costos.ver` no aparece nada de costos', async ({ page }) =>
   await expect(paso(page, 'pago')).not.toContainText('Sin registrar')
   await page.goto(`/repuestos/${proyecto}?item=${ids[A] ?? ''}`)
   const panel = page.getByRole('dialog', { name: A, exact: true })
-  await expect(panel.locator('[data-bloque-del-hueco="stock"]')).toBeVisible()
-  await expect(panel.locator('[data-bloque-del-hueco="compras"]')).toHaveCount(0)
+  await expect(panel.getByRole('region', { name: 'Stock' })).toBeVisible()
+  await expect(panel.getByRole('region', { name: 'Compras' })).toHaveCount(0)
 })

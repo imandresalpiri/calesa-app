@@ -4,6 +4,7 @@ export { leerProyecto } from '../../infra/proyectos/leer'
 export { PROYECTO_YA_NO_ESTA, type ProyectoDetallado } from '../../entities/proyectos/detalle'
 export {
   clienteDeLaCabecera,
+  textoDelCliente,
   type ClienteDeLaCabecera,
   type LeadDeLaCabecera,
 } from '../../entities/proyectos/cliente-de-la-cabecera'

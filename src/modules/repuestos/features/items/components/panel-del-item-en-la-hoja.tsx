@@ -8,15 +8,15 @@ import { SimbolosDeXCell, XCELL_COMPACTA } from '@/shared/ui/xcell'
 import type { FilaDeItem } from '../../../entities/nucleo/item'
 import { AvisoDeCerrado, AvisoDeConflictoDeLaHoja } from './avisos-de-la-hoja'
 import type { ContextoDeLaHoja } from './contexto-de-la-hoja'
-import { FilaDelItem, TablaDeLaFila } from './fila-del-item'
+import { ContextoDelItemAbierto, type ItemAbiertoEnLaHoja } from './contexto-del-item-abierto'
+import type { HuecoDeLaHoja } from './hueco-de-la-hoja'
 
 type Props = {
   abierto: boolean
-  alCerrar: () => void
-  // El ítem de `?item=` entre las filas vivas de la hoja; nulo si no está (otro proyecto por URL, o más allá del tope): el panel muestra sólo las secciones.
+  // El hueco de la hoja: su `item` (cerrar y las secciones que dibujó el servidor) y `pasoDeFila` (el botón del siguiente de ese ítem, que pone `src/app`).
+  hueco: HuecoDeLaHoja
+  // El ítem de `?item=` entre las filas vivas de la hoja; nulo si no está (otro proyecto por URL, o más allá del tope): el panel muestra sólo lo que lee el servidor.
   fila: FilaDeItem | null
-  // Las secciones que dibujó el servidor y de qué ítem son; el esqueleto mientras no sean las de este.
-  secciones: { id: string; contenido: ReactNode } | null
   idAbierto: string | null
   contexto: ContextoDeLaHoja
   cerrado: boolean
@@ -25,14 +25,25 @@ type Props = {
   focoAlCerrar: () => HTMLElement | true
 }
 
-// El panel del ítem en `/repuestos/[id]` (`?item=<id>`): un drawer de abajo con la fila del ítem como Excel, editable celda a celda, fija arriba y, debajo, sus secciones a la vista, que se
-// desplazan. La fila usa el estado vivo de la hoja (`guardar`, errores, conflicto) y las secciones las lee el servidor (el hueco de la hoja). Alto: 60 % de la ventana en escritorio, con asa
-// para agrandarlo; pantalla completa en el celular.
+// Lo que dibujó el servidor, si es el del ítem abierto; mientras llega otro, el esqueleto.
+function contenidoDelServidor(
+  secciones: { id: string; contenido: ReactNode } | null,
+  id: string | null,
+): ReactNode {
+  return secciones !== null && secciones.id === id ? (
+    secciones.contenido
+  ) : (
+    <EsqueletoListado filas={4} columnas={2} />
+  )
+}
+
+// El panel del ítem en `/repuestos/[id]` (`?item=<id>`): un drawer de abajo con el ítem en dos columnas (izquierda lo del ítem, derecha sus tarjetas), que dibuja el servidor. Lo vivo de la hoja
+// (la fila, el guardado, el conflicto, el botón del siguiente) llega a la columna izquierda por contexto: lo editado se ve sin releer. El título es qué es el ítem («Tipo · Condición» o su
+// descripción). Alto: 60 % de la ventana en escritorio, con asa para agrandarlo; pantalla completa en el celular.
 export function PanelDelItemEnLaHoja({
   abierto,
-  alCerrar,
+  hueco,
   fila,
-  secciones,
   idAbierto,
   contexto,
   cerrado,
@@ -42,44 +53,41 @@ export function PanelDelItemEnLaHoja({
 }: Props) {
   const ultimaFila = useUltimo(fila)
   const ultimoId = useUltimo(idAbierto)
-  const ultimasSecciones = useUltimo(secciones)
+  const ultimasSecciones = useUltimo(hueco.item.secciones)
   const vista = abierto ? fila : ultimaFila
-  const contenido =
-    ultimasSecciones !== null && ultimasSecciones.id === ultimoId ? (
-      ultimasSecciones.contenido
-    ) : (
-      <EsqueletoListado filas={4} columnas={2} />
-    )
+  const contenido = contenidoDelServidor(ultimasSecciones, ultimoId)
+  const delItem: ItemAbiertoEnLaHoja = {
+    fila: vista,
+    contexto,
+    cerrado,
+    conflicto,
+    alRecargar,
+    paso: vista === null ? null : (hueco.pasoDeFila?.(vista) ?? null),
+  }
   return (
     <Drawer
       abierto={abierto}
-      alCerrar={alCerrar}
+      alCerrar={hueco.item.cerrar}
       titulo={vista?.descripcion ?? 'Repuesto'}
-      descripcion={
-        vista === null
-          ? 'El ítem y lo que falta o se hizo en su recorrido.'
-          : (vista.fase?.nombre ?? 'Sin fase')
-      }
       lado="bottom"
       alto="ajustable"
       desplazamiento="propio"
       focoAlCerrar={focoAlCerrar}
     >
-      <div className={`flex h-full min-h-0 flex-col gap-3 ${XCELL_COMPACTA}`}>
-        <SimbolosDeXCell />
-        <div className="grid shrink-0 gap-2 empty:hidden">
-          {cerrado ? <AvisoDeCerrado /> : null}
-          {conflicto ? (
-            <AvisoDeConflictoDeLaHoja mensaje={conflicto} alRecargar={alRecargar} />
+      <ContextoDelItemAbierto value={delItem}>
+        <div className={`flex h-full min-h-0 flex-col gap-3 overflow-y-auto ${XCELL_COMPACTA}`}>
+          <SimbolosDeXCell />
+          {cerrado || conflicto ? (
+            <div className="grid shrink-0 gap-2">
+              {cerrado ? <AvisoDeCerrado /> : null}
+              {conflicto ? (
+                <AvisoDeConflictoDeLaHoja mensaje={conflicto} alRecargar={alRecargar} />
+              ) : null}
+            </div>
           ) : null}
-          {vista === null ? null : (
-            <TablaDeLaFila>
-              <FilaDelItem fila={vista} contexto={contexto} />
-            </TablaDeLaFila>
-          )}
+          {contenido}
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">{contenido}</div>
-      </div>
+      </ContextoDelItemAbierto>
     </Drawer>
   )
 }
