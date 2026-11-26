@@ -459,3 +459,30 @@ begin
   end if;
 end $$;
 rollback;
+
+-- @test tarjeta K10: cada nodo trae los decimales de su celda (`decimales`) y los del `pct` de su porcentaje (`decimales_del_pct`) sólo si la versión los tiene; sin ellos, ninguna de las dos claves
+begin;
+do $$
+declare
+  duena constant uuid := '00000000-0000-0000-0000-000000000001'; o uuid := (select id from public.origenes where clave = 'subasta_usa'); f uuid; r jsonb;
+begin
+  select id into f from public.formulas where origen_id = o and version = 1;
+  r := pg_temp.ct_tarjeta(duena, f);
+  if r ->> 'estado' is distinct from 'lista' or exists (select 1 from jsonb_array_elements(r -> 'nodos') x where x ? 'decimales' or x ? 'decimales_del_pct') then
+    raise exception 'sin decimales en la versión, la tarjeta los trae: %', r -> 'nodos';
+  end if;
+  update public.formulas
+     set definicion = jsonb_set(definicion, '{nodos}', (select jsonb_agg(case n ->> 'id' when 'transferencia' then n || '{"decimales": 0}' when 'transferencia_pct' then n || '{"decimales": 1}'
+                                                                                         when 'total' then n || '{"decimales": 2}' else n end order by i)
+                                                          from jsonb_array_elements(definicion -> 'nodos') with ordinality t (n, i)))
+   where id = f;
+  r := pg_temp.ct_tarjeta(duena, f);
+  if r ->> 'estado' is distinct from 'lista' then raise exception 'con decimales no está lista: %', r; end if;
+  if (select jsonb_object_agg(x ->> 'id', jsonb_build_object('d', x -> 'decimales', 'p', x -> 'decimales_del_pct'))
+        from jsonb_array_elements(r -> 'nodos') x where x ? 'decimales' or x ? 'decimales_del_pct')
+     is distinct from '{"transferencia": {"d": 0, "p": 1}, "transferencia_pct": {"d": 1, "p": null}, "total": {"d": 2, "p": null}}'::jsonb
+     or exists (select 1 from jsonb_array_elements(r -> 'nodos') x where x ->> 'id' in ('transferencia_pct', 'total') and x ? 'decimales_del_pct') then
+    raise exception 'los decimales de los nodos: %', r -> 'nodos';
+  end if;
+end $$;
+rollback;

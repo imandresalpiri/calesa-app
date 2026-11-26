@@ -122,6 +122,27 @@ begin
   end if;
 end $$;
 
+-- @test motor: los decimales de una celda no cambian el cálculo: los 100 casos del juego, con decimales de 0 a 4 en cada nodo, dan el mismo resultado bit a bit
+-- Los decimales sólo dicen cómo se muestra la celda (glosario: «Decimales (de una celda)»): `valores`, `totales` y los faltantes son los de la fórmula sin ellos.
+do $$
+declare v_formulas jsonb; v_malos text[]; v_con int;
+begin
+  select jsonb_object_agg(f.k, case when jsonb_typeof(f.v -> 'definicion' -> 'nodos') = 'array' then
+           jsonb_set(f.v, '{definicion,nodos}', (select coalesce(jsonb_agg(case when jsonb_typeof(n) = 'object' then n || jsonb_build_object('decimales', (i - 1) % 5) else n end
+                                                                          order by i), '[]'::jsonb)
+                                                   from jsonb_array_elements(f.v -> 'definicion' -> 'nodos') with ordinality t (n, i)))
+         else f.v end)
+    into v_formulas from jsonb_each((select doc -> 'formulas' from _corpus_del_motor)) f (k, v);
+  select count(*) into v_con from jsonb_each(v_formulas) f, jsonb_array_elements(f.value -> 'definicion' -> 'nodos') n where n.value ? 'decimales';
+  if v_con < 100 then raise exception 'sólo % nodos llevan decimales', v_con; end if;
+  select array_agg(format('%s: esperado %s, visto %s', p.nombre, p.esperado, p.visto)) into v_malos
+    from pg_temp.paridad_motor((select doc -> 'juego' from _corpus_del_motor), v_formulas) p
+   where not p.ok;
+  if v_malos is not null then
+    raise exception 'con decimales, % casos no dan lo mismo:%', cardinality(v_malos), E'\n  ' || array_to_string(v_malos[1:40], E'\n  ');
+  end if;
+end $$;
+
 -- @test motor: los ayudantes aritméticos dan el mismo doble que JS, con los signos de ±∞ y de ±0 (suma, resta, producto y cociente)
 -- Postgres lanza 22003 donde IEEE da ±∞ o ±0; los ayudantes lo atrapan en el borde. Se compara el texto del float8 (el más corto que
 -- vuelve al mismo doble): igualdad de bits, también de NaN, de los infinitos y del cero negativo.

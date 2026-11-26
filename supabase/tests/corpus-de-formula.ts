@@ -8,6 +8,7 @@
 import { validarFormula } from '@/modules/cotizaciones/entities/validar'
 import { MUTADORES_DE_FORMA as MUTADORES_DE_FORMA_BASICOS } from './mutadores-de-forma'
 import { MUTADORES_DE_FORMA_DE_CONDICIONES } from './mutadores-de-forma-condiciones'
+import { MUTADORES_DE_FORMA_DE_DECIMALES } from './mutadores-de-forma-decimales'
 import {
   MUTADORES_BASICOS,
   clonar,
@@ -37,6 +38,7 @@ export const MUTADORES_CRUZADOS: readonly Mutador[] = [
 export const MUTADORES_DE_FORMA: readonly Mutador[] = [
   ...MUTADORES_DE_FORMA_BASICOS,
   ...MUTADORES_DE_FORMA_DE_CONDICIONES,
+  ...MUTADORES_DE_FORMA_DE_DECIMALES,
 ]
 
 // Cuántas veces se aplica solo cada mutador cruzado (rotando por las bases donde se aplica, con otra elección al azar cada vez), y

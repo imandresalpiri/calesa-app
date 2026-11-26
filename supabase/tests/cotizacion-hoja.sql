@@ -758,3 +758,51 @@ begin
   if not has_function_privilege('authenticated', 'public.cotizacion_hoja(uuid)', 'execute') then raise exception 'cotizacion_hoja no la ejecuta authenticated'; end if;
 end $$;
 rollback;
+
+-- La respuesta sin la clave `decimales` en ningún nivel (lo demás, tal cual).
+create or replace function pg_temp.ch_sin_decimales(p jsonb) returns jsonb language plpgsql immutable as $f$
+begin
+  return case jsonb_typeof(p)
+    when 'object' then coalesce((select jsonb_object_agg(e.k, pg_temp.ch_sin_decimales(e.v)) from jsonb_each(p) e (k, v) where e.k <> 'decimales'), '{}'::jsonb)
+    when 'array' then coalesce((select jsonb_agg(pg_temp.ch_sin_decimales(a.v) order by a.o) from jsonb_array_elements(p) with ordinality a (v, o)), '[]'::jsonb)
+    else p end;
+end $f$;
+
+-- Pone esos decimales ({nodo: n}) en los nodos de la definición.
+create or replace function pg_temp.ch_con_decimales(p_def jsonb, p_decimales jsonb) returns jsonb language sql as $f$
+  select jsonb_set(p_def, '{nodos}', (select jsonb_agg(case when p_decimales ? (n ->> 'id') then n || jsonb_build_object('decimales', p_decimales -> (n ->> 'id')) else n end order by o)
+                                        from jsonb_array_elements(p_def -> 'nodos') with ordinality t (n, o)))
+$f$;
+
+-- @test cotizacion_hoja: los decimales de una celda viajan en la celda, su secundario, el subtotal, el total y los secundarios de la tarjeta, sólo donde la fórmula los tiene; lo demás no cambia
+begin;
+do $$
+declare
+  duena constant uuid := '00000000-0000-0000-0000-000000000001';
+  o uuid := (select id from public.origenes where clave = 'subasta_usa'); f public.formulas; antes jsonb; r jsonb; it jsonb;
+begin
+  select * into f from public.formulas x where x.origen_id = o and x.estado = 'publicada';
+  antes := pg_temp.ch_corre(duena, format('select public.cotizacion_hoja(%L)', o));
+  -- Sin la clave en la fórmula, ninguna parte de la hoja la trae.
+  if exists (select 1 from jsonb_path_query(antes, 'strict $.**') h where jsonb_typeof(h) = 'object' and h ? 'decimales') then
+    raise exception 'la hoja sembrada trae decimales: %', antes;
+  end if;
+  update public.formulas set definicion = pg_temp.ch_con_decimales(definicion, '{"fees": 0, "fees_pct": 1, "cif": 2, "total": 3, "garantia": 4}') where id = f.id;
+  r := pg_temp.ch_corre(duena, format('select public.cotizacion_hoja(%L)', o));
+  if r ? 'error' then raise exception 'la hoja con decimales: %', r; end if;
+  it := pg_temp.ch_item(r, 'celda', 'fees');
+  if it -> 'decimales' is distinct from '0'::jsonb or it -> 'secundario' -> 'decimales' is distinct from '1'::jsonb then raise exception 'fees y su porcentaje: %', it; end if;
+  if pg_temp.ch_item(r, 'subtotal', 'cif') -> 'decimales' is distinct from '2'::jsonb then raise exception 'el subtotal: %', pg_temp.ch_item(r, 'subtotal', 'cif'); end if;
+  if r -> 'tarjeta_total' is distinct from '{"nodo": "total", "etiqueta": "TOTAL", "formato": "usd", "decimales": 3,
+                                             "secundarios": [{"nodo": "garantia", "etiqueta": "Garantía de participación", "formato": "usd", "decimales": 4}]}'::jsonb then
+    raise exception 'la tarjeta del total: %', r -> 'tarjeta_total';
+  end if;
+  -- Una celda sin la clave no la trae, ni nula.
+  it := pg_temp.ch_item(r, 'celda', 'transferencia');
+  if it ? 'decimales' or it -> 'secundario' ? 'decimales' then raise exception 'transferencia trae decimales: %', it; end if;
+  -- Sacando la clave, las secciones y la tarjeta son las de antes.
+  if pg_temp.ch_sin_decimales(r -> 'secciones') is distinct from antes -> 'secciones' or pg_temp.ch_sin_decimales(r -> 'tarjeta_total') is distinct from antes -> 'tarjeta_total' then
+    raise exception 'los decimales cambiaron otra cosa de la hoja';
+  end if;
+end $$;
+rollback;
