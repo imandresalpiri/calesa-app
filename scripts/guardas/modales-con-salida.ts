@@ -131,6 +131,11 @@ export const MODALES: Record<string, RegistroDeModal> = {
     sinFormulario:
       'sólo lista las monedas de hoy: elegir una cierra el modal y abre su panel (con su propio aviso de cambios); nada tipeado',
   },
+  'src/modules/empresa/features/enlaces-de-ayuda/components/editor-de-enlaces-de-ayuda.tsx': {
+    sinFormulario:
+      'la lista de los enlaces de ayuda de la empresa: «Nuevo enlace», «Editar» y «Quitar» abren su propio modal (con su aviso de cambios); nada tipeado en éste',
+    tambien: ['src/modules/empresa/features/enlaces-de-ayuda/components/catalogo-de-enlaces.tsx'],
+  },
   // --- chat
   'src/modules/chat/features/conversaciones/components/modal-de-directa.tsx': {
     sinFormulario:

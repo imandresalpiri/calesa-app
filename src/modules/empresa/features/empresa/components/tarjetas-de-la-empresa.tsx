@@ -9,7 +9,9 @@ import {
   ValoresDeLaTarjeta,
 } from '@/shared/ui/tarjetas-de-ajustes'
 import type { AjustesEmpresa } from '../../../entities/ajustes-empresa'
+import type { ListaDeEnlacesDeLaEmpresa } from '../../../entities/enlaces-de-ayuda'
 import { MOTIVO_SIN_LOGO, MOTIVO_SIN_PERMISO_AJUSTES } from '../../../entities/motivos'
+import { TarjetaDeEnlacesDeAyuda } from '../../enlaces-de-ayuda/components/tarjeta-de-enlaces-de-ayuda'
 import { useVolverALosNeutros } from '../../iconos/hooks/use-iconos'
 import { usePanelesDeLaEmpresa, type MotivosDeLosPaneles } from '../hooks/use-paneles-de-la-empresa'
 import {
@@ -36,6 +38,8 @@ type Props = {
   zonas: readonly string[]
   // Sin `empresa.ajustes.gestionar` se ve todo, con «Editar» apagado y el motivo.
   puedeEditar: boolean
+  // Los enlaces de ayuda de la empresa (hasta el tope + 1), para su tarjeta.
+  enlacesDeAyuda: ListaDeEnlacesDeLaEmpresa
 }
 
 // La tarjeta de los íconos: el ícono en uso y, si ya se dibujaron, «Volver a los íconos neutros» en el «⋯».
@@ -129,7 +133,7 @@ function ModalesDeLaEmpresa({ props, paneles }: { props: Props; paneles: Paneles
   )
 }
 
-// Las cinco tarjetas de Datos de la empresa, con lo guardado a la vista; cada «Editar» abre su modal (`?panel=<tarjeta>`), que se pide
+// Las seis tarjetas de Datos de la empresa (la de los enlaces de ayuda, con su lista y sus modales), con lo guardado a la vista; cada «Editar» abre su modal (`?panel=<tarjeta>`), que se pide
 // recién entonces. Una escritura por modal, todas con la misma versión de la fila.
 export function TarjetasDeLaEmpresa(props: Props) {
   const { ajustes, puedeEditar } = props
@@ -166,6 +170,7 @@ export function TarjetasDeLaEmpresa(props: Props) {
           <ValoresDeLaTarjeta filas={filasDePoliticas(ajustes)} />
         </TarjetaEditable>
         <TarjetaDeIconos props={props} motivo={motivos.iconos} abrir={paneles.iconos.abrir} />
+        <TarjetaDeEnlacesDeAyuda lista={props.enlacesDeAyuda} motivo={motivo} />
       </TarjetasDeAjustes>
       <ModalesDeLaEmpresa props={props} paneles={paneles} />
     </>

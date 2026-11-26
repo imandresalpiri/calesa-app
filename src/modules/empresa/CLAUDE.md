@@ -5,9 +5,11 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
 ## Entra y sale
 
 - Entra: Configuración › Empresa, cuatro sub-rutas (`src/app/(app)/configuracion/empresa/`): «Datos de la empresa» (`/configuracion/empresa`:
-  `TarjetasDeLaEmpresa`, cinco tarjetas: Identidad, Región, Datos legales y de contacto, Políticas, Íconos de la app), «Monedas y tipos de cambio» (`/monedas`: `MonedasYTiposCambio`, tarjetas: la moneda base, un grupo por par con una `TarjetaDeTipoCambio` cada tipo, las monedas activas y «Al compartir»), «Integraciones» (`/integraciones`:
+  `TarjetasDeLaEmpresa`, seis tarjetas: Identidad, Región, Datos legales y de contacto, Políticas, Íconos de la app, Enlaces de ayuda), «Monedas y tipos de cambio» (`/monedas`: `MonedasYTiposCambio`, tarjetas: la moneda base, un grupo por par con una `TarjetaDeTipoCambio` cada tipo, las monedas activas y «Al compartir»), «Integraciones» (`/integraciones`:
   `TarjetasDeIntegraciones`, una tarjeta por integración con su estado), todas de `pantallas/configuracion-empresa.ts`, y «Comprobantes» (`/comprobantes`, del módulo `cotizaciones`). Configuración › Orígenes › «Para todos los orígenes» › Vigencia (`SeccionDeLaVigencia`, de
   `pantallas/configuracion-cotizacion.ts`: `TarjetaDeVigencia` y su modal `?panel=vigencia`, con `useEnvioConVersion()`; la versión entra por props, nunca en la `key`): la vigencia de las cotizaciones (si el vehículo y el lead son obligatorios se decide por rol y origen, en «Roles y permisos»). Sin poder cambiarla (`puedeCambiarAjustesDeCotizacion`), la tarjeta no abre y el motivo (`MOTIVO_SIN_PERMISO_AJUSTES_DE_COTIZACION`) va en un `<Aviso>` de la página; `?panel=vigencia` sin permiso se limpia con `useRevisionAlAbrir`.
+  Perfil › «Ayuda» (`TarjetaDeMisEnlaces`, de `pantallas/perfil.ts`): los enlaces de ayuda de quien mira. El menú del perfil (`src/app/(app)/_shell/ayuda/`)
+  los lee al abrir «Ayuda» por `shell.client.ts`.
 - Sale (`index.ts`, **sin componentes**):
   - `getAjustes()`: lo mínimo de la empresa (nombre, logos, color, íconos, formato regional, zona, moneda base, registro abierto, primer registro), una
     lectura por request, sin sesión; nunca tumba (si la base no responde, identidad neutra con registro cerrado y error en el log). Lo usan `app/` y
@@ -22,7 +24,8 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
   - Ajustes de cotización: `leerAjustesDeCotizacion()` (con la versión; falla en vez de dar los de fábrica), `puedeCambiarAjustesDeCotizacion()`
     (`cotizaciones.configurar` en todos los orígenes, espejo de la RPC), `type AjustesDeCotizacion`. La action `guardarAjustesDeCotizacion` no sale
     por `client.ts`: la usa `<FormularioDeAjustesDeCotizacion>`, de este módulo.
-- Pantallas: `pantallas/configuracion-empresa.ts` (`<TarjetasDeLaEmpresa>`, `<TarjetasDeIntegraciones>`, `<MonedasYTiposCambio>`) y
+  - Enlaces de ayuda: `leerEnlacesDeAyuda()` (los de la empresa, con los desactivados, tope + 1) y `leerMisEnlacesDeAyuda()` (`enlaces_de_ayuda_de_mi()`).
+- Pantallas: `pantallas/perfil.ts` (`<TarjetaDeMisEnlaces>`), `pantallas/configuracion-empresa.ts` (`<TarjetasDeLaEmpresa>`, `<TarjetasDeIntegraciones>`, `<MonedasYTiposCambio>`) y
   `pantallas/configuracion-cotizacion.ts` (`<FormularioDeAjustesDeCotizacion>`).
 - Compartir los tipos de cambio: `responderCompartirTiposCambio('texto' | 'imagen', ids)` (la usan las rutas `src/app/(app)/tipos-de-cambio/texto` e `imagen`,
   tras `requerirSesion()`: `ids` = guid separados por coma, de 1 a 30, validados por `idsParaCompartir()`; 400, 404 o 500 en `text/plain`, sin caché) y
@@ -30,6 +33,9 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
   `<ModalDeLeyenda>` (`?panel=leyenda`, desde la tarjeta «Al compartir» de `<MonedasYTiposCambio>`).
 - `shell.ts`: `getAjustes()`, `getTiposCambioDeLaBarra()` (los de la barra: hasta 3, sólo `{id, nombre, monedaA, valor}`, de la misma lectura
   por request), `<TiposCambioVigentes>` (el botón de la barra; el popover lee `tipos_cambio_vigentes()` al abrirse).
+- `shell.client.ts` (sólo el modal diferido de «Ayuda» del menú del perfil): `leerMisEnlacesDeAyuda()` (navegador, por
+  `composicion-ayuda.client.ts`: trae supabase-js y no viaja en el marco), `armarMisEnlaces()`, `type EnlaceDeAyudaDelMenu` y las constantes de
+  `?panel=` adonde manda (`PANEL_DE_ENLACES_DE_AYUDA`, `PANEL_NUEVO_ENLACE_PROPIO`).
 - `client.ts`: `guardarTipoCambio` y `EntradaDeGuardarTipoCambio`, para el ⚙ de un tipo de cambio de la hoja (`cotizaciones`); la action exige
   `empresa.tipos_cambio.gestionar` en el servidor.
 - Depende de ningún otro módulo.
@@ -63,6 +69,12 @@ vacía la quita; misma versión que `empresa_guardar_ajustes`). `tipos_cambio.en
 menos de 3 activos marcados (22023, `hint = 'en_la_barra'`), tras el candado consultivo de la barra, tomado antes que la fila.
 `tipos_cambio_vigentes()` (definer, toda persona activa): los activos con su versión y el último cambio del valor (del historial) con el nombre de
 quien lo hizo, nunca el correo.
+`enlaces_de_ayuda` (los de la empresa: título ≤ 80, `https://`, descripción ≤ 140, orden, activo; hasta 30) se escribe sólo por
+`enlace_de_ayuda_crear`, `enlace_de_ayuda_guardar`, `enlace_de_ayuda_mover` y `enlace_de_ayuda_quitar` (`empresa.ajustes.gestionar`; cada una devuelve la
+lista entera; `hint` = el campo o `tope`). `enlaces_de_ayuda_personales` (de cada persona: una fila por enlace de la empresa que ordenó u ocultó, o uno
+propio, hasta 20; la RLS deja leer sólo las propias) se escribe sólo por `enlaces_de_ayuda_guardar_mios(p_actualizado_en_esperado, p_elementos)`, que
+reemplaza la lista entera con la versión de la persona (la más nueva de sus filas; nula si no guardó nada). `enlaces_de_ayuda_de_mi()`: los activos
+de la empresa y las filas propias, en una lectura.
 
 ## No se rompe
 
@@ -109,6 +121,12 @@ valor}`, la misma revalidación): sin el permiso o con el Modo Live no hay lápi
   `outputFileTracingIncludes`); el logo se baja en el servidor (≤ `PESO_MAXIMO_LOGO`, PNG, JPEG, GIF o SVG) y uno que falla deja sólo el nombre. El panel
   (`components/popover-de-la-barra/compartir/`, diferido) pide texto e imagen por separado (una falla no tapa a la otra), guarda el resultado y los botones
   son síncronos con el gesto; lo que el navegador no puede (`src/shared/lib/compartir.ts`, genérico) se apaga con su motivo (`motivos-de-las-acciones.ts`). Sin «Compartir» con el Modo Live.
+
+- **Enlaces de ayuda** (`features/enlaces-de-ayuda/`, `features/mis-enlaces-de-ayuda/`): se guarda lo que la persona oculta y su orden, nunca una
+  lista cerrada de visibles: uno nuevo de la empresa le aparece visible al final, y uno quitado o desactivado desaparece sin error
+  (`armarMisElementos()`). Los propios no los ve nadie más (RLS). El menú los lee al abrir «Ayuda», nunca en el layout. Empresa: `?panel=enlaces-de-ayuda`,
+  `nuevo-enlace-de-ayuda`, `editar-enlace-de-ayuda` y `quitar-enlace-de-ayuda` (`&enlace=`); Perfil: `enlaces-de-ayuda`, `nuevo-enlace-propio` y
+  `editar-enlace-propio` (`entities/paneles-de-enlaces-de-ayuda.ts`). En Perfil «Mostrar», mover y quitar guardan al instante con «Deshacer».
 
 ## Ojo
 

@@ -29,6 +29,9 @@ export { MOTIVO_SIN_PERMISO_AJUSTES_DE_COTIZACION } from './entities/motivos'
 export { leerLeyendaDeTiposCambio, responderCompartirTiposCambio } from './composicion'
 export type { FormatoParaCompartir } from './features/compartir-tipos-cambio/responder'
 
+// Enlaces de ayuda (docs/GLOSARIO.md): los de la empresa para Configuración y los de quien mira para Perfil
+export { leerEnlacesDeAyuda, leerMisEnlacesDeAyuda } from './composicion'
+
 // Integraciones: el interruptor, lo no secreto y si están prendidas
 export { integracionActiva, leerIntegraciones, leerVehiculosQueCambian } from './composicion'
 export type { ClaveIntegracion } from './entities/integraciones'
