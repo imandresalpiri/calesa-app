@@ -1,16 +1,54 @@
 // Las carreras de los catálogos de logística propios o compartidos: dos `puerto_crear` con el mismo nombre normalizado en el mismo origen (el candado de
-// la tabla los pone en fila: uno crea y el otro recibe 23505 con el nombre del que ganó) y dos `naviera_guardar` con la misma versión (el segundo espera
-// la fila y recibe PT409; nada se pisa). La persona propia (correo `carreras-…`, rol `carreras_…`) y el origen (nombre `Carreras…`, con sus propios en
-// cascada) los borra `limpiar()`; la naviera compartida se borra aquí al empezar y al terminar.
+// la tabla los pone en fila: uno crea y el otro recibe 23505 con el nombre del que ganó), dos `naviera_guardar` con la misma versión (el segundo espera
+// la fila y recibe PT409; nada se pisa) y un compartido que se edita mientras el propio que lo tapa se desactiva (el guardar del compartido espera el
+// candado de la tabla y mide el permiso con el propio ya desactivado). Las personas propias (correo `carreras-…`, rol `carreras_…`) y el origen (nombre
+// `Carreras…`, con sus propios en cascada) los borra `limpiar()`; la naviera y el puerto compartidos se borran aquí al empezar y al terminar.
 import { PREFIJO } from './terreno.mjs'
 
 const GESTIONA = '00000000-0000-4000-8000-0000000c0201' // logistica.catalogos.gestionar en todos los orígenes
+const OTRO = '00000000-0000-4000-8000-0000000c0202' // la misma clave en cada origen menos el de las carreras
 const NAVIERA = `${PREFIJO} naviera compartida`
+const PUERTO = `${PREFIJO} puerto tapado`
 
-const borrarCompartida = (db) =>
-  db.query(`delete from public.navieras where origen_id is null and nombre like $1`, [
+async function borrarCompartida(db) {
+  await db.query(`delete from public.navieras where origen_id is null and nombre like $1`, [
     `${NAVIERA}%`,
   ])
+  await db.query(`delete from public.puertos where nombre like $1`, [`${PUERTO}%`])
+}
+
+// Quien gestiona los catálogos en cada origen menos `origen`: un compartido que `origen` tapa no le pide la clave ahí.
+async function personaSinElOrigen(db, origen) {
+  await db.query(`delete from auth.users where id = $1`, [OTRO])
+  await db.query(
+    `insert into auth.users (id, email, raw_app_meta_data) values ($1, 'carreras-catalogos-otro@ejemplo.com', '{"invitado": true}')`,
+    [OTRO],
+  )
+  await db.query(
+    `update public.perfiles set nombre = $2, invitacion_aceptada_en = now() where id = $1`,
+    [OTRO, `${PREFIJO} catálogos sin el origen`],
+  )
+  await db.query(`delete from public.roles where clave = 'carreras_catalogos_otro'`)
+  await db.query(
+    `with r as (insert into public.roles (clave, nombre) values ('carreras_catalogos_otro', $1) returning id),
+          p as (insert into public.roles_permisos (rol_id, permiso_clave, origen_id, alcance)
+                select r.id, 'logistica.catalogos.gestionar', o.id, 'todos' from r, public.origenes o where o.id <> $3)
+     insert into public.usuarios_roles (usuario_id, rol_id, es_principal) select $2, r.id, true from r`,
+    [`${PREFIJO} catálogos sin el origen`, OTRO, origen],
+  )
+}
+
+// Un puerto compartido y el propio de `origen` que lo tapa (misma clave), con sus versiones.
+async function puertoTapado(db, origen) {
+  const insertar = async (origenId) =>
+    (
+      await db.query(
+        `insert into public.puertos (origen_id, nombre, pais) values ($1, $2, 'Chile') returning id, actualizado_en::text as version`,
+        [origenId, PUERTO],
+      )
+    ).rows[0]
+  return { compartido: await insertar(null), propio: await insertar(origen) }
+}
 
 async function terreno(db) {
   await borrarCompartida(db)
@@ -44,7 +82,8 @@ async function terreno(db) {
     `insert into public.navieras (nombre) values ($1) returning id, actualizado_en::text as version`,
     [NAVIERA],
   )
-  return { origen, naviera }
+  await personaSinElOrigen(db, origen)
+  return { origen, naviera, puerto: await puertoTapado(db, origen) }
 }
 
 export async function carrerasDeCatalogosDeLogistica({ orquesta, carrera, espero }) {
@@ -90,6 +129,34 @@ export async function carrerasDeCatalogosDeLogistica({ orquesta, carrera, espero
     espero(
       'la segunda espera la fila, ve la versión nueva y recibe PT409; queda la primera',
       r.a.ok && r.b.codigo === 'PT409' && rows[0]?.nombre === `${NAVIERA} A`,
+      { a: r.a, b: r.b, rows },
+    )
+  }
+
+  console.log('Se edita un compartido mientras se desactiva el propio que lo tapa')
+  {
+    const r = await carrera(orquesta, {
+      a: {
+        persona: GESTIONA,
+        sql: `public.puerto_guardar($1, $2::timestamptz, '{"activo": false}'::jsonb)`,
+        args: [t.puerto.propio.id, t.puerto.propio.version],
+      },
+      b: {
+        persona: OTRO,
+        sql: `public.puerto_guardar($1, $2::timestamptz, '{"codigo": "CRR"}'::jsonb)`,
+        args: [t.puerto.compartido.id, t.puerto.compartido.version],
+      },
+    })
+    const { rows } = await orquesta.query(`select codigo from public.puertos where id = $1`, [
+      t.puerto.compartido.id,
+    ])
+    espero(
+      'el compartido espera el candado, ve que su origen ya no lo tapa y recibe 42501; no cambia',
+      r.a.ok &&
+        r.b.codigo === '42501' &&
+        r.b.mensaje ===
+          `No puedes cambiar «${PUERTO}»: lo usa ${PREFIJO} catálogos, donde no puedes configurar la logística.` &&
+        rows[0]?.codigo === null,
       { a: r.a, b: r.b, rows },
     )
   }

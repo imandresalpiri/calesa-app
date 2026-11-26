@@ -434,6 +434,8 @@ as $$
 declare o public.puertos; t public.puertos; v_choca public.puertos; v_uso integer;
 begin
   perform public.assert_activo();
+  -- El candado de la tabla antes que la fila (como `*_crear`): un propio que deja de tapar no cambia la foto de `_tapan` a medio camino.
+  perform pg_advisory_xact_lock(hashtextextended('catalogos_logistica:puertos', 0));
   select * into o from public.puertos x where x.id = p_id for no key update;                           -- puertos_pkey
   if not found then
     raise exception 'Ese puerto ya no existe.' using errcode = 'PT409';
@@ -533,6 +535,8 @@ as $$
 declare o public.navieras; t public.navieras; v_choca public.navieras; v_uso integer;
 begin
   perform public.assert_activo();
+  -- El candado de la tabla antes que la fila (como `*_crear`): un propio que deja de tapar no cambia la foto de `_tapan` a medio camino.
+  perform pg_advisory_xact_lock(hashtextextended('catalogos_logistica:navieras', 0));
   select * into o from public.navieras x where x.id = p_id for no key update;                          -- navieras_pkey
   if not found then
     raise exception 'Esa naviera ya no existe.' using errcode = 'PT409';
@@ -632,6 +636,8 @@ as $$
 declare o public.categorias_gasto; t public.categorias_gasto; v_choca public.categorias_gasto; v_uso integer;
 begin
   perform public.assert_activo();
+  -- El candado de la tabla antes que la fila (como `*_crear`): un propio que deja de tapar no cambia la foto de `_tapan` a medio camino.
+  perform pg_advisory_xact_lock(hashtextextended('catalogos_logistica:categorias_gasto', 0));
   select * into o from public.categorias_gasto x where x.id = p_id for no key update;                  -- categorias_gasto_pkey
   if not found then
     raise exception 'Esa categoría ya no existe.' using errcode = 'PT409';
@@ -680,6 +686,8 @@ as $$
 declare o public.categorias_gasto; v_uso integer;
 begin
   perform public.assert_activo();
+  -- El candado de la tabla antes que la fila (como `*_crear`): un propio que deja de tapar no cambia la foto de `_tapan` a medio camino.
+  perform pg_advisory_xact_lock(hashtextextended('catalogos_logistica:categorias_gasto', 0));
   select * into o from public.categorias_gasto x where x.id = p_id for update;                         -- categorias_gasto_pkey
   if not found then
     raise exception 'Esa categoría ya no existe.' using errcode = 'PT409';
