@@ -233,6 +233,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** Integraciones con la clave del asistente de IA cargada desborda 74 px a 1440×900: el lugar reservado de «Probar conexión» (`min-h-28`) y la
+  clave en dos renglones dejan la tarjeta en 550 px y las columnas pasan Avisos push abajo de Web pública. Para entrar, la tarjeta tiene que bajar de
+  ≈ 447 px: el resultado de la prueba como fila del `dl`, Proveedor y Modelo en una (`integraciones/components/tarjeta-de-asistente-ia.tsx`).
 - **[—]** «Ayuda» abierta por la URL (`?panel=ayuda`) mientras lee deja el foco en «Elegir mis enlaces» del pie (el cuerpo todavía no tiene nada enfocable): llevarlo al título o a la ✕ (`src/app/(app)/_shell/ayuda/modal-de-ayuda.tsx`).
 - **[—]** El comprobante de «Registrar gasto» es el `<input type="file">` nativo: el navegador escribe «Choose File» y «No file chosen» en su idioma, no
   en el de la app — usar el botón «Elegir archivos» de los documentos de la unidad (`logistica/features/dinero/components/campo-de-comprobante.tsx`).
