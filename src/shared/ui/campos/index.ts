@@ -7,7 +7,7 @@ export { cerrarConAviso } from './cerrar-con-aviso'
 export { Dato, DatosPorGrupo } from './datos-por-grupo'
 export { EditorDeCampos } from './editor-de-campos'
 export { edicionesDeCampos } from './ediciones'
-export { gruposDelEditor } from './grupos-del-editor'
+export { useGruposDelEditor } from './use-grupos-del-editor'
 export { ValorMostrado } from './valor-mostrado'
 export {
   banderaDe,

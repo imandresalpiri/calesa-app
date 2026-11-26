@@ -2,7 +2,7 @@
 
 import { useAction } from 'next-safe-action/hooks'
 import type { CatalogoLeido } from '@/shared/lib/catalogo'
-import { gruposDelEditor, type GruposDelEditor } from '@/shared/ui/campos'
+import { useGruposDelEditor, type GruposDelEditor } from '@/shared/ui/campos'
 import { operacionesDesdeAcciones } from '@/shared/ui/catalogo-en-drawer'
 import { agregarGrupoDelOrigen, crearGrupoDelOrigen } from '../actions/crear-grupo'
 import { guardarGrupoDelOrigen } from '../actions/guardar-grupo'
@@ -28,7 +28,7 @@ export function useGruposDelOrigen(
     id: grupo.id,
     actualizadoEnEsperado: grupo.actualizadoEn,
   })
-  return gruposDelEditor({
+  return useGruposDelEditor({
     ...leidos,
     puedeCrear,
     enviar: (nombre) => crear.executeAsync({ origenId, nombre }),

@@ -2,6 +2,7 @@
 // diálogo de quitar `&quitar=<id>`. El cuerpo viaja diferido.
 export { DrawerDeCatalogo } from './drawer-de-catalogo'
 export { operacionesDesdeAcciones, type AccionesDelCatalogo } from './operaciones-desde-acciones'
+export { useConLosCreados } from './use-con-los-creados'
 export type {
   DestinoAlQuitar,
   OperacionesDelCatalogo,

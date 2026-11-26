@@ -45,12 +45,13 @@ locale)`, el único lector de un número tipeado.
   `_nombre_limpio()` y `_nombre_de_catalogo()`, con test), `ElementoDeCatalogo`, `CatalogoLeido` y `TOPE_DE_CATALOGO`, y `opcionesDelCombo()`
   (qué ofrece el combo para lo escrito: las coincidencias, el que ya existe con otra escritura y «Crear «x»»). `ui/combo-de-catalogo/`:
   `<ComboDeCatalogo>` (un botón con aspecto de campo y su lista en un popover, cmdk tras `diferido()`; `alCrear` devuelve un `Resultado` y lo
-  creado se muestra hasta que la lista de afuera lo trae). Lo usa el grupo del editor de campos (`GruposDelEditor`, `gruposDelEditor()`).
+  creado se muestra hasta que la lista de afuera lo trae). Lo usa el grupo del editor de campos (`GruposDelEditor`, `useGruposDelEditor()`).
   `lib/catalogo/orden.ts` (`despuesDeAlMover()`, `usosPorElemento()`) y `gestion.ts` (`DestinoAlQuitar`, `rechazoDelCatalogo()`: el `hint` de la
   base al dato del formulario: `nombre`, `items`, `destino`). `ui/catalogo-en-drawer/`: `<DrawerDeCatalogo panel catalogo usos operaciones textos>`
   (el botón y su drawer `?panel=<panel>`: el nombre para agregar o renombrar, `<ListaDeCatalogo>` con su «⋯» y «Quitar» en `&quitar=<id>`, que con
-  ítems pide a dónde moverlos; el cuerpo diferido; `motivoSinPermiso` lo deja de sólo lectura) y `operacionesDesdeAcciones()` (cinco actions →
-  `OperacionesDelCatalogo`). En el editor de campos, «Grupos» (`<DrawerDeGrupos>`, si `GruposDelEditor.operaciones` llega).
+  ítems pide a dónde moverlos; el cuerpo diferido; `motivoSinPermiso` lo deja de sólo lectura) `operacionesDesdeAcciones()` (cinco actions →
+  `OperacionesDelCatalogo`) y `useConLosCreados()` (lo creado desde el combo, que no revalida, queda en la lista del combo y del drawer hasta
+  que la lectura lo trae; lo quitado sale). En el editor de campos, «Grupos» (`<DrawerDeGrupos>`, si `GruposDelEditor.operaciones` llega).
 - `lib/ancho.ts` (`anchoDeLaPeticion()`, `CORTE_DEL_TABLERO`/`CORTE_DE_LA_TABLA`/`CORTE_DEL_PANEL`), `ui/ancho-de-pantalla.tsx` (`useAlMenos()`).
 - `lib/atajos.ts` + `ui/atajos/`: `ATAJOS`, `teclasDelAtajo()`, `<ProveedorAtajos>`, `useAtajo()` (responde el último registrado); `<AyudaDeAtajos>`
   registra `?` y abre `<ListaDeAtajos>` por `diferido()`.

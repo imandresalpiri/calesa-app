@@ -2,7 +2,7 @@
 
 import { useAction } from 'next-safe-action/hooks'
 import type { CatalogoLeido } from '@/shared/lib/catalogo'
-import { gruposDelEditor, type GruposDelEditor } from '@/shared/ui/campos'
+import { useGruposDelEditor, type GruposDelEditor } from '@/shared/ui/campos'
 import { operacionesDesdeAcciones } from '@/shared/ui/catalogo-en-drawer'
 import { agregarGrupoDeCampos, crearGrupoDeCampos } from '../actions/crear-grupo'
 import { guardarGrupoDeCampos } from '../actions/guardar-grupo'
@@ -19,7 +19,7 @@ export function useGruposDeCampos(leidos: CatalogoLeido, puedeCrear: boolean): G
   const guardar = useAction(guardarGrupoDeCampos)
   const mover = useAction(moverGrupoDeCampos)
   const quitar = useAction(quitarGrupoDeCampos)
-  return gruposDelEditor({
+  return useGruposDelEditor({
     ...leidos,
     puedeCrear,
     enviar: (nombre) => crear.executeAsync({ nombre }),
