@@ -6,12 +6,13 @@ import { TurnosDelPerfil } from '@/modules/web/pantallas/perfil'
 import { urlPublicaONull } from '@/shared/lib/almacen'
 import { EsqueletoDeUnaTarjeta } from '@/shared/ui/esqueletos'
 import { TarjetasDeAjustes } from '@/shared/ui/tarjetas-de-ajustes'
+import { AyudaSeccion } from './ayuda-seccion'
 import { NotificacionesSeccion } from './notificaciones-seccion'
 
 export const metadata: Metadata = { title: 'Mi perfil' }
 
-// El perfil propio: cualquiera con sesión lo edita, no pide ningún permiso. Cinco tarjetas con lo guardado a la vista (Tú, Preferencias, Turnos de la web,
-// Tu ficha en la web y Notificaciones); lo que se edita se abre en un modal (`?panel=`).
+// El perfil propio: cualquiera con sesión lo edita, no pide ningún permiso. Seis tarjetas con lo guardado a la vista (Tú, Preferencias, Turnos de la web,
+// Tu ficha en la web, Notificaciones y Ayuda); lo que se edita se abre en un modal (`?panel=`).
 export default async function PaginaPerfil() {
   const sesion = await requerirSesion()
   return (
@@ -42,6 +43,9 @@ export default async function PaginaPerfil() {
         </Suspense>
         <Suspense fallback={<EsqueletoDeUnaTarjeta />}>
           <NotificacionesSeccion usuarioId={sesion.usuarioId} permisos={sesion.permisos} />
+        </Suspense>
+        <Suspense fallback={<EsqueletoDeUnaTarjeta />}>
+          <AyudaSeccion />
         </Suspense>
       </TarjetasDeAjustes>
     </div>

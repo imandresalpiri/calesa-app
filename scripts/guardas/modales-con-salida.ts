@@ -136,6 +136,14 @@ export const MODALES: Record<string, RegistroDeModal> = {
       'la lista de los enlaces de ayuda de la empresa: «Nuevo enlace», «Editar» y «Quitar» abren su propio modal (con su aviso de cambios); nada tipeado en éste',
     tambien: ['src/modules/empresa/features/enlaces-de-ayuda/components/catalogo-de-enlaces.tsx'],
   },
+  'src/modules/empresa/features/mis-enlaces-de-ayuda/components/editor-de-mis-enlaces.tsx': {
+    sinFormulario:
+      'la lista de los enlaces de ayuda de una persona: «Mostrar» y mover guardan al instante, y agregar o editar uno propio abren su propio modal (con su aviso de cambios); nada tipeado en éste',
+    tambien: [
+      'src/modules/empresa/features/mis-enlaces-de-ayuda/components/lista-de-mis-enlaces.tsx',
+      'src/modules/empresa/features/mis-enlaces-de-ayuda/components/fila-de-mi-enlace.tsx',
+    ],
+  },
   // --- chat
   'src/modules/chat/features/conversaciones/components/modal-de-directa.tsx': {
     sinFormulario:
