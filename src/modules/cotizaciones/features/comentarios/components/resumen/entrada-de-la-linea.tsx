@@ -6,7 +6,7 @@ import { fechaRelativa, formatearFechaHora } from '@/shared/lib/fechas'
 import { useRegional } from '@/shared/ui/regional'
 import { autorDelComentario } from '../../../../entities/comentarios/comentario'
 import type { EntradaDeLaLinea } from '../../../../entities/comentarios/linea-de-tiempo'
-import type { Formato } from '../../../../entities/nodos'
+import type { DeLosCalculos } from '../../../../entities/cambios-de-la-revision'
 import { ContenidoDeLaRevision } from '../../../revisiones/components/revision'
 import { ContenidoDeAdjunto } from '../adjunto'
 
@@ -75,7 +75,7 @@ export function EntradaDeLaLineaDeTiempo({
 }: {
   entrada: EntradaDeLaLinea
   etiquetas: ReadonlyMap<string, string>
-  calculos?: ReadonlyMap<string, Formato> | undefined
+  calculos?: DeLosCalculos | undefined
 }) {
   if (entrada.tipo === 'comentario') {
     return <Comentario entrada={entrada} />

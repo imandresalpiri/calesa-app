@@ -69,6 +69,8 @@ export const esquemaDefinicionParaPlantilla = z.looseObject({
       op: z.string().nullish(),
       pct: z.string().nullish(),
       opciones: z.array(z.looseObject({ clave: z.string(), titulo: z.string() })).nullish(),
+      // Los «Decimales» de la celda: la tarjeta de trabajo los dibuja como la de una cotización.
+      decimales: z.number().nullish(),
     }),
   ),
   buckets: z.record(z.string(), z.string()).optional(),

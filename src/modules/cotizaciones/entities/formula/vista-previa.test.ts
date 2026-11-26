@@ -200,6 +200,17 @@ describe('cifraDeLaFila', () => {
     expect(cifraDeLaFila(v, nodo('base'))).toEqual({ tipo: 'valor', valor: 900, formato: 'usd' })
   })
 
+  it('con los «Decimales» del nodo, la cifra los lleva; sin ellos, ninguna clave', () => {
+    const v = calcularLaVistaPrevia(f, terreno)
+    expect(cifraDeLaFila(v, { ...nodo('doble'), decimales: 0 })).toEqual({
+      tipo: 'valor',
+      valor: 1800,
+      formato: 'usd',
+      decimales: 0,
+    })
+    expect(cifraDeLaFila(v, nodo('doble'))).not.toHaveProperty('decimales')
+  })
+
   it('un input vale 0', () => {
     expect(cifraDeLaFila(calcularLaVistaPrevia(f, terreno), nodo('valor'))).toEqual({
       tipo: 'valor',

@@ -14,7 +14,8 @@ bucket }]`. `params` = `{ <constante>: número, …, tablas?: { <clave de tabla>
 
 ### Los nodos
 
-Común: `id` (`^[a-z][a-z0-9_]{0,40}$`), `tipo`, `etiqueta`; `formato?` (`usd` por defecto, `pct`, `raw`, `moneda`); `descripcion?`;
+Común: `id` (`^[a-z][a-z0-9_]{0,40}$`), `tipo`, `etiqueta`; `formato?` (`usd` por defecto, `pct`, `raw`, `moneda`); `decimales?` (entero de 0 a 4, los
+«Decimales» de la celda: abajo); `descripcion?`;
 `salida?` (`total`, `base_imponible`, `aparte`); `bucket?` (sólo sin grupos); `grupo?`; `solo_en?` (claves de la variante; no en
 `tipo_cambio` ni `opcion`). Cada objeto es **estricto**: una clave mal escrita es un error.
 
@@ -36,6 +37,18 @@ si_falso?])` = `de[0]` si la prueba es distinta de 0, si no `de[1]` o 0; `max(de
 
 Un nodo nuevo lleva su tipo en el Zod de `nodos.ts`, su caso en `referenciasDe()` (`nodos-referencias.ts`) y en sus espejos de la base (`validar_formula()`,
 `_diseno_auxiliares()` y `_nodos_en_par()`), y el juego de prueba.
+
+**Los decimales de una celda** (glosario: «Decimales (de una celda)», `entities/decimales-de-celda.ts`): `decimales` dice con cuántos decimales se
+muestra el valor del nodo en todos lados (la hoja, sus subtotales, la tarjeta del total y su Bs, «Total guardado» y «Cotización n.º N guardada», lo pisado, la tarjeta de la cotización con su PDF, su
+imagen y su texto con datos, comparar, las revisiones y la columna Ejemplo de la planilla). **Sin la clave, «Automático»**: cada superficie muestra lo de
+siempre (2 en un monto, hasta 2 en un número o un porcentaje de la hoja, 1 en un porcentaje de la tarjeta), y una versión sin el dato se ve como antes.
+Sólo cambia la vista: el motor no la lee, lo guardado sigue a precisión completa y lo que se edita también (`formatearParaEditar()`). En un porcentaje son
+decimales de puntos («14,9 %» con 1). No la lleva un nodo que se ve como texto (`aceptaDecimales()`: una bandera, la variante o una condición; ni, lo
+dice la planilla, un dato del vehículo que no es un número). La base la valida en `_formula_forma_nodo()` con el mismo rango y mensaje que el Zod, justo
+tras `formato` (los dos dan el primer error en el mismo campo), y la manda en la hoja (`_hoja_decimales()`: en cada celda, su secundario, el subtotal y la
+tarjeta del total, sólo si el nodo la tiene) y en `cotizacion_tarjeta()` (`decimales`, y `decimales_del_pct` del % que nombra el nodo). Los totales que
+no son una celda (el listado, «De este vehículo», la cabecera de comparar, la línea del total de una revisión y el resumen de una guardada) siguen con 2,
+y el tipo de cambio de la tarjeta (`tc_valor`), con 4.
 
 ### Grupos, buckets y el total
 
@@ -235,7 +248,10 @@ nunca `greatest` ni `least`, que saltan los NULL); la igualdad es exacta en floa
 (un null de la otra no la alcanza); las dos ramas son nodos y se evalúan igual, así que el faltante de la rama no elegida sigue en
 `faltantes`: un SI no vuelve opcional un input (para eso, `condicion` y `requerido_si`). −0 se guarda como 0; lo no finito, null con `fuera_de_rango`. **`redondear(x, n)` =
 `round(x::float8::numeric, n)::float8`:** 15 cifras significativas y mitad lejos de cero, como el ROUND del Excel (2,675 da 2,68);
-`redondeo.ts` lo hace exacto con BigInt.
+`src/shared/lib/redondeo.ts` lo hace exacto con BigInt. **Al mostrar** con los «Decimales» de una celda, `src/shared/lib/cifra-fija.ts` redondea igual
+(`redondeadaParaMostrar()`: `redondear(x, n)`, y en un porcentaje `redondear(x, n + 2)` sobre la fracción) y recién después formatea con N fijos
+(`formatearConDecimales()`), porque `Intl` sobre el doble da otra cifra en un casi empate (1234,5649999999998 con 2 es «1.234,57»); −0,001 con 2 es
+«0,00», nunca «−0,00».
 
 ### Las tablas, los tramos y `depreciar`
 
@@ -374,6 +390,12 @@ fórmula de trabajo.
   `eliminarFila()`, rechazada con su motivo (`motivoParaNoEliminar()`): la usa otra fila, es el tipo de cambio de una banda, un bucket o el
   total, es la fila del total o la única de su banda, la muestra la hoja (`nodosDelDiseno()`) o la nombra la tarjeta de trabajo
   (`NombradoPorLaTarjeta`). Eliminar una fila y quitar una banda se deshacen una vez, desde su aviso.
+- **Decimales** (`cambiarDecimales()` de `entities/formula/decimales-de-la-fila.ts`): «⋯» › «Decimales…» abre su panel (`?panel=decimales&fila=<id>`) con
+  «Automático» y 0 a 4 y el ejemplo con una cifra fija («Se ve así: USD 1.234,57 → USD 1.235»). Pone o quita `decimales` del nodo de la fila y se aplica
+  sólo si `validarFormula()` sigue valiendo; no toca el cálculo. El renglón no está en una fila que se ve como texto (`aceptaDecimales()`) ni en un dato
+  del vehículo que no es número (`datosQueNoSonNumero()`, con los campos del origen que lee `useCamposDeLaFormula()`), y se apaga mientras la fila
+  espera a guardarse. Cambiar el tipo de celda o reescribir el texto de la fila los conserva si sigue siendo un número (`CON_DESTINO`). El % que la B
+  absorbe no tiene fila: queda en «Automático». La columna Ejemplo usa los decimales de la fila.
 - **Tipo de celda** (`tipoDeCelda()`, `cambiarTipo()`): los ocho del glosario. Cambiarlo conserva id, etiqueta, descripción, salida y banda (si
   la fila sigue sumando) y se aplica sólo si `validarFormula()` sigue valiendo. Una sola variante por fórmula.
 - **Bandas y tipos de cambio** (`bandas.ts`, `buckets.ts`, `total-de-la-formula.ts`): crear una banda (al final de `grupos`, con al menos una
@@ -1027,6 +1049,10 @@ Lo pisado sale de lo escrito, no de la respuesta (`ladoPisado()` de `entities/bi
 que es un cálculo): la celda recibe `handEdited`, `calculatedValue` y `calculatedFormat`, y ↺ dice «Volver al calculado»; una constante escrita
 sigue con «Volver al valor por defecto». Con el monto escrito, el % de un par que `sigueAlMonto` es el de la respuesta, no uno tipeado antes.
 
+Los «Decimales» de cada lado llegan con la hoja: `decimals` (el principal), `secondaryDecimals` (su %) y `calculatedDecimals` (los del lado pisado, para
+«Calculado: …»). Sin ellos, la XCell muestra lo de siempre; con ellos, N fijos redondeados como la base (`texto-de-valor.tsx`). El subtotal, la tarjeta del
+total (y su Bs, con los del total), lo pisado del resumen (`pisadasDeLaHoja()`) y el par usan los del nodo que muestran.
+
 En `/cotizaciones/[id]` se dibujan además «Revisiones» (`cotizacion_revisiones`, de a 20 por cursor), la cadena (`anterior`, `encima`) y
 «Cotizar encima» (`cotizacion_encima`, con un intento que sólo se conserva tras una pérdida); el botón sale con `puede_cotizar_encima`, no
 con `puede()`, y con cambios sin guardar espera, porque la nueva lleva lo guardado.
@@ -1317,7 +1343,7 @@ guardada y nunca lo de hoy. Lee `cotizacion_hoja_guardada`, `cotizacion_evaluar(
 sesión de quien pide: lo descarga quien ve la cotización, sin clave propia, y lo que un nivel esconde no está (sólo lo del nivel «todos»).
 Lo que no existe, está en la papelera o no se ve es el mismo 404 en texto que la página. El total impreso es el del snapshot: con dos tipos
 de cambio **no es la suma de las filas** sino Bs ÷ tc(`total_en`), con Bs = Σ grupo × tc(su bucket); `e2e/cotizar-pdf.spec.ts` lo cuenta
-con las filas impresas y la tolerancia del redondeo. Los montos van con `formatearMonto()` y siempre con cifras (el Modo Live es de la
+con las filas impresas y la tolerancia del redondeo. Los montos van con el texto de `valor-del-dato.ts` (los «Decimales» de su celda; sin ellos, `formatearMonto()`) y siempre con cifras (el Modo Live es de la
 pantalla); el logo, en `Buffer` por `logoParaDibujar()`, que pasa a PNG lo que react-pdf o satori no leen (WebP, SVG con estilos). Lo dibuja
 `src/modules/cotizaciones/infra/tarjeta/pdf/` con `@react-pdf/renderer` y Geist en TTF (recta e itálica). La misma tarjeta como PNG:
 `imagenDeUnaGuardada()` (`infra/tarjeta/imagen/`, `ImageResponse`), la base de la imagen de la tarjeta.

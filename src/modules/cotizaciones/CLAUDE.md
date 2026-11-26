@@ -173,7 +173,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   cada lectura va por su id y cada escritura lo manda (`p_formula_del_origen`); sus `key` llevan el id de la fórmula. Las RPC sin id y una pestaña sin `?formula=` usan la
   **fórmula de trabajo** (glosario; `leerFormulaDeTrabajoSobre()` de `infra/queries/formula-de-trabajo.ts`, espejo de `_fdo_de_trabajo()`). El ⚙ de la
   hoja (celda y cabecera) lee y cambia la publicada de la **activa**. Los avisos de la copia (`AvisosDeLaCopia`, `entities/avisos-de-la-copia.ts`) y los
-  datos del vehículo que faltan (`useCamposQueFaltan()`, `entities/campos-que-faltan.ts`, espejo de `_fdo_campos_que_faltan`) son del núcleo y los
+  datos del vehículo que faltan (`useCamposDeLaFormula()`, `entities/campos-que-faltan.ts`, espejo de `_fdo_campos_que_faltan`) son del núcleo y los
   dibuja la planilla. La pestaña Tarjeta va a ancho completo y su página pide la referencia del lienzo sin esperarla
   (`origenes/[id]/(pestanas)/tarjeta/referencia.ts`, con `leerListadoDeCotizaciones()` y `UNA` del área `listado`, `leerHojaDeUnaGuardada()`, y `referenciaPlana()` y
   `calculoDeLoGuardado()` del núcleo).
@@ -418,7 +418,7 @@ puedeRetocar }`, de `HojaDeUnaGuardada`; la hoja nueva no lo pasa) y el modelo l
 ## Archivos clave
 
 - Motor y grafo (`docs/COTIZADOR.md`: léelo antes de tocar el motor): `entities/nodos.ts` (Zod por `tipo`), `nodos-referencias.ts` (`referenciasDe()`), `formula.ts`, `motor.ts` y
-  `motor-*.ts` (`evaluar()`, una pasada), `redondeo.ts` (`round(numeric)` de Postgres), `compilador*.ts` (texto a nodos, puro, nunca lanza),
+  `motor-*.ts` (`evaluar()`, una pasada; redondea con `redondear()` de `@/shared/lib/redondeo`, `round(numeric)` de Postgres), `compilador*.ts` (texto a nodos, puro, nunca lanza),
   `casos-del-motor.json`.
 - Validación: `entities/validar*.ts` espeja `validar_formula()` (`docs/COTIZADOR.md` › «Las reglas») y `validar-diseno*.ts` a `validar_diseno()` (con el
   tope de 40 ítems, `demasiados_items`, primero tras la forma); juegos `casos-de-{formula,diseno}.json` (regla nueva = su caso).
@@ -458,6 +458,14 @@ puedeRetocar }`, de `HojaDeUnaGuardada`; la hoja nueva no lo pasa) y el modelo l
   marca para los e2e `data-nodo`, `data-atajos`, `data-seccion`, `data-avanzado`, `data-cabecera`, `data-secciones`, `data-modo`, `data-total-bs`,
   `data-pie-de-panel`.
 - El par con `secundario.como === 'monto'` manda `secondaryProminent` a la XCell (`propsDeCelda()`): el % primero y grande, el monto chico detrás.
+  `entities/binding-resumen.ts` lleva lo que la hoja muestra fuera de la XCell (el número de un valor, el subtotal, la tarjeta del total y su Bs).
+- **Decimales de una celda** (`docs/COTIZADOR.md` › «Los nodos»; glosario: «Decimales (de una celda)»): `decimales` del nodo, 0 a 4, sólo la vista.
+  `entities/decimales-de-celda.ts` (`decimalesDe()`, `aceptaDecimales()`, `ejemploDeDecimales()`, `datosQueNoSonNumero()`) es la única regla: la hoja la
+  lee de `cotizacion_hoja()` (`hoja-esquema.ts`: la celda, su secundario, el subtotal, el total y la tarjeta del total) y la pasa a la XCell (`decimals`,
+  `secondaryDecimals`, `calculatedDecimals`); la tarjeta, de `cotizacion_tarjeta()` (`decimales`, `decimales_del_pct`) a `valor-del-dato.ts` (el texto del
+  PDF, la imagen y el texto con datos) y `<MontoConDecimales>`; comparar y las revisiones, de la hoja de la versión. La planilla la elige con
+  `cambiarDecimales()` (`entities/formula/decimales-de-la-fila.ts`), «⋯» › «Decimales…» y `paneles/panel-de-decimales.tsx` (`?panel=decimales&fila=`); los
+  campos del origen con su tipo los lee `infra/formula/campos-del-origen.client.ts` (`leerCamposDelOrigen()`, por `useCamposDeLaFormula()`).
 - **Lo pisado** (`docs/COTIZADOR.md` › «Pisar un cálculo»; glosario: «Editado a mano»): `entities/binding-pisado.ts` (`ladoPisado()` y `propsDelPisado()`: la
   marca, «Calculado» y ↺ «Volver al calculado» de la XCell, con `formatoDeCelda()` de `formato-de-celda.ts`; `esPisadoNuevo()`, si lo escrito abre el aviso) y
   `entities/pisadas-de-la-hoja.ts` (`pisadasDeLaHoja()`, la lista bajo la tarjeta del total). Lo calculado llega en `calculados` de la respuesta (`calculadoDe()`, recortado por

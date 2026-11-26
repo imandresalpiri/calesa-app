@@ -189,6 +189,31 @@ begin
 end $$;
 rollback;
 
+-- @test cotizacion_hoja_guardada: L4b los decimales de cada celda son los de SU versión: los trae aunque la publicada de hoy ya no los tenga (y la hoja nueva, no)
+begin;
+do $$
+declare duena constant uuid := '00000000-0000-0000-0000-000000000001';
+  t jsonb := pg_temp.hg_terreno(); c uuid; r jsonb; r2 jsonb;
+begin
+  update public.formulas set definicion = jsonb_set(jsonb_set(definicion, '{nodos,1,decimales}', '2'), '{nodos,3,decimales}', '0') where id = (t ->> 'f')::uuid;
+  c := pg_temp.hg_cot(t, duena);
+  update public.formulas set estado = 'archivada' where id = (t ->> 'f')::uuid;
+  insert into public.formulas (origen_id, version, estado, definicion, params, diseno, visibilidad, publicado_en)
+  select origen_id, 2, 'publicada', jsonb_set(definicion, '{nodos}', (select jsonb_agg(n - 'decimales' order by o) from jsonb_array_elements(definicion -> 'nodos') with ordinality x (n, o))),
+         params, diseno, visibilidad, now()
+    from public.formulas where id = (t ->> 'f')::uuid;
+  r := pg_temp.hg_hoja(duena, c);
+  if r ? 'error' or pg_temp.hg_item(r, 'visible') -> 'decimales' is distinct from '2'::jsonb or pg_temp.hg_item(r, 'total') -> 'decimales' is distinct from '0'::jsonb
+     or pg_temp.hg_item(r, 'oculto') ? 'decimales' then
+    raise exception 'L4b: la guardada no trae los decimales de su versión: %', r -> 'secciones';
+  end if;
+  r2 := pg_temp.hg_corre(duena, format('select public.cotizacion_hoja(%L)', t ->> 'o'));
+  if exists (select 1 from jsonb_path_query(r2 -> 'secciones', 'strict $.**') h where jsonb_typeof(h) = 'object' and h ? 'decimales') then
+    raise exception 'L4b: la hoja nueva trae decimales que su versión no tiene: %', r2 -> 'secciones';
+  end if;
+end $$;
+rollback;
+
 -- @test cotizacion_hoja_guardada: L5 la anterior y la versión nueva: las que se ven, con su número; la nueva que no se ve, sólo que existe (P11); la anterior que no se ve, nula
 begin;
 do $$

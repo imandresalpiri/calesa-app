@@ -10,7 +10,9 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
+import { aceptaDecimales } from '../../../../../entities/decimales-de-celda'
 import type { FilaDeLaHoja } from '../../../../../entities/formula/hoja-de-la-planilla'
+import { ESPERA_A_LA_FILA } from '../../../hooks/use-guardar-borrador.soporte'
 import type { Planilla } from '../../../hooks/use-planilla'
 import { ConMotivo, RENGLON, SubmenuDeLaBanda, SubmenuDelTipo } from './submenus-de-la-fila'
 
@@ -69,6 +71,29 @@ function RenglonesDeMover({
   )
 }
 
+// «Decimales…» (su panel, `?panel=decimales`): sólo en una celda que se ve como número; mientras la fila espera a guardarse, apagado con su motivo.
+function RenglonDeDecimales({
+  planilla,
+  fila,
+  alElegir,
+}: Props & { alElegir: (a: Accion) => void }) {
+  if (!aceptaDecimales(fila.nodo) || planilla.noSonNumero.has(fila.nodo.id)) return null
+  const motivo = planilla.editor.libre ? null : ESPERA_A_LA_FILA
+  return (
+    <DropdownMenuItem
+      className={RENGLON}
+      disabled={motivo !== null}
+      onClick={() => {
+        alElegir(() => {
+          planilla.paneles.decimales.abrir({ fila: fila.id })
+        })
+      }}
+    >
+      <ConMotivo texto="Decimales…" motivo={motivo} />
+    </DropdownMenuItem>
+  )
+}
+
 function Renglones({ planilla, fila, alElegir }: Props & { alElegir: (a: Accion) => void }) {
   const { ops } = planilla
   const n = fila.numero
@@ -110,6 +135,7 @@ function Renglones({ planilla, fila, alElegir }: Props & { alElegir: (a: Accion)
       <RenglonesDeMover planilla={planilla} n={n} enLaGrilla={enLaGrilla} />
       <DropdownMenuSeparator />
       <SubmenuDelTipo planilla={planilla} fila={fila} alElegir={alElegir} />
+      <RenglonDeDecimales planilla={planilla} fila={fila} alElegir={alElegir} />
       <SubmenuDeLaBanda planilla={planilla} fila={fila} alElegir={alElegir} />
       <DropdownMenuSeparator />
       <DropdownMenuItem

@@ -38,6 +38,7 @@ const pagina = (desde: number, cuantas: number, siguiente: number | null): Respu
       nodos: new Map([[`n${String(desde)}`, 'Etiqueta']]),
       grupos: new Map(),
       calculos: new Map(),
+      decimales: new Map(),
     },
   },
 })

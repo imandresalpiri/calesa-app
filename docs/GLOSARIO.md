@@ -523,7 +523,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Avisos de la copia** — `AvisoDeLaCopia` (`entities/avisos-de-la-copia.ts`), `avisos` de `formula_del_origen_crear()`: lo que copiar una fórmula de
   otro origen cambió o no pudo resolver —una tabla creada con las filas de la copia, una tabla del destino usada en su lugar, un dato del vehículo
   que el origen no tiene—. Se muestran arriba de la planilla de la copia hasta «Ocultar» (`sessionStorage`), y los datos que faltan quedan marcados
-  en su fila (`useCamposQueFaltan()`).
+  en su fila (`useCamposDeLaFormula()`).
 - **Nodo** — `definicion.nodos[]`: una línea de la fórmula: input, constante, tipo de cambio, campo, bandera, tabla, tramo, cálculo.
 - **Constante** — nodo `constante` + `params`: valor por defecto versionado que el ⚙ de la XCell cambia.
 - **Versión del flujo** — `flujos.actualizado_en` como texto ISO: la lee el editor del flujo y la devuelve cada escritura para detectar
@@ -731,6 +731,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **De dónde sale** — `deDondeSale()` (`entities/formula/de-donde-sale.ts`): lo que calcula una fila, en palabras y con las etiquetas de lo que nombra
   («(Remate + Fees) × 4 %», «monto fijo»). Se lee en la línea bajo la **Barra de fórmula** («De dónde sale: …», la de la fila elegida) y, en lo que la
   fórmula no guarda como número ni como texto (lo que escribe el asesor, un dato del vehículo, un tipo de cambio, una tabla…), en su C.
+- **Decimales (de una celda)** — `decimales` del nodo (0 a 4; `entities/decimales-de-celda.ts`, `decimalesDe()`), «Decimales…» del «⋯» de la fila de la
+  planilla (`?panel=decimales&fila=<id>`): con cuántos decimales se muestra el valor de esa celda en la hoja, la tarjeta de la cotización (y su PDF, su
+  imagen y su texto con datos), comparar, las revisiones y la columna Ejemplo. Sin la clave, **Automático**: lo de siempre en cada superficie. Sólo la
+  vista: se redondea mitad lejos del cero como `redondear()` y se muestra con N fijos (`cifra-fija.ts`); lo guardado y lo que se edita siguen completos.
+  En un porcentaje, decimales de puntos. No la lleva una celda que se ve como texto. No: «precisión», «formato numérico», «redondeo» (`redondear` es una
+  operación que cambia el valor).
 - **Ejemplo (columna)** — la última columna de la planilla (`contenidoDeLaFila()`, `entities/formula/contenido-de-c.ts`; clave interna `D`:
   `data-celda="D5"`, se nombra «Ejemplo 5»): lo que da la fila con la **Unidad de ejemplo**. Nada en un valor fijo (su número ya está en C: la misma cifra
   no se dibuja dos veces), el valor de la unidad en las filas que se llenan al cotizar (se escribe ahí, nunca en su C) y la cifra en las demás. No se usa en

@@ -17,7 +17,8 @@ Infraestructura transversal sin reglas de negocio: clientes de Supabase, permiso
 - `lib/rutas.ts` (`decidirAcceso()`, `returnToSeguro()`), `lib/navegacion.ts` (`redirigir()`).
 - `lib/formato.ts`, `lib/fechas.ts`: todo número y fecha, en el locale y la zona de la empresa; `formatearFechaHoraConZona()`, `formatearDiaLargo()` («jueves 19 de noviembre»), `ciudadDeLaZona()` y
   `abreviaturaDeZona()` para la fecha que se lee en otra zona (la de una subasta, en `useRegional().zonaDeLaPersona`). `lib/numero-tipeado.ts`: `leerNumeroTipeado(texto,
-locale)`, el único lector de un número tipeado.
+locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(x, n)`, el `round(x::float8::numeric, n)` de
+  Postgres bit a bit (15 cifras y mitad lejos de cero; lo usan el motor de la fórmula y las cifras con decimales fijos).
 - `lib/paginacion.ts`: tamaños (`TAMANOS_DE_PAGINA`, `tamanoDePagina()`, `TAMANO_DE_VER_MAS`, `TOPE_DE_LO_CARGADO`, `TAMANO_DE_COLUMNA`,
   `TOPE_DEL_EQUIPO`) y keyset (`leerCursor()`, `codificarCursor()`, `armarPagina()`; por otra columna `armarPaginaPor()` con un `OrdenDeCursor`,
   `POR_ALTA` por defecto). El cursor lleva `instante`. `lib/conteo.ts`: `conteoAcotado()`, `cantidadAcotada()`, `cortarAlTope()`, `textoDelTope()`.
@@ -76,7 +77,8 @@ locale)`, el único lector de un número tipeado.
   `<TiraDeMiniaturas>` (con `conTeclado`, ← → Home End marcan y Enter elige), `useImagenes()` y `useVisorDeGaleria()` (una galería ya leída); el visor vive en `?visor=<clave>&foto=<n>` (la foto cambia con `replace`).
 - `ui/lista/`: `UnaSolaVista` (con `preferida`), `ConmutadorDeVista` («Tabla | Tarjetas», `lib/vista-de-lista.ts`; va en «Vista y opciones»), `TablaDeLista`,
   `FilaDeLista`, `TarjetaDeLista`, `EsquinaDeAcciones` (el lugar del «⋯» en la tarjeta; `sobreImagen` sobre una foto), `MasAcciones`, `AbrirResumen`, `EnlaceDeLaFila` (el nombre como enlace a la ficha en una lista sin resumen: la fila y la tarjeta reciben `href` en vez de `alAbrir`, `ir-desde-la-fila.ts`), `SimbolosDeLista`, `PestanasDelResumen` (con `alto="lleno"` ocupa el alto de su contenedor; `panelDesplazable` hace que cada pestaña se desplace en su marco; `reparto="igual"`: toda la fila en partes iguales, con desplazamiento de costado si no caben).
-- `ui/monto.tsx` + `live.ts` + `guion-live.tsx` (Modo Live), `regional.tsx`, `densidad.tsx`, `marca.tsx`, `estilo-de-marca.tsx`.
+- `ui/monto.tsx` + `live.ts` + `guion-live.tsx` (Modo Live), `ui/monto-con-decimales.tsx` (`<MontoConDecimales>`: un monto con los «Decimales» de su
+  celda, redondeado antes como la base; sin ellos, `<Monto>`), `regional.tsx`, `densidad.tsx`, `marca.tsx`, `estilo-de-marca.tsx`.
 - `lib/acciones-del-aviso.ts` (las acciones de un aviso como datos: `AccionDelAviso`, `resolverAcciones()`, `pedidoDe()`, `hrefDePanel()`; `ErrorApp.causa`)
   y `ui/acciones-del-aviso.tsx` (`<AccionesDelAviso>`, todo `<Button>`: en un toast sólo los botones reciben el puntero).
 - `ui/ficha-en-bloques/`: `<FichaEnDosColumnas>` (desde 56 rem de contenedor, `@container/ficha`: la página quieta con el alto de la ventana y cada columna con su desplazamiento por dentro —la izquierda hasta 24 rem, la derecha con el índice arriba—, `usePosicionDeLasColumnas()` que

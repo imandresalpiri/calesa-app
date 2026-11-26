@@ -207,6 +207,7 @@ export function PantallaDeUnaGuardada({
       totalGuardado={
         <TotalGuardado
           totalUsd={hoja.guardado.totalUsd}
+          decimales={hoja.diseno.tarjetaTotal.decimales}
           // Con otro vehículo, «cambió una tabla o un dato del vehículo» no sería cierto: sólo el «Total guardado».
           hayAviso={hayAviso && vehiculoNuevo === null}
           muestraElTotal={muestraElTotal}

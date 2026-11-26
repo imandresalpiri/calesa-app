@@ -805,6 +805,19 @@ las trampas, en `docs/LECCIONES.md`.
   «Aplicar también» va apagada en una guardada de sólo lectura y si la versión de la hoja no tiene el modo. Sin red dice «No hay conexión.» con «Reintentar»
   (reenviar es seguro: la base compara la esperada).
 - **El ⚙ de un tipo de cambio.** `formula_tipo_cambio_del_nodo()` (definer, pide `empresa.tipos_cambio.gestionar` y ver el nodo; todo rechazo da `null`); manda sólo `{id, actualizadoEnEsperado, valor}`.
+- **Los «Decimales» de una celda son del nodo y sólo de la vista** (`decimales`, 0 a 4; sin la clave, «Automático»): el motor no los lee y una versión
+  sin el dato se ve como antes, sin migrar datos. Se muestran redondeados con `redondear()` antes de `Intl` (`cifra-fija.ts`): formatear el doble con N
+  fijos da otra cifra en un casi empate, y la base redondea así. En un porcentaje son decimales de puntos (`redondear(x, n + 2)` sobre la fracción).
+- **Lo que no es una celda sigue con 2:** el total del listado, «De este vehículo», la cabecera de comparar, la línea del total de una revisión y el
+  resumen de una guardada son totales en la moneda base o la de mostrar, no la celda del total; el listado está medido al borde. El Bs de la hoja y de la
+  tarjeta es la celda del total en otra moneda: lleva sus decimales, y también «Total guardado» y el total de «Cotización n.º N guardada», que van junto a
+  la tarjeta del total de la hoja (dos cifras distintas del mismo total, a la vista, no se leen). El tipo de cambio de la tarjeta (`tc_valor`) sigue con 4: no es una celda que se elija.
+- **«Decimales…» es un panel propio** (`?panel=decimales&fila=<id>`), no un campo del panel del tipo de celda (no tiene formato y sólo abre para cuatro
+  tipos) ni un submenú con radios (no deja ver el ejemplo con su alto reservado). Usa `<Opciones>` (radios nativos con otra piel). Un rechazo no marca el
+  grupo `aria-invalid`: los radios sólo ofrecen valores válidos, el motivo es de la fórmula y se lee en su línea con el foco en el radio elegido.
+- **Un dato del vehículo que no es un número no ofrece «Decimales»**: la planilla lee `clave, tipo` de los campos del origen (una sola lectura, la de los
+  datos que faltan) y la regla pura no los conoce. Sin la lectura, sólo las columnas comunes de texto (`marca`, `modelo`) quedan fuera: elegir decimales
+  en un texto no cambia nada. El % que la B de una fila absorbe no tiene fila propia: queda en «Automático» desde la planilla.
 
 ### La hoja
 

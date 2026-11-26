@@ -23,6 +23,20 @@ describe('conservar (C5)', () => {
     })
   })
 
+  it('los decimales siguen al reescribir la fila; una condición los suelta y lo dice', () => {
+    expect(conservar(suma({ op: 'restar' }), suma({ decimales: 0 }), '=a-b')).toEqual({
+      nodo: suma({ op: 'restar', texto: '=a-b', decimales: 0 }),
+      soltados: [],
+    })
+    expect(conservar(constante(), suma({ decimales: 3 }), '=4').nodo).toMatchObject({
+      decimales: 3,
+    })
+    const comparar = nodo({ tipo: 'calculo', op: 'comparar', de: ['a', 'b'], cmp: '>' })
+    const r = conservar(comparar, suma({ decimales: 1 }), '=a>b')
+    expect(r.nodo).not.toHaveProperty('decimales')
+    expect(r.soltados).toEqual(['decimales'])
+  })
+
   it('una constante nueva suelta sobrescribible y lo dice; sobrescribible falso no se dice', () => {
     expect(conservar(constante(), suma({ sobrescribible: true }), '=4').soltados).toEqual([
       'sobrescribible',

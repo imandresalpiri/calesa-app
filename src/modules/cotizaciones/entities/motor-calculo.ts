@@ -6,7 +6,7 @@ import { anotar, leer, type Evaluacion, type Valor } from './motor-contexto'
 import { valorDeComparacion } from './motor-condiciones'
 import { valorDeTramo } from './motor-tablas'
 import { esDeComparacion, type NodoCalculo, type NodoDeCuenta } from './nodos'
-import { redondear } from './redondeo'
+import { redondear } from '@/shared/lib/redondeo'
 
 // La condición apagada (también la del `si`) ya la resolvió `valorDeNodo`: acá llega encendida o sin condición.
 export function valorDeCalculo(ev: Evaluacion, n: NodoCalculo): Valor {

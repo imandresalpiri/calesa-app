@@ -3,12 +3,14 @@
 import type { Route } from 'next'
 import Link from 'next/link'
 import { Button, buttonVariants } from '@/shared/ui/button'
-import { Monto } from '@/shared/ui/monto'
+import { MontoConDecimales } from '@/shared/ui/monto-con-decimales'
 import type { CotizacionGuardada as Guardada } from '../../../entities/guardado'
 import { rutaDeLaCotizacion, rutaDelPdf } from '../../../entities/ruta-de-la-hoja'
 
 type Props = {
   cotizacion: Guardada
+  // Los «Decimales» de la celda del total de la hoja que se guardó: el total va como en su tarjeta.
+  decimales: number | undefined
   // Lo que se guardó fue el pedido que había quedado sin confirmar, no lo de la hoja de ese momento.
   fueReenvio: boolean
   alCotizarOtra: () => void
@@ -16,7 +18,7 @@ type Props = {
 
 // Lo que se ve al guardar (P1): el número y el total de **lo guardado** (la respuesta de la base, no lo tipeado), «Cotizar otra», «Abrir la cotización» (su página, 4.15-3) y
 // «Descargar PDF» (4.18-3b, P6 del 4.18-3). El número es un identificador: va sin separador de miles.
-export function CotizacionGuardada({ cotizacion, fueReenvio, alCotizarOtra }: Props) {
+export function CotizacionGuardada({ cotizacion, decimales, fueReenvio, alCotizarOtra }: Props) {
   return (
     <section
       aria-labelledby="cotizacion-guardada"
@@ -35,7 +37,11 @@ export function CotizacionGuardada({ cotizacion, fueReenvio, alCotizarOtra }: Pr
           data-total-guardado=""
           className="text-(length:--text-xl) font-semibold tabular-nums"
         >
-          {cotizacion.totalUsd === null ? '—' : <Monto valor={cotizacion.totalUsd} moneda="USD" />}
+          {cotizacion.totalUsd === null ? (
+            '—'
+          ) : (
+            <MontoConDecimales valor={cotizacion.totalUsd} moneda="USD" decimales={decimales} />
+          )}
         </strong>
       </p>
       <div role="status">
