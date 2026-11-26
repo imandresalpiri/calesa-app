@@ -15,7 +15,7 @@ type Props = {
 
 const SUFIJO_DEL_FLUJO = ' · de este flujo'
 
-// El selector del tipo de documento de un requisito. Con tipos de la empresa y del flujo a la vez, los del flujo lo dicen; sin tipos activos lleva a Logística › Configuración › Tipos de documento.
+// El selector del tipo de documento de un requisito. Con tipos compartidos y del flujo a la vez (los que el flujo tapa no llegan), los del flujo lo dicen; sin tipos activos lleva a Logística › Configuración › Tipos de documento.
 export function CampoDeTipoDeDocumento({ tipos, valor, error, alElegir }: Props) {
   if (tipos !== null && tipos.length === 0) {
     return (

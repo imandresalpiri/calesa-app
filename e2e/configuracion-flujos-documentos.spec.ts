@@ -22,8 +22,11 @@ import {
   abrirLosDeLaEmpresa,
   borrarTiposDeDocumentoDePrueba,
   modalDeTipo,
+  nombreDelOrigen,
   nombresDelGrupo,
+  origenDeLaSubasta,
   seccionDelGrupo,
+  sembrarTipoCompartido,
   sembrarTipoDelFlujo,
   tipoEnLaBase,
   usarEnUnRequisito,
@@ -31,7 +34,8 @@ import {
 
 // Los tipos de documento (5.09, `docs/UX.md` › «Flujos: tipos de documento (estados propios)»): en el panel del flujo de un origen la dueña crea un tipo del
 // flujo con vencimiento, lo edita, lo sube de orden, desactiva uno en uso (y lee por qué no se elimina) y elimina uno sin uso; quien sólo configura el flujo
-// ve en Catálogos › Tipos de documento los de toda la empresa deshabilitados, con el motivo, y cambia los de su flujo. Un solo recorrido del camino feliz: la base ya tiene sus pruebas de cada regla.
+// ve en Logística › Configuración › Tipos de documento los compartidos deshabilitados, con el motivo, y cambia los de su flujo; un propio tapa al compartido
+// de su nombre y el panel lo marca. Un solo recorrido del camino feliz: la base ya tiene sus pruebas de cada regla.
 test.describe.configure({ mode: 'serial' })
 
 let proyecto = ''
@@ -76,13 +80,17 @@ test('la dueña crea un tipo del flujo con vencimiento, lo edita y lo sube de or
   const renombrado = nombre('Seguro marítimo')
   const segundo = nombre('Factura')
   await entrar(page, duena, { fresco: true })
-  // Los de toda la empresa de la semilla, en Catálogos.
+  // Los compartidos de la semilla, en Logística › Configuración.
   await abrirLosDeLaEmpresa(page)
   await expect(page.getByRole('button', { name: 'Editar BL', exact: true })).toBeVisible()
-  // Los del flujo, en su panel: sólo los suyos.
+  // En el panel del flujo, los suyos («De <origen>») y debajo los compartidos, con su título.
   await abrirDocumentos(page)
-  await expect(page.locator('section[aria-label="De toda la empresa"]')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Compartidos', level: 2 })).toBeVisible()
+  await expect(
+    seccionDelGrupo(page, 'empresa').getByRole('button', { name: 'Editar BL', exact: true }),
+  ).toBeVisible()
   const flujo = seccionDelGrupo(page, 'flujo')
+  await expect(flujo).toContainText(`Sólo se piden en ${nombreDelOrigen(origenDeLaSubasta())}.`)
 
   // Crear con vencimiento «renovar»: 365 días de vigencia y aviso a los 30.
   await flujo.getByRole('button', { name: 'Nuevo tipo' }).click()
@@ -176,14 +184,14 @@ test('desactiva uno en uso (y lee por qué no se elimina) y elimina uno sin uso'
   expect(tipoEnLaBase(sinUso)).toBeNull()
 })
 
-test('quien sólo configura el flujo ve los tipos de toda la empresa deshabilitados, con el motivo', async ({
+test('quien sólo configura el flujo ve los tipos compartidos deshabilitados, con el motivo', async ({
   page,
 }) => {
   await entrar(page, configuradora, { fresco: true })
   await abrirLosDeLaEmpresa(page)
   const empresa = seccionDelGrupo(page, 'empresa')
   const motivo =
-    'Los tipos de documento de toda la empresa los cambia quien gestiona los catálogos de logística.'
+    'Los tipos compartidos los cambia quien configura la logística en cada origen que los usa.'
   await expect(empresa.getByRole('button', { name: 'Nuevo tipo' })).toBeDisabled()
   await expect(empresa.getByText(motivo)).toBeVisible()
   expect(await lineaApagada(page, 'BL', 'Subir')).toBe(true)
@@ -196,4 +204,30 @@ test('quien sólo configura el flujo ve los tipos de toda la empresa deshabilita
   await expect(
     seccionDelGrupo(page, 'flujo').getByRole('button', { name: 'Nuevo tipo' }),
   ).toBeEnabled()
+})
+
+test('un tipo propio tapa al compartido de su nombre: el panel lo marca en la misma línea', async ({
+  page,
+}) => {
+  const compartido = nombre('Tapado')
+  const otro = nombre('Sin tapar')
+  sembrarTipoCompartido(compartido)
+  sembrarTipoCompartido(otro)
+  // El mismo nombre sin importar mayúsculas: lo tapa en este origen.
+  sembrarTipoDelFlujo(compartido.toUpperCase())
+  await entrar(page, duena, { fresco: true })
+  await abrirDocumentos(page)
+  const compartidos = seccionDelGrupo(page, 'empresa')
+  // La celda del nombre: la insignia va ahí, en la misma línea que él (la celda no parte la línea).
+  const celdaDelNombre = (cual: string) =>
+    compartidos
+      .locator('td')
+      .filter({ has: page.getByRole('button', { name: `Editar ${cual}`, exact: true }) })
+  const insignia = `Tapado por el de ${nombreDelOrigen(origenDeLaSubasta())}`
+  await expect(celdaDelNombre(compartido).getByText(insignia, { exact: true })).toBeVisible()
+  await expect(celdaDelNombre(otro).getByText(insignia, { exact: true })).toHaveCount(0)
+  // El propio no lleva insignia; en Logística, sin flujo, nadie tapa.
+  await expect(seccionDelGrupo(page, 'flujo').getByText(insignia)).toHaveCount(0)
+  await abrirLosDeLaEmpresa(page)
+  await expect(seccionDelGrupo(page, 'empresa').getByText(insignia)).toHaveCount(0)
 })

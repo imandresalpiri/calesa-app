@@ -84,11 +84,17 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
 
 ## Documentos
 
-- `<PantallaDeDocumentos>` (`pantallas/documentos.ts`, `<EsqueletoDeTipos>`) dibuja **un** grupo de `tipos_documento` según `grupos`: `'flujo'` con su
-  `fijo`, en el panel del flujo (`?seccion=documentos`, `enElPanel`), y `'empresa'`, en la pestaña Logística › Configuración › Tipos de documento
-  (`/logistica/configuracion/tipos-de-documento`, sin título de grupo; la fila dice «Editar <nombre>»). Los dos grupos de
-  `tipos_documento`, los de la empresa (`flujo_id` nulo; `logistica.catalogos.gestionar`) y los del flujo (`flujos.configurar` o `repuestos.configurar`; el
-  origen lo decide la base). Quien no puede cambiar un grupo lo ve con «Nuevo tipo», «Editar» y el orden apagados y el motivo.
+- `<PantallaDeDocumentos>` (`pantallas/documentos.ts`, `<EsqueletoDeTipos>` de dos bloques) dibuja los grupos de `tipos_documento` según `grupos`:
+  `'flujo'` con su `fijo`, en el panel del flujo (`?seccion=documentos`): «De <origen>» («Del flujo de repuestos») y debajo «Compartidos»; y `'empresa'`, en la
+  pestaña Logística › Configuración › Tipos de documento (`/logistica/configuracion/tipos-de-documento`): sólo «Compartidos», sin título de grupo (la región se
+  llama así por `aria-label`). La clave `empresa` (también `?de=empresa`) es el grupo de los compartidos; su fila dice «Editar <nombre>». Los compartidos
+  (`flujo_id` nulo) los cambia `logistica.catalogos.gestionar`, que la base pide en cada origen que los usa; los propios, `flujos.configurar`
+  (`repuestos.configurar` en el de repuestos) o `logistica.catalogos.gestionar` del origen (la action lo pide sin origen; el origen lo decide la base, que
+  rechaza con su texto). Quien no puede cambiar un grupo lo ve con «Nuevo tipo», «Editar» y el orden apagados y el motivo.
+- **Tapar:** un propio activo con la misma clave que un compartido (`claveDeCatalogo`, espejo de `_catalogo_clave`) lo tapa en su flujo: el compartido no se
+  ofrece para algo nuevo, pero nada se reescribe (requisitos y documentos siguen apuntando a él). `entities/propios-del-flujo.ts` (núcleo:
+  `compartidosTapados`, `quienTapa`) lo calcula; en el panel, el compartido tapado lleva la insignia «Tapado por el de <origen>» en la misma línea que el
+  nombre (`VistaDeGrupo.tapados`).
 - `entities/documentos/` valida espejo de la base (probado contra PGlite); escriben `tipo_documento_crear|guardar|mover|eliminar`.
   `leerTiposDeDocumento` y `leerUsoDeTiposDeDocumento` salen por el `index.ts` del área.
 - **La lista se relee, no se siembra:** cada action comprueba `puede()` con el `flujoId` del grupo y revalida `RUTAS.origenes`, `RUTAS.configuracionDeRepuestos` y `RUTAS.configuracionDeLogistica` (con `'layout'`). El uso
@@ -135,6 +141,8 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
 ## Requisitos
 
 - `pantallas/requisitos.ts` da `<BloqueDeRequisitos>` (`bloques.requisitos`); escriben `requisito_crear|guardar|mover|eliminar`.
+- **Tipos tapados:** `leerOpcionesDeRequisitos` marca `tapadoPor` en los compartidos que tapa un propio activo del flujo (el origen llega embebido en los
+  propios); un requisito nuevo no los ofrece (`seOfreceParaUnoNuevo`) y uno que ya pide uno lo nombra «X (tapado por el de <origen>)» (`nombreDelTipo`).
 - **`entities/requisitos/claves.ts` es espejo de `claves_dato_requisito(ámbito)`** (`claves.test.ts` lo compara con el SQL vigente): una clave nueva sin
   etiqueta rompe la prueba. Sólo `pagos.umbral_pct` lleva `config.pct`. Apagan claves (por prefijo) las reglas `transporte`, `aduana` y `pagos`.
 - **El hueco es de cliente y sólo recibe `{flujo, fase}`:** los nombres los pide `leerOpcionesDeRequisitos({flujoId, ambito})` una vez por flujo (un minuto
@@ -166,7 +174,8 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
 
 - `?seccion=reglas`, en el panel del flujo (`pantallas/reglas.ts`: `<PantallaDeReglas>`, sin selector ni título propio; `<EsqueletoDeReglas>`): las reglas
   del ámbito con su interruptor y, con «Transporte»
-  encendida, la oferta (puertos de origen, de destino y navieras activos). La ve quien configura (`flujos.configurar` o `repuestos.configurar`).
+  encendida, la oferta (puertos de origen, de destino y navieras activos que usa el origen del flujo: `leerCatalogoDeTransporte(origenId)`, sus propios y
+  los compartidos que no tapa, con `catalogoDelOrigen`; el de repuestos, sólo los compartidos). La ve quien configura (`flujos.configurar` o `repuestos.configurar`).
 - `entities/reglas/catalogo.ts`: las 10 claves con su texto, comparadas en un test con el check de la base y `_flujo_regla_admitida`.
 - **Apagar pregunta antes de escribir:** `cambiarRegla` llama `flujo_regla_impacto`; con uso responde `en_uso` y no escribe. «Deshacer» y las escrituras usan la
   **última versión conocida** (`useEscrituraDeReglas`), no la del toast. El borrador de la oferta lleva `key` por la firma de lo guardado.
@@ -213,8 +222,8 @@ jubilada|eliminada, version}`. Los conteos de `_fase_uso` llegan como tope + 1 (
 - `flujo_copiar_fases(p_flujo, p_actualizado_en_esperado, p_desde)` (definer): forma (`22023` hint `desde`; destino inexistente `PT409`) → permiso en el
   destino (`42501`) y en el origen (`42501` hint `desde`) → candados en orden de uuid (origen `for share`, destino `_flujo_para_editar`) → destino de
   repuestos (`22023` hint `destino`) → destino con alguna fase, también jubilada (`23514` hint `destino`) → origen sin fases activas (`22023` hint
-  `desde`) → tope de tipos (`22023` hint `tipos_documento`). Copia reglas, tipos «Sólo de este flujo» (reusa uno del destino o de la empresa con el
-  mismo nombre), fases activas, `fases_roles`, salidas entre activas con sus roles y requisitos (formatos que no caben en el tipo → nulo). Registra
+  `desde`) → tope de tipos (`22023` hint `tipos_documento`). Copia reglas, tipos propios del flujo (reusa uno del destino o un compartido activo con la
+  misma clave, `_catalogo_clave`: sin importar mayúsculas, tildes ni espacios de más), fases activas, `fases_roles`, salidas entre activas con sus roles y requisitos (formatos que no caben en el tipo → nulo). Registra
   `flujo.copiado` y devuelve `{version, copiado, saltado[≤50] {motivo, nombre}, saltado_hay_mas}`. Lo prueban `supabase/tests/areas/flujos/copiar-fases.sql`
   y K5–K6 de sus carreras.
 - `fase_mover(p_fase, p_actualizado_en_esperado, p_despues_de)` renumera todas las fases del flujo (también jubiladas) de 10 en 10 y sólo escribe `orden`.
@@ -223,7 +232,8 @@ jubilada|eliminada, version}`. Los conteos de `_fase_uso` llegan como tope + 1 (
   `{nivel, codigo, mensaje, fase_id}` sin orden. Códigos: error `sin_inicial`; aviso `sin_salida`, `inalcanzable`, `orden_duplicado`,
   `contenedor_inalcanzable`, `espera_jubilada`, `espera_cruzada`, `rol_sin_personas` (roles sin persona `activo and not bloqueado`),
   `tipo_documento_inactivo`, `salida_a_jubilada`, `sin_fase_de_subasta` (origen de subasta sin ninguna fase con `es_subasta`, activa o jubilada: nada
-  figura «Sin resolver»); info `sin_bloqueantes`, `entrada_no_automatica` (sólo vehículos, espejo de `_vehiculo_fase_de_entrada`).
+  figura «Sin resolver»); info `sin_bloqueantes`, `entrada_no_automatica` (sólo vehículos, espejo de `_vehiculo_fase_de_entrada`), `tipo_documento_tapado` (un requisito pide un
+  compartido que el flujo tapa con un propio activo; el texto lo arma la base).
   Lo prueba `supabase/tests/flujos-revisar.sql`. Avisa y nunca impide guardar.
 - Un requisito nace informativo; volverlo bloqueante muestra cuántas unidades quedan «fuera de regla» y pide confirmación.
 - Las esperas se evalúan al entrar a la fase y nunca mueven en cascada.

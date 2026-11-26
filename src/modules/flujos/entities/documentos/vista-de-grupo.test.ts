@@ -2,9 +2,13 @@ import { expect, it } from 'vitest'
 import { usoDeTipoDesde, type TipoDeDocumento } from './tipo-de-documento'
 import {
   MOTIVO_DE_TIPO_NO_DISPONIBLE,
-  MOTIVO_SOLO_LECTURA_DE_EMPRESA,
+  MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS,
+  detalleDeLosPropios,
+  insigniaDeTapado,
   motivoParaNoAbrirTipo,
   motivoParaNoEliminarPorUrl,
+  tapadosDelGrupo,
+  tituloDeLosPropios,
   type VistaDeGrupo,
   type VistasDeGrupos,
 } from './vista-de-grupo'
@@ -40,6 +44,7 @@ function vista(
     uso: puedeCambiar
       ? Object.fromEntries(ids.map((id) => [id, usoDeTipoDesde(usados.includes(id) ? 2 : 0, 0)]))
       : null,
+    tapados: null,
   }
 }
 
@@ -48,11 +53,13 @@ const vistas: VistasDeGrupos = {
   flujo: vista(FLUJO, ['a', 'b', 'c'], true, ['b']),
 }
 
-it('quien sólo ve el grupo de la empresa no abre «Nuevo» ni «Editar» y lee el motivo', () => {
+it('quien sólo ve el grupo de los compartidos no abre «Nuevo» ni «Editar» y lee el motivo', () => {
   expect(motivoParaNoAbrirTipo(vistas, 'nuevo', 'empresa', null)).toBe(
-    MOTIVO_SOLO_LECTURA_DE_EMPRESA,
+    MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS,
   )
-  expect(motivoParaNoAbrirTipo(vistas, 'editar', null, 'bl')).toBe(MOTIVO_SOLO_LECTURA_DE_EMPRESA)
+  expect(motivoParaNoAbrirTipo(vistas, 'editar', null, 'bl')).toBe(
+    MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS,
+  )
 })
 
 it('«Nuevo» no abre al tope del grupo, ni con un grupo que no existe; «Editar» no abre un tipo ausente', () => {
@@ -68,6 +75,24 @@ it('«Nuevo» no abre al tope del grupo, ni con un grupo que no existe; «Editar
 it('eliminar por URL: abre uno sin uso; con uso o de sólo lectura no abre y dice por qué', () => {
   expect(motivoParaNoEliminarPorUrl(vistas, 'a')).toBeNull()
   expect(motivoParaNoEliminarPorUrl(vistas, 'b')).toContain('Lo usan 2 documentos')
-  expect(motivoParaNoEliminarPorUrl(vistas, 'bl')).toBe(MOTIVO_SOLO_LECTURA_DE_EMPRESA)
+  expect(motivoParaNoEliminarPorUrl(vistas, 'bl')).toBe(MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS)
   expect(motivoParaNoEliminarPorUrl(vistas, 'x')).toBe(MOTIVO_DE_TIPO_NO_DISPONIBLE)
+})
+
+it('el grupo del flujo se nombra por su origen; el de repuestos, por su flujo', () => {
+  expect(tituloDeLosPropios('Miami')).toBe('De Miami')
+  expect(detalleDeLosPropios('Miami')).toBe('Sólo se piden en Miami.')
+  expect(tituloDeLosPropios(null)).toBe('Del flujo de repuestos')
+  expect(detalleDeLosPropios(null)).toBe('Sólo se piden en el flujo de repuestos.')
+})
+
+it('un compartido que tapa el flujo lleva la insignia; los demás, no', () => {
+  const compartidos = vistas.empresa as VistaDeGrupo
+  const conTapados = { ...compartidos, tapados: tapadosDelGrupo(new Set(['bl']), 'Miami') }
+  const [bl, titulo] = compartidos.grupo.tipos
+  if (!bl || !titulo) throw new Error('faltan tipos')
+  expect(insigniaDeTapado(conTapados, bl)).toBe('Tapado por el de Miami')
+  expect(insigniaDeTapado(conTapados, titulo)).toBeNull()
+  expect(insigniaDeTapado(compartidos, bl)).toBeNull()
+  expect(tapadosDelGrupo(['bl'], null).insignia).toBe('Tapado por el del flujo de repuestos')
 })

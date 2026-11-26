@@ -19,7 +19,7 @@ const DATOS = {
 }
 
 describe('los esquemas de los tipos de documento', () => {
-  it('aceptan un pedido bien formado, de toda la empresa o de un flujo', () => {
+  it('aceptan un pedido bien formado, compartido o de un flujo', () => {
     expect(
       esquemaCrearTipoDeDocumento.safeParse({ id: ID, flujoId: null, cambios: DATOS }).success,
     ).toBe(true)

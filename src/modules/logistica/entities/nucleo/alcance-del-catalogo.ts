@@ -1,8 +1,7 @@
-import {
-  claveDeCatalogo,
-  loQueUsanLosOrigenes,
-  type FilaPropiaOCompartida,
-} from '@/shared/lib/catalogos/propios'
+import { loQueUsanLosOrigenes, type FilaPropiaOCompartida } from '@/shared/lib/catalogos/propios'
+
+// La clave de un puerto vive en `shared` porque `flujos` también la usa (la oferta de transporte): un módulo no importa otro.
+export { claveDePuerto } from '@/shared/lib/catalogos/propios'
 
 // Qué ofrece un selector de un catálogo propio o compartido (puertos, navieras, categorías de gasto) a una o varias unidades, y cómo se nombra lo
 // guardado que ya no se ofrece. Lo usan transporte y dinero: un área no importa otra.
@@ -41,14 +40,6 @@ export function alcanceDelCatalogo(
 /** Todo lo leído es usable: para quien no sabe de orígenes. */
 export function alcanceLibre(filas: readonly { id: string }[]): AlcanceDelCatalogo {
   return { usables: new Set(filas.map((f) => f.id)), tapados: new Set(), ajenos: new Set() }
-}
-
-/**
- * La clave de un puerto, como el único de la base `(origen_id, _catalogo_clave(nombre), _catalogo_clave(pais))`: las dos claves unidas por un salto
- * de línea, que `claveDeCatalogo()` nunca deja (colapsa los espacios a uno).
- */
-export function claveDePuerto(nombre: string, pais: string | null): string {
-  return `${claveDeCatalogo(nombre)}\n${claveDeCatalogo(pais)}`
 }
 
 /** El nombre de una fila donde se mezclan orígenes (embarques, el filtro de gastos): un propio lleva su origen, «Arica · Chile». */

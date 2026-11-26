@@ -22,7 +22,7 @@ type Args = {
   // Nulo = «Nuevo tipo».
   original: TipoDeDocumento | null
   grupo: ClaveDeGrupo
-  // El flujo del grupo (nulo = toda la empresa): donde nace un tipo nuevo.
+  // El flujo del grupo (nulo = los compartidos): donde nace un tipo nuevo.
   flujoId: string | null
   alCerrar: () => void
   // Cerrado (se descartó o se fue con «atrás»), lo que esperaba la red no sale ni se escribe borrador.

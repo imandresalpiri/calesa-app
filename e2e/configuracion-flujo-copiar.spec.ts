@@ -115,7 +115,7 @@ test('E2E escritorio: empieza el flujo con las fases de otro origen', async ({ p
   expect(
     sql(`select count(*) from public.fases_transiciones where flujo_id = ${literal(flujo)}`),
   ).toBe('2')
-  // El tipo «Sólo de este flujo» se creó en el destino y el requisito apunta a él.
+  // El tipo propio del origen se creó en el destino y el requisito apunta a él.
   expect(
     sql(
       `select count(*) from public.fases_requisitos r

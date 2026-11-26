@@ -1,10 +1,10 @@
-// Un tipo de documento (Título, BL, Declaración de importación… y los que la empresa o un flujo agreguen): lo que se le pide a quien sube un
+// Un tipo de documento (Título, BL, Declaración de importación… y los que se agreguen, compartidos o de un flujo): lo que se le pide a quien sube un
 // documento y cuándo vence. Se configura en Logística › Configuración › Tipos de documento y en el panel del flujo. Estas reglas son espejo de `_tipo_documento_validar()` y
 // `_tipo_documento_de_jsonb()`: la base las vuelve a decir, con estos mismos textos y estos mismos
 // campos en el `hint`, si algo llega de otro lado. Aquí sirven para mostrar el error junto al campo sin ir a la base.
 //
-// Dos grupos: los de toda la empresa (`flujoId` nulo; los cambia quien gestiona los catálogos de logística) y los de un flujo (los cambia quien lo
-// configura). Cada grupo tiene su orden y su tope. El `proposito` (la clave interna de la semilla) no se edita nunca.
+// Dos grupos: los compartidos (`flujoId` nulo; los cambia quien gestiona los catálogos de logística en cada origen que los usa) y los de un flujo (los
+// cambia quien lo configura o, el de un origen, quien gestiona ahí los catálogos de logística); un propio activo tapa al compartido de su nombre. Cada grupo tiene su orden y su tope. El `proposito` (la clave interna de la semilla) no se edita nunca.
 import { conteoAcotado, conteoEnFrase, type ConteoAcotado } from '@/shared/lib/conteo'
 
 // Cuántos caben en un grupo: lo pone la base (`_tipos_documento_tope()`); la lectura pide uno más para saber si hay más.
@@ -53,7 +53,7 @@ export const TEXTO_DE_MODO: Record<ModoDeVencimiento, string> = {
 
 export type TipoDeDocumento = {
   id: string
-  // Nulo = de toda la empresa.
+  // Nulo = compartido.
   flujoId: string | null
   nombre: string
   descripcion: string | null

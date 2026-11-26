@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { definicionSql } from '../../../../scripts/lib/definicion-sql'
 import {
   claveDeCatalogo,
+  claveDePuerto,
   loQueUsaElOrigen,
   loQueUsanLosOrigenes,
   tapadoPor,
@@ -62,6 +63,14 @@ describe('claveDeCatalogo', () => {
     expect(claveDeCatalogo('Valparaíso')).toBe(claveDeCatalogo('valparaiso'))
     expect(claveDeCatalogo('Puerto-Arica')).not.toBe(claveDeCatalogo('Puerto Arica'))
     expect(claveDeCatalogo('con espacio')).not.toBe(claveDeCatalogo('con espacio'))
+  })
+})
+
+describe('claveDePuerto', () => {
+  it('une nombre y país sin que uno se confunda con el otro', () => {
+    expect(claveDePuerto(' Arica ', 'CHILE')).toBe(claveDePuerto('arica', 'Chile'))
+    expect(claveDePuerto('Arica', null)).toBe(claveDePuerto('arica', ''))
+    expect(claveDePuerto('Arica Chile', null)).not.toBe(claveDePuerto('Arica', 'Chile'))
   })
 })
 

@@ -25,7 +25,22 @@ function requisito(parcial: Partial<RequisitoParaConfigurar>): RequisitoParaConf
 
 const opciones: OpcionesDeRequisitos = {
   tipos: [
-    { id: 't1', nombre: 'Título', formatos: ['application/pdf'], activo: true, delFlujo: false },
+    {
+      id: 't1',
+      nombre: 'Título',
+      formatos: ['application/pdf'],
+      activo: true,
+      delFlujo: false,
+      tapadoPor: null,
+    },
+    {
+      id: 't2',
+      nombre: 'Factura',
+      formatos: ['application/pdf'],
+      activo: true,
+      delFlujo: false,
+      tapadoPor: 'el de Miami',
+    },
   ],
   truncado: false,
   fases: [{ id: 'fr', nombre: 'Recibido', flujo: 'Repuestos' }],
@@ -58,6 +73,10 @@ describe('descripcionDeRequisito', () => {
       formatos: ['application/pdf', 'image/jpeg'],
     })
     expect(descripcionDeRequisito(r, opciones)).toBe('Título · 1 a 3 archivos · PDF, JPG')
+    // Uno que el flujo tapa sigue pedido y lo dice.
+    expect(
+      descripcionDeRequisito(requisito({ tipo: 'documento', tipoDocumentoId: 't2' }), opciones),
+    ).toBe('Factura (tapado por el de Miami)')
     expect(
       descripcionDeRequisito(requisito({ tipo: 'documento', tipoDocumentoId: 't1' }), opciones),
     ).toBe('Título')

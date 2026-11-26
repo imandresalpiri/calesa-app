@@ -3,7 +3,6 @@ import { claveDeCatalogo, type FilaPropiaOCompartida } from '@/shared/lib/catalo
 import {
   alcanceDelCatalogo,
   alcanceLibre,
-  claveDePuerto,
   nombreConOrigen,
   rotuloPorOrigen,
 } from './alcance-del-catalogo'
@@ -56,14 +55,6 @@ describe('alcanceDelCatalogo', () => {
       'iquique',
       'mejillones-b',
     ])
-  })
-})
-
-describe('claveDePuerto', () => {
-  it('une nombre y país sin que uno se confunda con el otro', () => {
-    expect(claveDePuerto(' Arica ', 'CHILE')).toBe(claveDePuerto('arica', 'Chile'))
-    expect(claveDePuerto('Arica', null)).toBe(claveDePuerto('arica', ''))
-    expect(claveDePuerto('Arica Chile', null)).not.toBe(claveDePuerto('Arica', 'Chile'))
   })
 })
 

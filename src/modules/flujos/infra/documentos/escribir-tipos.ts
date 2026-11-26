@@ -48,7 +48,7 @@ export const tiposDeDocumentoSupabase: RepositorioDeTiposDeDocumento = {
     return comoResultado(
       await supabase.rpc('tipo_documento_crear', {
         p_id: id,
-        // El tipo generado no admite nulo, pero la base sí (nulo = de toda la empresa).
+        // El tipo generado no admite nulo, pero la base sí (nulo = compartido).
         p_flujo: flujoId as string,
         p_datos: cambios as Json,
       }),

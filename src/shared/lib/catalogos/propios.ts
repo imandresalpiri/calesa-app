@@ -14,6 +14,12 @@ export function claveDeCatalogo(texto: string | null | undefined): string {
   return sinTildes.replace(/[ \t\n\r\f\v]+/g, ' ').replace(/^ | $/g, '')
 }
 
+// La clave de un puerto, como el único de la base `(origen_id, _catalogo_clave(nombre), _catalogo_clave(pais))`: las dos claves unidas por un salto
+// de línea, que `claveDeCatalogo()` nunca deja (colapsa los espacios a uno).
+export function claveDePuerto(nombre: string, pais: string | null): string {
+  return `${claveDeCatalogo(nombre)}\n${claveDeCatalogo(pais)}`
+}
+
 export type FilaPropiaOCompartida = {
   id: string
   // Nulo: compartido con todos los orígenes.

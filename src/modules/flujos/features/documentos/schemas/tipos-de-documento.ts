@@ -7,7 +7,7 @@ import {
 // Lo que cruza el límite de los tipos de documento: la forma y la lista cerrada de claves. Lo que vale cada dato (largo, repetido, días, el tope del
 // grupo) lo dice la base con el campo en el `hint`.
 const version = z.string().min(1)
-// Nulo = el grupo de toda la empresa. Va en las cuatro: la action necesita el grupo para exigir su permiso antes de escribir.
+// Nulo = el grupo de los compartidos. Va en las cuatro: la action necesita el grupo para exigir su permiso antes de escribir.
 const flujoId = z.guid().nullable()
 
 const datos = {

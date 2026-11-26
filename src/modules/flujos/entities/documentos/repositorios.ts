@@ -5,7 +5,7 @@ import type { CambiosDeTipo, CampoDeTipo } from './formulario-de-tipo'
 import type { RespuestaDeEscritura } from './respuestas'
 import type { GrupoDeTipos, RespuestaDeEliminar, UsoDeTipo } from './tipo-de-documento'
 
-// Un grupo: los de toda la empresa (`null`) o los de un flujo, en el orden en que se ven, con `tope + 1` leídos.
+// Un grupo: los compartidos (`null`) o los de un flujo, en el orden en que se ven, con `tope + 1` leídos.
 export type LectorDeTiposDeDocumento = (flujoId: string | null) => Promise<Resultado<GrupoDeTipos>>
 
 // Cuánto usa cada tipo del grupo (por id). Sólo quien puede cambiar el grupo: a los demás la base les dice `42501`.

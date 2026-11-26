@@ -9,7 +9,7 @@ import type {
 import { tiposDeDocumentoSupabase } from '../../infra/documentos/escribir-tipos'
 import { leerTiposDeDocumentoDelGrupo, leerUsoDeTiposDelGrupo } from '../../infra/documentos/tipos'
 
-// Un grupo de tipos (los de toda la empresa o los de un flujo), con `tope + 1` leídos.
+// Un grupo de tipos (los compartidos o los de un flujo), con `tope + 1` leídos.
 export const leerTiposDeDocumento: LectorDeTiposDeDocumento = leerTiposDeDocumentoDelGrupo
 
 // Cuánto usa cada tipo del grupo; sólo para quien puede cambiarlo.
