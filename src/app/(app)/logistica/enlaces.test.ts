@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { Permisos } from '@/shared/lib/permisos'
 import {
-  conBotonDeConfigurar,
+  destinoDeConfigurar,
   enlacesDeLogistica,
   esEnlaceActual,
-  esLaConfiguracion,
+  origenesParaConfigurar,
 } from './enlaces'
 
 const concede = (clave: string, origenId: string | null = null): Permisos[number] => ({
@@ -71,23 +71,36 @@ describe('el enlace actual', () => {
 })
 
 describe('el botón «Configurar»', () => {
-  it('lo ve quien gestiona los catálogos de logística, en algún origen; nadie más', () => {
-    expect(conBotonDeConfigurar([concede('logistica.catalogos.gestionar')])).toBe(true)
-    expect(conBotonDeConfigurar([concede('logistica.catalogos.gestionar', 'o1')])).toBe(true)
-    expect(conBotonDeConfigurar([])).toBe(false)
-    expect(conBotonDeConfigurar([concede('flujos.configurar'), concede('logistica.ver')])).toBe(
-      false,
-    )
+  const origenes = [
+    { id: 'o1', activo: false },
+    { id: 'o2', activo: true },
+    { id: 'o3', activo: true },
+  ]
+
+  it('lleva a los orígenes que la persona configura o donde gestiona los catálogos, los activos primero', () => {
+    expect(
+      origenesParaConfigurar(
+        [concede('flujos.configurar', 'o1'), concede('logistica.catalogos.gestionar', 'o3')],
+        origenes,
+      ),
+    ).toEqual(['o3', 'o1'])
+    expect(origenesParaConfigurar([concede('logistica.catalogos.gestionar')], origenes)).toEqual([
+      'o2',
+      'o3',
+      'o1',
+    ])
   })
 
-  it('la configuración es su página y sus pestañas; la barra no marca ningún enlace ahí', () => {
-    expect(esLaConfiguracion('/logistica/configuracion')).toBe(true)
-    expect(esLaConfiguracion('/logistica/configuracion/puertos')).toBe(true)
-    expect(esLaConfiguracion('/logistica/configuracion-x')).toBe(false)
-    expect(esLaConfiguracion('/logistica/gastos')).toBe(false)
-    const enlaces = enlacesDeLogistica([concede('logistica.ver', 'o1')])
-    for (const enlace of enlaces) {
-      expect(esEnlaceActual(enlace, '/logistica/configuracion/navieras'), enlace.titulo).toBe(false)
-    }
+  it('sin flujos.configurar ni los catálogos en ningún origen, ninguno', () => {
+    expect(
+      origenesParaConfigurar([concede('logistica.ver'), concede('repuestos.configurar')], origenes),
+    ).toEqual([])
+  })
+
+  it('va al origen pedido si lo configura; si no, al primero; sin ninguno, nulo', () => {
+    expect(destinoDeConfigurar('o3', ['o2', 'o3'])).toBe('o3')
+    expect(destinoDeConfigurar('o9', ['o2', 'o3'])).toBe('o2')
+    expect(destinoDeConfigurar(null, ['o2', 'o3'])).toBe('o2')
+    expect(destinoDeConfigurar('o2', [])).toBeNull()
   })
 })

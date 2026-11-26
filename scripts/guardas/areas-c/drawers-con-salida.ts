@@ -3,6 +3,12 @@
 import type { RegistroDeDrawer } from '../drawers-con-salida'
 
 export const REGISTRO: Record<string, RegistroDeDrawer> = {
+  // Los catálogos arriba del diagrama del flujo (`?panel=puertos|navieras|categorias-de-gasto|tipos-de-documento`): un solo drawer que muestra la lista
+  // del catálogo; crear y editar van en sus modales (`?accion=`), que cuidan lo escrito.
+  'src/app/(app)/configuracion/_flujo/catalogos-del-flujo.tsx': {
+    sinFormulario:
+      'es el marco de la lista de un catálogo; crear y editar abren su modal, que pregunta antes de cerrar con algo escrito, así que cerrar el drawer no pierde nada',
+  },
   'src/modules/flujos/features/requisitos/components/panel-de-fuera-de-regla.tsx': {
     sinFormulario:
       'sólo lista las unidades que quedaron fuera de regla y enlaza al inventario: no guarda nada tipeado; arreglarlas es de la unidad (Fase 6)',

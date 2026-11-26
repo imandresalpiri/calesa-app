@@ -23,10 +23,10 @@ export const REGISTRO: Record<string, ConfirmarConUrl> = {
     abre: 'src/modules/cotizaciones/features/comprobantes/components/emitir-comprobante-del-menu.tsx',
     senal: 'PANEL_EMITIR_COMPROBANTE',
   },
-  // `?panel=eliminar-tipo&tipo=<id>` (5.09).
+  // `?accion=eliminar-tipo&tipo=<id>`, dentro del drawer de los tipos (5.09).
   'src/modules/flujos/features/documentos/components/eliminar-tipo.tsx': {
     abre: 'src/modules/flujos/features/documentos/hooks/use-eliminar-tipo-por-url.ts',
-    senal: 'PANEL_ELIMINAR_TIPO',
+    senal: 'ACCION_ELIMINAR_TIPO',
   },
   // `?eliminar=requisito&quitar=<id>` (5.08): el diálogo de un inspector que ya ocupa `?fase=`.
   'src/modules/flujos/features/requisitos/components/eliminar-requisito.tsx': {
@@ -52,11 +52,6 @@ export const REGISTRO: Record<string, ConfirmarConUrl> = {
   'src/modules/logistica/features/dinero/components/confirmar-prorrateo.tsx': {
     abre: 'src/modules/logistica/features/dinero/hooks/use-prorrateo.ts',
     senal: 'PANEL_PRORRATEAR',
-  },
-  // `?panel=eliminar-categoria&categoria=<id>` (6.11-4).
-  'src/modules/logistica/features/dinero/components/eliminar-categoria.tsx': {
-    abre: 'src/modules/logistica/features/dinero/hooks/use-eliminar-categoria-por-url.ts',
-    senal: 'PANEL_ELIMINAR_CATEGORIA',
   },
   // `?panel=eliminar-valor&valor=<id>` (8.08-3).
   'src/modules/repuestos/features/catalogos/components/eliminar-valor.tsx': {

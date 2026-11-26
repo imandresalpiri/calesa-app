@@ -5,6 +5,7 @@ import {
   primeraPestanaAbierta,
   puedeAbrirElOrigen,
   puedeAbrirLaPestana,
+  puedeAbrirLaPuestaEnMarcha,
   puedeAbrirOrigenes,
 } from './acceso'
 
@@ -19,6 +20,7 @@ describe('puedeAbrirOrigenes', () => {
     expect(puedeAbrirOrigenes(con('origenes.gestionar'))).toBe(true)
     expect(puedeAbrirOrigenes(con('flujos.configurar', A))).toBe(true)
     expect(puedeAbrirOrigenes(con('cotizaciones.configurar'))).toBe(true)
+    expect(puedeAbrirOrigenes(con('logistica.catalogos.gestionar', A))).toBe(true)
   })
 
   it('una asesora sin esos permisos no entra', () => {
@@ -53,7 +55,8 @@ describe('pestanasDelOrigen', () => {
       pestanasDelOrigen(con('cotizaciones.configurar', A), A).map((p) => [p.clave, p.motivo]),
     )
     expect(motivos).toEqual({
-      fases: 'Lo configura quien tiene el permiso «Configurar el flujo».',
+      fases:
+        'Lo configura quien tiene el permiso «Configurar el flujo» o «Catálogos de logística».',
       planilla: undefined,
       hoja: undefined,
       tarjeta: undefined,
@@ -82,5 +85,23 @@ describe('primeraPestanaAbierta', () => {
     expect(primeraPestanaAbierta(con('origenes.gestionar', A), A)?.clave).toBe('campos')
     expect(primeraPestanaAbierta(con('flujos.configurar', A), B)).toBeNull()
     expect(primeraPestanaAbierta([], A)).toBeNull()
+  })
+})
+
+describe('con sólo los catálogos de logística', () => {
+  const catalogosEnA = con('logistica.catalogos.gestionar', A)
+
+  it('abre el origen A y su pestaña Fases, no el origen B', () => {
+    expect(puedeAbrirElOrigen(catalogosEnA, A)).toBe(true)
+    expect(puedeAbrirLaPestana(catalogosEnA, A, 'fases')).toBe(true)
+    expect(primeraPestanaAbierta(catalogosEnA, A)?.clave).toBe('fases')
+    expect(puedeAbrirElOrigen(catalogosEnA, B)).toBe(false)
+    expect(puedeAbrirLaPestana(catalogosEnA, B, 'fases')).toBe(false)
+  })
+
+  it('no abre la planilla ni la puesta en marcha', () => {
+    expect(puedeAbrirLaPestana(catalogosEnA, A, 'planilla')).toBe(false)
+    expect(puedeAbrirLaPuestaEnMarcha(catalogosEnA, A)).toBe(false)
+    expect(puedeAbrirLaPuestaEnMarcha(con('flujos.configurar', A), A)).toBe(true)
   })
 })

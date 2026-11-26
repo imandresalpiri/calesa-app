@@ -76,36 +76,34 @@ describe('los destinos de búsqueda de Configuración', () => {
 })
 
 describe('los destinos de búsqueda fuera de Configuración', () => {
-  it('son los cuatro catálogos de logística, en Logística › Configuración, y las tres pestañas de Repuestos › Configuración', () => {
+  it('son las tres pestañas de Repuestos › Configuración y los tipos de documento del flujo de repuestos', () => {
     expect(DESTINOS_FUERA_DE_CONFIGURACION.map((d) => [d.lugar, d.titulo, d.ruta])).toEqual([
-      ['Logística', 'Puertos', '/logistica/configuracion/puertos'],
-      ['Logística', 'Navieras', '/logistica/configuracion/navieras'],
-      ['Logística', 'Categorías de gasto', '/logistica/configuracion/categorias-de-gasto'],
-      ['Logística', 'Tipos de documento', '/logistica/configuracion/tipos-de-documento'],
       ['Repuestos', 'Flujo de repuestos', '/repuestos/configuracion/flujo'],
+      [
+        'Repuestos › Flujo de repuestos',
+        'Tipos de documento',
+        '/repuestos/configuracion/flujo?panel=tipos-de-documento',
+      ],
       ['Repuestos', 'Cotizador de repuestos', '/repuestos/configuracion/cotizador'],
       ['Repuestos', 'Catálogos de repuestos', '/repuestos/configuracion/catalogos'],
     ])
   })
 
-  it('cada ruta tiene su página y las claves no se repiten', () => {
+  it('cada ruta, sin consulta, tiene su página y las claves no se repiten', () => {
     for (const destino of DESTINOS_FUERA_DE_CONFIGURACION) {
-      expect(existsSync(path.join(APP, destino.ruta, 'page.tsx')), destino.ruta).toBe(true)
+      const sinConsulta = destino.ruta.split('?')[0] ?? destino.ruta
+      expect(existsSync(path.join(APP, sinConsulta, 'page.tsx')), destino.ruta).toBe(true)
     }
     const claves = DESTINOS_FUERA_DE_CONFIGURACION.map((d) => d.clave)
     expect(new Set(claves).size).toBe(claves.length)
   })
 
-  it('se ofrecen a quien tiene sus permisos: los tipos de documento, también a quien configura un flujo o los repuestos', () => {
-    expect(
-      destinosFueraDeConfiguracion(con('logistica.catalogos.gestionar')).map((d) => d.clave),
-    ).toEqual(['puertos', 'navieras', 'categorias-de-gasto', 'tipos-de-documento'])
-    expect(destinosFueraDeConfiguracion(con('flujos.configurar')).map((d) => d.clave)).toEqual([
-      'tipos-de-documento',
-    ])
+  it('se ofrecen a quien tiene sus permisos: los de Repuestos, a quien los configura', () => {
+    expect(destinosFueraDeConfiguracion(con('logistica.catalogos.gestionar'))).toEqual([])
+    expect(destinosFueraDeConfiguracion(con('flujos.configurar'))).toEqual([])
     expect(destinosFueraDeConfiguracion(con('repuestos.configurar')).map((d) => d.clave)).toEqual([
-      'tipos-de-documento',
       'flujo-de-repuestos',
+      'tipos-de-documento-de-repuestos',
       'cotizador-de-repuestos',
       'catalogos-de-repuestos',
     ])
@@ -113,8 +111,8 @@ describe('los destinos de búsqueda fuera de Configuración', () => {
   })
 
   it('no llevan los permisos al navegador', () => {
-    expect(
-      Object.keys(destinosFueraDeConfiguracion(con('logistica.catalogos.gestionar'))[0] ?? {}),
-    ).toEqual(['clave', 'lugar', 'titulo', 'ruta', 'palabras'])
+    expect(Object.keys(destinosFueraDeConfiguracion(con('repuestos.configurar'))[0] ?? {})).toEqual(
+      ['clave', 'lugar', 'titulo', 'ruta', 'palabras'],
+    )
   })
 })

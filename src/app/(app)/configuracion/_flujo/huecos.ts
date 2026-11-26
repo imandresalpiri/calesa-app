@@ -39,3 +39,7 @@ export const HUECOS_DE_FLUJOS: HuecosDelFlujo = {
     reglas: ReglasDeLaFase,
   },
 }
+
+// En lectura (quien sólo gestiona los catálogos de logística del origen) no se pone ningún hueco: el núcleo dibuja el diagrama y la lista sin escribir nada,
+// y el panel de una fase la muestra sin pestañas de edición.
+export const HUECOS_DE_LECTURA: HuecosDelFlujo = {}

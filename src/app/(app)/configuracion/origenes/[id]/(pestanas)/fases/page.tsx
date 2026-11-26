@@ -22,6 +22,7 @@ export default async function PaginaFlujoDelOrigen({
       permisos={abierto.sesion.permisos}
       fijo={{ origenId: abierto.origen.id }}
       seccionPedida={unParametro(parametros['seccion'])}
+      panelPedido={unParametro(parametros['panel'])}
     />
   )
 }

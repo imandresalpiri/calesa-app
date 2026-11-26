@@ -3,6 +3,7 @@ import type { Permisos } from '@/shared/lib/permisos'
 import { destinosFueraDeConfiguracion } from '../destinos-de-busqueda'
 import { gruposVisibles, paraElNavegador, type GrupoDelNavegador } from '../secciones'
 import { TOPE_DE_RESULTADOS, buscarEnConfiguracion, normalizar } from './buscar'
+import { destinosDeLosCatalogos } from './destinos-de-los-catalogos'
 import { conOrigenesEnElMenu, subseccionesDeOrigenes } from './origenes-del-menu'
 
 const TODO: Permisos = [
@@ -130,48 +131,43 @@ describe('los destinos de búsqueda de Orígenes', () => {
   })
 })
 
-describe('los destinos de búsqueda de Logística', () => {
-  const fuera = destinosFueraDeConfiguracion(TODO)
+describe('los catálogos de logística de cada origen', () => {
+  const MIAMI = '00000000-0000-4000-8000-000000000901'
+  const fuera = destinosDeLosCatalogos([{ id: MIAMI, nombre: 'Miami' }], TODO)
   const encontrados = (texto: string) =>
     buscarEnConfiguracion(grupos, texto, fuera).map((r) => [r.camino, r.ruta])
+  const fases = `/configuracion/origenes/${MIAMI}/fases`
 
-  it('puertos, navieras, gastos y tipos de documento se encuentran y llevan a Logística › Configuración', () => {
+  it('puertos, navieras, gastos y tipos de documento se encuentran y abren su drawer en la pestaña Fases del origen', () => {
     expect(encontrados('puertos')[0]).toEqual([
-      'Logística › Puertos',
-      '/logistica/configuracion/puertos',
+      'Orígenes › Miami › Fases › Puertos',
+      `${fases}?panel=puertos`,
     ])
     expect(encontrados('navieras')[0]).toEqual([
-      'Logística › Navieras',
-      '/logistica/configuracion/navieras',
-    ])
-    expect(encontrados('categorías de gasto')[0]).toEqual([
-      'Logística › Categorías de gasto',
-      '/logistica/configuracion/categorias-de-gasto',
+      'Orígenes › Miami › Fases › Navieras',
+      `${fases}?panel=navieras`,
     ])
     expect(encontrados('gastos')[0]).toEqual([
-      'Logística › Categorías de gasto',
-      '/logistica/configuracion/categorias-de-gasto',
-    ])
-    expect(encontrados('tipos de documento')[0]).toEqual([
-      'Logística › Tipos de documento',
-      '/logistica/configuracion/tipos-de-documento',
+      'Orígenes › Miami › Fases › Categorías de gasto',
+      `${fases}?panel=categorias-de-gasto`,
     ])
     expect(encontrados('documentos')).toContainEqual([
-      'Logística › Tipos de documento',
-      '/logistica/configuracion/tipos-de-documento',
+      'Orígenes › Miami › Fases › Tipos de documento',
+      `${fases}?panel=tipos-de-documento`,
     ])
   })
 
   it('«logística» los encuentra a todos', () => {
     const caminosDe = encontrados('logística').map(([camino]) => camino)
     for (const titulo of ['Puertos', 'Navieras', 'Categorías de gasto', 'Tipos de documento']) {
-      expect(caminosDe).toContain(`Logística › ${titulo}`)
+      expect(caminosDe).toContain(`Orígenes › Miami › Fases › ${titulo}`)
     }
   })
 
-  it('sin destinos de afuera no hay nada; sin el permiso, tampoco', () => {
+  it('sin destinos de afuera no hay nada; sin la pestaña Fases del origen, tampoco', () => {
     expect(caminos('puertos')).toEqual([])
-    expect(destinosFueraDeConfiguracion([])).toEqual([])
+    const ver: Permisos = [{ clave: 'logistica.ver', origenId: null, alcance: 'todos' }]
+    expect(destinosDeLosCatalogos([{ id: MIAMI, nombre: 'Miami' }], ver)).toEqual([])
   })
 })
 
