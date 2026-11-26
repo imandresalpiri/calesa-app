@@ -10,7 +10,7 @@ import type {
 import { esCampoDeFase } from '../../entities/fases/reglas-de-fase'
 import { respuestaDeEliminarFaseDesde, respuestaDeFaseDesde } from '../../entities/fases/respuestas'
 
-// Las cinco escrituras (`fase_crear`, `fase_guardar`, `fase_mover`, `fase_eliminar`, `fase_reactivar`): el permiso del flujo, la versión (`PT409`), las reglas del dato con el campo
+// Las seis escrituras (`fase_crear`, `fase_guardar`, `fase_mover`, `fase_eliminar`, `fase_reactivar`, `fase_posiciones_guardar`): el permiso del flujo, la versión (`PT409`), las reglas del dato con el campo
 // en el `hint` (`22023`, `23514`) y los únicos con mensaje humano (`23505`). Ninguna devuelve la lista.
 const NO_SE_LEYO = 'No pudimos leer la respuesta. Recarga para ver cómo quedó.'
 
@@ -40,14 +40,15 @@ function comoResultado<T>(
 }
 
 export const fasesSupabase: RepositorioDeFases = {
-  crear: async ({ id, flujoId, actualizadoEnEsperado, datos }) => {
+  crear: async ({ id, flujoId, actualizadoEnEsperado, datos, posicion }) => {
     const supabase = await createClient()
     return comoResultado(
       await supabase.rpc('fase_crear', {
         p_id: id,
         p_flujo: flujoId,
         p_actualizado_en_esperado: actualizadoEnEsperado,
-        p_datos: datos as Json,
+        // La posición viaja junto a los datos: la base la saca antes de su lista cerrada.
+        p_datos: (posicion ? { ...datos, posicion } : datos) as Json,
       }),
       respuestaDeFaseDesde,
     )
@@ -83,6 +84,17 @@ export const fasesSupabase: RepositorioDeFases = {
         p_actualizado_en_esperado: actualizadoEnEsperado,
       }),
       respuestaDeEliminarFaseDesde,
+    )
+  },
+  guardarPosiciones: async ({ flujoId, actualizadoEnEsperado, posiciones }) => {
+    const supabase = await createClient()
+    return comoResultado(
+      await supabase.rpc('fase_posiciones_guardar', {
+        p_flujo: flujoId,
+        p_actualizado_en_esperado: actualizadoEnEsperado,
+        p_posiciones: posiciones.map((p) => ({ fase: p.faseId, x: p.x, y: p.y })),
+      }),
+      respuestaDeFaseDesde,
     )
   },
   reactivar: async ({ id, actualizadoEnEsperado }) => {

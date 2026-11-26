@@ -184,7 +184,7 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
 ## Tablas
 
 `flujos`, `flujos_reglas`, `fases`, `fases_transiciones`, `fases_roles`, `fases_transiciones_roles`, `tipos_documento`, `fases_requisitos`, `historial_fases`, `flujos_transporte_oferta`.
-RPC: `cambiar_fase`, `cambiar_fase_lote`, `flujo_copiar_fases`, `previsualizar_cambio_fase`, `previsualizar_cambio_fase_lote`, `revisar_flujo`, `fase_crear`, `fase_guardar`, `fase_mover`, `fase_impacto`, `fase_eliminar`, `fase_reactivar`, `requisito_crear`, `requisito_guardar`, `requisito_mover`, `requisito_eliminar`, `requisito_impacto`, `flujo_fuera_de_regla`, `claves_dato_requisito`, `flujo_regla_impacto`, `flujo_regla_cambiar`, `flujo_oferta_guardar`, `flujo_oferta`, `logistica_cadena_resumen`, `logistica_cadena_columna`, `logistica_bandeja_grupo`, `logistica_unidad`, `logistica_donde_esta`.
+RPC: `cambiar_fase`, `cambiar_fase_lote`, `flujo_copiar_fases`, `previsualizar_cambio_fase`, `previsualizar_cambio_fase_lote`, `revisar_flujo`, `fase_crear`, `fase_guardar`, `fase_mover`, `fase_posiciones_guardar`, `fase_impacto`, `fase_eliminar`, `fase_reactivar`, `requisito_crear`, `requisito_guardar`, `requisito_mover`, `requisito_eliminar`, `requisito_impacto`, `flujo_fuera_de_regla`, `claves_dato_requisito`, `flujo_regla_impacto`, `flujo_regla_cambiar`, `flujo_oferta_guardar`, `flujo_oferta`, `logistica_cadena_resumen`, `logistica_cadena_columna`, `logistica_bandeja_grupo`, `logistica_unidad`, `logistica_donde_esta`.
 
 ## No se rompe
 
@@ -223,9 +223,13 @@ jubilada|eliminada, version}`. Los conteos de `_fase_uso` llegan como tope + 1 (
   destino (`42501`) y en el origen (`42501` hint `desde`) → candados en orden de uuid (origen `for share`, destino `_flujo_para_editar`) → destino de
   repuestos (`22023` hint `destino`) → destino con alguna fase, también jubilada (`23514` hint `destino`) → origen sin fases activas (`22023` hint
   `desde`) → tope de tipos (`22023` hint `tipos_documento`). Copia reglas, tipos propios del flujo (reusa uno del destino o un compartido activo con la
-  misma clave, `_catalogo_clave`: sin importar mayúsculas, tildes ni espacios de más), fases activas, `fases_roles`, salidas entre activas con sus roles y requisitos (formatos que no caben en el tipo → nulo). Registra
+  misma clave, `_catalogo_clave`: sin importar mayúsculas, tildes ni espacios de más), fases activas (con su posición), `fases_roles`, salidas entre activas con sus roles y requisitos (formatos que no caben en el tipo → nulo). Registra
   `flujo.copiado` y devuelve `{version, copiado, saltado[≤50] {motivo, nombre}, saltado_hay_mas}`. Lo prueban `supabase/tests/areas/flujos/copiar-fases.sql`
   y K5–K6 de sus carreras.
+- `fase_posiciones_guardar(p_flujo, p_actualizado_en_esperado, p_posiciones)` (definer) guarda dónde se dibuja cada fase: 1–200 `{fase, x, y}` en rem
+  (las dos nulas = sin posición), todo o nada. Forma (`22023` hint `posiciones`: vacío, más de 200, repetida, clave de más, incompleta o fuera de
+  ±10.000) → `_flujo_para_editar` → fase ajena `PT409` → sólo las filas que cambian → `_flujo_tocar`. Sólo escribe `posicion_x/y`. `fase_crear` acepta
+  `p_datos.posicion = {x, y}` (se saca antes de `_fase_forma`; mal formada `22023` hint `posicion`). Lo prueba `supabase/tests/areas/flujos/fases-posiciones.sql`.
 - `fase_mover(p_fase, p_actualizado_en_esperado, p_despues_de)` renumera todas las fases del flujo (también jubiladas) de 10 en 10 y sólo escribe `orden`.
   `fase_reactivar(p_fase, p_actualizado_en_esperado)` valida las reglas del flujo (`23514` con el campo en `hint`) y sólo escribe `activa`.
 - `revisar_flujo(p_flujo)` (`security definer`) sólo responde a quien configura el flujo (`puede_configurar_flujo`); a los demás, cero filas sin error. Devuelve
@@ -266,6 +270,9 @@ jubilada|eliminada, version}`. Los conteos de `_fase_uso` llegan como tope + 1 (
 - El vehículo nace en la fase inicial **sólo si no hay nada que decidir** (`vehiculo_crear`: exactamente una inicial activa, que no pide nota, sin requisitos bloqueantes pendientes ni roles que excluyan a quien crea), con su fila en `historial_fases` (`de_fase_id` nulo). Si no, nace sin fase y la primera transición explícita (`cambiar_fase`) lo pone en una inicial. Entrar al nacer no pide `flujos.mover`.
 - Un origen recién creado tiene flujo y reglas pero **ninguna fase**: `leerFasesDeOrigen()` devuelve una lista vacía. Su pestaña Fases ofrece copiar
   las de otro origen.
+- **La posición no se audita:** `trg_auditar_cambio` y `trg_actualizado_en` de `fases` llevan `when` (posición sin cambios) y `web_revalidar` es `update of`
+  una lista explícita de columnas. Una columna nueva de `fases` va también a esa lista, o renombrar no revalida la web; una columna sólo visual, a los `when`.
+  Sólo `fase_posiciones_guardar` (y `fase_crear`, la copia) escribe la posición, y no escribe otra cosa.
 - Una columna nueva en `fases`, `fases_requisitos` o `tipos_documento` que deba viajar en la copia se suma también a `flujo_copiar_fases`: si no, el
   flujo copiado nace sin ella.
 - `flujos.activo` no lo lee nadie ni lo edita ninguna pantalla: no filtres por él sin decidir qué apaga.

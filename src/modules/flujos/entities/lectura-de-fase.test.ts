@@ -34,6 +34,7 @@ const fase = (n: number, extra: Partial<FaseParaConfigurar> = {}): FaseParaConfi
   aliasPortal: null,
   descripcionPortal: null,
   esSubasta: false,
+  posicion: null,
   ...extra,
 })
 

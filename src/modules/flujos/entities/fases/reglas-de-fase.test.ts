@@ -51,6 +51,7 @@ const FASE: FaseParaConfigurar = {
   aliasPortal: null,
   descripcionPortal: null,
   esSubasta: false,
+  posicion: null,
 }
 const BASE: ValoresDeFase = valoresDeFase(FASE)
 const con = (cambios: Partial<ValoresDeFase>): ValoresDeFase => ({ ...BASE, ...cambios })

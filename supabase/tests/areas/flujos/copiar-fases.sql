@@ -11,6 +11,7 @@
 --   C4. Rechazos: destino con fases (aunque sea una jubilada) → 23514 `destino`; origen sin fases activas, el mismo flujo, repuestos o un origen
 --       inexistente → 22023 `desde`/`destino`; versión vieja o destino inexistente → PT409; sobre el tope de tipos → 22023 `tipos_documento`.
 --   C5. `authenticated` ejecuta; `anon` no.
+--   C6. La copia lleva la posición de cada fase en el diagrama (la que no tenía sigue sin ella).
 
 create or replace function pg_temp.cf_persona(p_concesiones text[]) returns uuid language plpgsql as $f$
 declare v_id uuid := gen_random_uuid(); v_rol uuid; c text;
@@ -337,6 +338,25 @@ begin
   end if;
   if has_function_privilege('anon', 'public.flujo_copiar_fases(uuid, timestamptz, uuid)', 'execute') then
     raise exception 'C5: anon no debía ejecutar flujo_copiar_fases';
+  end if;
+end $$;
+rollback;
+
+-- @test copiar-fases: la copia lleva la posición de cada fase en el diagrama, y la que no tenía sigue sin ella (C6)
+begin;
+do $$
+declare
+  primera uuid := pg_temp.cf_persona(array['vehiculos.ver']);
+  a uuid := pg_temp.cf_flujo(); b uuid := pg_temp.cf_flujo();
+  quien uuid := pg_temp.cf_persona(array['flujos.configurar@' || pg_temp.cf_origen_de(a), 'flujos.configurar@' || pg_temp.cf_origen_de(b)]);
+  f1 uuid := pg_temp.cf_fase(a, 'CF Con lugar', 10, '{"es_inicial": true}');
+  f2 uuid := pg_temp.cf_fase(a, 'CF Sin lugar', 20);
+begin
+  update public.fases set posicion_x = 12.5, posicion_y = -3 where id = f1;
+  perform pg_temp.cf_bien('C6', pg_temp.cf_copiar(quien, b, a));
+  if (select posicion_x::text || ',' || posicion_y::text from public.fases where id = pg_temp.cf_en(b, 'CF Con lugar')) is distinct from '12.50,-3.00'
+     or (select posicion_x from public.fases where id = pg_temp.cf_en(b, 'CF Sin lugar')) is not null then
+    raise exception 'C6: la copia no llevó las posiciones';
   end if;
 end $$;
 rollback;

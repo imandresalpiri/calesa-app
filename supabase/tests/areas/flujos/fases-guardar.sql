@@ -124,7 +124,7 @@ begin
     '22023', 'Para mostrarla en el portal escribe su nombre para el cliente.', 'alias_portal');
   if exists (select 1 from public.fases where flujo_id = a) then raise exception 'G3: una validación escribió'; end if;
   perform pg_temp.fg_pasa('G3 buena', pg_temp.fg_crear(yo, a, '{"nombre": "  FG buena ", "descripcion": "", "icono": "camion-2", "alerta_cada_horas": 720}'));
-  if (select to_jsonb(f) - array['id', 'flujo_id', 'orden', 'creado_en', 'actualizado_en'] from public.fases f where flujo_id = a)
+  if (select to_jsonb(f) - array['id', 'flujo_id', 'orden', 'creado_en', 'actualizado_en', 'posicion_x', 'posicion_y'] from public.fases f where flujo_id = a)
      is distinct from jsonb_build_object('nombre', 'FG buena', 'descripcion', null, 'icono', 'camion-2', 'alerta_cada_horas', 720, 'color', '#717c93',
        'es_inicial', false, 'es_final', false, 'activa', true, 'es_logistica', true, 'demora_dias', null, 'nota_obligatoria', false, 'permite_contenedor', true,
        'permite_aduana', false, 'cuenta_llegada_repuestos', false, 'es_subasta', false, 'publica_web', false, 'visible_portal', false, 'alias_portal', null, 'descripcion_portal', null) then
