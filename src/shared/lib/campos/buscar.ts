@@ -1,5 +1,5 @@
 // Buscar un campo por su nombre en el editor: sin tildes ni mayúsculas, sobre lo que ya llegó (el layout entero viaja con la página).
-const sinTildes = (texto: string) => texto.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+import { sinTildes } from '../catalogo/nombre'
 
 // Si la etiqueta contiene lo buscado; una consulta vacía (o de espacios) coincide con todo.
 export function coincide(etiqueta: string, consulta: string): boolean {
