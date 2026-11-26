@@ -1,5 +1,6 @@
 // §2 y §3 de `validarDiseno()`: las secciones, ítem por ítem, y la tarjeta del total. Un ítem se revisa entero, en el orden de la
-// fila, antes del siguiente; lo que cruza ítems (dónde se dibuja cada nodo, los atajos) queda en el `Estado` para §4 y §5.
+// fila, antes del siguiente; lo que cruza ítems (dónde se dibuja cada nodo, los atajos) queda en el `Estado` para §4 y §5. La geometría de la
+// rejilla (`validar-diseno-rejilla.ts`) va tras las reglas propias de cada sección y, en cada ítem, tras `nodo_repetido`.
 import {
   NIVEL_TODOS,
   type CeldaDeDiseno,
@@ -11,24 +12,49 @@ import { buscar, esta, recorrer } from './medidor'
 import { fallo, type FalloDeDiseno } from './motivos-de-diseno'
 import type { Nodo } from './nodos'
 import { revisarNivel, type Estado, type Indice } from './validar-diseno-contexto'
+import {
+  ocupacionesDeLasSecciones,
+  revisarGeometriaDeLaSeccion,
+  revisarGeometriaDelItem,
+} from './validar-diseno-rejilla'
 
 // Los niveles de una sección ya revisada: lo que un ítem hereda.
 type Niveles = { ver: string; editar: string }
 
 export function revisarSecciones(ix: Indice, d: Diseno, e: Estado): FalloDeDiseno | undefined {
   const vistas = new Set<string>()
+  const espacios = ocupacionesDeLasSecciones(d)
   for (const s of recorrer(d.secciones, ix.m)) {
     if (esta(vistas, s.id, ix.m)) return fallo('seccion_duplicada', { donde: s.id })
     vistas.add(s.id)
-    const r = revisarNivel(ix, s.nivel_ver, s.id) ?? revisarNivel(ix, s.nivel_editar, s.id)
-    if (r !== undefined) return r
-    if (editaSinVer(s.nivel_ver, s.nivel_editar)) return fallo('editar_sin_ver', { donde: s.id })
-    const heredados = { ver: s.nivel_ver ?? NIVEL_TODOS, editar: s.nivel_editar ?? NIVEL_TODOS }
-    for (const item of recorrer(s.items, ix.m)) {
-      const rechazo =
-        item.tipo === 'total' ? revisarTotal(e, s, heredados) : revisarItem(ix, e, item, heredados)
-      if (rechazo !== undefined) return rechazo
-    }
+    const rechazo =
+      revisarLaSeccion(ix, s) ??
+      revisarGeometriaDeLaSeccion(espacios[s.presentacion], s, ix.m) ??
+      revisarLosItems(ix, e, s)
+    if (rechazo !== undefined) return rechazo
+  }
+  return undefined
+}
+
+// Las reglas propias de una sección: sus niveles y que no edite sin ver.
+function revisarLaSeccion(ix: Indice, s: SeccionDeDiseno): FalloDeDiseno | undefined {
+  const r = revisarNivel(ix, s.nivel_ver, s.id) ?? revisarNivel(ix, s.nivel_editar, s.id)
+  if (r !== undefined) return r
+  return editaSinVer(s.nivel_ver, s.nivel_editar)
+    ? fallo('editar_sin_ver', { donde: s.id })
+    : undefined
+}
+
+// Los ítems de una sección, cada uno entero (sus reglas y después su geometría) antes del siguiente.
+function revisarLosItems(ix: Indice, e: Estado, s: SeccionDeDiseno): FalloDeDiseno | undefined {
+  const heredados = { ver: s.nivel_ver ?? NIVEL_TODOS, editar: s.nivel_editar ?? NIVEL_TODOS }
+  const celdas = new Set<number>()
+  for (const item of recorrer(s.items, ix.m)) {
+    const rechazo =
+      (item.tipo === 'total'
+        ? revisarTotal(e, s, heredados)
+        : revisarItem(ix, e, item, heredados)) ?? revisarGeometriaDelItem(celdas, s, item, ix.m)
+    if (rechazo !== undefined) return rechazo
   }
   return undefined
 }

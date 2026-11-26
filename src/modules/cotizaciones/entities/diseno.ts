@@ -3,14 +3,21 @@
 // es un `z.record` (la clave de cada modo y de cada bucket va adentro): así una clave `__proto__` sólo puede ser una clave desconocida de
 // un objeto estricto, y la rechazan igual Zod y `validar_diseno()`. Lo que cruza el diseño con la fórmula vive en `validar-diseno*.ts`.
 import { z } from 'zod'
+import { disenoEnRejilla } from './diseno-en-rejilla'
 import { esquemaId } from './nodos'
-import { COLUMNAS_DE_LA_REJILLA, MAXIMO_DE_FILAS } from './rejilla-de-la-hoja'
+import {
+  COLUMNAS_DE_LA_REJILLA,
+  FILAS_DE_LA_REJILLA,
+  MAXIMO_DE_FILAS,
+  type Posicion,
+} from './rejilla-de-la-hoja'
 
 export const ANCHOS = ['completo', 'mitad', 'tercio'] as const
 // El aspecto (docs/GLOSARIO.md › «Aspecto»): cómo se ve cada pieza en la rejilla de la hoja. Todo es opcional y su ausencia dibuja lo de siempre; los
 // valores salen de escalas cerradas (nada de px, CSS ni hex). Las claves no se llaman `estilo`, `clase`, `css`, `color` ni `html`: esas las rechaza el juego.
 // La rejilla de cada sección y la de las secciones tienen 12 columnas (`rejilla-de-la-hoja.ts`); `completo`, `mitad` y `tercio` de una celda son 12, 6 y 4.
-export { COLUMNAS_DE_LA_REJILLA, MAXIMO_DE_FILAS }
+export { COLUMNAS_DE_LA_REJILLA, FILAS_DE_LA_REJILLA, MAXIMO_DE_FILAS }
+export type { Posicion }
 export const RELLENOS = ['chico', 'medio', 'grande'] as const
 export const SEPARACIONES = ['chica', 'media', 'grande'] as const
 export const DENSIDADES_DE_SECCION = ['compacta', 'comoda'] as const
@@ -41,13 +48,18 @@ const texto = (max: number) => z.string().min(1).max(max)
 // Un entero como lo lee JS (`0.99999999999999999` es 1); la base copia esa lectura (D55–D58 y las marcas del aspecto).
 export const esquemaColumnas = z.int().min(1).max(COLUMNAS_DE_LA_REJILLA)
 export const esquemaFilas = z.int().min(1).max(MAXIMO_DE_FILAS)
+export const esquemaFila = z.int().min(1).max(FILAS_DE_LA_REJILLA)
 const columnas = esquemaColumnas
 const filas = esquemaFilas
-// El aspecto que lleva todo ítem, además del ancho (obligatorio en la celda, opcional en los demás).
+// Dónde empieza una pieza en su rejilla (docs/GLOSARIO.md › «Posición (en la rejilla)»): un objeto, porque `columna` ya es una clave de los atajos.
+// Va en toda sección y en todo ítem: un diseño de flujo la recibe al leerse (`disenoEnRejilla()`, el preproceso de `esquemaDiseno`).
+export const esquemaPosicion = z.strictObject({ columna: columnas, fila: esquemaFila })
+// El aspecto que lleva todo ítem, además del ancho (obligatorio en la celda, opcional en los demás), y su posición en la rejilla de su sección.
 const aspectoDeItem = {
   alto: filas.optional(),
   letra: z.enum(LETRAS).optional(),
   enfasis: z.enum(ENFASIS).optional(),
+  posicion: esquemaPosicion,
 }
 const anchoDeItem = { ancho: columnas.optional(), ...aspectoDeItem }
 
@@ -199,7 +211,9 @@ const esquemaItem = z.discriminatedUnion('tipo', [
   esquemaTotal,
 ])
 
-// El orden de las secciones es el del DOM, de lectura y del `Tab`. Sin `ancho`, la sección es «Automática» (toda la fila o, con lugar, la mitad).
+// Una sección va en la rejilla de las secciones (las principales) o en la lista de su bloque «Avanzado» (las avanzadas, en su propio espacio). El orden
+// del DOM, de lectura y del `Tab` es el de su posición (fila y luego columna); el editor guarda la lista en ese orden (`ordenarPorLectura()`). Sin
+// `ancho`, la sección es «Automática» (toda la fila o, con lugar, la mitad).
 const esquemaSeccion = z.strictObject({
   id: esquemaId,
   titulo: texto(80).optional(),
@@ -208,6 +222,7 @@ const esquemaSeccion = z.strictObject({
   nivel_editar: esquemaId.optional(),
   ancho: columnas.optional(),
   alto: filas.optional(),
+  posicion: esquemaPosicion,
   relleno: z.enum(RELLENOS).optional(),
   separacion: z.enum(SEPARACIONES).optional(),
   densidad: z.enum(DENSIDADES_DE_SECCION).optional(),
@@ -221,14 +236,22 @@ const esquemaSeccion = z.strictObject({
 // sola arriba de «Avanzado».
 const esquemaTarjeta = z.strictObject({ nodo: esquemaId, secundarios: z.array(esquemaId) })
 
-// El orden de las claves es el que Zod recorre para dar su primer error: cabecera, secciones, tarjeta (`validar_diseno()` lo copia).
-export const esquemaDiseno = z.strictObject({
+// Dónde va el bloque «Avanzado» (el total suelto, el botón «Avanzado» y el cierre: docs/GLOSARIO.md › «Bloque del avanzado»): una fila entera de la
+// rejilla de las secciones. Sin la clave, debajo de la última fila.
+const esquemaAvanzado = z.strictObject({ fila: esquemaFila })
+
+// El orden de las claves es el que Zod recorre para dar su primer error: cabecera, secciones, tarjeta, avanzado (`validar_diseno()` lo copia).
+export const esquemaDeLaRejilla = z.strictObject({
   cabecera: esquemaCabecera,
   secciones: z.array(esquemaSeccion).min(1),
   tarjeta_total: esquemaTarjeta,
+  avanzado: esquemaAvanzado.optional(),
 })
+// Todo lector del diseño lo recibe en rejilla: uno de flujo se convierte al leerse, sin reescribir ninguna versión guardada.
+export const esquemaDiseno = z.preprocess(disenoEnRejilla, esquemaDeLaRejilla)
 
-export type Diseno = z.infer<typeof esquemaDiseno>
+export type Diseno = z.output<typeof esquemaDeLaRejilla>
+export type AvanzadoDeDiseno = NonNullable<Diseno['avanzado']>
 export type ModoDeTipoDeCambio = Diseno['cabecera']['modos'][number]
 export type SeccionDeDiseno = Diseno['secciones'][number]
 export type ItemDeDiseno = SeccionDeDiseno['items'][number]
@@ -248,6 +271,21 @@ export type Separacion = (typeof SEPARACIONES)[number]
 export type DensidadDeSeccion = (typeof DENSIDADES_DE_SECCION)[number]
 export type Letra = (typeof LETRAS)[number]
 export type Enfasis = (typeof ENFASIS)[number]
+
+// Una pieza antes de tener lugar: la que ofrece «Sumar» (`primerLugarLibre()` le da su posición al sumarla) y la de un diseño de flujo que aún no se
+// leyó (las pruebas lo escriben así y `esquemaDiseno` o `enRejilla()` lo convierten).
+type SinPosicion<T> = T extends { posicion: Posicion }
+  ? Omit<T, 'posicion'> & { posicion?: Posicion }
+  : T
+export type ItemSinPosicion = SinPosicion<ItemDeDiseno>
+export type SeccionSinPosicion = Omit<SeccionDeDiseno, 'posicion' | 'items'> & {
+  posicion?: Posicion
+  items: ItemSinPosicion[]
+}
+export type DisenoSinPosicion = Omit<Diseno, 'secciones'> & { secciones: SeccionSinPosicion[] }
+
+// Un diseño (de flujo o ya en rejilla) en rejilla, sin validarlo: la conversión de `esquemaDiseno` con su tipo.
+export const enRejilla = (d: DisenoSinPosicion | Diseno): Diseno => disenoEnRejilla(d) as Diseno
 
 // El nodo que dibuja un ítem, o nada si es la tarjeta del total (su nodo es el de `tarjeta_total`).
 export function nodoDelItem(item: ItemDeDiseno): string | null {

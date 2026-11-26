@@ -80,9 +80,19 @@ describe('index.ts del módulo cotizaciones: el diseño de la hoja', () => {
     nodos: [{ id: 'monto', tipo: 'input' as const, etiqueta: 'Monto', salida: 'total' as const }],
   }
   const contexto: ContextoDeDiseno = { niveles: [], retirados: [], tonos: [] }
-  const celda: CeldaDeDiseno = { tipo: 'celda', nodo: 'monto', ancho: 'completo' }
+  const celda: CeldaDeDiseno = {
+    tipo: 'celda',
+    nodo: 'monto',
+    ancho: 'completo',
+    posicion: { columna: 1, fila: 1 },
+  }
   const item: ItemDeDiseno = celda
-  const seccion: SeccionDeDiseno = { id: 's', presentacion: 'principal', items: [item] }
+  const seccion: SeccionDeDiseno = {
+    id: 's',
+    presentacion: 'principal',
+    posicion: { columna: 1, fila: 1 },
+    items: [item],
+  }
   const modos: ModoDeTipoDeCambio[] = []
   const diseno: Diseno = {
     cabecera: { modos, ver_total_bs: false },
@@ -112,6 +122,6 @@ describe('index.ts del módulo cotizaciones: el diseño de la hoja', () => {
     expect(EFECTOS_DE_INTERRUPTOR).toEqual(['habilita', 'muestra'])
     expect(MAXIMO_DE_ATAJOS).toBe(12)
     expect(NIVEL_TODOS).toBe('todos')
-    expect(REGLAS_DE_DISENO).toHaveLength(42)
+    expect(REGLAS_DE_DISENO).toHaveLength(44)
   })
 })

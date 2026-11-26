@@ -13,6 +13,7 @@ import {
 import { tablasParaElCompilador, type TablaDelCatalogoDelOrigen } from '../catalogo-de-tablas'
 import type { Definicion } from '../formula'
 import type { ContextoDeDiseno } from '../validar-diseno'
+import { cambiarDeEspacio } from './lugar-en-la-rejilla'
 
 // Un nivel como lo lee el editor de `cotizaciones_niveles`.
 export type NivelDelDiseno = { clave: string; nombre: string; retirado: boolean }
@@ -98,24 +99,22 @@ export const conSeccion = (
   secciones: diseno.secciones.map((s) => (s.id === seccionId ? cambiar(s) : s)),
 })
 
-// El título vacío o de blancos quita la clave (la base pide de 1 a 80 caracteres); más largo se corta.
+// El título vacío o de blancos quita la clave (la base pide de 1 a 80 caracteres); más largo se corta. Otra presentación la pasa al otro espacio de la
+// rejilla, a un lugar libre (`cambiarDeEspacio()`).
 export function ponerSeccion(
   diseno: Diseno,
   seccionId: string,
   cambios: { titulo?: string; presentacion?: SeccionDeDiseno['presentacion'] },
 ): Diseno {
-  return conSeccion(diseno, seccionId, (s) => {
-    let siguiente = s
-    if (cambios.titulo !== undefined) {
-      const { titulo: _anterior, ...resto } = siguiente
-      const limpio = Array.from(cambios.titulo.trim()).slice(0, MAXIMO_DEL_TITULO).join('')
-      siguiente = limpio === '' ? resto : { ...resto, titulo: limpio }
-    }
-    if (cambios.presentacion !== undefined && PRESENTACIONES.includes(cambios.presentacion)) {
-      siguiente = { ...siguiente, presentacion: cambios.presentacion }
-    }
-    return siguiente
+  const conTitulo = conSeccion(diseno, seccionId, (s) => {
+    if (cambios.titulo === undefined) return s
+    const { titulo: _anterior, ...resto } = s
+    const limpio = Array.from(cambios.titulo.trim()).slice(0, MAXIMO_DEL_TITULO).join('')
+    return limpio === '' ? resto : { ...resto, titulo: limpio }
   })
+  return cambios.presentacion !== undefined && PRESENTACIONES.includes(cambios.presentacion)
+    ? cambiarDeEspacio(conTitulo, seccionId, cambios.presentacion)
+    : conTitulo
 }
 
 // Un ancho con nombre de los diseños guardados o un número de columnas (1 a 12); otro valor no se escribe.

@@ -16,6 +16,7 @@ supabase/tests/corpus-de-diseno.json
 supabase/tests/corpus-de-contraste.json
 supabase/tests/casos-de-colores.json
 src/modules/cotizaciones/entities/plantilla/casos-de-conversion.json
+src/modules/cotizaciones/entities/casos-de-rejilla.json
 .claude/worktrees
 .orquestador
 # plantillas con marcadores {{X}}: Prettier los reescribe en el frontmatter como { { X } } y `nueva` deja de reemplazarlos

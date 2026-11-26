@@ -2,7 +2,7 @@
 // hoja, o el motivo por el que no se puede (el tope de 40 piezas, la tarjeta del total ya ubicada o una sección que no la admite). Lo que sólo admite un tipo
 // de pieza se ofrece con ella: una `opcion` en chips de variante, una `bandera` en un interruptor, un `calculo` en una franja de subtotal o una celda, una tabla
 // sobrescribible con celda en atajos. Puras; en el orden de la fórmula.
-import type { Diseno, ItemDeDiseno, SeccionDeDiseno } from '../diseno'
+import type { Diseno, ItemSinPosicion, SeccionDeDiseno } from '../diseno'
 import type { Definicion } from '../formula'
 import type { Nodo } from '../nodos'
 import { auxiliaresDe } from '../compilador-auxiliares'
@@ -103,7 +103,11 @@ export function ofertasParaSumar(
 
 // La pieza que se suma, con lo que la base pide de cada tipo: una celda con su ancho (y el secundario si es el porcentaje de un par sobrescribible), unos
 // atajos con su columna y sus chips, un interruptor con su efecto.
-export function itemParaSumar(def: Definicion, tipo: TipoParaSumar, nodoId: string): ItemDeDiseno {
+export function itemParaSumar(
+  def: Definicion,
+  tipo: TipoParaSumar,
+  nodoId: string,
+): ItemSinPosicion {
   const nodos = new Map(def.nodos.map((n) => [n.id, n]))
   const nodo = nodos.get(nodoId)
   switch (tipo) {

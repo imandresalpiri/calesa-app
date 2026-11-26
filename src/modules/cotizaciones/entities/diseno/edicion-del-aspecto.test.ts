@@ -93,6 +93,7 @@ describe('ponerAspectoDeItem', () => {
       alto: 2,
       letra: 'chica',
       enfasis: 'fuerte',
+      posicion: { columna: 1, fila: 1 },
     })
     expect(
       ponerAspectoDeItem(d, 's', { tipo: 'celda', nodo: 'a' }, { ancho: null }).secciones[0]

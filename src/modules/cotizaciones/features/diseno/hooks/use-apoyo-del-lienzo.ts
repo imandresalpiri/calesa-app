@@ -2,7 +2,12 @@
 
 import { useMemo } from 'react'
 import type { ContextoDeHoja } from '../../../entities/binding'
-import type { ClaveDePieza, Diseno, ItemDeDiseno, SeccionDeDiseno } from '../../../entities/diseno'
+import type {
+  ClaveDePieza,
+  Diseno,
+  ItemSinPosicion,
+  SeccionDeDiseno,
+} from '../../../entities/diseno'
 import { MOTIVO_DE_LA_ULTIMA_SECCION } from '../../../entities/diseno/insercion-del-diseno'
 import {
   itemParaSumar,
@@ -97,8 +102,8 @@ export function useApoyoDelLienzo({
 }: Args) {
   const { trabajo, definicion, nombresDeNodos } = editor
   const rechazo = useMemo(() => rechazoEnLaHoja(editor.rechazo), [editor.rechazo])
-  const sumarPieza = (seccion: string, indice: number, item: ItemDeDiseno) => {
-    editor.sumar(seccion, indice, item)
+  const sumarPieza = (seccion: string, _indice: number, item: ItemSinPosicion) => {
+    editor.sumar(seccion, item)
     const pieza = piezaDelItemDeLaHoja(item)
     elegir(pieza)
     enfocarLaPieza(textoDeLaPieza(pieza))

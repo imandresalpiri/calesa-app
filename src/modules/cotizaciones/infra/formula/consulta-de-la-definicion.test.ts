@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it } from 'vitest'
 import type { Database } from '@/shared/types/database.types'
 import { consultaDeLaDefinicion, leerDefinicionSobre } from './consulta-de-la-definicion'
+import { disenoEnRejilla } from '../../entities/diseno-en-rejilla'
 
 type Llamada = [string, ...unknown[]]
 
@@ -105,9 +106,10 @@ describe('leerDefinicionSobre', () => {
   it('la publicada, con su diseño leído por su esquema', async () => {
     const { cliente } = clienteFalso({ data: [fila({ diseno: DISENO })], error: null })
     const r = await leerDefinicionSobre(cliente, FORMULA)
+    // El diseño de flujo vuelve convertido a la rejilla (cada pieza con su posición).
     expect(r.ok && r.data ? [r.data.estado, r.data.diseno, r.data.nota] : null).toEqual([
       'publicada',
-      DISENO,
+      disenoEnRejilla(DISENO),
       null,
     ])
   })

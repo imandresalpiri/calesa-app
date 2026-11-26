@@ -8707,6 +8707,7 @@ export type Database = {
       _diseno_ayudas: { Args: { p_def: Json; p_secs: Json; p_tablas: Json }; Returns: undefined }
       _diseno_bloques_de_la_ayuda: { Args: { p: Json }; Returns: Json }
       _diseno_cabecera: { Args: { p_cab: Json }; Returns: undefined }
+      _diseno_en_rejilla: { Args: { p_diseno: Json }; Returns: Json }
       _diseno_forma: { Args: { p_diseno: Json }; Returns: undefined }
       _diseno_forma_item: { Args: { p_i: Json }; Returns: boolean }
       _diseno_maximo_de_items: { Args: Record<PropertyKey, never>; Returns: number }
@@ -8728,6 +8729,7 @@ export type Database = {
       _diseno_secciones: {
         Args: {
           p_cond: Json
+          p_fila_del_bloque: number
           p_ids: string[]
           p_niveles: Json
           p_ops: string[]

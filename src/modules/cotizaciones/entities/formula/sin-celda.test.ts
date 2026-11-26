@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { esquemaDiseno, type Diseno } from '../diseno'
+import { enRejilla, esquemaDiseno, type Diseno, type ItemSinPosicion } from '../diseno'
 import type { Definicion } from '../formula'
 import type { Nodo } from '../nodos'
 import { validarFormula } from '../validar'
@@ -23,11 +23,12 @@ const celda = (nodo: string, secundario?: 'porcentaje' | 'monto') => ({
 })
 
 // Un diseño con una sección por lista de ítems.
-const disenoCon = (...items: Diseno['secciones'][number]['items'][]): Diseno => ({
-  cabecera: { modos: [], ver_total_bs: false },
-  secciones: items.map((x, i) => ({ id: `s${String(i)}`, presentacion: 'principal', items: x })),
-  tarjeta_total: { nodo: 'total', secundarios: [] },
-})
+const disenoCon = (...items: ItemSinPosicion[][]): Diseno =>
+  enRejilla({
+    cabecera: { modos: [], ver_total_bs: false },
+    secciones: items.map((x, i) => ({ id: `s${String(i)}`, presentacion: 'principal', items: x })),
+    tarjeta_total: { nodo: 'total', secundarios: [] },
+  })
 
 // Las celdas de los inputs de la base (remate, fees, flete): sin ellas cada prueba diría también esas filas.
 const INPUTS = [celda('remate'), celda('fees'), celda('flete')]

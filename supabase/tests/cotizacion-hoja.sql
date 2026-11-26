@@ -649,8 +649,9 @@ begin
         it := pg_temp.ch_item(r, 'celda', 'cond_oc');
         if it ->> 'condicion' is distinct from 'oculta_b' or it ->> 'requerido_si' is distinct from 'oculta_b' then raise exception 'nivel %: «%» no recibe la condición de la celda: %', v_nivel, v_txt, it; end if;
       end if;
-      -- La tarjeta del total como pieza: a todos, en su lugar de la sección abierta, con el nodo de la tarjeta y su aspecto.
-      if r -> 'secciones' -> 0 -> 'items' -> 8 is distinct from '{"tipo": "total", "nodo": "total", "etiqueta": "Total", "formato": "usd", "ancho": 6, "letra": "grande"}'::jsonb then
+      -- La tarjeta del total como pieza: a todos, en su lugar de la sección abierta, con el nodo de la tarjeta, su aspecto y su posición (la misma
+      -- para todo nivel: lo que un nivel esconde deja su lugar vacío).
+      if r -> 'secciones' -> 0 -> 'items' -> 8 is distinct from '{"tipo": "total", "nodo": "total", "etiqueta": "Total", "formato": "usd", "ancho": 6, "letra": "grande", "posicion": {"columna": 1, "fila": 6}}'::jsonb then
         raise exception 'nivel %: la pieza del total de «%»: %', v_nivel, v_txt, r -> 'secciones' -> 0 -> 'items' -> 8;
       end if;
       -- Los modos: sólo clave y nombre, para todos (sus buckets nombran el tipo de cambio del nivel).

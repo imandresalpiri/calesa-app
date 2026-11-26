@@ -925,6 +925,17 @@ las trampas, en `docs/LECCIONES.md`.
 - **Una auxiliar `<fila>__<n>` no pide celda.** La regla vive en `compilador-auxiliares.ts` con espejo `_diseno_auxiliares()`; una fila constante propia sí pide celda.
 - **Tope de 40 ítems por diseño.** El borrador lo admite; publicar, el ⚙ y revertir lo rechazan (`_diseno_maximo_de_items()`). Como la cobertura obliga a dibujar inputs y banderas, una fórmula con más de 40 tampoco se publica.
 - **«Se deduce restando» es sólo un aviso** sobre sumas directas; la autoridad es la visibilidad que compila la base al publicar.
+- **La hoja en una rejilla libre.** Toda sección y todo ítem del diseño llevan su posición (`posicion: { columna, fila }`, 12 columnas y hasta 200 filas) y
+  la raíz, la fila del bloque del avanzado (`avanzado: { fila }`). Los huecos se respetan y nada se corre solo: un lugar que pisa a otra pieza o se sale
+  no se ocupa (`piezas_se_pisan`, `pieza_fuera_de_la_rejilla`); las avanzadas, que son una lista, se intercambian. Un diseño sin esas claves es de flujo y
+  se convierte **al leerlo** (`disenoEnRejilla()` y su espejo `_diseno_en_rejilla(jsonb)`, `stable` como las demás `_diseno_*`, en `validar_diseno()`,
+  `_diseno_forma()` y `_cotizacion_hoja()`): ninguna versión publicada se reescribe y el editor guarda siempre en rejilla. La conversión copia cómo CSS
+  acomoda solas las piezas (sin `dense`, cada una en su ancho), por eso un diseño viejo se ve igual en todo ancho. Cada rejilla dibuja las posiciones
+  desde el corte de su pieza más exigente (`corteDeLaRejilla()`) y debajo apila en orden de lectura; el DOM y el Tab siguen siempre ese orden. Una fila
+  sin piezas mide 2,5 rem (`ALTO_DE_UNA_FILA_VACIA`): lo que el nivel esconde deja su lugar. Descartados: posición sólo en las secciones (los huecos
+  entre celdas seguirían sin control) o sólo en los ítems (se perderían las secciones lado a lado), migrar los diseños (reescribe versiones publicadas),
+  intercambiar al soltar sobre otra pieza (con tamaños distintos habría que empujar) y colapsar pieza por pieza (una pieza a 12 columnas pisaría a la
+  de al lado).
 - **La plantilla lee la fórmula con lo que mira `validarPlantilla()`** (`looseObject`, `lectura-sobre.ts`), no con `esquemaDefinicion`: no se rompe con cada cambio de la fórmula. Guardar valida la forma; lo que cruza con la fórmula lo rechaza publicar.
 - **La tarjeta de la cotización es una cuadrícula declarativa.** La forma 2 de la plantilla (columnas, filas y celdas libres, como en V1) se valida
   espejo en TS y SQL con listas cerradas (variables, `mostrar`, `ocultar_si`, 8 tamaños de letra) y nodos por id; los colores son una clave del

@@ -24,6 +24,8 @@ export function tituloDelInspector(
       return 'Cabecera de la hoja'
     case 'total':
       return ETIQUETAS_PARA_SUMAR.total
+    case 'bloque-avanzado':
+      return 'Bloque «Avanzado»'
     case 'seccion': {
       const titulo = d.secciones.find((s) => s.id === pieza.seccion)?.titulo ?? null
       return titulo === null ? SECCION_SIN_TITULO : `Sección «${titulo}»`

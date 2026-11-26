@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Diseno } from '../diseno'
+import { enRejilla, type Diseno } from '../diseno'
 import type { Formula } from '../formula'
 import type { Nodo } from '../nodos'
 import { FORMULA_A1 } from './hoja-a1.soporte'
@@ -33,13 +33,14 @@ const motivo = (formula: Formula, numero: number, contexto = SIN_NADA) => {
   return motivoParaNoEliminar(usosDe(formula, indice, numero, contexto))
 }
 
-const disenoCon = (nodo: string): Diseno => ({
-  cabecera: { modos: [], ver_total_bs: false },
-  secciones: [
-    { id: 's', presentacion: 'principal', items: [{ tipo: 'celda', nodo, ancho: 'completo' }] },
-  ],
-  tarjeta_total: { nodo: 'total', secundarios: [] },
-})
+const disenoCon = (nodo: string): Diseno =>
+  enRejilla({
+    cabecera: { modos: [], ver_total_bs: false },
+    secciones: [
+      { id: 's', presentacion: 'principal', items: [{ tipo: 'celda', nodo, ancho: 'completo' }] },
+    ],
+    tarjeta_total: { nodo: 'total', secundarios: [] },
+  })
 
 describe('usosDe y motivoParaNoEliminar', () => {
   it('las filas que la nombran (también desde un texto con auxiliares)', () => {

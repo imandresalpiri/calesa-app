@@ -122,7 +122,7 @@ begin
     raise exception 'los argumentos de _comp_grande no quedaron comprimidos: no mide nada';
   end if;
   -- Las copias malas de las guardas.
-  perform pg_temp.copia('public._diseno_secciones(jsonb,jsonb,text[],text[],text[],text[],boolean[],text[],jsonb,jsonb,jsonb,jsonb,jsonb)', 'malo_secciones',
+  perform pg_temp.copia('public._diseno_secciones(jsonb,jsonb,text[],text[],text[],text[],boolean[],text[],jsonb,jsonb,jsonb,jsonb,jsonb,integer)', 'malo_secciones',
     array[E'j := (p_pos ->> v_nodo)::int;\n      if j is null then\n        perform public._formula_rechazar(''nodo_inexistente'', v_nodo,\n          format(''El diseño nombra «%s», que no es un nodo de la fórmula.'', v_nodo));\n      end if;\n      v_ntipo',
           E'j := array_position(p_ids, v_nodo);\n      if j is null then\n        perform public._formula_rechazar(''nodo_inexistente'', v_nodo,\n          format(''El diseño nombra «%s», que no es un nodo de la fórmula.'', v_nodo));\n      end if;\n      v_ntipo']);
   perform pg_temp.copia('public.validar_diseno(jsonb,jsonb,text[],text[],text[],jsonb)', 'malo_busqueda',

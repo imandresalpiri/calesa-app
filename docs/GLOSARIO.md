@@ -851,8 +851,18 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Rejilla de la hoja** — `entities/rejilla-de-la-hoja.ts` (`corteDe()`, `columnasDeLaCelda()`): las 12 columnas de cada sección (sus ítems) y
   las 12 de las secciones. Una pieza de N columnas toma su ancho cuando le tocan 16 rem o más; si no, la fila entera. Una sección sin ancho es
   «Automática» (la mitad desde 64 rem del contenedor de las secciones).
-- **Alto (filas)** — `alto` de un ítem o de una sección (1 a 4; sin él, «Automático»): cuántas filas de la rejilla ocupa, desde el mismo corte
-  que sus columnas. Con 12 columnas no cambia nada.
+- **Alto (filas)** — `alto` de un ítem o de una sección (1 a 4; sin él, «Automático»): cuántas filas de la rejilla ocupa. En la rejilla libre vale
+  también a 12 columnas; apilada, desde el mismo corte que sus columnas y sólo si no ocupa la fila entera.
+- **Posición (en la rejilla)** — `posicion: { columna, fila }` de cada sección y de cada ítem del diseño (`esquemaPosicion`, `entities/diseno.ts`;
+  `Posicion`, `entities/rejilla-de-la-hoja.ts`): dónde empieza la pieza en su rejilla (columna 1 a 12, fila 1 a 200). Las secciones principales van en la
+  rejilla de las secciones, las avanzadas en su lista y los ítems en la de su sección. Los huecos se respetan y nada se corre solo. Un diseño sin
+  posiciones es de flujo y la recibe al leerse (`disenoEnRejilla()`, `_diseno_en_rejilla()`). No: «coordenadas», «celda de la pieza».
+- **Lugar libre (de la rejilla)** — `lugarLibre()`, `primerLugarLibre()` (`entities/diseno/lugar-en-la-rejilla.ts`): un lugar donde la pieza entra sin
+  pisar a otra ni salirse de las 12 columnas o de las 200 filas. Mover, cambiar el tamaño y sumar sólo ocupan lugares libres; sumar toma el primero en
+  orden de lectura (fila y luego columna).
+- **Bloque del avanzado** — `avanzado: { fila }` de la raíz del diseño, `data-bloque-del-avanzado`, la pieza `bloque-avanzado` del editor: la fila entera de
+  la rejilla de las secciones con el total suelto, el botón «Avanzado» y el cierre. Sin la clave, va debajo de la última fila. El inspector lo rotula
+  «Bloque «Avanzado»».
 - **Relleno** — `relleno` de una sección o de la cabecera (`chico` | `medio` | `grande`; `medio` por defecto): el espacio interior.
 - **Separación** — `separacion` de una sección (`chica` | `media` | `grande`; `media` por defecto): el espacio entre sus celdas.
 - **Densidad (de una sección)** — `densidad` de una sección (`compacta` | `comoda`; `comoda` por defecto): el relleno de sus celdas

@@ -1,6 +1,11 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { avisarConDeshacer } from '@/shared/ui/toasts'
-import type { ClaveDePieza, Diseno, ItemDeDiseno, SeccionDeDiseno } from '../../../entities/diseno'
+import type {
+  ClaveDePieza,
+  Diseno,
+  ItemSinPosicion,
+  SeccionDeDiseno,
+} from '../../../entities/diseno'
 import { moverItemA, type DestinoDeLaPieza } from '../../../entities/diseno/orden-del-diseno'
 import {
   quitarItem,
@@ -45,8 +50,8 @@ export function operacionesDeLaHoja(
       const seccion = donde.seccion.titulo ?? donde.seccion.id
       return `Moviste ${nombre} a «${seccion}», posición ${String(donde.indice + 1)} de ${String(donde.seccion.items.length)}.`
     },
-    sumar: (seccionId: string, indice: number, item: ItemDeDiseno) => {
-      setTrabajo((d) => sumarItem(d, seccionId, indice, item))
+    sumar: (seccionId: string, item: ItemSinPosicion) => {
+      setTrabajo((d) => sumarItem(d, seccionId, item))
     },
     quitar: (clave: ClaveDePieza) => {
       setTrabajo(quitarItem(trabajo, clave))
