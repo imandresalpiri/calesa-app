@@ -928,7 +928,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   se apaga. Color sin contraste, logo inválido y zona inexistente: motivo junto al campo. Sin conexión, lo tipeado
   queda y se guarda solo al volver; Datos legales repone su borrador con el «Descartar» de su aviso. Sin `empresa.ajustes.gestionar`, se ve todo con
   «Editar…» apagada en el «⋯» y el motivo; «Íconos de la app» sin logo, apagado con su motivo; «Volver a los íconos neutros» va en el «⋯». PT409: «Recargar».
-  **Enlaces de ayuda:** la tarjeta muestra los tres primeros y «N enlaces en «Ayuda», desde el menú del perfil.» (con tope «20+»); su «⋯» lleva «Editar…» y «Nuevo enlace». El modal
+  **Enlaces de ayuda** (después de Región, para que las seis entren a 1440×900): la tarjeta nombra el primero con «y N más» y, junto al título, «N enlaces» (con tope «20+»); su «⋯» lleva «Editar…» y «Nuevo enlace». El modal
   (`?panel=enlaces-de-ayuda`, a pantalla completa en el celular) tiene «Nuevo enlace» arriba y la lista con el dominio y su estado («En el menú» o «No se ve en el menú»); cada fila,
   su «⋯» (Editar, Subir, Bajar, Desactivar o Activar con «Deshacer», Quitar con `<Confirmar>` que nombra el enlace, `?panel=quitar-enlace-de-ayuda&enlace=`). Nuevo y Editar
   (`?panel=nuevo-enlace-de-ayuda|editar-enlace-de-ayuda`): título (hasta 80), dirección y descripción opcional (hasta 140); una dirección sin `https://` dice «Escribe una dirección que

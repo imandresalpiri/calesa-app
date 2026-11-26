@@ -133,7 +133,8 @@ function ModalesDeLaEmpresa({ props, paneles }: { props: Props; paneles: Paneles
   )
 }
 
-// Las seis tarjetas de Datos de la empresa (la de los enlaces de ayuda, con su lista y sus modales), con lo guardado a la vista; cada «Editar» abre su modal (`?panel=<tarjeta>`), que se pide
+// Las seis tarjetas de Datos de la empresa (la de los enlaces de ayuda, con su lista y sus modales, va tercera: así «Datos legales» abre la
+// segunda columna y la página entra a 1440×900), con lo guardado a la vista; cada «Editar» abre su modal (`?panel=<tarjeta>`), que se pide
 // recién entonces. Una escritura por modal, todas con la misma versión de la fila.
 export function TarjetasDeLaEmpresa(props: Props) {
   const { ajustes, puedeEditar } = props
@@ -159,6 +160,7 @@ export function TarjetasDeLaEmpresa(props: Props) {
         <TarjetaEditable titulo="Región" motivo={motivo} abrir={paneles.region.abrir}>
           <ValoresDeLaTarjeta filas={filasDeRegion(ajustes)} />
         </TarjetaEditable>
+        <TarjetaDeEnlacesDeAyuda lista={props.enlacesDeAyuda} motivo={motivo} />
         <TarjetaEditable
           titulo="Datos legales y de contacto"
           motivo={motivo}
@@ -170,7 +172,6 @@ export function TarjetasDeLaEmpresa(props: Props) {
           <ValoresDeLaTarjeta filas={filasDePoliticas(ajustes)} />
         </TarjetaEditable>
         <TarjetaDeIconos props={props} motivo={motivos.iconos} abrir={paneles.iconos.abrir} />
-        <TarjetaDeEnlacesDeAyuda lista={props.enlacesDeAyuda} motivo={motivo} />
       </TarjetasDeAjustes>
       <ModalesDeLaEmpresa props={props} paneles={paneles} />
     </>

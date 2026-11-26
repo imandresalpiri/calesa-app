@@ -13,8 +13,9 @@ import { useFamiliaDeEnlaces } from '../hooks/use-familia-de-enlaces'
 import { usePanelDeEnlaceDeLaEmpresa } from '../hooks/use-modal-de-enlace'
 import { EditorDeEnlacesDeAyudaDiferido } from './diferidos'
 
-// Cuántos se nombran en la tarjeta y desde cuántos se dice «20+».
-const EN_LA_TARJETA = 3
+// Cuántos se nombran en la tarjeta y desde cuántos se dice «20+». Uno, con «y N más» debajo: así la tarjeta entra junto a las otras cinco a
+// 1440×900 aunque su título ocupe dos renglones (con dos, un título largo ya desplaza la página).
+const EN_LA_TARJETA = 1
 const TOPE_DEL_CONTEO = 20
 
 type Props = {
@@ -23,7 +24,7 @@ type Props = {
   motivo: string | null
 }
 
-// La tarjeta «Enlaces de ayuda» de Configuración › Empresa: los primeros activos y cuántos hay; tocarla abre la lista en su modal
+// La tarjeta «Enlaces de ayuda» de Configuración › Empresa: los primeros activos y, junto al título, cuántos hay; tocarla abre la lista en su modal
 // (`?panel=enlaces-de-ayuda`) y «Nuevo enlace», en el «⋯», el formulario de uno nuevo. El editor se pide recién al abrir algún panel suyo.
 export function TarjetaDeEnlacesDeAyuda({ lista, motivo }: Props) {
   const familia = useFamiliaDeEnlaces(PANELES_DE_LA_EMPRESA, motivo)
@@ -38,6 +39,13 @@ export function TarjetaDeEnlacesDeAyuda({ lista, motivo }: Props) {
         titulo="Enlaces de ayuda"
         motivo={motivo}
         abrir={familia.abrir}
+        estado={
+          cuantos > 0 ? (
+            <span className="text-(length:--text-sm) text-(--color-ink-soft)">
+              {conteo} {cuantos === 1 ? 'enlace' : 'enlaces'}
+            </span>
+          ) : null
+        }
         extra={
           motivo === null
             ? [
@@ -65,11 +73,6 @@ export function TarjetaDeEnlacesDeAyuda({ lista, motivo }: Props) {
           tope={EN_LA_TARJETA}
           vacio="Todavía no hay enlaces de ayuda."
         />
-        {cuantos > 0 ? (
-          <p className="text-(length:--text-sm) text-(--color-ink-soft)">
-            {conteo} {cuantos === 1 ? 'enlace' : 'enlaces'} en «Ayuda», desde el menú del perfil.
-          </p>
-        ) : null}
       </TarjetaEditable>
       {familia.montar && motivo === null ? <EditorDeEnlacesDeAyudaDiferido lista={lista} /> : null}
     </>
