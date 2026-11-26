@@ -9,6 +9,7 @@ import { useRegional } from '@/shared/ui/regional'
 import { TableCell } from '@/shared/ui/table'
 import { ETIQUETA_DE_APROBADA, ETIQUETA_DE_CLASE } from '../../../entities/historial-del-vehiculo'
 import { tituloDeLaCotizacion } from '../../../entities/titulo-de-la-cotizacion'
+import { EnlaceAlVehiculo } from './enlace-al-vehiculo'
 import { InsigniaPrivada } from '../../privada/components/insignia-privada'
 import { nombreDelOrigen, SIN_NOMBRE, type FilaDeCotizacion, type OrigenDelListado } from './tipos'
 import { Vigencia } from './vigencia'
@@ -33,7 +34,13 @@ function CeldaDelNumero({ cotizacion }: { cotizacion: FilaDeCotizacion }) {
 }
 
 // El título (`tituloDeLaCotizacion()`: el suyo o el del vehículo; el de respaldo es el número, que ya está en su columna), en dos líneas como mucho y entero en `title`.
-function CeldaDelTitulo({ cotizacion }: { cotizacion: FilaDeCotizacion }) {
+function CeldaDelTitulo({
+  cotizacion,
+  rutaDelVehiculo,
+}: {
+  cotizacion: FilaDeCotizacion
+  rutaDelVehiculo: string | null
+}) {
   const titulo = tituloDeLaCotizacion(cotizacion)
   return (
     <TableCell>
@@ -45,7 +52,13 @@ function CeldaDelTitulo({ cotizacion }: { cotizacion: FilaDeCotizacion }) {
           title={titulo.texto}
           className="line-clamp-2 max-w-60 text-(length:--text-sm) break-words whitespace-normal text-(--color-ink)"
         >
-          {titulo.texto}
+          {rutaDelVehiculo === null ? (
+            titulo.texto
+          ) : (
+            <EnlaceAlVehiculo ruta={rutaDelVehiculo} titulo={titulo.texto}>
+              {titulo.texto}
+            </EnlaceAlVehiculo>
+          )}
         </span>
       )}
     </TableCell>
@@ -55,6 +68,8 @@ function CeldaDelTitulo({ cotizacion }: { cotizacion: FilaDeCotizacion }) {
 type PropsDeLaFila = {
   cotizacion: FilaDeCotizacion
   origenes: readonly OrigenDelListado[]
+  // La ficha del vehículo, si tiene y quien mira lo ve: la celda «Vehículo» y el título la enlazan. Nulo, texto.
+  rutaDelVehiculo: string | null
   abierta: boolean
   alAbrir: () => void
   // El botón del conteo de un grupo, debajo del vehículo.
@@ -67,6 +82,7 @@ type PropsDeLaFila = {
 export function FilaDeLaCotizacion({
   cotizacion,
   origenes,
+  rutaDelVehiculo,
   abierta,
   alAbrir,
   conteo,
@@ -76,10 +92,16 @@ export function FilaDeLaCotizacion({
   return (
     <FilaDeLista idDeVisto={cotizacion.id} abierta={abierta} alAbrir={alAbrir}>
       <CeldaDelNumero cotizacion={cotizacion} />
-      <CeldaDelTitulo cotizacion={cotizacion} />
+      <CeldaDelTitulo cotizacion={cotizacion} rutaDelVehiculo={rutaDelVehiculo} />
       <TableCell className="max-w-48 truncate">{cotizacion.cliente ?? VACIO}</TableCell>
       <TableCell className="max-w-56">
-        <span className="block truncate">{cotizacion.vehiculo ?? VACIO}</span>
+        <span className="block truncate">
+          {rutaDelVehiculo === null || cotizacion.vehiculo === null ? (
+            (cotizacion.vehiculo ?? VACIO)
+          ) : (
+            <EnlaceAlVehiculo ruta={rutaDelVehiculo}>{cotizacion.vehiculo}</EnlaceAlVehiculo>
+          )}
+        </span>
         {conteo}
       </TableCell>
       <TableCell className="max-w-40 truncate">

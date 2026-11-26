@@ -60,7 +60,11 @@ end $f$;
 
 create or replace function pg_temp.trn_guardar(p_quien uuid, p_v uuid, p_esperada timestamptz, p_cambios jsonb, p_r uuid default null) returns jsonb
 language sql as $f$
-  select pg_temp.trn_corre(p_quien, format('select public.transporte_guardar(%L, %L, %L, %L)', p_v, p_r, p_esperada, p_cambios));
+  -- Con una esperada, también las versiones vigentes de su embarque y su contenedor: quien guarda vio lo de ahora (el PT409 por el embarque o el
+  -- contenedor, en `con-embarque.sql`).
+  select pg_temp.trn_corre(p_quien, format('select public.transporte_guardar(%L, %L, %L, %L, %L, %L)', p_v, p_r, p_esperada, p_cambios,
+    (select x.embarque_actualizado_en from public.transportes_con_embarque x where p_esperada is not null and (x.vehiculo_id = p_v or x.repuesto_id = p_r)),
+    (select x.contenedor_actualizado_en from public.transportes_con_embarque x where p_esperada is not null and (x.vehiculo_id = p_v or x.repuesto_id = p_r))));
 $f$;
 
 create or replace function pg_temp.trn_es(p_que text, p_r jsonb, p_estado text, p_hint text default null) returns void language plpgsql as $f$
@@ -88,12 +92,13 @@ begin
   if exists (select 1 from public.transportes where vehiculo_id = (t ->> 'v')::uuid) then raise exception 'T1: no debía crear la fila'; end if;
   r := pg_temp.trn_guardar(propia, (t ->> 'v')::uuid, null, '{"booking": "bk1"}');
   perform pg_temp.trn_pasa('T1 su origen', r);
-  if (select booking from public.transportes where vehiculo_id = (t ->> 'v')::uuid) is distinct from 'BK1' then raise exception 'T1: no guardó el booking'; end if;
+  if (select booking from public.transportes_con_embarque where vehiculo_id = (t ->> 'v')::uuid) is distinct from 'BK1' then raise exception 'T1: no guardó el booking'; end if;
   insert into public.repuestos_proyectos (vehiculo_etiqueta) values ('tr proyecto') returning id into pr;
   insert into public.repuestos_items (proyecto_id, descripcion) values (pr, 'tr ítem') returning id into item;
   r := pg_temp.trn_guardar(propia, null, null, '{"booking": "bk2"}', item);
   perform pg_temp.trn_es('T1 repuesto', r, '42501');
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: crear con la esperada nula; otra vez nula o con la vieja da PT409; sin diferencia no mueve la versión (T2)
@@ -111,12 +116,13 @@ begin
   v2 := pg_temp.trn_pasa('T2 cambiar', pg_temp.trn_guardar(p, (t ->> 'v')::uuid, v1, '{"eta_el": "2026-12-01"}'));
   r := pg_temp.trn_guardar(p, (t ->> 'v')::uuid, v2 - interval '1 second', '{"eta_el": "2026-12-24"}');
   perform pg_temp.trn_es('T2 versión vieja', r, 'PT409');
-  if (select eta_el from public.transportes where vehiculo_id = (t ->> 'v')::uuid) <> date '2026-12-01' then raise exception 'T2: la vieja no debía escribir'; end if;
+  if (select eta_el from public.transportes_con_embarque where vehiculo_id = (t ->> 'v')::uuid) <> date '2026-12-01' then raise exception 'T2: la vieja no debía escribir'; end if;
   r := pg_temp.trn_guardar(p, (t ->> 'v')::uuid, v2, '{"eta_el": "2026-12-01"}');
   if r -> 'sin_cambios' is distinct from 'true'::jsonb or (r ->> 'actualizado_en')::timestamptz <> v2 then
     raise exception 'T2: sin diferencia debía devolver la misma versión y sin_cambios: %', r;
   end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: contenedor normalizado; caracteres y claves fuera de la lista dan 22023 (T3)
@@ -126,7 +132,7 @@ declare t jsonb := pg_temp.trn_terreno(); p uuid; r jsonb;
 begin
   p := pg_temp.trn_persona(array['logistica.ver', 'logistica.transporte.editar']);
   perform pg_temp.trn_pasa('T3 normalizar', pg_temp.trn_guardar(p, (t ->> 'v')::uuid, null, '{"contenedor": " msku 123\t4567 "}'));
-  if (select contenedor from public.transportes where vehiculo_id = (t ->> 'v')::uuid) is distinct from 'MSKU1234567' then
+  if (select contenedor from public.transportes_con_embarque where vehiculo_id = (t ->> 'v')::uuid) is distinct from 'MSKU1234567' then
     raise exception 'T3: debía guardar MSKU1234567';
   end if;
   r := pg_temp.trn_guardar(p, (t ->> 'v2')::uuid, null, '{"contenedor": "ab#1"}');
@@ -138,6 +144,7 @@ begin
   r := pg_temp.trn_guardar(p, (t ->> 'v2')::uuid, null, '{"eta_el": "today"}');
   perform pg_temp.trn_es('T3 fecha que no es AAAA-MM-DD', r, '22023', 'eta_el');
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: la regla transporte apagada y la fase sin permite_contenedor frenan lo nuevo, no lo guardado (T4)
@@ -155,6 +162,7 @@ begin
   r := pg_temp.trn_guardar(p, (t ->> 'v')::uuid, v1, '{"eta_el": "2026-12-02"}');
   perform pg_temp.trn_es('T4 regla apagada', r, '23514', 'transporte');
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: la oferta frena una naviera nueva, no la guardada (T5)
@@ -173,4 +181,5 @@ begin
   v1 := pg_temp.trn_pasa('T5 la guardada no frena', pg_temp.trn_guardar(p, (t ->> 'v')::uuid, v1, '{"booking": "BK7"}'));
   perform pg_temp.trn_pasa('T5 la ofrecida', pg_temp.trn_guardar(p, (t ->> 'v')::uuid, v1, jsonb_build_object('naviera_id', n2)));
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;

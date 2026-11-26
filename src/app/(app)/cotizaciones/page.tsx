@@ -173,6 +173,7 @@ async function Listado({
         menus={menus}
         quienesDelResumen={quienes}
         aprobarEn={origenesCon(sesion.permisos, 'cotizaciones.aprobar')}
+        vehiculosVisibles={origenesCon(sesion.permisos, 'vehiculos.ver')}
         delServidor={delServidor}
         porPagina={{ valor: tamano, opciones: tamanosHasta(MAXIMO_DE_PAGINA_DE_COTIZACIONES) }}
         origenes={visibles.map((origen) => ({

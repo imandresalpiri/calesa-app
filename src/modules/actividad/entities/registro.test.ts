@@ -23,6 +23,9 @@ describe('el registro en la frase', () => {
     expect(iconoDeEntidad('tipos_cambio')).toBe('configuracion')
     expect(cuelgaDeUnaUnidad('gastos')).toBe(true)
     expect(cuelgaDeUnaUnidad('vehiculos')).toBe(false)
+    expect(iconoDeEntidad('embarques')).toBe('transporte')
+    expect(entidadEnFrase('contenedores')).toBe('un contenedor')
+    expect(cuelgaDeUnaUnidad('embarques')).toBe(false)
   })
 
   it('cada registro a su página; sin título (borrado o sin acceso), sin enlace', () => {

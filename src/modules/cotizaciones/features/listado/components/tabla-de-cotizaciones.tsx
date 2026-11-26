@@ -2,6 +2,11 @@
 
 import { CabeceraPegada, TablaDeLista } from '@/shared/ui/lista'
 import { TableBody, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
+import {
+  SIN_VEHICULOS_VISIBLES,
+  rutaDelVehiculoDeLaFila,
+  type VehiculosVisibles,
+} from '../../../entities/listado/ruta-del-vehiculo'
 import { cotizacionDeLaEntrada, textoDelConteo } from '../../../entities/listado/grupos-del-listado'
 import { FilaDeLaCotizacion } from './celdas-de-la-tabla'
 import { BotonDelConteo } from './grupo'
@@ -15,6 +20,8 @@ type Props = {
   abierta: string | null
   // El «⋯» de cada fila, a la derecha, con «Compartir cotización…» primero; sin él no hay columna.
   menuDeFila?: MenuDeFila | undefined
+  // En qué orígenes quien mira ve vehículos (la celda «Vehículo» enlaza a su ficha).
+  vehiculosVisibles?: VehiculosVisibles | undefined
   // Abre el modal de las cotizaciones de un vehículo (por su id).
   abrirGrupo: (vehiculoId: string) => void
 }
@@ -28,6 +35,7 @@ export function TablaDeCotizaciones({
   alAbrir,
   abierta,
   menuDeFila,
+  vehiculosVisibles = SIN_VEHICULOS_VISIBLES,
   abrirGrupo,
 }: Props) {
   return (
@@ -59,6 +67,7 @@ export function TablaDeCotizaciones({
               key={entrada.ordenId}
               cotizacion={cotizacion}
               origenes={origenes}
+              rutaDelVehiculo={rutaDelVehiculoDeLaFila(cotizacion, vehiculosVisibles)}
               abierta={abierta === cotizacion.id}
               alAbrir={() => {
                 alAbrir(cotizacion.id)

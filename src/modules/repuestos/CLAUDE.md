@@ -136,7 +136,9 @@ El módulo se parte por **área**, como `logistica`: `features|entities|infra/<�
 - `entities/compras/margen.ts`: `leerMargen` (margen nulo si hay ítems sin precio aunque llegue un número). Sin aritmética de dinero: cuenta la base.
   `monto_base` se lee, nunca se calcula ni se manda (`cambiosDeCompra`; las actions usan `z.strictObject` sin `monto_base` ni `proyecto_id`).
 - `infra/compras/comprobante.client.ts`: al bucket privado `comprobantes`, `<proyecto>/<sha-256>.<ext>`, sin comprimir (copia del de `logistica`, que no se
-  importa). «Ver comprobante» pide una URL de 60 s al tocarlo.
+  importa). «Ver comprobante» pide una URL de 60 s al tocarlo. El drawer de la compra tiene la forma de los paneles de dinero: arriba el monto con su moneda
+  (`CampoDeMonto`), el estado, la fecha y el proveedor; luego «Qué se compró», «Notas» y «Comprobante de la compra», que es la `ZonaDeArchivo` de `shared` (un archivo
+  por compra: arrastrar o elegir, vista previa, «Reemplazar» y «Quitar»; mide siempre lo mismo).
 - `infra/items/guardar.ts`: guardar una celda es un `update` directo por columna versionado (`.eq('actualizado_en', …)`): cero filas nunca es éxito. Una
   cola por fila (`colaPorClave`) evita que dos celdas del mismo ítem choquen.
 - La base: `repuesto_proyecto_crear` / `_cerrar` / `_reabrir` / `_eliminar` / `_restaurar`, `repuesto_item_crear` / `_eliminar`,

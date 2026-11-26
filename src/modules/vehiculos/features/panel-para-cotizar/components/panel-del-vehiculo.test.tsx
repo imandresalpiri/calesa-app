@@ -179,6 +179,21 @@ describe('PanelDelVehiculo', () => {
     expect(cambios.at(-1)?.options.shallow).toBe(false)
   })
 
+  it('cada vehículo y el elegido llevan «Ver … en Vehículos»: la ficha en otra pestaña, sin elegir ni cerrar', async () => {
+    const { cambios } = montar()
+    const enlace = await screen.findByRole('link', { name: 'Ver Civic otro en Vehículos' })
+    expect(enlace.getAttribute('href')).toBe(`/vehiculos/${OTRO}`)
+    expect(enlace.getAttribute('target')).toBe('_blank')
+    expect(enlace.getAttribute('rel')).toBe('noopener')
+    // Hermano del botón que elige, no hijo.
+    expect(enlace.closest('button')).toBeNull()
+    expect(screen.getAllByRole('link', { name: 'Ver Corolla elegido en Vehículos' })).toHaveLength(
+      2,
+    )
+    fireEvent.click(enlace)
+    expect(cambios).toHaveLength(0)
+  })
+
   it('con el panel abierto, Ctrl+S no guarda la hoja', async () => {
     const { alGuardar } = montar()
     await screen.findByText('Civic otro')

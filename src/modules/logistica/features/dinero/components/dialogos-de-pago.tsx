@@ -11,9 +11,11 @@ import { DrawerDePago } from './drawer-de-pago'
 export function DialogosDePago({
   unidadId,
   paneles: p,
+  permisos,
 }: {
   unidadId: string
   paneles: PanelesDePago
+  permisos: { puedeEditar: boolean; puedeConfirmar: boolean }
 }) {
   return (
     <>
@@ -23,6 +25,12 @@ export function DialogosDePago({
         unidadId={unidadId}
         original={p.formulario.nuevo ? null : p.formulario.original}
         apertura={p.formulario.apertura}
+        permisos={permisos}
+        alAnular={() => {
+          if (p.formulario.original) {
+            p.abrirAnular(p.formulario.original.id)
+          }
+        }}
       />
       <ConfirmarPago
         abierto={p.confirmar.abierto}

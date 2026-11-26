@@ -106,7 +106,14 @@ export function CuerpoDePagos({
           ) : null}
         </>
       ) : null}
-      <DialogosDePago unidadId={unidadId} paneles={paneles} />
+      <DialogosDePago
+        unidadId={unidadId}
+        paneles={paneles}
+        permisos={{
+          puedeEditar: claves.puedeEditar === true,
+          puedeConfirmar: claves.puedeConfirmar === true,
+        }}
+      />
     </div>
   )
 }

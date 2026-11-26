@@ -98,6 +98,8 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      («Historial de cotizaciones» abre su modal, `?ver=historial`, que se lee al abrirse, con «Ver más»); la barra dice «Cotizado (n)». En «Elegido», el tipo de vehículo se elige entre las filas
      de la tabla, con el del vehículo marcado; un toque lo guarda en el vehículo, cierra el panel y la hoja recalcula (quien no puede editar
      el vehículo lo ve sin elegir; la celda sin valor dice que se elige en «Vehículo»).
+     **Ver la ficha sin perder la hoja:** cada tarjeta de vehículo (en las dos pestañas) y el «Elegido» llevan, al medio a la derecha, un enlace con el glifo ↗ de abrir afuera («Ver <título> en Vehículos»,
+     44 px en el celular) a `/vehiculos/<id>` en otra pestaña; no elige ni cierra el panel, y tocar el resto de la tarjeta elige como siempre.
      **Subasta cerrada:** al elegir (o abrir con) un vehículo de un origen de subasta que sigue en el tramo de subasta con la subasta ya pasada
      («Sin resolver», «No ganada», o «En subasta» con el cierre vencido que la base aún no actualizó), un aviso bajo la barra del vehículo dice
      «La subasta de este vehículo cerró el <fecha con zona>. Situación: <situación>.» (sin fecha, «…ya cerró.») con «Refrescar la subasta»
@@ -414,13 +416,13 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   del conteo y **«Compartir»** como acción principal a todo el ancho (no en Modo Live). Todas miden lo mismo (filas de alto fijo, sin `auto-rows-fr`: el despliegue va
   a todo el ancho). **La tabla:** «Cotización» (sólo «N.º n»), **«Título»**, cliente, vehículo, origen, clase, total, vigencia, creada y el «⋯» con «Compartir
   cotización…» primero. Y el resumen `?cotizacion=` (la fila, la tarjeta y el resumen nombran la cotización por su
-  **título** —el suyo o, sin él, el de su vehículo—, en dos líneas como mucho y entero en `title`) (un panel ancho —a todo el ancho en el celular—; arriba, la
+  **título** —el suyo o, sin él, el de su vehículo—, en dos líneas como mucho y entero en `title`; en la tarjeta de la lista el título es el enlace a la ficha del vehículo y la celda «Vehículo» de la tabla también, con el mismo permiso: tocar el resto de la tarjeta o la fila abre el resumen) (un panel ancho —a todo el ancho en el celular—; arriba, la
   **barra del resumen**: «Abrir cotización» (primario, a `/cotizaciones/<id>`), «Compartir cotización» (el mismo panel de la tarjeta; no en Modo Live ni sin la oferta)
   y, al final, el «⋯» de la fila sin «Compartir» (también para una línea del modal de un grupo o una de otra página); los dos botones crecen por igual: en el celular
   mitad y mitad con el «⋯» a 44 px y, con el texto al 200 %, se parten en filas sin salirse; sin la cotización a la vista (no disponible, error, cargando) no hay barra;
   sus diálogos se abren sobre el resumen sin cerrarlo. Debajo, la **cabecera resumida** (fija, ≤ 120 px de alto en escritorio; crece con el texto al 200 %): a la izquierda la **miniatura de la imagen
   de la tarjeta** (480 px, 15:8, recortada desde arriba a la izquierda; su clic abre el visor de fotos `?visor=imagen-<id>`, que cerrar el resumen borra; mientras se arma o si falla, un recuadro chico con el total y «Preparando…» o «Reintentar»;
-  en Modo Live, borrosa con «Oculto en Modo Live» y sin visor) y, a su derecha, el título (el número va en el del panel), el total con su modo, la clase con «Aprobada» y «Vencida», cliente, vehículo, creada · autor y la vigencia; en el celular, la
+  en Modo Live, borrosa con «Oculto en Modo Live» y sin visor) y, a su derecha, el título (el número va en el del panel; con un vehículo vinculado que quien mira ve —`vehiculos.ver` del origen—, el título y el dato «Vehículo» son enlaces a `/vehiculos/<id>`, «Ver <título> en Vehículos», en la misma pestaña; en la ficha del propio vehículo, texto), el total con su modo, la clase con «Aprobada» y «Vencida», cliente, vehículo, creada · autor y la vigencia; en el celular, la
   miniatura a la izquierda y el texto en líneas cortas. Y, ocupando el resto del alto, las **pestañas** `?pestana=` (todo el ancho del panel en partes iguales; si no caben, la lista se desplaza de costado con su pista; la
   cabecera queda fija y cada pestaña se desplaza por su cuenta): «Todo» —adjuntos, revisiones y comentarios en una línea de tiempo, lo más nuevo arriba, con «Ver más»; vacía ofrece «Agregar comentario» y, con permiso
   para guardarla, «Adjuntar»—, «Adjuntos» —los archivos y, en una final o con alguno, sus comprobantes de sólo lectura—, «Revisiones», «Comentarios» y, sólo con un vehículo que quien mira ve, **«De este vehículo»** (`?pestana=vehiculo`; sin
@@ -1317,7 +1319,12 @@ de su hueco).
   Rechazos junto a su campo (ETA antes del zarpe, la fase no permite o exige contenedor) con el foco al primero; conflicto dentro del
   formulario con «Recargar», que conserva lo escrito. Sin `logistica.transporte.editar` del origen, campos apagados con su motivo. Vacíos:
   sin transporte cargado; sin navieras (con `logistica.catalogos.gestionar`, «Cargar navieras»). Guardar relee «Qué falta». Una unidad de
-  repuesto: `TEXTO_DE_REPUESTO`.
+  repuesto: `TEXTO_DE_REPUESTO`. Sobre los campos, una línea de alto fijo (que el esqueleto ya reserva y queda vacía si no hace falta) dice a
+  quiénes alcanza lo que se guarda: «Cambia para los N vehículos de este embarque.» (hasta «100+»; con « y otros que no puedes ver» si los
+  hay, o «Cambia para este vehículo y otros que no puedes ver.»), «El booking cambia para los N vehículos de este contenedor.» en un
+  contenedor sin embarque, o «Esta unidad todavía no tiene transporte cargado.»; tipear o guardar no la mueve. Un booking nuevo crea su
+  embarque; uno que ya existe en el origen no acepta, de paso, otra naviera o fechas («El embarque «X» ya existe: guarda el booking y después
+  cambia sus datos.», junto a «Booking»).
 - **Notas e historial** (zona lateral en la página; secciones a la vista en un drawer o en el celular): «Notas» con «Escribir una nota» (`<Textarea>`, contador de 2.000, «Guardar nota», `Ctrl/Cmd+Enter`; el
   error junto al botón y el texto queda) y las notas de la más nueva: quién, cuándo, texto; la que dejó un cambio de fase dice «al pasar a
   «<fase>»» y no se edita. «Editar» sólo la propia, en el lugar. **No hay «Borrar»**: la base no deja el borrado suave por `update` (pide
@@ -1367,7 +1374,9 @@ de su hueco).
   `<Drawer>` que sólo muestra): una fila por unidad con título (enlace si es vehículo), fase, ETA y arribo, con avisos de tope y de ocultas;
   debajo, a la vista y cada uno con su permiso (la base lo exige por unidad): «Mover el grupo», «Subir un documento a las unidades» y
   «Prorratear un gasto entre las unidades». **«Editar grupo»** (con `logistica.transporte.editar` o `repuestos.editar`; `?panel=editar-grupo`
-  **tapa** al resumen): ruta, contenedor y booking, fechas; un campo común sale con su valor, uno que difiere sale vacío con «Varios» y
+  **tapa** al resumen): ruta, contenedor y booking, fechas; en un grupo por contenedor, una línea sobre los bloques (alto reservado) dice de
+  qué embarque es lo que se edita («La naviera, los puertos y las fechas son del embarque «X»: cambian para todos sus vehículos.»; con
+  varios, «de sus embarques»); un campo común sale con su valor, uno que difiere sale vacío con «Varios» y
   dejarlo así no lo toca. Con unidades de un solo origen los selectores ofrecen lo que usa ese origen; de varios, sólo los compartidos que no
   tapa ninguno (lo común que no cabe se ve rotulado). «Guardar» manda lo tocado a todas o a ninguna («Se aplicó a las N unidades.»; conflicto «No se cambió ninguna:
   <motivo>» con «Recargar»; el rechazo de una unidad junto a su campo con su título). Más de 200 unidades, ocultas o no editables: botón
@@ -2251,10 +2260,24 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
     Esqueleto, vacío, tope 200 con aviso, error en el panel con «Reintentar».
   - **Escribir:** «Registrar compra» arriba (también con la lista vacía); sin `repuestos.costos.editar` o con el proyecto cerrado, apagado
     con su motivo al lado y la fila sin «⋯». Drawer `?panel=compra&compra=<id|nueva>` (se recarga, «atrás» lo cierra, una que ya no está
-    avisa): ítem, proveedor, moneda, monto, fecha, comprobante (PDF o imagen ≤ 10 MB, se sube al elegir, «Ver comprobante» y «Quitar») y
-    notas; el equivalente en la base lo calcula el sistema al guardar. Motivos junto a su campo; conflicto con «Recargar»; sin conexión,
-    sale al volver; cerrar con algo escrito pregunta. Guardar relee lista y margen. «⋯» → «Editar» y «Eliminar» (sin preguntar, con
-    «Deshacer»). «Ver comprobante» pide una URL de 60 s al tocarlo.
+    avisa) con un título («Registrar compra» / «Editar compra») y la forma de todo panel de dinero: **arriba**, el monto con su moneda en un
+    solo campo grande, el estado («Sin registrar» / «Registrada»), la fecha y el proveedor; luego, a la vista y sin plegar, «Qué se compró»
+    (el ítem), «Notas» y «Comprobante de la compra». El equivalente en la base lo calcula el sistema al guardar y se lee bajo el monto.
+    **La zona del comprobante** está siempre a la vista, vacía («Arrastra aquí el comprobante o elígelo. PDF o imagen de hasta 10 MB.» y
+    «Elegir archivo» a 44 px en el celular) o con su vista previa (miniatura de una imagen, icono y nombre de un PDF), «Ver comprobante»
+    (URL de 60 s), «Reemplazar» y «Quitar»; sube al elegir o soltar y mide siempre lo mismo; el rechazo («Sólo PDF o imagen de hasta
+    10 MB.») y «Reintentar» salen en su renglón reservado. Un archivo por compra. Motivos junto a su campo; conflicto con «Recargar»; sin
+    conexión, sale al volver; cerrar con algo escrito pregunta. Guardar relee lista y margen. «⋯» → «Editar» y «Eliminar» (sin preguntar, con
+    «Deshacer»).
+- **Pagos** (`repuestos.costos.ver`): «Registrar pago» arriba (apagado con su motivo sin `repuestos.costos.editar` o con el proyecto cerrado) y la
+  lista de pagos del proyecto con su tope; cada pago con «Confirmar pago» (con `logistica.pagos.confirmar`), «Ver comprobante» y su «⋯»
+  («Editar» y «Eliminar» sólo sin confirmar; «Anular pago» sólo confirmado). Tocar un pago abre `?panel=pago&pago=<id|nuevo>`: «Registrar
+  pago» y «Editar pago» con la misma forma que la compra (arriba el monto con su moneda, el estado «Sin confirmar», la fecha y el concepto;
+  luego «Cómo se pagó» —método y tipo de cambio, que se apaga con su motivo en la moneda base—, «Notas» y «Comprobante» con la zona de
+  archivo de arriba). Un pago confirmado, o cualquiera sin permiso de editar, se abre como **«Pago»**, sólo lectura: el mismo orden con el
+  sello («Confirmado por … el …»), el comprobante con su vista previa y «Ver comprobante», y «Anular pago» con `logistica.pagos.confirmar`
+  (pasa a `?panel=anular-pago`, que pide el motivo). Un pago que ya no está avisa «Ese pago ya no está.». El hueco «Pagos» del vehículo
+  usa el mismo panel.
 - **Stock del ítem:** «Stock» en el «⋯» de la tarjeta, también sin `repuestos.editar` y con el proyecto cerrado; al lado, «En stock: N»
   (`<Badge>` de texto; con 0 nada). Abre `?panel=stock&item=<id>` (se recarga; «atrás» lo cierra; un ítem que ya no está avisa). Arriba
   «En stock: N de <cantidad>»; con `repuestos.editar` (también con el proyecto cerrado: los sobrantes nacen al terminar), «Pasar a stock»

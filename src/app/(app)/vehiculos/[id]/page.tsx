@@ -146,7 +146,11 @@ function ResumenDeLaFicha({
 }) {
   return (
     <Suspense fallback={null}>
-      <ResumenDeLaPagina parametros={parametros} ruta={`${RUTAS.vehiculos}/${vehiculoId}`} />
+      <ResumenDeLaPagina
+        parametros={parametros}
+        ruta={`${RUTAS.vehiculos}/${vehiculoId}`}
+        enlazarVehiculo={false}
+      />
     </Suspense>
   )
 }

@@ -1,6 +1,11 @@
 'use client'
 
 import { cotizacionDeLaEntrada, textoDelConteo } from '../../../entities/listado/grupos-del-listado'
+import {
+  rutaDelVehiculoDeLaFila,
+  SIN_VEHICULOS_VISIBLES,
+  type VehiculosVisibles,
+} from '../../../entities/listado/ruta-del-vehiculo'
 import { BotonDelConteo } from './grupo'
 import { TarjetaEnLaLista } from './tarjeta-en-la-lista'
 import {
@@ -22,6 +27,8 @@ type Props = {
   compartirDe?: CompartirDe | undefined
   huecos?: HuecosDeLaLista | undefined
   rutaDeClientes: string | null
+  // En qué orígenes quien mira ve vehículos (el título de la tarjeta enlaza a su ficha).
+  vehiculosVisibles?: VehiculosVisibles | undefined
   // Abre el modal de las cotizaciones de un vehículo (por su id).
   abrirGrupo: (vehiculoId: string) => void
 }
@@ -38,6 +45,7 @@ export function TarjetasDeCotizaciones({
   compartirDe,
   huecos,
   rutaDeClientes,
+  vehiculosVisibles = SIN_VEHICULOS_VISIBLES,
   abrirGrupo,
 }: Props) {
   return (
@@ -58,6 +66,7 @@ export function TarjetasDeCotizaciones({
             compartir={compartirDe?.(cotizacion) ?? null}
             Imagen={huecos?.Imagen}
             rutaDeClientes={rutaDeClientes}
+            rutaDelVehiculo={rutaDelVehiculoDeLaFila(cotizacion, vehiculosVisibles)}
             conteo={
               texto === null || entrada.tipo !== 'grupo' ? null : (
                 <BotonDelConteo

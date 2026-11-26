@@ -1,6 +1,8 @@
 import { z } from 'zod'
+import { esquemaDeEmbarquesDelGrupo, type EmbarqueDelGrupo } from './embarques-del-grupo'
 
-// Los grupos de transporte tal como los devuelven `transporte_grupos()` y `transporte_grupo()` (6.08-3): un grupo es el conjunto de unidades que comparten `booking` o `contenedor`. Puro: la
+// Los grupos de transporte tal como los devuelven `transporte_grupos()` y `transporte_grupo()` (6.08-3): un grupo son los embarques (o contenedores) con un mismo booking (o número) en todos
+// los orígenes, con sus unidades. Puro: la
 // infra pasa lo que leyó y acá se valida y se nombra. La base cuenta sólo las unidades que quien mira ve; ningún total exacto (el tope es de 200 por grupo).
 
 export const TOPE_DE_UNIDADES_DEL_GRUPO = 200
@@ -47,6 +49,10 @@ export type UnidadDelGrupo = {
   origenId: string | null
   faseId: string | null
   fase: string | null
+  faseOrden: number | null
+  // En qué embarque o contenedor va (uno u otro, o un contenedor con su embarque).
+  embarqueId: string | null
+  contenedorId: string | null
   navieraId: string | null
   puertoOrigenId: string | null
   puertoDestinoId: string | null
@@ -66,6 +72,7 @@ export type GrupoLeido = {
   unidades: UnidadDelGrupo[]
   hayMas: boolean
   hayOcultas: boolean
+  embarques: EmbarqueDelGrupo[]
 }
 
 const esquemaDeVarios = z
@@ -102,6 +109,9 @@ const esquemaDeUnidad = z.object({
   origen_id: z.guid().nullable(),
   fase_id: z.guid().nullable(),
   fase: z.string().nullable(),
+  fase_orden: z.number().nullable(),
+  embarque_id: z.guid().nullable(),
+  contenedor_id: z.guid().nullable(),
   naviera_id: z.guid().nullable(),
   puerto_origen_id: z.guid().nullable(),
   puerto_destino_id: z.guid().nullable(),
@@ -120,6 +130,7 @@ const esquemaDeLeido = z.object({
   unidades: z.array(esquemaDeUnidad),
   hay_mas: z.boolean(),
   hay_ocultas: z.boolean(),
+  embarques: esquemaDeEmbarquesDelGrupo,
 })
 
 /** Lo que devolvió `transporte_grupos()`; nulo si no tiene la forma esperada (la infra lo vuelve un error: nunca se descarta en silencio). */
@@ -159,6 +170,7 @@ export function grupoDesde(datos: unknown): GrupoLeido | null {
     clave: g.clave,
     hayMas: g.hay_mas,
     hayOcultas: g.hay_ocultas,
+    embarques: g.embarques,
     unidades: g.unidades.map((u) => ({
       transporteId: u.transporte_id,
       vehiculoId: u.vehiculo_id,
@@ -167,6 +179,9 @@ export function grupoDesde(datos: unknown): GrupoLeido | null {
       origenId: u.origen_id,
       faseId: u.fase_id,
       fase: u.fase,
+      faseOrden: u.fase_orden,
+      embarqueId: u.embarque_id,
+      contenedorId: u.contenedor_id,
       navieraId: u.naviera_id,
       puertoOrigenId: u.puerto_origen_id,
       puertoDestinoId: u.puerto_destino_id,

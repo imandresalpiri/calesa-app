@@ -3,28 +3,18 @@
 import { puede } from '@/shared/lib/permisos'
 import { Aviso } from '@/shared/ui/aviso'
 import { Button } from '@/shared/ui/button'
-import { Skeleton } from '@/shared/ui/skeleton'
 import type { Unidad } from '../../../entities/nucleo/unidad'
 import { TEXTO_DE_REPUESTO } from '../../../entities/transporte/transporte'
 import { usePermisosDeTransporte } from '../hooks/use-permisos-de-transporte'
 import { useTransporteDeLaUnidad } from '../hooks/use-transporte-de-la-unidad'
+import { EsqueletoDelTransporte } from './esqueleto-del-transporte'
 import { FormularioDeTransporte } from './formulario-de-transporte'
-
-function Cargando() {
-  return (
-    <div aria-busy="true" aria-label="Cargando el transporte" className="grid gap-2">
-      <Skeleton className="h-6" />
-      <Skeleton className="h-6 w-2/3" />
-      <Skeleton className="h-6" />
-    </div>
-  )
-}
 
 function DeUnVehiculo({ unidad }: { unidad: Unidad }) {
   const { lectura, releer, reintentar } = useTransporteDeLaUnidad(unidad)
   const permisos = usePermisosDeTransporte()
   if (lectura.tipo === 'cargando') {
-    return <Cargando />
+    return <EsqueletoDelTransporte />
   }
   if (lectura.tipo === 'error') {
     return (

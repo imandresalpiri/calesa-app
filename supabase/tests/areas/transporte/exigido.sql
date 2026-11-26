@@ -5,8 +5,10 @@
 --   X1. Con `transporte.contenedor` bloqueante en la fase: vaciar el contenedor por la RPC da 23514 hint contenedor y sigue; cambiarlo por otro pasa; con
 --       el requisito no bloqueante, vaciar pasa.
 --   X2. Aplicar «vaciar contenedor» al grupo de 3 con una unidad (la última por id) cuya fase lo exige: 23514 y las 3 siguen con su contenedor y versión.
---   X3. Un update directo como superusuario también da 23514.
+--   X3. Un update directo como superusuario también da 23514: sobre `embarques.eta_el` y sobre `transportes.contenedor_id` (la unidad dejaría de ver
+--       la ETA de su embarque); vaciar lo que la fase no exige pasa.
 --   X4. Borrar una naviera que usa una unidad cuya fase exige `transporte.naviera` bloqueante da 23514 y la fila sigue (D17).
+--   X5. Un contenedor que sale de su embarque deja a sus unidades sin booking: con `transporte.booking` bloqueante, 23514 hint booking.
 
 -- La primera cuenta de una base vacía queda dueña (con `SOLO=`): una de relleno antes, para que ninguna de la prueba lo sea.
 create or replace function pg_temp.trn_persona(p_concesiones text[]) returns uuid language plpgsql as $f$
@@ -58,7 +60,11 @@ end $f$;
 
 create or replace function pg_temp.trn_guardar(p_quien uuid, p_v uuid, p_esperada timestamptz, p_cambios jsonb, p_r uuid default null) returns jsonb
 language sql as $f$
-  select pg_temp.trn_corre(p_quien, format('select public.transporte_guardar(%L, %L, %L, %L)', p_v, p_r, p_esperada, p_cambios));
+  -- Con una esperada, también las versiones vigentes de su embarque y su contenedor: quien guarda vio lo de ahora (el PT409 por el embarque o el
+  -- contenedor, en `con-embarque.sql`).
+  select pg_temp.trn_corre(p_quien, format('select public.transporte_guardar(%L, %L, %L, %L, %L, %L)', p_v, p_r, p_esperada, p_cambios,
+    (select x.embarque_actualizado_en from public.transportes_con_embarque x where p_esperada is not null and (x.vehiculo_id = p_v or x.repuesto_id = p_r)),
+    (select x.contenedor_actualizado_en from public.transportes_con_embarque x where p_esperada is not null and (x.vehiculo_id = p_v or x.repuesto_id = p_r))));
 $f$;
 
 create or replace function pg_temp.trn_es(p_que text, p_r jsonb, p_estado text, p_hint text default null) returns void language plpgsql as $f$
@@ -99,11 +105,12 @@ begin
   q := pg_temp.trn_requisito((t ->> 'fase')::uuid, 'transporte.contenedor');
   r := pg_temp.trn_guardar(p, (t ->> 'v')::uuid, v1, '{"contenedor": null}');
   perform pg_temp.trn_es('X1 vaciar', r, '23514', 'contenedor');
-  if (select contenedor from public.transportes where vehiculo_id = (t ->> 'v')::uuid) is distinct from 'MSKU1' then raise exception 'X1: debía seguir'; end if;
+  if (select contenedor from public.transportes_con_embarque where vehiculo_id = (t ->> 'v')::uuid) is distinct from 'MSKU1' then raise exception 'X1: debía seguir'; end if;
   v1 := pg_temp.trn_pasa('X1 cambiar por otro', pg_temp.trn_guardar(p, (t ->> 'v')::uuid, v1, '{"contenedor": "MSKU2"}'));
   update public.fases_requisitos set bloqueante = false where id = q;
   perform pg_temp.trn_pasa('X1 no bloqueante', pg_temp.trn_guardar(p, (t ->> 'v')::uuid, v1, '{"contenedor": null}'));
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: un update directo como superusuario tampoco vacía lo exigido (X3)
@@ -112,14 +119,18 @@ do $$
 declare t jsonb := pg_temp.trn_terreno(); p uuid; r jsonb;
 begin
   p := pg_temp.trn_persona(array['logistica.ver', 'logistica.transporte.editar']);
-  perform pg_temp.trn_pasa('X3 crear', pg_temp.trn_guardar(p, (t ->> 'v')::uuid, null, '{"booking": "BK1", "eta_el": "2026-12-01"}'));
+  perform pg_temp.trn_pasa('X3 crear', pg_temp.trn_guardar(p, (t ->> 'v')::uuid, null,
+                                                         '{"booking": "BK1", "contenedor": "CX3", "zarpe_el": "2026-11-20", "eta_el": "2026-12-01"}'));
   perform pg_temp.trn_requisito((t ->> 'fase')::uuid, 'transporte.eta');
-  r := pg_temp.trn_directo(format('update public.transportes set eta_el = null where vehiculo_id = %L', t ->> 'v'));
-  perform pg_temp.trn_es('X3 directo', r, '23514', 'eta_el');
-  if pg_temp.trn_directo(format('update public.transportes set booking = null where vehiculo_id = %L', t ->> 'v')) is not null then
+  r := pg_temp.trn_directo(format('update public.embarques set eta_el = null where booking = %L and origen_id = %L', 'BK1', t ->> 'o'));
+  perform pg_temp.trn_es('X3 directo en el embarque', r, '23514', 'eta_el');
+  r := pg_temp.trn_directo(format('update public.transportes set contenedor_id = null where vehiculo_id = %L', t ->> 'v'));
+  perform pg_temp.trn_es('X3 directo en la unidad', r, '23514', 'eta_el');
+  if pg_temp.trn_directo(format('update public.embarques set zarpe_el = null where booking = %L and origen_id = %L', 'BK1', t ->> 'o')) is not null then
     raise exception 'X3: vaciar lo que la fase no exige debía pasar';
   end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: no se borra una naviera que una fase exige como bloqueante (X4)
@@ -135,6 +146,7 @@ begin
   perform pg_temp.trn_es('X4 borrar la naviera', r, '23514', 'naviera_id');
   if (select naviera_id from public.transportes where vehiculo_id = (t ->> 'v')::uuid) is distinct from nav then raise exception 'X4: la fila debía seguir'; end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: aplicar «vaciar contenedor» a un grupo con una unidad que lo exige no cambia ninguna (X2)
@@ -148,18 +160,38 @@ begin
     perform pg_temp.trn_pasa('X2 ' || i, pg_temp.trn_guardar(p, v, null, '{"booking": "BKX2", "contenedor": "CONTX2"}'));
   end loop;
   -- La última por id de transporte: las otras dos ya se escribieron cuando cae.
-  select vehiculo_id into v_ult from public.transportes where contenedor = 'CONTX2' order by id desc limit 1;
+  select vehiculo_id into v_ult from public.transportes_con_embarque where contenedor = 'CONTX2' order by id desc limit 1;
   insert into public.fases (flujo_id, nombre, orden) values ((t ->> 'flujo')::uuid, 'tr pide contenedor', 2) returning id into fx;
   perform pg_temp.trn_requisito(fx, 'transporte.contenedor');
   update public.vehiculos set fase_id = fx where id = v_ult;
   g := pg_temp.trn_corre(p, 'select public.transporte_grupo(''contenedor'', ''CONTX2'')');
   e := (select jsonb_object_agg(u ->> 'transporte_id', u ->> 'actualizado_en') from jsonb_array_elements(g -> 'unidades') u);
-  antes := (select jsonb_agg(jsonb_build_object('c', contenedor, 'v', actualizado_en) order by id) from public.transportes where booking = 'BKX2');
+  antes := (select jsonb_agg(jsonb_build_object('c', contenedor, 'v', greatest(actualizado_en, contenedor_actualizado_en, embarque_actualizado_en)) order by id)
+             from public.transportes_con_embarque where booking = 'BKX2');
   r := pg_temp.trn_corre(p, format('select public.transporte_grupo_aplicar(''contenedor'', ''CONTX2'', %L, ''{"contenedor": null}'')', e));
   perform pg_temp.trn_es('X2 vaciar el grupo', r, '23514', 'contenedor');
-  if (select jsonb_agg(jsonb_build_object('c', contenedor, 'v', actualizado_en) order by id) from public.transportes where booking = 'BKX2')
+  if (select jsonb_agg(jsonb_build_object('c', contenedor, 'v', greatest(actualizado_en, contenedor_actualizado_en, embarque_actualizado_en)) order by id)
+             from public.transportes_con_embarque where booking = 'BKX2')
      is distinct from antes then
     raise exception 'X2: las 3 debían seguir con su contenedor y su versión';
   end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
+rollback;
+
+-- @test transporte: un contenedor que sale de su embarque no deja sin booking a la unidad cuya fase lo exige (X5)
+begin;
+do $$
+declare t jsonb := pg_temp.trn_terreno(); p uuid; r jsonb;
+begin
+  p := pg_temp.trn_persona(array['logistica.ver', 'logistica.transporte.editar']);
+  perform pg_temp.trn_pasa('X5 crear', pg_temp.trn_guardar(p, (t ->> 'v')::uuid, null, '{"booking": "BKX5", "contenedor": "CX5"}'));
+  perform pg_temp.trn_requisito((t ->> 'fase')::uuid, 'transporte.booking');
+  r := pg_temp.trn_directo(format('update public.contenedores set embarque_id = null where numero = %L and origen_id = %L', 'CX5', t ->> 'o'));
+  perform pg_temp.trn_es('X5 el contenedor sale', r, '23514', 'booking');
+  if (select booking from public.transportes_con_embarque where vehiculo_id = (t ->> 'v')::uuid) is distinct from 'BKX5' then
+    raise exception 'X5: debía seguir en su embarque';
+  end if;
+end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;

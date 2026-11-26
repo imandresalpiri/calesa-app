@@ -9,6 +9,10 @@ export type PedidoDeTransporte = {
   vehiculoId: string
   // La versión leída; nula = crear (si ya existía, la base dice `PT409`).
   actualizadoEnEsperado: string | null
+  // Las versiones del embarque y del contenedor en que iba al leer (nulas si no iba en uno): un cambio de lo del embarque o del booking de un contenedor los escribe
+  // para todos, y la base rechaza con `PT409` si cambiaron desde la lectura.
+  embarqueEsperado: string | null
+  contenedorEsperado: string | null
   cambios: CambiosDeTransporte
 }
 

@@ -2,6 +2,7 @@
 //   A → B (B pide nota interna) y B → C (C pide un documento bloqueante «E2E BL <proyecto>»). Un vehículo en A y otro en B, los dos desde hace dos días.
 import { CONTRASENA } from './alta'
 import { admin, correoDePrueba, crearPersona, darRolDePrueba, PREFIJO_ROL_E2E } from './base'
+import { contenedorDe, ponerEn } from './embarques'
 import { PREFIJO_CLAVE_E2E, borrarOrigenes, crearOrigenDePrueba } from './origenes'
 import { borrarVehiculosDe } from './vehiculos'
 
@@ -161,7 +162,7 @@ export type LoteSembrado = {
   suelta: Unidad
 }
 
-// El terreno del lote (6.04-3), sobre el de `sembrarMover`: ocho vehículos en B con el mismo contenedor (`transportes.contenedor`), siete con el BL aprobado y uno sin él (B → C pide el BL), y una
+// El terreno del lote (6.04-3), sobre el de `sembrarMover`: ocho vehículos en B en el mismo contenedor (`contenedores`), siete con el BL aprobado y uno sin él (B → C pide el BL), y una
 // suelta en B con el BL aprobado. Todos desde hace dos días.
 export async function sembrarLote(
   terreno: TerrenoDeMover,
@@ -190,10 +191,11 @@ export async function sembrarLote(
   })
   const delContenedor = titulos.slice(0, 8).map(unidad)
   const contenedor = `ELOTE${proyecto.toUpperCase().slice(0, 3)}${String(Date.now()).slice(-6)}`
-  const { error: errorDeTransportes } = await cliente
-    .from('transportes')
-    .insert(delContenedor.map((u) => ({ vehiculo_id: u.id, contenedor })))
-  exigir(errorDeTransportes, 'crear los transportes del lote')
+  const contenedorId = await contenedorDe(terreno.origen.id, contenedor)
+  await ponerEn(
+    delContenedor.map((u) => u.id),
+    { contenedorId },
+  )
   const sinBl = delContenedor[7] ?? { id: '', titulo: '' }
   const suelta = unidad(`E2E Suelta ${proyecto}`)
   for (const u of [...delContenedor.slice(0, 7), suelta]) {

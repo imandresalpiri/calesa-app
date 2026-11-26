@@ -22,10 +22,13 @@ type Parametros = Awaited<PageProps<'/cotizaciones'>['searchParams']>
 export async function ResumenDeLaPagina({
   parametros,
   ruta,
+  enlazarVehiculo = true,
 }: {
   parametros: Promise<Parametros> | Parametros
   // La de la ficha (`/leads/<id>`).
   ruta: string
+  // Falso en la ficha del propio vehículo: el título no enlaza a sí mismo.
+  enlazarVehiculo?: boolean
 }) {
   const url = await parametros
   const texto = unParametro(url[CLAVE_DE_RESUMEN_DE_COTIZACION])
@@ -51,6 +54,7 @@ export async function ResumenDeLaPagina({
       menus={await menusDeLaPagina(sesion, filas)}
       quienes={quienesDelResumen(sesion, [], delServidor)}
       aprobarEn={origenesCon(sesion.permisos, 'cotizaciones.aprobar')}
+      vehiculosVisibles={enlazarVehiculo ? origenesCon(sesion.permisos, 'vehiculos.ver') : []}
       volverA={rutaDeVueltaALaFicha(ruta, url, CLAVE_DE_RESUMEN_DE_COTIZACION)}
     />
   )
