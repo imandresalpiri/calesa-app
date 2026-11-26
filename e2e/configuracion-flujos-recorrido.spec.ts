@@ -99,12 +99,13 @@ test(`${P} la dueña crea un origen y arma 5 fases con sus salidas`, async ({ pa
   await expect(page.getByRole('heading', { name: 'Fases', level: 2 })).toBeVisible()
   await expect(nombresDeFases(page)).toHaveCount(0)
 
+  // La primera desde el vacío; las demás desde la barra de la lista (en el diagrama, la fase creada abre su panel).
   await crearFase(page, COMPRA, 'Inicial')
+  await page.getByRole('button', { name: 'Ver como lista' }).click()
   await crearFase(page, PUERTO, 'Intermedia')
   await crearFase(page, TRANSITO, 'Intermedia')
   await crearFase(page, LLEGADA, 'Intermedia')
   await crearFase(page, ENTREGA, 'Final')
-  await page.getByRole('button', { name: 'Ver como lista' }).click()
   await expect(nombresDeFases(page)).toHaveText([COMPRA, PUERTO, TRANSITO, LLEGADA, ENTREGA])
 
   // Las salidas; «Llegada» queda sin salida a propósito (la corrige «Revisar»).
