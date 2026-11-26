@@ -235,6 +235,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
   activa queda al final, en Ejemplo, y llegar a él esconde la C — fijarlo a la derecha como `#` y A van fijas a la izquierda (`fila-de-la-cuadricula.tsx`).
 - **[—]** En el editor de la hoja, el «+» de la pieza elegida no se achica con el lienzo: con la vista 1.280 en una ventana de 1.280 (el lienzo a ≈ 0,3)
   tapa la mitad de abajo de una pieza baja, como la tarjeta del total y su cifra. Darle un tamaño que siga la escala o sacarlo fuera de la pieza (`features/diseno/components/editor/`).
+- **[—]** `<ListaDeCatalogo>` dentro de un drawer (los «Grupos de campos», las «Categorías» de las preguntas y de las guías) elige la tabla por el ancho de la
+  pantalla, no del drawer: en 24 rem la columna «Estado» queda tras el «⋯» pegado («Activ…») y se lee desplazando la tabla — elegir tarjetas por el ancho del
+  contenedor (`@container`) o angostar la columna del nombre (`lista-de-catalogo.tsx`).
 - **[—]** En el celular al 200 %, el «⋯» del panel de la fase queda más arriba que la ✕ (el «⋯» va en rem y la ✕ en px): alinear sus centros (`drawer.tsx`, `acciones`).
 - **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px con el resumen al costado, los tercios del modal «Avanzado», un par con un lado bloqueado
   en el celular) baja sus acciones (el % y el ⚙ de un par) a una segunda línea: la celda mide 88 px en vez de 56 y las de la misma fila no se alinean; V1 los
