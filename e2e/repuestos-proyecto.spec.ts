@@ -185,6 +185,10 @@ test('si otra persona cambia el ítem, guardar otra celda sale como conflicto y 
     modal.getByText('Otra persona cambió este ítem. Recarga para ver lo nuevo.'),
   ).toBeVisible()
   await modal.getByRole('button', { name: 'Recargar', exact: true }).click()
+  // El aviso se va cuando las filas nuevas llegaron: cerrar antes descartaba el refresco en vuelo y el panel se quedaba con el precio viejo.
+  await expect(
+    modal.getByText('Otra persona cambió este ítem. Recarga para ver lo nuevo.'),
+  ).toBeHidden()
   await expect(modal.getByLabel(`Descripción del ítem ${FARO}`)).toBeVisible()
   await modal.getByRole('button', { name: 'Listo' }).click()
   await expect(modal).toBeHidden()
