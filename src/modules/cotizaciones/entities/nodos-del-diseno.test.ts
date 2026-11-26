@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { enRejilla, type Diseno } from './diseno'
+import { type Diseno } from './diseno'
+import { enRejilla } from './diseno-sin-posicion'
 import type { Nodo } from './nodos'
 import { nodosDelDiseno } from './nodos-del-diseno'
 

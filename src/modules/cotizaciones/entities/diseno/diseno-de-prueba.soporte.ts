@@ -1,11 +1,7 @@
 // La fórmula y el diseño mínimos que comparten las pruebas de `entities/diseno/`: un total que suma tres sumandos (a, b y c), una
 // comisión con su porcentaje, una resta y una variante. El diseño dibuja todo menos `libre`; cada prueba lo cambia con `ponerSeccion()`.
-import {
-  esquemaDiseno,
-  type Diseno,
-  type ItemSinPosicion,
-  type SeccionSinPosicion,
-} from '../diseno'
+import { esquemaDiseno, type Diseno } from '../diseno'
+import type { ItemSinPosicion, SeccionSinPosicion } from '../diseno-sin-posicion'
 import { esquemaDefinicion, type Definicion } from '../formula'
 
 export const formulaDePrueba: Definicion = esquemaDefinicion.parse({

@@ -272,21 +272,6 @@ export type DensidadDeSeccion = (typeof DENSIDADES_DE_SECCION)[number]
 export type Letra = (typeof LETRAS)[number]
 export type Enfasis = (typeof ENFASIS)[number]
 
-// Una pieza antes de tener lugar: la que ofrece «Sumar» (`primerLugarLibre()` le da su posición al sumarla) y la de un diseño de flujo que aún no se
-// leyó (las pruebas lo escriben así y `esquemaDiseno` o `enRejilla()` lo convierten).
-type SinPosicion<T> = T extends { posicion: Posicion }
-  ? Omit<T, 'posicion'> & { posicion?: Posicion }
-  : T
-export type ItemSinPosicion = SinPosicion<ItemDeDiseno>
-export type SeccionSinPosicion = Omit<SeccionDeDiseno, 'posicion' | 'items'> & {
-  posicion?: Posicion
-  items: ItemSinPosicion[]
-}
-export type DisenoSinPosicion = Omit<Diseno, 'secciones'> & { secciones: SeccionSinPosicion[] }
-
-// Un diseño (de flujo o ya en rejilla) en rejilla, sin validarlo: la conversión de `esquemaDiseno` con su tipo.
-export const enRejilla = (d: DisenoSinPosicion | Diseno): Diseno => disenoEnRejilla(d) as Diseno
-
 // El nodo que dibuja un ítem, o nada si es la tarjeta del total (su nodo es el de `tarjeta_total`).
 export function nodoDelItem(item: ItemDeDiseno): string | null {
   return item.tipo === 'total' ? null : item.nodo

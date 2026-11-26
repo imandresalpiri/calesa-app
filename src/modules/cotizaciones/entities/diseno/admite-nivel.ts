@@ -1,7 +1,7 @@
 // Qué admite un nivel de ver (4.22-2): el espejo de `nivel_no_admitido` de `validar_diseno()` para que el editor apague el campo en vez de dejar que
 // la base lo rechace. El total y lo que va aparte lo recibe todo el mundo (la base los manda siempre) y la variante titula el PDF: un ítem sobre ellos no
 // puede ser de un nivel. «Lo que va aparte» incluye el porcentaje que muestra una celda con secundario y la bandera de un interruptor.
-import type { ItemSinPosicion, SeccionSinPosicion } from '../diseno'
+import type { ItemSinPosicion, SeccionSinPosicion } from '../diseno-sin-posicion'
 import type { Definicion } from '../formula'
 import type { Nodo } from '../nodos'
 

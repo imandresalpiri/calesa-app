@@ -2,7 +2,8 @@
 // hoja, o el motivo por el que no se puede (el tope de 40 piezas, la tarjeta del total ya ubicada o una sección que no la admite). Lo que sólo admite un tipo
 // de pieza se ofrece con ella: una `opcion` en chips de variante, una `bandera` en un interruptor, un `calculo` en una franja de subtotal o una celda, una tabla
 // sobrescribible con celda en atajos. Puras; en el orden de la fórmula.
-import type { Diseno, ItemSinPosicion, SeccionDeDiseno } from '../diseno'
+import type { Diseno, SeccionDeDiseno } from '../diseno'
+import type { ItemSinPosicion } from '../diseno-sin-posicion'
 import type { Definicion } from '../formula'
 import type { Nodo } from '../nodos'
 import { auxiliaresDe } from '../compilador-auxiliares'

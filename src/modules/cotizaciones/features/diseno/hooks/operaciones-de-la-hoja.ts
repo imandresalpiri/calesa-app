@@ -1,12 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { avisarConDeshacer } from '@/shared/ui/toasts'
-import type {
-  ClaveDePieza,
-  Diseno,
-  ItemSinPosicion,
-  Posicion,
-  SeccionDeDiseno,
-} from '../../../entities/diseno'
+import type { ClaveDePieza, Diseno, Posicion, SeccionDeDiseno } from '../../../entities/diseno'
+import type { ItemSinPosicion } from '../../../entities/diseno-sin-posicion'
 import {
   anuncioDeLaMovida,
   nombrarEnLaHoja,

@@ -2,12 +2,8 @@
 
 import { useMemo } from 'react'
 import type { ContextoDeHoja } from '../../../entities/binding'
-import type {
-  ClaveDePieza,
-  ItemSinPosicion,
-  Posicion,
-  SeccionDeDiseno,
-} from '../../../entities/diseno'
+import type { ClaveDePieza, Posicion, SeccionDeDiseno } from '../../../entities/diseno'
+import type { ItemSinPosicion } from '../../../entities/diseno-sin-posicion'
 import type { Nombrar } from '../../../entities/diseno/anuncios-de-la-rejilla'
 import { MOTIVO_DE_LA_ULTIMA_SECCION } from '../../../entities/diseno/insercion-del-diseno'
 import { lugarDe, type Tamano } from '../../../entities/diseno/lugar-en-la-rejilla'

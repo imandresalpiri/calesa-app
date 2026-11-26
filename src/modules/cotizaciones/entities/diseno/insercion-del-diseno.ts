@@ -7,10 +7,10 @@ import {
   MAXIMO_DE_ITEMS_DEL_DISENO,
   type ClaveDePieza,
   type Diseno,
-  type ItemSinPosicion,
   type Posicion,
   type SeccionDeDiseno,
 } from '../diseno'
+import type { ItemSinPosicion } from '../diseno-sin-posicion'
 import { altoEfectivo, anchoEfectivoDelItem } from '../diseno-en-rejilla'
 import { SECCION_AUTOMATICA } from '../rejilla-de-la-hoja'
 import { conSeccion } from './edicion-del-diseno'

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { enRejilla, type Diseno } from '../diseno'
+import { type Diseno } from '../diseno'
+import { enRejilla } from '../diseno-sin-posicion'
 import type { Formula } from '../formula'
 import type { Nodo } from '../nodos'
 import { FORMULA_A1 } from './hoja-a1.soporte'

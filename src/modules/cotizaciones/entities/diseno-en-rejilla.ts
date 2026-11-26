@@ -4,7 +4,8 @@
 // diseño que ya es de rejilla vuelve igual: la conversión es idempotente. Es tolerante y nunca lanza: lo que no tiene forma lo deja como está y lo rechaza
 // la forma con su error de siempre. Su espejo es `public._diseno_en_rejilla()`, con el juego `casos-de-rejilla.json`. Sin Zod: la usa el preproceso del
 // esquema del diseño.
-import type { ItemDeDiseno, ItemSinPosicion, SeccionDeDiseno } from './diseno'
+import type { ItemDeDiseno, SeccionDeDiseno } from './diseno'
+import type { ItemSinPosicion } from './diseno-sin-posicion'
 import {
   columnasDeLaCelda,
   colocarEnFlujo,
