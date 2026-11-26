@@ -2,7 +2,7 @@
 
 import { useState, type RefObject } from 'react'
 import { BotonDelValor } from './boton-del-valor'
-import { LUGAR_A, LUGAR_B } from './clases'
+import type { Lugar } from './clases'
 import { EntradaDeXCell } from './entrada-de-xcell'
 import type { DatosDeLado, Lado, useEdicion } from './use-edicion'
 
@@ -37,7 +37,7 @@ export function LadoDeXCell(props: Props) {
   // El ancho del botón al abrirse: la entrada lo toma (el valor no tiene un ancho fijo: nunca se corta).
   const [ancho, setAncho] = useState<number | null>(null)
   // Su lugar en la rejilla de la celda (el primero que se ve o el otro): el botón y la entrada que lo reemplaza van en el mismo.
-  const lugar = props.parada === 0 ? LUGAR_A : LUGAR_B
+  const lugar: Lugar = props.parada === 0 ? 'a' : 'b'
   if (e.edicion?.lado === lado) {
     return (
       <EntradaDeXCell

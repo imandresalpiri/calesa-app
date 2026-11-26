@@ -240,6 +240,9 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   contenedor sube con `relative focus-within:z-10 hover:z-10`.
 - `container-type: inline-size` dentro de una tabla `w-max` (o de cualquier caja que se mide por su contenido) colapsa a 0: el contenedor no aporta ancho
   propio. Ahí la celda no es contenedor (`XCELL_COMPACTA` pone `--xcell-contenedor: normal`).
+- Una clase larga en un componente que se repite (una celda de la hoja, una fila) se paga una vez por instancia en el HTML: un `@container`, una variable
+  `calc()` o un globo `after:` en clases suman KB por celda. Lo que es igual en todas va a una hoja de estilos en `@layer components` con `:where()` (una
+  clase la sigue pisando); antes de publicar se mide `renderToStaticMarkup()` contra `main`.
 - Una transición (`transition-transform`) sigue en curso cuando un e2e mide cajas justo después del cambio: espera el valor final del estilo
   (`getComputedStyle(e).scale`) antes de medir.
 

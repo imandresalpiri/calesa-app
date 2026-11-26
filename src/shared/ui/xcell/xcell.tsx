@@ -202,7 +202,7 @@ function XCellBase(props: XCellProps) {
       data-estado={estados}
       data-par={hayPar ? '' : undefined}
       data-aviso={notas.aviso?.nota.texto}
-      className={`group/xc ${RAIZ}`}
+      className={RAIZ}
       onKeyDown={(evento) => {
         teclasDeLaCelda(evento, principalRef.current)
       }}

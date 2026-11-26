@@ -805,6 +805,10 @@ las trampas, en `docs/LECCIONES.md`.
     que ya es un control (⚙, ayuda, ↺, el candado, la marca) se ocupa solo. Descartado `<label htmlFor>`: el valor es un botón que se vuelve entrada, y una
     etiqueta no abre la edición ni elige el lado. Una celda bloqueada tocada con el puntero enfoca su candado y su globo dice el motivo; Enter en un lado
     bloqueado no mueve el foco (el motivo ya es su descripción y Tab sigue donde estaba).
+  - **La geometría de la celda va en una hoja de estilos (`src/shared/ui/xcell/xcell.css`), no en clases:** la rejilla, sus variables, las tres
+    disposiciones, el rótulo flotante y el globo son iguales en toda celda; en clases viajaban repetidos en cada una (+2,7 KB por celda) y el documento de la
+    hoja pasaba su presupuesto de bytes. En `@layer components` con `:where()`, cualquier clase la sigue pisando; los hijos se reconocen por un atributo
+    (`data-lugar`, `data-rotulo`, `data-acciones`). Descartado subir el tope de bytes: pasaba el 5 % que la regla deja subir y el peso crecía con cada celda.
   - **Apagada sin bajar el contraste del valor:** la inactiva o bloqueada lleva fondo apagado, borde discontinuo y tinta suave (AA), y sólo el rótulo y el
     punto bajan de opacidad. Descartado `opacity-50` en toda la celda: el monto quedaría bajo 4,5:1 y se sigue leyendo.
   - **La celda densa de `repuestos` se queda densa:** la hoja de ítems es una tabla, no la hoja de cotizar; `XCELL_COMPACTA` en su contenedor apaga el alto,

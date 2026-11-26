@@ -74,7 +74,7 @@ export function RotuloDeXCell({ idDeLaEtiqueta, label, sugerido }: PropsDelRotul
           <span className="sr-only">Sugerido</span>
         </>
       ) : null}
-      <span id={idDeLaEtiqueta} title={label} className={ETIQUETA}>
+      <span id={idDeLaEtiqueta} title={label} data-rotulo="" className={ETIQUETA}>
         {label}
       </span>
     </>
@@ -114,7 +114,7 @@ function MarcaDeEditado({ id }: { id: string }) {
 export function AccionesDeXCell(props: PropsDeLasAcciones) {
   const { label, marca, candados, alAyudar, alAjustar, restablecer, alRestablecer } = props
   return (
-    <span className={ACCIONES}>
+    <span data-acciones="" className={ACCIONES}>
       {marca === undefined ? null : <MarcaDeEditado id={marca} />}
       {candados.map((candado) => (
         <CandadoDeXCell key={candado.id} id={candado.id} texto={candado.texto} />

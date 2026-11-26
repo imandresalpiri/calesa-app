@@ -6,6 +6,7 @@ import {
   BOTON_CHICO_BLOQUEADO,
   BOTON_DEL_VALOR,
   BOTON_GRANDE_BLOQUEADO,
+  type Lugar,
 } from './clases'
 import { ID_DEL_ATAJO } from './simbolos-de-xcell'
 import { TextoDeValor } from './texto-de-valor'
@@ -16,8 +17,8 @@ type Props = {
   datos: DatosDeLado
   // El lado que se lee primero, grande; el otro, chico (`clases.ts`).
   grande: boolean
-  // Su lugar en la rejilla de la celda (`LUGAR_A` o `LUGAR_B`).
-  lugar: string
+  // Su lugar en la rejilla de la celda (`data-lugar`: `a` el primero que se ve, `b` el otro).
+  lugar: Lugar
   // Su lugar entre los valores: 0 el primero que se ve (recibe el foco al volver de ↺ y es el que busca la hoja).
   parada: number
   moneda: string | undefined
@@ -66,7 +67,8 @@ export function BotonDelValor(props: Props) {
       data-lado={lado}
       data-vacio={datos.valor === null ? '' : undefined}
       data-blanco={props.blanco ? '' : undefined}
-      className={`${claseDelBoton(props.grande, props.soloEsteLado)} ${props.lugar}`}
+      data-lugar={props.lugar}
+      className={claseDelBoton(props.grande, props.soloEsteLado)}
       aria-labelledby={`${idDeLaEtiqueta} ${idDelBoton}`}
       aria-describedby={
         conAtajo

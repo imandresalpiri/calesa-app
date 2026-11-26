@@ -6,52 +6,45 @@ export const TINTA = 'text-[color:var(--tono-tinta,var(--color-ink))]'
 const BLANCO_TACTIL = 'min-h-[44px] md:pointer-fine:min-h-8'
 
 // La celda: una rejilla de alto fijo. La línea (`--xcell-linea`) mide el valor grande (1,5 veces su letra más el relleno) y nunca menos que el blanco
-// táctil: sale de la letra, nunca de un px literal (con la «Letra» grande o el texto al 200 % un alto en px cortaría el valor). El alto depende sólo de la letra, del puntero y del ancho de la celda; nunca del estado (editar, el aviso, el error,
-// la marca, «Calculado», el candado, ↺): todo va en la misma línea. `--xcell-alto` (56 px; 40 en una sección «compacta») es el mínimo de la raíz y los
-// hijos tienen alto fijo: la primera fila (`--xcell-fila`) cabe el rótulo flotante y la línea de la nota, y la celda mide lo mismo en todo estado. Tres
-// disposiciones por el ancho de la celda (consulta de contenedor `xc`, `LUGAR_*`): en fila, «rótulo y nota | valor(es) | acciones»; apilada (simple bajo
-// 16 rem, par bajo 26), el valor de la `parada` 0 junto al rótulo y abajo el otro con las acciones; alta (bajo 13 rem: el texto al 200 % en el celular),
-// el rótulo solo arriba, el valor entero en su fila y abajo el resto. Los cortes salen de la hoja: su media columna (16,6 rem) y el celular (20,5)
-// quedan en fila con un valor de miles y dos acciones; un par en el celular, apilado.
+// táctil: sale de la letra, nunca de un px literal (con la «Letra» grande o el texto al 200 % un alto en px cortaría el valor). El alto depende sólo de la
+// letra, del puntero y del ancho de la celda; nunca del estado (editar, el aviso, el error, la marca, «Calculado», el candado, ↺): todo va en la misma
+// línea. `--xcell-alto` (56 px; 40 en una sección «compacta») es el mínimo de la raíz y los hijos tienen alto fijo: la primera fila (`--xcell-fila`) cabe el
+// rótulo flotante y la línea de la nota, y la celda mide lo mismo en todo estado. Tres disposiciones por el ancho de la celda (consulta de contenedor
+// `xc`): en fila, «rótulo y nota | valor(es) | acciones»; apilada (simple bajo 16 rem, par bajo 26), el valor de la `parada` 0 junto al rótulo y abajo el
+// otro con las acciones; alta (bajo 13 rem: el texto al 200 % en el celular), el rótulo solo arriba, el valor entero en su fila y abajo el resto. Los cortes
+// salen de la hoja: su media columna (16,6 rem) y el celular (20,5) quedan en fila con un valor de miles y dos acciones; un par en el celular, apilado.
 // El relleno y la separación los puede pisar quien la contiene (`--xcell-relleno`, `--xcell-separacion`; 8 y 6 px). `XCELL_COMPACTA` la vuelve una fila
 // `flex` que crece (`--xcell-display`, `--xcell-contenedor`). Deshabilitada (todos los lados bloqueados), gris con su monto: fondo apagado y tinta suave de
 // los tokens (AA en `design/tokens.test.ts`) y el cursor de no permitido. `container-type` crea un contexto de apilamiento: con el foco o el puntero adentro
 // sube (`z-10`) para que su globo no quede bajo la celda de abajo. El globo de la raíz (su `::after`) dice el aviso entero cuando la línea no alcanza.
-export const RAIZ =
-  `relative [display:var(--xcell-display,grid)] [container-name:xc] [container-type:var(--xcell-contenedor,inline-size)] grid-cols-[minmax(0,1fr)_auto_auto] data-[par]:grid-cols-[minmax(0,1fr)_auto_auto_auto] grid-rows-[var(--xcell-fila)] auto-rows-[var(--xcell-linea)] min-h-[var(--xcell-alto,56px)] flex-wrap content-center items-center justify-end gap-x-2 gap-y-[var(--xcell-separacion,calc(var(--spacing)*1.5))] rounded-md border p-[var(--xcell-relleno,calc(var(--spacing)*2))] text-sm cursor-text focus-within:z-10 hover:z-10 ` +
-  `[--xcell-linea:max(44px,calc(var(--xcell-letra-valor,calc(var(--text-sm)*1.5))*1.5_+_8px))] md:pointer-fine:[--xcell-linea:max(32px,calc(var(--xcell-letra-valor,calc(var(--text-sm)*1.5))*1.5_+_8px))] [--xcell-l-rotulo:calc(var(--xcell-letra-rotulo,calc(var(--text-sm)*1.3))*1.25)] [--xcell-fila:max(var(--xcell-linea),calc(var(--xcell-alto,56px)_-_2*var(--xcell-relleno,calc(var(--spacing)*2))_-_2px),calc(var(--xcell-l-rotulo)*0.75_+_1rem_+_2px))] [--xcell-sube:calc((var(--xcell-l-rotulo)_-_var(--xcell-fila))/2*var(--xcell-flota,1))] [--xcell-escala:calc(1_-_var(--xcell-flota,1)/4)] [--xcell-inicio:var(--xcell-sangria,8px)] has-[[title=Sugerido]]:[--xcell-inicio:calc(var(--xcell-sangria,8px)_+_var(--xcell-hueco-punto,1rem))] ` +
-  'border-[color:var(--tono-borde,var(--color-line-strong))] bg-[color:var(--tono-fondo,var(--color-surface))] data-[estado~=deshabilitado]:cursor-not-allowed data-[estado~=deshabilitado]:border-dashed data-[estado~=deshabilitado]:[--tono-fondo:var(--color-surface-2)] data-[estado~=deshabilitado]:[--tono-borde:var(--color-line-strong)] data-[estado~=deshabilitado]:[--tono-tinta:var(--color-ink-soft)] ' +
-  "after:pointer-events-none after:absolute after:top-full after:left-0 after:z-20 after:mt-1 after:hidden after:w-max after:max-w-[min(16rem,100%)] after:rounded-(--radius-sm) after:bg-(--color-ink) after:px-2 after:py-1 after:text-left after:font-sans after:text-(length:--text-xs) after:font-normal after:whitespace-normal after:text-(--color-paper) after:content-[attr(data-aviso)_/_''] data-[aviso]:focus-within:not-has-[[data-parada='10']:focus]:after:block " +
-  TINTA
+// Todo eso es igual en toda celda y vive en `xcell.css` (una vez por página, no repetido en cada celda): la raíz sólo lleva el grupo de las variantes.
+export const RAIZ = 'group/xc'
 
 // Inactiva o bloqueada: el rótulo y el punto apagados, como el rótulo de un campo deshabilitado (un texto de un control inactivo está exento de contraste).
 // El valor NO: queda a opacidad 1 con la tinta suave sobre el fondo apagado (AA); una opacidad en toda la celda lo bajaría de 4,5:1.
 const APAGADO = 'group-data-[estado~=deshabilitado]/xc:opacity-60'
 
-// El rótulo, la nota y «Calculado» comparten el área de la columna 1: el rótulo al medio y, cuando hace falta lugar, sube y se achica (etiqueta flotante:
-// `transform`, nunca la letra ni el alto) y la línea de la nota queda abajo. El inicio es el de V1 (8 de relleno y 8 de `--xcell-sangria`) más el punto
-// de lo sugerido si lo hay (`--xcell-inicio`), como margen y no relleno: si el valor y las acciones no le dejan lugar, el rótulo se achica hasta nada (el
-// texto sigue en `title` y en el nombre del grupo) en vez de quedar debajo del valor. Alta, ocupa toda la fila de arriba.
-const AREA_DEL_ROTULO =
-  '[grid-area:1/1] @max-[13rem]/xc:[grid-column:1/-1] min-w-0 ms-[var(--xcell-inicio,var(--xcell-sangria,8px))]'
+// El rótulo, la nota y «Calculado» comparten el área de la columna 1 (`data-rotulo`, `data-nota` en `xcell.css`): el rótulo al medio y, cuando hace falta
+// lugar, sube y se achica (etiqueta flotante: `transform`, nunca la letra ni el alto) y la línea de la nota queda abajo. El inicio es el de V1 (8 de
+// relleno y 8 de `--xcell-sangria`) más el punto de lo sugerido si lo hay (`--xcell-inicio`), como margen y no relleno: si el valor y las acciones no le
+// dejan lugar, el rótulo se achica hasta nada (el texto sigue en `title` y en el nombre del grupo) en vez de quedar debajo del valor. Alta, ocupa toda la
+// fila de arriba.
 
 // El rótulo, en 1,3 veces la letra de la hoja (`--xcell-letra-rotulo`) y con el peso heredado. Se corta con «…» y el texto completo va en `title` (y es
 // el nombre del grupo para el lector). Flota con una entrada abierta o una línea de nota: sube a la parte de arriba de la línea y queda en tres cuartos
 // (`--xcell-sube`, `--xcell-escala`; `--xcell-flota: 0` lo apaga). La transición sólo con movimiento permitido y nunca `transition-all`. `grow basis-24`
 // sólo cuenta en la fila `flex` de `XCELL_COMPACTA`.
-export const ETIQUETA = `${AREA_DEL_ROTULO} grow basis-24 self-center truncate leading-[1.25] text-[length:var(--xcell-letra-rotulo,calc(var(--text-sm)*1.3))] [transform-origin:0_0] motion-safe:transition-transform motion-safe:duration-150 group-has-[input]/xc:[translate:0_var(--xcell-sube)] group-has-[input]/xc:[scale:var(--xcell-escala)] group-has-[[data-nota]]/xc:[translate:0_var(--xcell-sube)] group-has-[[data-nota]]/xc:[scale:var(--xcell-escala)] ${APAGADO}`
+export const ETIQUETA = `grow basis-24 self-center truncate leading-[1.25] text-[length:var(--xcell-letra-rotulo,calc(var(--text-sm)*1.3))] ${APAGADO}`
 
 // Las acciones, detrás del valor, en la última columna. Se separan 8 px, como los valores: el contorno del foco de una ocupa 4 y no toca a la vecina. La
-// banda existe aunque esté vacía y mide el blanco táctil: aparecer ↺ no cambia el alto. Angosta, va abajo a la derecha, junto al valor chico.
-export const ACCIONES = `flex shrink-0 items-center gap-2 ${BLANCO_TACTIL} [grid-column:-2/-1] [grid-row:1] justify-self-end @max-[16rem]/xc:[grid-row:2] group-data-[par]/xc:@max-[26rem]/xc:[grid-row:2] @max-[13rem]/xc:[grid-row:3] group-data-[par]/xc:@max-[13rem]/xc:[grid-row:3]`
+// banda existe aunque esté vacía y mide el blanco táctil: aparecer ↺ no cambia el alto. Angosta, va abajo a la derecha, junto al valor chico (su lugar,
+// `data-acciones` en `xcell.css`).
+export const ACCIONES = `flex shrink-0 items-center gap-2 ${BLANCO_TACTIL}`
 
-// Dónde va cada lado: el que se lee primero (`parada` 0) en la columna 2 y, apilada, en toda la fila de arriba a la derecha (alta, en la segunda); el otro
-// en la columna 3 y, apilada o alta, abajo, antes de las acciones. El orden en que se ven es el del DOM en las tres. Los cortes van en rem: con el texto
-// al 200 % la celda se apila sola. La entrada lleva el mismo lugar que el botón que reemplaza.
-export const LUGAR_A =
-  '[grid-column:2] [grid-row:1] justify-self-end @max-[16rem]/xc:[grid-column:2/-1] group-data-[par]/xc:@max-[26rem]/xc:[grid-column:2/-1] @max-[13rem]/xc:[grid-column:1/-1] @max-[13rem]/xc:[grid-row:2] group-data-[par]/xc:@max-[13rem]/xc:[grid-column:1/-1]'
-export const LUGAR_B =
-  '[grid-column:3] [grid-row:1] justify-self-end @max-[16rem]/xc:[grid-row:2] group-data-[par]/xc:@max-[26rem]/xc:[grid-row:2] @max-[13rem]/xc:[grid-row:3] group-data-[par]/xc:@max-[13rem]/xc:[grid-row:3]'
+// Dónde va cada lado (`data-lugar` en `xcell.css`): el que se lee primero (`parada` 0, `a`) en la columna 2 y, apilada, en toda la fila de arriba a la
+// derecha (alta, en la segunda); el otro (`b`) en la columna 3 y, apilada o alta, abajo, antes de las acciones. El orden en que se ven es el del DOM en
+// las tres. Los cortes van en rem: con el texto al 200 % la celda se apila sola. La entrada lleva el mismo lugar que el botón que reemplaza.
+export type Lugar = 'a' | 'b'
 
 // El valor, en la monoespaciada de los tokens (`--font-mono`) con cifras tabulares: nunca se corta (no se parte ni se achica). Su caja mide la línea de la
 // celda (`--xcell-linea`) y centra el texto: el alto es el mismo en reposo, editando y sin valor («Sin valor», `data-vacio`, en la letra del texto).
@@ -100,7 +93,7 @@ export const PUNTO = `[grid-area:1/1] size-2 shrink-0 self-center justify-self-s
 
 // La línea de la nota: abajo del área del rótulo, en una línea que se corta con «…» (el texto completo en `title`, en el globo de la raíz al enfocar o tocar
 // y en la descripción para el lector). En la fila `flex` de `XCELL_COMPACTA` va en su propia línea al final y se parte (`--xcell-nota-*`).
-const LINEA_DE_NOTA = `${AREA_DEL_ROTULO} block self-end overflow-hidden text-ellipsis [white-space:var(--xcell-nota-corte,nowrap)] [overflow-wrap:anywhere] text-xs leading-4 [flex-basis:var(--xcell-nota-base,auto)] [order:var(--xcell-nota-orden,0)]`
+const LINEA_DE_NOTA = `block self-end overflow-hidden text-ellipsis [white-space:var(--xcell-nota-corte,nowrap)] [overflow-wrap:anywhere] text-xs leading-4 [flex-basis:var(--xcell-nota-base,auto)] [order:var(--xcell-nota-orden,0)]`
 export const NOTA = `${LINEA_DE_NOTA} ${TINTA} [&>svg]:me-1 [&>svg]:inline [&>svg]:align-top`
 
 // La marca «Editado a mano» de un cálculo pisado: el lápiz, primero en la fila de acciones. No es un control: sin blanco táctil ni foco.

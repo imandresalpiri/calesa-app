@@ -58,12 +58,16 @@ calculatedValue?, calculatedFormat?, calculatedDecimals?, disabledReason?, secon
 
 ## El aspecto: la celda de V1
 
-- **Un campo de alto fijo** (`RAIZ`, una rejilla): rótulo · valor(es) · acciones, hermanos en la raíz (`RotuloDeXCell`, `PieDeXCell` y `AccionesDeXCell`,
+- **La geometría vive en `xcell.css`** (lo importa `src/app/globals.css`): la rejilla, sus variables, el lugar de cada hijo, el rótulo flotante y el globo
+  de la raíz, iguales en toda celda, van una vez por página y no repetidos en clases en cada celda (la hoja tiene decenas y el documento tiene presupuesto
+  de bytes, `e2e/cotizar-panel-crear-vehiculo.spec.ts` D1). En `@layer components` y con `:where()`: una clase siempre la pisa. Cada hijo se reconoce por un
+  atributo (`data-rotulo`, `data-nota`, `data-lugar` `a`/`b`, `data-acciones`); en clases (`clases.ts`) queda lo que cambia por lado o por estado.
+- **Un campo de alto fijo** (una rejilla): rótulo · valor(es) · acciones, hermanos en la raíz (`RotuloDeXCell`, `PieDeXCell` y `AccionesDeXCell`,
   sin envoltorio). **El alto depende de la letra, del puntero y del ancho, nunca del estado**: editar, el aviso, el error, la marca, «Calculado», el
   candado o ↺ no lo cambian (`e2e/xcell-geometria.spec.ts` y `e2e/cotizar-xcell-como-campo.spec.ts` lo miden). `--xcell-linea` es el alto del valor
   (`max(44px, letra del valor × 1,5 + 8px)`; 32 px con puntero fino desde 768 px), `--xcell-fila` el de la primera fila (la línea, `--xcell-alto` menos el
   relleno, o lo que piden el rótulo flotante y la nota) y `--xcell-alto` (56 px) el mínimo de la raíz. Entre acciones, 8 px (el contorno del foco ocupa 4).
-- **Tres disposiciones por el ancho** (consulta de contenedor `xc`; `LUGAR_A`, `LUGAR_B`, `ACCIONES`): **en fila**; **apilada** (simple bajo 16 rem, par
+- **Tres disposiciones por el ancho** (consulta de contenedor `xc`; `data-lugar`, `data-acciones`): **en fila**; **apilada** (simple bajo 16 rem, par
   bajo 26: la `parada` 0 junto al rótulo, el otro lado y las acciones abajo); **alta** (bajo 13 rem, el texto al 200 % en el celular: el rótulo solo, el
   valor entero en su fila, el resto abajo). `container-type` crea un contexto de apilamiento: la raíz sube (`z-10`) con el foco o el puntero adentro para
   que su globo no quede debajo de la celda siguiente. Si el valor y las acciones no le dejan lugar, el rótulo (con margen, no relleno) se achica hasta nada.
