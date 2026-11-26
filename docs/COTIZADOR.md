@@ -235,7 +235,7 @@ nunca `greatest` ni `least`, que saltan los NULL); la igualdad es exacta en floa
 (un null de la otra no la alcanza); las dos ramas son nodos y se evalúan igual, así que el faltante de la rama no elegida sigue en
 `faltantes`: un SI no vuelve opcional un input (para eso, `condicion` y `requerido_si`). −0 se guarda como 0; lo no finito, null con `fuera_de_rango`. **`redondear(x, n)` =
 `round(x::float8::numeric, n)::float8`:** 15 cifras significativas y mitad lejos de cero, como el ROUND del Excel (2,675 da 2,68);
-`redondeo.ts` lo hace exacto con BigInt.
+`src/shared/lib/redondeo.ts` lo hace exacto con BigInt.
 
 ### Las tablas, los tramos y `depreciar`
 

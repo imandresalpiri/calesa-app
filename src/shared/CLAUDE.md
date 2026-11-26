@@ -17,7 +17,8 @@ Infraestructura transversal sin reglas de negocio: clientes de Supabase, permiso
 - `lib/rutas.ts` (`decidirAcceso()`, `returnToSeguro()`), `lib/navegacion.ts` (`redirigir()`).
 - `lib/formato.ts`, `lib/fechas.ts`: todo número y fecha, en el locale y la zona de la empresa; `formatearFechaHoraConZona()`, `formatearDiaLargo()` («jueves 19 de noviembre»), `ciudadDeLaZona()` y
   `abreviaturaDeZona()` para la fecha que se lee en otra zona (la de una subasta, en `useRegional().zonaDeLaPersona`). `lib/numero-tipeado.ts`: `leerNumeroTipeado(texto,
-locale)`, el único lector de un número tipeado.
+locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(x, n)`, el `round(x::float8::numeric, n)` de
+  Postgres bit a bit (15 cifras y mitad lejos de cero; lo usan el motor de la fórmula y las cifras con decimales fijos).
 - `lib/paginacion.ts`: tamaños (`TAMANOS_DE_PAGINA`, `tamanoDePagina()`, `TAMANO_DE_VER_MAS`, `TOPE_DE_LO_CARGADO`, `TAMANO_DE_COLUMNA`,
   `TOPE_DEL_EQUIPO`) y keyset (`leerCursor()`, `codificarCursor()`, `armarPagina()`; por otra columna `armarPaginaPor()` con un `OrdenDeCursor`,
   `POR_ALTA` por defecto). El cursor lleva `instante`. `lib/conteo.ts`: `conteoAcotado()`, `cantidadAcotada()`, `cortarAlTope()`, `textoDelTope()`.

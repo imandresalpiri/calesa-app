@@ -3,7 +3,7 @@
 // `asentar` el signo de un infinito o de un cero ya no se ve (todo lo no finito es null, −0 es 0), pero el ayudante tiene que ser
 // exacto igual: así se prueba, sin depender de que un caso del motor lo muestre. Cada caso es [operación, a, b, resultado];
 // `Infinity`, `-Infinity`, `NaN` y `-0` van como texto, porque JSON no los guarda.
-import { redondear } from '@/modules/cotizaciones/entities/redondeo'
+import { redondear } from '@/shared/lib/redondeo'
 import type { Azar } from './mutadores-de-formula'
 
 export type Operacion = '+' | '-' | '*' | '/'

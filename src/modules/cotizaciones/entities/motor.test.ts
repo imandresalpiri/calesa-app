@@ -5,7 +5,7 @@ import { esquemaModoDeCambio, type Formula } from './formula'
 import { evaluar, type Resultado } from './motor'
 import { CODIGOS_DE_FALTANTE, ESTADOS, FUENTES, MOTIVOS_DE_DESCARTE } from './motor-contexto'
 import { esquemaEntrada } from './motor-entrada'
-import { redondear } from './redondeo'
+import { redondear } from '@/shared/lib/redondeo'
 import { validarFormula } from './validar'
 
 // El juego del motor (docs/COTIZADOR.md › «El motor»). Desde 4.06 lo lee también la prueba de paridad de

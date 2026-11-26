@@ -161,7 +161,7 @@ describe('evaluar con volumen', () => {
       'motor-calculo.ts',
       'motor-tablas.ts',
       'motor-totales.ts',
-      'redondeo.ts',
+      '../../../shared/lib/redondeo.ts',
     ]
     for (const a of archivos) {
       const fuente = readFileSync(new URL(a, import.meta.url), 'utf8')
