@@ -114,3 +114,51 @@ describe('lecturaDesdeLaPlana', () => {
     expect(t.modos.get('unificado')).toBe('Unificado')
   })
 })
+
+describe('tarjetaDesde y lecturaDesdeLaPlana: los «Decimales» de cada nodo', () => {
+  const conDecimalesEnFlete = (mas: Record<string, unknown>) =>
+    crudaDeLaTarjeta({
+      nodos: crudaDeLaTarjeta().nodos.map((n) => (n.id === 'flete' ? { ...n, ...mas } : n)),
+    })
+
+  it('los del nodo y los del `pct` de su porcentaje, sólo si llegan; otra cifra no es lo que la base promete', () => {
+    const t = tarjetaDesde(conDecimalesEnFlete({ decimales: 0, decimales_del_pct: 3 }))
+    if (t === null || t.estado !== 'lista') throw new Error('no se lee')
+    expect(t.nodos.get('flete')).toMatchObject({ decimales: 0, decimalesDelPct: 3 })
+    expect(t.nodos.get('remate')).not.toHaveProperty('decimales')
+    expect(t.nodos.get('remate')).not.toHaveProperty('decimalesDelPct')
+    for (const malo of [5, -1, 1.5, '2', null]) {
+      expect(tarjetaDesde(conDecimalesEnFlete({ decimales: malo })), String(malo)).toBeNull()
+      expect(
+        tarjetaDesde(conDecimalesEnFlete({ decimales_del_pct: malo })),
+        String(malo),
+      ).toBeNull()
+    }
+  })
+
+  it('la lectura plana los pasa igual', () => {
+    const t = lecturaDesdeLaPlana({
+      definicion: { forma: 2, columnas: [], filas: [], celdas: [] },
+      nodos: [
+        {
+          id: 'a',
+          etiqueta: 'A',
+          descripcion: null,
+          grupo: null,
+          pct: 'p',
+          decimales: 1,
+          decimalesDelPct: 0,
+        },
+        { id: 'b', etiqueta: 'B', descripcion: null, grupo: null, pct: null },
+      ],
+      grupos: [],
+      tiposDeCambio: { buckets: [], modos: [] },
+      modos: [],
+      variante: null,
+      colores: [],
+      total: { nodo: null },
+    })
+    expect(t.nodos.get('a')).toMatchObject({ decimales: 1, decimalesDelPct: 0 })
+    expect(t.nodos.get('b')).toEqual({ etiqueta: 'B', descripcion: null, grupo: null, pct: null })
+  })
+})

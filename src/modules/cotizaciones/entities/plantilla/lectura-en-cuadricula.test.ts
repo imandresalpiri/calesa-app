@@ -165,3 +165,38 @@ describe('lecturaEnCuadricula con un texto con datos', () => {
     expect(l.grupos.map((g) => g.id)).toEqual(['compra'])
   })
 })
+
+describe('lecturaEnCuadricula: los «Decimales»', () => {
+  it('los «Decimales» del nodo y, con su porcentaje, los del `pct`; sin ellos, ninguna clave', () => {
+    const conDecimales: ContextoDePlantilla = {
+      ...contexto,
+      definicion: {
+        ...contexto.definicion,
+        nodos: (contexto.definicion.nodos ?? []).map((n) =>
+          n.id === 'remate'
+            ? { ...n, decimales: 0 }
+            : n.id === 'comision_pct'
+              ? { ...n, decimales: 1 }
+              : n,
+        ),
+      },
+    }
+    const conPorcentaje = lecturaEnCuadricula(
+      plantilla([celda('a', { tipo: 'dato', nodo: 'comision', mostrar: 'porcentaje' })]),
+      conDecimales,
+      TONOS,
+    )
+    expect(conPorcentaje.nodos.find((n) => n.id === 'remate')).toMatchObject({ decimales: 0 })
+    const comision = conPorcentaje.nodos.find((n) => n.id === 'comision')
+    expect(comision).toMatchObject({ pct: 'comision_pct', decimalesDelPct: 1 })
+    expect(comision).not.toHaveProperty('decimales')
+    const sinPorcentaje = lecturaEnCuadricula(
+      plantilla([celda('a', { tipo: 'dato', nodo: 'comision', mostrar: 'monto' })]),
+      conDecimales,
+      TONOS,
+    )
+    expect(sinPorcentaje.nodos.find((n) => n.id === 'comision')).not.toHaveProperty(
+      'decimalesDelPct',
+    )
+  })
+})

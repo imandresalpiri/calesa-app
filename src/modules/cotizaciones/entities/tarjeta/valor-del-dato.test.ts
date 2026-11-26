@@ -119,3 +119,68 @@ describe('parteDibujada (un dato dentro de un texto con datos)', () => {
     expect(parteDibujada(entrada(), { tipo: 'dato', variable: 'cliente_nombre' })).toBe('')
   })
 })
+
+describe('los «Decimales» de cada celda en la tarjeta', () => {
+  // `remate` con 0, el total con 3 (también su Bs) y el porcentaje de `flete` con los del `flete_pct`, 2 (sin ellos, 1).
+  const conDecimales = ((): TarjetaLista => {
+    const cruda = crudaDeLaTarjeta()
+    const nodos = cruda.nodos.map((n) =>
+      n.id === 'remate'
+        ? { ...n, decimales: 0 }
+        : n.id === 'total'
+          ? { ...n, decimales: 3 }
+          : n.id === 'flete'
+            ? { ...n, decimales_del_pct: 2 }
+            : n,
+    )
+    const l = tarjetaDesde({ ...cruda, nodos })
+    if (l?.estado !== 'lista') throw new Error('la tarjeta de prueba no se lee')
+    return l
+  })()
+  const c = calculoDePrueba({
+    valores: new Map<string, number | string | null>([
+      ['remate', 1234.5678],
+      ['flete', 300],
+      ['flete_pct', 0.04256],
+      ['total', 1355],
+    ]),
+    totales: { usd: 1355.4567, bs: 9434.0216 },
+    verTotalBs: true,
+  })
+  const conLa = (tarjeta: TarjetaLista): EntradaDelContenido => ({ ...entrada(c), tarjeta })
+  const sinEspacios = (t: string) => t.replace(/[\u00a0\u202f]/g, ' ')
+  const textoDe = (d: Parameters<typeof datoDibujado>[1], tarjeta = conDecimales) => {
+    const r = datoDibujado(conLa(tarjeta), d)
+    if (r.tipo === 'monto') return sinEspacios(`${r.texto} | ${r.segunda?.texto ?? ''}`)
+    return r.tipo === 'texto' ? sinEspacios(r.lineas.join('')) : r.tipo
+  }
+
+  it('el monto, el total y su Bs con los del nodo; el porcentaje con los del `pct`; sin ellos, lo de siempre', () => {
+    expect(textoDe(monto('remate'))).toBe('USD 1.235 | ')
+    expect(textoDe(monto('total'))).toBe('USD 1.355,457 | Bs 9.434,022')
+    expect(textoDe({ tipo: 'dato', nodo: 'flete', mostrar: 'porcentaje' })).toBe('4,26%')
+    expect(textoDe(monto('remate'), TARJETA)).toBe('USD 1.234,57 | ')
+    expect(textoDe(monto('total'), TARJETA)).toBe('USD 1.355,46 | Bs 9.434,02')
+    expect(textoDe({ tipo: 'dato', nodo: 'flete', mostrar: 'porcentaje' }, TARJETA)).toBe('4,3%')
+    // `<MontoConDecimales>` redondea el valor con los mismos decimales que el texto.
+    expect(datoDibujado(conLa(conDecimales), monto('remate'))).toMatchObject({
+      valor: 1234.5678,
+      decimales: 0,
+    })
+    expect(datoDibujado(conLa(TARJETA), monto('remate'))).not.toHaveProperty('decimales')
+  })
+
+  it('dentro de un texto con datos, lo mismo', () => {
+    expect(parteDibujada(conLa(conDecimales), monto('remate'))).toMatchObject({
+      valor: 1234.5678,
+      decimales: 0,
+      texto: expect.stringMatching(/^USD\s1\.235$/),
+    })
+    const pct = parteDibujada(conLa(conDecimales), {
+      tipo: 'dato',
+      nodo: 'flete',
+      mostrar: 'porcentaje',
+    })
+    expect(pct).toBe('4,26%')
+  })
+})

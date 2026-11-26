@@ -236,3 +236,21 @@ describe('contextoParaElNavegador: lo restringido que no se nombra', () => {
     expect(r.visibilidad?.['comision_pct']).toEqual({ ver: 'costos' })
   })
 })
+
+describe('contextoParaElNavegador: los «Decimales»', () => {
+  it('lleva los «Decimales» de un nodo que los trae (la tarjeta de trabajo los dibuja); sin ellos, ninguna clave', () => {
+    const base = mini()
+    const ctx: ContextoDePlantilla = {
+      ...base,
+      definicion: {
+        ...base.definicion,
+        nodos: (base.definicion.nodos ?? []).map((n) =>
+          n.id === 'remate' ? { ...n, decimales: 0 } : n,
+        ),
+      },
+    }
+    const nodos = contextoParaElNavegador(ctx, VACIA).definicion.nodos ?? []
+    expect(nodos.find((n) => n.id === 'remate')).toMatchObject({ decimales: 0 })
+    expect(nodos.find((n) => n.id === 'fees')).not.toHaveProperty('decimales')
+  })
+})

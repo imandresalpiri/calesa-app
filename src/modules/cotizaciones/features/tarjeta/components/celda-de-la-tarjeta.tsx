@@ -1,6 +1,6 @@
 import { Fragment, type CSSProperties } from 'react'
 import { COLOR_TINTA } from '@/shared/config/app'
-import { Monto } from '@/shared/ui/monto'
+import { MontoConDecimales } from '@/shared/ui/monto-con-decimales'
 import { RELLENO_DE_LA_CELDA } from '../../../entities/tarjeta/estilo-de-la-celda'
 import type { CeldaDibujada } from '../../../entities/tarjeta/geometria-de-la-tarjeta'
 import type { TramoDelTexto } from '../../../entities/tarjeta/valor-del-dato'
@@ -55,7 +55,11 @@ function TextoPorTramos({ tramos }: { tramos: readonly TramoDelTexto[] }) {
     <span>
       {tramos.map((t, i) => (
         <Fragment key={i}>
-          {typeof t === 'string' ? t : <Monto valor={t.valor} moneda={t.moneda} />}
+          {typeof t === 'string' ? (
+            t
+          ) : (
+            <MontoConDecimales valor={t.valor} moneda={t.moneda} decimales={t.decimales} />
+          )}
         </Fragment>
       ))}
     </span>
@@ -79,10 +83,14 @@ function Contenido({
     case 'monto':
       return (
         <>
-          <Monto valor={c.valor} moneda={c.moneda} />
+          <MontoConDecimales valor={c.valor} moneda={c.moneda} decimales={c.decimales} />
           {c.segunda === null ? null : (
             <span data-total-bs-de-la-tarjeta="">
-              <Monto valor={c.segunda.valor} moneda={c.segunda.moneda} />
+              <MontoConDecimales
+                valor={c.segunda.valor}
+                moneda={c.segunda.moneda}
+                decimales={c.segunda.decimales}
+              />
             </span>
           )}
         </>

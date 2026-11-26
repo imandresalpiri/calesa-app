@@ -224,6 +224,9 @@ export type LecturaEnCuadricula = {
     readonly grupo: string | null
     // El `pct` del par, sólo si la plantilla muestra su porcentaje.
     readonly pct: string | null
+    // Los «Decimales» del nodo y los del `pct` de su porcentaje (glosario: «Decimales (de una celda)»), sólo si la versión los trae.
+    readonly decimales?: number
+    readonly decimalesDelPct?: number
   }[]
   readonly grupos: readonly {
     readonly id: string
