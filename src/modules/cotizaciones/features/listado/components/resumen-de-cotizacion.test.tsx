@@ -74,6 +74,7 @@ function dibujar(opciones: {
   huecos?: HuecosDelResumen
   quienes?: Record<string, QuienDelResumen>
   aprobarEn?: 'todos' | readonly string[]
+  vehiculosVisibles?: 'todos' | readonly string[]
 }) {
   return render(
     <NuqsTestingAdapter searchParams={opciones.busqueda} onUrlUpdate={alEscribir} hasMemory>
@@ -84,6 +85,7 @@ function dibujar(opciones: {
         huecos={opciones.huecos}
         quienes={opciones.quienes}
         aprobarEn={opciones.aprobarEn}
+        vehiculosVisibles={opciones.vehiculosVisibles}
       />
     </NuqsTestingAdapter>,
   )
@@ -249,5 +251,26 @@ describe('ResumenDeCotizacion con «De este vehículo»', () => {
       huecos: { Pestanas, DeEsteVehiculo },
     })
     expect(screen.getByTestId('de-este-vehiculo').textContent).toContain(':[]')
+  })
+})
+
+describe('ResumenDeCotizacion: ir al vehículo', () => {
+  it('con un vehículo que quien mira ve, el título y el dato «Vehículo» enlazan a su ficha; sin permiso o sin vehículo, texto', () => {
+    const VEHICULO = '33333333-3333-4333-8333-333333333333'
+    const fila = cotizacion({ vehiculoId: VEHICULO, vehiculo: 'Hilux', titulo: 'Hilux 2022' })
+    dibujar({ busqueda: `?cotizacion=${ID}`, filas: [fila], vehiculosVisibles: [ORIGEN] })
+    const enlace = screen.getByRole('link', { name: 'Ver Hilux 2022 en Vehículos' })
+    expect(enlace.getAttribute('href')).toBe(`/vehiculos/${VEHICULO}`)
+    expect(enlace.closest('[data-titulo-de-la-cotizacion]')).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Hilux' }).getAttribute('href')).toBe(
+      `/vehiculos/${VEHICULO}`,
+    )
+    cleanup()
+    dibujar({ busqueda: `?cotizacion=${ID}`, filas: [fila], vehiculosVisibles: [] })
+    expect(screen.queryByRole('link', { name: /en Vehículos/ })).toBeNull()
+    expect(screen.getByText('Hilux 2022')).toBeTruthy()
+    cleanup()
+    dibujar({ busqueda: `?cotizacion=${ID}`, filas: [cotizacion()], vehiculosVisibles: 'todos' })
+    expect(screen.queryByRole('link', { name: /en Vehículos/ })).toBeNull()
   })
 })

@@ -57,10 +57,10 @@ async function irAlListado(page: Page, correo: string, consulta = ''): Promise<v
 // Un clic en una parte de la fila que no es el botón del número: la celda del cliente en la tabla, el texto del cliente en la tarjeta.
 async function abrirConUnClic(page: Page, fila: Locator): Promise<void> {
   if (esMovil(page)) {
-    // El título de la tarjeta de la lista: texto, no un botón ni un enlace (el cliente va enlazado a su ficha).
-    await fila.locator('[data-titulo-de-la-cotizacion]').click()
+    // La línea del autor de la tarjeta de la lista: texto (el título puede ser el enlace al vehículo y el cliente va enlazado a su ficha).
+    await fila.locator('[data-autor-de-la-cotizacion]').click()
   } else {
-    await fila.getByRole('cell').nth(1).click()
+    await fila.getByRole('cell').nth(2).click()
   }
 }
 

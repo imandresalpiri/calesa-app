@@ -118,7 +118,7 @@ test('E2E desde la tarjeta y desde la línea del modal de un grupo se abre el mi
     .locator('article')
     .filter({ has: page.getByRole('button', { name: '3 cotizaciones de este vehículo' }) })
   const cabeza = grupo.ids[0] ?? ''
-  await tarjeta.locator('[data-titulo-de-la-cotizacion]').click()
+  await tarjeta.locator('[data-autor-de-la-cotizacion]').click()
   let drawer = await esElResumenDe(page, cabeza)
   // Con el drawer abierto la lista sale del árbol de accesibilidad: se afirma por atributos.
   await expect(page.locator('article[data-state="selected"]')).toHaveCount(1)

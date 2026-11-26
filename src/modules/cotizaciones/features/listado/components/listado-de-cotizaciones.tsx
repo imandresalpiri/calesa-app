@@ -17,6 +17,7 @@ import { useAgruparCotizaciones } from '../hooks/use-agrupar-cotizaciones'
 import { useResumenDeCotizacion } from '../hooks/use-resumen-de-cotizacion'
 import { useVistaDeCotizaciones } from '../hooks/use-vista-de-cotizaciones'
 import { AvisoDeLoFiltrado } from './aviso-de-lo-filtrado'
+import type { VehiculosVisibles } from '../../../entities/listado/ruta-del-vehiculo'
 import { ResumenDeCotizacionDiferido, VistasDeCotizacionesDiferido } from './diferidos'
 import { NuevaCotizacion } from './nueva-cotizacion'
 import { useOpcionesDelListado } from './opciones-del-listado'
@@ -55,6 +56,8 @@ type Props = {
   huecos?: HuecosDeLaLista
   // La ruta de las fichas de los clientes, si quien mira ve leads (el cliente de la tarjeta va enlazado).
   rutaDeClientes: string | null
+  // En qué orígenes quien mira ve vehículos (`vehiculos.ver`): el título de la cotización enlaza a la ficha de su vehículo (la lista y el resumen). Sin él, texto.
+  vehiculosVisibles?: VehiculosVisibles | undefined
   // Los filtros de la página, para el despliegue de un grupo.
   filtrosDelGrupo: Omit<PedidoDelGrupo, 'vehiculoId' | 'cursor'>
   // «Ítems por página»: lo que dibuja esta página y hasta cuánto ofrece el selector.
@@ -127,6 +130,7 @@ export function ListadoDeCotizaciones(props: Props) {
           compartirDe={props.compartirDe}
           huecos={props.huecos}
           rutaDeClientes={props.rutaDeClientes}
+          vehiculosVisibles={props.vehiculosVisibles}
           filtrosDelGrupo={props.filtrosDelGrupo}
           acotada={props.acotada}
         />
@@ -141,6 +145,7 @@ export function ListadoDeCotizaciones(props: Props) {
           huecos={props.huecosDelResumen}
           quienes={props.quienesDelResumen}
           aprobarEn={props.aprobarEn}
+          vehiculosVisibles={props.vehiculosVisibles}
           alCambiarLaAprobada={props.alCambiarLaAprobada}
           menuDeFila={props.menuDeFila}
           compartirDe={props.compartirDe}

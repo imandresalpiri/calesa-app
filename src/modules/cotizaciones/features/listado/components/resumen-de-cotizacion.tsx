@@ -12,6 +12,11 @@ import {
   type LecturaDelServidor,
   type VistaDelResumen,
 } from '../../../entities/listado/resumen-del-listado'
+import {
+  rutaDelVehiculoDeLaFila,
+  SIN_VEHICULOS_VISIBLES,
+  type VehiculosVisibles,
+} from '../../../entities/listado/ruta-del-vehiculo'
 import type {
   AprobarEnDelResumen,
   HuecosDelResumen,
@@ -46,6 +51,8 @@ type Props = {
   compartirDe?: CompartirDe | undefined
   // Los diálogos del «⋯» y de «Compartir» mientras el resumen está abierto: dentro del Drawer, para que abrirlos no cuente como un clic afuera que lo cierra.
   dialogos?: ReactNode
+  // En qué orígenes quien mira ve vehículos: con ello el título y el dato «Vehículo» enlazan a su ficha. Sin él, texto.
+  vehiculosVisibles?: VehiculosVisibles | undefined
   // Abierto desde una ficha: la ruta a la que vuelve «Abrir cotización» (la ficha, con su consulta). En el listado, nulo.
   volverA?: string | null
   // Avisa que su código llegó y está montado: recién ahí el listado le pasa los diálogos.
@@ -117,6 +124,7 @@ function DetalleDeLaCotizacion({
   abierto,
   deEsteVehiculo,
   barra,
+  vehiculosVisibles,
 }: {
   cotizacion: FilaDeCotizacion
   abierto: boolean
@@ -124,6 +132,7 @@ function DetalleDeLaCotizacion({
   quien: QuienDelResumen
   deEsteVehiculo: DeEsteVehiculoEnElDetalle
   barra: BarraDelResumen
+  vehiculosVisibles: VehiculosVisibles
 }) {
   const { Imagen, Pestanas, Comprobantes } = huecos
   return (
@@ -137,6 +146,7 @@ function DetalleDeLaCotizacion({
         />
         <CabeceraDelResumen
           cotizacion={cotizacion}
+          rutaDelVehiculo={rutaDelVehiculoDeLaFila(cotizacion, vehiculosVisibles)}
           miniatura={
             Imagen === undefined ? null : (
               <Imagen
@@ -179,6 +189,7 @@ function ContenidoDelResumen({
   quienes,
   deEsteVehiculo,
   barra,
+  vehiculosVisibles,
 }: {
   vista: VistaDelResumen
   ultimo: FilaDeCotizacion | null
@@ -187,6 +198,7 @@ function ContenidoDelResumen({
   quienes: Readonly<Record<string, QuienDelResumen>>
   deEsteVehiculo: DeEsteVehiculoEnElDetalle
   barra: BarraDelResumen
+  vehiculosVisibles: VehiculosVisibles
 }) {
   if (vista.tipo === 'no_disponible') {
     return (
@@ -220,6 +232,7 @@ function ContenidoDelResumen({
       quien={quienes[cotizacion.id] ?? SIN_PERMISOS}
       deEsteVehiculo={deEsteVehiculo}
       barra={barra}
+      vehiculosVisibles={vehiculosVisibles}
     />
   )
 }
@@ -246,6 +259,7 @@ export function ResumenDeCotizacion({
   menuDeFila,
   compartirDe,
   dialogos,
+  vehiculosVisibles = SIN_VEHICULOS_VISIBLES,
   volverA = null,
   alMontarse,
 }: Props) {
@@ -288,6 +302,7 @@ export function ResumenDeCotizacion({
         quienes={quienes ?? {}}
         deEsteVehiculo={{ aprobarEn: aprobarEn ?? SIN_DONDE_APROBAR, alCambiarLaAprobada }}
         barra={{ menuDeFila, compartirDe, volverA }}
+        vehiculosVisibles={vehiculosVisibles}
       />
       {dialogos}
     </Drawer>
