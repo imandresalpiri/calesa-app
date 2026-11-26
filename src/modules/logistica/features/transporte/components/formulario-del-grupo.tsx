@@ -13,7 +13,9 @@ import {
 import type { GrupoLeido } from '../../../entities/transporte/grupos'
 import type { ElementoDelCatalogo } from '../../../entities/transporte/oferta'
 import { useFormularioDelGrupo } from '../hooks/use-formulario-del-grupo'
+import { lineaDelEmbarqueDelGrupo } from '../../../entities/transporte/embarques-del-grupo'
 import { BloquesDelGrupo } from './bloques-del-grupo'
+import { LineaDelAviso } from './linea-del-aviso'
 
 type Props = {
   grupo: GrupoLeido
@@ -71,6 +73,10 @@ export function FormularioDelGrupo({ grupo, navieras, puertos, alVolver }: Props
             router.refresh()
           }}
         />
+        {grupo.tipo === 'contenedor' ? (
+          // Un contenedor con embarque: lo del embarque cambia para todos sus vehículos (la línea, con su alto reservado aunque no vaya en uno).
+          <LineaDelAviso texto={lineaDelEmbarqueDelGrupo(grupo.tipo, grupo.embarques)} />
+        ) : null}
         <BloquesDelGrupo
           {...campos}
           navieras={navieras}
