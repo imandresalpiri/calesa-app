@@ -10515,11 +10515,49 @@ export type Database = {
           zarpe_el: string
         }[]
       }
+      _transporte_destino: {
+        Args: { p_destino: string; p_tipo: string }
+        Returns: Record<string, unknown>
+      }
       _transporte_grupo_bloquear: {
         Args: { p_repuestos: string[]; p_vehiculos: string[] }
         Returns: undefined
       }
       _transporte_grupos_filtros: { Args: { p_filtros: Json }; Returns: Record<string, unknown> }
+      _transporte_lote: {
+        Args: { p_unidades: Json }
+        Returns: {
+          actualizado_en: string
+          k: number
+          repuesto_id: string
+          vehiculo_id: string
+        }[]
+      }
+      _transporte_lote_bloquear: {
+        Args: {
+          p_contenedor: string
+          p_embarque: string
+          p_repuestos: string[]
+          p_vehiculos: string[]
+        }
+        Returns: undefined
+      }
+      _transporte_lote_entidades: {
+        Args: { p_repuestos: string[]; p_vehiculos: string[] }
+        Returns: Record<string, unknown>
+      }
+      _transporte_lote_permiso: { Args: { p_unidades: Json }; Returns: undefined }
+      _transporte_lote_respuesta: { Args: { p_cambiadas: number; p_unidades: Json }; Returns: Json }
+      _transporte_lote_version: {
+        Args: {
+          p_actual: string
+          p_crear: boolean
+          p_esperada: string
+          p_titulo: string
+          p_transporte: string
+        }
+        Returns: undefined
+      }
       _transporte_mudar: {
         Args: { p_contenedor: string; p_embarque: string; p_transporte: string }
         Returns: undefined
@@ -12825,6 +12863,10 @@ export type Database = {
         Args: { p_actualizado_en_esperado: string; p_roles: string[]; p_transicion: string }
         Returns: string
       }
+      transporte_asignar: {
+        Args: { p_destino: string; p_mover?: boolean; p_tipo: string; p_unidades: Json }
+        Returns: Json
+      }
       transporte_grupo: { Args: { p_clave: string; p_tipo: string }; Returns: Json }
       transporte_grupo_aplicar: {
         Args: { p_cambios: Json; p_clave: string; p_esperadas: Json; p_tipo: string }
@@ -12846,6 +12888,7 @@ export type Database = {
         Returns: Json
       }
       transporte_leer: { Args: { p_vehiculo: string }; Returns: Json }
+      transporte_quitar: { Args: { p_tipo: string; p_unidades: Json }; Returns: Json }
       unidad_llego_a_fase: {
         Args: { p_fase: string; p_repuesto: string; p_vehiculo: string }
         Returns: boolean
