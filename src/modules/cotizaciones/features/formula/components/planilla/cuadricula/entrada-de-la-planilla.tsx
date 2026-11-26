@@ -46,6 +46,7 @@ export function EntradaDeLaPlanilla({
         sugerencias,
         aplicarYSeguir: planilla.aplicarYSeguir,
         descartar: planilla.descartar,
+        siguienteLugar: planilla.edicion.siguienteLugar,
         enLaBarra: false,
       }}
     />

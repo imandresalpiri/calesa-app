@@ -678,7 +678,12 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `/configuracion/origenes`) y, con una subasta activa, las integraciones; lo que falta se dibuja hasta 3 por tarjeta (inicio: 356,4 KB en frío).
   Los orígenes que la persona abre entran al menú como sub-ítems de «Orígenes» al pedir la página (`getOrigenes(true)`, con `cache()`, tope 20 con
   «Ver todos»): no cruzan como código, son enlaces del mismo menú.
-- Configuración › Empresa (tarjetas de ajustes, cada modal con `diferido()` al abrirse por primera vez): JS en frío (KB gz, `.next-e2e`) `/empresa` 228,4, `/empresa/integraciones` 228,4, `/empresa/comprobantes` 358,9 (sin tope propio).
+- Configuración › Empresa (tarjetas de ajustes, cada modal con `diferido()` al abrirse por primera vez): JS en frío (KB gz, `.next-e2e`) `/empresa` 467,4,
+  `/empresa/integraciones` 467,4 (las dos pagan el mismo `pantallas/configuracion-empresa`; la tarjeta del asistente de IA y su hook, 2,5 de eso),
+  `/empresa/comprobantes` 358,9 (sin tope propio). Los usos del asistente (`asistente_ia_usos`: una fila por persona y mes) se leen en la misma
+  pantalla con `asistente_ia_usos_del_mes()`: las 6 personas del mes que más lo usaron (`limit 6`) y el conteo con `limit 101` (la tarjeta muestra
+  5 y «y N más», con «+» pasadas las 100), los dos por `asistente_ia_usos_mes_usos_idx` (`mes, usos desc, usuario_id`); contar un uso es un upsert por la
+  clave primaria (`usuario_id, mes`).
 - Configuración › Leads (seis tarjetas, cada modal con `diferido()` al abrirse por primera vez; sin tope propio): JS en frío (KB gz, `.next-e2e`) `/configuracion/leads` 405,1 contra 458,9 de `/configuracion/empresa` medida en la misma corrida.
 - La puesta en marcha de un origen (topes en `e2e/soporte/presupuestos.ts`): `/configuracion/origenes/nuevo` 389,7 (tope 420: el formulario de
   Datos y el paso a paso; sin el marco del origen) y `/configuracion/origenes/<id>/puesta-en-marcha/formula` 461,4 (tope 470, con el bloque «Para todos los orígenes»: la planilla del paso, por el mismo
@@ -743,6 +748,10 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   «Cotizar lead» del «⋯» de la cabecera suma, para quien tiene `cotizaciones.crear`, `getOrigenes()` (una por request) y ~90 B.
 - «Nuevo lead» es un solo drawer: 1 montaje y 1 entrada animada por apertura, 1 lectura de cada pedido (`e2e/leads-alta-un-drawer.spec.ts`).
 
+- La página de una guía (`/configuracion/web/guias/[id]`, un editor de bloques; sin presupuesto propio: un documento con el editor en frío no es una pantalla que se pida a diario): medido
+  362,5 KB en 25 chunks contra 362,6 KB en 26 antes del editor de bloques. Todo el editor (Tiptap, los bloques, la barrita, el panel, la vista previa) viaja con `diferido()` al abrir la guía;
+  el esqueleto de `EsqueletoDeEditorDeArticulo` mide lo mismo que el artículo (sin saltos).
+
 ## Cotizador (fórmula, diseño, cotizaciones)
 
 Salvo que se diga otro, mide `pnpm db:medir` en la base de la semilla; el tope en ms es la mayor mediana de varias corridas × 3, el de
@@ -805,7 +814,10 @@ fallar.
   la tarjeta (la lectura de la pestaña «Tarjeta», con lo que nombra). Nada se relee al tipear, al aplicar ni al insertar, mover o eliminar una
   fila. Dibuja hasta 500 filas (`TOPE_DE_LO_CARGADO`) con `<AvisoDeTope>` y «Buscar fila»: ≤ 6.300 nodos. El «⋯» y el clic derecho de las filas,
   las sugerencias y los bordes de las referencias son una sola instancia, no uno por fila; la sesión, la planilla, la tarjeta en vivo y los
-  paneles (banda, total, tipo de celda y «¿Cómo se escribe?») van por `diferido()`, y arrastrar el número usa eventos de puntero, sin dnd-kit.
+  paneles (banda, total, tipo de celda y «¿Cómo se escribe?», que abre el libro de la barra de fórmula) y el modal «Información de la fórmula» van por
+  `diferido()`, y arrastrar el número usa eventos de puntero, sin dnd-kit. El resultado al lado (`resultadoAlLado()`) compila, valida y evalúa la
+  fórmula entera una vez por pausa de 150 ms, O(filas), en el chunk de la planilla (`resultado-al-lado.escala.test.ts`: razón por fila ≤ 1,1 entre 60 y
+  600 filas); el e2e con volumen pide la cifra ≤ 1 s tras tipear en la última de 600.
   La hoja numerada (`hojaDeLaPlanilla()`), `aA1()`, `deA1()`, «de dónde sale», los usos de cada fila (`indiceDeUsos()`) y las bandas son O(filas),
   una vez por fórmula de trabajo; tipear en la unidad de ejemplo o cambiar el modo sólo vuelve a correr `evaluar()` (lineal). El estado de
   las filas es O(filas × nodos), una vez por fórmula de trabajo; filtrar y tipear no lo recalculan

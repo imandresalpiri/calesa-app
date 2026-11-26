@@ -53,7 +53,7 @@ export const esquemaGuardarPushWeb = z.object({
 // El secreto entra una vez y no vuelve a salir: ninguna action lo devuelve.
 export const esquemaGuardarSecreto = z.object({
   // Las integraciones que llevan secreto.
-  clave: z.enum(['apibara', 'web_publica']),
+  clave: z.enum(['apibara', 'asistente_ia', 'web_publica']),
   secreto: z
     .string()
     .trim()

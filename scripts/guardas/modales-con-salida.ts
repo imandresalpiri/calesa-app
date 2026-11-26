@@ -12,6 +12,11 @@ export type RegistroDeModal =
   { propio: true } | { sinFormulario: string; tambien?: readonly string[] }
 
 export const MODALES: Record<string, RegistroDeModal> = {
+  // --- web
+  'src/modules/web/features/contenido/guias/components/vista-previa-de-la-guia.tsx': {
+    sinFormulario:
+      'sólo muestra cómo quedaría la guía (título, resumen y texto); lo escrito vive en la página de la guía, que guarda su borrador y pregunta al salir',
+  },
   // --- leads
   'src/modules/leads/features/etiquetas/components/dialogo-de-etiquetas.tsx': { propio: true },
   'src/modules/leads/features/portal/components/dialogo-de-otorgar.tsx': { propio: true },
@@ -108,6 +113,15 @@ export const MODALES: Record<string, RegistroDeModal> = {
   'src/modules/cotizaciones/features/diseno/components/colores-del-catalogo.tsx': {
     sinFormulario:
       'la lista de los colores: «Nuevo color», «Editar» y «Eliminar» abren su propio modal (con su aviso de cambios); nada tipeado en éste',
+  },
+  'src/modules/cotizaciones/features/formula/components/informacion/modal-de-la-informacion.tsx': {
+    sinFormulario:
+      'sólo lee la publicada, el borrador y los avisos de la copia: «Descartar el borrador…» abre su <Confirmar> con URL y «Ocultar» borra los avisos; nada tipeado',
+    tambien: [
+      'src/modules/cotizaciones/features/formula/components/informacion/seccion-de-la-publicada.tsx',
+      'src/modules/cotizaciones/features/formula/components/informacion/seccion-del-borrador.tsx',
+      'src/modules/cotizaciones/features/formula/components/informacion/seccion-de-los-avisos.tsx',
+    ],
   },
   'src/modules/cotizaciones/features/historial/components/modal-del-historial.tsx': {
     sinFormulario:

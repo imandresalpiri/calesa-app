@@ -73,6 +73,11 @@ function loQueSeEscribe(texto: string, cursor: number): Escribiendo {
   }
 }
 
+// El marco de función donde está el cursor (nulo, fuera de todo paréntesis): la función y en qué valor. Lo usa la firma en el cursor.
+export function marcoEnElCursor(texto: string, cursor: number): MarcoDelTexto | null {
+  return loQueSeEscribe(texto, cursor).marco
+}
+
 const sugerencia = (s: Omit<Sugerencia, 'hasta'>, hasta: number): Sugerencia => ({ ...s, hasta })
 
 function deBuscarv(

@@ -15,11 +15,16 @@ import type { Crudo } from './doc-nodos'
 export {
   MAXIMO_DE_BYTES_DEL_DOCUMENTO,
   MAXIMO_DEL_ALT,
+  MAXIMO_DEL_TEXTO_DEL_BOTON,
+  MAXIMO_DE_IMAGENES_DE_LA_GALERIA,
+  MOTIVO_DE_BOTON,
   MOTIVO_DE_ENLACE,
   MOTIVO_DE_FORMATO,
+  MOTIVO_DE_GALERIA,
   MOTIVO_DE_IMAGEN,
   MOTIVO_DE_NIVELES,
   MOTIVO_DE_TAMANO,
+  MOTIVO_DE_VIDEO,
   PROFUNDIDAD_MAXIMA,
   escaparHtml,
   hrefSeguro,
@@ -38,9 +43,18 @@ function textosDe(nodo: unknown): string {
   return propio + (Array.isArray(contenido) ? contenido.map(textosDe).join('') : '')
 }
 
-function tieneImagen(documento: Crudo): boolean {
+// Lo que cuenta como contenido aunque no haya texto: una imagen, una galería, un video o un botón del primer nivel. Un separador solo no.
+const BLOQUES_CON_CONTENIDO = ['image', 'gallery', 'video', 'button']
+
+function tieneBloqueVisible(documento: Crudo): boolean {
   const contenido = documento['content']
-  return Array.isArray(contenido) && contenido.some((n) => esObjeto(n) && n['type'] === 'image')
+  return (
+    Array.isArray(contenido) &&
+    contenido.some(
+      (n) =>
+        esObjeto(n) && typeof n['type'] === 'string' && BLOQUES_CON_CONTENIDO.includes(n['type']),
+    )
+  )
 }
 
 // El documento escrito como lo escribe la base (`jsonb::text`: un espacio después de «:» y de «,»),
@@ -57,7 +71,7 @@ function comoLaBase(valor: unknown): string {
   return valor === undefined ? 'null' : JSON.stringify(valor)
 }
 
-// El HTML del documento, o el motivo del rechazo. Nulo, o sin texto ni imágenes, es `''`.
+// El HTML del documento, o el motivo del rechazo. Nulo, o sin texto ni bloques con contenido, es `''`.
 export function htmlDelDocumento(valor: unknown): HtmlDelDocumento {
   if (valor === null || valor === undefined) {
     return { ok: true, html: '' }
@@ -69,11 +83,24 @@ export function htmlDelDocumento(valor: unknown): HtmlDelDocumento {
     const html = htmlDeNodo(valor, 'raiz', 0)
     const vacio =
       textosDe(valor).replace(/^[ \n\t]+|[ \n\t]+$/g, '') === '' &&
-      !(esObjeto(valor) && tieneImagen(valor))
+      !(esObjeto(valor) && tieneBloqueVisible(valor))
     return { ok: true, html: vacio ? '' : html }
   } catch (error) {
     if (error instanceof Rechazo) {
       return { ok: false, motivo: error.message }
+    }
+    throw error
+  }
+}
+
+// El motivo por el que la lista blanca rechaza este bloque del primer nivel (`null` si lo admite): para marcarlo en su lugar en el editor.
+export function motivoDelBloque(nodo: unknown): string | null {
+  try {
+    htmlDeNodo(nodo, 'doc', 1)
+    return null
+  } catch (error) {
+    if (error instanceof Rechazo) {
+      return error.message
     }
     throw error
   }

@@ -128,3 +128,81 @@ describe('documentoLimpio: lo que no cabe', () => {
     expect(documentoLimpio(doc({ type: 'heading', attrs: { level: 2 } }))).toBeNull()
   })
 })
+
+describe('documentoLimpio: los bloques de la guía', () => {
+  const foto = (ruta: string, alt = '') => ({ ruta, alt })
+  const galeria = (...imagenes: unknown[]) => ({ type: 'gallery', attrs: { imagenes } })
+
+  it('el separador entra, y solo no es un cuerpo', () => {
+    expect(html(doc(parrafo(texto('a')), { type: 'horizontalRule' }))).toBe('<p>a</p><hr>')
+    expect(documentoLimpio(doc({ type: 'horizontalRule' }))).toBeNull()
+  })
+
+  it('la galería pierde las imágenes inválidas, corta el alt y cae si no queda ninguna', () => {
+    const larga = 'a'.repeat(400)
+    const limpio = documentoLimpio(
+      doc(galeria(foto('a/b.webp', larga), foto('https://x.test/a.png'), { src: 'x' }, null)),
+    )
+    expect(limpio?.content).toEqual([
+      { type: 'gallery', attrs: { imagenes: [{ ruta: 'a/b.webp', alt: 'a'.repeat(300) }] } },
+    ])
+    expect(documentoLimpio(doc(parrafo(texto('x')), galeria(foto('../x.png'))))?.content).toEqual([
+      parrafo(texto('x')),
+    ])
+  })
+
+  it('la galería se corta en 12 imágenes', () => {
+    const muchas = Array.from({ length: 15 }, (_, i) => foto(`g/${String(i)}.webp`))
+    const limpio = documentoLimpio(doc(galeria(...muchas)))
+    const nodo = limpio?.content[0]
+    expect(nodo?.type === 'gallery' ? nodo.attrs.imagenes.length : 0).toBe(12)
+    expect(html(doc(galeria(...muchas)))).toContain('guia-galeria')
+  })
+
+  it('el botón y el video conservan lo escrito aunque no valga, para que el editor diga por qué', () => {
+    const boton = {
+      type: 'button',
+      attrs: { texto: 'a'.repeat(70), href: 'javascript:x', id: 'z' },
+    }
+    const video = { type: 'video', attrs: { url: 'https://youtu.be/abc' } }
+    expect(documentoLimpio(doc(boton, video))?.content).toEqual([
+      { type: 'button', attrs: { texto: 'a'.repeat(70), href: 'javascript:x' } },
+      { type: 'video', attrs: { url: 'https://youtu.be/abc' } },
+    ])
+    expect(
+      documentoLimpio(doc({ type: 'button' }, { type: 'video', attrs: { url: 3 } }))?.content,
+    ).toEqual([
+      { type: 'button', attrs: { texto: '', href: '' } },
+      { type: 'video', attrs: { url: '' } },
+    ])
+  })
+
+  it('un botón y un video válidos salen en el HTML', () => {
+    const salida = html(
+      doc(
+        { type: 'button', attrs: { texto: 'Cotiza', href: 'https://a.test' } },
+        { type: 'video', attrs: { url: 'https://vimeo.com/12' } },
+      ),
+    )
+    expect(salida).toContain('<a class="guia-boton" href="https://a.test"')
+    expect(salida).toContain('<figure class="guia-video" data-video="vimeo">')
+    expect(salida).not.toContain('<iframe')
+  })
+
+  it('dentro de una lista o de una cita los cuatro bloques caen', () => {
+    const adentro = [
+      { type: 'horizontalRule' },
+      galeria(foto('a.webp')),
+      { type: 'button', attrs: { texto: 'a', href: 'https://a.test' } },
+      { type: 'video', attrs: { url: 'https://vimeo.com/1' } },
+    ]
+    expect(
+      html(
+        doc(
+          { type: 'blockquote', content: [parrafo(texto('y')), ...adentro] },
+          { type: 'bulletList', content: [item(parrafo(texto('z')), ...adentro)] },
+        ),
+      ),
+    ).toBe('<blockquote><p>y</p></blockquote><ul><li><p>z</p></li></ul>')
+  })
+})

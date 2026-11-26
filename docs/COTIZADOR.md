@@ -380,6 +380,16 @@ fórmula de trabajo.
   cursor espera un operando, un clic en otra celda inserta su referencia (Shift+clic, un rango); cada referencia lleva su color en el orden en que aparece (`referenciasTipeadas()`, `--viz-series-*` en ciclo), la leyenda y el
   borde de su celda. El autocompletar (`sugerencias()`) ofrece las funciones, los conceptos de arriba («Remate → C5»), las bandas («Primer
   pago → SUMA(primer_pago)») y, en BUSCARV, las tablas y sus columnas; «¿Cómo se escribe?» explica las diez (`FUNCIONES_DE_LA_AYUDA`).
+  Las operaciones rápidas (`insertarOperacion()`, `entities/formula/operaciones-rapidas.ts`) insertan `=␣+␣`, `=PORCENTAJE_DE(␣; ␣%)` y
+  `=SI(␣; ␣; ␣)`: cada ␣ es un lugar por llenar sin texto, guardado como distancia al final (`EdicionDeLaCelda.lugares`), que no cambia mientras
+  se llena de izquierda a derecha; `siguienteLugar()` (Tab, «Siguiente»), `podarLugares()` al tipear y `saltoTrasReferencia()` (tras tocar una
+  celda, salta un `+ - * /` hasta el lugar). «Porcentaje de» usa `PORCENTAJE_DE` porque deja el % en la columna B. Dentro de una función, el
+  renglón bajo la barra muestra su firma con el valor actual (`firmaEnElCursor()`, sobre el marco de `recorrerTexto()` y los `argumentos` de
+  `AyudaDeFuncion`). **El resultado al lado** (`resultadoAlLado()`): con una C que empieza con «=», compila lo tipeado como al aplicar
+  (`aplicarLoEscrito()` con `confirmaPisar`), valida la fórmula que resultaría y la calcula con la unidad de ejemplo (`calcularLaVistaPrevia()`);
+  sólo da `valor` o `texto`. Corre 150 ms después de la última tecla (`PAUSA_DEL_RESULTADO_MS`), O(filas) por pausa, y sólo se muestra si su
+  pedido (lo tipeado, la fila, la unidad, el modo y la fórmula de trabajo) es el de ahora: nunca una cifra vieja. Los mensajes del compilador
+  (`motivos-del-compilador.ts`) hablan de celdas y valores, una frase cada uno («Falta cerrar un paréntesis.»); `mensajeEnA1()` los nombra en A1.
 - **Qué muestra cada columna** (`contenidoDeLaFila()`, una vez por fórmula de trabajo, no al tipear): C, el valor fijo, el cálculo en A1
   («=C5+C7») o de dónde sale en corto; Ejemplo, nada en un valor fijo (la misma cifra no se dibuja dos veces), lo de la unidad en las filas que
   se llenan al cotizar y la cifra en las demás. «De dónde sale» completo va en la línea bajo la barra.

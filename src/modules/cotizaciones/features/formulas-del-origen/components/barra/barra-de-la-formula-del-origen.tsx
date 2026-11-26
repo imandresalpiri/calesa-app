@@ -14,7 +14,7 @@ import {
   CLAVE_DE_LA_COPIA,
   PANEL_NUEVA_FORMULA,
 } from '../../../../entities/formulas-del-origen/rutas'
-import { RanuraDeLaBarra } from '../../../barra-de-la-formula/components'
+import { RanuraDeLaBarra, RanuraDelEstado } from '../../../barra-de-la-formula/components'
 import { useArchivadas } from '../../hooks/use-archivadas'
 import { usePanelesDeLaFormula } from '../../hooks/use-paneles-de-la-formula'
 import { ModalDeNuevaFormulaDiferido } from '../diferidos'
@@ -55,7 +55,8 @@ function laActiva(formulas: readonly FormulaDeLaLista[]): { id: string; nombre: 
   return activa ? { id: activa.id, nombre: activa.nombre } : null
 }
 
-// La barra de la fórmula (docs/GLOSARIO.md › «Barra de la fórmula»), arriba de Planilla, Hoja y Tarjeta: el selector de fórmula, el estado y, a la derecha,
+// La barra de la fórmula (docs/GLOSARIO.md › «Barra de la fórmula»), arriba de Planilla, Hoja y Tarjeta: el selector de fórmula, el estado (en la Planilla, con
+// la ranura del botón ⓘ «Información de la fórmula» al lado, `RanuraDelEstado`) y, a la derecha,
 // «Versiones», «Tablas» y lo que el editor de la pestaña lleva a la ranura (Guardar · Publicar · «⋯»). Monta una vez «Nueva fórmula» y los paneles de cada
 // fórmula (`?panel=…-formula&cual=<id>`). En el celular se parte en renglones.
 export function BarraDeLaFormulaDelOrigen({
@@ -104,7 +105,11 @@ export function BarraDeLaFormulaDelOrigen({
           nueva.abrir()
         }}
       />
-      <EstadoEnLaBarra elegida={elegida} />
+      {/* El estado y, en la Planilla, el botón ⓘ «Información de la fórmula» junto a él: en el celular se parten juntos. */}
+      <div className="flex min-w-0 items-center gap-1">
+        <EstadoEnLaBarra elegida={elegida} />
+        {parte === 'planilla' && elegida !== null ? <RanuraDelEstado /> : null}
+      </div>
       <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
         {versiones}
         {tablas}

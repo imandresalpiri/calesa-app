@@ -106,3 +106,53 @@ export function accionesDeLaWeb(datos: DeLaWeb): AccionDeMenu[] {
     ...notaDelMotivo(motivoDeProbar),
   ]
 }
+
+type DelAsistente = {
+  paneles: PanelesDeIntegraciones
+  conClave: boolean
+  motivo: string | null
+  // Por qué «Probar conexión» no se puede (sin permiso o sin clave), o null.
+  motivoDeProbar: string | null
+  probando: boolean
+  probar: () => void
+}
+
+// El «⋯» del asistente de IA: configurar el proveedor (la principal), el prompt base y los atajos, la clave y «Probar conexión».
+export function accionesDelAsistente(datos: DelAsistente): AccionDeMenu[] {
+  const { paneles, conClave, motivo, motivoDeProbar } = datos
+  return [
+    accionQueAbre(
+      {
+        clave: 'configurar',
+        etiqueta: 'Configurar…',
+        abrir: paneles.asistente.abrir,
+        principal: true,
+      },
+      motivo,
+    ),
+    accionQueAbre(
+      {
+        clave: 'indicaciones',
+        etiqueta: 'Editar el prompt base y los atajos…',
+        abrir: paneles.indicaciones.abrir,
+      },
+      motivo,
+    ),
+    accionQueAbre(
+      {
+        clave: 'clave',
+        etiqueta: conClave ? 'Reemplazar la clave' : 'Cargar la clave',
+        abrir: paneles.claveAsistente.abrir,
+      },
+      motivo,
+    ),
+    {
+      tipo: 'accion',
+      clave: 'probar',
+      etiqueta: datos.probando ? 'Probando…' : 'Probar conexión',
+      deshabilitada: motivoDeProbar !== null || datos.probando,
+      alElegir: datos.probar,
+    },
+    ...notaDelMotivo(motivoDeProbar),
+  ]
+}

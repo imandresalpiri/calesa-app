@@ -1,5 +1,6 @@
 'use client'
 
+import { avisar } from '@/shared/ui/toasts'
 import type { Formula } from '../../../entities/formula'
 import {
   cambioAlAlternar,
@@ -9,6 +10,11 @@ import { bDe, filaDe, type HojaDeLaPlanilla } from '../../../entities/formula/ho
 import type { UnidadDeEjemplo } from '../../../entities/formula/unidad-de-ejemplo'
 import type { AccionesDelTeclado, CeldaActiva } from './use-cuadricula'
 import type { EdicionConReferencias } from './use-edicion-con-referencias'
+import {
+  FUERA_DE_LA_FORMULA,
+  MOTIVO_SIN_SIGNO,
+  type EleccionDeCelda,
+} from './use-eleccion-de-celda'
 import type { OperacionesDeFila } from './use-operaciones-de-fila'
 
 type Args = {
@@ -24,6 +30,7 @@ type Args = {
   enfocar: () => void
   // Lo que dice la región viva al insertar una referencia.
   anunciar: (texto: string) => void
+  eligiendo: Pick<EleccionDeCelda, 'activo' | 'salir'>
 }
 
 // La referencia que inserta un clic en esa celda: su B si tiene %, si no su C.
@@ -52,8 +59,18 @@ function vaciar(a: Args, celda: CeldaActiva) {
     a.alCambiarUnidad({ tipo: 'input', id: nodo.id, valor: 0 })
 }
 
+// El toque con «Elegir celda» activo (D17 de la fórmula fácil): inserta la referencia de esa celda y vuelve al texto, o dice por qué no. Nunca aplica.
+function elegirCelda(a: Args, celda: CeldaActiva) {
+  if (celda.col !== 'B' && celda.col !== 'C') return void avisar(FUERA_DE_LA_FORMULA)
+  const r = referenciaDe(a.hoja, celda, a.hoja.numeroDe.get(celda.id) ?? 0)
+  const cursor = r === null ? null : a.edicion.referenciar(r.ref, false)
+  if (r === null || cursor === null) return void avisar(MOTIVO_SIN_SIGNO)
+  a.anunciar(`${r.ref}, ${r.etiqueta}, insertada`)
+  a.eligiendo.salir(cursor)
+}
+
 // Lo que hacen las teclas que no mueven y el clic en una celda (D15): sin edición, el clic elige; con edición, inserta la referencia de esa celda si el cursor
-// espera un operando o, si no, aplica y elige esa celda (como Excel).
+// espera un operando o, si no, aplica y elige esa celda (como Excel); con «Elegir celda» activo, sólo inserta.
 export function useAccionesDeLaCuadricula(a: Args) {
   const { hoja, edicion } = a
   const teclado: AccionesDelTeclado = {
@@ -81,8 +98,9 @@ export function useAccionesDeLaCuadricula(a: Args) {
     const e = edicion.edicion
     if (e === null) return void a.elegir(celda)
     if (e.id === celda.id && e.col === celda.col) return
+    if (a.eligiendo.activo) return void elegirCelda(a, celda)
     const r = referenciaDe(hoja, celda, hoja.numeroDe.get(celda.id) ?? 0)
-    if (r !== null && edicion.referenciar(r.ref, conShift)) {
+    if (r !== null && edicion.referenciar(r.ref, conShift) !== null) {
       a.anunciar(`${r.ref}, ${r.etiqueta}, insertada`)
       return
     }

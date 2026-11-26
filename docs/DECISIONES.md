@@ -227,7 +227,17 @@ las trampas, en `docs/LECCIONES.md`.
 - **Empresa se escribe sólo por RPC.** `ajustes_empresa`, `monedas`, `tipos_cambio` e `integraciones` sin policies de escritura; cada edición es una RPC definer con permiso y versión. Monedas y tipos se desactivan, no se borran.
 - **Monedas se ordena por par de monedas.** Arriba la moneda base, luego un grupo por par (el de la base primero) con una tarjeta grande por tipo de cambio, y al pie, secundarias, las monedas activas y «Al compartir». Descartado el grupo por tipo (oficial, paralelo…): el par es lo que se compara. La moneda base se elige en Monedas (un solo lugar; con `empresa.ajustes.gestionar`, otro permiso que el de los tipos de cambio). «Quién y cuándo» sale de `tipos_cambio_vigentes()`, no del historial: lo ve toda persona activa. «En la barra» se guarda al tocar el interruptor de la tarjeta; el panel conserva el suyo. Una moneda abierta desde «Gestionar» cierra el modal y abre su panel (un modal no abre otro). La leyenda se edita en un modal, sin barra de cambios sin guardar.
 - **Lo que se ve sin sesión sale de `web.ajustes_acceso()`.** Nombre, logo, locale, moneda, registro abierto y `primer_registro`; lo que haga falta antes de ingresar se suma ahí.
-- **Secretos de la interfaz en Vault.** `integracion_guardar_secreto()` con permiso e `integracion_secreto()` sólo para `service_role`; la app lee `secreto_guardado_en`. La dirección de apibara sólo puede ser de `apibara.tech`.
+- **Secretos de la interfaz en Vault.** `integracion_guardar_secreto()` con permiso e `integracion_secreto()` sólo para `service_role`; la app lee `secreto_guardado_en`. La dirección de apibara sólo puede ser de `apibara.tech`. Del asistente de IA se guardan además los últimos 4 en `config.clave_termina_en`, escritos sólo por `integracion_guardar_secreto()` (`integracion_guardar()` los descarta); los lee toda persona activa, como el resto de
+  `integraciones`: cuatro caracteres no sirven para usarla.
+- **Asistente de IA: la llamada vive en el servidor de la app.** `infra/asistente-ia/proveedor.ts` es una excepción del cliente admin (sólo para
+  `integracion_secreto('asistente_ia')`, después de la sesión, la fila leída como quien pide y la dirección validada otra vez), no una función edge: el
+  tiempo máximo y los errores quedan en el proceso de la action, no hay otra función que desplegar y el e2e alcanza el proveedor falso del host (una
+  función edge corre en Docker). Cambiar el origen de la dirección (esquema, host o puerto) con una clave guardada la borra de Vault y apaga el asistente:
+  si no, quien gestiona podría apuntar la clave a su propio servidor y llevársela sin leerla (como apibara sólo acepta `apibara.tech`). Un uso se cuenta
+  con una respuesta 2xx, aunque el texto venga vacío (gastó tokens); el contador informa, no limita ni factura: cada persona puede sumarse un uso
+  por RPC y uno que el proveedor cobró sin responder 2xx (tiempo agotado) no cuenta. El pedido firma con el nombre del perfil de quien comparte, leído en el servidor, y
+  ningún otro dato personal. El prompt base y los atajos van en `config` (≤ 20 atajos, los mismos para todos y no secretos): una versión por fila, sin
+  tabla, RLS ni RPC propias, y se guardan juntos en un modal.
 - **Color de marca con contraste.** Se rechaza el color sobre el que ni blanco ni tinta oscura llegan a 4,5:1; el mejor va a `--color-sobre-primario`. Entra por un `<style>`, no por `<html style>`.
 - **Íconos y logo.** Íconos dibujados con Canvas en el navegador, subidos a `marca/iconos/<hash>.png` y servidos por el manifest (sin `sharp`). El logo no se comprime como foto: SVG sin código ≤ 200 KB; raster ≤ 1024 px o PNG sin pérdida; tope 1 MB.
 - **Monedas y tipos de cambio.** Moneda base + N tipos de cambio nombrados con historial; la fórmula declara buckets → clave de TC y la cotización congela los TC usados. El modo Live oculta cifras y símbolos en toda la app.
@@ -770,6 +780,26 @@ las trampas, en `docs/LECCIONES.md`.
   pide «Tipo de celda». Si lo nuevo pasa el presupuesto de JS en frío de una ruta por ≤ 5 %, se sube el tope con su motivo (`docs/RENDIMIENTO.md`);
   más obliga a diferir. Descartados: la columna D a la vista junto a Ejemplo (repetía el número), el costado fijo en columna (le quita ancho a la
   grilla), convertir en silencio una celda del asesor en valor fijo y un modo de sólo lectura nuevo (la pestaña ya pide `cotizaciones.configurar`).
+- **La planilla va al frente; la información de la versión, en un modal** (sin preguntar): arriba de la planilla no hay tarjetas. La publicada, el borrador y
+  los avisos de la copia van en «Información de la fórmula» (`?panel=info-formula`), que abre el ⓘ junto al estado de la barra de la fórmula (en la
+  puesta en marcha, sin barra, un botón con texto arriba de la planilla); «Publicar…» sube a la barra. Lo que bloquea no se esconde en el modal: el ⓘ lleva
+  una marca con su texto para el lector (sin publicada, el borrador atrasado, avisos de la copia pendientes) y una copia abre con el modal. «Descartar el
+  borrador…» cambia el modal por su confirmación (un modal no abre otro). `PANEL_DE_LA_INFORMACION` es del núcleo: lo nombran el área `formula` (el modal)
+  y `formulas-del-origen` (abrirlo tras copiar), y un área no importa otra. Descartados: las tarjetas plegables (acordeón) y un drawer (la información se lee
+  y se cierra; no se edita al lado de la planilla).
+- **Escribir una fórmula sin saber la sintaxis** (sin preguntar): las operaciones rápidas insertan la forma con lugares por llenar en vez de abrir un
+  asistente aparte: lo que queda es el mismo texto que se escribe a mano y se aprende mirándolo. «Porcentaje de» inserta `PORCENTAJE_DE` (deja el % en la B
+  de la fila) y no `C5*4%`. Los lugares viven sólo en la edición (no se guardan ni se pintan en el texto) y Tab llena el siguiente antes de aplicar; Enter
+  aplica siempre, y un lugar vacío da el error de siempre. «Elegir celda» existe sólo con puntero grueso: con el teclado del celular abierto la cuadrícula
+  no se ve; nunca aplica. «¿Cómo se escribe?» va a un toque en la barra, no en el «⋯». La barra de fórmula va en dos filas fijas, lo que se inserta arriba
+  y el texto a lo ancho abajo: en una sola fila, con las operaciones y el resultado, el texto quedaba en unos pocos caracteres a 1.280 px, y partirla al
+  entrar a escribir hacía saltar la grilla.
+- **El resultado al lado sólo con un texto que compila, tras una pausa** (sin preguntar): compila y valida lo tipeado como lo haría «Aplicar» y lo calcula
+  con la unidad de ejemplo 150 ms después de la última tecla; con un texto que no compila, mientras se lee lo de prueba o antes de la pausa, la caja queda
+  vacía (alto reservado: nada salta). Nunca muestra la cifra de otro texto: se compara el pedido entero, no sólo el texto. Descartado: el error en la caja (ya
+  está bajo la barra con su tramo).
+- **Los textos del compilador se simplifican sólo del lado TS** (`motivos-del-compilador.ts`): hablan de celdas y valores, una frase por motivo. Los de
+  `motivos-de-formula.ts` (los de `validar_formula()`) quedan iguales porque espejan los de la base: cambiarlos pide una migración y su juego.
 - **«+ Nuevo color» desde la banda, por un hueco** (sin preguntar): el área `formula` no importa `diseno`; el modal de la sección de colores llega por
   `NuevoColor` (`entities/nuevo-color.ts`), que `src/app` pasa sólo con `cotizaciones.configurar`. Abre `?color=nuevo` (no `?panel=`: es el del panel de
   la banda, debajo) y el color creado se suma al catálogo leído sin releerlo.
@@ -1530,7 +1560,19 @@ las trampas, en `docs/LECCIONES.md`.
 - **La web pública es otro repo sobre el mismo Supabase.** Lee sólo el esquema `web`; ampliar `web.vehiculos` es deliberado, columna por columna, y `atributos` trae sólo campos `publico_web` activos.
 - **Revalidación sin variables de entorno.** URL en `integraciones.config.revalidar_url`, secreto en Vault; cola + job por minuto con triggers por sentencia, sin índice único ni `on conflict` (serializaba escrituras de vehículos).
 - **El job sólo envía a `https://`.** «Probar» acepta loopback sólo si la base del despliegue es loopback; la app rechaza IP internas literales. No se ataja lo que resuelve el DNS.
-- **El HTML del sitio lo deriva la base** (`_web_doc_html()` sobre ProseMirror con lista blanca; fuera de ella 22023, no se recorta). `minutos_lectura` sólo en la base.
+- **El HTML del sitio lo deriva la base** (`_web_doc_html()` sobre ProseMirror con lista blanca; fuera de ella 22023, no se recorta). `minutos_lectura` sólo en la base. La lista blanca del primer nivel
+  suma cuatro bloques de la guía: separador (`<hr>`), galería (1 a 12 imágenes `{ruta, alt}`), botón (texto de 1 a 60 y un enlace seguro) y video (sólo el enlace canónico de YouTube o Vimeo,
+  `<figure class="guia-video" data-video>` con un `<a>`, nunca un `<iframe>`: el sitio decide cómo incrustarlo). Los legales no los llevan (22023, hint `legales`) y las imágenes de una galería
+  cuentan en `storage_refcount('web', …)`.
+- **La página de una guía es un editor de bloques** (T581), como el de WordPress y a propósito sin dependencias nuevas: la interfaz va a mano sobre Tiptap. Barra fija arriba (volver a Guías,
+  deshacer y rehacer, estado, «Vista previa», la acción principal, la de al lado, el «⋯» y el interruptor del panel), el artículo centrado con el título grande sin etiqueta visible (su nombre es «Título»)
+  y un panel a la derecha con «Publicación» (estado, programar, datos, buscadores y eliminar) y «Bloque» (las opciones del bloque elegido). El panel se oculta y se acuerda por navegador
+  (`localStorage` `guia:panel`; sin acceso a él, abierto); debajo de 1024 px es un `<Drawer>` por URL (`?panel=lateral`). La vista previa es un modal por URL (`?panel=vista-previa`)
+  con el HTML que daría la base. Un bloque se inserta con «/» o con el «+» del párrafo vacío y se mueve o quita desde su barrita; un bloque que no es texto nunca queda de último (detrás va un párrafo vacío).
+  **Un botón o un video mal escritos no se guardan ni se recortan**: el editor dice el motivo en su lugar (la misma regla que la base: `motivoDelBloque`) y deja lo escrito. Las imágenes se suben
+  de dos en dos y «Guardar» espera a que terminen. `key={guia.actualizadoEn}` reinicia el editor tras guardar: **deshacer no cruza un guardado** (el costo de que lo guardado sea siempre la verdad).
+  Descartado: una barra de herramientas fija sobre el texto (con la barrita flotante el texto manda), `iframe` para el video (sería ejecutar HTML ajeno desde la base) y la galería como carrusel
+  (el sitio la dibuja).
 - **El `slug` sale del título al crear y después no lo sigue**: renombrar algo publicado no mueve su URL.
 - **Publicar una guía pone `publicada_en = ahora − 60 s`**: el reloj de Next no es el de la base. «Programar» pide al menos un minuto adelante.
 - **Categoría con guías no se borra** (la FK es `set null`, no falla sola): la action lo rechaza y la lista apaga «Eliminar» con motivo.

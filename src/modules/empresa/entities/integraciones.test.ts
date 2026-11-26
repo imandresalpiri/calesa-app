@@ -93,6 +93,13 @@ describe('puedeActivarse', () => {
     ).toBe(true)
   })
 
+  it('el asistente de IA también necesita su clave', () => {
+    expect(puedeActivarse({ clave: 'asistente_ia', secretoGuardadoEn: null })).toBe(false)
+    expect(
+      puedeActivarse({ clave: 'asistente_ia', secretoGuardadoEn: '2026-10-12T14:00:00+00:00' }),
+    ).toBe(true)
+  })
+
   it('las que no llevan secreto se activan sin más', () => {
     expect(puedeActivarse({ clave: 'web_publica', secretoGuardadoEn: null })).toBe(true)
   })
@@ -182,7 +189,7 @@ describe('configDeWebPublica', () => {
 
 describe('estadoDeIntegracion', () => {
   const con = (
-    clave: 'apibara' | 'web_publica' | 'push_web',
+    clave: 'apibara' | 'asistente_ia' | 'web_publica' | 'push_web',
     activa: boolean,
     secreto: boolean,
   ) => ({
@@ -200,6 +207,13 @@ describe('estadoDeIntegracion', () => {
   it('con clave, apibara está activa o apagada', () => {
     expect(estadoDeIntegracion(con('apibara', true, true), conClave)).toBe('activa')
     expect(estadoDeIntegracion(con('apibara', false, true), conClave)).toBe('apagada')
+  })
+
+  it('el asistente de IA sin clave falta la clave, encendido o no; con clave, activo o apagado', () => {
+    expect(estadoDeIntegracion(con('asistente_ia', false, false), conClave)).toBe('falta_la_clave')
+    expect(estadoDeIntegracion(con('asistente_ia', true, false), conClave)).toBe('falta_la_clave')
+    expect(estadoDeIntegracion(con('asistente_ia', true, true), conClave)).toBe('activa')
+    expect(estadoDeIntegracion(con('asistente_ia', false, true), conClave)).toBe('apagada')
   })
 
   it('la web pública prendida sin secreto falta la clave; apagada, no importa', () => {

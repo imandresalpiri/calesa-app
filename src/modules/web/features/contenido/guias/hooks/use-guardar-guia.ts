@@ -2,12 +2,17 @@
 
 import { useAction } from 'next-safe-action/hooks'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { conRed, resultadoDeAccion } from '@/shared/lib/formularios'
 import { avisarError, avisarExito } from '@/shared/ui/toasts'
 import type { GuiaCompleta } from '../../../../entities/contenido/guias'
-import { rutasDeImagenes } from '../../../../entities/contenido/guias'
+import {
+  MOTIVO_SUBIENDO_IMAGENES,
+  motivoDelCuerpo,
+  rutasDeImagenes,
+} from '../../../../entities/contenido/guias'
 import type { PublicacionDeGuia } from '../../../../entities/contenido/repositorios'
+import { haySubiendo } from '../../editor/bloques/subidas.client'
 import { guardarGuia } from '../actions/guardar-guia'
 import { quitarImagenesHuerfanas } from './quitar-imagenes-huerfanas'
 import type { ValoresDeGuia } from './valores-de-guia'
@@ -20,6 +25,9 @@ type Opciones = {
   // Después de guardar o de recargar: lo tipeado ya no hace falta (limpia el borrador).
   alGuardar: () => void
 }
+
+const motivoParaNoGuardar = (cuerpo: unknown): string | null =>
+  haySubiendo() ? MOTIVO_SUBIENDO_IMAGENES : motivoDelCuerpo(cuerpo)
 
 const rutasDeLosValores = (valores: ValoresDeGuia): string[] => [
   ...rutasDeImagenes(valores.cuerpo),
@@ -34,8 +42,17 @@ export function useGuardarGuia({ guia, valores, alGuardar }: Opciones) {
   const { executeAsync, result, isPending } = useAction(guardarGuia)
   const [conflicto, setConflicto] = useState<string | null>(null)
   const [porCampo, setPorCampo] = useState<ErroresDeGuia>({})
+  // Hasta que llega la guía nueva el formulario sigue apagado: lo tipeado entre el «guardado» y el nuevo montaje se perdería.
+  const [refrescando, refrescar] = useTransition()
 
   async function guardar(publicacion: PublicacionDeGuia, mensaje: string): Promise<void> {
+    // Un bloque que la lista blanca no admite (un botón sin enlace, un video de otro sitio) no se envía: se dice en su lugar, con lo escrito intacto.
+    // Una foto que aún sube no está en el documento: guardar ahora la dejaría fuera (y su archivo huérfano).
+    const rechazado = motivoParaNoGuardar(valores.cuerpo)
+    if (rechazado !== null) {
+      setPorCampo({ cuerpo: rechazado })
+      return
+    }
     setPorCampo({})
     const respuesta = await conRed(
       executeAsync({
@@ -61,7 +78,9 @@ export function useGuardarGuia({ guia, valores, alGuardar }: Opciones) {
         rutasDeLosValores(valores),
       )
       alGuardar()
-      router.refresh()
+      refrescar(() => {
+        router.refresh()
+      })
       return
     }
     if (resultado.error.codigo === 'conflicto') {
@@ -93,7 +112,7 @@ export function useGuardarGuia({ guia, valores, alGuardar }: Opciones) {
   return {
     guardar,
     recargar,
-    enCurso: isPending,
+    enCurso: isPending || refrescando,
     conflicto,
     errores: { ...deValidacion, ...porCampo } as ErroresDeGuia,
   }

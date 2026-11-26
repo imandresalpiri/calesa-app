@@ -1,28 +1,41 @@
 'use client'
 
-import { useId } from 'react'
-import { useAtajo } from '@/shared/ui/atajos'
-import { Aviso } from '@/shared/ui/aviso'
-import { AvisoDeConflicto } from '@/shared/ui/aviso-de-conflicto'
-import { useEnLinea } from '@/shared/ui/use-en-linea'
-import { useRegional } from '@/shared/ui/regional'
-import { formatearFecha } from '@/shared/lib/fechas'
-import { htmlDelDocumento } from '../../../../entities/contenido/doc'
-import {
-  estadoDeGuia,
-  tieneCuerpo,
-  type GuiaCompleta,
-  type OpcionesDeGuia,
-} from '../../../../entities/contenido/guias'
-import { useGuardarGuia } from '../hooks/use-guardar-guia'
-import { useValoresDeGuia } from '../hooks/use-valores-de-guia'
-import type { ValoresDeGuia } from '../hooks/valores-de-guia'
-import { BarraDePublicacion } from './barra-de-publicacion'
-import { BloqueContenido } from './bloque-contenido'
-import { BloqueDatos } from './bloque-datos'
-import { BloqueSeo } from './bloque-seo'
-import { CabeceraDeLaGuia } from './cabecera-de-la-guia'
+import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
+import type { GuiaCompleta, OpcionesDeGuia } from '../../../../entities/contenido/guias'
+import { useFormularioDeLaGuia } from '../hooks/use-formulario-de-la-guia'
+import { ArticuloDeLaGuia } from './articulo-de-la-guia'
+import { BarraDeLaGuia } from './barra-de-la-guia'
 import { ConfirmarEliminarGuia } from './confirmar-eliminar-guia'
+import { VistaPreviaDeLaGuiaDiferida } from './diferidos-de-la-guia'
+import { PanelDeLaGuia } from './panel-de-la-guia'
+import type { PropsDePublicacion } from './pestana-publicacion'
+import { PanelEnDrawer } from './panel-en-drawer'
+
+type Formulario = ReturnType<typeof useFormularioDeLaGuia>
+
+// Lo que la pestaña «Publicación» toma de la página.
+function datosDePublicacion(
+  f: Formulario,
+  guia: GuiaCompleta,
+  opciones: OpcionesDeGuia,
+  ahora: string,
+): PropsDePublicacion {
+  return {
+    guia,
+    estado: f.estado,
+    ahora,
+    zona: f.zona,
+    valores: f.valores,
+    cambiar: f.cambiar,
+    errores: f.guardado.errores,
+    opciones,
+    deshabilitado: f.guardado.enCurso,
+    motivo: f.motivoDePublicacion,
+    puedeProgramar: f.accionesDeLaBarra.enElMenu.some((a) => a.accion === 'programar'),
+    alProgramar: f.alProgramar,
+    senalDeFoco: f.senalDeFoco,
+  }
+}
 
 export type PropsDeLaGuia = {
   guia: GuiaCompleta
@@ -33,91 +46,80 @@ export type PropsDeLaGuia = {
   puedePublicarGuias: boolean
 }
 
-function motivoDelDocumento(cuerpo: ValoresDeGuia['cuerpo']): string | null {
-  const html = htmlDelDocumento(cuerpo)
-  return html.ok ? null : html.motivo
-}
-
-// La página de una guía: contenido con el editor, datos, SEO, la barra de guardar y publicar, y eliminar. Quien la usa le pone de `key` la versión de
-// la guía: lo guardado (aquí o por otra persona) la vuelve a montar desde la base. El borrador guarda lo escrito, el documento incluido.
+// La página de una guía como un editor de bloques: la barra de arriba, el artículo (título y texto) y el panel con la publicación y las opciones del
+// bloque. Quien la usa le pone de `key` la versión de la guía: lo guardado (aquí o por otra persona) la vuelve a montar desde la base, y con ello
+// el deshacer y rehacer empiezan de nuevo.
 export function FormularioDeGuia({ guia, opciones, ahora, puedePublicarGuias }: PropsDeLaGuia) {
-  const idFormulario = useId()
-  const enLinea = useEnLinea()
-  const { zonaHoraria } = useRegional()
-  const { valores, cambiar, borrador } = useValoresDeGuia(guia)
-  const { guardar, recargar, enCurso, conflicto, errores } = useGuardarGuia({
-    guia,
-    valores,
-    alGuardar: borrador.limpiar,
-  })
-  const estado = estadoDeGuia(guia.publicadaEn, new Date(ahora))
-  const guardarAhora = () => {
-    void guardar({ tipo: 'mantener' }, 'Guía guardada')
-  }
-  useAtajo('guardar', guardarAhora)
-  useAtajo('guardarYSeguir', guardarAhora)
-
+  const f = useFormularioDeLaGuia({ guia, ahora, puedePublicarGuias })
+  const conVistaPrevia = useAbiertoAlgunaVez(f.vista.abierto)
+  const panel = (
+    <PanelDeLaGuia
+      pestana={f.pestana}
+      alCambiarPestana={f.ponerPestana}
+      editor={f.editor}
+      deshabilitado={f.guardado.enCurso}
+      publicacion={datosDePublicacion(f, guia, opciones, ahora)}
+    />
+  )
   return (
-    <div className="grid gap-4">
-      <CabeceraDeLaGuia guia={guia} ahora={ahora} zona={zonaHoraria} />
-      <BarraDePublicacion
-        idFormulario={idFormulario}
-        estado={estado}
-        puedePublicarGuias={puedePublicarGuias}
-        conCuerpo={tieneCuerpo(valores.cuerpo)}
-        enLinea={enLinea}
-        enCurso={enCurso}
-        zona={zonaHoraria}
-        alPublicar={() => {
-          void guardar({ tipo: 'publicar' }, 'Guía publicada')
-        }}
-        alProgramar={(cuando) => {
-          void guardar(
-            { tipo: 'programar', cuando },
-            `Guía programada para el ${formatearFecha(cuando, { zona: zonaHoraria })}`,
-          )
-        }}
-        alDespublicar={() => {
-          void guardar({ tipo: 'despublicar' }, 'Guía despublicada')
-        }}
+    <div className="grid">
+      <BarraDeLaGuia
+        editor={f.editor}
+        publicadaEn={guia.publicadaEn}
+        ahora={ahora}
+        zona={f.zona}
+        acciones={f.accionesDeLaBarra}
+        motivo={f.motivoDePublicacion}
+        enCurso={f.guardado.enCurso}
+        panelAbierto={f.panel.abierto}
+        salida={f.salida}
+        refDeLasAcciones={f.refDeLasAcciones}
+        alEjecutar={f.alEjecutar}
+        alVerVistaPrevia={f.vista.abrir}
+        alAlternarPanel={f.panel.abierto ? f.panel.cerrar : f.panel.abrir}
       />
-      {enLinea ? null : (
-        <Aviso tono="aviso">
-          No hay conexión. Puedes seguir escribiendo: guarda cuando vuelva.
-        </Aviso>
-      )}
-      {conflicto ? <AvisoDeConflicto mensaje={conflicto} alRecargar={recargar} /> : null}
-      <form
-        id={idFormulario}
-        noValidate
-        className="grid gap-4"
-        onSubmit={(evento) => {
-          evento.preventDefault()
-          guardarAhora()
-        }}
-      >
-        <fieldset disabled={enCurso} className="grid min-w-0 gap-4">
-          <legend className="sr-only">Guía</legend>
-          <BloqueContenido
-            valores={valores}
-            cambiar={cambiar}
-            errores={errores}
-            motivoDelCuerpo={motivoDelDocumento(valores.cuerpo)}
-            deshabilitado={enCurso}
+      <div className="flex items-start">
+        <div className="min-w-0 flex-1">
+          <ArticuloDeLaGuia
+            titulo={f.valores.titulo}
+            alCambiarTitulo={(titulo) => {
+              f.cambiar({ titulo })
+            }}
+            errorDelTitulo={f.guardado.errores['titulo']}
+            editor={f.editor}
+            deshabilitado={f.guardado.enCurso}
+            etiquetaId={`${f.idDelTexto}-etiqueta`}
+            errorDelCuerpo={f.errorDelCuerpo}
+            idDelErrorDelCuerpo={`${f.idDelTexto}-error`}
+            conflicto={f.guardado.conflicto}
+            alRecargar={f.guardado.recargar}
+            enLinea={f.enLinea}
+            alAbrirOpciones={f.alAbrirOpciones}
           />
-          <BloqueDatos
-            valores={valores}
-            cambiar={cambiar}
-            errores={errores}
-            opciones={opciones}
-            deshabilitado={enCurso}
-          />
-          <BloqueSeo valores={valores} cambiar={cambiar} errores={errores} />
-        </fieldset>
-      </form>
-      <div>
-        <ConfirmarEliminarGuia guia={guia} />
+        </div>
+        {f.panel.alLado ? (
+          <aside
+            data-panel-de-la-guia
+            aria-label="Panel de la guía"
+            inert={!f.panel.abierto}
+            className={`sticky top-14 max-h-[calc(100dvh-3.5rem)] shrink-0 overflow-x-hidden overflow-y-auto border-s border-(--color-line) transition-[width] duration-200 motion-reduce:transition-none ${f.panel.abierto ? 'w-[320px]' : 'w-0 border-s-0'}`}
+          >
+            <div className="w-[320px] p-4">{panel}</div>
+          </aside>
+        ) : (
+          <PanelEnDrawer abierto={f.panel.abierto} alCerrar={f.panel.cerrar}>
+            {panel}
+          </PanelEnDrawer>
+        )}
       </div>
+      {conVistaPrevia ? (
+        <VistaPreviaDeLaGuiaDiferida
+          abierto={f.vista.abierto}
+          alCerrar={f.vista.cerrar}
+          valores={f.valores}
+        />
+      ) : null}
+      <ConfirmarEliminarGuia guia={guia} />
     </div>
   )
 }

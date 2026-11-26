@@ -159,7 +159,9 @@ describe('nombrar: los mensajes con la celda de la planilla', () => {
   }
 
   it('un nodo se nombra por su celda y su concepto, nunca por su id', () => {
-    expect(mensaje('total+1')).toBe('«C12 (Total)» es esta misma fila: no puede usarse a sí misma.')
+    expect(mensaje('total+1')).toBe(
+      '«C12 (Total)» es esta misma fila: una fila no se usa a sí misma.',
+    )
   })
 
   it('la variante se nombra sólo por su celda, porque el ejemplo se escribe con ella', () => {
@@ -170,6 +172,8 @@ describe('nombrar: los mensajes con la celda de la planilla', () => {
 
   it('lo que no es una fila (un grupo, un nombre que no existe) queda como se escribió', () => {
     expect(mensaje('compra+1')).toContain('SUMA(compra)')
-    expect(mensaje('zzz')).toBe('«zzz» no es ningún nodo de la fórmula.')
+    expect(mensaje('zzz')).toBe(
+      '«zzz» no es una celda ni una función: toca la celda que quieres usar.',
+    )
   })
 })

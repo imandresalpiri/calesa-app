@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest'
+import { MOTIVO_DE_VIDEO } from './doc'
 import {
   MOTIVO_SIN_CONEXION_PARA_PUBLICAR,
   MOTIVO_SIN_PERMISO_PARA_PUBLICAR,
   MOTIVO_SIN_TEXTO_PARA_PUBLICAR,
-  accionesDePublicacion,
+  accionesDeLaBarra,
   esFechaDeProgramar,
   esSlugValido,
   estadoDeGuia,
   fechaDePublicarYa,
+  motivoDelCuerpo,
   motivoDePublicacion,
   puedePublicar,
   rutaDeGuia,
@@ -55,15 +57,27 @@ describe('slugDe y esSlugValido', () => {
 })
 
 describe('puedePublicar', () => {
-  const todo = { permitido: true, conCuerpo: true, enLinea: true }
+  const todo = { permitido: true, conCuerpo: true, enLinea: true, motivoDelCuerpo: null }
   it('con todo, sí', () => {
     expect(puedePublicar(todo)).toEqual({ ok: true })
   })
-  it('los motivos van en su orden: permiso, texto, red', () => {
-    expect(puedePublicar({ permitido: false, conCuerpo: false, enLinea: false })).toEqual({
-      ok: false,
-      motivo: MOTIVO_SIN_PERMISO_PARA_PUBLICAR,
-    })
+  it('los motivos van en su orden: permiso, cuerpo rechazado, texto, red', () => {
+    expect(
+      puedePublicar({
+        permitido: false,
+        conCuerpo: false,
+        enLinea: false,
+        motivoDelCuerpo: MOTIVO_DE_VIDEO,
+      }),
+    ).toEqual({ ok: false, motivo: MOTIVO_SIN_PERMISO_PARA_PUBLICAR })
+    expect(
+      puedePublicar({
+        ...todo,
+        conCuerpo: false,
+        enLinea: false,
+        motivoDelCuerpo: MOTIVO_DE_VIDEO,
+      }),
+    ).toEqual({ ok: false, motivo: MOTIVO_DE_VIDEO })
     expect(puedePublicar({ ...todo, conCuerpo: false, enLinea: false })).toEqual({
       ok: false,
       motivo: MOTIVO_SIN_TEXTO_PARA_PUBLICAR,
@@ -126,33 +140,91 @@ describe('rutasDeImagenes', () => {
     expect(rutasDeImagenes(null)).toEqual([])
     expect(rutasDeImagenes({ type: 'doc' })).toEqual([])
   })
+  it('suma las de las galerías, sin repetir', () => {
+    expect(
+      rutasDeImagenes({
+        type: 'doc',
+        content: [
+          { type: 'image', attrs: { ruta: 'guias/a.webp', alt: '' } },
+          {
+            type: 'gallery',
+            attrs: { imagenes: [{ ruta: 'guias/a.webp' }, { ruta: 'guias/g.webp' }, 3] },
+          },
+          {
+            type: 'blockquote',
+            content: [{ type: 'gallery', attrs: { imagenes: [{ ruta: 'x.webp' }] } }],
+          },
+        ],
+      }),
+    ).toEqual(['guias/a.webp', 'guias/g.webp'])
+  })
 })
 
-describe('accionesDePublicacion y motivoDePublicacion', () => {
+describe('accionesDeLaBarra y motivoDePublicacion', () => {
+  const todo = { permitido: true, conCuerpo: true, enLinea: true, motivoDelCuerpo: null }
+  const etiquetas = (estado: Parameters<typeof accionesDeLaBarra>[0], s = todo) => {
+    const a = accionesDeLaBarra(estado, s)
+    return {
+      principal: a.principal.etiqueta,
+      segundo: a.segundo?.etiqueta ?? null,
+      menu: a.enElMenu.map((x) => x.etiqueta),
+    }
+  }
+
   it('cada estado ofrece lo suyo', () => {
-    expect(accionesDePublicacion('borrador')).toEqual({
-      publicar: 'Publicar',
-      programar: true,
-      despublicar: false,
+    expect(etiquetas('borrador')).toEqual({
+      principal: 'Publicar',
+      segundo: 'Guardar borrador',
+      menu: ['Programar…'],
     })
-    expect(accionesDePublicacion('programada')).toEqual({
-      publicar: 'Publicar ahora',
-      programar: false,
-      despublicar: true,
+    expect(etiquetas('programada')).toEqual({
+      principal: 'Actualizar',
+      segundo: null,
+      menu: ['Publicar ahora', 'Despublicar'],
     })
-    expect(accionesDePublicacion('publicada')).toEqual({
-      publicar: null,
-      programar: false,
-      despublicar: true,
+    expect(etiquetas('publicada')).toEqual({
+      principal: 'Actualizar',
+      segundo: null,
+      menu: ['Despublicar'],
     })
   })
-  it('el motivo sale del permiso, del texto o de la red según lo que el estado ofrece', () => {
-    const todo = { permitido: true, conCuerpo: true, enLinea: true }
+
+  it('guardar y actualizar no piden permiso, cuerpo ni red', () => {
+    const nada = {
+      permitido: false,
+      conCuerpo: false,
+      enLinea: false,
+      motivoDelCuerpo: MOTIVO_DE_VIDEO,
+    }
+    expect(accionesDeLaBarra('borrador', nada).segundo?.motivo).toBeNull()
+    expect(accionesDeLaBarra('publicada', nada).principal.motivo).toBeNull()
+  })
+
+  it('publicar y programar llevan el motivo; despublicar sólo el permiso', () => {
+    const sinPermiso = { ...todo, permitido: false }
+    const borrador = accionesDeLaBarra('borrador', sinPermiso)
+    expect(borrador.principal.motivo).toBe(MOTIVO_SIN_PERMISO_PARA_PUBLICAR)
+    expect(borrador.enElMenu[0]?.motivo).toBe(MOTIVO_SIN_PERMISO_PARA_PUBLICAR)
+    const programada = accionesDeLaBarra('programada', {
+      ...todo,
+      conCuerpo: false,
+      enLinea: false,
+    })
+    expect(programada.enElMenu.map((x) => x.motivo)).toEqual([MOTIVO_SIN_TEXTO_PARA_PUBLICAR, null])
+    expect(accionesDeLaBarra('publicada', sinPermiso).enElMenu[0]?.motivo).toBe(
+      MOTIVO_SIN_PERMISO_PARA_PUBLICAR,
+    )
+  })
+
+  it('el motivo sale del permiso, del cuerpo, del texto o de la red según lo que el estado ofrece', () => {
     expect(motivoDePublicacion('borrador', { ...todo, permitido: false })).toBe(
       MOTIVO_SIN_PERMISO_PARA_PUBLICAR,
     )
     expect(motivoDePublicacion('borrador', { ...todo, conCuerpo: false })).toBe(
       MOTIVO_SIN_TEXTO_PARA_PUBLICAR,
+    )
+    expect(motivoDePublicacion('borrador', { ...todo, motivoDelCuerpo: MOTIVO_DE_VIDEO })).toBe(
+      MOTIVO_DE_VIDEO,
     )
     // Despublicar una guía publicada sólo pide el permiso: sin texto ni red no hay motivo.
     expect(
@@ -161,5 +233,17 @@ describe('accionesDePublicacion y motivoDePublicacion', () => {
     expect(motivoDePublicacion('publicada', { ...todo, permitido: false })).toBe(
       MOTIVO_SIN_PERMISO_PARA_PUBLICAR,
     )
+  })
+})
+
+describe('motivoDelCuerpo', () => {
+  it('nulo si la lista blanca admite el documento; si no, el motivo', () => {
+    expect(motivoDelCuerpo(null)).toBeNull()
+    expect(
+      motivoDelCuerpo({
+        type: 'doc',
+        content: [{ type: 'video', attrs: { url: 'https://x.test' } }],
+      }),
+    ).toBe(MOTIVO_DE_VIDEO)
   })
 })

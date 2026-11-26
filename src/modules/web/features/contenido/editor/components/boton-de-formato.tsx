@@ -12,6 +12,7 @@ export function BotonDeFormato({
   deshabilitado,
   parada,
   alEnfocar,
+  alternable = true,
 }: {
   etiqueta: string
   Icono: LucideIcon
@@ -21,6 +22,8 @@ export function BotonDeFormato({
   // La barra tiene una sola parada de Tab (la del botón con `parada`); las flechas recorren el resto.
   parada: boolean
   alEnfocar: () => void
+  // Un botón que alterna (negrita) dice si está activo; uno que sólo hace algo (subir un bloque) no lleva `aria-pressed`.
+  alternable?: boolean
 }) {
   return (
     <Button
@@ -29,7 +32,7 @@ export function BotonDeFormato({
       variant={activo ? 'secondary' : 'ghost'}
       aria-label={etiqueta}
       title={etiqueta}
-      aria-pressed={activo}
+      aria-pressed={alternable ? activo : undefined}
       tabIndex={parada ? 0 : -1}
       onFocus={alEnfocar}
       className="size-11 md:size-8"

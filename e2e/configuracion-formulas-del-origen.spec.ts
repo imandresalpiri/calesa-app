@@ -84,7 +84,7 @@ async function crear(
   await nueva.getByRole('button', { name: 'Crear fórmula' }).click()
   await expect(nueva).toBeHidden()
   await expect(page).toHaveURL(enElEditor(a.id, 'planilla', idDe(nombre)))
-  await expect(selectorDeFormula(page)).toHaveText(new RegExp(`^Fórmula: ${nombre}`))
+  await expect(selectorDeFormula(page, true)).toHaveText(new RegExp(`^Fórmula: ${nombre}`))
 }
 
 test.beforeAll(async ({}, info) => {
