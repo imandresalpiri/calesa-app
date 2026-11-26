@@ -25,7 +25,7 @@ create table public.enlaces_de_ayuda (
   titulo text not null
     constraint enlaces_de_ayuda_titulo_valido check (titulo = btrim(titulo) and char_length(titulo) between 1 and 80),
   url text not null
-    constraint enlaces_de_ayuda_url_https check (url ~* '^https://[^[:space:]/?#]+([/?#][^[:space:]]*)?$' and char_length(url) <= 2000),
+    constraint enlaces_de_ayuda_url_https check (url ~* '^https://[^[:space:]/?#@]+([/?#][^[:space:]]*)?$' and char_length(url) <= 2000),
   descripcion text
     constraint enlaces_de_ayuda_descripcion_valida check (
       descripcion is null or (descripcion = btrim(descripcion) and char_length(descripcion) between 1 and 140)),
@@ -58,7 +58,7 @@ create table public.enlaces_de_ayuda_personales (
       titulo is null or (titulo = btrim(titulo) and char_length(titulo) between 1 and 80)),
   url text
     constraint enlaces_de_ayuda_personales_url_https check (
-      url is null or (url ~* '^https://[^[:space:]/?#]+([/?#][^[:space:]]*)?$' and char_length(url) <= 2000)),
+      url is null or (url ~* '^https://[^[:space:]/?#@]+([/?#][^[:space:]]*)?$' and char_length(url) <= 2000)),
   descripcion text
     constraint enlaces_de_ayuda_personales_descripcion_valida check (
       descripcion is null or (descripcion = btrim(descripcion) and char_length(descripcion) between 1 and 140)),
@@ -130,7 +130,7 @@ create function public._enlace_de_ayuda_url(p_texto text) returns text
 as $$
 declare v text := btrim(coalesce(p_texto, ''));
 begin
-  if v !~* '^https://[^[:space:]/?#]+([/?#][^[:space:]]*)?$' then
+  if v !~* '^https://[^[:space:]/?#@]+([/?#][^[:space:]]*)?$' then
     raise exception 'Escribe una dirección que empiece con https://.' using errcode = '22023', hint = 'url';
   end if;
   if char_length(v) > 2000 then

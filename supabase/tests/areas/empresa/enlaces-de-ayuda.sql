@@ -103,6 +103,8 @@ begin
   if v <> '22023/url' then raise exception 'sin dominio esperaba 22023/url, dio %', v; end if;
   v := pg_temp.eda_falla($q$select public.enlace_de_ayuda_crear(gen_random_uuid(), 'Manual', 'https://ayuda ejemplo.com')$q$);
   if v <> '22023/url' then raise exception 'con espacio esperaba 22023/url, dio %', v; end if;
+  v := pg_temp.eda_falla($q$select public.enlace_de_ayuda_crear(gen_random_uuid(), 'Manual', 'https://banco.com@otro.com')$q$);
+  if v <> '22023/url' then raise exception 'con usuario antes del dominio esperaba 22023/url, dio %', v; end if;
   v := pg_temp.eda_falla($q$select public.enlace_de_ayuda_crear(gen_random_uuid(), '   ', 'https://ayuda.ejemplo.com')$q$);
   if v <> '22023/titulo' then raise exception 'sin título esperaba 22023/titulo, dio %', v; end if;
   v := pg_temp.eda_falla($q$select public.enlace_de_ayuda_crear(gen_random_uuid(), repeat('á', 81), 'https://ayuda.ejemplo.com')$q$);

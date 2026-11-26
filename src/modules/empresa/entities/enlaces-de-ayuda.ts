@@ -37,7 +37,7 @@ export function largoDe(texto: string): number {
 }
 
 // Espejo del regex de la base: `https://`, un dominio y lo que siga, sin espacios.
-const URL_DE_AYUDA = /^https:\/\/[^\s/?#]+([/?#]\S*)?$/i
+const URL_DE_AYUDA = /^https:\/\/[^\s/?#@]+([/?#]\S*)?$/i
 
 export function esUrlDeAyuda(texto: string): boolean {
   return URL_DE_AYUDA.test(texto) && largoDe(texto) <= LARGO_MAXIMO_DE_LA_URL

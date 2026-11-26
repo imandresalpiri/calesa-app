@@ -37,6 +37,9 @@ describe('esUrlDeAyuda', () => {
     expect(esUrlDeAyuda('https://')).toBe(false)
     expect(esUrlDeAyuda('https:ayuda.com')).toBe(false)
     expect(esUrlDeAyuda('https://ayuda ejemplo.com')).toBe(false)
+    // Un usuario antes del dominio haría pasar una dirección por otra («https://banco.com@otro.com»).
+    expect(esUrlDeAyuda('https://banco.com@otro.com')).toBe(false)
+    expect(esUrlDeAyuda('https://a.com/perfil@x')).toBe(true)
     expect(esUrlDeAyuda(`https://a.com/${'x'.repeat(2000)}`)).toBe(false)
   })
 })
@@ -98,7 +101,14 @@ describe('esquemaDeCamposDeEnlace', () => {
   })
 
   it('rechaza una dirección sin https://', () => {
-    for (const url of ['http://a.com', 'https:a.com', 'a.com', 'ftp://a.com', '']) {
+    for (const url of [
+      'http://a.com',
+      'https:a.com',
+      'a.com',
+      'ftp://a.com',
+      '',
+      'https://a.com@b.com',
+    ]) {
       expect(
         esquemaDeCamposDeEnlace.safeParse({ titulo: 'a', url, descripcion: null }).success,
       ).toBe(false)
