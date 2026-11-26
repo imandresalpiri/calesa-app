@@ -530,9 +530,9 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   la empresa: «Ana cambió Precio de [Toyota Hilux #12]: 10.000 → 12.000» (con varios campos, «Precio y 2 más», sin valores; un alta o una baja,
   sin antes → después; el registro enlaza a su página si existe y se ve; montos con `<Monto>`). Una fila que quien mira no ve dice sólo
   «Ana cambió un lead que no puedes ver». Una sola presentación en todo ancho; en el celular la frase se parte en renglones. «Ver detalle»
-  despliega en la misma fila todo el diff (`?cambio=<id>`: sólo lo que cambió, con la etiqueta del campo y cada monto con la moneda de su lado;
-  sin moneda conocida, el número y «(moneda sin conocer)»); un `?cambio=` fuera de lo cargado sale arriba como «El cambio que abriste»;
-  inválido o sin acceso, «No tienes acceso a este cambio.»; un error al desplegar queda en la fila con «Reintentar». Filtros como chips arriba:
+  abre un drawer, «Detalle del cambio», con todo el diff (`?cambio=<id>`, suma al historial; la fila queda marcada: sólo lo que cambió, con la etiqueta del campo y cada monto con la moneda de su lado;
+  sin moneda conocida, el número y «(moneda sin conocer)»); un `?cambio=` fuera de lo cargado abre el mismo drawer;
+  inválido o sin acceso, «No tienes acceso a este cambio.»; un error al leer queda en el drawer con «Reintentar». Filtros como chips arriba:
   persona y tipo de registro (`?persona=`, `?entidad=`), el registro (`?registro=`, desde «Ver actividad» del «⋯» de un lead —fila, tarjeta, kanban y
   ficha— y de la ficha de vehículo) y la fecha de «Ir a una fecha», cada uno con su «×», y «Limpiar filtros». «Ver más» con tope; retención de `actividad_dias` (14 si
   no se puede leer). **Actividad reciente** (en la ficha del vehículo, leída al acercarse; sola en `/actividad/reciente?entidad=&registro=`): los

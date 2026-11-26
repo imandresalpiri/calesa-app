@@ -13,7 +13,7 @@ const PARAMETROS = {
 }
 
 // Los filtros de `/actividad` en la URL (`shallow: false`: el servidor vuelve a leer la primera página con ellos; lo que vale lo decide
-// `pedidoDeActividad()`). Otro filtro cierra el cambio desplegado (puede no estar en la lista nueva) y otra entidad suelta el registro, que
+// `pedidoDeActividad()`). Otro filtro cierra el cambio abierto (puede no estar en la lista nueva) y otra entidad suelta el registro, que
 // sólo vale con la suya. Mientras llega la lista nueva, `pendiente`.
 export function useFiltrosDeActividad() {
   const [pendiente, startTransition] = useTransition()

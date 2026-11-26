@@ -9,7 +9,7 @@ import { CuerpoDelCambio } from './cuerpo-del-cambio'
 
 type Props = {
   id: number | null
-  // Con la frase y la fecha arriba: para «El cambio que abriste», que no tiene fila.
+  // Con la frase y la fecha arriba: el drawer no muestra la fila.
   conCabecera?: boolean
 }
 
@@ -43,7 +43,7 @@ function Cabecera({ lectura }: { lectura: LecturaDelDiff }) {
   )
 }
 
-// El detalle de un cambio, leído al montarse (`actividad_diff`): lo que se despliega en su fila y en «El cambio que abriste». `id` nulo (un
+// El detalle de un cambio, leído al montarse (`actividad_diff`): lo que muestra el drawer «Detalle del cambio». `id` nulo (un
 // `?cambio=` que no es un id): sin acceso, sin leer nada.
 export function DetalleDelCambio({ id, conCabecera }: Props) {
   const { lectura, reintentar } = useDiff(true, id)

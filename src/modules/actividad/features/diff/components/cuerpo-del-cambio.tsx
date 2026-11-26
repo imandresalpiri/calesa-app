@@ -34,7 +34,7 @@ function ErrorDelCambio({ reintentar }: { reintentar: () => void }) {
   )
 }
 
-// El detalle de un cambio (desplegado en su fila o en «El cambio que abriste»): leyendo, error con «Reintentar», sin acceso, sin campos que
+// El detalle de un cambio (en su drawer, «Detalle del cambio»): leyendo, error con «Reintentar», sin acceso, sin campos que
 // ver, o cada campo con su antes y su después.
 export function CuerpoDelCambio({
   lectura,

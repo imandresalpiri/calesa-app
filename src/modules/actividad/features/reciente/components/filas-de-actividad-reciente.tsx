@@ -15,7 +15,7 @@ type Props = {
   zona: string
 }
 
-// Las filas de la «Actividad reciente»: cada cambio como frase, enlazado a ese cambio desplegado en `/actividad`. Sin hooks: las dibujan la pieza
+// Las filas de la «Actividad reciente»: cada cambio como frase, enlazado a ese cambio abierto en `/actividad`. Sin hooks: las dibujan la pieza
 // del servidor (`/actividad/reciente`) y la isla que lee al acercarse (la ficha del vehículo).
 export function FilasDeActividadReciente({ tabla, registroId, filas, zona }: Props) {
   const base = rutaDeActividadDe(tabla, registroId)

@@ -19,10 +19,10 @@ type Props = {
   hayFiltros: boolean
   limpiar: () => void
   idAbierto: number | null
-  alternar: (id: number) => void
+  abrir: (id: number) => void
 }
 
-// Un `?cambio=` que está en lo cargado se trae a la vista al llegar (una vez: desplegar después no mueve la página).
+// Un `?cambio=` que está en lo cargado se trae a la vista al llegar (una vez: abrir otro después no mueve la página); su drawer va encima.
 function useALaVistaAlLlegar(id: number | null, cargado: boolean) {
   const hecho = useRef(false)
   useEffect(() => {
@@ -70,7 +70,7 @@ export function ResultadoDeActividad({ actividad, hoy, zona, idAbierto, ...props
         dias={agruparPorDia(actividad.filas, zona, hoy)}
         zona={zona}
         idAbierto={idAbierto}
-        alternar={props.alternar}
+        abrir={props.abrir}
       />
       <PieDeActividad actividad={actividad} zona={zona} />
     </div>
