@@ -293,11 +293,6 @@
       "motivo": "Una asignación con conversión implícita entre tipos (jsonb, text, numeric, un enum), la buscada; la cubren las pruebas de su área."
     },
     {
-      "patron": "public.transporte_grupo",
-      "avisos": 1,
-      "motivo": "SQL dinámico con todo valor por using (.claude/rules/escala.md): plpgsql_check no puede analizarlo."
-    },
-    {
       "patron": "public.validar_formula",
       "avisos": 9,
       "motivo": "Una asignación con conversión implícita entre tipos (jsonb, text, numeric, un enum), la buscada; la cubren las pruebas de su área; variables de un FOR (i, k, g) que plpgsql_check ve como sombra de otra o sin uso: cosmético, no cambia el resultado."

@@ -277,7 +277,7 @@ begin
 end $$;
 rollback;
 
--- @test bandeja del día: llegadas (fase final, arribo cargado y ETA futura fuera) y salidas (sólo el zarpe de hoy) (G6)
+-- @test bandeja del día: llegadas (fase final, arribo cargado y ETA futura fuera) y salidas (sólo el zarpe de hoy), propias y por su embarque (G6)
 begin;
 do $$
 declare
@@ -285,29 +285,41 @@ declare
   duena uuid := pg_temp.bd_persona(array['logistica.ver', 'vehiculos.ver']);
   prop uuid := pg_temp.bd_persona(array['logistica.ver@' || o, 'vehiculos.ver@' || o], 'propios');
   v_hoy date := public._bandeja_dia_hoy();
-  v_hoy_eta uuid; v_viejo uuid; v_futuro uuid; v_con_arribo uuid; v_final uuid; v_salida uuid; v_ayer uuid; v_mio uuid;
+  v_hoy_eta uuid; v_viejo uuid; v_futuro uuid; v_con_arribo uuid; v_final uuid; v_salida uuid; v_ayer uuid; v_mio uuid; v_sale_cont uuid;
+  e_hoy uuid; e_futuro uuid; e_arribo uuid; e_sale uuid; e_sale2 uuid; c1 uuid; c2 uuid;
 begin
   update public.fases set es_final = true where id = dos;
   v_hoy_eta := pg_temp.bd_vehiculo(o, uno); v_viejo := pg_temp.bd_vehiculo(o, uno); v_futuro := pg_temp.bd_vehiculo(o, uno);
   v_con_arribo := pg_temp.bd_vehiculo(o, uno); v_final := pg_temp.bd_vehiculo(o, dos); v_salida := pg_temp.bd_vehiculo(o, uno);
-  v_ayer := pg_temp.bd_vehiculo(o, uno); v_mio := pg_temp.bd_vehiculo(o, uno, prop);
-  insert into public.transportes (vehiculo_id, eta_el, contenedor) values (v_hoy_eta, v_hoy, 'CONT1');
+  v_ayer := pg_temp.bd_vehiculo(o, uno); v_mio := pg_temp.bd_vehiculo(o, uno, prop); v_sale_cont := pg_temp.bd_vehiculo(o, uno);
+  -- Las tres rutas de cada tanda: lo propio, el embarque directo y el embarque por su contenedor.
+  insert into public.embarques (origen_id, booking, eta_el) values (o, 'BKHOY', v_hoy) returning id into e_hoy;
+  insert into public.embarques (origen_id, booking, eta_el) values (o, 'BKFUT', v_hoy + 3) returning id into e_futuro;
+  insert into public.embarques (origen_id, booking, eta_el, arribo_el) values (o, 'BKARR', v_hoy - 2, v_hoy - 1) returning id into e_arribo;
+  insert into public.embarques (origen_id, booking, zarpe_el) values (o, 'BK1', v_hoy) returning id into e_sale;
+  insert into public.embarques (origen_id, booking, zarpe_el) values (o, 'BK2', v_hoy) returning id into e_sale2;
+  insert into public.contenedores (origen_id, numero, embarque_id) values (o, 'CONT1', e_hoy) returning id into c1;
+  insert into public.contenedores (origen_id, numero, embarque_id) values (o, 'CONT2', e_sale2) returning id into c2;
+  insert into public.transportes (vehiculo_id, contenedor_id) values (v_hoy_eta, c1);
   insert into public.transportes (vehiculo_id, eta_el) values (v_viejo, v_hoy - 10);
-  insert into public.transportes (vehiculo_id, eta_el) values (v_futuro, v_hoy + 3);
-  insert into public.transportes (vehiculo_id, eta_el, arribo_el) values (v_con_arribo, v_hoy - 2, v_hoy - 1);
+  insert into public.transportes (vehiculo_id, embarque_id) values (v_futuro, e_futuro);
+  insert into public.transportes (vehiculo_id, embarque_id) values (v_con_arribo, e_arribo);
   insert into public.transportes (vehiculo_id, eta_el) values (v_final, v_hoy - 1);
-  insert into public.transportes (vehiculo_id, zarpe_el, booking) values (v_salida, v_hoy, 'BK1');
+  insert into public.transportes (vehiculo_id, embarque_id) values (v_salida, e_sale);
   insert into public.transportes (vehiculo_id, zarpe_el) values (v_ayer, v_hoy - 1);
   insert into public.transportes (vehiculo_id, zarpe_el, eta_el) values (v_mio, v_hoy, v_hoy - 1);
+  insert into public.transportes (vehiculo_id, contenedor_id) values (v_sale_cont, c2);
 
   perform pg_temp.bd_igual('G6 llegadas, de la más reciente a la más vieja', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'llegadas')), o), array[v_hoy_eta, v_mio, v_viejo]);
   perform pg_temp.bd_igual('G6 la llegada trae el contenedor', pg_temp.bd_grupo(duena, 'llegadas') #>> '{filas,0,contenedor}', 'CONT1');
   perform pg_temp.bd_igual('G6 llegadas de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, 'llegadas')), o), array[v_mio]);
   perform pg_temp.bd_igual('G6 llegadas por cursor', pg_temp.bd_en(pg_temp.bd_todas(duena, 'llegadas', 1), o), array[v_hoy_eta, v_mio, v_viejo]);
-  perform pg_temp.bd_mismos('G6 salidas, sólo el zarpe de hoy', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'salidas')), o), array[v_salida, v_mio]);
+  perform pg_temp.bd_mismos('G6 salidas, sólo el zarpe de hoy', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'salidas')), o), array[v_salida, v_mio, v_sale_cont]);
   perform pg_temp.bd_igual('G6 la salida trae el booking', (select e ->> 'booking' from jsonb_array_elements(pg_temp.bd_grupo(duena, 'salidas') -> 'filas') e where e ->> 'vehiculo_id' = v_salida::text), 'BK1');
+  perform pg_temp.bd_igual('G6 la salida por su contenedor trae el booking y el contenedor',
+    (select (e ->> 'booking') || ' ' || (e ->> 'contenedor') from jsonb_array_elements(pg_temp.bd_grupo(duena, 'salidas') -> 'filas') e where e ->> 'vehiculo_id' = v_sale_cont::text), 'BK2 CONT2');
   perform pg_temp.bd_mismos('G6 salidas de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, 'salidas')), o), array[v_mio]);
-  perform pg_temp.bd_igual('G6 salidas por cursor', cardinality(pg_temp.bd_en(pg_temp.bd_todas(duena, 'salidas', 1), o)), 2);
+  perform pg_temp.bd_igual('G6 salidas por cursor', cardinality(pg_temp.bd_en(pg_temp.bd_todas(duena, 'salidas', 1), o)), 3);
 end $$;
 rollback;
 

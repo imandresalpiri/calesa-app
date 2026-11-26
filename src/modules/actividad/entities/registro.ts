@@ -39,6 +39,9 @@ const ENTIDADES: Readonly<Record<string, Entidad>> = {
   gastos: { icono: 'gasto', enFrase: 'un gasto', deUnaUnidad: true },
   pagos: { icono: 'pago', enFrase: 'un pago', deUnaUnidad: true },
   transportes: { icono: 'transporte', enFrase: 'un transporte', deUnaUnidad: true },
+  // Sin página propia por id: su resumen va por la clave (`?booking=`, `?contenedor=`), que el registro no trae.
+  embarques: { icono: 'transporte', enFrase: 'un embarque' },
+  contenedores: { icono: 'transporte', enFrase: 'un contenedor' },
   repuestos_compras: { icono: 'repuestos', enFrase: 'una compra', deUnaUnidad: true },
   repuestos_items: { icono: 'repuestos', enFrase: 'un ítem de repuesto' },
   formulas: {

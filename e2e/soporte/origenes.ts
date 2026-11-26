@@ -1,6 +1,7 @@
 // Lo que los e2e de Configuración › Orígenes miran y limpian en la base del Supabase LOCAL. Los
 // orígenes se crean por la pantalla; acá sólo se comprueba lo que quedó y se borra al terminar.
 import { admin } from './base'
+import { borrarEmbarquesDe } from './embarques'
 import { expect, type Page } from './prueba'
 
 // Todo origen de prueba que crea un e2e a mano (sin pasar por la pantalla) lleva esta clave: es lo
@@ -39,9 +40,26 @@ export async function origenDeLaBase(clave: string): Promise<OrigenEnLaBase> {
   return origen
 }
 
-// Borra por clave los orígenes que un e2e creó (cae con ellos su flujo, sus campos y categorías).
+// Borra por clave los orígenes que un e2e creó (cae con ellos su flujo, sus campos y categorías). Antes, sus embarques y contenedores: los deja el hueco «Transporte» al tipear un
+// booking o un contenedor, y no caen con el origen.
 export async function borrarOrigenes(claves: string[]): Promise<void> {
   const cliente = admin()
+  // Los mismos que borra abajo: los de `claves` y los huérfanos `e2e_…` (uno con transportes vivos tiene vehículos, y ése tampoco se borraría).
+  const { data: deLaPrueba, error: alLeer } = await cliente
+    .from('origenes')
+    .select('id')
+    .or(
+      [
+        ...(claves.length > 0 ? [`clave.in.(${claves.join(',')})`] : []),
+        `clave.like.${PREFIJO_CLAVE_E2E}*`,
+      ].join(','),
+    )
+    .limit(1000)
+    .returns<{ id: string }[]>()
+  if (alLeer) {
+    throw new Error(`No se pudo leer los orígenes de prueba: ${alLeer.message}`)
+  }
+  await borrarEmbarquesDe(deLaPrueba.map((o) => o.id))
   const { error } = await cliente.from('origenes').delete().in('clave', claves)
   if (error) {
     throw new Error(`No se pudo borrar los orígenes de prueba: ${error.message}`)

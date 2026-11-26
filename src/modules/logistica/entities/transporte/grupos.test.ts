@@ -69,6 +69,9 @@ describe('el grupo abierto', () => {
     origen_id: ID,
     fase_id: null,
     fase: null,
+    fase_orden: null,
+    embarque_id: null,
+    contenedor_id: ID,
     naviera_id: null,
     puerto_origen_id: null,
     puerto_destino_id: null,
@@ -88,10 +91,14 @@ describe('el grupo abierto', () => {
       unidades: [unidad],
       hay_mas: false,
       hay_ocultas: true,
+      embarques: [],
     })
     expect(grupo?.hayOcultas).toBe(true)
+    expect(grupo?.embarques).toEqual([])
     expect(grupo?.unidades[0]).toMatchObject({
       transporteId: ID,
+      contenedorId: ID,
+      embarqueId: null,
       titulo: 'Toyota Hilux',
       origenId: ID,
       etaEl: '2026-12-15',
@@ -102,7 +109,18 @@ describe('el grupo abierto', () => {
 
   it('un tipo ajeno no es la forma', () => {
     expect(
-      grupoDesde({ tipo: 'otro', clave: 'x', unidades: [], hay_mas: false, hay_ocultas: false }),
+      grupoDesde({
+        tipo: 'otro',
+        clave: 'x',
+        unidades: [],
+        hay_mas: false,
+        hay_ocultas: false,
+        embarques: [],
+      }),
+    ).toBeNull()
+    // Sin `embarques` no es la forma de hoy.
+    expect(
+      grupoDesde({ tipo: 'booking', clave: 'x', unidades: [], hay_mas: false, hay_ocultas: false }),
     ).toBeNull()
   })
 })

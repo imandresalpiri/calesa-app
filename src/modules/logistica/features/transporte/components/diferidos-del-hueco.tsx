@@ -1,10 +1,11 @@
 'use client'
 
 import { diferido } from '@/shared/ui/diferido'
-import { EsqueletoDelHueco } from '../../nucleo/components/esqueleto-del-hueco'
+import { EsqueletoDelTransporte } from './esqueleto-del-transporte'
 
-// El hueco «Transporte» se pide recién al acercarse su sección (`BloqueDelHueco` no lo monta antes): el panel de la unidad no carga su código para dibujarse. Un hueco recibe sólo `{ unidad }`.
+// El hueco «Transporte» se pide recién al acercarse su sección (`BloqueDelHueco` no lo monta antes): el panel de la unidad no carga su código para dibujarse. Un hueco recibe sólo `{ unidad }`. El esqueleto
+// reserva la línea del aviso.
 export const HuecoDeTransporteDiferido = diferido(
   () => import('./hueco-de-transporte').then((modulo) => modulo.HuecoDeTransporte),
-  { aviso: 'aqui', esqueleto: <EsqueletoDelHueco /> },
+  { aviso: 'aqui', esqueleto: <EsqueletoDelTransporte /> },
 )

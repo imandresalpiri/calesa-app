@@ -8,7 +8,8 @@
 --   K3. Permisos: con la clave sólo en A crea en A y no en B; un compartido pide la clave en cada origen que lo usaría o lo usa («lo usa <B>») salvo
 --       los que lo tapan; al renombrarlo cuentan los que lo tapan antes y después.
 --   K4. Versión vieja → PT409; sin cambios no pide versión; el mismo id es idempotente y en otro origen da 42501; claves y validaciones cerradas
---       (`orden` 10.0 es 10; la clave de lo guardado es la de lo tipeado, también con un espacio duro); `uso` sólo al desactivar.
+--       (`orden` 10.0 es 10; la clave de lo guardado es la de lo tipeado, también con un espacio duro); `uso` sólo al desactivar, con
+--       transportes y embarques.
 --   K5. Un propio de otro origen no entra en `transporte_guardar`, `transporte_grupo_aplicar` ni `flujo_oferta_guardar` (22023 y su hint); el flujo de
 --       repuestos sólo ofrece compartidos; lo ya guardado sin cambiar sigue pasando; `transporte_grupo` trae el origen de cada unidad.
 
@@ -113,6 +114,7 @@ begin
     raise exception 'K1: faltan los únicos por origen y clave';
   end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: un nombre se repite sin importar mayúsculas, tildes ni espacios, salvo con otro país, en otro origen o propio frente al compartido (K2)
@@ -152,6 +154,7 @@ begin
   perform pg_temp.cat_es('K2 naviera compartida dos veces', pg_temp.cat_crear(p, 'naviera', null, jsonb_build_object('nombre', 'mærsk línea ' || s)),
                          '23505', 'nombre', 'Ya hay una naviera «Mærsk Línea ' || s || '» compartida con todos los orígenes.');
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: un propio pide la clave en su origen; un compartido, en cada origen que lo usa salvo los que lo tapan (K3)
@@ -191,6 +194,7 @@ begin
   r := pg_temp.cat_guardar(pa, 'naviera', id1, pg_temp.cat_version('naviera', id1), jsonb_build_object('nombre', 'K3 propia renombrada ' || s));
   if r ? 'error' then raise exception 'K3: el propio de A debía guardarse con la clave en A: %', r; end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: versión, idempotencia, claves cerradas, validaciones y uso al desactivar (K4)
@@ -242,11 +246,19 @@ begin
   insert into public.vehiculos (origen_id, titulo, fase_id) values (a, 'cat K4', (t ->> 'fase')::uuid) returning id into v;
   r := pg_temp.cat_corre(editor, format('select public.transporte_guardar(%L, null, null, %L)', v, jsonb_build_object('puerto_origen_id', id1)));
   if r ? 'error' then raise exception 'K4: el transporte debía guardar el puerto propio de su origen: %', r; end if;
+  -- Y un embarque (el puerto es suyo, no de la unidad).
+  insert into public.vehiculos (origen_id, titulo, fase_id) values (a, 'cat K4 2', (t ->> 'fase')::uuid) returning id into v;
+  r := pg_temp.cat_corre(editor, format('select public.transporte_guardar(%L, null, null, %L)', v,
+                                        jsonb_build_object('booking', 'K4' || s, 'puerto_origen_id', id1)));
+  if r ? 'error' or not exists (select 1 from public.embarques where puerto_origen_id = id1) then
+    raise exception 'K4: el embarque debía guardar el puerto: %', r;
+  end if;
   r := pg_temp.cat_guardar(p, 'puerto', id1, ver2, '{"activo": false}');
-  if (r ->> 'uso')::int is distinct from 1 then raise exception 'K4: al desactivar debía decir el uso: %', r; end if;
+  if (r ->> 'uso')::int is distinct from 2 then raise exception 'K4: al desactivar debía decir el uso (transporte y embarque): %', r; end if;
   r := pg_temp.cat_guardar(p, 'puerto', id1, (r ->> 'actualizado_en')::timestamptz, '{"activo": true}');
   if r -> 'uso' <> 'null'::jsonb then raise exception 'K4: al activar no debía contar el uso: %', r; end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: un propio de otro origen no entra en el transporte, el grupo ni la oferta; lo guardado sin cambiar sigue (K5)
@@ -283,9 +295,11 @@ begin
   perform pg_temp.cat_es('K5 grupo con la de B', r, '22023', 'naviera_id');
   if r ->> 'mensaje' not like '%: Esa naviera es de otro origen.' then raise exception 'K5: el grupo debía decir cuál y por qué: %', r; end if;
   -- Lo ya guardado sin cambiar sigue: un transporte que apunta a la de B (de antes) se corrige en otro campo.
-  update public.transportes set naviera_id = nav_b where vehiculo_id = v2;
-  r := pg_temp.cat_corre(editor, format('select public.transporte_guardar(%L, null, %L, %L)', v2,
-                                        (select actualizado_en from public.transportes where vehiculo_id = v2), '{"contenedor": null, "eta_el": "2026-12-24"}'));
+  -- La naviera es de su embarque.
+  update public.embarques set naviera_id = nav_b where booking = upper('K5' || s) and origen_id = a;
+  r := pg_temp.cat_corre(editor, format('select public.transporte_guardar(%L, null, %L, %L, %L)', v2,
+                                        (select actualizado_en from public.transportes where vehiculo_id = v2), '{"contenedor": null, "eta_el": "2026-12-24"}',
+                                        (select actualizado_en from public.embarques where booking = upper('K5' || s) and origen_id = a)));
   if r ? 'error' then raise exception 'K5: lo guardado sin cambiar debía seguir pasando: %', r; end if;
   -- flujo_oferta_guardar.
   r := pg_temp.cat_corre(conf, format('select to_jsonb(public.flujo_oferta_guardar(%L, %L::timestamptz, %L::uuid[], %L::uuid[], %L::uuid[]))',
@@ -301,4 +315,5 @@ begin
                                       fl_rep, (select actualizado_en from public.flujos where id = fl_rep), '{}', '{}', array[nav_a]));
   perform pg_temp.cat_es('K5 repuestos con una propia', r, '22023', 'navieras');
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;

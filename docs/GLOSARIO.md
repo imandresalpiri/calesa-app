@@ -937,7 +937,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Grupo (de la bandeja del día)** — uno de siete: Demorados, Trabados, Documentos por aprobar, Documentos por vencer, Llegadas esperadas, Salen hoy y Subastas sin resolver. Cada uno
   tiene su página (`/logistica/bandeja/[grupo]`), por cursor.
 - **Lista de la fase** — `/logistica/fase/[fase]`: los vehículos de una fase (o «Sin fase»), de a 50 por cursor, con filtros en la URL y la selección del lote (hasta 200).
-- **Llegada esperada** — un transporte de vehículo sin arribo cargado cuya ETA es de hoy o anterior y cuyo vehículo sigue en una fase que no es final; de la más reciente a la más vieja.
+- **Llegada esperada** — un transporte de vehículo sin arribo cargado cuya ETA (la de su embarque, o la propia si va suelto) es de hoy o anterior y cuyo vehículo sigue en una fase que no es final; de la más reciente a la más vieja.
 - **Mover** — `cambiar_fase()` / `previsualizar_cambio_fase()`: cambiar de fase, con vista previa de qué falta.
 - **Acción del requisito** — `AccionesDelRequisito` / `resolverAccionesDeQueFalta()`, `leerQueFalta`: lo que destraba un requisito que falta en
   «Qué falta» (una principal y hasta dos más en su «⋯»): hacerlo ahí mismo («Subir», «Revisar», «Completar», «Registrar»), ir a donde se hace o
@@ -957,7 +957,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Tipo de documento** — `tipos_documento` / `tipo_documento_crear()`: qué documento pide el ciclo (Título, BL…); **propio** del flujo de un
   origen (o del de repuestos) o **compartido** con todos (`flujo_id` nulo); el propio **tapa** al compartido de su misma clave en ese flujo. Formatos y
   vencimiento (`ninguno`, `solicitar`, `renovar`, con `aviso_dias`). En uso se desactiva. No: «clase de documento», «de la empresa».
-- **Transporte** — `transportes`: naviera, puertos, contenedor, booking y fechas de UNA unidad.
+- **Transporte** — `transportes` (se lee por la vista `transportes_con_embarque`): lo de UNA unidad: su contenedor o su embarque (uno u otro, nunca los dos) y lo
+  propio (notas; naviera, puertos y fechas sólo si no va en un embarque). Se escribe por `transporte_guardar` o, en lote, `transporte_asignar|quitar`.
 - **Puerto** — `puertos`: origen o destino de un transporte; nombre, país y código opcionales, `orden`, `activo`. **Propio** de un origen
   (`origen_id`) o **compartido** con todos (nulo); el propio tapa al compartido de su misma clave de nombre y país. Los compartidos se editan en
   Logística › Configuración › Puertos; se desactiva, no se elimina. No: «terminal», «destino».
@@ -967,6 +968,20 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Embarque / Contenedor** — grupo por `transportes.booking` / `contenedor`: agrupación, no entidad.
 - **Grupo (de transporte)** — unidades que comparten `booking` o `contenedor`; no es entidad: `transporte_grupos()` lo cuenta y
   `transporte_grupo()` lo lista (las visibles, hasta 200). No: «lote», «carga», ni un grupo de campos.
+- **Embarque** — `embarques` / `embarque_crear|guardar()`: el booking en un origen, dueño de la naviera, los puertos, el zarpe (estimado y el de
+  siempre), la ETA y el arribo; sus vehículos van sueltos en él o en sus contenedores, y lo suyo cambia para todos. El booking es único por origen
+  (sin espacios ni mayúsculas de más); su estado se calcula. No: «carga», «viaje», «booking» a secas.
+- **Contenedor** — `contenedores` / `contenedor_crear|guardar()`: número (único por origen), tipo y sello, en un embarque o todavía sin él (entonces
+  sus vehículos llevan sus fechas propias). Entrar a un embarque, cambiar de embarque o salir de él cambia los datos de todos sus vehículos.
+- **Estado del embarque** — `embarque_estado()` / `contenedor_estado()`, espejo en `entities/transporte/estado.ts`: «Entregado» si tiene vehículos
+  y todos están en una fase final (manda); si no, «Llegó» con arribo, «En tránsito» si zarpó hasta hoy (el día de la empresa) y si no «Armándose».
+  Un contenedor sin embarque está «Sin embarque». Se calcula, nunca se escribe.
+- **Tipo de contenedor** — `tipos_contenedor`: «20′ estándar», «40′ High Cube»…, un catálogo de la empresa (clave, nombre, orden, activo); el contenedor lo nombra por su clave.
+- **De repuestos (embarque o contenedor)** — `origen_id` nulo: el de los ítems de repuesto, que no tienen origen; lo ve y lo escribe quien tiene
+  `repuestos.ver` / `repuestos.editar`.
+- **Grupo (de transporte)** — los embarques (o contenedores) con un mismo booking (o número) en todos los orígenes: la clave de `?booking=` /
+  `?contenedor=` de `/logistica/embarques`. `transporte_grupos()` los pagina y `transporte_grupo()` lista sus unidades (las visibles, hasta 200).
+  No: «lote», «carga».
 - **Declaración aduanera** — `declaraciones_aduana`, `declaraciones_vehiculos`: DUI: número, canal de aforo, vencimiento de tributos; N:M.
 - **Gasto** — `gastos`, `categorias_gasto`: costo real imputado a una unidad, en su moneda y en base.
 - **Categoría de gasto** — `categorias_gasto` / `categoria_gasto_crear()`: a qué va un gasto (flete, tributos…), con `proposito` opcional,

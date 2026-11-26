@@ -64,6 +64,15 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Pasar un catálogo de logística de propio a compartido (o al revés) no se ofrece — decidir qué pasa con el compartido que tapaba y con
   los permisos de cada origen que empezaría a usarlo.
 - **[—]** `/logistica/gastos` sin filtro por vehículo ni por proveedor — `gastos_listar` sólo filtra origen, categoría y fechas; pide migración.
+- **[—]** Eliminar un embarque o un contenedor vacío: hoy queda al sacarle su última unidad o vaciar su booking (lo frena la FK `restrict`); no se
+  ve en `/logistica/embarques` (lista sólo grupos con unidades), pero su clave sigue tomada en el origen y tipearla otra vez lo reusa con sus datos
+  — una RPC `embarque_eliminar|contenedor_eliminar` que exija que esté vacío.
+- **[—]** `embarque_guardar` y `contenedor_guardar` no tienen tope de unidades: revisan el permiso y bloquean cada una (`_entidad_editable`,
+  `_entidad_bloquear_unidades`), y `transporte_asignar` suma de a ≤ 200 sin tope total. Ninguna pantalla los guarda sueltos: con la suya, un
+  tope de unidades por embarque (o el de 200 del grupo).
+- **[—]** Las pantallas propias de embarques y contenedores (crear uno sin unidades, su tipo y su sello, sumarle o sacarle vehículos en lote) no existen:
+  la base ya tiene `embarque_crear|guardar`, `contenedor_crear|guardar` y `transporte_asignar|quitar`, sin action ni interfaz.
+- **[—]** El diff de la actividad de un transporte nombra su embarque y su contenedor por id (`embarque_id`, `contenedor_id`), no por booking o número.
 
 ### Repuestos
 
@@ -273,6 +282,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Panel de la unidad: «Qué falta» deja un hueco vacío arriba del primer destino y de «Desde esta fase no hay a dónde mover.».
 - **[—]** El resumen del contenedor pone «Mover el grupo» debajo de toda la lista: con 8 unidades hay que desplazar para llegar a «Marcar que llegó».
 - **[—]** `/logistica/embarques` › Contenedores dice «Las primeras.» sobre la lista sin decir de qué.
+- **[—]** En el celular, la línea del aviso del hueco «Transporte» con « y otros que no puedes ver» ocupa dos líneas y reserva una: la ruta baja al llegar ese aviso (`linea-del-aviso.tsx`).
 - **[—]** El margen sin gastos dice «Real USD 0,00» junto a «Sin venta registrada» y parece un costo cargado — «Sin gastos» lo diría sin cifra.
 - **[—]** `logistica_bandeja` de Inicio con el alcance «propios» recorre la fase entera (su rama por fila no parte de `_logistica_lo_propio`): pasarla a esa lectura y medirla con volumen.
 - **[—]** Con más de 10.001 vehículos propios en un origen, sólo el resumen de la cadena lo avisa («+»): los grupos de la bandeja del día y la lista de una fase de ese alcance no dicen que `_logistica_lo_propio` cortó (`_bandeja_dia_alcance` podría devolver un `cortado`).

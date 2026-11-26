@@ -56,6 +56,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   `scripts/db/huella-de-la-base.sh` antes y después.
 - Al regenerar SQL desde el catálogo (`pg_policies.qual`, `pg_get_triggerdef`), consulta con el `search_path` vacío: si no, los nombres salen sin esquema (`uid()` por `auth.uid()`) y la policy no aplica.
 - `format('%s', un_booleano)` escribe `t` o `f`, que no es SQL: usa `case when … then 'true' else 'false' end` al generar un `insert`.
+- Una función que lee una tabla temporal que arma quien la llama la recibe como `regclass` y la consulta por SQL dinámico (`format('… %s …', p_fuente)`): con el nombre escrito, `db:lint` cae porque la tabla no existe al revisar la función.
 - Antes de comparar dos volcados quita las líneas `\restrict` y `\unrestrict` de `pg_dump` 17: llevan una clave al azar y dan una diferencia falsa.
 - `supabase db dump` ya trae `alter publication supabase_realtime add table …`, pero no los triggers de `auth.users`, las policies de `storage.objects`, los buckets, los secretos de Vault ni los jobs: eso lo suma `scripts/db/aplastar.sh`.
 
@@ -90,6 +91,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Inserta en la misma transacción lo que una espera necesita ver: una inserción de otra conexión hecha desde el cliente no la ve Postgres y la corrida se cuelga en vez de dar 40P01.
 - Fija el instante en vez de `now() + 12 h`: a ciertas horas del día la prueba no mide nada.
 - Usa un prefijo propio por archivo para los ayudantes `pg_temp`: en el `db:probar` completo se comparten y el mismo nombre con otra firma da «is not unique».
+- Un trigger `deferrable initially deferred` no corre en un bloque que se revierte (nunca llega al `commit`): prueba el invariante con `set constraints <trigger> immediate` antes de la escritura, o la prueba pasa sin mirarlo.
 - Escribe explícito el default de una columna del que depende la prueba: si cambia (`bloqueante` a `false`), caen pruebas ajenas.
 - Prueba aparte lo que crees en `interno` o `web`: las guardas generales (RLS en todo, definer con `search_path`) sólo miran `public`.
 - Postgres revierte toda la llamada ante un error: una prueba no ve el orden de escrituras dentro de una función, sólo guarda contra un `exception when` interno.
@@ -267,6 +269,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Resuelve el alcance una vez en una `security definer` con el predicado de la policy: filtrar hijas cuyas policies preguntan por fila paga un `puede_*` por fila recorrida.
 - Con el plan genérico, varios filtros en la misma consulta parecen selectivos y ordenan toda la tabla: recorre el índice por lotes y filtra en plpgsql.
 - Usa como cursor el id de una fila visible y resuélvelo por PK: un cursor que es la clave de un grupo puede recorrer grupos invisibles.
+- Un filtro por una entidad chica (un contenedor, un embarque) sobre una lista ordenada por otra columna recorre la lista entera descartando: parte de las unidades de la entidad por su índice, con tope (y la ruta de siempre si lo pasa), y ordena sólo esas (`_logistica_columna`: de 80 ms a 1,4 ms con una fase de 120.000).
 - En una invocadora, lo que se lee de un arreglo de ids ya elegidos (`unnest(v_ids)`) va en laterales con `limit`: con el plan genérico un `join … on c.id = u.id` se aplana en un hash join que recorre la tabla entera con la RLS (63.000 bloques y 2 s por página en la lista agrupada).
 - Lee un cupo «N por hora» con las N más recientes (`order by creado_en desc limit N`; libre = la más vieja + 1 h): así no hace falta `count(` ni otra excepción en `escala.sql`.
 - Mide el costo en altas e importación antes de un índice de n-gramas (duplica el tiempo) y prefiere un mínimo de 3 caracteres.

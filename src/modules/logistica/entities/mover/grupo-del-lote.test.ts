@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   fraseDelGrupo,
-  unidadesDeLaLecturaDelGrupo,
+  unidadesDelLote,
   unidadesDelGrupo,
   type UnidadDelGrupo,
 } from './grupo-del-lote'
@@ -44,22 +44,24 @@ describe('unidades de un grupo', () => {
   })
 })
 
-describe('la lectura de un grupo', () => {
+describe('el lote desde los vehículos del grupo', () => {
   const id1 = '11111111-1111-4111-8111-111111111111'
   const id2 = '22222222-2222-4222-8222-222222222222'
-  it('arma las unidades, con o sin fase, y no repite una', () => {
-    const r = unidadesDeLaLecturaDelGrupo([
-      { id: id1, titulo: 'Hilux', fase_id: id2, fase: { nombre: 'En puerto', orden: 2 } },
-      { id: id1, titulo: 'Hilux', fase_id: id2, fase: { nombre: 'En puerto', orden: 2 } },
-      { id: id2, titulo: 'Rio', fase_id: null, fase: null },
+  it('arma las unidades, con o sin fase', () => {
+    const r = unidadesDelLote([
+      {
+        vehiculoId: id1,
+        titulo: 'Hilux',
+        origenId: id2,
+        faseId: id2,
+        fase: 'En puerto',
+        faseOrden: 2,
+      },
+      { vehiculoId: id2, titulo: 'Rio', origenId: id2, faseId: null, fase: null, faseOrden: null },
     ])
     expect(r).toEqual([
       { id: id1, titulo: 'Hilux', faseId: id2, faseNombre: 'En puerto', faseOrden: 2 },
       { id: id2, titulo: 'Rio', faseId: null, faseNombre: null, faseOrden: null },
     ])
-  })
-  it('una forma que no es la esperada no se acepta', () => {
-    expect(unidadesDeLaLecturaDelGrupo([{ id: 'x' }])).toBeNull()
-    expect(unidadesDeLaLecturaDelGrupo(null)).toBeNull()
   })
 })

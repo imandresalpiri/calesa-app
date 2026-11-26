@@ -2,6 +2,7 @@
 // una naviera `E2E Naviera …` y una persona que ve la logística del origen y edita su transporte. Todo lo que ve la base se siembra por la API de administración.
 import { CONTRASENA } from './alta'
 import { admin, correoDePrueba, crearPersona, darRolDePrueba, PREFIJO_ROL_E2E } from './base'
+import { contenedorDe, ponerEn } from './embarques'
 import { borrarLogistica, sembrarLogistica, type TerrenoDeLogistica } from './logistica'
 import { PREFIJO_CLAVE_E2E } from './origenes'
 
@@ -70,15 +71,19 @@ export async function crearTransporteDe(vehiculoId: string, notas: string): Prom
   exigir(error, 'crear el transporte de otra persona')
 }
 
+// Lo que ve la persona: la fila con lo de su embarque (`transportes_con_embarque`), el número de su contenedor y su booking.
 export async function transporteDe(vehiculoId: string) {
   const { data, error } = await admin()
-    .from('transportes')
-    .select('contenedor, eta_el, zarpe_el, naviera_id, notas')
+    .from('transportes_con_embarque')
+    .select('contenedor, booking, embarque_id, contenedor_id, eta_el, zarpe_el, naviera_id, notas')
     .eq('vehiculo_id', vehiculoId)
     .limit(1)
     .returns<
       {
         contenedor: string | null
+        booking: string | null
+        embarque_id: string | null
+        contenedor_id: string | null
         eta_el: string | null
         zarpe_el: string | null
         naviera_id: string | null
@@ -89,24 +94,24 @@ export async function transporteDe(vehiculoId: string) {
   return data?.[0] ?? null
 }
 
-// Pone a una unidad en un contenedor como lo haría la base de otra persona (por la API de administración, sin pasar por la regla de la fase): crea su transporte o corrige el que ya tiene.
+// Pone a una unidad en un contenedor (sin embarque) del origen del vehículo, con su naviera y su ETA propias, como lo haría la base de otra persona (por la API de administración, sin
+// pasar por la regla de la fase): busca o crea el contenedor y crea su transporte o corrige el que ya tiene.
 export async function ponerEnElContenedorDe(
   vehiculoId: string,
   datos: { contenedor: string; naviera_id: string; eta_el: string },
 ): Promise<void> {
-  const cliente = admin()
-  const { data, error } = await cliente
-    .from('transportes')
-    .update(datos)
-    .eq('vehiculo_id', vehiculoId)
-    .select('id')
-  exigir(error, 'poner la unidad en el contenedor')
-  if ((data ?? []).length === 0) {
-    const { error: errorAlCrear } = await cliente
-      .from('transportes')
-      .insert({ vehiculo_id: vehiculoId, ...datos })
-    exigir(errorAlCrear, 'crear el transporte con contenedor')
-  }
+  const { data, error } = await admin()
+    .from('vehiculos')
+    .select('origen_id')
+    .eq('id', vehiculoId)
+    .single<{ origen_id: string }>()
+  exigir(error, 'leer el origen del vehículo')
+  const contenedorId = await contenedorDe(data?.origen_id ?? '', datos.contenedor)
+  await ponerEn(
+    [vehiculoId],
+    { contenedorId },
+    { naviera_id: datos.naviera_id, eta_el: datos.eta_el },
+  )
 }
 
 // Suma una tercera unidad (un vehículo del origen, sin fase) a un contenedor, con su propia ETA: el grupo de «Editar grupo» con una ETA distinta (6.08-4). Devuelve el id del vehículo; el

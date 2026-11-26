@@ -13,6 +13,8 @@ export const ENTIDADES_DE_LA_ACTIVIDAD: Readonly<Record<string, string>> = {
   gastos: 'Gasto',
   pagos: 'Pago',
   transportes: 'Transporte',
+  embarques: 'Embarque',
+  contenedores: 'Contenedor',
   repuestos_compras: 'Compra',
   repuestos_items: 'Ítem de repuesto',
   ajustes_empresa: 'Empresa',
@@ -70,7 +72,25 @@ const CAMPOS_COMUNES: Readonly<Record<string, string>> = {
   atributos_publicos: 'Atributos públicos',
 }
 
+// Lo que es del embarque (o, sin embarque, de la unidad o del contenedor).
+const DATOS_DEL_EMBARQUE: Readonly<Record<string, string>> = {
+  naviera_id: 'Naviera',
+  puerto_origen_id: 'Puerto de origen',
+  puerto_destino_id: 'Puerto de destino',
+  zarpe_el: 'Zarpe',
+  eta_el: 'ETA',
+  arribo_el: 'Arribo',
+}
+
 const CAMPOS_POR_TABLA: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  transportes: { ...DATOS_DEL_EMBARQUE, embarque_id: 'Embarque', contenedor_id: 'Contenedor' },
+  embarques: { ...DATOS_DEL_EMBARQUE, booking: 'Booking', zarpe_estimado_el: 'Zarpe estimado' },
+  contenedores: {
+    numero: 'Número',
+    tipo: 'Tipo de contenedor',
+    sello: 'Sello',
+    embarque_id: 'Embarque',
+  },
   leads: {
     telefono_cc: 'Código de país',
     tipo_lead_id: 'Tipo de lead',

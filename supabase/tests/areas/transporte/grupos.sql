@@ -1,6 +1,6 @@
 -- La lista de grupos de transporte (paso 6.07-3, C16–C24, D35–D40). No depende de otro archivo (`SOLO=areas/transporte/grupos.sql`). Cada bloque abre su
--- transacción y la revierte. Los ayudantes son copia de `grupo.sql`; los transportes se siembran como superusuario (lo que se prueba es leer). Las claves
--- llevan un prefijo propio de la corrida, y las búsquedas se acotan con él.
+-- transacción y la revierte. Los ayudantes son copia de `grupo.sql`; los embarques, contenedores y transportes se siembran como superusuario (lo que
+-- se prueba es leer). Las claves llevan un prefijo propio de la corrida, y las búsquedas se acotan con él.
 --
 -- Qué asegura:
 --   T1. Visibilidad: un booking con una unidad del origen que se ve, una de otro origen y un repuesto da las mismas unidades y hay_ocultas que
@@ -9,10 +9,11 @@
 --   T2. Datos y filtros: dos unidades con distinta ETA dan eta_el nulo y «eta_el» en varios, la naviera común sale; naviera, en_transito y
 --       puerto_destino dejan sólo los grupos con alguna que cumple; un filtro de más, un uuid mal escrito o un tipo que no existe, 22023 con la clave.
 --   T3. Cursor y prefijo: con tope 2, dos grupos y siguiente = el segundo; desde ahí, el resto y siguiente nulo; un prefijo con minúsculas y espacios
---       acota; un prefijo de 2, 22023; el cursor nulo y el vacío son la primera página; el cursor es el id de una fila (D43): desde la de una clave
---       vieja en minúsculas se sigue después de ella (D39), y una clave o un id que no existe dan 22023.
---   T4. Recorrido y escala: con 2.000 transportes que no cumplen la naviera antes del que sí, la primera llamada vuelve cortada, sin grupos y con un
---       siguiente que es un id, no una clave (D43); seguir desde él llega al que cumple. La sonda y las filas del grupo, en su plan genérico, van por transportes_booking_idx.
+--       acota; un prefijo de 2, 22023; el cursor nulo y el vacío son la primera página; el cursor es el id del contenedor (o del embarque) de la
+--       clave (D43): una clave, un id que no existe o el de un transporte dan 22023.
+--   T4. Recorrido y escala: con 2.000 transportes en 1.000 embarques que no cumplen la naviera antes del que sí, la primera llamada vuelve cortada,
+--       sin grupos y con un siguiente que es un id, no una clave (D43); seguir desde él llega al que cumple. La sonda y las filas del grupo, en su plan
+--       genérico, van por embarques_booking_origen_key y transportes_embarque_idx, sin recorrer embarques, contenedores ni transportes.
 
 -- La primera cuenta de una base vacía queda dueña (con `SOLO=`): una de relleno antes, para que ninguna de la prueba lo sea.
 create or replace function pg_temp.trn_persona(p_concesiones text[]) returns uuid language plpgsql as $f$
@@ -65,14 +66,38 @@ begin
   return jsonb_build_object('o', o, 'o2', o2, 'p', 'Q' || s);
 end $f$;
 
--- Un vehículo del origen con su transporte (como superusuario): devuelve el id del vehículo.
+-- El transporte de un vehículo o un ítem (como superusuario) en el embarque `p_booking` y el contenedor `p_contenedor` de su origen (nulo = de
+-- repuestos), que se crean si faltan: el embarque nuevo lleva la naviera y las fechas; sin embarque, son de la unidad.
+create or replace function pg_temp.trn_transporte(p_vehiculo uuid, p_repuesto uuid, p_origen uuid, p_booking text, p_contenedor text,
+  p_naviera uuid, p_eta date, p_arribo date, p_destino uuid) returns void language plpgsql as $f$
+declare e uuid; c uuid;
+begin
+  if p_booking is not null then
+    select x.id into e from public.embarques x where x.booking = p_booking and x.origen_id is not distinct from p_origen;
+    if e is null then
+      insert into public.embarques (origen_id, booking, naviera_id, eta_el, arribo_el, puerto_destino_id)
+      values (p_origen, p_booking, p_naviera, p_eta, p_arribo, p_destino) returning id into e;
+    end if;
+  end if;
+  if p_contenedor is not null then
+    select x.id into c from public.contenedores x where x.numero = p_contenedor and x.origen_id is not distinct from p_origen;
+    if c is null then
+      insert into public.contenedores (origen_id, numero, embarque_id) values (p_origen, p_contenedor, e) returning id into c;
+    end if;
+  end if;
+  insert into public.transportes (vehiculo_id, repuesto_id, contenedor_id, embarque_id, naviera_id, eta_el, arribo_el, puerto_destino_id)
+  values (p_vehiculo, p_repuesto, c, case when c is null then e end,
+          case when e is null then p_naviera end, case when e is null then p_eta end, case when e is null then p_arribo end,
+          case when e is null then p_destino end);
+end $f$;
+
+-- Un vehículo del origen con su transporte: devuelve el id del vehículo.
 create or replace function pg_temp.trn_unidad(p_origen uuid, p_booking text, p_contenedor text default null, p_naviera uuid default null,
   p_eta date default null, p_arribo date default null, p_destino uuid default null) returns uuid language plpgsql as $f$
 declare v uuid;
 begin
   insert into public.vehiculos (origen_id, titulo) values (p_origen, 'trg ' || coalesce(p_booking, p_contenedor)) returning id into v;
-  insert into public.transportes (vehiculo_id, booking, contenedor, naviera_id, eta_el, arribo_el, puerto_destino_id)
-  values (v, p_booking, p_contenedor, p_naviera, p_eta, p_arribo, p_destino);
+  perform pg_temp.trn_transporte(v, null, p_origen, p_booking, p_contenedor, p_naviera, p_eta, p_arribo, p_destino);
   return v;
 end $f$;
 
@@ -107,7 +132,7 @@ begin
   update public.vehiculos set eliminado_en = now() where id = papelera;
   insert into public.repuestos_proyectos (vehiculo_etiqueta) values ('trg proyecto') returning id into pr;
   insert into public.repuestos_items (proyecto_id, descripcion) values (pr, 'trg ítem') returning id into item;
-  insert into public.transportes (repuesto_id, booking) values (item, k);
+  perform pg_temp.trn_transporte(null, item, null, k, null, null, null, null, null);
   perform pg_temp.trn_unidad((t ->> 'o2')::uuid, p || 'BK2');
   foreach quien in array array[todo, uno, rep] loop
     r := pg_temp.trn_grupos(quien, 'booking', jsonb_build_object('prefijo', p));
@@ -128,6 +153,7 @@ begin
   end if;
   perform pg_temp.trn_es('T1 sin las claves', pg_temp.trn_grupos(sin, 'booking', null), '42501');
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: los datos comunes o «varios» y los filtros cerrados de la lista de grupos (T2)
@@ -163,6 +189,7 @@ begin
   perform pg_temp.trn_es('T2 en_transito que no es sí o no', pg_temp.trn_grupos(q, 'contenedor', '{"en_transito": "si"}'), '22023', 'en_transito');
   perform pg_temp.trn_es('T2 tipo', pg_temp.trn_grupos(q, 'naviera', null), '22023', 'tipo');
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: la lista de grupos por cursor y por prefijo (T3)
@@ -177,9 +204,9 @@ begin
   perform pg_temp.trn_unidad((t ->> 'o')::uuid, null, p || 'ZZZU1');
   r := pg_temp.trn_grupos(q, 'contenedor', jsonb_build_object('prefijo', p), 2);
   if pg_temp.trn_claves(r) is distinct from array[p || 'ABCU1', p || 'ABCU2']
-     or r ->> 'siguiente' is distinct from (select x.id::text from public.transportes x where x.contenedor = p || 'ABCU2')
+     or r ->> 'siguiente' is distinct from (select x.id::text from public.contenedores x where x.numero = p || 'ABCU2')
      or r -> 'cortada' <> 'false'::jsonb then
-    raise exception 'T3: tope 2 debía dar ABCU1, ABCU2 y siguiente la fila de ABCU2 (D43): %', r;
+    raise exception 'T3: tope 2 debía dar ABCU1, ABCU2 y siguiente el contenedor ABCU2 (D43): %', r;
   end if;
   r := pg_temp.trn_grupos(q, 'contenedor', jsonb_build_object('prefijo', p), 2, r ->> 'siguiente');
   if pg_temp.trn_claves(r) is distinct from array[p || 'ABDU1', p || 'ZZZU1'] or r -> 'siguiente' <> 'null'::jsonb then
@@ -194,17 +221,15 @@ begin
   r := pg_temp.trn_grupos(q, 'contenedor', jsonb_build_object('prefijo', p), 2, null);
   r2 := pg_temp.trn_grupos(q, 'contenedor', jsonb_build_object('prefijo', p), 2, '  ');
   if r is distinct from r2 then raise exception 'T3: el cursor vacío debía ser la primera página: % / %', r, r2; end if;
-  -- D39, D43 · cursor opaco (el id de una fila): desde una clave vieja en minúsculas (de antes de transporte_guardar) se sigue después de ella,
-  -- sin volver a ella. Un cursor que no es un id, o el de una fila que ya no existe, da 22023.
-  perform pg_temp.trn_unidad((t ->> 'o')::uuid, null, lower(p) || 'zzzu9');
+  -- D43 · cursor opaco (el id del contenedor de la clave). Un cursor que no es un id, el de uno que ya no existe o el de un transporte (el cursor de
+  -- antes de los embarques), 22023: la lista vuelve a empezar.
   perform pg_temp.trn_es('T3 cursor que es una clave', pg_temp.trn_grupos(q, 'contenedor', null, 1, p || 'ABCU2'), '22023', 'cursor');
   perform pg_temp.trn_es('T3 cursor de una fila que no existe', pg_temp.trn_grupos(q, 'contenedor', null, 1, gen_random_uuid()::text), '22023', 'cursor');
-  r := pg_temp.trn_grupos(q, 'contenedor', null, 1, (select x.id::text from public.transportes x where x.contenedor = lower(p) || 'zzzu9'));
-  if pg_temp.trn_g(r, lower(p) || 'zzzu9') is not null
-     or (cardinality(pg_temp.trn_claves(r)) > 0 and (pg_temp.trn_claves(r))[1] <= lower(p) || 'zzzu9') then
-    raise exception 'T3: desde la clave vieja debía seguir después de ella: %', r;
-  end if;
+  perform pg_temp.trn_es('T3 cursor de un transporte',
+    pg_temp.trn_grupos(q, 'contenedor', null, 1,
+      (select t.id::text from public.transportes t join public.contenedores x on x.id = t.contenedor_id where x.numero = p || 'ABCU2')), '22023', 'cursor');
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: con 2.000 transportes que no cumplen antes del que sí, la lista vuelve cortada y se sigue; la sonda y el grupo van por su índice (T4)
@@ -216,17 +241,23 @@ begin
   q := pg_temp.trn_persona(array['logistica.ver']);
   insert into public.navieras (nombre) values ('trg t4 1 ' || p) returning id into n1;
   insert into public.navieras (nombre) values ('trg t4 2 ' || p) returning id into n2;
-  -- 1.000 bookings de dos unidades con la naviera 1 y, al final, uno con la naviera 2.
+  -- 1.000 embarques de dos unidades con la naviera 1 y, al final, uno con la naviera 2.
+  insert into public.embarques (origen_id, booking, naviera_id)
+  select (t ->> 'o')::uuid, p || 'B' || lpad(n::text, 5, '0'), n1 from generate_series(1, 1000) n;
   with v as (
     insert into public.vehiculos (origen_id, titulo)
     select (t ->> 'o')::uuid, 'trg t4 ' || n from generate_series(1, 2000) n
     returning id, titulo
   )
-  insert into public.transportes (vehiculo_id, booking, naviera_id)
-  select v.id, p || 'B' || lpad(((split_part(v.titulo, ' ', 3)::int + 1) / 2)::text, 5, '0'), n1 from v;
+  insert into public.transportes (vehiculo_id, embarque_id)
+  select v.id, e.id from v
+    join public.embarques e on e.booking = p || 'B' || lpad(((split_part(v.titulo, ' ', 3)::int + 1) / 2)::text, 5, '0')
+                           and e.origen_id = (t ->> 'o')::uuid;
   perform pg_temp.trn_unidad((t ->> 'o')::uuid, p || 'C00001', null, n2);
   insert into trn_t4 values (p, q, n2);
 end $$;
+analyze public.embarques;
+analyze public.contenedores;
 analyze public.transportes;
 do $$
 declare x record; r jsonb; vueltas int := 0;
@@ -245,25 +276,26 @@ begin
     raise exception 'T4: siguiendo debía llegar al de la naviera 2: %', r;
   end if;
 end $$;
--- El plan genérico de la sonda y de las filas del grupo (los mismos parámetros que plpgsql).
+-- El plan genérico de la sonda y de las filas del grupo (los mismos parámetros que plpgsql; las filas, la ruta directa de _transporte_de_la_clave).
 set local plan_cache_mode = force_generic_plan;
-prepare trn_sonda(text, text) as select min(t.booking) from public.transportes t where t.booking >= $1 and t.booking > $2;
+prepare trn_sonda(text, text) as select min(e.booking) from public.embarques e where e.booking >= $1 and e.booking > $2;
 prepare trn_filas(text) as
-  select t.vehiculo_id, t.repuesto_id, t.naviera_id from public.transportes t
-   where t.booking = $1
+  select t.id, t.vehiculo_id, t.repuesto_id, e.naviera_id from public.embarques e join public.transportes t on t.embarque_id = e.id
+   where e.booking = $1
      and (exists (select 1 from public.vehiculos v where v.id = t.vehiculo_id and v.eliminado_en is null)
           or exists (select 1 from public.repuestos_items i where i.id = t.repuesto_id and i.eliminado_en is null))
    limit 201;
 do $$
-declare consulta text; linea text; plan text;
+declare consulta text; linea text; plan text; i int := 0; indices text[] := array['embarques_booking_origen_key', 'transportes_embarque_idx'];
 begin
   foreach consulta in array array[$q$execute trn_sonda('', 'Q')$q$, $q$execute trn_filas('QB00001')$q$] loop
+    i := i + 1;
     plan := '';
     for linea in execute 'explain (costs off) ' || consulta loop
       plan := plan || linea || E'\n';
     end loop;
-    if plan !~ 'transportes_booking_idx' or plan ~ 'Seq Scan on transportes' then
-      raise exception 'T4: la lista de grupos dejó de ir por transportes_booking_idx: %', plan;
+    if plan !~ indices[i] or plan ~ 'Seq Scan on (embarques|contenedores|transportes)' then
+      raise exception 'T4: la lista de grupos dejó de ir por %: %', indices[i], plan;
     end if;
   end loop;
 end $$;

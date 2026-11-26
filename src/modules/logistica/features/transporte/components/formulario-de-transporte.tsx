@@ -10,9 +10,11 @@ import {
   TEXTO_SIN_TRANSPORTE,
 } from '../../../entities/transporte/transporte'
 import type { TransporteDeLaUnidad } from '../../../areas/transporte/composicion.client'
+import { avisoDelTransporte } from '../../../entities/transporte/aviso-del-transporte'
 import { useFormularioDeTransporte } from '../hooks/use-formulario-de-transporte'
 import { CamposDeContenedor, CamposDeFechasYNotas } from './campos-de-carga-y-fechas'
 import { CamposDeRuta } from './campos-de-ruta'
+import { LineaDelAviso } from './linea-del-aviso'
 import { opcionesDelFormulario } from './opciones-del-formulario'
 
 type Props = {
@@ -63,8 +65,8 @@ function PieDelFormulario({ conflicto, error, puedeEditar, puedeGuardar, releer 
   )
 }
 
-// El formulario del hueco «Transporte» (6.08-2): tres bloques abiertos (Ruta, Contenedor y booking, Fechas y notas), el aviso de conflicto con «Recargar» y «Guardar». Sin permiso de editar,
-// los mismos campos apagados y el motivo, sin «Guardar» (D12).
+// El formulario del hueco «Transporte» (6.08-2): la línea del aviso (si lo del embarque o el booking del contenedor cambia para otros vehículos; su alto, reservado), tres bloques abiertos
+// (Ruta, Contenedor y booking, Fechas y notas), el aviso de conflicto con «Recargar» y «Guardar». Sin permiso de editar, los mismos campos apagados y el motivo, sin «Guardar» (D12).
 export function FormularioDeTransporte({
   unidadId,
   datos,
@@ -73,7 +75,12 @@ export function FormularioDeTransporte({
   releer,
 }: Props) {
   const formulario = useRef<HTMLFormElement>(null)
-  const f = useFormularioDeTransporte({ unidadId, transporte: datos.transporte, formulario })
+  const f = useFormularioDeTransporte({
+    unidadId,
+    transporte: datos.transporte,
+    entidades: datos,
+    formulario,
+  })
   const opciones = opcionesDelFormulario(datos, datos.transporte)
   const apagado = f.enCurso || !puedeEditar
   const campos = {
@@ -94,9 +101,7 @@ export function FormularioDeTransporte({
       data-hueco="transporte"
       data-estado={datos.transporte ? 'listo' : 'vacio'}
     >
-      {datos.transporte ? null : (
-        <p className="text-(length:--text-sm) text-(--color-ink-soft)">{TEXTO_SIN_TRANSPORTE}</p>
-      )}
+      <LineaDelAviso texto={datos.transporte ? avisoDelTransporte(datos) : TEXTO_SIN_TRANSPORTE} />
       <Bloque titulo="Ruta">
         <CamposDeRuta
           {...campos}

@@ -1,10 +1,12 @@
--- Medición de la logística para cientos de miles de vehículos: el número de cada fase, la lista de una fase y la bandeja del día (`/logistica`).
+-- Medición de la logística para cientos de miles de vehículos: el número de cada fase, la lista de una fase, la bandeja del día (`/logistica`), los grupos de
+-- `/logistica/embarques` y la migración de los textos de booking y contenedor a embarques y contenedores.
 -- `pnpm db:medir:volumen` (o `MEDIR_SOLO=medir-logistica pnpm db:medir:volumen`), contra el Supabase LOCAL con la siembra de volumen (la dueña y los
 -- 50.000 leads «Volumen» de `sembrar.sql`). Todo en una transacción que se revierte; `session_replication_role = replica` arma el terreno sin triggers.
 --
 -- El terreno, en un origen propio: 8 fases de logística que alertan a los 5 días (la octava es final), una jubilada con 300, con un requisito bloqueante
 -- en la fase 4 (los trabados de la fase 3); 300.000 vehículos vivos (1/2.000 de ellos sin fase, 1 % sin resolver, 3 % no ganadas, el 4 % de Ana por
--- `creado_por` y el 1 % por la cartera de Ana); el 40 % con transporte (ETA de hoy ± 30 días, la mitad sin arribo, 0,5 % con zarpe hoy) y el 25 % con un
+-- `creado_por` y el 1 % por la cartera de Ana); el 40 % con transporte (la mitad en 7.500 contenedores de 8, uno de cada tres en su embarque; la otra mitad suelta; ETA
+-- de hoy ± 30 días, la mitad sin arribo, 0,5 % con zarpe hoy) y el 25 % con un
 -- documento aprobado que vence en los próximos 60 días (el 1 %, uno por revisar). La fase 3 pasa de 15.000 a 120.000 vehículos sin cambiar el total.
 --
 -- Qué se mide (las consultas de adentro con el plan genérico y como postgres, que es como corren las definer; las RPC como cada persona):
@@ -99,7 +101,7 @@ grant all on _fallas, _med to authenticated;
 
 -- Una medición: el EXPLAIN (ANALYZE, BUFFERS) de `p_sql`, 7 corridas y la mediana de las 5 últimas. `p_rol`: 'authenticated' (una RPC, como la persona `p_quien`) o
 -- 'postgres' (la consulta de adentro, como corren las definer, con el `auth.uid()` de `p_quien`). `p_indice` es el que el plan debe nombrar;
--- ningún `Seq Scan` de `vehiculos`, `transportes` ni `documentos`; sin descartar más de `p_descarta` filas. `p_bytes`: el tope de la respuesta (una RPC).
+-- ningún `Seq Scan` de `vehiculos`, `transportes`, `documentos`, `embarques` ni `contenedores`; sin descartar más de `p_descarta` filas. `p_bytes`: el tope de la respuesta (una RPC).
 create function pg_temp.m(p_titulo text, p_rol text, p_quien text, p_sql text, p_ms numeric, p_indice text default null, p_bytes int default null, p_descarta numeric default 500)
 returns void language plpgsql as $$
 declare
@@ -132,7 +134,7 @@ begin
     insert into _fallas values (format('%s · %s no camina %s (camina: %s)', p_titulo, p_quien, p_indice,
       (select string_agg(distinct m[1], ', ') from regexp_matches(v_texto, '"Index Name": "([^"]+)"', 'g') m)));
   end if;
-  if v_texto ~ '"Node Type": "Seq Scan"[^{}]*?"Relation Name": "(vehiculos|transportes|documentos)"' then
+  if v_texto ~ '"Node Type": "Seq Scan"[^{}]*?"Relation Name": "(vehiculos|transportes|documentos|embarques|contenedores)"' then
     insert into _fallas values (format('%s · %s recorre una tabla entera', p_titulo, p_quien));
   end if;
   if coalesce((select sum(m[1]::numeric) from regexp_matches(v_texto, '"Rows Removed by Filter": (\d+)', 'g') m), 0) > p_descarta then
@@ -274,20 +276,49 @@ grant execute on all functions in schema pg_temp to authenticated;
 
 select pg_temp.tanda('15.000');
 
--- La fase 3 pasa a 120.000 (y el total a 300.000): 105.000 más, y el transporte (40 %, ETA de hoy ± 30 días, la mitad sin arribo, 0,5 % con zarpe hoy) y el documento
--- (25 %, aprobado y vence en 60 días; el 1 %, por revisar) de todos.
+-- La fase 3 pasa a 120.000 (y el total a 300.000): 105.000 más, y el transporte (40 %) y el documento (25 %, aprobado y vence en 60 días; el 1 %, por revisar) de todos.
+-- El transporte, como lo dejaban los textos de antes de los embarques: la mitad en contenedores de 8 (uno de cada tres con booking; las unidades de un contenedor
+-- comparten las fechas) y la otra mitad suelta con fechas propias; ETA de hoy ± 30 días, la mitad sin arribo y el 0,5 % con zarpe hoy. Pasa a embarques y
+-- contenedores con la función de la migración (`_embarques_desde_textos`), cronometrada.
 set local session_replication_role = replica;
 select pg_temp.vehiculos_de(195001, 300000);
-insert into public.transportes (vehiculo_id, contenedor, zarpe_el, eta_el, arribo_el)
-select x.id, 'MEDC' || x.g, case when x.g % 200 = 5 then public._bandeja_dia_hoy() end,
-       case when x.g % 200 = 5 then public._bandeja_dia_hoy() + 20 else public._bandeja_dia_hoy() + (x.g % 61)::int - 30 end,
-       case when x.g % 2 = 0 and x.g % 200 <> 5 then public._bandeja_dia_hoy() + (x.g % 61)::int - 30 end
-  from (select id, row_number() over (order by id) as g from public.vehiculos where origen_id = (select id from _o)) x where x.g % 5 in (0, 1);
+create temp table _textos as
+select x.id as vehiculo_id,
+       case when k.c then 'MEDC' || lpad(k.k::text, 5, '0') end as contenedor,
+       case when k.c and k.k % 3 = 0 then 'MEDB' || lpad(k.k::text, 5, '0') end as booking,
+       case when s.sale then public._bandeja_dia_hoy() end as zarpe_el,
+       case when s.sale then public._bandeja_dia_hoy() + 20 else public._bandeja_dia_hoy() + (k.k % 61)::int - 30 end as eta_el,
+       case when k.k % 2 = 0 and not s.sale then public._bandeja_dia_hoy() + (k.k % 61)::int - 30 end as arribo_el
+  from (select id, row_number() over (order by id) as g from public.vehiculos where origen_id = (select id from _o)) x
+ cross join lateral (select x.g % 5 = 0 as c, case when x.g % 5 = 0 then (x.g - 5) / 40 else x.g end as k) k
+ cross join lateral (select case when k.c then k.k % 200 = 7 else k.k % 200 = 6 end as sale) s
+ where x.g % 5 in (0, 1);
+insert into public.transportes (vehiculo_id, zarpe_el, eta_el, arribo_el) select vehiculo_id, zarpe_el, eta_el, arribo_el from _textos;
 insert into public.documentos (vehiculo_id, tipo_documento_id, estado, vence_el)
 select x.id, (select id from _t), case when x.g % 100 = 4 then 'subido' else 'aprobado' end::public.estado_documento,
        case when x.g % 100 <> 4 then public._bandeja_dia_hoy() + (x.g % 60)::int end
   from (select id, row_number() over (order by id) as g from public.vehiculos where origen_id = (select id from _o)) x where x.g % 4 = 0;
 set local session_replication_role = origin;
+create temp table transportes_textos as
+select t.id as transporte_id, t.vehiculo_id, t.repuesto_id, (select id from _o) as origen_vehiculo, null::uuid as origen_proyecto,
+       x.booking, x.contenedor, t.naviera_id, t.puerto_origen_id, t.puerto_destino_id, t.zarpe_el, t.eta_el, t.arribo_el, t.creado_en, t.actualizado_en
+  from _textos x join public.transportes t on t.vehiculo_id = x.vehiculo_id
+ where x.contenedor is not null or x.booking is not null;
+do $$
+declare v_desde timestamptz := clock_timestamp(); r jsonb; v_s numeric;
+  v_transportes int := (select count(*) from public.transportes t join public.vehiculos v on v.id = t.vehiculo_id where v.origen_id = (select id from _o));
+begin
+  r := public._embarques_desde_textos('pg_temp.transportes_textos');
+  v_s := extract(epoch from clock_timestamp() - v_desde);
+  raise notice 'medicion|Logística, la migración a embarques y contenedores con % transportes (s)|%', v_transportes, round(v_s, 1);
+  raise notice 'nota|La migración: %|', r;
+  if v_s > 60 then insert into _fallas values (format('la migración a embarques y contenedores tarda %s s, el presupuesto es 60', round(v_s, 1))); end if;
+  if (r ->> 'contenedores_creados')::int <> 7500 or (r ->> 'embarques_creados')::int <> 2500 or (r ->> 'unidades_asignadas')::int <> 60000 then
+    raise exception 'esperaba 7.500 contenedores, 2.500 embarques y 60.000 unidades asignadas: %', r;
+  end if;
+end $$;
+analyze public.embarques;
+analyze public.contenedores;
 analyze public.vehiculos;
 analyze public.transportes;
 analyze public.documentos;
@@ -337,6 +368,51 @@ begin
 end $$;
 grant execute on all functions in schema pg_temp to authenticated;
 select pg_temp.bandeja();
+
+-- Los grupos de `/logistica/embarques` (las dos vistas: la primera página, una con cursor profundo y la de un filtro que nadie cumple, que corta a las 2.000
+-- unidades), el resumen de un contenedor de 8 con su embarque (≤ 10 ms) y la lista de una fase filtrada por ese contenedor y por su booking (la dueña la
+-- lee desde sus unidades, ≤ 2 ms; Ana parte de lo propio, como sin filtro).
+insert into public.navieras (nombre) values ('Medir naviera sin unidades');
+create function pg_temp.grupos() returns void language plpgsql as $$
+declare
+  o uuid := (select id from _o); f3 uuid := (select id from _f where i = 3); c_fase int := current_setting('medir.tam_fase')::int;
+  v_naviera uuid := (select n.id from public.navieras n where n.nombre = 'Medir naviera sin unidades');
+  v_cursor uuid; v_numero text; v_booking text; v_tipo text; q text; v_caso text; v_filtro jsonb; v_ms int;
+begin
+  select c.numero, e.booking into v_numero, v_booking
+    from public.contenedores c join public.embarques e on e.id = c.embarque_id
+   where c.origen_id = o and exists (select 1 from public.transportes t join public.vehiculos v on v.id = t.vehiculo_id where t.contenedor_id = c.id and v.fase_id = f3)
+   order by c.numero limit 1;
+  foreach v_tipo in array array['booking', 'contenedor'] loop
+    if v_tipo = 'booking' then
+      select e.id into v_cursor from public.embarques e where e.origen_id = o order by e.booking offset 1000 limit 1;
+    else
+      select c.id into v_cursor from public.contenedores c where c.origen_id = o order by c.numero offset 2000 limit 1;
+    end if;
+    foreach v_caso in array array['la primera página', 'con cursor profundo', 'con un filtro que nadie cumple'] loop
+      q := case v_caso
+             when 'la primera página' then format('select public.transporte_grupos(%L, null, 50, %L)', v_tipo, '{}')
+             when 'con cursor profundo' then format('select public.transporte_grupos(%L, %L, 50, %L)', v_tipo, v_cursor, '{}')
+             else format('select public.transporte_grupos(%L, null, 50, %L)', v_tipo, jsonb_build_object('naviera', v_naviera)) end;
+      -- Lo medido por dos: ≤ 50 ms (Ana) la página; el filtro que nadie cumple recorre sus 2.000 unidades antes de cortar (≤ 80 ms).
+      v_ms := case v_caso when 'con un filtro que nadie cumple' then 200 else 100 end;
+      perform pg_temp.m('grupos · ' || v_tipo || ', ' || v_caso, 'authenticated', 'duena', q, v_ms, null, 24576);
+      perform pg_temp.m('grupos · ' || v_tipo || ', ' || v_caso, 'authenticated', 'ana', q, v_ms, null, 24576);
+    end loop;
+  end loop;
+  perform pg_temp.m('grupo · un contenedor de 8', 'authenticated', 'duena', format('select public.transporte_grupo(%L, %L)', 'contenedor', v_numero), 20, null, 12288);
+  perform pg_temp.m('grupo · un contenedor de 8', 'authenticated', 'ana', format('select public.transporte_grupo(%L, %L)', 'contenedor', v_numero), 20, null, 12288);
+  perform pg_temp.m('grupo · un embarque de 8', 'authenticated', 'duena', format('select public.transporte_grupo(%L, %L)', 'booking', v_booking), 20, null, 12288);
+  foreach v_caso in array array['contenedor', 'booking'] loop
+    v_filtro := jsonb_build_object(v_caso, case v_caso when 'contenedor' then v_numero else v_booking end);
+    perform pg_temp.m('lista de la fase, por ' || v_caso, 'authenticated', 'duena',
+      format('select public.logistica_cadena_columna(%L, %L, null, null, %s, %L)', o, f3, c_fase, v_filtro), 10, null, 24576);
+    perform pg_temp.m('lista de la fase, por ' || v_caso, 'authenticated', 'ana',
+      format('select public.logistica_cadena_columna(%L, %L, null, null, %s, %L)', o, f3, c_fase, v_filtro), 200, null, 24576);
+  end loop;
+end $$;
+grant execute on all functions in schema pg_temp to authenticated;
+select pg_temp.grupos();
 
 -- ---------------------------------------------------------------------------------------------------------------------------------
 -- Lo medido, y lo que no se cumplió
