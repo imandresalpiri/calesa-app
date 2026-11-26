@@ -24,6 +24,11 @@ locale)`, el único lector de un número tipeado.
 - `lib/compartir.ts`: lo que el navegador deja hacer al compartir, sin saber qué (`capacidadesDelNavegador()`, `copiarTexto()`, `copiarImagen()` en PNG,
   `descargarArchivo()`, `compartirConElSistema(texto, archivos)`, `pngDesde()` y los motivos `MOTIVO_SIN_*`): «Compartir» de los tipos de cambio y de la cotización.
 - `lib/memoria-de-lectura.ts`: `memoriaDeLectura(leer, vidaMs)`, lectura del navegador compartida y de vida corta.
+- `lib/catalogos/propios.ts`: un catálogo propio de un origen o compartido (puertos, navieras, categorías de gasto, tipos de documento).
+  `claveDeCatalogo()` es el espejo exacto de `_catalogo_clave()` (sin mayúsculas A–Z, tildes ni espacios de más; probado contra la base en
+  PGlite), `claveDePuerto(nombre, pais)` la de un puerto; sobre filas `FilaPropiaOCompartida`, `loQueUsaElOrigen()` (sus propios y los
+  compartidos que no tapa), `tapadoPor()` (el propio activo que tapa a un compartido) y `loQueUsanLosOrigenes()` (de varios orígenes, sólo los
+  compartidos que no tapa ninguno).
 - Formularios con `useAction`: `lib/enviar-accion.ts` (envío con `sinRed`), `lib/formularios.ts` (errores por campo), `lib/borrador.ts` +
   `ui/use-borrador.ts` (borrador en `sessionStorage`).
 - `lib/filtros/`: filtros declarativos sin nuqs (`EsquemaDeFiltros`, `leerFiltros()`, `chipsDe()`, `cumpleElMinimo()`; `campos.ts`: campos del
@@ -47,7 +52,8 @@ locale)`, el único lector de un número tipeado.
 - `config/esquemas.ts`: el entorno en Zod (`entornoPublico()`, `entornoDelServidor()`, `pnpm env:check`; lectores en `scripts/lib/entornos/`).
   `config/app.ts`: nombre y colores.
 - `ui/diferido.tsx`: `diferido()` (con `aviso: 'aqui'`, `respaldo(props)` se dibuja bajo «Sin conexión» si el código no llega). `ui/modal.tsx`, `ui/drawer.tsx`, `ui/confirmar.tsx`: diálogos por URL; `ui/modal-de-formulario.tsx`,
-  `ui/use-envio-de-modal.ts` (envío sin versión). `<Drawer desplazamiento="propio">`: el cuerpo no se desplaza y lo de adentro llena su alto (el resumen de una cotización: cabecera fija y pestañas). `<Drawer alto="ajustable">` (sólo `lado="bottom"`): el alto lo cambia `<AsaDelPanel>` (arrastrar o ↑ ↓ Inicio Fin; `lib/alto-del-panel.ts`, puro) y se recuerda mientras el panel está montado; en el celular, a pantalla completa. `<Drawer alCostado>`: no modal y sin fondo (lo de atrás se sigue usando; tocar afuera no
+  `ui/use-envio-de-modal.ts` (envío sin versión), `ui/use-envio-con-version.ts` (`useEnvioConVersion()`: con versión y conflicto; «Recargar»
+  hace `router.refresh()` o, con `recargar`, relee la lista que se lee desde el navegador). `<Drawer desplazamiento="propio">`: el cuerpo no se desplaza y lo de adentro llena su alto (el resumen de una cotización: cabecera fija y pestañas). `<Drawer alto="ajustable">` (sólo `lado="bottom"`): el alto lo cambia `<AsaDelPanel>` (arrastrar o ↑ ↓ Inicio Fin; `lib/alto-del-panel.ts`, puro) y se recuerda mientras el panel está montado; en el celular, a pantalla completa. `<Drawer alCostado>`: no modal y sin fondo (lo de atrás se sigue usando; tocar afuera no
   cierra, Esc y la ✕ sí), para el panel que acompaña a una pantalla ancha. `ui/bloque.tsx`: `<Bloque>` es siempre una `<section>` a la vista
   con su `h3` (enfocable), nunca plegable; `<BloquesALaVista>` (`ui/bloques-a-la-vista.tsx`) fija el nivel. El anidado (`h4`, sin caja) sólo lo usa el panel de una fase en Configuración.
   `campos/bloque-de-campos.tsx` y `<DatosPorGrupo>`, también a la vista.

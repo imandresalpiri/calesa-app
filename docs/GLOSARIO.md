@@ -540,6 +540,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   desde la app y su clave queda tomada.
 - **Tabla o columna en uso** — `_tabla_referencia_usos()`: la nombra la publicada o el borrador de una fórmula del origen sin archivar, en un
   origen que recibe la tabla. Una tabla en uso no se desactiva y una columna en uso no se quita.
+- **Propio / compartido (catálogo)** — un puerto, una naviera, una categoría de gasto (`origen_id`) o un tipo de documento (`flujo_id`) es
+  propio de un origen (del flujo de repuestos, un tipo) o compartido con todos (nulo). Un origen **usa** sus propios y los compartidos que no tapa;
+  la base exige que lo que se guarda sea de lo que usa el origen de la unidad («es de otro origen»). Un compartido pide
+  `logistica.catalogos.gestionar` en cada origen que lo usa; un propio, en su origen (un tipo propio, también quien configura su flujo).
+- **Tapar** — un propio **activo** tapa en su origen al compartido de su misma **clave** (`_catalogo_clave()` / `claveDeCatalogo()`: sin
+  mayúsculas, tildes ni espacios de más; un puerto, de nombre y país). Nada se reescribe: lo guardado sigue apuntando al compartido, rotulado
+  «(tapado)». Igual en las tablas de referencia (abajo).
 - **Tabla compartida** — tabla de referencia con `origen_id` nulo: la usan los orígenes sin una propia de esa clave; la propia la **tapa** (va
   `tapada` en la lista de ese origen). Se ve en el grupo «Compartidas» del drawer de las tablas de cada origen que la recibe (las propias, en «De <origen>») y se edita ahí, con el aviso
   de a quién le cambia; publicarla pide `cotizaciones.configurar` en cada origen que la usa.
@@ -894,7 +901,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Espera** — requisito `espera`: un vehículo espera a sus repuestos / un repuesto a su vehículo.
 - **Regla del flujo** — `flujos_reglas`: capacidad encendida/apagada (vitrina, portal, aduana, esperas…).
 - **Oferta de transporte** — `flujos_transporte_oferta` / `flujo_oferta_guardar`: puertos de origen y destino y navieras que ofrecen los
-  selectores de un flujo con la regla «Transporte»; vacía = todo; filtra, nunca invalida lo guardado.
+  selectores de un flujo con la regla «Transporte»; vacía = todo lo que usa el origen (sus propios y los compartidos que no tapa); filtra, nunca
+  invalida lo guardado.
 - **Jubilar** — `fases.activa = false` / `fase_eliminar`: sacar una fase de los destinos sin romper el historial.
 - **Fuera de regla** — `flujo_fuera_de_regla()`: unidad en una fase cuyos requisitos bloqueantes ya no cumple; sólo quien configura el flujo
   la lee, con tope.
@@ -924,18 +932,24 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Documento** — `documentos`, `tipos_documento`: archivo del ciclo con estado pendiente/subido/aprobado/rechazado y vencimiento.
 - **Visible en el portal** — `documentos.visible_portal`: lo ve la persona compradora en el portal. Sólo lo enciende quien aprueba documentos y
   si el tipo lo admite (`tipos_documento.visible_portal_permitido`); apagarlo siempre se puede. No: «público», «compartido».
-- **Tipo de documento** — `tipos_documento` / `tipo_documento_crear()`: qué documento pide el ciclo (Título, BL…); de la empresa (`flujo_id`
-  nulo) o de un flujo; formatos y vencimiento (`ninguno`, `solicitar`, `renovar`, con `aviso_dias`). En uso se desactiva. No: «clase de documento».
+- **Tipo de documento** — `tipos_documento` / `tipo_documento_crear()`: qué documento pide el ciclo (Título, BL…); **propio** del flujo de un
+  origen (o del de repuestos) o **compartido** con todos (`flujo_id` nulo); el propio **tapa** al compartido de su misma clave en ese flujo. Formatos y
+  vencimiento (`ninguno`, `solicitar`, `renovar`, con `aviso_dias`). En uso se desactiva. No: «clase de documento», «de la empresa».
 - **Transporte** — `transportes`: naviera, puertos, contenedor, booking y fechas de UNA unidad.
-- **Puerto** — `puertos`: origen o destino de un transporte; nombre, país y código opcionales, `orden`, `activo`. Catálogo en Logística ›
-  Configuración › Puertos; se desactiva, no se elimina. No: «terminal», «destino».
-- **Naviera** — `navieras`: la empresa que lleva el contenedor; nombre y `activo`. Catálogo en Logística › Configuración › Navieras; se
-  desactiva; cada flujo ofrece las suyas (`flujos_transporte_oferta`). No: «línea marítima», «carrier».
+- **Puerto** — `puertos`: origen o destino de un transporte; nombre, país y código opcionales, `orden`, `activo`. **Propio** de un origen
+  (`origen_id`) o **compartido** con todos (nulo); el propio tapa al compartido de su misma clave de nombre y país. Los compartidos se editan en
+  Logística › Configuración › Puertos; se desactiva, no se elimina. No: «terminal», «destino».
+- **Naviera** — `navieras`: la empresa que lleva el contenedor; nombre y `activo`. Propia de un origen o compartida, como el puerto (tapa por
+  nombre). Las compartidas, en Logística › Configuración › Navieras; se desactiva; cada flujo ofrece las suyas (`flujos_transporte_oferta`). No:
+  «línea marítima», «carrier».
 - **Embarque / Contenedor** — grupo por `transportes.booking` / `contenedor`: agrupación, no entidad.
 - **Grupo (de transporte)** — unidades que comparten `booking` o `contenedor`; no es entidad: `transporte_grupos()` lo cuenta y
   `transporte_grupo()` lo lista (las visibles, hasta 200). No: «lote», «carga».
 - **Declaración aduanera** — `declaraciones_aduana`, `declaraciones_vehiculos`: DUI: número, canal de aforo, vencimiento de tributos; N:M.
 - **Gasto** — `gastos`, `categorias_gasto`: costo real imputado a una unidad, en su moneda y en base.
+- **Categoría de gasto** — `categorias_gasto` / `categoria_gasto_crear()`: a qué va un gasto (flete, tributos…), con `proposito` opcional,
+  `orden` y `activo`. Propia de un origen o compartida, como el puerto (tapa por nombre); las compartidas, en Logística › Configuración ›
+  Categorías de gasto. Sin gastos se elimina; con gastos se desactiva. No: «rubro», «concepto».
 - **Pago** — `pagos`: pago del cliente; confirmar es un acto sellado.
 - **Desviación / Margen** — `margen_vehiculo()`: cotizado − real / venta − real (null sin venta); `por_categoria` reparte el real por
   categoría de gasto.
