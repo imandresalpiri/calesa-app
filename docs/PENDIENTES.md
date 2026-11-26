@@ -132,6 +132,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-14]** La página profunda del historial de un vehículo muy cotizado ordena sus cotizaciones (crece con las de ese vehículo, no con N) — límite sin assert.
 - **[4-65]** La pestaña de una clase de lead que quien mira no tiene recorre su cartera (hasta ≈ 400 ms con 80.000) — salida no hecha: copiar la clase en la cartera.
 - **[5a-40]** La baja de 200.000 leads tarda 9 corridas y 15 s porque ningún update de `cartera` es HOT (11 btree) — un índice que sostenga lo ajeno sin nombrar la cartera, sin romper `medir-escala.sql`; la persona aceptó el número actual.
+- **[—]** `leerCatalogosDeTransporte` (`/logistica/embarques`, «Editar grupo») lee hasta 200 puertos y 200 navieras de todos los orígenes y descarta
+  `hayMas`: con los propios por origen, lo que pasa del tope se ve «—» sin aviso — devolver `hayMas` con `<AvisoDeTope>` o leer por id lo que nombran los grupos.
 - **[6-5]** Medir `gastos_listar` y `pagos_listar` con volumen (≈ 50.000 filas, dueña con «todos» y una persona con «propios»): el filtro `en_cartera` por fila puede ir descartando al profundizar.
 - **[8-13c]** Índice `(fase_id, fase_desde, id)` en `repuestos_items` si la Cadena de repuestos y los bloques de Inicio llegan a miles — hoy alcanza `repuestos_items_fase_id_idx`.
 - **[—]** La planilla de la fórmula tarda ≈ 1 s en abrir con 600 filas y ≈ 2 s con 2.000 (O(filas × nodos), al abrir la pestaña) — una versión por lote de `textoVigente()`/`textoDeNodo()`.
