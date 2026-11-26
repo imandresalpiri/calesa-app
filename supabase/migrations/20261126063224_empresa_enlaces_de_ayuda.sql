@@ -88,6 +88,25 @@ create policy "enlaces_de_ayuda_personales: leer los míos" on public.enlaces_de
   for select to authenticated
   using (usuario_id = (select auth.uid()));
 
+-- La versión de lo de cada persona, aparte de sus filas: la empresa que quita un enlace se lleva por cascada las filas que lo nombran, y
+-- una versión sacada de esas filas retrocedería (un PT409 falso al siguiente guardado). La escribe sólo enlaces_de_ayuda_guardar_mios().
+create table public.enlaces_de_ayuda_versiones (
+  usuario_id uuid primary key references public.perfiles (id) on delete cascade,
+  actualizado_en timestamptz not null
+);
+
+comment on table public.enlaces_de_ayuda_versiones is
+  'La versión de los enlaces de ayuda de cada persona (la que manda enlaces_de_ayuda_guardar_mios()). Sólo la lee su dueña o dueño.';
+
+alter table public.enlaces_de_ayuda_versiones enable row level security;
+revoke all on table public.enlaces_de_ayuda_versiones from anon, authenticated;
+grant select on table public.enlaces_de_ayuda_versiones to authenticated;
+grant all on table public.enlaces_de_ayuda_versiones to service_role;
+
+create policy "enlaces_de_ayuda_versiones: leer la mía" on public.enlaces_de_ayuda_versiones
+  for select to authenticated
+  using (usuario_id = (select auth.uid()));
+
 -- Los campos de un enlace (de la empresa o propio), recortados y validados con el campo en el `hint`: los mismos topes que los `check`.
 create function public._enlace_de_ayuda_titulo(p_texto text) returns text
   language plpgsql immutable
@@ -305,8 +324,8 @@ grant execute on function public.enlace_de_ayuda_guardar(uuid, timestamptz, json
 grant execute on function public.enlace_de_ayuda_mover(uuid, timestamptz, text) to authenticated, service_role;
 grant execute on function public.enlace_de_ayuda_quitar(uuid, timestamptz) to authenticated, service_role;
 
--- La única lectura de «Ayuda» de quien mira: los activos de la empresa en su orden y lo suyo, con la versión de lo suyo (la más
--- reciente de sus filas; ninguna, nula). La lista que ve la arma `armarMisEnlaces()` (`entities/mis-enlaces-de-ayuda.ts`).
+-- La única lectura de «Ayuda» de quien mira: los activos de la empresa en su orden y lo suyo, con la versión de lo suyo
+-- (enlaces_de_ayuda_versiones; si nunca guardó, nula). La lista que ve la arma `armarMisEnlaces()` (`entities/mis-enlaces-de-ayuda.ts`).
 -- Corre con los permisos de quien llama: la empresa la lee toda persona activa (su policy) y lo personal sólo lo propio (su policy y
 -- el filtro, por enlaces_de_ayuda_personales_usuario_orden_idx). Con tope + 1 cada parte.
 create function public.enlaces_de_ayuda_de_mi() returns jsonb
@@ -315,7 +334,7 @@ create function public.enlaces_de_ayuda_de_mi() returns jsonb
 as $$
   select jsonb_build_object(
     'tope_propios', public._enlaces_de_ayuda_tope_propios(),
-    'version', (select max(p.actualizado_en) from public.enlaces_de_ayuda_personales p where p.usuario_id = (select auth.uid())),
+    'version', (select v.actualizado_en from public.enlaces_de_ayuda_versiones v where v.usuario_id = (select auth.uid())),
     'empresa', coalesce((
       select jsonb_agg(jsonb_build_object('id', e.id, 'titulo', e.titulo, 'url', e.url, 'descripcion', e.descripcion) order by e.orden, e.id)
         from (select x.* from public.enlaces_de_ayuda x where x.activo order by x.orden, x.id limit public._enlaces_de_ayuda_tope() + 1) e
@@ -338,7 +357,8 @@ grant execute on function public.enlaces_de_ayuda_de_mi() to authenticated, serv
 -- Guardar lo de quien llama, entero: `p_elementos` es su lista en orden, cada uno `{enlace_id, oculto}` (uno de la empresa) o
 -- `{id, titulo, url, descripcion}` (uno propio, con el id del navegador). Lo que falta se borra; un enlace de la empresa quitado o
 -- repetido se ignora (desaparece sin error) y uno desactivado que no vino conserva su fila (vuelve a su lugar si lo activan). La versión
--- es la de lo suyo (`enlaces_de_ayuda_de_mi().version`; nula si no tenía nada): otra ventana que guardó antes da PT409.
+-- es la de lo suyo (`enlaces_de_ayuda_de_mi().version`, de enlaces_de_ayuda_versiones; nula si nunca guardó): otra ventana que guardó
+-- antes da PT409, y la empresa que quita un enlace no la mueve.
 create function public.enlaces_de_ayuda_guardar_mios(p_actualizado_en_esperado timestamptz, p_elementos jsonb) returns jsonb
   language plpgsql security definer
   set search_path = ''
@@ -365,7 +385,7 @@ begin
   end if;
   -- Una escritura de lo suyo a la vez (dos ventanas): el candado antes de leer la versión.
   perform pg_advisory_xact_lock(hashtextextended('enlaces_de_ayuda_personales:' || v_yo::text, 0));
-  select max(p.actualizado_en) into v_actual from public.enlaces_de_ayuda_personales p where p.usuario_id = v_yo;
+  select v.actualizado_en into v_actual from public.enlaces_de_ayuda_versiones v where v.usuario_id = v_yo;
   if p_actualizado_en_esperado is null then
     if v_actual is not null then
       raise exception 'Cambiaste tus enlaces de ayuda en otra ventana. Recarga para ver cómo quedaron.' using errcode = 'PT409';
@@ -375,6 +395,8 @@ begin
       'Cambiaste tus enlaces de ayuda en otra ventana. Recarga para ver cómo quedaron.');
   end if;
   v_ahora := greatest(clock_timestamp(), coalesce(v_actual + interval '1 microsecond', clock_timestamp()));
+  insert into public.enlaces_de_ayuda_versiones as v (usuario_id, actualizado_en) values (v_yo, v_ahora)
+  on conflict (usuario_id) do update set actualizado_en = excluded.actualizado_en;
 
   for v_el in select x.value from jsonb_array_elements(p_elementos) x loop
     if jsonb_typeof(v_el) is distinct from 'object' then

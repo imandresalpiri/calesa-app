@@ -96,6 +96,8 @@ declare
   p1 constant uuid := '00000000-0000-4000-8000-0000000ee211';
   r jsonb;
   v1 timestamptz;
+  v2 timestamptz;
+  n integer;
   v text;
 begin
   perform pg_temp.edp_terreno(a, b, e1, e2);
@@ -127,6 +129,8 @@ begin
   update public.enlaces_de_ayuda set activo = false where id = e2;
   perform pg_temp.edp_como(a);
   r := public.enlaces_de_ayuda_guardar_mios(v1, jsonb_build_array(jsonb_build_object('enlace_id', e1, 'oculto', false)));
+  v2 := (r ->> 'version')::timestamptz;
+  if v2 <= v1 then raise exception 'la versión no avanzó: % → %', v1, v2; end if;
   if not jsonb_path_exists(r, '$.mios[*] ? (@.enlace_id == "00000000-0000-4000-8000-0000000ee112")') then
     raise exception 'el desactivado perdió su fila';
   end if;
@@ -137,6 +141,24 @@ begin
   delete from public.enlaces_de_ayuda where id = e1;
   if exists (select 1 from public.enlaces_de_ayuda_personales where enlace_id = e1) then
     raise exception 'quitar uno de la empresa dejó su fila personal';
+  end if;
+  -- La cascada no mueve la versión aunque se lleve todas sus filas: el siguiente guardado con la que tenía no es un conflicto.
+  delete from public.enlaces_de_ayuda where id = e2;
+  if exists (select 1 from public.enlaces_de_ayuda_personales where usuario_id = a) then
+    raise exception 'quedaron filas de la persona';
+  end if;
+  perform pg_temp.edp_como(a);
+  if (public.enlaces_de_ayuda_de_mi() ->> 'version')::timestamptz <> v2 then
+    raise exception 'quitar uno de la empresa movió la versión de la persona';
+  end if;
+  r := public.enlaces_de_ayuda_guardar_mios(v2, '[]'::jsonb);
+  if (r ->> 'version')::timestamptz <= v2 then raise exception 'guardar tras la cascada no avanzó la versión'; end if;
+  -- Su versión no la lee nadie más.
+  perform pg_temp.edp_como(b);
+  select count(*) into n from public.enlaces_de_ayuda_versiones where usuario_id = a;
+  if n <> 0 then raise exception 'otra persona lee la versión ajena'; end if;
+  if (public.enlaces_de_ayuda_de_mi() -> 'version') <> 'null'::jsonb then
+    raise exception 'quien nunca guardó lee una versión';
   end if;
 end $$;
 rollback;

@@ -234,7 +234,8 @@ las trampas, en `docs/LECCIONES.md`.
 - **Enlaces de ayuda: se guarda lo que la persona oculta, no lo que ve.** `enlaces_de_ayuda_personales` lleva una fila por enlace de la empresa que la
   persona ordenó u ocultó y una por cada propio; uno de la empresa sin fila aparece visible al final. Así un enlace nuevo llega a todo el equipo sin
   migrar las listas de nadie, y uno quitado se va por la cascada. La persona guarda su lista entera de una vez (`enlaces_de_ayuda_guardar_mios()`, con
-  la versión de sus filas): mover, ocultar y sumar son el mismo guardado, y un `PT409` relee. Los propios no tienen tabla aparte (la misma fila con
+  su versión, en `enlaces_de_ayuda_versiones` y no sacada de sus filas, que la cascada de un enlace quitado haría retroceder): mover, ocultar y sumar
+  son el mismo guardado, y un `PT409` relee. Los propios no tienen tabla aparte (la misma fila con
   título y dirección, sin `enlace_id`): su orden convive con el de los de la empresa en una sola columna.
 - **«Ayuda» del menú lee al abrirse, desde el navegador.** El modal está en `_shell/ayuda/`, se pide con `diferido()` y lee
   `enlaces_de_ayuda_de_mi()` cada vez que se abre: en el marco sólo viaja el renglón, y el layout de toda pantalla no paga una lectura que casi nadie

@@ -1663,6 +1663,30 @@ export type Database = {
           },
         ]
       }
+      enlaces_de_ayuda_versiones: {
+        Row: {
+          actualizado_en: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en: string
+          usuario_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'enlaces_de_ayuda_versiones_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: true
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       equipo_bajas: {
         Row: {
           empezada_en: string

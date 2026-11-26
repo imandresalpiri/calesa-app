@@ -73,7 +73,8 @@ quien lo hizo, nunca el correo.
 `enlace_de_ayuda_crear`, `enlace_de_ayuda_guardar`, `enlace_de_ayuda_mover` y `enlace_de_ayuda_quitar` (`empresa.ajustes.gestionar`; cada una devuelve la
 lista entera; `hint` = el campo o `tope`). `enlaces_de_ayuda_personales` (de cada persona: una fila por enlace de la empresa que ordenó u ocultó, o uno
 propio, hasta 20; la RLS deja leer sólo las propias) se escribe sólo por `enlaces_de_ayuda_guardar_mios(p_actualizado_en_esperado, p_elementos)`, que
-reemplaza la lista entera con la versión de la persona (la más nueva de sus filas; nula si no guardó nada). `enlaces_de_ayuda_de_mi()`: los activos
+reemplaza la lista entera con la versión de la persona (`enlaces_de_ayuda_versiones`, aparte de sus filas para que la cascada de un enlace quitado
+no la haga retroceder; nula si nunca guardó). `enlaces_de_ayuda_de_mi()`: los activos
 de la empresa y las filas propias, en una lectura.
 
 ## No se rompe
