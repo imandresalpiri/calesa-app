@@ -65,15 +65,15 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-describe('HojaDeCotizar: «Vista previa» en el pie del resumen', () => {
-  it('sin proveedor no hay botón y el botón es un solo nodo más con él', () => {
+describe('HojaDeCotizar: «Vista previa» en los pasos de la hoja', () => {
+  it('sin proveedor no hay botón; con él, la fila de los pasos y su botón son dos nodos más', () => {
     montar({ conArea: false })
     expect(screen.queryByRole('button', { name: 'Vista previa' })).toBeNull()
     const sin = nodosDeLaHoja()
     cleanup()
     montar()
     expect(screen.getByRole('button', { name: 'Vista previa' })).toBeTruthy()
-    expect(nodosDeLaHoja()).toBe(sin + 1)
+    expect(nodosDeLaHoja()).toBe(sin + 2)
   })
 
   it('la hoja nueva dibuja lo que la hoja calcula ahora, con su estado y sin avisos', () => {
@@ -98,8 +98,10 @@ describe('HojaDeCotizar: «Vista previa» en el pie del resumen', () => {
 
   it('quien sólo ve la cotización también tiene el botón: ver la tarjeta no es guardar', () => {
     montar({ soloLectura: true })
-    expect(screen.getByRole('button', { name: 'Vista previa' })).toBeTruthy()
+    // El del paso y, al final del cierre, el que sólo se ve al enfocarlo (fuera de una guardada).
+    const botones = screen.getAllByRole('button', { name: 'Vista previa' })
+    expect(botones).toHaveLength(2)
     expect(screen.queryByRole('button', { name: 'Guardar' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Vista previa' }))
+    fireEvent.click(botones[0] as HTMLElement)
   })
 })

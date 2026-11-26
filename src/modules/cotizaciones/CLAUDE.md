@@ -75,9 +75,9 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   vehículo debajo; con `puede_guardar` abre el panel con el campo del título arriba. Pendiente y borrador van por persona y cotización, el
   borrador además con la versión (`claves-de-la-hoja.ts`).
 - **La cabecera de una guardada, compacta** (`docs/UX.md` › «Cotización guardada»): a la vista la clase, la vigencia, las insignias, «Guardar» (sólo con
-  `puede_guardar`: el `BotonGuardar` del resumen se dibuja en su lugar por un portal, `useRanuraDeGuardar()`) y «Compartir» (`compartir()` del hueco de la vista
+  `puede_guardar`: el `BotonGuardar` de la hoja se dibuja en su lugar por un portal, `useRanuraDeGuardar()`; sin él, «Sólo lectura: no puedes guardar esta cotización.», P13) y «Compartir» (`compartir()` del hueco de la vista
   previa); lo demás en el «⋯» (`features/hoja/components/menu-de-la-guardada/`: `ProveedorDelMenuDeLaGuardada`, que la página pone sobre la cabecera y la hoja,
-  `useAporteAlMenu()` y `<MenuDeLaGuardada>`). Suman líneas la vista previa (`vista-previa`, sin botón en el pie cuando hay «⋯»), `<PdfDelMenu>` del área `tarjeta`
+  `useAporteAlMenu()` y `<MenuDeLaGuardada>`). Suman líneas la vista previa (`vista-previa`; también la abre el paso «Vista previa»), `<PdfDelMenu>` del área `tarjeta`
   (`pdf`), las revisiones, `<AvisoDeVersion>` (`encima`, sólo si el aviso lo ofrece) y las áreas por `Acciones`; quien suma no lee las líneas (si no, se vuelve a
   dibujar en bucle) y el foco vuelve al «⋯» (`botonRef`). La lista y su orden son del núcleo (`entities/acciones-de-cotizacion.ts`: `accionesDeCotizacion(ofertas,
 { aLaVista })`, `A_LA_VISTA_EN_LA_GUARDADA`), la misma del «⋯» del listado.
@@ -95,14 +95,14 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   par no viaja en frío); la guardada lee la hermana en paralelo (`src/app/(app)/cotizaciones/[id]/par-de-la-guardada.ts`, `modoDeLaHermana()`) y, si está
   disponible y con el mismo permiso de guardar, dibuja `PantallaDeUnParGuardadoDiferida`; bajo la cabecera, `EnlaceALaHermana` (sin JS propio). La hoja en par
   (`features/hoja/components/par/`) es `useHoja` dos veces (`useHojaEnPar`: una columna por opción, cada una con su recálculo; las acciones de lo común escriben en
-  las dos; un borrador para las dos), las celdas `enPar` en dos por `ContextoDelPar` (`ItemEnPar`) y el resumen con `TotalesEnPar`. Guardar: las actions
+  las dos; un borrador para las dos), las celdas `enPar` en dos por `ContextoDelPar` (`ItemEnPar`) y los dos totales sueltos encima de «Avanzado» (`TotalesEnPar`, dos tarjetas). Guardar: las actions
   `crear-cotizaciones-en-par.ts` y `guardar-cotizaciones-en-par.ts` (sobre el núcleo del guardado; el título va sin la opción y con `topeDelTituloEnPar()`); cotizar
   encima, `cotizar-encima-en-par.ts` (`encimaEnParDe()`). La tarjeta de la vista previa suma la de la hermana (`hermana` de `PropsDeLaVistaPrevia`,
   `TarjetaDeLaHermana`), el PDF una página por hermana (`hermanaDelPdf()`) y «Compartir» sus `versiones` y las dos imágenes de la tarjeta apiladas (`apilarImagenes()`). Una
   hermana abierta sola no cambia el vehículo (`cambioDeVehiculo({ hermanaSola })`).
 - **La cotización privada** (glosario: «Cotización privada»; `docs/COTIZADOR.md` › «Cotizaciones privadas»): quién la ve lo decide la base; la de otra persona sin
   `cotizaciones.privadas.ver` del origen no existe para ninguna lectura. La pantalla sólo ofrece (`entities/privada.ts`, del núcleo, con los textos): el interruptor
-  «Privada» de la hoja nueva y en par (`useMarcaDeLaNueva()` de `features/privada/`, en el resumen sobre «Guardar»; el valor vive en `?privada=si`, sobrevive a que la
+  «Privada» de la hoja nueva y en par (`useMarcaDeLaNueva()` de `features/privada/`, en los pasos de la hoja; el valor vive en `?privada=si`, sobrevive a que la
   hoja se vuelva a montar y se borra al guardar; el pedido lleva `privada` sólo encendido, `p_privada`); «Hacer privada» / «Hacer pública» en el «⋯» de la guardada
   (`<PrivadaDelMenu>`, por `encima`) y del listado (`cambiarLaPrivada()` de `pantallas/listado.ts`) sólo a quien la creó (`ofertaDePrivada()`: apagada con su motivo en
   una final o la aprobada; en la guardada, si es la aprobada lo anota el área `aprobada` en `useAprobadaAnotada()`, y sin anotación decide la base), con la action `cambiarPrivadaDeLaCotizacion` (`cotizacion_privada_cambiar`, con la versión; al entrar, `router.refresh()`); y la insignia
@@ -116,17 +116,24 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   también para quien sólo ve; en una guardada dibuja lo guardado), `?ayuda=bloques&nodo=<id>` (la ayuda en bloques, glosario: «Ayuda (de una celda)»; `texto` y `tabla`, de antes, abren lo mismo y se reemplazan por `bloques`; la URL no abre lo que la hoja no dibuja)
   y, con el proveedor del área, `?ajuste=celda&nodo=<id>` (el ⚙, también dentro de «Avanzado») y `?ajuste=cabecera` (el ⚙ de la cabecera: «Configuración por
   defecto de <Origen>», junto a los modos; sólo con `cabecera.ajustes` de la base y el hueco `AjusteDeLaCabecera` lleno).
-- **Los pasos de la hoja** (`<PasosDeLaHoja>`, `entities/pasos-de-la-hoja.ts`, en `ColumnaDeLaHoja` debajo de `CabeceraDeHoja`): `src/app` pasa `pasos`
-  (`{ vehiculo, cliente }`, cada uno `{ panel, elegido, obligatorio }` o nulo: en la nueva lo arma `reglasDeLaHoja()` con `vehiculos.ver` y `leads.ver`; en una
-  guardada, sólo «Vehículo» si la barra no es `solo_mostrar`). «Hoja» suelta `panel`, `ayuda`, `ajuste` y `nodo` y enfoca la primera celda que se edita; «Vista
-  previa», sólo con `ContextoDeLaVistaPrevia`. El nombre del botón es su etiqueta; el punto, su descripción (un texto `hidden`), su `title` y `data-punto` con
-  guiones. Fuera del orden de Tab (la tarea de oro no suma paradas). Sin `pasos` (pruebas, vista previa del
-  diseño) no se dibujan. La línea de arriba de «Avanzado» sale de `explicacionDelAvanzado()`; el título y los bloques de la ayuda, de `tituloDeLaAyuda()` y `bloquesDeLaAyuda()`.
+- **Los pasos de la hoja** (`<PasosDeLaHoja>`, `entities/pasos-de-la-hoja.ts`, en `ColumnaDeLaHoja` debajo de `CabeceraDeHoja`): «Privada · Vista previa».
+  «Privada» es el `InterruptorPrivada` (sólo la hoja nueva y para quien puede marcarla; va en el orden de Tab); «Vista previa», sólo con
+  `ContextoDeLaVistaPrevia`, fuera del orden de Tab (la tarea de oro no suma paradas): con el teclado, la hoja nueva cierra con `VistaPreviaConElTeclado` (después de «Guardar», se ve al enfocarlo); una guardada la abre desde el «⋯». Sin ninguno, la fila no se dibuja. La línea de arriba de «Avanzado» sale de `explicacionDelAvanzado()`; el título y los bloques de la ayuda, de `tituloDeLaAyuda()` y `bloquesDeLaAyuda()`.
 - **El aspecto de V1** (`docs/DECISIONES.md` › «La hoja con el aspecto de V1»): «Avanzado» es un botón a lo ancho (`BotonDeAvanzado`: los títulos que esconde,
-  en un `hidden` por `aria-describedby`) y su modal es `ancho="grande"` con las secciones `sinMarco` (`SeccionDeHoja`, `claseDelMarcoDeLaSeccion()`). El total
-  del resumen va en la tarjeta del total (`clases-del-total.ts`: `CabezaDelResumen` y, en par, una por total en `TotalesEnPar`), con «Ver el detalle» fuera. Con la
-  pieza `{ tipo: 'total' }` (`hayTotalEnLaHoja()`), `TotalDeHoja` la dibuja en su sección desde `@4xl/hoja` y el resumen esconde la suya ahí; por debajo, al revés:
-  a cada ancho, una sola tarjeta grande (sus avisos siguen en el resumen).
+  en un `hidden` por `aria-describedby`) y su modal es `ancho="grande"` con las secciones `sinMarco` (`SeccionDeHoja`, `claseDelMarcoDeLaSeccion()`). **La hoja sin resumen** (`docs/DECISIONES.md` › «La hoja sin
+  el resumen de la derecha»): el total va en la región del total (`RegionDelTotal`, `data-total-de-la-hoja`, ocupada mientras recalcula): la tarjeta y, debajo y
+  fuera de ella, sus avisos en una región viva de alto reservado, el total guardado, lo pisado y los secundarios. Lo que dice además de la cifra llega por
+  `ContextoDelTotal` (`useDelTotal()`). Con la pieza `{ tipo: 'total' }` en una sección principal, `TotalDeHoja` la dibuja ahí a todo el ancho; sin ella, o en par,
+  va suelta justo encima de «Avanzado» (`totalSuelto()`, `ordenDeLaHoja()`). Debajo de «Avanzado», el cierre (`CierreDeLaHoja`, `data-cierre-de-la-hoja`):
+  «Guardar» a todo el ancho con su motivo y lo que falta elegir, y la región viva de `AvisoDelGuardado`. El Modo Live, sólo en la barra de arriba (y en el pie de la
+  vista previa, `LiveDeLaVistaPrevia` de `tarjeta`).
+- **La ranura de la cabecera** (glosario: «Ranura de la cabecera»; `features/hoja/components/ranura-de-la-cabecera/`): `src/app` pone
+  `ProveedorDeLaRanuraDeLaCabecera` sobre las barras y la hoja y `<RanuraDeLaCabecera reserva>` en la fila de las barras (`data-cabecera-de-la-hoja`, dentro de un
+  `@container/cabecera` aparte: una consulta de contenedor no mira al propio contenedor; en la nueva, `barras-de-la-hoja.tsx`; en una guardada, `CabeceraDeLaGuardada`);
+  `CabeceraDeHoja` (modos como control segmentado, «Ver total en moneda local» como `InterruptorChico`, el ⚙) va ahí por un portal. `reserva` es la `CabeceraQuieta`
+  que arma la página (las mismas `PiezasDeLaCabecera`, `inert`, sin `data-cabecera`; nada si `cabeceraSeDibuja()` es falso): se ve mientras el portal está vacío y se
+  esconde por CSS (`peer-empty`) en el mismo cuadro en que llega la de verdad. Un alto reservado no alcanza: en el celular la cabecera se parte en dos líneas o no
+  según el ancho. Sin proveedor (el editor, las pruebas), la cabecera va en su lugar.
 - `index.ts`: `recalcularAlAbrir()` va DESPUÉS de leer la hoja (4-28), con `modoInicial()` (el modo por defecto del diseño o, sin él, el primero); `contarCotizacionesDelVehiculo()`
   («Cotizado (n)») es acotado y con la RLS de quien mira; `rutaDeLaHoja()` la usan «Cotizar» de `/vehiculos` y de `/leads/[id]`;
   `datosDelVehiculoDeLaHoja(hoja)` dice qué campo del vehículo casa con qué tabla (qué se elige lo decide `vehiculos`). Lo consumen `logistica`, `chat`,
@@ -265,7 +272,7 @@ no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o inc
 - **El editor de la hoja** (la pestaña «Hoja»: `/configuracion/origenes/<id>/hoja?formula=<fórmula>`, `cotizaciones.configurar`; glosario: «Inspector de la
   hoja»): lee el borrador o la publicada y los niveles de `cotizaciones_niveles` (no de `niveles_con_uso()`) y edita **sobre la hoja**: el lienzo
   (`components/editor/`) dibuja el diseño de trabajo con las piezas de cotizar (`hojaDeLaVistaPrevia()`, `ItemDeHoja`, `TotalDeHoja`, `CabeceraDeHoja`,
-  `ResumenDeHoja`, cada una `inert` bajo su botón «Elegir «Precio»» con `data-pieza` y `data-elegir`) y a la derecha el inspector (`components/inspector/`) edita
+  `TotalSueltoDelLienzo` sin la pieza, cada una `inert` bajo su botón «Elegir «Precio»» con `data-pieza` y `data-elegir`) y a la derecha el inspector (`components/inspector/`) edita
   la pieza elegida, que va en `?pieza=` (`entities/diseno/pieza-de-la-hoja.ts`: el id del nodo, `atajos-<nodo>`, `seccion-<id>`, `tarjeta-del-total`,
   `cabecera-de-la-hoja`; `usePiezaElegida()`); sin nada elegido, «Sin lugar en la hoja (N)» (`filasSinLugar()`, espejo de `nodo_sin_seccion`: «Agregar» la suma al
   final de la primera sección principal). Cada pieza: el rótulo y el formato de su fila (editan la `definicion` que se guarda: `entities/diseno/edicion-de-nodos.ts`),
@@ -448,13 +455,11 @@ puedeRetocar }`, de `HojaDeUnaGuardada`; la hoja nueva no lo pasa) y el modelo l
 - El par con `secundario.como === 'monto'` manda `secondaryProminent` a la XCell (`propsDeCelda()`): el % primero y grande, el monto chico detrás.
 - **Lo pisado** (`docs/COTIZADOR.md` › «Pisar un cálculo»; glosario: «Editado a mano»): `entities/binding-pisado.ts` (`ladoPisado()` y `propsDelPisado()`: la
   marca, «Calculado» y ↺ «Volver al calculado» de la XCell, con `formatoDeCelda()` de `formato-de-celda.ts`; `esPisadoNuevo()`, si lo escrito abre el aviso) y
-  `entities/pisadas-de-la-hoja.ts` (`pisadasDeLaHoja()`, la lista del resumen). Lo calculado llega en `calculados` de la respuesta (`calculadoDe()`, recortado por
+  `entities/pisadas-de-la-hoja.ts` (`pisadasDeLaHoja()`, la lista bajo la tarjeta del total). Lo calculado llega en `calculados` de la respuesta (`calculadoDe()`, recortado por
   el nivel; nunca se guarda) y el porcentaje de un par con el monto escrito, de la respuesta (`secundario.sigueAlMonto`). El aviso de la primera pisada
-  (`useAvisoDePisado()` en `useHoja`; `features/hoja/components/pisadas/`: `RegionDelAvisoDePisado` en frío sobre las secciones, el aviso y la lista del resumen por
+  (`useAvisoDePisado()` en `useHoja`; `features/hoja/components/pisadas/`: `RegionDelAvisoDePisado` en frío sobre las secciones, el aviso y la lista bajo la tarjeta del total por
   `diferido()`) no vuelve hasta remontar la hoja. Las revisiones nombran el cálculo con `etiquetas.calculos` de `cotizacion_revisiones()` (`cambiosDeLaRevision()`).
-- El resumen al pie se pliega (`useResumenPlegado`): «Ver el detalle» / «Ocultar el detalle» esconde el total en moneda local, los secundarios y el modo;
-  el total, sus avisos, lo guardado, la región viva y el pie quedan. Nace plegado con la fuente raíz ≥ 24 px; al costado (`@4xl/hoja`) no hay botón. El
-  modo de tipo de cambio es parte de `Entradas`; «Ver total Bs» no (no cambia el cálculo), pero vuelve con el borrador.
+- El modo de tipo de cambio es parte de `Entradas`; «Ver total Bs» no (no cambia el cálculo), pero vuelve con el borrador.
 
 ## Tablas
 

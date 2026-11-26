@@ -120,7 +120,7 @@ function PendienteSinConfirmar({
 
 // Lo que dice el último guardado que no entró, con la salida que lo arregla (`textoDelRechazo`, `textoDelFallo`): D2 (P2) en línea, «Usar la versión nueva» o «Guardar con
 // la versión N» (y las del tipo de cambio, sin decir cuál: puede ser de un nodo oculto); «Recargar» reabre la hoja, «Reintentar» vuelve a guardar,
-// «Ingresar» abre el ingreso en otra pestaña (lo escrito sigue acá). Sin salida, ningún botón: uno que no arregla nada no se ofrece. Va en la región viva del resumen.
+// «Ingresar» abre el ingreso en otra pestaña (lo escrito sigue acá). Sin salida, ningún botón: uno que no arregla nada no se ofrece. Va en la región viva del cierre de la hoja.
 function AvisoDeGuardado({
   estado,
   hayPendiente,

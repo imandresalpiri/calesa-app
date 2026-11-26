@@ -7,7 +7,7 @@ import {
   crearPersona,
   darRolDePrueba,
 } from './soporte/base'
-import { crearVehiculoDePrueba, urlDeLaHoja } from './soporte/cotizar-guardada'
+import { urlDeLaHoja } from './soporte/cotizar-guardada'
 import { limpiarGuardado, prepararGuardado } from './soporte/cotizar-guardar'
 import { crearSubastaCopiada } from './soporte/cotizar-subasta-copiada'
 import { capturar, textoGrandeAlCargar } from './soporte/recorrido'
@@ -130,7 +130,8 @@ test('E2E C1: la dueña cambia la configuración por defecto desde el ⚙ de la 
   const otra = await page.context().newPage()
   await otra.goto(url())
   await expect(otra.locator('[data-hoja]')).toBeVisible()
-  await expect(otra.locator('[data-modo]')).toContainText('Unificado')
+  // Con un solo modo visible no hay qué elegir: el control de los modos no se dibuja.
+  await expect(otra.getByRole('group', { name: 'Modo de tipo de cambio' })).toHaveCount(0)
   await expect(verTotal(otra)).toHaveAttribute('aria-checked', 'true')
   await expect(otra.getByRole('radio', { name: 'Paralelo' })).toHaveCount(0)
   await otra.close()
@@ -140,7 +141,8 @@ test('E2E C2: quien no configura el origen no ve el ⚙ de la cabecera, y la URL
   page,
 }) => {
   await abrir(page, ana, url('&ajuste=cabecera'))
-  await expect(page.locator('[data-modo]')).toContainText('Unificado')
+  // La cabecera ya llegó a su ranura (va por un portal al hidratar): «Ver total» está, el ⚙ no.
+  await expect(verTotal(page)).toBeVisible()
   await expect(engranaje(page)).toHaveCount(0)
   await expect(panel(page)).toHaveCount(0)
 })
@@ -176,77 +178,42 @@ test('E2E C4: el «Avanzado» dice su línea: con el ⚙, las dos frases; sin é
   await expect(linea(page)).toHaveText('Tocar un valor lo cambia sólo en esta cotización.')
 })
 
-test('E2E C5: los pasos abren sus paneles, «Hoja» lleva a la primera celda y el punto del vehículo dice si falta', async ({
+test('E2E C5: los pasos son «Privada · Vista previa»: «Vista previa» abre su panel y «atrás» lo cierra', async ({
   page,
 }, info) => {
   const pasos = page.getByRole('navigation', { name: 'Pasos de la hoja' })
   const paso = (clave: string) => pasos.locator(`[data-paso="${clave}"]`)
   await abrir(page, ana)
-  await expect(pasos.getByRole('button')).toHaveText([
-    /^Hoja/,
-    /^Vehículo/,
-    /^Cliente/,
-    /^Vista previa/,
-  ])
-  // El nombre es lo que se ve: no choca con el de la barra del vehículo («Vehículo: …»).
-  await expect(paso('vehiculo')).toHaveAccessibleName('Vehículo')
-  // El punto: su color, su texto para el lector (la descripción) y su `title`.
-  await expect(paso('vehiculo')).toHaveAttribute('data-punto', 'obligatorio-que-falta')
-  await expect(paso('vehiculo')).toHaveAccessibleDescription('obligatorio que falta')
-  await expect(paso('vehiculo')).toHaveAttribute('title', 'Vehículo: obligatorio que falta')
-  await expect(paso('cliente')).toHaveAttribute('title', 'Cliente: elegido')
-  await capturar(page, info, 'pasos')
-  // Cada uno abre su panel por la URL; «atrás» lo cierra.
-  for (const [clave, panel] of [
-    ['vehiculo', 'vehiculo'],
-    ['cliente', 'cliente'],
-    ['vista_previa', 'vista-previa'],
-  ] as const) {
-    await paso(clave).click()
-    await expect(page).toHaveURL(new RegExp(`[?&]panel=${panel}`))
-    await page.goBack()
-    await expect(page).not.toHaveURL(new RegExp(`[?&]panel=${panel}`))
-  }
-  await paso('hoja').click()
+  await expect(paso('vista_previa')).toHaveText('Vista previa')
+  // «Hoja», «Vehículo» y «Cliente» ya no son pasos: las barras de arriba abren sus paneles.
   await expect(
-    page.locator('[data-hoja] [data-parada="0"]:not([aria-disabled="true"])').first(),
-  ).toBeFocused()
-  // Con un vehículo elegido, el punto dice «elegido».
-  const id = crearVehiculoDePrueba(origen.id, `Vehículo T312 ${proyecto}`)
-  await page.goto(urlDeLaHoja(origen.id, lead, id))
-  await expect(paso('vehiculo')).toHaveAttribute('title', 'Vehículo: elegido')
-  await expect(paso('vehiculo')).toHaveAccessibleDescription('elegido')
+    pasos.locator('[data-paso]:not([data-paso="privada"], [data-paso="vista_previa"])'),
+  ).toHaveCount(0)
+  await capturar(page, info, 'pasos')
+  await paso('vista_previa').click()
+  await expect(page).toHaveURL(/[?&]panel=vista-previa/)
+  await page.goBack()
+  await expect(page).not.toHaveURL(/[?&]panel=vista-previa/)
 })
 
-test('E2E C6: en el celular los pasos miden 44 px y se reparten el ancho; al 200 % pasan a más de una fila sin salirse', async ({
+test('E2E C6: en el celular los pasos miden 44 px; al 200 % no se salen de su fila', async ({
   page,
   isMobile,
 }, info) => {
-  test.skip(!isMobile, 'Los 44 px y las dos filas son del celular.')
+  test.skip(!isMobile, 'Los 44 px son del celular.')
   const pasos = page.getByRole('navigation', { name: 'Pasos de la hoja' })
-  const botones = pasos.getByRole('button')
   const cajas = async () =>
-    botones.evaluateAll((bs) =>
-      bs.map((b) => {
-        const r = b.getBoundingClientRect()
-        return { alto: r.height, ancho: r.width, arriba: Math.round(r.top) }
-      }),
-    )
+    pasos
+      .locator('[data-paso]')
+      .evaluateAll((ps) => ps.map((p) => p.getBoundingClientRect().height))
   await abrir(page, ana)
-  await expect(botones).toHaveCount(4)
-  const enUna = await cajas()
-  for (const caja of enUna) expect(caja.alto).toBeGreaterThanOrEqual(44)
-  // Partes iguales: el más ancho y el más angosto no difieren en más de un píxel.
-  const anchos = enUna.map((c) => c.ancho)
-  expect(Math.max(...anchos) - Math.min(...anchos)).toBeLessThanOrEqual(1)
+  await expect(pasos.locator('[data-paso="vista_previa"]')).toBeVisible()
+  for (const alto of await cajas()) expect(alto).toBeGreaterThanOrEqual(44)
   await textoGrandeAlCargar(page)
   await page.reload()
   await expect(page.locator('[data-hoja]')).toBeVisible()
-  const alDoble = await cajas()
-  expect(new Set(alDoble.map((c) => c.arriba)).size).toBeGreaterThanOrEqual(2)
-  for (const caja of alDoble) expect(caja.alto).toBeGreaterThanOrEqual(44)
-  // Ningún paso se sale por la derecha ni desborda la fila. Se mide la fila y no la página: la barra del vehículo, que no es de la hoja, todavía desborda al
-  // 200 % con «Obligatorio» (`docs/PENDIENTES.md`).
+  for (const alto of await cajas()) expect(alto).toBeGreaterThanOrEqual(44)
+  // Ningún paso se sale por la derecha ni desborda la fila.
   const desborde = await pasos.evaluate((nav) => {
     const visible = document.documentElement.clientWidth
     const derecha = Math.max(...[...nav.children].map((b) => b.getBoundingClientRect().right))

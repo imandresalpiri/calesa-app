@@ -27,7 +27,7 @@ export function AjusteDeLaCabeceraEnLaHoja({ AjusteDeLaCabecera, origen, hoja }:
         onClick={() => {
           panel.abrir()
         }}
-        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center self-end rounded-(--radius-md) text-(--color-ink-soft) transition hover:bg-(--color-surface-3) hover:text-(--color-ink) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none md:pointer-fine:min-h-9 md:pointer-fine:min-w-9"
+        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-(--radius-md) text-(--color-ink-soft) transition hover:bg-(--color-surface-3) hover:text-(--color-ink) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none md:pointer-fine:min-h-9 md:pointer-fine:min-w-9"
       >
         <Settings2 aria-hidden className="size-[1.125rem]" />
       </button>

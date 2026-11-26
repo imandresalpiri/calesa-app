@@ -25,7 +25,7 @@ describe('dónde va la tarjeta del total', () => {
     )
   })
 
-  it('un diseño de antes no la ubica (va en el resumen fijo); «Ubicar en la hoja» la pone al final de la primera que la admite', () => {
+  it('un diseño de antes no la ubica (va sola arriba de «Avanzado»); «Ubicar en la hoja» la pone al final de la primera que la admite', () => {
     expect(dondeVaElTotal(viejo)).toBeNull()
     const ubicado = ubicarElTotal(viejo)
     expect(dondeVaElTotal(ubicado)).toEqual({ seccion: 'base', indice: 2 })

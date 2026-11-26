@@ -8,8 +8,7 @@ import type { RecalculoInicial } from '../../../entities/apertura'
 import type { CalculoDeLaTarjeta } from '../../../entities/calculo-de-la-tarjeta'
 import { seccionSeDibuja, type ContextoDeHoja } from '../../../entities/binding'
 import { hayPisadas } from '../../../entities/binding-pisado'
-import { nombreDelModo } from '../../../entities/cabecera-de-la-hoja'
-import { hayTotalEnLaHoja, type HojaLista } from '../../../entities/hoja'
+import type { HojaLista } from '../../../entities/hoja'
 import {
   eleccionesDeUnaGuardada,
   type EleccionesDeLaHoja,
@@ -17,14 +16,15 @@ import {
 } from '../../../entities/obligatorios-al-cotizar'
 import { useBotonesDeGuardar } from '../hooks/use-botones-de-guardar'
 import type { EdicionDeLaHoja } from '../hooks/use-guardar-la-guardada'
-import type { useGuardarLaHoja } from '../hooks/use-guardar-la-hoja'
-import type { Guardado, VistaDelGuardado } from '../hooks/use-nucleo-del-guardado'
+import { totalSuelto } from '../../../entities/presentacion-de-la-hoja'
+import { useDelTotal } from '../hooks/use-del-total'
+import type { Guardado } from '../hooks/use-nucleo-del-guardado'
 import { useHoja, type AperturaDeHoja } from '../hooks/use-hoja'
-import { AvisoDelGuardado } from './aviso-de-guardado'
+import { CierreDeLaHoja, hayCierre } from './cierre-de-la-hoja'
 import { ColumnaDeLaHoja } from './columna-de-la-hoja'
-import type { PasosDeLaPagina } from './pasos-de-la-hoja'
+import { ContextoDelTotal } from './contexto-del-total'
 import { ListaDePisadasDiferida } from './pisadas'
-import { ResumenDeHoja } from './resumen-de-hoja'
+import { RegionDelTotal } from './region-del-total'
 import { VistaPreviaDeLaHojaViva } from './vista-previa-de-la-hoja'
 
 type Props = {
@@ -42,9 +42,9 @@ type Props = {
   guardado: Guardado | null
   // El borrador de lo tipeado: su clave en la pestaña (de quien cotiza) y «Descartar», con el que el marco vuelve a montar la hoja vacía. Sin él, no hay borrador.
   borrador?: { clave: string; alDescartar: () => void } | undefined
-  // Quien sólo ve una cotización guardada: los modos y «Ver total Bs» se ven y no se tocan, y el resumen lo dice.
+  // Quien sólo ve una cotización guardada: los modos y «Ver total Bs» se ven y no se tocan, y la hoja lo dice (P13).
   soloLectura?: boolean
-  // El total con que se guardó, cuando lo de hoy no es lo guardado (C11): lo dibuja el resumen bajo el total.
+  // El total con que se guardó, cuando lo de hoy no es lo guardado (C11): va bajo la tarjeta del total, fuera de ella.
   totalGuardado?: ReactNode
   // Los campos del vehículo que quien mira elige en el panel del vehículo (4.14-2c3): la celda sin valor por uno de ellos dice dónde se elige.
   seEligen?: ReadonlySet<string> | undefined
@@ -61,9 +61,7 @@ type Props = {
   // Lo que dibuja la vista previa de una guardada: lo guardado (P5 a, `calculoDeLoGuardado`) y si lo de hoy no lo es (`difiereAlAbrir`: la vista previa lo dice fuera de la
   // tarjeta). Sin él, la tarjeta dibuja lo que la hoja calcula ahora (la hoja nueva).
   deLoGuardado?: { calculo: CalculoDeLaTarjeta; difiere: boolean }
-  // Los pasos de la hoja (debajo de los modos): los paneles del vehículo y del cliente que la página sabe abrir. Sin ellos, no hay pasos.
-  pasos?: PasosDeLaPagina
-  // La marca de privada de la hoja nueva (glosario: «Cotización privada»): lo que va en el pedido y su interruptor, que el marco pone sobre el pie del resumen. Sin ella, pública.
+  // La marca de privada de la hoja nueva (glosario: «Cotización privada»): lo que va en el pedido y su interruptor, que va en los pasos de la hoja. Sin ella, pública.
   privada?: { valor: boolean; interruptor: ReactNode }
 }
 
@@ -104,76 +102,6 @@ function useContextoDeLaHoja(
       origenId,
     }),
     [h.indice, h.entradas, h.respuesta, seEligen, valoresDelVehiculo, origenId],
-  )
-}
-
-type PropsDelResumen = Pick<Props, 'hoja' | 'totalGuardado' | 'alRecargar'> & {
-  interruptor: ReactNode
-  // Lo de una guardada para «Vista previa»: lo guardado que dibuja la tarjeta (nulo en la hoja nueva), si lo de hoy difiere y si hay cambios sin guardar.
-  laTarjeta: Partial<NonNullable<Props['deLoGuardado']>> & { hayCambios: boolean }
-  guardado: VistaDelGuardado | null
-  // «Cambios guardados.» de una guardada.
-  confirmacion: string | null
-  h: ReturnType<typeof useHoja>
-  contexto: ContextoDeHoja
-  vehiculoSoltado: boolean
-  elecciones: EleccionesDeLaHoja | undefined
-  boton: ReturnType<typeof useGuardarLaHoja>['boton']
-  soloLectura: boolean
-}
-
-// El resumen con lo que la hoja le da: lo que dice del vehículo, el botón de guardar (o nada, si no guarda) y lo que dijo el último guardado.
-function ResumenDeLaHoja({
-  hoja,
-  h,
-  contexto,
-  vehiculoSoltado,
-  elecciones,
-  guardado,
-  confirmacion,
-  boton,
-  soloLectura,
-  totalGuardado,
-  alRecargar,
-  laTarjeta,
-  interruptor,
-}: PropsDelResumen) {
-  const router = useRouter()
-  const recargar = alRecargar ?? router.refresh
-  return (
-    <ResumenDeHoja
-      tarjeta={hoja.tarjetaTotal}
-      monedaDelTotalBs={h.verTotalBs ? hoja.cabecera.monedaBs : null}
-      modo={nombreDelModo(hoja.cabecera, h.entradas.modoTc)}
-      contexto={contexto}
-      estado={h.estado}
-      avisoDelVehiculo={vehiculoSoltado ? 'No se puede usar ese vehículo.' : null}
-      alReintentar={h.reintentar}
-      alRecargar={recargar}
-      guardar={boton}
-      soloLectura={soloLectura}
-      totalGuardado={totalGuardado}
-      vistaPrevia={<VistaPreviaDeLaHojaViva hoja={hoja} h={h} {...laTarjeta} />}
-      interruptor={interruptor}
-      totalEnLaHoja={hayTotalEnLaHoja(hoja)}
-      pisadas={
-        hayPisadas(contexto.indice, contexto.entradas) ? (
-          <ListaDePisadasDiferida contexto={contexto} />
-        ) : null
-      }
-      avisoDeGuardado={
-        guardado === null || boton === null ? null : (
-          <AvisoDelGuardado
-            guardado={guardado}
-            alReintentar={boton.alGuardar}
-            version={hoja.formula.version}
-            alRecargar={recargar}
-            confirmacion={confirmacion}
-            elecciones={elecciones}
-          />
-        )
-      }
-    />
   )
 }
 
@@ -222,23 +150,43 @@ function useArmadoDeLaHoja(p: Props) {
   return { raiz, vista, h, contexto, boton, hayCambios }
 }
 
-// La hoja de cotizar: las secciones del diseño en su orden (las avanzadas, detrás de un botón «Avanzado» con su modal), cada celda con su `XCell`, y el resumen. Recalcula en la base 150 ms después de la última confirmación.
-// Guarda con `Ctrl/Cmd+S` o «Guardar» (el guardado vive en el marco, `useGuardado`): confirma la celda abierta, espera al total al día (P8) y arma el pedido con las
-// entradas que ese recálculo calculó y la misma hoja abierta. Mientras guarda no se toca (`inert`): lo guardado la reemplaza y lo tecleado en el medio se perdería sin aviso. Los iconos y los tonos se montan una sola vez por hoja.
+// La hoja de cotizar: las secciones del diseño en su orden (las avanzadas, detrás de un botón «Avanzado» con su modal), cada celda con su `XCell`, la región del total (en su
+// sección si el diseño la ubica; si no, suelta, encima de «Avanzado») y el cierre con «Guardar» debajo de «Avanzado». Recalcula en la base 150 ms después de la última
+// confirmación. Guarda con `Ctrl/Cmd+S` o «Guardar» (el guardado vive en el marco, `useGuardado`): confirma la celda abierta, espera al total al día (P8) y arma el pedido
+// con las entradas que ese recálculo calculó y la misma hoja abierta. Mientras guarda no se toca (`inert`): lo guardado la reemplaza y lo tecleado en el medio se perdería
+// sin aviso. Los iconos y los tonos se montan una sola vez por hoja; el modal de «Vista previa», fuera de la rejilla.
 export function HojaDeCotizar(props: Props) {
-  const { hoja, vehiculoSoltado, elecciones, edicion, soloLectura = false } = props
-  const { totalGuardado, alRecargar, encima, deLoGuardado, pasos, privada } = props
-  const recargar = useRecargar(alRecargar)
+  const { hoja, soloLectura = false } = props
+  const recargar = useRecargar(props.alRecargar)
   const { raiz, vista, h, contexto, boton, hayCambios } = useArmadoDeLaHoja(props)
+  const delTotal = useDelTotal({
+    hoja,
+    h,
+    recargar,
+    vehiculoSoltado: props.vehiculoSoltado,
+    totalGuardado: props.totalGuardado ?? null,
+    pisadas: hayPisadas(contexto.indice, contexto.entradas) ? (
+      <ListaDePisadasDiferida contexto={contexto} />
+    ) : null,
+  })
   const guardando = vista?.estado.tipo === 'guardando'
   const dibujadas = hoja.secciones.filter((seccion) => seccionSeDibuja(seccion, contexto))
   if (dibujadas.length === 0) {
     return <SinDatosQueVer />
   }
+  const cierre = {
+    boton,
+    soloLectura,
+    guardado: vista,
+    version: hoja.formula.version,
+    alRecargar: recargar,
+    confirmacion: props.edicion ? 'Cambios guardados.' : null,
+    elecciones: eleccionesDelAviso(props.elecciones, props.edicion),
+  }
   return (
-    <div ref={raiz} data-hoja="" inert={guardando} className="@container/hoja grid min-w-0 gap-4">
-      <SimbolosYTonos tonos={hoja.tonos} />
-      <div className="flex min-w-0 flex-col gap-4 @4xl/hoja:flex-row @4xl/hoja:items-start">
+    <ContextoDelTotal value={delTotal}>
+      <div ref={raiz} data-hoja="" inert={guardando} className="@container/hoja grid min-w-0 gap-4">
+        <SimbolosYTonos tonos={hoja.tonos} />
         <ColumnaDeLaHoja
           hoja={hoja}
           h={h}
@@ -246,26 +194,18 @@ export function HojaDeCotizar(props: Props) {
           secciones={dibujadas}
           guardando={guardando}
           soloLectura={soloLectura}
-          encima={encima?.(hayCambios)}
+          encima={props.encima?.(hayCambios)}
           alRecargar={recargar}
-          pasos={pasos}
-        />
-        <ResumenDeLaHoja
-          hoja={hoja}
-          h={h}
-          contexto={contexto}
-          vehiculoSoltado={vehiculoSoltado}
-          elecciones={eleccionesDelAviso(elecciones, edicion)}
-          guardado={vista}
-          confirmacion={edicion ? 'Cambios guardados.' : null}
-          boton={boton}
-          soloLectura={soloLectura}
-          totalGuardado={totalGuardado}
-          alRecargar={alRecargar}
-          laTarjeta={{ ...deLoGuardado, hayCambios }}
-          interruptor={privada?.interruptor ?? null}
+          privada={props.privada?.interruptor ?? null}
+          totalSuelto={
+            totalSuelto(dibujadas, false) ? (
+              <RegionDelTotal etiqueta={hoja.tarjetaTotal.etiqueta} contexto={contexto} />
+            ) : null
+          }
+          cierre={hayCierre(cierre) ? <CierreDeLaHoja {...cierre} /> : null}
         />
       </div>
-    </div>
+      <VistaPreviaDeLaHojaViva hoja={hoja} h={h} {...props.deLoGuardado} hayCambios={hayCambios} />
+    </ContextoDelTotal>
   )
 }

@@ -8,10 +8,11 @@ import {
 } from './soporte/base'
 import {
   celdaDeLaHoja,
+  esperarElTotal,
   tarjetaGuardada,
   totalDeLaHoja,
-  vigilarGuardados,
   type PedidoDeGuardadoVisto,
+  vigilarGuardados,
 } from './soporte/cotizar-guardar'
 import { borrarLeadsDePrueba, crearLead } from './soporte/leads'
 import { telefonoAlAzar } from './soporte/leads-alta'
@@ -27,9 +28,10 @@ test.describe.configure({ mode: 'serial' })
 
 // Las teclas de control, medidas en la primera corrida verde (4.14-3c), iguales en escritorio y celular. Con un cliente que existe: 29 (Tab y Enter a «Saltar al contenido», los Tab hasta
 // la barra «Cliente» y su Enter, los Tab hasta la fila y su Enter, y el tramo de la hoja: Tab hasta `remate` y Enter, hasta `grua` y Enter, y Ctrl+S); con uno nuevo: 30 (en vez de la fila, el Tab
-// hasta «+» y su Enter, un Tab del teléfono al nombre y Ctrl+S del alta). 1,6 s el robot; KLM 17,2 s y 28,3 s. Determinista: una parada nueva en el camino lo rompe a propósito.
-const CONTROLES_CON_UN_CLIENTE_QUE_EXISTE = 29
-const CONTROLES_CON_UN_CLIENTE_NUEVO = 30
+// hasta «+» y su Enter, un Tab del teléfono al nombre y Ctrl+S del alta). 1,6 s el robot; KLM 17,2 s y 28,3 s. Determinista: una parada nueva en el camino lo rompe a propósito. 30 y 31 desde
+// T565: «Privada», en los pasos de la hoja, es una parada antes del primer lado.
+const CONTROLES_CON_UN_CLIENTE_QUE_EXISTE = 30
+const CONTROLES_CON_UN_CLIENTE_NUEVO = 31
 
 let asesora = ''
 let subasta = ''
@@ -85,9 +87,7 @@ async function llenarYGuardar(page: Page, teclado: Teclado): Promise<void> {
   await teclado.tabularHasta(valor(page, 'grua'))
   await teclado.escribir('450')
   await teclado.pulsar('Enter')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false', {
-    timeout: 15_000,
-  })
+  await esperarElTotal(page, 15_000)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await teclado.pulsar('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)
@@ -199,9 +199,7 @@ test('tarea de oro 2, el cliente nuevo: del «+» del panel a la cotización gua
   // La hoja ya tiene al cliente (la página volvió a leer): ya no pide elegirlo.
   await expect(page.getByText(TEXTO_SIN_CLIENTE)).toBeHidden()
   // La hoja que volvió a montarse con el cliente terminó de calcular: un Tab antes cae en lo que todavía cambia.
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false', {
-    timeout: 15_000,
-  })
+  await esperarElTotal(page, 15_000)
   await expect(valor(page, 'remate')).toBeVisible()
   await llenarYGuardar(page, teclado)
   const fin = performance.now()

@@ -26,7 +26,7 @@ const ANTES = {
   seccion:
     '@container grid min-w-0 content-start gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-4',
   celdas: 'grid grid-cols-12 gap-x-0 gap-y-3 @lg:gap-x-3',
-  cabecera: 'grid min-w-0 gap-3',
+  cabecera: 'flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1',
 } as const
 
 const CLAVES_DEL_ASPECTO = ['alto', 'letra', 'enfasis', 'relleno', 'separacion', 'densidad', 'tono']
@@ -144,13 +144,13 @@ describe('el aspecto en clases', () => {
 
   it('la cabecera es una caja sólo con tono o relleno', () => {
     expect(claseDeLaCabecera({ letra: 'grande' })).toBe(
-      'grid min-w-0 gap-3 [--text-sm:var(--text-base)]',
+      'flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 [--text-sm:var(--text-base)]',
     )
     expect(claseDeLaCabecera({ tono: 'verde' })).toBe(
-      'grid min-w-0 gap-3 rounded-(--radius-card) border border-[color:var(--tono-borde,var(--color-line))] bg-(--color-surface) p-4',
+      'flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-(--radius-card) border border-[color:var(--tono-borde,var(--color-line))] bg-(--color-surface) px-3 py-1',
     )
     expect(claseDeLaCabecera({ relleno: 'chico', enfasis: 'fuerte' })).toBe(
-      'grid min-w-0 gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-2 font-semibold',
+      'flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) px-2 py-0.5 font-semibold',
     )
   })
 })

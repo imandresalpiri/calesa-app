@@ -152,10 +152,12 @@ test('la tarjeta del total: superficie invertida, el rótulo en mayúsculas y la
   await expect(tarjeta.locator('[data-total]')).toBeVisible()
   expect(await estilo(tarjeta, 'background-color')).toBe(await colorDelToken(page, '--color-ink'))
   expect(await estilo(tarjeta.locator('span').first(), 'text-transform')).toBe('uppercase')
-  const resumen = page.getByRole('complementary', { name: 'Resumen' })
-  await resumen.getByRole('button', { name: 'Modo Live: ocultar los montos' }).click()
+  // El Modo Live sólo está en la barra de arriba: la hoja no lleva otro botón.
+  const live = page.getByRole('button', { name: /^Modo Live/ })
+  await expect(live).toHaveCount(1)
+  await live.click()
   await expect(tarjeta.locator('[data-total] [data-monto-valor]')).toBeHidden()
-  await resumen.getByRole('button', { name: /^Modo Live/ }).click()
+  await live.click()
 })
 
 test('«Avanzado»: el botón a lo ancho y el modal con sus secciones sin marco, las franjas en monoespaciada y los tercios en una fila', async ({

@@ -52,8 +52,9 @@ type Props = {
   avisoDelElegido?: string | null
 }
 
+// Baja: 44 px en el celular y 36 con puntero fino desde `md` (la cabecera de la hoja cabe en una línea con ella).
 const CLASE_DE_LA_BARRA =
-  'flex min-h-11 w-full min-w-0 items-center gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-2 text-left'
+  'flex min-h-[44px] w-full min-w-0 items-center gap-2 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) px-2 py-1 text-left md:pointer-fine:min-h-9'
 
 // Lo opcional, con su valor por omisión.
 function opcionesDe(props: Props) {

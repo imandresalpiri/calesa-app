@@ -648,13 +648,18 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   emitir otro se anula el vigente; con uno vigente no se marca otra final del vehículo.
 - **Tipo de cambio oficial / paralelo** — `tipos_cambio.clave` (`oficial`, `paralelo`): TCO y TCP; cada fila o grupo elige el suyo.
 - **Modo de tipo de cambio** — `diseno.cabecera.modos[]` / `cotizaciones.modo_tc`: nombre (Aduana, Paralelo, Unificado…) y qué tipo de cambio
-  llena cada bucket. La hoja abre con el marcado (`Entradas.modoTc`); con uno solo no se elige y el resumen lo nombra.
+  llena cada bucket. La hoja abre con el marcado (`Entradas.modoTc`); con uno solo visible no se elige ni se nombra.
 - **Modo por defecto** — `diseno.cabecera.modo_por_defecto` / `modoInicial()`: el modo con que abre una cotización nueva del origen (sin él, el
   primero); va con «Ver total» por defecto (`ver_total_bs_por_defecto`). Lo cambian el ⚙ de la cabecera y el diseño de Configuración.
 - **Modos visibles** — `diseno.cabecera.modos_visibles` / `modosDelEncabezado()`: los modos que se dibujan en el encabezado de la hoja (sin la
   lista, todos). El modo por defecto siempre está entre ellos, y el que una cotización tiene elegido se dibuja aunque no lo esté.
-- **Pasos de la hoja** — `pasosDeLaHoja()` / `<PasosDeLaHoja>`: la fila «Hoja · Vehículo · Cliente · Vista previa» de arriba de la hoja.
-  Cada paso abre su panel de hoy y lleva un punto (elegido, obligatorio que falta, falta un dato) con su texto; no reemplaza las barras.
+- **Pasos de la hoja** — `pasosDeLaHoja()` / `<PasosDeLaHoja>`: la fila «Privada · Vista previa» de arriba de la hoja. «Privada» (el interruptor de la
+  **cotización privada**) sólo en la hoja nueva y para quien puede marcarla; una guardada lleva sólo «Vista previa»; sin ninguno, la fila no se dibuja.
+  El vehículo y el cliente se eligen en sus barras.
+- **Ranura de la cabecera** — `<RanuraDeLaCabecera>`, `<ProveedorDeLaRanuraDeLaCabecera>`, `useRanuraDeLaCabecera()`: el lugar en la fila de las barras del
+  vehículo y del cliente (`data-cabecera-de-la-hoja`) donde la cabecera de la hoja (los modos, «Ver total en moneda local» y su ⚙) se dibuja por un portal;
+  hasta hidratar muestra la **cabecera quieta** (`<CabeceraQuieta>`: las mismas piezas, inertes). Sin proveedor (el lienzo del editor), la cabecera va en su
+  lugar dentro de la hoja. No es el lugar de «Guardar» en la cabecera de una guardada (`useRanuraDeGuardar()`).
 - **Grupo (de la hoja)** — `definicion.grupos[]` / `nodo.grupo`: filas con bucket, plazo de pago y color, con subtotal en USD y Bs. No es un nodo.
 - **Plazo de pago** — atributo del grupo: cuándo se paga, como texto («2 días», «4 meses (Aprox.)»).
 - **Total en dólares** — `definicion.total_en`; en el motor `totales.usd` (y `totales.suma_usd`): total en Bs ÷ tipo de cambio de `total_en`.
@@ -670,7 +675,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   lo dibuja en una celda: `pisables`, `esPisable()`); queda fijo aunque cambien los datos y su celda queda «Editado a mano». Lo que daba es
   `calculados` («Calculado: $480»). No: «sobrescribir» (es la marca `sobrescribible` de la fórmula).
 - **Editado a mano** — la marca de una celda con un cálculo pisado: el lápiz (`role="img"`), `handEdited` de la `XCell`, `ladoPisado()`; va con
-  «Calculado: …» y ↺ «Volver al calculado». Sólo en la hoja y en el resumen («Editado a mano: Transferencia a USA $500, calculado $480»); la
+  «Calculado: …» y ↺ «Volver al calculado». Sólo en la hoja y bajo su total («Editado a mano: Transferencia a USA $500, calculado $480»); la
   tarjeta, el PDF y la imagen no la llevan. No: «modificado» (el anillo de todo override, también el de una constante).
 - **Variante en par** — «Se cotiza en par», `en_par` del nodo `opcion` de exactamente dos opciones (`par_sin_dos_opciones`); `ParDeHoja`, `nodosEnPar()` /
   `_nodos_en_par()`: la hoja no dibuja sus chips y lo que cambia según la opción va en dos celdas («Transporte · 20 pies» | «Transporte · 40 pies»); guardar crea
@@ -880,8 +885,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Subtotal (de la hoja)** — ítem `subtotal` del diseño: un nodo de cálculo dibujado como franja (el «CIF» de «avanzado»).
 - **Tarjeta del total** — `diseno.tarjeta_total` (nodo total y secundarios) y la pieza `{ tipo: 'total' }` del diseño (`TotalDeHoja`): la tarjeta de
   superficie invertida con el total, la etiqueta en mayúsculas (`clases-del-total.ts`). La pieza dice en qué sección principal y lugar se dibuja, con el
-  aspecto de todo ítem; va una sola, en una sección principal que ven todos (`total_repetido`, `total_en_avanzado`, `total_con_nivel`). Con la pieza, en
-  escritorio se dibuja en su sección y el resumen no la repite; en el celular va en el resumen fijo al pie. Sin ella, arriba del resumen.
+  aspecto de todo ítem; va una sola, en una sección principal que ven todos (`total_repetido`, `total_en_avanzado`, `total_con_nivel`). Con la pieza, se
+  dibuja a todo el ancho de su sección; sin ella (o en par, con los dos totales), sola arriba de «Avanzado». Sus avisos van debajo y fuera de la tarjeta, en
+  la región del total (`<RegionDelTotal>`, `data-total-de-la-hoja`).
 - **Contexto del diseño** — `ContextoDeDiseno` / argumentos de `validar_diseno()`: niveles existentes y retirados y claves de los colores; «todos»
   siempre existe.
 - **Visibilidad (de un nodo)** — `formulas.visibilidad` / `_compilar_visibilidad()`: `{nodo: {ver, editar}}` por nivel, compilado al publicar.
@@ -1201,7 +1207,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Inventario de lo oculto** — `pg_temp.cv_registro()` en `supabase/tests/cotizaciones-visibilidad.sql`: funciones que pueden devolver
   `valores`, `fuentes`, `totales` o `formulas.*`, con su clase y sonda.
 - **Ver total Bs** — `diseno.cabecera.ver_total_bs` (la versión lo ofrece) / `cotizaciones.ver_total_bs` (lo eligió quien cotizó),
-  `_cotizacion_ver_total_bs()`, `p_ver_total_bs`: sumar el total en Bs al resumen, la tarjeta y el PDF; sólo si la versión lo ofrece, nace en
+  `_cotizacion_ver_total_bs()`, `p_ver_total_bs`: sumar el total en Bs bajo el total de la hoja, en la tarjeta y en el PDF; sólo si la versión lo ofrece, nace en
   falso. En pantalla «Ver total en moneda local», sólo con `cabecera.moneda_bs` (sin ella se guarda en falso).
 - **Moneda del total en Bs** — `cabecera.moneda_bs` de `cotizacion_hoja()` / `HojaLista.cabecera.monedaBs`: el `moneda_a` del tipo de cambio
   activo de `definicion.total_en`; nula sin `total_en` o sin ese tipo de cambio activo, aunque `totales.bs` tenga valor (el Bs sale del tipo de

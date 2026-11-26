@@ -1,5 +1,5 @@
 // Los nodos que el diseño de la hoja nombra: el de cada ítem (también un `atajos`), el `pct` de una celda con `secundario` sobre un `porcentaje_de`, los
-// tipos de cambio de cada modo y lo que muestra el resumen fijo (`tarjeta_total`). Borrar uno de esos nodos haría que publicar el diseño cayera
+// tipos de cambio de cada modo y lo que muestra la tarjeta del total (`tarjeta_total`). Borrar uno de esos nodos haría que publicar el diseño cayera
 // (`nodo_inexistente` o `nodo_sin_seccion`): la planilla no lo borra (`entities/formula/usos-de-la-fila.ts`). Núcleo: lo usa el área `formula` sin
 // importar `diseno`. Puro, O(ítems + nodos).
 import type { Diseno } from './diseno'

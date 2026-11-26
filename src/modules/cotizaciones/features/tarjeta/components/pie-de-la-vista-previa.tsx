@@ -3,7 +3,7 @@
 import { PencilIcon } from 'lucide-react'
 import { useId } from 'react'
 import { Button } from '@/shared/ui/button'
-import { LiveDelResumen } from '../../hoja/components/live-del-resumen'
+import { LiveDeLaVistaPrevia } from './live-de-la-vista-previa'
 import type { AvisoDelTotal } from '../../../entities/tarjeta/aviso-del-total'
 import type { Geometria } from '../../../entities/tarjeta/geometria-de-la-tarjeta'
 import type { LecturaDeLaTarjeta } from '../../../entities/tarjeta/lectura-de-la-tarjeta'
@@ -59,7 +59,7 @@ export function PieDeLaVistaPrevia({
 }: Props) {
   return (
     <>
-      <LiveDelResumen />
+      <LiveDeLaVistaPrevia />
       <CopiarTextoDeLaTarjeta
         geometria={geometria}
         lectura={lectura}

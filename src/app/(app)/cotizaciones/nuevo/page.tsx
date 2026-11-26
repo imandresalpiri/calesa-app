@@ -11,9 +11,11 @@ import {
   type AsesorDeLaTarjeta,
 } from '@/modules/cotizaciones'
 import {
+  CabeceraQuieta,
   EsqueletoDeHoja,
   FormulaSinPublicar,
   PestanasDeOrigen,
+  ProveedorDeLaRanuraDeLaCabecera,
   ProveedorDelTitulo,
 } from '@/modules/cotizaciones/pantallas/cotizar'
 import { HUECOS_DE_FORMULA_EN_LA_HOJA } from '@/modules/cotizaciones/pantallas/formula-hoja'
@@ -211,8 +213,7 @@ async function HojaDelOrigen({
   const vehiculoUsado = vehiculoSoltado ? null : vehiculo
   const elegido = vehiculoSoltado ? null : leido
   const paraElegir = paraElegirDe(apertura.hoja, elegido, layout)
-  const elegidos = { vehiculo: vehiculoUsado, lead: leadUsado }
-  const { obligatorios, elecciones, pasos } = reglasDeLaHoja(sesion.permisos, origen.id, elegidos)
+  const { obligatorios, elecciones } = reglasDeLaHoja(sesion.permisos, origen.id)
   return (
     <>
       {pestanas}
@@ -223,39 +224,41 @@ async function HojaDelOrigen({
         elegido={elegido}
         tope={topeDelTitulo(apertura.hoja)}
       >
-        <BarrasDeLaHoja
-          sesion={sesion}
-          origen={origen}
-          elegido={elegido}
-          cliente={cliente}
-          reglas={{ obligatorios, conteo, alta, paraElegir, abierta: apertura.hoja.abierta }}
-        />
-        <ConProveedorDeLaHoja
-          origenId={origen.id}
-          cotizacionId={null}
-          permisos={sesion.permisos}
-          tarjeta={tarjetaDeLaHojaNueva({ elegido, cliente, asesor: elAsesor })}
-        >
-          <ConLaEdicionDeLasTablas
-            puedeConfigurar={puede(sesion.permisos, 'cotizaciones.configurar', origen.id)}
+        <ProveedorDeLaRanuraDeLaCabecera>
+          <BarrasDeLaHoja
+            sesion={sesion}
+            origen={origen}
+            elegido={elegido}
+            cliente={cliente}
+            reglas={{ obligatorios, conteo, alta, paraElegir, abierta: apertura.hoja.abierta }}
+            reservaDeLaCabecera={<CabeceraQuieta cabecera={apertura.hoja.cabecera} />}
+          />
+          <ConProveedorDeLaHoja
+            origenId={origen.id}
+            cotizacionId={null}
+            permisos={sesion.permisos}
+            tarjeta={tarjetaDeLaHojaNueva({ elegido, cliente, asesor: elAsesor })}
           >
-            <PantallaDeLaHoja
-              key={`${origen.id}:${leadUsado ?? '-'}:${vehiculoUsado ?? '-'}`}
-              hoja={apertura.hoja}
-              iniciales={[apertura.inicial, inicialDeLaSegunda]}
-              vehiculoId={vehiculoUsado}
-              vehiculoSoltado={vehiculoSoltado}
-              leadId={leadUsado}
-              obligatorios={obligatorios}
-              elecciones={elecciones}
-              personaId={sesion.usuarioId}
-              // La celda sin valor por un dato que quien mira elige en el panel dice dónde se elige (4.14-2c3).
-              seEligen={camposQueSeEligen(paraElegir)}
-              valoresDelVehiculo={valoresDelVehiculoDe(apertura.hoja, elegido?.vehiculo ?? null)}
-              pasos={pasos}
-            />
-          </ConLaEdicionDeLasTablas>
-        </ConProveedorDeLaHoja>
+            <ConLaEdicionDeLasTablas
+              puedeConfigurar={puede(sesion.permisos, 'cotizaciones.configurar', origen.id)}
+            >
+              <PantallaDeLaHoja
+                key={`${origen.id}:${leadUsado ?? '-'}:${vehiculoUsado ?? '-'}`}
+                hoja={apertura.hoja}
+                iniciales={[apertura.inicial, inicialDeLaSegunda]}
+                vehiculoId={vehiculoUsado}
+                vehiculoSoltado={vehiculoSoltado}
+                leadId={leadUsado}
+                obligatorios={obligatorios}
+                elecciones={elecciones}
+                personaId={sesion.usuarioId}
+                // La celda sin valor por un dato que quien mira elige en el panel dice dónde se elige (4.14-2c3).
+                seEligen={camposQueSeEligen(paraElegir)}
+                valoresDelVehiculo={valoresDelVehiculoDe(apertura.hoja, elegido?.vehiculo ?? null)}
+              />
+            </ConLaEdicionDeLasTablas>
+          </ConProveedorDeLaHoja>
+        </ProveedorDeLaRanuraDeLaCabecera>
       </ConElTitulo>
     </>
   )

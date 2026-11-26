@@ -82,7 +82,8 @@ test.afterAll(async () => {
 const hoja = (page: Page) => page.locator('[data-hoja]')
 const celda = (page: Page, nodo: string) => page.locator(`[data-nodo="${nodo}"]`)
 const total = (page: Page) => page.locator('[data-total]')
-const resumen = (page: Page) => page.getByLabel('Resumen')
+// La región del total: la tarjeta y, debajo, sus avisos.
+const regionDelTotal = (page: Page) => page.locator('[data-total-de-la-hoja]')
 
 async function irA(page: Page, correo: string, url: string): Promise<void> {
   await page.context().clearCookies()
@@ -220,15 +221,15 @@ test('varias confirmaciones seguidas con uno en vuelo no sacan otro pedido, y s�
   await page.waitForTimeout(500)
   expect(vigilante.pedidos).toHaveLength(1)
   expect(vigilante.pedidos[0]?.p_entradas.inputs).toEqual({ pub: 1 })
-  await expect(resumen(page)).toHaveAttribute('aria-busy', 'true')
-  await expect(resumen(page)).toContainText('Total desactualizado.')
+  await expect(regionDelTotal(page)).toHaveAttribute('aria-busy', 'true')
+  await expect(regionDelTotal(page)).toContainText('Total desactualizado.')
   await expect(celda(page, 'pub')).toContainText('3,00')
   vigilante.soltar()
   await expect.poll(() => vigilante.pedidos.length).toBe(2)
   expect(vigilante.pedidos[1]?.p_entradas.inputs).toEqual({ pub: 3 })
-  await expect(resumen(page)).toHaveAttribute('aria-busy', 'false')
+  await expect(regionDelTotal(page)).toHaveAttribute('aria-busy', 'false')
   await expect(total(page)).toContainText('8,00')
-  await expect(resumen(page)).not.toContainText('Total desactualizado.')
+  await expect(regionDelTotal(page)).not.toContainText('Total desactualizado.')
   expect(vigilante.enVueloMaximo()).toBe(1)
 })
 
@@ -239,15 +240,15 @@ test('sin red dice «No se pudo recalcular», conserva lo tipeado y no deja el t
   await abrirLaHoja(page, todos, `/cotizaciones/nuevo?origen=${conFormula.id}`)
   vigilante.cortar()
   await tipear(page, 'pub', '700')
-  await expect(resumen(page)).toContainText('No se pudo recalcular.')
-  await expect(resumen(page)).toContainText('Total desactualizado.')
+  await expect(regionDelTotal(page)).toContainText('No se pudo recalcular.')
+  await expect(regionDelTotal(page)).toContainText('Total desactualizado.')
   await expect(celda(page, 'pub')).toContainText('700,00')
-  // El resumen queda al final de la hoja (el 4.13-4 lo fija): se lleva a la vista para mirarlo.
-  await resumen(page).scrollIntoViewIfNeeded()
+  // Sin la pieza en el diseño, el total va suelto encima de «Avanzado»: se lleva a la vista para mirarlo.
+  await regionDelTotal(page).scrollIntoViewIfNeeded()
   await capturar(page, info, 'cotizar-no-se-pudo-recalcular')
   vigilante.restablecer()
-  await resumen(page).getByRole('button', { name: 'Reintentar' }).click()
-  await expect(resumen(page)).not.toContainText('No se pudo recalcular.')
+  await regionDelTotal(page).getByRole('button', { name: 'Reintentar' }).click()
+  await expect(regionDelTotal(page)).not.toContainText('No se pudo recalcular.')
   await expect(total(page)).toContainText('705,00')
   expect(vigilante.enVueloMaximo()).toBe(1)
 })
@@ -315,7 +316,7 @@ test('un vehículo que la base no deja usar se suelta y la hoja lo dice; el lead
     todos,
     `/cotizaciones/nuevo?origen=${conFormula.id}&vehiculo=99999999-8888-4777-8666-555555555555&lead=no-es-un-id`,
   )
-  await expect(resumen(page)).toContainText('No se puede usar ese vehículo.')
+  await expect(regionDelTotal(page)).toContainText('No se puede usar ese vehículo.')
   await expect(total(page)).toContainText('5,00')
   await tipear(page, 'pub', '50')
   await expect.poll(() => vigilante.pedidos.length).toBe(1)
