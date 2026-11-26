@@ -2,7 +2,6 @@ import { expect, test } from './soporte/prueba'
 import { aLaVista, entrar, menuDeVehiculo } from './soporte/inventario'
 import { capturar } from './soporte/recorrido'
 import {
-  NO_EXISTE,
   TITULO,
   abrirLaFicha,
   alInventario,
@@ -16,7 +15,7 @@ import {
 
 // La lista de vehículos abre la ficha (T335, `docs/UX.md` › «Vehículos»): la fila y la tarjeta son un enlace a `/vehiculos/<id>` (el nombre es
 // el `<a>`; el resto navega igual), Ctrl o el botón del medio abren otra pestaña, y lo que el ítem tiene adentro (la casilla, el «⋯», «Publicar»,
-// la foto) no navega. No hay resumen: un `/vehiculos?vehiculo=<id>` viejo redirige a la ficha con su panel y su visor. «Cotizar vehículo» del
+// la foto) no navega. No hay resumen: `?vehiculo=` en la lista no hace nada. «Cotizar vehículo» del
 // «⋯», en `vehiculos-cotizar-desde-la-lista.spec.ts`. Capturas: `E2E_CAPTURAS=e2e-capturas/t335`.
 test.describe.configure({ mode: 'serial' })
 
@@ -104,45 +103,4 @@ test('E2E la casilla, el «⋯», «Publicar» y la foto no navegan', async ({ p
   // «Publicar» de la fila publica en el lugar (o pide el precio en un panel sobre la lista): no va a la ficha.
   await fila.getByRole('button', { name: `Publicar «${TITULO}» en la web` }).click()
   await expect(page).toHaveURL(/\/vehiculos\?origen=/)
-})
-
-test('E2E los enlaces viejos del resumen redirigen a la ficha con lo suyo, sin sumar al historial', async ({
-  page,
-}, info) => {
-  await entrar(page, t.terreno.duena)
-  const ficha = `/vehiculos/${t.id}`
-
-  await alInventario(page, t.terreno.corea.id, `&vehiculo=${t.id}&panel=vitrina`)
-  await expect(page).toHaveURL(new RegExp(`${ficha}\\?panel=vitrina$`))
-  await expect(page.getByRole('dialog', { name: 'Publicar en la web' })).toBeVisible()
-  await capturar(page, info, 'enlace-viejo-vitrina')
-
-  await alInventario(page, t.terreno.corea.id, `&vehiculo=${t.id}&pestana=fotos`)
-  await expect(page).toHaveURL(new RegExp(`${ficha}\\?visor=${t.id}&foto=1$`))
-  const visor = page.locator('[data-visor-de-imagenes]')
-  await expect(visor).toBeVisible()
-  await expect(visor.getByText('1 de 3')).toBeVisible()
-
-  await alInventario(page, t.terreno.corea.id, `&vehiculo=${t.id}&visor=${t.id}-resumen&foto=2`)
-  await expect(page).toHaveURL(new RegExp(`${ficha}\\?visor=${t.id}&foto=2$`))
-  await expect(visor.getByText('2 de 3')).toBeVisible()
-
-  // Un panel que la ficha no abre se quita, sin error.
-  await alInventario(page, t.terreno.corea.id, `&vehiculo=${t.id}&panel=nuevo`)
-  await expect(page).toHaveURL(new RegExp(`${ficha}$`))
-  await expect(page.getByRole('heading', { name: TITULO, level: 1 })).toBeVisible()
-
-  // Lo que no existe (o no es un id) llega a la ficha, que dice que no está disponible.
-  for (const valor of [NO_EXISTE, 'no-es-un-id']) {
-    await alInventario(page, t.terreno.corea.id, `&vehiculo=${valor}`)
-    await expect(page).toHaveURL(new RegExp(`/vehiculos/${valor}$`))
-    await expect(page.getByText('No existe o no tienes acceso')).toBeVisible()
-  }
-
-  // La redirección reemplaza: «atrás» vuelve a donde se estaba, no al enlace viejo.
-  await page.goto('/perfil')
-  await alInventario(page, t.terreno.corea.id, `&vehiculo=${t.id}`)
-  await expect(page).toHaveURL(new RegExp(`${ficha}$`))
-  await page.goBack()
-  await expect(page).toHaveURL(/\/perfil$/)
 })

@@ -11,8 +11,8 @@ import {
 } from './soporte/base'
 import { ingresar } from './soporte/pasos'
 
-// Configuración › Empresa en sub-rutas (`docs/UX.md` › «Empresa»): las URLs de cuando tenía pestañas llegan a su sub-ruta, y quien no abre
-// «Comprobantes» la ve apagada con su motivo y su URL lo lleva a Datos. No cambia nada de la empresa: sólo abre un panel sin guardar.
+// Configuración › Empresa en sub-rutas (`docs/UX.md` › «Empresa»): quien no abre «Comprobantes» la ve apagada con su motivo y su URL lo lleva a
+// Datos. No cambia nada de la empresa: sólo abre un panel sin guardar.
 test.describe.configure({ mode: 'serial' })
 
 const CLAVE = 'una-clave-de-prueba-9'
@@ -82,27 +82,4 @@ test('E2E sin «Ajustes de la empresa», Comprobantes está apagada con su motiv
   await expect(suya).toHaveURL('/configuracion/empresa')
   await expect(suya.getByRole('heading', { name: 'Datos de la empresa', level: 1 })).toBeVisible()
   await suya.context().close()
-})
-
-test('E2E las URLs viejas de Empresa llegan a su sub-ruta', async ({ page }) => {
-  await entrar(page, duena)
-  await page.goto('/configuracion/empresa/monedas')
-  await page.getByRole('button', { name: /^Editar Oficial/ }).click()
-  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Oficial' })).toBeVisible()
-  const tc = new URL(page.url()).searchParams.get('tc') ?? ''
-  expect(tc).not.toBe('')
-
-  // La pestaña Monedas con el panel de un tipo de cambio abierto.
-  await page.goto(`/configuracion/empresa?seccion=monedas&tc=${tc}`)
-  await expect(page).toHaveURL(`/configuracion/empresa/monedas?tc=${tc}`)
-  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Oficial' })).toBeVisible()
-
-  await page.goto('/configuracion/empresa?seccion=integraciones')
-  await expect(page).toHaveURL('/configuracion/empresa/integraciones')
-  await expect(page.getByRole('heading', { name: 'Integraciones', level: 1 })).toBeVisible()
-
-  // El panel de crear una moneda, sin `seccion`.
-  await page.goto('/configuracion/empresa?panel=nueva-moneda')
-  await expect(page).toHaveURL('/configuracion/empresa/monedas?panel=nueva-moneda')
-  await expect(page.getByRole('dialog')).toBeVisible()
 })

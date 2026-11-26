@@ -7,14 +7,13 @@ Orígenes de vehículos configurables (subasta/apibara o manual), su layout de c
 - Entra: `/configuracion/origenes` (la lista: sólo los orígenes que quien mira abre, tope 100 con aviso) —cada tarjeta es un enlace «Abrir <origen>» con su «⋯» como hermano: «Abrir» primero y, con `origenes.gestionar`, activar, desactivar y «Eliminar origen» (`accionesDeLaTarjeta()`; la confirmación va en `?panel=eliminar-origen&origen=<id>`, una por lista: `useEliminarOrigenDeLaLista()`)— y **la página del origen**,
   `/configuracion/origenes/[id]/fases|planilla|hoja|tarjeta|campos|categorias` (`src/app` arma el layout de `[id]` con las migas y el selector de origen, la
   cabecera y las pestañas con su ⚠; Fases, Planilla, Hoja y Tarjeta dibujan pantallas de `flujos` y `cotizaciones`, que este módulo no conoce). `/[id]` sin
-  pestaña va a la última que la persona abrió (`equipo`: «Última pestaña del origen»), y las rutas de antes (`/datos`, `/flujo`, `/formula*`, `/formulas*`,
-  `/tablas`, `?seccion=`) redirigen con 308 (`[id]/route.ts`, `[id]/urls-viejas/`). Las pantallas van partidas por pestaña: `pantallas/origen.ts` (la
+  pestaña va a la última que la persona abrió (`equipo`: «Última pestaña del origen»; `[id]/route.ts`, `[id]/pestana-de-entrada.ts`). Las pantallas van partidas por pestaña: `pantallas/origen.ts` (la
   cabecera: `BotonDeDatos` y `DrawerDeDatos`, los datos del origen en un drawer `?panel=datos` (`PANEL_DATOS_DEL_ORIGEN`), y `MenuDelOrigen`, el «⋯» con
   «Datos» en el celular, activar, desactivar y eliminar; sus líneas, `lineasDelOrigen(origen, { conDatos, gestiona })` de `entities/acciones-del-origen.ts`),
   `origen-campos.ts` y `origen-categorias.ts`; `origen-datos.ts` es el formulario de página del paso Datos de la puesta en marcha (comparte
   `FichaDelOrigen` con el drawer). Las pestañas viven bajo el grupo `[id]/(pestanas)/` (su layout dibuja el marco).
 - **La puesta en marcha** (glosario): `/configuracion/origenes/nuevo` (el alta, `origenes.gestionar`; `pantallas/origen-nuevo.ts`,
-  `FormularioDelOrigenNuevo`; `?panel=nuevo` responde 308 desde `next.config.ts`) y `/configuracion/origenes/[id]/puesta-en-marcha/<paso>` (`datos`,
+  `FormularioDelOrigenNuevo`) y `/configuracion/origenes/[id]/puesta-en-marcha/<paso>` (`datos`,
   `campos`, `flujo`, `formula`, `tarjeta`, `publicar`, `listo`; la raíz, un `route.ts` que lleva al paso que falta). `src/app` arma cada paso con el
   editor de su pestaña (`puesta-en-marcha/abrir.ts`: la sesión, el origen, los permisos y la fórmula de trabajo, una vez por pedido) y lo dibuja con
   `pantallas/puesta-en-marcha.ts` (`PasoAPaso`, `MenuDeLaPuestaEnMarcha`). Las reglas, puras y con test, en `entities/puesta-en-marcha.ts`:

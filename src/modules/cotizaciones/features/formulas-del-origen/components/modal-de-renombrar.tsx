@@ -19,7 +19,7 @@ type Props = {
   formula: Pick<FormulaDeLaLista, 'id' | 'nombre' | 'actualizadoEn'>
 }
 
-// «Renombrar «<nombre>»» (`?panel=renombrar-formula&formula=<id>`): con la versión que se leyó. Un nombre repetido se dice junto al campo; un PT409, con
+// «Renombrar «<nombre>»» (`?panel=renombrar-formula&cual=<id>`): con la versión que se leyó. Un nombre repetido se dice junto al campo; un PT409, con
 // «Recargar» (trae la versión de ahora y deja lo escrito).
 export function ModalDeRenombrar({ abierto, alCerrar, origenId, formula }: Props) {
   const cerrarYReleer = useCerrarYReleer()

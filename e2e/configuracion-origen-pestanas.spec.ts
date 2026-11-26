@@ -19,8 +19,7 @@ import { esperarDosCuadros } from './soporte/barra-de-filtros'
 import { literal, sql } from './soporte/sql'
 
 // La página del origen en pestañas planas (docs/UX.md › «La página del origen»): a todo el ancho, con las migas y el selector de origen, «Datos» en un
-// drawer (en el celular, dentro del «⋯»), el ⚠ con su tooltip y la entrada que recuerda la última pestaña de cada persona. Las URL viejas, una por una,
-// en `configuracion-origen-centro.spec.ts`; acá las dos que no son una pestaña de antes (`?editar=si` y `?seccion=datos`) y la parte de una fórmula.
+// drawer (en el celular, dentro del «⋯»), el ⚠ con su tooltip y la entrada que recuerda la última pestaña de cada persona.
 
 type Origen = { id: string; nombre: string }
 
@@ -133,24 +132,6 @@ test('E2E la entrada recuerda la última pestaña que cada persona abrió en cad
   expect((await redireccion(page, `/configuracion/origenes/${a.id}`)).a).toBe(
     `/configuracion/origenes/${a.id}/planilla`,
   )
-})
-
-test('E2E 308: «?seccion=datos», «?editar=si» y la parte de una fórmula de antes', async ({
-  page,
-}) => {
-  olvidarLasPestanas(duena)
-  await entrar(page, duena)
-  expect((await redireccion(page, `/configuracion/origenes/${a.id}?seccion=datos`)).a).toBe(
-    `/configuracion/origenes/${a.id}/fases?panel=datos`,
-  )
-  expect(
-    (await redireccion(page, `/configuracion/origenes/${a.id}/planilla?editar=si&fila=x`)).a,
-  ).toBe(`/configuracion/origenes/${a.id}/planilla?fila=x`)
-  const formula = formulaDeTrabajoDe(a.id)
-  expect(
-    (await redireccion(page, `/configuracion/origenes/${a.id}/formulas/${formula}/hoja?vista=412`))
-      .a,
-  ).toBe(`/configuracion/origenes/${a.id}/hoja?formula=${formula}&vista=412`)
 })
 
 test('E2E a todo el ancho, con las migas y el selector de origen, que conserva la pestaña si la abre', async ({

@@ -141,8 +141,8 @@ test('la fila lleva a la ficha, con el teléfono enmascarado y sin lo privado de
   await expect(principal).not.toContainText(t.telefonoDeCarlos)
   await expect(principal).toContainText('•')
 
-  // Un enlace viejo con un id que no es de nadie llega a la ficha, que dice lo mismo que con uno que ya no se ve.
-  await page.goto('/leads?lead=00000000-0000-4000-8000-000000000000')
+  // Un id que no es de nadie: la ficha dice lo mismo que con uno que ya no se ve.
+  await page.goto('/leads/00000000-0000-4000-8000-000000000000')
   await expect(page.getByText(NO_DISPONIBLE)).toBeVisible()
 })
 

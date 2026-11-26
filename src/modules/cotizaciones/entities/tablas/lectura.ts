@@ -28,14 +28,6 @@ export type TablaDeReferencia = {
   tapada: boolean
 }
 
-// De quién es una tabla y cuáles de los orígenes que mira quien pregunta tienen una propia con su clave: con eso se sabe quién recibe una compartida y quién la tapa.
-export type DondeSeUsaLaTabla = {
-  // El origen dueño de la tabla; nulo si es compartida.
-  propiaDe: string | null
-  // De una compartida: los orígenes candidatos que tienen una propia activa con su clave (no la reciben).
-  conPropia: readonly string[]
-}
-
 export const SIN_LEER_LAS_TABLAS = 'No pudimos leer las tablas de referencia.'
 export const SIN_LEER_LAS_FILAS = 'No pudimos leer las filas de la tabla.'
 export const TABLA_NO_ENCONTRADA = 'No encontramos esa tabla de referencia.'

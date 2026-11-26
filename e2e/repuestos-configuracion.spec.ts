@@ -15,8 +15,7 @@ import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 
 // Repuestos › Configuración (T514, `docs/UX.md` › «Repuestos (config)»): el ⚙ «Configurar» de `/repuestos` (en sus tres vistas, sólo con `repuestos.configurar`), la tira de pestañas
-// (Flujo, Cotizador, Catálogos, cada una su sub-ruta), el camino feliz de cada una, la raíz que abre Flujo, una prueba por cada redirección de las URLs viejas y el buscador de
-// Configuración, que sigue llevando aquí. El detalle de cada editor lo prueban `configuracion-repuestos-catalogos.spec.ts`, `configuracion-repuestos-cotizador.spec.ts` y
+// (Flujo, Cotizador, Catálogos, cada una su sub-ruta), el camino feliz de cada una, la raíz que abre Flujo y el buscador de Configuración, que lleva aquí. El detalle de cada editor lo prueban `configuracion-repuestos-catalogos.spec.ts`, `configuracion-repuestos-cotizador.spec.ts` y
 // `configuracion-flujos*.spec.ts`.
 test.describe.configure({ mode: 'serial' })
 
@@ -27,7 +26,6 @@ let duena = ''
 let lectora = ''
 let faseId = ''
 let faseNombre = ''
-let valorId = ''
 
 const limpiar = () => {
   sql(`delete from repuestos_catalogos where nombre like ${literal('%e2e T514%')}`)
@@ -61,9 +59,6 @@ test.beforeAll(async ({}, info) => {
   const [id = '', ...partes] = fase.split('|')
   faseId = id
   faseNombre = partes.join('|')
-  valorId = sql(
-    `select id from public.repuestos_catalogos where catalogo = 'tipo_pieza' order by orden, id limit 1`,
-  )
 })
 
 test.afterAll(async () => {
@@ -75,7 +70,7 @@ test.afterAll(async () => {
 const configurar = (page: Page) => page.getByRole('link', { name: 'Configurar los repuestos' })
 const tira = (page: Page) => page.getByRole('tablist')
 
-// La redirección (308) de una URL vieja: se pide sin seguirla y se mira a dónde manda, con su consulta.
+// La redirección (308) de la raíz de la configuración: se pide sin seguirla y se mira a dónde manda.
 async function redirige(page: Page, desde: string, hacia: string): Promise<void> {
   const respuesta = await page.request.get(desde, { maxRedirects: 0 })
   expect(respuesta.status(), `estado de ${desde}`).toBe(308)
@@ -118,10 +113,6 @@ test('E2E sin el permiso no hay ⚙ y cada pestaña dice «No tienes permiso»',
     await page.goto(`${RAIZ}/${pestana}`)
     await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
   }
-  // Las URLs viejas redirigen igual: la página de destino dice el permiso.
-  await page.goto('/configuracion/repuestos/cotizador')
-  await expect(page).toHaveURL(/\/repuestos\/configuracion\/cotizador$/)
-  await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
 })
 
 test('E2E Flujo: la raíz lo abre y una fase abre su panel', async ({ page }, info) => {
@@ -184,33 +175,10 @@ test('E2E Catálogos: crear y editar un valor, un toque abre «Editar» y el «�
   await capturar(page, info, 'catalogos')
 })
 
-test('E2E las URLs viejas de Configuración › Repuestos redirigen en un solo salto, con su consulta', async ({
+test('E2E la raíz de la configuración de los repuestos abre el flujo en un solo salto', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await redirige(page, '/configuracion/repuestos', `${RAIZ}/flujo`)
-  await redirige(page, '/configuracion/repuestos?seccion=cotizador', `${RAIZ}/cotizador`)
-  await redirige(
-    page,
-    '/configuracion/repuestos?panel=nuevo-valor&catalogo=tipo_pieza',
-    `${RAIZ}/catalogos?panel=nuevo-valor&catalogo=tipo_pieza`,
-  )
-  await redirige(
-    page,
-    `/configuracion/repuestos/flujo?fase=${faseId}&seccion=reglas`,
-    `${RAIZ}/flujo?fase=${faseId}&seccion=reglas`,
-  )
-  await redirige(
-    page,
-    '/configuracion/repuestos/cotizador?panel=caja',
-    `${RAIZ}/cotizador?panel=caja`,
-  )
-  await redirige(
-    page,
-    `/configuracion/repuestos/catalogos?panel=editar-valor&valor=${valorId}`,
-    `${RAIZ}/catalogos?panel=editar-valor&valor=${valorId}`,
-  )
-  await redirige(page, '/configuracion/flujos?ambito=repuestos', `${RAIZ}/flujo`)
   await redirige(page, RAIZ, `${RAIZ}/flujo`)
 })
 

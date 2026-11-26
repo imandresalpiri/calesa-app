@@ -20,14 +20,14 @@ type Props = {
   alCerrar: () => void
 }
 
-// A dónde lleva «Abrir en…»: la pantalla de cada módulo, donde se aplican sus permisos (aquí no se decide nada). Un lead, a su ficha.
+// A dónde lleva «Abrir en…»: la pantalla de cada módulo, donde se aplican sus permisos (aquí no se decide nada). Un lead o un vehículo, a su ficha.
 const SALIDA: Record<
   'lead' | 'vehiculo' | 'cotizacion',
   { ruta: (id: string) => string; texto: string }
 > = {
   lead: { ruta: (id) => `${RUTAS.leads}/${encodeURIComponent(id)}`, texto: 'Abrir en Leads' },
   vehiculo: {
-    ruta: (id) => `${RUTAS.vehiculos}?vehiculo=${encodeURIComponent(id)}`,
+    ruta: (id) => `${RUTAS.vehiculos}/${encodeURIComponent(id)}`,
     texto: 'Abrir en Vehículos',
   },
   cotizacion: {

@@ -8,7 +8,7 @@ import { irAlBloque, tituloDe } from './ir-al-bloque'
 // Cuánto se vigila la llegada de lo de arriba (bloques que llegan tarde y crecen) después de llegar al bloque.
 const VIGILAR_MS = 4000
 
-// Al llegar a la ficha con un bloque pedido (`?seccion=` de un enlace viejo, un aviso, la bandeja), o cuando el servidor cambia el
+// Al llegar a la ficha con un bloque pedido (`?seccion=` de un enlace, un aviso, la bandeja), o cuando el servidor cambia el
 // pedido, lleva la página a ese bloque (sin animación) y le da el foco a su título. Con un modal de la URL abierto (`?panel=`) sólo
 // desplaza: el foco es del modal. Si un bloque de arriba o el propio crece mientras llega lo suyo (pueden llegar varios, cada uno a su hora), lo vuelve a
 // llevar mientras se vigila, salvo que la persona ya se haya movido (rueda, toque, clic o tecla): nunca le pelea el desplazamiento. Si el bloque todavía muestra su esqueleto (sin

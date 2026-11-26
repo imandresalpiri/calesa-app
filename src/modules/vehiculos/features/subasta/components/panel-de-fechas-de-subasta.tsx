@@ -21,7 +21,7 @@ type Props = {
   ahora: string
 }
 
-// El modal de «Editar fechas de subasta» (`?panel=fechas-de-subasta`), que abre el «⋯» del vehículo en su ficha y también la URL sola (recargar, el enlace viejo).
+// El modal de «Editar fechas de subasta» (`?panel=fechas-de-subasta`), que abre el «⋯» del vehículo en su ficha y también la URL sola (recargar, un enlace).
 // Cada apertura empieza de cero (la `key` cambia al pasar de cerrado a abierto).
 export function PanelDeFechasDeSubasta({ vehiculoId, actualizadoEn, fechas, ahora }: Props) {
   const panel = usePanelPorUrl(PANEL_DE_FECHAS_DE_SUBASTA)

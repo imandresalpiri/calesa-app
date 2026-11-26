@@ -20,7 +20,7 @@ import { agregarCampo } from './soporte/vehiculos'
 
 // @sin-celular-archivo: Configuración › Orígenes no se prueba en celular; pruebas sólo en lo clave (la persona, 2026-11-08)
 
-// Los datos clave de un origen en «Campos»: el enlace viejo `?seccion=campos` lleva a la sub-ruta; un origen manual nace con los 4 de
+// Los datos clave de un origen en «Campos»: un origen manual nace con los 4 de
 // fábrica (Año, Kilometraje, VIN, Categoría) y «Hacer dato clave» de un campo se apaga con el tope a la vista; quitar uno, hacer dato clave
 // el campo y subirlo se guardan al instante, sobreviven a recargar y quedan así en la base; desactivar el campo lo saca. El permiso, la versión, los
 // topes y la limpieza los prueba `supabase/tests/areas/origenes/datos-clave.sql`; la carrera, `carreras.mjs`.
@@ -70,8 +70,8 @@ test('E2E escritorio: elegir, ordenar y quitar los datos clave de un origen se g
 }) => {
   await entrar(page, duena, { fresco: true })
 
-  // El enlace de antes lleva a la sub-ruta; el origen nació con los 4 de fábrica de un manual.
-  await page.goto(`/configuracion/origenes/${origen.id}?seccion=campos`)
+  // El origen nació con los 4 de fábrica de un manual.
+  await page.goto(`/configuracion/origenes/${origen.id}/campos`)
   await expect(page).toHaveURL(new RegExp(`/configuracion/origenes/${origen.id}/campos$`))
   await expect(page.getByRole('heading', { name: 'Datos clave (4 de 4)', level: 2 })).toBeVisible()
   expect(await casillasEnOrden(page)).toEqual(['Año', 'Kilometraje', 'VIN', 'Categoría'])

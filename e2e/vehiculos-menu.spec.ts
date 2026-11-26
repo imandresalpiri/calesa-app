@@ -225,14 +225,6 @@ test('el «Publicar» de la fila abre el mismo panel; «Sacar de la web» sigue 
   await expect(page).toHaveURL(new RegExp(`panel=vitrina&para=${t.id}`))
 })
 
-test('un enlace viejo al panel chico de publicar abre el panel completo', async ({ page }) => {
-  await entrar(page, t.terreno.duena)
-  await alInventario(page, t.terreno.corea.id, `&panel=vitrina-rapida&para=${t.id}`)
-  await expect(page).toHaveURL(/panel=vitrina&/)
-  await expect(page).not.toHaveURL(/vitrina-rapida/)
-  await expect(page.getByRole('dialog', { name: 'Publicar en la web' })).toBeVisible()
-})
-
 test('«Editar imágenes» abre su drawer; la portada nueva se ve en la lista al cerrar', async ({
   page,
 }, info) => {

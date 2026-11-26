@@ -225,6 +225,10 @@ const DATOS_DE_PRUEBA = {
   'areas/origenes/datos-clave.sql': {
     _casos_de_datos_clave: 'src/modules/origenes/entities/casos-de-datos-clave.json',
   },
+  // Migración de datos (se borra al aplastar): las vistas y las pestañas guardadas con el nombre de antes de una ruta o un parámetro mudado.
+  'areas/equipo/rutas-viejas-reescritas.sql': {
+    _migracion_de_rutas: { ruta: migracionPorContenido('-- reescribir_rutas_viejas'), texto: true },
+  },
   // Una migración de datos que una prueba vuelve a ejecutar va aquí como `{ ruta: migracionPorContenido('<texto>'), texto: true }`.
 }
 

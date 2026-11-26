@@ -45,18 +45,6 @@ export {
 } from './features/importar/lecturas'
 // Exportar a CSV (parte 8): lo llama el route handler de `src/app/(app)/leads/exportar`.
 export { exportarLeadsEnCsv, type SalidaDeExportacion } from './features/exportar/lecturas'
-// Configuración › Leads es una página de tarjetas: sus paneles (`?panel=`), por familia, para que `src/app` redirija las sub-rutas viejas.
-export {
-  CLAVES_DE_LAS_FAMILIAS,
-  FAMILIAS_DE_LA_CONFIGURACION,
-  PANEL_DE_NUMEROS_REPETIDOS,
-  PANEL_DE_TELEFONOS,
-  destinoDeLaSeccionVieja,
-  destinoDeLaSubrutaVieja,
-  esClaveDeFamilia,
-  familiaDelPanel,
-  type ClaveDeFamilia,
-} from './entities/paneles-de-la-configuracion'
 // La clave del panel de exportar (`/leads?panel=exportar`): «Mis leads» de `/datos` enlaza a ese diálogo sin repetir el texto.
 export { PANEL_EXPORTAR } from './entities/exportacion'
 // Exportar todo (`datos`, 9.05-2): las celdas de un lead y sus catálogos, para que el archivo de «todo» diga cada valor como el propio
@@ -93,8 +81,6 @@ export { puedeAbrirLaPapelera, puedeEnviarLead, puedePurgarLeads } from './entit
 // Cambiar el principal y los extras: con el lead en la cartera, como editarlo.
 export { puedeCambiarTelefonoDeLead, puedeEditarTelefonosExtra } from './entities/telefonos'
 export { CLAVE_DE_SECCION, seccionDeLead } from './entities/ficha'
-// `/leads?lead=<id>` de cuando la lista tenía resumen: a dónde redirige `/leads` (la ficha, con lo que pedía).
-export { destinoDelEnlaceViejo } from './entities/enlace-viejo-del-resumen'
 // «Cotizar lead» y «Ver actividad» del «⋯» de la lista y del kanban: `src/app` arma sus rutas una vez por página con el marcador.
 export { MARCADOR_DE_LEAD, type RutasDelMenuDeLead } from './entities/ruta-por-lead'
 // El bloque «Seguimiento» (`pantallas/ficha`): lo lee el servidor con la sesión de quien mira y va detrás de

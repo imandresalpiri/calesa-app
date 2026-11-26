@@ -27,7 +27,6 @@ import {
 import { BloquesDeLaFicha } from './bloques-de-la-ficha'
 import { LateralDeLaFicha } from './lateral-de-la-ficha'
 import { LlegarAlBloque } from './llegar-al-bloque'
-import { redirigirConPermisos, redirigirSinLeer } from './llegada-de-la-ficha'
 
 export const metadata: Metadata = { title: 'Vehículo' }
 
@@ -153,20 +152,17 @@ function ResumenDeLaFicha({
 }
 
 // La ficha de un vehículo en dos columnas (docs/UX.md › Vehículo): a la izquierda lo que lo identifica (cabecera, subasta y costo, y datos
-// principales); a la derecha, el índice y sólo lo de ventas que quien mira ve (`bloques.ts`): cotizaciones, relacionados y actividad. `?seccion=` de un bloque y los paneles de «Relacionados» llevan a su bloque; los de un bloque que se fue redirigen (`llegada-de-la-ficha.ts`:
-// `fotos`, `ficha` y `vitrina` antes de leer, `documentos`, `fase` y `repuestos` con el permiso de su página); `?editar=`, `?panel=vitrina`,
+// principales); a la derecha, el índice y sólo lo de ventas que quien mira ve (`bloques.ts`): cotizaciones, relacionados y actividad. `?seccion=` de un bloque y los paneles de «Relacionados» llevan a su bloque (otra `?seccion=` no hace nada); `?editar=`, `?panel=vitrina`,
 // `?panel=fechas-de-subasta`, `?ver=ficha` y `?visor=` abren lo suyo.
 export default async function PaginaVehiculo({
   params,
   searchParams,
 }: PageProps<'/vehiculos/[id]'>) {
   const [sesion, { id }, parametros] = await Promise.all([requerirSesion(), params, searchParams])
-  redirigirSinLeer(id, parametros)
   const { encontrado, origen } = await vehiculoYOrigen(id, sesion.permisos)
   if (!encontrado || !origen) {
     return <NoDisponible />
   }
-  await redirigirConPermisos(encontrado.id, origen.id, sesion.permisos, parametros)
   const lectura = await lecturasDeLaFicha(sesion, encontrado, origen, parametros)
   const { suLayout, editable, fase, avisos, previa, publicar } = lectura
   const visibles = bloquesDeQuienMira(sesion.permisos, origen.id)

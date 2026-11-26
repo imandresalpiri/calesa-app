@@ -51,8 +51,7 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
 - **Cadena:** `/logistica` dibuja la bandeja del día y, al lado, la cadena como gráfica (un Server Component sin JS propio: `GraficaDeLaCadena`, una `<ol>` con un punto por fase, su cifra y su
   barra, con «demorados» y «trabados» dichos con texto). Cada fase es un enlace a `/logistica/fase/[fase]` (`[fase]` = el id o `sin_fase`): la lista de a 50 por cursor `(fase_desde, id)`, con
   `FilterShell`, búsqueda y la selección del lote. **Un vehículo se abre siempre en su página** (`/logistica/vehiculo/[id]`), nunca en un drawer: el nombre es un `EnlaceALaUnidad` y un clic
-  en el resto de la fila va ahí (`useIrALaUnidad`). La fila dice «En subasta» o «Sin resolver» cuando la subasta manda (`situacion` de `vehiculos`, la calcula la base). Las URL del kanban
-  viejo (`?vehiculo=`, `?fase=`, `?demoradas=si`, `?por_aprobar=si`) las redirige `src/app/(app)/logistica/url-vieja.ts`. «Dónde está» es un formulario (`?q=`) bajo las pestañas de origen.
+  en el resto de la fila va ahí (`useIrALaUnidad`). La fila dice «En subasta» o «Sin resolver» cuando la subasta manda (`situacion` de `vehiculos`, la calcula la base). «Dónde está» es un formulario (`?q=`) bajo las pestañas de origen.
 - **Bandeja del día** (área `alertas`, `/logistica`): siete grupos en este orden —Demorados, Trabados, Documentos por aprobar, Documentos por vencer, Llegadas esperadas, Salen hoy,
   Subastas sin resolver— que lee `logistica_bandeja_grupo` (una lectura por grupo, en paralelo, cada una con su error aparte; un grupo vacío no se dibuja y todos vacíos dicen «Nada pendiente
   hoy»). La portada trae las primeras 5 de cada uno con el conteo hasta 100 y «Ver todos» → `/logistica/bandeja/[grupo]` (de a 20 por cursor, `leerCursor`). La acción de la fila (`features/alertas/accion-de-la-fila.ts`)
@@ -104,7 +103,7 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   importa `vehiculos`).
 - **Área `mover`, las acciones de «Qué falta»** fuera del panel: `LugarDeLasAcciones.aMano` (entidad, con test) pasa a «Abrir la unidad» →
   `rutaDeLaUnidad(id, hueco)` lo que no está a mano; hoy ningún lugar lo usa (la unidad y los drawers miran el DOM con `useAccionesDeQueFalta`). La ficha
-  del vehículo no dibuja «Qué falta»: enlaza a la unidad («Ver en logística») y `?seccion=fase|documentos` redirige ahí.
+  del vehículo no dibuja «Qué falta»: enlaza a la unidad («Ver en logística»).
 - **Área `mover`, notas e historial** (la zona lateral de la página; plegados en un drawer y en el celular). Se leen con la sesión de quien mira de a `TAMANO_DE_VER_MAS` por cursor `(creado_en, id)` hasta
   `TOPE_DE_LO_CARGADO`; un ítem por `repuesto_id`. «Ir a una fecha» usa `entities/mover/hasta-de-un-dia.ts` (copia de la de `cotizaciones`). Escriben
   `crearNota` (`vehiculo` xor `repuesto`; `logistica.ver` del origen o `repuestos.ver` para un ítem; autor del servidor) y `editarNota`, directo bajo la RLS
@@ -119,7 +118,7 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
 - **Área `documentos`.** `entities/documentos/`: `admision.ts` (qué entra a la bandeja, fechas por modo de vencimiento), vencimiento («vence hoy» aún vale),
   qué cuenta para un requisito (aprobado, vivo, sin vencer, mime **del requisito**, entre min y max: repite `evaluar_requisitos` sólo para «N de M») y
   `revision.ts` (`quePuedeHacer`: cada acción oculta, habilitada o apagada con motivo). `pantallas/documentos-unidad.ts` declara «Documentos» (`logistica.ver`,
-  sin regla); `?hueco=documentos` (`rutaDeLaUnidad(id, 'documentos')`) lo abre de entrada, y a eso redirige `?seccion=documentos` de la ficha del vehículo. El navegador lee con la sesión de quien mira (vivos con tope 50, URL firmada de
+  sin regla); `?hueco=documentos` (`rutaDeLaUnidad(id, 'documentos')`) lo abre de entrada, y a eso lleva «Ver los documentos» del aviso del vehículo. El navegador lee con la sesión de quien mira (vivos con tope 50, URL firmada de
   60 s del bucket privado `documentos`).
   **Subir:** en las zonas de la página, un botón «Subir documentos» abre `DrawerParaSubir` en `?subir=documentos` (clave propia: `?panel=` cerraría el drawer del ítem; `useEnZonas()` decide; sin `logistica.documentos.subir`, botón apagado con su motivo escrito; la zona de pestañas abre en Documentos con `?subir=` para que el hueco esté montado); se cierra solo al terminar sin fallos, con fallos queda abierto con «Reintentar los N que faltan». En bloques (celular, drawers, ítem) la bandeja sigue en línea. Con `&tipo_documento=<id>` (lo pone «Subir» de «Qué falta») la bandeja vacía arranca con ese tipo (`useBandeja(tipos, tipoPedido)`: nunca pisa lo elegido con archivos puestos) y un envío sin fallos lo quita; cada grupo de un tipo lleva `data-tipo-de-documento-id` («Revisar» lo enfoca). Las claves compartidas entre áreas (`CLAVE_DE_SUBIR`, `CLAVE_DEL_TIPO_A_SUBIR`, las del formulario de un pago y los atributos `data-tipo-de-documento-id` y `data-clave-de-dato`) viven en el núcleo (`entities/nucleo/paneles-de-la-unidad.ts`). La bandeja queda **sin subir** hasta enviar (`useBandeja`: formato del tipo, 25 MB, repetido por hash, hasta 20; aviso desde 10 MB); se sube por
   hash (`<unidad>/<sha>.<ext>`) y recién entonces `registrarDocumentos` (`documento_registrar`, id del intento por archivo); cerrar con bandeja pregunta.

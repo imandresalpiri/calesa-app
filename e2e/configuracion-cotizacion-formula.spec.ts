@@ -93,8 +93,7 @@ test('quien sólo configura la fórmula de un origen entra por el hub y el menú
   await enLaPestana(page, 'Planilla')
   await expect(page.getByRole('heading', { name: 'Publicada: versión 26' })).toBeVisible()
   // Los niveles tampoco se abren escribiendo la URL: la matriz de Roles dice que falta el permiso.
-  await page.goto('/configuracion/catalogos/niveles')
-  await expect(page).toHaveURL(/\/configuracion\/roles\?bloque=cotizaciones$/)
+  await page.goto('/configuracion/roles?bloque=cotizaciones')
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
   await expect(page.getByText('Niveles de acceso', { exact: true })).toHaveCount(0)
   // Un origen que no es suyo no se abre.

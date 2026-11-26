@@ -4,7 +4,7 @@ import {
   PARAMETRO_DEL_BLOQUE,
   RUTAS,
   conVuelta,
-  rutaDeConfiguracionDeCotizacion,
+  consultaDelDrawerDeLasTablas,
   rutaDeLaFormula,
   rutaDelOrigen,
   rutaDeParteDelOrigen,
@@ -12,7 +12,6 @@ import {
   PARTES_DE_LA_FORMULA,
   PASOS_DE_LA_PUESTA_EN_MARCHA,
   PARTES_DEL_ORIGEN,
-  PESTANAS_DE_COTIZACION,
   decidirAcceso,
   destinoTrasIngresar,
   esRutaPublica,
@@ -209,29 +208,23 @@ describe('conVuelta', () => {
   })
 })
 
-describe('rutaDeConfiguracionDeCotizacion', () => {
+describe('consultaDelDrawerDeLasTablas', () => {
   const O = '11111111-1111-4111-8111-111111111111'
 
-  it('lleva a cada pestaña del cotizador en la página del origen, en su orden; las tablas, a su drawer en la planilla', () => {
-    expect(PESTANAS_DE_COTIZACION.map((p) => rutaDeConfiguracionDeCotizacion(O, p))).toEqual([
-      `/configuracion/origenes/${O}/planilla`,
-      `/configuracion/origenes/${O}/hoja`,
-      `/configuracion/origenes/${O}/tarjeta`,
+  it('abre el drawer de las tablas en la planilla del origen', () => {
+    expect(rutaDeParteDelOrigen(O, 'planilla', consultaDelDrawerDeLasTablas())).toBe(
       `/configuracion/origenes/${O}/planilla?panel=tablas`,
-    ])
-  })
-
-  it('el panel de una tabla pasa a `accion`; codifica la consulta y el id', () => {
-    expect(
-      rutaDeConfiguracionDeCotizacion(O, 'tablas', { tabla: 't 1', panel: 'publicar-tabla' }),
-    ).toBe(`/configuracion/origenes/${O}/planilla?panel=tablas&tabla=t+1&accion=publicar-tabla`)
-    expect(rutaDeConfiguracionDeCotizacion('a/b', 'formula')).toBe(
-      '/configuracion/origenes/a%2Fb/planilla',
     )
   })
 
-  it('sin consulta (o vacía) no lleva «?»', () => {
-    expect(rutaDeConfiguracionDeCotizacion(O, 'hoja', {})).toBe(`/configuracion/origenes/${O}/hoja`)
+  it('el panel de una tabla pasa a `accion` y la consulta se codifica', () => {
+    expect(
+      rutaDeParteDelOrigen(
+        O,
+        'planilla',
+        consultaDelDrawerDeLasTablas({ tabla: 't 1', panel: 'publicar-tabla' }),
+      ),
+    ).toBe(`/configuracion/origenes/${O}/planilla?panel=tablas&tabla=t+1&accion=publicar-tabla`)
   })
 })
 
@@ -315,21 +308,19 @@ describe('Cotizaciones en Roles', () => {
 })
 
 describe('Catálogos', () => {
-  it('los de logística viven en Logística; las tablas compartidas son una URL vieja bajo /configuracion/catalogos que redirige', () => {
+  it('los de logística viven en Logística', () => {
     expect([
       RUTAS.configuracionDeLogistica,
       RUTAS.puertosDeLogistica,
       RUTAS.navierasDeLogistica,
       RUTAS.categoriasDeGastoDeLogistica,
       RUTAS.tiposDeDocumento,
-      RUTAS.tablasCompartidas,
     ]).toEqual([
       '/logistica/configuracion',
       '/logistica/configuracion/puertos',
       '/logistica/configuracion/navieras',
       '/logistica/configuracion/categorias-de-gasto',
       '/logistica/configuracion/tipos-de-documento',
-      '/configuracion/catalogos/tablas',
     ])
   })
 })

@@ -67,10 +67,6 @@ test('crear, publicar, ordenar, despublicar y eliminar: lo que ve la web públic
   await expect(page).toHaveURL(/\/configuracion\/web\/faqs$/)
   await expect(page.getByRole('heading', { name: 'Preguntas frecuentes', level: 1 })).toBeVisible()
 
-  // La URL de cuando eran pestañas sigue llegando a su sub-ruta.
-  await page.goto('/configuracion/web?seccion=faqs')
-  await expect(page).toHaveURL(/\/configuracion\/web\/faqs$/)
-
   // Una pregunta nueva nace sin publicar: la lista lo dice y la web pública no la trae.
   await crear(page, primera, 'Sí, un año.', 'Garantía')
   await expect(page.getByRole('button', { name: `Abrir ${primera}`, exact: true })).toBeVisible()

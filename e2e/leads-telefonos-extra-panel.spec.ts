@@ -96,7 +96,7 @@ test('en el panel de edición agrega, quita y deshace un extra, y guardar el for
   expect(await extrasDeLead(lead.id)).toHaveLength(1)
 })
 
-test('la ficha sólo lee los teléfonos: «Editar» abre el panel y ahí se agrega un extra; el enlace viejo ?lead=&extra=nuevo abre el panel', async ({
+test('la ficha sólo lee los teléfonos: «Editar» abre el panel y ahí se agrega un extra; `?panel=editar-lead&extra=nuevo` abre el panel', async ({
   page,
 }, info) => {
   await entrar(page, t.personas.berta)
@@ -126,9 +126,8 @@ test('la ficha sólo lee los teléfonos: «Editar» abre el panel y ahí se agre
   await expect(panelDeEdicion(page)).toBeHidden()
   await expect((await abrirVerMas(page)).getByText('Oficina', { exact: true })).toBeVisible()
 
-  // El enlace de antes (`/leads?lead=<id>&extra=nuevo`) redirige a la ficha con el panel de edición y el modal del extra.
-  await page.goto(`/leads?lead=${antes}&extra=nuevo`)
-  await expect(page).toHaveURL(new RegExp(`/leads/${antes}\\?panel=editar-lead&extra=nuevo$`))
+  // La URL del panel de edición con el modal del extra los abre a los dos.
+  await irAFicha(page, antes, '?panel=editar-lead&extra=nuevo')
   // El modal del extra va encima del panel (que mientras tanto queda fuera del árbol de accesibilidad): Esc lo cierra y queda el panel.
   await expect(modalDeExtra(page)).toBeVisible()
   await page.keyboard.press('Escape')

@@ -10,7 +10,6 @@ import {
 import {
   RELLENO,
   borrarTerrenoDeSubasta,
-  guardarVistaVieja,
   sembrarTerrenoDeSubasta,
   titulosDeSubasta,
   type TerrenoDeSubasta,
@@ -23,7 +22,7 @@ import { abrirVistaYOpciones } from './soporte/vista-y-opciones'
 
 // «Subasta» y «Fase», los filtros del inventario (docs/UX.md › «Vehículos»): «Subasta» es una a la vez (cuándo cierra, las vivas, sin resolver o no ganadas) y sólo
 // existe en un origen de subasta, con el orden «Cierre más próximo» (el de siempre cuando «Subasta» tiene valor); «Fase» son las fases del origen y «Sin fase».
-// Viven en la URL, se guardan en una vista, el `?situacion=` viejo redirige con 308 y el atajo «Sin resolver» pone su filtro. La equivalencia de las dos copias
+// Viven en la URL, se guardan en una vista y el atajo «Sin resolver» pone su filtro. La equivalencia de las dos copias
 // de cada condición la ata `vehiculos-inventario-postgrest.spec.ts`; el plan, `db:medir:volumen`. Terreno propio por SQL de servicio, borrado al empezar y al terminar.
 test.describe.configure({ mode: 'serial' })
 
@@ -207,46 +206,7 @@ test('E2E subasta filtro · «Cierre más próximo» ordena por tramos y pagina 
   await expect(page.getByText('Cierre más próximo primero')).toBeVisible()
 })
 
-const REDIRECCIONES: {
-  vieja: (t: TerrenoDeSubasta) => string
-  nuevas: (t: TerrenoDeSubasta) => Record<string, string>
-}[] = [
-  { vieja: () => 'en_subasta', nuevas: () => ({ subasta: 'vivas' }) },
-  { vieja: () => 'sin_resolver', nuevas: () => ({ subasta: 'sin_resolver' }) },
-  { vieja: () => 'no_ganada', nuevas: () => ({ subasta: 'no_ganadas' }) },
-  {
-    vieja: (t) => `${t.fases.comprado},ninguna`,
-    nuevas: (t) => ({ fase: `${t.fases.comprado},ninguna` }),
-  },
-]
-
-for (const { vieja, nuevas } of REDIRECCIONES) {
-  test(`E2E subasta filtro · el enlace viejo con «situacion» redirige con 308 · ${vieja({ origen: '', otro: '', fases: { enSubasta: '', comprado: '<fase>' } })}`, async ({
-    page,
-  }) => {
-    await entrar(page, correo)
-    const consulta = new URLSearchParams({
-      origen: terreno.origen,
-      situacion: vieja(terreno),
-      q: 'E2E',
-    })
-    const respuesta = await page.request.get(`/vehiculos?${consulta.toString()}`, {
-      maxRedirects: 0,
-    })
-    expect(respuesta.status()).toBe(308)
-    const destino = new URL(respuesta.headers()['location'] ?? '', 'http://x')
-    expect(destino.pathname).toBe('/vehiculos')
-    expect(Object.fromEntries(destino.searchParams)).toEqual({
-      origen: terreno.origen,
-      q: 'E2E',
-      ...nuevas(terreno),
-    })
-  })
-}
-
-test('E2E subasta filtro · una vista guardada vuelve a poner «Subasta», y una vieja se lee traducida', async ({
-  page,
-}) => {
+test('E2E subasta filtro · una vista guardada vuelve a poner «Subasta»', async ({ page }) => {
   await entrar(page, correo)
   await irA(page, '&subasta=no_ganadas&anio.min=2018')
   await exigirLista(page, ['noGanada'])
@@ -261,20 +221,15 @@ test('E2E subasta filtro · una vista guardada vuelve a poner «Subasta», y una
     },
   ])
 
-  // La que guardó el filtro de antes: se aplica con las claves nuevas y es «la de ahora».
-  await guardarVistaVieja(correo, 'Perdidas de antes', {
-    origen: terreno.origen,
-    situacion: 'no_ganada',
-  })
+  // Desde otro origen, la vista vuelve a su origen con «Subasta» puesta y es «la de ahora».
   await page.goto(`/vehiculos?origen=${terreno.otro}`)
   await abrirVistaYOpciones(page)
-  await page.getByRole('button', { name: 'Perdidas de antes', exact: true }).click()
+  await page.getByRole('button', { name: 'Las que perdimos', exact: true }).click()
   await expect(page).toHaveURL(/subasta=no_ganadas/)
-  await expect(page).not.toHaveURL(/situacion=/)
   await exigirLista(page, ['noGanada'])
   await expect(chips(page).getByText('Subasta: No ganadas')).toBeVisible()
   await abrirVistaYOpciones(page)
-  const actual = page.getByRole('button', { name: /^Perdidas de antes/ })
+  const actual = page.getByRole('button', { name: /^Las que perdimos/ })
   await expect(actual).toHaveAttribute('aria-current', 'true')
   await expect(actual).toContainText('la de ahora')
 })

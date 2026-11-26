@@ -329,8 +329,7 @@ Lo puro en `entities/formula/`: nunca lanza, no toca lo que recibe y es lineal c
   copia de trabajo que tiene la sesión (`components/sesion/`, `useEditorDeLaFormula` una vez): compila al aplicar con `compilarFila()` (sin
   `validarFormula()` si la fila da error), valida la fórmula de trabajo tras cada cambio (el rechazo, en su fila, en la cabecera de su banda o
   arriba) y la guarda con `formula_guardar_borrador()`. La sesión se vuelve a montar con «Recargar» o si la versión cambia por algo que no hizo
-  ella (`otraSesion()`: publicar, descartar, revertir); guardar sobre la publicada no la vuelve a montar. No hay otro editor:
-  `?panel=editar-formula` (y `?panel=plantillas-de-v1`, en planilla, hoja o tarjeta) responde 308 a la misma parte sin ese panel (`destinoSinLosPanelesQueYaNoExisten()`).
+  ella (`otraSesion()`: publicar, descartar, revertir); guardar sobre la publicada no la vuelve a montar. No hay otro editor.
 - **Vista previa** (`calcularLaVistaPrevia()`): `evaluar()` con `entradaDePrueba()` (datos en 0, banderas apagadas, variante por defecto,
   sin overrides) y los tipos de cambio y tablas que lee el navegador (`consulta-del-terreno-de-prueba.ts`: la del origen gana a la
   compartida, páginas de 1.000 filas); la congelada manda. La unidad de ejemplo de la planilla calcula sobre ella.
@@ -1341,7 +1340,7 @@ objetos en el bucket. Lo que evita volver a dibujarla es la caché del navegador
   entrega con la `ETag` y `Cache-Control: private, no-cache`. Con «Ver como» (la perspectiva cambia los permisos, no la persona), sin el primer recálculo
   (la tarjeta saldría sólo con el total) o incompleta (falló leer el cliente, el vehículo o el asesor, o no llegó el logo o la foto que la tarjeta dibuja:
   `ImagenArmada.completa`), `no-store` y sin `ETag`: la huella no ve esos fallos y la ETag dejaría fija la imagen a medias. Si armarla falla, 500 en texto con `no-store`: nunca una vieja. `Server-Timing` dice
-  cuánto tardaron la huella y el armado. `/cotizaciones/<id>/portada` responde 308 a ésta con su consulta.
+  cuánto tardaron la huella y el armado.
 - **En pantalla**, `<ImagenDeLaTarjeta>` (`pantallas/tarjeta-imagen.ts`; en el resumen del listado, por el hueco `Imagen`): la imagen con
   `object-contain` en un marco de la proporción que le dan (15:8 por omisión), pedida recién a la vista y con turno en la cola de la página (a lo sumo
   cuatro a la vez: `useCargaDeLaImagen()`, `crearCola()`); mientras espera o carga, un recuadro del mismo tamaño con el

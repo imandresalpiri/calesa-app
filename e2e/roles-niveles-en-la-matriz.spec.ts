@@ -14,8 +14,6 @@ import {
   borrarNivelesDePrueba,
   filaDeNivel,
   masAccionesDe,
-  modalDeNivel,
-  nivelEnLaBase,
   sembrarNivel,
 } from './soporte/niveles'
 import { literal, sql } from './soporte/sql'
@@ -85,34 +83,12 @@ test('«Quién crea y quién ve» entra cerrado, se abre y escribe con las actio
     .toContain('cotizaciones.crear')
 })
 
-test('las URLs de Catálogos › Niveles abren el modal en Roles, con el resto de la consulta', async ({
-  page,
-}) => {
-  await entrar(page, duena)
-  await page.goto('/configuracion/catalogos/niveles?panel=nuevo-nivel')
-  await expect(page).toHaveURL(/\/configuracion\/roles\?.*bloque=cotizaciones/)
-  await expect(page).toHaveURL(/panel=nuevo-nivel/)
-  await expect(modalDeNivel(page, 'Nuevo nivel de acceso')).toBeVisible()
-})
-
-test('la URL de renombrar un nivel de Catálogos abre su modal en Roles', async ({ page }) => {
-  const id = nivelEnLaBase(nombre('Gerencia'))?.id ?? ''
-  await entrar(page, duena)
-  await page.goto(`/configuracion/catalogos/niveles?panel=renombrar-nivel&nivel=${id}`)
-  await expect(page).toHaveURL(/\/configuracion\/roles\?.*bloque=cotizaciones/)
-  const modal = modalDeNivel(page, 'Renombrar nivel')
-  await expect(modal).toBeVisible()
-  await expect(modal.getByLabel('Nombre')).toHaveValue(nombre('Gerencia'))
-})
-
-test('la URL de «Quién crea y quién ve» de Catálogos lleva a Roles con el resumen abierto en ese origen', async ({
+test('Roles con el bloque de cotizaciones y un origen abre el resumen de «Quién crea y quién ve» en ese origen', async ({
   page,
 }) => {
   const origen = sql(`select ${ORIGEN}`)
   await entrar(page, duena)
-  await page.goto(`/configuracion/catalogos/quien-crea-y-quien-ve?origen=${origen}`)
-  await expect(page).toHaveURL(/\/configuracion\/roles\?.*bloque=cotizaciones/)
-  await expect(page).toHaveURL(new RegExp(`origen=${origen}`))
+  await page.goto(`/configuracion/roles?bloque=cotizaciones&origen=${origen}`)
   await expect(
     page.getByRole('button', { name: 'Quién crea y quién ve', exact: true }),
   ).toHaveAttribute('aria-expanded', 'true')

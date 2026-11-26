@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 // El proyecto vivo de un vehículo (8.09-4, C1): lo lee `infra/proyectos/resumen.ts` (`proyectoDe`) para el enlace corto de la ficha del vehículo y para
-// redirigir su `?seccion=repuestos` al proyecto.
+// «Ver el proyecto de repuestos» de sus avisos.
 
 export type ProyectoDeVehiculo = {
   id: string

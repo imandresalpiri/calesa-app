@@ -9,9 +9,8 @@ import {
 import { agregarItems, tarjetaDe } from './soporte/repuestos-tarjetas'
 import { literal, sql } from './soporte/sql'
 
-// El proyecto de repuestos de un vehículo desde su ficha y eliminar un proyecto vacío. Sin proyecto, `?seccion=repuestos` (el enlace viejo) se queda en la ficha; el
-// panel «Nuevo proyecto» con el vehículo lo crea ya vinculado, y después la cabecera de la ficha dice «Repuestos · Proyecto #N» y `?seccion=repuestos` redirige al
-// proyecto. Un proyecto sin ítems se elimina de una vez y «Deshacer» lo devuelve; con un ítem ya no se ofrece. El spec limpia lo que crea (los proyectos de su
+// El proyecto de repuestos de un vehículo desde su ficha y eliminar un proyecto vacío. Sin proyecto, la cabecera de la ficha no lo enlaza; el panel «Nuevo
+// proyecto» con el vehículo lo crea ya vinculado, y después la cabecera dice «Repuestos · Proyecto #N». Un proyecto sin ítems se elimina de una vez y «Deshacer» lo devuelve; con un ítem ya no se ofrece. El spec limpia lo que crea (los proyectos de su
 // vehículo y los de etiqueta «E2E…»).
 test.describe.configure({ mode: 'serial' })
 
@@ -48,13 +47,12 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-test('el proyecto de un vehículo: sin él la ficha se queda; con él, la cabecera lo enlaza y `?seccion=repuestos` redirige', async ({
+test('el proyecto de un vehículo: sin él la cabecera no lo enlaza; con él, sí', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
-  await page.goto(`/vehiculos/${vehiculoId}?seccion=repuestos`)
+  await page.goto(`/vehiculos/${vehiculoId}`)
   await expect(page.getByRole('heading', { name: TITULO, level: 1 })).toBeVisible()
-  await expect(page).toHaveURL(new RegExp(`/vehiculos/${vehiculoId}\\?seccion=repuestos$`))
   await expect(page.getByRole('link', { name: /^Repuestos · Proyecto #\d+$/ })).toHaveCount(0)
 
   await page.goto(`/repuestos?panel=nuevo-proyecto&vehiculo=${vehiculoId}`)
@@ -70,8 +68,6 @@ test('el proyecto de un vehículo: sin él la ficha se queda; con él, la cabece
     'href',
     proyecto,
   )
-  await page.goto(`/vehiculos/${vehiculoId}?seccion=repuestos`)
-  await expect(page).toHaveURL(new RegExp(`${proyecto}$`))
 })
 
 test('un proyecto sin ítems se elimina de una vez, «Deshacer» lo devuelve y con un ítem ya no se ofrece', async ({

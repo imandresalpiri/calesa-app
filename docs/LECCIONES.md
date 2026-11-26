@@ -129,7 +129,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Tras una action pon lo devuelto en la pantalla cargada, sin revalidar ni `router.refresh()`: en Next 16 `revalidatePath`, `revalidateTag`, `updateTag` y `refresh` vuelven a dibujar la página que llama (se pierde lo tipeado y lo cargado vuelve a la primera página).
 - Tras un `router.refresh()` inevitable, mantén los controles apagados hasta que la pantalla se redibuje: un cambio de URL en medio pierde el refresco.
 - Suelta el aviso de guardado o el cierre de panel al terminar el envío (`useTrasElEnvio`) y encola lo que sale al desmontarse: el refresco remonta el panel antes de que `isPending` baje.
-- Responde una redirección permanente (308) desde `src/proxy.ts` o un route handler, nunca desde una página: bajo el `<Suspense>` del layout y con
+- Responde una redirección estructural (308) desde `redirects()` de `next.config.ts` o un route handler, nunca desde una página: bajo el `<Suspense>` del layout y con
   `loading.tsx`, `permanentRedirect()` llega ya mandado el esqueleto y sale 200 con un meta refresh. Si depende de la persona, `redireccionPermanente(…, { porPersona: true })`
   (`Cache-Control: private, no-store`), o el navegador la reusa para otra sesión; un `route.ts` convive con el `layout.tsx` del segmento. Pruébala con `page.request.get(…, { maxRedirects: 0 })`.
 - Un test que comprueba que una ruta existe mirando `src/app` atraviesa los grupos de rutas (`(pestanas)`): la URL no los nombra y un `existsSync` del
@@ -151,8 +151,6 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Un hijo que registra algo en el estado de un padre al montarse (las líneas del «⋯» de la guardada) lo hace en `useLayoutEffect`: el `setState` de un `useEffect`
   de la hidratación se aplica recién cuando termina de hidratarse lo que llega tras `<Suspense>`, y entretanto el padre dibuja sin eso. Un `ref` que también es un
   objeto de contexto con un `RefObject` adentro hace que el compilador marque `ref={ctx.funcion}`: la función va en su propio contexto.
-- Un `redirects()` de `next.config.ts` cuyo destino fija un parámetro (`?panel=tablas`) lo junta con el mismo parámetro de la consulta que llega, no lo
-  reemplaza. Si la URL vieja puede traerlo con otro sentido, la redirección va en un `route.ts` que traduce la consulta (`urls-viejas/tablas.ts`).
 
 ## Módulos y JS en frío
 

@@ -11,7 +11,7 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
 - Las actions **no salen por los barriles** (las importan en relativo sus hooks) y comprueban su permiso con `puede()` antes de la base. Lo que cruza áreas
   lo compone `src/app/(app)/repuestos/` (render prop, hueco o props).
 - **`proyectos`** — `index.ts`: `proyectoDe(vehiculoId)` (el proyecto vivo de un vehículo, con `cache()`: lo usa la ficha del vehículo para su enlace
-  corto «Repuestos · Proyecto #N» y para redirigir `?seccion=repuestos` a `rutaDelProyecto(id)`), `esquemaDelListado`, `pedidoDelListado`,
+  corto «Repuestos · Proyecto #N» y para «Ver el proyecto de repuestos» de un aviso de la papelera, con `rutaDelProyecto(id)`), `esquemaDelListado`, `pedidoDelListado`,
   `leerCursorDeProyectos`, `leerProyectosDelListado` (cursor = `numero`, sin «Anterior»), `estadoDelProyecto`. `pantallas/proyectos.ts`:
   `<ListadoDeProyectos>`, `<BotonNuevoProyecto>`, `useNuevoProyectoPorUrl` (`<ListadoDeProyectos>` y `<CadenaDeRepuestos>` reciben `acciones`: el ⚙ «Configurar» que arma `src/app`), `buscarProyectoAbierto`. `pantallas/proyectos-detalle.ts` (`/repuestos/[id]`):
   `<CabeceraDeProyecto>`, `<VehiculoQueNoSeVe>`.
@@ -79,7 +79,7 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
   `entities/flujo/pasos-del-flujo.ts` (`CLAVES_DE_HITO`), `pasos.ts` (`indexarFlujo`, `armarPasos`, `llegaronA`) y `siguiente.ts`
   (`siguienteDelItem`). `pantallas/flujo-pasos.ts` (aparte, para que la Cadena no pague su JS): `<PasosDelProyecto>` (la barra de progreso: un hito es un botón a su pestaña), `<PasoDelItem>`, `useIndiceDelFlujo`;
   los calcula el navegador sobre las filas vivas de la hoja con los booleanos de `puede()` que manda el servidor. Lo compone `src/app/(app)/repuestos/[id]/`
-  (`hoja-del-proyecto.tsx`, `barra-de-pestanas.tsx`: las pestañas pegadas con `<PestanasConDesborde>`, `paneles.ts`: `?pestana=` y los enlaces viejos).
+  (`hoja-del-proyecto.tsx`, `barra-de-pestanas.tsx`: las pestañas pegadas con `<PestanasConDesborde>`, `paneles.ts`: `?pestana=`).
 - **`flujo`** — esperas: `esperasQueDestraban(vehiculoId)` (`Resultado<{ items, hayMas }>`, hasta 50, por `repuestos_pendientes_de_vehiculo`, que oculta los
   nombres de fase sin `logistica.ver`). `pantallas/flujo-esperas.ts`: `HUECOS_DE_ESPERAS_EN_LA_UNIDAD` (`repuestos.ver`, regla `esperas`, tipo estructural
   propio: no importa `logistica`; el cast va en `huecos-de-la-unidad.tsx` de logística); lee con `leerEsperasDelVehiculo` al abrir y si cambia la fase,

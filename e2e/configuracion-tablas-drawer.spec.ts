@@ -2,34 +2,23 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
-import {
-  PREFIJO_ROL_E2E,
-  borrarPersonasDePrueba,
-  borrarRolesDePrueba,
-  correoDePrueba,
-  crearDuenaDePrueba,
-  crearPersona,
-  darRolDePrueba,
-} from './soporte/base'
+import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
 import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar-formula'
 import { publicarConTablaViva } from './soporte/cotizar-guardada'
 import { urlDeLaFormula } from './soporte/rutas-de-la-formula'
 import { literal, sql } from './soporte/sql'
 
 // El drawer «Tablas» de un origen con sus dos grupos («De <origen>» y «Compartidas»), crear una propia y una compartida desde él, editar una compartida con su aviso, el «⋯» y
-// tocar la fila, y la URL vieja `/configuracion/catalogos/tablas`, que responde 308 al drawer del primer origen que la persona configura (`docs/UX.md` › «Cotización: tablas
-// (estados propios)»). Los permisos de cada origen que usa una compartida los prueba `supabase/tests/areas/tablas/`.
+// tocar la fila (`docs/UX.md` › «Cotización: tablas (estados propios)»). Los permisos de cada origen que usa una compartida los prueba `supabase/tests/areas/tablas/`.
 
 const COLUMNAS = `'[{"clave":"factor","etiqueta":"Factor","tipo":"numero"}]'::jsonb`
 const TAPADA = 'E2E Tapada'
 const ARANCEL = 'E2E Arancel compartido'
 const PROPIA_NUEVA = 'E2E Propia nueva'
 const COMPARTIDA_NUEVA = 'E2E Compartida nueva'
-const UUID = '[0-9a-f-]{36}'
 
 let origen = { id: '', nombre: '' }
 let duena = ''
-let sinOrigen = ''
 
 const borrarLoMio = () =>
   sql(`delete from public.tablas_referencia where clave like 'e2e\\_%' and nombre like 'E2E %'`)
@@ -39,7 +28,6 @@ test.beforeAll(async ({}, info) => {
   borrarOrigenesDeCotizar()
   borrarLoMio()
   await borrarPersonasDePrueba()
-  await borrarRolesDePrueba()
   duena = correoDePrueba(`duena-tablas-drawer-${proyecto}`)
   await crearDuenaDePrueba({ email: duena, contrasena: CONTRASENA, nombre: 'Tita Tablas' })
   origen = await crearOrigenDeCotizar(proyecto, 'vtdrawer', false)
@@ -50,28 +38,12 @@ test.beforeAll(async ({}, info) => {
       (null, 'e2e_arancel', ${literal(ARANCEL)}, ${COLUMNAS}),
       (null, 'e2e_tapada', ${literal(`${TAPADA} compartida`)}, ${COLUMNAS}),
       (${literal(origen.id)}::uuid, 'e2e_tapada', ${literal(`${TAPADA} propia`)}, ${COLUMNAS})`)
-  sinOrigen = correoDePrueba(`sin-origen-tablas-drawer-${proyecto}`)
-  await crearPersona({
-    email: sinOrigen,
-    contrasena: CONTRASENA,
-    nombre: 'Lola Leads',
-    invitada: true,
-  })
-  await darRolDePrueba({
-    email: sinOrigen,
-    rol: {
-      nombre: `${PREFIJO_ROL_E2E}Sin origen tablas ${proyecto}`,
-      clave: `e2e_sin_origen_tablas_${proyecto}`,
-    },
-    permisos: ['leads.configurar'],
-  })
 })
 
 test.afterAll(async () => {
   borrarOrigenesDeCotizar()
   borrarLoMio()
   await borrarPersonasDePrueba()
-  await borrarRolesDePrueba()
 })
 
 const idDeLaCompartida = (clave: string) =>
@@ -161,69 +133,4 @@ test('E2E escritorio · crear una tabla propia y una compartida desde el drawer'
       .getByRole('list', { name: 'Compartidas' })
       .getByRole('button', { name: `Editar ${COMPARTIDA_NUEVA}` }),
   ).toBeVisible()
-})
-
-// `/configuracion/catalogos/tablas` ya no es una página: 308 por persona al drawer del primer origen que la persona configura.
-const DRAWER = new RegExp(`^/configuracion/origenes/${UUID}/planilla\\?(.*&)?panel=tablas(&|$)`)
-
-test('E2E escritorio · la URL vieja de las tablas compartidas, sin consulta, abre el drawer de un origen', async ({
-  page,
-}) => {
-  await entrar(page, duena, { fresco: true })
-  const respuesta = await page.request.get('/configuracion/catalogos/tablas', { maxRedirects: 0 })
-  expect(respuesta.status()).toBe(308)
-  expect(respuesta.headers()['location']).toMatch(DRAWER)
-  expect(respuesta.headers()['cache-control']).toBe('private, no-store')
-  await page.goto('/configuracion/catalogos/tablas')
-  await expect(page.getByRole('dialog', { name: 'Tablas de referencia' })).toBeVisible()
-})
-
-test('E2E escritorio · con `?tabla=` abre esa tabla en el drawer', async ({ page }) => {
-  await entrar(page, duena, { fresco: true })
-  const id = idDeLaCompartida('e2e_arancel')
-  await page.goto(`/configuracion/catalogos/tablas?tabla=${id}`)
-  await expect(page).toHaveURL(new RegExp(`/planilla\\?(.*&)?panel=tablas&tabla=${id}`))
-  await expect(
-    page
-      .getByRole('dialog', { name: 'Tablas de referencia' })
-      .getByRole('heading', { name: `Editar ${ARANCEL}` }),
-  ).toBeVisible()
-})
-
-test('E2E escritorio · con `?tabla=&panel=publicar-tabla` el panel viaja en `accion`', async ({
-  page,
-}) => {
-  await entrar(page, duena, { fresco: true })
-  const id = idDeLaCompartida('e2e_arancel')
-  const respuesta = await page.request.get(
-    `/configuracion/catalogos/tablas?tabla=${id}&panel=publicar-tabla`,
-    { maxRedirects: 0 },
-  )
-  expect(respuesta.status()).toBe(308)
-  expect(respuesta.headers()['location']).toMatch(
-    new RegExp(`/planilla\\?(.*&)?panel=tablas&tabla=${id}&accion=publicar-tabla$`),
-  )
-})
-
-test('E2E escritorio · una `?tabla=` que no existe abre el drawer del primer origen, sin la tabla', async ({
-  page,
-}) => {
-  await entrar(page, duena, { fresco: true })
-  const respuesta = await page.request.get(
-    '/configuracion/catalogos/tablas?tabla=00000000-0000-4000-8000-000000000000',
-    { maxRedirects: 0 },
-  )
-  expect(respuesta.status()).toBe(308)
-  const destino = respuesta.headers()['location'] ?? ''
-  expect(destino).toMatch(DRAWER)
-  expect(destino).not.toContain('tabla=')
-})
-
-test('E2E escritorio · sin ningún origen que configure, la URL vieja lleva al inicio de Configuración', async ({
-  page,
-}) => {
-  await entrar(page, sinOrigen, { fresco: true })
-  const respuesta = await page.request.get('/configuracion/catalogos/tablas', { maxRedirects: 0 })
-  expect(respuesta.status()).toBe(308)
-  expect(respuesta.headers()['location']).toBe('/configuracion/inicio')
 })

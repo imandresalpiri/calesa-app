@@ -2,7 +2,6 @@ import { existsSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Concesion, Permisos } from '@/shared/lib/permisos'
 import { BLOQUES_DE_LA_FICHA, anclaDeLaUrl, bloquesDeQuienMira } from './bloques'
-import { SECCIONES_QUE_SE_FUERON } from './secciones-viejas'
 
 const ORIGEN = '00000000-0000-4000-8000-0000000000c1'
 const OTRO = '00000000-0000-4000-8000-0000000000c2'
@@ -71,16 +70,8 @@ describe('a qué bloque lleva la URL', () => {
     }
   })
 
-  it('las secciones que se fueron no llevan a ningún ancla', () => {
-    expect(SECCIONES_QUE_SE_FUERON).toEqual([
-      'fotos',
-      'ficha',
-      'vitrina',
-      'documentos',
-      'fase',
-      'repuestos',
-    ])
-    for (const seccion of SECCIONES_QUE_SE_FUERON) {
+  it('una `?seccion=` que no es un bloque de la derecha no lleva a ningún ancla', () => {
+    for (const seccion of ['fotos', 'ficha', 'vitrina', 'documentos', 'fase', 'repuestos']) {
       expect(anclaDeLaUrl(url({ seccion }), visibles), seccion).toBeNull()
     }
   })

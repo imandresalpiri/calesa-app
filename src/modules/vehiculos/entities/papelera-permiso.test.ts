@@ -71,6 +71,7 @@ describe('papeleraDelVehiculo', () => {
     verLogistica: true,
     verCotizaciones: true,
     verRepuestos: true,
+    documentos: '/logistica/vehiculo/00000000-0000-4000-8000-000000000000?hueco=documentos',
   }
   const base = {
     eliminable: true,

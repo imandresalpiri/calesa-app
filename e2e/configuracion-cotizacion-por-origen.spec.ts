@@ -1,5 +1,5 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
-import { expect, test, type Page } from './soporte/prueba'
+import { expect, test } from './soporte/prueba'
 import { barraDeLaFormula, selectorDeFormula } from './soporte/barra-de-la-formula'
 import { enLaPestana, pestanaDelOrigen } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
@@ -15,14 +15,14 @@ import {
 import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar-formula'
 import { abrirLaFormula, enElEditor } from './soporte/rutas-de-la-formula'
 
-// La cotización de cada origen en su página y lo de toda la empresa en Catálogos y Roles (`docs/UX.md` › «La página del origen» y «Catálogos»): las pestañas
-// Planilla · Hoja · Tarjeta, cada una su ruta con la fórmula elegida en `?formula=`, y el drawer «Tablas» de la barra de la fórmula; Niveles y Quién crea y
-// quién ve ya viven en Roles; y quién abre qué. Las redirecciones de las rutas de antes y las pestañas apagadas por permiso:
-// `configuracion-origen-centro.spec.ts`.
+// La cotización de cada origen en su página y lo de toda la empresa en Roles (`docs/UX.md` › «La página del origen»): las pestañas Planilla · Hoja · Tarjeta,
+// cada una su ruta con la fórmula elegida en `?formula=`, y el drawer «Tablas» de la barra de la fórmula; Niveles y Quién crea y quién ve, en Roles; y quién
+// abre qué. Las pestañas apagadas por permiso: `configuracion-origen-centro.spec.ts`.
 test.describe.configure({ mode: 'serial' })
 
 const ORIGENES = '/configuracion/origenes'
-const CATALOGOS = '/configuracion/catalogos'
+// Los niveles de acceso y «Quién crea y quién ve» viven en el bloque «Cotizaciones» de la matriz de Roles.
+const RUTA_DE_LOS_NIVELES = '/configuracion/roles?bloque=cotizaciones'
 
 let proyecto = ''
 let conFormula = { id: '', nombre: '' }
@@ -69,8 +69,6 @@ test.afterAll(async ({}, info) => {
   await borrarRolesDePrueba()
 })
 
-const menu = (page: Page) => page.getByRole('navigation', { name: 'Secciones de Configuración' })
-
 test('E2E escritorio · la fórmula de un origen en Planilla, Hoja y Tarjeta, y su drawer Tablas', async ({
   page,
 }) => {
@@ -97,22 +95,6 @@ test('E2E escritorio · la fórmula de un origen en Planilla, Hoja y Tarjeta, y 
   await expect(tablas.getByText(`${conFormula.nombre} no tiene tablas propias.`)).toBeVisible()
 })
 
-test('E2E escritorio · Niveles y Quién crea y quién ve ya no son catálogos: sus rutas de antes llevan a Roles', async ({
-  page,
-}) => {
-  await entrar(page, duena)
-  await page.goto(`${CATALOGOS}/tablas`)
-  // Colores y Vigencia viven en Orígenes (`configuracion-origenes-para-todos.spec.ts`); Niveles y Quién crea y quién ve, en el bloque «Cotizaciones» de Roles.
-  for (const titulo of ['Niveles', 'Quién crea y quién ve', 'Colores', 'Vigencia']) {
-    await expect(menu(page).getByRole('link', { name: titulo, exact: true })).toHaveCount(0)
-  }
-  for (const vieja of ['niveles', 'quien-crea-y-quien-ve']) {
-    await page.goto(`${CATALOGOS}/${vieja}`)
-    await expect(page).toHaveURL(/\/configuracion\/roles\?bloque=cotizaciones$/)
-    await expect(page.getByText('Niveles de acceso', { exact: true }).first()).toBeVisible()
-  }
-})
-
 test('E2E escritorio · quien configura un origen no abre uno ajeno ni los niveles de Roles', async ({
   page,
 }) => {
@@ -127,22 +109,15 @@ test('E2E escritorio · quien configura un origen no abre uno ajeno ni los nivel
   await enLaPestana(page, 'Hoja')
   await page.goto(`${ORIGENES}/no-es-un-origen/planilla`)
   await expect(page.getByRole('heading', { name: 'Esta página no existe' })).toBeVisible()
-  await page.goto(`${CATALOGOS}/niveles`)
-  await expect(page).toHaveURL(/\/configuracion\/roles\?bloque=cotizaciones$/)
+  await page.goto(RUTA_DE_LOS_NIVELES)
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
-  // La raíz vieja de Catálogos lleva a Colores en Orígenes; las tablas compartidas, al drawer del origen que ella configura.
-  await page.goto(CATALOGOS)
-  await expect(page).toHaveURL(/\/configuracion\/origenes\?panel=colores$/)
-  await page.goto(`${CATALOGOS}/tablas`)
-  await expect(page).toHaveURL(new RegExp(`${ORIGENES}/${sinFormula.id}/planilla\\?panel=tablas$`))
 })
 
 test('E2E escritorio · quien sólo ve los roles abre los niveles de Roles y ningún origen', async ({
   page,
 }) => {
   await entrar(page, lectora, { fresco: true })
-  await page.goto(`${CATALOGOS}/niveles`)
-  await expect(page).toHaveURL(/\/configuracion\/roles\?bloque=cotizaciones$/)
+  await page.goto(RUTA_DE_LOS_NIVELES)
   await expect(page.getByText('Niveles de acceso', { exact: true }).first()).toBeVisible()
   await page.goto(`${ORIGENES}/${conFormula.id}/planilla`)
   await expect(page.getByText('No puedes abrir este origen')).toBeVisible()

@@ -13,7 +13,7 @@ const NO_SE_LEYO = 'No se pudo leer el proyecto de repuestos del vehículo.'
 
 // El proyecto vivo de un vehículo (8.09-4, C1), por `repuestos_proyecto_por_vehiculo` (uno por vehículo, vivo) y con la sesión de quien mira: la RLS (`repuestos.ver`) decide.
 // Nulo = no hay proyecto o no se ve: no se distingue (D49). Un id que ni es guid no se consulta. `cache()`: en la ficha del vehículo lo piden el enlace
-// corto de la cabecera y, con `?seccion=repuestos`, la redirección al proyecto, en el mismo pedido.
+// corto de la cabecera y los avisos («Ver el proyecto de repuestos»), en el mismo pedido.
 export const proyectoDe = cache(async function proyectoDe(
   vehiculoId: string,
 ): Promise<Resultado<ProyectoDeVehiculo | null>> {

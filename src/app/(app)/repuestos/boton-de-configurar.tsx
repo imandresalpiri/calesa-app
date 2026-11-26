@@ -10,7 +10,7 @@ import { buttonVariants } from '@/shared/ui/button'
 export function BotonDeConfigurar() {
   return (
     <Link
-      href={RUTAS.configuracionDeRepuestos as Route}
+      href={RUTAS.flujoDeRepuestos as Route}
       aria-label="Configurar los repuestos"
       className={buttonVariants({
         variant: 'outline',

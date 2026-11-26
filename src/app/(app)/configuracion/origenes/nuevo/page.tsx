@@ -15,7 +15,7 @@ import { EsqueletoFormulario } from '@/shared/ui/esqueletos'
 export const metadata: Metadata = { title: 'Nuevo origen' }
 
 // El paso 1 de la puesta en marcha (glosario), antes de que el origen exista: el paso a paso con sólo «Datos» y el alta. Al crear lleva al paso Campos
-// (`…/puesta-en-marcha/campos`). Pide `origenes.gestionar`. `?panel=nuevo` de la lista responde 308 aquí (`next.config.ts`).
+// (`…/puesta-en-marcha/campos`). Pide `origenes.gestionar`.
 export default function PaginaNuevoOrigen() {
   return (
     <div className="grid min-w-0 gap-6">

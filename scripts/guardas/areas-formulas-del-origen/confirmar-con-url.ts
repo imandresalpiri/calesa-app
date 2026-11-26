@@ -3,7 +3,7 @@
 import type { ConfirmarConUrl } from '../confirmar-con-url'
 
 export const REGISTRO: Record<string, ConfirmarConUrl> = {
-  // `?panel=archivar-formula&formula=<id>` y `?panel=eliminar-formula&formula=<id>`: el mismo diálogo, desde el «⋯» de la lista o de la cabeza del editor.
+  // `?panel=archivar-formula&cual=<id>` y `?panel=eliminar-formula&cual=<id>`: el mismo diálogo, desde el «⋯» de la lista o de la cabeza del editor.
   'src/modules/cotizaciones/features/formulas-del-origen/components/confirmar-en-la-formula.tsx': {
     abre: 'src/modules/cotizaciones/features/formulas-del-origen/hooks/use-paneles-de-la-formula.tsx',
     senal: 'PANEL_ARCHIVAR_FORMULA',

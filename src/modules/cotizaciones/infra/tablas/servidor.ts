@@ -2,15 +2,12 @@
 import 'server-only'
 import { createClient } from '@/shared/lib/supabase/server'
 import type { RepositorioDeTablas } from '../../entities/tablas/repositorio'
-import { leerDondeSeUsaLaTabla, leerTablaParaEditar, leerTablasDeReferencia } from './lectura'
+import { leerTablaParaEditar, leerTablasDeReferencia } from './lectura'
 import { estructuraDeTablasSobre } from './estructura'
 import { publicacionDeTablasSobre } from './publicacion'
 
 export const getTablasDeReferencia = async (origenId: string) =>
   leerTablasDeReferencia(await createClient(), origenId)
-
-export const getDondeSeUsaLaTabla = async (tablaId: string, candidatos: readonly string[]) =>
-  leerDondeSeUsaLaTabla(await createClient(), tablaId, candidatos)
 
 export const getTablaParaEditar = async (tablaId: string) =>
   leerTablaParaEditar(await createClient(), tablaId)

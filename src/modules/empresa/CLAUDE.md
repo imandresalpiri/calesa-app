@@ -117,8 +117,8 @@ valor}`, la misma revalidación): sin el permiso o con el Modo Live no hay lápi
 - No hay permiso de «ver»: abre Empresa quien tiene `empresa.ajustes.gestionar` o `empresa.tipos_cambio.gestionar` (`PERMISOS_DE_EMPRESA`, la unión
   de sus sub-secciones, en `configuracion/empresa/seccion.ts`); lo que no puede editar, deshabilitado con el motivo. Empresa no tiene pestañas:
   cada parte es una sub-ruta. La del área de comprobantes (`configuracion/empresa/comprobantes/subseccion.ts`, con `empresa.ajustes.gestionar`) va
-  apagada con su motivo para quien no la abre y sólo pide claves de la entrada «Configuración» de `NAVEGACION`. Las URLs con `?seccion=`, `?tc=`,
-  `?moneda=` o `?panel=` en la raíz redirigen a su sub-ruta (`url-vieja.ts`); cada action revalida la sub-ruta dueña de su dato.
+  apagada con su motivo para quien no la abre y sólo pide claves de la entrada «Configuración» de `NAVEGACION`. Cada action revalida la sub-ruta
+  dueña de su dato.
 - `<Marca>` y `<EstiloDeMarca>` viven en `src/shared/ui` y reciben todo por props. El color entra como `<style>` con `:root` y `.dark`.
 - El secreto va a Vault por `integracion_guardar_secreto()`; la app sólo lee `integraciones.secreto_guardado_en`; `integraciones.config` lleva lo no
   secreto. Variables de entorno sólo para infraestructura del despliegue (`docs/DECISIONES.md`).

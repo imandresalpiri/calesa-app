@@ -31,7 +31,7 @@ const IDS = {
 
 const GUARDAR = { etiqueta: 'Agregar', enCurso: 'Agregando…' }
 
-// «Agregar teléfono» (`?panel=agregar-telefono` en la ficha, `?extra=nuevo` en el panel): el número y su etiqueta
+// «Agregar teléfono» (`?extra=nuevo` en el panel de edición): el número y su etiqueta
 // (opcional). Enter guarda; el contrato del modal (preguntar antes de cerrar con algo escrito, no cerrarse mientras guarda) es
 // de `ModalDeFormulario`. El número se normaliza como el del alta, con el código de país del lead, y dice de qué país es; al terminar de
 // tipear se verifica contra los demás leads: con «los teléfonos extra cuentan como el principal» encendida un número que ya tiene otro

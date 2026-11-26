@@ -49,7 +49,7 @@ function BotonNuevo({ puedeGestionar }: { puedeGestionar: boolean }) {
 }
 
 // Los orígenes que la persona abre como tarjetas, también los desactivados, con su estado y lo que les falta. Abrir uno lleva a su página (la tarjeta entera, o «Abrir» en su «⋯», que lleva además activar, desactivar y eliminar);
-// crear lleva a `/configuracion/origenes/nuevo` (`?panel=nuevo`, el enlace de antes, responde 308 ahí). Son decenas: se dibujan hasta el tope, con su aviso.
+// crear lleva a `/configuracion/origenes/nuevo`. Son decenas: se dibujan hasta el tope, con su aviso.
 export function ListaDeOrigenes({ origenes, hayMas, puedeGestionar, apibaraActiva }: Props) {
   const router = useRouter()
   const ediciones = useOrigenes()

@@ -12,8 +12,6 @@ import {
   etiquetaDeExtra,
   extrasDesde,
   puedeCambiarTelefonoDeLead,
-  PANEL_AGREGAR_TELEFONO,
-  reemplazoDelPanelViejo,
   validarExtra,
 } from './telefonos'
 
@@ -250,27 +248,5 @@ describe('extrasDesde', () => {
       resultado: 'sin_cambios',
       quitado: null,
     })
-  })
-})
-
-describe('reemplazoDelPanelViejo', () => {
-  it('el `?panel=agregar-telefono` viejo abre la edición con «Agregar teléfono» si quien mira puede abrirla', () => {
-    expect(reemplazoDelPanelViejo(PANEL_AGREGAR_TELEFONO, true)).toEqual({
-      panel: 'editar-lead',
-      extra: 'nuevo',
-    })
-  })
-
-  it('sin poder abrir la edición, se quita', () => {
-    expect(reemplazoDelPanelViejo(PANEL_AGREGAR_TELEFONO, false)).toEqual({
-      panel: null,
-      extra: null,
-    })
-  })
-
-  it('cualquier otro panel no se toca', () => {
-    expect(reemplazoDelPanelViejo(null, true)).toBeNull()
-    expect(reemplazoDelPanelViejo('editar-lead', true)).toBeNull()
-    expect(reemplazoDelPanelViejo('cambiar-telefono', false)).toBeNull()
   })
 })

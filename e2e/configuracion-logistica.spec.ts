@@ -125,7 +125,7 @@ test('crear una naviera, verla ofrecida en la oferta de un flujo y desactivarla'
   // Las reglas del flujo de un origen de la semilla (cada flujo nace con «Transporte» encendida, que es la que ofrece navieras).
   const reglas = `/configuracion/origenes/${sql(
     "select id from public.origenes where clave = 'subasta_usa'",
-  )}/flujo?seccion=reglas`
+  )}/fases?seccion=reglas`
   await entrar(page, duena, { fresco: true })
   await page.goto('/logistica/configuracion/navieras')
   const nueva = page.getByRole('dialog', { name: 'Nueva naviera' })

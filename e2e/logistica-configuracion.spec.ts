@@ -16,12 +16,10 @@ import { literal, sql } from './soporte/sql'
 
 // Logística › Configuración (T513, `docs/UX.md` › «Logística (config)»): el ⚙ «Configurar» de la cabecera de Logística (sólo con `logistica.catalogos.gestionar`, en todas
 // sus páginas), la tira de pestañas (Puertos, Navieras, Categorías de gasto, Tipos de documento), cada catálogo con su alta y su edición (un toque en la fila, o el «⋯»),
-// Tipos de documento sólo de lectura con `flujos.configurar`, la raíz que abre la primera pestaña, una prueba por cada redirección de las URLs viejas y el buscador de
-// Configuración, que sigue llevando aquí. El detalle de cada catálogo (rechazos, oferta de transporte) lo prueba `configuracion-logistica.spec.ts`.
+// Tipos de documento sólo de lectura con `flujos.configurar`, la raíz que abre la primera pestaña y el buscador de Configuración, que lleva aquí. El detalle de cada catálogo (rechazos, oferta de transporte) lo prueba `configuracion-logistica.spec.ts`.
 test.describe.configure({ mode: 'serial' })
 
 const RAIZ = '/logistica/configuracion'
-const ID = '11111111-1111-4111-8111-111111111111'
 const PUERTO = 'Puerto e2e T513'
 const NAVIERA = 'Naviera e2e T513'
 const CATEGORIA = 'Categoría e2e T513'
@@ -72,7 +70,7 @@ test.afterAll(async () => {
 
 const configurar = (page: Page) => page.getByRole('link', { name: 'Configurar la logística' })
 
-// La redirección (308) de una URL vieja: se pide sin seguirla y se mira a dónde manda.
+// La redirección (308) de la raíz de la configuración: se pide sin seguirla y se mira a dónde manda.
 async function redirige(page: Page, desde: string, hacia: string): Promise<void> {
   const respuesta = await page.request.get(desde, { maxRedirects: 0 })
   expect(respuesta.status(), `estado de ${desde}`).toBe(308)
@@ -229,62 +227,6 @@ test('E2E la raíz de la configuración abre la primera pestaña, con su consult
   await expect(page).toHaveURL(/\/logistica\/configuracion\/puertos\?panel=nuevo-puerto$/)
   await expect(page.getByRole('dialog', { name: 'Nuevo puerto' })).toBeVisible()
   await redirige(page, RAIZ, `${RAIZ}/puertos`)
-})
-
-// Una prueba por redirección de las URLs viejas.
-test.describe('E2E las URLs viejas siguen funcionando', () => {
-  test.beforeEach(async ({ page }) => {
-    await entrar(page, duena, { fresco: true })
-  })
-
-  for (const clave of ['puertos', 'navieras', 'categorias-de-gasto', 'tipos-de-documento']) {
-    test(`/configuracion/catalogos/${clave} con su consulta`, async ({ page }) => {
-      await redirige(page, `/configuracion/catalogos/${clave}?x=1`, `${RAIZ}/${clave}?x=1`)
-    })
-  }
-
-  test('con ?panel= y un id', async ({ page }) => {
-    await redirige(
-      page,
-      `/configuracion/catalogos/tipos-de-documento?panel=editar-tipo&tipo=${ID}`,
-      `${RAIZ}/tipos-de-documento?panel=editar-tipo&tipo=${ID}`,
-    )
-    await redirige(
-      page,
-      '/configuracion/catalogos/puertos?panel=nuevo-puerto',
-      `${RAIZ}/puertos?panel=nuevo-puerto`,
-    )
-  })
-
-  for (const clave of ['puertos', 'navieras', 'categorias-de-gasto']) {
-    test(`/configuracion/logistica/${clave}`, async ({ page }) => {
-      await redirige(page, `/configuracion/logistica/${clave}?panel=x`, `${RAIZ}/${clave}?panel=x`)
-    })
-  }
-
-  test('/configuracion/logistica va a la pestaña pedida o a la primera', async ({ page }) => {
-    await redirige(page, '/configuracion/logistica?seccion=navieras', `${RAIZ}/navieras`)
-    await redirige(page, '/configuracion/logistica', `${RAIZ}/puertos`)
-  })
-
-  test('/configuracion/flujos?seccion=documentos con flujos.configurar sigue al flujo', async ({
-    page,
-  }) => {
-    const respuesta = await page.request.get('/configuracion/flujos?seccion=documentos', {
-      maxRedirects: 0,
-    })
-    expect(respuesta.status()).toBe(308)
-    expect(respuesta.headers()['location']).toContain('/configuracion/origenes/')
-  })
-})
-
-test('E2E /configuracion/flujos?seccion=documentos sin flujos.configurar va a Tipos de documento', async ({
-  page,
-}) => {
-  await entrar(page, sinPermiso, { fresco: true })
-  await redirige(page, '/configuracion/flujos?seccion=documentos', `${RAIZ}/tipos-de-documento`)
-  // Sin ninguna pestaña que abrir, la URL vieja de logística va al inicio de Configuración (nunca a un error).
-  await redirige(page, '/configuracion/logistica', '/configuracion/inicio')
 })
 
 test('E2E el buscador de Configuración encuentra «puertos» y «tipos de documento» y lleva a Logística', async ({

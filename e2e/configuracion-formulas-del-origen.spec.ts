@@ -33,7 +33,7 @@ import { literal, sql } from './soporte/sql'
 
 // Las fórmulas de un origen en el selector de la barra de la fórmula (`docs/UX.md` › «Cotización: fórmulas del origen»): la lista con la activa primero,
 // «Nueva fórmula» en blanco o copiando una de este u otro origen (con los avisos de la copia), renombrar, activar con nota (y su PT409) desde el «⋯» de cada
-// fila (`?panel=…-formula&cual=<id>`), cotizar con la activa, eliminar la que nunca estuvo activa, archivar la que sí y el tope de 50. Las URL viejas de la fórmula: `configuracion-origen-centro.spec.ts` (REDIRECCIONES).
+// fila (`?panel=…-formula&cual=<id>`), cotizar con la activa, eliminar la que nunca estuvo activa, archivar la que sí y el tope de 50.
 
 test.describe.configure({ mode: 'serial' })
 

@@ -111,7 +111,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   o un dato común soltado encima. Con las 4 llenas no se reemplaza: primero se quita una. Los leads no tienen casillas.
 - **Ficha completa (del vehículo)** — `<ModalDeFichaCompleta>`, `?ver=ficha`: el «Ver más» de «Datos principales» en la ficha del vehículo. Un modal
   grande, de sólo lectura y con tipografía de vitrina, para mostrarle el vehículo a un cliente: las fotos con su tira, los datos comunes, «Precio» y
-  todos los grupos del layout del origen. `?seccion=ficha` la abre.
+  todos los grupos del layout del origen.
 - **Rango (de un campo)** — `minimo`/`maximo` de `leads_campos` y `origenes_campos`, `_valor_fuera_de_rango()`: límites de un `numero` o
   `moneda` (nulo = sin límite); se rechaza el valor que cambia y queda fuera, no el que ya estaba. `*_campo_impacto().fuera_de_rango` los cuenta.
 - **Valor por defecto de un campo** — `valor_defecto` / `valorDefectoPara()`, `valorDefectoVigente()`: lo que el alta trae puesto; sólo precarga.
@@ -295,7 +295,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Resumen** — `?cotizacion=` / `<ResumenDeCotizacion>`: vistazo de una cotización sin salir de la lista, con «Abrir cotización», «Compartir cotización» y el
   «⋯» de la fila arriba (la **barra del resumen**, `<AccionesDelResumen>`), la **cabecera del resumen** (`<CabeceraDelResumen>`: la miniatura de la imagen de la tarjeta y los datos de la fila, fija y de ≤ 120 px) y las
   pestañas debajo. También abre sobre la ficha del lead y la del vehículo (`<ResumenFueraDelListado>`). Las listas de vehículos y de leads no
-  tienen: abren la ficha (`<EnlaceDeLaFila>`; un `?vehiculo=` o un `?lead=` redirige a ella).
+  tienen: abren la ficha (`<EnlaceDeLaFila>`).
 - **Enlace de la fila** — `<EnlaceDeLaFila>` (`src/shared/ui/lista/`), `href` de `<FilaDeLista>`/`<TarjetaDeLista>`: el nombre de una fila o una tarjeta
   como enlace a la ficha, en una lista sin resumen; el resto del ítem navega igual (Ctrl o el botón del medio, otra pestaña).
 - **Línea de tiempo (de una cotización)** — pestaña «Todo» del resumen (`?pestana=`, `useLineaDeTiempo`, `lineaDeTiempo()`): adjuntos, revisiones y comentarios

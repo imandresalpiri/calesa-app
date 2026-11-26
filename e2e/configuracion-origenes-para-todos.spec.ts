@@ -16,8 +16,8 @@ import { PREFIJO_DE_COLOR_DE_PRUEBA, borrarColoresDePrueba } from './soporte/ton
 
 // «Para todos los orígenes» (docs/UX.md › Pantallas › Orígenes): lo que vale para todas las cotizaciones de la empresa se configura en Configuración › Orígenes, en dos tarjetas
 // —Colores y Vigencia— con su modal por `?panel=`. Aquí: las dos tarjetas (tocar la tarjeta y el «⋯»), crear, editar y eliminar un color volviendo a la lista, cambiar la vigencia y su
-// conflicto con «Recargar», los permisos (sin `cotizaciones.configurar` no hay bloque; en un solo origen la vigencia se lee y no se cambia), una prueba por cada URL vieja que
-// redirige (308) y el buscador de Configuración. La fila de la vigencia es única: se restaura al final (el e2e corre con un solo worker).
+// conflicto con «Recargar», los permisos (sin `cotizaciones.configurar` no hay bloque; en un solo origen la vigencia se lee y no se cambia) y el buscador de
+// Configuración. La fila de la vigencia es única: se restaura al final (el e2e corre con un solo worker).
 test.describe.configure({ mode: 'serial' })
 
 const COLOR = `${PREFIJO_DE_COLOR_DE_PRUEBA} Para todos`
@@ -243,60 +243,6 @@ test('con el permiso en un solo origen, Colores se edita y la vigencia se lee: a
   await page.getByRole('button', { name: 'Editar colores', exact: true }).click()
   await expect(lista(page)).toBeVisible()
 })
-
-// Cada URL vieja, con su consulta (308). Las de `route.ts` piden sesión; las de next.config.ts, no, pero se pide igual.
-const REDIRECCIONES: [string, string, string][] = [
-  [
-    'catalogos/colores',
-    '/configuracion/catalogos/colores',
-    '/configuracion/origenes?panel=colores',
-  ],
-  [
-    'catalogos/colores con su propio panel (manda ése)',
-    '/configuracion/catalogos/colores?panel=editar-tono&tono=11111111-1111-4111-8111-111111111111',
-    '/configuracion/origenes?panel=editar-tono&tono=11111111-1111-4111-8111-111111111111',
-  ],
-  [
-    'catalogos/vigencia',
-    '/configuracion/catalogos/vigencia',
-    '/configuracion/origenes?panel=vigencia',
-  ],
-  [
-    'cotizacion/general',
-    '/configuracion/cotizacion/general',
-    '/configuracion/origenes?panel=colores',
-  ],
-  [
-    'cotizacion/general/colores',
-    '/configuracion/cotizacion/general/colores',
-    '/configuracion/origenes?panel=colores',
-  ],
-  [
-    'cotizacion/general/vigencia',
-    '/configuracion/cotizacion/general/vigencia',
-    '/configuracion/origenes?panel=vigencia',
-  ],
-  [
-    'cotizacion ?seccion=tonos',
-    '/configuracion/cotizacion?seccion=tonos',
-    '/configuracion/origenes?panel=colores',
-  ],
-  [
-    'cotizacion ?seccion=ajustes',
-    '/configuracion/cotizacion?seccion=ajustes',
-    '/configuracion/origenes?panel=vigencia',
-  ],
-]
-
-for (const [nombre, de, a] of REDIRECCIONES) {
-  test(`308: ${nombre}`, async ({ page }) => {
-    await entrar(page, duena)
-    const respuesta = await page.request.get(de, { maxRedirects: 0 })
-    expect(respuesta.status()).toBe(308)
-    const destino = new URL(respuesta.headers()['location'] ?? '', 'http://x')
-    expect(`${destino.pathname}${destino.search}`).toBe(a)
-  })
-}
 
 test('el buscador de Configuración encuentra «colores» y «vigencia» y lleva a su modal', async ({
   page,

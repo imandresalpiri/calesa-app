@@ -1,0 +1,67 @@
+// @sin-celular-archivo: el buscador de Configuración por sus enlaces; el celular lo revisa la IA con capturas
+import { expect, test } from './soporte/prueba'
+import { CONTRASENA, entrar } from './soporte/alta'
+import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
+
+// Configuración no tiene Catálogos (`docs/DECISIONES.md` › «Cada catálogo vive en el área que lo usa; Configuración no tiene Catálogos»): el buscador de
+// Configuración encuentra cada catálogo donde vive. Las tablas de referencia viven en el drawer de cada origen y no son un destino del buscador.
+const LOGISTICA = '/logistica/configuracion'
+
+let duena = ''
+
+test.beforeAll(async ({}, info) => {
+  await borrarPersonasDePrueba()
+  duena = correoDePrueba(`duena-buscador-catalogos-${info.project.name}`)
+  await crearDuenaDePrueba({ email: duena, contrasena: CONTRASENA, nombre: 'Dora Catálogos' })
+})
+
+test.afterAll(async () => {
+  await borrarPersonasDePrueba()
+})
+
+test('E2E el buscador encuentra cada catálogo donde vive', async ({ page }) => {
+  await entrar(page, duena, { fresco: true })
+  await page.goto('/configuracion/inicio')
+  const buscador = page.getByRole('searchbox', { name: 'Buscar en Configuración' })
+  const resultados = page.getByRole('list', { name: 'Resultados de la búsqueda' })
+  const casos: [texto: string, camino: string, href: string][] = [
+    ['colores', 'Orígenes › Colores', '/configuracion/origenes?panel=colores'],
+    ['vigencia', 'Orígenes › Vigencia', '/configuracion/origenes?panel=vigencia'],
+    [
+      'niveles de acceso',
+      'Roles y permisos › Niveles de acceso',
+      '/configuracion/roles?bloque=cotizaciones',
+    ],
+    [
+      'quién crea',
+      'Roles y permisos › Quién crea y quién ve',
+      '/configuracion/roles?bloque=cotizaciones',
+    ],
+    ['puertos', 'Logística › Puertos', `${LOGISTICA}/puertos`],
+    ['navieras', 'Logística › Navieras', `${LOGISTICA}/navieras`],
+    ['categorías de gasto', 'Logística › Categorías de gasto', `${LOGISTICA}/categorias-de-gasto`],
+    ['tipos de documento', 'Logística › Tipos de documento', `${LOGISTICA}/tipos-de-documento`],
+    ['flujo de repuestos', 'Repuestos › Flujo de repuestos', '/repuestos/configuracion/flujo'],
+    [
+      'cotizador de repuestos',
+      'Repuestos › Cotizador de repuestos',
+      '/repuestos/configuracion/cotizador',
+    ],
+    [
+      'catálogos de repuestos',
+      'Repuestos › Catálogos de repuestos',
+      '/repuestos/configuracion/catalogos',
+    ],
+  ]
+  for (const [texto, camino, href] of casos) {
+    await buscador.fill(texto)
+    const enlace = resultados.getByRole('link', { name: camino })
+    await expect(enlace, camino).toHaveAttribute('href', href)
+  }
+  await buscador.fill('catálogos')
+  await expect(resultados.getByRole('link', { name: /^Catálogos$/ })).toHaveCount(0)
+  await buscador.fill('tablas compartidas')
+  await expect(resultados.getByRole('link', { name: 'Orígenes › Tablas compartidas' })).toHaveCount(
+    0,
+  )
+})

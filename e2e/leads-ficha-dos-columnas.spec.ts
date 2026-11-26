@@ -2,12 +2,7 @@ import { expect, test, type Locator, type Page } from './soporte/prueba'
 import { formatearNumero } from '../src/shared/lib/formato'
 import { entrar } from './soporte/alta'
 import { esMovil } from './soporte/inventario'
-import {
-  esperarFichaHidratada,
-  irAFicha,
-  panelDeEdicion,
-  tituloDeLaFicha,
-} from './soporte/leads-ficha'
+import { esperarFichaHidratada, irAFicha, tituloDeLaFicha } from './soporte/leads-ficha'
 import { leadCompleto, limpiarLeadsCompletos } from './soporte/leads-ficha-completa'
 import { prepararListado, type TerrenoDelListado } from './soporte/leads-listado'
 import { drawerDeTodos, verTodosLosSeguimientos } from './soporte/leads-seguimientos'
@@ -111,11 +106,6 @@ test('los enlaces de siempre: `?seccion=` lleva a su bloque y `?panel=` abre lo 
   }
   await irAFicha(page, completo.id, '?seccion=seguimientos&panel=anotar-seguimiento')
   await expect(page.getByRole('dialog', { name: 'Anotar seguimiento' })).toBeVisible()
-  // El de «Agregar teléfono» de cuando el modal vivía en la ficha: la edición con el modal abierto.
-  await irAFicha(page, completo.id, '?panel=agregar-telefono')
-  await expect(page).toHaveURL(/panel=editar-lead&extra=nuevo/)
-  await expect(panelDeEdicion(page)).toBeVisible()
-  await expect(page.getByRole('dialog', { name: 'Agregar teléfono' })).toBeVisible()
 })
 
 test('la forma: en escritorio, «Datos» a la izquierda de los bloques; en el celular, una columna en el orden del índice', async ({
@@ -193,13 +183,4 @@ test('el documento de la ficha entera pesa lo mismo con 10 que con 1.000 seguimi
   info.annotations.push({ type: 'KB de la ficha entera', description: resumen })
   expect(deDiez).toBeLessThan(PRESUPUESTO_DE_LA_FICHA_EN_KB * 1024)
   expect(deMil).toBeLessThanOrEqual(deDiez + 2 * 1024)
-})
-
-test('`?lead=<id>&pestana=` de cuando la lista tenía resumen lleva a la ficha en su bloque', async ({
-  page,
-}) => {
-  await entrar(page, t.personas.duena)
-  await page.goto(`/leads?lead=${completo.id}&pestana=seguimientos`)
-  await expect(page).toHaveURL(new RegExp(`/leads/${completo.id}\\?seccion=seguimientos`))
-  await expect(titulo(page, 'Seguimiento')).toBeFocused()
 })

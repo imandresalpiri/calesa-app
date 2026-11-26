@@ -29,7 +29,7 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
   `sitio-legales|guias|faqs|testimonios` → `contenido`) va en `PANTALLAS_DE_AREA` de la guarda.
 - **Sub-rutas de Configuración › Sitio web**: una por parte (`/configuracion/web/{ajustes,legales,guias,faqs,testimonios}`), registradas en
   `src/app/(app)/configuracion/web/seccion.ts` (menú, frase y permisos); cada una importa su pantalla de `pantallas/sitio-{ajustes,legales,guias,faqs,testimonios}.ts`.
-  `/configuracion/web` abre la primera que la persona puede y traduce `?seccion=` a su sub-ruta (`web/url-vieja.ts`). Ajustes y Legales son tarjetas con lo
+  `/configuracion/web` abre la primera que la persona puede. Ajustes y Legales son tarjetas con lo
   guardado a la vista y un modal por tarjeta (`?panel=`; `@/shared/ui/tarjetas-de-ajustes`, `useEnvioConVersion()`), igual que la política de la cola
   (`TarjetaDeLaPolitica` y su modal, abajo). Ajustes y Legales comparten la versión de `ajustes_web`: cada action revalida las dos rutas.
 - `turnos`: `infra/turnos/mis-turnos.ts` lee `limit 6` **filtrado por `usuario_id` a mano** (la RLS deja ver todas a quien gestiona la cola); el título sale
