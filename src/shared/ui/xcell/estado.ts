@@ -195,6 +195,8 @@ export type NotasDeXCell = {
   deLado: Record<Lado, string | undefined>
   // La entrada abierta: sólo el aviso o el error (su lado no tiene candado: si lo tuviera no estaría abierta).
   deLaEntrada: string | undefined
+  // El id del candado de cada lado (dos lados con el mismo motivo comparten uno): tocar un lado bloqueado lo enfoca y su globo dice el motivo.
+  candadoDe: Record<Lado, string | undefined>
 }
 
 // Un candado por texto distinto, con su id, y el id del que toca a cada lado (dos lados con el mismo motivo comparten uno).
@@ -247,5 +249,6 @@ export function notasDe(
       secundario: unir(...deLaCelda, conId.deLado.secundario),
     },
     deLaEntrada: idDelAviso,
+    candadoDe: { principal: conId.deLado.principal, secundario: conId.deLado.secundario },
   }
 }
