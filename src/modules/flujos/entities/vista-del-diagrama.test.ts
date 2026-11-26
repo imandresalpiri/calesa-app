@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { disponerDiagrama, medidasDelDiagrama } from './disposicion-del-diagrama'
-import { centroParaVerLaFase, vistaInicial } from './vista-del-diagrama'
+import { centroParaVerLaFase, vistaInicial, vistaQueMuestra } from './vista-del-diagrama'
 import { disponerConPosiciones } from './trazado-de-salidas'
 
 const m = medidasDelDiagrama(16)
@@ -53,5 +53,42 @@ describe('vistaInicial', () => {
     const tapada = centroParaVerLaFase(d, 'f1', 600, 1)
     expect((tapada?.x ?? 0) - (libre?.x ?? 0)).toBe(300)
     expect(centroParaVerLaFase(d, 'otra', 0, 1)).toBeNull()
+  })
+})
+
+describe('vistaQueMuestra', () => {
+  const lienzo = { ancho: 800, alto: 600 }
+  const caja = { x: 100, y: 100, ancho: 200, alto: 100 }
+
+  it('no corre la vista si la caja ya se ve entera', () => {
+    expect(vistaQueMuestra(caja, { x: 0, y: 0, zoom: 1 }, lienzo, 32)).toBeNull()
+  })
+
+  it('la corre lo justo si la caja se pasa por abajo o por la derecha', () => {
+    expect(vistaQueMuestra({ ...caja, y: 520 }, { x: 0, y: 0, zoom: 1 }, lienzo, 32)).toEqual({
+      x: 0,
+      y: -52,
+      zoom: 1,
+    })
+    expect(vistaQueMuestra({ ...caja, x: 1500 }, { x: 0, y: 0, zoom: 0.5 }, lienzo, 32)).toEqual({
+      x: -82,
+      y: 0,
+      zoom: 0.5,
+    })
+  })
+
+  it('la corre si la caja se pasa por arriba o por la izquierda', () => {
+    expect(
+      vistaQueMuestra({ ...caja, x: -40, y: 10 }, { x: 0, y: 0, zoom: 1 }, lienzo, 32),
+    ).toEqual({ x: 72, y: 22, zoom: 1 })
+  })
+
+  it('una caja más grande que el lienzo queda con su principio a la vista', () => {
+    const grande = { x: 0, y: 0, ancho: 2000, alto: 100 }
+    expect(vistaQueMuestra(grande, { x: 0, y: 0, zoom: 1 }, lienzo, 32)).toEqual({
+      x: 32,
+      y: 32,
+      zoom: 1,
+    })
   })
 })

@@ -10,6 +10,7 @@ import {
 } from '../../../../entities/posiciones-del-diagrama'
 import type { Lienzo } from './contexto-del-lienzo'
 import type { useDiagrama } from './use-diagrama'
+import { useMoverConTeclado } from './use-mover-con-teclado'
 
 export const SIN_CONEXION_AL_MOVER = 'Sin conexión: la posición se guarda cuando vuelva.'
 
@@ -41,7 +42,7 @@ export function useHerramientasDelLienzo({
     d.fases?.nuevaFaseEn(posicionDeLaNuevaFase({ x: px.x / rem, y: px.y / rem }))
   }
 
-  const { moverConTeclado } = d.posiciones
+  const alTeclado = useMoverConTeclado({ diagrama: d, contenedor, rem })
   const puedeMover = d.edicion.mover === null
   const puedeVincular = d.edicion.vincular === null
   const lienzo = useMemo<Lienzo>(
@@ -51,10 +52,10 @@ export function useHerramientasDelLienzo({
       vieneDeArrastrar,
       puedeMover,
       puedeVincular,
-      alTeclado: moverConTeclado,
+      alTeclado,
       salidas: d.salidas,
     }),
-    [d.medidas, alAbrir, vieneDeArrastrar, puedeMover, puedeVincular, moverConTeclado, d.salidas],
+    [d.medidas, alAbrir, vieneDeArrastrar, puedeMover, puedeVincular, alTeclado, d.salidas],
   )
 
   return {

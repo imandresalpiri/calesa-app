@@ -52,3 +52,25 @@ export function centroParaVerLaFase(
     y: nodo.y + disposicion.medidas.alto / 2,
   }
 }
+
+// La vista corrida lo justo para que una caja (px del diagrama, `{x, y}` arriba a la izquierda y su tamaño) quede entera dentro del lienzo, a `margen` px
+// de cada borde; el mismo zoom. Nula si ya se ve. Para que una fase movida con el teclado no salga de la vista (fuera, React Flow no la dibuja y se pierde
+// el foco).
+export function vistaQueMuestra(
+  caja: Punto & { ancho: number; alto: number },
+  vista: Vista,
+  lienzo: { ancho: number; alto: number },
+  margen: number,
+): Vista | null {
+  const corrimiento = (desde: number, largo: number, total: number) => {
+    const inicio = desde
+    const fin = desde + largo
+    if (inicio < margen) return margen - inicio
+    if (fin > total - margen) return Math.max(margen - inicio, total - margen - fin)
+    return 0
+  }
+  const dx = corrimiento(caja.x * vista.zoom + vista.x, caja.ancho * vista.zoom, lienzo.ancho)
+  const dy = corrimiento(caja.y * vista.zoom + vista.y, caja.alto * vista.zoom, lienzo.alto)
+  if (dx === 0 && dy === 0) return null
+  return { x: vista.x + dx, y: vista.y + dy, zoom: vista.zoom }
+}
