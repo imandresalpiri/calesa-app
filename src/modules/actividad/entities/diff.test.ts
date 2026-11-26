@@ -164,6 +164,8 @@ describe('etiquetas', () => {
     expect(etiquetaDeCampo('vehiculos', 'precio_web')).toBe('Precio público')
     expect(etiquetaDeCampo('leads', 'nombre')).toBe('Nombre')
     expect(etiquetaDeCampo('vehiculos', 'atributos.color', etiquetasDeAtributos)).toBe('Color')
+    expect(etiquetaDeCampo('embarques', 'eta_el')).toBe('ETA')
+    expect(etiquetaDeCampo('contenedores', 'tipo')).toBe('Tipo de contenedor')
     expect(etiquetaDeCampo('vehiculos', 'precio_web_nota')).toBe('Precio web nota')
     expect(etiquetaDeCampo('cotizaciones', 'tarjeta_retoques')).toBe('Retoques de la tarjeta')
     expect(verboDeLaAccion('leads.update')).toBe('Cambió')
