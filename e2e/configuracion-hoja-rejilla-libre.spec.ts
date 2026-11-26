@@ -111,6 +111,8 @@ test('R1: «Precio» a la columna 7 de su fila deja libre la mitad izquierda: el
   await expect(anuncio(page)).toHaveText('Moviste «Precio» a la columna 7, fila 1.')
   await expect(campo(page, 'Columna')).toHaveValue('7')
   await expect(lugar(page, 'precio')).toHaveAttribute('style', /--pieza-columna: ?7(;|$)/)
+  // Tailwind pone `col-span-6` (la forma abreviada) antes que `col-start-(--pieza-columna)`: si no, el ancho borraría la columna.
+  await expect(lugar(page, 'precio')).toHaveCSS('grid-column-start', '7')
   // Nada más se corrió: «Flete» sigue debajo, en la columna 1.
   expect(sinLa(await lugaresEnElLienzo(page), 'precio')).toEqual(sinLa(antes, 'precio'))
   await capturar(page, info, 'hueco')
