@@ -80,7 +80,7 @@ test('E2E que falta · un dato que falta lleva a su campo para completarlo', asy
   const contenedor = requisito(page, 'Contenedor')
   await contenedor.getByRole('button', { name: 'Completar «Contenedor»' }).click()
   const hueco = page.locator('[data-hueco="transporte"]')
-  const campo = hueco.getByLabel('Contenedor')
+  const campo = hueco.getByLabel('Contenedor', { exact: true })
   await expect(campo).toBeFocused()
   await campo.fill('ecmu 765432')
   await hueco.getByRole('button', { name: 'Guardar' }).click()

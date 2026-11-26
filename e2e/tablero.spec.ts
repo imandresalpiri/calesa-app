@@ -128,14 +128,16 @@ test('T5 la dueña ve las cinco gráficas y «Ver como tabla» abre los números
   // «Ver como tabla» abre un modal con su URL; el widget no cambia de alto y al cerrar el foco vuelve al botón.
   const verComoTabla = seccion.getByRole('button', { name: 'Ver como tabla' })
   await expect(verComoTabla).toHaveAttribute('aria-haspopup', 'dialog')
-  const alto = (await seccion.boundingBox())?.height
+  // Con el modal abierto el resto de la página queda inerte (fuera del árbol accesible): se mide el mismo nodo, no se lo vuelve a buscar.
+  const caja = await seccion.elementHandle()
+  const alto = (await caja.boundingBox())?.height
   await verComoTabla.click()
   const tabla = page.getByRole('dialog', { name: 'Leads por día: datos de la gráfica' })
   await expect(tabla.getByRole('columnheader', { name: 'Día' })).toBeVisible()
   await expect(tabla.getByRole('columnheader', { name: 'Creados' })).toBeVisible()
   await expect(page).toHaveURL(/[?&]panel=tabla(&|$)/)
   await expect(page).toHaveURL(/[?&]grafica=leads-por-dia(&|$)/)
-  expect((await seccion.boundingBox())?.height).toBe(alto)
+  expect((await caja.boundingBox())?.height).toBe(alto)
   await capturar(page, info, 'ver-como-tabla')
   await page.keyboard.press('Escape')
   await expect(tabla).toBeHidden()

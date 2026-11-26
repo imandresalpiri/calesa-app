@@ -132,7 +132,7 @@ test('el precio se lee con el locale de la empresa: «21.5» avisa y «21.500» 
   await page.goto(`/vehiculos?origen=${corea.id}&panel=nuevo`)
   const panel = page.getByRole('dialog', { name: 'Nuevo vehículo' })
   await panel.getByLabel('Título (obligatorio)').fill(nombre)
-  const precio = panel.getByLabel('Precio', { exact: true })
+  const precio = panel.getByRole('textbox', { name: 'Precio', exact: true })
   await precio.fill('21.5')
   await panel.getByRole('button', { name: 'Guardar', exact: true }).click()
   await expect(panel.getByText('Usa coma para los decimales: 21,5.')).toBeVisible()
