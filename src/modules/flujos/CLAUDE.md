@@ -28,24 +28,34 @@ Toda la configuración se escribe por RPC con la versión del flujo. Abiertos (`
 - `entities/fase.ts` (`FaseResumen`, `fasesDesde()`), `infra/queries/fases.ts` (`getFasesDeOrigen()`), `areas/nucleo/composicion.ts`.
 - `features/configuracion/` (núcleo): `<PantallaDelFlujo fijo>` (Server Component async, por `pantallas/configuracion.ts`; sin selector: abre la entrada
   de `entradaFija()`, que nunca cae en otra, o «sin flujo» si quien mira no lo configura), la barra del flujo,
-  las fases como **diagrama** (`components/diagrama/`, `diferido()`) o lista (`?vista=diagrama|lista`, `useVistaDelFlujo`, `shallow` + `replace`; debajo de
-  768 px sólo la lista) y el **panel del flujo** (`panel-del-flujo.tsx`, `<Drawer alCostado>` desde 1024 px): una fase (`?fase=`, `ContenidoDeLaFase`: avisos de «Revisar» y tres
+  las fases como **diagrama** (`components/diagrama/`, `diferido()`) o lista (`?vista=diagrama|lista`, `useVistaDelFlujo`, `shallow` + `replace`; sin
+  `vista`, el diagrama desde 768 px y la lista debajo; los dos en todo ancho) y el **panel del flujo** (`panel-del-flujo.tsx`, `<Drawer alCostado>` desde 1024 px): una fase (`?fase=`, `ContenidoDeLaFase`: avisos de «Revisar» y tres
   pestañas del hueco `pestanas`; el «⋯» de `bloques.acciones` va en el encabezado del `<Drawer acciones>`) o una sección (`?seccion=reglas|documentos`, lo que dibuja el servidor por `secciones`); gana `?seccion=`
   (`entities/panel-del-flujo.ts`). Abrir una fase o sección limpia `CLAVES_DEL_PANEL_DE_FASE`.
-- **Diagrama:** `entities/disposicion-del-diagrama.ts` (`disponerDiagrama`: una columna por fase en su orden, rectas a la siguiente, ramas arriba, vueltas
-  atrás abajo, carriles sin cruces, puertos repartidos; medidas desde `rem`) y `entities/vista-del-diagrama.ts` (dónde cae lo que se suelta, `vistaInicial`,
-  `centroParaVerLaFase`), puros y con test. **Sólo `components/diagrama/` importa `@xyflow/react`** y sólo `diferidos.tsx` llega ahí, por `import()`
-  (`scripts/guardas/xyflow-diferido.test.ts`); el esqueleto va fuera. Sin posiciones guardadas. Cada caja es un `<button>` «Fase «X»» (React Flow sin
-  teclado ni foco propios; sus textos en español); las salidas se agregan en el panel, no arrastrando.
+- **Diagrama:** `entities/disposicion-del-diagrama.ts` (`disponerDiagrama`, el **acomodo automático**: una columna por fase en su orden, rectas a la
+  siguiente, ramas arriba, vueltas atrás abajo, carriles sin cruces, puertos repartidos; medidas desde `rem`), `entities/posiciones-del-diagrama.ts` (la
+  **posición de la fase**, en rem: la guardada gana; sin ninguna, el acomodo; una nueva sin posición, al lado de la última; `cambiosAlMover` guarda también
+  las que no tenían, para que nada salte; rejilla de 1 rem, teclado, «Ordenar solo», la pila de deshacer), `entities/trazado-de-salidas.ts` (cada flecha
+  sigue la ruta del acomodo entre las cajas donde estén), `entities/edicion-del-lienzo.ts` (qué se puede y su motivo; `versionVigente`) y
+  `entities/salida-al-soltar.ts` (por qué no se vincula, con los textos de la base), puros y con test. **Sólo `components/diagrama/` importa
+  `@xyflow/react`** y sólo `diferidos.tsx` llega ahí, por `import()` (`scripts/guardas/xyflow-diferido.test.ts`); el esqueleto va fuera. El lienzo ocupa el
+  alto que queda de la pestaña (`useAltoDelLienzo`, `<MarcoDelLienzo>`). Cada caja es un `<button>` «Fase «X»» (React Flow sin teclado ni foco propios;
+  sus textos en español): arrastrarla o moverla con las flechas (Shift: 10 rem) la deja ahí **sin cambiar el orden**; su **asa de la fase** (a la derecha)
+  se arrastra a otra caja para crear una salida; cada flecha lleva un `<button>` «Salida de «X» a «Y»» que abre la salida (Supr la quita, con confirmar).
+  La barra flotante (`barra-del-lienzo.tsx`): «Nueva fase», «Ordenar solo», el zoom y una línea de estado (sin conexión, celular); doble clic en el vacío
+  crea una fase ahí; Ctrl/Cmd+Z deshace. Minimapa desde 768 px con 6 fases o más. En el celular se ve y se toca, pero no se mueve ni se vincula.
+  **Todas las escrituras del lienzo van por una cola** (`use-escritura-del-lienzo.ts`), una a la vez y con la última versión conocida; lo movido se
+  dibuja sobre lo leído hasta que la lectura lo trae, sin red se reintenta al volver y un `PT409` lo descarta con su aviso.
 - `<PantallaDelFlujo>` recibe de `src/app` los orígenes (`getOrigenes(true)`) y los roles (`leerRolesParaElegir()`): `flujos` no importa `origenes` ni
   `equipo`. `?fase=` lo lee `useFaseAbierta()` (un id ajeno al flujo se ignora). `useVersionDelFlujo()` (dentro de `<ProveedorDelFlujo>`) da la `version` y
   `avisarConflicto()`; no sale por `client.ts`.
 - **Huecos** (`HuecosDelFlujo`): `proveedorDeRevisar` (llena `ContextoDeMarcasDelDiagrama`), `franjaDeRevisar`, `ordenDeFases` (llena
-  `ContextoDeOrdenDeFases`: arrastrar y «Mover antes/después»), `accionesDeLaLista` (en la barra), `sinFases` (en lugar del vacío), `accionesDeFila`, `salidasDeFila` y
+  `ContextoDeOrdenDeFases`: «Mover antes/después»), `diagramaDeFases` (llena `ContextoDeFasesDelDiagrama`: guardar posiciones, crear donde se pidió, y sus
+  motivos), `salidasDelDiagrama` (llena `ContextoDeSalidasDelDiagrama`: crear, abrir y quitar una salida desde el lienzo), `accionesDeLaLista` (en la barra), `sinFases` (en lugar del vacío), `accionesDeFila`, `salidasDeFila` y
   `bloques.acciones|pestanas|salidas|requisitos|reglas` del panel. Son componentes de cliente opcionales que se registran en
   `src/app/(app)/configuracion/_flujo/huecos.ts` (`_flujo/` es el editor que comparten las dos páginas: `editor-del-flujo.tsx`, los huecos, las secciones del
-  panel y lo fuera de regla); los dos contextos son del núcleo (el núcleo no importa áreas) y sin proveedor no marcan nada ni ordenan
-  («No se puede ordenar desde aquí.»). El panel está en `drawers-con-salida.ts` con el formulario de la fase (`formulario-de-datos-de-la-fase.tsx`,
+  panel y lo fuera de regla); los contextos son del núcleo (el núcleo no importa áreas) y sin proveedor no marcan nada, ni ordenan
+  («No se puede ordenar desde aquí.»), ni mueven, crean o vinculan en el lienzo (sus motivos en `edicion-del-lienzo.ts`). El panel está en `drawers-con-salida.ts` con el formulario de la fase (`formulario-de-datos-de-la-fase.tsx`,
   mecanismo `contexto`).
 
 ## Áreas
@@ -63,7 +73,9 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
 - `pantallas/transiciones.ts` da `<BloqueDeSalidas>` (`bloques.salidas`, recibe `{flujo, fase, roles}`) y `<SalidasDeLaFila>` (`salidasDeFila`).
 - Cinco actions (`crearTransicion`, `guardarTransicion`, `eliminarTransicion`, `ponerRolesDeFase`, `ponerRolesDeTransicion`) comprueban `flujos.configurar` o
   `repuestos.configurar`, llaman su RPC (el `hint` es el campo) y revalidan la ruta.
-- Sólo quitar vive en la URL: `?eliminar=salida&salida=<id>` (en `scripts/guardas/areas-b/confirmar-con-url.ts`). La clave `eliminar` la comparten requisitos
+- Quitar vive en la URL: `?eliminar=salida&salida=<id>` (en `scripts/guardas/areas-b/confirmar-con-url.ts`); la salida en edición, también
+  (`?editar=salida&editada=<id>`, `useSalidaEditadaPorUrl`, `replace`): así el lienzo abre una recién creada en edición; `'editada'` va en
+  `CLAVES_DEL_PANEL_DE_FASE`. La clave `eliminar` la comparten requisitos
   y agenda: cada hook abre sólo con su valor.
 - Editar una salida: un solo «Guardar» manda primero acción y nota y luego los roles, **el segundo con la versión que devolvió el primero**. `alternarRol` toca
   sólo ese id y conserva los que no se muestran. Todo cuelga de `useSalidasDeLaFase`: una escritura a la vez. Limitar a un rol que quien configura no tiene no
@@ -110,7 +122,8 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
 - `entities/fases/reglas-de-fase.ts` es el espejo puro de `_fase_validar()` (`validarFase`, `motivoDelInterruptor`; lo prueba
   `reglas-de-fase-contra-la-base.test.ts` en PGlite). `cambiosParaGuardar` manda sólo lo que cambió. Colores: paleta cerrada.
 - **La lista:** `pantallas/fases.ts` da `<AccionesDeLaLista>` (en la barra del flujo) y `<AccionesDeFila>` (Subir/Bajar y Editar, Jubilar o eliminar,
-  Reactivar). URL `?panel=nueva-fase` y
+  Reactivar). URL `?panel=nueva-fase` (`&en=x,y` en rem si se pidió desde el lienzo: nace ahí y abre su panel; sin `en`, al lado de la última; siempre
+  al final del orden) y
   `?panel=eliminar-fase&quitar=<id>` (en `scripts/guardas/areas-b/confirmar-con-url.ts`). La confirmación lee `fase_impacto` al abrirse; una bloqueada se
   explica y no se confirma. `useListaDeFases` escribe una a la vez con la `version`; `PT409` → `avisarConflicto()`. Sólo se abre un flujo que quien mira configura (`entradaFija()`).
 - **Copiar las fases** («Empezar con las fases de…»): `<EmpezarElFlujo>` (`sinFases`) ofrece copiar o «Empezar en blanco» (`?panel=nueva-fase`); sin
@@ -119,7 +132,7 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
   `ContextoDeFlujosParaCopiar` (`useFlujosParaCopiar()`, núcleo). El modal (`?panel=copiar-fases`, `useModalDeCopiarFases`) lo monta
   `<AccionesDeLaLista>`, que sigue montada al llenarse el flujo; la action `copiarFases` exige `flujos.configurar` en los dos orígenes. Lo saltado
   (`entities/fases/copiar-fases.ts`: `textoDeLoSaltado`, `motivoDelRechazoDeCopiar`) se dice en el mismo modal (`resultado-de-la-copia.tsx`).
-- **Ordenar:** `<ProveedorDeOrden>` (`ordenDeFases`) da `fase_mover` al diagrama (arrastrar: el orden se ve en el acto y vuelve atrás si falla) y a
+- **Ordenar:** arrastrar en el diagrama no ordena. `<ProveedorDeOrden>` (`ordenDeFases`) da `fase_mover` a «Subir/Bajar» de la lista y a
   `<AccionesDelPanel>` (`bloques.acciones`, el «⋯» del panel: «Mover antes», «Mover después», «Jubilar o eliminar», con su motivo debajo si están apagadas;
   `accionesDelPanelDeFase`). Con `truncado.fases` todo orden se apaga con
   `MOTIVO_LISTA_CORTADA` (`motivoSinOrdenDeFases`), también «Subir/Bajar» de la lista.

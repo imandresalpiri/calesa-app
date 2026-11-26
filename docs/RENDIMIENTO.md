@@ -666,9 +666,11 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 - El flujo (la pestaña «Fases» de un origen, `/configuracion/origenes/<id>/fases`, con su tope, abajo, y
   `/repuestos/configuracion/flujo`, 410,4 en 28, sin tope propio). El vacío de un flujo sin fases («Empezar con las fases de…») viaja con la
   página; su modal, con `diferido()`. De dónde copiar se lee sólo con el flujo vacío: una consulta por `fases` con tope de flujos. El diagrama (`@xyflow/react` y lo suyo) llega
-  al dibujarse, con `diferido()`: un chunk de 62,6 KB gz (194,8 crudo) y 2,0 KB gz de CSS; ninguna otra ruta ni el marco lo nombran
+  al dibujarse, con `diferido()`: un chunk de 63,2 KB gz (196,4 crudo, con la edición del lienzo) y 2,0 KB gz de CSS; ninguna otra ruta ni el marco lo nombran
   (`scripts/guardas/xyflow-diferido.test.ts`). Una sola lectura del flujo (los topes de `leerFlujoParaConfigurar`); hasta 200 cajas y 500
-  flechas, con `onlyRenderVisibleElements`.
+  flechas, con `onlyRenderVisibleElements`. Mover fases no lee nada: una escritura por arrastre soltado o por ráfaga de teclado (600 ms tras la
+  última tecla), un lote con todas las movidas (`fase_posiciones_guardar`, hasta 200 por lote, una actualización por fila por la PK, sin auditar)
+  y la recarga del flujo que ya hace toda edición; nunca una por tecla ni por cuadro del arrastre.
 - Configuración (`/configuracion/*`, el inicio incluido), sin tope propio: el layout suma a cada página el menú de Configuración y la cabecera (Server
   Components) y las piezas de cliente chicas (la marca del enlace, la vuelta, el `<select>` del selector de sección y el buscador con su búsqueda, que
   filtra lo que el menú ya recibe más las `palabras` del registro, ≈ 2 KB más en el HTML); los íconos de las secciones se dibujan en el servidor y no
@@ -684,7 +686,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   editor de su pestaña y no llevan tope propio.
 - La página de un origen: cada pestaña carga sólo su pantalla (`pantallas/origen-*`, `formula|diseno|plantilla|tablas|diseno-colores|configuracion`).
   JS en frío de las seis pestañas (KB gz, `medirJsEnFrio()` sobre `.next-e2e`; topes en `e2e/soporte/presupuestos.ts`):
-  `/configuracion/origenes/<id>/fases` 442,9 (tope 460), `/planilla` 496,0 (tope 510; la planilla, por `PlanillaDiferida`; sus paneles, «¿Cómo se
+  `/configuracion/origenes/<id>/fases` 450,3 (tope 460; el diagrama editable suma su barra y su asa al código en frío de la pestaña), `/planilla` 496,0 (tope 510; la planilla, por `PlanillaDiferida`; sus paneles, «¿Cómo se
   escribe?» y el drawer «Versiones», en su `diferido()`; el arrastre del número va con eventos de puntero, sin dnd-kit), `/hoja` 414,5 (tope 420; dnd-kit, el lienzo y el
   inspector del editor de la hoja, en su `diferido()`; «Publicar…» suma su botón, su modal va en el suyo; «+ Nuevo nivel» y «+ Nuevo color», en otro), `/tarjeta` 418,1 (tope 430; dibuja en frío el aviso de menos de 1.024 px y arma la lectura del lienzo; el
   editor llega por `diferido()`), `/campos` 409,9 (tope 420; el editor de campos de `shared`: el arrastre y el formulario del campo van en su `diferido()` y la búsqueda filtra en el cliente; la lista del combo del grupo y el cuerpo del drawer «Grupos», en los suyos) y `/categorias` 410,8 (tope 420 por la regla del 5 %: el layout del origen trae el grupo de campos y su orden). Cada pestaña paga en frío las migas con el selector de origen, el drawer

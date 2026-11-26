@@ -524,8 +524,16 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Fases de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
   del flujo entero, «Reglas del flujo» o «Tipos de documento» (`?seccion=reglas|documentos`); gana `?seccion=`. No: «sidebar», «inspector» para
   lo del flujo.
-- **Diagrama del flujo** — `DiagramaDelFlujo` (`disponerDiagrama()`): las fases como cajas en su orden y las salidas como flechas (ramas arriba,
-  vueltas atrás abajo); apoyo visual del editor del flujo, la lista es la versión navegable. No: «grafo», «tablero».
+- **Diagrama del flujo** — `DiagramaDelFlujo`: las fases como cajas, cada una en su posición, y las salidas como flechas; ahí se mueven, se crean
+  y se vinculan. La lista es la versión navegable. No: «grafo», «tablero».
+- **Posición de la fase** — `fases.posicion_x|y` (rem) / `fase_posiciones_guardar()`: dónde se dibuja su caja en el diagrama; una sola, del flujo.
+  Nula = el acomodo automático. Mover una fase cambia su posición, nunca su orden. No: «coordenadas», «layout».
+- **Acomodo automático** — `disponerDiagrama()`: dónde va cada fase si no tiene posición (una columna por fase en su orden, ramas arriba, vueltas
+  atrás abajo); también la ruta de cada flecha.
+- **Ordenar solo** — «Ordenar solo» de la barra flotante del diagrama (`posicionesDeOrdenarSolo()`): vuelve todas las fases al acomodo automático,
+  con «Deshacer». No cambia el orden del flujo. No: «auto-layout», «reacomodar».
+- **Asa de la fase** — `AsaDeLaFase` («Crear una salida desde «X»»): el punto a la derecha de una caja del diagrama que se arrastra hasta otra para
+  crear una salida. No: «handle», «puerto»; no es el asa de una fila (arrastre de orden en una lista).
 - **Versión de la fórmula** — `formulas.version`: número de una publicada o archivada, por fórmula del origen (el borrador no tiene).
 - **Borrador de la fórmula** — `formulas.estado = 'borrador'`: a lo sumo uno por fórmula del origen, sin número; lo publicado no cambia hasta publicarlo.
   «Descartar…» (`<Confirmar>`) no se deshace. No es la «Pregunta al descartar» ni el «Borrador» de un formulario (`useBorrador()`).
