@@ -86,4 +86,16 @@ describe('Modal dentro de un Drawer', () => {
     expect(cerrarModal).toHaveBeenCalledTimes(1)
     expect(cerrarDrawer).not.toHaveBeenCalled()
   })
+
+  it('el ancho «completa» ocupa toda la pantalla, también desde sm', () => {
+    render(
+      <Modal abierto alCerrar={() => undefined} titulo="Vista previa" ancho="completa">
+        <p>Texto</p>
+      </Modal>,
+    )
+    const clases = screen.getByRole('dialog').className
+    expect(clases).toContain('h-dvh')
+    expect(clases).toContain('sm:max-w-none')
+    expect(clases).not.toContain('sm:max-w-4xl')
+  })
 })
