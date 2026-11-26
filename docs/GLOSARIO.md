@@ -665,10 +665,6 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   primero); va con «Ver total» por defecto (`ver_total_bs_por_defecto`). Lo cambian el ⚙ de la cabecera y el diseño de Configuración.
 - **Modos visibles** — `diseno.cabecera.modos_visibles` / `modosDelEncabezado()`: los modos que se dibujan en el encabezado de la hoja (sin la
   lista, todos). El modo por defecto siempre está entre ellos, y el que una cotización tiene elegido se dibuja aunque no lo esté.
-- **Pasos de la hoja** — `pasosDeLaHoja()` / `<PasosDeLaHoja>`: la fila «Hoja · Vehículo · Cliente · Vista previa» de arriba de la hoja.
-  Cada paso abre su panel de hoy y lleva un punto (elegido, obligatorio que falta, falta un dato) con su texto; no reemplaza las barras.
-- **Grupo (de la hoja)** — `definicion.grupos[]` / `nodo.grupo`: filas con bucket, plazo de pago y color, con subtotal en USD y Bs. No es un nodo
-  ni un grupo de campos.
 - **Pasos de la hoja** — `pasosDeLaHoja()` / `<PasosDeLaHoja>`: la fila «Privada · Vista previa» de arriba de la hoja. «Privada» (el interruptor de la
   **cotización privada**) sólo en la hoja nueva y para quien puede marcarla; una guardada lleva sólo «Vista previa»; sin ninguno, la fila no se dibuja.
   El vehículo y el cliente se eligen en sus barras.
@@ -676,7 +672,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   vehículo y del cliente (`data-cabecera-de-la-hoja`) donde la cabecera de la hoja (los modos, «Ver total en moneda local» y su ⚙) se dibuja por un portal;
   hasta hidratar muestra la **cabecera quieta** (`<CabeceraQuieta>`: las mismas piezas, inertes). Sin proveedor (el lienzo del editor), la cabecera va en su
   lugar dentro de la hoja. No es el lugar de «Guardar» en la cabecera de una guardada (`useRanuraDeGuardar()`).
-- **Grupo (de la hoja)** — `definicion.grupos[]` / `nodo.grupo`: filas con bucket, plazo de pago y color, con subtotal en USD y Bs. No es un nodo.
+- **Grupo (de la hoja)** — `definicion.grupos[]` / `nodo.grupo`: filas con bucket, plazo de pago y color, con subtotal en USD y Bs. No es un nodo
+  ni un grupo de campos.
 - **Plazo de pago** — atributo del grupo: cuándo se paga, como texto («2 días», «4 meses (Aprox.)»).
 - **Total en dólares** — `definicion.total_en`; en el motor `totales.usd` (y `totales.suma_usd`): total en Bs ÷ tipo de cambio de `total_en`.
 - **Faltante** — `Resultado.faltantes`, `CODIGOS_DE_FALTANTE` (`entities/motor-contexto.ts`): por qué un valor quedó sin número.
@@ -965,9 +962,6 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Naviera** — `navieras`: la empresa que lleva el contenedor; nombre y `activo`. Propia de un origen o compartida, como el puerto (tapa por
   nombre). Las compartidas, en Logística › Configuración › Navieras; se desactiva; cada flujo ofrece las suyas (`flujos_transporte_oferta`). No:
   «línea marítima», «carrier».
-- **Embarque / Contenedor** — grupo por `transportes.booking` / `contenedor`: agrupación, no entidad.
-- **Grupo (de transporte)** — unidades que comparten `booking` o `contenedor`; no es entidad: `transporte_grupos()` lo cuenta y
-  `transporte_grupo()` lo lista (las visibles, hasta 200). No: «lote», «carga», ni un grupo de campos.
 - **Embarque** — `embarques` / `embarque_crear|guardar()`: el booking en un origen, dueño de la naviera, los puertos, el zarpe (estimado y el de
   siempre), la ETA y el arribo; sus vehículos van sueltos en él o en sus contenedores, y lo suyo cambia para todos. El booking es único por origen
   (sin espacios ni mayúsculas de más); su estado se calcula. No: «carga», «viaje», «booking» a secas.
@@ -981,7 +975,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `repuestos.ver` / `repuestos.editar`.
 - **Grupo (de transporte)** — los embarques (o contenedores) con un mismo booking (o número) en todos los orígenes: la clave de `?booking=` /
   `?contenedor=` de `/logistica/embarques`. `transporte_grupos()` los pagina y `transporte_grupo()` lista sus unidades (las visibles, hasta 200).
-  No: «lote», «carga».
+  No: «lote», «carga», ni un grupo de campos.
 - **Declaración aduanera** — `declaraciones_aduana`, `declaraciones_vehiculos`: DUI: número, canal de aforo, vencimiento de tributos; N:M.
 - **Gasto** — `gastos`, `categorias_gasto`: costo real imputado a una unidad, en su moneda y en base.
 - **Categoría de gasto** — `categorias_gasto` / `categoria_gasto_crear()`: a qué va un gasto (flete, tributos…), con `proposito` opcional,
