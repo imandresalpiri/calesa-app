@@ -1631,7 +1631,7 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
 - **Filas:** el «⋯» de la fila activa (arriba a la derecha de la fila, `Acciones de la fila N`) y el clic derecho abren la misma lista:
   «Insertar arriba», «Insertar abajo» (la fila nueva, «Fila nueva», un valor fijo en 0 con la banda de la de referencia, abre su concepto
   elegido para escribir), «Duplicar», «Mover arriba» y «Mover abajo» (Alt+↑ y Alt+↓; apagados en la primera y la última), «Tipo de celda ›»,
-  «Banda ›» (cada banda, «Sin banda» y «Nueva banda…») y «Eliminar». Mover o arrastrar se rechaza con su motivo si rompe el orden: «C9 usa
+  «Decimales…» (sólo en una celda que se ve como número), «Banda ›» (cada banda, «Sin banda» y «Nueva banda…») y «Eliminar». Mover o arrastrar se rechaza con su motivo si rompe el orden: «C9 usa
   esta fila: no puede quedar arriba de ella.» o «Esta fila usa C5: no puede quedar arriba de ella.». «Eliminar» va apagado con su motivo si
   la usa otra fila («La usan C9 y C12.»), es un tipo de cambio de una banda o del total, la fila del total, la única de su banda, la muestra la
   hoja («La muestra la hoja: quítala en «Hoja» antes.») o la usa la tarjeta («La usa la tarjeta: quítala en «Tarjeta» antes.»); si entra, el
@@ -1641,6 +1641,17 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   motivo). Un dato del vehículo, un tipo de cambio, una tabla y la variante abren su panel («Tipo de celda: <tipo>»; la variante con sus
   opciones, la por defecto y «Se cotiza en par», apagada con menos o más de dos opciones: «Sólo una variante de dos opciones se cotiza en
   par.»). Un cambio que la fórmula no admite se rechaza con su motivo en A1 y la fila queda como estaba.
+- **Decimales** (`?panel=decimales&fila=<id>`, glosario «Decimales (de una celda)»): el drawer «Decimales» con `C<n> · <concepto>`, una sola sección con
+  «Cuántos decimales muestra»: «Automático», «0», «1», «2», «3» y «4» (radios a la vista, 44 px en el celular, que se parten al 200 %; marcado lo de la
+  versión, «Automático» si no tiene) y «Sólo cambia cómo se ve: la cuenta usa el valor completo.»; debajo, con alto reservado, «Se ve así: USD 1.234,57 →
+  USD 1.235» (una cifra fija: lo de «Automático» y lo elegido, que no salta al cambiar de opción; un porcentaje, en puntos) y la línea del motivo
+  (`aria-live`). Pie «Aplicar» y «Cancelar»; cerrar con algo elegido pregunta. «Aplicar» cambia la fórmula de trabajo (se guarda y publica como lo
+  demás), cierra y deja elegida la C de la fila. Estados: en el «⋯», el renglón no está en una bandera, la variante, una condición ni un dato del
+  vehículo que no es número, y va apagado con «Aplica o descarta lo que escribes en la planilla.» mientras la fila espera; por URL, una fila que ya no
+  está («Esa fila ya no está en la fórmula.»), una celda de texto («Esta celda muestra un texto: no lleva decimales.») o un dato que no es número
+  («Este dato del vehículo no es un número: no lleva decimales.»), sin «Aplicar»; un rechazo de la fórmula queda en la línea del motivo con lo elegido
+  y el foco en el radio. La hoja, la tarjeta y las demás superficies muestran la celda así (`docs/COTIZADOR.md` › «Los nodos»); el % que la B absorbe
+  queda en «Automático».
 - **«¿Cómo se escribe?»** (`?panel=como-se-escribe`, sólo lectura): las referencias (C5, B9, C5:C9), las diez funciones con su firma y un
   ejemplo, y las teclas de la planilla.
 - **Guardar el borrador:** espera con texto sin aplicar («Aplica o descarta lo que escribes en la planilla.»), si la fórmula no valida («Corrige

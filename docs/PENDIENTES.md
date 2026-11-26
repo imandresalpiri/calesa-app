@@ -30,6 +30,10 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
   612–770 px, con el menú y el resumen al costado), el total vive en el resumen y no dentro de la rejilla, y el ⚙ de los años no va junto a sus chips. Es del
   editor de la hoja sobre la vista (la tarjeta del total como pieza).
 - **[—]** Los modos de tipo de cambio se editan en «Hoja», no en la planilla de la fórmula.
+- **[—]** «Decimales» de los totales que no son una celda (el listado de cotizaciones, «De este vehículo», la cabecera de comparar, la línea del total de
+  una revisión y el resumen de una guardada): siguen con 2 — decidir si toman los de la celda del total (el listado está medido al borde).
+- **[—]** El % que la B de una fila absorbe (`=pub*4%`) no tiene «Decimales» propios en la planilla: queda en «Automático» — decidir si el panel de la
+  fila elige también los de su %.
 - **[—]** Editor de la tarjeta: arrastrar el borde de una fila del lienzo para cambiar su alto (hoy, el campo «Alto» del panel).
 - **[—]** Una bandera que sólo lee la `prueba` de un `elegir` o un término de `Y`/`O` (`SI(nuevo; 100; 50)`) no pide su interruptor en el diseño al publicar (§5 de `validar_diseno()` y `revisarCobertura()` sólo cuentan la `condicion`): decidir si una condición también lo exige.
 - **[—]** En la primera publicación de un origen (las dos esperadas nulas), el borrador puede nacer sobre una v1 que otra persona publicó entre medio — decidir si la esperada nula deja de valer.
