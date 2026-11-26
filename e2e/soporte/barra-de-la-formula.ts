@@ -11,8 +11,12 @@ export const estadoDeLaBarra = (page: Page): Locator =>
 export const detalleDelEstado = (page: Page): Locator =>
   estadoDeLaBarra(page).locator('xpath=following-sibling::span[1]')
 
-export const selectorDeFormula = (page: Page): Locator =>
-  barraDeLaFormula(page).getByRole('button', { name: /^(Fórmula: |Sin fórmulas)/ })
+// `tapado`: también bajo un modal (la copia con avisos abre «Información de la fórmula» al llegar).
+export const selectorDeFormula = (page: Page, tapado = false): Locator =>
+  barraDeLaFormula(page).getByRole('button', {
+    name: /^(Fórmula: |Sin fórmulas)/,
+    includeHidden: tapado,
+  })
 
 // El popover del selector: la lista «Fórmulas del origen» (cada fila, un enlace a la misma pestaña con `?formula=<id>` y su «⋯»), «Nueva fórmula» y «Archivadas».
 export const popoverDelSelector = (page: Page): Locator =>

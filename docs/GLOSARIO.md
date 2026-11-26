@@ -522,8 +522,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   cotizar y apaga la activa anterior. Cada pieza va con su esperada (PT409 si cambió). No: «publicar la fórmula» (eso es una versión), «usar».
 - **Avisos de la copia** — `AvisoDeLaCopia` (`entities/avisos-de-la-copia.ts`), `avisos` de `formula_del_origen_crear()`: lo que copiar una fórmula de
   otro origen cambió o no pudo resolver —una tabla creada con las filas de la copia, una tabla del destino usada en su lugar, un dato del vehículo
-  que el origen no tiene—. Se muestran arriba de la planilla de la copia hasta «Ocultar» (`sessionStorage`), y los datos que faltan quedan marcados
-  en su fila (`useCamposDeLaFormula()`).
+  que el origen no tiene—. La planilla de la copia abre con «Información de la fórmula», que los muestra en su sección hasta «Ocultar» (`sessionStorage`,
+  `useAvisosDeLaCopia()`), y los datos que faltan quedan marcados en su fila (`useCamposDeLaFormula()`).
+- **Información de la fórmula** — `?panel=info-formula` (`PANEL_DE_LA_INFORMACION`), `<BotonDeLaInformacion>`, `<InformacionDeLaFormula>`,
+  `marcaDeLaInformacion()` (`cotizaciones/entities/informacion-de-la-formula.ts`): el modal de la Planilla con la información de la versión —la publicada, el
+  borrador (con «Descartar el borrador…») y los avisos de la copia—, que abre el botón ⓘ junto al estado de la barra de la fórmula. El botón lleva una
+  marca si algo bloquea: sin publicada, el borrador atrasado o avisos de la copia pendientes. No: «detalles», «info de la versión».
 - **Nodo** — `definicion.nodos[]`: una línea de la fórmula: input, constante, tipo de cambio, campo, bandera, tabla, tramo, cálculo.
 - **Constante** — nodo `constante` + `params`: valor por defecto versionado que el ⚙ de la XCell cambia.
 - **Versión del flujo** — `flujos.actualizado_en` como texto ISO: la lee el editor del flujo y la devuelve cada escritura para detectar
@@ -755,9 +759,21 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   asesor, los datos del vehículo, los interruptores y la variante para ver el efecto de cada cambio en Ejemplo, «Totales» y la tarjeta en vivo. Arranca en ceros como las «Cifras
   de prueba», vuelve a ceros desde el «⋯» de la planilla y no se guarda.
 - **Barra de fórmula** — `BarraDeFormula` (`components/planilla/barra/`), fija arriba de la cuadrícula: el nombre de la celda activa («C5», «Ejemplo 5»),
-  `fx ▾` (inserta una función, `insertarFuncion()`), su texto (el mismo que se edita en la celda, uno solo a la vez; vacío, «Escribe = y toca las celdas:
-  =C5+C7»), con cada referencia pintada de su color, la leyenda, las sugerencias y el error con su tramo; a la derecha «Totales», «Tarjeta» y «?» (los
-  tipos de celda). Debajo, una línea: «De dónde sale: …» de la fila elegida. No es la **Barra de la fórmula** (la de la página: estado, guardar, publicar).
+  `fx ▾` (inserta una función, `insertarFuncion()`), las **Operación rápida** y «¿Cómo se escribe?», su texto (el mismo que se edita en la celda, uno solo a
+  la vez; vacío, «Escribe = y toca las celdas: =C5+C7»), con cada referencia pintada de su color, el **Resultado al lado**, la leyenda, las sugerencias y el
+  error con su tramo; a la derecha «Totales», «Tarjeta» y «?» (los tipos de celda). Debajo, un renglón: «De dónde sale: …» de la fila elegida o, escribiendo,
+  la **Firma en el cursor**, «Siguiente» y, en el celular, «Elegir celda». No es la **Barra de la fórmula** (la de la página: estado, guardar, publicar).
+- **Firma en el cursor** — `firmaEnElCursor()` (`entities/formula/firma-en-el-cursor.ts`), `RenglonDeLaEdicion`: mientras se escribe dentro de una función en C, su
+  forma en el renglón bajo la barra de fórmula con el valor que se escribe en negrita («SI(condición; **si se cumple**; si no)»); gana la de más adentro. Sin
+  función y con el cursor esperando un operando, «Toca una celda para usarla.». No: «tooltip», «ayuda de argumentos».
+- **Operación rápida** — `OPERACIONES_RAPIDAS`, `insertarOperacion()` (`entities/formula/operaciones-rapidas.ts`), `OperacionesRapidas`: los botones «Sumar»
+  (`=␣+␣`), «Porcentaje de» (`=PORCENTAJE_DE(␣; ␣%)`) y «Si… entonces…» (`=SI(␣; ␣; ␣)`) de la barra de fórmula; insertan la forma con sus lugares por llenar
+  y el cursor en el primero. Sin «=», envuelven lo escrito, como `fx ▾`. No: «atajo», «plantilla de fórmula».
+- **Lugar por llenar** — `EdicionDeLaCelda.lugares`: cada ␣ de una operación rápida, guardado como distancia al final del texto; Tab o «Siguiente» llevan al
+  próximo y, tras tocar una celda, el cursor salta un `+ - * /` hasta él. No: «hueco» (que ya nombra otra cosa), «campo».
+- **Resultado al lado** — `resultadoAlLado()` (`entities/formula/resultado-al-lado.ts`), `ResultadoAlLado`: mientras se escribe una C que empieza con «=», la cifra
+  que daría con la unidad de ejemplo, en la caja entre el texto y «Aplicar», con los decimales de la celda. Se calcula 150 ms después de la última tecla y sólo con
+  un texto que compila; sin cifra, la caja queda vacía. No: «vista previa» (la columna Ejemplo de toda la planilla), «preview».
 - **Referencia (de la planilla)** — `C5`, `B9` (`entities/formula/referencias-a1.ts`): cómo un cálculo de la planilla nombra otra fila, como en
   Excel: `C<n>` es el valor de la fila n y `B<n>` su %. Se guarda el id del nodo (`nodo.texto` con ids) y se muestra como A1 (`aA1()`); lo tipeado
   pasa a ids antes de compilar (`deA1()`). Insertar, mover o borrar filas cambia lo que se muestra, nunca lo guardado. No distingue mayúsculas; los

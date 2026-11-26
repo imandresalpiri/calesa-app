@@ -7,6 +7,7 @@
 import { leerNumeroTipeado } from '@/shared/lib/numero-tipeado'
 import type { CatalogoDeTablas, Tramo } from '../compilador'
 import type { Formula } from '../formula'
+import type { Medidor } from '../medidor'
 import { formatoDe, type Nodo } from '../nodos'
 import { valorTipeado } from './ajuste'
 import { compilarFila, type CambioQueSePisa, type ErrorDeFila } from './compilar-fila'
@@ -62,6 +63,8 @@ export type PedidoDeLaCelda = {
   readonly locale: string
   readonly tablas: CatalogoDeTablas
   readonly confirmaPisar?: boolean
+  // El contador de visitas de `compilarFila()` (las pruebas de escala del resultado al lado).
+  readonly medidor?: Medidor
 }
 
 export const MAXIMO_DEL_CONCEPTO = 80
@@ -157,13 +160,17 @@ function compilarEnLaCelda(p: PedidoDeLaCelda, nodo: Nodo): LoAplicado {
     const { mensaje, tramo, moverDebajoDe } = traducido.error
     return error(mensaje, { tramo, moverDebajoDe: moverDebajoDe ?? null })
   }
-  const r = compilarFila(base.formula, {
-    destino: { existente: nodo.id },
-    texto: traducido.texto,
-    confirmaPisar: p.confirmaPisar ?? false,
-    tablas: p.tablas,
-    nombrar: nombrarConLaHoja(base.hoja),
-  })
+  const r = compilarFila(
+    base.formula,
+    {
+      destino: { existente: nodo.id },
+      texto: traducido.texto,
+      confirmaPisar: p.confirmaPisar ?? false,
+      tablas: p.tablas,
+      nombrar: nombrarConLaHoja(base.hoja),
+    },
+    p.medidor,
+  )
   if (!r.ok) return errorDelCompilador(r.error, base.hoja, traducido.mapa, p.texto)
   return formula(r.formula, r.soltados)
 }

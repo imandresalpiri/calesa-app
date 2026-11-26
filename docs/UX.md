@@ -1552,7 +1552,8 @@ Planilla, Hoja y Tarjeta de la página del origen comparten una barra arriba (gl
 pestaña va debajo, a todo el ancho, sin otro marco.
 
 - **A la izquierda:** el selector «Fórmula: <nombre> (activa) ▾» y el estado de lo que se edita en una insignia (**Cambios sin guardar**, **Borrador**,
-  **Publicada vN**; lo no guardado manda). **A la derecha:** «Versiones», «Tablas» y lo que manda el editor de la pestaña (`<AccionesEnLaBarra>`):
+  **Publicada vN**; lo no guardado manda); en la Planilla, junto al estado, el botón ⓘ «Información de la fórmula» (su lugar reservado: nada salta al
+  hidratar). **A la derecha:** «Versiones», «Tablas» y lo que manda el editor de la pestaña (`<AccionesEnLaBarra>`):
   «Guardar el borrador», «Publicar…» y su «⋯». En el celular la barra se parte en renglones y nada se sale de su ancho.
 - **Versiones** (`?panel=versiones`, en la Planilla): un drawer con las publicadas de la más nueva a la más vieja, con revertir; desde Hoja y Tarjeta el
   botón lleva a la Planilla con el drawer abierto (si hay cambios sin guardar, pregunta antes). **Tablas** (`?panel=tablas`): el drawer de las tablas del
@@ -1582,7 +1583,8 @@ barra de la fórmula; la activa es la que se cotiza.
   Copia de otro origen (sólo si la persona configura otro; si no, «No configuras el cotizador de otro origen.»)—, la fórmula y la versión que se
   copia (publicada o borrador; la que no hay va apagada con su motivo; de otro origen no se elige: su publicada y, si no tiene, su borrador, dicho bajo «Fórmula») y el nombre (una copia propone
   «<nombre> (copia)»). Un nombre repetido se dice junto al campo; sin un tipo de cambio, «Abrir Monedas». Entró: abre su planilla.
-- **Los avisos de la copia** (de otro origen): arriba de la planilla, «Lo que cambió al copiar la fórmula», un renglón por tabla creada o usada del
+- **Los avisos de la copia** (de otro origen): la planilla de la copia abre con «Información de la fórmula» (`?panel=info-formula`) y su sección «Lo que
+  cambió al copiar la fórmula», un renglón por tabla creada o usada del
   destino (con «Abrir Tablas») y por dato del vehículo que el origen no tiene; esos datos quedan además marcados en su fila («El dato «x» no existe
   en este origen: elige otro o créalo.»). Quedan hasta «Ocultar».
 - **Renombrar** (`?panel=renombrar-formula&cual=<id>`), **Archivar** y **Eliminar** (`<Confirmar>`; eliminar una que ya se usó ofrece
@@ -1603,9 +1605,14 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
 - **Quién entra:** `cotizaciones.configurar` en ese origen, aunque no tenga los permisos de los niveles. La base vuelve a decidir: la policy `formulas: leer` sólo deja ver los orígenes con la clave.
 - **Origen:** la página es la de ese origen (también inactivo); para cambiar de origen, el selector de las migas (conserva la pestaña). Sin la clave en
   el origen, la pestaña Planilla va apagada con su motivo; un origen ajeno, «No puedes abrir este origen».
-- **Arriba:** la publicada (versión, nota, quién y cuándo) o, sin ella, que no se puede cotizar en el origen; el borrador si hay (de quién,
-  cuándo, nota, versión sobre la que empezó y, si se publicó otra después, que publicarlo dará conflicto). Ninguna lleva «Editar»: se edita en la
-  planilla, debajo. Con cambios aplicados sin guardar, «Publicar…» espera: «Guarda el borrador antes de publicar: se publica lo guardado.»
+- **La planilla al frente:** arriba de ella no hay tarjetas. La información de la versión va en el modal **«Información de la fórmula»**
+  (`?panel=info-formula`, a pantalla completa en el celular), que abre el botón ⓘ junto al estado de la barra (en la puesta en marcha, «Información de la
+  fórmula» con su texto, arriba de la planilla), con secciones de un solo nivel: **Publicada** (versión, nota, quién y cuándo o, sin ella, que no se puede
+  cotizar en el origen), **Borrador** si hay (de quién, cuándo, nota, versión sobre la que empezó, si se publicó otra después que publicarlo dará conflicto,
+  y «Descartar el borrador…», que cambia el modal por su confirmación) y **Lo que cambió al copiar la fórmula** si hay avisos de la copia. Ninguna lleva
+  «Editar»: se edita en la planilla. Lo que bloquea no se esconde: el botón lleva una marca (con su texto para el lector) sin publicada, con el borrador
+  atrasado o con avisos de la copia pendientes, en ese orden. «Publicar…» va en la barra con el borrador al día; con cambios aplicados sin guardar
+  espera, apagado, con «Guarda el borrador antes de publicar: se publica lo guardado.» al lado.
 - **Versiones** (en el drawer «Versiones» de la barra; en la puesta en marcha, debajo de la publicada): publicadas y archivadas de la más nueva (sin autor: «Alguien»), de a 20 hasta 500; en el tope, «Ir a la versión» (un
   número) que lee desde ahí hacia atrás con «Volver a la más nueva»; la posición no va a la URL. Estados: esqueleto, error con
   «Reintentar», vacío, vacío desde la N y fallo de «Ver más» sin perder lo cargado.
@@ -1617,20 +1624,28 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
 - **Revertir** (`?panel=revertir-formula&version=<id>`, en cada archivada si hay publicada): publica una copia de la N con su diseño; el
   borrador no cambia (queda atrasado). Nota propuesta «Vuelve a la versión N.». Conflicto como al publicar. Por URL: sin publicada, la
   publicada misma o una versión que no está en lo cargado, avisa y limpia. Cambiar de pestaña limpia `panel` y `version`.
-- **Descartar** (`?panel=descartar-borrador`, `<Confirmar>`; al día **y atrasado**): borra el borrador sin deshacer; publicada y lista no
+- **Descartar** (`?panel=descartar-borrador`, `<Confirmar>`, desde «Información de la fórmula»; «atrás» vuelve a ella; al día **y atrasado**): borra el borrador sin deshacer; publicada y lista no
   cambian. Lo que no entró queda en el diálogo con el mensaje de la base o, sin respuesta, «No sabemos si se descartó: recarga para verlo.»
   (sin reintento solo). Por URL sin borrador: avisa y limpia.
 - **Planilla** (la vista por defecto, sobre el borrador o, sin él, la publicada; sin ninguna, el vacío de la publicada y no hay planilla; la única
   forma de editar la fórmula): lee la versión desde el navegador al abrir la pestaña (esqueleto, error con «Reintentar», versión que ya no se
   abre). A todo el ancho, sin guías a la vista. En la barra de la fórmula de la página van «Guardar el borrador» con su línea de estado en letra chica
-  y el «⋯» de la planilla («Nueva banda…», «Total y tipos de cambio…», «Unidad de ejemplo: volver a ceros», apagado en ceros, y «¿Cómo se
-  escribe?»); «Sobre…» sólo en la puesta en marcha (en la página lo dice el estado de la barra). Los avisos del guardado (conflicto, errores, lo
-  que el diseño no muestra) van arriba de la planilla. La **Barra de fórmula** queda fija bajo la cabecera de la página al desplazarse: el nombre
+  y el «⋯» de la planilla («Nueva banda…», «Total y tipos de cambio…» y «Unidad de ejemplo: volver a ceros», apagado en ceros); «Sobre…» sólo en la puesta en marcha (en la página lo dice el estado de la barra). Los avisos del guardado (conflicto, errores, lo
+  que el diseño no muestra) van arriba de la planilla. La **Barra de fórmula** queda fija bajo la cabecera de la página al desplazarse, en dos filas
+  fijas (escribiendo o no: nada salta al entrar a escribir): arriba lo que se inserta y, a la derecha, «Totales», «Tarjeta» y «?»; abajo, el texto a lo
+  ancho con el resultado al lado, «Aplicar» y «Descartar» (en una barra angosta, esa fila se parte). En orden: el nombre
   de la celda («C5», «Ejemplo 5»), `fx ▾` (inserta una función; apagado con su motivo: «Toca una celda para escribir una fórmula.», «Las
-  funciones van en C.» o el de la celda), el texto (vacío, «Escribe = y toca las celdas: =C5+C7»; al entrar no hay celda elegida y se ve esa guía), y a la derecha «Totales», «Tarjeta» y «?»
-  (un popover con los ocho tipos de celda y el fondo que cada uno da a C). Debajo, una sola línea con la fila elegida: «De dónde sale: …», lo
-  que el último cambio soltó, lo que dice el texto tras un ⚙ (reescrito o «ya no manda») y, en un tipo de cambio, el camino a Empresa ›
-  Monedas. La cuadrícula (`role="grid"`, «Filas de la fórmula de
+  funciones van en C.» o el de la celda), las **operaciones rápidas** (grupo «Operaciones»: «Sumar», «Porcentaje de» y «Si… entonces…», con
+  su texto en una barra ancha y sólo el icono de 44 px debajo; apagadas con el mismo motivo que `fx`) y «¿Cómo se escribe?» (libro, a un
+  toque), el texto (vacío, «Escribe = y toca las celdas: =C5+C7»; al entrar no hay celda elegida y se ve esa guía), escribiendo una C la caja
+  del **resultado al lado** («Resultado con la unidad de ejemplo», `aria-live`: la cifra que daría, con los decimales de la celda, 150 ms
+  después de la última tecla; vacía con un texto que no compila, mientras se lee lo de prueba o antes de la pausa, nunca con una cifra vieja;
+  en una barra angosta baja al renglón de «Aplicar» y «Descartar»), y a la derecha «Totales», «Tarjeta» y «?» (un popover con los ocho tipos de celda y el fondo
+  que cada uno da a C). Debajo, un solo renglón reservado (nada salta al entrar o salir de la edición): sin escribir, la fila elegida
+  («De dónde sale: …», lo que el último cambio soltó, lo que dice el texto tras un ⚙ —reescrito o «ya no manda»— y, en un tipo de cambio,
+  el camino a Empresa › Monedas); escribiendo, la firma de la función en que está el cursor con el valor que se escribe en negrita
+  («SI(condición; **si se cumple**; si no)», cortada con «…» y entera en su `title`) o, si el cursor espera un operando, «Toca una celda para
+  usarla.»; a la derecha, «Siguiente» (al próximo lugar por llenar, como Tab) y, en el celular, «Elegir celda» (44 px). La cuadrícula (`role="grid"`, «Filas de la fórmula de
   <origen>»), con las filas en el orden en que se calculan: «#» (el número, el mismo al buscar; arrastrarlo mueve la fila), «A · concepto»,
   «B · %», «C · valor» (lo que guarda la fórmula: el valor fijo, el cálculo en A1 como «=C5+C7» o, en lo que no se escribe, de dónde sale en
   corto) y «Ejemplo» (glosario: «Ejemplo (columna)»: lo que da la fila con la unidad de ejemplo; nada en un valor fijo, porque su número ya
@@ -1647,7 +1662,14 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
 - **Escribir, como en Excel:** una celda activa que mueven las flechas, Tab y Shift+Tab, Enter y Shift+Enter, Inicio y Fin, Ctrl+Inicio y
   Ctrl+Fin y RePág y AvPág. F2, doble clic o una tecla escriben en ella (el mismo texto se ve en la barra, que también se edita); Enter o Tab
   aplican y pasan a la de abajo o a la de la derecha, `Ctrl/Cmd+Enter` aplica desde la barra y Esc descarta. Con «=», un clic o un toque en
-  otra celda mientras el cursor espera un operando inserta su referencia (Shift+clic, un rango): cada referencia toma un color, con la leyenda
+  otra celda mientras el cursor espera un operando inserta su referencia (Shift+clic, un rango). Una operación rápida inserta su forma con
+  lugares por llenar (`=+`, `=PORCENTAJE_DE(; %)`, `=SI(; ; )`) y el cursor en el primero; sin «=», envuelve lo escrito. Tab (sin sugerencias
+  abiertas) o «Siguiente» llevan al próximo lugar y, sin ninguno, Tab aplica como siempre; tras tocar una celda en «Sumar», el cursor salta el
+  «+» (tocar C5 y C7 deja `=C5+C7`); Enter aplica siempre (un lugar vacío da «Falta un valor aquí: escribe un número o toca una celda.»). En
+  el celular, «Elegir celda» cierra el teclado y el renglón dice «Toca la celda que quieres usar.» con «Cancelar»: tocar una celda B o C inserta
+  su referencia y el foco vuelve al texto con el cursor en su lugar; otra columna, «Esa celda no entra en una fórmula: toca una de las columnas
+  B o C.»; nunca aplica. Apagado si el cursor no espera una celda: «Escribe un signo (+ - * / ;) antes de elegir otra celda.». Cada
+  referencia toma un color, con la leyenda
   («C5 Remate · C7 Fees») bajo la barra y el borde del mismo color en su celda. Las sugerencias (funciones con su firma y un ejemplo, conceptos
   de arriba, bandas y, en BUSCARV, tablas y columnas) se eligen con ↑/↓ y Enter o Tab. Un error queda bajo la barra (`role="alert"`) con su
   tramo ondulado y la edición abierta (`aria-invalid`): «C12 está más abajo: una fórmula sólo usa filas de arriba.» con «Mover esta fila debajo
@@ -1684,8 +1706,8 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   («Este dato del vehículo no es un número: no lleva decimales.»), sin «Aplicar»; un rechazo de la fórmula queda en la línea del motivo con lo elegido
   y el foco en el radio. La hoja, la tarjeta y las demás superficies muestran la celda así (`docs/COTIZADOR.md` › «Los nodos»); el % que la B absorbe
   queda en «Automático».
-- **«¿Cómo se escribe?»** (`?panel=como-se-escribe`, sólo lectura): las referencias (C5, B9, C5:C9), las diez funciones con su firma y un
-  ejemplo, y las teclas de la planilla.
+- **«¿Cómo se escribe?»** (`?panel=como-se-escribe`, sólo lectura; el libro de la barra de fórmula): las referencias (C5, B9, C5:C9), las
+  diez funciones con su firma y un ejemplo, y las teclas de la planilla.
 - **Guardar el borrador:** espera con texto sin aplicar («Aplica o descarta lo que escribes en la planilla.»), si la fórmula no valida («Corrige
   lo marcado para guardar.») o sin cambios («No hay cambios por guardar.»; un cambio del ⚙ cuenta). Sin confirmación. Sobre la
   publicada crea el borrador con su diseño; sobre el borrador lo pisa con su hora, sin releer. Conflicto: el texto de la base con

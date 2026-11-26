@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition, type ComponentType } from 'react'
-import { useEnLaBarra } from '../../barra-de-la-formula/components'
 import type { CatalogoDeTablas } from '../../../entities/compilador'
 import { estadoDeLaFormulaGuardada } from '../../../entities/formula/estado-de-la-edicion'
 import { mismaVersion, otraSesion, type SobreQueVersion } from '../../../entities/formula/sesion'
@@ -12,14 +11,14 @@ import type {
   PropsDeLaTarjetaEnVivo,
 } from '../../../entities/tarjeta-en-vivo'
 import { usePanelDeLaFormula } from '../hooks/use-panel-de-la-formula'
-import { borradorAtrasado } from '../../../entities/formula/versiones'
-import { AvisosDeLaCopia } from './avisos-de-la-copia'
+import { useAvisosDeLaCopia } from '../hooks/use-avisos-de-la-copia'
 import { AccionesDeLaFormula } from './acciones-de-la-formula'
 import { SesionDeLaFormulaDiferida } from './diferidos'
 import type { TipoDeCambioDeLaEmpresa } from './planilla/tipos'
 import type { PropsDelNuevoColor } from '../../../entities/nuevo-color'
-import { PublicarDelBorrador } from './publicar-del-borrador'
-import { VistaDeLaFormula } from './vista-de-la-formula'
+import { AccionesDeLaVersion } from './acciones-de-la-version'
+import { InformacionDeLaFormula } from './informacion'
+import { VersionesDeLaFormula } from './versiones/versiones-de-la-formula'
 
 type Origen = { id: string; nombre: string; activo: boolean }
 
@@ -43,12 +42,13 @@ const sobreQue = (formula: Formula) =>
     ? `Sobre el borrador de ${formula.borrador.autor}.`
     : `Sobre la versión ${String(formula.publicada?.version ?? '')} publicada.`
 
-// La pestaña «Fórmula» de la Fórmula de un origen (Configuración › Orígenes): arriba su publicada, su borrador y sus versiones (`VistaDeLaFormula`; desde el borrador se publica
-// y desde una archivada se revierte, `?panel=publicar-formula`, `?panel=revertir-formula&version=<id>`; el borrador se descarta, `?panel=descartar-borrador`) y abajo
-// la planilla de la fórmula, sobre el borrador o, sin él, la publicada. La `key` de la sesión no lleva la versión (C8): guardar sobre la publicada
-// crea el borrador y la sesión sigue montada; la vuelven a montar «Recargar» tras un conflicto (en la misma transición que trae la pestaña) y una versión que cambió
-// por otra cosa (`otraSesion()`: publicar, descartar, revertir). «Publicar…» espera
-// mientras haya cambios aplicados sin guardar: se publica lo guardado.
+// La pestaña «Planilla» de la Fórmula de un origen (Configuración › Orígenes): la planilla de la fórmula al frente, sobre el borrador o, sin él, la publicada. La
+// información de la versión (la publicada, el borrador y los avisos de la copia) va en el modal «Información de la fórmula» (`?panel=info-formula`), que abre el
+// botón ⓘ junto al estado de la barra, con su marca si algo bloquea; las versiones, en el drawer «Versiones». Desde el borrador al día se publica
+// (`?panel=publicar-formula`; «Publicar…» espera mientras haya cambios aplicados sin guardar: se publica lo guardado), desde una archivada se revierte
+// (`?panel=revertir-formula&version=<id>`) y el borrador se descarta desde el modal (`?panel=descartar-borrador`). La `key` de la sesión no lleva la versión (C8):
+// guardar sobre la publicada crea el borrador y la sesión sigue montada; la vuelven a montar «Recargar» tras un conflicto (en la misma transición que trae la
+// pestaña) y una versión que cambió por otra cosa (`otraSesion()`: publicar, descartar, revertir).
 export function FormulaDelOrigen({
   origen,
   formulaDelOrigenId,
@@ -61,7 +61,7 @@ export function FormulaDelOrigen({
   tiposDeCambio,
 }: Props) {
   const panel = usePanelDeLaFormula()
-  const enLaBarra = useEnLaBarra()
+  const avisos = useAvisosDeLaCopia(formulaDelOrigenId)
   const router = useRouter()
   const [vuelta, setVuelta] = useState(0)
   const [pendientes, setPendientes] = useState(false)
@@ -85,17 +85,14 @@ export function FormulaDelOrigen({
   }
   return (
     <div className="grid min-w-0 gap-4">
-      <AvisosDeLaCopia origenId={origen.id} formulaDelOrigenId={formulaDelOrigenId} />
-      <VistaDeLaFormula
-        origen={origen}
+      <AccionesDeLaVersion
+        origen={origen.nombre}
         formula={formula}
-        panel={panel}
-        publicarEspera={pendientes}
-        publicarEnLaBarra={enLaBarra}
+        avisos={avisos}
+        alPublicar={panel.abrirPublicar}
+        espera={pendientes}
       />
-      {enLaBarra && formula.borrador && !borradorAtrasado(formula.borrador, formula.publicada) ? (
-        <PublicarDelBorrador alPublicar={panel.abrirPublicar} espera={pendientes} />
-      ) : null}
+      <VersionesDeLaFormula origenId={origen.id} formula={formula} panel={panel} />
       {sobre ? (
         <SesionDeLaFormulaDiferida
           key={`${formulaDelOrigenId}:${String(vuelta)}:${String(generacion.sesion)}`}
@@ -115,6 +112,13 @@ export function FormulaDelOrigen({
           tiposDeCambio={tiposDeCambio}
         />
       ) : null}
+      <InformacionDeLaFormula
+        origen={origen}
+        formulaDelOrigenId={formulaDelOrigenId}
+        formula={formula}
+        avisos={avisos}
+        alDescartar={panel.abrirDescartar}
+      />
       <AccionesDeLaFormula panel={panel} origen={origen} formula={formula} />
     </div>
   )

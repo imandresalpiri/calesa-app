@@ -172,7 +172,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   (sus actions revalidan `RUTAS.roles`). Planilla, Hoja y Tarjeta reciben `formula: FormulaDelOrigen` de su página (`abrirLaFormulaDeLaPestana()`) y leen y escriben **esa** fórmula del origen (la de la URL):
   cada lectura va por su id y cada escritura lo manda (`p_formula_del_origen`); sus `key` llevan el id de la fórmula. Las RPC sin id y una pestaña sin `?formula=` usan la
   **fórmula de trabajo** (glosario; `leerFormulaDeTrabajoSobre()` de `infra/queries/formula-de-trabajo.ts`, espejo de `_fdo_de_trabajo()`). El ⚙ de la
-  hoja (celda y cabecera) lee y cambia la publicada de la **activa**. Los avisos de la copia (`AvisosDeLaCopia`, `entities/avisos-de-la-copia.ts`) y los
+  hoja (celda y cabecera) lee y cambia la publicada de la **activa**. Los avisos de la copia (`entities/avisos-de-la-copia.ts`, `useAvisosDeLaCopia()`) y los
   datos del vehículo que faltan (`useCamposDeLaFormula()`, `entities/campos-que-faltan.ts`, espejo de `_fdo_campos_que_faltan`) son del núcleo y los
   dibuja la planilla. La pestaña Tarjeta va a ancho completo y su página pide la referencia del lienzo sin esperarla
   (`origenes/[id]/(pestanas)/tarjeta/referencia.ts`, con `leerListadoDeCotizaciones()` y `UNA` del área `listado`, `leerHojaDeUnaGuardada()`, y `referenciaPlana()` y
@@ -217,15 +217,19 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `entities/tablas/` (`edicion-de-columnas.ts`, el reductor; `validacion-de-columnas.ts`, espejo de `_tabla_referencia_columnas_validas()`; `estructura.ts`,
   `claveDeLaTabla()` y los topes; `resultado-de-estructura.ts`, los rechazos de las tres RPC). Los dos paneles preguntan al cerrar con cambios
   (`<CambiosSinGuardar preguntaAlCerrar>`).
-- **La fórmula** (área `formula`; la pestaña «Planilla»: `/configuracion/origenes/<id>/planilla?formula=<fórmula>`, `cotizaciones.configurar`, a ancho completo): arriba la publicada, el
-  borrador y las versiones (`VistaDeLaFormula`) y abajo la sesión de edición (`SesionDeLaFormula` por `diferido()`: lee la versión desde el navegador y
+- **La fórmula** (área `formula`; la pestaña «Planilla»: `/configuracion/origenes/<id>/planilla?formula=<fórmula>`, `cotizaciones.configurar`, a ancho completo): la planilla al frente: arriba
+  sólo el ⓘ «Información de la fórmula» y «Publicar…» (suben a la barra; en la puesta en marcha, en su fila) y las versiones
+  (`VersionesDeLaFormula`, en el drawer de la barra o en su lugar); la publicada, el borrador y los avisos de la copia, en el modal (`components/informacion/`,
+  `?panel=info-formula`, por `diferido()`), y abajo la sesión de edición (`SesionDeLaFormula` por `diferido()`: lee la versión desde el navegador y
   llama **una vez** a `useEditorDeLaFormula`), que dibuja la planilla (`components/planilla/`, por `diferido()`; lo que arma, `usePlanilla()`), sobre la misma
   fórmula del origen. **La planilla edita como una hoja de cálculo** (`docs/COTIZADOR.md` › «La planilla»): la cuadrícula `role="grid"` (`cuadricula/`, la celda
   activa por `aria-activedescendant`, eventos delegados; columnas # · A concepto · B % · C valor · Ejemplo, con la clave interna `D` para Ejemplo y lo que
   muestra cada una de `contenidoDeLaFila()`, calculado una vez por fórmula de trabajo en `useEdicionDeLaPlanilla`), la barra de fórmula (`barra/`: el nombre de
-  la celda, `fx ▾` con `useFuncionEnLaBarra` e `insertarFuncion()`, el texto en A1 pintado por referencia con su placeholder, la leyenda, las sugerencias, el
-  error con su tramo, «Totales», «Tarjeta» y el «?» de los tipos de celda; debajo, `LineaBajoLaBarra`: «De dónde sale: …» de la fila elegida), el «⋯» y el
-  clic derecho de cada fila y banda (`menu/`) y los paneles por URL (`paneles/`: banda, «Total y tipos de cambio», «Tipo de celda» y «¿Cómo se escribe?»; al
+  la celda, `fx ▾` y las operaciones rápidas con `useInsercionEnLaBarra`, `insertarFuncion()` e `insertarOperacion()` (sus lugares por llenar en
+  `EdicionDeLaCelda.lugares`, Tab y «Siguiente»), «¿Cómo se escribe?», el texto en A1 pintado por referencia con su placeholder, el resultado al lado
+  (`useResultadoAlLado`, `resultadoAlLado()`), la leyenda, las sugerencias, el error con su tramo, «Totales», «Tarjeta» y el «?» de los tipos de celda; debajo,
+  `LineaBajoLaBarra`: «De dónde sale: …» de la fila elegida o, escribiendo, `RenglonDeLaEdicion`: la firma en el cursor, la guía de tocar, «Siguiente» y «Elegir
+  celda»), el «⋯» y el clic derecho de cada fila y banda (`menu/`) y los paneles por URL (`paneles/`: banda, «Total y tipos de cambio», «Tipo de celda» y «¿Cómo se escribe?»; al
   costado, `?costado=totales|tarjeta`, `Drawer alCostado` desde `CORTE_DEL_PANEL`). En la página, «Guardar el borrador» y su línea de estado suben a la barra
   de la fórmula y «Sobre…» no se dibuja (`useEnLaBarra()`); en la puesta en marcha, los dos van arriba de la planilla. Lo guardado sigue en ids: A1 es sólo del navegador (`entities/formula/referencias-a1.ts` sobre la hoja numerada de
   `hoja-de-la-planilla.ts`); las operaciones de fila (`insertar-fila.ts`, `mover-fila.ts`, `eliminar-fila.ts`, `tipo-de-celda.ts`) y de banda (`bandas.ts`)
@@ -238,7 +242,8 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   con claro y oscuro y `<EstiloDeTonos>`.
 - **La barra de la fórmula** (glosario): en las pestañas Planilla, Hoja y Tarjeta de la página del origen los botones del editor («Guardar el borrador»,
   «Publicar…», «⋯») van envueltos en `<AccionesEnLaBarra orden>` del núcleo (`features/barra-de-la-formula/`) y suben a la ranura de la barra; sin
-  `<ConLaBarraDeLaFormula>` (la puesta en marcha) se dibujan donde estaban. El estado lo registra cada editor con `useEstadoEnLaBarra()`, de una función pura por área
+  `<ConLaBarraDeLaFormula>` (la puesta en marcha) se dibujan donde estaban. Con `lugar="estado"` van a la ranura junto al estado (`<RanuraDelEstado>`, de
+  44 px reservados: sólo el ⓘ de la Planilla). El estado lo registra cada editor con `useEstadoEnLaBarra()`, de una función pura por área
   (`estadoDeLaFormulaGuardada()`, `estadoDeLaHoja()`, `estadoDeLaTarjeta()`). En la Hoja, «Publicar…» (orden 2) es del área `formula` y lo compone la página
   (`PublicarEnLaHoja`, `pantallas/formula-publicar.ts`: el mismo panel `?panel=publicar-formula` y sus modales): se ve con un borrador al día y espera, apagado con
   «Guarda el borrador antes de publicar.», mientras el editor de la hoja registra cambios sin guardar.

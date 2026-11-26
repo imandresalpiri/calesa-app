@@ -73,15 +73,15 @@ export const MAXIMO_DE_TERMINOS = 100_000
 
 const q = (s: string | undefined) => `«${s ?? '?'}»`
 
-// «lleva 2 argumentos», «lleva entre 2 y 3 argumentos» o «lleva al menos 2 argumentos»; `esperado` suma la otra forma (MAX de un grupo).
+// «lleva 2 valores», «lleva entre 2 y 3 valores» o «lleva al menos 2 valores»; `esperado` suma la otra forma (MAX de un grupo). Dice «valor», no «argumento».
 function cuantosArgumentos(d: DatosDeError): string {
   const nombre = d.nombre ?? '?'
   const cuantos =
     d.minimo === undefined
-      ? `${String(d.cantidad ?? 0)} argumento${d.cantidad === 1 ? '' : 's'}`
+      ? `${String(d.cantidad ?? 0)} valor${d.cantidad === 1 ? '' : 'es'}`
       : d.maximo === undefined
-        ? `al menos ${String(d.minimo)} argumentos`
-        : `entre ${String(d.minimo)} y ${String(d.maximo)} argumentos`
+        ? `al menos ${String(d.minimo)} valores`
+        : `entre ${String(d.minimo)} y ${String(d.maximo)} valores`
   const otra = d.esperado === undefined ? '' : `, o ${d.esperado}`
   return `${nombre} lleva ${cuantos}, separados con punto y coma (;)${otra}.`
 }
@@ -89,35 +89,36 @@ function cuantosArgumentos(d: DatosDeError): string {
 const MENSAJES: Record<CodigoDeCompilacion, (d: DatosDeError) => string> = {
   texto_vacio: () => 'Escribe la fórmula: ahora no hay nada que calcular.',
   caracter_invalido: (d) =>
-    `No entiendo ${q(d.texto)}. Usa números, nombres, + - * / ( ) %, > < =, textos entre comillas y ; entre los argumentos.`,
+    `No entiendo ${q(d.texto)}. Una fórmula lleva números, celdas, + - * / ( ) %, comparaciones (> < =) y ; entre los valores de una función.`,
   coma: () =>
-    'Separa los argumentos con punto y coma (;), no con coma. Los decimales llevan punto.',
+    'Separa los valores de una función con punto y coma (;), no con coma. Los decimales llevan punto.',
   separador_fuera_de_funcion: () =>
-    'El punto y coma (;) solo separa los argumentos de una función.',
+    'El punto y coma (;) sólo separa los valores de una función, como SUMA(C5; C7).',
   numero_mal_escrito: (d) => `${q(d.texto)} no es un número: escríbelo como 12, 0.5 o 1e3.`,
   numero_fuera_de_rango: (d) => `${q(d.texto)} es demasiado grande.`,
   texto_sin_cerrar: () => 'Falta cerrar las comillas.',
   texto_fuera_de_lugar: () =>
     'Un texto entre comillas solo va en BUSCARV o al comparar la variante.',
-  parentesis_sin_cerrar: () => 'Falta cerrar este paréntesis.',
-  parentesis_de_mas: () => 'Este paréntesis cierra uno que no abriste.',
+  parentesis_sin_cerrar: () => 'Falta cerrar un paréntesis.',
+  parentesis_de_mas: () => 'Sobra este paréntesis: no cierra ninguno.',
   operador_suelto: (d) =>
     d.texto === '-'
-      ? 'Aquí falta un valor. El signo menos solo va pegado a un número (-5); para restar un nombre, escribe 0 - nombre.'
-      : `El operador ${q(d.texto)} necesita un valor antes y otro después.`,
-  falta_un_valor: () => 'Falta un valor aquí.',
-  falta_un_operador: () => 'Falta un operador (+ - * /) entre estos dos valores.',
+      ? 'Aquí falta un valor. Para restar una celda escribe 0 - C5; el signo menos sólo va pegado a un número (-5).'
+      : `El signo ${q(d.texto)} necesita un valor antes y otro después.`,
+  falta_un_valor: () => 'Falta un valor aquí: escribe un número o toca una celda.',
+  falta_un_operador: () => 'Falta un signo (+ - * /) entre estos dos valores.',
   porcentaje_sin_numero: () => 'El % va pegado a un número, como 4%.',
   comparacion_encadenada: () => 'Separa las comparaciones con Y u O, por ejemplo Y(a<b; b<c).',
   comparar_texto_con_numero: (d) => `No se puede comparar un texto con un número: ${q(d.texto)}.`,
   demasiado_profundo: (d) =>
     `Hay demasiados paréntesis anidados: el máximo es ${String(d.n ?? 0)}.`,
-  nombre_desconocido: (d) => `${q(d.nombre)} no es ningún nodo de la fórmula.`,
+  nombre_desconocido: (d) =>
+    `${q(d.nombre)} no es una celda ni una función: toca la celda que quieres usar.`,
   referencia_a1: (d) =>
     `${q(d.nombre)} parece una celda de hoja de cálculo (A1). Aquí se usan los nombres de los nodos.`,
   referencia_hacia_adelante: (d) =>
-    `${q(d.nombre)} está más abajo en la lista: solo puedes usar lo que está antes de esta fila.`,
-  ciclo: (d) => `${q(d.nombre)} es esta misma fila: no puede usarse a sí misma.`,
+    `${q(d.nombre)} está más abajo: una fórmula sólo usa filas de arriba.`,
+  ciclo: (d) => `${q(d.nombre)} es esta misma fila: una fila no se usa a sí misma.`,
   grupo_sin_suma: (d) =>
     `${q(d.nombre)} es un grupo: para sumarlo escribe SUMA(${d.nombre ?? '?'}).`,
   grupo_con_otros: (d) =>

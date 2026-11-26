@@ -42,7 +42,7 @@ export function useCalculoDeLaPlanilla({ editor, diseno, unidad, modo: clave }: 
         : [],
     [vista, editor.validada, modo, dicho],
   )
-  return { locale, modos, delModo, vista, cifras, dicho, dichas, lineas }
+  return { locale, modos, delModo, modo, vista, cifras, dicho, dichas, lineas }
 }
 
 export type CalculoDeLaPlanilla = ReturnType<typeof useCalculoDeLaPlanilla>

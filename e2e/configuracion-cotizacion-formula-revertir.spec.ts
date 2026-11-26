@@ -1,6 +1,7 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
 import { abrirLasVersiones } from './soporte/barra-de-la-formula'
+import { informacion, seccionDeLaInformacion } from './soporte/informacion-de-la-formula'
 import { enLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
 import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
@@ -58,7 +59,7 @@ async function abrirFormula(page: Page, origenId: string, resto = '') {
 
 const modal = (page: Page, version: number) =>
   page.getByRole('dialog', { name: `Revertir a la versión ${String(version)}` })
-const publicada = (page: Page) => page.getByRole('region', { name: 'Publicada' })
+const publicada = (page: Page) => seccionDeLaInformacion(page, 'Publicada')
 
 const idDe = (origenId: string, version: number) =>
   sql(
@@ -87,9 +88,9 @@ test('revertir a la 1 publica la 4 como su copia, con la nota escrita, y el borr
   await modal(page, 1).getByRole('button', { name: 'Revertir', exact: true }).click()
   await expect(page.getByText('Se publicó una copia de la versión 1.')).toBeVisible()
   await expect(modal(page, 1)).toBeHidden()
-  await expect(publicada(page)).toContainText('Publicada: versión 4')
-  await expect(publicada(page)).toContainText('Vuelve a la versión 1.')
-  await expect(page.getByRole('region', { name: 'Borrador' })).toContainText(
+  await expect(await publicada(page)).toContainText('Publicada: versión 4')
+  await expect(await publicada(page)).toContainText('Vuelve a la versión 1.')
+  await expect(informacion(page).getByRole('region', { name: 'Borrador' })).toContainText(
     'Después de que empezó, se publicó la versión 4: publicarlo dará conflicto.',
   )
   // Las archivadas sembradas son iguales: lo que se copió lo dice la actividad de la nueva.
@@ -117,7 +118,7 @@ test('si otra persona publicó con el modal abierto, el conflicto dice quién si
   await expect(modal(page, 1).getByLabel('Nota')).toHaveValue('Vuelve a la versión 1.')
   await modal(page, 1).getByRole('button', { name: 'Revertir', exact: true }).click()
   await expect(page.getByText('Se publicó una copia de la versión 1.')).toBeVisible()
-  await expect(publicada(page)).toContainText('Publicada: versión 5')
+  await expect(await publicada(page)).toContainText('Publicada: versión 5')
 })
 
 test('la URL no abre revertir la publicada, una versión que no está ni un origen sin publicada', async ({

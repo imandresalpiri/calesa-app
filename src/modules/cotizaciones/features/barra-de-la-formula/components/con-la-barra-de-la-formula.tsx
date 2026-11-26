@@ -8,7 +8,11 @@ import { ContextoDeLaBarra } from './contexto'
 // botones a la barra (`<AccionesEnLaBarra>`) y le diga su estado (`useEstadoEnLaBarra()`).
 export function ConLaBarraDeLaFormula({ children }: { children: ReactNode }) {
   const [ranura, setRanura] = useState<HTMLElement | null>(null)
+  const [ranuraDelEstado, setRanuraDelEstado] = useState<HTMLElement | null>(null)
   const [estado, registrarEstado] = useState<EstadoDeLaEdicion>(null)
-  const contexto = useMemo(() => ({ ranura, setRanura, estado, registrarEstado }), [ranura, estado])
+  const contexto = useMemo(
+    () => ({ ranura, setRanura, ranuraDelEstado, setRanuraDelEstado, estado, registrarEstado }),
+    [ranura, ranuraDelEstado, estado],
+  )
   return <ContextoDeLaBarra value={contexto}>{children}</ContextoDeLaBarra>
 }

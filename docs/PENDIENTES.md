@@ -258,6 +258,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** La planilla de la fórmula angosta: a 1280 px con la tarjeta al costado (36 rem), # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
   desplazando la grilla — angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`); en el celular (390 px), el «⋯» de la fila
   activa queda al final, en Ejemplo, y llegar a él esconde la C — fijarlo a la derecha como `#` y A van fijas a la izquierda (`fila-de-la-cuadricula.tsx`).
+- **[—]** La barra de fórmula de la planilla en el celular con el texto al 200 %: pegada arriba, sus dos filas (las herramientas se parten en dos renglones),
+  el texto y el renglón de la edición ocupan casi toda la pantalla y tapan la cuadrícula — no pegarla con el texto agrandado o plegar las herramientas en
+  un «⋯» de la barra cuando no caben (`barra/barra-de-formula.tsx`).
 - **[—]** En el editor de la hoja, el «+» de la pieza elegida no se achica con el lienzo: con la vista 1.280 en una ventana de 1.280 (el lienzo a ≈ 0,3)
   tapa la mitad de abajo de una pieza baja, como la tarjeta del total y su cifra. Darle un tamaño que siga la escala o sacarlo fuera de la pieza (`features/diseno/components/editor/`).
 - **[—]** `<ListaDeCatalogo>` dentro de un drawer (los «Grupos de campos», las «Categorías» de las preguntas y de las guías) elige la tabla por el ancho de la

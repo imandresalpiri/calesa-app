@@ -114,6 +114,15 @@ export const MODALES: Record<string, RegistroDeModal> = {
     sinFormulario:
       'la lista de los colores: «Nuevo color», «Editar» y «Eliminar» abren su propio modal (con su aviso de cambios); nada tipeado en éste',
   },
+  'src/modules/cotizaciones/features/formula/components/informacion/modal-de-la-informacion.tsx': {
+    sinFormulario:
+      'sólo lee la publicada, el borrador y los avisos de la copia: «Descartar el borrador…» abre su <Confirmar> con URL y «Ocultar» borra los avisos; nada tipeado',
+    tambien: [
+      'src/modules/cotizaciones/features/formula/components/informacion/seccion-de-la-publicada.tsx',
+      'src/modules/cotizaciones/features/formula/components/informacion/seccion-del-borrador.tsx',
+      'src/modules/cotizaciones/features/formula/components/informacion/seccion-de-los-avisos.tsx',
+    ],
+  },
   'src/modules/cotizaciones/features/historial/components/modal-del-historial.tsx': {
     sinFormulario:
       'el historial de cotizaciones del vehículo elegido, de sólo lectura: cada fila es un enlace a su cotización y «Ver más» agrega',

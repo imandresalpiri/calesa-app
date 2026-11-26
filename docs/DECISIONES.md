@@ -781,6 +781,26 @@ las trampas, en `docs/LECCIONES.md`.
   pide «Tipo de celda». Si lo nuevo pasa el presupuesto de JS en frío de una ruta por ≤ 5 %, se sube el tope con su motivo (`docs/RENDIMIENTO.md`);
   más obliga a diferir. Descartados: la columna D a la vista junto a Ejemplo (repetía el número), el costado fijo en columna (le quita ancho a la
   grilla), convertir en silencio una celda del asesor en valor fijo y un modo de sólo lectura nuevo (la pestaña ya pide `cotizaciones.configurar`).
+- **La planilla va al frente; la información de la versión, en un modal** (sin preguntar): arriba de la planilla no hay tarjetas. La publicada, el borrador y
+  los avisos de la copia van en «Información de la fórmula» (`?panel=info-formula`), que abre el ⓘ junto al estado de la barra de la fórmula (en la
+  puesta en marcha, sin barra, un botón con texto arriba de la planilla); «Publicar…» sube a la barra. Lo que bloquea no se esconde en el modal: el ⓘ lleva
+  una marca con su texto para el lector (sin publicada, el borrador atrasado, avisos de la copia pendientes) y una copia abre con el modal. «Descartar el
+  borrador…» cambia el modal por su confirmación (un modal no abre otro). `PANEL_DE_LA_INFORMACION` es del núcleo: lo nombran el área `formula` (el modal)
+  y `formulas-del-origen` (abrirlo tras copiar), y un área no importa otra. Descartados: las tarjetas plegables (acordeón) y un drawer (la información se lee
+  y se cierra; no se edita al lado de la planilla).
+- **Escribir una fórmula sin saber la sintaxis** (sin preguntar): las operaciones rápidas insertan la forma con lugares por llenar en vez de abrir un
+  asistente aparte: lo que queda es el mismo texto que se escribe a mano y se aprende mirándolo. «Porcentaje de» inserta `PORCENTAJE_DE` (deja el % en la B
+  de la fila) y no `C5*4%`. Los lugares viven sólo en la edición (no se guardan ni se pintan en el texto) y Tab llena el siguiente antes de aplicar; Enter
+  aplica siempre, y un lugar vacío da el error de siempre. «Elegir celda» existe sólo con puntero grueso: con el teclado del celular abierto la cuadrícula
+  no se ve; nunca aplica. «¿Cómo se escribe?» va a un toque en la barra, no en el «⋯». La barra de fórmula va en dos filas fijas, lo que se inserta arriba
+  y el texto a lo ancho abajo: en una sola fila, con las operaciones y el resultado, el texto quedaba en unos pocos caracteres a 1.280 px, y partirla al
+  entrar a escribir hacía saltar la grilla.
+- **El resultado al lado sólo con un texto que compila, tras una pausa** (sin preguntar): compila y valida lo tipeado como lo haría «Aplicar» y lo calcula
+  con la unidad de ejemplo 150 ms después de la última tecla; con un texto que no compila, mientras se lee lo de prueba o antes de la pausa, la caja queda
+  vacía (alto reservado: nada salta). Nunca muestra la cifra de otro texto: se compara el pedido entero, no sólo el texto. Descartado: el error en la caja (ya
+  está bajo la barra con su tramo).
+- **Los textos del compilador se simplifican sólo del lado TS** (`motivos-del-compilador.ts`): hablan de celdas y valores, una frase por motivo. Los de
+  `motivos-de-formula.ts` (los de `validar_formula()`) quedan iguales porque espejan los de la base: cambiarlos pide una migración y su juego.
 - **«+ Nuevo color» desde la banda, por un hueco** (sin preguntar): el área `formula` no importa `diseno`; el modal de la sección de colores llega por
   `NuevoColor` (`entities/nuevo-color.ts`), que `src/app` pasa sólo con `cotizaciones.configurar`. Abre `?color=nuevo` (no `?panel=`: es el del panel de
   la banda, debajo) y el color creado se suma al catálogo leído sin releerlo.
