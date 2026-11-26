@@ -16,6 +16,8 @@ type Props = {
   datos: DatosDeLado
   // El lado que se lee primero, grande; el otro, chico (`clases.ts`).
   grande: boolean
+  // Su lugar en la rejilla de la celda (`LUGAR_A` o `LUGAR_B`).
+  lugar: string
   // Su lugar entre los valores: 0 el primero que se ve (recibe el foco al volver de ↺ y es el que busca la hoja).
   parada: number
   moneda: string | undefined
@@ -34,6 +36,8 @@ type Props = {
   volverARef: RefObject<Lado | null>
   principalRef: RefObject<HTMLElement | null>
   alAbrir: (lado: Lado) => void
+  // Tocar (con el puntero) este lado bloqueado: muestra el motivo de su candado. Con Enter o Espacio no: el lector ya lo lee en la descripción.
+  alBloqueado: (lado: Lado) => void
   alTeclear: (lado: Lado, evento: KeyboardEvent<HTMLButtonElement>) => void
   // Lo que mide el botón al abrirse la edición: la entrada toma ese ancho y abrir no mueve nada.
   alMedir: (ancho: number) => void
@@ -62,7 +66,7 @@ export function BotonDelValor(props: Props) {
       data-lado={lado}
       data-vacio={datos.valor === null ? '' : undefined}
       data-blanco={props.blanco ? '' : undefined}
-      className={claseDelBoton(props.grande, props.soloEsteLado)}
+      className={`${claseDelBoton(props.grande, props.soloEsteLado)} ${props.lugar}`}
       aria-labelledby={`${idDeLaEtiqueta} ${idDelBoton}`}
       aria-describedby={
         conAtajo
@@ -83,6 +87,11 @@ export function BotonDelValor(props: Props) {
         }
       }}
       onClick={(evento) => {
+        if (bloqueada) {
+          // `detail` es 0 en el clic que hace el teclado (Enter, Espacio) y en `.click()`.
+          if (evento.detail > 0) props.alBloqueado(lado)
+          return
+        }
         props.alMedir(evento.currentTarget.offsetWidth)
         alAbrir(lado)
       }}

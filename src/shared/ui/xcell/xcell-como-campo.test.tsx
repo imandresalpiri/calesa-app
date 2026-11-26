@@ -83,7 +83,7 @@ describe('una bloqueada muestra su motivo', () => {
     const c = celda({ disabledReason: MOTIVO })
     for (const blanco of [rotulo(c), c.raiz, c.parada(0)]) {
       ;(c.raiz.ownerDocument.activeElement as HTMLElement | null)?.blur()
-      fireEvent.click(blanco as HTMLElement)
+      fireEvent.click(blanco as HTMLElement, { detail: 1 })
       expect(c.entrada()).toBeNull()
       expect(c.raiz.ownerDocument.activeElement).toBe(candado(c))
     }
@@ -96,9 +96,18 @@ describe('una bloqueada muestra su motivo', () => {
     expect(c.entrada()?.getAttribute('aria-label')).toBe('IVA, porcentaje')
     cleanup()
     const d = celda({ ...PAR, disabledReason: MOTIVO })
-    fireEvent.click(d.parada(0) as HTMLElement)
+    fireEvent.click(d.parada(0) as HTMLElement, { detail: 1 })
     expect(d.entrada()).toBeNull()
     expect(d.raiz.ownerDocument.activeElement).toBe(candado(d))
+  })
+
+  it('Enter o Espacio en un lado bloqueado (el clic del teclado, `detail` 0) no abre ni mueve el foco: el motivo ya está en su descripción', () => {
+    const c = celda({ ...PAR, disabledReason: MOTIVO })
+    const boton = c.parada(0) as HTMLElement
+    boton.focus()
+    fireEvent.click(boton)
+    expect(c.entrada()).toBeNull()
+    expect(c.raiz.ownerDocument.activeElement).toBe(boton)
   })
 
   it('el lado que abre un toque en el fondo lleva `data-blanco`; con todos bloqueados, ninguno', () => {
@@ -108,5 +117,68 @@ describe('una bloqueada muestra su motivo', () => {
     cleanup()
     const d = celda({ disabledReason: MOTIVO })
     expect(d.parada(0)?.hasAttribute('data-blanco')).toBe(false)
+  })
+})
+
+// La nota y «Calculado» van dentro de la celda, en la línea del rótulo: después de él en el DOM (el orden en que se ven y se leen), con el texto entero en
+// `title` y en el globo de la raíz (`data-aviso`).
+describe('la línea de la nota, dentro de la celda', () => {
+  it('el aviso y «Calculado» van justo después del rótulo, con su `title`; la raíz lleva `data-par` y `data-aviso`', () => {
+    const c = celda({
+      ...PAR,
+      error: 'Tiene que ser menor que el precio de subasta.',
+      handEdited: true,
+      calculatedValue: 0.2,
+      calculatedFormat: 'porcentaje',
+    })
+    const hijos = [...c.raiz.children]
+    const desde = hijos.indexOf(rotulo(c) as HTMLElement)
+    const [nota, calculado] = hijos.slice(desde + 1, desde + 3)
+    expect(nota?.getAttribute('role')).toBe('alert')
+    expect(nota?.getAttribute('title')).toBe('Tiene que ser menor que el precio de subasta.')
+    expect(calculado?.textContent).toBe('Calculado: 20%')
+    expect(calculado?.getAttribute('title')).toBe('Calculado: 20%')
+    expect(hijos.indexOf(c.parada(0) as HTMLElement)).toBeGreaterThan(desde + 2)
+    expect(c.raiz.hasAttribute('data-par')).toBe(true)
+    expect(c.raiz.getAttribute('data-aviso')).toBe('Tiene que ser menor que el precio de subasta.')
+    cleanup()
+    const d = celda()
+    expect(d.raiz.hasAttribute('data-par')).toBe(false)
+    expect(d.raiz.hasAttribute('data-aviso')).toBe(false)
+  })
+
+  it('el aviso de lo tipeado también va en `data-aviso`', () => {
+    const c = celda()
+    const entrada = abrir(c)
+    fireEvent.change(entrada, { target: { value: 'abc' } })
+    fireEvent.keyDown(entrada, { key: 'Enter' })
+    expect(c.raiz.getAttribute('data-aviso')).toMatch(/^Escribe un número/)
+  })
+})
+
+// Apagada como un campo deshabilitado, sin bajar el contraste del valor: la opacidad va sólo en el rótulo y el punto (el AA del valor, `ink-soft` sobre
+// `surface-2`, lo fija `design/tokens.test.ts`).
+describe('inactiva o bloqueada, apagada', () => {
+  it('ninguna opacidad en la raíz ni en los botones del valor; sí en el rótulo y el punto', () => {
+    const c = celda({
+      ...PAR,
+      suggested: true,
+      disabledReason: MOTIVO,
+      secondaryDisabledReason: MOTIVO,
+    })
+    expect(c.raiz.dataset['estado']).toContain('deshabilitado')
+    expect(c.raiz.className).not.toMatch(/(^|\s)opacity-/)
+    for (const n of [0, 1]) expect(c.parada(n)?.className).not.toMatch(/opacity-/)
+    expect(rotulo(c)?.className).toContain('group-data-[estado~=deshabilitado]/xc:opacity-60')
+    expect(c.raiz.querySelector('[title="Sugerido"]')?.className).toContain(
+      'group-data-[estado~=deshabilitado]/xc:opacity-60',
+    )
+  })
+
+  it('un solo lado bloqueado: sólo su caja va apagada y no se ilumina al pasar el puntero', () => {
+    const c = celda({ ...PAR, disabledReason: MOTIVO })
+    expect(c.parada(0)?.className).toContain('bg-(--color-surface-2)')
+    expect(c.parada(0)?.className).toContain('not-aria-disabled:hover:')
+    expect(c.parada(1)?.className).not.toContain('bg-(--color-surface-2)')
   })
 })

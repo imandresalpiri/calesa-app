@@ -214,6 +214,17 @@ const CASOS: Caso[] = [
     secondaryFormat: 'porcentaje',
     secondaryValue: 0.04,
   },
+  // Un rótulo largo junto a un monto de miles con la ayuda y ↺: en el celular entra en una fila y, con el texto al 200 %, el valor va entero en la suya.
+  {
+    caso: 'monto-largo',
+    id: 'largo',
+    label: 'Precio de subasta en origen',
+    format: 'monto',
+    value: 9876.54,
+    defaultValue: 0,
+    overridden: true,
+    hasHelp: true,
+  },
 ]
 
 // `?modo=300`: 300 celdas de la mezcla, con ids propios.

@@ -21,6 +21,8 @@ type Props = {
   ancho: number | null
   // La letra del botón que reemplaza.
   grande: boolean
+  // El lugar en la rejilla de la celda del botón que reemplaza.
+  lugar: string
 }
 
 // Un campo de contraseña que se vacía solo invita a «Guardar contraseña». Las marcas de 1Password, LastPass, Bitwarden y Dashlane lo
@@ -82,7 +84,7 @@ export function EntradaDeXCell(props: Props) {
       aria-invalid={invalido || undefined}
       aria-describedby={describedby}
       data-seleccion={seleccion}
-      className={props.grande ? ENTRADA_GRANDE : ENTRADA_CHICA}
+      className={`${props.grande ? ENTRADA_GRANDE : ENTRADA_CHICA} ${props.lugar}`}
       style={props.ancho === null ? undefined : { width: props.ancho }}
       value={texto}
       onChange={(evento: ChangeEvent<HTMLInputElement>) => {

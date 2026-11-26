@@ -2,6 +2,7 @@
 
 import { useState, type RefObject } from 'react'
 import { BotonDelValor } from './boton-del-valor'
+import { LUGAR_A, LUGAR_B } from './clases'
 import { EntradaDeXCell } from './entrada-de-xcell'
 import type { DatosDeLado, Lado, useEdicion } from './use-edicion'
 
@@ -35,11 +36,14 @@ export function LadoDeXCell(props: Props) {
   const { lado, datos, etiqueta, edicion: e } = props
   // El ancho del botón al abrirse: la entrada lo toma (el valor no tiene un ancho fijo: nunca se corta).
   const [ancho, setAncho] = useState<number | null>(null)
+  // Su lugar en la rejilla de la celda (el primero que se ve o el otro): el botón y la entrada que lo reemplaza van en el mismo.
+  const lugar = props.parada === 0 ? LUGAR_A : LUGAR_B
   if (e.edicion?.lado === lado) {
     return (
       <EntradaDeXCell
         ancho={ancho}
         grande={props.grande}
+        lugar={lugar}
         texto={e.edicion.texto}
         seleccion={e.edicion.seleccion}
         nombre={lado === 'principal' ? etiqueta : `${etiqueta}, ${datos.formato}`}
@@ -56,6 +60,7 @@ export function LadoDeXCell(props: Props) {
       lado={lado}
       datos={datos}
       grande={props.grande}
+      lugar={lugar}
       parada={props.parada}
       moneda={props.moneda}
       idDelBoton={props.idDelBoton}
@@ -68,9 +73,9 @@ export function LadoDeXCell(props: Props) {
       volverARef={e.volverARef}
       principalRef={props.principalRef}
       alAbrir={(l) => {
-        if (props.bloqueada) props.alBloqueado(l)
-        else e.abrir(l, null, 'todo')
+        e.abrir(l, null, 'todo')
       }}
+      alBloqueado={props.alBloqueado}
       alTeclear={e.alTeclearEnElValor}
       alMedir={setAncho}
     />
