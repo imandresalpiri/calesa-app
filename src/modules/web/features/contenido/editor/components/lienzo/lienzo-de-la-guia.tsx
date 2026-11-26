@@ -10,6 +10,7 @@ import { useMenuDeBloques } from '../../hooks/use-menu-de-bloques'
 import { BarritaDelBloque } from './barrita-del-bloque'
 import { InsertadorDeBloques } from './insertador-de-bloques'
 import { MenuDeBloques } from './menu-de-bloques'
+import { MenuFlotante } from './menu-flotante'
 import { SelectorDeImagenes } from './selector-de-imagenes'
 
 export type PropsDelLienzo = {
@@ -80,7 +81,7 @@ export function LienzoDeLaGuia({ editor, deshabilitado, alAbrirOpciones }: Props
         />
       ) : null}
       {conMenu ? (
-        <div className="absolute z-20" style={{ top: caja.top + caja.height + 4, left: caja.left }}>
+        <MenuFlotante caja={caja}>
           <MenuDeBloques
             id={idDelMenu}
             bloques={menu.bloques}
@@ -88,7 +89,7 @@ export function LienzoDeLaGuia({ editor, deshabilitado, alAbrirOpciones }: Props
             alElegir={elegir}
             alPasar={menu.elegirNumero}
           />
-        </div>
+        </MenuFlotante>
       ) : null}
       <SelectorDeImagenes ref={selector} editor={editor} clave={clave} />
     </div>
