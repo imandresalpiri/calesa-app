@@ -24,6 +24,8 @@ type Args<Dato> = {
   alGuardar: (dato: Dato) => void
   // Un rechazo del servidor que pertenece a un campo: su clave. Sin clave, el rechazo se dice arriba del formulario.
   campoDelRechazo?: (error: ErrorApp) => string | null
+  // Lo que trae la versión de ahora tras un conflicto. Por defecto `router.refresh()`; una lista que se lee desde el navegador la relee.
+  recargar?: () => void | Promise<void>
 }
 
 // Dónde se dice un rechazo: junto a su campo, junto a cada uno de los que no pasaron, o arriba del formulario.
@@ -40,7 +42,7 @@ function motivosDelRechazo(
 }
 
 // El envío de un formulario con versión que se abre en un modal (las tarjetas de ajustes): lo de `useEnvioDeModal` más el conflicto. Un
-// `PT409` deja el aviso con «Recargar» (`router.refresh()` trae la versión de ahora y lo escrito queda) y «Guardar» apagado hasta que llega
+// `PT409` deja el aviso con «Recargar» (`router.refresh()`, o el `recargar` recibido, trae la versión de ahora y lo escrito queda) y «Guardar» apagado hasta que llega
 // esa versión nueva (`useConflictoHastaLaVersion`: enviar en el instante de pulsar «Recargar» mandaría la vieja y volvería a chocar).
 // La versión llega por props al abrir y nunca va en la `key` del modal: guardar lo remontaría y se perdería lo tipeado.
 export function useEnvioConVersion<Dato>({
@@ -51,6 +53,7 @@ export function useEnvioConVersion<Dato>({
   pedir,
   alGuardar,
   campoDelRechazo,
+  recargar,
 }: Args<Dato>): FormularioDelModal & {
   errores: Record<string, string>
   quitarMotivo: (clave: string) => void
@@ -111,8 +114,8 @@ export function useEnvioConVersion<Dato>({
       void enviar()
     },
     recargar: () => {
-      recargarPagina(() => {
-        router.refresh()
+      recargarPagina(async () => {
+        await (recargar ? recargar() : router.refresh())
       })
     },
     recargando,

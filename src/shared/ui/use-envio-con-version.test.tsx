@@ -27,7 +27,11 @@ const choque: Envio<Dato> = {
   error: { codigo: 'conflicto', mensaje: 'Rosa lo cambió hace 3 min.' },
 }
 
-function montar(pedir: () => Promise<Envio<Dato>>, campoDelRechazo?: () => string | null) {
+function montar(
+  pedir: () => Promise<Envio<Dato>>,
+  campoDelRechazo?: () => string | null,
+  recargar?: () => Promise<void>,
+) {
   const alGuardar = vi.fn()
   const hook = renderHook(
     ({ version }) =>
@@ -39,6 +43,7 @@ function montar(pedir: () => Promise<Envio<Dato>>, campoDelRechazo?: () => strin
         pedir,
         alGuardar,
         campoDelRechazo,
+        recargar,
       }),
     { initialProps: { version: 'v1' } },
   )
@@ -83,6 +88,20 @@ describe('useEnvioConVersion', () => {
     expect(result.current.conflicto).toBe('Rosa lo cambió hace 3 min.')
     rerender({ version: 'v2' })
     expect(result.current.conflicto).toBeNull()
+  })
+
+  it('con su propio «Recargar» (una lista leída en el navegador) relee eso y no la página', async () => {
+    const releer = vi.fn(() => Promise.resolve())
+    const { result } = montar(() => Promise.resolve(choque), undefined, releer)
+    await act(async () => {
+      await result.current.enviar()
+    })
+    await act(async () => {
+      result.current.recargar?.()
+      await Promise.resolve()
+    })
+    expect(releer).toHaveBeenCalledTimes(1)
+    expect(refrescar).not.toHaveBeenCalled()
   })
 })
 
