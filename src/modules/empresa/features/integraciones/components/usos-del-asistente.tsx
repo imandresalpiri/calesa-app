@@ -18,7 +18,8 @@ export function UsosDelAsistente({ usos }: { usos: UsosDelMes | null }) {
       ) : (
         <ul aria-label="Usos de este mes" className="grid">
           {usos.personas.map((persona) => (
-            <li key={persona.usuarioId} className="flex min-h-6 min-w-0 gap-1.5">
+            // `@xs:justify-end`: como los demás valores de la tarjeta (`@xs:text-end`, que una fila flex no toma).
+            <li key={persona.usuarioId} className="flex min-h-6 min-w-0 gap-1.5 @xs:justify-end">
               <span className="min-w-0 truncate text-(--color-ink)">{persona.nombre}</span>
               <span aria-hidden className="text-(--color-ink-faint)">
                 ·
