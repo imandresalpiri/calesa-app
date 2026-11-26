@@ -15,6 +15,7 @@ import {
 import { codigoDePaisDeLaEmpresa, telefonoAlAzar } from './soporte/leads-alta'
 import { elegirDelMenu, nombreDeLaFila } from './soporte/lista-de-catalogo'
 import { expect, test, type Page } from './soporte/prueba'
+import { capturar } from './soporte/recorrido'
 
 // @sin-celular-archivo: Configuración no se prueba en celular; pruebas sólo en lo clave (la persona, 2026-11-08)
 
@@ -98,7 +99,7 @@ test.afterAll(limpiar)
 
 test('E2E escritorio: el combo del grupo ofrece el que existe con otra escritura y crea lo nuevo', async ({
   page,
-}) => {
+}, info) => {
   await entrar(page, duena, { fresco: true })
   await page.goto('/configuracion/leads/campos')
   await expect(filaDelCampo(page, CAMPO.etiqueta)).toBeVisible()
@@ -116,6 +117,7 @@ test('E2E escritorio: el combo del grupo ofrece el que existe con otra escritura
   await expect(page.getByRole('option', { name: EXISTENTE, exact: true })).toBeVisible()
   await expect(page.getByText(`Ya existe «${EXISTENTE}».`)).toBeVisible()
   await expect(page.getByRole('option', { name: /^Crear grupo/ })).toHaveCount(0)
+  await capturar(page, info, 'combo-ya-existe')
 
   // Lo que no existe se crea desde ahí y queda elegido; al guardar, el campo va bajo su bloque.
   await buscar.fill(NUEVO)
@@ -125,23 +127,26 @@ test('E2E escritorio: el combo del grupo ofrece el que existe con otra escritura
   await panel.getByRole('button', { name: 'Guardar' }).click()
   await descartarAviso(page, `Campo «${CAMPO.etiqueta}» guardado`)
   await expect(page.getByRole('heading', { name: NUEVO, level: 3 })).toBeVisible()
+  await capturar(page, info, 'campo-en-el-grupo-nuevo')
   await expect.poll(async () => (await campoDeLead(CAMPO.clave)).grupo).toBe(NUEVO)
 })
 
 test('E2E escritorio: «Grupos» renombra sin duplicar y la ficha del lead dice el nombre nuevo', async ({
   page,
-}) => {
+}, info) => {
   await entrar(page, duena, { fresco: true })
   await page.goto('/configuracion/leads/campos')
   await page.getByRole('button', { name: 'Grupos', exact: true }).click()
   await expect(page).toHaveURL(/[?&]panel=grupos/)
   const panel = drawer(page, 'Grupos de campos')
   await expect(nombreDeLaFila(page, NUEVO)).toBeVisible()
+  await capturar(page, info, 'drawer-grupos')
 
   // Renombrar usa el mismo formulario de arriba, con el nombre de ese grupo.
   await elegirDelMenu(page, NUEVO, 'Renombrar')
   const nombre = panel.getByLabel(`Renombrar «${NUEVO}»`)
   await expect(nombre).toHaveValue(NUEVO)
+  await capturar(page, info, 'drawer-renombrar')
   await nombre.fill(RENOMBRADO)
   await panel.getByRole('button', { name: 'Guardar' }).click()
   await descartarAviso(page, 'Grupo renombrado')
@@ -152,6 +157,7 @@ test('E2E escritorio: «Grupos» renombra sin duplicar y la ficha del lead dice 
   await agregar.fill('e2e datos del cliente')
   await panel.getByRole('button', { name: 'Agregar' }).click()
   await expect(panel.getByText(`Ya existe «${EXISTENTE}».`)).toBeVisible()
+  await capturar(page, info, 'drawer-ya-existe')
   await agregar.fill('')
 
   // La ficha del lead agrupa sus datos con el nombre nuevo.
@@ -164,11 +170,12 @@ test('E2E escritorio: «Grupos» renombra sin duplicar y la ficha del lead dice 
   await page.goto(`/leads/${leadId}?ver=datos`)
   const datos = page.getByRole('dialog', { name: `Datos de ${PREFIJO_DE_LEAD_E2E}${LEAD}` })
   await expect(datos.getByRole('region', { name: RENOMBRADO })).toContainText('Cochabamba')
+  await capturar(page, info, 'ficha-con-el-nombre-nuevo')
 })
 
 test('E2E escritorio: quitar un grupo con campos los mueve antes a «Sin grupo»', async ({
   page,
-}) => {
+}, info) => {
   await entrar(page, duena, { fresco: true })
   await page.goto('/configuracion/leads/campos?panel=grupos')
   await expect(nombreDeLaFila(page, RENOMBRADO)).toBeVisible()
@@ -177,6 +184,7 @@ test('E2E escritorio: quitar un grupo con campos los mueve antes a «Sin grupo»
   const confirmar = page.getByRole('dialog', { name: `Quitar el grupo «${RENOMBRADO}»` })
   await expect(confirmar).toContainText(`«${RENOMBRADO}» tiene 1 campo. Muévelo antes de quitarlo.`)
   await expect(confirmar.getByLabel('Mover su campo a…')).toHaveValue('')
+  await capturar(page, info, 'quitar-grupo-con-campos')
   await confirmar.getByRole('button', { name: 'Mover y quitar' }).click()
   await descartarAviso(page, 'Grupo quitado')
   await expect(nombreDeLaFila(page, RENOMBRADO)).toHaveCount(0)
@@ -185,7 +193,7 @@ test('E2E escritorio: quitar un grupo con campos los mueve antes a «Sin grupo»
 
 test('E2E escritorio: «Categorías» de las preguntas frecuentes, sin duplicados y moviendo sus preguntas', async ({
   page,
-}) => {
+}, info) => {
   await entrar(page, duena, { fresco: true })
   await page.goto('/configuracion/web/faqs')
   await page.getByRole('button', { name: 'Categorías', exact: true }).click()
@@ -197,6 +205,7 @@ test('E2E escritorio: «Categorías» de las preguntas frecuentes, sin duplicado
   await nombre.fill('e2e gsd garantia')
   await panel.getByRole('button', { name: 'Agregar' }).click()
   await expect(panel.getByText(`Ya existe «${FAQ.existente}».`)).toBeVisible()
+  await capturar(page, info, 'categorias-ya-existe')
   await nombre.fill(FAQ.nueva)
   await panel.getByRole('button', { name: 'Agregar' }).click()
   await descartarAviso(page, 'Categoría agregada')
@@ -208,6 +217,7 @@ test('E2E escritorio: «Categorías» de las preguntas frecuentes, sin duplicado
     `«${FAQ.existente}» tiene 1 pregunta. Muévela antes de quitarla.`,
   )
   await confirmar.getByLabel('Mover su pregunta a…').selectOption({ label: FAQ.nueva })
+  await capturar(page, info, 'quitar-categoria-con-preguntas')
   await confirmar.getByRole('button', { name: 'Mover y quitar' }).click()
   await descartarAviso(page, 'Categoría quitada')
   await expect(nombreDeLaFila(page, FAQ.existente)).toHaveCount(0)
