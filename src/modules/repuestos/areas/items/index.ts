@@ -7,3 +7,5 @@ export {
   hojaLlena,
   type HojaLeida,
 } from '../../entities/items/hoja'
+export { rutaDeLasImagenesDelItem } from '../../entities/items/paneles'
+export { tarjetasDelItem, type ClaveDeTarjeta } from '../../entities/items/grupos-del-item'

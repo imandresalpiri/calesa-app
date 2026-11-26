@@ -175,8 +175,15 @@ test('los ítems salen agrupados por paso, en el orden del flujo, con su conteo 
   // La tarjeta dice «Tipo · Condición» y la descripción; el tipo y la condición se editan en la fila del ítem, en su drawer.
   await expect(fila(page, A)).toContainText(`${tipo.nombre} · ${condicion.nombre}`)
   const drawer = await abrirItem(page, A, `${tipo.nombre} · ${condicion.nombre}`)
-  await expect(drawer.getByLabel(`Tipo de pieza del ítem ${A}`)).toHaveValue(tipo.id)
-  await expect(drawer.getByLabel(`Condición del ítem ${A}`)).toHaveValue(condicion.id)
+  await expect(drawer.getByRole('region', { name: 'Qué es' })).toContainText(
+    `${tipo.nombre} · ${condicion.nombre}`,
+  )
+  await drawer.getByRole('button', { name: 'Editar Qué es' }).click()
+  const modal = page.getByRole('dialog', { name: 'Qué es' })
+  await expect(modal.getByLabel(`Tipo de pieza del ítem ${A}`)).toHaveValue(tipo.id)
+  await expect(modal.getByLabel(`Condición del ítem ${A}`)).toHaveValue(condicion.id)
+  await page.keyboard.press('Escape')
+  await expect(modal).toBeHidden()
   await page.keyboard.press('Escape')
   await expect(drawer).toBeHidden()
   await capturar(page, info, 'hoja-por-paso')
@@ -214,7 +221,7 @@ test('con el proyecto cerrado, la tarjeta y la fila del ítem dicen «Tipo · Co
     await expect(fila(page, A)).toContainText(A)
     const drawer = await abrirItem(page, A, `${tipo.nombre} · ${condicion.nombre}`)
     await expect(drawer.getByLabel(`Tipo de pieza del ítem ${A}`)).toHaveCount(0)
-    await expect(drawer.locator('[data-fila-de-item]')).toContainText(
+    await expect(drawer.getByRole('region', { name: 'Qué es' })).toContainText(
       `${tipo.nombre} · ${condicion.nombre}`,
     )
   } finally {

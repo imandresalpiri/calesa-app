@@ -1,6 +1,7 @@
 'use client'
 
 import { diferido } from '@/shared/ui/diferido'
+import { EsqueletoListado } from '@/shared/ui/esqueletos'
 import { Skeleton } from '@/shared/ui/skeleton'
 
 // La confirmación de eliminar un ítem se pide al abrirse (`useAbiertoAlgunaVez()`): la hoja no carga su código para dibujarse.
@@ -13,19 +14,25 @@ export const DrawerDeImagenesDiferido = diferido(() =>
   import('./drawer-de-imagenes').then((modulo) => modulo.DrawerDeImagenes),
 )
 
-// El bloque «Imágenes» del panel del ítem (`?item=`): se pide al abrir el panel, no viaja con la hoja ni con la Cadena. Si no llega, lo dice en su lugar.
-export const ImagenesDelItemDiferido = diferido(
-  () => import('./contenido-de-imagenes').then((modulo) => modulo.ContenidoDeImagenes),
-  {
-    aviso: 'aqui',
-    esqueleto: (
-      <div role="status" aria-label="Cargando las imágenes" className="grid grid-cols-3 gap-2">
-        <Skeleton className="aspect-4/3" />
-        <Skeleton className="aspect-4/3" />
-        <Skeleton className="aspect-4/3" />
-      </div>
-    ),
-  },
+// El panel del ítem en dos columnas (`?item=`): su marco con la lectura de las imágenes que comparten la portada y la tarjeta «Imágenes», la columna izquierda y la tarjeta «Imágenes». Se piden al
+// abrir el panel, no viajan con la hoja ni con la Cadena. Si no llegan, lo dice en su lugar.
+export const ItemEnDosColumnasDiferido = diferido(
+  () => import('./item-en-dos-columnas').then((modulo) => modulo.ItemEnDosColumnas),
+  { aviso: 'aqui', esqueleto: <EsqueletoListado filas={4} columnas={2} /> },
+)
+export const ColumnaDelItemDiferida = diferido(
+  () => import('./columna-del-item').then((modulo) => modulo.ColumnaDelItem),
+  { aviso: 'aqui', esqueleto: <EsqueletoListado filas={4} columnas={2} /> },
+)
+export const TarjetaDeImagenesDiferida = diferido(
+  () => import('./tarjeta-de-imagenes').then((modulo) => modulo.TarjetaDeImagenes),
+  { aviso: 'aqui', esqueleto: <Skeleton className="h-24 w-full" /> },
+)
+
+export const TarjetaDeVehiculoYClienteDiferida = diferido(
+  () =>
+    import('./tarjeta-de-vehiculo-y-cliente').then((modulo) => modulo.TarjetaDeVehiculoYCliente),
+  { aviso: 'aqui', esqueleto: <Skeleton className="h-24 w-full" /> },
 )
 
 // El panel del ítem de `/repuestos/[id]` (`?item=`): la fila como Excel y sus secciones, en un drawer de abajo. Se pide al abrirse (`useAbiertoAlgunaVez()`).

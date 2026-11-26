@@ -2,13 +2,7 @@ import { expect, test } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
 import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './soporte/base'
 import { capturar } from './soporte/recorrido'
-import {
-  abrirItem,
-  accionDelItem,
-  agregarItems,
-  filaDelItem,
-  tarjetaDe,
-} from './soporte/repuestos-tarjetas'
+import { abrirItem, accionDelItem, agregarItems, tarjetaDe } from './soporte/repuestos-tarjetas'
 import { literal, sql } from './soporte/sql'
 
 // Los ítems de `/repuestos/[id]` como tarjetas (`docs/UX.md` › «Repuestos: proyecto (estados propios)»): el buscador y las fichas filtran en el navegador con «N de M ítems»; un clic en la tarjeta abre el drawer de
@@ -120,24 +114,21 @@ test('el buscador y las fichas filtran los ítems en el navegador, con «N de M 
   await expect(tarjetaDe(page, TAPA)).toBeVisible()
 })
 
-test('un clic en la tarjeta abre el drawer con la fila del ítem, se edita celda a celda y Esc devuelve el foco', async ({
+test('un clic en la tarjeta abre el drawer con el ítem en grupos, se edita un grupo en su modal y Esc devuelve el foco', async ({
   page,
 }, info) => {
   await entrar(page, duena, { fresco: true })
   await page.goto(`/repuestos/${proyecto}`)
   const drawer = await abrirItem(page, TAPA)
   await expect(page).toHaveURL(new RegExp(`[?&]item=${ids[TAPA] ?? ''}`))
-  for (const columna of [
-    'Ítem',
-    'Cantidad',
-    'Precio al cliente',
-    'País de origen',
-    'Vía de transporte',
-    'Moneda',
-    'Tracking',
-    'Notas',
+  for (const grupo of [
+    'Qué es',
+    'Estado',
+    'Cantidades y precios',
+    'Origen y envío',
+    'Notas del ítem',
   ]) {
-    await expect(drawer.getByRole('columnheader', { name: columna, exact: true })).toBeVisible()
+    await expect(drawer.getByRole('region', { name: grupo, exact: true })).toBeVisible()
   }
   await expect(drawer.locator('[data-bloque-del-hueco]').first()).toHaveAttribute(
     'data-bloque-del-hueco',
@@ -152,28 +143,26 @@ test('un clic en la tarjeta abre el drawer con la fila del ítem, se edita celda
     document.documentElement.style.fontSize = ''
   })
 
-  // Tracking: se tipea y Enter guarda; la flecha derecha al final pasa a Notas y Tab sigue.
-  const tracking = filaDelItem(drawer).getByLabel(`Tracking del ítem ${TAPA}`)
+  // Tracking: «Origen y envío» se edita en su modal; Enter guarda y «Listo» cierra.
+  await drawer.getByRole('button', { name: 'Editar Origen y envío' }).click()
+  const modal = page.getByRole('dialog', { name: 'Origen y envío' })
+  const tracking = modal.getByLabel(`Tracking del ítem ${TAPA}`)
   await tracking.fill('TRK-CCC333')
   await tracking.press('Enter')
   await expect
     .poll(() => sql(`select tracking from repuestos_items where id = '${ids[TAPA] ?? ''}'`).trim())
     .toBe('TRK-CCC333')
-  await tracking.press('End')
-  await tracking.press('ArrowRight')
-  await expect(filaDelItem(drawer).getByLabel(`Notas del ítem ${TAPA}`)).toBeFocused()
-  // Notas ya trae texto: ← sólo sale de la celda con el cursor al inicio.
-  await page.keyboard.press('Home')
-  await page.keyboard.press('ArrowLeft')
-  await expect(tracking).toBeFocused()
+  await modal.getByRole('button', { name: 'Listo' }).click()
+  await expect(modal).toBeHidden()
+  await expect(drawer.getByRole('region', { name: 'Origen y envío' })).toContainText('TRK-CCC333')
 
   // Recargar con el drawer abierto: el cambio sigue.
   await page.reload()
   await expect(
-    filaDelItem(page.getByRole('dialog', { name: TAPA, exact: true })).getByLabel(
-      `Tracking del ítem ${TAPA}`,
-    ),
-  ).toHaveValue('TRK-CCC333')
+    page
+      .getByRole('dialog', { name: TAPA, exact: true })
+      .getByRole('region', { name: 'Origen y envío' }),
+  ).toContainText('TRK-CCC333')
 
   // Esc cierra y el foco vuelve a la tarjeta.
   await page.keyboard.press('Escape')

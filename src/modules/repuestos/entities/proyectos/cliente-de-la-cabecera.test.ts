@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   clienteDeLaCabecera,
   LEAD_SIN_NOMBRE,
+  textoDelCliente,
+  CLIENTE_QUE_NO_PUEDES_VER,
   type LeadDeLaCabecera,
 } from './cliente-de-la-cabecera'
 
@@ -57,5 +59,25 @@ describe('clienteDeLaCabecera', () => {
     expect(clienteDeLaCabecera({ leadId: null, clienteNombre: null, lead })).toEqual({
       tipo: 'ninguno',
     })
+  })
+})
+
+describe('textoDelCliente', () => {
+  it('el lead va con su ficha; lo demás, sin enlace', () => {
+    expect(
+      textoDelCliente({ tipo: 'lead', id: LEAD, nombre: 'Ana Pérez', numeros, enCartera: true }),
+    ).toEqual({
+      texto: 'Ana Pérez',
+      href: `/leads/${LEAD}`,
+    })
+    expect(textoDelCliente({ tipo: 'oculto' })).toEqual({
+      texto: CLIENTE_QUE_NO_PUEDES_VER,
+      href: null,
+    })
+    expect(textoDelCliente({ tipo: 'libre', nombre: 'Luis' })).toEqual({
+      texto: 'Luis',
+      href: null,
+    })
+    expect(textoDelCliente({ tipo: 'ninguno' })).toEqual({ texto: '—', href: null })
   })
 })

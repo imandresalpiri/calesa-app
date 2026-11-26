@@ -2,6 +2,7 @@
 // cabecera sólo lo dibuja. Manda el lead; en un proyecto viejo, el nombre escrito a mano (sin el teléfono, como siempre). Un lead que quien mira no ve —o
 // que no puede leer sin `leads.ver`— se dice igual en todos los casos y sin datos: no se distingue «no existe» de «no lo ves».
 import type { NumerosDeLead } from '@/shared/lib/numeros-de-lead'
+import { RUTAS } from '@/shared/lib/rutas'
 
 // El lead tal como lo leyó la página (por su id, con la RLS de quien mira): su nombre, sus números y si está en su cartera. Nunca el teléfono.
 export type LeadDeLaCabecera = {
@@ -44,4 +45,21 @@ export function clienteDeLaCabecera({ leadId, clienteNombre, lead }: Entrada): C
   }
   const escrito = clienteNombre?.trim() ?? ''
   return escrito === '' ? { tipo: 'ninguno' } : { tipo: 'libre', nombre: escrito }
+}
+
+/** El cliente como una línea de texto, con la ficha del lead si la hay (la tarjeta «Vehículo y cliente» del panel del ítem; la cabecera lo dibuja con su propio componente). */
+export function textoDelCliente(cliente: ClienteDeLaCabecera): {
+  texto: string
+  href: string | null
+} {
+  switch (cliente.tipo) {
+    case 'lead':
+      return { texto: cliente.nombre, href: `${RUTAS.leads}/${cliente.id}` }
+    case 'oculto':
+      return { texto: CLIENTE_QUE_NO_PUEDES_VER, href: null }
+    case 'libre':
+      return { texto: cliente.nombre, href: null }
+    case 'ninguno':
+      return { texto: '—', href: null }
+  }
 }

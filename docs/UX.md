@@ -508,9 +508,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     o de pagos se abre con su pestaña (`?pestana=compras&panel=compra&compra=…`); `?panel=stock|imagenes&item=` e `?item=` no piden pestaña.
   - Vistas «Stock» (`?vista=stock`) y «Cadena» (`?vista=cadena`; las tres se eligen en «Vista y opciones» › «Qué ver»: una columna por fase del flujo de repuestos, más «Sin fase» si tiene
     ítems, de a 50, tarjeta con «Proyecto #N» y días en la fase; `?q=`, `?proyecto=` y, en el celular, `?fase=`).
-  - El panel del ítem (`?item=<id>`, sobre el proyecto o la Cadena) es el panel de la unidad de logística **con sus secciones a la vista**,
-    sin acordeones (en el proyecto, bajo la fila del ítem y sin cabecera propia: ver «Repuestos: proyecto (estados propios)» › «Drawer del ítem»): «Qué falta» primero (con el destino de `?destino=` ya abierto), «Imágenes», «Stock», «Compras» (con
-    `repuestos.costos.ver`), «Documentos», «Historial», «Notas» y «Transporte».
+  - El panel del ítem (`?item=<id>`, sobre el proyecto o la Cadena) va **en dos columnas** (ver «Repuestos: proyecto (estados propios)» › «Panel del ítem»): a la izquierda lo del ítem en el orden en que
+    se usa, a la derecha sus tarjetas. En el proyecto va bajo el título del ítem, sin cabecera propia; en la Cadena lleva la cabecera de la unidad y la columna izquierda se lee sin editar.
   - **Cotizaciones del proyecto:** «Nueva cotización» con la moneda en la misma barra (apagado con su motivo con el proyecto cerrado o sin
     monedas activas; sin configuración, el mensaje de la base y, con `repuestos.configurar`, el enlace a configurarla) y la lista (número,
     estado, total o «Sin total», fecha; tope 50). En `/repuestos/[id]/cotizaciones/[cotizacion]`, una borrador con el proyecto abierto se
@@ -1251,9 +1250,8 @@ el flujo; la base vuelve a decidir.
 ### Logística: estados propios
 
 La unidad se dibuja de dos maneras: en su página `/logistica/vehiculo/<id>`, **en zonas** (escritorio) o **en bloques con una barra «Mover»** (celular y tableta vertical; `<PaginaDeLaUnidad>`), y, dentro
-de un drawer: el de `/logistica/gastos?vehiculo=<id>`, con una **sección a la vista por hueco** que monta su contenido al acercarse (`<PanelDeLaUnidad>`), y el del ítem de repuesto (`?item=`), con
-sus **secciones a la vista** (`<PanelDeLaUnidadALaVista>`: «Qué falta» primero, cada sección con su `h3`; el atajo de una falta la trae a la vista
-y enfoca su título).
+de un drawer: el de `/logistica/gastos?vehiculo=<id>`, con una **sección a la vista por hueco** que monta su contenido al acercarse (`<PanelDeLaUnidad>`), y el del ítem de repuesto (`?item=`), cuyas piezas (`<QueFaltaDelItem>` y una tarjeta por hueco, `<TarjetaDelHuecoDelItem>`) las coloca `repuestos` en su panel en dos columnas (el atajo de una falta abre la tarjeta
+de su hueco).
 
 - **Entrada:** la unidad se lee bajo la RLS de `vehiculos` y se pide `logistica.ver` en su origen; sin esa clave, «No tienes permiso para
   ver esto». Lo que no existe, está en la papelera, no se ve o trae un id inválido: «Este vehículo ya no está disponible» con «No existe o
@@ -2187,12 +2185,23 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   tarjeta dentro de otra ni una tabla. Cada tarjeta dice qué es el ítem («Tipo · Condición» o su descripción), la cantidad y el precio («2 × Monto»; sin precio, «2 · Sin precio»), «En stock: N» si tiene, y su
   «Siguiente» o su fase. En su esquina, el «⋯» (`Más acciones de <ítem>`): **Imágenes** y **Stock** (también sin `repuestos.editar` y con el proyecto cerrado), **Mover a…** (con `repuestos.mover`, el ítem fuera de una fase final y el proyecto abierto: abre el drawer del ítem para elegir
   el destino) y **Eliminar el ítem** (con `repuestos.editar`; `<Confirmar>`, ver «Eliminar»). El clic en la tarjeta (o Enter en su nombre, `Abrir <ítem>`) abre el **drawer del ítem**.
-- **Drawer del ítem** (`?item=<id>`, de abajo; sin cabecera de proyecto: su título es la descripción del ítem y debajo su fase): arriba, **la fila del ítem como una hoja de cálculo** (columnas Ítem · Cantidad · Precio al
-  cliente · País de origen · Vía de transporte · Moneda · Tracking · Notas, cada título con su ayuda en un `title`; en el celular se desplaza de costado con su pista); cada celda se guarda sola (Enter o al salir; la lista, al
-  elegir), con las flechas ← → (un texto sólo sale de la celda con el cursor en el borde) y Tab entre celdas, Esc devuelve lo guardado (y, sin nada que devolver, cierra el drawer). Cantidad y precio son `XCell`. Debajo, las
-  secciones del ítem a la vista: **Qué falta**, Imágenes, Stock, Compras (con `repuestos.costos.ver`), Documentos, Historial, Notas y Transporte. En escritorio ocupa el **60 %** del alto y su **asa** (arriba, `Cambiar el alto del panel`;
-  arrastrar o ↑ ↓ Inicio Fin) lo agranda o lo achica mientras está abierto; en el celular, la pantalla completa. Esc y «atrás» lo cierran y el foco vuelve a la tarjeta (también tras recargar). Mover el ítem de
-  fase lo pasa a su grupo nuevo. Un precio sin moneda lleva la primera activa.
+- **Drawer del ítem** (`?item=<id>`, de abajo; sin cabecera de proyecto: su título es la descripción del ítem): el **panel del ítem en dos columnas** (abajo). En escritorio ocupa el **60 %** del alto y su
+  **asa** (arriba, `Cambiar el alto del panel`; arrastrar o ↑ ↓ Inicio Fin) lo agranda o lo achica mientras está abierto; en el celular, la pantalla completa. Esc y «atrás» lo cierran (el modal o el drawer de una tarjeta,
+  primero) y el foco vuelve a la tarjeta (también tras recargar). Mover el ítem de fase lo pasa a su grupo nuevo. Un precio sin moneda lleva la primera activa. La fila de hoja de cálculo sigue en «Agregar ítem».
+- **Panel del ítem (dos columnas).** Desde 56 rem del propio panel (`@container`) van lado a lado (izquierda 11/20, derecha 9/20); por debajo, una columna con la izquierda primero. **Un solo nivel de secciones**: cada
+  grupo y cada tarjeta es una sección con su `h2`, nunca un acordeón ni una tarjeta dentro de otra.
+  - **Izquierda, en el orden en que se usa**, cada grupo como texto (los valores como `ValoresDeLaTarjeta`, «Sin dato» si falta) con su «Editar <grupo>» (con `repuestos.editar` y el proyecto abierto; sin ellos, sólo texto):
+    **Qué es** (portada del ítem —la primera imagen, o el marcador— y la descripción; edita tipo de pieza, condición y descripción), **Estado** (la insignia de la fase, el botón de su siguiente y «Qué falta» con sus destinos y el botón de
+    mover, con el destino de `?destino=` ya abierto; no se edita aquí), **Cantidades y precios** (cantidad, en stock, precio al cliente) y **Origen y envío** (país, vía de transporte, tracking), lado a lado desde 36 rem de la columna; **Proveedor** («x (última compra)»; sólo con
+    `repuestos.costos.ver`) y **Notas del ítem**.
+  - **Editar un grupo** abre su **modal** (`?editar=<grupo>`, no `?panel=`: el panel del ítem sigue debajo) con las mismas celdas de la hoja (cada una se guarda sola, Enter o al salir) y «Listo». El modal no abre otro modal. Esc cierra
+    primero el modal. Un conflicto (`PT409`) lo dice dentro del modal con «Recargar»; lo escrito no se guarda.
+  - **Derecha, tarjetas de alto fijo y tocables**, cada una con su «⋯» (la acción principal primero): **Vehículo y cliente** (sólo con un proyecto a la vista; lleva al vehículo o al cliente, según haya; sin ninguno, apagada con
+    «Este proyecto no tiene una ficha que abrir.»), **Compras** (con `repuestos.costos.ver`; «Última: proveedor · monto»; abre el panel de compras, y «Registrar compra» en el «⋯»), **Imágenes** (cuántas, «N de 8»; abre `?panel=imagenes&item=`),
+    **Stock** («En stock: N de M» o «Nada en stock.»; abre `?panel=stock&item=`), **Documentos**, **Historial** y **Notas** (una línea fija que dice qué hay; abren su hueco de logística en un drawer al costado, `?seccion=<clave>`, sin cerrar el panel).
+    Lo que lee una tarjeta lo dice en su propio renglón de alto fijo: mientras lee, dos renglones de esqueleto; si falla, «No pudimos mostrar «<título>».» con «Reintentar»; nunca cambia el tamaño de la tarjeta. Sin conteos exactos: Documentos, Historial y Notas no leen
+    nada hasta abrirse.
+  - **Sólo lectura** (sin `repuestos.editar`, proyecto cerrado o la Cadena): sin «Editar»; mover sale apagado con su motivo. **Sin permiso de costos:** ni Compras ni Proveedor, ni su lectura.
 - **Agregar ítem** (`?panel=nuevo-item`, con `repuestos.editar`; botón junto al buscador): drawer de abajo con **una fila nueva** de la misma hoja; la descripción (Enter) crea el ítem, que queda arriba editable celda a
   celda, y deja otra fila nueva con el foco. Sólo la descripción es obligatoria; un ítem nuevo sin fase cae en «Sin fase». No hay fila nueva dentro de la lista. Con 200 ítems el botón no está y se avisa con
   `<AvisoDeTope>` (cada encabezado, «N+»). Flujo sin fases o ilegible: un solo grupo «Sin fase · N» y, en cada tarjeta, la fase del ítem. Sin ítems: «Este proyecto todavía no tiene ítems.» y, con `repuestos.editar`, «Agregar ítem».
@@ -2217,11 +2226,9 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   imágenes: «3 de 8 imágenes» (exacto: el tope es duro), rejilla de 2 a 4 columnas que enlaza al original, «Quitar» de 44 px con
   «Deshacer». Lleno: zona apagada con su motivo. Sólo lectura (o proyecto cerrado): sin zona ni «Quitar». Sin conexión: zona apagada.
   Elegir sube al momento; lo repetido dice «ya estaba».
-- **Panel del ítem:** sin acordeones; cada sección con su título (`h3`) y su error en su lugar. «Imágenes»: los estados del panel de imágenes.
-  «Stock»: «En stock: N de M» o «Nada en stock.» y «Abrir el stock» (`?panel=stock&item=`). «Compras» (con `repuestos.costos.ver`): tres
-  renglones mientras lee; «No se pudieron cargar las compras del ítem.» con «Reintentar»; «Este ítem no tiene compras registradas.»; tope 20
-  con aviso; «Registrar compra» (`?pestana=compras&panel=compra&compra=nueva&item_de_compra=<id>`, con el ítem ya elegido; sin
-  `repuestos.costos.editar` o cerrado, su motivo) y «Ver todas en Compras».
+- **Tarjetas del panel del ítem:** «Imágenes»: los estados del panel de imágenes (esqueleto, error, vacío) en un renglón de alto fijo. «Stock»: «En stock: N de M» o «Nada en stock.» y «Abrir el stock» (`?panel=stock&item=`).
+  «Compras» (con `repuestos.costos.ver`): un renglón mientras lee; «No se pudieron cargar las compras del ítem.» con «Reintentar»; «Este ítem no tiene compras registradas.»; «Registrar compra»
+  (`?pestana=compras&panel=compra&compra=nueva&item_de_compra=<id>`, con el ítem ya elegido; sin `repuestos.costos.editar` o cerrado, su motivo) y «Ver todas en Compras» en el «⋯» de la tarjeta.
 - **Compras:** panel sólo con `repuestos.costos.ver` (sin él no hay pestaña y `?pestana=compras` deja sólo la hoja, sin leer nada).
   - «Margen del proyecto»: una tarjeta por moneda con precios, compras y margen (`<Monto>`; Modo Live los oculta); con algún ítem sin
     precio o sin moneda, «Sin precio en N ítems» («más de 200»), nunca 0; sin nada, su vacío.
