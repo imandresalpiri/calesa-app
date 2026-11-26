@@ -283,7 +283,7 @@ test('E2E el clic en la imagen no abre el resumen y el de la tarjeta sí; el vis
   await expect(page).not.toHaveURL(/cotizacion=/)
   await page.keyboard.press('Escape')
   await expect(visor).toBeHidden()
-  await tarjeta.locator('[data-titulo-de-la-cotizacion]').click()
+  await tarjeta.locator('[data-autor-de-la-cotizacion]').click()
   await expect(page).toHaveURL(new RegExp(`cotizacion=${suelta}`))
 })
 
