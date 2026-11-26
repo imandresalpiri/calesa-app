@@ -14,14 +14,27 @@
 #                          el resultado de «trabada»
 #   identidad              devuelve un resultado con modelUsage, como `claude -p --output-format json`
 #   salida                 devuelve como resultado el texto del archivo $CLAUDE_FALSO_SALIDA
+# Las que terminan sin línea RESULTADO (orquestador.sh › seguir_la_sesion). Todas dicen su session_id («sesion-falsa»; ninguno con
+# CLAUDE_FALSO_SIN_ID=1) y no duermen:
+#   espera                 lanza una tarea en segundo plano (task_started) y cierra el turno sin su task_notification
+#   espera-tarde           igual, pero la task_notification llega después del result (como en T517)
+#   espera-avisada         la tarea termina (task_notification) antes del result: nada pendiente
+#   error-api              un result con error «API Error: No response from API» y sale con 1
+#   error-api-err          sólo el evento init y, sin result, «API Error: No response from API» por stderr y sale con 1
+#   sin-resultado          un result sin línea RESULTADO y sin nada pendiente
+#   no-hay-conversacion    «No conversation found» por stderr y sale con 1 (un --resume que falla)
+# Con `--resume <id>` la llamada usa el modo de $CLAUDE_FALSO_SEGUIDA si está definido (y anota «resume <id>» en $CLAUDE_FALSO_LOG);
+# sin él, el de siempre.
 set -uo pipefail
 if [ -n "${CLAUDE_FALSO_ARGS:-}" ]; then
   printf 'ORQ_PERMITE=%s · %s\n' "${ORQ_PERMITE-(sin definir)}" "$*" >>"$CLAUDE_FALSO_ARGS"
 fi
 modelo=""
+resume=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --model) modelo=${2:-} && shift ;;
+    --resume) resume=${2:-} && shift ;;
   esac
   shift
 done
@@ -32,7 +45,46 @@ fi
 if [ -n "${CLAUDE_FALSO_PROMPT:-}" ]; then cat >"$CLAUDE_FALSO_PROMPT"; else cat >/dev/null; fi
 anotar() { [ -n "${CLAUDE_FALSO_LOG:-}" ] && printf '%s\n' "$*" >>"$CLAUDE_FALSO_LOG"; return 0; }
 anotar "inicio $(date +%s%N) $PWD ${modelo:-?} $$"
-case "${CLAUDE_FALSO_MODO:-trabada}" in
+[ -n "$resume" ] && anotar "resume $resume"
+modo=${CLAUDE_FALSO_MODO:-trabada}
+[ -n "$resume" ] && modo=${CLAUDE_FALSO_SEGUIDA:-$modo}
+sid() { [ "${CLAUDE_FALSO_SIN_ID:-}" = 1 ] && echo '' || echo '"session_id":"sesion-falsa",'; }
+evento() { echo "{\"type\":\"system\",\"subtype\":\"$1\",$(sid)\"task_id\":\"tarea-falsa\"}"; }
+resultado() { echo "{\"type\":\"result\",$(sid)\"is_error\":${2:-false},\"result\":\"$1\"}"; }
+case "$modo" in
+  espera)
+    evento task_started
+    resultado "Ahora espero el aviso del e2e."
+    ;;
+  espera-tarde)
+    evento task_started
+    resultado "Espero su aviso de fin."
+    evento task_notification
+    ;;
+  espera-avisada)
+    evento task_started
+    evento task_notification
+    resultado "Terminé el trabajo."
+    ;;
+  error-api)
+    resultado "API Error: No response from API" true
+    anotar "fin $(date +%s%N) $$"
+    exit 1
+    ;;
+  error-api-err)
+    evento init
+    echo "API Error: No response from API" >&2
+    anotar "fin $(date +%s%N) $$"
+    exit 1
+    ;;
+  sin-resultado)
+    resultado "Terminé el trabajo."
+    ;;
+  no-hay-conversacion)
+    echo "No conversation found with session ID: $resume" >&2
+    anotar "fin $(date +%s%N) $$"
+    exit 1
+    ;;
   limite)
     echo "Claude usage limit reached." >&2
     anotar "fin $(date +%s%N) $$"

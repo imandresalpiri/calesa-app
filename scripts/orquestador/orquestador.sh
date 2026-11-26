@@ -651,6 +651,7 @@ claude_en_el_worktree() { # nombre modelo effort modo prompt_archivo [args extra
   local nombre=$1 modelo=$2 effort=$3 modo=$4 prompt=$5
   shift 5
   local salida="$EST/$ID/$nombre.jsonl" rc compacta=()
+  SALIDA_ACTUAL=$salida
   mapfile -t compacta < <(args_autocompact)
   ln -sfn "$salida" "$EST/$ID/sesion-actual.jsonl"
   log "$ID: sesión $nombre ($modelo · $effort · $modo${PERMITE_SESION:+ · permite $PERMITE_SESION})"
@@ -680,7 +681,8 @@ claude_en_el_worktree() { # nombre modelo effort modo prompt_archivo [args extra
     return 1
   fi
   est_del "$ID" limite_comentado
-  if [ "$rc" != 0 ] && [ -z "$RESULTADO_JSON" ]; then
+  # Un error de la API sin respuesta en una sesión de la tarea no se retoma aquí: despues_de_la_sesion la sigue con --resume.
+  if [ "$rc" != 0 ] && [ -z "$RESULTADO_JSON" ] && ! { [[ "$nombre" == sesion-* ]] && hay_que_seguir "$salida"; }; then
     soltar_carril
     retomar_luego "La sesión anterior ($nombre) terminó con error $rc sin resultado: $(tail -n 3 "$salida.err" | tr '\n' ' ')"
     return 1
@@ -756,6 +758,55 @@ probar_fin_de_pausa() {
   avisar "Fin de la pausa" "Claude volvió a responder: sigo lanzando sin esperar a que venza la pausa." low arrow_forward
 }
 
+# Una sesión que terminó sin su línea RESULTADO se sigue en la misma conversación (`claude -p --resume`) si su salida dice por qué:
+# trabajo en segundo plano sin terminar al llegar el último `result` (un `task_started` sin su `task_notification` antes de él: la sesión
+# cerró el turno esperando un aviso) o un error de la API sin respuesta. Deja MOTIVO_SEGUIR y ID_SESION. Sin session_id no hay nada que
+# seguir. Puro sobre el archivo: las líneas rotas se saltan.
+ES_SIN_RESPUESTA='No response from API'
+motivo_de_seguir() { # salida.jsonl
+  local salida=$1 pendientes
+  MOTIVO_SEGUIR="" ID_SESION=""
+  ID_SESION=$(jq -rR 'fromjson? | .session_id? // empty' "$salida" 2>/dev/null | tail -n 1)
+  [[ "$ID_SESION" =~ ^[A-Za-z0-9_-]+$ ]] || { ID_SESION=""; return 1; }
+  pendientes=$(jq -cR 'fromjson? | select(.type == "result" or (.type == "system" and (.subtype == "task_started" or .subtype == "task_notification"))) | {type, subtype, task_id}' "$salida" 2>/dev/null |
+    jq -s 'reduce .[] as $e ({p: {}, s: null};
+      if $e.type == "result" then .s = (.p | keys)
+      elif $e.subtype == "task_started" then .p[($e.task_id // "" | tostring)] = true
+      else del(.p[($e.task_id // "" | tostring)]) end) | (.s // []) | length' 2>/dev/null)
+  if [ "${pendientes:-0}" -gt 0 ]; then
+    MOTIVO_SEGUIR="terminó con $pendientes tarea(s) en segundo plano sin terminar"
+  elif { [ "$(jq -r '.is_error // false' <<<"${RESULTADO_JSON:-}" 2>/dev/null)" = true ] && grep -qF "$ES_SIN_RESPUESTA" <<<"$RESULTADO_TEXTO"; } ||
+    tail -n 5 "$salida.err" 2>/dev/null | grep -qF "$ES_SIN_RESPUESTA"; then
+    MOTIVO_SEGUIR="la cortó un error de la API sin respuesta"
+  else
+    return 1
+  fi
+}
+
+# ¿Se puede seguir esta sesión? Quedan seguidas (MAX_SEGUIR por sesión) y su salida dice por qué terminó sin RESULTADO.
+hay_que_seguir() { # salida.jsonl
+  [ "${SEGUIDAS:-0}" -lt "${MAX_SEGUIR:-2}" ] && motivo_de_seguir "$1"
+}
+
+SEGUIR_MENSAJE="Sigue donde quedaste: espera el aviso de lo que lanzaste (o vuelve a lanzarlo si ya no corre) y termina con tu línea RESULTADO."
+
+# Sigue la sesión que acaba de terminar sin RESULTADO, en el mismo worktree y carril (antes de soltarlo), y después revisa su resultado
+# como el de cualquier sesión. Devuelve 1 si no corresponde seguirla (la retoma de siempre) y 0 si ya se ocupó de la tarea.
+seguir_la_sesion() {
+  local n p id motivo
+  [ -n "${SALIDA_ACTUAL:-}" ] && hay_que_seguir "$SALIDA_ACTUAL" || return 1
+  id=$ID_SESION
+  motivo=$MOTIVO_SEGUIR
+  SEGUIDAS=$((${SEGUIDAS:-0} + 1))
+  n=$(($(num "$ID" sesiones) + 1))
+  est_set "$ID" sesiones "$n"
+  p="$EST/$ID/prompt-$n-seguir.md"
+  printf '%s\n' "$SEGUIR_MENSAJE" >"$p"
+  log "$ID: sigo la sesión $id con --resume ($SEGUIDAS/${MAX_SEGUIR:-2}): $motivo"
+  claude_en_el_worktree "sesion-$n-seguir" "$SESION_MODELO" "$SESION_EFFORT" "$SESION_MODO" "$p" --resume "$id" "${SESION_EXTRA[@]}" || return 0
+  despues_de_la_sesion
+}
+
 retomar_luego() {
   sumar "$ID" retomas
   if [ "$(num "$ID" retomas)" -gt "${MAX_RETOMAS:-3}" ]; then
@@ -819,12 +870,16 @@ sesion() { # tarea | retomar | arreglar
   esac
   local extra=()
   [ -n "${HERRAMIENTAS_EXTRA:-}" ] && extra=(--allowedTools "$HERRAMIENTAS_EXTRA")
+  # Con lo que se lanzó se sigue después (seguir_la_sesion): el mismo modelo, effort, modo y herramientas.
+  SEGUIDAS=0 SESION_MODELO=$modelo SESION_EFFORT=$effort SESION_MODO=${MODO_EJECUTAR:-auto} SESION_EXTRA=("${extra[@]}")
   claude_en_el_worktree "sesion-$n-$tipo" "$modelo" "$effort" "${MODO_EJECUTAR:-auto}" "$p" "${extra[@]}"
 }
 
 despues_de_la_sesion() {
   local linea pr local_head remoto
   linea=$(grep -oE 'RESULTADO: (PUBLICADO #[0-9]+|TRABADA.*|AJENO.*)' <<<"$RESULTADO_TEXTO" | tail -n 1)
+  # Sin RESULTADO y con algo pendiente o un error de la API: se sigue la misma sesión, con el carril todavía puesto.
+  if [ -z "$linea" ] && seguir_la_sesion; then return; fi
   soltar_carril
 
   # Un e2e que cae también en main: la tarea espera a su urgente (ajeno-de-main.sh); si el AJENO no vale, es una trabada.

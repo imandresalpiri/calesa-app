@@ -1,7 +1,7 @@
 // Una sesión de `claude -p` (su stream-json, estado/<ID>/<nombre>.jsonl) en lo que necesita el resumen de la tanda (resumen-tanda.mjs):
 // minutos, costo, turnos y costo por modelo de sus eventos `{"type":"result",…}`, y cada comando de Bash con lo que tardó (del
 // `timestamp` del tool_use al de su tool_result, si los dos lo traen). Una sesión que sigue después de una tarea en segundo plano deja
-// un `result` por tramo: `duration_ms` y `num_turns` son del tramo (se suman); `total_cost_usd` y `modelUsage`, de toda la sesión (vale
+// un `result` por tramo (la que el orquestador sigue con `--resume` es otro archivo, `sesion-<n>-seguir`, con los suyos): `duration_ms` y `num_turns` son del tramo (se suman); `total_cost_usd` y `modelUsage`, de toda la sesión (vale
 // el último). Además, el contexto de cada turno (la suma de los tokens de entrada, de escritura y de lectura de caché del `usage` de cada
 // mensaje del asistente, una vez por mensaje y sin los de subagentes: su contexto es otro) y las compactaciones (`compact_boundary`).
 // Puro y robusto a líneas rotas. Se prueba en resumen-tanda.test.ts.
