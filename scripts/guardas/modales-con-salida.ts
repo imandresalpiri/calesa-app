@@ -137,4 +137,8 @@ export const MODALES: Record<string, RegistroDeModal> = {
       'busca y elige a una persona: el texto de búsqueda no se guarda y elegir actúa al instante',
     tambien: ['src/modules/chat/features/conversaciones/components/buscador-de-personas.tsx'],
   },
+  // --- tablero
+  'src/modules/tablero/features/metricas/graficas/modal-de-la-tabla.tsx': {
+    sinFormulario: 'sólo muestra en una tabla los números de una gráfica del tablero; nada tipeado',
+  },
 }

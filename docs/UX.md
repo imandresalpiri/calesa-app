@@ -1351,7 +1351,7 @@ y enfoca su título).
 - **Cifras:** leads creados, convertidos, tasa, cotizaciones, finales; cada una un grupo «Título: valor». Una tasa nula dice «Sin datos»,
   nunca «0 %»; sin leads, «Todavía no hay leads en este período» (con `leads.crear`, «Nuevo lead»).
 - **Gráficas** (barras por día de leads y cotizaciones; rankings de leads por origen y por persona y de cotizaciones por origen): leyenda en
-  texto, «Ver como tabla» con todos los números, tope dicho (10 orígenes, 20 personas), vacío y error por widget.
+  texto, «Ver como tabla» con todos los números (un modal en `?panel=tabla&grafica=<widget>`; el widget no cambia de alto), tope dicho (10 orígenes, 20 personas), vacío y error por widget.
 - **«Margen del mes»** (con `logistica.margen.ver` en algún origen; suma sólo esos): monto por `<Monto>` en un grupo llamado sólo «Margen
   del mes» (Modo Live lo oculta entero), nulo «Sin venta registrada»; nota con venta, real y cotizado y cuántos vehículos entran y cuántos
   no tienen venta.

@@ -2,6 +2,7 @@ import { notaDeTope, TOPE_DE_ORIGENES } from '../../../entities/graficas'
 import { ErrorDeLectura } from '../components/cifra-del-widget'
 import { Ranking } from '../graficas/ranking'
 import { TablaEquivalente } from '../graficas/tabla-equivalente'
+import { VerComoTabla } from '../graficas/ver-como-tabla'
 import { CREADAS_Y_FINALES } from '../graficas/tipos'
 import { VacioDeGrafica } from '../graficas/vacio-de-grafica'
 import { leerMetricasDeCotizaciones } from '../lectura'
@@ -27,12 +28,14 @@ export const CuerpoDeCotizacionesPorOrigen: CuerpoDeWidget = async ({ widget, ve
     <div className="grid gap-3 p-4">
       <Ranking titulo={widget.titulo} filas={filas} series={CREADAS_Y_FINALES} />
       {nota ? <p className="text-(length:--text-sm) text-(--color-ink-soft)">{nota}</p> : null}
-      <TablaEquivalente
-        titulo={widget.titulo}
-        primera="Origen"
-        columnas={[creadas.nombre, finales.nombre]}
-        filas={filas.map((f) => ({ clave: f.id, etiqueta: f.nombre, a: f.a, b: f.b }))}
-      />
+      <VerComoTabla clave={widget.clave} titulo={widget.titulo}>
+        <TablaEquivalente
+          titulo={widget.titulo}
+          primera="Origen"
+          columnas={[creadas.nombre, finales.nombre]}
+          filas={filas.map((f) => ({ clave: f.id, etiqueta: f.nombre, a: f.a, b: f.b }))}
+        />
+      </VerComoTabla>
     </div>
   )
 }

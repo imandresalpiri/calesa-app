@@ -1478,7 +1478,7 @@ las trampas, en `docs/LECCIONES.md`.
 - **La conversión cuenta por la clase del tipo de lead** y por `cliente_desde`, que sólo pone el paso de prospecto a cliente (un alta como cliente no infla la tasa); `conversion_desde` cubre a los clientes de antes. La tasa puede pasar de 1.
 - **Ranking por dueño vigente**: sin dueño o en baja cuenta en el total y no en el ranking.
 - **El margen del mes cuenta cada vehículo en el mes de su último pago confirmado vivo.** Un mes pasado cambia si se confirma o anula un pago: no se presenta como cerrado.
-- **Gráficas en HTML y SVG propio.** Texto en HTML, el SVG sólo pinta barras (`preserveAspectRatio="none"`), tokens `--viz-*`; leyenda en texto y «Ver como tabla» en `<details>`.
+- **Gráficas en HTML y SVG propio.** Texto en HTML, el SVG sólo pinta barras (`preserveAspectRatio="none"`), tokens `--viz-*`; leyenda en texto y «Ver como tabla» en un modal con su URL (`?panel=tabla&grafica=<widget>`): un `<details>` plegaba la tabla dentro del widget y lo hacía crecer; el modal la deja a un toque, con su URL, y el widget no salta. La tabla la dibuja el servidor y viaja como hijo del botón.
 - **«Documentos por aprobar» pide sólo `logistica.documentos.aprobar`.** La lectura es la bandeja de logística (de vehículos): con `repuestos.documentos.aprobar` saldría vacío; hasta que traiga los ítems, quien sólo aprueba los de repuestos no lo ve.
 - **Widgets por permiso, no por rol**, cada uno con su error. La preferencia guarda `orden` con las ocultas; una clave que ya no existe se ignora y un widget nuevo cae al final.
 

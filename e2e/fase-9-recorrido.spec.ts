@@ -248,8 +248,9 @@ test('E2E R5b la cola de la web del tablero cuenta el turno que la asesora conta
   await expect(cifra(cola, 'Turnos')).toBeVisible()
   expect(await leerCifra(cola, 'Turnos')).toBeGreaterThanOrEqual(1)
   await expect(cifra(cola, 'Tasa de contacto')).toBeVisible()
-  await cola.getByText('Ver como tabla').click()
-  await expect(cola.getByRole('row').filter({ hasText: tr.asesora.nombre })).toHaveCount(1)
+  await cola.getByRole('button', { name: 'Ver como tabla' }).click()
+  const tabla = page.getByRole('dialog', { name: 'Turnos por persona: datos de la gráfica' })
+  await expect(tabla.getByRole('row').filter({ hasText: tr.asesora.nombre })).toHaveCount(1)
 })
 
 test('E2E R6 la dueña encuentra en /actividad el cambio del lead con su diff', async ({ page }) => {
