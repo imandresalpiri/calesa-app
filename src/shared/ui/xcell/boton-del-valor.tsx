@@ -25,6 +25,8 @@ type Props = {
   // Las notas que lo describen (el aviso o el error, y su candado), separadas por espacio.
   idDeLaNota: string | undefined
   bloqueada: boolean
+  // El lado que abre un toque en el fondo de la celda: se ilumina al pasar el puntero por ella (`data-blanco`).
+  blanco: boolean
   // Bloqueado sólo este lado del par: la caja lleva el borde discontinuo (con la celda entera bloqueada lo lleva la celda).
   soloEsteLado: boolean
   conAtajo: boolean
@@ -59,6 +61,7 @@ export function BotonDelValor(props: Props) {
       // Qué lado de la celda es: quien lleva el foco a un lado (la ayuda, tras usar un valor) lo busca por aquí.
       data-lado={lado}
       data-vacio={datos.valor === null ? '' : undefined}
+      data-blanco={props.blanco ? '' : undefined}
       className={claseDelBoton(props.grande, props.soloEsteLado)}
       aria-labelledby={`${idDeLaEtiqueta} ${idDelBoton}`}
       aria-describedby={

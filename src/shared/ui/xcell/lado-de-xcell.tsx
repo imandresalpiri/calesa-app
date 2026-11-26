@@ -20,6 +20,10 @@ type Props = {
   // Su lugar entre los valores (0 el primero que se ve): el orden de las flechas.
   parada: number
   bloqueada: boolean
+  // El lado que abre un toque en el fondo de la celda (el primero libre): se ilumina al pasar el puntero por la celda.
+  blanco: boolean
+  // Tocar este lado bloqueado muestra el motivo de su candado en vez de abrir.
+  alBloqueado: (lado: Lado) => void
   soloEsteLado: boolean
   conAtajo: boolean
   principalRef: RefObject<HTMLElement | null>
@@ -58,12 +62,14 @@ export function LadoDeXCell(props: Props) {
       idDeLaEtiqueta={props.idDeLaEtiqueta}
       idDeLaNota={props.idDeLaNota}
       bloqueada={props.bloqueada}
+      blanco={props.blanco}
       soloEsteLado={props.soloEsteLado}
       conAtajo={props.conAtajo}
       volverARef={e.volverARef}
       principalRef={props.principalRef}
       alAbrir={(l) => {
-        e.abrir(l, null, 'todo')
+        if (props.bloqueada) props.alBloqueado(l)
+        else e.abrir(l, null, 'todo')
       }}
       alTeclear={e.alTeclearEnElValor}
       alMedir={setAncho}
