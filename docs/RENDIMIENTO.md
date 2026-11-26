@@ -493,7 +493,6 @@ inferior), que no se dibuja hasta abrirse: la carga sólo paga el botón. En el 
 - Lo medido se arma en una transacción que se revierte: `session_replication_role = replica`, 195.000 vehículos con la fase 3 en 15.000 y después 105.000 más a ella (sumar y no mover: mover deja filas
   muertas en los índices y cambia lo que se mide).
 - JS en frío (`e2e/presupuesto-js.spec.ts`): `/logistica` ≤ 390 KB (medido 373,8, con el ⚙ «Configurar») y `/logistica/fase/[fase]` ≤ 390 KB (medido 367,0 en 27 chunks): sobre lo medido más un 5 %, a la decena.
-- JS en frío de Logística › Configuración (`/logistica/configuracion/puertos`, el marco de Logística con la tira de pestañas y el catálogo de Puertos; las otras pestañas pesan lo mismo, cada una su editor): ≤ 390 KB (medido 365,6 en 28 chunks). El ⚙ «Configurar» vive en la `sub-navegacion` que ya viaja con `/logistica` (sin JS más que su icono). Cada catálogo conserva su tope y su aviso; sin consulta nueva ni volumen propio (decenas de filas).
 - JS en frío del detalle de un vehículo (`/logistica/vehiculo/[id]`): ≤ 470 KB (medido 446,1; el popover de relacionados, cada hueco y el modal «Pedírselo a alguien» van con `diferido()`), sobre lo medido más un 5 %, a la decena.
 - **Acciones de «Qué falta»** (`/logistica/vehiculo/[id]`): sin lectura nueva; viajan en la respuesta de la action de siempre (≈ 150 a 250 B por falta) y
   `por_revisar` sale del mismo `count` por `documentos_unidad_tipo_idx`. Se dibuja un botón por falta y el «⋯» sólo con más. «Pedírselo a alguien» llega
@@ -597,7 +596,8 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 - Imágenes de un ítem: `limit 9` por `repuestos_items_imagenes_item_id_idx`, sólo al abrir el panel; el trigger cuenta con `limit 8` bajo
   un candado por ítem. **Excepción a «nunca el original»:** sin miniatura y con `unoptimized`, cada imagen baja el WebP de ≤ 1600 px (≤ 8
   por panel abierto).
-- Catálogos de logística (Logística › Configuración): 4 × `limit 201` por PostgREST (decenas de filas); tope 200 con `<AvisoDeTope>`.
+- Catálogos de logística (el drawer de cada uno en la pestaña Fases de un origen): se leen al abrir su drawer, cada grupo («De <origen>» y los
+  compartidos) con `limit 201` por PostgREST (decenas de filas); tope 200 con `<AvisoDeTope>`.
 - Configuración del cotizador (`/repuestos/configuracion/cotizador`): tres lecturas en paralelo bajo `repuestos.cotizar` o
   `repuestos.configurar`: la configuración por su PK (`order by id desc`, la primera es la vigente) tope 20 + 1, los tramos por
   `repuestos_tramos_logistica_moneda_idx` y las cajas por `repuestos_cajas_moneda_monto_key`, tope 200 + 1 cada una, con `<AvisoDeTope>`.
