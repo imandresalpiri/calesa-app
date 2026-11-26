@@ -255,8 +255,8 @@ con la cola en issues, nunca en el kit ni en un repo en construcción (ése tien
   apaga), y el cierre depende de ella: cada tanda termina con una sola migración.
 - **El cierre:** después, la tarea de `plantillas/cerrar-tanda.md` con `cola` y `cierre`: aplastar los docs, sacar lo que sobra fuera
   de main, comprobar que quedó una sola migración y la retro con datos (hasta tres issues de mejora del flujo).
-  Lleva la lista de tareas y el resumen de `resumen-tanda.mjs` (primero lo de toda la tanda: los totales con las sesiones de retomar
-  y de arreglar, las trabas, los arreglos, los choques y los comandos más repetidos y más lentos; al final, cada tarea de la más cara
+  Lleva la lista de tareas y el resumen de `resumen-tanda.mjs` (primero lo de toda la tanda: los totales con las sesiones de retomar,
+  de seguir y de arreglar, las trabas, los arreglos, los choques y los comandos más repetidos y más lentos; al final, cada tarea de la más cara
   a la más barata, que es lo que se recorta). Avisa «Tanda cerrándose».
 - **Al integrarse el cierre:** la tanda siguiente cuenta desde ahí y se podan los transcriptos de las sesiones de la tanda
   (`sesion-*.jsonl`, `plan.jsonl` y sus `.err`); queda lo chico (estado, pr, logs, prompts, plan.md). Omitido (cerraste su issue),
@@ -423,6 +423,15 @@ Si el servicio no encuentra `claude`, `pnpm` o `node`, agrega sus rutas a `PATH_
     vio (con su hora de renovación). Con `UMBRAL_USO_SEMANAL` (0,95) o más, y mientras la semana no se renueve, no se lanza una sesión de
     plan ni una del nivel capaz (la redacción de un pedido también) y la tarea sigue esperando; las de arreglo, que son cortas, sí. Avisa
     una vez por renovación, `plan` muestra la línea «uso semanal de la cuenta al límite» y `UMBRAL_USO_SEMANAL=0` lo apaga.
+- **Una sesión que termina sin `RESULTADO` se sigue, no se retoma** (`seguir_la_sesion`): si su salida muestra trabajo en segundo plano
+  sin terminar al llegar el último `result` (un `task_started` sin su `task_notification` antes de él: cerró el turno esperando un
+  aviso) o un error de la API sin respuesta («No response from API»), el orquestador la continúa con `claude -p --resume <session_id>`
+  en el mismo worktree y carril (antes de soltarlo), con el mismo modelo, effort y herramientas, y el mensaje «Sigue donde quedaste:
+  espera el aviso de lo que lanzaste (o vuelve a lanzarlo si ya no corre) y termina con tu línea RESULTADO.». Como mucho `MAX_SEGUIR` (2)
+  seguidas por sesión y no gastan `MAX_RETOMAS`; después, la retoma de siempre. Sin `session_id`, con un `--resume` que falla o sin nada
+  pendiente ni error de la API, va directo a la retoma. La sesión seguida es `sesion-<n>-seguir` (su salida y su prompt, en
+  `estado/<ID>/`), cuenta aparte de `retomar` en el resumen de la tanda y sigue las mismas reglas de tiempo (`TIEMPO_MAX_SESION`) y de
+  límite del plan.
 - **Trabada**: tras `MAX_RETOMAS` sesiones sin publicar, `MAX_ARREGLOS` arreglos de un CI rojo, `MAX_CHOQUES` de choques o `MAX_AJENOS` esperas a un e2e roto en main, o cuando la sesión dice que no puede (falta
   una decisión tuya, una dependencia fuera de la lista que ni como último recurso se justifica, un fallo que no es de la tarea ni un e2e que cae también en main). Comenta el motivo en
   el issue y avisa, suelta el carril, deja el worktree para que mires y sigue con lo que no depende de ella. Tu comentario en el issue
