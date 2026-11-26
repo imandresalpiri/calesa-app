@@ -974,10 +974,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   la lee, con tope.
 - **Revisar** — `revisar_flujo()`: avisos de coherencia del flujo (sin salida, inalcanzable, esperas cruzadas…), de nivel error, aviso o
   información (`AvisoDeRevision`); la franja sobre el flujo los resume.
-- **Cadena** — `/logistica`: la gráfica por fase de un origen (`logistica_cadena_resumen`: cuántos vehículos tiene cada fase y cuántos están demorados o trabados, con tope) y,
+- **Cadena** — `/logistica?origen=`, la primera pestaña de un origen en Logística: la gráfica por fase de ese origen (`logistica_cadena_resumen`: cuántos vehículos tiene cada fase y cuántos están demorados o trabados, con tope) y,
   al hacer clic en una fase, la lista de esa fase (`/logistica/fase/[fase]`). No: «tablero», «columna».
-- **Bandeja del día** — `/logistica` (`logistica_bandeja_grupo`): lo que le toca hoy a quien mira, por grupos y con la acción de cada fila a un toque. No: «bandeja de Inicio»
-  (ésa es `logistica_bandeja`, tres listas cortas).
+- **Bandeja del día** — `/logistica/bandeja?origen=` (`logistica_bandeja_grupo` con `p_origen`): lo que le toca hoy a quien mira en un origen, por grupos y con la acción de cada fila
+  a un toque; es una pestaña del origen. No: «bandeja de Inicio» (ésa es `logistica_bandeja`, tres listas cortas que juntan todos los orígenes).
+- **Último origen** — `logistica.ultimo_origen` / `Preferencias.ultimoOrigenDeLogistica`: el origen que la persona eligió por última vez en Logística. Sin `?origen=`, toda
+  página de Logística dibuja ése (sin redirigir); si ya no lo ve, el primero que ve. No: «origen por defecto», «origen actual».
 - **Grupo (de la bandeja del día)** — uno de siete: Demorados, Trabados, Documentos por aprobar, Documentos por vencer, Llegadas esperadas, Salen hoy y Subastas sin resolver. Cada uno
   tiene su página (`/logistica/bandeja/[grupo]`), por cursor.
 - **Lista de la fase** — `/logistica/fase/[fase]`: los vehículos de una fase (o «Sin fase»), de a 50 por cursor, con filtros en la URL y la selección del lote (hasta 200).

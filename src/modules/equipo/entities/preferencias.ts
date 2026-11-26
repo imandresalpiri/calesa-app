@@ -55,6 +55,9 @@ export type Preferencias = {
   embudoDeLaFicha: string | null
   // Si ve el menú lateral plegado a sólo íconos en escritorio (`menu.plegado`). null = nunca eligió: desplegado.
   menuPlegado: boolean | null
+  // El último origen de logística (`logistica.ultimo_origen`, docs/GLOSARIO.md › «Último origen»): el que eligió por última vez en Logística. null = nunca eligió:
+  // Logística abre el primero que ve. Que siga siendo válido (activo, con la logística encendida, que lo vea) lo decide Logística al leerlo.
+  ultimoOrigenDeLogistica: string | null
 }
 
 export const CLAVE_DE_VISTA_DE_VEHICULOS = 'vehiculos.vista'
@@ -62,6 +65,7 @@ export const CLAVE_DE_VISTA_DE_COTIZACIONES = 'cotizaciones.vista'
 export const CLAVE_DE_AGRUPAR_COTIZACIONES = 'cotizaciones.agrupar'
 export const CLAVE_DE_EMBUDO_DE_LA_FICHA = 'leads.embudo_de_la_ficha'
 export const CLAVE_DEL_MENU_PLEGADO = 'menu.plegado'
+export const CLAVE_DEL_ULTIMO_ORIGEN_DE_LOGISTICA = 'logistica.ultimo_origen'
 
 export const CLAVE_DE_ZONA_HORARIA = 'zona_horaria'
 
@@ -84,33 +88,30 @@ const esquemaTema = z.enum(TEMAS)
 // Un número de la lista del selector: ni «50» como texto, ni 7, ni 1000.
 const esquemaPorPagina = z.custom<TamanoDePagina>(esTamanoDePagina)
 
+// Lo elegido si el esquema lo admite; si no, sin elegir.
+function elegido<T>(esquema: z.ZodType<T>, valor: unknown): T | null {
+  const leido = esquema.safeParse(valor)
+  return leido.success ? leido.data : null
+}
+
 // Lee el objeto `{ clave: valor }` que arma `mi_sesion()`. Una clave que falta, que no se conoce
 // o que trae un valor viejo no rompe nada: esa preferencia queda sin elegir.
 export function preferenciasDesde(crudo: unknown): Preferencias {
   const objeto = z.record(z.string(), z.unknown()).safeParse(crudo)
   const valores = objeto.success ? objeto.data : {}
-  const densidad = esquemaDensidad.safeParse(valores['densidad'])
-  const tema = esquemaTema.safeParse(valores['tema'])
-  const porPagina = esquemaPorPagina.safeParse(valores[CLAVE_DE_PREFERENCIA_POR_PAGINA])
-  const widgets = esquemaWidgetsDelTablero.safeParse(valores[CLAVE_WIDGETS_DEL_TABLERO])
-  const zona = esquemaZonaHoraria.safeParse(valores[CLAVE_DE_ZONA_HORARIA])
-  const vista = esquemaVistaDeLista.safeParse(valores[CLAVE_DE_VISTA_DE_VEHICULOS])
-  const vistaDeCotizaciones = esquemaVistaDeLista.safeParse(valores[CLAVE_DE_VISTA_DE_COTIZACIONES])
-  const agrupar = z.boolean().safeParse(valores[CLAVE_DE_AGRUPAR_COTIZACIONES])
-  const embudo = z.guid().safeParse(valores[CLAVE_DE_EMBUDO_DE_LA_FICHA])
-  const menuPlegado = z.boolean().safeParse(valores[CLAVE_DEL_MENU_PLEGADO])
   return {
-    densidad: densidad.success ? densidad.data : null,
-    tema: tema.success ? tema.data : null,
-    porPagina: porPagina.success ? porPagina.data : null,
-    widgetsDelTablero: widgets.success ? widgets.data : null,
+    densidad: elegido(esquemaDensidad, valores['densidad']),
+    tema: elegido(esquemaTema, valores['tema']),
+    porPagina: elegido(esquemaPorPagina, valores[CLAVE_DE_PREFERENCIA_POR_PAGINA]),
+    widgetsDelTablero: elegido(esquemaWidgetsDelTablero, valores[CLAVE_WIDGETS_DEL_TABLERO]),
     vistos: preferenciaDeVistosDesde(valores[CLAVE_DE_VISTOS]),
-    zonaHoraria: zona.success ? zona.data : null,
-    vistaDeVehiculos: vista.success ? vista.data : null,
-    vistaDeCotizaciones: vistaDeCotizaciones.success ? vistaDeCotizaciones.data : null,
-    agruparCotizaciones: agrupar.success ? agrupar.data : null,
-    embudoDeLaFicha: embudo.success ? embudo.data : null,
-    menuPlegado: menuPlegado.success ? menuPlegado.data : null,
+    zonaHoraria: elegido(esquemaZonaHoraria, valores[CLAVE_DE_ZONA_HORARIA]),
+    vistaDeVehiculos: elegido(esquemaVistaDeLista, valores[CLAVE_DE_VISTA_DE_VEHICULOS]),
+    vistaDeCotizaciones: elegido(esquemaVistaDeLista, valores[CLAVE_DE_VISTA_DE_COTIZACIONES]),
+    agruparCotizaciones: elegido(z.boolean(), valores[CLAVE_DE_AGRUPAR_COTIZACIONES]),
+    embudoDeLaFicha: elegido(z.guid(), valores[CLAVE_DE_EMBUDO_DE_LA_FICHA]),
+    menuPlegado: elegido(z.boolean(), valores[CLAVE_DEL_MENU_PLEGADO]),
+    ultimoOrigenDeLogistica: elegido(z.guid(), valores[CLAVE_DEL_ULTIMO_ORIGEN_DE_LOGISTICA]),
   }
 }
 
@@ -139,6 +140,7 @@ export const esquemaPreferencia = z.discriminatedUnion('clave', [
   z.object({ clave: z.literal(CLAVE_DE_AGRUPAR_COTIZACIONES), valor: z.boolean().nullable() }),
   z.object({ clave: z.literal(CLAVE_DE_EMBUDO_DE_LA_FICHA), valor: z.guid().nullable() }),
   z.object({ clave: z.literal(CLAVE_DEL_MENU_PLEGADO), valor: z.boolean().nullable() }),
+  z.object({ clave: z.literal(CLAVE_DEL_ULTIMO_ORIGEN_DE_LOGISTICA), valor: z.guid().nullable() }),
 ])
 
 export type Preferencia = z.infer<typeof esquemaPreferencia>

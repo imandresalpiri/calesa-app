@@ -14,6 +14,7 @@ const SIN_ELEGIR = {
   agruparCotizaciones: null,
   embudoDeLaFicha: null,
   menuPlegado: null,
+  ultimoOrigenDeLogistica: null,
 }
 
 describe('preferenciasDesde', () => {
@@ -203,5 +204,24 @@ describe('«menu.plegado»', () => {
     expect(esquemaPreferencia.safeParse({ clave: 'menu.plegado', valor: true }).success).toBe(true)
     expect(esquemaPreferencia.safeParse({ clave: 'menu.plegado', valor: null }).success).toBe(true)
     expect(esquemaPreferencia.safeParse({ clave: 'menu.plegado', valor: 'si' }).success).toBe(false)
+  })
+})
+
+describe('«logistica.ultimo_origen»', () => {
+  const ID = '0b7a3c5e-1d2f-4a6b-8c9d-1e2f3a4b5c6d'
+  const clave = 'logistica.ultimo_origen'
+
+  it('se lee si es un id; otra cosa queda sin elegir', () => {
+    expect(preferenciasDesde({ [clave]: ID }).ultimoOrigenDeLogistica).toBe(ID)
+    expect(preferenciasDesde({ [clave]: 'subasta' }).ultimoOrigenDeLogistica).toBeNull()
+    expect(preferenciasDesde({ [clave]: 3 }).ultimoOrigenDeLogistica).toBeNull()
+    expect(preferenciasDesde({}).ultimoOrigenDeLogistica).toBeNull()
+  })
+
+  it('se guarda sólo un id (o null, que borra la elección)', () => {
+    expect(esquemaPreferencia.safeParse({ clave, valor: ID }).success).toBe(true)
+    expect(esquemaPreferencia.safeParse({ clave, valor: null }).success).toBe(true)
+    expect(esquemaPreferencia.safeParse({ clave, valor: 'subasta' }).success).toBe(false)
+    expect(esquemaPreferencia.safeParse({ clave, valor: 7 }).success).toBe(false)
   })
 })
