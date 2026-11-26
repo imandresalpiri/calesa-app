@@ -13,6 +13,17 @@ export const TEXTOS_DEL_SECRETO = {
     vacio: 'Todavía no hay una clave guardada.',
     guardado: 'Guardada el',
   },
+  asistente_ia: {
+    modal: 'clave-asistente-ia',
+    nombre: 'secreto',
+    cargar: 'Cargar la clave',
+    reemplazar: 'Reemplazar la clave',
+    etiqueta: 'Clave',
+    etiquetaNueva: 'Clave nueva',
+    exito: 'Clave del asistente guardada',
+    vacio: 'Todavía no hay una clave guardada.',
+    guardado: 'Guardada el',
+  },
   web_publica: {
     modal: 'secreto-web-publica',
     nombre: 'secretoDeRevalidacion',
