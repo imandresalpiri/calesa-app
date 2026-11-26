@@ -4,6 +4,9 @@ export const PESO_MAXIMO_DE_COMPROBANTE = 10 * 1024 * 1024
 
 export const MENSAJE_DE_COMPROBANTE_INVALIDO = 'Sólo PDF o imagen de hasta 10 MB.'
 
+// Lo que dice la zona del comprobante antes de elegir nada.
+export const AYUDA_DE_COMPROBANTE = 'PDF o imagen de hasta 10 MB.'
+
 const EXTENSIONES: Readonly<Record<string, string>> = {
   'application/pdf': 'pdf',
   'image/jpeg': 'jpg',

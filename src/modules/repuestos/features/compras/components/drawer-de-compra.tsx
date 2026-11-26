@@ -51,7 +51,7 @@ function Formulario({
         id={idFormulario}
         ref={formulario}
         noValidate
-        className="grid gap-3"
+        className="grid gap-4"
         onSubmit={(evento) => {
           evento.preventDefault()
           void f.enviar()
@@ -99,7 +99,6 @@ export function DrawerDeCompra({ apertura, ...props }: Props) {
       abierto={abierto}
       alCerrar={alCerrar}
       titulo={original ? 'Editar compra' : 'Registrar compra'}
-      descripcion="El equivalente en la moneda base lo calcula el sistema al guardar, con el tipo de cambio por defecto."
       ancho="amplio"
       focoAlCerrar={focoDeQuienAbrio}
     >

@@ -23,10 +23,14 @@ const abre = (
 ) => motivoParaNoAbrirPago({ panel, valor, encontrado, permisos })
 
 describe('motivoParaNoAbrirPago: el estado', () => {
-  it('no abre confirmar, editar ni eliminar sobre un confirmado', () => {
-    for (const panel of [PANEL_CONFIRMAR_PAGO, PANEL_PAGO, PANEL_ELIMINAR_PAGO] as const) {
+  it('no abre confirmar ni eliminar sobre un confirmado', () => {
+    for (const panel of [PANEL_CONFIRMAR_PAGO, PANEL_ELIMINAR_PAGO] as const) {
       expect(abre(panel, confirmado), panel).toBe(MENSAJE_PAGO_YA_NO_ESTA)
     }
+  })
+
+  it('el panel del pago abre uno confirmado: se lee', () => {
+    expect(abre(PANEL_PAGO, confirmado)).toBeNull()
   })
 
   it('no abre anular sobre uno sin confirmar', () => {
@@ -50,7 +54,12 @@ describe('motivoParaNoAbrirPago: el permiso', () => {
     expect(abre(PANEL_CONFIRMAR_PAGO, sinConfirmar, soloEditar)).not.toBeNull()
     expect(abre(PANEL_ANULAR_PAGO, confirmado, soloEditar)).not.toBeNull()
     expect(abre(PANEL_ELIMINAR_PAGO, sinConfirmar, soloConfirmar)).not.toBeNull()
-    expect(abre(PANEL_PAGO, sinConfirmar, soloConfirmar)).not.toBeNull()
+  })
+
+  it('un pago existente se abre sin permiso de editar (en lectura); si ya no está, no', () => {
+    expect(abre(PANEL_PAGO, sinConfirmar, soloConfirmar)).toBeNull()
+    expect(abre(PANEL_PAGO, confirmado, soloConfirmar)).toBeNull()
+    expect(abre(PANEL_PAGO, null, soloConfirmar)).toBe(MENSAJE_PAGO_YA_NO_ESTA)
   })
 })
 

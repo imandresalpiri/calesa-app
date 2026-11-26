@@ -1,7 +1,13 @@
 'use client'
 
+import { Badge } from '@/shared/ui/badge'
 import { Campo } from '@/shared/ui/campo'
+import { CampoDeMonto } from '@/shared/ui/campo-de-monto'
+import { CampoDeNotas } from '@/shared/ui/campo-de-notas'
 import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
+import { GrupoDeCampos } from '@/shared/ui/grupo-de-campos'
+import { Monto } from '@/shared/ui/monto'
+import { useRegional } from '@/shared/ui/regional'
 import type { FilaDeCompra } from '../../../entities/compras/compra'
 import type { BorradorDeCompra } from '../../../entities/compras/formulario'
 import type { useFormularioDeCompra } from '../hooks/use-formulario-de-compra'
@@ -43,14 +49,13 @@ function opcionesDeMoneda(monedas: readonly MonedaParaCompra[], original: FilaDe
   return opciones
 }
 
-type ClaveDeTexto = 'proveedor' | 'monto' | 'fecha' | 'notas'
+type ClaveDeTexto = 'proveedor' | 'fecha'
 
 function CampoDeTexto(p: {
   clave: ClaveDeTexto
   etiqueta: string
   formulario: Props['formulario']
   type?: 'date'
-  inputMode?: 'decimal'
 }) {
   const f = p.formulario
   return (
@@ -58,7 +63,6 @@ function CampoDeTexto(p: {
       nombre={`compra-${p.clave}`}
       etiqueta={p.etiqueta}
       type={p.type}
-      inputMode={p.inputMode}
       autoComplete="off"
       value={f.valores[p.clave]}
       onChange={(evento) => {
@@ -70,37 +74,75 @@ function CampoDeTexto(p: {
   )
 }
 
-// Los campos de una compra (8.11-3, C12): ítem, proveedor, moneda y monto, fecha, comprobante y notas. Sin tipo de cambio: lo pone la base al guardar.
+// Bajo el monto: el equivalente que ya guardó la base (se lee, nunca se calcula) o, con otra moneda, quién lo calcula. Siempre hay un renglón reservado.
+function PieDelMonto({ original, moneda }: { original: FilaDeCompra | null; moneda: string }) {
+  const { monedaBase } = useRegional()
+  if (moneda === monedaBase) {
+    return null
+  }
+  if (original && original.moneda === moneda && original.montoBase !== null) {
+    return (
+      <>
+        Equivale a <Monto valor={original.montoBase} />, con el tipo de cambio por defecto.
+      </>
+    )
+  }
+  return `La base guarda el equivalente en ${monedaBase} con el tipo de cambio por defecto.`
+}
+
+// Los campos de una compra, de lo principal a lo secundario y todo a la vista: arriba el monto con su moneda (y su estado), la fecha y el proveedor; luego «Qué se compró» (el ítem), «Notas» y «Comprobante de
+// la compra» (la zona del archivo). Sin tipo de cambio: lo pone la base al guardar. Un solo nivel de grupos, ninguno plegado.
 export function CamposDeCompra({ proyectoId, original, items, monedas, formulario: f }: Props) {
   return (
-    <>
-      <CampoSeleccion
-        nombre="compra-item"
-        etiqueta="Ítem"
-        opciones={opcionesDeItem(items, original)}
-        value={f.valores.itemId}
-        onChange={(evento) => {
-          f.escribir({ itemId: evento.target.value })
-        }}
-        error={f.errores['itemId']}
-        disabled={f.enCurso}
-      />
-      <CampoDeTexto clave="proveedor" etiqueta="Proveedor" formulario={f} />
-      <div className="grid gap-3 sm:grid-cols-2">
-        <CampoSeleccion
-          nombre="compra-moneda"
-          etiqueta="Moneda"
-          opciones={opcionesDeMoneda(monedas, original)}
-          value={f.valores.moneda}
-          onChange={(evento) => {
-            f.escribir({ moneda: evento.target.value })
+    <div className="grid gap-5">
+      <div className="grid gap-3">
+        <CampoDeMonto
+          prefijo="compra"
+          monedas={opcionesDeMoneda(monedas, original)}
+          moneda={f.valores.moneda}
+          monto={f.valores.monto}
+          alCambiarMoneda={(moneda) => {
+            f.escribir({ moneda })
           }}
-          error={f.errores['moneda']}
+          alCambiarMonto={(monto) => {
+            f.escribir({ monto })
+          }}
+          errorDeMoneda={f.errores['moneda']}
+          errorDeMonto={f.errores['monto']}
+          deshabilitado={f.enCurso}
+          estado={<Badge variant="outline">{original ? 'Registrada' : 'Sin registrar'}</Badge>}
+          pie={<PieDelMonto original={original} moneda={f.valores.moneda} />}
+        />
+        <div className="grid gap-3 sm:grid-cols-[11rem_minmax(0,1fr)]">
+          <CampoDeTexto clave="fecha" etiqueta="Fecha" type="date" formulario={f} />
+          <CampoDeTexto clave="proveedor" etiqueta="Proveedor" formulario={f} />
+        </div>
+      </div>
+      <GrupoDeCampos titulo="Qué se compró">
+        <CampoSeleccion
+          nombre="compra-item"
+          etiqueta="Ítem"
+          opciones={opcionesDeItem(items, original)}
+          value={f.valores.itemId}
+          onChange={(evento) => {
+            f.escribir({ itemId: evento.target.value })
+          }}
+          error={f.errores['itemId']}
           disabled={f.enCurso}
         />
-        <CampoDeTexto clave="monto" etiqueta="Monto" inputMode="decimal" formulario={f} />
-      </div>
-      <CampoDeTexto clave="fecha" etiqueta="Fecha" type="date" formulario={f} />
+      </GrupoDeCampos>
+      <GrupoDeCampos titulo="Notas">
+        <CampoDeNotas
+          nombre="compra-notas"
+          etiqueta="Notas"
+          value={f.valores.notas}
+          onChange={(evento) => {
+            f.escribir({ notas: evento.target.value })
+          }}
+          error={f.errores['notas']}
+          disabled={f.enCurso}
+        />
+      </GrupoDeCampos>
       <CampoDeComprobante
         proyectoId={proyectoId}
         ruta={f.valores.comprobanteRuta}
@@ -110,7 +152,6 @@ export function CamposDeCompra({ proyectoId, original, items, monedas, formulari
         error={f.errores['comprobanteRuta']}
         deshabilitado={f.enCurso}
       />
-      <CampoDeTexto clave="notas" etiqueta="Notas" formulario={f} />
-    </>
+    </div>
   )
 }
