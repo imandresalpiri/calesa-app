@@ -64,8 +64,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Pasar un catálogo de logística de propio a compartido (o al revés) no se ofrece — decidir qué pasa con el compartido que tapaba y con
   los permisos de cada origen que empezaría a usarlo.
 - **[—]** `/logistica/gastos` sin filtro por vehículo ni por proveedor — `gastos_listar` sólo filtra origen, categoría y fechas; pide migración.
-- **[—]** Eliminar un embarque o un contenedor vacío: hoy queda al sacarle su última unidad o vaciar su booking (lo frena la FK `restrict`) y sigue
-  en `/logistica/embarques` sin unidades — una RPC `embarque_eliminar|contenedor_eliminar` que exija que esté vacío.
+- **[—]** Eliminar un embarque o un contenedor vacío: hoy queda al sacarle su última unidad o vaciar su booking (lo frena la FK `restrict`); no se
+  ve en `/logistica/embarques` (lista sólo grupos con unidades), pero su clave sigue tomada en el origen y tipearla otra vez lo reusa con sus datos
+  — una RPC `embarque_eliminar|contenedor_eliminar` que exija que esté vacío.
 - **[—]** Las pantallas propias de embarques y contenedores (crear uno sin unidades, su tipo y su sello, sumarle o sacarle vehículos en lote) no existen:
   la base ya tiene `embarque_crear|guardar`, `contenedor_crear|guardar` y `transporte_asignar|quitar`, sin action ni interfaz.
 - **[—]** El diff de la actividad de un transporte nombra su embarque y su contenedor por id (`embarque_id`, `contenedor_id`), no por booking o número.
