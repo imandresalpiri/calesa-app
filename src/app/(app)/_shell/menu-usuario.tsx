@@ -2,8 +2,9 @@
 
 import type { Route } from 'next'
 import Link from 'next/link'
+import { LifeBuoyIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useTransition } from 'react'
+import { useRef, useTransition } from 'react'
 import { Avatar } from '@/shared/ui/avatar'
 import { useDensidad, type Densidad } from '@/shared/ui/densidad'
 import {
@@ -18,6 +19,10 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import { InstalarApp } from '@/shared/ui/instalar-app'
+import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
+import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
+import { adelantarElModalDeAyuda, ModalDeAyudaDiferido } from './ayuda/diferidos'
+import { PANEL_DE_AYUDA } from './ayuda/panel'
 import { VerComo } from './ver-como'
 
 // Alto de un renglón del menú: cómodo para el dedo en móvil, compacto con mouse.
@@ -37,6 +42,8 @@ type Props = {
   entradas: readonly { clave: string; titulo: string; ruta: string }[]
   // La action de `equipo`. Llega por props: un Client Component no importa el índice de un módulo.
   alCerrarSesion: () => Promise<unknown>
+  // Si puede preparar los enlaces de ayuda de la empresa (`empresa.ajustes.gestionar`): el vacío de «Ayuda» lo manda a Configuración.
+  puedeConfigurarAyuda: boolean
 }
 
 function Identidad({ persona }: { persona: PersonaDelMenu }) {
@@ -107,47 +114,72 @@ function Preferencias() {
   )
 }
 
-export function MenuUsuario({ persona, entradas, alCerrarSesion }: Props) {
+export function MenuUsuario({ persona, entradas, alCerrarSesion, puedeConfigurarAyuda }: Props) {
   const [saliendo, iniciarSalida] = useTransition()
+  const avatar = useRef<HTMLButtonElement>(null)
+  // «Ayuda» (los enlaces de ayuda) vive en la URL (`?panel=ayuda`) y su modal se pide la primera vez que se abre: en el marco sólo viaja el renglón.
+  const ayuda = usePanelPorUrl(PANEL_DE_AYUDA)
+  const montada = useAbiertoAlgunaVez(ayuda.abierto)
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label={`Menú de ${persona.nombre}`}
-        className="flex size-[44px] items-center justify-center rounded-(--radius-pill) outline-none hover:bg-(--color-surface-3) focus-visible:shadow-(--shadow-focus) md:size-9"
-      >
-        <Avatar nombre={persona.nombre} url={persona.avatarUrl} lado={30} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
-        <Identidad persona={persona} />
-        <DropdownMenuSeparator />
-        {entradas.map((entrada) => (
-          <DropdownMenuItem
-            key={entrada.clave}
-            className={RENGLON}
-            // Las rutas de la navegación existen: lo garantiza navegacion.test.ts contra el disco.
-            render={<Link href={entrada.ruta as Route} />}
-          >
-            {entrada.titulo}
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator />
-        <InstalarApp className={RENGLON} />
-        <VerComo />
-        <Preferencias />
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className={RENGLON}
-          disabled={saliendo}
-          onClick={() => {
-            iniciarSalida(async () => {
-              await alCerrarSesion()
-            })
-          }}
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          ref={avatar}
+          aria-label={`Menú de ${persona.nombre}`}
+          className="flex size-[44px] items-center justify-center rounded-(--radius-pill) outline-none hover:bg-(--color-surface-3) focus-visible:shadow-(--shadow-focus) md:size-9"
         >
-          {saliendo ? 'Cerrando la sesión…' : 'Cerrar sesión'}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <Avatar nombre={persona.nombre} url={persona.avatarUrl} lado={30} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-64">
+          <Identidad persona={persona} />
+          <DropdownMenuSeparator />
+          {entradas.map((entrada) => (
+            <DropdownMenuItem
+              key={entrada.clave}
+              className={RENGLON}
+              // Las rutas de la navegación existen: lo garantiza navegacion.test.ts contra el disco.
+              render={<Link href={entrada.ruta as Route} />}
+            >
+              {entrada.titulo}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuItem
+            className={RENGLON}
+            onPointerEnter={adelantarElModalDeAyuda}
+            onClick={() => {
+              ayuda.abrir()
+            }}
+          >
+            <LifeBuoyIcon aria-hidden />
+            Ayuda
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <InstalarApp className={RENGLON} />
+          <VerComo />
+          <Preferencias />
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className={RENGLON}
+            disabled={saliendo}
+            onClick={() => {
+              iniciarSalida(async () => {
+                await alCerrarSesion()
+              })
+            }}
+          >
+            {saliendo ? 'Cerrando la sesión…' : 'Cerrar sesión'}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {montada ? (
+        <ModalDeAyudaDiferido
+          abierto={ayuda.abierto}
+          alCerrar={ayuda.cerrar}
+          puedeConfigurar={puedeConfigurarAyuda}
+          focoAlCerrar={avatar}
+        />
+      ) : null}
+    </>
   )
 }

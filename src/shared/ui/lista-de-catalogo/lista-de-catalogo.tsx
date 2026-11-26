@@ -30,10 +30,18 @@ type Props = {
   verbo?: string
   // Un catálogo que no se ordena desde la lista (su orden es un número del formulario) no lleva «Subir» y «Bajar» en el «⋯».
   sinOrden?: boolean
+  // Lo que dice la columna «Estado» de una fila activa y de una desactivada, si no es lo de un catálogo que se ofrece en lo nuevo (los
+  // enlaces de ayuda: «En el menú» · «No se ve en el menú»).
+  estados?: { activo: string; inactivo: string }
 }
 
 // Los textos de estado: una fila apagada se sigue nombrando, con «Desactivado»: sus datos la conservan pero no se ofrece en lo nuevo.
-const ESTADO_ACTIVO = 'Activo'
+const ESTADOS = { activo: 'Activo', inactivo: 'No se ofrece en lo nuevo' }
+
+function textoDelEstado(fila: FilaDeCatalogo, estados: Props['estados']) {
+  const textos = estados ?? ESTADOS
+  return fila.activo ? textos.activo : textos.inactivo
+}
 
 function Nombre({
   fila,
@@ -81,7 +89,16 @@ function accionesDeLaFila(
       })
 }
 
-function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover, verbo, sinOrden }: Props) {
+function Tabla({
+  filas,
+  prefijo,
+  columnaDeUso,
+  alAbrir,
+  alMover,
+  verbo,
+  sinOrden,
+  estados,
+}: Props) {
   return (
     <TablaDeLista>
       <TableHeader>
@@ -113,9 +130,7 @@ function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover, verbo, sinOrden
                 <Insignias fila={fila} />
               </span>
             </CeldaPegada>
-            <TableCell className="whitespace-nowrap">
-              {fila.activo ? ESTADO_ACTIVO : 'No se ofrece en lo nuevo'}
-            </TableCell>
+            <TableCell className="whitespace-nowrap">{textoDelEstado(fila, estados)}</TableCell>
             <TableCell className="whitespace-nowrap text-(--color-ink-soft)">{fila.uso}</TableCell>
             <CeldaPegada lado="acciones">
               <MasAcciones
@@ -131,7 +146,7 @@ function Tabla({ filas, prefijo, columnaDeUso, alAbrir, alMover, verbo, sinOrden
   )
 }
 
-function Tarjetas({ filas, prefijo, alAbrir, alMover, verbo, sinOrden }: Props) {
+function Tarjetas({ filas, prefijo, alAbrir, alMover, verbo, sinOrden, estados }: Props) {
   return (
     <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
       {filas.map((fila) => (
@@ -161,7 +176,7 @@ function Tarjetas({ filas, prefijo, alAbrir, alMover, verbo, sinOrden }: Props) 
             <Insignias fila={fila} />
           </div>
           <p className="flex flex-wrap gap-x-1 text-(length:--text-sm) text-(--color-ink-faint)">
-            <span>{fila.activo ? ESTADO_ACTIVO : 'No se ofrece en lo nuevo'}</span>
+            <span>{textoDelEstado(fila, estados)}</span>
             <span aria-hidden>·</span>
             <span>{fila.uso}</span>
           </p>

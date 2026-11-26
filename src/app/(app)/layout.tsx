@@ -121,6 +121,7 @@ async function Shell({ children }: { children: ReactNode }) {
                     }}
                     entradas={delUsuario}
                     alCerrarSesion={cerrarSesion}
+                    puedeConfigurarAyuda={puede(sesion.permisos, 'empresa.ajustes.gestionar')}
                   />
                 }
               >

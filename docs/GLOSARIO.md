@@ -69,6 +69,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   a la vista en la barra superior; hasta 3 activos; sin ninguno, la barra muestra el por defecto.
 - **Último cambio de un tipo de cambio** — `tipos_cambio_vigentes()` / `UltimoCambio`: quién (el nombre, nunca el correo) y cuándo cambió el
   valor por última vez; sale del historial, así que renombrar o marcar no lo mueve.
+- **Enlaces de ayuda** — `enlaces_de_ayuda` / `EnlaceDeAyudaDeLaEmpresa`, `enlaces_de_ayuda_personales` / `EnlaceDeAyudaDelMenu`: las direcciones
+  (título hasta 80 caracteres, `https://`, descripción opcional hasta 140) que se abren en otra pestaña desde «Ayuda» del menú del perfil
+  (`?panel=ayuda`). La empresa prepara hasta 30 en Configuración › Empresa (`empresa.ajustes.gestionar`; uno desactivado no se ve en el menú de
+  nadie); cada persona, en Perfil, oculta los que no quiere, los ordena a su gusto y suma hasta 20 **propios**, que sólo ve ella. Uno nuevo de la
+  empresa le aparece visible al final. No es la **Ayuda (de una celda)** de la hoja, ni sus `EnlaceDeAyuda` (los de un bloque de la ayuda): ésos
+  son del diseño de un origen y se abren junto a una celda. No: «links», «enlaces útiles», «recursos».
 - **Leyenda de los tipos de cambio** — `ajustes_empresa.leyenda_tipos_cambio` / `LeyendaDeTiposCambio`: el texto (hasta 120 caracteres, una línea; vacía =
   ninguna) que va al pie de lo que se comparte con un cliente; se escribe en Configuración › Empresa › Monedas con `empresa_guardar_leyenda_de_tipos_cambio()`.
 - **Compartir los tipos de cambio** — `ParaCompartir`, `armarTextoParaCompartir()`, rutas `/tipos-de-cambio/imagen` y `/tipos-de-cambio/texto`: la imagen

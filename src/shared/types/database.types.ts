@@ -1577,6 +1577,116 @@ export type Database = {
           },
         ]
       }
+      enlaces_de_ayuda: {
+        Row: {
+          activo: boolean
+          actualizado_en: string
+          creado_en: string
+          descripcion: string | null
+          id: string
+          orden: number
+          titulo: string
+          url: string
+        }
+        ComputedFields: never
+        Insert: {
+          activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          descripcion?: string | null
+          id: string
+          orden: number
+          titulo: string
+          url: string
+        }
+        Update: {
+          activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          descripcion?: string | null
+          id?: string
+          orden?: number
+          titulo?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      enlaces_de_ayuda_personales: {
+        Row: {
+          actualizado_en: string
+          descripcion: string | null
+          enlace_id: string | null
+          id: string
+          oculto: boolean
+          orden: number
+          titulo: string | null
+          url: string | null
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          descripcion?: string | null
+          enlace_id?: string | null
+          id: string
+          oculto?: boolean
+          orden: number
+          titulo?: string | null
+          url?: string | null
+          usuario_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          descripcion?: string | null
+          enlace_id?: string | null
+          id?: string
+          oculto?: boolean
+          orden?: number
+          titulo?: string | null
+          url?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'enlaces_de_ayuda_personales_enlace_id_fkey'
+            columns: ['enlace_id']
+            isOneToOne: false
+            referencedRelation: 'enlaces_de_ayuda'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'enlaces_de_ayuda_personales_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      enlaces_de_ayuda_versiones: {
+        Row: {
+          actualizado_en: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en: string
+          usuario_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'enlaces_de_ayuda_versiones_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: true
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       equipo_bajas: {
         Row: {
           empezada_en: string
@@ -8419,6 +8529,12 @@ export type Database = {
         Args: { p_bucket: string; p_rutas: string[]; p_ya: boolean }
         Returns: number
       }
+      _enlace_de_ayuda_descripcion: { Args: { p_texto: string }; Returns: string }
+      _enlace_de_ayuda_titulo: { Args: { p_texto: string }; Returns: string }
+      _enlace_de_ayuda_url: { Args: { p_texto: string }; Returns: string }
+      _enlaces_de_ayuda_lista: { Args: Record<PropertyKey, never>; Returns: Json }
+      _enlaces_de_ayuda_tope: { Args: Record<PropertyKey, never>; Returns: number }
+      _enlaces_de_ayuda_tope_propios: { Args: Record<PropertyKey, never>; Returns: number }
       _entradas_en_par: { Args: { p_entradas: Json }; Returns: undefined }
       _equipo_busqueda_patron: { Args: { p_texto: string }; Returns: string }
       _equipo_lista_indexable: { Args: { p_texto: string }; Returns: boolean }
@@ -11062,6 +11178,27 @@ export type Database = {
         Returns: string
       }
       en_cartera: { Args: { p_lead: string }; Returns: boolean }
+      enlace_de_ayuda_crear: {
+        Args: { p_descripcion?: string; p_id: string; p_titulo: string; p_url: string }
+        Returns: Json
+      }
+      enlace_de_ayuda_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_id: string }
+        Returns: Json
+      }
+      enlace_de_ayuda_mover: {
+        Args: { p_actualizado_en_esperado: string; p_direccion: string; p_id: string }
+        Returns: Json
+      }
+      enlace_de_ayuda_quitar: {
+        Args: { p_actualizado_en_esperado: string; p_id: string }
+        Returns: Json
+      }
+      enlaces_de_ayuda_de_mi: { Args: Record<PropertyKey, never>; Returns: Json }
+      enlaces_de_ayuda_guardar_mios: {
+        Args: { p_actualizado_en_esperado: string; p_elementos: Json }
+        Returns: Json
+      }
       enmascarar_telefono: { Args: { p: string }; Returns: string }
       equipo_aceptar_invitacion: { Args: Record<PropertyKey, never>; Returns: undefined }
       equipo_bajas_continuar: { Args: Record<PropertyKey, never>; Returns: Json }

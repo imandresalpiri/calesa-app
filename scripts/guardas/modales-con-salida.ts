@@ -63,6 +63,11 @@ export const MODALES: Record<string, RegistroDeModal> = {
       '«Nuevo» de la barra: lista lo que se puede crear y, para un seguimiento o un recordatorio, busca y elige un lead; el texto de búsqueda no se guarda y elegir actúa al instante',
     tambien: ['src/modules/buscador/features/elegir-lead/components/elegir-lead.tsx'],
   },
+  'src/app/(app)/_shell/ayuda/modal-de-ayuda.tsx': {
+    sinFormulario:
+      '«Ayuda» del menú del perfil: sólo lista los enlaces de ayuda de quien mira, que se abren en otra pestaña; nada tipeado',
+    tambien: ['src/app/(app)/_shell/ayuda/lista-de-ayuda.tsx'],
+  },
   // --- equipo
   'src/modules/equipo/features/equipo/components/invitar-persona.tsx': {
     sinFormulario:
@@ -130,6 +135,19 @@ export const MODALES: Record<string, RegistroDeModal> = {
   'src/modules/empresa/features/tipos-cambio/components/modal-de-monedas.tsx': {
     sinFormulario:
       'sólo lista las monedas de hoy: elegir una cierra el modal y abre su panel (con su propio aviso de cambios); nada tipeado',
+  },
+  'src/modules/empresa/features/enlaces-de-ayuda/components/editor-de-enlaces-de-ayuda.tsx': {
+    sinFormulario:
+      'la lista de los enlaces de ayuda de la empresa: «Nuevo enlace», «Editar» y «Quitar» abren su propio modal (con su aviso de cambios); nada tipeado en éste',
+    tambien: ['src/modules/empresa/features/enlaces-de-ayuda/components/catalogo-de-enlaces.tsx'],
+  },
+  'src/modules/empresa/features/mis-enlaces-de-ayuda/components/editor-de-mis-enlaces.tsx': {
+    sinFormulario:
+      'la lista de los enlaces de ayuda de una persona: «Mostrar» y mover guardan al instante, y agregar o editar uno propio abren su propio modal (con su aviso de cambios); nada tipeado en éste',
+    tambien: [
+      'src/modules/empresa/features/mis-enlaces-de-ayuda/components/lista-de-mis-enlaces.tsx',
+      'src/modules/empresa/features/mis-enlaces-de-ayuda/components/fila-de-mi-enlace.tsx',
+    ],
   },
   // --- chat
   'src/modules/chat/features/conversaciones/components/modal-de-directa.tsx': {

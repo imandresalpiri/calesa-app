@@ -38,6 +38,10 @@ export const CONFIRMAR_CON_URL_DEL_NUCLEO: Record<string, ConfirmarConUrl> = {
     abre: 'src/modules/leads/features/tipos/hooks/use-eliminar-tipo-por-url.ts',
     senal: 'PANEL_ELIMINAR_TIPO',
   },
+  'src/modules/empresa/features/enlaces-de-ayuda/components/quitar-enlace-de-ayuda.tsx': {
+    abre: 'src/modules/empresa/features/enlaces-de-ayuda/hooks/use-quitar-enlace-por-url.ts',
+    senal: 'PANEL_QUITAR_ENLACE_DE_AYUDA',
+  },
   'src/modules/leads/features/tipos-de-seguimiento/components/eliminar-tipo-de-seguimiento.tsx': {
     abre: 'src/modules/leads/features/tipos-de-seguimiento/hooks/use-eliminar-tipo-de-seguimiento-por-url.ts',
     senal: 'PANEL_ELIMINAR_TIPO_DE_SEGUIMIENTO',
