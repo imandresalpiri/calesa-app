@@ -21,7 +21,11 @@ export async function abrirElMenu(page: Page, nombre: string) {
 }
 
 // Tocar la fila abre su panel (`?campo=<id>`): se insiste hasta que la URL lo pide, y no de más (cada clic suma una entrada al historial).
+// Antes, que el panel de antes termine de cerrarse: nuqs lo cierra al instante, pero la URL suelta `?campo=` recién cuando vuelve el
+// servidor (`shallow: false`), y mirarla antes se salta el clic y toma por nuevo el panel que se está yendo.
 export async function abrirElCampo(page: Page, etiqueta: string) {
+  await expect(page).not.toHaveURL(/[?&]campo=/)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
   const toque = page.getByRole('button', {
     name: new RegExp(`^(Editar|Ver) ${escapar(etiqueta)}$`),
   })

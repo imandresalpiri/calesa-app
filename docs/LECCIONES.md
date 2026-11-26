@@ -304,6 +304,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Sin red, espera el texto del pendiente, no el `requestfailed`: el evento no prueba lo que ve la persona.
 - Afirma el estado nuevo (en la base o con `expect.poll`), nunca un toast que se cierra solo, una lista leída una vez tras mutar ni un `toHaveURL` que la página anterior ya cumple.
 - nuqs dibuja al instante y escribe la URL después: espera la clave en la URL antes de `reload()` o «atrás», o recarga la URL de antes (pasa en el celular).
+- Al cerrar un panel por URL con `shallow: false`, la clave sale de la URL recién cuando vuelve el servidor: un ayudante que decide por `page.url()` si hacer clic espera antes a que la URL ya no la nombre y no quede un diálogo (`abrirElCampo()`).
 - Abre un popover o una hoja sólo con la pantalla en su forma final: la primera visita al embudo cambia de rama al llegar el tablero y desmonta lo abierto. `abrirVistaYOpciones()` reabre si se cerró solo.
 - Mide cajas dentro de un diálogo sólo cuando termina la animación (`quieto()`): durante la escala 44 px miden 42 y `getBoundingClientRect` miente.
 - Centra el botón antes del clic: tras `scrollIntoViewIfNeeded` queda al borde inferior, debajo de la burbuja del chat.
