@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 
+import { ATRIBUTO_DEL_BLOQUE } from '../../../entities/nucleo/paneles-de-la-unidad'
+
 // Lo que pasa dentro del panel de una unidad se avisa por el navegador, no por la URL: un hueco guarda algo y otro, de la misma unidad, vuelve a leer (6.04; mismo patrón que
 // `eventos-de-dinero.ts`). Dos avisos: «cambió algo de la unidad» (el hueco «Qué falta» se relee) y «abre ese hueco» (el atajo de una falta).
 const EVENTO_DE_CAMBIO = 'logistica:unidad-cambio'
 const EVENTO_DE_ABRIR = 'logistica:abrir-hueco'
 
-/** Cada hueco dibuja su bloque con este atributo: el atajo lo busca para saber si existe y a dónde ir. */
-export const ATRIBUTO_DEL_BLOQUE = 'data-bloque-del-hueco'
+export { ATRIBUTO_DEL_BLOQUE } from '../../../entities/nucleo/paneles-de-la-unidad'
 
 export function avisarCambioDeLaUnidad(unidadId: string): void {
   window.dispatchEvent(new CustomEvent<string>(EVENTO_DE_CAMBIO, { detail: unidadId }))

@@ -39,6 +39,7 @@ import { CLAVE_DEL_PANEL_DEL_PASO, panelAbiertoDe, panelesDisponibles } from './
 import { SeccionDeCompras } from './seccion-compras'
 import { SeccionDeCotizaciones } from './seccion-cotizaciones'
 import { EsqueletoDelVehiculo, VehiculoDelProyecto } from './vehiculo-del-proyecto'
+import { EsqueletoDeLaTarjetaDelItem, VehiculoYClienteDelItem } from './vehiculo-y-cliente-del-item'
 
 export const metadata: Metadata = { title: 'Proyecto de repuestos' }
 
@@ -103,12 +104,18 @@ async function Proyecto({
   if (proyecto === null) {
     return <NoDisponible />
   }
-  const vehiculo = vehiculoDeLaCabecera(proyecto.vehiculoId)
+  const vehiculoLeido = proyecto.vehiculoId === null ? null : leerVehiculo(proyecto.vehiculoId)
+  const vehiculo = vehiculoDeLaCabecera(vehiculoLeido)
   const [hoja, catalogos, monedas, lead, lectura, pago] = await leerLoDelProyecto(
     proyecto,
     sesion.permisos,
   )
   const permisos = sesion.permisos
+  const cliente = clienteDeLaCabecera({
+    leadId: proyecto.leadId,
+    clienteNombre: proyecto.clienteNombre,
+    lead,
+  })
   const cerrado = proyecto.cerradoEn !== null
   const activas = monedas.monedas.filter((m) => m.activa)
   const abierto = panelAbiertoDe(unParametro(parametros[CLAVE_DEL_PANEL_DEL_PASO]), disponibles)
@@ -116,11 +123,7 @@ async function Proyecto({
     <CabeceraDeProyecto
       proyecto={proyecto}
       vehiculo={vehiculo}
-      cliente={clienteDeLaCabecera({
-        leadId: proyecto.leadId,
-        clienteNombre: proyecto.clienteNombre,
-        lead,
-      })}
+      cliente={cliente}
       estado={estadoDelProyecto({ cerradoEn: proyecto.cerradoEn, ...cuentasDeLaHoja(hoja.filas) })}
       puedeEditar={puede(permisos, 'repuestos.editar')}
       sinItems={hoja.filas.length === 0}
@@ -158,36 +161,57 @@ async function Proyecto({
           itemAbiertoDe(parametros),
           destinoDelPanelDe(parametros),
           permisos,
+          tarjetaDelProyecto(vehiculoLeido, proyecto.vehiculoEtiqueta, cliente),
         )}
       />
     </CabeceraDeProyecto>
   )
 }
 
-// Las secciones del panel del ítem de `?item=` (Qué falta, Imágenes, Stock, Compras, Documentos, Historial…): las dibuja el servidor y la hoja las pone bajo la fila del ítem, en su drawer. Llevan el id
+// El panel del ítem de `?item=` en dos columnas (lo del ítem a la izquierda, sus tarjetas a la derecha; `proyecto` es la tarjeta «Vehículo y cliente»): lo dibuja el servidor y la hoja lo pone en el drawer del ítem. Llevan el id
 // del ítem (y `key`) para que, al abrir otro, la hoja muestre el esqueleto hasta que lleguen las suyas. Sin `?item=` (o con `?panel=`), nulo. Una URL con el id de otro proyecto abre igual: se lee por id, bajo la RLS.
 function seccionesDelItem(
   itemId: string | null,
   destino: string | null,
   permisos: Permisos,
+  proyecto: ReactNode,
 ): { id: string; contenido: ReactNode } | null {
   if (itemId === null) return null
   return {
     id: itemId,
     contenido: (
       <Suspense key={itemId} fallback={<EsqueletoListado filas={4} columnas={2} />}>
-        <ItemAbierto id={itemId} destino={destino} permisos={permisos} conCabecera={false} />
+        <ItemAbierto
+          id={itemId}
+          destino={destino}
+          permisos={permisos}
+          enLaHoja
+          proyecto={proyecto}
+        />
       </Suspense>
     ),
   }
 }
 
+// La tarjeta «Vehículo y cliente» del panel del ítem: espera la lectura del vehículo que ya empezó la cabecera, en su propio `<Suspense>`.
+function tarjetaDelProyecto(
+  leido: ReturnType<typeof leerVehiculo> | null,
+  etiqueta: string | null,
+  cliente: ReturnType<typeof clienteDeLaCabecera>,
+): ReactNode {
+  return (
+    <Suspense fallback={<EsqueletoDeLaTarjetaDelItem />}>
+      <VehiculoYClienteDelItem leido={leido} etiqueta={etiqueta} cliente={cliente} />
+    </Suspense>
+  )
+}
+
 // El vehículo de la cabecera: su lectura empieza aquí, antes de esperar lo demás (va en paralelo), y la espera su `<Suspense>`. Un proyecto externo no lo lee.
-function vehiculoDeLaCabecera(vehiculoId: string | null): ReactNode {
-  if (vehiculoId === null) return null
+function vehiculoDeLaCabecera(leido: ReturnType<typeof leerVehiculo> | null): ReactNode {
+  if (leido === null) return null
   return (
     <Suspense fallback={<EsqueletoDelVehiculo />}>
-      <VehiculoDelProyecto leido={leerVehiculo(vehiculoId)} />
+      <VehiculoDelProyecto leido={leido} />
     </Suspense>
   )
 }

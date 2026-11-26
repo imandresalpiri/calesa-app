@@ -48,6 +48,11 @@ export const MODALES: Record<string, RegistroDeModal> = {
     sinFormulario:
       'sólo dibuja los estados de carga, error y sin tipos; los formularios de anotar y agendar son ModalDeFormulario',
   },
+  // --- repuestos
+  'src/modules/repuestos/features/items/components/modal-del-grupo.tsx': {
+    sinFormulario:
+      'un grupo de campos del ítem (`?editar=<grupo>`): cada celda guarda al pulsar Enter o al salir de ella (Esc la devuelve) y «Listo» sólo cierra; no hay borrador que se pierda',
+  },
   // --- vehiculos
   'src/modules/vehiculos/features/subasta/components/actualizar-los-datos.tsx': {
     sinFormulario:

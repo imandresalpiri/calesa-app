@@ -34,26 +34,26 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
   Los ítems son **tarjetas** (`tarjeta-de-item.tsx`: «Tipo · Condición» o la descripción, «2 × Monto», «En stock: N», el siguiente o la fase; el «⋯» con las `accionesDeFila` del hueco, Imágenes y Eliminar)
   agrupadas por paso (`tarjetas-por-paso.tsx`; `agruparPorPaso`, `entities/items/grupos-por-paso.ts`: el orden del flujo, una fase fuera de él tras las conocidas, «Sin fase» al final, «N+» con la hoja
   topada; sin orden, todo en «Sin fase»), bajo la barra de `barra-de-items.tsx` (buscador y fichas con `ChipDeEleccion`, «Sin precio», «Limpiar filtros», «N de M ítems», «Agregar ítem»). El filtro es puro
-  (`entities/items/filtro.ts`) y vive en la URL con `shallow` (`hooks/use-filtro-de-items.ts`). El clic abre el **drawer del ítem** (`panel-del-item-en-la-hoja.tsx`, `?item=`): **la fila del ítem**
-  (`fila-del-item.tsx`: `TablaDeLaFila`, `FilaDelItem`, flechas por `flechas-de-la-fila.ts`; columnas y su ayuda en `columnas-de-la-hoja.ts`) y, debajo, las secciones que dibuja el servidor (`secciones`
-  del hueco). `drawer-de-items-nuevos.tsx` (`?panel=nuevo-item`, `use-nuevo-item-por-url.ts`) es «Agregar ítem»: una fila nueva (`fila-nueva.tsx`) que crea con la descripción. `drawers-de-la-hoja.tsx` monta los
+  (`entities/items/filtro.ts`) y vive en la URL con `shallow` (`hooks/use-filtro-de-items.ts`). El clic abre el **drawer del ítem** (`panel-del-item-en-la-hoja.tsx`, `?item=`): el **panel del ítem en dos columnas** que dibuja el servidor (`secciones` del hueco; ver `flujo` abajo). La fila
+  de hoja de cálculo (`fila-del-item.tsx`: `TablaDeLaFila`, `FilaDelItem`, flechas por `flechas-de-la-fila.ts`; columnas y su ayuda en `columnas-de-la-hoja.ts`) sólo vive ya en «Agregar ítem»; el panel edita por grupos con sus mismas
+  celdas. `drawer-de-items-nuevos.tsx` (`?panel=nuevo-item`, `use-nuevo-item-por-url.ts`) es «Agregar ítem»: una fila nueva (`fila-nueva.tsx`) que crea con la descripción. `drawers-de-la-hoja.tsx` monta los
   drawers (ítem, agregar, imágenes, eliminar) y devuelve el foco a la tarjeta. El hueco de la hoja (`HuecoDeLaHoja`) tiene: `item` (`abierto`, `abrir`, `cerrar`, `secciones(id)`: lo que `src/app` pone bajo
   la fila), `accionesDeFila(fila)` (el «⋯»: Stock y «Mover a…»), `panel(api)`, `arriba(api)` (antes de la hoja, con sus filas vivas: la barra de progreso, las pestañas y el contenido de la abierta) y
   `pasoDeFila(fila)` (en la tarjeta: el botón del siguiente; si no pone nada, la insignia de la fase). La hoja recibe `oculta` (otra pestaña abierta: sigue montada, con `hidden`) y `ordenDeLasFases`
-  (de `IndiceDelFlujo.lugar`, lo pasa `src/app`). La primera línea de la tarjeta dice qué es el ítem (`queEsElItem`, `entities/items/que-es.ts`). `pantallas/items-del-panel.ts`: `ImagenesDelItemDiferido`
-  (`ContenidoDeImagenes`, el mismo del panel de imágenes), el bloque «Imágenes» del panel del ítem.
+  (de `IndiceDelFlujo.lugar`, lo pasa `src/app`). La primera línea de la tarjeta dice qué es el ítem (`queEsElItem`, `entities/items/que-es.ts`). `pantallas/items-del-panel.ts`: las piezas del panel del ítem
+  (`ItemEnDosColumnasDiferido`, `ColumnaDelItemDiferida`, `TarjetaDeImagenesDiferida`, `TarjetaDeVehiculoYClienteDiferida`).
 - **`stock`** — la hoja expone un hueco (`HuecoDeLaHoja`: `accionesDeFila(fila)`, `panel(api)` con `cambiarFila`) que llena `hoja-del-proyecto.tsx` con
   `pantallas/stock.ts` (`PanelDeStock`, `useStockPorUrl`; `?panel=stock&item=`; el «Stock» del «⋯» de la tarjeta). Vista `/repuestos?vista=stock`: `leerStock`,
-  `leerCursorDeStock`, `esVistaDeStock`, `CLAVE_DE_VISTA_DE_REPUESTOS` (`areas/stock/index.ts`) y `<VistaDeStock>` (`pantallas/stock-vista.ts`). El bloque
-  «Stock» del panel del ítem (`pantallas/stock-del-panel.ts`: `<BloqueDeStockDelItem>`, Server Component sin JS) dice «En stock: N de M» y enlaza a
+  `leerCursorDeStock`, `esVistaDeStock`, `CLAVE_DE_VISTA_DE_REPUESTOS` (`areas/stock/index.ts`) y `<VistaDeStock>` (`pantallas/stock-vista.ts`). La tarjeta
+  «Stock» del panel del ítem (`pantallas/stock-del-panel.ts`: `<TarjetaDeStockDelItem>`) dice «En stock: N de M» y abre
   `?panel=stock&item=` de la hoja (el formulario cambia la fila sin releerla). La vista de stock va con
   `?panel=reasignar-stock|vender-stock|devolver-stock&item=`; el destino lo busca `buscarProyectoAbierto` por render prop.
 - **`compras`** — el panel «Compras» de `/repuestos/[id]` (`?pestana=compras`): `leerComprasDelProyecto` (tope 200), `leerMargenDelProyecto`,
   `MargenDelProyectoDiferido`, `ComprasDelProyectoDiferido` (`pantallas/compras.ts`, con `diferido()`); Drawer `?panel=compra&compra=<id|nueva>`, con
   `&item_de_compra=<id>` (`CLAVE_DEL_ITEM_DE_COMPRA`: el ítem ya elegido al registrar; sólo si está entre los de la hoja; se borra al cerrar). `hayPagoDelCliente`
-  (una fila de `pagos`, sólo con `repuestos.costos.ver`) para los pasos. El bloque «Compras» del panel del ítem (`pantallas/compras-del-panel.ts`:
-  `ComprasDelItemDiferido`) lee con la action `leerComprasDelItem` (pide `repuestos.costos.ver` antes de la base; `TAMANO_DE_VER_MAS` por
-  `repuestos_compras_item_id_idx`) y enlaza a registrar y a «Ver todas en Compras» (los `href` los arma `src/app`). `?pestana=pagos` la dibuja `PagosDelProyectoDiferido` de
+  (una fila de `pagos`, sólo con `repuestos.costos.ver`) para los pasos. La tarjeta «Compras» del panel del ítem (`pantallas/compras-del-panel.ts`:
+  `TarjetaDeComprasDelItemDiferida`, `ProveedorDelItemDiferido`, `ComprasDelItemProveedorDiferido`) y el grupo «Proveedor» comparten **una** lectura con la action `leerComprasDelItem` (pide `repuestos.costos.ver` antes de la base; `TAMANO_DE_VER_MAS` por
+  `repuestos_compras_item_id_idx`; la provee `ComprasDelItemProveedor`); la tarjeta enlaza a registrar y a «Ver todas en Compras» (los `href` los arma `src/app`). `?pestana=pagos` la dibuja `PagosDelProyectoDiferido` de
   `logistica`: registrar, corregir y eliminar piden `repuestos.costos.editar` y `repuestos.ver` (`pago_registrar_proyecto`, `pago_guardar`, `pago_eliminar`),
   confirmar y anular `logistica.pagos.confirmar`; un pago de proyecto no lleva lead (`pago_guardar` da 22023, hint `lead_id`).
   Un pago vivo cumple `proyecto.pago_cliente`: `pago_anular` y `pago_eliminar` no quitan el último si un ítem vivo está en una fase que lo pide. Las dos pestañas sólo
@@ -67,12 +67,15 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
   (`ItemParaCotizar[]`).
 - **`catalogos`** — `index.ts`: `leerCatalogosDeRepuestos()` (los cuatro, con desactivados, tope 200 cada uno), `CATALOGOS_DE_REPUESTOS`; `client.ts`: lo
   puro del formulario (`validarValor`, `cambiosDeValor`, `ordenSiguiente`…); `pantallas/catalogos.ts`: `<CatalogosDeRepuestos>`, la sub-ruta `/repuestos/configuracion/catalogos`.
-- **`flujo`** — panel del ítem: `?item=<id>` abre `<PanelDeLaUnidadALaVista>` de `logistica` (`item-abierto.tsx`: `repuestos` lee, `logistica` dibuja,
-  con las secciones a la vista; mover, documentos, notas e historial son de `logistica`, variante `repuesto`; el transporte sólo dice «Sigue al vehículo»,
-  8-13b) con los bloques Imágenes, Stock y Compras (éste con `repuestos.costos.ver`) que compone `src/app`. `index.ts`: `leerItemDelPanel(id)` (nulo si no
+- **`flujo`** — panel del ítem: `?item=<id>` abre el **panel del ítem en dos columnas** (`src/app/(app)/repuestos/item-abierto.tsx`, `docs/UX.md` › «Panel del ítem»). A la izquierda, `ColumnaDelItem` con los grupos de `GRUPOS_DEL_ITEM`
+  (`entities/items/grupos-del-item.ts`: Qué es, Cantidades y precios, Origen y envío, Notas del ítem, cada uno `GrupoDelItemEditable` con su `ModalDelGrupo` en `?editar=`, `CLAVE_DE_EDICION_DEL_ITEM`), «Estado» (la fase, el botón del siguiente y
+  `QueFaltaDelItem` de `logistica`) y «Proveedor» (con `repuestos.costos.ver`); a la derecha, las tarjetas de `tarjetasDelItem({ costosVer, conProyecto })`: `TarjetaDeVehiculoYCliente` (sólo con proyecto a la vista), Compras, Imágenes, Stock
+  y, de `logistica`, `TarjetaDelHuecoDelItem` (Documentos, Historial, Notas; drawer `?seccion=`). Lo vivo de la hoja (fila, guardado, conflicto, el botón del siguiente) llega a la columna izquierda por `ContextoDelItemAbierto`
+  (`panel-del-item-en-la-hoja.tsx`); sin la hoja (la Cadena) la columna se lee de lo que trae `leerLoDelItem` (de sólo lectura). Mover, documentos, notas e historial son de `logistica`, variante `repuesto`; el transporte no se dibuja
+  (8-13b). `index.ts`: `leerItemDelPanel(id)` (nulo si no
   existe, está en la papelera, no se ve o su proyecto no se ve: los cuatro se dicen igual; trae cantidad, stock y si el proyecto está cerrado),
   `itemAbiertoDe(parametros)` (el guid de `?item=` **sólo sin `?panel=`**), `destinoDelPanelDe(parametros)` (`?destino=<fase>`, sólo con un ítem abierto: el
-  destino que «Qué falta» abre solo), `ItemDelPanel`; `pantallas/flujo.ts`: `<DrawerDelItem>` (el de la Cadena), `useItemPorUrl()` (`abrir(id, destino?)`). En `/repuestos/[id]` ese panel va dentro del drawer del ítem, bajo su fila y sin cabecera (`conCabecera={false}`).
+  destino que «Qué falta» abre solo), `ItemDelPanel`; `pantallas/flujo.ts`: `<DrawerDelItem>` (el de la Cadena), `useItemPorUrl()` (`abrir(id, destino?)`). En `/repuestos/[id]` ese panel va dentro del drawer del ítem y sin cabecera de unidad.
 - **`flujo`** — los **pasos** de `/repuestos/[id]` (`docs/GLOSARIO.md` › «Paso (de un proyecto)», «Hito (de un paso)», «Siguiente (de un ítem)»):
   `leerFlujoDeLosPasos()` (`infra/flujo/pasos.ts`: fases, salidas y requisitos de dato con una clave de hito del flujo de repuestos, tres lecturas con tope 30 /
   360 / 60 más uno; un error no lanza: `ilegible`), `LecturaDeLosPasos`, `PANELES_DEL_PASO`, `TITULO_DEL_PANEL`. Las reglas, puras y con test:

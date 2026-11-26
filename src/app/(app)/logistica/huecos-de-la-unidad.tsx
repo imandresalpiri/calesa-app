@@ -4,7 +4,6 @@ import { HUECOS_DE_DINERO_EN_LA_UNIDAD } from '@/modules/logistica/pantallas/din
 import { HUECOS_DE_DOCUMENTOS_EN_LA_UNIDAD } from '@/modules/logistica/pantallas/documentos-unidad'
 import { HUECOS_DE_MOVER_EN_LA_UNIDAD } from '@/modules/logistica/pantallas/mover-unidad'
 import { HUECOS_DE_TRANSPORTE_EN_LA_UNIDAD } from '@/modules/logistica/pantallas/transporte-unidad'
-import { HuecoDeTransporteDeItem } from '@/modules/logistica/pantallas/unidad-item'
 import { HUECOS_DE_ESPERAS_EN_LA_UNIDAD } from '@/modules/repuestos/pantallas/flujo-esperas'
 import { huecosVisibles, type HuecoDeLaUnidad, type UnidadAbierta } from '@/modules/logistica'
 import type { Resultado } from '@/shared/lib/errores'
@@ -26,15 +25,7 @@ export const HUECOS_DE_LA_UNIDAD: readonly HuecoDeLaUnidad[] = [
         },
       }) as const,
   ),
-  // Un ítem no tiene origen ni flujo con reglas: «Transporte» le dice que sigue al vehículo (8.13-2). La variante la pone el núcleo, no el área `transporte`, que sólo trata vehículos.
-  ...HUECOS_DE_TRANSPORTE_EN_LA_UNIDAD.map((h) => ({
-    ...h,
-    repuesto: {
-      permisos: ['repuestos.ver'],
-      regla: null,
-      componente: HuecoDeTransporteDeItem,
-    } as const,
-  })),
+  ...HUECOS_DE_TRANSPORTE_EN_LA_UNIDAD,
   // El de `repuestos` declara su propio tipo (un módulo no importa a otro) y su componente pide menos de la unidad; `ComponentType` no lo admite por `defaultProps`: el cast va aquí (D9, 8.13-3).
   ...(HUECOS_DE_ESPERAS_EN_LA_UNIDAD as readonly HuecoDeLaUnidad[]),
   ...HUECOS_DE_ADUANA_EN_LA_UNIDAD,

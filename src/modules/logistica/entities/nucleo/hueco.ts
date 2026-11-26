@@ -76,27 +76,3 @@ export function huecosVisibles<H extends ParaFiltrar>(
     return h === undefined ? [] : [h]
   })
 }
-
-/**
- * El orden del panel de un ítem de repuesto con sus secciones a la vista: «Qué falta» primero (lo de su paso), después lo que el ítem consulta a diario y lo
- * ocasional al final. Los bloques propios de `repuestos` (imágenes, stock, compras) van entre «Qué falta» y «Documentos»; los pone `PanelDeLaUnidadALaVista`.
- */
-export const ORDEN_DEL_ITEM = [
-  'que-falta',
-  'documentos',
-  'historial',
-  'notas',
-  'transporte',
-] as const
-
-/** Los huecos ya visibles en el orden del ítem; uno que no está en `ORDEN_DEL_ITEM` va al final, en el orden en que llegó. */
-export function enElOrdenDelItem<H extends { clave: string }>(huecos: readonly H[]): H[] {
-  const lugar = (h: H) => {
-    const i = (ORDEN_DEL_ITEM as readonly string[]).indexOf(h.clave)
-    return i === -1 ? ORDEN_DEL_ITEM.length : i
-  }
-  return huecos
-    .map((h, i) => ({ h, i }))
-    .sort((a, b) => lugar(a.h) - lugar(b.h) || a.i - b.i)
-    .map(({ h }) => h)
-}
