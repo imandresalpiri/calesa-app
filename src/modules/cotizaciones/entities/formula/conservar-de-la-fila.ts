@@ -1,5 +1,6 @@
 // Lo que una fila conserva de la vieja al recompilarse, y lo que suelta (4.21-1, C5): la raíz que compila `compilarExpresion()` lleva el `texto` y,
 // de la fila vieja, lo que el destino del compilador no lleva. Puro.
+import { aceptaDecimales } from '../decimales-de-celda'
 import type { Nodo } from '../nodos'
 
 // Los campos propios de la operación o del tipo: los reemplaza el texto y nunca se dicen «soltados».
@@ -23,13 +24,15 @@ const ESTRUCTURALES = new Set([
 const esSiDeBandera = (n: Nodo) => n.tipo === 'calculo' && n.op === 'si'
 const sePierde = (v: unknown) => v !== undefined && v !== false
 
-// `seccion` y `color`, siempre (los admite todo tipo); `sobrescribible`, si la nueva es un cálculo; `condicion` sólo como interruptor: en un SI de una
-// bandera (el viejo o el nuevo) es la bandera y la decide el texto, nunca pasa de interruptor a bandera ni al revés.
+// `seccion` y `color`, siempre (los admite todo tipo); `sobrescribible`, si la nueva es un cálculo; los decimales, si la nueva se muestra como número (una
+// condición se ve «Sí» o «No» y los suelta); `condicion` sólo como interruptor: en un SI de una bandera (el viejo o el nuevo) es la bandera y la decide el
+// texto, nunca pasa de interruptor a bandera ni al revés.
 function conservados(raiz: Nodo, v: Record<string, unknown>, viejo: Nodo): Record<string, unknown> {
   const dejar: Record<string, unknown> = {}
   for (const k of ['seccion', 'color']) if (v[k] !== undefined) dejar[k] = v[k]
   if (raiz.tipo === 'calculo' && v['sobrescribible'] !== undefined)
     dejar['sobrescribible'] = v['sobrescribible']
+  if (v['decimales'] !== undefined && aceptaDecimales(raiz)) dejar['decimales'] = v['decimales']
   if (!esSiDeBandera(raiz) && !esSiDeBandera(viejo) && v['condicion'] !== undefined)
     dejar['condicion'] = v['condicion']
   return dejar

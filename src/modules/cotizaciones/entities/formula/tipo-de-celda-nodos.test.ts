@@ -43,6 +43,21 @@ describe('nodoDelTipo', () => {
     )
   })
 
+  it('los decimales siguen si el tipo nuevo se muestra como número; un interruptor o la variante los sueltan', () => {
+    const conDos = { ...REMATE, decimales: 2 } as Nodo
+    expect(nodoDelTipo(conDos, { tipo: 'lo_escribe_el_asesor' })).toMatchObject({ decimales: 2 })
+    expect(nodoDelTipo(conDos, { tipo: 'tipo_de_cambio', clave: 'oficial' })).toMatchObject({
+      decimales: 2,
+    })
+    expect(nodoDelTipo(conDos, { tipo: 'interruptor' })).not.toHaveProperty('decimales')
+    const opciones = [
+      { clave: 'a', etiqueta: 'A', titulo: 'Opción A' },
+      { clave: 'b', etiqueta: 'B', titulo: 'Opción B' },
+    ]
+    expect(nodoDelTipo(conDos, { tipo: 'variante', opciones })).not.toHaveProperty('decimales')
+    expect(nodoDelTipo(REMATE, { tipo: 'valor_fijo', valor: 0 })).not.toHaveProperty('decimales')
+  })
+
   it('el total sigue siendo el total', () => {
     const total = { id: 'total', tipo: 'constante', etiqueta: 'Total', salida: 'total' } as Nodo
     expect(nodoDelTipo(total, { tipo: 'valor_fijo', valor: 0 })).toMatchObject({
