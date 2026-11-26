@@ -703,6 +703,92 @@ export type Database = {
         }
         Relationships: []
       }
+      contenedores: {
+        Row: {
+          actualizado_en: string
+          actualizado_por: string | null
+          creado_en: string
+          creado_por: string | null
+          embarque_id: string | null
+          id: string
+          notas: string | null
+          numero: string
+          origen_id: string | null
+          sello: string | null
+          tipo: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          actualizado_por?: string | null
+          creado_en?: string
+          creado_por?: string | null
+          embarque_id?: string | null
+          id?: string
+          notas?: string | null
+          numero: string
+          origen_id?: string | null
+          sello?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          actualizado_en?: string
+          actualizado_por?: string | null
+          creado_en?: string
+          creado_por?: string | null
+          embarque_id?: string | null
+          id?: string
+          notas?: string | null
+          numero?: string
+          origen_id?: string | null
+          sello?: string | null
+          tipo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'contenedores_actualizado_por_fkey'
+            columns: ['actualizado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'contenedores_creado_por_fkey'
+            columns: ['creado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'contenedores_embarque_id_fkey'
+            columns: ['embarque_id']
+            isOneToOne: false
+            referencedRelation: 'embarques'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'contenedores_embarque_id_fkey'
+            columns: ['embarque_id']
+            isOneToOne: false
+            referencedRelation: 'transportes_con_embarque'
+            referencedColumns: ['embarque_id']
+          },
+          {
+            foreignKeyName: 'contenedores_origen_id_fkey'
+            columns: ['origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'contenedores_tipo_fkey'
+            columns: ['tipo']
+            isOneToOne: false
+            referencedRelation: 'tipos_contenedor'
+            referencedColumns: ['clave']
+          },
+        ]
+      }
       conversaciones: {
         Row: {
           actualizado_en: string
@@ -1495,6 +1581,104 @@ export type Database = {
             columns: ['vehiculo_id']
             isOneToOne: false
             referencedRelation: 'vehiculos'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      embarques: {
+        Row: {
+          actualizado_en: string
+          actualizado_por: string | null
+          arribo_el: string | null
+          booking: string
+          creado_en: string
+          creado_por: string | null
+          eta_el: string | null
+          id: string
+          naviera_id: string | null
+          notas: string | null
+          origen_id: string | null
+          puerto_destino_id: string | null
+          puerto_origen_id: string | null
+          zarpe_el: string | null
+          zarpe_estimado_el: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          actualizado_por?: string | null
+          arribo_el?: string | null
+          booking: string
+          creado_en?: string
+          creado_por?: string | null
+          eta_el?: string | null
+          id?: string
+          naviera_id?: string | null
+          notas?: string | null
+          origen_id?: string | null
+          puerto_destino_id?: string | null
+          puerto_origen_id?: string | null
+          zarpe_el?: string | null
+          zarpe_estimado_el?: string | null
+        }
+        Update: {
+          actualizado_en?: string
+          actualizado_por?: string | null
+          arribo_el?: string | null
+          booking?: string
+          creado_en?: string
+          creado_por?: string | null
+          eta_el?: string | null
+          id?: string
+          naviera_id?: string | null
+          notas?: string | null
+          origen_id?: string | null
+          puerto_destino_id?: string | null
+          puerto_origen_id?: string | null
+          zarpe_el?: string | null
+          zarpe_estimado_el?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'embarques_actualizado_por_fkey'
+            columns: ['actualizado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'embarques_creado_por_fkey'
+            columns: ['creado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'embarques_naviera_id_fkey'
+            columns: ['naviera_id']
+            isOneToOne: false
+            referencedRelation: 'navieras'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'embarques_origen_id_fkey'
+            columns: ['origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'embarques_puerto_destino_id_fkey'
+            columns: ['puerto_destino_id']
+            isOneToOne: false
+            referencedRelation: 'puertos'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'embarques_puerto_origen_id_fkey'
+            columns: ['puerto_origen_id']
+            isOneToOne: false
+            referencedRelation: 'puertos'
             referencedColumns: ['id']
           },
         ]
@@ -6215,6 +6399,28 @@ export type Database = {
           },
         ]
       }
+      tipos_contenedor: {
+        Row: {
+          activo: boolean
+          clave: string
+          nombre: string
+          orden: number
+        }
+        ComputedFields: never
+        Insert: {
+          activo?: boolean
+          clave: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          activo?: boolean
+          clave?: string
+          nombre?: string
+          orden?: number
+        }
+        Relationships: []
+      }
       tipos_documento: {
         Row: {
           activo: boolean
@@ -6399,7 +6605,9 @@ export type Database = {
           arribo_el: string | null
           booking: string | null
           contenedor: string | null
+          contenedor_id: string | null
           creado_en: string
+          embarque_id: string | null
           eta_el: string | null
           id: string
           naviera_id: string | null
@@ -6418,7 +6626,9 @@ export type Database = {
           arribo_el?: string | null
           booking?: string | null
           contenedor?: string | null
+          contenedor_id?: string | null
           creado_en?: string
+          embarque_id?: string | null
           eta_el?: string | null
           id?: string
           naviera_id?: string | null
@@ -6436,7 +6646,9 @@ export type Database = {
           arribo_el?: string | null
           booking?: string | null
           contenedor?: string | null
+          contenedor_id?: string | null
           creado_en?: string
+          embarque_id?: string | null
           eta_el?: string | null
           id?: string
           naviera_id?: string | null
@@ -6455,6 +6667,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: 'perfiles'
             referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'transportes_contenedor_id_fkey'
+            columns: ['contenedor_id']
+            isOneToOne: false
+            referencedRelation: 'contenedores'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'transportes_embarque_id_fkey'
+            columns: ['embarque_id']
+            isOneToOne: false
+            referencedRelation: 'embarques'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'transportes_embarque_id_fkey'
+            columns: ['embarque_id']
+            isOneToOne: false
+            referencedRelation: 'transportes_con_embarque'
+            referencedColumns: ['embarque_id']
           },
           {
             foreignKeyName: 'transportes_naviera_id_fkey'
@@ -7590,6 +7823,84 @@ export type Database = {
         ComputedFields: never
         Relationships: []
       }
+      transportes_con_embarque: {
+        Row: {
+          actualizado_en: string
+          actualizado_por: string | null
+          arribo_el: string | null
+          booking: string | null
+          contenedor: string | null
+          contenedor_actualizado_en: string | null
+          contenedor_id: string | null
+          contenedor_origen_id: string | null
+          creado_en: string
+          embarque_actualizado_en: string | null
+          embarque_id: string | null
+          embarque_origen_id: string | null
+          eta_el: string | null
+          id: string
+          naviera_id: string | null
+          notas: string | null
+          puerto_destino_id: string | null
+          puerto_origen_id: string | null
+          repuesto_id: string | null
+          sigue_al_vehiculo: boolean
+          vehiculo_id: string | null
+          zarpe_el: string | null
+        }
+        ComputedFields: never
+        Relationships: [
+          {
+            foreignKeyName: 'contenedores_origen_id_fkey'
+            columns: ['contenedor_origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'embarques_origen_id_fkey'
+            columns: ['embarque_origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'transportes_actualizado_por_fkey'
+            columns: ['actualizado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'transportes_contenedor_id_fkey'
+            columns: ['contenedor_id']
+            isOneToOne: false
+            referencedRelation: 'contenedores'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'transportes_repuesto_id_fkey'
+            columns: ['repuesto_id']
+            isOneToOne: true
+            referencedRelation: 'repuestos_items'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'transportes_vehiculo_id_fkey'
+            columns: ['vehiculo_id']
+            isOneToOne: true
+            referencedRelation: 'recordatorios_vista'
+            referencedColumns: ['vehiculo_id']
+          },
+          {
+            foreignKeyName: 'transportes_vehiculo_id_fkey'
+            columns: ['vehiculo_id']
+            isOneToOne: true
+            referencedRelation: 'vehiculos'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Functions: {
       _acotar_pagina: {
@@ -8048,6 +8359,27 @@ export type Database = {
         Args: { p_cuando: string; p_registro: string; p_sujeto: string; p_tabla: string }
         Returns: undefined
       }
+      _contenedor_cambios: {
+        Args: {
+          p_cambios: Json
+          p_embarque: string
+          p_notas: string
+          p_numero: string
+          p_sello: string
+          p_tipo: string
+        }
+        Returns: Record<string, unknown>
+      }
+      _contenedor_editable: { Args: { p_contenedor: string }; Returns: boolean }
+      _contenedor_embarque_valido: {
+        Args: { p_embarque: string; p_origen: string }
+        Returns: undefined
+      }
+      _contenedor_mudar: { Args: { p_contenedor: string; p_embarque: string }; Returns: undefined }
+      _contenedor_resolver: {
+        Args: { p_crear: boolean; p_embarque: string; p_numero: string; p_origen: string }
+        Returns: Record<string, unknown>
+      }
       _contraste_aa: { Args: { p_razon: number }; Returns: boolean }
       _cotizacion_a_papelera: {
         Args: { p_con_version: boolean; p_esperado: string; p_id: string; p_lote: string }
@@ -8367,6 +8699,36 @@ export type Database = {
       _documento_ya_registrado: { Args: { p_ids: string[]; p_ruta: string }; Returns: Json }
       _documentos_de: { Args: { p_ids: string[] }; Returns: Json }
       _dominancia_tomar: { Args: { p_compartido?: boolean }; Returns: undefined }
+      _embarque_editable: { Args: { p_embarque: string }; Returns: boolean }
+      _embarque_escribir_datos: {
+        Args: {
+          p_datos: Database['public']['CompositeTypes']['datos_de_transporte']
+          p_embarque: string
+        }
+        Returns: undefined
+      }
+      _embarque_resolver: {
+        Args: {
+          p_booking: string
+          p_crear: boolean
+          p_datos: Database['public']['CompositeTypes']['datos_de_transporte']
+          p_origen: string
+        }
+        Returns: Record<string, unknown>
+      }
+      _embarque_validar: {
+        Args: {
+          n: Database['public']['CompositeTypes']['datos_de_transporte']
+          o: Database['public']['CompositeTypes']['datos_de_transporte']
+          p_origen: string
+        }
+        Returns: undefined
+      }
+      _embarque_valores: {
+        Args: { p_contenedor: string; p_embarque: string }
+        Returns: Record<string, unknown>
+      }
+      _embarques_desde_textos: { Args: { p_fuente: unknown }; Returns: Json }
       _embudo_conflicto: { Args: { p_cuando: string }; Returns: undefined }
       _embudo_defecto_de: { Args: { p_usuario: string }; Returns: string }
       _embudo_etapas_de_fabrica: { Args: Record<PropertyKey, never>; Returns: Json }
@@ -8417,6 +8779,22 @@ export type Database = {
       _enlaces_de_ayuda_lista: { Args: Record<PropertyKey, never>; Returns: Json }
       _enlaces_de_ayuda_tope: { Args: Record<PropertyKey, never>; Returns: number }
       _enlaces_de_ayuda_tope_propios: { Args: Record<PropertyKey, never>; Returns: number }
+      _entidad_bloquear_unidades: {
+        Args: { p_contenedor: string; p_embarque: string }
+        Returns: undefined
+      }
+      _entidad_creable: { Args: { p_origen: string }; Returns: boolean }
+      _entidad_editable: { Args: { p_contenedor: string; p_embarque: string }; Returns: boolean }
+      _entidad_respuesta: {
+        Args: {
+          p_actualizado_en: string
+          p_estado: string
+          p_id: string
+          p_sin_cambios: boolean
+          p_ya_existia?: boolean
+        }
+        Returns: Json
+      }
       _entradas_en_par: { Args: { p_entradas: Json }; Returns: undefined }
       _equipo_busqueda_patron: { Args: { p_texto: string }; Returns: string }
       _equipo_lista_indexable: { Args: { p_texto: string }; Returns: boolean }
@@ -8431,6 +8809,16 @@ export type Database = {
           p_activo: boolean
           p_bloqueado: boolean
           p_invitado_en: string
+        }
+        Returns: string
+      }
+      _estado_del_embarque: {
+        Args: {
+          p_arribo: string
+          p_hay_unidades: boolean
+          p_hoy: string
+          p_todas_finales: boolean
+          p_zarpe: string
         }
         Returns: string
       }
@@ -9218,6 +9606,7 @@ export type Database = {
       }
       _origen_datos_clave_forma: { Args: { p: Json }; Returns: boolean }
       _origen_datos_clave_sin_campo: { Args: { p: Json; p_clave: string }; Returns: Json }
+      _origen_en_frase: { Args: { p_origen: string }; Returns: string }
       _origen_lead_clave: { Args: { p_nombre: string }; Returns: string }
       _origen_lead_nombre: { Args: { p_texto: string }; Returns: string }
       _origen_nombre_valido: {
@@ -10093,60 +10482,57 @@ export type Database = {
         Args: { p_a: string; p_de: string; p_restriccion: string }
         Returns: undefined
       }
+      _transporte_bloquear_entidades: {
+        Args: { p_contenedores: string[]; p_embarques: string[] }
+        Returns: undefined
+      }
       _transporte_cambios: {
         Args: {
-          o: Omit<
-            Database['public']['Tables']['transportes']['Row'],
-            Database['public']['Tables']['transportes']['ComputedFields']
-          >
+          o: Database['public']['CompositeTypes']['datos_de_transporte']
           p_cambios: Json
           p_claves: string[]
         }
-        Returns: {
-          actualizado_en: string
-          actualizado_por: string | null
-          arribo_el: string | null
-          booking: string | null
-          contenedor: string | null
-          creado_en: string
-          eta_el: string | null
-          id: string
-          naviera_id: string | null
-          notas: string | null
-          puerto_destino_id: string | null
-          puerto_origen_id: string | null
-          repuesto_id: string | null
-          sigue_al_vehiculo: boolean
-          vehiculo_id: string | null
-          zarpe_el: string | null
-        }
+        Returns: Database['public']['CompositeTypes']['datos_de_transporte']
         SetofOptions: {
           from: '*'
-          to: 'transportes'
+          to: 'datos_de_transporte'
           isOneToOne: true
           isSetofReturn: false
         }
       }
       _transporte_clave: { Args: { p_clave: string; p_tipo: string }; Returns: string }
+      _transporte_de_la_clave: {
+        Args: { p_clave: string; p_tipo: string }
+        Returns: {
+          arribo_el: string
+          eta_el: string
+          naviera_id: string
+          puerto_destino_id: string
+          puerto_origen_id: string
+          repuesto_id: string
+          transporte_id: string
+          vehiculo_id: string
+          zarpe_el: string
+        }[]
+      }
       _transporte_grupo_bloquear: {
         Args: { p_repuestos: string[]; p_vehiculos: string[] }
         Returns: undefined
       }
       _transporte_grupos_filtros: { Args: { p_filtros: Json }; Returns: Record<string, unknown> }
+      _transporte_mudar: {
+        Args: { p_contenedor: string; p_embarque: string; p_transporte: string }
+        Returns: undefined
+      }
+      _transporte_origen: { Args: { p_repuesto: string; p_vehiculo: string }; Returns: string }
       _transporte_unidad: {
         Args: { p_bloquear: boolean; p_repuesto: string; p_vehiculo: string }
         Returns: Record<string, unknown>
       }
       _transporte_validar: {
         Args: {
-          n: Omit<
-            Database['public']['Tables']['transportes']['Row'],
-            Database['public']['Tables']['transportes']['ComputedFields']
-          >
-          o: Omit<
-            Database['public']['Tables']['transportes']['Row'],
-            Database['public']['Tables']['transportes']['ComputedFields']
-          >
+          n: Database['public']['CompositeTypes']['datos_de_transporte']
+          o: Database['public']['CompositeTypes']['datos_de_transporte']
           p_fase: string
           p_flujo: string
           p_titulo: string
@@ -10154,6 +10540,14 @@ export type Database = {
         Returns: undefined
       }
       _unidad_sin_acceso: { Args: { p_vehiculo: string }; Returns: string }
+      _unidades_de: {
+        Args: { p_contenedor: string; p_embarque: string }
+        Returns: {
+          repuesto_id: string
+          transporte_id: string
+          vehiculo_id: string
+        }[]
+      }
       _url_del_proyecto: { Args: Record<PropertyKey, never>; Returns: string }
       _uuid_de: { Args: { p_hint: string; p_valor: Json }; Returns: string }
       _valor_fuera_de_rango: {
@@ -10316,6 +10710,7 @@ export type Database = {
         Returns: string
       }
       _vehiculos_cotizado_rellenar: { Args: Record<PropertyKey, never>; Returns: number }
+      _vehiculos_de: { Args: { p_contenedor: string; p_embarque: string }; Returns: Json }
       _vehiculos_inventario_condicion: {
         Args: { p_columna: string; p_filtro?: Json; p_i: number; p_tipo: string }
         Returns: string
@@ -10361,6 +10756,7 @@ export type Database = {
       _web_doc_ruta_valida: { Args: { p_ruta: string }; Returns: boolean }
       _web_html_escapar: { Args: { p_texto: string }; Returns: string }
       _web_legales_validar: { Args: { p_anterior: Json; p_legales: Json }; Returns: Json }
+      _zarpe_estimado: { Args: { p_actual: string; p_cambios: Json }; Returns: string }
       actividad_diff: { Args: { p_id: number }; Returns: Json }
       actividad_listar: {
         Args: {
@@ -10573,6 +10969,12 @@ export type Database = {
           p_origen: string
         }
         Returns: boolean
+      }
+      contenedor_crear: { Args: { p_datos: Json; p_id: string; p_origen: string }; Returns: Json }
+      contenedor_estado: { Args: { p_contenedor: string }; Returns: string }
+      contenedor_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_id: string }
+        Returns: Json
       }
       cotizacion_adjuntar: {
         Args: {
@@ -10991,6 +11393,12 @@ export type Database = {
         Returns: Json
       }
       documentos_vencimientos: { Args: Record<PropertyKey, never>; Returns: number }
+      embarque_crear: { Args: { p_datos: Json; p_id: string; p_origen: string }; Returns: Json }
+      embarque_estado: { Args: { p_embarque: string }; Returns: string }
+      embarque_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_id: string }
+        Returns: Json
+      }
       embudo_crear: { Args: { p_id: string; p_nombre: string }; Returns: Json }
       embudo_eliminar: { Args: { p_actualizado_en_esperado: string; p_id: string }; Returns: Json }
       embudo_etapa_pagina: {
@@ -12430,11 +12838,14 @@ export type Database = {
         Args: {
           p_actualizado_en_esperado: string
           p_cambios: Json
+          p_contenedor_esperado?: string
+          p_embarque_esperado?: string
           p_repuesto: string
           p_vehiculo: string
         }
         Returns: Json
       }
+      transporte_leer: { Args: { p_vehiculo: string }; Returns: Json }
       unidad_llego_a_fase: {
         Args: { p_fase: string; p_repuesto: string; p_vehiculo: string }
         Returns: boolean
@@ -12740,7 +13151,20 @@ export type Database = {
       visibilidad_seguimiento: 'privado' | 'publico'
     }
     CompositeTypes: {
-      [_ in never]: never
+      datos_de_transporte: {
+        vehiculo_id: string | null
+        repuesto_id: string | null
+        sigue_al_vehiculo: boolean | null
+        contenedor: string | null
+        booking: string | null
+        naviera_id: string | null
+        puerto_origen_id: string | null
+        puerto_destino_id: string | null
+        zarpe_el: string | null
+        eta_el: string | null
+        arribo_el: string | null
+        notas: string | null
+      }
     }
   }
   web: {
