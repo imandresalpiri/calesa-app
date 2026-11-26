@@ -3,6 +3,7 @@
 // ofrece, cómo arma lo que viaja) y sus operaciones (las Server Actions por detrás).
 import type { ReactNode } from 'react'
 import type { Resultado } from '@/shared/lib/errores'
+import type { OperacionesDelCatalogo } from '@/shared/ui/catalogo-en-drawer'
 import {
   tieneRango,
   type CampoBase,
@@ -74,6 +75,8 @@ export type GruposDelEditor = {
   puedeCrear: boolean
   // Crea el grupo (el combo lo elige); un rechazo («Ya existe «X».») lo dice el combo.
   crear: (nombre: string) => Promise<Resultado<GrupoDeCampos>>
+  // Lo que hace el drawer «Grupos» (`?panel=grupos`): agregar, renombrar, ordenar, activar y quitar. Sin él, no hay drawer.
+  operaciones: OperacionesDelCatalogo | null
 }
 
 // Las operaciones: las del `useCampos()` de cada módulo. Toda edición manda la versión que vio.

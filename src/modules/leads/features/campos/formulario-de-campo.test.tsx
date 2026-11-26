@@ -64,6 +64,7 @@ const GRUPOS = {
   lista: [],
   hayMas: false,
   puedeCrear: true,
+  operaciones: null,
   crear: vi.fn(() =>
     Promise.resolve(
       ok({

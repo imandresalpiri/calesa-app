@@ -44,7 +44,9 @@ Leads (prospectos y clientes) con teléfono principal único y enmascarado salvo
   `/leads/importar` (`leads.crear`), `POST /leads/exportar` (`leads.exportar`), `/configuracion/leads` (`leads.configurar`: `ConfiguracionDeLeads`, seis tarjetas con su modal por `?panel=`, `features/configuracion/` y los `features/` de cada una;
   Tipos de lead, Orígenes, Seguimientos, Embudo, Mensaje del portal y Teléfonos extra con su «Números repetidos») y `/configuracion/leads/campos` (`EditorDeCamposDeLead`,
   `leads.campos.gestionar` con las `lead_campo_*`; el grupo de un campo se elige del catálogo `leads_campos_grupos`, que la página lee con
-  `leerGruposDeCampos()` y el combo amplía con `crearGrupoDeCampos`, sin revalidar: `hooks/use-grupos-de-campos.ts`). Los paneles de cada tarjeta, por familia: `entities/paneles-de-la-configuracion.ts`. El Mensaje del
+  `leerGruposDeCampos()` y el combo amplía con `crearGrupoDeCampos`, sin revalidar: `hooks/use-grupos-de-campos.ts`; el drawer «Grupos»,
+  `?panel=grupos&quitar=<id>`, con `agregarGrupoDeCampos`, `guardarGrupoDeCampos`, `moverGrupoDeCampos` y `quitarGrupoDeCampos`, que revalidan
+  `/configuracion/leads`). Los paneles de cada tarjeta, por familia: `entities/paneles-de-la-configuracion.ts`. El Mensaje del
   portal usa `EditorConVariables` de `shared`.
   Los teléfonos se administran en el panel de edición (la ficha sólo los lee, en los datos clave y en «Ver más»): «Cambiar el principal» (cartera y `leads.editar`, sólo en la ficha;
   apagado con cambios escritos) pasa a `?panel=cambiar-telefono` reemplazando la entrada; «Agregar teléfono» es `?extra=nuevo` dentro del panel. Con la cartera y

@@ -15,3 +15,5 @@ export {
   type OpcionDelCombo,
   type OpcionesDelCombo,
 } from './combo'
+export { despuesDeAlMover, usosPorElemento, type DireccionDeOrden } from './orden'
+export { esquemaDestinoAlQuitar, rechazoDelCatalogo, type DestinoAlQuitar } from './gestion'

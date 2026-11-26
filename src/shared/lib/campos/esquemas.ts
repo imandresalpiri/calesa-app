@@ -42,13 +42,21 @@ export const esquemaOpciones = z
     error: 'Hay dos opciones con el mismo nombre.',
   })
 
-// El nombre de un grupo de campos nuevo, limpio como lo guarda la base (`_nombre_limpio()`); el duplicado lo rechaza la base.
+// El largo del nombre de un grupo de campos (el `check` de `leads_campos_grupos` y `origenes_campos_grupos`).
+export const LARGO_DEL_NOMBRE_DE_GRUPO = 40
+
+const HASTA_EL_LARGO = `Hasta ${String(LARGO_DEL_NOMBRE_DE_GRUPO)} caracteres.`
+
+// El nombre de un grupo de campos, limpio como lo guarda la base (`_nombre_limpio()`); el duplicado lo rechaza la base.
 export const esquemaNombreDeGrupo = z
   .string()
-  .max(200, { error: 'Hasta 40 caracteres.' })
+  .max(200, { error: HASTA_EL_LARGO })
   .transform(nombreLimpio)
   .pipe(
-    z.string().min(1, { error: 'Escribe un nombre.' }).max(40, { error: 'Hasta 40 caracteres.' }),
+    z
+      .string()
+      .min(1, { error: 'Escribe un nombre.' })
+      .max(LARGO_DEL_NOMBRE_DE_GRUPO, { error: HASTA_EL_LARGO }),
   )
 
 // El grupo de campos se elige del catálogo: viaja su id; null = sin grupo.

@@ -51,6 +51,7 @@ export {
   type Sustantivo,
 } from './impacto'
 export {
+  LARGO_DEL_NOMBRE_DE_GRUPO,
   conReglasDeCampo,
   esquemaClave,
   esquemaEtiqueta,

@@ -1032,6 +1032,14 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
   buscador y «Nuevo campo», los grupos como en el formulario con sus insignias («En la tabla», «Filtrable», «Solo la cartera», «De fábrica»),
   el arrastre dentro del grupo, el «⋯» y el panel `?campo=`; «Desactivados» a la vista, debajo, con «Activar» en su «⋯». Fijos: teléfono, nombre, tipo y
   que el lead tenga origen.
+- **El grupo de un campo se elige** (glosario «Grupo de campos»): en el panel, «Grupo» es un combo con buscador que ofrece los activos del layout; lo
+  escrito con otra escritura de uno que existe no se crea («Ya existe «Datos del Cliente».»; inactivo: «… (inactivo): actívalo en «Grupos».») y, si
+  no hay coincidencia, la última opción es «Crear grupo «x»». El valor guardado que se desactivó se ve «X (inactivo)».
+- **«Grupos»** (botón de la cabecera, antes de «Nuevo campo»): un drawer `?panel=grupos` con el nombre arriba («Agregar»; «Renombrar «X»» al
+  tocar una fila, con «Cancelar»), la lista con cuántos campos tiene cada uno y su «⋯» (Renombrar · Desactivar o Activar · Subir · Bajar · Quitar…).
+  Quitar (`&quitar=<id>`) pregunta nombrándolo; con campos, ««X» tiene 3 campos. Muévelos antes de quitarlo.», «Mover sus 3 campos a…» («Sin
+  grupo» o otro activo) y «Mover y quitar». Vacío: «Todavía no hay grupos» / «Créalos aquí o desde el campo.». Conflicto `PT409` con «Recargar»,
+  que conserva lo escrito; tope de 100 con `AvisoDeTope`. Sin permiso, la lista de sólo lectura con el motivo, sin el nombre ni Subir y Bajar.
 - **Impacto, siempre con números y dentro del panel:** volver requerido (cuántos leads no podrán guardarse hasta completarlo); cambiar el
   tipo o eliminar con datos; sacar una opción en uso; dejar de ser «solo la cartera». Conflicto con «Recargar».
 - **Orígenes del lead, tipos de lead y tipos de seguimiento** (modales `?panel=origenes|tipos|seguimientos`, patrón de `shared/ui/lista`, sin título

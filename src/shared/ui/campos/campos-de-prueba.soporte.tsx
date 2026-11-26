@@ -100,6 +100,7 @@ export function grupos(parcial: Partial<GruposDelEditor> = {}): GruposDelEditor 
     lista: [],
     hayMas: false,
     puedeCrear: true,
+    operaciones: null,
     crear: vi.fn((nombre: string) =>
       Promise.resolve(
         ok({
