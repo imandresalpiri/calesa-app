@@ -16,12 +16,17 @@ import type {
 import { useGuardarElPar, type EdicionDelPar } from '../../hooks/use-guardar-el-par'
 import type { GuardadoEnPar } from '../../hooks/use-guardado-en-par'
 import type { AperturaDeHoja } from '../../hooks/use-hoja'
+import { totalSuelto } from '../../../../entities/presentacion-de-la-hoja'
+import { useDelTotal } from '../../hooks/use-del-total'
 import type { HermanaEnLaVistaPrevia } from '../huecos'
 import { useHojaEnPar, type ColumnaDeLaHoja } from '../../hooks/use-hoja-en-par'
+import { CierreDeLaHoja, hayCierre } from '../cierre-de-la-hoja'
 import { ColumnaDeLaHoja as Columna } from '../columna-de-la-hoja'
-import type { PasosDeLaPagina } from '../pasos-de-la-hoja'
+import { ContextoDelTotal } from '../contexto-del-total'
+import { RegionDelTotal } from '../region-del-total'
 import { ContextoDelPar, type HojaDelPar } from './contexto-del-par'
-import { ResumenDelPar } from './resumen-del-par'
+import { TotalesEnPar } from './totales-en-par'
+import { VistaPreviaDelPar } from './vista-previa-del-par'
 
 type DeDos<T> = readonly [T, T]
 
@@ -53,7 +58,6 @@ export type PropsDeLaHojaEnPar = {
   }
   // La columna de la cotización que se abrió (la primera en la hoja nueva).
   abierta?: 0 | 1
-  pasos?: PasosDeLaPagina
   // La marca de privada de la hoja nueva y su interruptor (como `HojaDeCotizar`): las dos hermanas nacen con la misma. Sin ella, públicas.
   privada?: { valor: boolean; interruptor: ReactNode }
 }
@@ -110,35 +114,102 @@ function useLaHojaDelPar(p: PropsDeLaHojaEnPar) {
   return { raiz, vista, h, columnas, ca, cb, delPar, boton, hayCambios }
 }
 
+// Puede cotizar en el origen pero su rol no ve ningún dato de la hoja.
+function SinDatosQueVer() {
+  return (
+    <EstadoSinPermiso
+      titulo="No puedes ver esta hoja"
+      descripcion="Tu rol puede cotizar en este origen, pero no ve los datos de su hoja. Pídeselo a quien administra los roles."
+    />
+  )
+}
+
+// «Dos versiones: …», sobre la hoja.
+function LineaDelPar({ par }: { par: ParDeHoja }) {
+  return (
+    <p data-linea-del-par="" className="text-(length:--text-sm) text-(--color-ink-soft)">
+      {lineaDelPar(par)}
+    </p>
+  )
+}
+
+// Los dos totales de la hoja en par, cada uno con lo suyo (su estado y su «Reintentar»), en la región del total.
+function TotalesDelPar({
+  hoja,
+  par,
+  columnas,
+  contextos,
+  alRecargar,
+}: {
+  hoja: HojaLista
+  par: ParDeHoja
+  columnas: DeDos<ColumnaDeLaHoja>
+  contextos: DeDos<ContextoDeHoja>
+  alRecargar: () => void
+}) {
+  const [a, b] = columnas
+  return (
+    <RegionDelTotal
+      etiqueta={hoja.tarjetaTotal.etiqueta}
+      contexto={contextos[0]}
+      totales={
+        <TotalesEnPar
+          tarjeta={hoja.tarjetaTotal}
+          par={par}
+          columnas={[
+            { contexto: contextos[0], estado: a.estado, alReintentar: a.reintentar },
+            { contexto: contextos[1], estado: b.estado, alReintentar: b.reintentar },
+          ]}
+          monedaDelTotalBs={a.verTotalBs ? hoja.cabecera.monedaBs : null}
+          alRecargar={alRecargar}
+        />
+      }
+    />
+  )
+}
+
 // La hoja en par (glosario: «Variante en par»): sin chips de la variante, la línea «Dos versiones: …», las celdas que cambian según la opción en dos celdas lado a
-// lado (`ItemEnPar`, por `ContextoDelPar`) y las comunes una vez, y el resumen con los dos totales. Guardar crea (o guarda) las dos hermanas en una transacción.
+// lado (`ItemEnPar`, por `ContextoDelPar`) y las comunes una vez, los dos totales sueltos encima de «Avanzado» y el cierre debajo. Guardar crea (o guarda) las dos
+// hermanas en una transacción.
 export function HojaEnPar(props: PropsDeLaHojaEnPar) {
-  const { hoja, par, soloLectura = false, encima, pasos } = props
+  const { hoja, par, soloLectura = false, encima } = props
   const router = useRouter()
   const recargar = props.alRecargar ?? router.refresh
   const { raiz, vista, h, columnas, ca, cb, delPar, boton, hayCambios } = useLaHojaDelPar(props)
+  const delTotal = useDelTotal({
+    hoja,
+    h,
+    recargar,
+    vehiculoSoltado: props.vehiculoSoltado,
+    totalGuardado: props.totalGuardado ?? null,
+    pisadas: null,
+  })
   const guardando = vista?.estado.tipo === 'guardando'
   const dibujadas = hoja.secciones.filter((seccion) => seccionSeDibuja(seccion, ca))
   if (dibujadas.length === 0) {
-    return (
-      <EstadoSinPermiso
-        titulo="No puedes ver esta hoja"
-        descripcion="Tu rol puede cotizar en este origen, pero no ve los datos de su hoja. Pídeselo a quien administra los roles."
-      />
-    )
+    return <SinDatosQueVer />
+  }
+  const cierre = {
+    boton,
+    soloLectura,
+    guardado: vista,
+    version: hoja.formula.version,
+    alRecargar: recargar,
+    confirmacion: props.edicion ? 'Cambios guardados.' : null,
+    elecciones: props.elecciones,
   }
   return (
     <ContextoDelPar.Provider value={delPar}>
-      <div
-        ref={raiz}
-        data-hoja=""
-        data-par=""
-        inert={guardando}
-        className="@container/hoja grid min-w-0 gap-4"
-      >
-        <SimbolosDeXCell />
-        <EstiloDeTonos tonos={hoja.tonos} />
-        <div className="flex min-w-0 flex-col gap-4 @4xl/hoja:flex-row @4xl/hoja:items-start">
+      <ContextoDelTotal value={delTotal}>
+        <div
+          ref={raiz}
+          data-hoja=""
+          data-par=""
+          inert={guardando}
+          className="@container/hoja grid min-w-0 gap-4"
+        >
+          <SimbolosDeXCell />
+          <EstiloDeTonos tonos={hoja.tonos} />
           <Columna
             hoja={hoja}
             h={h}
@@ -149,31 +220,33 @@ export function HojaEnPar(props: PropsDeLaHojaEnPar) {
             encima={
               <>
                 {encima?.(hayCambios)}
-                <p
-                  data-linea-del-par=""
-                  className="text-(length:--text-sm) text-(--color-ink-soft)"
-                >
-                  {lineaDelPar(par)}
-                </p>
+                <LineaDelPar par={par} />
               </>
             }
             alRecargar={recargar}
-            pasos={pasos}
-          />
-          <ResumenDelPar
-            hoja={hoja}
-            par={par}
-            h={h}
-            columnas={columnas}
-            contextos={[ca, cb]}
-            props={props}
-            vista={vista}
-            boton={boton}
-            hayCambios={hayCambios}
-            alRecargar={recargar}
+            privada={props.privada?.interruptor ?? null}
+            totalSuelto={
+              totalSuelto(dibujadas, true) ? (
+                <TotalesDelPar
+                  hoja={hoja}
+                  par={par}
+                  columnas={columnas}
+                  contextos={[ca, cb]}
+                  alRecargar={recargar}
+                />
+              ) : null
+            }
+            cierre={hayCierre(cierre) ? <CierreDeLaHoja {...cierre} /> : null}
           />
         </div>
-      </div>
+        <VistaPreviaDelPar
+          hoja={hoja}
+          par={par}
+          columnas={columnas}
+          props={props}
+          hayCambios={hayCambios}
+        />
+      </ContextoDelTotal>
     </ContextoDelPar.Provider>
   )
 }

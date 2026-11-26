@@ -10,10 +10,6 @@ import type { leerElParDeLaGuardada } from './par-de-la-guardada'
 
 type DelPar = Awaited<ReturnType<typeof leerElParDeLaGuardada>>
 type Lectura = Parameters<typeof leerElParDeLaGuardada>[0]
-type Pasos = {
-  vehiculo: { panel: string; elegido: boolean; obligatorio: boolean } | null
-  cliente: null
-}
 
 // Bajo la cabecera de una hermana (glosario: «Cotizaciones hermanas»): el enlace a la otra y, si se abrió sola, por qué.
 export function LaHermana({ hoja, delPar }: { hoja: HojaDeUnaGuardada; delPar: DelPar }) {
@@ -34,14 +30,12 @@ export function HojaDeLaGuardada({
   delPar,
   personaId,
   cambio,
-  pasos,
   valoresDelVehiculo,
 }: {
   lectura: Lectura
   delPar: DelPar
   personaId: string
   cambio: CambioPermitido
-  pasos: Pasos
   valoresDelVehiculo: Readonly<Record<string, number | string>> | undefined
 }) {
   const { hoja, inicial, vehiculoNuevo } = lectura
@@ -50,7 +44,6 @@ export function HojaDeLaGuardada({
     panelDelTitulo: PANEL_DEL_VEHICULO,
     vehiculoNuevo,
     cambiaVehiculo: cambio === 'elige',
-    pasos,
   }
   if ('hojas' in delPar) {
     return (

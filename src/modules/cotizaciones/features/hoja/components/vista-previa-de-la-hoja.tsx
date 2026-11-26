@@ -1,7 +1,6 @@
 'use client'
 
 import { useContext, useMemo } from 'react'
-import { Button } from '@/shared/ui/button'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import {
@@ -17,15 +16,15 @@ import { useAporteAlMenu } from './menu-de-la-guardada/use-aporte-al-menu'
 
 type Props = Omit<PropsDeLaVistaPrevia, 'abierta' | 'cerrar'>
 
-// «Vista previa» (4.18-2): el modal con su URL (`?panel=vista-previa`; recargar lo abre y «atrás» lo cierra) y lo que lo abre: el botón del pie del resumen en la hoja nueva y,
-// en una guardada, su línea del «⋯» de la cabecera (sin un nodo en la hoja). Lo dibuja el área `tarjeta` por el hueco `ContextoDeLaVistaPrevia`: sin proveedor no hay botón,
+// «Vista previa» (4.18-2): el modal con su URL (`?panel=vista-previa`; recargar lo abre y «atrás» lo cierra) y, en una guardada, su línea del «⋯» de la cabecera. Lo abre
+// también el paso «Vista previa» de los pasos de la hoja (`PasosDeLaHoja`); aquí no se dibuja un botón. Lo dibuja el área `tarjeta` por el hueco `ContextoDeLaVistaPrevia`: sin proveedor no hay paso,
 // línea ni nodo. El código del modal se pide la primera vez que se abre. Está también para quien sólo ve la cotización: ver la tarjeta no es guardar. El modal va en un
 // portal, fuera de `[data-hoja]` (la hoja está al borde de sus 525 nodos).
 export function VistaPreviaDeLaHoja(props: Props) {
   const area = useContext(ContextoDeLaVistaPrevia)
   const panel = usePanelPorUrl(PANEL_DE_VISTA_PREVIA)
   const montar = useAbiertoAlgunaVez(panel.abierto)
-  const { enElMenu } = useAporteAlMenu(
+  useAporteAlMenu(
     area === null
       ? null
       : {
@@ -41,22 +40,7 @@ export function VistaPreviaDeLaHoja(props: Props) {
   if (area === null) {
     return null
   }
-  return (
-    <>
-      {enElMenu ? null : (
-        <Button
-          variant="outline"
-          className="min-h-11 md:min-h-8"
-          onClick={() => {
-            panel.abrir()
-          }}
-        >
-          Vista previa
-        </Button>
-      )}
-      {montar ? area.dibujar({ ...props, abierta: panel.abierto, cerrar: panel.cerrar }) : null}
-    </>
-  )
+  return montar ? area.dibujar({ ...props, abierta: panel.abierto, cerrar: panel.cerrar }) : null
 }
 
 type PropsDeLaHojaViva = {

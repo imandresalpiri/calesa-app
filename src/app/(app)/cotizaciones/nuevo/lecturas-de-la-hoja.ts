@@ -108,13 +108,8 @@ export async function leerLoDeLaHoja(
 }
 
 // Qué pide el rol de quien mira en este origen y cómo se elige. Con «Ver como» son los permisos del rol elegido (`sesion.permisos`); la base decide con los reales, así que la hoja
-// nunca afloja lo que ella exige. Al navegador viajan booleanos y textos. Los pasos de la hoja: «Vehículo» y «Cliente» abren el panel de su barra, sólo si quien mira puede ver
-// vehículos o leads (sin eso la barra no tiene panel), con el punto de si hay uno elegido o falta y es obligatorio.
-export function reglasDeLaHoja(
-  permisos: Permisos,
-  origenId: string,
-  elegidos: { vehiculo: string | null; lead: string | null } = { vehiculo: null, lead: null },
-) {
+// nunca afloja lo que ella exige. Al navegador viajan booleanos y textos.
+export function reglasDeLaHoja(permisos: Permisos, origenId: string) {
   const obligatorios = obligatoriosAlCotizar(permisos, origenId)
   return {
     obligatorios,
@@ -122,21 +117,5 @@ export function reglasDeLaHoja(
       cliente: PANEL_DEL_CLIENTE,
       vehiculo: PANEL_DEL_VEHICULO,
     }),
-    pasos: {
-      vehiculo: puede(permisos, 'vehiculos.ver', origenId)
-        ? {
-            panel: PANEL_DEL_VEHICULO,
-            elegido: elegidos.vehiculo !== null,
-            obligatorio: obligatorios.vehiculo,
-          }
-        : null,
-      cliente: puede(permisos, 'leads.ver')
-        ? {
-            panel: PANEL_DEL_CLIENTE,
-            elegido: elegidos.lead !== null,
-            obligatorio: obligatorios.lead,
-          }
-        : null,
-    },
   }
 }

@@ -10,12 +10,13 @@ import {
 } from '@/modules/cotizaciones'
 import {
   CabeceraDeLaGuardada,
+  CabeceraQuieta,
   EsqueletoDeHoja,
+  ProveedorDeLaRanuraDeLaCabecera,
   ProveedorDelMenuDeLaGuardada,
 } from '@/modules/cotizaciones/pantallas/cotizacion'
 import { requerirSesion } from '@/modules/equipo'
 import { RegistrarVisto } from '@/modules/equipo/pantallas/visto-de-la-ficha'
-import { PANEL_DEL_VEHICULO } from '@/modules/vehiculos/pantallas/cotizar'
 import type { Permisos } from '@/shared/lib/permisos'
 import { EstadoVacio } from '@/shared/ui/estados'
 import { ConProveedorDeLaHoja } from '../con-proveedor-de-la-hoja'
@@ -35,24 +36,6 @@ import { barraDeLaCabecera, ConElTituloDeLaGuardada } from './titulo-de-la-guard
 import { leerLoDelVehiculo } from './vehiculo-de-la-guardada'
 
 export const metadata: Metadata = { title: 'Cotización' }
-
-// Los pasos de una guardada: «Vehículo» sólo si la barra abre su panel (no en `solo_mostrar`); una guardada no tiene panel del cliente.
-function pasosDeLaGuardada(
-  cambio: 'elige' | 'final' | 'no',
-  {
-    hoja,
-    vehiculoNuevo,
-  }: { hoja: { cotizacion: { vehiculoId: string | null } }; vehiculoNuevo: string | null },
-) {
-  const vehiculoId = vehiculoNuevo ?? hoja.cotizacion.vehiculoId
-  return {
-    vehiculo:
-      cambio === 'no'
-        ? null
-        : { panel: PANEL_DEL_VEHICULO, elegido: vehiculoId !== null, obligatorio: false },
-    cliente: null,
-  }
-}
 
 // Una cotización guardada (`docs/UX.md` › «Cotizar»): su hoja con lo que se guardó, en sólo lectura para quien no la puede guardar (`cotizaciones.ver`; P8, P13). Se llega desde el
 // historial del vehículo y desde la tarjeta de lo guardado. `?vehiculo=` es el vehículo elegido en el panel para cambiar el de una preventa (T315): la hoja calcula con él.
@@ -146,6 +129,18 @@ function propsDeLosHuecos(
   }
 }
 
+// La cabecera quieta que la ranura muestra antes de hidratar, con el modo y «Ver total» de la guardada.
+function reservaDeLaCabecera(hoja: HojaDeUnaGuardada) {
+  return (
+    <CabeceraQuieta
+      cabecera={hoja.diseno.cabecera}
+      modoElegido={hoja.cotizacion.modoTc}
+      verTotalBs={hoja.cotizacion.verTotalBs}
+      deshabilitado={!hoja.puedeGuardar}
+    />
+  )
+}
+
 async function Cotizacion({
   params,
   searchParams,
@@ -175,48 +170,50 @@ async function Cotizacion({
       <RegistrarVisto modulo="cotizaciones" tipo="cotizacion" id={hoja.cotizacion.id} />
       <VolverALaFicha parametros={url} />
       <ProveedorDelMenuDeLaGuardada>
-        <ConElTituloDeLaGuardada
-          hoja={hoja}
-          personaId={sesion.usuarioId}
-          vehiculo={deLaHoja}
-          par={hoja.diseno.par}
-        >
-          <ConProveedorDeLaHoja
-            origenId={hoja.cotizacion.origenId}
-            cotizacionId={hoja.cotizacion.id}
-            permisos={sesion.permisos}
-            tarjeta={tarjetaDeLaGuardada(hoja, { cliente, vehiculo, asesor })}
+        <ProveedorDeLaRanuraDeLaCabecera>
+          <ConElTituloDeLaGuardada
+            hoja={hoja}
+            personaId={sesion.usuarioId}
+            vehiculo={deLaHoja}
+            par={hoja.diseno.par}
           >
-            <CabeceraDeLaGuardada
-              id={hoja.cotizacion.id}
-              numero={hoja.cotizacion.numero}
-              clase={hoja.cotizacion.clase}
-              actualizadoEn={hoja.cotizacion.actualizadoEn}
-              version={hoja.cotizacion.version}
-              cadena={hoja.cadena}
-              venceEl={hoja.venceEl}
-              vencida={hoja.vencida}
-              origen={hoja.diseno.origen.nombre}
-              cliente={cliente?.nombre ?? null}
-              vehiculo={vehiculo?.titulo ?? null}
-              barra={barraDeLaCabecera(hoja, deLaHoja, delVehiculo, sesion.permisos)}
-              guardable={hoja.puedeGuardar}
-              acciones={dibujarHuecos(HUECOS_DE_LA_GUARDADA, 'Acciones', props)}
-              insignias={dibujarHuecos(HUECOS_DE_LA_GUARDADA, 'Insignias', props)}
-              privada={hoja.cotizacion.privada === true}
-            />
-            <LaHermana hoja={hoja} delPar={delPar} />
-            {dibujarHuecos(HUECOS_DE_LA_GUARDADA, 'BajoLaCabecera', props)}
-            <HojaDeLaGuardada
-              lectura={lectura.data}
-              delPar={delPar}
-              personaId={sesion.usuarioId}
-              cambio={delVehiculo.cambio}
-              pasos={pasosDeLaGuardada(delVehiculo.cambio, lectura.data)}
-              valoresDelVehiculo={valoresDelVehiculoDe(hoja.diseno, deLaHoja)}
-            />
-          </ConProveedorDeLaHoja>
-        </ConElTituloDeLaGuardada>
+            <ConProveedorDeLaHoja
+              origenId={hoja.cotizacion.origenId}
+              cotizacionId={hoja.cotizacion.id}
+              permisos={sesion.permisos}
+              tarjeta={tarjetaDeLaGuardada(hoja, { cliente, vehiculo, asesor })}
+            >
+              <CabeceraDeLaGuardada
+                id={hoja.cotizacion.id}
+                numero={hoja.cotizacion.numero}
+                clase={hoja.cotizacion.clase}
+                actualizadoEn={hoja.cotizacion.actualizadoEn}
+                version={hoja.cotizacion.version}
+                cadena={hoja.cadena}
+                venceEl={hoja.venceEl}
+                vencida={hoja.vencida}
+                origen={hoja.diseno.origen.nombre}
+                cliente={cliente?.nombre ?? null}
+                vehiculo={vehiculo?.titulo ?? null}
+                barra={barraDeLaCabecera(hoja, deLaHoja, delVehiculo, sesion.permisos)}
+                guardable={hoja.puedeGuardar}
+                reservaDeLaCabecera={reservaDeLaCabecera(hoja)}
+                acciones={dibujarHuecos(HUECOS_DE_LA_GUARDADA, 'Acciones', props)}
+                insignias={dibujarHuecos(HUECOS_DE_LA_GUARDADA, 'Insignias', props)}
+                privada={hoja.cotizacion.privada === true}
+              />
+              <LaHermana hoja={hoja} delPar={delPar} />
+              {dibujarHuecos(HUECOS_DE_LA_GUARDADA, 'BajoLaCabecera', props)}
+              <HojaDeLaGuardada
+                lectura={lectura.data}
+                delPar={delPar}
+                personaId={sesion.usuarioId}
+                cambio={delVehiculo.cambio}
+                valoresDelVehiculo={valoresDelVehiculoDe(hoja.diseno, deLaHoja)}
+              />
+            </ConProveedorDeLaHoja>
+          </ConElTituloDeLaGuardada>
+        </ProveedorDeLaRanuraDeLaCabecera>
       </ProveedorDelMenuDeLaGuardada>
       {dibujarHuecos(HUECOS_DE_LA_GUARDADA, 'Debajo', props)}
     </>

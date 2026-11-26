@@ -1,20 +1,18 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { NuqsTestingAdapter, type UrlUpdateEvent } from 'nuqs/adapters/testing'
+import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { respuestaDePrueba } from '../../../entities/hoja-de-prueba.soporte'
 import { ContextoDeLaVistaPrevia } from './hueco-de-la-vista-previa'
-import { PasosDeLaHoja, type PasosDeLaPagina } from './pasos-de-la-hoja'
+import { PasosDeLaHoja } from './pasos-de-la-hoja'
 
-const PASOS: PasosDeLaPagina = {
-  vehiculo: { panel: 'vehiculo', elegido: false, obligatorio: true },
-  cliente: { panel: 'cliente', elegido: true, obligatorio: true },
-}
-
-function montar({ pasos = PASOS, vistaPrevia = true, busqueda = '' } = {}) {
+function montar({
+  privada = <button type="button">Privada</button>,
+  vistaPrevia = true,
+}: { privada?: ReactNode; vistaPrevia?: boolean } = {}) {
   const cambios = vi.fn<(e: UrlUpdateEvent) => void>()
-  const nav = <PasosDeLaHoja pasos={pasos} respuesta={respuestaDePrueba()} />
+  const nav = <PasosDeLaHoja privada={privada} />
   render(
-    <NuqsTestingAdapter searchParams={busqueda} onUrlUpdate={cambios}>
+    <NuqsTestingAdapter onUrlUpdate={cambios}>
       {vistaPrevia ? (
         <ContextoDeLaVistaPrevia value={{ dibujar: () => null } as never}>
           {nav}
@@ -30,45 +28,35 @@ function montar({ pasos = PASOS, vistaPrevia = true, busqueda = '' } = {}) {
 afterEach(cleanup)
 
 describe('PasosDeLaHoja', () => {
-  it('«Hoja · Vehículo · Cliente · Vista previa», con el punto en texto y en `title`', () => {
+  it('«Privada · Vista previa», sin «Hoja», «Vehículo» ni «Cliente»', () => {
     montar()
     const nav = screen.getByRole('navigation', { name: 'Pasos de la hoja' })
-    const botones = [...nav.querySelectorAll('button')]
-    expect(botones.map((b) => b.getAttribute('title'))).toEqual([
-      'Hoja',
-      'Vehículo: obligatorio que falta',
-      'Cliente: elegido',
+    expect([...nav.querySelectorAll('[data-paso]')].map((p) => p.textContent)).toEqual([
+      'Privada',
       'Vista previa',
     ])
-    const vehiculo = screen.getByRole('button', {
-      name: 'Vehículo',
-      description: 'obligatorio que falta',
-    })
-    expect(vehiculo.tabIndex).toBe(-1)
-    expect(vehiculo.dataset['punto']).toBe('obligatorio-que-falta')
+    for (const quitado of ['Hoja', 'Vehículo', 'Cliente']) {
+      expect(screen.queryByRole('button', { name: quitado })).toBeNull()
+    }
+    expect(screen.getByRole('button', { name: 'Vista previa' }).tabIndex).toBe(-1)
   })
 
-  it('«Vehículo» abre su panel por la URL', async () => {
+  it('«Vista previa» abre su panel por la URL', async () => {
     const cambios = montar()
-    fireEvent.click(screen.getByRole('button', { name: 'Vehículo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Vista previa' }))
     await waitFor(() => {
-      expect(cambios.mock.calls.at(-1)?.[0].searchParams.get('panel')).toBe('vehiculo')
+      expect(cambios.mock.calls.at(-1)?.[0].searchParams.get('panel')).toBe('vista-previa')
     })
   })
 
-  it('«Hoja» cierra lo abierto (el panel y el ⚙ de la cabecera)', async () => {
-    const cambios = montar({ busqueda: '?panel=vehiculo&ajuste=cabecera' })
-    fireEvent.click(screen.getByRole('button', { name: 'Hoja' }))
-    await waitFor(() => {
-      expect(cambios).toHaveBeenCalled()
-    })
-    const url = cambios.mock.calls.at(-1)?.[0].searchParams
-    expect(url?.get('panel')).toBeNull()
-    expect(url?.get('ajuste')).toBeNull()
+  it('sin el interruptor (quien no puede marcarla, una guardada), sólo «Vista previa»', () => {
+    montar({ privada: null })
+    const nav = screen.getByRole('navigation', { name: 'Pasos de la hoja' })
+    expect(nav.textContent).toBe('Vista previa')
   })
 
-  it('sin la vista previa ni los paneles, sólo «Hoja»', () => {
-    montar({ pasos: { vehiculo: null, cliente: null }, vistaPrevia: false })
-    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Hoja'])
+  it('sin interruptor ni vista previa, la fila no se dibuja', () => {
+    montar({ privada: null, vistaPrevia: false })
+    expect(screen.queryByRole('navigation', { name: 'Pasos de la hoja' })).toBeNull()
   })
 })

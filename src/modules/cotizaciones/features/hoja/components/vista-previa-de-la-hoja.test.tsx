@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { calculoDePrueba } from '../../../entities/calculo-de-la-tarjeta.soporte'
 import { ContextoDeLaVistaPrevia } from './hueco-de-la-vista-previa'
 import type { PropsDeLaVistaPrevia } from './huecos'
+import { PasosDeLaHoja } from './pasos-de-la-hoja'
 import { VistaPreviaDeLaHoja } from './vista-previa-de-la-hoja'
 
 const FORMULA = '00000000-0000-4000-8000-0000000000aa'
@@ -20,6 +21,7 @@ const montar = (conArea: boolean, busqueda = '') => {
   const alActualizar = vi.fn<OnUrlUpdateFunction>()
   const vista = (
     <NuqsTestingAdapter searchParams={busqueda} onUrlUpdate={alActualizar}>
+      <PasosDeLaHoja privada={null} />
       <VistaPreviaDeLaHoja
         formulaId={FORMULA}
         calculo={calculoDePrueba()}
@@ -40,19 +42,20 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-describe('<VistaPreviaDeLaHoja>: el botón del resumen', () => {
+describe('<VistaPreviaDeLaHoja>: el modal, abierto desde los pasos de la hoja', () => {
   it('sin proveedor del área no dibuja nada: ni botón ni nodos', () => {
     const { container } = montar(false)
     expect(container.innerHTML).toBe('')
   })
 
-  it('con el hueco dibuja «Vista previa» y no monta el modal hasta abrirlo', () => {
+  it('con el hueco no dibuja un botón propio (el de los pasos es el único) y no monta el modal hasta abrirlo', () => {
     montar(true)
-    expect(screen.getByRole('button', { name: 'Vista previa' })).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: 'Vista previa' })).toHaveLength(1)
+    expect(document.querySelector('[data-paso="vista_previa"]')).toBeTruthy()
     expect(llamadas).toHaveLength(0)
   })
 
-  it('abrirlo escribe ?panel=vista-previa y monta el modal con la versión y el cálculo', async () => {
+  it('el paso «Vista previa» escribe ?panel=vista-previa y monta el modal con la versión y el cálculo', async () => {
     const { alActualizar } = montar(true)
     fireEvent.click(screen.getByRole('button', { name: 'Vista previa' }))
     await vi.waitFor(() => {

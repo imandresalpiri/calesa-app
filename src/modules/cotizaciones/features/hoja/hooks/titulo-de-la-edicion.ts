@@ -5,7 +5,7 @@ import {
   tituloCambio,
   tituloParaGuardar,
 } from '../../../entities/titulo-de-la-cotizacion'
-import type { BotonDeGuardar } from '../components/resumen-de-hoja'
+import type { BotonDeGuardar } from '../components/boton-guardar'
 import type { TituloDeLaCotizacion } from './use-titulo-de-la-cotizacion'
 
 export type TituloDeLaEdicion = {

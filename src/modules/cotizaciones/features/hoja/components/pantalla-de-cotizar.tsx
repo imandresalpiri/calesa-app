@@ -15,7 +15,6 @@ import { useTituloDeLaCotizacion } from '../hooks/use-titulo-de-la-cotizacion'
 import { useMarcaDeLaNueva } from '../../privada/hooks/use-marca-de-la-nueva'
 import { CotizacionGuardada } from './cotizacion-guardada'
 import { HojaDeCotizar } from './hoja-de-cotizar'
-import type { PasosDeLaPagina } from './pasos-de-la-hoja'
 
 type PropsDeLaHoja = {
   hoja: HojaLista
@@ -25,8 +24,6 @@ type PropsDeLaHoja = {
   // Lo que el rol pide elegir en este origen y cómo se elige: la página los calcula con los permisos de la sesión (booleanos y textos; `permisos.ts` no viaja).
   obligatorios: ObligatoriosAlCotizar
   elecciones: EleccionesDeLaHoja
-  // Los pasos de la hoja: los paneles del vehículo y del cliente que la página sabe abrir (nulo el que no va).
-  pasos?: PasosDeLaPagina
   // Los datos del vehículo elegido con que casa una tabla de la ayuda («Tu vehículo»): van con él y se congelan con la hoja.
   valoresDelVehiculo?: Readonly<Record<string, number | string>>
 }

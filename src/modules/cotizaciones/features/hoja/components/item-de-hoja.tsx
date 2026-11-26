@@ -44,8 +44,7 @@ const enParDe = (
 ): Extract<Item, { tipo: 'celda' | 'subtotal' }> | null =>
   enPar && (item.tipo === 'celda' || item.tipo === 'subtotal') && item.enPar === true ? item : null
 
-// La tarjeta del total como pieza. En par mandan los dos totales del resumen (`TotalesEnPar`): la pieza no dibuja nada. Al costado (`@4xl/hoja`) se ve ésta y
-// el resumen esconde la suya; en el celular, al revés (el total al pie): un solo total grande a cada ancho.
+// La tarjeta del total como pieza, visible a todo ancho. En par mandan los dos totales (`TotalesEnPar`, la tarjeta suelta arriba de «Avanzado»): la pieza no dibuja nada.
 function PiezaDelTotal({
   item,
   contexto,
@@ -57,7 +56,7 @@ function PiezaDelTotal({
 }) {
   if (enPar) return null
   return (
-    <div className={`${claseDelItem(item)} hidden @4xl/hoja:block`}>
+    <div className={claseDelItem(item)}>
       <TotalDeHoja item={item} contexto={contexto} />
     </div>
   )

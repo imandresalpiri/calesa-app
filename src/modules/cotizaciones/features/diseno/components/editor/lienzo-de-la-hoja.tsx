@@ -30,7 +30,7 @@ import { useArrastreDeLaHoja } from '../../hooks/use-arrastre-de-la-hoja'
 import type { EdicionesDelDiseno } from '../../hooks/use-ediciones-del-diseno'
 import type { EditorDelDiseno } from '../../hooks/use-editor-del-diseno'
 import { MarcoEscalado } from './marco-escalado'
-import { CabeceraDelLienzo, ResumenDelLienzo } from './piezas-fijas-del-lienzo'
+import { CabeceraDelLienzo, TotalSueltoDelLienzo } from './piezas-fijas-del-lienzo'
 import { SIN_TITULO } from './seccion-en-el-lienzo'
 import { SeccionesDelLienzo } from './secciones-del-lienzo'
 import { SumarSeccion } from './sumar-seccion'
@@ -144,34 +144,27 @@ export function LienzoDeLaHoja({
       <div data-hoja-del-lienzo="" className="@container/hoja grid min-w-0 gap-4 p-4">
         <SimbolosDeXCell />
         <EstiloDeTonos tonos={hoja.tonos} />
-        <div className="flex min-w-0 flex-col gap-4 @4xl/hoja:flex-row @4xl/hoja:items-start">
-          <div className="grid min-w-0 flex-1 gap-4">
-            <CabeceraDelLienzo hoja={hoja} contexto={contexto} apoyo={apoyo} />
-            <DndContext {...arrastre.contexto}>
-              <SeccionesDelLienzo
-                secciones={secciones}
-                ids={ids}
-                sobre={arrastre.seccionDestino}
-                activo={arrastre.activo}
-                apoyo={apoyo}
-                editor={editor}
-              />
-              <LoQueSeArrastra nombre={arrastre.activo === null ? null : nombre(arrastre.activo)} />
-            </DndContext>
-            <SumarSeccion
-              ocupado={editor.ocupado}
-              alSumar={(presentacion) => {
-                elegir({ pieza: 'seccion', seccion: editor.sumarSeccion(presentacion) })
-              }}
-            />
-          </div>
-          <ResumenDelLienzo
-            hoja={hoja}
-            contexto={contexto}
-            totalEnLaHoja={dondeVaElTotal(trabajo) !== null}
+        <CabeceraDelLienzo hoja={hoja} contexto={contexto} apoyo={apoyo} />
+        <DndContext {...arrastre.contexto}>
+          <SeccionesDelLienzo
+            secciones={secciones}
+            ids={ids}
+            sobre={arrastre.seccionDestino}
+            activo={arrastre.activo}
             apoyo={apoyo}
+            editor={editor}
           />
-        </div>
+          <LoQueSeArrastra nombre={arrastre.activo === null ? null : nombre(arrastre.activo)} />
+        </DndContext>
+        {dondeVaElTotal(trabajo) === null ? (
+          <TotalSueltoDelLienzo hoja={hoja} contexto={contexto} apoyo={apoyo} />
+        ) : null}
+        <SumarSeccion
+          ocupado={editor.ocupado}
+          alSumar={(presentacion) => {
+            elegir({ pieza: 'seccion', seccion: editor.sumarSeccion(presentacion) })
+          }}
+        />
       </div>
     </MarcoEscalado>
   )

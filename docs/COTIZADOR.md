@@ -207,7 +207,7 @@ el del pct (lo que valdría sin el pisado), y el monto se calcula con él. Sin p
 del total sigue con `se_calcula`. Lo que no tiene celda (el total, los subtotales, un `campo_vehiculo`, las banderas, la variante) nunca
 se pisa. La celda pisada dice «Editado a mano» (el lápiz), «Calculado: $480» (de `calculados`, en el formato del lado pisado) y ↺
 «Volver al calculado»; la primera pisada de cada hoja abierta muestra un aviso en línea que no bloquea («Pisaste un cálculo: queda fijo
-aunque cambien los datos. ↺ lo devuelve.»), también por un atajo, y no vuelve hasta que la hoja se monte otra vez. El resumen lista lo
+aunque cambien los datos. ↺ lo devuelve.»), también por un atajo, y no vuelve hasta que la hoja se monte otra vez. Bajo el total, la hoja lista lo
 pisado que cuenta («Editado a mano: Transferencia a USA $500, calculado $480»), en el orden de la hoja. **La tarjeta, el PDF y la imagen
 no lo marcan**: dibujan el valor y nada más. Las revisiones dicen «Pisó «X»: $480 → $500» y «Volvió al calculado «X»» (`cotizacion_revisiones()`).
 
@@ -435,13 +435,13 @@ tarjeta_total: {nodo, secundarios[]} }`.
   `filas` como chips); `variante` (el nodo `opcion` como chips; obligatoria si hay variante); `interruptor` (una `bandera` con `efecto`
   `habilita`, que deshabilita lo que condiciona, o `muestra`, que apagada no lo dibuja; toda bandera que condiciona algo o pide un dato
   tiene su interruptor); `subtotal` (un `calculo` como franja); `total` (**la tarjeta del total como pieza**: sin `nodo`, que sigue en
-  `tarjeta_total.nodo`, con el aspecto de todo ítem; dice en qué sección y lugar la dibuja la hoja; sin ella, la tarjeta va en el resumen).
+  `tarjeta_total.nodo`, con el aspecto de todo ítem; dice en qué sección y lugar la dibuja la hoja, a todo el ancho; sin ella, la tarjeta va sola arriba de «Avanzado»).
 - **El aspecto** (`docs/GLOSARIO.md` › «Aspecto»): claves planas y opcionales, de escalas cerradas; sin la clave, lo de siempre. Ítem:
   `ancho` (la celda, obligatorio: `completo`|`mitad`|`tercio` o un entero de 1 a 12, y los con nombre valen 12, 6 y 4; los demás ítems, un
   entero de 1 a 12, sin él la fila entera), `alto` (1 a 4 filas), `letra` (`chica`|`normal`|`grande`) y `enfasis` (`normal`|`fuerte`).
   Sección: `ancho` (1 a 12; sin él, «Automática»), `alto`, `relleno` (`chico`|`medio`|`grande`), `separacion` (`chica`|`media`|`grande`),
   `densidad` (`compacta`|`comoda`), `letra`, `enfasis` y `tono` (una clave del catálogo). Cabecera: `tono`, `relleno`, `letra` y `enfasis`
-  (no lleva ancho ni alto: va sola en su fila). Los enteros se leen como JS (`0.99999999999999999` es 1). La tarjeta del resumen no lleva
+  (no lleva ancho ni alto: va sola en su fila). Los enteros se leen como JS (`0.99999999999999999` es 1). La tarjeta suelta (sin la pieza) no lleva
   aspecto; la pieza `total`, el de todo ítem.
   Lo dibuja la **rejilla de la hoja** (`entities/rejilla-de-la-hoja.ts`, clases en `features/hoja/components/clases-de-la-rejilla.ts`): una
   pieza de N columnas toma su ancho cuando le tocan 16 rem; el PDF y la tarjeta no lo siguen.
@@ -941,7 +941,7 @@ lecturas invocadoras (el listado, la lista agrupada, la búsqueda, «De este veh
 ruta ya leyó. Quién ve qué, por rol y origen: `cotizaciones.ver` «propios» = las suyas y las de su cartera (sin las privadas de otros);
 `cotizaciones.ver` «todos» = todas menos las privadas de otros; con `cotizaciones.privadas.ver`, todas. «Ver como» no cambia lo que decide la base.
 
-**Quién la cambia:** sólo quien la creó. Al crearla, con `p_privada` de `cotizacion_crear()` y `cotizacion_crear_en_par()` (en el mismo `insert`:
+**Quién la cambia:** sólo quien la creó. Al crearla (el interruptor «Privada» de la fila de los pasos de la hoja nueva), con `p_privada` de `cotizacion_crear()` y `cotizacion_crear_en_par()` (en el mismo `insert`:
 crear y después marcar dejaría un momento en que se ve; una final privada, 22023 `hint privada`). Después, con
 **`cotizacion_privada_cambiar(id, privada, versión esperada)`**: ver (42501, igual para inexistente o en la papelera), ser quien la creó (42501
 «Sólo quien la creó la hace privada o pública.»), la marca no nula (22023 `hint privada`); candados en el orden común: el vehículo `for key share`,
@@ -1054,7 +1054,8 @@ desde el navegador** (`infra/recalculo.client.ts`). Tope de nodos del DOM de la 
 el recálculo**. **El intento:** un uuid por guardado, pendiente en la pestaña; se suelta con toda respuesta con SQLSTATE y se conserva sin
 red o con respuesta ilegible. Con el total nulo, «Guardar» se apaga con su motivo. **Rechazos:** se leen de código, `details` y `hint`
 (`entities/guardado.ts`) con textos propios, nunca el mensaje de la base; «desactualizada» va en línea («Guardar con la versión N»
-reenvía con `p_con_la_abierta`).
+reenvía con `p_con_la_abierta`). **Dónde:** «Guardar» va a todo el ancho debajo de «Avanzado» (el cierre de la hoja), con su motivo, lo que
+falta elegir y, en una región viva, lo que dijo el último guardado; en una guardada sube a la cabecera y el cierre queda con la región viva.
 
 ## Comprobantes
 

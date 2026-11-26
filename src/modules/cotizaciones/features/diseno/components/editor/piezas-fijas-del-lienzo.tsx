@@ -3,61 +3,28 @@
 import type { ContextoDeHoja } from '../../../../entities/binding'
 import type { HojaDeLaVistaPrevia } from '../../../../entities/diseno/hoja-del-diseno'
 import { CabeceraDeHoja } from '../../../hoja/components/cabecera-de-hoja'
-import { ResumenDeHoja } from '../../../hoja/components/resumen-de-hoja'
+import { TarjetaDelTotal } from '../../../hoja/components/region-del-total'
 import type { ApoyoDelLienzo } from '../../hooks/use-apoyo-del-lienzo'
-import { ESTADO_AL_DIA, nada } from './acciones-quietas'
+import { nada } from './acciones-quietas'
 import { PiezaFija } from './pieza-fija'
 
-export type PropsDelResumen = {
+type PropsDeLaPieza = {
   hoja: HojaDeLaVistaPrevia
   contexto: ContextoDeHoja
-  totalEnLaHoja: boolean
   apoyo: ApoyoDelLienzo
 }
 
-// El resumen de la hoja, como en `/cotizaciones/nuevo`: con la tarjeta del total en una sección, se ve y no se elige; sin ella, es la pieza de la tarjeta.
-export function ResumenDelLienzo({ hoja, contexto, totalEnLaHoja, apoyo }: PropsDelResumen) {
-  const modo = hoja.cabecera.modos.find((m) => m.clave === contexto.entradas.modoTc)?.nombre ?? null
-  const resumen = (
-    <ResumenDeHoja
-      tarjeta={hoja.tarjetaTotal}
-      monedaDelTotalBs={null}
-      modo={modo}
-      contexto={contexto}
-      estado={ESTADO_AL_DIA}
-      avisoDelVehiculo={null}
-      alReintentar={nada}
-      alRecargar={nada}
-      guardar={null}
-      avisoDeGuardado={null}
-      totalEnLaHoja={totalEnLaHoja}
-    />
-  )
-  return totalEnLaHoja ? (
-    <div inert className={AL_COSTADO}>
-      {resumen}
-    </div>
-  ) : (
-    <PiezaFija
-      pieza={{ pieza: 'total' }}
-      nombre="la tarjeta del total"
-      vacio=""
-      apoyo={apoyo}
-      className={AL_COSTADO}
-    >
-      {resumen}
+// La tarjeta del total suelta, como en `/cotizaciones/nuevo` sin la pieza en una sección: a todo el ancho, debajo de las secciones, y es la pieza que se elige. Con la tarjeta
+// en una sección, ésta no se dibuja: se elige allí.
+export function TotalSueltoDelLienzo({ hoja, contexto, apoyo }: PropsDeLaPieza) {
+  return (
+    <PiezaFija pieza={{ pieza: 'total' }} nombre="la tarjeta del total" vacio="" apoyo={apoyo}>
+      <TarjetaDelTotal etiqueta={hoja.tarjetaTotal.etiqueta} contexto={contexto} />
     </PiezaFija>
   )
 }
 
-// Al costado mide lo que mide el resumen (su `@4xl/hoja:w-[22rem]`): un ancho propio aquí lo recortaría.
-const AL_COSTADO = 'min-w-0 @4xl/hoja:shrink-0'
-
-export function CabeceraDelLienzo({
-  hoja,
-  contexto,
-  apoyo,
-}: Omit<PropsDelResumen, 'totalEnLaHoja'>) {
+export function CabeceraDelLienzo({ hoja, contexto, apoyo }: PropsDeLaPieza) {
   return (
     <PiezaFija
       pieza={{ pieza: 'cabecera' }}

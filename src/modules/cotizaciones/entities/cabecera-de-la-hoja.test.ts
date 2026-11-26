@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  cabeceraSeDibuja,
   modoInicial,
   modosDelEncabezado,
   nombreDelModo,
@@ -145,5 +146,29 @@ describe('nombreDelModo', () => {
     expect(nombreDelModo(cabecera, null)).toBeNull()
     expect(nombreDelModo(cabecera, 'otro')).toBeNull()
     expect(nombreDelModo({ modos: [] }, 'paralelo')).toBeNull()
+  })
+})
+
+describe('cabeceraSeDibuja', () => {
+  const base = {
+    modos: [{ clave: 'a' }, { clave: 'b' }],
+    modosVisibles: null,
+    verTotalBs: false,
+    monedaBs: null,
+    ajustes: false,
+  }
+
+  it('con dos modos a la vista, con «Ver total» ofrecido o con el ⚙, se dibuja', () => {
+    expect(cabeceraSeDibuja(base, 'a')).toBe(true)
+    const sinModos = { ...base, modosVisibles: [] }
+    expect(cabeceraSeDibuja(sinModos, 'a')).toBe(false)
+    expect(cabeceraSeDibuja({ ...sinModos, verTotalBs: true, monedaBs: 'BOB' }, 'a')).toBe(true)
+    expect(cabeceraSeDibuja({ ...sinModos, ajustes: true }, 'a')).toBe(true)
+  })
+
+  it('«Ver total» sin moneda no cuenta (P6): sin nada más, no se dibuja', () => {
+    expect(cabeceraSeDibuja({ ...base, modos: [{ clave: 'a' }], verTotalBs: true }, 'a')).toBe(
+      false,
+    )
   })
 })

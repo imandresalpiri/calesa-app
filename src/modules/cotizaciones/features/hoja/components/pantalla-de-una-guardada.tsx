@@ -21,7 +21,6 @@ import { useTituloDeLaCotizacion } from '../hooks/use-titulo-de-la-cotizacion'
 import { useSoltarElVehiculo } from '../hooks/use-vehiculo-en-la-url'
 import type { AperturaDeHoja } from '../hooks/use-hoja'
 import { HojaDeCotizar } from './hoja-de-cotizar'
-import type { PasosDeLaPagina } from './pasos-de-la-hoja'
 import { TotalGuardado } from './total-guardado'
 
 type PropsDeLaHoja = {
@@ -41,8 +40,6 @@ type Props = PropsDeLaHoja & {
   cambiaVehiculo: boolean
   // El panel donde se escribe el título (el del vehículo, `?panel=vehiculo`): el nombre lo pasa `src/app`. Sin él, sin vehículo y sin título «Guardar» sólo dice qué falta.
   panelDelTitulo?: string
-  // Los pasos de la hoja: en una guardada, «Vehículo» sólo si la barra tiene panel, y nunca «Cliente» (no tiene panel del cliente).
-  pasos?: PasosDeLaPagina
 }
 
 // Lo que dice lo de hoy frente a lo guardado, decidido una vez al abrir: si difiere (el aviso y «Total guardado») y los números de la tarjeta, que dibuja **lo guardado** (P5 a:
@@ -145,7 +142,6 @@ export function PantallaDeUnaGuardada({
   personaId,
   panelDelTitulo,
   cambiaVehiculo,
-  pasos,
   ...props
 }: Props) {
   const [vuelta, setVuelta] = useState(0)
@@ -190,7 +186,6 @@ export function PantallaDeUnaGuardada({
       encima={encimaDe(hoja, personaId)}
       soloLectura={!hoja.puedeGuardar}
       deLoGuardado={{ calculo: calculoDeLaTarjeta, difiere: hayAviso }}
-      {...(pasos ? { pasos } : {})}
       {...(hoja.puedeGuardar
         ? {
             edicion: {
