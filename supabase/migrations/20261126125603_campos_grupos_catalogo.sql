@@ -1058,7 +1058,7 @@ as $$
   select case
     when p_tabla = 'leads' then 'lead'
     when p_tabla in ('vehiculos', 'cotizaciones', 'comprobantes', 'declaraciones_aduana', 'documentos', 'gastos', 'pagos', 'transportes',
-                     'repuestos_compras', 'repuestos_items', 'formulas', 'formulas_del_origen') then 'entidad'
+                     'embarques', 'contenedores', 'repuestos_compras', 'repuestos_items', 'formulas', 'formulas_del_origen') then 'entidad'
     when p_tabla in ('ajustes_empresa', 'ajustes_web', 'ajustes_leads', 'categorias', 'cola_web_asesores', 'fases', 'fases_requisitos',
                      'fases_transiciones', 'integraciones', 'leads_campos', 'leads_campos_grupos', 'origenes', 'origenes_campos',
                      'origenes_campos_grupos', 'origenes_lead', 'plantillas_tarjeta', 'roles_permisos', 'tipos_cambio', 'tipos_lead',
