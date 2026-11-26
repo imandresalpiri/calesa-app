@@ -18,6 +18,10 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
     `entities/marca.ts`): el PDF no baja un logo más pesado.
   - `getPoliticaDeLimpieza()` (sin poder leerla, apagada), `getTiposCambio()` (vigentes, el por defecto adelante; vacía si falla),
     `integracionActiva('apibara')` (si la base no responde, no).
+  - Asistente de IA: `atajosDelAsistente()` (`{configurado, atajos}`: encendido, con clave y legible, y los atajos activos como `{id, nombre}`, para
+    el panel de compartir de `cotizaciones`), `redactarConElAsistente(pedido)` (generar con un atajo o reescribir con una instrucción; quien llama
+    comprueba antes el acceso a lo que se redacta) y `leerUsosDelAsistente()` (`asistente_ia_usos_del_mes()`: hasta 5 personas a la vista y el
+    resto acotado; con la RLS, quien gestiona ve a todos). Tipos `PedidoAlAsistente`, `AsistenteParaCompartir`, `UsosDelMes`.
   - Pantalla: `leerMonedasYTiposCambio()`, `leerHistorial()`, `leerUltimosCambios()` (el último cambio de cada tipo por `tipos_cambio_vigentes()`, con tope; sin él la tarjeta cae a su fecha), `leerIntegraciones()`, `leerVehiculosQueCambian()` (conteo acotado de
     `web_publica_vehiculos_que_cambian()`, sólo con `empresa.ajustes.gestionar`), `zonasHorarias()`. Íconos: `iconosDelManifest()`, `urlDeIcono()`,
     `claveDeIconoVigente()` (para `app/manifest.ts` y `app/iconos/vigente/[tamano]`).
@@ -37,7 +41,9 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
   `composicion-ayuda.client.ts`: trae supabase-js y no viaja en el marco), `armarMisEnlaces()`, `type EnlaceDeAyudaDelMenu` y las constantes de
   `?panel=` adonde manda (`PANEL_DE_ENLACES_DE_AYUDA`, `PANEL_NUEVO_ENLACE_PROPIO`).
 - `client.ts`: `guardarTipoCambio` y `EntradaDeGuardarTipoCambio`, para el ⚙ de un tipo de cambio de la hoja (`cotizaciones`); la action exige
-  `empresa.tipos_cambio.gestionar` en el servidor.
+  `empresa.tipos_cambio.gestionar` en el servidor. Del asistente de IA, para el panel de compartir: sus topes
+  (`LARGO_MAXIMO_INSTRUCCION_DEL_ASISTENTE`, `LARGO_MAXIMO_TEXTO_DEL_ASISTENTE`) y la acción de un error con `causa`
+  (`accionDelAsistente()`, `esCausaDelAsistente()`, `ACCIONES_DEL_ASISTENTE`).
 - Depende de ningún otro módulo.
 
 ## Archivos clave
@@ -50,10 +56,16 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
   `infra/tipos-cambio-vigentes.client.ts` (el popover de la barra, por `composicion-barra.client.ts`: sólo lo pide su contenido diferido);
   `infra/apibara.client.ts` (`consultarUso()` por `invocarFuncion()`). `infra/revalidacion-prueba.ts`, **excepción del cliente admin**:
   `probarRevalidacion()` comprueba el permiso y valida la dirección guardada antes de crear el admin, que sólo llama
-  `integracion_secreto('web_publica')`. `composicion.ts` / `composicion.client.ts`.
+  `integracion_secreto('web_publica')`. `infra/asistente-ia/proveedor.ts`, **la otra excepción del cliente admin**: `redactarConElAsistente()`
+  y `probarElAsistente()` comprueban la sesión (al probar, `empresa.ajustes.gestionar`), leen la fila con el cliente de quien pide (`lectura.ts`),
+  validan la dirección y arman el pedido antes de crear el admin, que sólo llama `integracion_secreto('asistente_ia')`; el uso se cuenta con el
+  cliente de quien pide. `http.ts` hace el `POST` (sin redirecciones, 20 s, sin caché) y nunca loguea la clave ni el cuerpo.
+  `composicion.ts` / `composicion.client.ts`.
 - `features/empresa/` (`guardar-con-logo.ts`: commit diferido contra puertos), `features/iconos/`, `features/integraciones/` (apibara, web pública,
-  avisos push: tarjetas con su estado y un modal por escritura: `?panel=apibara|clave-apibara|web-publica|secreto-web-publica`, cada uno con
-  `useEnvioConVersion()`; los textos del secreto en `entities/textos-del-secreto.ts`), `features/tipos-cambio/` (`<AvisoDeTope>` con más de 30 cambios; `components/popover-de-la-barra/`, el contenido diferido del popover
+  avisos push y asistente de IA: tarjetas con su estado y un modal por escritura: `?panel=apibara|clave-apibara|web-publica|secreto-web-publica|
+asistente-ia|indicaciones-asistente-ia|clave-asistente-ia`, cada uno con `useEnvioConVersion()` y montado por `modales-de-integraciones.tsx`;
+  los textos del secreto en `entities/textos-del-secreto.ts`; el prompt base y los atajos se editan como borrador local en un modal y se guardan
+  enteros, con los motivos de cada atajo por su id), `features/tipos-cambio/` (`<AvisoDeTope>` con más de 30 cambios; `components/popover-de-la-barra/`, el contenido diferido del popover
   de la barra, con `<PieDelPopover>` para las acciones sobre todos; `entities/tipos-cambio-vigentes.ts`, sus filas y el conflicto),
   `features/ajustes-de-cotizacion/` (sin borrador, remonta con `key` = versión).
 
@@ -64,7 +76,10 @@ RPC: `web.ajustes_acceso` (lo único que lee `anon`), `empresa_guardar_ajustes`,
 sin origen), `empresa_con_datos_cargados`, `moneda_crear`, `moneda_guardar`, `tipo_cambio_crear`, `tipo_cambio_guardar`, `integracion_guardar` (en
 `web_publica` valida `revalidar_url`: `https://` o `http://` de loopback, con `hint = 'revalidar_url'`, y guarda sólo esa clave),
 `integracion_guardar_secreto`, `integracion_secreto` (sólo `service_role`), `web_publica_vehiculos_que_cambian` (de 0 a 51;
-`empresa.ajustes.gestionar`). `empresa_guardar_leyenda_de_tipos_cambio` (`empresa.tipos_cambio.gestionar`; `ajustes_empresa.leyenda_tipos_cambio`, 1 a 120 caracteres sin saltos de línea,
+`empresa.ajustes.gestionar`). En `asistente_ia`, `integracion_guardar` valida la config con `_asistente_ia_config` (`hint` = el campo) y
+descarta `clave_termina_en`, que escribe sólo `integracion_guardar_secreto`. `asistente_ia_usos` (persona, mes, cantidad; la RLS deja leer las
+propias, y todas a quien tiene `empresa.ajustes.gestionar`) se escribe sólo por `asistente_ia_contar_uso()`; `asistente_ia_usos_del_mes()` lee
+hasta 6 personas del mes y cuenta el resto con tope 100. `empresa_guardar_leyenda_de_tipos_cambio` (`empresa.tipos_cambio.gestionar`; `ajustes_empresa.leyenda_tipos_cambio`, 1 a 120 caracteres sin saltos de línea,
 vacía la quita; misma versión que `empresa_guardar_ajustes`). `tipos_cambio.en_la_barra` («En la barra») se escribe con `tipo_cambio_guardar(… p_en_la_barra)`: exige activo y
 menos de 3 activos marcados (22023, `hint = 'en_la_barra'`), tras el candado consultivo de la barra, tomado antes que la fila.
 `tipos_cambio_vigentes()` (definer, toda persona activa): los activos con su versión y el último cambio del valor (del historial) con el nombre de
@@ -102,6 +117,10 @@ de la empresa y las filas propias, en una lectura.
 - El secreto de una integración entra una vez y no vuelve a salir. La dirección de apibara sólo puede ser de `apibara.tech` (Zod y RPC). apibara no
   se activa sin clave guardada (RPC). «Probar» de la web pública manda un cuerpo fijo a la dirección **guardada**, no sigue redirecciones y devuelve
   sólo el código; la app rechaza redes internas y, con la base en la nube, el loopback (`esDireccionDeRevalidacion()`).
+- La clave del asistente de IA nunca sale del servidor: ni a la interfaz, ni a un log, ni en un error (el texto del proveedor no se devuelve
+  tal cual). De ella se ven sólo la fecha y sus últimos 4 (`config.clave_termina_en`, que escribe sólo la RPC del secreto). Cambiar el origen de
+  la dirección borra la clave y apaga el asistente (RPC; el modal lo avisa antes con `guardarBorraLaClave()`); no se enciende sin clave. Llamar
+  vuelve a validar la dirección guardada en el servidor, y un uso se cuenta sólo con una respuesta 2xx.
 - Los tipos de cambio pasan por `<Monto>` (Modo Live también en la barra superior).
 - «En la barra» se elige en el panel de cada tipo de cambio, en el mismo «Guardar» que el valor (una versión por fila): sumarlo pide activo y
   lugar (hasta 3 activos marcados; la base lo repite tras su candado), quitarlo siempre se puede y desactivar no lo quita. La barra muestra
@@ -143,7 +162,8 @@ valor}`, la misma revalidación): sin el permiso o con el Modo Live no hay lápi
   secreto. Variables de entorno sólo para infraestructura del despliegue (`docs/DECISIONES.md`).
 - Una escritura por modal en Integraciones: la dirección o las plataformas, y la clave o el secreto, usan la misma versión de la fila y encadenadas la
   segunda chocaría consigo misma (`PT409`). Los interruptores (`Activa`) guardan al instante desde la tarjeta. `estadoDeIntegracion()`: Activa, Apagada o
-  Falta la clave (apibara sin clave; web pública prendida sin secreto; push prendido sin clave pública).
+  Falta la clave (apibara y el asistente de IA sin clave; web pública prendida sin secreto; push prendido sin clave pública). El proveedor, el
+  prompt base con los atajos, la clave y el interruptor del asistente comparten la versión de la fila.
 - `push_web` («Avisos push»): un interruptor con la versión de la fila; encender no exige la clave pública (si falta, la tarjeta lo dice; la calcula
   `app/` y llega por props); cada persona lo enciende en su perfil. `web_publica` revalida el sitio desde la base (cola
   `interno.web_revalidar_pendiente`, job `web-revalidar`; contrato en la ficha de `web`). Integración nueva: `CLAVES_INTEGRACION`; con secreto,

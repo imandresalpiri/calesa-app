@@ -64,7 +64,7 @@ paths:
   PT409; nunca pisa. Una que publica sobre una versión (`formula_publicar()`, `formula_cambiar_constante()`) lleva `p_publicada_esperada uuid default null` (una
   versión, no una hora). Una de lote, por elemento. Excepciones: `leads_papelera_enviar` (todo o nada,
   idempotente por lote), `fase_posiciones_guardar` (todo o nada con la versión del flujo: sólo visual) y las del chat, idempotentes y que no pisan nada: `chat_grupo_miembros`, `chat_leer`, `chat_silenciar` y
-  `mensaje_eliminar`. Una versión que debe moverse dos veces en una transacción no usa el trigger genérico:
+  `mensaje_eliminar`; y el contador del asistente de IA, `asistente_ia_contar_uso` (suma uno a la fila de quien llama). Una versión que debe moverse dos veces en una transacción no usa el trigger genérico:
   `greatest(clock_timestamp(), anterior + 1 µs)`; la de una cotización la sella `cotizacion_version()`.
 - Un `if` de plpgsql termina en el primer `then`, también el de un `case`: esa condición va a una variable antes.
 - Clave nueva de requisito de fase = caso en `_requisito_dato_cumplido()` y en `claves_dato_requisito()`.

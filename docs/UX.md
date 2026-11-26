@@ -960,12 +960,23 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (la lista de hoy en un modal; una moneda se abre en su panel) y «Al compartir» con la leyenda y «Editar la leyenda…» (modal con «n de 120»; vacía, no se muestra;
   `PT409` con «Recargar»). Sin `empresa.tipos_cambio.gestionar`, todo a la vista y esas líneas del «⋯» e interruptores apagados con su motivo.
   **Comprobantes:** una tarjeta «Serie de comprobantes» con la serie vigente y el próximo comprobante; «Cambiar la serie…» en su «⋯» abre su modal (`?panel=serie`) y guarda con su versión (`PT409` con «Recargar»).
-  **Integraciones:** una tarjeta por integración (apibara, Web pública, Avisos push) con su estado («Activa», «Apagada» o «Falta la clave») junto al
+  **Integraciones:** una tarjeta por integración (apibara, Web pública, Avisos push, Asistente de IA) con su estado («Activa», «Apagada» o «Falta la clave») junto al
   título, lo guardado como texto (la clave sólo dice «Guardada el …»: no se muestra nunca) y el interruptor, que guarda al instante. «Configurar…»
   en el «⋯» (o tocando la tarjeta: dirección y plataformas de apibara, dirección de revalidación) y la clave o el secreto («Cargar la clave», «Reemplazar la clave») son modales
   distintos (`?panel=apibara|clave-apibara|web-publica|secreto-web-publica`), una escritura cada uno. «Ver uso» y «Probar» van en el «⋯» y su
   resultado, en la tarjeta; apagados con su motivo («Guarda la dirección para probar.»). apibara no se activa sin su clave. Sin
   `empresa.ajustes.gestionar`: todo a la vista con «Configurar…» apagada e interruptores apagados y el motivo arriba; un `?panel=` a mano se rechaza.
+  **Asistente de IA:** la cuarta tarjeta. Lo guardado: Proveedor, Dirección, Modelo, Clave («Guardada el … · termina en ····abcd», «No se puede ver: sólo
+  reemplazar.»; sin ella, «Falta la clave»), Prompt base (dos líneas o «Sin prompt base»), Atajos (los activos en su orden, tres con nombre y «y N más»; «Ninguno
+  activo») y «Usos de este mes» (hasta 5 personas «Nombre · n» y «y N más», con su alto; «Nadie lo usó este mes.»; si no se leyeron,
+  «No se pudieron leer los usos.»). El interruptor no enciende sin clave («Carga la clave para activarlo.»). En el «⋯»: «Configurar…» (también tocando la
+  tarjeta; `?panel=asistente-ia`: DeepSeek llena la dirección y el modelo y se leen, «Otro proveedor» los deja escribir; si la dirección nueva cambia el
+  origen con una clave guardada, el modal avisa antes de que se borra), «Editar el prompt base y los atajos…» (`?panel=indicaciones-asistente-ia`,
+  `ancho="amplio"` y a pantalla completa en el celular: el prompt base con «n de 4.000» y la lista de atajos con «Nuevo atajo» arriba, cada uno con nombre,
+  instrucción, «Activo» y su «⋯» con Subir, Bajar y Quitar; todo en un «Guardar»), «Cargar la clave» / «Reemplazar la clave» (`?panel=clave-asistente-ia`) y
+  «Probar conexión» (apagada con «Carga la clave para probar.»). La respuesta de la prueba va en la tarjeta, en un área de alto reservado con la pista
+  «Prueba la conexión desde el «⋯» para ver qué responde el proveedor.»: «Respondió el modelo X.» o el error con su acción («La clave del asistente no es
+  válida.» con «Reemplazar la clave»; uno que el proveedor rechaza, «Configurar en Integraciones», que abre el modal del proveedor).
 
 ### Vehículos (estados propios)
 

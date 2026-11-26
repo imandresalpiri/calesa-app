@@ -12,8 +12,11 @@ import type {
   LectorDeMisEnlacesDeAyuda,
   LectorDeMonedasYTiposCambio,
   LectorDeUltimosCambios,
+  LectorDeUsosDelAsistente,
   LectorDeVehiculosQueCambian,
   ProbadorDeRevalidacion,
+  ProbadorDelAsistente,
+  RedactorDelAsistente,
   RepositorioAjustesDeCotizacion,
   RepositorioDeEnlacesDeAyuda,
   RepositorioDeMisEnlacesDeAyuda,
@@ -22,6 +25,7 @@ import type {
   RepositorioLeyendaDeTiposCambio,
   RepositorioTiposCambio,
 } from './entities/repositorios'
+import { asistenteParaCompartir, type AsistenteParaCompartir } from './entities/asistente-ia/config'
 import { ajustesDeCotizacionSupabase } from './infra/ajustes-de-cotizacion'
 import { empresaSupabase } from './infra/empresa'
 import { enlacesDeAyudaSupabase, misEnlacesDeAyudaSupabase } from './infra/enlaces-de-ayuda'
@@ -45,6 +49,11 @@ import {
   getTiposCambioDeLaBarra,
   getUltimosCambios,
 } from './infra/queries/tipos-cambio'
+import { getUsosDelAsistente } from './infra/queries/usos-del-asistente'
+import {
+  probarElAsistente,
+  redactarConElAsistente as redactarEnElProveedor,
+} from './infra/asistente-ia/proveedor'
 import { probarRevalidacion } from './infra/revalidacion-prueba'
 import { tiposCambioSupabase } from './infra/tipos-cambio'
 import {
@@ -63,6 +72,8 @@ export const repositorioDeEnlacesDeAyuda: RepositorioDeEnlacesDeAyuda = enlacesD
 export const repositorioDeMisEnlacesDeAyuda: RepositorioDeMisEnlacesDeAyuda =
   misEnlacesDeAyudaSupabase
 export const probadorDeRevalidacion: ProbadorDeRevalidacion = probarRevalidacion
+export const probadorDelAsistente: ProbadorDelAsistente = probarElAsistente
+export const redactarConElAsistente: RedactorDelAsistente = redactarEnElProveedor
 
 export const leerAjustes: LectorDeAjustes = getAjustesParaEditar
 export const leerMonedasYTiposCambio: LectorDeMonedasYTiposCambio = getMonedasYTiposCambio
@@ -70,10 +81,22 @@ export const leerHistorial: LectorDeHistorial = getHistorial
 export const leerUltimosCambios: LectorDeUltimosCambios = getUltimosCambios
 export const leerIntegraciones: LectorDeIntegraciones = getIntegraciones
 export const leerVehiculosQueCambian: LectorDeVehiculosQueCambian = getVehiculosQueCambian
+export const leerUsosDelAsistente: LectorDeUsosDelAsistente = getUsosDelAsistente
 export const leerAjustesDeCotizacion: LectorDeAjustesDeCotizacion = getAjustesDeCotizacion
 export const leerLeyendaDeTiposCambio: LectorDeLeyendaDeTiposCambio = getLeyendaDeTiposCambio
 export const leerEnlacesDeAyuda: LectorDeEnlacesDeAyuda = getEnlacesDeAyuda
 export const leerMisEnlacesDeAyuda: LectorDeMisEnlacesDeAyuda = getMisEnlacesDeAyuda
+
+// El asistente de IA para el panel de compartir: si se puede usar y sus atajos activos. Si la base no responde, no configurado.
+export async function atajosDelAsistente(): Promise<AsistenteParaCompartir> {
+  const integraciones = await getIntegraciones()
+  if (!integraciones.ok) {
+    console.error('No se pudieron leer las integraciones', integraciones.error)
+  }
+  return asistenteParaCompartir(
+    integraciones.ok ? integraciones.data.find((una) => una.clave === 'asistente_ia') : undefined,
+  )
+}
 
 // Lo que el popover de la barra pide para compartir los tipos de cambio (`/tipos-de-cambio/texto` y `/imagen`).
 export function responderCompartirTiposCambio(
