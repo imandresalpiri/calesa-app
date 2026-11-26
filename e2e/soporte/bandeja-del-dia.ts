@@ -4,6 +4,7 @@
 //   Quien mueve y aprueba ve el origen lleno; quien sólo ve la logística, el vacío (nada pendiente hoy).
 import { CONTRASENA } from './alta'
 import { admin, correoDePrueba, crearPersona, darRolDePrueba, PREFIJO_ROL_E2E } from './base'
+import { contenedorDe, ponerEn } from './embarques'
 import { PREFIJO_CLAVE_E2E, borrarOrigenes, crearOrigenDePrueba } from './origenes'
 import { borrarVehiculosDe } from './vehiculos'
 
@@ -179,16 +180,11 @@ async function sembrarLosVehiculos({
   )
   const llegada = { id: id(titulos.llegada), titulo: titulos.llegada }
   const ayer = new Date(Date.now() - 5 * DIA).toISOString().slice(0, 10)
-  exigir(
-    (
-      await cliente.from('transportes').insert({
-        vehiculo_id: llegada.id,
-        eta_el: ayer,
-        contenedor: `BAND${proyecto === 'celular' ? '7' : '8'}654321`,
-      })
-    ).error,
-    'crear el transporte',
+  const contenedorId = await contenedorDe(
+    origenId,
+    `BAND${proyecto === 'celular' ? '7' : '8'}654321`,
   )
+  await ponerEn([llegada.id], { contenedorId }, { eta_el: ayer })
   return {
     conBl,
     llegada,

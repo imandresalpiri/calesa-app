@@ -6,6 +6,7 @@
 //   C: el origen vecino, sin permisos de la persona.
 import { CONTRASENA } from './alta'
 import { admin, correoDePrueba, crearPersona, darRolDePrueba, PREFIJO_ROL_E2E } from './base'
+import { contenedorDe, ponerEn } from './embarques'
 import { PREFIJO_CLAVE_E2E, borrarOrigenes, crearOrigenDePrueba } from './origenes'
 import { borrarVehiculosDe } from './vehiculos'
 
@@ -158,10 +159,11 @@ async function sembrarLosVehiculos(
   })
   const conTransporte = unidad('conTransporte', 5)
   const contenedor = `ECMU${proyecto === 'celular' ? '7' : '8'}654321`
-  const { error } = await admin()
-    .from('transportes')
-    .insert({ vehiculo_id: conTransporte.id, contenedor, eta_el: '2026-12-15' })
-  exigir(error, 'crear el transporte')
+  await ponerEn(
+    [conTransporte.id],
+    { contenedorId: await contenedorDe(a.id, contenedor) },
+    { eta_el: '2026-12-15' },
+  )
   // La cola: 51 vehículos, el más antiguo primero; el último (el más nuevo en la fase) queda fuera de la primera página.
   await cargarVehiculos(
     b.id,
