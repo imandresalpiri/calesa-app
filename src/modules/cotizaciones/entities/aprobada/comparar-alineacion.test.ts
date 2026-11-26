@@ -163,6 +163,57 @@ describe('filasAlineadas con pares y lo aparte', () => {
   })
 })
 
+describe('filasAlineadas con los decimales de cada celda', () => {
+  it('cada fila lleva los «Decimales» de su nodo, los de la primera columna que lo trae; sin ellos, ninguna clave', () => {
+    const items: ItemDeHoja[] = [
+      celda('com', 'Comisión', {
+        decimales: 0,
+        secundario: {
+          nodo: 'com_pct',
+          tipoDeNodo: 'input',
+          como: 'porcentaje',
+          formato: 'pct',
+          decimales: 1,
+          ajustes: false,
+          editable: false,
+          motivo: null,
+        },
+      }),
+      {
+        tipo: 'subtotal',
+        nodo: 'sub',
+        etiqueta: 'Subtotal',
+        formato: 'usd',
+        decimales: 3,
+        tono: null,
+      },
+      celda('flete', 'Flete'),
+    ]
+    const valores = { com: 10, com_pct: 0.1, sub: 10, flete: 5, bs: 69.6 }
+    const a = hoja({ id: A, numero: 1, secciones: [seccion('s', 'S', items)], valores })
+    const b = hoja({
+      id: B,
+      numero: 2,
+      secciones: [seccion('s', 'S', [celda('com', 'Comisión', { decimales: 4 })])],
+      valores,
+    })
+    const con = (d: number) => ({
+      ...a.diseno.tarjetaTotal,
+      secundarios: [{ nodo: 'bs', etiqueta: 'Bs', formato: 'usd' as const, decimales: d }],
+    })
+    const filas = filasAlineadas([
+      { ...a, diseno: { ...a.diseno, tarjetaTotal: con(2) } },
+      { ...b, diseno: { ...b.diseno, tarjetaTotal: con(0) } },
+    ])
+    const decimales = Object.fromEntries(
+      filas.flatMap((f) => (f.tipo === 'nodo' ? [[f.nodo, f.decimales] as const] : [])),
+    )
+    expect(decimales).toEqual({ com: 0, com_pct: 1, sub: 3, flete: undefined, bs: 2 })
+    const flete = filas.find((f) => f.tipo === 'nodo' && f.nodo === 'flete')
+    expect(Object.keys(flete ?? {})).not.toContain('decimales')
+  })
+})
+
 describe('filasAlineadas con una columna que falló', () => {
   it('una columna con error no aporta filas, sus celdas son de error y la referencia es la primera leída', () => {
     const b = hoja({ id: B, numero: 2, secciones: [PRECIO], valores: { fob: 1, flete: 2 } })

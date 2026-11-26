@@ -42,6 +42,8 @@ export type SecundarioDeCelda = EdicionDeHoja & {
   tipoDeNodo: TipoDeNodoDeHoja
   como: (typeof SECUNDARIOS)[number]
   formato: Formato
+  // Los «Decimales» del nodo (glosario): sin la clave, «Automático». Sólo la vista.
+  decimales?: number
   ajustes: boolean
   // Con el monto escrito, el porcentaje lo calcula el par: no es lo tipeado (`entradasDeLoGuardado()`). Lo dice la base (`sigue_al_monto`).
   sigueAlMonto?: true
@@ -66,6 +68,7 @@ export type CeldaDeHoja = EdicionDeHoja &
     etiqueta: string
     tipoDeNodo: TipoDeNodoDeHoja
     formato: Formato
+    decimales?: number
     ancho: AnchoDeCelda
     tono: string | null
     // El ⚙: lo da el permiso del origen (constante) o el de los tipos de cambio; no depende de `editable`.
@@ -106,6 +109,7 @@ export type SubtotalDeHoja = AspectoDeItemConAncho & {
   nodo: string
   etiqueta: string
   formato: Formato
+  decimales?: number
   tono: string | null
   enPar?: true
 }
@@ -115,6 +119,7 @@ export type TotalDeHoja = AspectoDeItemConAncho & {
   nodo: string
   etiqueta: string
   formato: Formato
+  decimales?: number
 }
 export type ItemDeHoja =
   CeldaDeHoja | AtajosDeHoja | VarianteDeHoja | InterruptorDeHoja | SubtotalDeHoja | TotalDeHoja
@@ -125,7 +130,7 @@ export type SeccionDeHoja = AspectoDeSeccion & {
   presentacion: (typeof PRESENTACIONES)[number]
   items: ItemDeHoja[]
 }
-export type NodoDeTarjeta = { nodo: string; etiqueta: string; formato: Formato }
+export type NodoDeTarjeta = { nodo: string; etiqueta: string; formato: Formato; decimales?: number }
 
 // El diseño de una versión de la fórmula recortado al nivel de quien mira: lo que dibuja la hoja, sea la de cotizar o la de una guardada.
 export type DisenoDeHoja = {
@@ -165,6 +170,10 @@ export type HojaParaCotizar = HojaLista | HojaSinPublicar
 
 type Crudo<T extends z.ZodType> = z.infer<T>
 
+// Los decimales del nodo, sólo si vinieron: sin la clave, «Automático».
+const conDecimales = (x: { decimales?: number | undefined }): { decimales?: number } =>
+  x.decimales === undefined ? {} : { decimales: x.decimales }
+
 const edicionDe = (e: { editable: boolean; motivo?: MotivoDeCandado }): EdicionDeHoja => ({
   editable: e.editable,
   motivo: e.motivo ?? null,
@@ -178,6 +187,7 @@ function celdaDe(c: Crudo<typeof esquemaCelda>): CeldaDeHoja {
     etiqueta: c.etiqueta,
     tipoDeNodo: c.tipo_nodo,
     formato: c.formato,
+    ...conDecimales(c),
     ancho: c.ancho,
     ...aspectoDeItem(c),
     tono: c.tono ?? null,
@@ -194,6 +204,7 @@ function celdaDe(c: Crudo<typeof esquemaCelda>): CeldaDeHoja {
           tipoDeNodo: c.secundario.tipo_nodo,
           como: c.secundario.como,
           formato: c.secundario.formato,
+          ...conDecimales(c.secundario),
           ajustes: c.secundario.ajustes,
           ...(c.secundario.sigue_al_monto ? { sigueAlMonto: true as const } : {}),
         }
@@ -234,6 +245,7 @@ function itemDe(i: Crudo<typeof esquemaItem>): ItemDeHoja {
         nodo: i.nodo,
         etiqueta: i.etiqueta,
         formato: i.formato,
+        ...conDecimales(i),
         tono: i.tono ?? null,
         ...(i.en_par ? { enPar: true as const } : {}),
         ...aspectoDeItemConAncho(i),
@@ -244,6 +256,7 @@ function itemDe(i: Crudo<typeof esquemaItem>): ItemDeHoja {
         nodo: i.nodo,
         etiqueta: i.etiqueta,
         formato: i.formato,
+        ...conDecimales(i),
         ...aspectoDeItemConAncho(i),
       }
     default: {

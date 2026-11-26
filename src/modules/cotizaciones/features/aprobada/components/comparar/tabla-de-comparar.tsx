@@ -171,6 +171,7 @@ function FilaDeLaTabla({
           key={columna.id}
           celda={fila.celdas[i] ?? { tipo: 'error' }}
           formato={fila.formato}
+          decimales={fila.decimales}
           nodo={fila.nodo}
           columna={columna.id}
         />

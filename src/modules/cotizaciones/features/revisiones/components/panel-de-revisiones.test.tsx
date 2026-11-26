@@ -37,6 +37,7 @@ const pagina = (
       nodos: new Map([['pub', 'Precio publicado']]),
       grupos: new Map(),
       calculos: new Map(),
+      decimales: new Map(),
     },
   },
 })
@@ -141,6 +142,7 @@ describe('PanelDeRevisiones', () => {
           ]),
           grupos: new Map(),
           calculos: new Map(),
+          decimales: new Map(),
         },
       },
     })

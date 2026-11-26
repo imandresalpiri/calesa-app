@@ -13,6 +13,8 @@ export type Pisada = {
   // Lo que daría sin lo escrito; nulo si le falta un dato, y sin la respuesta que lo calculó, `undefined` (la línea no lo dice).
   calculado: number | null | undefined
   formato: Formato
+  // Los «Decimales» del lado pisado (glosario); sin ellos, «Automático».
+  decimales: number | undefined
 }
 
 export function pisadasDeLaHoja(c: ContextoDeHoja): Pisada[] {
@@ -29,6 +31,7 @@ export function pisadasDeLaHoja(c: ContextoDeHoja): Pisada[] {
         valor,
         calculado: calculadoDe(lado.nodo, c.respuesta),
         formato: lado.formato,
+        decimales: lado.decimales,
       })
     }
   }

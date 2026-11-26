@@ -1,14 +1,21 @@
 import type { FormatoDeXCell } from '@/shared/ui/xcell'
 import type { Entradas, IndiceDeHoja } from './entradas'
-import type { CeldaDeHoja, ItemDeHoja, MotivoDeCandado, NodoDeTarjeta, SeccionDeHoja } from './hoja'
+import type { CeldaDeHoja, ItemDeHoja, MotivoDeCandado, SeccionDeHoja } from './hoja'
 import type { Estado } from './motor-contexto'
 import { propsDelPisado, type PropsDelPisado } from './binding-pisado'
+import { numeroDe } from './binding-resumen'
 import { formatoDeCelda, monedaDeFormato } from './formato-de-celda'
-import { primerResultado } from './primer-resultado'
 import type { RespuestaDeRecalculo } from './recalculo'
 import { textoDelFaltante } from './textos-de-faltantes'
 
 export { SE_ELIGE_EN_EL_PANEL, textoDelFaltante } from './textos-de-faltantes'
+export {
+  secundariosDelResumen,
+  totalDelResumen,
+  valorDeSubtotal,
+  type SecundarioDelResumen,
+  type TotalDelResumen,
+} from './binding-resumen'
 
 // El binding de la hoja con la XCell (`docs/COTIZADOR.md` › «Binding con la XCell»): de la lectura que abrió la hoja, lo que la persona tipeó y la última respuesta del
 // recálculo, las props primitivas de cada celda. Puro: la celda no calcula nada y la hoja sólo traduce. **Los textos son de este archivo y nunca el mensaje de la base**:
@@ -32,6 +39,8 @@ export type PropsDeCelda = {
   label: string
   format: FormatoDeXCell
   currency: string | undefined
+  // Los «Decimales» de cada lado (glosario), del nodo; sin ellos, «Automático». Sólo la vista.
+  decimals: number | undefined
   value: number | null
   defaultValue: null | undefined
   suggested: boolean
@@ -44,6 +53,7 @@ export type PropsDeCelda = {
   secondaryId: string | undefined
   secondaryValue: number | null | undefined
   secondaryFormat: FormatoDeXCell | undefined
+  secondaryDecimals: number | undefined
   // El diseño dice que el secundario del par es el monto (`secundario: 'monto'`): el % va primero y grande, «14.94 % $181».
   secondaryProminent: true | undefined
 } & PropsDelPisado
@@ -125,9 +135,6 @@ export const seccionSeDibuja = (seccion: SeccionDeHoja, c: ContextoDeHoja): bool
 // ---------------------------------------------------------------------------------------------------------------------------------
 // Una celda
 // ---------------------------------------------------------------------------------------------------------------------------------
-const numeroDe = (v: number | string | null | undefined): number | null =>
-  typeof v === 'number' ? v : null
-
 // Lo tipeado manda sobre lo calculado mientras la respuesta no lo alcanza: la celda no vuelve al número viejo durante la pausa ni cuando el recálculo falla.
 function valorDe(id: string, esInput: boolean, c: ContextoDeHoja): number | null {
   const tipeado = esInput ? c.entradas.inputs.get(id) : c.entradas.overrides.get(id)
@@ -218,6 +225,7 @@ export function propsDeCelda(celda: CeldaDeHoja, c: ContextoDeHoja): PropsDeCeld
     label: celda.etiqueta,
     format: formatoDeCelda(celda.formato),
     currency: monedaDeFormato(celda.formato),
+    decimals: celda.decimales,
     value,
     // Sólo una constante o un tipo de cambio tiene un valor por defecto («Volver al valor por defecto»); un cálculo pisado vuelve «al calculado» (`handEdited`)
     // y lo demás, «al sugerido».
@@ -238,13 +246,17 @@ export function propsDeCelda(celda: CeldaDeHoja, c: ContextoDeHoja): PropsDeCeld
 function propsDelSecundario(
   celda: CeldaDeHoja,
   c: ContextoDeHoja,
-): Pick<PropsDeCelda, 'secondaryId' | 'secondaryValue' | 'secondaryFormat' | 'secondaryProminent'> {
+): Pick<
+  PropsDeCelda,
+  'secondaryId' | 'secondaryValue' | 'secondaryFormat' | 'secondaryDecimals' | 'secondaryProminent'
+> {
   const secundario = celda.secundario
   if (secundario === null) {
     return {
       secondaryId: undefined,
       secondaryValue: undefined,
       secondaryFormat: undefined,
+      secondaryDecimals: undefined,
       secondaryProminent: undefined,
     }
   }
@@ -252,47 +264,7 @@ function propsDelSecundario(
     secondaryId: secundario.nodo,
     secondaryValue: valorDelSecundario(celda, secundario.nodo, c),
     secondaryFormat: formatoDeCelda(secundario.formato),
+    secondaryDecimals: secundario.decimales,
     secondaryProminent: secundario.como === 'monto' || undefined,
   }
 }
-
-// ---------------------------------------------------------------------------------------------------------------------------------
-// El resumen
-// ---------------------------------------------------------------------------------------------------------------------------------
-export type TotalDelResumen =
-  { tipo: 'sin_calcular' } | { tipo: 'valor'; usd: number } | { tipo: 'faltante'; motivo: string }
-
-// Sin total porque algo falta. Si lo que falta nace donde esta hoja no dibuja nada (un nodo que el nivel esconde, un grupo, el total mismo) se dice así, sin nombrarlo.
-function motivoDeSinTotal(respuesta: RespuestaDeRecalculo, indice: IndiceDeHoja): string {
-  const dibujado = (donde: string) => indice.lados.has(donde) || indice.subtotales.has(donde)
-  if (respuesta.hayFaltantesOcultos || respuesta.faltantes.some((f) => !dibujado(f.donde))) {
-    return 'Falta un dato que esta hoja no muestra.'
-  }
-  return 'Revisa las celdas con aviso.'
-}
-
-export function totalDelResumen(c: ContextoDeHoja): TotalDelResumen {
-  if (c.respuesta === null) {
-    return { tipo: 'sin_calcular' }
-  }
-  const { monto } = primerResultado(c.respuesta.totales)
-  return monto === null
-    ? { tipo: 'faltante', motivo: motivoDeSinTotal(c.respuesta, c.indice) }
-    : { tipo: 'valor', usd: monto }
-}
-
-export type SecundarioDelResumen = NodoDeTarjeta & { valor: number }
-
-// Lo que la tarjeta suma aparte (la garantía), sólo si su nodo está activo y tiene valor: apagado, ni se nombra.
-export function secundariosDelResumen(
-  secundarios: readonly NodoDeTarjeta[],
-  respuesta: RespuestaDeRecalculo | null,
-): SecundarioDelResumen[] {
-  return secundarios.flatMap((s) => {
-    const valor = numeroDe(respuesta?.valores.get(s.nodo))
-    return respuesta?.estados.get(s.nodo) === 'activo' && valor !== null ? [{ ...s, valor }] : []
-  })
-}
-
-export const valorDeSubtotal = (nodo: string, respuesta: RespuestaDeRecalculo | null) =>
-  numeroDe(respuesta?.valores.get(nodo))

@@ -1,6 +1,6 @@
 'use client'
 
-import { Monto } from '@/shared/ui/monto'
+import { MontoConDecimales } from '@/shared/ui/monto-con-decimales'
 import { totalDelResumen, type ContextoDeHoja } from '../../../../entities/binding'
 import type { HojaLista } from '../../../../entities/hoja'
 import { rotuloEnPar, type ParDeHoja } from '../../../../entities/hoja-en-par'
@@ -38,7 +38,11 @@ export function TotalesEnPar({
               <span className={ETIQUETA_DEL_TOTAL}>{rotuloEnPar(tarjeta.etiqueta, opcion)}</span>
               <strong data-total="" data-opcion={opcion.clave} className={CIFRA_DEL_TOTAL}>
                 {total.tipo === 'valor' ? (
-                  <Monto valor={total.usd} moneda={MONEDA_DEL_PRIMER_RESULTADO} />
+                  <MontoConDecimales
+                    valor={total.usd}
+                    moneda={MONEDA_DEL_PRIMER_RESULTADO}
+                    decimales={tarjeta.decimales}
+                  />
                 ) : (
                   '—'
                 )}
@@ -48,6 +52,7 @@ export function TotalesEnPar({
               <TotalEnMonedaLocal
                 respuesta={columna.contexto.respuesta}
                 moneda={monedaDelTotalBs}
+                decimales={tarjeta.decimales}
               />
             )}
             <AvisosDelTotal total={total} estado={columna.estado} variante={undefined} />

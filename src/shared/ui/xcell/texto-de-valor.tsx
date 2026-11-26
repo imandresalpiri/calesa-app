@@ -1,8 +1,8 @@
 'use client'
 
-import { formatearConDecimales, redondeadaParaMostrar } from '@/shared/lib/cifra-fija'
+import { formatearConDecimales } from '@/shared/lib/cifra-fija'
 import { formatearMonto, formatearNumero, formatearPorcentaje } from '@/shared/lib/formato'
-import { Monto } from '../monto'
+import { MontoConDecimales } from '../monto-con-decimales'
 import { useRegional } from '../regional'
 import type { FormatoDeXCell } from './estado'
 
@@ -52,13 +52,7 @@ export function TextoDeValor({ valor, formato, moneda, decimales }: Props) {
     return <>Sin valor</>
   }
   if (formato === 'monto') {
-    return (
-      <Monto
-        valor={decimales === undefined ? valor : redondeadaParaMostrar(valor, 'monto', decimales)}
-        {...(moneda === undefined ? {} : { moneda })}
-        {...(decimales === undefined ? {} : { decimales })}
-      />
-    )
+    return <MontoConDecimales valor={valor} moneda={moneda} decimales={decimales} />
   }
   return <>{textoPlanoDeValor({ valor, formato, moneda, decimales }, regional, false)}</>
 }

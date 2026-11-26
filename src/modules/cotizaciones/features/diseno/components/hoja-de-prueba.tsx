@@ -66,7 +66,11 @@ export function HojaDePrueba({ hoja, respuesta }: Props) {
           ))}
           {totalSuelto(principales, false) ? (
             <div className="col-span-12 min-w-0">
-              <TarjetaDelTotal etiqueta={hoja.tarjetaTotal.etiqueta} contexto={contexto} />
+              <TarjetaDelTotal
+                etiqueta={hoja.tarjetaTotal.etiqueta}
+                decimales={hoja.tarjetaTotal.decimales}
+                contexto={contexto}
+              />
             </div>
           ) : null}
         </div>

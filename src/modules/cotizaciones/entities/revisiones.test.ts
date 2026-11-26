@@ -75,6 +75,18 @@ describe('revisionesDesde: la página de revisiones de la base', () => {
     })
     expect(revisionesDesde(raro)).toBeNull()
   })
+
+  it('los «Decimales» de los cálculos que los traen llegan en `decimales`; sin la clave, vacío; fuera de 0 a 4, no se lee', () => {
+    const con = (decimales: Record<string, unknown>) =>
+      revisionesDesde(
+        respuesta([fila(1)], {
+          etiquetas: { nodos: {}, grupos: {}, calculos: { t: 'usd' }, decimales },
+        }),
+      )
+    expect(con({ t: 0 })?.etiquetas.decimales.get('t')).toBe(0)
+    expect(revisionesDesde(respuesta([fila(1)]))?.etiquetas.decimales.size).toBe(0)
+    for (const d of [5, -1, 1.5, '2']) expect(con({ t: d }), String(d)).toBeNull()
+  })
 })
 
 describe('autorDeLaRevision', () => {

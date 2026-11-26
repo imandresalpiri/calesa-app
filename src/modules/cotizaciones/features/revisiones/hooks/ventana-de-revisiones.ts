@@ -29,7 +29,7 @@ export type Estado = {
 export const sinLeer = (version: string): Estado => ({
   version,
   revisiones: [],
-  etiquetas: { nodos: new Map(), grupos: new Map(), calculos: new Map() },
+  etiquetas: { nodos: new Map(), grupos: new Map(), calculos: new Map(), decimales: new Map() },
   siguiente: null,
   desde: null,
   leido: false,
@@ -50,6 +50,7 @@ export function juntar(antes: Estado, pagina: PaginaDeRevisiones): Estado {
       nodos: new Map([...antes.etiquetas.nodos, ...pagina.etiquetas.nodos]),
       grupos: new Map([...antes.etiquetas.grupos, ...pagina.etiquetas.grupos]),
       calculos: new Map([...antes.etiquetas.calculos, ...pagina.etiquetas.calculos]),
+      decimales: new Map([...antes.etiquetas.decimales, ...pagina.etiquetas.decimales]),
     },
     siguiente: pagina.siguiente,
     leido: true,

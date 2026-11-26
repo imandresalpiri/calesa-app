@@ -12,7 +12,7 @@ import type { RespuestaDeRecalculo } from './recalculo'
 export const esCalculo = (tipo: TipoDeNodoDeHoja): boolean =>
   tipo === 'tabla' || tipo === 'tramo' || tipo === 'calculo'
 
-export type LadoPisado = { nodo: string; formato: Formato }
+export type LadoPisado = { nodo: string; formato: Formato; decimales: number | undefined }
 
 // El lado de la celda donde lo escrito pisa un cálculo: el principal primero (con el monto escrito, el porcentaje de un par lo escribe el par) y si no, el
 // secundario; nulo si ninguno. Un override sobre una constante o un tipo de cambio no es un cálculo pisado: vuelve «al valor por defecto».
@@ -21,11 +21,11 @@ export function ladoPisado(
   overrides: ReadonlyMap<string, number>,
 ): LadoPisado | null {
   if (esCalculo(celda.tipoDeNodo) && overrides.has(celda.nodo)) {
-    return { nodo: celda.nodo, formato: celda.formato }
+    return { nodo: celda.nodo, formato: celda.formato, decimales: celda.decimales }
   }
   const s = celda.secundario
   return s !== null && esCalculo(s.tipoDeNodo) && overrides.has(s.nodo)
-    ? { nodo: s.nodo, formato: s.formato }
+    ? { nodo: s.nodo, formato: s.formato, decimales: s.decimales }
     : null
 }
 
@@ -36,17 +36,20 @@ export const calculadoDe = (
 ): number | null | undefined =>
   respuesta?.calculados.has(nodo) === true ? (respuesta.calculados.get(nodo) ?? null) : undefined
 
-// Lo que la `XCell` dibuja de lo pisado (props primitivas, por el `memo`): la marca «Editado a mano» y «Calculado: …» en el formato del lado pisado.
+// Lo que la `XCell` dibuja de lo pisado (props primitivas, por el `memo`): la marca «Editado a mano» y «Calculado: …» en el formato y los decimales del lado
+// pisado.
 export type PropsDelPisado = {
   handEdited: boolean
   calculatedValue: number | null | undefined
   calculatedFormat: FormatoDeXCell | undefined
+  calculatedDecimals: number | undefined
 }
 
 const SIN_PISAR: PropsDelPisado = {
   handEdited: false,
   calculatedValue: undefined,
   calculatedFormat: undefined,
+  calculatedDecimals: undefined,
 }
 
 export function propsDelPisado(
@@ -62,6 +65,7 @@ export function propsDelPisado(
     handEdited: true,
     calculatedValue: calculadoDe(lado.nodo, respuesta),
     calculatedFormat: formatoDeCelda(lado.formato),
+    calculatedDecimals: lado.decimales,
   }
 }
 

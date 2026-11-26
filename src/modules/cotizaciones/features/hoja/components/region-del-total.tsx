@@ -1,19 +1,21 @@
 'use client'
 
 import { use, type ReactNode } from 'react'
-import { Monto } from '@/shared/ui/monto'
+import { MontoConDecimales } from '@/shared/ui/monto-con-decimales'
 import { totalDelResumen, type ContextoDeHoja } from '../../../entities/binding'
 import { MONEDA_DEL_PRIMER_RESULTADO } from '../../../entities/primer-resultado'
 import { CIFRA_DEL_TOTAL, ETIQUETA_DEL_TOTAL, TARJETA_EN_LA_SECCION } from './clases-del-total'
 import { ContextoDelTotal } from './contexto-del-total'
 import { AvisoDeFallo, AvisosDelTotal, SecundariosDelTotal } from './partes-del-total'
 
-// La tarjeta del total: su rótulo y el total de la hoja (`totalDelResumen()`) por `<Monto>` (respeta el Modo Live).
+// La tarjeta del total: su rótulo y el total de la hoja (`totalDelResumen()`) por `<Monto>` (respeta el Modo Live), con los «Decimales» de su nodo.
 export function TarjetaDelTotal({
   etiqueta,
+  decimales,
   contexto,
 }: {
   etiqueta: string
+  decimales: number | undefined
   contexto: ContextoDeHoja
 }) {
   const total = totalDelResumen(contexto)
@@ -22,7 +24,11 @@ export function TarjetaDelTotal({
       <span className={ETIQUETA_DEL_TOTAL}>{etiqueta}</span>
       <strong data-total="" className={CIFRA_DEL_TOTAL}>
         {total.tipo === 'valor' ? (
-          <Monto valor={total.usd} moneda={MONEDA_DEL_PRIMER_RESULTADO} />
+          <MontoConDecimales
+            valor={total.usd}
+            moneda={MONEDA_DEL_PRIMER_RESULTADO}
+            decimales={decimales}
+          />
         ) : (
           '—'
         )}
@@ -38,16 +44,20 @@ export function TarjetaDelTotal({
 // `ContextoDelTotal` (el lienzo del editor, la hoja de prueba), la tarjeta sola.
 export function RegionDelTotal({
   etiqueta,
+  decimales,
   contexto,
   totales = null,
 }: {
   etiqueta: string
+  decimales: number | undefined
   contexto: ContextoDeHoja
   totales?: ReactNode
 }) {
   const del = use(ContextoDelTotal)
   if (del === null) {
-    return totales ?? <TarjetaDelTotal etiqueta={etiqueta} contexto={contexto} />
+    return (
+      totales ?? <TarjetaDelTotal etiqueta={etiqueta} decimales={decimales} contexto={contexto} />
+    )
   }
   const { estado } = del
   const ocupado = estado.tipo === 'esperando' || estado.tipo === 'recalculando'
@@ -58,7 +68,7 @@ export function RegionDelTotal({
       aria-busy={ocupado}
       className="grid min-w-0 content-start gap-2"
     >
-      {totales ?? <TarjetaDelTotal etiqueta={etiqueta} contexto={contexto} />}
+      {totales ?? <TarjetaDelTotal etiqueta={etiqueta} decimales={decimales} contexto={contexto} />}
       <div role="status" className="grid min-h-[1lh] gap-1 text-(length:--text-sm)">
         {totales === null ? (
           <>
@@ -85,6 +95,7 @@ export function RegionDelTotal({
           secundarios={del.secundarios}
           contexto={contexto}
           monedaDelTotalBs={del.monedaDelTotalBs}
+          decimalesDelTotal={decimales}
         />
       ) : null}
     </div>

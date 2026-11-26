@@ -19,7 +19,11 @@ type PropsDeLaPieza = {
 export function TotalSueltoDelLienzo({ hoja, contexto, apoyo }: PropsDeLaPieza) {
   return (
     <PiezaFija pieza={{ pieza: 'total' }} nombre="la tarjeta del total" vacio="" apoyo={apoyo}>
-      <TarjetaDelTotal etiqueta={hoja.tarjetaTotal.etiqueta} contexto={contexto} />
+      <TarjetaDelTotal
+        etiqueta={hoja.tarjetaTotal.etiqueta}
+        decimales={hoja.tarjetaTotal.decimales}
+        contexto={contexto}
+      />
     </PiezaFija>
   )
 }

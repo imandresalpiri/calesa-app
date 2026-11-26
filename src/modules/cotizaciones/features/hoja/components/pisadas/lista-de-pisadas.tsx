@@ -15,10 +15,12 @@ export function ListaDePisadas({ contexto }: { contexto: ContextoDeHoja }) {
     <ul data-pisadas="" className="grid gap-1 text-(length:--text-sm) text-(--color-ink-soft)">
       {pisadas.map((p) => (
         <li key={p.nodo} className="[overflow-wrap:anywhere]">
-          Editado a mano: {p.etiqueta} <ValorDeNodo valor={p.valor} formato={p.formato} />
+          Editado a mano: {p.etiqueta}{' '}
+          <ValorDeNodo valor={p.valor} formato={p.formato} decimales={p.decimales} />
           {p.calculado === undefined ? null : (
             <>
-              , calculado <ValorDeNodo valor={p.calculado} formato={p.formato} />
+              , calculado{' '}
+              <ValorDeNodo valor={p.calculado} formato={p.formato} decimales={p.decimales} />
             </>
           )}
         </li>

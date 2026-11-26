@@ -16,6 +16,9 @@ import { condicionDe, soloEnDe, type Nodo } from '../nodos'
 
 // Un nodo sin formato propio se dibuja en dólares, como `coalesce(formato, 'usd')` de la base.
 const formatoDe = (n: Nodo) => n.formato ?? 'usd'
+// Los «Decimales» del nodo, como `_hoja_decimales()`: sólo si los trae.
+const decimalesDe = (n: Nodo): { decimales?: number } =>
+  n.decimales === undefined ? {} : { decimales: n.decimales }
 
 // Sólo un nodo de valor tiene los dos: los demás tipos no condicionan ni piden nada.
 const requeridoSiDe = (n: Nodo): string | null =>
@@ -44,6 +47,7 @@ function celdaDe(
     etiqueta: n.etiqueta,
     tipoDeNodo: n.tipo,
     formato: formatoDe(n),
+    ...decimalesDe(n),
     ancho: item.ancho,
     ...aspectoDeItem(item),
     tono: tonoDe(n, tonosDeGrupo),
@@ -61,6 +65,7 @@ function celdaDe(
             tipoDeNodo: pct.tipo,
             como: item.secundario,
             formato: formatoDe(pct),
+            ...decimalesDe(pct),
             ajustes: false,
           }
         : null,
@@ -134,6 +139,7 @@ export function itemDe(
         nodo: n.id,
         etiqueta: n.etiqueta,
         formato: formatoDe(n),
+        ...decimalesDe(n),
         tono: tonoDe(n, tonosDeGrupo),
         ...aspectoDeItemConAncho(item),
       }
@@ -143,6 +149,7 @@ export function itemDe(
         nodo: n.id,
         etiqueta: n.etiqueta,
         formato: formatoDe(n),
+        ...decimalesDe(n),
         ...aspectoDeItemConAncho(item),
       }
     default: {
@@ -154,10 +161,26 @@ export function itemDe(
 
 const nodoDeTarjeta = (id: string, nodos: ReadonlyMap<string, Nodo>): NodoDeTarjeta | null => {
   const n = nodos.get(id)
-  return n === undefined ? null : { nodo: n.id, etiqueta: n.etiqueta, formato: formatoDe(n) }
+  return n === undefined
+    ? null
+    : { nodo: n.id, etiqueta: n.etiqueta, formato: formatoDe(n), ...decimalesDe(n) }
 }
 
 export type HojaDeLaVistaPrevia = DisenoDeHoja & { estado: 'lista' }
+
+function tarjetaDeLaVistaPrevia(
+  tarjeta: Diseno['tarjeta_total'],
+  nodos: ReadonlyMap<string, Nodo>,
+): HojaDeLaVistaPrevia['tarjetaTotal'] {
+  const total = nodoDeTarjeta(tarjeta.nodo, nodos)
+  return {
+    nodo: total?.nodo ?? tarjeta.nodo,
+    etiqueta: total?.etiqueta ?? '',
+    formato: total?.formato ?? 'usd',
+    ...(total?.decimales === undefined ? {} : { decimales: total.decimales }),
+    secundarios: tarjeta.secundarios.flatMap((id) => nodoDeTarjeta(id, nodos) ?? []),
+  }
+}
 
 // `tonos` es el catálogo de la empresa: la hoja de verdad manda sólo los que pinta (los de sus celdas y franjas, los de las secciones que dibuja y el de la
 // cabecera), y una clave que el catálogo no tenga se descarta (la pieza cae al neutro).
@@ -194,7 +217,6 @@ export function hojaDeLaVistaPrevia(
     ]),
     ...(diseno.cabecera.tono === undefined ? [] : [diseno.cabecera.tono]),
   ])
-  const total = nodoDeTarjeta(diseno.tarjeta_total.nodo, nodos)
   return {
     estado: 'lista',
     origen,
@@ -211,12 +233,7 @@ export function hojaDeLaVistaPrevia(
       ...aspectoDeCabecera(diseno.cabecera),
     },
     secciones,
-    tarjetaTotal: {
-      nodo: total?.nodo ?? diseno.tarjeta_total.nodo,
-      etiqueta: total?.etiqueta ?? '',
-      formato: total?.formato ?? 'usd',
-      secundarios: diseno.tarjeta_total.secundarios.flatMap((id) => nodoDeTarjeta(id, nodos) ?? []),
-    },
+    tarjetaTotal: tarjetaDeLaVistaPrevia(diseno.tarjeta_total, nodos),
     tonos: tonos.filter((t) => usados.has(t.clave)),
   }
 }

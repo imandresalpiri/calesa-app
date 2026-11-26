@@ -2,7 +2,12 @@
 // Puro: el diff ya llega recortado por la base, así que lo que un nivel esconde no está acá y no se puede delatar. Ningún texto de la base se dibuja, salvo las etiquetas
 // del diseño que quien mira ya ve.
 import type { Formato } from './nodos'
-import type { CambioDeVehiculo, NombreDeVehiculo, RevisionDeLaCotizacion } from './revisiones'
+import type {
+  CambioDeVehiculo,
+  EtiquetasDeRevisiones,
+  NombreDeVehiculo,
+  RevisionDeLaCotizacion,
+} from './revisiones'
 
 // Cuántos cambios se ven por revisión; el resto va como «y N más».
 export const CAMBIOS_A_LA_VISTA = 3
@@ -15,6 +20,8 @@ export type CambioDeCalculo = {
   // De cuánto a cuánto; nulo si el valor no cambió (se escribió lo mismo que daba).
   valores: { de: number | null; a: number | null } | null
   formato: Formato
+  // Los «Decimales» del cálculo (glosario); sin la clave, «Automático».
+  decimales?: number
 }
 
 // Un cambio a la vista: su texto, o un cálculo pisado o devuelto.
@@ -72,6 +79,10 @@ const COLUMNAS: readonly [string, (a: unknown) => string | null][] = [
   ],
 ]
 
+// Los cálculos que quien mira ve, con su formato y sus decimales (los de `EtiquetasDeRevisiones`).
+export type DeLosCalculos = Pick<EtiquetasDeRevisiones, 'calculos' | 'decimales'>
+const SIN_CALCULOS: DeLosCalculos = { calculos: new Map(), decimales: new Map() }
+
 const numeroDe = (valor: unknown): number | null => (typeof valor === 'number' ? valor : null)
 
 const esOverride = (diff: Readonly<Record<string, unknown>>, lado: 'de' | 'a', id: string) =>
@@ -87,12 +98,12 @@ function valoresDelNodo(
   return id in de || id in a ? { de: numeroDe(de[id]), a: numeroDe(a[id]) } : null
 }
 
-// Lo pisado: la fuente pasó a `override` en un cálculo que quien mira ve (`calculos`, con su formato); lo devuelto, al revés. Por etiqueta.
+// Lo pisado: la fuente pasó a `override` en un cálculo que quien mira ve (`calculos`, con su formato y sus decimales); lo devuelto, al revés. Por etiqueta.
 function cambiosDeCalculos(
   diff: Readonly<Record<string, unknown>>,
   ids: readonly string[],
   etiquetas: ReadonlyMap<string, string>,
-  calculos: ReadonlyMap<string, Formato>,
+  { calculos, decimales }: DeLosCalculos,
 ): (CambioDeCalculo & { id: string })[] {
   return ids
     .flatMap((id) => {
@@ -104,7 +115,17 @@ function cambiosDeCalculos(
       }
       const tipo = despues ? ('pisado' as const) : ('devuelto' as const)
       const etiqueta = etiquetas.get(id) ?? id
-      return [{ id, tipo, etiqueta, valores: valoresDelNodo(diff, id), formato }]
+      const d = decimales.get(id)
+      return [
+        {
+          id,
+          tipo,
+          etiqueta,
+          valores: valoresDelNodo(diff, id),
+          formato,
+          ...(d === undefined ? {} : { decimales: d }),
+        },
+      ]
     })
     .sort((x, y) => x.etiqueta.localeCompare(y.etiqueta, 'es'))
 }
@@ -129,12 +150,12 @@ export const textoDelCambioDeVehiculo = (cambio: CambioDeVehiculo) =>
 
 // `vehiculo`: el cambio de vehículo ya nombrado al leer (`conVehiculos()`). Con él, va **primero**: con otro vehículo cambian muchos nodos, y al final quedaría en «y N más».
 // Sin él (no se pudieron leer los nombres), «Cambió el vehículo» en su lugar de siempre. Después, lo pisado y lo devuelto (`calculos`: los cálculos que quien mira
-// ve, con su formato), en vez del «Cambió «X»» de esos nodos.
+// ve, con su formato y sus decimales), en vez del «Cambió «X»» de esos nodos.
 export function cambiosDeLaRevision(
   diff: RevisionDeLaCotizacion['diff'],
   etiquetas: ReadonlyMap<string, string>,
   vehiculo: CambioDeVehiculo | null = null,
-  calculos: ReadonlyMap<string, Formato> = new Map(),
+  calculos: DeLosCalculos = SIN_CALCULOS,
 ): CambiosDeLaRevision {
   const ids = [...new Set([...nodosDe(diff, 'valores'), ...nodosDe(diff, 'fuentes')])]
   const deCalculos = cambiosDeCalculos(diff, ids, etiquetas, calculos)

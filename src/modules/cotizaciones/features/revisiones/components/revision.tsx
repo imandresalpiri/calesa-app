@@ -4,8 +4,11 @@ import { Fragment } from 'react'
 import { fechaRelativa } from '@/shared/lib/fechas'
 import { Monto } from '@/shared/ui/monto'
 import { useRegional } from '@/shared/ui/regional'
-import { cambiosDeLaRevision, type Cambio } from '../../../entities/cambios-de-la-revision'
-import type { Formato } from '../../../entities/nodos'
+import {
+  cambiosDeLaRevision,
+  type Cambio,
+  type DeLosCalculos,
+} from '../../../entities/cambios-de-la-revision'
 import { autorDeLaRevision, type RevisionDeLaCotizacion } from '../../../entities/revisiones'
 import { ValorDeNodo } from '../../hoja/components/valor-de-nodo'
 
@@ -13,8 +16,8 @@ type Props = {
   revision: RevisionDeLaCotizacion
   // Las etiquetas de los nodos que nombran los diffs leídos: sin etiqueta, el id.
   etiquetas: ReadonlyMap<string, string>
-  // Los cálculos que quien mira ve, con su formato: lo pisado y lo devuelto se dicen con sus montos. Sin ellos, «Cambió «X»».
-  calculos?: ReadonlyMap<string, Formato> | undefined
+  // Los cálculos que quien mira ve, con su formato y sus decimales: lo pisado y lo devuelto se dicen con sus montos. Sin ellos, «Cambió «X»».
+  calculos?: DeLosCalculos | undefined
 }
 
 const claveDe = (cambio: Cambio) =>
@@ -28,14 +31,14 @@ function TextoDelCambio({ cambio }: { cambio: Cambio }) {
   if (cambio.tipo === 'devuelto') {
     return <span>Volvió al calculado «{cambio.etiqueta}»</span>
   }
-  const { valores, formato } = cambio
+  const { valores, formato, decimales } = cambio
   return (
     <span>
       Pisó «{cambio.etiqueta}»
       {valores === null ? null : (
         <>
-          : <ValorDeNodo valor={valores.de} formato={formato} /> →{' '}
-          <ValorDeNodo valor={valores.a} formato={formato} />
+          : <ValorDeNodo valor={valores.de} formato={formato} decimales={decimales} /> →{' '}
+          <ValorDeNodo valor={valores.a} formato={formato} decimales={decimales} />
         </>
       )}
     </span>
