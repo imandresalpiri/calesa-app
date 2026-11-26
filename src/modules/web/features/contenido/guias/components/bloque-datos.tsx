@@ -3,8 +3,10 @@
 import { AvisoDeTope } from '@/shared/ui/aviso-de-tope'
 import { Bloque } from '@/shared/ui/bloque'
 import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
+import { ComboDeCatalogo, type TextosDelCombo } from '@/shared/ui/combo-de-catalogo'
 import { textoDelTope } from '@/shared/lib/conteo'
 import { TOPE_DE_OPCIONES_DE_GUIA, type OpcionesDeGuia } from '../../../../entities/contenido/guias'
+import { useCategoriasDeGuia } from '../hooks/use-categorias-de-guia'
 import type { ErroresDeGuia } from '../hooks/use-guardar-guia'
 import type { ValoresDeGuia } from '../hooks/valores-de-guia'
 import { CampoDePortada } from './campo-de-portada'
@@ -17,40 +19,36 @@ type Props = {
   deshabilitado: boolean
 }
 
-// Categoría, autor y portada. Las listas se leyeron con tope + 1: si hay más, lo dice.
+const TEXTOS_DEL_COMBO: TextosDelCombo = {
+  sinValor: 'Sin categoría',
+  buscar: 'Buscar o crear una categoría',
+  crear: (nombre) => `Crear categoría «${nombre}»`,
+  vacio: 'Todavía no hay categorías. Escribe una para crearla.',
+  existe: (nombre) => `Ya existe «${nombre}».`,
+  inactivo: (nombre) => `Ya existe «${nombre}» (inactiva): actívala en «Categorías», en Guías.`,
+}
+
+// Categoría (del catálogo, o creada aquí), autor y portada. Las listas se leyeron con tope + 1: si hay más, lo dice.
 export function BloqueDatos({ valores, cambiar, errores, opciones, deshabilitado }: Props) {
+  const categorias = useCategoriasDeGuia(opciones)
   return (
     <Bloque titulo="Datos" descripcion="Cómo se clasifica y se presenta la guía en el sitio.">
-      <CampoSeleccion
+      <ComboDeCatalogo
         nombre="categoriaId"
         etiqueta="Categoría"
-        opciones={[
-          { valor: '', etiqueta: 'Sin categoría' },
-          ...opciones.categorias.map((c) => ({
-            valor: c.id,
-            etiqueta: c.activa ? c.nombre : `${c.nombre} (desactivada)`,
-          })),
-        ]}
-        ayuda={
-          opciones.categorias.length === 0
-            ? 'Todavía no hay categorías. Se crean desde «Categorías» en Guías.'
-            : undefined
-        }
-        value={valores.categoriaId}
-        onChange={(evento) => {
-          cambiar({ categoriaId: evento.target.value })
+        valor={valores.categoriaId === '' ? null : valores.categoriaId}
+        elementos={categorias.elementos}
+        hayMas={categorias.hayMas}
+        textos={TEXTOS_DEL_COMBO}
+        puedeCrear={!deshabilitado}
+        alElegir={(categoriaId) => {
+          cambiar({ categoriaId: categoriaId ?? '' })
         }}
+        alCrear={categorias.crear}
+        ayuda="Elige una o créala aquí."
         error={errores['categoriaId']}
+        deshabilitado={deshabilitado}
       />
-      {opciones.hayMasCategorias ? (
-        <AvisoDeTope
-          texto={textoDelTope(TOPE_DE_OPCIONES_DE_GUIA, {
-            sustantivo: 'categorías',
-            articulo: 'las',
-            orden: 'primeras por orden',
-          })}
-        />
-      ) : null}
       <CampoSeleccion
         nombre="autorId"
         etiqueta="Autor"

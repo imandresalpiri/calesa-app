@@ -7,20 +7,20 @@ import type { LectorDeOpcionesDeGuia } from '../../entities/contenido/repositori
 
 type Opcion = { id: string; nombre: string }
 
-// La opción actual (si la hay) que la lista leída no trae: una desactivada o ya sin sesión; sin ella el selector se vería vacío.
-function conLaActual(leidas: readonly Opcion[], actual: Opcion | null | undefined): Opcion[] {
+// La opción actual (si la hay) que la lista leída no trae: una más allá del tope o ya sin sesión; sin ella el selector se vería vacío.
+function conLaActual<T extends Opcion>(leidas: readonly T[], actual: T | null | undefined): T[] {
   return actual && !leidas.some((fila) => fila.id === actual.id) ? [actual] : []
 }
 
-// Las categorías activas (por orden y nombre) y las personas del equipo que pueden firmar, `tope + 1` cada una; la categoría y el autor
-// de la guía entran aunque ya no estén activos, para que el selector no se vea vacío. Se leen al abrir la guía (decenas de filas).
+// Las categorías (por orden y nombre, también las inactivas: el combo dice «Ya existe (inactiva)» en lugar de ofrecer crearla) y las
+// personas del equipo que pueden firmar, `tope + 1` cada una; la categoría y el autor de la guía entran aunque queden fuera, para que
+// el selector no se vea vacío. Se leen al abrir la guía (decenas de filas).
 export const getOpcionesDeGuia: LectorDeOpcionesDeGuia = async ({ categoriaId, autorId }) => {
   const supabase = await createClient()
   const [categorias, autores, categoriaActual, autorActual] = await Promise.all([
     supabase
       .from('web_categorias_guias')
-      .select('id, nombre')
-      .eq('activa', true)
+      .select('id, nombre, activa')
       .order('orden')
       .order('nombre')
       .limit(TOPE_DE_OPCIONES_DE_GUIA + 1),
@@ -36,7 +36,7 @@ export const getOpcionesDeGuia: LectorDeOpcionesDeGuia = async ({ categoriaId, a
       ? Promise.resolve(null)
       : supabase
           .from('web_categorias_guias')
-          .select('id, nombre')
+          .select('id, nombre, activa')
           .eq('id', categoriaId)
           .limit(1)
           .maybeSingle(),
@@ -53,13 +53,7 @@ export const getOpcionesDeGuia: LectorDeOpcionesDeGuia = async ({ categoriaId, a
   const delTope = cortarAlTope(categorias.data ?? [], TOPE_DE_OPCIONES_DE_GUIA)
   const personas = cortarAlTope(autores.data ?? [], TOPE_DE_OPCIONES_DE_GUIA)
   return ok({
-    categorias: [
-      ...delTope.filas.map((fila) => ({ ...fila, activa: true })),
-      ...conLaActual(delTope.filas, categoriaActual?.data).map((fila) => ({
-        ...fila,
-        activa: false,
-      })),
-    ],
+    categorias: [...delTope.filas, ...conLaActual(delTope.filas, categoriaActual?.data)],
     autores: [...personas.filas, ...conLaActual(personas.filas, autorActual?.data)],
     hayMasCategorias: delTope.hayMas,
     hayMasAutores: personas.hayMas,
