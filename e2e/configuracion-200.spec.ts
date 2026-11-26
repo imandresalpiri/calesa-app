@@ -53,6 +53,8 @@ async function entrar(page: Page) {
 type Pantalla = {
   titulo: string
   url: () => string
+  // El título que tiene que verse: el de la página, o el de un drawer que la URL abre (en el celular va a todo lo ancho y la página queda inerte).
+  encabezado?: (page: Page) => Locator
   // Lo que se pega al borde derecho y tiene que verse sin desplazar nada, con cómo se llama en el mensaje.
   controles?: (page: Page) => [Locator, string][]
 }
@@ -107,6 +109,10 @@ const PANTALLAS: Pantalla[] = [
   {
     titulo: 'la página de un origen › Fases › Puertos',
     url: DE_UN_ORIGEN('fases?panel=puertos'),
+    encabezado: (page) =>
+      page
+        .getByRole('dialog', { name: 'Puertos' })
+        .getByRole('heading', { name: 'Puertos', exact: true }),
     controles: (page) => [
       [
         page.getByRole('dialog', { name: 'Puertos' }).getByRole('button', { name: 'Nuevo puerto' }),
@@ -117,6 +123,10 @@ const PANTALLAS: Pantalla[] = [
   {
     titulo: 'la página de un origen › Fases › Tipos de documento',
     url: DE_UN_ORIGEN('fases?panel=tipos-de-documento'),
+    encabezado: (page) =>
+      page
+        .getByRole('dialog', { name: 'Tipos de documento' })
+        .getByRole('heading', { name: 'Tipos de documento', exact: true }),
     controles: (page) => [
       [
         page
@@ -159,10 +169,11 @@ for (const pantalla of PANTALLAS) {
     await textoGrandeAlCargar(page)
     await entrar(page)
     await page.goto(pantalla.url())
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    const encabezado = pantalla.encabezado?.(page) ?? page.getByRole('heading', { level: 1 })
+    await expect(encabezado).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.style.fontSize)).toBe('200%')
     await sinScrollHorizontal(page)
-    await aLaVistaSinDesplazar(page.getByRole('heading', { level: 1 }), 'el título')
+    await aLaVistaSinDesplazar(encabezado, 'el título')
     const activa = page.getByRole('tab', { selected: true })
     if ((await activa.count()) > 0) {
       // La barra se desplaza hasta la pestaña abierta recién al hidratar (CI-3).
