@@ -63,8 +63,8 @@ function AplicarODescartar({ planilla }: { planilla: Planilla }) {
   )
 }
 
-// La barra de fórmula (D15, D16), como la de Excel: la celda activa («C5», «Ejemplo 5»), `fx ▾` (las funciones), las operaciones rápidas y «¿Cómo se
-// escribe?», lo que se escribe con sus referencias de color
+// La barra de fórmula (D15, D16), como la de Excel, en dos filas: arriba la celda activa («C5», «Ejemplo 5»), `fx ▾` (las funciones), las operaciones rápidas y
+// «¿Cómo se escribe?»; abajo, lo que se escribe con sus referencias de color
 // (vacío, la única guía: «Escribe = y toca las celdas: =C5+C7»), su leyenda, el autocompletar y el error con su salida; escribiendo una C, el resultado al lado;
 // escribiendo, «Aplicar» y «Descartar». A la
 // derecha, «?» (los tipos de celda). Debajo, un renglón: sin nada escrito, de dónde sale la fila elegida; escribiendo, la firma en el cursor o la guía de tocar.
@@ -82,8 +82,10 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
       data-barra-de-formula=""
       className="sticky top-(--topbar) z-20 grid min-w-0 gap-1.5 border-b border-(--color-line) bg-(--color-surface) py-2"
     >
-      {/* En una línea sólo si cabe: con un panel al costado la planilla se angosta y la fila se parte en vez de meterse debajo del panel. */}
-      <div className="flex min-w-0 flex-wrap items-start gap-2 @2xl/formula:flex-nowrap">
+      {/* Dos filas fijas, escribiendo o no: arriba, la celda y lo que se inserta, con «Totales», «Tarjeta» y «?» a la derecha; abajo, el texto a lo ancho con el
+          resultado y «Aplicar». Todo en una fila dejaba el texto en unos pocos caracteres en una pantalla común, y partirla al entrar a escribir hacía saltar la
+          grilla. En una barra angosta la de abajo se parte en vez de meterse debajo del panel del costado. */}
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
         <span
           data-celda-de-la-barra=""
           className="flex min-h-[44px] w-auto min-w-14 shrink-0 items-center justify-center rounded-(--radius-md) border border-(--color-line) px-2 font-mono text-(length:--text-sm) whitespace-nowrap md:pointer-fine:min-h-9"
@@ -97,6 +99,11 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
             planilla.paneles.ayuda.abrir()
           }}
         />
+        <div className="ml-auto flex shrink-0">
+          <AccionesDeLaBarraDeFormula paneles={planilla.paneles} />
+        </div>
+      </div>
+      <div className="flex min-w-0 flex-wrap items-start gap-2 @2xl/formula:flex-nowrap">
         <div className="min-w-0 flex-1 basis-60">
           {activa === null ? (
             <p className={CAJA_QUIETA}>{EJEMPLO_DE_LA_BARRA}</p>
@@ -113,7 +120,6 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
         </div>
         {planilla.resultado.enC ? <ResultadoAlLado resultado={planilla.resultado} /> : null}
         {e === null ? null : <AplicarODescartar planilla={planilla} />}
-        <AccionesDeLaBarraDeFormula paneles={planilla.paneles} />
       </div>
       <LeyendaDeReferencias leyenda={planilla.leyenda} anuncio={planilla.anuncio} />
       <ListaDeSugerencias sugerencias={planilla.sugerencias} ids={ids} />

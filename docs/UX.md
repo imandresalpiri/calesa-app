@@ -1599,14 +1599,16 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   forma de editar la fórmula): lee la versión desde el navegador al abrir la pestaña (esqueleto, error con «Reintentar», versión que ya no se
   abre). A todo el ancho, sin guías a la vista. En la barra de la fórmula de la página van «Guardar el borrador» con su línea de estado en letra chica
   y el «⋯» de la planilla («Nueva banda…», «Total y tipos de cambio…» y «Unidad de ejemplo: volver a ceros», apagado en ceros); «Sobre…» sólo en la puesta en marcha (en la página lo dice el estado de la barra). Los avisos del guardado (conflicto, errores, lo
-  que el diseño no muestra) van arriba de la planilla. La **Barra de fórmula** queda fija bajo la cabecera de la página al desplazarse: el nombre
+  que el diseño no muestra) van arriba de la planilla. La **Barra de fórmula** queda fija bajo la cabecera de la página al desplazarse, en dos filas
+  fijas (escribiendo o no: nada salta al entrar a escribir): arriba lo que se inserta y, a la derecha, «Totales», «Tarjeta» y «?»; abajo, el texto a lo
+  ancho con el resultado al lado, «Aplicar» y «Descartar» (en una barra angosta, esa fila se parte). En orden: el nombre
   de la celda («C5», «Ejemplo 5»), `fx ▾` (inserta una función; apagado con su motivo: «Toca una celda para escribir una fórmula.», «Las
   funciones van en C.» o el de la celda), las **operaciones rápidas** (grupo «Operaciones»: «Sumar», «Porcentaje de» y «Si… entonces…», con
   su texto en una barra ancha y sólo el icono de 44 px debajo; apagadas con el mismo motivo que `fx`) y «¿Cómo se escribe?» (libro, a un
   toque), el texto (vacío, «Escribe = y toca las celdas: =C5+C7»; al entrar no hay celda elegida y se ve esa guía), escribiendo una C la caja
   del **resultado al lado** («Resultado con la unidad de ejemplo», `aria-live`: la cifra que daría, con los decimales de la celda, 150 ms
   después de la última tecla; vacía con un texto que no compila, mientras se lee lo de prueba o antes de la pausa, nunca con una cifra vieja;
-  en una barra angosta va en su propio renglón), y a la derecha «Totales», «Tarjeta» y «?» (un popover con los ocho tipos de celda y el fondo
+  en una barra angosta baja al renglón de «Aplicar» y «Descartar»), y a la derecha «Totales», «Tarjeta» y «?» (un popover con los ocho tipos de celda y el fondo
   que cada uno da a C). Debajo, un solo renglón reservado (nada salta al entrar o salir de la edición): sin escribir, la fila elegida
   («De dónde sale: …», lo que el último cambio soltó, lo que dice el texto tras un ⚙ —reescrito o «ya no manda»— y, en un tipo de cambio,
   el camino a Empresa › Monedas); escribiendo, la firma de la función en que está el cursor con el valor que se escribe en negrita

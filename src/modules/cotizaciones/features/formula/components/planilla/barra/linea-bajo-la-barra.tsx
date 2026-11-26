@@ -20,10 +20,10 @@ type Props = {
   puedeCambiarTiposDeCambio: boolean
 }
 
-// Al menos un renglón, haya algo que decir o no: elegir una celda o empezar a escribir no mueve la grilla. Con el dedo, 44 px: lo que entra ahí mientras se escribe
-// («Siguiente», «Elegir celda») es un blanco táctil.
+// Al menos el alto de lo que entra ahí mientras se escribe («Siguiente», un botón chico de 28 px; con el dedo, «Siguiente» y «Elegir celda», blancos táctiles de
+// 44 px), haya algo que decir o no: elegir una celda, empezar a escribir o llegar a un lugar por llenar no mueve la grilla.
 export const RENGLON_BAJO_LA_BARRA =
-  'min-h-[1lh] min-w-0 text-(length:--text-sm) pointer-coarse:min-h-[44px]'
+  'min-h-7 min-w-0 text-(length:--text-sm) pointer-coarse:min-h-[44px]'
 
 type Pieza = { clave: string; etiqueta?: string; texto: string }
 

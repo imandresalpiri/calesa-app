@@ -68,7 +68,7 @@ export function RenglonDeLaEdicion({ planilla }: { planilla: Planilla }) {
           size="sm"
           aria-label={NOMBRE_DE_SIGUIENTE}
           title={NOMBRE_DE_SIGUIENTE}
-          className="ml-auto min-h-[44px] md:pointer-fine:min-h-7"
+          className="ml-auto pointer-coarse:min-h-[44px]"
           onMouseDown={(ev) => {
             ev.preventDefault()
           }}

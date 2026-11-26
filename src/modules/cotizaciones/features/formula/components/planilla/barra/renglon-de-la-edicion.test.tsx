@@ -59,7 +59,7 @@ describe('RenglonDeLaEdicion', () => {
     )
     const renglon = container.querySelector('[data-renglon-de-la-edicion]')
     expect(renglon).toBeEmptyDOMElement()
-    expect(renglon?.className).toContain('min-h-[1lh]')
+    expect(renglon?.className).toContain('min-h-7')
   })
 
   it('«Siguiente» sólo con lugares por llenar, y lleva al siguiente', () => {

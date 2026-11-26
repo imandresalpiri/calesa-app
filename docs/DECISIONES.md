@@ -782,7 +782,9 @@ las trampas, en `docs/LECCIONES.md`.
   asistente aparte: lo que queda es el mismo texto que se escribe a mano y se aprende mirándolo. «Porcentaje de» inserta `PORCENTAJE_DE` (deja el % en la B
   de la fila) y no `C5*4%`. Los lugares viven sólo en la edición (no se guardan ni se pintan en el texto) y Tab llena el siguiente antes de aplicar; Enter
   aplica siempre, y un lugar vacío da el error de siempre. «Elegir celda» existe sólo con puntero grueso: con el teclado del celular abierto la cuadrícula
-  no se ve; nunca aplica. «¿Cómo se escribe?» va a un toque en la barra, no en el «⋯».
+  no se ve; nunca aplica. «¿Cómo se escribe?» va a un toque en la barra, no en el «⋯». La barra de fórmula va en dos filas fijas, lo que se inserta arriba
+  y el texto a lo ancho abajo: en una sola fila, con las operaciones y el resultado, el texto quedaba en unos pocos caracteres a 1.280 px, y partirla al
+  entrar a escribir hacía saltar la grilla.
 - **El resultado al lado sólo con un texto que compila, tras una pausa** (sin preguntar): compila y valida lo tipeado como lo haría «Aplicar» y lo calcula
   con la unidad de ejemplo 150 ms después de la última tecla; con un texto que no compila, mientras se lee lo de prueba o antes de la pausa, la caja queda
   vacía (alto reservado: nada salta). Nunca muestra la cifra de otro texto: se compara el pedido entero, no sólo el texto. Descartado: el error en la caja (ya
