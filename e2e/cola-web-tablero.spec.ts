@@ -24,7 +24,7 @@ const VENDEDORA = 'Vera Cola'
 const EN_LA_RUEDA = 'En la rueda'
 const SIN_ROL = 'Habilitada, pero su rol no recibe turnos de la web'
 
-// Las tarjetas de la rueda misma: el grupo «Habilitada, pero su rol…» es parte de la sección «En la rueda» y sus tarjetas quedan fuera de esta lista.
+// Las tarjetas de la rueda misma: el grupo «Habilitada, pero su rol…» es otra sección de la página, así que sus tarjetas no entran en esta lista.
 const filasDeLaRueda = (page: Page) =>
   page.getByRole('region', { name: EN_LA_RUEDA }).locator(':scope > ol, :scope > ul')
 
@@ -123,7 +123,7 @@ test('la habilitada cuyo rol no recibe turnos figura aparte, y la sin asignar ar
   await expect(solicitud.getByText('boton_general')).toBeVisible()
 })
 
-test('la página lleva «Sin asignar», «En la rueda» y «Política de la cola», en ese orden', async ({
+test('la página lleva «Sin asignar», «En la rueda», el grupo aparte y «Política de la cola», en ese orden', async ({
   page,
 }) => {
   permisoDeLaRueda(false)
@@ -132,11 +132,13 @@ test('la página lleva «Sin asignar», «En la rueda» y «Política de la cola
   await expect(page.getByRole('heading', { level: 2 })).toHaveText([
     /^Sin asignar/,
     'En la rueda',
+    SIN_ROL,
     'Política de la cola',
   ])
-  // El grupo aparte es parte de «En la rueda»; «Agregar a la rueda» va junto a su título.
+  // El grupo aparte es una sección más, debajo de «En la rueda»; «Agregar a la rueda» va junto al título de ésta.
   const rueda = page.getByRole('region', { name: EN_LA_RUEDA })
-  await expect(rueda.getByRole('region', { name: SIN_ROL })).toBeVisible()
+  await expect(page.getByRole('region', { name: SIN_ROL })).toBeVisible()
+  await expect(rueda.getByRole('region')).toHaveCount(0)
   await expect(rueda.getByRole('button', { name: 'Agregar a la rueda' })).toBeVisible()
 })
 

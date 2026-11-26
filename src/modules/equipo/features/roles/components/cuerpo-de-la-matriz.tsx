@@ -4,11 +4,10 @@ import type { Permisos } from '@/shared/lib/permisos'
 import type { GrupoDePermisos, OrigenDeLaMatriz } from '../../../entities/matriz'
 import type { RolConConcesiones } from '../../../entities/rol'
 import type { CambioDeConcesion } from '../hooks/use-matriz'
-import type { VersionesDeRoles } from '../hooks/use-versiones-de-roles'
 import type { ColumnaDeRol } from './grupo-matriz'
 import type { HuecosDeNivelesEnLaMatriz } from './huecos-de-niveles'
 import { ListaDelRol } from './lista-del-rol'
-import { ResumenDeQuienCrea } from './resumen-de-quien-crea'
+import { BotonDeQuienCrea } from './boton-de-quien-crea'
 import { TablaDeRoles } from './tabla-de-roles'
 
 type Props = {
@@ -22,8 +21,6 @@ type Props = {
   puedeGestionar: boolean
   dominado: boolean
   niveles?: HuecosDeNivelesEnLaMatriz
-  // Las versiones de los roles que comparte con el cuadro «Quién crea y quién ve» del resumen.
-  versiones: VersionesDeRoles
   alEliminar: (rolId: string) => void
   alAvisos: (rolId: string) => void
   alAplicar: (rol: RolConConcesiones, cambio: CambioDeConcesion) => void
@@ -33,15 +30,7 @@ type Props = {
 export function CuerpoDeLaMatriz(props: Props) {
   const { columnaALaVista, grupos, origenes, misPermisos, puedeGestionar } = props
   const { niveles } = props
-  const resumen = (
-    <ResumenDeQuienCrea
-      roles={props.columnas.map(({ rol }) => rol)}
-      origenes={origenes}
-      misPermisos={misPermisos}
-      puedeGestionar={puedeGestionar}
-      versiones={props.versiones}
-    />
-  )
+  const quienCrea = <BotonDeQuienCrea />
   return (
     <div className="min-w-0 overflow-clip rounded-(--radius-card) border border-(--color-line) bg-(--color-surface)">
       {props.enTabla ? (
@@ -55,7 +44,7 @@ export function CuerpoDeLaMatriz(props: Props) {
           alAvisos={props.alAvisos}
           alAplicar={props.alAplicar}
           niveles={niveles}
-          resumen={resumen}
+          quienCrea={quienCrea}
         />
       ) : (
         <ListaDelRol
@@ -72,7 +61,7 @@ export function CuerpoDeLaMatriz(props: Props) {
             props.alAplicar(columnaALaVista.rol, cambio)
           }}
           niveles={niveles}
-          resumen={resumen}
+          quienCrea={quienCrea}
         />
       )}
     </div>

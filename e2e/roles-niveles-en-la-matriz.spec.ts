@@ -19,7 +19,7 @@ import {
 import { literal, sql } from './soporte/sql'
 
 // Los niveles de acceso y «Quién crea y quién ve» dentro de la matriz de Roles, en el bloque «Cotizaciones» (T511): el bloque a la vista por
-// `?bloque=cotizaciones`, el resumen plegable que escribe con las mismas actions de la matriz, y las tres URLs de Catálogos que ahora responden 308.
+// `?bloque=cotizaciones`, su modal (`?panel=quien-crea-y-quien-ve`) que escribe con las mismas actions de la matriz, y las tres URLs de Catálogos que ahora responden 308.
 // Crear, renombrar, retirar y eliminar un nivel, el tope y la vista de sólo lectura: `configuracion-cotizacion-niveles*.spec.ts`.
 test.describe.configure({ mode: 'serial' })
 
@@ -65,15 +65,16 @@ test('los niveles viven dentro de «Cotizaciones»: el bloque queda a la vista, 
   await expect(masAccionesDe(page, 'Todos')).toHaveCount(0)
 })
 
-test('«Quién crea y quién ve» entra cerrado, se abre y escribe con las actions de la matriz', async ({
+test('«Quién crea y quién ve» se abre en un modal con su URL y escribe con las actions de la matriz', async ({
   page,
 }) => {
   await entrar(page, duena)
   await abrirNiveles(page)
-  const resumen = page.getByRole('button', { name: 'Quién crea y quién ve', exact: true })
-  await expect(resumen).toHaveAttribute('aria-expanded', 'false')
-  await resumen.click()
-  await expect(resumen).toHaveAttribute('aria-expanded', 'true')
+  const boton = page.getByRole('button', { name: 'Ver quién crea y quién ve', exact: true })
+  await expect(page.getByRole('dialog', { name: 'Quién crea y quién ve' })).toHaveCount(0)
+  await boton.click()
+  await expect(page).toHaveURL(/panel=quien-crea-y-quien-ve/)
+  await expect(page.getByRole('dialog', { name: 'Quién crea y quién ve' })).toBeVisible()
   const crea = page.getByRole('switch', { name: `Crea: ${rol}`, exact: true })
   await expect(crea).not.toBeChecked()
   await crea.click()
@@ -83,13 +84,14 @@ test('«Quién crea y quién ve» entra cerrado, se abre y escribe con las actio
     .toContain('cotizaciones.crear')
 })
 
-test('Roles con el bloque de cotizaciones y un origen abre el resumen de «Quién crea y quién ve» en ese origen', async ({
+test('Roles con el panel de «Quién crea y quién ve» y un origen lo abre en ese origen', async ({
   page,
 }) => {
   const origen = sql(`select ${ORIGEN}`)
   await entrar(page, duena)
-  await page.goto(`/configuracion/roles?bloque=cotizaciones&origen=${origen}`)
-  await expect(
-    page.getByRole('button', { name: 'Quién crea y quién ve', exact: true }),
-  ).toHaveAttribute('aria-expanded', 'true')
+  await page.goto(
+    `/configuracion/roles?bloque=cotizaciones&panel=quien-crea-y-quien-ve&origen=${origen}`,
+  )
+  await expect(page.getByRole('dialog', { name: 'Quién crea y quién ve' })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Origen', exact: true })).toHaveValue(origen)
 })

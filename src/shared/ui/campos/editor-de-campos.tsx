@@ -92,7 +92,7 @@ export function EditorDeCampos<Campo extends CampoBase, Cambios extends object, 
   }
 
   return (
-    <section aria-labelledby={tituloId} className="@container/campos grid gap-4">
+    <div className="@container/campos grid gap-4">
       <CabeceraDelEditor
         consulta={url.consulta}
         puedeGestionar={puedeGestionar}
@@ -115,6 +115,6 @@ export function EditorDeCampos<Campo extends CampoBase, Cambios extends object, 
         grupos={props.grupos}
         alCerrar={url.cerrar}
       />
-    </section>
+    </div>
   )
 }
