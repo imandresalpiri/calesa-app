@@ -69,8 +69,8 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
   drawer «Categorías» (`?panel=categorias&quitar=<id>`, `features/contenido/categorias-de-faq/`) con `agregar|guardar|mover|quitarCategoriaDeFaq`, que
   revalidan: escritura directa con la versión, mover por `ordenesTrasMover()` y quitar por `web_categoria_faq_eliminar`. La foto de un testimonio
   (`foto-de-testimonio.client.ts`) va a WebP, sube por hash al bucket `web` y se limpia con `quitarSiHuerfano`.
-- `cola`: `/configuracion/cola-web` (`pantallas/cola.ts`): una página a todo el ancho con «Sin asignar», «En la rueda» (con «Agregar a la rueda» junto al título y, dentro, los
-  grupos de las habilitadas que hoy no reciben turnos) y «Política de la cola», cada una con su título (`SeccionDeLaCola`) y sus tarjetas en `REJILLA_DE_TARJETAS`
+- `cola`: `/configuracion/cola-web` (`pantallas/cola.ts`): una página a todo el ancho con «Sin asignar», «En la rueda» (con «Agregar a la rueda» junto al título), los
+  grupos de las habilitadas que hoy no reciben turnos (secciones aparte, debajo) y «Política de la cola», cada una con su título (`SeccionDeLaCola`) y sus tarjetas en `REJILLA_DE_TARJETAS`
   (`auto-fill`; el esqueleto de `src/app` repite la clase porque no importa `@/modules/web`). `entities/cola/orden-de-la-rueda.ts` (`ordenDeLaRueda`) es **espejo documentado** del paso 5
   de `web.solicitar_asesor`, con test: la base decide, esto sólo dibuja. La política se lee en `infra/cola/` porque un área no importa `sitio`. **Todo se edita en un
   modal por URL**, pedido con `diferido()` al abrirse por primera vez: la política (`?panel=politica`, `TarjetaDeLaPolitica`: tarjeta clicable con un botón sr-only y su «⋯»
