@@ -85,14 +85,14 @@ begin
 end;
 $$;
 
--- Los orígenes que tapan a un compartido con esa clave: los que tienen en su flujo de vehículos activo un propio activo de la misma clave.
+-- Los orígenes que tapan a un compartido con esa clave: los que tienen en su flujo de vehículos un propio activo de la misma clave (`flujos.activo` no apaga nada).
 create or replace function public._tipo_documento_tapan(p_nombre text) returns uuid[]
   language sql stable
   set search_path = ''
 as $$
   select coalesce(array_agg(distinct fl.origen_id), '{}'::uuid[])
     from public.tipos_documento x join public.flujos fl on fl.id = x.flujo_id
-   where fl.ambito = 'vehiculos' and fl.activo and x.activo and public._catalogo_clave(x.nombre) = public._catalogo_clave(p_nombre);
+   where fl.ambito = 'vehiculos' and x.activo and public._catalogo_clave(x.nombre) = public._catalogo_clave(p_nombre);
 $$;
 revoke all on function public._tipo_documento_tapan(text) from public, anon, authenticated;
 
