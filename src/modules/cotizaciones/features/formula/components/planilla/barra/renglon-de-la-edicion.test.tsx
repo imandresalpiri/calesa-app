@@ -1,14 +1,29 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { firmaEnElCursor } from '../../../../../entities/formula/firma-en-el-cursor'
 import type { Planilla } from '../../../hooks/use-planilla'
+import { GUIA_DE_ELEGIR, MOTIVO_SIN_SIGNO } from '../../../hooks/use-eleccion-de-celda'
+import { NOMBRE_DE_ELEGIR } from './eleccion-de-celda'
 import { GUIA_DE_TOCAR, NOMBRE_DE_SIGUIENTE, RenglonDeLaEdicion } from './renglon-de-la-edicion'
 
 const siguienteLugar = vi.fn(() => true)
-const conGuia = (guia: Planilla['guia']) =>
-  ({ prefijo: 'p', guia, edicion: { siguienteLugar } }) as unknown as Planilla
+const salir = vi.fn()
+const conGuia = (
+  guia: Planilla['guia'],
+  eligiendo: Partial<Planilla['eligiendo']> = { enC: false, activo: false, motivo: null },
+) =>
+  ({
+    prefijo: 'p',
+    guia,
+    edicion: { siguienteLugar },
+    eligiendo: { entrar: vi.fn(), salir, ...eligiendo },
+  }) as unknown as Planilla
 
 describe('RenglonDeLaEdicion', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   it('la firma con el valor que se escribe en negrita, y su texto entero en el title', () => {
     render(
       <RenglonDeLaEdicion
@@ -61,5 +76,45 @@ describe('RenglonDeLaEdicion', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: NOMBRE_DE_SIGUIENTE }))
     expect(siguienteLugar).toHaveBeenCalledOnce()
+  })
+})
+
+describe('RenglonDeLaEdicion con «Elegir celda»', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  it('eligiendo una celda: el renglón sólo dice qué tocar, con «Cancelar»', () => {
+    render(
+      <RenglonDeLaEdicion
+        planilla={conGuia(
+          { firma: firmaEnElCursor('=SI(', 4), esperaCelda: true, quedanLugares: true },
+          { enC: true, activo: true, motivo: null },
+        )}
+      />,
+    )
+    expect(screen.getByText(GUIA_DE_ELEGIR)).toBeInTheDocument()
+    expect(document.getElementById('p-firma')).toBeNull()
+    expect(screen.queryByRole('button', { name: NOMBRE_DE_SIGUIENTE })).toBeNull()
+    expect(screen.getByRole('button', { name: NOMBRE_DE_ELEGIR })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(salir).toHaveBeenCalledOnce()
+  })
+
+  it('«Elegir celda» apagado dice por qué', () => {
+    render(
+      <RenglonDeLaEdicion
+        planilla={conGuia(
+          { firma: null, esperaCelda: false, quedanLugares: false },
+          { enC: true, activo: false, motivo: MOTIVO_SIN_SIGNO },
+        )}
+      />,
+    )
+    const elegir = screen.getByRole('button', { name: NOMBRE_DE_ELEGIR })
+    expect(elegir).toHaveAttribute('aria-disabled', 'true')
+    expect(elegir).toHaveAttribute('title', MOTIVO_SIN_SIGNO)
   })
 })

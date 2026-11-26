@@ -148,15 +148,15 @@ function loQueSeEscribe(edicion: EdicionDeLaCelda | null, setEdicion: FijarEdici
         e === null || (e.cursor === cursor && e.en === en) ? e : { ...e, cursor, en },
       )
     },
-    // La referencia de `celda` («C5», «B9») si el cursor espera un operando; si no, falso (el clic aplica).
-    referenciar: (celda: string, conShift: boolean): boolean => {
-      if (edicion === null) return false
+    // La referencia de `celda` («C5», «B9») si el cursor espera un operando, y dónde queda el cursor; si no, nulo (el clic aplica).
+    referenciar: (celda: string, conShift: boolean): number | null => {
+      if (edicion === null) return null
       const r = insertarReferencia(edicion, celda, conShift)
-      if (r === null) return false
+      if (r === null) return null
       const lugares = podarLugares(r.texto, r.cursor, edicion.lugares)
       const salto = saltoTrasReferencia(r.texto, r.cursor, lugares)
       setEdicion({ ...edicion, ...r, lugares, ...salto, error: null, elegirTodo: false })
-      return true
+      return salto?.cursor ?? r.cursor
     },
     // Una operación rápida ya insertada en lo tipeado (`insertarOperacion()`), con sus lugares por llenar.
     insertarOperacion: (r: TextoConLugares) => {

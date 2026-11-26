@@ -23,6 +23,7 @@ import { useCamposDeLaFormula } from './use-campos-de-la-formula'
 import { useCuadricula } from './use-cuadricula'
 import type { EdicionConReferencias } from './use-edicion-con-referencias'
 import { useEdicionDeLaPlanilla } from './use-edicion-de-la-planilla'
+import { useEleccionDeCelda } from './use-eleccion-de-celda'
 import { useInsercionEnLaBarra } from './use-insercion-en-la-barra'
 import { useGuiaDeLaEdicion } from './use-guia-de-la-edicion'
 import { useResultadoAlLado } from './use-resultado-al-lado'
@@ -183,6 +184,7 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
         )
     },
   })
+  const eligiendo = useEleccionDeCelda(edicion.edicion, idsDeLaEdicion(filas.prefijo).texto)
   const acciones = useAccionesDeLaCuadricula({
     hoja,
     trabajo: editor.trabajo,
@@ -196,6 +198,7 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     },
     enfocar,
     anunciar: setAnuncio,
+    eligiendo,
   })
   const paneles = usePanelesDeLaPlanilla()
   const cierre = useCierreYMenu({ edicion, cuadricula, enfocar, ops, paneles, calculo })
@@ -208,6 +211,7 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     calculo,
     ops,
     acciones,
+    eligiendo,
     ...useAyudasDeLaBarra(edicion, cuadricula, ed.textoDe, filas.prefijo),
     resultado: useResultadoAlLado({ edicion, editor, hoja, unidad: p.unidad, calculo }),
     bandas: useBandasDeLaPlanilla({ editor, conModos: calculo.modos.length > 0, tarjeta }),
