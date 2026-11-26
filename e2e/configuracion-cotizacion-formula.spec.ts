@@ -1,6 +1,11 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
 import { abrirLasVersiones } from './soporte/barra-de-la-formula'
+import {
+  cerrarLaInformacion,
+  informacion,
+  seccionDeLaInformacion,
+} from './soporte/informacion-de-la-formula'
 import { enLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
@@ -91,7 +96,9 @@ test('quien sólo configura la fórmula de un origen entra por el hub y el menú
   await expect(page).toHaveURL(enElEditor(chica.id, 'planilla'))
   await expect(page.getByRole('heading', { name: chica.nombre, level: 1 })).toBeVisible()
   await enLaPestana(page, 'Planilla')
-  await expect(page.getByRole('heading', { name: 'Publicada: versión 26' })).toBeVisible()
+  await expect(await seccionDeLaInformacion(page, 'Publicada')).toContainText(
+    'Publicada: versión 26',
+  )
   // Los niveles tampoco se abren escribiendo la URL: la matriz de Roles dice que falta el permiso.
   await page.goto('/configuracion/roles?bloque=cotizaciones')
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
@@ -108,16 +115,17 @@ test('la dueña ve la publicada, el borrador atrasado y las versiones de a 20 co
   await entrar(page, duena)
   await abrirFormula(page, chica.id)
   await expect(page.getByRole('heading', { name: chica.nombre, level: 1 })).toBeVisible()
-  const publicada = page.getByRole('region', { name: 'Publicada' })
+  const publicada = await seccionDeLaInformacion(page, 'Publicada')
   await expect(publicada).toContainText('Publicada: versión 26')
   await expect(publicada).toContainText('Publicada E2E')
   await expect(publicada).toContainText('Fina Fórmula')
-  const borrador = page.getByRole('region', { name: 'Borrador' })
+  const borrador = informacion(page).getByRole('region', { name: 'Borrador' })
   await expect(borrador).toContainText('Borrador de Fina Fórmula · guardado')
   await expect(borrador).toContainText('Empezó sobre la versión 25.')
   await expect(borrador).toContainText(
     'Después de que empezó, se publicó la versión 26: publicarlo dará conflicto.',
   )
+  await cerrarLaInformacion(page)
   await abrirLasVersiones(page)
   await expect(versiones(page)).toHaveCount(20)
   await expect(versiones(page).first()).toContainText('Versión 26')

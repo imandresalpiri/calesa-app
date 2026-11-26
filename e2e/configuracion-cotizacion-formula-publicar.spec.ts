@@ -1,6 +1,12 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
 import { abrirLasVersiones } from './soporte/barra-de-la-formula'
+import {
+  cerrarLaInformacion,
+  informacion,
+  marcaDeLaInformacion,
+  seccionDeLaInformacion,
+} from './soporte/informacion-de-la-formula'
 import { enLaPestana, esLaQueRecuerdaLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
@@ -100,12 +106,13 @@ test('quien configura el origen publica su borrador con nota; sin nota no se pid
   await modal(page).getByRole('button', { name: 'Publicar', exact: true }).click()
   await expect(page.getByText('Se publicó el borrador.')).toBeVisible()
   await expect(modal(page)).toBeHidden()
-  const publicada = page.getByRole('region', { name: 'Publicada' })
+  await expect(page).not.toHaveURL(/panel=/)
+  const publicada = await seccionDeLaInformacion(page, 'Publicada')
   await expect(publicada).toContainText('Publicada: versión 2')
   await expect(publicada).toContainText('Subo el flete')
   await expect(publicada).toContainText('Cleo Configura')
-  await expect(page.getByRole('region', { name: 'Borrador' })).toHaveCount(0)
-  await expect(page).not.toHaveURL(/panel=/)
+  await expect(informacion(page).getByRole('region', { name: 'Borrador' })).toHaveCount(0)
+  await cerrarLaInformacion(page)
   await abrirLasVersiones(page)
   await expect(versiones(page).first()).toContainText('Versión 2')
   await expect(versiones(page).first()).toContainText('Publicada')
@@ -157,12 +164,18 @@ test('en un origen sin publicada, publicar el borrador da la versión 1 y la hoj
 }) => {
   await entrar(page, duena, { fresco: true })
   await abrirFormula(page, primera.id)
-  await expect(page.getByText(/todavía no tiene una versión publicada/)).toBeVisible()
+  // Sin publicada, el botón ⓘ lleva su marca y la sección «Publicada» del modal lo dice.
+  await expect(marcaDeLaInformacion(page)).toBeVisible()
+  await expect(await seccionDeLaInformacion(page, 'Publicada')).toContainText(
+    'todavía no tiene una versión publicada',
+  )
+  await cerrarLaInformacion(page)
   await page.getByRole('button', { name: 'Publicar…' }).click()
   await modal(page).getByLabel('Nota').fill('La primera')
   await modal(page).getByRole('button', { name: 'Publicar', exact: true }).click()
   await expect(page.getByText('Se publicó el borrador.')).toBeVisible()
-  await expect(page.getByRole('region', { name: 'Publicada' })).toContainText(
+  await expect(marcaDeLaInformacion(page)).toHaveCount(0)
+  await expect(await seccionDeLaInformacion(page, 'Publicada')).toContainText(
     'Publicada: versión 1',
   )
   await page.goto(`/cotizaciones/nuevo?origen=${primera.id}`)

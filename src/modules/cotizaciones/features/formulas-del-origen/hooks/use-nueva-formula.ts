@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { enviarAccion } from '@/shared/lib/enviar-accion'
 import type { ErrorApp } from '@/shared/lib/errores'
+import { CLAVE_DE_PANEL } from '@/shared/lib/filtros'
 import { rutaDeLaFormula } from '@/shared/lib/rutas'
 import { avisarExito } from '@/shared/ui/toasts'
 import { useEnvioDeModal } from '@/shared/ui/use-envio-de-modal'
 import { nombreDeLaFormula } from '../../../entities/formula-del-origen'
 import { claveDeLosAvisos } from '../../../entities/avisos-de-la-copia'
+import { PANEL_DE_LA_INFORMACION } from '../../../entities/informacion-de-la-formula'
 import { nombreDeLaCopia, type Pieza } from '../../../entities/formulas-del-origen/copiar'
 import type { FormulaCreada } from '../../../entities/formulas-del-origen/resultado'
 import { crearFormulaDelOrigen } from '../actions/crear-formula'
@@ -26,7 +28,7 @@ type Args = {
   alCrear?: (id: string) => void
 }
 
-// Los avisos de la copia esperan a la planilla en la pestaña (`avisos-de-la-copia.tsx` los lee una vez).
+// Los avisos de la copia esperan a la planilla en la pestaña (los lee `useAvisosDeLaCopia()` y los dibuja el modal «Información de la fórmula»).
 function guardarLosAvisos(creada: FormulaCreada) {
   if (creada.avisos.length === 0) return
   try {
@@ -62,7 +64,8 @@ function eleccionesQueLimpian(
 }
 
 // El estado del modal «Nueva fórmula»: qué copia (`useFuenteDeLaCopia`) y el nombre (el de la copia con « (copia)» hasta que se escribe otro). El id del intento
-// vive con el modal (cada apertura, uno; un reintento no crea dos). Al crear, guarda los avisos de la copia y abre su planilla.
+// vive con el modal (cada apertura, uno; un reintento no crea dos). Al crear, guarda los avisos de la copia y abre su planilla (con avisos, con la
+// información de la fórmula abierta).
 export function useNuevaFormula({
   origen,
   copiaInicial,
@@ -114,7 +117,15 @@ export function useNuevaFormula({
         alCrear(creada.id)
         return
       }
-      router.push(rutaDeLaFormula(origen.id, creada.id, 'planilla'))
+      // Con avisos de la copia, la planilla abre con «Información de la fórmula», donde se leen.
+      router.push(
+        rutaDeLaFormula(
+          origen.id,
+          creada.id,
+          'planilla',
+          creada.avisos.length > 0 ? { [CLAVE_DE_PANEL]: PANEL_DE_LA_INFORMACION } : undefined,
+        ),
+      )
     },
   })
   const quitar = (...claves: string[]) => {

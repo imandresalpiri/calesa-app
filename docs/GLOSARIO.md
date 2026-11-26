@@ -509,8 +509,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   cotizar y apaga la activa anterior. Cada pieza va con su esperada (PT409 si cambió). No: «publicar la fórmula» (eso es una versión), «usar».
 - **Avisos de la copia** — `AvisoDeLaCopia` (`entities/avisos-de-la-copia.ts`), `avisos` de `formula_del_origen_crear()`: lo que copiar una fórmula de
   otro origen cambió o no pudo resolver —una tabla creada con las filas de la copia, una tabla del destino usada en su lugar, un dato del vehículo
-  que el origen no tiene—. Se muestran arriba de la planilla de la copia hasta «Ocultar» (`sessionStorage`), y los datos que faltan quedan marcados
-  en su fila (`useCamposDeLaFormula()`).
+  que el origen no tiene—. La planilla de la copia abre con «Información de la fórmula», que los muestra en su sección hasta «Ocultar» (`sessionStorage`,
+  `useAvisosDeLaCopia()`), y los datos que faltan quedan marcados en su fila (`useCamposDeLaFormula()`).
+- **Información de la fórmula** — `?panel=info-formula` (`PANEL_DE_LA_INFORMACION`), `<BotonDeLaInformacion>`, `<InformacionDeLaFormula>`,
+  `marcaDeLaInformacion()` (`cotizaciones/entities/informacion-de-la-formula.ts`): el modal de la Planilla con la información de la versión —la publicada, el
+  borrador (con «Descartar el borrador…») y los avisos de la copia—, que abre el botón ⓘ junto al estado de la barra de la fórmula. El botón lleva una
+  marca si algo bloquea: sin publicada, el borrador atrasado o avisos de la copia pendientes. No: «detalles», «info de la versión».
 - **Nodo** — `definicion.nodos[]`: una línea de la fórmula: input, constante, tipo de cambio, campo, bandera, tabla, tramo, cálculo.
 - **Constante** — nodo `constante` + `params`: valor por defecto versionado que el ⚙ de la XCell cambia.
 - **Versión del flujo** — `flujos.actualizado_en` como texto ISO: la lee el editor del flujo y la devuelve cada escritura para detectar

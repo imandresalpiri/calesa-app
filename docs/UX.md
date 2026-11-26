@@ -1520,7 +1520,8 @@ Planilla, Hoja y Tarjeta de la página del origen comparten una barra arriba (gl
 pestaña va debajo, a todo el ancho, sin otro marco.
 
 - **A la izquierda:** el selector «Fórmula: <nombre> (activa) ▾» y el estado de lo que se edita en una insignia (**Cambios sin guardar**, **Borrador**,
-  **Publicada vN**; lo no guardado manda). **A la derecha:** «Versiones», «Tablas» y lo que manda el editor de la pestaña (`<AccionesEnLaBarra>`):
+  **Publicada vN**; lo no guardado manda); en la Planilla, junto al estado, el botón ⓘ «Información de la fórmula» (su lugar reservado: nada salta al
+  hidratar). **A la derecha:** «Versiones», «Tablas» y lo que manda el editor de la pestaña (`<AccionesEnLaBarra>`):
   «Guardar el borrador», «Publicar…» y su «⋯». En el celular la barra se parte en renglones y nada se sale de su ancho.
 - **Versiones** (`?panel=versiones`, en la Planilla): un drawer con las publicadas de la más nueva a la más vieja, con revertir; desde Hoja y Tarjeta el
   botón lleva a la Planilla con el drawer abierto (si hay cambios sin guardar, pregunta antes). **Tablas** (`?panel=tablas`): el drawer de las tablas del
@@ -1550,7 +1551,8 @@ barra de la fórmula; la activa es la que se cotiza.
   Copia de otro origen (sólo si la persona configura otro; si no, «No configuras el cotizador de otro origen.»)—, la fórmula y la versión que se
   copia (publicada o borrador; la que no hay va apagada con su motivo; de otro origen no se elige: su publicada y, si no tiene, su borrador, dicho bajo «Fórmula») y el nombre (una copia propone
   «<nombre> (copia)»). Un nombre repetido se dice junto al campo; sin un tipo de cambio, «Abrir Monedas». Entró: abre su planilla.
-- **Los avisos de la copia** (de otro origen): arriba de la planilla, «Lo que cambió al copiar la fórmula», un renglón por tabla creada o usada del
+- **Los avisos de la copia** (de otro origen): la planilla de la copia abre con «Información de la fórmula» (`?panel=info-formula`) y su sección «Lo que
+  cambió al copiar la fórmula», un renglón por tabla creada o usada del
   destino (con «Abrir Tablas») y por dato del vehículo que el origen no tiene; esos datos quedan además marcados en su fila («El dato «x» no existe
   en este origen: elige otro o créalo.»). Quedan hasta «Ocultar».
 - **Renombrar** (`?panel=renombrar-formula&cual=<id>`), **Archivar** y **Eliminar** (`<Confirmar>`; eliminar una que ya se usó ofrece
@@ -1571,9 +1573,14 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
 - **Quién entra:** `cotizaciones.configurar` en ese origen, aunque no tenga los permisos de los niveles. La base vuelve a decidir: la policy `formulas: leer` sólo deja ver los orígenes con la clave.
 - **Origen:** la página es la de ese origen (también inactivo); para cambiar de origen, el selector de las migas (conserva la pestaña). Sin la clave en
   el origen, la pestaña Planilla va apagada con su motivo; un origen ajeno, «No puedes abrir este origen».
-- **Arriba:** la publicada (versión, nota, quién y cuándo) o, sin ella, que no se puede cotizar en el origen; el borrador si hay (de quién,
-  cuándo, nota, versión sobre la que empezó y, si se publicó otra después, que publicarlo dará conflicto). Ninguna lleva «Editar»: se edita en la
-  planilla, debajo. Con cambios aplicados sin guardar, «Publicar…» espera: «Guarda el borrador antes de publicar: se publica lo guardado.»
+- **La planilla al frente:** arriba de ella no hay tarjetas. La información de la versión va en el modal **«Información de la fórmula»**
+  (`?panel=info-formula`, a pantalla completa en el celular), que abre el botón ⓘ junto al estado de la barra (en la puesta en marcha, «Información de la
+  fórmula» con su texto, arriba de la planilla), con secciones de un solo nivel: **Publicada** (versión, nota, quién y cuándo o, sin ella, que no se puede
+  cotizar en el origen), **Borrador** si hay (de quién, cuándo, nota, versión sobre la que empezó, si se publicó otra después que publicarlo dará conflicto,
+  y «Descartar el borrador…», que cambia el modal por su confirmación) y **Lo que cambió al copiar la fórmula** si hay avisos de la copia. Ninguna lleva
+  «Editar»: se edita en la planilla. Lo que bloquea no se esconde: el botón lleva una marca (con su texto para el lector) sin publicada, con el borrador
+  atrasado o con avisos de la copia pendientes, en ese orden. «Publicar…» va en la barra con el borrador al día; con cambios aplicados sin guardar
+  espera, apagado, con «Guarda el borrador antes de publicar: se publica lo guardado.» al lado.
 - **Versiones** (en el drawer «Versiones» de la barra; en la puesta en marcha, debajo de la publicada): publicadas y archivadas de la más nueva (sin autor: «Alguien»), de a 20 hasta 500; en el tope, «Ir a la versión» (un
   número) que lee desde ahí hacia atrás con «Volver a la más nueva»; la posición no va a la URL. Estados: esqueleto, error con
   «Reintentar», vacío, vacío desde la N y fallo de «Ver más» sin perder lo cargado.
@@ -1585,7 +1592,7 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
 - **Revertir** (`?panel=revertir-formula&version=<id>`, en cada archivada si hay publicada): publica una copia de la N con su diseño; el
   borrador no cambia (queda atrasado). Nota propuesta «Vuelve a la versión N.». Conflicto como al publicar. Por URL: sin publicada, la
   publicada misma o una versión que no está en lo cargado, avisa y limpia. Cambiar de pestaña limpia `panel` y `version`.
-- **Descartar** (`?panel=descartar-borrador`, `<Confirmar>`; al día **y atrasado**): borra el borrador sin deshacer; publicada y lista no
+- **Descartar** (`?panel=descartar-borrador`, `<Confirmar>`, desde «Información de la fórmula»; «atrás» vuelve a ella; al día **y atrasado**): borra el borrador sin deshacer; publicada y lista no
   cambian. Lo que no entró queda en el diálogo con el mensaje de la base o, sin respuesta, «No sabemos si se descartó: recarga para verlo.»
   (sin reintento solo). Por URL sin borrador: avisa y limpia.
 - **Planilla** (la vista por defecto, sobre el borrador o, sin él, la publicada; sin ninguna, el vacío de la publicada y no hay planilla; la única
