@@ -12,7 +12,7 @@ export const SITUACIONES = ['en_subasta', 'sin_resolver', 'no_ganada', 'fase'] a
 
 export type Situacion = (typeof SITUACIONES)[number]
 
-// Las que no son una fase, en su orden (el de «Subasta» y el de la traducción del `?situacion=` viejo).
+// Las que no son una fase, en su orden (el de «Subasta»).
 export const SITUACIONES_PROPIAS = ['en_subasta', 'sin_resolver', 'no_ganada'] as const
 
 export type SituacionPropia = (typeof SITUACIONES_PROPIAS)[number]
