@@ -185,12 +185,12 @@ as $$
 $$;
 revoke all on function public._catalogo_logistica_repetido(text, text, uuid, boolean, boolean) from public, anon, authenticated;
 
--- Texto de un formulario: espacios colapsados y recortado.
+-- Texto de un formulario: espacios colapsados y recortado, con el mismo juego de espacios que `_catalogo_clave`.
 create or replace function public._catalogo_logistica_texto(p_texto text) returns text
   language sql immutable
   set search_path = ''
 as $$
-  select btrim(regexp_replace(coalesce(p_texto, ''), '[[:space:]]+', ' ', 'g'));
+  select btrim(regexp_replace(coalesce(p_texto, ''), E'[ \\t\\n\\r\\f\\v]+', ' ', 'g'), E' ');
 $$;
 revoke all on function public._catalogo_logistica_texto(text) from public, anon, authenticated;
 
@@ -237,7 +237,7 @@ begin
   if p_datos ? 'pais' then t.pais := nullif(public._catalogo_logistica_texto(p_datos ->> 'pais'), ''); end if;
   if p_datos ? 'codigo' then t.codigo := nullif(upper(regexp_replace(coalesce(p_datos ->> 'codigo', ''), '[[:space:]]+', '', 'g')), ''); end if;
   if p_datos ? 'activo' then t.activo := (p_datos ->> 'activo')::boolean; end if;
-  if p_datos ? 'orden' then t.orden := (p_datos ->> 'orden')::smallint; end if;
+  if p_datos ? 'orden' then t.orden := (p_datos ->> 'orden')::numeric::smallint; end if;
   if coalesce(t.nombre, '') = '' then
     raise exception 'Escribe el nombre.' using errcode = '22023', hint = 'nombre';
   end if;
@@ -285,7 +285,7 @@ begin
   if p_datos ? 'nombre' then t.nombre := public._catalogo_logistica_texto(p_datos ->> 'nombre'); end if;
   if p_datos ? 'proposito' then t.proposito := nullif(p_datos ->> 'proposito', ''); end if;
   if p_datos ? 'activo' then t.activo := (p_datos ->> 'activo')::boolean; end if;
-  if p_datos ? 'orden' then t.orden := (p_datos ->> 'orden')::smallint; end if;
+  if p_datos ? 'orden' then t.orden := (p_datos ->> 'orden')::numeric::smallint; end if;
   if coalesce(t.nombre, '') = '' then
     raise exception 'Escribe el nombre.' using errcode = '22023', hint = 'nombre';
   end if;

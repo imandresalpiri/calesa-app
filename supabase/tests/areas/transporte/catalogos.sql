@@ -7,8 +7,8 @@
 --       país choca con otro sin país; con otro país, o en otro origen, o propio frente al compartido (lo tapa), se permite.
 --   K3. Permisos: con la clave sólo en A crea en A y no en B; un compartido pide la clave en cada origen que lo usaría o lo usa («lo usa <B>») salvo
 --       los que lo tapan; al renombrarlo cuentan los que lo tapan antes y después.
---   K4. Versión vieja → PT409; sin cambios no pide versión; el mismo id es idempotente y en otro origen da 42501; claves y validaciones cerradas;
---       `uso` sólo al desactivar.
+--   K4. Versión vieja → PT409; sin cambios no pide versión; el mismo id es idempotente y en otro origen da 42501; claves y validaciones cerradas
+--       (`orden` 10.0 es 10; la clave de lo guardado es la de lo tipeado, también con un espacio duro); `uso` sólo al desactivar.
 --   K5. Un propio de otro origen no entra en `transporte_guardar`, `transporte_grupo_aplicar` ni `flujo_oferta_guardar` (22023 y su hint); el flujo de
 --       repuestos sólo ofrece compartidos; lo ya guardado sin cambiar sigue pasando; `transporte_grupo` trae el origen de cada unidad.
 
@@ -216,6 +216,11 @@ begin
   perform pg_temp.cat_es('K4 orden', pg_temp.cat_crear(p, 'puerto', a, jsonb_build_object('nombre', 'K4c ' || s, 'orden', 1.5)), '22023', 'orden');
   perform pg_temp.cat_es('K4 orden texto', pg_temp.cat_crear(p, 'puerto', a, jsonb_build_object('nombre', 'K4c ' || s, 'orden', 'uno')), '22023', 'orden');
   perform pg_temp.cat_es('K4 activo', pg_temp.cat_crear(p, 'naviera', a, jsonb_build_object('nombre', 'K4c ' || s, 'activo', 'si')), '22023', 'activo');
+  r := pg_temp.cat_crear(p, 'puerto', a, jsonb_build_object('nombre', E'  K4\u00a0duro  ' || s, 'orden', 10.0));
+  if (select orden from public.puertos where id = pg_temp.cat_pasa('K4 orden 10.0', r)) <> 10 then raise exception 'K4: el orden 10.0 debía guardar 10'; end if;
+  if (select public._catalogo_clave(nombre) from public.puertos where id = (r ->> 'id')::uuid) <> public._catalogo_clave(E'  K4\u00a0duro  ' || s) then
+    raise exception 'K4: la clave de lo guardado debía ser la de lo tipeado';
+  end if;
   -- Sin orden: al final.
   r := pg_temp.cat_crear(p, 'puerto', null, jsonb_build_object('nombre', 'K4 último ' || s));
   if (select orden from public.puertos where id = (r ->> 'id')::uuid) <> (select max(orden) from public.puertos) then
