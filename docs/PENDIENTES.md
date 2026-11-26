@@ -23,8 +23,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ### Sitio web
 
-- **[—]** `calesa-web` (el sitio, otro repo) dibuja `guia-galeria`, `guia-boton` y `guia-video`: el HTML que sale de la base trae `<figure class="guia-galeria">` con `<img data-ruta alt>`, `<a class="guia-boton" href>`
-  y `<figure class="guia-video" data-video="youtube|vimeo">` con un `<a>` al video, y `<hr>`. Hasta que el sitio los estilice, se ven como un enlace y una imagen sueltos.
+- **[—]** `calesa-web` (el sitio, otro repo) dibuja `guia-galeria`, `guia-boton` y `guia-video` (el HTML está en `src/modules/web/CLAUDE.md` › `contenido`); hasta entonces se ven como un enlace y una imagen sueltos.
 
 ### Cotizaciones
 

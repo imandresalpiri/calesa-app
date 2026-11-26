@@ -108,9 +108,14 @@ export function usePendientes(grupo: string | null): readonly Pendiente[] {
   )
 }
 
-// Cuántas subidas hay en curso en toda la guía (para avisar antes de salir con fotos a medias).
+// Si hay alguna subida en curso en toda la guía (un error no cuenta: esa foto ya no va).
 export function haySubiendo(): boolean {
   return [...porGrupo.values()].some((lista) => lista.some((p) => p.estado === 'subiendo'))
+}
+
+// Lo mismo, para dibujar: guardar espera a que no quede ninguna y salir con alguna en curso pregunta.
+export function useHaySubiendo(): boolean {
+  return useSyncExternalStore(suscribir, haySubiendo, () => false)
 }
 
 export function cuantasPendientes(grupo: string): number {

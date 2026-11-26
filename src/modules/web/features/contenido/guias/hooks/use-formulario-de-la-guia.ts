@@ -5,6 +5,7 @@ import { useRegional } from '@/shared/ui/regional'
 import { useEnLinea } from '@/shared/ui/use-en-linea'
 import { useSalidaConCambios } from '@/shared/ui/use-salida-con-cambios'
 import {
+  MOTIVO_SUBIENDO_IMAGENES,
   accionesDeLaBarra,
   estadoDeGuia,
   motivoDelCuerpo,
@@ -12,6 +13,7 @@ import {
   tieneCuerpo,
   type GuiaCompleta,
 } from '../../../../entities/contenido/guias'
+import { useHaySubiendo } from '../../editor/bloques/subidas.client'
 import { useEditorDeLaGuia } from '../../editor/use-editor-de-la-guia'
 import { useAccionesDeLaGuia } from './use-acciones-de-la-guia'
 import { useGuardarGuia } from './use-guardar-guia'
@@ -36,7 +38,9 @@ export function useFormularioDeLaGuia({ guia, ahora, puedePublicarGuias }: Opcio
   const vista = useVistaPreviaPorUrl()
   const [senalDeFoco, setSenalDeFoco] = useState(0)
   const refDeLasAcciones = useRef<HTMLDivElement>(null)
-  const salida = useSalidaConCambios(hayCambios, descartar, refDeLasAcciones)
+  const subiendo = useHaySubiendo()
+  // Una foto que aún sube no cambia el documento, pero salir ahora la perdería: cuenta como cambio.
+  const salida = useSalidaConCambios(hayCambios || subiendo, descartar, refDeLasAcciones)
 
   const rechazo = motivoDelCuerpo(valores.cuerpo)
   const errorDelCuerpo = guardado.errores['cuerpo'] ?? rechazo ?? undefined
@@ -56,7 +60,7 @@ export function useFormularioDeLaGuia({ guia, ahora, puedePublicarGuias }: Opcio
     permitido: puedePublicarGuias,
     conCuerpo: tieneCuerpo(valores.cuerpo),
     enLinea,
-    motivoDelCuerpo: rechazo,
+    motivoDelCuerpo: rechazo ?? (subiendo ? MOTIVO_SUBIENDO_IMAGENES : null),
   }
   const abrirEnElPanel = (pestanaPedida: 'publicacion' | 'bloque') => {
     ponerPestana(pestanaPedida)

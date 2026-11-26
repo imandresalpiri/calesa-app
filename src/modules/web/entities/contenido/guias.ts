@@ -66,6 +66,7 @@ export const MOTIVO_SIN_PERMISO_PARA_PUBLICAR = 'Tu rol no publica guías.'
 export const MOTIVO_SIN_PERMISO_PARA_GUIAS = 'No tienes permiso para cambiar las guías.'
 export const MOTIVO_SIN_TEXTO_PARA_PUBLICAR = 'Escribe el texto de la guía para publicarla.'
 export const MOTIVO_SIN_CONEXION_PARA_PUBLICAR = 'No hay conexión.'
+export const MOTIVO_SUBIENDO_IMAGENES = 'Espera a que terminen de subir las imágenes.'
 export const MOTIVO_DE_SLUG_REPETIDO = 'Ya hay una guía con esa dirección. Cambia el texto.'
 export const MOTIVO_DE_FECHA_PASADA = 'Elige una fecha futura.'
 
