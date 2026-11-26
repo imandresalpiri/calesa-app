@@ -6603,8 +6603,6 @@ export type Database = {
           actualizado_en: string
           actualizado_por: string | null
           arribo_el: string | null
-          booking: string | null
-          contenedor: string | null
           contenedor_id: string | null
           creado_en: string
           embarque_id: string | null
@@ -6624,8 +6622,6 @@ export type Database = {
           actualizado_en?: string
           actualizado_por?: string | null
           arribo_el?: string | null
-          booking?: string | null
-          contenedor?: string | null
           contenedor_id?: string | null
           creado_en?: string
           embarque_id?: string | null
@@ -6644,8 +6640,6 @@ export type Database = {
           actualizado_en?: string
           actualizado_por?: string | null
           arribo_el?: string | null
-          booking?: string | null
-          contenedor?: string | null
           contenedor_id?: string | null
           creado_en?: string
           embarque_id?: string | null
