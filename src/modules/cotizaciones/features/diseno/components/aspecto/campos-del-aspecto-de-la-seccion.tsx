@@ -89,7 +89,7 @@ function camposDeLaSeccion(
   ]
 }
 
-// El aspecto de una sección, plegado: su lugar en la rejilla de las secciones, sus espacios, su letra y su color.
+// El aspecto de una sección, a la vista: su lugar en la rejilla de las secciones, sus espacios, su letra y su color.
 export function CamposDelAspectoDeLaSeccion({
   seccion: s,
   catalogo,
@@ -103,7 +103,7 @@ export function CamposDelAspectoDeLaSeccion({
   const columnas = s.ancho ?? SECCION_AUTOMATICA.columnas
   const sinAlto = !altoSirve(columnas)
   return (
-    <Bloque titulo="Aspecto" plegado forzarAbierto={error !== null}>
+    <Bloque titulo="Aspecto">
       <div className="grid min-w-0 gap-2 @md:grid-cols-2">
         <SelectorDeColumnas
           nombre={`${base}-ancho`}

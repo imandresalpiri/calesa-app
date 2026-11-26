@@ -31,7 +31,7 @@ type Props<Campo extends CampoBase, Cambios extends object, Nuevo> = {
 }
 
 // La pantalla «Campos» de un origen y de los leads: buscar, «Nuevo campo», las casillas de dato clave (si las hay), los grupos con sus
-// filas (tocar abre el panel `?campo=`; el «⋯» tiene el resto) y los desactivados, plegados. El orden se cambia arrastrando el asa
+// filas (tocar abre el panel `?campo=`; el «⋯» tiene el resto) y los desactivados, a la vista. El orden se cambia arrastrando el asa
 // (diferido) o con «Subir» y «Bajar» del «⋯»; con una búsqueda escrita no se arrastra.
 export function EditorDeCampos<Campo extends CampoBase, Cambios extends object, Nuevo>(
   props: Props<Campo, Cambios, Nuevo>,

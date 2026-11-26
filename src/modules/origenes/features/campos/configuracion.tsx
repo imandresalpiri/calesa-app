@@ -147,7 +147,7 @@ const BANDERAS: readonly BanderaDeCampo[] = [
 // El campo de apibara: de qué dato del scraper se llena al dar de alta por enlace.
 function HuecoDeApibara({ valores, cambiarTexto, deshabilitado }: ContextoDelHueco) {
   return (
-    <Bloque titulo="Apibara" plegado>
+    <Bloque titulo="Apibara">
       <Campo
         nombre={CLAVE_APIBARA}
         etiqueta="Campo de apibara"

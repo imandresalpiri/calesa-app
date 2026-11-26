@@ -62,11 +62,7 @@ function AvisosDeVitrina({ estado }: { estado: Estado }) {
 function OpcionesDeVitrina({ estado }: { estado: Estado }) {
   const { valores, porCampo } = estado
   return (
-    <Bloque
-      titulo="Más opciones"
-      plegado
-      forzarAbierto={porCampo.precioHasta !== undefined || porCampo.nota !== undefined}
-    >
+    <Bloque titulo="Más opciones">
       <div className="grid gap-4">
         <Campo
           nombre="precioHasta"

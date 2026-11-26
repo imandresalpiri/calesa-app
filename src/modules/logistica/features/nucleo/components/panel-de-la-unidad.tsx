@@ -19,7 +19,7 @@ type Props = {
   relacionados?: ReactNode
 }
 
-// El panel de la unidad (6.01): la cabecera con el título, el origen, la fase y los días en ella, y debajo un bloque plegado por hueco. No lee nada: recibe lo que se dibuja. Es el contenido de los drawers
+// El panel de la unidad (6.01): la cabecera con el título, el origen, la fase y los días en ella, y debajo una sección a la vista por hueco. No lee nada: recibe lo que se dibuja. Es el contenido de los drawers
 // (gastos y pagos, ítem de repuesto); la página de la unidad usa `PaginaDeLaUnidad`. Un hueco recibe sólo `{ unidad }` (datos serializables) y carga lo suyo al abrirse.
 export function PanelDeLaUnidad({
   unidad,

@@ -5,11 +5,7 @@ import { Aviso } from '@/shared/ui/aviso'
 import { useCambiosSinGuardar } from '@/shared/ui/cambios-del-panel'
 import { PieDelPanel } from '@/shared/ui/pie-del-panel'
 import { TabsContent } from '@/shared/ui/tabs'
-import {
-  pestanaDelCampo,
-  type BloqueDeFase,
-  type PestanaDeFase,
-} from '../../../entities/fases/bloques-de-fase'
+import { pestanaDelCampo, type PestanaDeFase } from '../../../entities/fases/bloques-de-fase'
 import { contextoDelFlujo } from '../../../entities/fases/reglas-de-fase'
 import type { FaseParaConfigurar, FlujoParaConfigurar } from '../../../entities/flujo'
 import { useFormularioDeDatos } from '../hooks/use-formulario-de-datos'
@@ -62,7 +58,6 @@ export function FormularioDeDatosDeLaFase({
     marcar()
   }, [firma])
   const contexto = contextoDelFlujo(flujo)
-  const delBloque = (bloque: BloqueDeFase) => f.conError.has(bloque)
   const comunes = {
     valores: f.valores,
     errores: f.errores,
@@ -89,19 +84,19 @@ export function FormularioDeDatosDeLaFase({
         </Aviso>
       ) : null}
       <TabsContent value="identidad" keepMounted className="pt-2">
-        <BloqueIdentidad {...comunes} conError={delBloque('identidad')} />
+        <BloqueIdentidad {...comunes} />
       </TabsContent>
       <TabsContent value="ajustes" keepMounted className="pt-2">
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
           <BloqueEnElFlujo
             {...comunes}
-            conError={delBloque('en-el-flujo')}
+
             fase={fase}
             fases={flujo.fases}
           />
-          <BloqueDemora {...comunes} conError={delBloque('demora')} />
-          <BloqueTransporte {...comunes} conError={delBloque('transporte')} />
-          <BloqueWebYPortal {...comunes} conError={delBloque('web-y-portal')} />
+          <BloqueDemora {...comunes} />
+          <BloqueTransporte {...comunes} />
+          <BloqueWebYPortal {...comunes} />
         </div>
       </TabsContent>
       {pestana === 'reglas' ? null : (

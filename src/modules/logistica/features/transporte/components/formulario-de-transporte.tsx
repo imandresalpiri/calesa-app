@@ -8,7 +8,6 @@ import { Button } from '@/shared/ui/button'
 import {
   MOTIVO_SIN_PERMISO_DE_TRANSPORTE,
   TEXTO_SIN_TRANSPORTE,
-  type ErroresDeTransporte,
 } from '../../../entities/transporte/transporte'
 import type { TransporteDeLaUnidad } from '../../../areas/transporte/composicion.client'
 import { useFormularioDeTransporte } from '../hooks/use-formulario-de-transporte'
@@ -24,9 +23,6 @@ type Props = {
   // Vuelve a leer lo de la unidad (la versión nueva tras un conflicto).
   releer: () => void
 }
-
-const hayError = (errores: ErroresDeTransporte, campos: readonly (keyof ErroresDeTransporte)[]) =>
-  campos.some((c) => errores[c] !== undefined)
 
 type PropsDelPie = {
   conflicto: string | null
@@ -101,10 +97,7 @@ export function FormularioDeTransporte({
       {datos.transporte ? null : (
         <p className="text-(length:--text-sm) text-(--color-ink-soft)">{TEXTO_SIN_TRANSPORTE}</p>
       )}
-      <Bloque
-        titulo="Ruta"
-        forzarAbierto={hayError(f.errores, ['naviera', 'puertoOrigen', 'puertoDestino'])}
-      >
+      <Bloque titulo="Ruta">
         <CamposDeRuta
           {...campos}
           navieras={opciones.navieras}
@@ -114,16 +107,10 @@ export function FormularioDeTransporte({
           hayNavieras={hayNavieras}
         />
       </Bloque>
-      <Bloque
-        titulo="Contenedor y booking"
-        forzarAbierto={hayError(f.errores, ['contenedor', 'booking'])}
-      >
+      <Bloque titulo="Contenedor y booking">
         <CamposDeContenedor {...campos} />
       </Bloque>
-      <Bloque
-        titulo="Fechas y notas"
-        forzarAbierto={hayError(f.errores, ['zarpe', 'eta', 'arribo', 'notas'])}
-      >
+      <Bloque titulo="Fechas y notas">
         <CamposDeFechasYNotas {...campos} />
       </Bloque>
       <PieDelFormulario

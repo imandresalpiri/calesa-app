@@ -58,9 +58,7 @@ function GruposDelLayout({ vehiculo, origenId }: { vehiculo: Vehiculo; origenId:
       </div>
     )
   }
-  return (
-    <DatosPorGrupo campos={leido.layout.campos} atributos={vehiculo.atributos} plegable={false} />
-  )
+  return <DatosPorGrupo campos={leido.layout.campos} atributos={vehiculo.atributos} />
 }
 
 // Lo que dice la ficha completa debajo de las fotos: título, número y origen; «Datos principales» y «Precio» (los comunes) y todos los grupos del

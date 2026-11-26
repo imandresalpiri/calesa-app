@@ -21,7 +21,6 @@ export function BloqueSeo({ valores, cambiar, errores }: Props) {
     <Bloque
       titulo="Para buscadores"
       descripcion="Vacíos, se usan el título y el resumen de la guía."
-      plegado
     >
       <Campo
         nombre="seoTitulo"

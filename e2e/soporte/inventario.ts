@@ -218,6 +218,6 @@ export async function descartarAviso(page: Page, texto: string | RegExp) {
   await expect(aviso).toBeHidden()
 }
 
-// El encabezado de un bloque plegable del formulario.
-export const bloque = (panel: Locator, titulo: string) =>
-  panel.locator('summary').filter({ hasText: new RegExp(`^${titulo}$`) })
+// Una sección a la vista de un formulario (`<Bloque>`), por su título.
+export const seccion = (panel: Locator, titulo: string) =>
+  panel.getByRole('region', { name: titulo, exact: true })

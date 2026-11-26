@@ -94,11 +94,10 @@ describe('EditorDeCampos', () => {
     expect(document.activeElement).toBe(screen.getByRole('searchbox', { name: 'Buscar campo' }))
   })
 
-  it('los desactivados van plegados y sin conteo', () => {
+  it('los desactivados van a la vista y sin conteo', () => {
     montar()
-    const bloque = screen.getByText('Desactivados').closest('details')
-    expect(bloque?.open).toBe(false)
-    expect(bloque?.querySelector('summary')?.textContent).toBe('Desactivados')
+    expect(screen.getByRole('heading', { level: 3, name: 'Desactivados' })).toBeTruthy()
+    expect(document.querySelector('details')).toBeNull()
   })
 
   it('las casillas dicen el tope, los lugares libres y marcan con una insignia lo que ya es dato clave', () => {

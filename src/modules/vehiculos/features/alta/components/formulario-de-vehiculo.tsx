@@ -24,8 +24,7 @@ type Props = {
 }
 
 // El formulario de un vehículo: los datos comunes en dos bloques y un bloque por cada grupo del
-// layout de su origen, en su orden. El primero nace abierto y los demás plegados, salvo los que
-// tienen algo obligatorio; uno con un error se abre solo.
+// layout de su origen, en su orden, todos a la vista.
 export function FormularioDeVehiculo({ id, estado, fuentes, campos, vehiculo, alRecargar }: Props) {
   const formulario = useRef<HTMLFormElement>(null)
   const comunes = camposDeComunes(
@@ -74,7 +73,6 @@ export function FormularioDeVehiculo({ id, estado, fuentes, campos, vehiculo, al
           errores={estado.errores}
           alCambiar={estado.cambiar}
           deshabilitado={estado.enCurso}
-          plegado={indice > 0}
           enfocarPrimero={indice === 0}
         />
       ))}
@@ -87,7 +85,6 @@ export function FormularioDeVehiculo({ id, estado, fuentes, campos, vehiculo, al
           errores={estado.errores}
           alCambiar={estado.cambiar}
           deshabilitado={estado.enCurso}
-          plegado={!grupo.campos.some((campo) => campo.requerido)}
         />
       ))}
     </form>

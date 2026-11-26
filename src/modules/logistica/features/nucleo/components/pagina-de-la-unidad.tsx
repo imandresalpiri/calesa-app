@@ -19,7 +19,7 @@ type Props = {
   puedeMover?: boolean
 }
 
-// La unidad en su propia página (T20): la cabecera compacta y, debajo, las zonas (escritorio) o los bloques plegables con la barra «Mover» (celular). El alto fijo que hace que en escritorio no se desplace la
+// La unidad en su propia página (T20): la cabecera compacta y, debajo, las zonas (escritorio) o las secciones a la vista con la barra «Mover» (celular). El alto fijo que hace que en escritorio no se desplace la
 // página lo pone `src/app` con `--alto-del-detalle`; aquí sólo se usa, desde 56 rem de contenedor (con el texto al 200 % los rem crecen y la página vuelve sola a una columna con alto natural). La cabecera va
 // fuera del cambio de forma: si el ancho se adivinó mal, el remonte no la toca. Compatible con servidor.
 export function PaginaDeLaUnidad({

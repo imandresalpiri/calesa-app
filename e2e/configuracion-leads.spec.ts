@@ -169,7 +169,7 @@ test('se crea un campo de opciones, se ordena, se vuelve privado y se desactiva'
   // Desactivarlo desde su «⋯» lo saca del layout (el dato se conserva) y «Activar» lo devuelve.
   await elegirDelMenu(page, ETIQUETA, 'Desactivar')
   await descartarAviso(page, `«${ETIQUETA}» desactivado`)
-  await page.getByText('Desactivados', { exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Desactivados', level: 3 })).toBeVisible()
   await elegirDelMenu(page, ETIQUETA, 'Activar')
   await expect(page.getByText(`«${ETIQUETA}» activado`)).toBeVisible()
   await expect.poll(async () => (await campoDeLead(CLAVE_DEL_CAMPO)).activo).toBe(true)

@@ -230,7 +230,7 @@ test('se edita el layout de campos y se refleja', async ({ page }) => {
   // Desactivarlo desde su «⋯» lo saca del layout (el dato se conserva) y «Activar» lo devuelve.
   await elegirDelMenu(page, 'Kit de extras', 'Desactivar')
   await descartarAviso(page, '«Kit de extras» desactivado')
-  await page.getByText('Desactivados', { exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Desactivados', level: 3 })).toBeVisible()
   await elegirDelMenu(page, 'Kit de extras', 'Activar')
   await expect(page.getByText('«Kit de extras» activado')).toBeVisible()
   await expect.poll(async () => (await campoDelOrigen(corea.id, 'kit_de_extras')).activo).toBe(true)

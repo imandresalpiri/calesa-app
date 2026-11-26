@@ -17,11 +17,7 @@ export function BloquesDeEvento({
   const id = useId()
   return (
     <>
-      <Bloque
-        titulo="Lugar"
-        plegado={f.valores.lugar === ''}
-        forzarAbierto={Boolean(f.errores.lugar)}
-      >
+      <Bloque titulo="Lugar">
         <div className="p-4 pt-0">
           <Campo
             nombre="lugar"
@@ -35,11 +31,7 @@ export function BloquesDeEvento({
           />
         </div>
       </Bloque>
-      <Bloque
-        titulo="Descripción"
-        plegado={f.valores.descripcion === ''}
-        forzarAbierto={Boolean(f.errores.descripcion)}
-      >
+      <Bloque titulo="Descripción">
         <div className="grid gap-1.5 p-4 pt-0">
           <Label htmlFor={`${id}-descripcion`}>Descripción (opcional)</Label>
           <Textarea

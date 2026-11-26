@@ -178,7 +178,6 @@ function PasoDeDatos({ alta, contexto, campos, alElegir }: Omit<Props, 'id' | 'z
         errores={alta.errores}
         alCambiar={alta.cambiar}
         deshabilitado={alta.enCurso}
-        plegado
       />
     </>
   )

@@ -1,11 +1,11 @@
-import { expect, test, type Locator, type Page } from './soporte/prueba'
+import { expect, test, type Page } from './soporte/prueba'
 import {
   borrarPersonasDePrueba,
   borrarRolesDePrueba,
   correoDePrueba,
   crearDuenaDePrueba,
 } from './soporte/base'
-import { bloque, descartarAviso } from './soporte/inventario'
+import { seccion, descartarAviso } from './soporte/inventario'
 import { borrarCamposDeLeadDePrueba, campoDeLead, crearLead } from './soporte/leads'
 import { telefonoAlAzar } from './soporte/leads-alta'
 import { irAFicha, leadEnLaBase, panelDeEdicion } from './soporte/leads-ficha'
@@ -42,14 +42,6 @@ async function entrar(page: Page) {
   await page.goto('/ingreso')
   await ingresar(page, duena, CLAVE)
   await expect(page).toHaveURL('/')
-}
-
-// Un campo sin grupo va en «Otros datos», que puede nacer plegado.
-async function abrirOtros(panel: Locator) {
-  const encabezado = bloque(panel, 'Otros datos')
-  if ((await encabezado.locator('xpath=..').getAttribute('open')) === null) {
-    await encabezado.click()
-  }
 }
 
 test('un campo con rango avisa al acotarlo y la ficha dice el motivo', async ({ page }) => {
@@ -91,7 +83,7 @@ test('un campo con rango avisa al acotarlo y la ficha dice el motivo', async ({ 
   await irAFicha(page, leadId, '?panel=editar-lead')
   const ficha = panelDeEdicion(page)
   await expect(ficha).toBeVisible()
-  await abrirOtros(ficha)
+  await expect(seccion(ficha, 'Otros datos')).toBeVisible()
   await ficha.getByLabel(ETIQUETA).fill('7')
   await page.getByRole('button', { name: 'Guardar', exact: true }).click()
   await expect(ficha.getByText(`«${ETIQUETA}» va de 1 a 5.`)).toBeVisible()

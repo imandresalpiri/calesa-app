@@ -116,9 +116,9 @@ async function medidaDeLaSeccion(lugar: Locator, id: string) {
   })
 }
 
-// El aspecto de la sección elegida, plegado en el inspector: abrirlo.
+// El aspecto de la sección elegida, a la vista en el inspector: llevarlo a la vista.
 const abrirElAspecto = (page: Page) =>
-  inspector(page).locator('[data-aspecto-de-la-seccion] summary').click()
+  inspector(page).locator('[data-aspecto-de-la-seccion]').scrollIntoViewIfNeeded()
 
 // Mueve una sección un lugar con el teclado: elegida, Alt+flecha sobre ella (el foco vuelve a la sección movida).
 async function moverConElTeclado(page: Page, id: string, flecha: string) {
