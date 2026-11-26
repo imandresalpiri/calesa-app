@@ -163,9 +163,13 @@ describe('CabeceraDeLaGuardada: lo que va a la vista (T321)', () => {
     expect(grupo?.lastElementChild?.textContent).toBe('Compartir')
   })
 
-  it('sin `guardable`, no hay lugar para «Guardar»', () => {
+  it('sin `guardable`, no hay lugar para «Guardar»: dice que es de sólo lectura (P13)', () => {
     render(conMenu(<CabeceraDeLaGuardada {...props} />, true))
-    expect(document.querySelector('[data-acciones-de-la-cabecera]')?.children).toHaveLength(1)
+    const acciones = document.querySelector('[data-acciones-de-la-cabecera]')
+    expect(acciones?.children).toHaveLength(2)
+    expect(acciones?.firstElementChild?.textContent).toBe(
+      'Sólo lectura: no puedes guardar esta cotización.',
+    )
   })
 
   it('las `acciones` de las áreas quedan fuera de la fila: sólo montan sus diálogos', () => {

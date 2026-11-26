@@ -26,8 +26,8 @@ Inventario de vehículos por origen con atributos dinámicos: listado con filtro
     usa `crearVehiculo`. Enter trae un enlace, y un VIN o lote sólo si su búsqueda volvió vacía (cada consulta a apibara gasta cuota); recargar con
     `?alta=subasta` no vuelve a consultar.
   - La barra recibe armados `cotizado` (texto sin `<Badge>`, que arrastra Base UI a la carga en frío) y `historial` (un `ReactNode` de `cotizaciones`).
-  - **El título de lo que se cotiza** (T307; `vehiculos` no conoce `cotizaciones`): `titulo` (ya resuelto; la barra lo dibuja grande, en dos líneas y entero en
-    `title`, con el vehículo debajo —su título si no es el mismo, y su referencia—; sin vehículo, el título solo) y `arribaDelPanel` (un `ReactNode` que el panel pone
+  - **El título de lo que se cotiza** (T307; `vehiculos` no conoce `cotizaciones`): `titulo` (ya resuelto; la barra, baja —44 px, 36 con puntero fino—, lo dibuja en una
+    línea, recortado y entero en `title`, con el vehículo al lado en letra chica —su título si no es el mismo, y su referencia—; sin vehículo, el título solo) y `arribaDelPanel` (un `ReactNode` que el panel pone
     antes del buscador: el campo del título, que llena `src/app`). El nombre accesible de la barra empieza siempre por «Vehículo: ». `modo`: `elegir` (por omisión),
     `cambiar` (el panel de elegir sin «Quitar»: una preventa guardada en `/cotizaciones/[id]`, que cambia de vehículo y no se queda sin él; `sinQuitar` del panel),
     `ver_elegido` (el panel sólo con lo de arriba y el elegido en sólo lectura, sin buscador, listas, «Quitar» ni dato: `soloElegido`, no lee ninguna lista; con

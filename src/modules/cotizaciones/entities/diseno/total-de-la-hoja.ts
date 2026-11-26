@@ -1,5 +1,5 @@
 // Dónde va la tarjeta del total en el editor de la hoja (docs/GLOSARIO.md › «Tarjeta del total»): la pieza `{ tipo: 'total' }` de una sección principal y sin
-// nivel, o, sin pieza (un diseño de antes), en el resumen fijo. Puras.
+// nivel, o, sin pieza (un diseño de antes), sola arriba de «Avanzado». Puras.
 import { NIVEL_TODOS, type Diseno, type SeccionDeDiseno } from '../diseno'
 import { sumarItem } from './insercion-del-diseno'
 
@@ -20,7 +20,7 @@ export function motivoParaElTotal(
   return admiteElTotal(s) ? null : MOTIVO_DEL_TOTAL_CON_NIVEL
 }
 
-// La primera pieza del total, con su sección y su lugar; nula sin pieza (se dibuja en el resumen fijo).
+// La primera pieza del total, con su sección y su lugar; nula sin pieza (se dibuja sola arriba de «Avanzado»).
 export function dondeVaElTotal(d: Diseno): { seccion: string; indice: number } | null {
   for (const s of d.secciones) {
     const indice = s.items.findIndex((it) => it.tipo === 'total')

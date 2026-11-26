@@ -54,8 +54,8 @@ export const AYUDA_DE_LA_HOJA = 'Cuánto pide el vendedor por la pública. Se pa
 
 // Publica en un origen la fórmula de prueba con la sección del nivel «costos» como `avanzado`, y con una ayuda de texto en una celda de la hoja: el modal trae un interruptor, dos celdas (una con ayuda de texto), unos atajos y un
 // subtotal; el total la suma (`x_celda`), así que tipear ahí cambia el total de la hoja.
-export function publicarFormulaConAvanzado(origenId: string): void {
-  const { definicion, params, diseno } = formulaDePrueba()
+export function publicarFormulaConAvanzado(origenId: string, dosModos = false): void {
+  const { definicion, params, diseno } = formulaDePrueba(dosModos)
   const conAvanzado = {
     ...diseno,
     secciones: diseno.secciones.map((s) => ({

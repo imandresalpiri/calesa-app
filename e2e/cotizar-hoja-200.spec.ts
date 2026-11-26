@@ -11,6 +11,7 @@ import {
   darRolDePrueba,
 } from './soporte/base'
 import { vigilarRecalculos } from './soporte/cotizar'
+import { esperarElTotal, regionDelTotal } from './soporte/cotizar-guardar'
 import { celdasFueraDeSuSeccion, ordenConAvanzado } from './soporte/cotizar-avanzado'
 import {
   capturar,
@@ -36,15 +37,16 @@ test.describe.configure({ mode: 'serial' })
 // `empresa.tipos_cambio.gestionar`, que ve las mismas celdas), y quien configura tiene su tope: lo medido con la hoja usada más un 5 %, con techo en 600 y la misma regla.
 // Con un cálculo pisado (T521: la marca y «Calculado» de la celda, el aviso de la primera vez y su línea del resumen, los dos últimos con `diferido()`): 458 al
 // abrir y 502 usada. Pasa el techo por menos del 5 %: sube a 525 (500 más un 5 %, la regla de presupuestos de la tanda del 2026-11-21, `docs/DECISIONES.md` ›
-// «Pisar un cálculo»); más que eso, se recorta.
+// «Pisar un cálculo»); más que eso, se recorta. Sin el resumen de la derecha, con la región del total, el cierre y la cabecera en la ranura de las barras (T565):
+// 448 al abrir y 492 usada.
 const TOPE_DE_NODOS = 525
 // La dueña con ⚙ (4.20-3b): 532 al abrir (21 ⚙) y 557 usada (22: la garantía suma el suyo); más un 5 %, 585. Con la celda en una fila, los pasos y el ⚙ de la
-// cabecera (T312): 516 al abrir y 540 usada; sin ⚙, 446 y 467. Con un cálculo pisado (T521): 528 al abrir y 575 usada.
+// cabecera (T312): 516 al abrir y 540 usada; sin ⚙, 446 y 467. Con un cálculo pisado (T521): 528 al abrir y 575 usada. Sin el resumen (T565): 517 al abrir y 564 usada.
 const TOPE_DE_NODOS_CON_AJUSTE = 585
 // Cada ⚙ son tres nodos (el botón, su `svg` y su `use`: `src/shared/ui/xcell/CLAUDE.md` › «Nodos por celda»).
 const NODOS_POR_AJUSTE = 3
-// El ⚙ de la cabecera (T312) son siete: la fila que lo pone junto a los modos, el botón, su `svg` y sus cuatro trazos.
-const NODOS_DEL_AJUSTE_DE_LA_CABECERA = 7
+// El ⚙ de la cabecera (T312) son seis: el botón, su `svg` y sus cuatro trazos (en la ranura de la cabecera va junto a los modos, sin una fila propia).
+const NODOS_DEL_AJUSTE_DE_LA_CABECERA = 6
 
 let duena = ''
 let costos = ''
@@ -95,7 +97,15 @@ const hoja = (page: Page) => page.locator('[data-hoja]')
 const celda = (page: Page, nodo: string) => page.locator(`[data-nodo="${nodo}"]`)
 const lista = (page: Page, atributo: string) =>
   page.locator(`[${atributo}]`).evaluateAll((es, a) => es.map((e) => e.getAttribute(a)), atributo)
-const nodosDelDom = (page: Page) => hoja(page).evaluate((e) => e.querySelectorAll('*').length + 1)
+// La hoja entera: `[data-hoja]` y lo que puso en la ranura de la cabecera (los modos, «Ver total» y el ⚙ van ahí por un portal).
+const nodosDelDom = (page: Page) =>
+  page.evaluate(() => {
+    const hoja = document.querySelector('[data-hoja]')
+    const ranura = document.querySelector('[data-ranura-de-la-cabecera]')
+    return (
+      (hoja?.querySelectorAll('*').length ?? 0) + 1 + (ranura?.querySelectorAll('*').length ?? 0)
+    )
+  })
 // Los nodos del modal «Avanzado» abierto (su diálogo), que se suman a los de la hoja: es la hoja entera.
 const AJUSTE = /^Cambiar el valor por defecto de /
 async function medirElModal(
@@ -139,7 +149,7 @@ async function columnas(page: Page) {
   })
 }
 
-// Los dos diseños de la semilla (el del cotizador actual y el del Excel, `docs/PENDIENTES.md` › criterio de la fase), con el resumen fijo al costado o al pie (4.13-4d).
+// Los dos diseños de la semilla (el del cotizador actual y el del Excel, `docs/PENDIENTES.md` › criterio de la fase), con el total en la hoja, encima de «Avanzado».
 for (const clave of ['subasta_usa', 'planilla_usa']) {
   for (const zoom of [100, 200]) {
     test(`la hoja de ${clave} al ${String(zoom)} % cabe, no corta nada, sus celdas caben en su sección y mantiene el orden declarado`, async ({
@@ -151,7 +161,7 @@ for (const clave of ['subasta_usa', 'planilla_usa']) {
       await abrir(page, clave === 'subasta_usa' ? subasta : planilla)
       await sinScrollHorizontal(page)
       await sinTextoCortado(hoja(page))
-      await sinTextoCortado(page.getByLabel('Resumen'))
+      await sinTextoCortado(regionDelTotal(page))
       expect(await celdasFueraDeSuSeccion(hoja(page))).toEqual([])
       // La hoja dibuja las secciones principales; las avanzadas están detrás del botón «Avanzado» (`cotizar-hoja-avanzado.spec.ts` mira su modal).
       const orden = ordenConAvanzado(clave, clave === 'subasta_usa' ? ['garantia'] : []).hoja
@@ -180,8 +190,8 @@ for (const clave of ['subasta_usa', 'planilla_usa']) {
         description: `hoja ${formatearNumero(medida.hojaRem, { decimales: 1 })} rem; secciones ${medida.secciones.map((s) => formatearNumero(s.rem, { decimales: 1 })).join(', ')} rem`,
       })
       await capturar(page, info, `cotizar-hoja-${clave}-${String(zoom)}`)
-      await page.getByLabel('Resumen').scrollIntoViewIfNeeded()
-      await capturar(page, info, `cotizar-resumen-${clave}-${String(zoom)}`)
+      await regionDelTotal(page).scrollIntoViewIfNeeded()
+      await capturar(page, info, `cotizar-total-${clave}-${String(zoom)}`)
     })
   }
 }
@@ -214,12 +224,12 @@ async function medirLaHoja(page: Page, correo: string): Promise<Medida> {
   await celda(page, 'fees').locator('[data-parada="0"]').click()
   await celda(page, 'fees').locator('input').fill('1300')
   await celda(page, 'fees').locator('input').press('Enter')
-  // El peor caso: el segundo modo elegido y «Ver total Bs» encendido (4.13-4b3), con su línea en el resumen.
+  // El peor caso: el segundo modo elegido y «Ver total Bs» encendido (4.13-4b3), con su línea bajo la tarjeta del total.
   await page.locator('[data-cabecera]').getByText('Unificado', { exact: true }).click()
   await page.getByRole('switch', { name: 'Ver total en moneda local' }).click()
   await expect(page.locator('[data-total-bs]')).toBeVisible()
   await expect.poll(() => vigilante.respuestas.length).toBeGreaterThan(0)
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false')
+  await esperarElTotal(page)
   const modalUsada = await medirElModal(page)
   const usada = (await nodosDelDom(page)) + modalUsada.nodos
   const ajustesUsada =

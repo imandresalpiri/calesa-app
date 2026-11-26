@@ -24,7 +24,7 @@ type Props = {
   obligatorio?: boolean
 }
 
-// La barra del cliente sobre la hoja de cotizar: una sola parada de Tab que abre el panel del cliente (`?panel=cliente`). Va fuera de la hoja (`[data-hoja]`) y del
+// La barra del cliente sobre la hoja de cotizar, baja como la del vehículo (44 px en el celular, 36 con puntero fino desde `md`): una sola parada de Tab que abre el panel del cliente (`?panel=cliente`). Va fuera de la hoja (`[data-hoja]`) y del
 // componente que se vuelve a montar al cambiar de lead: elegir otro no la desmonta y el foco vuelve a ella. Sin `<Badge>` (arrastra Base UI a la carga en frío de la hoja).
 export function BarraDelCliente({
   elegido,
@@ -57,7 +57,7 @@ export function BarraDelCliente({
         onClick={() => {
           panel.abrir()
         }}
-        className="flex min-h-11 w-full min-w-0 items-center gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-2 text-left hover:bg-(--color-surface-3)"
+        className="flex min-h-[44px] w-full min-w-0 items-center gap-2 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) px-2 py-1 text-left hover:bg-(--color-surface-3) md:pointer-fine:min-h-9"
       >
         <span className="sr-only">Cliente: </span>
         {elegido ? (
@@ -72,7 +72,9 @@ export function BarraDelCliente({
           </>
         ) : (
           <>
-            <span className="flex-1 text-(--color-ink-soft)">Selecciona un cliente</span>
+            <span className="min-w-0 flex-1 truncate text-(--color-ink-soft)">
+              Selecciona un cliente
+            </span>
             {/* Una etiqueta propia y no `<Badge>` (Base UI a la carga en frío de la hoja); en su propio `<span>`: «Selecciona un cliente» no se parte. */}
             {obligatorio ? (
               <span className="inline-flex h-5 shrink-0 items-center rounded-4xl bg-(--color-peligro-soft) px-2 text-xs font-medium whitespace-nowrap text-(--color-peligro-ink)">

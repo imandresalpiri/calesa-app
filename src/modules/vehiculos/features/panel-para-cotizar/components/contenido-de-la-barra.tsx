@@ -8,9 +8,11 @@ export const SIN_VER = 'No puedes ver los vehículos de este origen.'
 const ETIQUETA =
   'inline-flex h-5 shrink-0 items-center rounded-4xl px-2 text-xs font-medium whitespace-nowrap'
 
-// El título grande en dos líneas como mucho, completo en `title` (al 200 % y en el celular no desborda).
-const GRANDE = 'line-clamp-2 font-medium break-words text-(--color-ink)'
-const DEBAJO = 'text-(length:--text-xs) text-(--color-ink-soft)'
+// La barra es baja (una línea): el título se corta con «…» y queda completo en `title` y en el panel; lo de debajo va en la misma línea, tras él, y se corta
+// primero. Al 200 % y en el celular no desborda: la barra crece de alto, nunca de ancho.
+const GRANDE = 'min-w-0 shrink truncate font-medium text-(--color-ink)'
+const DEBAJO = 'min-w-0 truncate text-(length:--text-xs) text-(--color-ink-soft)'
+const LINEA = 'flex min-w-0 flex-1 items-baseline gap-2'
 
 type Props = {
   elegido: VehiculoElegido | null
@@ -38,10 +40,12 @@ function ConElegido({
     .join(' · ')
   return (
     <>
-      <span className="grid min-w-0 flex-1">
+      <span className={LINEA}>
         {titulo === null ? (
           <>
-            <span className="truncate font-medium text-(--color-ink)">{elegido.titulo}</span>
+            <span className={GRANDE} title={elegido.titulo}>
+              {elegido.titulo}
+            </span>
             <span className={`${DEBAJO} tabular-nums`}>{referenciaDelVehiculo(elegido)}</span>
           </>
         ) : (
@@ -49,7 +53,7 @@ function ConElegido({
             <span className={GRANDE} title={titulo}>
               {titulo}
             </span>
-            <span className={`${DEBAJO} truncate tabular-nums`}>{debajo}</span>
+            <span className={`${DEBAJO} tabular-nums`}>{debajo}</span>
           </>
         )}
       </span>
@@ -74,9 +78,9 @@ function SinElegido({
   return (
     <>
       {titulo === null ? (
-        <span className="flex-1 text-(--color-ink-soft)">{texto}</span>
+        <span className="min-w-0 flex-1 truncate text-(--color-ink-soft)">{texto}</span>
       ) : (
-        <span className="grid min-w-0 flex-1">
+        <span className={LINEA}>
           <span className={GRANDE} title={titulo}>
             {titulo}
           </span>
@@ -88,14 +92,14 @@ function SinElegido({
   )
 }
 
-// Lo que dice la barra del vehículo (botón o no): con título, el título grande y debajo el vehículo; sin vehículo, el título solo con «Selecciona un vehículo»
-// debajo; sin ninguno de los dos, «Selecciona un vehículo» como siempre.
+// Lo que dice la barra del vehículo (botón o no), en una línea: con título, el título y tras él el vehículo; sin vehículo, el título con «Selecciona un vehículo»
+// tras él; sin ninguno de los dos, «Selecciona un vehículo» como siempre.
 export function ContenidoDeLaBarra(props: Props) {
   const { elegido, puedeVer, cotizado, obligatorio, titulo, textoSinVehiculo } = props
   const conTitulo = titulo ?? null
   return (
     <>
-      <Miniatura ruta={elegido?.portadaRuta} className="w-12" />
+      <Miniatura ruta={elegido?.portadaRuta} className="w-8" />
       {/* La barra abre el panel «Vehículo»: su nombre empieza así siempre, con o sin título. */}
       <span className="sr-only">Vehículo: </span>
       {elegido ? (

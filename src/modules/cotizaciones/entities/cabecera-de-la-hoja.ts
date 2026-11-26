@@ -55,10 +55,29 @@ export function totalBsDelResumen(respuesta: RespuestaDeRecalculo | null): Total
   return bs === null ? { tipo: 'faltante' } : { tipo: 'valor', bs }
 }
 
-// El nombre (el de la base) del modo elegido, para decirlo en el resumen; nulo si la hoja no declara modos o no hay uno elegido.
+// El nombre (el de la base) del modo elegido, para decirlo (el ⚙ de la cabecera, la tarjeta); nulo si la hoja no declara modos o no hay uno elegido.
 export function nombreDelModo(
   cabecera: { modos: readonly { clave: string; nombre: string }[] },
   clave: string | null,
 ): string | null {
   return cabecera.modos.find((m) => m.clave === clave)?.nombre ?? null
+}
+
+// Si la cabecera de la hoja dibuja algo (dos modos o más, «Ver total en moneda local» o el ⚙): con eso la ranura de la cabecera muestra la cabecera quieta antes de que la
+// hoja se monte y la llene por un portal (sin saltos). El ⚙ cuenta con `ajustes`, que la base da sólo a quien configura el origen (el mismo que ve el ⚙).
+export function cabeceraSeDibuja(
+  cabecera: {
+    modos: readonly { clave: string }[]
+    modosVisibles: readonly string[] | null
+    verTotalBs: boolean
+    monedaBs: string | null
+    ajustes: boolean
+  },
+  modoElegido: string | null,
+): boolean {
+  return (
+    modosDelEncabezado(cabecera, modoElegido).length >= 2 ||
+    ofreceVerTotalBs(cabecera) ||
+    cabecera.ajustes
+  )
 }

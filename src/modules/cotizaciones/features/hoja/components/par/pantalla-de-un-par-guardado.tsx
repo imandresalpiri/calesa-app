@@ -29,7 +29,6 @@ import type { AperturaDeHoja } from '../../hooks/use-hoja'
 import { useLecturaDeUnaGuardada } from '../../hooks/use-lectura-de-una-guardada'
 import { useTituloDeLaCotizacion } from '../../hooks/use-titulo-de-la-cotizacion'
 import { useSoltarElVehiculo } from '../../hooks/use-vehiculo-en-la-url'
-import type { PasosDeLaPagina } from '../pasos-de-la-hoja'
 import { TotalGuardado } from '../total-guardado'
 import { HojaEnPar } from './hoja-en-par'
 
@@ -46,7 +45,6 @@ type Props = PropsDeLaHoja & {
   personaId: string
   cambiaVehiculo: boolean
   panelDelTitulo?: string
-  pasos?: PasosDeLaPagina
 }
 
 // Las entradas de cada columna: las suyas guardadas y, en la que no se abrió, lo común de la que se abrió (manda lo de esta; al guardar queda en las dos).
@@ -208,7 +206,6 @@ export function PantallaDeUnParGuardado({
   personaId,
   cambiaVehiculo,
   panelDelTitulo,
-  pasos,
   ...props
 }: Props) {
   const [vuelta, setVuelta] = useState(0)
@@ -270,7 +267,6 @@ export function PantallaDeUnParGuardado({
       deLaHermana={deLaHermana}
       abierta={abierta}
       encima={(hayCambios) => <Encima {...deEncima} hayCambios={hayCambios} />}
-      {...(pasos ? { pasos } : {})}
       {...(puedeGuardar
         ? { edicion, borrador: { clave: borrador, alDescartar: () => setVuelta((v) => v + 1) } }
         : {})}

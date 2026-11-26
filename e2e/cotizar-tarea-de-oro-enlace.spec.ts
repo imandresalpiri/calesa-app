@@ -21,6 +21,7 @@ import {
 import {
   celdaDeLaHoja,
   cotizacionGuardada,
+  esperarElTotal,
   tarjetaGuardada,
   totalDeLaHoja,
   vigilarGuardados,
@@ -39,8 +40,8 @@ test.describe.configure({ mode: 'serial' })
 
 // Las teclas de control: Tab y Enter a «Saltar al contenido», los Tab hasta la barra y su Enter, Enter para traer el enlace, Ctrl+S («Crear y elegir»), Enter en la barra (el foco
 // vuelve a ella), los Tab hasta el tipo y su Enter, los Tab hasta `remate` y su Enter, hasta `grua` y su Enter, y Ctrl+S. Medido en la primera corrida verde (2026-10-30): 32,
-// con 2,5 s el robot y KLM 39,5 s en escritorio; determinista: una parada nueva en el camino lo rompe a propósito. 33 desde el 4.14-3b: la barra del cliente es una parada más entre la del vehículo y la hoja.
-const CONTROLES_CON_EL_ENLACE = 33
+// con 2,5 s el robot y KLM 39,5 s en escritorio; determinista: una parada nueva en el camino lo rompe a propósito. 33 desde el 4.14-3b: la barra del cliente es una parada más entre la del vehículo y la hoja. 34 desde T565: «Privada», en los pasos de la hoja, es una parada antes del primer lado.
+const CONTROLES_CON_EL_ENLACE = 34
 
 let asesora = ''
 let subasta = ''
@@ -154,7 +155,7 @@ test('tarea de oro 2 con un enlace de Copart: de la hoja vacía a la cotización
   await teclado.tabularHasta(valor(page, 'grua'))
   await teclado.escribir('450')
   await teclado.pulsar('Enter')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false')
+  await esperarElTotal(page)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await teclado.pulsar('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)

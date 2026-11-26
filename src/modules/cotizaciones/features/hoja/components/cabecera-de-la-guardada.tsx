@@ -11,9 +11,11 @@ import { ETIQUETA_DE_CLASE } from '../../../entities/historial-del-vehiculo'
 import { rutaDeLaCotizacion } from '../../../entities/ruta-de-la-hoja'
 import { InsigniaPrivada } from '../../privada/components/insignia-privada'
 import { RevisionesDeLaCotizacion } from '../../revisiones/components/revisiones-de-la-cotizacion'
+import { TEXTO_DE_SOLO_LECTURA } from './cierre-de-la-hoja'
 import { ContextoDeLaVistaPrevia } from './hueco-de-la-vista-previa'
 import { ContextoDeLaRanura } from './menu-de-la-guardada/contexto'
 import { MenuDeLaGuardada } from './menu-de-la-guardada/menu-de-la-guardada'
+import { RanuraDeLaCabecera } from './ranura-de-la-cabecera'
 
 type Props = {
   id: string
@@ -33,8 +35,10 @@ type Props = {
   vehiculo: string | null
   // La barra del vehículo con el título de la cotización (T307), ya armada por la página (`vehiculos` y `cotizaciones` no se conocen): reemplaza «Vehículo: X».
   barra?: ReactNode
-  // Si quien mira la puede guardar (`puede_guardar` de la base): sólo así va el lugar de «Guardar».
+  // Si quien mira la puede guardar (`puede_guardar` de la base): así va el lugar de «Guardar»; si no, que es de sólo lectura (P13).
   guardable: boolean
+  // La cabecera quieta (`CabeceraQuieta`) que la ranura de la cabecera, junto a la barra, muestra antes de hidratar.
+  reservaDeLaCabecera?: ReactNode
   // Lo que las áreas suman al «⋯» (4.15-6b): sus líneas y sus diálogos, ya dibujados por la página; no dibujan nada a la vista.
   acciones?: ReactNode
   // Lo que un área suma después de la clase y de la vigencia (4.27-4): sus insignias, ya dibujadas por la página.
@@ -44,8 +48,9 @@ type Props = {
 }
 
 // La cabecera de una cotización guardada: «Cotización n.º N», su clase, hasta cuándo vale (o «Vencida»), las insignias de las áreas («Aprobar» o «Aprobada», «Reportada»…),
-// lo principal a la vista («Guardar», que el resumen dibuja aquí por un portal, y «Compartir», del hueco de la vista previa) y lo demás en el «⋯» (`docs/UX.md` › «Cotización
-// guardada»); debajo, la cadena de versiones, de qué origen y cliente es y, en la barra, su título y su vehículo. En el celular el «⋯» queda en la fila del título y «Guardar» y
+// lo principal a la vista («Guardar», que la hoja dibuja aquí por un portal, o «Sólo lectura» para quien no la puede guardar, y «Compartir», del hueco de la vista previa) y lo
+// demás en el «⋯» (`docs/UX.md` › «Cotización guardada»); debajo, la cadena de versiones, de qué origen y cliente es y, en una fila, la barra (su título y su vehículo) y la
+// ranura de la cabecera (glosario: «Ranura de la cabecera»: los modos, «Ver total en moneda local» y el ⚙ de la hoja). En el celular el «⋯» queda en la fila del título y «Guardar» y
 // «Compartir» van debajo, mitad y mitad; desde `md`, todo en una fila con el «⋯» al final. El número es un identificador: va sin separador de miles. La fecha se muestra en la
 // zona de la empresa.
 export function CabeceraDeLaGuardada({
@@ -62,13 +67,12 @@ export function CabeceraDeLaGuardada({
   vehiculo,
   barra,
   guardable,
+  reservaDeLaCabecera = null,
   acciones,
   insignias,
   privada = false,
 }: Props) {
   const { zonaHoraria } = useRegional()
-  const compartir = useContext(ContextoDeLaVistaPrevia)?.compartir?.()
-  const ponerRanura = useContext(ContextoDeLaRanura)
   return (
     <header data-cabecera-de-la-guardada="" className="grid min-w-0 gap-2">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -88,15 +92,7 @@ export function CabeceraDeLaGuardada({
         <div className="ml-auto md:order-last md:ml-0">
           <MenuDeLaGuardada cotizacionId={id} numero={numero} />
         </div>
-        <div
-          data-acciones-de-la-cabecera=""
-          className="grid w-full auto-cols-fr grid-flow-col items-start gap-2 empty:hidden md:ml-auto md:flex md:w-auto"
-        >
-          {guardable && ponerRanura !== null ? (
-            <div ref={ponerRanura} className="grid min-h-11 md:min-h-8" />
-          ) : null}
-          {compartir}
-        </div>
+        <AccionesDeLaCabecera guardable={guardable} />
       </div>
       <RevisionesDeLaCotizacion cotizacionId={id} numero={numero} version={actualizadoEn} />
       {acciones}
@@ -106,8 +102,38 @@ export function CabeceraDeLaGuardada({
         {cliente === null ? null : <span>Cliente: {cliente}</span>}
         {vehiculo === null || barra !== undefined ? null : <span>Vehículo: {vehiculo}</span>}
       </p>
-      {barra}
+      <div className="@container/cabecera min-w-0">
+        <div
+          data-cabecera-de-la-hoja=""
+          className="grid min-w-0 items-center gap-2 @3xl/cabecera:grid-cols-[minmax(0,1fr)_auto]"
+        >
+          {barra === undefined ? null : <div className="min-w-0">{barra}</div>}
+          <RanuraDeLaCabecera reserva={reservaDeLaCabecera} />
+        </div>
+      </div>
     </header>
+  )
+}
+
+// Lo principal a la vista: el lugar de «Guardar» (lo llena la hoja por un portal) o, para quien no la puede guardar, «Sólo lectura» (P13); y «Compartir».
+function AccionesDeLaCabecera({ guardable }: { guardable: boolean }) {
+  const compartir = useContext(ContextoDeLaVistaPrevia)?.compartir?.()
+  const ponerRanura = useContext(ContextoDeLaRanura)
+  return (
+    <div
+      data-acciones-de-la-cabecera=""
+      className="grid w-full auto-cols-fr grid-flow-col items-start gap-2 empty:hidden md:ml-auto md:flex md:w-auto"
+    >
+      {guardable && ponerRanura !== null ? (
+        <div ref={ponerRanura} className="grid min-h-11 md:min-h-8" />
+      ) : null}
+      {guardable ? null : (
+        <p className="self-center text-(length:--text-sm) text-(--color-ink-soft)">
+          {TEXTO_DE_SOLO_LECTURA}
+        </p>
+      )}
+      {compartir}
+    </div>
   )
 }
 

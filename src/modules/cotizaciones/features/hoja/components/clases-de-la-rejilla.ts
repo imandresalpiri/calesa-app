@@ -197,7 +197,14 @@ export const claseDeLaRejillaDeCeldas = (seccion: AspectoDeSeccion): string =>
 export const claseDelTitulo = (seccion: AspectoDeSeccion): string =>
   TITULO[seccion.letra ?? 'normal']
 
-// La cabecera va sola en su fila: con tono o relleno se dibuja como una caja (borde, radio y relleno), si no, como siempre.
+// La cabecera va en la fila de las barras (baja): su relleno es más chico que el de una sección, para que la caja no la haga crecer de alto.
+const RELLENO_DE_LA_CABECERA = {
+  chico: 'px-2 py-0.5',
+  medio: 'px-3 py-1',
+  grande: 'px-4 py-2',
+} as const
+
+// La cabecera es una fila chica que se parte si no cabe (los modos, «Ver total» y el ⚙): con tono o relleno se dibuja como una caja (borde, radio y relleno), si no, suelta.
 export function claseDeLaCabecera(cabecera: AspectoDeCabecera): string {
   const caja = cabecera.tono !== undefined || cabecera.relleno !== undefined
   const borde =
@@ -205,9 +212,9 @@ export function claseDeLaCabecera(cabecera: AspectoDeCabecera): string {
       ? 'border-(--color-line)'
       : 'border-[color:var(--tono-borde,var(--color-line))]'
   return unir(
-    'grid min-w-0 gap-3',
+    'flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1',
     caja && `rounded-(--radius-card) border ${borde} bg-(--color-surface)`,
-    caja && RELLENO[cabecera.relleno ?? 'medio'],
+    caja && RELLENO_DE_LA_CABECERA[cabecera.relleno ?? 'medio'],
     deTexto(cabecera),
   )
 }

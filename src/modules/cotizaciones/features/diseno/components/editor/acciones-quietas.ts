@@ -12,5 +12,4 @@ export const ACCIONES_QUIETAS: AccionesDeHoja = {
   alElegirAtajo: nada,
 }
 
-export const ESTADO_AL_DIA = { tipo: 'al_dia' } as const
 export { nada }

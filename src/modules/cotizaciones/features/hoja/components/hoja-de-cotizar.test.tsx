@@ -128,6 +128,13 @@ describe('HojaDeCotizar: la hoja dibujada desde el diseño', () => {
   })
 })
 
+// La región del total (la tarjeta y, debajo, sus avisos), suelta encima de «Avanzado» sin la pieza en el diseño.
+function regionDelTotal() {
+  const region = document.querySelector<HTMLElement>('[data-total-de-la-hoja]')
+  if (region === null) throw new Error('sin la región del total')
+  return region
+}
+
 describe('HojaDeCotizar: tipear y recalcular', () => {
   it('tipear un monto sin separador de miles pide UN recálculo 150 ms después con lo tipeado, y el total sale de la respuesta', async () => {
     recalcular.mockResolvedValue(ok(respuestaDePrueba({ usd: 9876 })))
@@ -161,7 +168,7 @@ describe('HojaDeCotizar: tipear y recalcular', () => {
     montar()
     tipear('remate', '9500')
     await avanzar(150)
-    const resumen = screen.getByLabelText('Resumen')
+    const resumen = regionDelTotal()
     expect(resumen.getAttribute('data-viejo')).toBe('true')
     expect(resumen.getAttribute('aria-busy')).toBe('true')
     expect(within(resumen).getByText('Total desactualizado.')).toBeTruthy()
@@ -180,7 +187,7 @@ describe('HojaDeCotizar: cuando el recálculo falla', () => {
     montar()
     tipear('remate', '9500')
     await avanzar(150)
-    const resumen = screen.getByLabelText('Resumen')
+    const resumen = regionDelTotal()
     expect(within(resumen).getByText('No se pudo recalcular.')).toBeTruthy()
     expect(within(resumen).getByText('Total desactualizado.')).toBeTruthy()
     expect(document.querySelector('[data-nodo="remate"] [data-parada="0"]')?.textContent).toMatch(

@@ -265,8 +265,7 @@ describe('PantallaDeCotizar › el borrador', () => {
   })
 })
 
-// Con la tarjeta del total ubicada en una sección, un solo total grande a cada ancho: la pieza desde `@4xl/hoja` y la del resumen por debajo (jsdom no evalúa
-// las consultas de contenedor: se miran las clases).
+// Un solo total grande: la pieza, en su sección, si el diseño la ubica en una principal; si no, suelto a todo el ancho de la rejilla de las secciones (encima de «Avanzado»).
 describe('PantallaDeCotizar › la tarjeta del total', () => {
   const conElTotal = (hoja: HojaLista): HojaLista => ({
     ...hoja,
@@ -282,17 +281,19 @@ describe('PantallaDeCotizar › la tarjeta del total', () => {
         : s,
     ),
   })
-  const clases = (marca: string) => document.querySelector(`[data-tarjeta-del-total="${marca}"]`)
+  const tarjetas = () => document.querySelectorAll('[data-tarjeta-del-total]')
 
-  it('con la pieza, la hoja la dibuja desde @4xl y el resumen esconde la suya ahí', () => {
+  it('con la pieza, la hoja la dibuja en su sección y no hay otra', () => {
     render(pantalla(conElTotal(hojaDePrueba())))
-    expect(clases('pieza')?.parentElement?.className).toMatch(/(^| )hidden @4xl\/hoja:block( |$)/)
-    expect(clases('')?.className).toContain('@4xl/hoja:hidden')
+    expect(tarjetas()).toHaveLength(1)
+    expect(tarjetas()[0]?.closest('section')).not.toBeNull()
   })
 
-  it('sin la pieza, sólo la tarjeta del resumen, siempre a la vista', () => {
+  it('sin la pieza, la tarjeta va suelta, a todo el ancho, fuera de toda sección', () => {
     render(pantalla(hojaDePrueba()))
-    expect(clases('pieza')).toBeNull()
-    expect(clases('')?.className).not.toContain('@4xl/hoja:hidden')
+    expect(tarjetas()).toHaveLength(1)
+    const tarjeta = tarjetas()[0]
+    expect(tarjeta?.closest('section')).toBeNull()
+    expect(tarjeta?.closest('.col-span-12')).not.toBeNull()
   })
 })

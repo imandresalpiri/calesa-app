@@ -5,12 +5,13 @@ import type { ContextoDeHoja } from '../../../entities/binding'
 import type { HojaLista } from '../../../entities/hoja'
 import type { useHoja } from '../hooks/use-hoja'
 import { CabeceraDeHoja } from './cabecera-de-hoja'
-import { PasosDeLaHoja, type PasosDeLaPagina } from './pasos-de-la-hoja'
+import { PasosDeLaHoja } from './pasos-de-la-hoja'
 import { RegionDelAvisoDePisado } from './pisadas'
 import { SeccionesDeLaHoja } from './secciones-de-la-hoja'
 
-// La columna de la izquierda: lo que se pone encima (el aviso de versión de una guardada), la cabecera (modos y «Ver total Bs»), los pasos, el aviso de la primera vez
-// que se pisa un cálculo y las secciones del diseño.
+// La columna de la hoja: lo que se pone encima (el aviso de versión de una guardada), la cabecera (modos, «Ver total en moneda local» y el ⚙, que suben a la ranura de
+// la cabecera de la página si la hay), los pasos («Privada · Vista previa»), el aviso de la primera vez que se pisa un cálculo y las secciones del diseño con el total
+// suelto y el cierre.
 export function ColumnaDeLaHoja({
   hoja,
   h,
@@ -20,7 +21,9 @@ export function ColumnaDeLaHoja({
   soloLectura,
   encima,
   alRecargar,
-  pasos,
+  privada,
+  totalSuelto,
+  cierre,
 }: {
   hoja: HojaLista
   h: ReturnType<typeof useHoja>
@@ -30,10 +33,12 @@ export function ColumnaDeLaHoja({
   soloLectura: boolean
   encima: ReactNode
   alRecargar: () => void
-  pasos: PasosDeLaPagina | undefined
+  privada: ReactNode
+  totalSuelto: ReactNode
+  cierre: ReactNode
 }) {
   return (
-    <div className="grid min-w-0 flex-1 gap-4">
+    <div className="grid min-w-0 gap-4">
       {encima}
       <CabeceraDeHoja
         cabecera={hoja.cabecera}
@@ -45,7 +50,7 @@ export function ColumnaDeLaHoja({
         origen={hoja.origen.nombre}
         formula={hoja.formula}
       />
-      {pasos ? <PasosDeLaHoja pasos={pasos} respuesta={h.respuesta} /> : null}
+      <PasosDeLaHoja privada={privada} />
       <RegionDelAvisoDePisado visible={h.avisoDePisado} alCerrar={h.cerrarAvisoDePisado} />
       <SeccionesDeLaHoja
         secciones={secciones}
@@ -55,6 +60,8 @@ export function ColumnaDeLaHoja({
         de={h.de}
         formula={hoja.formula}
         alRecargar={alRecargar}
+        totalSuelto={totalSuelto}
+        cierre={cierre}
       />
     </div>
   )

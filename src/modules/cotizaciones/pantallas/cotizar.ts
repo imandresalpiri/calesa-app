@@ -8,3 +8,10 @@ export { PestanasDeOrigen } from '../features/hoja/components/pestanas-de-origen
 export { HistorialDelVehiculo } from '../features/historial/components/diferidos'
 // El título de la cotización (T307): su proveedor (sobre las barras y la hoja) y el campo, que va arriba del panel del vehículo.
 export { CampoDelTituloDiferido, ProveedorDelTitulo } from '../features/hoja/components/titulo'
+// La ranura de la cabecera (glosario: «Ranura de la cabecera»): su proveedor envuelve las barras y la hoja, y la ranura va en la fila de las barras del vehículo y del cliente,
+// con la cabecera quieta que muestra antes de hidratar.
+export {
+  CabeceraQuieta,
+  ProveedorDeLaRanuraDeLaCabecera,
+  RanuraDeLaCabecera,
+} from '../features/hoja/components/ranura-de-la-cabecera'

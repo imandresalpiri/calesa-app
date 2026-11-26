@@ -15,7 +15,7 @@ import {
 import type { RespuestaDeRecalculo } from '../../../entities/recalculo'
 import { motivoParaNoGuardar } from '../../../entities/se-puede-guardar'
 import { tituloParaGuardar } from '../../../entities/titulo-de-la-cotizacion'
-import type { BotonDeGuardar } from '../components/resumen-de-hoja'
+import type { BotonDeGuardar } from '../components/boton-guardar'
 import { useAlGuardar } from './use-al-guardar'
 import type { Armar, Guardado } from './use-nucleo-del-guardado'
 import type { useHoja } from './use-hoja'

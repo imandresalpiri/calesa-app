@@ -11,6 +11,7 @@ import {
   hayDatosPorRevisar,
   ordenDeLaHoja,
   tituloDeLaAyuda,
+  totalSuelto,
   titulosDeAvanzado,
 } from './presentacion-de-la-hoja'
 
@@ -93,6 +94,68 @@ describe('ordenDeLaHoja: el botón «Avanzado» va donde estaba la primera avanz
 
   it('sin secciones no hay nada', () => {
     expect(ordenDeLaHoja([])).toEqual([])
+  })
+})
+
+describe('ordenDeLaHoja: la tarjeta del total suelta y el cierre', () => {
+  const tipos = (h: HojaLista, o: Parameters<typeof ordenDeLaHoja>[1]) =>
+    ordenDeLaHoja(h.secciones, o).map((l) => l.tipo)
+
+  it('con «Avanzado»: el total justo antes y el cierre justo después', () => {
+    expect(tipos(DOS_AVANZADAS, { totalSuelto: true, conCierre: true })).toEqual([
+      'seccion',
+      'total',
+      'avanzado',
+      'cierre',
+      'seccion',
+    ])
+  })
+
+  it('sin «Avanzado»: los dos al final, el total primero', () => {
+    const hoja = hojaCon([seccion('a', 'principal', 'A', [celda('a1')])])
+    expect(tipos(hoja, { totalSuelto: true, conCierre: true })).toEqual([
+      'seccion',
+      'total',
+      'cierre',
+    ])
+  })
+
+  it('con la pieza en su sección, sin el total suelto; sin cierre (el editor), nada después', () => {
+    expect(tipos(DOS_AVANZADAS, { totalSuelto: false, conCierre: false })).toEqual([
+      'seccion',
+      'avanzado',
+      'seccion',
+    ])
+    expect(tipos(DOS_AVANZADAS, { conCierre: true })).toEqual([
+      'seccion',
+      'avanzado',
+      'cierre',
+      'seccion',
+    ])
+  })
+})
+
+describe('totalSuelto: la tarjeta va sola si ninguna principal la ubica, o en par', () => {
+  const total = { tipo: 'total', nodo: 'total', etiqueta: 'Total', formato: 'usd' }
+  const conPieza = hojaCon([
+    seccion('a', 'principal', 'A', [celda('a1'), total]),
+    seccion('x', 'avanzado', 'X', [celda('x1')]),
+  ])
+
+  it('sin la pieza, suelta', () => {
+    expect(totalSuelto(DOS_AVANZADAS.secciones, false)).toBe(true)
+  })
+
+  it('con la pieza en una principal, en su lugar', () => {
+    expect(totalSuelto(conPieza.secciones, false)).toBe(false)
+  })
+
+  it('en par, suelta aunque el diseño la ubique (la pieza no dibuja nada)', () => {
+    expect(totalSuelto(conPieza.secciones, true)).toBe(true)
+  })
+
+  it('con la sección de la pieza sin dibujar (otro nivel), suelta', () => {
+    expect(totalSuelto(conPieza.secciones.slice(1), false)).toBe(true)
   })
 })
 

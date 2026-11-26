@@ -165,6 +165,13 @@ export async function tipearEnLaHoja(page: Page, nodo: string, texto: string): P
 }
 
 export const totalDeLaHoja = (page: Page): Locator => page.locator('[data-total]')
+
+// La región del total de la hoja (`data-total-de-la-hoja`): la tarjeta y, debajo, sus avisos. Una sola por hoja (en par, con las dos tarjetas).
+export const regionDelTotal = (page: Page): Locator => page.locator('[data-total-de-la-hoja]')
+
+// Espera a que el total esté al día (la hoja recalcula 150 ms después de la última confirmación): la región del total deja de estar ocupada.
+export const esperarElTotal = (page: Page, timeout = 15_000) =>
+  expect(regionDelTotal(page)).toHaveAttribute('aria-busy', 'false', { timeout })
 export const tarjetaGuardada = (page: Page): Locator => page.locator('[data-cotizacion-guardada]')
 export const guardarConElAtajo = (page: Page): Promise<void> =>
   page.keyboard.press('ControlOrMeta+s')

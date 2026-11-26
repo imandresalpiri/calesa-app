@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { expect, test } from './soporte/prueba'
 import { abrirConN, dialogo } from './soporte/alta'
 import {
+  esperarElTotal,
   tarjetaGuardada,
   tipearEnLaHoja,
   totalDeLaHoja,
@@ -139,7 +140,7 @@ test('E2E R2 la asesora cotiza ese lead con un vehículo del inventario', async 
 
   await tipearEnLaHoja(page, 'remate', '9500')
   await tipearEnLaHoja(page, 'grua', '450')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false')
+  await esperarElTotal(page)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await page.keyboard.press('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)

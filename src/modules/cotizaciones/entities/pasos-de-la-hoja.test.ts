@@ -1,69 +1,26 @@
 import { describe, expect, it } from 'vitest'
-import { respuestaDePrueba } from './hoja-de-prueba.soporte'
-import { faltaUnDato, pasosDeLaHoja } from './pasos-de-la-hoja'
+import { pasosDeLaHoja } from './pasos-de-la-hoja'
 
-const VEHICULO = { panel: 'vehiculo', elegido: false, obligatorio: true }
-const CLIENTE = { panel: 'cliente', elegido: true, obligatorio: true }
+const claves = (p: Parameters<typeof pasosDeLaHoja>[0]) => pasosDeLaHoja(p).map((x) => x.clave)
 
 describe('pasosDeLaHoja', () => {
-  it('los cuatro, en el orden de V1, con el panel que abre cada uno', () => {
-    const pasos = pasosDeLaHoja({
-      faltaUnDato: false,
-      vehiculo: VEHICULO,
-      cliente: CLIENTE,
-      vistaPrevia: 'vista-previa',
-    })
-    expect(pasos.map((p) => [p.etiqueta, p.panel])).toEqual([
-      ['Hoja', null],
-      ['Vehículo', 'vehiculo'],
-      ['Cliente', 'cliente'],
-      ['Vista previa', 'vista-previa'],
+  it('con los dos: «Privada» y después «Vista previa», que abre su panel', () => {
+    const pasos = pasosDeLaHoja({ privada: true, vistaPrevia: 'vista-previa' })
+    expect(pasos).toEqual([
+      { clave: 'privada', etiqueta: 'Privada', panel: null },
+      { clave: 'vista_previa', etiqueta: 'Vista previa', panel: 'vista-previa' },
     ])
   })
 
-  it('el punto: elegido; obligatorio que falta; nada si falta y es opcional; «Vista previa» nunca', () => {
-    const pasos = pasosDeLaHoja({
-      faltaUnDato: false,
-      vehiculo: VEHICULO,
-      cliente: CLIENTE,
-      vistaPrevia: 'vista-previa',
-    })
-    expect(pasos.map((p) => [p.punto, p.textoDelPunto, p.title])).toEqual([
-      [null, null, 'Hoja'],
-      ['obligatorio_que_falta', 'obligatorio que falta', 'Vehículo: obligatorio que falta'],
-      ['elegido', 'elegido', 'Cliente: elegido'],
-      [null, null, 'Vista previa'],
-    ])
-    const opcional = pasosDeLaHoja({
-      faltaUnDato: false,
-      vehiculo: { ...VEHICULO, obligatorio: false },
-      cliente: null,
-      vistaPrevia: null,
-    })
-    expect(opcional[1]?.punto).toBeNull()
+  it('sin quien pueda marcarla (o en una guardada), sólo «Vista previa»', () => {
+    expect(claves({ privada: false, vistaPrevia: 'vista-previa' })).toEqual(['vista_previa'])
   })
 
-  it('«Hoja» dice «falta un dato»; sin panel, «Vehículo» y «Cliente» no se dibujan, y sin vista previa tampoco ella', () => {
-    const pasos = pasosDeLaHoja({
-      faltaUnDato: true,
-      vehiculo: null,
-      cliente: null,
-      vistaPrevia: null,
-    })
-    expect(pasos.map((p) => p.title)).toEqual(['Hoja: falta un dato'])
+  it('sin la vista previa, sólo «Privada»', () => {
+    expect(claves({ privada: true, vistaPrevia: null })).toEqual(['privada'])
   })
-})
 
-describe('faltaUnDato', () => {
-  it('sólo con un faltante requerido sin valor; sin respuesta, no', () => {
-    const base = respuestaDePrueba()
-    expect(faltaUnDato(null)).toBe(false)
-    expect(faltaUnDato({ ...base, faltantes: [] })).toBe(false)
-    expect(
-      faltaUnDato({ ...base, faltantes: [{ codigo: 'requerido_sin_valor', donde: 'a' }] }),
-    ).toBe(true)
-    expect(faltaUnDato({ ...base, faltantes: [{ codigo: 'tabla_sin_filas', donde: 'a' }] })).toBe(
-      false,
-    )
+  it('sin ninguno, nada: la fila no se dibuja', () => {
+    expect(pasosDeLaHoja({ privada: false, vistaPrevia: null })).toEqual([])
   })
 })

@@ -2,11 +2,19 @@ import { itemSeDibuja, propsDeCelda, type ContextoDeHoja } from './binding'
 import type { BloqueEnLaHoja, CeldaDeHoja, SeccionDeHoja } from './hoja'
 
 // Lo que la hoja dibuja en cada lugar (paso 4.13-4a, `docs/COTIZADOR.md` › «El diseño de la hoja (D7)»): las secciones `principal` en su orden, y las `avanzado` juntas detrás de **un**
-// botón «Avanzado» que va donde estaba la primera de ellas. Puro: la hoja recibe sólo las secciones que se dibujan (`seccionSeDibuja`).
+// botón «Avanzado» que va donde estaba la primera de ellas. Con `totalSuelto` (el diseño no ubica la tarjeta del total, o la hoja va en par), la tarjeta del total sola
+// justo antes de «Avanzado»; con `conCierre` (la hoja guarda: «Guardar», su motivo y lo que dijo el guardado), el cierre justo después. Sin «Avanzado», los dos van al
+// final. Puro: la hoja recibe sólo las secciones que se dibujan (`seccionSeDibuja`).
 export type LugarDeLaHoja =
-  { tipo: 'seccion'; seccion: SeccionDeHoja } | { tipo: 'avanzado'; secciones: SeccionDeHoja[] }
+  | { tipo: 'seccion'; seccion: SeccionDeHoja }
+  | { tipo: 'avanzado'; secciones: SeccionDeHoja[] }
+  | { tipo: 'total' }
+  | { tipo: 'cierre' }
 
-export function ordenDeLaHoja(secciones: readonly SeccionDeHoja[]): LugarDeLaHoja[] {
+export function ordenDeLaHoja(
+  secciones: readonly SeccionDeHoja[],
+  { totalSuelto = false, conCierre = false }: { totalSuelto?: boolean; conCierre?: boolean } = {},
+): LugarDeLaHoja[] {
   const avanzadas = secciones.filter((s) => s.presentacion === 'avanzado')
   const lugares: LugarDeLaHoja[] = []
   let puesto = false
@@ -15,11 +23,23 @@ export function ordenDeLaHoja(secciones: readonly SeccionDeHoja[]): LugarDeLaHoj
       lugares.push({ tipo: 'seccion', seccion })
     } else if (!puesto) {
       puesto = true
+      if (totalSuelto) lugares.push({ tipo: 'total' })
       lugares.push({ tipo: 'avanzado', secciones: avanzadas })
+      if (conCierre) lugares.push({ tipo: 'cierre' })
     }
+  }
+  if (!puesto) {
+    if (totalSuelto) lugares.push({ tipo: 'total' })
+    if (conCierre) lugares.push({ tipo: 'cierre' })
   }
   return lugares
 }
+
+// La tarjeta del total va sola (arriba de «Avanzado») si ninguna sección principal que se dibuja la ubica, o si la hoja va en par (la pieza no dibuja nada: mandan los
+// dos totales).
+export const totalSuelto = (secciones: readonly SeccionDeHoja[], enPar: boolean): boolean =>
+  enPar ||
+  !secciones.some((s) => s.presentacion === 'principal' && s.items.some((i) => i.tipo === 'total'))
 
 // Lo que dice el botón «Avanzado» de lo que esconde: los títulos de sus secciones, en su orden (sin título, nada).
 export const titulosDeAvanzado = (secciones: readonly SeccionDeHoja[]): string =>

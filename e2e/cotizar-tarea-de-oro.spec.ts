@@ -9,6 +9,7 @@ import {
 import {
   celdaDeLaHoja,
   cotizacionGuardada,
+  esperarElTotal,
   formulaVigente,
   tarjetaGuardada,
   totalDeLaHoja,
@@ -30,17 +31,17 @@ test.describe.configure({ mode: 'serial' })
 // Las teclas de control del tramo de la hoja (Tab y Enter a «Saltar al contenido», los Tab hasta `remate` y su Enter, los Tab hasta `grua` y su Enter, y Ctrl+S), contadas al
 // escribirlo (4.13-4d): 23 en los dos proyectos, con 0,7 s el robot y KLM 12,5 s. Es determinista: una parada nueva en el camino lo rompe a propósito. 24 desde el 4.14-2a:
 // la barra del vehículo, entre «Saltar al contenido» y la hoja, es una parada más; 25 desde el 4.14-3b: la barra del cliente, otra. 29 desde el 4.18-3b: el tramo llega al PDF
-// (3 Tab de Ctrl+S a «Descargar PDF» de la tarjeta de lo guardado y su Enter), con 1,2 s el robot y KLM 15,5 s en escritorio.
-const CONTROLES_MAXIMOS = 29
+// (3 Tab de Ctrl+S a «Descargar PDF» de la tarjeta de lo guardado y su Enter), con 1,2 s el robot y KLM 15,5 s en escritorio. 30 desde T565: «Privada», en los pasos de la hoja, es una parada antes del primer lado.
+const CONTROLES_MAXIMOS = 30
 // Con el tramo del panel (4.14-2c1): Tab y Enter a «Saltar al contenido», los Tab hasta la barra y su Enter (el panel abre con el foco en el buscador), los Tab hasta la
-// tarjeta del vehículo y su Enter, y el tramo de la hoja de arriba (Tab hasta `remate` y Enter, hasta `grua` y Enter, y Ctrl+S). Medido en la primera corrida verde: 28 en los dos proyectos, con 1,5 s el robot y KLM 20,8 s (escritorio) y 19,4 s (móvil); determinista: una parada nueva en el camino lo rompe a propósito. 29 desde el 4.14-3b: la barra del cliente es una parada más entre la del vehículo y la hoja.
-const CONTROLES_CON_EL_PANEL = 29
+// tarjeta del vehículo y su Enter, y el tramo de la hoja de arriba (Tab hasta `remate` y Enter, hasta `grua` y Enter, y Ctrl+S). Medido en la primera corrida verde: 28 en los dos proyectos, con 1,5 s el robot y KLM 20,8 s (escritorio) y 19,4 s (móvil); determinista: una parada nueva en el camino lo rompe a propósito. 29 desde el 4.14-3b: la barra del cliente es una parada más entre la del vehículo y la hoja. 30 desde T565: «Privada», en los pasos de la hoja, es una parada antes del primer lado.
+const CONTROLES_CON_EL_PANEL = 30
 
 // Los Tab que cuesta pasar por cada lado editable de la subasta como la dueña, medidos (4.13-4d, los dos proyectos): 12 lados de la hoja en 24 Tab desde «Saltar al contenido» y 16
 // de «Avanzado» en 28 desde el primer valor. Como las teclas de control, es determinista: una parada nueva entre dos editables lo rompe a propósito. La hoja, 25 desde el
 // 4.14-2a: la barra del vehículo se cruza antes del primer lado; 26 desde el 4.14-3b, con la barra del cliente; 27 desde T312: el ⚙ de la cabecera (sólo quien
-// configura el origen, como la dueña) es una parada antes del primer lado. Los pasos de la hoja no lo son (`tabIndex -1`), y la tarea de la asesora no cambia.
-const TABS_DE_LA_HOJA = 27
+// configura el origen, como la dueña) es una parada antes del primer lado. Los pasos de la hoja no lo son (`tabIndex -1`); 28 desde T565: «Privada», en los pasos de la hoja, es una parada antes del primer lado (quien la crea la puede marcar).
+const TABS_DE_LA_HOJA = 28
 const TABS_DE_AVANZADO = 28
 
 let asesora = ''
@@ -110,7 +111,7 @@ test('tarea de oro 2: de la hoja abierta a la cotización guardada, sólo con el
   await teclado.tabularHasta(valor(page, 'grua'))
   await teclado.escribir('450')
   await teclado.pulsar('Enter')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false')
+  await esperarElTotal(page)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await teclado.pulsar('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)
@@ -204,7 +205,7 @@ test('tarea de oro 2, con el panel: el vehículo se busca por nombre y se elige,
   await teclado.tabularHasta(valor(page, 'grua'))
   await teclado.escribir('450')
   await teclado.pulsar('Enter')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false')
+  await esperarElTotal(page)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await teclado.pulsar('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)

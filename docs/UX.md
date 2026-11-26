@@ -66,7 +66,11 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
 1. **Entrada:** desde la ficha del lead, el «⋯» de un vehículo en el inventario («Cotizar vehículo») o el listado. Arriba, pestañas de orígenes (nombres de la base; «Oficina»
    es un origen) y los **modos** de tipo de cambio del diseño (Aduana, Paralelo, Unificado…; se eligen con dos o más; una cotización nueva abre
    con el **modo por defecto** del diseño, o el primero, y con «Ver total» por defecto; el encabezado dibuja los **modos visibles** más el
-   elegido, que se ve aunque esté oculto; con uno solo no se elige y el resumen lo nombra). `Ctrl/Cmd+K → «Nueva cotización»` abre la hoja.
+   elegido, que se ve aunque esté oculto; con uno solo visible no se elige ni se nombra). `Ctrl/Cmd+K → «Nueva cotización»` abre la hoja.
+   - **La cabecera compacta:** los modos en un segmentado chico, «Ver total en moneda local» en un interruptor chico al lado (qué hace es su ayuda
+     oculta: lector y `title`) y el ⚙ van en la misma fila que las barras bajas del vehículo y del cliente (glosario: «Ranura de la cabecera»): a 1.440 px,
+     una sola línea; en el celular, las dos barras arriba y la cabecera debajo, con blancos de 44 px. Antes de hidratar la fila muestra la misma
+     cabecera quieta: nada salta al llegar la de verdad.
    - **El ⚙ de la cabecera** (icono de reguladores junto a los modos, 44 px; sólo a quien configura el origen y con al menos un modo): abre
      el panel «Configuración por defecto de <Origen>» (`?ajuste=cabecera`) con el aviso «Con esto arrancan las cotizaciones nuevas de
      <Origen>. El selector del encabezado sigue cambiando sólo la cotización abierta.», «Tipo de cambio por defecto» (radios), «Mostrar el
@@ -76,13 +80,12 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      ves esta cotización: no cambia.») y el pie «Cancelar» · «Guardar por defecto». Cargando: esqueleto tras 300 ms; lectura que falla:
      «No pudimos leer la configuración por defecto.» con «Reintentar»; conflicto: el mensaje de la base con «Volver a leer» (lo elegido
      queda); sin red: «No hay conexión.» con «Reintentar»; los mismos valores: «La cabecera ya tiene esos valores.». No muestra cifras.
-2. **Pasos:** **la hoja** (preventa o final), **vehículo**, **cliente**, **vista previa**; no hay paso «Oficina». Debajo de los modos, la fila
-   de **pasos de la hoja** «Hoja · Vehículo · Cliente · Vista previa» (como en V1, partes iguales; 44 px en el celular; al 200 % en dos filas):
-   «Hoja» cierra lo abierto y lleva el foco a la primera celda que se edita (su punto, «falta un dato» si el cálculo trae un requerido sin
-   valor); «Vehículo» y «Cliente» abren su panel (su punto: «elegido» u «obligatorio que falta»; sin punto si falta y es opcional; sólo si la
-   barra tiene panel; en una guardada, «Cliente» no va); «Vista previa» abre la tarjeta. El punto lleva su texto para el lector (la descripción
-   del botón) y su `title` («Vehículo: elegido»). Van fuera del orden de Tab: con el teclado, lo mismo está en las barras, en «Vista previa» del
-   resumen y en las celdas. Las barras del vehículo y del cliente se quedan arriba.
+2. **Pasos:** **la hoja** (preventa o final), **vehículo**, **cliente**, **vista previa**; no hay paso «Oficina». El vehículo y el cliente se eligen en
+   sus barras (dicen «elegido» u «obligatorio que falta»). Arriba de la hoja, la fila de **pasos de la hoja** «Privada · Vista previa» (partes
+   iguales; 44 px en el celular): «Privada» es el interruptor de la cotización privada, sólo en la hoja nueva y a quien puede marcarla (sin él,
+   «Vista previa» toma la fila); «Vista previa» abre la tarjeta. Una guardada lleva sólo «Vista previa»; sin ninguno, la fila no se dibuja. Van
+   fuera del orden de Tab: con el teclado, «Vista previa» es el último botón de la hoja nueva (después de «Guardar»; se ve al enfocarlo) y en una
+   guardada está en el «⋯».
    - **Vehículo:** arriba del panel, el campo **«Título de la cotización»** (hasta 120 caracteres; el contador «N/120» aparece desde 100):
      automático, muestra el título del vehículo elegido con la ayuda «Automático: toma el título del vehículo.»; escribir lo vuelve manual
      (cambiar de vehículo lo respeta) y vaciarlo lo devuelve a automático (con el foco puesto queda vacío, con el del vehículo de ejemplo). La
@@ -121,8 +124,8 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      pestaña lo vació), el aviso dice lo mismo con el mismo botón y el campo lo repite debajo. Sólo espacios es vacío.
      **Con una variante en par** (glosario: «Variante en par»): sin chips de esa variante; arriba de las secciones, «Dos versiones: <etiqueta 1> y
      <etiqueta 2>.»; cada celda o subtotal que cambia según la opción va en dos celdas del mismo ancho, lado a lado («Transporte · 20 pies» | «Transporte · 40
-     pies»; en el celular, una debajo de la otra), y lo común una vez (vale para las dos; los atajos, los interruptores, el modo y «Ver total Bs», también). El
-     resumen muestra los dos totales («Total · 20 pies», con `<Monto>`), cada uno con sus avisos y su «Reintentar»; «Guardar» crea las dos **cotizaciones
+     pies»; en el celular, una debajo de la otra), y lo común una vez (vale para las dos; los atajos, los interruptores, el modo y «Ver total Bs», también). Arriba
+     de «Avanzado», los dos totales («Total · 20 pies», con `<Monto>`), cada uno con sus avisos y su «Reintentar»; «Guardar» crea las dos **cotizaciones
      hermanas** y lo guardado dice «Se guardaron las dos: n.º N (20 pies) y n.º M (40 pies).» con «Abrir la de 20 pies» y «Abrir la de 40 pies». El título se
      escribe sin la opción (su tope deja lugar a « · <etiqueta>»). La vista previa muestra las dos tarjetas, una bajo la otra.
 3. **La hoja:** secciones en el orden declarado; cada monto en una **XCell** (`Tab` avanza, tipear abre edición, `Esc` cancela) con el color
@@ -165,11 +168,13 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      10 s, «Recargar»). Otra persona publicó entre medio: su nombre y cuándo, con «Recargar», y lo editado sigue; una celda que la base rechaza, en su
      campo. Cerrar la ayuda con cambios pregunta. En una guardada o con Live, a quien configura sólo «Editar en la configuración» (el drawer de tablas
      con esa tabla).
-4. **Resumen fijo:** total en la **tarjeta del total** (pegada arriba, de superficie invertida, con la etiqueta chica en mayúsculas y el monto
-   grande; en par, una por opción; «Ver el detalle» va fuera de ella) (y en moneda local si se pidió con «Ver total en moneda local», apagado al nacer y sólo si la versión da su
-   moneda), garantía si está a la vista, modo de tipo de cambio y toggle **Live**; al pie en el celular (alto máximo 40 % de la ventana) y
-   al costado, pegado bajo la barra, desde 56 rem de la hoja (el 200 % lo pasa al pie). `Ctrl/Cmd+S` guarda (preventa); en una guardada «Guardar» va en la
-   cabecera y «Vista previa» en su «⋯». «Vista previa»
+4. **El total y «Guardar», sin resumen al costado:** la hoja va a todo el ancho. El total va en la **tarjeta del total** (de superficie invertida,
+   con la etiqueta chica en mayúsculas y el monto grande): donde el diseño la ubica, a todo el ancho de su sección, o sin la pieza, sola arriba de
+   «Avanzado» (en par, los dos totales). Debajo y fuera de ella, en una línea que guarda su alto, sus avisos (desactualizado, por qué falta,
+   «Reintentar»), el total con que se guardó, lo pisado, lo que suma aparte y el total en moneda local si se pidió con «Ver total en moneda local»
+   (apagado al nacer y sólo si la versión da su moneda). **«Guardar»** va a todo el ancho debajo de «Avanzado» (o al final, sin él), con su motivo,
+   lo que falta elegir y, en una región viva, lo que dijo el último guardado; `Ctrl/Cmd+S` guarda (preventa). En una guardada «Guardar» va en la
+   cabecera y «Vista previa» en su «⋯». El Modo Live es sólo el interruptor de la barra de arriba. «Vista previa»
    abre la tarjeta de la cotización (la cuadrícula tipo Excel de la plantilla, escalada como una imagen al ancho del modal, que en escritorio es
    grande (hasta 56 rem): nunca agranda ni desplaza la página de costado; en el celular, el modal a pantalla completa), con «Copiar texto» (apagado sin total o desactualizado) y, en una
    guardada, «Descargar PDF» (sin salir de la página; un fallo con «Reintentar»). Los avisos de trabajo van fuera de la tarjeta (total
@@ -180,14 +185,14 @@ Estados propios:
 
 - **Fórmula del origen sin publicar:** pantalla bloqueada «Falta publicar la fórmula de <origen>», con enlace a configuración si hay
   permiso. **Link de subasta inválido o sin datos:** se sigue a mano.
-- **Desactualizada:** al guardar una nueva, la fórmula o un tipo de cambio cambió desde que se abrió; el resumen ofrece «Usar la versión
+- **Desactualizada:** al guardar una nueva, la fórmula o un tipo de cambio cambió desde que se abrió; bajo «Guardar», «Usar la versión
   nueva» o «Guardar con la versión N». Editar una vieja usa SU versión. **Vencida:** pasó la vigencia de la empresa; se dice en el listado
   y en los avisos de la vista previa (la tarjeta y el PDF, que recibe el cliente, no lo llevan), y se recotiza encima.
 - **Un cálculo pisado** (`docs/COTIZADOR.md` › «Pisar un cálculo»): toda celda calculada que se ve se escribe encima si el nivel lo deja
   (el total no). La celda lleva el lápiz «Editado a mano» (no ensancha la celda), «Calculado: $480» debajo (con `<Monto>`, a la vista
   también en el celular y para el lector) y ↺ «Volver al calculado». La primera pisada de la hoja muestra, sobre las secciones, «Pisaste
   un cálculo: queda fijo aunque cambien los datos. ↺ lo devuelve.»: en línea, sin bloquear ni robar el foco, anunciado una vez; ✕
-  «Cerrar el aviso» (44 px en el celular) lo cierra y el foco va a la primera celda; no vuelve en esa hoja. El detalle del resumen lista
+  «Cerrar el aviso» (44 px en el celular) lo cierra y el foco va a la primera celda; no vuelve en esa hoja. Bajo el total, la lista de
   lo pisado («Editado a mano: Transferencia a USA $500, calculado $480»); la tarjeta, el PDF y la imagen no lo marcan.
 - **Guardar:** la hoja pasa a la tarjeta «Cotización n.º N guardada» con total y «Cotizar otra». Sin lead, apagado («Para guardar, elige el
   cliente en «Cliente».»); con el total nulo o recalculando, también. El borrador vuelve al recargar.
@@ -198,7 +203,7 @@ Estados propios:
 - **Una guardada** (`/cotizaciones/[id]`):
   - «Enviar a la papelera» no pregunta, aunque haya cambios sin guardar (lo guardado vuelve con «Deshacer»; lo tipeado, no). «Guardar» y
     `Ctrl/Cmd+S` apagados sin cambios, salvo con un guardado pendiente o con «Lo de hoy»; guardar no cambia la URL. Si otra persona la
-    cambió, el resumen dice quién y cuándo (el único texto de la base que se muestra), que lo escrito no vuelve, y «Recargar» monta la hoja
+    cambió, bajo «Guardar» se dice quién y cuándo (el único texto de la base que se muestra), que lo escrito no vuelve, y «Recargar» monta la hoja
     con la lectura nueva.
   - **Sólo lectura** (puede verla y no guardarla): sin «Guardar», modos y «Ver total Bs» apagados, con su aviso.
   - **Lo de hoy no es lo guardado** (cambió una tabla de referencia o un dato del vehículo): se recalcula con lo de hoy, el aviso lo dice,
@@ -448,7 +453,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   la subasta cerrada del nuevo, su aviso de siempre bajo la barra. Quien sólo ve, la barra sin botón. **A la vista**, en la fila del título: la clase, la vigencia («Vale hasta el…» o «Vencida»), las insignias
   («Aprobada», todos los que la ven, o «Aprobar», con `cotizaciones.aprobar` del origen: sin confirmar; apagado con su motivo sin vehículo o si es inválida;
   al entrar pasa a la insignia y el aviso ofrece «Deshacer» 10 s; PT409 con quién y cuándo y «Recargar»; después «Reportada» o «Inválida»), **«Guardar»**
-  (sólo con `puede_guardar`; su motivo y «Elegir el vehículo» debajo; lo que dice el guardado sigue en el resumen) y **«Compartir»** (toda persona que
+  (sólo con `puede_guardar`; su motivo y «Elegir el vehículo» debajo; lo que dice el guardado va en el cierre de la hoja, bajo «Avanzado»; quien sólo la ve lee en su lugar «Sólo lectura: no puedes guardar esta cotización.») y **«Compartir»** (toda persona que
   la ve; sin ícono; con el Modo Live no está: «Compartir la cotización» en `?panel=compartir`, estados en «Cotización: compartir»); debajo, la cadena de
   versiones. **Lo demás, en el «⋯»** (`<MasAcciones>` con borde, arriba a la derecha), en el orden de la lista única (`accionesDeCotizacion()`, la misma
   del «⋯» del listado sin «Compartir cotización…» ni «Aprobar», que aquí están a la vista): «Vista previa» (`?panel=vista-previa`) · «Descargar PDF»
@@ -1432,7 +1437,7 @@ cada cambio guarda solo, por las mismas RPC que la matriz y con las mismas versi
 La marca de una cotización que sólo ven quien la creó y quien puede ver las privadas de su origen (glosario: «Cotización privada»). Quién la ve lo decide
 la base; la pantalla sólo ofrece la marca a quien la creó y la dibuja.
 
-- **Al guardar una nueva:** sobre el pie del resumen de la hoja, el interruptor «Privada» con «Sólo la ves tú y quien puede ver las privadas de este
+- **Al guardar una nueva:** en la fila de los pasos de la hoja, el interruptor «Privada» con «Sólo la ves tú y quien puede ver las privadas de este
   origen.» debajo (`aria-describedby`), apagado mientras guarda. Vive en la URL (`?privada=si`); al guardar sale de la URL y «Cotizar otra» nace pública.
 - **En una guardada:** el «⋯» de la guardada y el de la fila del listado ofrecen «Hacer privada» o «Hacer pública», sólo a quien la creó (con «Ver como»,
   decide la persona real). Apagada con su motivo: «Una final no se hace privada.», «Es la aprobada de su vehículo: no se hace privada.» o, en la guardada
@@ -1921,10 +1926,10 @@ suma desde «Sin lugar en la hoja».
   en la fórmula, «Sumar» se apaga con su motivo y los modos existentes siguen editables. Con un modo o más, los campos **por defecto**, los
   mismos del ⚙ de la cabecera de la hoja: «Tipo de cambio por defecto», «Mostrar el total en moneda local por defecto» (si se ofrece) y
   «Opciones visibles en el encabezado»; se guardan en el borrador. Quitar un modo o apagar «Ver total» limpian lo que nombraban.
-- **Tarjeta del total:** lo que muestran el resumen y el PDF (repite lo que la hoja dibuja): «Total» (los nodos marcados como total; con
+- **Tarjeta del total:** lo que muestran la hoja y el PDF: «Total» (los nodos marcados como total; con
   uno solo, apagado) y «Mostrar «<nodo>» junto al total» por cada nodo «aparte»; uno elegido que dejó de ser «aparte» se sigue mostrando
-  para poder quitarlo. Se ubica como pieza (`{ tipo: 'total' }`) en una sección principal sin nivel, una sola vez: la hoja la dibuja ahí desde `@4xl` y el
-  resumen esconde la suya (a cada ancho, una sola tarjeta grande); sin ubicar, va en el resumen como siempre.
+  para poder quitarlo. Se ubica como pieza (`{ tipo: 'total' }`) en una sección principal sin nivel, una sola vez: la hoja la dibuja ahí, a todo el ancho de
+  la sección; sin ubicar, va sola arriba de «Avanzado».
 - **Avisos** (`role="status"`, no apagan «Guardar»): lo que alguien sin un nivel puede deducir restando («Quien no tiene el nivel «X»
   puede deducir «Y»…», 3 y «Y N más.») y «Revisa el diseño: <regla de la base>» cuando lo aplicado no pasaría al publicar; la pieza del rechazo va marcada en
   el lienzo y el aviso lleva «Ir a la pieza» (`?pieza=`).
