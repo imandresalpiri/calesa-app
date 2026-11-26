@@ -90,7 +90,9 @@ test('crear, renombrar, desactivar y eliminar una categoría de gasto', async ({
   await page.getByRole('button', { name: 'Nueva categoría' }).first().click()
   await nueva.getByLabel('Nombre').fill(NOMBRE)
   await nueva.getByRole('button', { name: 'Crear categoría' }).click()
-  await expect(nueva.getByText(`Ya hay una categoría llamada «${NOMBRE}».`)).toBeVisible()
+  await expect(
+    nueva.getByText(`Ya hay una categoría «${NOMBRE}» compartida con todos los orígenes.`),
+  ).toBeVisible()
   // Con algo escrito, cancelar pregunta antes de tirarlo.
   await nueva.getByRole('button', { name: 'Cancelar' }).click()
   await nueva.getByRole('button', { name: 'Descartar' }).click()
@@ -141,7 +143,9 @@ test('crear una naviera, verla ofrecida en la oferta de un flujo y desactivarla'
   await page.getByRole('button', { name: 'Nueva naviera' }).first().click()
   await nueva.getByLabel('Nombre').fill(NAVIERA)
   await nueva.getByRole('button', { name: 'Crear naviera' }).click()
-  await expect(nueva.getByText(`Ya existe una naviera llamada «${NAVIERA}».`)).toBeVisible()
+  await expect(
+    nueva.getByText(`Ya hay una naviera «${NAVIERA}» compartida con todos los orígenes.`),
+  ).toBeVisible()
   await nueva.getByRole('button', { name: 'Cancelar' }).click()
   await nueva.getByRole('button', { name: 'Descartar' }).click()
   await expect(nueva).toBeHidden()
@@ -176,7 +180,9 @@ test('crear un puerto con país y código y ver rechazado el repetido junto al n
   await nuevo.getByLabel('Nombre').fill(PUERTO)
   await nuevo.getByLabel('País (opcional)').fill('Chile')
   await nuevo.getByRole('button', { name: 'Crear puerto' }).click()
-  await expect(nuevo.getByText(`Ya existe un puerto «${PUERTO}» en Chile.`)).toBeVisible()
+  await expect(
+    nuevo.getByText(`Ya hay un puerto «${PUERTO}» compartido con todos los orígenes.`),
+  ).toBeVisible()
   await nuevo.getByRole('button', { name: 'Cancelar' }).click()
   await nuevo.getByRole('button', { name: 'Descartar' }).click()
   await expect(nuevo).toBeHidden()

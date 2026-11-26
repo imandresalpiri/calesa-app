@@ -27,7 +27,7 @@ async function leer(): Promise<Resultado<OpcionesDeGasto>> {
   const [categorias, monedas, tipos] = await Promise.all([
     supabase
       .from('categorias_gasto')
-      .select('id, nombre, proposito, activo, orden')
+      .select('id, origen_id, nombre, proposito, activo, orden, actualizado_en')
       .order('orden')
       .order('nombre')
       .limit(200),

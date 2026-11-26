@@ -11,16 +11,20 @@ export type LecturaDeCatalogo<T> =
   | { tipo: 'error'; error: ErrorApp }
   | { tipo: 'listo'; filas: T[]; hayMas: boolean }
 
-// Lo propio de cada catálogo: cómo se lee y cómo se activa o desactiva una fila. Es una constante por catálogo (no se arma en cada render).
+// Lo propio de cada catálogo: cómo se lee y cómo se activa o desactiva una fila (con su versión; `uso` vuelve al desactivar). Es una constante por catálogo (no se arma
+// en cada render).
 export type ConfigDelCatalogo<T> = {
   leer: () => Promise<Resultado<CatalogoLeido<T>>>
   mensajeDeLectura: string
-  activar: (fila: T, activo: boolean) => Promise<Envio<unknown>>
+  activar: (fila: T, activo: boolean) => Promise<Envio<{ uso: number | null }>>
   avisoActivado: string
   avisoDesactivado: string
+  // El aviso al desactivar una fila que se usa.
+  avisoDelUso: (fila: T, uso: number) => string
 }
 
-// Un catálogo de transporte de Configuración (6.08-1): se lee al montar y otra vez tras cada escritura (la lista nunca queda vieja). `activar` escribe por la Server Action del catálogo y avisa.
+// Un catálogo de transporte de Configuración (6.08-1): se lee al montar y otra vez tras cada escritura (la lista nunca queda vieja). `activar` escribe por la Server Action
+// del catálogo y avisa; tras un conflicto (otra persona la cambió) relee la lista, y el aviso ofrece «Recargar».
 export function useCatalogoDeTransporte<T>(config: ConfigDelCatalogo<T>) {
   const [lectura, setLectura] = useState<LecturaDeCatalogo<T>>({ tipo: 'cargando' })
   const { leer: leerCatalogo, mensajeDeLectura } = config
@@ -57,10 +61,20 @@ export function useCatalogoDeTransporte<T>(config: ConfigDelCatalogo<T>) {
     activar: async (fila: T, activo: boolean) => {
       const envio = await config.activar(fila, activo)
       if (envio.ok) {
-        avisarExito(activo ? config.avisoActivado : config.avisoDesactivado)
+        const { uso } = envio.data
+        avisarExito(
+          uso
+            ? config.avisoDelUso(fila, uso)
+            : activo
+              ? config.avisoActivado
+              : config.avisoDesactivado,
+        )
         leer()
-      } else {
-        avisarError(envio.error)
+        return
+      }
+      avisarError(envio.error)
+      if (envio.error.codigo === 'conflicto') {
+        leer()
       }
     },
   }

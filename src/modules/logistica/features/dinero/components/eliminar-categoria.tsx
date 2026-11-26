@@ -16,8 +16,8 @@ type Props = {
   focoAlCerrar: () => HTMLElement | boolean
 }
 
-// «Eliminar» una categoría de gasto (`?panel=eliminar-categoria&categoria=<id>`): lo irreversible pide confirmar nombrándola. Una con gastos no se borra: la base lo rechaza (`on delete restrict`) y el
-// diálogo dice que se desactive, sin cerrarse.
+// «Eliminar» una categoría de gasto (`?panel=eliminar-categoria&categoria=<id>`): lo irreversible pide confirmar nombrándola. Una con gastos no se borra: la base lo rechaza («X» tiene gastos: desactívala.) y
+// el diálogo lo dice, sin cerrarse.
 export function EliminarCategoria({
   abierto,
   alCerrar,

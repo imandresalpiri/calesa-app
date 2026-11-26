@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { enviarAccion } from '@/shared/lib/enviar-accion'
 import { avisarExito } from '@/shared/ui/toasts'
-import { useEnvioDeModal } from '@/shared/ui/use-envio-de-modal'
+import { useEnvioConVersion } from '@/shared/ui/use-envio-con-version'
 import {
   borradorDeNaviera,
   BORRADOR_NUEVO_DE_NAVIERA,
   cambiosDeNaviera,
+  normalizarTexto,
+  textoDeUso,
   validarNaviera,
   type BorradorDeNaviera,
   type NavieraDeCatalogo,
@@ -16,24 +18,28 @@ import { crearNaviera } from '../actions/crear-naviera'
 import { guardarNaviera } from '../actions/guardar-naviera'
 
 type Args = {
-  // Nulo = «Nueva naviera».
+  // Nulo = «Nueva naviera». Es la fila vigente de la lista: tras «Recargar» llega con la versión nueva.
   original: NavieraDeCatalogo | null
   abierto: boolean
   alCerrar: () => void
-  // Se guardó: la lista se vuelve a leer.
+  // Relee la lista: al guardar y, tras un conflicto, para traer la versión de ahora.
   alGuardar: () => void
 }
 
 const MENSAJE_DE_VALIDACION = 'Revisa los datos de la naviera.'
 
-// El formulario de una naviera (6.08-1): el borrador y su envío (`useEnvioDeModal`). Al editar sólo se manda lo que cambió; sin diferencias, cerrar es guardar. El nombre repetido lo dice la base junto al campo.
+// El formulario de una naviera (6.08-1): el borrador y su envío con versión (`useEnvioConVersion`). Configuración crea compartidos (`origenId` nulo) con el id del intento,
+// que nace al abrir (cada apertura remonta el modal). Al editar sólo se manda lo que cambió, con la versión de la fila vigente; sin diferencias, cerrar es guardar. Un
+// conflicto deja «Recargar», que relee la lista y conserva lo escrito. El rechazo de la base va junto a su campo (su `hint`) o arriba del formulario.
 export function useFormularioDeNaviera({ original, abierto, alCerrar, alGuardar }: Args) {
+  const [intento] = useState(() => crypto.randomUUID())
   const inicial = original ? borradorDeNaviera(original) : BORRADOR_NUEVO_DE_NAVIERA
   const [valores, setValores] = useState<BorradorDeNaviera>(inicial)
 
-  const envio = useEnvioDeModal({
+  const envio = useEnvioConVersion<{ uso: number | null }>({
     abierto,
     hayCambios: JSON.stringify(valores) !== JSON.stringify(inicial),
+    version: original?.actualizadoEn ?? null,
     validar: () => {
       const validado = validarNaviera(valores)
       return validado.ok ? null : validado.errores
@@ -43,24 +49,29 @@ export function useFormularioDeNaviera({ original, abierto, alCerrar, alGuardar 
       if (!validado.ok) {
         return { ok: false, error: { codigo: 'validacion', mensaje: MENSAJE_DE_VALIDACION } }
       }
-      const datos = validado.datos
       if (!original) {
-        return enviarAccion(crearNaviera(datos), MENSAJE_DE_VALIDACION)
+        const creado = await enviarAccion(
+          crearNaviera({ id: intento, origenId: null, datos: validado.datos }),
+          MENSAJE_DE_VALIDACION,
+        )
+        return creado.ok ? { ok: true, data: { uso: null } } : creado
       }
-      const cambios = cambiosDeNaviera(original, datos)
+      const cambios = cambiosDeNaviera(original, validado.datos)
       return cambios === null
-        ? { ok: true as const, data: original }
+        ? { ok: true, data: { uso: null } }
         : enviarAccion(
-            guardarNaviera({ id: original.id, nombre: original.nombre, cambios }),
+            guardarNaviera({ id: original.id, actualizadoEn: original.actualizadoEn, cambios }),
             MENSAJE_DE_VALIDACION,
           )
     },
-    alGuardar: () => {
-      avisarExito('Naviera guardada.')
+    alGuardar: ({ uso }) => {
+      avisarExito(
+        uso ? textoDeUso(normalizarTexto(valores.nombre), uso, true) : 'Naviera guardada.',
+      )
       alGuardar()
       alCerrar()
     },
-    campoDelRechazo: (error) => (error.codigo === 'duplicado' ? 'nombre' : null),
+    recargar: alGuardar,
   })
 
   return {

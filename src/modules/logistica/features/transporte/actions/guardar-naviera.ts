@@ -1,14 +1,21 @@
 'use server'
 
 import type { ResultadoDeAccion } from '@/shared/lib/enviar-accion'
+import { fallo } from '@/shared/lib/errores'
+import { puede } from '@/shared/lib/permisos'
 import { actionClient } from '@/shared/lib/safe-action'
 import { repositorioDeCatalogosDeTransporte } from '../../../areas/transporte/composicion'
-import type { NavieraDeCatalogo } from '../../../entities/transporte/catalogo'
+import type { CatalogoGuardado } from '../../../entities/nucleo/catalogos'
+import { SIN_PERMISO_PARA_LOS_CATALOGOS_DE_TRANSPORTE } from '../../../entities/transporte/catalogo'
 import { esquemaGuardarNaviera } from '../schemas/catalogo'
 
-// Corrige una naviera con sólo lo que cambió, o la activa o desactiva (6.08-1). Lo admite quien tiene `logistica.catalogos.gestionar`: lo exige la RLS de la tabla.
+// Corrige una naviera con sólo lo que cambió y la versión que se vio, o la activa o desactiva (6.08-1). Pide `logistica.catalogos.gestionar` en algún
+// origen; la base mira el origen de la propia o todos los que usan la compartida.
 export const guardarNaviera = actionClient
   .inputSchema(esquemaGuardarNaviera)
-  .action(async ({ parsedInput }): Promise<ResultadoDeAccion<NavieraDeCatalogo>> => {
+  .action(async ({ parsedInput, ctx }): Promise<ResultadoDeAccion<CatalogoGuardado>> => {
+    if (!puede(ctx.permisos, 'logistica.catalogos.gestionar')) {
+      return fallo('sin_permiso', SIN_PERMISO_PARA_LOS_CATALOGOS_DE_TRANSPORTE)
+    }
     return repositorioDeCatalogosDeTransporte.guardarNaviera(parsedInput)
   })

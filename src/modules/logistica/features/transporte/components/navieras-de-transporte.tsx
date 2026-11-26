@@ -8,6 +8,7 @@ import {
 } from '../../../areas/transporte/composicion.client'
 import {
   MENSAJE_NAVIERA_YA_NO_ESTA,
+  textoDeUso,
   type NavieraDeCatalogo,
 } from '../../../entities/transporte/catalogo'
 import { guardarNaviera } from '../actions/guardar-naviera'
@@ -26,14 +27,16 @@ const CONFIG: ConfigDelCatalogo<NavieraDeCatalogo> = {
   mensajeDeLectura: NO_SE_CARGARON_LAS_NAVIERAS,
   activar: (naviera, activo) =>
     enviarAccion(
-      guardarNaviera({ id: naviera.id, nombre: naviera.nombre, cambios: { activo } }),
+      guardarNaviera({ id: naviera.id, actualizadoEn: naviera.actualizadoEn, cambios: { activo } }),
       'No se pudo guardar la naviera.',
     ),
   avisoActivado: 'Naviera activada.',
   avisoDesactivado: 'Naviera desactivada.',
+  avisoDelUso: (naviera, uso) => textoDeUso(naviera.nombre, uso, true),
 }
 
-// Logística › Configuración › Navieras (6.08-1): se crean, renombran, activan y desactivan; no se eliminan. Escribir lo exige `logistica.catalogos.gestionar` (la RLS de la tabla); la página ya lo pide.
+// Logística › Configuración › Navieras (6.08-1): las compartidas con todos los orígenes se crean, renombran, activan y desactivan; no se eliminan. Escribir pide
+// `logistica.catalogos.gestionar` (la action y, por RPC, la base); la página ya lo pide.
 export function NavierasDeTransporte() {
   const datos = useCatalogoDeTransporte(CONFIG)
   const navieras = datos.lectura.tipo === 'listo' ? datos.lectura.filas : null

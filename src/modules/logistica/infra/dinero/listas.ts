@@ -62,7 +62,7 @@ export async function leerCategoriasDeGasto(): Promise<Resultado<CategoriaDeGast
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('categorias_gasto')
-    .select('id, nombre, proposito, activo, orden')
+    .select('id, origen_id, nombre, proposito, activo, orden, actualizado_en')
     .order('orden')
     .order('nombre')
     .limit(TOPE_DE_CATEGORIAS)

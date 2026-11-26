@@ -152,12 +152,19 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   **Prorratear:** `pantallas/dinero-grupo.ts`, hueco del resumen de un grupo (`logistica.gastos.editar`; no en el de una declaración). `entities/dinero/reparto.ts`
   repite la aritmética de centavos de `gastos_prorratear` (los que sobran, a los primeros) sólo para la vista previa. El `lote` es el id del intento: se
   conserva si no se sabe qué pasó y se renueva al cambiar lo escrito o al rechazar la base.
-  **Categorías de gasto** (pestaña `/logistica/configuracion/categorias-de-gasto`, `logistica.catalogos.gestionar`; sin flechas de orden: el orden es el número del modal): escritura directa bajo la RLS; `categoria.ts` fija los propósitos del `check` de la base.
+  **Categorías de gasto** (pestaña `/logistica/configuracion/categorias-de-gasto`, `logistica.catalogos.gestionar`; sin flechas de orden: el orden es el número del modal): la pestaña
+  lista y crea las compartidas con todos los orígenes (`origen_id` nulo) y escribe por RPC (`categoria_gasto_crear|guardar|eliminar`) como los catálogos de transporte (abajo);
+  una con gastos no se elimina (23503: el diálogo dice el texto de la base, ««X» tiene gastos: desactívala.») y desactivar una con gastos avisa cuántos la usan. `categoria.ts` fija los propósitos del `check` de la base.
 - **Área `transporte`.** **Catálogos:** `pantallas/transporte-catalogos.ts`, pestañas «Puertos» y «Navieras» de Logística › Configuración (`/logistica/configuracion/puertos` y `/navieras`; el ⚙ «Configurar» de la cabecera de Logística entra, con `logistica.catalogos.gestionar`; la página, su tira de pestañas y su permiso por pestaña son de `src/app/(app)/logistica/configuracion/`)
-  (`logistica.catalogos.gestionar`; cada catálogo trae su `clave` —el último tramo de su sub-ruta— y su frase). Escritura directa bajo la RLS (`infra/transporte/catalogos.ts`): 0 filas = «No tienes permiso…», nunca éxito; sin versión.
+  (`logistica.catalogos.gestionar`; cada catálogo trae su `clave` —el último tramo de su sub-ruta— y su frase). Las pestañas listan y crean los compartidos con todos los
+  orígenes (`origen_id` nulo). Se escriben sólo por RPC (`puerto_crear|guardar`, `naviera_crear|guardar`; `infra/transporte/catalogos.ts`): crear lleva el id del intento
+  (nace al abrir el modal), guardar y activar o desactivar, la versión de la fila vigente de la lista (`useEnvioConVersion`: un `PT409` deja «Recargar», que relee la lista y
+  conserva lo escrito; en la fila, el aviso y la lista releída). La action pide `puede(…, 'logistica.catalogos.gestionar', origen)` antes de escribir y la base lo vuelve a
+  mirar (el origen del propio o todos los que usan el compartido); su rechazo se dice tal cual, junto al campo que nombra su `hint`. Desactivar uno en uso avisa cuántos
+  transportes u ofertas lo usan («más de 50» pasado el tope). Lo común con las categorías está en el núcleo (`entities/nucleo/catalogos.ts`, `infra/nucleo/catalogos.ts`).
   **No hay «Eliminar»** (borrar dejaría nulos los transportes y vaciaría la oferta): se desactiva. `entities/transporte/catalogo.ts` valida (nombre 1–80, país
-  ≤ 60, código ≤ 12 en mayúsculas sin espacios, orden 0–32.767); un puerto **sin país** no lo cubre la unicidad de la base (`NULL ≠ NULL`): la action lo mira,
-  pero dos altas simultáneas pueden duplicarlo. `<AvisoDeTope>` a 200.
+  ≤ 60, código ≤ 12 en mayúsculas sin espacios, orden 0–32.767); la unicidad es de la base, por origen y clave (sin mayúsculas, tildes ni espacios de más), también la
+  de un puerto sin país. `<AvisoDeTope>` a 200.
   **Hueco «Transporte»** (`pantallas/transporte-unidad.ts`; `logistica.ver`, regla `transporte`; sólo vehículos): escribe `guardarTransporte` →
   `transporte_guardar` con la versión leída. Opciones = la oferta del flujo (vacía = todos los activos) **más lo ya guardado**, rotulado «(inactiva)» o «(fuera
   de la oferta)» (`entities/transporte/oferta.ts`). `useBorradorDeTransporte` guarda los campos tocados: tras un `PT409`, «Recargar» trae la versión nueva y lo
@@ -181,7 +188,8 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
 
 `documentos`, `puertos`, `navieras`, `transportes` (1:1 con la unidad), `declaraciones_aduana`, `declaraciones_vehiculos`, `categorias_gasto`, `gastos`, `pagos`, `notas`.
 RPC: `margen_vehiculo`, `alertas_demora` (cron), `storage_refcount`, `logistica_cadena_resumen`, `logistica_cadena_columna` (la lista de una fase), `logistica_bandeja_grupo` (índices `transportes_llegadas_idx` y `transportes_salidas_idx`) y los ayudantes `_logistica_lo_propio` y `_bandeja_dia_*`; mover vía `flujos`. La oferta de transporte es de `flujos` (`flujo_oferta_guardar`);
-logística sólo la lee con `flujo_oferta()`. Gastos y pagos se escriben sólo por RPC: `gasto_registrar`, `gasto_guardar`, `gasto_eliminar`, `gastos_prorratear`,
+logística sólo la lee con `flujo_oferta()`. Puertos, navieras y categorías de gasto (propios de un origen o compartidos) se escriben sólo por RPC: `puerto_crear|guardar`,
+`naviera_crear|guardar`, `categoria_gasto_crear|guardar|eliminar`. Gastos y pagos se escriben sólo por RPC: `gasto_registrar`, `gasto_guardar`, `gasto_eliminar`, `gastos_prorratear`,
 `pago_registrar`, `pago_registrar_proyecto`, `pago_guardar`, `pago_eliminar`, `pago_confirmar`, `pago_anular`; se leen por cursor con `gastos_listar` y
 `pagos_listar`. El bucket `comprobantes` lo abre `comprobante_puede` (la fila que nombra el objeto).
 **Alertas:** `trg_alertas_cerrar_al_mover` (en `historial_fases`) acciona los `demora_fase` abiertos de la unidad al moverla (`notificaciones_referencia_idx`).

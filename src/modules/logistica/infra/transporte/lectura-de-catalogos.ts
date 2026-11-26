@@ -30,12 +30,12 @@ export const leerCatalogosDeTransporte = cache(
     const [navieras, puertos] = await Promise.all([
       supabase
         .from('navieras')
-        .select('id, nombre, activo')
+        .select('id, origen_id, nombre, activo, actualizado_en')
         .order('nombre')
         .limit(TOPE_DE_CATALOGO_DE_TRANSPORTE + 1),
       supabase
         .from('puertos')
-        .select('id, nombre, pais, codigo, activo, orden')
+        .select('id, origen_id, nombre, pais, codigo, activo, orden, actualizado_en')
         .order('nombre')
         .limit(TOPE_DE_CATALOGO_DE_TRANSPORTE + 1),
     ])

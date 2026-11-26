@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { enviarAccion } from '@/shared/lib/enviar-accion'
-import { useEnvioDeModal } from '@/shared/ui/use-envio-de-modal'
 import { avisarExito } from '@/shared/ui/toasts'
+import { useEnvioConVersion } from '@/shared/ui/use-envio-con-version'
 import {
   borradorDeCategoria,
   BORRADOR_NUEVO_DE_CATEGORIA,
   cambiosDeCategoria,
+  textoDeUsoDeCategoria,
   validarCategoria,
   type BorradorDeCategoria,
   type CategoriaDeGasto,
@@ -16,25 +17,28 @@ import { crearCategoria } from '../actions/crear-categoria'
 import { guardarCategoria } from '../actions/guardar-categoria'
 
 type Args = {
-  // Nulo = «Nueva categoría».
+  // Nulo = «Nueva categoría». Es la fila vigente de la lista: tras «Recargar» llega con la versión nueva.
   original: CategoriaDeGasto | null
   abierto: boolean
   alCerrar: () => void
-  // Se guardó: la lista se vuelve a leer.
+  // Relee la lista: al guardar y, tras un conflicto, para traer la versión de ahora.
   alGuardar: () => void
 }
 
 const MENSAJE_DE_VALIDACION = 'Revisa los datos de la categoría.'
 
-// El formulario de una categoría de gasto (6.11-4): el borrador y su envío (`useEnvioDeModal`). Al editar sólo se manda lo que cambió; sin diferencias, cerrar es guardar. El nombre repetido lo dice la base
-// junto al campo.
+// El formulario de una categoría de gasto (6.11-4): el borrador y su envío con versión (`useEnvioConVersion`). Configuración crea compartidas (`origenId` nulo) con el id
+// del intento, que nace al abrir (cada apertura remonta el modal). Al editar sólo se manda lo que cambió, con la versión de la fila vigente; sin diferencias, cerrar es
+// guardar. Un conflicto deja «Recargar», que relee la lista y conserva lo escrito. El rechazo de la base va junto a su campo (su `hint`) o arriba del formulario.
 export function useFormularioDeCategoria({ original, abierto, alCerrar, alGuardar }: Args) {
+  const [intento] = useState(() => crypto.randomUUID())
   const inicial = original ? borradorDeCategoria(original) : BORRADOR_NUEVO_DE_CATEGORIA
   const [valores, setValores] = useState<BorradorDeCategoria>(inicial)
 
-  const envio = useEnvioDeModal({
+  const envio = useEnvioConVersion<{ uso: number | null }>({
     abierto,
     hayCambios: JSON.stringify(valores) !== JSON.stringify(inicial),
+    version: original?.actualizadoEn ?? null,
     validar: () => {
       const validado = validarCategoria(valores)
       return validado.ok ? null : validado.errores
@@ -44,24 +48,27 @@ export function useFormularioDeCategoria({ original, abierto, alCerrar, alGuarda
       if (!validado.ok) {
         return { ok: false, error: { codigo: 'validacion', mensaje: MENSAJE_DE_VALIDACION } }
       }
-      const datos = validado.datos
       if (!original) {
-        return enviarAccion(crearCategoria(datos), MENSAJE_DE_VALIDACION)
+        const creada = await enviarAccion(
+          crearCategoria({ id: intento, origenId: null, datos: validado.datos }),
+          MENSAJE_DE_VALIDACION,
+        )
+        return creada.ok ? { ok: true, data: { uso: null } } : creada
       }
-      const cambios = cambiosDeCategoria(original, datos)
+      const cambios = cambiosDeCategoria(original, validado.datos)
       return cambios === null
-        ? { ok: true as const, data: original }
+        ? { ok: true, data: { uso: null } }
         : enviarAccion(
-            guardarCategoria({ id: original.id, nombre: original.nombre, cambios }),
+            guardarCategoria({ id: original.id, actualizadoEn: original.actualizadoEn, cambios }),
             MENSAJE_DE_VALIDACION,
           )
     },
-    alGuardar: () => {
-      avisarExito('Categoría guardada.')
+    alGuardar: ({ uso }) => {
+      avisarExito(uso ? textoDeUsoDeCategoria(valores.nombre.trim(), uso) : 'Categoría guardada.')
       alGuardar()
       alCerrar()
     },
-    campoDelRechazo: (error) => (error.codigo === 'duplicado' ? 'nombre' : null),
+    recargar: alGuardar,
   })
 
   return {

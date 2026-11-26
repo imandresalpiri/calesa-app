@@ -7,7 +7,7 @@ import {
   navierasDesde,
   ordenarPuertos,
   puertosDesde,
-  textoDeErrorDeCatalogo,
+  textoDeUso,
   usoDelPuerto,
   validarNaviera,
   validarPuerto,
@@ -16,6 +16,8 @@ import {
 } from './catalogo'
 
 const ID = '5f0d0b0e-6a39-4f0e-9a39-0b6f9a1c2d3e'
+const ORIGEN = '00000000-0000-4000-8000-00000000000a'
+const VERSION = '2026-11-25T12:00:00.000000+00:00'
 
 const borrador = (p: Partial<BorradorDePuerto> = {}): BorradorDePuerto => ({
   ...BORRADOR_NUEVO_DE_PUERTO,
@@ -25,11 +27,13 @@ const borrador = (p: Partial<BorradorDePuerto> = {}): BorradorDePuerto => ({
 
 const puerto = (p: Partial<PuertoDeCatalogo> = {}): PuertoDeCatalogo => ({
   id: ID,
+  origenId: null,
   nombre: 'San Antonio',
   pais: 'Chile',
   codigo: 'CLSAI',
   activo: true,
   orden: 0,
+  actualizadoEn: VERSION,
   ...p,
 })
 
@@ -92,7 +96,13 @@ describe('cambiosDePuerto y cambiosDeNaviera', () => {
       orden: 3,
     })
     expect(cambiosDePuerto(original, { ...datos, codigo: null })).toEqual({ codigo: null })
-    const naviera = { id: ID, nombre: 'Maersk', activo: true }
+    const naviera = {
+      id: ID,
+      origenId: null,
+      nombre: 'Maersk',
+      activo: true,
+      actualizadoEn: VERSION,
+    }
     expect(cambiosDeNaviera(naviera, { nombre: 'Maersk', activo: true })).toBeNull()
     expect(cambiosDeNaviera(naviera, { nombre: 'Maersk', activo: false })).toEqual({
       activo: false,
@@ -110,25 +120,14 @@ describe('cambiosDePuerto y cambiosDeNaviera', () => {
   })
 })
 
-describe('textoDeErrorDeCatalogo', () => {
-  it('dice el repetido de cada tipo junto al nombre', () => {
-    expect(textoDeErrorDeCatalogo('23505', { tipo: 'naviera', nombre: 'Maersk' })).toBe(
-      'Ya existe una naviera llamada «Maersk».',
+describe('textoDeUso', () => {
+  it('un puerto «lo», una naviera «la»; lo usan transportes u ofertas', () => {
+    expect(textoDeUso('Arica', 12, false)).toBe(
+      'Desactivaste «Arica»: lo usan 12 transportes u ofertas; siguen mostrándolo.',
     )
-    expect(
-      textoDeErrorDeCatalogo('23505', { tipo: 'puerto', nombre: 'Arica', pais: 'Chile' }),
-    ).toBe('Ya existe un puerto «Arica» en Chile.')
-    expect(textoDeErrorDeCatalogo('23505', { tipo: 'puerto', nombre: 'Arica', pais: null })).toBe(
-      'Ya existe un puerto llamado «Arica» sin país.',
+    expect(textoDeUso('Maersk', 1, true)).toBe(
+      'Desactivaste «Maersk»: la usa 1 transporte u oferta; sigue mostrándola.',
     )
-  })
-
-  it('42501 es sin permiso y otro código no se anticipa', () => {
-    const r = { tipo: 'naviera', nombre: 'X' } as const
-    expect(textoDeErrorDeCatalogo('42501', r)).toBe(
-      'No tienes permiso para cambiar los catálogos de transporte.',
-    )
-    expect(textoDeErrorDeCatalogo('23503', r)).toBeNull()
   })
 })
 
@@ -142,11 +141,27 @@ describe('usoDelPuerto', () => {
 })
 
 describe('lectura de filas y orden', () => {
-  it('puertosDesde y navierasDesde dan nulo si una fila no tiene la forma', () => {
-    expect(puertosDesde([puerto()])).toHaveLength(1)
+  it('puertosDesde y navierasDesde leen el origen y la versión, y dan nulo si una fila no tiene la forma', () => {
+    const fila = {
+      id: ID,
+      origen_id: ORIGEN,
+      nombre: 'San Antonio',
+      pais: 'Chile',
+      codigo: 'CLSAI',
+      activo: true,
+      orden: 0,
+      actualizado_en: VERSION,
+    }
+    expect(puertosDesde([fila])).toEqual([puerto({ origenId: ORIGEN })])
+    expect(puertosDesde([{ ...fila, origen_id: null }])).toEqual([puerto()])
     expect(puertosDesde([{ id: ID }])).toBeNull()
-    expect(navierasDesde([{ id: ID, nombre: 'M', activo: true }])).toHaveLength(1)
-    expect(navierasDesde([{ id: 'x', nombre: 'M', activo: true }])).toBeNull()
+    expect(puertosDesde([{ ...fila, actualizado_en: undefined }])).toBeNull()
+    const naviera = { id: ID, origen_id: null, nombre: 'M', activo: true, actualizado_en: VERSION }
+    expect(navierasDesde([naviera])).toEqual([
+      { id: ID, origenId: null, nombre: 'M', activo: true, actualizadoEn: VERSION },
+    ])
+    expect(navierasDesde([{ ...naviera, id: 'x' }])).toBeNull()
+    expect(navierasDesde([{ ...naviera, origen_id: 'x' }])).toBeNull()
   })
 
   it('los puertos van por orden y luego por nombre', () => {
