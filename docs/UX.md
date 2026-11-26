@@ -510,14 +510,20 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     sin acordeones (en el proyecto, bajo la fila del ítem y sin cabecera propia: ver «Repuestos: proyecto (estados propios)» › «Drawer del ítem»): «Qué falta» primero (con el destino de `?destino=` ya abierto), «Imágenes», «Stock», «Compras» (con
     `repuestos.costos.ver`), «Documentos», «Historial», «Notas» y «Transporte».
   - **Cotizaciones del proyecto:** «Nueva cotización» con la moneda en la misma barra (apagado con su motivo con el proyecto cerrado o sin
-    monedas activas; sin configuración, el mensaje de la base y, con `repuestos.configurar`, el enlace a configurarla) y la lista (número,
-    estado, total o «Sin total», fecha; tope 50). En `/repuestos/[id]/cotizaciones/[cotizacion]`, una borrador con el proyecto abierto se
-    edita: bloques «Importado» y «Local» con «Agregar línea» y «Agregar desde un ítem»; cada línea con descripción, `XCell` de cantidad,
-    costo y logística (sugerida del tramo, ↺), caja (con la elegida en `<Monto>`), total o «Sin total · motivo» y «Quitar línea»; pie con
-    el total en vivo, notas y «Guardar» (PT409 en `<AvisoDeConflicto>`). «Aceptar» (`?panel=aceptar-cotizacion`; apagado sin permiso para
-    editar ítems, con cambios sin guardar o sin total) y «Anular» (`?panel=anular-cotizacion`, borrador o aceptada con el proyecto
-    abierto). Las demás, y la borrador con el proyecto cerrado, en sólo lectura con la configuración con que se calculó y el total de la
-    base.
+    monedas activas; sin configuración, el mensaje de la base y, con `repuestos.configurar`, el enlace a configurarla) y la lista de tarjetas
+    (número, estado, total o «Sin total», creada y aceptada o «Sin aceptar»; todas del mismo alto; tope 50). Cada tarjeta lleva su «⋯» arriba a la
+    derecha («Más acciones de Cotización #N») y tocarla abre la hoja. El «⋯» sólo ofrece lo que la entidad permite, sin leer nada al abrirse:
+    «Abrir»; «Aceptar» (borrador; apagado con su motivo sin `repuestos.editar`, sin total, con el proyecto cerrado o sin red); «Anular» (borrador o
+    aceptada con el proyecto abierto; sin red, apagado); una anulada, sólo «Abrir». Las confirmaciones son las de la hoja
+    (`?panel=aceptar-cotizacion|anular-cotizacion&cotizacion=<id>`), montadas una vez sobre la lista; «Aceptar» muestra el total guardado.
+  - **La hoja de una cotización** (`/repuestos/[id]/cotizaciones/[cotizacion]`): una columna con un solo nivel de secciones. Arriba, lo que la define: el
+    número con su estado, «Aceptar» y «Anular» a la derecha (el motivo de «Aceptar» apagado tiene su línea reservada) y, debajo, proyecto, cliente del
+    proyecto (el mismo de la cabecera de `/repuestos/<id>`), fechas y total (`<Monto>`; en vivo en la borrador, el guardado en las demás; nulo es «Sin
+    total»). Después, los ítems: «Importado» y «Local» con «Agregar línea» y «Agregar desde un ítem»; cada línea con descripción, `XCell` de cantidad,
+    costo y logística (sugerida del tramo, ↺), caja (con la elegida en `<Monto>`), total o «Sin total · motivo», «Quitar línea» y su renglón de error. Al
+    final, «Condiciones»: las notas, la configuración con que se calculó y «Guardar» (el aviso de la base, `PT409` en `<AvisoDeConflicto>` incluido, cae
+    bajo «Guardar» en un lugar reservado). Nada se mueve al editar o recalcular: celdas, totales de línea, error de línea, motivo de «Aceptar», notas y
+    aviso tienen su alto reservado. Una borrador con el proyecto cerrado y las demás, en sólo lectura con la misma forma y el total de la base.
   - Ver «Repuestos: listado (estados propios)» y «Repuestos: proyecto (estados propios)».
 - **Agenda** — `/agenda` (todos): una libreta. Al entrar (sin `?vista=`, en todo ancho), la **hoja del día**: las horas de la jornada (08:00 a 19:00) siempre a la
   vista con lo que pasa en cada una (eventos, tareas con vencimiento, recordatorios, cierres de subasta), «Antes de las 08:00» y «Desde las 20:00» sólo si traen algo,
