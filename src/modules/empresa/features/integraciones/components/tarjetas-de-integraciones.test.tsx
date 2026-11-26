@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { withNuqsTestingAdapter } from 'nuqs/adapters/testing'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CONFIG_DEL_ASISTENTE_POR_DEFECTO } from '../../../entities/asistente-ia/config'
@@ -9,6 +9,7 @@ import {
   MOTIVO_SIN_PERMISO_AJUSTES,
   MOTIVO_SIN_SECRETO,
 } from '../../../entities/motivos'
+import { probarAsistente } from '../actions/probar-asistente'
 import { TarjetasDeIntegraciones } from './tarjetas-de-integraciones'
 
 // Las actions y la consulta de uso tocan el servidor: acá no se guarda nada.
@@ -184,5 +185,45 @@ describe('la tarjeta del asistente de IA', () => {
     cleanup()
     tarjetas(true, { usos: null })
     expect(within(asistente()).getByText('No se pudieron leer los usos.')).toBeTruthy()
+  })
+})
+
+describe('«Probar conexión» del asistente de IA', () => {
+  const asistente = () => screen.getByRole('region', { name: 'Asistente de IA' })
+
+  // Sin saltos: la pista y la respuesta de «Probar conexión» ocupan el mismo lugar, de alto reservado (`min-h-28`). Integraciones no corre en el
+  // celular (pedido de la persona) y un spec sin celular no mide cajas (`e2e/soporte/sin-celular.ts`): el lugar se fija acá.
+  it('«Probar conexión» responde en el lugar reservado de la pista; sin clave no hay lugar', async () => {
+    tarjetas(false, { asistente: fila('asistente_ia', { config: CONFIG_GUARDADA }) })
+    expect(within(asistente()).queryByText(/Prueba la conexión desde el/)).toBeNull()
+    cleanup()
+    vi.mocked(probarAsistente).mockResolvedValue({
+      data: { ok: true, data: { modelo: 'deepseek-chat' } },
+    } as never)
+    tarjetas(true, {
+      asistente: fila('asistente_ia', {
+        config: CONFIG_GUARDADA,
+        secretoGuardadoEn: '2026-11-26T12:00:00+00:00',
+      }),
+    })
+    const lugar = within(asistente()).getByText(/Prueba la conexión desde el/).parentElement
+    expect(lugar?.className).toContain('min-h-28')
+    const menu = within(asistente()).getByRole('button', {
+      name: 'Más acciones de Asistente de IA',
+    })
+    act(() => {
+      fireEvent.pointerDown(menu)
+      fireEvent.mouseDown(menu)
+      fireEvent.click(menu)
+    })
+    const probar = await screen.findByRole('menuitem', { name: 'Probar conexión' })
+    act(() => {
+      fireEvent.click(probar)
+    })
+    await waitFor(() => {
+      expect(within(asistente()).getByText('Respondió el modelo deepseek-chat.')).toBeTruthy()
+    })
+    expect(lugar?.contains(screen.getByText('Respondió el modelo deepseek-chat.'))).toBe(true)
+    expect(within(asistente()).queryByText(/Prueba la conexión desde el/)).toBeNull()
   })
 })

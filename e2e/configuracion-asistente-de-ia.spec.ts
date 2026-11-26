@@ -131,18 +131,6 @@ async function editarUnAtajo(page: Page, id: string) {
   await expect(indicaciones).toBeHidden()
 }
 
-// El alto del área de la respuesta de «Probar conexión»: sin respuesta, la pista ocupa el lugar.
-async function altoDelArea(page: Page) {
-  const pista = tarjeta(page).getByText(
-    'Prueba la conexión desde el «⋯» para ver qué responde el proveedor.',
-  )
-  const area = await pista.locator('..').elementHandle()
-  return {
-    antes: (await area.boundingBox())?.height,
-    ahora: async () => (await area.boundingBox())?.height,
-  }
-}
-
 async function guardarLaClave(page: Page, titulo: string, etiqueta: string, clave: string) {
   const modal = page.getByRole('dialog', { name: titulo })
   await modal.getByLabel(etiqueta, { exact: true }).fill(clave)
@@ -183,18 +171,20 @@ test('E2E escritorio · configurar el proveedor, cargar la clave, encender y pro
   await expect(page.getByText('Asistente de IA activado')).toBeVisible()
   await expect(activa).toBeChecked()
 
-  // 5. «Probar conexión»: la respuesta ocupa el alto que ya tenía reservado.
-  const exito = await altoDelArea(page)
+  // 5. «Probar conexión»: la respuesta reemplaza a la pista (el lugar reservado lo fija `tarjetas-de-integraciones.test.tsx`: un spec sin
+  // celular no mide cajas).
+  await expect(
+    asistente.getByText('Prueba la conexión desde el «⋯»', { exact: false }),
+  ).toBeVisible()
   await elegirDelMenu(page, 'Probar conexión')
   await expect(asistente.getByText(`Respondió el modelo ${MODELO}.`)).toBeVisible()
-  expect(await exito.ahora()).toBe(exito.antes)
   expect(await page.content()).not.toContain(clave)
   comprobarElPedido(clave)
 
   // 6. Un atajo.
   await editarUnAtajo(page, ATAJO.id)
 
-  // 7. Con una clave que el proveedor rechaza, la prueba lo dice y ofrece reemplazarla, en el mismo alto.
+  // 7. Con una clave que el proveedor rechaza, la prueba lo dice y ofrece reemplazarla.
   await elegirDelMenu(page, 'Reemplazar la clave')
   await guardarLaClave(
     page,
@@ -202,14 +192,12 @@ test('E2E escritorio · configurar el proveedor, cargar la clave, encender y pro
     'Clave nueva',
     `${PREFIJO_DE_CLAVE_INVALIDA}-${randomBytes(4).toString('hex')}`,
   )
-  const fallo = await altoDelArea(page)
   await elegirDelMenu(page, 'Probar conexión')
   const error = asistente
     .getByRole('alert')
     .filter({ hasText: 'La clave del asistente no es válida.' })
   await expect(error).toBeVisible()
   await expect(error.getByRole('button', { name: 'Reemplazar la clave' })).toBeVisible()
-  expect(await fallo.ahora()).toBe(exito.antes)
 
   // 8. El contador: dos usos de la dueña este mes.
   contarUnUso(duena)
