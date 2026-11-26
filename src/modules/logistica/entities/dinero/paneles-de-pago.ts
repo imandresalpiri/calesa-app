@@ -42,8 +42,9 @@ export function pagoDeLaUrl<P extends { id: string }>(
 }
 
 /**
- * Por qué una URL de pago no se abre (nulo = se abre): falta el permiso que pide el panel, el id ya no está o el pago no está en el estado que el panel pide (editar, confirmar y eliminar
- * piden sin confirmar; anular pide confirmado). `nuevo` sólo es de `pago` y pide editar. Una URL escrita a mano no abre lo que el permiso o el estado no dejan.
+ * Por qué una URL de pago no se abre (nulo = se abre): falta el permiso que pide el panel, el id ya no está o el pago no está en el estado que el panel pide (confirmar y eliminar piden sin
+ * confirmar; anular pide confirmado). `pago` con un id abre siempre que el pago esté: el formulario si se puede editar y, si no (confirmado, o sin permiso de editar), su lectura. `nuevo` sólo
+ * es de `pago` y pide editar. Una URL escrita a mano no abre lo que el permiso o el estado no dejan.
  */
 export function motivoParaNoAbrirPago(args: {
   panel: PanelDePago
@@ -52,17 +53,15 @@ export function motivoParaNoAbrirPago(args: {
   permisos: { puedeEditar: boolean | null; puedeConfirmar: boolean | null }
 }): string | null {
   const { panel, valor, encontrado, permisos } = args
-  const permitido =
-    panel === PANEL_PAGO || panel === PANEL_ELIMINAR_PAGO
-      ? permisos.puedeEditar
-      : permisos.puedeConfirmar
-  if (!permitido) {
-    return MENSAJE_PAGO_YA_NO_ESTA
+  if (panel === PANEL_PAGO) {
+    // `nuevo` pide editar; uno existente se abre (en lectura si no se puede editar) mientras esté en la lista.
+    if (valor === PAGO_NUEVO) {
+      return permisos.puedeEditar ? null : MENSAJE_PAGO_YA_NO_ESTA
+    }
+    return encontrado === null ? MENSAJE_PAGO_YA_NO_ESTA : null
   }
-  if (panel === PANEL_PAGO && valor === PAGO_NUEVO) {
-    return null
-  }
-  if (encontrado === null) {
+  const permitido = panel === PANEL_ELIMINAR_PAGO ? permisos.puedeEditar : permisos.puedeConfirmar
+  if (!permitido || encontrado === null) {
     return MENSAJE_PAGO_YA_NO_ESTA
   }
   const pideConfirmado = panel === PANEL_ANULAR_PAGO

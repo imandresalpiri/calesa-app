@@ -140,7 +140,10 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   moneda o el tipo), `pago.ts` (monto > 0), `acciones-del-pago.ts` (un confirmado nunca se edita ni se elimina). **`monto_base` lo devuelve la base**: ningún
   componente multiplica por una tasa. El hueco recibe sólo `{ unidad }` y decide «Registrar gasto» con `puede()` sobre `mis_permisos`; protege la base.
   `?panel=gasto&gasto=<id|nuevo>`, `?panel=eliminar-gasto&gasto=<id>`, `?panel=pago|confirmar-pago|eliminar-pago|anular-pago&pago=<id>` (una URL a mano no
-  abre lo que el estado o el permiso no dejan). Toda escritura de dinero avisa al «Margen» por un evento del navegador (`eventos-de-dinero.ts`) y, con él, un cambio de la unidad (`avisarCambioDeLaUnidad`: «Qué falta» se relee). Confirmar y
+  abre lo que el estado o el permiso no dejan). `?panel=pago&pago=<id>` abre cualquier pago que esté en la lista: el formulario (sin confirmar y con permiso de editar) o,
+  si no, `LecturaDelPago` («Pago», sólo lectura con su sello y «Anular pago» con la clave de confirmar). Los paneles de dinero tienen una forma: monto con su moneda
+  (`CampoDeMonto`), estado, fecha y a quién arriba; grupos planos (`GrupoDeCampos`) y la zona del comprobante (`ZonaDeArchivo` vía `CampoDeComprobante`, un archivo por fila,
+  `useArchivoDeLaZona`). Toda escritura de dinero avisa al «Margen» por un evento del navegador (`eventos-de-dinero.ts`) y, con él, un cambio de la unidad (`avisarCambioDeLaUnidad`: «Qué falta» se relee). Confirmar y
   anular piden `logistica.pagos.confirmar` (global); el sello «Confirmado por <nombre> el <fecha>» lo pone la base; anular pide motivo; el lead va nulo.
   **Pagos de un proyecto de repuestos:** `pantallas/dinero-proyecto.ts` (panel «Pagos» de `/repuestos/[id]`; también `useAlCambiarElDineroDelProyecto`, con el
   que la página se vuelve a pedir tras un pago, y `PARAMETROS_DE_REGISTRAR_PAGO`; `PANELES_DEL_PAGO` sale por `index.ts`): el mismo `CuerpoDePagos` con
