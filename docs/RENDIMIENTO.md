@@ -641,7 +641,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   subasta y sus ajustes, la aprobada (`cotizaciones_aprobadas_de_vehiculos` con un solo id: por `cotizaciones_aprobadas_pkey` y `cotizaciones_pkey`, con el modo), los datos clave (`leerDatosClave`, 1 o 2 lecturas por PK; al documento viajan sólo sus ≤ 4 campos), la
   vitrina (`vehiculo_vitrina_previa`, una, la comparten la cabecera y el panel),
   los ajustes de la empresa (la zona y los días de «Actividad reciente»), el proyecto de repuestos (`proyectoDe`,
-  `cache()`: una fila por `repuestos_proyecto_por_vehiculo`, para el enlace corto y, sólo con `?seccion=repuestos`, la redirección), la limpieza y la
+  `cache()`: una fila por `repuestos_proyecto_por_vehiculo`, la comparten el enlace corto y el aviso «Ver el proyecto de repuestos»), la limpieza y la
   resolución; desde el navegador, las fotos de la tira al montarse (≤ 24 miniaturas de 480 px, una lectura; la grande sólo en el visor y en la ficha
   completa), «Cotizaciones de este vehículo» (11 por página, de a 10 hasta 100) y «Actividad reciente» (`actividad_listar` por registro, ≤ 6 filas por
   su índice) al acercarse, y el layout activo al abrir la ficha completa. Sin caché de
@@ -678,7 +678,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   encabezado, «Datos», el «⋯» y las pestañas con su ⚠) lee `origenes_resumen()` una vez por pedido (`leerElOrigen`, con `cache()`, la comparten la cabecera y
   la pestaña) y la lista de orígenes del selector (`leerOrigenes()`, la misma que el menú); no lee apibara: nada cuenta ni crece con las cotizaciones.
   `/configuracion/origenes/<id>` responde 308 a la última pestaña de la persona (`origenes.ultima_pestana`, una fila por su PK) con `route.ts`, sin
-  `page.tsx` ni `loading.tsx` intermedios; `/datos`, `/flujo`, `/formulas/…`, `/formula/…` y `/tablas` redirigen también con `route.ts` y 308.
+  `page.tsx` ni `loading.tsx` intermedios.
 - «Para todos los orígenes» (`/configuracion/origenes`, para quien tiene `cotizaciones.configurar` en algún origen): JS en frío de la página 387,4 KB en
   29 chunks (sin tope propio; con el modal abierto por `?panel=colores` pesa lo mismo: los modales de Colores y Vigencia llegan por `diferido()` al abrirlos). Cada tarjeta lee lo suyo tras su
   `<Suspense>`: Colores, `tonos` (a lo sumo 48 filas, el tope de la base, por `tonos_pkey`/nombre; `limit` de la lectura) y Vigencia, la fila única de `ajustes_empresa`. Son dos lecturas

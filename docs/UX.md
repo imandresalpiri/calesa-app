@@ -271,15 +271,14 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   dice el error con «Reintentar». Sin ningún bloque: «Tu rol todavía no tiene trabajo en la bandeja», con los bloques que existen y a quién pedir
   acceso; sin rol, «Aún no tienes un rol, avisa al dueño».
 - **Leads** — `/leads` (`leads.ver`): tabla + enlace a la ficha. «Míos» por defecto; con alcance «todos», `?alcance=`. Filtros del layout
-  (`a.<campo>`), «Sin seguimiento» (Todos / Sí / No, `?sin_seguimiento=`; chip con su «×»), tipo, origen, `?q=`, `?cursor=`, vistas guardadas; la fila y la tarjeta llevan a `/leads/<id>` (un `?lead=` viejo redirige a la ficha con
-  lo que pedía: ver «Leads: listado (estados propios)»); marcas
+  (`a.<campo>`), «Sin seguimiento» (Todos / Sí / No, `?sin_seguimiento=`; chip con su «×»), tipo, origen, `?q=`, `?cursor=`, vistas guardadas; la fila y la tarjeta llevan a `/leads/<id>`; marcas
   `?tachados=`, `?favoritos=`, `?etiqueta=`; `?panel=etiquetas`. «Lista | Embudo» (en «Vista y opciones», con el alcance, las vistas guardadas, «Ítems
   por página» y «Más»: exportar, importar y papelera): `?vista=embudo&embudo=<id>` es el kanban de las oportunidades propias (`?etapa=` en el celular;
   a la vista, el selector de embudo y la búsqueda; en «Vista y opciones», «Lista | Embudo», «Etapas…» `?panel=etapas` y «Nuevo embudo…» `?panel=nuevo-embudo`).
   `&lead=<id>` es el **embudo filtrado por lead**: sólo sus oportunidades en todas las etapas, con el chip «De <nombre>» (su «×») y «Ver todas» en el lugar
   de la búsqueda, sin el aviso de qué se ve; cambiar de embudo lo conserva, quitarlo conserva el embudo y la etapa. Vacío: «<nombre> no tiene oportunidades
-  en «<embudo>».» con «Ver todas». Un `lead=` que no se ve, no existe o no es un id se ignora y se quita de la URL. Con `?vista=embudo` un `?lead=` no
-  redirige a la ficha, salvo con lo que trae un enlace viejo (`?pestana=`, sus modales, `?extra=`; ver «Enlace viejo (`/leads?lead=<id>`)»).
+  en «<embudo>».» con «Ver todas». Un `lead=` que no se ve, no existe o no es un id se ignora y se quita de la URL. Sin `?vista=embudo`, `lead=` no
+  filtra nada y se ignora.
 - **Lead** — `/leads/[id]` (`leads.ver` y acceso): **dos columnas, todo a la vista, sin pestañas ni acordeones** (desde 56 rem de contenedor; por
   debajo, y con el texto al 200 %, una sola en el mismo orden). **Izquierda**, con su propio desplazamiento si no cabe (la ventana no se desplaza: cada columna lo hace por dentro): la cabecera (el nombre con el «⋯»
   arriba a la derecha, el de la lista con «Cotizar lead» y «Editar lead» —no hay botones sueltos—; debajo, quién lo tiene en una línea; números y marcas),
@@ -294,13 +293,12 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   a «Vehículos») y le da el foco al título; con un `?panel=` también abre lo suyo. Un bloque sin permiso no se dibuja ni está en el índice.
 - **Vehículos** — `/vehiculos` (`vehiculos.*`): tabla + panel de filtros. Pestaña por origen (`?origen=`); filtros en URL (`q`,
   `subasta`, `orden`, `fase`, `categoria`, `anio.min`, `a.<campo>`…), `?cursor=`, vistas guardadas; la fila y la tarjeta son enlaces a la ficha `/vehiculos/<id>` (Ctrl o el
-  botón del medio abren otra pestaña; la casilla, el «⋯», «Publicar» y la foto no navegan); un `?vehiculo=<id>` viejo redirige a la ficha (ver «Enlace viejo»);
+  botón del medio abren otra pestaña; la casilla, el «⋯», «Publicar» y la foto no navegan);
   alta `?panel=nuevo` (sin el alta suelta pero con la de cotizar: «Nuevo» apagado con «Cotizar un vehículo nuevo», que abre la hoja con el panel
   del vehículo en alta); edición `?editar=`; `?vitrina=si|no`, `?limpieza=si|no`; el «⋯» de cada fila y tarjeta (el mismo de la ficha: ver «Vehículos
   (estados propios)»), con sus paneles sin salir de la lista: «Editar imágenes» `?panel=imagenes&para=<id>`, «Publicar en la web…» `?panel=vitrina&para=<id>`
   (el panel completo de la ficha) y «Actualizar los datos» `?panel=actualizar-datos&para=<id>`; junto al estado de vitrina de cada fila, «Publicar» abre ese
-  mismo panel y «Sacar de la web» se hace de un toque con «Deshacer» (con `vehiculos.vitrina` del origen). Un `?panel=vitrina-rapida&para=<id>` viejo
-  redirige a `?panel=vitrina&para=<id>` con el resto de su consulta.
+  mismo panel y «Sacar de la web» se hace de un toque con «Deshacer» (con `vehiculos.vitrina` del origen).
   En escritorio, «Tabla | Tarjetas» en «Vista y opciones», con las vistas guardadas, «Ítems por página» y la papelera (`?vista=`, recordada en `vehiculos.vista`).
   **Tarjetas de la lista** (en escritorio si se eligen; en el celular, siempre, una columna con la misma tarjeta): en grilla y **todas del mismo alto**. Arriba la
   foto 4:3 con su carrusel (los puntos a la derecha), la casilla arriba a la izquierda, el «⋯» arriba a la derecha y, en subasta, el chip «Lote N» abajo a la
@@ -339,11 +337,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   `/actividad?entidad=vehiculos&registro=<id>`); la vitrina no es un bloque: se publica en «Publicar en la web…» (`?panel=vitrina`) y se ve en el botón de la foto y en la insignia. Lo de logística y repuestos no tiene bloque: lo enlazan
   «Ver en logística» y «Repuestos · Proyecto #N» de la cabecera; la ficha entera está en «Ver más» de la izquierda. Un bloque sin permiso no está, tampoco
   en el índice. Arriba de las dos columnas, «Volver» y los avisos (limpieza, situación). En el celular y con el texto al 200 %, una columna en el mismo
-  orden. `?seccion=cotizaciones|relacionados|actividad` lleva a su bloque (si no lo ve, se queda arriba). Los enlaces viejos a secciones que la ficha no tiene
-  redirigen reemplazando la entrada del historial: `?seccion=ficha` abre la ficha completa (`?ver=ficha`), `?seccion=vitrina` el panel (`?panel=vitrina`), `?seccion=fotos` el visor en la primera foto
-  (`?visor=<id>&foto=1`), `?seccion=documentos` va a `/logistica/vehiculo/<id>?hueco=documentos` y `?seccion=fase` a `/logistica/vehiculo/<id>` (con
-  `logistica.ver` del origen), `?seccion=repuestos` al proyecto `/repuestos/<id>` (con `repuestos.ver` y si tiene); sin el permiso o sin proyecto, la
-  ficha se queda arriba. `?panel=desvincular|vincular-lead|marcar-interesado` y `?relacionados=<tipo>` llevan a «Relacionados» y abren lo suyo; `?editar=`,
+  orden. `?seccion=cotizaciones|relacionados|actividad` lleva a su bloque (si no lo ve, se queda arriba); un `?seccion=` que
+  la ficha no conoce se ignora y la ficha se queda arriba. `?panel=desvincular|vincular-lead|marcar-interesado` y `?relacionados=<tipo>` llevan a «Relacionados» y abren lo suyo; `?editar=`,
   `?panel=vitrina` («Publicar en la web»), `?panel=imagenes` («Editar imágenes»), `?panel=actualizar-datos` («Actualizar los datos»),
   `?panel=fechas-de-subasta`, `?ver=ficha` y `?visor=` abren lo suyo. Cada bloque tiene su esqueleto, su vacío y su error («No pudimos cargar «<título>».»
   con «Reintentar»; uno caído no tumba a los demás).
@@ -492,8 +487,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     pasos, con su nombre y cuántos tiene («Comprar · 3»), y «Sin fase» al final. Cada tarjeta dice **qué es** («Bomba de agua · Usado» o su descripción), cantidad y precio, y **el botón de su siguiente** (mover a la
     próxima fase, con la acción de la transición: abre el panel del ítem con el destino ya elegido, `?item=<id>&destino=<fase>`;
     o «Nueva cotización» / «Registrar pago» si el destino pide ese hito como bloqueante y falta); su «⋯» lleva a Imágenes, Stock, «Mover a…» y Eliminar. El clic en la tarjeta abre un **drawer de abajo
-    con la fila del ítem como hoja de cálculo** y sus secciones; «Agregar ítem» abre otro con una fila nueva. Nunca arrastrar. Los enlaces viejos
-    sin `?pestana=` (`?panel=compra&compra=…` y los de pagos) redirigen con su panel; `?panel=stock|imagenes&item=` e `?item=` siguen igual.
+    con la fila del ítem como hoja de cálculo** y sus secciones; «Agregar ítem» abre otro con una fila nueva. Nunca arrastrar. Un panel de compra
+    o de pagos se abre con su pestaña (`?pestana=compras&panel=compra&compra=…`); `?panel=stock|imagenes&item=` e `?item=` no piden pestaña.
   - Vistas «Stock» (`?vista=stock`) y «Cadena» (`?vista=cadena`; las tres se eligen en «Vista y opciones» › «Qué ver»: una columna por fase del flujo de repuestos, más «Sin fase» si tiene
     ítems, de a 50, tarjeta con «Proyecto #N» y días en la fase; `?q=`, `?proyecto=` y, en el celular, `?fase=`).
   - El panel del ítem (`?item=<id>`, sobre el proyecto o la Cadena) es el panel de la unidad de logística **con sus secciones a la vista**,
@@ -543,7 +538,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   no se puede leer). **Actividad reciente** (en la ficha del vehículo, leída al acercarse; sola en `/actividad/reciente?entidad=&registro=`): los
   últimos 5 cambios del registro como frases, cada uno a su detalle en `/actividad`, y «Ver toda la actividad»; esqueleto, «Sin cambios en
   los últimos N días.» y error con «Reintentar»; sin `actividad.ver` no se dibuja.
-- **Configuración** — `/configuracion/*` (permiso de cada sección): inicio en `/configuracion/inicio` (`/configuracion` redirige con 308 y su consulta)
+- **Configuración** — `/configuracion/*` (permiso de cada sección): inicio en `/configuracion/inicio` (`/configuracion` redirige con 308 y su consulta; una URL que ya no existe da «Esta página no existe»)
   - secciones, del registro `secciones.ts`: «Empresa y equipo» (Empresa, Equipo, Roles) · «Ventas» (Leads, Orígenes) · «Web» (Sitio web, Cola web). En **toda** página de Configuración, el inicio
     incluido (layout de `/configuracion`): a la izquierda el **menú de Configuración** desde 1024 px y con 44 rem de contenedor (con el texto al 200 % pasa
     al selector), de tres niveles que no se confunden: el **grupo** es un rótulo en mayúscula chica (no es enlace), la **sección** un renglón con su ícono del
@@ -576,15 +571,13 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   y «Teléfonos extra» (`telefonos`: «Máximo de teléfonos extra» de 0 a 20 y el interruptor «Los teléfonos extra cuentan como el principal»; con la regla guardada y
   encendida, su «⋯» suma «Números repetidos» después de «Editar…», `?panel=numeros-repetidos`: enmascarados con enlace a los leads que ves, «Ver más» / «Seguir buscando»,
   «No hay números repetidos entre leads.»). Sin `leads.configurar`, sólo «Campos» (la raíz lleva a ella); «Campos» sin su permiso va apagada con «Te falta el permiso
-  «…».» y su URL lleva a las tarjetas. Las URL viejas (`/origenes`, `/tipos`, `/seguimientos`, `/embudo`, `/portal`, `/telefonos` y `?seccion=`) redirigen con el panel y el resto de la
-  consulta. Sin ninguno de los dos permisos, «No tienes permiso» y la sección no está en el menú ni en el inicio.
+  «…».» y su URL lleva a las tarjetas. Sin ninguno de los dos permisos, «No tienes permiso» y la sección no está en el menú ni en el inicio.
 - **Empresa** — `/configuracion/empresa` (`empresa.*`), cuatro sub-rutas en el menú de Configuración (`configuracion/empresa/seccion.ts`):
   «Datos de la empresa» (la índice, `/configuracion/empresa`: sus tarjetas de ajustes con modal), «Monedas y tipos de cambio» (`/monedas`: la **moneda base** arriba con «Cambiar la moneda base…» en su «⋯»,
   un grupo por **par de monedas** con sus tipos de cambio como tarjetas —valor, quién y cuándo, «En la barra» con su tope de 3— y «Tipo de cambio» por par, y abajo
   las monedas activas con «Gestionar monedas…» y «Al compartir» con «Editar la leyenda…» en su «⋯»; modales `?panel=moneda-base|monedas|leyenda`, paneles `?tc=`, `?moneda=`, crear en `?panel=`/`?par=`), «Integraciones» (`/integraciones`) y «Comprobantes»
   (`/comprobantes`, con `empresa.ajustes.gestionar`: la tarjeta con la serie vigente y el próximo comprobante, y «Cambiar la serie…» en su «⋯», que abre su modal con versión; sin el
-  permiso, apagada con «Pide el permiso «Ajustes de la empresa».» y su URL abre Datos). Las URLs viejas redirigen en el servidor
-  (`url-vieja.ts`): `?seccion=` a su sub-ruta, y `?tc=`, `?moneda=` y los `?panel=` de crear (con o sin `?seccion=`) a Monedas con ellos.
+  permiso, apagada con «Pide el permiso «Ajustes de la empresa».» y su URL abre Datos).
 - **Logística (config)** — `/logistica/configuracion` (cualquiera de los permisos de sus pestañas): una página dentro de Logística con la tira de pestañas **Puertos ·
   Navieras · Categorías de gasto · Tipos de documento** (`PestanasConDesborde`, una sub-ruta por pestaña: `/puertos`, `/navieras`, `/categorias-de-gasto`,
   `/tipos-de-documento`) y el `h1` «Configuración de logística». La raíz abre (308, por persona) la primera pestaña que la persona puede abrir. Cada pestaña es el
@@ -605,12 +598,11 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (`?panel=tramo|caja`); cada tramo y cada caja es una fila con sólo su «⋯» («Editar…»), y un toque la abre. **Catálogos** (`/repuestos/configuracion/catalogos`): tipo de pieza, condición, vía de
   transporte y país de origen (agregar, editar nombre, orden y activo, desactivar, eliminar sin uso; tope 200 por catálogo con `<AvisoDeTope>`; `?panel=nuevo-valor&catalogo=`,
   `editar-valor&valor=`, `eliminar-valor&valor=`); la fila se nombra «Editar <nombre>», un toque la abre y su «⋯» trae «Editar» primero; sin «Editar» ni flechas a la vista. Sin `repuestos.configurar`,
-  cada pestaña dice «No tienes permiso» y no hay ⚙. Las URLs viejas (`/configuracion/repuestos`, con `?seccion=catalogos|cotizador` y sus `?panel=`; `/configuracion/repuestos/<pestaña>`;
-  `/configuracion/flujos?ambito=repuestos`) redirigen con 308 y su consulta a su pestaña (sin `?seccion=` ni panel, a Flujo). El buscador de Configuración sigue encontrando «Flujo de repuestos»,
+  cada pestaña dice «No tienes permiso» y no hay ⚙. El buscador de Configuración encuentra «Flujo de repuestos»,
   «Cotizador de repuestos» y «Catálogos de repuestos» y lleva aquí. Estados: esqueleto con la forma de cada pestaña; error de lectura con «Reintentar»; ver «Flujos: configuración (estados propios)».
 - **Orígenes** — `/configuracion/origenes` (`origenes.gestionar`, `flujos.configurar` o `cotizaciones.configurar`, cada una **en ese origen**): la
   frase «De dónde vienen los vehículos: sus datos, campos y categorías, su flujo, su fórmula y sus tablas.», «Nuevo origen» (un enlace a
-  `/configuracion/origenes/nuevo`; `?panel=nuevo` responde 308 ahí con su consulta; sin `origenes.gestionar`, apagado con su motivo) y, como tarjetas con su «⋯» («Abrir» primero y, con `origenes.gestionar`, «Desactivar|Activar» y «Eliminar origen»), sólo los orígenes que la persona abre (columnas de ≈ 20 rem: una al 200 % y en el celular, más cuanto más ancha la pantalla; tope 100
+  `/configuracion/origenes/nuevo`; sin `origenes.gestionar`, apagado con su motivo) y, como tarjetas con su «⋯» («Abrir» primero y, con `origenes.gestionar`, «Desactivar|Activar» y «Eliminar origen»), sólo los orígenes que la persona abre (columnas de ≈ 20 rem: una al 200 % y en el celular, más cuanto más ancha la pantalla; tope 100
   con `<AvisoDeTope>`): punto de color, nombre, «Subasta|Manual», «Activo|Inactivo», lo que falta en corto o «Nada pendiente», y vehículos y
   cotizaciones; la tarjeta entera abre sus Datos. **Arriba de la lista, «Para todos los orígenes»** (`h2`; sólo con `cotizaciones.configurar` en algún origen):
   lo que vale para todas las cotizaciones de la empresa, en dos tarjetas de ajustes lado a lado (apiladas en el celular y al 200 %), cada una con su modal
@@ -643,7 +635,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     «Publicar…» de la pestaña abierta y **«Tablas»** (el drawer de las tablas, `?panel=tablas`). La elegida va en `?formula=<id>` (sin ella, la de
     trabajo: la activa o, si no hay, la más nueva) y se conserva al cambiar entre las tres. «Planilla» («Qué se calcula: la fórmula del origen, sus
     versiones y sus tablas.»): la planilla, con `?panel=publicar-formula`, `revertir-formula&version=<id>` y `descartar-borrador`, y los de la planilla
-    («Cotización: fórmula (estados propios)»); `?panel=editar-formula` y `?panel=plantillas-de-v1` responden 308 a la misma parte, sin el panel.
+    («Cotización: fórmula (estados propios)»).
     «Hoja» («Cómo se ve y se llena la cotización.»): `?vista=412|1280|1920|200` y `?pieza=` («Cotización: hoja (estados propios)»). «Tarjeta» («La imagen que recibe el cliente.»):
     `?panel=publicar-tarjeta|descartar-plantilla` y `?referencia=ejemplo`. En el drawer de las tablas, en dos grupos: «De <origen>» y «Compartidas» (una
     compartida tapada por una propia va «Tapada por la de <origen>»); `&tabla=<id>` (el editor) y
@@ -664,17 +656,9 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     panel sin «Guardar». **Categorías** (`/categorias`,
     `?categoria=`). Las dos se abren con el origen; sin `origenes.gestionar`, todo deshabilitado con su motivo.
   - `/<id>` sola responde 308 (por persona) a la **última pestaña** que esa persona abrió en ese origen si todavía la abre o, si no, a la primera que
-    abre; `/<id>?seccion=…` a su parte, conservando `?campo=`, `?categoria=` y `?panel=`. Una pestaña que no abre, por URL: «No puedes abrir esta
+    abre (sin ninguna, a Fases), con su consulta entera. Una pestaña que no abre, por URL: «No puedes abrir esta
     pestaña», su motivo e «Ir a <la primera que abre>»; un origen ajeno, «No puedes abrir este origen» (con «Ver los orígenes» si abre otros), sin
     decirle si existe; a quien sí podría abrirlo, uno que no existe es un 404.
-  - **Las URLs viejas** redirigen con 308 y su consulta: `/<id>/datos` a la pestaña de entrada con `?panel=datos`, `/<id>/flujo` a `/fases`,
-    `/<id>/formulas` a `/planilla`, `/<id>/formulas/<fórmula>[/<parte>]` a `/<parte>?formula=<fórmula>`, `/<id>/formula[/hoja|/tarjeta]` a esa parte,
-    `/<id>/tablas` a `/planilla?panel=tablas` (su panel, en `accion`), `?seccion=flujo|formula|formulas|tablas|datos` a su pestaña o su drawer,
-    `/configuracion/cotizacion/<origen>/formula|hoja|tarjeta|tablas` (y `/<origen>` solo) a su pestaña del origen, `/configuracion/cotizacion/general[/colores|/vigencia]`,
-    `/configuracion/catalogos/colores|vigencia` y `?seccion=tonos|colores|ajustes|vigencia` a `/configuracion/origenes?panel=colores|vigencia` (si la URL vieja
-    trae su propio `?panel=`, manda ése y va solo), `general/niveles` y `?seccion=niveles` al bloque «Cotizaciones» de Roles, `/configuracion/flujos?origen=` a sus Fases (`?ambito=repuestos` al de repuestos;
-    sin origen, el primero que la persona configura), `?seccion=documentos` sin `flujos.configurar` a Logística › Configuración › Tipos de documento, y `/configuracion/logistica/*`
-    a su pestaña. Lo que no se resuelve, a la lista de orígenes.
   - Estados: cargando con el esqueleto del marco (migas, cabecera y pestañas) y el de cada pestaña; error con reintentar y PT409 los de cada editor.
 - **Nuevo origen** — `/configuracion/origenes/nuevo` (`origenes.gestionar`; sin él, «No puedes …» con su motivo): `h1` «Nuevo origen», a la izquierda el
   paso a paso de la puesta en marcha (Datos el actual, los demás todavía sin enlace) y el formulario de Datos (tipo, nombre, sustantivo y género, color,
@@ -697,8 +681,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 - **Sitio web (config)** — `/configuracion/web` abre la primera sub-sección que la persona puede; cada una es una sub-ruta del menú de Configuración
   («Web › Sitio web»), con su título y una frase. «Ajustes» (`/ajustes`) y «Legales» (`/legales`) con `web.ajustes.gestionar`; «Guías» (`/guias`),
   «Preguntas frecuentes» (`/faqs`) y «Testimonios» (`/testimonios`) con `web.contenido.gestionar`. Lo que no puede abrir va apagado en el menú, con su
-  motivo, y su URL abre la primera que sí. `?seccion=ajustes|legales|guias|faqs|testimonios` redirige a su sub-ruta y conserva el resto de la URL
-  (`?panel=`, `?q=`). «Ajustes»: la fila única del sitio en cinco tarjetas con lo guardado a la vista, sin acordeones ni barra de cambios (Identidad del sitio: nombre y lema ·
+  motivo, y su URL abre la primera que sí. «Ajustes»: la fila única del sitio en cinco tarjetas con lo guardado a la vista, sin acordeones ni barra de cambios (Identidad del sitio: nombre y lema ·
   Contacto: WhatsApp de respaldo, horario y dirección · Redes · SEO · Vitrina: moneda secundaria y orígenes visibles, avisando en el modal qué vehículos dejan
   de verse), cada una con su «⋯» («Editar…») y el toque en la tarjeta, que abren su modal (`?panel=identidad|contacto|redes|seo|vitrina`) con su «Guardar»; con versión, sin red y conflicto
   («Recargar» conserva lo tipeado); cerrar un modal con cambios pregunta. «Legales»: una tarjeta por documento (términos, privacidad) con su estado («Publicada»
@@ -731,7 +714,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   La cabecera de cada rol lleva su «⋯» («Más acciones de <rol>») con «Eliminar el rol…» (apagada con su motivo); su única acción es destructiva, así que tocar la cabecera no hace nada.
   `?panel=nuevo-rol`, `?panel=avisos&rol=`, `?panel=avisos-de-la-pagina` (también `?panel=avisos` sin `rol`), `?eliminar=`.
   **El bloque «Cotizaciones»** lleva, además, los niveles de acceso y «Quién crea y quién ve» (ver «Cotización: niveles de acceso y quién crea y quién ve»):
-  `?bloque=<módulo>` deja a la vista el bloque de ese módulo (lo usa `?bloque=cotizaciones`, adonde responden 308 las URLs viejas de Catálogos).
+  `?bloque=<módulo>` deja a la vista el bloque de ese módulo (lo usa `?bloque=cotizaciones`).
   Un rol que no existe aún: «Todavía no hay roles» con «Crea uno con «Nuevo rol»…».
 - **Datos** — `/datos` (todos: «Mis leads»; todo: `datos.exportar.todo`): `?seccion=exportar|importar`, con la barra siempre; sin permiso
   para importar nada (`leads.crear`, `datos.importar.todo` o `vehiculos.crear` en algún origen), «Importar» apagada con su motivo y
@@ -957,7 +940,6 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   por alta, y sobre la lista dice «Cierre más próximo primero» (en otra página, «Volver al principio»). «Fase» (`?fase=`, varias a la vez): las fases del
   origen y «Sin fase»; filtra la columna, así que la fase de la subasta trae todo lo que está en ella, viva o no. En un origen de subasta, un atajo «Sin
   resolver N» (hasta «99+») arriba de la lista pone o quita `?subasta=sin_resolver` de un toque; sin ninguna pendiente y sin el filtro puesto, no se dibuja.
-  Un `?situacion=` viejo redirige (308) a su equivalente, y una vista guardada con él se lee traducida.
 - **Alta y edición (panel):** «Datos principales», «Precio» y un bloque por grupo del layout (con obligatorio nace abierto; con error se
   abre solo); rechazos junto al campo (VIN o lote repetido también). Conflicto: quién y cuándo, «Ver cómo quedó» y «Recargar».
 - **Fotos:** elegir (selector, soltar o cámara) las deja en una bandeja sin subir que dice lo que no entra y por qué (no es foto, > 25 MB,
@@ -996,15 +978,10 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   en «<origen>»: pídeselo a quien administra los roles.». Conflicto: el texto de la base con el nombre, «No se cambió nada.» y «Recargar».
   Error: «No pudimos guardar el resultado. Intenta de nuevo.»; sin red, el aviso de siempre. No ganada: «No ganada · la marcó <nombre> el
   <fecha>. Ya no cuenta en logística ni en Inicio.» (sin el nombre si no se pudo leer) con «Deshacer». En subasta o en su fase, sin aviso.
-- **Enlace viejo (`/vehiculos?vehiculo=<id>`):** la lista no tiene resumen; el enlace redirige en el servidor, sin sumar al historial, a `/vehiculos/<id>`
-  conservando el `?panel=` que la ficha abre (`vitrina`, `fechas-de-subasta`, `desvincular`, `vincular-lead`, `marcar-interesado`; otro se quita), el visor
-  (`?visor=<id>-resumen` pasa a `?visor=<id>`, con su `?foto=`; `?pestana=fotos` abre el visor en la primera foto; otra pestaña se quita) y `?editar=<id>`
-  del mismo vehículo. Origen, filtros y cursor se quitan. Un `?vehiculo=` inexistente, en la papelera, de otro origen, que no se ve o que no es un id llega a
-  la ficha: «No existe o no tienes acceso» con «Ir al inventario».
-- **Ficha (`/vehiculos/[id]`):** sin `logistica.ver`, sin «Ver en logística» (y `?seccion=documentos|fase` se queda arriba); sin `cotizaciones.ver`, ni
+- **Ficha (`/vehiculos/[id]`):** sin `logistica.ver`, sin «Ver en logística»; sin `cotizaciones.ver`, ni
   «Cotizaciones de este vehículo» ni el grupo Cotizado ni la fila «Costo estimado»; sin `cotizaciones.crear`, sin «Cotizar» en el título; sin
   `cotizaciones.aprobar`, «Aprobar esta» apagado con su motivo; un `PT409` al aprobar dice quién y cuándo; sin `leads.ver`, sin «Relacionados»; sin
-  `actividad.ver`, sin «Actividad reciente»; sin `repuestos.ver` o sin proyecto, sin «Repuestos · Proyecto #N» (y `?seccion=repuestos` se queda arriba);
+  `actividad.ver`, sin «Actividad reciente»; sin `repuestos.ver` o sin proyecto, sin «Repuestos · Proyecto #N»;
   sin ninguno de los tres bloques, la derecha queda vacía y sin índice. «Actividad reciente»: esqueleto, «Sin cambios en los últimos N días.», «No se pudo cargar la actividad» con
   «Reintentar». La foto: sin fotos, el recuadro 4:3
   con su ícono (el «⋯» y la vitrina igual encima) y sin tira; con una, sin tira ni flechas; si la lectura falla, la portada en su lugar y el visor dice «No
@@ -1995,11 +1972,6 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   abren otra pestaña; con texto elegido no navega. Lo propio de la fila hace lo suyo: el «⋯», «Último seguimiento», «Recordatorio» y el enlace de un campo.
   La tarjeta del kanban lleva a `/leads/<id>?seccion=oportunidades`; «Mover a…» y el «⋯» no navegan. Al volver de la ficha, la página se relee con sus
   filtros y su cursor.
-- **Enlace viejo (`/leads?lead=<id>`):** redirige en el servidor, sin sumar al historial y sin leer el lead, a `/leads/<id>` con lo que pedía y la sesión
-  puede abrir: `?pestana=seguimientos|recordatorios` → `?seccion=seguimientos` (con el modal que traía y su id); sin pestaña, `?panel=anotar-seguimiento`,
-  `agendar-recordatorio` u `oportunidad-rapida` (con `leads.editar`) y `editar-lead` (con `leads.editar` o los teléfonos extra); `?extra=nuevo` o
-  `?panel=agregar-telefono` → `?panel=editar-lead&extra=nuevo`. Otro panel, `para`, filtros y cursor se quitan. Si el lead no es de la cartera, la ficha no
-  abre el panel; uno inexistente, en la papelera, en limbo, ajeno o que no es un id llega a «No encontramos este lead o no tienes acceso.» (`.` y `..`, a la lista).
 
 ### Leads: ficha (estados propios)
 
@@ -2065,8 +2037,7 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   «Los demás datos los edita quien tiene el permiso.» y «Cerrar»); el principal, con la cartera y `leads.editar`; si no, enmascarados y sin botones.
   «Cambiar el principal» (en el panel de la ficha; apagado con «Guarda o descarta los cambios para cambiarlo.» si hay algo escrito) pasa a
   `?panel=cambiar-telefono`: el actual pasa a extra «Anterior»; el nuevo se verifica al tipear y uno existente, ajeno o el mismo deshabilitan el botón
-  con su frase. Extras (`?extra=nuevo` dentro del panel de edición; un `/leads?lead=<id>&extra=nuevo` viejo redirige a él; un `?panel=agregar-telefono` viejo de la
-  ficha lleva a `?panel=editar-lead&extra=nuevo`, o se quita sin permiso; hasta el máximo de la empresa, 6 de fábrica): número con país y
+  con su frase. Extras (`?extra=nuevo` dentro del panel de edición; hasta el máximo de la empresa, 6 de fábrica): número con país y
   etiqueta ≤ 40, «Quitar» con «Deshacer». El número se verifica al tipear: con «Los teléfonos extra cuentan como el principal» un número
   de otro lead bloquea (con «Ver ese lead» si lo ve); sin ella, avisa. Con el máximo alcanzado «Agregar» se apaga con su frase; con más del
   máximo, «quita K para agregar otro» y, con `leads.configurar`, «Cambiar el máximo».

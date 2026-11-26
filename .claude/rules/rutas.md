@@ -23,12 +23,6 @@ por cada mudanza se acumula y nadie la quita.
 4. **Nada de redirecciones por una URL vieja:** ni `redirects()` en `next.config.ts`, ni un `route.ts` que responda 307/308 (tampoco
    `redireccionPermanente()` de `src/app/(app)/configuracion/con-parametros.ts`), ni `redirigir()` en un `page.tsx`, ni reescrituras o
    redirecciones de `src/proxy.ts`.
-5. **Las estructurales sí:** las de la lista de `scripts/guardas/sin-redirecciones.test.ts`. Hasta que esa guarda exista, son:
-   - `/configuracion` → `/configuracion/inicio`.
-   - Una sección sin página índice → su primera sub-sección que se puede abrir (Sitio web, `src/app/(app)/configuracion/web/page.tsx`, y las
-     que sigan ese patrón).
-   - `/configuracion/origenes/<id>` → la última pestaña que la persona abrió ahí (`src/app/(app)/configuracion/origenes/[id]/entrada.ts`,
-     `redirigirAlEntrar()`).
-   - El acceso, que no es una página mudada (`decidirAcceso()` de `src/shared/lib/rutas.ts`: sin sesión a `/ingreso`, con sesión fuera de
-     `/ingreso`), los pasos de la puesta en marcha (`/configuracion/origenes/<id>/puesta-en-marcha` → el paso pendiente) y
-     `/chat?con=` → la conversación abierta: llevan a donde está la persona hoy, no a una ruta mudada.
+5. **Las estructurales sí:** las de `PERMITIDAS` en `scripts/guardas/sin-redirecciones.ts` (`pnpm test` falla con otra). Llevan a donde está
+   la persona hoy, no a una ruta mudada: una sección sin página índice a su primera sub-sección que se puede abrir, un origen a la última
+   pestaña que la persona abrió ahí, el acceso (`decidirAcceso()`), el paso pendiente de la puesta en marcha y `/chat?con=` a la conversación.
