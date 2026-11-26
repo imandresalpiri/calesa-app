@@ -8,6 +8,7 @@ import {
 } from './soporte/cotizaciones-final'
 import { borrarDineroDeEsteOrigen, sembrarDinero } from './soporte/dinero'
 import { expect, test, type Page } from './soporte/prueba'
+import { capturar } from './soporte/recorrido'
 import { abrirSeccionDeLaUnidad } from './soporte/unidad'
 
 // El tablero de métricas (9.08-1, fila del tablero en `docs/UX.md`): la dueña ve las cinco cifras; al marcar final una cotización, «Convertidos» sube en uno
@@ -103,7 +104,9 @@ test('T4 la dueña llega al tablero desde Inicio', async ({ page }) => {
   await expect(cifra(page, 'Leads creados')).toBeVisible()
 })
 
-test('T5 la dueña ve las cinco gráficas y «Ver como tabla» abre los números', async ({ page }) => {
+test('T5 la dueña ve las cinco gráficas y «Ver como tabla» abre los números', async ({
+  page,
+}, info) => {
   // Un lead y una cotización de hoy: así las gráficas de este mes tienen movimiento sin depender de otros specs.
   await sembrarParaMarcar(t, 'T5')
   await page.context().clearCookies()
@@ -133,6 +136,7 @@ test('T5 la dueña ve las cinco gráficas y «Ver como tabla» abre los números
   await expect(page).toHaveURL(/[?&]panel=tabla(&|$)/)
   await expect(page).toHaveURL(/[?&]grafica=leads-por-dia(&|$)/)
   expect((await seccion.boundingBox())?.height).toBe(alto)
+  await capturar(page, info, 'ver-como-tabla')
   await page.keyboard.press('Escape')
   await expect(tabla).toBeHidden()
   await expect(verComoTabla).toBeFocused()

@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from './soporte/prueba'
+import { capturar } from './soporte/recorrido'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
   borrarRolesDePrueba,
@@ -159,7 +160,7 @@ test('E2E la barra dice «Cotizado (20+)» con 22, «Cotizado (2)» con 2 y nada
 
 test('E2E el panel abre sin leer el historial; su modal, 20 y «Ver más» lleva a 22', async ({
   page,
-}) => {
+}, info) => {
   await abrirLaHoja(page, duena, vehiculos.veintidos)
   const lecturas = vigilarLecturas(page)
   await barra(page).click()
@@ -182,6 +183,7 @@ test('E2E el panel abre sin leer el historial; su modal, 20 y «Ver más» lleva
   await expect(filas(page).first()).toContainText('Gala Guarda')
   await expect(filas(page).first()).toContainText('Final')
   await expect(filas(page).nth(1)).toContainText('Preventa')
+  await capturar(page, info, 'modal-del-historial')
   // Cada fila lleva a la página de su cotización (4.15-3).
   await expect(filas(page).first().getByRole('link')).toHaveAttribute(
     'href',

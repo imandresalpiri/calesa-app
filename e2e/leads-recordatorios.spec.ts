@@ -1,4 +1,5 @@
 import { expect, test } from './soporte/prueba'
+import { capturar } from './soporte/recorrido'
 import { CONTRASENA, entrar } from './soporte/alta'
 import { idDePersona, sesionDe } from './soporte/leads-alta'
 import { limpiarListado, prepararListado, type TerrenoDelListado } from './soporte/leads-listado'
@@ -114,6 +115,7 @@ test('completar es poner: dos veces no cambia nada; reabrir lo devuelve', async 
   await expect(
     bloqueDeRecordatorios(page).getByText('Ningún recordatorio pendiente sobre este lead.'),
   ).toBeVisible()
+  await capturar(page, info, 'completados')
   const [completado] = await recordatoriosEnLaBase(lead.id)
   expect(completado?.completado_en).not.toBeNull()
 
