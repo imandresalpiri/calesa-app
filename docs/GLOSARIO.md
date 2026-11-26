@@ -744,6 +744,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Firma en el cursor** — `firmaEnElCursor()` (`entities/formula/firma-en-el-cursor.ts`), `RenglonDeLaEdicion`: mientras se escribe dentro de una función en C, su
   forma en el renglón bajo la barra de fórmula con el valor que se escribe en negrita («SI(condición; **si se cumple**; si no)»); gana la de más adentro. Sin
   función y con el cursor esperando un operando, «Toca una celda para usarla.». No: «tooltip», «ayuda de argumentos».
+- **Resultado al lado** — `resultadoAlLado()` (`entities/formula/resultado-al-lado.ts`), `ResultadoAlLado`: mientras se escribe una C que empieza con «=», la cifra
+  que daría con la unidad de ejemplo, en la caja entre el texto y «Aplicar», con los decimales de la celda. Se calcula 150 ms después de la última tecla y sólo con
+  un texto que compila; sin cifra, la caja queda vacía. No: «vista previa» (la columna Ejemplo de toda la planilla), «preview».
 - **Referencia (de la planilla)** — `C5`, `B9` (`entities/formula/referencias-a1.ts`): cómo un cálculo de la planilla nombra otra fila, como en
   Excel: `C<n>` es el valor de la fila n y `B<n>` su %. Se guarda el id del nodo (`nodo.texto` con ids) y se muestra como A1 (`aA1()`); lo tipeado
   pasa a ids antes de compilar (`deA1()`). Insertar, mover o borrar filas cambia lo que se muestra, nunca lo guardado. No distingue mayúsculas; los

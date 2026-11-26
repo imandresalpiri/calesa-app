@@ -25,6 +25,7 @@ import type { EdicionConReferencias } from './use-edicion-con-referencias'
 import { useEdicionDeLaPlanilla } from './use-edicion-de-la-planilla'
 import { useFuncionEnLaBarra } from './use-funcion-en-la-barra'
 import { useGuiaDeLaEdicion } from './use-guia-de-la-edicion'
+import { useResultadoAlLado } from './use-resultado-al-lado'
 import { useOperacionesDeFila, type OperacionesDeFila } from './use-operaciones-de-fila'
 import { usePanelesDeLaPlanilla, type PanelesDeLaPlanilla } from './use-paneles-de-la-planilla'
 
@@ -208,6 +209,7 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     ops,
     acciones,
     ...useAyudasDeLaBarra(edicion, cuadricula, ed.textoDe, filas.prefijo),
+    resultado: useResultadoAlLado({ edicion, editor, hoja, unidad: p.unidad, calculo }),
     bandas: useBandasDeLaPlanilla({ editor, conModos: calculo.modos.length > 0, tarjeta }),
     paneles,
     ...useCamposDeLaFormula(p.origen.id, editor.trabajo.definicion.nodos),

@@ -14,6 +14,7 @@ import { LeyendaDeReferencias } from './leyenda-de-referencias'
 import { LineaBajoLaBarra, RENGLON_BAJO_LA_BARRA } from './linea-bajo-la-barra'
 import { ListaDeSugerencias } from './lista-de-sugerencias'
 import { RenglonDeLaEdicion } from './renglon-de-la-edicion'
+import { ResultadoAlLado } from './resultado-al-lado'
 import { BotonDeFunciones } from './boton-de-funciones'
 import { EJEMPLO_DE_LA_BARRA, TextoDeLaBarra } from './texto-de-la-barra'
 
@@ -62,7 +63,8 @@ function AplicarODescartar({ planilla }: { planilla: Planilla }) {
 }
 
 // La barra de fórmula (D15, D16), como la de Excel: la celda activa («C5», «Ejemplo 5»), `fx ▾` (las funciones), lo que se escribe con sus referencias de color
-// (vacío, la única guía: «Escribe = y toca las celdas: =C5+C7»), su leyenda, el autocompletar y el error con su salida; escribiendo, «Aplicar» y «Descartar». A la
+// (vacío, la única guía: «Escribe = y toca las celdas: =C5+C7»), su leyenda, el autocompletar y el error con su salida; escribiendo una C, el resultado al lado;
+// escribiendo, «Aplicar» y «Descartar». A la
 // derecha, «?» (los tipos de celda). Debajo, un renglón: sin nada escrito, de dónde sale la fila elegida; escribiendo, la firma en el cursor o la guía de tocar.
 // Va pegada arriba (también en el celular).
 export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
@@ -101,6 +103,7 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
             />
           )}
         </div>
+        {planilla.resultado.enC ? <ResultadoAlLado resultado={planilla.resultado} /> : null}
         {e === null ? null : <AplicarODescartar planilla={planilla} />}
         <AccionesDeLaBarraDeFormula paneles={planilla.paneles} />
       </div>
