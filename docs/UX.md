@@ -1302,7 +1302,12 @@ y enfoca su título).
   Rechazos junto a su campo (ETA antes del zarpe, la fase no permite o exige contenedor) con el foco al primero; conflicto dentro del
   formulario con «Recargar», que conserva lo escrito. Sin `logistica.transporte.editar` del origen, campos apagados con su motivo. Vacíos:
   sin transporte cargado; sin navieras (con `logistica.catalogos.gestionar`, «Cargar navieras»). Guardar relee «Qué falta». Una unidad de
-  repuesto: `TEXTO_DE_REPUESTO`.
+  repuesto: `TEXTO_DE_REPUESTO`. Sobre los campos, una línea de alto fijo (que el esqueleto ya reserva y queda vacía si no hace falta) dice a
+  quiénes alcanza lo que se guarda: «Cambia para los N vehículos de este embarque.» (hasta «100+»; con « y otros que no puedes ver» si los
+  hay, o «Cambia para este vehículo y otros que no puedes ver.»), «El booking cambia para los N vehículos de este contenedor.» en un
+  contenedor sin embarque, o «Esta unidad todavía no tiene transporte cargado.»; tipear o guardar no la mueve. Un booking nuevo crea su
+  embarque; uno que ya existe en el origen no acepta, de paso, otra naviera o fechas («El embarque «X» ya existe: guarda el booking y después
+  cambia sus datos.», junto a «Booking»).
 - **Notas e historial** (zona lateral en la página; secciones a la vista en un drawer o en el celular): «Notas» con «Escribir una nota» (`<Textarea>`, contador de 2.000, «Guardar nota», `Ctrl/Cmd+Enter`; el
   error junto al botón y el texto queda) y las notas de la más nueva: quién, cuándo, texto; la que dejó un cambio de fase dice «al pasar a
   «<fase>»» y no se edita. «Editar» sólo la propia, en el lugar. **No hay «Borrar»**: la base no deja el borrado suave por `update` (pide
@@ -1352,7 +1357,9 @@ y enfoca su título).
   `<Drawer>` que sólo muestra): una fila por unidad con título (enlace si es vehículo), fase, ETA y arribo, con avisos de tope y de ocultas;
   debajo, a la vista y cada uno con su permiso (la base lo exige por unidad): «Mover el grupo», «Subir un documento a las unidades» y
   «Prorratear un gasto entre las unidades». **«Editar grupo»** (con `logistica.transporte.editar` o `repuestos.editar`; `?panel=editar-grupo`
-  **tapa** al resumen): ruta, contenedor y booking, fechas; un campo común sale con su valor, uno que difiere sale vacío con «Varios» y
+  **tapa** al resumen): ruta, contenedor y booking, fechas; en un grupo por contenedor, una línea sobre los bloques (alto reservado) dice de
+  qué embarque es lo que se edita («La naviera, los puertos y las fechas son del embarque «X»: cambian para todos sus vehículos.»; con
+  varios, «de sus embarques»); un campo común sale con su valor, uno que difiere sale vacío con «Varios» y
   dejarlo así no lo toca. Con unidades de un solo origen los selectores ofrecen lo que usa ese origen; de varios, sólo los compartidos que no
   tapa ninguno (lo común que no cabe se ve rotulado). «Guardar» manda lo tocado a todas o a ninguna («Se aplicó a las N unidades.»; conflicto «No se cambió ninguna:
   <motivo>» con «Recargar»; el rechazo de una unidad junto a su campo con su título). Más de 200 unidades, ocultas o no editables: botón

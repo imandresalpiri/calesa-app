@@ -1,6 +1,6 @@
 # logistica
 
-Operación diaria sobre el flujo: cadena por fase, mover con vista previa, documentos con aprobación y vencimiento, transporte (embarques y contenedores como grupos), declaraciones aduaneras, gastos y pagos, notas, alertas por demora y margen contra la cotización final.
+Operación diaria sobre el flujo: cadena por fase, mover con vista previa, documentos con aprobación y vencimiento, transporte (embarques y contenedores como entidades, con sus vehículos), declaraciones aduaneras, gastos y pagos, notas, alertas por demora y margen contra la cotización final.
 
 La tarea de oro 3 la prueba `e2e/logistica-tarea-de-oro.spec.ts`. Abiertos (`docs/PENDIENTES.md`): **6-4**, **6-5** (medir `gastos_listar` y `pagos_listar`),
 **6-6** (prorratear por valor), **6-7** (borrar una nota propia por RPC), **8-13b**.
@@ -113,8 +113,8 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   sin proveedor). La lista de una fase sólo la lee («Elegir los de esta página»: la página, hasta 200); `mover` la provee (`ProveedorDeLaSeleccion`, que montan `src/app/(app)/logistica/fase/[fase]/page.tsx` sólo con `flujos.mover` en
   el origen y en una fase de verdad —se vacía al cambiar de fase, origen o filtros, y sobrevive a «Siguiente»— y la portada, con `?panel=lote`, para un grupo) y dibuja `BarraDelLote` y `DrawerDelLote` (`?panel=lote` con `destino`, `contenedor`, `booking`). El drawer usa
   `destinosDeLaFase`, `previsualizarCambioLote` (una llamada, hasta 200) y `cambiarFaseLote`; el resultado es el de **todo** el lote (las que la vista dejó
-  afuera cuentan como no movidas) y «Reintentar» vuelve a la vista previa con las no movidas. Un grupo (`?contenedor=` o `?booking=`) lee sus unidades de a
-  201 y entran las de una misma fase; `pantallas/mover-grupo.ts` declara «Mover el grupo» con «Marcar que llegó» para un contenedor.
+  afuera cuentan como no movidas) y «Reintentar» vuelve a la vista previa con las no movidas. Un grupo (`?contenedor=` o `?booking=`) lee sus unidades por
+  `transporte_grupo` (`infra/nucleo/unidades-del-grupo.client.ts`; las del origen del lote, en el cliente), de a 201, y entran las de una misma fase; `pantallas/mover-grupo.ts` declara «Mover el grupo» con «Marcar que llegó» para un contenedor.
 - **Área `documentos`.** `entities/documentos/`: `admision.ts` (qué entra a la bandeja, fechas por modo de vencimiento), vencimiento («vence hoy» aún vale),
   qué cuenta para un requisito (aprobado, vivo, sin vencer, mime **del requisito**, entre min y max: repite `evaluar_requisitos` sólo para «N de M») y
   `revision.ts` (`quePuedeHacer`: cada acción oculta, habilitada o apagada con motivo). `pantallas/documentos-unidad.ts` declara «Documentos» (`logistica.ver`,
@@ -168,32 +168,39 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   **No hay «Eliminar»** (borrar dejaría nulos los transportes y vaciaría la oferta): se desactiva. `entities/transporte/catalogo.ts` valida (nombre 1–80, país
   ≤ 60, código ≤ 12 en mayúsculas sin espacios, orden 0–32.767); la unicidad es de la base, por origen y clave (sin mayúsculas, tildes ni espacios de más), también la
   de un puerto sin país. `<AvisoDeTope>` a 200.
-  **Hueco «Transporte»** (`pantallas/transporte-unidad.ts`; `logistica.ver`, regla `transporte`; sólo vehículos): escribe `guardarTransporte` →
-  `transporte_guardar` con la versión leída. Opciones = lo que ofrece el flujo y usa el origen de la unidad (oferta vacía = todo lo activo que usa: sus propios y
+  **Hueco «Transporte»** (`pantallas/transporte-unidad.ts`; `logistica.ver`, regla `transporte`; sólo vehículos): lee `transporte_leer` (la fila con lo resuelto
+  de su embarque y, aparte, su embarque y su contenedor con su versión, su estado y cuántos vehículos visibles llevan: `entities/transporte/lectura-de-la-unidad.ts`) y
+  escribe `guardarTransporte` → `transporte_guardar` con la versión de la fila, la del embarque y la del contenedor que leyó. Un booking o un contenedor tipeado se busca en el
+  origen de la unidad o se crea. Sobre los campos, `LineaDelAviso` dice a quiénes les cambia lo que se guarda (`avisoDelTransporte`: «Cambia para los 2 vehículos de este
+  embarque.», «… y otros que no puedes ver.»), con su alto reservado desde `EsqueletoDelTransporte`. Opciones = lo que ofrece el flujo y usa el origen de la unidad (oferta vacía = todo lo activo que usa: sus propios y
   los compartidos que no tapa) **más lo ya guardado**, rotulado «(de otro origen)», «(tapado)»/«(tapada)», «(inactiva)» o «(fuera de la oferta)»
   (`entities/transporte/oferta.ts`, `entities/nucleo/alcance-del-catalogo.ts`); lo guardado que no vino en la lectura del origen se pide aparte: nunca se vacía. `useBorradorDeTransporte` guarda los campos tocados: tras un `PT409`, «Recargar» trae la versión nueva y lo
   escrito sigue. Sin `logistica.transporte.editar` del origen, campos apagados con el motivo. `entities/transporte/transporte.ts` repite los textos de la base
   (contenedor y booking `^[A-Z0-9./-]{1,40}$` tras quitar **todo** espacio y pasar a mayúsculas; notas ≤ 2.000; ETA y arribo no antes del zarpe) sólo en lo
   que cambió; `porCampoDe` lleva el `hint` al campo. Un rechazo sin campo va en un aviso sobre «Guardar».
   **`/logistica/embarques`:** vistas `?grupo=embarques|contenedores` (cambiar suelta filtros y cursor). Sólo por RPC: `transporte_grupos()` por **cursor opaco**
-  (`?cursor=` es el id de una fila, validado con `z.guid()`, no con `leerCursor`; en `scripts/guardas/areas-b/paginas-en-la-base.ts`) y `transporte_grupo()`
+  (`?cursor=` es el id de un embarque o un contenedor, validado con `z.guid()`, no con `leerCursor`; en `scripts/guardas/areas-b/paginas-en-la-base.ts`) y `transporte_grupo()`
   (≤ 200, `hay_mas`, `hay_ocultas`: nunca un total). `cortada` (la base paró a las 2.000 filas) ofrece «Seguir buscando». Filtros
   (`entities/transporte/filtros.ts`): `naviera`, `puerto_origen`, `puerto_destino` (sin opciones no se dibujan), `en_transito` (sin arribo), `q` por prefijo.
-  La página mezcla orígenes: `leerCatalogosDeTransporte` lee todos y nombra un propio «<nombre> · <origen>» (`nombreConOrigen`).
+  La página mezcla orígenes: la clave junta los embarques (o contenedores) con ese booking (o número) en todos; `leerCatalogosDeTransporte` lee todos y nombra un propio «<nombre> · <origen>» (`nombreConOrigen`).
   La fila escribe lo común, «Varias»/«Varios» si difieren y «—» si ninguna lo tiene o el id ya no está en el catálogo, nunca el uuid (`textosDelGrupo`). El
   resumen (`?booking=` o `?contenedor=`) lista unidades con fase y ETA (sin «días en la fase»: sería N+1) y monta los huecos de grupo de `mover`, `documentos`
-  y `dinero` (`src/app/(app)/logistica/embarques/huecos-del-grupo.ts`) por permiso en cualquier origen, **sin mirar la regla de flujo**; la base exige por unidad.
+  y `dinero` (`src/app/(app)/logistica/embarques/huecos-del-grupo.ts`) por permiso en cualquier origen, **sin mirar la regla de flujo**; la base exige por unidad. Esos huecos leen las unidades del
+  grupo por `transporte_grupo` (`entities/nucleo/unidades-del-grupo.ts`).
   **«Editar grupo»:** `?panel=editar-grupo` **tapa** al resumen (`src/app` dibuja uno u otro). El botón sale con `logistica.transporte.editar` o
   `repuestos.editar` (`puedeEditarTransporte`, sin origen). `entities/transporte/edicion-del-grupo.ts`: lo que difiere sale vacío y un «Varios» vacío nunca se
   vacía; las versiones esperadas son las que vio el resumen. `aplicarAlGrupo` → `transporte_grupo_aplicar` (todo o nada, **sin `notas`**, devuelve la clave
   nueva si cambió contenedor o booking); `PT409` → «No se cambió ninguna: <motivo>» con «Recargar» que conserva lo escrito. Opciones: los activos que pueden usar
   todas las unidades (`alcanceDelGrupo`: con un origen, lo que usa; con varios o con un ítem, los compartidos que ninguno tapa) más lo común guardado, rotulado (un
-  grupo cruza flujos; la base revisa oferta, origen y fase por unidad).
+  grupo cruza flujos; la base revisa oferta, origen y fase por unidad). Cada embarque del grupo pide `_embarque_editable`; un contenedor que va en un
+  embarque lo dice sobre sus bloques (`lineaDelEmbarqueDelGrupo`): lo del embarque cambia para todos sus vehículos.
 
 ## Tablas
 
-`documentos`, `puertos`, `navieras`, `transportes` (1:1 con la unidad), `declaraciones_aduana`, `declaraciones_vehiculos`, `categorias_gasto`, `gastos`, `pagos`, `notas`.
-RPC: `margen_vehiculo`, `alertas_demora` (cron), `storage_refcount`, `logistica_cadena_resumen`, `logistica_cadena_columna` (la lista de una fase), `logistica_bandeja_grupo` (índices `transportes_llegadas_idx` y `transportes_salidas_idx`) y los ayudantes `_logistica_lo_propio` y `_bandeja_dia_*`; mover vía `flujos`. La oferta de transporte es de `flujos` (`flujo_oferta_guardar`);
+`documentos`, `puertos`, `navieras`, `transportes` (1:1 con la unidad: su contenedor o su embarque y lo propio; se lee por la vista
+`transportes_con_embarque`, con lo de su embarque), `embarques`, `contenedores`, `tipos_contenedor` (catálogo fijo, por migración), `declaraciones_aduana`, `declaraciones_vehiculos`, `categorias_gasto`, `gastos`, `pagos`, `notas`.
+RPC: `transporte_leer`, `transporte_guardar`, `transporte_grupos`, `transporte_grupo`, `transporte_grupo_aplicar`, `embarque_crear|guardar`,
+`contenedor_crear|guardar`, `transporte_asignar|quitar` (en lote, ≤ 200) y el estado calculado `embarque_estado`/`contenedor_estado`; `margen_vehiculo`, `alertas_demora` (cron), `storage_refcount`, `logistica_cadena_resumen`, `logistica_cadena_columna` (la lista de una fase), `logistica_bandeja_grupo` (índices `transportes_llegadas_idx` y `transportes_salidas_idx`) y los ayudantes `_logistica_lo_propio` y `_bandeja_dia_*`; mover vía `flujos`. La oferta de transporte es de `flujos` (`flujo_oferta_guardar`);
 logística sólo la lee con `flujo_oferta()`. Puertos, navieras y categorías de gasto (propios de un origen o compartidos) se escriben sólo por RPC: `puerto_crear|guardar`,
 `naviera_crear|guardar`, `categoria_gasto_crear|guardar|eliminar`. Gastos y pagos se escriben sólo por RPC: `gasto_registrar`, `gasto_guardar`, `gasto_eliminar`, `gastos_prorratear`,
 `pago_registrar`, `pago_registrar_proyecto`, `pago_guardar`, `pago_eliminar`, `pago_confirmar`, `pago_anular`; se leen por cursor con `gastos_listar` y
@@ -209,7 +216,8 @@ requisito bloqueante para su fase siguiente. La lee `bandejaLogistica(TOPE_DE_BL
 
 ## No se rompe
 
-- La entidad agrupadora no es dueña de datos: documentos, gastos, pagos, notas y transporte cuelgan **siempre** de la unidad (`vehiculo_id | repuesto_id`, uno y sólo uno). Prorratear un flete = N filas de `gastos`.
+- El embarque es dueño de la naviera, los puertos y las fechas; documentos, gastos, pagos y notas cuelgan **siempre** de la unidad (`vehiculo_id | repuesto_id`, uno y sólo
+  uno), y su transporte también (1:1). Una unidad va en un contenedor o en un embarque, nunca en los dos, y un vehículo sólo en uno de su origen. Prorratear un flete = N filas de `gastos`.
 - Mientras la unidad esté en una fase, no se vacía el dato ni se quita el documento que esa fase exige como bloqueante (triggers); si pasa igual, la unidad aparece «fuera de regla», no se expulsa.
 - Confirmar un pago es un acto sellado (`pago_sellos`): quién y cuándo los pone el trigger, no el cliente.
 - El margen devuelve `null` sin venta registrada; la UI dice «Sin venta registrada», nunca $0.
