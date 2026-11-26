@@ -9,6 +9,7 @@ import { useEliminarFasePorUrl } from '../hooks/use-eliminar-fase-por-url'
 import { useListaDeFases } from '../hooks/use-lista-de-fases'
 import { useModalDeCopiarFases } from '../hooks/use-modal-de-copiar-fases'
 import { useModalDeNuevaFase } from '../hooks/use-modal-de-nueva-fase'
+import { useVistaDelFlujo } from '../../configuracion/hooks/use-vista-del-flujo'
 import {
   ConfirmarEliminarFaseDiferido,
   ModalDeCopiarFasesDiferido,
@@ -33,10 +34,12 @@ export function AccionesDeLaLista({ flujo }: Props) {
   const montarCopia = useAbiertoAlgunaVez(copia.abierto)
   const motivo = motivoParaNoAbrirNuevaFase(flujo)
   const sinFases = flujo.fases.length === 0
+  // En el diagrama, «Nueva fase» está en su barra flotante (y en el doble clic): aquí sólo en la lista. Los modales siguen montados aquí.
+  const enLaLista = useVistaDelFlujo().vista === 'lista'
 
   return (
     <div className="grid justify-items-end gap-1">
-      {sinFases ? null : (
+      {sinFases || !enLaLista ? null : (
         <Button
           className="h-11 md:h-8"
           disabled={motivo !== null}
@@ -47,7 +50,7 @@ export function AccionesDeLaLista({ flujo }: Props) {
           Nueva fase
         </Button>
       )}
-      {motivo === null ? null : (
+      {motivo === null || !enLaLista ? null : (
         <p id={ID_DEL_MOTIVO} className="text-(length:--text-sm) text-(--color-ink-faint)">
           {motivo}
         </p>
@@ -58,6 +61,7 @@ export function AccionesDeLaLista({ flujo }: Props) {
           abierto={modal.abierto}
           alCerrar={modal.alCerrar}
           lista={lista}
+          posicion={modal.posicion}
         />
       ) : null}
       {montarCopia ? (

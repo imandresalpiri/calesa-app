@@ -63,7 +63,7 @@ paths:
   no. Una RPC que guarda la única fila de su clase (`plantilla_guardar_borrador`: el borrador del origen) toma la esperada nula como crear: si la fila ya existe,
   PT409; nunca pisa. Una que publica sobre una versión (`formula_publicar()`, `formula_cambiar_constante()`) lleva `p_publicada_esperada uuid default null` (una
   versión, no una hora). Una de lote, por elemento. Excepciones: `leads_papelera_enviar` (todo o nada,
-  idempotente por lote) y las del chat, idempotentes y que no pisan nada: `chat_grupo_miembros`, `chat_leer`, `chat_silenciar` y
+  idempotente por lote), `fase_posiciones_guardar` (todo o nada con la versión del flujo: sólo visual) y las del chat, idempotentes y que no pisan nada: `chat_grupo_miembros`, `chat_leer`, `chat_silenciar` y
   `mensaje_eliminar`; y el contador del asistente de IA, `asistente_ia_contar_uso` (suma uno a la fila de quien llama). Una versión que debe moverse dos veces en una transacción no usa el trigger genérico:
   `greatest(clock_timestamp(), anterior + 1 µs)`; la de una cotización la sella `cotizacion_version()`.
 - Un `if` de plpgsql termina en el primer `then`, también el de un `case`: esa condición va a una variable antes.

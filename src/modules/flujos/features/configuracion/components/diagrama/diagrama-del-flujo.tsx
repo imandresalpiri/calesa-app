@@ -1,24 +1,32 @@
 'use client'
 
 import '@xyflow/react/dist/base.css'
-import { ReactFlow, ReactFlowProvider } from '@xyflow/react'
-import { useId, useMemo, useRef } from 'react'
-import { cn } from 'cn'
-import { disponerDiagrama, medidasDelDiagrama } from '../../../../entities/disposicion-del-diagrama'
+import {
+  Background,
+  BackgroundVariant,
+  MiniMap,
+  ReactFlow,
+  ReactFlowProvider,
+  type ReactFlowProps,
+} from '@xyflow/react'
+import { useId, useRef } from 'react'
 import type { FlujoParaConfigurar } from '../../../../entities/flujo'
 import type { RolLeido } from '../../../../entities/lectura-de-fase'
-import { useMarcasDelDiagrama } from '../../hooks/use-marcas-del-diagrama'
-import { ALTO_DEL_LIENZO } from '../esqueleto-del-diagrama'
 import type { HuecosDelFlujo } from '../huecos'
-import { ContextoDelLienzo, type Lienzo } from './contexto-del-lienzo'
-import { ControlesDelDiagrama } from './controles-del-diagrama'
-import { flechasDelDiagrama, nodosDelDiagrama } from './datos-del-diagrama'
+import { MarcoDelLienzo } from '../marco-del-lienzo'
+import { AvisoAlSoltar } from './aviso-al-soltar'
+import type {
+  FlechaDeSalida as FlechaDelLienzo,
+  NodoDeFase as NodoDelLienzo,
+} from './datos-del-diagrama'
+import { BarraDelLienzo } from './barra-del-lienzo'
+import { ContextoDelLienzo } from './contexto-del-lienzo'
 import { FlechaDeSalida } from './flecha-de-salida'
-import { IndicadorDeCaida } from './indicador-de-caida'
 import { NodoDeFase } from './nodo-de-fase'
 import { TEXTOS_DE_REACT_FLOW } from './textos-de-react-flow'
 import { useCajasDelLienzo } from './use-cajas-del-lienzo'
-import { useOrdenAlArrastrar } from './use-orden-al-arrastrar'
+import { useDiagrama } from './use-diagrama'
+import { useHerramientasDelLienzo } from './use-herramientas-del-lienzo'
 import { useRem } from './use-rem'
 import { sinAnimar, useVistaDelLienzo } from './use-vista-del-lienzo'
 
@@ -33,118 +41,116 @@ type Props = {
 
 const TIPOS_DE_NODO = { fase: NodoDeFase }
 const TIPOS_DE_FLECHA = { salida: FlechaDeSalida }
+// Lo que no cambia: el foco va a los botones de cajas y flechas (no a los de React Flow), nada se selecciona ni se borra con Supr (quitar pide confirmar),
+// la rueda desplaza y con Ctrl o Cmd hace zoom, y el doble clic es para crear.
+const AYUDA =
+  'Tab recorre las fases y las salidas. Con una fase enfocada, las flechas la mueven. Ctrl+Z deshace. «Ver como lista» es la versión para lector de pantalla.'
 
-// El diagrama del flujo: las fases como cajas en su orden y las salidas como flechas (`disponerDiagrama`). Es un apoyo visual; la lista es la versión
-// navegable. Sólo este directorio importa `@xyflow/react`, y sólo `diferidos.tsx` lo pide.
-export function DiagramaDelFlujo(props: Props) {
-  return (
-    <ReactFlowProvider>
-      <LienzoDelFlujo {...props} />
-    </ReactFlowProvider>
-  )
+const FIJAS: Partial<ReactFlowProps<NodoDelLienzo, FlechaDelLienzo>> = {
+  nodesFocusable: false,
+  edgesFocusable: false,
+  elementsSelectable: false,
+  disableKeyboardA11y: true,
+  deleteKeyCode: null,
+  panOnScroll: true,
+  zoomOnScroll: false,
+  zoomActivationKeyCode: ['Control', 'Meta'],
+  zoomOnDoubleClick: false,
+  preventScrolling: true,
+  minZoom: 0.25,
+  maxZoom: 1.5,
+  onlyRenderVisibleElements: true,
+  proOptions: { hideAttribution: true },
+  ariaLabelConfig: TEXTOS_DE_REACT_FLOW,
 }
 
-function useDiagrama({ flujo, roles, faseAbierta }: Props, rem: number) {
-  const medidas = useMemo(() => medidasDelDiagrama(rem), [rem])
-  const arrastre = useOrdenAlArrastrar(flujo, medidas)
-  const marcas = useMarcasDelDiagrama()
-  const { fases, puedeArrastrar } = arrastre
-  const disposicion = useMemo(
-    () => disponerDiagrama(fases, flujo.transiciones, medidas),
-    [fases, flujo.transiciones, medidas],
+// El minimapa ayuda a ubicarse con muchas fases libres; con pocas es ruido.
+const FASES_PARA_EL_MINIMAPA = 6
+
+// El diagrama del flujo, editable: cada fase donde se la dejó (o, sin ninguna movida, en el acomodo automático), las salidas como flechas que siguen a sus
+// cajas. Se arrastran las fases (o se mueven con el teclado), se vinculan arrastrando su asa, se crea una con doble clic o desde la barra flotante, y se
+// deshace con Ctrl+Z. La rueda desplaza el lienzo; con Ctrl o Cmd, zoom. La lista es la versión navegable. Sólo este directorio importa `@xyflow/react`, y
+// sólo `diferidos.tsx` lo pide.
+export function DiagramaDelFlujo(props: Props) {
+  return (
+    <MarcoDelLienzo>
+      <ReactFlowProvider>
+        <LienzoDelFlujo {...props} />
+      </ReactFlowProvider>
+    </MarcoDelLienzo>
   )
-  const base = useMemo(
-    () =>
-      nodosDelDiagrama({
-        disposicion,
-        flujo,
-        fases,
-        roles,
-        marcas,
-        faseAbierta,
-        arrastrable: puedeArrastrar,
-      }),
-    [disposicion, flujo, fases, roles, marcas, faseAbierta, puedeArrastrar],
-  )
-  const arrastrando = arrastre.cae?.id ?? null
-  const flechas = useMemo(
-    () => flechasDelDiagrama({ disposicion, flujo, marcas, faseAbierta, arrastrando }),
-    [disposicion, flujo, marcas, faseAbierta, arrastrando],
-  )
-  return { medidas, arrastre, disposicion, base, flechas, altura: disposicion.nodos[0]?.y ?? 0 }
 }
 
 function LienzoDelFlujo(props: Props) {
+  const { flujo, alAbrir } = props
   const { ref: refDelRem, rem } = useRem()
-  const { medidas, arrastre, disposicion, base, flechas, altura } = useDiagrama(props, rem)
-  const cajas = useCajasDelLienzo(base, altura)
   const contenedor = useRef<HTMLElement>(null)
-  const alIniciar = useVistaDelLienzo(contenedor, disposicion, {
+  const d = useDiagrama({ ...props, rem, contenedor })
+  const cajas = useCajasDelLienzo(d.base)
+  const herramientas = useHerramientasDelLienzo({
+    diagrama: d,
+    contenedor,
+    rem,
+    alAbrir,
+    vieneDeArrastrar: cajas.vieneDeArrastrar,
+  })
+  const alIniciar = useVistaDelLienzo(contenedor, d.disposicion, {
     faseAbierta: props.faseAbierta,
     rem,
   })
-  const { alAbrir } = props
-  const { vieneDeArrastrar, cae } = arrastre
-  const lienzo = useMemo<Lienzo>(
-    () => ({ medidas, alAbrir, vieneDeArrastrar }),
-    [medidas, alAbrir, vieneDeArrastrar],
-  )
+  const puedeMover = d.edicion.mover === null
   const idDeLaAyuda = useId()
-  const desde = cae ? arrastre.fases.findIndex((f) => f.id === cae.id) : -1
   return (
     <section
       ref={contenedor}
       aria-label="Diagrama del flujo"
       aria-describedby={idDeLaAyuda}
-      className={cn(
-        ALTO_DEL_LIENZO,
-        'relative min-w-0 overflow-hidden rounded-(--radius-card) border border-(--color-line) bg-(--color-surface-2)',
-      )}
+      onDoubleClick={herramientas.alDobleClic}
+      onKeyDown={herramientas.alTeclear}
+      className="relative size-full min-w-0 overflow-hidden rounded-(--radius-card) border border-(--color-line) bg-(--color-surface-2)"
     >
       <span ref={refDelRem} aria-hidden className="pointer-events-none absolute h-0 w-[1rem]" />
       <p id={idDeLaAyuda} className="sr-only">
-        Apoyo visual: «Ver como lista» es la versión para lector de pantalla.
+        {AYUDA}
       </p>
-      <ContextoDelLienzo value={lienzo}>
+      <ContextoDelLienzo value={herramientas.lienzo}>
         <ReactFlow
           nodes={cajas.nodos}
-          edges={flechas}
+          edges={d.flechas}
           nodeTypes={TIPOS_DE_NODO}
           edgeTypes={TIPOS_DE_FLECHA}
           onNodesChange={cajas.alCambiar}
-          onNodeDrag={(_, nodo) => {
-            arrastre.alArrastrar(nodo.id, nodo.position.x)
-          }}
+          onNodeDragStart={cajas.alEmpezar}
           onNodeDragStop={(_, nodo) => {
-            cajas.aLaBase()
-            void arrastre.alSoltar(nodo.id, nodo.position.x)
+            cajas.alSoltar()
+            herramientas.alSoltarCaja(nodo.id, nodo.position)
+          }}
+          onConnectEnd={d.vincular.alSoltar}
+          onEdgeClick={(_, flecha) => {
+            d.salidas?.abrir(flecha.id, flecha.source)
           }}
           onInit={() => {
             alIniciar()
           }}
-          nodesDraggable={arrastre.puedeArrastrar}
-          // Sin desplazarse solo al arrastrar cerca del borde: el lienzo corría y la fase caía lejos. En un flujo largo, «Ver todo el flujo» y arrastrar.
-          autoPanOnNodeDrag={false}
-          nodesConnectable={false}
-          nodesFocusable={false}
-          edgesFocusable={false}
-          elementsSelectable={false}
-          disableKeyboardA11y
-          zoomOnScroll={false}
-          zoomOnDoubleClick={false}
-          preventScrolling={false}
-          minZoom={0.25}
-          maxZoom={1.5}
-          onlyRenderVisibleElements
-          proOptions={{ hideAttribution: true }}
-          ariaLabelConfig={TEXTOS_DE_REACT_FLOW}
+          nodesDraggable={puedeMover}
+          nodesConnectable={d.edicion.vincular === null}
+          snapToGrid
+          snapGrid={[rem, rem]}
+          {...FIJAS}
         >
-          <ControlesDelDiagrama sinAnimar={sinAnimar} />
-          {cae && cae.columna !== desde ? (
-            <IndicadorDeCaida columna={cae.columna} altura={altura} medidas={medidas} />
+          <Background variant={BackgroundVariant.Dots} gap={2 * rem} size={1} />
+          <BarraDelLienzo
+            nuevaFase={herramientas.nuevaFase}
+            ordenarSolo={herramientas.ordenarSolo}
+            estado={herramientas.estado}
+            sinAnimar={sinAnimar}
+          />
+          {!d.angosto && flujo.fases.length >= FASES_PARA_EL_MINIMAPA ? (
+            <MiniMap pannable zoomable ariaLabel="Minimapa" position="bottom-right" />
           ) : null}
         </ReactFlow>
       </ContextoDelLienzo>
+      <AvisoAlSoltar aviso={d.vincular.aviso} />
     </section>
   )
 }

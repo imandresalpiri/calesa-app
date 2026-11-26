@@ -8,6 +8,7 @@ import {
   TIPOS_DE_FASE_NUEVA,
 } from '../../../entities/fases/formulario-de-fase'
 import { useFormularioDeNuevaFase } from '../hooks/use-formulario-de-nueva-fase'
+import type { PosicionDeLaFase } from '../../../entities/flujo'
 import type { ListaDeFasesEnPantalla } from '../hooks/use-lista-de-fases'
 import { SelectorDeColor } from './selector-de-color'
 
@@ -15,6 +16,8 @@ type Props = {
   abierto: boolean
   alCerrar: () => void
   lista: ListaDeFasesEnPantalla
+  // Pedida en un punto del diagrama (`&en=`): la esquina de su caja, en rem.
+  posicion: PosicionDeLaFase | null
 }
 
 const ID_DEL_FORMULARIO = 'nueva-fase'
@@ -27,11 +30,11 @@ const AYUDA_DEL_TIPO: Record<(typeof TIPOS_DE_FASE_NUEVA)[number], string> = {
   final: 'Donde termina el camino.',
 }
 
-// «Nueva fase» (`?panel=nueva-fase`): sólo lo mínimo (nombre, color y si es inicial o final); la fase se crea al final del flujo y el resto se edita en el
-// inspector. El contrato del modal (preguntar antes de cerrar con algo escrito, no cerrarse mientras guarda, el conflicto con «Recargar») es de
+// «Nueva fase» (`?panel=nueva-fase`): sólo lo mínimo (nombre, color y si es inicial o final); la fase se crea al final del flujo (pedida en el diagrama,
+// dibujada donde se pidió) y el resto se edita en el inspector. El contrato del modal (preguntar antes de cerrar con algo escrito, no cerrarse mientras guarda, el conflicto con «Recargar») es de
 // `ModalDeFormulario`. Quien lo monta le da una `key` por apertura: cada una empieza de cero, con un id de intento nuevo.
-export function ModalDeNuevaFase({ abierto, alCerrar, lista }: Props) {
-  const f = useFormularioDeNuevaFase({ lista, alCerrar, abierto })
+export function ModalDeNuevaFase({ abierto, alCerrar, lista, posicion }: Props) {
+  const f = useFormularioDeNuevaFase({ lista, alCerrar, abierto, posicion })
   const { valores } = f
 
   return (
@@ -40,7 +43,7 @@ export function ModalDeNuevaFase({ abierto, alCerrar, lista }: Props) {
       abierto={abierto}
       alCerrar={alCerrar}
       titulo="Nueva fase"
-      descripcion="Se agrega al final del flujo. Lo demás lo ajustas después, al abrirla."
+      descripcion="Se agrega al final del flujo."
       focoInicial={() => document.getElementById(ID_DEL_NOMBRE)}
       formulario={f}
       detalleDelConflicto="Lo que escribiste sigue acá."

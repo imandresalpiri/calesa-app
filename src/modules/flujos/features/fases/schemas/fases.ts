@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { TOPE_DE_FASES } from '../../../entities/flujo'
 
 // Lo que cruza el límite de las fases: la forma y la lista cerrada de claves (`_fase_forma()`). Lo que vale cada dato (largo, repetido, el alias del
 // portal, las reglas del flujo) lo dice la base con el campo en el `hint`.
@@ -33,6 +34,9 @@ const datos = {
 
 const parcial = z.strictObject(datos).partial()
 
+// Una coordenada del diagrama, en rem del lienzo (`fases_posicion_rango`).
+const coordenada = z.number().min(-10000).max(10000)
+
 export const esquemaCrearFase = z.object({
   // El del intento: el mismo en cada reintento.
   id: z.guid(),
@@ -40,6 +44,8 @@ export const esquemaCrearFase = z.object({
   origenId,
   actualizadoEnEsperado: version,
   datos: parcial,
+  // Dónde nace en el diagrama (rem del lienzo), si se creó desde él. Fuera de `datos`: no es un dato de la fase.
+  posicion: z.object({ x: coordenada, y: coordenada }).optional(),
 })
 
 export const esquemaGuardarFase = z.object({
@@ -66,3 +72,18 @@ export const esquemaEliminarFase = z.object({
 export const esquemaReactivarFase = esquemaEliminarFase
 
 export const esquemaLeerImpactoDeFase = z.object({ id: z.guid(), origenId })
+
+// Las posiciones de un gesto en el diagrama (un arrastre, una ráfaga de teclado, «Ordenar solo», deshacer): todo o nada. Las dos nulas = sin posición.
+export const esquemaGuardarPosiciones = z.object({
+  flujoId: z.guid(),
+  origenId,
+  actualizadoEnEsperado: version,
+  posiciones: z
+    .array(
+      z
+        .object({ faseId: z.guid(), x: coordenada.nullable(), y: coordenada.nullable() })
+        .refine((p) => (p.x === null) === (p.y === null), { error: 'Falta una coordenada.' }),
+    )
+    .min(1)
+    .max(TOPE_DE_FASES),
+})

@@ -243,6 +243,10 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** «Ayuda» abierta por la URL (`?panel=ayuda`) mientras lee deja el foco en «Elegir mis enlaces» del pie (el cuerpo todavía no tiene nada enfocable): llevarlo al título o a la ✕ (`src/app/(app)/_shell/ayuda/modal-de-ayuda.tsx`).
 - **[—]** El comprobante de «Registrar gasto» es el `<input type="file">` nativo: el navegador escribe «Choose File» y «No file chosen» en su idioma, no
   en el de la app — usar el botón «Elegir archivos» de los documentos de la unidad (`logistica/features/dinero/components/campo-de-comprobante.tsx`).
+- **[—]** En el diagrama del flujo, una caja movida encima de una flecha tapa su etiqueta (React Flow dibuja las cajas sobre las etiquetas): la salida sigue
+  abriéndose desde el panel o moviendo la caja; evaluar subir las etiquetas sobre las cajas (`flujos/features/configuracion/components/diagrama/flecha-de-salida.tsx`).
+- **[—]** El minimapa del diagrama del flujo usa los grises por defecto de React Flow, sin marco ni los tokens (`--color-surface`, `--color-line`): darle el
+  estilo del lienzo (`flujos/features/configuracion/components/diagrama/diagrama-del-flujo.tsx`).
 - **[—]** La lista de fases del flujo deja «Subir» y «Bajar» a la vista (`flujos/features/fases/components/acciones-de-fila.tsx`) y las demás filas de Configuración los llevan en el «⋯»: decidir si es la excepción (ordenar con el teclado) o pasarlos al «⋯».
 - **[—]** Al recargar una guardada con un cálculo pisado, «Editado a mano: …» entra al resumen después del primer dibujo (su lista va con `diferido()`) y empuja
   «Modo de tipo de cambio» hacia abajo: reservarle el alto o dibujar su primera línea en frío (`features/hoja/components/pisadas/`).

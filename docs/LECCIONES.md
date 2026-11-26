@@ -45,6 +45,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Prefiere una función de lectura aparte a cambiar el tipo de retorno de una existente: el `drop` rompe pruebas, infra y la definición que otros recrean.
 - Cruza las funciones que redefine tu migración con las de las migraciones nuevas de `main` y de los PR de delante en la cola (con y sin comillas: el volcado escribe `"public"."x"`): git no ve el choque y tu `create or replace`, que corre después, borra lo de la otra. Rehazla desde la definición más nueva.
 - Parte un trigger si su `when` nombra `old`: ese `when` no puede ir en un trigger de `insert`.
+- Una columna sólo visual (la posición de una caja) en una tabla con `trg_auditar_cambio`, `trg_actualizado_en` y `web_revalidar` lleva su `when` (esas
+  columnas sin cambios) en los dos primeros y una lista `update of` en el último: si no, cada arrastre audita, mueve la versión de la fila y revalida la web.
 - Al crear un permiso o cambiar su `aplicado_en`, cámbialo también en `supabase/seed.sql` y prueba la migración re-ejecutándola sobre la base sembrada: el seed corre después con `on conflict … do update` y la pisa, y antes del seed la tabla está vacía.
 - Valida en la RPC el texto que la nube puede tener con otros valores; un `check` nuevo sobre una tabla con datos nace `not valid` y se valida en otra sentencia sólo si ninguna fila lo rompe (si no, `raise notice`): la migración no debe caer en la nube.
 - Piensa qué jobs despierta una migración que rellena una columna (rellenar `fase_desde` dispara alertas de demora): PGlite arranca vacío y no lo prueba.
@@ -171,6 +173,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 
 ## Interfaz
 
+- Dos escrituras seguidas de un mismo lienzo (soltar una caja y vincular enseguida) van en cola, cada una con la última versión conocida: la que
+  devolvió la anterior si la página aún no se releyó. Con la versión de la página, la segunda choca contra la primera (`PT409` contra uno mismo).
 - Con el texto al 200 % los media queries siguen en px: escribe una columna lateral como `minmax(0, 24rem)`, no rem fijos, y en una rejilla de 12 pistas que colapsa usa `gap-x-0 @lg:gap-x-3` (las pistas van a 0 y los 11 huecos fijos desbordan).
 - En el celular, la fila de `<Flotantes>` del marco («Copiar el enlace» y la burbuja del chat) flota a 80–124 px del borde inferior y a 16–112 px del derecho: un control alineado a la derecha en algo pegado abajo queda debajo sin que ningún desplazamiento lo libere; dale `max-md:pr-[96px]` a su fila, y si la fila suma un botón, súmale su ancho.
 - `TableCell` y `TableHead` de `src/shared/ui/table` son `whitespace-nowrap`: una celda con un texto que debe partirse (un motivo debajo de un control) lleva `whitespace-normal`, o el texto se derrama sobre la columna de al lado sin que nada falle.
@@ -326,6 +330,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Antes de un arrastre con `page.mouse` (el número de una fila de la planilla) desplaza y recién después mide las cajas, con el destino al
   medio de la ventana: la cabecera y la barra pegadas tapan lo de arriba. Un `<Drawer>` que se cierra deja su fondo encima mientras sale y
   se traga el `pointerdown`: espera a que el asa reciba el puntero (`document.elementFromPoint`, `arrastrarFila()` de `e2e/soporte/planilla.ts`).
+- Tras «Recargar» de un conflicto (`router.refresh()`), espera la señal visible de que llegó (el aviso se va: `<AvisoDeConflictoDeLaHoja>` lo quita al redibujar) antes de cerrar el panel: un cierre a mitad de camino descarta el refresco en vuelo y la hoja queda con lo viejo, sólo si la máquina va lenta.
 - Con el asa de dnd-kit tomada por teclado, la primera flecha se puede perder (su sensor escucha un momento después): insiste sólo mientras el anuncio siga en el lugar de partida, o la fila sube dos.
 
 ### Sesiones y datos de prueba

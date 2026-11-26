@@ -13,7 +13,7 @@ export type LectorDeImpactoDeFase = (faseId: string) => Promise<Resultado<Impact
 export type FalloDeFase = { ok: false; error: ErrorApp; campo?: CampoDeFase }
 export type ResultadoDeFase<T> = { ok: true; data: T } | FalloDeFase
 
-// Las cinco RPC de escritura. Ninguna devuelve la lista: la pantalla la relee. Todas llevan la versión que se tenía en pantalla (`PT409` si cambió).
+// Las seis RPC de escritura. Ninguna devuelve la lista: la pantalla la relee. Todas llevan la versión que se tenía en pantalla (`PT409` si cambió).
 export type RepositorioDeFases = {
   // Con el id del intento: repetirlo da «Esa fase ya existe.» (la base no lo trata como el mismo pedido).
   crear: (pedido: {
@@ -21,6 +21,8 @@ export type RepositorioDeFases = {
     flujoId: string
     actualizadoEnEsperado: string
     datos: CambiosDeFase
+    // Dónde nace en el diagrama, en rem del lienzo.
+    posicion?: { x: number; y: number }
   }) => Promise<ResultadoDeFase<RespuestaDeFase>>
   guardar: (pedido: {
     id: string
@@ -40,6 +42,12 @@ export type RepositorioDeFases = {
   reactivar: (pedido: {
     id: string
     actualizadoEnEsperado: string
+  }) => Promise<ResultadoDeFase<RespuestaDeFase>>
+  // `fase_posiciones_guardar`: dónde se dibuja cada fase del lote (las dos nulas = sin posición), todo o nada. Mueve la versión del flujo.
+  guardarPosiciones: (pedido: {
+    flujoId: string
+    actualizadoEnEsperado: string
+    posiciones: readonly { faseId: string; x: number | null; y: number | null }[]
   }) => Promise<ResultadoDeFase<RespuestaDeFase>>
 }
 

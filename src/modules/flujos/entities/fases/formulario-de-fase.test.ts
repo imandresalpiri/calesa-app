@@ -38,6 +38,7 @@ const FASE: FaseParaConfigurar = {
   aliasPortal: null,
   descripcionPortal: null,
   esSubasta: false,
+  posicion: null,
 }
 const CONTEXTO: ContextoDeFase = {
   ambito: 'vehiculos',

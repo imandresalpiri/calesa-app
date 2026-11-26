@@ -4,6 +4,17 @@
 import { z } from 'zod'
 import { puede, type Permisos } from '@/shared/lib/permisos'
 import { porOrdenYNombre } from './fase'
+import {
+  esquemaDeFase,
+  faseParaConfigurarDesde,
+  type FaseParaConfigurar,
+} from './fase-para-configurar'
+
+export {
+  esquemaDeFase,
+  type FaseParaConfigurar,
+  type PosicionDeLaFase,
+} from './fase-para-configurar'
 
 // Topes de lo que se lee y se dibuja (`.claude/rules/escala.md`): cada tabla se pide con `tope + 1` y, si llega, su bandera de `truncado` va en true.
 export const TOPE_DE_FASES = 200
@@ -19,30 +30,6 @@ export type AmbitoDeFlujo = (typeof AMBITOS_DE_FLUJO)[number]
 const id = z.guid()
 const textoONulo = z.string().nullable()
 const numeroONulo = z.number().nullable()
-
-export const esquemaDeFase = z.object({
-  id,
-  nombre: z.string(),
-  descripcion: textoONulo,
-  color: z.string(),
-  icono: textoONulo,
-  orden: z.number(),
-  activa: z.boolean(),
-  es_inicial: z.boolean(),
-  es_final: z.boolean(),
-  es_logistica: z.boolean(),
-  demora_dias: numeroONulo,
-  alerta_cada_horas: numeroONulo,
-  nota_obligatoria: z.boolean(),
-  permite_contenedor: z.boolean(),
-  permite_aduana: z.boolean(),
-  cuenta_llegada_repuestos: z.boolean(),
-  publica_web: z.boolean(),
-  visible_portal: z.boolean(),
-  alias_portal: textoONulo,
-  descripcion_portal: textoONulo,
-  es_subasta: z.boolean(),
-})
 
 export const esquemaDeTransicion = z.object({
   id,
@@ -82,30 +69,6 @@ const esquemaDeEncabezado = z.object({
   // El tipo del origen embebido (nulo en repuestos): sólo en uno de subasta una fase puede ser la subasta.
   origen: z.object({ tipo: z.string() }).nullable(),
 })
-
-export type FaseParaConfigurar = {
-  id: string
-  nombre: string
-  descripcion: string | null
-  color: string
-  icono: string | null
-  orden: number
-  activa: boolean
-  esInicial: boolean
-  esFinal: boolean
-  esLogistica: boolean
-  demoraDias: number | null
-  alertaCadaHoras: number | null
-  notaObligatoria: boolean
-  permiteContenedor: boolean
-  permiteAduana: boolean
-  cuentaLlegadaRepuestos: boolean
-  publicaWeb: boolean
-  visiblePortal: boolean
-  aliasPortal: string | null
-  descripcionPortal: string | null
-  esSubasta: boolean
-}
 
 export type TransicionParaConfigurar = {
   id: string
@@ -164,30 +127,6 @@ export type FilasDeFlujo = {
   truncado: FlujoParaConfigurar['truncado']
 }
 
-const fase = (f: z.infer<typeof esquemaDeFase>): FaseParaConfigurar => ({
-  id: f.id,
-  nombre: f.nombre,
-  descripcion: f.descripcion,
-  color: f.color,
-  icono: f.icono,
-  orden: f.orden,
-  activa: f.activa,
-  esInicial: f.es_inicial,
-  esFinal: f.es_final,
-  esLogistica: f.es_logistica,
-  demoraDias: f.demora_dias,
-  alertaCadaHoras: f.alerta_cada_horas,
-  notaObligatoria: f.nota_obligatoria,
-  permiteContenedor: f.permite_contenedor,
-  permiteAduana: f.permite_aduana,
-  cuentaLlegadaRepuestos: f.cuenta_llegada_repuestos,
-  publicaWeb: f.publica_web,
-  visiblePortal: f.visible_portal,
-  aliasPortal: f.alias_portal,
-  descripcionPortal: f.descripcion_portal,
-  esSubasta: f.es_subasta,
-})
-
 const requisito = (r: z.infer<typeof esquemaDeRequisito>): RequisitoParaConfigurar => ({
   id: r.id,
   faseId: r.fase_id,
@@ -217,7 +156,11 @@ export function flujoParaConfigurarDesde(filas: FilasDeFlujo): FlujoParaConfigur
     version: encabezado.actualizado_en,
     origenEsSubasta: encabezado.ambito === 'vehiculos' && encabezado.origen?.tipo === 'subasta',
     reglas: z.array(esquemaDeRegla).parse(filas.reglas),
-    fases: z.array(esquemaDeFase).parse(filas.fases).map(fase).sort(porOrdenYNombre),
+    fases: z
+      .array(esquemaDeFase)
+      .parse(filas.fases)
+      .map(faseParaConfigurarDesde)
+      .sort(porOrdenYNombre),
     transiciones: z
       .array(esquemaDeTransicion)
       .parse(filas.transiciones)

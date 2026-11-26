@@ -38,6 +38,7 @@ const BASE: ValoresDeFase = valoresDeFase({
   aliasPortal: null,
   descripcionPortal: null,
   esSubasta: false,
+  posicion: null,
 })
 
 const CASOS: { caso: string; cambios: Partial<ValoresDeFase>; contexto?: ContextoDeFase }[] = [
