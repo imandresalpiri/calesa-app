@@ -7,6 +7,7 @@ import { CambiosSinGuardar } from '@/shared/ui/cambios-sin-guardar'
 import { Drawer } from '@/shared/ui/drawer'
 import { PieDelPanel } from '@/shared/ui/pie-del-panel'
 import type { Faq } from '../../../../entities/contenido/faqs'
+import type { CategoriasDelCombo } from '../../categorias-de-faq/hooks/use-categorias-de-faq'
 import { useFormularioDeFaq } from '../hooks/use-formulario-de-faq'
 import { CamposDeFaq } from './campos-de-faq'
 
@@ -14,8 +15,8 @@ type Props = {
   abierto: boolean
   // La pregunta que se edita; nula = «Nueva pregunta».
   original: Faq | null
-  // Las categorías ya usadas: las sugerencias del campo.
-  categorias: readonly string[]
+  // El catálogo de categorías de FAQ con su «crear».
+  categorias: CategoriasDelCombo
   // La que se editaba dejó de existir con el panel abierto: por qué ya no se guarda.
   noDisponible: string | null
   alGuardar: () => void

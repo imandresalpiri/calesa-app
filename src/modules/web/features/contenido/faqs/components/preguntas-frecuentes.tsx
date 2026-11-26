@@ -1,13 +1,15 @@
 'use client'
 
 import { PlusIcon } from 'lucide-react'
+import type { CatalogoLeido } from '@/shared/lib/catalogo'
 import { textoDelTope } from '@/shared/lib/conteo'
 import { AvisoDeTope } from '@/shared/ui/aviso-de-tope'
 import { Button } from '@/shared/ui/button'
 import { EstadoVacio } from '@/shared/ui/estados'
 import { ListaDeCatalogo } from '@/shared/ui/lista-de-catalogo/lista-de-catalogo'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
-import { categoriasUsadas, TOPE_DE_FAQS, type Faq } from '../../../../entities/contenido/faqs'
+import { TOPE_DE_FAQS, type Faq } from '../../../../entities/contenido/faqs'
+import { useCategoriasDeFaq } from '../../categorias-de-faq/hooks/use-categorias-de-faq'
 import { useAperturaDeFaq } from '../hooks/use-apertura-de-faq'
 import { useEliminarFaqPorUrl } from '../hooks/use-eliminar-faq-por-url'
 import { useEscrituraDeFaqs } from '../hooks/use-escritura-de-faqs'
@@ -18,6 +20,8 @@ export type PropsDePreguntasFrecuentes = {
   faqs: readonly Faq[]
   // Había más de las que se muestran (`TOPE_DE_FAQS`).
   hayMas: boolean
+  // El catálogo de categorías de FAQ, también las inactivas.
+  categorias: CatalogoLeido
 }
 
 const PREFIJO = 'faq'
@@ -38,7 +42,8 @@ function AccionesDeFaqs({ alNueva }: { alNueva: () => void }) {
 
 // Configuración › Sitio web › Preguntas frecuentes (8.02-1): lo que responde la web pública. La lee la página en el servidor y cada action renueva la ruta
 // (`revalidatePath`). Escribir lo exige `web.contenido.gestionar` (la RLS de la tabla); la página ya lo pide.
-export function PreguntasFrecuentes({ faqs, hayMas }: PropsDePreguntasFrecuentes) {
+export function PreguntasFrecuentes({ faqs, hayMas, categorias }: PropsDePreguntasFrecuentes) {
+  const catalogo = useCategoriasDeFaq(categorias)
   const apertura = useAperturaDeFaq(faqs)
   const montarPanel = useAbiertoAlgunaVez(apertura.abierto)
   const eliminacion = useEliminarFaqPorUrl(faqs)
@@ -86,7 +91,7 @@ export function PreguntasFrecuentes({ faqs, hayMas }: PropsDePreguntasFrecuentes
           key={apertura.apertura}
           abierto={apertura.abierto}
           original={apertura.original}
-          categorias={categoriasUsadas(faqs)}
+          categorias={catalogo}
           noDisponible={apertura.noDisponible}
           alGuardar={apertura.alCerrar}
           alCerrar={apertura.alCerrar}

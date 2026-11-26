@@ -1040,6 +1040,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Ficha pública** — «Tu ficha en la web»: `perfiles.whatsapp_web`, `handle`, `cargo_web`, `bio_web`, `especialidades`, `publico_web`. Sin
   WhatsApp no hay turnos; con `publico_web` y `handle` la web la muestra. No: «perfil público», «tarjeta».
 - **Guía / FAQ / Testimonio** — `web_guias`, `web_faqs`, `web_testimonios`: contenido de la web pública; nace despublicado.
+- **Categoría de FAQ** — `web_categorias_faqs` / `CategoriaDeFaq`, `web_faqs.categoria_id`: agrupa las preguntas frecuentes en la web (que
+  sigue recibiendo el nombre en `web.faqs.categoria`). Se elige de un catálogo (`<ComboDeCatalogo>`) con nombre único sin importar mayúsculas,
+  tildes ni espacios, como el grupo de campos; las categorías de guías (`web_categorias_guias`) tienen el mismo nombre único. No: «etiqueta», ni
+  la categoría de un origen.
 - **Programada** — guía con `web_guias.publicada_en` futura: aún no se ve (`estadoDeGuia()`: «Borrador», «Programada» o «Publicada»).
 - **Consentimiento (de un testimonio)** — `web_testimonio_consentir` / `web_testimonio_retirar`: quién lo registró, cuándo, por qué canal, y si
   se muestran ciudad, vehículo y foto. Cambiar nombre, texto o foto lo anula.

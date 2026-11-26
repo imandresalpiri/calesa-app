@@ -46,9 +46,11 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
 - `contenido` › guías: `/configuracion/web/guias/[id]` (`pantallas/guia.ts`, `web.contenido.gestionar`; publicar, programar y despublicar piden además
   `web.guias.publicar`, que la action comprueba antes). `infra/contenido/guias-escritura.ts`: `update … where actualizado_en = <esperado>` (cero filas =
   conflicto o «ya no existe»), nunca manda `cuerpo_html` ni `minutos_lectura`. Al guardar o eliminar se quitan del bucket `web` las imágenes y la portada
-  que ya no están (`quitarSiHuerfano`); una subida nunca guardada queda huérfana (deuda aceptada). Categorías: panel `?panel=categorias` de «Guías»;
+  que ya no están (`quitarSiHuerfano`); una subida nunca guardada queda huérfana (deuda aceptada). Categorías: panel `?panel=categorias` de «Guías»
+  (el campo de la guía es un `<ComboDeCatalogo>` que también la crea: `crearCategoriaDesdeLaGuia`, sin revalidar);
   legales: `/configuracion/web/legales` (`web.ajustes.gestionar`, `guardarLegales`: uno o los dos documentos; cada modal manda el suyo).
-- `contenido` › FAQs y testimonios: lecturas con tope 100 + 1; actions con `web.contenido.gestionar`. La foto de un testimonio
+- `contenido` › FAQs y testimonios: lecturas con tope 100 + 1; actions con `web.contenido.gestionar`. La categoría de una FAQ se elige del
+  catálogo `web_categorias_faqs` (`leerCategoriasDeFaq()`, `<ComboDeCatalogo>` con «Crear categoría «x»»: `crearCategoriaDeFaq`, sin revalidar). La foto de un testimonio
   (`foto-de-testimonio.client.ts`) va a WebP, sube por hash al bucket `web` y se limpia con `quitarSiHuerfano`.
 - `cola`: `/configuracion/cola-web` (`pantallas/cola.ts`): una página a todo el ancho con «Sin asignar», «En la rueda» (con «Agregar a la rueda» junto al título y, dentro, los
   grupos de las habilitadas que hoy no reciben turnos) y «Política de la cola», cada una con su título (`SeccionDeLaCola`) y sus tarjetas en `REJILLA_DE_TARJETAS`
@@ -71,8 +73,8 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
 
 ## Tablas
 
-`ajustes_web`, `web_categorias_guias`, `web_guias`, `web_faqs`, `web_testimonios`, `cola_web_asesores`, `solicitudes_contacto_web`, `eventos_web`; `interno.portal_intentos` (el límite por IP del portal: huella con sal, sin la IP). Vistas `web.vehiculos`, `web.asesores`, `web.guias`, `web.faqs`, `web.testimonios`, `web.ajustes`; `public.estado_cola_web`.
-RPC: `web_ajustes_guardar`, `web_testimonio_consentir`, `web_testimonio_retirar`, `puede_estar_en_la_rueda(uuid)`, `web.solicitar_asesor`, `web.registrar_evento`, `web.portal_login/snapshot/documento_ruta/cambiar_clave`, `web.portal_intento(ip)` y `web.portal_direccion_publica()` (sólo `service_role`), `portal_intentos_purgar` (job `portal-intentos-purgar`, cada 5 min), `web_confirmar_contacto` (sólo escribe `lead_id` en `asignada`/`vencida`), `web_expirar_solicitudes` (job `web-expirar-solicitudes`, cada 5 min, 200 por corrida; desde la app sólo `service_role`), `cola_web_configurar`, `cola_web_tablero` y `cola_web_solicitudes(estado, cursor)` (las dos con `web.cola.gestionar`, `{filas, hay_mas}`; el tablero trae **todas** las habilitadas con `en_la_rueda` y `cuenta_activa` aparte, sin el WhatsApp; las solicitudes por `solicitudes_contacto_web_estado_creado_idx`, título desde `web.vehiculos`, sin token, UTM ni lead).
+`ajustes_web`, `web_categorias_guias`, `web_guias`, `web_faqs`, `web_categorias_faqs`, `web_testimonios`, `cola_web_asesores`, `solicitudes_contacto_web`, `eventos_web`; `interno.portal_intentos` (el límite por IP del portal: huella con sal, sin la IP). Vistas `web.vehiculos`, `web.asesores`, `web.guias`, `web.faqs`, `web.testimonios`, `web.ajustes`; `public.estado_cola_web`.
+RPC: `web_ajustes_guardar`, `web_categoria_faq_eliminar` (quita una categoría de FAQ; con preguntas, las mueve antes), `web_testimonio_consentir`, `web_testimonio_retirar`, `puede_estar_en_la_rueda(uuid)`, `web.solicitar_asesor`, `web.registrar_evento`, `web.portal_login/snapshot/documento_ruta/cambiar_clave`, `web.portal_intento(ip)` y `web.portal_direccion_publica()` (sólo `service_role`), `portal_intentos_purgar` (job `portal-intentos-purgar`, cada 5 min), `web_confirmar_contacto` (sólo escribe `lead_id` en `asignada`/`vencida`), `web_expirar_solicitudes` (job `web-expirar-solicitudes`, cada 5 min, 200 por corrida; desde la app sólo `service_role`), `cola_web_configurar`, `cola_web_tablero` y `cola_web_solicitudes(estado, cursor)` (las dos con `web.cola.gestionar`, `{filas, hay_mas}`; el tablero trae **todas** las habilitadas con `en_la_rueda` y `cuenta_activa` aparte, sin el WhatsApp; las solicitudes por `solicitudes_contacto_web_estado_creado_idx`, título desde `web.vehiculos`, sin token, UTM ni lead).
 
 ## No se rompe
 
@@ -110,7 +112,8 @@ precio, precio_hasta, precio_nota, destacado, atributos` (sólo los campos `publ
   `_web_doc_html()` y `_web_doc_minutos()` (lo que llegue en `cuerpo_html` se pisa; publicar recalcula). Una guía sin documento conserva su HTML
   despublicada. Las imágenes del cuerpo cuentan en `storage_refcount('web', …)`.
 - **FAQs y testimonios se escriben directo bajo la RLS con la versión esperada** (`.eq('actualizado_en', …)`; 0 filas = relee y dice conflicto, ya no
-  existe o sin permiso), salvo `consent_*`. La respuesta de una FAQ es texto plano (el sitio la escapa) y la categoría, texto libre; mover renumera 0…n−1
+  existe o sin permiso), salvo `consent_*`. La respuesta de una FAQ es texto plano (el sitio la escapa) y la categoría, una categoría de FAQ del catálogo (nombre único normalizado
+  por `trg_catalogo_nombre`, igual que en `web_categorias_guias`; `web.faqs` sigue entregando el nombre); mover renumera 0…n−1
   en el servidor (no atómico).
 - `eventos_web` no guarda IP ni user agent: sólo el token anónimo; purga a 12 meses.
 - **El límite por IP del portal no guarda la IP**: `web.portal_intento(p_ip)` la guarda como huella HMAC-SHA256 con la sal `portal:sal` de Vault, que

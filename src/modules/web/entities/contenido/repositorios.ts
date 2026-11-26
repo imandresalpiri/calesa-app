@@ -3,6 +3,7 @@
 import type { ResultadoDeAccion } from '@/shared/lib/enviar-accion'
 import type { Resultado } from '@/shared/lib/errores'
 import type { DireccionDeOrden, ListaDeCategorias } from './categorias'
+import type { CategoriaDeFaq } from './categorias-de-faq'
 import type { DocumentoDelSitio } from './documento-limpio'
 import type { DatosDeFaq, Faq } from './faqs'
 import type { GuiaCompleta, GuiaDeLista, OpcionesDeGuia } from './guias'
@@ -69,7 +70,10 @@ export type LectorDeLegales = () => Promise<Resultado<LegalesDelSitio>>
 
 // La tabla de categorías no tiene versión: la última escritura gana. Una fila que ya no está es `no_encontrado`.
 export type EscritorDeCategorias = {
-  crear: (entrada: { nombre: string }) => Promise<ResultadoDeAccion<{ id: string }>>
+  // Devuelve el nombre como lo guardó la base (limpio) y su orden: el combo de la guía la elige al crearla.
+  crear: (entrada: {
+    nombre: string
+  }) => Promise<ResultadoDeAccion<{ id: string; nombre: string; orden: number }>>
   renombrar: (entrada: { id: string; nombre: string }) => Promise<ResultadoDeAccion<null>>
   activar: (entrada: { id: string; activa: boolean }) => Promise<ResultadoDeAccion<null>>
   mover: (entrada: { id: string; direccion: DireccionDeOrden }) => Promise<ResultadoDeAccion<null>>
@@ -98,6 +102,13 @@ export type RepositorioDeFaqs = {
   }) => Promise<ResultadoDeAccion<{ id: string }>>
   // Relee la lista, calcula `reordenar()` y escribe cada fila con su versión. No es atómico (D6).
   mover: (pedido: { id: string; direccion: 'subir' | 'bajar' }) => Promise<ResultadoDeAccion<null>>
+}
+
+// Las categorías de FAQ (escritura directa bajo la RLS de `web.contenido.gestionar`). Un nombre que ya existe con otra escritura es
+// `duplicado` con el mensaje de la base («Ya existe «X».»).
+export type EscritorDeCategoriasDeFaq = {
+  // Nace al final del catálogo y se devuelve para elegirla.
+  crear: (nombre: string) => Promise<Resultado<CategoriaDeFaq>>
 }
 
 // Crear, guardar y eliminar un testimonio (escritura directa bajo la RLS de `web.contenido.gestionar`, 8.02-2).

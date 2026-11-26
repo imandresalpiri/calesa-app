@@ -58,7 +58,10 @@ export function filasDeFaqs(
     icono: null,
     activo: true,
     insignias: [faq.publicada ? 'Publicada' : 'Sin publicar'],
-    uso: faq.categoria ?? 'Sin categoría',
+    uso:
+      faq.categoria === null
+        ? 'Sin categoría'
+        : `${faq.categoria}${faq.categoriaInactiva ? ' (inactiva)' : ''}`,
     acciones: accionesDeFaq(faq, quehaceres),
     puedeSubir: motivoSinOrden === undefined && posicion > 0,
     puedeBajar: motivoSinOrden === undefined && posicion < faqs.length - 1,
