@@ -1428,6 +1428,11 @@ las trampas, en `docs/LECCIONES.md`.
   ruido).
 - **Tras un pago, la página se vuelve a pedir por el evento del dinero** (`useAlCambiarElDineroDelProyecto`): las actions de pagos no revalidan (los lee el
   navegador), y sin esto la fila seguiría diciendo «Registrar pago».
+- **Los paneles del pago y de la compra tienen una sola forma:** arriba lo principal (el monto con su moneda en un campo, el estado, la fecha y a quién), después grupos
+  planos con su título y la zona del comprobante a la vista, vacía o llena, con el mismo alto. Descartados: un campo de archivo nativo con su ayuda (no se ve dónde se
+  sube), una tarjeta por grupo (caja dentro del panel) y un acordeón para lo secundario. El pago confirmado y cualquiera sin permiso de editar se abren en lectura
+  («Pago»); el pago anulado sale de la lista, así que no hay panel que mostrar con su motivo. El tipo de cambio ocupa su lugar aunque la moneda sea la base (apagado,
+  con su motivo): cambiar de moneda no mueve lo de abajo. Un archivo por pago y por compra (la columna guarda una ruta); varios pedirían una tabla.
 
 ## Agenda
 

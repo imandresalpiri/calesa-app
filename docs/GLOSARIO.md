@@ -90,8 +90,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   motivo y constancia `pago.anulado` en `actividad`; no vuelve ni deja sin cumplir lo que pide de pagos la fase actual del vehículo o de un ítem del proyecto.
   Eliminar es sólo para uno sin confirmar.
 - **Comprobante de un gasto o pago** — `comprobante_ruta` de `gastos`, `pagos` y `repuestos_compras`, bucket `comprobantes` /
-  `comprobante_puede()`: archivo que los respalda (`<unidad|proyecto>/<sha-256>.<ext>`); lo lee quien ve la fila (una compra, con
-  `repuestos.costos.ver`). No es el **Comprobante** de venta.
+  `comprobante_puede()`: archivo que los respalda (`<unidad|proyecto>/<sha-256>.<ext>`, uno por fila); lo lee quien ve la fila (una compra, con
+  `repuestos.costos.ver`). Se sube y se ve en la «zona del comprobante» del panel del pago, del gasto y de la compra. No es el **Comprobante** de venta.
 - **Integración** — `integraciones` / `Integracion`, `integracionActiva()`: interruptor + config no secreta (apibara, push, web pública).
 - **Secreto de una integración** — `integraciones.secreto_guardado_en` / `integracion_guardar_secreto()`: clave de API en Vault.
 - **Origen** — `origenes`: de dónde viene un vehículo (subasta USA, China, oficina…); tipo subasta o manual.
