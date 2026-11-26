@@ -58,8 +58,12 @@ export async function PantallaDeReglas({ permisos, origenes, fijo }: Props) {
       reglas={flujo.reglas}
       motivoSinPermiso={motivoSinPermisoDeReglas(permisos, flujo.ambito, flujo.origenId)}
       transporte={transporte}
-      // Sin puertos o navieras que ofrecer, quien gestiona esos catálogos en el origen del flujo ve el enlace a cargarlos.
-      puedeCargarCatalogos={puede(permisos, 'logistica.catalogos.gestionar', flujo.origenId)}
+      // Sin puertos o navieras que ofrecer, quien gestiona esos catálogos en el origen del flujo ve el enlace a su drawer; en el de repuestos, nadie.
+      origenParaCargar={
+        flujo.origenId !== null && puede(permisos, 'logistica.catalogos.gestionar', flujo.origenId)
+          ? flujo.origenId
+          : null
+      }
     />
   )
 }

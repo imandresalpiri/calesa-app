@@ -6,10 +6,14 @@ import { cortarAlTope } from '@/shared/lib/conteo'
 export const TOPE_DE_LA_OFERTA = 200
 
 export const TEXTO_DE_OFERTA_VACIA = 'Vacío: se ofrecen todos.'
-export const SIN_PUERTOS =
-  'Todavía no hay puertos cargados. Se cargan en la configuración de logística.'
-export const SIN_NAVIERAS =
-  'Todavía no hay navieras cargadas. Se cargan en la configuración de logística.'
+// Lo que dice la oferta sin puertos o navieras que ofrecer: se cargan en su drawer, arriba del diagrama de las fases de un origen (el flujo de repuestos
+// no tiene esos drawers: ofrece los compartidos, que se cargan desde cualquier origen).
+export function textoSinCatalogo(catalogo: 'puertos' | 'navieras', deRepuestos: boolean): string {
+  const titulo = catalogo === 'puertos' ? 'Puertos' : 'Navieras'
+  const cargados = catalogo === 'puertos' ? 'puertos cargados' : 'navieras cargadas'
+  const donde = deRepuestos ? 'en las fases de un origen' : 'arriba del diagrama'
+  return `Todavía no hay ${cargados}. Se cargan en «${titulo}», ${donde}.`
+}
 
 export type ElementoDeOferta = { id: string; nombre: string; activo: boolean }
 

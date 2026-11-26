@@ -14,8 +14,13 @@ import {
   flujoParaConfigurarDesde,
   flujosConfigurables,
   flujosDesde,
+  flujosVisibles,
 } from '../../entities/flujo'
-import type { LectorDeFlujo, LectorDeFlujosConfigurables } from '../../entities/repositorios'
+import type {
+  LectorDeFlujo,
+  LectorDeFlujosConfigurables,
+  LectorDeFlujosVisibles,
+} from '../../entities/repositorios'
 
 const COLUMNAS_DE_FASE_COMPLETA =
   'id, nombre, descripcion, color, icono, orden, activa, es_inicial, es_final, es_logistica, demora_dias, alerta_cada_horas, nota_obligatoria, permite_contenedor, permite_aduana, cuenta_llegada_repuestos, publica_web, visible_portal, alias_portal, descripcion_portal, es_subasta, posicion_x, posicion_y'
@@ -129,7 +134,8 @@ export const getFlujoParaConfigurar: LectorDeFlujo = cache(async (flujoId) => {
 
 // Los flujos que quien mira puede configurar (el flujo de cada origen y el de repuestos): todos se leen, `flujosConfigurables()` filtra por sus permisos.
 // Un flujo por origen más el de repuestos: decenas de filas, `flujos_origen_unico` y el orden por `ambito` y `nombre`.
-export const getFlujosConfigurables: LectorDeFlujosConfigurables = cache(async (permisos) => {
+// Todos los flujos, sin filtrar: una lectura por request que comparten los dos lectores de abajo.
+const leerTodosLosFlujos = cache(async () => {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('flujos')
@@ -138,7 +144,18 @@ export const getFlujosConfigurables: LectorDeFlujosConfigurables = cache(async (
     .order('nombre')
     .limit(TOPE_DE_FLUJOS + 1)
   if (error) {
-    return { ok: false, error: errorDePostgrest(error) }
+    return { ok: false as const, error: errorDePostgrest(error) }
   }
-  return ok(flujosConfigurables(flujosDesde(cortarAlTope(data, TOPE_DE_FLUJOS).filas), permisos))
+  return ok(flujosDesde(cortarAlTope(data, TOPE_DE_FLUJOS).filas))
+})
+
+export const getFlujosConfigurables: LectorDeFlujosConfigurables = cache(async (permisos) => {
+  const flujos = await leerTodosLosFlujos()
+  return flujos.ok ? ok(flujosConfigurables(flujos.data, permisos)) : flujos
+})
+
+// Los que abre la pestaña Fases: los que configura y, en sólo lectura, los de los orígenes donde quien mira gestiona los catálogos de logística.
+export const getFlujosVisibles: LectorDeFlujosVisibles = cache(async (permisos) => {
+  const flujos = await leerTodosLosFlujos()
+  return flujos.ok ? ok(flujosVisibles(flujos.data, permisos)) : flujos
 })

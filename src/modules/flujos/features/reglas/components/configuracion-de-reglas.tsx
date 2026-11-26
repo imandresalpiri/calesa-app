@@ -23,7 +23,8 @@ type Props = {
   motivoSinPermiso: string | null
   // Con «Transporte» encendida: lo guardado y lo que se puede marcar.
   transporte: { oferta: Oferta; catalogo: CatalogoDeTransporte } | null
-  puedeCargarCatalogos: boolean
+  // El origen del flujo si quien mira gestiona sus catálogos (la oferta vacía enlaza a su drawer); nulo, sin enlace.
+  origenParaCargar: string | null
 }
 
 // Lo que se edita en la pestaña «Reglas»: las reglas y, con «Transporte» encendida, su oferta. Comparten la versión del flujo, el envío a la vez y el
@@ -36,7 +37,7 @@ export function ConfiguracionDeReglas({
   reglas,
   motivoSinPermiso,
   transporte,
-  puedeCargarCatalogos,
+  origenParaCargar,
 }: Props) {
   const escritura = useEscrituraDeReglas(version)
   const sinPermiso = motivoSinPermiso !== null
@@ -66,7 +67,8 @@ export function ConfiguracionDeReglas({
           catalogo={transporte.catalogo}
           sinPermiso={sinPermiso}
           escritura={escritura}
-          puedeCargarCatalogos={puedeCargarCatalogos}
+          origenParaCargar={origenParaCargar}
+          deRepuestos={ambito === 'repuestos'}
         />
       ) : null}
     </div>

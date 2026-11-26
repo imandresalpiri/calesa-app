@@ -19,7 +19,7 @@ type Props = {
   // Lo que se dice si el catálogo no tiene nada para ofrecer.
   sinCatalogo: string
   // Adónde se carga ese catálogo, si quien mira puede (nulo: sólo el texto).
-  cargarEn: string | null
+  cargarEn: Route | null
   deshabilitado: boolean
   alMarcar: (id: string, marcada: boolean) => void
 }
@@ -49,7 +49,7 @@ export function GrupoDeOferta({
             <>
               {' '}
               <Link
-                href={cargarEn as Route}
+                href={cargarEn}
                 className="font-medium text-(--color-ink) underline underline-offset-2"
               >
                 {titulo === 'Navieras' ? 'Cargar navieras' : 'Cargar puertos'}

@@ -7,6 +7,7 @@ import {
   elegibles,
   firmaDeOferta,
   ofertaDesde,
+  textoSinCatalogo,
   vacioDe,
 } from './oferta'
 
@@ -112,5 +113,16 @@ describe('oferta', () => {
     })
     expect(r?.puertosOrigen[0]?.nombre).toBe('Iquique')
     expect(ofertaDesde({})).toBeNull()
+  })
+})
+
+describe('textoSinCatalogo', () => {
+  it('dice dónde se cargan, según el flujo', () => {
+    expect(textoSinCatalogo('navieras', false)).toBe(
+      'Todavía no hay navieras cargadas. Se cargan en «Navieras», arriba del diagrama.',
+    )
+    expect(textoSinCatalogo('puertos', true)).toBe(
+      'Todavía no hay puertos cargados. Se cargan en «Puertos», en las fases de un origen.',
+    )
   })
 })

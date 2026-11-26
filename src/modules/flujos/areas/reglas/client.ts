@@ -11,12 +11,11 @@ export type { ClaveDeRegla, ReglaDelCatalogo } from '../../entities/reglas/catal
 export { hrefDeFase, textoDelImpacto } from '../../entities/reglas/impacto'
 export type { ImpactoDeRegla, RespuestaDeCambio } from '../../entities/reglas/impacto'
 export {
-  SIN_NAVIERAS,
-  SIN_PUERTOS,
   TEXTO_DE_OFERTA_VACIA,
   cambioDeOferta,
   elegibles,
   firmaDeOferta,
+  textoSinCatalogo,
 } from '../../entities/reglas/oferta'
 export type {
   BorradorDeOferta,
