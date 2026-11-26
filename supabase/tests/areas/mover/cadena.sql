@@ -240,7 +240,7 @@ declare
   a uuid := pg_temp.mc_flujo(); o uuid := pg_temp.mc_origen_de(a); f uuid := pg_temp.mc_fase(a, 'mc uno', 10);
   fb uuid := pg_temp.mc_fase(pg_temp.mc_flujo(), 'mc otro', 10);
   duena uuid := pg_temp.mc_persona(array['logistica.ver', 'vehiculos.ver']);
-  v_dem uuid; v_apr uuid; v_tr uuid; v_q uuid; td uuid; nav uuid;
+  v_dem uuid; v_apr uuid; v_tr uuid; v_q uuid; td uuid; nav uuid; emb uuid; cont uuid;
 begin
   update public.fases set demora_dias = 2 where id = f;
   perform pg_temp.mc_regla(a, true);
@@ -251,7 +251,10 @@ begin
   insert into public.tipos_documento (nombre) values ('mc factura ' || substr(gen_random_uuid()::text, 1, 6)) returning id into td;
   insert into public.documentos (vehiculo_id, tipo_documento_id) values (v_apr, td);   -- nace «subido»
   insert into public.navieras (nombre) values ('mc naviera') returning id into nav;
-  insert into public.transportes (vehiculo_id, naviera_id, contenedor, booking) values (v_tr, nav, 'ABCU1234567', 'BK778899');
+  -- El contenedor y la naviera llegan por las entidades: el contenedor, en el embarque que tiene la naviera.
+  insert into public.embarques (origen_id, booking, naviera_id) values (o, 'BK778899', nav) returning id into emb;
+  insert into public.contenedores (origen_id, numero, embarque_id) values (o, 'ABCU1234567', emb) returning id into cont;
+  insert into public.transportes (vehiculo_id, contenedor_id) values (v_tr, cont);
   perform pg_temp.mc_mismos('CA5 demoradas', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"demoradas": true}')), array[v_dem]);
   perform pg_temp.mc_mismos('CA5 por aprobar', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"por_aprobar": true}')), array[v_apr]);
   perform pg_temp.mc_mismos('CA5 contenedor', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"contenedor": " abcu1234567 "}')), array[v_tr]);

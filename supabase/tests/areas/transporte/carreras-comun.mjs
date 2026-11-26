@@ -14,15 +14,17 @@ export const fila = async (db, sql, args) => (await db.query(sql, args)).rows[0]
 export const sinInterbloqueo = (...rs) => rs.every((r) => r?.codigo !== '40P01')
 const pidDe = async (db) => (await db.query('select pg_backend_pid() as pid')).rows[0].pid
 
-// Lo que deja una corrida (también una rota). Va antes de `limpiar()` del terreno: el historial frena el borrado de las fases (`restrict`).
+// Lo que deja una corrida (también una rota). Va antes de `limpiar()` del terreno: el historial frena el borrado de las fases y los embarques y
+// contenedores, el del origen (`restrict`); los transportes, el de los contenedores.
 export async function limpiarTransporte(db) {
   const deLasCarreras = `(select id from public.vehiculos where titulo like $1)`
-  await db.query(`delete from public.notas where vehiculo_id in ${deLasCarreras}`, [
-    `${PREFIJO} transporte%`,
-  ])
-  await db.query(`delete from public.historial_fases where vehiculo_id in ${deLasCarreras}`, [
-    `${PREFIJO} transporte%`,
-  ])
+  const delOrigen = `(select id from public.origenes where nombre like $1)`
+  const patron = [`${PREFIJO} transporte%`]
+  await db.query(`delete from public.notas where vehiculo_id in ${deLasCarreras}`, patron)
+  await db.query(`delete from public.historial_fases where vehiculo_id in ${deLasCarreras}`, patron)
+  await db.query(`delete from public.transportes where vehiculo_id in ${deLasCarreras}`, patron)
+  await db.query(`delete from public.contenedores where origen_id in ${delOrigen}`, patron)
+  await db.query(`delete from public.embarques where origen_id in ${delOrigen}`, patron)
 }
 
 // Un origen con tres fases: «uno» (inicial), «pide» (exige el contenedor, bloqueante) y «tres»; transiciones uno → pide, uno → tres y tres → uno.
@@ -71,7 +73,8 @@ export async function terrenoTransporte(db) {
   return { origen, uno, pide, tres }
 }
 
-// Un vehículo en `fase` con su transporte (ids fijos si se piden, para ordenar a propósito).
+// Un vehículo en `fase` con su transporte (ids fijos si se piden, para ordenar a propósito), en el embarque `booking` y el contenedor
+// `contenedor` del origen, que se crean si faltan (el contenedor, en ese embarque).
 export async function unidad(
   db,
   t,
@@ -82,29 +85,58 @@ export async function unidad(
     `insert into public.vehiculos (id, origen_id, titulo, fase_id, creado_por) values (coalesce($1, gen_random_uuid()), $2, $3, $4, $5) returning id`,
     [id, t.origen, `${PREFIJO} transporte ${n}`, fase, duena],
   )
+  let embarque = null
+  if (booking) {
+    await db.query(
+      `insert into public.embarques (origen_id, booking) values ($1, $2) on conflict (booking, origen_id) do nothing`,
+      [t.origen, booking],
+    )
+    embarque = (
+      await fila(db, `select id from public.embarques where origen_id = $1 and booking = $2`, [
+        t.origen,
+        booking,
+      ])
+    ).id
+  }
+  let deContenedor = null
+  if (contenedor) {
+    await db.query(
+      `insert into public.contenedores (origen_id, numero, embarque_id) values ($1, $2, $3) on conflict (numero, origen_id) do nothing`,
+      [t.origen, contenedor, embarque],
+    )
+    deContenedor = (
+      await fila(db, `select id from public.contenedores where origen_id = $1 and numero = $2`, [
+        t.origen,
+        contenedor,
+      ])
+    ).id
+  }
   await db.query(
-    `insert into public.transportes (id, vehiculo_id, booking, contenedor) values (coalesce($1, gen_random_uuid()), $2, $3, $4)`,
-    [transporte, v, booking, contenedor],
+    `insert into public.transportes (id, vehiculo_id, contenedor_id, embarque_id) values (coalesce($1, gen_random_uuid()), $2, $3, $4)`,
+    [transporte, v, deContenedor, deContenedor ? null : embarque],
   )
   return v
 }
 
+// Las versiones que ve el grupo: la mayor entre la fila, su contenedor y su embarque (la de `transporte_grupo`).
 export const esperadasDe = async (db, booking) =>
   (
     await fila(
       db,
-      `select jsonb_object_agg(id, to_jsonb(actualizado_en))::text as e from public.transportes where booking = $1`,
+      `select jsonb_object_agg(x.id, to_jsonb(greatest(x.actualizado_en, x.contenedor_actualizado_en, x.embarque_actualizado_en)))::text as e
+         from public.transportes_con_embarque x where x.booking = $1`,
       [booking],
     )
   ).e
+// Las versiones que pasa la ficha a `transporte_guardar`: la de la fila, la de su embarque y la de su contenedor.
 export const versionDe = async (db, v) =>
-  (
-    await fila(
-      db,
-      `select to_jsonb(actualizado_en) #>> '{}' as e from public.transportes where vehiculo_id = $1`,
-      [v],
-    )
-  ).e
+  await fila(
+    db,
+    `select to_jsonb(x.actualizado_en) #>> '{}' as fila, to_jsonb(x.embarque_actualizado_en) #>> '{}' as embarque,
+            to_jsonb(x.contenedor_actualizado_en) #>> '{}' as contenedor
+       from public.transportes_con_embarque x where x.vehiculo_id = $1`,
+    [v],
+  )
 
 // A abre su transacción y actúa; B lanza, se espera a que quede esperando un candado y A confirma.
 export function armarCarrera({ orquesta, conectar, esperarBloqueo }) {

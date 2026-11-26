@@ -9,7 +9,10 @@
 --   G4. Aplicar la naviera a las 3: las 3 la tienen y mueven su versión; las versiones devueltas sirven para aplicar otra vez.
 --   G5. Quien ve 2 de 3: dos unidades, `hay_ocultas = true` y ninguna clave con un número; sin `logistica.ver` ni `repuestos.ver`, 42501 al leer, y sin
 --       la clave de editar, 42501 al aplicar, exista o no el booking.
---   G6. Una unidad del grupo en la papelera no es del grupo (D19): no cuenta como oculta y el grupo se sigue aplicando sin ella.
+--   G6. Una unidad del grupo en la papelera no es del grupo (D19): no cuenta como oculta y el grupo se sigue aplicando sin ella (su fila no se toca;
+--       lo del embarque lo ve, porque sigue en él).
+--   Las unidades del grupo son las de los embarques (o contenedores) de la clave: se leen en `transportes_con_embarque`, y la versión que ve el grupo
+--   es la mayor entre la fila, su contenedor y su embarque.
 
 -- La primera cuenta de una base vacía queda dueña (con `SOLO=`): una de relleno antes, para que ninguna de la prueba lo sea.
 create or replace function pg_temp.trn_persona(p_concesiones text[]) returns uuid language plpgsql as $f$
@@ -61,7 +64,11 @@ end $f$;
 
 create or replace function pg_temp.trn_guardar(p_quien uuid, p_v uuid, p_esperada timestamptz, p_cambios jsonb, p_r uuid default null) returns jsonb
 language sql as $f$
-  select pg_temp.trn_corre(p_quien, format('select public.transporte_guardar(%L, %L, %L, %L)', p_v, p_r, p_esperada, p_cambios));
+  -- Con una esperada, también las versiones vigentes de su embarque y su contenedor: quien guarda vio lo de ahora (el PT409 por el embarque o el
+  -- contenedor, en `con-embarque.sql`).
+  select pg_temp.trn_corre(p_quien, format('select public.transporte_guardar(%L, %L, %L, %L, %L, %L)', p_v, p_r, p_esperada, p_cambios,
+    (select x.embarque_actualizado_en from public.transportes_con_embarque x where p_esperada is not null and (x.vehiculo_id = p_v or x.repuesto_id = p_r)),
+    (select x.contenedor_actualizado_en from public.transportes_con_embarque x where p_esperada is not null and (x.vehiculo_id = p_v or x.repuesto_id = p_r))));
 $f$;
 
 create or replace function pg_temp.trn_es(p_que text, p_r jsonb, p_estado text, p_hint text default null) returns void language plpgsql as $f$
@@ -85,7 +92,7 @@ begin
     insert into public.vehiculos (origen_id, titulo, fase_id) values ((t ->> 'o')::uuid, 'tr grupo ' || i, (t ->> 'fase')::uuid) returning id into v;
     perform pg_temp.trn_pasa('grupo ' || i, pg_temp.trn_guardar(p, v, null, jsonb_build_object('booking', p_booking, 'contenedor', p_contenedor)));
   end loop;
-  return (select array_agg(x.vehiculo_id order by x.id) from public.transportes x where x.booking = upper(p_booking));
+  return (select array_agg(x.vehiculo_id order by x.id) from public.transportes_con_embarque x where x.booking = upper(p_booking));
 end $f$;
 
 create or replace function pg_temp.trn_leer(p_quien uuid, p_tipo text, p_clave text) returns jsonb language sql as $f$
@@ -103,9 +110,10 @@ $f$;
 
 -- Las filas del grupo, para comparar antes y después.
 create or replace function pg_temp.trn_foto(p_booking text) returns jsonb language sql as $f$
-  select jsonb_agg(jsonb_build_object('id', x.id, 'naviera_id', x.naviera_id, 'contenedor', x.contenedor, 'eta_el', x.eta_el, 'v', x.actualizado_en)
+  select jsonb_agg(jsonb_build_object('id', x.id, 'naviera_id', x.naviera_id, 'contenedor', x.contenedor, 'eta_el', x.eta_el,
+                                      'v', greatest(x.actualizado_en, x.contenedor_actualizado_en, x.embarque_actualizado_en))
                    order by x.id)
-    from public.transportes x where x.booking = p_booking;
+    from public.transportes_con_embarque x where x.booking = p_booking;
 $f$;
 
 -- @test transporte: aplicar a un grupo de 3 con una versión cambiada no cambia ninguna (G1)
@@ -125,6 +133,7 @@ begin
   perform pg_temp.trn_es('G1 una cambiada', r, 'PT409');
   if pg_temp.trn_foto('BKG1') is distinct from antes then raise exception 'G1: ninguna debía cambiar'; end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: una unidad que no puedo editar frena todo el grupo con 42501 (G2)
@@ -152,6 +161,7 @@ begin
   perform pg_temp.trn_es('G2 edita y no ve una', r, '42501');
   if pg_temp.trn_foto('BKG2') is distinct from antes then raise exception 'G2: ninguna debía cambiar'; end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: si el grupo ganó una unidad después de leerlo, PT409 (G3)
@@ -166,8 +176,9 @@ begin
   perform pg_temp.trn_pasa('G3 cuarto', pg_temp.trn_guardar(p, v4, null, '{"booking": "BKG3"}'));
   r := pg_temp.trn_aplicar(p, 'booking', 'BKG3', pg_temp.trn_esperadas(g), '{"eta_el": "2026-12-24"}');
   perform pg_temp.trn_es('G3 ganó una', r, 'PT409');
-  if exists (select 1 from public.transportes where booking = 'BKG3' and eta_el is not null) then raise exception 'G3: ninguna debía cambiar'; end if;
+  if exists (select 1 from public.transportes_con_embarque where booking = 'BKG3' and eta_el is not null) then raise exception 'G3: ninguna debía cambiar'; end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: aplicar la naviera a las 3 y otra vez con las versiones devueltas (G4)
@@ -182,12 +193,16 @@ begin
   -- Las versiones de antes, corridas un segundo atrás sin triggers: `set_actualizado_en()` pone now(), la misma en toda la transacción, y así se ve
   -- que se movieron.
   set local session_replication_role = replica;
-  update public.transportes set actualizado_en = actualizado_en - interval '1 second' where booking = 'BKG4';
+  update public.transportes set actualizado_en = actualizado_en - interval '1 second'
+   where id in (select x.id from public.transportes_con_embarque x where x.booking = 'BKG4');
+  update public.embarques set actualizado_en = actualizado_en - interval '1 second' where booking = 'BKG4';
+  update public.contenedores set actualizado_en = actualizado_en - interval '1 second'
+   where id in (select x.contenedor_id from public.transportes_con_embarque x where x.booking = 'BKG4');
   set local session_replication_role = origin;
   g := pg_temp.trn_leer(p, 'booking', 'BKG4');
   r := pg_temp.trn_aplicar(p, 'booking', 'BKG4', pg_temp.trn_esperadas(g), jsonb_build_object('naviera_id', nav));
   if r ? 'error' or r -> 'sin_cambios' <> 'false'::jsonb or jsonb_array_length(r -> 'unidades') <> 3 then raise exception 'G4: debía aplicar: %', r; end if;
-  if (select count(*) from public.transportes where booking = 'BKG4' and naviera_id = nav) <> 3 then raise exception 'G4: las 3 debían tener la naviera'; end if;
+  if (select count(*) from public.transportes_con_embarque where booking = 'BKG4' and naviera_id = nav) <> 3 then raise exception 'G4: las 3 debían tener la naviera'; end if;
   if exists (select 1 from jsonb_array_elements(r -> 'unidades') u, jsonb_array_elements(g -> 'unidades') w
               where u ->> 'transporte_id' = w ->> 'transporte_id' and (u ->> 'actualizado_en')::timestamptz = (w ->> 'actualizado_en')::timestamptz) then
     raise exception 'G4: las versiones debían moverse';
@@ -196,6 +211,7 @@ begin
   r := pg_temp.trn_aplicar(p, 'booking', 'BKG4', e, '{"eta_el": "2026-12-24"}');
   if r ? 'error' then raise exception 'G4: con las versiones devueltas debía aplicar: %', r; end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: quien ve 2 de 3 lee dos y sólo sabe que hay ocultas; sin ver la logística, 42501 (G5)
@@ -207,9 +223,12 @@ begin
   p := pg_temp.trn_persona(array['logistica.ver@' || (t ->> 'o')]);
   nadie := pg_temp.trn_persona(array['leads.ver']);
   ids := pg_temp.trn_grupo(t, duena, 'BKG5', null);
+  -- La tercera, del otro origen: en el embarque BKG5 de ese origen (un vehículo va en un embarque de su origen).
   update public.vehiculos set origen_id = (t ->> 'o2')::uuid, fase_id = null where id = ids[3];
+  insert into public.embarques (origen_id, booking) values ((t ->> 'o2')::uuid, 'BKG5') returning id into v_ajeno;
+  update public.transportes set embarque_id = v_ajeno where vehiculo_id = ids[3];
   g := pg_temp.trn_leer(p, 'booking', 'BKG5');
-  if (select array_agg(k order by k) from jsonb_object_keys(g) k) is distinct from array['clave', 'hay_mas', 'hay_ocultas', 'tipo', 'unidades'] then
+  if (select array_agg(k order by k) from jsonb_object_keys(g) k) is distinct from array['clave', 'embarques', 'hay_mas', 'hay_ocultas', 'tipo', 'unidades'] then
     raise exception 'G5: claves de más o de menos: %', g;
   end if;
   if jsonb_array_length(g -> 'unidades') <> 2 or g -> 'hay_ocultas' <> 'true'::jsonb or g -> 'hay_mas' <> 'false'::jsonb then
@@ -222,20 +241,25 @@ begin
   perform pg_temp.trn_es('G5 aplicar sin la clave a uno que no existe',
                          pg_temp.trn_aplicar(nadie, 'booking', 'NOEXISTE', jsonb_build_object(gen_random_uuid(), now()), '{"eta_el": "2026-12-24"}'), '42501');
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
 -- @test transporte: una unidad del grupo en la papelera no cuenta ni frena aplicar (G6)
 begin;
 do $$
-declare t jsonb := pg_temp.trn_terreno(); p uuid; g jsonb; r jsonb; ids uuid[];
+declare t jsonb := pg_temp.trn_terreno(); p uuid; g jsonb; r jsonb; ids uuid[]; v_antes timestamptz;
 begin
   p := pg_temp.trn_persona(array['logistica.ver', 'logistica.transporte.editar']);
   ids := pg_temp.trn_grupo(t, p, 'BKG6', null);
   update public.vehiculos set eliminado_en = now() where id = ids[2];
+  v_antes := (select x.actualizado_en from public.transportes x where x.vehiculo_id = ids[2]);
   g := pg_temp.trn_leer(p, 'booking', 'BKG6');
   if jsonb_array_length(g -> 'unidades') <> 2 or g -> 'hay_ocultas' <> 'false'::jsonb then raise exception 'G6: debía leer 2 sin ocultas: %', g; end if;
   r := pg_temp.trn_aplicar(p, 'booking', 'BKG6', pg_temp.trn_esperadas(g), '{"eta_el": "2026-12-24"}');
   if r ? 'error' or jsonb_array_length(r -> 'unidades') <> 2 then raise exception 'G6: debía aplicar a las 2 vivas: %', r; end if;
-  if (select eta_el from public.transportes where vehiculo_id = ids[2]) is not null then raise exception 'G6: la de la papelera no debía cambiar'; end if;
+  if (select x.actualizado_en from public.transportes x where x.vehiculo_id = ids[2]) is distinct from v_antes then
+    raise exception 'G6: la fila de la de la papelera no debía cambiar';
+  end if;
 end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
