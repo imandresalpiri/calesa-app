@@ -15,7 +15,8 @@ export const ID_DEL_MOTIVO_SIN_ORDEN = 'motivo-sin-orden-de-fases'
 const BOTON = 'h-11 md:h-8'
 
 // La barra del flujo, sobre las fases: el título, lo del flujo entero que se abre en el panel («Reglas del flujo», «Tipos de documento»), «Ver como lista» o
-// «Ver como diagrama» (sólo donde cabe el diagrama) y «Nueva fase» (hueco del área `fases`, con sus modales, una vez por pantalla). Si no se puede ordenar,
+// «Ver como diagrama» (en todo ancho) y, en la lista, «Nueva fase» (hueco del área `fases`, con sus modales, una vez por pantalla; en el diagrama está en su
+// barra flotante). Si no se puede ordenar,
 // el motivo en texto. Se parte en renglones: con el texto al 200 % no ensancha la página.
 export function BarraDelFlujo({ flujo, huecos }: Props) {
   const panel = usePanelDelFlujo()
@@ -34,7 +35,9 @@ export function BarraDelFlujo({ flujo, huecos }: Props) {
           Fases
         </h2>
         <p className="text-(length:--text-sm) text-(--color-ink-soft)">
-          En el orden del flujo: toca una fase para editarla.
+          {vista.vista === 'diagrama'
+            ? 'Toca una fase para editarla. El orden se cambia desde su «⋯».'
+            : 'En el orden del flujo: toca una fase para editarla.'}
         </p>
         {motivo === null ? null : (
           <p
@@ -68,7 +71,7 @@ export function BarraDelFlujo({ flujo, huecos }: Props) {
             Tipos de documento
           </Button>
         ) : null}
-        {vista.puedeDiagrama && flujo.fases.length > 0 ? (
+        {flujo.fases.length > 0 ? (
           <Button variant="outline" className={BOTON} onClick={vista.alternar}>
             {vista.vista === 'diagrama' ? <ListIcon aria-hidden /> : <WorkflowIcon aria-hidden />}
             {vista.vista === 'diagrama' ? 'Ver como lista' : 'Ver como diagrama'}

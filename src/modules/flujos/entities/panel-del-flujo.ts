@@ -18,8 +18,9 @@ export const CLAVES_DEL_PANEL_DE_FASE = [
   'eliminar',
   // requisitos y fases: lo que se quita (`?eliminar=requisito&quitar=`, `?panel=eliminar-fase&quitar=`).
   'quitar',
-  // transiciones: `?eliminar=salida&salida=<id>`.
+  // transiciones: `?eliminar=salida&salida=<id>` y `?editar=salida&editada=<id>`.
   'salida',
+  'editada',
   // fases, documentos y fuera de regla: los modales y paneles por `?panel=`.
   'panel',
   // documentos: `?panel=editar-tipo&tipo=<id>`, `?panel=nuevo-tipo&de=empresa|flujo`.
@@ -27,6 +28,8 @@ export const CLAVES_DEL_PANEL_DE_FASE = [
   'de',
   // fases: la pestaña del panel de una fase (`?fase=<id>&pestana=identidad|ajustes`; sin ella, «Reglas»). Es la `CLAVE_DE_PESTANA_DE_FASE` del área `fases`.
   'pestana',
+  // fases: dónde nace la fase pedida en el diagrama (`?panel=nueva-fase&en=<x>,<y>`, en rem).
+  'en',
 ] as const
 
 export type ContenidoDelPanel =

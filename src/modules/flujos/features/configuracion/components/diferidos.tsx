@@ -3,6 +3,7 @@
 import { diferido } from '@/shared/ui/diferido'
 import { EsqueletoDelDiagrama } from './esqueleto-del-diagrama'
 import { ListaDeFases } from './lista-de-fases'
+import { MarcoDelLienzo } from './marco-del-lienzo'
 
 // El panel se pide recién al abrirse la primera vez (`useAbiertoAlgunaVez()`): las fases no cargan su código para mostrarse.
 export const PanelDelFlujoDiferido = diferido(() =>
@@ -14,7 +15,11 @@ export const DiagramaDelFlujoDiferido = diferido(
   () => import('./diagrama/diagrama-del-flujo').then((modulo) => modulo.DiagramaDelFlujo),
   {
     aviso: 'aqui',
-    esqueleto: <EsqueletoDelDiagrama />,
+    esqueleto: (
+      <MarcoDelLienzo>
+        <EsqueletoDelDiagrama />
+      </MarcoDelLienzo>
+    ),
     respaldo: ({ flujo, huecos, alAbrir }) => (
       <ListaDeFases flujo={flujo} huecos={huecos} alAbrir={alAbrir} />
     ),

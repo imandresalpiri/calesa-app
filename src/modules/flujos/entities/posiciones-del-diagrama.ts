@@ -182,3 +182,34 @@ export function yaGuardado(
     ? leida === null
     : leida !== null && leida.x === cambio.x && leida.y === cambio.y
 }
+
+// Una posición movida en pantalla que todavía no se ve en lo leído: `guardadaEn` es la versión que devolvió su escritura (nula mientras no llegó).
+export type PosicionPendiente = { cambio: CambioDePosicion; guardadaEn: string | null }
+
+// Lo pendiente que sigue valiendo sobre lo leído: se va cuando lo leído ya lo trae, o cuando se leyó una versión igual o posterior a la de su escritura
+// (otra persona la movió después: manda lo leído). `alMenosTan(leida, guardada)` dice si la leída es igual o posterior.
+export function pendientesVigentes(
+  pendientes: ReadonlyMap<string, PosicionPendiente>,
+  leidas: ReadonlyMap<string, PosicionDeLaFase | null>,
+  leidaNoAntes: (guardadaEn: string) => boolean,
+): Map<string, PosicionPendiente> {
+  const vigentes = new Map<string, PosicionPendiente>()
+  for (const [id, p] of pendientes) {
+    if (!leidas.has(id) || yaGuardado(p.cambio, leidas.get(id))) continue
+    if (p.guardadaEn !== null && leidaNoAntes(p.guardadaEn)) continue
+    vigentes.set(id, p)
+  }
+  return vigentes
+}
+
+// Las fases con lo pendiente encima de lo leído.
+export function conPendientes<T extends ConPosicion>(
+  fases: readonly T[],
+  pendientes: ReadonlyMap<string, PosicionPendiente>,
+): T[] {
+  return fases.map((f) => {
+    const p = pendientes.get(f.id)?.cambio
+    if (!p) return f
+    return { ...f, posicion: p.x === null ? null : { x: p.x, y: p.y } }
+  })
+}

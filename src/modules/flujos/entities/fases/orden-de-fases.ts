@@ -10,7 +10,7 @@ export const MOTIVO_YA_ES_LA_ULTIMA = 'Ya es la última fase.'
 // (`docs/DECISIONES.md` › «Reordenar renumera 0…n−1 y escribe sólo las filas que cambian.»).
 export const MOTIVO_LISTA_CORTADA = `Hay más de ${String(TOPE_DE_FASES)} fases: con la lista cortada no se puede ordenar.`
 
-// Por qué no se puede ordenar ninguna fase del flujo (arrastrar, «Mover antes/después», «Subir/Bajar»), o nulo si se puede.
+// Por qué no se puede ordenar ninguna fase del flujo («Mover antes/después», «Subir/Bajar»; y en el diagrama, moverlas), o nulo si se puede.
 export function motivoSinOrdenDeFases(flujo: { truncado: { fases: boolean } }): string | null {
   return flujo.truncado.fases ? MOTIVO_LISTA_CORTADA : null
 }

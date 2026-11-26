@@ -3,7 +3,7 @@
 import { avisarExito } from '@/shared/ui/toasts'
 import type { CambiosDeFase } from '../../../entities/fases/formulario-de-fase'
 import { avisoDeLoHecho } from '../../../entities/fases/vista-de-impacto'
-import type { FaseParaConfigurar } from '../../../entities/flujo'
+import type { FaseParaConfigurar, PosicionDeLaFase } from '../../../entities/flujo'
 import { useEscrituraDeFases } from './use-escritura-de-fases'
 import { usePedidosDeFases, type FlujoDePedido } from './use-pedidos-de-fases'
 
@@ -55,7 +55,8 @@ export function useListaDeFases(flujo: FlujoDePedido) {
   return {
     enCurso: escritura.enCurso,
     // Lo que el modal necesita: el envío entero, para decir el motivo junto al campo.
-    crear: (id: string, datos: CambiosDeFase) => escritura.mandar(() => pedir.crear(id, datos)),
+    crear: (id: string, datos: CambiosDeFase, posicion?: PosicionDeLaFase) =>
+      escritura.mandar(() => pedir.crear(id, datos, posicion)),
     mover,
     quitar,
     reactivar,

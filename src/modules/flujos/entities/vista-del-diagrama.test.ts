@@ -1,46 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { disponerDiagrama, medidasDelDiagrama } from './disposicion-del-diagrama'
-import {
-  centroParaVerLaFase,
-  columnaAlSoltar,
-  despuesDeAlSoltar,
-  ordenAlSoltar,
-  vistaInicial,
-} from './vista-del-diagrama'
+import { centroParaVerLaFase, vistaInicial } from './vista-del-diagrama'
 import { disponerConPosiciones } from './trazado-de-salidas'
 
 const m = medidasDelDiagrama(16)
 const fases = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `f${String(i)}` }))
-const ids = ['a', 'b', 'c', 'd']
-
-describe('soltar una fase', () => {
-  it('la columna sale del centro de la caja, dentro de las que hay', () => {
-    const paso = m.ancho + m.separacion
-    const centro0 = m.margen + m.ancho / 2
-    expect(columnaAlSoltar(centro0, m, 4)).toBe(0)
-    expect(columnaAlSoltar(centro0 + 2 * paso + 10, m, 4)).toBe(2)
-    expect(columnaAlSoltar(-500, m, 4)).toBe(0)
-    expect(columnaAlSoltar(centro0 + 99 * paso, m, 4)).toBe(3)
-  })
-
-  it('después de cuál queda: al principio, en el medio y al final', () => {
-    expect(despuesDeAlSoltar(ids, 'c', 0)).toEqual({ despuesDe: null })
-    expect(despuesDeAlSoltar(ids, 'c', 1)).toEqual({ despuesDe: 'a' })
-    expect(despuesDeAlSoltar(ids, 'a', 3)).toEqual({ despuesDe: 'd' })
-    expect(despuesDeAlSoltar(ids, 'a', 1)).toEqual({ despuesDe: 'b' })
-  })
-
-  it('en su mismo lugar, o una que no está, no cambia nada', () => {
-    expect(despuesDeAlSoltar(ids, 'b', 1)).toBeNull()
-    expect(despuesDeAlSoltar(ids, 'z', 0)).toBeNull()
-  })
-
-  it('el orden que se ve mientras la base contesta', () => {
-    const lista = ids.map((id) => ({ id }))
-    expect(ordenAlSoltar(lista, 'c', 1).map((f) => f.id)).toEqual(['a', 'c', 'b', 'd'])
-    expect(ordenAlSoltar(lista, 'a', 3).map((f) => f.id)).toEqual(['b', 'c', 'd', 'a'])
-  })
-})
 
 describe('vistaInicial', () => {
   it('si entra, centrado y sin agrandar', () => {

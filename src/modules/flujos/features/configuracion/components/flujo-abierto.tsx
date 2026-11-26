@@ -32,7 +32,7 @@ const SinOrden = ({ children }: { flujo: FlujoParaConfigurar; children: ReactNod
   <Fragment>{children}</Fragment>
 )
 
-// El flujo abierto: su proveedor de versión, el orden de las fases (hueco del área `fases`), la barra, las fases (diagrama o lista) y, montado la primera vez
+// El flujo abierto: su proveedor de versión, el orden de las fases y lo que escribe el diagrama (huecos de las áreas `fases` y `transiciones`), la barra, las fases (diagrama o lista) y, montado la primera vez
 // que se abre, el panel al costado con la fase de `?fase=` o la sección de `?seccion=`.
 export function FlujoAbierto({
   flujo,
@@ -67,32 +67,38 @@ function Abierto({ flujo, nombreDelFlujo, roles, huecos, secciones }: Props) {
   const panel = useContenidoDelPanel(flujo)
   const montado = useAbiertoAlgunaVez(panel.abierto)
   const Orden = huecos.ordenDeFases ?? SinOrden
+  const FasesDelDiagrama = huecos.diagramaDeFases ?? SinOrden
+  const SalidasDelDiagrama = huecos.salidasDelDiagrama ?? SinOrden
   const mostrado = panel.mostrado
   return (
     <Orden flujo={flujo}>
-      <section aria-labelledby="titulo-de-fases" className="grid min-w-0 gap-3">
-        <BarraDelFlujo flujo={flujo} huecos={huecos} />
-        <VistaDelFlujo
-          flujo={flujo}
-          nombreDelFlujo={nombreDelFlujo}
-          roles={roles}
-          huecos={huecos}
-          faseAbierta={panel.faseAbierta}
-          alAbrir={panel.abrirFase}
-        />
-      </section>
-      {montado && mostrado ? (
-        <PanelDelFlujoDiferido
-          abierto={panel.abierto}
-          alCerrar={panel.cerrar}
-          flujo={flujo}
-          nombreDelFlujo={nombreDelFlujo}
-          mostrado={mostrado}
-          seccion={mostrado.tipo === 'seccion' ? (secciones[mostrado.clave] ?? null) : null}
-          roles={roles}
-          huecos={huecos}
-        />
-      ) : null}
+      <FasesDelDiagrama flujo={flujo}>
+        <SalidasDelDiagrama flujo={flujo}>
+          <section aria-labelledby="titulo-de-fases" className="grid min-w-0 gap-3">
+            <BarraDelFlujo flujo={flujo} huecos={huecos} />
+            <VistaDelFlujo
+              flujo={flujo}
+              nombreDelFlujo={nombreDelFlujo}
+              roles={roles}
+              huecos={huecos}
+              faseAbierta={panel.faseAbierta}
+              alAbrir={panel.abrirFase}
+            />
+          </section>
+          {montado && mostrado ? (
+            <PanelDelFlujoDiferido
+              abierto={panel.abierto}
+              alCerrar={panel.cerrar}
+              flujo={flujo}
+              nombreDelFlujo={nombreDelFlujo}
+              mostrado={mostrado}
+              seccion={mostrado.tipo === 'seccion' ? (secciones[mostrado.clave] ?? null) : null}
+              roles={roles}
+              huecos={huecos}
+            />
+          ) : null}
+        </SalidasDelDiagrama>
+      </FasesDelDiagrama>
     </Orden>
   )
 }

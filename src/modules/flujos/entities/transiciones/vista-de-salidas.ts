@@ -6,6 +6,10 @@ import { salidasDe } from './formulario-de-salida'
 export const CLAVE_ELIMINAR = 'eliminar'
 export const PANEL_ELIMINAR_SALIDA = 'salida'
 export const CLAVE_DE_LA_SALIDA_A_QUITAR = 'salida'
+// `?editar=salida&editada=<id>`: la salida en edición en el inspector (también la que se abre al tocar una flecha o al crearla en el diagrama).
+export const CLAVE_EDITAR = 'editar'
+export const PANEL_EDITAR_SALIDA = 'salida'
+export const CLAVE_DE_LA_SALIDA_EDITADA = 'editada'
 export const MOTIVO_DE_SALIDA_NO_DISPONIBLE = 'Esa salida ya no está en esta fase.'
 
 // Cuántos chips lleva una fila: la lista completa está en el inspector.

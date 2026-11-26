@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { disponerDiagrama, medidasDelDiagrama } from './disposicion-del-diagrama'
 import {
   apilar,
+  conPendientes,
+  pendientesVigentes,
   cambiosAlMover,
   deshacer,
   enElAcomodo,
@@ -127,5 +129,35 @@ describe('deshacer', () => {
     expect(yaGuardado({ faseId: 'a', x: 1, y: 2 }, { x: 1, y: 3 })).toBe(false)
     expect(yaGuardado({ faseId: 'a', x: null, y: null }, null)).toBe(true)
     expect(yaGuardado({ faseId: 'a', x: 1, y: 2 }, undefined)).toBe(true)
+  })
+})
+
+describe('lo pendiente sobre lo leído', () => {
+  const leidas = new Map([
+    ['a', { x: 1, y: 1 }],
+    ['b', null],
+  ])
+  const pend = (faseId: string, x: number, guardadaEn: string | null = null) => ({
+    cambio: { faseId, x, y: 1 },
+    guardadaEn,
+  })
+
+  it('se va cuando lo leído lo trae, o cuando se leyó una versión no anterior a su escritura', () => {
+    const pendientes = new Map([
+      ['a', pend('a', 1)],
+      ['b', pend('b', 5, 'v2')],
+      ['z', pend('z', 5)],
+    ])
+    expect([...pendientesVigentes(pendientes, leidas, () => false).keys()]).toEqual(['b'])
+    expect([...pendientesVigentes(pendientes, leidas, (v) => v === 'v2').keys()]).toEqual([])
+  })
+
+  it('se dibuja encima de lo leído', () => {
+    const fases = [en('a', 1, 1), sin('b')]
+    const encima = conPendientes(fases, new Map([['b', pend('b', 7)]]))
+    expect(encima.map((f) => f.posicion)).toEqual([
+      { x: 1, y: 1 },
+      { x: 7, y: 1 },
+    ])
   })
 })

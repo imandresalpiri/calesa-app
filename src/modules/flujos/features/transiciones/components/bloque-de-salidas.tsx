@@ -9,6 +9,7 @@ import type { FaseParaConfigurar, FlujoParaConfigurar } from '../../../entities/
 import type { RolLeido } from '../../../entities/lectura-de-fase'
 import { nombreDelDestino } from '../../../entities/transiciones/vista-de-salidas'
 import { useEliminarSalidaPorUrl } from '../hooks/use-eliminar-salida-por-url'
+import { useSalidaEditadaPorUrl } from '../hooks/use-salida-editada-por-url'
 import { useSalidasDeLaFase, type SalidasDeLaFase } from '../hooks/use-salidas-de-la-fase'
 import { EliminarSalidaDiferido, FormularioDeNuevaSalidaDiferido } from './diferidos'
 import { EntradasDeLaFase } from './entradas-de-la-fase'
@@ -24,14 +25,14 @@ type Props = {
 const BOTON = 'h-11 md:h-8'
 
 // El hueco `bloques.salidas` del inspector (5.06): quién puede mover a la fase, de dónde se llega a ella (sólo lectura), sus salidas con quién puede mover por
-// cada una, «Editar» en su fila y «Agregar salida». Quitar una pide confirmar en la URL (`?eliminar=salida&salida=<id>`). Una escritura a la vez; la lista la trae la página
+// cada una, «Editar» en su fila (en la URL: `?editar=salida&editada=<id>`, también desde una flecha del diagrama) y «Agregar salida». Quitar una pide confirmar en la URL (`?eliminar=salida&salida=<id>`). Una escritura a la vez; la lista la trae la página
 // releída. Quien llega aquí configura el flujo; la base lo vuelve a exigir en cada escritura.
 export function BloqueDeSalidas({ flujo, fase, roles }: Props) {
   const s = useSalidasDeLaFase(flujo, fase)
   const quitar = useEliminarSalidaPorUrl(s.salidas)
   const quitarVisto = useAbiertoAlgunaVez(quitar.abierto)
   const [agregando, setAgregando] = useState(false)
-  const [editando, setEditando] = useState<string | null>(null)
+  const { editando, editar: setEditando } = useSalidaEditadaPorUrl()
   // Una forma a la vez: mientras se edita una salida no se agrega otra, y al revés. Una salida que ya no está no deja la forma abierta.
   const editandoId = s.salidas.some((x) => x.id === editando) ? editando : null
   const botonDeAgregar = useRef<HTMLButtonElement>(null)

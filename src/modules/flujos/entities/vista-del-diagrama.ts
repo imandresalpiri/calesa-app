@@ -1,39 +1,5 @@
-// Lo que se hace sobre el diagrama ya dispuesto (`disposicion-del-diagrama.ts`): dónde cae una fase que se suelta, el orden que eso da y la vista al
-// abrir o al enfocar una fase. Puro: sin I/O ni React.
-import type { DisposicionDelDiagrama, MedidasDelDiagrama, Punto } from './disposicion-del-diagrama'
-
-// La columna donde cae una caja que se suelta con su centro en `xCentro`, dentro de las `n` que hay.
-export function columnaAlSoltar(xCentro: number, m: MedidasDelDiagrama, n: number): number {
-  const columna = Math.round((xCentro - m.margen - m.ancho / 2) / (m.ancho + m.separacion))
-  return Math.min(Math.max(columna, 0), Math.max(n - 1, 0))
-}
-
-// La fase tras la que va la movida si se suelta en `columna` (`fase_mover(…, p_despues_de)`; nula = primera), o `null` si queda donde estaba.
-export function despuesDeAlSoltar(
-  ids: readonly string[],
-  idMovida: string,
-  columna: number,
-): { despuesDe: string | null } | null {
-  const antes = ids.indexOf(idMovida)
-  if (antes < 0) return null
-  const sin = ids.filter((id) => id !== idMovida)
-  const donde = Math.min(Math.max(columna, 0), sin.length)
-  if (donde === antes) return null
-  return { despuesDe: donde === 0 ? null : (sin[donde - 1] ?? null) }
-}
-
-// El orden que se ve en pantalla mientras `fase_mover` contesta.
-export function ordenAlSoltar<T extends { id: string }>(
-  fases: readonly T[],
-  idMovida: string,
-  columna: number,
-): T[] {
-  const movida = fases.find((f) => f.id === idMovida)
-  if (!movida) return [...fases]
-  const sin = fases.filter((f) => f.id !== idMovida)
-  const donde = Math.min(Math.max(columna, 0), sin.length)
-  return [...sin.slice(0, donde), movida, ...sin.slice(donde)]
-}
+// La vista del diagrama ya dispuesto (`disposicion-del-diagrama.ts`): al abrirlo y al enfocar una fase. Puro: sin I/O ni React.
+import type { DisposicionDelDiagrama, Punto } from './disposicion-del-diagrama'
 
 export const ZOOM_MINIMO_INICIAL = 0.6
 export const ZOOM_MAXIMO_INICIAL = 1

@@ -1,27 +1,26 @@
 'use client'
 
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import type { NodeProps } from '@xyflow/react'
 import { useId } from 'react'
 import { cn } from 'cn'
 import { Badge } from '@/shared/ui/badge'
+import { pasoDeTeclado } from '../../../../entities/posiciones-del-diagrama'
 import { POR_NIVEL_DE_MARCA } from '../marcas-de-la-fase'
+import { AsaDeLaFase } from './asa-de-la-fase'
 import { useLienzo } from './contexto-del-lienzo'
 import type { NodoDeFase as Nodo } from './datos-del-diagrama'
 
-// React Flow dibuja las aristas entre `<Handle>`s: van ocultos y sin conexión (el camino de cada flecha sale de la disposición, no de ellos).
-const OCULTO = 'pointer-events-none! opacity-0!'
-
 // Una fase en el diagrama: un botón que abre su panel (no abre si viene de arrastrarla), con el borde del color de la fase, su nombre, sus marcas, sus
 // requisitos y quién la mueve en corto, y el ícono con sus avisos de «Revisar». Lo demás, para el lector, en su descripción. Una jubilada va apagada y
-// punteada.
+// punteada. Con el foco, las flechas del teclado la mueven (1 rem; 10 con Shift). El asa es hermana del botón: nada interactivo dentro de otro.
 export function NodoDeFase({ data, dragging }: NodeProps<Nodo>) {
-  const { medidas, alAbrir, vieneDeArrastrar } = useLienzo()
+  const { medidas, alAbrir, vieneDeArrastrar, puedeMover, puedeVincular, alTeclado } = useLienzo()
   const idDeLaDescripcion = useId()
   const { fase, marcas, requisitos, quienMueve, avisos, descripcion, abierta } = data
   const nivel = avisos ? POR_NIVEL_DE_MARCA[avisos.nivel] : null
   return (
     <>
-      <Handle type="target" position={Position.Left} isConnectable={false} className={OCULTO} />
+      <AsaDeLaFase lado="destino" nombre={fase.nombre} puedeVincular={puedeVincular} />
       <button
         type="button"
         data-fase-id={fase.id}
@@ -30,6 +29,12 @@ export function NodoDeFase({ data, dragging }: NodeProps<Nodo>) {
         aria-current={abierta ? 'true' : undefined}
         onClick={() => {
           if (!vieneDeArrastrar()) alAbrir(fase.id)
+        }}
+        onKeyDown={(evento) => {
+          const paso = pasoDeTeclado(evento.key, evento.shiftKey)
+          if (!paso || !puedeMover) return
+          evento.preventDefault()
+          alTeclado(fase.id, paso)
         }}
         style={{ width: medidas.ancho, height: medidas.alto, borderLeftColor: fase.color }}
         className={cn(
@@ -75,7 +80,7 @@ export function NodoDeFase({ data, dragging }: NodeProps<Nodo>) {
           {descripcion}
         </span>
       </button>
-      <Handle type="source" position={Position.Right} isConnectable={false} className={OCULTO} />
+      <AsaDeLaFase lado="asa" nombre={fase.nombre} puedeVincular={puedeVincular} />
     </>
   )
 }

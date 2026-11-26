@@ -10,6 +10,8 @@ import {
   type ValoresDeFaseNueva,
 } from '../../../entities/fases/formulario-de-fase'
 import { erroresDeFaseNueva, errorDeEnvio } from '../../../entities/fases/formulario-de-fase'
+import type { PosicionDeLaFase } from '../../../entities/flujo'
+import { useFaseAbierta } from '../../configuracion/hooks/use-fase-abierta'
 import { useVersionDelFlujo } from '../../configuracion/hooks/use-version-del-flujo'
 import type { ListaDeFasesEnPantalla } from './use-lista-de-fases'
 
@@ -20,13 +22,16 @@ type Args = {
   alCerrar: () => void
   // Cerrado (se descartó o se fue con «atrás»), lo que esperaba la red no sale.
   abierto: boolean
+  // Pedida en el diagrama: nace ahí y, creada, se abre su panel (lo siguiente suele ser ponerle salidas y requisitos).
+  posicion: PosicionDeLaFase | null
 }
 
 // El estado del modal de «Nueva fase»: nombre, color y tipo (son 3 campos: sin borrador). El id del intento nace al abrir (el modal se monta con una
 // `key` por apertura) y se conserva en cada reintento. Un conflicto espera la versión nueva (la trae «Recargar»); sin conexión, lo escrito queda y sale
 // solo al volver. Repetir el id da «Esa fase ya existe.» (la base no lo trata como el mismo pedido): ante un corte, se relee la lista antes de reintentar.
-export function useFormularioDeNuevaFase({ lista, alCerrar, abierto }: Args) {
+export function useFormularioDeNuevaFase({ lista, alCerrar, abierto, posicion }: Args) {
   const { version, recargar, recargando } = useVersionDelFlujo()
+  const faseAbierta = useFaseAbierta()
   const [intento] = useState(() => crypto.randomUUID())
   const [valores, setValores] = useState<ValoresDeFaseNueva>(VALORES_DE_FASE_NUEVA)
   const [errores, setErrores] = useState<Errores>({})
@@ -50,14 +55,16 @@ export function useFormularioDeNuevaFase({ lista, alCerrar, abierto }: Args) {
       return false
     }
     setAviso(null)
-    const envio = await lista.crear(intento, datosParaCrear(valores))
+    const envio = await lista.crear(intento, datosParaCrear(valores), posicion ?? undefined)
     if (envio === null) {
       return false
     }
     if (envio.ok) {
       setPendiente(null)
       avisarExito(`Fase «${nombre}» creada.`)
-      alCerrar()
+      // Abrir la fase limpia también `?panel=nueva-fase&en=`: un solo paso del historial.
+      if (posicion) faseAbierta.abrir(intento)
+      else alCerrar()
       return true
     }
     if ('sinRed' in envio) {
