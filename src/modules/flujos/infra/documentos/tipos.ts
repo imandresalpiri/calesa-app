@@ -19,7 +19,7 @@ import {
 
 const NO_SE_LEYO = 'No pudimos leer los tipos de documento. Vuelve a intentar.'
 
-// Un grupo (los de toda la empresa o los de un flujo), por el btree de `tipos_documento_flujo_id_nombre_key` (flujo_id primero), en el orden en que
+// Un grupo (los de toda la empresa o los de un flujo), por el btree de `tipos_documento_flujo_clave_key` (flujo_id primero), en el orden en que
 // se ve y con `tope + 1` filas para saber si hay más. Es un catálogo de configuración: a lo sumo 100 por grupo. Leer es de cualquier cuenta con sesión.
 export const leerTiposDeDocumentoDelGrupo: LectorDeTiposDeDocumento = cache(async (flujoId) => {
   const supabase = await createClient()

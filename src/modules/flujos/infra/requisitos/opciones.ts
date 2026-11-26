@@ -80,7 +80,7 @@ async function leerFasesDelOtroFlujo(
 }
 
 // Lo que un requisito nombra y ofrece, de un flujo: los tipos de documento que nombra (los de toda la empresa y los del flujo, cada grupo por el btree de
-// `tipos_documento_flujo_id_nombre_key`, flujo_id primero, en el orden en que se ven y con `tope + 1` filas para saber si hay más; incluye los inactivos: un
+// `tipos_documento_flujo_clave_key`, flujo_id primero, en el orden en que se ven y con `tope + 1` filas para saber si hay más; incluye los inactivos: un
 // requisito que ya los nombra dice su nombre) y las fases que una espera puede esperar. Son catálogos de configuración: a lo sumo 100 por grupo.
 export const leerOpcionesDeRequisitos: LectorDeOpcionesDeRequisitos = async ({
   flujoId,

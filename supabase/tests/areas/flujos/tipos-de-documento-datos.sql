@@ -1,5 +1,5 @@
--- Los datos de un tipo de documento (5.03, C3–C5): crear es idempotente por su id y ordena al final; el nombre es único en su grupo sin distinguir
--- mayúsculas (y uno de un flujo activo no repite el de un global activo); el vencimiento y los formatos se validan con su hint. Los permisos, la
+-- Los datos de un tipo de documento (5.03, C3–C5): crear es idempotente por su id y ordena al final; el nombre es único en su grupo por su clave
+-- (sin mayúsculas, tildes ni espacios de más; uno de un flujo con el nombre de un compartido lo tapa); el vencimiento y los formatos se validan con su hint. Los permisos, la
 -- versión, el uso y la escritura directa están en tipos-de-documento.sql. Corre en PGlite (`pnpm db:probar`); cada bloque arma su terreno y lo revierte.
 
 -- @test datos de tipos de documento: los ayudantes
@@ -88,15 +88,17 @@ begin
   end if;
   j := pg_temp.td_json(flor, format('select public.tipo_documento_crear(%L, %L, %L)', v_id, fa, '{"nombre":"Otra"}'));
   if not (j ->> 'repetido')::boolean then raise exception 'repetir el intento no salió repetido'; end if;
-  if pg_temp.td_codigo(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"td GLOBAL"}')) <> '23505/nombre' then
-    raise exception 'uno de A repitió el nombre de un global activo';
-  end if;
-  update public.tipos_documento set activo = false where id = '00000000-0000-4000-8000-000000007d01';
   if pg_temp.td_codigo(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"td GLOBAL"}')) <> 'sin error' then
-    raise exception 'con el global inactivo, su nombre no quedó libre';
+    raise exception 'uno de A no pudo tapar al compartido con su nombre';
+  end if;
+  if pg_temp.td_codigo(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"TD  glóbal"}')) <> '23505/nombre' then
+    raise exception 'se repitió en A un nombre con otra tilde y otros espacios';
   end if;
   if pg_temp.td_codigo(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"póliza"}')) <> '23505/nombre' then
     raise exception 'se repitió un nombre del grupo en otras mayúsculas';
+  end if;
+  if pg_temp.td_codigo(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa, '{"nombre":"POLIZA"}')) <> '23505/nombre' then
+    raise exception 'se repitió un nombre del grupo sin su tilde';
   end if;
   if pg_temp.td_codigo(flor, format('select public.tipo_documento_crear(gen_random_uuid(), %L, %L)', fa,
        '{"nombre":"R","modo_vencimiento":"renovar"}')) <> '22023/vigencia_dias' then
@@ -117,7 +119,7 @@ begin
 end $$;
 rollback;
 
--- @test datos de tipos de documento: guardar valida el nombre (también al reactivar) y el vencimiento
+-- @test datos de tipos de documento: guardar valida el nombre (un propio puede tapar al compartido, también al reactivarlo) y el vencimiento
 begin;
 select pg_temp.td_preparar();
 do $$
@@ -125,12 +127,13 @@ declare flor uuid := '00000000-0000-4000-8000-000000007d0f'; cata uuid := '00000
         g uuid := '00000000-0000-4000-8000-000000007d01'; a uuid := '00000000-0000-4000-8000-000000007d02'; r text;
 begin
   r := pg_temp.td_codigo(flor, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a), '{"nombre":"TD Global"}'));
-  if r <> '23505/nombre' then raise exception 'el de A tomó el nombre de un global activo: %', r; end if;
+  if r <> 'sin error' then raise exception 'el de A no pudo tapar al compartido con su nombre: %', r; end if;
   perform pg_temp.td_json(cata, format('select public.tipo_documento_guardar(%L, %L, %L)', g, pg_temp.td_version(g), '{"activo":false}'));
-  r := pg_temp.td_codigo(flor, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a), '{"nombre":"TD Global"}'));
-  if r <> 'sin error' then raise exception 'con el global inactivo, su nombre no quedó libre: %', r; end if;
   r := pg_temp.td_codigo(cata, format('select public.tipo_documento_guardar(%L, %L, %L)', g, pg_temp.td_version(g), '{"activo":true}'));
-  if r <> 'sin error' then raise exception 'reactivar el global falló: %', r; end if;
+  if r <> 'sin error' then raise exception 'reactivar el compartido tapado falló: %', r; end if;
+  perform pg_temp.td_json(flor, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a), '{"activo":false}'));
+  r := pg_temp.td_codigo(flor, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a), '{"activo":true}'));
+  if r <> 'sin error' then raise exception 'reactivar el de A que tapa al compartido falló: %', r; end if;
   r := pg_temp.td_codigo(flor, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a), '{"modo_vencimiento":"renovar"}'));
   if r <> '22023/vigencia_dias' then raise exception 'renovar sin vigencia dio %', r; end if;
   r := pg_temp.td_codigo(flor, format('select public.tipo_documento_guardar(%L, %L, %L)', a, pg_temp.td_version(a),

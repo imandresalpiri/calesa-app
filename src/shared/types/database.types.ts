@@ -9908,11 +9908,17 @@ export type Database = {
         Args: { p_campo: string; p_mensaje: string; p_valor: Json }
         Returns: number
       }
-      _tipo_documento_exigir_permiso: { Args: { p_flujo: string }; Returns: undefined }
-      _tipo_documento_nombre_libre: {
-        Args: { p_activo: boolean; p_flujo: string; p_id: string; p_nombre: string }
+      _tipo_documento_exigir_compartido: {
+        Args: { p_creando: boolean; p_nombre: string; p_nombre_nuevo: string }
         Returns: undefined
       }
+      _tipo_documento_exigir_permiso: { Args: { p_flujo: string }; Returns: undefined }
+      _tipo_documento_nombre_libre: {
+        Args: { p_flujo: string; p_id: string; p_nombre: string }
+        Returns: undefined
+      }
+      _tipo_documento_repetido: { Args: { p_flujo: string; p_nombre: string }; Returns: string }
+      _tipo_documento_tapan: { Args: { p_nombre: string }; Returns: string[] }
       _tipo_documento_uso: { Args: { p_id: string }; Returns: Record<string, unknown> }
       _tipo_documento_validar: {
         Args: {
