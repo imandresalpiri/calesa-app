@@ -67,6 +67,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Eliminar un embarque o un contenedor vacío: hoy queda al sacarle su última unidad o vaciar su booking (lo frena la FK `restrict`); no se
   ve en `/logistica/embarques` (lista sólo grupos con unidades), pero su clave sigue tomada en el origen y tipearla otra vez lo reusa con sus datos
   — una RPC `embarque_eliminar|contenedor_eliminar` que exija que esté vacío.
+- **[—]** `embarque_guardar` y `contenedor_guardar` no tienen tope de unidades: revisan el permiso y bloquean cada una (`_entidad_editable`,
+  `_entidad_bloquear_unidades`), y `transporte_asignar` suma de a ≤ 200 sin tope total. Ninguna pantalla los guarda sueltos: con la suya, un
+  tope de unidades por embarque (o el de 200 del grupo).
 - **[—]** Las pantallas propias de embarques y contenedores (crear uno sin unidades, su tipo y su sello, sumarle o sacarle vehículos en lote) no existen:
   la base ya tiene `embarque_crear|guardar`, `contenedor_crear|guardar` y `transporte_asignar|quitar`, sin action ni interfaz.
 - **[—]** El diff de la actividad de un transporte nombra su embarque y su contenedor por id (`embarque_id`, `contenedor_id`), no por booking o número.
