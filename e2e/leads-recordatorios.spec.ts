@@ -108,9 +108,12 @@ test('completar es poner: dos veces no cambia nada; reabrir lo devuelve', async 
   await recordatorio(page, 'Mandar la cotización')
     .getByRole('button', { name: 'Completar' })
     .click()
-  // «Completados», plegado y sin número: aparece al haber uno, sin leerlos.
-  await expect(bloqueDeRecordatorios(page).getByText('Completados', { exact: true })).toBeVisible()
-  await expect(recordatorio(page, 'Mandar la cotización')).toHaveCount(0)
+  // «Completados», a la vista y sin número: aparece al haber uno y se lee al acercarse a la vista.
+  const completados = bloqueDeRecordatorios(page).getByRole('region', { name: 'Completados' })
+  await expect(completados.getByRole('article', { name: 'Mandar la cotización' })).toBeVisible()
+  await expect(
+    bloqueDeRecordatorios(page).getByText('Ningún recordatorio pendiente sobre este lead.'),
+  ).toBeVisible()
   const [completado] = await recordatoriosEnLaBase(lead.id)
   expect(completado?.completado_en).not.toBeNull()
 
@@ -125,7 +128,6 @@ test('completar es poner: dos veces no cambia nada; reabrir lo devuelve', async 
   expect((otraVez.data as { resultado: string }).resultado).toBe('sin_cambios')
   expect((await recordatoriosEnLaBase(lead.id))[0]?.completado_en).toBe(completado?.completado_en)
 
-  await bloqueDeRecordatorios(page).getByText('Completados', { exact: true }).click()
   await recordatorio(page, 'Mandar la cotización').getByRole('button', { name: 'Reabrir' }).click()
   await expect(
     recordatorio(page, 'Mandar la cotización').getByRole('button', { name: 'Completar' }),

@@ -2060,7 +2060,7 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   «Ver tus recordatorios», sin número, abren un drawer en `?todos=seguimientos|recordatorios` («Seguimientos de <nombre>», «Tus recordatorios sobre
   <nombre>») con la lista completa; con él abierto, los modales de la URL son del drawer.
 - **Línea de tiempo** (en «Ver todos»): de a 20 hasta 500; «Ir a una fecha» (no va a la URL) trae ese día y lo anterior; vacío.
-- **Tus recordatorios:** sólo los propios; «Agendar recordatorio» (cartera); vencidos primero con «Vencido»; «Completados» plegados (en «Ver todos»);
+- **Tus recordatorios:** sólo los propios; «Agendar recordatorio» (cartera); vencidos primero con «Vencido»; «Completados» a la vista, leídos al acercarse (en «Ver todos»);
   «Completar»/«Reabrir», «Editar», «Eliminar» con «Deshacer». Modal por URL (`?panel=agendar-recordatorio`,
   `editar-recordatorio&recordatorio=<id>`): «De qué es», «Cuándo» y «Vehículo (opcional)»; no se agenda en el pasado.
 

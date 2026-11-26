@@ -249,7 +249,7 @@ test('«Recargar» tras un conflicto con 500 cargados: dos pedidos, lo escrito q
   await expect(itemsDe(linea)).toHaveCount(TAMANO_DE_VER_MAS)
 })
 
-test('«Ver todos tus recordatorios»: una página de pendientes, los completados sólo al abrirlos, y el aviso de la ficha', async ({
+test('«Ver todos tus recordatorios»: una página de pendientes, los completados sólo al acercarse, y el aviso de la ficha', async ({
   page,
 }, info) => {
   await entrar(page, t.personas.berta)
@@ -271,22 +271,23 @@ test('«Ver todos tus recordatorios»: una página de pendientes, los completado
   await expect(pendientes.first()).toContainText('Vencido')
   await expect(bloque.getByRole('button', { name: 'Agendar recordatorio' })).toBeVisible()
 
-  // «Completados» sin número, y sin leer hasta abrirlo.
-  await expect(bloque.getByText('Completados', { exact: true })).toBeVisible()
+  // «Completados» sin número, y sin leer hasta acercarse a la vista (debajo de una página de pendientes).
+  const seccion = bloque.getByRole('region', { name: 'Completados' })
+  await expect(seccion.getByRole('heading', { name: 'Completados', level: 3 })).toBeAttached()
   expect(pedidos).toHaveLength(1)
   await conRespuesta(
     page,
     esRpc('lead_recordatorios'),
-    () => bloque.getByText('Completados', { exact: true }).click(),
-    'abrir «Completados»',
+    () => seccion.scrollIntoViewIfNeeded(),
+    'acercar «Completados»',
   )
-  const completados = bloque.locator('details ul > li')
+  const completados = seccion.locator('ul > li')
   await expect(completados).toHaveCount(TAMANO_DE_VER_MAS)
   expect(pedidos).toHaveLength(2)
   await conRespuesta(
     page,
     esRpc('lead_recordatorios'),
-    () => bloque.locator('details').getByRole('button', { name: 'Ver más' }).click(),
+    () => seccion.getByRole('button', { name: 'Ver más' }).click(),
     '«Ver más» de completados',
   )
   await expect(completados).toHaveCount(40)

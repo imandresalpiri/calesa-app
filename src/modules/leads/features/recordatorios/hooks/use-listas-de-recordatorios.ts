@@ -23,7 +23,7 @@ type Lectura = {
   estado: EstadoDeLectura
   listas: ListasDeRecordatorios
   puedoAgendar: boolean
-  // Los completados no se leen hasta abrir su plegado.
+  // Los completados no se leen hasta que su sección se acerca a la vista.
   completados: 'sin_leer' | EstadoDeLectura
   // Los leídos por su id (el de la URL que no estaba cargado): el modal los ve, las listas no.
   sueltos: Recordatorio[]
@@ -182,7 +182,7 @@ function usePrimeraPagina(leadId: string, inicial: PaginaDeRecordatorios | undef
 }
 
 // Los recordatorios de quien mira sobre un lead, en dos listas por cursor (los pendientes al abrir;
-// los completados al abrir su plegado), con «Ver más» hasta el tope. Ninguna lectura cuesta más con
+// los completados al acercarse su sección), con «Ver más» hasta el tope. Ninguna lectura cuesta más con
 // lo cargado: buscar uno o «Recargar» tras un conflicto lo leen por su id.
 export function useListasDeRecordatorios(
   leadId: string,
@@ -238,7 +238,7 @@ export function useListasDeRecordatorios(
       void cargarMas('pendientes', cursorDeRecordatorios(listas.pendientes.lista, false)),
     verMasCompletados: () =>
       void cargarMas('completados', cursorDeRecordatorios(listas.completados?.lista ?? [], true)),
-    // Al abrir el plegado (o reintentar): la primera página de completados, una sola vez.
+    // Al acercarse su sección (o reintentar): la primera página de completados, una sola vez.
     abrirCompletados: () => {
       if (lectura.completados === 'sin_leer' || lectura.completados === 'error') {
         deEste((antes) => ({ ...antes, completados: 'cargando' }))

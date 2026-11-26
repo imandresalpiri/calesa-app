@@ -34,8 +34,8 @@ function situacion(
   return { falta, buscando: estado !== 'listo' || falta || buscado === 'fallo' }
 }
 
-// El de `?recordatorio=<id>` puede no estar entre lo cargado (es de «Ver más», está completado y su
-// plegado no se abrió, o se recargó): antes de decir que no está, se lee por su id (un pedido, cargue lo
+// El de `?recordatorio=<id>` puede no estar entre lo cargado (es de «Ver más», está completado y los
+// completados no se leyeron, o se recargó): antes de decir que no está, se lee por su id (un pedido, cargue lo
 // que cargue). Mientras se lee la lista o se busca, el modal no decide; si la lectura falla (ya se
 // avisó), tampoco: la URL queda y el modal no se abre. Devuelve si todavía se está buscando.
 export function useBusquedaDeRecordatorio({
