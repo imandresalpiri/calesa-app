@@ -92,7 +92,17 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Comprobante de un gasto o pago** — `comprobante_ruta` de `gastos`, `pagos` y `repuestos_compras`, bucket `comprobantes` /
   `comprobante_puede()`: archivo que los respalda (`<unidad|proyecto>/<sha-256>.<ext>`); lo lee quien ve la fila (una compra, con
   `repuestos.costos.ver`). No es el **Comprobante** de venta.
-- **Integración** — `integraciones` / `Integracion`, `integracionActiva()`: interruptor + config no secreta (apibara, push, web pública).
+- **Integración** — `integraciones` / `Integracion`, `integracionActiva()`: interruptor + config no secreta (apibara, push, web pública, asistente de IA).
+- **Asistente de IA** — integración `asistente_ia` / `AsistenteIa…`, `redactarConElAsistente()`: un proveedor compatible con la API de OpenAI (DeepSeek o
+  «Otro proveedor»: dirección base y modelo) que redacta los textos de compartir una cotización; su clave va a Vault y de ella se ven la fecha y los
+  últimos 4 (`config.clave_termina_en`). Siempre «asistente de IA»: «asistente» solo sigue prohibido como sinónimo de «puesta en marcha».
+- **Prompt base** — `config.prompt_base` del asistente de IA: lo que la IA recibe en cada pedido (el tono, lo que no inventa), el mismo para toda la
+  empresa; hasta 4.000 caracteres, se edita en «Prompt base y atajos».
+- **Atajo del asistente** — `config.atajos` / `AtajoDelAsistente`: un botón con nombre (hasta 40 caracteres, único sin mirar mayúsculas) y una
+  instrucción (hasta 500) que «generar» manda con el texto; el orden de la lista es el de los botones, y uno inactivo no se ofrece. Hasta 20; su tope de
+  salida (`max_tokens`) no se edita.
+- **Usos del asistente** — `asistente_ia_usos` / `asistente_ia_contar_uso()`, `UsosDelMes`: cuántos pedidos de cada persona respondió el proveedor en
+  el mes (el de la zona de la empresa); la tarjeta muestra hasta 5 personas y «y N más». No es un tope.
 - **Secreto de una integración** — `integraciones.secreto_guardado_en` / `integracion_guardar_secreto()`: clave de API en Vault.
 - **Origen** — `origenes`: de dónde viene un vehículo (subasta USA, China, oficina…); tipo subasta o manual.
 - **Layout de campos** — `origenes_campos` / `leads_campos`: campos de un vehículo (o lead) y cómo se muestran, filtran y editan; motor
