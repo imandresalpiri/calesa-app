@@ -137,9 +137,12 @@ it(
     }
     lanzarGuion(a, extra, 'correr', 'T1')
     lanzarGuion(a, extra, 'correr', 'T2')
-    expect(await esperar(() => ['T1', 'T2'].every((id) => estado(a, id) === 'por_retomar'))).toBe(
-      true,
-    )
+    // El estado queda por_retomar antes de que pausar_por_limite escriba la pausa: se espera la pausa también.
+    expect(
+      await esperar(
+        () => ['T1', 'T2'].every((id) => estado(a, id) === 'por_retomar') && pausaDe(m!) > 0,
+      ),
+    ).toBe(true)
     expect(pausaDe(m)).toBe(resets + MARGEN)
     // Una avisa y la otra sólo lo anota: se esperan las dos líneas antes de contar.
     expect(await esperar(() => logDe(a).includes('también se cortó por el límite del plan'))).toBe(
