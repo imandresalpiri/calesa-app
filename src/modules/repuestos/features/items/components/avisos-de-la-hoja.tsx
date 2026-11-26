@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useTransition } from 'react'
 import { Aviso } from '@/shared/ui/aviso'
 import { AvisoDeConflicto } from '@/shared/ui/aviso-de-conflicto'
 import { AvisoDeTope } from '@/shared/ui/aviso-de-tope'
@@ -28,7 +29,8 @@ export function HojaVacia() {
   return <EstadoVacio compacto titulo={TEXTO_DE_HOJA_VACIA} />
 }
 
-// Otra persona cambió el ítem (`PT409`): la hoja no pisa nada. «Recargar» trae lo nuevo (se renuevan las filas desde el servidor) y descarta lo escrito.
+// Otra persona cambió el ítem (`PT409`): la hoja no pisa nada. «Recargar» trae lo nuevo (se renuevan las filas desde el servidor) y descarta lo escrito. Queda «en curso» hasta que las filas nuevas llegan, y
+// sólo entonces el aviso se va (`alRecargar`): un cierre del panel a mitad de camino descartaría el refresco en vuelo y la hoja se quedaría con lo viejo sin decirlo.
 export function AvisoDeConflictoDeLaHoja({
   mensaje,
   alRecargar,
@@ -37,12 +39,26 @@ export function AvisoDeConflictoDeLaHoja({
   alRecargar: () => void
 }) {
   const router = useRouter()
+  const [enCurso, empezar] = useTransition()
+  const pedido = useRef(false)
+  const alTerminar = useRef(alRecargar)
+  useEffect(() => {
+    alTerminar.current = alRecargar
+  })
+  useEffect(() => {
+    if (enCurso || !pedido.current) return
+    pedido.current = false
+    alTerminar.current()
+  }, [enCurso])
   return (
     <AvisoDeConflicto
       mensaje={mensaje}
+      enCurso={enCurso}
       alRecargar={() => {
-        alRecargar()
-        router.refresh()
+        pedido.current = true
+        empezar(() => {
+          router.refresh()
+        })
       }}
     />
   )
