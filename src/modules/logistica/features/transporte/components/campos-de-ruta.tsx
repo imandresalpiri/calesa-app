@@ -1,8 +1,7 @@
 'use client'
 
-import type { Route } from 'next'
 import Link from 'next/link'
-import { RUTAS } from '@/shared/lib/rutas'
+import { rutaDeUnCatalogo } from '@/shared/lib/rutas'
 import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
 import { ATRIBUTO_DE_CLAVE_DE_DATO } from '../../../entities/nucleo/paneles-de-la-unidad'
 import type { OpcionDeTransporte } from '../../../entities/transporte/oferta'
@@ -27,21 +26,23 @@ type PropsDeRuta = PropsDeCampos & {
   navieras: readonly OpcionDeTransporte[]
   puertosOrigen: readonly OpcionDeTransporte[]
   puertosDestino: readonly OpcionDeTransporte[]
-  // Quien gestiona los catálogos ve el enlace a cargarlos.
-  puedeCargarNavieras: boolean
+  // El origen de la unidad si quien mira gestiona sus catálogos (ve el enlace a cargarlas); nulo, sin enlace.
+  origenParaCargarNavieras: string | null
   // Sólo hay catálogo de navieras si hay alguna activa (lo que ofrece el selector, no lo guardado).
   hayNavieras: boolean
 }
 
 const SIN_ELEGIR: OpcionDeTransporte = { valor: '', etiqueta: 'Sin elegir' }
 
-export function SinNavieras({ puedeCargar }: { puedeCargar: boolean }) {
+// Sin navieras activas: con un origen (quien mira gestiona sus catálogos), el enlace al drawer «Navieras» de sus fases; sin él, sólo el texto (un grupo
+// cruza orígenes: cada uno carga las suyas).
+export function SinNavieras({ origenId }: { origenId: string | null }) {
   return (
     <p className="text-(length:--text-sm) text-(--color-ink-soft)" data-estado="sin-navieras">
       {TEXTO_SIN_NAVIERAS}{' '}
-      {puedeCargar ? (
+      {origenId !== null ? (
         <Link
-          href={RUTAS.navierasDeLogistica as Route}
+          href={rutaDeUnCatalogo(origenId, 'navieras')}
           className="font-medium text-(--color-ink) underline underline-offset-2"
         >
           Cargar navieras
@@ -61,7 +62,7 @@ export function CamposDeRuta({
   navieras,
   puertosOrigen,
   puertosDestino,
-  puedeCargarNavieras,
+  origenParaCargarNavieras,
   hayNavieras,
 }: PropsDeRuta) {
   return (
@@ -78,7 +79,7 @@ export function CamposDeRuta({
           error={errores.naviera}
           disabled={apagado}
         />
-        {hayNavieras ? null : <SinNavieras puedeCargar={puedeCargarNavieras} />}
+        {hayNavieras ? null : <SinNavieras origenId={origenParaCargarNavieras} />}
       </div>
       <CampoSeleccion
         nombre={`${prefijo}-puerto-origen`}

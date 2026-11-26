@@ -1,6 +1,5 @@
 'use client'
 
-import { puede } from '@/shared/lib/permisos'
 import { Campo } from '@/shared/ui/campo'
 import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
 import { TEXTO_DE_VARIOS, type CampoDelGrupo } from '../../../entities/transporte/edicion-del-grupo'
@@ -11,7 +10,6 @@ import {
   type ErroresDeTransporte,
   type ValoresDeTransporte,
 } from '../../../entities/transporte/transporte'
-import { usePermisosDeTransporte } from '../hooks/use-permisos-de-transporte'
 import { SinNavieras } from './campos-de-ruta'
 
 export type PropsDeCamposDelGrupo = {
@@ -59,15 +57,7 @@ type PropsDeRuta = PropsDeCamposDelGrupo & {
 }
 
 // «Ruta»: naviera y puertos. Las opciones son todos los activos del catálogo (un grupo cruza flujos; la oferta de cada uno la revisa la base por unidad, D40).
-// Sin navieras activas: quien gestiona los catálogos ve el enlace a cargarlas (igual que en el hueco «Transporte»).
-function SinNavierasDelGrupo() {
-  const permisos = usePermisosDeTransporte()
-  return (
-    <SinNavieras
-      puedeCargar={permisos !== null && puede(permisos, 'logistica.catalogos.gestionar')}
-    />
-  )
-}
+// Sin navieras activas, sólo el texto: un grupo cruza orígenes y cada uno las carga en sus fases.
 
 export function CamposDeRutaDelGrupo({
   navieras,
@@ -86,7 +76,7 @@ export function CamposDeRutaDelGrupo({
           etiqueta="Naviera"
           opciones={navieras}
         />
-        {hayNavieras ? null : <SinNavierasDelGrupo />}
+        {hayNavieras ? null : <SinNavieras origenId={null} />}
       </div>
       <SelectorDelGrupo
         {...p}
