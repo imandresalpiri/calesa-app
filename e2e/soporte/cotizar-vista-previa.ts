@@ -2,12 +2,12 @@
 import { cabeceraDeLaGuardada, elegirEnElMenu } from './menu-de-la-guardada'
 import { expect, type Locator, type Page, type TestInfo } from '@playwright/test'
 import { entrar } from './alta'
-import { tipearEnLaHoja } from './cotizar-guardar'
+import { esperarElTotal, regionDelTotal, tipearEnLaHoja } from './cotizar-guardar'
 import { sql } from './sql'
 
 export const zona = () => sql('select zona_horaria from public.ajustes_empresa')
 export const hoja = (page: Page) => page.locator('[data-hoja]')
-export const resumen = (page: Page) => page.locator('[data-resumen]')
+export { regionDelTotal }
 export const dialogo = (page: Page) => page.getByRole('dialog', { name: 'Vista previa' })
 export const tarjeta = (page: Page) =>
   dialogo(page).getByRole('group', { name: 'Tarjeta de la cotización' })
@@ -48,16 +48,15 @@ export async function abrirLaHoja(page: Page, quien: string, url: string) {
   await expect(hoja(page)).toBeVisible()
 }
 
-// Espera a que el resumen tenga el total al día (la hoja recalcula 150 ms después de la última confirmación).
-export const alDia = (page: Page) =>
-  expect(resumen(page)).toHaveAttribute('aria-busy', 'false', { timeout: 15_000 })
+// Espera a que el total esté al día (la hoja recalcula 150 ms después de la última confirmación).
+export const alDia = (page: Page) => esperarElTotal(page)
 
-// En la hoja nueva, el botón del pie del resumen; en una guardada, la línea del «⋯» de su cabecera.
+// En la hoja nueva, el paso «Vista previa» de los pasos de la hoja; en una guardada, la línea del «⋯» de su cabecera.
 export async function abrirLaVistaPrevia(page: Page): Promise<Locator> {
   if ((await cabeceraDeLaGuardada(page).count()) > 0) {
     await elegirEnElMenu(page, 'Vista previa')
   } else {
-    await resumen(page).getByRole('button', { name: 'Vista previa' }).click()
+    await page.locator('[data-paso="vista_previa"]').click()
   }
   await expect(dialogo(page)).toBeVisible()
   await expect(tarjeta(page)).toBeVisible()

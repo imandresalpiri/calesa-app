@@ -9,6 +9,7 @@ import {
 import {
   celdaDeLaHoja,
   cotizacionGuardada,
+  esperarElTotal,
   formulaVigente,
   tarjetaGuardada,
   totalDeLaHoja,
@@ -110,7 +111,7 @@ test('tarea de oro 2: de la hoja abierta a la cotización guardada, sólo con el
   await teclado.tabularHasta(valor(page, 'grua'))
   await teclado.escribir('450')
   await teclado.pulsar('Enter')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false')
+  await esperarElTotal(page)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await teclado.pulsar('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)
@@ -204,7 +205,7 @@ test('tarea de oro 2, con el panel: el vehículo se busca por nombre y se elige,
   await teclado.tabularHasta(valor(page, 'grua'))
   await teclado.escribir('450')
   await teclado.pulsar('Enter')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false')
+  await esperarElTotal(page)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await teclado.pulsar('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)

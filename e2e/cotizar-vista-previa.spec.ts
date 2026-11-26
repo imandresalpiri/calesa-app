@@ -33,7 +33,7 @@ import {
   etiquetasDeLasFilas,
   grupos,
   hoja,
-  resumen,
+  regionDelTotal,
   tarjeta,
   textoDe,
   total,
@@ -106,7 +106,7 @@ test('E2E la vista previa abre con su URL y dibuja el encabezado, el vehículo, 
 }, info) => {
   const proyecto = info.project.name
   await cotizarEnLaSubasta(page, asesora.email, urlDeLaSubasta(subasta, leadDeLaAsesora, vehiculo))
-  const totalDelResumen = await textoDe(resumen(page).locator('[data-total]'))
+  const totalDelResumen = await textoDe(regionDelTotal(page).locator('[data-total]'))
   expect(totalDelResumen).toMatch(/\d/)
   const t = await abrirLaVistaPrevia(page)
   expect(new URL(page.url()).searchParams.get('panel')).toBe('vista-previa')

@@ -21,6 +21,7 @@ import {
 import {
   celdaDeLaHoja,
   cotizacionGuardada,
+  esperarElTotal,
   tarjetaGuardada,
   totalDeLaHoja,
   vigilarGuardados,
@@ -154,7 +155,7 @@ test('tarea de oro 2 con un enlace de Copart: de la hoja vacía a la cotización
   await teclado.tabularHasta(valor(page, 'grua'))
   await teclado.escribir('450')
   await teclado.pulsar('Enter')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false')
+  await esperarElTotal(page)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await teclado.pulsar('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)

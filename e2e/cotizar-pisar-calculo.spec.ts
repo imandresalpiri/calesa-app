@@ -36,7 +36,7 @@ import {
   abrirLaHoja,
   abrirLaVistaPrevia,
   alDia,
-  resumen,
+  regionDelTotal,
   urlDeLaSubasta,
 } from './soporte/cotizar-vista-previa'
 import { borrarLeadsDePrueba, crearLead } from './soporte/leads'
@@ -198,7 +198,7 @@ test('E2E guardar la pisada: la guardada la marca, el resumen la lista y la revi
   const transferencia = celdaDeLaHoja(page, 'transferencia')
   await expect(marca(transferencia)).toBeVisible()
   await expect(calculado(transferencia)).toContainText(CALCULADA)
-  const pisadas = resumen(page).locator('[data-pisadas]')
+  const pisadas = regionDelTotal(page).locator('[data-pisadas]')
   await expect(pisadas).toContainText('Editado a mano: Transferencia a USA')
   await expect(pisadas).toContainText(new RegExp(`${PISADA_A_LA_VISTA}.*calculado.*${CALCULADA}`))
 

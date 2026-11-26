@@ -3,6 +3,7 @@ import type { Teclado } from './alta'
 import {
   celdaDeLaHoja,
   cotizacionGuardada,
+  esperarElTotal,
   formulaVigente,
   tarjetaGuardada,
   totalDeLaHoja,
@@ -77,7 +78,7 @@ export async function cotizarYBajar(page: Page, teclado: Teclado): Promise<Downl
   await teclado.tabularHasta(valor(page, 'grua'))
   await teclado.escribir('450')
   await teclado.pulsar('Enter')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false')
+  await esperarElTotal(page)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await teclado.pulsar('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)

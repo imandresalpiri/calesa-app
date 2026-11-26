@@ -8,10 +8,11 @@ import {
 } from './soporte/base'
 import {
   celdaDeLaHoja,
+  esperarElTotal,
   tarjetaGuardada,
   totalDeLaHoja,
-  vigilarGuardados,
   type PedidoDeGuardadoVisto,
+  vigilarGuardados,
 } from './soporte/cotizar-guardar'
 import { borrarLeadsDePrueba, crearLead } from './soporte/leads'
 import { telefonoAlAzar } from './soporte/leads-alta'
@@ -85,9 +86,7 @@ async function llenarYGuardar(page: Page, teclado: Teclado): Promise<void> {
   await teclado.tabularHasta(valor(page, 'grua'))
   await teclado.escribir('450')
   await teclado.pulsar('Enter')
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false', {
-    timeout: 15_000,
-  })
+  await esperarElTotal(page, 15_000)
   await expect(totalDeLaHoja(page)).toContainText(/\d/)
   await teclado.pulsar('ControlOrMeta+s')
   await expect(tarjetaGuardada(page)).toContainText(/Cotización n\.º \d+ guardada/)
@@ -199,9 +198,7 @@ test('tarea de oro 2, el cliente nuevo: del «+» del panel a la cotización gua
   // La hoja ya tiene al cliente (la página volvió a leer): ya no pide elegirlo.
   await expect(page.getByText(TEXTO_SIN_CLIENTE)).toBeHidden()
   // La hoja que volvió a montarse con el cliente terminó de calcular: un Tab antes cae en lo que todavía cambia.
-  await expect(page.getByLabel('Resumen')).toHaveAttribute('aria-busy', 'false', {
-    timeout: 15_000,
-  })
+  await esperarElTotal(page, 15_000)
   await expect(valor(page, 'remate')).toBeVisible()
   await llenarYGuardar(page, teclado)
   const fin = performance.now()
