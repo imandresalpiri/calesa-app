@@ -2142,6 +2142,8 @@ export type Database = {
           orden: number
           permite_aduana: boolean
           permite_contenedor: boolean
+          posicion_x: number | null
+          posicion_y: number | null
           publica_web: boolean
           visible_portal: boolean
         }
@@ -2169,6 +2171,8 @@ export type Database = {
           orden?: number
           permite_aduana?: boolean
           permite_contenedor?: boolean
+          posicion_x?: number | null
+          posicion_y?: number | null
           publica_web?: boolean
           visible_portal?: boolean
         }
@@ -2195,6 +2199,8 @@ export type Database = {
           orden?: number
           permite_aduana?: boolean
           permite_contenedor?: boolean
+          posicion_x?: number | null
+          posicion_y?: number | null
           publica_web?: boolean
           visible_portal?: boolean
         }
@@ -8999,6 +9005,8 @@ export type Database = {
           orden: number
           permite_aduana: boolean
           permite_contenedor: boolean
+          posicion_x: number | null
+          posicion_y: number | null
           publica_web: boolean
           visible_portal: boolean
         }
@@ -9014,6 +9022,10 @@ export type Database = {
         Returns: undefined
       }
       _fase_forma: { Args: { p_datos: Json; p_vacio_vale: boolean }; Returns: undefined }
+      _fase_posicion_bien: {
+        Args: { p_nula_vale: boolean; p_x: Json; p_y: Json }
+        Returns: boolean
+      }
       _fase_unico: { Args: { p_nombre: string; p_restriccion: string }; Returns: undefined }
       _fase_uso: { Args: { p_fase: string }; Returns: Json }
       _fase_validar: {
@@ -11714,6 +11726,10 @@ export type Database = {
       fase_impacto: { Args: { p_fase: string }; Returns: Json }
       fase_mover: {
         Args: { p_actualizado_en_esperado: string; p_despues_de?: string; p_fase: string }
+        Returns: string
+      }
+      fase_posiciones_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_flujo: string; p_posiciones: Json }
         Returns: string
       }
       fase_reactivar: {

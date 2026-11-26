@@ -37,10 +37,11 @@ export type DatosDeLaFlecha = {
   accion: string
   haciaJubilada: boolean
   marcas: readonly MarcaDelDiagrama[]
+  // Los nombres de sus dos fases, para el nombre del botón de la etiqueta.
+  nombreDe: string
+  nombreA: string
   // Sale de la fase abierta.
   resaltada: boolean
-  // Toca la fase que se está arrastrando.
-  atenuada: boolean
 }
 export type FlechaDeSalida = Edge<DatosDeLaFlecha, 'salida'>
 
@@ -61,11 +62,9 @@ export function nodosDelDiagrama({
   roles,
   marcas,
   faseAbierta,
-  arrastrable,
 }: Pedido & {
   fases: readonly FaseParaConfigurar[]
   roles: readonly RolLeido[]
-  arrastrable: boolean
 }): NodoDeFase[] {
   const porId = new Map(fases.map((f) => [f.id, f]))
   return disposicion.nodos.flatMap((nodo) => {
@@ -92,11 +91,11 @@ export function nodosDelDiagrama({
         position: { x: nodo.x, y: nodo.y },
         width: disposicion.medidas.ancho,
         height: disposicion.medidas.alto,
-        draggable: arrastrable,
         selectable: false,
-        connectable: false,
         focusable: false,
         deletable: false,
+        // Sin arrastre (el celular, o mientras se guarda) React Flow deja la caja sin puntero y el toque cae en el lienzo: el botón de adentro abre la fase.
+        style: { pointerEvents: 'all' as const },
         // React Flow le pone `aria-roledescription="node"` a la caja sin rol: el botón de adentro ya dice qué es.
         domAttributes: { 'aria-roledescription': undefined },
         data: {
@@ -118,8 +117,7 @@ export function flechasDelDiagrama({
   flujo,
   marcas,
   faseAbierta,
-  arrastrando,
-}: Pedido & { arrastrando: string | null }): FlechaDeSalida[] {
+}: Pedido): FlechaDeSalida[] {
   const fases = new Map(flujo.fases.map((f) => [f.id, f]))
   const acciones = new Map(flujo.transiciones.map((t) => [t.id, t.accion ?? 'Mover']))
   return disposicion.flechas.map((flecha) => {
@@ -135,6 +133,7 @@ export function flechasDelDiagrama({
       focusable: false,
       selectable: false,
       deletable: false,
+      // El nombre lo lleva el botón de su etiqueta (`FlechaDeSalida`): el `<g>` de React Flow no es interactivo.
       ariaLabel: `Salida «${accion}» de «${de}» a «${a?.nombre ?? 'otra fase'}»`,
       markerEnd: {
         type: MarkerType.ArrowClosed,
@@ -147,8 +146,9 @@ export function flechasDelDiagrama({
         accion,
         haciaJubilada: a !== undefined && !a.activa,
         marcas: marcas.porSalida.get(flecha.id) ?? [],
+        nombreDe: de,
+        nombreA: a?.nombre ?? 'otra fase',
         resaltada,
-        atenuada: arrastrando !== null && (flecha.de === arrastrando || flecha.a === arrastrando),
       },
     }
   })

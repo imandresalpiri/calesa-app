@@ -1,10 +1,13 @@
 'use client'
 
-import { EdgeLabelRenderer, type EdgeProps } from '@xyflow/react'
+import { EdgeLabelRenderer, useInternalNode, type EdgeProps } from '@xyflow/react'
 import { TriangleAlertIcon } from 'lucide-react'
+import { useId } from 'react'
 import { cn } from 'cn'
 import type { Punto } from '../../../../entities/disposicion-del-diagrama'
 import { resumenDeMarcas } from '../../../../entities/marcas-del-diagrama'
+import { trazarSalida, type TrazoDeSalida } from '../../../../entities/trazado-de-salidas'
+import { useLienzo } from './contexto-del-lienzo'
 import type { FlechaDeSalida as Flecha } from './datos-del-diagrama'
 
 const RADIO = 8
@@ -36,17 +39,39 @@ function camino(puntos: readonly Punto[]): string {
   return d
 }
 
-// Una salida en el diagrama: el camino de la disposición (no el de los `<Handle>`), la flecha cerrada y el nombre de la acción (recortado, entero en el
-// `title`). Punteada si va a una fase jubilada; con ícono y texto para el lector si «Revisar» la señala. Más fuerte si sale de la fase abierta; tenue si
-// toca la fase que se arrastra.
-export function FlechaDeSalida({ id, data, markerEnd }: EdgeProps<Flecha>) {
+// El trazo por donde están ahora las dos cajas (también mientras se arrastra una): la ruta del acomodo llevada a sus posiciones.
+function useTrazo(source: string, target: string, data: Flecha['data']): TrazoDeSalida | null {
+  const de = useInternalNode(source)?.internals.positionAbsolute
+  const a = useInternalNode(target)?.internals.positionAbsolute
+  const { medidas } = useLienzo()
   if (!data) return null
-  const { flecha, accion, haciaJubilada, marcas, resaltada, atenuada } = data
+  if (!de || !a) return data.flecha
+  return trazarSalida(de, a, data.flecha.ruta, medidas)
+}
+
+// Una salida en el diagrama: el camino de su ruta (no el de los `<Handle>`), con una zona de toque ancha, la flecha cerrada y, en la etiqueta, un botón
+// «Salida de «X» a «Y»» con la acción (recortada, entera en el `title` y en su descripción). Tocarla abre la salida en el inspector de su fase de origen;
+// Supr o Retroceso pide quitarla (con la confirmación de siempre). Punteada si va a una fase jubilada; con ícono y texto para el lector si «Revisar» la
+// señala. Más fuerte si sale de la fase abierta.
+export function FlechaDeSalida({ id, source, target, data, markerEnd }: EdgeProps<Flecha>) {
+  const trazo = useTrazo(source, target, data)
+  const { salidas } = useLienzo()
+  const idDeLaAccion = useId()
+  if (!data || !trazo) return null
+  const { accion, nombreDe, nombreA, haciaJubilada, marcas, resaltada } = data
   const avisos = resumenDeMarcas(marcas)
+  const d = camino(trazo.puntos)
   return (
     <>
       <path
-        d={camino(flecha.puntos)}
+        d={d}
+        fill="none"
+        stroke="transparent"
+        strokeWidth={16}
+        className="react-flow__edge-interaction"
+      />
+      <path
+        d={d}
         data-salida-id={id}
         fill="none"
         markerEnd={markerEnd}
@@ -59,19 +84,30 @@ export function FlechaDeSalida({ id, data, markerEnd }: EdgeProps<Flecha>) {
               : 'var(--color-ink-soft)',
           strokeWidth: resaltada ? 2.5 : 1.5,
           strokeDasharray: haciaJubilada ? '6 4' : undefined,
-          opacity: atenuada ? 0.3 : 1,
         }}
       />
       <EdgeLabelRenderer>
-        <div
+        <button
+          type="button"
           title={accion}
+          aria-label={`Salida de «${nombreDe}» a «${nombreA}»`}
+          aria-describedby={idDeLaAccion}
+          data-etiqueta-de-salida={id}
+          disabled={salidas === null}
+          onClick={() => {
+            salidas?.abrir(id, source)
+          }}
+          onKeyDown={(evento) => {
+            if (salidas === null || (evento.key !== 'Delete' && evento.key !== 'Backspace')) return
+            evento.preventDefault()
+            salidas.quitar(id, source)
+          }}
           style={{
-            transform: `translate(-50%, -50%) translate(${String(flecha.etiqueta.x)}px, ${String(flecha.etiqueta.y)}px)`,
+            transform: `translate(-50%, -50%) translate(${String(trazo.etiqueta.x)}px, ${String(trazo.etiqueta.y)}px)`,
           }}
           className={cn(
-            'nodrag nopan pointer-events-auto absolute flex max-w-[9rem] items-center gap-1 rounded-(--radius-sm) border border-(--color-line) bg-(--color-surface) px-1.5 text-(length:--text-xs) text-(--color-ink-soft)',
+            'nodrag nopan pointer-events-auto absolute flex max-w-[9rem] cursor-pointer items-center gap-1 rounded-(--radius-sm) border border-(--color-line) bg-(--color-surface) px-1.5 text-(length:--text-xs) text-(--color-ink-soft) transition outline-none hover:border-(--color-line-strong) focus-visible:shadow-(--shadow-focus) disabled:cursor-default',
             resaltada && 'border-(--color-primario) text-(--color-ink)',
-            atenuada && 'opacity-30',
           )}
         >
           {avisos ? (
@@ -80,8 +116,10 @@ export function FlechaDeSalida({ id, data, markerEnd }: EdgeProps<Flecha>) {
               <span className="sr-only">{`${avisos.texto} de Revisar: `}</span>
             </>
           ) : null}
-          <span className="truncate">{accion}</span>
-        </div>
+          <span id={idDeLaAccion} className="truncate">
+            {accion}
+          </span>
+        </button>
       </EdgeLabelRenderer>
     </>
   )

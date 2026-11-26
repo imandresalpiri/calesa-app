@@ -42,6 +42,8 @@ describe('contenidoDelPanel', () => {
   it('limpia lo que abren los bloques, sin la fase ni la sección', () => {
     expect(CLAVES_DEL_PANEL_DE_FASE).toContain('panel')
     expect(CLAVES_DEL_PANEL_DE_FASE).toContain('pestana')
+    expect(CLAVES_DEL_PANEL_DE_FASE).toContain('editada')
+    expect(CLAVES_DEL_PANEL_DE_FASE).toContain('en')
     expect(CLAVES_DEL_PANEL_DE_FASE).not.toContain('fase')
     expect(CLAVES_DEL_PANEL_DE_FASE).not.toContain('seccion')
   })

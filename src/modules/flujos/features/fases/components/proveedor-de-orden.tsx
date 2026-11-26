@@ -8,7 +8,7 @@ import { useListaDeFases } from '../hooks/use-lista-de-fases'
 
 type Props = { flujo: FlujoParaConfigurar; children: ReactNode }
 
-// El hueco `ordenDeFases`: ordenar desde el diagrama (arrastrar) y desde el panel («Mover antes/después») escribe por `fase_mover` con la versión del flujo,
+// El hueco `ordenDeFases`: ordenar desde el panel («Mover antes/después») escribe por `fase_mover` con la versión del flujo,
 // una escritura a la vez; un `PT409` va al aviso de arriba del flujo. Con la lista cortada por el tope, no se ordena (con su motivo).
 export function ProveedorDeOrden({ flujo, children }: Props) {
   const lista = useListaDeFases(flujo)

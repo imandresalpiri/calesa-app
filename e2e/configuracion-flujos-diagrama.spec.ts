@@ -11,7 +11,7 @@ import { capturar, sinScrollHorizontal, textoGrandeAlCargar } from './soporte/re
 import { literal, sql } from './soporte/sql'
 
 // El flujo de un origen como diagrama (T38, `docs/UX.md` › «Flujos: configuración (estados propios)»): las fases como cajas y las salidas como flechas,
-// el panel de una fase con sus bloques a la vista, ordenar con el teclado y arrastrando, el aviso de «Revisar» sobre su fase y, en el celular (y con
+// el panel de una fase con sus bloques a la vista, ordenar con el teclado, arrastrar una caja sin cambiar el orden, el aviso de «Revisar» sobre su fase y, en el celular (y con
 // «Ver como lista»), la lista con el mismo panel. Todo se siembra por SQL: A (inicial) → B y → C, C (final) → A; B sin salida da el aviso `sin_salida`.
 test.describe.configure({ mode: 'serial' })
 
@@ -57,6 +57,14 @@ const ordenEnLaBase = () =>
        join public.flujos fl on fl.id = f.flujo_id where fl.origen_id = ${literal(origen.id)}::uuid`,
   ).split('|')
 
+// La posición x guardada de una fase (rem), o nula.
+const posicionDe = (nombre: string) => {
+  const x = sql(
+    `select coalesce(posicion_x::text, '') from public.fases where id = ${literal(fases[nombre] ?? '')}::uuid`,
+  )
+  return x === '' ? null : Number(x)
+}
+
 const diagrama = (page: Page) => page.getByRole('region', { name: 'Diagrama del flujo' })
 const caja = (page: Page, nombre: string) =>
   diagrama(page).getByRole('button', { name: `Fase «${nombre}»`, exact: true })
@@ -82,8 +90,8 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-// @sin-celular: el diagrama no se dibuja en el celular; ahí va la lista, que prueba la otra prueba de este archivo
-test('E2E T38 el diagrama dibuja fases y salidas, abre el panel de una fase, guarda y ordena con el teclado y arrastrando', async ({
+// @sin-celular: arrastrar una caja con el mouse es de escritorio; en el celular el diagrama no se mueve, y la lista la prueba la otra prueba
+test('E2E T38 el diagrama dibuja fases y salidas, abre el panel de una fase, guarda, ordena con el teclado y mueve una caja sin cambiar el orden', async ({
   page,
 }, info) => {
   await entrar(page, duena, { fresco: true })
@@ -124,8 +132,8 @@ test('E2E T38 el diagrama dibuja fases y salidas, abre el panel de una fase, gua
   await expect.poll(ordenEnLaBase).toEqual([B, A, C])
   await expect(mas).toBeFocused()
 
-  // Arrastrar C hasta el principio: soltada a la izquierda de todo, cae en la primera columna. Con el panel cerrado y la vista de entrada, que con tres fases
-  // las muestra todas sin animar (tras «Ver todo el flujo» las cajas siguen moviéndose un momento).
+  // Arrastrar C hasta el borde izquierdo la mueve sin cambiar el orden: la base guarda su posición (a la izquierda de B, ahora la primera) y nada más.
+  // Con el panel cerrado y la vista de entrada, que con tres fases las muestra todas sin animar.
   await page.keyboard.press('Escape')
   await expect(panel).toBeHidden()
   await abrirConElDiagrama(page)
@@ -134,7 +142,9 @@ test('E2E T38 el diagrama dibuja fases y salidas, abre el panel de una fase, gua
   // Al borde izquierdo de la ventana, en pasos (no hace falta medir dónde está B).
   await page.mouse.move(8, 400, { steps: 12 })
   await page.mouse.up()
-  await expect.poll(ordenEnLaBase).toEqual([C, B, A])
+  await expect.poll(() => posicionDe(C)).not.toBeNull()
+  expect((posicionDe(C) ?? 0) < (posicionDe(B) ?? 0)).toBe(true)
+  expect(ordenEnLaBase()).toEqual([B, A, C])
   await expect(page.getByRole('dialog')).toBeHidden()
   await capturar(page, info, 'tras-arrastrar')
 
@@ -147,7 +157,7 @@ test('E2E T38 el diagrama dibuja fases y salidas, abre el panel de una fase, gua
 
   // «Ver como lista» y de vuelta.
   await page.getByRole('button', { name: 'Ver como lista' }).click()
-  await expect(page.locator('[data-abre-resumen]')).toHaveText([C, B, A])
+  await expect(page.locator('[data-abre-resumen]')).toHaveText([B, A, C])
   await expect(diagrama(page)).toHaveCount(0)
   await capturar(page, info, 'lista')
   await page.getByRole('button', { name: 'Ver como diagrama' }).click()

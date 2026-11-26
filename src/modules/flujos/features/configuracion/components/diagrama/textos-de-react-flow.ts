@@ -1,6 +1,6 @@
 import type { AriaLabelConfig } from '@xyflow/react'
 
-// Los textos de React Flow para el lector, en español (sin teclado ni minimapa ni controles suyos, igual quedan en el DOM).
+// Los textos de React Flow para el lector, en español (sin su teclado ni sus controles, igual quedan en el DOM; el minimapa y el asa, sí).
 export const TEXTOS_DE_REACT_FLOW: AriaLabelConfig = {
   'node.a11yDescription.default': 'Una fase del flujo.',
   'node.a11yDescription.keyboardDisabled': 'Una fase del flujo.',
@@ -12,5 +12,5 @@ export const TEXTOS_DE_REACT_FLOW: AriaLabelConfig = {
   'controls.fitView.ariaLabel': 'Ver todo el flujo',
   'controls.interactive.ariaLabel': 'Bloquear el diagrama',
   'minimap.ariaLabel': 'Minimapa',
-  'handle.ariaLabel': 'Punto de conexión',
+  'handle.ariaLabel': 'Asa de la fase',
 }

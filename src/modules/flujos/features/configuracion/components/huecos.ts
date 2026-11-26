@@ -16,8 +16,12 @@ export type HuecosDelFlujo = {
   proveedorDeRevisar?: ComponentType<DelFlujoConHijos>
   // Sobre el flujo, la franja de avisos de «Revisar» (5.12).
   franjaDeRevisar?: ComponentType<DelFlujo>
-  // Envuelve el flujo abierto: ordenar las fases arrastrando o con «Mover antes/después» (`ContextoDeOrdenDeFases`).
+  // Envuelve el flujo abierto: ordenar las fases con «Mover antes/después» (`ContextoDeOrdenDeFases`).
   ordenDeFases?: ComponentType<DelFlujoConHijos>
+  // Envuelve el flujo abierto: guardar las posiciones de las fases en el diagrama y pedir una fase nueva en un punto (`ContextoDeFasesDelDiagrama`).
+  diagramaDeFases?: ComponentType<DelFlujoConHijos>
+  // Envuelve el flujo abierto: vincular dos fases arrastrando el asa, abrir y pedir quitar una salida desde su flecha (`ContextoDeSalidasDelDiagrama`).
+  salidasDelDiagrama?: ComponentType<DelFlujoConHijos>
   // En la barra del flujo («Nueva fase» y sus modales, 5.04; también el de «Empezar con las fases de…»).
   accionesDeLaLista?: ComponentType<DelFlujo>
   // En lugar del vacío de un flujo sin fases: «Empezar con las fases de…» y «Empezar en blanco». Sin él, el vacío de siempre. De dónde copiar lo da
