@@ -650,7 +650,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     Espacio), el nombre, `tipo · clave` y las insignias («Requerido», «De fábrica», «Principal», las banderas en fila, «Dato clave»), y un «⋯»
     (Editar · Hacer dato clave o Quitar de los datos clave · Subir · Bajar · Desactivar · Eliminar…; lo imposible, apagado con su motivo).
     Tocar la fila abre el panel `?campo=<id>` (`&eliminar=1`: «Eliminar…» abre preguntando); las banderas se cambian ahí. Desactivar es
-    reversible con «Deshacer» (si era dato clave, el «⋯» avisa «También sale de los datos clave.»). «Desactivados» va plegado y sin número.
+    reversible con «Deshacer» (si era dato clave, el «⋯» avisa «También sale de los datos clave.»). «Desactivados» va a la vista, debajo, y sin número.
     Con una búsqueda no hay asas; sin coincidencias, «Nada coincide con «…».» y «Limpiar». Conflicto `PT409` dentro del panel con «Recargar»,
     que conserva lo escrito. Sin `origenes.gestionar`: el aviso con su motivo, «Nuevo campo» apagado, sin asas, el «⋯» sólo con «Ver» y el
     panel sin «Guardar». **Categorías** (`/categorias`,
@@ -785,8 +785,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   de teclado» (la lista del catálogo; no se dispara mientras se escribe). En un alta de vehículo `Ctrl/Cmd+S` guarda y cierra; en «Nuevo
   lead» deja el drawer listo para el siguiente.
 - **Filtros:** panel lateral plegable si el listado mide 40 rem o más (si no, hoja inferior) + chips activos + «limpiar»; esquema
-  declarativo por listado; estado en URL (nuqs, `shallow:false`); vistas guardadas por usuario (en «Vista y opciones»). Formularios en drawer/modal con bloques
-  plegables; `returnTo` para volver.
+  declarativo por listado; estado en URL (nuqs, `shallow:false`); vistas guardadas por usuario (en «Vista y opciones»). Formularios en drawer o modal con secciones
+  a la vista, un solo nivel; `returnTo` para volver.
 - **Patrón de lista** (`.claude/rules/ui.md`): toda lista de registros se dibuja igual. Desde 768 px, tabla con **nombre pegado a la
   izquierda** (entero hasta 16 rem; más largo, «…» y completo en `title`) y **«⋯» a la derecha**, que se desplaza de costado dentro de su
   tarjeta, nunca la página; por debajo, tarjetas. **Un clic en cualquier parte de la fila o tarjeta abre su resumen** (en una lista sin resumen —leads,
@@ -942,8 +942,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   por alta, y sobre la lista dice «Cierre más próximo primero» (en otra página, «Volver al principio»). «Fase» (`?fase=`, varias a la vez): las fases del
   origen y «Sin fase»; filtra la columna, así que la fase de la subasta trae todo lo que está en ella, viva o no. En un origen de subasta, un atajo «Sin
   resolver N» (hasta «99+») arriba de la lista pone o quita `?subasta=sin_resolver` de un toque; sin ninguna pendiente y sin el filtro puesto, no se dibuja.
-- **Alta y edición (panel):** «Datos principales», «Precio» y un bloque por grupo del layout (con obligatorio nace abierto; con error se
-  abre solo); rechazos junto al campo (VIN o lote repetido también). Conflicto: quién y cuándo, «Ver cómo quedó» y «Recargar».
+- **Alta y edición (panel):** «Datos principales», «Precio» y una sección por grupo del layout, todas a la vista; rechazos junto al campo (VIN o lote repetido también). Conflicto: quién y cuándo, «Ver cómo quedó» y «Recargar».
 - **Fotos:** elegir (selector, soltar o cámara) las deja en una bandeja sin subir que dice lo que no entra y por qué (no es foto, > 25 MB,
   repetida, pasa de 24). «Subir N fotos» con avance; un fallo se dice entero con «Reintentar las N que faltan». Reordenar con botones o
   `Alt+←/→`; eliminar con «Deshacer». Todo eso, en el drawer «Editar imágenes» del «⋯» (`?panel=imagenes`, con
@@ -1029,7 +1028,7 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 - **Campos** (`leads.campos.gestionar`; sin él, apagada en el menú): el mismo editor de campos que un origen, sin casillas ni «Comunes»:
   buscador y «Nuevo campo», los grupos como en el formulario con sus insignias («En la tabla», «Filtrable», «Solo la cartera», «De fábrica»),
-  el arrastre dentro del grupo, el «⋯» y el panel `?campo=`; «Desactivados» plegado, con «Activar» en su «⋯». Fijos: teléfono, nombre, tipo y
+  el arrastre dentro del grupo, el «⋯» y el panel `?campo=`; «Desactivados» a la vista, debajo, con «Activar» en su «⋯». Fijos: teléfono, nombre, tipo y
   que el lead tenga origen.
 - **Impacto, siempre con números y dentro del panel:** volver requerido (cuántos leads no podrán guardarse hasta completarlo); cambiar el
   tipo o eliminar con datos; sacar una opción en uso; dejar de ser «solo la cartera». Conflicto con «Recargar».
@@ -1217,7 +1216,7 @@ el flujo; la base vuelve a decidir.
 ### Logística: estados propios
 
 La unidad se dibuja de dos maneras: en su página `/logistica/vehiculo/<id>`, **en zonas** (escritorio) o **en bloques con una barra «Mover»** (celular y tableta vertical; `<PaginaDeLaUnidad>`), y, dentro
-de un drawer: el de `/logistica/gastos?vehiculo=<id>`, como **bloques plegables** (`<PanelDeLaUnidad>`), y el del ítem de repuesto (`?item=`), con
+de un drawer: el de `/logistica/gastos?vehiculo=<id>`, con una **sección a la vista por hueco** que monta su contenido al acercarse (`<PanelDeLaUnidad>`), y el del ítem de repuesto (`?item=`), con
 sus **secciones a la vista** (`<PanelDeLaUnidadALaVista>`: «Qué falta» primero, cada sección con su `h3`; el atajo de una falta la trae a la vista
 y enfoca su título).
 
@@ -1230,10 +1229,10 @@ y enfoca su título).
   debajo, **pestañas** con su propio desplazamiento cada una: Documentos · Transporte · Repuestos · Aduana · **Dinero** (gastos, pagos y margen apilados); a la derecha, **lateral**: Notas · Historial. Cada hueco aparece con su permiso en el origen y su regla del flujo encendida; una pestaña sin
   huecos no se dibuja («Dinero» existe si hay alguno de los tres) y una zona vacía deja que la grilla se reacomode. La pestaña elegida va en `?hueco=` (sin recargar, sin sumar al historial). Lo de cada pestaña se monta la primera vez que se elige y queda montado: la nota a medias, el borrador de transporte
   y la bandeja de documentos no se pierden. Los atajos («Ir a Documentos», «Ir a Gastos») eligen la pestaña y llevan el foco a ella. **Subir documentos** va en un drawer (`?subir=documentos`) abierto por el botón «Subir documentos» del hueco (apagado, con «Necesitas permiso para subir documentos.» escrito debajo, sin `logistica.documentos.subir`); con archivos en la bandeja cerrar pregunta, y al terminar sin fallos se cierra solo (con fallos queda abierto con «Reintentar los N que faltan»). En el celular y en los drawers la bandeja sigue en línea. En escritorio se piden al abrir tres huecos (Qué falta, Documentos, Notas); en el celular, uno.
-- **Celular y tableta vertical:** una columna, un bloque plegado por hueco en este orden —qué falta (abierto), documentos, notas, historial, transporte, repuestos, aduana, gastos, pagos, margen— y una barra «Mover» pegada abajo (44 px, sólo con `flujos.mover` del origen y el hueco «Qué falta»)
-  que lo abre, lo trae a la vista y le da el foco. Si el flujo del origen no se pudo leer, los huecos que piden una regla no se dibujan y una línea lo dice; el resto sigue. La ficha del
+- **Celular y tableta vertical:** una columna, una sección a la vista por hueco (monta su contenido al acercarse) en este orden —qué falta, documentos, notas, historial, transporte, repuestos, aduana, gastos, pagos, margen— y una barra «Mover» pegada abajo (44 px, sólo con `flujos.mover` del origen y el hueco «Qué falta»)
+  que lo trae a la vista y le da el foco. Si el flujo del origen no se pudo leer, los huecos que piden una regla no se dibujan y una línea lo dice; el resto sigue. La ficha del
   vehículo lleva «Ver en logística» (un enlace corto de su cabecera, con `logistica.ver`) a `/logistica/vehiculo/<id>`.
-- **«Qué falta» y mover** (abierto al inicio, el primero): una tarjeta por destino (las salidas de la fase actual; sin fase, las iniciales)
+- **«Qué falta» y mover** (el primero): una tarjeta por destino (las salidas de la fase actual; sin fase, las iniciales)
   con cada requisito y su estado **dicho con texto** («Cumplido» / «Falta»), «Obligatorio» / «Informativo», su detalle («1 de 2
   aprobados») y, en cada falta (obligatoria o informativa), **lo que la destraba**: un botón chico con el verbo («Subir», «Revisar», «Completar»,
   «Registrar», «Ir a Documentos/Transporte/Aduana/Pagos/Repuestos/Cotizaciones», «Ir al vehículo», «Ir al proyecto», «Vincular», «Pedirlo»; el nombre accesible
@@ -1269,7 +1268,7 @@ y enfoca su título).
   formulario con «Recargar», que conserva lo escrito. Sin `logistica.transporte.editar` del origen, campos apagados con su motivo. Vacíos:
   sin transporte cargado; sin navieras (con `logistica.catalogos.gestionar`, «Cargar navieras»). Guardar relee «Qué falta». Una unidad de
   repuesto: `TEXTO_DE_REPUESTO`.
-- **Notas e historial** (zona lateral en la página; plegados en un drawer o en el celular): «Notas» con «Escribir una nota» (`<Textarea>`, contador de 2.000, «Guardar nota», `Ctrl/Cmd+Enter`; el
+- **Notas e historial** (zona lateral en la página; secciones a la vista en un drawer o en el celular): «Notas» con «Escribir una nota» (`<Textarea>`, contador de 2.000, «Guardar nota», `Ctrl/Cmd+Enter`; el
   error junto al botón y el texto queda) y las notas de la más nueva: quién, cuándo, texto; la que dejó un cambio de fase dice «al pasar a
   «<fase>»» y no se edita. «Editar» sólo la propia, en el lugar. **No hay «Borrar»**: la base no deja el borrado suave por `update` (pide
   una RPC). «Historial», sólo lectura: una línea por cambio, quién («Sistema» sin persona), cuándo y la nota. Las dos: de a 20 con «Ver
@@ -1314,7 +1313,7 @@ y enfoca su título).
   ETA, arribo y unidades acotadas («200+»; «Hay unidades que no ves.»); lo que difiere entre unidades dice «Varias», lo que ninguna tiene
   «—». Si la base revisó una parte sin llenar la página, lo dice y «Siguiente» sigue buscando. **Resumen** (`?booking=` o `?contenedor=`,
   `<Drawer>` que sólo muestra): una fila por unidad con título (enlace si es vehículo), fase, ETA y arribo, con avisos de tope y de ocultas;
-  debajo, plegados y cada uno con su permiso (la base lo exige por unidad): «Mover el grupo», «Subir un documento a las unidades» y
+  debajo, a la vista y cada uno con su permiso (la base lo exige por unidad): «Mover el grupo», «Subir un documento a las unidades» y
   «Prorratear un gasto entre las unidades». **«Editar grupo»** (con `logistica.transporte.editar` o `repuestos.editar`; `?panel=editar-grupo`
   **tapa** al resumen): ruta, contenedor y booking, fechas; un campo común sale con su valor, uno que difiere sale vacío con «Varios» y
   dejarlo así no lo toca. «Guardar» manda lo tocado a todas o a ninguna («Se aplicó a las N unidades.»; conflicto «No se cambió ninguna:
@@ -1875,7 +1874,7 @@ suma desde «Sin lugar en la hoja».
   que no admite nivel** (el total y lo que va aparte, o una sección que los tiene): «Quién la ve» apagado con su motivo. Con `equipo.roles.gestionar`, «+ Nuevo
   nivel» (el modal de Roles, `?panel=nuevo-nivel`; el creado queda elegido; en el tope, apagado con su motivo). **Una fila que ya no está en la fórmula**
   (`nodo_inexistente`): «Esta fila ya no está en la fórmula.» con «Quitar la pieza».
-- **Aspecto** (un bloque «Aspecto» plegado en cada pieza; no se escribe el valor por defecto, se quita): por sección, «Ancho en la hoja»
+- **Aspecto** (una sección «Aspecto» a la vista en cada pieza; no se escribe el valor por defecto, se quita): por sección, «Ancho en la hoja»
   («Automático (la mitad, si hay lugar)» y de 12 a 1 columna), «Alto» (Automático | 2, 3 o 4 filas), «Relleno» (Chico | Medio | Grande),
   «Separación entre celdas» (Chica | Media | Grande), «Densidad» (Compacta | Cómoda), «Letra» (Chica | Normal | Grande), «Énfasis»
   (Normal | Fuerte) y «Color» («Sin color» y los colores del catálogo, con su muestra, y «+ Nuevo color», `?color=nuevo`: el creado queda elegido; en el tope,
@@ -2008,8 +2007,8 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   lead y del vehículo»). **Vehículos** (con `vehiculos.ver`; `?seccion=vehiculos` y `#relacionados` llevan acá): el compacto de Relacionados (ver
   «Relacionados (estados propios)») con «Vincular o marcar» en el título (cartera y `leads.editar`: abre `?panel=agregar-vehiculo`, que busca por título, VIN,
   lote o #número, con «Vincular» y nota de interés ≤ 500); vinculados, interesados (con nota) y cotizados con sus acciones en el «⋯» de cada fila
-  («Desvincular»: con la cartera, en el lugar con «Deshacer»; sin ella, confirma en `?panel=desvincular&vinculado=`; «Quitar interés»). Al pie, «Vínculos
-  anteriores» plegados: un botón (`aria-expanded`) que los despliega en el lugar, hasta 50 con su tope. **Oportunidades** (con la cartera): el **embudo del lead**.
+  («Desvincular»: con la cartera, en el lugar con «Deshacer»; sin ella, confirma en `?panel=desvincular&vinculado=`; «Quitar interés»). Al pie, «Ver los
+  vínculos anteriores» (sólo si hay alguno): un botón que abre el drawer «Vínculos anteriores» (`?panel=vinculos-anteriores`), hasta 50 con su tope. **Oportunidades** (con la cartera): el **embudo del lead**.
   Un selector de embudo (sólo si quien mira tiene más de uno; lo elegido se recuerda por persona) y una columna por etapa del embudo elegido, con el nombre sobre su color y
   las oportunidades de este lead en ella (abiertas, ganadas y perdidas), hasta 3 por columna. Cada tarjeta: título (hasta dos líneas), vehículo si lo tiene, monto con `<Monto>`,
   motivo si es perdida y su «⋯» arriba a la derecha con «Mover a», «Editar» y «Eliminar». **Arrastrar** una tarjeta a otra columna la mueve (mouse; con el teclado, Tab a la

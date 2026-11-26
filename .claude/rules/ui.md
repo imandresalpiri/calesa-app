@@ -31,8 +31,8 @@ Antes de construir una pantalla, lee su fila en `docs/UX.md` (patrón, roles, es
 - **Sin saltos de interfaz:** lo que cambia de contenido dentro de un área (cargar, editar, cambiar de vista, mostrar un aviso) no cambia el
   tamaño del área: alto fijo o reservado, y el esqueleto mide lo mismo que el contenido. Se comprueba en el e2e midiendo con `boundingBox()`
   antes y después.
-- Lo que hoy se dibuja con bloques plegables (`src/shared/ui/bloque.tsx` y sus usos) lo cambian `refactor/sin-acordeones-pantallas` y
-  `refactor/sin-acordeones-configuracion`; hasta entonces, lo viejo no es excusa para lo nuevo.
+- `<Bloque>` ya no se pliega; lo que queda plegable en Configuración lo cambia `refactor/sin-acordeones-configuracion`; hasta entonces, lo
+  viejo no es excusa para lo nuevo.
 
 ## Destructivas, paneles y modales
 

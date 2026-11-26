@@ -188,7 +188,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Vincular / Desvincular** — `vehiculo_vincular(p_vehiculo, p_actualizado_en_esperado, p_lead)` (nulo desvincula): con la versión del vehículo.
 - **Vehículos del lead** — `lead_vehiculos()`, `<GestionDeVehiculosDelLead>`, `?seccion=vehiculos`: en la ficha del lead, el bloque **Relacionados**
   se llama «Vehículos» (en su título y en el índice; su ancla sigue siendo `#relacionados`), con «Vincular o marcar» en el título; al pie, la gestión
-  (los vínculos anteriores plegados tras su botón, el panel «Vincular o marcar un vehículo» y la confirmación de desvincular); vinculados e
+  («Ver los vínculos anteriores», que abre su drawer en `?panel=vinculos-anteriores`, el panel «Vincular o marcar un vehículo» y la confirmación de desvincular); vinculados e
   interesados, con sus acciones, son los grupos de Relacionados. Sólo lo visible.
 - **Agregar vehículo** — `vehiculos_para_lead()`, `?panel=agregar-vehiculo`: buscar entre los vehículos visibles para vincular uno o marcar
   interés desde el lead.
@@ -475,7 +475,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Última cotización (de un vehículo)** — `vehiculos.cotizado_en`, `_vehiculo_cotizado()`: ordena «Últ. cotización» del panel del vehículo.
   Cotizar no edita el vehículo.
 - **Historial de cotizaciones (de un vehículo)** — `<HistorialDelVehiculo>` (`cotizaciones/features/historial`): las visibles por
-  `vehiculo_id`, de la más nueva, de a 20; plegado en el panel del vehículo. La ficha del lead no lo usa: dibuja su **fila de tarjetas**. **Cotizado (n)**: `contarCotizacionesDelVehiculo()`.
+  `vehiculo_id`, de la más nueva, de a 20; en el panel del vehículo, un botón que lo abre en un modal (`?ver=historial`). La ficha del lead no lo usa: dibuja su **fila de tarjetas**. **Cotizado (n)**: `contarCotizacionesDelVehiculo()`.
 - **Panel del vehículo** — `?panel=vehiculo` de `/cotizaciones/nuevo`, `<BarraDelVehiculo>` / `PanelDelVehiculo`
   (`vehiculos/features/panel-para-cotizar`): elige el vehículo por «Últ. cotización» o «Cierre subasta» (`?lista=ultima|cierre`) o buscando
   nombre, VIN o lote (`?buscar=`); «+» y «Traer» abren el alta del inventario en el panel (`?alta=mano|subasta`).
@@ -1035,10 +1035,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `usuarios_roles`; lo que cuenta el bloque «Personas sin rol» de Inicio. No es un estado de la persona (`estadoDePersona()`): no cambia lo que dice su insignia.
 - **Panel de turnos** — `?panel=turnos` en Inicio (`PanelDeTurnos`): todos mis turnos de la web sin confirmar (asignados y vencidos), de a 20 con «Ver más» hasta 200; es el «Ver todos» del bloque
   «Turnos de la web sin confirmar». Cada turno lleva «Contacté» y «Vincular a lead».
-- **Bloque** — `<Bloque>`: sección plegable de un formulario o un panel.
+- **Bloque** — `<Bloque>`: sección a la vista de un formulario o un panel, con su título (`h3`); nunca se pliega.
 - **Bloque (de una ficha)** — `<BloqueDeFicha>`, `#<ancla>` (`src/shared/ui/ficha-en-bloques`): una parte de una ficha en dos columnas, siempre a la
   vista (no se pliega), con su ancla, su título `h2` (con su única acción a la derecha: `<TituloDeBloqueConAccion>`) y su error propio. No es `<Bloque>`,
-  el plegable.
+  la sección de un formulario o un panel.
 - **Índice (de una ficha)** — `<IndiceDeBloques>`: la barra arriba de la columna principal de una ficha en dos columnas (quieta mientras los bloques se desplazan por dentro; pegajosa en el celular), con un enlace de ancla
   por bloque y `aria-current="location"` en el que está a la vista. No navega: salta dentro de la misma página. No: «pestañas», «menú».
 - **Atajo** — `ATAJOS` / `useAtajo()`: tecla global (`Esc`, `N`, `Ctrl/Cmd+K`, `Ctrl/Cmd+B`…); responde el panel de más arriba.
@@ -1193,7 +1193,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   cambio de cada bucket). Con ella se escribe `totales.bs`.
 - **Unidad** — `Unidad` (`logistica/entities/nucleo/unidad.ts`): el vehículo o repuesto sobre el que se opera en logística (`tipo`);
   documentos, gastos, pagos, notas y transporte cuelgan por `vehiculo_id` o `repuesto_id`, uno y sólo uno (`refDeUnidad`).
-- **Panel de la unidad** — la cabecera y los huecos de cada área en el orden de `ORDEN_DE_HUECOS` (lo que más se hace primero). En su página `/logistica/vehiculo/<id>` (`<PaginaDeLaUnidad>`) se reparte en **zonas** en escritorio y en bloques con una barra «Mover» en el celular (con `?hueco=documentos` abre esa pestaña o ese bloque); en un drawer, bloques plegables en el `?vehiculo=` de `/logistica/gastos` (`<PanelDeLaUnidad>`) y secciones a la vista en el ítem de repuesto (`<PanelDeLaUnidadALaVista>`). Un vehículo se abre siempre en su página.
+- **Panel de la unidad** — la cabecera y los huecos de cada área en el orden de `ORDEN_DE_HUECOS` (lo que más se hace primero). En su página `/logistica/vehiculo/<id>` (`<PaginaDeLaUnidad>`) se reparte en **zonas** en escritorio y en bloques con una barra «Mover» en el celular (con `?hueco=documentos` abre esa pestaña o ese bloque); en un drawer, una sección a la vista por hueco en el `?vehiculo=` de `/logistica/gastos` (`<PanelDeLaUnidad>`) y secciones a la vista en el ítem de repuesto (`<PanelDeLaUnidadALaVista>`). Un vehículo se abre siempre en su página.
 - **Zona (de la unidad)** — dónde se dibuja un hueco en la página de la unidad en escritorio (`ZONA_DEL_HUECO`, junto a `ORDEN_DE_HUECOS`): **principal** («Qué falta» con mover, siempre a la vista), **pestañas** (Documentos, Transporte, Repuestos, Aduana y **Dinero**, que junta gastos, pagos y margen) y **lateral** (Notas e Historial). No: «zona horaria» (la de quien mira).
 - **Despliegue en seco** — `pnpm despliegue:en-seco` / `scripts/despliegue/en-seco.sh`, `revisar-base.mjs`: ensayo local de un despliegue
   (base, pruebas, advisors, jobs, buckets, Vault, funciones, variables, build) sin tocar la nube; termina en «listo» o con lo que falta y las

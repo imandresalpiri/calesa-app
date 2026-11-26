@@ -49,8 +49,8 @@ export function bloquesDeLaFicha(
         <SeccionOportunidades leadId={lead.id} embudoRecordado={embudoRecordado} {...vehiculos} />
       </Suspense>
     ) : null,
-    // «Vehículos»: los relacionados (de un vistazo, con las acciones de cada fila y «Vincular o marcar» en el título) y, al pie, los vínculos
-    // anteriores plegados, el panel para vincular o marcar uno y la confirmación de desvincular.
+    // «Vehículos»: los relacionados (de un vistazo, con las acciones de cada fila y «Vincular o marcar» en el título) y, al pie, «Ver los
+    // vínculos anteriores» (su drawer), el panel para vincular o marcar uno y la confirmación de desvincular.
     relacionados: ve.vehiculos ? (
       <>
         <Suspense fallback={<EsqueletoDeRelacionados presentacion="compacta" />}>
