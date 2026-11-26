@@ -130,7 +130,7 @@ test('E3: cambia el ancho con el borde y con Alt+Shift+→', async ({ page }) =>
   const ancho = inspector(page).getByLabel('Ancho', { exact: true })
   await expect(ancho).toHaveValue('12')
   // El borde derecho llevado hasta la mitad de la pieza: la mitad de la rejilla.
-  const borde = page.locator('[data-borde-de-ancho]')
+  const borde = page.locator('[data-borde-del-tamano="derecho"]')
   await expect(borde).toHaveAccessibleName('Ancho de «Precio de subasta»: 12 de 12 columnas')
   await borde.dragTo(boton(page, 'precio'), { steps: 10, force: true })
   await expect(ancho).toHaveValue('6')

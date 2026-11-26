@@ -19,7 +19,6 @@ import { entradasIniciales, indiceDeHoja } from '../../../../entities/entradas'
 import { idsDelLienzo } from '../../hooks/ids-del-lienzo'
 import { useApoyoDelLienzo } from '../../hooks/use-apoyo-del-lienzo'
 import { useArrastreDeLaHoja } from '../../hooks/use-arrastre-de-la-hoja'
-import type { EdicionesDelDiseno } from '../../hooks/use-ediciones-del-diseno'
 import type { EditorDelDiseno } from '../../hooks/use-editor-del-diseno'
 import { MarcoEscalado } from './marco-escalado'
 import { CabeceraDelLienzo, TotalSueltoDelLienzo } from './piezas-fijas-del-lienzo'
@@ -29,7 +28,6 @@ import { SumarSeccion } from './sumar-seccion'
 type Props = {
   origen: { id: string; nombre: string }
   editor: EditorDelDiseno
-  ediciones: EdicionesDelDiseno
   // Los parámetros de la versión, para las cifras de prueba.
   params: unknown
   tonos: readonly Tono[]
@@ -75,7 +73,6 @@ function LoQueSeArrastra({ nombre }: { nombre: string | null }) {
 export function LienzoDeLaHoja({
   origen,
   editor,
-  ediciones,
   params,
   tonos,
   vista,
@@ -108,7 +105,6 @@ export function LienzoDeLaHoja({
   })
   const apoyo = useApoyoDelLienzo({
     editor,
-    ediciones,
     contexto,
     elegida,
     elegir,

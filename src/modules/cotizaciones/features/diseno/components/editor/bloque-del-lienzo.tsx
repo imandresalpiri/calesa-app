@@ -45,7 +45,10 @@ export function BloqueDelLienzo({ rejilla, enSuFila, totalSuelto, avanzadas, apo
     alMover: (direccion) => {
       apoyo.moverConTeclas(BLOQUE, direccion)
     },
-    alCambiarAncho: null,
+    // Ocupa la fila entera: Alt+Shift+flechas sólo lo dicen.
+    alCambiarTamano: (lado, paso) => {
+      apoyo.cambiarTamanoUnPaso(BLOQUE, lado, paso)
+    },
     alSoltar: elegida
       ? () => {
           apoyo.elegir(null)

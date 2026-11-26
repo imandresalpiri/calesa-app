@@ -57,7 +57,7 @@ function NivelesDeLaCelda({ seccion, celda, apoyo }: Props) {
   )
 }
 
-// La celda elegida: el rótulo y el formato de su fila, su ancho (también con el borde de la pieza o Alt+←/→), sus niveles, su ayuda y su aspecto.
+// La celda elegida: el rótulo y el formato de su fila, su ancho (también con el borde de la pieza o Alt+Shift+←/→), sus niveles, su ayuda y su aspecto.
 export function InspectorDeLaCelda({ seccion, celda, apoyo }: Props) {
   const { editor, ediciones } = apoyo
   const clave: ClaveDePieza = { tipo: 'celda', nodo: celda.nodo, seccion: seccion.id }

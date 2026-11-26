@@ -88,7 +88,7 @@ function UbicarEnLaHoja({ apoyo, alUbicar }: { apoyo: ApoyoDelInspector; alUbica
 }
 
 // La tarjeta del total elegida: qué es el total y qué va junto a él; dónde está (o «Ubicar en la hoja», si todavía no está en una sección) y, ya en una sección,
-// su aspecto (su ancho, también con el borde o Alt+←/→).
+// su aspecto (su ancho, también con el borde o Alt+Shift+←/→).
 export function InspectorDelTotal({
   apoyo,
   alUbicar,

@@ -70,7 +70,6 @@ export function EditorDeLaHoja({ origen, recargando, alRecargar, ...lo }: Props)
         <LienzoDeLaHoja
           origen={origen}
           editor={editor}
-          ediciones={hoja.ediciones}
           params={lo.leida.params}
           tonos={lo.tonos}
           vista={vista.vista}

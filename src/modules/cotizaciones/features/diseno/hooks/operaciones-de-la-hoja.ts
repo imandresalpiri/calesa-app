@@ -13,13 +13,14 @@ import {
   porQueNoSeMovio,
   type Intento,
 } from '../../../entities/diseno/anuncios-de-la-rejilla'
+import { cambiarElTamano } from '../../../entities/diseno/anuncios-del-tamano'
 import {
   quitarItem,
   quitarSeccion,
   sumarItem,
   sumarSeccion,
 } from '../../../entities/diseno/insercion-del-diseno'
-import { ordenarPorLectura } from '../../../entities/diseno/lugar-en-la-rejilla'
+import { ordenarPorLectura, type Tamano } from '../../../entities/diseno/lugar-en-la-rejilla'
 import {
   destinoEnLaVecina,
   moverPiezaA,
@@ -91,6 +92,14 @@ export function operacionesDeLaHoja(
       return destino === null
         ? null
         : mover(p, moverPiezaA(trabajo, p, destino), { destino: destino.posicion })
+    },
+    // El borde y Alt+Shift+flechas: lo que entra de lo pedido, sin empujar a nadie. Devuelve lo que se anuncia (lo que mide o por qué no cambió); nulo si la
+    // pieza no está en la rejilla.
+    cambiarElTamano: (p: PiezaDeLaHoja, pedido: Partial<Tamano>): string | null => {
+      const r = cambiarElTamano(trabajo, p, pedido, nombre)
+      if (r === null) return null
+      if (r.diseno !== trabajo) setTrabajo(r.diseno)
+      return r.anuncio
     },
     // En el primer lugar libre de la sección donde entra (con `despues`, el primero después de esa posición).
     sumar: (seccionId: string, item: ItemSinPosicion, despues?: Posicion) => {

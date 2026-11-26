@@ -3,7 +3,6 @@
 import { useDraggable } from '@dnd-kit/core'
 import type { ContextoDeHoja } from '../../../../entities/binding'
 import { piezaDelItem, type ClaveDePieza } from '../../../../entities/diseno'
-import { columnasDe } from '../../../../entities/diseno/ancho-de-la-pieza'
 import type {
   PiezaDelLienzo,
   SeccionDelLienzo,
@@ -22,7 +21,7 @@ import type { DatosDeLoQueSeArrastra } from '../../hooks/ids-del-lienzo'
 import type { ApoyoDelLienzo } from '../../hooks/use-apoyo-del-lienzo'
 import { useTeclasDeLaPieza } from '../../hooks/use-teclas-de-la-pieza'
 import { ACCIONES_QUIETAS } from './acciones-quietas'
-import { BordeDeAncho } from './borde-de-ancho'
+import { BordesDelTamano } from './borde-del-tamano'
 import { MenuParaSumar } from './hueco-para-sumar'
 import { A_TAMANO_REAL } from './marco-escalado'
 import { MenuDeLaPieza } from './menu-de-la-pieza'
@@ -60,10 +59,12 @@ type DeLaElegida = Omit<Props, 'id'> & {
   nombre: string
 }
 
-// Lo que lleva la pieza elegida: su «⋯» (a la sección anterior o siguiente, Quitar), el borde de ancho y el «+» para sumar otra después de ella.
+// Lo que lleva la pieza elegida: los bordes del ancho y del alto, su «⋯» (a la sección anterior o siguiente, Quitar) y el «+» para sumar otra después de ella
+// (el «⋯» y el «+» después: donde se tocan con un borde, ganan ellos).
 function DeLaElegida({ pieza, seccion, apoyo, deLaHoja, clave, nombre }: DeLaElegida) {
   return (
     <>
+      <BordesDelTamano pieza={deLaHoja} nombre={nombre} apoyo={apoyo} />
       <div
         className={`${A_TAMANO_REAL} absolute -top-3 right-1 z-20 rounded-(--radius-md) bg-(--color-surface) shadow-(--shadow-sm)`}
       >
@@ -82,14 +83,6 @@ function DeLaElegida({ pieza, seccion, apoyo, deLaHoja, clave, nombre }: DeLaEle
           }}
         />
       </div>
-      <BordeDeAncho
-        nombre={nombre}
-        columnas={columnasDe(pieza.item)}
-        ocupado={apoyo.ocupado}
-        alCambiar={(n) => {
-          apoyo.ponerColumnas(clave, n)
-        }}
-      />
       <div className="absolute -bottom-4 left-1/2 z-20 -translate-x-1/2">
         <MenuParaSumar
           etiqueta={`Sumar una pieza después de ${nombre}`}
@@ -114,8 +107,8 @@ function marcoDe(elegida: boolean, rechazada: boolean) {
 const ARRASTRA_UNA_PIEZA: DatosDeLoQueSeArrastra = { clase: 'pieza' }
 
 // Una pieza del lienzo en su lugar de la rejilla de su sección: lo que dibuja la hoja (`inert`: ninguna XCell recibe el foco ni los clics) y encima el botón
-// «Elegir «Precio»», que la elige con el clic o Enter y la mueve arrastrándola (la marca dice dónde cae). Elegida, lleva su «⋯», el borde de ancho, el «+» y
-// las teclas: Alt+flechas la mueven una celda, Alt+Shift+←/→ cambian su ancho, Esc la suelta.
+// «Elegir «Precio»», que la elige con el clic o Enter y la mueve arrastrándola (la marca dice dónde cae). Elegida, lleva sus bordes, su «⋯», el «+» y las
+// teclas: Alt+flechas la mueven una celda, Alt+Shift+flechas cambian su ancho (←/→) o su alto (↑/↓), Esc la suelta.
 export function PiezaEnElLienzo({ id, pieza, seccion, apoyo }: Props) {
   const deLaHoja = piezaDelItemDeLaHoja(pieza.item)
   const texto = textoDeLaPieza(deLaHoja)
@@ -132,8 +125,8 @@ export function PiezaEnElLienzo({ id, pieza, seccion, apoyo }: Props) {
     alMover: (direccion) => {
       apoyo.moverConTeclas(deLaHoja, direccion)
     },
-    alCambiarAncho: (paso) => {
-      apoyo.ponerColumnas(clave, columnasDe(pieza.item) + paso)
+    alCambiarTamano: (lado, paso) => {
+      apoyo.cambiarTamanoUnPaso(deLaHoja, lado, paso)
     },
     alSoltar: elegida
       ? () => {

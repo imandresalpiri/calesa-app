@@ -10,6 +10,7 @@ import type {
 } from '../../../entities/diseno'
 import type { Nombrar } from '../../../entities/diseno/anuncios-de-la-rejilla'
 import { MOTIVO_DE_LA_ULTIMA_SECCION } from '../../../entities/diseno/insercion-del-diseno'
+import { lugarDe, type Tamano } from '../../../entities/diseno/lugar-en-la-rejilla'
 import { destinoEnLaVecina, type Direccion } from '../../../entities/diseno/mover-en-la-rejilla'
 import {
   itemParaSumar,
@@ -23,9 +24,10 @@ import {
   textoDeLaPieza,
   type PiezaDeLaHoja,
 } from '../../../entities/diseno/pieza-de-la-hoja'
+import { tamanoQueEntra } from '../../../entities/diseno/tamano-en-la-rejilla'
+import type { PiezaEnLaRejilla } from '../../../entities/rejilla-de-la-hoja'
 import type { MarcaDibujada } from './caida-bajo-el-punto'
 import type { RechazoDelEditor } from './use-revision-del-diseno'
-import type { EdicionesDelDiseno } from './use-ediciones-del-diseno'
 import type { EditorDelDiseno } from './use-editor-del-diseno'
 
 type Paso = -1 | 1
@@ -46,7 +48,13 @@ export type ApoyoDelLienzo = {
   // Si hay una sección antes o después donde entre (el «⋯» de la pieza).
   hayVecina: (p: PiezaDeLaHoja, paso: Paso) => boolean
   moverALaVecina: (p: PiezaDeLaHoja, paso: Paso) => void
-  ponerColumnas: (clave: ClaveDePieza, columnas: number) => void
+  // Dónde está y cuánto mide en la rejilla (nulo: la cabecera o lo que no tiene lugar).
+  lugarDe: (p: PiezaDeLaHoja) => PiezaEnLaRejilla | null
+  // Lo que entraría de lo pedido (lo que muestra el borde mientras se arrastra).
+  tamanoQueEntra: (p: PiezaDeLaHoja, pedido: Partial<Tamano>) => Tamano | null
+  // El borde: pone lo que entra y lo anuncia. Alt+Shift+flechas: una columna o una fila más o menos.
+  cambiarTamano: (p: PiezaDeLaHoja, pedido: Partial<Tamano>) => void
+  cambiarTamanoUnPaso: (p: PiezaDeLaHoja, lado: keyof Tamano, paso: Paso) => void
   quitar: (clave: ClaveDePieza) => void
   ofertas: (seccion: SeccionDeDiseno) => OfertaParaSumar[]
   // Al primer lugar libre de la sección (con `despues`, el primero después de esa posición: el «+» de la pieza elegida).
@@ -77,7 +85,6 @@ const rechazoEnLaHoja = (rechazo: RechazoDelEditor | null) => {
 
 type Args = {
   editor: EditorDelDiseno
-  ediciones: EdicionesDelDiseno
   contexto: ContextoDeHoja
   elegida: PiezaDeLaHoja | null
   elegir: (pieza: PiezaDeLaHoja | null) => void
@@ -90,7 +97,6 @@ type Args = {
 // soltar lo quitado si estaba elegido).
 export function useApoyoDelLienzo({
   editor,
-  ediciones,
   contexto,
   elegida,
   elegir,
@@ -126,7 +132,21 @@ export function useApoyoDelLienzo({
     moverALaVecina: (p, paso) => {
       anunciarYEnfocar(p, editor.moverALaVecina(p, paso))
     },
-    ponerColumnas: ediciones.ponerColumnas,
+    lugarDe: (p) => lugarDe(trabajo, p)?.pieza ?? null,
+    tamanoQueEntra: (p, pedido) => tamanoQueEntra(trabajo, p, pedido)?.tamano ?? null,
+    cambiarTamano: (p, pedido) => {
+      anunciarYEnfocar(p, editor.cambiarElTamano(p, pedido))
+    },
+    cambiarTamanoUnPaso: (p, lado, paso) => {
+      const hay = lugarDe(trabajo, p)?.pieza
+      const pedido =
+        hay === undefined
+          ? {}
+          : lado === 'ancho'
+            ? { ancho: hay.ancho + paso }
+            : { alto: hay.alto + paso }
+      anunciarYEnfocar(p, editor.cambiarElTamano(p, pedido))
+    },
     quitar: (clave) => {
       editor.quitar(clave)
       if (mismaPieza(elegida, piezaDelItemDeLaHoja(clave))) elegir(null)

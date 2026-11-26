@@ -1,13 +1,14 @@
 'use client'
 
 import type { KeyboardEvent } from 'react'
+import type { Tamano } from '../../../entities/diseno/lugar-en-la-rejilla'
 import type { Direccion } from '../../../entities/diseno/mover-en-la-rejilla'
 
 type Acciones = {
   // Alt+flechas: una celda en esa dirección (una avanzada, un lugar de su lista; el bloque «Avanzado», una fila).
   alMover: (direccion: Direccion) => void
-  // Alt+Shift+← / →: una columna menos o más (nulo: no cambia de ancho por teclado, una sección o el bloque).
-  alCambiarAncho: ((paso: -1 | 1) => void) | null
+  // Alt+Shift+← / →: una columna menos o más; Alt+Shift+↑ / ↓: una fila menos o más.
+  alCambiarTamano: (lado: keyof Tamano, paso: -1 | 1) => void
   // Esc con la pieza elegida: la suelta.
   alSoltar: (() => void) | null
 }
@@ -20,7 +21,7 @@ const DIRECCIONES: Readonly<Record<string, Direccion>> = {
 }
 
 // Las teclas del botón de una pieza del lienzo. Sólo con el foco en el botón mismo (`e.target === e.currentTarget`): lo que se tipea en otro lado no mueve nada.
-export function useTeclasDeLaPieza({ alMover, alCambiarAncho, alSoltar }: Acciones) {
+export function useTeclasDeLaPieza({ alMover, alCambiarTamano, alSoltar }: Acciones) {
   return (e: KeyboardEvent<HTMLElement>) => {
     if (e.target !== e.currentTarget) return
     if (e.key === 'Escape' && alSoltar !== null) {
@@ -35,8 +36,8 @@ export function useTeclasDeLaPieza({ alMover, alCambiarAncho, alSoltar }: Accion
       alMover(direccion)
       return
     }
-    if (alCambiarAncho === null || direccion === 'arriba' || direccion === 'abajo') return
     e.preventDefault()
-    alCambiarAncho(direccion === 'izquierda' ? -1 : 1)
+    const lado = direccion === 'izquierda' || direccion === 'derecha' ? 'ancho' : 'alto'
+    alCambiarTamano(lado, direccion === 'izquierda' || direccion === 'arriba' ? -1 : 1)
   }
 }

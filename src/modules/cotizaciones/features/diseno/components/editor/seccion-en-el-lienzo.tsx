@@ -23,6 +23,7 @@ import {
 } from '../../hooks/ids-del-lienzo'
 import type { ApoyoDelLienzo } from '../../hooks/use-apoyo-del-lienzo'
 import { useTeclasDeLaPieza } from '../../hooks/use-teclas-de-la-pieza'
+import { BordesDelTamano } from './borde-del-tamano'
 import { MarcaEnLaRejilla } from './marca-en-la-rejilla'
 import { A_TAMANO_REAL } from './marco-escalado'
 import { MenuDeLaPieza } from './menu-de-la-pieza'
@@ -108,6 +109,22 @@ function MenuDeLaSeccion({ seccion, apoyo }: Pick<Props, 'seccion' | 'apoyo'>) {
   )
 }
 
+// Lo que lleva la sección elegida: una principal, sus bordes del ancho y del alto; y su «⋯» (después: donde se toca con un borde, gana él).
+function DeLaElegida({ seccion, apoyo }: Pick<Props, 'seccion' | 'apoyo'>) {
+  return (
+    <>
+      {seccion.presentacion === 'principal' ? (
+        <BordesDelTamano
+          pieza={{ pieza: 'seccion', seccion: seccion.id }}
+          nombre={`la sección «${seccion.titulo ?? SECCION_SIN_TITULO}»`}
+          apoyo={apoyo}
+        />
+      ) : null}
+      <MenuDeLaSeccion seccion={seccion} apoyo={apoyo} />
+    </>
+  )
+}
+
 // Lo que se arrastra y donde cae de una sección: ella misma (una principal en la rejilla de las secciones, una avanzada sobre otra), la rejilla de sus piezas y,
 // si es avanzada, ella como lugar donde cae otra avanzada (no mientras se arrastra ella).
 function useArrastreDeLaSeccion(seccion: SeccionDelLienzo, apoyo: ApoyoDelLienzo) {
@@ -136,7 +153,8 @@ function useArrastreDeLaSeccion(seccion: SeccionDelLienzo, apoyo: ApoyoDelLienzo
 
 // Una sección del lienzo, con el marco, el ancho, el lugar y el color con que la dibuja la hoja (`SeccionDeHoja`). Todo su fondo es el botón «Elegir la sección
 // «X»» (que la elige y, arrastrado, la mueve: la marca dice dónde cae); encima, el título y la rejilla de sus piezas, que dejan pasar el clic salvo en cada pieza.
-// Elegida, su «⋯» (Quitar la sección) y Alt+flechas (una celda; una avanzada, un lugar de su lista).
+// Elegida, su «⋯» (Quitar la sección), Alt+flechas (una celda; una avanzada, un lugar de su lista) y, una principal, sus bordes y Alt+Shift+flechas (su ancho y
+// su alto).
 export function SeccionEnElLienzo({ seccion, ids, corte, apoyo }: Props) {
   const { setNodeRef, setActivatorNodeRef, listeners, isDragging, setRejillaRef } =
     useArrastreDeLaSeccion(seccion, apoyo)
@@ -148,7 +166,9 @@ export function SeccionEnElLienzo({ seccion, ids, corte, apoyo }: Props) {
     alMover: (direccion) => {
       apoyo.moverConTeclas(pieza, direccion)
     },
-    alCambiarAncho: null,
+    alCambiarTamano: (lado, paso) => {
+      apoyo.cambiarTamanoUnPaso(pieza, lado, paso)
+    },
     alSoltar: elegida
       ? () => {
           apoyo.elegir(null)
@@ -192,7 +212,7 @@ export function SeccionEnElLienzo({ seccion, ids, corte, apoyo }: Props) {
         apoyo={apoyo}
         setNodeRef={setRejillaRef}
       />
-      {elegida ? <MenuDeLaSeccion seccion={seccion} apoyo={apoyo} /> : null}
+      {elegida ? <DeLaElegida seccion={seccion} apoyo={apoyo} /> : null}
       <MarcaEnLaRejilla marca={apoyo.marca} en={idDeLaAvanzada(seccion.id)} />
     </section>
   )
