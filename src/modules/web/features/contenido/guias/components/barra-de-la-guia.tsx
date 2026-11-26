@@ -112,8 +112,13 @@ export function BarraDeLaGuia({
           <ConfirmarDescarte alSeguir={salida.seguir} alDescartar={salida.descartar} />
         ) : (
           <>
-            <Button type="button" variant="outline" className={TACTIL} onClick={alVerVistaPrevia}>
-              <EyeIcon aria-hidden /> Vista previa
+            <Button
+              type="button"
+              variant="outline"
+              className={`${TACTIL} max-sm:min-w-11`}
+              onClick={alVerVistaPrevia}
+            >
+              <EyeIcon aria-hidden /> <span className="max-sm:sr-only">Vista previa</span>
             </Button>
             <AccionesDePublicacion
               acciones={acciones}
