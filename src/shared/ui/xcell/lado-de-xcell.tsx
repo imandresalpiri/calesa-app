@@ -2,6 +2,7 @@
 
 import { useState, type RefObject } from 'react'
 import { BotonDelValor } from './boton-del-valor'
+import type { Lugar } from './clases'
 import { EntradaDeXCell } from './entrada-de-xcell'
 import type { DatosDeLado, Lado, useEdicion } from './use-edicion'
 
@@ -20,6 +21,10 @@ type Props = {
   // Su lugar entre los valores (0 el primero que se ve): el orden de las flechas.
   parada: number
   bloqueada: boolean
+  // El lado que abre un toque en el fondo de la celda (el primero libre): se ilumina al pasar el puntero por la celda.
+  blanco: boolean
+  // Tocar este lado bloqueado muestra el motivo de su candado en vez de abrir.
+  alBloqueado: (lado: Lado) => void
   soloEsteLado: boolean
   conAtajo: boolean
   principalRef: RefObject<HTMLElement | null>
@@ -31,11 +36,14 @@ export function LadoDeXCell(props: Props) {
   const { lado, datos, etiqueta, edicion: e } = props
   // El ancho del botón al abrirse: la entrada lo toma (el valor no tiene un ancho fijo: nunca se corta).
   const [ancho, setAncho] = useState<number | null>(null)
+  // Su lugar en la rejilla de la celda (el primero que se ve o el otro): el botón y la entrada que lo reemplaza van en el mismo.
+  const lugar: Lugar = props.parada === 0 ? 'a' : 'b'
   if (e.edicion?.lado === lado) {
     return (
       <EntradaDeXCell
         ancho={ancho}
         grande={props.grande}
+        lugar={lugar}
         texto={e.edicion.texto}
         seleccion={e.edicion.seleccion}
         nombre={lado === 'principal' ? etiqueta : `${etiqueta}, ${datos.formato}`}
@@ -52,12 +60,14 @@ export function LadoDeXCell(props: Props) {
       lado={lado}
       datos={datos}
       grande={props.grande}
+      lugar={lugar}
       parada={props.parada}
       moneda={props.moneda}
       idDelBoton={props.idDelBoton}
       idDeLaEtiqueta={props.idDeLaEtiqueta}
       idDeLaNota={props.idDeLaNota}
       bloqueada={props.bloqueada}
+      blanco={props.blanco}
       soloEsteLado={props.soloEsteLado}
       conAtajo={props.conAtajo}
       volverARef={e.volverARef}
@@ -65,6 +75,7 @@ export function LadoDeXCell(props: Props) {
       alAbrir={(l) => {
         e.abrir(l, null, 'todo')
       }}
+      alBloqueado={props.alBloqueado}
       alTeclear={e.alTeclearEnElValor}
       alMedir={setAncho}
     />

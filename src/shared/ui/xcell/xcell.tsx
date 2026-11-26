@@ -12,11 +12,13 @@ import {
   estadosDe,
   notaDe,
   notasDe,
+  type Candados,
   type FormatoDeXCell,
   type NotasDeXCell,
 } from './estado'
 import { LadoDeXCell } from './lado-de-xcell'
 import { CalculadoDeXCell, NotaDeXCell } from './nota-de-xcell'
+import { useToqueDeLaCelda } from './toque-de-xcell'
 import { useEdicion, type DatosDeLado, type Lado } from './use-edicion'
 
 export type XCellProps = {
@@ -113,7 +115,8 @@ function ordenDeLados(hayPar: boolean, secundarioPrimero: boolean | undefined): 
   return secundarioPrimero === true ? ['secundario', 'principal'] : ['principal', 'secundario']
 }
 
-// Lo que va escrito bajo la celda: el aviso de lo tipeado o el error y, en una celda pisada, lo que daría sin lo escrito.
+// Lo que va escrito en la línea de la nota, dentro de la celda y justo después del rótulo en el DOM (el orden en que se ve y se lee): el aviso de lo tipeado
+// o el error y, en una celda pisada, lo que daría sin lo escrito.
 function PieDeXCell({ notas, props }: { notas: NotasDeXCell; props: XCellProps }) {
   return (
     <>
@@ -131,6 +134,19 @@ function PieDeXCell({ notas, props }: { notas: NotasDeXCell; props: XCellProps }
       )}
     </>
   )
+}
+
+// El aviso de lo tipeado que no se leyó o, si no hay, el error de la base; en una celda pisada, la marca y lo calculado. Con sus ids y a quién describen.
+function notasDeLaCelda(
+  uid: string,
+  props: XCellProps,
+  tipeado: string | null | undefined,
+  candados: Candados,
+) {
+  return notasDe(uid, notaDe(tipeado, props.error), candados, {
+    marca: props.handEdited === true,
+    calculado: props.calculatedValue !== undefined,
+  })
 }
 
 function XCellBase(props: XCellProps) {
@@ -151,12 +167,9 @@ function XCellBase(props: XCellProps) {
     locale,
     onCommit: props.onCommit,
   })
-  const aviso = notaDe(edicion.edicion?.aviso, props.error)
-  const notas = notasDe(uid, aviso, candados, {
-    marca: props.handEdited === true,
-    calculado: props.calculatedValue !== undefined,
-  })
+  const notas = notasDeLaCelda(uid, props, edicion.edicion?.aviso, candados)
   const orden = ordenDeLados(hayPar, props.secondaryProminent)
+  const toque = useToqueDeLaCelda(orden, bloqueado, edicion.edicion !== null, notas.candadoDe)
 
   const lado = (cual: Lado) => (
     <LadoDeXCell
@@ -171,6 +184,8 @@ function XCellBase(props: XCellProps) {
       grande={orden[0] === cual}
       parada={orden.indexOf(cual)}
       bloqueada={bloqueado(cual)}
+      blanco={toque.blanco === cual}
+      alBloqueado={toque.mostrarMotivo}
       soloEsteLado={bloqueado(cual) && toda === undefined}
       conAtajo={acciones.hay}
       principalRef={principalRef}
@@ -185,16 +200,20 @@ function XCellBase(props: XCellProps) {
       data-xcell=""
       data-tono={props.tone}
       data-estado={estados}
-      className={`group/xc ${RAIZ}`}
+      data-par={hayPar ? '' : undefined}
+      data-aviso={notas.aviso?.nota.texto}
+      className={RAIZ}
       onKeyDown={(evento) => {
         teclasDeLaCelda(evento, principalRef.current)
       }}
+      {...toque.manejadores}
     >
       <RotuloDeXCell
         idDeLaEtiqueta={`${uid}e`}
         label={label}
         sugerido={estados.includes('sugerido')}
       />
+      <PieDeXCell notas={notas} props={props} />
       {orden.map((cual) => (
         <Fragment key={cual}>{lado(cual)}</Fragment>
       ))}
@@ -211,7 +230,6 @@ function XCellBase(props: XCellProps) {
           onReset(id)
         }}
       />
-      <PieDeXCell notas={notas} props={props} />
     </div>
   )
 }

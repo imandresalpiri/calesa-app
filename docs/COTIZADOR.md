@@ -1014,7 +1014,8 @@ Cada `input`, `constante`, `tipo_cambio`, nodo `sobrescribible` y cálculo que l
 `suggested` de `fuentes[id] === 'sugerido'`, `overridden` de `'override'`, `disabledReason` si su `condicion` está apagada o es de otra
 variante, y ⚙ (`hasSettings`/`onSettings(id)`) si es `constante` con `cotizaciones.configurar` del origen (→ `formula_cambiar_constante`)
 o `tipo_cambio` con `empresa.tipos_cambio.gestionar` (→ `tipo_cambio_guardar`). El ⚙ cambia el default global (N+1); «Aplicar también a
-esta cotización» es el único puente hacia la abierta.
+esta cotización» es el único puente hacia la abierta. Toda la celda es el campo y su alto no cambia con el estado: un aviso, un error de
+`faltantes` o un cálculo pisado no mueven la hoja.
 
 La celda (`src/shared/ui/xcell/CLAUDE.md`) no valida rango, obligatorio ni entero (lo dice la base en `faltantes`), no decide permisos ni
 abre nada: **la hoja traduce** (editar el % quita el override del monto; ↺ quita los dos) y pasa los mismos callbacks a todas las celdas.

@@ -1,6 +1,7 @@
 import { expect, test, type Page, type TestInfo } from './soporte/prueba'
 import { abrirBanco, BANCO_DE_XCELL, RUTA_DEL_BANCO_DE_XCELL } from './soporte/banco'
 import { capturar, sinScrollHorizontal, sinTextoCortado } from './soporte/recorrido'
+import { altos, problemasDeCaja, rotuloFlota } from './soporte/xcell-cajas'
 import { contraste } from '../src/shared/lib/color'
 
 // La XCell sola (4.12-1), vestida con los estilos reales de la app, en claro y en oscuro, con el texto al 100 y al 200 %, a 412 y a 1.280 px
@@ -26,55 +27,6 @@ const haceHex = (rgb: string): string => {
   const [rojo = 0, verde = 0, azul = 0] = (rgb.match(/[\d.]+/g) ?? []).map(Number)
   return `#${[rojo, verde, azul].map((c) => Math.round(c).toString(16).padStart(2, '0')).join('')}`
 }
-
-// Las cajas de cada celda: ninguna se encima con otra, ninguna se sale de la celda, dos controles quedan a 4 px o más (el contorno del foco
-// ocupa 4) y el orden visual (de arriba abajo y, en una fila, de izquierda a derecha) es el del DOM.
-const problemasDeCaja = (page: Page): Promise<string[]> =>
-  page.evaluate(() => {
-    const problemas: string[] = []
-    const nombre = (e: Element) => e.getAttribute('aria-label') ?? e.textContent.trim().slice(0, 24)
-    const esControl = (e: Element) => ['BUTTON', 'INPUT'].includes(e.tagName)
-    // Lo que dice el par (a, b), en el orden del DOM; vacío si está bien.
-    const juzgar = (a: Element, b: Element): string => {
-      const ca = a.getBoundingClientRect()
-      const cb = b.getBoundingClientRect()
-      const ancho = Math.min(ca.right, cb.right) - Math.max(ca.left, cb.left)
-      const alto = Math.min(ca.bottom, cb.bottom) - Math.max(ca.top, cb.top)
-      if (ancho > 1 && alto > 1) return 'se encima con'
-      const aparte = Math.max(
-        cb.left - ca.right,
-        ca.left - cb.right,
-        cb.top - ca.bottom,
-        ca.top - cb.bottom,
-      )
-      if (esControl(a) && esControl(b) && aparte < 4)
-        return `queda a ${String(Math.round(aparte))} px (el contorno del foco lo tocaría) de`
-      const mismaFila = cb.top < ca.bottom - 1 && cb.bottom > ca.top + 1
-      const antes = cb.top < ca.top - 1 && !mismaFila
-      return antes || (mismaFila && cb.left < ca.left - 1)
-        ? 'se lee antes en el DOM y después en la pantalla que'
-        : ''
-    }
-    for (const celda of document.querySelectorAll('[data-xcell]')) {
-      const marco = celda.getBoundingClientRect()
-      const hitos = [
-        ...celda.querySelectorAll(
-          '[id$="e"], [data-parada="10"], [data-parada="11"], [data-parada="12"], [data-parada="13"], :scope > button, :scope > input, :scope > p',
-        ),
-      ]
-      hitos.forEach((a, i) => {
-        const ca = a.getBoundingClientRect()
-        const donde = `${nombre(celda)} › «${nombre(a)}»`
-        if (ca.left < marco.left - 0.5 || ca.right > marco.right + 0.5)
-          problemas.push(`${donde} se sale de su celda`)
-        for (const b of hitos.slice(i + 1)) {
-          const dicho = juzgar(a, b)
-          if (dicho !== '') problemas.push(`${donde} ${dicho} «${nombre(b)}»`)
-        }
-      })
-    }
-    return problemas
-  })
 
 // En el celular, todo lo que se toca mide 44 px en px (con el texto al 200 % también: no crece con rem pero tampoco achica).
 async function objetivosTactiles(page: Page): Promise<void> {
@@ -247,7 +199,7 @@ async function accionesConFoco(page: Page, info: TestInfo, nombre: string): Prom
 for (const { tema, zoom } of COMBINACIONES) {
   test(`la celda en ${tema}, con el texto al ${zoom} %`, async ({ page }, info) => {
     await abrir(page, { tema, zoom })
-    await expect(page.locator('[data-xcell]')).toHaveCount(21)
+    await expect(page.locator('[data-xcell]')).toHaveCount(22)
     await sinScrollHorizontal(page)
     await sinTextoCortado(page.locator('#banco'))
     expect(await problemasDeCaja(page)).toEqual([])
@@ -256,16 +208,28 @@ for (const { tema, zoom } of COMBINACIONES) {
     await anilloDistintoDelFoco(page)
     await capturarTramos(page, info, `${tema}-${zoom}`)
     await accionesConFoco(page, info, `${tema}-${zoom}`)
+    const antes = await altos(page)
     await entradaIgualAlBoton(page, 'normal', 0)
+    await rotuloFlota(page, 'normal')
+    expect(await altos(page), 'editando').toEqual(antes)
     await page.keyboard.press('Escape')
+    expect(await altos(page), 'tras cancelar').toEqual(antes)
+    await entradaIgualAlBoton(page, 'normal', 0)
+    await page.keyboard.type('98765,4')
+    await page.keyboard.press('Enter')
+    await expect(page.locator('[data-caso="normal"] input')).toHaveCount(0)
+    expect(await altos(page), 'tras confirmar').toEqual(antes)
     await entradaIgualAlBoton(page, 'par-modificado', 1)
     await page.keyboard.type('abc')
     await page.keyboard.press('Enter')
     await expect(page.locator('[data-caso="par-modificado"] [role="alert"]')).toBeVisible()
+    expect(await altos(page), 'con el aviso de lo tipeado').toEqual(antes)
+    await rotuloFlota(page, 'par-modificado')
     expect(await problemasDeCaja(page)).toEqual([])
     await page.locator('[data-caso="par-modificado"]').scrollIntoViewIfNeeded()
     await capturar(page, info, `${tema}-${zoom}-editando-con-error`)
     await entradaIgualAlBoton(page, 'error', 0)
+    expect(await altos(page), 'editando con el error').toEqual(antes)
     await sinScrollHorizontal(page)
     await ladoBloqueadoDiscontinuo(page)
   })

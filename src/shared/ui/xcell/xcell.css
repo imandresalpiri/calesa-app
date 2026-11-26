@@ -1,0 +1,143 @@
+/*
+ * La geometría de la XCell (`clases.ts` dice el porqué de cada medida): la rejilla de alto fijo, sus variables, el lugar de cada hijo en las tres
+ * disposiciones, el rótulo flotante y el globo del aviso. Va acá y no en clases porque es igual en toda celda: en clases viajaba repetida en cada una
+ * (la hoja tiene decenas) y pasaba el presupuesto de bytes del documento. Cada hijo se reconoce por un atributo (`data-rotulo`, `data-nota`,
+ * `data-lugar`, `data-acciones`).
+ *
+ * En `@layer components` y con `:where()` (especificidad 0): una clase de Tailwind (capa `utilities`) siempre la pisa, y entre estas reglas gana
+ * la que va después. Las de los tonos (`<EstiloDeTonos>`, sin capa) también. Lo importa `src/app/globals.css`.
+ */
+@layer components {
+  :where([data-xcell]) {
+    @apply relative min-h-[var(--xcell-alto,56px)] flex-wrap content-center items-center justify-end gap-x-2 gap-y-[var(--xcell-separacion,calc(var(--spacing)*1.5))] rounded-md border border-[color:var(--tono-borde,var(--color-line-strong))] bg-[color:var(--tono-fondo,var(--color-surface))] p-[var(--xcell-relleno,calc(var(--spacing)*2))] text-sm text-[color:var(--tono-tinta,var(--color-ink))] focus-within:z-10 hover:z-10;
+    display: var(--xcell-display, grid);
+    container-name: xc;
+    container-type: var(--xcell-contenedor, inline-size);
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: var(--xcell-fila);
+    grid-auto-rows: var(--xcell-linea);
+    cursor: text;
+    --xcell-linea: max(
+      44px,
+      calc(var(--xcell-letra-valor, calc(var(--text-sm) * 1.5)) * 1.5 + 8px)
+    );
+    --xcell-l-rotulo: calc(var(--xcell-letra-rotulo, calc(var(--text-sm) * 1.3)) * 1.25);
+    --xcell-fila: max(
+      var(--xcell-linea),
+      calc(var(--xcell-alto, 56px) - 2 * var(--xcell-relleno, calc(var(--spacing) * 2)) - 2px),
+      calc(var(--xcell-l-rotulo) * 0.75 + 1rem + 2px)
+    );
+    --xcell-sube: calc((var(--xcell-l-rotulo) - var(--xcell-fila)) / 2 * var(--xcell-flota, 1));
+    --xcell-escala: calc(1 - var(--xcell-flota, 1) / 4);
+    --xcell-inicio: var(--xcell-sangria, 8px);
+
+    @variant md {
+      @variant pointer-fine {
+        --xcell-linea: max(
+          32px,
+          calc(var(--xcell-letra-valor, calc(var(--text-sm) * 1.5)) * 1.5 + 8px)
+        );
+      }
+    }
+  }
+
+  :where([data-xcell][data-par]) {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+
+  :where([data-xcell]:has([title='Sugerido'])) {
+    --xcell-inicio: calc(var(--xcell-sangria, 8px) + var(--xcell-hueco-punto, 1rem));
+  }
+
+  :where([data-xcell][data-estado~='deshabilitado']) {
+    cursor: not-allowed;
+    border-style: dashed;
+    --tono-fondo: var(--color-surface-2);
+    --tono-borde: var(--color-line-strong);
+    --tono-tinta: var(--color-ink-soft);
+  }
+
+  /* El globo de la raíz: el aviso entero, al enfocar o tocar la celda (salvo con su candado enfocado, que tiene el suyo). */
+  :where([data-xcell])::after {
+    @apply pointer-events-none absolute top-full left-0 z-20 mt-1 hidden w-max max-w-[min(16rem,100%)] rounded-(--radius-sm) bg-(--color-ink) px-2 py-1 text-left font-sans text-(length:--text-xs) font-normal whitespace-normal text-(--color-paper);
+    content: attr(data-aviso) / '';
+  }
+
+  :where([data-xcell][data-aviso]:focus-within:not(:has([data-parada='10']:focus)))::after {
+    display: block;
+  }
+
+  /* El área del rótulo, compartida con la línea de la nota y «Calculado». */
+  :where([data-xcell] > [data-rotulo], [data-xcell] > [data-nota]) {
+    grid-area: 1 / 1;
+    min-width: 0;
+    margin-inline-start: var(--xcell-inicio, var(--xcell-sangria, 8px));
+  }
+
+  :where([data-xcell] > [data-rotulo]) {
+    @apply motion-safe:transition-transform motion-safe:duration-150;
+    transform-origin: 0 0;
+  }
+
+  /* Flota con una entrada abierta o una línea de nota. */
+  :where([data-xcell]:has(input, [data-nota]) > [data-rotulo]) {
+    translate: 0 var(--xcell-sube);
+    scale: var(--xcell-escala);
+  }
+
+  /* En fila: el valor que se lee primero en la columna 2, el otro en la 3 y las acciones al final. */
+  :where([data-xcell] > [data-lugar='a']) {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  :where([data-xcell] > [data-lugar='b']) {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  :where([data-xcell] > [data-acciones]) {
+    grid-column: -2 / -1;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  /* Apilada (un par bajo 26 rem, una simple bajo 16): el primero junto al rótulo, a lo ancho; abajo el otro y las acciones. */
+  @container xc (width < 26rem) {
+    :where([data-xcell][data-par] > [data-lugar='a']) {
+      grid-column: 2 / -1;
+    }
+
+    :where([data-xcell][data-par] > [data-lugar='b'], [data-xcell][data-par] > [data-acciones]) {
+      grid-row: 2;
+    }
+  }
+
+  @container xc (width < 16rem) {
+    :where([data-xcell] > [data-lugar='a']) {
+      grid-column: 2 / -1;
+    }
+
+    :where([data-xcell] > [data-lugar='b'], [data-xcell] > [data-acciones]) {
+      grid-row: 2;
+    }
+  }
+
+  /* Alta (bajo 13 rem: el texto al 200 % en el celular): el rótulo y la nota solos arriba, el valor entero en su fila y abajo el resto. */
+  @container xc (width < 13rem) {
+    :where([data-xcell] > [data-rotulo], [data-xcell] > [data-nota]) {
+      grid-column: 1 / -1;
+    }
+
+    :where([data-xcell] > [data-lugar='a']) {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    :where([data-xcell] > [data-lugar='b'], [data-xcell] > [data-acciones]) {
+      grid-row: 3;
+    }
+  }
+}

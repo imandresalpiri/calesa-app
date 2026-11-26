@@ -13,6 +13,9 @@
  */
 @import '../../design/tokens.css';
 
+/* La geometría de la XCell (`src/shared/ui/xcell/xcell.css`): igual en toda celda, una vez por página y no repetida en cada una. */
+@import '../shared/ui/xcell/xcell.css';
+
 @custom-variant dark (&:is(.dark *));
 
 /*

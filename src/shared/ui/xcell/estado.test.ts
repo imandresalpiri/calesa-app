@@ -265,4 +265,24 @@ describe('candadosDe y notasDe (4.13-3c)', () => {
     ])
     expect(notasDe('x', undefined, candados)).toEqual(sinMarca)
   })
+
+  it('el candado de cada lado: sin candados, ninguno; un lado, el suyo; dos lados con el mismo motivo comparten uno; con motivos distintos, uno cada uno', () => {
+    const sin = undefined
+    expect(notasDe('x', sin, { principal: undefined, secundario: undefined }).candadoDe).toEqual({
+      principal: undefined,
+      secundario: undefined,
+    })
+    expect(notasDe('x', sin, { principal: undefined, secundario: 'B' }).candadoDe).toEqual({
+      principal: undefined,
+      secundario: 'xc0',
+    })
+    expect(notasDe('x', sin, { principal: 'A', secundario: 'A' }).candadoDe).toEqual({
+      principal: 'xc0',
+      secundario: 'xc0',
+    })
+    expect(notasDe('x', sin, { principal: 'A', secundario: 'B' }).candadoDe).toEqual({
+      principal: 'xc0',
+      secundario: 'xc1',
+    })
+  })
 })

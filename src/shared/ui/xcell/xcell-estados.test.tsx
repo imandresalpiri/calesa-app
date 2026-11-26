@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { abrir, BASE, celda } from './xcell.soporte'
@@ -6,6 +8,9 @@ import { ProveedorRegional } from '../regional'
 import { XCell, type XCellProps } from './index'
 
 afterEach(cleanup)
+
+// La geometría y los colores de la raíz, iguales en toda celda, viven en `xcell.css` (una vez por página): ahí se leen.
+const CSS = readFileSync(join(process.cwd(), 'src/shared/ui/xcell/xcell.css'), 'utf8')
 
 describe('los estados', () => {
   it('normal: sin punto, sin ↺ y sin candado', () => {
@@ -139,9 +144,10 @@ describe('el tono', () => {
   it('lleva la clave en data-tono y lee los colores de las variables, con el neutro de respaldo', () => {
     const c = celda({ tone: 'amarillo' })
     expect(c.raiz.dataset['tono']).toBe('amarillo')
-    expect(c.raiz.className).toContain('var(--tono-fondo,var(--color-surface))')
-    expect(c.raiz.className).toContain('var(--tono-borde,var(--color-line-strong))')
-    expect(c.raiz.className).toContain('var(--tono-tinta,var(--color-ink))')
+    expect(c.raiz.hasAttribute('data-xcell')).toBe(true)
+    expect(CSS).toContain('bg-[color:var(--tono-fondo,var(--color-surface))]')
+    expect(CSS).toContain('border-[color:var(--tono-borde,var(--color-line-strong))]')
+    expect(CSS).toContain('text-[color:var(--tono-tinta,var(--color-ink))]')
   })
 
   it('una clave desconocida no rompe nada y se dibuja igual', () => {
@@ -157,6 +163,7 @@ describe('el tono', () => {
   it('ningún color está escrito a mano en las clases', () => {
     const c = celda({ overridden: true, suggested: true, disabledReason: 'x', error: 'y' })
     expect(c.raiz.innerHTML).not.toMatch(/#[0-9a-f]{3,8}\b|rgb\(|hsl\(/i)
+    expect(CSS).not.toMatch(/#[0-9a-f]{3,8}\b|rgb\(|hsl\(/i)
   })
 })
 
@@ -194,7 +201,7 @@ describe('la etiqueta', () => {
     expect(valor?.textContent).toBe('Sin valor')
     expect(valor?.hasAttribute('data-vacio')).toBe(true)
     expect(valor?.className).toContain('data-[vacio]:font-sans')
-    expect(c.raiz.className).toContain('min-h-[var(--xcell-alto,56px)]')
+    expect(CSS).toContain('min-h-[var(--xcell-alto,56px)]')
     cleanup()
     expect(celda().parada(0)?.hasAttribute('data-vacio')).toBe(false)
   })
