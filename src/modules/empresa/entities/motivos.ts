@@ -32,5 +32,9 @@ export const MOTIVO_PROBAR_SIN_DIRECCION = 'Guarda la dirección para probar.'
 
 export const MOTIVO_PROBAR_SIN_SECRETO = 'Guarda el secreto para probar.'
 
+export const MOTIVO_PROBAR_SIN_CLAVE_DEL_ASISTENTE = 'Carga la clave para probar.'
+
+export const MOTIVO_ACTIVAR_SIN_CLAVE = 'Carga la clave para activarlo.'
+
 export const MOTIVO_SIN_PERMISO_AJUSTES_DE_COTIZACION =
   'Cambiar estos ajustes pide configurar el cotizador en todos los orígenes.'

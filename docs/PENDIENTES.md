@@ -41,7 +41,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Editor de la tarjeta: arrastrar el borde de una fila del lienzo para cambiar su alto (hoy, el campo «Alto» del panel).
 - **[—]** Una bandera que sólo lee la `prueba` de un `elegir` o un término de `Y`/`O` (`SI(nuevo; 100; 50)`) no pide su interruptor en el diseño al publicar (§5 de `validar_diseno()` y `revisarCobertura()` sólo cuentan la `condicion`): decidir si una condición también lo exige.
 - **[—]** En la primera publicación de un origen (las dos esperadas nulas), el borrador puede nacer sobre una v1 que otra persona publicó entre medio — decidir si la esperada nula deja de valer.
-- **[—]** «Compartir la cotización» no tiene el asistente de IA de V1 para reescribir el texto («hazlo más corto», «más profesional»…) ni su editor de imagen 9:16 (la historia de WhatsApp o Instagram con la foto y la cotización): hoy se comparte la imagen de la tarjeta o las fotos tal cual — decidir si vuelven y, la IA, con qué proveedor.
+- **[—]** «Compartir la cotización» no tiene el editor de imagen 9:16 de V1 (la historia de WhatsApp o Instagram con la foto y la cotización): hoy se comparte la imagen de la tarjeta o las fotos tal cual — decidir si vuelve. Del asistente de IA ya están el servidor y la configuración; su interfaz en «Compartir la cotización» es de `feat/compartir-con-plantilla`.
 - **[—]** Tablas de referencia: reactivar una desactivada (hoy no se deshace y su clave queda tomada), renombrarla (su nombre; la clave no cambia) y hacer propia una compartida (copiarla al origen con sus filas; hoy se crea una propia vacía con otra clave).
 - **[—]** Publicar una fórmula no revisa en la base que existan su tabla y sus columnas (BUSCARV lo revisa al compilar, con el catálogo del origen) — decidir si `formula_publicar()` lo exige.
 - **[—]** Sin hacer: el filtro «Favoritas» y la insignia en el listado, quién reportó en la lista de reportes, el tiempo real en comentarios y el motivo de lo bloqueado en la fila de un lote de la papelera.
@@ -241,6 +241,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** Integraciones con la clave del asistente de IA cargada desborda 74 px a 1440×900: el lugar reservado de «Probar conexión» (`min-h-28`) y la
+  clave en dos renglones dejan la tarjeta en 550 px y las columnas pasan Avisos push abajo de Web pública. Para entrar, la tarjeta tiene que bajar de
+  ≈ 447 px: el resultado de la prueba como fila del `dl`, Proveedor y Modelo en una (`integraciones/components/tarjeta-de-asistente-ia.tsx`).
 - **[—]** «Ayuda» abierta por la URL (`?panel=ayuda`) mientras lee deja el foco en «Elegir mis enlaces» del pie (el cuerpo todavía no tiene nada enfocable): llevarlo al título o a la ✕ (`src/app/(app)/_shell/ayuda/modal-de-ayuda.tsx`).
 - **[—]** El comprobante de «Registrar gasto» es el `<input type="file">` nativo: el navegador escribe «Choose File» y «No file chosen» en su idioma, no
   en el de la app — usar el botón «Elegir archivos» de los documentos de la unidad (`logistica/features/dinero/components/campo-de-comprobante.tsx`).

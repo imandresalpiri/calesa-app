@@ -115,7 +115,8 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
 
 - `use-instalacion.ts` pone sus oyentes (`beforeinstallprompt`, `appinstalled`) al evaluarse el módulo, no en un efecto: el navegador avisa una vez y
   el menú se monta tarde. Un evento sirve una sola vez.
-- `admin.ts` importa `server-only`; el lint sólo deja importarlo desde `equipo/infra/invitaciones.ts`, `empresa/infra/revalidacion-prueba.ts` y
+- `admin.ts` importa `server-only`; el lint sólo deja importarlo desde `equipo/infra/invitaciones.ts`, `empresa/infra/revalidacion-prueba.ts`,
+  `empresa/infra/asistente-ia/proveedor.ts` y
   `web/infra/portal/rpc.ts`.
 - Esc dentro de un diálogo lo atiende Base UI (cierra el de más arriba y detiene el evento): el atajo «cerrar» no lo ve, por eso `<Modal>` no lo
   registra. Un `<Modal>` abierto desde un `<Drawer>` se dibuja dentro de los hijos del Drawer.
