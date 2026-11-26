@@ -1,5 +1,6 @@
 // Las teclas de lo que se escribe, iguales en la celda y en la barra de fórmula (D15 del cambio de la planilla): con sugerencias abiertas, ↑/↓ eligen, Enter o Tab
-// aceptan y Esc las cierra; si no, Esc descarta, Enter aplica y baja (Shift+Enter sube; en la barra, Shift+Enter es otra línea) y Tab aplica y va a la derecha.
+// aceptan y Esc las cierra; si no, Esc descarta, Enter aplica y baja (Shift+Enter sube; en la barra, Shift+Enter es otra línea) y Tab lleva al siguiente lugar por
+// llenar de una operación rápida o, sin ninguno, aplica y va a la derecha.
 import type { KeyboardEvent } from 'react'
 import type { SugerenciasDeLaCelda } from '../../hooks/use-sugerencias'
 
@@ -8,6 +9,8 @@ export type AccionesDeLaEdicion = {
   // Aplica y, si entró, mueve la celda activa como esa tecla (nula: no se mueve).
   aplicarYSeguir: (tecla: 'Enter' | 'Tab' | null, shift: boolean) => void
   descartar: () => void
+  // El cursor al siguiente lugar por llenar; falso si no queda ninguno.
+  siguienteLugar: () => boolean
   // En la barra de fórmula, Shift+Enter escribe otra línea.
   enLaBarra: boolean
 }
@@ -39,6 +42,7 @@ function teclaDeLaEdicion(e: Tecla, a: AccionesDeLaEdicion): boolean {
     return true
   }
   if (e.key === 'Tab') {
+    if (!e.shiftKey && a.siguienteLugar()) return true
     a.aplicarYSeguir('Tab', e.shiftKey)
     return true
   }

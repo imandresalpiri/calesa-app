@@ -1,6 +1,11 @@
 'use client'
 
 import { insertarFuncion } from '../../../entities/formula/insertar-funcion'
+import {
+  insertarOperacion,
+  type ClaveDeOperacion,
+  type TextoConLugares,
+} from '../../../entities/formula/operaciones-rapidas'
 import type { TextoDeLaCelda } from '../../../entities/formula/texto-de-la-celda'
 import type { CeldaActiva } from './use-cuadricula'
 import type { EdicionConReferencias } from './use-edicion-con-referencias'
@@ -38,9 +43,10 @@ function motivoDeFx(
   return deC !== null && !deC.editable ? deC.motivo : null
 }
 
-// `fx ▾` de la barra de fórmula: por qué está apagado (sin celda, escribiendo en A, B o Ejemplo, o una C que no se escribe) y qué hace elegir una función: con
-// la edición de C abierta, la inserta en el cursor; sin edición, abre la de la C de la fila activa con la función. Siempre en la barra, con el foco en su texto.
-export function useFuncionEnLaBarra({ edicion, activa, textoDe, elegir, idDelTexto }: Args) {
+// Lo que se inserta desde la barra de fórmula, `fx ▾` y las operaciones rápidas: por qué está apagado (sin celda, escribiendo en A, B o Ejemplo, o una C que no
+// se escribe) y qué hace elegir una función o una operación: con la edición de C abierta, la inserta en el cursor; sin edición, abre la de la C de la fila activa
+// con ella. Siempre en la barra, con el foco en su texto.
+export function useInsercionEnLaBarra({ edicion, activa, textoDe, elegir, idDelTexto }: Args) {
   const e = edicion.edicion
   const celda: CeldaActiva | null =
     e !== null ? { id: e.id, col: e.col } : activa === null ? null : { id: activa.id, col: 'C' }
@@ -49,23 +55,35 @@ export function useFuncionEnLaBarra({ edicion, activa, textoDe, elegir, idDelTex
   const t = e === null ? deC : null
   const enPuntos = deC?.editable === true && deC.enPuntos === true
   const motivo = motivoDeFx(celda, e?.col ?? null, t)
+  // Inserta con `armar` (sobre lo tipeado y su cursor) y deja el foco en el texto de la barra.
+  const insertarCon = (armar: (texto: string, cursor: number) => TextoConLugares) => {
+    if (motivo !== null || celda === null) return
+    if (e !== null) {
+      const r = armar(e.texto, e.cursor)
+      edicion.insertarOperacion(r)
+      edicion.ubicar(r.cursor, 'barra')
+      enfocarElTexto(idDelTexto, r.cursor)
+      return
+    }
+    const r = armar(t?.editable === true ? t.texto : '', Infinity)
+    elegir(celda)
+    if (
+      edicion.abrir(celda, { en: 'barra', tipeado: r.texto, cursor: r.cursor, lugares: r.lugares })
+    )
+      enfocarElTexto(idDelTexto, r.cursor)
+  }
   return {
     motivo,
     insertar: (nombre: string) => {
-      if (motivo !== null || celda === null) return
-      if (e !== null) {
-        const r = insertarFuncion(e.texto, e.cursor, nombre, enPuntos)
-        edicion.escribir(r.texto, r.cursor)
-        edicion.ubicar(r.cursor, 'barra')
-        enfocarElTexto(idDelTexto, r.cursor)
-        return
-      }
-      const r = insertarFuncion(t?.editable === true ? t.texto : '', Infinity, nombre, enPuntos)
-      elegir(celda)
-      if (edicion.abrir(celda, { en: 'barra', tipeado: r.texto, cursor: r.cursor }))
-        enfocarElTexto(idDelTexto, r.cursor)
+      insertarCon((texto, cursor) => ({
+        ...insertarFuncion(texto, cursor, nombre, enPuntos),
+        lugares: [],
+      }))
+    },
+    insertarOperacion: (clave: ClaveDeOperacion) => {
+      insertarCon((texto, cursor) => insertarOperacion(texto, cursor, clave, enPuntos))
     },
   }
 }
 
-export type FuncionEnLaBarra = ReturnType<typeof useFuncionEnLaBarra>
+export type InsercionEnLaBarra = ReturnType<typeof useInsercionEnLaBarra>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type Dispatch, type SetStateAction } from 'react'
 import { avisar } from '@/shared/ui/toasts'
 import type { Formula } from '../../../entities/formula'
 import {
@@ -15,6 +15,12 @@ import {
   type HojaDeLaPlanilla,
 } from '../../../entities/formula/hoja-de-la-planilla'
 import { moverFila } from '../../../entities/formula/mover-fila'
+import {
+  podarLugares,
+  saltoTrasReferencia,
+  siguienteLugar,
+  type TextoConLugares,
+} from '../../../entities/formula/operaciones-rapidas'
 import {
   insertarReferencia,
   renumerar,
@@ -38,6 +44,8 @@ export type EdicionDeLaCelda = {
   readonly en: LugarDeLaEdicion
   // Al abrir, lo escrito queda elegido (una fila nueva: su concepto se reemplaza al tipear).
   readonly elegirTodo: boolean
+  // Los lugares por llenar de una operación rápida que siguen después del cursor, como distancia al final del texto.
+  readonly lugares: readonly number[]
 }
 
 type Args = {
@@ -54,6 +62,7 @@ export type Apertura = {
   tipeado?: string
   elegirTodo?: boolean
   cursor?: number
+  lugares?: readonly number[]
 }
 
 // La edición que abre una celda, o nula (con el aviso de por qué no se escribe).
@@ -83,6 +92,7 @@ function edicionAlAbrir(
     error: null,
     en: a.en,
     elegirTodo: a.elegirTodo ?? false,
+    lugares: a.lugares ?? [],
   }
 }
 
@@ -112,9 +122,62 @@ function aplicarTrasMover(
     : r
 }
 
-// Un solo texto en edición (D15 del cambio de la planilla), que muestran la celda y la barra de fórmula: abrirlo, escribir, insertar la referencia de otra celda con
-// un clic, aplicar (`aplicarLoEscrito()`: la fórmula de trabajo, la unidad de ejemplo o el error, que deja la edición abierta con su tramo), descartar y «Mover esta
-// fila debajo de la N» (mueve, vuelve a numerar lo tipeado y aplica; si no entra, nada cambia).
+type FijarEdicion = Dispatch<SetStateAction<EdicionDeLaCelda | null>>
+
+// Lo que cambia el texto en edición sin aplicarlo: escribir, mover el cursor, la referencia de un clic (que, en una operación rápida, salta el operador hasta el
+// siguiente lugar por llenar), una operación rápida y el paso al siguiente lugar.
+function loQueSeEscribe(edicion: EdicionDeLaCelda | null, setEdicion: FijarEdicion) {
+  return {
+    escribir: (texto: string, cursor: number) => {
+      setEdicion((e) =>
+        e === null
+          ? e
+          : {
+              ...e,
+              texto,
+              cursor,
+              ultima: null,
+              error: null,
+              elegirTodo: false,
+              lugares: podarLugares(texto, cursor, e.lugares),
+            },
+      )
+    },
+    ubicar: (cursor: number, en: LugarDeLaEdicion) => {
+      setEdicion((e) =>
+        e === null || (e.cursor === cursor && e.en === en) ? e : { ...e, cursor, en },
+      )
+    },
+    // La referencia de `celda` («C5», «B9») si el cursor espera un operando; si no, falso (el clic aplica).
+    referenciar: (celda: string, conShift: boolean): boolean => {
+      if (edicion === null) return false
+      const r = insertarReferencia(edicion, celda, conShift)
+      if (r === null) return false
+      const lugares = podarLugares(r.texto, r.cursor, edicion.lugares)
+      const salto = saltoTrasReferencia(r.texto, r.cursor, lugares)
+      setEdicion({ ...edicion, ...r, lugares, ...salto, error: null, elegirTodo: false })
+      return true
+    },
+    // Una operación rápida ya insertada en lo tipeado (`insertarOperacion()`), con sus lugares por llenar.
+    insertarOperacion: (r: TextoConLugares) => {
+      setEdicion((e) =>
+        e === null ? e : { ...e, ...r, ultima: null, error: null, elegirTodo: false },
+      )
+    },
+    // Tab o «Siguiente»: el cursor al próximo lugar por llenar; falso si no queda ninguno.
+    siguienteLugar: (): boolean => {
+      if (edicion === null) return false
+      const s = siguienteLugar(edicion.texto, edicion.cursor, edicion.lugares)
+      if (s === null) return false
+      setEdicion({ ...edicion, ...s, ultima: null, elegirTodo: false })
+      return true
+    },
+  }
+}
+
+// Un solo texto en edición (D15 del cambio de la planilla), que muestran la celda y la barra de fórmula: abrirlo, escribir (`loQueSeEscribe()`), aplicar
+// (`aplicarLoEscrito()`: la fórmula de trabajo, la unidad de ejemplo o el error, que deja la edición abierta con su tramo), descartar y «Mover esta fila debajo
+// de la N» (mueve, vuelve a numerar lo tipeado y aplica; si no entra, nada cambia).
 export function useEdicionConReferencias({ editor, hoja, locale, textoDe, alCambiarUnidad }: Args) {
   const [edicion, setEdicion] = useState<EdicionDeLaCelda | null>(null)
   const cerrar = () => {
@@ -157,24 +220,7 @@ export function useEdicionConReferencias({ editor, hoja, locale, textoDe, alCamb
       setEdicion(nueva)
       return true
     },
-    escribir: (texto: string, cursor: number) => {
-      setEdicion((e) =>
-        e === null ? e : { ...e, texto, cursor, ultima: null, error: null, elegirTodo: false },
-      )
-    },
-    ubicar: (cursor: number, en: LugarDeLaEdicion) => {
-      setEdicion((e) =>
-        e === null || (e.cursor === cursor && e.en === en) ? e : { ...e, cursor, en },
-      )
-    },
-    // La referencia de `celda` («C5», «B9») si el cursor espera un operando; si no, falso (el clic aplica).
-    referenciar: (celda: string, conShift: boolean): boolean => {
-      if (edicion === null) return false
-      const r = insertarReferencia(edicion, celda, conShift)
-      if (r === null) return false
-      setEdicion({ ...edicion, ...r, error: null, elegirTodo: false })
-      return true
-    },
+    ...loQueSeEscribe(edicion, setEdicion),
     aplicar: (confirmaPisar = false): boolean =>
       edicion === null ||
       resolver(

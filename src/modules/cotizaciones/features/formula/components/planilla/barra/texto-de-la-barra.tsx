@@ -76,6 +76,7 @@ export function TextoDeLaBarra({ planilla, celda, nombre, texto }: Props) {
             sugerencias,
             aplicarYSeguir: planilla.aplicarYSeguir,
             descartar: planilla.descartar,
+            siguienteLugar: planilla.edicion.siguienteLugar,
             enLaBarra: true,
           })
         } else if (ev.key === 'Escape') {

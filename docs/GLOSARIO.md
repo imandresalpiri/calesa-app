@@ -744,6 +744,11 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Firma en el cursor** — `firmaEnElCursor()` (`entities/formula/firma-en-el-cursor.ts`), `RenglonDeLaEdicion`: mientras se escribe dentro de una función en C, su
   forma en el renglón bajo la barra de fórmula con el valor que se escribe en negrita («SI(condición; **si se cumple**; si no)»); gana la de más adentro. Sin
   función y con el cursor esperando un operando, «Toca una celda para usarla.». No: «tooltip», «ayuda de argumentos».
+- **Operación rápida** — `OPERACIONES_RAPIDAS`, `insertarOperacion()` (`entities/formula/operaciones-rapidas.ts`), `OperacionesRapidas`: los botones «Sumar»
+  (`=␣+␣`), «Porcentaje de» (`=PORCENTAJE_DE(␣; ␣%)`) y «Si… entonces…» (`=SI(␣; ␣; ␣)`) de la barra de fórmula; insertan la forma con sus lugares por llenar
+  y el cursor en el primero. Sin «=», envuelven lo escrito, como `fx ▾`. No: «atajo», «plantilla de fórmula».
+- **Lugar por llenar** — `EdicionDeLaCelda.lugares`: cada ␣ de una operación rápida, guardado como distancia al final del texto; Tab o «Siguiente» llevan al
+  próximo y, tras tocar una celda, el cursor salta un `+ - * /` hasta él. No: «hueco» (que ya nombra otra cosa), «campo».
 - **Resultado al lado** — `resultadoAlLado()` (`entities/formula/resultado-al-lado.ts`), `ResultadoAlLado`: mientras se escribe una C que empieza con «=», la cifra
   que daría con la unidad de ejemplo, en la caja entre el texto y «Aplicar», con los decimales de la celda. Se calcula 150 ms después de la última tecla y sólo con
   un texto que compila; sin cifra, la caja queda vacía. No: «vista previa» (la columna Ejemplo de toda la planilla), «preview».

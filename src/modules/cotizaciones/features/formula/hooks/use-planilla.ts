@@ -23,7 +23,7 @@ import { useCamposDeLaFormula } from './use-campos-de-la-formula'
 import { useCuadricula } from './use-cuadricula'
 import type { EdicionConReferencias } from './use-edicion-con-referencias'
 import { useEdicionDeLaPlanilla } from './use-edicion-de-la-planilla'
-import { useFuncionEnLaBarra } from './use-funcion-en-la-barra'
+import { useInsercionEnLaBarra } from './use-insercion-en-la-barra'
 import { useGuiaDeLaEdicion } from './use-guia-de-la-edicion'
 import { useResultadoAlLado } from './use-resultado-al-lado'
 import { useOperacionesDeFila, type OperacionesDeFila } from './use-operaciones-de-fila'
@@ -125,7 +125,7 @@ function useCierreYMenu({ edicion, cuadricula, enfocar, ops, paneles, calculo }:
   }
 }
 
-// Lo que ayuda a escribir en la barra de fórmula: `fx ▾` y la guía del renglón bajo la barra (la firma en el cursor, tocar una celda).
+// Lo que ayuda a escribir en la barra de fórmula: `fx ▾` y las operaciones rápidas, y la guía del renglón bajo la barra (la firma en el cursor, tocar una celda).
 function useAyudasDeLaBarra(
   edicion: EdicionConReferencias,
   cuadricula: Cuadricula,
@@ -133,7 +133,7 @@ function useAyudasDeLaBarra(
   prefijo: string,
 ) {
   return {
-    funcion: useFuncionEnLaBarra({
+    insercion: useInsercionEnLaBarra({
       edicion,
       activa: cuadricula.activaElegida,
       textoDe,

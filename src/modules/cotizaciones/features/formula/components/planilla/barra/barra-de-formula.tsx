@@ -16,6 +16,7 @@ import { ListaDeSugerencias } from './lista-de-sugerencias'
 import { RenglonDeLaEdicion } from './renglon-de-la-edicion'
 import { ResultadoAlLado } from './resultado-al-lado'
 import { BotonDeFunciones } from './boton-de-funciones'
+import { OperacionesRapidas } from './operaciones-rapidas'
 import { EJEMPLO_DE_LA_BARRA, TextoDeLaBarra } from './texto-de-la-barra'
 
 type Props = { planilla: Planilla; puedeCambiarTiposDeCambio: boolean }
@@ -62,7 +63,8 @@ function AplicarODescartar({ planilla }: { planilla: Planilla }) {
   )
 }
 
-// La barra de fórmula (D15, D16), como la de Excel: la celda activa («C5», «Ejemplo 5»), `fx ▾` (las funciones), lo que se escribe con sus referencias de color
+// La barra de fórmula (D15, D16), como la de Excel: la celda activa («C5», «Ejemplo 5»), `fx ▾` (las funciones), las operaciones rápidas y «¿Cómo se
+// escribe?», lo que se escribe con sus referencias de color
 // (vacío, la única guía: «Escribe = y toca las celdas: =C5+C7»), su leyenda, el autocompletar y el error con su salida; escribiendo una C, el resultado al lado;
 // escribiendo, «Aplicar» y «Descartar». A la
 // derecha, «?» (los tipos de celda). Debajo, un renglón: sin nada escrito, de dónde sale la fila elegida; escribiendo, la firma en el cursor o la guía de tocar.
@@ -88,7 +90,13 @@ export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
         >
           {activa === null ? '—' : nombreDeLaCelda(activa.celda.col, activa.fila.numero)}
         </span>
-        <BotonDeFunciones funcion={planilla.funcion} />
+        <BotonDeFunciones funcion={planilla.insercion} />
+        <OperacionesRapidas
+          insercion={planilla.insercion}
+          alAbrirLaAyuda={() => {
+            planilla.paneles.ayuda.abrir()
+          }}
+        />
         <div className="min-w-0 flex-1 basis-60">
           {activa === null ? (
             <p className={CAJA_QUIETA}>{EJEMPLO_DE_LA_BARRA}</p>
