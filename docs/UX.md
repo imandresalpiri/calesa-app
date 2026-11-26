@@ -259,7 +259,15 @@ Estados propios:
 Navegación de primer nivel (hasta 7, filtrada por permisos, en `src/app/(app)/_shell/navegacion.ts`): Inicio · Leads · Vehículos ·
 Cotizaciones · Logística · Agenda · Chat; Repuestos sólo con permiso. Configuración, Actividad y Datos van en el menú del usuario y en
 `Ctrl/Cmd+K`, con «Mi perfil», «Instalar la app» (sólo si el navegador puede instalarla y aún no corre instalada; en iOS explica «Compartir ›
-Agregar a inicio»), «Ver como» (quien gestiona roles), tema, densidad y «Cerrar sesión».
+Agregar a inicio»), «Ayuda», «Ver como» (quien gestiona roles), tema, densidad y «Cerrar sesión».
+
+**Ayuda (menú del usuario):** el renglón «Ayuda» (con icono, tras las entradas del usuario) abre un modal con los **enlaces de ayuda** de quien mira
+(`?panel=ayuda`: recargar lo reabre, «atrás» lo cierra; también desde cualquier pantalla por la URL), leídos al abrirlo y nunca con el marco. Cada
+fila (44 px como mínimo) dice título, descripción y dominio, y se abre en otra pestaña (su nombre lo dice). Al pie, «Elegir mis enlaces» lleva a
+Perfil (`/perfil?panel=enlaces-de-ayuda`). Cargando, la lista, el vacío y el error ocupan la misma caja. Vacío: «Todavía no hay enlaces de ayuda.»
+con «Agregar en Configuración» (`empresa.ajustes.gestionar`, a `/configuracion/empresa?panel=enlaces-de-ayuda`) o, sin ese permiso, «Agregar uno
+propio» (a `/perfil?panel=nuevo-enlace-propio`); si ocultó todos, «Ocultaste todos los enlaces de ayuda.» con «Elegir mis enlaces». Sin red: «No se
+pudieron cargar los enlaces» con «Reintentar». En el celular, a pantalla completa.
 
 **Menú lateral** (desde 768 px; en el celular es el menú del botón, sin cambios): desplegado muestra ícono y nombre; el botón «Plegar menú» (abajo, y `Ctrl/Cmd+B`) lo
 deja en una columna de sólo íconos (3,5 rem) y ahí el botón dice «Desplegar menú». Plegado, cada entrada lleva su nombre en `title` (tooltip) y como texto para el lector (el nombre accesible sigue siendo «Chat 1 sin leer»), la
@@ -522,7 +530,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (estados propios)»): maestro-detalle; menciones `#` de vehículo/lead/cotización, `/tarea`, `/evento`; widget flotante fuera de `/chat`.
 - **Notificaciones** — `/notificaciones` (todos): lista; la campana trae las que piden acción. Arriba, «Preferencias de avisos» a
   `/perfil#notificaciones`.
-- **Perfil** — `/perfil` (todos): cinco tarjetas de ajustes (`<TarjetasDeAjustes>`: columnas de ≈ 20 rem: una en el celular y más cuanto más ancha la pantalla, sin tope de ancho) con lo guardado a la vista;
+- **Perfil** — `/perfil` (todos): seis tarjetas de ajustes (`<TarjetasDeAjustes>`: columnas de ≈ 20 rem: una en el celular y más cuanto más ancha la pantalla, sin tope de ancho) con lo guardado a la vista;
   lo que se edita abre su modal (`?panel=`), sin plegables y sin desplazar a 1440×900. Cada una lleva sólo su «⋯» («Editar…» primero) y tocarla abre su modal (regla «El «⋯» en Configuración y Perfil»).
   - **Tú** (`?panel=tu`): la foto, el nombre y el correo; el modal edita foto y nombre (con versión: un cambio ajeno dice «Recargar» y conserva lo tipeado). El correo no se cambia desde acá.
   - **Preferencias** (`?panel=preferencias`): tema, densidad, ítems por página, zona horaria de las subastas y «Marcar lo que abrí» (con cuánto lo recuerda y si marca el último) como texto; el modal
@@ -533,6 +541,11 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   - **Notificaciones** (`?panel=notificaciones`; `/perfil#notificaciones` también lo abre y quita el ancla): el push de este navegador a la vista como interruptor y cuántos avisos por tipo y navegadores hay;
     el modal trae un interruptor por tipo del catálogo (sólo apagan el push, no la campana) y «Tus navegadores» con «Quitar». Con el interruptor a la vista y deshabilitado, dice por qué: el rol no recibe push, la empresa no lo activó
     (y dónde), falta la clave pública, el navegador no lo admite o lo bloqueó; mientras revisa, «Revisando este navegador…». Si no se pueden leer los avisos, la tarjeta dice «No se pudieron cargar tus avisos» con «Reintentar».
+  - **Ayuda** (`?panel=enlaces-de-ayuda`): los primeros enlaces de ayuda de su menú y «N en tu menú · M ocultos.»; el «⋯» lleva «Elegir mis enlaces…» y «Agregar enlace propio». El
+    modal («Mis enlaces de ayuda», a pantalla completa en el celular) lista los de la empresa con su interruptor «Mostrar» y los propios, en su orden; cada fila lleva sólo su «⋯» (uno de
+    la empresa: «Abrir el enlace», «Subir», «Bajar»; uno propio: «Editar», «Subir», «Bajar», «Abrir el enlace», «Quitar») y tocarla abre la primera. «Mostrar», mover y quitar guardan
+    al instante (mostrar y quitar, con «Deshacer»). «Agregar enlace propio» arriba (`?panel=nuevo-enlace-propio`; editar, `?panel=editar-enlace-propio&enlace=`), apagado con su motivo al
+    llegar a 20. Los propios sólo los ve su dueña o dueño; uno nuevo de la empresa aparece visible al final; uno quitado o desactivado desaparece. Conflicto (otra ventana): el aviso y la lista releída.
 - **Actividad** — `/actividad` (`actividad.ver`): cada cambio como una frase con su icono por tipo de registro, agrupada por día en la zona de
   la empresa: «Ana cambió Precio de [Toyota Hilux #12]: 10.000 → 12.000» (con varios campos, «Precio y 2 más», sin valores; un alta o una baja,
   sin antes → después; el registro enlaza a su página si existe y se ve; montos con `<Monto>`). Una fila que quien mira no ve dice sólo
@@ -914,12 +927,18 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 
 - **Entrar:** `empresa.ajustes.gestionar` o `empresa.tipos_cambio.gestionar`; cada sub-sección se edita con su permiso, sin él
   deshabilitada con el motivo arriba; sin ninguno, «sin permiso». Cada sub-ruta tiene su esqueleto.
-- **Datos de la empresa:** cinco **tarjetas de ajustes** (Identidad, Región, Datos legales y de contacto, Políticas, Íconos de la app) que muestran
+- **Datos de la empresa:** seis **tarjetas de ajustes** (Identidad, Región, Datos legales y de contacto, Políticas, Íconos de la app, Enlaces de ayuda) que muestran
   lo guardado («Sin dato» si falta); tocar la tarjeta o «Editar…» en su «⋯» abre su modal (`?panel=identidad|region|datos-legales|politicas|iconos`),
   con «Cancelar» y «Guardar»: sin cambios guardar cierra; con cambios, Esc pregunta «Seguir editando» o «Descartar». Mientras guarda, el modal
   se apaga. Color sin contraste, logo inválido y zona inexistente: motivo junto al campo. Sin conexión, lo tipeado
   queda y se guarda solo al volver; Datos legales repone su borrador con el «Descartar» de su aviso. Sin `empresa.ajustes.gestionar`, se ve todo con
   «Editar…» apagada en el «⋯» y el motivo; «Íconos de la app» sin logo, apagado con su motivo; «Volver a los íconos neutros» va en el «⋯». PT409: «Recargar».
+  **Enlaces de ayuda** (después de Región, para que las seis entren a 1440×900): la tarjeta nombra el primero con «y N más» y, junto al título, «N enlaces» (con tope «20+»); su «⋯» lleva «Editar…» y «Nuevo enlace». El modal
+  (`?panel=enlaces-de-ayuda`, a pantalla completa en el celular) tiene «Nuevo enlace» arriba y la lista con el dominio y su estado («En el menú» o «No se ve en el menú»); cada fila,
+  su «⋯» (Editar, Subir, Bajar, Desactivar o Activar con «Deshacer», Quitar con `<Confirmar>` que nombra el enlace, `?panel=quitar-enlace-de-ayuda&enlace=`). Nuevo y Editar
+  (`?panel=nuevo-enlace-de-ayuda|editar-enlace-de-ayuda`): título (hasta 80), dirección y descripción opcional (hasta 140); una dirección sin `https://` dice «Escribe una dirección que
+  empiece con https://.» junto al campo. Con 30, «Nuevo enlace» apagado con el motivo. Conflicto: «Recargar» conserva lo tipeado; sin red, se guarda solo al volver. Sin
+  `empresa.ajustes.gestionar`, la tarjeta apagada con su motivo.
 - **Monedas y tipos de cambio:** arriba la **moneda base** (código, nombre y símbolo) con «Cambiar la moneda base…» en su «⋯» (o tocando la tarjeta), que abre su modal (`?panel=moneda-base`): con datos cargados
   el campo queda apagado con su motivo; sin `empresa.ajustes.gestionar`, apagada. Debajo, un grupo por **par de monedas** (el de la base primero) con una
   tarjeta por tipo de cambio: nombre, «★ Por defecto» o «Inactivo», el valor grande, «Cambiado por X · fecha» y el interruptor «En la barra», que guarda al

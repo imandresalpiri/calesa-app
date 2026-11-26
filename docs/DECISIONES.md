@@ -231,6 +231,19 @@ las trampas, en `docs/LECCIONES.md`.
   pide una migración y una regla de publicación que nadie decidió.
 - **Datos de la empresa: un modal por tarjeta, sólo lo que cambió.** Cada tarjeta guarda con `empresa_guardar_ajustes()` mandando únicamente las claves distintas de lo guardado (la RPC no toca lo ausente), así que dos modales sucesivos no se pisan salvo por la versión de la fila, que viaja por props al abrir. Sin cambios, guardar cierra. La moneda base con datos cargados no viaja. Los logos se suben al guardar y los íconos se dibujan desde el logo guardado en su propio modal.
 
+- **Enlaces de ayuda: se guarda lo que la persona oculta, no lo que ve.** `enlaces_de_ayuda_personales` lleva una fila por enlace de la empresa que la
+  persona ordenó u ocultó y una por cada propio; uno de la empresa sin fila aparece visible al final. Así un enlace nuevo llega a todo el equipo sin
+  migrar las listas de nadie, y uno quitado se va por la cascada. La persona guarda su lista entera de una vez (`enlaces_de_ayuda_guardar_mios()`, con
+  su versión, en `enlaces_de_ayuda_versiones` y no sacada de sus filas, que la cascada de un enlace quitado haría retroceder): mover, ocultar y sumar
+  son el mismo guardado, y un `PT409` relee. Los propios no tienen tabla aparte (la misma fila con
+  título y dirección, sin `enlace_id`): su orden convive con el de los de la empresa en una sola columna.
+- **«Ayuda» del menú lee al abrirse, desde el navegador.** El modal está en `_shell/ayuda/`, se pide con `diferido()` y lee
+  `enlaces_de_ayuda_de_mi()` cada vez que se abre: en el marco sólo viaja el renglón, y el layout de toda pantalla no paga una lectura que casi nadie
+  pide. `?panel=ayuda` (y no `enlaces-de-ayuda`) porque ése es el de Perfil y Configuración, donde se eligen y preparan.
+- **En Perfil, tocar una fila de la empresa abre el enlace; tocar una propia, la edita.** Uno de la empresa no se edita ahí: su primera acción es
+  «Abrir el enlace» y el interruptor «Mostrar» lo oculta. «Mostrar», mover y quitar guardan al instante (con «Deshacer» lo que se revierte): una lista de
+  preferencias, como «Preferencias» del perfil, no un formulario con «Guardar».
+
 ## Orígenes
 
 - **Comunes como columnas, el resto en `atributos`.** `vehiculos` tiene columnas para lo común y `atributos jsonb` validado por trigger; un campo que necesite índice o unicidad se promueve a columna por migración.

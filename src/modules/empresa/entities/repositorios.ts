@@ -1,11 +1,13 @@
 // Lo que los casos de uso de `features/` necesitan de afuera, dicho como interfaces. La
 // implementación (Supabase) vive en `infra/` y se la entrega `composicion.ts`.
 import type { ConteoAcotado } from '@/shared/lib/conteo'
-import type { Resultado } from '@/shared/lib/errores'
+import type { ErrorApp, Resultado } from '@/shared/lib/errores'
 import type { AjustesDeCotizacion } from './ajustes-de-cotizacion'
 import type { LeyendaDeTiposCambio, ParaCompartir } from './compartir-tipos-cambio'
 import type { AjustesEmpresa, CambiosDeAjustes } from './ajustes-empresa'
+import type { CamposDeEnlace, Direccion, ListaDeEnlacesDeLaEmpresa } from './enlaces-de-ayuda'
 import type { ClaveIntegracion, Integracion } from './integraciones'
+import type { ElementoAGuardar, MisEnlacesLeidos } from './mis-enlaces-de-ayuda'
 import type { CambioDeValor, Moneda, TipoCambio } from './tipos-cambio'
 import type { TipoCambioVigente, UltimoCambio } from './tipos-cambio-vigentes'
 
@@ -116,3 +118,42 @@ export type LectorDeLeyendaDeTiposCambio = () => Promise<Resultado<LeyendaDeTipo
 export type LectorParaCompartir = (ids: readonly string[]) => Promise<Resultado<ParaCompartir>>
 // La imagen PNG de lo que se comparte.
 export type DibujanteDeImagen = (datos: ParaCompartir) => Promise<Resultado<Uint8Array>>
+
+// Enlaces de ayuda (docs/GLOSARIO.md). Cada escritura de la empresa devuelve la lista entera (hasta el tope + 1); un rechazo de un campo
+// lo nombra en `campo` (`titulo`, `url`, `descripcion` o `tope`).
+export type FalloDeEnlace = { ok: false; error: ErrorApp; campo?: string }
+type RespuestaDeEnlaces = Promise<{ ok: true; data: ListaDeEnlacesDeLaEmpresa } | FalloDeEnlace>
+
+export type RepositorioDeEnlacesDeAyuda = {
+  // Con el id del intento: repetirlo no crea otro.
+  crear: (pedido: { id: string } & CamposDeEnlace) => RespuestaDeEnlaces
+  // Lo que viene `undefined` no se toca.
+  guardar: (pedido: {
+    id: string
+    actualizadoEnEsperado: string
+    titulo?: string | undefined
+    url?: string | undefined
+    descripcion?: string | null | undefined
+    activo?: boolean | undefined
+  }) => RespuestaDeEnlaces
+  mover: (pedido: {
+    id: string
+    actualizadoEnEsperado: string
+    direccion: Direccion
+  }) => RespuestaDeEnlaces
+  // Uno que ya no está no es un error: vuelve la lista.
+  quitar: (pedido: { id: string; actualizadoEnEsperado: string }) => RespuestaDeEnlaces
+}
+
+// Los de una persona se guardan enteros, con la versión de su lista (nula si nunca guardó). Vuelve lo releído.
+export type RepositorioDeMisEnlacesDeAyuda = {
+  guardar: (pedido: {
+    actualizadoEnEsperado: string | null
+    elementos: ElementoAGuardar[]
+  }) => Promise<{ ok: true; data: MisEnlacesLeidos } | FalloDeEnlace>
+}
+
+// Todos los de la empresa, también los desactivados: es lo que edita Configuración.
+export type LectorDeEnlacesDeAyuda = () => Promise<Resultado<ListaDeEnlacesDeLaEmpresa>>
+// Lo de quien mira, de una sola lectura (`enlaces_de_ayuda_de_mi()`).
+export type LectorDeMisEnlacesDeAyuda = () => Promise<Resultado<MisEnlacesLeidos>>

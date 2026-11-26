@@ -5,14 +5,18 @@ import 'server-only'
 import type {
   LectorDeAjustes,
   LectorDeAjustesDeCotizacion,
+  LectorDeEnlacesDeAyuda,
   LectorDeHistorial,
   LectorDeIntegraciones,
   LectorDeLeyendaDeTiposCambio,
+  LectorDeMisEnlacesDeAyuda,
   LectorDeMonedasYTiposCambio,
   LectorDeUltimosCambios,
   LectorDeVehiculosQueCambian,
   ProbadorDeRevalidacion,
   RepositorioAjustesDeCotizacion,
+  RepositorioDeEnlacesDeAyuda,
+  RepositorioDeMisEnlacesDeAyuda,
   RepositorioEmpresa,
   RepositorioIntegraciones,
   RepositorioLeyendaDeTiposCambio,
@@ -20,12 +24,14 @@ import type {
 } from './entities/repositorios'
 import { ajustesDeCotizacionSupabase } from './infra/ajustes-de-cotizacion'
 import { empresaSupabase } from './infra/empresa'
+import { enlacesDeAyudaSupabase, misEnlacesDeAyudaSupabase } from './infra/enlaces-de-ayuda'
 import { dibujarImagenDeTiposCambio } from './infra/compartir/imagen'
 import { integracionesSupabase } from './infra/integraciones'
 import { leyendaDeTiposCambioSupabase } from './infra/leyenda-de-tipos-cambio'
 import { getAjustes, getAjustesParaEditar, getPoliticaDeLimpieza } from './infra/queries/ajustes'
 import { getAjustesDeCotizacion } from './infra/queries/ajustes-de-cotizacion'
 import { getParaCompartir } from './infra/queries/compartir'
+import { getEnlacesDeAyuda, getMisEnlacesDeAyuda } from './infra/queries/enlaces-de-ayuda'
 import { getLeyendaDeTiposCambio } from './infra/queries/leyenda'
 import {
   getIntegraciones,
@@ -53,6 +59,9 @@ export const repositorioAjustesDeCotizacion: RepositorioAjustesDeCotizacion =
   ajustesDeCotizacionSupabase
 export const repositorioLeyendaDeTiposCambio: RepositorioLeyendaDeTiposCambio =
   leyendaDeTiposCambioSupabase
+export const repositorioDeEnlacesDeAyuda: RepositorioDeEnlacesDeAyuda = enlacesDeAyudaSupabase
+export const repositorioDeMisEnlacesDeAyuda: RepositorioDeMisEnlacesDeAyuda =
+  misEnlacesDeAyudaSupabase
 export const probadorDeRevalidacion: ProbadorDeRevalidacion = probarRevalidacion
 
 export const leerAjustes: LectorDeAjustes = getAjustesParaEditar
@@ -63,6 +72,8 @@ export const leerIntegraciones: LectorDeIntegraciones = getIntegraciones
 export const leerVehiculosQueCambian: LectorDeVehiculosQueCambian = getVehiculosQueCambian
 export const leerAjustesDeCotizacion: LectorDeAjustesDeCotizacion = getAjustesDeCotizacion
 export const leerLeyendaDeTiposCambio: LectorDeLeyendaDeTiposCambio = getLeyendaDeTiposCambio
+export const leerEnlacesDeAyuda: LectorDeEnlacesDeAyuda = getEnlacesDeAyuda
+export const leerMisEnlacesDeAyuda: LectorDeMisEnlacesDeAyuda = getMisEnlacesDeAyuda
 
 // Lo que el popover de la barra pide para compartir los tipos de cambio (`/tipos-de-cambio/texto` y `/imagen`).
 export function responderCompartirTiposCambio(

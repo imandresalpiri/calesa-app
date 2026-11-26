@@ -56,20 +56,23 @@ describe('TarjetasDeLaEmpresa', () => {
           iconoActualUrl="/iconos/neutro-192.png"
           zonas={['America/La_Paz']}
           puedeEditar={puedeEditar}
+          enlacesDeAyuda={{ tope: 30, enlaces: [] }}
         />
       </Con>,
     )
   }
 
-  it('con permiso hay cinco tarjetas con su «⋯» y sin aviso', () => {
+  it('con permiso hay seis tarjetas con su «⋯» y sin aviso', () => {
     tarjetas(true)
     for (const titulo of ['Identidad', 'Región', 'Datos legales y de contacto', 'Políticas']) {
       expect(screen.getByRole('region', { name: titulo })).toBeTruthy()
     }
     expect(screen.getByRole('region', { name: 'Íconos de la app' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Enlaces de ayuda' })).toBeTruthy()
+    expect(screen.getByText('Todavía no hay enlaces de ayuda.')).toBeTruthy()
     // «Íconos de la app» no abre sin logo: su botón no se dibuja y su «⋯» lo dice.
-    expect(screen.getAllByRole('button', { name: /^Editar / })).toHaveLength(4)
-    expect(screen.getAllByRole('button', { name: /^Más acciones de / })).toHaveLength(5)
+    expect(screen.getAllByRole('button', { name: /^Editar / })).toHaveLength(5)
+    expect(screen.getAllByRole('button', { name: /^Más acciones de / })).toHaveLength(6)
     expect(screen.queryByText(MOTIVO_SIN_PERMISO_AJUSTES)).toBeNull()
   })
 
@@ -77,7 +80,7 @@ describe('TarjetasDeLaEmpresa', () => {
     tarjetas(false)
     expect(screen.getByText(MOTIVO_SIN_PERMISO_AJUSTES)).toBeTruthy()
     expect(screen.queryAllByRole('button', { name: /^Editar / })).toHaveLength(0)
-    expect(screen.getAllByRole('button', { name: /^Más acciones de / })).toHaveLength(5)
+    expect(screen.getAllByRole('button', { name: /^Más acciones de / })).toHaveLength(6)
   })
 })
 
