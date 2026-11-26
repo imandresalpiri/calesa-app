@@ -121,7 +121,7 @@ test('crear una cotización lleva a su hoja; la lista y la hoja muestran lo que 
   const local = page.getByRole('list', { name: 'Líneas de Local' })
   await expect(local).toContainText('Aceite local')
   await expect(local).toContainText(monto(242))
-  await expect(page.locator('footer').filter({ hasText: 'Total' })).toContainText(monto(375))
+  await expect(page.locator('[data-total-de-la-cotizacion]')).toContainText(monto(375))
 })
 
 test('sin `repuestos.cotizar`: no hay botón «Cotizaciones» y la hoja dice que no hay permiso', async ({

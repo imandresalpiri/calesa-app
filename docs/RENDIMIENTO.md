@@ -80,14 +80,27 @@ Bloque «Seguimiento» de la ficha y su «Ver todos» (`?todos=seguimientos`).
 
 ## Embarques y contenedores
 
-- `/logistica/embarques`: `transporte_grupos()` (definer) por cursor opaco (el id de una fila de la clave siguiente), de a
-  `TAMANO_DE_PAGINA_POR_DEFECTO` (`_acotar_pagina(p_tope, 50, 100)`), sin `?por=`, total ni `offset`. Índices `transportes_booking_idx` y
-  `transportes_contenedor_idx` (parciales). Recorre **a lo sumo 2.000 filas**: si no llena la página devuelve `cortada` y la pantalla
-  ofrece «Seguir buscando». Registrada en `scripts/guardas/areas-b/paginas-en-la-base.ts`.
+- `/logistica/embarques`: `transporte_grupos()` (definer) por cursor opaco (el id del embarque o del contenedor de la clave siguiente), de a
+  `TAMANO_DE_PAGINA_POR_DEFECTO` (`_acotar_pagina(p_tope, 50, 100)`), sin `?por=`, total ni `offset`. Índices `embarques_booking_origen_key` y
+  `contenedores_numero_origen_key` (la clave), y sus unidades por `transportes_embarque_idx` / `transportes_contenedor_id_idx` (parciales;
+  las de un embarque por sus contenedores, `contenedores_embarque_idx`). Recorre **a lo sumo 2.000 unidades**: si no llena la página devuelve
+  `cortada` y la pantalla ofrece «Seguir buscando». Registrada en `scripts/guardas/areas-b/paginas-en-la-base.ts`.
 - El resumen lee `transporte_grupo()` (≤ 200 unidades, una llamada, sin N+1: por eso no trae «días en la fase»); navieras y puertos, una vez
-  por pedido (`cache()`, `.limit(201)`).
-- **Sin medir con volumen** (lo fija `supabase/tests/areas/transporte/grupo.sql`): sin presupuesto de tiempo. Sin presupuesto de JS: el
-  drawer sólo se monta con la clave en la URL y los huecos van con `diferido()`.
+  por pedido (`cache()`, `.limit(201)`). El lote de «Mover», los documentos y el prorrateo de un grupo leen la misma llamada.
+- La bandeja del día (llegadas, salidas) junta por tanda tres rutas, cada una con su `order by … limit`: lo propio (`transportes_llegadas_idx`,
+  `transportes_salidas_idx`), el embarque directo y el embarque por su contenedor (`embarques_llegadas_idx`, `embarques_salidas_idx`).
+- El hueco «Transporte»: `transporte_leer` cuenta los vehículos visibles de su embarque y su contenedor hasta 100 (`hay_mas`) y lee a lo sumo
+  1.000 unidades para saber si hay ocultas.
+- **Medido** (`supabase/tests/medir-logistica.sql`, la siembra de la logística con la mitad de los transportes en 7.500 contenedores de 8 y uno de
+  cada tres de ellos en su embarque: 2.500 embarques de 24): una página de grupos de la dueña 12–14 ms y 11,7 KB, la de Ana 50–52 ms; el
+  filtro que nadie cumple, 44–49 / 70–80 ms y 0,1 KB; el resumen de un contenedor o un embarque de 8, 4–9 ms y ≤ 6 KB; la lista de una fase
+  filtrada por contenedor o booking, la dueña 1,4 ms (la lee desde las unidades de la entidad, hasta 10.000) y Ana 84 ms (parte de lo propio,
+  como sin filtro). Presupuestos: página de grupos ≤ 100 ms (filtro que nadie cumple, 200) y 24 KB; resumen ≤ 20 ms y 12 KB; lista filtrada
+  ≤ 10 / 200 ms y 24 KB. Sin `Seq Scan` de `embarques` ni `contenedores`.
+- **La migración de los textos a las entidades** (`_embarques_desde_textos`, la misma de la migración, sobre esa siembra): 120.000 transportes,
+  60.000 asignados a 7.500 contenedores y 2.500 embarques, en 3,5 s (presupuesto ≤ 60 s). Sus índices nuevos se crean sin `concurrently`
+  (`docs/DESPLIEGUE.md` › «4. Migraciones»).
+- Sin presupuesto de JS: el drawer sólo se monta con la clave en la URL y los huecos van con `diferido()`.
 
 ## Gastos y pagos
 
@@ -490,8 +503,8 @@ inferior), que no se dibuja hasta abrirse: la carga sólo paga el botón. En el 
 - Nodos del DOM, medidos en el recorrido (`page.evaluate`, sin spec nuevo): la portada entera con 5 grupos de 5 filas, 334; la gráfica de 5 fases, 53; la lista de una fase con 50 vehículos en escritorio, 1.039.
 - Sin volumen de interfaz propio: `e2e/logistica-cadena.spec.ts` prueba «Siguiente» con 51 y `e2e/logistica-bandeja-del-dia.spec.ts` los 21 demorados, no miden nodos de miles.
 - Lote de mover: selección y lotes ≤ 200 (`TOPE_DEL_LOTE`) en **una llamada** (`previsualizar_cambio_fase_lote`, `cambiar_fase_lote`). Los
-  destinos de la fase son configuración (`TOPE_DE_DESTINOS`). «Unidades de un grupo (lote)»: `vehiculos` con `transportes!inner` por
-  `transportes_contenedor_idx` / `transportes_booking_idx`, `limit 201`. Las casillas y el contexto van en el JS de `/logistica`; la barra,
+  destinos de la fase son configuración (`TOPE_DE_DESTINOS`). «Unidades de un grupo (lote)»: `transporte_grupo()` (≤ 200, todos los
+  orígenes; el lote se queda con las de su origen en el cliente). Las casillas y el contexto van en el JS de `/logistica`; la barra,
   el drawer y el hueco del grupo, con `diferido()`.
 - Panel de la unidad, «Notas»: `notas` por `notas_vehiculo_vivas_idx (vehiculo_id, creado_en desc, id desc) where eliminado_en is null`,
   `limit 21`, cursor `(creado_en, id)` e «Ir a una fecha»; hasta 500 con `<AvisoDeTope>`; autor y fase embebidos. Sin `medir-*.sql`.
@@ -590,8 +603,8 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `repuestos_tramos_logistica_moneda_idx` y las cajas por `repuestos_cajas_moneda_monto_key`, tope 200 + 1 cada una, con `<AvisoDeTope>`.
   Los modales se piden al abrirse (`diferido()`).
 - Cotizaciones de un proyecto (`/repuestos/[id]`, «Cotizaciones»): `limit 51` por `repuestos_cotizaciones_proyecto_id_idx`, tope 50 con
-  `<AvisoDeTope>`, sólo con la pestaña abierta; la hoja lee la cotización por PK (`limit 1`) y sus líneas por
-  `repuestos_cotizaciones_lineas_cotizacion_id_idx` (tope 200 de la base). En borrador lee además los ítems del proyecto (`limit 201`, tope
+  `<AvisoDeTope>`, sólo con la pestaña abierta (el «⋯» de cada tarjeta no lee nada: sus acciones salen de la fila y de los permisos de la página; las confirmaciones, con `diferido()`); la hoja lee la cotización por PK (`limit 1`) y sus líneas por
+  `repuestos_cotizaciones_lineas_cotizacion_id_idx` (tope 200 de la base) y, sólo con `lead_id` y `leads.ver`, una fila de `leads_vista` por PK para el cliente del proyecto. En borrador lee además los ítems del proyecto (`limit 201`, tope
   200 por `armarHoja`); el total en vivo es O(líneas) ≤ 200 por cambio, con líneas y `XCell` en `memo` y callbacks estables.
 
 ## Tablero: métricas

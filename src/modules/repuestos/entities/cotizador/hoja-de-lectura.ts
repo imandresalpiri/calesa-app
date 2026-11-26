@@ -17,8 +17,6 @@ export const COLUMNAS_DE_LINEA =
   'id, item_id, descripcion, bloque, cantidad, costo::text, logistica_sugerida::text, logistica::text, caja::text, total::text, orden'
 
 export type CotizacionLeida = FilaDeCotizacion & {
-  // ISO: la versión de la fila (la usan guardar, aceptar y anular en 8.12-4).
-  actualizadoEn: string
   notas: string | null
   snapshot: LecturaDelSnapshot
 }
@@ -47,7 +45,6 @@ export type CotizacionConLineas = { cotizacion: CotizacionLeida; lineas: LineaDe
 
 const esquemaDeLaCotizacion = z.object({
   ...camposDeCotizacion,
-  actualizado_en: z.string(),
   notas: z.string().nullable(),
   config_snapshot: z.unknown(),
 })
@@ -73,7 +70,6 @@ export function cotizacionDesde(dato: unknown): CotizacionLeida | null {
   const f = leido.data
   return {
     ...aFilaDeCotizacion(f),
-    actualizadoEn: f.actualizado_en,
     notas: f.notas,
     snapshot: leerSnapshot(f.config_snapshot),
   }

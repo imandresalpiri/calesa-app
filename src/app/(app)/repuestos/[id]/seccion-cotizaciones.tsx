@@ -8,6 +8,7 @@ type Props = {
   monedas: readonly { codigo: string; nombre: string }[]
   cerrado: boolean
   puedeConfigurar: boolean
+  puedeEditarItems: boolean
 }
 
 // El panel «Cotizaciones» bajo los pasos (8.12-3, C9): la lista, leída recién al abrirlo y sólo si quien mira tiene `repuestos.cotizar` (lo decide la página con
@@ -18,6 +19,7 @@ export async function SeccionDeCotizaciones({
   monedas,
   cerrado,
   puedeConfigurar,
+  puedeEditarItems,
 }: Props) {
   const cotizaciones = await leerCotizacionesDelProyecto(proyectoId)
   if (!cotizaciones.ok) {
@@ -31,6 +33,7 @@ export async function SeccionDeCotizaciones({
       monedas={monedas}
       cerrado={cerrado}
       puedeConfigurar={puedeConfigurar}
+      puedeEditarItems={puedeEditarItems}
     />
   )
 }
