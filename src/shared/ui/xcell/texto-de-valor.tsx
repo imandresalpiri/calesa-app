@@ -1,5 +1,6 @@
 'use client'
 
+import { formatearConDecimales, redondeadaParaMostrar } from '@/shared/lib/cifra-fija'
 import { formatearMonto, formatearNumero, formatearPorcentaje } from '@/shared/lib/formato'
 import { Monto } from '../monto'
 import { useRegional } from '../regional'
@@ -13,7 +14,8 @@ type Props = {
 }
 
 // Lo que dice la celda como texto plano (para un `title`), igual que `TextoDeValor`. El dinero con el Modo Live encendido es lo que dibuja `<Monto>`
-// («•••»): la cifra no sale en un atributo que el CSS del modo no tapa.
+// («•••»): la cifra no sale en un atributo que el CSS del modo no tapa. Con `decimales`, N fijos y redondeados como la base (`cifra-fija.ts`);
+// sin ellos, lo de siempre (2 en un monto, hasta 2 en un número o un porcentaje).
 export function textoPlanoDeValor(
   { valor, formato, moneda, decimales }: Props,
   regional: { locale: string; monedaBase: string },
@@ -23,15 +25,23 @@ export function textoPlanoDeValor(
   if (valor === null) {
     return 'Sin valor'
   }
+  if (formato === 'monto' && live) {
+    return '•••'
+  }
+  if (decimales !== undefined) {
+    return formatearConDecimales(valor, formato, {
+      decimales,
+      locale,
+      ...(formato === 'monto' ? { moneda: moneda ?? regional.monedaBase } : {}),
+    })
+  }
   switch (formato) {
     case 'monto':
-      return live
-        ? '•••'
-        : formatearMonto(valor, { moneda: moneda ?? regional.monedaBase, locale, decimales })
+      return formatearMonto(valor, { moneda: moneda ?? regional.monedaBase, locale })
     case 'porcentaje':
-      return formatearPorcentaje(valor, { locale, decimales: decimales ?? 2 })
+      return formatearPorcentaje(valor, { locale, decimales: 2 })
     case 'numero':
-      return formatearNumero(valor, { locale, ...(decimales === undefined ? {} : { decimales }) })
+      return formatearNumero(valor, { locale })
   }
 }
 
@@ -44,7 +54,7 @@ export function TextoDeValor({ valor, formato, moneda, decimales }: Props) {
   if (formato === 'monto') {
     return (
       <Monto
-        valor={valor}
+        valor={decimales === undefined ? valor : redondeadaParaMostrar(valor, 'monto', decimales)}
         {...(moneda === undefined ? {} : { moneda })}
         {...(decimales === undefined ? {} : { decimales })}
       />

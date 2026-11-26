@@ -19,6 +19,11 @@ describe('formatearNumero', () => {
     expect(formatearNumero(1234.567)).toBe('1.234,57')
     expect(formatearNumero(1234.567, { decimales: 0 })).toBe('1.235')
   })
+
+  it('con `fijos`, los decimales son también el mínimo', () => {
+    expect(formatearNumero(1234.5, { decimales: 3, fijos: true })).toBe('1.234,500')
+    expect(formatearNumero(1000, { decimales: 0, fijos: true })).toBe('1.000')
+  })
 })
 
 describe('formatearMonto', () => {
@@ -42,6 +47,11 @@ describe('formatearPorcentaje', () => {
   it('recibe una fracción', () => {
     expect(plano(formatearPorcentaje(0.125))).toBe('12,5%')
     expect(plano(formatearPorcentaje(0.5, { decimales: 0 }))).toBe('50%')
+  })
+
+  it('con `fijos`, los decimales de los puntos con ceros de relleno', () => {
+    expect(plano(formatearPorcentaje(0.125, { decimales: 2, fijos: true }))).toBe('12,50%')
+    expect(plano(formatearPorcentaje(0.15, { decimales: 1, fijos: true }))).toBe('15,0%')
   })
 })
 
