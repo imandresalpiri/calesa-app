@@ -680,7 +680,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     reversible con «Deshacer» (si era dato clave, el «⋯» avisa «También sale de los datos clave.»). «Desactivados» va a la vista, debajo, y sin número.
     Con una búsqueda no hay asas; sin coincidencias, «Nada coincide con «…».» y «Limpiar». Conflicto `PT409` dentro del panel con «Recargar»,
     que conserva lo escrito. Sin `origenes.gestionar`: el aviso con su motivo, «Nuevo campo» apagado, sin asas, el «⋯» sólo con «Ver» y el
-    panel sin «Guardar». **Categorías** (`/categorias`,
+    panel sin «Guardar». El grupo de un campo y el drawer «Grupos» (`?panel=grupos`, junto a «Nuevo campo»), como en Leads › Campos, con el
+    catálogo del origen; sin `origenes.gestionar`, «Grupos» abre la lista de sólo lectura con el motivo. **Categorías** (`/categorias`,
     `?categoria=`). Las dos se abren con el origen; sin `origenes.gestionar`, todo deshabilitado con su motivo.
   - `/<id>` sola responde 308 (por persona) a la **última pestaña** que esa persona abrió en ese origen si todavía la abre o, si no, a la primera que
     abre (sin ninguna, a Fases), con su consulta entera. Una pestaña que no abre, por URL: «No puedes abrir esta
@@ -715,7 +716,10 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   o «Sin publicar»), un extracto, su última edición y «Editar…» en su «⋯» (o tocarla), que abre su modal con el título y el editor (`?panel=terminos|privacidad`, con borrador); las
   dos páginas entran enteras a 1440×900. «Guías» (con categorías) y su editor
   `/configuracion/web/guias/[id]` (documento con imágenes; publicar, programar o despublicar con `web.guias.publicar`; «Borrador», «Programada»,
-  «Publicada»; «← Guías» vuelve a la lista). «Preguntas frecuentes»: panel por URL, reordenar, eliminar con confirmación. «Testimonios»: con su
+  «Publicada»; «← Guías» vuelve a la lista). «Preguntas frecuentes»: panel por URL, reordenar, eliminar con confirmación;
+  la categoría de una pregunta es un combo como el grupo de un campo («Crear categoría «x»», «Ya existe «X».») y «Categorías», junto a «Nueva pregunta»,
+  abre su drawer `?panel=categorias` (`&quitar=<id>`) como el de «Grupos» de Leads › Campos («Mover sus 3 preguntas a…», «Sin categoría»). La categoría de
+  una guía, también un combo que la crea. «Testimonios»: con su
   consentimiento (quién, cuándo, canal; ciudad, vehículo y foto por separado) y «Retirar». Las listas llevan su acción principal («Nueva …») sin repetir el
   título de la página.
 - **Cola web (config)** — `/configuracion/cola-web` (`web.cola.gestionar`): tarjetas en una rejilla que ocupa todo el ancho del área (sin tope de ancho; a 1920 px,
@@ -1074,6 +1078,14 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
   buscador y «Nuevo campo», los grupos como en el formulario con sus insignias («En la tabla», «Filtrable», «Solo la cartera», «De fábrica»),
   el arrastre dentro del grupo, el «⋯» y el panel `?campo=`; «Desactivados» a la vista, debajo, con «Activar» en su «⋯». Fijos: teléfono, nombre, tipo y
   que el lead tenga origen.
+- **El grupo de un campo se elige** (glosario «Grupo de campos»): en el panel, «Grupo» es un combo con buscador que ofrece los activos del layout; lo
+  escrito con otra escritura de uno que existe no se crea («Ya existe «Datos del Cliente».»; inactivo: «… (inactivo): actívalo en «Grupos».») y, si
+  no hay coincidencia, la última opción es «Crear grupo «x»». El valor guardado que se desactivó se ve «X (inactivo)».
+- **«Grupos»** (botón de la cabecera, antes de «Nuevo campo»): un drawer `?panel=grupos` con el nombre arriba («Agregar»; «Renombrar «X»» al
+  tocar una fila, con «Cancelar»), la lista con cuántos campos tiene cada uno y su «⋯» (Renombrar · Desactivar o Activar · Subir · Bajar · Quitar…).
+  Quitar (`&quitar=<id>`) pregunta nombrándolo; con campos, ««X» tiene 3 campos. Muévelos antes de quitarlo.», «Mover sus 3 campos a…» («Sin
+  grupo» o otro activo) y «Mover y quitar». Vacío: «Todavía no hay grupos» / «Créalos aquí o desde el campo.». Conflicto `PT409` con «Recargar»,
+  que conserva lo escrito; tope de 100 con `AvisoDeTope`. Sin permiso, la lista de sólo lectura con el motivo, sin el nombre ni Subir y Bajar.
 - **Impacto, siempre con números y dentro del panel:** volver requerido (cuántos leads no podrán guardarse hasta completarlo); cambiar el
   tipo o eliminar con datos; sacar una opción en uso; dejar de ser «solo la cartera». Conflicto con «Recargar».
 - **Orígenes del lead, tipos de lead y tipos de seguimiento** (modales `?panel=origenes|tipos|seguimientos`, patrón de `shared/ui/lista`, sin título

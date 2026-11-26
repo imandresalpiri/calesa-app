@@ -1,14 +1,19 @@
 'use client'
 
 import { useRef } from 'react'
-import { nombresDeGrupo, type CampoBase } from '@/shared/lib/campos'
+import type { CampoBase } from '@/shared/lib/campos'
 import { enfocarPrimerError, errorDeCampo } from '@/shared/lib/formularios'
 import { Aviso } from '@/shared/ui/aviso'
 import { useCambiosSinGuardar } from '@/shared/ui/cambios-del-panel'
 import { AvisosDelFormulario } from './avisos-del-formulario'
 import { CamposDeCampo } from './campos-de-campo'
 import { PieDelFormulario } from './pie-del-formulario'
-import type { ConfiguracionDeCampos, EdicionesDeCampos, ErroresDeCampo } from './tipos'
+import type {
+  ConfiguracionDeCampos,
+  EdicionesDeCampos,
+  ErroresDeCampo,
+  GruposDelEditor,
+} from './tipos'
 import { useBorradorDelCampo } from './use-borrador-del-campo'
 import { useFormularioDeCampo } from './use-formulario-de-campo'
 
@@ -19,6 +24,7 @@ export type PropsDelFormulario<Campo extends CampoBase, Cambios extends object, 
   puedeGestionar: boolean
   configuracion: ConfiguracionDeCampos<Campo, Cambios, Nuevo>
   ediciones: EdicionesDeCampos<Cambios, Nuevo>
+  grupos: GruposDelEditor
   // `&eliminar=1`: al abrir, cuenta y muestra el aviso de eliminar.
   eliminar: boolean
   // Trae lo guardado (otra persona guardó este campo); lo escrito queda.
@@ -38,7 +44,7 @@ function erroresDelFormulario(
     ...propios,
     etiqueta: propios.etiqueta ?? delServidor('etiqueta'),
     opciones: propios.opciones ?? delServidor('opciones'),
-    grupo: propios.grupo ?? delServidor('grupo'),
+    grupoId: propios.grupoId ?? delServidor('grupoId'),
     valorDefecto: propios.valorDefecto ?? delServidor('valorDefecto'),
     minimo: propios.minimo ?? delServidor('minimo'),
     maximo: propios.maximo ?? delServidor('maximo'),
@@ -63,7 +69,8 @@ export function FormularioDeCampo<Campo extends CampoBase, Cambios extends objec
   const borrador = useBorradorDelCampo({
     clave: `${configuracion.textos.borrador}-${campo?.id ?? 'nuevo'}`,
     formulario,
-    nombres: ['etiqueta', 'grupo', ...configuracion.textosLibres],
+    // El grupo se elige con un clic (el combo): el borrador guarda lo tipeado.
+    nombres: ['etiqueta', ...configuracion.textosLibres],
     activo: puedeGestionar,
   })
   // Un aviso que sale de la pantalla («Abrir ficha») con algo escrito pregunta en el pie; descartar tira el borrador.
@@ -101,7 +108,7 @@ export function FormularioDeCampo<Campo extends CampoBase, Cambios extends objec
           campo={campo}
           banderas={configuracion.banderas}
           tipos={configuracion.tipos}
-          gruposExistentes={nombresDeGrupo(todos)}
+          grupos={props.grupos}
           errores={erroresDelFormulario(estado.errores, ediciones.errores.crear)}
           deshabilitado={!puedeGestionar}
         />

@@ -18,7 +18,7 @@ const crear: RepositorioCampos['crear'] = async (nuevo) => {
     p_tipo: nuevo.tipo,
     p_opciones: nuevo.opciones.map(({ clave, etiqueta }) => ({ clave, etiqueta })),
     p_requerido: nuevo.requerido,
-    p_grupo: nuevo.grupo ?? undefined,
+    p_grupo_id: nuevo.grupoId ?? undefined,
     p_en_tarjeta: nuevo.enTarjeta,
     p_filtrable: nuevo.filtrable,
     p_publico_web: nuevo.publicoWeb,

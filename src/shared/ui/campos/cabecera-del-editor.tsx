@@ -1,7 +1,7 @@
 'use client'
 
 import { PlusIcon, SearchIcon } from 'lucide-react'
-import { useId, type Ref } from 'react'
+import { useId, type ReactNode, type Ref } from 'react'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 
@@ -11,15 +11,19 @@ type Props = {
   busqueda: Ref<HTMLInputElement>
   alBuscar: (consulta: string) => void
   alCrear: () => void
+  // Junto a «Nuevo campo»: el botón «Grupos» y su drawer.
+  extra?: ReactNode
 }
 
-// Arriba del editor: buscar un campo por su nombre (en el navegador, sin tildes; `?q=`) y «Nuevo campo», la acción principal.
+// Arriba del editor: buscar un campo por su nombre (en el navegador, sin tildes; `?q=`), «Grupos» (si lo hay) y «Nuevo campo», la acción
+// principal.
 export function CabeceraDelEditor({
   consulta,
   puedeGestionar,
   busqueda,
   alBuscar,
   alCrear,
+  extra = null,
 }: Props) {
   const id = useId()
   return (
@@ -45,6 +49,7 @@ export function CabeceraDelEditor({
           }}
         />
       </div>
+      {extra}
       <Button className="h-[44px] md:h-9" disabled={!puedeGestionar} onClick={alCrear}>
         <PlusIcon aria-hidden />
         Nuevo campo

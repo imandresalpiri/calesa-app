@@ -9,6 +9,7 @@ import {
   ordenSiguiente,
   reordenar,
   TOPE_DE_FAQS,
+  type DatosDeFaq,
   type Faq,
 } from '../../entities/contenido/faqs'
 import { ORDEN_CAMBIADO, rechazoDeEscritura, sinFilas } from '../../entities/contenido/errores'
@@ -67,6 +68,11 @@ async function ceroFilas(
   )
 }
 
+// Lo que se escribe, con los nombres de las columnas: la categoría va por su id.
+function columnasDeFaq({ categoriaId, ...resto }: Partial<DatosDeFaq>) {
+  return categoriaId === undefined ? resto : { ...resto, categoria_id: categoriaId }
+}
+
 function unaFaq(datos: unknown): Faq | null | undefined {
   const lista = faqsDesde(datos)
   return lista === null ? undefined : (lista[0] ?? null)
@@ -83,7 +89,13 @@ export const faqsSupabase: RepositorioDeFaqs = {
     }
     const { data, error } = await supabase
       .from('web_faqs')
-      .insert({ ...datos, orden: ordenSiguiente(leidas.data.faqs) })
+      .insert({
+        pregunta: datos.pregunta,
+        respuesta: datos.respuesta,
+        categoria_id: datos.categoriaId,
+        publicada: datos.publicada,
+        orden: ordenSiguiente(leidas.data.faqs),
+      })
       .select(COLUMNAS_DE_FAQ)
       .limit(1)
     if (error) {
@@ -100,7 +112,7 @@ export const faqsSupabase: RepositorioDeFaqs = {
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('web_faqs')
-      .update(cambios)
+      .update(columnasDeFaq(cambios))
       .eq('id', id)
       .eq('actualizado_en', actualizadoEnEsperado)
       .select(COLUMNAS_DE_FAQ)

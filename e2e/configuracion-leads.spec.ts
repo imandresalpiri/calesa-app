@@ -8,6 +8,7 @@ import {
   darRolDePrueba,
   PREFIJO_ROL_E2E,
 } from './soporte/base'
+import { elegirEnCombo } from './soporte/combo'
 import { abrirElCampo, elegirDelMenu, filaDelCampo } from './soporte/editor-de-campos'
 import { descartarAviso } from './soporte/inventario'
 import { borrarCamposDeLeadDePrueba, campoDeLead, camposDeLead, crearLead } from './soporte/leads'
@@ -122,7 +123,7 @@ test('se crea un campo de opciones, se ordena, se vuelve privado y se desactiva'
   await panel.getByLabel('Nueva opción').press('Enter')
   await panel.getByLabel('Nueva opción').fill('Leo')
   await panel.getByRole('button', { name: 'Agregar' }).click()
-  await panel.getByLabel('Grupo').fill('Datos personales')
+  await elegirEnCombo(page, panel, 'Grupo', 'Datos personales')
   await panel.getByRole('button', { name: 'Crear campo' }).click()
   await descartarAviso(page, `Campo «${ETIQUETA}» creado`)
   expect(await campoDeLead(CLAVE_DEL_CAMPO)).toMatchObject({

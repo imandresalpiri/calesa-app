@@ -12,6 +12,7 @@ import { esMovil } from './soporte/inventario'
 import {
   PREFIJO_DE_NIVEL_E2E,
   borrarNivelesDePrueba,
+  esperarLaMatrizHidratada,
   llenarNivelesHasta,
   nivelEnLaBase,
   sembrarNivel,
@@ -65,11 +66,11 @@ test.afterAll(async () => {
 async function abrirMatriz(page: Page, rolAVer: string | null = rol) {
   await page.goto('/configuracion/roles')
   await expect(page.getByRole('heading', { name: 'Roles y permisos' })).toBeVisible()
+  // Antes de elegir el rol o tocar una celda: lo que se hace antes de hidratar se pierde.
+  await esperarLaMatrizHidratada(page)
   if (rolAVer !== null && esMovil(page)) {
     await page.getByLabel('Rol a la vista').selectOption({ label: rolAVer })
   }
-  // El «⋯» de un nivel llega con su código al hidratar: un clic en una celda antes se pierde.
-  await expect(page.getByRole('button', { name: /^Más acciones de / }).first()).toBeVisible()
 }
 
 const filasDeNivel = (page: Page) => page.locator('[data-permiso^="cotizaciones.nivel."]')

@@ -5,7 +5,7 @@
 // la RLS de las dos tablas la lee toda sesión y qué recibe de cada lead lo decide la base.
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/browser'
-import { camposDeLeadDesde, type CampoDeLead } from '../entities/campo'
+import { COLUMNAS_DE_CAMPO_DE_LEAD, camposDeLeadDesde, type CampoDeLead } from '../entities/campo'
 import { catalogosDeLeadDesde, type CatalogosDeLead } from '../entities/catalogos'
 
 export type CatalogosDeEdicion = CatalogosDeLead & { campos: CampoDeLead[] }
@@ -13,7 +13,7 @@ export type CatalogosDeEdicion = CatalogosDeLead & { campos: CampoDeLead[] }
 export async function leerCatalogosDeEdicion(): Promise<Resultado<CatalogosDeEdicion>> {
   const supabase = createClient()
   const [campos, catalogos] = await Promise.all([
-    supabase.from('leads_campos').select('*'),
+    supabase.from('leads_campos').select(COLUMNAS_DE_CAMPO_DE_LEAD),
     supabase.rpc('leads_catalogos'),
   ])
   if (campos.error) {

@@ -22,6 +22,7 @@ Orígenes de vehículos configurables (subasta/apibara o manual), su layout de c
   pendiente). La cabecera de la página del origen recibe `seguir` («Seguir la puesta en marcha») de `[id]/seguir-la-puesta-en-marcha.ts`, que lee la
   fórmula de trabajo sólo si el origen está activo, sin fórmula activa y con el permiso del cotizador.
 - `index.ts`: lo de la puesta en marcha (arriba), `getOrigenes(incluirInactivos?)`, `leerLayout(origenId, { conUso })` (también los campos desactivados: quien consume filtra `activo`),
+  `leerGruposDelOrigen(origenId)` (el catálogo de grupos de campos del origen, tope 100; la pestaña Campos y su paso de la puesta en marcha),
   `leerCampoPrincipal(origenId)` (o `null`; para quien nombra un vehículo fuera del listado), `leerDatosNuevosDeApibara`, `leerOrigenes`,
   `pasosParaCotizarYMover(origen, { apibaraActiva })` y `pasosQueFaltan()` (los cinco pasos de «Para cotizar y mover», glosario: Datos, Campos, Flujo,
   Fórmula y Tarjeta, con `estado` listo|aviso|bloquea; un inactivo, `{ inactivo: true }`; los dos últimos miran la fórmula **activa**: Fórmula, que haya una
@@ -49,10 +50,11 @@ etiqueta }` o `{ de: 'campo', clave, etiqueta, campoId }`, con los de fábrica s
 
 ## Tablas
 
-`origenes`, `origenes_campos`, `categorias`: sólo lectura para la app, se escriben por RPC. El motor `_campo_*`, `_campos_*`, `_atributos_*` lo
+`origenes`, `origenes_campos`, `origenes_campos_grupos` (glosario «Grupo de campos»), `categorias`: sólo lectura para la app, se escriben por RPC. El motor `_campo_*`, `_campos_*`, `_atributos_*` lo
 comparten los leads.
 `origenes.datos_clave` (hasta 4, `check` de forma con `_origen_datos_clave_forma()`).
 RPC: `origen_crear|guardar|eliminar`, `origen_datos_clave_guardar`, `origen_apibara_rutas_sin_campo`, `origen_apibara_agregar`, `origen_campo_crear|guardar|mover|eliminar|impacto`,
+`origen_campo_grupo_crear|guardar|mover|eliminar`,
 `categoria_crear|guardar|mover|eliminar`, `origenes_resumen`, `categorias_con_uso`. Triggers: `origen_crear_flujo`, `origen_preconfigurar_campos`,
 `origen_tipo_inmutable`, `origen_datos_clave_de_fabrica`, `origen_campo_validar`, `origen_activo_requerido` (en `vehiculos` y `cotizaciones`).
 
@@ -81,6 +83,12 @@ RPC: `origen_crear|guardar|eliminar`, `origen_datos_clave_guardar`, `origen_apib
   escribe si estaba: no mueve la versión en vano) y `origen_campo_eliminar` también toma el origen antes que el campo. `DATOS_COMUNES` está
   espejado de `camposComunes()` de `vehiculos`, con su test en `src/app/(app)/configuracion/origenes/datos-comunes.test.ts`.
 - El aviso de impacto va **dentro** del panel del campo; `origen_campo_impacto` cuenta también la papelera.
+- **Grupo de campos**: del catálogo del origen (FK compuesta `origenes_campos_grupo_fkey` con `origen_id`), un nombre por origen sin importar
+  mayúsculas, tildes ni espacios. Lo que nace con texto (presets, apibara) pasa por `_origen_campo_grupo_asegurar()`. Elegir uno desactivado sólo
+  vale para conservar el que el campo ya tiene. Borrar el origen arrastra sus grupos. El combo del panel de un campo crea con
+  `crearGrupoDelOrigen` (sin revalidar: el campo está a medio llenar); el drawer «Grupos» (`?panel=grupos&quitar=<id>`) con
+  `agregarGrupoDelOrigen`, `guardarGrupoDelOrigen`, `moverGrupoDelOrigen` y `quitarGrupoDelOrigen` (`origenes.gestionar`, revalidan
+  `/configuracion/origenes`; `hooks/use-grupos-del-origen.ts`). Sin el permiso, el drawer se abre de sólo lectura.
 - Categoría: un nivel de anidado, un nombre por lugar (sin mayúsculas); con subcategorías activas no se desactiva; con subcategorías o vehículos no se
   elimina.
 - Entra quien tiene `origenes.gestionar`; de sólo lectura, `flujos.configurar` o `cotizaciones.configurar`, cada uno **en ese origen** (la base

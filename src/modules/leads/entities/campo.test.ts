@@ -17,7 +17,7 @@ function fila(n: number, extra: Record<string, unknown> = {}) {
     requerido: false,
     valor_defecto: null,
     valor_defecto_empresa: null,
-    grupo: 'Datos personales',
+    grupo: { id: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e', nombre: 'Datos personales', orden: 10 },
     orden: n * 10,
     en_tabla: false,
     filtrable: false,
@@ -66,6 +66,19 @@ describe('camposDeLeadDesde', () => {
     ])
     expect(campos.map((campo) => campo.clave)).toEqual(['campo_1', 'campo_2', 'campo_3'])
     expect(campos[0]).toMatchObject({ soloCartera: true, enTabla: true, filtrable: false })
+  })
+
+  it('trae el grupo del catálogo (id, nombre y orden) o ninguno', () => {
+    expect(camposDeLeadDesde([fila(1)])[0]).toMatchObject({
+      grupoId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
+      grupo: 'Datos personales',
+      ordenDelGrupo: 10,
+    })
+    expect(camposDeLeadDesde([fila(1, { grupo: null })])[0]).toMatchObject({
+      grupoId: null,
+      grupo: null,
+      ordenDelGrupo: null,
+    })
   })
 
   it('unas opciones mal formadas no tumban la pantalla', () => {

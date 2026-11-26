@@ -229,6 +229,17 @@ const DATOS_DE_PRUEBA = {
   'areas/equipo/rutas-viejas-reescritas.sql': {
     _migracion_de_rutas: { ruta: migracionPorContenido('-- reescribir_rutas_viejas'), texto: true },
   },
+  // Migración de datos (se borra al aplastar): los grupos de texto de los campos de leads y de cada origen pasan a su catálogo.
+  'areas/campos/grupos-migracion.sql': {
+    _migracion_de_grupos: { ruta: migracionPorContenido('-- campos_grupos_catalogo'), texto: true },
+  },
+  // Migración de datos (se borra al aplastar): las categorías de texto de las FAQ pasan a su catálogo y se unen las de guías repetidas.
+  'areas/web/categorias-migracion.sql': {
+    _migracion_de_categorias: {
+      ruta: migracionPorContenido('-- web_categorias_catalogo'),
+      texto: true,
+    },
+  },
   // Una migración de datos que una prueba vuelve a ejecutar va aquí como `{ ruta: migracionPorContenido('<texto>'), texto: true }`.
 }
 

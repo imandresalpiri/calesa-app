@@ -6,7 +6,7 @@ import { Drawer } from '@/shared/ui/drawer'
 import { useApertura } from '@/shared/ui/use-apertura'
 import { useUltimo } from '@/shared/ui/use-ultimo'
 import { FormularioDeCampoDiferido } from './diferidos'
-import type { ConfiguracionDeCampos, EdicionesDeCampos } from './tipos'
+import type { ConfiguracionDeCampos, EdicionesDeCampos, GruposDelEditor } from './tipos'
 
 type Props<Campo extends CampoBase, Cambios extends object, Nuevo> = {
   // 'nuevo' para crear, el campo de `?campo=` para editar, null con el panel cerrado.
@@ -17,6 +17,7 @@ type Props<Campo extends CampoBase, Cambios extends object, Nuevo> = {
   puedeGestionar: boolean
   configuracion: ConfiguracionDeCampos<Campo, Cambios, Nuevo>
   ediciones: EdicionesDeCampos<Cambios, Nuevo>
+  grupos: GruposDelEditor
   alCerrar: () => void
 }
 

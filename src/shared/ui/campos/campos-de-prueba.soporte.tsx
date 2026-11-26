@@ -3,7 +3,7 @@ import { vi } from 'vitest'
 import type { CampoBase } from '@/shared/lib/campos'
 import { ok } from '@/shared/lib/errores'
 import { Campo } from '@/shared/ui/campo'
-import type { ConfiguracionDeCampos, EdicionesDeCampos } from './tipos'
+import type { ConfiguracionDeCampos, EdicionesDeCampos, GruposDelEditor } from './tipos'
 
 export type Cambios = { etiqueta?: string }
 export type Nuevo = { etiqueta: string }
@@ -18,7 +18,9 @@ export const CAMPO: CampoBase = {
   valorDefecto: null,
   minimo: null,
   maximo: null,
+  grupoId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
   grupo: 'Datos',
+  ordenDelGrupo: 10,
   orden: 1,
   esSistema: false,
   activo: true,
@@ -46,7 +48,7 @@ export const configuracion: ConfiguracionDeCampos<CampoBase, Cambios, Nuevo> = {
     clave: campo?.clave ?? '',
     tipo: campo?.tipo ?? 'texto',
     opciones: [],
-    grupo: campo?.grupo ?? '',
+    grupoId: campo?.grupoId ?? null,
     activo: true,
     valorDefecto: null,
     minimo: null,
@@ -90,4 +92,26 @@ export function ediciones(parcial: Partial<EdicionesDeCampos<Cambios, Nuevo>> = 
     errores: { crear: undefined },
   }
   return { ...edicion, ...parcial }
+}
+
+// El catálogo de grupos del editor: vacío y con permiso para crear; `crear` devuelve el grupo con ese nombre.
+export function grupos(parcial: Partial<GruposDelEditor> = {}): GruposDelEditor {
+  return {
+    lista: [],
+    hayMas: false,
+    puedeCrear: true,
+    operaciones: null,
+    crear: vi.fn((nombre: string) =>
+      Promise.resolve(
+        ok({
+          id: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2f',
+          nombre,
+          orden: 10,
+          activo: true,
+          actualizadoEn: 'v1',
+        }),
+      ),
+    ),
+    ...parcial,
+  }
 }

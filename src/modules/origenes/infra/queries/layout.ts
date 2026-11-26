@@ -2,7 +2,7 @@ import 'server-only'
 import { cache } from 'react'
 import { errorDePostgrest, ok } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/server'
-import { campoPrincipalDesde, camposDesde } from '../../entities/campo'
+import { COLUMNAS_DE_CAMPO, campoPrincipalDesde, camposDesde } from '../../entities/campo'
 import { categoriasDesde } from '../../entities/categoria'
 import type { LectorDeCampoPrincipal, LectorDeLayout } from '../../entities/repositorios'
 
@@ -12,7 +12,7 @@ import type { LectorDeCampoPrincipal, LectorDeLayout } from '../../entities/repo
 export const getLayout: LectorDeLayout = async (origenId, { conUso }) => {
   const supabase = await createClient()
   const [campos, categorias, usos] = await Promise.all([
-    supabase.from('origenes_campos').select('*').eq('origen_id', origenId),
+    supabase.from('origenes_campos').select(COLUMNAS_DE_CAMPO).eq('origen_id', origenId),
     supabase.from('categorias').select('*').eq('origen_id', origenId),
     conUso ? supabase.rpc('categorias_con_uso', { p_origen: origenId }) : Promise.resolve(null),
   ])

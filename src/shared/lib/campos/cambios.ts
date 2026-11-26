@@ -8,7 +8,7 @@ export type CambiosComunes = Partial<{
   tipo: TipoDeCampo
   opciones: OpcionDeCampo[]
   requerido: boolean
-  grupo: string | null
+  grupoId: string | null
   activo: boolean
   valorDefecto: ValorDefecto | null
   // El rango (9-2); null quita el límite.

@@ -2,26 +2,33 @@
 
 import { useId } from 'react'
 import { Campo } from '@/shared/ui/campo'
+import { ComboDeCatalogo, type TextosDelCombo } from '@/shared/ui/combo-de-catalogo'
 import { Interruptor } from '@/shared/ui/interruptor'
 import { Label } from '@/shared/ui/label'
 import { Textarea } from '@/shared/ui/textarea'
-import {
-  LARGO_DE_CATEGORIA,
-  LARGO_DE_PREGUNTA,
-  LARGO_DE_RESPUESTA,
-} from '../../../../entities/contenido/faqs'
+import { LARGO_DE_CATEGORIA } from '../../../../entities/contenido/categorias-de-faq'
+import { LARGO_DE_PREGUNTA, LARGO_DE_RESPUESTA } from '../../../../entities/contenido/faqs'
+import type { CategoriasDelCombo } from '../../categorias-de-faq/hooks/use-categorias-de-faq'
 import type { useFormularioDeFaq } from '../hooks/use-formulario-de-faq'
 
 type Props = {
   formulario: ReturnType<typeof useFormularioDeFaq>
-  // Las categorías ya usadas: las sugerencias del campo.
-  categorias: readonly string[]
+  // El catálogo de categorías de FAQ, también las inactivas, con su «crear».
+  categorias: CategoriasDelCombo
 }
 
-// Los campos de una pregunta frecuente: pregunta, respuesta (texto plano), categoría con sugerencias y si está publicada.
+const TEXTOS_DEL_COMBO: TextosDelCombo = {
+  sinValor: 'Sin categoría',
+  buscar: 'Buscar o crear una categoría',
+  crear: (nombre) => `Crear categoría «${nombre}»`,
+  vacio: 'Todavía no hay categorías. Escribe una para crearla.',
+  existe: (nombre) => `Ya existe «${nombre}».`,
+  inactivo: (nombre) => `Ya existe «${nombre}» (inactiva): actívala en «Categorías».`,
+}
+
+// Los campos de una pregunta frecuente: pregunta, respuesta (texto plano), categoría del catálogo y si está publicada.
 export function CamposDeFaq({ formulario: f, categorias }: Props) {
   const idDeRespuesta = useId()
-  const idDeSugerencias = useId()
   return (
     <>
       <Campo
@@ -61,24 +68,22 @@ export function CamposDeFaq({ formulario: f, categorias }: Props) {
           Se muestra tal como la escribes, sin formato.
         </p>
       </div>
-      <Campo
-        nombre="categoria"
+      <ComboDeCatalogo
+        nombre="categoriaId"
         etiqueta="Categoría (opcional)"
-        autoComplete="off"
-        list={idDeSugerencias}
-        maxLength={LARGO_DE_CATEGORIA + 20}
-        value={f.valores.categoria}
-        error={f.errores['categoria']}
-        ayuda="Escribe una nueva o elige una que ya uses."
-        onChange={(evento) => {
-          f.cambiar({ categoria: evento.target.value })
+        valor={f.valores.categoriaId}
+        elementos={categorias.lista}
+        hayMas={categorias.hayMas}
+        textos={TEXTOS_DEL_COMBO}
+        maximoDelNombre={LARGO_DE_CATEGORIA}
+        puedeCrear
+        alElegir={(categoriaId) => {
+          f.cambiar({ categoriaId })
         }}
+        alCrear={categorias.crear}
+        ayuda="Agrupa las preguntas en la web; elige una o créala aquí."
+        error={f.errores['categoriaId']}
       />
-      <datalist id={idDeSugerencias}>
-        {categorias.map((categoria) => (
-          <option key={categoria} value={categoria} />
-        ))}
-      </datalist>
       <Interruptor
         titulo="Publicada"
         ayuda="Una pregunta publicada se ve en la web pública. Una nueva nace sin publicar."

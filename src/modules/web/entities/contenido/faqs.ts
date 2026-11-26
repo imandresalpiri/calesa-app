@@ -5,13 +5,15 @@ import { z } from 'zod'
 export const TOPE_DE_FAQS = 100
 export const LARGO_DE_PREGUNTA = 200
 export const LARGO_DE_RESPUESTA = 2000
-export const LARGO_DE_CATEGORIA = 60
 
 export type Faq = {
   id: string
   pregunta: string
   respuesta: string
+  // La categoría de FAQ elegida (nula = sin categoría), su nombre y si está inactiva: lo muestra la lista.
+  categoriaId: string | null
   categoria: string | null
+  categoriaInactiva: boolean
   publicada: boolean
   orden: number
   // La versión de la fila (`actualizado_en`): se espera al guardar o eliminar.
@@ -19,19 +21,26 @@ export type Faq = {
 }
 
 export const COLUMNAS_DE_FAQ =
-  'id, pregunta, respuesta, categoria, publicada, orden, actualizado_en'
+  'id, pregunta, respuesta, categoria_id, publicada, orden, actualizado_en, categoria:web_categorias_faqs(nombre, activa)'
 
 const esquemaDeFila = z
   .object({
     id: z.guid(),
     pregunta: z.string(),
     respuesta: z.string(),
-    categoria: z.string().nullable(),
+    categoria_id: z.guid().nullable(),
+    categoria: z.object({ nombre: z.string(), activa: z.boolean() }).nullable(),
     publicada: z.boolean(),
     orden: z.number(),
     actualizado_en: z.string(),
   })
-  .transform(({ actualizado_en, ...resto }): Faq => ({ ...resto, actualizadoEn: actualizado_en }))
+  .transform(({ actualizado_en, categoria_id, categoria, ...resto }): Faq => ({
+    ...resto,
+    categoriaId: categoria_id,
+    categoria: categoria?.nombre ?? null,
+    categoriaInactiva: categoria !== null && !categoria.activa,
+    actualizadoEn: actualizado_en,
+  }))
 
 /** Las filas de `web_faqs`; nulo si alguna no tiene la forma esperada. */
 export function faqsDesde(datos: unknown): Faq[] | null {
@@ -70,36 +79,27 @@ export function reordenar(
   )
 }
 
-/** Las categorías ya usadas, sin repetir ni vacías, en el orden en que aparecen: las sugerencias del campo. */
-export function categoriasUsadas(faqs: readonly Faq[]): string[] {
-  const vistas = new Set<string>()
-  for (const { categoria } of faqs) {
-    const limpia = categoria?.trim() ?? ''
-    if (limpia !== '') vistas.add(limpia)
-  }
-  return [...vistas]
-}
-
 /** Lo que escribe la persona en el formulario, tal cual. */
 export type ValoresDeFaq = {
   pregunta: string
   respuesta: string
-  categoria: string
+  // La categoría elegida en el combo; nula = sin categoría.
+  categoriaId: string | null
   publicada: boolean
 }
 
-/** Lo validado, listo para mandar (la categoría vacía es «sin categoría»). */
+/** Lo validado, listo para mandar. */
 export type DatosDeFaq = {
   pregunta: string
   respuesta: string
-  categoria: string | null
+  categoriaId: string | null
   publicada: boolean
 }
 
 export const VALORES_DE_FAQ_NUEVA: ValoresDeFaq = {
   pregunta: '',
   respuesta: '',
-  categoria: '',
+  categoriaId: null,
   publicada: false,
 }
 
@@ -107,7 +107,7 @@ export function valoresDeFaq(faq: Faq): ValoresDeFaq {
   return {
     pregunta: faq.pregunta,
     respuesta: faq.respuesta,
-    categoria: faq.categoria ?? '',
+    categoriaId: faq.categoriaId,
     publicada: faq.publicada,
   }
 }
@@ -120,7 +120,6 @@ export function validarFaq(valores: ValoresDeFaq): ValidacionDeFaq {
   const errores: Record<string, string> = {}
   const pregunta = valores.pregunta.trim()
   const respuesta = valores.respuesta.trim()
-  const categoria = valores.categoria.trim()
   if (pregunta === '') {
     errores['pregunta'] = 'Escribe la pregunta.'
   } else if (pregunta.length > LARGO_DE_PREGUNTA) {
@@ -131,9 +130,6 @@ export function validarFaq(valores: ValoresDeFaq): ValidacionDeFaq {
   } else if (respuesta.length > LARGO_DE_RESPUESTA) {
     errores['respuesta'] = `La respuesta admite hasta ${String(LARGO_DE_RESPUESTA)} letras.`
   }
-  if (categoria.length > LARGO_DE_CATEGORIA) {
-    errores['categoria'] = `La categoría admite hasta ${String(LARGO_DE_CATEGORIA)} letras.`
-  }
   if (Object.keys(errores).length > 0) {
     return { ok: false, errores }
   }
@@ -142,7 +138,7 @@ export function validarFaq(valores: ValoresDeFaq): ValidacionDeFaq {
     datos: {
       pregunta,
       respuesta,
-      categoria: categoria === '' ? null : categoria,
+      categoriaId: valores.categoriaId,
       publicada: valores.publicada,
     },
   }
@@ -153,7 +149,7 @@ export function cambiosDeFaq(original: Faq, nuevos: DatosDeFaq): Partial<DatosDe
   const cambios: Partial<DatosDeFaq> = {}
   if (nuevos.pregunta !== original.pregunta) cambios.pregunta = nuevos.pregunta
   if (nuevos.respuesta !== original.respuesta) cambios.respuesta = nuevos.respuesta
-  if (nuevos.categoria !== original.categoria) cambios.categoria = nuevos.categoria
+  if (nuevos.categoriaId !== original.categoriaId) cambios.categoriaId = nuevos.categoriaId
   if (nuevos.publicada !== original.publicada) cambios.publicada = nuevos.publicada
   return Object.keys(cambios).length === 0 ? null : cambios
 }

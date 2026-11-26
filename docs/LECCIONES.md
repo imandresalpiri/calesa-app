@@ -302,11 +302,13 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Antes de un atajo de teclado o un Tab espera el estado final (`toHaveValue`, resultados, hidratación, la sección y el foco en su lugar): antes de hidratar la `N` la toma el «Nuevo lead» del marco, y un Tab mientras llega contenido manda el foco al `body`.
 - Un clic antes de hidratar se pierde: reintenta con tope corto hasta que la URL pida el panel y para si ya lo pide, porque cada clic de más suma una entrada al historial y rompe «atrás».
 - Lo que `diferido({ enFrio })` dibuja en el servidor se ve antes de hidratar y antes de que llegue su código: espera lo que sólo trae el código cargado (el asa «Mover «…»» del editor de campos) o insiste con `abrirElMenu()` / `abrirElCampo()` de `e2e/soporte/editor-de-campos.ts`.
+- Lo que el servidor ya dibuja no dice que la pantalla hidrató: en la matriz de Roles el «⋯» de la cabecera de un rol se ve cientos de ms antes que el de un nivel (`diferido()`). Espera el de un nivel (`esperarLaMatrizHidratada()` de `e2e/soporte/niveles.ts`) antes de tocar una celda, y lo que publica un efecto (`--alto-cabecera-roles`) antes de medir lo pegado.
 - Un clic que abre un visor o un modal se afirma (visible) y se cierra (`toBeHidden()`) antes del clic siguiente: si no, el siguiente cae sobre él y la prueba pasa sólo cuando el primero llegó antes de hidratar.
 - Arma la espera de un pedido antes del clic con `conRespuesta(page, coincide, accion, espera)` de `e2e/soporte/esperas.ts`, con tope propio: recibe la acción, no una promesa ya creada.
 - Sin red, espera el texto del pendiente, no el `requestfailed`: el evento no prueba lo que ve la persona.
 - Afirma el estado nuevo (en la base o con `expect.poll`), nunca un toast que se cierra solo, una lista leída una vez tras mutar ni un `toHaveURL` que la página anterior ya cumple.
 - nuqs dibuja al instante y escribe la URL después: espera la clave en la URL antes de `reload()` o «atrás», o recarga la URL de antes (pasa en el celular).
+- Al cerrar un panel por URL con `shallow: false`, la clave sale de la URL recién cuando vuelve el servidor: un ayudante que decide por `page.url()` si hacer clic espera antes a que la URL ya no la nombre y no quede un diálogo (`abrirElCampo()`).
 - Abre un popover o una hoja sólo con la pantalla en su forma final: la primera visita al embudo cambia de rama al llegar el tablero y desmonta lo abierto. `abrirVistaYOpciones()` reabre si se cerró solo.
 - Mide cajas dentro de un diálogo sólo cuando termina la animación (`quieto()`): durante la escala 44 px miden 42 y `getBoundingClientRect` miente.
 - Centra el botón antes del clic: tras `scrollIntoViewIfNeeded` queda al borde inferior, debajo de la burbuja del chat.

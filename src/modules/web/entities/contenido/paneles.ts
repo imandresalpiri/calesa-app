@@ -4,6 +4,8 @@ export const PANEL_EDITAR_FAQ = 'faq'
 export const PANEL_ELIMINAR_FAQ = 'eliminar-faq'
 export const CLAVE_DE_FAQ = 'faq'
 export const MENSAJE_FAQ_YA_NO_ESTA = 'Esta pregunta ya no existe. Recarga para ver lo nuevo.'
+// El drawer «Categorías» de las preguntas frecuentes: `?panel=categorias` (`&quitar=<id>` para quitar una).
+export const PANEL_DE_CATEGORIAS_DE_FAQ = 'categorias'
 
 // Los paneles de los testimonios (8.02-2): `?panel=nuevo-testimonio`, `?panel=testimonio&testimonio=<id>`, `?panel=consentimiento-testimonio&testimonio=<id>`,
 // `?panel=retirar-consentimiento&testimonio=<id>` y `?panel=eliminar-testimonio&testimonio=<id>`. `?panel=` tiene un solo dueño a la vez.

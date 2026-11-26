@@ -3,7 +3,7 @@
 // su documento) en cada apertura, se abra o no el alta. Cualquier cuenta lee el layout (como `getLayout`); sólo los activos: el alta no usa los apagados.
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/browser'
-import { camposDesde, type CampoDeLayout } from '../../entities/campo'
+import { COLUMNAS_DE_CAMPO, camposDesde, type CampoDeLayout } from '../../entities/campo'
 import { categoriasDesde, type Categoria } from '../../entities/categoria'
 
 export type LayoutActivo = { campos: CampoDeLayout[]; categorias: Categoria[] }
@@ -11,7 +11,11 @@ export type LayoutActivo = { campos: CampoDeLayout[]; categorias: Categoria[] }
 export async function leerLayoutActivo(origenId: string): Promise<Resultado<LayoutActivo>> {
   const supabase = createClient()
   const [campos, categorias] = await Promise.all([
-    supabase.from('origenes_campos').select('*').eq('origen_id', origenId).eq('activo', true),
+    supabase
+      .from('origenes_campos')
+      .select(COLUMNAS_DE_CAMPO)
+      .eq('origen_id', origenId)
+      .eq('activo', true),
     supabase.from('categorias').select('*').eq('origen_id', origenId).eq('activa', true),
   ])
   if (campos.error) {

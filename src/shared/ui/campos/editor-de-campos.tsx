@@ -7,6 +7,7 @@ import { CabeceraDelEditor } from './cabecera-del-editor'
 import type { PropsDelCuerpo } from './cuerpo'
 import { CuerpoDelEditor } from './cuerpo-del-editor'
 import { CuerpoConArrastreDiferido } from './diferidos'
+import { DrawerDeGrupos } from './drawer-de-grupos'
 import { insigniasDeLosCampos, llavesDeLosCampos } from './insignias'
 import { PanelDeCampo } from './panel-de-campo'
 import type {
@@ -14,6 +15,7 @@ import type {
   ConfiguracionDeCampos,
   EdicionesDeCampos,
   FijosDelEditor,
+  GruposDelEditor,
 } from './tipos'
 import { useAccionesDelEditor } from './use-acciones-del-editor'
 import { useOrdenOptimista } from './use-orden-optimista'
@@ -25,19 +27,22 @@ type Props<Campo extends CampoBase, Cambios extends object, Nuevo> = {
   puedeGestionar: boolean
   configuracion: ConfiguracionDeCampos<Campo, Cambios, Nuevo>
   ediciones: EdicionesDeCampos<Cambios, Nuevo>
+  // El catálogo de grupos de campos del layout.
+  grupos: GruposDelEditor
   // En un origen, las casillas de dato clave y los datos comunes; en los leads, nada.
   casillas?: CasillasDelEditor | null
   fijos?: FijosDelEditor | null
 }
 
-// La pantalla «Campos» de un origen y de los leads: buscar, «Nuevo campo», las casillas de dato clave (si las hay), los grupos con sus
-// filas (tocar abre el panel `?campo=`; el «⋯» tiene el resto) y los desactivados, a la vista. El orden se cambia arrastrando el asa
-// (diferido) o con «Subir» y «Bajar» del «⋯»; con una búsqueda escrita no se arrastra.
+// La pantalla «Campos» de un origen y de los leads: buscar, «Grupos» (su drawer), «Nuevo campo», las casillas de dato clave (si las
+// hay), los grupos con sus filas (tocar abre el panel `?campo=`; el «⋯» tiene el resto) y los desactivados, a la vista. El orden se cambia
+// arrastrando el asa (diferido) o con «Subir» y «Bajar» del «⋯»; con una búsqueda escrita no se arrastra.
 export function EditorDeCampos<Campo extends CampoBase, Cambios extends object, Nuevo>(
   props: Props<Campo, Cambios, Nuevo>,
 ) {
   const { campos, puedeGestionar, configuracion, ediciones, casillas = null, fijos = null } = props
   const { textos } = configuracion
+  const sinPermiso = puedeGestionar ? null : textos.motivoSinPermiso
   const url = useParametrosDelEditor()
   const tituloId = useId()
   const orden = useOrdenOptimista(campos, ediciones.mover)
@@ -94,8 +99,11 @@ export function EditorDeCampos<Campo extends CampoBase, Cambios extends object, 
         busqueda={url.busqueda}
         alBuscar={url.buscar}
         alCrear={url.crear}
+        extra={
+          <DrawerDeGrupos grupos={props.grupos} campos={campos} motivoSinPermiso={sinPermiso} />
+        }
       />
-      {puedeGestionar ? null : <Aviso>{textos.motivoSinPermiso}</Aviso>}
+      {sinPermiso === null ? null : <Aviso>{sinPermiso}</Aviso>}
       {puedeGestionar ? <CuerpoConArrastreDiferido {...cuerpo} /> : <CuerpoDelEditor {...cuerpo} />}
       <PanelDeCampo
         campo={url.abiertoEntre(campos)}
@@ -104,6 +112,7 @@ export function EditorDeCampos<Campo extends CampoBase, Cambios extends object, 
         puedeGestionar={puedeGestionar}
         configuracion={configuracion}
         ediciones={ediciones}
+        grupos={props.grupos}
         alCerrar={url.cerrar}
       />
     </section>

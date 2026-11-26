@@ -6,7 +6,7 @@ import {
   TIPOS_DE_VEHICULO,
   claveDeCampo as claveDeCampoGenerica,
   type CampoBase,
-  type GrupoDeCampos as GrupoGenerico,
+  type CamposDelGrupo as CamposDelGrupoGenerico,
   type TipoDeVehiculo,
 } from '@/shared/lib/campos'
 import { ESTILO_DE_CLAVE } from './nombre'
@@ -17,7 +17,6 @@ export {
   ETIQUETA_DE_TIPO_DE_CAMPO,
   agruparCampos,
   destinoDeMovimiento,
-  nombresDeGrupo,
   tieneOpciones,
   type OpcionDeCampo,
   type Sentido,
@@ -81,7 +80,8 @@ const esquemaCampos = z.array(
     valor_defecto: esquemaValorDefectoDeFila,
     minimo: z.number().nullable().catch(null),
     maximo: z.number().nullable().catch(null),
-    grupo: z.string().nullable(),
+    // El grupo de campos, por embed (`COLUMNAS_DE_CAMPO`).
+    grupo: z.object({ id: z.guid(), nombre: z.string(), orden: z.number() }).nullable(),
     orden: z.number(),
     en_tarjeta: z.boolean(),
     filtrable: z.boolean(),
@@ -93,6 +93,11 @@ const esquemaCampos = z.array(
     actualizado_en: z.string(),
   }),
 )
+
+// Lo que se lee de `origenes_campos`: sus columnas y el nombre y el orden de su grupo de campos (por la FK compuesta
+// `origenes_campos_grupo_fkey`, en la misma lectura).
+export const COLUMNAS_DE_CAMPO =
+  'id, origen_id, clave, etiqueta, tipo, opciones, requerido, valor_defecto, minimo, maximo, orden, en_tarjeta, filtrable, publico_web, clave_apibara, principal, es_sistema, activo, actualizado_en, grupo:origenes_campos_grupos!origenes_campos_grupo_fkey(id, nombre, orden)'
 
 // En el orden del layout: `orden`, y a igualdad la clave (como la base).
 export function camposDesde(filas: unknown): CampoDeLayout[] {
@@ -109,7 +114,9 @@ export function camposDesde(filas: unknown): CampoDeLayout[] {
       valorDefecto: fila.valor_defecto,
       minimo: fila.minimo,
       maximo: fila.maximo,
-      grupo: fila.grupo,
+      grupoId: fila.grupo?.id ?? null,
+      grupo: fila.grupo?.nombre ?? null,
+      ordenDelGrupo: fila.grupo?.orden ?? null,
       orden: fila.orden,
       enTarjeta: fila.en_tarjeta,
       filtrable: fila.filtrable,
@@ -123,7 +130,7 @@ export function camposDesde(filas: unknown): CampoDeLayout[] {
     .sort((a, b) => a.orden - b.orden || a.clave.localeCompare(b.clave))
 }
 
-export type GrupoDeCampos = GrupoGenerico<CampoDeLayout>
+export type CamposDelGrupo = CamposDelGrupoGenerico<CampoDeLayout>
 
 const esquemaCampoPrincipal = z
   .object({

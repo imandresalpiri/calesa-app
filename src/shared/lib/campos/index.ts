@@ -15,7 +15,8 @@ export {
   type ValorDefecto,
 } from './tipos'
 export { valorMostrado, type CampoMostrable, type ValorMostrado } from './mostrar'
-export { agruparCampos, nombresDeGrupo, type GrupoDeCampos } from './agrupar'
+export { agruparCampos, type CamposDelGrupo } from './agrupar'
+export type { GrupoDeCampos } from './grupos'
 export { aplicarMovimiento, destinoAlSoltar, destinoDeMovimiento, type Sentido } from './orden'
 export { camposQueCoinciden, coincide } from './buscar'
 export {
@@ -50,10 +51,12 @@ export {
   type Sustantivo,
 } from './impacto'
 export {
+  LARGO_DEL_NOMBRE_DE_GRUPO,
   conReglasDeCampo,
   esquemaClave,
   esquemaEtiqueta,
   esquemaGrupo,
+  esquemaNombreDeGrupo,
   esquemaLimite,
   esquemaOpciones,
   esquemaTextoOpcional,

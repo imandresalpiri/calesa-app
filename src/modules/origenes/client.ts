@@ -18,7 +18,7 @@ export { ETIQUETA_DE_TIPO_DE_ORIGEN } from './entities/origen'
 export { agruparCampos, tieneOpciones } from './entities/campo'
 export type {
   CampoDeLayout,
-  GrupoDeCampos,
+  CamposDelGrupo,
   OpcionDeCampo,
   TipoDeCampo,
   ValorDefecto,

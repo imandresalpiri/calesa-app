@@ -57,10 +57,10 @@ update public.perfiles pf set nombre = p.nombre, invitacion_aceptada_en = now()
   from volumen_personas p where pf.id = p.id;
 
 -- --- Un campo filtrable de los leads, para medir «filtrar por un atributo» -----------------------------
-insert into public.leads_campos (clave, etiqueta, tipo, opciones, filtrable, en_tabla, orden, grupo)
+insert into public.leads_campos (clave, etiqueta, tipo, opciones, filtrable, en_tabla, orden, grupo_id)
 values ('ciudad_vol', 'Ciudad', 'opcion',
         '[{"clave":"scz","etiqueta":"Santa Cruz"},{"clave":"lp","etiqueta":"La Paz"},{"clave":"cbba","etiqueta":"Cochabamba"},{"clave":"suc","etiqueta":"Sucre"}]'::jsonb,
-        true, true, 90, 'Datos')
+        true, true, 90, public._lead_campo_grupo_asegurar('Datos'))
 on conflict (clave) do nothing;
 
 -- --- Tipos de lead (9j) ---------------------------------------------------------------------------------
