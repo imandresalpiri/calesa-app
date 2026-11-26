@@ -94,6 +94,8 @@ export function nodosDelDiagrama({
         selectable: false,
         focusable: false,
         deletable: false,
+        // Sin arrastre (el celular, o mientras se guarda) React Flow deja la caja sin puntero y el toque cae en el lienzo: el botón de adentro abre la fase.
+        style: { pointerEvents: 'all' as const },
         // React Flow le pone `aria-roledescription="node"` a la caja sin rol: el botón de adentro ya dice qué es.
         domAttributes: { 'aria-roledescription': undefined },
         data: {
