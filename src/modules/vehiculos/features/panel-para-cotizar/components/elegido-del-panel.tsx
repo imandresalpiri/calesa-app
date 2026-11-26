@@ -6,6 +6,7 @@ import type { ParaElegirConLector } from '../../../entities/dato-para-elegir'
 import type { VehiculoElegido } from '../../../entities/panel-para-cotizar'
 import { Miniatura } from '../../listado/components/miniatura'
 import { DatoDelElegido } from './dato-del-elegido'
+import { VerLaFicha } from './ver-la-ficha'
 
 type Props = {
   elegido: VehiculoElegido
@@ -32,6 +33,7 @@ export function ElegidoDelPanel({ elegido, historial, alQuitar, paraElegir, alGu
           <span className="text-(length:--text-xs) text-(--color-ink-soft)">Elegido</span>
           <span className="truncate font-medium text-(--color-ink)">{elegido.titulo}</span>
         </span>
+        <VerLaFicha id={elegido.id} titulo={elegido.titulo} />
         {alQuitar ? (
           <Button type="button" variant="outline" className="h-11 md:h-9" onClick={alQuitar}>
             Quitar

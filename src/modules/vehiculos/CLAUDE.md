@@ -22,6 +22,7 @@ Inventario de vehículos por origen con atributos dinámicos: listado con filtro
   `?panel=vehiculo&lista=ultima|cierre&buscar=&cursor=`:
   - Búsqueda por nombre, VIN o lote (`?buscar=`, desde 3 letras o números, `entities/texto-del-panel.ts`) y las listas «Últ. cotización» y, en
     subasta, «Cierre subasta», leídas desde el navegador (`infra/panel-para-cotizar.client.ts`) sin ir al servidor. Elegir escribe en `claveDeLaUrl`.
+  - **Ver la ficha** (`ver-la-ficha.tsx`): cada tarjeta de la lista y el «Elegido» llevan `<VerLaFicha>`, un `<a target="_blank" rel="noopener">` a `/vehiculos/<id>` hermano del botón que elige (no elige ni cierra el panel); el panel sólo muestra vehículos a quien los ve, así que no pide otro permiso.
   - «+» y «Traer» cambian el cuerpo por el alta (`?alta=mano|subasta`, `alta-desde-el-panel.tsx`, mismo formulario y borrador); «Crear y elegir»
     usa `crearVehiculo`. Enter trae un enlace, y un VIN o lote sólo si su búsqueda volvió vacía (cada consulta a apibara gasta cuota); recargar con
     `?alta=subasta` no vuelve a consultar.

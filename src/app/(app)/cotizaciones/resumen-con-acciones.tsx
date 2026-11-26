@@ -9,7 +9,7 @@ import { useMenusDeLasFilas } from './use-menus-de-las-filas'
 
 type Props = Pick<
   ComponentProps<typeof ResumenFueraDelListado>,
-  'origenes' | 'delServidor' | 'quienes' | 'aprobarEn' | 'volverA'
+  'origenes' | 'delServidor' | 'quienes' | 'aprobarEn' | 'volverA' | 'vehiculosVisibles'
 > & {
   // El menú de la cotización abierta (versión, marcas y lo que ofrece), por id: lo calcula el servidor (`menus-de-la-pagina.ts`). Sin menú, sin «⋯».
   menus: Readonly<Record<string, MenuDeUnaFila>>

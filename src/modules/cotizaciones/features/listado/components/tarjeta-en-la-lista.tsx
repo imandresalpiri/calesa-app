@@ -11,6 +11,7 @@ import { Monto } from '@/shared/ui/monto'
 import { useRegional } from '@/shared/ui/regional'
 import { ETIQUETA_DE_APROBADA, ETIQUETA_DE_CLASE } from '../../../entities/historial-del-vehiculo'
 import { tituloDeLaCotizacion } from '../../../entities/titulo-de-la-cotizacion'
+import { EnlaceAlVehiculo } from './enlace-al-vehiculo'
 import { InsigniaPrivada } from '../../privada/components/insignia-privada'
 import {
   PROPORCION_EN_LA_LISTA,
@@ -40,6 +41,8 @@ type Props = {
   sinCliente?: boolean
   casilla?: ReactNode
   aprobar?: ReactNode
+  // La ficha del vehículo de la cotización (`/vehiculos/<id>`), si tiene y quien mira lo ve: el título es su enlace (el clic en él no abre el resumen). Nulo, texto.
+  rutaDelVehiculo?: string | null
 }
 
 // La insignia del origen: su nombre con el color de su fila (texto y color, nunca sólo color).
@@ -163,7 +166,13 @@ export function TarjetaEnLaLista(props: Props) {
           title={titulo}
           className="line-clamp-2 min-h-[2lh] text-(length:--text-base) font-medium [overflow-wrap:anywhere] text-(--color-ink)"
         >
-          {titulo}
+          {props.rutaDelVehiculo ? (
+            <EnlaceAlVehiculo ruta={props.rutaDelVehiculo} titulo={titulo}>
+              {titulo}
+            </EnlaceAlVehiculo>
+          ) : (
+            titulo
+          )}
         </h3>
         <NumeroConInsignias {...props} />
         <p className="flex min-h-7 min-w-0 items-baseline gap-2">
@@ -177,7 +186,10 @@ export function TarjetaEnLaLista(props: Props) {
           )}
         </p>
         {props.sinCliente === true ? null : <ClienteDeLaTarjeta {...props} />}
-        <p className="truncate text-(length:--text-xs) text-(--color-ink-soft)">
+        <p
+          data-autor-de-la-cotizacion=""
+          className="truncate text-(length:--text-xs) text-(--color-ink-soft)"
+        >
           {cotizacion.autor} · {fechaRelativa(cotizacion.creadoEn, { zona: zonaHoraria })}
         </p>
         <div className="flex min-h-6 items-center">

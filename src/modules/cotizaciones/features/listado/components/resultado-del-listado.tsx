@@ -12,6 +12,7 @@ import { UnaSolaVista } from '@/shared/ui/lista'
 import { Paginacion, UbicacionDeLaPagina } from '@/shared/ui/paginacion'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { useUltimo } from '@/shared/ui/use-ultimo'
+import type { VehiculosVisibles } from '../../../entities/listado/ruta-del-vehiculo'
 import type { PaginaAgrupada, PedidoDelGrupo } from '../../../entities/listado/grupos-del-listado'
 import { tituloDelModalDelGrupo } from '../../../entities/listado/grupos-del-listado'
 import { TOPE_DE_COINCIDENCIAS } from '../../../entities/listado/listado'
@@ -41,6 +42,7 @@ type Props = {
   compartirDe?: CompartirDe | undefined
   huecos?: HuecosDeLaLista | undefined
   rutaDeClientes: string | null
+  vehiculosVisibles?: VehiculosVisibles | undefined
   // Los filtros de la página, para el modal de un grupo (las del vehículo que coinciden).
   filtrosDelGrupo: Omit<PedidoDelGrupo, 'vehiculoId' | 'cursor'>
   acotada: boolean
@@ -128,6 +130,7 @@ export function ResultadoDelListado({
   compartirDe,
   huecos,
   rutaDeClientes,
+  vehiculosVisibles,
   filtrosDelGrupo,
   acotada,
 }: Props) {
@@ -160,6 +163,7 @@ export function ResultadoDelListado({
             alAbrir={alAbrir}
             abierta={abierta}
             menuDeFila={menuDeFila}
+            vehiculosVisibles={vehiculosVisibles}
             abrirGrupo={grupos.abrirGrupo}
           />
         )}
@@ -173,6 +177,7 @@ export function ResultadoDelListado({
             compartirDe={compartirDe}
             huecos={huecos}
             rutaDeClientes={rutaDeClientes}
+            vehiculosVisibles={vehiculosVisibles}
             abrirGrupo={grupos.abrirGrupo}
           />
         )}
