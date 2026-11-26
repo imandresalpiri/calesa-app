@@ -34,9 +34,9 @@ type Props = {
   accion?: ReactNode
 }
 
-// «En la rueda»: quién recibe los turnos, una tarjeta por persona en rejilla, y debajo las habilitadas que hoy no pueden recibirlos: por su rol (ninguno tiene
+// «En la rueda»: quién recibe los turnos, una tarjeta por persona en rejilla, y, en sus propias secciones debajo, las habilitadas que hoy no pueden recibirlos: por su rol (ninguno tiene
 // «Recibir turnos de la web») o por su cuenta. Las de la rueda van numeradas en el orden de la ruleta (`ordenDeLaRueda`, espejo de la base: el número no promete
-// el próximo turno) y, al final, las que hoy no reciben uno nuevo, con su motivo. Los dos grupos aparte son parte del bloque, con su propio título.
+// el próximo turno) y, al final, las que hoy no reciben uno nuevo, con su motivo. Los dos grupos aparte son secciones de la página, con su propio título, debajo de «En la rueda».
 // Cada tarjeta lleva su «⋯» («Editar…» y «Quitar de la rueda»); los dos modales se piden la primera vez que se abren y viven en la URL (`?panel=…&para=`).
 export function RuedaDeLaCola({ tablero, puedeVerRoles, accion }: Props) {
   const grupos = agruparTablero(tablero.filas)
@@ -83,30 +83,30 @@ export function RuedaDeLaCola({ tablero, puedeVerRoles, accion }: Props) {
             ) : null}
           </>
         )}
-        <GrupoAparte
-          id="sin-rol-titulo"
-          titulo={TEXTO_HABILITADA_SIN_ROL}
-          filas={grupos.porRol}
-          dibujar={tarjeta}
-        >
-          Están habilitadas, pero ningún rol suyo tiene «Recibir turnos de la web».{' '}
-          {puedeVerRoles ? (
-            <Link href={RUTAS.roles as Route} className="underline">
-              Se cambia en Roles.
-            </Link>
-          ) : (
-            'Se cambia en Roles.'
-          )}
-        </GrupoAparte>
-        <GrupoAparte
-          id="cuenta-titulo"
-          titulo={TEXTO_CUENTA_INACTIVA}
-          filas={grupos.porCuenta}
-          dibujar={tarjeta}
-        >
-          Su cuenta está bloqueada o dada de baja: no recibe turnos aunque siga habilitada.
-        </GrupoAparte>
       </SeccionDeLaCola>
+      <GrupoAparte
+        id="sin-rol-titulo"
+        titulo={TEXTO_HABILITADA_SIN_ROL}
+        filas={grupos.porRol}
+        dibujar={tarjeta}
+      >
+        Están habilitadas, pero ningún rol suyo tiene «Recibir turnos de la web».{' '}
+        {puedeVerRoles ? (
+          <Link href={RUTAS.roles as Route} className="underline">
+            Se cambia en Roles.
+          </Link>
+        ) : (
+          'Se cambia en Roles.'
+        )}
+      </GrupoAparte>
+      <GrupoAparte
+        id="cuenta-titulo"
+        titulo={TEXTO_CUENTA_INACTIVA}
+        filas={grupos.porCuenta}
+        dibujar={tarjeta}
+      >
+        Su cuenta está bloqueada o dada de baja: no recibe turnos aunque siga habilitada.
+      </GrupoAparte>
       <ModalesDeLaRueda paneles={paneles} puedeVerRoles={puedeVerRoles} />
     </>
   )
@@ -149,17 +149,17 @@ type PropsDeGrupo = {
   children: ReactNode
 }
 
-// Un grupo aparte sólo se dibuja si tiene a alguien.
+// Un grupo aparte, una sección de la página como «En la rueda» (no dentro de ella), que sólo se dibuja si tiene a alguien.
 function GrupoAparte({ id, titulo, filas, dibujar, children }: PropsDeGrupo) {
   if (filas.length === 0) {
     return null
   }
   return (
-    <section aria-labelledby={id} className="grid gap-3 border-t border-(--color-line) pt-4">
+    <section aria-labelledby={id} className="grid gap-3">
       <div className="grid gap-1">
-        <h3 id={id} className="text-(length:--text-base) font-medium text-(--color-ink)">
+        <h2 id={id} className="text-(length:--text-lg) font-semibold text-(--color-ink)">
           {titulo}
-        </h3>
+        </h2>
         <p className="text-(length:--text-sm) text-(--color-ink-soft)">{children}</p>
       </div>
       <ul className={REJILLA_DE_TARJETAS}>{filas.map((fila) => dibujar(fila))}</ul>

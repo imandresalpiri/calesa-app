@@ -13,7 +13,7 @@ type Props = {
 // el contenido va `sticky left-0` con el ancho del contenedor de la tabla (`@container/roles`, `100cqw`) y no se va con el desplazamiento.
 export function FilaAnchaDeLaMatriz({ columnas, children, className }: Props) {
   return (
-    <TableRow className={cn('hover:bg-transparent has-aria-expanded:bg-transparent', className)}>
+    <TableRow className={cn('hover:bg-transparent', className)}>
       <TableCell colSpan={columnas + 1} className="p-0 whitespace-normal">
         <div className="sticky left-0 w-[100cqw]">{children}</div>
       </TableCell>

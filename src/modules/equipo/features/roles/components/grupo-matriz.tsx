@@ -32,11 +32,11 @@ type Props = {
   alAplicar: (rol: RolConConcesiones, cambio: CambioDeConcesion) => void
   // Los niveles de cotizaciones (huecos); sin ellos las filas de nivel se agrupan igual, sin «⋯» ni pie.
   niveles?: HuecosDeNivelesEnLaMatriz
-  // «Quién crea y quién ve» plegable, debajo del título del bloque de cotizaciones.
-  resumen?: ReactNode
+  // El botón de «Quién crea y quién ve», debajo del título del bloque de cotizaciones.
+  quienCrea?: ReactNode
 }
 
-// Los permisos de un módulo: su título y un renglón por permiso, con una celda por rol. En «Cotizaciones» llevan, además, el resumen de «Quién crea y
+// Los permisos de un módulo: su título y un renglón por permiso, con una celda por rol. En «Cotizaciones» llevan, además, el botón de «Quién crea y
 // quién ve» y los niveles de acceso agrupados bajo su rótulo.
 export function GrupoMatriz({
   grupo,
@@ -60,8 +60,10 @@ export function GrupoMatriz({
           <span className="sticky left-3 inline-block">{grupo.titulo}</span>
         </TableHead>
       </TableRow>
-      {esDeLosNiveles && extra.resumen ? (
-        <FilaAnchaDeLaMatriz columnas={columnas.length}>{extra.resumen}</FilaAnchaDeLaMatriz>
+      {esDeLosNiveles && extra.quienCrea ? (
+        <FilaAnchaDeLaMatriz columnas={columnas.length}>
+          <div className="px-3 py-1">{extra.quienCrea}</div>
+        </FilaAnchaDeLaMatriz>
       ) : null}
       {partesDelGrupo(grupo, { conNiveles: extra.niveles !== undefined }).map((parte, indice) =>
         parte.tipo === 'permisos' ? (

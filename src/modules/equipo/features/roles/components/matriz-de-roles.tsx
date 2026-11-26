@@ -92,7 +92,6 @@ export function MatrizDeRoles({
             puedeGestionar={puedeGestionar}
             dominado={dominaElRol(aLaVista)}
             niveles={niveles}
-            versiones={versiones}
             alEliminar={(rolId) => void setParametros({ eliminar: rolId })}
             alAvisos={avisos.abrirDeUnRol}
             alAplicar={(rol, cambio) => void aplicar(rol, cambio)}
@@ -106,7 +105,10 @@ export function MatrizDeRoles({
       )}
       <VentanasDeLaMatriz
         roles={roles}
+        origenes={origenes}
+        misPermisos={misPermisos}
         puedeGestionar={puedeGestionar}
+        versiones={versiones}
         avisos={avisos}
         niveles={niveles}
       />

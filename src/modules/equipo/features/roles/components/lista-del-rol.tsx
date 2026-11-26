@@ -26,15 +26,15 @@ type Props = {
   alEliminar: () => void
   alAplicar: (cambio: CambioDeConcesion) => void
   niveles?: HuecosDeNivelesEnLaMatriz
-  // «Quién crea y quién ve» plegable, bajo el título del bloque de cotizaciones.
-  resumen?: ReactNode
+  // El botón de «Quién crea y quién ve», bajo el título del bloque de cotizaciones.
+  quienCrea?: ReactNode
 }
 
 // La matriz en el celular: un rol a la vez, y cada permiso es una fila con su nombre y su explicación y, debajo, el control del rol. Una
 // tabla de dos columnas con textos y un interruptor pide más que los 412 px del celular con el texto al 200 % y deja el interruptor
 // fuera de la vista (reflujo, WCAG 1.4.10; 5a-16): apilando, nada se desplaza de costado. Desde 768 px es la tabla (`MatrizDeRoles`).
 export function ListaDelRol(props: Props) {
-  const { grupos, columna, origenes, misPermisos, puedeGestionar, dominado, niveles, resumen } =
+  const { grupos, columna, origenes, misPermisos, puedeGestionar, dominado, niveles, quienCrea } =
     props
   const { rol } = columna
   return (
@@ -57,8 +57,8 @@ export function ListaDelRol(props: Props) {
           <h2 className="sticky top-[calc(var(--topbar)+var(--alto-barra-rol,0px))] z-10 bg-(--color-paper-dim) px-4 py-2 text-(length:--text-xs) font-semibold tracking-wide text-(--color-ink-soft)">
             {grupo.titulo}
           </h2>
-          {grupo.modulo === MODULO_DE_LOS_NIVELES && resumen ? (
-            <div className="px-4">{resumen}</div>
+          {grupo.modulo === MODULO_DE_LOS_NIVELES && quienCrea ? (
+            <div className="px-4 py-1">{quienCrea}</div>
           ) : null}
           {partesDelGrupo(grupo, { conNiveles: niveles !== undefined }).map((parte, indice) =>
             parte.tipo === 'permisos' ? (

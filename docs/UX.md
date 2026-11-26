@@ -668,6 +668,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     (Editar · Hacer dato clave o Quitar de los datos clave · Subir · Bajar · Desactivar · Eliminar…; lo imposible, apagado con su motivo).
     Tocar la fila abre el panel `?campo=<id>` (`&eliminar=1`: «Eliminar…» abre preguntando); las banderas se cambian ahí. Desactivar es
     reversible con «Deshacer» (si era dato clave, el «⋯» avisa «También sale de los datos clave.»). «Desactivados» va a la vista, debajo, y sin número.
+    En un origen de subasta, quien gestiona ve encima «apibara trae N datos que este origen no usa» con «Ver cuáles» (`?panel=datos-nuevos-de-apibara`: un modal
+    con la lista y un ejemplo de cada uno) y «Agregarlos».
     Con una búsqueda no hay asas; sin coincidencias, «Nada coincide con «…».» y «Limpiar». Conflicto `PT409` dentro del panel con «Recargar»,
     que conserva lo escrito. Sin `origenes.gestionar`: el aviso con su motivo, «Nuevo campo» apagado, sin asas, el «⋯» sólo con «Ver» y el
     panel sin «Guardar». El grupo de un campo y el drawer «Grupos» (`?panel=grupos`, junto a «Nuevo campo»), como en Leads › Campos, con el
@@ -715,12 +717,12 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   consentimiento (quién, cuándo, canal; ciudad, vehículo y foto por separado) y «Retirar». Las listas llevan su acción principal («Nueva …») sin repetir el
   título de la página.
 - **Cola web (config)** — `/configuracion/cola-web` (`web.cola.gestionar`): tarjetas en una rejilla que ocupa todo el ancho del área (sin tope de ancho; a 1920 px,
-  varias columnas). «Actualizar» arriba y, debajo, los avisos de la política y tres bloques en este orden, cada uno con su título (`h2`).
+  varias columnas). «Actualizar» arriba y, debajo, los avisos de la política y los bloques en este orden, cada uno con su título (`h2`).
   «Sin asignar» (una tarjeta por solicitud sin asesor: código y fuente, sin «⋯» ni clic: no tiene acciones; «Ver más» de a 20), «En la rueda» (una
   tarjeta por persona, en el orden de la ruleta: disponible o no, abiertas de su cupo, prioridad, «Contacta el N %» o «Sin turnos aún», vencidas y último turno;
   su «⋯» es lo único suelto: «Editar…» —`?panel=editar-en-la-rueda&para=`, cupo, prioridad y orden en un modal— y «Quitar de la rueda» —`?panel=quitar-de-la-rueda&para=`,
   confirma nombrando a la persona y el aviso ofrece «Deshacer»—; tocar la tarjeta abre «Editar…»; «Agregar a la rueda» —`?panel=agregar-a-la-rueda&q=`, busca en
-  el equipo y avisa si el rol no recibe turnos— junto a su título; y, dentro del bloque, «Habilitada, pero su rol no recibe turnos de la web» con «Se cambia en
+  el equipo y avisa si el rol no recibe turnos— junto a su título; y, debajo, sus propias secciones —no dentro de «En la rueda»—, «Habilitada, pero su rol no recibe turnos de la web» con «Se cambia en
   Roles.» y «Cuenta bloqueada o inactiva») y «Política de la cola» (una tarjeta de ajustes con cola activa, minutos para contactar, días con el mismo asesor,
   cupo por defecto e intentos a la vista; su «⋯» dice «Editar política…» y tocarla abre el modal `?panel=politica`, con la versión de la fila: el conflicto deja
   «Recargar» y conserva lo tipeado; cerrar con cambios pregunta). Cada bloque lleva su error de lectura si falla sin tapar los otros. Estados: esqueleto con las
@@ -1496,8 +1498,9 @@ qué no se elimina viene de la base**. `?bloque=cotizaciones` desplaza la págin
 
 #### Quién crea y quién ve
 
-Un resumen plegable arriba del bloque «Cotizaciones»: por rol, si crea cotizaciones y cuáles ve. Entra cerrado (botón con `aria-expanded`), salvo que la URL traiga
-`?origen=<id>`; su código se pide al abrir. Son tres permisos de la matriz de Roles (`cotizaciones.crear`, `cotizaciones.ver`, `cotizaciones.privadas.ver`) dichos en un cuadro;
+Un modal por URL (`?panel=quien-crea-y-quien-ve`, con `?origen=<id>` para el lugar) que abre el botón «Ver quién crea y quién ve», una fila bajo el título del bloque
+«Cotizaciones» de la matriz (en el celular, bajo el título del bloque, en la lista del rol): por rol, si crea cotizaciones y cuáles ve. El botón mide lo mismo siempre;
+el cuadro se pide la primera vez que se abre y al cerrar se va también el `?origen=`. Son tres permisos de la matriz de Roles (`cotizaciones.crear`, `cotizaciones.ver`, `cotizaciones.privadas.ver`) dichos en un cuadro;
 cada cambio guarda solo, por las mismas RPC que la matriz y con las mismas versiones de rol (un cambio en la matriz y otro en el cuadro no chocan entre sí).
 
 - **Lugar:** «Origen» (`?origen=<id>`) con «Todos los orígenes» y cada origen (los desactivados con «(inactivo)»), sólo con dos orígenes o más o si algún

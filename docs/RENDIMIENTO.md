@@ -697,7 +697,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   editor llega por `diferido()`), `/campos` 409,9 (tope 420; el editor de campos de `shared`: el arrastre y el formulario del campo van en su `diferido()` y la búsqueda filtra en el cliente; la lista del combo del grupo y el cuerpo del drawer «Grupos», en los suyos) y `/categorias` 410,8 (tope 420 por la regla del 5 %: el layout del origen trae el grupo de campos y su orden). Cada pestaña paga en frío las migas con el selector de origen, el drawer
   «Datos» y su botón, el tooltip del ⚠ (que sólo lleva la página del origen: `PestanasConDesborde` lo recibe por `conAviso`) y, en las tres de la fórmula, la barra (el selector con su popover, el estado, «Versiones», «Tablas» y el lugar de
   «Guardar» y «Publicar…»). La lista del selector (con las archivadas), los paneles de cada fórmula (nueva, renombrar, activar, archivar,
-  eliminar) y los de las tablas van por `diferido()`; la lista de las tablas se lee en el servidor sólo con `?panel=tablas`. `/configuracion/roles` 388,2 (la matriz con los niveles y el resumen plegable; tope 410).
+  eliminar) y los de las tablas van por `diferido()`; la lista de las tablas se lee en el servidor sólo con `?panel=tablas`. `/configuracion/roles` 388,2 (la matriz con los niveles y el botón de «Quién crea y quién ve»; tope 410).
   La cabecera del origen (migas,
   encabezado, «Datos», el «⋯» y las pestañas con su ⚠) lee `origenes_resumen()` una vez por pedido (`leerElOrigen`, con `cache()`, la comparten la cabecera y
   la pestaña) y la lista de orígenes del selector (`leerOrigenes()`, la misma que el menú); no lee apibara: nada cuenta ni crece con las cotizaciones.
