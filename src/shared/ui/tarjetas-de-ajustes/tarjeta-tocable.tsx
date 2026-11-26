@@ -17,6 +17,7 @@ type Props = {
   estado?: ReactNode
   // Más acciones de la entidad, después de la principal en el «⋯».
   extra?: AccionDeMenu[]
+  densidad?: 'compacta'
   children: ReactNode
 }
 
@@ -30,6 +31,7 @@ export function TarjetaTocable({
   motivo,
   estado,
   extra = [],
+  densidad,
   children,
 }: Props) {
   const acciones: AccionDeMenu[] = [
@@ -49,6 +51,7 @@ export function TarjetaTocable({
     <TarjetaDeAjustes
       titulo={titulo}
       estado={estado}
+      densidad={densidad}
       toque={motivo === null ? <ToqueDeLaTarjeta etiqueta={accion} abrir={abrir} /> : undefined}
       acciones={<MasAcciones nombre={titulo} acciones={acciones} />}
     >

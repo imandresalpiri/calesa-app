@@ -74,9 +74,8 @@ export function DrawersDeLaHoja({
       {montarItem && hueco ? (
         <PanelDelItemEnLaHojaDiferido
           abierto={idAbierto !== null}
-          alCerrar={hueco.item.cerrar}
+          hueco={hueco}
           fila={filaAbierta}
-          secciones={hueco.item.secciones}
           idAbierto={idAbierto}
           contexto={contexto}
           cerrado={cerrado}

@@ -1,6 +1,7 @@
 'use client'
 
 import { diferido } from '@/shared/ui/diferido'
+import { EsqueletoListado } from '@/shared/ui/esqueletos'
 import { Skeleton } from '@/shared/ui/skeleton'
 
 // Mientras llega el código de un panel: unas líneas en su lugar.
@@ -19,10 +20,19 @@ export const DrawerDeCompraDiferido = diferido(() =>
   import('./drawer-de-compra').then((modulo) => modulo.DrawerDeCompra),
 )
 
-// El bloque «Compras» del panel del ítem: se pide al abrir el panel (sólo con `repuestos.costos.ver`). Si no llega, lo dice en su lugar.
-export const ComprasDelItemDiferido = diferido(
-  () => import('./bloque-de-compras-del-item').then((modulo) => modulo.BloqueDeComprasDelItem),
+// Lo del panel del ítem que viene de las compras (sólo con `repuestos.costos.ver`): la lectura que comparten, la tarjeta «Compras» y el proveedor de la columna izquierda. Se piden al abrir el
+// panel, no viajan con la hoja ni con la Cadena.
+export const ComprasDelItemProveedorDiferido = diferido(
+  () => import('./compras-del-item-proveedor').then((modulo) => modulo.ComprasDelItemProveedor),
+  { aviso: 'aqui', esqueleto: <EsqueletoListado filas={4} columnas={2} /> },
+)
+export const TarjetaDeComprasDelItemDiferida = diferido(
+  () => import('./tarjeta-de-compras-del-item').then((modulo) => modulo.TarjetaDeComprasDelItem),
   { aviso: 'aqui', esqueleto: <EsqueletoDelPanel /> },
+)
+export const ProveedorDelItemDiferido = diferido(
+  () => import('./proveedor-del-item').then((modulo) => modulo.ProveedorDelItem),
+  { aviso: 'aqui', esqueleto: <Skeleton className="h-5 w-2/3" /> },
 )
 
 // El panel «Compras» bajo los pasos de `/repuestos/[id]`: el margen y la lista se piden al elegirlo, no viajan con la hoja.

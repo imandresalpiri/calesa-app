@@ -14,6 +14,8 @@ type Props = {
   acciones?: ReactNode
   // Tocar la tarjeta (fuera del «⋯») abre su acción principal: un `<ToqueDeLaTarjeta>`, el botón con nombre que cubre la tarjeta y deja el «⋯» encima.
   toque?: ReactNode
+  // `compacta`: la tarjeta de un panel que se lee de un vistazo (el ítem de repuestos): menos aire, sin `mb-4` (la separa el `gap` de su rejilla) y con un alto mínimo parejo.
+  densidad?: 'compacta'
   children: ReactNode
 }
 
@@ -22,16 +24,24 @@ type Props = {
 // El título lleva `basis-32` (en rem): con el texto al 200 % no cabe junto a los botones y la cabecera se parte en dos líneas, en vez de aplastarlo.
 // `break-inside-avoid` y `mb-4` (no `gap`): las columnas CSS parten lo que se deja partir, y una tarjeta no se parte.
 // Con `toque`, el botón que cubre la tarjeta va primero en el DOM y las acciones (`relative`) quedan encima: el «⋯» recibe sus clics y la tarjeta, los demás.
-export function TarjetaDeAjustes({ titulo, estado, acciones, toque, children }: Props) {
+export function TarjetaDeAjustes({ titulo, estado, acciones, toque, densidad, children }: Props) {
   const id = useId()
   return (
     <section
       aria-labelledby={id}
       data-slot="tarjeta-de-ajustes"
-      className="relative mb-4 min-w-0 break-inside-avoid rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-4 has-[[data-slot=toque-de-la-tarjeta]:hover]:bg-(--color-surface-2)"
+      className={cn(
+        'relative min-w-0 break-inside-avoid rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) has-[[data-slot=toque-de-la-tarjeta]:hover]:bg-(--color-surface-2)',
+        densidad === 'compacta' ? 'p-3' : 'mb-4 p-4',
+      )}
     >
       {toque}
-      <header className="mb-3 flex flex-wrap items-start gap-2">
+      <header
+        className={cn(
+          'flex flex-wrap items-start gap-2',
+          densidad === 'compacta' ? 'mb-2' : 'mb-3',
+        )}
+      >
         <div className="flex min-w-0 grow basis-32 flex-wrap items-center gap-x-2 gap-y-1">
           <h2
             id={id}
@@ -45,7 +55,13 @@ export function TarjetaDeAjustes({ titulo, estado, acciones, toque, children }: 
           <div className="relative ms-auto flex items-center gap-1">{acciones}</div>
         ) : null}
       </header>
-      <div className={cn('grid grid-cols-[minmax(0,1fr)] gap-3', toque && CUERPO_CON_TOQUE)}>
+      <div
+        className={cn(
+          'grid grid-cols-[minmax(0,1fr)]',
+          densidad === 'compacta' ? 'gap-2' : 'gap-3',
+          toque && CUERPO_CON_TOQUE,
+        )}
+      >
         {children}
       </div>
     </section>

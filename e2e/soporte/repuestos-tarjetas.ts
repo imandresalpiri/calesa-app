@@ -22,9 +22,6 @@ export async function abrirItem(
   return drawer
 }
 
-/** La fila del ítem (la «Excel») dentro de su drawer. */
-export const filaDelItem = (drawer: Locator): Locator => drawer.locator('[data-fila-de-item]')
-
 /** Elige una línea del «⋯» de la tarjeta del ítem («Imágenes», «Stock», «Mover a…», «Eliminar»). */
 export async function accionDelItem(page: Page, nombre: string, accion: string) {
   await page.getByRole('button', { name: `Más acciones de ${nombre}`, exact: true }).click()

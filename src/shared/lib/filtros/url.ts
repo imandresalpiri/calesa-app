@@ -18,6 +18,10 @@ export const LARGO_MAXIMO_DE_TEXTO = 100
 // abra el listado: «nuevo», un registro).
 export const CLAVE_DE_CURSOR = 'cursor'
 export const CLAVE_DE_PANEL = 'panel'
+// Lo que se abre sobre el panel de un ítem sin soltar `?item=` (un `?panel=` lo cerraría): `?seccion=documentos|notas|historial` (el drawer de esa tarjeta) y `?editar=<grupo>` (el modal de un grupo de campos).
+// Las lee quien dibuja cada uno y las suelta quien cierra el panel del ítem.
+export const CLAVE_DE_SECCION_DEL_ITEM = 'seccion'
+export const CLAVE_DE_EDICION_DEL_ITEM = 'editar'
 // De a cuántos ítems se ve la página (`?por=10|25|50|100`): no es un filtro, y cambiarla vuelve a la primera página.
 export const CLAVE_DE_POR_PAGINA = 'por'
 export const PANEL_DE_FILTROS = 'filtros'

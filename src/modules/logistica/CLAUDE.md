@@ -70,14 +70,14 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   unidad (`src/app/(app)/repuestos/item-abierto.tsx`); `logistica` no importa `repuestos`. Un hueco declara su variante `repuesto?: { permisos, regla, componente? }`
   (sin `componente` no dibuja nada; el `componente` del hueco nunca recibe un ítem); sin variante no se dibuja para un ítem (Aduana, Gastos, Pagos, Margen).
   `huecosVisibles({ tipo: 'repuesto', origenId: null })` filtra por `repuestos.ver` global; el filtro de tipo va antes de descartar repetidos. El transporte de un
-  ítem lo dibuja el núcleo (`pantallas/unidad-item.ts`, `textoDelTransporteDelItem`; 8-13b).
-  **El panel de un ítem va con sus secciones a la vista** (`PanelDeLaUnidadALaVista`, por `pantallas/unidad-item.ts`; el de `/logistica/gastos?vehiculo=` monta
-  cada hueco al acercarse): «Qué falta» primero, los `bloques` que compone `src/app` (imágenes, stock y compras de `repuestos`) y el resto en `ORDEN_DEL_ITEM`
-  (`enElOrdenDelItem`). Cada sección es un `SeccionDelHuecoALaVista` (`h3` con `tabIndex={-1}`, `data-bloque-del-hueco`, montada con el panel) en su
-  `LimiteDelHueco`; el atajo de una falta la trae a la vista y enfoca su `h3`. `conCabecera={false}` omite `CabeceraDeLaUnidad` cuando el título ya dice qué ítem es (el drawer de un ítem de `/repuestos/[id]`; queda la línea de `aviso`). `destinoInicial` (`?destino=` de `repuestos`) llega a «Qué falta» por el contexto
+  ítem no lo dibuja nadie por ahora: el hueco «Transporte» no declara variante `repuesto` (8-13b).
+  **El panel de un ítem lo compone `repuestos`** (en dos columnas; `src/app/(app)/repuestos/item-abierto.tsx`) con piezas que da `pantallas/unidad-item.ts`: `CabeceraDeLaUnidad` (sólo fuera de la hoja: en la hoja el título del
+  drawer ya dice qué ítem es), `QueFaltaDelItem` («Qué falta» con `mover`, dentro de «Estado») y `TarjetaDelHuecoDelItem` (Documentos, Historial y Notas: una tarjeta de alto fijo con una línea de resumen, sin lectura, que abre
+  el hueco completo en un `<Drawer>` al costado con `?seccion=<clave>` —`CLAVE_DE_SECCION_DEL_ITEM`; un `?panel=` cerraría el panel del ítem—). Cada hueco va en su `LimiteDelHueco` y el atajo de una falta («Subir», «Revisar») abre la
+  tarjeta de su hueco (`logistica:abrir-hueco`). `destinoInicial` (`?destino=` de `repuestos`) llega a «Qué falta» por el contexto
   `ProveedorDelDestinoInicial` / `useDestinoInicialDelMover()` (`features/nucleo/destino-inicial.tsx`, nulo sin proveedor): `CuerpoDeQueFalta` lo abre con
   `conAbiertoPorDefecto` sólo si está entre los destinos leídos y fuera de «La ganamos». Tras un `PT409`, el aviso de un ítem sólo ofrece «Recargar»
-  (la página de la unidad es de un vehículo).
+  (la página de la unidad es de un vehículo). El drawer de `/logistica/gastos?vehiculo=` sigue con `PanelDeLaUnidad` (una sección por hueco, montada al acercarse).
 - **Hueco «Repuestos»:** en `ORDEN_DE_HUECOS` entre `transporte` y `aduana` (el orden va por lo que más se hace: que-falta, documentos, notas, historial, transporte, repuestos, aduana, gastos, pagos, margen); lo declara `repuestos` (`pantallas/flujo-esperas.ts`) y lo suma
   `src/app/(app)/logistica/huecos-de-la-unidad.tsx` (`repuestos.ver` y regla `esperas`; sin variante `repuesto`). `logistica` sólo conoce la clave.
 - **Área `mover`, «Qué falta» y mover** (`pantallas/mover-unidad.ts`, hueco `que-falta` abierto al inicio). `useParaMover` lee con la action `leerQueFalta`,
