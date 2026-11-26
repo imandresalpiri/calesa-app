@@ -1,55 +1,30 @@
-import type { AccionDeMenu } from '@/shared/ui/lista'
 import type { FilaDeCatalogo } from '@/shared/ui/lista-de-catalogo/tipos'
 import {
   usoDelPuerto,
   type NavieraDeCatalogo,
   type PuertoDeCatalogo,
 } from '../../../entities/transporte/catalogo'
-
-type Quehaceres<T> = {
-  alEditar: (id: string) => void
-  alActivar: (fila: T, activo: boolean) => void
-}
-
-// El «⋯» de un puerto o de una naviera: Editar · Activar o Desactivar. No hay «Eliminar»: borrar deja sin puerto o naviera a los transportes ya cargados y vacía la oferta de los flujos (D3).
-function accionesDe<T extends { id: string; activo: boolean }>(
-  fila: T,
-  { alEditar, alActivar }: Quehaceres<T>,
-): AccionDeMenu[] {
-  return [
-    {
-      tipo: 'accion',
-      clave: 'editar',
-      etiqueta: 'Editar',
-      despuesDeCerrar: true,
-      alElegir: () => {
-        alEditar(fila.id)
-      },
-    },
-    {
-      tipo: 'accion',
-      clave: fila.activo ? 'desactivar' : 'activar',
-      etiqueta: fila.activo ? 'Desactivar' : 'Activar',
-      alElegir: () => {
-        alActivar(fila, !fila.activo)
-      },
-    },
-  ]
-}
+import {
+  accionesDelCatalogo,
+  insigniasDelCatalogo,
+  type ContextoDeLasFilas,
+  type QuehaceresDelCatalogo,
+} from '../../nucleo/components/acciones-del-catalogo'
 
 // Los puertos como filas de la lista de catálogo, ya en su orden (`orden`, luego `nombre`). El orden se cambia en «Editar» (un número), no con botones: intercambiar dos serían dos escrituras sin transacción.
 export function filasDePuertos(
   puertos: readonly PuertoDeCatalogo[],
-  quehaceres: Quehaceres<PuertoDeCatalogo>,
+  quehaceres: QuehaceresDelCatalogo<PuertoDeCatalogo>,
+  contexto: ContextoDeLasFilas,
 ): FilaDeCatalogo[] {
   return puertos.map((puerto) => ({
     id: puerto.id,
     nombre: puerto.nombre,
     icono: null,
     activo: puerto.activo,
-    insignias: [],
+    insignias: insigniasDelCatalogo(puerto, contexto),
     uso: usoDelPuerto(puerto),
-    acciones: accionesDe(puerto, quehaceres),
+    acciones: accionesDelCatalogo(puerto, quehaceres, contexto.sinPermiso),
     puedeSubir: false,
     puedeBajar: false,
   }))
@@ -58,16 +33,17 @@ export function filasDePuertos(
 // Las navieras como filas, por nombre: no tienen orden propio. La columna de uso dice su estado con texto.
 export function filasDeNavieras(
   navieras: readonly NavieraDeCatalogo[],
-  quehaceres: Quehaceres<NavieraDeCatalogo>,
+  quehaceres: QuehaceresDelCatalogo<NavieraDeCatalogo>,
+  contexto: ContextoDeLasFilas,
 ): FilaDeCatalogo[] {
   return navieras.map((naviera) => ({
     id: naviera.id,
     nombre: naviera.nombre,
     icono: null,
     activo: naviera.activo,
-    insignias: [],
+    insignias: insigniasDelCatalogo(naviera, contexto),
     uso: naviera.activo ? 'Activa' : 'Inactiva',
-    acciones: accionesDe(naviera, quehaceres),
+    acciones: accionesDelCatalogo(naviera, quehaceres, contexto.sinPermiso),
     puedeSubir: false,
     puedeBajar: false,
   }))

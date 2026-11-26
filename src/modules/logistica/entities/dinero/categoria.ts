@@ -4,7 +4,7 @@ import { alcanceDelCatalogo, rotuloPorOrigen } from '../nucleo/alcance-del-catal
 import { textoDeUso } from '../nucleo/catalogos'
 
 // Una categoría de gasto (6.11-1): sale de la base (`categorias_gasto`), ningún texto fijo la nombra; propia de un origen o compartida con todos (`origen_id` nulo).
-// `proposito` es de la lista fija de la base (tributos, flete…). Se escribe sólo por RPC (`categoria_gasto_crear|guardar|eliminar`) con la versión de la fila.
+// `proposito` es de la lista fija de la base (tributos, flete…). Se escribe sólo por RPC (`categoria_gasto_crear|guardar`; no se eliminan desde la app: se desactivan) con la versión de la fila.
 const esquemaDeCategoria = z
   .object({
     id: z.guid(),
@@ -29,8 +29,16 @@ export type CategoriaDeGasto = {
   proposito: string | null
   activo: boolean
   orden: number
-  // La versión de la fila: la piden `categoria_gasto_guardar` y `categoria_gasto_eliminar`.
+  // La versión de la fila: la pide `categoria_gasto_guardar`.
   actualizadoEn: string
+}
+
+// Cuántas se leen por grupo en el drawer del origen (las propias y las compartidas): con más, `<AvisoDeTope>`.
+export const TOPE_DE_CATEGORIAS_DE_GASTO = 200
+
+/** Las categorías en su orden: `orden`, luego `nombre`. */
+export function ordenarCategorias(categorias: readonly CategoriaDeGasto[]): CategoriaDeGasto[] {
+  return [...categorias].sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre, 'es'))
 }
 
 /** Las filas de `categorias_gasto` (con `origen_id` y `actualizado_en`); nulo si alguna no tiene la forma esperada. */

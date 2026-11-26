@@ -158,12 +158,24 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   **Prorratear:** `pantallas/dinero-grupo.ts`, hueco del resumen de un grupo (`logistica.gastos.editar`; no en el de una declaración). `entities/dinero/reparto.ts`
   repite la aritmética de centavos de `gastos_prorratear` (los que sobran, a los primeros) sólo para la vista previa. El `lote` es el id del intento: se
   conserva si no se sabe qué pasó y se renueva al cambiar lo escrito o al rechazar la base.
-  **Categorías de gasto** (pestaña `/logistica/configuracion/categorias-de-gasto`, `logistica.catalogos.gestionar`; sin flechas de orden: el orden es el número del modal): la pestaña
-  lista y crea las compartidas con todos los orígenes (`origen_id` nulo) y escribe por RPC (`categoria_gasto_crear|guardar|eliminar`) como los catálogos de transporte (abajo);
-  una con gastos no se elimina (23503: el diálogo dice el texto de la base, ««X» tiene gastos: desactívala.») y desactivar una con gastos avisa cuántos la usan. `categoria.ts` fija los propósitos del `check` de la base.
-- **Área `transporte`.** **Catálogos:** `pantallas/transporte-catalogos.ts`, pestañas «Puertos» y «Navieras» de Logística › Configuración (`/logistica/configuracion/puertos` y `/navieras`; el ⚙ «Configurar» de la cabecera de Logística entra, con `logistica.catalogos.gestionar`; la página, su tira de pestañas y su permiso por pestaña son de `src/app/(app)/logistica/configuracion/`)
-  (`logistica.catalogos.gestionar`; cada catálogo trae su `clave` —el último tramo de su sub-ruta— y su frase). Las pestañas listan y crean los compartidos con todos los
-  orígenes (`origen_id` nulo). Se escriben sólo por RPC (`puerto_crear|guardar`, `naviera_crear|guardar`; `infra/transporte/catalogos.ts`): crear lleva el id del intento
+  **Categorías de gasto** (`pantallas/dinero-catalogos.ts`: `CATALOGOS_DE_DINERO`, el drawer `?panel=categorias-de-gasto` de la pestaña Fases de cada origen,
+  `<CategoriasDelOrigen>` sobre el núcleo de los catálogos, abajo; `logistica.catalogos.gestionar`; sin flechas de orden: el orden es el número del modal): escribe por
+  RPC (`categoria_gasto_crear|guardar`) como los catálogos de transporte. **No hay «Eliminar»**: se desactiva, y desactivar una con gastos avisa cuántos la usan
+  (`categoria_gasto_eliminar` sigue en la base sin pantalla: `docs/PENDIENTES.md`). `categoria.ts` fija los propósitos del `check` de la base.
+- **Núcleo de los catálogos de logística** (puertos, navieras, categorías de gasto). Se configuran en la pestaña Fases de cada origen, arriba del diagrama: cada uno
+  es un drawer (`?panel=<clave>`) que dibuja `src/app/(app)/configuracion/_flujo/catalogos-del-flujo.tsx` con la lista de `pantallas/<área>-catalogos.ts`
+  (`CatalogoDeLogistica` de `entities/nucleo/enlaces.ts`: `clave`, `titulo`, `permiso` y su componente diferido). `<CatalogoDelOrigen>`
+  (`features/nucleo/components/catalogo-del-origen.tsx`, `useCatalogoDelOrigen`, `useDrawerDelCatalogo`) pone dos grupos, «De <origen>» y «Compartidos», cada
+  uno leído al abrir el drawer con su vacío y su tope (200, `<AvisoDeTope>`); el compartido que tapa un propio lleva «Tapado por el de <origen>»
+  (`compartidosTapadosEnElOrigen`). Un solo «Nuevo …» pregunta «Para» (`<ParaDelCatalogoEnElModal>` sobre `CampoParaQuien` de `shared`: «Sólo de <origen>» por
+  defecto o «Compartido con todos los orígenes»; `?de=origen|compartido`, `CLAVE_DEL_PARA`, `paraDe`); editar un compartido dice `AVISO_DE_COMPARTIDO`. El «⋯»
+  (`accionesDelCatalogo`): Editar · Activar o Desactivar. Sin permiso en el origen, el drawer se ve en lectura con `MOTIVO_SIN_PERMISO_DE_CATALOGOS`. Los textos de
+  cada uno, `textosDelCatalogo` (`entities/nucleo/catalogo-del-origen.ts`).
+- **⚙ «Configurar la logística»** de la cabecera de Logística: lleva a `/configuracion/origenes/<origen>/fases` (`destinoDeConfigurar` de
+  `src/app/(app)/logistica/enlaces.ts`): el origen de la cadena si quien mira configura ahí el flujo o los catálogos; si no, el primero permitido, los activos
+  antes (`origenesParaConfigurar`). Sin ninguno no se dibuja.
+- **Área `transporte`.** **Catálogos:** `pantallas/transporte-catalogos.ts` (`CATALOGOS_DE_TRANSPORTE`): los drawers «Puertos» y «Navieras» de la pestaña Fases de
+  cada origen (`<PuertosDelOrigen>`, `<NavierasDelOrigen>`, sobre el núcleo de los catálogos, arriba; `logistica.catalogos.gestionar`). Se escriben sólo por RPC (`puerto_crear|guardar`, `naviera_crear|guardar`; `infra/transporte/catalogos.ts`): crear lleva el id del intento
   (nace al abrir el modal), guardar y activar o desactivar, la versión de la fila vigente de la lista (`useEnvioConVersion`: un `PT409` deja «Recargar», que relee la lista y
   conserva lo escrito; en la fila, el aviso y la lista releída). La action pide `puede(…, 'logistica.catalogos.gestionar', origen)` antes de escribir y la base lo vuelve a
   mirar (el origen del propio o todos los que usan el compartido); su rechazo se dice tal cual, junto al campo que nombra su `hint`. Desactivar uno en uso avisa cuántos

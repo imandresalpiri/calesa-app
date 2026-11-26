@@ -19,8 +19,8 @@ import {
 import {
   PREFIJO_DE_TIPO_DE_DOCUMENTO_E2E,
   abrirDocumentos,
-  abrirLosDeLaEmpresa,
   borrarTiposDeDocumentoDePrueba,
+  drawerDeTipos,
   modalDeTipo,
   nombreDelOrigen,
   nombresDelGrupo,
@@ -32,10 +32,10 @@ import {
   usarEnUnRequisito,
 } from './soporte/tipos-de-documento'
 
-// Los tipos de documento (5.09, `docs/UX.md` › «Flujos: tipos de documento (estados propios)»): en el panel del flujo de un origen la dueña crea un tipo del
-// flujo con vencimiento, lo edita, lo sube de orden, desactiva uno en uso (y lee por qué no se elimina) y elimina uno sin uso; quien sólo configura el flujo
-// ve en Logística › Configuración › Tipos de documento los compartidos deshabilitados, con el motivo, y cambia los de su flujo; un propio tapa al compartido
-// de su nombre y el panel lo marca. Un solo recorrido del camino feliz: la base ya tiene sus pruebas de cada regla.
+// Los tipos de documento (5.09, `docs/UX.md` › «Flujos: tipos de documento (estados propios)»): en el drawer «Tipos de documento» de la pestaña Fases de un
+// origen la dueña crea un tipo «Sólo de <origen>» con vencimiento, lo edita, lo sube de orden, desactiva uno en uso (y lee por qué no se elimina) y elimina
+// uno sin uso; quien sólo configura el flujo ve los compartidos deshabilitados, con el motivo, y cambia los de su flujo; un propio tapa al compartido de su
+// nombre y el drawer lo marca. Un solo recorrido del camino feliz: la base ya tiene sus pruebas de cada regla.
 test.describe.configure({ mode: 'serial' })
 
 let proyecto = ''
@@ -80,23 +80,24 @@ test('la dueña crea un tipo del flujo con vencimiento, lo edita y lo sube de or
   const renombrado = nombre('Seguro marítimo')
   const segundo = nombre('Factura')
   await entrar(page, duena, { fresco: true })
-  // Los compartidos de la semilla, en Logística › Configuración.
-  await abrirLosDeLaEmpresa(page)
-  await expect(page.getByRole('button', { name: 'Editar BL', exact: true })).toBeVisible()
-  // En el panel del flujo, los suyos («De <origen>») y debajo los compartidos, con su título.
+  // En el drawer, los suyos («De <origen>») y debajo los compartidos de la semilla, cada grupo con su título.
   await abrirDocumentos(page)
-  await expect(page.getByRole('heading', { name: 'Compartidos', level: 2 })).toBeVisible()
+  await expect(drawerDeTipos(page)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Compartidos', level: 3 })).toBeVisible()
   await expect(
-    seccionDelGrupo(page, 'empresa').getByRole('button', { name: 'Editar BL', exact: true }),
+    seccionDelGrupo(page, 'compartido').getByRole('button', { name: 'Editar BL', exact: true }),
   ).toBeVisible()
-  const flujo = seccionDelGrupo(page, 'flujo')
-  await expect(flujo).toContainText(`Sólo se piden en ${nombreDelOrigen(origenDeLaSubasta())}.`)
+  const flujo = seccionDelGrupo(page, 'origen')
 
   // Crear con vencimiento «renovar»: 365 días de vigencia y aviso a los 30.
-  await flujo.getByRole('button', { name: 'Nuevo tipo' }).click()
-  const nuevo = modalDeTipo(page, 'Nuevo tipo de documento de este flujo')
+  await drawerDeTipos(page).getByRole('button', { name: 'Nuevo tipo de documento' }).click()
+  const nuevo = modalDeTipo(page, 'Nuevo tipo de documento')
   await expect(nuevo).toBeVisible()
-  await expect(page).toHaveURL(/panel=nuevo-tipo&de=flujo/)
+  await expect(page).toHaveURL(/accion=nuevo-tipo&de=origen/)
+  // «Para» empieza en «Sólo de <origen>».
+  await expect(
+    nuevo.getByRole('radio', { name: `Sólo de ${nombreDelOrigen(origenDeLaSubasta())}` }),
+  ).toBeChecked()
   await nuevo.getByLabel('Nombre').fill(primero)
   await nuevo.getByLabel('Vencimiento').selectOption('renovar')
   await nuevo.getByLabel('Días de vigencia').fill('365')
@@ -118,7 +119,7 @@ test('la dueña crea un tipo del flujo con vencimiento, lo edita y lo sube de or
   await page.getByRole('button', { name: `Abrir ${primero}`, exact: true }).click()
   const edicion = modalDeTipo(page, 'Editar tipo de documento')
   await expect(edicion).toBeVisible()
-  await expect(page).toHaveURL(/panel=editar-tipo&tipo=/)
+  await expect(page).toHaveURL(/accion=editar-tipo&tipo=/)
   await expect(edicion.getByLabel('Días de vigencia')).toHaveValue('365')
   await edicion.getByLabel('Nombre').fill(renombrado)
   await edicion.getByRole('button', { name: 'Guardar' }).click()
@@ -129,7 +130,7 @@ test('la dueña crea un tipo del flujo con vencimiento, lo edita y lo sube de or
   // Subir de orden: uno sembrado queda debajo; «Subir» lo pone antes.
   sembrarTipoDelFlujo(segundo)
   await abrirDocumentos(page)
-  const antes = await nombresDelGrupo(page, 'flujo')
+  const antes = await nombresDelGrupo(page, 'origen')
   expect(antes.indexOf(renombrado)).toBeLessThan(antes.indexOf(segundo))
   await elegirDelMenuConTeclado(page, segundo, 'Subir')
   await expect(
@@ -137,7 +138,7 @@ test('la dueña crea un tipo del flujo con vencimiento, lo edita y lo sube de or
   ).toBeAttached()
   await expect
     .poll(async () => {
-      const despues = await nombresDelGrupo(page, 'flujo')
+      const despues = await nombresDelGrupo(page, 'origen')
       return despues.indexOf(segundo) < despues.indexOf(renombrado)
     })
     .toBe(true)
@@ -157,7 +158,7 @@ test('desactiva uno en uso (y lee por qué no se elimina) y elimina uno sin uso'
   usarEnUnRequisito(enUso)
   await entrar(page, duena, { fresco: true })
   await abrirDocumentos(page)
-  const flujo = seccionDelGrupo(page, 'flujo')
+  const flujo = seccionDelGrupo(page, 'origen')
   // Uno en uso: se ve cuánto, no se elimina (se dice por qué) y sí se desactiva.
   const filaEnUso = flujo
     .locator('tr, li')
@@ -173,7 +174,7 @@ test('desactiva uno en uso (y lee por qué no se elimina) y elimina uno sin uso'
   // Uno sin uso: «Eliminar» pide confirmar nombrándolo y lo borra.
   await masAccionesDe(page, sinUso).click()
   await page.getByRole('menuitem', { name: 'Eliminar', exact: true }).click()
-  await expect(page).toHaveURL(/panel=eliminar-tipo&tipo=/)
+  await expect(page).toHaveURL(/accion=eliminar-tipo&tipo=/)
   const confirmar = page.getByRole('dialog', {
     name: `Eliminar el tipo de documento «${sinUso}»`,
   })
@@ -188,25 +189,33 @@ test('quien sólo configura el flujo ve los tipos compartidos deshabilitados, co
   page,
 }) => {
   await entrar(page, configuradora, { fresco: true })
-  await abrirLosDeLaEmpresa(page)
-  const empresa = seccionDelGrupo(page, 'empresa')
-  const motivo =
-    'Los tipos compartidos los cambia quien configura la logística en cada origen que los usa.'
-  await expect(empresa.getByRole('button', { name: 'Nuevo tipo' })).toBeDisabled()
-  await expect(empresa.getByText(motivo)).toBeVisible()
+  await abrirDocumentos(page)
+  const compartidos = seccionDelGrupo(page, 'compartido')
+  const motivo = 'Pídele a quien administra los roles el permiso de configurar la logística.'
+  await expect(compartidos.getByText(motivo)).toBeVisible()
   expect(await lineaApagada(page, 'BL', 'Subir')).toBe(true)
   expect(await lineaApagada(page, 'BL', 'Editar')).toBe(true)
-  // Escribir la URL a mano no abre lo que no puede: no hay modal.
-  await abrirLosDeLaEmpresa(page, '?panel=nuevo-tipo&de=empresa')
-  await expect(page.getByRole('dialog', { name: /^Nuevo tipo de documento/ })).toBeHidden()
-  // Lo de su flujo sí lo puede cambiar.
-  await abrirDocumentos(page)
+  // Lo de su flujo sí lo puede cambiar: «Nuevo tipo de documento» abre con «Sólo de <origen>» y «Compartido» apagado con el motivo.
+  await drawerDeTipos(page).getByRole('button', { name: 'Nuevo tipo de documento' }).click()
+  const nuevo = modalDeTipo(page, 'Nuevo tipo de documento')
+  await expect(nuevo).toBeVisible()
   await expect(
-    seccionDelGrupo(page, 'flujo').getByRole('button', { name: 'Nuevo tipo' }),
-  ).toBeEnabled()
+    nuevo.getByRole('radio', { name: 'Compartido con todos los orígenes' }),
+  ).toBeDisabled()
+  await expect(nuevo.getByText(motivo)).toBeVisible()
+  // Escribir a mano `de=compartido` no lo deja crear compartido: abre en «Sólo de <origen>».
+  // (con el modal abierto el drawer queda inerte: se espera el modal, no el título del grupo)
+  await page.goto(
+    `/configuracion/origenes/${origenDeLaSubasta()}/fases?panel=tipos-de-documento&accion=nuevo-tipo&de=compartido`,
+  )
+  await expect(
+    modalDeTipo(page, 'Nuevo tipo de documento').getByRole('radio', {
+      name: `Sólo de ${nombreDelOrigen(origenDeLaSubasta())}`,
+    }),
+  ).toBeChecked()
 })
 
-test('un tipo propio tapa al compartido de su nombre: el panel lo marca en la misma línea', async ({
+test('un tipo propio tapa al compartido de su nombre: el drawer lo marca en la misma línea', async ({
   page,
 }) => {
   const compartido = nombre('Tapado')
@@ -217,7 +226,7 @@ test('un tipo propio tapa al compartido de su nombre: el panel lo marca en la mi
   sembrarTipoDelFlujo(compartido.toUpperCase())
   await entrar(page, duena, { fresco: true })
   await abrirDocumentos(page)
-  const compartidos = seccionDelGrupo(page, 'empresa')
+  const compartidos = seccionDelGrupo(page, 'compartido')
   // La celda del nombre: la insignia va ahí, en la misma línea que él (la celda no parte la línea).
   const celdaDelNombre = (cual: string) =>
     compartidos
@@ -226,8 +235,6 @@ test('un tipo propio tapa al compartido de su nombre: el panel lo marca en la mi
   const insignia = `Tapado por el de ${nombreDelOrigen(origenDeLaSubasta())}`
   await expect(celdaDelNombre(compartido).getByText(insignia, { exact: true })).toBeVisible()
   await expect(celdaDelNombre(otro).getByText(insignia, { exact: true })).toHaveCount(0)
-  // El propio no lleva insignia; en Logística, sin flujo, nadie tapa.
-  await expect(seccionDelGrupo(page, 'flujo').getByText(insignia)).toHaveCount(0)
-  await abrirLosDeLaEmpresa(page)
-  await expect(seccionDelGrupo(page, 'empresa').getByText(insignia)).toHaveCount(0)
+  // El propio no lleva insignia.
+  await expect(seccionDelGrupo(page, 'origen').getByText(insignia)).toHaveCount(0)
 })

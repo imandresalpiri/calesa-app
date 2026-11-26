@@ -19,6 +19,8 @@ import { guardarCategoria } from '../actions/guardar-categoria'
 type Args = {
   // Nulo = «Nueva categoría». Es la fila vigente de la lista: tras «Recargar» llega con la versión nueva.
   original: CategoriaDeGasto | null
+  // De qué origen es lo que se crea (lo que dice «Para»); nulo: compartido con todos.
+  origenDelNuevo: string | null
   abierto: boolean
   alCerrar: () => void
   // Relee la lista: al guardar y, tras un conflicto, para traer la versión de ahora.
@@ -27,10 +29,16 @@ type Args = {
 
 const MENSAJE_DE_VALIDACION = 'Revisa los datos de la categoría.'
 
-// El formulario de una categoría de gasto (6.11-4): el borrador y su envío con versión (`useEnvioConVersion`). Configuración crea compartidas (`origenId` nulo) con el id
+// El formulario de una categoría de gasto (6.11-4): el borrador y su envío con versión (`useEnvioConVersion`). Crea lo propio del origen o lo compartido (`origenDelNuevo` nulo), según «Para», con el id
 // del intento, que nace al abrir (cada apertura remonta el modal). Al editar sólo se manda lo que cambió, con la versión de la fila vigente; sin diferencias, cerrar es
 // guardar. Un conflicto deja «Recargar», que relee la lista y conserva lo escrito. El rechazo de la base va junto a su campo (su `hint`) o arriba del formulario.
-export function useFormularioDeCategoria({ original, abierto, alCerrar, alGuardar }: Args) {
+export function useFormularioDeCategoria({
+  original,
+  origenDelNuevo,
+  abierto,
+  alCerrar,
+  alGuardar,
+}: Args) {
   const [intento] = useState(() => crypto.randomUUID())
   const inicial = original ? borradorDeCategoria(original) : BORRADOR_NUEVO_DE_CATEGORIA
   const [valores, setValores] = useState<BorradorDeCategoria>(inicial)
@@ -50,7 +58,7 @@ export function useFormularioDeCategoria({ original, abierto, alCerrar, alGuarda
       }
       if (!original) {
         const creada = await enviarAccion(
-          crearCategoria({ id: intento, origenId: null, datos: validado.datos }),
+          crearCategoria({ id: intento, origenId: origenDelNuevo, datos: validado.datos }),
           MENSAJE_DE_VALIDACION,
         )
         return creada.ok ? { ok: true, data: { uso: null } } : creada

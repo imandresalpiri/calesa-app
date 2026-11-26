@@ -30,8 +30,13 @@ Toda la configuración se escribe por RPC con la versión del flujo. Abiertos (`
   de `entradaFija()`, que nunca cae en otra, o «sin flujo» si quien mira no lo configura), la barra del flujo,
   las fases como **diagrama** (`components/diagrama/`, `diferido()`) o lista (`?vista=diagrama|lista`, `useVistaDelFlujo`, `shallow` + `replace`; sin
   `vista`, el diagrama desde 768 px y la lista debajo; los dos en todo ancho) y el **panel del flujo** (`panel-del-flujo.tsx`, `<Drawer alCostado>` desde 1024 px): una fase (`?fase=`, `ContenidoDeLaFase`: avisos de «Revisar» y tres
-  pestañas del hueco `pestanas`; el «⋯» de `bloques.acciones` va en el encabezado del `<Drawer acciones>`) o una sección (`?seccion=reglas|documentos`, lo que dibuja el servidor por `secciones`); gana `?seccion=`
+  pestañas del hueco `pestanas`; el «⋯» de `bloques.acciones` va en el encabezado del `<Drawer acciones>`) o una sección (`?seccion=reglas`, lo que dibuja el servidor por `secciones`); gana `?seccion=`
   (`entities/panel-del-flujo.ts`). Abrir una fase o sección limpia `CLAVES_DEL_PANEL_DE_FASE`.
+- **Catálogos de logística**, arriba del diagrama: el grupo «Catálogos» abre un `<Drawer ancho="amplio">` por `?panel=puertos|navieras|categorias-de-gasto|tipos-de-documento`
+  (repuestos, sólo Tipos). Lo dibuja `src/app/(app)/configuracion/_flujo/catalogos-del-flujo.tsx` con lo del núcleo que da `pantallas/catalogos-del-flujo.ts`
+  (`queHacerConElPanel`: un catálogo que la pantalla no tiene se limpia de la URL, otro `panel` se ignora; `CLAVES_DEL_DRAWER_DE_CATALOGO`,
+  `consultaParaAbrirUnCatalogo`, `ACCION_NUEVO_TIPO`, `CLAVE_DE_ACCION`). Los de logística los pone `logistica`; los tipos, el área `documentos`.
+  La pestaña Fases de un origen también la abre quien sólo tiene `logistica.catalogos.gestionar` ahí: el diagrama queda en lectura.
 - **Diagrama:** `entities/disposicion-del-diagrama.ts` (`disponerDiagrama`, el **acomodo automático**: una columna por fase en su orden, rectas a la
   siguiente, ramas arriba, vueltas atrás abajo, carriles sin cruces, puertos repartidos; medidas desde `rem`), `entities/posiciones-del-diagrama.ts` (la
   **posición de la fase**, en rem: la guardada gana; sin ninguna, el acomodo; una nueva sin posición, al lado de la última; `cambiosAlMover` guarda también
@@ -96,23 +101,27 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
 
 ## Documentos
 
-- `<PantallaDeDocumentos>` (`pantallas/documentos.ts`, `<EsqueletoDeTipos>` de dos bloques) dibuja los grupos de `tipos_documento` según `grupos`:
-  `'flujo'` con su `fijo`, en el panel del flujo (`?seccion=documentos`): «De <origen>» («Del flujo de repuestos») y debajo «Compartidos»; y `'empresa'`, en la
-  pestaña Logística › Configuración › Tipos de documento (`/logistica/configuracion/tipos-de-documento`): sólo «Compartidos», sin título de grupo (la región se
-  llama así por `aria-label`). La clave `empresa` (también `?de=empresa`) es el grupo de los compartidos; su fila dice «Editar <nombre>». Los compartidos
-  (`flujo_id` nulo) los cambia `logistica.catalogos.gestionar`, que la base pide en cada origen que los usa; los propios, `flujos.configurar`
-  (`repuestos.configurar` en el de repuestos) o `logistica.catalogos.gestionar` del origen (la action lo pide sin origen; el origen lo decide la base, que
-  rechaza con su texto). Quien no puede cambiar un grupo lo ve con «Nuevo tipo», «Editar» y el orden apagados y el motivo.
+- `<PantallaDeDocumentos>` (`pantallas/documentos.ts`, `<EsqueletoDeTipos>` de dos bloques, servidor) es el contenido del drawer «Tipos de documento»
+  (`?panel=tipos-de-documento`), que `src/app` le pasa como `children` al drawer de los catálogos: con su `fijo`, los grupos `origen` («De <origen>»,
+  «Del flujo de repuestos») y debajo `compartido` («Compartidos»), cada uno con su vacío y su tope (`GRUPOS_DE_TIPOS`, `ClaveDeGrupo`). La fila de un propio
+  dice «Abrir <nombre>»; la de un compartido, «Editar <nombre>». Los compartidos (`flujo_id` nulo) los cambia `logistica.catalogos.gestionar`, que la base pide en cada origen que los usa;
+  los propios, `flujos.configurar` (`repuestos.configurar` en el de repuestos) o `logistica.catalogos.gestionar` del origen (`quienCambiaLosTipos`; la action
+  lo pide sin origen; el origen lo decide la base, que rechaza con su texto). Quien no puede cambiar un grupo lo ve con «Editar» y el orden apagados y el motivo.
+- **Un solo «Nuevo tipo de documento»** arriba del drawer: `<CrearTipoDeDocumento>` (`pantallas/documentos-nuevo.ts`, `CrearTipoDeDocumentoDiferido`) pregunta
+  «Para» con `CampoParaQuien` de `shared` («Sólo de <origen>» por defecto, o «Compartido con todos los orígenes»; la opción que no se puede, apagada con su
+  motivo) y, al editar un compartido, avisa que cambia para todos. Lo monta **una vez** el drawer de los catálogos: lo abren el drawer y el requisito de
+  documento («Crear tipo de documento», sin salir de la fase); el requisito elige el creado por suscripción (`useTipoCreado`, `useAlCrearTipo`).
 - **Tapar:** un propio activo con la misma clave que un compartido (`claveDeCatalogo`, espejo de `_catalogo_clave`) lo tapa en su flujo: el compartido no se
   ofrece para algo nuevo, pero nada se reescribe (requisitos y documentos siguen apuntando a él). `entities/propios-del-flujo.ts` (núcleo:
-  `compartidosTapados`, `quienTapa`) lo calcula; en el panel, el compartido tapado lleva la insignia «Tapado por el de <origen>» en la misma línea que el
+  `compartidosTapados`, `quienTapa`) lo calcula; en el drawer, el compartido tapado lleva la insignia «Tapado por el de <origen>» en la misma línea que el
   nombre (`VistaDeGrupo.tapados`).
 - `entities/documentos/` valida espejo de la base (probado contra PGlite); escriben `tipo_documento_crear|guardar|mover|eliminar`.
   `leerTiposDeDocumento` y `leerUsoDeTiposDeDocumento` salen por el `index.ts` del área.
-- **La lista se relee, no se siembra:** cada action comprueba `puede()` con el `flujoId` del grupo y revalida `RUTAS.origenes`, `RUTAS.configuracionDeRepuestos` y `RUTAS.configuracionDeLogistica` (con `'layout'`). El uso
+- **La lista se relee, no se siembra:** cada action comprueba `puede()` con el `flujoId` del grupo y revalida `RUTAS.origenes` y `RUTAS.configuracionDeRepuestos` (con `'layout'`). El uso
   (`tipos_documento_con_uso`, acotado a 50) sólo se pide a quien puede cambiar el grupo (a los demás, `42501`).
-- URL: `?panel=nuevo-tipo&de=empresa|flujo`, `?panel=editar-tipo&tipo=<id>`, `?panel=eliminar-tipo&tipo=<id>`. Lo que la URL pide y no se puede abrir se avisa
-  y se limpia. Con uso, «Eliminar» está apagado: se desactiva.
+- URL, dentro del drawer (`panel` ya es el drawer): `?accion=nuevo-tipo&de=origen|compartido` (sin `de`, `origen`; `compartido` sin permiso abre en «Sólo
+  de <origen>»), `?accion=editar-tipo&tipo=<id>`, `?accion=eliminar-tipo&tipo=<id>`. Lo que la URL pide y no se puede abrir se avisa y se limpia. Sólo un
+  tipo sin uso se elimina; con uso, «Eliminar» está apagado: se desactiva.
 
 ## Fases
 
@@ -192,7 +201,8 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
 - `entities/reglas/catalogo.ts`: las 10 claves con su texto, comparadas en un test con el check de la base y `_flujo_regla_admitida`.
 - **Apagar pregunta antes de escribir:** `cambiarRegla` llama `flujo_regla_impacto`; con uso responde `en_uso` y no escribe. «Deshacer» y las escrituras usan la
   **última versión conocida** (`useEscrituraDeReglas`), no la del toast. El borrador de la oferta lleva `key` por la firma de lo guardado.
-- Puertos y navieras sólo se **leen** (los gestiona `logistica`); sin navieras, la pantalla lo dice.
+- Puertos y navieras sólo se **leen** (los gestiona `logistica`, en su drawer arriba del diagrama); sin navieras, la oferta lo dice y nombra el botón
+  «Navieras» (en repuestos, «en las fases de un origen»).
 
 ## Tablas
 

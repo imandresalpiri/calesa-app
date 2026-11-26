@@ -124,4 +124,18 @@ describe('flujosParaCopiar', () => {
   it('pregunta las fases sólo de los de vehículos, menos el propio', () => {
     expect(candidatosParaCopiar(entradas, guid(101))).toEqual([guid(102)])
   })
+
+  it('un flujo que quien mira sólo ve en lectura no se pregunta ni se ofrece', () => {
+    const visibles = armarSelector(
+      [
+        { ...flujoDe(1, SUBASTA), soloLectura: false },
+        { ...flujoDe(2, OFICINA), soloLectura: true },
+      ],
+      [SUBASTA, OFICINA],
+    )
+    expect(candidatosParaCopiar(visibles, guid(999))).toEqual([guid(101)])
+    expect(flujosParaCopiar(visibles, guid(999), conFases).map((f) => f.flujoId)).toEqual([
+      guid(101),
+    ])
+  })
 })

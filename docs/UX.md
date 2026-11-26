@@ -487,7 +487,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   `?origen=`, `q`, `demoradas`, `por_aprobar`, `contenedor`, `booking`, `naviera`, `cursor`), `/logistica/bandeja/[grupo]` (un grupo entero: `demorados`, `trabados`, `por-aprobar`, `por-vencer`,
   `llegadas`, `salidas`, `sin-resolver`; `cursor`), `/logistica/vehiculo/[id]` (la página de la unidad, a la que lleva todo vehículo y la notificación de demora; `?hueco=documentos` abre esa
   pestaña o ese bloque; **meta:** en escritorio, a 1440×900 y a 1280×800, la unidad entra sin desplazar la página, y mover, subir y anotar se hacen sin salir de ella), `/embarques`, `/aduana`, `/gastos` (`?ver=gastos|pagos`). La página de la unidad tiene el hueco «Repuestos» (con `repuestos.ver`): «Espera N repuestos», cada ítem con su proyecto,
-  «Para pasar a «X» espera que llegue a «Y».» y el enlace a su panel; sin espera, «Este vehículo no espera ningún repuesto.». Ver «Logística: estados propios». **Configurar:** el ⚙ «Configurar» lleva a «Logística (config)».
+  «Para pasar a «X» espera que llegue a «Y».» y el enlace a su panel; sin espera, «Este vehículo no espera ningún repuesto.». Ver «Logística: estados propios». **Configurar:** el ⚙ «Configurar» (nombre accesible «Configurar la logística»; a la derecha de la barra, en toda página de Logística) lleva a la pestaña Fases del origen de la cadena (`?origen=`) o, si la persona no lo configura, del primero que sí (activos primero), donde están su flujo y sus catálogos («Catálogos de logística (drawer)»). Lo ve quien tiene `flujos.configurar` o `logistica.catalogos.gestionar` en algún origen; sin ninguno, no se dibuja.
 - **Repuestos** — `/repuestos` (`repuestos.ver`): proyectos por cursor `numero` (`?q=` de 3 letras o un número,
   `?estado=abiertos|cerrados|todos`, `?por=`, `?cursor=`) con número, vehículo o «Externo», cliente, estado derivado, ítems («200+») y
   última actividad; «Nuevo proyecto» (`repuestos.editar`, `N`, `?panel=nuevo-proyecto`, `&vehiculo=<id>` lo abre vinculado, `&lead=<id>` con el
@@ -605,18 +605,6 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   las monedas activas con «Gestionar monedas…» y «Al compartir» con «Editar la leyenda…» en su «⋯»; modales `?panel=moneda-base|monedas|leyenda`, paneles `?tc=`, `?moneda=`, crear en `?panel=`/`?par=`), «Integraciones» (`/integraciones`) y «Comprobantes»
   (`/comprobantes`, con `empresa.ajustes.gestionar`: la tarjeta con la serie vigente y el próximo comprobante, y «Cambiar la serie…» en su «⋯», que abre su modal con versión; sin el
   permiso, apagada con «Pide el permiso «Ajustes de la empresa».» y su URL abre Datos).
-- **Logística (config)** — `/logistica/configuracion` (cualquiera de los permisos de sus pestañas): una página dentro de Logística con la tira de pestañas **Puertos ·
-  Navieras · Categorías de gasto · Tipos de documento** (`PestanasConDesborde`, una sub-ruta por pestaña: `/puertos`, `/navieras`, `/categorias-de-gasto`,
-  `/tipos-de-documento`) y el `h1` «Configuración de logística». La raíz abre (308, por persona) la primera pestaña que la persona puede abrir. Cada pestaña es el
-  editor de su catálogo a todo el ancho: «Nuevo …» arriba a la derecha y la lista; la fila abre «Editar …» con un toque o con Enter (para el lector de pantalla,
-  «Editar <nombre>») y su «⋯» (Editar primero) trae el resto, sin botón «Editar» ni flechas de orden a la vista; el orden de puertos y categorías es un número del
-  modal. Puertos (nombre, país, código, orden y activo), Navieras (nombre y activa; sin «Eliminar»: se desactivan) y Categorías de gasto (nombre, propósito de la
-  lista fija de la base, orden y activa; una con gastos no se elimina) con `logistica.catalogos.gestionar` y sólo si algún área llena el catálogo. Tipos de
-  documento (los compartidos) con ese permiso para cambiarlos y de sólo lectura, con el motivo, con `flujos.configurar` o `repuestos.configurar`; se ordenan con «Subir» y
-  «Bajar» de su «⋯» (por RPC). Las cuatro editan sólo lo compartido con todos los orígenes (los tipos propios de un flujo, en su panel). **Entrada:** el botón ⚙ «Configurar» (nombre accesible «Configurar la logística») en la fila de la cabecera de Logística, a la derecha de la barra, en toda
-  página de Logística y sólo con `logistica.catalogos.gestionar`; en la configuración lleva `aria-current="page"` y ningún enlace de la barra queda marcado. Una pestaña
-  sin permiso va apagada con su motivo y su URL dice «No tienes permiso para ver esto» (cada página comprueba la suya). El buscador de Configuración las sigue encontrando
-  («puertos», «navieras», «gastos», «documentos», «logística»: «Logística › Puertos»…) y lleva aquí. Ver «Logística: estados propios».
 - **Repuestos (config)** — `/repuestos/configuracion` (`repuestos.configurar`; la raíz abre `/flujo` con un 308): la página de Repuestos con un `h1` «Configuración de repuestos» y una tira de pestañas,
   cada una una sub-ruta, a todo el ancho; en el celular la tira se desplaza con la abierta a la vista. Se entra con el ⚙ «Configurar» (nombre accesible «Configurar los repuestos»; 44 px y sólo el
   ícono en el celular, con su texto desde 768 px) de la fila de filtros de `/repuestos`, junto a «Vista y opciones» y «Nuevo proyecto», en las tres vistas y sólo con `repuestos.configurar`. **Flujo**
@@ -649,11 +637,12 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   **Fases · Planilla · Hoja · Tarjeta · Campos · Categorías** (en el celular la barra se desplaza dentro de su ancho y deja a la vista la abierta), cada
   una su sub-ruta; la que no se abre va apagada con su motivo. La que tiene algo pendiente para cotizar (fases, una fórmula activa, la tarjeta
   publicada, los campos) lleva ⚠ con su frase en un tooltip (y para el lector de pantalla, en el nombre de la pestaña).
-  - **Fases** (`/fases`, `flujos.configurar` en el origen; apagada con «Lo configura quien tiene el permiso «Configurar el flujo».»): el editor del
-    flujo de ese origen, sin selector. Las fases como **diagrama** (por defecto desde 768 px; `?vista=diagrama|lista`, «Ver como lista») o lista (por
-    defecto en el celular, con «Ver como diagrama»), con la **barra del flujo** encima («Reglas del flujo», «Tipos de documento», la vista y, en la lista,
-    «Nueva fase»). Tocar una fase abre el **panel del flujo** al costado (`?fase=<id>`); las reglas y los tipos de documento se abren en el mismo panel
-    (`?seccion=reglas|documentos`). En el diagrama las fases se mueven a donde se las deja, se crean con doble clic o desde su barra flotante y se vinculan
+  - **Fases** (`/fases`, `flujos.configurar` o `logistica.catalogos.gestionar` en el origen; apagada con «Lo configura quien tiene el permiso
+    «Configurar el flujo» o «Catálogos de logística».»): el editor del flujo de ese origen, sin selector, y arriba del diagrama los catálogos de su
+    logística (Puertos · Navieras · Categorías de gasto · Tipos de documento, cada uno en su drawer: «Catálogos de logística (drawer)»). Las fases como
+    **diagrama** (por defecto desde 768 px; `?vista=diagrama|lista`, «Ver como lista») o lista (por defecto en el celular, con «Ver como diagrama»), con la
+    **barra del flujo** encima («Reglas del flujo», los catálogos, la vista y, en la lista, «Nueva fase»). Tocar una fase abre el **panel del flujo** al
+    costado (`?fase=<id>`); las reglas se abren en el mismo panel (`?seccion=reglas`). Con sólo los catálogos, el diagrama se ve en lectura. En el diagrama las fases se mueven a donde se las deja, se crean con doble clic o desde su barra flotante y se vinculan
     arrastrando su asa; se ordenan con «Mover antes/después» (y «Subir/Bajar» en la lista), se jubilan y reactivan; en el panel se editan y se agregan y
     quitan salidas y requisitos. Ver «Flujos: configuración (estados propios)» y siguientes.
   - **Planilla · Hoja · Tarjeta** (`/planilla`, `/hoja`, `/tarjeta`, `cotizaciones.configurar` en el origen; apagadas con «Lo configura quien tiene el
@@ -1106,9 +1095,11 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 ### Flujos: configuración (estados propios)
 
-- **Entrada:** la pestaña Fases de un origen con `flujos.configurar` en ese origen, y Repuestos › Configuración › Flujo con `repuestos.configurar`;
-  sin el permiso, la pestaña va apagada con su motivo y su URL dice «No puedes abrir esta pestaña». Los tipos de documento de la empresa, sin
-  diagrama ni panel, en Logística › Configuración › Tipos de documento.
+- **Entrada:** la pestaña Fases de un origen con `flujos.configurar` o `logistica.catalogos.gestionar` en ese origen, y Repuestos › Configuración ›
+  Flujo con `repuestos.configurar`; sin el permiso, la pestaña va apagada con su motivo y su URL dice «No puedes abrir esta pestaña».
+- **Lectura** (sólo los catálogos de logística en el origen): el diagrama y la lista se ven y se tocan (abrir una fase la muestra), sin «Nueva fase»,
+  sin mover, vincular ni ordenar, sin «Empezar el flujo» ni «Revisar»; la barra dice «Toca una fase para verla.» y «Las fases las cambia quien tiene el
+  permiso «Configurar el flujo».». Los catálogos de arriba sí se cambian.
 - **Sin selector:** cada página abre un flujo fijo, nunca el de otro origen. Vacíos: el flujo sin fases («El flujo de <origen> todavía no tiene
   fases.»); el flujo que desapareció.
 - **Empezar el flujo** (el vacío del flujo sin fases): «Cópialo de otro origen y ajústalo, o arma las fases una por una.» con «Empezar con las
@@ -1119,7 +1110,7 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
   «Listo». Un conflicto cierra el modal y avisa arriba con «Recargar»; otro rechazo queda en el modal. La URL con el flujo ya con fases o sin de
   dónde copiar no abre: se avisa y se limpia.
 - **Barra del flujo** (sobre las fases): «Fases» con «Toca una fase para editarla. El orden se cambia desde su «⋯».» (en la lista, «En el orden del
-  flujo: toca una fase para editarla.»), «Reglas del flujo» y «Tipos de documento» (abren el panel, según los permisos), «Ver como lista» / «Ver como
+  flujo: toca una fase para editarla.»), «Reglas del flujo» (abre el panel, según los permisos), el grupo «Catálogos» («Catálogos de logística (drawer)»), «Ver como lista» / «Ver como
   diagrama» (en todo ancho, con fases), «Nueva fase» sólo en la lista (en el diagrama va en su barra flotante; no sin fases: lo ofrece el vacío) y, si no
   se puede ordenar, el motivo en texto. Se parte en renglones; botones de 44 px en el celular.
 - **Diagrama** (`diferido()`, por defecto desde 768 px; ocupa el alto que queda de la pestaña, mínimo 24 rem, medido: no salta al llegar): cada
@@ -1149,7 +1140,7 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 - **Lista de fases** (patrón de `shared/ui/lista`; la del celular por defecto y la de «Ver como lista»): en el orden de la base, nombre con su color
   (texto y color, nunca sólo color), las marcas, la insignia de «Revisar» («1 aviso») y las salidas; la fila abre el panel. Vacía, su
   frase; tope 200 con aviso.
-- **Panel del flujo** (`?fase=<id>` o `?seccion=reglas|documentos`, `<Drawer>` por URL; sobrevive a recargar, «atrás» y Esc lo cierran):
+- **Panel del flujo** (`?fase=<id>` o `?seccion=reglas`, `<Drawer>` por URL; sobrevive a recargar, «atrás» y Esc lo cierran):
   desde 1024 px va al costado y no es modal (el diagrama sigue a la vista y tocar otra fase cambia el panel sin cerrarlo); más angosto, el
   drawer modal (en el celular, las pestañas a lo ancho con 44 px). De una fase: arriba el nombre (el título), su «⋯» a la derecha de la ✕ (Mover antes, Mover
   después y Jubilar o eliminar, cada una apagada con su motivo debajo; el foco queda en el «⋯» al mover) y los avisos de «Revisar»; debajo, **tres pestañas**
@@ -1180,28 +1171,53 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
   flujo…»; si falla, su línea con «Reintentar» (lo ya leído queda).
 - **No frena:** avisa y abre; nunca impide guardar (un flujo a medio armar siempre tiene avisos). No arregla solo.
 
+### Catálogos de logística (drawer)
+
+Orígenes › un origen › Fases: arriba del diagrama, el grupo «Catálogos» con cuatro botones `outline` (Puertos · Navieras · Categorías de gasto · Tipos de
+documento; 44 px en el celular, `h-8` desde 768 px; en el flujo de repuestos, sólo Tipos de documento). Cada uno abre su drawer (`?panel=puertos|navieras|
+categorias-de-gasto|tipos-de-documento`, suma al historial; «atrás» y Esc lo cierran y el foco vuelve al botón): un solo `<Drawer ancho="amplio">` siempre
+montado que cambia de contenido (a todo lo ancho en el celular). Lo ve quien abre la pestaña Fases; lo cambia quien tiene `logistica.catalogos.gestionar`
+en el origen (los tipos propios, también quien configura el flujo).
+
+- **Grupos:** «De <origen>» y «Compartidos», cada uno con su título, su vacío («Ninguno sólo de <origen>.», «Ninguno compartido.»; con los dos vacíos,
+  «Todavía no hay <catálogo> en <origen> ni compartidos.») y su tope con `<AvisoDeTope>`. Esqueleto de dos bloques; error con «Reintentar».
+- **Tapado:** el compartido que tapa un propio activo de su misma clave lleva «Tapado por el de <origen>» («Tapada por la de…») en la línea de su nombre.
+- **Nuevo:** un solo «Nuevo …» arriba («Nuevo puerto», «Nueva naviera», «Nueva categoría», «Nuevo tipo de documento»); el modal empieza por «Para»:
+  «Sólo de <origen>» (por defecto) o «Compartido con todos los orígenes» (`?de=origen|compartido`).
+- **Editar:** un toque en la fila (o Enter) abre «Editar …»; editar un compartido avisa arriba «Cambia para todos los orígenes que lo usan.».
+- **«⋯»:** Editar · Activar o Desactivar. Ningún catálogo se elimina (se desactiva), salvo un tipo de documento sin uso.
+- **Sin permiso en el origen:** el drawer abre igual, en lectura: «Nuevo …» y el «⋯» apagados con «Pídele a quien administra los roles el permiso de
+  configurar la logística.».
+- **URL:** un catálogo que no es de este flujo (`?panel=puertos` en el de repuestos) se limpia; otro `?panel=` (una fase nueva, fuera de regla) se ignora.
+  Estados de cada catálogo: «Logística: estados propios» (catálogos) y «Flujos: tipos de documento (estados propios)».
+
 ### Flujos: tipos de documento (estados propios)
 
-Orígenes › un origen › Fases › «Tipos de documento» de la barra del flujo, en su panel (`?seccion=documentos`), y Logística › Configuración › Tipos de documento
-(`/logistica/configuracion/tipos-de-documento`: los compartidos, en la página, a todo el ancho y sin título de grupo; la fila dice «Editar <nombre>»). Hermana de «Tipos de seguimiento» (patrón de `shared/ui/lista`, orden con
-teclado, «⋯», modal por URL), con **dos grupos**, **sólo lectura con motivo** y **una lista que se relee** (ninguna RPC la devuelve).
+Orígenes › un origen › Fases › «Tipos de documento» arriba del diagrama, en su drawer (`?panel=tipos-de-documento`; también en el flujo de repuestos), el
+cuarto de «Catálogos de logística (drawer)». Hermana de «Tipos de seguimiento» (patrón de `shared/ui/lista`, orden con teclado, «⋯», modal por URL), con
+**dos grupos**, **sólo lectura con motivo** y **una lista que se relee** (ninguna RPC la devuelve).
 
 - **Grupos:** en el panel, «De <origen>» («Del flujo de repuestos»; «Sólo se piden en <origen>.»: `flujos.configurar`, `repuestos.configurar`
   o `logistica.catalogos.gestionar` del origen) y debajo «Compartidos» («Se piden en cualquier flujo que los use y no los tape con uno propio.»:
-  `logistica.catalogos.gestionar` en cada origen que los usa), cada uno con su orden, tope («N de 100 tipos posibles.») y «Nuevo tipo».
+  `logistica.catalogos.gestionar` en cada origen que los usa), cada uno con su orden y su tope («N de 100 tipos posibles.»). Un solo «Nuevo tipo de
+  documento» arriba del drawer; la fila de un propio dice «Abrir <nombre>» y la de un compartido «Editar <nombre>».
 - **Tapado:** el compartido que el flujo tapa con un propio activo de su misma clave (mayúsculas, tildes y espacios de más no cuentan) lleva
   «Tapado por el de <origen>» («… el del flujo de repuestos») en la línea de su nombre, sin salto; se sigue editando y lo que ya lo pide no
   cambia. Un requisito nuevo no lo ofrece; el que ya lo pide lo nombra «X (tapado por el de <origen>)» y «Revisar» lo avisa (información).
 - **Filas:** nombre, insignias con texto («Renueva cada 365 días», «Pide fecha», «Portal», «Desactivado»), estado y uso acotado («más de
   50»; «—» a quien no puede cambiar el grupo). **Con uso, «Eliminar» está apagado**: se desactiva en lugar de eliminarse.
-- **Sin permiso sobre un grupo:** crear, editar y ordenar apagados con su motivo y un aviso de quién lo cambia («Los tipos compartidos los
-  cambia quien configura la logística en cada origen que los usa.», «No puedes configurar los tipos de documento de este flujo.»); una URL escrita a mano no
-  abre el modal: avisa y se limpia.
-- **Modal** (`?panel=nuevo-tipo&de=empresa|flujo`, `empresa` = los compartidos; `editar-tipo&tipo=<id>`): nombre, descripción, formatos (al menos uno), vencimiento («No
+- **Sin permiso sobre un grupo:** editar y ordenar apagados con su motivo; sin poder crear en ninguno, «Nuevo tipo de documento» apagado con «Pídele a
+  quien administra los roles el permiso de configurar la logística.». En el modal, la opción de «Para» que no puede elegir va apagada con su motivo
+  («No puedes configurar los tipos de documento de este flujo.» o el de los compartidos); una URL escrita a mano no abre lo que no puede: avisa y se
+  limpia (`de=compartido` sin el permiso abre en «Sólo de <origen>»).
+- **Modal** (`?accion=nuevo-tipo&de=origen|compartido`, sin `de` = `origen`; `?accion=editar-tipo&tipo=<id>`): al crear, «Para» («Sólo de <origen>» o
+  «Compartido con todos los orígenes»); al editar un compartido, el aviso «Cambia para todos los orígenes que lo usan.»; nombre, descripción, formatos (al menos uno), vencimiento («No
   vence», «Quien lo sube escribe la fecha», «Vence tantos días después de subido») con días de vigencia y de aviso (cambiar de modo vacía
   los que ya no aplican), «Se puede mostrar en el portal» (lo ya mostrado sigue) y, al editar, «Activo». Borrador en `sessionStorage` por
   grupo y tipo.
-- **Eliminar** (`?panel=eliminar-tipo&tipo=<id>`, `<Confirmar>`): sólo uno sin uso; si entre tanto llegó uso, la base lo desactiva y el
+- **Crear desde un requisito:** «Crear tipo de documento» junto al selector del requisito de documento (y en su vacío) abre el mismo modal sin salir de
+  la fase («Sólo de <origen>» por defecto); el creado queda elegido en el selector.
+- **Eliminar** (`?accion=eliminar-tipo&tipo=<id>`, `<Confirmar>`): sólo uno sin uso; si entre tanto llegó uso, la base lo desactiva y el
   aviso lo dice.
 - **Conflicto:** «Recargar» y lo escrito queda; uno que otra persona eliminó con el modal abierto lo dice. Un nombre repetido en el grupo
   (23505) o un origen que lo usa sin permiso (42501) dicen el texto de la base. Esqueleto de dos bloques.
@@ -1293,7 +1309,8 @@ el flujo; la base vuelve a decidir.
   compartidos que no tapa; el de repuestos, los compartidos), «Guardar oferta» y «Ofrecer todos»; sin marcar ninguno («Vacío: se ofrecen
   todos.»), se ofrece todo lo que usa el origen. Uno guardado y luego desactivado se ve «(inactivo)» para poder quitarlo. Tope 200 con aviso. Las
   marcas sin guardar sobreviven a cambiar otra regla.
-- **Vacíos:** sin navieras o puertos (se cargan en Logística), sin flujos configurables, flujo que ya no existe.
+- **Vacíos:** sin navieras o puertos («Todavía no hay navieras cargadas. Se cargan en «Navieras», arriba del diagrama.»; en el flujo de repuestos,
+  «…, en las fases de un origen.»), sin flujos configurables, flujo que ya no existe.
 - **Conflicto:** «Recargar» arriba (lo marcado queda mientras la oferta guardada no cambie). Una regla que dejó de poder cambiarse se dice
   con un toast y se relee. **Sin permiso:** todo apagado con su aviso.
 
@@ -1424,14 +1441,13 @@ de su hueco).
   de la declaración»: «Quitar» marca (con «Deshacer»), buscador (3, hasta 10) con «Agregar» y «Guardar vehículos» manda todo junto (hasta
   200); con canal queda todo apagado: la composición queda fija. «Asignar canal» es un `<Confirmar>` en `?panel=canal` con el selector
   adentro; pide al menos un vehículo. El canal no se quita.
-- **Logística (config): estados:** la entrada y las pestañas sin permiso, en «Logística (config)». Cada catálogo conserva su tope y su aviso.
+- **Catálogos de logística: estados:** el patrón y la entrada, en «Catálogos de logística (drawer)». Cada catálogo conserva su tope y su aviso.
   Nombre repetido (23505), junto al nombre: «Ya hay un puerto «X» compartido con todos los orígenes.» o «… en <origen>.»; uno
   desactivado lo dice tras el nombre («X» (desactivado)). Sin permiso en un origen que lo usa (42501), arriba: «No puedes cambiar «X»: lo usa <origen>, donde no puedes configurar la
   logística.»; uno propio, «No puedes configurar la logística de <origen>.». Versión vieja o ya no existe («Ese puerto ya no existe.»):
   «Recargar», que conserva lo escrito. Desactivar uno en uso: «Desactivaste «X»: lo usan N transportes u ofertas; siguen mostrándolo.»
-  («más de 50»). **Categorías de gasto:** esqueleto, vacío, error con «Reintentar»; el «⋯» lleva Editar,
-  Activar/Desactivar y Eliminar (`?panel=eliminar-categoria&categoria=<id>`; con gastos el diálogo dice que está en uso, propone
-  desactivarla y no se cierra); el orden es un número del modal; una de propósito «Tributos» no cambia de propósito (Aduana la lee).
+  («más de 50»). **Categorías de gasto:** esqueleto, vacío, error con «Reintentar»; el «⋯» lleva Editar y
+  Activar/Desactivar (no se eliminan); el orden es un número del modal; una de propósito «Tributos» no cambia de propósito (Aduana la lee).
   **Prorratear** (hueco del resumen de un grupo, `?panel=prorratear`): ofrece las categorías que usan todas las unidades (de varios orígenes,
   sólo las compartidas que no tapa ninguno); muestra cuánto le toca a cada unidad y la suma antes de confirmar;
   sin unidades no hay nada que repartir; más de 200 no se reparte; el equivalente en base lo calcula la base.

@@ -12,7 +12,7 @@ import {
 } from '@/modules/origenes'
 import { datosO } from '@/shared/lib/errores'
 import { puede, type Permisos } from '@/shared/lib/permisos'
-import { puedeAbrirElOrigen, puedeAbrirOrigenes } from '../../acceso'
+import { puedeAbrirLaPuestaEnMarcha, puedeAbrirOrigenes } from '../../acceso'
 import { leerElOrigen, type Sesion } from '../abrir-origen'
 
 export type PuestaEnMarchaAbierta =
@@ -43,7 +43,7 @@ export function permisosDeLaPuestaEnMarcha(
 // RLS no la deja leer sin él).
 export const abrirLaPuestaEnMarcha = cache(async (id: string): Promise<PuestaEnMarchaAbierta> => {
   const sesion = await requerirSesion()
-  if (!puedeAbrirElOrigen(sesion.permisos, id)) {
+  if (!puedeAbrirLaPuestaEnMarcha(sesion.permisos, id)) {
     if (!z.guid().safeParse(id).success) {
       notFound()
     }

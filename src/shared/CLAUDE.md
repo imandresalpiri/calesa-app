@@ -53,6 +53,8 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
   ítems pide a dónde moverlos; el cuerpo diferido; `motivoSinPermiso` lo deja de sólo lectura) `operacionesDesdeAcciones()` (cinco actions →
   `OperacionesDelCatalogo`) y `useConLosCreados()` (lo creado desde el combo, que no revalida, queda en la lista del combo y del drawer hasta
   que la lectura lo trae; lo quitado sale). En el editor de campos, «Grupos» (`<DrawerDeGrupos>`, si `GruposDelEditor.operaciones` llega).
+- `ui/campo-para-quien.tsx`: `<CampoParaQuien>`, el «Para» de lo propio o compartido (radios «Sólo de <origen>» o «Compartido con todos los orígenes»; una
+  opción con `motivo` va apagada y lo dice debajo). Lo usan las tablas de referencia, los catálogos de logística y los tipos de documento.
 - `lib/ancho.ts` (`anchoDeLaPeticion()`, `CORTE_DEL_TABLERO`/`CORTE_DE_LA_TABLA`/`CORTE_DEL_PANEL`), `ui/ancho-de-pantalla.tsx` (`useAlMenos()`).
 - `lib/atajos.ts` + `ui/atajos/`: `ATAJOS`, `teclasDelAtajo()`, `<ProveedorAtajos>`, `useAtajo()` (responde el último registrado); `<AyudaDeAtajos>`
   registra `?` y abre `<ListaDeAtajos>` por `diferido()`.

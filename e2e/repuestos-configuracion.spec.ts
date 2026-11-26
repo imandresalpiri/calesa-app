@@ -195,7 +195,10 @@ test('E2E el buscador de Configuración encuentra «cotizador de repuestos» y l
     ['catálogos de repuestos', 'Repuestos › Catálogos de repuestos', `${RAIZ}/catalogos`],
   ] as const) {
     await buscador.fill(texto)
-    await expect(resultados.getByRole('link', { name: titulo })).toHaveAttribute('href', destino)
+    await expect(resultados.getByRole('link', { name: titulo, exact: true })).toHaveAttribute(
+      'href',
+      destino,
+    )
   }
   await buscador.fill('cotizador de repuestos')
   await resultados.getByRole('link', { name: 'Repuestos › Cotizador de repuestos' }).click()

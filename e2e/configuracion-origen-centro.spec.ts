@@ -111,7 +111,9 @@ test('E2E pestañas con permisos: quien sólo configura el cotizador de un orige
   // Fases, apagada con su motivo bajo las pestañas; Campos sí abre.
   await expect(pestanaDelOrigen(page, 'Fases')).toBeDisabled()
   await expect(
-    page.getByText('Fases: Lo configura quien tiene el permiso «Configurar el flujo».'),
+    page.getByText(
+      'Fases: Lo configura quien tiene el permiso «Configurar el flujo» o «Catálogos de logística».',
+    ),
   ).toBeVisible()
 
   await pestanaDelOrigen(page, 'Campos').click()

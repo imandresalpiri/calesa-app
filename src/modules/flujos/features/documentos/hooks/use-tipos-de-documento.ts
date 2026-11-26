@@ -14,13 +14,14 @@ import {
 import {
   buscarTipo,
   firmaDelOrden,
+  grupoDelTipo,
   type VistasDeGrupos,
 } from '../../../entities/documentos/vista-de-grupo'
 import type { DatosParaCrear } from '../../../entities/documentos/formulario-de-tipo'
 import { useEscrituraDeTipos } from './use-escritura-de-tipos'
 import { usePedidosDeTipos } from './use-pedidos-de-tipos'
 
-// Los tipos de documento de la pantalla: activar (con «Deshacer»), ordenar, eliminar y los dos del modal. Una escritura a la vez. La lista no
+// Los tipos de documento del drawer: activar (con «Deshacer»), ordenar, eliminar y los dos del modal. Una escritura a la vez. La lista no
 // viene en la respuesta: cada acción revalida la página y ésta trae los dos grupos releídos. Un conflicto o un tipo que ya no está se dicen y la
 // página se vuelve a leer.
 export function useTiposDeDocumento(vistas: VistasDeGrupos) {
@@ -63,7 +64,7 @@ export function useTiposDeDocumento(vistas: VistasDeGrupos) {
     setMovimiento((antes) => ({
       id: tipo.id,
       direccion,
-      grupo: tipo.flujoId === null ? 'empresa' : 'flujo',
+      grupo: grupoDelTipo(tipo),
       firmaAntes: firmaDelOrden(grupo.vista.grupo.tipos),
       veces: (antes?.veces ?? 0) + 1,
     }))

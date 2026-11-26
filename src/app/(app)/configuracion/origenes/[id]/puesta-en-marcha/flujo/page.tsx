@@ -21,13 +21,25 @@ export default async function PasoFlujo({
     <>
       <h1 className="sr-only">Puesta en marcha: Flujo</h1>
       <Suspense fallback={<EsqueletoFormulario bloques={2} campos={4} />}>
-        <Flujo id={id} seccion={unParametro(parametros['seccion'])} />
+        <Flujo
+          id={id}
+          seccion={unParametro(parametros['seccion'])}
+          panel={unParametro(parametros['panel'])}
+        />
       </Suspense>
     </>
   )
 }
 
-async function Flujo({ id, seccion }: { id: string; seccion: string | undefined }) {
+async function Flujo({
+  id,
+  seccion,
+  panel,
+}: {
+  id: string
+  seccion: string | undefined
+  panel: string | undefined
+}) {
   await connection()
   const abierta = await abrirLaPuestaEnMarcha(id)
   if (abierta.tipo !== 'abierto') {
@@ -41,6 +53,7 @@ async function Flujo({ id, seccion }: { id: string; seccion: string | undefined 
             permisos={abierta.sesion.permisos}
             fijo={{ origenId: id }}
             seccionPedida={seccion}
+            panelPedido={panel}
           />
           <Seguir origenId={id} paso="flujo" estado={abierta.estado} />
         </>

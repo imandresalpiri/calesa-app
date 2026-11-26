@@ -85,12 +85,9 @@ const esquemaAtajo = z.object({
 export const esquemaGuardarIndicaciones = z
   .object({
     actualizadoEnEsperado: version,
-    promptBase: z
-      .string()
-      .trim()
-      .max(LARGO_MAXIMO_PROMPT_BASE, {
-        error: 'El prompt base no puede pasar de 4.000 caracteres.',
-      }),
+    promptBase: z.string().trim().max(LARGO_MAXIMO_PROMPT_BASE, {
+      error: 'El prompt base no puede pasar de 4.000 caracteres.',
+    }),
     atajos: z.array(esquemaAtajo).max(TOPE_DE_ATAJOS, { error: MOTIVO_TOPE_DE_ATAJOS }),
   })
   .superRefine(({ atajos }, ctx) => {

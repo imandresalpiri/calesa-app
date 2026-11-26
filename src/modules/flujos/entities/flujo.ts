@@ -225,6 +225,27 @@ export function flujosDesde(filas: unknown): FlujoConfigurable[] {
   }))
 }
 
+// Un flujo que quien mira abre: lo configura (`soloLectura` falso) o, el de un origen, sólo gestiona ahí los catálogos de logística (los configura en la
+// pestaña Fases, arriba del diagrama) y ve el flujo en sólo lectura. El de repuestos nunca va en lectura: lo abre quien lo configura.
+export type FlujoVisible = FlujoConfigurable & { soloLectura: boolean }
+
+export function flujosVisibles(
+  flujos: readonly FlujoConfigurable[],
+  permisos: Permisos,
+): FlujoVisible[] {
+  const configurables = new Set(flujosConfigurables(flujos, permisos).map((f) => f.id))
+  return flujos.flatMap((f): FlujoVisible[] => {
+    if (configurables.has(f.id)) {
+      return [{ ...f, soloLectura: false }]
+    }
+    return f.ambito === 'vehiculos' &&
+      f.origenId !== null &&
+      puede(permisos, 'logistica.catalogos.gestionar', f.origenId)
+      ? [{ ...f, soloLectura: true }]
+      : []
+  })
+}
+
 // Los flujos que estos permisos pueden configurar, también los inactivos: el de un origen con `flujos.configurar` de ese origen; el de repuestos
 // con `repuestos.configurar`. Es comodidad de la pantalla: cada escritura la decide la base (`puede_configurar_flujo`, 5.01).
 export function flujosConfigurables(

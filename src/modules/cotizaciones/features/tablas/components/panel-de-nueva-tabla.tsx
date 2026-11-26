@@ -1,9 +1,9 @@
 'use client'
 
-import { cn } from 'cn'
 import { useId, useRef } from 'react'
 import { enfocarPrimerError } from '@/shared/lib/formularios'
 import { Aviso } from '@/shared/ui/aviso'
+import { CampoParaQuien } from '@/shared/ui/campo-para-quien'
 import { CambiosSinGuardar } from '@/shared/ui/cambios-sin-guardar'
 import { Drawer } from '@/shared/ui/drawer'
 import { Input } from '@/shared/ui/input'
@@ -34,41 +34,6 @@ const OPCIONES: readonly { valor: ParaQuien; etiqueta: (origen: string) => strin
   { valor: 'origen', etiqueta: (origen) => `Sólo de ${origen}` },
   { valor: 'compartida', etiqueta: () => 'Compartida con todos los orígenes' },
 ]
-
-function CampoParaQuien({ nueva, origen }: { nueva: NuevaTabla; origen: string }) {
-  const grupo = useId()
-  return (
-    <fieldset className="grid min-w-0 gap-1.5" disabled={nueva.enCurso}>
-      <legend className="mb-1 text-(length:--text-sm) font-medium text-(--color-ink)">Para</legend>
-      <div className="grid min-w-0 gap-2 sm:grid-cols-2">
-        {OPCIONES.map((opcion) => (
-          <label key={opcion.valor} className="min-w-0 cursor-pointer">
-            <input
-              type="radio"
-              name={grupo}
-              value={opcion.valor}
-              checked={nueva.para === opcion.valor}
-              className="peer sr-only"
-              onChange={() => {
-                nueva.setPara(opcion.valor)
-              }}
-            />
-            <span
-              className={cn(
-                'flex min-h-11 items-center rounded-(--radius-md) border border-(--color-line) bg-(--color-surface) px-3 py-2',
-                'text-(length:--text-sm) break-words text-(--color-ink)',
-                'peer-checked:border-(--color-primario) peer-checked:bg-(--color-surface-2)',
-                'peer-focus-visible:shadow-(--shadow-focus) peer-disabled:opacity-60',
-              )}
-            >
-              {opcion.etiqueta(origen)}
-            </span>
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  )
-}
 
 // «Nombre», con la clave que sale de él al tipear.
 function CampoDelNombre({ nueva }: { nueva: NuevaTabla }) {
@@ -154,7 +119,15 @@ export function PanelDeNuevaTabla({ abierto, alCerrar, origen, lugar }: Props) {
           </Aviso>
         ) : null}
         <CampoDelNombre nueva={nueva} />
-        <CampoParaQuien nueva={nueva} origen={origen.nombre} />
+        <CampoParaQuien
+          valor={nueva.para}
+          alCambiar={nueva.setPara}
+          deshabilitado={nueva.enCurso}
+          opciones={OPCIONES.map((opcion) => ({
+            valor: opcion.valor,
+            etiqueta: opcion.etiqueta(origen.nombre),
+          }))}
+        />
         <EditorDeColumnas
           edicion={nueva.edicion}
           editar={nueva.editar}

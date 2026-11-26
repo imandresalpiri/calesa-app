@@ -66,9 +66,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[6-6]** Prorratear un gasto por el valor del vehículo u otro criterio; hoy se reparte en partes iguales — base e interfaz.
 - **[6-7]** Borrar una nota propia con una RPC `security definer` (el `update` da `42501`), que además impida a su autora cambiar el cuerpo de una nota de cambio de fase (hoy lo frena sólo la action).
 - **[—]** Vincular un pago a un lead: sin interfaz (el alta manda `p_lead` nulo).
-- **[—]** La lista de un origen con sus puertos, navieras y categorías de gasto propios y los compartidos que usa (el tapado con «Tapado por el de
-  <origen>», como las tablas en el drawer del origen) y crear uno «Sólo de <origen>»: hoy Logística › Configuración edita sólo los compartidos
-  y un propio no tiene pantalla — la base, las actions y los esquemas ya reciben el origen (`origenId`, hoy siempre nulo).
+- **[—]** `categoria_gasto_eliminar` sigue en la base sin pantalla: las categorías de gasto se desactivan desde su drawer, no se eliminan — decidir
+  si se quita la RPC o se ofrece «Eliminar» para una sin gastos.
 - **[—]** Pasar un catálogo de logística de propio a compartido (o al revés) no se ofrece — decidir qué pasa con el compartido que tapaba y con
   los permisos de cada origen que empezaría a usarlo.
 - **[—]** `/logistica/gastos` sin filtro por vehículo ni por proveedor — `gastos_listar` sólo filtra origen, categoría y fechas; pide migración.
@@ -241,6 +240,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** En el celular, los botones flotantes de compartir y chat tapan parte del vacío de la pestaña Fases de un origen sin fases (el texto «El flujo de … todavía
+  no tiene fases.»): dejarle al vacío el margen de abajo que ocupan.
 - **[—]** Integraciones con la clave del asistente de IA cargada desborda 74 px a 1440×900: el lugar reservado de «Probar conexión» (`min-h-28`) y la
   clave en dos renglones dejan la tarjeta en 550 px y las columnas pasan Avisos push abajo de Web pública. Para entrar, la tarjeta tiene que bajar de
   ≈ 447 px: el resultado de la prueba como fila del `dl`, Proveedor y Modelo en una (`integraciones/components/tarjeta-de-asistente-ia.tsx`).
@@ -254,7 +255,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** La lista de fases del flujo deja «Subir» y «Bajar» a la vista (`flujos/features/fases/components/acciones-de-fila.tsx`) y las demás filas de Configuración los llevan en el «⋯»: decidir si es la excepción (ordenar con el teclado) o pasarlos al «⋯».
 - **[—]** Al recargar una guardada con un cálculo pisado, «Editado a mano: …» entra al resumen después del primer dibujo (su lista va con `diferido()`) y empuja
   «Modo de tipo de cambio» hacia abajo: reservarle el alto o dibujar su primera línea en frío (`features/hoja/components/pisadas/`).
-- **[—]** En Logística › Configuración › Navieras la lista tiene dos columnas «Estado» («Activo» y «Activa»): `columnaDeUso="Estado"` en `navieras-de-transporte.tsx` repite el título de la columna de estado; ponerle otro («Uso» o quitarla).
+- **[—]** En el drawer «Navieras» de la pestaña Fases la lista tiene dos columnas «Estado» («Activo» y «Activa»): `columnaDeUso="Estado"` en `navieras-del-origen.tsx` repite el título de la columna de estado; ponerle otro («Uso» o quitarla).
 - **[—]** La planilla de la fórmula angosta: a 1280 px con la tarjeta al costado (36 rem), # y A, pegadas, ocupan casi todo lo que queda y C y Ejemplo se ven
   desplazando la grilla — angostar A cuando la planilla es angosta (`@container/formula`, `cuadricula/clases.ts`); en el celular (390 px), el «⋯» de la fila
   activa queda al final, en Ejemplo, y llegar a él esconde la C — fijarlo a la derecha como `#` y A van fijas a la izquierda (`fila-de-la-cuadricula.tsx`).

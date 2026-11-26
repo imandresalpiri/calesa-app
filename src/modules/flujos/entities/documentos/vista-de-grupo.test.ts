@@ -3,11 +3,15 @@ import { usoDeTipoDesde, type TipoDeDocumento } from './tipo-de-documento'
 import {
   MOTIVO_DE_TIPO_NO_DISPONIBLE,
   MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS,
-  detalleDeLosPropios,
+  claveDeGrupoDe,
+  claveDelBorrador,
+  grupoDelTipo,
   insigniaDeTapado,
-  motivoParaNoAbrirTipo,
+  motivoParaNoEditarTipo,
   motivoParaNoEliminarPorUrl,
   tapadosDelGrupo,
+  textoDelGrupoVacio,
+  textoSinTipos,
   tituloDeLosPropios,
   type VistaDeGrupo,
   type VistasDeGrupos,
@@ -49,27 +53,43 @@ function vista(
 }
 
 const vistas: VistasDeGrupos = {
-  empresa: vista(null, ['bl', 'titulo'], false),
-  flujo: vista(FLUJO, ['a', 'b', 'c'], true, ['b']),
+  compartido: vista(null, ['bl', 'titulo'], false),
+  origen: vista(FLUJO, ['a', 'b', 'c'], true, ['b']),
 }
 
-it('quien sólo ve el grupo de los compartidos no abre «Nuevo» ni «Editar» y lee el motivo', () => {
-  expect(motivoParaNoAbrirTipo(vistas, 'nuevo', 'empresa', null)).toBe(
-    MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS,
-  )
-  expect(motivoParaNoAbrirTipo(vistas, 'editar', null, 'bl')).toBe(
-    MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS,
+it('quien ve los compartidos en lectura no abre «Editar» y lee a quién pedirle el permiso', () => {
+  expect(motivoParaNoEditarTipo(vistas, 'bl')).toBe(MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS)
+  expect(MOTIVO_SOLO_LECTURA_DE_COMPARTIDOS).toBe(
+    'Pídele a quien administra los roles el permiso de configurar la logística.',
   )
 })
 
-it('«Nuevo» no abre al tope del grupo, ni con un grupo que no existe; «Editar» no abre un tipo ausente', () => {
-  expect(motivoParaNoAbrirTipo(vistas, 'nuevo', 'flujo', null)).toContain('Ya hay 3')
-  expect(motivoParaNoAbrirTipo({ ...vistas, flujo: null }, 'nuevo', 'flujo', null)).not.toBeNull()
-  expect(motivoParaNoAbrirTipo(vistas, 'nuevo', 'otro', null)).not.toBeNull()
-  expect(motivoParaNoAbrirTipo(vistas, 'editar', null, 'no-esta')).toBe(
-    MOTIVO_DE_TIPO_NO_DISPONIBLE,
+it('«Editar» abre uno del grupo que se cambia y no abre uno ausente', () => {
+  expect(motivoParaNoEditarTipo(vistas, 'no-esta')).toBe(MOTIVO_DE_TIPO_NO_DISPONIBLE)
+  expect(motivoParaNoEditarTipo(vistas, null)).toBe(MOTIVO_DE_TIPO_NO_DISPONIBLE)
+  expect(motivoParaNoEditarTipo(vistas, 'a')).toBeNull()
+})
+
+it('`?de=` vale origen salvo «compartido»; el grupo de un tipo lo dice su flujo', () => {
+  expect(claveDeGrupoDe('compartido')).toBe('compartido')
+  expect(claveDeGrupoDe(null)).toBe('origen')
+  expect(claveDeGrupoDe('empresa')).toBe('origen')
+  expect(grupoDelTipo({ flujoId: null })).toBe('compartido')
+  expect(grupoDelTipo({ flujoId: FLUJO })).toBe('origen')
+})
+
+it('los vacíos nombran el origen o el flujo de repuestos', () => {
+  expect(textoSinTipos('Miami')).toBe('Todavía no hay tipos de documento en Miami ni compartidos.')
+  expect(textoSinTipos(null)).toBe(
+    'Todavía no hay tipos de documento en el flujo de repuestos ni compartidos.',
   )
-  expect(motivoParaNoAbrirTipo(vistas, 'editar', null, 'a')).toBeNull()
+  expect(textoDelGrupoVacio('origen', 'Miami')).toBe('Ninguno sólo de Miami.')
+  expect(textoDelGrupoVacio('compartido', 'Miami')).toBe('Ninguno compartido.')
+})
+
+it('un borrador por tipo y uno solo para el nuevo', () => {
+  expect(claveDelBorrador(null)).toBe('tipo-de-documento:nuevo')
+  expect(claveDelBorrador('a')).toBe('tipo-de-documento:a')
 })
 
 it('eliminar por URL: abre uno sin uso; con uso o de sólo lectura no abre y dice por qué', () => {
@@ -81,13 +101,11 @@ it('eliminar por URL: abre uno sin uso; con uso o de sólo lectura no abre y dic
 
 it('el grupo del flujo se nombra por su origen; el de repuestos, por su flujo', () => {
   expect(tituloDeLosPropios('Miami')).toBe('De Miami')
-  expect(detalleDeLosPropios('Miami')).toBe('Sólo se piden en Miami.')
   expect(tituloDeLosPropios(null)).toBe('Del flujo de repuestos')
-  expect(detalleDeLosPropios(null)).toBe('Sólo se piden en el flujo de repuestos.')
 })
 
 it('un compartido que tapa el flujo lleva la insignia; los demás, no', () => {
-  const compartidos = vistas.empresa as VistaDeGrupo
+  const compartidos = vistas.compartido
   const conTapados = { ...compartidos, tapados: tapadosDelGrupo(new Set(['bl']), 'Miami') }
   const [bl, titulo] = compartidos.grupo.tipos
   if (!bl || !titulo) throw new Error('faltan tipos')

@@ -27,6 +27,6 @@ export {
   type UnidadesDelGrupo,
 } from '../../infra/dinero/grupo.client'
 export {
-  leerCategoriasDeConfiguracion,
+  leerCategoriasDelOrigen,
   NO_SE_CARGARON_LAS_CATEGORIAS,
 } from '../../infra/dinero/categorias.client'

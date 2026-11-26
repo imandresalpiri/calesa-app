@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  PANELES_DE_LOS_CATALOGOS,
+  esPanelDeCatalogo,
+  rutaDeTiposDeRepuestos,
+  rutaDeUnCatalogo,
   PANEL_NUEVO_DE_VEHICULOS,
   PARAMETRO_DEL_BLOQUE,
   RUTAS,
@@ -308,19 +312,23 @@ describe('Cotizaciones en Roles', () => {
 })
 
 describe('Catálogos', () => {
-  it('los de logística viven en Logística', () => {
-    expect([
-      RUTAS.configuracionDeLogistica,
-      RUTAS.puertosDeLogistica,
-      RUTAS.navierasDeLogistica,
-      RUTAS.categoriasDeGastoDeLogistica,
-      RUTAS.tiposDeDocumento,
-    ]).toEqual([
-      '/logistica/configuracion',
-      '/logistica/configuracion/puertos',
-      '/logistica/configuracion/navieras',
-      '/logistica/configuracion/categorias-de-gasto',
-      '/logistica/configuracion/tipos-de-documento',
+  it('los de logística se configuran en la pestaña Fases de cada origen, cada uno en su drawer', () => {
+    const origen = '00000000-0000-4000-8000-00000000000a'
+    expect(PANELES_DE_LOS_CATALOGOS.map((panel) => rutaDeUnCatalogo(origen, panel))).toEqual([
+      `/configuracion/origenes/${origen}/fases?panel=puertos`,
+      `/configuracion/origenes/${origen}/fases?panel=navieras`,
+      `/configuracion/origenes/${origen}/fases?panel=categorias-de-gasto`,
+      `/configuracion/origenes/${origen}/fases?panel=tipos-de-documento`,
     ])
+  })
+
+  it('el flujo de repuestos sólo tiene los tipos de documento', () => {
+    expect(rutaDeTiposDeRepuestos()).toBe('/repuestos/configuracion/flujo?panel=tipos-de-documento')
+  })
+
+  it('sólo los cuatro catálogos abren un drawer de catálogo', () => {
+    expect(esPanelDeCatalogo('puertos')).toBe(true)
+    expect(esPanelDeCatalogo('nueva-fase')).toBe(false)
+    expect(esPanelDeCatalogo(null)).toBe(false)
   })
 })

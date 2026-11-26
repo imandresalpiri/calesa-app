@@ -53,6 +53,8 @@ async function entrar(page: Page) {
 type Pantalla = {
   titulo: string
   url: () => string
+  // El título que tiene que verse: el de la página, o el de un drawer que la URL abre (en el celular va a todo lo ancho y la página queda inerte).
+  encabezado?: (page: Page) => Locator
   // Lo que se pega al borde derecho y tiene que verse sin desplazar nada, con cómo se llama en el mensaje.
   controles?: (page: Page) => [Locator, string][]
 }
@@ -96,6 +98,42 @@ const PANTALLAS: Pantalla[] = [
     url: DE_UN_ORIGEN('fases'),
     controles: (page) => [
       [page.getByRole('button', { name: `Más acciones de ${origen.nombre}` }), 'el «⋯» del origen'],
+      [
+        page
+          .getByRole('group', { name: 'Catálogos' })
+          .getByRole('button', { name: 'Tipos de documento' }),
+        'el último catálogo de arriba del diagrama',
+      ],
+    ],
+  },
+  {
+    titulo: 'la página de un origen › Fases › Puertos',
+    url: DE_UN_ORIGEN('fases?panel=puertos'),
+    encabezado: (page) =>
+      page
+        .getByRole('dialog', { name: 'Puertos' })
+        .getByRole('heading', { name: 'Puertos', exact: true }),
+    controles: (page) => [
+      [
+        page.getByRole('dialog', { name: 'Puertos' }).getByRole('button', { name: 'Nuevo puerto' }),
+        '«Nuevo puerto» del drawer',
+      ],
+    ],
+  },
+  {
+    titulo: 'la página de un origen › Fases › Tipos de documento',
+    url: DE_UN_ORIGEN('fases?panel=tipos-de-documento'),
+    encabezado: (page) =>
+      page
+        .getByRole('dialog', { name: 'Tipos de documento' })
+        .getByRole('heading', { name: 'Tipos de documento', exact: true }),
+    controles: (page) => [
+      [
+        page
+          .getByRole('dialog', { name: 'Tipos de documento' })
+          .getByRole('button', { name: 'Nuevo tipo de documento' }),
+        '«Nuevo tipo de documento» del drawer',
+      ],
     ],
   },
   {
@@ -110,11 +148,6 @@ const PANTALLAS: Pantalla[] = [
   { titulo: 'la página de un origen › Categorías', url: DE_UN_ORIGEN('categorias') },
   { titulo: 'Leads › Campos', url: () => '/configuracion/leads/campos' },
   { titulo: 'Leads', url: () => '/configuracion/leads' },
-  { titulo: 'Logística › Configuración › Puertos', url: () => '/logistica/configuracion/puertos' },
-  {
-    titulo: 'Logística › Configuración › Tipos de documento',
-    url: () => '/logistica/configuracion/tipos-de-documento',
-  },
   { titulo: 'Repuestos › Flujo de repuestos', url: () => '/repuestos/configuracion/flujo' },
   {
     titulo: 'Equipo',
@@ -136,10 +169,11 @@ for (const pantalla of PANTALLAS) {
     await textoGrandeAlCargar(page)
     await entrar(page)
     await page.goto(pantalla.url())
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    const encabezado = pantalla.encabezado?.(page) ?? page.getByRole('heading', { level: 1 })
+    await expect(encabezado).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.style.fontSize)).toBe('200%')
     await sinScrollHorizontal(page)
-    await aLaVistaSinDesplazar(page.getByRole('heading', { level: 1 }), 'el título')
+    await aLaVistaSinDesplazar(encabezado, 'el título')
     const activa = page.getByRole('tab', { selected: true })
     if ((await activa.count()) > 0) {
       // La barra se desplaza hasta la pestaña abierta recién al hidratar (CI-3).

@@ -1,5 +1,5 @@
 // Un tipo de documento (Título, BL, Declaración de importación… y los que se agreguen, compartidos o de un flujo): lo que se le pide a quien sube un
-// documento y cuándo vence. Se configura en Logística › Configuración › Tipos de documento y en el panel del flujo. Estas reglas son espejo de `_tipo_documento_validar()` y
+// documento y cuándo vence. Se configura en el drawer «Tipos de documento», arriba del diagrama de las fases de cada origen y del flujo de repuestos. Estas reglas son espejo de `_tipo_documento_validar()` y
 // `_tipo_documento_de_jsonb()`: la base las vuelve a decir, con estos mismos textos y estos mismos
 // campos en el `hint`, si algo llega de otro lado. Aquí sirven para mostrar el error junto al campo sin ir a la base.
 //
@@ -15,15 +15,17 @@ export const LARGO_MAXIMO_DEL_NOMBRE = 80
 export const LARGO_MAXIMO_DE_LA_DESCRIPCION = 500
 export const DIAS_MAXIMOS = 3650
 
-export const PANEL_NUEVO_TIPO = 'nuevo-tipo'
-export const PANEL_EDITAR_TIPO = 'editar-tipo'
-// La confirmación de eliminar uno (`?panel=eliminar-tipo&tipo=<id>`).
-export const PANEL_ELIMINAR_TIPO = 'eliminar-tipo'
+// Lo que se hace con un tipo, dentro del drawer de los tipos (`?panel=tipos-de-documento`): va en `?accion=`, porque `panel` ya es el drawer. «Nuevo»
+// es `ACCION_NUEVO_TIPO` del núcleo (`panel-del-flujo.ts`): también lo abre un requisito.
+export const ACCION_EDITAR_TIPO = 'editar-tipo'
+// La confirmación de eliminar uno (`?accion=eliminar-tipo&tipo=<id>`).
+export const ACCION_ELIMINAR_TIPO = 'eliminar-tipo'
 // El id del tipo que se edita o elimina, en la URL.
 export const CLAVE_DEL_TIPO = 'tipo'
-// El grupo donde se crea uno (`?panel=nuevo-tipo&de=empresa|flujo`).
+// Para quién se crea uno (`?accion=nuevo-tipo&de=origen|compartido`; sin `de`, `origen`): «Sólo de <origen>» o «Compartido con todos los orígenes».
 export const CLAVE_DEL_GRUPO = 'de'
-export type ClaveDeGrupo = 'empresa' | 'flujo'
+export const GRUPOS_DE_TIPOS = ['origen', 'compartido'] as const
+export type ClaveDeGrupo = (typeof GRUPOS_DE_TIPOS)[number]
 
 // Los formatos que se aceptan, en el orden en que se guardan: la misma lista de `_tipos_documento_formatos()` (lo prueba un test contra el SQL).
 export const FORMATOS_DE_DOCUMENTO = [

@@ -52,12 +52,6 @@ export const RUTAS = {
   embarques: '/logistica/embarques',
   aduana: '/logistica/aduana',
   gastosDeLogistica: '/logistica/gastos',
-  // La configuración de la logística (puertos, navieras, categorías de gasto y los tipos de documento de la empresa) vive en Logística, una sub-ruta por catálogo.
-  configuracionDeLogistica: '/logistica/configuracion',
-  puertosDeLogistica: '/logistica/configuracion/puertos',
-  navierasDeLogistica: '/logistica/configuracion/navieras',
-  categoriasDeGastoDeLogistica: '/logistica/configuracion/categorias-de-gasto',
-  tiposDeDocumento: '/logistica/configuracion/tipos-de-documento',
   repuestos: '/repuestos',
   // La configuración de los repuestos vive en Repuestos: una sub-ruta por pestaña (Flujo, Cotizador, Catálogos). La raíz abre el flujo.
   configuracionDeRepuestos: '/repuestos/configuracion',
@@ -107,6 +101,30 @@ export function rutaDeParteDelOrigen(
   consulta?: Record<string, string>,
 ): Route {
   return conConsulta(`${RUTAS.origenes}/${encodeURIComponent(origenId)}/${parte}`, consulta)
+}
+
+// Los catálogos de logística de un origen (puertos, navieras, categorías de gasto y tipos de documento) se configuran en su pestaña Fases, arriba del
+// diagrama: cada uno abre su drawer (`?panel=puertos`). El flujo de repuestos sólo tiene los tipos de documento. Viven acá porque los nombran el editor
+// del flujo, la oferta de transporte, el buscador y los avisos de logística.
+export const PANELES_DE_LOS_CATALOGOS = [
+  'puertos',
+  'navieras',
+  'categorias-de-gasto',
+  'tipos-de-documento',
+] as const
+export type PanelDeCatalogo = (typeof PANELES_DE_LOS_CATALOGOS)[number]
+
+export const esPanelDeCatalogo = (valor: string | null | undefined): valor is PanelDeCatalogo =>
+  (PANELES_DE_LOS_CATALOGOS as readonly (string | null | undefined)[]).includes(valor)
+
+// El drawer de un catálogo de logística en la pestaña Fases de su origen.
+export function rutaDeUnCatalogo(origenId: string, panel: PanelDeCatalogo): Route {
+  return rutaDeParteDelOrigen(origenId, 'fases', { panel })
+}
+
+// El drawer de los tipos de documento del flujo de repuestos.
+export function rutaDeTiposDeRepuestos(): Route {
+  return conConsulta(RUTAS.flujoDeRepuestos, { panel: 'tipos-de-documento' })
 }
 
 // El drawer de las tablas de un origen (`?panel=tablas`, sobre la Planilla) y el panel de una tabla adentro (`&accion=publicar-tabla`: convive con el drawer,

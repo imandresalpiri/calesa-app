@@ -1,4 +1,4 @@
-// Crear, corregir y eliminar una categoría de gasto, dicho como interfaz (6.11-4). La implementación (Supabase, por las RPC `categoria_gasto_crear|guardar|eliminar`) vive en
+// Crear y corregir una categoría de gasto, dicho como interfaz (6.11-4): no se eliminan, se desactivan. La implementación (Supabase, por las RPC `categoria_gasto_crear|guardar`) vive en
 // `infra/dinero/categorias.ts` y se la entrega `areas/dinero/composicion.ts`.
 import type { ResultadoDeAccion } from '@/shared/lib/enviar-accion'
 import type { CatalogoCreado, CatalogoGuardado } from '../nucleo/catalogos'
@@ -17,9 +17,4 @@ export type RepositorioDeCategorias = {
     actualizadoEn: string
     cambios: Partial<DatosDeCategoria>
   }) => Promise<ResultadoDeAccion<CatalogoGuardado>>
-  // La base no borra una categoría con gastos: responde 23503 con ««X» tiene gastos: desactívala.».
-  eliminar: (pedido: {
-    id: string
-    actualizadoEn: string
-  }) => Promise<ResultadoDeAccion<{ id: string }>>
 }

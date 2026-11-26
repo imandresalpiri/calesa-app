@@ -161,8 +161,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Tarjeta, Publicar y **Listo** («Cotizar con <origen>»). El avance se deriva de lo que hay (campos, fases, fórmula de trabajo, fórmula activa), sin
   guardar un «paso actual»: cada paso guarda con sus botones, «Seguir» va al siguiente y la raíz lleva al que falta. Un paso sin el permiso en ese
   origen se salta y dice su motivo. Se retoma con «Seguir la puesta en marcha» de la página del origen. No: «asistente», «wizard», «onboarding».
-- **Configuración de logística** — `/logistica/configuracion/<clave>` (`RUTAS.configuracionDeLogistica`): la página de Logística con las pestañas Puertos, Navieras, Categorías de gasto y
-  Tipos de documento; se entra con el botón ⚙ «Configurar» de la cabecera de Logística. No: «Catálogos de logística» como sección de Configuración.
+- **Catálogos de logística** — puertos, navieras, categorías de gasto y tipos de documento: se configuran en la pestaña Fases de cada origen, cada uno en
+  su drawer arriba del diagrama (`?panel=puertos|navieras|categorias-de-gasto|tipos-de-documento`), con los de ese origen y los compartidos; en el flujo de
+  repuestos, sólo los tipos de documento. El ⚙ «Configurar» de la cabecera de Logística lleva ahí. No: «Configuración de logística», ni una sección de
+  Configuración.
 - **Configuración de repuestos** — `/repuestos/configuracion/<flujo|cotizador|catalogos>` (`RUTAS.configuracionDeRepuestos`): la página de Repuestos con las pestañas Flujo, Cotizador y Catálogos; se entra
   con el botón ⚙ «Configurar» (nombre accesible «Configurar los repuestos») de la fila de filtros de `/repuestos`. No: «Configuración › Repuestos» como sección de Configuración.
 - **Flujo de repuestos** — `/repuestos/configuracion/flujo` (`RUTAS.flujoDeRepuestos`): el flujo de los repuestos, que se configura en la primera pestaña de la configuración de repuestos
@@ -539,8 +541,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   (nombre, descripción, color, icono) y «Ajustes» («En el flujo», «Alerta por demora», «Transporte y aduana», «Web y portal»). Identidad y Ajustes son un solo
   formulario y un solo «Guardar». No: «Datos», «tabs».
 - **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Fases de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
-  del flujo entero, «Reglas del flujo» o «Tipos de documento» (`?seccion=reglas|documentos`); gana `?seccion=`. No: «sidebar», «inspector» para
-  lo del flujo.
+  del flujo entero, «Reglas del flujo» (`?seccion=reglas`); gana `?seccion=`. Los catálogos de logística no van ahí: cada uno en su drawer (`?panel=`).
+  No: «sidebar», «inspector» para lo del flujo.
 - **Diagrama del flujo** — `DiagramaDelFlujo`: las fases como cajas, cada una en su posición, y las salidas como flechas; ahí se mueven, se crean
   y se vinculan. La lista es la versión navegable. No: «grafo», «tablero».
 - **Posición de la fase** — `fases.posicion_x|y` (rem) / `fase_posiciones_guardar()`: dónde se dibuja su caja en el diagrama; una sola, del flujo.
@@ -580,10 +582,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Propio / compartido (catálogo)** — un puerto, una naviera, una categoría de gasto (`origen_id`) o un tipo de documento (`flujo_id`) es
   propio de un origen (del flujo de repuestos, un tipo) o compartido con todos (nulo). Un origen **usa** sus propios y los compartidos que no tapa;
   la base exige que lo que se guarda sea de lo que usa el origen de la unidad («es de otro origen»). Un compartido pide
-  `logistica.catalogos.gestionar` en cada origen que lo usa; un propio, en su origen (un tipo propio, también quien configura su flujo).
+  `logistica.catalogos.gestionar` en cada origen que lo usa; un propio, en su origen (un tipo propio, también quien configura su flujo). Al crear,
+  **«Para»** (`CampoParaQuien`) pregunta «Sólo de <origen>» (por defecto) o «Compartido con todos los orígenes»; editar un compartido avisa
+  «Cambia para todos los orígenes que lo usan.».
 - **Tapar** — un propio **activo** tapa en su origen al compartido de su misma **clave** (`_catalogo_clave()` / `claveDeCatalogo()`: sin
   mayúsculas, tildes ni espacios de más; un puerto, de nombre y país). Nada se reescribe: lo guardado sigue apuntando al compartido, rotulado
-  «(tapado)». Igual en las tablas de referencia (abajo).
+  «(tapado)»; en el drawer del catálogo, el compartido lleva «Tapado por el de <origen>». Igual en las tablas de referencia (abajo).
 - **Tabla compartida** — tabla de referencia con `origen_id` nulo: la usan los orígenes sin una propia de esa clave; la propia la **tapa** (va
   `tapada` en la lista de ese origen). Se ve en el grupo «Compartidas» del drawer de las tablas de cada origen que la recibe (las propias, en «De <origen>») y se edita ahí, con el aviso
   de a quién le cambia; publicarla pide `cotizaciones.configurar` en cada origen que la usa.
@@ -996,15 +1000,17 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   si el tipo lo admite (`tipos_documento.visible_portal_permitido`); apagarlo siempre se puede. No: «público», «compartido».
 - **Tipo de documento** — `tipos_documento` / `tipo_documento_crear()`: qué documento pide el ciclo (Título, BL…); **propio** del flujo de un
   origen (o del de repuestos) o **compartido** con todos (`flujo_id` nulo); el propio **tapa** al compartido de su misma clave en ese flujo. Formatos y
-  vencimiento (`ninguno`, `solicitar`, `renovar`, con `aviso_dias`). En uso se desactiva. No: «clase de documento», «de la empresa».
+  vencimiento (`ninguno`, `solicitar`, `renovar`, con `aviso_dias`). Se configura en el drawer «Tipos de documento» arriba del diagrama de la pestaña
+  Fases de cada origen (y del flujo de repuestos), o desde un requisito («Crear tipo de documento»). En uso se desactiva; sin uso se elimina. No:
+  «clase de documento», «de la empresa».
 - **Transporte** — `transportes` (se lee por la vista `transportes_con_embarque`): lo de UNA unidad: su contenedor o su embarque (uno u otro, nunca los dos) y lo
   propio (notas; naviera, puertos y fechas sólo si no va en un embarque). Se escribe por `transporte_guardar` o, en lote, `transporte_asignar|quitar`.
 - **Puerto** — `puertos`: origen o destino de un transporte; nombre, país y código opcionales, `orden`, `activo`. **Propio** de un origen
-  (`origen_id`) o **compartido** con todos (nulo); el propio tapa al compartido de su misma clave de nombre y país. Los compartidos se editan en
-  Logística › Configuración › Puertos; se desactiva, no se elimina. No: «terminal», «destino».
+  (`origen_id`) o **compartido** con todos (nulo); el propio tapa al compartido de su misma clave de nombre y país. Se configura en el drawer
+  «Puertos» arriba del diagrama de la pestaña Fases de cada origen; se desactiva, no se elimina. No: «terminal», «destino».
 - **Naviera** — `navieras`: la empresa que lleva el contenedor; nombre y `activo`. Propia de un origen o compartida, como el puerto (tapa por
-  nombre). Las compartidas, en Logística › Configuración › Navieras; se desactiva; cada flujo ofrece las suyas (`flujos_transporte_oferta`). No:
-  «línea marítima», «carrier».
+  nombre). Se configura en el drawer «Navieras» arriba del diagrama de la pestaña Fases de cada origen; se desactiva, no se elimina; cada flujo
+  ofrece las suyas (`flujos_transporte_oferta`). No: «línea marítima», «carrier».
 - **Embarque** — `embarques` / `embarque_crear|guardar()`: el booking en un origen, dueño de la naviera, los puertos, el zarpe (estimado y el de
   siempre), la ETA y el arribo; sus vehículos van sueltos en él o en sus contenedores, y lo suyo cambia para todos. El booking es único por origen
   (sin espacios ni mayúsculas de más); su estado se calcula. No: «carga», «viaje», «booking» a secas.
@@ -1022,8 +1028,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Declaración aduanera** — `declaraciones_aduana`, `declaraciones_vehiculos`: DUI: número, canal de aforo, vencimiento de tributos; N:M.
 - **Gasto** — `gastos`, `categorias_gasto`: costo real imputado a una unidad, en su moneda y en base.
 - **Categoría de gasto** — `categorias_gasto` / `categoria_gasto_crear()`: a qué va un gasto (flete, tributos…), con `proposito` opcional,
-  `orden` y `activo`. Propia de un origen o compartida, como el puerto (tapa por nombre); las compartidas, en Logística › Configuración ›
-  Categorías de gasto. Sin gastos se elimina; con gastos se desactiva. No: «rubro», «concepto».
+  `orden` y `activo`. Propia de un origen o compartida, como el puerto (tapa por nombre). Se configura en el drawer «Categorías de gasto» arriba
+  del diagrama de la pestaña Fases de cada origen; se desactiva, no se elimina desde la app. No: «rubro», «concepto».
 - **Pago** — `pagos`: pago del cliente; confirmar es un acto sellado.
 - **Desviación / Margen** — `margen_vehiculo()`: cotizado − real / venta − real (null sin venta); `por_categoria` reparte el real por
   categoría de gasto.

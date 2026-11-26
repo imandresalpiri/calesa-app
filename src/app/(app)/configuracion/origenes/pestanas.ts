@@ -2,7 +2,7 @@ import type { ClavePermiso } from '@/shared/lib/permisos'
 import { PARTES_DEL_ORIGEN, type ParteDelOrigen } from '@/shared/lib/rutas'
 
 // Las pestañas de la página de un origen (`/configuracion/origenes/<id>/<pestana>`): su título, la frase que dice la página bajo las
-// pestañas, lo que alguien escribiría para buscarla, el permiso que pide en ese origen y el motivo de la apagada. Campos y Categorías no
+// pestañas, lo que alguien escribiría para buscarla, los permisos que la abren en ese origen (basta con uno) y el motivo de la apagada. Campos y Categorías no
 // piden uno propio: se abren con el origen (sólo lectura sin `origenes.gestionar`). Los datos del origen no son pestaña: van en su drawer
 // (`?panel=datos`). La única fuente de las pestañas: las leen el acceso (`acceso.ts`), el marco y las páginas.
 export type PestanaDelOrigen = {
@@ -10,19 +10,24 @@ export type PestanaDelOrigen = {
   titulo: string
   descripcion: string
   palabras: readonly string[]
-  permiso: ClavePermiso | null
+  permisos: readonly ClavePermiso[] | null
   motivo: string | null
 }
 
 export const MOTIVO_SIN_CONFIGURAR_EL_FLUJO =
   'Lo configura quien tiene el permiso «Configurar el flujo».'
+// Fases la abre quien configura el flujo (edita el diagrama) o quien gestiona los catálogos de logística del origen (ve el diagrama en sólo lectura y
+// edita los catálogos de arriba).
+export const MOTIVO_SIN_LAS_FASES =
+  'Lo configura quien tiene el permiso «Configurar el flujo» o «Catálogos de logística».'
 export const MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR =
   'Lo configura quien tiene el permiso «Configurar el cotizador».'
 
 const DE_CADA_PESTANA: Record<ParteDelOrigen, Omit<PestanaDelOrigen, 'clave'>> = {
   fases: {
     titulo: 'Fases',
-    descripcion: 'Las fases por las que pasa un vehículo de este origen, sus requisitos y reglas.',
+    descripcion:
+      'Las fases por las que pasa un vehículo de este origen, sus requisitos y reglas, y los puertos, navieras, categorías de gasto y tipos de documento de su logística.',
     palabras: [
       'flujo',
       'transiciones',
@@ -31,9 +36,14 @@ const DE_CADA_PESTANA: Record<ParteDelOrigen, Omit<PestanaDelOrigen, 'clave'>> =
       'logística',
       'diagrama',
       'documentos',
+      'puertos',
+      'navieras',
+      'categorías de gasto',
+      'tipos de documento',
+      'catálogos',
     ],
-    permiso: 'flujos.configurar',
-    motivo: MOTIVO_SIN_CONFIGURAR_EL_FLUJO,
+    permisos: ['flujos.configurar', 'logistica.catalogos.gestionar'],
+    motivo: MOTIVO_SIN_LAS_FASES,
   },
   planilla: {
     titulo: 'Planilla',
@@ -51,35 +61,35 @@ const DE_CADA_PESTANA: Record<ParteDelOrigen, Omit<PestanaDelOrigen, 'clave'>> =
       'depreciación',
       'cotizador',
     ],
-    permiso: 'cotizaciones.configurar',
+    permisos: ['cotizaciones.configurar'],
     motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
   },
   hoja: {
     titulo: 'Hoja',
     descripcion: 'Cómo se ve y se llena la cotización.',
     palabras: ['cotizar', 'vista previa', 'diseño'],
-    permiso: 'cotizaciones.configurar',
+    permisos: ['cotizaciones.configurar'],
     motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
   },
   tarjeta: {
     titulo: 'Tarjeta',
     descripcion: 'La imagen que recibe el cliente.',
     palabras: ['PDF', 'imagen', 'logo', 'plantilla'],
-    permiso: 'cotizaciones.configurar',
+    permisos: ['cotizaciones.configurar'],
     motivo: MOTIVO_SIN_CONFIGURAR_EL_COTIZADOR,
   },
   campos: {
     titulo: 'Campos',
     descripcion: 'Los datos que se cargan de cada vehículo y los 4 que su ficha muestra primero.',
     palabras: ['datos del vehículo', 'ficha', 'atributos'],
-    permiso: null,
+    permisos: null,
     motivo: null,
   },
   categorias: {
     titulo: 'Categorías',
     descripcion: 'Las categorías y subcategorías de los vehículos de este origen.',
     palabras: ['subcategorías', 'marca', 'modelo'],
-    permiso: null,
+    permisos: null,
     motivo: null,
   },
 }

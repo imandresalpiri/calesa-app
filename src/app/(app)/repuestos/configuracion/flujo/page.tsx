@@ -20,6 +20,7 @@ export default async function PaginaDelFlujoDeRepuestos({
       permisos={abierto.sesion.permisos}
       fijo={{ ambito: 'repuestos' }}
       seccionPedida={unParametro(parametros['seccion'])}
+      panelPedido={unParametro(parametros['panel'])}
     />
   )
 }

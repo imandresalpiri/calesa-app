@@ -1,10 +1,9 @@
 'use client'
 
-import { RUTAS } from '@/shared/lib/rutas'
+import { rutaDeUnCatalogo } from '@/shared/lib/rutas'
 import { Button } from '@/shared/ui/button'
 import {
-  SIN_NAVIERAS,
-  SIN_PUERTOS,
+  textoSinCatalogo,
   type CatalogoDeTransporte,
   type OfertaDeTransporte as Oferta,
 } from '../../../entities/reglas/oferta'
@@ -20,7 +19,8 @@ type Props = {
   catalogo: CatalogoDeTransporte
   sinPermiso: boolean
   escritura: EscrituraDeReglas
-  puedeCargarCatalogos: boolean
+  origenParaCargar: string | null
+  deRepuestos: boolean
 }
 
 // La oferta de transporte del flujo (sólo con «Transporte» encendida): qué puertos y navieras se ofrecen al cargar el transporte. Sin marcar ninguno, se
@@ -31,14 +31,11 @@ export function OfertaDeTransporte({
   catalogo,
   sinPermiso,
   escritura,
-  puedeCargarCatalogos,
+  origenParaCargar,
+  deRepuestos,
 }: Props) {
-  const cargarEn = (seccion: 'puertos' | 'navieras') =>
-    puedeCargarCatalogos
-      ? seccion === 'puertos'
-        ? RUTAS.puertosDeLogistica
-        : RUTAS.navierasDeLogistica
-      : null
+  const cargarEn = (catalogo: 'puertos' | 'navieras') =>
+    origenParaCargar === null ? null : rutaDeUnCatalogo(origenParaCargar, catalogo)
   const { borrador, hayCambio, marcar, ofrecerTodos, guardar } = useOfertaDeTransporte(
     flujoId,
     oferta,
@@ -66,7 +63,7 @@ export function OfertaDeTransporte({
           hayMas={catalogo.hayMasPuertos}
           guardados={oferta.puertosOrigen}
           marcados={borrador.puertosOrigen}
-          sinCatalogo={SIN_PUERTOS}
+          sinCatalogo={textoSinCatalogo('puertos', deRepuestos)}
           cargarEn={cargarEn('puertos')}
           deshabilitado={apagado}
           alMarcar={(id, marcada) => marcar('puertosOrigen', id, marcada)}
@@ -77,7 +74,7 @@ export function OfertaDeTransporte({
           hayMas={catalogo.hayMasPuertos}
           guardados={oferta.puertosDestino}
           marcados={borrador.puertosDestino}
-          sinCatalogo={SIN_PUERTOS}
+          sinCatalogo={textoSinCatalogo('puertos', deRepuestos)}
           cargarEn={cargarEn('puertos')}
           deshabilitado={apagado}
           alMarcar={(id, marcada) => marcar('puertosDestino', id, marcada)}
@@ -88,7 +85,7 @@ export function OfertaDeTransporte({
           hayMas={catalogo.hayMasNavieras}
           guardados={oferta.navieras}
           marcados={borrador.navieras}
-          sinCatalogo={SIN_NAVIERAS}
+          sinCatalogo={textoSinCatalogo('navieras', deRepuestos)}
           cargarEn={cargarEn('navieras')}
           deshabilitado={apagado}
           alMarcar={(id, marcada) => marcar('navieras', id, marcada)}

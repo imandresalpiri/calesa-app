@@ -21,7 +21,7 @@ type Props = {
   unidadId: string
   datos: TransporteDeLaUnidad
   puedeEditar: boolean
-  puedeCargarNavieras: boolean
+  origenParaCargarNavieras: string | null
   // Vuelve a leer lo de la unidad (la versión nueva tras un conflicto).
   releer: () => void
 }
@@ -71,7 +71,7 @@ export function FormularioDeTransporte({
   unidadId,
   datos,
   puedeEditar,
-  puedeCargarNavieras,
+  origenParaCargarNavieras,
   releer,
 }: Props) {
   const formulario = useRef<HTMLFormElement>(null)
@@ -108,7 +108,7 @@ export function FormularioDeTransporte({
           navieras={opciones.navieras}
           puertosOrigen={opciones.puertosOrigen}
           puertosDestino={opciones.puertosDestino}
-          puedeCargarNavieras={puedeCargarNavieras}
+          origenParaCargarNavieras={origenParaCargarNavieras}
           hayNavieras={hayNavieras}
         />
       </Bloque>
