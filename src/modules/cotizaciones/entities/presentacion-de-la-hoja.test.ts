@@ -70,26 +70,30 @@ const contexto = (
 
 const ids = (secciones: readonly SeccionDeHoja[]) => secciones.map((s) => s.id)
 
-describe('ordenDeLaHoja: el botón «Avanzado» va donde estaba la primera avanzada', () => {
-  it('las principales en su orden y las avanzadas juntas en el lugar de la primera', () => {
-    const orden = ordenDeLaHoja(DOS_AVANZADAS.secciones)
-    expect(orden.map((l) => l.tipo)).toEqual(['seccion', 'avanzado', 'seccion'])
-    const avanzado = orden[1]
-    expect(avanzado?.tipo === 'avanzado' ? ids(avanzado.secciones) : null).toEqual(['x', 'y'])
-    expect(orden.flatMap((l) => (l.tipo === 'seccion' ? [l.seccion.id] : []))).toEqual(['a', 'b'])
+// Lo que dice cada lugar: el id de la sección, o el bloque con sus avanzadas y si lleva el total suelto y el cierre.
+const resumen = (lugares: ReturnType<typeof ordenDeLaHoja>) =>
+  lugares.map((l) =>
+    l.tipo === 'seccion'
+      ? l.seccion.id
+      : `bloque[${ids(l.avanzadas).join(',')}]${l.total ? '+total' : ''}${l.cierre ? '+cierre' : ''}`,
+  )
+
+describe('ordenDeLaHoja sin posiciones: el bloque del avanzado va donde estaba la primera avanzada', () => {
+  it('las principales en su orden y las avanzadas juntas en el bloque, en el lugar de la primera', () => {
+    expect(resumen(ordenDeLaHoja(DOS_AVANZADAS.secciones))).toEqual(['a', 'bloque[x,y]', 'b'])
   })
 
-  it('sin ninguna avanzada no hay botón', () => {
+  it('sin ninguna avanzada, ni total suelto ni cierre, no hay bloque', () => {
     const hoja = hojaCon([seccion('a', 'principal', 'A', [celda('a1')])])
-    expect(ordenDeLaHoja(hoja.secciones).map((l) => l.tipo)).toEqual(['seccion'])
+    expect(resumen(ordenDeLaHoja(hoja.secciones))).toEqual(['a'])
   })
 
-  it('una sola avanzada al principio abre el orden con el botón', () => {
+  it('una sola avanzada al principio abre el orden con el bloque', () => {
     const hoja = hojaCon([
       seccion('x', 'avanzado', 'X', [celda('x1')]),
       seccion('a', 'principal', 'A', [celda('a1')]),
     ])
-    expect(ordenDeLaHoja(hoja.secciones).map((l) => l.tipo)).toEqual(['avanzado', 'seccion'])
+    expect(resumen(ordenDeLaHoja(hoja.secciones))).toEqual(['bloque[x]', 'a'])
   })
 
   it('sin secciones no hay nada', () => {
@@ -97,41 +101,57 @@ describe('ordenDeLaHoja: el botón «Avanzado» va donde estaba la primera avanz
   })
 })
 
-describe('ordenDeLaHoja: la tarjeta del total suelta y el cierre', () => {
-  const tipos = (h: HojaLista, o: Parameters<typeof ordenDeLaHoja>[1]) =>
-    ordenDeLaHoja(h.secciones, o).map((l) => l.tipo)
+describe('ordenDeLaHoja: el total suelto y el cierre van en el mismo bloque', () => {
+  const de = (h: HojaLista, o: Parameters<typeof ordenDeLaHoja>[1]) =>
+    resumen(ordenDeLaHoja(h.secciones, o))
 
-  it('con «Avanzado»: el total justo antes y el cierre justo después', () => {
-    expect(tipos(DOS_AVANZADAS, { totalSuelto: true, conCierre: true })).toEqual([
-      'seccion',
-      'total',
-      'avanzado',
-      'cierre',
-      'seccion',
+  it('con «Avanzado»: un solo bloque con el total y el cierre', () => {
+    expect(de(DOS_AVANZADAS, { totalSuelto: true, conCierre: true })).toEqual([
+      'a',
+      'bloque[x,y]+total+cierre',
+      'b',
     ])
   })
 
-  it('sin «Avanzado»: los dos al final, el total primero', () => {
+  it('sin «Avanzado»: el bloque al final, con el total y el cierre', () => {
     const hoja = hojaCon([seccion('a', 'principal', 'A', [celda('a1')])])
-    expect(tipos(hoja, { totalSuelto: true, conCierre: true })).toEqual([
-      'seccion',
-      'total',
-      'cierre',
+    expect(de(hoja, { totalSuelto: true, conCierre: true })).toEqual(['a', 'bloque[]+total+cierre'])
+    expect(de(hoja, { conCierre: true })).toEqual(['a', 'bloque[]+cierre'])
+  })
+
+  it('con la pieza en su sección, sin el total suelto; sin cierre (el editor), sólo las avanzadas', () => {
+    expect(de(DOS_AVANZADAS, { totalSuelto: false, conCierre: false })).toEqual([
+      'a',
+      'bloque[x,y]',
+      'b',
+    ])
+  })
+})
+
+describe('ordenDeLaHoja con posiciones: orden de lectura y el bloque en su fila', () => {
+  const conLugar = (columna: number, fila: number) => ({ posicion: { columna, fila } })
+  // Declaradas fuera de orden: «d» a la derecha de «c» en la fila 1, «e» en la 4; las avanzadas al revés.
+  const EN_REJILLA = hojaCon([
+    { ...seccion('e', 'principal', 'E', [celda('e1')]), ...conLugar(1, 4) },
+    { ...seccion('y', 'avanzado', 'Y', [celda('y1')]), ...conLugar(1, 2) },
+    { ...seccion('d', 'principal', 'D', [celda('d1')]), ancho: 6, ...conLugar(7, 1) },
+    { ...seccion('x', 'avanzado', 'X', [celda('x1')]), ...conLugar(1, 1) },
+    { ...seccion('c', 'principal', 'C', [celda('c1')]), ancho: 6, ...conLugar(1, 1) },
+  ])
+
+  it('las principales por fila y columna, y el bloque antes de la primera que va debajo de su fila', () => {
+    expect(resumen(ordenDeLaHoja(EN_REJILLA.secciones, { filaDelBloque: 2 }))).toEqual([
+      'c',
+      'd',
+      'bloque[x,y]',
+      'e',
     ])
   })
 
-  it('con la pieza en su sección, sin el total suelto; sin cierre (el editor), nada después', () => {
-    expect(tipos(DOS_AVANZADAS, { totalSuelto: false, conCierre: false })).toEqual([
-      'seccion',
-      'avanzado',
-      'seccion',
-    ])
-    expect(tipos(DOS_AVANZADAS, { conCierre: true })).toEqual([
-      'seccion',
-      'avanzado',
-      'cierre',
-      'seccion',
-    ])
+  it('con el bloque debajo de todas, al final', () => {
+    expect(
+      resumen(ordenDeLaHoja(EN_REJILLA.secciones, { filaDelBloque: 5, conCierre: true })),
+    ).toEqual(['c', 'd', 'e', 'bloque[x,y]+cierre'])
   })
 })
 

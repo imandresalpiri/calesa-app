@@ -6,6 +6,7 @@ import {
   ENFASIS,
   esquemaColumnas,
   esquemaFilas,
+  esquemaPosicion,
   LETRAS,
   PRESENTACIONES,
   RELLENOS,
@@ -74,6 +75,8 @@ const aspectoDeItem = {
   alto: esquemaFilas.optional(),
   letra: z.enum(LETRAS).optional(),
   enfasis: z.enum(ENFASIS).optional(),
+  // Su lugar en la rejilla de su sección: la base siempre lo manda (el diseño se convierte al leerse); opcional para las hojas de prueba.
+  posicion: esquemaPosicion.optional(),
 }
 const anchoDeItem = { ancho: esquemaColumnas.optional(), ...aspectoDeItem }
 const aspectoComun = {
@@ -213,6 +216,7 @@ const esquemaSeccion = z.object({
   presentacion: z.enum(PRESENTACIONES),
   ancho: esquemaColumnas.optional(),
   alto: esquemaFilas.optional(),
+  posicion: esquemaPosicion.optional(),
   separacion: z.enum(SEPARACIONES).optional(),
   densidad: z.enum(DENSIDADES_DE_SECCION).optional(),
   ...aspectoComun,
@@ -263,6 +267,8 @@ export const esquemaDeDiseno = z.object({
     })
     .nullable()
     .optional(),
+  // La fila del bloque del avanzado en la rejilla de las secciones (docs/GLOSARIO.md › «Bloque del avanzado»): sólo si el diseño tiene avanzadas.
+  avanzado: z.object({ fila: z.int().positive() }).optional(),
 })
 export const esquemaLista = esquemaDeDiseno.extend({
   estado: z.literal('lista'),

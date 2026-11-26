@@ -2,14 +2,17 @@
 // claves que el diseño trae. Una ausente no se escribe como `undefined`: la pieza sin aspecto es idéntica a la de siempre (y las pruebas comparan
 // con `toStrictEqual`). Las claves son de una palabra: valen igual en la respuesta de la base y en la pantalla.
 import type { DensidadDeSeccion, Enfasis, Letra, Relleno, Separacion } from './diseno'
+import type { Posicion } from './rejilla-de-la-hoja'
 
-// Lo que lleva todo ítem; la celda tiene además su `ancho` obligatorio (con nombre o en columnas).
-export type AspectoDeItem = { alto?: number; letra?: Letra; enfasis?: Enfasis }
+// Lo que lleva todo ítem; la celda tiene además su `ancho` obligatorio (con nombre o en columnas). La posición es su lugar en la rejilla de su sección
+// (docs/GLOSARIO.md › «Posición (en la rejilla)»): la base siempre la manda; sin ella (un diseño de prueba), el flujo de siempre.
+export type AspectoDeItem = { alto?: number; letra?: Letra; enfasis?: Enfasis; posicion?: Posicion }
 // Los demás ítems (atajos, variante, interruptor, subtotal): su ancho en columnas, opcional (sin él, la fila entera).
 export type AspectoDeItemConAncho = AspectoDeItem & { ancho?: number }
 export type AspectoDeSeccion = {
   ancho?: number
   alto?: number
+  posicion?: Posicion
   relleno?: Relleno
   separacion?: Separacion
   densidad?: DensidadDeSeccion
@@ -24,11 +27,12 @@ export type AspectoDeCabecera = {
   enfasis?: Enfasis
 }
 
-const CLAVES_DEL_ITEM = ['alto', 'letra', 'enfasis'] as const
+const CLAVES_DEL_ITEM = ['alto', 'letra', 'enfasis', 'posicion'] as const
 const CLAVES_DEL_ITEM_CON_ANCHO = ['ancho', ...CLAVES_DEL_ITEM] as const
 const CLAVES_DE_LA_SECCION = [
   'ancho',
   'alto',
+  'posicion',
   'relleno',
   'separacion',
   'densidad',

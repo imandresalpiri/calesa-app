@@ -152,6 +152,8 @@ export type DisenoDeHoja = {
   tonos: Tono[]
   // La variante en par (`hoja-en-par.ts`); sin la clave, la hoja de siempre.
   par?: ParDeHoja
+  // La fila del bloque del avanzado en la rejilla de las secciones (docs/GLOSARIO.md › «Bloque del avanzado»); sin la clave, debajo de la última fila.
+  avanzado?: { fila: number }
 }
 
 export type HojaLista = DisenoDeHoja & {
@@ -293,6 +295,7 @@ export function disenoDe(h: Crudo<typeof esquemaDeDiseno>): DisenoDeHoja {
     ...(h.par
       ? { par: { nodo: h.par.nodo, etiqueta: h.par.etiqueta, opciones: h.par.opciones } }
       : {}),
+    ...(h.avanzado ? { avanzado: { fila: h.avanzado.fila } } : {}),
   }
 }
 

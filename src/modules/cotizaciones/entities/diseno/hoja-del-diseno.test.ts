@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { esquemaDefinicion } from '../formula'
-import { celda, disenoDe, formulaDePrueba, seccion } from './diseno-de-prueba.soporte'
+import {
+  celda,
+  disenoDe,
+  disenoDeRejillaDePrueba,
+  formulaDePrueba,
+  seccion,
+} from './diseno-de-prueba.soporte'
 import { hojaDeLaVistaPrevia } from './hoja-del-diseno'
 
 const ORIGEN = { id: '11111111-1111-4111-8111-111111111111', nombre: 'Miami' }
@@ -125,9 +131,11 @@ describe('hojaDeLaVistaPrevia: el aspecto', () => {
       conGrupo,
       tonos,
     )
+    // La posición llega siempre: el diseño se lee en la rejilla.
     expect(Object.keys(sinAspecto.secciones[0] ?? {}).sort()).toStrictEqual([
       'id',
       'items',
+      'posicion',
       'presentacion',
       'titulo',
     ])
@@ -158,6 +166,31 @@ describe('hojaDeLaVistaPrevia: el aspecto', () => {
     expect(hoja.cabecera).toMatchObject({ tono: 'costos', relleno: 'grande' })
     // La sección que no se dibuja no pinta su tono; los del catálogo que se usan, sí.
     expect(hoja.tonos.map((t) => t.clave)).toStrictEqual(['costos', 'sobra'])
+  })
+})
+
+describe('hojaDeLaVistaPrevia: la rejilla libre', () => {
+  it('T1 · copia la posición de cada sección y cada ítem, y la fila del bloque del avanzado', () => {
+    const hoja = hojaDeLaVistaPrevia(ORIGEN, disenoDeRejillaDePrueba(), formulaDePrueba, [])
+    expect(hoja.avanzado).toStrictEqual({ fila: 2 })
+    expect(hoja.secciones.map((s) => [s.id, s.posicion])).toStrictEqual([
+      ['base', { columna: 1, fila: 1 }],
+      ['extra', { columna: 7, fila: 1 }],
+      ['av', { columna: 1, fila: 1 }],
+    ])
+    expect(hoja.secciones[0]?.items.map((i) => i.posicion)).toStrictEqual([
+      { columna: 1, fila: 1 },
+      { columna: 7, fila: 1 },
+      { columna: 1, fila: 2 },
+    ])
+    // Sin la clave, la hoja tampoco la lleva.
+    const sinBloque = hojaDeLaVistaPrevia(
+      ORIGEN,
+      disenoDe([seccion('s', [celda('a')])]),
+      conGrupo,
+      [],
+    )
+    expect(sinBloque).not.toHaveProperty('avanzado')
   })
 })
 

@@ -1,38 +1,57 @@
 import { itemSeDibuja, propsDeCelda, type ContextoDeHoja } from './binding'
 import type { BloqueEnLaHoja, CeldaDeHoja, SeccionDeHoja } from './hoja'
+import { enOrdenDeLectura } from './rejilla-de-la-hoja'
 
-// Lo que la hoja dibuja en cada lugar (paso 4.13-4a, `docs/COTIZADOR.md` › «El diseño de la hoja (D7)»): las secciones `principal` en su orden, y las `avanzado` juntas detrás de **un**
-// botón «Avanzado» que va donde estaba la primera de ellas. Con `totalSuelto` (el diseño no ubica la tarjeta del total, o la hoja va en par), la tarjeta del total sola
-// justo antes de «Avanzado»; con `conCierre` (la hoja guarda: «Guardar», su motivo y lo que dijo el guardado), el cierre justo después. Sin «Avanzado», los dos van al
-// final. Puro: la hoja recibe sólo las secciones que se dibujan (`seccionSeDibuja`).
+// Lo que la hoja dibuja en cada lugar (`docs/COTIZADOR.md` › «El diseño de la hoja (D7)»): las secciones `principal` en orden de lectura (fila y luego columna;
+// sin posiciones, en su orden) y **un** bloque del avanzado (docs/GLOSARIO.md › «Bloque del avanzado») con las `avanzado` detrás del botón «Avanzado», la
+// tarjeta del total sola justo antes con `totalSuelto` (el diseño no la ubica, o la hoja va en par) y el cierre justo después con `conCierre` (la hoja guarda:
+// «Guardar», su motivo y lo que dijo el guardado). El bloque va en su fila (`filaDelBloque`, de `rejillaDeLasSecciones()`) o, sin posiciones, donde estaba la
+// primera avanzada; sin avanzadas, al final. Puro: la hoja recibe sólo las secciones que se dibujan (`seccionSeDibuja`).
 export type LugarDeLaHoja =
   | { tipo: 'seccion'; seccion: SeccionDeHoja }
-  | { tipo: 'avanzado'; secciones: SeccionDeHoja[] }
-  | { tipo: 'total' }
-  | { tipo: 'cierre' }
+  | { tipo: 'bloque'; avanzadas: SeccionDeHoja[]; total: boolean; cierre: boolean }
+
+const posicionDe = (s: SeccionDeHoja) => s.posicion
+const esAvanzada = (s: SeccionDeHoja) => s.presentacion === 'avanzado'
 
 export function ordenDeLaHoja(
   secciones: readonly SeccionDeHoja[],
-  { totalSuelto = false, conCierre = false }: { totalSuelto?: boolean; conCierre?: boolean } = {},
+  {
+    totalSuelto = false,
+    conCierre = false,
+    filaDelBloque,
+  }: { totalSuelto?: boolean; conCierre?: boolean; filaDelBloque?: number } = {},
 ): LugarDeLaHoja[] {
-  const avanzadas = secciones.filter((s) => s.presentacion === 'avanzado')
-  const lugares: LugarDeLaHoja[] = []
-  let puesto = false
-  for (const seccion of secciones) {
-    if (seccion.presentacion !== 'avanzado') {
-      lugares.push({ tipo: 'seccion', seccion })
-    } else if (!puesto) {
-      puesto = true
-      if (totalSuelto) lugares.push({ tipo: 'total' })
-      lugares.push({ tipo: 'avanzado', secciones: avanzadas })
-      if (conCierre) lugares.push({ tipo: 'cierre' })
-    }
-  }
-  if (!puesto) {
-    if (totalSuelto) lugares.push({ tipo: 'total' })
-    if (conCierre) lugares.push({ tipo: 'cierre' })
-  }
+  const principales = enOrdenDeLectura(
+    secciones.filter((s) => !esAvanzada(s)),
+    posicionDe,
+  )
+  const avanzadas = enOrdenDeLectura(secciones.filter(esAvanzada), posicionDe)
+  const lugares: LugarDeLaHoja[] = principales.map((seccion) => ({ tipo: 'seccion', seccion }))
+  if (avanzadas.length === 0 && !totalSuelto && !conCierre) return lugares
+  lugares.splice(dondeVaElBloque(secciones, principales, filaDelBloque), 0, {
+    tipo: 'bloque',
+    avanzadas,
+    total: totalSuelto,
+    cierre: conCierre,
+  })
   return lugares
+}
+
+// Cuántas principales van antes del bloque: con su fila, las que empiezan más arriba; sin ella, las que la lista declara antes de la primera avanzada.
+function dondeVaElBloque(
+  secciones: readonly SeccionDeHoja[],
+  principales: readonly SeccionDeHoja[],
+  filaDelBloque: number | undefined,
+): number {
+  if (filaDelBloque !== undefined) {
+    const despues = principales.findIndex((s) => (s.posicion?.fila ?? 0) > filaDelBloque)
+    return despues === -1 ? principales.length : despues
+  }
+  const primera = secciones.findIndex(esAvanzada)
+  return primera === -1
+    ? principales.length
+    : secciones.slice(0, primera).filter((s) => !esAvanzada(s)).length
 }
 
 // La tarjeta del total va sola (arriba de «Avanzado») si ninguna sección principal que se dibuja la ubica, o si la hoja va en par (la pieza no dibuja nada: mandan los

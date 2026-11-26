@@ -4,10 +4,13 @@ import { useContext, useMemo, type ReactNode } from 'react'
 import type { ContextoDeHoja } from '../../../entities/binding'
 import type { SeccionDeHoja as Seccion } from '../../../entities/hoja'
 import type { DeDondeCalcula } from '../../../entities/pedido-de-recalculo'
+import type { RejillaDeLasSecciones } from '../../../entities/posiciones-de-la-hoja'
 import { ordenDeLaHoja } from '../../../entities/presentacion-de-la-hoja'
 import { useAyudaDeLaHoja } from '../hooks/use-ayuda-de-la-hoja'
 import type { AccionesDeHoja } from '../hooks/use-hoja'
 import { AvanzadoDeLaHoja } from './avanzado-de-la-hoja'
+import { estiloDelBloque } from './clases-de-la-posicion'
+import { claseDelBloque } from './clases-de-la-rejilla'
 import { ContextoDelAjuste } from './hueco-del-ajuste'
 import type { AjusteEnLaHoja } from './huecos'
 import { LugarDeAyuda } from './lugar-de-ayuda'
@@ -30,6 +33,8 @@ type Props = {
   totalSuelto?: ReactNode
   // El cierre de la hoja («Guardar», su motivo y la región viva del guardado): a todo el ancho, justo debajo de «Avanzado».
   cierre?: ReactNode
+  // Con posiciones, desde qué corte y en qué fila va el bloque del avanzado (`rejillaDeLasSecciones()`); sin ella, el flujo de siempre.
+  rejilla?: RejillaDeLasSecciones | null
 }
 
 export type PropsDeLosLugares = Omit<Props, 'formula' | 'alRecargar'> & {
@@ -49,9 +54,10 @@ export function LugaresDeLaHoja(props: Props) {
 
 const A_TODO_EL_ANCHO = 'col-span-12 min-w-0'
 
-// Las secciones principales en su orden, con «Avanzado» (el botón y su modal) donde estaba la primera avanzada, y la ayuda en bloques de sus celdas: quien guarda
-// en la URL cuál se abre es la hoja, y el callback que reciben las celdas es uno solo (la `XCell` está en `memo`). El ajuste de una celda va en el mismo lugar que la ayuda:
-// con las secciones principales aquí y con las avanzadas dentro del modal. El total suelto va justo encima de «Avanzado» y el cierre justo debajo, los dos a todo el ancho.
+// Las secciones principales en orden de lectura, con el bloque del avanzado (docs/GLOSARIO.md › «Bloque del avanzado»: el total suelto, «Avanzado» —el botón y su
+// modal— y el cierre, a todo el ancho) en su fila o, sin posiciones, donde estaba la primera avanzada; y la ayuda en bloques de sus celdas: quien guarda en la URL cuál
+// se abre es la hoja, y el callback que reciben las celdas es uno solo (la `XCell` está en `memo`). El ajuste de una celda va en el mismo lugar que la ayuda: con las
+// secciones principales aquí y con las avanzadas dentro del modal.
 export function LugaresDibujados({
   secciones,
   contexto,
@@ -62,6 +68,7 @@ export function LugaresDibujados({
   alAjustar,
   totalSuelto = null,
   cierre = null,
+  rejilla = null,
 }: PropsDeLosLugares) {
   // Mientras guarda, la hoja no se toca (`inert`): la ayuda, que va por un portal fuera de ella, tampoco escribe.
   const { ayuda, alAyudar } = useAyudaDeLaHoja(de, guardando ? undefined : deLaHoja.alAplicar)
@@ -72,7 +79,9 @@ export function LugaresDibujados({
   const lugares = ordenDeLaHoja(secciones, {
     totalSuelto: totalSuelto !== null,
     conCierre: cierre !== null,
+    ...(rejilla ? { filaDelBloque: rejilla.filaDelBloque } : {}),
   })
+  const corte = rejilla?.corte
   const principales = secciones.filter((s) => s.presentacion !== 'avanzado')
   return (
     <>
@@ -86,30 +95,29 @@ export function LugaresDibujados({
                 contexto={contexto}
                 acciones={acciones}
                 enLaRejilla
+                {...(corte === undefined ? {} : { corte })}
               />
             )
-          case 'avanzado':
+          case 'bloque':
             return (
-              <AvanzadoDeLaHoja
-                key="avanzado"
-                secciones={lugar.secciones}
-                contexto={contexto}
-                acciones={acciones}
-                guardando={guardando}
-                ayuda={ayuda}
-                ajuste={ajuste}
-              />
-            )
-          case 'total':
-            return (
-              <div key="total" className={A_TODO_EL_ANCHO}>
-                {totalSuelto}
-              </div>
-            )
-          case 'cierre':
-            return (
-              <div key="cierre" className={A_TODO_EL_ANCHO}>
-                {cierre}
+              <div
+                key="bloque"
+                data-bloque-del-avanzado=""
+                className={claseDelBloque(corte)}
+                style={rejilla ? estiloDelBloque(rejilla.filaDelBloque, corte) : undefined}
+              >
+                {lugar.total ? <div className={A_TODO_EL_ANCHO}>{totalSuelto}</div> : null}
+                {lugar.avanzadas.length > 0 ? (
+                  <AvanzadoDeLaHoja
+                    secciones={lugar.avanzadas}
+                    contexto={contexto}
+                    acciones={acciones}
+                    guardando={guardando}
+                    ayuda={ayuda}
+                    ajuste={ajuste}
+                  />
+                ) : null}
+                {lugar.cierre ? <div className={A_TODO_EL_ANCHO}>{cierre}</div> : null}
               </div>
             )
         }
