@@ -22,6 +22,7 @@ import {
   tarjetaDelOrigen,
 } from './soporte/origenes'
 import { apagarApibara } from './soporte/apibara'
+import { elegirEnCombo } from './soporte/combo'
 import { abrirElCampo, elegirDelMenu, filaDelCampo, lineaApagada } from './soporte/editor-de-campos'
 import { descartarAviso } from './soporte/inventario'
 import { ingresar } from './soporte/pasos'
@@ -220,7 +221,7 @@ test('se edita el layout de campos y se refleja', async ({ page }) => {
   await panel.getByLabel('Nueva opción').press('Enter')
   await panel.getByLabel('Nueva opción').fill('Full')
   await panel.getByRole('button', { name: 'Agregar' }).click()
-  await panel.getByLabel('Grupo').fill('Venta')
+  await elegirEnCombo(page, panel, 'Grupo', 'Venta')
   await panel.getByRole('button', { name: 'Crear campo' }).click()
   await descartarAviso(page, 'Campo «Kit de extras» creado')
   const kit = await campoDelOrigen(corea.id, 'kit_de_extras')

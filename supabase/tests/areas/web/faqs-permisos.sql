@@ -116,7 +116,9 @@ declare
   v_e text;
 begin
   delete from public.web_faqs;
-  insert into public.web_faqs (pregunta, respuesta, categoria, publicada, orden) values ('Publicada', 'R1', 'Envíos', true, 1);
+  insert into public.web_categorias_faqs (nombre) values ('Envíos');
+  insert into public.web_faqs (pregunta, respuesta, categoria_id, publicada, orden)
+  values ('Publicada', 'R1', (select id from public.web_categorias_faqs where nombre = 'Envíos'), true, 1);
   insert into public.web_faqs (pregunta, respuesta, publicada, orden) values ('Borrador', 'R2', false, 2);
   if (pg_temp.wf_corre(v_nadie, 'select count(*) from public.web_faqs') ->> 'v')::int <> 2 then
     raise exception 'F3: quien tiene sesión debe leer las dos';
@@ -125,6 +127,9 @@ begin
   select count(*) into v_n from web.faqs;
   if v_n <> 1 or (select pregunta from web.faqs) is distinct from 'Publicada' then
     raise exception 'F4: web.faqs debe traer sólo la publicada (trajo %)', v_n;
+  end if;
+  if (select categoria from web.faqs) is distinct from 'Envíos' then
+    raise exception 'F4: web.faqs debe traer el nombre de la categoría (trajo %)', (select categoria from web.faqs);
   end if;
   begin
     perform 1 from public.web_faqs limit 1;

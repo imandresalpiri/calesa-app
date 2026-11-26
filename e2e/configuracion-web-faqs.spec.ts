@@ -2,12 +2,13 @@
 import { expect, test, type Page } from './soporte/prueba'
 import { admin } from './soporte/base'
 import { entrar, limpiarInventario, prepararInventario } from './soporte/inventario'
+import { elegirEnCombo } from './soporte/combo'
 import { cicloDeUnaConfirmacion } from './soporte/confirmar-por-url'
 import { elegirDelMenu, masAccionesDe } from './soporte/lista-de-catalogo'
 import { faqsPublicas } from './soporte/web-publica'
 
 // Las preguntas frecuentes de Configuración › Sitio web (8.02-1): la dueña crea una (nace sin publicar y la web pública no la ve), la publica desde el
-// panel (la web la trae con su categoría), crea otra y la sube (cambia el orden que ve la web), despublica desde el «⋯» (deja de verse) y elimina con el
+// panel (la web la trae con su categoría, creada desde el combo), crea otra y la sube (cambia el orden que ve la web), despublica desde el «⋯» (deja de verse) y elimina con el
 // diálogo de su URL. El límite de permisos y las versiones están en `supabase/tests/areas/web/faqs-permisos.sql`.
 test.describe.configure({ mode: 'serial' })
 
@@ -16,10 +17,20 @@ let duena = ''
 let proyecto = ''
 const pregunta = (resto: string) => `${PREFIJO} ${resto} ${proyecto}`
 
+const categoria = (nombre: string) => `${PREFIJO} ${nombre}`
+
+// Las preguntas y después sus categorías (una categoría con preguntas no se borra).
 async function borrarFaqsDePrueba(): Promise<void> {
   const { error } = await admin().from('web_faqs').delete().like('pregunta', `${PREFIJO}%`)
   if (error) {
     throw new Error(`No se pudieron borrar las preguntas de prueba: ${error.message}`)
+  }
+  const categorias = await admin()
+    .from('web_categorias_faqs')
+    .delete()
+    .like('nombre', `${PREFIJO}%`)
+  if (categorias.error) {
+    throw new Error(`No se pudieron borrar las categorías de prueba: ${categorias.error.message}`)
   }
 }
 
@@ -41,7 +52,12 @@ async function crear(page: Page, texto: string, respuesta: string, categoria: st
   await expect(page.getByRole('dialog', { name: 'Nueva pregunta' })).toBeVisible()
   await page.getByLabel('Pregunta', { exact: true }).fill(texto)
   await page.getByLabel('Respuesta', { exact: true }).fill(respuesta)
-  await page.getByLabel('Categoría (opcional)').fill(categoria)
+  await elegirEnCombo(
+    page,
+    page.getByRole('dialog', { name: 'Nueva pregunta' }),
+    'Categoría (opcional)',
+    categoria,
+  )
   await page.getByRole('button', { name: 'Crear pregunta' }).click()
   await expect(page.getByText('Pregunta creada.')).toBeVisible()
   await expect(panel(page)).toBeHidden()
@@ -68,7 +84,7 @@ test('crear, publicar, ordenar, despublicar y eliminar: lo que ve la web públic
   await expect(page.getByRole('heading', { name: 'Preguntas frecuentes', level: 1 })).toBeVisible()
 
   // Una pregunta nueva nace sin publicar: la lista lo dice y la web pública no la trae.
-  await crear(page, primera, 'Sí, un año.', 'Garantía')
+  await crear(page, primera, 'Sí, un año.', categoria('Garantía'))
   await expect(page.getByRole('button', { name: `Abrir ${primera}`, exact: true })).toBeVisible()
   await expect(
     page.locator('tr, li').filter({ hasText: primera }).getByText('Sin publicar'),
@@ -84,11 +100,11 @@ test('crear, publicar, ordenar, despublicar y eliminar: lo que ve la web públic
   await expect(panel(page)).toBeHidden()
   const publicas = await faqsPublicas(PREFIJO)
   expect(publicas.map((f) => [f.pregunta, f.respuesta, f.categoria])).toEqual([
-    [primera, 'Sí, un año.', 'Garantía'],
+    [primera, 'Sí, un año.', categoria('Garantía')],
   ])
 
   // Una segunda pregunta nace al final; publicada y subida, la web la trae primero.
-  await crear(page, segunda, 'Entre 30 y 45 días.', 'Envíos')
+  await crear(page, segunda, 'Entre 30 y 45 días.', categoria('Envíos'))
   await page.getByRole('button', { name: `Abrir ${segunda}`, exact: true }).click()
   await page.getByRole('switch', { name: 'Publicada' }).click()
   await page.getByRole('button', { name: 'Guardar', exact: true }).click()

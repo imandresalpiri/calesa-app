@@ -1,8 +1,8 @@
 'use client'
 
-import { useId } from 'react'
 import {
   ETIQUETA_DE_TIPO_DE_CAMPO,
+  LARGO_DEL_NOMBRE_DE_GRUPO,
   MOTIVO_CAMPO_DE_FABRICA,
   tieneOpciones,
   tieneRango,
@@ -10,12 +10,13 @@ import {
   type TipoDeCampo,
 } from '@/shared/lib/campos'
 import { Campo } from '@/shared/ui/campo'
+import { ComboDeCatalogo, type TextosDelCombo } from '@/shared/ui/combo-de-catalogo'
 import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
 import { Interruptor } from '@/shared/ui/interruptor'
 import { CampoRango } from './campo-rango'
 import { CampoValorDefecto } from './campo-valor-defecto'
 import { EditorDeOpciones } from './editor-de-opciones'
-import type { BanderaDeCampo, ErroresDeCampo, ValoresDeCampo } from './tipos'
+import type { BanderaDeCampo, ErroresDeCampo, GruposDelEditor, ValoresDeCampo } from './tipos'
 
 type Props = {
   valores: ValoresDeCampo
@@ -25,7 +26,7 @@ type Props = {
   campo: CampoBase | null
   banderas: readonly BanderaDeCampo[]
   tipos: readonly TipoDeCampo[]
-  gruposExistentes: readonly string[]
+  grupos: GruposDelEditor
   errores: ErroresDeCampo
   deshabilitado: boolean
 }
@@ -70,39 +71,41 @@ function Banderas(props: PropsDeBanderas) {
   )
 }
 
+const TEXTOS_DEL_COMBO: TextosDelCombo = {
+  sinValor: 'Sin grupo',
+  buscar: 'Buscar o crear un grupo',
+  crear: (nombre) => `Crear grupo «${nombre}»`,
+  vacio: 'Todavía no hay grupos. Escribe uno para crearlo.',
+  existe: (nombre) => `Ya existe «${nombre}».`,
+  inactivo: (nombre) => `Ya existe «${nombre}» (inactivo): actívalo en «Grupos».`,
+}
+
 type PropsDeGrupo = {
-  valor: string
-  alCambiar: (grupo: string) => void
-  existentes: readonly string[]
+  valor: string | null
+  alCambiar: (grupoId: string | null) => void
+  grupos: GruposDelEditor
   error: string | undefined
   deshabilitado: boolean
 }
 
-// El grupo se escribe libre, con los que ya existen como sugerencia.
-function CampoGrupo({ valor, alCambiar, existentes, error, deshabilitado }: PropsDeGrupo) {
-  const idGrupos = useId()
+// El grupo se elige del catálogo del layout o se crea escribiéndolo: lo que ya existe con otra escritura se ofrece en vez de duplicarlo.
+function CampoGrupo({ valor, alCambiar, grupos, error, deshabilitado }: PropsDeGrupo) {
   return (
-    <div className="grid gap-1.5">
-      <Campo
-        nombre="grupo"
-        etiqueta="Grupo"
-        autoComplete="off"
-        maxLength={40}
-        list={idGrupos}
-        value={valor}
-        onChange={(evento) => {
-          alCambiar(evento.target.value)
-        }}
-        error={error}
-        ayuda="El bloque del formulario donde va. Cambiarlo lo manda al final del grupo."
-        disabled={deshabilitado}
-      />
-      <datalist id={idGrupos}>
-        {existentes.map((grupo) => (
-          <option key={grupo} value={grupo} />
-        ))}
-      </datalist>
-    </div>
+    <ComboDeCatalogo
+      nombre="grupoId"
+      etiqueta="Grupo"
+      valor={valor}
+      elementos={grupos.lista}
+      hayMas={grupos.hayMas}
+      textos={TEXTOS_DEL_COMBO}
+      maximoDelNombre={LARGO_DEL_NOMBRE_DE_GRUPO}
+      puedeCrear={grupos.puedeCrear && !deshabilitado}
+      alElegir={alCambiar}
+      alCrear={grupos.crear}
+      ayuda="El bloque del formulario y la ficha donde va; cambiarlo lo manda al final."
+      error={error}
+      deshabilitado={deshabilitado}
+    />
   )
 }
 
@@ -138,7 +141,7 @@ function ValorYRango({ valores, alCambiar, errores, deshabilitado }: PropsDelVal
 // Los datos de un campo del layout. La clave sale de la etiqueta al crear y no cambia después.
 export function CamposDeCampo(props: Props) {
   const { valores, alCambiar, alCambiarBandera, campo, banderas, tipos } = props
-  const { gruposExistentes, errores, deshabilitado } = props
+  const { grupos, errores, deshabilitado } = props
   const esNuevo = campo === null
   const tipoFijo = campo?.esSistema ?? false
   return (
@@ -191,12 +194,12 @@ export function CamposDeCampo(props: Props) {
         deshabilitado={deshabilitado}
       />
       <CampoGrupo
-        valor={valores.grupo}
-        alCambiar={(grupo) => {
-          alCambiar({ grupo })
+        valor={valores.grupoId}
+        alCambiar={(grupoId) => {
+          alCambiar({ grupoId })
         }}
-        existentes={gruposExistentes}
-        error={errores.grupo}
+        grupos={grupos}
+        error={errores.grupoId}
         deshabilitado={deshabilitado}
       />
       <Banderas

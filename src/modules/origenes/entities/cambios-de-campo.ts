@@ -14,7 +14,7 @@ export type CambiosDeCampo = Partial<{
   tipo: TipoDeCampo
   opciones: OpcionDeCampo[]
   requerido: boolean
-  grupo: string | null
+  grupoId: string | null
   enTarjeta: boolean
   filtrable: boolean
   publicoWeb: boolean
@@ -32,7 +32,7 @@ const COLUMNA_DE = {
   etiqueta: 'etiqueta',
   tipo: 'tipo',
   requerido: 'requerido',
-  grupo: 'grupo',
+  grupoId: 'grupo_id',
   enTarjeta: 'en_tarjeta',
   filtrable: 'filtrable',
   publicoWeb: 'publico_web',
@@ -66,7 +66,7 @@ const CLAVES_SIMPLES = [
   'etiqueta',
   'tipo',
   'requerido',
-  'grupo',
+  'grupoId',
   'enTarjeta',
   'filtrable',
   'publicoWeb',

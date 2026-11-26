@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { leerDatosNuevosDeApibara, leerLayout } from '@/modules/origenes'
+import { leerDatosNuevosDeApibara, leerGruposDelOrigen, leerLayout } from '@/modules/origenes'
 import { DatosNuevosDeApibara, EditorDeCampos } from '@/modules/origenes/pantallas/origen-campos'
 import { datosO } from '@/shared/lib/errores'
 import { abrirOrigen } from '../../abrir-origen'
@@ -18,8 +18,9 @@ export default async function PaginaCamposDelOrigen({
     return <NoSeAbre abierto={abierto} />
   }
   const { origen, puedeGestionar } = abierto
-  const [layout, nuevos] = await Promise.all([
+  const [layout, grupos, nuevos] = await Promise.all([
     leerLayout(origen.id, { conUso: false }),
+    leerGruposDelOrigen(origen.id),
     origen.tipo === 'subasta' && puedeGestionar ? leerDatosNuevosDeApibara(origen.id) : null,
   ])
   const { campos } = datosO(layout)
@@ -34,6 +35,7 @@ export default async function PaginaCamposDelOrigen({
         origenId={origen.id}
         tipoDeOrigen={origen.tipo}
         campos={campos}
+        grupos={datosO(grupos)}
         puedeGestionar={puedeGestionar}
         datosClave={origen.datosClave}
         versionDelOrigen={origen.actualizadoEn}

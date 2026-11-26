@@ -97,8 +97,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Origen** — `origenes`: de dónde viene un vehículo (subasta USA, China, oficina…); tipo subasta o manual.
 - **Layout de campos** — `origenes_campos` / `leads_campos`: campos de un vehículo (o lead) y cómo se muestran, filtran y editan; motor
   `shared/lib/campos`. Se edita con el editor de campos de `shared/ui/campos` (`<EditorDeCampos>`), el mismo en un origen y en los leads.
+- **Grupo de campos** — `leads_campos_grupos`, `origenes_campos_grupos` (uno por origen) / `GrupoDeCampos`, `campo.grupo_id`: bloque con nombre que
+  ordena el formulario y la ficha. Se elige de un catálogo (`<ComboDeCatalogo>`), no se escribe: el nombre es único sin importar mayúsculas,
+  tildes ni espacios (`_nombre_de_catalogo()` ↔ `claveDeNombre()`), y lo nuevo se crea desde el combo («Crear grupo «x»»). Se renombra, ordena,
+  desactiva y quita en el drawer «Grupos» (`?panel=grupos`); quitar uno con campos pide a dónde moverlos. Un campo sin grupo va en «Otros datos».
+  No: «sección», «bloque», ni los otros «Grupo» (de la hoja, de un vehículo, de transporte, de la bandeja).
 - **Preconfiguración** — `origen_preconfigurar_campos()`: campos que nacen con el origen según su tipo (subasta/apibara o manual).
-- **Categoría** — `categorias`: agrupación dentro de un origen (marca, segmento).
+- **Categoría** — `categorias`: agrupación dentro de un origen (marca, segmento). No es el grupo de campos de un origen ni la categoría de una FAQ.
 - **Sustantivo del origen** — `origenes.sustantivo`: cómo se llama lo que entra por ese origen («vehículo», «unidad», «lote»).
 - **Género del sustantivo** — `origenes.genero` / `Genero`: para concordar sin texto fijo; lo sugiere `generoSugerido()` y se corrige.
 - **Clave del origen** — `origenes.clave` / `claveDeNombre()`: identificador estable que sale del nombre al crearlo y no cambia.
@@ -241,8 +246,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   propone el alta.
 - **Teléfono principal** — `leads.telefono_principal` / `telefono_lead()`: único entre leads vivos; completo sólo para la cartera.
 - **Campo de lead** — `leads_campos` / `CampoDeLead`: dato configurable de los leads (además de nombre, teléfono, tipo y origen, fijos).
-- **Layout de leads** — `leads_campos` / `leerLayoutDeLeads()`: campos de los leads con orden, grupo, requeridos, filtros, columnas y quién
-  los ve.
+- **Layout de leads** — `leads_campos` / `leerLayoutDeLeads()`: campos de los leads con orden, grupo de campos, requeridos, filtros, columnas y
+  quién los ve.
 - **Privado de cartera** — `leads_campos.solo_cartera` / `atributos_lead()`: campo que sólo recibe quien tiene el lead en su cartera (correo y
   documento nacen así).
 - **Atributos públicos** — `leads.atributos_publicos` / `leads_vista.atributos_publicos`: los atributos sin los privados, por trigger.
@@ -667,7 +672,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   vehículo y del cliente (`data-cabecera-de-la-hoja`) donde la cabecera de la hoja (los modos, «Ver total en moneda local» y su ⚙) se dibuja por un portal;
   hasta hidratar muestra la **cabecera quieta** (`<CabeceraQuieta>`: las mismas piezas, inertes). Sin proveedor (el lienzo del editor), la cabecera va en su
   lugar dentro de la hoja. No es el lugar de «Guardar» en la cabecera de una guardada (`useRanuraDeGuardar()`).
-- **Grupo (de la hoja)** — `definicion.grupos[]` / `nodo.grupo`: filas con bucket, plazo de pago y color, con subtotal en USD y Bs. No es un nodo.
+- **Grupo (de la hoja)** — `definicion.grupos[]` / `nodo.grupo`: filas con bucket, plazo de pago y color, con subtotal en USD y Bs. No es un nodo
+  ni un grupo de campos.
 - **Plazo de pago** — atributo del grupo: cuándo se paga, como texto («2 días», «4 meses (Aprox.)»).
 - **Total en dólares** — `definicion.total_en`; en el motor `totales.usd` (y `totales.suma_usd`): total en Bs ÷ tipo de cambio de `total_en`.
 - **Faltante** — `Resultado.faltantes`, `CODIGOS_DE_FALTANTE` (`entities/motor-contexto.ts`): por qué un valor quedó sin número.
@@ -969,7 +975,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `repuestos.ver` / `repuestos.editar`.
 - **Grupo (de transporte)** — los embarques (o contenedores) con un mismo booking (o número) en todos los orígenes: la clave de `?booking=` /
   `?contenedor=` de `/logistica/embarques`. `transporte_grupos()` los pagina y `transporte_grupo()` lista sus unidades (las visibles, hasta 200).
-  No: «lote», «carga».
+  No: «lote», «carga», ni un grupo de campos.
 - **Declaración aduanera** — `declaraciones_aduana`, `declaraciones_vehiculos`: DUI: número, canal de aforo, vencimiento de tributos; N:M.
 - **Gasto** — `gastos`, `categorias_gasto`: costo real imputado a una unidad, en su moneda y en base.
 - **Categoría de gasto** — `categorias_gasto` / `categoria_gasto_crear()`: a qué va un gasto (flete, tributos…), con `proposito` opcional,
@@ -1060,6 +1066,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Ficha pública** — «Tu ficha en la web»: `perfiles.whatsapp_web`, `handle`, `cargo_web`, `bio_web`, `especialidades`, `publico_web`. Sin
   WhatsApp no hay turnos; con `publico_web` y `handle` la web la muestra. No: «perfil público», «tarjeta».
 - **Guía / FAQ / Testimonio** — `web_guias`, `web_faqs`, `web_testimonios`: contenido de la web pública; nace despublicado.
+- **Categoría de FAQ** — `web_categorias_faqs` / `CategoriaDeFaq`, `web_faqs.categoria_id`: agrupa las preguntas frecuentes en la web (que
+  sigue recibiendo el nombre en `web.faqs.categoria`). Se elige de un catálogo (`<ComboDeCatalogo>`) con nombre único sin importar mayúsculas,
+  tildes ni espacios, como el grupo de campos, y se gestiona en el drawer «Categorías» (`?panel=categorias`): quitar una con preguntas pide a
+  dónde moverlas. Las categorías de guías (`web_categorias_guias`) tienen el mismo nombre único. No: «etiqueta», ni la categoría de un origen.
 - **Programada** — guía con `web_guias.publicada_en` futura: aún no se ve (`estadoDeGuia()`: «Borrador», «Programada» o «Publicada»).
 - **Consentimiento (de un testimonio)** — `web_testimonio_consentir` / `web_testimonio_retirar`: quién lo registró, cuándo, por qué canal, y si
   se muestran ciudad, vehículo y foto. Cambiar nombre, texto o foto lo anula.

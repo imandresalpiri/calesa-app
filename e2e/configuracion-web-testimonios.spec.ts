@@ -133,7 +133,8 @@ test('crear con foto, consentir, publicar, retirar y eliminar: la web pública s
   // Consentir otra vez, publicar y retirar: el diálogo vive en su URL (Esc, atrás y adelante, recarga) y al confirmar deja de verse en la web.
   await registrarConsentimientoDeLaCiudad(page, 'Registrar consentimiento')
   await elegirDelMenu(page, cliente(), 'Publicar')
-  await expect(page.getByText('Testimonio publicado.')).toBeVisible()
+  // El aviso «Testimonio publicado.» de la primera vez puede seguir a la vista: lo que dice que esta vez quedó publicado es la insignia de la fila.
+  await expect(fila(page).getByText('Publicado', { exact: true })).toBeVisible()
   expect(await testimoniosPublicos(PREFIJO)).toHaveLength(1)
   const retiro = page.getByRole('dialog', {
     name: `Retirar el consentimiento de «${cliente()}»`,

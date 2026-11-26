@@ -1344,7 +1344,7 @@ do $$ declare
   o uuid; r jsonb; c uuid; sist uuid; v timestamptz; v2 timestamptz; rechazo boolean; ordenes int[]; n int; imp jsonb;
 begin
   select id into o from public.origenes where clave = 'corea_humo';
-  r := public.origen_campo_crear(o, 'kit_humo', 'Kit de extras', 'opcion', '[{"clave": "basico", "etiqueta": "Básico"}, {"clave": "full", "etiqueta": "Full"}]', p_grupo => 'Venta', p_filtrable => true);
+  r := public.origen_campo_crear(o, 'kit_humo', 'Kit de extras', 'opcion', '[{"clave": "basico", "etiqueta": "Básico"}, {"clave": "full", "etiqueta": "Full"}]', p_grupo_id => (select g.id from public.origenes_campos_grupos g where g.origen_id = o and g.nombre = 'Venta'), p_filtrable => true);
   c := (r ->> 'id')::uuid;
   if (select es_sistema or orden <> 90 from public.origenes_campos where id = c) then raise exception 'el campo propio nace al final y no es de sistema'; end if;
   begin perform public.origen_campo_crear(o, 'kit_humo', 'Otro', 'texto'); raise exception 'repitió la clave de un campo';
@@ -1360,8 +1360,9 @@ begin
   select actualizado_en into v from public.origenes_campos where id = c;
   begin perform public.origen_campo_guardar(c, v - interval '1 second', '{"en_tarjeta": true}'); raise exception 'guardó con una versión vieja';
   exception when others then if sqlstate <> 'PT409' then raise; end if; end;
-  v2 := public.origen_campo_guardar(c, v, '{"en_tarjeta": true, "grupo": "Extras", "publico_web": true}');
-  if not (select en_tarjeta and publico_web and grupo = 'Extras' and filtrable and not requerido from public.origenes_campos where id = c) then raise exception 'no guardó las banderas'; end if;
+  imp := public.origen_campo_grupo_crear(o, 'Extras');
+  v2 := public.origen_campo_guardar(c, v, jsonb_build_object('en_tarjeta', true, 'grupo_id', imp ->> 'id', 'publico_web', true));
+  if not (select en_tarjeta and publico_web and grupo_id = (imp ->> 'id')::uuid and filtrable and not requerido from public.origenes_campos where id = c) then raise exception 'no guardó las banderas'; end if;
   rechazo := false; begin perform public.origen_campo_guardar(c, v2, '{"clave": "otra"}'); exception when raise_exception then rechazo := true; end;
   if not rechazo then raise exception 'dejó cambiar la clave de un campo'; end if;
 
@@ -2964,6 +2965,9 @@ do $$ declare usa uuid; n int; c record; begin
   if public.origen_apibara_agregar(usa, array['novedad.dato']) <> 1 then raise exception 'no agregó el dato nuevo'; end if;
   if (select tipo::text || '/' || activo::text from public.origenes_campos where origen_id = usa and clave_apibara = 'novedad.dato') <> 'numero/true' then
     raise exception 'el campo nuevo no nació numérico y activo'; end if;
+  if (select gr.nombre from public.origenes_campos oc join public.origenes_campos_grupos gr on gr.id = oc.grupo_id
+       where oc.origen_id = usa and oc.clave_apibara = 'novedad.dato') is distinct from 'Otros datos de apibara' then
+    raise exception 'el campo nuevo no quedó en el grupo «Otros datos de apibara»'; end if;
   if public.origen_apibara_agregar(usa, array['novedad.dato']) <> 0 then raise exception 'agregar dos veces creó dos campos'; end if;
   if not (public.apibara_contexto(usa) ->> 'puede_ver_uso')::boolean then raise exception 'la dueña ve el uso de apibara'; end if;
 end $$;
@@ -3305,7 +3309,7 @@ begin
 
   -- Un campo propio nace al final, activo y no de fábrica.
   r := public.lead_campo_crear('signo_humo', 'Signo zodiacal', 'opcion',
-    '[{"clave": "aries", "etiqueta": "Aries"}, {"clave": "leo", "etiqueta": "Leo"}]', p_grupo => 'Datos personales');
+    '[{"clave": "aries", "etiqueta": "Aries"}, {"clave": "leo", "etiqueta": "Leo"}]', p_grupo_id => (select g.id from public.leads_campos_grupos g where g.nombre = 'Datos personales'));
   c := (r ->> 'id')::uuid;
   if (select es_sistema or not activo or solo_cartera or orden <> 70 from public.leads_campos where id = c) then
     raise exception 'el campo propio nace al final, activo y visible para quien ve el lead'; end if;
@@ -3336,8 +3340,9 @@ begin
   select actualizado_en into v from public.leads_campos where id = c;
   begin perform public.lead_campo_guardar(c, v - interval '1 second', '{"filtrable": true}'); raise exception 'guardó con una versión vieja';
   exception when others then if sqlstate <> 'PT409' then raise; end if; end;
-  v2 := public.lead_campo_guardar(c, v, '{"filtrable": true, "en_tabla": true, "grupo": "Extras"}');
-  if not (select filtrable and en_tabla and grupo = 'Extras' from public.leads_campos where id = c) then raise exception 'no guardó las banderas'; end if;
+  r := public.lead_campo_grupo_crear('Extras');
+  v2 := public.lead_campo_guardar(c, v, jsonb_build_object('filtrable', true, 'en_tabla', true, 'grupo_id', r ->> 'id'));
+  if not (select filtrable and en_tabla and grupo_id = (r ->> 'id')::uuid from public.leads_campos where id = c) then raise exception 'no guardó las banderas'; end if;
   rechazo := false; begin perform public.lead_campo_guardar(c, v2, '{"clave": "otra"}'); exception when raise_exception then rechazo := true; end;
   if not rechazo then raise exception 'dejó cambiar la clave de un campo'; end if;
   rechazo := false; begin perform public.lead_campo_guardar(c, v2, '{"etiqueta": null}'); exception when raise_exception then rechazo := true; end;

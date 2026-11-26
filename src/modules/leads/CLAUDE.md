@@ -43,7 +43,10 @@ Leads (prospectos y clientes) con teléfono principal único y enmascarado salvo
   (`leads/[id]/bloque-cotizaciones.tsx`) y `cotizaciones/pantallas/lead`; la composición vive en `src/app/(app)/leads/[id]/bloques.tsx`), `/leads/papelera`,
   `/leads/importar` (`leads.crear`), `POST /leads/exportar` (`leads.exportar`), `/configuracion/leads` (`leads.configurar`: `ConfiguracionDeLeads`, seis tarjetas con su modal por `?panel=`, `features/configuracion/` y los `features/` de cada una;
   Tipos de lead, Orígenes, Seguimientos, Embudo, Mensaje del portal y Teléfonos extra con su «Números repetidos») y `/configuracion/leads/campos` (`EditorDeCamposDeLead`,
-  `leads.campos.gestionar` con las `lead_campo_*`). Los paneles de cada tarjeta, por familia: `entities/paneles-de-la-configuracion.ts`. El Mensaje del
+  `leads.campos.gestionar` con las `lead_campo_*`; el grupo de un campo se elige del catálogo `leads_campos_grupos`, que la página lee con
+  `leerGruposDeCampos()` y el combo amplía con `crearGrupoDeCampos`, sin revalidar: `hooks/use-grupos-de-campos.ts`; el drawer «Grupos»,
+  `?panel=grupos&quitar=<id>`, con `agregarGrupoDeCampos`, `guardarGrupoDeCampos`, `moverGrupoDeCampos` y `quitarGrupoDeCampos`, que revalidan
+  `/configuracion/leads`). Los paneles de cada tarjeta, por familia: `entities/paneles-de-la-configuracion.ts`. El Mensaje del
   portal usa `EditorConVariables` de `shared`.
   Los teléfonos se administran en el panel de edición (la ficha sólo los lee, en los datos clave y en «Ver más»): «Cambiar el principal» (cartera y `leads.editar`, sólo en la ficha;
   apagado con cambios escritos) pasa a `?panel=cambiar-telefono` reemplazando la entrada; «Agregar teléfono» es `?extra=nuevo` dentro del panel. Con la cartera y
@@ -99,7 +102,7 @@ Leads (prospectos y clientes) con teléfono principal único y enmascarado salvo
 
 ## Tablas
 
-`leads` (`atributos`, `atributos_publicos`, `cartera`), `leads_campos`, `leads_telefonos`, `leads_asesores`, `leads_favoritos`, `leads_tachados`,
+`leads` (`atributos`, `atributos_publicos`, `cartera`), `leads_campos`, `leads_campos_grupos` (glosario «Grupo de campos»), `leads_telefonos`, `leads_asesores`, `leads_favoritos`, `leads_tachados`,
 `etiquetas`, `leads_etiquetas`, `tipos_seguimiento`, `seguimientos`, `recordatorios`, `embudos`, `embudos_etapas`, `oportunidades`, `accesos_portal`,
 `origenes_lead`, `tipos_lead`, `importaciones`, `ajustes_leads` (fila única: plantillas del embudo y del mensaje del portal, y los teléfonos extra:
 máximo y regla); `lotes_papelera` es compartida.
@@ -109,7 +112,8 @@ la causa en `hint` (`errorConCausa()`), y `entities/avisos-de-lead.ts` la vuelve
 
 **Sólo se leen; se escriben por RPC:** `leads` (`crear_lead`, `lead_guardar`; `telefono_principal` sólo `crear_lead` y `cambiar_telefono_lead`),
 `leads_telefonos` (`lead_telefono_*`), `leads_asesores` (`lead_compartir|transferir|revocar_acceso|salir`), marcas (`lead_*_poner`, `etiqueta_*`), y
-`seguimiento_*`, `recordatorio_*`, `embudo_*`, `oportunidad_*`, `origen_lead_*`, `tipo_lead_*`, `tipo_seguimiento_*`, `lead_campo_*`,
+`seguimiento_*`, `recordatorio_*`, `embudo_*`, `oportunidad_*`, `origen_lead_*`, `tipo_lead_*`, `tipo_seguimiento_*`, `lead_campo_*` (con
+`lead_campo_grupo_crear|guardar|mover|eliminar`),
 `leads_papelera_*`, `leads_importar_lote`, `otorgar_portal`, `ajustes_leads` (`embudo_plantilla_guardar`, `portal_mensaje_guardar`,
 `telefonos_extra_ajustes_guardar`: `leads.configurar`, PT409 con versiones independientes `embudo_actualizado_en`, `portal_actualizado_en` y
 `telefonos_actualizado_en`). Lecturas: `ajustes_leads_leer()` (sin permiso), `lead_telefonos_leer()` (sin uso en la app; sus pruebas SQL siguen),

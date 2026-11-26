@@ -104,11 +104,11 @@ do $$
 declare
   t record;
   v_tablas jsonb := '[
-    ["web_guias", "id", "guias"], ["web_categorias_guias", "id", "guias"], ["web_faqs", "id", "faqs"],
+    ["web_guias", "id", "guias"], ["web_categorias_guias", "id", "guias"], ["web_faqs", "id", "faqs"], ["web_categorias_faqs", "id", "faqs"],
     ["web_testimonios", "id", "testimonios"], ["ajustes_web", "id", "ajustes"], ["ajustes_empresa", "id", "ajustes"],
     ["perfiles", "id", "asesores"], ["cola_web_asesores", "orden", "asesores"], ["vehiculos", "id", "vehiculos"],
     ["vehiculos_imagenes", "id", "vehiculos"], ["fases", "id", "vehiculos"], ["origenes", "id", "vehiculos"],
-    ["origenes_campos", "id", "vehiculos"], ["categorias", "id", "vehiculos"], ["integraciones", "clave", "vehiculos"]
+    ["origenes_campos", "id", "vehiculos"], ["origenes_campos_grupos", "id", "vehiculos"], ["categorias", "id", "vehiculos"], ["integraciones", "clave", "vehiculos"]
   ]';
 begin
   for t in select e ->> 0 as tabla, e ->> 1 as columna, e ->> 2 as etiqueta from jsonb_array_elements(v_tablas) e loop

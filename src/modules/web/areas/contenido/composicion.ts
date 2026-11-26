@@ -3,6 +3,7 @@
 import 'server-only'
 import type {
   EscritorDeCategorias,
+  EscritorDeCategoriasDeFaq,
   EscritorDeGuias,
   EscritorDeLegales,
   LectorDeCategorias,
@@ -14,6 +15,7 @@ import type {
   RepositorioDeFaqs,
   RepositorioDeTestimonios,
 } from '../../entities/contenido/repositorios'
+import { escritorDeCategoriasDeFaq } from '../../infra/contenido/categorias-de-faq-escritura'
 import { escritorDeCategorias } from '../../infra/contenido/categorias-escritura'
 import { getCategorias } from '../../infra/contenido/categorias-lectura'
 import { consentimientoSupabase } from '../../infra/contenido/consentimiento'
@@ -42,3 +44,6 @@ export const repositorioDeFaqs: RepositorioDeFaqs = faqsSupabase
 // Crear, guardar y eliminar un testimonio, y registrar o retirar su consentimiento. Las actions de `features/contenido/testimonios/` los usan.
 export const repositorioDeTestimonios: RepositorioDeTestimonios = testimoniosSupabase
 export const repositorioDeConsentimiento: RepositorioDeConsentimiento = consentimientoSupabase
+
+// Las categorías de FAQ. Las actions de `features/contenido/categorias-de-faq/` lo usan.
+export const escribirCategoriasDeFaq: EscritorDeCategoriasDeFaq = escritorDeCategoriasDeFaq

@@ -6,6 +6,7 @@ import {
   CAMPO,
   configuracion,
   ediciones,
+  grupos,
   type Cambios,
   type Nuevo,
 } from './campos-de-prueba.soporte'
@@ -71,6 +72,7 @@ function montar(
         puedeGestionar
         configuracion={configuracion}
         ediciones={ediciones()}
+        grupos={grupos()}
         {...props}
       />
     </Con>,

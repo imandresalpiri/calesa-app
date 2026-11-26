@@ -80,10 +80,12 @@ async function fasesDe(origen: string): Promise<{ subasta: string; comprado: str
 function camposYDatosClave(origen: string): void {
   // Un origen de subasta nace con los campos del catálogo de apibara (entre ellos `compra_inmediata`): se encienden, no se repiten.
   sql(`
-    insert into public.origenes_campos (origen_id, clave, etiqueta, tipo, grupo, orden)
-      values (${literal(origen)}::uuid, 'tono_de_pintura', 'Tono de pintura', 'texto', 'Aspecto E2E', 1);
-    insert into public.origenes_campos (origen_id, clave, etiqueta, tipo, grupo, orden, clave_apibara)
-      values (${literal(origen)}::uuid, 'compra_inmediata', 'Compra inmediata (USD)', 'moneda', 'Precios', 2, 'pricing.buy_now_usd')
+    insert into public.origenes_campos (origen_id, clave, etiqueta, tipo, grupo_id, orden)
+      values (${literal(origen)}::uuid, 'tono_de_pintura', 'Tono de pintura', 'texto',
+              public._origen_campo_grupo_asegurar(${literal(origen)}::uuid, 'Aspecto E2E'), 1);
+    insert into public.origenes_campos (origen_id, clave, etiqueta, tipo, grupo_id, orden, clave_apibara)
+      values (${literal(origen)}::uuid, 'compra_inmediata', 'Compra inmediata (USD)', 'moneda',
+              public._origen_campo_grupo_asegurar(${literal(origen)}::uuid, 'Precios'), 2, 'pricing.buy_now_usd')
       on conflict (origen_id, clave) do update set activo = true, clave_apibara = 'pricing.buy_now_usd';
     update public.origenes_campos set activo = true where origen_id = ${literal(origen)}::uuid and clave = 'puja_actual';
     update public.origenes set datos_clave = '[{"comun":"url_origen"},{"campo":"tono_de_pintura"},{"comun":"anio"},{"comun":"lote"}]'::jsonb

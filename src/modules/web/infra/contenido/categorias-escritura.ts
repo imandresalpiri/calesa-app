@@ -15,10 +15,21 @@ import {
 } from '../../entities/contenido/categorias'
 import type { EscritorDeCategorias } from '../../entities/contenido/repositorios'
 
-type Fallo = { code?: string | null; message: string }
+type Fallo = { code?: string | null; message: string; hint?: string | null }
 
-// Un error de la base → el valor que la pantalla muestra: el nombre repetido junto a su campo y la falta de permiso con su texto.
+// Un error de la base → el valor que la pantalla muestra: el nombre repetido junto a su campo y la falta de permiso con su texto. El
+// trigger del nombre (hint `nombre`) dice cuál existe («Ya existe «Envíos».») o qué falta; un slug repetido, el motivo de siempre.
 function falloDe(error: Fallo): ResultadoDeAccion<never> {
+  if ((error.code === '23505' || error.code === '23514') && error.hint === 'nombre') {
+    return {
+      ok: false,
+      error: {
+        codigo: error.code === '23505' ? 'duplicado' : 'validacion',
+        mensaje: error.message,
+      },
+      porCampo: { nombre: error.message },
+    }
+  }
   if (error.code === '23505') {
     return {
       ok: false,
@@ -83,9 +94,9 @@ export const escritorDeCategorias: EscritorDeCategorias = {
     const { data, error } = await supabase
       .from('web_categorias_guias')
       .insert({ nombre, slug, orden: mayor + 1 })
-      .select('id')
+      .select('id, nombre, orden')
       .single()
-    return error ? falloDe(error) : { ok: true, data: { id: data.id } }
+    return error ? falloDe(error) : { ok: true, data }
   },
 
   async renombrar({ id, nombre }) {

@@ -10,7 +10,7 @@ const NUEVO = {
   tipo: 'texto',
   opciones: [],
   requerido: false,
-  grupo: '',
+  grupoId: null,
   enTarjeta: false,
   filtrable: false,
   publicoWeb: false,
@@ -22,9 +22,9 @@ const NUEVO = {
 }
 
 describe('esquemaCrearCampo', () => {
-  it('acepta un campo de texto y deja en null el grupo y la clave vacíos', () => {
+  it('acepta un campo de texto sin grupo y deja en null la clave vacía', () => {
     const campo = esquemaCrearCampo.parse(NUEVO)
-    expect(campo.grupo).toBeNull()
+    expect(campo.grupoId).toBeNull()
     expect(campo.claveApibara).toBeNull()
   })
 
@@ -91,11 +91,15 @@ describe('esquemaGuardarCampo', () => {
     )
   })
 
-  it('un grupo vacío vacía el grupo, y ausente no lo toca', () => {
-    const vacio = esquemaGuardarCampo.parse({ ...base, cambios: { grupo: '  ' } })
-    expect(vacio.cambios.grupo).toBeNull()
+  it('el grupo es un id del catálogo o ninguno, y ausente no lo toca', () => {
+    const sin = esquemaGuardarCampo.parse({ ...base, cambios: { grupoId: null } })
+    expect(sin.cambios.grupoId).toBeNull()
+    expect(esquemaGuardarCampo.safeParse({ ...base, cambios: { grupoId: ID } }).success).toBe(true)
+    expect(esquemaGuardarCampo.safeParse({ ...base, cambios: { grupoId: 'Motor' } }).success).toBe(
+      false,
+    )
     const ausente = esquemaGuardarCampo.parse({ ...base, cambios: { requerido: true } })
-    expect('grupo' in ausente.cambios).toBe(false)
+    expect('grupoId' in ausente.cambios).toBe(false)
   })
 })
 

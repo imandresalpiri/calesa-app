@@ -7,7 +7,7 @@ const BASE = {
   tipo: 'opcion' as const,
   opciones: [{ clave: 'aries', etiqueta: 'Aries' }],
   requerido: false,
-  grupo: 'Datos personales',
+  grupoId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
   enTabla: false,
   filtrable: true,
   soloCartera: false,

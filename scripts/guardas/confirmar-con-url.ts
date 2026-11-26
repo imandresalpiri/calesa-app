@@ -87,6 +87,11 @@ export const CONFIRMAR_CON_URL_DEL_NUCLEO: Record<string, ConfirmarConUrl> = {
     abre: 'src/modules/equipo/features/roles/components/matriz-de-roles.tsx',
     senal: 'eliminar: parseAsString',
   },
+  // «Quitar» de un catálogo que se elige (grupos de campos, categorías de FAQ): `?panel=<panel>&quitar=<id>`.
+  'src/shared/ui/catalogo-en-drawer/confirmar-quitar.tsx': {
+    abre: 'src/shared/ui/catalogo-en-drawer/use-quitar-por-url.ts',
+    senal: 'CLAVE_DE_QUITAR',
+  },
 }
 
 export const CONFIRMAR_CON_URL: Record<string, ConfirmarConUrl> = {

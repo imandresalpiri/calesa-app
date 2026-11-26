@@ -3,9 +3,11 @@
 // ofrece, cómo arma lo que viaja) y sus operaciones (las Server Actions por detrás).
 import type { ReactNode } from 'react'
 import type { Resultado } from '@/shared/lib/errores'
+import type { OperacionesDelCatalogo } from '@/shared/ui/catalogo-en-drawer'
 import {
   tieneRango,
   type CampoBase,
+  type GrupoDeCampos,
   type ImpactoDeCampo,
   type OpcionDeCampo,
   type Rango,
@@ -36,7 +38,8 @@ export type ValoresDeCampo = {
   clave: string
   tipo: TipoDeCampo
   opciones: OpcionDeCampo[]
-  grupo: string
+  // El grupo de campos elegido; null = sin grupo.
+  grupoId: string | null
   activo: boolean
   valorDefecto: ValorDefecto | null
   // El rango de un número o un monto (9-2); null = sin límite.
@@ -54,10 +57,27 @@ export function rangoDelFormulario(valores: ValoresDeCampo): Rango {
 }
 
 export type ErroresDeCampo = Partial<
-  Record<'etiqueta' | 'clave' | 'opciones' | 'grupo' | 'valorDefecto' | 'minimo' | 'maximo', string>
+  Record<
+    'etiqueta' | 'clave' | 'opciones' | 'grupoId' | 'valorDefecto' | 'minimo' | 'maximo',
+    string
+  >
 >
 
 export type DeLaFila = Pick<CampoBase, 'id' | 'etiqueta' | 'actualizadoEn'>
+
+// El catálogo de grupos de campos del layout (docs/GLOSARIO.md › Grupo de campos), leído aparte con su tope: el combo del panel elige uno
+// o crea uno nuevo con lo escrito.
+export type GruposDelEditor = {
+  // En el orden del catálogo, también los inactivos (el que tiene el campo se sigue ofreciendo).
+  lista: readonly GrupoDeCampos[]
+  hayMas: boolean
+  // Sin el permiso, el combo no ofrece «Crear grupo».
+  puedeCrear: boolean
+  // Crea el grupo (el combo lo elige); un rechazo («Ya existe «X».») lo dice el combo.
+  crear: (nombre: string) => Promise<Resultado<GrupoDeCampos>>
+  // Lo que hace el drawer «Grupos» (`?panel=grupos`): agregar, renombrar, ordenar, activar y quitar. Sin él, no hay drawer.
+  operaciones: OperacionesDelCatalogo | null
+}
 
 // Las operaciones: las del `useCampos()` de cada módulo. Toda edición manda la versión que vio.
 export type EdicionesDeCampos<Cambios, Nuevo> = {

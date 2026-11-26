@@ -181,6 +181,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-45]** `cotizaciones.moneda_mostrar` y `cotizaciones.plantilla_id` no tienen uso real (`moneda_mostrar` sólo viaja por `cotizaciones_listado()`) — migración que la recree sin ellas, con su medición y `db:types`.
 - **[—]** `VAPID_PRIVATE_KEY` y `VAPID_SUBJECT` están en `esquemaDelServidor` (`src/shared/config/esquemas.ts`) y en `.env.example`, pero sólo los lee la función `push` — dejarlos sólo en `esquemaDeLasFunciones`.
 - **[—]** Copias que deberían subir al núcleo o a `shared`: el esquema de la nota de publicar, `FILAS_POR_PEDIDO`, `MARCAS_DE_GESTORES`, `valorTipeado`, `diasParaLaPurga`/`textoDePurga`, las lecturas de tonos, `normalizar` de la XCell y la subida por hash a bucket privado.
+- **[—]** Dos claves para «el mismo nombre de catálogo»: `_catalogo_clave()` ↔ `claveDeCatalogo` (`shared/lib/catalogos`: logística y tipos de documento, tabla
+  ASCII de tildes) y `_nombre_de_catalogo()` ↔ `claveDeNombre` (`shared/lib/catalogo`: grupos de campos y categorías, `unaccent`) — unificar en una
+  sola función y una sola carpeta; cambia qué nombres choca cada índice único, así que va con su migración y sus pruebas.
 - **[—]** Dos arrastres con dnd-kit que se parecen: el de las filas del lienzo de la tarjeta (`cotizaciones/features/plantilla/hooks/use-asa-de-fila.ts`) y `shared/ui/campos/arrastre/` — unificarlos en un `shared/ui/orden` (asa, sensores, anuncios en español, coordenadas por contenedor).
 - **[—]** `e2e/configuracion-200-capturas.spec.ts` captura un panel por la URL apenas se ve el diálogo, sin esperar lo que trae su `diferido()`: «Datos del origen» y «Columnas de…» salen vacíos en la hoja — esperar un texto del cuerpo antes de `capturar()`.
 - **[—]** «Ver comprobante» duplicado en repuestos y logística (`ver-comprobante.ts` y `useComprobante.ver`); `XCell` no tiene `emptyLabel`.
@@ -242,6 +245,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
   activa queda al final, en Ejemplo, y llegar a él esconde la C — fijarlo a la derecha como `#` y A van fijas a la izquierda (`fila-de-la-cuadricula.tsx`).
 - **[—]** En el editor de la hoja, el «+» de la pieza elegida no se achica con el lienzo: con la vista 1.280 en una ventana de 1.280 (el lienzo a ≈ 0,3)
   tapa la mitad de abajo de una pieza baja, como la tarjeta del total y su cifra. Darle un tamaño que siga la escala o sacarlo fuera de la pieza (`features/diseno/components/editor/`).
+- **[—]** `<ListaDeCatalogo>` dentro de un drawer (los «Grupos de campos», las «Categorías» de las preguntas y de las guías) elige la tabla por el ancho de la
+  pantalla, no del drawer: en 24 rem la columna «Estado» queda tras el «⋯» pegado («Activ…») y se lee desplazando la tabla — elegir tarjetas por el ancho del
+  contenedor (`@container`) o angostar la columna del nombre (`lista-de-catalogo.tsx`).
 - **[—]** En el celular al 200 %, el «⋯» del panel de la fase queda más arriba que la ✕ (el «⋯» va en rem y la ✕ en px): alinear sus centros (`drawer.tsx`, `acciones`).
 - **[—]** Una XCell `mitad` o `tercio` angosta (la hoja a 1280 px con el resumen al costado, los tercios del modal «Avanzado», un par con un lado bloqueado
   en el celular) baja sus acciones (el % y el ⚙ de un par) a una segunda línea: la celda mide 88 px en vez de 56 y las de la misma fila no se alinean; V1 los

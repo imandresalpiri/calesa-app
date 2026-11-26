@@ -113,20 +113,20 @@ export type CampoEnLaBase = {
   opciones: { clave: string; etiqueta: string }[]
 }
 
-// El layout de un origen, en su orden.
+// El layout de un origen, en su orden; `grupo` es el nombre de su grupo de campos.
 export async function camposDelOrigen(origenId: string): Promise<CampoEnLaBase[]> {
   const { data, error } = await admin()
     .from('origenes_campos')
     .select(
-      'id, clave, etiqueta, tipo, orden, grupo, requerido, en_tarjeta, filtrable, publico_web, clave_apibara, es_sistema, activo, opciones',
+      'id, clave, etiqueta, tipo, orden, requerido, en_tarjeta, filtrable, publico_web, clave_apibara, es_sistema, activo, opciones, grupo:origenes_campos_grupos!origenes_campos_grupo_fkey(nombre)',
     )
     .eq('origen_id', origenId)
     .order('orden')
-    .returns<CampoEnLaBase[]>()
+    .returns<(Omit<CampoEnLaBase, 'grupo'> & { grupo: { nombre: string } | null })[]>()
   if (error) {
     throw new Error(`No se pudo leer el layout: ${error.message}`)
   }
-  return data
+  return data.map((campo) => ({ ...campo, grupo: campo.grupo?.nombre ?? null }))
 }
 
 export async function campoDelOrigen(origenId: string, clave: string): Promise<CampoEnLaBase> {

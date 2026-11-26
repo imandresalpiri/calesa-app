@@ -116,12 +116,24 @@ export const RUTA_DE_NIVELES = '/configuracion/roles?bloque=cotizaciones'
 export const rotuloDeNiveles = (page: Page): Locator =>
   page.getByText('Niveles de acceso', { exact: true }).first()
 
-// `conAcciones: false` para quien sólo lee (no tiene «⋯»). El «⋯» llega con su código al hidratar: un clic antes de eso se pierde.
+// El «⋯» de una fila de nivel llega con su código al hidratar la matriz (`diferido()`): verlo dice que un clic en una celda ya no se pierde. El «⋯» de
+// la cabecera de un rol («Más acciones de Dueño») ya viene dibujado del servidor y no dice que hidrató. Sólo para quien tiene ese «⋯».
+export async function esperarLaMatrizHidratada(page: Page): Promise<void> {
+  await expect(
+    page
+      .locator('[data-nivel]')
+      .getByRole('button', { name: /^Más acciones de / })
+      .filter({ visible: true })
+      .first(),
+  ).toBeVisible()
+}
+
+// `conAcciones: false` para quien sólo lee (no tiene «⋯»).
 export async function abrirNiveles(page: Page, conAcciones = true): Promise<void> {
   await page.goto(RUTA_DE_NIVELES)
   await expect(rotuloDeNiveles(page)).toBeVisible()
   if (conAcciones) {
-    await expect(page.getByRole('button', { name: /^Más acciones de / }).first()).toBeVisible()
+    await esperarLaMatrizHidratada(page)
   }
 }
 

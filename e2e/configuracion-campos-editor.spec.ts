@@ -18,7 +18,7 @@ import {
   lineaApagada,
 } from './soporte/editor-de-campos'
 import { descartarAviso } from './soporte/inventario'
-import { borrarCamposDeLeadDePrueba, camposDeLead } from './soporte/leads'
+import { borrarCamposDeLeadDePrueba, camposDeLead, grupoDeCamposDeLead } from './soporte/leads'
 import {
   PREFIJO_CLAVE_E2E,
   borrarOrigenes,
@@ -68,9 +68,10 @@ async function arrastrar(page: Page, desde: Locator, hasta: Locator) {
 }
 
 async function campoDeLeadEnGrupo(clave: string, etiqueta: string, orden: number) {
+  const grupoId = await grupoDeCamposDeLead(DE_LEADS.grupo)
   const { error } = await admin()
     .from('leads_campos')
-    .insert({ clave, etiqueta, tipo: 'texto', grupo: DE_LEADS.grupo, orden })
+    .insert({ clave, etiqueta, tipo: 'texto', grupo_id: grupoId, orden })
   if (error) throw new Error(`No se pudo crear el campo ${clave}: ${error.message}`)
 }
 

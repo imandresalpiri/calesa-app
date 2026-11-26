@@ -24,6 +24,7 @@ type Campo = CampoMostrable & {
   clave: string
   etiqueta: string
   grupo: string | null
+  ordenDelGrupo: number | null
   activo: boolean
 }
 

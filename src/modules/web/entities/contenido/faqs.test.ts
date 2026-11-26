@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   cambiosDeFaq,
-  categoriasUsadas,
   faqsDesde,
   ordenSiguiente,
   reordenar,
@@ -14,7 +13,9 @@ const faq = (n: number, orden: number, resto: Partial<Faq> = {}): Faq => ({
   id: `00000000-0000-4000-8000-00000000000${String(n)}`,
   pregunta: `Pregunta ${String(n)}`,
   respuesta: 'Respuesta',
+  categoriaId: null,
   categoria: null,
+  categoriaInactiva: false,
   publicada: false,
   orden,
   actualizadoEn: `2026-11-12T10:00:0${String(n)}+00:00`,
@@ -66,19 +67,6 @@ describe('reordenar', () => {
   })
 })
 
-describe('categoriasUsadas', () => {
-  it('sin repetir ni vacías, en su orden', () => {
-    const faqs = [
-      faq(1, 0, { categoria: 'Envíos' }),
-      faq(2, 1, { categoria: null }),
-      faq(3, 2, { categoria: '  ' }),
-      faq(4, 3, { categoria: 'Pagos' }),
-      faq(5, 4, { categoria: 'Envíos' }),
-    ]
-    expect(categoriasUsadas(faqs)).toEqual(['Envíos', 'Pagos'])
-  })
-})
-
 describe('ordenSiguiente', () => {
   it('0 sin preguntas; el máximo + 1 con ellas', () => {
     expect(ordenSiguiente([])).toBe(0)
@@ -93,23 +81,34 @@ describe('validarFaq y cambiosDeFaq', () => {
     if (!r.ok) expect(Object.keys(r.errores).sort()).toEqual(['pregunta', 'respuesta'])
   })
 
-  it('la categoría vacía es nula y se recorta el texto', () => {
+  it('recorta el texto y manda la categoría elegida tal cual', () => {
     const r = validarFaq({
       pregunta: ' ¿Hola? ',
       respuesta: ' Sí ',
-      categoria: ' ',
+      categoriaId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
       publicada: false,
     })
     expect(r).toEqual({
       ok: true,
-      datos: { pregunta: '¿Hola?', respuesta: 'Sí', categoria: null, publicada: false },
+      datos: {
+        pregunta: '¿Hola?',
+        respuesta: 'Sí',
+        categoriaId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
+        publicada: false,
+      },
     })
   })
 
   it('sólo manda lo que cambió', () => {
     const original = faq(1, 0)
-    expect(cambiosDeFaq(original, { ...original, categoria: 'Pagos', publicada: false })).toEqual({
-      categoria: 'Pagos',
+    expect(
+      cambiosDeFaq(original, {
+        ...original,
+        categoriaId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
+        publicada: false,
+      }),
+    ).toEqual({
+      categoriaId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
     })
     expect(cambiosDeFaq(original, { ...original })).toBeNull()
   })
@@ -121,6 +120,7 @@ describe('faqsDesde', () => {
       id: '00000000-0000-4000-8000-000000000001',
       pregunta: 'P',
       respuesta: 'R',
+      categoria_id: null,
       categoria: null,
       publicada: true,
       orden: 0,
@@ -128,5 +128,23 @@ describe('faqsDesde', () => {
     }
     expect(faqsDesde([fila])?.[0]?.actualizadoEn).toBe('2026-11-12T10:00:00+00:00')
     expect(faqsDesde([{ ...fila, orden: 'x' }])).toBeNull()
+  })
+
+  it('trae el nombre de su categoría y si está inactiva', () => {
+    const fila = {
+      id: '00000000-0000-4000-8000-000000000001',
+      pregunta: 'P',
+      respuesta: 'R',
+      categoria_id: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
+      categoria: { nombre: 'Envíos', activa: false },
+      publicada: true,
+      orden: 0,
+      actualizado_en: '2026-11-12T10:00:00+00:00',
+    }
+    expect(faqsDesde([fila])?.[0]).toMatchObject({
+      categoriaId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
+      categoria: 'Envíos',
+      categoriaInactiva: true,
+    })
   })
 })

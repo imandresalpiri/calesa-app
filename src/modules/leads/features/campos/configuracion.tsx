@@ -89,7 +89,7 @@ function valoresIniciales(campo: CampoDeLead | null): ValoresDeCampo {
       clave: '',
       tipo: 'texto',
       opciones: [],
-      grupo: '',
+      grupoId: null,
       activo: true,
       valorDefecto: null,
       minimo: null,
@@ -103,7 +103,7 @@ function valoresIniciales(campo: CampoDeLead | null): ValoresDeCampo {
     clave: campo.clave,
     tipo: campo.tipo,
     opciones: campo.opciones,
-    grupo: campo.grupo ?? '',
+    grupoId: campo.grupoId,
     activo: campo.activo,
     valorDefecto: campo.valorDefecto,
     minimo: campo.minimo,
@@ -117,8 +117,6 @@ function valoresIniciales(campo: CampoDeLead | null): ValoresDeCampo {
     textos: { [EMPRESA]: campo.valorDefectoEmpresa ?? '' },
   }
 }
-
-const vacioANulo = (texto: string) => (texto.trim() === '' ? null : texto.trim())
 
 // El dato de la empresa elegido, o null. Sólo vale en un campo de texto.
 function datoDeLaEmpresa(valores: ValoresDeCampo): DatoDeLaEmpresa | null {
@@ -138,7 +136,7 @@ function cambiosDe(campo: CampoDeLead, valores: ValoresDeCampo): CambiosDeCampoD
     tipo: tipoEntre(TIPOS_DE_CAMPO_DE_LEAD, valores.tipo, 'texto'),
     opciones: valores.opciones,
     requerido: banderas['requerido'] ?? false,
-    grupo: vacioANulo(valores.grupo),
+    grupoId: valores.grupoId,
     enTabla: banderas['enTabla'] ?? false,
     filtrable: banderas['filtrable'] ?? false,
     soloCartera: banderas['soloCartera'] ?? false,
@@ -234,7 +232,7 @@ export function configuracionDeLeads({
         tipo,
         opciones: valores.opciones,
         requerido: valores.banderas['requerido'] ?? false,
-        grupo: valores.grupo,
+        grupoId: valores.grupoId,
         enTabla: valores.banderas['enTabla'] ?? false,
         filtrable: valores.banderas['filtrable'] ?? false,
         // Un tipo sensible nace privado aunque la persona no toque el interruptor.

@@ -76,7 +76,8 @@ const esquemaCampos = z.array(
     valor_defecto_empresa: z.enum(DATOS_DE_LA_EMPRESA).nullable(),
     minimo: z.number().nullable().catch(null),
     maximo: z.number().nullable().catch(null),
-    grupo: z.string().nullable(),
+    // El grupo de campos, por embed (`COLUMNAS_DE_CAMPO_DE_LEAD`).
+    grupo: z.object({ id: z.guid(), nombre: z.string(), orden: z.number() }).nullable(),
     orden: z.number(),
     en_tabla: z.boolean(),
     filtrable: z.boolean(),
@@ -120,6 +121,10 @@ export function columnaParaFiltrar(campo: CampoDeLead): ColumnaDeAtributos {
     : 'atributos'
 }
 
+// Lo que se lee de `leads_campos`: sus columnas y el nombre y el orden de su grupo de campos (una lectura, sin pedidos de más).
+export const COLUMNAS_DE_CAMPO_DE_LEAD =
+  'id, clave, etiqueta, tipo, opciones, requerido, valor_defecto, valor_defecto_empresa, minimo, maximo, orden, en_tabla, filtrable, solo_cartera, solo_cartera_pendiente, es_sistema, activo, actualizado_en, grupo:leads_campos_grupos(id, nombre, orden)'
+
 // En el orden del layout: `orden`, y a igualdad la clave (como la base).
 export function camposDeLeadDesde(filas: unknown): CampoDeLead[] {
   return esquemaCampos
@@ -135,7 +140,9 @@ export function camposDeLeadDesde(filas: unknown): CampoDeLead[] {
       valorDefectoEmpresa: fila.valor_defecto_empresa,
       minimo: fila.minimo,
       maximo: fila.maximo,
-      grupo: fila.grupo,
+      grupoId: fila.grupo?.id ?? null,
+      grupo: fila.grupo?.nombre ?? null,
+      ordenDelGrupo: fila.grupo?.orden ?? null,
       orden: fila.orden,
       enTabla: fila.en_tabla,
       filtrable: fila.filtrable,

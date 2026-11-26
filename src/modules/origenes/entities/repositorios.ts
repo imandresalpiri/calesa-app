@@ -1,7 +1,9 @@
 // Lo que los casos de uso de `features/` necesitan de afuera, dicho como interfaces. La
 // implementación (Supabase) vive en `infra/` y se la entrega `composicion.ts`.
 import type { Resultado } from '@/shared/lib/errores'
-import type { Rango } from '@/shared/lib/campos'
+import type { GrupoDeCampos, Rango } from '@/shared/lib/campos'
+import type { CatalogoLeido, DestinoAlQuitar } from '@/shared/lib/catalogo'
+import type { ResultadoDeAccion } from '@/shared/lib/enviar-accion'
 import type { CambiosDeCampo } from './cambios-de-campo'
 import type {
   CampoDeLayout,
@@ -59,7 +61,7 @@ export type RepositorioCampos = {
     tipo: TipoDeCampo
     opciones: OpcionDeCampo[]
     requerido: boolean
-    grupo: string | null
+    grupoId: string | null
     enTarjeta: boolean
     filtrable: boolean
     publicoWeb: boolean
@@ -129,3 +131,25 @@ export type LectorDeDatosClave = (origenId: string) => Promise<Resultado<DatoCla
 
 // El campo principal activo de un origen, o null si no tiene: con qué se nombra a sus vehículos (6.13).
 export type LectorDeCampoPrincipal = (origenId: string) => Promise<Resultado<CampoPrincipal | null>>
+
+// El catálogo de grupos de campos de un origen (docs/GLOSARIO.md › Grupo de campos), con su tope.
+export type LectorDeGruposDelOrigen = (origenId: string) => Promise<Resultado<CatalogoLeido>>
+
+// Una edición de un grupo del origen, con la versión que se vio (`PT409` si otra persona lo cambió).
+type EdicionDeGrupo<Datos> = { origenId: string; id: string; actualizadoEnEsperado: string } & Datos
+
+// Los rechazos de un dato llegan en `porCampo` (`rechazoDelCatalogo()`): `nombre`, `items` (tiene campos) o `destino`.
+export type RepositorioDeGruposDelOrigen = {
+  // Nace al final del catálogo del origen; un nombre que ya existe ahí con otra escritura es `duplicado` («Ya existe «X».»).
+  crear: (origenId: string, nombre: string) => Promise<ResultadoDeAccion<GrupoDeCampos>>
+  // Renombrar (cambia el nombre en todos sus campos) o activar y desactivar. Devuelve la versión nueva.
+  guardar: (
+    pedido: EdicionDeGrupo<{ cambios: { nombre?: string; activo?: boolean } }>,
+  ) => Promise<ResultadoDeAccion<string>>
+  // El orden de los bloques: después de `despuesDe` (nulo, primero).
+  mover: (
+    pedido: EdicionDeGrupo<{ despuesDe: string | null }>,
+  ) => Promise<ResultadoDeAccion<string>>
+  // Sólo sin campos; con `mover`, sus campos van antes al final del destino (un grupo activo del mismo origen o ninguno).
+  quitar: (pedido: EdicionDeGrupo<{ destino: DestinoAlQuitar }>) => Promise<ResultadoDeAccion<null>>
+}

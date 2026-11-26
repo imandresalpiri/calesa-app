@@ -171,6 +171,11 @@ export const DRAWERS_DEL_NUCLEO: Record<string, RegistroDeDrawer> = {
     sinFormulario:
       'sólo es el marco del panel de la unidad (6.01): no guarda nada tipeado; lo que cada área escriba en sus huecos va en modales que preguntan por sí solos',
   },
+  // --- shared: el drawer de un catálogo que se elige (grupos de campos, categorías de FAQ); el nombre que se agrega o renombra.
+  'src/shared/ui/catalogo-en-drawer/drawer-de-catalogo.tsx': {
+    formulario: 'src/shared/ui/catalogo-en-drawer/formulario-del-catalogo.tsx',
+    mecanismo: 'contexto',
+  },
 }
 
 export const DRAWERS: Record<string, RegistroDeDrawer> = {

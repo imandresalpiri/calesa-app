@@ -41,7 +41,7 @@ export type RepositorioCamposDeLead = {
     tipo: TipoDeCampoDeLead
     opciones: OpcionDeCampo[]
     requerido: boolean
-    grupo: string | null
+    grupoId: string | null
     enTabla: boolean
     filtrable: boolean
     soloCartera: boolean
@@ -68,6 +68,8 @@ export type RepositorioCamposDeLead = {
 
 // Todos los campos, también los desactivados: quien consume filtra `activo`.
 export type LectorDeLayoutDeLeads = () => Promise<Resultado<CampoDeLead[]>>
+
+export type { LectorDeGruposDeCampos, RepositorioDeGruposDeCampos } from './repositorio-de-grupos'
 
 // --- El alta rápida ---------------------------------------------------------------------------------
 
