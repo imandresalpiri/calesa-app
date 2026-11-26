@@ -29,6 +29,16 @@ describe('useFilaPedida', () => {
     expect(window.location.search).toBe('?panel=tipo-de-celda&fila=costo')
   })
 
+  it('con el panel de los decimales, también: la fila es de ese panel', () => {
+    window.history.replaceState(null, '', '/planilla?panel=decimales&fila=costo')
+    const alPedir = vi.fn()
+    renderHook(() => {
+      useFilaPedida(alPedir)
+    })
+    expect(alPedir).toHaveBeenCalledWith('costo')
+    expect(window.location.search).toBe('?panel=decimales&fila=costo')
+  })
+
   it('sin ?fila= (o vacía) no elige nada', () => {
     for (const busqueda of ['', '?fila=']) {
       window.history.replaceState(null, '', `/planilla${busqueda}`)

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { formatearConDecimales } from '@/shared/lib/cifra-fija'
 import {
   aceptaDecimales,
+  datosQueNoSonNumero,
   DECIMALES_DE_CELDA,
   decimalesDe,
   ejemploDeDecimales,
@@ -92,5 +93,33 @@ describe('ejemploDeDecimales', () => {
     expect(formatearConDecimales(e.valor, 'porcentaje', { decimales: 2, locale: 'es-BO' })).toBe(
       '14,95%',
     )
+  })
+})
+
+describe('datosQueNoSonNumero', () => {
+  const dato = (id: string, campo: string) =>
+    nodo({ id, tipo: 'campo_vehiculo', campo, formato: 'raw' })
+  const nodos = [
+    dato('anio', 'anio'),
+    dato('marca', 'marca'),
+    dato('modelo', 'modelo'),
+    dato('cilindrada', 'cilindrada'),
+    dato('color', 'color'),
+    dato('valor_fob', 'valor_fob'),
+    dato('sin_campo', 'ya_no_esta'),
+    nodo({ id: 'remate', tipo: 'input', formato: 'usd' }),
+  ]
+
+  it('las columnas comunes de texto y los campos del origen que no son número ni moneda', () => {
+    const campos = [
+      { clave: 'cilindrada', tipo: 'numero' },
+      { clave: 'color', tipo: 'opcion' },
+      { clave: 'valor_fob', tipo: 'moneda' },
+    ]
+    expect([...datosQueNoSonNumero(nodos, campos)].sort()).toEqual(['color', 'marca', 'modelo'])
+  })
+
+  it('sin leer los campos del origen, sólo las columnas comunes de texto (lo que no se conoce sigue ofreciéndolos)', () => {
+    expect([...datosQueNoSonNumero(nodos, null)].sort()).toEqual(['marca', 'modelo'])
   })
 })

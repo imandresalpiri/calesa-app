@@ -36,6 +36,11 @@ export const DRAWERS_DE_LA_FORMULA: Record<string, RegistroDeDrawer> = {
         'src/modules/cotizaciones/features/formula/components/planilla/paneles/marco-del-tipo.tsx',
       mecanismo: 'contexto',
     },
+  'src/modules/cotizaciones/features/formula/components/planilla/paneles/panel-de-decimales.tsx': {
+    formulario:
+      'src/modules/cotizaciones/features/formula/components/planilla/paneles/formulario-de-decimales.tsx',
+    mecanismo: 'contexto',
+  },
   'src/modules/cotizaciones/features/formula/components/planilla/paneles/panel-como-se-escribe.tsx':
     {
       sinFormulario: 'La ayuda de cómo se escribe una fórmula: sólo lectura.',

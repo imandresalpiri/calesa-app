@@ -12,6 +12,9 @@ export const PanelDelTotalDiferido = diferido(() =>
 export const PanelDelTipoDeCeldaDiferido = diferido(() =>
   import('./panel-del-tipo-de-celda').then((m) => m.PanelDelTipoDeCelda),
 )
+export const PanelDeDecimalesDiferido = diferido(() =>
+  import('./panel-de-decimales').then((m) => m.PanelDeDecimales),
+)
 export const PanelComoSeEscribeDiferido = diferido(() =>
   import('./panel-como-se-escribe').then((m) => m.PanelComoSeEscribe),
 )

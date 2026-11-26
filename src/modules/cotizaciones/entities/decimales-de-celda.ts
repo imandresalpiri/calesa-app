@@ -37,3 +37,29 @@ export function ejemploDeDecimales(nodo: Pick<Nodo, 'formato'>): EjemploDeDecima
     moneda: monedaDeFormato(formato),
   }
 }
+
+// Un campo del origen con su tipo (`origenes_campos.tipo`), lo que dice si su dato del vehículo es un número.
+export type CampoDelOrigen = { readonly clave: string; readonly tipo: string }
+
+// Las columnas comunes de `vehiculos` que son un texto, y los tipos de un campo del origen que son un número.
+const COMUNES_DE_TEXTO: readonly string[] = ['marca', 'modelo']
+const TIPOS_DE_NUMERO: readonly string[] = ['numero', 'moneda']
+
+// Las filas (ids de sus nodos) cuyo dato del vehículo no es un número: una columna común de texto o un campo del origen de otro tipo. No ofrecen «Decimales».
+// Un campo que no se conoce (el origen no lo tiene, o no se leyó: `campos` nulo) no entra: elegir decimales no cambia un texto.
+export function datosQueNoSonNumero(
+  nodos: readonly Nodo[],
+  campos: readonly CampoDelOrigen[] | null,
+): ReadonlySet<string> {
+  const tipos = new Map((campos ?? []).map((c) => [c.clave, c.tipo]))
+  return new Set(
+    nodos.flatMap((n) => {
+      if (n.tipo !== 'campo_vehiculo') return []
+      const tipo = tipos.get(n.campo)
+      const esTexto =
+        COMUNES_DE_TEXTO.includes(n.campo) ||
+        (tipo !== undefined && !TIPOS_DE_NUMERO.includes(tipo))
+      return esTexto ? [n.id] : []
+    }),
+  )
+}

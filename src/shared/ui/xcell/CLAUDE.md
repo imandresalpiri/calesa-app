@@ -7,6 +7,7 @@ no lee la base y **no calcula nada**. Dice «esta celda pasó a N» (`onCommit`)
 
 - Entra: `@/shared/lib` (`formato`, `cifra-fija`, `color`, `numero-tipeado`), `../monto`, `../monto-con-decimales`, `../regional`, `../live`, `../lista/simbolos-de-lista` (los trazos de los iconos).
 - Sale: `index.ts` → `XCell`, `EstiloDeTonos`, `SimbolosDeXCell` y los tipos; la usan la hoja de `cotizaciones` y la de ítems de `repuestos`. También
+  `TextoDeValor` (lo que dice una celda cuando no se edita, con sus «Decimales»: la columna Ejemplo y el panel «Decimales» de la planilla). También
   `BOTON_DEL_VALOR` y `ENTRADA` (`clases.ts`: el estilo de lo editable, para otra superficie que quiera marcar así sus celdas) y `XCELL_COMPACTA` (la celda
   densa de una tabla: la pone `repuestos` en el contenedor de sus celdas). `xcell.soporte.tsx` (`celda()`, `abrir()`,
   `BASE`) es **sólo de las pruebas** (importa vitest y testing-library; `scripts/mapa.sh` no lista los `.soporte.`).

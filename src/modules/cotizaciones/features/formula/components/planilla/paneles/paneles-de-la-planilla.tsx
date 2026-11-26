@@ -6,6 +6,7 @@ import type { PropsDeLaPlanilla } from '../tipos'
 import {
   PanelComoSeEscribeDiferido,
   PanelDeLaBandaDiferido,
+  PanelDeDecimalesDiferido,
   PanelDeLaTarjetaDiferido,
   PanelDeLosTotalesDiferido,
   PanelDelTipoDeCeldaDiferido,
@@ -18,6 +19,7 @@ export function PanelesDeLaPlanilla({ p, planilla }: { p: PropsDeLaPlanilla; pla
   const banda = useAbiertoAlgunaVez(paneles.banda.abierto || paneles.nuevaBanda.abierto)
   const total = useAbiertoAlgunaVez(paneles.total.abierto)
   const tipo = useAbiertoAlgunaVez(paneles.tipo.abierto)
+  const decimales = useAbiertoAlgunaVez(paneles.decimales.abierto)
   const ayuda = useAbiertoAlgunaVez(paneles.ayuda.abierto)
   const totales = useAbiertoAlgunaVez(paneles.totales.abierto)
   const tarjeta = useAbiertoAlgunaVez(paneles.tarjeta.abierto)
@@ -32,6 +34,7 @@ export function PanelesDeLaPlanilla({ p, planilla }: { p: PropsDeLaPlanilla; pla
           tiposDeCambio={p.tiposDeCambio}
         />
       ) : null}
+      {decimales ? <PanelDeDecimalesDiferido planilla={planilla} /> : null}
       {ayuda ? <PanelComoSeEscribeDiferido planilla={planilla} /> : null}
       {totales ? <PanelDeLosTotalesDiferido p={p} planilla={planilla} /> : null}
       {tarjeta ? <PanelDeLaTarjetaDiferido p={p} planilla={planilla} /> : null}

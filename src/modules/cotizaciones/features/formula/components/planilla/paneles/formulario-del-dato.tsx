@@ -22,7 +22,9 @@ export function FormularioDelDato({ origen, inicial, motivo, alAplicar, alCancel
   const uid = useId()
   const [campo, setCampo] = useState(inicial)
   const { lectura, reintentar } = useCamposDelOrigen(origen.id)
-  const campos = camposDelVehiculo(lectura.estado === 'leido' ? lectura.dato : [])
+  const campos = camposDelVehiculo(
+    lectura.estado === 'leido' ? lectura.dato.map((c) => c.clave) : [],
+  )
   const deMas = inicial !== '' && !campos.includes(inicial) ? [inicial] : []
   const opciones = [
     { valor: '', etiqueta: 'Elige un dato', deshabilitada: true },

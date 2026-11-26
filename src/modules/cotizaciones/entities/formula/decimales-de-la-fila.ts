@@ -15,6 +15,8 @@ export type ResultadoDeCambiarDecimales =
 
 export const MENSAJE_FILA_INEXISTENTE = 'Esa fila no existe.'
 export const MENSAJE_SIN_DECIMALES = 'Esta celda muestra un texto: no lleva decimales.'
+// La fila de un dato del vehículo que no es un número (`datosQueNoSonNumero()`): la regla pura no conoce los campos del origen, lo dice la planilla.
+export const MENSAJE_DATO_SIN_NUMERO = 'Este dato del vehículo no es un número: no lleva decimales.'
 
 // Por qué esa fila no lleva decimales, o nulo.
 export function motivoSinDecimales(

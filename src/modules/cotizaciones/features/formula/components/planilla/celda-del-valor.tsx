@@ -1,11 +1,13 @@
 'use client'
 
-import { textoDelFaltante } from '../../../../entities/textos-de-faltantes'
+import { TextoDeValor } from '@/shared/ui/xcell'
+import { formatoDeCelda, monedaDeFormato } from '../../../../entities/formato-de-celda'
 import type { CifraDeLaFila } from '../../../../entities/formula/vista-previa'
 import { formatoDe } from '../../../../entities/nodos'
+import { textoDelFaltante } from '../../../../entities/textos-de-faltantes'
 import { ValorDeConstante } from './comunes/valor-de-constante'
 
-// Las cifras de la planilla llevan 2 decimales (los montos, los de `<Monto>`).
+// Las cifras de la planilla llevan 2 decimales (los montos, los de `<Monto>`), salvo que la celda tenga sus «Decimales»: entonces, los suyos.
 const DECIMALES = 2
 
 const APAGADA = {
@@ -29,15 +31,22 @@ export function CeldaDelValor({ cifra, leyendo }: { cifra: CifraDeLaFila; leyend
   switch (cifra.tipo) {
     case 'nada':
       return null
-    case 'valor':
+    case 'valor': {
       // Sin `formato`, un nodo es dinero (`usd`, como `formatoDe()` de la base).
-      return (
-        <ValorDeConstante
-          valor={cifra.valor}
-          formato={formatoDe({ formato: cifra.formato })}
-          decimales={DECIMALES}
-        />
+      const formato = formatoDe({ formato: cifra.formato })
+      return cifra.decimales === undefined ? (
+        <ValorDeConstante valor={cifra.valor} formato={formato} decimales={DECIMALES} />
+      ) : (
+        <span className="tabular-nums">
+          <TextoDeValor
+            valor={cifra.valor}
+            formato={formatoDeCelda(formato)}
+            moneda={monedaDeFormato(formato)}
+            decimales={cifra.decimales}
+          />
+        </span>
       )
+    }
     case 'texto':
       return <>{cifra.texto}</>
     case 'sin_cifra':

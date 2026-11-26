@@ -90,7 +90,8 @@ export function calcularLaVistaPrevia(
 export type CifraDeLaFila =
   // Una bandera, o sin vista calculada: la fila no dibuja nada.
   | { tipo: 'nada' }
-  | { tipo: 'valor'; valor: number; formato: Formato | undefined }
+  // `decimales`, los «Decimales» del nodo (glosario), sólo si los trae: la columna Ejemplo los muestra como la hoja.
+  | { tipo: 'valor'; valor: number; formato: Formato | undefined; decimales?: number }
   // La variante (su clave) o un texto.
   | { tipo: 'texto'; texto: string }
   // Sin cifra: `faltante` es lo que falta en esta fila; nulo, algo aguas arriba.
@@ -106,5 +107,10 @@ export function cifraDeLaFila(vista: VistaPrevia, nodo: Nodo): CifraDeLaFila {
   if (valor === undefined || valor === null) {
     return { tipo: 'sin_cifra', faltante: vista.faltantes.get(nodo.id) ?? null }
   }
-  return { tipo: 'valor', valor, formato: nodo.formato }
+  return {
+    tipo: 'valor',
+    valor,
+    formato: nodo.formato,
+    ...(nodo.decimales === undefined ? {} : { decimales: nodo.decimales }),
+  }
 }
