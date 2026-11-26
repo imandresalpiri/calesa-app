@@ -10,7 +10,7 @@ import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 
 // Los «Decimales» de una celda (`docs/UX.md` › «Cotización: fórmula (estados propios)», glosario «Decimales (de una celda)»): en la planilla, «⋯» › «Decimales…»
-// abre su panel (`?panel=decimales&fila=<id>`) con «Automático» y 0 a 4 y el ejemplo, que no mueve nada al cambiar de opción; se guarda, se publica y la hoja de
+// abre su panel (`?panel=decimales&fila=<id>`) con «Automático» y 0 a 4 y el ejemplo, con su alto reservado; se guarda, se publica y la hoja de
 // cotizar muestra la celda así (el monto en 0, el porcentaje en 2), con el total que sigue en «Automático» y el Modo Live tapando el monto. Un origen propio,
 // que se borra solo, al empezar y al terminar: otros specs leen la publicada de los orígenes compartidos.
 test.describe.configure({ mode: 'serial' })
@@ -106,12 +106,8 @@ test.afterAll(async () => {
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Decimales', exact: true })
 const sinEspacios = (t: string | null) => (t ?? '').replace(/[  ]/g, ' ')
 
-// La caja de algo del panel, para ver que no se movió.
-async function caja(l: Locator) {
-  const b = await l.boundingBox()
-  if (b === null) throw new Error('Falta una caja del panel.')
-  return { y: Math.round(b.y), alto: Math.round(b.height) }
-}
+// Un alto reservado: una prueba sin celular no mide cajas (`docs/LECCIONES.md`); afirma el estilo que lo reserva.
+const RESERVADO = /^[1-9][\d.]*px$/
 
 // «⋯» › «Decimales…» de la fila: el panel abierto, con su URL.
 async function abrirLosDecimales(page: Page, fila: string): Promise<Locator> {
@@ -144,21 +140,18 @@ test('E2E un monto en 0 y un porcentaje en 2 desde la planilla: se publican y la
   await entrar(page, duena, { fresco: true })
   await abrirPlanilla(page, origen.id)
 
-  // (1) El monto: «Automático» marcado; el ejemplo pasa de «USD 1.234,57 → USD 1.234,57» a «… → USD 1.235» sin mover el ejemplo ni la línea del motivo.
+  // (1) El monto: «Automático» marcado; el ejemplo pasa de «USD 1.234,57 → USD 1.234,57» a «… → USD 1.235», y el ejemplo y la línea del motivo tienen su
+  // alto reservado (cambiar de opción no mueve el pie).
   const p = await abrirLosDecimales(page, 'flete')
   await expect(p).toContainText(/C\d+ · Flete/)
   await expect(p.getByRole('radio', { name: 'Automático' })).toBeChecked()
   const ejemplo = p.locator('[data-ejemplo-de-decimales] [data-monto-valor]')
   await expect(ejemplo).toHaveCount(2)
-  const antes = {
-    ejemplo: await caja(p.locator('[data-ejemplo-de-decimales]')),
-    motivo: await caja(p.locator('[data-motivo-de-decimales]')),
-  }
+  await expect(p.locator('[data-ejemplo-de-decimales]')).toHaveCSS('min-height', RESERVADO)
+  await expect(p.locator('[data-motivo-de-decimales]')).toHaveCSS('min-height', RESERVADO)
   await elegir(p, '0')
   await expect.poll(async () => sinEspacios(await ejemplo.nth(1).textContent())).toBe('USD 1.235')
   expect(sinEspacios(await ejemplo.nth(0).textContent())).toBe('USD 1.234,57')
-  expect(await caja(p.locator('[data-ejemplo-de-decimales]'))).toEqual(antes.ejemplo)
-  expect(await caja(p.locator('[data-motivo-de-decimales]'))).toEqual(antes.motivo)
   await capturar(page, info, 'panel-de-decimales')
   await p.getByRole('button', { name: 'Aplicar', exact: true }).click()
   await expect(p).toBeHidden()
