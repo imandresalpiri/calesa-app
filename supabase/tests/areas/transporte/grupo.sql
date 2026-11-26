@@ -11,6 +11,8 @@
 --       la clave de editar, 42501 al aplicar, exista o no el booking.
 --   G6. Una unidad del grupo en la papelera no es del grupo (D19): no cuenta como oculta y el grupo se sigue aplicando sin ella (su fila no se toca;
 --       lo del embarque lo ve, porque sigue en él).
+--   G7. Una entidad vacía de la clave en un origen donde no puedo editar no se renombra ni se muda (ni se le crea un embarque); la de uno donde sí
+--       puedo, se renombra con las demás.
 --   Las unidades del grupo son las de los embarques (o contenedores) de la clave: se leen en `transportes_con_embarque`, y la versión que ve el grupo
 --   es la mayor entre la fila, su contenedor y su embarque.
 
@@ -260,6 +262,44 @@ begin
   if (select x.actualizado_en from public.transportes x where x.vehiculo_id = ids[2]) is distinct from v_antes then
     raise exception 'G6: la fila de la de la papelera no debía cambiar';
   end if;
+end $$;
+set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
+rollback;
+
+-- @test transporte: renombrar o embarcar el grupo no toca la entidad vacía de un origen donde no puedo editar (G7)
+begin;
+do $$
+declare t jsonb := pg_temp.trn_terreno(); duena uuid; p uuid; g jsonb; r jsonb; o3 uuid; e_ajeno uuid; e_mio uuid; c_ajeno uuid; e jsonb;
+begin
+  insert into public.origenes (clave, nombre, tipo) values ('tr3_' || substr(md5(random()::text), 1, 8), 'tr origen 3', 'manual') returning id into o3;
+  duena := pg_temp.trn_persona(array['logistica.ver', 'logistica.transporte.editar']);
+  -- Ve todo y edita en el origen del grupo y en o3; en o2, no.
+  p := pg_temp.trn_persona(array['logistica.ver', 'logistica.transporte.editar@' || (t ->> 'o'), 'logistica.transporte.editar@' || o3]);
+  -- Por booking: el del grupo y dos vacíos con la misma clave, en o2 y en o3.
+  perform pg_temp.trn_grupo(t, duena, 'BKG7', null);
+  insert into public.embarques (origen_id, booking) values ((t ->> 'o2')::uuid, 'BKG7') returning id into e_ajeno;
+  insert into public.embarques (origen_id, booking) values (o3, 'BKG7') returning id into e_mio;
+  g := pg_temp.trn_leer(p, 'booking', 'BKG7');
+  r := pg_temp.trn_aplicar(p, 'booking', 'BKG7', pg_temp.trn_esperadas(g), '{"booking": "BKG7B"}');
+  if r ? 'error' then raise exception 'G7: debía renombrar: %', r; end if;
+  if (select count(*) from public.transportes_con_embarque where booking = 'BKG7B') <> 3 then raise exception 'G7: las 3 debían ver BKG7B'; end if;
+  if (select booking from public.embarques where id = e_ajeno) <> 'BKG7' then raise exception 'G7: el vacío de o2 no debía renombrarse'; end if;
+  if (select booking from public.embarques where id = e_mio) <> 'BKG7B' then raise exception 'G7: el vacío de o3 debía renombrarse'; end if;
+  -- Por contenedor: el del grupo y uno vacío con el mismo número en o2.
+  perform pg_temp.trn_grupo(t, duena, 'BKG7C', 'CONT7');
+  insert into public.contenedores (origen_id, numero) values ((t ->> 'o2')::uuid, 'CONT7') returning id into c_ajeno;
+  g := pg_temp.trn_leer(p, 'contenedor', 'CONT7');
+  r := pg_temp.trn_aplicar(p, 'contenedor', 'CONT7', pg_temp.trn_esperadas(g), '{"booking": "BKG7X"}');
+  if r ? 'error' then raise exception 'G7: debía embarcar el contenedor: %', r; end if;
+  if (select embarque_id from public.contenedores where id = c_ajeno) is not null
+     or exists (select 1 from public.embarques where origen_id = (t ->> 'o2')::uuid and booking = 'BKG7X') then
+    raise exception 'G7: el contenedor vacío de o2 no debía embarcarse ni crearle un embarque';
+  end if;
+  e := (select jsonb_object_agg(u ->> 'transporte_id', u ->> 'actualizado_en') from jsonb_array_elements(r -> 'unidades') u);
+  r := pg_temp.trn_aplicar(p, 'contenedor', 'CONT7', e, '{"contenedor": "CONT7B"}');
+  if r ? 'error' then raise exception 'G7: debía renombrar el contenedor: %', r; end if;
+  if (select numero from public.contenedores where id = c_ajeno) <> 'CONT7' then raise exception 'G7: el contenedor vacío de o2 no debía renombrarse'; end if;
+  if (select count(*) from public.transportes_con_embarque where contenedor = 'CONT7B') <> 3 then raise exception 'G7: las 3 debían ver CONT7B'; end if;
 end $$;
 set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;

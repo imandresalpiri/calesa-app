@@ -1675,6 +1675,13 @@ begin
   if v_ids is distinct from v_esperadas then
     raise exception 'El grupo cambió mientras lo editabas. Recarga.' using errcode = 'PT409';
   end if;
+  -- Lo que los pasos 1 y 2 renombran o mudan: las entidades de la clave que llevan unidades vivas (todas del grupo, revisadas arriba una por una)
+  -- y, de las que no llevan ninguna (vacías o con todas en la papelera), sólo las que la persona puede editar: la de un origen donde no puede
+  -- queda como está.
+  v_emb_ids := array(select y from unnest(v_emb_ids) y
+                      where exists (select 1 from public._unidades_de(y, null)) or public._embarque_editable(y) order by y);
+  v_cont_ids := array(select y from unnest(v_cont_ids) y
+                       where exists (select 1 from public._unidades_de(null, y)) or public._contenedor_editable(y) order by y);
   -- C18 · las unidades de una sola pasada y después sus filas.
   perform public._transporte_grupo_bloquear(
     (select array_agg(y.vehiculo_id) from public.transportes y where y.id = any (v_ids) and y.vehiculo_id is not null),
