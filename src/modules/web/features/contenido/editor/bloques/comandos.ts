@@ -160,4 +160,24 @@ export function insertarBloque(
     galeria: { type: 'gallery', attrs: { imagenes: [], subida: elegidos?.grupo ?? null } },
   }[clave as 'separador' | 'boton' | 'video' | 'imagen' | 'galeria']
   editor.chain().focus().insertContent(contenido).run()
+  dejarUnParrafoAlFinal(editor)
+  if (clave === 'separador') {
+    editor.commands.focus('end')
+  }
+}
+
+// Un bloque que no es texto no puede ser el último: detrás queda un párrafo vacío donde seguir escribiendo (la elección no se mueve).
+function dejarUnParrafoAlFinal(editor: Editor): void {
+  const ultimo = editor.state.doc.lastChild
+  const parrafo = editor.schema.nodes['paragraph']
+  if (!ultimo || ultimo.isTextblock || !parrafo) {
+    return
+  }
+  editor
+    .chain()
+    .command(({ tr }) => {
+      tr.insert(tr.doc.content.size, parrafo.create())
+      return true
+    })
+    .run()
 }
