@@ -25,15 +25,15 @@ export function ElegidoDelPanel({ elegido, historial, alQuitar, paraElegir, alGu
   return (
     <section
       aria-label="Elegido"
-      className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 rounded-(--radius-card) border border-(--color-line) p-2"
+      className="relative grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 rounded-(--radius-card) border border-(--color-line) p-2"
     >
-      <div className="flex min-w-0 items-center gap-3">
+      {/* `pr-12`: el sitio del enlace a la ficha, que va al final del DOM (abajo) y se dibuja arriba a la derecha. */}
+      <div className="flex min-w-0 items-center gap-3 pr-12 md:pr-10">
         <Miniatura ruta={elegido.portadaRuta} className="w-12" />
         <span className="grid min-w-0 flex-1">
           <span className="text-(length:--text-xs) text-(--color-ink-soft)">Elegido</span>
           <span className="truncate font-medium text-(--color-ink)">{elegido.titulo}</span>
         </span>
-        <VerLaFicha id={elegido.id} titulo={elegido.titulo} />
         {alQuitar ? (
           <Button type="button" variant="outline" className="h-11 md:h-9" onClick={alQuitar}>
             Quitar
@@ -52,6 +52,8 @@ export function ElegidoDelPanel({ elegido, historial, alQuitar, paraElegir, alGu
         />
       ))}
       {historial}
+      {/* Último en el DOM a propósito: no suma una parada de Tab antes del dato de la hoja (tarea de oro 2 con enlace). */}
+      <VerLaFicha id={elegido.id} titulo={elegido.titulo} className="absolute top-2 right-2" />
     </section>
   )
 }
