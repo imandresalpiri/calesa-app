@@ -4,16 +4,39 @@ import type {
   ClaveDePieza,
   Diseno,
   ItemSinPosicion,
+  Posicion,
   SeccionDeDiseno,
 } from '../../../entities/diseno'
-import { moverItemA, type DestinoDeLaPieza } from '../../../entities/diseno/orden-del-diseno'
+import {
+  anuncioDeLaMovida,
+  nombrarEnLaHoja,
+  porQueNoSeMovio,
+  type Intento,
+} from '../../../entities/diseno/anuncios-de-la-rejilla'
 import {
   quitarItem,
   quitarSeccion,
   sumarItem,
   sumarSeccion,
 } from '../../../entities/diseno/insercion-del-diseno'
-import { piezaDelItemDeLaHoja, ubicarLaPieza } from '../../../entities/diseno/pieza-de-la-hoja'
+import { ordenarPorLectura } from '../../../entities/diseno/lugar-en-la-rejilla'
+import {
+  destinoEnLaVecina,
+  moverPiezaA,
+  pasoDeTeclado,
+  type Direccion,
+  type Movida,
+} from '../../../entities/diseno/mover-en-la-rejilla'
+import {
+  claveDeLaUbicacion,
+  ubicarLaPieza,
+  type PiezaDeLaHoja,
+} from '../../../entities/diseno/pieza-de-la-hoja'
+import {
+  intentoDeLaCaida,
+  soltarEn,
+  type Caida,
+} from '../../../entities/diseno/soltar-en-la-rejilla'
 
 export const nombreDeLaPieza = (clave: ClaveDePieza, etiquetas: ReadonlyMap<string, string>) =>
   clave.tipo === 'total' ? 'la tarjeta del total' : `«${etiquetas.get(clave.nodo) ?? clave.nodo}»`
@@ -32,26 +55,46 @@ export function operacionesDeLaHoja(
   setTrabajo: Dispatch<SetStateAction<Diseno>>,
   { etiquetas, anotar }: Apoyo,
 ) {
+  const nombre = nombrarEnLaHoja(trabajo, etiquetas)
+  // Una celda, unos atajos o la tarjeta del total que cambió de sección: el aviso del nivel si cambia quién la ve o quién la edita.
+  const anotarElNivel = (despues: Diseno, p: PiezaDeLaHoja) => {
+    const antes = ubicarLaPieza(trabajo, p)
+    const ahora = ubicarLaPieza(despues, p)
+    if (antes === null || ahora === null) return
+    anotar(
+      { diseno: trabajo, seccion: antes.seccion.id },
+      { diseno: despues, seccion: ahora.seccion.id },
+      claveDeLaUbicacion(antes),
+    )
+  }
+  // Aplica lo que se movió y devuelve lo que se anuncia: «Moviste «Precio» a la columna 7, fila 2.» o por qué no se movió («No se movió: ahí está «Flete».»). Nulo
+  // si no hay nada que decir (el mismo lugar).
+  const mover = (p: PiezaDeLaHoja, movida: Movida, intento: Intento): string | null => {
+    if (!movida.ok) return porQueNoSeMovio({ diseno: trabajo, nombre }, p, movida, intento)
+    const despues = ordenarPorLectura(movida.diseno)
+    const anuncio = anuncioDeLaMovida(trabajo, despues, p, nombre)
+    if (anuncio === null) return null
+    setTrabajo(despues)
+    if (p.pieza === 'nodo' || p.pieza === 'atajos' || p.pieza === 'total') anotarElNivel(despues, p)
+    return anuncio
+  }
   return {
-    // Lo que se anuncia («Moviste «Precio» a «Extras», posición 2 de 3.»); nulo si no se movió (el mismo lugar, o la tarjeta del total a una sección que no la
-    // admite).
-    mover: (desde: ClaveDePieza, hasta: DestinoDeLaPieza): string | null => {
-      const despues = moverItemA(trabajo, desde, hasta)
-      if (despues === trabajo) return null
-      setTrabajo(despues)
-      anotar(
-        { diseno: trabajo, seccion: desde.seccion },
-        { diseno: despues, seccion: hasta.seccion },
-        desde,
-      )
-      const donde = ubicarLaPieza(despues, piezaDelItemDeLaHoja(desde))
-      if (donde === null) return null
-      const nombre = nombreDeLaPieza(desde, etiquetas)
-      const seccion = donde.seccion.titulo ?? donde.seccion.id
-      return `Moviste ${nombre} a «${seccion}», posición ${String(donde.indice + 1)} de ${String(donde.seccion.items.length)}.`
+    // Soltar lo que se arrastra donde cayó (`soltar-en-la-rejilla.ts`).
+    soltar: (p: PiezaDeLaHoja, caida: Caida) =>
+      mover(p, soltarEn(trabajo, p, caida), intentoDeLaCaida(trabajo, p, caida)),
+    // Alt+flechas: una celda (una avanzada, un lugar de su lista; el bloque, una fila).
+    moverConTeclas: (p: PiezaDeLaHoja, direccion: Direccion) =>
+      mover(p, pasoDeTeclado(trabajo, p, direccion), { direccion }),
+    // «Mover a la sección anterior / siguiente» del «⋯»: al primer lugar libre de la vecina donde entra. Nulo si no hay.
+    moverALaVecina: (p: PiezaDeLaHoja, paso: -1 | 1) => {
+      const destino = destinoEnLaVecina(trabajo, p, paso)
+      return destino === null
+        ? null
+        : mover(p, moverPiezaA(trabajo, p, destino), { destino: destino.posicion })
     },
-    sumar: (seccionId: string, item: ItemSinPosicion) => {
-      setTrabajo((d) => sumarItem(d, seccionId, item))
+    // En el primer lugar libre de la sección donde entra (con `despues`, el primero después de esa posición).
+    sumar: (seccionId: string, item: ItemSinPosicion, despues?: Posicion) => {
+      setTrabajo((d) => sumarItem(d, seccionId, item, despues))
     },
     quitar: (clave: ClaveDePieza) => {
       setTrabajo(quitarItem(trabajo, clave))
@@ -70,8 +113,7 @@ export function operacionesDeLaHoja(
       const r = quitarSeccion(trabajo, id)
       if (!r.ok) return r.motivo
       setTrabajo(r.diseno)
-      const titulo = trabajo.secciones.find((s) => s.id === id)?.titulo ?? id
-      avisarConDeshacer(`Quitaste la sección «${titulo}».`, () => {
+      avisarConDeshacer(`Quitaste la sección ${nombre({ pieza: 'seccion', seccion: id })}.`, () => {
         setTrabajo(trabajo)
       })
       return null

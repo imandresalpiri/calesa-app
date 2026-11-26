@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { hojaDesde, type HojaLista } from './hoja'
 import { crudaDeLaHoja } from './hoja-de-prueba.soporte'
-import { columnasDelItem, rejillaDeLasSecciones, rejillaDeLosItems } from './posiciones-de-la-hoja'
+import {
+  columnasDelItem,
+  rejillaDeLasPiezas,
+  rejillaDeLasSecciones,
+  rejillaDeLosItems,
+} from './posiciones-de-la-hoja'
 
 const celda = (nodo: string, mas: Record<string, unknown> = {}) => ({
   tipo: 'celda',
@@ -83,6 +88,15 @@ describe('rejillaDeLosItems: el corte de la pieza más exigente y las filas vac�
       ]),
     ])
     expect(itemsDe(h).map(columnasDelItem)).toEqual([4, 5, 12, 4])
+  })
+})
+
+describe('rejillaDeLasPiezas: lo de más suma filas, no el corte', () => {
+  it('una mitad y el «+» del lienzo debajo de un hueco: el «+» no lleva la rejilla a siempre', () => {
+    const mitad = { posicion: { columna: 1, fila: 1 }, ancho: 6, alto: 1 }
+    const mas = { posicion: { columna: 1, fila: 3 }, ancho: 12, alto: 1 }
+    expect(rejillaDeLasPiezas([mitad], [mas])).toEqual({ corte: 'lg', filas: 'auto 2.5rem auto' })
+    expect(rejillaDeLasPiezas([], [mas])).toBeNull()
   })
 })
 

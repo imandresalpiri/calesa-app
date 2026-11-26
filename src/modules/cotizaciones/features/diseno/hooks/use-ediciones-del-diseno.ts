@@ -27,7 +27,6 @@ import {
 } from '../../../entities/diseno/edicion-del-aspecto'
 import { ponerSeccion } from '../../../entities/diseno/edicion-del-diseno'
 import { ponerNiveles, type CambioDeNiveles } from '../../../entities/diseno/niveles'
-import { moverSeccion } from '../../../entities/diseno/orden-del-diseno'
 import { ubicarElTotal } from '../../../entities/diseno/total-de-la-hoja'
 import type { Definicion } from '../../../entities/formula'
 import { edicionesDeLaAyuda } from './ediciones-de-la-ayuda'
@@ -95,9 +94,6 @@ function edicionesDelDiseno(
     },
     ponerAspectoDeLaCabecera: (cambios: CambioDeAspectoDeLaCabecera) => {
       aplicar((d) => ponerAspectoDeLaCabecera(d, cambios))
-    },
-    moverSeccion: (desde: number, hasta: number) => {
-      aplicar((d) => moverSeccion(d, desde, hasta))
     },
   }
 }

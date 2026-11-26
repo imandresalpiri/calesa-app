@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from './soporte/prueba'
 import { enLaPestana } from './soporte/pestanas-del-origen'
 import { CONTRASENA, entrar } from './soporte/alta'
+import { arrastrarEnElLienzo } from './soporte/arrastre-del-lienzo'
 import {
   borrarPersonasDePrueba,
   borrarRolesDePrueba,
@@ -22,9 +23,10 @@ import { capturar, sinScrollHorizontal, textoGrandeAlCargar } from './soporte/re
 import { literal, sql } from './soporte/sql'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
-// La rejilla de la hoja (docs/UX.md › «Cotización: hoja (estados propios)»; docs/GLOSARIO.md › «Aspecto» y «Rejilla de la hoja»): en el editor, el ancho de una
-// celda a 8 de 12, el orden de las celdas arrastrando y el de las secciones con Alt+flechas, la densidad compacta y un tono en una sección, en vivo en el lienzo
-// (la hoja a 1.280 px), y el borrador que pasa la validación de la base al publicarse. Una cotización de una versión con ese aspecto lo dibuja; una de la versión vieja se ve como siempre, y el PDF no
+// La rejilla de la hoja (docs/UX.md › «Cotización: hoja (estados propios)»; docs/GLOSARIO.md › «Aspecto» y «Rejilla de la hoja»): en el editor, una sección
+// movida una celda con Alt+flechas, el ancho de una sección y de una celda a 8 de 12 en el lugar que quedó libre, una celda arrastrada a una fila libre (la que
+// deja queda vacía), la densidad compacta y un tono en una sección, en vivo en el lienzo (la hoja a 1.280 px), y el borrador que pasa la validación de la base
+// al publicarse. Una cotización de una versión con ese aspecto lo dibuja; una de la versión vieja se ve como siempre, y el PDF no
 // cambia. El editor (Configuración) va sólo en escritorio; la hoja, en los dos proyectos, sobre un segundo origen con las dos versiones sembradas.
 test.describe.configure({ mode: 'serial' })
 
@@ -120,7 +122,7 @@ async function medidaDeLaSeccion(lugar: Locator, id: string) {
 const abrirElAspecto = (page: Page) =>
   inspector(page).locator('[data-aspecto-de-la-seccion]').scrollIntoViewIfNeeded()
 
-// Mueve una sección un lugar con el teclado: elegida, Alt+flecha sobre ella (el foco vuelve a la sección movida).
+// Mueve una sección una celda con el teclado: elegida, Alt+flecha sobre ella (el foco vuelve a la sección movida).
 async function moverConElTeclado(page: Page, id: string, flecha: string) {
   await elegir(page, `seccion-${id}`)
   await page.keyboard.press(`Alt+${flecha}`)
@@ -133,7 +135,7 @@ const xcellDe = (lugar: Locator, nodo: string) => lugar.locator(`[data-nodo="${n
 const FONDO_DEL_TONO = 'rgb(255, 247, 214)'
 
 // @sin-celular: el editor del diseño es una pantalla de Configuración; en el celular el camino feliz va sólo en escritorio (e2e.md).
-test('G1: el ancho de 8 de 12, el orden arrastrando y con el teclado, la densidad y el tono se ven en vivo y el borrador se publica', async ({
+test('G1: mover con el teclado y arrastrando a un lugar libre, el ancho de 8 de 12, la densidad y el tono se ven en vivo y el borrador se publica', async ({
   page,
 }) => {
   await entrar(page, duena, { fresco: true })
@@ -141,7 +143,14 @@ test('G1: el ancho de 8 de 12, el orden arrastrando y con el teclado, la densida
   await enLaPestana(page, 'Hoja')
   await expect(lienzo(page)).toHaveAttribute('data-vista', '1280')
 
-  // «Base» a lo ancho (12 columnas) y «Precio» en 8 de 12.
+  // «Extras» baja una fila con el teclado (Alt+↓, una celda): la mitad derecha de la primera queda libre y nada más se mueve.
+  await moverConElTeclado(page, 'extras', 'ArrowDown')
+  await expect(page.locator('[data-anuncio-de-la-hoja]')).toHaveText(
+    'Moviste la sección «Extras» a la columna 7, fila 2.',
+  )
+  await expect.poll(() => ordenDelEditor(page)).toEqual(['base', 'resumen', 'extras'])
+
+  // «Base» a lo ancho (12 columnas), en el lugar que dejó «Extras», y «Precio» en 8 de 12.
   const base = seccionDelEditor(page, 'base')
   await elegir(page, 'seccion-base')
   await abrirElAspecto(page)
@@ -149,16 +158,17 @@ test('G1: el ancho de 8 de 12, el orden arrastrando y con el teclado, la densida
   await elegir(page, 'precio')
   await inspector(page).getByLabel('Ancho', { exact: true }).selectOption('8')
 
-  // Arrastrar «Flete» sobre «Precio» con el puntero los cambia de lugar: nada se mueve mientras se arrastra y el cambio cae al soltar.
-  await boton(page, 'flete').dragTo(boton(page, 'precio'), { steps: 20, force: true })
+  // Arrastrar «Precio» a la fila del «+», debajo de «Flete»: nada se mueve mientras se arrastra, la marca dice que el lugar está libre y, al soltar, la
+  // primera fila queda vacía (nada se corre solo).
+  await arrastrarEnElLienzo(page, 'precio', base.locator('[data-hueco-para-sumar]'), {
+    marca: 'libre',
+  })
   await expect
     .poll(() => nodosDe(base.locator('[data-rejilla-de-celdas] > [data-pieza]'), 'data-pieza'))
     .toEqual(['flete', 'precio'])
-  // Las secciones, con el teclado: elegida, Alt+↑ la sube un lugar y Alt+↓ la baja.
-  await moverConElTeclado(page, 'resumen', 'ArrowUp')
-  await expect.poll(() => ordenDelEditor(page)).toEqual(['base', 'resumen', 'extras'])
-  await moverConElTeclado(page, 'base', 'ArrowDown')
-  await expect.poll(() => ordenDelEditor(page)).toEqual(['resumen', 'base', 'extras'])
+  await expect(page.locator('[data-anuncio-de-la-hoja]')).toHaveText(
+    'Moviste «Precio» a la columna 1, fila 3.',
+  )
 
   // «Base» compacta y con el tono.
   await elegir(page, 'seccion-base')
@@ -169,20 +179,27 @@ test('G1: el ancho de 8 de 12, el orden arrastrando y con el teclado, la densida
     .selectOption({ label: `E2E ${tono}` })
 
   // El lienzo a 1.280 px dibuja todo sin guardar: el orden, «Precio» en 8 de 12, el tono y las celdas compactas (4 px de relleno) con su fondo.
-  await expect.poll(() => ordenDe(lienzo(page))).toEqual(['resumen', 'base', 'extras'])
+  await expect.poll(() => ordenDe(lienzo(page))).toEqual(['base', 'resumen', 'extras'])
   await expect(base.locator('[data-pieza="precio"]')).toHaveCSS('grid-column-end', 'span 8')
   await expect(base).toHaveAttribute('data-tono', tono)
   await expect(xcellDe(base, 'precio')).toHaveCSS('padding-top', '4px')
   await expect(xcellDe(base, 'precio')).toHaveCSS('background-color', FONDO_DEL_TONO)
 
-  // Guardar el borrador: queda el aspecto y el orden, y la base lo valida entero al publicarlo.
+  // Guardar el borrador: queda el aspecto y cada lugar (con la fila vacía), y la base lo valida entero al publicarlo.
   await page.getByRole('button', { name: 'Guardar el borrador', exact: true }).click()
   await expect(page.locator('[data-guardado] [role="status"]')).toHaveText('Se guardó el borrador.')
   const borrador = leerElBorradorDelDiseno(editor.id)
-  expect(borrador?.diseno.secciones.map((s) => s.id)).toEqual(['resumen', 'base', 'extras'])
+  expect(borrador?.diseno.secciones.map((s) => [s.id, s.posicion])).toEqual([
+    ['base', { columna: 1, fila: 1 }],
+    ['resumen', { columna: 1, fila: 2 }],
+    ['extras', { columna: 7, fila: 2 }],
+  ])
   const enLaBase = borrador?.diseno.secciones.find((s) => s.id === 'base')
   expect(enLaBase).toMatchObject({ ancho: 12, densidad: 'compacta', tono })
-  expect(enLaBase?.items.map((i) => i.nodo)).toEqual(['flete', 'precio'])
+  expect(enLaBase?.items.map((i) => [i.nodo, i.posicion])).toEqual([
+    ['flete', { columna: 1, fila: 2 }],
+    ['precio', { columna: 1, fila: 3 }],
+  ])
   expect(enLaBase?.items.find((i) => i.nodo === 'precio')?.ancho).toBe(8)
   publicarElBorradorDelDiseno(editor.id)
   expect(

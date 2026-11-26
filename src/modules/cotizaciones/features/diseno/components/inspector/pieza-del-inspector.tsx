@@ -46,6 +46,13 @@ function SinFila({ alQuitar, ocupado }: { alQuitar: () => void; ocupado: boolean
   )
 }
 
+export const DEL_BLOQUE =
+  'Lleva la tarjeta del total suelta y las secciones que van detrás del botón «Avanzado», en una fila entera de la hoja. Arrástralo, o usa Alt+↑ y Alt+↓, para llevarlo a otra fila libre.'
+
+const DelBloque = () => (
+  <p className="text-(length:--text-sm) text-(--color-ink-soft)">{DEL_BLOQUE}</p>
+)
+
 const YaNoEsta = () => (
   <p className="text-(length:--text-sm) text-(--color-ink-soft)">{PIEZA_QUE_YA_NO_ESTA}</p>
 )
@@ -55,6 +62,7 @@ export function PiezaDelInspector({ pieza, apoyo, alQuitar, alUbicarElTotal }: P
   const { trabajo, definicion } = apoyo.editor
   if (pieza.pieza === 'cabecera') return <InspectorDeLaCabecera apoyo={apoyo} />
   if (pieza.pieza === 'total') return <InspectorDelTotal apoyo={apoyo} alUbicar={alUbicarElTotal} />
+  if (pieza.pieza === 'bloque-avanzado') return <DelBloque />
   if (pieza.pieza === 'seccion') {
     const seccion = trabajo.secciones.find((s) => s.id === pieza.seccion)
     return seccion === undefined ? (

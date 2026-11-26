@@ -120,9 +120,12 @@ export type DisenoEnLaBase = {
       }[]
     }
     tarjeta_total?: { nodo: string; secundarios: string[] }
+    avanzado?: { fila: number }
     secciones: {
       id: string
       presentacion: string
+      posicion?: { columna: number; fila: number }
+      alto?: number
       nivel_ver?: string
       nivel_editar?: string
       ancho?: number
@@ -131,7 +134,9 @@ export type DisenoEnLaBase = {
       items: {
         tipo?: string
         nodo: string
+        posicion?: { columna: number; fila: number }
         ancho?: string | number
+        alto?: number
         efecto?: string
         ayuda?: { texto?: string; tabla?: string } | Record<string, unknown>[]
         nivel_ver?: string

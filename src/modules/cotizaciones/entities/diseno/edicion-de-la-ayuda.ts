@@ -19,7 +19,6 @@ import {
   type TipoDeBloque,
 } from '../diseno'
 import { enItem } from './edicion-de-items'
-import { mover } from './orden-del-diseno'
 
 // La ayuda de la celda `nodo` de la sección `seccion`; un bloque suyo; un enlace de un bloque de enlaces.
 export type DondeDeLaAyuda = { seccion: string; nodo: string }
@@ -113,6 +112,17 @@ export const ponerTextoDelBloque = (diseno: Diseno, donde: DondeDelBloque, texto
   )
 
 // Alt+↑/↓ y «Mover antes/después»: el bloque al lugar `destino`. Fuera de la lista, igual.
+// Lleva el elemento `desde` al lugar `hasta` (contado sin él). Nulo si alguno cae fuera de la lista o son el mismo.
+function mover<T>(lista: readonly T[], desde: number, hasta: number): readonly T[] | null {
+  const dentro = (i: number) => Number.isInteger(i) && i >= 0 && i < lista.length
+  if (!dentro(desde) || !dentro(hasta) || desde === hasta) return null
+  const salida = [...lista]
+  const [movido] = salida.splice(desde, 1)
+  if (movido === undefined) return null
+  salida.splice(hasta, 0, movido)
+  return salida
+}
+
 export const moverBloque = (diseno: Diseno, donde: DondeDelBloque, destino: number): Diseno =>
   conBloques(diseno, donde, (bloques) => mover(bloques, donde.bloque, destino) ?? bloques)
 

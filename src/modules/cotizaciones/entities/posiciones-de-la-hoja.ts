@@ -29,13 +29,16 @@ const piezaDelItem = (item: ItemDeHoja): PiezaEnLaRejilla | null =>
     ? null
     : { posicion: item.posicion, ancho: columnasDelItem(item), alto: item.alto ?? 1 }
 
+// Lo que la rejilla de las secciones lee de cada una (la de la hoja y la del lienzo del editor).
+type LugarDeLaSeccion = Pick<SeccionDeHoja, 'presentacion' | 'posicion' | 'ancho' | 'alto'>
+
 // Una sección sin ancho es «Automática»: mide 6 columnas y las toma desde `5xl`.
-const piezaDeLaSeccion = (s: SeccionDeHoja): PiezaEnLaRejilla | null =>
+const piezaDeLaSeccion = (s: LugarDeLaSeccion): PiezaEnLaRejilla | null =>
   s.posicion === undefined
     ? null
     : { posicion: s.posicion, ancho: s.ancho ?? SECCION_AUTOMATICA.columnas, alto: s.alto ?? 1 }
 
-const corteDeLaSeccion = (s: SeccionDeHoja) =>
+const corteDeLaSeccion = (s: LugarDeLaSeccion) =>
   s.ancho === undefined ? SECCION_AUTOMATICA.corte : corteDe(s.ancho)
 
 // Las piezas de una lista, o nulo si está vacía o a alguna le falta la posición.
@@ -64,17 +67,25 @@ export function rejillaDeLosItems(
 ): RejillaDibujada | null {
   if (enPar && items.some(vaEnDos)) return null
   const piezas = piezasDe(items, piezaDelItem)
-  if (piezas === null) return null
+  return piezas === null ? null : rejillaDeLasPiezas(piezas)
+}
+
+// La rejilla de unas piezas ya medidas; `extra` suma sus filas sin pesar en el corte (el «+» del lienzo del editor, en su fila). Nula sin piezas.
+export function rejillaDeLasPiezas(
+  piezas: readonly PiezaEnLaRejilla[],
+  extra: readonly PiezaEnLaRejilla[] = [],
+): RejillaDibujada | null {
+  if (piezas.length === 0) return null
   return {
     corte: corteDeLaRejilla(piezas.map((p) => corteDe(p.ancho))),
-    filas: pistasDeLasFilas(piezas),
+    filas: pistasDeLasFilas([...piezas, ...extra]),
   }
 }
 
 // La rejilla de las secciones principales y el bloque del avanzado: el bloque va en su fila (`avanzado.fila`) o, sin ella, debajo de la última, y ocupa
 // la fila entera sólo si se dibuja (`hayBloque`: avanzadas, el total suelto o el cierre). Sin principales, nulo: el bloque solo, en el flujo.
 export function rejillaDeLasSecciones(
-  todas: readonly SeccionDeHoja[],
+  todas: readonly LugarDeLaSeccion[],
   { avanzado, hayBloque }: { avanzado?: { fila: number }; hayBloque: boolean },
 ): RejillaDeLasSecciones | null {
   const principales = todas.filter((s) => s.presentacion !== 'avanzado')
