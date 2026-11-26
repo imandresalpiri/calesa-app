@@ -431,27 +431,44 @@ export type Database = {
       categorias_gasto: {
         Row: {
           activo: boolean
+          actualizado_en: string
+          creado_en: string
           id: string
           nombre: string
           orden: number
+          origen_id: string | null
           proposito: string | null
         }
         ComputedFields: never
         Insert: {
           activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
           id?: string
           nombre: string
           orden?: number
+          origen_id?: string | null
           proposito?: string | null
         }
         Update: {
           activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
           id?: string
           nombre?: string
           orden?: number
+          origen_id?: string | null
           proposito?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'categorias_gasto_origen_id_fkey'
+            columns: ['origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+        ]
       }
       cola_gc_barrido: {
         Row: {
@@ -3686,21 +3703,38 @@ export type Database = {
       navieras: {
         Row: {
           activo: boolean
+          actualizado_en: string
+          creado_en: string
           id: string
           nombre: string
+          origen_id: string | null
         }
         ComputedFields: never
         Insert: {
           activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
           id?: string
           nombre: string
+          origen_id?: string | null
         }
         Update: {
           activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
           id?: string
           nombre?: string
+          origen_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'navieras_origen_id_fkey'
+            columns: ['origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+        ]
       }
       notas: {
         Row: {
@@ -4563,30 +4597,47 @@ export type Database = {
       puertos: {
         Row: {
           activo: boolean
+          actualizado_en: string
           codigo: string | null
+          creado_en: string
           id: string
           nombre: string
           orden: number
+          origen_id: string | null
           pais: string | null
         }
         ComputedFields: never
         Insert: {
           activo?: boolean
+          actualizado_en?: string
           codigo?: string | null
+          creado_en?: string
           id?: string
           nombre: string
           orden?: number
+          origen_id?: string | null
           pais?: string | null
         }
         Update: {
           activo?: boolean
+          actualizado_en?: string
           codigo?: string | null
+          creado_en?: string
           id?: string
           nombre?: string
           orden?: number
+          origen_id?: string | null
           pais?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'puertos_origen_id_fkey'
+            columns: ['origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+        ]
       }
       push_pases: {
         Row: {
@@ -7792,6 +7843,60 @@ export type Database = {
         }[]
       }
       _candado_de_objeto: { Args: { p_bucket: string; p_ruta: string }; Returns: number }
+      _catalogo_clave: { Args: { p_texto: string }; Returns: string }
+      _catalogo_logistica_claves: {
+        Args: { p_datos: Json; p_validas: string[] }
+        Returns: undefined
+      }
+      _catalogo_logistica_exigir: {
+        Args: {
+          p_creando: boolean
+          p_femenino: boolean
+          p_nombre: string
+          p_origen: string
+          p_tapan: string[]
+        }
+        Returns: undefined
+      }
+      _catalogo_logistica_origen: { Args: { p_origen: string }; Returns: string }
+      _catalogo_logistica_repetido: {
+        Args: {
+          p_activo: boolean
+          p_femenino: boolean
+          p_nombre: string
+          p_origen: string
+          p_sujeto: string
+        }
+        Returns: string
+      }
+      _catalogo_logistica_texto: { Args: { p_texto: string }; Returns: string }
+      _categoria_gasto_de_jsonb: {
+        Args: {
+          p_base: Omit<
+            Database['public']['Tables']['categorias_gasto']['Row'],
+            Database['public']['Tables']['categorias_gasto']['ComputedFields']
+          >
+          p_datos: Json
+        }
+        Returns: {
+          activo: boolean
+          actualizado_en: string
+          creado_en: string
+          id: string
+          nombre: string
+          orden: number
+          origen_id: string | null
+          proposito: string | null
+        }
+        SetofOptions: {
+          from: '*'
+          to: 'categorias_gasto'
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      _categoria_gasto_tapan: { Args: { p_nombre: string }; Returns: string[] }
+      _categoria_gasto_uso: { Args: { p_id: string }; Returns: number }
       _chat_cuerpo: { Args: { p_cuerpo: string; p_obligatorio: boolean }; Returns: string }
       _chat_menciones_guardar: {
         Args: { p_conversacion: string; p_cuerpo: string; p_menciones: Json; p_mensaje: string }
@@ -8443,6 +8548,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      _gasto_categoria_del_origen: {
+        Args: { p_categoria: string; p_es_repuesto: boolean; p_vehiculos: string[] }
+        Returns: undefined
+      }
       _gasto_de_cambios: {
         Args: {
           o: Omit<
@@ -8867,6 +8976,31 @@ export type Database = {
       _motor_redondear: { Args: { n: number; x: number }; Returns: number }
       _motor_sin_leer: { Args: { p_quien: string; p_ref: string }; Returns: undefined }
       _motor_sin_validar: { Args: { p_detalle: string; p_donde: string }; Returns: undefined }
+      _naviera_de_jsonb: {
+        Args: {
+          p_base: Omit<
+            Database['public']['Tables']['navieras']['Row'],
+            Database['public']['Tables']['navieras']['ComputedFields']
+          >
+          p_datos: Json
+        }
+        Returns: {
+          activo: boolean
+          actualizado_en: string
+          creado_en: string
+          id: string
+          nombre: string
+          origen_id: string | null
+        }
+        SetofOptions: {
+          from: '*'
+          to: 'navieras'
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      _naviera_tapan: { Args: { p_nombre: string }; Returns: string[] }
+      _naviera_uso: { Args: { p_id: string }; Returns: number }
       _nivel_clave: { Args: { p_nombre: string }; Returns: string }
       _nivel_motivo_de_uso: { Args: { p_clave: string }; Returns: string }
       _nivel_nombre: { Args: { p_texto: string }; Returns: string }
@@ -9248,6 +9382,34 @@ export type Database = {
         Returns: string
       }
       _puede_mover: { Args: { p_a: string; p_de: string; p_flujo: string }; Returns: boolean }
+      _puerto_de_jsonb: {
+        Args: {
+          p_base: Omit<
+            Database['public']['Tables']['puertos']['Row'],
+            Database['public']['Tables']['puertos']['ComputedFields']
+          >
+          p_datos: Json
+        }
+        Returns: {
+          activo: boolean
+          actualizado_en: string
+          codigo: string | null
+          creado_en: string
+          id: string
+          nombre: string
+          orden: number
+          origen_id: string | null
+          pais: string | null
+        }
+        SetofOptions: {
+          from: '*'
+          to: 'puertos'
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      _puerto_tapan: { Args: { p_nombre: string; p_pais: string }; Returns: string[] }
+      _puerto_uso: { Args: { p_id: string }; Returns: number }
       _push_endpoint_valido: { Args: { p_endpoint: string }; Returns: boolean }
       _push_host_permitido: { Args: { p_host: string }; Returns: boolean }
       _push_tope_por_persona: { Args: Record<PropertyKey, never>; Returns: number }
@@ -10196,6 +10358,18 @@ export type Database = {
       categoria_eliminar: {
         Args: { p_actualizado_en_esperado: string; p_categoria: string }
         Returns: undefined
+      }
+      categoria_gasto_crear: {
+        Args: { p_datos: Json; p_id: string; p_origen: string }
+        Returns: Json
+      }
+      categoria_gasto_eliminar: {
+        Args: { p_actualizado_en_esperado: string; p_id: string }
+        Returns: Json
+      }
+      categoria_gasto_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_id: string }
+        Returns: Json
       }
       categoria_guardar: {
         Args: {
@@ -11351,6 +11525,11 @@ export type Database = {
         }
         Returns: string
       }
+      naviera_crear: { Args: { p_datos: Json; p_id: string; p_origen: string }; Returns: Json }
+      naviera_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_id: string }
+        Returns: Json
+      }
       nivel_crear: { Args: { p_id: string; p_nombre: string }; Returns: Json }
       nivel_eliminar: { Args: { p_actualizado_en_esperado: string; p_id: string }; Returns: Json }
       nivel_renombrar: {
@@ -11650,6 +11829,11 @@ export type Database = {
         Returns: boolean
       }
       puede_vehiculo: { Args: { p_clave: string; p_vehiculo: string }; Returns: boolean }
+      puerto_crear: { Args: { p_datos: Json; p_id: string; p_origen: string }; Returns: Json }
+      puerto_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_id: string }
+        Returns: Json
+      }
       push_abrir: { Args: { p_pase: string }; Returns: Json }
       push_desuscribir: { Args: { p_endpoint: string }; Returns: boolean }
       push_resultado: { Args: { p_pase: string; p_resultados: Json }; Returns: Json }
