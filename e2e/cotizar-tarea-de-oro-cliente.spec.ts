@@ -28,9 +28,10 @@ test.describe.configure({ mode: 'serial' })
 
 // Las teclas de control, medidas en la primera corrida verde (4.14-3c), iguales en escritorio y celular. Con un cliente que existe: 29 (Tab y Enter a «Saltar al contenido», los Tab hasta
 // la barra «Cliente» y su Enter, los Tab hasta la fila y su Enter, y el tramo de la hoja: Tab hasta `remate` y Enter, hasta `grua` y Enter, y Ctrl+S); con uno nuevo: 30 (en vez de la fila, el Tab
-// hasta «+» y su Enter, un Tab del teléfono al nombre y Ctrl+S del alta). 1,6 s el robot; KLM 17,2 s y 28,3 s. Determinista: una parada nueva en el camino lo rompe a propósito.
-const CONTROLES_CON_UN_CLIENTE_QUE_EXISTE = 29
-const CONTROLES_CON_UN_CLIENTE_NUEVO = 30
+// hasta «+» y su Enter, un Tab del teléfono al nombre y Ctrl+S del alta). 1,6 s el robot; KLM 17,2 s y 28,3 s. Determinista: una parada nueva en el camino lo rompe a propósito. 30 y 31 desde
+// T565: «Privada», en los pasos de la hoja, es una parada antes del primer lado.
+const CONTROLES_CON_UN_CLIENTE_QUE_EXISTE = 30
+const CONTROLES_CON_UN_CLIENTE_NUEVO = 31
 
 let asesora = ''
 let subasta = ''

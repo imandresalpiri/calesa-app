@@ -161,7 +161,11 @@ test('E2E con lo tipeado y sin guardar el botón espera; tras «Guardar» se enc
   await tipearEnLaHoja(page, 'pub', '50')
   await expect(botonEncima(page)).toHaveAttribute('aria-disabled', 'true')
   await expect(page.getByText(CON_CAMBIOS)).toBeVisible()
-  // Playwright espera a que un botón `aria-disabled` se encienda: el toque va forzado para probar que no manda nada.
+  // Playwright espera a que un botón `aria-disabled` se encienda: el toque va forzado para probar que no manda nada. Forzado no mira qué hay encima: en el
+  // celular la barra de arriba, pegajosa, puede tapar el botón, así que va al centro de la ventana antes.
+  await botonEncima(page).evaluate((e) => {
+    e.scrollIntoView({ block: 'center' })
+  })
   await botonEncima(page).click({ force: true })
   expect(hijasDe(anterior)).toBe(0)
   await page.getByRole('button', { name: 'Guardar', exact: true }).click()

@@ -105,10 +105,17 @@ test('la cabecera va en la fila de las barras: una línea a 1440 px y dos filas 
     expect(cabecera.y).toBeLessThan(vehiculo.y + vehiculo.height)
     expect(vehiculo.y).toBeLessThan(cabecera.y + cabecera.height)
   }
-  info.annotations.push({
-    type: 'alto de la fila de las barras',
-    description: `${String(Math.round((await caja(fila(page))).height))} px`,
-  })
+  const secciones = await caja(page.locator('[data-secciones]'))
+  info.annotations.push(
+    {
+      type: 'alto de la fila de las barras',
+      description: `${String(Math.round((await caja(fila(page))).height))} px`,
+    },
+    {
+      type: 'las secciones de la hoja',
+      description: `empiezan a ${String(Math.round(secciones.y))} px y miden ${String(Math.round(secciones.width))} px de ancho`,
+    },
+  )
   await capturar(page, info, 'cabecera-compacta')
 })
 

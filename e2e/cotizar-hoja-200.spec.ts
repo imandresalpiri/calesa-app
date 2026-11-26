@@ -37,15 +37,16 @@ test.describe.configure({ mode: 'serial' })
 // `empresa.tipos_cambio.gestionar`, que ve las mismas celdas), y quien configura tiene su tope: lo medido con la hoja usada más un 5 %, con techo en 600 y la misma regla.
 // Con un cálculo pisado (T521: la marca y «Calculado» de la celda, el aviso de la primera vez y su línea del resumen, los dos últimos con `diferido()`): 458 al
 // abrir y 502 usada. Pasa el techo por menos del 5 %: sube a 525 (500 más un 5 %, la regla de presupuestos de la tanda del 2026-11-21, `docs/DECISIONES.md` ›
-// «Pisar un cálculo»); más que eso, se recorta.
+// «Pisar un cálculo»); más que eso, se recorta. Sin el resumen de la derecha, con la región del total, el cierre y la cabecera en la ranura de las barras (T565):
+// 448 al abrir y 492 usada.
 const TOPE_DE_NODOS = 525
 // La dueña con ⚙ (4.20-3b): 532 al abrir (21 ⚙) y 557 usada (22: la garantía suma el suyo); más un 5 %, 585. Con la celda en una fila, los pasos y el ⚙ de la
-// cabecera (T312): 516 al abrir y 540 usada; sin ⚙, 446 y 467. Con un cálculo pisado (T521): 528 al abrir y 575 usada.
+// cabecera (T312): 516 al abrir y 540 usada; sin ⚙, 446 y 467. Con un cálculo pisado (T521): 528 al abrir y 575 usada. Sin el resumen (T565): 517 al abrir y 564 usada.
 const TOPE_DE_NODOS_CON_AJUSTE = 585
 // Cada ⚙ son tres nodos (el botón, su `svg` y su `use`: `src/shared/ui/xcell/CLAUDE.md` › «Nodos por celda»).
 const NODOS_POR_AJUSTE = 3
-// El ⚙ de la cabecera (T312) son siete: la fila que lo pone junto a los modos, el botón, su `svg` y sus cuatro trazos.
-const NODOS_DEL_AJUSTE_DE_LA_CABECERA = 7
+// El ⚙ de la cabecera (T312) son seis: el botón, su `svg` y sus cuatro trazos (en la ranura de la cabecera va junto a los modos, sin una fila propia).
+const NODOS_DEL_AJUSTE_DE_LA_CABECERA = 6
 
 let duena = ''
 let costos = ''
