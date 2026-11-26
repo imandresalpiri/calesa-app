@@ -234,6 +234,14 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Una ruta o un parámetro que se muda no deja redirección: se actualizan sus enlaces y, con una migración, sus datos guardados; la URL vieja da «no existe». Una redirección por cada mudanza se acumula y nadie la quita. (kit)
 - Un solo nivel de secciones por pantalla, a la vista: un acordeón o una sección dentro de otra esconden lo que hay y obligan a adivinar dónde está. Lo secundario va en un drawer o un modal con su URL. (kit)
 - Lo que cambia de contenido dentro de un área (cargar, editar, cambiar de vista, mostrar un aviso) no cambia su tamaño: alto fijo o reservado, y el esqueleto mide lo mismo que el contenido; si no, lo de abajo salta y el toque cae en otro lado. Se comprueba midiendo con `boundingBox()` antes y después.
+- Un alto fijo que tiene que contener texto sale de la letra (`max(44px, letra × 1,5 + relleno)`), no de un px literal: con la «Letra» grande o el texto al
+  200 % un alto en px corta el valor. Lo que cambia de estado va en un lugar del mismo alto (una etiqueta que flota con `transform`, una línea cortada con «…»).
+- `container-type` crea un contexto de apilamiento: el globo (`::after`) de un nodo de adentro queda debajo del contenedor vecino que viene después. El
+  contenedor sube con `relative focus-within:z-10 hover:z-10`.
+- `container-type: inline-size` dentro de una tabla `w-max` (o de cualquier caja que se mide por su contenido) colapsa a 0: el contenedor no aporta ancho
+  propio. Ahí la celda no es contenedor (`XCELL_COMPACTA` pone `--xcell-contenedor: normal`).
+- Una transición (`transition-transform`) sigue en curso cuando un e2e mide cajas justo después del cambio: espera el valor final del estilo
+  (`getComputedStyle(e).scale`) antes de medir.
 
 ## Realtime y notificaciones
 

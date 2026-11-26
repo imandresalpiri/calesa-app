@@ -524,7 +524,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   cambio que lo convierte.
 - **Snapshot** — `cotizaciones.valores`, `fuentes`, `tipos_cambio`: todo lo que el cálculo usó.
 - **XCell** — `src/shared/ui/xcell`: celda numérica editable del cotizador: valor, default, revertir, ayuda, ⚙, sugerido, teclado. Con el aspecto
-  de V1: una fila de 56 px con rótulo · valor(es) · acciones (candado · ⚙ · ? · ↺); `XCELL_COMPACTA` la vuelve densa (la hoja de ítems).
+  de V1: un campo de alto fijo (56 px como mínimo) con rótulo · valor(es) · acciones (candado · ⚙ · ? · ↺); tocar cualquier parte la edita, el rótulo
+  flota y la nota va dentro; `XCELL_COMPACTA` la vuelve densa (la hoja de ítems).
 - **Modo Live** — `useLive()` / `<Monto>`: oculta cifras y símbolos de moneda en toda la app.
 - **Tabla de referencia** — `tablas_referencia`, `_filas`: alimentan nodos tabla/tramo (impuestos, tramos, tarifas, depreciación).
 - **Publicar una tabla de referencia** — `tabla_referencia_publicar()`: reemplaza sus filas, sube `tablas_referencia.version` y publica la

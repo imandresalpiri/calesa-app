@@ -27,7 +27,7 @@ calculatedValue?, calculatedFormat?, calculatedDecimals?, disabledReason?, secon
 - `defaultValue` y `handEdited` sólo deciden la palabra de ↺: con `defaultValue`, «Volver al valor por defecto»; sin él, «Volver al calculado» en una celda
   pisada y «Volver al sugerido» en otra (la logística de `repuestos`). **Nunca la cifra.**
 - **Una celda pisada** (`handEdited`: lo escrito pisó un cálculo, `docs/COTIZADOR.md` › «Pisar un cálculo»; lo decide la hoja) lleva la marca «Editado a
-  mano» y, con `calculatedValue`, «Calculado: …» bajo la celda, en `calculatedFormat` (sin él, `format`) y `calculatedDecimals`, con la moneda de la celda:
+  mano» y, con `calculatedValue`, «Calculado: …» en la línea de la nota, en `calculatedFormat` (sin él, `format`) y `calculatedDecimals`, con la moneda de la celda:
   el dinero por `<Monto>`, `null` como «—». Sin `calculatedValue` (el recálculo no llegó) va sólo la marca: nunca una cifra vieja. Sin `handEdited`, lo
   calculado no se dibuja.
 - Los callbacks son uno por hoja y estables: la celda está en `memo` y la hoja recalcula cada 150 ms. Un objeto o una función nuevos por render dibujan
@@ -58,27 +58,36 @@ calculatedValue?, calculatedFormat?, calculatedDecimals?, disabledReason?, secon
 
 ## El aspecto: la celda de V1
 
-- **Una fila de 56 px** (`RAIZ`: `min-h-[var(--xcell-alto,56px)]`, en px: es un mínimo y no crece con el texto): rótulo · valor(es) · acciones, hermanos en
-  la raíz (`RotuloDeXCell` y `AccionesDeXCell`, sin envoltorio). El rótulo crece desde 6 rem; lo que no cabe baja de línea y `justify-end` lo deja a la
-  derecha, el valor y las acciones juntos. Entre acciones, 8 px (el contorno del foco ocupa 4). En el celular cada valor y acción mide 44 px (la celda, unos
-  60 px).
+- **Un campo de alto fijo** (`RAIZ`, una rejilla): rótulo · valor(es) · acciones, hermanos en la raíz (`RotuloDeXCell`, `PieDeXCell` y `AccionesDeXCell`,
+  sin envoltorio). **El alto depende de la letra, del puntero y del ancho, nunca del estado**: editar, el aviso, el error, la marca, «Calculado», el
+  candado o ↺ no lo cambian (`e2e/xcell-geometria.spec.ts` y `e2e/cotizar-xcell-como-campo.spec.ts` lo miden). `--xcell-linea` es el alto del valor
+  (`max(44px, letra del valor × 1,5 + 8px)`; 32 px con puntero fino desde 768 px), `--xcell-fila` el de la primera fila (la línea, `--xcell-alto` menos el
+  relleno, o lo que piden el rótulo flotante y la nota) y `--xcell-alto` (56 px) el mínimo de la raíz. Entre acciones, 8 px (el contorno del foco ocupa 4).
+- **Tres disposiciones por el ancho** (consulta de contenedor `xc`; `LUGAR_A`, `LUGAR_B`, `ACCIONES`): **en fila**; **apilada** (simple bajo 16 rem, par
+  bajo 26: la `parada` 0 junto al rótulo, el otro lado y las acciones abajo); **alta** (bajo 13 rem, el texto al 200 % en el celular: el rótulo solo, el
+  valor entero en su fila, el resto abajo). `container-type` crea un contexto de apilamiento: la raíz sube (`z-10`) con el foco o el puntero adentro para
+  que su globo no quede debajo de la celda siguiente. Si el valor y las acciones no le dejan lugar, el rótulo (con margen, no relleno) se achica hasta nada.
+- **La línea de la nota:** el aviso, el error y «Calculado» comparten el área del rótulo, abajo (`self-end`), en una línea cortada con «…»; el texto entero
+  va en `title`, en la descripción y en el globo de la raíz (`data-aviso`, su `::after`) al enfocarla, salvo con el candado enfocado (su propio globo).
+  Con un aviso, «Calculado» queda `sr-only`. **El rótulo flota** (sube y queda en tres cuartos con `translate`/`scale`, `--xcell-sube`, `--xcell-escala`)
+  con una entrada abierta o una línea de nota; `--xcell-flota: 0` lo apaga.
 - **El rótulo**, a 16 px del borde (8 de relleno y 8 de `--xcell-sangria`), en 1,3 veces la letra de la hoja (`--xcell-letra-rotulo`) y con el peso heredado.
 - **El lado grande** (el monto; con `secondaryProminent`, el %) en 1,5 veces la letra de la hoja y negrita (`--xcell-letra-valor`), en la monoespaciada; **el
   chico**, en la letra de la hoja (`--text-sm`), de peso normal y gris. La entrada lleva la letra de su lado (`ENTRADA_GRANDE`, `ENTRADA_CHICA`).
 - **Las acciones, en el orden de V1:** candado · ⚙ · ayuda · ↺ (paradas 10, 11, 12 y 13). **La marca «Editado a mano»** es el primer hijo de la ranura de
   acciones, antes del candado y sin parada: `<span role="img" aria-label="Editado a mano" title="Editado a mano">` con el lápiz (3 nodos, sólo en la celda
-  pisada). No es un chip con texto: ensancharía la celda y empujaría el valor. **«Calculado: …»** va bajo la celda, después del aviso, a la altura del
-  rótulo y en la letra chica del lado chico (`CALCULADO`); no es un aviso (sin `role=alert`) ni sólo un `title` (no se vería en el celular).
+  pisada). No es un chip con texto: ensancharía la celda y empujaría el valor. **«Calculado: …»** va en la línea de la nota, después del aviso, en la letra
+  chica del lado chico (`CALCULADO`); no es un aviso (sin `role=alert`) ni sólo un `title` (no se vería en el celular).
 - Todo sigue a `--text-sm`, así la «Letra» de una sección sigue escalando la celda.
 
 ## Estados (`data-estado`, suman)
 
 `normal` · `sugerido` (punto + «Sugerido» para el lector) · `modificado` (anillo interior en la tinta + ↺; pisado, además el lápiz «Editado a mano» y
-«Calculado: …») · `deshabilitado` (el candado con su motivo,
-borde discontinuo y gris con su monto: la raíz pisa `--tono-fondo|borde|tinta` con `surface-2`, `line-strong` e `ink-soft`, que pasan AA; `aria-disabled`, no
-`disabled`), **sólo con todos los lados bloqueados** (otra variante, condición apagada, un nivel). Ningún estado es sólo color.
+«Calculado: …») · `deshabilitado` (apagada como un campo deshabilitado: el candado con su motivo, borde discontinuo, el cursor de no permitido y gris con su
+monto: la raíz pisa `--tono-fondo|borde|tinta` con `surface-2`, `line-strong` e `ink-soft`, que pasan AA; sólo el rótulo y el punto bajan a opacidad 0,6,
+**nunca el valor**; `aria-disabled`, no `disabled`), **sólo con todos los lados bloqueados** (otra variante, condición apagada, un nivel). Ningún estado es sólo color.
 
-**El aviso y los candados (`notasDe()` en `estado.ts`).** El aviso de lo tipeado o, si no hay, el `error` va **escrito** bajo la celda (`role=alert`) y
+**El aviso y los candados (`notasDe()` en `estado.ts`).** El aviso de lo tipeado o, si no hay, el `error` va **escrito** en la línea de la nota (`role=alert`) y
 describe a todos los lados. El motivo de un candado **no se escribe**: cada lado bloqueado tiene su candado en la fila de acciones, **uno por texto
 distinto**, un `<span role="img" aria-label="{motivo}" tabIndex={-1}>` con el icono (los mismos 3 nodos que una nota). Es el blanco del
 `aria-describedby` de su lado (la descripción toma el `aria-label` del nodo referido; jsdom no lo hace, Chromium sí: lo prueba
@@ -98,7 +107,13 @@ del aviso y antes del candado. Ningún estado es sólo color: el candado y el bo
 - **El número se lee con `leerNumeroTipeado`** (`@/shared/lib/numero-tipeado`) y el locale de la empresa (`useRegional()`): en es-BO «1.234» es 1234, «1,5»
   es 1,5 y «1.5» no se emite («Usa coma para los decimales: 1,5.»); «1e3», «0x10» e «Infinity» no son números («Escribe un número, por ejemplo 1234,5.»).
 
-## Teclado
+## Teclado y toque
+
+- **Toda la celda es el campo** (`toque-de-xcell.ts`, `useToqueDeLaCelda()`): un clic en el rótulo o el fondo abre la edición como el clic en el valor, con
+  todo seleccionado, en el primer lado libre en el orden en que se ven (`ladoDelToque()`; ese botón lleva `data-blanco` y se ilumina al pasar el puntero
+  por la celda). Lo que ya es un control (`button`, `input`, `[data-parada]`, la marca `[role=img]`) se ocupa solo. Con la edición abierta, el `mousedown`
+  en el rótulo o el fondo se frena: la entrada no pierde el foco. **Una bloqueada** tocada con el puntero (rótulo, fondo o valor) no abre y enfoca su
+  candado, cuyo globo dice el motivo (`candadoDe` de `notasDe()`); Enter o Espacio en un lado bloqueado (el clic con `detail` 0) no mueve el foco.
 
 - **Una parada de `Tab` por valor** (dos en un par). Las acciones y el candado llevan `tabIndex -1` y se alcanzan con `→` / `←` desde el valor, en el orden en
   que se ven (valor → el otro lado → candado → ⚙ → ayuda → ↺); `Esc` en una acción o en el candado vuelve al valor. Las flechas son **de la celda**: la hoja no las usa entre celdas; en la entrada mueven el cursor.
@@ -124,7 +139,8 @@ del aviso y antes del candado. Ningún estado es sólo color: el candado y el bo
 - **Lo que pisa quien la contiene:** `--xcell-relleno` y `--xcell-separacion` (8 y 6 px; la sección «compacta» de la hoja los pone a 4 y 2 px y el alto,
   `--xcell-alto`, a 40 px), `--xcell-sangria` (8 px), `--xcell-letra-rotulo` y `--xcell-letra-valor` (1,3 y 1,5 veces `--text-sm`). La letra sigue
   `--text-sm` (la hoja la pisa con la «Letra» de una pieza) y el peso del rótulo se hereda (el «Énfasis» fuerte). `XCELL_COMPACTA` los pone para una tabla
-  densa (sin alto mínimo, sin sangría y todo en `--text-sm`). El blanco táctil de 44 px no cambia.
+  densa (sin alto mínimo, sin sangría y todo en `--text-sm`) y la vuelve una fila `flex` que crece, sin etiqueta flotante (`--xcell-display: flex`,
+  `--xcell-contenedor: normal`: en su `<table class="w-max">` un `container-type` la colapsaría a 0; `--xcell-flota: 0`; `--xcell-nota-*`). El blanco táctil de 44 px no cambia.
 - **Tamaños:** el rótulo se corta con «…» (`truncate`) y el texto completo va en `title` y en el nombre del grupo. **El valor nunca se corta**
   (`whitespace-nowrap`, `shrink-0`; el grande desde 6 rem, el chico desde 3,5): va en la monoespaciada de los tokens (`font-mono`, Geist Mono) con
   `tabular-nums`, y los separadores son los de `formato.ts`. El lado chico va gris (sin tono, `ink-soft`; con tono, la tinta del tono). Sin valor, «Sin

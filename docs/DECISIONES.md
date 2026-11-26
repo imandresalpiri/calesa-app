@@ -793,15 +793,24 @@ las trampas, en `docs/LECCIONES.md`.
 - **Revisiones con totales por clave.** El diff se compara después de recortar (`_cotizacion_diff_recortado()`); «Ir a una fecha» es `p_hasta` exclusivo en `cotizacion_revisiones()`, anclando y paginando por id.
 - **La hoja con el aspecto de V1:** el de las capturas de V1, con los tokens y en clases y variables sobre los nodos de siempre (ningún nodo más por celda ni
   por sección).
-  - **La celda (XCell) va en una fila:** rótulo · valor(es) · acciones, de 56 px (`--xcell-alto`, en px: no crece con el texto). El rótulo va a 1,3 veces la
-    letra de la hoja y se corta con «…» (el texto completo, en `title` y en el nombre del grupo); el monto, a 1,5 veces, en negrita y en la monoespaciada,
-    nunca se corta y baja de línea antes de encimarse; el % de un par, chico y gris al lado (con tono, en la tinta del tono: un gris sobre un color no
-    garantiza AA). Todo sigue a `--text-sm`, así la «Letra» del aspecto escala la celda. Sin el envoltorio de la cabecera: un nodo menos por celda paga los
-    de los pasos.
+  - **La celda (XCell) es un campo de alto fijo:** rótulo · valor(es) · acciones en una rejilla cuyo alto sale de la letra y del ancho, nunca del estado:
+    editar, el aviso, el error, la marca, «Calculado», el candado y ↺ no lo cambian, y nada de la hoja salta. El mínimo es `--xcell-alto` (56 px) y la línea
+    mide el valor grande (nunca un px literal: con la «Letra» grande o el texto al 200 % lo cortaría). La nota y «Calculado» van dentro, en la línea de
+    abajo del rótulo, que flota (sube y se achica con `transform`) para dejarles lugar; lo que no entra se corta con «…» y se lee en `title` y en un globo.
+    Por el ancho (consulta de contenedor) hay tres disposiciones: en fila, apilada y alta; los cortes, en rem, dejan en fila la media columna de la hoja y
+    el celular. Descartados: un alto de 56 px literal, una sola disposición (el valor se saldría) y la nota siempre en globo (en el celular no se vería). El
+    rótulo va a 1,3 veces la letra de la hoja y se corta con «…»; el monto, a 1,5 veces, en negrita y en la monoespaciada, nunca se corta; el % de un par,
+    chico y gris (con tono, en la tinta del tono). Todo sigue a `--text-sm`, así la «Letra» del aspecto escala la celda.
+  - **Toda la celda es el campo:** tocar el rótulo o el fondo abre la edición como el valor (con un par, el primer lado libre en el orden en que se ven); lo
+    que ya es un control (⚙, ayuda, ↺, el candado, la marca) se ocupa solo. Descartado `<label htmlFor>`: el valor es un botón que se vuelve entrada, y una
+    etiqueta no abre la edición ni elige el lado. Una celda bloqueada tocada con el puntero enfoca su candado y su globo dice el motivo; Enter en un lado
+    bloqueado no mueve el foco (el motivo ya es su descripción y Tab sigue donde estaba).
+  - **Apagada sin bajar el contraste del valor:** la inactiva o bloqueada lleva fondo apagado, borde discontinuo y tinta suave (AA), y sólo el rótulo y el
+    punto bajan de opacidad. Descartado `opacity-50` en toda la celda: el monto quedaría bajo 4,5:1 y se sigue leyendo.
   - **La celda densa de `repuestos` se queda densa:** la hoja de ítems es una tabla, no la hoja de cotizar; `XCELL_COMPACTA` en su contenedor apaga el alto,
     la sangría y las letras de V1.
   - **El candado de un lado bloqueado va en la fila de acciones**, con su motivo como nombre (`aria-label`), descripción del valor y globo en el `::after`
-    del mismo nodo al pasar el puntero o enfocarlo: tres nodos, los de la nota escrita que reemplaza. El aviso o el error sigue escrito bajo la celda.
+    del mismo nodo al pasar el puntero o enfocarlo: tres nodos, los de la nota escrita que reemplaza. El aviso o el error sigue escrito, en la línea de la nota.
   - **El orden de las acciones es candado · ⚙ · ? · ↺**, el de V1; las flechas siguen ese orden. El candado no cuenta para anunciar el atajo: su motivo ya es
     la descripción.
   - **Un par cuyo secundario es el monto dibuja el % grande y primero** (`secondaryProminent`): el orden visual y el de Tab coinciden y los ids que emite la

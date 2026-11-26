@@ -126,10 +126,12 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      hermanas** y lo guardado dice «Se guardaron las dos: n.º N (20 pies) y n.º M (40 pies).» con «Abrir la de 20 pies» y «Abrir la de 40 pies». El título se
      escribe sin la opción (su tope deja lugar a « · <etiqueta>»). La vista previa muestra las dos tarjetas, una bajo la otra.
 3. **La hoja:** secciones en el orden declarado; cada monto en una **XCell** (`Tab` avanza, tipear abre edición, `Esc` cancela) con el color
-   de su grupo en borde y fondo, ayuda y ⚙ si el permiso lo da, **en una fila de 56 px como la de V1**: rótulo grande (se corta con «…» y el
-   completo va en `title`) · monto grande y en negrita en la monoespaciada (nunca se corta: baja de línea antes de encimarse) · el % chico y gris
-   de un par (si el secundario es el monto, el % va grande y primero) · acciones en el orden candado · ⚙ · ? · ↺; una celda apagada (otra
-   variante, condición apagada) se ve gris con su monto. Un lado bloqueado lleva **candado** en la fila de acciones: su motivo se ve en un
+   de su grupo en borde y fondo, ayuda y ⚙ si el permiso lo da, **como un campo de alto fijo** (56 px como mínimo, como la de V1): tocar
+   cualquier parte la edita y el rótulo flota; el aviso, el error y «Calculado» van dentro, en la línea de abajo del rótulo (cortados con «…»,
+   enteros en un globo al enfocarla), así nada de la hoja salta. Rótulo grande (se corta con «…» y el completo va en `title`) · monto grande y
+   en negrita en la monoespaciada (nunca se corta: en una celda angosta se apila) · el % chico y gris de un par (si el secundario es el monto,
+   el % va grande y primero) · acciones en el orden candado · ⚙ · ? · ↺; una celda apagada (otra variante, condición apagada, sin el nivel) se
+   ve como un campo deshabilitado, gris con su monto legible, y tocarla muestra su motivo. Un lado bloqueado lleva **candado** en la fila de acciones: su motivo se ve en un
    globo al pasar el puntero, al tocarlo o al llegar con →, y es la descripción del valor. Los títulos de sección van chicos y en mayúsculas;
    las franjas de subtotal, con el valor en la monoespaciada. «Avanzado» es un botón a lo ancho con los reguladores (lo que esconde es su
    descripción; «Hay datos por revisar.» va escrito) y abre un modal grande con sus secciones sin marco. Arriba del modal «Avanzado», «Tocar un valor lo cambia sólo en esta
