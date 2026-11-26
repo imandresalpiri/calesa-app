@@ -15,7 +15,8 @@ type Props = {
 // El título de la guía, grande y sin etiqueta visible (su nombre es «Título»), como encabezado del artículo. Enter pasa al texto; no admite saltos.
 export function TituloDeLaGuia({ valor, alCambiar, editor, error, deshabilitado }: Props) {
   return (
-    <div className="grid gap-1">
+    // El `pb-10` deja bajo el título el sitio de la barrita del primer bloque, que flota encima de él: sin esto taparía el título.
+    <div className="grid gap-1 pb-10">
       <Textarea
         aria-label="Título"
         name="titulo"
