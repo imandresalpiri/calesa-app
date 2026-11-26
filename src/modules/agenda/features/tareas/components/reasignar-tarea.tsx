@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Button } from '@/shared/ui/button'
 import { leerPersonasParaTarea } from '../../../composicion.client'
 import type { PersonaElegida } from '../../../entities/edicion'
@@ -13,27 +13,17 @@ type Props = {
   alReasignar: (persona: PersonaElegida) => void
 }
 
-// «Cambiar de responsable»: un despliegue dentro del mismo panel (no es otro drawer) con el selector de una persona y «Reasignar». La base decide
-// quién puede recibir; aquí sólo se busca y se pide.
+// «Cambiar de responsable»: una sección a la vista en el panel de la tarea, con el selector de una persona y «Reasignar» (sin desplegar
+// nada: el panel no cambia de alto al usarla). La base decide quién puede recibir; aquí sólo se busca y se pide. El panel la monta con
+// `key` = la versión de la tarea: lo elegido se limpia al reasignar.
 export function ReasignarTarea({ enCurso, error, alReasignar }: Props) {
-  const [abierto, setAbierto] = useState(false)
+  const titulo = useId()
   const [elegida, setElegida] = useState<PersonaElegida | null>(null)
-  if (!abierto) {
-    return (
-      <Button
-        variant="outline"
-        className="min-h-11 md:min-h-9"
-        aria-expanded={false}
-        onClick={() => {
-          setAbierto(true)
-        }}
-      >
-        Cambiar de responsable
-      </Button>
-    )
-  }
   return (
-    <div className="grid gap-3 rounded-md border border-(--color-line) p-3">
+    <section aria-labelledby={titulo} className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <h3 id={titulo} className="text-(length:--text-base) font-semibold text-(--color-ink)">
+        Cambiar de responsable
+      </h3>
       <SelectorDePersonas
         etiqueta="Nuevo responsable"
         elegidas={elegida ? [elegida] : []}
@@ -42,9 +32,8 @@ export function ReasignarTarea({ enCurso, error, alReasignar }: Props) {
         }}
         leer={leerPersonasParaTarea}
         error={error}
-        enfocar
       />
-      <div className="flex flex-wrap gap-2">
+      <div>
         <Button
           className="min-h-11 md:min-h-9"
           disabled={!elegida || enCurso}
@@ -56,18 +45,7 @@ export function ReasignarTarea({ enCurso, error, alReasignar }: Props) {
         >
           Reasignar
         </Button>
-        <Button
-          variant="outline"
-          className="min-h-11 md:min-h-9"
-          disabled={enCurso}
-          onClick={() => {
-            setAbierto(false)
-            setElegida(null)
-          }}
-        >
-          Cancelar
-        </Button>
       </div>
-    </div>
+    </section>
   )
 }

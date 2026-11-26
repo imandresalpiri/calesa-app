@@ -4,8 +4,8 @@ import { idDe } from './soporte/leads'
 import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 
-// La actividad legible (`docs/UX.md` › «Actividad»): cada cambio como frase con el registro enlazado y su antes → después, el detalle que se
-// despliega en la misma fila (`?cambio=`), los chips de persona y tipo de registro, «Ver más» y la «Actividad reciente» de un registro. El
+// La actividad legible (`docs/UX.md` › «Actividad»): cada cambio como frase con el registro enlazado y su antes → después, el detalle en su
+// drawer (`?cambio=`), los chips de persona y tipo de registro, «Ver más» y la «Actividad reciente» de un registro. El
 // terreno: un vehículo con 25 cambios de título de Carlos y, el más nuevo, uno de precio de la dueña, escritos directo en `actividad` (la
 // frase sale de lo que devuelve `actividad_listar`; el recorte y la visibilidad los prueba `supabase/tests/areas/actividad/listar.sql`).
 test.describe.configure({ mode: 'serial' })
@@ -72,47 +72,44 @@ test('E2E un cambio de precio se lee como frase y despliega su detalle en la fil
   ).toHaveAttribute('href', `/vehiculos/${vehiculo.id}`)
   await capturar(page, info, 'frases')
 
-  await cambio.getByRole('button', { name: 'Ver detalle' }).click()
+  const verDetalle = cambio.getByRole('button', { name: 'Ver detalle' })
+  await expect(verDetalle).toHaveAttribute('aria-haspopup', 'dialog')
+  const alto = (await cambio.boundingBox())?.height
+  await verDetalle.click()
   await expect(page).toHaveURL(new RegExp(`[?&]cambio=${precio}`))
-  const detalle = cambio.getByRole('region', { name: 'Detalle del cambio' })
+  const detalle = page.getByRole('dialog', { name: 'Detalle del cambio' })
   await expect(detalle.getByRole('term')).toHaveText(['Precio'])
   await expect(detalle.getByRole('definition')).toContainText(/Antes.*10.000/)
   await expect(detalle.getByRole('definition')).toContainText(/Después.*12.000/)
   await capturar(page, info, 'detalle')
 
-  await cambio.getByRole('button', { name: 'Ocultar detalle' }).click()
+  // La fila no cambia de alto al abrirse su detalle, y al cerrar el foco vuelve a «Ver detalle».
+  expect((await cambio.boundingBox())?.height).toBe(alto)
+  await page.keyboard.press('Escape')
   await expect(detalle).toBeHidden()
   await expect(page).not.toHaveURL(/[?&]cambio=/)
+  await expect(verDetalle).toBeFocused()
 })
 
-test('E2E ?cambio= abre esa fila desplegada; uno que no está cargado sale arriba', async ({
+test('E2E ?cambio= abre su drawer, también el de un cambio que no está cargado', async ({
   page,
 }, info) => {
   await entrar(page, personas.duena)
   await page.goto(`${ruta()}&cambio=${precio}`)
-  const cambio = fila(page, precio)
-  await expect(cambio.getByRole('button', { name: 'Ocultar detalle' })).toHaveAttribute(
-    'aria-expanded',
-    'true',
-  )
-  await expect(cambio.getByRole('region', { name: 'Detalle del cambio' })).toBeInViewport()
+  const detalle = page.getByRole('dialog', { name: 'Detalle del cambio' })
+  await expect(detalle.getByRole('term')).toHaveText(['Precio'])
 
-  // El más viejo no está en la primera página: «El cambio que abriste», arriba, con su detalle; la lista sigue debajo.
+  // El más viejo no está en la primera página: el mismo drawer, con la frase arriba; la lista sigue detrás.
   await page.goto(`${ruta()}&cambio=${elMasViejo}`)
-  const abierto = page.getByRole('region', { name: 'El cambio que abriste' })
-  await expect(abierto.getByRole('term')).toHaveText(['Título'])
-  await expect(abierto).toContainText('Carlos Alta Prueba cambió')
+  await expect(detalle.getByRole('term')).toHaveText(['Título'])
+  await expect(detalle).toContainText('Carlos Alta Prueba cambió')
   await expect(filas(page)).toHaveCount(20)
-  await capturar(page, info, 'el-cambio-que-abriste')
-  await abierto.getByRole('button', { name: 'Cerrar' }).click()
-  await expect(abierto).toBeHidden()
+  await capturar(page, info, 'el-cambio-fuera-de-lo-cargado')
+  await page.keyboard.press('Escape')
+  await expect(detalle).toBeHidden()
 
   await page.goto(`${ruta()}&cambio=no-es-un-id`)
-  await expect(
-    page
-      .getByRole('region', { name: 'El cambio que abriste' })
-      .getByText('No tienes acceso a este cambio.'),
-  ).toBeVisible()
+  await expect(detalle.getByText('No tienes acceso a este cambio.')).toBeVisible()
 })
 
 test('E2E «Ver más» carga la página siguiente', async ({ page }) => {

@@ -19,11 +19,10 @@ export function BloqueWebYPortal({
   errores,
   escribir,
   deshabilitado,
-  conError,
   contexto,
 }: PropsDeBloque) {
   return (
-    <Bloque titulo="Web y portal" plegado forzarAbierto={conError}>
+    <Bloque titulo="Web y portal">
       <InterruptorConMotivo
         deshabilitado={deshabilitado}
         campo="publica_web"

@@ -267,7 +267,7 @@ test('«Próximo contacto» nace plegado, se explica y se guarda junto con el se
   await irASeguimientos(page, lead.id)
 
   const formulario = await abrirAnotar(page)
-  // Plegado: ni fecha ni atajos, y ninguna palabra sobre un «recordatorio (opcional)».
+  // Sin sumar: ni fecha ni atajos, y ninguna palabra sobre un «recordatorio (opcional)».
   await expect(formulario.getByRole('button', { name: 'Programar próximo contacto' })).toBeVisible()
   await expect(formulario.getByLabel('Fecha y hora')).toHaveCount(0)
   await expect(formulario.getByText('Recordatorio (opcional)')).toHaveCount(0)
@@ -287,9 +287,11 @@ test('«Próximo contacto» nace plegado, se explica y se guarda junto con el se
   expect(agendados.map((r) => r.titulo)).toEqual(['Quedó en confirmar el precio'])
   expect(Date.parse(agendados[0]?.recordar_en ?? '')).toBeGreaterThan(Date.now())
 
-  // «Quitar» lo vacía y lo pliega, y devuelve el foco al botón.
+  // «Quitar» vacía la fecha y deja el campo, con el foco.
   const otro = await abrirAnotar(page)
   await otro.getByRole('button', { name: 'Programar próximo contacto' }).click()
+  await otro.getByRole('button', { name: 'Mañana 09:00' }).click()
   await otro.getByRole('button', { name: 'Quitar' }).click()
-  await expect(otro.getByRole('button', { name: 'Programar próximo contacto' })).toBeFocused()
+  await expect(otro.getByLabel('Fecha y hora')).toHaveValue('')
+  await expect(otro.getByLabel('Fecha y hora')).toBeFocused()
 })

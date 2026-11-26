@@ -19,7 +19,7 @@ type Props = {
   claveDeUrl: string
 }
 
-// El resumen de un grupo (6.08-3): su clave, cuántas unidades ve quien mira, las unidades con su fase y su ETA y, debajo, un bloque plegado por hueco (mover, documentos y gastos del
+// El resumen de un grupo (6.08-3): su clave, cuántas unidades ve quien mira, las unidades con su fase y su ETA y, debajo, una sección a la vista por hueco (mover, documentos y gastos del
 // grupo). No lee nada y no escribe nada por sí mismo: «Editar grupo» (6.08-4) abre otro panel. Sin unidades visibles no hay huecos: la clave que no existe y la que no se ve dicen lo mismo.
 export function ResumenDelGrupo({
   grupo,

@@ -14,7 +14,7 @@ type Props = {
   puedeMover: boolean
 }
 
-// La forma de la página se elige por el ancho de la pantalla (el servidor lo adivina por cookie y la hidratación no salta): desde 1024 px, zonas; por debajo, bloques plegables con la barra «Mover».
+// La forma de la página se elige por el ancho de la pantalla (el servidor lo adivina por cookie y la hidratación no salta): desde 1024 px, zonas; por debajo, secciones a la vista con la barra «Mover».
 // Cada hueco se dibuja una sola vez, en la forma elegida: nunca las dos. Cruzar los 1024 px remonta los huecos.
 export function DisposicionDeLaPagina({ zonas, puedeMover }: Props) {
   const enZonas = useAlMenos(CORTE_DEL_PANEL)

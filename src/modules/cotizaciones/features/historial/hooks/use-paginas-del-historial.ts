@@ -20,7 +20,7 @@ const SIN_LEER: Estado = { filas: [], siguiente: null, leido: false, cargando: f
 
 // Las páginas del historial de cotizaciones de un vehículo (`de`), de a `TAMANO_DE_VER_MAS` por cursor y hasta `TOPE_DE_LO_CARGADO`. La posición no va a la URL.
 // Una respuesta de un pedido que ya no es el último (otro «Ver más», otra lista, el componente ya no está, el primer montaje de `StrictMode`) se descarta:
-// ese `ultimo` es el único guardián, y lo comparten el panel de la hoja (que lee al desplegar) y la pestaña de la ficha (que lee al montarse).
+// ese `ultimo` es el único guardián, y lo comparten el modal del historial de la hoja y la pestaña de la ficha (los dos leen al montarse).
 export function usePaginasDelHistorial(de: ListaDe) {
   const [estado, setEstado] = useState<Estado>(SIN_LEER)
   const ultimo = useRef(0)

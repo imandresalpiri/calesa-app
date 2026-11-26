@@ -31,7 +31,7 @@ function Seccion({ seccion }: { seccion: SeccionDeLaUnidad }) {
   )
 }
 
-// El panel de un ítem de repuesto con sus secciones a la vista (la variante de `PanelDeLaUnidad`, que sigue plegable en el drawer de `/logistica/gastos?vehiculo=`):
+// El panel de un ítem de repuesto con sus secciones a la vista (la variante de `PanelDeLaUnidad`, que monta cada hueco al acercarse en el drawer de `/logistica/gastos?vehiculo=`):
 // la cabecera, «Qué falta» primero, los bloques del ítem y el resto de los huecos en `ORDEN_DEL_ITEM`. Cada sección se dibuja una sola vez (un `data-bloque-del-hueco`
 // repetido mandaría los atajos a otro lado) y va en su `LimiteDelHueco`. No lee nada.
 export function PanelDeLaUnidadALaVista({

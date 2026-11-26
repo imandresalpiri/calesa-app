@@ -24,7 +24,7 @@ export type HuecoDeLaUnidad = {
   }
   // El del hueco de un área que sólo trata vehículos pide `Unidad`; uno que también sirve a un ítem (mover) pide `UnidadAbierta` y se dibuja igual para el vehículo.
   componente: ComponentType<{ unidad: Unidad }> | ComponentType<{ unidad: UnidadAbierta }>
-  // El bloque nace abierto (y su contenido se pide al hidratar el panel). Los demás nacen plegados. Lo usa «Qué falta» (6.04), que es lo primero que se mira para mover.
+  // Su contenido se pide al hidratar el panel. Los demás se montan al acercarse. Lo usa «Qué falta» (6.04), que es lo primero que se mira para mover.
   abiertoAlInicio?: boolean
 }
 

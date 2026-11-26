@@ -7,15 +7,9 @@ import { HORAS_MAXIMAS_DE_ALERTA } from '../../../entities/fases/reglas-de-fase'
 import type { PropsDeBloque } from './props-de-bloque'
 
 // «Alerta por demora»: cuántos días puede estar una unidad en la fase antes de avisar. Vacío hereda el valor de la empresa (D8); 0 apaga la alerta.
-export function BloqueDemora({
-  valores,
-  errores,
-  escribir,
-  deshabilitado,
-  conError,
-}: PropsDeBloque) {
+export function BloqueDemora({ valores, errores, escribir, deshabilitado }: PropsDeBloque) {
   return (
-    <Bloque titulo="Alerta por demora" plegado forzarAbierto={conError}>
+    <Bloque titulo="Alerta por demora">
       <Campo
         nombre={ID_DE_CAMPO_DE_FASE.demora_dias}
         etiqueta="Demora (días)"

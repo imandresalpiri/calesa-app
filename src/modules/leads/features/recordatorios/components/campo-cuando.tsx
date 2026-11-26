@@ -15,11 +15,11 @@ type Props = {
   deshabilitado: boolean
   // «Quitar» deja el campo vacío (un recordatorio opcional).
   quitable?: boolean
-  // «Quitar» también con el campo vacío (cuando el que lo pidió quiere poder plegarlo).
+  // «Quitar» también con el campo vacío (el botón no aparece ni desaparece: la fila de atajos no cambia).
   quitarVacio?: boolean
   // Una línea que explica para qué sirve la fecha.
   ayuda?: string
-  // Después de quitar (quien lo pliega devuelve el foco al botón que lo abre).
+  // Después de quitar (quien lo usa decide a dónde va el foco).
   alQuitar?: () => void
 }
 

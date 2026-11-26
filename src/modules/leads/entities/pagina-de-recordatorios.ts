@@ -1,6 +1,6 @@
 // Los recordatorios de un lead por páginas (`lead_recordatorios()`, 9d-2): dos listas con su cursor,
 // los pendientes (los vencidos primero: `recordar_en` ascendente) y los completados (el último que se
-// completó arriba), que se leen sólo al abrir su plegado. Sin conteo: cuántos hay no se dice.
+// completó arriba), que se leen sólo al acercarse su sección. Sin conteo: cuántos hay no se dice.
 import { z } from 'zod'
 import type { Resultado } from '@/shared/lib/errores'
 import { recordatoriosDesde, type Recordatorio } from './recordatorios'
@@ -10,7 +10,7 @@ export type PaginaDeRecordatorios = {
   hayMas: boolean
   // Lead en la cartera y `leads.editar`: agendar uno nuevo (la base vuelve a mirar al crear).
   puedoAgendar: boolean
-  // Hay alguno completado: se ofrece el plegado «Completados».
+  // Hay alguno completado: se ofrece la sección «Completados».
   hayCompletados: boolean
 }
 
@@ -55,7 +55,7 @@ export function cursorDeRecordatorios(
 // Una de las dos listas cargada: lo que se tiene y si hay más.
 export type ListaCargada = { lista: readonly Recordatorio[]; hayMas: boolean }
 
-// Las dos listas de un lead: los completados son `null` mientras no se abrió su plegado.
+// Las dos listas de un lead: los completados son `null` mientras siguen sin leer.
 export type ListasDeRecordatorios = {
   pendientes: ListaCargada
   completados: ListaCargada | null

@@ -44,7 +44,7 @@ Cada meta la hace cumplir su e2e, en escritorio y celular.
    ajeno no deja seguir. Debajo, cómo quedará y de qué país («Se guardará como +54 91155550000 · Argentina»), sin pedir nada al servidor;
    «País» (en «Más datos») se llena solo mientras esté vacío; lo escrito no se pisa.
 3. Nombre, origen (el último usado, por persona), tipo (el primero activo de la clase prospecto) y los **requeridos** del layout, en su
-   orden; el resto plegado en «Más datos» con su valor por defecto. Volver requerido un campo suma un paso: Configuración lo avisa (desde el
+   orden; el resto a la vista en la sección «Más datos», con su valor por defecto. Volver requerido un campo suma un paso: Configuración lo avisa (desde el
    cuarto, la meta cuesta).
 4. `Ctrl/Cmd+Enter` valida y abre «Primer seguimiento (opcional)» en el mismo drawer, sin guardar; `Ctrl/Cmd+S` o «Guardar lead» guardan
    desde cualquier paso; `Esc` vuelve a los datos. Mismos campos que el redactor de la ficha; se escribe seguimiento sólo si hay algo
@@ -92,7 +92,7 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      lote (desde 3 letras o números) y trae un enlace, un VIN o un lote de la subasta
      (`apibara` llena ficha y fotos); «+» carga a mano. **Ambas abren el alta del inventario dentro del panel y «Crear y elegir» crea el
      vehículo y lo elige**, sin guardar la cotización; pestañas «Últ. cotización» y «Cierre subasta»; el elegido muestra su historial
-     (plegado, se lee al desplegarlo, «Ver más»); la barra dice «Cotizado (n)». En «Elegido», el tipo de vehículo se elige entre las filas
+     («Historial de cotizaciones» abre su modal, `?ver=historial`, que se lee al abrirse, con «Ver más»); la barra dice «Cotizado (n)». En «Elegido», el tipo de vehículo se elige entre las filas
      de la tabla, con el del vehículo marcado; un toque lo guarda en el vehículo, cierra el panel y la hoja recalcula (quien no puede editar
      el vehículo lo ve sin elegir; la celda sin valor dice que se elige en «Vehículo»).
      **Subasta cerrada:** al elegir (o abrir con) un vehículo de un origen de subasta que sigue en el tramo de subasta con la subasta ya pasada
@@ -510,7 +510,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   vista con lo que pasa en cada una (eventos, tareas con vencimiento, recordatorios, cierres de subasta), «Antes de las 08:00» y «Desde las 20:00» sólo si traen algo,
   y la hora actual marcada «Ahora» (borde de acento y texto). Al costado (debajo en el celular, y debajo de semana y mes), los **pendientes** de quien mira:
   «Vencidas», «Recordatorios» (vencidos o de hoy) y «Sin fecha», cada uno con «Completar» en un toque (toast con «Deshacer») y «Ver más». A la vista: «‹ Hoy ›», la
-  fecha, «Ir a una fecha», Día/Semana/Mes y un solo **«Nuevo»** (tecla `N`), que abre el modal «Nuevo» de la barra filtrado a Evento, Tarea y Recordatorio
+  fecha, «Ir a una fecha» (el campo del día y «Ir», en línea, sin desplegar nada), Día/Semana/Mes y un solo **«Nuevo»** (tecla `N`), que abre el modal «Nuevo» de la barra filtrado a Evento, Tarea y Recordatorio
   (`?panel=nuevo-en-la-agenda`) sin salir de la vista y la fecha. «Vista y opciones» lleva «Qué agenda ver» (Mi agenda | De todos, sólo con `agenda.ver_todo`) y
   «Qué ver» (las clases). Paneles por URL (drawer) como siempre; el formulario del evento suma «Lead (opcional)» con `leads.ver`.
 - **Chat** — `/chat` (`chat.participar`; `?c=<conversación>`, `?panel=nueva|grupo|salir|borrar-mensaje&mensaje=<id>`; estados en «Chat
@@ -532,9 +532,9 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   la empresa: «Ana cambió Precio de [Toyota Hilux #12]: 10.000 → 12.000» (con varios campos, «Precio y 2 más», sin valores; un alta o una baja,
   sin antes → después; el registro enlaza a su página si existe y se ve; montos con `<Monto>`). Una fila que quien mira no ve dice sólo
   «Ana cambió un lead que no puedes ver». Una sola presentación en todo ancho; en el celular la frase se parte en renglones. «Ver detalle»
-  despliega en la misma fila todo el diff (`?cambio=<id>`: sólo lo que cambió, con la etiqueta del campo y cada monto con la moneda de su lado;
-  sin moneda conocida, el número y «(moneda sin conocer)»); un `?cambio=` fuera de lo cargado sale arriba como «El cambio que abriste»;
-  inválido o sin acceso, «No tienes acceso a este cambio.»; un error al desplegar queda en la fila con «Reintentar». Filtros como chips arriba:
+  abre un drawer, «Detalle del cambio», con todo el diff (`?cambio=<id>`, suma al historial; la fila queda marcada: sólo lo que cambió, con la etiqueta del campo y cada monto con la moneda de su lado;
+  sin moneda conocida, el número y «(moneda sin conocer)»); un `?cambio=` fuera de lo cargado abre el mismo drawer;
+  inválido o sin acceso, «No tienes acceso a este cambio.»; un error al leer queda en el drawer con «Reintentar». Filtros como chips arriba:
   persona y tipo de registro (`?persona=`, `?entidad=`), el registro (`?registro=`, desde «Ver actividad» del «⋯» de un lead —fila, tarjeta, kanban y
   ficha— y de la ficha de vehículo) y la fecha de «Ir a una fecha», cada uno con su «×», y «Limpiar filtros». «Ver más» con tope; retención de `actividad_dias` (14 si
   no se puede leer). **Actividad reciente** (en la ficha del vehículo, leída al acercarse; sola en `/actividad/reciente?entidad=&registro=`): los
@@ -652,7 +652,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
     Espacio), el nombre, `tipo · clave` y las insignias («Requerido», «De fábrica», «Principal», las banderas en fila, «Dato clave»), y un «⋯»
     (Editar · Hacer dato clave o Quitar de los datos clave · Subir · Bajar · Desactivar · Eliminar…; lo imposible, apagado con su motivo).
     Tocar la fila abre el panel `?campo=<id>` (`&eliminar=1`: «Eliminar…» abre preguntando); las banderas se cambian ahí. Desactivar es
-    reversible con «Deshacer» (si era dato clave, el «⋯» avisa «También sale de los datos clave.»). «Desactivados» va plegado y sin número.
+    reversible con «Deshacer» (si era dato clave, el «⋯» avisa «También sale de los datos clave.»). «Desactivados» va a la vista, debajo, y sin número.
     Con una búsqueda no hay asas; sin coincidencias, «Nada coincide con «…».» y «Limpiar». Conflicto `PT409` dentro del panel con «Recargar»,
     que conserva lo escrito. Sin `origenes.gestionar`: el aviso con su motivo, «Nuevo campo» apagado, sin asas, el «⋯» sólo con «Ver» y el
     panel sin «Guardar». **Categorías** (`/categorias`,
@@ -787,8 +787,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   de teclado» (la lista del catálogo; no se dispara mientras se escribe). En un alta de vehículo `Ctrl/Cmd+S` guarda y cierra; en «Nuevo
   lead» deja el drawer listo para el siguiente.
 - **Filtros:** panel lateral plegable si el listado mide 40 rem o más (si no, hoja inferior) + chips activos + «limpiar»; esquema
-  declarativo por listado; estado en URL (nuqs, `shallow:false`); vistas guardadas por usuario (en «Vista y opciones»). Formularios en drawer/modal con bloques
-  plegables; `returnTo` para volver.
+  declarativo por listado; estado en URL (nuqs, `shallow:false`); vistas guardadas por usuario (en «Vista y opciones»). Formularios en drawer o modal con secciones
+  a la vista, un solo nivel; `returnTo` para volver.
 - **Patrón de lista** (`.claude/rules/ui.md`): toda lista de registros se dibuja igual. Desde 768 px, tabla con **nombre pegado a la
   izquierda** (entero hasta 16 rem; más largo, «…» y completo en `title`) y **«⋯» a la derecha**, que se desplaza de costado dentro de su
   tarjeta, nunca la página; por debajo, tarjetas. **Un clic en cualquier parte de la fila o tarjeta abre su resumen** (en una lista sin resumen —leads,
@@ -868,22 +868,24 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 
 ### Agenda (estados propios)
 
-| Estado                       | Qué se ve                                                                                                                                                              |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cargando                     | Esqueleto de la barra, las filas de la hoja y la columna; los pendientes con su propio esqueleto (la hoja no los espera). «Ver más» dice «Cargando…» y queda apagado.  |
-| Día vacío                    | Las 12 horas y arriba «Nada agendado hoy.» (otro día: «Nada agendado este día.») con «Nuevo». Si «Qué ver» excluye lo que hay: «Nada de lo que elegiste ver este día.» |
-| Semana o mes vacío           | «Nada agendado en este rango.» con qué cambiar.                                                                                                                        |
-| Sin pendientes               | «Nada pendiente.» · «Lo vencido y lo que no tiene fecha aparece aquí.» Un grupo vacío no se dibuja.                                                                    |
-| Tope de 200 por clase        | `<AvisoDeTope>`: en semana y mes, «Mira un día o quita clases en «Vista y opciones».» con «Ver el día»; en el día, quitar clases (o «Mi agenda» con «De todos»).       |
-| Tope de pendientes           | «Mostrando los 500 más antiguos.» («las 500 más recientes» en «Sin fecha»).                                                                                            |
-| Error del día                | La pantalla de error con «Reintentar».                                                                                                                                 |
-| Error de pendientes          | En la columna, «No pudimos leer tus pendientes» con «Reintentar»; la hoja sigue. «Ver más» que falla: el motivo y «Reintentar», sin perder lo cargado.                 |
-| Sin permiso para crear       | «Nuevo» siempre está: Evento y Tarea no piden permiso; Recordatorio sólo con `leads.editar`. Sin `leads.ver`, el evento no ofrece «Lead (opcional)».                   |
-| Sin `agenda.ver_todo`        | No existe «Qué agenda ver»; `?de=todos` se ignora. Con «De todos», los pendientes siguen siendo «Los tuyos.».                                                          |
-| Lead que no se ve al guardar | Junto al campo: «No encontramos este lead o no tienes acceso.»                                                                                                         |
-| Conflicto `PT409`            | Los paneles con su aviso y «Recargar»; «Completar», el toast de conflicto con «Recargar».                                                                              |
-| Sin red                      | «Vista y opciones» apagado; «Completar» avisa que no llegó; «Ver más» con «Reintentar».                                                                                |
-| Texto al 200 %               | La columna pasa debajo (consulta de contenedor en rem), la hora en `minmax(0,4.5rem)`, chips con `break-words` y barras con `flex-wrap`: nada ensancha la página.      |
+| Estado                       | Qué se ve                                                                                                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cargando                     | Esqueleto de la barra, las filas de la hoja y la columna; los pendientes con su propio esqueleto (la hoja no los espera). «Ver más» dice «Cargando…» y queda apagado.                                                          |
+| Día vacío                    | Las 12 horas y arriba «Nada agendado hoy.» (otro día: «Nada agendado este día.») con «Nuevo». Si «Qué ver» excluye lo que hay: «Nada de lo que elegiste ver este día.»                                                         |
+| Semana o mes vacío           | «Nada agendado en este rango.» con qué cambiar.                                                                                                                                                                                |
+| Sin pendientes               | «Nada pendiente.» · «Lo vencido y lo que no tiene fecha aparece aquí.» Un grupo vacío no se dibuja.                                                                                                                            |
+| Tope de 200 por clase        | `<AvisoDeTope>`: en semana y mes, «Mira un día o quita clases en «Vista y opciones».» con «Ver el día»; en el día, quitar clases (o «Mi agenda» con «De todos»).                                                               |
+| Tope de pendientes           | «Mostrando los 500 más antiguos.» («las 500 más recientes» en «Sin fecha»).                                                                                                                                                    |
+| Error del día                | La pantalla de error con «Reintentar».                                                                                                                                                                                         |
+| Error de pendientes          | En la columna, «No pudimos leer tus pendientes» con «Reintentar»; la hoja sigue. «Ver más» que falla: el motivo y «Reintentar», sin perder lo cargado.                                                                         |
+| Sin permiso para crear       | «Nuevo» siempre está: Evento y Tarea no piden permiso; Recordatorio sólo con `leads.editar`. Sin `leads.ver`, el evento no ofrece «Lead (opcional)».                                                                           |
+| Sin `agenda.ver_todo`        | No existe «Qué agenda ver»; `?de=todos` se ignora. Con «De todos», los pendientes siguen siendo «Los tuyos.».                                                                                                                  |
+| Lead que no se ve al guardar | Junto al campo: «No encontramos este lead o no tienes acceso.»                                                                                                                                                                 |
+| Formulario del evento        | Todos los campos a la vista, en un solo nivel: título, empieza, termina, «Lead (opcional)», quién lo ve, «Lugar (opcional)» y «Descripción (opcional)».                                                                        |
+| Cambiar de responsable       | En el panel de la tarea, sólo para quien puede reasignarla: una sección a la vista («Cambiar de responsable») con el selector y «Reasignar», apagado sin persona elegida o en curso; el error de la base va junto al selector. |
+| Conflicto `PT409`            | Los paneles con su aviso y «Recargar»; «Completar», el toast de conflicto con «Recargar».                                                                                                                                      |
+| Sin red                      | «Vista y opciones» apagado; «Completar» avisa que no llegó; «Ver más» con «Reintentar».                                                                                                                                        |
+| Texto al 200 %               | La columna pasa debajo (consulta de contenedor en rem), la hora en `minmax(0,4.5rem)`, chips con `break-words` y barras con `flex-wrap`: nada ensancha la página.                                                              |
 
 ### Chat (estados propios)
 
@@ -942,8 +944,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   por alta, y sobre la lista dice «Cierre más próximo primero» (en otra página, «Volver al principio»). «Fase» (`?fase=`, varias a la vez): las fases del
   origen y «Sin fase»; filtra la columna, así que la fase de la subasta trae todo lo que está en ella, viva o no. En un origen de subasta, un atajo «Sin
   resolver N» (hasta «99+») arriba de la lista pone o quita `?subasta=sin_resolver` de un toque; sin ninguna pendiente y sin el filtro puesto, no se dibuja.
-- **Alta y edición (panel):** «Datos principales», «Precio» y un bloque por grupo del layout (con obligatorio nace abierto; con error se
-  abre solo); rechazos junto al campo (VIN o lote repetido también). Conflicto: quién y cuándo, «Ver cómo quedó» y «Recargar».
+- **Alta y edición (panel):** «Datos principales», «Precio» y una sección por grupo del layout, todas a la vista; rechazos junto al campo (VIN o lote repetido también). Conflicto: quién y cuándo, «Ver cómo quedó» y «Recargar».
 - **Fotos:** elegir (selector, soltar o cámara) las deja en una bandeja sin subir que dice lo que no entra y por qué (no es foto, > 25 MB,
   repetida, pasa de 24). «Subir N fotos» con avance; un fallo se dice entero con «Reintentar las N que faltan». Reordenar con botones o
   `Alt+←/→`; eliminar con «Deshacer». Todo eso, en el drawer «Editar imágenes» del «⋯» (`?panel=imagenes`, con
@@ -1029,7 +1030,7 @@ se dibuja**, y sus acciones no se pierden: van al «⋯» «Más acciones de «R
 
 - **Campos** (`leads.campos.gestionar`; sin él, apagada en el menú): el mismo editor de campos que un origen, sin casillas ni «Comunes»:
   buscador y «Nuevo campo», los grupos como en el formulario con sus insignias («En la tabla», «Filtrable», «Solo la cartera», «De fábrica»),
-  el arrastre dentro del grupo, el «⋯» y el panel `?campo=`; «Desactivados» plegado, con «Activar» en su «⋯». Fijos: teléfono, nombre, tipo y
+  el arrastre dentro del grupo, el «⋯» y el panel `?campo=`; «Desactivados» a la vista, debajo, con «Activar» en su «⋯». Fijos: teléfono, nombre, tipo y
   que el lead tenga origen.
 - **Impacto, siempre con números y dentro del panel:** volver requerido (cuántos leads no podrán guardarse hasta completarlo); cambiar el
   tipo o eliminar con datos; sacar una opción en uso; dejar de ser «solo la cartera». Conflicto con «Recargar».
@@ -1217,7 +1218,7 @@ el flujo; la base vuelve a decidir.
 ### Logística: estados propios
 
 La unidad se dibuja de dos maneras: en su página `/logistica/vehiculo/<id>`, **en zonas** (escritorio) o **en bloques con una barra «Mover»** (celular y tableta vertical; `<PaginaDeLaUnidad>`), y, dentro
-de un drawer: el de `/logistica/gastos?vehiculo=<id>`, como **bloques plegables** (`<PanelDeLaUnidad>`), y el del ítem de repuesto (`?item=`), con
+de un drawer: el de `/logistica/gastos?vehiculo=<id>`, con una **sección a la vista por hueco** que monta su contenido al acercarse (`<PanelDeLaUnidad>`), y el del ítem de repuesto (`?item=`), con
 sus **secciones a la vista** (`<PanelDeLaUnidadALaVista>`: «Qué falta» primero, cada sección con su `h3`; el atajo de una falta la trae a la vista
 y enfoca su título).
 
@@ -1230,10 +1231,10 @@ y enfoca su título).
   debajo, **pestañas** con su propio desplazamiento cada una: Documentos · Transporte · Repuestos · Aduana · **Dinero** (gastos, pagos y margen apilados); a la derecha, **lateral**: Notas · Historial. Cada hueco aparece con su permiso en el origen y su regla del flujo encendida; una pestaña sin
   huecos no se dibuja («Dinero» existe si hay alguno de los tres) y una zona vacía deja que la grilla se reacomode. La pestaña elegida va en `?hueco=` (sin recargar, sin sumar al historial). Lo de cada pestaña se monta la primera vez que se elige y queda montado: la nota a medias, el borrador de transporte
   y la bandeja de documentos no se pierden. Los atajos («Ir a Documentos», «Ir a Gastos») eligen la pestaña y llevan el foco a ella. **Subir documentos** va en un drawer (`?subir=documentos`) abierto por el botón «Subir documentos» del hueco (apagado, con «Necesitas permiso para subir documentos.» escrito debajo, sin `logistica.documentos.subir`); con archivos en la bandeja cerrar pregunta, y al terminar sin fallos se cierra solo (con fallos queda abierto con «Reintentar los N que faltan»). En el celular y en los drawers la bandeja sigue en línea. En escritorio se piden al abrir tres huecos (Qué falta, Documentos, Notas); en el celular, uno.
-- **Celular y tableta vertical:** una columna, un bloque plegado por hueco en este orden —qué falta (abierto), documentos, notas, historial, transporte, repuestos, aduana, gastos, pagos, margen— y una barra «Mover» pegada abajo (44 px, sólo con `flujos.mover` del origen y el hueco «Qué falta»)
-  que lo abre, lo trae a la vista y le da el foco. Si el flujo del origen no se pudo leer, los huecos que piden una regla no se dibujan y una línea lo dice; el resto sigue. La ficha del
+- **Celular y tableta vertical:** una columna, una sección a la vista por hueco (monta su contenido al acercarse) en este orden —qué falta, documentos, notas, historial, transporte, repuestos, aduana, gastos, pagos, margen— y una barra «Mover» pegada abajo (44 px, sólo con `flujos.mover` del origen y el hueco «Qué falta»)
+  que lo trae a la vista y le da el foco. Si el flujo del origen no se pudo leer, los huecos que piden una regla no se dibujan y una línea lo dice; el resto sigue. La ficha del
   vehículo lleva «Ver en logística» (un enlace corto de su cabecera, con `logistica.ver`) a `/logistica/vehiculo/<id>`.
-- **«Qué falta» y mover** (abierto al inicio, el primero): una tarjeta por destino (las salidas de la fase actual; sin fase, las iniciales)
+- **«Qué falta» y mover** (el primero): una tarjeta por destino (las salidas de la fase actual; sin fase, las iniciales)
   con cada requisito y su estado **dicho con texto** («Cumplido» / «Falta»), «Obligatorio» / «Informativo», su detalle («1 de 2
   aprobados») y, en cada falta (obligatoria o informativa), **lo que la destraba**: un botón chico con el verbo («Subir», «Revisar», «Completar»,
   «Registrar», «Ir a Documentos/Transporte/Aduana/Pagos/Repuestos/Cotizaciones», «Ir al vehículo», «Ir al proyecto», «Vincular», «Pedirlo»; el nombre accesible
@@ -1269,7 +1270,7 @@ y enfoca su título).
   formulario con «Recargar», que conserva lo escrito. Sin `logistica.transporte.editar` del origen, campos apagados con su motivo. Vacíos:
   sin transporte cargado; sin navieras (con `logistica.catalogos.gestionar`, «Cargar navieras»). Guardar relee «Qué falta». Una unidad de
   repuesto: `TEXTO_DE_REPUESTO`.
-- **Notas e historial** (zona lateral en la página; plegados en un drawer o en el celular): «Notas» con «Escribir una nota» (`<Textarea>`, contador de 2.000, «Guardar nota», `Ctrl/Cmd+Enter`; el
+- **Notas e historial** (zona lateral en la página; secciones a la vista en un drawer o en el celular): «Notas» con «Escribir una nota» (`<Textarea>`, contador de 2.000, «Guardar nota», `Ctrl/Cmd+Enter`; el
   error junto al botón y el texto queda) y las notas de la más nueva: quién, cuándo, texto; la que dejó un cambio de fase dice «al pasar a
   «<fase>»» y no se edita. «Editar» sólo la propia, en el lugar. **No hay «Borrar»**: la base no deja el borrado suave por `update` (pide
   una RPC). «Historial», sólo lectura: una línea por cambio, quién («Sistema» sin persona), cuándo y la nota. Las dos: de a 20 con «Ver
@@ -1314,7 +1315,7 @@ y enfoca su título).
   ETA, arribo y unidades acotadas («200+»; «Hay unidades que no ves.»); lo que difiere entre unidades dice «Varias», lo que ninguna tiene
   «—». Si la base revisó una parte sin llenar la página, lo dice y «Siguiente» sigue buscando. **Resumen** (`?booking=` o `?contenedor=`,
   `<Drawer>` que sólo muestra): una fila por unidad con título (enlace si es vehículo), fase, ETA y arribo, con avisos de tope y de ocultas;
-  debajo, plegados y cada uno con su permiso (la base lo exige por unidad): «Mover el grupo», «Subir un documento a las unidades» y
+  debajo, a la vista y cada uno con su permiso (la base lo exige por unidad): «Mover el grupo», «Subir un documento a las unidades» y
   «Prorratear un gasto entre las unidades». **«Editar grupo»** (con `logistica.transporte.editar` o `repuestos.editar`; `?panel=editar-grupo`
   **tapa** al resumen): ruta, contenedor y booking, fechas; un campo común sale con su valor, uno que difiere sale vacío con «Varios» y
   dejarlo así no lo toca. «Guardar» manda lo tocado a todas o a ninguna («Se aplicó a las N unidades.»; conflicto «No se cambió ninguna:
@@ -1351,7 +1352,7 @@ y enfoca su título).
 - **Cifras:** leads creados, convertidos, tasa, cotizaciones, finales; cada una un grupo «Título: valor». Una tasa nula dice «Sin datos»,
   nunca «0 %»; sin leads, «Todavía no hay leads en este período» (con `leads.crear`, «Nuevo lead»).
 - **Gráficas** (barras por día de leads y cotizaciones; rankings de leads por origen y por persona y de cotizaciones por origen): leyenda en
-  texto, «Ver como tabla» con todos los números, tope dicho (10 orígenes, 20 personas), vacío y error por widget.
+  texto, «Ver como tabla» con todos los números (un modal en `?panel=tabla&grafica=<widget>`; el widget no cambia de alto), tope dicho (10 orígenes, 20 personas), vacío y error por widget.
 - **«Margen del mes»** (con `logistica.margen.ver` en algún origen; suma sólo esos): monto por `<Monto>` en un grupo llamado sólo «Margen
   del mes» (Modo Live lo oculta entero), nulo «Sin venta registrada»; nota con venta, real y cotizado y cuántos vehículos entran y cuántos
   no tienen venta.
@@ -1875,7 +1876,7 @@ suma desde «Sin lugar en la hoja».
   que no admite nivel** (el total y lo que va aparte, o una sección que los tiene): «Quién la ve» apagado con su motivo. Con `equipo.roles.gestionar`, «+ Nuevo
   nivel» (el modal de Roles, `?panel=nuevo-nivel`; el creado queda elegido; en el tope, apagado con su motivo). **Una fila que ya no está en la fórmula**
   (`nodo_inexistente`): «Esta fila ya no está en la fórmula.» con «Quitar la pieza».
-- **Aspecto** (un bloque «Aspecto» plegado en cada pieza; no se escribe el valor por defecto, se quita): por sección, «Ancho en la hoja»
+- **Aspecto** (una sección «Aspecto» a la vista en cada pieza; no se escribe el valor por defecto, se quita): por sección, «Ancho en la hoja»
   («Automático (la mitad, si hay lugar)» y de 12 a 1 columna), «Alto» (Automático | 2, 3 o 4 filas), «Relleno» (Chico | Medio | Grande),
   «Separación entre celdas» (Chica | Media | Grande), «Densidad» (Compacta | Cómoda), «Letra» (Chica | Normal | Grande), «Énfasis»
   (Normal | Fuerte) y «Color» («Sin color» y los colores del catálogo, con su muestra, y «+ Nuevo color», `?color=nuevo`: el creado queda elegido; en el tope,
@@ -2008,8 +2009,8 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   lead y del vehículo»). **Vehículos** (con `vehiculos.ver`; `?seccion=vehiculos` y `#relacionados` llevan acá): el compacto de Relacionados (ver
   «Relacionados (estados propios)») con «Vincular o marcar» en el título (cartera y `leads.editar`: abre `?panel=agregar-vehiculo`, que busca por título, VIN,
   lote o #número, con «Vincular» y nota de interés ≤ 500); vinculados, interesados (con nota) y cotizados con sus acciones en el «⋯» de cada fila
-  («Desvincular»: con la cartera, en el lugar con «Deshacer»; sin ella, confirma en `?panel=desvincular&vinculado=`; «Quitar interés»). Al pie, «Vínculos
-  anteriores» plegados: un botón (`aria-expanded`) que los despliega en el lugar, hasta 50 con su tope. **Oportunidades** (con la cartera): el **embudo del lead**.
+  («Desvincular»: con la cartera, en el lugar con «Deshacer»; sin ella, confirma en `?panel=desvincular&vinculado=`; «Quitar interés»). Al pie, «Ver los
+  vínculos anteriores» (sólo si hay alguno): un botón que abre el drawer «Vínculos anteriores» (`?panel=vinculos-anteriores`), hasta 50 con su tope. **Oportunidades** (con la cartera): el **embudo del lead**.
   Un selector de embudo (sólo si quien mira tiene más de uno; lo elegido se recuerda por persona) y una columna por etapa del embudo elegido, con el nombre sobre su color y
   las oportunidades de este lead en ella (abiertas, ganadas y perdidas), hasta 3 por columna. Cada tarjeta: título (hasta dos líneas), vehículo si lo tiene, monto con `<Monto>`,
   motivo si es perdida y su «⋯» arriba a la derecha con «Mover a», «Editar» y «Eliminar». **Arrastrar** una tarjeta a otra columna la mueve (mouse; con el teclado, Tab a la
@@ -2062,7 +2063,7 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   «Ver tus recordatorios», sin número, abren un drawer en `?todos=seguimientos|recordatorios` («Seguimientos de <nombre>», «Tus recordatorios sobre
   <nombre>») con la lista completa; con él abierto, los modales de la URL son del drawer.
 - **Línea de tiempo** (en «Ver todos»): de a 20 hasta 500; «Ir a una fecha» (no va a la URL) trae ese día y lo anterior; vacío.
-- **Tus recordatorios:** sólo los propios; «Agendar recordatorio» (cartera); vencidos primero con «Vencido»; «Completados» plegados (en «Ver todos»);
+- **Tus recordatorios:** sólo los propios; «Agendar recordatorio» (cartera); vencidos primero con «Vencido»; «Completados» a la vista, leídos al acercarse (en «Ver todos»);
   «Completar»/«Reabrir», «Editar», «Eliminar» con «Deshacer». Modal por URL (`?panel=agendar-recordatorio`,
   `editar-recordatorio&recordatorio=<id>`): «De qué es», «Cuándo» y «Vehículo (opcional)»; no se agenda en el pasado.
 

@@ -4,7 +4,6 @@ import { useRegional } from '@/shared/ui/regional'
 import { useRouter } from 'next/navigation'
 import { Aviso } from '@/shared/ui/aviso'
 import { AvisoDeConflicto } from '@/shared/ui/aviso-de-conflicto'
-import { Bloque } from '@/shared/ui/bloque'
 import { Button } from '@/shared/ui/button'
 import { useCambiosSinGuardar } from '@/shared/ui/cambios-del-panel'
 import { Campo } from '@/shared/ui/campo'
@@ -58,54 +57,48 @@ function AvisosDeVitrina({ estado }: { estado: Estado }) {
   )
 }
 
-// Lo secundario, plegado: el rango, la nota y el destacado. Se abre solo si algo de adentro no pasa.
+// Lo que sigue al precio, en la misma grilla del formulario y a la vista: el rango, la nota y el destacado.
 function OpcionesDeVitrina({ estado }: { estado: Estado }) {
   const { valores, porCampo } = estado
   return (
-    <Bloque
-      titulo="Más opciones"
-      plegado
-      forzarAbierto={porCampo.precioHasta !== undefined || porCampo.nota !== undefined}
-    >
-      <div className="grid gap-4">
-        <Campo
-          nombre="precioHasta"
-          etiqueta="Precio hasta"
-          ayuda="Para mostrar un rango: «desde – hasta»."
-          inputMode="decimal"
-          autoComplete="off"
-          value={valores.precioHasta}
-          error={porCampo.precioHasta}
-          onChange={(evento) => {
-            estado.cambiar({ precioHasta: evento.target.value })
-          }}
-        />
-        <Campo
-          nombre="nota"
-          etiqueta="Nota del precio"
-          ayuda="Una línea bajo el precio."
-          maxLength={LARGO_DE_NOTA_DE_PRECIO}
-          value={valores.nota}
-          error={porCampo.nota}
-          onChange={(evento) => {
-            estado.cambiar({ nota: evento.target.value })
-          }}
-        />
-        <Interruptor
-          titulo="Destacado"
-          ayuda={
-            valores.publicado
-              ? 'El sitio lo muestra antes que los demás.'
-              : 'Sólo se destaca lo que está publicado.'
-          }
-          valor={valores.publicado && valores.destacado}
-          deshabilitado={!valores.publicado}
-          alCambiar={(destacado) => {
-            estado.cambiar({ destacado })
-          }}
-        />
-      </div>
-    </Bloque>
+    <>
+      <Campo
+        nombre="precioHasta"
+        etiqueta="Precio hasta"
+        ayuda="Para mostrar un rango: «desde – hasta»."
+        inputMode="decimal"
+        autoComplete="off"
+        value={valores.precioHasta}
+        error={porCampo.precioHasta}
+        onChange={(evento) => {
+          estado.cambiar({ precioHasta: evento.target.value })
+        }}
+      />
+      <Campo
+        nombre="nota"
+        etiqueta="Nota del precio"
+        ayuda="Una línea bajo el precio."
+        maxLength={LARGO_DE_NOTA_DE_PRECIO}
+        value={valores.nota}
+        error={porCampo.nota}
+        onChange={(evento) => {
+          estado.cambiar({ nota: evento.target.value })
+        }}
+      />
+      <Interruptor
+        titulo="Destacado"
+        ayuda={
+          valores.publicado
+            ? 'El sitio lo muestra antes que los demás.'
+            : 'Sólo se destaca lo que está publicado.'
+        }
+        valor={valores.publicado && valores.destacado}
+        deshabilitado={!valores.publicado}
+        alCambiar={(destacado) => {
+          estado.cambiar({ destacado })
+        }}
+      />
+    </>
   )
 }
 

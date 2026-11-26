@@ -1,26 +1,21 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Bloque } from '@/shared/ui/bloque'
+import { useALaVista } from '@/shared/ui/use-a-la-vista'
 
 type Props = {
   titulo: string
   children: ReactNode
 }
 
-// Un hueco del resumen de un grupo: un bloque plegado cuyo contenido se monta la primera vez que se abre; al cerrarlo queda montado, para no perder lo que la persona escribió. Mientras está
-// cerrado no se monta nada ni se pide el código del área que lo llena.
+// Un hueco del resumen de un grupo: una sección a la vista cuyo contenido se monta la primera vez que llega a 200 px de la vista; después queda montado, para no perder
+// lo que la persona escribió. Hasta entonces no se monta nada ni se pide el código del área que lo llena.
 export function HuecoDelGrupo({ titulo, children }: Props) {
-  const [visto, setVisto] = useState(false)
+  const [observar, cerca] = useALaVista<HTMLDivElement>()
   return (
-    <Bloque
-      titulo={titulo}
-      plegado
-      onAbrir={() => {
-        setVisto(true)
-      }}
-    >
-      {visto ? children : null}
-    </Bloque>
+    <div ref={observar}>
+      <Bloque titulo={titulo}>{cerca ? children : null}</Bloque>
+    </div>
   )
 }

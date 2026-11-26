@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { RUTAS } from '@/shared/lib/rutas'
 
 // «Comparar cotizaciones» (`docs/GLOSARIO.md`): `/cotizaciones/comparar?ids=a,b[,c]&returnTo=`. Va en el núcleo porque la escriben dos áreas («De este vehículo» del área
-// `aprobada` y el grupo desplegado de la lista agrupada del área `listado`). El orden de `ids` es el de las columnas: la primera es la referencia.
+// `aprobada` y el modal de un grupo de la lista agrupada del área `listado`). El orden de `ids` es el de las columnas: la primera es la referencia.
 export const MINIMO_PARA_COMPARAR = 2
 export const MAXIMO_PARA_COMPARAR = 3
 

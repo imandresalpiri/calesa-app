@@ -241,8 +241,8 @@ test('E2E la dueña crea, ve, edita y elimina un evento y le da una tarea a la a
   const detalleDeTarea = page.getByRole('dialog', { name: 'Tarea', exact: true })
   await expect(detalleDeTarea.getByRole('heading', { name: tarea })).toBeVisible()
   await expect(detalleDeTarea.getByText(nombre)).toBeVisible()
-  // Quien la creó con `agenda.tareas.asignar` puede cambiarla de responsable.
-  await expect(detalleDeTarea.getByRole('button', { name: 'Cambiar de responsable' })).toBeVisible()
+  const reasignar = detalleDeTarea.getByRole('heading', { name: 'Cambiar de responsable' })
+  await expect(reasignar).toBeVisible() // Quien la creó con `agenda.tareas.asignar` puede reasignarla.
   await page.keyboard.press('Escape')
   await expect(detalleDeTarea).toBeHidden()
 
@@ -267,13 +267,12 @@ test('E2E la dueña crea, ve, edita y elimina un evento y le da una tarea a la a
   await expect(
     dia.getByRole('link', { name: new RegExp(`^Evento [0-9]+:[0-9]+ ${editado}`) }),
   ).toBeVisible()
-  await expect(
-    dia.getByRole('link', { name: new RegExp(`^Tarea [0-9]+:[0-9]+ ${tarea}`) }),
-  ).toBeVisible()
+  const chipDeTarea = dia.getByRole('link', { name: new RegExp(`^Tarea [0-9]+:[0-9]+ ${tarea}`) })
+  await expect(chipDeTarea).toBeVisible()
   // Completa su tarea y la reabre; no puede cambiarla de responsable ni editarla (no la creó).
-  await dia.getByRole('link', { name: new RegExp(`^Tarea [0-9]+:[0-9]+ ${tarea}`) }).click()
+  await chipDeTarea.click()
   await expect(detalleDeTarea.getByRole('heading', { name: tarea })).toBeVisible()
-  await expect(detalleDeTarea.getByRole('button', { name: 'Cambiar de responsable' })).toBeHidden()
+  await expect(reasignar).toBeHidden()
   await expect(detalleDeTarea.getByRole('button', { name: 'Editar' })).toBeHidden()
   await detalleDeTarea.getByRole('button', { name: 'Marcar como hecha' }).click()
   await expect(detalleDeTarea.getByText(/^Hecha el /)).toBeVisible()

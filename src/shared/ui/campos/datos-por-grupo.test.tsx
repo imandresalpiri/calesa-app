@@ -22,24 +22,16 @@ const campos = [
 ] as const
 
 describe('DatosPorGrupo', () => {
-  it('a la vista (`plegable={false}`): cada grupo con su `h3`, sin nada que plegar', () => {
+  it('cada grupo a la vista con su `h3`, sin nada que plegar', () => {
     const { container } = render(
       <DatosPorGrupo
         campos={campos as never}
         atributos={{ ciudad: 'La Paz', presupuesto: 'Alto' }}
-        plegable={false}
       />,
     )
     expect(container.querySelector('details')).toBeNull()
     expect(screen.getByRole('heading', { level: 3, name: 'Contacto' })).toBeTruthy()
     expect(screen.getByRole('heading', { level: 3, name: 'Otros datos' })).toBeTruthy()
     expect(screen.getByText('La Paz')).toBeTruthy()
-  })
-
-  it('por defecto cada grupo va en un bloque plegable', () => {
-    const { container } = render(
-      <DatosPorGrupo campos={campos as never} atributos={{ ciudad: 'La Paz' }} />,
-    )
-    expect(container.querySelectorAll('details')).toHaveLength(2)
   })
 })

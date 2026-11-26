@@ -268,8 +268,7 @@ test('un privado lo llena y lo ve quien queda en la cartera, y no quien sólo ve
     const panel = dialogo(page)
     await panel.getByLabel('Teléfono principal').fill(nacional)
     await panel.getByLabel('Nombre', { exact: true }).fill(nombre)
-    // Plegado en «Más datos»: quien crea queda en la cartera y lo puede llenar.
-    await panel.getByText('Más datos').click()
+    // En «Más datos», a la vista: quien crea queda en la cartera y lo puede llenar.
     await panel.getByLabel('E2E Reservado (solo la cartera)').fill('CI 4455 LP')
     await page.keyboard.press('Control+Enter')
     await panel.getByLabel('Resumen').fill('Dejó su documento')

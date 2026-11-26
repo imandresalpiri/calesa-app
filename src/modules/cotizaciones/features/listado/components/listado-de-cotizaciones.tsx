@@ -79,7 +79,7 @@ type Props = {
 }
 
 // El listado de cotizaciones: búsqueda, filtros, «Vista y opciones» (tabla o tarjetas, «Agrupar por vehículo», vistas guardadas), «Nueva cotización» y la lista con
-// su «⋯». Todo el estado (filtros, página, vista, agrupación) vive en la URL; lo desplegado de cada grupo, en la lista.
+// su «⋯». Todo el estado (filtros, página, vista, agrupación) vive en la URL; el modal de un grupo, en `?panel=`.
 export function ListadoDeCotizaciones(props: Props) {
   const { esquema, pagina, vistas, porPagina, rutaDeNueva, vehiculo, lead, junto, origenes } = props
   const resumen = useResumenDeCotizacion()

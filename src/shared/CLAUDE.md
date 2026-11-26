@@ -33,7 +33,7 @@ locale)`, el único lector de un número tipeado.
   `ui/aviso-de-tope.tsx`, `ui/ir-a-una-fecha.tsx` y `ui/desde-una-fecha.tsx` (entregan un día `YYYY-MM-DD`; el instante lo arma quien lee).
 - `lib/campos/`: motor de campos configurables sin I/O (`TIPOS_DE_CAMPO`, `esquemaDeValor()`, `valorMostrado()`, `campoDeFormulario()`; `rango.ts`,
   espejo de `_valor_fuera_de_rango` y `_campo_rango`). `ui/campos/`: `<EditorDeCampos>` (el de todo layout: buscador `?q=` con `lib/campos/buscar.ts`, filas con insignias y un «⋯» de
-  `acciones-de-campo.ts`, el panel `?campo=` con el formulario diferido, «Desactivados» plegado; opcionales, `casillas` —las de dato clave,
+  `acciones-de-campo.ts`, el panel `?campo=` con el formulario diferido, «Desactivados» a la vista; opcionales, `casillas` —las de dato clave,
   `CasillasDelEditor`— y `fijos` —«Comunes», `FijosDelEditor`—; el arrastre en `arrastre/`, dnd-kit tras `diferido({ enFrio })`, y lo que
   decide cada soltada, puro, en `lib/campos/soltar.ts`), `campo-rango.tsx`, `<DatosPorGrupo>`, `<CampoDeFormulario>`.
 - `lib/ancho.ts` (`anchoDeLaPeticion()`, `CORTE_DEL_TABLERO`/`CORTE_DE_LA_TABLA`/`CORTE_DEL_PANEL`), `ui/ancho-de-pantalla.tsx` (`useAlMenos()`).
@@ -48,8 +48,9 @@ locale)`, el único lector de un número tipeado.
   `config/app.ts`: nombre y colores.
 - `ui/diferido.tsx`: `diferido()` (con `aviso: 'aqui'`, `respaldo(props)` se dibuja bajo «Sin conexión» si el código no llega). `ui/modal.tsx`, `ui/drawer.tsx`, `ui/confirmar.tsx`: diálogos por URL; `ui/modal-de-formulario.tsx`,
   `ui/use-envio-de-modal.ts` (envío sin versión). `<Drawer desplazamiento="propio">`: el cuerpo no se desplaza y lo de adentro llena su alto (el resumen de una cotización: cabecera fija y pestañas). `<Drawer alto="ajustable">` (sólo `lado="bottom"`): el alto lo cambia `<AsaDelPanel>` (arrastrar o ↑ ↓ Inicio Fin; `lib/alto-del-panel.ts`, puro) y se recuerda mientras el panel está montado; en el celular, a pantalla completa. `<Drawer alCostado>`: no modal y sin fondo (lo de atrás se sigue usando; tocar afuera no
-  cierra, Esc y la ✕ sí), para el panel que acompaña a una pantalla ancha. `ui/bloque.tsx`: `<Bloque>` es un `<details>`;
-  dentro de `<BloquesALaVista>` (`ui/bloques-a-la-vista.tsx`) es una `<section>` a la vista con su `h3` (`h4` anidado) y `onAbrir` una vez al montarse.
+  cierra, Esc y la ✕ sí), para el panel que acompaña a una pantalla ancha. `ui/bloque.tsx`: `<Bloque>` es siempre una `<section>` a la vista
+  con su `h3` (enfocable), nunca plegable; `<BloquesALaVista>` (`ui/bloques-a-la-vista.tsx`) fija el nivel. El anidado (`h4`, sin caja) sólo lo usa el panel de una fase en Configuración.
+  `campos/bloque-de-campos.tsx` y `<DatosPorGrupo>`, también a la vista.
 - `ui/vuelta-del-foco.ts`: `abrirConVuelta()` y `useVueltaDelFoco()`: tras recargar con un panel por URL, «atrás» devuelve el foco a quien lo abrió
   (marca en `history.state`; desde un menú, al botón del menú). La entrada queda también en `sessionStorage` porque `shallow: false` la borra del
   historial; con `router.push`: `abrirConVuelta(clave, () => { push(url); return alLlegarA(url) })`. La usa `usePanelPorUrl()`.

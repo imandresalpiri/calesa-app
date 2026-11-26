@@ -8,7 +8,7 @@ import { NoSeAbre } from '../../no-se-abre'
 export const metadata: Metadata = { title: 'Campos del origen' }
 
 // Configuración › Orígenes › un origen › Campos: las casillas de dato clave, los datos comunes y los campos por grupo, con los desactivados
-// plegados al final.
+// a la vista, al final.
 // En un origen de subasta, quien gestiona ve además lo que apibara trajo y el origen todavía no tiene como campo.
 export default async function PaginaCamposDelOrigen({
   params,

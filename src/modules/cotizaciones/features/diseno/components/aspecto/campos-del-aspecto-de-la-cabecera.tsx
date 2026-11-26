@@ -22,7 +22,7 @@ type Props = {
   alPoner: (cambios: CambioDeAspectoDeLaCabecera) => void
 }
 
-// El aspecto de la cabecera (los modos de tipo de cambio), plegado: va sola en su fila, así que no lleva ancho ni alto. Con color o relleno es una caja.
+// El aspecto de la cabecera (los modos de tipo de cambio), a la vista: va sola en su fila, así que no lleva ancho ni alto. Con color o relleno es una caja.
 export function CamposDelAspectoDeLaCabecera({
   cabecera,
   catalogo,
@@ -32,7 +32,7 @@ export function CamposDelAspectoDeLaCabecera({
   alPoner,
 }: Props) {
   return (
-    <Bloque titulo="Aspecto" plegado forzarAbierto={error !== null}>
+    <Bloque titulo="Aspecto">
       <div className="grid min-w-0 gap-2 @md:grid-cols-2">
         <SelectorDeTono
           nombre="cabecera-aspecto-tono"

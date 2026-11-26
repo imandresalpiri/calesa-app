@@ -31,7 +31,7 @@ const ID = 'seguimiento'
 
 // Anotar o editar un seguimiento (`?panel=anotar-seguimiento` y `?panel=editar-seguimiento&
 // seguimiento=<id>`): tipo, cuándo fue, resumen, detalle con formato, si lo ve el cliente, el vehículo
-// (si quien lo monta los provee) y, al anotar, el próximo contacto plegado. Lo sirve igual la ficha,
+// (si quien lo monta los provee) y, al anotar, el botón que suma el próximo contacto. Lo sirve igual la ficha,
 // la pestaña «Seguimientos» del drawer y la tabla. El contrato del modal (guardar con los atajos,
 // preguntar antes de cerrar con algo escrito, no cerrarse mientras guarda) es de `ModalDeFormulario`.
 // Quien lo monta le da una `key` por apertura: cada una empieza de nuevo, con un id de intento nuevo.

@@ -8,6 +8,7 @@ import {
 } from './soporte/cotizaciones-final'
 import { borrarDineroDeEsteOrigen, sembrarDinero } from './soporte/dinero'
 import { expect, test, type Page } from './soporte/prueba'
+import { capturar } from './soporte/recorrido'
 import { abrirSeccionDeLaUnidad } from './soporte/unidad'
 
 // El tablero de métricas (9.08-1, fila del tablero en `docs/UX.md`): la dueña ve las cinco cifras; al marcar final una cotización, «Convertidos» sube en uno
@@ -103,7 +104,9 @@ test('T4 la dueña llega al tablero desde Inicio', async ({ page }) => {
   await expect(cifra(page, 'Leads creados')).toBeVisible()
 })
 
-test('T5 la dueña ve las cinco gráficas y «Ver como tabla» abre los números', async ({ page }) => {
+test('T5 la dueña ve las cinco gráficas y «Ver como tabla» abre los números', async ({
+  page,
+}, info) => {
   // Un lead y una cotización de hoy: así las gráficas de este mes tienen movimiento sin depender de otros specs.
   await sembrarParaMarcar(t, 'T5')
   await page.context().clearCookies()
@@ -122,9 +125,31 @@ test('T5 la dueña ve las cinco gráficas y «Ver como tabla» abre los números
   await expect(seccion.getByRole('img', { name: /^Leads por día: / })).toBeVisible()
   await expect(seccion.getByRole('columnheader', { name: 'Día' })).toBeHidden()
 
-  await seccion.getByText('Ver como tabla').click()
-  await expect(seccion.getByRole('columnheader', { name: 'Día' })).toBeVisible()
-  await expect(seccion.getByRole('columnheader', { name: 'Creados' })).toBeVisible()
+  // «Ver como tabla» abre un modal con su URL; el widget no cambia de alto y al cerrar el foco vuelve al botón.
+  const verComoTabla = seccion.getByRole('button', { name: 'Ver como tabla' })
+  await expect(verComoTabla).toHaveAttribute('aria-haspopup', 'dialog')
+  // Con el modal abierto el resto de la página queda inerte (fuera del árbol accesible): se mide el mismo nodo, no se lo vuelve a buscar.
+  const caja = await seccion.elementHandle()
+  const alto = (await caja.boundingBox())?.height
+  await verComoTabla.click()
+  const tabla = page.getByRole('dialog', { name: 'Leads por día: datos de la gráfica' })
+  await expect(tabla.getByRole('columnheader', { name: 'Día' })).toBeVisible()
+  await expect(tabla.getByRole('columnheader', { name: 'Creados' })).toBeVisible()
+  await expect(page).toHaveURL(/[?&]panel=tabla(&|$)/)
+  await expect(page).toHaveURL(/[?&]grafica=leads-por-dia(&|$)/)
+  expect((await caja.boundingBox())?.height).toBe(alto)
+  await capturar(page, info, 'ver-como-tabla')
+  await page.keyboard.press('Escape')
+  await expect(tabla).toBeHidden()
+  await expect(verComoTabla).toBeFocused()
+
+  // Por la URL abre el de su widget y ningún otro; una `grafica` que no es de nadie no abre nada.
+  await page.goto('/tablero?panel=tabla&grafica=leads-por-dia')
+  await expect(tabla.getByRole('columnheader', { name: 'Día' })).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(1)
+  await page.goto('/tablero?panel=tabla&grafica=no-existe')
+  await expect(seccion.getByRole('img', { name: /^Leads por día: / })).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
 })
 
 test('T6 la dueña oculta y ordena widgets en «Personalizar» y, tras recargar, sigue igual; «Restablecer» los devuelve', async ({

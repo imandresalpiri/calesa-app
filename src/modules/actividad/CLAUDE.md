@@ -9,7 +9,7 @@ Auditoría inmutable de 14 días: qué cambió, quién, cuándo y el diff, con p
   sin él, «Hizo «…» en».
 - Sale: `/actividad` (`pantallas/listado.ts`): cada cambio como frase (`entities/frase.ts`) por día en la zona de la empresa, «Ver más» con tope y filtros
   como chips (`?persona=`, `?entidad=`, `?registro=` sólo con `?entidad=`, que trae «Ver actividad» de la ficha de lead y de vehículo, y la fecha de «Ir a una
-  fecha»). Una fila visible despliega su diff en la misma fila (`?cambio=<id>`, `replace`); uno fuera de lo cargado sale arriba como «El cambio que abriste».
+  fecha»). «Ver detalle» de una fila visible abre su diff en un drawer (`?cambio=<id>`, `push` con la vuelta del foco; `DrawerDelCambio`); uno fuera de lo cargado abre el mismo drawer.
   `pantallas/actividad-reciente.ts`: `<ActividadReciente tabla registroId permisos zona diasDeActividad>`, los últimos 5 cambios de un registro (servidor;
   sólo el «Reintentar» es de cliente; su título es el de los bloques de ficha, `TituloDeBloqueConAccion`, con «Ver toda la actividad»; la monta, sola,
   `/actividad/reciente`), `<ActividadRecienteAlAcercarse tabla registroId zona diasDeActividad>` (la misma región, con las filas leídas desde el
@@ -25,7 +25,7 @@ Auditoría inmutable de 14 días: qué cambió, quién, cuándo y el diff, con p
 - `entities/frase.ts` — `fraseDeActividad`: quién, el predicado, el campo («y N más»), el registro y, con un solo campo, su antes y después (por
   `presentarDiff`). `entities/registro.ts`: el icono por tipo, cómo se nombra sin título («un vehículo») y a qué página lleva (`enlaceDelRegistro`).
 - `features/frase/` — `<FraseDeActividad>` e `<IconoDeEntidad>`, sin hooks: los dibujan la lista y la «Actividad reciente» (servidor).
-- `features/diff/` — el detalle (`DetalleDelCambioDiferido`, por `diferido()`) lee al desplegarse y descarta la respuesta de otro cambio; sin acceso o
+- `features/diff/` — el detalle (`DetalleDelCambio`, dentro de `DrawerDelCambioDiferido`) lee al montarse y descarta la respuesta de otro cambio; sin acceso o
   `?cambio=` inválido: «No tienes acceso a este cambio.».
 
 ## Tablas

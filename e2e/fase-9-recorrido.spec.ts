@@ -248,8 +248,9 @@ test('E2E R5b la cola de la web del tablero cuenta el turno que la asesora conta
   await expect(cifra(cola, 'Turnos')).toBeVisible()
   expect(await leerCifra(cola, 'Turnos')).toBeGreaterThanOrEqual(1)
   await expect(cifra(cola, 'Tasa de contacto')).toBeVisible()
-  await cola.getByText('Ver como tabla').click()
-  await expect(cola.getByRole('row').filter({ hasText: tr.asesora.nombre })).toHaveCount(1)
+  await cola.getByRole('button', { name: 'Ver como tabla' }).click()
+  const tabla = page.getByRole('dialog', { name: 'Turnos por persona: datos de la gráfica' })
+  await expect(tabla.getByRole('row').filter({ hasText: tr.asesora.nombre })).toHaveCount(1)
 })
 
 test('E2E R6 la dueña encuentra en /actividad el cambio del lead con su diff', async ({ page }) => {
@@ -276,12 +277,12 @@ test('E2E R6 la dueña encuentra en /actividad el cambio del lead con su diff', 
     .filter({ hasText: `${tr.asesora.nombre} cambió Nombre de` })
   await expect(fila).toHaveCount(1)
   await fila.getByRole('button', { name: 'Ver detalle' }).click()
-  const diff = fila.getByRole('region', { name: 'Detalle del cambio' })
+  const diff = page.getByRole('dialog', { name: 'Detalle del cambio' })
   await expect(diff).toBeVisible()
   await expect(diff.getByRole('term')).toHaveText(['Nombre'])
   await expect(diff.getByRole('definition')).toContainText(`Antes${lead().nombre}`)
   await expect(diff.getByRole('definition')).toContainText(`Después${despues}`)
-  await fila.getByRole('button', { name: 'Ocultar detalle' }).click()
+  await page.keyboard.press('Escape')
   await expect(diff).toBeHidden()
   elLead = { ...lead(), nombre: despues }
 })

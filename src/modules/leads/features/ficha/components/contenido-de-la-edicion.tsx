@@ -123,8 +123,7 @@ type PropsDeGrupos = {
   estado: FormularioDeLead
 }
 
-// Un bloque por cada grupo del layout, con sus nombres. Uno con algo obligatorio nace abierto y uno
-// con un error se abre solo; los demás, plegados.
+// Un bloque por cada grupo del layout, con sus nombres, todos a la vista.
 function GruposDeCampos({ ficha, campos, estado }: PropsDeGrupos) {
   return (
     <>
@@ -137,7 +136,6 @@ function GruposDeCampos({ ficha, campos, estado }: PropsDeGrupos) {
           errores={estado.errores}
           alCambiar={estado.cambiar}
           deshabilitado={estado.enCurso}
-          plegado={!grupo.campos.some((campo) => campo.requerido)}
         />
       ))}
     </>

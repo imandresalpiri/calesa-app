@@ -1,7 +1,7 @@
-import { expect, test, type Locator, type Page } from './soporte/prueba'
+import { expect, test, type Page } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
 import { admin } from './soporte/base'
-import { bloque, esMovil, otraPersona } from './soporte/inventario'
+import { seccion, esMovil, otraPersona } from './soporte/inventario'
 import { exigir } from './soporte/leads'
 import { quieto } from './soporte/esperas'
 import { idDePersona, sesionDe, telefonoAlAzar } from './soporte/leads-alta'
@@ -61,13 +61,6 @@ async function fichaDeBerta(page: Page, corto: string, atributos?: Record<string
   return lead
 }
 
-async function abrirOtros(panel: Locator) {
-  const encabezado = bloque(panel, 'Otros datos')
-  if ((await encabezado.locator('xpath=..').getAttribute('open')) === null) {
-    await encabezado.click()
-  }
-}
-
 test('edita los fijos y un dato propio, y sólo viaja lo que cambió', async ({ page }, info) => {
   const corto = `Edita ${info.project.name}`
   const lead = await fichaDeBerta(page, corto, { e2e_color: 'rojo' })
@@ -85,7 +78,7 @@ test('edita los fijos y un dato propio, y sólo viaja lo que cambió', async ({ 
   const nuevoNombre = nombre(`${corto} editado`)
   await panel.getByLabel('Nombre').fill(nuevoNombre)
   await panel.getByLabel('Tipo').selectOption({ label: 'Cliente' })
-  await abrirOtros(panel)
+  await expect(seccion(panel, 'Otros datos')).toBeVisible()
   await panel.getByLabel('Color E2E').fill('verde')
 
   const peticion = alGuardarFicha(page)

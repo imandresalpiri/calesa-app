@@ -2,6 +2,7 @@ import { puede } from '@/shared/lib/permisos'
 import { ErrorDeLectura } from '../components/cifra-del-widget'
 import { BarrasPorDia } from '../graficas/barras-por-dia'
 import { TablaEquivalente } from '../graficas/tabla-equivalente'
+import { VerComoTabla } from '../graficas/ver-como-tabla'
 import { CREADOS_Y_CONVERTIDOS } from '../graficas/tipos'
 import { VacioDeGrafica } from '../graficas/vacio-de-grafica'
 import { leerMetricasDeLeads } from '../lectura'
@@ -21,17 +22,19 @@ export const CuerpoDeLeadsPorDia: CuerpoDeWidget = async ({ widget, ventana, per
   return (
     <div className="grid gap-3 p-4">
       <BarrasPorDia titulo={widget.titulo} dias={dias} series={CREADOS_Y_CONVERTIDOS} />
-      <TablaEquivalente
-        titulo={widget.titulo}
-        primera="Día"
-        columnas={[creados.nombre, convertidos.nombre]}
-        filas={dias.map((d) => ({
-          clave: d.dia,
-          etiqueta: formatearDiaYMes(d.dia),
-          a: d.a,
-          b: d.b,
-        }))}
-      />
+      <VerComoTabla clave={widget.clave} titulo={widget.titulo}>
+        <TablaEquivalente
+          titulo={widget.titulo}
+          primera="Día"
+          columnas={[creados.nombre, convertidos.nombre]}
+          filas={dias.map((d) => ({
+            clave: d.dia,
+            etiqueta: formatearDiaYMes(d.dia),
+            a: d.a,
+            b: d.b,
+          }))}
+        />
+      </VerComoTabla>
     </div>
   )
 }

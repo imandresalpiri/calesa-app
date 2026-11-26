@@ -62,7 +62,7 @@ export async function nombreDelLead(permisos: Permisos, id: string | undefined) 
   return { nombre: datosO(await leerNombresDeLeads([id])).get(id) ?? null }
 }
 
-// La cotización de `?cotizacion=` cuando no está en la página (recargar, un enlace compartido, «Siguiente» con el resumen abierto, una línea de un grupo desplegado):
+// La cotización de `?cotizacion=` cuando no está en la página (recargar, un enlace compartido, «Siguiente» con el resumen abierto, una línea del modal de un grupo):
 // la lee el servidor, con la RLS de quien mira y su «Vencida» de la función del listado (`leerUnaDelListado`), y sus nombres y su modo aparte. Si esa lectura falla, el listado
 // no cae: `error`, y el resumen ofrece «Reintentar».
 export async function leerLaDelResumen(

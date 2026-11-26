@@ -28,8 +28,8 @@ const MARGEN_DEL_SALTO = {
   lateral: 'scroll-mt-4',
 } as const
 
-// Un bloque de una ficha en bloques: su ancla, su título y su límite de error (uno roto no tumba a los demás). No es `<Bloque>` (el
-// plegable): un bloque de ficha siempre está a la vista.
+// Un bloque de una ficha en bloques: su ancla, su título y su límite de error (uno roto no tumba a los demás). No es `<Bloque>` (la
+// sección de un formulario o un panel): el de una ficha lleva ancla, índice y su `h2`.
 export function BloqueDeFicha({
   ancla,
   titulo,

@@ -1,4 +1,4 @@
-// Los huecos del panel de la unidad del área `mover` de `logistica` (6.01, llenada en 6.04): «Qué falta» (abierto al inicio), «Notas» e «Historial» (plegados). Sólo `src/app` importa este archivo (`.claude/rules/modulos.md`).
+// Los huecos del panel de la unidad del área `mover` de `logistica` (6.01, llenada en 6.04): «Qué falta» (montado al inicio), «Notas» e «Historial» (al acercarse). Sólo `src/app` importa este archivo (`.claude/rules/modulos.md`).
 import type { HuecoDeLaUnidad } from '../entities/nucleo/hueco'
 import {
   HuecoDeHistorialDiferido,

@@ -9,7 +9,7 @@ import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { useBusquedaDeRecordatorio } from '../hooks/use-busqueda-de-recordatorio'
 import { useModalDeRecordatorio } from '../hooks/use-modal-de-recordatorio'
 import type { Recordatorios } from '../hooks/use-recordatorios'
-import { CompletadosPlegados } from './completados-plegados'
+import { Completados } from './completados'
 import { ModalDeRecordatorioDiferido } from './diferidos'
 import { EsqueletoDeRecordatorios } from './esqueleto-de-recordatorios'
 import { ItemDeRecordatorio } from './item-de-recordatorio'
@@ -181,7 +181,7 @@ function ModalDelBloque({
 }
 
 // «Tus recordatorios» de este lead. En «Ver tus recordatorios» (`completa`): «Agendar» arriba, los pendientes —los vencidos primero,
-// marcados— por páginas y, plegados, los completados, que se leen al abrirse. En el bloque «Seguimiento» (`resumen`): sólo el más próximo.
+// marcados— por páginas y, a la vista, los completados, que se leen al acercarse (el título lo pone el drawer). En el bloque «Seguimiento» (`resumen`): sólo el más próximo.
 // Son personales: nadie más los ve. Agendar y editar abren un modal con su URL (`?panel=agendar-recordatorio`,
 // `?panel=editar-recordatorio&recordatorio=<id>`; en el bloque, agendar lo pide el «+» del título); uno de la URL que no está cargado se
 // lee por su id antes de decir que no está.
@@ -224,9 +224,6 @@ export function BloqueDeRecordatorios({
   }
   return (
     <section aria-label="Tus recordatorios" className="grid content-start gap-2">
-      <h2 className="text-(length:--text-sm) font-semibold text-(--color-ink)">
-        Tus recordatorios
-      </h2>
       {recordatorios.puedoAgendar ? (
         <Button
           ref={botonAgendar}
@@ -244,7 +241,7 @@ export function BloqueDeRecordatorios({
         recordatorios={recordatorios}
         alEditar={modal.abrirEdicion}
       />
-      <CompletadosPlegados
+      <Completados
         ahora={ahora}
         zona={zona}
         recordatorios={recordatorios}

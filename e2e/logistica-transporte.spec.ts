@@ -58,7 +58,7 @@ test('E2E cargar naviera, contenedor y fechas en el hueco y verlos guardados', a
   await expect(hueco.getByRole('button', { name: 'Guardar' })).toBeDisabled()
 
   await hueco.getByLabel('Naviera').selectOption({ label: terreno.naviera.nombre })
-  await hueco.getByLabel('Contenedor').fill('ecmu 123456')
+  await hueco.getByLabel('Contenedor', { exact: true }).fill('ecmu 123456')
   await hueco.getByLabel('Zarpe').fill('2026-12-01')
   await hueco.getByLabel('ETA').fill('2026-12-15')
   await hueco.getByRole('button', { name: 'Guardar' }).click()
@@ -75,7 +75,7 @@ test('E2E cargar naviera, contenedor y fechas en el hueco y verlos guardados', a
 
   // Al recargar, el hueco lo muestra.
   const recargado = await abrirElHueco(page, terreno.enFase.id)
-  await expect(recargado.getByLabel('Contenedor')).toHaveValue('ECMU123456')
+  await expect(recargado.getByLabel('Contenedor', { exact: true })).toHaveValue('ECMU123456')
   await expect(recargado.getByLabel('ETA')).toHaveValue('2026-12-15')
   await expect(recargado.getByLabel('Naviera')).toHaveValue(terreno.naviera.id)
 })
@@ -96,13 +96,13 @@ test('E2E si otra persona cargó el transporte, el aviso conserva lo escrito', a
   await expect(hueco.getByText('Esta unidad todavía no tiene transporte cargado.')).toBeVisible()
   // Otra persona lo carga después de abrirlo y antes de guardar.
   await crearTransporteDe(terreno.sinFase.id, 'cargado por otra persona')
-  await hueco.getByLabel('Notas').fill('mi nota')
+  await hueco.getByLabel('Notas', { exact: true }).fill('mi nota')
   await hueco.getByRole('button', { name: 'Guardar' }).click()
   await expect(hueco.getByText('No se guardó nada.', { exact: false })).toBeVisible()
   await hueco.getByRole('button', { name: 'Recargar', exact: true }).click()
   // La versión nueva llega y lo escrito sigue ahí; guardar de nuevo ya es posible.
   await expect(hueco.getByText('No se guardó nada.', { exact: false })).toHaveCount(0)
-  await expect(hueco.getByLabel('Notas')).toHaveValue('mi nota')
+  await expect(hueco.getByLabel('Notas', { exact: true })).toHaveValue('mi nota')
   await hueco.getByRole('button', { name: 'Guardar' }).click()
   await expect(page.getByText('Transporte guardado.')).toBeVisible()
   expect((await transporteDe(terreno.sinFase.id))?.notas).toBe('mi nota')
@@ -111,8 +111,8 @@ test('E2E si otra persona cargó el transporte, el aviso conserva lo escrito', a
 test('E2E quien sólo ve la logística lee el transporte sin poder editarlo', async ({ page }) => {
   await entrar(page, terreno.conLogistica, { fresco: true })
   const hueco = await abrirElHueco(page, terreno.enFase.id)
-  await expect(hueco.getByLabel('Contenedor')).toHaveValue('ECMU123456')
-  await expect(hueco.getByLabel('Contenedor')).toBeDisabled()
+  await expect(hueco.getByLabel('Contenedor', { exact: true })).toHaveValue('ECMU123456')
+  await expect(hueco.getByLabel('Contenedor', { exact: true })).toBeDisabled()
   await expect(
     hueco.getByText('No tienes permiso para editar el transporte de este origen.'),
   ).toBeVisible()
@@ -173,7 +173,7 @@ test('E2E «Editar grupo» cambia la ETA de las tres unidades de un contenedor',
   )
   await expect(panel.getByLabel('Zarpe')).toHaveValue('')
   await expect(panel.getByLabel('Naviera')).toHaveValue(terreno.naviera.id)
-  await expect(panel.getByLabel('Contenedor')).toHaveValue('ECMU123456')
+  await expect(panel.getByLabel('Contenedor', { exact: true })).toHaveValue('ECMU123456')
   await expect(panel.getByText('Se aplicará a las 3 unidades.')).toBeVisible()
   await panel.getByLabel('ETA').fill('2026-12-30')
   await panel.getByRole('button', { name: 'Guardar' }).click()

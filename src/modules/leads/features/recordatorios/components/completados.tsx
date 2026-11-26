@@ -1,7 +1,9 @@
 'use client'
 
-import { Button } from '@/shared/ui/button'
+import { useEffect, useEffectEvent, useId } from 'react'
 import { TOPE_DE_LO_CARGADO } from '@/shared/lib/paginacion'
+import { Button } from '@/shared/ui/button'
+import { useALaVista } from '@/shared/ui/use-a-la-vista'
 import type { Recordatorios } from '../hooks/use-recordatorios'
 import { EsqueletoDeRecordatorios } from './esqueleto-de-recordatorios'
 import { ListaDeRecordatorios } from './lista-de-recordatorios'
@@ -13,25 +15,26 @@ type Props = {
   alEditar: (id: string) => void
 }
 
-// «Completados», plegado y sin número (contarlos crecería con el total): no lee nada hasta abrirse, y
-// después se pagina como los pendientes. Sólo aparece si hay alguno.
-export function CompletadosPlegados({ ahora, zona, recordatorios, alEditar }: Props) {
+// «Completados», una sección a la vista y sin número (contarlos crecería con el total): no lee nada hasta acercarse a la vista
+// (`useALaVista`), y después se pagina como los pendientes. Sólo aparece si hay alguno.
+export function Completados({ ahora, zona, recordatorios, alEditar }: Props) {
   const { completados: estado, listas } = recordatorios
+  const id = useId()
+  const [observar, cerca] = useALaVista<HTMLElement>()
+  const leer = useEffectEvent(() => {
+    recordatorios.abrirCompletados()
+  })
+  useEffect(() => {
+    if (cerca) leer()
+  }, [cerca])
   if (!listas.hayCompletados) {
     return null
   }
   return (
-    <details
-      className="grid gap-2"
-      onToggle={(evento) => {
-        if (evento.currentTarget.open) {
-          recordatorios.abrirCompletados()
-        }
-      }}
-    >
-      <summary className="min-h-11 cursor-pointer text-(length:--text-sm) text-(--color-ink-soft) md:min-h-8">
+    <section ref={observar} aria-labelledby={id} className="grid min-w-0 gap-2 pt-2">
+      <h3 id={id} className="text-(length:--text-sm) font-semibold text-(--color-ink)">
         Completados
-      </summary>
+      </h3>
       {estado === 'error' ? (
         <div role="alert" className="flex flex-wrap items-center gap-2">
           <p className="text-(length:--text-sm) text-(--color-ink)">
@@ -65,6 +68,6 @@ export function CompletadosPlegados({ ahora, zona, recordatorios, alEditar }: Pr
           textoDelTope={`Mostrando los ${String(TOPE_DE_LO_CARGADO)} completados más recientes.`}
         />
       )}
-    </details>
+    </section>
   )
 }

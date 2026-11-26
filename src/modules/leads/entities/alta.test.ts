@@ -6,7 +6,6 @@ import {
   camposDelAlta,
   campoDelAlta,
   primerCampoConError,
-  resumenDePrecargados,
   textoDeLeadGuardado,
   valoresIniciales,
   validarAlta,
@@ -140,29 +139,6 @@ describe('valoresIniciales', () => {
     )
     expect(v[CLAVE_DEL_ALTA.origen]).toBe('')
     expect(v['atributos.ciudad']).toBe('')
-  })
-})
-
-describe('resumenDePrecargados', () => {
-  it('dice lo que ya viene cargado para no tener que abrir el bloque', () => {
-    const { masDatos } = camposDelAlta(LAYOUT)
-    const v = valoresIniciales(CONTEXTO, LAYOUT, ZONA, 'es-BO')
-    expect(resumenDePrecargados(masDatos, v)).toBe('Ciudad: Santa Cruz · País: Bolivia')
-  })
-
-  it('con más de tres, cuenta el resto; sin nada, queda vacío', () => {
-    const muchos = ['a', 'b', 'c', 'd', 'e'].map((clave) => campo({ clave, etiqueta: clave }))
-    const valores = Object.fromEntries(muchos.map((c) => [`atributos.${c.clave}`, 'x']))
-    expect(resumenDePrecargados(muchos, valores)).toBe('a: x · b: x · c: x · y 2 más')
-    expect(resumenDePrecargados(muchos, {})).toBe('')
-  })
-
-  it('una opción se lee por su etiqueta y un sí o no como «Sí»', () => {
-    const signo = LAYOUT[3] as CampoDeLead
-    const vip = campo({ clave: 'vip', etiqueta: 'VIP', tipo: 'booleano' })
-    expect(
-      resumenDePrecargados([signo, vip], { 'atributos.signo': 'leo', 'atributos.vip': true }),
-    ).toBe('Signo: Leo · VIP: Sí')
   })
 })
 

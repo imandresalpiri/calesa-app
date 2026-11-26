@@ -99,6 +99,11 @@ export const MODALES: Record<string, RegistroDeModal> = {
     sinFormulario:
       'la lista de los colores: «Nuevo color», «Editar» y «Eliminar» abren su propio modal (con su aviso de cambios); nada tipeado en éste',
   },
+  'src/modules/cotizaciones/features/historial/components/modal-del-historial.tsx': {
+    sinFormulario:
+      'el historial de cotizaciones del vehículo elegido, de sólo lectura: cada fila es un enlace a su cotización y «Ver más» agrega',
+    tambien: ['src/modules/cotizaciones/features/historial/components/lista-del-historial.tsx'],
+  },
   'src/modules/cotizaciones/features/listado/components/grupo/modal-del-grupo.tsx': {
     sinFormulario:
       'lista las cotizaciones de un vehículo, de sólo lectura; las casillas de «Comparar» no se guardan y elegir una línea abre su resumen',
@@ -131,5 +136,9 @@ export const MODALES: Record<string, RegistroDeModal> = {
     sinFormulario:
       'busca y elige a una persona: el texto de búsqueda no se guarda y elegir actúa al instante',
     tambien: ['src/modules/chat/features/conversaciones/components/buscador-de-personas.tsx'],
+  },
+  // --- tablero
+  'src/modules/tablero/features/metricas/graficas/modal-de-la-tabla.tsx': {
+    sinFormulario: 'sólo muestra en una tabla los números de una gráfica del tablero; nada tipeado',
   },
 }

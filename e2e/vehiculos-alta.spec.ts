@@ -3,7 +3,7 @@ import { sql } from './soporte/sql'
 import {
   TAIWAN,
   aLaVista,
-  bloque,
+  seccion,
   descartarAviso,
   editarDesdeLaLista,
   entrar,
@@ -73,8 +73,8 @@ test('dar de alta un vehículo en Corea, con los valores por defecto y los atajo
   await panel.getByLabel('Marca').fill('Kia')
   await panel.getByLabel('Año').fill('2022')
   await panel.getByLabel('VIN').fill('kndeu2aa5n7123456')
-  // Los grupos del layout son bloques plegables, con los nombres que les puso el origen.
-  await bloque(panel, 'Vehículo').click()
+  // Los grupos del layout son secciones a la vista, con los nombres que les puso el origen.
+  await expect(seccion(panel, 'Vehículo')).toBeVisible()
   await panel.getByLabel('Color').fill('Verde')
   await panel.getByLabel('Transmisión').selectOption({ label: 'Automática' })
   // «Puertas» trae puesto el valor por defecto del layout.
@@ -132,8 +132,7 @@ test('el precio se lee con el locale de la empresa: «21.5» avisa y «21.500» 
   await page.goto(`/vehiculos?origen=${corea.id}&panel=nuevo`)
   const panel = page.getByRole('dialog', { name: 'Nuevo vehículo' })
   await panel.getByLabel('Título (obligatorio)').fill(nombre)
-  const precio = panel.getByLabel('Precio', { exact: true })
-  if (!(await precio.isVisible())) await bloque(panel, 'Precio').click()
+  const precio = panel.getByRole('textbox', { name: 'Precio', exact: true })
   await precio.fill('21.5')
   await panel.getByRole('button', { name: 'Guardar', exact: true }).click()
   await expect(panel.getByText('Usa coma para los decimales: 21,5.')).toBeVisible()

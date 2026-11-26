@@ -19,7 +19,6 @@ export function BloqueEnElFlujo({
   errores,
   escribir,
   deshabilitado,
-  conError,
   contexto,
   fase,
   fases,
@@ -27,7 +26,7 @@ export function BloqueEnElFlujo({
   const otraInicial = valores.esInicial ? otraFaseInicial(fases, fase.id) : null
   const comun = { deshabilitado }
   return (
-    <Bloque titulo="En el flujo" plegado forzarAbierto={conError}>
+    <Bloque titulo="En el flujo">
       <InterruptorConMotivo
         {...comun}
         campo="es_inicial"

@@ -9,6 +9,7 @@ import type { EstadoDelTurno } from '../../../entities/metricas'
 import { CifraDelWidget, ErrorDeLectura } from '../components/cifra-del-widget'
 import { Ranking } from '../graficas/ranking'
 import { TablaEquivalente } from '../graficas/tabla-equivalente'
+import { VerComoTabla } from '../graficas/ver-como-tabla'
 import { ASIGNADOS_Y_CONTACTADOS } from '../graficas/tipos'
 import { VacioDeGrafica } from '../graficas/vacio-de-grafica'
 import { leerColaWeb } from '../lectura'
@@ -18,7 +19,7 @@ const ESTADOS = Object.keys(NOMBRES_DE_ESTADO_DEL_TURNO) as EstadoDelTurno[]
 
 // Los turnos web del período (por cuándo se asignaron): cuántos, la tasa de contacto y la mediana hasta «Contacté» sin los
 // directos, la cuenta por estado y el ranking por persona. Sin token, UTM, lead ni WhatsApp.
-export const CuerpoDeColaWeb: CuerpoDeWidget = async ({ ventana }) => {
+export const CuerpoDeColaWeb: CuerpoDeWidget = async ({ widget, ventana }) => {
   const lectura = await leerColaWeb(ventana.desde, ventana.hasta)
   if (!lectura.ok) {
     return <ErrorDeLectura error={lectura.error} />
@@ -63,12 +64,14 @@ export const CuerpoDeColaWeb: CuerpoDeWidget = async ({ ventana }) => {
         <div className="grid gap-3 px-4 pb-4">
           <Ranking titulo="Turnos por persona" filas={filas} series={ASIGNADOS_Y_CONTACTADOS} />
           {nota ? <p className="text-(length:--text-sm) text-(--color-ink-soft)">{nota}</p> : null}
-          <TablaEquivalente
-            titulo="Turnos por persona"
-            primera="Persona"
-            columnas={[asignados.nombre, contactados.nombre]}
-            filas={filas.map((f) => ({ clave: f.id, etiqueta: f.nombre, a: f.a, b: f.b }))}
-          />
+          <VerComoTabla clave={widget.clave} titulo="Turnos por persona">
+            <TablaEquivalente
+              titulo="Turnos por persona"
+              primera="Persona"
+              columnas={[asignados.nombre, contactados.nombre]}
+              filas={filas.map((f) => ({ clave: f.id, etiqueta: f.nombre, a: f.a, b: f.b }))}
+            />
+          </VerComoTabla>
         </div>
       ) : null}
     </div>

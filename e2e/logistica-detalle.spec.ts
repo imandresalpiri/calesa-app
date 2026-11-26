@@ -196,7 +196,7 @@ test('E2E celular · la barra «Mover» siempre a mano lleva a «Qué falta»', 
   await expect(barra).toBeInViewport()
   await capturar(page, info, 'celular-barra-de-mover')
   await barra.click()
-  const resumen = page.locator('[data-bloque-del-hueco="que-falta"] summary')
+  const resumen = page.locator('[data-bloque-del-hueco="que-falta"] h3').first()
   await expect(resumen).toBeInViewport()
   await expect(resumen).toBeFocused()
 })

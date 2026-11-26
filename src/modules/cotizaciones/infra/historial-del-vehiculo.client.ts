@@ -1,5 +1,5 @@
 // El historial de cotizaciones de un vehículo desde el navegador, con la sesión de quien mira: la RLS de `cotizaciones` decide cuáles llegan (un «propios» ve las suyas
-// y las de su cartera). Va por el navegador porque el historial se lee al desplegarlo (o al abrir la pestaña o la sección) y cada «Ver más» pide su página sin ir al servidor.
+// y las de su cartera). Va por el navegador porque el historial se lee al abrir su modal (o la sección) y cada «Ver más» pide su página sin ir al servidor.
 // Una página de `TAMANO_DE_VER_MAS` y una fila de más para saber si hay otra. La sostiene
 // `cotizaciones_vehiculo_creado_idx (vehiculo_id, creado_en desc, id desc)`; el borde del cursor sobre
 // `creado_en` va como condición propia para que entre al índice (`aplicarCursor()`).

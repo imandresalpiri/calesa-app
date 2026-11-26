@@ -8,7 +8,7 @@ import {
   darRolDePrueba,
   PREFIJO_ROL_E2E,
 } from './soporte/base'
-import { elegirDelMenu, filaDelCampo } from './soporte/editor-de-campos'
+import { abrirElCampo, elegirDelMenu, filaDelCampo } from './soporte/editor-de-campos'
 import { descartarAviso } from './soporte/inventario'
 import { borrarCamposDeLeadDePrueba, campoDeLead, camposDeLead, crearLead } from './soporte/leads'
 import { ingresar } from './soporte/pasos'
@@ -147,7 +147,7 @@ test('se crea un campo de opciones, se ordena, se vuelve privado y se desactiva'
   await expect.poll(async () => (await delGrupo()).indexOf(CLAVE_DEL_CAMPO)).toBe(lugarAntes - 1)
 
   // Marcarlo «solo la cartera» se hace en su panel, como cualquier bandera; la fila lo dice.
-  await page.getByRole('button', { name: `Editar ${ETIQUETA}` }).click()
+  await abrirElCampo(page, ETIQUETA)
   const deLaCartera = page.getByRole('dialog')
   await deLaCartera.getByRole('switch', { name: 'Solo la cartera' }).click()
   await deLaCartera.getByRole('button', { name: 'Guardar' }).click()
@@ -156,7 +156,7 @@ test('se crea un campo de opciones, se ordena, se vuelve privado y se desactiva'
   await expect.poll(async () => (await campoDeLead(CLAVE_DEL_CAMPO)).solo_cartera).toBe(true)
 
   // Volverlo requerido avisa, dentro del panel, cuánto pedirá el alta rápida.
-  await page.getByRole('button', { name: `Editar ${ETIQUETA}` }).click()
+  await abrirElCampo(page, ETIQUETA)
   const edicion = page.getByRole('dialog')
   await edicion.getByRole('switch', { name: 'Requerido' }).click()
   await edicion.getByRole('button', { name: 'Guardar' }).click()
@@ -169,7 +169,7 @@ test('se crea un campo de opciones, se ordena, se vuelve privado y se desactiva'
   // Desactivarlo desde su «⋯» lo saca del layout (el dato se conserva) y «Activar» lo devuelve.
   await elegirDelMenu(page, ETIQUETA, 'Desactivar')
   await descartarAviso(page, `«${ETIQUETA}» desactivado`)
-  await page.getByText('Desactivados', { exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Desactivados', level: 3 })).toBeVisible()
   await elegirDelMenu(page, ETIQUETA, 'Activar')
   await expect(page.getByText(`«${ETIQUETA}» activado`)).toBeVisible()
   await expect.poll(async () => (await campoDeLead(CLAVE_DEL_CAMPO)).activo).toBe(true)
@@ -188,7 +188,7 @@ test('un campo con datos no cambia de tipo ni se elimina: se desactiva', async (
   })
   await entrar(page, duena)
   await page.goto('/configuracion/leads/campos')
-  await page.getByRole('button', { name: `Editar ${ETIQUETA}` }).click()
+  await abrirElCampo(page, ETIQUETA)
   const panel = page.getByRole('dialog')
 
   // Cambiar el tipo: la base lo rechazaría, y la pantalla lo cuenta antes con números.
@@ -200,7 +200,7 @@ test('un campo con datos no cambia de tipo ni se elimina: se desactiva', async (
   await panel.getByRole('button', { name: 'Cancelar' }).click()
 
   // Eliminar: dice cuántos lo usan y manda a desactivar.
-  await page.getByRole('button', { name: `Editar ${ETIQUETA}` }).click()
+  await abrirElCampo(page, ETIQUETA)
   const eliminar = page.getByRole('dialog')
   await eliminar.getByRole('button', { name: 'Eliminar campo' }).click()
   await expect(eliminar.getByText(/1 lead tiene un valor en «E2E Signo zodiacal»/)).toBeVisible()
@@ -242,7 +242,7 @@ test('dos personas editando el mismo campo: la segunda ve el conflicto', async (
 }) => {
   await entrar(page, duena)
   await page.goto('/configuracion/leads/campos')
-  await page.getByRole('button', { name: `Editar ${ETIQUETA}` }).click()
+  await abrirElCampo(page, ETIQUETA)
   const primera = page.getByRole('dialog')
   await primera.getByLabel('Nombre', { exact: true }).fill('E2E Signo')
 
@@ -252,7 +252,7 @@ test('dos personas editando el mismo campo: la segunda ve el conflicto', async (
   await ingresar(segunda, duena, CLAVE)
   await expect(segunda).toHaveURL('/')
   await segunda.goto('/configuracion/leads/campos')
-  await segunda.getByRole('button', { name: `Editar ${ETIQUETA}` }).click()
+  await abrirElCampo(segunda, ETIQUETA)
   const edicion = segunda.getByRole('dialog')
   await edicion.getByLabel('Nombre', { exact: true }).fill('E2E Signo del zodiaco')
   await edicion.getByRole('button', { name: 'Guardar' }).click()

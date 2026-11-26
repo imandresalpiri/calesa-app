@@ -68,7 +68,7 @@ async function crearFase(page: Page, nombre: string, tipo: 'Intermedia' | 'Inici
   return modal
 }
 
-// El inspector de una fase: un clic en su nombre; el bloque plegado se abre con su título.
+// El inspector de una fase: un clic en su nombre.
 async function abrirInspector(page: Page, nombre: string) {
   await nombresEnPantalla(page).filter({ hasText: nombre }).click()
   const inspector = page.getByRole('dialog')

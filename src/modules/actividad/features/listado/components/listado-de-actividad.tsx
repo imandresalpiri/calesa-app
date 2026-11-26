@@ -2,13 +2,14 @@
 
 import { cn } from 'cn'
 import { useRegional } from '@/shared/ui/regional'
+import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import type { PaginaDeActividad } from '../../../entities/actividad'
 import type { OpcionDeActividad, PedidoDeActividad } from '../../../entities/filtros'
 import { useCambioAbierto } from '../../diff/hooks/use-cambio-abierto'
 import { useActividad } from '../hooks/use-actividad'
 import { useFiltrosDeActividad } from '../hooks/use-filtros-de-actividad'
 import { BarraDeFiltros } from './barra-de-filtros'
-import { CambioQueAbriste } from './cambio-que-abriste'
+import { DrawerDelCambioDiferido } from './diferidos'
 import { ResultadoDeActividad } from './resultado-de-actividad'
 
 type Props = {
@@ -20,15 +21,15 @@ type Props = {
   diasDeActividad: number
 }
 
-// `/actividad`: los filtros como chips arriba y la actividad por día, cada cambio como frase que despliega su detalle en la misma fila
+// `/actividad`: los filtros como chips arriba y la actividad por día, cada cambio como frase con «Ver detalle», que abre su drawer
 // (`?cambio=`). La página le pone una `key` por filtros: otros filtros empiezan de cero. Un `?cambio=` que no está en lo cargado (o que quien
-// mira no ve) se muestra arriba como «El cambio que abriste».
+// mira no ve) abre el mismo drawer.
 export function ListadoDeActividad({ inicial, pedido, personas, entidades, ...resto }: Props) {
   const { zonaHoraria } = useRegional()
   const filtros = useFiltrosDeActividad()
   const cambio = useCambioAbierto()
   const actividad = useActividad({ inicial, pedido, zona: zonaHoraria })
-  const enLaLista = actividad.filas.some((f) => f.id === cambio.id && f.visible)
+  const montarDetalle = useAbiertoAlgunaVez(cambio.abierto)
   const registroTitulo =
     pedido.registro === null
       ? null
@@ -45,9 +46,6 @@ export function ListadoDeActividad({ inicial, pedido, personas, entidades, ...re
         actividad={actividad}
         zona={zonaHoraria}
       />
-      {cambio.abierto && !enLaLista ? (
-        <CambioQueAbriste key={cambio.texto} cambio={cambio} />
-      ) : null}
       <div
         aria-busy={filtros.pendiente}
         className={cn(
@@ -62,9 +60,16 @@ export function ListadoDeActividad({ inicial, pedido, personas, entidades, ...re
           hayFiltros={hayFiltros}
           limpiar={filtros.limpiar}
           idAbierto={cambio.id}
-          alternar={cambio.alternar}
+          abrir={cambio.abrir}
         />
       </div>
+      {montarDetalle ? (
+        <DrawerDelCambioDiferido
+          abierto={cambio.abierto}
+          alCerrar={cambio.cerrar}
+          texto={cambio.texto}
+        />
+      ) : null}
     </div>
   )
 }

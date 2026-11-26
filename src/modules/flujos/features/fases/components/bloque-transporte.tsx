@@ -11,11 +11,10 @@ export function BloqueTransporte({
   errores,
   escribir,
   deshabilitado,
-  conError,
   contexto,
 }: PropsDeBloque) {
   return (
-    <Bloque titulo="Transporte y aduana" plegado forzarAbierto={conError}>
+    <Bloque titulo="Transporte y aduana">
       <InterruptorConMotivo
         deshabilitado={deshabilitado}
         campo="permite_contenedor"

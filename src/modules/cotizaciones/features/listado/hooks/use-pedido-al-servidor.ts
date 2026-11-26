@@ -8,7 +8,7 @@ import { CLAVE_DE_RESUMEN_DE_COTIZACION } from '../../../entities/listado/resume
 // de ahora. Con `necesita` se hace **una vez por id** (`yaPedido`: se pidió, terminó y sigue sin llegar) y otra por cada «Reintentar» (`pedir()`). `pendiente` dice que el
 // pedido está en camino: mientras tanto el resumen espera, no dice «error». Cuesta lo que una carga del listado (`docs/RENDIMIENTO.md`).
 // Se pide por nuqs (la misma clave con `shallow: false`), no con `router.refresh()`: nuqs escribe la URL un tick después de abrir el resumen, y un refresco pedido antes
-// iría sin `?cotizacion=` (abrir una línea de un grupo desplegado diría «error»). Así sale en la misma escritura, con la URL ya puesta; el pedido cuenta desde que sale.
+// iría sin `?cotizacion=` (abrir una línea del modal de un grupo diría «error»). Así sale en la misma escritura, con la URL ya puesta; el pedido cuenta desde que sale.
 export function usePedidoAlServidor(id: string | null, necesita: boolean) {
   const [pendiente, empezar] = useTransition()
   const [, escribir] = useQueryState(CLAVE_DE_RESUMEN_DE_COTIZACION, parseAsString)

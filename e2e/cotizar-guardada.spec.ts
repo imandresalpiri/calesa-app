@@ -104,7 +104,8 @@ test('E2E desde el historial del vehículo, la fila lleva a la página de la cot
   await page.getByRole('button', { name: /^Vehículo:/ }).click()
   const panel = page.getByRole('dialog', { name: 'Vehículo' })
   await panel.getByRole('button', { name: /^Historial de cotizaciones/ }).click()
-  const fila = panel
+  const fila = page
+    .getByRole('dialog', { name: 'Historial de cotizaciones' })
     .getByRole('list', { name: 'Historial de cotizaciones' })
     .getByRole('link')
     .first()

@@ -66,7 +66,6 @@ export function ModalDeDatosDelLead({
       <DatosPorGrupo
         campos={campos}
         atributos={ficha.atributos}
-        plegable={false}
         valorDe={(campo) =>
           datoDelCampo(campo, ficha.atributos, ficha.enCartera).tipo === 'privado' ? (
             <SoloLaCartera />

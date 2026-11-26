@@ -20,10 +20,10 @@ function Caja({ valor = '', error }: { valor?: string; error?: string }) {
 afterEach(cleanup)
 
 describe('ProximoContacto', () => {
-  it('nace plegado: sólo el botón que lo programa, sin fecha ni atajos', () => {
+  it('nace sin sumar: sólo el botón que lo programa (sin `aria-expanded`), sin fecha ni atajos', () => {
     render(<Caja />)
     const boton = screen.getByRole('button', { name: 'Programar próximo contacto' })
-    expect(boton).toHaveAttribute('aria-expanded', 'false')
+    expect(boton).not.toHaveAttribute('aria-expanded')
     expect(screen.queryByLabelText('Fecha y hora')).toBeNull()
     expect(screen.queryByRole('button', { name: /^Mañana/ })).toBeNull()
   })
@@ -39,21 +39,15 @@ describe('ProximoContacto', () => {
     expect(screen.getByRole('button', { name: /^Mañana/ })).toHaveFocus()
   })
 
-  it('«Quitar» vacía la fecha, lo pliega y devuelve el foco al botón', () => {
+  it('«Quitar» vacía la fecha y deja el campo con el foco', () => {
     render(<Caja />)
     fireEvent.click(screen.getByRole('button', { name: 'Programar próximo contacto' }))
     fireEvent.click(screen.getByRole('button', { name: /^Mañana/ }))
     expect(screen.getByLabelText('Fecha y hora')).not.toHaveValue('')
     fireEvent.click(screen.getByRole('button', { name: 'Quitar' }))
-    expect(screen.queryByLabelText('Fecha y hora')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Programar próximo contacto' })).toHaveFocus()
-  })
-
-  it('«Quitar» también pliega uno abierto y vacío', () => {
-    render(<Caja />)
-    fireEvent.click(screen.getByRole('button', { name: 'Programar próximo contacto' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Quitar' }))
-    expect(screen.getByRole('button', { name: 'Programar próximo contacto' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Fecha y hora')).toHaveValue('')
+    expect(screen.getByLabelText('Fecha y hora')).toHaveFocus()
+    expect(screen.queryByRole('button', { name: 'Programar próximo contacto' })).toBeNull()
   })
 
   it('con una fecha (un borrador) o un motivo nace abierto', () => {

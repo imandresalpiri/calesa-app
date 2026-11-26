@@ -25,13 +25,13 @@ type Props = {
   alPoner: (cambios: CambioDeAspectoDeItem) => void
 }
 
-// El aspecto de un ítem, plegado: su alto, su letra y su énfasis; los que no son celda, también su ancho (la celda lo tiene a la vista).
+// El aspecto de un ítem, a la vista: su alto, su letra y su énfasis; los que no son celda, también su ancho (la celda lo tiene a la vista).
 export function CamposDelAspectoDelItem({ base, item, ocupado, error, alPoner }: Props) {
   const columnas =
     item.tipo === 'celda' ? columnasDeLaCelda(item.ancho) : (item.ancho ?? COLUMNAS_DE_LA_REJILLA)
   const sinAlto = !altoSirve(columnas)
   return (
-    <Bloque titulo="Aspecto" plegado forzarAbierto={error !== null} className="mt-2">
+    <Bloque titulo="Aspecto" className="mt-2">
       <div className="grid min-w-0 gap-2 @md:grid-cols-2">
         {item.tipo === 'celda' ? null : (
           <SelectorDeColumnas

@@ -6,20 +6,17 @@ import { CampoDeFormulario } from './campo-de-formulario'
 
 type Props = {
   titulo: string
-  // Una línea bajo el título: lo que el bloque ya trae cargado, para no tener que abrirlo.
   descripcion?: string
   campos: readonly Campo[]
   valores: Readonly<Record<string, ValorDeFormulario>>
   errores: Readonly<Record<string, string | undefined>>
   alCambiar: (clave: string, valor: ValorDeFormulario) => void
   deshabilitado: boolean
-  plegado: boolean
   // El primer campo del formulario recibe el foco al abrir.
   enfocarPrimero?: boolean
 }
 
-// Un bloque plegable de campos: se abre solo cuando alguno tiene un error (y no se cierra mientras
-// lo tenga), y un texto largo ocupa las dos columnas.
+// Un bloque de campos a la vista, con su título: un texto largo ocupa las dos columnas.
 export function BloqueDeCampos({
   titulo,
   descripcion,
@@ -28,20 +25,13 @@ export function BloqueDeCampos({
   errores,
   alCambiar,
   deshabilitado,
-  plegado,
   enfocarPrimero,
 }: Props) {
   if (campos.length === 0) {
     return null
   }
-  const conError = campos.some((campo) => errores[campo.clave] !== undefined)
   return (
-    <Bloque
-      titulo={titulo}
-      {...(descripcion ? { descripcion } : {})}
-      plegado={plegado}
-      forzarAbierto={conError}
-    >
+    <Bloque titulo={titulo} {...(descripcion ? { descripcion } : {})}>
       <div className="grid gap-3 sm:grid-cols-2">
         {campos.map((campo, indice) => (
           <div

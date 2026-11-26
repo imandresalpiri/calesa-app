@@ -30,6 +30,8 @@ Abierto: **7-4** (`tarea_crear` y `agenda_quienes_reciben` con el canal global; 
   de `composicion.client.ts`: supabase-js viaja sólo con el código diferido).
 - `features/paneles/` — todo por URL (`?evento=`, `?tarea=`, `&editar=1`, `?eliminar=`, `?panel=nuevo-evento|nueva-tarea`, `?recordatorio=`),
   diferido. `?de=todos` sólo con `agenda.ver_todo`: sin él se ignora y «Qué agenda ver» no existe. «Vista y opciones» lleva «Qué agenda ver» y «Qué ver».
+  Nada se pliega: el formulario del evento (`campos-de-evento.tsx`) lleva «Lugar» y «Descripción» como dos campos más, «Ir a una fecha» va en
+  línea en la barra (`ir-a-una-fecha-de-la-agenda.tsx`) y «Cambiar de responsable» es una sección a la vista del panel de la tarea (`reasignar-tarea.tsx`).
 
 ## Tablas
 

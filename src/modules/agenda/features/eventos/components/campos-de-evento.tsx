@@ -6,9 +6,9 @@ import { TOPE_DE_DESTINATARIOS } from '../../../entities/visibilidad'
 import { leerPersonasParaEvento } from '../../../composicion.client'
 import { SelectorDePersonas } from '../../personas/components/selector-de-personas'
 import type { useFormularioDeEvento } from '../hooks/use-formulario-de-evento'
-import { BloquesDeEvento } from './bloques-de-evento'
 import { CampoDeLead } from './campo-de-lead'
 import { CampoDeVisibilidad } from './campo-de-visibilidad'
+import { LugarYDescripcion } from './lugar-y-descripcion'
 
 type Props = {
   formulario: ReturnType<typeof useFormularioDeEvento>
@@ -17,7 +17,7 @@ type Props = {
   puedeVincularLead: boolean
 }
 
-// Los campos de un evento: lo principal a la vista (título, cuándo, quién lo ve) y, plegados salvo que traigan algo, el lugar y la descripción.
+// Los campos de un evento, todos a la vista y en un solo nivel: título, cuándo, el lead, quién lo ve y, al final, el lugar y la descripción.
 export function CamposDeEvento({ formulario: f, puedePublicar, puedeVincularLead }: Props) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
@@ -84,7 +84,7 @@ export function CamposDeEvento({ formulario: f, puedePublicar, puedeVincularLead
           error={f.errores.destinatarios}
         />
       ) : null}
-      <BloquesDeEvento formulario={f} />
+      <LugarYDescripcion formulario={f} />
     </div>
   )
 }

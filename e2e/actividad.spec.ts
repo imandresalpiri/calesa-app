@@ -63,14 +63,14 @@ test('la dueña ve el cambio del nombre en la actividad del lead y abre su diff'
   await expect(fila).toContainText(`Dalia Alta cambió Nombre de ${despues}: ${antes} → ${despues}`)
   await fila.getByRole('button', { name: 'Ver detalle' }).click()
   await expect(page).toHaveURL(/[?&]cambio=\d+/)
-  const diff = fila.getByRole('region', { name: 'Detalle del cambio' })
+  const diff = page.getByRole('dialog', { name: 'Detalle del cambio' })
   await expect(diff).toBeVisible()
   await expect(diff.getByRole('term')).toHaveText(['Nombre'])
   const valores = diff.getByRole('definition')
   await expect(valores).toContainText(`Antes${antes}`)
   await expect(valores).toContainText(`Después${despues}`)
 
-  await fila.getByRole('button', { name: 'Ocultar detalle' }).click()
+  await page.keyboard.press('Escape')
   await expect(diff).toBeHidden()
 })
 

@@ -1,4 +1,4 @@
-// El ayudante de los e2e de la unidad de logística: abre la sección de un hueco sea cual sea la forma de la página. En escritorio la unidad va en zonas (pestañas); en el celular, en bloques plegables.
+// El ayudante de los e2e de la unidad de logística: abre la sección de un hueco sea cual sea la forma de la página. En escritorio la unidad va en zonas (pestañas); en el celular, en secciones a la vista.
 // No mide nada: lo puede usar un spec sin celular.
 import { expect, type Locator, type Page } from '@playwright/test'
 
@@ -10,7 +10,7 @@ const PESTANA_DEL_HUECO: Readonly<Record<string, string>> = {
 }
 
 /**
- * Abre la sección de ese hueco: si la página tiene la pestaña, la toca; si no, abre el bloque (`<summary>`) cuando está cerrado (una sección a la vista ya lo está). Devuelve el contenido del hueco (`[data-hueco=<clave>]`).
+ * Abre la sección de ese hueco: si la página tiene la pestaña, la toca; si no, lleva su sección a la vista (su contenido se monta al acercarse). Devuelve el contenido del hueco (`[data-hueco=<clave>]`).
  * Espera a que el hueco exista (con permiso y regla) antes de decidir la forma.
  */
 export async function abrirSeccionDeLaUnidad(page: Page, clave: string): Promise<Locator> {
@@ -27,14 +27,8 @@ export async function abrirSeccionDeLaUnidad(page: Page, clave: string): Promise
       await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: 1000 })
     }).toPass()
   } else {
-    // El panel de un ítem va con sus secciones a la vista: sin `<details>` no hay nada que abrir.
-    const bloque = envoltorio.locator('details')
-    if (
-      (await bloque.count()) > 0 &&
-      !(await bloque.evaluate((detalles: HTMLDetailsElement) => detalles.open))
-    ) {
-      await bloque.locator('summary').click()
-    }
+    // Secciones a la vista: el hueco se monta al acercarse.
+    await envoltorio.scrollIntoViewIfNeeded()
   }
   return page.locator(`[data-hueco="${clave}"]`)
 }
