@@ -39,7 +39,7 @@ export function PanelComoSeEscribe({ planilla }: { planilla: Planilla }) {
               Una fórmula usa sólo filas de arriba. Al mover filas, las referencias se reescriben
               solas.
             </li>
-            <li>Los argumentos de una función se separan con punto y coma.</li>
+            <li>Los valores de una función se separan con punto y coma.</li>
           </ul>
         </section>
         <section aria-labelledby="como-se-escribe-funciones">
