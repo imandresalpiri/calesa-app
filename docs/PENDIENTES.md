@@ -249,7 +249,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-20]** Ancho contra altura del aviso de escritorio: a 22 rem, al 200 % tapa texto de la última fila de una lista — decidir (ancho, angosto o que se aparte) y afirmarlo en `e2e/avisos-con-descripcion.spec.ts` (`--ancho-del-aviso`; `avisosAbajo()` cambia con el ancho).
 - **[R7]** Blancos táctiles bajo 44 px en componentes de toda pantalla (`Tabs`, `Switch`, `Checkbox`, `Popover` de Roles, «Nuevo lead» del marco, «Saltar al contenido», «Abrir» de las listas, el botón de 32 px): 121 en `BLANCOS_CONOCIDOS` — rediseño; se cierra vaciando la lista.
 - **[R7]** R7 sólo es dura en `RUTAS_DE_LAS_FASES_5_A_9` (`e2e/soporte/accesibilidad-conocidos.ts`); fuera quedan 5 blancos (`/`, `/leads` ×2, `/leads/[id]` → `tel:`, las partes de `/configuracion/origenes/[id]/…`) — se cierra ampliándola a toda la app.
-- **[4-50]** El resumen fijo de la hoja no cabe entero al 200 % con la página arriba (con la barra del cliente a la vista).
 - **[—]** La barra del vehículo de la hoja desborda la página al 200 % en el celular cuando dice «Obligatorio»: la insignia es `shrink-0` junto a «Selecciona
   un vehículo» (`vehiculos/…/contenido-de-la-barra.tsx`) — que la insignia baje de línea (`flex-wrap`) y afirmarlo con `sinScrollHorizontal()` en `cotizar-panel-del-vehiculo`.
 - **[4-47]** La ayuda de una tabla corta en 1.000 filas sin enlace al editor, y una tabla congelada sin copia viva sale con claves en vez de etiquetas — falta el enlace y congelar `columnas` (espera a la baja de tablas).

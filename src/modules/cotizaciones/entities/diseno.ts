@@ -184,7 +184,7 @@ const esquemaSubtotal = z.strictObject({
 })
 // La tarjeta del total como pieza (docs/GLOSARIO.md › «Tarjeta del total»): dice dónde se dibuja y su aspecto. No lleva `nodo`: el nodo del total y
 // sus secundarios siguen en `tarjeta_total` (una sola fuente). A lo sumo una por diseño, en una sección principal y sin nivel (las reglas
-// `total_repetido`, `total_en_avanzado` y `total_con_nivel`). Sin la pieza, el total se dibuja en el resumen fijo, como siempre.
+// `total_repetido`, `total_en_avanzado` y `total_con_nivel`). Sin la pieza, el total se dibuja solo arriba de «Avanzado».
 const esquemaTotal = z.strictObject({
   tipo: z.literal('total'),
   ...anchoDeItem,
@@ -218,7 +218,7 @@ const esquemaSeccion = z.strictObject({
 })
 
 // Lo que muestra la tarjeta del total: su nodo y sus secundarios. Dónde se dibuja lo dice la pieza `{ tipo: 'total' }` de una sección; sin ella, va
-// en el resumen fijo.
+// sola arriba de «Avanzado».
 const esquemaTarjeta = z.strictObject({ nodo: esquemaId, secundarios: z.array(esquemaId) })
 
 // El orden de las claves es el que Zod recorre para dar su primer error: cabecera, secciones, tarjeta (`validar_diseno()` lo copia).

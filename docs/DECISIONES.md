@@ -1200,7 +1200,7 @@ las trampas, en `docs/LECCIONES.md`.
   `cotizaciones.privadas.ver` con las mismas RPC de Roles, en «Todos los orígenes» o en el origen de `?origen=` (no una grilla rol × origen completa: no cabe
   en el celular y la matriz ya es esa grilla). Suma «No ve» como cuarto escalón; «Sólo las suyas» es «lo propio», que incluye las de sus clientes, y la
   leyenda lo dice.
-- **El interruptor y la línea del «⋯» viajan con la hoja.** Son un `<Switch>`, una línea y una insignia: diferirlos haría parpadear el pie del resumen y el menú.
+- **El interruptor y la línea del «⋯» viajan con la hoja.** Son un `<Switch>`, una línea y una insignia: diferirlos haría parpadear la fila de los pasos de la hoja y el menú.
   Entran en los topes de `/cotizaciones/nuevo`, `/cotizaciones/[id]` y `/vehiculos/[id]` (`docs/RENDIMIENTO.md`).
 
 ### Papelera

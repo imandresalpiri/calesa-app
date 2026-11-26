@@ -170,7 +170,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 ## Interfaz
 
 - Con el texto al 200 % los media queries siguen en px: escribe una columna lateral como `minmax(0, 24rem)`, no rem fijos, y en una rejilla de 12 pistas que colapsa usa `gap-x-0 @lg:gap-x-3` (las pistas van a 0 y los 11 huecos fijos desbordan).
-- En el celular, la fila de `<Flotantes>` del marco («Copiar el enlace» y la burbuja del chat) flota a 80–124 px del borde inferior y a 16–112 px del derecho: un control alineado a la derecha en algo pegado abajo (el resumen de la hoja) queda debajo sin que ningún desplazamiento lo libere; dale `max-md:pr-[96px]` a su fila, y si la fila suma un botón, súmale su ancho.
+- En el celular, la fila de `<Flotantes>` del marco («Copiar el enlace» y la burbuja del chat) flota a 80–124 px del borde inferior y a 16–112 px del derecho: un control alineado a la derecha en algo pegado abajo queda debajo sin que ningún desplazamiento lo libere; dale `max-md:pr-[96px]` a su fila, y si la fila suma un botón, súmale su ancho.
 - `TableCell` y `TableHead` de `src/shared/ui/table` son `whitespace-nowrap`: una celda con un texto que debe partirse (un motivo debajo de un control) lleva `whitespace-normal`, o el texto se derrama sobre la columna de al lado sin que nada falle.
 - Nombra los contenedores (`@container/hoja`, `@4xl/hoja`): una consulta de contenedor la resuelve el contenedor más cercano al descendiente, no el que lleva la clase.
 - Una consulta de contenedor nunca mira al propio contenedor: `@container/x` y `@5xl/x:grid-cols-…` en el mismo elemento no hace nada; el contenedor va en un envoltorio aparte.

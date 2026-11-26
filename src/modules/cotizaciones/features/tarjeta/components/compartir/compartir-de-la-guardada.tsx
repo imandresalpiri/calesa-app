@@ -11,7 +11,7 @@ import {
 } from '../../../../entities/tarjeta/compartir/url'
 import { PanelDeCompartirDiferido } from './diferidos'
 
-// «Compartir» del pie del resumen de una guardada, junto a «Vista previa»: el botón (sin ícono: un solo nodo en la hoja) y el panel en `?panel=compartir` (la pestaña en
+// «Compartir» de la cabecera de una guardada, junto a «Guardar»: el botón (sin ícono: un solo nodo en la hoja) y el panel en `?panel=compartir` (la pestaña en
 // `?compartir=`, que se borra al cerrar). Con el Modo Live no hay botón; la URL abre el panel, que dice por qué no se comparte. El panel se pide al abrirse por primera
 // vez y cada apertura empieza de cero.
 export function CompartirDeLaGuardada({ cotizacionId }: { cotizacionId: string }) {

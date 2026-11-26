@@ -94,8 +94,8 @@ function LoQueSeArrastra({ nombre }: { nombre: string | null }) {
 }
 
 // El lienzo del editor de la hoja: la hoja dibujada con los componentes de `/cotizaciones/nuevo` a la vista elegida (escalada para entrar), con cifras de prueba.
-// Cada pieza se elige con un clic y se mueve arrastrándola (entre secciones también); cada sección, igual. La cabecera se elige; el resumen, sólo si la tarjeta
-// del total todavía no está en una sección (un diseño de antes: su inspector la ubica). Debajo, «+ Sección principal» y «+ Sección avanzada».
+// Cada pieza se elige con un clic y se mueve arrastrándola (entre secciones también); cada sección, igual. La cabecera se elige; la tarjeta del total suelta, sólo si
+// todavía no está en una sección (un diseño de antes: su inspector la ubica). Debajo, «+ Sección principal» y «+ Sección avanzada».
 export function LienzoDeLaHoja({
   origen,
   editor,

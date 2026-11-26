@@ -37,7 +37,7 @@ recibe actualizaciones sueltas: una rama, un PR que se integra solo con el CI en
   `api/portal/*`.
 - **Actividad, datos y tablero:** `/actividad` con el diff recortado por cartera y su purga, `/datos` (exportar e importar todo con
   `importar-csv`), `/tablero` con widgets por persona, Inicio con sus bloques, la PWA.
-- **Tareas de oro** (KLM, en `escritorio` y `movil`): registrar 18,3 s de 25; cotizar 59,2 s de 90; mover 1 en 13,9 s de 15 (desde la cadena: fase → vehículo → destino → nota) y el
+- **Tareas de oro** (KLM, en `escritorio` y `movil`): registrar 18,3 s de 25; cotizar 60,4 s de 90; mover 1 en 13,9 s de 15 (desde la cadena: fase → vehículo → destino → nota) y el
   contenedor de 8 en 14,6 de 60; «Contacté» en 1 toque y el portal en 8 s de 30.
 
 ## Verdes

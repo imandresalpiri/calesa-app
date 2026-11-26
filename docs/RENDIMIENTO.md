@@ -613,15 +613,15 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 
 - Topes (`PRESUPUESTO_DE_JS_EN_KB` de `e2e/soporte/presupuestos.ts`, lo medido más un 5 % a la decena; uno pasado por ≤ 5 % se sube con la regla del 5 %):
   `/leads` 560, `/leads/[id]` 595 (590,2 medidos con el `enFrio` de `diferido()`, que viaja en el marco: regla del 5 %), `/perfil` 440, `/vehiculos` 530, `/vehiculos/[id]` 540 (531,8 medidos con la cotización privada, los dos botones del marco y la cuenta regresiva de la subasta: regla del 5 %), `/cotizaciones` 400 (con las tarjetas de la lista, la imagen de la tarjeta en frío y el hook de los menús de las filas que comparte con las fichas),
-  `/cotizaciones/nuevo` 480 (473,9 medidos con la hoja con el aspecto de V1, la tarjeta del total como pieza de una sección (`TotalDeHoja`), el interruptor «Privada», los botones «Recargar la página» y «Copiar el enlace de esta página» del marco y la marca, «Calculado» y la región del aviso de un cálculo pisado: regla del 5 %; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
-  (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 487,5 medidos con «Hacer privada», la insignia y los dos botones del marco: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
+  `/cotizaciones/nuevo` 480 (470,2 medidos sin el resumen de la derecha: la región del total, el cierre con «Guardar» y la ranura de la cabecera; con la hoja con el aspecto de V1, la tarjeta del total como pieza de una sección (`TotalDeHoja`), el interruptor «Privada», los botones «Recargar la página» y «Copiar el enlace de esta página» del marco y la marca, «Calculado» y la región del aviso de un cálculo pisado: regla del 5 %; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
+  (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 484,6 medidos con «Hacer privada», la insignia, los dos botones del marco y la cabecera quieta de la ranura: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
   `/logistica/fase/[fase]` 390, `/logistica/vehiculo/[id]` 470, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
   `/cotizaciones/papelera` 440 (en su spec).
 - Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 590,2 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
   frío serían 450: va con `diferido()`; la imagen del resumen, sólo su cáscara: `CLAVE_DEL_VISOR` por el barril del visor sumaba 2,5 KB, se importa de
-  `use-carrusel`), `/cotizaciones/[id]` 487,5 de 490 (la rejilla y el aspecto de la hoja pesan por sus tablas de clases; la barra del vehículo de la cabecera va con
-  `diferido()`, y con ella el panel de elegir otro vehículo en una preventa) y `/cotizaciones/nuevo` 473,9 de 480 (la tarjeta del total como pieza viaja en frío con la hoja: es una pieza más; nada del editor; lo de la hoja en par va con `diferido()`; el aviso de un cálculo pisado y la lista del resumen, también; el
+  `use-carrusel`), `/cotizaciones/[id]` 484,6 de 490 (la rejilla y el aspecto de la hoja pesan por sus tablas de clases; la barra del vehículo de la cabecera va con
+  `diferido()`, y con ella el panel de elegir otro vehículo en una preventa) y `/cotizaciones/nuevo` 470,2 de 480 (la tarjeta del total viaja en frío con la hoja; nada del editor; lo de la hoja en par va con `diferido()`; el aviso de un cálculo pisado y la lista de lo pisado, también; el
   pedido del PDF va en su propia composición, sin la lectura de la tarjeta; el campo del título va con `diferido()` dentro del panel; los pasos de la hoja y el botón del ⚙ de la cabecera viajan en frío, su panel, los campos por defecto y los enlaces de la ayuda con
   `diferido()`) (`docs/PENDIENTES.md`).
 - La hoja no lleva al navegador `diseno.ts` ni su Zod: las constantes de la rejilla viven en `rejilla-de-la-hoja.ts` (importarlas de `diseno.ts` suma 1,7 KB a cada
@@ -870,10 +870,10 @@ pnpm db:medir:volumen`): invocadora, páginas de `MAXIMO_DE_PAGINA_DE_COTIZACION
   pedidos por pausa (uno en vuelo por columna). En la base, crear y guardar en par cuestan lo de dos altas o dos guardados (llaman dos veces a
   `cotizacion_crear` y `cotizacion_guardar`, que miden `medir-cotizacion-crear.sql` y `medir-cotizacion-guardar.sql`); `cotizaciones_hermana_unica` sostiene
   quién apunta a una cotización (la papelera y el `set null` de la purga).
-- La hoja dibujada (`e2e/cotizar-hoja-200.spec.ts`, 100 % y 200 %): `[data-hoja]` más «Avanzado» abierto ≤ 525 nodos con la fórmula más
-  grande, como quien cotiza sin ⚙ (~12 nodos por celda: la celda en una fila no lleva el envoltorio de la cabecera); mide 458 al abrir y 502 usada, con los
-  pasos de la hoja (de 5 a 8 nodos: la fila, sus 4 botones y el texto de cada punto) y un cálculo pisado (24 nodos: la región del aviso, 1, en frío; el aviso de la
-  primera vez, 11, y la línea del resumen, ≈ 5, con `diferido()`; la marca y «Calculado» de la celda, 7). El techo es 500 más un 5 % (`docs/DECISIONES.md` ›
+- La hoja dibujada (`e2e/cotizar-hoja-200.spec.ts`, 100 % y 200 %): `[data-hoja]` más la ranura de la cabecera y «Avanzado» abierto ≤ 525 nodos con la
+  fórmula más grande, como quien cotiza sin ⚙ (~12 nodos por celda: la celda en una fila no lleva el envoltorio de la cabecera); mide 448 al abrir y 492 usada
+  (con ⚙, 517 y 564 de 585), con los pasos de la hoja («Privada · Vista previa»), la región del total, el cierre y un cálculo pisado (24 nodos: la región del
+  aviso, 1, en frío; el aviso de la primera vez, 11, y la línea de lo pisado bajo el total, ≈ 5, con `diferido()`; la marca y «Calculado» de la celda, 7). El techo es 500 más un 5 % (`docs/DECISIONES.md` ›
   «Pisar un cálculo»): lo que sume nodos a la hoja va con `diferido()` y, si pasa de 525, se recorta. El aspecto
   (rejilla, espacios, letra y color) va en clases y variables sobre los nodos de siempre: ningún nodo por celda ni por sección. Al abrir,
   2 llamadas desde el servidor (+ `leerVehiculo` con un vehículo en la URL, + `leerClienteElegido` con un `?lead=`, + `integracionActiva`
@@ -885,7 +885,7 @@ pnpm db:medir:volumen`): invocadora, páginas de `MAXIMO_DE_PAGINA_DE_COTIZACION
   celda; abrir un ⚙ lee una fila, la publicada de la activa (`formulas_del_origen_activa_unica` y `formulas_publicada_unica`), ≤ 70 B. Panel, hook, lectura y action con `diferido()`.
 - El ⚙ de un tipo de cambio (`e2e/cotizar-ajuste-tipo-cambio.spec.ts`): una llamada a `formula_tipo_cambio_del_nodo()`, ≤ 247 B; tras
   cambiarlo la hoja no relee. Bloque, hooks y action de `empresa` van con el panel por `diferido()`.
-- Vista previa de la tarjeta (`e2e/cotizar-vista-previa.spec.ts`): ninguna lectura al abrir la hoja; suma un elemento al pie del resumen;
+- Vista previa de la tarjeta (`e2e/cotizar-vista-previa.spec.ts`): ninguna lectura al abrir la hoja; suma un paso a la fila de los pasos de la hoja;
   el modal va en un portal, fuera de `[data-hoja]`, con `diferido()`. Al abrirlo, una `cotizacion_tarjeta()` por versión de la fórmula,
   recordada 5 min (`memoriaDeLectura`): ≤ 18.700 B como la dueña y ≤ 130 nodos la tarjeta (17.929 B y 125 nodos medidos con la plantilla de
   `subasta_usa` convertida a la cuadrícula, más un 5 %: la respuesta lleva la cuadrícula entera). Lo acota la forma (≤ 16 × 120 casillas, ≤ 1.000
