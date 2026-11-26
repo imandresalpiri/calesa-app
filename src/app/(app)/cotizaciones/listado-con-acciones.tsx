@@ -17,14 +17,14 @@ type Props = Omit<
   menus: Readonly<Record<string, MenuDeUnaFila>>
 }
 
-// Lo que las áreas `tarjeta` y `aprobada` llenan en la lista: la imagen de cada tarjeta (en frío: se ve al llegar) y «Comparar» de un grupo desplegado (diferido).
+// Lo que las áreas `tarjeta` y `aprobada` llenan en la lista: la imagen de cada tarjeta (en frío: se ve al llegar) y «Comparar» del modal de un grupo (diferido).
 const HUECOS_DE_LA_LISTA = { Imagen: ImagenDeLaTarjeta, Comparar: CompararDelGrupoDiferido }
 
 // El listado de cotizaciones con su columna de acciones: une el «⋯» de cada fila con lo que hace cada área (compartir, aprobar, marcar final, favorita, reportar, moderar y la papelera: las mismas
 // actions y los mismos diálogos de la guardada) y monta los diálogos una vez (`useMenusDeLasFilas()`, el mismo del resumen de una ficha). Es un Client Component porque el «⋯» necesita las filas
 // y sus funciones; el servidor sólo manda datos.
 export function ListadoConAcciones({ menus, ...props }: Props) {
-  // Las cotizaciones que dibuja la página (la cabeza de cada grupo y cada una sola) y la del resumen que no está en ella (una línea de un grupo desplegado, otra página):
+  // Las cotizaciones que dibuja la página (la cabeza de cada grupo y cada una sola) y la del resumen que no está en ella (una línea del modal de un grupo, otra página):
   // sus diálogos piden sus datos.
   const { pagina, delServidor } = props
   const filas = useMemo(

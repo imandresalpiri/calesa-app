@@ -9,3 +9,8 @@ export const HistorialDelVehiculo = diferido(
   () => import('./historial-del-vehiculo').then((modulo) => modulo.HistorialDelVehiculo),
   { aviso: 'aqui', esqueleto: <EsqueletoDelHistorial /> },
 )
+
+// El modal del historial, al abrirse por primera vez.
+export const ModalDelHistorialDiferido = diferido(() =>
+  import('./modal-del-historial').then((modulo) => modulo.ModalDelHistorial),
+)

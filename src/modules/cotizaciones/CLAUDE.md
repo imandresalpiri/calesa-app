@@ -146,7 +146,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
 - **«Cotizar encima»** (`features/encima/`): el aviso (`avisoDeVersion()`: otra versión que la publicada hoy, o vencida) lo ve todo el que abre; el
   botón, sólo con `cadena.puedeCotizarEncima` (lo decide la base, no `puede()`: una anterior sin lead pide `sin_lead` y una sin vehículo, `sin_vehiculo`). El intento es el id de la nueva y se conserva sólo tras una pérdida; con
   cambios sin guardar o un pendiente el botón espera, porque la nueva lleva lo guardado.
-- **Historial** (el del panel del vehículo de la hoja, `HistorialDelVehiculo`; las fichas del vehículo y del lead usan la fila de tarjetas): se lee al montarse desde el navegador
+- **Historial** (el del panel del vehículo de la hoja, `HistorialDelVehiculo`: un botón que abre el modal `?ver=historial`, `ModalDelHistorial`, que vive con el panel; las fichas del vehículo y del lead usan la fila de tarjetas): el modal lo lee al montarse desde el navegador
   por `composicion-historial.client.ts` (por `cotizaciones_vehiculo_creado_idx`), de a 20 hasta 500, y el tope dice «Ver todas en Cotizaciones». Va aparte de `composicion.client.ts` y
   cada cáscara de `diferido()` en su `diferidos.tsx` porque lo que importa la hoja viaja en la carga en frío de `/cotizaciones/nuevo` (4-73).
   `usePaginasDelHistorial(de)` descarta lo viejo con `ultimo`; `<ListaDelHistorial>` espera 300 ms el esqueleto salvo con `esperarEsqueleto={false}`.

@@ -92,7 +92,7 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      lote (desde 3 letras o números) y trae un enlace, un VIN o un lote de la subasta
      (`apibara` llena ficha y fotos); «+» carga a mano. **Ambas abren el alta del inventario dentro del panel y «Crear y elegir» crea el
      vehículo y lo elige**, sin guardar la cotización; pestañas «Últ. cotización» y «Cierre subasta»; el elegido muestra su historial
-     (plegado, se lee al desplegarlo, «Ver más»); la barra dice «Cotizado (n)». En «Elegido», el tipo de vehículo se elige entre las filas
+     («Historial de cotizaciones» abre su modal, `?ver=historial`, que se lee al abrirse, con «Ver más»); la barra dice «Cotizado (n)». En «Elegido», el tipo de vehículo se elige entre las filas
      de la tabla, con el del vehículo marcado; un toque lo guarda en el vehículo, cierra el panel y la hoja recalcula (quien no puede editar
      el vehículo lo ve sin elegir; la celda sin valor dice que se elige en «Vehículo»).
      **Subasta cerrada:** al elegir (o abrir con) un vehículo de un origen de subasta que sigue en el tramo de subasta con la subasta ya pasada

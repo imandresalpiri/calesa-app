@@ -128,7 +128,7 @@ async function Listado({
   )
   const agrupada = agruparPedido && pedido.vehiculoId === undefined
   const { pagina, cotizaciones, acotada } = await leerLaPagina(sesion.permisos, pedido, agrupada)
-  // La del resumen, si la URL trae una que no está en la página (también una línea de un grupo desplegado); lo demás, en paralelo.
+  // La del resumen, si la URL trae una que no está en la página (también una línea del modal de un grupo); lo demás, en paralelo.
   const idDelResumenUrl = idDelResumen(unParametro(parametros[CLAVE_DE_RESUMEN_DE_COTIZACION]))
   const faltaLaDelResumen =
     idDelResumenUrl !== null && !cotizaciones.some((fila) => fila.id === idDelResumenUrl)

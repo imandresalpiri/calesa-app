@@ -118,8 +118,11 @@ const barra = (page: Page): Locator => page.getByRole('button', { name: /^Vehíc
 const panel = (page: Page): Locator => page.getByRole('dialog', { name: 'Vehículo' })
 const historial = (page: Page): Locator =>
   panel(page).getByRole('button', { name: /^Historial de cotizaciones/ })
+// El historial es un modal con su URL (`?ver=historial`) sobre el panel.
+const modal = (page: Page): Locator =>
+  page.getByRole('dialog', { name: 'Historial de cotizaciones' })
 const filas = (page: Page): Locator =>
-  panel(page).getByRole('list', { name: 'Historial de cotizaciones' }).getByRole('listitem')
+  modal(page).getByRole('list', { name: 'Historial de cotizaciones' }).getByRole('listitem')
 
 async function irALaHoja(page: Page, vehiculo: string): Promise<void> {
   await page.goto(`/cotizaciones/nuevo?origen=${origen.id}&lead=${lead}&vehiculo=${vehiculo}`)
@@ -154,7 +157,7 @@ test('E2E la barra dice «Cotizado (20+)» con 22, «Cotizado (2)» con 2 y nada
   await expect(barra(page)).not.toContainText('Cotizado')
 })
 
-test('E2E el panel abre con el historial plegado y sin leerlo; al desplegar, 20 y «Ver más» lleva a 22', async ({
+test('E2E el panel abre sin leer el historial; su modal, 20 y «Ver más» lleva a 22', async ({
   page,
 }) => {
   await abrirLaHoja(page, duena, vehiculos.veintidos)
@@ -164,12 +167,12 @@ test('E2E el panel abre con el historial plegado y sin leerlo; al desplegar, 20 
     'Historial veintidós',
   )
   await expect(historial(page)).toHaveAccessibleName('Historial de cotizaciones (20+)')
-  await expect(historial(page)).toHaveAttribute('aria-expanded', 'false')
+  await expect(historial(page)).toHaveAttribute('aria-haspopup', 'dialog')
   await expect(panel(page).getByRole('list', { name: 'Vehículos' })).toBeVisible()
   expect(lecturas).toEqual([])
 
   await historial(page).click()
-  await expect(historial(page)).toHaveAttribute('aria-expanded', 'true')
+  await expect(page).toHaveURL(/[?&]ver=historial/)
   await expect(filas(page)).toHaveCount(20)
   expect(lecturas).toHaveLength(1)
   const masNueva = sql(
@@ -184,10 +187,15 @@ test('E2E el panel abre con el historial plegado y sin leerlo; al desplegar, 20 
     'href',
     /^\/cotizaciones\/[0-9a-f-]{36}$/,
   )
-  await panel(page).getByRole('button', { name: 'Ver más' }).click()
+  await modal(page).getByRole('button', { name: 'Ver más' }).click()
   await expect(filas(page)).toHaveCount(22)
-  await expect(panel(page).getByRole('button', { name: 'Ver más' })).toHaveCount(0)
+  await expect(modal(page).getByRole('button', { name: 'Ver más' })).toHaveCount(0)
   expect(lecturas).toHaveLength(2)
+  // Al cerrarlo, el panel sigue abierto y el foco vuelve al botón.
+  await page.keyboard.press('Escape')
+  await expect(modal(page)).toBeHidden()
+  await expect(page).not.toHaveURL(/[?&]ver=historial/)
+  await expect(historial(page)).toBeFocused()
 })
 
 test('E2E una persona con «propios» ve «Cotizado (1)» y sólo la suya (P2)', async ({ page }) => {
@@ -197,10 +205,10 @@ test('E2E una persona con «propios» ve «Cotizado (1)» y sólo la suya (P2)',
   await historial(page).click()
   await expect(filas(page)).toHaveCount(1)
   await expect(filas(page).first()).toContainText('Ana Propios')
-  await expect(panel(page)).not.toContainText('Gala Guarda')
+  await expect(modal(page)).not.toContainText('Gala Guarda')
 })
 
-test('E2E el historial desplegado cabe en su presupuesto de bytes y de nodos', async ({ page }) => {
+test('E2E el historial abierto cabe en su presupuesto de bytes y de nodos', async ({ page }) => {
   await abrirLaHoja(page, duena, vehiculos.veintidos)
   await barra(page).click()
   const respuesta = page.waitForResponse(
@@ -209,7 +217,7 @@ test('E2E el historial desplegado cabe en su presupuesto de bytes y de nodos', a
   await historial(page).click()
   const bytes = (await (await respuesta).body()).length
   await expect(filas(page)).toHaveCount(20)
-  const nodos = await panel(page)
+  const nodos = await modal(page)
     .getByRole('list', { name: 'Historial de cotizaciones' })
     .evaluate((e) => e.querySelectorAll('*').length + 1)
   test.info().annotations.push({

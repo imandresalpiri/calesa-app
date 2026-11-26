@@ -6,7 +6,7 @@ import { conteoCorto } from '@/shared/lib/conteo'
 import { BarraDeLaHoja } from './barra-de-la-hoja'
 
 // La barra del vehículo con su «Cotizado (n)» y su historial. Lo une esta página: `vehiculos` recibe el historial armado, sin importar `cotizaciones`. Sin elegido (soltado
-// por la hoja, inexistente o que no se ve) no hay insignia ni historial; un conteo que falló es sólo una etiqueta menos. Plegado, el historial se lee al desplegarlo.
+// por la hoja, inexistente o que no se ve) no hay insignia ni historial; un conteo que falló es sólo una etiqueta menos. El historial es un modal con su URL que se lee al abrirse.
 export function BarraConHistorial({
   origen,
   elegido,

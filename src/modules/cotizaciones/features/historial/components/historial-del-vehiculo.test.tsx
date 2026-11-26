@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { NuqsTestingAdapter, type UrlUpdateEvent } from 'nuqs/adapters/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Resultado } from '@/shared/lib/errores'
 import {
@@ -9,6 +10,7 @@ import {
 } from '@/shared/lib/paginacion'
 import type { CotizacionDelHistorial } from '../../../entities/historial-del-vehiculo'
 import { HistorialDelVehiculo } from './historial-del-vehiculo'
+import { ModalDelHistorial } from './modal-del-historial'
 
 type Respuesta = Resultado<Pagina<CotizacionDelHistorial>>
 type Pedido = {
@@ -53,11 +55,18 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-const montar = (conteo: { n: number; hayMas: boolean } | null) =>
-  render(<HistorialDelVehiculo vehiculoId={VEHICULO} conteo={conteo} />)
-const abrir = () => {
-  fireEvent.click(screen.getByRole('button', { name: /^Historial de cotizaciones/ }))
-}
+const montar = (
+  conteo: { n: number; hayMas: boolean } | null,
+  alCambiarUrl?: (e: UrlUpdateEvent) => void,
+) =>
+  render(
+    <NuqsTestingAdapter hasMemory {...(alCambiarUrl ? { onUrlUpdate: alCambiarUrl } : {})}>
+      <HistorialDelVehiculo vehiculoId={VEHICULO} conteo={conteo} />
+    </NuqsTestingAdapter>,
+  )
+// El modal abierto lee al montarse (como al abrirlo por primera vez desde el botón).
+const montarModal = () =>
+  render(<ModalDelHistorial abierto alCerrar={() => undefined} vehiculoId={VEHICULO} />)
 const responder = async (r: Respuesta) => {
   await waitFor(() => {
     expect(pedidos.length).toBeGreaterThan(0)
@@ -65,11 +74,12 @@ const responder = async (r: Respuesta) => {
   pedidos.at(-1)?.resolver(r)
 }
 
-describe('HistorialDelVehiculo: plegado y desplegado', () => {
-  it('nace plegado y no lee nada hasta desplegarlo', () => {
+describe('HistorialDelVehiculo: el botón y el modal con su URL', () => {
+  it('es un botón que abre un diálogo, sin `aria-expanded`, y no lee nada hasta abrirlo', () => {
     montar({ n: 2, hayMas: false })
     const boton = screen.getByRole('button', { name: 'Historial de cotizaciones (2)' })
-    expect(boton.getAttribute('aria-expanded')).toBe('false')
+    expect(boton.getAttribute('aria-haspopup')).toBe('dialog')
+    expect(boton.hasAttribute('aria-expanded')).toBe(false)
     expect(pedidos).toHaveLength(0)
     expect(screen.queryByRole('list')).toBeNull()
   })
@@ -85,9 +95,21 @@ describe('HistorialDelVehiculo: plegado y desplegado', () => {
     expect(screen.getByRole('button', { name: 'Historial de cotizaciones' })).toBeTruthy()
   })
 
-  it('desplegar lee la primera página y dibuja una fila por cotización con su número, autor y clase', async () => {
-    montar({ n: 2, hayMas: false })
-    abrir()
+  it('abrirlo escribe `?ver=historial` y el modal lee la primera página', async () => {
+    const urls: string[] = []
+    montar({ n: 2, hayMas: false }, (e) => urls.push(e.queryString))
+    fireEvent.click(screen.getByRole('button', { name: 'Historial de cotizaciones (2)' }))
+    await waitFor(() => {
+      expect(urls.at(-1)).toBe('?ver=historial')
+    })
+    expect(await screen.findByRole('dialog', { name: 'Historial de cotizaciones' })).toBeTruthy()
+    await waitFor(() => {
+      expect(pedidos).toHaveLength(1)
+    })
+  })
+
+  it('el modal lee la primera página y dibuja una fila por cotización con su número, autor y clase', async () => {
+    montarModal()
     expect(pedidos).toHaveLength(1)
     expect(pedidos[0]?.vehiculoId).toBe(VEHICULO)
     expect(pedidos[0]?.cursor).toBeNull()
@@ -106,30 +128,26 @@ describe('HistorialDelVehiculo: plegado y desplegado', () => {
     expect(screen.queryByRole('button', { name: 'Ver más' })).toBeNull()
   })
 
-  it('con n = 0 el botón está, y si la lectura vuelve vacía dice que no hay cotizaciones que puedas ver', async () => {
-    montar({ n: 0, hayMas: false })
-    abrir()
+  it('si la lectura vuelve vacía dice que no hay cotizaciones que puedas ver', async () => {
+    montarModal()
     await responder(pagina(1, 0))
     expect(await screen.findByText('Sin cotizaciones que puedas ver.')).toBeTruthy()
   })
 
-  it('plegar y volver a desplegar no vuelve a leer', async () => {
-    montar({ n: 1, hayMas: false })
-    abrir()
+  it('cerrar y volver a abrir el modal no vuelve a leer', async () => {
+    const { rerender } = montarModal()
     await responder(pagina(1, 1))
     await screen.findByRole('list')
-    abrir()
-    expect(screen.queryByRole('list')).toBeNull()
-    abrir()
-    expect(screen.getByRole('list')).toBeTruthy()
+    rerender(<ModalDelHistorial abierto={false} alCerrar={() => undefined} vehiculoId={VEHICULO} />)
+    rerender(<ModalDelHistorial abierto alCerrar={() => undefined} vehiculoId={VEHICULO} />)
+    expect(await screen.findByRole('list')).toBeTruthy()
     expect(pedidos).toHaveLength(1)
   })
 })
 
 describe('HistorialDelVehiculo: «Ver más», el tope y los errores', () => {
   it('«Ver más» pasa el cursor de la última fila y agrega abajo', async () => {
-    montar({ n: 20, hayMas: true })
-    abrir()
+    montarModal()
     await responder(pagina(1, 20, cursorDe(20)))
     await screen.findByRole('list')
     fireEvent.click(screen.getByRole('button', { name: 'Ver más' }))
@@ -144,8 +162,7 @@ describe('HistorialDelVehiculo: «Ver más», el tope y los errores', () => {
   })
 
   it('en el tope de lo cargado, en lugar de «Ver más» dice cuántas se muestran', async () => {
-    montar({ n: 20, hayMas: true })
-    abrir()
+    montarModal()
     // Al tope con dos respuestas y consultas por texto, no por rol: sobre 500 filas cada una cuesta cientos de ms, y el tope sale del largo de lo cargado, no de las rondas.
     const primera = TOPE_DE_LO_CARGADO - TAMANO_DE_VER_MAS
     await responder(pagina(1, primera, cursorDe(primera)))
@@ -163,16 +180,14 @@ describe('HistorialDelVehiculo: «Ver más», el tope y los errores', () => {
   })
 
   it('antes del tope no hay camino al listado', async () => {
-    montar({ n: 2, hayMas: false })
-    abrir()
+    montarModal()
     await responder(pagina(1, 2))
     await screen.findByRole('list')
     expect(screen.queryByRole('link', { name: 'Ver todas en Cotizaciones' })).toBeNull()
   })
 
   it('un error en la primera página ofrece «Reintentar», que vuelve a leer', async () => {
-    montar({ n: 1, hayMas: false })
-    abrir()
+    montarModal()
     await responder({ ok: false, error: { codigo: 'inesperado', mensaje: 'x' } })
     expect(await screen.findByText('No se pudo cargar el historial.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
@@ -182,8 +197,7 @@ describe('HistorialDelVehiculo: «Ver más», el tope y los errores', () => {
   })
 
   it('un error en «Ver más» deja lo leído y ofrece «Reintentar»', async () => {
-    montar({ n: 20, hayMas: true })
-    abrir()
+    montarModal()
     await responder(pagina(1, 20, cursorDe(20)))
     await screen.findByRole('list')
     fireEvent.click(screen.getByRole('button', { name: 'Ver más' }))
@@ -196,8 +210,7 @@ describe('HistorialDelVehiculo: «Ver más», el tope y los errores', () => {
   })
 
   it('una respuesta que llega después de desmontar no se dibuja ni falla', async () => {
-    const { unmount } = montar({ n: 1, hayMas: false })
-    abrir()
+    const { unmount } = montarModal()
     unmount()
     pedidos[0]?.resolver(pagina(1, 1))
     await Promise.resolve()
@@ -207,8 +220,7 @@ describe('HistorialDelVehiculo: «Ver más», el tope y los errores', () => {
 
 describe('HistorialDelVehiculo: cada fila lleva a su cotización', () => {
   it('el texto de la fila es un enlace a la página de la cotización, con el texto de siempre', async () => {
-    montar({ n: 2, hayMas: false })
-    abrir()
+    montarModal()
     await responder({
       ok: true,
       data: { filas: [cotizacion(1, 'final'), cotizacion(2)], siguiente: null, anterior: null },
