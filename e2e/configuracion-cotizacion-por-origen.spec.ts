@@ -15,10 +15,9 @@ import {
 import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar-formula'
 import { abrirLaFormula, enElEditor } from './soporte/rutas-de-la-formula'
 
-// La cotización de cada origen en su página y lo de toda la empresa en Catálogos y Roles (`docs/UX.md` › «La página del origen» y «Catálogos»): las pestañas
-// Planilla · Hoja · Tarjeta, cada una su ruta con la fórmula elegida en `?formula=`, y el drawer «Tablas» de la barra de la fórmula; Niveles y Quién crea y
-// quién ve ya viven en Roles; y quién abre qué. Las redirecciones de las rutas de antes y las pestañas apagadas por permiso:
-// `configuracion-origen-centro.spec.ts`.
+// La cotización de cada origen en su página y lo de toda la empresa en Roles (`docs/UX.md` › «La página del origen»): las pestañas Planilla · Hoja · Tarjeta,
+// cada una su ruta con la fórmula elegida en `?formula=`, y el drawer «Tablas» de la barra de la fórmula; Niveles y Quién crea y quién ve, en Roles; y quién
+// abre qué. Las pestañas apagadas por permiso: `configuracion-origen-centro.spec.ts`.
 test.describe.configure({ mode: 'serial' })
 
 const ORIGENES = '/configuracion/origenes'
