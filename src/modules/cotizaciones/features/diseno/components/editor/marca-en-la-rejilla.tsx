@@ -42,7 +42,8 @@ const lugarDe = (m: MarcaDibujada): CSSProperties =>
 
 // La marca de lo que se arrastra sobre el lugar `en` (una rejilla o una avanzada, que la contiene con `relative`): el recuadro que ocuparía la pieza, en el
 // color de lo que pasaría al soltar (libre; pisa, no entra o no va ahí; la vista apila), con su texto («Columna 7, fila 2», «Ahí está «Flete».»). Nada se
-// corre mientras se arrastra: es lo único que cambia. El texto lo anuncia el arrastre; la marca es sólo para la vista.
+// corre mientras se arrastra: es lo único que cambia. El texto lo anuncia el arrastre; la marca es sólo para la vista. Va abajo a la derecha: arriba a la
+// izquierda está lo que se arrastra (el punto que decide dónde cae es su esquina), que lo taparía.
 export function MarcaEnLaRejilla({ marca, en }: { marca: MarcaDibujada | null; en: string }) {
   if (marca?.en !== en) return null
   const color = COLOR[marca.estado]
@@ -54,7 +55,7 @@ export function MarcaEnLaRejilla({ marca, en }: { marca: MarcaDibujada | null; e
       className={`absolute z-30 rounded-(--radius-md) border-2 border-dashed ${color.caja}`}
     >
       <span
-        className={`${A_TAMANO_REAL} absolute top-1 left-1 max-w-[calc(100%-0.5rem)] rounded-(--radius-sm) bg-(--color-surface) px-1.5 py-0.5 text-(length:--text-xs) font-medium shadow-(--shadow-sm) ${color.texto}`}
+        className={`${A_TAMANO_REAL} absolute right-1 bottom-1 max-w-[calc(100%-0.5rem)] rounded-(--radius-sm) bg-(--color-surface) px-1.5 py-0.5 text-(length:--text-xs) font-medium shadow-(--shadow-sm) ${color.texto}`}
       >
         {marca.texto}
       </span>
