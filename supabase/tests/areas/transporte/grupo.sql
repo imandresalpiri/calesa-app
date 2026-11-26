@@ -271,7 +271,7 @@ begin;
 do $$
 declare t jsonb := pg_temp.trn_terreno(); duena uuid; p uuid; g jsonb; r jsonb; o3 uuid; e_ajeno uuid; e_mio uuid; c_ajeno uuid; e jsonb;
 begin
-  insert into public.origenes (clave, nombre, tipo) values ('tr3_' || substr(md5(random()::text), 1, 8), 'tr origen 3', 'manual') returning id into o3;
+  insert into public.origenes (clave, nombre, tipo) values ('tr3_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 8), 'tr origen 3', 'manual') returning id into o3;
   duena := pg_temp.trn_persona(array['logistica.ver', 'logistica.transporte.editar']);
   -- Ve todo y edita en el origen del grupo y en o3; en o2, no.
   p := pg_temp.trn_persona(array['logistica.ver', 'logistica.transporte.editar@' || (t ->> 'o'), 'logistica.transporte.editar@' || o3]);
