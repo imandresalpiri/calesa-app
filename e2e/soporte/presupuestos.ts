@@ -61,7 +61,8 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   '/configuracion/origenes/[id]/hoja': 420,
   '/configuracion/origenes/[id]/tarjeta': 430,
   '/configuracion/origenes/[id]/campos': 420,
-  '/configuracion/origenes/[id]/categorias': 410,
+  // Con el grupo de campos como catálogo (T576: el layout del origen trae el grupo y su orden), 410,8 KB en 30 chunks: 420 (regla del 5 %).
+  '/configuracion/origenes/[id]/categorias': 420,
 }
 
 // Lo que aporta la ficha del lead **entera** al documento sobre `/perfil`, en KB (T33: con todo a la vista, `?seccion=` sólo dice a qué bloque
