@@ -2,8 +2,9 @@
 
 import type { ClaveDePieza, ItemDeDiseno } from '../../../../entities/diseno'
 import type { Nodo } from '../../../../entities/nodos'
+import { piezaDelItemDeLaHoja } from '../../../../entities/diseno/pieza-de-la-hoja'
 import { CamposDelAspectoDelItem } from '../aspecto'
-import { errorDelAspecto, type ApoyoDelInspector } from './apoyo-del-inspector'
+import { errorDelAspecto, lugarEnElInspector, type ApoyoDelInspector } from './apoyo-del-inspector'
 import { CamposDelNodo } from './campos-del-nodo'
 
 const MAXIMO_DE_OPCIONES_A_LA_VISTA = 4
@@ -29,6 +30,8 @@ type Props = {
 export function InspectorDeLaVariante({ seccion, item, apoyo }: Props) {
   const { editor, ediciones } = apoyo
   const clave: ClaveDePieza = { tipo: item.tipo, nodo: item.nodo, seccion }
+  const base = `${seccion}__${item.nodo}`
+  const error = errorDelAspecto(editor, { pieza: 'item', clave })
   const nodo = editor.definicion.nodos.find((n) => n.id === item.nodo)
   return (
     <div className="grid min-w-0 gap-3">
@@ -50,10 +53,10 @@ export function InspectorDeLaVariante({ seccion, item, apoyo }: Props) {
         {item.tipo === 'variante' ? textoDeLaVariante(nodo) : TEXTO_DEL_SUBTOTAL}
       </p>
       <CamposDelAspectoDelItem
-        base={`${seccion}__${item.nodo}`}
+        base={base}
         item={item}
+        lugar={lugarEnElInspector(apoyo, piezaDelItemDeLaHoja(item), base, error)}
         ocupado={editor.ocupado}
-        error={errorDelAspecto(editor, { pieza: 'item', clave })}
         alPoner={(cambios) => {
           ediciones.ponerAspectoDeItem(clave, cambios)
         }}

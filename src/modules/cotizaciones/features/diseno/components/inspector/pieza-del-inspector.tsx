@@ -8,7 +8,8 @@ import {
   ubicarLaPieza,
   type PiezaDeLaHoja,
 } from '../../../../entities/diseno/pieza-de-la-hoja'
-import type { ApoyoDelInspector } from './apoyo-del-inspector'
+import { CamposDelLugar } from '../aspecto'
+import { lugarEnElInspector, type ApoyoDelInspector } from './apoyo-del-inspector'
 import { InspectorDeAtajos } from './inspector-de-atajos'
 import { InspectorDeLaCabecera } from './inspector-de-la-cabecera'
 import { InspectorDeLaCelda } from './inspector-de-la-celda'
@@ -49,8 +50,14 @@ function SinFila({ alQuitar, ocupado }: { alQuitar: () => void; ocupado: boolean
 export const DEL_BLOQUE =
   'Lleva la tarjeta del total suelta y las secciones que van detrás del botón «Avanzado», en una fila entera de la hoja. Arrástralo, o usa Alt+↑ y Alt+↓, para llevarlo a otra fila libre.'
 
-const DelBloque = () => (
-  <p className="text-(length:--text-sm) text-(--color-ink-soft)">{DEL_BLOQUE}</p>
+// El bloque «Avanzado»: qué es y su «Fila» (ocupa la fila entera: no tiene columna ni tamaño).
+const DelBloque = ({ apoyo }: { apoyo: ApoyoDelInspector }) => (
+  <div className="grid min-w-0 gap-3">
+    <p className="text-(length:--text-sm) text-(--color-ink-soft)">{DEL_BLOQUE}</p>
+    <CamposDelLugar
+      {...lugarEnElInspector(apoyo, { pieza: 'bloque-avanzado' }, 'bloque-avanzado', null)}
+    />
+  </div>
 )
 
 const YaNoEsta = () => (
@@ -62,7 +69,7 @@ export function PiezaDelInspector({ pieza, apoyo, alQuitar, alUbicarElTotal }: P
   const { trabajo, definicion } = apoyo.editor
   if (pieza.pieza === 'cabecera') return <InspectorDeLaCabecera apoyo={apoyo} />
   if (pieza.pieza === 'total') return <InspectorDelTotal apoyo={apoyo} alUbicar={alUbicarElTotal} />
-  if (pieza.pieza === 'bloque-avanzado') return <DelBloque />
+  if (pieza.pieza === 'bloque-avanzado') return <DelBloque apoyo={apoyo} />
   if (pieza.pieza === 'seccion') {
     const seccion = trabajo.secciones.find((s) => s.id === pieza.seccion)
     return seccion === undefined ? (

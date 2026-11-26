@@ -9,6 +9,7 @@ import {
   type Diseno,
 } from '../diseno'
 import { ultimaFila, type PiezaEnLaRejilla } from '../rejilla-de-la-hoja'
+import type { Nombrar } from './anuncios-de-la-rejilla'
 import { ponerAspectoDeItem, ponerAspectoDeSeccion } from './edicion-del-aspecto'
 import {
   lugarDe,
@@ -126,7 +127,7 @@ const rango = (desde: number, hasta: number) =>
 export function opcionesDelLugar(
   d: Diseno,
   p: PiezaDeLaHoja,
-  nombreDe: (p: PiezaDeLaHoja) => string,
+  nombrar: Nombrar,
 ): OpcionesDelLugar | null {
   const actual = lugarDe(d, p)
   if (actual === null) return null
@@ -136,8 +137,7 @@ export function opcionesDelLugar(
     if (libre.ok) return { valor, motivo: null }
     return {
       valor,
-      motivo:
-        libre.motivo === 'pisa' ? `se pisa con «${nombreDe(libre.con)}»` : motivoDeSeSale(lado),
+      motivo: libre.motivo === 'pisa' ? `se pisa con ${nombrar(libre.con)}` : motivoDeSeSale(lado),
     }
   }
   const ultima = ultimaFila(ocupantes(d, actual.espacio).map((o) => o.lugar))

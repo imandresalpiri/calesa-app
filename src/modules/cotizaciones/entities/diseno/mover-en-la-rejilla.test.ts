@@ -5,6 +5,7 @@ import {
   destinoEnLaVecina,
   intercambiarAvanzadas,
   moverElBloque,
+  moverEnSuEspacio,
   moverPiezaA,
   moverSeccionA,
   pasoDeTeclado,
@@ -142,6 +143,37 @@ describe('mover con el teclado y las avanzadas', () => {
     expect(pasoDeTeclado(d, { pieza: 'seccion', seccion: 'av' }, 'arriba')).toEqual({
       ok: false,
       motivo: 'extremo',
+    })
+  })
+})
+
+describe('mover desde el inspector', () => {
+  it('«Columna» y «Fila» del inspector llevan cada pieza dentro de su espacio', () => {
+    const d = disenoDeRejillaDePrueba()
+    const lugar = { columna: 1, fila: 3 }
+    expect(posicionDe(diseno(moverEnSuEspacio(d, a, lugar)), 'a')).toMatchObject({
+      s: 'base',
+      it: { posicion: lugar },
+    })
+    expect(moverEnSuEspacio(d, a, { columna: 7, fila: 1 })).toEqual({
+      ok: false,
+      motivo: 'pisa',
+      con: b,
+    })
+    const seccion = diseno(
+      moverEnSuEspacio(d, { pieza: 'seccion', seccion: 'extra' }, { columna: 7, fila: 3 }),
+    )
+    expect(seccion.secciones.find((s) => s.id === 'extra')?.posicion).toEqual({
+      columna: 7,
+      fila: 3,
+    })
+    // El bloque ocupa la fila entera: la columna pedida no cuenta.
+    expect(diseno(moverEnSuEspacio(d, bloque, { columna: 5, fila: 4 })).avanzado).toEqual({
+      fila: 4,
+    })
+    expect(moverEnSuEspacio(d, { pieza: 'cabecera' }, lugar)).toEqual({
+      ok: false,
+      motivo: 'no_esta',
     })
   })
 })

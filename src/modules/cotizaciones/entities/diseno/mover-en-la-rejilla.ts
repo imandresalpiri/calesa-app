@@ -142,9 +142,18 @@ export function pasoDeTeclado(d: Diseno, p: PiezaDeLaHoja, direccion: Direccion)
   }
   const destino = { columna: columna + PASO[direccion].columna, fila: fila + PASO[direccion].fila }
   if (destino.columna < 1 || destino.fila < 1) return noMueve({ motivo: 'extremo' })
-  if (p.pieza === 'seccion') return moverSeccionA(d, p.seccion, destino)
+  return moverEnSuEspacio(d, p, destino)
+}
+
+// Una pieza a otro lugar de su mismo espacio, como la llevan Alt+flechas y «Columna» y «Fila» del inspector: un ítem dentro de su sección, una sección entre
+// las suyas y el bloque «Avanzado» a esa fila entera.
+export function moverEnSuEspacio(d: Diseno, p: PiezaDeLaHoja, posicion: Posicion): Movida {
+  const actual = lugarDe(d, p)
+  if (actual === null) return noMueve({ motivo: 'no_esta' })
+  if (p.pieza === 'bloque-avanzado') return moverElBloque(d, posicion.fila)
+  if (p.pieza === 'seccion') return moverSeccionA(d, p.seccion, posicion)
   return actual.espacio.tipo === 'seccion'
-    ? moverPiezaA(d, p, { seccion: actual.espacio.seccion, posicion: destino })
+    ? moverPiezaA(d, p, { seccion: actual.espacio.seccion, posicion })
     : noMueve({ motivo: 'no_esta' })
 }
 

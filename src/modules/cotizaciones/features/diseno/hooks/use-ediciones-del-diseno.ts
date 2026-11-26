@@ -1,9 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { ClaveDePieza, Diseno, SeccionDeDiseno } from '../../../entities/diseno'
+import type { ClaveDePieza, Diseno, Posicion, SeccionDeDiseno } from '../../../entities/diseno'
 import type { PorDefecto } from '../../../entities/cabecera-por-defecto'
-import { ponerColumnas } from '../../../entities/diseno/ancho-de-la-pieza'
 import {
   ponerModo,
   ponerPorDefecto,
@@ -26,6 +25,9 @@ import {
   type CambioDeAspectoDeSeccion,
 } from '../../../entities/diseno/edicion-del-aspecto'
 import { ponerSeccion } from '../../../entities/diseno/edicion-del-diseno'
+import { moverEnSuEspacio } from '../../../entities/diseno/mover-en-la-rejilla'
+import type { PiezaDeLaHoja } from '../../../entities/diseno/pieza-de-la-hoja'
+import { ponerTamano, type TamanoPedido } from '../../../entities/diseno/tamano-en-la-rejilla'
 import { ponerNiveles, type CambioDeNiveles } from '../../../entities/diseno/niveles'
 import { ubicarElTotal } from '../../../entities/diseno/total-de-la-hoja'
 import type { Definicion } from '../../../entities/formula'
@@ -34,7 +36,7 @@ import { edicionesDeLaAyuda } from './ediciones-de-la-ayuda'
 export type EdicionesDelDiseno = ReturnType<typeof edicionesDelDiseno>
 
 // Las operaciones puras de piezas, secciones, cabecera, tarjeta y aspecto, atadas a `aplicar` del editor: ningún componente llama a una operación pura directo.
-// Una pieza se nombra por su `ClaveDePieza` (su sección y su nodo, o la tarjeta del total).
+// Una pieza se nombra por su `ClaveDePieza` (su sección y su nodo, o la tarjeta del total); su lugar y su tamaño en la rejilla, por su `PiezaDeLaHoja`.
 function edicionesDelDiseno(
   aplicar: (cambio: (d: Diseno) => Diseno) => void,
   definicion: Definicion,
@@ -50,8 +52,16 @@ function edicionesDelDiseno(
     ponerNiveles: (seccion: string, nodo: string | undefined, cambios: CambioDeNiveles) => {
       aplicar((d) => ponerNiveles(d, nodo === undefined ? { seccion } : { seccion, nodo }, cambios))
     },
-    ponerColumnas: (clave: ClaveDePieza, columnas: number) => {
-      aplicar((d) => ponerColumnas(d, clave, columnas))
+    // «Columna» y «Fila» del inspector: el lugar que pisa o se sale no se ocupa (sus opciones ya van apagadas) y nadie más se mueve.
+    ponerLugar: (pieza: PiezaDeLaHoja, posicion: Posicion) => {
+      aplicar((d) => {
+        const movida = moverEnSuEspacio(d, pieza, posicion)
+        return movida.ok ? movida.diseno : d
+      })
+    },
+    // «Ancho» y «Alto» del inspector: hasta donde entra, sin empujar a la vecina.
+    ponerTamano: (pieza: PiezaDeLaHoja, pedido: TamanoPedido) => {
+      aplicar((d) => ponerTamano(d, pieza, pedido))
     },
     ponerAtajos: (seccion: string, nodo: string, cambios: { columna?: string; filas?: number }) => {
       aplicar((d) => ponerAtajos(d, seccion, nodo, cambios))

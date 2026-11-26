@@ -154,7 +154,7 @@ test('G1: mover con el teclado y arrastrando a un lugar libre, el ancho de 8 de 
   const base = seccionDelEditor(page, 'base')
   await elegir(page, 'seccion-base')
   await abrirElAspecto(page)
-  await inspector(page).getByLabel('Ancho en la hoja').selectOption('12')
+  await inspector(page).getByLabel('Ancho', { exact: true }).selectOption('12')
   await elegir(page, 'precio')
   await inspector(page).getByLabel('Ancho', { exact: true }).selectOption('8')
 

@@ -2,12 +2,14 @@ import type { ReactNode } from 'react'
 import type { Tono } from '@/shared/ui/xcell'
 import type { TablaDelCatalogoDelOrigen } from '../../../../entities/catalogo-de-tablas'
 import type { ClaveDePieza } from '../../../../entities/diseno'
+import { nombrarEnLaHoja } from '../../../../entities/diseno/anuncios-de-la-rejilla'
 import type { LugarDelRechazo } from '../../../../entities/diseno/campo-del-rechazo'
 import type { NivelDelDiseno } from '../../../../entities/diseno/edicion-del-diseno'
+import type { PiezaDeLaHoja } from '../../../../entities/diseno/pieza-de-la-hoja'
 import type { ColorCreado } from '../../../../entities/nuevo-color'
 import type { EdicionesDelDiseno } from '../../hooks/use-ediciones-del-diseno'
 import type { EditorDelDiseno } from '../../hooks/use-editor-del-diseno'
-import type { ErrorDelAspecto, TonoDelCatalogo } from '../aspecto'
+import type { ErrorDelAspecto, PropsDelLugar, TonoDelCatalogo } from '../aspecto'
 
 // Lo que cada inspector de pieza recibe: el editor y sus ediciones, los niveles y los colores para elegir, y «+ Nuevo nivel» y «+ Nuevo color» (nulos sin permiso).
 export type ApoyoDelInspector = {
@@ -63,4 +65,28 @@ export function errorDelBloque(
   return lugar.seccionId === donde.seccion && lugar.nodo === donde.nodo
     ? { bloque: lugar.bloque, mensaje: rechazo.mensaje }
     : null
+}
+
+// Lo que piden «Columna», «Fila», «Ancho» y «Alto» de una pieza (`CamposDelLugar`): el diseño de trabajo, cómo se nombran las piezas en los motivos, y
+// mover y cambiar el tamaño sin tocar a las vecinas.
+export function lugarEnElInspector(
+  { editor, ediciones }: ApoyoDelInspector,
+  pieza: PiezaDeLaHoja,
+  base: string,
+  error: ErrorDelAspecto,
+): PropsDelLugar {
+  return {
+    base,
+    pieza,
+    error,
+    diseno: editor.trabajo,
+    nombrar: nombrarEnLaHoja(editor.trabajo, editor.nombresDeNodos),
+    ocupado: editor.ocupado,
+    alMover: (posicion) => {
+      ediciones.ponerLugar(pieza, posicion)
+    },
+    alCambiarTamano: (pedido) => {
+      ediciones.ponerTamano(pieza, pedido)
+    },
+  }
 }

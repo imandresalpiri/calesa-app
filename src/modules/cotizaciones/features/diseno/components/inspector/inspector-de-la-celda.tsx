@@ -7,10 +7,10 @@ import {
   type SeccionDeDiseno,
 } from '../../../../entities/diseno'
 import { celdaAdmiteNivel } from '../../../../entities/diseno/admite-nivel'
-import { columnasDeLaCelda } from '../../../../entities/rejilla-de-la-hoja'
-import { CamposDelAspectoDelItem, errorDe, SelectorDeColumnas } from '../aspecto'
+import { piezaDelItemDeLaHoja } from '../../../../entities/diseno/pieza-de-la-hoja'
+import { CamposDelAspectoDelItem, CamposDelLugar } from '../aspecto'
 import { SelectorDeNivel } from '../selector-de-nivel'
-import { errorDelAspecto, type ApoyoDelInspector } from './apoyo-del-inspector'
+import { errorDelAspecto, lugarEnElInspector, type ApoyoDelInspector } from './apoyo-del-inspector'
 import { AyudaDeLaCelda } from './ayuda'
 import { CamposDelNodo } from './campos-del-nodo'
 
@@ -57,7 +57,8 @@ function NivelesDeLaCelda({ seccion, celda, apoyo }: Props) {
   )
 }
 
-// La celda elegida: el rótulo y el formato de su fila, su ancho (también con el borde de la pieza o Alt+Shift+←/→), sus niveles, su ayuda y su aspecto.
+// La celda elegida: el rótulo y el formato de su fila, su lugar en la rejilla (también con el arrastre, los bordes de la pieza y Alt+flechas), sus niveles, su
+// ayuda y su aspecto.
 export function InspectorDeLaCelda({ seccion, celda, apoyo }: Props) {
   const { editor, ediciones } = apoyo
   const clave: ClaveDePieza = { tipo: 'celda', nodo: celda.nodo, seccion: seccion.id }
@@ -80,23 +81,14 @@ export function InspectorDeLaCelda({ seccion, celda, apoyo }: Props) {
           }}
         />
       )}
-      <SelectorDeColumnas
-        nombre={`${base}-ancho`}
-        etiqueta="Ancho"
-        valor={columnasDeLaCelda(celda.ancho)}
-        ocupado={editor.ocupado}
-        error={errorDe(error, 'ancho')}
-        alCambiar={(columnas) => {
-          if (columnas !== null) ediciones.ponerColumnas(clave, columnas)
-        }}
-      />
+      <CamposDelLugar {...lugarEnElInspector(apoyo, piezaDelItemDeLaHoja(celda), base, error)} />
       <NivelesDeLaCelda seccion={seccion} celda={celda} apoyo={apoyo} />
       <AyudaDeLaCelda seccion={seccion.id} celda={celda} apoyo={apoyo} />
       <CamposDelAspectoDelItem
         base={base}
         item={celda}
+        lugar={null}
         ocupado={editor.ocupado}
-        error={error}
         alPoner={(cambios) => {
           ediciones.ponerAspectoDeItem(clave, cambios)
         }}

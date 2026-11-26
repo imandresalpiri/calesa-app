@@ -5,15 +5,17 @@ import { seccionAdmiteNivel } from '../../../../entities/diseno/admite-nivel'
 import { CamposDelAspectoDeLaSeccion } from '../aspecto'
 import { CamposDeLaSeccion } from '../campos-de-la-seccion'
 import { NuevoColorDeLaSeccion } from '../nuevo-color/nuevo-color-de-la-seccion'
-import { errorDelAspecto, type ApoyoDelInspector } from './apoyo-del-inspector'
+import { errorDelAspecto, lugarEnElInspector, type ApoyoDelInspector } from './apoyo-del-inspector'
 
 type Props = { seccion: SeccionDeDiseno; apoyo: ApoyoDelInspector }
 
-// La sección elegida: su título, dónde va (principal o detrás de «Avanzado»), quién la ve y quién la edita, y su aspecto (ancho, color, alto, relleno…). Sus
+// La sección elegida: su título, dónde va (principal o detrás de «Avanzado»), quién la ve y quién la edita, y su aspecto (su lugar en la rejilla, color, relleno…). Sus
 // piezas se eligen en el lienzo. Con permiso, «+ Nuevo nivel» y, bajo el color, «+ Nuevo color»: lo creado queda elegido.
 export function InspectorDeLaSeccion({ seccion, apoyo }: Props) {
   const { editor, ediciones } = apoyo
   const admite = seccionAdmiteNivel(seccion, editor.nodos)
+  const error = errorDelAspecto(editor, { pieza: 'seccion', seccion: seccion.id })
+  const pieza = { pieza: 'seccion', seccion: seccion.id } as const
   return (
     <div className="grid min-w-0 gap-3">
       <CamposDeLaSeccion
@@ -34,10 +36,11 @@ export function InspectorDeLaSeccion({ seccion, apoyo }: Props) {
       <div data-aspecto-de-la-seccion="">
         <CamposDelAspectoDeLaSeccion
           seccion={seccion}
+          lugar={lugarEnElInspector(apoyo, pieza, `${seccion.id}-aspecto`, error)}
           catalogo={apoyo.catalogo}
           colores={apoyo.colores}
           ocupado={editor.ocupado}
-          error={errorDelAspecto(editor, { pieza: 'seccion', seccion: seccion.id })}
+          error={error}
           alPoner={(cambios) => {
             ediciones.ponerAspectoDeSeccion(seccion.id, cambios)
           }}

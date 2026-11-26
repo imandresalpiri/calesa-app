@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { Diseno } from '../diseno'
-import { disenoDeRejillaDePrueba } from './diseno-de-prueba.soporte'
+import { celda, disenoDe, disenoDeRejillaDePrueba, seccion } from './diseno-de-prueba.soporte'
 import { textoDeLaPieza } from './pieza-de-la-hoja'
 import { opcionesDelLugar, ponerTamano, tamanoQueEntra } from './tamano-en-la-rejilla'
 
 const a = { pieza: 'nodo', nodo: 'a' } as const
 const b = { pieza: 'nodo', nodo: 'b' } as const
 const c = { pieza: 'nodo', nodo: 'c' } as const
+const enComillas = (p: Parameters<typeof textoDeLaPieza>[0]) => `«${textoDeLaPieza(p)}»`
 const extra = { pieza: 'seccion', seccion: 'extra' } as const
 
 const itemDe = (d: Diseno, nodo: string) =>
@@ -57,8 +58,24 @@ describe('el tamaño de una pieza en la rejilla', () => {
     )
   })
 
+  it('ponerTamano: el ancho se topa con la vecina o el borde; en lo que no es celda, 12 quita la clave', () => {
+    const d = disenoDe([seccion('s', [celda('a', { ancho: 6 }), { tipo: 'total', ancho: 4 }])])
+    const total = { pieza: 'total' } as const
+    // «a» va en 1–6 y la tarjeta del total en 7–10: «a» se topa con ella y la tarjeta, con el borde.
+    expect(ponerTamano(d, a, { ancho: 20 }).secciones[0]?.items[0]).toMatchObject({ ancho: 6 })
+    expect(ponerTamano(d, total, { ancho: 12 }).secciones[0]?.items[1]).toMatchObject({ ancho: 6 })
+    const sola = disenoDe([
+      seccion('s', [celda('a', { ancho: 6 }), celda('b'), { tipo: 'total', ancho: 4 }]),
+    ])
+    expect(ponerTamano(sola, a, { ancho: 20 }).secciones[0]?.items[0]).toMatchObject({ ancho: 12 })
+    expect(ponerTamano(sola, total, { ancho: 12 }).secciones[0]?.items[2]).toEqual({
+      tipo: 'total',
+      posicion: { columna: 1, fila: 3 },
+    })
+  })
+
   it('opcionesDelLugar: cada valor con el resto como está, y el que no entra con su motivo', () => {
-    const opciones = opcionesDelLugar(disenoDeRejillaDePrueba(), a, textoDeLaPieza)
+    const opciones = opcionesDelLugar(disenoDeRejillaDePrueba(), a, enComillas)
     const motivos = (xs: { valor: number; motivo: string | null }[] | undefined) =>
       xs?.map((x) => `${String(x.valor)} ${x.motivo ?? 'libre'}`)
     const pisaB = 'se pisa con «b»'
@@ -76,7 +93,7 @@ describe('el tamaño de una pieza en la rejilla', () => {
     ])
     expect(motivos(opciones?.alto)).toEqual(['1 libre', `2 ${pisaC}`, `3 ${pisaC}`, `4 ${pisaC}`])
     expect(
-      opcionesDelLugar(disenoDeRejillaDePrueba(), { pieza: 'cabecera' }, textoDeLaPieza),
+      opcionesDelLugar(disenoDeRejillaDePrueba(), { pieza: 'cabecera' }, enComillas),
     ).toBeNull()
   })
 })

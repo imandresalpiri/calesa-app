@@ -6,8 +6,9 @@ import {
   type ClaveDePieza,
   type ItemDeDiseno,
 } from '../../../../entities/diseno'
+import { piezaDelItemDeLaHoja } from '../../../../entities/diseno/pieza-de-la-hoja'
 import { CamposDelAspectoDelItem } from '../aspecto'
-import { errorDelAspecto, type ApoyoDelInspector } from './apoyo-del-inspector'
+import { errorDelAspecto, lugarEnElInspector, type ApoyoDelInspector } from './apoyo-del-inspector'
 
 type Efecto = (typeof EFECTOS_DE_INTERRUPTOR)[number]
 
@@ -27,6 +28,7 @@ export function InspectorDelInterruptor({ seccion, item, apoyo }: Props) {
   const { editor, ediciones } = apoyo
   const clave: ClaveDePieza = { tipo: 'interruptor', nodo: item.nodo, seccion }
   const base = `${seccion}__${item.nodo}`
+  const error = errorDelAspecto(editor, { pieza: 'item', clave })
   return (
     <div className="grid min-w-0 gap-3">
       <CampoSeleccion
@@ -46,8 +48,8 @@ export function InspectorDelInterruptor({ seccion, item, apoyo }: Props) {
       <CamposDelAspectoDelItem
         base={base}
         item={item}
+        lugar={lugarEnElInspector(apoyo, piezaDelItemDeLaHoja(item), base, error)}
         ocupado={editor.ocupado}
-        error={errorDelAspecto(editor, { pieza: 'item', clave })}
         alPoner={(cambios) => {
           ediciones.ponerAspectoDeItem(clave, cambios)
         }}
