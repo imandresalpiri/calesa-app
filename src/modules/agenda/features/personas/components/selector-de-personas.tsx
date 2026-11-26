@@ -19,8 +19,6 @@ type Props = {
   alCambiar: (personas: PersonaElegida[]) => void
   leer: (texto: string) => Promise<Resultado<PersonasEncontradas>>
   error?: string
-  // El campo recibe el foco al montarse (cuando aparece porque la persona cambió de opción).
-  enfocar?: boolean
 }
 
 // Elegir personas buscándolas por nombre (desde 3 letras): los resultados son botones y las elegidas, una lista con «Quitar a …». Cada estado de
@@ -33,7 +31,6 @@ export function SelectorDePersonas({
   alCambiar,
   leer,
   error,
-  enfocar = false,
 }: Props) {
   const id = useId()
   const { texto, setTexto, estado, reintentar } = useBusquedaDePersonas(leer)
@@ -59,7 +56,6 @@ export function SelectorDePersonas({
             id={`${id}-buscar`}
             type="search"
             autoComplete="off"
-            autoFocus={enfocar}
             placeholder="Busca por nombre"
             value={texto}
             aria-invalid={error ? true : undefined}

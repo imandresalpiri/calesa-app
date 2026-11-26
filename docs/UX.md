@@ -508,7 +508,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   vista con lo que pasa en cada una (eventos, tareas con vencimiento, recordatorios, cierres de subasta), «Antes de las 08:00» y «Desde las 20:00» sólo si traen algo,
   y la hora actual marcada «Ahora» (borde de acento y texto). Al costado (debajo en el celular, y debajo de semana y mes), los **pendientes** de quien mira:
   «Vencidas», «Recordatorios» (vencidos o de hoy) y «Sin fecha», cada uno con «Completar» en un toque (toast con «Deshacer») y «Ver más». A la vista: «‹ Hoy ›», la
-  fecha, «Ir a una fecha», Día/Semana/Mes y un solo **«Nuevo»** (tecla `N`), que abre el modal «Nuevo» de la barra filtrado a Evento, Tarea y Recordatorio
+  fecha, «Ir a una fecha» (el campo del día y «Ir», en línea, sin desplegar nada), Día/Semana/Mes y un solo **«Nuevo»** (tecla `N`), que abre el modal «Nuevo» de la barra filtrado a Evento, Tarea y Recordatorio
   (`?panel=nuevo-en-la-agenda`) sin salir de la vista y la fecha. «Vista y opciones» lleva «Qué agenda ver» (Mi agenda | De todos, sólo con `agenda.ver_todo`) y
   «Qué ver» (las clases). Paneles por URL (drawer) como siempre; el formulario del evento suma «Lead (opcional)» con `leads.ver`.
 - **Chat** — `/chat` (`chat.participar`; `?c=<conversación>`, `?panel=nueva|grupo|salir|borrar-mensaje&mensaje=<id>`; estados en «Chat
@@ -866,22 +866,24 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 
 ### Agenda (estados propios)
 
-| Estado                       | Qué se ve                                                                                                                                                              |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cargando                     | Esqueleto de la barra, las filas de la hoja y la columna; los pendientes con su propio esqueleto (la hoja no los espera). «Ver más» dice «Cargando…» y queda apagado.  |
-| Día vacío                    | Las 12 horas y arriba «Nada agendado hoy.» (otro día: «Nada agendado este día.») con «Nuevo». Si «Qué ver» excluye lo que hay: «Nada de lo que elegiste ver este día.» |
-| Semana o mes vacío           | «Nada agendado en este rango.» con qué cambiar.                                                                                                                        |
-| Sin pendientes               | «Nada pendiente.» · «Lo vencido y lo que no tiene fecha aparece aquí.» Un grupo vacío no se dibuja.                                                                    |
-| Tope de 200 por clase        | `<AvisoDeTope>`: en semana y mes, «Mira un día o quita clases en «Vista y opciones».» con «Ver el día»; en el día, quitar clases (o «Mi agenda» con «De todos»).       |
-| Tope de pendientes           | «Mostrando los 500 más antiguos.» («las 500 más recientes» en «Sin fecha»).                                                                                            |
-| Error del día                | La pantalla de error con «Reintentar».                                                                                                                                 |
-| Error de pendientes          | En la columna, «No pudimos leer tus pendientes» con «Reintentar»; la hoja sigue. «Ver más» que falla: el motivo y «Reintentar», sin perder lo cargado.                 |
-| Sin permiso para crear       | «Nuevo» siempre está: Evento y Tarea no piden permiso; Recordatorio sólo con `leads.editar`. Sin `leads.ver`, el evento no ofrece «Lead (opcional)».                   |
-| Sin `agenda.ver_todo`        | No existe «Qué agenda ver»; `?de=todos` se ignora. Con «De todos», los pendientes siguen siendo «Los tuyos.».                                                          |
-| Lead que no se ve al guardar | Junto al campo: «No encontramos este lead o no tienes acceso.»                                                                                                         |
-| Conflicto `PT409`            | Los paneles con su aviso y «Recargar»; «Completar», el toast de conflicto con «Recargar».                                                                              |
-| Sin red                      | «Vista y opciones» apagado; «Completar» avisa que no llegó; «Ver más» con «Reintentar».                                                                                |
-| Texto al 200 %               | La columna pasa debajo (consulta de contenedor en rem), la hora en `minmax(0,4.5rem)`, chips con `break-words` y barras con `flex-wrap`: nada ensancha la página.      |
+| Estado                       | Qué se ve                                                                                                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cargando                     | Esqueleto de la barra, las filas de la hoja y la columna; los pendientes con su propio esqueleto (la hoja no los espera). «Ver más» dice «Cargando…» y queda apagado.                                                          |
+| Día vacío                    | Las 12 horas y arriba «Nada agendado hoy.» (otro día: «Nada agendado este día.») con «Nuevo». Si «Qué ver» excluye lo que hay: «Nada de lo que elegiste ver este día.»                                                         |
+| Semana o mes vacío           | «Nada agendado en este rango.» con qué cambiar.                                                                                                                                                                                |
+| Sin pendientes               | «Nada pendiente.» · «Lo vencido y lo que no tiene fecha aparece aquí.» Un grupo vacío no se dibuja.                                                                                                                            |
+| Tope de 200 por clase        | `<AvisoDeTope>`: en semana y mes, «Mira un día o quita clases en «Vista y opciones».» con «Ver el día»; en el día, quitar clases (o «Mi agenda» con «De todos»).                                                               |
+| Tope de pendientes           | «Mostrando los 500 más antiguos.» («las 500 más recientes» en «Sin fecha»).                                                                                                                                                    |
+| Error del día                | La pantalla de error con «Reintentar».                                                                                                                                                                                         |
+| Error de pendientes          | En la columna, «No pudimos leer tus pendientes» con «Reintentar»; la hoja sigue. «Ver más» que falla: el motivo y «Reintentar», sin perder lo cargado.                                                                         |
+| Sin permiso para crear       | «Nuevo» siempre está: Evento y Tarea no piden permiso; Recordatorio sólo con `leads.editar`. Sin `leads.ver`, el evento no ofrece «Lead (opcional)».                                                                           |
+| Sin `agenda.ver_todo`        | No existe «Qué agenda ver»; `?de=todos` se ignora. Con «De todos», los pendientes siguen siendo «Los tuyos.».                                                                                                                  |
+| Lead que no se ve al guardar | Junto al campo: «No encontramos este lead o no tienes acceso.»                                                                                                                                                                 |
+| Formulario del evento        | Todos los campos a la vista, en un solo nivel: título, empieza, termina, «Lead (opcional)», quién lo ve, «Lugar (opcional)» y «Descripción (opcional)».                                                                        |
+| Cambiar de responsable       | En el panel de la tarea, sólo para quien puede reasignarla: una sección a la vista («Cambiar de responsable») con el selector y «Reasignar», apagado sin persona elegida o en curso; el error de la base va junto al selector. |
+| Conflicto `PT409`            | Los paneles con su aviso y «Recargar»; «Completar», el toast de conflicto con «Recargar».                                                                                                                                      |
+| Sin red                      | «Vista y opciones» apagado; «Completar» avisa que no llegó; «Ver más» con «Reintentar».                                                                                                                                        |
+| Texto al 200 %               | La columna pasa debajo (consulta de contenedor en rem), la hora en `minmax(0,4.5rem)`, chips con `break-words` y barras con `flex-wrap`: nada ensancha la página.                                                              |
 
 ### Chat (estados propios)
 
