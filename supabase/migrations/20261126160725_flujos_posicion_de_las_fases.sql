@@ -85,12 +85,14 @@ begin
   -- Cada elemento: {fase, x, y} sin otras claves, la fase un uuid y la posición completa o nula.
   v_mal := exists (
     select 1 from jsonb_array_elements(p_posiciones) e(v)
-    where jsonb_typeof(e.v) <> 'object'
-       or not (e.v ? 'fase' and e.v ? 'x' and e.v ? 'y')
-       or exists (select 1 from jsonb_object_keys(e.v) k where k not in ('fase', 'x', 'y'))
-       or jsonb_typeof(e.v -> 'fase') <> 'string'
-       or (e.v ->> 'fase') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-       or not public._fase_posicion_bien(e.v -> 'x', e.v -> 'y', true));
+    -- `case`: el orden de un `or` no está garantizado, y `jsonb_object_keys` de algo que no es un objeto falla.
+    where case when jsonb_typeof(e.v) <> 'object' then true
+               else not (e.v ? 'fase' and e.v ? 'x' and e.v ? 'y')
+                 or exists (select 1 from jsonb_object_keys(e.v) k where k not in ('fase', 'x', 'y'))
+                 or jsonb_typeof(e.v -> 'fase') <> 'string'
+                 or (e.v ->> 'fase') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+                 or not public._fase_posicion_bien(e.v -> 'x', e.v -> 'y', true)
+          end);
   if v_mal then
     raise exception 'Una posición no es válida.' using errcode = '22023', hint = 'posiciones';
   end if;
@@ -147,9 +149,11 @@ begin
   if jsonb_typeof(p_datos) = 'object' and p_datos ? 'posicion' then
     v_pos := p_datos -> 'posicion';
     p_datos := p_datos - 'posicion';
-    v_pos_bien := jsonb_typeof(v_pos) = 'object'
-      and not exists (select 1 from jsonb_object_keys(v_pos) k where k not in ('x', 'y'))
-      and public._fase_posicion_bien(v_pos -> 'x', v_pos -> 'y', false);
+    -- `case`: el orden de un `and` no está garantizado, y `jsonb_object_keys` de algo que no es un objeto falla.
+    v_pos_bien := case when jsonb_typeof(v_pos) <> 'object' then false
+                       else not exists (select 1 from jsonb_object_keys(v_pos) k where k not in ('x', 'y'))
+                         and public._fase_posicion_bien(v_pos -> 'x', v_pos -> 'y', false)
+                  end;
     if not v_pos_bien then
       raise exception 'La posición no es válida.' using errcode = '22023', hint = 'posicion';
     end if;
