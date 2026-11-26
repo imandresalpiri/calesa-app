@@ -28,7 +28,8 @@ type Props = {
   puedeCrear: boolean
 }
 
-const BOTON = 'h-11 md:h-8'
+// En el celular al 200 % el texto se parte en renglones (el botón crece) en vez de pasar el ancho del drawer.
+const BOTON = 'h-auto min-h-11 max-w-full whitespace-normal md:h-8 md:min-h-0 md:whitespace-nowrap'
 const ID_DEL_MOTIVO = 'tipos-de-documento-motivo'
 
 // El drawer «Tipos de documento» (`?panel=tipos-de-documento`): un solo «Nuevo tipo de documento» arriba (abre el modal que monta el editor del flujo:
@@ -50,7 +51,7 @@ export function TiposDeDocumento({ vistas, origen, puedeCrear }: Props) {
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
       <NuevoTipoArriba puedeCrear={puedeCrear} alCrear={abrirNuevo} />
       {vacio ? (
         <p className="rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-4 text-(--color-ink-soft)">
@@ -109,7 +110,7 @@ export function TiposDeDocumento({ vistas, origen, puedeCrear }: Props) {
 // Arriba de los grupos: un solo «Nuevo tipo de documento» y, si quien mira no puede crear en ninguno, el motivo.
 function NuevoTipoArriba({ puedeCrear, alCrear }: { puedeCrear: boolean; alCrear: () => void }) {
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <Button
           className={BOTON}
