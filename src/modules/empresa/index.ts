@@ -36,6 +36,13 @@ export { leerEnlacesDeAyuda, leerMisEnlacesDeAyuda } from './composicion'
 export { integracionActiva, leerIntegraciones, leerVehiculosQueCambian } from './composicion'
 export type { ClaveIntegracion } from './entities/integraciones'
 
+// El asistente de IA (docs/GLOSARIO.md): redactar con la clave guardada (quien llama comprueba antes el acceso a lo que se redacta), los usos
+// del mes y lo que necesita el panel de compartir
+export { atajosDelAsistente, leerUsosDelAsistente, redactarConElAsistente } from './composicion'
+export type { PedidoAlAsistente } from './entities/repositorios'
+export type { AsistenteParaCompartir } from './entities/asistente-ia/config'
+export type { UsosDelMes } from './entities/asistente-ia/usos'
+
 // El tope de lo que pesa un logo en Storage (1 MB): el PDF de una cotización no baja uno más pesado (4.18-3a)
 export { PESO_MAXIMO_LOGO } from './entities/marca'
 

@@ -2,6 +2,7 @@
 // vive en `integraciones.config` de la fila `asistente_ia`; la clave, en Vault, y de ella la fila guarda sólo los últimos 4
 // (`clave_termina_en`, que escribe únicamente `integracion_guardar_secreto`). Los topes son los mismos que exige `integracion_guardar`.
 import { z } from 'zod'
+import type { Integracion } from '../integraciones'
 
 export const LARGO_MAXIMO_PROMPT_BASE = 4000
 // El tope es de diseño: el modal dibuja todas las filas sin virtualizar.
@@ -154,4 +155,22 @@ export function atajosActivos(config: Pick<ConfigDelAsistente, 'atajos'>): Atajo
 // Espejo de `_asistente_ia_origen()`: un `URL.origin` quitaría el `:443` y diría «igual» donde la base dice «otro».
 export function origenDeLaDireccion(direccion: string): string | null {
   return /^[A-Za-z]+:\/\/[^/]+/.exec(direccion.trim())?.[0].toLowerCase() ?? null
+}
+
+export type AsistenteParaCompartir = {
+  // Encendido, con clave y con una configuración legible: se puede pedir un texto.
+  configurado: boolean
+  atajos: { id: string; nombre: string }[]
+}
+
+// Lo que necesita el panel de compartir para ofrecer el asistente: si se puede usar y los atajos activos, en su orden.
+export function asistenteParaCompartir(
+  integracion: Pick<Integracion, 'activa' | 'config' | 'secretoGuardadoEn'> | undefined,
+): AsistenteParaCompartir {
+  const config = integracion ? leerConfigDelAsistente(integracion.config) : null
+  if (!integracion || !config) return { configurado: false, atajos: [] }
+  return {
+    configurado: integracion.activa && integracion.secretoGuardadoEn !== null,
+    atajos: atajosActivos(config).map(({ id, nombre }) => ({ id, nombre })),
+  }
 }

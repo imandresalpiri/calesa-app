@@ -9,7 +9,7 @@ paths:
 - Lecturas en `infra/queries/*.ts` con `import 'server-only'`; realtime y fetch del browser en
   `infra/*.client.ts` (`@/shared/lib/supabase/browser`). Nunca desde componentes.
 - El cliente de servidor se crea por request (`createClient()` de `@/shared/lib/supabase/server`).
-- El cliente admin (secret key) salta la RLS: sólo en los tres archivos de abajo (los webhooks y los crons
+- El cliente admin (secret key) salta la RLS: sólo en los cuatro archivos de abajo (los webhooks y los crons
   se suman cuando existan). Las RPC del portal: `src/modules/web/infra/portal/rpc.ts`, que no comprueba un
   permiso de persona porque el portal no tiene sesión de Supabase (la puerta es la cookie firmada y
   `_portal_vigente` en la base), sólo llama `web.portal_*` y firma URLs de 60 s del bucket `documentos`, y
@@ -18,7 +18,12 @@ paths:
   sólo `auth.admin` (`CuentasInvitadas`) y no asigna el rol. Probar la revalidación de la web pública:
   `probarRevalidacion()` de `src/modules/empresa/infra/revalidacion-prueba.ts`, que comprueba
   `empresa.ajustes.gestionar` con el cliente de quien prueba y valida la dirección guardada antes de crear
-  el admin, y con él sólo llama `integracion_secreto('web_publica')`. El lint prohíbe importar
+  el admin, y con él sólo llama `integracion_secreto('web_publica')`. El asistente de IA:
+  `redactarConElAsistente()` y `probarElAsistente()` de `src/modules/empresa/infra/asistente-ia/proveedor.ts`, que
+  comprueban la sesión (y, al probar, `empresa.ajustes.gestionar`), leen la fila `asistente_ia` con el cliente de quien
+  pide (encendida, con clave y con una dirección que pasa `esDireccionDeRevalidacion()`) y arman el pedido antes de
+  crear el admin, con él sólo llaman `integracion_secreto('asistente_ia')` y cuentan el uso con el cliente de quien
+  pide; el acceso a lo que se redacta lo comprueba la action que llama, antes. El lint prohíbe importar
   `@/shared/lib/supabase/admin` desde otro archivo. Nunca lee `leads`, `vehiculos` ni `cotizaciones`.
 - Los tipos salen de `@/shared/types/database.types`.
 - Leads: se leen de `leads_vista`, nunca `from('leads')` para el teléfono. «Míos» de quien tiene

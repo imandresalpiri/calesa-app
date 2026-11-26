@@ -10,6 +10,7 @@ import {
   PREAJUSTES_DEL_ASISTENTE,
   PROMPT_BASE_POR_DEFECTO,
   TOPE_DE_ATAJOS,
+  asistenteParaCompartir,
   atajosActivos,
   configDelAsistente,
   leerConfigDelAsistente,
@@ -132,5 +133,26 @@ describe('origenDeLaDireccion', () => {
 
   it('sin esquema no hay origen', () => {
     expect(origenDeLaDireccion('api.deepseek.com')).toBeNull()
+  })
+})
+
+describe('asistenteParaCompartir', () => {
+  const fila = { activa: true, config: guardada, secretoGuardadoEn: '2026-11-26T12:00:00+00:00' }
+
+  it('encendido y con clave se puede usar, con los atajos activos', () => {
+    expect(asistenteParaCompartir(fila)).toEqual({
+      configurado: true,
+      atajos: [{ id: 'a5157e00-0000-4000-8000-000000000001', nombre: 'Para WhatsApp' }],
+    })
+  })
+
+  it('apagado, sin clave, sin la fila o con una configuración ilegible no se puede usar', () => {
+    expect(asistenteParaCompartir({ ...fila, activa: false }).configurado).toBe(false)
+    expect(asistenteParaCompartir({ ...fila, secretoGuardadoEn: null }).configurado).toBe(false)
+    expect(asistenteParaCompartir(undefined)).toEqual({ configurado: false, atajos: [] })
+    expect(asistenteParaCompartir({ ...fila, config: {} })).toEqual({
+      configurado: false,
+      atajos: [],
+    })
   })
 })

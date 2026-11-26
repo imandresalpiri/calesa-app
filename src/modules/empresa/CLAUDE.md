@@ -18,6 +18,10 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
     `entities/marca.ts`): el PDF no baja un logo más pesado.
   - `getPoliticaDeLimpieza()` (sin poder leerla, apagada), `getTiposCambio()` (vigentes, el por defecto adelante; vacía si falla),
     `integracionActiva('apibara')` (si la base no responde, no).
+  - Asistente de IA: `atajosDelAsistente()` (`{configurado, atajos}`: encendido, con clave y legible, y los atajos activos como `{id, nombre}`, para
+    el panel de compartir de `cotizaciones`), `redactarConElAsistente(pedido)` (generar con un atajo o reescribir con una instrucción; quien llama
+    comprueba antes el acceso a lo que se redacta) y `leerUsosDelAsistente()` (`asistente_ia_usos_del_mes()`: hasta 5 personas a la vista y el
+    resto acotado; con la RLS, quien gestiona ve a todos). Tipos `PedidoAlAsistente`, `AsistenteParaCompartir`, `UsosDelMes`.
   - Pantalla: `leerMonedasYTiposCambio()`, `leerHistorial()`, `leerUltimosCambios()` (el último cambio de cada tipo por `tipos_cambio_vigentes()`, con tope; sin él la tarjeta cae a su fecha), `leerIntegraciones()`, `leerVehiculosQueCambian()` (conteo acotado de
     `web_publica_vehiculos_que_cambian()`, sólo con `empresa.ajustes.gestionar`), `zonasHorarias()`. Íconos: `iconosDelManifest()`, `urlDeIcono()`,
     `claveDeIconoVigente()` (para `app/manifest.ts` y `app/iconos/vigente/[tamano]`).
@@ -37,7 +41,9 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
   `composicion-ayuda.client.ts`: trae supabase-js y no viaja en el marco), `armarMisEnlaces()`, `type EnlaceDeAyudaDelMenu` y las constantes de
   `?panel=` adonde manda (`PANEL_DE_ENLACES_DE_AYUDA`, `PANEL_NUEVO_ENLACE_PROPIO`).
 - `client.ts`: `guardarTipoCambio` y `EntradaDeGuardarTipoCambio`, para el ⚙ de un tipo de cambio de la hoja (`cotizaciones`); la action exige
-  `empresa.tipos_cambio.gestionar` en el servidor.
+  `empresa.tipos_cambio.gestionar` en el servidor. Del asistente de IA, para el panel de compartir: sus topes
+  (`LARGO_MAXIMO_INSTRUCCION_DEL_ASISTENTE`, `LARGO_MAXIMO_TEXTO_DEL_ASISTENTE`) y la acción de un error con `causa`
+  (`accionDelAsistente()`, `esCausaDelAsistente()`, `ACCIONES_DEL_ASISTENTE`).
 - Depende de ningún otro módulo.
 
 ## Archivos clave
@@ -50,7 +56,11 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
   `infra/tipos-cambio-vigentes.client.ts` (el popover de la barra, por `composicion-barra.client.ts`: sólo lo pide su contenido diferido);
   `infra/apibara.client.ts` (`consultarUso()` por `invocarFuncion()`). `infra/revalidacion-prueba.ts`, **excepción del cliente admin**:
   `probarRevalidacion()` comprueba el permiso y valida la dirección guardada antes de crear el admin, que sólo llama
-  `integracion_secreto('web_publica')`. `composicion.ts` / `composicion.client.ts`.
+  `integracion_secreto('web_publica')`. `infra/asistente-ia/proveedor.ts`, **la otra excepción del cliente admin**: `redactarConElAsistente()`
+  y `probarElAsistente()` comprueban la sesión (al probar, `empresa.ajustes.gestionar`), leen la fila con el cliente de quien pide (`lectura.ts`),
+  validan la dirección y arman el pedido antes de crear el admin, que sólo llama `integracion_secreto('asistente_ia')`; el uso se cuenta con el
+  cliente de quien pide. `http.ts` hace el `POST` (sin redirecciones, 20 s, sin caché) y nunca loguea la clave ni el cuerpo.
+  `composicion.ts` / `composicion.client.ts`.
 - `features/empresa/` (`guardar-con-logo.ts`: commit diferido contra puertos), `features/iconos/`, `features/integraciones/` (apibara, web pública,
   avisos push: tarjetas con su estado y un modal por escritura: `?panel=apibara|clave-apibara|web-publica|secreto-web-publica`, cada uno con
   `useEnvioConVersion()`; los textos del secreto en `entities/textos-del-secreto.ts`), `features/tipos-cambio/` (`<AvisoDeTope>` con más de 30 cambios; `components/popover-de-la-barra/`, el contenido diferido del popover

@@ -12,7 +12,7 @@ const sinComentarios = (texto: string) =>
     .join('\n')
 
 describe('empresa/client.ts', () => {
-  it('exporta la action del tipo de cambio y el tipo de su entrada, y nada más', () => {
+  it('exporta la action del tipo de cambio y su entrada, y lo del asistente para el panel de compartir, y nada más', () => {
     const exports = [
       ...sinComentarios(leer('client.ts')).matchAll(/export\s+(type\s+)?\{([^}]*)\}/g),
     ]
@@ -20,7 +20,16 @@ describe('empresa/client.ts', () => {
       .map((nombre) => nombre.trim())
       .filter(Boolean)
       .sort()
-    expect(exports).toEqual(['EntradaDeGuardarTipoCambio', 'guardarTipoCambio'])
+    expect(exports).toEqual([
+      'ACCIONES_DEL_ASISTENTE',
+      'EntradaDeGuardarTipoCambio',
+      'LARGO_MAXIMO_INSTRUCCION as LARGO_MAXIMO_INSTRUCCION_DEL_ASISTENTE',
+      'LARGO_MAXIMO_TEXTO as LARGO_MAXIMO_TEXTO_DEL_ASISTENTE',
+      'accionDelAsistente',
+      'esCausaDelAsistente',
+      'guardarTipoCambio',
+      'type CausaDelAsistente',
+    ])
   })
 
   it('la action sale de un archivo `use server` y el tipo, de los esquemas de la feature', () => {
