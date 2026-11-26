@@ -19,6 +19,7 @@ const fila = (extra: Record<string, unknown> = {}) => ({
   total: ENORME,
   creado_en: '2026-11-12T10:00:00+00:00',
   aceptada_en: null,
+  actualizado_en: '2026-11-12T10:00:00+00:00',
   ...extra,
 })
 

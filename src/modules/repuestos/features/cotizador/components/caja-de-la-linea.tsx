@@ -8,7 +8,8 @@ type Props = {
   valor: string | null
   cajas: readonly string[]
   moneda: string
-  error: string | undefined
+  // La línea tiene un error en la caja: lo dice el renglón de la línea, y acá se marca el campo.
+  invalida: boolean
   deshabilitada: boolean
   alCambiar: (id: string, campo: 'caja', valor: string | null) => void
 }
@@ -23,12 +24,11 @@ export function CajaDeLaLinea({
   valor,
   cajas,
   moneda,
-  error,
+  invalida,
   deshabilitada,
   alCambiar,
 }: Props) {
   const nombre = `${lineaId}-caja`
-  const idError = `${nombre}-error`
   const conocida = valor === null || valor === SIN_CAJA || cajas.includes(valor)
   const elegida = valor !== null && valor !== SIN_CAJA
   return (
@@ -40,8 +40,7 @@ export function CajaDeLaLinea({
         id={nombre}
         value={valor ?? SIN_ELEGIR}
         disabled={deshabilitada}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? idError : undefined}
+        aria-invalid={invalida ? true : undefined}
         className="h-11 w-full min-w-0 rounded-lg border border-(--color-line-strong) bg-(--color-surface) px-2 text-(--color-ink) outline-none focus-visible:shadow-(--shadow-focus) disabled:opacity-50 aria-invalid:border-(--color-peligro) md:h-9"
         onChange={(evento) => {
           alCambiar(
@@ -60,12 +59,9 @@ export function CajaDeLaLinea({
         ))}
         {conocida ? null : <option value={valor}>Caja guardada</option>}
       </select>
-      {elegida ? <Monto valor={Number(valor)} moneda={moneda} /> : null}
-      {error ? (
-        <p id={idError} className="text-(--color-peligro-ink)">
-          {error}
-        </p>
-      ) : null}
+      <span className="min-h-5">
+        {elegida ? <Monto valor={Number(valor)} moneda={moneda} /> : null}
+      </span>
     </div>
   )
 }

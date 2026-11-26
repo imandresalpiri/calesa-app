@@ -29,3 +29,15 @@ export const CotizacionesDelProyectoDiferido = diferido(
   () => import('./cotizaciones-del-proyecto').then((modulo) => modulo.CotizacionesDelProyecto),
   { aviso: 'aqui', esqueleto: <EsqueletoDelPanel /> },
 )
+
+// Las confirmaciones de «Aceptar» y «Anular» (`?panel=aceptar-cotizacion|anular-cotizacion`) se piden recién al abrirse, en la hoja y en la lista. Se montan
+// con `useAbiertoAlgunaVez()`.
+export const ConfirmarAceptarDiferido = diferido(
+  () => import('./confirmar-aceptar').then((modulo) => modulo.ConfirmarAceptar),
+  { aviso: 'pantalla' },
+)
+
+export const ConfirmarAnularDiferido = diferido(
+  () => import('./confirmar-anular').then((modulo) => modulo.ConfirmarAnular),
+  { aviso: 'pantalla' },
+)

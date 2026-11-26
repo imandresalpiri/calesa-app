@@ -590,8 +590,8 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `repuestos_tramos_logistica_moneda_idx` y las cajas por `repuestos_cajas_moneda_monto_key`, tope 200 + 1 cada una, con `<AvisoDeTope>`.
   Los modales se piden al abrirse (`diferido()`).
 - Cotizaciones de un proyecto (`/repuestos/[id]`, «Cotizaciones»): `limit 51` por `repuestos_cotizaciones_proyecto_id_idx`, tope 50 con
-  `<AvisoDeTope>`, sólo con la pestaña abierta; la hoja lee la cotización por PK (`limit 1`) y sus líneas por
-  `repuestos_cotizaciones_lineas_cotizacion_id_idx` (tope 200 de la base). En borrador lee además los ítems del proyecto (`limit 201`, tope
+  `<AvisoDeTope>`, sólo con la pestaña abierta (el «⋯» de cada tarjeta no lee nada: sus acciones salen de la fila y de los permisos de la página; las confirmaciones, con `diferido()`); la hoja lee la cotización por PK (`limit 1`) y sus líneas por
+  `repuestos_cotizaciones_lineas_cotizacion_id_idx` (tope 200 de la base) y, sólo con `lead_id` y `leads.ver`, una fila de `leads_vista` por PK para el cliente del proyecto. En borrador lee además los ítems del proyecto (`limit 201`, tope
   200 por `armarHoja`); el total en vivo es O(líneas) ≤ 200 por cambio, con líneas y `XCell` en `memo` y callbacks estables.
 
 ## Tablero: métricas
