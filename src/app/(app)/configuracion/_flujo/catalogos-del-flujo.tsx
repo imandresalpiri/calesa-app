@@ -62,7 +62,7 @@ type Props = {
 
 // Los catálogos arriba del diagrama: un botón por catálogo y **un** `<Drawer>` siempre montado (así se desliza) que muestra el de `?panel=`. Puertos,
 // navieras y categorías se leen en el cliente al abrir (`shallow`); los tipos van al servidor. Abrir uno cierra la fase o la sección abierta; cerrar quita
-// todas las claves del drawer. Un `?panel=` de un catálogo que esta pantalla no tiene, o de un modal viejo de los tipos, se limpia. «Nuevo tipo de
+// todas las claves del drawer. Un `?panel=` de un catálogo que esta pantalla no tiene, o de un modal viejo de los tipos, se limpia (sólo `panel`). «Nuevo tipo de
 // documento» se monta aquí una vez (lo abre también un requisito de documento), la primera vez que la URL lo pide.
 export function CatalogosDelFlujo({ disponibles, origen, puedeCambiar, quien, children }: Props) {
   const [url, escribir] = useQueryStates(PARAMETROS)
@@ -75,7 +75,8 @@ export function CatalogosDelFlujo({ disponibles, origen, puedeCambiar, quien, ch
 
   useEffect(() => {
     if (que === 'limpiar') {
-      void escribir(SIN_EL_DRAWER, { history: 'replace', scroll: false })
+      // Sólo `panel`: otra `?accion=` abierta (un tipo pedido desde un requisito) sigue.
+      void escribir({ [CLAVE_DEL_PANEL]: null }, { history: 'replace', scroll: false })
     }
   }, [que, escribir])
 
