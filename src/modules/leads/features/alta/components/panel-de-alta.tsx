@@ -10,7 +10,6 @@ import {
   CLAVE_DEL_ALTA,
   campoDelAlta,
   camposDelAlta,
-  resumenDePrecargados,
   type ContextoDeAlta,
 } from '../../../entities/alta'
 import type { CampoDeLead } from '../../../entities/campo'
@@ -148,8 +147,8 @@ function DatosFijos({ alta, contexto, alElegir }: Pick<Props, 'alta' | 'contexto
   )
 }
 
-// El paso de los datos: los fijos, los campos requeridos del layout (también los propios) y, plegado
-// en «Más datos» con lo precargado a la vista, todo lo demás.
+// El paso de los datos: los fijos, los campos requeridos del layout (también los propios) y, a la vista
+// en «Más datos», todo lo demás.
 function PasoDeDatos({ alta, contexto, campos, alElegir }: Omit<Props, 'id' | 'zona'>) {
   const { principales, masDatos } = camposDelAlta(campos)
   return (
@@ -172,7 +171,6 @@ function PasoDeDatos({ alta, contexto, campos, alElegir }: Omit<Props, 'id' | 'z
       })}
       <BloqueDeCampos
         titulo="Más datos"
-        descripcion={resumenDePrecargados(masDatos, alta.valores)}
         campos={masDatos.map(campoDelAlta)}
         valores={alta.valores}
         errores={alta.errores}
@@ -185,7 +183,7 @@ function PasoDeDatos({ alta, contexto, campos, alElegir }: Omit<Props, 'id' | 'z
 
 // El contenido del drawer: dos pasos en un solo formulario. El de los datos está siempre; el del primer
 // seguimiento (opcional) se monta la primera vez que se abre y desde ahí queda (oculto cuando no se ve):
-// lo escrito y lo plegado no se pierde al ir y volver, y los campos del seguimiento y el editor no se
+// lo escrito no se pierde al ir y volver, y los campos del seguimiento y el editor no se
 // piden hasta entonces.
 export function PanelDeAlta({ id, alta, contexto, campos, zona, alElegir }: Props) {
   const seguimientoAbierto = useAbiertoAlgunaVez(alta.paso === 'seguimiento')

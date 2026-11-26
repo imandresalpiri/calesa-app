@@ -44,7 +44,7 @@ Cada meta la hace cumplir su e2e, en escritorio y celular.
    ajeno no deja seguir. Debajo, cómo quedará y de qué país («Se guardará como +54 91155550000 · Argentina»), sin pedir nada al servidor;
    «País» (en «Más datos») se llena solo mientras esté vacío; lo escrito no se pisa.
 3. Nombre, origen (el último usado, por persona), tipo (el primero activo de la clase prospecto) y los **requeridos** del layout, en su
-   orden; el resto plegado en «Más datos» con su valor por defecto. Volver requerido un campo suma un paso: Configuración lo avisa (desde el
+   orden; el resto a la vista en la sección «Más datos», con su valor por defecto. Volver requerido un campo suma un paso: Configuración lo avisa (desde el
    cuarto, la meta cuesta).
 4. `Ctrl/Cmd+Enter` valida y abre «Primer seguimiento (opcional)» en el mismo drawer, sin guardar; `Ctrl/Cmd+S` o «Guardar lead» guardan
    desde cualquier paso; `Esc` vuelve a los datos. Mismos campos que el redactor de la ficha; se escribe seguimiento sólo si hay algo

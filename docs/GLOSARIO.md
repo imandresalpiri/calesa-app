@@ -253,7 +253,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   lead» o `N`), en una transacción.
 - **Widget** — `WIDGETS_TABLERO` / `widgetsVisibles()`: tarjeta de `/tablero` con su clave, permisos y grupo de RPC; la persona los oculta y
   ordena en «Personalizar» (preferencia `tablero.widgets`). En Inicio se llama «bloque».
-- **Más datos** — `camposDelAlta()` / `<BloqueDeCampos>`: bloque plegado del alta con los campos no requeridos, ya precargados.
+- **Más datos** — `camposDelAlta()` / `<BloqueDeCampos>`: sección a la vista del alta con los campos no requeridos, ya precargados.
 - **Primer seguimiento** — `crear_lead()` (`p_seguimiento`): el que se anota al dar de alta: tipo, resumen y recordatorio opcional.
 - **En cartera** — `leads_vista.en_cartera` (de `leads.cartera`) / `en_cartera()`: el lead está en la cartera de quien mira; da el teléfono
   completo y los privados.

@@ -1,4 +1,4 @@
-// El alta rápida de un lead (docs/UX.md › Flujo 1): qué se pide arriba, qué va plegado en «Más
+// El alta rápida de un lead (docs/UX.md › Flujo 1): qué se pide arriba, qué va en «Más
 // datos», con qué arranca cada dato, y cómo se valida lo escrito. Es lo mismo en el navegador (para
 // avisar antes de enviar) y lo que la base vuelve a comprobar (`crear_lead()`): los mismos motivos
 // con el campo en el mismo lugar. Nada de esto sabe de React ni de Supabase.
@@ -48,8 +48,8 @@ export const claveDeAtributoDeAlta = (clave: string) => `atributos.${clave}`
 
 export const LARGO_MAXIMO_DEL_NOMBRE = 120
 
-// Los campos activos que se piden de entrada (los requeridos, aunque sean propios) y los que quedan
-// plegados, cada grupo en el orden del layout.
+// Los campos activos que se piden de entrada (los requeridos, aunque sean propios) y los que van en
+// «Más datos», cada grupo en el orden del layout.
 export function camposDelAlta(layout: readonly CampoDeLead[]): {
   principales: CampoDeLead[]
   masDatos: CampoDeLead[]
@@ -102,43 +102,6 @@ export function valoresIniciales(
     }
   }
   return valores
-}
-
-// Un valor del formulario como se lee: «Santa Cruz», «Sí», las etiquetas de las opciones.
-function textoDeValor(campo: CampoDeLead, valor: ValoresDeFormulario[string] | undefined): string {
-  if (valor === undefined || valor === null || valor === '') {
-    return ''
-  }
-  if (typeof valor === 'boolean') {
-    return valor ? 'Sí' : 'No'
-  }
-  const etiquetaDe = (clave: string) =>
-    campo.opciones.find((opcion) => opcion.clave === clave)?.etiqueta ?? clave
-  if (Array.isArray(valor)) {
-    return valor.map(etiquetaDe).join(', ')
-  }
-  return campo.tipo === 'opcion' ? etiquetaDe(valor) : valor
-}
-
-const PRECARGADOS_A_LA_VISTA = 3
-
-// El encabezado de «Más datos»: lo que ya viene cargado, para no tener que abrirlo. «Ciudad: Santa
-// Cruz · País: Bolivia». Vacío si no hay nada.
-export function resumenDePrecargados(
-  masDatos: readonly CampoDeLead[],
-  valores: ValoresDeFormulario,
-): string {
-  const cargados = masDatos
-    .map((campo) => ({
-      campo,
-      texto: textoDeValor(campo, valores[claveDeAtributoDeAlta(campo.clave)]),
-    }))
-    .filter(({ texto }) => texto !== '')
-  const visibles = cargados.slice(0, PRECARGADOS_A_LA_VISTA)
-  const resto = cargados.length - visibles.length
-  const partes = visibles.map(({ campo, texto }) => `${campo.etiqueta}: ${texto}`)
-  const frase = partes.join(' · ')
-  return resto > 0 ? `${frase} · y ${String(resto)} más` : frase
 }
 
 // --- Validar lo escrito ------------------------------------------------------------------------------

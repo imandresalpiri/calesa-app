@@ -94,7 +94,6 @@ test('«País» sigue al número, respeta lo que se escribe y vuelve a seguirlo 
   await abrirConN(page)
   const panel = dialogo(page)
   const telefono = panel.getByLabel('Teléfono principal')
-  await panel.getByText('Más datos').click()
   const pais = panel.getByLabel('País', { exact: true })
   await expect(pais).toHaveValue(paisDeLaEmpresa)
 
