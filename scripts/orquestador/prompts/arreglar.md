@@ -36,6 +36,8 @@ Primero entiende el estado: `git log --oneline origin/main..HEAD`, `git status -
   corrida en segundo plano. Si fue un
   choque con main y tu lado sólo cambió docs al resolverlo: sólo `bash scripts/flujo/verificar.sh`, sin e2e. Lo temporal va en `$TMPDIR`, nunca en `/tmp`.
 - **Esperar no es sondear:** lo largo (`verificar.sh`, `e2e-afectados.mjs --correr`, `db:probar`) se lanza con `run_in_background` y se espera su aviso; no leas el log hasta que llegue, no armes bucles de espera ni un Monitor de intervalo, y tras tu `RESULTADO` no rearmes esperas. El hook `PreToolUse` rechaza un Bash en primer plano que sondea y un Monitor que sólo cuenta tiempo.
+- **Un spec suelto va en primer plano:** lo que cayó y repites hasta que pase (`pnpm test:e2e <spec>`) se corre sin `run_in_background`,
+  con `timeout` de 600000: en segundo plano cada corrida termina en un aviso que relee todo el contexto de la sesión.
 - Publica de nuevo con `bash scripts/flujo/publicar.sh --sin-esperar --titulo '<el título actual del PR>'`. Agrega al cuerpo del PR
   (`gh pr edit` falla en este repo: `gh api -X PATCH 'repos/{owner}/{repo}/pulls/{{PR}}' -F body=@<archivo>`) qué cayó y cómo se arregló, en dos líneas.
 

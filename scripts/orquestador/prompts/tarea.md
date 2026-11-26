@@ -50,6 +50,8 @@ y los codemods siguen bloqueados.
   el CI. Todo en **una** corrida en segundo plano y un solo aviso al terminar: cada aviso de un proceso en segundo plano relee todo el
   contexto de la sesión.
 - **Esperar no es sondear:** lo largo (`verificar.sh`, `e2e-afectados.mjs --correr`, `db:probar`) se lanza con `run_in_background` y se espera su aviso; no leas el log hasta que llegue, no armes bucles de espera ni un Monitor de intervalo, y tras tu `RESULTADO` no rearmes esperas. El hook `PreToolUse` rechaza un Bash en primer plano que sondea y un Monitor que sólo cuenta tiempo.
+- **Un spec suelto va en primer plano:** el que repites mientras arreglas (`pnpm test:e2e <spec>`) se corre sin `run_in_background`, con
+  `timeout` de 600000: en segundo plano cada corrida termina en un aviso que relee todo el contexto de la sesión.
 - Lo temporal (logs, capturas, guiones de prueba) va en `$TMPDIR`, que es de esta tarea; nunca en `/tmp`, que es de toda la máquina.
 - Nadie prueba a mano. Lo que sería «pruébalo tú» es un e2e. En las pantallas nuevas o rehechas, además, haz tú el recorrido
   (levanta la app del carril, entra con una cuenta creada como en los e2e, toma capturas en escritorio y celular y míralas) y di en el PR qué viste.
