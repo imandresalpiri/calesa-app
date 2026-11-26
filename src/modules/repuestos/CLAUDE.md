@@ -14,7 +14,7 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
   corto «Repuestos · Proyecto #N» y para «Ver el proyecto de repuestos» de un aviso de la papelera, con `rutaDelProyecto(id)`), `esquemaDelListado`, `pedidoDelListado`,
   `leerCursorDeProyectos`, `leerProyectosDelListado` (cursor = `numero`, sin «Anterior»), `estadoDelProyecto`. `pantallas/proyectos.ts`:
   `<ListadoDeProyectos>`, `<BotonNuevoProyecto>`, `useNuevoProyectoPorUrl` (`<ListadoDeProyectos>` y `<CadenaDeRepuestos>` reciben `acciones`: el ⚙ «Configurar» que arma `src/app`), `buscarProyectoAbierto`. `pantallas/proyectos-detalle.ts` (`/repuestos/[id]`):
-  `<CabeceraDeProyecto>`, `<VehiculoQueNoSeVe>`.
+  `<CabeceraDeProyecto>`, `<VehiculoQueNoSeVe>`, `<ClienteDelProyecto>` (la hoja de una cotización lo recibe dibujado).
   `pantallas/proyectos-nuevo.ts` (sólo la composición diferida de `src/app`, `nuevo-proyecto-abierto.tsx`): `<DrawerDeNuevoProyecto>` y sus tipos
   (`BuscadorDeProyecto`, `LectorDelLeadDelVehiculo`, `LeadDeLaUrl`). **El cliente en «Nuevo proyecto»** (glosario: «Cliente (de un proyecto)»): con
   `leads.ver`, «Cliente (lead)» en los dos orígenes (`<CampoDelCliente>`; las reglas, puras, en `entities/proyectos/cliente-del-formulario.ts`: el
@@ -60,11 +60,15 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
   existen con `repuestos.costos.ver` (`panelesDisponibles(permisos)` en `src/app`; sin él la URL deja sólo la hoja y no se lee nada de costos).
 - **`cotizador`** — `/repuestos/configuracion/cotizador` (pestaña «Cotizador» de Repuestos › Configuración, la página que abre el ⚙ «Configurar» de `/repuestos`): `leerConfiguracionDelCotizador()` (vigente, historial tope 20, tramos y cajas tope
   200), `<ConfiguracionDelCotizador>` (`pantallas/cotizador-configuracion.ts`), modales `?panel=tramo|caja&tramo|caja=<id|nuevo>&moneda=`; cada tramo y cada caja es una `<FilaDeConfiguracion>` (tarjeta de la lista con sólo su «⋯» y un toque que abre «Editar»).
-  `?pestana=cotizaciones` de `/repuestos/[id]`, sólo con `repuestos.cotizar`: `leerCotizacionesDelProyecto` (tope 50), `CotizacionesDelProyectoDiferido`
-  (`pantallas/cotizador.ts`). `/repuestos/[id]/cotizaciones/[cotizacion]`: `leerCotizacion(proyectoId, id)`, `<HojaDeLectura>` (los montos guardados,
+  `?pestana=cotizaciones` de `/repuestos/[id]`, sólo con `repuestos.cotizar`: `leerCotizacionesDelProyecto` (tope 50; la fila trae `actualizadoEn`), `CotizacionesDelProyectoDiferido`
+  (`pantallas/cotizador.ts`). Cada tarjeta lleva su «⋯» con lo que da `accionesDeLaTarjeta` (`entities/cotizador/acciones-de-la-tarjeta.ts`: Abrir, Aceptar y Anular según estado, total,
+  `repuestos.editar`, proyecto cerrado y red; sin lecturas al abrirse); sus confirmaciones, las de la hoja, van en `?panel=aceptar-cotizacion|anular-cotizacion&cotizacion=<id>` (`CLAVE_DE_COTIZACION`) y
+  se montan una vez sobre la lista (`<ConfirmacionesDeCotizacion>`, con `diferido()`). `/repuestos/[id]/cotizaciones/[cotizacion]`: `leerCotizacion(proyectoId, id)`, `<HojaDeLectura>` (los montos guardados,
   nada se recalcula) o, si es borrador con proyecto abierto y snapshot válido, `<HojaEditable key={actualizadoEn}>` y `<AccionesDeCotizacion>`
   (`?panel=aceptar-cotizacion|anular-cotizacion`) por `pantallas/cotizador-cotizacion.ts`. Los ítems para «Agregar desde un ítem» los pasa la página
-  (`ItemParaCotizar[]`).
+  (`ItemParaCotizar[]`), y el **cliente del proyecto** (el de la cabecera de `/repuestos/<id>`: `clienteDeLaCabecera` con el lead leído sólo con `lead_id` y `leads.ver`, dibujado con
+  `<ClienteDelProyecto>` de `pantallas/proyectos-detalle.ts`) llega a las hojas como un nodo `cliente` que compone `src/app`: el área `cotizador` no importa `proyectos`. La forma de la hoja: cabecera
+  (número, estado, acciones, proyecto, cliente, fechas y total), «Importado», «Local» y «Condiciones» (notas, `<ConfiguracionUsada>` y «Guardar»), un título por bloque y alto reservado en lo que cambia.
 - **`catalogos`** — `index.ts`: `leerCatalogosDeRepuestos()` (los cuatro, con desactivados, tope 200 cada uno), `CATALOGOS_DE_REPUESTOS`; `client.ts`: lo
   puro del formulario (`validarValor`, `cambiosDeValor`, `ordenSiguiente`…); `pantallas/catalogos.ts`: `<CatalogosDeRepuestos>`, la sub-ruta `/repuestos/configuracion/catalogos`.
 - **`flujo`** — panel del ítem: `?item=<id>` abre el **panel del ítem en dos columnas** (`src/app/(app)/repuestos/item-abierto.tsx`, `docs/UX.md` › «Panel del ítem»). A la izquierda, `ColumnaDelItem` con los grupos de `GRUPOS_DEL_ITEM`

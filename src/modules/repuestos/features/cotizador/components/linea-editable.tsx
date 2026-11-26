@@ -39,7 +39,9 @@ function TotalDeLaLinea({
   calculada: LineaCalculada | undefined
   moneda: string
 }) {
-  if (calculada?.total) return <Monto valor={Number(calculada.total)} moneda={moneda} />
+  if (calculada?.total) {
+    return <Monto valor={Number(calculada.total)} moneda={moneda} className="font-medium" />
+  }
   const motivo = calculada?.falta ? MOTIVO[calculada.falta] : null
   return <span className="text-(--color-ink-soft)">Sin total{motivo ? ` · ${motivo}` : ''}</span>
 }
@@ -62,7 +64,7 @@ export const LineaEditable = memo(function LineaEditable({
   return (
     <li
       aria-label={nombre}
-      className="grid min-w-0 gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-3"
+      className="grid min-w-0 gap-2 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-3"
     >
       <div className="flex flex-wrap items-end gap-2">
         <div className="min-w-0 flex-1">
@@ -73,7 +75,7 @@ export const LineaEditable = memo(function LineaEditable({
             maxLength={LARGO_DE_LA_DESCRIPCION}
             autoComplete="off"
             disabled={bloqueada !== undefined}
-            error={error('descripcion')}
+            aria-invalid={error('descripcion') ? true : undefined}
             onChange={(evento) => {
               acciones.alCambiarTexto(linea.id, 'descripcion', evento.target.value)
             }}
@@ -105,15 +107,20 @@ export const LineaEditable = memo(function LineaEditable({
           valor={linea.caja}
           cajas={cajas}
           moneda={moneda}
-          error={error('caja')}
+          invalida={error('caja') !== undefined}
           deshabilitada={bloqueada !== undefined}
           alCambiar={acciones.alCambiarTexto}
         />
         <div className="grid gap-1 text-(length:--text-sm)">
           <span className="text-(--color-ink-faint)">Total</span>
-          <TotalDeLaLinea calculada={calculada} moneda={moneda} />
+          <div className="flex min-h-10 items-start">
+            <TotalDeLaLinea calculada={calculada} moneda={moneda} />
+          </div>
         </div>
       </div>
+      <p className="min-h-5 text-(length:--text-sm) text-(--color-peligro-ink)">
+        {error('descripcion') ?? error('caja')}
+      </p>
     </li>
   )
 })

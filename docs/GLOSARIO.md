@@ -330,6 +330,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Esquina de acciones** — `<EsquinaDeAcciones>` (`@/shared/ui/lista`): el lugar del «⋯» en una tarjeta de la lista (cada ítem de la vista
   Tarjetas, también la del kanban): arriba a la derecha; con `sobreImagen`, flotando sobre la foto con fondo translúcido y borde, y la casilla en
   la esquina izquierda como espejo. En la tabla el lugar es la columna pegada (`CeldaPegada lado="acciones"`).
+- **Condiciones (de una cotización de repuestos)** — el último bloque de la hoja de una cotización de repuestos: sus notas y la configuración con que se calculó (y «Guardar» en la borrador). La cotización no guarda otras condiciones ni un cliente propio: el cliente es el del proyecto.
 - **Filtro descartado** — `filtrosDescartados()` / `<AvisoDeFiltrosDescartados>`: filtro de la URL sobre un campo desactivado o eliminado.
 - **Ficha del lead** — `/leads/[id]` / `lead_ficha()`, `<FichaDeLead>`: en dos columnas (`<FichaEnDosColumnas>`): a la izquierda la cabecera (el nombre
   con el «⋯» arriba a la derecha y quién lo tiene debajo), «Datos» (los datos clave del lead y «Ver más»), «Quién lo tiene» y «Acceso al portal»; a la

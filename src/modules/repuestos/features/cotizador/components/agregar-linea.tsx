@@ -67,9 +67,7 @@ export function AgregarLinea({ bloque, titulo, items, motivo, alAgregar }: Props
           Agregar desde un ítem
         </Button>
       </div>
-      {motivoDelItem ? (
-        <p className="text-(length:--text-sm) text-(--color-ink-soft)">{motivoDelItem}</p>
-      ) : null}
+      <p className="min-h-5 text-(length:--text-sm) text-(--color-ink-soft)">{motivoDelItem}</p>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { SimbolosDeXCell, XCELL_COMPACTA } from '@/shared/ui/xcell'
 import { TOPE_DE_LINEAS } from '../../../entities/cotizador/formula'
 import type { CotizacionLeida, LineaDeLectura } from '../../../entities/cotizador/hoja-de-lectura'
@@ -15,7 +15,6 @@ import { AccionesDeCotizacion } from './acciones-de-cotizacion'
 import { AvisoDeLaHoja } from './aviso-de-la-hoja'
 import { BloqueEditable } from './bloque-editable'
 import { CabeceraDeCotizacion } from './cabecera-de-cotizacion'
-import { ConfiguracionUsada } from './configuracion-usada'
 import { PieDeLaHoja } from './pie-de-la-hoja'
 
 type Props = {
@@ -23,6 +22,8 @@ type Props = {
   snapshot: SnapshotDelCotizador
   lineas: readonly LineaDeLectura[]
   proyecto: { id: string; numero: number }
+  // El cliente del proyecto, ya dibujado por `src/app`.
+  cliente: ReactNode
   items: readonly ItemParaCotizar[]
   // `repuestos.editar`: aceptar fija el precio de los ítems (D13 de 8.12-1).
   puedeEditarItems: boolean
@@ -30,13 +31,14 @@ type Props = {
 
 const EN_EL_TOPE = 'Una cotización lleva como mucho 200 líneas.'
 
-// La hoja editable de una cotización de repuestos en borrador (8.12-4, C10–C12). Quien la monta le da `key` = la versión de la cotización: tras guardar,
+// La hoja editable de una cotización de repuestos en borrador (8.12-4, C10–C12): la cabecera (lo que la define), los ítems en «Importado» y «Local» y, al final, «Condiciones». Quien la monta le da `key` = la versión de la cotización: tras guardar,
 // la página se relee y la hoja nace de lo guardado (D45). El total en vivo sólo informa; el que vale es el que guarda la base.
 export function HojaEditable({
   cotizacion,
   snapshot,
   lineas: leidas,
   proyecto,
+  cliente,
   items,
   puedeEditarItems,
 }: Props) {
@@ -69,6 +71,8 @@ export function HojaEditable({
       <CabeceraDeCotizacion
         cotizacion={cotizacion}
         proyecto={proyecto}
+        cliente={cliente}
+        total={h.calculo.total}
         acciones={
           <AccionesDeCotizacion
             cotizacion={cotizacion}
@@ -82,8 +86,6 @@ export function HojaEditable({
           />
         }
       />
-      <ConfiguracionUsada cotizacion={cotizacion} />
-      <AvisoDeLaHoja aviso={h.aviso} alRecargar={h.recargar} />
       <BloqueEditable
         bloque="importado"
         titulo="Importado"
@@ -97,8 +99,8 @@ export function HojaEditable({
         {...comun}
       />
       <PieDeLaHoja
-        total={h.calculo.total}
-        moneda={cotizacion.moneda}
+        cotizacion={cotizacion}
+        aviso={<AvisoDeLaHoja aviso={h.aviso} alRecargar={h.recargar} />}
         notas={h.notas}
         errorDeNotas={h.errores['notas']}
         enCurso={h.enCurso}

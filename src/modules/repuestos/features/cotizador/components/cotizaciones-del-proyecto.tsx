@@ -11,9 +11,11 @@ type Props = {
   monedas: readonly MonedaParaCotizar[]
   cerrado: boolean
   puedeConfigurar: boolean
+  // `repuestos.editar`: lo que decide si «Aceptar» del «⋯» de una tarjeta se puede.
+  puedeEditarItems: boolean
 }
 
-// La pestaña «Cotizaciones» de un proyecto (8.12-3, C11): «Nueva cotización» arriba de la lista (también vacía). Editar, aceptar y anular llegan con 8.12-4.
+// La pestaña «Cotizaciones» de un proyecto (8.12-3, C11): «Nueva cotización» arriba de la lista (también vacía). El «⋯» de cada tarjeta abre, acepta o anula.
 export function CotizacionesDelProyecto({
   proyectoId,
   filas,
@@ -21,6 +23,7 @@ export function CotizacionesDelProyecto({
   monedas,
   cerrado,
   puedeConfigurar,
+  puedeEditarItems,
 }: Props) {
   return (
     <div className="grid gap-3">
@@ -30,7 +33,13 @@ export function CotizacionesDelProyecto({
         cerrado={cerrado}
         puedeConfigurar={puedeConfigurar}
       />
-      <ListaDeCotizaciones proyectoId={proyectoId} filas={filas} hayMas={hayMas} />
+      <ListaDeCotizaciones
+        proyectoId={proyectoId}
+        filas={filas}
+        hayMas={hayMas}
+        puedeEditarItems={puedeEditarItems}
+        cerrado={cerrado}
+      />
     </div>
   )
 }
