@@ -66,6 +66,7 @@ describe('el grupo abierto', () => {
     vehiculo_id: ID,
     repuesto_id: null,
     titulo: 'Toyota Hilux',
+    origen_id: ID,
     fase_id: null,
     fase: null,
     naviera_id: null,
@@ -92,6 +93,7 @@ describe('el grupo abierto', () => {
     expect(grupo?.unidades[0]).toMatchObject({
       transporteId: ID,
       titulo: 'Toyota Hilux',
+      origenId: ID,
       etaEl: '2026-12-15',
       actualizadoEn: '2026-11-12T10:00:00+00:00',
       editable: true,

@@ -100,6 +100,7 @@ export function HuecoDeGastos({ unidad }: { unidad: Unidad }) {
         abierto={panel.abierto}
         alCerrar={panel.cerrar}
         unidadId={unidad.id}
+        origenId={unidad.origenId}
         original={panel.nuevo ? null : panel.original}
         apertura={panel.apertura}
       />

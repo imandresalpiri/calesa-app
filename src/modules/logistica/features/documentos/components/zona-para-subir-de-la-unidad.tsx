@@ -2,6 +2,7 @@
 
 import { parseAsString, useQueryState } from 'nuqs'
 import { ordenarTiposParaElegir } from '../../../entities/documentos/admision'
+import { tiposParaSubir } from '../../../entities/documentos/tipos-para-subir'
 import { destinoDeLaUnidad } from '../../../entities/documentos/destino'
 import { CLAVE_DEL_TIPO_A_SUBIR } from '../../../entities/nucleo/paneles-de-la-unidad'
 import type { Unidad } from '../../../entities/nucleo/unidad'
@@ -29,7 +30,10 @@ export function ZonaParaSubirDeLaUnidad({
     <ZonaParaSubir
       destino={destinoDeLaUnidad(unidad)}
       titulo="Subir documentos"
-      tipos={ordenarTiposParaElegir(dato.tipos, new Set(dato.requisitos.map((r) => r.tipoId)))}
+      tipos={ordenarTiposParaElegir(
+        tiposParaSubir(dato.tipos, dato.requisitos),
+        new Set(dato.requisitos.map((r) => r.tipoId)),
+      )}
       puedeSubir={puedeSubir}
       tipoPedido={tipoPedido}
       alTerminar={alTerminar ?? (() => void setTipoPedido(null))}

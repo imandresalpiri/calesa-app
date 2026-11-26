@@ -24,8 +24,8 @@ vi.mock('../../../areas/dinero/composicion.client', () => ({
     Promise.resolve(ok({ pagos: lecturas.pagos, hayMas: lecturas.hayMas })),
   leerPagosDelProyecto: () =>
     Promise.resolve(ok({ pagos: lecturas.pagos, hayMas: lecturas.hayMas })),
-  leerOpcionesDeGasto: () =>
-    Promise.resolve(ok({ categorias: [], monedas: [], tiposDeCambio: [] })),
+  leerOpcionesDeGasto: (origenes: string[]) =>
+    Promise.resolve(ok({ origenes, categorias: [], monedas: [], tiposDeCambio: [] })),
   subirComprobante: () => Promise.resolve(ok('x')),
   urlDelComprobante: () => Promise.resolve(ok('https://example.test/x')),
 }))

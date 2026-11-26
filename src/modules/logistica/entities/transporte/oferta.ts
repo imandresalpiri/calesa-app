@@ -1,4 +1,11 @@
 import { z } from 'zod'
+import { claveDeCatalogo } from '@/shared/lib/catalogos/propios'
+import {
+  claveDePuerto,
+  nombreConOrigen,
+  rotuloPorOrigen,
+  type AlcanceDelCatalogo,
+} from '../nucleo/alcance-del-catalogo'
 
 // Lo que ofrece el transporte de un flujo y cómo se vuelve el contenido de un selector (6.08-2). La oferta la lee `flujo_oferta(p_flujo)`; es una **copia** de lo que entiende `flujos` (un
 // área no importa otra). Lista vacía = se ofrece todo lo activo del catálogo.
@@ -32,26 +39,51 @@ export function ofertaDesde(crudo: unknown): OfertaDeTransporte | null {
     : null
 }
 
-/** Las filas de `puertos` o `navieras` (`id, nombre, activo`); nulo si alguna no tiene la forma esperada. */
-export function elementosDesde(datos: unknown): ElementoDeOferta[] | null {
-  const r = z.array(elemento).safeParse(datos)
-  return r.success ? r.data : null
+// Un puerto o una naviera leídos para un selector: con su origen (nulo = compartido) y su clave (`claveDePuerto` o `claveDeCatalogo`), para saber
+// quién lo usa (`alcanceDelCatalogo`).
+export type ElementoDelCatalogo = ElementoDeOferta & { origenId: string | null; clave: string }
+
+const delCatalogo = elemento.extend({
+  origen_id: z.guid().nullable(),
+  pais: z.string().nullable().optional(),
+  origen: z.object({ nombre: z.string() }).nullable().optional(),
+})
+
+/**
+ * Las filas de `puertos` (`id, nombre, activo, origen_id, pais`) o `navieras` (sin `pais`); nulo si alguna no tiene la forma esperada. Leídas también con `origen:origenes(nombre)`
+ * (donde se mezclan orígenes: embarques), un propio se nombra «<nombre> · <origen>»; la clave sale siempre del nombre solo.
+ */
+export function elementosDesde(datos: unknown): ElementoDelCatalogo[] | null {
+  const r = z.array(delCatalogo).safeParse(datos)
+  return r.success
+    ? r.data.map((e) => ({
+        id: e.id,
+        nombre: nombreConOrigen({ nombre: e.nombre, origenNombre: e.origen?.nombre ?? null }),
+        activo: e.activo,
+        origenId: e.origen_id,
+        clave: e.pais === undefined ? claveDeCatalogo(e.nombre) : claveDePuerto(e.nombre, e.pais),
+      }))
+    : null
 }
 
 export type OpcionDeTransporte = { valor: string; etiqueta: string }
 
 /**
- * Las opciones de un selector (sin la de «Sin elegir», que pone quien dibuja): lo que ofrece el flujo —o, con la oferta vacía, todo lo activo del catálogo— y **siempre** lo ya guardado,
- * rotulado si ya no se ofrece. Así una desactivación no esconde un dato guardado (la base sólo frena lo nuevo). `femenino` es la concordancia del rótulo («naviera inactiva», «puerto inactivo»).
+ * Las opciones de un selector (sin la de «Sin elegir», que pone quien dibuja): lo que ofrece el flujo y usa el origen —o, con la oferta vacía, todo lo activo que usa el origen
+ * (`alcance.usables`)— y **siempre** lo ya guardado, rotulado si ya no se ofrece: «(de otro origen)», «(tapado)», «(inactivo)» o «(fuera de la oferta)». Así una desactivación o un
+ * propio nuevo no esconden un dato guardado (la base sólo frena lo nuevo). `femenino` es la concordancia del rótulo («naviera inactiva», «puerto inactivo»).
  */
 export function opcionesDeTransporte(args: {
   ofrecidos: readonly ElementoDeOferta[]
   catalogo: readonly ElementoDeOferta[]
+  alcance: AlcanceDelCatalogo
   guardado: string | null
   femenino: boolean
 }): OpcionDeTransporte[] {
-  const { ofrecidos, catalogo, guardado, femenino } = args
-  const base = (ofrecidos.length > 0 ? ofrecidos : catalogo).filter((e) => e.activo)
+  const { ofrecidos, catalogo, alcance, guardado, femenino } = args
+  const base = (ofrecidos.length > 0 ? ofrecidos : catalogo).filter(
+    (e) => e.activo && alcance.usables.has(e.id),
+  )
   const vistos = new Set<string>()
   const opciones: OpcionDeTransporte[] = []
   for (const e of [...base].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))) {
@@ -63,13 +95,26 @@ export function opcionesDeTransporte(args: {
   if (guardado !== null && !vistos.has(guardado)) {
     const conocido =
       catalogo.find((e) => e.id === guardado) ?? ofrecidos.find((e) => e.id === guardado)
-    const inactivo = femenino ? '(inactiva)' : '(inactivo)'
-    const rotulo = conocido
-      ? conocido.activo
-        ? '(fuera de la oferta)'
-        : inactivo
-      : '(no disponible)'
-    opciones.push({ valor: guardado, etiqueta: `${conocido?.nombre ?? 'Elegido antes'} ${rotulo}` })
+    opciones.push({
+      valor: guardado,
+      etiqueta: `${conocido?.nombre ?? 'Elegido antes'} ${rotuloDeLoGuardado(conocido, alcance, femenino)}`,
+    })
   }
   return opciones
+}
+
+// Por qué no se ofrece lo guardado: primero el origen (de otro, o tapado), luego que esté inactivo o fuera de la oferta; sin conocerlo, «(no disponible)».
+function rotuloDeLoGuardado(
+  conocido: ElementoDeOferta | undefined,
+  alcance: AlcanceDelCatalogo,
+  femenino: boolean,
+): string {
+  if (!conocido) {
+    return '(no disponible)'
+  }
+  const inactivo = femenino ? '(inactiva)' : '(inactivo)'
+  return (
+    rotuloPorOrigen(alcance, conocido.id, femenino) ??
+    (conocido.activo ? '(fuera de la oferta)' : inactivo)
+  )
 }

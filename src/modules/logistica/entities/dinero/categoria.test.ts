@@ -4,6 +4,7 @@ import {
   BORRADOR_NUEVO_DE_CATEGORIA,
   cambiosDeCategoria,
   categoriasDesde,
+  categoriasParaElegir,
   nombreDelProposito,
   PROPOSITOS_DE_CATEGORIA,
   textoDeUsoDeCategoria,
@@ -176,5 +177,52 @@ describe('el formulario de una categoría', () => {
     expect(b).toEqual({ nombre: 'Flete', proposito: '', activo: false, orden: '3' })
     const r = validarCategoria(b)
     expect(r.ok && cambiosDeCategoria(c, r.datos)).toBeNull()
+  })
+})
+
+describe('categoriasParaElegir', () => {
+  const A = '00000000-0000-4000-8000-00000000000a'
+  const B = '00000000-0000-4000-8000-00000000000b'
+  const cat = (
+    id: string,
+    nombre: string,
+    origenId: string | null,
+    p: Partial<CategoriaDeGasto> = {},
+  ) => ({
+    id,
+    origenId,
+    nombre,
+    proposito: null,
+    activo: true,
+    orden: 10,
+    actualizadoEn: VERSION,
+    ...p,
+  })
+  const CATEGORIAS = [
+    cat('flete', 'Flete', null),
+    cat('grua', 'Grúa', null, { orden: 5 }),
+    cat('vieja', 'Vieja', null, { activo: false }),
+    cat('flete-a', 'FLETE', A),
+    cat('chaperia-b', 'Chapería', B),
+  ]
+  const valores = (o: { valor: string }[]) => o.map((x) => x.valor)
+
+  it('ofrece lo que usa el origen, por orden y nombre: su propia y no la compartida que tapa, ni la de otro', () => {
+    expect(valores(categoriasParaElegir(CATEGORIAS, null, [A]))).toEqual(['grua', 'flete-a'])
+  })
+
+  it('con varios orígenes, sólo las compartidas que ninguno tapa; sin orígenes, las compartidas', () => {
+    expect(valores(categoriasParaElegir(CATEGORIAS, null, [A, B]))).toEqual(['grua'])
+    expect(valores(categoriasParaElegir(CATEGORIAS, null, []))).toEqual(['grua', 'flete'])
+  })
+
+  it('la del gasto que se corrige sigue, rotulada, aunque esté inactiva, tapada, sea de otro origen o no haya venido', () => {
+    const rotulo = (id: string, nombre = '') =>
+      categoriasParaElegir(CATEGORIAS, { id, nombre }, [A]).at(-1)?.etiqueta
+    expect(rotulo('vieja')).toBe('Vieja (inactiva)')
+    expect(rotulo('flete')).toBe('Flete (tapada)')
+    expect(rotulo('chaperia-b')).toBe('Chapería (de otro origen)')
+    expect(rotulo('otra', 'Maniobras')).toBe('Maniobras (de otro origen)')
+    expect(categoriasParaElegir(CATEGORIAS, { id: 'grua', nombre: 'Grúa' }, [A])).toHaveLength(2)
   })
 })

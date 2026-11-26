@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { claveDeCatalogo } from '@/shared/lib/catalogos/propios'
+import { alcanceDelCatalogo, rotuloPorOrigen } from '../nucleo/alcance-del-catalogo'
 import { textoDeUso } from '../nucleo/catalogos'
 
 // Una categoría de gasto (6.11-1): sale de la base (`categorias_gasto`), ningún texto fijo la nombra; propia de un origen o compartida con todos (`origen_id` nulo).
@@ -37,14 +39,35 @@ export function categoriasDesde(datos: unknown): CategoriaDeGasto[] | null {
   return leido.success ? leido.data : null
 }
 
-/** Las que se ofrecen al cargar o corregir un gasto: las activas y, si se corrige uno viejo, la suya aunque se haya desactivado. */
+export type OpcionDeCategoria = { valor: string; etiqueta: string }
+
+/**
+ * Las que se ofrecen al cargar, corregir o repartir un gasto: las activas que usan los orígenes de sus unidades (con varios, sólo las compartidas que ninguno tapa: el reparto es todo o
+ * nada), por orden y nombre, y **siempre** la del gasto que se corrige, rotulada si ya no se ofrece: «(de otro origen)», «(tapada)» o «(inactiva)». Sólo se leen las compartidas y las de
+ * esos orígenes: la que no vino es de otro origen.
+ */
 export function categoriasParaElegir(
   categorias: readonly CategoriaDeGasto[],
-  actualId: string | null,
-): CategoriaDeGasto[] {
-  return categorias
-    .filter((c) => c.activo || c.id === actualId)
+  actual: { id: string; nombre: string } | null,
+  origenes: readonly string[],
+): OpcionDeCategoria[] {
+  const filas = categorias.map((c) => ({ ...c, clave: claveDeCatalogo(c.nombre) }))
+  const alcance = alcanceDelCatalogo(filas, origenes)
+  const opciones = filas
+    .filter((c) => c.activo && alcance.usables.has(c.id))
     .sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre, 'es'))
+    .map((c) => ({ valor: c.id, etiqueta: c.nombre }))
+  if (actual === null || opciones.some((o) => o.valor === actual.id)) {
+    return opciones
+  }
+  const leida = categorias.find((c) => c.id === actual.id)
+  const rotulo = leida
+    ? (rotuloPorOrigen(alcance, leida.id, true) ?? '(inactiva)')
+    : '(de otro origen)'
+  return [
+    ...opciones,
+    { valor: actual.id, etiqueta: `${leida?.nombre ?? actual.nombre} ${rotulo}` },
+  ]
 }
 
 // El `check` de `categorias_gasto.proposito` en la base: una lista cerrada, no un catálogo que la empresa edite (6.11-4, D8). `tributos` es el que lee Aduana para «tributos pagados».

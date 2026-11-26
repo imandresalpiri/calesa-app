@@ -21,13 +21,15 @@ type Props = {
   abierto: boolean
   alCerrar: () => void
   unidadId: string
+  // El origen de la unidad: qué categorías usa.
+  origenId: string
   // Nulo = «Registrar gasto».
   original: Gasto | null
   // Cada apertura empieza de cero: un id de intento nuevo y los campos de lo guardado.
   apertura: number
 }
 
-type ContenidoProps = Omit<Props, 'abierto' | 'apertura'> & {
+type ContenidoProps = Omit<Props, 'abierto' | 'apertura' | 'origenId'> & {
   abierto: boolean
   opciones: OpcionesDeGasto
 }
@@ -95,8 +97,15 @@ function Cargando() {
 
 // El formulario de un gasto (`?panel=gasto&gasto=<id|nuevo>`): «Registrar gasto» y «Editar». Lee las categorías, monedas y tipos de cambio al abrirse; el drawer se queda montado
 // (cerrado) y lo de adentro cambia del esqueleto al formulario. El contrato de cierre con algo escrito es de `<Drawer>` y `useCambiosSinGuardar`.
-export function DrawerDeGasto({ abierto, alCerrar, unidadId, original, apertura }: Props) {
-  const lectura = useOpcionesDeGasto(abierto, apertura)
+export function DrawerDeGasto({
+  abierto,
+  alCerrar,
+  unidadId,
+  origenId,
+  original,
+  apertura,
+}: Props) {
+  const lectura = useOpcionesDeGasto(abierto, apertura, [origenId])
   return (
     <Drawer
       abierto={abierto}

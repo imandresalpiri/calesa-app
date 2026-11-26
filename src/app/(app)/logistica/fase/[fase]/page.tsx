@@ -133,7 +133,7 @@ async function leerLaPagina({
   faseId: string | null
   parametros: Parametros
 }) {
-  const navieras = await leerNavieras()
+  const navieras = await leerNavieras(origenId)
   const esquema = esquemaDeFiltrosDeLaCadena({ navieras: navieras.ok ? navieras.data : [] })
   const filtros = pedidoDeLaCadena(leerFiltros(esquema, parametros))
   const cursor = leerCursorDeLaFase(unParametro(parametros[CLAVE_DE_CURSOR]), {

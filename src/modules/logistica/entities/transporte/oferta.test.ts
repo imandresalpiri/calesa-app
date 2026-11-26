@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { ofertaDesde, opcionesDeTransporte, type ElementoDeOferta } from './oferta'
+import { claveDeCatalogo } from '@/shared/lib/catalogos/propios'
+import { alcanceDelCatalogo, alcanceLibre } from '../nucleo/alcance-del-catalogo'
+import { elementosDesde, ofertaDesde, opcionesDeTransporte, type ElementoDeOferta } from './oferta'
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const el = (n: number, nombre: string, activo = true): ElementoDeOferta => ({
@@ -9,10 +11,17 @@ const el = (n: number, nombre: string, activo = true): ElementoDeOferta => ({
 })
 
 const catalogo = [el(1, 'Maersk'), el(2, 'CMA', true), el(3, 'Hapag', false)]
+const libre = alcanceLibre(catalogo)
 
 describe('opcionesDeTransporte', () => {
   it('con la oferta vacía ofrece todos los activos del catálogo, por nombre', () => {
-    const r = opcionesDeTransporte({ ofrecidos: [], catalogo, guardado: null, femenino: true })
+    const r = opcionesDeTransporte({
+      ofrecidos: [],
+      catalogo,
+      alcance: libre,
+      guardado: null,
+      femenino: true,
+    })
     expect(r.map((o) => o.etiqueta)).toEqual(['CMA', 'Maersk'])
   })
 
@@ -20,6 +29,7 @@ describe('opcionesDeTransporte', () => {
     const r = opcionesDeTransporte({
       ofrecidos: [el(1, 'Maersk')],
       catalogo,
+      alcance: libre,
       guardado: null,
       femenino: true,
     })
@@ -30,6 +40,7 @@ describe('opcionesDeTransporte', () => {
     const naviera = opcionesDeTransporte({
       ofrecidos: [],
       catalogo,
+      alcance: libre,
       guardado: id(3),
       femenino: true,
     })
@@ -37,6 +48,7 @@ describe('opcionesDeTransporte', () => {
     const puerto = opcionesDeTransporte({
       ofrecidos: [],
       catalogo,
+      alcance: libre,
       guardado: id(3),
       femenino: false,
     })
@@ -47,6 +59,7 @@ describe('opcionesDeTransporte', () => {
     const r = opcionesDeTransporte({
       ofrecidos: [el(1, 'Maersk')],
       catalogo,
+      alcance: libre,
       guardado: id(2),
       femenino: true,
     })
@@ -57,6 +70,7 @@ describe('opcionesDeTransporte', () => {
     const r = opcionesDeTransporte({
       ofrecidos: [el(3, 'Hapag', false)],
       catalogo,
+      alcance: libre,
       guardado: id(3),
       femenino: true,
     })
@@ -67,6 +81,7 @@ describe('opcionesDeTransporte', () => {
     const r = opcionesDeTransporte({
       ofrecidos: catalogo,
       catalogo,
+      alcance: libre,
       guardado: id(1),
       femenino: true,
     })
@@ -74,8 +89,93 @@ describe('opcionesDeTransporte', () => {
   })
 
   it('lo guardado que el catálogo ya no nombra se muestra sin perderlo', () => {
-    const r = opcionesDeTransporte({ ofrecidos: [], catalogo, guardado: id(9), femenino: true })
+    const r = opcionesDeTransporte({
+      ofrecidos: [],
+      catalogo,
+      alcance: libre,
+      guardado: id(9),
+      femenino: true,
+    })
     expect(r.at(-1)?.valor).toBe(id(9))
+  })
+})
+
+const A = '00000000-0000-4000-8000-00000000000a'
+const B = '00000000-0000-4000-8000-00000000000b'
+const conOrigen = (n: number, nombre: string, origenId: string | null) => ({
+  ...el(n, nombre),
+  origenId,
+  clave: claveDeCatalogo(nombre),
+})
+const propiosYCompartidos = [
+  conOrigen(11, 'Arica', null),
+  conOrigen(12, 'Iquique', null),
+  conOrigen(13, 'ARICA', A),
+  conOrigen(14, 'Mejillones', B),
+]
+
+describe('opcionesDeTransporte por origen', () => {
+  const deA = alcanceDelCatalogo(propiosYCompartidos, [A])
+
+  it('sin oferta ofrece lo que usa el origen: su propio y no el compartido que tapa, ni lo de otro', () => {
+    const r = opcionesDeTransporte({
+      ofrecidos: [],
+      catalogo: propiosYCompartidos,
+      alcance: deA,
+      guardado: null,
+      femenino: false,
+    })
+    expect(r.map((o) => o.valor)).toEqual([id(13), id(12)])
+  })
+
+  it('con oferta ofrece la intersección con lo que usa el origen', () => {
+    const r = opcionesDeTransporte({
+      ofrecidos: [el(11, 'Arica'), el(12, 'Iquique')],
+      catalogo: propiosYCompartidos,
+      alcance: deA,
+      guardado: null,
+      femenino: false,
+    })
+    expect(r).toEqual([{ valor: id(12), etiqueta: 'Iquique' }])
+  })
+
+  it('lo guardado tapado o de otro origen sigue, rotulado, sin vaciar el campo', () => {
+    const tapado = opcionesDeTransporte({
+      ofrecidos: [],
+      catalogo: propiosYCompartidos,
+      alcance: deA,
+      guardado: id(11),
+      femenino: false,
+    })
+    expect(tapado.at(-1)).toEqual({ valor: id(11), etiqueta: 'Arica (tapado)' })
+    const ajena = opcionesDeTransporte({
+      ofrecidos: [],
+      catalogo: propiosYCompartidos,
+      alcance: deA,
+      guardado: id(14),
+      femenino: true,
+    })
+    expect(ajena.at(-1)).toEqual({ valor: id(14), etiqueta: 'Mejillones (de otro origen)' })
+  })
+})
+
+describe('elementosDesde', () => {
+  it('lee origen y clave: la de un puerto con su país, la de una naviera sin él', () => {
+    const [puerto] =
+      elementosDesde([
+        { id: id(1), nombre: ' Arica ', activo: true, origen_id: A, pais: 'CHILE' },
+      ]) ?? []
+    expect(puerto).toEqual({
+      id: id(1),
+      nombre: ' Arica ',
+      activo: true,
+      origenId: A,
+      clave: 'arica\nchile',
+    })
+    const [naviera] =
+      elementosDesde([{ id: id(2), nombre: 'MSC', activo: true, origen_id: null }]) ?? []
+    expect(naviera?.clave).toBe('msc')
+    expect(elementosDesde([{ id: 'x' }])).toBeNull()
   })
 })
 

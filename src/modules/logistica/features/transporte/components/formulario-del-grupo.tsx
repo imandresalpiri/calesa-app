@@ -6,16 +6,19 @@ import { enfocarPrimerError } from '@/shared/lib/formularios'
 import { AvisosDelFormulario } from '@/shared/ui/avisos-del-formulario'
 import { useCambiosSinGuardar } from '@/shared/ui/cambios-del-panel'
 import { PieDelPanel } from '@/shared/ui/pie-del-panel'
-import { textoDelPieDelGrupo } from '../../../entities/transporte/edicion-del-grupo'
+import {
+  alcanceDelGrupo,
+  textoDelPieDelGrupo,
+} from '../../../entities/transporte/edicion-del-grupo'
 import type { GrupoLeido } from '../../../entities/transporte/grupos'
-import type { ElementoDeOferta } from '../../../entities/transporte/oferta'
+import type { ElementoDelCatalogo } from '../../../entities/transporte/oferta'
 import { useFormularioDelGrupo } from '../hooks/use-formulario-del-grupo'
 import { BloquesDelGrupo } from './bloques-del-grupo'
 
 type Props = {
   grupo: GrupoLeido
-  navieras: readonly ElementoDeOferta[]
-  puertos: readonly ElementoDeOferta[]
+  navieras: readonly ElementoDelCatalogo[]
+  puertos: readonly ElementoDelCatalogo[]
   // Se aplicó (clave nueva) o se canceló (la de ahora): vuelve al resumen.
   alVolver: (clave: string) => void
 }
@@ -68,7 +71,13 @@ export function FormularioDelGrupo({ grupo, navieras, puertos, alVolver }: Props
             router.refresh()
           }}
         />
-        <BloquesDelGrupo {...campos} navieras={navieras} puertos={puertos} />
+        <BloquesDelGrupo
+          {...campos}
+          navieras={navieras}
+          puertos={puertos}
+          alcanceDeNavieras={alcanceDelGrupo(navieras, grupo.unidades)}
+          alcanceDePuertos={alcanceDelGrupo(puertos, grupo.unidades)}
+        />
         <p className="text-(length:--text-sm) text-(--color-ink-soft)" data-pie-del-grupo="">
           {textoDelPieDelGrupo(grupo.unidades.length)}
         </p>

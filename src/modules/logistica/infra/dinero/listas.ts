@@ -2,8 +2,10 @@ import 'server-only'
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { TAMANO_DE_PAGINA_POR_DEFECTO, type Pagina } from '@/shared/lib/paginacion'
 import { createClient } from '@/shared/lib/supabase/server'
+import { z } from 'zod'
 import { NO_SE_LEYO, nuloParaLaBase } from './rpc'
 import { categoriasDesde, type CategoriaDeGasto } from '../../entities/dinero/categoria'
+import { nombreConOrigen } from '../../entities/nucleo/alcance-del-catalogo'
 import {
   filasDeGastoDesde,
   filasDePagoDesde,
@@ -17,7 +19,7 @@ import {
 // `pagos.ver` por origen) y devuelve vacía sin la clave. Por cursor `(fecha desc, id desc)`: `gastos_fecha_idx` y `pagos_fecha_idx`. Una fila de más dice si hay otra página.
 // La fecha del cursor viaja como `date`: la entidad la guarda como un instante a medianoche y acá se recorta.
 
-// Las categorías son un catálogo de decenas de filas, `using (true)` (V9 de 6.11-1): se leen todas, también las desactivadas, porque el historial las nombra.
+// Las categorías son un catálogo de decenas de filas, `using (true)` (V9 de 6.11-1): se leen todas, de todos los orígenes y también las desactivadas, porque el historial las nombra.
 const TOPE_DE_CATEGORIAS = 200
 
 function inesperado(): Resultado<never> {
@@ -58,11 +60,18 @@ export async function leerPagosDelListado(
   return filas === null ? inesperado() : ok(paginaDeDinero(filas))
 }
 
+const esquemaDeOrigenes = z.array(
+  z.object({ id: z.guid(), origen: z.object({ nombre: z.string() }).nullable() }),
+)
+
+// Para el filtro «Categoría», que mezcla orígenes: una propia se nombra «<nombre> · <origen>» (`nombreConOrigen`).
 export async function leerCategoriasDeGasto(): Promise<Resultado<CategoriaDeGasto[]>> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('categorias_gasto')
-    .select('id, origen_id, nombre, proposito, activo, orden, actualizado_en')
+    .select(
+      'id, origen_id, nombre, proposito, activo, orden, actualizado_en, origen:origenes(nombre)',
+    )
     .order('orden')
     .order('nombre')
     .limit(TOPE_DE_CATEGORIAS)
@@ -70,5 +79,15 @@ export async function leerCategoriasDeGasto(): Promise<Resultado<CategoriaDeGast
     return { ok: false, error: errorDePostgrest(error) }
   }
   const categorias = categoriasDesde(data)
-  return categorias === null ? inesperado() : ok(categorias)
+  const origenes = esquemaDeOrigenes.safeParse(data)
+  if (categorias === null || !origenes.success) {
+    return inesperado()
+  }
+  const nombres = new Map(origenes.data.map((f) => [f.id, f.origen?.nombre ?? null]))
+  return ok(
+    categorias.map((c) => ({
+      ...c,
+      nombre: nombreConOrigen({ nombre: c.nombre, origenNombre: nombres.get(c.id) ?? null }),
+    })),
+  )
 }

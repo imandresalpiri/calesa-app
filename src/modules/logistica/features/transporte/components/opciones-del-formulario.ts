@@ -14,7 +14,8 @@ export type OpcionesDelFormulario = {
 
 const SIN_OFRECER: readonly ElementoDeOferta[] = []
 
-// Las opciones de los tres selectores: lo que ofrece el flujo y, siempre, lo ya guardado (6.08-2, D13). Sin flujo activo no hay oferta: se ofrece todo lo activo del catálogo.
+// Las opciones de los tres selectores: lo que ofrece el flujo y usa el origen de la unidad y, siempre, lo ya guardado (6.08-2, D13). Sin flujo activo no hay oferta: se ofrece todo lo
+// activo que usa el origen.
 export function opcionesDelFormulario(
   datos: TransporteDeLaUnidad,
   guardado: Transporte | null,
@@ -24,18 +25,21 @@ export function opcionesDelFormulario(
     navieras: opcionesDeTransporte({
       ofrecidos: oferta ? oferta.navieras : SIN_OFRECER,
       catalogo: datos.navieras,
+      alcance: datos.alcanceDeNavieras,
       guardado: guardado ? guardado.navieraId : null,
       femenino: true,
     }),
     puertosOrigen: opcionesDeTransporte({
       ofrecidos: oferta ? oferta.puertosOrigen : SIN_OFRECER,
       catalogo: datos.puertos,
+      alcance: datos.alcanceDePuertos,
       guardado: guardado ? guardado.puertoOrigenId : null,
       femenino: false,
     }),
     puertosDestino: opcionesDeTransporte({
       ofrecidos: oferta ? oferta.puertosDestino : SIN_OFRECER,
       catalogo: datos.puertos,
+      alcance: datos.alcanceDePuertos,
       guardado: guardado ? guardado.puertoDestinoId : null,
       femenino: false,
     }),
