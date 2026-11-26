@@ -8,10 +8,8 @@ import {
   MOTIVO_DE_NIVELES,
   MOTIVO_DE_TAMANO,
 } from './doc'
-
-type Caso = { nombre: string; documento: unknown } & (
-  { html: string; motivo?: never } | { motivo: string; html?: never }
-)
+import { CASOS_DE_LOS_BLOQUES } from './doc.casos-bloques'
+import type { CasoDelDocumento as Caso } from './doc.casos-bloques'
 
 const p = (...content: unknown[]) => ({ type: 'paragraph', content })
 const t = (text: string, marks?: unknown[]) =>
@@ -267,4 +265,8 @@ const CASOS_RECHAZADOS: Caso[] = [
   },
 ]
 
-export const CASOS_DEL_DOCUMENTO: Caso[] = [...CASOS_ACEPTADOS, ...CASOS_RECHAZADOS]
+export const CASOS_DEL_DOCUMENTO: Caso[] = [
+  ...CASOS_ACEPTADOS,
+  ...CASOS_RECHAZADOS,
+  ...CASOS_DE_LOS_BLOQUES,
+]

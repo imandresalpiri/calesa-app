@@ -1,21 +1,34 @@
-// Los nodos del documento del sitio: la lista blanca y el HTML de cada nodo, espejo de `_web_doc_nodo()`,
-// `_web_doc_marcas()` y `_web_doc_imagen()`. La entrada es `htmlDelDocumento()` de `doc.ts`.
+// Los nodos del documento del sitio: la lista blanca y el HTML de cada nodo, espejo de `_web_doc_nodo()` y `_web_doc_marcas()`. Las piezas
+// están en `doc-primitivas.ts` y los bloques que no son texto en `doc-bloques.ts`. La entrada es `htmlDelDocumento()` de `doc.ts`.
+import { boton, galeria, imagen, video } from './doc-bloques'
+import {
+  MOTIVO_DE_ENLACE,
+  MOTIVO_DE_NIVELES,
+  PROFUNDIDAD_MAXIMA,
+  escaparHtml,
+  esObjeto,
+  hrefSeguro,
+  rechazar,
+  soloClaves,
+} from './doc-primitivas'
+import type { Crudo } from './doc-primitivas'
 
-export const MAXIMO_DE_BYTES_DEL_DOCUMENTO = 102400
-// doc › lista › ítem › lista › ítem › párrafo › texto: dos niveles de lista.
-export const PROFUNDIDAD_MAXIMA = 6
-export const MAXIMO_DEL_ALT = 300
-
-export const MOTIVO_DE_FORMATO = 'El documento tiene un formato que no se admite.'
-export const MOTIVO_DE_ENLACE =
-  'Ese enlace no se admite: usa una dirección http, https, mailto o tel.'
-export const MOTIVO_DE_IMAGEN = 'Esa imagen no se admite: súbela desde el editor.'
-export const MOTIVO_DE_NIVELES = 'El documento tiene demasiados niveles.'
-export const MOTIVO_DE_TAMANO = 'El documento es demasiado largo.'
+export * from './doc-primitivas'
 
 const HIJOS: Record<string, readonly string[]> = {
   raiz: ['doc'],
-  doc: ['paragraph', 'heading', 'bulletList', 'orderedList', 'blockquote', 'image'],
+  doc: [
+    'paragraph',
+    'heading',
+    'bulletList',
+    'orderedList',
+    'blockquote',
+    'image',
+    'horizontalRule',
+    'gallery',
+    'button',
+    'video',
+  ],
   blockquote: ['paragraph', 'bulletList', 'orderedList'],
   listItem: ['paragraph', 'bulletList', 'orderedList'],
   bulletList: ['listItem'],
@@ -30,64 +43,13 @@ const CLAVES: Record<string, readonly string[]> = {
   orderedList: ['type', 'content', 'attrs'],
   heading: ['type', 'content', 'attrs'],
   image: ['type', 'attrs'],
+  gallery: ['type', 'attrs'],
+  button: ['type', 'attrs'],
+  video: ['type', 'attrs'],
+  horizontalRule: ['type'],
 }
 
 const NO_VACIOS = ['bulletList', 'orderedList', 'listItem', 'blockquote']
-
-const PROTOCOLO = /^(https?:\/\/|mailto:|tel:)/i
-const RUTA_DE_IMAGEN = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*\.(webp|png|jpe?g)$/
-
-// Un espacio o un caracter de control (lo que rechaza `[[:space:][:cntrl:]]` en la base), con los
-// controles C1 (U+0080–U+009F): el espejo rechaza de más, nunca de menos.
-function esEspacioOControl(caracter: string): boolean {
-  const codigo = caracter.codePointAt(0) ?? 0
-  return codigo <= 0x20 || (codigo >= 0x7f && codigo <= 0x9f) || /\s/.test(caracter)
-}
-
-// Lo que se puede poner en un `href` (`_seguimiento_href_valido`): http, https, mailto o tel, sin
-// espacios ni caracteres de control, de 1 a 2000 caracteres (`char_length`). `null` = no se admite.
-export function hrefSeguro(href: unknown): string | null {
-  if (typeof href !== 'string' || href.length === 0 || [...href].length > 2000) {
-    return null
-  }
-  return PROTOCOLO.test(href) && ![...href].some(esEspacioOControl) ? href : null
-}
-
-// La ruta de una imagen dentro del bucket `web` (`_web_doc_ruta_valida`): sin esquema, host, `//` ni `..`.
-export function rutaDeImagenSegura(ruta: unknown): string | null {
-  if (typeof ruta !== 'string' || [...ruta].length > 300) {
-    return null
-  }
-  return RUTA_DE_IMAGEN.test(ruta) ? ruta : null
-}
-
-// `_web_html_escapar`: `&` primero.
-export function escaparHtml(texto: string): string {
-  return texto
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
-}
-
-export class Rechazo extends Error {}
-
-function rechazar(motivo: string = MOTIVO_DE_FORMATO): never {
-  throw new Rechazo(motivo)
-}
-
-export type Crudo = Record<string, unknown>
-
-export function esObjeto(valor: unknown): valor is Crudo {
-  return typeof valor === 'object' && valor !== null && !Array.isArray(valor)
-}
-
-function soloClaves(objeto: Crudo, permitidas: readonly string[]) {
-  if (Object.keys(objeto).some((k) => !permitidas.includes(k))) {
-    rechazar()
-  }
-}
 
 function hrefDelEnlace(marca: Crudo): string {
   soloClaves(marca, ['type', 'attrs'])
@@ -145,31 +107,6 @@ function conMarcas(crudas: unknown, html: string): string {
     salida = `<a href="${escaparHtml(marcas.href)}" rel="noopener noreferrer nofollow">${salida}</a>`
   }
   return salida
-}
-
-// `_web_doc_imagen`: `attrs` con `ruta` y `alt` (texto de hasta 300 o nulo), y nada más.
-function imagen(nodo: Crudo): string {
-  const attrs = nodo['attrs']
-  if (!esObjeto(attrs)) {
-    rechazar()
-  }
-  soloClaves(attrs, ['ruta', 'alt'])
-  const ruta = attrs['ruta']
-  if (typeof ruta !== 'string') {
-    rechazar()
-  }
-  let alt = ''
-  const crudo = attrs['alt']
-  if ('alt' in attrs && crudo !== null) {
-    if (typeof crudo !== 'string' || [...crudo].length > MAXIMO_DEL_ALT) {
-      rechazar()
-    }
-    alt = crudo
-  }
-  if (rutaDeImagenSegura(ruta) === null) {
-    rechazar(MOTIVO_DE_IMAGEN)
-  }
-  return `<img data-ruta="${escaparHtml(ruta)}" alt="${escaparHtml(alt)}">`
 }
 
 function nivelDelTitulo(nodo: Crudo): string {
@@ -251,7 +188,7 @@ function tipoDeNodo(nodo: unknown, padre: string, profundidad: number): [string,
   return [tipo, nodo]
 }
 
-// Texto, salto o imagen: lo que no tiene hijos. `null` = es un nodo con hijos.
+// Texto, salto, separador o un bloque de datos (imagen, galería, botón, video): lo que no tiene hijos. `null` = es un nodo con hijos.
 function htmlSinHijos(tipo: string, nodo: Crudo): string | null {
   if (tipo === 'text') {
     const texto = nodo['text']
@@ -264,7 +201,20 @@ function htmlSinHijos(tipo: string, nodo: Crudo): string | null {
     conMarcas(nodo['marks'], '')
     return '<br>'
   }
-  return tipo === 'image' ? imagen(nodo) : null
+  switch (tipo) {
+    case 'image':
+      return imagen(nodo)
+    case 'horizontalRule':
+      return '<hr>'
+    case 'gallery':
+      return galeria(nodo)
+    case 'button':
+      return boton(nodo)
+    case 'video':
+      return video(nodo)
+    default:
+      return null
+  }
 }
 
 // `_web_doc_nodo`: niveles, forma, padre, claves, y después lo propio del tipo.

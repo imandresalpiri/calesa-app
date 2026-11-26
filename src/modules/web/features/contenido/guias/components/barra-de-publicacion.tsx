@@ -118,6 +118,7 @@ export function BarraDePublicacion(props: Props) {
     permitido: props.puedePublicarGuias,
     conCuerpo: props.conCuerpo,
     enLinea: props.enLinea,
+    motivoDelCuerpo: null,
   })
   const describe = motivo ? idMotivo : undefined
   // Publicar y Programar piden permiso, texto y red; Despublicar, sólo el permiso.
