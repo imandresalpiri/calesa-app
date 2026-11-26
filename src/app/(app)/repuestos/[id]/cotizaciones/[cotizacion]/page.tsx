@@ -3,19 +3,24 @@ import Link from 'next/link'
 import { connection } from 'next/server'
 import { Suspense } from 'react'
 import { puede, requerirSesion } from '@/modules/equipo'
+import { leerLeadParaEnlazar } from '@/modules/leads'
 import {
+  clienteDeLaCabecera,
   leerCotizacion,
   leerItemsDelProyecto,
   leerProyecto,
   type CotizacionConLineas,
   type ItemParaCotizar,
+  type ProyectoDetallado,
 } from '@/modules/repuestos'
 import {
   AccionesDeCotizacion,
   HojaDeLectura,
   HojaEditable,
 } from '@/modules/repuestos/pantallas/cotizador-cotizacion'
+import { ClienteDelProyecto } from '@/modules/repuestos/pantallas/proyectos-detalle'
 import { datosO } from '@/shared/lib/errores'
+import type { Permisos } from '@/shared/lib/permisos'
 import { RUTAS } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
 import { EstadoSinPermiso, EstadoVacio } from '@/shared/ui/estados'
@@ -76,7 +81,13 @@ async function Cotizacion({
   }
   const datos = { id: proyecto.id, numero: proyecto.numero }
   const { cotizacion: c } = leida
-  if (c.estado === 'borrador' && proyecto.cerradoEn === null && c.snapshot.ok) {
+  const editable = c.estado === 'borrador' && proyecto.cerradoEn === null && c.snapshot.ok
+  // El cliente es el del proyecto y los ítems sólo se piden para editar: las dos lecturas van juntas.
+  const [cliente, items] = await Promise.all([
+    clienteDelProyecto(proyecto, sesion.permisos),
+    editable ? itemsParaCotizar(proyecto.id) : Promise.resolve([]),
+  ])
+  if (editable && c.snapshot.ok) {
     return (
       <HojaEditable
         key={c.actualizadoEn}
@@ -84,7 +95,8 @@ async function Cotizacion({
         snapshot={c.snapshot.snapshot}
         lineas={leida.lineas}
         proyecto={datos}
-        items={await itemsParaCotizar(proyecto.id)}
+        cliente={cliente}
+        items={items}
         puedeEditarItems={puede(sesion.permisos, 'repuestos.editar')}
       />
     )
@@ -95,10 +107,29 @@ async function Cotizacion({
     <HojaDeLectura
       {...leida}
       proyecto={datos}
+      cliente={cliente}
       nota={notaDeLectura(leida, proyecto.cerradoEn)}
       acciones={
         anulable ? <AccionesDeCotizacion cotizacion={c} proyectoId={proyecto.id} /> : undefined
       }
+    />
+  )
+}
+
+// El cliente de la cabecera de `/repuestos/<id>`, el mismo: el lead sólo se lee con `lead_id` y `leads.ver`; el área `cotizador` no importa `proyectos`, así que se
+// dibuja aquí y llega a la hoja como un nodo.
+async function clienteDelProyecto(proyecto: ProyectoDetallado, permisos: Permisos) {
+  const lead =
+    proyecto.leadId !== null && puede(permisos, 'leads.ver')
+      ? datosO(await leerLeadParaEnlazar(proyecto.leadId))
+      : null
+  return (
+    <ClienteDelProyecto
+      cliente={clienteDeLaCabecera({
+        leadId: proyecto.leadId,
+        clienteNombre: proyecto.clienteNombre,
+        lead,
+      })}
     />
   )
 }

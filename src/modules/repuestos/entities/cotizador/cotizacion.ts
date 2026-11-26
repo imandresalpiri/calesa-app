@@ -8,7 +8,7 @@ import { RUTAS } from '@/shared/lib/rutas'
 export const TOPE_DE_COTIZACIONES = 50
 
 export const COLUMNAS_DE_COTIZACION =
-  'id, numero, estado, moneda, total::text, creado_en, aceptada_en'
+  'id, numero, estado, moneda, total::text, creado_en, aceptada_en, actualizado_en'
 
 export const ESTADOS_DE_COTIZACION = ['borrador', 'aceptada', 'anulada'] as const
 export type EstadoDeCotizacion = (typeof ESTADOS_DE_COTIZACION)[number]
@@ -30,6 +30,8 @@ export const camposDeCotizacion = {
   total: montoEnTexto.nullable(),
   creado_en: z.string(),
   aceptada_en: z.string().nullable(),
+  // La versión que se manda al aceptar o anular (`PT409` si otra persona la cambió).
+  actualizado_en: z.string(),
 }
 
 const esquemaDeFila = z.object(camposDeCotizacion)
@@ -43,6 +45,7 @@ export type FilaDeCotizacion = {
   total: string | null
   creadoEn: string
   aceptadaEn: string | null
+  actualizadoEn: string
 }
 
 export function aFilaDeCotizacion(f: z.infer<typeof esquemaDeFila>): FilaDeCotizacion {
@@ -55,6 +58,7 @@ export function aFilaDeCotizacion(f: z.infer<typeof esquemaDeFila>): FilaDeCotiz
     total: f.total,
     creadoEn: f.creado_en,
     aceptadaEn: f.aceptada_en,
+    actualizadoEn: f.actualizado_en,
   }
 }
 

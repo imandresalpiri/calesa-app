@@ -1,40 +1,40 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { Button } from '@/shared/ui/button'
-import { Monto } from '@/shared/ui/monto'
 import { Textarea } from '@/shared/ui/textarea'
+import { useEnLinea } from '@/shared/ui/use-en-linea'
+import { MOTIVO_SIN_CONEXION } from '../../../entities/cotizador/acciones-de-la-tarjeta'
+import type { CotizacionLeida } from '../../../entities/cotizador/hoja-de-lectura'
 import { LARGO_DE_LAS_NOTAS } from '../../../entities/cotizador/hoja-editable'
+import { CondicionesDeLaHoja } from './condiciones-de-la-hoja'
 
 type Props = {
-  total: string | null
-  moneda: string
+  cotizacion: CotizacionLeida
   notas: string
   errorDeNotas: string | undefined
   enCurso: boolean
   sinGuardar: boolean
   alCambiarNotas: (notas: string) => void
+  // Lo que dijo la base al guardar (`<AvisoDeLaHoja>`): va al final, en un lugar con alto reservado.
+  aviso: ReactNode
 }
 
-// El pie de la hoja editable (8.12-4, C12): el total en vivo (sólo informa, D45; nulo es «Sin total»), las notas (D55) y «Guardar», apagado sin cambios.
+// El pie de la hoja editable (8.12-4, C12): «Condiciones» con las notas (D55) y «Guardar», apagado sin cambios o sin red. El total en vivo sólo informa (D45): vive
+// en la cabecera. Nada de acá se mueve al editar: las notas tienen alto fijo, la fila de «Guardar» reserva su línea de estado y el aviso de la base (un `PT409`
+// con «Recargar» o el mensaje de una regla) cae bajo ella, al final de la página, en un lugar que ya existe.
 export function PieDeLaHoja({
-  total,
-  moneda,
+  cotizacion,
   notas,
   errorDeNotas,
   enCurso,
   sinGuardar,
   alCambiarNotas,
+  aviso,
 }: Props) {
+  const enLinea = useEnLinea()
   return (
-    <footer className="grid gap-3 border-t border-(--color-line) pt-3">
-      <p className="flex flex-wrap items-baseline gap-x-2" aria-live="polite">
-        <span className="font-semibold">Total</span>
-        {total === null ? (
-          <span className="text-(--color-ink-soft)">Sin total</span>
-        ) : (
-          <Monto valor={Number(total)} moneda={moneda} className="font-semibold" />
-        )}
-      </p>
+    <CondicionesDeLaHoja cotizacion={cotizacion}>
       <div className="grid gap-1.5">
         <label htmlFor="cotizacion-notas" className="text-(length:--text-sm) font-medium">
           Notas
@@ -46,29 +46,29 @@ export function PieDeLaHoja({
           disabled={enCurso}
           aria-invalid={errorDeNotas ? true : undefined}
           aria-describedby={errorDeNotas ? 'cotizacion-notas-error' : undefined}
+          className="field-sizing-fixed h-24 resize-none"
           onChange={(evento) => {
             alCambiarNotas(evento.target.value)
           }}
         />
-        {errorDeNotas ? (
-          <p
-            id="cotizacion-notas-error"
-            className="text-(length:--text-sm) text-(--color-peligro-ink)"
-          >
-            {errorDeNotas}
-          </p>
-        ) : null}
+        <p
+          id="cotizacion-notas-error"
+          className="min-h-5 text-(length:--text-sm) text-(--color-peligro-ink)"
+        >
+          {errorDeNotas}
+        </p>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={enCurso || !sinGuardar}>
-          {enCurso ? 'Guardando…' : 'Guardar'}
-        </Button>
-        {sinGuardar ? (
+      <div className="grid gap-3">
+        <div className="flex min-h-11 flex-wrap items-center gap-3">
+          <Button type="submit" disabled={enCurso || !sinGuardar || !enLinea}>
+            {enCurso ? 'Guardando…' : 'Guardar'}
+          </Button>
           <span className="text-(length:--text-sm) text-(--color-ink-soft)">
-            Cambios sin guardar
+            {enLinea ? (sinGuardar ? 'Cambios sin guardar' : null) : MOTIVO_SIN_CONEXION}
           </span>
-        ) : null}
+        </div>
+        <div className="min-h-32">{aviso}</div>
       </div>
-    </footer>
+    </CondicionesDeLaHoja>
   )
 }

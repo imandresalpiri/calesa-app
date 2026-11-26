@@ -112,7 +112,7 @@ test('cotizar una línea importada y una local, guardar y aceptar deja el precio
   await segunda.getByLabel('Caja', { exact: true }).selectOption('5.00')
   await expect(segunda).toContainText(monto(242))
 
-  const pie = page.locator('footer').filter({ hasText: 'Total' })
+  const pie = page.locator('[data-total-de-la-cotizacion]')
   await expect(pie).toContainText(monto(375))
   await expect(page.getByRole('button', { name: 'Aceptar', exact: true })).toBeDisabled()
   await expect(page.getByText('Guarda los cambios antes de aceptar.')).toBeVisible()

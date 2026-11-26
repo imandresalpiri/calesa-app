@@ -244,6 +244,7 @@ function contenidoDelPanel(abierto: PanelDelPaso, datos: DatosDelPanel): ReactNo
         monedas={monedas}
         cerrado={cerrado}
         puedeConfigurar={puede(permisos, 'repuestos.configurar')}
+        puedeEditarItems={puede(permisos, 'repuestos.editar')}
       />
     </Suspense>
   )
