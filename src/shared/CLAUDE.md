@@ -41,6 +41,11 @@ locale)`, el único lector de un número tipeado.
   `acciones-de-campo.ts`, el panel `?campo=` con el formulario diferido, «Desactivados» a la vista; opcionales, `casillas` —las de dato clave,
   `CasillasDelEditor`— y `fijos` —«Comunes», `FijosDelEditor`—; el arrastre en `arrastre/`, dnd-kit tras `diferido({ enFrio })`, y lo que
   decide cada soltada, puro, en `lib/campos/soltar.ts`), `campo-rango.tsx`, `<DatosPorGrupo>`, `<CampoDeFormulario>`.
+- `lib/catalogo/`: el nombre de un elemento que se elige (glosario «Grupo de campos»): `nombreLimpio()` y `claveDeNombre()` (espejo de
+  `_nombre_limpio()` y `_nombre_de_catalogo()`, con test), `ElementoDeCatalogo`, `CatalogoLeido` y `TOPE_DE_CATALOGO`, y `opcionesDelCombo()`
+  (qué ofrece el combo para lo escrito: las coincidencias, el que ya existe con otra escritura y «Crear «x»»). `ui/combo-de-catalogo/`:
+  `<ComboDeCatalogo>` (un botón con aspecto de campo y su lista en un popover, cmdk tras `diferido()`; `alCrear` devuelve un `Resultado` y lo
+  creado se muestra hasta que la lista de afuera lo trae). Lo usa el grupo del editor de campos (`GruposDelEditor`, `gruposDelEditor()`).
 - `lib/ancho.ts` (`anchoDeLaPeticion()`, `CORTE_DEL_TABLERO`/`CORTE_DE_LA_TABLA`/`CORTE_DEL_PANEL`), `ui/ancho-de-pantalla.tsx` (`useAlMenos()`).
 - `lib/atajos.ts` + `ui/atajos/`: `ATAJOS`, `teclasDelAtajo()`, `<ProveedorAtajos>`, `useAtajo()` (responde el último registrado); `<AyudaDeAtajos>`
   registra `?` y abre `<ListaDeAtajos>` por `diferido()`.

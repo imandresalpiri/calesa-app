@@ -5,6 +5,7 @@ import {
   type CasillasDelEditor,
   type FijosDelEditor,
 } from '@/shared/ui/campos'
+import type { CatalogoLeido } from '@/shared/lib/catalogo'
 import type { CampoDeLayout } from '../../../entities/campo'
 import {
   DATOS_COMUNES,
@@ -22,12 +23,15 @@ import type { TipoDeOrigen } from '../../../entities/origen'
 import { configuracionDeOrigen } from '../configuracion'
 import { useCampos } from '../hooks/use-campos'
 import { useDatosClave } from '../hooks/use-datos-clave'
+import { useGruposDelOrigen } from '../hooks/use-grupos-del-origen'
 
 type Props = {
   origenId: string
   tipoDeOrigen: TipoDeOrigen
   // Todos, también los desactivados, en el orden del layout.
   campos: readonly CampoDeLayout[]
+  // El catálogo de grupos de campos del origen, también los inactivos.
+  grupos: CatalogoLeido
   puedeGestionar: boolean
   // Los datos clave guardados y la versión del origen con la que se guardan.
   datosClave: readonly DatoClave[]
@@ -70,6 +74,7 @@ export function EditorDeCampos(props: Props) {
   const { origenId, tipoDeOrigen, campos, puedeGestionar, datosClave, versionDelOrigen } = props
   const ediciones = useCampos()
   const datos = useDatosClave({ origenId, datosClave, versionDelOrigen })
+  const catalogo = useGruposDelOrigen(origenId, props.grupos, puedeGestionar)
   const actual = campos.find((campo) => campo.principal)
   const principal = actual === undefined ? null : { clave: actual.clave, etiqueta: actual.etiqueta }
   const conDato = (llave: string, hacer: (dato: DatoClave) => void) => {
@@ -109,6 +114,7 @@ export function EditorDeCampos(props: Props) {
       puedeGestionar={puedeGestionar}
       configuracion={configuracionDeOrigen({ origenId, tipoDeOrigen, principal })}
       ediciones={ediciones}
+      grupos={catalogo}
       casillas={casillas}
       fijos={fijos}
     />

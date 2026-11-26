@@ -42,16 +42,24 @@ export type CampoDeLeadEnLaBase = {
 }
 
 // El layout de los leads, en su orden.
+// `grupo` es el nombre de su grupo de campos (el catálogo `leads_campos_grupos`).
 export async function camposDeLead(): Promise<CampoDeLeadEnLaBase[]> {
   const { data, error } = await admin()
     .from('leads_campos')
     .select(
-      'id, clave, etiqueta, tipo, orden, grupo, requerido, en_tabla, filtrable, solo_cartera, es_sistema, activo, opciones, valor_defecto, valor_defecto_empresa, minimo, maximo',
+      'id, clave, etiqueta, tipo, orden, requerido, en_tabla, filtrable, solo_cartera, es_sistema, activo, opciones, valor_defecto, valor_defecto_empresa, minimo, maximo, grupo:leads_campos_grupos(nombre)',
     )
     .order('orden')
-    .returns<CampoDeLeadEnLaBase[]>()
+    .returns<(Omit<CampoDeLeadEnLaBase, 'grupo'> & { grupo: { nombre: string } | null })[]>()
   exigir(error, 'leer el layout de los leads')
-  return data ?? []
+  return (data ?? []).map((campo) => ({ ...campo, grupo: campo.grupo?.nombre ?? null }))
+}
+
+// El id del grupo de campos de los leads con ese nombre (sin importar mayúsculas ni tildes); si no hay, lo crea al final.
+export async function grupoDeCamposDeLead(nombre: string): Promise<string> {
+  const { data, error } = await admin().rpc('_lead_campo_grupo_asegurar', { p_nombre: nombre })
+  exigir(error, `asegurar el grupo de campos «${nombre}»`)
+  return data ?? ''
 }
 
 export async function campoDeLead(clave: string): Promise<CampoDeLeadEnLaBase> {
@@ -126,6 +134,19 @@ export async function borrarCamposDeLeadDePrueba(): Promise<void> {
     .like('clave', `${PREFIJO_DE_CAMPO}%`)
     .eq('es_sistema', false)
   exigir(error, 'borrar los campos de prueba')
+  // Y los grupos de campos «E2E …» que quedaron sin campos (uno con campos de otro no se toca).
+  const grupos = await admin()
+    .from('leads_campos_grupos')
+    .select('id, campos:leads_campos(id)')
+    .like('nombre', `${PREFIJO}%`)
+    .limit(100)
+    .returns<{ id: string; campos: { id: string }[] }[]>()
+  exigir(grupos.error, 'leer los grupos de campos de prueba')
+  const vacios = (grupos.data ?? []).filter((grupo) => grupo.campos.length === 0).map((g) => g.id)
+  if (vacios.length > 0) {
+    const borrado = await admin().from('leads_campos_grupos').delete().in('id', vacios)
+    exigir(borrado.error, 'borrar los grupos de campos de prueba')
+  }
 }
 
 // El vínculo activo de un vehículo, puesto como lo pondría un proceso (sin persona).

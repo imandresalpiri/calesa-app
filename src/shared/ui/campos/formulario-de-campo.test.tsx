@@ -9,6 +9,7 @@ import {
   CAMPO,
   configuracion,
   ediciones,
+  grupos,
   type Cambios,
   type Nuevo,
 } from './campos-de-prueba.soporte'
@@ -26,6 +27,7 @@ function montar(campo: CampoBase | null, edicion = ediciones(), eliminar = false
       puedeGestionar
       configuracion={configuracion}
       ediciones={edicion}
+      grupos={grupos()}
       eliminar={eliminar}
       alRecargar={vi.fn()}
       alCerrar={alCerrar}
@@ -167,6 +169,7 @@ describe('FormularioDeCampo: al terminar', () => {
         puedeGestionar
         configuracion={conPregunta}
         ediciones={edicion}
+        grupos={grupos()}
         eliminar={false}
         alRecargar={vi.fn()}
         alCerrar={vi.fn()}
@@ -191,6 +194,7 @@ describe('FormularioDeCampo en un panel: salir desde un aviso', () => {
           puedeGestionar
           configuracion={configuracion}
           ediciones={ediciones()}
+          grupos={grupos()}
           eliminar={false}
           alRecargar={vi.fn()}
           alCerrar={vi.fn()}

@@ -19,7 +19,7 @@ const crear: RepositorioCamposDeLead['crear'] = async (nuevo) => {
     p_tipo: nuevo.tipo,
     p_opciones: nuevo.opciones.map(({ clave, etiqueta }) => ({ clave, etiqueta })),
     p_requerido: nuevo.requerido,
-    p_grupo: nuevo.grupo ?? undefined,
+    p_grupo_id: nuevo.grupoId ?? undefined,
     p_en_tabla: nuevo.enTabla,
     p_filtrable: nuevo.filtrable,
     p_solo_cartera: nuevo.soloCartera,

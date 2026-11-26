@@ -94,7 +94,10 @@ export type CampoBase<Tipo extends TipoDeCampo = TipoDeCampo> = {
   // El rango (9-2): sólo un número o un monto; null = sin límite.
   minimo: number | null
   maximo: number | null
+  // El grupo de campos (su id, su nombre y su orden en el catálogo); null = sin grupo. El nombre es único por layout.
+  grupoId: string | null
   grupo: string | null
+  ordenDelGrupo: number | null
   orden: number
   // Viene de fábrica: no se elimina ni cambia de tipo ni de clave.
   esSistema: boolean

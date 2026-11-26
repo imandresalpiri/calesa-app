@@ -7,6 +7,8 @@
 // El layout de campos de los leads: lo que leen el alta, la ficha, el listado y los filtros.
 // Trae todos los campos (también los desactivados): quien consume filtra `activo`.
 export { leerContextoDeAlta, leerLayoutDeLeads } from './composicion'
+// El catálogo de grupos de campos de ese layout (la pantalla «Campos»), con su tope.
+export { leerGruposDeCampos } from './composicion'
 export {
   CLAVES_RESERVADAS_DE_LEAD,
   valorDefectoVigente,

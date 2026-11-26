@@ -12,10 +12,10 @@ do $$ begin
     raise exception 'comparaciones-candidatos.sql corre después de busqueda-leads.sql: usa sus ayudantes (bl_como, bl_viejo, bl_nuevo, bl_recorre)';
   end if;
 end $$;
-insert into public.leads_campos (clave, etiqueta, tipo, opciones, filtrable, en_tabla, solo_cartera, orden, grupo) values
-  ('llegada', 'Llegada', 'fecha', '[]', true, false, false, 910, 'Comparaciones'),
-  ('ingreso', 'Ingreso', 'numero', '[]', true, false, true, 920, 'Comparaciones'),
-  ('nacio', 'Nació', 'fecha', '[]', true, false, true, 930, 'Comparaciones');
+insert into public.leads_campos (clave, etiqueta, tipo, opciones, filtrable, en_tabla, solo_cartera, orden, grupo_id) values
+  ('llegada', 'Llegada', 'fecha', '[]', true, false, false, 910, public._lead_campo_grupo_asegurar('Comparaciones')),
+  ('ingreso', 'Ingreso', 'numero', '[]', true, false, true, 920, public._lead_campo_grupo_asegurar('Comparaciones')),
+  ('nacio', 'Nació', 'fecha', '[]', true, false, true, 930, public._lead_campo_grupo_asegurar('Comparaciones'));
 do $$ declare
   v_web uuid := (select id from public.origenes_lead where clave = 'web');
   f2 constant uuid := '00000000-0000-0000-0000-0000000009f2'; f3 constant uuid := '00000000-0000-0000-0000-0000000009f3';

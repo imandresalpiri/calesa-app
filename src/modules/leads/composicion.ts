@@ -11,11 +11,13 @@ import type {
   LectorDeContextoDeAlta,
   LectorDeEtiquetas,
   LectorDeFicha,
+  LectorDeGruposDeCampos,
   LectorDeLayoutDeLeads,
   LectorDeCatalogosDeLead,
   LectorDePapeleraDeLeads,
   LectorDeTiposDeSeguimiento,
   RepositorioCamposDeLead,
+  RepositorioDeGruposDeCampos,
   RepositorioDeAlta,
   RepositorioDeCartera,
   RepositorioDeEtiquetas,
@@ -55,6 +57,7 @@ import type {
 import { altaSupabase } from './infra/alta'
 import { carteraSupabase } from './infra/cartera'
 import { camposDeLeadSupabase } from './infra/campos'
+import { gruposDeCamposSupabase } from './infra/grupos'
 import { embudosSupabase } from './infra/embudos'
 import { etiquetasSupabase } from './infra/etiquetas'
 import { exportacionSupabase } from './infra/exportacion'
@@ -68,6 +71,7 @@ import { tiposDeSeguimientoSupabase } from './infra/tipos-de-seguimiento'
 import { getContextoDeAlta } from './infra/queries/alta'
 import { getCartera, getCarteraCorta } from './infra/queries/cartera'
 import { getLayoutDeLeads } from './infra/queries/campos'
+import { getGruposDeCampos } from './infra/queries/grupos'
 import { getEmbudos, getTablero } from './infra/queries/embudos'
 import { getOportunidadesDelLead } from './infra/queries/oportunidades'
 import { getClienteElegido } from './infra/queries/cliente-elegido'
@@ -104,6 +108,10 @@ import { telefonosSupabase } from './infra/telefonos'
 export const repositorioCamposDeLead: RepositorioCamposDeLead = camposDeLeadSupabase
 
 export const leerLayoutDeLeads: LectorDeLayoutDeLeads = getLayoutDeLeads
+
+export const repositorioDeGruposDeCampos: RepositorioDeGruposDeCampos = gruposDeCamposSupabase
+
+export const leerGruposDeCampos: LectorDeGruposDeCampos = getGruposDeCampos
 
 export const repositorioDeAlta: RepositorioDeAlta = altaSupabase
 

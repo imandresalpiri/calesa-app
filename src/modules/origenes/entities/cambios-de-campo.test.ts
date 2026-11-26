@@ -18,7 +18,7 @@ function layout(extra: Record<string, unknown>): CampoDeLayout[] {
       opciones: [],
       requerido: false,
       valor_defecto: null,
-      grupo: 'Vehículo',
+      grupo: { id: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e', nombre: 'Vehículo', orden: 10 },
       orden: 10,
       en_tarjeta: false,
       filtrable: false,
@@ -49,7 +49,7 @@ describe('cambios', () => {
     tipo: campo.tipo,
     opciones: campo.opciones,
     requerido: campo.requerido,
-    grupo: campo.grupo,
+    grupoId: campo.grupoId,
     enTarjeta: campo.enTarjeta,
     filtrable: campo.filtrable,
     publicoWeb: campo.publicoWeb,
@@ -66,16 +66,16 @@ describe('cambios', () => {
   })
 
   it('sólo viaja lo que cambió', () => {
-    expect(cambiosRespectoDe(campo, { ...igual, filtrable: true, grupo: null })).toEqual({
+    expect(cambiosRespectoDe(campo, { ...igual, filtrable: true, grupoId: null })).toEqual({
       filtrable: true,
-      grupo: null,
+      grupoId: null,
     })
   })
 
   it('traduce a columnas y deja un nulo explícito', () => {
-    expect(cambiosComoColumnas({ enTarjeta: true, grupo: null, publicoWeb: false })).toEqual({
+    expect(cambiosComoColumnas({ enTarjeta: true, grupoId: null, publicoWeb: false })).toEqual({
       en_tarjeta: true,
-      grupo: null,
+      grupo_id: null,
       publico_web: false,
     })
   })

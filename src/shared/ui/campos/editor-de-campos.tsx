@@ -14,6 +14,7 @@ import type {
   ConfiguracionDeCampos,
   EdicionesDeCampos,
   FijosDelEditor,
+  GruposDelEditor,
 } from './tipos'
 import { useAccionesDelEditor } from './use-acciones-del-editor'
 import { useOrdenOptimista } from './use-orden-optimista'
@@ -25,6 +26,8 @@ type Props<Campo extends CampoBase, Cambios extends object, Nuevo> = {
   puedeGestionar: boolean
   configuracion: ConfiguracionDeCampos<Campo, Cambios, Nuevo>
   ediciones: EdicionesDeCampos<Cambios, Nuevo>
+  // El catálogo de grupos de campos del layout.
+  grupos: GruposDelEditor
   // En un origen, las casillas de dato clave y los datos comunes; en los leads, nada.
   casillas?: CasillasDelEditor | null
   fijos?: FijosDelEditor | null
@@ -104,6 +107,7 @@ export function EditorDeCampos<Campo extends CampoBase, Cambios extends object, 
         puedeGestionar={puedeGestionar}
         configuracion={configuracion}
         ediciones={ediciones}
+        grupos={props.grupos}
         alCerrar={url.cerrar}
       />
     </section>

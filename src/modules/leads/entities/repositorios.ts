@@ -1,7 +1,14 @@
 // Lo que los casos de uso de `features/` necesitan de afuera, dicho como interfaces. La
 // implementación (Supabase) vive en `infra/` y se la entrega `composicion.ts`.
 import type { NumerosDeLead } from '@/shared/lib/numeros-de-lead'
-import type { OpcionDeCampo, Rango, TipoDeCampoDeLead, ValorDefecto } from '@/shared/lib/campos'
+import type {
+  GrupoDeCampos,
+  OpcionDeCampo,
+  Rango,
+  TipoDeCampoDeLead,
+  ValorDefecto,
+} from '@/shared/lib/campos'
+import type { CatalogoLeido } from '@/shared/lib/catalogo'
 import type { ErrorApp, Resultado } from '@/shared/lib/errores'
 import type { Cursor, Pagina } from '@/shared/lib/paginacion'
 import type { ContextoDeAlta, DatosDeAlta, TipoDeSeguimiento } from './alta'
@@ -41,7 +48,7 @@ export type RepositorioCamposDeLead = {
     tipo: TipoDeCampoDeLead
     opciones: OpcionDeCampo[]
     requerido: boolean
-    grupo: string | null
+    grupoId: string | null
     enTabla: boolean
     filtrable: boolean
     soloCartera: boolean
@@ -68,6 +75,14 @@ export type RepositorioCamposDeLead = {
 
 // Todos los campos, también los desactivados: quien consume filtra `activo`.
 export type LectorDeLayoutDeLeads = () => Promise<Resultado<CampoDeLead[]>>
+
+// El catálogo de grupos de campos del layout de los leads (docs/GLOSARIO.md › Grupo de campos), con su tope.
+export type LectorDeGruposDeCampos = () => Promise<Resultado<CatalogoLeido>>
+
+export type RepositorioDeGruposDeCampos = {
+  // Nace al final del catálogo; un nombre que ya existe con otra escritura es `duplicado` («Ya existe «X».»).
+  crear: (nombre: string) => Promise<Resultado<GrupoDeCampos>>
+}
 
 // --- El alta rápida ---------------------------------------------------------------------------------
 

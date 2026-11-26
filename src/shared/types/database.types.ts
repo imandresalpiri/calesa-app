@@ -3022,7 +3022,7 @@ export type Database = {
           es_sistema: boolean
           etiqueta: string
           filtrable: boolean
-          grupo: string | null
+          grupo_id: string | null
           id: string
           maximo: number | null
           minimo: number | null
@@ -3044,7 +3044,7 @@ export type Database = {
           es_sistema?: boolean
           etiqueta: string
           filtrable?: boolean
-          grupo?: string | null
+          grupo_id?: string | null
           id?: string
           maximo?: number | null
           minimo?: number | null
@@ -3065,7 +3065,7 @@ export type Database = {
           es_sistema?: boolean
           etiqueta?: string
           filtrable?: boolean
-          grupo?: string | null
+          grupo_id?: string | null
           id?: string
           maximo?: number | null
           minimo?: number | null
@@ -3077,6 +3077,42 @@ export type Database = {
           tipo?: Database['public']['Enums']['tipo_campo']
           valor_defecto?: Json | null
           valor_defecto_empresa?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'leads_campos_grupo_id_fkey'
+            columns: ['grupo_id']
+            isOneToOne: false
+            referencedRelation: 'leads_campos_grupos'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      leads_campos_grupos: {
+        Row: {
+          activo: boolean
+          actualizado_en: string
+          creado_en: string
+          id: string
+          nombre: string
+          orden: number
+        }
+        ComputedFields: never
+        Insert: {
+          activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          id?: string
+          nombre: string
+          orden: number
+        }
+        Update: {
+          activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          id?: string
+          nombre?: string
+          orden?: number
         }
         Relationships: []
       }
@@ -4098,7 +4134,7 @@ export type Database = {
           es_sistema: boolean
           etiqueta: string
           filtrable: boolean
-          grupo: string | null
+          grupo_id: string | null
           id: string
           maximo: number | null
           minimo: number | null
@@ -4121,7 +4157,7 @@ export type Database = {
           es_sistema?: boolean
           etiqueta: string
           filtrable?: boolean
-          grupo?: string | null
+          grupo_id?: string | null
           id?: string
           maximo?: number | null
           minimo?: number | null
@@ -4143,7 +4179,7 @@ export type Database = {
           es_sistema?: boolean
           etiqueta?: string
           filtrable?: boolean
-          grupo?: string | null
+          grupo_id?: string | null
           id?: string
           maximo?: number | null
           minimo?: number | null
@@ -4158,7 +4194,53 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: 'origenes_campos_grupo_fkey'
+            columns: ['origen_id', 'grupo_id']
+            isOneToOne: false
+            referencedRelation: 'origenes_campos_grupos'
+            referencedColumns: ['origen_id', 'id']
+          },
+          {
             foreignKeyName: 'origenes_campos_origen_id_fkey'
+            columns: ['origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      origenes_campos_grupos: {
+        Row: {
+          activo: boolean
+          actualizado_en: string
+          creado_en: string
+          id: string
+          nombre: string
+          orden: number
+          origen_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          id?: string
+          nombre: string
+          orden: number
+          origen_id: string
+        }
+        Update: {
+          activo?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          origen_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'origenes_campos_grupos_origen_id_fkey'
             columns: ['origen_id']
             isOneToOne: false
             referencedRelation: 'origenes'
@@ -7040,6 +7122,34 @@ export type Database = {
           },
         ]
       }
+      web_categorias_faqs: {
+        Row: {
+          activa: boolean
+          actualizado_en: string
+          creado_en: string
+          id: string
+          nombre: string
+          orden: number
+        }
+        ComputedFields: never
+        Insert: {
+          activa?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          id?: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          activa?: boolean
+          actualizado_en?: string
+          creado_en?: string
+          id?: string
+          nombre?: string
+          orden?: number
+        }
+        Relationships: []
+      }
       web_categorias_guias: {
         Row: {
           activa: boolean
@@ -7068,7 +7178,7 @@ export type Database = {
       web_faqs: {
         Row: {
           actualizado_en: string
-          categoria: string | null
+          categoria_id: string | null
           id: string
           orden: number
           pregunta: string
@@ -7078,7 +7188,7 @@ export type Database = {
         ComputedFields: never
         Insert: {
           actualizado_en?: string
-          categoria?: string | null
+          categoria_id?: string | null
           id?: string
           orden?: number
           pregunta: string
@@ -7087,14 +7197,22 @@ export type Database = {
         }
         Update: {
           actualizado_en?: string
-          categoria?: string | null
+          categoria_id?: string | null
           id?: string
           orden?: number
           pregunta?: string
           publicada?: boolean
           respuesta?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'web_faqs_categoria_id_fkey'
+            columns: ['categoria_id']
+            isOneToOne: false
+            referencedRelation: 'web_categorias_faqs'
+            referencedColumns: ['id']
+          },
+        ]
       }
       web_guias: {
         Row: {
@@ -8708,6 +8826,8 @@ export type Database = {
       }
       _lead_busqueda_patron: { Args: { p_texto: string }; Returns: string }
       _lead_campo_con_valor: { Args: { p_clave: string }; Returns: number }
+      _lead_campo_grupo_asegurar: { Args: { p_nombre: string }; Returns: string }
+      _lead_campo_grupo_exigir: { Args: { p_actual: string; p_grupo: string }; Returns: undefined }
       _lead_campo_privacidad_lote: { Args: { p_campo: string; p_lote: number }; Returns: boolean }
       _lead_campos_renumerar: { Args: Record<PropertyKey, never>; Returns: undefined }
       _lead_cartera_calcular: { Args: { p_lead: string }; Returns: string[] }
@@ -9021,7 +9141,9 @@ export type Database = {
           nodo: string
         }[]
       }
+      _nombre_de_catalogo: { Args: { p_texto: string }; Returns: string }
       _nombre_del_modo: { Args: { p_clave: string; p_formula: string }; Returns: string }
+      _nombre_limpio: { Args: { p_texto: string }; Returns: string }
       _oportunidad_abierta_unica: {
         Args: { p_embudo: string; p_excepto?: string; p_lead: string; p_usuario: string }
         Returns: undefined
@@ -9077,6 +9199,14 @@ export type Database = {
       _oportunidad_motivo: { Args: { p_motivo: string }; Returns: string }
       _oportunidad_notas: { Args: { p_valor: Json }; Returns: string }
       _oportunidad_titulo: { Args: { p_valor: Json }; Returns: string }
+      _origen_campo_grupo_asegurar: {
+        Args: { p_nombre: string; p_origen: string }
+        Returns: string
+      }
+      _origen_campo_grupo_exigir: {
+        Args: { p_actual: string; p_grupo: string; p_origen: string }
+        Returns: undefined
+      }
       _origen_campos_desmarcar_principal: {
         Args: { p_origen: string; p_salvo: string }
         Returns: string
@@ -11250,7 +11380,7 @@ export type Database = {
           p_en_tabla?: boolean
           p_etiqueta: string
           p_filtrable?: boolean
-          p_grupo?: string
+          p_grupo_id?: string
           p_maximo?: number
           p_minimo?: number
           p_opciones?: Json
@@ -11265,6 +11395,24 @@ export type Database = {
       lead_campo_eliminar: {
         Args: { p_actualizado_en_esperado: string; p_campo: string }
         Returns: undefined
+      }
+      lead_campo_grupo_crear: { Args: { p_nombre: string }; Returns: Json }
+      lead_campo_grupo_eliminar: {
+        Args: {
+          p_actualizado_en_esperado: string
+          p_destino?: string
+          p_grupo: string
+          p_mover?: boolean
+        }
+        Returns: undefined
+      }
+      lead_campo_grupo_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_grupo: string }
+        Returns: string
+      }
+      lead_campo_grupo_mover: {
+        Args: { p_actualizado_en_esperado: string; p_despues_de?: string; p_grupo: string }
+        Returns: string
       }
       lead_campo_guardar: {
         Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_campo: string }
@@ -11594,7 +11742,7 @@ export type Database = {
           p_en_tarjeta?: boolean
           p_etiqueta: string
           p_filtrable?: boolean
-          p_grupo?: string
+          p_grupo_id?: string
           p_maximo?: number
           p_minimo?: number
           p_opciones?: Json
@@ -11610,6 +11758,35 @@ export type Database = {
       origen_campo_eliminar: {
         Args: { p_actualizado_en_esperado: string; p_campo: string }
         Returns: undefined
+      }
+      origen_campo_grupo_crear: { Args: { p_nombre: string; p_origen: string }; Returns: Json }
+      origen_campo_grupo_eliminar: {
+        Args: {
+          p_actualizado_en_esperado: string
+          p_destino?: string
+          p_grupo: string
+          p_mover?: boolean
+          p_origen: string
+        }
+        Returns: undefined
+      }
+      origen_campo_grupo_guardar: {
+        Args: {
+          p_actualizado_en_esperado: string
+          p_cambios: Json
+          p_grupo: string
+          p_origen: string
+        }
+        Returns: string
+      }
+      origen_campo_grupo_mover: {
+        Args: {
+          p_actualizado_en_esperado: string
+          p_despues_de?: string
+          p_grupo: string
+          p_origen: string
+        }
+        Returns: string
       }
       origen_campo_guardar: {
         Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_campo: string }
@@ -12540,6 +12717,15 @@ export type Database = {
         Args: { p_actualizado_en_esperado: string; p_cambios: Json }
         Returns: string
       }
+      web_categoria_faq_eliminar: {
+        Args: {
+          p_actualizado_en_esperado: string
+          p_categoria: string
+          p_destino?: string
+          p_mover?: boolean
+        }
+        Returns: undefined
+      }
       web_confirmar_contacto: { Args: { p_lead?: string; p_solicitud: string }; Returns: undefined }
       web_expirar_solicitudes: { Args: { p_limite?: number }; Returns: number }
       web_publica_vehiculos_que_cambian: { Args: Record<PropertyKey, never>; Returns: number }
@@ -12659,18 +12845,6 @@ export type Database = {
           respuesta: string
         }
         ComputedFields: never
-        Insert: {
-          categoria?: string | null
-          orden?: number | null
-          pregunta?: string | null
-          respuesta?: string | null
-        }
-        Update: {
-          categoria?: string | null
-          orden?: number | null
-          pregunta?: string | null
-          respuesta?: string | null
-        }
         Relationships: []
       }
       guias: {

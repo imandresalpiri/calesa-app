@@ -91,8 +91,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Origen** — `origenes`: de dónde viene un vehículo (subasta USA, China, oficina…); tipo subasta o manual.
 - **Layout de campos** — `origenes_campos` / `leads_campos`: campos de un vehículo (o lead) y cómo se muestran, filtran y editan; motor
   `shared/lib/campos`. Se edita con el editor de campos de `shared/ui/campos` (`<EditorDeCampos>`), el mismo en un origen y en los leads.
+- **Grupo de campos** — `leads_campos_grupos`, `origenes_campos_grupos` (uno por origen) / `GrupoDeCampos`, `campo.grupo_id`: bloque con nombre que
+  ordena el formulario y la ficha. Se elige de un catálogo (`<ComboDeCatalogo>`), no se escribe: el nombre es único sin importar mayúsculas,
+  tildes ni espacios (`_nombre_de_catalogo()` ↔ `claveDeNombre()`), y lo nuevo se crea desde el combo («Crear grupo «x»»). Un campo sin grupo va
+  en «Otros datos». No: «sección», «bloque», ni los otros «Grupo» (de la hoja, de un vehículo, de transporte, de la bandeja).
 - **Preconfiguración** — `origen_preconfigurar_campos()`: campos que nacen con el origen según su tipo (subasta/apibara o manual).
-- **Categoría** — `categorias`: agrupación dentro de un origen (marca, segmento).
+- **Categoría** — `categorias`: agrupación dentro de un origen (marca, segmento). No es el grupo de campos de un origen ni la categoría de una FAQ.
 - **Sustantivo del origen** — `origenes.sustantivo`: cómo se llama lo que entra por ese origen («vehículo», «unidad», «lote»).
 - **Género del sustantivo** — `origenes.genero` / `Genero`: para concordar sin texto fijo; lo sugiere `generoSugerido()` y se corrige.
 - **Clave del origen** — `origenes.clave` / `claveDeNombre()`: identificador estable que sale del nombre al crearlo y no cambia.
@@ -235,8 +239,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   propone el alta.
 - **Teléfono principal** — `leads.telefono_principal` / `telefono_lead()`: único entre leads vivos; completo sólo para la cartera.
 - **Campo de lead** — `leads_campos` / `CampoDeLead`: dato configurable de los leads (además de nombre, teléfono, tipo y origen, fijos).
-- **Layout de leads** — `leads_campos` / `leerLayoutDeLeads()`: campos de los leads con orden, grupo, requeridos, filtros, columnas y quién
-  los ve.
+- **Layout de leads** — `leads_campos` / `leerLayoutDeLeads()`: campos de los leads con orden, grupo de campos, requeridos, filtros, columnas y
+  quién los ve.
 - **Privado de cartera** — `leads_campos.solo_cartera` / `atributos_lead()`: campo que sólo recibe quien tiene el lead en su cartera (correo y
   documento nacen así).
 - **Atributos públicos** — `leads.atributos_publicos` / `leads_vista.atributos_publicos`: los atributos sin los privados, por trigger.
@@ -655,7 +659,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   lista, todos). El modo por defecto siempre está entre ellos, y el que una cotización tiene elegido se dibuja aunque no lo esté.
 - **Pasos de la hoja** — `pasosDeLaHoja()` / `<PasosDeLaHoja>`: la fila «Hoja · Vehículo · Cliente · Vista previa» de arriba de la hoja.
   Cada paso abre su panel de hoy y lleva un punto (elegido, obligatorio que falta, falta un dato) con su texto; no reemplaza las barras.
-- **Grupo (de la hoja)** — `definicion.grupos[]` / `nodo.grupo`: filas con bucket, plazo de pago y color, con subtotal en USD y Bs. No es un nodo.
+- **Grupo (de la hoja)** — `definicion.grupos[]` / `nodo.grupo`: filas con bucket, plazo de pago y color, con subtotal en USD y Bs. No es un nodo
+  ni un grupo de campos.
 - **Plazo de pago** — atributo del grupo: cuándo se paga, como texto («2 días», «4 meses (Aprox.)»).
 - **Total en dólares** — `definicion.total_en`; en el motor `totales.usd` (y `totales.suma_usd`): total en Bs ÷ tipo de cambio de `total_en`.
 - **Faltante** — `Resultado.faltantes`, `CODIGOS_DE_FALTANTE` (`entities/motor-contexto.ts`): por qué un valor quedó sin número.
@@ -944,7 +949,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   «línea marítima», «carrier».
 - **Embarque / Contenedor** — grupo por `transportes.booking` / `contenedor`: agrupación, no entidad.
 - **Grupo (de transporte)** — unidades que comparten `booking` o `contenedor`; no es entidad: `transporte_grupos()` lo cuenta y
-  `transporte_grupo()` lo lista (las visibles, hasta 200). No: «lote», «carga».
+  `transporte_grupo()` lo lista (las visibles, hasta 200). No: «lote», «carga», ni un grupo de campos.
 - **Declaración aduanera** — `declaraciones_aduana`, `declaraciones_vehiculos`: DUI: número, canal de aforo, vencimiento de tributos; N:M.
 - **Gasto** — `gastos`, `categorias_gasto`: costo real imputado a una unidad, en su moneda y en base.
 - **Categoría de gasto** — `categorias_gasto` / `categoria_gasto_crear()`: a qué va un gasto (flete, tributos…), con `proposito` opcional,

@@ -1,6 +1,7 @@
 // Las piezas Zod de un campo configurable, iguales en todo módulo: cada uno arma con ellas sus
 // esquemas de crear y guardar y suma lo suyo (el contenedor, sus banderas).
 import { z } from 'zod'
+import { nombreLimpio } from '../catalogo/nombre'
 import {
   LARGO_MAXIMO_DE_VALOR_DEFECTO,
   admiteValorDefecto,
@@ -41,12 +42,17 @@ export const esquemaOpciones = z
     error: 'Hay dos opciones con el mismo nombre.',
   })
 
-export const esquemaGrupo = z
+// El nombre de un grupo de campos nuevo, limpio como lo guarda la base (`_nombre_limpio()`); el duplicado lo rechaza la base.
+export const esquemaNombreDeGrupo = z
   .string()
-  .trim()
-  .max(40, { error: 'El grupo no puede pasar de 40 caracteres.' })
-  .transform((valor) => (valor === '' ? null : valor))
-  .nullable()
+  .max(200, { error: 'Hasta 40 caracteres.' })
+  .transform(nombreLimpio)
+  .pipe(
+    z.string().min(1, { error: 'Escribe un nombre.' }).max(40, { error: 'Hasta 40 caracteres.' }),
+  )
+
+// El grupo de campos se elige del catálogo: viaja su id; null = sin grupo.
+export const esquemaGrupo = z.guid({ error: 'Elige un grupo de la lista.' }).nullable()
 
 // Su forma depende del tipo y de las opciones: acá sólo se acota; `valorDefectoPara()` decide.
 export const esquemaValorDefecto = z

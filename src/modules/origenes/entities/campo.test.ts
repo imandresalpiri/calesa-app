@@ -13,7 +13,7 @@ function fila(n: number, extra: Record<string, unknown> = {}) {
     opciones: [],
     requerido: false,
     valor_defecto: null,
-    grupo: 'Vehículo',
+    grupo: { id: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e', nombre: 'Vehículo', orden: 20 },
     orden: n * 10,
     en_tarjeta: false,
     filtrable: false,
@@ -35,6 +35,19 @@ describe('camposDesde', () => {
   it('los deja en el orden del layout', () => {
     const campos = camposDesde([fila(3), fila(1), fila(2)])
     expect(campos.map((campo) => campo.clave)).toEqual(['campo_1', 'campo_2', 'campo_3'])
+  })
+
+  it('trae el grupo del catálogo (id, nombre y orden) o ninguno', () => {
+    expect(layout({})[0]).toMatchObject({
+      grupoId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
+      grupo: 'Vehículo',
+      ordenDelGrupo: 20,
+    })
+    expect(layout({ grupo: null })[0]).toMatchObject({
+      grupoId: null,
+      grupo: null,
+      ordenDelGrupo: null,
+    })
   })
 
   it('unas opciones mal formadas no tumban la pantalla', () => {

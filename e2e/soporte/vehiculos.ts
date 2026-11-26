@@ -115,12 +115,27 @@ export async function agregarCampo(
     orden?: number
   },
 ): Promise<void> {
+  const { grupo, ...resto } = campo
+  // El grupo se elige del catálogo del origen por nombre: el mismo nombre es el mismo grupo.
+  const grupoId = grupo === undefined ? null : await grupoDeCamposDelOrigen(origenId, grupo)
   const { error } = await admin()
     .from('origenes_campos')
-    .insert({ origen_id: origenId, orden: 900, ...campo })
+    .insert({ origen_id: origenId, orden: 900, grupo_id: grupoId, ...resto })
   if (error) {
     throw new Error(`No se pudo agregar el campo ${campo.clave}: ${error.message}`)
   }
+}
+
+// El id del grupo de campos de un origen con ese nombre (sin importar mayúsculas ni tildes); si no hay, lo crea al final.
+export async function grupoDeCamposDelOrigen(origenId: string, nombre: string): Promise<string> {
+  const { data, error } = await admin().rpc('_origen_campo_grupo_asegurar', {
+    p_origen: origenId,
+    p_nombre: nombre,
+  })
+  if (error) {
+    throw new Error(`No se pudo asegurar el grupo de campos «${nombre}»: ${error.message}`)
+  }
+  return data ?? ''
 }
 
 export async function cambiarCampo(

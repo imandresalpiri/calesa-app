@@ -10,11 +10,13 @@ export type { OrigenResumen } from './entities/origen'
 // El layout de un origen para quien lo consume: la ficha, los filtros y el alta de `vehiculos`.
 // `leerLayout()` trae todos los campos (también los desactivados) y las categorías.
 export { leerDatosNuevosDeApibara, leerLayout } from './composicion'
+// El catálogo de grupos de campos de un origen (la pantalla «Campos»), con su tope.
+export { leerGruposDelOrigen } from './composicion'
 export { agruparCampos, tieneOpciones } from './entities/campo'
 export type {
   CampoDeLayout,
   CampoPrincipal,
-  GrupoDeCampos,
+  CamposDelGrupo,
   OpcionDeCampo,
   TipoDeCampo,
   ValorDefecto,

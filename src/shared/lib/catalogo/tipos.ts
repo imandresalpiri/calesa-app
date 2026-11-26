@@ -10,6 +10,15 @@ export type ElementoDeCatalogo = {
   actualizadoEn: string
 }
 
+// Cuántos elementos lee un catálogo (pide uno más para saber si hay más): la base rechaza el 101.
+export const TOPE_DE_CATALOGO = 100
+
+// Lo que se lee de una tabla de catálogo, en el orden de `elementoDeCatalogoDesde()`.
+export const COLUMNAS_DE_CATALOGO = 'id, nombre, orden, activo, actualizado_en'
+
+// Un catálogo leído con su tope (`limit` + 1 y `cortarAlTope()`).
+export type CatalogoLeido = { lista: ElementoDeCatalogo[]; hayMas: boolean }
+
 const fila = z.object({
   id: z.guid(),
   nombre: z.string(),

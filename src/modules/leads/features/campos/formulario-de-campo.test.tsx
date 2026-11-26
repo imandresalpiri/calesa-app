@@ -35,7 +35,9 @@ const CAMPO: CampoDeLead = {
   valorDefecto: null,
   minimo: null,
   maximo: null,
+  grupoId: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
   grupo: 'Obra',
+  ordenDelGrupo: 10,
   orden: 1,
   esSistema: false,
   activo: true,
@@ -58,6 +60,23 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
+const GRUPOS = {
+  lista: [],
+  hayMas: false,
+  puedeCrear: true,
+  crear: vi.fn(() =>
+    Promise.resolve(
+      ok({
+        id: '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2f',
+        nombre: 'Nuevo',
+        orden: 10,
+        activo: true,
+        actualizadoEn: 'v1',
+      }),
+    ),
+  ),
+}
+
 describe('el formulario de un campo de lead, en una carga limpia', () => {
   it.each([
     { nombre: 'un campo con el dato de la empresa elegido', campo: CAMPO },
@@ -71,6 +90,7 @@ describe('el formulario de un campo de lead, en una carga limpia', () => {
         puedeGestionar
         configuracion={configuracion}
         ediciones={ediciones}
+        grupos={GRUPOS}
         eliminar={false}
         alRecargar={vi.fn()}
         alCerrar={vi.fn()}

@@ -1,7 +1,8 @@
 // Lo que los casos de uso de `features/` necesitan de afuera, dicho como interfaces. La
 // implementación (Supabase) vive en `infra/` y se la entrega `composicion.ts`.
 import type { Resultado } from '@/shared/lib/errores'
-import type { Rango } from '@/shared/lib/campos'
+import type { GrupoDeCampos, Rango } from '@/shared/lib/campos'
+import type { CatalogoLeido } from '@/shared/lib/catalogo'
 import type { CambiosDeCampo } from './cambios-de-campo'
 import type {
   CampoDeLayout,
@@ -59,7 +60,7 @@ export type RepositorioCampos = {
     tipo: TipoDeCampo
     opciones: OpcionDeCampo[]
     requerido: boolean
-    grupo: string | null
+    grupoId: string | null
     enTarjeta: boolean
     filtrable: boolean
     publicoWeb: boolean
@@ -129,3 +130,11 @@ export type LectorDeDatosClave = (origenId: string) => Promise<Resultado<DatoCla
 
 // El campo principal activo de un origen, o null si no tiene: con qué se nombra a sus vehículos (6.13).
 export type LectorDeCampoPrincipal = (origenId: string) => Promise<Resultado<CampoPrincipal | null>>
+
+// El catálogo de grupos de campos de un origen (docs/GLOSARIO.md › Grupo de campos), con su tope.
+export type LectorDeGruposDelOrigen = (origenId: string) => Promise<Resultado<CatalogoLeido>>
+
+export type RepositorioDeGruposDelOrigen = {
+  // Nace al final del catálogo del origen; un nombre que ya existe ahí con otra escritura es `duplicado` («Ya existe «X».»).
+  crear: (origenId: string, nombre: string) => Promise<Resultado<GrupoDeCampos>>
+}

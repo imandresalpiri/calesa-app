@@ -147,7 +147,12 @@ declare
     ('embudo_tablero_del_lead(uuid,uuid,integer,integer)', 'L'),
     ('embudo_etapa_pagina_del_lead(uuid,uuid,timestamp with time zone,uuid,integer)', 'L'),
     ('etiqueta_guardar(uuid,timestamp with time zone,text,text)', 'M'),
-    ('lead_campo_crear(text,text,tipo_campo,jsonb,boolean,text,boolean,boolean,boolean,jsonb,text,numeric,numeric)', 'X'),
+    ('lead_campo_crear(text,text,tipo_campo,jsonb,boolean,uuid,boolean,boolean,boolean,jsonb,text,numeric,numeric)', 'X'),
+    -- Los grupos de campos: el catálogo del layout, no un lead (`areas/campos/grupos-catalogo.sql`).
+    ('lead_campo_grupo_crear(text)', 'X'),
+    ('lead_campo_grupo_guardar(uuid,timestamp with time zone,jsonb)', 'X'),
+    ('lead_campo_grupo_mover(uuid,timestamp with time zone,uuid)', 'X'),
+    ('lead_campo_grupo_eliminar(uuid,timestamp with time zone,boolean,uuid)', 'X'),
     ('lead_campo_guardar(uuid,timestamp with time zone,jsonb)', 'X'),
     ('lead_campo_eliminar(uuid,timestamp with time zone)', 'X'),
     ('lead_campo_mover(uuid,timestamp with time zone,uuid)', 'X'),

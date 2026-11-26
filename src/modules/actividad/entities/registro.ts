@@ -102,10 +102,20 @@ const ENTIDADES: Readonly<Record<string, Entidad>> = {
     enFrase: 'un campo de lead',
     configuracion: RUTAS.camposDeLeads,
   },
+  leads_campos_grupos: {
+    icono: 'configuracion',
+    enFrase: 'un grupo de campos de lead',
+    configuracion: RUTAS.camposDeLeads,
+  },
   origenes: { icono: 'configuracion', enFrase: 'un origen', configuracion: RUTAS.origenes },
   origenes_campos: {
     icono: 'configuracion',
     enFrase: 'el layout de campos de un origen',
+    configuracion: RUTAS.origenes,
+  },
+  origenes_campos_grupos: {
+    icono: 'configuracion',
+    enFrase: 'un grupo de campos de un origen',
     configuracion: RUTAS.origenes,
   },
   origenes_lead: {

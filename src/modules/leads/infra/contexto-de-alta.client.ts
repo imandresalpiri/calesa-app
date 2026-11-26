@@ -8,7 +8,7 @@ import { errorDePostgrest, type Resultado, ok } from '@/shared/lib/errores'
 import { memoriaDeLectura } from '@/shared/lib/memoria-de-lectura'
 import { createClient } from '@/shared/lib/supabase/browser'
 import { contextoDeAltaDesde, type ContextoDeAlta } from '../entities/alta'
-import { camposDeLeadDesde, type CampoDeLead } from '../entities/campo'
+import { COLUMNAS_DE_CAMPO_DE_LEAD, camposDeLeadDesde, type CampoDeLead } from '../entities/campo'
 
 export type DatosDelAlta = { contexto: ContextoDeAlta; campos: CampoDeLead[] }
 
@@ -19,7 +19,9 @@ async function leer(): Promise<Resultado<DatosDelAlta>> {
   // Los dos pedidos salen a la vez. Se esperan de a uno: si la función falla (sin red es inmediato) se dice en el acto, sin esperar los
   // reintentos con espera que supabase-js hace sobre la lectura de la tabla (un GET).
   const pedidoDelContexto = Promise.resolve(supabase.rpc('lead_alta_contexto'))
-  const pedidoDeLosCampos = Promise.resolve(supabase.from('leads_campos').select('*'))
+  const pedidoDeLosCampos = Promise.resolve(
+    supabase.from('leads_campos').select(COLUMNAS_DE_CAMPO_DE_LEAD),
+  )
   const contexto = await pedidoDelContexto
   if (contexto.error) {
     return { ok: false, error: errorDePostgrest(contexto.error) }

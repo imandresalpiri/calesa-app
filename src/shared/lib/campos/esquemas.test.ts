@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { conReglasDeCampo, esquemaClave, esquemaEtiqueta, esquemaGrupo } from './esquemas'
+import {
+  conReglasDeCampo,
+  esquemaClave,
+  esquemaEtiqueta,
+  esquemaGrupo,
+  esquemaNombreDeGrupo,
+} from './esquemas'
 
 describe('esquemaClave', () => {
   const clave = esquemaClave(['nombre'], 'Ya es un dato fijo.')
@@ -28,9 +34,22 @@ describe('esquemaEtiqueta y esquemaGrupo', () => {
     expect(esquemaEtiqueta.parse('  Edad ')).toBe('Edad')
   })
 
-  it('un grupo vacío es «sin grupo»', () => {
-    expect(esquemaGrupo.parse('  ')).toBeNull()
-    expect(esquemaGrupo.parse('Datos personales')).toBe('Datos personales')
+  it('el grupo viaja como id del catálogo; null es «sin grupo»', () => {
+    expect(esquemaGrupo.parse(null)).toBeNull()
+    expect(esquemaGrupo.parse('0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e')).toBe(
+      '0b7a8c1e-2f4d-4c6b-9a1e-3d5f7b9c1a2e',
+    )
+    expect(esquemaGrupo.safeParse('Datos personales').success).toBe(false)
+  })
+
+  it('el nombre de un grupo nuevo se limpia como en la base y pide de 1 a 40 caracteres', () => {
+    expect(esquemaNombreDeGrupo.parse('  Datos   del cliente ')).toBe('Datos del cliente')
+    expect(esquemaNombreDeGrupo.safeParse('   ').error?.issues[0]?.message).toBe(
+      'Escribe un nombre.',
+    )
+    expect(esquemaNombreDeGrupo.safeParse('x'.repeat(41)).error?.issues[0]?.message).toBe(
+      'Hasta 40 caracteres.',
+    )
   })
 })
 

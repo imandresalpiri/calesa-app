@@ -1,7 +1,12 @@
 import type { Metadata } from 'next'
 import { connection } from 'next/server'
 import { Suspense } from 'react'
-import { leerDatosNuevosDeApibara, leerLayout, type OrigenConUso } from '@/modules/origenes'
+import {
+  leerDatosNuevosDeApibara,
+  leerGruposDelOrigen,
+  leerLayout,
+  type OrigenConUso,
+} from '@/modules/origenes'
 import { DatosNuevosDeApibara, EditorDeCampos } from '@/modules/origenes/pantallas/origen-campos'
 import { datosO } from '@/shared/lib/errores'
 import { EsqueletoTabla } from '@/shared/ui/esqueletos'
@@ -28,8 +33,9 @@ export default async function PasoCampos({
 }
 
 async function EditorDelPaso({ origen }: { origen: OrigenConUso }) {
-  const [layout, nuevos] = await Promise.all([
+  const [layout, grupos, nuevos] = await Promise.all([
     leerLayout(origen.id, { conUso: false }),
+    leerGruposDelOrigen(origen.id),
     origen.tipo === 'subasta' ? leerDatosNuevosDeApibara(origen.id) : null,
   ])
   const { campos } = datosO(layout)
@@ -44,6 +50,7 @@ async function EditorDelPaso({ origen }: { origen: OrigenConUso }) {
         origenId={origen.id}
         tipoDeOrigen={origen.tipo}
         campos={campos}
+        grupos={datosO(grupos)}
         puedeGestionar
         datosClave={origen.datosClave}
         versionDelOrigen={origen.actualizadoEn}
