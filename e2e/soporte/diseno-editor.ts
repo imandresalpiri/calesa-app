@@ -40,11 +40,11 @@ const diseno = {
   tarjeta_total: { nodo: 'total', secundarios: [] },
 }
 
-// Publica la versión 1 de un origen con la fórmula de tres sumandos.
-export function publicarFormulaDeTresSumandos(origenId: string): void {
+// Publica la versión 1 de un origen con la fórmula de tres sumandos y ese diseño (por omisión, el de tres secciones).
+export function publicarFormulaDeTresSumandos(origenId: string, conDiseno: unknown = diseno): void {
   sql(`
     do $f$
-    declare v_def jsonb := ${json(definicion)}; v_par jsonb := '{}'::jsonb; v_dis jsonb := ${json(diseno)};
+    declare v_def jsonb := ${json(definicion)}; v_par jsonb := '{}'::jsonb; v_dis jsonb := ${json(conDiseno)};
     begin
       insert into public.formulas (origen_id, version, estado, definicion, params, diseno, visibilidad, nota, publicado_en)
       values (${literal(origenId)}::uuid, 1, 'publicada', v_def, v_par, v_dis, public._preparar_publicacion(v_def, v_par, v_dis, false), 'E2E 4.22', now());
