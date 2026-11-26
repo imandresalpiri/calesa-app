@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { formatearFechaHora } from '@/shared/lib/fechas'
 import type { ConteoAcotado } from '@/shared/lib/conteo'
+import type { Resultado } from '@/shared/lib/errores'
+import { formatearFechaHora } from '@/shared/lib/fechas'
+import { formatearNumero } from '@/shared/lib/formato'
 import { Interruptor } from '@/shared/ui/interruptor'
 import { MasAcciones } from '@/shared/ui/lista'
 import { useRegional } from '@/shared/ui/regional'
@@ -34,6 +36,27 @@ type Props = {
   vehiculosQueCambian: ConteoAcotado | null
   puedeEditar: boolean
   paneles: PanelesDeIntegraciones
+}
+
+// Lo que respondió la dirección de la web pública a «Probar», en palabras.
+export function textoDeLaPruebaDeLaWeb(
+  resultado: Resultado<{ codigo: number; conHttps: boolean }>,
+  locale: string,
+): Prueba {
+  if (!resultado.ok) {
+    return resultado
+  }
+  const { codigo, conHttps } = resultado.data
+  const respondio = `Respondió ${formatearNumero(codigo, { locale, decimales: 0 })}.`
+  return {
+    ok: true,
+    data: {
+      tono: codigo >= 200 && codigo < 300 ? 'positivo' : 'aviso',
+      texto: conHttps
+        ? respondio
+        : `${respondio} Con http:// sólo se prueba: el aviso de cada minuto sale sólo a https://.`,
+    },
+  }
 }
 
 // Por qué «Probar» no se puede, o null.
@@ -88,7 +111,10 @@ export function TarjetaDeWebPublica({
             probando: ediciones.probando,
             probar: () => {
               void ediciones.probar().then((resultado) => {
-                setPrueba({ version: webPublica.actualizadoEn, resultado })
+                setPrueba({
+                  version: webPublica.actualizadoEn,
+                  resultado: textoDeLaPruebaDeLaWeb(resultado, locale),
+                })
               })
             },
           })}

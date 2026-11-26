@@ -50,3 +50,17 @@ export function cambiarAtajo(
 ): AtajoDelAsistente[] {
   return lista.map((a) => (a.id === id ? { ...a, ...cambio } : a))
 }
+
+// Cuántos atajos activos nombra la tarjeta antes de decir «y N más».
+export const ATAJOS_NOMBRADOS_EN_LA_TARJETA = 3
+
+// «Para WhatsApp, Para Facebook, Para TikTok y 2 más» con los activos, en su orden; «Ninguno activo» si no hay.
+export function resumenDeLosAtajos(lista: readonly AtajoDelAsistente[]): string {
+  const activos = lista.filter((a) => a.activo).map((a) => a.nombre)
+  const nombrados = activos.slice(0, ATAJOS_NOMBRADOS_EN_LA_TARJETA)
+  const resto = activos.length - nombrados.length
+  if (nombrados.length === 0) return 'Ninguno activo'
+  if (resto > 0) return `${nombrados.join(', ')} y ${String(resto)} más`
+  const ultimo = nombrados.pop() ?? ''
+  return nombrados.length === 0 ? ultimo : `${nombrados.join(', ')} y ${ultimo}`
+}

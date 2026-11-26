@@ -6,6 +6,7 @@ import {
   motivoParaNoAgregarAtajo,
   moverAtajo,
   quitarAtajo,
+  resumenDeLosAtajos,
 } from './atajos'
 import { MAX_TOKENS_DE_UN_ATAJO_NUEVO, TOPE_DE_ATAJOS, type AtajoDelAsistente } from './config'
 
@@ -53,5 +54,22 @@ describe('los atajos del asistente', () => {
     expect(ids(moverAtajo(lista, 'a', 'subir'))).toBe('abc')
     expect(ids(moverAtajo(lista, 'c', 'bajar'))).toBe('abc')
     expect(ids(moverAtajo(lista, 'z', 'bajar'))).toBe('abc')
+  })
+})
+
+describe('resumenDeLosAtajos', () => {
+  const con = (...nombres: string[]) =>
+    resumenDeLosAtajos(nombres.map((nombre, i) => ({ ...atajo(String(i)), nombre })))
+
+  it('nombra hasta tres activos, en su orden, y cuenta el resto', () => {
+    expect(con('A', 'B', 'C', 'D', 'E')).toBe('A, B, C y 2 más')
+    expect(con('A', 'B', 'C')).toBe('A, B y C')
+    expect(con('A', 'B')).toBe('A y B')
+    expect(con('A')).toBe('A')
+  })
+
+  it('los apagados no cuentan; sin activos lo dice', () => {
+    expect(resumenDeLosAtajos([{ ...atajo('a'), activo: false }, atajo('b')])).toBe('Atajo b')
+    expect(resumenDeLosAtajos([{ ...atajo('a'), activo: false }])).toBe('Ninguno activo')
   })
 })

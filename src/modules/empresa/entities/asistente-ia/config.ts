@@ -157,6 +157,20 @@ export function origenDeLaDireccion(direccion: string): string | null {
   return /^[A-Za-z]+:\/\/[^/]+/.exec(direccion.trim())?.[0].toLowerCase() ?? null
 }
 
+// Si guardar la dirección escrita borra la clave: hay una guardada y la escrita va a otro origen. El modal lo avisa antes de guardar.
+export function guardarBorraLaClave(
+  integracion: Pick<Integracion, 'secretoGuardadoEn'>,
+  guardada: string,
+  escrita: string,
+): boolean {
+  const nuevo = origenDeLaDireccion(escrita)
+  return (
+    integracion.secretoGuardadoEn !== null &&
+    nuevo !== null &&
+    nuevo !== origenDeLaDireccion(guardada)
+  )
+}
+
 export type AsistenteParaCompartir = {
   // Encendido, con clave y con una configuración legible: se puede pedir un texto.
   configurado: boolean

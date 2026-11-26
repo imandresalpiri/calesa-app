@@ -3,6 +3,7 @@
 import type { ConteoAcotado } from '@/shared/lib/conteo'
 import { Aviso } from '@/shared/ui/aviso'
 import { TarjetasDeAjustes } from '@/shared/ui/tarjetas-de-ajustes'
+import type { UsosDelMes } from '../../../entities/asistente-ia/usos'
 import type { Integracion } from '../../../entities/integraciones'
 import {
   MOTIVO_INTEGRACION_NO_INSTALADA,
@@ -11,14 +12,10 @@ import {
 import {
   usePanelesDeIntegraciones,
   type MotivosDeLosPaneles,
-  type PanelesDeIntegraciones,
 } from '../hooks/use-paneles-de-integraciones'
-import {
-  ModalDeApibaraDiferido,
-  ModalDeSecretoDiferido,
-  ModalDeWebPublicaDiferido,
-} from './diferidos-de-integraciones'
+import { ModalesDeIntegraciones } from './modales-de-integraciones'
 import { TarjetaDeApibara } from './tarjeta-de-apibara'
+import { TarjetaDeAsistenteIa } from './tarjeta-de-asistente-ia'
 import { TarjetaDeAvisosPush } from './tarjeta-de-avisos-push'
 import { TarjetaDeWebPublica } from './tarjeta-de-web-publica'
 
@@ -31,70 +28,36 @@ type Props = {
   pushWeb?: Integracion | undefined
   sinClavePublica: boolean
   vehiculosQueCambian: ConteoAcotado | null
+  // La fila del asistente de IA, si la instalación la tiene, y sus usos de este mes (null si no se pudieron leer).
+  asistente?: Integracion | undefined
+  usosDelAsistente: UsosDelMes | null
   puedeEditar: boolean
 }
 
-type PropsDeModales = {
-  apibara: Integracion
-  webPublica?: Integracion | undefined
-  paneles: PanelesDeIntegraciones
-}
-
-// Los modales, cada uno recién cuando se abre por primera vez.
-function ModalesDeIntegraciones({ apibara, webPublica, paneles }: PropsDeModales) {
-  return (
-    <>
-      {paneles.apibara.montar ? (
-        <ModalDeApibaraDiferido
-          abierto={paneles.apibara.abierto}
-          alCerrar={paneles.cerrar}
-          integracion={apibara}
-        />
-      ) : null}
-      {paneles.claveApibara.montar ? (
-        <ModalDeSecretoDiferido
-          abierto={paneles.claveApibara.abierto}
-          alCerrar={paneles.cerrar}
-          integracion={apibara}
-          clave="apibara"
-        />
-      ) : null}
-      {webPublica && paneles.webPublica.montar ? (
-        <ModalDeWebPublicaDiferido
-          abierto={paneles.webPublica.abierto}
-          alCerrar={paneles.cerrar}
-          integracion={webPublica}
-        />
-      ) : null}
-      {webPublica && paneles.secretoWeb.montar ? (
-        <ModalDeSecretoDiferido
-          abierto={paneles.secretoWeb.abierto}
-          alCerrar={paneles.cerrar}
-          integracion={webPublica}
-          clave="web_publica"
-        />
-      ) : null}
-    </>
-  )
-}
-
 // La pantalla «Integraciones»: una tarjeta por integración con su estado. Los interruptores guardan al instante; la dirección y las
-// plataformas de apibara, la clave y el secreto se editan en sus modales (`?panel=`), una escritura cada uno.
+// plataformas de apibara, el proveedor y las indicaciones del asistente, la clave y el secreto se editan en sus modales (`?panel=`), una
+// escritura cada uno.
 export function TarjetasDeIntegraciones({
   apibara,
   webPublica,
   pushWeb,
   sinClavePublica,
   vehiculosQueCambian,
+  asistente,
+  usosDelAsistente,
   puedeEditar,
 }: Props) {
   const motivo = puedeEditar ? null : MOTIVO_SIN_PERMISO_AJUSTES
-  const sinWeb = motivo ?? MOTIVO_INTEGRACION_NO_INSTALADA
+  // Una integración que la instalación no tiene: su `?panel=` se avisa y se limpia.
+  const noInstalada = motivo ?? MOTIVO_INTEGRACION_NO_INSTALADA
   const motivos: MotivosDeLosPaneles = {
     apibara: motivo,
     'clave-apibara': motivo,
-    'web-publica': webPublica ? motivo : sinWeb,
-    'secreto-web-publica': webPublica ? motivo : sinWeb,
+    'web-publica': webPublica ? motivo : noInstalada,
+    'secreto-web-publica': webPublica ? motivo : noInstalada,
+    'asistente-ia': asistente ? motivo : noInstalada,
+    'indicaciones-asistente-ia': asistente ? motivo : noInstalada,
+    'clave-asistente-ia': asistente ? motivo : noInstalada,
   }
   const paneles = usePanelesDeIntegraciones(motivos)
 
@@ -118,8 +81,21 @@ export function TarjetasDeIntegraciones({
             puedeEditar={puedeEditar}
           />
         ) : null}
+        {asistente ? (
+          <TarjetaDeAsistenteIa
+            asistente={asistente}
+            usos={usosDelAsistente}
+            puedeEditar={puedeEditar}
+            paneles={paneles}
+          />
+        ) : null}
       </TarjetasDeAjustes>
-      <ModalesDeIntegraciones apibara={apibara} webPublica={webPublica} paneles={paneles} />
+      <ModalesDeIntegraciones
+        apibara={apibara}
+        webPublica={webPublica}
+        asistente={asistente}
+        paneles={paneles}
+      />
     </>
   )
 }

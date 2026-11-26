@@ -17,3 +17,16 @@ export const ModalDeSecretoDiferido = diferido(
   () => import('./modal-de-secreto').then((modulo) => modulo.ModalDeSecreto),
   { aviso: 'pantalla' },
 )
+
+export const ModalDeAsistenteIaDiferido = diferido(
+  () => import('./modal-de-asistente-ia').then((modulo) => modulo.ModalDeAsistenteIa),
+  { aviso: 'pantalla' },
+)
+
+export const ModalDeIndicacionesDelAsistenteDiferido = diferido(
+  () =>
+    import('./modal-de-indicaciones-del-asistente').then(
+      (modulo) => modulo.ModalDeIndicacionesDelAsistente,
+    ),
+  { aviso: 'pantalla' },
+)

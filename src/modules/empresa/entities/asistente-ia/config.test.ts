@@ -13,6 +13,7 @@ import {
   asistenteParaCompartir,
   atajosActivos,
   configDelAsistente,
+  guardarBorraLaClave,
   leerConfigDelAsistente,
   origenDeLaDireccion,
 } from './config'
@@ -133,6 +134,18 @@ describe('origenDeLaDireccion', () => {
 
   it('sin esquema no hay origen', () => {
     expect(origenDeLaDireccion('api.deepseek.com')).toBeNull()
+  })
+
+  it('guardar otro origen con una clave guardada la borra; otra ruta o sin clave, no', () => {
+    const conClave = { secretoGuardadoEn: '2026-11-26T12:00:00+00:00' }
+    const guardada = 'https://api.deepseek.com'
+    expect(guardarBorraLaClave(conClave, guardada, 'https://ia.ejemplo.com')).toBe(true)
+    expect(guardarBorraLaClave(conClave, guardada, 'https://API.deepseek.com/v1')).toBe(false)
+    expect(
+      guardarBorraLaClave({ secretoGuardadoEn: null }, guardada, 'https://ia.ejemplo.com'),
+    ).toBe(false)
+    // A medio escribir no hay origen todavía: no se avisa.
+    expect(guardarBorraLaClave(conClave, guardada, 'htt')).toBe(false)
   })
 })
 
