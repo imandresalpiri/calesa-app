@@ -23,5 +23,8 @@ const esquemaDeCambios = z
 export const esquemaGuardarTransporte = z.object({
   vehiculoId: z.guid(),
   actualizadoEnEsperado: z.string().min(1).nullable(),
+  // Las del embarque y el contenedor leídos (nulas si iba suelta).
+  embarqueEsperado: z.string().min(1).nullable(),
+  contenedorEsperado: z.string().min(1).nullable(),
   cambios: esquemaDeCambios,
 })
