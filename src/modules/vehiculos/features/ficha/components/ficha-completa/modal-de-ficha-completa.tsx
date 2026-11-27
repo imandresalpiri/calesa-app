@@ -1,6 +1,7 @@
 'use client'
 
 import { XIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import type { Categoria, OrigenResumen } from '@/modules/origenes/client'
 import { Button } from '@/shared/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/shared/ui/dialog'
@@ -14,12 +15,21 @@ type Props = {
   vehiculo: Vehiculo
   origen: OrigenResumen
   categorias: readonly Categoria[]
+  // Lo que va abajo, fijo (desde otra pantalla: «Abrir en Vehículos»). Sin pie, nada.
+  pie?: ReactNode
 }
 
 // La ficha completa del vehículo (docs/GLOSARIO.md › «Ficha completa (del vehículo)»), el «Ver más» de «Datos principales»: casi toda la pantalla en
 // escritorio y entera en el celular, para mostrarle el vehículo a un cliente. Arriba fija el título y «Cerrar»; el cuerpo se desplaza: las fotos con su
-// tira y los datos. Sólo lectura. Vive en `?ver=ficha`: «atrás» y Esc la cierran y el foco vuelve a «Ver más».
-export function ModalDeFichaCompleta({ abierto, alCerrar, vehiculo, origen, categorias }: Props) {
+// tira y los datos; abajo, fijo, el `pie` si llega. Sólo lectura. Vive en `?ver=ficha`: «atrás» y Esc la cierran y el foco vuelve a «Ver más».
+export function ModalDeFichaCompleta({
+  abierto,
+  alCerrar,
+  vehiculo,
+  origen,
+  categorias,
+  pie,
+}: Props) {
   return (
     <Dialog
       open={abierto}
@@ -49,6 +59,11 @@ export function ModalDeFichaCompleta({ abierto, alCerrar, vehiculo, origen, cate
             <DatosDeLaFichaCompleta vehiculo={vehiculo} origen={origen} categorias={categorias} />
           </div>
         </div>
+        {pie === undefined ? null : (
+          <div className="flex shrink-0 items-center justify-end gap-2 border-t border-(--color-line) px-4 py-2">
+            {pie}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

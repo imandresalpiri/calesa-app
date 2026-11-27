@@ -133,7 +133,9 @@ test('E2E aprobar el BL: la fila queda «Aprobado» y «Qué falta» cumple el r
   expect(fila.data?.[0]?.estado).toBe('aprobado')
   expect(fila.data?.[0]?.revisado_por).not.toBeNull()
 
-  // Aprobar avisa a «Qué falta», que se relee sin esperar al foco.
+  // Aprobar avisa a «Qué falta», que se relee sin esperar al foco. Cerrar el drawer de Documentos lo deja al alcance.
   await expect(bloque.getByText('Cumplido', { exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(hueco).toBeHidden()
   await expect(bloque.getByRole('button', { name: `Mover a «${terreno.c.nombre}»` })).toBeEnabled()
 })

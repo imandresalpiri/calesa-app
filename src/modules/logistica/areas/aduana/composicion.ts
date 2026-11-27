@@ -9,3 +9,6 @@ export const repositorioDeAduana: RepositorioDeAduana = {
   ...aduanaSupabase,
   ...escriturasDeAduanaSupabase,
 }
+
+// El resumen de su tarjeta en la página de la unidad (`docs/GLOSARIO.md` › «Tarjeta de la unidad»).
+export { leerResumenDeAduana } from '../../infra/aduana/resumen'

@@ -300,7 +300,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Al volver de «Nuevo lead» a «Nuevo proyecto» se apilan dos avisos («Lead creado» y «Recuperamos lo que habías escrito y no guardaste.») — el
   arreglo va en el marco del alta (no avisar «Lead creado» cuando vuelve a un formulario con `?elegir=`) o en el borrador (no avisar al reponer tras el alta).
 - **[—]** Con «Ver como» la franja del aviso (≈ 2,25 rem) hace desplazar la página de la unidad de logística en escritorio: el alto fijo (`--alto-del-detalle`) no la descuenta.
-- **[—]** Redimensionar la ventana cruzando los 1024 px remonta los huecos de la unidad (zonas ⇄ bloques) y se pierde lo escrito y no guardado; la forma se elige por el ancho de la pantalla.
 - **[—]** Con sólo no ganadas en un origen, el inventario sin filtros dice el vacío de primera vez (el filtro por defecto las oculta) — que diga que hay no ganadas y ofrezca verlas con «Subasta: No ganadas».
 - **[—]** «Nueva oportunidad…» del «⋯» no ofrece vehículo: haría falta una lectura de los vehículos del lead desde `src/app` (una Server Action de `vehiculos` pasada por props) — hoy se agrega con «Editar» en la ficha.
 - **[4-20]** Ancho contra altura del aviso de escritorio: a 22 rem, al 200 % tapa texto de la última fila de una lista — decidir (ancho, angosto o que se aparte) y afirmarlo en `e2e/avisos-con-descripcion.spec.ts` (`--ancho-del-aviso`; `avisosAbajo()` cambia con el ancho).

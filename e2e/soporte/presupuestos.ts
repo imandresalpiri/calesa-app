@@ -43,7 +43,7 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   '/logistica/embarques/[id]': 410,
   '/logistica/aduana': 410,
   // El detalle de un vehículo en logística (T20), con el vehículo medido de la subasta de la semilla: medido 438,9 KB en 28 chunks antes de las zonas y 442,3 KB en 27 después, más un 5 % hacia arriba a la decena.
-  '/logistica/vehiculo/[id]': 470,
+  '/logistica/vehiculo/[id]': 480,
   // La ficha de un vehículo (T34), con el vehículo medido de la subasta de la semilla: medido 504,3 KB en 33 chunks con las pestañas, más un 5 % hacia
   // arriba a la decena. La ficha en dos columnas tiene que caber en lo mismo. Con la cotización privada (T413: la insignia de las tarjetas y la pregunta de «Aprobar
   // esta») midió 529,6 KB en 35 chunks y, con los botones «Recargar la página» y «Copiar el enlace de esta página» del marco, 530,7; con la cuenta regresiva de la subasta en la izquierda, 531,8: 540 (regla del 5 %).

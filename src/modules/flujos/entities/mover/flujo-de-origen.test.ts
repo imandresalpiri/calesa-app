@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { TOPE_DE_FASES, TOPE_DE_REGLAS } from '../flujo'
+import { TOPE_DE_FASES, TOPE_DE_REGLAS, TOPE_DE_TRANSICIONES } from '../flujo'
 import { flujoDeOrigenDesde, reglaActiva } from './flujo-de-origen'
 
 const guid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
@@ -21,6 +21,7 @@ const fila = (extra: Record<string, unknown> = {}) => ({
     { regla: 'aduana', activa: false },
   ],
   fases: [fase(10), fase(11, { nota_obligatoria: true, demora_dias: 5, permite_aduana: true })],
+  fases_transiciones: [{ de_fase_id: guid(10), a_fase_id: guid(11) }],
   ...extra,
 })
 
@@ -41,6 +42,7 @@ describe('flujoDeOrigenDesde', () => {
             permiteContenedor: false,
             permiteAduana: false,
             demoraDias: null,
+            salidas: [guid(11)],
           },
           {
             id: guid(11),
@@ -50,6 +52,7 @@ describe('flujoDeOrigenDesde', () => {
             permiteContenedor: false,
             permiteAduana: true,
             demoraDias: 5,
+            salidas: [],
           },
         ],
       },
@@ -80,6 +83,28 @@ describe('flujoDeOrigenDesde', () => {
     expect(flujoDeOrigenDesde(fila({ flujos_reglas: reglas })).ok).toBe(false)
     const justo = Array.from({ length: TOPE_DE_FASES }, (_, i) => fase(1000 + i))
     expect(flujoDeOrigenDesde(fila({ fases: justo })).ok).toBe(true)
+    const transiciones = Array.from({ length: TOPE_DE_TRANSICIONES + 1 }, () => ({
+      de_fase_id: guid(10),
+      a_fase_id: guid(11),
+    }))
+    expect(flujoDeOrigenDesde(fila({ fases_transiciones: transiciones })).ok).toBe(false)
+  })
+
+  it('junta las salidas de cada fase; una transición que no es un guid es un error', () => {
+    const r = flujoDeOrigenDesde(
+      fila({
+        fases_transiciones: [
+          { de_fase_id: guid(10), a_fase_id: guid(11) },
+          { de_fase_id: guid(10), a_fase_id: guid(12) },
+          { de_fase_id: guid(11), a_fase_id: guid(10) },
+        ],
+      }),
+    )
+    expect(r.ok && r.data?.fases.map((f) => f.salidas)).toEqual([[guid(11), guid(12)], [guid(10)]])
+    expect(
+      flujoDeOrigenDesde(fila({ fases_transiciones: [{ de_fase_id: 'x', a_fase_id: guid(11) }] }))
+        .ok,
+    ).toBe(false)
   })
 })
 

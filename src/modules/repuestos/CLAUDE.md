@@ -90,7 +90,10 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
 - **`flujo`** — esperas: `esperasQueDestraban(vehiculoId)` (`Resultado<{ items, hayMas }>`, hasta 50, por `repuestos_pendientes_de_vehiculo`, que oculta los
   nombres de fase sin `logistica.ver`). `pantallas/flujo-esperas.ts`: `HUECOS_DE_ESPERAS_EN_LA_UNIDAD` (`repuestos.ver`, regla `esperas`, tipo estructural
   propio: no importa `logistica`; el cast va en `huecos-de-la-unidad.tsx` de logística); lee con `leerEsperasDelVehiculo` al abrir y si cambia la fase,
-  **sin** escuchar `logistica:unidad-cambio`.
+  **sin** escuchar `logistica:unidad-cambio`. La tarjeta «Repuestos» de la página de la unidad: `resumenDeLasEsperas({ esperas, empezar })` (`entities/flujo/tarjeta-de-esperas.ts`, forma
+  estructural de `ResumenDeTarjeta`) con `accionDeEmpezar` del área `proyectos` (`entities/proyectos/empezar.ts`): sin esperas y con `repuestos.editar`, «Agregar un repuesto»
+  (`rutaDeNuevoItem`, proyecto abierto) o «Pedir repuestos para este vehículo» (`rutaDeNuevoProyectoConVehiculo`, sin proyecto); con el proyecto cerrado, ninguna. Las dos áreas
+  las une `src/app/(app)/logistica/resumen-de-repuestos.ts` (`esperasQueDestraban` y `proyectoDe` en paralelo). `PANEL_NUEVO_ITEM` vive en el núcleo (`entities/nucleo/paneles.ts`).
 - **`flujo`** — la Cadena, `/repuestos?vista=cadena` (`pantallas/flujo-cadena.ts`: `CadenaDeRepuestos`, columnas por fase, `?fase=` en el celular):
   `leerCadenaDeRepuestos(filtros)`, `esquemaDeLaCadena`, `pedidoDeLaCadena`, `rutaDeLaCadena({ proyecto?, q? })`, claves `vista`, `q`, `proyecto`, `fase`.
   Una consulta por fase con `limit 51` (nunca por tarjeta), «Ver más» por cursor `(fase_desde, id)` (`verMasDeLaColumnaDeRepuestos`); `?proyecto=` sólo por URL.

@@ -9,6 +9,7 @@ import { abrirConVuelta, useVueltaDelFoco } from '@/shared/ui/vuelta-del-foco'
 import type { AccionADibujar } from '../../../entities/mover/acciones-a-dibujar'
 import { CLAVE_DE_LA_FALTA, CLAVE_DE_PEDIR, PANEL_PEDIR } from '../../../entities/mover/textos'
 import { CLAVE_DEL_HUECO_ABIERTO } from '../../../entities/nucleo/enlaces'
+import { TARJETA_DEL_HUECO } from '../../../entities/nucleo/tarjetas'
 import {
   ATRIBUTO_DE_CLAVE_DE_DATO,
   ATRIBUTO_DE_TIPO_DE_DOCUMENTO,
@@ -18,7 +19,7 @@ import {
   PAGO_NUEVO,
   PANEL_PAGO,
 } from '../../../entities/nucleo/paneles-de-la-unidad'
-import { useEnZonas } from '../../nucleo/disposicion'
+import { useEnLaPagina } from '../../nucleo/disposicion'
 import { enfocarAlAparecer } from '../../nucleo/hooks/enfocar-al-aparecer'
 import { abrirHueco } from '../../nucleo/hooks/eventos-de-la-unidad'
 
@@ -34,11 +35,11 @@ const CLAVES = {
 
 const selector = (atributo: string, valor: string) => `[${atributo}="${CSS.escape(valor)}"]`
 
-// Lo que hace cada acción de un requisito de «Qué falta» (ya filtrada por `accionesADibujar`). En las zonas de la página, lo que abre un panel de otro hueco va en
-// **una** escritura de la URL que también elige su pestaña (`?hueco=`): mezclarla con la de `abrirHueco` en el mismo tick pisaría una de las dos. En bloques
-// (celular, drawers), primero se abre el bloque y después se escribe. «Ir» navega con `salirSinPerder` (un formulario abierto pregunta).
+// Lo que hace cada acción de un requisito de «Qué falta» (ya filtrada por `accionesADibujar`). En la página de la unidad, lo que abre un panel de otro hueco va en
+// **una** escritura de la URL que también abre el drawer de su tarjeta (`?hueco=documentos`, `?hueco=dinero`): mezclarla con la de `abrirHueco` en el mismo tick pisaría
+// una de las dos. En los drawers (gastos, ítem), primero se abre el hueco y después se escribe. «Ir» navega con `salirSinPerder` (un formulario abierto pregunta).
 export function useHacerAccionDelRequisito() {
-  const enZonas = useEnZonas()
+  const enLaPagina = useEnLaPagina()
   const router = useRouter()
   const [valores, escribir] = useQueryStates(CLAVES)
   // El panel de pago y la subida marcan su vuelta con su propio `usePanelPorUrl`; «Pedirlo» la marca aquí también (el modal se monta recién al primer uso).
@@ -50,7 +51,7 @@ export function useHacerAccionDelRequisito() {
   return (accion: AccionADibujar, requisitoId: string): void => {
     switch (accion.tipo) {
       case 'subir':
-        if (enZonas) {
+        if (enLaPagina) {
           empujar(CLAVE_DE_SUBIR, {
             [CLAVE_DEL_HUECO_ABIERTO]: 'documentos',
             [CLAVE_DE_SUBIR]: 'documentos',
@@ -78,9 +79,9 @@ export function useHacerAccionDelRequisito() {
         }
         return
       case 'registrar-pago':
-        if (!enZonas) abrirHueco('pagos')
+        if (!enLaPagina) abrirHueco('pagos')
         empujar(CLAVE_DE_PANEL, {
-          ...(enZonas ? { [CLAVE_DEL_HUECO_ABIERTO]: 'pagos' } : {}),
+          ...(enLaPagina ? { [CLAVE_DEL_HUECO_ABIERTO]: TARJETA_DEL_HUECO.pagos ?? 'dinero' } : {}),
           [CLAVE_DE_PANEL]: PANEL_PAGO,
           [CLAVE_DE_PAGO]: PAGO_NUEVO,
         })

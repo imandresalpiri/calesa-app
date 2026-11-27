@@ -3,7 +3,7 @@
 import { diferido } from '@/shared/ui/diferido'
 import { EsqueletoDelHueco } from '../../nucleo/components/esqueleto-del-hueco'
 
-// Los huecos «Gastos», «Pagos» y «Margen» se piden recién al acercarse su sección (`BloqueDelHueco` no los monta antes): el panel de la unidad no carga el código del formulario, la lista ni el margen
+// Los huecos «Gastos», «Pagos» y «Margen» se piden recién al abrirse su tarjeta (su drawer no los monta antes): el panel de la unidad no carga el código del formulario, la lista ni el margen
 // para dibujarse. Un hueco recibe sólo `{ unidad }`.
 export const HuecoDeGastosDiferido = diferido(
   () => import('./hueco-de-gastos').then((modulo) => modulo.HuecoDeGastos),

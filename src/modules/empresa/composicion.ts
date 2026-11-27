@@ -33,7 +33,12 @@ import { enlacesDeAyudaSupabase, misEnlacesDeAyudaSupabase } from './infra/enlac
 import { dibujarImagenDeTiposCambio } from './infra/compartir/imagen'
 import { integracionesSupabase } from './infra/integraciones'
 import { leyendaDeTiposCambioSupabase } from './infra/leyenda-de-tipos-cambio'
-import { getAjustes, getAjustesParaEditar, getPoliticaDeLimpieza } from './infra/queries/ajustes'
+import {
+  getAjustes,
+  getAjustesParaEditar,
+  getDemoraPorDefecto,
+  getPoliticaDeLimpieza,
+} from './infra/queries/ajustes'
 import { getAjustesDeCotizacion } from './infra/queries/ajustes-de-cotizacion'
 import { getParaCompartir } from './infra/queries/compartir'
 import { getEnlacesDeAyuda, getMisEnlacesDeAyuda } from './infra/queries/enlaces-de-ayuda'
@@ -116,6 +121,7 @@ export function responderCompartirTiposCambio(
 // Lo que consumen el shell y otros módulos: nunca tumban una pantalla.
 export {
   getAjustes,
+  getDemoraPorDefecto,
   getPoliticaDeLimpieza,
   getTiposCambio,
   getTiposCambioDeLaBarra,

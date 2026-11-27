@@ -54,3 +54,4 @@ export {
   tituloDelContenedor,
   tituloDelEmbarque,
 } from '../../entities/transporte/textos'
+export { leerResumenDeTransporte } from './composicion'

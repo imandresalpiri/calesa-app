@@ -1,4 +1,6 @@
 // Lo que devuelve la lectura de una lista de una unidad (notas, historial) y lo que se le pide (6.04-2). Sólo tipos.
+import type { FiltroDelHistorial } from './filtro-del-historial'
+
 export type PaginaDeLaUnidad<Fila> = {
   filas: Fila[]
   // El cursor de la página siguiente; nulo si no hay más hacia atrás.
@@ -13,4 +15,6 @@ export type PedidoDeLaLista = {
   cursor: string | null
   // «Ir a una fecha»: el instante exclusivo (`hastaDeUnDia()`); nulo = desde lo más reciente.
   hasta: string | null
+  // Sólo el historial, en la página de la unidad: la fase a la que entró y quién lo movió. Sin él, todo.
+  filtro?: FiltroDelHistorial
 }

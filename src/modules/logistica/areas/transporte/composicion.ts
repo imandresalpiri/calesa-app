@@ -16,3 +16,6 @@ export const repositorioDeTransporte: RepositorioDeTransporte = transporteSupaba
 
 // Crear y editar un embarque o un contenedor, y sumarle o sacarle vehículos en lote. Las actions de `features/transporte/` lo usan.
 export const repositorioDeEmbarques: RepositorioDeEmbarques = embarquesSupabase
+
+// El resumen de su tarjeta en la página de la unidad (`docs/GLOSARIO.md` › «Tarjeta de la unidad»).
+export { leerResumenDeTransporte } from '../../infra/transporte/resumen'

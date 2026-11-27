@@ -11,6 +11,24 @@ export {
   CLAVE_DE_ORIGEN_DE_LOGISTICA,
   CLAVE_DEL_HUECO_ABIERTO,
   enElOrigen,
-  esHuecoConocido,
   rutaDeLaUnidad,
 } from '../../entities/nucleo/enlaces'
+export {
+  esTarjetaConocida,
+  ORDEN_DE_TARJETAS,
+  tarjetaDelHueco,
+  tarjetasDeLaUnidad,
+  TITULO_DE_LA_TARJETA,
+} from '../../entities/nucleo/tarjetas'
+export type { ClaveDeTarjeta, TarjetaConSusHuecos } from '../../entities/nucleo/tarjetas'
+export { demoraDeLaUnidad } from '../../entities/nucleo/demora'
+export type { FaseParaLaDemora } from '../../entities/nucleo/demora'
+export { capacidadesDeLaTarjeta } from '../../entities/nucleo/acciones-de-la-tarjeta'
+export type { CapacidadesDeLaTarjeta } from '../../entities/nucleo/acciones-de-la-tarjeta'
+export { accionDeVer } from '../../entities/nucleo/tarjeta'
+export { CLAVE_DE_SUBIR, CLAVE_DEL_TIPO_A_SUBIR } from '../../entities/nucleo/paneles-de-la-unidad'
+export type {
+  AccionDeLaTarjeta,
+  DestinoDeLaAccion,
+  ResumenDeTarjeta,
+} from '../../entities/nucleo/tarjeta'

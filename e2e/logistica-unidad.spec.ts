@@ -10,7 +10,7 @@ import { borrarLogistica, sembrarLogistica, type TerrenoDeLogistica } from './so
 
 // El panel de la unidad de logística (6.01-2), en su propia página: con `logistica.ver` y `vehiculos.ver` del origen se ve el título, el origen, la fase y los días en ella; con sólo
 // `vehiculos.ver` (la RLS de `vehiculos` lee con ésa) el panel dice que no hay permiso; una unidad que no existe, el estado «ya no está disponible». Los huecos de las áreas
-// los prueba el spec de cada una; la disposición en zonas, `logistica-detalle.spec.ts`.
+// los prueba el spec de cada una; la cadena y las tarjetas, `logistica-unidad-cadena-y-tarjetas.spec.ts`.
 test.describe.configure({ mode: 'serial' })
 
 let proyecto = ''
@@ -48,12 +48,14 @@ test('con logistica.ver ve la unidad: título, origen, fase y días en la fase',
       .getByRole('navigation', { name: 'Orígenes' })
       .getByRole('link', { name: terreno.origen.nombre }),
   ).toHaveAttribute('aria-current', 'page')
-  await expect(page.getByText(terreno.fase.nombre)).toBeVisible()
-  await expect(page.locator('#contenido').getByText('Desde hace 3 días en esta fase')).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Abrir ficha' })).toHaveAttribute(
-    'href',
-    `/vehiculos/${terreno.enFase.id}`,
-  )
+  const cabecera = page.locator('[data-slot="cabecera-de-la-unidad"]')
+  await expect(cabecera.getByText(terreno.fase.nombre)).toBeVisible()
+  await expect(cabecera.getByText('Desde hace 3 días en esta fase')).toBeVisible()
+  // La ficha completa se abre tocando la cabecera (`?ver=ficha`), no con un enlace aparte.
+  await expect(page.getByRole('link', { name: 'Abrir ficha' })).toHaveCount(0)
+  await expect(
+    cabecera.getByRole('button', { name: `Ver la ficha de ${terreno.enFase.titulo}` }),
+  ).toBeVisible()
   // El flujo del origen se leyó (`leerFlujoDeOrigen`, primera vez contra la base): sin aviso de que no se pudo.
   await expect(page.getByText(/No pudimos leer el flujo/)).toHaveCount(0)
 })
@@ -62,7 +64,10 @@ test('una unidad sin fase dice «Sin fase» y no cuenta días', async ({ page })
   await entrar(page, terreno.conLogistica)
   await page.goto(`/logistica/vehiculo/${terreno.sinFase.id}`)
   await expect(page.getByRole('heading', { name: terreno.sinFase.titulo })).toBeVisible()
-  await expect(page.getByText('Sin fase', { exact: true })).toBeVisible()
+  // Lo dice la cabecera; la cadena también lo muestra como su nodo actual.
+  const cabecera = page.locator('[data-slot="cabecera-de-la-unidad"]')
+  await expect(cabecera.getByText('Sin fase', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sin fase, actual' })).toBeVisible()
   await expect(page.getByText(/en esta fase/)).toHaveCount(0)
 })
 

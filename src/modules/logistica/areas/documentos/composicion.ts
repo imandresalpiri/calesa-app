@@ -10,3 +10,6 @@ export const repositorioDeDocumentos: RepositorioDeDocumentos = documentosSupaba
 
 // Aprobar, rechazar, editar y eliminar un documento (6.06-3).
 export const repositorioDeRevision: RepositorioDeRevision = revisionSupabase
+
+// El resumen de su tarjeta en la página de la unidad (`docs/GLOSARIO.md` › «Tarjeta de la unidad»).
+export { leerResumenDeDocumentos } from '../../infra/documentos/resumen'

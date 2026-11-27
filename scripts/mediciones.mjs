@@ -187,6 +187,11 @@ export const MEDICIONES_CON_VOLUMEN = [
     'mediana de 5 de 7 corridas',
   ],
   [
+    'supabase/tests/medir-historial-de-fases.sql',
+    'El historial de fases de un vehículo filtrado por quién, por «Sistema» y por fase, con 5.000 cambios entre 50.000 y 250.000, como authenticated y con el plan genérico: una página de n + 1 (primera y profunda por cursor) de la dueña, por historial_fases_vehiculo_quien_idx e historial_fases_vehiculo_fase_idx (ms y buffers del EXPLAIN); la guarda, sin ellos',
+    'mediana de 5 de 7 corridas',
+  ],
+  [
     'supabase/tests/medir-cotizaciones-listado-por-vehiculo.sql',
     'La lista /cotizaciones agrupada por vehículo (cotizaciones_listado_por_vehiculo()) con 50.000 y con 250.000 filas, como authenticated y con el plan genérico: la página 1, una profunda por cursor y una hacia atrás de la dueña (por origen, finales, «mías» y un lead), de Ana («propios» con su cartera y un vehículo de 5.005), de la «chica» y de Teo, con la página de 100 grupos y su conteo acotado; los índices de la ruta del lote, la sonda y el conteo por cotizaciones_vehiculo_creado_idx, la cabeza por cotizaciones_pkey y cotizaciones_aprobadas_pkey, sin recorrer la tabla ni crecer con N',
     'mediana de 5 de 7 corridas',

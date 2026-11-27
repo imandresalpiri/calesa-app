@@ -10,7 +10,7 @@ Toda la configuración se escribe por RPC con la versión del flujo. Abiertos (`
   (`/repuestos/configuracion/flujo`), cada una con un **flujo fijo** (`FlujoFijo`: `{ origenId }` o `{ ambito: 'repuestos' }`); llamadas a mover desde `logistica` y `repuestos`.
 - Sale por `index.ts`: `leerFasesDeOrigen(origenId)` → `FaseResumen[]` (id, nombre, color, orden, inicial, final, activa; también las jubiladas), que usa
   `vehiculos` para mostrar y filtrar la fase. Del área `mover`: `leerFlujoDeOrigen(origenId)` → `FlujoDeOrigen | null` (`flujoId`, `reglasActivas` y por fase
-  `notaObligatoria`, `permiteContenedor`, `permiteAduana`, `demoraDias`; error visible si una lista llega al tope) y `reglaActiva(flujo, regla)`. Por `client.ts`,
+  `notaObligatoria`, `permiteContenedor`, `permiteAduana`, `demoraDias` y `salidas` —los destinos de sus transiciones, embebidos en la misma lectura—; error visible si una lista llega al tope) y `reglaActiva(flujo, regla)`. Por `client.ts`,
   sus tipos y `reglaActiva`.
 - **Mover**, por `client.ts`: las actions `previsualizarCambio`, `previsualizarCambioLote`, `cambiarFase`, `cambiarFaseLote`,
   `destinosDeLaFase` (las salidas de una fase, sin vista previa) y `ganarLaSubasta` («La ganamos»: `vehiculo_subasta_ganada`, que mueve con
@@ -20,6 +20,8 @@ Toda la configuración se escribe por RPC con la versión del flujo. Abiertos (`
   Reglas puras: `estadoDelBoton`, `textoDelBoton`, `motivoLegible`, `etiquetaDeRequisito`, `detalleDeRequisito`, `anclaDeRequisito`. Lo consume `logistica`.
   Por `index.ts`, `leerParaMoverDe(pedido, permisos)` (función de servidor) y `esquemaLeerParaMover`: lo que lee «Qué falta», que `logistica` envuelve en
   su action `leerQueFalta` para sumar las acciones de cada requisito (con `etiquetaDeRequisito`, `faltaDeRequisito` y los tipos `ParaMover`, `RequisitoVista`).
+  `leerRequisitosDeFase({ unidad, faseId })` y `esquemaLeerRequisitosDeFase`: los requisitos de una fase cualquiera del flujo, aunque no sea una salida de la
+  actual (la misma vista previa de mover, de la que sólo sirven los requisitos); la cadena de la unidad de `logistica` la usa para mirar una fase por adelantado.
 - El flujo de repuestos (`ambito = 'repuestos'`, sin origen) viene en la base, sin fases y con sus 7 reglas; las fases las siembra `seed.sql` o se crean en «Fases».
 - Depende de: `origenes`.
 

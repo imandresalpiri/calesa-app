@@ -2,6 +2,8 @@
 // confirmación de eliminar. Van aparte del `?vehiculo=` del panel de la unidad.
 export const PANEL_GASTO = 'gasto'
 export const PANEL_ELIMINAR_GASTO = 'eliminar-gasto'
+/** Todos los `?panel=` del hueco «Gastos»: con uno en la URL, la página de la unidad abre sola la tarjeta Dinero (el hueco atiende su panel adentro). */
+export const PANELES_DEL_GASTO = [PANEL_GASTO, PANEL_ELIMINAR_GASTO] as const
 // El diálogo de «Prorratear» del resumen de un grupo (`?panel=prorratear`, 6.11-4): nombra el reparto antes de escribir nada.
 export const PANEL_PRORRATEAR = 'prorratear'
 // Los modales de «Categorías de gasto» dentro de su drawer (`?panel=categorias-de-gasto`, 6.11-4): `?accion=nueva-categoria&de=origen|compartido` y

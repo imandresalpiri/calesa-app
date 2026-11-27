@@ -15,7 +15,7 @@ import { sql } from './soporte/sql'
 
 // El panel de un ítem (`?item=<id>`) en dos columnas (`docs/UX.md` › «Panel del ítem»): a la izquierda lo del ítem en el orden en que se usa (Qué es, Estado con lo que falta, Cantidades y precios,
 // Origen y envío, Proveedor y Notas del ítem), cada grupo como texto que se edita en su modal; a la derecha, sus tarjetas con alto fijo (Imágenes, Stock, Compras, Documentos, Historial, Notas y
-// Vehículo y cliente), cada una con su «⋯» y su drawer. Sin acordeones ni secciones dentro de secciones, y nada salta al guardar. Quien sólo tiene `repuestos.ver` lo lee, con mover apagado.
+// Vehículo y cliente), cada una con su «⋯» y su drawer; las de logística (Documentos, Historial, Notas) son la tarjeta de la unidad, con su drawer en `?seccion=`. Sin acordeones ni secciones dentro de secciones, y nada salta al guardar. Quien sólo tiene `repuestos.ver` lo lee, con mover apagado.
 // La etiqueta no empieza con «E2E»: la limpieza de `repuestos-proyecto.spec.ts` borra esas (D12). Cada proyecto de Playwright usa la suya.
 test.describe.configure({ mode: 'serial' })
 
@@ -100,7 +100,10 @@ test('la dueña lee el ítem en el orden en que lo usa y sin acordeones', async 
   await page.reload()
 
   const panel = await abrirItem(page, REPUESTO)
-  const titulos = panel.locator('[data-slot="tarjeta-de-ajustes"] > header h2')
+  // Las tarjetas del ítem y las de logística (la tarjeta de la unidad: `[data-tarjeta]` con su `h3`), en el orden del panel.
+  const titulos = panel.locator(
+    ':is([data-slot="tarjeta-de-ajustes"] > header h2, [data-tarjeta] > h3)',
+  )
   await expect(titulos).toHaveText([...GRUPOS_DE_LA_IZQUIERDA, ...TARJETAS_DE_LA_DERECHA])
 
   // Un solo nivel de secciones: nada plegable ni una tarjeta dentro de otra.
@@ -159,11 +162,11 @@ test('una tarjeta de la derecha abre su drawer y su «⋯» pone la acción prin
 
   // El «⋯» lista la acción principal primero.
   await notas.getByRole('button', { name: 'Más acciones de Notas' }).click()
-  await expect(page.getByRole('menuitem').first()).toHaveText('Abrir…')
+  await expect(page.getByRole('menuitem').first()).toHaveText('Ver las notas')
   await page.keyboard.press('Escape')
 
   // Tocar la tarjeta abre su drawer sin soltar el panel (`?seccion=`, no `?panel=`).
-  await notas.getByRole('button', { name: 'Abrir Notas' }).click()
+  await notas.getByRole('button', { name: 'Ver las notas' }).click()
   await expect(page).toHaveURL(/[?&]seccion=notas/)
   await expect(page).toHaveURL(new RegExp(`[?&]item=${item}`))
   const drawer = page.getByRole('dialog', { name: 'Notas', exact: true })

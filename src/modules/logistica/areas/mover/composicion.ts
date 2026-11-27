@@ -6,3 +6,7 @@ import { notasSupabase } from '../../infra/mover/notas'
 
 // Crear y corregir las notas de una unidad (6.04-2). Las actions de `features/mover/` lo usan.
 export const repositorioDeNotas: RepositorioDeNotas = notasSupabase
+
+// Las pasadas de la cadena de la unidad, en el servidor (`historial_fases_vehiculo_idx`, tope 50 + 1).
+export { leerPasadasDeLaUnidad } from '../../infra/mover/historial'
+export { leerResumenDeNotas } from '../../infra/mover/resumen'

@@ -43,6 +43,11 @@ const unidades = z
 
 export const esquemaLeerParaMover = z.object(forma).transform(conUnidad(true))
 
+// Lo que pide una fase cualquiera del flujo (la cadena de la unidad): la unidad, con el origen de un vehículo para decidir sus acciones, y la fase mirada.
+export const esquemaLeerRequisitosDeFase = z
+  .object({ ...forma, fase: z.guid() })
+  .transform(conUnidad(true))
+
 export const esquemaPrevisualizarCambio = z
   .object({ ...forma, faseDestino: z.guid() })
   .transform(conUnidad(false))
