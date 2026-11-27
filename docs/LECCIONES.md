@@ -467,6 +467,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Un cálculo del motor hecho aparte en la misma pasada (lo calculado de un pisado, `calcularAparte()`) guarda y repone el largo de `faltantes`, la fuente
   y el estado del nodo, en TS y en el espejo SQL: evaluar un nodo escribe en lo compartido de la pasada, y sin reponer, un pisado suma faltantes que no
   existen o cambia el estado de lo que ya quedó escrito.
+- Un e2e que compara el diseño de una versión con el de otra lee la sembrada como la lee la app (`_diseno_en_rejilla(diseno)`): una de flujo se convierte
+  al leerla y todo lo que se guarda sobre ella lleva ya sus posiciones.
 - Compara un `jsonb` leído de la base con lo que se edita sin mirar el orden de las claves (`mismoJson()`): la base las devuelve ordenadas por largo y un
   `JSON.stringify` dice «hay cambios» para siempre tras guardar (y `useBorradorDeEstado`, que compara el texto, guarda un «recuperado» falso).
 - Un logo para un dibujo del servidor pasa por `logoParaDibujar()`: react-pdf y satori no leen WebP ni SVG con estilos, y `sharp` lo pasa a PNG.
