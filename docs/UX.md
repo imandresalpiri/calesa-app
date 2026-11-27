@@ -947,12 +947,20 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 
 - **Entrar:** `empresa.ajustes.gestionar` o `empresa.tipos_cambio.gestionar`; cada sub-sección se edita con su permiso, sin él
   deshabilitada con el motivo arriba; sin ninguno, «sin permiso». Cada sub-ruta tiene su esqueleto.
-- **Datos de la empresa:** seis **tarjetas de ajustes** (Identidad, Región, Datos legales y de contacto, Políticas, Íconos de la app, Enlaces de ayuda) que muestran
+- **Datos de la empresa:** siete **tarjetas de ajustes** (Identidad, Región, Datos legales y de contacto, Políticas, Logos, Íconos de la app, Enlaces de ayuda) que muestran
   lo guardado («Sin dato» si falta); tocar la tarjeta o «Editar…» en su «⋯» abre su modal (`?panel=identidad|region|datos-legales|politicas|iconos`),
   con «Cancelar» y «Guardar»: sin cambios guardar cierra; con cambios, Esc pregunta «Seguir editando» o «Descartar». Mientras guarda, el modal
   se apaga. Color sin contraste, logo inválido y zona inexistente: motivo junto al campo. Sin conexión, lo tipeado
   queda y se guarda solo al volver; Datos legales repone su borrador con el «Descartar» de su aviso. Sin `empresa.ajustes.gestionar`, se ve todo con
   «Editar…» apagada en el «⋯» y el motivo; «Íconos de la app» sin logo, apagado con su motivo; «Volver a los íconos neutros» va en el «⋯». PT409: «Recargar».
+  **Logos** (las variantes del logo, glosario «Variante del logo»): la tarjeta muestra hasta tres miniaturas sobre el damero con su nombre, «y N más» y, junto al título, cuántos
+  propios hay; su «⋯» lleva «Gestionar logos…» (lo que abre tocarla) y «Subir un logo…». El modal (`?panel=logos`, a pantalla completa en el celular) tiene «Subir un logo» arriba, «N de 12
+  logos propios.» y la lista: «Principal» y «Para fondo oscuro» fijas (sólo se ven; su «⋯» manda a Identidad con «Cambiar en Identidad…») y las propias, cada una con un asa para
+  arrastrar (con el asa enfocada, ↑ y ↓ mueven la fila un lugar y el foco se queda en ella) y su «⋯»: Renombrar…, Mover antes, Mover después, Quitar…. «Subir un logo»
+  (`?panel=nuevo-logo`) pide el archivo (SVG, PNG o WebP de hasta 1 MB; vista previa sobre el damero; un SVG con código, un tipo que no es o uno que pesa de más dicen su motivo junto al
+  archivo y no se sube nada) y el nombre (hasta 40, con sugerencias; uno repetido dice «Ya existe «X».»); sin red, el archivo elegido sigue ahí y sale al volver. «Renombrar…»
+  (`?panel=renombrar-logo&logo=`). «Quitar…» (`?panel=quitar-logo&logo=`) confirma nombrando el logo y, en un lugar reservado, dice cuántas ventanas de cámara lo usan («La usa la ventana
+  de cámara de N personas.»): esas vuelven al logo principal. Con 12, «Subir un logo» apagado con el motivo. Sin `empresa.ajustes.gestionar`, la tarjeta se ve con «Gestionar logos…» apagado y el motivo.
   **Enlaces de ayuda** (después de Región, para que las seis entren a 1440×900): la tarjeta nombra el primero con «y N más» y, junto al título, «N enlaces» (con tope «20+»); su «⋯» lleva «Editar…» y «Nuevo enlace». El modal
   (`?panel=enlaces-de-ayuda`, a pantalla completa en el celular) tiene «Nuevo enlace» arriba y la lista con el dominio y su estado («En el menú» o «No se ve en el menú»); cada fila,
   su «⋯» (Editar, Subir, Bajar, Desactivar o Activar con «Deshacer», Quitar con `<Confirmar>` que nombra el enlace, `?panel=quitar-enlace-de-ayuda&enlace=`). Nuevo y Editar
@@ -2513,7 +2521,7 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   la mueven 16 px, con Mayús 64); el video siempre 16:9 y debajo los datos elegidos (sin valor, ni su renglón; con el texto grande se parten y el bloque se
   desplaza por dentro). Cambia de tamaño desde la esquina que mira al centro (200 px como mínimo, la mitad de la ventana del navegador como máximo; con
   las flechas sobre la esquina, de a 20 px). Minimizada: la píldora «EN VIVO · nombre» en el mismo lugar. ⚙ abre un popover con la cámara, «Espejo»,
-  los datos a mostrar (la opción sin valor queda apagada y dice por qué: «No tienes WhatsApp ni teléfono: cárgalo en tu perfil.», «La empresa no tiene logo
+  los datos a mostrar (con más de un logo, bajo «Logo de la empresa» se elige cuál se ve, en miniaturas sobre el damero; la opción sin valor queda apagada y dice por qué: «No tienes WhatsApp ni teléfono: cárgalo en tu perfil.», «La empresa no tiene logo
   cargado.», «La empresa no cargó redes ni web.») y «Cargo de mi ficha web». Cargando la cámara, el cuadro del video vacío; sin permiso, «Sin cámara:
   revisa el permiso del navegador.»; sin cámara, «No se encontró una cámara.»; con un error, «No se pudo abrir la cámara.», todos con «Reintentar» y del
   mismo alto que el video. Si la cámara elegida ya no está, se usa la primera y se avisa una vez («La cámara elegida ya no está: se usa la primera.»).
