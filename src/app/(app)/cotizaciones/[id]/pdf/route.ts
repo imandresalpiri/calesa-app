@@ -68,7 +68,7 @@ export async function GET(_peticion: Request, { params }: RouteContext<'/cotizac
   const { hoja } = lectura
   // Los ajustes por `leerAjustes()`, que falla: un PDF que va al cliente no sale con el locale o la zona de fábrica.
   const [cliente, vehiculo, asesor, ajustes] = await Promise.all([
-    oNulo(clienteDe(sesion.permisos, hoja.cotizacion.leadId)),
+    oNulo(clienteDe(sesion, hoja.cotizacion.leadId)),
     oNulo(vehiculoDe(hoja.cotizacion.vehiculoId)),
     asesorQueMira(),
     leerAjustes(),

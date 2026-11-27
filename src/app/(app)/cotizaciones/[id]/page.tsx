@@ -15,7 +15,7 @@ import {
   ProveedorDeLaRanuraDeLaCabecera,
   ProveedorDelMenuDeLaGuardada,
 } from '@/modules/cotizaciones/pantallas/cotizacion'
-import { origenVisibleEnElLive, requerirSesion } from '@/modules/equipo'
+import { origenVisibleEnElLive, requerirSesion, type EstadoDelLive } from '@/modules/equipo'
 import { RegistrarVisto } from '@/modules/equipo/pantallas/visto-de-la-ficha'
 import type { Permisos } from '@/shared/lib/permisos'
 import { EstadoOcultoEnLive, EstadoVacio } from '@/shared/ui/estados'
@@ -66,13 +66,13 @@ function NoDisponible() {
 // y, a la vez, lo del vehículo para cambiarlo (T315). `deLaHoja` es el vehículo de la barra, del título y del cálculo: el elegido para cambiarlo o el guardado; la tarjeta,
 // el PDF, los huecos y la cabecera siguen con lo guardado (`vehiculo`).
 async function leerAlrededor(
-  sesion: Quien,
+  sesion: Quien & { live: EstadoDelLive },
   lectura: { hoja: HojaDeUnaGuardada; vehiculoNuevo: string | null; vehiculoSoltado: boolean },
   hermanaSola: boolean,
 ) {
   const { hoja, vehiculoNuevo, vehiculoSoltado } = lectura
   const [cliente, vehiculo, asesor, delVehiculo] = await Promise.all([
-    clienteDe(sesion.permisos, hoja.cotizacion.leadId),
+    clienteDe(sesion, hoja.cotizacion.leadId),
     vehiculoDe(hoja.cotizacion.vehiculoId),
     asesorQueMira(),
     leerLoDelVehiculo(sesion, hoja, { vehiculoNuevo, vehiculoSoltado, hermanaSola }),

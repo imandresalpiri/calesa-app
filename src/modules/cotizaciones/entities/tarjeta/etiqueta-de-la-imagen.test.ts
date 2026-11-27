@@ -37,6 +37,26 @@ describe('etiquetaDeLaImagen', () => {
     expect(coincideLaEtiqueta(con, sin)).toBe(false)
     expect(coincideLaEtiqueta(sin, con)).toBe(false)
   })
+
+  it('la variante con el cliente oculto (el Modo Live) suma `.c`, después de `.s`: nunca coincide con la otra', () => {
+    const con = etiquetaDeLaImagen({ huella: HUELLA, usuarioId: USUARIO, ancho: 480 })
+    const oculto = etiquetaDeLaImagen({
+      huella: HUELLA,
+      usuarioId: USUARIO,
+      ancho: 480,
+      clienteOculto: true,
+    })
+    const ambas = etiquetaDeLaImagen({
+      huella: HUELLA,
+      usuarioId: USUARIO,
+      ancho: null,
+      sinMoneda: true,
+      clienteOculto: true,
+    })
+    expect(oculto).toBe(`"${HUELLA}.${USUARIO}.v${String(VERSION_DEL_DIBUJO)}.480.c"`)
+    expect(ambas).toBe(`"${HUELLA}.${USUARIO}.v${String(VERSION_DEL_DIBUJO)}.g.s.c"`)
+    expect(coincideLaEtiqueta(con, oculto)).toBe(false)
+  })
 })
 
 describe('coincideLaEtiqueta', () => {

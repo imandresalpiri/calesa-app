@@ -145,14 +145,14 @@ async function Listado({
   const { tamano, agruparPedido } = deLaUrl
   const pedido = conOrigenDelLive(deLaUrl.pedido, sesion.live, visibles)
   const agrupada = agruparPedido && pedido.vehiculoId === undefined
-  const { pagina, cotizaciones, acotada } = await leerLaPagina(sesion.permisos, pedido, agrupada)
+  const { pagina, cotizaciones, acotada } = await leerLaPagina(sesion, pedido, agrupada)
   // La del resumen, si la URL trae una que no está en la página (también una línea del modal de un grupo); lo demás, en paralelo.
   const idDelResumenUrl = idDelResumen(unParametro(parametros[CLAVE_DE_RESUMEN_DE_COTIZACION]))
   const faltaLaDelResumen =
     idDelResumenUrl !== null && !cotizaciones.some((fila) => fila.id === idDelResumenUrl)
   const [delServidor, deUnLead, vistas] = await Promise.all([
     faltaLaDelResumen ? leerLaDelResumen(sesion, idDelResumenUrl) : null,
-    nombreDelLead(sesion.permisos, pedido.leadId),
+    nombreDelLead(sesion, pedido.leadId),
     leerVistas('cotizaciones'),
   ])
   // El «⋯» de cada fila y el de la del resumen que no está en la página: su versión, sus marcas y lo que ofrece a quien mira (tres lecturas por clave primaria

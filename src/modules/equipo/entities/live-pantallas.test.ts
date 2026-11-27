@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { AJUSTES_POR_DEFECTO_DEL_LIVE, CLIENTE_EN_EL_LIVE, type AjustesDelLive } from './live'
 import type { EstadoDelLive } from './live-combinar'
+import type { Permisos } from '@/shared/lib/permisos'
 import {
   AREAS_DEL_LIVE,
+  barraDelClienteEnElLive,
+  clienteDeLaCotizacion,
   clienteEnElLive,
   origenVisibleEnElLive,
   seOcultaEnElLive,
@@ -102,5 +105,46 @@ describe('clienteEnElLive', () => {
     expect(CLIENTE_EN_EL_LIVE).toBe('Cliente')
     expect(clienteEnElLive(encendido())).toBe('oculto')
     expect(clienteEnElLive(encendido({ clientes: 'nombres' }, false))).toBe('oculto')
+  })
+})
+
+describe('clienteDeLaCotizacion', () => {
+  const CON_LEADS: Permisos = [{ clave: 'leads.ver', origenId: null, alcance: 'todos' }]
+  const SIN_PERMISOS: Permisos = []
+
+  it('fuera del Live o con «Completo», el nombre sólo con `leads.ver`', () => {
+    expect(clienteDeLaCotizacion(APAGADO, CON_LEADS)).toBe('leer')
+    expect(clienteDeLaCotizacion(APAGADO, SIN_PERMISOS)).toBe('ninguno')
+    expect(clienteDeLaCotizacion(encendido({ clientes: 'completo' }), CON_LEADS)).toBe('leer')
+    expect(clienteDeLaCotizacion(encendido({ clientes: 'completo' }), SIN_PERMISOS)).toBe('ninguno')
+  })
+
+  it('con «Sólo nombres» lee si los permisos reales tienen `leads.ver`, aunque los del Live no', () => {
+    expect(clienteDeLaCotizacion(encendido({ clientes: 'nombres' }, true), SIN_PERMISOS)).toBe(
+      'leer',
+    )
+  })
+
+  it('con «Apagado», o «Sólo nombres» sin `leads.ver` real, «Cliente» sin leer', () => {
+    expect(clienteDeLaCotizacion(encendido(), CON_LEADS)).toBe('reemplazar')
+    expect(clienteDeLaCotizacion(encendido({ clientes: 'nombres' }, false), CON_LEADS)).toBe(
+      'reemplazar',
+    )
+  })
+})
+
+describe('barraDelClienteEnElLive', () => {
+  it('fuera del Live y con «Completo», como siempre', () => {
+    expect(barraDelClienteEnElLive(APAGADO)).toBeNull()
+    expect(barraDelClienteEnElLive(encendido({ clientes: 'completo' }))).toBeNull()
+  })
+
+  it('con «Sólo nombres» y nombres que se pueden leer, el panel sólo con nombres', () => {
+    expect(barraDelClienteEnElLive(encendido({ clientes: 'nombres' }, true))).toBe('nombres')
+  })
+
+  it('si no, apagada', () => {
+    expect(barraDelClienteEnElLive(encendido())).toBe('apagado')
+    expect(barraDelClienteEnElLive(encendido({ clientes: 'nombres' }, false))).toBe('apagado')
   })
 })

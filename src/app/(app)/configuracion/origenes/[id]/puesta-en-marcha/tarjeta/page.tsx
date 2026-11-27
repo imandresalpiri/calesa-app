@@ -73,7 +73,7 @@ async function Tarjeta({ id }: { id: string }) {
         <SeccionDeLaPlantilla
           origen={{ id, nombre, activo }}
           formula={formula}
-          referencia={leerReferenciaDeLaTarjeta(id, sesion.permisos)}
+          referencia={leerReferenciaDeLaTarjeta(id, sesion)}
           Lienzo={LienzoDeLaPlantillaDiferido}
           puedeCambiarElLogo={puede(sesion.permisos, 'empresa.ajustes.gestionar')}
           sinPlanilla={<SinPlanilla origenId={id} formulaId={formula.id} />}

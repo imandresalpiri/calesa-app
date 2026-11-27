@@ -20,7 +20,7 @@ import {
 } from '@/modules/cotizaciones/pantallas/cotizar'
 import { HUECOS_DE_FORMULA_EN_LA_HOJA } from '@/modules/cotizaciones/pantallas/formula-hoja'
 import { ProveedorDeLaEdicionDeLaTabla } from '@/modules/cotizaciones/pantallas/tablas-hoja'
-import { requerirSesion } from '@/modules/equipo'
+import { requerirSesion, type EstadoDelLive } from '@/modules/equipo'
 import { getOrigenes, type OrigenResumen } from '@/modules/origenes'
 import { datosO } from '@/shared/lib/errores'
 import { puede, type Permisos } from '@/shared/lib/permisos'
@@ -195,7 +195,7 @@ async function HojaDelOrigen({
   origenes,
   origen,
 }: {
-  sesion: Quien & { permisos: Permisos }
+  sesion: Quien & { permisos: Permisos; live: EstadoDelLive }
   // El asesor de la tarjeta: quien cotiza (su nombre, su WhatsApp, su cargo y su foto), ya pedido.
   asesor: Promise<AsesorDeLaTarjeta | null>
   url: Awaited<PageProps<'/cotizaciones/nuevo'>['searchParams']>
@@ -218,7 +218,7 @@ async function HojaDelOrigen({
   const vehiculoUsado = vehiculoSoltado ? null : vehiculo
   const elegido = vehiculoSoltado ? null : leido
   const paraElegir = paraElegirDe(apertura.hoja, elegido, layout)
-  const { obligatorios, elecciones } = reglasDeLaHoja(sesion.permisos, origen.id)
+  const { obligatorios, elecciones } = reglasDeLaHoja(sesion.permisos, origen.id, sesion.live)
   return (
     <>
       {pestanas}

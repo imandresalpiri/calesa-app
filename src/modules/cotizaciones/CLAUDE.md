@@ -272,9 +272,9 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
 - **La imagen de la tarjeta** (área `tarjeta`; glosario, `docs/COTIZADOR.md` › «La imagen de la tarjeta»): `GET /cotizaciones/[id]/imagen` (`rutaDeLaImagen(id,
 { ancho?, intento?, sinMoneda? })`, el mismo 404 que el PDF; `?ancho=480` es la miniatura de las listas y otro ancho se ignora; `?sin-moneda=1`, los montos sin su moneda (la que se ve con el Modo Live; otro valor se ignora); `?intento=`, sólo otra URL) se arma **al pedirla, para
   quien la pide**, y no se guarda. Lee la huella (`leerHuellaDeLaImagen()`, `cotizacion_imagen_huella()`; lo que no se ve, 404) y, con un `If-None-Match` que
-  `coincideLaEtiqueta()` con `etiquetaDeLaImagen()` (huella, usuario, `VERSION_DEL_DIBUJO`, ancho y `.s` la sin moneda), responde 304 sin dibujar; si no, `armarLaImagen(id, { contextoDe,
+  `coincideLaEtiqueta()` con `etiquetaDeLaImagen()` (huella, usuario, `VERSION_DEL_DIBUJO`, ancho, `.s` la sin moneda y `.c` la del Modo Live con el cliente oculto), responde 304 sin dibujar; si no, `armarLaImagen(id, { contextoDe,
 ancho, sinMoneda })` (en `features/tarjeta/` porque cruza con `empresa`: la hoja de lo guardado, los ajustes, el logo y el WebP de `webpDeUnaGuardada()`, `sharp` con
-  `import()`) con el contexto de quien pide (`datos-de-la-tarjeta.ts`, como el PDF: el cliente sólo con `leads.ver`, y él como asesor). Con la ETag, `private,
+  `import()`) con el contexto de quien pide (`datos-de-la-tarjeta.ts`, como el PDF: el cliente sólo con `leads.ver`, o como diga el Modo Live, y él como asesor). Con la ETag, `private,
 no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o incompleta (una lectura del contexto falló o no llegó el logo o la foto: `completa`),
   `no-store` y sin ETag; un fallo, 500 en texto. `Server-Timing` dice lo que tardó la
   huella y el armado. El componente `<ImagenDeLaTarjeta>` sale por

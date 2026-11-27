@@ -16,6 +16,8 @@ export {
 export { nombreVisible, sinRol, type Sesion } from './entities/sesion'
 // El Modo Live de la sesión: qué área se oculta, qué origen y cómo se ve un cliente (`Sesion.live`).
 export {
+  barraDelClienteEnElLive,
+  clienteDeLaCotizacion,
   clienteEnElLive,
   origenVisibleEnElLive,
   seOcultaEnElLive,

@@ -36,7 +36,7 @@ export default async function PaginaDeLaTarjeta({
         <SeccionDeLaPlantilla
           origen={{ id: origenId, nombre, activo }}
           formula={abierta.formula}
-          referencia={leerReferenciaDeLaTarjeta(origenId, sesion.permisos)}
+          referencia={leerReferenciaDeLaTarjeta(origenId, sesion)}
           Lienzo={LienzoDeLaPlantillaDiferido}
           puedeCambiarElLogo={puede(sesion.permisos, 'empresa.ajustes.gestionar')}
         />

@@ -1,5 +1,6 @@
 // Qué se oculta en el Live, por área. Cada `page.tsx` y `route.ts` de `(app)` nombra la suya (`src/app/(app)/_live/pantallas-del-live.ts`,
 // vigilado por `scripts/guardas/live-en-las-paginas.test.ts`); el menú, también (`navegacion.ts`).
+import { puede, type Permisos } from '@/shared/lib/permisos'
 import type { AjustesDelLive } from './live'
 import type { EstadoDelLive } from './live-combinar'
 
@@ -63,4 +64,33 @@ export function clienteEnElLive(live: EstadoDelLive): ClienteEnElLive {
     return 'nombre'
   }
   return 'oculto'
+}
+
+// Qué hace una pantalla con el cliente de una cotización: leer su nombre (`leer`), escribir «Cliente» sin leer nada (`reemplazar`) o no nombrarlo
+// (`ninguno`: sin `leads.ver`, como fuera del Live). Con «Sólo nombres», `permisos` ya llega sin `leads.ver` (`permisosDelLive()`): `nombresDeClientes`
+// dice si los reales lo tienen.
+export type ClienteDeLaCotizacion = 'leer' | 'reemplazar' | 'ninguno'
+
+export function clienteDeLaCotizacion(
+  live: EstadoDelLive,
+  permisos: Permisos,
+): ClienteDeLaCotizacion {
+  if (clienteEnElLive(live) === 'oculto') {
+    return 'reemplazar'
+  }
+  if (live.encendido && live.nombresDeClientes) {
+    return 'leer'
+  }
+  return puede(permisos, 'leads.ver') ? 'leer' : 'ninguno'
+}
+
+// La barra del cliente de la hoja de cotizar con el Live: `apagado` (no se elige: «Se elige al salir del Modo Live»), `nombres` (el panel sólo con
+// nombres) o null (como fuera del Live: también con «Completo»).
+export type BarraDelClienteEnElLive = 'apagado' | 'nombres' | null
+
+export function barraDelClienteEnElLive(live: EstadoDelLive): BarraDelClienteEnElLive {
+  if (!live.encendido || live.ajustes.clientes === 'completo') {
+    return null
+  }
+  return live.nombresDeClientes ? 'nombres' : 'apagado'
 }

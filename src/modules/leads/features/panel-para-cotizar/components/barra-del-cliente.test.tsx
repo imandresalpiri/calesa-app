@@ -99,4 +99,22 @@ describe('BarraDelCliente', () => {
     montar({ elegido: ELEGIDO }, '?origen=o&panel=cliente')
     expect(panelMontado).toHaveBeenLastCalledWith(expect.objectContaining({ elegido: ELEGIDO }))
   })
+
+  it('con el Modo Live que oculta los clientes, la misma caja apagada: ni botón, ni nombre, ni panel aunque la URL lo pida', () => {
+    montar({ enElLive: 'apagado', elegido: ELEGIDO, obligatorio: true }, '?origen=o&panel=cliente')
+    expect(screen.queryByRole('button')).toBeNull()
+    const caja = screen.getByRole('group')
+    expect(caja.getAttribute('aria-disabled')).toBe('true')
+    expect(caja.textContent).toBe('Cliente: Se elige al salir del Modo Live')
+    expect(screen.queryByText('Ana Pérez')).toBeNull()
+    expect(panelMontado).not.toHaveBeenCalled()
+  })
+
+  it('con «Sólo nombres» del Modo Live, el panel sólo con nombres; sin el Live, el de siempre', () => {
+    montar({ enElLive: 'nombres' }, '?origen=o&panel=cliente')
+    expect(panelMontado).toHaveBeenLastCalledWith(expect.objectContaining({ soloNombres: true }))
+    cleanup()
+    montar({}, '?origen=o&panel=cliente')
+    expect(panelMontado).toHaveBeenLastCalledWith(expect.objectContaining({ soloNombres: false }))
+  })
 })
