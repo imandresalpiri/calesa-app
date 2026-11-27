@@ -2,7 +2,7 @@ import { conteoCorto } from '@/shared/lib/conteo'
 import { EstadoVacio } from '@/shared/ui/estados'
 import type { NumerosDeLaFase } from '../../../entities/flujo/numeros'
 
-// `/repuestos` con el Modo Live en «Sólo números» (glosario: «Modo Live»): una tarjeta por fase del flujo con «Ítems» y «Proyectos», sin descripciones,
+// `/repuestos` con el Modo Live en «Sólo estadísticas» (glosario: «Modo Live»): una tarjeta por fase del flujo con «Ítems» y «Proyectos», sin descripciones,
 // enlaces ni acciones. Server Component: no viaja JS. Cada número es «500+» pasado el tope (`TOPE_DE_LOS_NUMEROS`).
 
 function NombreDeLaFase({ fase }: { fase: NumerosDeLaFase }) {

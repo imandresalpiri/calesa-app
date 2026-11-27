@@ -122,7 +122,7 @@ async function Listado({
   if (!puede(sesion.permisos, 'repuestos.ver')) {
     return <EstadoSinPermiso />
   }
-  // Con el Modo Live (la guarda ya dejó pasar sólo «Sólo números»): los números por fase, sin vistas, ⚙ ni «Nuevo proyecto».
+  // Con el Modo Live (la guarda ya dejó pasar sólo «Sólo estadísticas»): los números por fase, sin vistas, ⚙ ni «Nuevo proyecto».
   if (sesion.live.encendido) {
     return <NumerosDeRepuestos fases={datosO(await leerNumerosDeRepuestos())} />
   }
