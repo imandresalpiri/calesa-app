@@ -25,7 +25,7 @@ export function PieDeLaVistaPrevia({ documento, tipo, contexto, rechazarAlAbrir 
         : null
   return (
     <div
-      className="grid min-h-[11rem] w-full content-start gap-2 sm:min-h-[8.5rem]"
+      className="grid min-h-[12.5rem] w-full content-start gap-2 sm:min-h-[8.5rem]"
       data-pie-de-la-vista-previa
     >
       <AccionesDelDocumento
