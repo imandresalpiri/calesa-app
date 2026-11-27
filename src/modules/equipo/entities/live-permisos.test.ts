@@ -19,11 +19,14 @@ function claves(permisos: Permisos): string[] {
 }
 
 describe('permisosDelLive', () => {
-  it('por defecto deja sólo vehículos y cotizaciones (sin configurar la fórmula)', () => {
+  it('por defecto deja sólo vehículos, cotizaciones y artes (sin configurar la fórmula)', () => {
     const quedan = claves(permisosDelLive(TODOS, AJUSTES_POR_DEFECTO_DEL_LIVE))
-    expect(quedan.every((c) => c.startsWith('vehiculos.') || c.startsWith('cotizaciones.'))).toBe(
-      true,
-    )
+    expect(
+      quedan.every(
+        (c) =>
+          c.startsWith('vehiculos.') || c.startsWith('cotizaciones.') || c.startsWith('artes.'),
+      ),
+    ).toBe(true)
     expect(quedan).toContain('vehiculos.ver')
     expect(quedan).toContain('cotizaciones.crear')
     expect(quedan).not.toContain('cotizaciones.configurar')
@@ -59,6 +62,8 @@ describe('permisosDelLive', () => {
     const tabla: [Partial<AjustesDelLive>, string, boolean][] = [
       [{ vehiculos: false }, 'vehiculos.ver', false],
       [{ cotizaciones: false }, 'cotizaciones.ver', false],
+      [{ cotizaciones: true }, 'artes.empresa.gestionar', true],
+      [{ cotizaciones: false }, 'artes.empresa.gestionar', false],
       [{ clientes: 'apagado' }, 'leads.ver', false],
       [{ clientes: 'nombres' }, 'leads.ver', false],
       [{ clientes: 'completo' }, 'leads.ver', true],
