@@ -1336,9 +1336,8 @@ plantilla). Sólo el texto de las celdas `texto` de la cuadrícula (también un 
 por un texto fijo, y el campo arranca con su texto resuelto, contra el que se compara: reponerlo no es un retoque, `textosConDatosResueltos()`) y filas enteras: nunca las celdas de `dato` (montos, etiquetas, tipos de cambio,
 variables), las de una lista de respaldo o unas condiciones (aunque la rama que se dibuja sea un texto: `celda_no_es_texto`; el modo dice «Esta celda cambia
 según la cotización: no se retoca.»), el logo, los colores, los tamaños, las columnas ni las combinaciones. Una fila que se oculta según condiciones se
-puede ocultar a mano. Con el Modo Live, un texto con datos que lleva un monto no abre su campo (dice «Este texto lleva un monto: apaga el Modo Live para
-cambiarlo.») y su botón lo nombra con el monto tapado («•••», `entities/tarjeta/retoques/live-del-modo.ts`); el rótulo de una fila nunca es un texto con
-un monto (en el modo y en las filas ocultas: ningún nombre lleva una cifra).
+puede ocultar a mano. Con el Modo Live, la tarjeta dibuja sus montos sin moneda (`<Monto>`), pero el campo de un texto con datos que lleva un monto se abre
+con el texto entero que se guarda, con su moneda (`textoDeLaCelda()`): el retoque es ese texto, y quitarle la moneda en el campo la quitaría de lo guardado.
 
 - **`validar_retoques(retoques, plantilla)`**: STABLE, invocadora, `search_path` vacío, sin leer tablas; 22023 con la regla en DETAIL y el `donde` en
   HINT; el primer rechazo manda. Con la plantilla nula, toda celda y toda fila es inexistente. En este orden: `forma` (el objeto, `retoques`),
@@ -1373,7 +1372,7 @@ guardada y nunca lo de hoy. Lee `cotizacion_hoja_guardada`, `cotizacion_evaluar(
 sesión de quien pide: lo descarga quien ve la cotización, sin clave propia, y lo que un nivel esconde no está (sólo lo del nivel «todos»).
 Lo que no existe, está en la papelera o no se ve es el mismo 404 en texto que la página. El total impreso es el del snapshot: con dos tipos
 de cambio **no es la suma de las filas** sino Bs ÷ tc(`total_en`), con Bs = Σ grupo × tc(su bucket); `e2e/cotizar-pdf.spec.ts` lo cuenta
-con las filas impresas y la tolerancia del redondeo. Los montos van con el texto de `valor-del-dato.ts` (los «Decimales» de su celda; sin ellos, `formatearMonto()`) y siempre con cifras (el Modo Live es de la
+con las filas impresas y la tolerancia del redondeo. Los montos van con el texto de `valor-del-dato.ts` (los «Decimales» de su celda; sin ellos, `formatearMonto()`) y siempre con su moneda (el Modo Live es de la
 pantalla); el logo, en `Buffer` por `logoParaDibujar()`, que pasa a PNG lo que react-pdf o satori no leen (WebP, SVG con estilos). Lo dibuja
 `src/modules/cotizaciones/infra/tarjeta/pdf/` con `@react-pdf/renderer` y Geist en TTF (recta e itálica). La misma tarjeta como PNG:
 `imagenDeUnaGuardada()` (`infra/tarjeta/imagen/`, `ImageResponse`), la base de la imagen de la tarjeta.

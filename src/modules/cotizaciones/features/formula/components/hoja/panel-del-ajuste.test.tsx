@@ -149,25 +149,15 @@ describe('PanelDelAjuste: el formulario', () => {
     expect(casilla()).not.toBeInTheDocument()
   })
 
-  it('con el Modo Live, «Valor nuevo» es un campo de contraseña con las marcas de los gestores', async () => {
+  it('con el Modo Live, «Valor nuevo» sigue de texto: el número se ve', async () => {
     document.documentElement.classList.add(CLASE_LIVE)
     montar()
     await responder(1, leido({ flete: 1200 }))
     const entrada = screen.getByLabelText('Valor nuevo')
-    expect(entrada).toHaveAttribute('type', 'password')
+    expect(entrada).toHaveAttribute('type', 'text')
     expect(entrada).toHaveAttribute('autocomplete', 'off')
     expect(entrada).toHaveAttribute('inputmode', 'decimal')
-    for (const marca of ['data-1p-ignore', 'data-lpignore', 'data-bwignore']) {
-      expect(entrada).toHaveAttribute(marca, 'true')
-    }
-    expect(entrada).toHaveAttribute('data-form-type', 'other')
-  })
-
-  it('sin el Modo Live es de texto, sin las marcas', async () => {
-    montar()
-    await responder(1, leido({ flete: 1200 }))
-    expect(campo()).toHaveAttribute('type', 'text')
-    expect(campo()).not.toHaveAttribute('data-1p-ignore')
+    expect(entrada).not.toHaveAttribute('data-1p-ignore')
   })
 
   it('mientras envía, los campos, las casillas y los botones de los dos bloques quedan apagados', async () => {

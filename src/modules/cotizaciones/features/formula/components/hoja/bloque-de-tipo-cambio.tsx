@@ -2,14 +2,12 @@
 
 import { Button } from '@/shared/ui/button'
 import { Campo } from '@/shared/ui/campo'
-import { useLive } from '@/shared/ui/live'
 import { Monto } from '@/shared/ui/monto'
 import {
   decimalesDeTipoCambio,
   type TipoCambioDelNodo,
 } from '../../../../entities/formula/tipo-cambio'
 import { EsqueletoDelValor } from './esqueleto-del-valor'
-import { MARCAS_DE_GESTORES } from './marcas-de-gestores'
 
 type Props = {
   tipoCambio: TipoCambioDelNodo
@@ -24,12 +22,10 @@ type Props = {
   alEnviar: () => void
 }
 
-// El formulario del ⚙ de un tipo de cambio (4.20-3d): el valor de hoy por `<Monto>` («1 USD = Bs 11,68»), lo que afecta, «Valor nuevo» (con el Modo Live, contraseña sin
-// gestores, como una constante: P4) y el botón. Enter envía. Sin «Aplicar también a esta cotización»: la hoja nueva se vuelve a abrir con el valor nuevo.
+// El formulario del ⚙ de un tipo de cambio (4.20-3d): el valor de hoy por `<Monto>` («1 USD = Bs 11,68»), lo que afecta, «Valor nuevo» y el botón. Enter envía. Sin «Aplicar también a esta cotización»: la hoja nueva se vuelve a abrir con el valor nuevo.
 export function BloqueDeTipoCambio(props: Props) {
   const { tipoCambio, texto, avisoDelCampo, releyendo, enCurso, bloqueado, alEscribir, alEnviar } =
     props
-  const { live } = useLive()
   const apagado = releyendo || enCurso
   return (
     <form
@@ -64,8 +60,7 @@ export function BloqueDeTipoCambio(props: Props) {
         etiqueta="Valor nuevo"
         inputMode="decimal"
         autoComplete="off"
-        type={live ? 'password' : 'text'}
-        {...(live ? MARCAS_DE_GESTORES : {})}
+        type="text"
         {...(avisoDelCampo ? { error: avisoDelCampo } : {})}
         spellCheck={false}
         value={texto}

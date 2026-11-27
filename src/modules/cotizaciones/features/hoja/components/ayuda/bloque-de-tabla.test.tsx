@@ -125,20 +125,20 @@ describe('BloqueDeTabla: la edición desde la ayuda', () => {
     expect(refresh).toHaveBeenCalledTimes(1)
   })
 
-  it('sin el hueco (una guardada) o con el Modo Live, a quien configura sólo el camino a la configuración', async () => {
+  it('sin el hueco (una guardada), a quien configura sólo el camino a la configuración', async () => {
     montar(TABLA_ID, { conHueco: false })
     const enlace = await screen.findByRole('link', { name: 'Editar en la configuración' })
     expect(enlace).toHaveAttribute(
       'href',
       `/configuracion/origenes/${ORIGEN}/planilla?panel=tablas&tabla=${TABLA_ID}`,
     )
-    cleanup()
+  })
+
+  it('con el Modo Live se edita igual ahí mismo: los números se ven', async () => {
     document.documentElement.classList.add(CLASE_LIVE)
     montar(TABLA_ID, { conHueco: true })
-    expect(
-      await screen.findByRole('link', { name: 'Editar en la configuración' }),
-    ).toBeInTheDocument()
-    expect(screen.queryByText(/Editando/)).toBeNull()
+    expect(await screen.findByText('Editando Impuestos por tipo desde IVA %')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Editar en la configuración' })).toBeNull()
   })
 
   it('sin el id (quien no configura), ni edición ni enlace', async () => {

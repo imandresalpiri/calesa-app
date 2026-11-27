@@ -24,7 +24,7 @@ export type PropsDeLaTablaDeLaAyuda = {
   tabla: TablaDeAyuda
   // Las que dibuja el bloque (`columnasDelBloque`), en su orden.
   columnas: readonly ColumnaDeTabla[]
-  // Si la celda que abre la ayuda es dinero (P13): sus cifras pasan por `<Monto>` con la moneda de la celda (nula, la de la empresa) y el Modo Live las tapa. Nulo, a la vista.
+  // Si la celda que abre la ayuda es dinero (P13): sus cifras pasan por `<Monto>` con la moneda de la celda (nula, la de la empresa), sin ella con el Modo Live. Nulo, a la vista.
   dinero: DineroDeLaAyuda
   // Las columnas cuyas cifras llenan una celda que quien mira puede tipear ahora (`destinosDelBloque`), por su clave. Sin ellas o sin `alElegir`, todo es texto.
   llenaPor?: ReadonlyMap<string, DestinoDeLaAyuda> | undefined

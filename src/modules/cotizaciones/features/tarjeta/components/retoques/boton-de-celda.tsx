@@ -2,24 +2,23 @@
 
 import { cn } from 'cn'
 import type { CeldaDibujada } from '../../../../entities/tarjeta/geometria-de-la-tarjeta'
-import { textoParaNombrar } from '../../../../entities/tarjeta/retoques/live-del-modo'
 
-export const textoDeLaCelda = (c: CeldaDibujada) => textoParaNombrar(c, false)
+// El texto de una celda, el de sus líneas (con sus montos enteros: es lo que el campo cambia y se guarda); vacío si no es un texto.
+export const textoDeLaCelda = (c: CeldaDibujada) =>
+  c.contenido.tipo === 'texto' ? c.contenido.lineas.join('\n') : ''
 
 const resumen = (texto: string) => {
   const letras = [...texto.replace(/\s+/g, ' ').trim()]
   return letras.length > 40 ? `${letras.slice(0, 40).join('')}…` : letras.join('')
 }
 
-// Con Live, el monto de un texto con datos va tapado también en el nombre.
 const nombreDelBoton = ({
   celda,
   esTexto,
   rotulo,
-  live,
-}: Pick<Props, 'celda' | 'esTexto' | 'rotulo' | 'live'>) => {
+}: Pick<Props, 'celda' | 'esTexto' | 'rotulo'>) => {
   if (!esTexto) return `Elegir la fila «${rotulo}»`
-  const texto = resumen(textoParaNombrar(celda, live))
+  const texto = resumen(textoDeLaCelda(celda))
   return texto === '' ? 'Cambiar el texto de una celda vacía' : `Cambiar el texto «${texto}»`
 }
 
@@ -30,7 +29,6 @@ type Props = {
   elegida: boolean
   largo: boolean
   rotulo: string
-  live: boolean
   enCurso: boolean
   alTocar: () => void
 }
@@ -44,7 +42,6 @@ export function BotonDeCelda({
   elegida,
   largo,
   rotulo,
-  live,
   enCurso,
   alTocar,
 }: Props) {
@@ -54,7 +51,7 @@ export function BotonDeCelda({
       data-celda-retocable={celda.id}
       {...(largo ? { 'data-texto-largo': '' } : {})}
       {...(esTexto ? {} : { tabIndex: -1 })}
-      aria-label={nombreDelBoton({ celda, esTexto, rotulo, live })}
+      aria-label={nombreDelBoton({ celda, esTexto, rotulo })}
       disabled={enCurso}
       className={cn(
         'absolute rounded-[2px] outline-offset-[-2px] hover:outline-2 hover:outline-(--color-accent) focus-visible:outline-2 focus-visible:outline-(--color-accent)',

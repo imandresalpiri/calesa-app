@@ -138,7 +138,7 @@ test('una fórmula sin modos (la planilla) no dibuja la cabecera', async ({ page
   await expect(cabecera(page)).toHaveCount(0)
 })
 
-test('el modo elegido queda marcado en la cabecera, y el Modo Live de la barra de arriba oculta los montos de la hoja', async ({
+test('el modo elegido queda marcado en la cabecera, y el Modo Live de la barra de arriba deja los montos de la hoja sin moneda', async ({
   page,
 }) => {
   await ir(page, origen.id)
@@ -155,6 +155,9 @@ test('el modo elegido queda marcado en la cabecera, y el Modo Live de la barra d
   await expect(live).toHaveAttribute('aria-pressed', 'true')
   await expect(page.locator('html')).toHaveClass(/live/)
   await expect(page.locator('[data-total] [data-monto-valor]')).toBeHidden()
+  await expect(page.locator('[data-total] [data-monto-sin-moneda]').first()).toHaveText(
+    /^-?[\d.,\s]+$/,
+  )
   await live.click()
   await expect(page.locator('html')).not.toHaveClass(/live/)
 })

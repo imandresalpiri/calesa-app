@@ -174,7 +174,7 @@ describe('<VistaPreviaDeLaTarjeta>: el modo «Retocar»', () => {
   })
 })
 
-// El rótulo del asesor como un texto con datos que lleva el total: con Live, la cifra no va en el nombre del botón ni en un campo.
+// El rótulo del asesor como un texto con datos que lleva el total: el campo cambia su texto entero, con la cifra, con el Modo Live o sin él.
 const conElTotalEnElRotulo = () =>
   lista({
     definicion: {
@@ -201,22 +201,17 @@ describe('<VistaPreviaDeLaTarjeta>: el modo «Retocar» con el Modo Live', () =>
     document.documentElement.classList.remove(CLASE_LIVE)
   })
 
-  it('un texto con un monto se nombra con la cifra tapada y su campo no se abre: dice que hay que apagar Live', async () => {
+  it('con Live, un texto con un monto abre su campo con el texto que se guarda: la cifra entera', async () => {
     document.documentElement.classList.add(CLASE_LIVE)
     dibujar({ pagina: guardada() })
     pedidos[0]?.resolver(conElTotalEnElRotulo())
     fireEvent.click(await screen.findByRole('button', { name: 'Retocar' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Cambiar el texto «Total •••»' }))
-    expect(
-      await screen.findByText('Este texto lleva un monto: apaga el Modo Live para cambiarlo.'),
-    ).toBeTruthy()
-    expect(screen.queryByRole('textbox', { name: 'Texto de la celda' })).toBeNull()
-    // La tarjeta lleva la cifra en el DOM dentro de <Monto> (el CSS la tapa): lo que no puede llevarla es un nombre accesible.
-    expect(
-      [...document.querySelectorAll('[aria-label]')].some((e) =>
-        /1\.355/.test(e.getAttribute('aria-label') ?? ''),
-      ),
-    ).toBe(false)
+    fireEvent.click(
+      await screen.findByRole('button', { name: /^Cambiar el texto «Total .*1\.355/ }),
+    )
+    const campo = await screen.findByRole('textbox', { name: 'Texto de la celda' })
+    expect((campo as HTMLTextAreaElement).value).toMatch(/^Total .*1\.355/)
+    expect(screen.queryByText(/apaga el Modo Live/)).toBeNull()
   })
 
   it('sin Live, el mismo texto abre su campo con la cifra', async () => {

@@ -152,24 +152,24 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      hoja, «Aplicar también a esta cotización». La hoja sigue en su versión. Si otra persona publicó antes, el mensaje de la base y «Volver
      a leer», sin perder lo tipeado. Cerrar con algo tipeado pregunta.
    - **Una celda de tipo de cambio** abre «Tipo de cambio de <celda>»: en la hoja nueva, el valor de hoy (por `<Monto>`), que cambiarlo
-     afecta a toda la empresa (las guardadas conservan el suyo) y «Valor nuevo» (con Modo Live, como una celda); al cambiarlo la hoja se
+     afecta a toda la empresa (las guardadas conservan el suyo) y «Valor nuevo» (de texto, también con el Modo Live); al cambiarlo la hoja se
      reabre con el valor nuevo y lo tipeado vuelve. Sin fila o desactivado, dice dónde se cambia; en una guardada, que se cambia en
      Configuración › Empresa › Monedas y que la cotización conserva el suyo.
    - **La ayuda** («Ayuda de X», `?ayuda=bloques&nodo=`) abre un panel con sus bloques en orden: el primer título va de nombre del panel (sin
      él, «Ayuda de <rótulo>») y no se repite; un texto con sus saltos de línea y su **negrita**; los enlaces; y cada tabla (la de la hoja abierta,
-     sólo las columnas que el bloque nombra, en su orden; cargando, sin filas, tope de 1.000 filas, fallo con «Reintentar» o «Recargar»). Con Modo
-     Live las cifras de dinero se tapan. **Llenar una celda:** en una columna que llena una celda, cada cifra es un botón («Usar 14,94 % en IVA %»)
+     sólo las columnas que el bloque nombra, en su orden; cargando, sin filas, tope de 1.000 filas, fallo con «Reintentar» o «Recargar»). Con el Modo
+     Live las cifras de dinero van sin su moneda. **Llenar una celda:** en una columna que llena una celda, cada cifra es un botón («Usar 14,94 % en IVA %»)
      si esa celda se dibuja y se edita; tocarlo la escribe (como tipearla, con «Editado a mano» si pisa un cálculo), cierra la ayuda, deja el foco en
-     la celda y avisa «IVA % = 14,94 %» con «Deshacer» (con Live y una celda de dinero, sin la cifra). **«Tu vehículo»:** con un vehículo elegido,
+     la celda y avisa «IVA % = 14,94 %» con «Deshacer» (con Live y una celda de dinero, la cifra sin su moneda: «Flete = 1.500,00»). **«Tu vehículo»:** con un vehículo elegido,
      la fila que casa con él va marcada y dice «Tu vehículo» delante de su primer valor. Una tabla que ya no está no se dibuja.
-   - **Editar la tabla desde la ayuda** (sólo en la hoja nueva, a quien configura el origen, sin Modo Live): ✎ «Editar la fila N», 🗑 «Quitar la fila
+   - **Editar la tabla desde la ayuda** (sólo en la hoja nueva, a quien configura el origen; también con el Modo Live): ✎ «Editar la fila N», 🗑 «Quitar la fila
      N» (tachada, con «Volver la fila N») y «+ Añadir fila»; se edita una fila a la vez, en sus campos («Factor, fila 2», con «Listo» o Enter y
      «Cancelar»), y no se dibujan los botones de valor ni «Tu vehículo» (vuelven al cerrar una fila sin nada editado). El primer toque lee la tabla entera («Abriendo…»); si cambió desde que se abrió la hoja, sólo se abre con «La tabla cambió
      desde que abriste la hoja: estás editando la de hoy.»; más de 2.000 filas o una que no se lee, «Esta tabla se edita en la configuración.». Al pie,
      «Cambios sin guardar.» (o «Corrige la celda marcada para guardar.») con «Descartar» y «Guardar» («Guardando…»), que publica la tabla con la nota «Desde la ayuda de «<rótulo>».»: «Tabla
      publicada (versión N).», y la hoja vuelve con la versión nueva de la fórmula y lo tipeado («Poniendo la hoja al día con la tabla nueva…»; a los
      10 s, «Recargar»). Otra persona publicó entre medio: su nombre y cuándo, con «Recargar», y lo editado sigue; una celda que la base rechaza, en su
-     campo. Cerrar la ayuda con cambios pregunta. En una guardada o con Live, a quien configura sólo «Editar en la configuración» (el drawer de tablas
+     campo. Cerrar la ayuda con cambios pregunta. En una guardada, a quien configura sólo «Editar en la configuración» (el drawer de tablas
      con esa tabla).
 4. **El total y «Guardar», sin resumen al costado:** la hoja va a todo el ancho. El total va en la **tarjeta del total** (de superficie invertida,
    con la etiqueta chica en mayúsculas y el monto grande): donde el diseño la ubica, a todo el ancho de su sección, o sin la pieza, sola arriba de
@@ -1724,7 +1724,7 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   de un valor fijo escribe `params` y reescribe su texto como el ⚙, sin preguntar. En una fila del asesor, un dato del vehículo, un interruptor
   o la variante, la unidad de ejemplo se escribe en Ejemplo (no se guarda); su C no toma un número: «Esta celda la escribe el asesor al
   cotizar: el ejemplo va en la columna Ejemplo. Para un valor fijo, cambia su tipo en «Tipo de celda».» (o «Esta celda se llena al cotizar:
-  …»), y vacía no cambia nada. En Live, los montos de C (valor fijo) y de Ejemplo pasan por `<Monto>` y su entrada va como contraseña.
+  …»), y vacía no cambia nada. En Live, los montos de C (valor fijo) y de Ejemplo pasan por `<Monto>` (sin su moneda) y su entrada es de texto, con el número a la vista.
 - **Filas:** el «⋯» de la fila activa (arriba a la derecha de la fila, `Acciones de la fila N`) y el clic derecho abren la misma lista:
   «Insertar arriba», «Insertar abajo» (la fila nueva, «Fila nueva», un valor fijo en 0 con la banda de la de referencia, abre su concepto
   elegido para escribir), «Duplicar», «Mover arriba» y «Mover abajo» (Alt+↑ y Alt+↓; apagados en la primera y la última), «Tipo de celda ›»,
@@ -1937,7 +1937,7 @@ El modo «Retocar la tarjeta» de «Vista previa» en una guardada (`/cotizacion
   recargar. **Ya no se puede retocar** (la papelera, el permiso): «Ya no puedes retocar esta cotización.» con «Recargar». **Sin red o un fallo:** «No se
   pudo guardar.» con «Reintentar» (el mismo pedido); lo escrito queda. **Una regla de la base:** su mensaje junto a la celda o la fila (se abre su campo);
   sin lugar, arriba.
-- **Modo Live:** los montos de la tarjeta siguen tapados; retocar textos funciona igual.
+- **Modo Live:** los montos de la tarjeta van sin su moneda; retocar textos funciona igual, y el campo de un texto con un monto lleva el texto que se guarda, con su moneda.
 
 ### Cotización: tablas (estados propios)
 

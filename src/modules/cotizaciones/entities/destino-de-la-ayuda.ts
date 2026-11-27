@@ -1,4 +1,9 @@
-import { formatearMonto, formatearNumero, formatearPorcentaje } from '@/shared/lib/formato'
+import {
+  formatearMonto,
+  formatearMontoSinMoneda,
+  formatearNumero,
+  formatearPorcentaje,
+} from '@/shared/lib/formato'
 import { bloqueoDeLado, itemSeDibuja, type ContextoDeHoja } from './binding'
 import type { Formato } from './nodos'
 
@@ -50,13 +55,20 @@ type Regional = { locale: string; monedaBase: string }
 
 export const esDinero = (formato: Formato): boolean => formato === 'usd' || formato === 'moneda'
 
-// El valor como lo diría la celda destino: un monto con su moneda, un porcentaje desde su fracción (0,1494 → «14,94 %») o un número.
-export function textoDelValor(valor: number, formato: Formato, r: Regional): string {
+// El valor como lo diría la celda destino: un monto con su moneda (sin ella con `sinMoneda`, el Modo Live), un porcentaje desde su fracción (0,1494 → «14,94 %») o un
+// número.
+export function textoDelValor(
+  valor: number,
+  formato: Formato,
+  r: Regional,
+  sinMoneda = false,
+): string {
+  const monto = sinMoneda ? formatearMontoSinMoneda : formatearMonto
   switch (formato) {
     case 'usd':
-      return formatearMonto(valor, { moneda: 'USD', locale: r.locale })
+      return monto(valor, { moneda: 'USD', locale: r.locale })
     case 'moneda':
-      return formatearMonto(valor, { moneda: r.monedaBase, locale: r.locale })
+      return monto(valor, { moneda: r.monedaBase, locale: r.locale })
     case 'pct':
       return formatearPorcentaje(valor, { locale: r.locale, decimales: 2 })
     case 'raw':
@@ -64,28 +76,24 @@ export function textoDelValor(valor: number, formato: Formato, r: Regional): str
   }
 }
 
-// El nombre del botón de un valor: «Usar 14,94 % en IVA». Con el Modo Live, un destino de dinero no dice la cifra.
+// El nombre del botón de un valor: «Usar 14,94 % en IVA». Con el Modo Live (`sinMoneda`), un monto sin su moneda.
 export function nombreDelValor(
   destino: DestinoDeLaAyuda,
   valor: number,
   r: Regional,
-  live: boolean,
+  sinMoneda: boolean,
 ): string {
-  const texto =
-    live && esDinero(destino.formato) ? 'este valor' : textoDelValor(valor, destino.formato, r)
-  return `Usar ${texto} en ${destino.etiqueta}`
+  return `Usar ${textoDelValor(valor, destino.formato, r, sinMoneda)} en ${destino.etiqueta}`
 }
 
-// El aviso tras tocar un valor: «IVA = 14,94 %». Con el Modo Live, un destino de dinero no dice la cifra.
+// El aviso tras tocar un valor: «IVA = 14,94 %». Con el Modo Live (`sinMoneda`), un monto sin su moneda.
 export function avisoDelValor(
   destino: DestinoDeLaAyuda,
   valor: number,
   r: Regional,
-  live: boolean,
+  sinMoneda: boolean,
 ): string {
-  return live && esDinero(destino.formato)
-    ? `${destino.etiqueta} actualizado.`
-    : `${destino.etiqueta} = ${textoDelValor(valor, destino.formato, r)}`
+  return `${destino.etiqueta} = ${textoDelValor(valor, destino.formato, r, sinMoneda)}`
 }
 
 // «Deshacer» después de otro cambio en la hoja: lo de antes del clic ya no es lo de ahora y reponerlo borraría lo que vino después.

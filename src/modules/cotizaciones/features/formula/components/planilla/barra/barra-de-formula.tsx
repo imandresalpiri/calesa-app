@@ -1,13 +1,11 @@
 'use client'
 
 import { Button } from '@/shared/ui/button'
-import { useLive } from '@/shared/ui/live'
 import { filaDe } from '../../../../../entities/formula/hoja-de-la-planilla'
 import { nombreDeLaCelda } from '../../../../../entities/formula/texto-de-la-celda'
 import { useGrillaQuieta } from '../../../hooks/use-grilla-quieta'
 import type { Planilla } from '../../../hooks/use-planilla'
 import { idsDeLaEdicion } from '../ids-de-la-edicion'
-import { esMontoQueSeEscribe } from '../monto-secreto'
 import { AccionesDeLaBarraDeFormula } from './acciones-de-la-barra-de-formula'
 import { ErrorBajoLaBarra } from './error-bajo-la-barra'
 import { LeyendaDeReferencias } from './leyenda-de-referencias'
@@ -25,8 +23,8 @@ const CAJA_QUIETA =
   'min-h-[44px] min-w-0 rounded-(--radius-md) border border-dashed border-(--color-line) px-3 py-2.5 text-(length:--text-sm) text-(--color-ink-soft) break-words md:pointer-fine:min-h-9 md:pointer-fine:py-1.5'
 const BOTON = 'min-h-[44px] md:pointer-fine:min-h-9'
 
-// Lo que la barra muestra de la celda activa: su texto si se escribe; si no, por qué (o un monto con el Modo Live). Nulo hasta que se elige una celda.
-function textoDeLaCelda(planilla: Planilla, live: boolean) {
+// Lo que la barra muestra de la celda activa: su texto si se escribe; si no, por qué. Nulo hasta que se elige una celda.
+function textoDeLaCelda(planilla: Planilla) {
   const { cuadricula, edicion, hoja } = planilla
   const celda = edicion.edicion ?? cuadricula.activaElegida
   if (celda === null) return null
@@ -34,12 +32,7 @@ function textoDeLaCelda(planilla: Planilla, live: boolean) {
   if (fila === undefined) return null
   const nombre = `${nombreDeLaCelda(celda.col, fila.numero)}, ${fila.nodo.etiqueta}`
   const t = planilla.textoDe(celda)
-  const quieto =
-    live && esMontoQueSeEscribe(fila.nodo, celda.col)
-      ? 'Con el Modo Live, el monto se escribe en la celda.'
-      : t.editable
-        ? null
-        : t.motivo
+  const quieto = t.editable ? null : t.motivo
   return { celda, fila, nombre, texto: t.editable ? t.texto : '', quieto }
 }
 
@@ -70,10 +63,9 @@ function AplicarODescartar({ planilla }: { planilla: Planilla }) {
 // derecha, «?» (los tipos de celda). Debajo, un renglón: sin nada escrito, de dónde sale la fila elegida; escribiendo, la firma en el cursor o la guía de tocar.
 // Va pegada arriba (también en el celular).
 export function BarraDeFormula({ planilla, puedeCambiarTiposDeCambio }: Props) {
-  const { live } = useLive()
   const e = planilla.edicion.edicion
   const ids = idsDeLaEdicion(planilla.prefijo)
-  const activa = textoDeLaCelda(planilla, live)
+  const activa = textoDeLaCelda(planilla)
   const caja = useGrillaQuieta()
   return (
     <section
