@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { Drawer } from '@/shared/ui/drawer'
 import { ToqueDeLaTarjeta } from '@/shared/ui/tarjetas-de-ajustes'
@@ -53,21 +53,22 @@ function abiertaPorOtraClave(
 }
 
 // Si mientras el drawer estuvo abierto algo cambió en la unidad (un documento, una nota, un pago), al cerrarlo se relee la página: así los resúmenes del servidor quedan al
-// día sin que cada tarjeta escuche nada. `router.refresh()` conserva el estado del cliente.
-function useRefrescarAlCerrar(unidadId: string, abierta: boolean) {
+// día sin que cada tarjeta escuche nada. `router.refresh()` conserva el estado del cliente. Mira la URL que ya aplicó Next (`useSearchParams`), no el estado de nuqs: nuqs
+// cierra al instante y escribe la URL después, y un `refresh()` que sale antes de esa escritura puede perderse (el resumen quedaba viejo).
+function useRefrescarAlCerrar(unidadId: string, abiertaEnLaUrl: boolean) {
   const router = useRouter()
   const huboCambio = useRef(false)
-  const antes = useRef(abierta)
+  const antes = useRef(abiertaEnLaUrl)
   useAlCambiarLaUnidad(unidadId, () => {
     huboCambio.current = true
   })
   useEffect(() => {
-    if (antes.current && !abierta && huboCambio.current) {
+    if (antes.current && !abiertaEnLaUrl && huboCambio.current) {
       huboCambio.current = false
       router.refresh()
     }
-    antes.current = abierta
-  }, [abierta, router])
+    antes.current = abiertaEnLaUrl
+  }, [abiertaEnLaUrl, router])
 }
 
 // Una tarjeta de la unidad (`docs/GLOSARIO.md` › «Tarjeta de la unidad»): alto fijo, su título, lo que dice (del servidor) y su «⋯»; tocarla hace la principal y abre sus huecos
@@ -88,7 +89,11 @@ export function TarjetaDeLaUnidad({
   const panel = usePanelPorUrl(clave, url.claves, { clave: claveDeLaUrl })
   const abierta = panel.abierto || abiertaPorOtraClave(url, panel.valor)
   const idDelTitulo = useId()
-  useRefrescarAlCerrar(unidadId, abierta)
+  const enLaUrl = useSearchParams()
+  useRefrescarAlCerrar(
+    unidadId,
+    enLaUrl.get(claveDeLaUrl) === clave || abiertaPorOtraClave(url, (c) => enLaUrl.get(c)),
+  )
   const abrir = (pedido: PedidoDeAbrir = {}) => {
     if (!panel.abierto) panel.abrir(pedido.url ?? {})
     if (pedido.enfocar) enfocarAlAparecer(pedido.enfocar, { campo: true })
