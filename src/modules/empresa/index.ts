@@ -11,8 +11,9 @@ export { getAjustes } from './composicion'
 export { leerAjustes, leerMonedasYTiposCambio } from './composicion'
 export { type PoliticaDeLimpieza } from './entities/ajustes-empresa'
 // La limpieza automática de vehículos de subasta: si está encendida y cuántos días de gracia. No
-// tumba la pantalla (sin poder leerla, se da por apagada).
-export { getPoliticaDeLimpieza } from './composicion'
+// tumba la pantalla (sin poder leerla, se da por apagada). Y los días de demora por defecto de una fase
+// de logística (nulo si no se pueden leer).
+export { getDemoraPorDefecto, getPoliticaDeLimpieza } from './composicion'
 export { zonasHorarias } from './entities/regional'
 
 // Monedas y tipos de cambio nombrados

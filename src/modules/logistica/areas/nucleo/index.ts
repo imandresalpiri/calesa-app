@@ -14,3 +14,13 @@ export {
   esHuecoConocido,
   rutaDeLaUnidad,
 } from '../../entities/nucleo/enlaces'
+export {
+  esTarjetaConocida,
+  ORDEN_DE_TARJETAS,
+  tarjetaDelHueco,
+  tarjetasDeLaUnidad,
+  TITULO_DE_LA_TARJETA,
+} from '../../entities/nucleo/tarjetas'
+export type { ClaveDeTarjeta, TarjetaConSusHuecos } from '../../entities/nucleo/tarjetas'
+export { demoraDeLaUnidad } from '../../entities/nucleo/demora'
+export type { FaseParaLaDemora } from '../../entities/nucleo/demora'
