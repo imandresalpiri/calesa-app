@@ -37,8 +37,8 @@ tarjeta sirve. Acá se lee, se dibuja y se pide.
   lleva a la pestaña sin `?formula=` (la de trabajo). Uno que nombra una fórmula
   que no está en lo leído no se abre (`useRevisionAlAbrir()`).
 - «Nueva fórmula» crea con un id por apertura; los avisos de la copia (`avisos-de-la-copia.ts`) quedan en `sessionStorage` (`claveDeLosAvisos(id)`) para la
-  planilla, que abre con «Información de la fórmula» (`PANEL_DE_LA_INFORMACION` del núcleo) si hay alguno. En la Planilla, la barra pone `<RanuraDelEstado>`
-  junto al estado, donde llega el ⓘ (`<AccionesEnLaBarra lugar="estado">`). «Activar» manda las ocho esperadas que se vieron (`esperadasDeActivar()`); un rechazo con `hint` ofrece ir al lugar
+  planilla, que abre con «Información de la fórmula» (`PANEL_DE_LA_INFORMACION` del núcleo) si hay alguno. En la Planilla y la Tarjeta, la barra pone `<RanuraDelEstado>`
+  junto al estado, donde llega el ⓘ de cada una (`<AccionesEnLaBarra lugar="estado">`). «Activar» manda las ocho esperadas que se vieron (`esperadasDeActivar()`); un rechazo con `hint` ofrece ir al lugar
   (`destinoDelRechazoDeActivar()`). Eliminar una ya usada (23503) ofrece «Archivar».
 
 ## No se rompe

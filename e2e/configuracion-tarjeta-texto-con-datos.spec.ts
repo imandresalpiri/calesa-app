@@ -9,6 +9,7 @@ import { crearOrigenDePrueba, PREFIJO_CLAVE_E2E } from './soporte/origenes'
 import {
   abrirElPanel,
   casillaDelLienzo,
+  cerrarElPanel,
   sembrarBorradorDePlantilla,
   tarjetaDibujada,
 } from './soporte/plantilla'
@@ -185,6 +186,7 @@ test('E2E insertar el porcentaje de la transferencia y el total en un texto; bor
   await expect(celdaDibujada(page, 'c_total')).toHaveText(/^Total: USD\s/)
   await expect(celdaDibujada(page, 'c_total').locator('[data-monto]')).toHaveCount(1)
 
+  await cerrarElPanel(page)
   await page.getByRole('button', { name: 'Guardar borrador' }).click()
   await expect(page.getByText('Se guardó el borrador.')).toBeVisible()
   await expect.poll(() => definicion('borrador')).toContain('"partes"')

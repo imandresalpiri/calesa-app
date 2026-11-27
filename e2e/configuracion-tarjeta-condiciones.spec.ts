@@ -5,7 +5,7 @@ import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './so
 import { idDePersona, sembrarCotizaciones } from './soporte/cotizaciones-sembradas'
 import { abrirLaVistaPrevia, tarjeta } from './soporte/cotizar-vista-previa'
 import { crearOrigenDePrueba, PREFIJO_CLAVE_E2E } from './soporte/origenes'
-import { abrirElPanel, sembrarBorradorDePlantilla } from './soporte/plantilla'
+import { abrirElPanel, cerrarElPanel, sembrarBorradorDePlantilla } from './soporte/plantilla'
 import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 import { copiarLaFormulaDeLaSubasta, crearVehiculo } from './soporte/tarjeta-cuadricula'
@@ -256,6 +256,7 @@ test('E2E armar una lista de respaldo, unas condiciones y ocultar una fila segú
   ).toContainText('Se cumplen sus condiciones')
   await capturar(page, info, 'condiciones-de-la-fila')
 
+  await cerrarElPanel(page)
   await page.getByRole('button', { name: 'Guardar borrador' }).click()
   await expect(page.getByText('Se guardó el borrador.')).toBeVisible()
   await expect.poll(() => definicion('borrador')).toContain('"respaldo"')

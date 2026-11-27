@@ -271,6 +271,12 @@ export async function abrirElPanel(
   return panel
 }
 
+// Cierra el panel con su ✕: el panel al costado cubre la derecha de la barra de la fórmula («Guardar borrador», «Publicar…»), así que se cierra antes de tocarlos.
+export async function cerrarElPanel(page: Page): Promise<void> {
+  await page.locator('[data-slot="sheet-content"]').getByRole('button', { name: 'Cerrar' }).click()
+  await expect(panelDeLaTarjeta(page)).toBeHidden()
+}
+
 // Un grupo o menú de la barra: «Insertar», «Filas y columnas», «Ver»…
 export async function abrirElMenuDeLaBarra(page: Page, nombre: string) {
   // Un menú que se está cerrando todavía está en el DOM: se espera a que se vaya para no elegir en él.

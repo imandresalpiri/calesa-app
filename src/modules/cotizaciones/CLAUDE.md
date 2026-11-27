@@ -243,7 +243,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
 - **La barra de la fórmula** (glosario): en las pestañas Planilla, Hoja y Tarjeta de la página del origen los botones del editor («Guardar el borrador»,
   «Publicar…», «⋯») van envueltos en `<AccionesEnLaBarra orden>` del núcleo (`features/barra-de-la-formula/`) y suben a la ranura de la barra; sin
   `<ConLaBarraDeLaFormula>` (la puesta en marcha) se dibujan donde estaban. Con `lugar="estado"` van a la ranura junto al estado (`<RanuraDelEstado>`, de
-  44 px reservados: sólo el ⓘ de la Planilla). El estado lo registra cada editor con `useEstadoEnLaBarra()`, de una función pura por área
+  44 px reservados: sólo el ⓘ de la Planilla y el de la Tarjeta). El estado lo registra cada editor con `useEstadoEnLaBarra()`, de una función pura por área
   (`estadoDeLaFormulaGuardada()`, `estadoDeLaHoja()`, `estadoDeLaTarjeta()`). En la Hoja, «Publicar…» (orden 2) es del área `formula` y lo compone la página
   (`PublicarEnLaHoja`, `pantallas/formula-publicar.ts`: el mismo panel `?panel=publicar-formula` y sus modales): se ve con un borrador al día y espera, apagado con
   «Guarda el borrador antes de publicar.», mientras el editor de la hoja registra cambios sin guardar.
