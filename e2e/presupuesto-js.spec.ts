@@ -28,6 +28,9 @@ const TITULO_DEL_VEHICULO_COMPARADO = 'E2E JS de comparar cotizaciones'
 let cotizacionesComparadas: string[] = []
 // La ficha de un lead de la dueña de la prueba (`/leads/[id]`), con todos sus bloques: lo crea el spec.
 let leadMedido = ''
+// La página de un embarque de la subasta (`/logistica/embarques/[id]`), vacío: lo crea el spec y lo quita.
+const BOOKING_MEDIDO = 'E2E-JS-EMBARQUE'
+const subasta = (): string => sql("select id from public.origenes where clave = 'subasta_usa'")
 const destinoDe = (ruta: string): string => {
   if (ruta === '/cotizaciones/nuevo') {
     return `${ruta}?origen=${sql("select id from public.origenes where clave = 'subasta_usa'")}`
@@ -55,6 +58,13 @@ const destinoDe = (ruta: string): string => {
   if (ruta === '/leads/[id]') {
     return `/leads/${leadMedido}`
   }
+  // Embarques y aduana, en la subasta de la semilla (con sus reglas encendidas).
+  if (ruta === '/logistica/embarques' || ruta === '/logistica/aduana') {
+    return `${ruta}?origen=${subasta()}`
+  }
+  if (ruta === '/logistica/embarques/[id]') {
+    return `/logistica/embarques/${sql(`select id from public.embarques where booking = ${literal(BOOKING_MEDIDO)}`)}`
+  }
   if (ruta === '/cotizaciones/comparar') {
     return `/cotizaciones/comparar?ids=${cotizacionesComparadas.join(',')}`
   }
@@ -81,6 +91,16 @@ function sembrarLaCotizacionMedida(creadoPor: string): void {
   cotizacionesComparadas = sembrarEnUnVehiculo(TITULO_DEL_VEHICULO_COMPARADO, creadoPor, 2)
 }
 
+function sembrarElEmbarqueMedido(): void {
+  sql(
+    `insert into public.embarques (origen_id, booking) values (${literal(subasta())}::uuid, ${literal(BOOKING_MEDIDO)}) on conflict do nothing`,
+  )
+}
+
+function quitarElEmbarqueMedido(): void {
+  sql(`delete from public.embarques where booking = ${literal(BOOKING_MEDIDO)}`)
+}
+
 function quitarLaCotizacionMedida(): void {
   for (const titulo of [TITULO_DEL_VEHICULO_MEDIDO, TITULO_DEL_VEHICULO_COMPARADO]) {
     sql(`
@@ -95,6 +115,8 @@ test.beforeAll(async ({}, info) => {
   restaurar = terreno.restaurarCatalogos
   quitarLaCotizacionMedida()
   sembrarLaCotizacionMedida(idDePersona(personas.duena))
+  quitarElEmbarqueMedido()
+  sembrarElEmbarqueMedido()
   leadMedido = await crearLead({
     nombre: `JS de la ficha ${info.project.name}`,
     telefono: info.project.name === 'escritorio' ? '59170990011' : '59170990012',
@@ -104,6 +126,7 @@ test.beforeAll(async ({}, info) => {
 
 test.afterAll(async () => {
   quitarLaCotizacionMedida()
+  quitarElEmbarqueMedido()
   if (leadMedido !== '') {
     sql(`delete from public.leads where id = ${literal(leadMedido)}::uuid`)
   }

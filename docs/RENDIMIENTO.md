@@ -80,15 +80,17 @@ Bloque «Seguimiento» de la ficha y su «Ver todos» (`?todos=seguimientos`).
 
 ## Embarques y contenedores
 
-- `/logistica/embarques`: `transporte_grupos()` (definer) de un origen (`p_origen`) por cursor opaco (el id del embarque o del contenedor de la clave siguiente), de a
-  `TAMANO_DE_PAGINA_POR_DEFECTO` (`_acotar_pagina(p_tope, 50, 100)`), sin `?por=`, total ni `offset`. La sonda de la clave siguiente va por `embarques_origen_booking_idx` y
-  `contenedores_origen_numero_idx` (`(origen_id, booking)`, `(origen_id, numero)`); las filas de una clave, por `embarques_booking_origen_key` y
-  `contenedores_numero_origen_key` (`supabase/tests/areas/transporte/grupos.sql` acepta cualquiera de los dos con `origen_id` en la condición: con un solo origen el
-  planificador puede preferir la clave única), y sus unidades por `transportes_embarque_idx` / `transportes_contenedor_id_idx` (parciales;
-  las de un embarque por sus contenedores, `contenedores_embarque_idx`). Recorre **a lo sumo 2.000 unidades**: si no llena la página devuelve
-  `cortada` y la pantalla ofrece «Seguir buscando». Registrada en `scripts/guardas/areas-b/paginas-en-la-base.ts`.
-- El resumen lee `transporte_grupo()` (≤ 200 unidades, una llamada, sin N+1: por eso no trae «días en la fase»; la clave cruza orígenes); navieras y puertos de todos los
-  orígenes, una vez por pedido (`cache()`, `.limit(201)`). El lote de «Mover», los documentos y el prorrateo de un grupo leen la misma llamada.
+- `/logistica/embarques`: `embarques_listar()` y `contenedores_listar()` (definer) de un origen (`p_origen`) por cursor sobre el booking o el número (`p_desde`: el id del
+  último), de a `TAMANO_DE_PAGINA_POR_DEFECTO` (`_acotar_pagina(p_tope, 50, 100)`), sin `?por=`, total ni `offset`, por `embarques_origen_booking_idx` y
+  `contenedores_origen_numero_idx`. El estado es calculado y sin índice: se filtra primero por fechas y se confirma con la regla, **mirando a lo sumo 500 por llamada** (`cortada`
+  y «Seguir buscando»). Registradas en `scripts/guardas/areas-b/paginas-en-la-base.ts`.
+- Por fila: contenedores (`limit 101`, `contenedores_embarque_idx`), vehículos visibles acotados (hasta 100, de los primeros 1.000; con alcance «todos», 101) y «Algo que
+  falta» con **200 evaluaciones por llamada** repartidas entre las filas (`{ n, hay_mas }`). Las tres van en plpgsql (que guarda su plan) y con el alcance de `logistica.ver`
+  resuelto una vez por llamada: con `language sql` y `puede_vehiculo()` por vehículo la página costaba ≈ 250 ms. Medido con volumen (`medir-logistica.sql` › «entidades», 120.000
+  transportes): 15–50 ms y ≈ 23 KB por página, presupuesto **100 ms y 40 KB** (también la que corta a los 500).
+- La página de un embarque (`embarque_leer()`: una lectura por su clave primaria, hasta 100 contenedores y 200 vehículos visibles de las primeras 1.000 unidades, con su
+  declaración y lo que les falta) y el drawer de un contenedor (`contenedor_leer()`): 4–5 ms con volumen (presupuestos 30 y 20 ms). Navieras y puertos de todos los orígenes, una
+  vez por pedido (`cache()`, `.limit(201)`). El lote de «Mover», los documentos y el prorrateo de un grupo leen `transporte_unidades()` (≤ 200, por id).
 - La bandeja del día (llegadas, salidas) junta por tanda tres rutas, cada una con su `order by … limit`: lo propio (`transportes_llegadas_idx`,
   `transportes_salidas_idx`), el embarque directo y el embarque por su contenedor (`embarques_llegadas_idx`, `embarques_salidas_idx`).
 - El hueco «Transporte»: `transporte_leer` cuenta los vehículos visibles de su embarque y su contenedor hasta 100 (`hay_mas`) y lee a lo sumo
@@ -508,8 +510,8 @@ inferior), que no se dibuja hasta abrirse: la carga sólo paga el botón. En el 
 - Nodos del DOM, medidos en el recorrido (`page.evaluate`, sin spec nuevo): la portada entera con 5 grupos de 5 filas, 334; la gráfica de 5 fases, 53; la lista de una fase con 50 vehículos en escritorio, 1.039.
 - Sin volumen de interfaz propio: `e2e/logistica-cadena.spec.ts` prueba «Siguiente» con 51 y `e2e/logistica-bandeja-del-dia.spec.ts` los 21 demorados, no miden nodos de miles.
 - Lote de mover: selección y lotes ≤ 200 (`TOPE_DEL_LOTE`) en **una llamada** (`previsualizar_cambio_fase_lote`, `cambiar_fase_lote`). Los
-  destinos de la fase son configuración (`TOPE_DE_DESTINOS`). «Unidades de un grupo (lote)»: `transporte_grupo()` (≤ 200, todos los
-  orígenes; el lote se queda con las de su origen en el cliente). Las casillas y el contexto van en el JS de `/logistica`; la barra,
+  destinos de la fase son configuración (`TOPE_DE_DESTINOS`). «Unidades de un grupo (lote)»: `transporte_unidades()` (≤ 200, de un embarque
+  o un contenedor por su id). Las casillas y el contexto van en el JS de `/logistica`; la barra,
   el drawer y el hueco del grupo, con `diferido()`.
 - Panel de la unidad, «Notas»: `notas` por `notas_vehiculo_vivas_idx (vehiculo_id, creado_en desc, id desc) where eliminado_en is null`,
   `limit 21`, cursor `(creado_en, id)` e «Ir a una fecha»; hasta 500 con `<AvisoDeTope>`; autor y fase embebidos. Sin `medir-*.sql`.
@@ -639,7 +641,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 490,5 medidos con «Hacer privada», la insignia, los dos botones del marco y el orden de los bloques por grupo de campos: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
   `/cotizaciones/nuevo` 480 (470,2 medidos sin el resumen de la derecha: la región del total, el cierre con «Guardar» y la ranura de la cabecera; con la hoja con el aspecto de V1, la tarjeta del total como pieza de una sección (`TotalDeHoja`), el interruptor «Privada», los botones «Recargar la página» y «Copiar el enlace de esta página» del marco y la marca, «Calculado» y la región del aviso de un cálculo pisado: regla del 5 %; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
   (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 484,6 medidos con «Hacer privada», la insignia, los dos botones del marco y la cabecera quieta de la ranura: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
-  `/logistica/bandeja` 390 (provisional), `/logistica/fase/[fase]` 390, `/logistica/vehiculo/[id]` 470, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
+  `/logistica/bandeja` 390 (provisional), `/logistica/fase/[fase]` 390, `/logistica/embarques`, `/logistica/embarques/[id]` y `/logistica/aduana` 410 (386,1, 385,7 y 382,3 medidos), `/logistica/vehiculo/[id]` 470, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
   `/cotizaciones/papelera` 440 (en su spec).
 - Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 590,2 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
