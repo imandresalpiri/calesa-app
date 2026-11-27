@@ -3,7 +3,6 @@
 import {
   closestCenter,
   DndContext,
-  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -11,11 +10,7 @@ import {
   type DragEndEvent,
   type Modifier,
 } from '@dnd-kit/core'
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useId } from 'react'
 import type { AccionDeMenu } from '@/shared/ui/lista'
 import {
@@ -29,7 +24,7 @@ import type { Logos } from '../hooks/use-logos'
 import { FilaDeLogo, FilaFijaDeLogo } from './fila-de-logo'
 
 const INSTRUCCIONES =
-  'Para mover el logo, pulsa Espacio, usa las flechas y pulsa Espacio otra vez. Esc cancela. También puedes usar «Mover antes» y «Mover después» del menú.'
+  'Para mover el logo, arrastra el asa o enfócala y pulsa ↑ o ↓. También puedes usar «Mover antes» y «Mover después» del menú.'
 
 // Se mueven sólo de arriba abajo (sin `@dnd-kit/modifiers`).
 const soloVertical: Modifier = ({ transform }) => ({ ...transform, x: 0 })
@@ -115,16 +110,12 @@ function accionesDeLaFija(props: Props): AccionDeMenu[] {
   ]
 }
 
-// Las variantes del logo: las dos fijas arriba (sólo se ven) y las propias debajo, en su orden, que se arrastran por su asa o se mueven con el
-// teclado. El anuncio de dónde quedó lo movido, para el lector de pantalla.
+// Las variantes del logo: las dos fijas arriba (sólo se ven) y las propias debajo, en su orden, que se arrastran por su asa o se mueven con ↑ y ↓. El anuncio de dónde quedó lo movido, para el lector de pantalla.
 export function FilasDeLogos(props: Props) {
   const { logos, prefijo } = props
   const { lista } = logos
   const id = useId()
-  const sensores = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  )
+  const sensores = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
   const alSoltar = ({ active, over }: DragEndEvent) => {
     if (over !== null && active.id !== over.id) {
       void logos.soltar(String(active.id), String(over.id))
@@ -165,6 +156,9 @@ export function FilasDeLogos(props: Props) {
                 prefijo={prefijo}
                 acciones={accionesDeLogo(logo, logos, props)}
                 ocupado={logos.enCurso}
+                alMover={(direccion) => {
+                  void logos.mover(logo, direccion)
+                }}
               />
             ))}
           </SortableContext>
