@@ -1,8 +1,8 @@
 'use client'
 
-// Modo Live: para mostrarle la pantalla a un cliente sin que vea plata. Una clase en <html>
-// esconde las cifras Y los símbolos de moneda de toda la app (los imprime <Monto>). El estado
-// vive en esa clase: la pone `<GuionLive>` antes del primer pintado y la conmuta `useLive()`.
+// Modo Live: para mostrarle la pantalla a un cliente. Una clase en <html> oculta los símbolos y los
+// códigos de moneda de toda la app; los números se ven (los imprime <Monto>). El estado vive en esa
+// clase: la pone `<GuionLive>` antes del primer pintado y la conmuta `useLive()`.
 import { useSyncExternalStore } from 'react'
 import { CLASE_LIVE, CLAVE_LIVE } from './guion-live'
 
@@ -39,7 +39,7 @@ function alternar(): void {
 }
 
 export function useLive(): { live: boolean; alternar: () => void } {
-  // En el servidor no se sabe: se renderiza apagado y el CSS ya esconde lo que haya que esconder.
+  // En el servidor no se sabe: se renderiza apagado y el CSS ya elige la versión sin moneda.
   const live = useSyncExternalStore(suscribir, leer, () => false)
   return { live, alternar }
 }

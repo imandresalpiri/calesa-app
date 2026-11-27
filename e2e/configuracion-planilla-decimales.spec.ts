@@ -11,7 +11,7 @@ import { literal, sql } from './soporte/sql'
 
 // Los «Decimales» de una celda (`docs/UX.md` › «Cotización: fórmula (estados propios)», glosario «Decimales (de una celda)»): en la planilla, «⋯» › «Decimales…»
 // abre su panel (`?panel=decimales&fila=<id>`) con «Automático» y 0 a 4 y el ejemplo, con su alto reservado; se guarda, se publica y la hoja de
-// cotizar muestra la celda así (el monto en 0, el porcentaje en 2), con el total que sigue en «Automático» y el Modo Live tapando el monto. Un origen propio,
+// cotizar muestra la celda así (el monto en 0, el porcentaje en 2), con el total que sigue en «Automático» y el Modo Live con el monto sin símbolo. Un origen propio,
 // que se borra solo, al empezar y al terminar: otros specs leen la publicada de los orígenes compartidos.
 test.describe.configure({ mode: 'serial' })
 
@@ -197,11 +197,15 @@ test('E2E un monto en 0 y un porcentaje en 2 desde la planilla: se publican y la
     .toBe('USD 1.234,57')
   await capturar(page, info, 'hoja-con-decimales')
 
-  // (6) Con el Modo Live, el monto de la celda va tapado como cualquier otro.
-  const live = page.getByRole('button', { name: 'Modo Live: ocultar los montos' }).first()
+  // (6) Con el Modo Live, el monto de la celda va sin símbolo, con sus decimales, como cualquier otro.
+  const live = page
+    .getByRole('button', { name: 'Modo Live: ocultar los símbolos de moneda' })
+    .first()
   await live.click()
   await expect(page.locator('html')).toHaveClass(/live/)
-  await expect(celdaDeLaHoja(page, 'flete').locator('[data-monto-oculto]').first()).toBeVisible()
+  const sinMoneda = celdaDeLaHoja(page, 'flete').locator('[data-monto-sin-moneda]').first()
+  await expect(sinMoneda).toBeVisible()
+  await expect(sinMoneda).toHaveText('1.235')
   await expect(flete.first()).toBeHidden()
   await live.click()
   await expect(page.locator('html')).not.toHaveClass(/live/)

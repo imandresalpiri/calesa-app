@@ -79,7 +79,8 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
   `<TiraDeMiniaturas>` (con `conTeclado`, ← → Home End marcan y Enter elige), `useImagenes()` y `useVisorDeGaleria()` (una galería ya leída); el visor vive en `?visor=<clave>&foto=<n>` (la foto cambia con `replace`).
 - `ui/lista/`: `UnaSolaVista` (con `preferida`), `ConmutadorDeVista` («Tabla | Tarjetas», `lib/vista-de-lista.ts`; va en «Vista y opciones»), `TablaDeLista`,
   `FilaDeLista`, `TarjetaDeLista`, `EsquinaDeAcciones` (el lugar del «⋯» en la tarjeta; `sobreImagen` sobre una foto), `MasAcciones`, `AbrirResumen`, `EnlaceDeLaFila` (el nombre como enlace a la ficha en una lista sin resumen: la fila y la tarjeta reciben `href` en vez de `alAbrir`, `ir-desde-la-fila.ts`), `SimbolosDeLista`, `PestanasDelResumen` (con `alto="lleno"` ocupa el alto de su contenedor; `panelDesplazable` hace que cada pestaña se desplace en su marco; `reparto="igual"`: toda la fila en partes iguales, con desplazamiento de costado si no caben).
-- `ui/monto.tsx` + `live.ts` + `guion-live.tsx` (Modo Live), `ui/monto-con-decimales.tsx` (`<MontoConDecimales>`: un monto con los «Decimales» de su
+- `ui/monto.tsx` + `live.ts` + `guion-live.tsx` (Modo Live: sin símbolos de moneda), `ui/monto-en-texto.ts` (`useMontoEnTexto()`: un monto en un
+  `title`, un `aria-label` o un aviso, sin moneda con el Live), `ui/monto-con-decimales.tsx` (`<MontoConDecimales>`: un monto con los «Decimales» de su
   celda, redondeado antes como la base; sin ellos, `<Monto>`), `regional.tsx`, `densidad.tsx`, `marca.tsx`, `estilo-de-marca.tsx`.
 - `lib/acciones-del-aviso.ts` (las acciones de un aviso como datos: `AccionDelAviso`, `resolverAcciones()`, `pedidoDe()`, `hrefDePanel()`; `ErrorApp.causa`)
   y `ui/acciones-del-aviso.tsx` (`<AccionesDelAviso>`, todo `<Button>`: en un toast sólo los botones reciben el puntero).
@@ -103,8 +104,10 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
 
 - Locale, moneda, zona, nombre, logo, color y densidad entran por props desde `app/`.
 - `permisos.ts` espeja la tabla `permisos` de `supabase/seed.sql` (un test lo compara). `puede()` decide qué se muestra; protege la base.
-- `toFixed` está prohibido por lint. `<Monto>` manda al DOM el valor y su reemplazo y el CSS elige con la clase `live` de `<html>`: nunca una cifra
-  a la vista antes de hidratar.
+- `toFixed` está prohibido por lint. `<Monto>` manda al DOM el monto con su moneda y el número sin ella (`formatearMontoSinMoneda()`) y el CSS
+  elige con la clase `live` de `<html>`: nunca un símbolo a la vista antes de hidratar.
+- Un monto fuera del DOM (un `title`, un `aria-label`, un aviso, el título de un `<Confirmar>`) sale de `useMontoEnTexto()`, nunca de un
+  `live ? … : …` por pantalla.
 - `cssDeMarca()` sólo recibe colores que pasaron por `tokensDeMarca()`: a un `<style>` nunca llega texto libre.
 - `<Marca>` con `logoOscuroUrl` dibuja los dos logos y el tema elige por CSS (`dark:hidden` / `hidden dark:block`, `data-logo`), nunca por JS.
 - Registro obligatorio: cada `<Confirmar>` (por `usePanelPorUrl()`) en `scripts/guardas/confirmar-con-url.ts`, cada `<Drawer>` en

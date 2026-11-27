@@ -7,9 +7,15 @@ afterEach(cleanup)
 
 const espacios = (t: string | null | undefined) => (t ?? '').replace(/[\u00a0\u202f]/g, ' ')
 
-// `<Monto>` dibuja también lo del Modo Live («•••»), que el CSS esconde.
-const ejemplo = () =>
-  espacios(document.querySelector('[data-ejemplo-de-decimales]')?.textContent).replaceAll('•••', '')
+// `<Monto>` dibuja también lo del Modo Live (el número sin moneda), que el CSS esconde: se lee sin esa versión.
+const ejemplo = () => {
+  const copia = document.querySelector('[data-ejemplo-de-decimales]')?.cloneNode(true)
+  if (!(copia instanceof HTMLElement)) return ''
+  copia.querySelectorAll('[data-monto-sin-moneda]').forEach((n) => {
+    n.remove()
+  })
+  return espacios(copia.textContent)
+}
 
 const nodo = (n: { formato?: 'usd' | 'pct'; decimales?: number } = {}): Nodo => ({
   id: 'flete',

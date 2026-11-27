@@ -190,10 +190,10 @@ html:has([data-lienzo-marco]) {
 }
 
 /*
- * Modo Live: con la clase `live` en <html>, toda cifra de dinero y su símbolo de moneda salen de
- * la vista y del árbol de accesibilidad. <Monto> siempre trae las dos versiones; acá se elige.
+ * Modo Live: con la clase `live` en <html>, todo monto se ve con su número y sin el símbolo ni el código de su moneda. <Monto> siempre
+ * trae las dos versiones; acá se elige, y la que no va sale de la vista y del árbol de accesibilidad.
  */
-[data-monto-oculto] {
+[data-monto-sin-moneda] {
   display: none;
 }
 
@@ -201,7 +201,7 @@ html:has([data-lienzo-marco]) {
   display: none;
 }
 
-.live [data-monto-oculto] {
+.live [data-monto-sin-moneda] {
   display: inline;
 }
 

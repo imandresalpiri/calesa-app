@@ -52,8 +52,8 @@ calculatedValue?, calculatedFormat?, calculatedDecimals?, disabledReason?, secon
 - Cada botón se dibuja con la bandera **y** el callback (`accionesDe()` en `estado.ts`): una bandera sin callback sería un botón muerto. **Los mismos
   callbacks para todas las celdas**: un ternario por celda que cree una función por render dibuja todas.
 - **Deshabilitada:** la ayuda y el ⚙ **siguen** (no escriben en esta cotización); ↺ se va. Si no corresponde, la hoja no manda `hasSettings`.
-- **Modo Live:** siguen. Los botones no dicen cifras; lo que abran pasa sus cifras por `<Monto>` cuando es una celda de dinero (un factor `raw` de la
-  ayuda de una tabla queda a la vista). La cabecera no lee `useLive()`: encender Live no la dibuja de nuevo.
+- **Modo Live:** siguen. Los botones no dicen cifras; lo que abran pasa sus cifras por `<Monto>` cuando es una celda de dinero (sin símbolo con el
+  modo). La cabecera no lee `useLive()`: encender Live no la dibuja de nuevo.
 - Nombres: «Ayuda de {label}», «Cambiar el valor por defecto de {label}», «Volver al valor por defecto de {label}» (o «Volver al calculado de {label}»).
   Iconos del sprite: `xcell-ayuda`, `xcell-ajustes` (los reguladores de V1, como el ⚙ de la cabecera de la hoja) y `xcell-editado` (el lápiz de la marca).
 - **El atajo se anuncia.** El valor, con acciones, lleva `aria-keyshortcuts="ArrowRight"` **y** `aria-describedby` a «Más acciones con la flecha derecha.»
@@ -139,12 +139,9 @@ del aviso y antes del candado. Ningún estado es sólo color: el candado y el bo
   desde las filas de `tonos` (AA validado en la base, `_tono_colores()`). Una clave desconocida cae a los tokens neutros. `cssDeTonos()` valida con Zod (la
   clave de `_tono_clave()` y `#rrggbb`) y descarta el tono entero si algo falla: al `<style>` no llega nada sin validar. Todo lo que dice la celda va en la
   tinta.
-- **Modo Live:** el valor sin editar pasa por `<Monto>`. La entrada abierta es `type="password"` con el modo encendido: `-webkit-text-security` tapa lo
-  dibujado pero el valor sigue en el árbol de accesibilidad (`e2e/xcell-geometria.spec.ts`).
-- **Gestores de contraseñas (sólo con Live):** la entrada lleva `autoComplete="off"`, `data-1p-ignore`, `data-lpignore`, `data-bwignore` y
-  `data-form-type="other"`. **Chrome ignora `autocomplete="off"` en un `password` y no tiene marca propia: el riesgo queda** y no se puede probar (el
-  Chromium de Playwright no trae gestor); los tests afirman que las marcas están. Descartados: `autocomplete="one-time-code"` (el celular ofrecería los
-  códigos de los SMS) y `type="text"` con sólo el CSS (el valor queda en el árbol de accesibilidad; `docs/DECISIONES.md`).
+- **Modo Live:** el valor sin editar pasa por `<Monto>`: el número sin el símbolo de su moneda. La entrada abierta es siempre `type="text"` con el
+  número sin símbolo (`formatearParaEditar`); encender el modo a mitad de una edición no la toca (ni el foco ni lo tipeado). El `title` de
+  «Calculado» sale de `textoPlanoDeValor(…, sinMoneda)` con el modo o sin hidratar (`e2e/xcell-geometria.spec.ts`).
 - **Lo que pisa quien la contiene:** `--xcell-relleno` y `--xcell-separacion` (8 y 6 px; la sección «compacta» de la hoja los pone a 4 y 2 px y el alto,
   `--xcell-alto`, a 40 px), `--xcell-sangria` (8 px), `--xcell-letra-rotulo` y `--xcell-letra-valor` (1,3 y 1,5 veces `--text-sm`). La letra sigue
   `--text-sm` (la hoja la pisa con la «Letra» de una pieza) y el peso del rótulo se hereda (el «Énfasis» fuerte). `XCELL_COMPACTA` los pone para una tabla
@@ -163,7 +160,7 @@ del aviso y antes del candado. Ningún estado es sólo color: el candado y el bo
 ## Cómo se prueba
 
 - Vitest (`xcell-*.test.tsx`, `estado.test.ts`, `tonos.test.tsx`): estados, teclado, sin emisión falsa, el par y sus candados, las flechas, la ayuda y el ⚙,
-  el atajo, las marcas de Live, el tono, el sprite, los nodos, el memo y la celda pisada (la marca, «Calculado» y la palabra de ↺). **jsdom no reproduce dónde cae el primer carácter, el `keypress` ni a dónde va
+  el atajo, la entrada con Live, el tono, el sprite, los nodos, el memo y la celda pisada (la marca, «Calculado» y la palabra de ↺). **jsdom no reproduce dónde cae el primer carácter, el `keypress` ni a dónde va
   Tab:** eso lo prueba el e2e.
 - e2e (`e2e/xcell-teclado.spec.ts`, `e2e/xcell-geometria.spec.ts`, en los dos proyectos): la celda sola en un **banco** que no es una ruta de `src/app`
   (`e2e/soporte/banco.ts` compila `banco-de-xcell.tsx` con el esbuild de `tsx` y lo sirve con `page.route`). Teclado de verdad, el atajo en el árbol de
