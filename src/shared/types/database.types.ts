@@ -10672,7 +10672,7 @@ export type Database = {
       }
       _transporte_clave: { Args: { p_clave: string; p_tipo: string }; Returns: string }
       _transporte_de_la_clave: {
-        Args: { p_clave: string; p_origen: string; p_tipo: string }
+        Args: { p_clave: string; p_origen?: string; p_tipo: string }
         Returns: {
           arribo_el: string
           eta_el: string
