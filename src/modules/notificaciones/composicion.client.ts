@@ -6,6 +6,7 @@ export {
   leerPaginaDeNotificaciones,
 } from './infra/notificaciones.client'
 export {
+  darDeBajaEnElNavegador,
   desuscribirEnElNavegador,
   leerElNavegador,
   soportaPush,

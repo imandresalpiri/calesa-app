@@ -7,6 +7,9 @@ Autenticación, perfiles, roles y permisos (RBAC puro), invitaciones, bloqueo, b
 - Entra: sesión de Supabase Auth (email+contraseña, Google), enlaces de correos de Auth, gestión del equipo y roles, la cookie `perspectiva`.
 - `index.ts`: sesión (`requerirSesion()`, `getPermisos()`, `puede()`, `sinRol()`), acceso (`canjearAcceso()`, `cerrarSiInactiva()`, `cerrarSesion`…),
   equipo (`leerEquipo(filtro)`: 100 primeras por nombre; `leerPersona`, `leerMatriz`, `leerVistas`…), y para `tablero` `leerPersonasSinRol({ tope })` y `rutaDeLasPersonasSinRol()` (`/configuracion/equipo?estado=sin_rol`: el filtro «Sin rol» de `equipo_lista()`, la misma definición del bloque).
+- `index.ts`, el Modo Live (glosario «Ajustes del Live»): `getLive()`, `seOcultaEnElLive()`, `origenVisibleEnElLive()`, `clienteEnElLive()`,
+  `barraDelClienteEnElLive()` (la sesión ya lleva lo combinado: `Sesion.live`); y para Configuración › Modo Live (`pantallas/modo-live.ts`:
+  `<TarjetasDeLosRoles>` y `<AjustesPorPersona>`) `leerAjustesDeLosRoles()`, `leerPersonasDelLive({ texto, cursor })` y `textoDeLaBusquedaDelLive()`.
 - `client.ts`: `usePerspectiva()`, `<RoleBadge>`, `<VistasGuardadas>` (una sección de «Vista y opciones»), `guardarPreferencia`, `recordarLaPestana`. `shell.ts` / `shell.client.ts`: sesión, proveedores y
   `<BannerPerspectiva>`.
 - Lo consumen todos. Depende de `empresa`. **Nunca de `origenes`**: la página pasa los orígenes a la matriz y al cuadro «Quién crea y quién ve» por props. Los niveles de acceso de `cotizaciones` entran a la matriz como huecos (`HuecosDeNivelesEnLaMatriz`, `features/roles/components/huecos-de-niveles.ts`): `equipo` no importa `cotizaciones`; los une una render prop en la ruta.
@@ -54,6 +57,16 @@ parte })` de `client.ts` (lee, funde con `conLaPestana()` y hace upsert; sin rev
   - Quién registra: el resumen o panel por URL (`parametro`) o la página con `<RegistrarVisto>`; uno por apertura. Usan las marcas cotizaciones,
     repuestos, agenda, logística, vehículos y leads (lista y kanban).
 
+- **Modo Live** (glosario «Ajustes del Live», «Ajuste propio»): `entities/live.ts` (los nueve campos, `AJUSTES_POR_DEFECTO_DEL_LIVE`, el esquema y el
+  espejo de `_live_ajustes_validos()`), `live-combinar.ts` (`combinarAjustesDelLive()`: por campo, lo propio, si no lo del rol principal, si no lo por
+  defecto; con «Ver como», sin lo propio; `estadoDelLive()` con la cookie `modo-live`), `live-permisos.ts` (`permisosDelLive()`: los permisos que
+  dibujan las pantallas, recortados como con «Ver como»; la RLS, las RPC y las actions usan los reales) y `live-pantallas.ts` (`AREAS_DEL_LIVE` y lo
+  que cada área oculta). Configuración › Modo Live (`features/live/`, `live.configurar`): una tarjeta por rol (`?panel=rol&rol=`, guarda los nueve campos
+  enteros; «Volver a lo por defecto» en `?panel=rol-por-defecto&rol=`) y «Ajustes por persona» (`?q=` desde 3 letras, por nombre; sin texto, quienes
+  tienen lo propio, de a 20 con «Ver más» desde el navegador, `infra/live.client.ts`, hasta `TOPE_DE_LO_CARGADO`). El modal de la persona guarda sólo
+  lo que pisa (`HEREDADO`: «Como su rol (…)»; vacío borra la fila) y «Volver a lo de su rol» va en `?panel=persona-a-su-rol&persona=`. Textos en
+  `live-textos.ts`, el formulario en `live-formulario.ts`, las filas de la base en `live-configuracion.ts`.
+
 - La lista del equipo (`features/equipo/components/`): tocar la fila o la tarjeta de una persona abre su acción principal, «Cambiar sus roles» (`alAbrirPersona()`: nada si no hay «⋯», si sale apagada o si la persona está dada de baja); el resto vive sólo en su «⋯». Roles: la cabecera de un rol lleva su «⋯» con «Eliminar el rol…» (destructiva: tocar la cabecera no hace nada).
 
 ## Tablas
@@ -61,11 +74,15 @@ parte })` de `client.ts` (lee, funde con `conLaPestana()` y hace upsert; sin rev
 `perfiles` (el avatar o su fallo **no mueven `actualizado_en`**), `equipo_bajas` (`terminada_en` nulo = en curso), `roles`, `permisos` (catálogo fijo),
 `roles_permisos`, `usuarios_roles`, `preferencias_usuario`, `vistas_guardadas`, `visitados`, `vistos` (por RPC `visto_registrar`;
 se lee con `vistos_de`; job `vistos-purgar`).
+`live_ajustes_roles` y `live_ajustes_personas` (ajustes parciales del Live, jsonb validado por `_live_ajustes_validos()`; se escriben sólo por RPC).
 RPC: `mi_sesion(p_perspectiva)`, `permisos_efectivos`, `mis_permisos`, `tiene_permiso`, `alcance_de`, `origenes_con_permiso|alcance`, `rol_dominado`,
 `concesion_dominada`, `persona_dominada` (privada), `personas_dominadas(ids)` (≤ 101 ids), `rbac_crear_rol`, `rbac_eliminar_rol`,
 `rbac_otorgar`, `rbac_revocar`, `rbac_asignar_rol`, `rbac_quitar_rol`, `equipo_bloquear`, `equipo_dar_de_baja`, `equipo_vista_previa_baja`, `equipo_lista(texto, estado, límite)` (definer; exige
 `equipo.usuarios.ver` o `.gestionar`), `equipo_aceptar_invitacion`, `roles_personas()`. Baja por lotes: `_baja_lote*`, `_baja_terminar`,
 `_bajas_en_curso()`, `_lead_aplicar_bajas`, job `equipo-bajas` cada minuto.
+Modo Live: `live_rol_guardar`, `live_rol_quitar`, `live_persona_guardar` (`{}` borra la fila), `live_persona_quitar` (las cuatro con
+`live.configurar` y versión, `PT409`) y `live_personas(texto, cursor, límite)` (definer, ≤ 21, `live.configurar` y «Ver el equipo»; cada persona con su rol principal y sus ajustes);
+`mi_sesion()` entrega los del rol y los propios.
 
 ## No se rompe
 

@@ -2,12 +2,15 @@
 
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
-import { useLive } from '@/shared/ui/live'
+import { useConmutarElLive } from '@/shared/ui/proveedor-del-live'
 
-// Modo Live: para mostrarle la pantalla a un cliente. Oculta los símbolos y los códigos de moneda
-// en toda la app; los números se ven.
+// Modo Live: para mostrarle la pantalla a un cliente. Oculta los símbolos y los códigos de moneda en toda la app (los números se ven) y lo que
+// los ajustes del Live de quien mira no muestran: conmutar navega y el servidor vuelve a dibujar. Quien no puede encenderlo no lo ve.
 export function ConmutadorLive() {
-  const { live, alternar } = useLive()
+  const { live, puedeEncender, alternar } = useConmutarElLive()
+  if (!puedeEncender) {
+    return null
+  }
 
   return (
     <Button

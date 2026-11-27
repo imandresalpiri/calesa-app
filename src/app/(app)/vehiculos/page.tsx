@@ -43,6 +43,7 @@ import { ListadoConCompartir } from './listado-con-compartir'
 import { vehiculoEnEdicion } from './edicion'
 import { panelesDeLaUrl } from './paneles'
 import { paraCotizarDe } from './para-cotizar'
+import { SiSeVeEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Vehículos' }
 
@@ -175,7 +176,16 @@ function SinOrigenes() {
 // El inventario, una pestaña por origen. Las pestañas son los orígenes donde la persona tiene
 // `vehiculos.ver` (también los desactivados); lo que ve adentro lo decide la RLS. El origen, los
 // filtros y la página vienen en la URL, y lo que no corresponde se ignora.
-export default async function PaginaVehiculos({ searchParams }: PageProps<'/vehiculos'>) {
+// Con el Modo Live y el área oculta, la pantalla «Oculto en Modo Live» antes de leer nada (`loading.tsx` es su `<Suspense>`).
+export default function PaginaVehiculos(props: PageProps<'/vehiculos'>) {
+  return (
+    <SiSeVeEnElLive area="vehiculos">
+      <Inventario {...props} />
+    </SiSeVeEnElLive>
+  )
+}
+
+async function Inventario({ searchParams }: PageProps<'/vehiculos'>) {
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   const visibles = origenesVisibles(sesion.permisos, datosO(await getOrigenes(true)))
   const origen = origenElegido(visibles, unParametro(parametros['origen']))

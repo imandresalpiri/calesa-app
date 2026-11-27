@@ -249,11 +249,15 @@ test('E2E con el Modo Live la imagen del resumen es la sin moneda, se ve entera 
   await expect(resumen.getByText('Oculto en Modo Live')).toHaveCount(0)
   await capturar(page, info, 'imagen-en-modo-live')
 
-  // La ruta: la sin moneda es otra imagen con otra ETag (`.s`), y la de una variante nunca da un 304 de la otra.
+  // La ruta: la sin moneda es otra imagen con otra ETag (`.s`), y la de una variante nunca da un 304 de la otra. Con la cookie del Live, el
+  // cliente sale «Cliente» (Clientes apagado, lo por defecto): otra imagen más (`.c`).
+  await expect
+    .poll(async () => (await page.context().cookies()).find((c) => c.name === 'modo-live')?.value)
+    .toBe('1')
   const con = await page.request.get(rutaDeLaImagen(guardada))
   const sin = await page.request.get(rutaDeLaImagen(guardada, '?sin-moneda=1'))
   expect(sin.status()).toBe(200)
-  expect(etiquetaDe(sin)).toMatch(/\.s"$/)
+  expect(etiquetaDe(sin)).toMatch(/\.s\.c"$/)
   expect(etiquetaDe(sin)).not.toBe(etiquetaDe(con))
   expect(Buffer.compare(await sin.body(), await con.body())).not.toBe(0)
   const cruzada = await page.request.get(rutaDeLaImagen(guardada, '?sin-moneda=1'), {

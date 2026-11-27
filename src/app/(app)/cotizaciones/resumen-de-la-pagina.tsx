@@ -42,7 +42,7 @@ export async function ResumenDeLaPagina({
   }
   const id = idDelResumen(texto)
   const delServidor: LecturaDelServidor | null =
-    id === null ? null : await leerLaDelResumen(sesion.permisos, id)
+    id === null ? null : await leerLaDelResumen(sesion, id)
   const origenes = datosO(await getOrigenes(true))
     .filter((origen) => puede(sesion.permisos, 'cotizaciones.ver', origen.id))
     .map((origen) => ({ id: origen.id, nombre: origen.nombre, color: origen.color }))

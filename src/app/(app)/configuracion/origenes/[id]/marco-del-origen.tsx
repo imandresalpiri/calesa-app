@@ -28,11 +28,13 @@ export async function MarcoDelOrigen({ id }: { id: string }) {
     return null
   }
   const [origen, todos] = await Promise.all([leerElOrigen(id), leerOrigenes().then(datosO)])
-  const seguir = await seguirLaPuestaEnMarcha(sesion.permisos, origen)
+  // Con el Modo Live: sólo Planilla, Hoja y Tarjeta, sin «Seguir la puesta en marcha», «Datos» ni el «⋯» del origen.
+  const enElLive = sesion.live.encendido
+  const seguir = enElLive ? null : await seguirLaPuestaEnMarcha(sesion.permisos, origen)
   const puedeGestionar = puede(sesion.permisos, 'origenes.gestionar')
   // El ⚠ de cada pestaña: lo que falta, sin el paso Datos (el aviso de apibara se arregla en Integraciones y no tiene pestaña).
   const faltas = faltaDeCadaPestana(pasosQueFaltan(origen, { apibaraActiva: true }))
-  const pestanas = pestanasDelOrigen(sesion.permisos, origen.id).map((pestana) => {
+  const pestanas = pestanasDelOrigen(sesion.permisos, origen.id, enElLive).map((pestana) => {
     const aviso = faltas[pestana.clave]
     return aviso === undefined ? pestana : { ...pestana, aviso }
   })
@@ -42,7 +44,7 @@ export async function MarcoDelOrigen({ id }: { id: string }) {
       id: uno.id,
       nombre: uno.nombre,
       color: uno.color,
-      abiertas: pestanasDelOrigen(sesion.permisos, uno.id)
+      abiertas: pestanasDelOrigen(sesion.permisos, uno.id, enElLive)
         .filter((pestana) => pestana.motivo === undefined)
         .map((pestana) => pestana.clave),
     }))
@@ -76,12 +78,16 @@ export async function MarcoDelOrigen({ id }: { id: string }) {
               Seguir la puesta en marcha
             </Link>
           )}
-          <BotonDeDatos />
-          <MenuDelOrigen origen={origen} puedeGestionar={puedeGestionar} />
+          {enElLive ? null : (
+            <>
+              <BotonDeDatos />
+              <MenuDelOrigen origen={origen} puedeGestionar={puedeGestionar} />
+            </>
+          )}
         </div>
       </div>
       <PestanasDeLaRuta origenId={origen.id} pestanas={pestanas} />
-      <DrawerDeDatos origen={origen} puedeGestionar={puedeGestionar} />
+      {enElLive ? null : <DrawerDeDatos origen={origen} puedeGestionar={puedeGestionar} />}
     </div>
   )
 }

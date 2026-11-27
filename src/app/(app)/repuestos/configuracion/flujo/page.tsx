@@ -3,6 +3,7 @@ import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { EditorDelFlujo } from '../../../configuracion/_flujo/editor-del-flujo'
 import { abrirLaPestana } from '../abrir'
+import { ocultoEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Flujo de repuestos' }
 
@@ -11,6 +12,10 @@ export const metadata: Metadata = { title: 'Flujo de repuestos' }
 export default async function PaginaDelFlujoDeRepuestos({
   searchParams,
 }: PageProps<'/repuestos/configuracion/flujo'>) {
+  const oculto = await ocultoEnElLive('repuestos')
+  if (oculto) {
+    return oculto
+  }
   const [abierto, parametros] = await Promise.all([abrirLaPestana(), searchParams])
   if (abierto.sinPermiso) {
     return <EstadoSinPermiso />

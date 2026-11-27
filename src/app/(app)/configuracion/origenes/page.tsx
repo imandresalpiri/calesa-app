@@ -10,6 +10,7 @@ import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { puedeAbrirElOrigen, puedeAbrirOrigenes } from './acceso'
 import { ParaTodosLosOrigenes } from './para-todos-los-origenes'
 import { SinElBloque } from './sin-el-bloque'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Orígenes' }
 
@@ -19,6 +20,10 @@ export const metadata: Metadata = { title: 'Orígenes' }
 // sólo si hay un origen de subasta; si la lectura falla, cuenta como activa (como en el inicio): no se inventa una falta. Arriba, «Para todos los orígenes»: los colores y
 // la vigencia de las cotizaciones, de toda la empresa, para quien tiene `cotizaciones.configurar` en algún origen (la vigencia la cambia quien la tiene en todos).
 export default async function PaginaOrigenes() {
+  const oculto = await ocultoEnElLive('origenes.lectura')
+  if (oculto) {
+    return oculto
+  }
   const sesion = await requerirSesion()
   if (!puedeAbrirOrigenes(sesion.permisos)) {
     return <EstadoSinPermiso />
@@ -34,9 +39,11 @@ export default async function PaginaOrigenes() {
       !integraciones.ok || integraciones.data.some((una) => una.clave === 'apibara' && una.activa)
   }
   const veLoDeTodos = puede(sesion.permisos, 'cotizaciones.configurar')
+  // Con el Modo Live (Configuración de orígenes en «Sólo lectura»): sólo las tarjetas para abrir cada origen, sin «Para todos los orígenes» (se edita).
+  const enElLive = sesion.live.encendido
   return (
     <div className="grid gap-6">
-      {veLoDeTodos ? (
+      {enElLive ? null : veLoDeTodos ? (
         <ParaTodosLosOrigenes
           puedeCambiarLaVigencia={puedeCambiarAjustesDeCotizacion(sesion.permisos)}
           puedeIrARoles={
@@ -52,6 +59,7 @@ export default async function PaginaOrigenes() {
         hayMas={hayMas}
         puedeGestionar={puede(sesion.permisos, 'origenes.gestionar')}
         apibaraActiva={apibaraActiva}
+        soloLectura={enElLive}
       />
     </div>
   )

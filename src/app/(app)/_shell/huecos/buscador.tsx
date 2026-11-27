@@ -1,19 +1,30 @@
 'use client'
 
 import { useState } from 'react'
-import { Buscador, type AccionDeLaPaleta } from '@/modules/buscador/shell.client'
+import {
+  Buscador,
+  type AccionDeLaPaleta,
+  type TipoDelBuscador,
+} from '@/modules/buscador/shell.client'
 import { useAbrirNuevoLead } from '@/modules/leads/shell.client'
 import { AyudaDeAtajos } from '@/shared/ui/atajos'
 
 // El hueco del buscador global: el botón con su paleta (`Ctrl/Cmd+K`) y la lista de atajos (`?`). Une los dos módulos que la paleta necesita sin que se importen entre sí:
-// «Nuevo lead» es de `leads` y «Ver atajos» abre la lista de acá. Las acciones llegan ya filtradas por `puede()` desde el layout.
-export function HuecoBuscador({ acciones }: { acciones: readonly AccionDeLaPaleta[] }) {
+// «Nuevo lead» es de `leads` y «Ver atajos» abre la lista de acá. Las acciones llegan ya filtradas por `puede()` desde el layout, y los tipos, por el Modo Live.
+export function HuecoBuscador({
+  acciones,
+  tipos,
+}: {
+  acciones: readonly AccionDeLaPaleta[]
+  tipos?: readonly TipoDelBuscador[]
+}) {
   const abrirNuevoLead = useAbrirNuevoLead()
   const [atajos, setAtajos] = useState(false)
   return (
     <>
       <Buscador
         acciones={acciones}
+        tipos={tipos}
         alAbrirNuevoLead={abrirNuevoLead}
         alVerAtajos={() => {
           setAtajos(true)

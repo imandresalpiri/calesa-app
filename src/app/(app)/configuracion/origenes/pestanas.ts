@@ -99,6 +99,16 @@ export const PESTANAS_DEL_ORIGEN: readonly PestanaDelOrigen[] = PARTES_DEL_ORIGE
   ...DE_CADA_PESTANA[clave],
 }))
 
+// Con el Modo Live encendido (Configuración de orígenes en «Sólo lectura», glosario: «Modo Live») sólo se ven las del cotizador, en sólo lectura: las demás son
+// del inventario y del flujo, que el Live esconde.
+export const PESTANAS_DEL_LIVE: readonly ParteDelOrigen[] = ['planilla', 'hoja', 'tarjeta']
+
+export function pestanasVisibles(enElLive: boolean): readonly PestanaDelOrigen[] {
+  return enElLive
+    ? PESTANAS_DEL_ORIGEN.filter((pestana) => PESTANAS_DEL_LIVE.includes(pestana.clave))
+    : PESTANAS_DEL_ORIGEN
+}
+
 export function pestanaDelOrigen(clave: ParteDelOrigen): PestanaDelOrigen {
   return { clave, ...DE_CADA_PESTANA[clave] }
 }

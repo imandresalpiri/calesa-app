@@ -15,10 +15,10 @@ import {
   ProveedorDeLaRanuraDeLaCabecera,
   ProveedorDelMenuDeLaGuardada,
 } from '@/modules/cotizaciones/pantallas/cotizacion'
-import { requerirSesion } from '@/modules/equipo'
+import { origenVisibleEnElLive, requerirSesion, type EstadoDelLive } from '@/modules/equipo'
 import { RegistrarVisto } from '@/modules/equipo/pantallas/visto-de-la-ficha'
 import type { Permisos } from '@/shared/lib/permisos'
-import { EstadoVacio } from '@/shared/ui/estados'
+import { EstadoOcultoEnLive, EstadoVacio } from '@/shared/ui/estados'
 import { ConProveedorDeLaHoja } from '../con-proveedor-de-la-hoja'
 import {
   asesorQueMira,
@@ -34,6 +34,7 @@ import { esHermanaSola, leerElParDeLaGuardada } from './par-de-la-guardada'
 import { VolverALaFicha } from './volver-a-la-ficha'
 import { barraDeLaCabecera, ConElTituloDeLaGuardada } from './titulo-de-la-guardada'
 import { leerLoDelVehiculo } from './vehiculo-de-la-guardada'
+import { SiSeVeEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Cotización' }
 
@@ -46,7 +47,9 @@ export default function PaginaDeUnaCotizacion({
   return (
     <div className="grid min-w-0 gap-4">
       <Suspense fallback={<EsqueletoDeHoja />}>
-        <Cotizacion params={params} searchParams={searchParams} />
+        <SiSeVeEnElLive area="cotizaciones">
+          <Cotizacion params={params} searchParams={searchParams} />
+        </SiSeVeEnElLive>
       </Suspense>
     </div>
   )
@@ -63,13 +66,13 @@ function NoDisponible() {
 // y, a la vez, lo del vehículo para cambiarlo (T315). `deLaHoja` es el vehículo de la barra, del título y del cálculo: el elegido para cambiarlo o el guardado; la tarjeta,
 // el PDF, los huecos y la cabecera siguen con lo guardado (`vehiculo`).
 async function leerAlrededor(
-  sesion: Quien,
+  sesion: Quien & { live: EstadoDelLive },
   lectura: { hoja: HojaDeUnaGuardada; vehiculoNuevo: string | null; vehiculoSoltado: boolean },
   hermanaSola: boolean,
 ) {
   const { hoja, vehiculoNuevo, vehiculoSoltado } = lectura
   const [cliente, vehiculo, asesor, delVehiculo] = await Promise.all([
-    clienteDe(sesion.permisos, hoja.cotizacion.leadId),
+    clienteDe(sesion, hoja.cotizacion.leadId),
     vehiculoDe(hoja.cotizacion.vehiculoId),
     asesorQueMira(),
     leerLoDelVehiculo(sesion, hoja, { vehiculoNuevo, vehiculoSoltado, hermanaSola }),
@@ -159,6 +162,10 @@ async function Cotizacion({
     throw new Error(lectura.error.mensaje)
   }
   const { hoja } = lectura.data
+  // Con el Modo Live y un origen que no muestra: la pantalla oculta, antes de leer lo de alrededor y sin registrar la visita.
+  if (!origenVisibleEnElLive(sesion.live, hoja.cotizacion.origenId)) {
+    return <EstadoOcultoEnLive />
+  }
   const [{ cliente, vehiculo, asesor, delVehiculo, deLaHoja }, delPar] = await Promise.all([
     leerAlrededor(sesion, lectura.data, esHermanaSola(hoja)),
     leerElParDeLaGuardada(lectura.data, idDeUrl(url[CLAVE_DE_VEHICULO])),

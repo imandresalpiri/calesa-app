@@ -4,7 +4,11 @@ import type { Permisos } from '@/shared/lib/permisos'
 import { EstadoSinPermiso, EstadoVacio } from '@/shared/ui/estados'
 import { periodoDesde, ventanaDelPeriodo } from '../../../entities/periodo'
 import { filasDesde } from '../../../entities/personalizar'
-import { widgetsVisibles, type PreferenciaDeWidgets } from '../../../entities/widgets'
+import {
+  widgetsVisibles,
+  type LiveDelTablero,
+  type PreferenciaDeWidgets,
+} from '../../../entities/widgets'
 import { BotonPersonalizar } from '../personalizar/boton-personalizar'
 import { widgetsParaMontar } from '../widgets/registro'
 import { EsqueletoDeWidget } from './esqueleto-de-widget'
@@ -20,6 +24,20 @@ type Props = {
   zona?: string
   // Lo que la persona eligió en «Personalizar» (`tablero.widgets`); sin elegir, el tablero como viene.
   preferencia?: PreferenciaDeWidgets | null
+  // Con el Modo Live: sólo las métricas de cotizaciones, sin «Personalizar».
+  live?: LiveDelTablero
+}
+
+const SIN_LIVE: LiveDelTablero = { encendido: false }
+
+// Con el Modo Live y ningún widget que se vea (sus ajustes ocultan las cotizaciones): lo dice, en vez de «No tienes permiso».
+function VacioEnElLive() {
+  return (
+    <div className="grid gap-5">
+      <h1 className="text-(length:--text-xl) font-semibold text-(--color-ink)">Tablero</h1>
+      <EstadoVacio titulo="En el Modo Live, el Tablero muestra sólo las métricas de cotizaciones." />
+    </div>
+  )
 }
 
 // `/tablero`: las métricas del período, en widgets. Cada widget lee por su cuenta tras su `<Suspense>`:
@@ -29,12 +47,13 @@ export function PanelDelTablero({
   periodo,
   zona = ZONA_POR_DEFECTO,
   preferencia = null,
+  live = SIN_LIVE,
 }: Props) {
-  const { mostrados: montajes, ocultos } = widgetsParaMontar(permisos, preferencia)
+  const { mostrados: montajes, ocultos } = widgetsParaMontar(permisos, preferencia, live)
   if (montajes.length === 0 && ocultos.length === 0) {
-    return <EstadoSinPermiso />
+    return live.encendido ? <VacioEnElLive /> : <EstadoSinPermiso />
   }
-  const visibles = widgetsVisibles(permisos)
+  const visibles = widgetsVisibles(permisos, live)
   const titulos = new Map<string, string>(visibles.map((widget) => [widget.clave, widget.titulo]))
   // Sólo se ofrece lo que la persona puede ver (los mismos `visibles` que arman el tablero).
   const ofrecidos = filasDesde(visibles, preferencia).map((fila) => ({
@@ -50,11 +69,13 @@ export function PanelDelTablero({
         <h1 className="text-(length:--text-xl) font-semibold text-(--color-ink)">Tablero</h1>
         <div className="flex flex-wrap items-center gap-3">
           <SelectorDePeriodo activo={activo} />
-          <BotonPersonalizar
-            ofrecidos={ofrecidos}
-            hayPreferencia={preferencia !== null}
-            ordenDeFabrica={visibles.map((widget) => widget.clave)}
-          />
+          {live.encendido ? null : (
+            <BotonPersonalizar
+              ofrecidos={ofrecidos}
+              hayPreferencia={preferencia !== null}
+              ordenDeFabrica={visibles.map((widget) => widget.clave)}
+            />
+          )}
         </div>
         <p className="text-(length:--text-sm) text-(--color-ink-soft)">
           {ventana.etiqueta}: del {formatearDiaYMes(ventana.desde)} al{' '}

@@ -19,6 +19,11 @@ vi.mock('@/modules/datos/composicion', () => ({
 }))
 const getPermisos = vi.fn()
 vi.mock('@/modules/equipo', () => ({ getPermisos: () => getPermisos() }))
+// La guarda del Modo Live: apagado salvo que la prueba diga otra cosa.
+const rutaOcultaEnElLive = vi.fn((_area: string) => Promise.resolve(false))
+vi.mock('../../_live/guarda', () => ({
+  rutaOcultaEnElLive: (area: string) => rutaOcultaEnElLive(area),
+}))
 const leerAjustes = vi.fn()
 vi.mock('@/modules/empresa', () => ({ leerAjustes: () => leerAjustes() }))
 const leerLayoutDeLeads = vi.fn()
@@ -105,6 +110,16 @@ describe('POST /datos/exportar', () => {
     expect(await respuesta.json()).toMatchObject({ codigo: 'sin_permiso' })
     expect(prepararSesion).not.toHaveBeenCalled()
     ningunaLectura()
+  })
+
+  it('con el Modo Live encendido, 404 «oculto» sin leer permisos ni abrir la sesión', async () => {
+    rutaOcultaEnElLive.mockResolvedValueOnce(true)
+    const respuesta = await pedir()
+    expect(respuesta.status).toBe(404)
+    expect(await respuesta.json()).toMatchObject({ codigo: 'oculto' })
+    expect(rutaOcultaEnElLive).toHaveBeenCalledWith('siempre-oculto')
+    expect(getPermisos).not.toHaveBeenCalled()
+    expect(prepararSesion).not.toHaveBeenCalled()
   })
 
   it('T2 · cuenta, deja la constancia y recién después lee la primera página', async () => {

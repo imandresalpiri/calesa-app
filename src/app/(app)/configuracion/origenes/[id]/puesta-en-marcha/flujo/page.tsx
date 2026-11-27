@@ -8,6 +8,7 @@ import { NoSeAbre } from '../../no-se-abre'
 import { abrirLaPuestaEnMarcha } from '../abrir'
 import { MarcoDelPaso, PasoSinPermiso, conPermiso } from '../marco-del-paso'
 import { Seguir } from '../seguir'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Puesta en marcha: Flujo' }
 
@@ -16,6 +17,10 @@ export default async function PasoFlujo({
   params,
   searchParams,
 }: PageProps<'/configuracion/origenes/[id]/puesta-en-marcha/flujo'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const [{ id }, parametros] = await Promise.all([params, searchParams])
   return (
     <>

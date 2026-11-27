@@ -10,6 +10,7 @@ import {
   type AccionDeLaPaleta,
   type DestinoDeLaAccion,
 } from '../../../entities/acciones-de-la-paleta'
+import type { TipoDelBuscador } from '../../../entities/ranking'
 import { useBusquedaDeLaPaleta } from '../hooks/use-busqueda-de-la-paleta'
 import { useUltimosAbiertos } from '../hooks/use-ultimos-abiertos'
 import { CuerpoDeLaPaleta } from './cuerpo-de-la-paleta'
@@ -19,6 +20,8 @@ export type PropsDeLaPaleta = {
   alCambiar: (abierta: boolean) => void
   // Ya filtradas por `puede()` en el servidor: la paleta no sabe de permisos.
   acciones: readonly AccionDeLaPaleta[]
+  // Lo que se puede buscar y mostrar en «Últimos abiertos» (con el Modo Live, sólo lo que muestra). Estable entre dibujos (`Buscador`).
+  tipos: readonly TipoDelBuscador[]
   alAbrirNuevoLead: () => void
   alVerAtajos: () => void
 }
@@ -33,6 +36,7 @@ export function Paleta({
   abierta,
   alCambiar,
   acciones,
+  tipos,
   alAbrirNuevoLead,
   alVerAtajos,
 }: PropsDeLaPaleta) {
@@ -41,8 +45,12 @@ export function Paleta({
   const { estado: busqueda, reintentar: reintentarBusqueda } = useBusquedaDeLaPaleta({
     texto,
     abierta,
+    tipos,
   })
-  const { estado: ultimos, reintentar: reintentarUltimos } = useUltimosAbiertos({ abierta })
+  const { estado: ultimos, reintentar: reintentarUltimos } = useUltimosAbiertos({
+    abierta,
+    tipos,
+  })
   const queCoinciden = useMemo(() => filtrarAcciones(acciones, texto), [acciones, texto])
   // «Ver todos en Leads» lleva el texto como lo entendió la búsqueda (`#12` queda `#12`), no el crudo con sus espacios de más.
   const interpretado = useMemo(() => interpretarBusqueda(texto), [texto])

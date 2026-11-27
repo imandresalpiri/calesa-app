@@ -5,16 +5,26 @@ import { nombreVisible, requerirSesion, sinRol } from '@/modules/equipo'
 import { ZONA_POR_DEFECTO } from '@/shared/lib/fechas'
 import { puede } from '@/shared/lib/permisos'
 import { Bandeja, bloqueVisible } from '@/modules/tablero/pantallas/inicio'
+import { InicioEnElLive } from './_inicio/inicio-en-el-live'
 import { PanelDeTurnos } from './_inicio/panel-de-turnos'
 import { VincularTurno } from './_inicio/vincular-turno'
+import { ocultoEnElLive } from './_live/guarda'
 
 export const metadata: Metadata = { title: 'Inicio' }
 
-// Inicio = la bandeja de trabajo, armada con los permisos de quien entra.
+// Inicio = la bandeja de trabajo, armada con los permisos de quien entra. Con el Modo Live (y Inicio a la vista), no se lee: `InicioEnElLive`.
 export default async function PaginaInicio() {
+  const oculto = await ocultoEnElLive('inicio')
+  if (oculto) {
+    return oculto
+  }
   // La sesión y los ajustes se leen al pedir la pantalla, no al prepararla.
   await connection()
-  const [sesion, ajustes] = await Promise.all([requerirSesion(), leerAjustes()])
+  const sesion = await requerirSesion()
+  if (sesion.live.encendido) {
+    return <InicioEnElLive live={sesion.live} permisos={sesion.permisos} />
+  }
+  const ajustes = await leerAjustes()
   const bloqueDeTurnos = bloqueVisible(sesion.permisos, 'turnos-web')
   return (
     <>

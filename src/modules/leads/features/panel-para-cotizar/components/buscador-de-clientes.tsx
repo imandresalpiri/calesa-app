@@ -15,13 +15,22 @@ type Props = {
   alCambiar: (texto: string) => void
   // Con permiso para crear leads: el «+» que abre «Nuevo lead». Sin él, no hay botón.
   alNuevoLead?: () => void
+  // El Modo Live con «Sólo nombres»: busca sólo por nombre.
+  soloNombres?: boolean
 }
 
 const IGUAL = (texto: string) => texto
 
 // El campo de arriba del panel del cliente: lo escrito busca por nombre o por número («#124») entre los leads que quien mira ve. Lo escrito vive también en la
-// URL, así que el campo lleva `useTextoDeUrl()`: sin él, la vuelta de la URL le quita el foco a media palabra. Al montarse toma el foco: el panel abre ahí.
-export function BuscadorDeClientes({ textoDeUrl, aviso, alCambiar, alNuevoLead }: Props) {
+// URL, así que el campo lleva `useTextoDeUrl()`: sin él, la vuelta de la URL le quita el foco a media palabra. Al montarse toma el foco: el panel abre ahí. Con
+// «Sólo nombres» del Modo Live, sólo por nombre.
+export function BuscadorDeClientes({
+  textoDeUrl,
+  aviso,
+  alCambiar,
+  alNuevoLead,
+  soloNombres = false,
+}: Props) {
   const id = useId()
   const idDelAviso = useId()
   const campo = useRef<HTMLInputElement>(null)
@@ -32,7 +41,7 @@ export function BuscadorDeClientes({ textoDeUrl, aviso, alCambiar, alNuevoLead }
   return (
     <div className="grid min-w-0 gap-1.5">
       <label htmlFor={id} className="text-(length:--text-sm) font-medium text-(--color-ink)">
-        Buscar por nombre o número
+        {soloNombres ? 'Buscar por nombre' : 'Buscar por nombre o número'}
       </label>
       <div className="flex min-w-0 items-center gap-2">
         <Input
@@ -40,7 +49,7 @@ export function BuscadorDeClientes({ textoDeUrl, aviso, alCambiar, alNuevoLead }
           id={id}
           type="search"
           autoComplete="off"
-          placeholder="Nombre o #número"
+          placeholder={soloNombres ? 'Nombre' : 'Nombre o #número'}
           aria-describedby={aviso ? idDelAviso : undefined}
           className="h-11 min-w-0 flex-1 md:h-9"
           value={texto}

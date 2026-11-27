@@ -177,7 +177,8 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
    «Reintentar»), el total con que se guardó, lo pisado, lo que suma aparte y el total en moneda local si se pidió con «Ver total en moneda local»
    (apagado al nacer y sólo si la versión da su moneda). **«Guardar»** va a todo el ancho debajo de «Avanzado» (o al final, sin él), con su motivo,
    lo que falta elegir y, en una región viva, lo que dijo el último guardado; `Ctrl/Cmd+S` guarda (preventa). En una guardada «Guardar» va en la
-   cabecera y «Vista previa» en su «⋯». El Modo Live es sólo el interruptor de la barra de arriba. «Vista previa»
+   cabecera y «Vista previa» en su «⋯». El Modo Live es sólo el interruptor de la barra de arriba; con él, la barra del cliente sigue a sus ajustes
+   (apagada con «Se elige al salir del Modo Live», o su panel sólo con nombres: «Modo Live (estados propios)»). «Vista previa»
    abre la tarjeta de la cotización (la cuadrícula tipo Excel de la plantilla, escalada como una imagen al ancho del modal, que en escritorio es
    grande (hasta 56 rem): nunca agranda ni desplaza la página de costado; en el celular, el modal a pantalla completa), con «Copiar texto» (apagado sin total o desactualizado) y, en una
    guardada, «Descargar PDF» (sin salir de la página; un fallo con «Reintentar»). Los avisos de trabajo van fuera de la tarjeta (total
@@ -262,7 +263,8 @@ Estados propios:
 Navegación de primer nivel (hasta 7, filtrada por permisos, en `src/app/(app)/_shell/navegacion.ts`): Inicio · Leads · Vehículos ·
 Cotizaciones · Logística · Agenda · Chat; Repuestos sólo con permiso. Configuración, Actividad y Datos van en el menú del usuario y en
 `Ctrl/Cmd+K`, con «Mi perfil», «Instalar la app» (sólo si el navegador puede instalarla y aún no corre instalada; en iOS explica «Compartir ›
-Agregar a inicio»), «Ayuda», «Ver como» (quien gestiona roles), tema, densidad y «Cerrar sesión».
+Agregar a inicio»), «Ayuda», «Ver como» (quien gestiona roles; no con el Modo Live), tema, densidad y «Cerrar sesión». Con el Modo Live, la
+navegación, el menú y la paleta llevan sólo lo que sus ajustes muestran.
 
 **Ayuda (menú del usuario):** el renglón «Ayuda» (con icono, tras las entradas del usuario) abre un modal con los **enlaces de ayuda** de quien mira
 (`?panel=ayuda`: recargar lo reabre, «atrás» lo cierra; también desde cualquier pantalla por la URL), leídos al abrirlo y nunca con el marco. Cada
@@ -744,6 +746,15 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   **El bloque «Cotizaciones»** lleva, además, los niveles de acceso y «Quién crea y quién ve» (ver «Cotización: niveles de acceso y quién crea y quién ve»):
   `?bloque=<módulo>` deja a la vista el bloque de ese módulo (lo usa `?bloque=cotizaciones`).
   Un rol que no existe aún: «Todavía no hay roles» con «Crea uno con «Nuevo rol»…».
+- **Modo Live** — `/configuracion/modo-live` (`live.configurar`): qué se ve con el Live encendido, en dos grupos a la vista. «Por rol»: una
+  tarjeta por rol (en el orden de Roles, los primeros 100 con aviso de tope) con el valor de cada campo e insignia «Por defecto» si no tiene lo
+  suyo; tocarla abre «Modo Live de «<rol>»» (`?panel=rol&rol=`) y su «⋯» trae «Volver a lo por defecto…» (`?panel=rol-por-defecto&rol=`).
+  «Ajustes por persona»: quienes tienen ajuste propio, los cambiados hace menos primero, de a 20 con «Ver más» hasta el tope; el buscador
+  («Nombre o correo», 3 letras, `?q=`) trae las 20 primeras por nombre de todo el equipo. Cada fila dice su nombre y «Como su rol (<rol>)» o
+  «Ajuste propio en N campos»; tocarla abre «Modo Live de «<persona>»» (`?panel=persona&persona=`) y su «⋯» suma «Volver a lo de su rol…»
+  (`?panel=persona-a-su-rol&persona=`). Los modales llevan un `<select>` por campo (Puede encender, Vehículos, Orígenes con sus casillas,
+  Cotizaciones, Clientes, Logística, Repuestos, Inicio y Tablero, Configuración de orígenes) y, al pie, lo que siempre se oculta; en el de una
+  persona la primera opción de cada campo es «Como su rol (<valor>)» y lo que pisa lleva «Ajuste propio».
 - **Datos** — `/datos` (todos: «Mis leads»; todo: `datos.exportar.todo`): `?seccion=exportar|importar`, con la barra siempre; sin permiso
   para importar nada (`leads.crear`, `datos.importar.todo` o `vehiculos.crear` en algún origen), «Importar» apagada con su motivo y
   pedirla abre «Exportar».
@@ -806,7 +817,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 - **Fechas de subasta:** en la zona de quien mira (`/perfil` › «Zona horaria»; sin elegir, la de la empresa), con la abreviatura («14:00
   GMT-4»); en el tooltip (y debajo, en la ficha) la hora del patio y la de la empresa. Lo demás, en la zona de la empresa.
 - **Formatos:** `Intl` con locale y moneda de la empresa (`es-BO` por defecto); montos con cifras tabulares; fechas cruzan servidor↔cliente
-  como ISO y se muestran en la zona de la empresa. **Modo Live** oculta los símbolos y los códigos de moneda; los números se ven con sus decimales (lo que se comparte sale completo). Voz: español neutro con
+  como ISO y se muestran en la zona de la empresa. **Modo Live** oculta los símbolos y los códigos de moneda y lo que sus ajustes apagan (el servidor no lo dibuja ni lo manda); los números de lo que se ve van con sus decimales (lo que se comparte sale completo, salvo el cliente que sus ajustes ocultan). Voz: español neutro con
   tuteo. Densidad: compacta en escritorio (filas 36–40 px), cómoda en táctil (48 px), recordada por usuario.
 - **Atajos:** `Ctrl/Cmd+K` buscar/comandos · `N` nuevo, lo propio de la pantalla (vehículo en vehículos; si no hay, un lead) · `Shift+N` abre «Nuevo» (elegir qué crear;
   no abre encima de otro diálogo ni mientras se escribe) · `Ctrl/Cmd+S` guardar · `Ctrl/Cmd+Enter` guardar y seguir · `Ctrl/Cmd+B` plegar o desplegar el menú lateral · `Esc` cerrar panel o volver un paso · `?` abre «Atajos
@@ -876,7 +887,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   los vigentes con quién y cuándo cambió el valor por última vez (nunca el correo) y, para quien gestiona los tipos de cambio, el lápiz
   «Cambiar el valor de <nombre>»: Enter guarda, Esc cancela, el motivo junto al campo; con algo escrito el popover no se cierra al tocar
   afuera; sin red, lo escrito queda y se guarda al volver; un `PT409` dice «<Nombre> lo cambió a <monto> hace N minutos» con «Recargar».
-  Con el Modo Live, los valores sin su moneda y con el lápiz igual. Al pie, «Compartir» (toda persona, también con el Modo Live; con un valor a medio
+  Con el Modo Live, los valores sin su moneda y sin el lápiz. Al pie, «Compartir» (toda persona, también con el Modo Live; con un valor a medio
   editar espera: «Termina de cambiar el valor para compartir.») y «Configurar los tipos de cambio» (quien gestiona). **«Compartir»** cambia el
   contenido del popover por su panel (`Volver a los tipos de cambio`): casillas de los activos (por defecto los de la barra; sólo para ese envío),
   la imagen y el texto tal como saldrán (logo, nombre, momento en la zona de la empresa, un tipo por línea, leyenda) y los botones, que se apagan
@@ -885,7 +896,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   falla, «No se pudo armar la imagen.» con «Reintentar» y el texto sigue disponible; sin red, «No hay conexión.»; el panel se desplaza con los botones a
   la vista. En el
   celular menú, Live y avatar miden 44 px y la barra cabe al 200 %; el tipo de cambio sólo se dibuja con 24 rem o más. El botón «Buscar»
-  (44 px) abre la paleta (`Ctrl/Cmd+K`) y la campana trae los avisos; el widget del chat flota fuera de `/chat` y no va en la barra.
+  (44 px) abre la paleta (`Ctrl/Cmd+K`) y la campana trae los avisos; el widget del chat flota fuera de `/chat` y no va en la barra. El
+  interruptor del Modo Live sólo lo ve quien puede encenderlo; con el Live encendido no hay campana ni chat.
 - **Permisos en UI**: ocultar lo que nunca va a usar; deshabilitar con motivo lo que espera poder hacer (**dominancia**: lo que no puede dar
   nunca se esconde). RLS es la seguridad. **«Ver como»:** banner fijo «Viendo como <rol> · Salir»; cambia lo que se ve, no lo que se puede.
 - **Conflictos:** todo formulario de edición manda `actualizado_en` esperado; `PT409` → «X cambió esto hace N min · ver / recargar». Barras
@@ -2470,6 +2482,30 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
 - **Roles:** «Recibir turnos de la web» es un interruptor más de la matriz; un rol sin él vende igual pero no recibe turnos. Rol que no
   dominas: columna de sólo lectura, con su motivo en «Avisos de <rol>»; permiso que no tienes: celda deshabilitada con el motivo en su descripción;
   conflicto «Otra persona cambió este rol · Recargar» (sigue arriba: no es un aviso del rol).
+
+### Modo Live (estados propios)
+
+- **Configuración › Modo Live:** cargando, el esqueleto de las tarjetas; sin permiso, «No tienes permiso»; con el Live encendido, la página
+  misma se oculta. Sin «Ver el equipo», «Ajustes por persona» es «No puedes ver al equipo» y «Por rol» sigue. «Ajustes por persona» sin
+  nadie: «Nadie tiene ajustes propios.» («Busca a una persona para darle los suyos.»); buscando sin
+  resultados, «Limpiar búsqueda»; al tope, «Mostrando las 20 primeras por nombre» («Escribe más para afinar la búsqueda.») o «Mostrando las N
+  cambiadas hace menos» («Busca por nombre para llegar a las demás.»). Los modales: «Sólo estos» sin ningún origen no se guarda y lo dice en
+  «Orígenes»; un conflicto deja «Recargar» y conserva lo elegido; cerrar con cambios pregunta; abrir por URL a alguien que no está en la lista
+  lo dice. Al guardar, «Se guardó el Modo Live de «X».»; al volver, ««X» volvió a lo por defecto…» o «… a lo de su rol…».
+- **El interruptor:** quien no puede encenderlo no lo ve; si estaba encendido (otra pestaña, otra sesión) y su rol ya no puede, se apaga solo
+  con «Tu rol ya no puede usar el Modo Live: se apagó.». Conmutar vuelve a dibujar la pantalla; si otra pestaña lo cambia, «El Modo Live
+  cambió.» con «Recargar» mientras lo dibujado no coincide.
+- **Oculto en Modo Live:** una pantalla que el Live oculta, abierta por URL o por un enlace guardado, dice «Oculto en Modo Live» («Esto no se
+  muestra mientras compartes la pantalla.») con «Salir del Modo Live», que lo apaga y recarga la misma URL. Nada de lo oculto se leyó.
+- **Inicio:** «En el Modo Live, Inicio no muestra tu trabajo del día.» con «Ver vehículos» y «Ver cotizaciones» (los que se ven). El tablero,
+  con «Inicio y Tablero» encendido, sólo los widgets de cotizaciones, sin «Personalizar».
+- **La hoja de cotizar:** Clientes apagado, la barra del cliente dice «Se elige al salir del Modo Live»; «Sólo nombres», su panel busca y
+  muestra sólo el nombre. La tarjeta, su imagen, el PDF y lo que se comparte dicen «Cliente» si los clientes no se ven.
+- **Logística «Sólo la cadena»:** el gráfico de la cadena, sin enlaces a las fases, «Dónde está», el lote, las pestañas ni ⚙. **Repuestos
+  «Sólo estadísticas»:** una tarjeta por fase con Ítems y Proyectos («500+» al tope), sin enlaces.
+- **Orígenes «Sólo lectura»:** la página del origen con Planilla, Hoja y Tarjeta, nada editable y sin «⋯»; la lista, sólo las tarjetas que
+  abren cada origen. **«Sólo estos» orígenes:** las listas traen sólo los suyos y un vehículo o una cotización de otro, abierto por URL, dice
+  «Oculto en Modo Live» (sus imágenes y su PDF dan 404).
 
 ## Decisiones de UX
 

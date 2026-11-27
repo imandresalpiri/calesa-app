@@ -9,6 +9,7 @@ import { datosO } from '@/shared/lib/errores'
 import { ZONA_POR_DEFECTO } from '@/shared/lib/fechas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { EsqueletoFormulario, EsqueletoTabla } from '@/shared/ui/esqueletos'
+import { SiSeVeEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Importar leads' }
 
@@ -20,12 +21,14 @@ export default function PaginaImportarLeads() {
   return (
     <div className="grid gap-6">
       <h1 className="text-(length:--text-xl) font-semibold">Importar leads</h1>
-      <Suspense fallback={<EsqueletoFormulario bloques={1} campos={3} />}>
-        <Importar />
-      </Suspense>
-      <Suspense fallback={<EsqueletoTabla filas={2} columnas={3} />}>
-        <Recientes />
-      </Suspense>
+      <SiSeVeEnElLive area="clientes">
+        <Suspense fallback={<EsqueletoFormulario bloques={1} campos={3} />}>
+          <Importar />
+        </Suspense>
+        <Suspense fallback={<EsqueletoTabla filas={2} columnas={3} />}>
+          <Recientes />
+        </Suspense>
+      </SiSeVeEnElLive>
     </div>
   )
 }

@@ -20,7 +20,7 @@ type Props = {
 }
 
 // Una fórmula en el selector de la barra: ★ sólo en la activa, el nombre, el estado y una marca en la elegida, todo un enlace a la misma pestaña con ella; al lado
-// su «⋯». Con cambios sin guardar en el editor, antes de ir pregunta.
+// su «⋯» (sin acciones, ninguno). Con cambios sin guardar en el editor, antes de ir pregunta.
 export function FilaDeFormula({ href, formula, elegida, acciones, alIr }: Props) {
   const router = useRouter()
   return (
@@ -48,7 +48,8 @@ export function FilaDeFormula({ href, formula, elegida, acciones, alIr }: Props)
         <EstadoDeLaFormula formula={formula} />
         {elegida ? <CheckIcon aria-label="Elegida" className="ms-auto size-4 shrink-0" /> : null}
       </Link>
-      <MasAcciones nombre={formula.nombre} acciones={acciones} />
+      {/* Sin acciones (el Modo Live), sin «⋯». */}
+      {acciones.length === 0 ? null : <MasAcciones nombre={formula.nombre} acciones={acciones} />}
     </li>
   )
 }

@@ -43,6 +43,9 @@ export const TOPE_DE_LA_BANDEJA = 100
 export const LOTES_POR_PAGINA = 5
 // La lista del equipo (5a-21): las primeras por nombre. Se pide uno más para saber si hay otras; la base lo acota a 101 (`equipo_lista`).
 export const TOPE_DEL_EQUIPO = 100
+// Configuración › Modo Live, «Ajustes por persona»: quienes tienen lo propio, de a 20 por cursor con «Ver más» (hasta `TOPE_DE_LO_CARGADO`); al
+// buscar, las primeras 20 y «escribe más». La base pide una más y la acota (`live_personas`).
+export const TAMANO_DE_PERSONAS_DEL_LIVE = 20
 // De cada lote de la papelera (hasta 200) se ven los primeros; «Mostrar los N» trae el lote entero (cierre 1).
 export const PRIMEROS_DEL_LOTE = 20
 // Configuración › Orígenes: la lista dibuja los primeros que la persona abre, por su orden; el menú nombra los primeros como sub-ítems y

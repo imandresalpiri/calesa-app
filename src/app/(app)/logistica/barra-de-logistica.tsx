@@ -2,6 +2,7 @@ import type { Route } from 'next'
 import Link from 'next/link'
 import { connection } from 'next/server'
 import { SettingsIcon } from 'lucide-react'
+import { getLive } from '@/modules/equipo'
 import { CLAVE_DE_ORIGEN_DE_LOGISTICA, type OrigenDeLaCadena } from '@/modules/logistica'
 import { FilaConDesborde, PestanasDeOrigen } from '@/modules/logistica/pantallas/barra'
 import type { Permisos } from '@/shared/lib/permisos'
@@ -21,7 +22,7 @@ type Parametros = Promise<Record<string, string | string[] | undefined>>
 // La barra de arriba de toda página de Logística, en dos filas de alto fijo (el mismo de `EsqueletoDeLaBarra`): los orígenes, como en Vehículos, y las pestañas del
 // origen elegido (Cadena · Bandeja del día · y Embarques, Aduana, Gastos si su flujo las usa y la persona las ve), con el ⚙ «Configurar» a la derecha. La dibuja
 // cada página, no el layout: un layout no recibe `?origen=` ni se vuelve a dibujar entre páginas hermanas, y la unidad marca el origen de su vehículo. Enlaces de
-// servidor: lo único del cliente es el desborde de la primera fila y guardar el último origen.
+// servidor: lo único del cliente es el desborde de la primera fila y guardar el último origen. Con el Modo Live (sólo se ve la Cadena), sólo los orígenes.
 export async function BarraDeLogistica({
   searchParams,
   pestana,
@@ -31,7 +32,7 @@ export async function BarraDeLogistica({
 }) {
   await connection()
   const pedido = unParametro((await searchParams)[CLAVE_DE_ORIGEN_DE_LOGISTICA])
-  const datos = await origenDeLaPagina(pedido)
+  const [datos, live] = await Promise.all([origenDeLaPagina(pedido), getLive()])
   const origen = datos.resuelto.tipo === 'ok' ? datos.resuelto.origen : null
   return (
     <Barra
@@ -39,6 +40,7 @@ export async function BarraDeLogistica({
       pestana={pestana}
       marcado={origen?.id ?? null}
       recordar={datos.resuelto.tipo === 'ok' && datos.resuelto.recordar}
+      soloOrigenes={live.encendido}
     />
   )
 }
@@ -72,11 +74,14 @@ function Barra({
   pestana,
   marcado,
   recordar,
+  soloOrigenes = false,
 }: {
   datos: OrigenDeLaPagina
   pestana: PestanaDeLogistica | null
   marcado: string | null
   recordar: boolean
+  // El Modo Live: la segunda fila queda, con su alto, sin pestañas ni ⚙.
+  soloOrigenes?: boolean
 }) {
   const { permisos, resuelto, paraConfigurar } = datos
   if (
@@ -87,7 +92,6 @@ function Barra({
     return null
   }
   const deLasPestanas = resuelto.tipo === 'ok' ? resuelto.origen : null
-  const configurar = destinoDeConfigurar(deLasPestanas?.id ?? null, paraConfigurar)
   return (
     <div data-barra-de-logistica className="grid gap-1">
       <PestanasDeOrigen
@@ -99,29 +103,55 @@ function Barra({
         }))}
         actual={marcado}
       />
-      <div className="flex h-11 min-w-0 items-center gap-2 md:h-8">
-        {deLasPestanas !== null ? (
-          <PestanasDelOrigen origen={deLasPestanas} pestana={pestana} permisos={permisos} />
-        ) : (
-          <span className="flex-1" />
-        )}
-        {configurar !== null ? (
-          <Link
-            href={rutaDeParteDelOrigen(configurar, 'fases')}
-            aria-label="Configurar la logística"
-            className="inline-flex h-full min-w-[44px] shrink-0 items-center justify-center gap-1.5 rounded-(--radius-pill) px-3 text-(length:--text-sm) text-(--color-ink-soft) hover:text-(--color-ink)"
-          >
-            <SettingsIcon aria-hidden className="size-4" />
-            <span className="max-sm:sr-only">Configurar</span>
-          </Link>
-        ) : null}
-      </div>
+      {soloOrigenes ? (
+        <div aria-hidden className="h-11 md:h-8" />
+      ) : (
+        <FilaDelOrigen
+          origen={deLasPestanas}
+          pestana={pestana}
+          permisos={permisos}
+          configurar={destinoDeConfigurar(deLasPestanas?.id ?? null, paraConfigurar)}
+        />
+      )}
       {recordar && deLasPestanas !== null ? <RecordarElOrigen origenId={deLasPestanas.id} /> : null}
     </div>
   )
 }
 
-// La segunda fila: las pestañas del origen. Si su flujo no se pudo leer, sólo Cadena y Bandeja del día, y una línea lo dice en la misma fila (no cambia el alto).
+// La segunda fila, de alto fijo: las pestañas del origen (si se abrió uno) y el ⚙ «Configurar» (si quien mira configura alguno).
+function FilaDelOrigen({
+  origen,
+  pestana,
+  permisos,
+  configurar,
+}: {
+  origen: OrigenDeLaCadena | null
+  pestana: PestanaDeLogistica | null
+  permisos: Permisos
+  configurar: string | null
+}) {
+  return (
+    <div className="flex h-11 min-w-0 items-center gap-2 md:h-8">
+      {origen !== null ? (
+        <PestanasDelOrigen origen={origen} pestana={pestana} permisos={permisos} />
+      ) : (
+        <span className="flex-1" />
+      )}
+      {configurar !== null ? (
+        <Link
+          href={rutaDeParteDelOrigen(configurar, 'fases')}
+          aria-label="Configurar la logística"
+          className="inline-flex h-full min-w-[44px] shrink-0 items-center justify-center gap-1.5 rounded-(--radius-pill) px-3 text-(length:--text-sm) text-(--color-ink-soft) hover:text-(--color-ink)"
+        >
+          <SettingsIcon aria-hidden className="size-4" />
+          <span className="max-sm:sr-only">Configurar</span>
+        </Link>
+      ) : null}
+    </div>
+  )
+}
+
+// Las pestañas del origen. Si su flujo no se pudo leer, sólo Cadena y Bandeja del día, y una línea lo dice en la misma fila (no cambia el alto).
 function PestanasDelOrigen({
   origen,
   pestana,

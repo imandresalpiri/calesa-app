@@ -14,11 +14,17 @@ import type {
   RepositorioEquipo,
   RepositorioRoles,
 } from './entities/repositorios-equipo'
+import type {
+  LectorDeAjustesDeLosRoles,
+  LectorDePersonasDelLive,
+  RepositorioDelLive,
+} from './entities/repositorios-live'
 import type { LectorDePersonasSinRol } from './entities/sin-rol'
 import type { LectorDeVistas, RepositorioVistas } from './entities/repositorios-vistas'
 import { accesoSupabase } from './infra/acceso'
 import { equipoSupabase } from './infra/equipo'
 import { conAdminDeAuth } from './infra/invitaciones'
+import { getAjustesDeLosRoles, getPersonasDelLive, liveSupabase } from './infra/live'
 import { perfilSupabase } from './infra/perfil'
 import {
   getEquipo,
@@ -51,3 +57,8 @@ export const leerVistaPreviaDeBaja: LectorDeVistaPreviaDeBaja = getVistaPreviaDe
 
 export const repositorioVistas: RepositorioVistas = vistasSupabase
 export const leerVistas: LectorDeVistas = getVistas
+
+// Configuración › Modo Live: los ajustes del Live de cada rol y de cada persona.
+export const leerAjustesDeLosRoles: LectorDeAjustesDeLosRoles = getAjustesDeLosRoles
+export const leerPersonasDelLive: LectorDePersonasDelLive = getPersonasDelLive
+export const repositorioDelLive: RepositorioDelLive = liveSupabase

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { CLAVE_DE_LEAD } from '@/modules/cotizaciones'
 import { RanuraDeLaCabecera } from '@/modules/cotizaciones/pantallas/cotizar'
+import { barraDelClienteEnElLive, type EstadoDelLive } from '@/modules/equipo'
 import { type ClienteElegido } from '@/modules/leads'
 import { BarraDelCliente } from '@/modules/leads/pantallas/cotizar'
 import type { OrigenResumen } from '@/modules/origenes'
@@ -11,20 +12,25 @@ import type { VehiculoDeLaUrl } from '../vehiculo-de-la-hoja'
 import { BarraConHistorial } from './barra-con-historial'
 import type { leerLoDeLaHoja, paraElegirDe } from './lecturas-de-la-hoja'
 
-// La barra del cliente de la hoja: lo que puede hacer quien mira con los leads, y si su rol no deja guardar sin cliente en este origen.
+// La barra del cliente de la hoja: lo que puede hacer quien mira con los leads, y si su rol no deja guardar sin cliente en este origen. Con el Modo Live, como dice su
+// ajuste: apagada con los clientes ocultos; con «Sólo nombres», el panel busca por nombre (con el Live encendido, `leads.ver` no llega en `permisos`).
 function BarraDelClienteDeLaHoja({
   cliente,
   permisos,
+  live,
   obligatorio,
 }: {
   cliente: ClienteElegido | null
   permisos: Permisos
+  live: EstadoDelLive
   obligatorio: boolean
 }) {
+  const enElLive = barraDelClienteEnElLive(live)
   return (
     <BarraDelCliente
       elegido={cliente}
-      puedeVer={puede(permisos, 'leads.ver')}
+      enElLive={enElLive}
+      puedeVer={puede(permisos, 'leads.ver') || enElLive === 'nombres'}
       numeroGlobal={puede(permisos, 'leads.numero_global.ver')}
       puedeCrear={puede(permisos, 'leads.crear')}
       claveDeLaUrl={CLAVE_DE_LEAD}
@@ -45,7 +51,7 @@ export function BarrasDeLaHoja({
   reglas,
   reservaDeLaCabecera,
 }: {
-  sesion: { permisos: Permisos }
+  sesion: { permisos: Permisos; live: EstadoDelLive }
   origen: OrigenResumen
   elegido: VehiculoDeLaUrl
   cliente: ClienteElegido | null
@@ -80,6 +86,7 @@ export function BarrasDeLaHoja({
             <BarraDelClienteDeLaHoja
               cliente={cliente}
               permisos={sesion.permisos}
+              live={sesion.live}
               obligatorio={obligatorios.lead}
             />
           </div>

@@ -8,11 +8,24 @@
 // Sesión y permisos
 export {
   cerrarSiInactiva,
+  getLive,
   getPermisos,
   requerirSesion,
   requerirSesionDeEnlace,
 } from './features/auth/sesion'
 export { nombreVisible, sinRol, type Sesion } from './entities/sesion'
+// El Modo Live de la sesión: qué área se oculta, qué origen y cómo se ve un cliente (`Sesion.live`).
+export {
+  barraDelClienteEnElLive,
+  clienteDeLaCotizacion,
+  clienteEnElLive,
+  origenVisibleEnElLive,
+  seOcultaEnElLive,
+  type AreaDelLive,
+  type ClienteEnElLive,
+} from './entities/live-pantallas'
+export { CLIENTE_EN_EL_LIVE } from './entities/live'
+export type { EstadoDelLive } from './entities/live-combinar'
 // La última pestaña de cada origen (la lee la entrada a `/configuracion/origenes/<id>`).
 export { leerLasPestanasRecordadas } from './features/perfil/pestanas-recordadas'
 export type { PestanasRecordadas } from './entities/ultima-pestana'
@@ -47,3 +60,7 @@ export {
 // Vistas guardadas de un listado (`<VistasGuardadas>` sale por `client.ts`)
 export { leerVistas } from './composicion'
 export type { VistaGuardada } from './entities/vista'
+
+// Configuración › Modo Live (`pantallas/modo-live`): los ajustes de cada rol y la primera página de «Ajustes por persona» (con `texto`, la búsqueda).
+export { leerAjustesDeLosRoles, leerPersonasDelLive } from './composicion'
+export { textoDeLaBusquedaDelLive, type OrigenDelLive } from './entities/live-configuracion'

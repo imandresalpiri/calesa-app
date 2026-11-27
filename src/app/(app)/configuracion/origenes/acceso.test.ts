@@ -71,6 +71,21 @@ describe('pestanasDelOrigen', () => {
     }
   })
 
+  it('con el Modo Live encendido, sólo Planilla, Hoja y Tarjeta (Campos y Categorías no se ven)', () => {
+    expect(pestanasDelOrigen(con('cotizaciones.configurar', A), A, true)).toEqual([
+      { clave: 'planilla', titulo: 'Planilla', ruta: `/configuracion/origenes/${A}/planilla` },
+      { clave: 'hoja', titulo: 'Hoja', ruta: `/configuracion/origenes/${A}/hoja` },
+      { clave: 'tarjeta', titulo: 'Tarjeta', ruta: `/configuracion/origenes/${A}/tarjeta` },
+    ])
+    expect(
+      pestanasDelOrigen(con('cotizaciones.configurar', B), A, true).map((p) => p.motivo),
+    ).toEqual([
+      'Lo configura quien tiene el permiso «Configurar el cotizador».',
+      'Lo configura quien tiene el permiso «Configurar el cotizador».',
+      'Lo configura quien tiene el permiso «Configurar el cotizador».',
+    ])
+  })
+
   it('puedeAbrirLaPestana dice lo mismo que las pestañas', () => {
     expect(puedeAbrirLaPestana(con('flujos.configurar', A), A, 'fases')).toBe(true)
     expect(puedeAbrirLaPestana(con('flujos.configurar', A), A, 'planilla')).toBe(false)

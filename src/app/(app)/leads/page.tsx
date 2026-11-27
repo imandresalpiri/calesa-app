@@ -20,6 +20,7 @@ import type { ParametrosDeUrl } from '@/shared/lib/filtros'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { rutasDelMenuDeLaPagina } from './rutas-del-menu'
+import { ocultoEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Leads' }
 
@@ -28,6 +29,10 @@ export const metadata: Metadata = { title: 'Leads' }
 // datos «solo la cartera» de los ajenos. El modo, los filtros y la página vienen en la URL, y lo
 // que no corresponde se ignora. Cada fila lleva a la ficha del lead.
 export default async function PaginaLeads({ searchParams }: PageProps<'/leads'>) {
+  const oculto = await ocultoEnElLive('clientes')
+  if (oculto) {
+    return oculto
+  }
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   if (!puede(sesion.permisos, 'leads.ver')) {
     return (

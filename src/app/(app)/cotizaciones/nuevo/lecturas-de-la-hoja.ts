@@ -10,12 +10,14 @@ import {
   recalcularAlAbrir,
   recalcularAlAbrirEnPar,
 } from '@/modules/cotizaciones'
-import { leerClienteElegido, type ClienteElegido } from '@/modules/leads'
+import { barraDelClienteEnElLive, type EstadoDelLive } from '@/modules/equipo'
+import { leerClienteElegido, leerNombresDeLeads, type ClienteElegido } from '@/modules/leads'
 import { PANEL_DEL_CLIENTE } from '@/modules/leads/pantallas/cotizar'
 import { leerLayout, type OrigenResumen } from '@/modules/origenes'
 import { datosParaElegirDe, type Vehiculo } from '@/modules/vehiculos'
 import { PANEL_DEL_VEHICULO, type ParaElegir } from '@/modules/vehiculos/pantallas/cotizar'
 import { datosO } from '@/shared/lib/errores'
+import { SIN_NUMEROS } from '@/shared/lib/numeros-de-lead'
 import { puede, type Permisos } from '@/shared/lib/permisos'
 import { altaDelPanelDe, elegidoDeLaUrl, type Quien } from '../vehiculo-de-la-hoja'
 
@@ -59,11 +61,20 @@ export async function abrirLaHoja(origenId: string, vehiculoId: string | null) {
 
 // El lead de la URL para la barra del cliente (4.14-3b), con la sesión de quien mira: null si no vino, si quien mira no ve los leads o si la lectura no lo encontró (no
 // existe, está en la papelera o no se ve: la hoja y las pestañas de origen lo sueltan, y guardar pide elegir otro). Un error de la lectura sube al `error.tsx`: no es «no se ve».
+// Con el Modo Live que oculta los clientes, null sin leer; con «Sólo nombres», sólo su nombre (sin tipo ni números).
 export async function clienteDeLaUrl(
-  permisos: Permisos,
+  quien: { permisos: Permisos; live: EstadoDelLive },
   id: string | null,
 ): Promise<ClienteElegido | null> {
-  return id === null || !puede(permisos, 'leads.ver') ? null : datosO(await leerClienteElegido(id))
+  const enElLive = barraDelClienteEnElLive(quien.live)
+  if (id === null || enElLive === 'apagado') {
+    return null
+  }
+  if (enElLive === 'nombres') {
+    const nombre = datosO(await leerNombresDeLeads([id])).get(id)
+    return nombre === undefined ? null : { id, nombre, tipoId: null, numeros: SIN_NUMEROS }
+  }
+  return puede(quien.permisos, 'leads.ver') ? datosO(await leerClienteElegido(id)) : null
 }
 
 // El layout del origen sólo hace falta con un vehículo: dice qué datos del vehículo se eligen en el panel.
@@ -92,7 +103,7 @@ export const camposQueSeEligen = (paraElegir: ParaElegir | null): string[] =>
 // Lo que la página junta en paralelo antes de dibujar. El vehículo de la barra y su «Cotizado (n)» se leen a la vez que la hoja; si la hoja lo suelta, la barra queda sin él. Con un
 // vehículo, el layout del origen (qué datos del vehículo se eligen en el panel) también va en paralelo.
 export async function leerLoDeLaHoja(
-  sesion: Quien,
+  sesion: Quien & { live: EstadoDelLive },
   origen: OrigenResumen,
   de: { lead: string | null; vehiculo: string | null },
 ) {
@@ -102,20 +113,32 @@ export async function leerLoDeLaHoja(
     de.vehiculo === null ? null : contarCotizacionesDelVehiculo(de.vehiculo),
     altaDelPanelDe(sesion.permisos, origen),
     layoutSiHayVehiculo(origen.id, de.vehiculo),
-    clienteDeLaUrl(sesion.permisos, de.lead),
+    clienteDeLaUrl(sesion, de.lead),
   ])
   return { ...abierta, leido, conteo, alta, layout, cliente }
 }
 
 // Qué pide el rol de quien mira en este origen y cómo se elige. Con «Ver como» son los permisos del rol elegido (`sesion.permisos`); la base decide con los reales, así que la hoja
-// nunca afloja lo que ella exige. Al navegador viajan booleanos y textos.
-export function reglasDeLaHoja(permisos: Permisos, origenId: string) {
+// nunca afloja lo que ella exige. Al navegador viajan booleanos y textos. Con el Modo Live, el cliente se elige como dice su ajuste: con los clientes ocultos, al salir
+// del Live (sin botón); con «Sólo nombres», en su panel.
+export function reglasDeLaHoja(permisos: Permisos, origenId: string, live: EstadoDelLive) {
   const obligatorios = obligatoriosAlCotizar(permisos, origenId)
-  return {
-    obligatorios,
-    elecciones: eleccionesDeLaHoja(permisos, origenId, {
-      cliente: PANEL_DEL_CLIENTE,
-      vehiculo: PANEL_DEL_VEHICULO,
-    }),
+  const elecciones = eleccionesDeLaHoja(permisos, origenId, {
+    cliente: PANEL_DEL_CLIENTE,
+    vehiculo: PANEL_DEL_VEHICULO,
+  })
+  const enElLive = barraDelClienteEnElLive(live)
+  if (enElLive === 'apagado') {
+    return {
+      obligatorios,
+      elecciones: { ...elecciones, lead: { pedido: ELIGE_AL_SALIR_DEL_LIVE } },
+    }
   }
+  if (enElLive === 'nombres') {
+    return { obligatorios, elecciones: { ...elecciones, lead: { panel: PANEL_DEL_CLIENTE } } }
+  }
+  return { obligatorios, elecciones }
 }
+
+// Cómo se elige el cliente con el Modo Live que lo oculta: el mismo texto que la barra del cliente apagada.
+const ELIGE_AL_SALIR_DEL_LIVE = 'Se elige al salir del Modo Live.'

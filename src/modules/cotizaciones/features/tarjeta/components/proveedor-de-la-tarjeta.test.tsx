@@ -16,6 +16,8 @@ vi.mock('../../../areas/tarjeta/composicion.client', () => ({
       data: { estado: 'sin_plantilla' },
     }),
 }))
+// El pie de la vista previa conmuta el Live con el router (sin el proveedor del marco, el interruptor no se dibuja).
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
 import { ProveedorDeLaTarjeta } from './proveedor-de-la-tarjeta'
 

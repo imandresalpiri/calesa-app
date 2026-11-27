@@ -51,6 +51,7 @@ function montar({
   alGuardar = vi.fn(),
   conElegido = true,
   puedeCrear = false,
+  soloNombres = false,
   url = '?origen=o&vehiculo=v&panel=cliente',
 } = {}) {
   const cambios: UrlUpdateEvent[] = []
@@ -74,6 +75,7 @@ function montar({
           claveDeLaUrl="lead"
           numeroGlobal
           puedeCrear={puedeCrear}
+          soloNombres={soloNombres}
         />
       </ProveedorAtajos>
     </NuqsTestingAdapter>,
@@ -160,6 +162,21 @@ describe('PanelDelCliente: «Nuevo lead»', () => {
     montar()
     await screen.findByText('Beto otro')
     expect(screen.queryByRole('button', { name: 'Nuevo lead' })).toBeNull()
+  })
+})
+
+describe('PanelDelCliente: «Sólo nombres» del Modo Live', () => {
+  it('sin pestañas de clase (siempre «Todos»), busca sólo por nombre, sin «Nuevo lead» aunque pueda crear, y lo pide sólo con nombres', async () => {
+    montar({ soloNombres: true, puedeCrear: true, url: '?origen=o&panel=cliente&clase=cliente' })
+    const campo = await screen.findByRole('searchbox', { name: 'Buscar por nombre' })
+    expect(campo.getAttribute('placeholder')).toBe('Nombre')
+    await screen.findByText('Beto otro')
+    expect(screen.queryByRole('tab')).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Todos' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Nuevo lead' })).toBeNull()
+    expect(leer).toHaveBeenCalledWith(
+      expect.objectContaining({ lista: 'todos', soloNombres: true }),
+    )
   })
 })
 

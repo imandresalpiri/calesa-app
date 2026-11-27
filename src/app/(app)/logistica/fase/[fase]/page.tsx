@@ -41,6 +41,7 @@ import { abrirLaPestana } from '../../abrir-la-pestana'
 import { BarraDeLogistica } from '../../barra-de-logistica'
 import { EsqueletoDeLaBarra } from '../../esqueleto-de-la-barra'
 import { MarcasDeLogistica } from '../../marcas-de-logistica'
+import { SiSeVeEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Fase · Logística' }
 
@@ -56,12 +57,14 @@ export default function PaginaDeUnaFase({
 }: PageProps<'/logistica/fase/[fase]'>) {
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
-      <Suspense fallback={<EsqueletoDeLaBarra />}>
-        <BarraDeLogistica searchParams={searchParams} pestana="cadena" />
-      </Suspense>
-      <Suspense fallback={<EsqueletoDeLaFase />}>
-        <Fase params={params} searchParams={searchParams} />
-      </Suspense>
+      <SiSeVeEnElLive area="logistica">
+        <Suspense fallback={<EsqueletoDeLaBarra />}>
+          <BarraDeLogistica searchParams={searchParams} pestana="cadena" />
+        </Suspense>
+        <Suspense fallback={<EsqueletoDeLaFase />}>
+          <Fase params={params} searchParams={searchParams} />
+        </Suspense>
+      </SiSeVeEnElLive>
     </div>
   )
 }

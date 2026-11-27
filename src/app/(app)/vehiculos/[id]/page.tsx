@@ -3,13 +3,19 @@ import type { Metadata, Route } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { rutaDeActividadDe } from '@/modules/actividad'
-import { puede, requerirSesion, type Permisos } from '@/modules/equipo'
+import {
+  origenVisibleEnElLive,
+  puede,
+  requerirSesion,
+  seOcultaEnElLive,
+  type Permisos,
+} from '@/modules/equipo'
 import type { OrigenResumen } from '@/modules/origenes'
 import { rutaParaCotizar, type ParaCotizar, type Vehiculo } from '@/modules/vehiculos'
 import { CLAVE_DE_PANEL } from '@/shared/lib/filtros'
 import { conVuelta, RUTAS, unParametro } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
-import { EstadoVacio } from '@/shared/ui/estados'
+import { EstadoOcultoEnLive, EstadoVacio } from '@/shared/ui/estados'
 import { FichaEnDosColumnas, IndiceDeBloques } from '@/shared/ui/ficha-en-bloques'
 import { ResumenDeLaPagina } from '../../cotizaciones/resumen-de-la-pagina'
 import { AvisosBajoLaCabecera } from './avisos-bajo-la-cabecera'
@@ -27,6 +33,7 @@ import {
 import { BloquesDeLaFicha } from './bloques-de-la-ficha'
 import { LateralDeLaFicha } from './lateral-de-la-ficha'
 import { LlegarAlBloque } from './llegar-al-bloque'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Vehículo' }
 
@@ -129,7 +136,11 @@ function encabezadoDe(
       enlaces={
         <EnlacesCortos
           vehiculoId={encontrado.id}
-          verLogistica={puede(sesion.permisos, 'logistica.ver', origen.id)}
+          // Con el Modo Live, la unidad de Logística está oculta aunque se vea la cadena.
+          verLogistica={
+            puede(sesion.permisos, 'logistica.ver', origen.id) &&
+            !seOcultaEnElLive(sesion.live, 'logistica')
+          }
         />
       }
     />
@@ -162,8 +173,16 @@ export default async function PaginaVehiculo({
   params,
   searchParams,
 }: PageProps<'/vehiculos/[id]'>) {
+  const oculto = await ocultoEnElLive('vehiculos')
+  if (oculto) {
+    return oculto
+  }
   const [sesion, { id }, parametros] = await Promise.all([requerirSesion(), params, searchParams])
   const { encontrado, origen } = await vehiculoYOrigen(id, sesion.permisos)
+  // Con el Modo Live y un origen que no muestra, la pantalla oculta (la RLS ya dijo que existe y que quien mira lo ve): nada se dibuja.
+  if (encontrado && !origenVisibleEnElLive(sesion.live, encontrado.origenId)) {
+    return <EstadoOcultoEnLive />
+  }
   if (!encontrado || !origen) {
     return <NoDisponible />
   }

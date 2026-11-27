@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import { InstalarApp } from '@/shared/ui/instalar-app'
+import { useLiveEnElServidor } from '@/shared/ui/proveedor-del-live'
 import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import { adelantarElModalDeAyuda, ModalDeAyudaDiferido } from './ayuda/diferidos'
@@ -120,6 +121,8 @@ export function MenuUsuario({ persona, entradas, alCerrarSesion, puedeConfigurar
   // «Ayuda» (los enlaces de ayuda) vive en la URL (`?panel=ayuda`) y su modal se pide la primera vez que se abre: en el marco sólo viaja el renglón.
   const ayuda = usePanelPorUrl(PANEL_DE_AYUDA)
   const montada = useAbiertoAlgunaVez(ayuda.abierto)
+  // Con el Modo Live, «Ver como» no se ofrece: su lista nombra los roles de la empresa en plena transmisión (el banner de una perspectiva ya elegida sigue).
+  const enElLive = useLiveEnElServidor()
 
   return (
     <>
@@ -156,7 +159,7 @@ export function MenuUsuario({ persona, entradas, alCerrarSesion, puedeConfigurar
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <InstalarApp className={RENGLON} />
-          <VerComo />
+          {enElLive ? null : <VerComo />}
           <Preferencias />
           <DropdownMenuSeparator />
           <DropdownMenuItem

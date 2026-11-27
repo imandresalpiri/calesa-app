@@ -61,7 +61,12 @@ const GUARDADA_EL = '2026-11-07T02:30:00.123456+00:00'
 const NO_DISPONIBLE = 'Esta cotización ya no está disponible: no existe o ya no tienes acceso.'
 const NO_SE_PUDO = 'No se pudo armar el PDF. Vuelve a intentarlo.'
 
-const activa = { usuarioId: ID, estado: 'activa', permisos: [] }
+const activa = {
+  usuarioId: ID,
+  estado: 'activa',
+  permisos: [],
+  live: { encendido: false, puedeEncender: true },
+}
 const hoja = {
   cotizacion: {
     id: ID,

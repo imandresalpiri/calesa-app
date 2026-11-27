@@ -2,12 +2,16 @@
 
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
-import { useLive } from '@/shared/ui/live'
+import { useConmutarElLive } from '@/shared/ui/proveedor-del-live'
 
 // El Modo Live al alcance de la vista previa: quien le muestra la tarjeta a su cliente oculta los símbolos de moneda sin cerrar el modal (la barra de arriba queda detrás). Es el mismo botón
-// que el de la barra (`ConmutadorLive`, del marco): conmuta el mismo estado, la clase de `<html>`. Va aquí y no en `shared` porque mover el de la barra dispara el Nivel 2.
+// que el de la barra (`ConmutadorLive`, del marco): conmuta la cookie y vuelve a pedir la pantalla (`useConmutarElLive()`), y no se dibuja si el rol de quien mira no
+// puede encenderlo. Va aquí y no en `shared` porque mover el de la barra dispara el Nivel 2.
 export function LiveDeLaVistaPrevia() {
-  const { live, alternar } = useLive()
+  const { live, puedeEncender, alternar } = useConmutarElLive()
+  if (!puedeEncender && !live) {
+    return null
+  }
   return (
     <Button
       variant={live ? 'secondary' : 'ghost'}

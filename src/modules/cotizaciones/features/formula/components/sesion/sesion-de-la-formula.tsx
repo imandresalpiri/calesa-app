@@ -45,11 +45,18 @@ export type PropsDeLaSesion = {
   puedeCambiarTiposDeCambio: boolean
   // Los tipos de cambio de la empresa: «Tipo de celda › Tipo de cambio».
   tiposDeCambio: readonly TipoDeCambioDeLaEmpresa[]
+  // Con el Modo Live: la planilla se ve y no se edita.
+  soloLectura?: boolean
 }
 
 // Con la versión leída: la fórmula de trabajo, y la unidad de ejemplo y el modo elegido de la planilla (recargar vuelve a ceros).
 function SesionLista({ leida, ...p }: PropsDeLaSesion & { leida: FormulaParaEditar }) {
-  const editor = useEditorDeLaFormula({ origenId: p.origen.id, leida, tablas: p.tablas })
+  const editor = useEditorDeLaFormula({
+    origenId: p.origen.id,
+    leida,
+    tablas: p.tablas,
+    soloLectura: p.soloLectura === true,
+  })
   const [unidad, setUnidad] = useState<UnidadDeEjemplo>(UNIDAD_EN_CEROS)
   const cabecera = leida.diseno?.cabecera
   const [modo, setModo] = useState(() =>

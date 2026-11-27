@@ -11,7 +11,9 @@ recibe actualizaciones sueltas: una rama, un PR que se integra solo con el CI en
 ## Funcionando
 
 - **Equipo y permisos:** registro e invitaciones, roles libres sobre un catálogo fijo de permisos, por origen y con alcance, dominancia
-  sobre la persona, bajas con traspaso de cartera, «Ver como».
+  sobre la persona, bajas con traspaso de cartera, «Ver como». El Modo Live (compartir la pantalla sin la moneda) se configura por rol y por
+  persona en Configuración › Modo Live: quién puede encenderlo y qué se ve (vehículos y sus orígenes, cotizaciones, clientes, logística,
+  repuestos, Inicio y Tablero, la configuración de orígenes); lo oculto no se dibuja ni se manda.
 - **Empresa y orígenes:** ajustes, monedas y tipos de cambio, integraciones (apibara, web pública, el asistente de IA que redacta los textos de compartir), enlaces de ayuda (los de la empresa y los propios de cada persona, en «Ayuda» del menú del perfil), campos por origen con rango. Datos de la empresa, Integraciones, la serie de Comprobantes, Ajustes y Legales del sitio web, la política de la cola web y el perfil son tarjetas con lo guardado a la vista, sólo un «⋯» y un modal por tarjeta (`?panel=`), a todo el ancho. Cada origen tiene su página en
   Configuración, con migas y selector de origen y seis pestañas planas (Fases, Planilla, Hoja, Tarjeta, Campos y Categorías; la fórmula,
   a un clic con su barra, «Versiones» y «Tablas»; los datos, en un drawer); la que le falta algo para cotizar y mover lleva ⚠, y entrar abre la última

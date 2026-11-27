@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from 'cn'
 import { Label } from './label'
 
@@ -14,6 +14,8 @@ type Props = Omit<ComponentProps<'select'>, 'id' | 'children'> & {
   grupos?: readonly { etiqueta: string; opciones: readonly Opcion[] }[]
   ayuda?: string
   error?: string
+  // Una insignia junto a la etiqueta («Ajuste propio»); quien la pasa le reserva el lugar si va y viene.
+  insignia?: ReactNode
 }
 
 const dibujarOpcion = (opcion: Opcion) => (
@@ -31,6 +33,7 @@ export function CampoSeleccion({
   grupos = [],
   ayuda,
   error,
+  insignia,
   ...resto
 }: Props) {
   const idAyuda = ayuda ? `${nombre}-ayuda` : undefined
@@ -39,7 +42,14 @@ export function CampoSeleccion({
 
   return (
     <div className="grid gap-1.5">
-      <Label htmlFor={nombre}>{etiqueta}</Label>
+      {insignia === undefined ? (
+        <Label htmlFor={nombre}>{etiqueta}</Label>
+      ) : (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <Label htmlFor={nombre}>{etiqueta}</Label>
+          {insignia}
+        </div>
+      )}
       <select
         id={nombre}
         name={nombre}

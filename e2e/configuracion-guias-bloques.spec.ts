@@ -1,5 +1,6 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
+import { esperarDosCuadros } from './soporte/barra-de-filtros'
 import { entrar, limpiarInventario, prepararInventario } from './soporte/inventario'
 import { literal, sql } from './soporte/sql'
 
@@ -57,10 +58,18 @@ async function abrirLaGuia(page: Page, id: string) {
   await expect(texto(page)).toBeVisible()
 }
 
-// Al final del texto, en un párrafo nuevo y vacío: ahí se escribe «/».
-async function alFinalEnUnParrafoNuevo(page: Page) {
+// El cursor al final del texto. «Control+End» lo mueve el navegador y ProseMirror se entera con un `selectionchange` que llega después: su
+// `keydown` sólo lo adelanta si ya estaba en cola, así que una tecla que sigue de inmediato (en un runner cargado) se aplicaría al inicio del
+// documento. Dos cuadros dejan que ese aviso llegue antes de la tecla siguiente.
+async function alFinalDelTexto(page: Page) {
   await texto(page).click()
   await page.keyboard.press('Control+End')
+  await esperarDosCuadros(page)
+}
+
+// Al final del texto, en un párrafo nuevo y vacío: ahí se escribe «/».
+async function alFinalEnUnParrafoNuevo(page: Page) {
+  await alFinalDelTexto(page)
   await page.keyboard.press('Enter')
 }
 
@@ -188,8 +197,7 @@ test('el panel se oculta y se acuerda al recargar', async ({ page }) => {
 
 test('la vista previa abre en un modal por su dirección y se cierra', async ({ page }) => {
   await abrirLaGuia(page, sembrarGuia('e2e-guia-bloques-vista'))
-  await texto(page).click()
-  await page.keyboard.press('Control+End')
+  await alFinalDelTexto(page)
   await page.keyboard.type(' y más')
 
   await page.getByRole('button', { name: 'Vista previa' }).click()
@@ -207,8 +215,7 @@ test('salir con cambios pregunta: seguir conserva el texto y descartar vuelve a 
   page,
 }) => {
   await abrirLaGuia(page, sembrarGuia('e2e-guia-bloques-salir'))
-  await texto(page).click()
-  await page.keyboard.press('Control+End')
+  await alFinalDelTexto(page)
   await page.keyboard.type(' sin guardar')
 
   const volver = page.getByRole('link', { name: '← Guías' })
@@ -228,8 +235,7 @@ test('deshacer y rehacer, y Enter en el título pasa al texto', async ({ page })
   const deshacer = page.getByRole('button', { name: 'Deshacer' })
   await expect(deshacer).toBeDisabled()
 
-  await texto(page).click()
-  await page.keyboard.press('Control+End')
+  await alFinalDelTexto(page)
   await page.keyboard.type(' extra')
   await expect(deshacer).toBeEnabled()
   await deshacer.click()

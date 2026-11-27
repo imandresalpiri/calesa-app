@@ -1,6 +1,6 @@
 import { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'
 import { rutaDeParteDelOrigen, type ParteDelOrigen } from '@/shared/lib/rutas'
-import { PESTANAS_DEL_ORIGEN } from './pestanas'
+import { pestanasVisibles } from './pestanas'
 
 // Quién abre Configuración › Orígenes y la página de cada origen. `origenes.gestionar` edita sus datos, campos y categorías; quien
 // configura lo que cuelga de un origen (su flujo, su fórmula, los catálogos de su logística) necesita ver cómo está armado, y lo ve deshabilitado,
@@ -44,9 +44,13 @@ export type PestanaAbierta = {
 }
 
 // Las seis pestañas de un origen para esta persona, en su orden, con su ruta y, la que no puede abrir, su motivo. Campos y Categorías se
-// abren siempre que se abre el origen (en sólo lectura sin `origenes.gestionar`).
-export function pestanasDelOrigen(permisos: Permisos, origenId: string): PestanaAbierta[] {
-  return PESTANAS_DEL_ORIGEN.map((pestana) => {
+// abren siempre que se abre el origen (en sólo lectura sin `origenes.gestionar`). Con el Modo Live encendido, sólo Planilla, Hoja y Tarjeta (`pestanasVisibles()`).
+export function pestanasDelOrigen(
+  permisos: Permisos,
+  origenId: string,
+  enElLive = false,
+): PestanaAbierta[] {
+  return pestanasVisibles(enElLive).map((pestana) => {
     const abre =
       pestana.permisos === null ||
       pestana.permisos.some((clave) => puede(permisos, clave, origenId))

@@ -13,6 +13,7 @@ import {
 } from '../../datos-de-la-tarjeta'
 import { datosParaCompartir } from './datos-para-compartir'
 import { contextoParaCompartir, versionesParaCompartir } from './versiones'
+import { origenOcultoEnElLive, rutaOcultaEnElLive } from '../../../_live/guarda'
 
 // Lo que el panel «Compartir la cotización» necesita para armar el texto: el título, el autor (quien la creó), el asesor (quien comparte), el vehículo con la zona
 // de su patio y el cierre de su subasta, y las cifras de la tarjeta de **lo guardado** (sólo lo del nivel «todos»: `cotizacion_tarjeta`, K4). Con la sesión de quien
@@ -47,6 +48,9 @@ export async function GET(
 ) {
   // La segunda barrera tras el proxy: sin sesión, al ingreso; con la cuenta dada de baja, a cerrar la sesión. Antes de leer nada.
   await requerirSesion()
+  if (await rutaOcultaEnElLive('cotizaciones')) {
+    return texto(NO_DISPONIBLE, 404)
+  }
   const { id } = await params
   if (!z.guid().safeParse(id).success) {
     return texto(NO_DISPONIBLE, 404)
@@ -56,6 +60,10 @@ export async function GET(
     return falla(lectura.error.codigo)
   }
   const { hoja } = lectura.data
+  // Con el Modo Live y un origen que no muestra: como si no existiera.
+  if (await origenOcultoEnElLive(hoja.cotizacion.origenId)) {
+    return texto(NO_DISPONIBLE, 404)
+  }
   const [vehiculo, subasta, autor, asesor, ajustes] = await Promise.all([
     oNulo(vehiculoDe(hoja.cotizacion.vehiculoId)),
     oNulo(subastaDe(hoja.cotizacion.vehiculoId)),

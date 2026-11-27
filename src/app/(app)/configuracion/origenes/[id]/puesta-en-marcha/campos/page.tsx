@@ -14,6 +14,7 @@ import { NoSeAbre } from '../../no-se-abre'
 import { abrirLaPuestaEnMarcha } from '../abrir'
 import { MarcoDelPaso, PasoSinPermiso, conPermiso } from '../marco-del-paso'
 import { Seguir } from '../seguir'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Puesta en marcha: Campos' }
 
@@ -21,6 +22,10 @@ export const metadata: Metadata = { title: 'Puesta en marcha: Campos' }
 export default async function PasoCampos({
   params,
 }: PageProps<'/configuracion/origenes/[id]/puesta-en-marcha/campos'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const { id } = await params
   return (
     <>

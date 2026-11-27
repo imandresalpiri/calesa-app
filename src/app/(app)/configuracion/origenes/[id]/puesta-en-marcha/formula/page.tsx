@@ -15,6 +15,7 @@ import { NoSeAbre } from '../../no-se-abre'
 import { abrirLaPuestaEnMarcha, type PuestaEnMarchaAbierta } from '../abrir'
 import { MarcoDelPaso, PasoSinPermiso, conPermiso } from '../marco-del-paso'
 import { Seguir } from '../seguir'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Puesta en marcha: Fórmula' }
 
@@ -23,6 +24,10 @@ export const metadata: Metadata = { title: 'Puesta en marcha: Fórmula' }
 export default async function PasoFormula({
   params,
 }: PageProps<'/configuracion/origenes/[id]/puesta-en-marcha/formula'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const { id } = await params
   return (
     <>

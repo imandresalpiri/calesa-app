@@ -5,6 +5,7 @@ import { getOrigenes } from '@/modules/origenes'
 import { datosO } from '@/shared/lib/errores'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { MatrizConNiveles } from './matriz-con-niveles'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Roles y permisos' }
 
@@ -13,6 +14,10 @@ export const metadata: Metadata = { title: 'Roles y permisos' }
 // la matriz: `equipo` no depende de `origenes` ni de `cotizaciones`. Si la lista de niveles no se pudo leer, la matriz sigue y sólo
 // el bloque de niveles lo dice.
 export default async function PaginaRoles() {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const sesion = await requerirSesion()
   const puedeGestionar = puede(sesion.permisos, 'equipo.roles.gestionar')
   if (!puedeGestionar && !puede(sesion.permisos, 'equipo.roles.ver')) {

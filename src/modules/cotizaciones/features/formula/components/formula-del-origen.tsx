@@ -34,6 +34,8 @@ type Props = {
   NuevoColor: ComponentType<PropsDelNuevoColor> | null
   puedeCambiarTiposDeCambio: boolean
   tiposDeCambio: readonly TipoDeCambioDeLaEmpresa[]
+  // Con el Modo Live: sólo la planilla, sin «Publicar…», «Versiones», «Información de la fórmula» ni sus modales.
+  soloLectura: boolean
 }
 
 // Sobre qué versión se edita: el borrador o, sin él, la publicada.
@@ -41,6 +43,21 @@ const sobreQue = (formula: Formula) =>
   formula.borrador
     ? `Sobre el borrador de ${formula.borrador.autor}.`
     : `Sobre la versión ${String(formula.publicada?.version ?? '')} publicada.`
+
+// La versión sobre la que se edita y cuántas veces cambió por algo que no hizo la sesión (publicar, descartar, revertir): cada vez, otra sesión, sobre la nueva.
+function useSesionSobre(formula: Formula) {
+  const sobre = formula.borrador ?? formula.publicada
+  const version: SobreQueVersion | null =
+    sobre === null ? null : { tipo: formula.borrador ? 'borrador' : 'publicada', id: sobre.id }
+  const [generacion, setGeneracion] = useState({ version, sesion: 0 })
+  if (!mismaVersion(generacion.version, version)) {
+    setGeneracion({
+      version,
+      sesion: generacion.sesion + (otraSesion(generacion.version, version) ? 1 : 0),
+    })
+  }
+  return { sobre, sesion: generacion.sesion }
+}
 
 // La pestaña «Planilla» de la Fórmula de un origen (Configuración › Orígenes): la planilla de la fórmula al frente, sobre el borrador o, sin él, la publicada. La
 // información de la versión (la publicada, el borrador y los avisos de la copia) va en el modal «Información de la fórmula» (`?panel=info-formula`), que abre el
@@ -59,6 +76,7 @@ export function FormulaDelOrigen({
   NuevoColor,
   puedeCambiarTiposDeCambio,
   tiposDeCambio,
+  soloLectura,
 }: Props) {
   const panel = usePanelDeLaFormula()
   const avisos = useAvisosDeLaCopia(formulaDelOrigenId)
@@ -66,17 +84,7 @@ export function FormulaDelOrigen({
   const [vuelta, setVuelta] = useState(0)
   const [pendientes, setPendientes] = useState(false)
   const [recargando, recargarPagina] = useTransition()
-  const sobre = formula.borrador ?? formula.publicada
-  const version: SobreQueVersion | null =
-    sobre === null ? null : { tipo: formula.borrador ? 'borrador' : 'publicada', id: sobre.id }
-  // La versión sobre la que se edita cambió por algo que no hizo la sesión (publicar, descartar, revertir): otra sesión, sobre la nueva.
-  const [generacion, setGeneracion] = useState({ version, sesion: 0 })
-  if (!mismaVersion(generacion.version, version)) {
-    setGeneracion({
-      version,
-      sesion: generacion.sesion + (otraSesion(generacion.version, version) ? 1 : 0),
-    })
-  }
+  const { sobre, sesion } = useSesionSobre(formula)
   const recargar = () => {
     recargarPagina(() => {
       router.refresh()
@@ -85,17 +93,21 @@ export function FormulaDelOrigen({
   }
   return (
     <div className="grid min-w-0 gap-4">
-      <AccionesDeLaVersion
-        origen={origen.nombre}
-        formula={formula}
-        avisos={avisos}
-        alPublicar={panel.abrirPublicar}
-        espera={pendientes}
-      />
-      <VersionesDeLaFormula origenId={origen.id} formula={formula} panel={panel} />
+      {soloLectura ? null : (
+        <>
+          <AccionesDeLaVersion
+            origen={origen.nombre}
+            formula={formula}
+            avisos={avisos}
+            alPublicar={panel.abrirPublicar}
+            espera={pendientes}
+          />
+          <VersionesDeLaFormula origenId={origen.id} formula={formula} panel={panel} />
+        </>
+      )}
       {sobre ? (
         <SesionDeLaFormulaDiferida
-          key={`${formulaDelOrigenId}:${String(vuelta)}:${String(generacion.sesion)}`}
+          key={`${formulaDelOrigenId}:${String(vuelta)}:${String(sesion)}`}
           origen={origen}
           formulaDelOrigenId={formulaDelOrigenId}
           formulaId={sobre.id}
@@ -110,16 +122,21 @@ export function FormulaDelOrigen({
           NuevoColor={NuevoColor}
           puedeCambiarTiposDeCambio={puedeCambiarTiposDeCambio}
           tiposDeCambio={tiposDeCambio}
+          soloLectura={soloLectura}
         />
       ) : null}
-      <InformacionDeLaFormula
-        origen={origen}
-        formulaDelOrigenId={formulaDelOrigenId}
-        formula={formula}
-        avisos={avisos}
-        alDescartar={panel.abrirDescartar}
-      />
-      <AccionesDeLaFormula panel={panel} origen={origen} formula={formula} />
+      {soloLectura ? null : (
+        <>
+          <InformacionDeLaFormula
+            origen={origen}
+            formulaDelOrigenId={formulaDelOrigenId}
+            formula={formula}
+            avisos={avisos}
+            alDescartar={panel.abrirDescartar}
+          />
+          <AccionesDeLaFormula panel={panel} origen={origen} formula={formula} />
+        </>
+      )}
     </div>
   )
 }

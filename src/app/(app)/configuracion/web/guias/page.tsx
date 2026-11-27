@@ -6,6 +6,7 @@ import { EncabezadoDeConfiguracion } from '../../_navegacion/encabezado-de-confi
 import { entrarASubseccion } from '../entrar'
 import { GUIAS_DEL_SITIO } from '../seccion'
 import { SeccionGuias } from './seccion'
+import { ocultoEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: GUIAS_DEL_SITIO.titulo }
 
@@ -14,6 +15,10 @@ export const metadata: Metadata = { title: GUIAS_DEL_SITIO.titulo }
 export default async function PaginaDeGuiasDelSitio({
   searchParams,
 }: PageProps<'/configuracion/web/guias'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const [{ permisos }, parametros] = await Promise.all([requerirSesion(), searchParams])
   if (entrarASubseccion(permisos, GUIAS_DEL_SITIO) === 'sin-permiso') {
     return <EstadoSinPermiso />

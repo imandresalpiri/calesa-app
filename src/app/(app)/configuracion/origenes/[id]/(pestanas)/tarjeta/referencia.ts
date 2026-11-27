@@ -11,11 +11,11 @@ import {
 } from '@/modules/cotizaciones'
 import { leerAjustes } from '@/modules/empresa'
 import { urlPublicaONull } from '@/shared/lib/almacen'
-import type { Permisos } from '@/shared/lib/permisos'
 import {
   asesorQueMira,
   clienteDe,
   oNulo,
+  type QuienNombraAlCliente,
   tituloDeLaTarjeta,
   vehiculoDe,
   vehiculoDeLaTarjeta,
@@ -23,7 +23,7 @@ import {
 
 const NO_SE_LEYO: ReferenciaDeLaTarjeta = { estado: 'no_se_leyo' }
 
-async function leer(origenId: string, permisos: Permisos): Promise<ReferenciaDeLaTarjeta> {
+async function leer(origenId: string, quien: QuienNombraAlCliente): Promise<ReferenciaDeLaTarjeta> {
   // UNA fila: la más reciente del origen que quien configura ve, sin papelera (`cotizaciones_listado()` como quien mira, por `cotizaciones_origen_creado_idx`; la RLS
   // decide).
   const pagina = await leerListadoDeCotizaciones({ origenId, cursor: null, tamano: UNA })
@@ -35,7 +35,7 @@ async function leer(origenId: string, permisos: Permisos): Promise<ReferenciaDeL
   const { hoja, inicial } = lectura.data
   // Como el PDF de esa guardada: el cliente sólo con `leads.ver` y si quien mira lo ve, el vehículo si lo ve, el asesor (quien mira) y los ajustes (la zona y el logo).
   const [cliente, vehiculo, asesor, ajustes] = await Promise.all([
-    oNulo(clienteDe(permisos, hoja.cotizacion.leadId)),
+    oNulo(clienteDe(quien, hoja.cotizacion.leadId)),
     oNulo(vehiculoDe(hoja.cotizacion.vehiculoId)),
     asesorQueMira(),
     leerAjustes(),
@@ -72,10 +72,10 @@ async function leer(origenId: string, permisos: Permisos): Promise<ReferenciaDeL
 // plantilla.
 export async function leerReferenciaDeLaTarjeta(
   origenId: string,
-  permisos: Permisos,
+  quien: QuienNombraAlCliente,
 ): Promise<ReferenciaDeLaTarjeta> {
   try {
-    return await leer(origenId, permisos)
+    return await leer(origenId, quien)
   } catch (error) {
     // Lo de Next (una redirección, la espera de lo dinámico al prerenderizar) sigue su camino; lo demás es «no se leyó».
     unstable_rethrow(error)

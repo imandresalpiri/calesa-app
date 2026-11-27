@@ -1,12 +1,13 @@
 import { NoLeidosDeLaBarra } from '@/modules/chat/shell.client'
+import type { EstadoDelLive } from '@/modules/equipo/shell.client'
 import type { Permisos } from '@/shared/lib/permisos'
 import { EnlaceNav } from './enlace-nav'
 import { entradasVisibles } from './navegacion'
 
 // La navegación principal, filtrada por los permisos de quien entra. Se dibuja igual en la barra
-// de escritorio y dentro del menú de móvil.
-export function BarraLateral({ permisos }: { permisos: Permisos }) {
-  const entradas = entradasVisibles(permisos, 'principal')
+// de escritorio y dentro del menú de móvil. Con el Modo Live, sólo lo que sus ajustes muestran (se decide acá, en el servidor).
+export function BarraLateral({ permisos, live }: { permisos: Permisos; live: EstadoDelLive }) {
+  const entradas = entradasVisibles(permisos, 'principal', live)
 
   return (
     <nav aria-label="Principal">

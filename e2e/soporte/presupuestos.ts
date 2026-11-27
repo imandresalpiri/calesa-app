@@ -21,7 +21,9 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   // cálculo (T521: la marca y «Calculado» de la celda, el aviso y su región; el aviso y la lista del resumen van con `diferido()`), 469,4 KB en 30 chunks: entra en 470.
   // Con la tarjeta del total como pieza de una sección (T522: `TotalDeHoja` y su caso en la lectura de la hoja; nada del editor), 473,9 KB en 31 chunks: 480 (regla
   // del 5 %).
-  '/cotizaciones/nuevo': 480,
+  // Con el Modo Live configurable (T587: su proveedor y el silencio del push en el marco, la barra del cliente según sus ajustes), 480,4 KB en 31 chunks: 485
+  // (regla del 5 %).
+  '/cotizaciones/nuevo': 485,
   // La página de una cotización guardada (4.15-3), con una cotización sembrada en la subasta de la semilla: el mismo marco y la misma hoja, sin las barras del vehículo y del cliente: medido 438,6 KB en 27 chunks, más un 2 % hacia arriba. Con la burbuja del chat en el marco (7.11-1: el botón, el contador y su store; el panel y Realtime van con `diferido()`) pasó de 447,3 a 449,2 KB en 28 chunks: 452. Con las acciones de los avisos (`avisarError` con `<AccionesDelAviso>`, que importa `toasts.ts`) llegó a 452,2: 460 (regla del 5 %). Con el título de la cotización (T307: su proveedor sobre la cabecera y la hoja, y la cáscara de la barra del vehículo, que va con `diferido()`) llegó a 463,7 KB en 30 chunks: 470 (regla del 5 %). Con la cabecera compacta (T321: el «⋯» con su menú de Base UI y las líneas que suman las áreas, en vez de
   // ocho botones) llegó a 472,0 KB en 29 chunks: 480 (regla del 5 %). Con la hoja en par (T317, la guardada de una hermana va con `diferido()`), 475,0 KB en 30 chunks. Con la
   // cotización privada (T413: «Hacer privada» del «⋯» y la insignia) y los botones «Recargar la página» y «Copiar el enlace de esta página» del marco, 480,1 KB en 30 chunks: 490
@@ -47,7 +49,8 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   // La ficha de un vehículo (T34), con el vehículo medido de la subasta de la semilla: medido 504,3 KB en 33 chunks con las pestañas, más un 5 % hacia
   // arriba a la decena. La ficha en dos columnas tiene que caber en lo mismo. Con la cotización privada (T413: la insignia de las tarjetas y la pregunta de «Aprobar
   // esta») midió 529,6 KB en 35 chunks y, con los botones «Recargar la página» y «Copiar el enlace de esta página» del marco, 530,7; con la cuenta regresiva de la subasta en la izquierda, 531,8: 540 (regla del 5 %).
-  // Con el dinero de la unidad en pestañas y modales (T575, ningún import nuevo de la ficha: Next reagrupó los chunks compartidos) midió 541,6 en 36 chunks (main, 539,4): 550 (regla del 5 %).
+  // Con el Modo Live configurable (T587: su proveedor y el silencio del push en el marco), 541,0 KB en 35 chunks: 545 (regla del 5 %).
+  // Con el dinero de la unidad en pestañas y modales (T575, ningún import nuevo de la ficha: Next reagrupó los chunks compartidos) midió 541,6 en 36 chunks: 550 (regla del 5 %).
   '/vehiculos/[id]': 550,
   // La ficha de un lead (T33), sin tope hasta las dos columnas: medido 548,5 KB en 36 chunks con pestañas y 554,7 KB en 36 con todo a la vista
   // (el marco de bloques, el índice y el resumen de seguimientos), con un lead recién creado; más un 5 % hacia arriba a la decena.

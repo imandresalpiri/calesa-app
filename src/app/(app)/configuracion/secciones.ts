@@ -5,6 +5,7 @@ import { destinosDeLaSeccion, type DestinoDelNavegador } from './destinos-de-bus
 import { SECCION_DE_COLA_WEB } from './cola-web/seccion'
 import { SECCION_DE_EMPRESA } from './empresa/seccion'
 import { SECCION_DE_LEADS } from './leads/seccion'
+import { SECCION_DE_MODO_LIVE } from './modo-live/seccion'
 import { PERMISOS_DE_ORIGENES } from './origenes/acceso'
 import { SECCION_DE_WEB } from './web/seccion'
 
@@ -96,6 +97,7 @@ export const SECCIONES = [
     grupo: 'empresa-y-equipo',
     subsecciones: [],
   },
+  SECCION_DE_MODO_LIVE,
   SECCION_DE_LEADS,
   {
     clave: 'origenes',

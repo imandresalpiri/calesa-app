@@ -24,6 +24,7 @@ import { RegistrarVisto } from '@/modules/equipo/client'
 import { paraActividadDe, paraCotizarDe } from '../rutas-del-menu'
 import { ResumenDeLaPagina } from '../../cotizaciones/resumen-de-la-pagina'
 import { bloquesDeLaFicha } from './bloques'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Lead' }
 
@@ -41,6 +42,10 @@ const loQueVe = (permisos: Permisos, enCartera: boolean) => ({
 // dueño y lo que la persona no ve se muestran igual: decir «no tienes permiso» confirmaría que existe. Qué recibe de él (el teléfono
 // completo, los datos «solo la cartera») lo decide la base. `?seccion=` (los enlaces de siempre) lleva al bloque.
 export default async function PaginaLead({ params, searchParams }: PageProps<'/leads/[id]'>) {
+  const oculto = await ocultoEnElLive('clientes')
+  if (oculto) {
+    return oculto
+  }
   const [sesion, { id }, parametros] = await Promise.all([requerirSesion(), params, searchParams])
   if (!puede(sesion.permisos, 'leads.ver')) {
     return (
