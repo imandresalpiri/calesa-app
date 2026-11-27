@@ -52,6 +52,11 @@ export function avisar(mensaje: string, accion?: Accion): void {
   toast(mensaje, opcionesDe(accion))
 }
 
+// Un aviso que queda hasta que se cierra o se reemplaza con el mismo `id` (o `terminarProgreso(id)` lo quita).
+export function avisarHastaCerrar(id: string, mensaje: string, accion?: Accion): void {
+  toast(mensaje, { ...opcionesDe(accion), id, duration: Number.POSITIVE_INFINITY })
+}
+
 export function avisarConDeshacer(mensaje: string, alDeshacer: () => void): void {
   toast(mensaje, {
     duration: DESHACER_MS,
