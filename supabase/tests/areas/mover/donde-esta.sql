@@ -7,6 +7,7 @@
 --        nunca la papelera; sin permisos, vacío sin error; `anon` no ejecuta.
 --   DE2. El texto y el tope: por título, VIN y lote sin mayúsculas; corto o nulo, vacío; de más de 100, 22023 hint `p_buscar`; hasta 10 con
 --        `hay_mas`; el VIN exacto primero; las claves de cada unidad.
+--   DE3. Con `p_origen`, sólo ese origen (y sólo si lo ve); sin él, todos los que ve (el enlace «Buscar en todos los orígenes»).
 
 create or replace function pg_temp.md_sin_duena() returns void language plpgsql as $f$
 begin
@@ -87,8 +88,8 @@ create or replace function pg_temp.md_lead(p_de uuid) returns uuid language sql 
   values ('md lead', '59' || lpad((('x' || substr(md5(gen_random_uuid()::text), 1, 7))::bit(28)::int % 100000000)::text, 8, '0'), p_de) returning id;
 $f$;
 
-create or replace function pg_temp.md_donde(p_quien uuid, p_buscar text, p_tope int default 10) returns jsonb language sql as $f$
-  select pg_temp.md_corre(p_quien, format('select public.logistica_donde_esta(%L, %s)', p_buscar, p_tope));
+create or replace function pg_temp.md_donde(p_quien uuid, p_buscar text, p_tope int default 10, p_origen uuid default null) returns jsonb language sql as $f$
+  select pg_temp.md_corre(p_quien, format('select public.logistica_donde_esta(%L, %s, %L)', p_buscar, p_tope, p_origen));
 $f$;
 
 create or replace function pg_temp.md_ids(p jsonb) returns uuid[] language sql as $f$
@@ -144,7 +145,7 @@ begin
   update public.flujos_reglas set activa = false where flujo_id = c and regla = 'logistica';
   if not found then raise exception 'DE1: la regla logistica debía venir activa en el flujo del origen nuevo'; end if;
   perform pg_temp.md_mismos('DE1 dueña, con la regla logistica apagada en C', pg_temp.md_donde(duena, 'mdzeta'), todas_a || v_b);
-  if has_function_privilege('anon', 'public.logistica_donde_esta(text,integer)', 'execute') then
+  if has_function_privilege('anon', 'public.logistica_donde_esta(text,integer,uuid)', 'execute') then
     raise exception 'DE1: anon ejecuta logistica_donde_esta';
   end if;
 end $$;
@@ -187,5 +188,26 @@ begin
   if jsonb_array_length(r -> 'unidades') <> 4 or r -> 'unidades' -> 0 ->> 'id' is distinct from v_viejo::text then
     raise exception 'DE2: el VIN exacto (%) debía salir primero aunque sea el más viejo y dio %', v_viejo, r;
   end if;
+end $$;
+rollback;
+
+-- @test dónde está: con un origen busca sólo en él, dentro de lo que se ve; sin origen, en todos (DE3)
+begin;
+do $$
+declare
+  a uuid := pg_temp.md_flujo(); o uuid := pg_temp.md_origen_de(a); f uuid := pg_temp.md_fase(a, 'md uno', 10);
+  b uuid := pg_temp.md_flujo(); ob uuid := pg_temp.md_origen_de(b); fb uuid := pg_temp.md_fase(b, 'md otro', 10);
+  duena uuid := pg_temp.md_persona(array['logistica.ver', 'vehiculos.ver']);
+  solo_a uuid := pg_temp.md_persona(array['logistica.ver@' || o, 'vehiculos.ver@' || o]);
+  otra uuid := pg_temp.md_persona(array['vehiculos.ver']);
+  v_a uuid; v_b uuid;
+begin
+  v_a := pg_temp.md_vehiculo(o, f, otra, null, 'mdomega de A');
+  v_b := pg_temp.md_vehiculo(ob, fb, otra, null, 'mdomega de B');
+  perform pg_temp.md_mismos('DE3 en A', pg_temp.md_donde(duena, 'mdomega', 10, o), array[v_a]);
+  perform pg_temp.md_mismos('DE3 en B', pg_temp.md_donde(duena, 'mdomega', 10, ob), array[v_b]);
+  perform pg_temp.md_mismos('DE3 en todos', pg_temp.md_donde(duena, 'mdomega', 10, null), array[v_a, v_b]);
+  perform pg_temp.md_mismos('DE3 en un origen que no ve, nada', pg_temp.md_donde(solo_a, 'mdomega', 10, ob), '{}');
+  perform pg_temp.md_mismos('DE3 en todos, sólo lo que ve', pg_temp.md_donde(solo_a, 'mdomega'), array[v_a]);
 end $$;
 rollback;

@@ -7,15 +7,16 @@ export {
   leerOrigenesDeLaCadena,
   leerResumenDeLaCadena,
 } from './composicion'
-export type { OrigenesDeLaCadena } from '../../features/cadena/origenes-de-la-cadena'
 export {
   CLAVE_DE_BOOKING,
   CLAVE_DE_BUSQUEDA_DE_LA_CADENA,
+  CLAVE_DE_DONDE_BUSCAR,
+  buscaEnTodos,
+  rutaDeDondeEsta,
   CLAVE_DE_CONTENEDOR,
   CLAVE_DE_DEMORADAS,
   CLAVE_DE_FASE_DE_LA_CADENA,
   CLAVE_DE_NAVIERA,
-  CLAVE_DE_ORIGEN_DE_LA_CADENA,
   CLAVE_DE_POR_APROBAR,
   MINIMO_DE_BUSQUEDA_DE_LA_CADENA,
   cadenaFiltrada,
