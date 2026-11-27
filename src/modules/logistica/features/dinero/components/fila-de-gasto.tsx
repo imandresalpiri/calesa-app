@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from '@/shared/ui/button'
 import { formatearFecha } from '@/shared/lib/fechas'
 import { AbrirResumen, MasAcciones, TarjetaDeLista, type AccionDeMenu } from '@/shared/ui/lista'
 import { Monto } from '@/shared/ui/monto'
@@ -10,12 +9,12 @@ import { verComprobante } from './ver-comprobante'
 
 type Props = {
   gasto: Gasto
-  // Sin permiso de editar la fila no abre ni ofrece «⋯».
+  // Sin permiso de editar la fila no abre; su «⋯» sólo ofrece «Ver comprobante», si lo tiene.
   alEditar: (() => void) | null
   alEliminar: (() => void) | null
 }
 
-function accionesDe({ alEditar, alEliminar }: Omit<Props, 'gasto'>): AccionDeMenu[] {
+function accionesDe({ gasto, alEditar, alEliminar }: Props): AccionDeMenu[] {
   const acciones: AccionDeMenu[] = []
   if (alEditar) {
     acciones.push({
@@ -24,6 +23,15 @@ function accionesDe({ alEditar, alEliminar }: Omit<Props, 'gasto'>): AccionDeMen
       etiqueta: 'Editar',
       alElegir: alEditar,
       despuesDeCerrar: true,
+    })
+  }
+  const ruta = gasto.comprobanteRuta
+  if (ruta) {
+    acciones.push({
+      tipo: 'accion',
+      clave: 'ver-comprobante',
+      etiqueta: 'Ver comprobante',
+      alElegir: () => void verComprobante(ruta),
     })
   }
   if (alEliminar) {
@@ -40,9 +48,11 @@ function accionesDe({ alEditar, alEliminar }: Omit<Props, 'gasto'>): AccionDeMen
 }
 
 // Un gasto de la unidad: categoría, proveedor, fecha, el monto en su moneda y, si no es la base, el equivalente que guardó la base (`monto_base`: acá nunca se calcula).
-export function FilaDeGasto({ gasto, alEditar, alEliminar }: Props) {
+// Toda acción va en su «⋯» (Editar, Ver comprobante, Eliminar): ningún botón suelto.
+export function FilaDeGasto(props: Props) {
+  const { gasto, alEditar } = props
   const { monedaBase, zonaHoraria } = useRegional()
-  const acciones = accionesDe({ alEditar, alEliminar })
+  const acciones = accionesDe(props)
   const nombre = `${gasto.categoriaNombre} del ${formatearFecha(gasto.fecha, { zona: zonaHoraria })}`
   return (
     <TarjetaDeLista
@@ -82,18 +92,6 @@ export function FilaDeGasto({ gasto, alEditar, alEliminar }: Props) {
           </span>
         ) : null}
       </p>
-      {gasto.comprobanteRuta ? (
-        <div>
-          <Button
-            variant="outline"
-            size="sm"
-            data-no-abre=""
-            onClick={() => void verComprobante(gasto.comprobanteRuta ?? '')}
-          >
-            Ver comprobante
-          </Button>
-        </div>
-      ) : null}
     </TarjetaDeLista>
   )
 }

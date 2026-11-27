@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from '@/shared/ui/button'
 import { formatearFecha } from '@/shared/lib/fechas'
 import { AbrirResumen, MasAcciones, TarjetaDeLista, type AccionDeMenu } from '@/shared/ui/lista'
 import { Monto } from '@/shared/ui/monto'
@@ -20,8 +19,25 @@ type Props = {
   alAnular: () => void
 }
 
-function accionesDeMenu({ acciones, alEditar, alEliminar, alAnular }: Props): AccionDeMenu[] {
+// El orden del «⋯»: lo que hace avanzar el pago, lo que lo cambia, mirarlo y, al final, lo destructivo.
+function accionesDeMenu({
+  pago,
+  acciones,
+  alEditar,
+  alEliminar,
+  alConfirmar,
+  alAnular,
+}: Props): AccionDeMenu[] {
   const menu: AccionDeMenu[] = []
+  if (acciones.confirmar) {
+    menu.push({
+      tipo: 'accion',
+      clave: 'confirmar',
+      etiqueta: 'Confirmar pago',
+      alElegir: alConfirmar,
+      despuesDeCerrar: true,
+    })
+  }
   if (acciones.editar) {
     menu.push({
       tipo: 'accion',
@@ -29,6 +45,15 @@ function accionesDeMenu({ acciones, alEditar, alEliminar, alAnular }: Props): Ac
       etiqueta: 'Editar',
       alElegir: alEditar,
       despuesDeCerrar: true,
+    })
+  }
+  const ruta = pago.comprobanteRuta
+  if (ruta) {
+    menu.push({
+      tipo: 'accion',
+      clave: 'ver-comprobante',
+      etiqueta: 'Ver comprobante',
+      alElegir: () => void verComprobante(ruta),
     })
   }
   if (acciones.eliminar) {
@@ -55,9 +80,9 @@ function accionesDeMenu({ acciones, alEditar, alEliminar, alAnular }: Props): Ac
 }
 
 // Un pago de la unidad: concepto, fecha, método, el monto en su moneda y, si no es la base, el equivalente que guardó la base (`monto_base`: acá nunca se calcula). Sin confirmar dice
-// «Sin confirmar» y, con la clave, ofrece «Confirmar pago»; confirmado muestra el sello (quién y cuándo) y ningún control de edición. Tocarla abre su panel, también sin permiso de editar y con el pago confirmado (en lectura).
+// «Sin confirmar» y, con la clave, su «⋯» ofrece «Confirmar pago» (toda acción va ahí: ningún botón suelto); confirmado muestra el sello (quién y cuándo) y ningún control de edición. Tocarla abre su panel, también sin permiso de editar y con el pago confirmado (en lectura).
 export function FilaDePago(props: Props) {
-  const { pago, acciones, alEditar, alConfirmar } = props
+  const { pago, alEditar } = props
   const { monedaBase, zonaHoraria } = useRegional()
   const menu = accionesDeMenu(props)
   const nombre = `pago ${pago.concepto}`
@@ -98,25 +123,6 @@ export function FilaDePago(props: Props) {
       >
         {sello ?? 'Sin confirmar'}
       </p>
-      {acciones.confirmar || pago.comprobanteRuta ? (
-        <div className="flex flex-wrap gap-2">
-          {acciones.confirmar ? (
-            <Button variant="outline" size="sm" data-no-abre="" onClick={alConfirmar}>
-              Confirmar pago
-            </Button>
-          ) : null}
-          {pago.comprobanteRuta ? (
-            <Button
-              variant="outline"
-              size="sm"
-              data-no-abre=""
-              onClick={() => void verComprobante(pago.comprobanteRuta ?? '')}
-            >
-              Ver comprobante
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
     </TarjetaDeLista>
   )
 }
