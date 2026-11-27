@@ -23,7 +23,7 @@ La tarea de oro 3 la prueba `e2e/logistica-tarea-de-oro.spec.ts`. Abiertos (`doc
   los textos y la acción de cada fila.
 - Núcleo, la barra de Logística: `CLAVE_DE_ORIGEN_DE_LOGISTICA` (`origen`, la única clave de URL del origen en todo el módulo), `enElOrigen(ruta, origenId)` (una ruta de Logística con
   `?origen=`; también por `pantallas/barra.ts`), `EnlaceDeLogistica` (la pestaña de un área: `clave`, `titulo`, `ruta`, `reglas` —basta una encendida en el flujo del origen— y `permisos`
-  —basta uno en el origen—) y, por `pantallas/barra.ts`, `PestanasDeOrigen` (la primera fila, con desborde). La barra entera (dos filas de alto fijo, las pestañas del origen y el ⚙) la
+  —basta uno en el origen—) y, por `pantallas/barra.ts`, `PestanasDeOrigen` (la primera fila) y `FilaConDesborde` (el envoltorio de cliente de la segunda); las dos se desplazan con su pista y dejan a la vista la pestaña marcada. La barra entera (dos filas de alto fijo, las pestañas del origen y el ⚙) la
   arma `src/app/(app)/logistica/barra-de-logistica.tsx` **en cada página**, no en el layout: un layout no recibe `?origen=` ni se vuelve a dibujar entre páginas hermanas, y la unidad marca
   el origen de su vehículo. `src/app/(app)/logistica/origen-de-la-pagina.ts` (`cache()`) resuelve el origen una vez por pedido para la barra y el contenido; `abrir-la-pestana.tsx` da el estado
   de cada caso no feliz y `recordar-el-origen.tsx` guarda el último (`logistica.ultimo_origen` de `equipo`).
