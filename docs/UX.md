@@ -961,7 +961,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   archivo y no se sube nada) y el nombre (hasta 40, con sugerencias; uno repetido dice «Ya existe «X».»); sin red, el archivo elegido sigue ahí y sale al volver. «Renombrar…»
   (`?panel=renombrar-logo&logo=`). «Quitar…» (`?panel=quitar-logo&logo=`) confirma nombrando el logo y, en un lugar reservado, dice cuántas ventanas de cámara lo usan («La usa la ventana
   de cámara de N personas.»): esas vuelven al logo principal. Con 12, «Subir un logo» apagado con el motivo. Sin `empresa.ajustes.gestionar`, la tarjeta se ve con «Gestionar logos…» apagado y el motivo.
-  **Enlaces de ayuda** (después de Región, para que las seis entren a 1440×900): la tarjeta nombra el primero con «y N más» y, junto al título, «N enlaces» (con tope «20+»); su «⋯» lleva «Editar…» y «Nuevo enlace». El modal
+  **Enlaces de ayuda** (después de Región): la tarjeta nombra el primero con «y N más» y, junto al título, «N enlaces» (con tope «20+»); su «⋯» lleva «Editar…» y «Nuevo enlace». El modal
   (`?panel=enlaces-de-ayuda`, a pantalla completa en el celular) tiene «Nuevo enlace» arriba y la lista con el dominio y su estado («En el menú» o «No se ve en el menú»); cada fila,
   su «⋯» (Editar, Subir, Bajar, Desactivar o Activar con «Deshacer», Quitar con `<Confirmar>` que nombra el enlace, `?panel=quitar-enlace-de-ayuda&enlace=`). Nuevo y Editar
   (`?panel=nuevo-enlace-de-ayuda|editar-enlace-de-ayuda`): título (hasta 80), dirección y descripción opcional (hasta 140); una dirección sin `https://` dice «Escribe una dirección que
