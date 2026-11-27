@@ -48,6 +48,7 @@ export type Terreno = {
   cotizacion: string
   cotizacionDeRepuestos: string
   guia: string
+  embarque: string
 }
 
 export type Destino = { url: string } | { pendiente: string; motivo: string }
@@ -58,6 +59,9 @@ export const DINAMICAS: Record<string, (t: Terreno) => Destino> = {
   '/logistica/vehiculo/[id]': (t) => ({ url: `/logistica/vehiculo/${t.vehiculo}` }),
   '/logistica/bandeja/[grupo]': (t) => ({ url: `/logistica/bandeja/demorados?origen=${t.origen}` }),
   '/logistica/fase/[fase]': (t) => ({ url: `/logistica/fase/sin_fase?origen=${t.origen}` }),
+  '/logistica/embarques/[id]': (t) => ({
+    url: `/logistica/embarques/${t.embarque}?origen=${t.origen}`,
+  }),
   // La página de un origen sin parte es un `route.ts` (308 a la última pestaña que se abrió): no es una página y no se barre. Se barren sus pestañas; las de la
   // fórmula, con la de trabajo elegida (sin `?formula=` la escribe el navegador con `replace`).
   '/configuracion/origenes/[id]/fases': (t) => ({
@@ -190,7 +194,20 @@ export async function sembrarTerreno(proyecto: string, duena: string): Promise<T
     cotizacion: sembrarLaCotizada(proyecto, duena),
     cotizacionDeRepuestos: sembrarLaCotizacionDeRepuestos(espera.proyectoDeRepuestos, duena),
     guia: sembrarLaGuia(proyecto),
+    embarque: sembrarElEmbarque(origen.id, proyecto),
   }
+}
+
+// Un embarque vacío del origen del barrido, para su página (`/logistica/embarques/[id]`).
+const bookingDelBarrido = (proyecto: string) => `A11Y-${proyecto.toUpperCase()}`
+function sembrarElEmbarque(origenId: string, proyecto: string): string {
+  const booking = literal(bookingDelBarrido(proyecto))
+  sql(
+    `insert into public.embarques (origen_id, booking) values (${literal(origenId)}::uuid, ${booking}) on conflict do nothing`,
+  )
+  return sql(
+    `select id from public.embarques where origen_id = ${literal(origenId)}::uuid and booking = ${booking}`,
+  )
 }
 
 export async function limpiarTerreno(proyecto: string): Promise<void> {
@@ -201,5 +218,8 @@ export async function limpiarTerreno(proyecto: string): Promise<void> {
       select p.id from public.repuestos_proyectos p join public.vehiculos v on v.id = p.vehiculo_id
         join public.origenes o on o.id = v.origen_id where o.clave like ${literal(`e2e_${claveDelOrigen(proyecto)}%`)})`)
   await borrarLeadsDePrueba()
+  sql(`
+    delete from public.embarques where origen_id in (
+      select o.id from public.origenes o where o.clave like ${literal(`e2e_${claveDelOrigen(proyecto)}%`)})`)
   await limpiarEspera(claveDelOrigen(proyecto))
 }
