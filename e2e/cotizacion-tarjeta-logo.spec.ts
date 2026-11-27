@@ -25,6 +25,7 @@ import { quieto } from './soporte/esperas'
 import { borrarLeadsDePrueba, crearLead } from './soporte/leads'
 import { telefonoAlAzar } from './soporte/leads-alta'
 import { crearOrigenDePrueba, PREFIJO_CLAVE_E2E } from './soporte/origenes'
+import { abrirElPanel } from './soporte/plantilla'
 import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 import {
@@ -233,7 +234,6 @@ test('E2E el editor ofrece el dato «Nombre de la empresa» y avisa, con «Abrir
     await abrirLaFormula(page, origen, 'tarjeta')
     const lienzo = page.getByRole('grid', { name: 'Lienzo de la tarjeta' })
     await expect(lienzo).toBeVisible()
-    await expect(page.locator('[data-referencia-del-lienzo]')).toHaveValue('cotizacion')
     const aviso = page.getByText(
       'El logo de la empresa no se pudo dibujar: súbelo de nuevo en Empresa.',
     )
@@ -245,7 +245,7 @@ test('E2E el editor ofrece el dato «Nombre de la empresa» y avisa, con «Abrir
     await capturar(page, info, 'editor-logo-roto')
 
     await lienzo.locator('[data-pos="0:0"]').click()
-    const panel = page.getByRole('complementary', { name: 'Panel de la tarjeta' })
+    const panel = await abrirElPanel(page, 'Celda')
     await panel.getByRole('radio', { name: 'Dato' }).click()
     await expect(
       panel

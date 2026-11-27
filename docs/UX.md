@@ -1779,39 +1779,46 @@ Excel. Edita el **borrador** de la plantilla (sólo la forma 2, la cuadrícula),
 
 - **Quién entra y origen:** como «Fórmula»; la pestaña va después de «Hoja». **Sin fórmula publicada**, no hay editor: «Falta publicar la fórmula de
   <Origen>: la tarjeta se arma con sus nodos.» con «Ir a la fórmula».
-- **Arriba:** «Tarjeta de <Origen>», de dónde nace («Sobre el borrador guardado el …», «Sin borrador: parte de la versión N publicada.» o «Sin borrador ni
-  publicada: parte de la de por omisión.») y, si hay publicada, su versión, fecha y nota. A la derecha, una acción principal, «Guardar borrador»;
-  «Publicar…» a la vista (apagado con su motivo escrito: «Guarda un borrador para poder publicarlo.» o «Guarda los cambios para poder publicarlos.») y el
-  «⋯» («Más acciones de la tarjeta») con «Descartar borrador…», sólo con borrador.
-- **Avisos** (en este orden): lo dicho al abrir —«Se convirtió a cuadrícula: revisa y guarda.» (una forma 1, borrador o publicada; con lo corregido al
+- **Arriba:** sin encabezado propio (un título «Tarjeta de <Origen>» sólo para el lector de pantalla). Los botones de las versiones suben a la barra de la fórmula,
+  junto al estado: una acción principal, «Guardar borrador» (Ctrl/Cmd+S); «Publicar…» a la vista (apagado con su motivo escrito: «Guarda un borrador para poder
+  publicarlo.» o «Guarda los cambios para poder publicarlos.») y el «⋯» («Más acciones de la tarjeta») con «Descartar borrador…», sólo con borrador. Junto al
+  estado, el botón ⓘ «Información de la tarjeta» (`?panel=info-tarjeta`, modal): «Lo que se edita» («Sobre el borrador guardado el …», «Sin borrador: parte de la
+  versión N publicada.» o «Sin borrador ni publicada: parte de la de por omisión.») y «Publicada» (su versión, fecha y nota, o que todavía no hay).
+- **Avisos** (con su lugar reservado de 48 px: que aparezcan no mueve el lienzo; en este orden): lo dicho al abrir —«Se convirtió a cuadrícula: revisa y guarda.» (una forma 1, borrador o publicada; con lo corregido al
   alinearla con la fórmula), «Todavía no hay tarjeta: nace de la de por omisión.», «La fórmula tiene más filas de las que entran en una tarjeta: se tomaron
   las primeras 4 de cada grupo. Revisa y guarda.» (o «quedó sólo el total») y una versión ilegible con su motivo (se parte de la que sigue)—; nada se guarda
   solo. Después, «Con esto no se podría publicar: <motivo>» (un nodo restringido que la plantilla ya nombra, un color fuera del catálogo; no apaga
   «Guardar borrador»), «El logo de la empresa no se pudo dibujar: súbelo de nuevo en Empresa.» (el logo de la referencia no cargó; con «Abrir Empresa» o, sin
   `empresa.ajustes.gestionar`, a quién pedírselo) y lo que pasó al guardar.
-- **La barra del lienzo:** «Deshacer» y «Rehacer» (su `title` dice qué: «Deshacer: combinar (Ctrl+Z)»), «Combinar», «Separar», «Insertar ▾» (fila arriba,
-  fila abajo, columna a la izquierda, columna a la derecha) y «Eliminar ▾» (filas, columnas). Lo que no se puede queda apagado sin perder el foco y, al
-  tocarlo, dice por qué; en los menús, el motivo va bajo cada opción («Elige más de una celda para combinar.», «Ya hay 16 columnas.», «Ya hay 120 filas.»,
-  «El ancho total pasaría de 1.600 px.», «La tarjeta pasaría de 24 KiB.», «El rango corta una combinación: elige uno que la contenga entera.»). A la
-  derecha, «Referencia:» (la cotización más reciente del origen que ves, «Cotización n.º N», o «Cifras de ejemplo»), «Ajustar | 100 %» y el tamaño de la
-  tarjeta («690 × 512 px»). Debajo, por qué no se hizo lo último que se pidió.
+- **La barra** (una sola, `role="toolbar"` «Barra del lienzo», siempre de una línea de alto y con su lugar reservado debajo para «por qué no se hizo lo último»),
+  en grupos: **Historial** («Deshacer» y «Rehacer»; su `title` dice qué: «Deshacer: combinar (Ctrl+Z)»); **Insertar ▾** (fila arriba, fila abajo, columna a la
+  izquierda, columna a la derecha, y en lo elegido «Un texto», «Un dato» —abren el panel «Celda» en ese contenido— y «El logo»); **Estilo** (Negrita y Cursiva como
+  interruptores y «Alineación ▾»; el color, el tamaño y los bordes están en el panel «Celda»); **Filas y columnas ▾** («Combinar», «Separar», «Eliminar filas»,
+  «Eliminar columnas»); **Ver ▾** (la referencia: «Cotización n.º N», la más reciente del origen que ves, o «Cifras de ejemplo»; «Ajustar | 100 %» y el tamaño de la
+  tarjeta, «Tarjeta de 690 × 512 px»); y a la derecha **«Columnas»** y **«Celda»** (o «Fila»), que abren el panel. Lo que no se puede queda apagado sin perder el
+  foco y, al tocarlo, dice por qué; en los menús, el motivo va bajo cada opción («Elige más de una celda para combinar.», «Ya hay 16 columnas.», «Ya hay 120
+  filas.», «El ancho total pasaría de 1.600 px.», «La tarjeta pasaría de 24 KiB.», «El rango corta una combinación: elige uno que la contenga entera.»). Cada
+  opción con atajo lo muestra al lado.
 - **El lienzo:** la tarjeta a escala con el mismo dibujo que el PDF y la imagen, las cabeceras de columna arriba («B · Concepto 190 px»: la letra y, si es
   una columna de la conversión, su nombre; tocarla elige la columna) y las asas de fila a la izquierda (el número de la fila). Es una grilla accesible
   (`role="grid"`, una fila por fila que se dibuja con su índice real, `aria-selected` en lo elegido) con **un solo** `tabindex=0`: el cursor va por
   `aria-activedescendant`, con foco visible, y Tab sale al panel. Cada celda se nombra por lo que muestra, sin montos («Dato: «Remate» · Monto»); una casilla
   vacía es un solo `div` sin hijos.
   - **Elegir:** clic, Shift+clic, arrastrar, flechas y Shift+flechas, Home y End (con Ctrl, la primera y la última casilla), Ctrl/Cmd+A todo, Shift+Espacio la
-    fila, Ctrl+Espacio la columna, Esc suelta (el panel vuelve a «Resumen»). Un rango que corta una combinación se agranda hasta contenerla. Las filas ocultas
+    fila, Ctrl+Espacio la columna, Esc suelta lo elegido. Un rango que corta una combinación se agranda hasta contenerla. Las filas ocultas
     con la referencia no reciben el cursor.
   - **Escribir en el lugar:** Enter, F2 o doble clic sobre una celda de texto o vacía abren el campo «Texto de la celda» encima, con «n de 300» y su motivo
     («Un texto llega a 300 caracteres.», «Un texto no lleva «{{».»); tipear una letra empieza a escribir reemplazando. Enter confirma (el cursor queda en la
-    celda), Shift+Enter es un salto de línea, Esc descarta, salir confirma. Sobre un dato o el logo, Enter o F2 llevan al campo «Contenido» del panel; sobre un texto con datos (y con doble clic), a su campo «Texto», sin
+    celda), Shift+Enter es un salto de línea, Esc descarta, salir confirma. Sobre un dato o el logo, Enter o F2 abren el panel «Celda» en su campo «Contenido»; sobre un texto con datos (y con doble clic), en su campo «Texto», sin
     escribir en el lugar (perdería los datos). Un
     texto que empieza con «=» es texto: la tarjeta no tiene fórmulas propias.
   - **Atajos:** Supr o Retroceso vacían; Ctrl/Cmd+C copia lo elegido (en el editor, con contenido, formato y combinaciones; al sistema, su texto en TSV) y
     Ctrl/Cmd+V lo pega desde la celda del cursor (sin nada copiado en el editor, el texto del sistema va a la celda activa); Ctrl/Cmd+Z deshace y
     Ctrl/Cmd+Y o Ctrl/Cmd+Shift+Z rehacen, hasta 100 pasos (elegir no es un paso; lo escrito en un campo del panel se junta en uno hasta que cambia la
-    selección); Shift+F10 o la tecla Menú abren el menú contextual. ← desde la columna A va al asa de la fila y ↑ desde la primera fila, al borde de la
+    selección); Shift+F10 o la tecla Menú abren el menú contextual. Con Alt (que no choca con el navegador ni con el sistema; en macOS, ⌥): Alt+M combina, Alt+U
+    separa, Alt+R inserta una fila abajo y Alt+Mayús+R arriba, Alt+C una columna a la derecha y Alt+Mayús+C a la izquierda; piden lo mismo que el botón, así que lo
+    que no se puede dice por qué. «?» (con la grilla enfocada también) lista todos los atajos del editor bajo «Editor de la tarjeta»; para empezar una celda con «?»
+    se usa Enter o F2. ← desde la columna A va al asa de la fila y ↑ desde la primera fila, al borde de la
     cabecera de esa columna (↓ o Esc vuelven).
   - **Anchos y orden:** el borde derecho de cada cabecera se arrastra (el movimiento se divide por la escala; el ancho se ve mientras y es un paso al soltar,
     de 24 a 640 px y con el total ≤ 1.600) o, con el foco, ←/→ cambian 1 px y con Shift 10 px. El asa de una fila se arrastra para ordenarla o, con el
@@ -1822,8 +1829,12 @@ Excel. Edita el **borrador** de la plantilla (sólo la forma 2, la cuadrícula),
     «Eliminar», con lo apagado y su motivo como en la barra.
   - **Anuncios** (`role="status"`): lo elegido («Fila 4 › Columna «B · Concepto».») y cada operación («Se combinaron 3 celdas.», «Se pegó una celda.»,
     «Deshiciste: combinar.»).
-- **El panel** (a la derecha; debajo del lienzo con el texto al 200 %), según lo elegido:
-  - **Nada, «Resumen»:** «Columnas» (cada una con su ancho en número), «Σ ancho N / 1.600 px», «Sumar columna»; «Paleta» (los colores del catálogo, sólo para
+- **El panel** (no ocupa lugar en la pantalla: se abre desde «Columnas» o «Celda»/«Fila», con Enter o F2 sobre un dato o con «Un texto»/«Un dato» de «Insertar»,
+  y vive en la URL, `?panel=columnas|celda`, así que recargar lo deja abierto y «atrás» lo cierra. Desde 1.024 px (`CORTE_DEL_PANEL`) va al costado, sin fondo y sin ser modal: el
+  lienzo no se mueve ni se achica, elegir otra celda sigue valiendo y el panel la sigue (con el menú lateral abierto a 1.024 px tapa la derecha de la tarjeta:
+  se cierra o se pliega el menú); más angosto es el cajón de siempre. Esc o la ✕ lo cierran; con una
+  lista o unas condiciones a medio armar pregunta antes, `useCambiosSinGuardar()`), según lo elegido:
+  - **«Columnas»:** «Columnas» (cada una con su ancho en número), «Σ ancho N / 1.600 px», «Sumar columna»; «Paleta» (los colores del catálogo, sólo para
     ver) con «Editar en Orígenes › Colores»; «Tamaño: n de 24 KiB».
   - **Una celda, un rango o columnas** (aplicado a todas): la ruta («Fila 4 › Columna «C · Monto»»); con columnas, su «Ancho»; «Contenido» (Texto | Dato |
     Logo | Vacío; el texto con «n de 300» (sólo el texto, sin los datos) y su motivo, y «Insertar dato», que abre el buscador de «Dato» en línea con

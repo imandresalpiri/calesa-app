@@ -249,3 +249,82 @@ export async function abrirDescartarLaTarjeta(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Más acciones de la tarjeta' }).click()
   await page.getByRole('menuitem', { name: 'Descartar borrador…' }).click()
 }
+
+// La barra única del editor de la tarjeta.
+export const barraDelLienzo = (page: Page) =>
+  page.getByRole('toolbar', { name: 'Barra del lienzo' })
+
+// El panel de la tarjeta (al costado del lienzo), abierto o no.
+export const panelDeLaTarjeta = (page: Page) =>
+  page.getByRole('complementary', { name: 'Panel de la tarjeta' })
+
+// Abre un panel con su botón de la barra («Columnas», «Celda» o «Fila») y espera a que dibuje; con el panel ya abierto, lo deja como está.
+export async function abrirElPanel(
+  page: Page,
+  cual: 'Columnas' | 'Celda' | 'Fila' = 'Celda',
+): Promise<ReturnType<typeof panelDeLaTarjeta>> {
+  const boton = barraDelLienzo(page).getByRole('button', { name: cual, exact: true })
+  if ((await boton.getAttribute('aria-expanded')) !== 'true') await boton.click()
+  await expect(boton).toHaveAttribute('aria-expanded', 'true')
+  const panel = panelDeLaTarjeta(page)
+  await expect(panel).toBeVisible()
+  return panel
+}
+
+// Un grupo o menú de la barra: «Insertar», «Filas y columnas», «Ver»…
+export async function abrirElMenuDeLaBarra(page: Page, nombre: string) {
+  // Un menú que se está cerrando todavía está en el DOM: se espera a que se vaya para no elegir en él.
+  await expect(page.getByRole('menu')).toHaveCount(0)
+  await barraDelLienzo(page).getByRole('button', { name: nombre, exact: true }).click()
+  const menu = page.getByRole('menu')
+  await expect(menu).toBeVisible()
+  return menu
+}
+
+// Una operación de un menú de la barra: «Insertar» › «Una fila abajo», «Filas y columnas» › «Combinar»…
+export async function operacionDeLaBarra(page: Page, menu: string, item: string | RegExp) {
+  const abierto = await abrirElMenuDeLaBarra(page, menu)
+  await abierto.getByRole('menuitem', { name: item }).click()
+}
+
+// Un ítem de opción deja el menú abierto: Esc lo cierra.
+export async function cerrarElMenu(page: Page) {
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toHaveCount(0)
+}
+
+// «Ver» › la referencia con la que se dibuja el lienzo.
+export async function elegirLaReferencia(page: Page, cual: 'cotizacion' | 'ejemplo') {
+  const menu = await abrirElMenuDeLaBarra(page, 'Ver')
+  await menu
+    .getByRole('menuitemradio', { name: cual === 'ejemplo' ? /^Cifras de ejemplo/ : /^(?!Cifras)/ })
+    .first()
+    .click()
+  await cerrarElMenu(page)
+}
+
+// «Ver» › «Ajustar» o «100 %».
+export async function elegirLaEscala(page: Page, cual: 'Ajustar' | '100 %') {
+  const menu = await abrirElMenuDeLaBarra(page, 'Ver')
+  await menu.getByRole('menuitemradio', { name: cual, exact: true }).click()
+  await cerrarElMenu(page)
+}
+
+// El botón ⓘ «Información de la tarjeta» y su modal.
+export async function abrirLaInformacionDeLaTarjeta(page: Page) {
+  await page.getByRole('button', { name: 'Información de la tarjeta' }).click()
+  const modal = page.getByRole('dialog', { name: 'Información de la tarjeta' })
+  await expect(modal).toBeVisible()
+  return modal
+}
+
+// Abre «Información de la tarjeta», deja que `revisar` mire su modal y lo cierra con Esc.
+export async function conLaInformacionDeLaTarjeta(
+  page: Page,
+  revisar: (modal: ReturnType<Page['getByRole']>) => Promise<void>,
+): Promise<void> {
+  const modal = await abrirLaInformacionDeLaTarjeta(page)
+  await revisar(modal)
+  await page.keyboard.press('Escape')
+  await expect(modal).toBeHidden()
+}

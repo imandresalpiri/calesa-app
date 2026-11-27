@@ -5,7 +5,7 @@ import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './so
 import { idDePersona, sembrarCotizaciones } from './soporte/cotizaciones-sembradas'
 import { abrirLaVistaPrevia, tarjeta } from './soporte/cotizar-vista-previa'
 import { crearOrigenDePrueba, PREFIJO_CLAVE_E2E } from './soporte/origenes'
-import { sembrarBorradorDePlantilla } from './soporte/plantilla'
+import { abrirElPanel, sembrarBorradorDePlantilla } from './soporte/plantilla'
 import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 import { copiarLaFormulaDeLaSubasta, crearVehiculo } from './soporte/tarjeta-cuadricula'
@@ -179,7 +179,7 @@ const casilla = (page: Page, f: number, k: number) =>
 async function elegirComoDato(page: Page, f: number, cual: string) {
   await casilla(page, f, 0).click()
   await expect(casilla(page, f, 0)).toHaveAttribute('aria-selected', 'true')
-  const panel = panelDe(page)
+  const panel = await abrirElPanel(page, 'Celda')
   await panel
     .getByRole('radiogroup', { name: 'Contenido' })
     .getByRole('radio', { name: 'Dato' })

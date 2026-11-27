@@ -17,6 +17,12 @@ function panel(estado: Partial<PanelDeLaTarjeta>, cerrar = vi.fn()): PanelDeLaTa
   return {
     publicando: false,
     descartando: false,
+    informando: false,
+    celda: false,
+    columnas: false,
+    abrirInformacion: vi.fn(),
+    abrirCelda: vi.fn(),
+    abrirColumnas: vi.fn(),
     abrirPublicar: vi.fn(),
     abrirDescartar: vi.fn(),
     cerrar,

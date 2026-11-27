@@ -10,6 +10,12 @@ import {
   type TerrenoExcel,
 } from './soporte/tarjeta-excel'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
+import {
+  abrirElPanel,
+  elegirLaReferencia,
+  operacionDeLaBarra,
+  barraDelLienzo,
+} from './soporte/plantilla'
 
 // @sin-celular-archivo: editor de Configuración que se usa en una pantalla de al menos 1.024 px; por debajo, un aviso y la tarjeta en sólo lectura
 
@@ -63,8 +69,11 @@ test('E2E elegir un rango, combinar, escribir con F2, copiar formato, deshacer y
 }, info) => {
   await entrar(page, t().configuradora, { fresco: true })
   await abrirElEditor(page, t().origen.id)
-  await expect(page.getByText('Referencia:')).toBeVisible()
-  await expect(page.locator('[data-referencia-del-lienzo]')).toHaveValue('cotizacion')
+  await barraDelLienzo(page).getByRole('button', { name: 'Ver', exact: true }).click()
+  await expect(
+    page.getByRole('menuitemradio', { name: /^(?!Cifras)/, checked: true }).first(),
+  ).toBeVisible()
+  await page.keyboard.press('Escape')
   await capturar(page, info, 'lienzo')
 
   // Shift+→ dos veces desde la fila del rango: tres casillas elegidas.
@@ -74,10 +83,7 @@ test('E2E elegir un rango, combinar, escribir con F2, copiar formato, deshacer y
   for (const k of [0, 1, 2])
     await expect(casilla(page, 1, k)).toHaveAttribute('aria-selected', 'true')
   await capturar(page, info, 'rango')
-  await page
-    .getByRole('toolbar', { name: 'Barra del lienzo' })
-    .getByRole('button', { name: 'Combinar' })
-    .click()
+  await operacionDeLaBarra(page, 'Filas y columnas', 'Combinar')
   await expect(anuncio(page)).toContainText('Se combinaron 3 celdas.')
   await expect(casilla(page, 1, 0)).toHaveAttribute('aria-colspan', '3')
 
@@ -156,10 +162,10 @@ test('E2E elegir un dato con su monto, un color con el aviso de contraste y ocul
 }, info) => {
   await entrar(page, t().configuradora, { fresco: true })
   await abrirElEditor(page, t().origen.id)
-  const panel = page.getByRole('complementary', { name: 'Panel de la tarjeta' })
 
   // «Dato» en la leyenda del título: la grúa con su monto de la referencia.
   await elegir(page, 2, 2)
+  const panel = await abrirElPanel(page, 'Celda')
   await panel.getByRole('radio', { name: 'Dato' }).click()
   await panel.locator('[data-nodo-para-elegir="grua"]').click()
   await expect(panel.getByLabel('Qué mostrar')).toHaveValue('monto')
@@ -189,9 +195,9 @@ test('E2E elegir un dato con su monto, un color con el aviso de contraste y ocul
   )
   await capturar(page, info, 'ocultas')
   // Con las cifras de ejemplo no se oculta nada.
-  await page.locator('[data-referencia-del-lienzo]').selectOption('ejemplo')
+  await elegirLaReferencia(page, 'ejemplo')
   await expect(ocultas).toHaveCount(0)
-  await page.locator('[data-referencia-del-lienzo]').selectOption('cotizacion')
+  await elegirLaReferencia(page, 'cotizacion')
   await expect(ocultas).toBeVisible()
 })
 

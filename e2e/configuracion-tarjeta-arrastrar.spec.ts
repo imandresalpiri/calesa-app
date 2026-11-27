@@ -14,6 +14,7 @@ import {
   quieto,
   type TerrenoDeArrastrar,
 } from './soporte/tarjeta-arrastrar'
+import { abrirElPanel, elegirLaEscala } from './soporte/plantilla'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
 // El editor de la tarjeta queda quieto tras arrastrar un borde (`docs/LECCIONES.md` › Interfaz): con «Ajustar» la escala depende del ancho del lienzo y el alto de la
@@ -103,10 +104,7 @@ test('E2E «Ajustar»: arrastrar el borde de una columna deja el lienzo quieto',
     await anchoDeLaBarra(page),
     'Sin barras de desplazamiento: esta prueba no prueba nada',
   ).toBeGreaterThanOrEqual(10)
-  await expect(page.getByRole('button', { name: 'Ajustar' })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  )
+  await elegirLaEscala(page, 'Ajustar')
   await arrastrarLaColumna(page, 'k2', 20)
   await capturar(page, info, 'ajustar-columna')
   await quietoYElige(page, 'Ajustar, tras la columna')
@@ -126,7 +124,8 @@ test('E2E «Ajustar»: arrastrar una fila y cambiar su alto deja el lienzo quiet
   await capturar(page, info, 'ajustar-fila')
   await quietoYElige(page, 'Ajustar, tras la fila')
   await asa(page, 'f2').click()
-  const alto = page.getByLabel('Alto de la fila')
+  const panel = await abrirElPanel(page, 'Fila')
+  const alto = panel.getByLabel('Alto de la fila')
   await alto.fill('60')
   await alto.press('Enter')
   await expect(alto).toHaveValue('60')
@@ -138,9 +137,7 @@ test('E2E «100 %»: arrastrar una columna y una fila deja el lienzo quieto', as
 }, info) => {
   test.setTimeout(120_000)
   await abrirElEditor(page)
-  const real = page.getByRole('button', { name: '100 %' })
-  await real.click()
-  await expect(real).toHaveAttribute('aria-pressed', 'true')
+  await elegirLaEscala(page, '100 %')
   await arrastrarLaColumna(page, 'k1', -30)
   await capturar(page, info, 'real-columna')
   await quietoYElige(page, '100 %, tras la columna')

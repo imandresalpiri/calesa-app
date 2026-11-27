@@ -639,6 +639,11 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Lienzo** — `LienzoDeLaPlantilla` (área `tarjeta`) con la capa del editor (`CapaDeEdicion`, `role="grid"`): la tarjeta de la cotización a escala
   que se edita en la pestaña Tarjeta de la página del origen, como un Excel (cabeceras de columna, asas de fila, selección, atajos). La dibuja el
   mismo modelo de dibujo que el PDF. No es el lienzo del diagrama del flujo.
+- **Barra del lienzo** — `BarraDelEditor` (`role="toolbar"`): la única barra del editor de la tarjeta, en grupos (historial, insertar, estilo, filas y columnas, ver, y «Columnas» y «Celda» o «Fila»).
+  No: «cinta», «barra de herramientas».
+- **Panel de la tarjeta** — `DrawerDelPanel` (`?panel=celda|columnas`): el cajón al costado del lienzo con lo que se edita de lo elegido («Celda» o «Fila») o el resumen («Columnas»); no ocupa
+  lugar en la pantalla. No: «inspector», «sidebar».
+- **Información de la tarjeta** — `ModalDeLaInformacionDeLaTarjeta` (`?panel=info-tarjeta`, el botón ⓘ): de dónde nace lo que se edita y la publicada con su nota.
 - **Rango (de la tarjeta)** — `Seleccion` de tipo `celdas` (`entities/plantilla/edicion/seleccion.ts`): las celdas de la tarjeta elegidas juntas en el lienzo (Shift+clic,
   arrastrar, Shift+flechas); se agranda hasta contener entera cada combinación que corta. Lo que se combina, se vacía, se copia o recibe un formato. No es el **Rango (de un campo)**.
 - **Referencia de la tarjeta** — `ReferenciaDeLaTarjeta` (`entities/referencia-de-la-tarjeta.ts`): con qué cifras se dibuja el lienzo: la cotización más
@@ -1161,7 +1166,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   la sección de un formulario o un panel.
 - **Índice (de una ficha)** — `<IndiceDeBloques>`: la barra arriba de la columna principal de una ficha en dos columnas (quieta mientras los bloques se desplazan por dentro; pegajosa en el celular), con un enlace de ancla
   por bloque y `aria-current="location"` en el que está a la vista. No navega: salta dentro de la misma página. No: «pestañas», «menú».
-- **Atajo** — `ATAJOS` / `useAtajo()`: tecla global (`Esc`, `N`, `Ctrl/Cmd+K`, `Ctrl/Cmd+B`…); responde el panel de más arriba.
+- **Atajo** — `ATAJOS` / `useAtajo()`: tecla global (`Esc`, `N`, `Ctrl/Cmd+K`, `Ctrl/Cmd+B`…); responde el panel de más arriba. Los de una pantalla (`pantalla`, como los de
+  la tarjeta con Alt) salen en «?» bajo su nombre mientras ella está montada (`useAyudaDePantalla()`).
 - **Filtro** — `EsquemaDeFiltros`, `DefFiltro` / `<FilterShell>`: lo que acota un listado; cada uno declara los suyos y viven en la URL. Van en el botón
   «Filtros»; lo que cambia cómo se ve la lista (vista, alcance, ítems por página), en «Vista y opciones».
 - **Vista y opciones** — `<VistaYOpciones>`, `GrupoDeVistaYOpciones` (`src/shared/ui/vista-y-opciones`): el botón de la barra de un listado que agrupa

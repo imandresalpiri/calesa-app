@@ -1195,6 +1195,17 @@ las trampas, en `docs/LECCIONES.md`.
   la de la empresa (por su ciudad, «Hora de La Paz») o la del patio, sólo si se conoce.
 - **«Compartir cotización…» lleva «…» y va primero y solo en el «⋯»** (abre algo encima, como las demás que abren un diálogo). La pestaña va en
   `?compartir=texto` y no en `?pestana=`, que es del resumen del listado. Un `?para=` que no es un guid ni se pide: el panel dice que no hay acceso.
+- **La tarjeta al frente: una barra y un panel que se abre aparte.** El editor de la tarjeta tenía dos barras, un encabezado de cuatro líneas y un panel a la derecha que
+  comía el ancho; el lienzo, lo que se edita, quedaba abajo y chico. Ahora una barra de una línea (historial, insertar, estilo, filas y columnas, ver, «Columnas» y «Celda»),
+  el encabezado sólo para el lector de pantalla y de dónde nace la tarjeta en un modal (ⓘ, `?panel=info-tarjeta`). El panel es un cajón con URL: elegir una celda no lo abre
+  (hacerlo cada vez sería otro salto), pero Enter o F2 sobre un dato, «Un texto» y «Un dato» sí. No es modal desde 1.024 px, así que el lienzo no se mueve ni se achica
+  y elegir otra celda con el panel abierto lo cambia. Un solo `?panel=` para todos (una `useVueltaDelFoco` por clave).
+- **Los atajos del editor son con Alt y por `code`.** Ctrl+letra choca con el navegador (Ctrl+R recarga, Ctrl+M silencia la pestaña, Ctrl+U ve el código) y Cmd+letra con el
+  sistema; Alt+M/U/R/C no choca con ninguno de los dos y la letra sale de `KeyboardEvent.code` porque en macOS Option escribe otro carácter. Ctrl/Cmd+S guarda el borrador
+  siempre (sin poder guardar no hace nada, pero el navegador tampoco abre «Guardar como…»). «?» con la grilla enfocada abre la ayuda y ya no empieza a escribir en la celda
+  (Enter o F2 y luego «?»).
+- **Los motivos de «Guardar» y «Publicar…» comparten la banda reservada de los avisos (48 px).** Aparecen al empezar a editar y antes empujaban el lienzo; con la banda
+  reservada nada salta, a cambio de 48 px vacíos cuando no hay nada que decir.
 
 ### Tablas de referencia
 
