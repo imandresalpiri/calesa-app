@@ -27,6 +27,7 @@ import { accionesDeLaPaleta, tiposDeLaPaleta } from './_shell/acciones-de-la-pal
 import { HuecoBuscador } from './_shell/huecos/buscador'
 import { HuecoCampana } from './_shell/huecos/campana'
 import { HuecoChat } from './_shell/huecos/chat'
+import { HuecoSilencioDelPush } from './_shell/huecos/silencio-del-push'
 import { entradasVisibles } from './_shell/navegacion'
 import { NuevoDeLaBarraSuperior } from './_shell/nuevo/nuevo-de-la-barra-superior'
 import { opcionesDeNuevo } from './_shell/nuevo/opciones'
@@ -110,6 +111,8 @@ async function Shell({ children }: { children: ReactNode }) {
                 puedeEncender={sesion.live.puedeEncender}
                 enElServidor={sesion.live.encendido}
               >
+                {/* Con el Live encendido este dispositivo no recibe push (se vuelve a suscribir al apagarlo). */}
+                <HuecoSilencioDelPush />
                 <Marco
                   nombreEmpresa={ajustes.nombre}
                   marca={marcaDeLaEmpresa(ajustes)}
