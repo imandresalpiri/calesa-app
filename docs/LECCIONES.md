@@ -340,6 +340,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   medio de la ventana: la cabecera y la barra pegadas tapan lo de arriba. Un `<Drawer>` que se cierra deja su fondo encima mientras sale y
   se traga el `pointerdown`: espera a que el asa reciba el puntero (`document.elementFromPoint`, `arrastrarFila()` de `e2e/soporte/planilla.ts`).
 - Tras «Recargar» de un conflicto (`router.refresh()`), espera la señal visible de que llegó (el aviso se va: `<AvisoDeConflictoDeLaHoja>` lo quita al redibujar) antes de cerrar el panel: un cierre a mitad de camino descarta el refresco en vuelo y la hoja queda con lo viejo, sólo si la máquina va lenta.
+- Un monto formateado por `Intl` separa la moneda del número con un espacio no separable (U+00A0), no con uno común: en un regex de e2e va `\s` («USD\s[\d.,]+»), nunca un espacio literal.
 - Con el asa de dnd-kit tomada por teclado, la primera flecha se puede perder (su sensor escucha un momento después): insiste sólo mientras el anuncio siga en el lugar de partida, o la fila sube dos.
 
 ### Sesiones y datos de prueba
