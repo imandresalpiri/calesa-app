@@ -98,7 +98,9 @@ describe('AccionesDeLaPlantilla', () => {
     expect(modal.getAttribute('data-esperada')).toBe(HORA)
     expect(avisarError).not.toHaveBeenCalled()
   })
+})
 
+describe('AccionesDeLaPlantilla: descartar', () => {
   it('?panel=descartar-plantilla sin borrador no monta el diálogo, avisa y limpia la URL', () => {
     const cerrar = vi.fn()
     render(
