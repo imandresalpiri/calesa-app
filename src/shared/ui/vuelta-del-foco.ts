@@ -99,7 +99,7 @@ const GUARDADAS = 'vuelta-del-foco'
 type Guardada = { donde: number; ficha: string }
 // Dónde está la página, sin las claves que los paneles escriben ellos mismos al abrirse y cerrarse (4-62): el drawer del lead se abre en `?lead=` y su pestaña y sus
 // modales cambian `pestana`, `panel` y `eliminar` sin ser otra pantalla. `lead`, la ruta y lo demás siguen contando: dos fichas de dos leads no se confunden.
-const CLAVES_DE_LOS_PANELES = ['panel', 'eliminar', 'pestana']
+const CLAVES_DE_LOS_PANELES = ['panel', 'eliminar', 'pestana', 'documento']
 function aqui(): number {
   const parametros = new URLSearchParams(location.search)
   for (const clave of CLAVES_DE_LOS_PANELES) {

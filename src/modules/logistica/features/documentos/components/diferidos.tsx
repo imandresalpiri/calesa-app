@@ -19,3 +19,21 @@ export const DrawerParaSubirDiferido = diferido(
 export const HuecoDeDocumentosDelGrupoDiferido = diferido(() =>
   import('./hueco-de-documentos-del-grupo').then((modulo) => modulo.HuecoDeDocumentosDelGrupo),
 )
+
+// La vista previa de un documento y el modal de editarlo se montan al primer toque (`useAbiertoAlgunaVez`): el hueco no carga el visor, el zoom ni el formulario para dibujar la lista.
+export const VistaPreviaDelDocumentoDiferida = diferido(
+  () => import('./vista-previa-del-documento').then((modulo) => modulo.VistaPreviaDelDocumento),
+  { aviso: 'pantalla' },
+)
+
+export const ModalDeEdicionDelDocumentoDiferido = diferido(
+  () =>
+    import('./modal-de-edicion-del-documento').then((modulo) => modulo.ModalDeEdicionDelDocumento),
+  { aviso: 'pantalla' },
+)
+
+// La vista previa de un archivo de la bandeja (sólo para ver) también se monta al primer toque.
+export const VistaPreviaLocalDiferida = diferido(
+  () => import('./vista-previa-local').then((modulo) => modulo.VistaPreviaLocal),
+  { aviso: 'pantalla' },
+)
