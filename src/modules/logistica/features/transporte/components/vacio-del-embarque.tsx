@@ -21,12 +21,17 @@ export function VacioDelEmbarque({ puedeEditar }: { puedeEditar: boolean }) {
       accion={
         puedeEditar ? (
           <div className="flex flex-wrap justify-center gap-2">
-            <Button type="button" onClick={() => paneles.abrir(PANEL_AGREGAR_CONTENEDOR, null)}>
+            <Button
+              type="button"
+              className="min-h-11 md:min-h-9"
+              onClick={() => paneles.abrir(PANEL_AGREGAR_CONTENEDOR, null)}
+            >
               Agregar contenedor
             </Button>
             <Button
               type="button"
               variant="outline"
+              className="min-h-11 md:min-h-9"
               onClick={() => paneles.abrir(PANEL_AGREGAR_VEHICULOS, null)}
             >
               Agregar vehículos

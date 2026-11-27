@@ -65,7 +65,11 @@ export function CabeceraDelEmbarque({ embarque: e, catalogos, puedeEditar, hueco
           </div>
           <p className="text-(length:--text-sm) text-(--color-ink-soft)">{QUE_ES_EL_EMBARQUE}</p>
         </div>
-        {acciones.length > 0 ? <MasAcciones nombre={titulo} acciones={acciones} conBorde /> : null}
+        {acciones.length > 0 ? (
+          <div className="shrink-0">
+            <MasAcciones nombre={titulo} acciones={acciones} conBorde />
+          </div>
+        ) : null}
       </div>
       <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,12rem),1fr))] gap-3">
         <Dato etiqueta="Naviera" texto={nombreDeCatalogo(catalogos.navieras, e.navieraId)} />

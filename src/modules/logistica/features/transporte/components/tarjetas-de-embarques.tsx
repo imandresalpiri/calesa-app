@@ -55,7 +55,7 @@ export function TarjetasDeEmbarques({ embarques, catalogos, origenId, puedeEdita
               <EnlaceDeLaFila
                 href={href}
                 nombre={tituloDelEmbarque(e.booking)}
-                className="min-w-0 font-medium break-words text-(--color-ink)"
+                className="inline-flex min-h-11 min-w-0 items-center font-medium break-words text-(--color-ink) md:min-h-0"
               >
                 {e.booking}
               </EnlaceDeLaFila>

@@ -62,7 +62,11 @@ export function SeccionDelContenedor({
             </span>
           </p>
         </div>
-        {acciones.length > 0 ? <MasAcciones nombre={titulo} acciones={acciones} conBorde /> : null}
+        {acciones.length > 0 ? (
+          <div className="shrink-0">
+            <MasAcciones nombre={titulo} acciones={acciones} conBorde />
+          </div>
+        ) : null}
       </div>
       <VehiculosDelDestino
         vehiculos={vehiculos}
