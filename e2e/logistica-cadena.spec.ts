@@ -105,17 +105,21 @@ test('E2E clic en una fase lleva a su lista, con la búsqueda y los filtros en l
   await page.getByRole('button', { name: 'Limpiar', exact: true }).click()
   await expect(filas).toHaveCount(2)
 
-  // El contenedor viaja en la URL: sólo el de la fase Entrega lo tiene; con otro, el vacío por filtro.
-  await page.goto(
-    `/logistica/fase/${terreno.fases.entrega}?origen=${terreno.a.id}&contenedor=${terreno.contenedor}`,
-  )
+  // El contenedor viaja en la URL por su id y se dice con su número en el chip: sólo el de la fase Entrega lo tiene. Uno que no existe (o una URL
+  // vieja con el número) dice que ya no está, con «Quitar filtro».
+  const entrega = `/logistica/fase/${terreno.fases.entrega}?origen=${terreno.a.id}`
+  await page.goto(`${entrega}&contenedor=${terreno.contenedorId}`)
   await expect(filas).toHaveCount(1)
   await expect(filas).toContainText(terreno.conTransporte.titulo)
   await expect(filas).toContainText(`${terreno.contenedor}`)
-  await page.goto(
-    `/logistica/fase/${terreno.fases.entrega}?origen=${terreno.a.id}&contenedor=NOEXISTE1`,
-  )
-  await expect(page.getByText('Ningún vehículo coincide con los filtros.')).toBeVisible()
+  await expect(page.getByText(`Contenedor: ${terreno.contenedor}`).first()).toBeVisible()
+  for (const otro of ['00000000-0000-4000-8000-000000000000', terreno.contenedor]) {
+    await page.goto(`${entrega}&contenedor=${otro}`)
+    await expect(page.getByText('Ese contenedor ya no existe o no lo ves.')).toBeVisible()
+  }
+  await page.getByRole('link', { name: 'Quitar filtro' }).click()
+  await expect(page).not.toHaveURL(/contenedor=/)
+  await expect(filas).toHaveCount(1)
 })
 
 test('E2E una fase de 51 trae 50 y «Siguiente» trae el que falta, sin total', async ({

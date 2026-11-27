@@ -9,7 +9,7 @@ export {
 } from '../../entities/cadena/fase'
 export { textoDeLosDiasEnLaFase } from '../../entities/cadena/dias'
 export {
-  CLAVE_DE_BOOKING,
+  CLAVE_DE_EMBARQUE,
   CLAVE_DE_BUSQUEDA_DE_LA_CADENA,
   CLAVE_DE_CONTENEDOR,
   CLAVE_DE_DEMORADAS,

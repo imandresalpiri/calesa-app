@@ -16,7 +16,9 @@ La tarea de oro 3 la prueba `e2e/logistica-tarea-de-oro.spec.ts`. Abiertos (`doc
   orígenes», `?en=todos`, `buscaEnTodos`, `rutaDeDondeEsta`; texto corto no llama a la base), `leerOrigenesDeLaCadena(permisos)` (los orígenes de la barra, cada uno con las `reglas`
   activas de su flujo, nulas si no se pudo leer: `OrigenDeLaCadena`), `origenElegido(origenes, pedido, ultimo)` (el pedido, si no el último, si no el primero; también por
   `pantallas/cadena-origen.ts`, para `src/app`), `leerNavieras(origenId)` (las activas que usa el origen), `esquemaDeFiltrosDeLaCadena`, `pedidoDeLaCadena`, `claveDeFase`, `faseDeLaClave`, `rutaDeLaFase`, el cursor de una
-  fase y las claves de URL de los filtros (`q`, `demoradas`, `por_aprobar`, `contenedor`, `booking`, `naviera`; el origen es `CLAVE_DE_ORIGEN_DE_LOGISTICA` del núcleo).
+  fase y las claves de URL de los filtros (`q`, `demoradas`, `por_aprobar`, `contenedor`, `embarque`, `naviera`; el origen es `CLAVE_DE_ORIGEN_DE_LOGISTICA` del núcleo).
+  `contenedor` y `embarque` son el id de la entidad (`entidadPedida`), no se escriben: llegan por un enlace y se dibujan como chip con su número o su booking
+  (`leerEntidadDelFiltro`, por la PK y en el origen, bajo la RLS); uno que no es un uuid, no existe o no se ve dice `avisoDeEntidadQueNoEsta` con «Quitar filtro».
 - Área `alertas`: `bandejaLogistica(tope)` (demoradas, trabados y por aprobar de quien mira; una lectura de `logistica_bandeja` por request con `cache()`),
   `detalleDeDemorada` y `detalleDeTrabado`, para los bloques de Inicio de `tablero`, que arman su «Ver todas» con `rutaDelGrupoDeLaBandeja` (sin origen: abre el grupo del último
   origen); y la bandeja del día de un origen: `leerGrupoDeLaBandeja` (con `origenId`), `gruposVisibles(permisos, origenId)`, `grupoDelSlug`, `rutaDelGrupoDeLaBandeja(grupo, { origenId, cursor })`,

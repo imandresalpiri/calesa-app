@@ -43,8 +43,8 @@ describe('rutaDeLaFase', () => {
       q: 'hilux 2',
       demoradas: true,
       por_aprobar: true,
-      contenedor: 'MSKU1',
-      booking: 'BK-9',
+      contenedor: O,
+      embarque: A,
       naviera: A,
     })
     const consulta = new URLSearchParams(ruta.split('?')[1])
@@ -53,8 +53,8 @@ describe('rutaDeLaFase', () => {
       q: 'hilux 2',
       demoradas: 'si',
       por_aprobar: 'si',
-      contenedor: 'MSKU1',
-      booking: 'BK-9',
+      contenedor: O,
+      embarque: A,
       naviera: A,
     })
   })

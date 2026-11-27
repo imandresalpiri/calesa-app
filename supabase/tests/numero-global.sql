@@ -303,7 +303,7 @@ declare
     'lead_relacionados_pagina', 'devuelve vehículos (T17): su número de vehículo y la fecha de su relación; nunca el número de un lead',
     'actividad_diff', 'devuelve el diff de un cambio recortado por _actividad_recortar() (9.01-1): de un lead, la lista cerrada que quita numero, numero_propio y telefono_principal (que lead_auditar ya no guarda); areas/actividad/actividad.sql T3',
     'transporte_grupos', 'devuelve grupos de transporte: el booking del embarque o el número del contenedor (contenedores.numero) y sus unidades; de un lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
-    'logistica_cadena_columna', 'devuelve tarjetas de la cadena (por _logistica_columna): el vehículo, su contenedor y su booking; el filtro por contenedor compara contenedores.numero y de un lead sólo mira lead_id para lo propio, nunca su número',
+    'logistica_cadena_columna', 'devuelve tarjetas de la cadena (por _logistica_columna): el vehículo, su contenedor (contenedores.numero) y su booking; el filtro por contenedor o embarque va por su id y de un lead sólo mira lead_id para lo propio, nunca su número',
     'actividad_listar', 'devuelve la página de la actividad (9.01-1): la cabecera, los nombres de los campos que cambiaron y, de una fila visible, el nombre del lead y su primer cambio, sacados de _actividad_recortar() (que quita numero, numero_propio y telefono_principal): nunca un número ni un teléfono; areas/actividad/listar.sql T3');
   r record; v_fallas text := '';
 begin
