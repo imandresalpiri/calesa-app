@@ -1458,7 +1458,7 @@ de su hueco).
   sello, su embarque, sus vehículos y, a la vista, «Mover el contenedor» (con `flujos.mover` en su origen: abre el lote de la Cadena). Sin permiso de editar, «Sólo lectura: para
   cambiar embarques necesitas permiso para editar el transporte.». «Editar el embarque» y «Editar el contenedor» guardan la entidad con su versión (conflicto con «Recargar»
   que conserva lo escrito); lo del embarque cambia para todos sus vehículos. Un id que no es un uuid, que no existe o que no se ve: «Este embarque no existe o ya no lo ves.» /
-  «Este contenedor no existe o ya no lo ves.» (la misma respuesta de la base). `?booking=` ya no se lee.
+  «Este contenedor no existe o ya no lo ves.» (la misma respuesta de la base).
 - **`/logistica/aduana`** (`logistica.ver` lee, `logistica.aduana.gestionar` escribe; sólo en un origen cuyo flujo usa `aduana`): las declaraciones con algún vehículo del origen
   elegido y las que todavía no tienen ninguno (insignia «Sin vehículos»); bajo el título y en el drawer, «Una declaración es el trámite de aduana de uno o varios vehículos.»;
   filtros `canal`, `pagada` y `q` por número. Fila:

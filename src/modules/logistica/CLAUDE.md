@@ -67,7 +67,7 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   barra, con «demorados» y «trabados» dichos con texto). Cada fase es un enlace a `/logistica/fase/[fase]` (`[fase]` = el id o `sin_fase`): la lista de a 50 por cursor `(fase_desde, id)`, con
   `FilterShell`, búsqueda y la selección del lote. **Un vehículo se abre siempre en su página** (`/logistica/vehiculo/[id]`), nunca en un drawer: el nombre es un `EnlaceALaUnidad` y un clic
   en el resto de la fila va ahí (`useIrALaUnidad`). La fila dice «En subasta» o «Sin resolver» cuando la subasta manda (`situacion` de `vehiculos`, la calcula la base). «Dónde está» es un formulario (`?q=`) sobre la gráfica, en el origen elegido; con dos orígenes o más, un enlace lo pasa a todos (`?en=todos`, cada fila con «· <origen>») o de vuelta.
-  Con `?panel=lote` abre el lote de un contenedor o un booking («Mover el grupo» de Embarques lo pide con `?origen=` de la pestaña: `GrupoDeLogistica.origenId`).
+  Con `?panel=lote` abre el lote de un contenedor o un embarque por su id («Mover el contenedor» de Embarques lo pide con `?origen=` de la pestaña: `GrupoDeLogistica.origenId`).
 - **Bandeja del día** (área `alertas`, `/logistica/bandeja`, del origen elegido): siete grupos en este orden —Demorados, Trabados, Documentos por aprobar, Documentos por vencer, Llegadas esperadas, Salen hoy,
   Subastas sin resolver— que lee `logistica_bandeja_grupo` (una lectura por grupo, en paralelo, cada una con su error aparte; un grupo vacío no se dibuja y todos vacíos dicen «Nada pendiente
   hoy», con «Ver la cadena» del mismo origen). La portada trae las primeras 5 de cada uno con el conteo hasta 100 y «Ver todos» → `/logistica/bandeja/[grupo]?origen=` (de a 20 por cursor, `leerCursor`; título
@@ -128,7 +128,7 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   6-7). La nota de un cambio de fase no se edita (`quePuedeHacerConLaNota`). «Ver en logística» de la ficha lo pone `src/app`.
 - **Área `mover`, el lote.** La **selección vive en el núcleo** (`entities/nucleo/seleccion.ts`: una sola fase, hasta 200; `useSeleccionDeLaCadena()`, `null`
   sin proveedor). La lista de una fase sólo la lee («Elegir los de esta página»: la página, hasta 200); `mover` la provee (`ProveedorDeLaSeleccion`, que montan `src/app/(app)/logistica/fase/[fase]/page.tsx` sólo con `flujos.mover` en
-  el origen y en una fase de verdad —se vacía al cambiar de fase, origen o filtros, y sobrevive a «Siguiente»— y la portada, con `?panel=lote`, para un grupo) y dibuja `BarraDelLote` y `DrawerDelLote` (`?panel=lote` con `destino`, `contenedor`, `booking`). El drawer usa
+  el origen y en una fase de verdad —se vacía al cambiar de fase, origen o filtros, y sobrevive a «Siguiente»— y la portada, con `?panel=lote`, para un grupo) y dibuja `BarraDelLote` y `DrawerDelLote` (`?panel=lote` con `destino`, `contenedor`, `embarque`). El drawer usa
   `destinosDeLaFase`, `previsualizarCambioLote` (una llamada, hasta 200) y `cambiarFaseLote`; el resultado es el de **todo** el lote (las que la vista dejó
   afuera cuentan como no movidas) y «Reintentar» vuelve a la vista previa con las no movidas. Un grupo (`?contenedor=` o `?embarque=`, por su id) lee sus unidades por
   `transporte_unidades` (`infra/nucleo/unidades-del-grupo.client.ts`; las del origen del lote, en el cliente), hasta 200 con `hay_mas`, y entran las de una misma fase; `pantallas/mover-grupo.ts` declara «Mover el grupo» con «Marcar que llegó» para un contenedor.
