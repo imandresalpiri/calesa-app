@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatearMonto,
+  formatearMontoSinMoneda,
   formatearNumero,
   formatearParaEditar,
   formatearPorcentaje,
@@ -40,6 +41,43 @@ describe('formatearMonto', () => {
     expect(plano(formatearMonto(1234.5, { moneda: 'USD', locale: 'es-CL', decimales: 0 }))).toBe(
       'US$1.235',
     )
+  })
+})
+
+describe('formatearMontoSinMoneda', () => {
+  it('el número de la moneda sin su símbolo ni su código, con sus decimales y separadores', () => {
+    expect(formatearMontoSinMoneda(1234.5, { moneda: 'USD' })).toBe('1.234,50')
+    expect(formatearMontoSinMoneda(6.96, { moneda: 'BOB' })).toBe('6,96')
+    expect(formatearMontoSinMoneda(1234.5, { moneda: 'EUR' })).toBe('1.234,50')
+  })
+
+  it('en otro locale, con su separador y el símbolo delante o detrás', () => {
+    expect(formatearMontoSinMoneda(1234.5, { moneda: 'USD', locale: 'en-US' })).toBe('1,234.50')
+    expect(formatearMontoSinMoneda(1234.5, { moneda: 'EUR', locale: 'fr-FR' })).toBe(
+      formatearNumero(1234.5, { locale: 'fr-FR', decimales: 2, fijos: true }),
+    )
+  })
+
+  it('conserva el signo de los negativos', () => {
+    expect(formatearMontoSinMoneda(-1234.5, { moneda: 'USD' })).toBe('-1.234,50')
+    expect(formatearMontoSinMoneda(-50, { moneda: 'BOB' })).toBe('-50,00')
+  })
+
+  it('respeta los decimales', () => {
+    expect(formatearMontoSinMoneda(1234.5, { moneda: 'USD', decimales: 0 })).toBe('1.235')
+    expect(formatearMontoSinMoneda(1.2345, { moneda: 'USD', decimales: 3 })).toBe('1,235')
+  })
+
+  it('no deja espacios: ni el duro ni el angosto', () => {
+    for (const locale of ['es-BO', 'en-US', 'fr-FR', 'de-CH']) {
+      expect(formatearMontoSinMoneda(1234.5, { moneda: 'USD', locale })).not.toMatch(
+        /^\s|\s$|\u00a0|USD|\$/u,
+      )
+    }
+  })
+
+  it('con una moneda que Intl no conoce cae a lo de fábrica, sin símbolo', () => {
+    expect(formatearMontoSinMoneda(10, { moneda: 'no', locale: 'es-BO' })).toBe('10,00')
   })
 })
 

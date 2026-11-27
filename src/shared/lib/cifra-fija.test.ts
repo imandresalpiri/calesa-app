@@ -74,4 +74,23 @@ describe('formatearConDecimales', () => {
   it('un monto sin moneda va como número', () => {
     expect(formatearConDecimales(1234.5, 'monto', { ...es, decimales: 1 })).toBe('1.234,5')
   })
+
+  it('`sinMoneda`: el monto con sus decimales, sin el símbolo', () => {
+    expect(
+      formatearConDecimales(1234.5649999999998, 'monto', {
+        ...es,
+        decimales: 2,
+        moneda: 'USD',
+        sinMoneda: true,
+      }),
+    ).toBe('1.234,57')
+    expect(
+      formatearConDecimales(-0.001, 'monto', {
+        ...es,
+        decimales: 2,
+        moneda: 'BOB',
+        sinMoneda: true,
+      }),
+    ).toBe('0,00')
+  })
 })
