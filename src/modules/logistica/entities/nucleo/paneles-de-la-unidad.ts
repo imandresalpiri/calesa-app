@@ -17,5 +17,5 @@ export const PAGO_NUEVO = 'nuevo'
 export const ATRIBUTO_DEL_BLOQUE = 'data-bloque-del-hueco'
 export const ATRIBUTO_DE_TIPO_DE_DOCUMENTO = 'data-tipo-de-documento-id'
 
-/** El campo que cumple una clave de dato de un requisito (`transporte.contenedor`…): «Completar» le lleva el foco. */
+/** El campo que cumple una clave de dato de un requisito (`transporte.contenedor`…): «Completar» le lleva el foco. Puede llevar varias, separadas por un espacio (el enlace «Editar el embarque»). */
 export const ATRIBUTO_DE_CLAVE_DE_DATO = 'data-clave-de-dato'

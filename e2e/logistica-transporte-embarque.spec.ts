@@ -17,8 +17,9 @@ import {
 } from './soporte/transporte'
 import { abrirSeccionDeLaUnidad } from './soporte/unidad'
 
-// El embarque desde el hueco «Transporte»: tipear un booking nuevo crea el embarque del origen; el mismo booking en otro vehículo lo suma; desde entonces la línea del aviso dice a
-// cuántos les cambia y lo del embarque (la ETA) cambia para los dos. La línea tiene su alto reservado: ni el esqueleto, ni «sin transporte», ni el aviso mueven lo de abajo.
+// El embarque desde el hueco «Transporte»: «Elegir o crear» › «Crear» con booking y naviera crea el embarque del origen y pone la unidad en él; otro vehículo lo elige de la lista y se
+// suma; desde entonces la línea del aviso dice a cuántos les cambia lo del embarque, que se muestra (no es campo) con «Editar el embarque». La línea tiene su alto reservado: ni el
+// esqueleto ni el aviso mueven «Dónde viaja».
 test.describe.configure({ mode: 'serial' })
 
 let proyecto = ''
@@ -47,12 +48,20 @@ async function cajaEnElHueco(
   return { arriba: caja.y - marco.y, alto: caja.height }
 }
 
-// La línea del aviso y el primer bloque («Ruta») del formulario: lo que no debe moverse.
+// La línea del aviso y el grupo de las notas: lo que no debe moverse.
 async function medirElFormulario(page: Page, hueco: Locator) {
   return {
     aviso: await cajaEnElHueco(page, hueco.locator('[data-aviso-del-transporte]')),
-    ruta: await cajaEnElHueco(page, hueco.locator('[data-slot="bloque"]').first()),
+    notas: await cajaEnElHueco(page, hueco.getByRole('region', { name: 'Notas' })),
   }
+}
+
+// «Elegir o crear» (o «Cambiar») abre el modal; sin la regla del contenedor apagada, primero se elige «Embarque».
+async function abrirElModal(page: Page, hueco: Locator): Promise<Locator> {
+  await hueco.getByRole('button', { name: /Elegir o crear|Cambiar/ }).click()
+  const modal = page.getByRole('dialog', { name: 'Elegir contenedor o embarque' })
+  await modal.getByRole('button', { name: 'Embarque', exact: true }).click()
+  return modal
 }
 
 function mismaCaja(
@@ -82,7 +91,7 @@ test.afterAll(async () => {
   await borrarRolesDePrueba()
 })
 
-test('E2E el hueco crea el embarque con un booking nuevo y después le suma otro vehículo', async ({
+test('E2E el hueco crea el embarque con booking y naviera y después otro vehículo lo elige', async ({
   page,
 }) => {
   const booking = `EBK-${proyecto.toUpperCase()}`
@@ -99,51 +108,51 @@ test('E2E el hueco crea el embarque con un booking nuevo y después le suma otro
     esqueleto.locator('[data-aviso-del-transporte]'),
   )
   const hueco = page.locator('[data-hueco="transporte"]')
-  await expect(hueco.getByText('Esta unidad todavía no tiene transporte cargado.')).toBeVisible()
+  await expect(hueco.getByText('Todavía no va en ningún contenedor.')).toBeVisible()
   await page.unroute('**/*')
   const sinTransporte = await medirElFormulario(page, hueco)
   mismaCaja(lineaDelEsqueleto, sinTransporte.aviso)
 
-  // Un booking nuevo crea el embarque del origen, con la naviera y la ETA; la unidad va en él, sin datos propios.
-  await hueco.getByLabel('Naviera').selectOption({ label: terreno.naviera.nombre })
-  await hueco.getByLabel('Booking', { exact: true }).fill(booking.toLowerCase())
-  await hueco.getByLabel('ETA').fill('2026-12-15')
-  await hueco.getByRole('button', { name: 'Guardar' }).click()
-  await expect(page.getByText('Transporte guardado.')).toBeVisible()
+  // «Crear» con booking y naviera: el embarque del origen nace y la unidad va en él, sin datos propios.
+  const modal = await abrirElModal(page, hueco)
+  await modal.getByRole('button', { name: 'Nuevo', exact: true }).click()
+  await modal.getByLabel('Booking').fill(booking.toLowerCase())
+  await modal.getByLabel('Naviera').selectOption({ label: terreno.naviera.nombre })
+  await modal.getByRole('button', { name: 'Crear embarque' }).click()
+  await expect(page.getByText(`Va en: Embarque ${booking}.`)).toBeVisible()
   const embarque = await embarqueDeLaBase(terreno.origen.id, booking)
-  expect(embarque).toMatchObject({ eta_el: '2026-12-15', naviera_id: terreno.naviera.id })
+  expect(embarque).toMatchObject({ naviera_id: terreno.naviera.id })
   expect(await transporteDe(terreno.enFase.id)).toMatchObject({
     embarque_id: embarque?.id,
     contenedor_id: null,
     booking,
-    eta_el: '2026-12-15',
   })
+  // Lo del embarque se muestra, no es campo: la naviera como texto y el enlace a su página.
+  await expect(hueco.getByText(`Embarque ${booking}`)).toBeVisible()
+  await expect(hueco.getByText(terreno.naviera.nombre)).toBeVisible()
+  await expect(hueco.getByLabel('Naviera')).toHaveCount(0)
+  await expect(hueco.getByLabel('ETA')).toHaveCount(0)
+  await expect(hueco.getByRole('link', { name: 'Editar el embarque' })).toHaveAttribute(
+    'href',
+    new RegExp(`/logistica/embarques/${embarque?.id}`),
+  )
   // Sola en su embarque: la línea queda vacía, con su alto.
   await expect(hueco.locator('[data-aviso-del-transporte]')).toHaveText('')
   const sola = await medirElFormulario(page, hueco)
-  mismaCaja(sola.aviso, sinTransporte.aviso)
-  mismaCaja(sola.ruta, sinTransporte.ruta)
 
-  // El mismo booking en el otro vehículo lo suma al embarque: toma su ETA.
+  // El otro vehículo lo elige de la lista (los primeros diez del origen).
   const otro = await abrirElHueco(page, terreno.sinFase.id)
-  await expect(otro.getByText('Esta unidad todavía no tiene transporte cargado.')).toBeVisible()
-  await otro.getByLabel('Booking', { exact: true }).fill(booking)
-  await otro.getByRole('button', { name: 'Guardar' }).click()
-  await expect(page.getByText('Transporte guardado.')).toBeVisible()
+  const elegir = await abrirElModal(page, otro)
+  await elegir.getByRole('radio', { name: new RegExp(booking) }).check()
+  await elegir.getByRole('button', { name: 'Elegir', exact: true }).click()
+  await expect(page.getByText(`Va en: Embarque ${booking}.`)).toBeVisible()
   await expect(otro.getByText(AVISO_DE_LOS_DOS)).toBeVisible()
-  expect(await transporteDe(terreno.sinFase.id)).toMatchObject({
-    embarque_id: embarque?.id,
-    eta_el: '2026-12-15',
-  })
+  expect(await transporteDe(terreno.sinFase.id)).toMatchObject({ embarque_id: embarque?.id })
 
-  // De vuelta en el primero, el aviso dice a cuántos les cambia, sin mover el formulario; la ETA nueva es la de los dos.
+  // De vuelta en el primero, el aviso dice a cuántos les cambia, sin mover el formulario.
   const primero = await abrirElHueco(page, terreno.enFase.id)
   await expect(primero.getByText(AVISO_DE_LOS_DOS)).toBeVisible()
   const conAviso = await medirElFormulario(page, primero)
-  mismaCaja(conAviso.aviso, sinTransporte.aviso)
-  mismaCaja(conAviso.ruta, sinTransporte.ruta)
-  await primero.getByLabel('ETA').fill('2026-12-20')
-  await primero.getByRole('button', { name: 'Guardar' }).click()
-  await expect(page.getByText('Transporte guardado.')).toBeVisible()
-  await expect.poll(async () => (await transporteDe(terreno.sinFase.id))?.eta_el).toBe('2026-12-20')
+  mismaCaja(conAviso.aviso, sola.aviso)
+  mismaCaja(conAviso.notas, sola.notas)
 })

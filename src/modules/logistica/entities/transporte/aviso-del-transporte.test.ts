@@ -51,13 +51,9 @@ describe('avisoDelTransporte', () => {
     )
   })
 
-  it('en un contenedor sin embarque, sólo el booking es de todos', () => {
-    expect(avisoDelTransporte(conContenedor({ ...solo, n: 8 }))).toBe(
-      'El booking cambia para los 8 vehículos de este contenedor.',
-    )
-    expect(avisoDelTransporte(conContenedor({ ...solo, hayOcultas: true }))).toBe(
-      'El booking cambia para este vehículo y otros que no puedes ver.',
-    )
+  it('en un contenedor sin embarque no hay nada de todos que se cambie aquí', () => {
+    expect(avisoDelTransporte(conContenedor({ ...solo, n: 8 }))).toBeNull()
+    expect(avisoDelTransporte(conContenedor({ ...solo, hayOcultas: true }))).toBeNull()
   })
 
   it('en un contenedor con embarque manda el embarque', () => {

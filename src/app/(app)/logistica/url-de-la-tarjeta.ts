@@ -1,4 +1,5 @@
 import {
+  CLAVE_DE_DONDE_VIAJA,
   CLAVE_DE_GASTO,
   CLAVE_DE_PAGO,
   CLAVE_DE_SUBIR,
@@ -20,6 +21,8 @@ const URL_DE_LA_TARJETA: Partial<Record<ClaveDeTarjeta, UrlDeLaTarjeta>> = {
     claves: [CLAVE_DE_SUBIR, CLAVE_DEL_TIPO_A_SUBIR],
     abreSola: [{ clave: CLAVE_DE_SUBIR, valores: ['documentos'] }],
   },
+  // «Elegir o crear» del hueco (`?transporte=donde-viaja`) se cierra con su drawer.
+  transporte: { claves: [CLAVE_DE_DONDE_VIAJA] },
   dinero: {
     claves: [CLAVE_DE_PANEL, CLAVE_DE_GASTO, CLAVE_DE_PAGO],
     abreSola: [{ clave: CLAVE_DE_PANEL, valores: [...PANELES_DEL_GASTO, ...PANELES_DEL_PAGO] }],

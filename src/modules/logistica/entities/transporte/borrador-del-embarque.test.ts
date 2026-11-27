@@ -3,6 +3,7 @@ import {
   borradorDelContenedor,
   borradorDelEmbarque,
   cambiosDe,
+  errorDelCodigo,
   validarContenedor,
   validarEmbarque,
 } from './borrador-del-embarque'
@@ -104,5 +105,15 @@ describe('el borrador del contenedor', () => {
       sello: 'x'.repeat(41),
     })
     expect(r.ok ? null : r.errores['sello']).toBe('El sello lleva hasta 40 caracteres.')
+  })
+})
+
+describe('errorDelCodigo', () => {
+  it('pide el código, lo normaliza y frena lo que la base no guarda', () => {
+    expect(errorDelCodigo('  ', 'número')).toBe('Escribe el número.')
+    expect(errorDelCodigo('mscu 123', 'número')).toBeNull()
+    expect(errorDelCodigo('bk#1', 'booking')).toBe(
+      'El booking lleva sólo letras, dígitos, punto, barra o guion (hasta 40).',
+    )
   })
 })

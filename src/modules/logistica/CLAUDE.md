@@ -223,13 +223,21 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   ≤ 60, código ≤ 12 en mayúsculas sin espacios, orden 0–32.767); la unicidad es de la base, por origen y clave (sin mayúsculas, tildes ni espacios de más), también la
   de un puerto sin país. `<AvisoDeTope>` a 200.
   **Hueco «Transporte»** (`pantallas/transporte-unidad.ts`; `logistica.ver`, regla `transporte`; sólo vehículos): lee `transporte_leer` (la fila con lo resuelto
-  de su embarque y, aparte, su embarque y su contenedor con su versión, su estado y cuántos vehículos visibles llevan: `entities/transporte/lectura-de-la-unidad.ts`) y
-  escribe `guardarTransporte` → `transporte_guardar` con la versión de la fila, la del embarque y la del contenedor que leyó. Un booking o un contenedor tipeado se busca en el
-  origen de la unidad o se crea. Sobre los campos, `LineaDelAviso` dice a quiénes les cambia lo que se guarda (`avisoDelTransporte`: «Cambia para los 2 vehículos de este
-  embarque.», «… y otros que no puedes ver.»), con su alto reservado desde `EsqueletoDelTransporte`. Opciones = lo que ofrece el flujo y usa el origen de la unidad (oferta vacía = todo lo activo que usa: sus propios y
+  de su embarque y, aparte, su embarque y su contenedor con su versión, su estado y cuántos vehículos visibles llevan: `entities/transporte/lectura-de-la-unidad.ts`) y si el flujo
+  usa contenedores (regla `contenedor`, `usaContenedores`). Grupos planos a la vista, en orden de uso (`FormularioDeTransporte`): **«Dónde viaja»** (`DondeViaja`,
+  `entities/transporte/donde-viaja.ts`): el contenedor o el embarque con su `InsigniaDeEstado` y, con embarque, lo suyo mostrado y no repetido como campo (naviera, ruta, zarpe,
+  llegada estimada y real), `LineaDelAviso` («Cambia para los 2 vehículos de este embarque.», `avisoDelTransporte`, alto reservado desde `EsqueletoDelTransporte`), «Elegir o crear»
+  (o «Cambiar») y «Editar el embarque» (`embarqueDeLogistica`; «Ver el embarque» sin permiso) o, en un contenedor sin embarque, «Ver el contenedor». «Elegir o crear» abre
+  `ModalDondeViaja` (`?transporte=donde-viaja`, `CLAVE_DE_DONDE_VIAJA`, diferido y **fuera** del `<form>` del hueco: su `submit` subiría por el portal): «Contenedor | Embarque»
+  (contenedores sólo con `usaContenedores`), «De los que hay» (los primeros 10 del origen por `contenedores_listar`/`embarques_listar`, buscar por prefijo desde 3) o «Nuevo» (número y
+  tipo, o booking y naviera); escribe `ponerElVehiculoEnTransporte` (crea con el id del intento y `transporte_asignar` con la versión). Si ya va en otro, `avisoDeMover` lo dice y el
+  botón es «Moverlo» (la confirmación); el respaldo de la base (`causa: 'mover'`) deja su mensaje y el siguiente envío lleva `mover`. «Completar» de «Qué falta» enfoca por
+  `[data-clave-de-dato~=clave]`: «Elegir o crear» cumple contenedor y booking; «Editar el embarque», naviera y fechas. **Sin embarque**, «Ruta» y «Fechas» son del vehículo (la
+  base no deja propios con embarque, `transportes_embarque_sin_propios`); siempre «Notas»; un «Guardar» → `guardarTransporte` → `transporte_guardar` con la versión de la fila, la del
+  embarque y la del contenedor, sólo con lo cambiado. Opciones = lo que ofrece el flujo y usa el origen de la unidad (oferta vacía = todo lo activo que usa: sus propios y
   los compartidos que no tapa) **más lo ya guardado**, rotulado «(de otro origen)», «(tapado)»/«(tapada)», «(inactiva)» o «(fuera de la oferta)»
   (`entities/transporte/oferta.ts`, `entities/nucleo/alcance-del-catalogo.ts`); lo guardado que no vino en la lectura del origen se pide aparte: nunca se vacía. `useBorradorDeTransporte` guarda los campos tocados: tras un `PT409`, «Recargar» trae la versión nueva y lo
-  escrito sigue. Sin `logistica.transporte.editar` del origen, campos apagados con el motivo. `entities/transporte/transporte.ts` repite los textos de la base
+  escrito sigue. Sin `logistica.transporte.editar` del origen, campos apagados con el motivo y sin «Elegir o crear». `entities/transporte/transporte.ts` repite los textos de la base
   (contenedor y booking `^[A-Z0-9./-]{1,40}$` tras quitar **todo** espacio y pasar a mayúsculas; notas ≤ 2.000; ETA y arribo no antes del zarpe) sólo en lo
   que cambió; `porCampoDe` lleva el `hint` al campo. Un rechazo sin campo va en un aviso sobre «Guardar».
   **`/logistica/embarques`:** los embarques o los contenedores del origen elegido, cada uno con su estado (`entities/transporte/estado.ts`: lo calcula la base) y lo que lleva;

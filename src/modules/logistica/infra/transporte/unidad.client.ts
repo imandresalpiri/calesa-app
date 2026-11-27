@@ -1,5 +1,5 @@
 // Lo que el hueco «Transporte» de la unidad lee desde el navegador, con la sesión de quien mira (6.08-2): su transporte con lo de su embarque (`transporte_leer`, que pide `logistica.ver`
-// del vehículo y trae el embarque y el contenedor con su versión y cuántos vehículos llevan), el flujo activo de su origen, la oferta de ese flujo (`flujo_oferta`, `security invoker`) y los
+// del vehículo y trae el embarque y el contenedor con su versión y cuántos vehículos llevan), el flujo activo de su origen con sus reglas (si usa contenedores), la oferta de ese flujo (`flujo_oferta`, `security invoker`) y los
 // puertos y navieras que usa su origen (los compartidos y los propios de él) para nombrar lo ofrecido y lo ya guardado. Cuatro pedidos en paralelo y, tras ellos, la oferta (necesita el
 // flujo) y lo guardado que no vino (otro origen, o más allá del tope), sin nada por fila. Índices: `transportes_vehiculo_id_key` y las pkey de embarque y contenedor (en `transporte_leer`),
 // `flujos` por origen y ámbito; puertos y navieras son tablas de decenas de filas (`.limit(201)`), ordenadas con los compartidos al final para que el tope corte un compartido antes que el
@@ -29,6 +29,8 @@ import type { Transporte } from '../../entities/transporte/transporte'
 export const NO_SE_CARGO_EL_TRANSPORTE = 'No se pudo cargar el transporte.'
 
 const TOPE_DEL_CATALOGO = 200
+// Las reglas de un flujo son las claves del `check` de `flujos_reglas` (diez): con veinte sobra.
+const TOPE_DE_REGLAS = 20
 
 export type TransporteDeLaUnidad = {
   // Nulo = la unidad todavía no tiene transporte cargado.
@@ -43,6 +45,8 @@ export type TransporteDeLaUnidad = {
   // Qué usa el origen de la unidad y qué de lo leído está tapado o es de otro origen (para rotular lo guardado).
   alcanceDeNavieras: AlcanceDelCatalogo
   alcanceDePuertos: AlcanceDelCatalogo
+  // Si el flujo activo del origen tiene la regla `contenedor`: sin ella, «Dónde viaja» sólo ofrece embarques.
+  usaContenedores: boolean
 }
 
 type UnidadLeida = Pick<Unidad, 'tipo' | 'id' | 'origenId'>
@@ -67,13 +71,15 @@ async function leerLoDeLaUnidad(unidad: UnidadLeida) {
   const supabase = createClient()
   return Promise.all([
     supabase.rpc('transporte_leer', { p_vehiculo: unidad.id }),
+    // Con sus reglas (configuración: diez claves como mucho, `flujos_reglas_pkey`), para saber si usa contenedores.
     supabase
       .from('flujos')
-      .select('id')
+      .select('id, reglas:flujos_reglas(regla, activa)')
       .eq('origen_id', unidad.origenId)
       .eq('ambito', unidad.tipo === 'vehiculo' ? 'vehiculos' : 'repuestos')
       .eq('activo', true)
-      .limit(1),
+      .limit(1)
+      .limit(TOPE_DE_REGLAS, { referencedTable: 'flujos_reglas' }),
     leerCatalogo('puertos', unidad.origenId),
     leerCatalogo('navieras', unidad.origenId),
   ])
@@ -196,7 +202,9 @@ export async function leerTransporteDeLaUnidad(
     return catalogos
   }
   const { puertos: todosLosPuertos, navieras: todasLasNavieras } = catalogos.data
+  const reglas = flujos.data?.[0]?.reglas ?? []
   return ok({
+    usaContenedores: reglas.some((r) => r.regla === 'contenedor' && r.activa),
     transporte: leido.transporte,
     embarque: leido.embarque,
     contenedorDeLaUnidad: leido.contenedorDeLaUnidad,

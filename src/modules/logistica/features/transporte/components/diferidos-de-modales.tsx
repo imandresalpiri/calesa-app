@@ -10,3 +10,9 @@ export const ModalDePuertoDiferido = diferido(() =>
 export const ModalDeNavieraDiferido = diferido(() =>
   import('./modal-de-naviera').then((modulo) => modulo.ModalDeNaviera),
 )
+
+// «Elegir o crear» del hueco «Transporte»: su código (las listas, «Crear» y el envío) llega al abrirlo.
+export const ModalDondeViajaDiferido = diferido(
+  () => import('./modal-donde-viaja').then((modulo) => modulo.ModalDondeViaja),
+  { aviso: 'pantalla' },
+)

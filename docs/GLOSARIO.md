@@ -1042,6 +1042,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Contenedor** — `contenedores` / `contenedor_crear|guardar()`: número (único por origen), tipo y sello, en un embarque o todavía sin él (entonces
   sus vehículos llevan sus fechas propias). Entrar a un embarque, cambiar de embarque o salir de él cambia los datos de todos sus vehículos. Se lista con
   `contenedores_listar()` y se abre en su drawer por id (`?contenedor=<id>`, `contenedor_leer()`).
+- **Dónde viaja** — `entities/transporte/donde-viaja.ts`, `DondeViaja`: el contenedor o el embarque en que va una unidad, lo primero de su hueco «Transporte» y de la
+  declaración aduanera. Se elige de los del origen o se crea ahí mismo con lo mínimo («Elegir o crear»); elegir otro cuando ya va en uno la **mueve** («Moverlo»). No: «asignación»,
+  «ubicación».
 - **Suelto** — `QUE_SON_LOS_SUELTOS`, la sección «Sueltos» de la página de un embarque: vehículo de un embarque que no va en un contenedor. No: «sin contenedor».
 - **Algo que falta** — `faltan` de `embarques_listar()` / `contenedores_listar()` y `falta` por vehículo de `embarque_leer()`: al vehículo le falta un requisito bloqueante
   de su fase siguiente (el criterio de los trabados, sin mirar la demora). En la lista, con tope de 200 evaluaciones por llamada (`{ n, hay_mas }`). No es «Trabado»

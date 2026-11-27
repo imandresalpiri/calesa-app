@@ -17,8 +17,11 @@ export { leerMisPermisos } from '../../infra/transporte/permisos.client'
 
 // Lo que ofrecen los selectores de los formularios de un embarque y un contenedor.
 export {
+  leerContenedoresParaElegir,
   leerContenedoresSinEmbarque,
   leerEmbarquesParaElegir,
+  leerTiposDeContenedorParaElegir,
+  type TipoParaElegir,
   NO_SE_CARGARON_LAS_OPCIONES,
   TOPE_PARA_ELEGIR,
   type OpcionesParaElegir,

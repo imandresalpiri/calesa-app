@@ -86,10 +86,14 @@ test('E2E que falta · un dato que falta lleva a su campo para completarlo', asy
   const contenedor = requisito(page, 'Contenedor')
   await contenedor.getByRole('button', { name: 'Completar «Contenedor»' }).click()
   const hueco = page.locator('[data-hueco="transporte"]')
-  const campo = hueco.getByLabel('Contenedor', { exact: true })
-  await expect(campo).toBeFocused()
-  await campo.fill('ecmu 765432')
-  await hueco.getByRole('button', { name: 'Guardar' }).click()
+  // El contenedor se elige o se crea: «Completar» lleva a «Elegir o crear».
+  const elegir = hueco.getByRole('button', { name: 'Elegir o crear' })
+  await expect(elegir).toBeFocused()
+  await elegir.click()
+  const modal = page.getByRole('dialog', { name: 'Elegir contenedor o embarque' })
+  await modal.getByRole('button', { name: 'Nuevo', exact: true }).click()
+  await modal.getByLabel('Número').fill('ecmu 765432')
+  await modal.getByRole('button', { name: 'Crear contenedor' }).click()
   await expect.poll(() => contenedor.getAttribute('data-requisito')).toBe('cumplido')
 })
 

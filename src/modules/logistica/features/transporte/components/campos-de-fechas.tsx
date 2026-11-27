@@ -4,10 +4,7 @@ import type { ReactNode } from 'react'
 import { Campo } from '@/shared/ui/campo'
 import { Label } from '@/shared/ui/label'
 import { Textarea } from '@/shared/ui/textarea'
-import {
-  LARGO_MAXIMO_DE_LAS_NOTAS_DE_TRANSPORTE,
-  LARGO_MAXIMO_DEL_CONTENEDOR,
-} from '../../../entities/transporte/transporte'
+import { LARGO_MAXIMO_DE_LAS_NOTAS_DE_TRANSPORTE } from '../../../entities/transporte/transporte'
 import { ATRIBUTO_DE_CLAVE_DE_DATO } from '../../../entities/nucleo/paneles-de-la-unidad'
 import type { PropsDeCampos } from './campos-de-ruta'
 
@@ -20,61 +17,10 @@ export function CampoDeLaClave({ clave, children }: { clave: string; children: R
   )
 }
 
-// «Contenedor y booking»: se escriben como salgan; la base los guarda en mayúsculas y sin espacios (6.08-2).
-export function CamposDeContenedor({
-  prefijo,
-  valores,
-  errores,
-  escribir,
-  apagado,
-}: PropsDeCampos) {
+// «Fechas» del vehículo sin embarque (con embarque son las del embarque): son `date` (sin hora, D18) y viajan `AAAA-MM-DD` tal cual.
+export function CamposDeFechas({ prefijo, valores, errores, escribir, apagado }: PropsDeCampos) {
   return (
-    <>
-      <CampoDeLaClave clave="transporte.contenedor">
-        <Campo
-          nombre={`${prefijo}-contenedor`}
-          etiqueta="Contenedor"
-          autoComplete="off"
-          autoCapitalize="characters"
-          maxLength={LARGO_MAXIMO_DEL_CONTENEDOR * 2}
-          value={valores.contenedor}
-          onChange={(e) => {
-            escribir('contenedor', e.target.value)
-          }}
-          error={errores.contenedor}
-          disabled={apagado}
-        />
-      </CampoDeLaClave>
-      <CampoDeLaClave clave="transporte.booking">
-        <Campo
-          nombre={`${prefijo}-booking`}
-          etiqueta="Booking"
-          autoComplete="off"
-          autoCapitalize="characters"
-          maxLength={LARGO_MAXIMO_DEL_CONTENEDOR * 2}
-          value={valores.booking}
-          onChange={(e) => {
-            escribir('booking', e.target.value)
-          }}
-          error={errores.booking}
-          disabled={apagado}
-        />
-      </CampoDeLaClave>
-    </>
-  )
-}
-
-// «Fechas y notas»: son `date` (sin hora, D18) y viajan `AAAA-MM-DD` tal cual.
-export function CamposDeFechasYNotas({
-  prefijo,
-  valores,
-  errores,
-  escribir,
-  apagado,
-}: PropsDeCampos) {
-  const idDeNotas = `${prefijo}-notas`
-  return (
-    <>
+    <div className="grid gap-4 sm:grid-cols-3">
       <CampoDeLaClave clave="transporte.zarpe">
         <Campo
           nombre={`${prefijo}-zarpe`}
@@ -114,8 +60,26 @@ export function CamposDeFechasYNotas({
           disabled={apagado}
         />
       </CampoDeLaClave>
+    </div>
+  )
+}
+
+// Las notas del vehículo: van siempre (también con embarque, que tiene las suyas en su página).
+export function CampoDeNotasDelTransporte({
+  prefijo,
+  valores,
+  errores,
+  escribir,
+  apagado,
+}: PropsDeCampos) {
+  const idDeNotas = `${prefijo}-notas`
+  return (
+    <>
       <div className="grid gap-1.5">
-        <Label htmlFor={idDeNotas}>Notas</Label>
+        {/* El grupo ya se titula «Notas»: el campo dice de quién son. */}
+        <Label htmlFor={idDeNotas} className="sr-only">
+          Notas del vehículo
+        </Label>
         <Textarea
           id={idDeNotas}
           name={idDeNotas}

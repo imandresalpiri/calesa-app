@@ -1411,20 +1411,23 @@ Esc cierra sólo el de arriba). El atajo de una falta abre la tarjeta de su huec
   conserva la nota. Una unidad **fuera de regla** lo dice arriba. Estados: esqueleto, error con «Reintentar», sin fase, sin destinos, tope
   de 12 destinos con aviso, «Actualizando…» al releer (al volver el foco, mínimo 5 s entre lecturas); sin permiso de mover, la lista sin
   «Elegir».
-- **Hueco «Transporte»:** «Ruta» (naviera, puertos de origen y destino), «Contenedor y booking» (en mayúsculas y sin espacios) y «Fechas y
-  notas» (zarpe, ETA, arribo, notas ≤ 2.000) con un «Guardar» que manda sólo lo que cambió (apagado sin cambios, guardando o sin permiso).
-  El selector ofrece la oferta del flujo que usa el origen (vacía = todo lo activo que usa el origen: sus propios y los compartidos que no tapa)
-  y siempre lo guardado, rotulado «(de otro origen)», «(tapado)», «(inactiva)» o «(fuera de la oferta)», en ese orden; nunca se vacía.
-  Rechazo de la base por algo de otro origen: «Esa naviera es de otro origen.», junto a su campo.
-  Rechazos junto a su campo (ETA antes del zarpe, la fase no permite o exige contenedor) con el foco al primero; conflicto dentro del
-  formulario con «Recargar», que conserva lo escrito. Sin `logistica.transporte.editar` del origen, campos apagados con su motivo. Vacíos:
-  sin transporte cargado; sin navieras (con `logistica.catalogos.gestionar`, «Cargar navieras»). Guardar relee «Qué falta». Una unidad de
-  repuesto: `TEXTO_DE_REPUESTO`. Sobre los campos, una línea de alto fijo (que el esqueleto ya reserva y queda vacía si no hace falta) dice a
-  quiénes alcanza lo que se guarda: «Cambia para los N vehículos de este embarque.» (hasta «100+»; con « y otros que no puedes ver» si los
-  hay, o «Cambia para este vehículo y otros que no puedes ver.»), «El booking cambia para los N vehículos de este contenedor.» en un
-  contenedor sin embarque, o «Esta unidad todavía no tiene transporte cargado.»; tipear o guardar no la mueve. Un booking nuevo crea su
-  embarque; uno que ya existe en el origen no acepta, de paso, otra naviera o fechas («El embarque «X» ya existe: guarda el booking y después
-  cambia sus datos.», junto a «Booking»).
+- **Hueco «Transporte»:** grupos planos a la vista, en el orden en que se usan. **«Dónde viaja»** primero: el contenedor o el embarque con su estado (`<Badge>` con texto, el de
+  la base) y, si va en un contenedor de un embarque, «En el embarque X»; con embarque, lo suyo se muestra y no se repite como campo (naviera, ruta, zarpe, «Llegada estimada»
+  —«Sin fecha»— y «Llegada real» —«Todavía no llegó»—) con **«Editar el embarque»** (su página; «Ver el embarque» sin `logistica.transporte.editar`); un contenedor sin embarque,
+  «Ver el contenedor». Sin ninguno: «Todavía no va en ningún contenedor.» (o «… embarque.» si el flujo no usa contenedores) con **«Elegir o crear»**; con uno, «Cambiar». Una línea
+  de alto fijo (que el esqueleto ya reserva y queda vacía si no hace falta) dice a quiénes alcanza lo del embarque: «Cambia para los N vehículos de este embarque.» (hasta «100+»;
+  con « y otros que no puedes ver» si los hay, o «Cambia para este vehículo y otros que no puedes ver.»). **«Elegir o crear»** abre un modal (`?transporte=donde-viaja`):
+  «Contenedor | Embarque» (contenedores sólo si el flujo los usa; uno de otro origen nunca se ofrece), «De los que hay» —los primeros 10 del origen con su estado, su llegada y
+  cuántos lleva, como radios, y «Buscar» por el comienzo desde 3 letras o dígitos («Se muestran los primeros 10. Busca para ver otros.»)— o «Nuevo» —número y tipo del contenedor, o
+  booking y naviera del embarque, en mayúsculas y sin espacios—; lo demás se completa en su página. Si ya va en otro, el modal lo dice antes («Hoy va en el contenedor X. Se mueve
+  al elegido.») y el botón es «Moverlo»; al lograrlo, «Va en: Contenedor X.», el hueco se relee y «Qué falta» también. **Sin embarque**, «Ruta» (naviera, puertos de origen y
+  destino) y «Fechas» (zarpe, ETA, arribo) son del vehículo; siempre «Notas» (≤ 2.000). Un «Guardar» manda sólo lo que cambió (apagado sin cambios, guardando o sin permiso).
+  El selector ofrece la oferta del flujo que usa el origen (vacía = todo lo activo que usa el origen: sus propios y los compartidos que no tapa) y siempre lo guardado, rotulado
+  «(de otro origen)», «(tapado)», «(inactiva)» o «(fuera de la oferta)», en ese orden; nunca se vacía. Rechazo de la base por algo de otro origen: «Esa naviera es de otro
+  origen.», junto a su campo. Rechazos junto a su campo (ETA antes del zarpe) con el foco al primero; conflicto dentro del formulario o del modal con «Recargar», que conserva lo
+  escrito. Sin `logistica.transporte.editar` del origen, campos apagados con su motivo y sin «Elegir o crear». Vacíos: sin destino; sin navieras (con
+  `logistica.catalogos.gestionar`, «Cargar navieras»). Guardar relee «Qué falta»; «Completar» de un contenedor o un booking lleva a «Elegir o crear» y el de la naviera o una
+  fecha con embarque, a «Editar el embarque». Una unidad de repuesto: `TEXTO_DE_REPUESTO`.
 - **Notas e historial** (dos tarjetas; «Escribir una nota» abre Notas con el campo enfocado): «Notas» con «Escribir una nota» (`<Textarea>`, contador de 2.000, «Guardar nota», `Ctrl/Cmd+Enter`; el
   error junto al botón y el texto queda) y las notas de la más nueva: quién, cuándo, texto; la que dejó un cambio de fase dice «al pasar a
   «<fase>»» y no se edita. «Editar» sólo la propia, en el lugar. **No hay «Borrar»**: la base no deja el borrado suave por `update` (pide

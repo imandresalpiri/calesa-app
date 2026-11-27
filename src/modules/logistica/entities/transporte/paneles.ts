@@ -64,3 +64,8 @@ export function vistaDelOrigen(
   const vista = pedida ?? vistas[0]
   return vista !== undefined && vistas.includes(vista) ? vista : 'no_usa'
 }
+
+// El modal «Dónde viaja» del hueco «Transporte» (elegir o crear el contenedor o el embarque en que va la unidad): `?transporte=donde-viaja`, en la página de la unidad y en el panel
+// de Gastos. Otra clave que `?panel=`: el drawer de la tarjeta y el panel de Gastos ya usan ésa.
+export const CLAVE_DE_DONDE_VIAJA = 'transporte'
+export const PANEL_DONDE_VIAJA = 'donde-viaja'
