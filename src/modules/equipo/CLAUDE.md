@@ -14,9 +14,9 @@ Autenticación, perfiles, roles y permisos (RBAC puro), invitaciones, bloqueo, b
 ## Archivos clave
 
 - `entities/sesion.ts` — `Sesion` desde `mi_sesion()` (permisos **efectivos**). `entities/preferencias.ts` — última escritura gana, sin versión. Las de una
-  lista las lee su página, no `ProveedorPreferencias`: `vehiculos.vista`, `cotizaciones.vista` (tabla o tarjetas) y `cotizaciones.agrupar` (booleano) y
+  lista las lee su página, no `ProveedorPreferencias`: `vehiculos.vista`, `cotizaciones.vista`, `embarques.vista` (tabla o tarjetas) y `cotizaciones.agrupar` (booleano) y
   `leads.embudo_de_la_ficha` (id del embudo que deja a la vista la ficha del lead; `CLAVE_DE_EMBUDO_DE_LA_FICHA` sale por `client.ts`; la lee la página de la ficha),
-  cada una con su `check` en `preferencias_usuario` (`supabase/tests/areas/equipo/preferencias-de-cotizaciones.sql`, `preferencias-del-embudo-de-la-ficha.sql`). `menu.plegado` (booleano, el menú lateral plegado) sí
+  cada una con su `check` en `preferencias_usuario` (`supabase/tests/areas/equipo/preferencias-de-cotizaciones.sql`, `preferencia-de-la-vista-de-embarques.sql`, `preferencias-del-embudo-de-la-ficha.sql`). `menu.plegado` (booleano, el menú lateral plegado) sí
   viaja en `ProveedorPreferencias`: `<ProveedorDelMenuPlegado>` aplica el cambio al instante, lo guarda esperando la respuesta y, sin red, reenvía el último valor al volver
   (`useReintentoAlVolver`); `useMenuPlegado()` (`shell.client.ts`) lo lee el menú lateral y deja su copia en la cookie `menu-plegado` para la cáscara (`@/shared/lib/menu-plegado`);
   su `check` en `supabase/tests/areas/equipo/preferencia-del-menu-plegado.sql`. `logistica.ultimo_origen` (`ultimoOrigenDeLogistica`, el uuid del «Último origen»

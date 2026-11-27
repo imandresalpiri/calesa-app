@@ -8,6 +8,7 @@
 --   DE2. El texto y el tope: por título, VIN y lote sin mayúsculas; corto o nulo, vacío; de más de 100, 22023 hint `p_buscar`; hasta 10 con
 --        `hay_mas`; el VIN exacto primero; las claves de cada unidad.
 --   DE3. Con `p_origen`, sólo ese origen (y sólo si lo ve); sin él, todos los que ve (el enlace «Buscar en todos los orígenes»).
+--   DE4. Cada unidad dice en qué contenedor y embarque va, y la versión de su transporte («Agregar vehículos» avisa antes de mover).
 
 create or replace function pg_temp.md_sin_duena() returns void language plpgsql as $f$
 begin
@@ -177,7 +178,8 @@ begin
     raise exception 'DE2: con 12 y tope 1000 debía traer 10 y hay_mas, y dio %', r;
   end if;
   if (select array_agg(k order by k) from jsonb_object_keys(r -> 'unidades' -> 0) k) is distinct from
-     array['eta_el', 'fase_color', 'fase_desde', 'fase_id', 'fase_nombre', 'id', 'lote', 'origen_id', 'titulo', 'vin'] then
+     array['booking', 'contenedor', 'contenedor_id', 'embarque_id', 'eta_el', 'fase_color', 'fase_desde', 'fase_id', 'fase_nombre', 'id', 'lote',
+           'origen_id', 'titulo', 'transporte_actualizado_en', 'vin'] then
     raise exception 'DE2: las claves de una unidad no son las esperadas: %', r -> 'unidades' -> 0;
   end if;
 
@@ -209,5 +211,32 @@ begin
   perform pg_temp.md_mismos('DE3 en todos', pg_temp.md_donde(duena, 'mdomega', 10, null), array[v_a, v_b]);
   perform pg_temp.md_mismos('DE3 en un origen que no ve, nada', pg_temp.md_donde(solo_a, 'mdomega', 10, ob), '{}');
   perform pg_temp.md_mismos('DE3 en todos, sólo lo que ve', pg_temp.md_donde(solo_a, 'mdomega'), array[v_a]);
+end $$;
+rollback;
+
+-- @test dónde está: cada unidad con su contenedor, su embarque y la versión de su transporte; sin transporte, nulos (DE4)
+begin;
+do $$
+declare
+  a uuid := pg_temp.md_flujo(); o uuid := pg_temp.md_origen_de(a); f uuid := pg_temp.md_fase(a, 'md uno', 10);
+  duena uuid := pg_temp.md_persona(array['logistica.ver', 'vehiculos.ver']);
+  e uuid; c uuid; v_en uuid; v_sin uuid; r jsonb; u jsonb;
+begin
+  insert into public.embarques (origen_id, booking) values (o, 'MDBOOK1') returning id into e;
+  insert into public.contenedores (origen_id, numero, embarque_id) values (o, 'MDCONT1', e) returning id into c;
+  v_en := pg_temp.md_vehiculo(o, f, null, null, 'mdsigma en contenedor');
+  v_sin := pg_temp.md_vehiculo(o, f, null, null, 'mdsigma sin transporte');
+  insert into public.transportes (vehiculo_id, contenedor_id) values (v_en, c);
+  r := pg_temp.md_donde(duena, 'mdsigma');
+  select x into u from jsonb_array_elements(r -> 'unidades') x where x ->> 'id' = v_en::text;
+  if (u ->> 'contenedor_id')::uuid is distinct from c or u ->> 'contenedor' is distinct from 'MDCONT1' or (u ->> 'embarque_id')::uuid is distinct from e
+     or u ->> 'booking' is distinct from 'MDBOOK1'
+     or (u ->> 'transporte_actualizado_en')::timestamptz is distinct from (select t.actualizado_en from public.transportes t where t.vehiculo_id = v_en) then
+    raise exception 'DE4: la unidad en el contenedor dice cuál, su embarque y su versión: %', u;
+  end if;
+  select x into u from jsonb_array_elements(r -> 'unidades') x where x ->> 'id' = v_sin::text;
+  if u -> 'contenedor_id' <> 'null' or u -> 'embarque_id' <> 'null' or u -> 'transporte_actualizado_en' <> 'null' then
+    raise exception 'DE4: sin transporte, nulos: %', u;
+  end if;
 end $$;
 rollback;

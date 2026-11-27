@@ -108,6 +108,7 @@ export function sesionSinPerfil(usuarioId: string, email: string): Sesion {
       zonaHoraria: null,
       vistaDeVehiculos: null,
       vistaDeCotizaciones: null,
+      vistaDeEmbarques: null,
       agruparCotizaciones: null,
       embudoDeLaFicha: null,
       menuPlegado: null,

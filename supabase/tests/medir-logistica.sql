@@ -1,5 +1,5 @@
 -- Medición de la logística para cientos de miles de vehículos: el número de cada fase, la lista de una fase, la bandeja del día (`/logistica`), los grupos de
--- `/logistica/embarques` y la migración de los textos de booking y contenedor a embarques y contenedores.
+-- `/logistica/embarques`, los embarques y contenedores por su id y la migración de los textos de booking y contenedor a embarques y contenedores.
 -- `pnpm db:medir:volumen` (o `MEDIR_SOLO=medir-logistica pnpm db:medir:volumen`), contra el Supabase LOCAL con la siembra de volumen (la dueña y los
 -- 50.000 leads «Volumen» de `sembrar.sql`). Todo en una transacción que se revierte; `session_replication_role = replica` arma el terreno sin triggers.
 --
@@ -413,6 +413,37 @@ begin
 end $$;
 grant execute on all functions in schema pg_temp to authenticated;
 select pg_temp.grupos();
+
+-- Las entidades por su id: la lista de embarques y la de contenedores del origen (la primera página, una con cursor profundo y la de un estado que nadie
+-- cumple, que corta a los 500 mirados), un embarque de 8 por su id (con sus vehículos, sus declaraciones y lo que les falta), su contenedor y sus
+-- unidades para el lote.
+create function pg_temp.entidades() returns void language plpgsql as $$
+declare
+  o uuid := (select id from _o); v_emb uuid; v_cont uuid; v_cur_e uuid; v_cur_c uuid; q text; v_caso text; v_tipo text; v_ms int;
+begin
+  select c.id, c.embarque_id into v_cont, v_emb from public.contenedores c where c.origen_id = o and c.embarque_id is not null order by c.numero limit 1;
+  select e.id into v_cur_e from public.embarques e where e.origen_id = o order by e.booking offset 1000 limit 1;
+  select c.id into v_cur_c from public.contenedores c where c.origen_id = o order by c.numero offset 2000 limit 1;
+  foreach v_tipo in array array['embarques', 'contenedores'] loop
+    foreach v_caso in array array['la primera página', 'con cursor profundo', 'con un estado que nadie cumple'] loop
+      q := case v_caso
+             when 'la primera página' then format('select public.%s_listar(%L, null, 50, %L)', v_tipo, o, '{}')
+             when 'con cursor profundo' then format('select public.%s_listar(%L, %L, 50, %L)', v_tipo, o,
+                                                     case v_tipo when 'embarques' then v_cur_e else v_cur_c end, '{}')
+             else format('select public.%s_listar(%L, null, 50, %L)', v_tipo, o, '{"estado": "entregado"}') end;
+      v_ms := case v_caso when 'con un estado que nadie cumple' then 400 else 250 end;
+      perform pg_temp.m('entidades · ' || v_tipo || ', ' || v_caso, 'authenticated', 'duena', q, v_ms, null, 49152);
+      perform pg_temp.m('entidades · ' || v_tipo || ', ' || v_caso, 'authenticated', 'ana', q, v_ms, null, 49152);
+    end loop;
+  end loop;
+  perform pg_temp.m('entidades · un embarque por su id', 'authenticated', 'duena', format('select public.embarque_leer(%L)', v_emb), 30, null, 16384);
+  perform pg_temp.m('entidades · un embarque por su id', 'authenticated', 'ana', format('select public.embarque_leer(%L)', v_emb), 30, null, 16384);
+  perform pg_temp.m('entidades · un contenedor por su id', 'authenticated', 'duena', format('select public.contenedor_leer(%L)', v_cont), 20, null, 12288);
+  perform pg_temp.m('entidades · las unidades de un embarque', 'authenticated', 'duena',
+    format('select public.transporte_unidades(%L, %L)', 'embarque', v_emb), 20, null, 12288);
+end $$;
+grant execute on all functions in schema pg_temp to authenticated;
+select pg_temp.entidades();
 
 -- ---------------------------------------------------------------------------------------------------------------------------------
 -- Lo medido, y lo que no se cumplió

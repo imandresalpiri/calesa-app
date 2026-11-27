@@ -25,13 +25,14 @@ function esTema(valor: string | undefined): valor is Tema {
 // `widgetsDelTablero` no viaja a todo el árbol: sólo lo lee `/tablero`.
 // `menuPlegado` sí viaja: lo lee `<ProveedorDelMenuPlegado>`, que el menú lateral usa por `useMenuPlegado()`.
 // `zonaHoraria` va a `ProveedorRegional` (lo arma el layout), no a este proveedor; `vistaDeVehiculos` la lee `/vehiculos`, y `vistaDeCotizaciones` y
-// `agruparCotizaciones`, `/cotizaciones`; `embudoDeLaFicha`, la ficha del lead; `ultimoOrigenDeLogistica`, las páginas de Logística en el servidor.
+// `agruparCotizaciones`, `/cotizaciones`; `vistaDeEmbarques`, `/logistica/embarques`; `embudoDeLaFicha`, la ficha del lead; `ultimoOrigenDeLogistica`, las páginas de Logística en el servidor.
 type Props = Omit<
   Preferencias,
   | 'widgetsDelTablero'
   | 'zonaHoraria'
   | 'vistaDeVehiculos'
   | 'vistaDeCotizaciones'
+  | 'vistaDeEmbarques'
   | 'agruparCotizaciones'
   | 'embudoDeLaFicha'
   | 'ultimoOrigenDeLogistica'

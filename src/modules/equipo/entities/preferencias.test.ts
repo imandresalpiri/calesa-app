@@ -11,6 +11,7 @@ const SIN_ELEGIR = {
   zonaHoraria: null,
   vistaDeVehiculos: null,
   vistaDeCotizaciones: null,
+  vistaDeEmbarques: null,
   agruparCotizaciones: null,
   embudoDeLaFicha: null,
   menuPlegado: null,
@@ -154,6 +155,17 @@ describe('la lista de cotizaciones', () => {
     expect(
       esquemaPreferencia.safeParse({ clave: 'cotizaciones.vista', valor: 'Tabla' }).success,
     ).toBe(false)
+  })
+
+  it('«embarques.vista» se lee si es tabla o tarjetas; otra cosa queda sin elegir', () => {
+    expect(preferenciasDesde({ 'embarques.vista': 'tarjetas' }).vistaDeEmbarques).toBe('tarjetas')
+    expect(preferenciasDesde({ 'embarques.vista': 'lista' }).vistaDeEmbarques).toBeNull()
+    expect(esquemaPreferencia.safeParse({ clave: 'embarques.vista', valor: 'tabla' }).success).toBe(
+      true,
+    )
+    expect(esquemaPreferencia.safeParse({ clave: 'embarques.vista', valor: 'Tabla' }).success).toBe(
+      false,
+    )
   })
 
   it('«cotizaciones.agrupar» sólo como booleano; «si» o 1 quedan sin elegir', () => {
