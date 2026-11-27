@@ -89,7 +89,13 @@ function cifra(
     : { clave, etiqueta, monto, sinDato: null, nota }
 }
 
-/** Las cinco cifras del hueco «Margen», en su orden. Un `null` de la base nunca se vuelve 0 y un 0 de la base nunca se vuelve el texto del nulo. */
+const LINEA_DEL_MARGEN: Linea = {
+  clave: 'margen',
+  etiqueta: 'Margen',
+  sinDato: SIN_VENTA_REGISTRADA,
+}
+
+/** Las cinco cifras del desglose del margen, en su orden. Un `null` de la base nunca se vuelve 0 y un 0 de la base nunca se vuelve el texto del nulo. */
 export function textosDelMargen(margen: Margen): CifraDelMargen[] {
   return [
     cifra(margen.cotizado, {
@@ -105,6 +111,20 @@ export function textosDelMargen(margen: Margen): CifraDelMargen[] {
       nota: notaDeLaDesviacion(margen.desviacion),
     }),
     cifra(margen.venta, { clave: 'venta', etiqueta: 'Venta', sinDato: SIN_VENTA_REGISTRADA }),
-    cifra(margen.margen, { clave: 'margen', etiqueta: 'Margen', sinDato: SIN_VENTA_REGISTRADA }),
+    cifra(margen.margen, LINEA_DEL_MARGEN),
   ]
+}
+
+/** Qué es cada cifra, dicho en el desglose: de dónde la saca la base. */
+export const QUE_ES_LA_CIFRA: Record<ClaveDeCifra, string> = {
+  cotizado: 'La cotización final del vehículo.',
+  real: 'Los gastos registrados, en la moneda base.',
+  desviacion: 'Lo cotizado menos lo real.',
+  venta: 'Los pagos confirmados, en la moneda base.',
+  margen: 'La venta menos lo real.',
+}
+
+/** La cifra del margen, la de la línea de la vista «Margen»: un nulo es «Sin venta registrada», nunca 0. */
+export function cifraDelMargen(margen: Margen): CifraDelMargen {
+  return cifra(margen.margen, LINEA_DEL_MARGEN)
 }

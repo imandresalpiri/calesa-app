@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   SIN_COTIZACION_FINAL,
   SIN_VENTA_REGISTRADA,
+  QUE_ES_LA_CIFRA,
+  cifraDelMargen,
   margenDesde,
   textosDelMargen,
   type Margen,
@@ -86,5 +88,21 @@ describe('margenDesde', () => {
   it('una respuesta mal formada es nula', () => {
     expect(margenDesde({ real: 'x' })).toBeNull()
     expect(margenDesde(null)).toBeNull()
+  })
+})
+
+describe('cifraDelMargen', () => {
+  it('la línea de la vista: un nulo es «Sin venta registrada» y un 0 es un monto', () => {
+    expect(cifraDelMargen({ ...base, margen: null })).toMatchObject({
+      monto: null,
+      sinDato: SIN_VENTA_REGISTRADA,
+    })
+    expect(cifraDelMargen({ ...base, margen: 0 })).toMatchObject({ monto: 0, sinDato: null })
+  })
+
+  it('es la misma cifra que la del desglose, y cada cifra dice qué es', () => {
+    const m = { ...base, margen: 300 }
+    expect(cifraDelMargen(m)).toEqual(textosDelMargen(m).find((c) => c.clave === 'margen'))
+    for (const c of textosDelMargen(m)) expect(QUE_ES_LA_CIFRA[c.clave]).not.toBe('')
   })
 })
