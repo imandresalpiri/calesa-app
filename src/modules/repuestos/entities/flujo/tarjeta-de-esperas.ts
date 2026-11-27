@@ -1,9 +1,6 @@
 // El resumen de la tarjeta «Repuestos» de la página de la unidad en `logistica` (`docs/GLOSARIO.md` › «Tarjeta de la unidad»): lo que espera el vehículo o, si no
 // espera nada, qué verá cuando espere y cómo empezar. Su forma es la de `ResumenDeTarjeta` de `logistica` (estructural: `repuestos` no conoce las tarjetas; lo une
-// `src/app`). Las acciones del vacío piden `repuestos.editar` (llega resuelto como booleano): con un proyecto abierto del vehículo, «Agregar un repuesto»; sin proyecto,
-// «Pedir repuestos para este vehículo». Con el proyecto cerrado no se ofrece ninguna: no se le agregan ítems y el vehículo no admite otro proyecto vivo. Sin I/O.
-import type { ProyectoDeVehiculo } from '../proyectos/resumen'
-import { rutaDeNuevoItem, rutaDeNuevoProyectoConVehiculo } from '../proyectos/rutas'
+// `src/app`). La acción de empezar llega armada (`accionDeEmpezar` del área `proyectos`, nula sin permiso o con el proyecto cerrado): un área no importa otra. Sin I/O.
 import {
   encabezadoDeLasEsperas,
   TEXTO_CUANDO_ESPERE,
@@ -31,39 +28,15 @@ const VER: AccionDeLaTarjetaDeEsperas = {
   destino: { tipo: 'drawer' },
 }
 
-/** La acción de empezar, con el vehículo sin esperas; nula sin permiso o con el proyecto cerrado. */
-export function accionDelVacio(pedido: {
-  vehiculoId: string
-  proyecto: ProyectoDeVehiculo | null
-  puedeEditar: boolean
-}): AccionDeLaTarjetaDeEsperas | null {
-  const { proyecto, puedeEditar } = pedido
-  if (!puedeEditar) return null
-  if (proyecto === null) {
-    const href = rutaDeNuevoProyectoConVehiculo(pedido.vehiculoId)
-    return {
-      clave: 'pedir',
-      etiqueta: 'Pedir repuestos para este vehículo',
-      destino: { tipo: 'ruta', href },
-    }
-  }
-  if (proyecto.cerradoEn !== null) return null
-  const href = rutaDeNuevoItem(proyecto.id)
-  return { clave: 'agregar', etiqueta: 'Agregar un repuesto', destino: { tipo: 'ruta', href } }
-}
-
-/** El resumen: nulas las esperas si no se pudieron leer. */
+/** El resumen: nulas las esperas si no se pudieron leer; `empezar` sólo se ofrece sin esperas, antes de «Ver lo que espera». */
 export function resumenDeLasEsperas(pedido: {
   esperas: EsperasDelVehiculo | null
-  vehiculoId: string
-  proyecto: ProyectoDeVehiculo | null
-  puedeEditar: boolean
+  empezar: AccionDeLaTarjetaDeEsperas | null
 }): ResumenDeLaTarjetaDeEsperas {
-  const { esperas } = pedido
+  const { esperas, empezar } = pedido
   if (esperas === null) return { lineas: [NO_SE_LEYERON_LAS_ESPERAS], aviso: null, acciones: [VER] }
   const [primero] = esperas.items
   if (primero === undefined) {
-    const empezar = accionDelVacio(pedido)
     return {
       lineas: [TEXTO_SIN_ESPERAS, TEXTO_CUANDO_ESPERE],
       aviso: null,

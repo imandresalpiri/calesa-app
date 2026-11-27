@@ -1,5 +1,5 @@
 import { RUTAS } from '@/shared/lib/rutas'
-import { PANEL_NUEVO_ITEM } from '../items/paneles'
+import { PANEL_NUEVO_ITEM } from '../nucleo/paneles'
 import { CLAVE_DE_VEHICULO, PANEL_NUEVO_PROYECTO } from './paneles'
 
 /** La pantalla de un proyecto: `/repuestos/<id>` (la dibuja la parte 2 del 8.09). */
