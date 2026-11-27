@@ -2,7 +2,7 @@ import type { HuecoDeLaUnidad } from '../../../../entities/nucleo/hueco'
 import { ATRIBUTO_DEL_BLOQUE } from '../../../../entities/nucleo/paneles-de-la-unidad'
 import type { UnidadAbierta } from '../../../../entities/nucleo/unidad'
 import { ContenidoDelHueco } from '../contenido-del-hueco'
-import { VistasDeLaTarjeta } from './vistas-de-la-tarjeta'
+import { VistasDeLaTarjetaDiferidas } from './diferidos'
 
 type Props = {
   // La clave de la tarjeta: con varios huecos, la de la URL de su vista (`?dinero=`).
@@ -12,7 +12,7 @@ type Props = {
   huecos: readonly HuecoDeLaUnidad[]
 }
 
-// Lo que abre el drawer de una tarjeta: su hueco tal cual o, si junta varios (Dinero: gastos, pagos y margen), una vista por cada uno (`VistasDeLaTarjeta`, pestañas
+// Lo que abre el drawer de una tarjeta: su hueco tal cual o, si junta varios (Dinero: gastos, pagos y margen), una vista por cada uno (`VistasDeLaTarjeta`, diferidas: pestañas
 // en la URL): un solo nivel, y sólo se monta la que se ve. Cada hueco lleva su ancla (`data-bloque-del-hueco`): «Revisar» y «Completar» buscan adentro lo que enfocan.
 // Compatible con servidor: el contenido de cada hueco viaja ya armado.
 export function ContenidoDeLaTarjeta({ clave, unidad, huecos }: Props) {
@@ -25,7 +25,7 @@ export function ContenidoDeLaTarjeta({ clave, unidad, huecos }: Props) {
     )
   }
   return (
-    <VistasDeLaTarjeta
+    <VistasDeLaTarjetaDiferidas
       clave={clave}
       vistas={huecos.map((hueco) => ({
         clave: hueco.clave,
