@@ -52,9 +52,15 @@ describe('los esquemas de Configuración › Modo Live', () => {
     ).toBe(false)
   })
 
-  it('quitar exige la versión y un id', () => {
+  it('quitar exige la versión, como fecha ISO de la base, y un id', () => {
+    expect(
+      esquemaQuitarRolDelLive.safeParse({ rolId: ID, actualizadoEnEsperado: VERSION }).success,
+    ).toBe(true)
     expect(
       esquemaQuitarRolDelLive.safeParse({ rolId: ID, actualizadoEnEsperado: '' }).success,
+    ).toBe(false)
+    expect(
+      esquemaQuitarRolDelLive.safeParse({ rolId: ID, actualizadoEnEsperado: 'ayer' }).success,
     ).toBe(false)
     expect(
       esquemaQuitarPersonaDelLive.safeParse({ usuarioId: 'x', actualizadoEnEsperado: VERSION })

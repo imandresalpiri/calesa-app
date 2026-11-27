@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import { esquemaDeAjustesDelLive, esquemaDeAjustesParcialesDelLive } from '../../../entities/live'
 
-// guid y no uuid: `z.uuid()` exige versión y variante RFC, y Postgres acepta cualquier uuid. La versión es la que tenía en pantalla quien edita (ISO);
-// nula, crear la fila.
-const version = z.string().min(1)
+// guid y no uuid: `z.uuid()` exige versión y variante RFC, y Postgres acepta cualquier uuid. La versión es la que tenía en pantalla quien edita, el
+// `actualizado_en` de su fila tal como lo da la base (ISO con zona); nula, crear la fila.
+const version = z.iso.datetime({ offset: true })
 
 // El modal del rol guarda todo lo que se ve.
 export const esquemaGuardarRolDelLive = z.object({
