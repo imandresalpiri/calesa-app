@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { enviarAccion, type Envio } from '@/shared/lib/enviar-accion'
+import { useConflictoHastaLaVersion } from '@/shared/ui/use-conflicto-hasta-la-version'
 import { avisarExito } from '@/shared/ui/toasts'
 import { useReintentoAlVolver } from '@/shared/ui/use-reintento-al-volver'
 import { cambiosDeGasto, type DatosDeGasto, type Gasto } from '../../../entities/dinero/gasto'
@@ -9,6 +10,7 @@ import type { GastoGuardado } from '../../../entities/dinero/repositorio-de-gast
 import { guardarGasto } from '../actions/guardar-gasto'
 import { registrarGasto } from '../actions/registrar-gasto'
 import { avisarCambioDeDinero } from './eventos-de-dinero'
+import { useRecargaDeDinero } from './use-recarga-de-dinero'
 
 type Args = {
   unidadId: string
@@ -38,13 +40,16 @@ export function useEnvioDeGasto({
   alRechazarCampos,
 }: Args) {
   const [aviso, setAviso] = useState<string | null>(null)
-  const [conflicto, setConflicto] = useState<string | null>(null)
+  // El conflicto se va cuando llega la versión nueva (la trae «Recargar»): lo escrito queda y el próximo envío lleva esa versión.
+  const [conflicto, setConflicto] = useConflictoHastaLaVersion(original?.actualizadoEn ?? null)
+  const recarga = useRecargaDeDinero(unidadId, conflicto)
   const [pendiente, setPendiente] = useState<DatosDeGasto | null>(null)
   const [enCurso, setEnCurso] = useState(false)
 
   function alRechazar(envio: Extract<Envio<GastoGuardado>, { ok: false }>) {
     setPendiente(null)
     if (envio.error.codigo === 'conflicto') {
+      recarga.alConflicto()
       setConflicto(envio.error.mensaje)
     } else if ('porCampo' in envio && envio.porCampo && Object.keys(envio.porCampo).length > 0) {
       alRechazarCampos(envio.porCampo)
@@ -101,6 +106,8 @@ export function useEnvioDeGasto({
     mandar,
     aviso,
     conflicto,
+    // «Recargar», `recargando` y `alConflicto` (este último sólo lo usa el envío).
+    ...recarga,
     enCurso,
     enLinea,
     esperandoConexion: pendiente !== null,

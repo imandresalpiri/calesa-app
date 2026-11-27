@@ -15,12 +15,14 @@ import {
 } from '../../../entities/dinero/gasto'
 import { opcionesDeTipoDeCambio } from '../../../entities/dinero/tipo-de-cambio'
 import { useEnvioDeGasto } from './use-envio-de-gasto'
+import { estadoDelEnvio } from './estado-del-envio'
 
 type Args = {
   unidadId: string
   // Nulo = «Registrar gasto».
   original: Gasto | null
-  opciones: OpcionesDeGasto
+  // Nulas mientras se leen: el formulario ya se escribe y no se envía hasta que lleguen.
+  opciones: OpcionesDeGasto | null
   alCerrar: () => void
   // Cerrado, lo que esperaba la red no sale ni se escribe borrador.
   abierto: boolean
@@ -47,14 +49,14 @@ export function useFormularioDeGasto({ unidadId, original, opciones, alCerrar, a
   )
   const [valores, setValores] = useState<BorradorDeGasto>(inicial)
   const [errores, setErrores] = useState<Record<string, string>>({})
-  const tipos = opcionesDeTipoDeCambio(opciones.tiposDeCambio, valores.moneda, monedaBase)
+  const tipos = opcionesDeTipoDeCambio(opciones?.tiposDeCambio ?? [], valores.moneda, monedaBase)
 
   function escribir(cambios: Partial<BorradorDeGasto>) {
     setValores((antes) => {
       const siguiente = { ...antes, ...cambios }
       if (cambios.moneda !== undefined && cambios.moneda !== antes.moneda) {
         siguiente.tipoCambioId = tipoPorOmision(
-          opcionesDeTipoDeCambio(opciones.tiposDeCambio, cambios.moneda, monedaBase),
+          opcionesDeTipoDeCambio(opciones?.tiposDeCambio ?? [], cambios.moneda, monedaBase),
         )
       }
       return siguiente
@@ -90,7 +92,7 @@ export function useFormularioDeGasto({ unidadId, original, opciones, alCerrar, a
   })
 
   async function enviar(): Promise<boolean> {
-    if (envio.conflicto !== null || envio.enCurso) {
+    if (opciones === null || envio.conflicto !== null || envio.enCurso) {
       return false
     }
     const validado = validarGasto(valores, { monedaBase, locale, tiposDisponibles: tipos.length })
@@ -104,13 +106,9 @@ export function useFormularioDeGasto({ unidadId, original, opciones, alCerrar, a
   return {
     valores,
     errores,
-    aviso: envio.aviso,
-    conflicto: envio.conflicto,
-    enCurso: envio.enCurso,
-    enLinea: envio.enLinea,
-    esperandoConexion: envio.esperandoConexion,
+    ...estadoDelEnvio(envio, opciones === null, enviar),
     tipos,
-    // Cerrar ahora perdería lo escrito: el drawer pregunta antes de salir por un aviso.
+    // Cerrar ahora perdería lo escrito: el modal pregunta en su pie.
     hayCambios: JSON.stringify(valores) !== JSON.stringify(inicial),
     escribir,
     enviar,

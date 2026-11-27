@@ -8,6 +8,7 @@ import { Button } from '@/shared/ui/button'
 import { EstadoVacio } from '@/shared/ui/estados'
 import { recordarQuienAbre } from '@/shared/ui/foco-de-quien-abre'
 import { Skeleton } from '@/shared/ui/skeleton'
+import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import { TOPE_DE_GASTOS_DE_LA_UNIDAD } from '../../../areas/dinero/composicion.client'
 import type { Unidad } from '../../../entities/nucleo/unidad'
 import { textoDelTope } from '@/shared/lib/conteo'
@@ -17,7 +18,7 @@ import { useGastosDeLaUnidad } from '../hooks/use-gastos-de-la-unidad'
 import { usePanelDeGasto } from '../hooks/use-panel-de-gasto'
 import { usePermisosDeDinero } from '../hooks/use-permisos-de-dinero'
 import { ConfirmarEliminarGasto } from './confirmar-eliminar-gasto'
-import { DrawerDeGasto } from './drawer-de-gasto'
+import { ModalDeGastoDiferido } from './diferidos-de-dinero'
 import { ListaDeGastos } from './lista-de-gastos'
 import { VerTodosEnGastos } from './ver-todos-en-gastos'
 
@@ -27,6 +28,33 @@ function Cargando() {
       <Skeleton className="h-16" />
       <Skeleton className="h-16" />
     </div>
+  )
+}
+
+// El modal corto del gasto, diferido: se monta al abrirse por primera vez y cada apertura nace de nuevo (otro intento, los campos de lo guardado); el cierre se va con su
+// animación.
+function ModalDelHueco({
+  panel,
+  unidad,
+  puedeGestionarCategorias,
+}: {
+  panel: ReturnType<typeof usePanelDeGasto>
+  unidad: Unidad
+  puedeGestionarCategorias: boolean
+}) {
+  const montado = useAbiertoAlgunaVez(panel.abierto)
+  if (!montado) return null
+  return (
+    <ModalDeGastoDiferido
+      key={panel.apertura}
+      abierto={panel.abierto}
+      alCerrar={panel.cerrar}
+      unidadId={unidad.id}
+      origenId={unidad.origenId}
+      original={panel.original}
+      perdido={panel.perdido}
+      puedeGestionarCategorias={puedeGestionarCategorias}
+    />
   )
 }
 
@@ -96,13 +124,12 @@ export function HuecoDeGastos({ unidad }: { unidad: Unidad }) {
           ) : null}
         </>
       ) : null}
-      <DrawerDeGasto
-        abierto={panel.abierto}
-        alCerrar={panel.cerrar}
-        unidadId={unidad.id}
-        origenId={unidad.origenId}
-        original={panel.nuevo ? null : panel.original}
-        apertura={panel.apertura}
+      <ModalDelHueco
+        panel={panel}
+        unidad={unidad}
+        puedeGestionarCategorias={
+          permisos !== null && puede(permisos, 'logistica.catalogos.gestionar', unidad.origenId)
+        }
       />
       <ConfirmarEliminarGasto
         abierto={eliminar.abierto}

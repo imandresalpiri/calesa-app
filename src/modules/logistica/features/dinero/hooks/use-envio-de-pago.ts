@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { enviarAccion, type Envio } from '@/shared/lib/enviar-accion'
+import { useConflictoHastaLaVersion } from '@/shared/ui/use-conflicto-hasta-la-version'
 import { avisarExito } from '@/shared/ui/toasts'
 import { useReintentoAlVolver } from '@/shared/ui/use-reintento-al-volver'
 import { cambiosDePago, type DatosDePago, type Pago } from '../../../entities/dinero/pago'
@@ -10,6 +11,7 @@ import { guardarPago } from '../actions/guardar-pago'
 import { registrarPago } from '../actions/registrar-pago'
 import { useAmbitoDePago } from './ambito-de-pago'
 import { avisarCambioDeDinero } from './eventos-de-dinero'
+import { useRecargaDeDinero } from './use-recarga-de-dinero'
 
 type Args = {
   unidadId: string
@@ -29,6 +31,7 @@ const MENSAJE_DE_VALIDACION = 'Revisa los datos del pago.'
 
 // El envío de un pago (6.11-2): registrar o corregir por su Server Action y qué pasa con la respuesta. Un conflicto (casi siempre «ya está confirmado») espera la versión nueva; sin
 // conexión, lo escrito queda pendiente y sale solo al volver la red; un rechazo de la base se dice por campo o arriba del formulario.
+// El conflicto se va cuando llega la versión nueva (la trae «Recargar»): lo escrito queda y el próximo envío lleva esa versión.
 export function useEnvioDePago({
   unidadId,
   original,
@@ -39,7 +42,8 @@ export function useEnvioDePago({
   alRechazarCampos,
 }: Args) {
   const [aviso, setAviso] = useState<string | null>(null)
-  const [conflicto, setConflicto] = useState<string | null>(null)
+  const [conflicto, setConflicto] = useConflictoHastaLaVersion(original?.actualizadoEn ?? null)
+  const recarga = useRecargaDeDinero(unidadId, conflicto)
   const [pendiente, setPendiente] = useState<DatosDePago | null>(null)
   const [enCurso, setEnCurso] = useState(false)
   const ambito = useAmbitoDePago()
@@ -47,6 +51,7 @@ export function useEnvioDePago({
   function alRechazar(envio: Extract<Envio<PagoGuardado>, { ok: false }>) {
     setPendiente(null)
     if (envio.error.codigo === 'conflicto') {
+      recarga.alConflicto()
       setConflicto(envio.error.mensaje)
     } else if ('porCampo' in envio && envio.porCampo && Object.keys(envio.porCampo).length > 0) {
       alRechazarCampos(envio.porCampo)
@@ -107,6 +112,8 @@ export function useEnvioDePago({
     mandar,
     aviso,
     conflicto,
+    // «Recargar», `recargando` y `alConflicto` (este último sólo lo usa el envío).
+    ...recarga,
     enCurso,
     enLinea,
     esperandoConexion: pendiente !== null,

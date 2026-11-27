@@ -37,7 +37,9 @@ export function usePanelDePago(pagos: readonly Pago[] | null, permisos: Permisos
     abierto,
     apertura,
     nuevo: valor === PAGO_NUEVO,
-    original: abierto ? editado : ultimo,
+    // Abierto, el de la lista; si se fue de la lista (otra persona lo eliminó), el último que se mostró y `perdido`: lo escrito queda a la vista y no se guarda.
+    original: valor === PAGO_NUEVO ? null : (editado ?? ultimo),
+    perdido: abierto && valor !== PAGO_NUEVO && editado === null,
     abrirNuevo: () => {
       url.abrir({ [CLAVE_DE_PAGO]: PAGO_NUEVO })
     },
