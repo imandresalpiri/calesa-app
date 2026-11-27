@@ -382,6 +382,206 @@ export type Database = {
           },
         ]
       }
+      artes_imagenes: {
+        Row: {
+          actualizado_en: string
+          alto: number
+          ambito: string
+          ancho: number
+          creado_en: string
+          creado_por: string | null
+          dueno_id: string | null
+          id: string
+          miniatura_ruta: string
+          nombre: string
+          ruta: string
+          tipo: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          alto: number
+          ambito: string
+          ancho: number
+          creado_en?: string
+          creado_por?: string | null
+          dueno_id?: string | null
+          id: string
+          miniatura_ruta: string
+          nombre: string
+          ruta: string
+          tipo: string
+        }
+        Update: {
+          actualizado_en?: string
+          alto?: number
+          ambito?: string
+          ancho?: number
+          creado_en?: string
+          creado_por?: string | null
+          dueno_id?: string | null
+          id?: string
+          miniatura_ruta?: string
+          nombre?: string
+          ruta?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'artes_imagenes_creado_por_fkey'
+            columns: ['creado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'artes_imagenes_dueno_id_fkey'
+            columns: ['dueno_id']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      artes_plantillas: {
+        Row: {
+          actualizado_en: string
+          alto: number
+          ancho: number
+          autor_id: string
+          creado_en: string
+          documento: NonNullable<Json>
+          formato: string
+          id: string
+          miniatura_ruta: string | null
+          nombre: string
+          origen_id: string
+          visibilidad: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          alto: number
+          ancho: number
+          autor_id: string
+          creado_en?: string
+          documento: NonNullable<Json>
+          formato: string
+          id: string
+          miniatura_ruta?: string | null
+          nombre: string
+          origen_id: string
+          visibilidad?: string
+        }
+        Update: {
+          actualizado_en?: string
+          alto?: number
+          ancho?: number
+          autor_id?: string
+          creado_en?: string
+          documento?: NonNullable<Json>
+          formato?: string
+          id?: string
+          miniatura_ruta?: string | null
+          nombre?: string
+          origen_id?: string
+          visibilidad?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'artes_plantillas_autor_id_fkey'
+            columns: ['autor_id']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'artes_plantillas_origen_id_fkey'
+            columns: ['origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      artes_plantillas_imagenes: {
+        Row: {
+          imagen_id: string
+          plantilla_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          imagen_id: string
+          plantilla_id: string
+        }
+        Update: {
+          imagen_id?: string
+          plantilla_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'artes_plantillas_imagenes_imagen_id_fkey'
+            columns: ['imagen_id']
+            isOneToOne: false
+            referencedRelation: 'artes_imagenes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'artes_plantillas_imagenes_plantilla_id_fkey'
+            columns: ['plantilla_id']
+            isOneToOne: false
+            referencedRelation: 'artes_plantillas'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      artes_por_defecto: {
+        Row: {
+          actualizado_en: string
+          origen_id: string
+          plantilla_id: string
+          tipo: string
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          origen_id: string
+          plantilla_id: string
+          tipo: string
+          usuario_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          origen_id?: string
+          plantilla_id?: string
+          tipo?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'artes_por_defecto_origen_id_fkey'
+            columns: ['origen_id']
+            isOneToOne: false
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'artes_por_defecto_plantilla_id_fkey'
+            columns: ['plantilla_id']
+            isOneToOne: false
+            referencedRelation: 'artes_plantillas'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'artes_por_defecto_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       asistente_ia_usos: {
         Row: {
           actualizado_en: string
@@ -8381,6 +8581,30 @@ export type Database = {
       _aprobada_candado: { Args: { p_vehiculos: string[] }; Returns: undefined }
       _aprobada_poner: { Args: { p_cotizacion: string; p_vehiculo: string }; Returns: undefined }
       _aprobada_reponer: { Args: { p_vehiculo: string }; Returns: undefined }
+      _artes_documento_valido: { Args: { p_documento: Json }; Returns: boolean }
+      _artes_edita_plantilla: { Args: { p_autor: string; p_visibilidad: string }; Returns: boolean }
+      _artes_gestiona_imagen: { Args: { p_ambito: string; p_dueno: string }; Returns: boolean }
+      _artes_imagenes_del_documento: { Args: { p_documento: Json }; Returns: string[] }
+      _artes_medidas_validas: {
+        Args: { p_alto: number; p_ancho: number; p_formato: string }
+        Returns: boolean
+      }
+      _artes_nombre: { Args: { p_texto: string }; Returns: string }
+      _artes_poner_referencias: {
+        Args: { p_ids: string[]; p_plantilla: string }
+        Returns: undefined
+      }
+      _artes_tipo_del_formato: { Args: { p_formato: string }; Returns: string }
+      _artes_validar_documento: { Args: { p_documento: Json }; Returns: undefined }
+      _artes_validar_imagenes: {
+        Args: { p_ids: string[]; p_visibilidad: string }
+        Returns: undefined
+      }
+      _artes_ve_imagen: { Args: { p_ambito: string; p_dueno: string }; Returns: boolean }
+      _artes_ve_plantilla: {
+        Args: { p_autor: string; p_origen: string; p_visibilidad: string }
+        Returns: boolean
+      }
       _asistente_ia_config: { Args: { p_guardada: Json; p_nueva: Json }; Returns: Json }
       _asistente_ia_origen: { Args: { p_url: string }; Returns: string }
       _atributos_completar: {
@@ -11136,6 +11360,71 @@ export type Database = {
       apibara_consulta_leer: { Args: { p_consulta: string }; Returns: Json }
       apibara_consultas_purgar: { Args: Record<PropertyKey, never>; Returns: number }
       apibara_contexto: { Args: { p_origen: string }; Returns: Json }
+      artes_imagen_crear: {
+        Args: {
+          p_alto: number
+          p_ambito: string
+          p_ancho: number
+          p_id: string
+          p_miniatura_ruta: string
+          p_nombre: string
+          p_ruta: string
+          p_tipo: string
+        }
+        Returns: Json
+      }
+      artes_imagen_quitar: {
+        Args: { p_actualizado_en_esperado: string; p_id: string }
+        Returns: Json
+      }
+      artes_imagen_renombrar: {
+        Args: { p_actualizado_en_esperado: string; p_id: string; p_nombre: string }
+        Returns: Json
+      }
+      artes_imagen_usos: { Args: { p_id: string }; Returns: number }
+      artes_plantilla_crear: {
+        Args: {
+          p_alto: number
+          p_ancho: number
+          p_documento: Json
+          p_formato: string
+          p_id: string
+          p_nombre: string
+          p_origen: string
+        }
+        Returns: Json
+      }
+      artes_plantilla_duplicar: {
+        Args: { p_fuente: string; p_id_nuevo: string; p_nombre: string }
+        Returns: Json
+      }
+      artes_plantilla_eliminar: {
+        Args: { p_actualizado_en_esperado: string; p_id: string }
+        Returns: Json
+      }
+      artes_plantilla_guardar: {
+        Args: {
+          p_actualizado_en_esperado: string
+          p_documento: Json
+          p_id: string
+          p_miniatura_ruta: string
+          p_nombre: string
+        }
+        Returns: Json
+      }
+      artes_plantilla_visibilidad: {
+        Args: { p_actualizado_en_esperado: string; p_id: string; p_visibilidad: string }
+        Returns: Json
+      }
+      artes_por_defecto_poner: {
+        Args: {
+          p_actualizado_en_esperado: string
+          p_origen: string
+          p_plantilla: string
+          p_tipo: string
+        }
+        Returns: Json
+      }
       asistente_ia_contar_uso: { Args: Record<PropertyKey, never>; Returns: number }
       asistente_ia_usos_del_mes: { Args: Record<PropertyKey, never>; Returns: Json }
       assert_activo: { Args: Record<PropertyKey, never>; Returns: undefined }
