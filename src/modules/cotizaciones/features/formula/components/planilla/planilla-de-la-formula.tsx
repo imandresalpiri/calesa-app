@@ -73,9 +73,13 @@ export function PlanillaDeLaFormula(p: PropsDeLaPlanilla) {
       className={`@container/formula grid min-w-0 gap-3 ${conCostado !== null && !enLaBarra ? CON_EL_COSTADO[conCostado] : ''}`}
     >
       <EstiloDeTonos tonos={tonos.tipo === 'listo' ? tonos.tonos : SIN_TONOS} />
-      <CabeceraDeLaPlanilla p={p} planilla={planilla} />
+      {/* En sólo lectura (Modo Live), sin su «⋯» ni «Guardar el borrador». */}
+      {editor.soloLectura ? null : <CabeceraDeLaPlanilla p={p} planilla={planilla} />}
       <RechazoDeArriba rechazo={editor.rechazo} />
-      <BarraDeFormula planilla={planilla} puedeCambiarTiposDeCambio={p.puedeCambiarTiposDeCambio} />
+      <BarraDeFormula
+        planilla={planilla}
+        puedeCambiarTiposDeCambio={p.puedeCambiarTiposDeCambio && !editor.soloLectura}
+      />
       <CuadriculaDeLaPlanilla planilla={planilla} nombreDelOrigen={p.origen.nombre} />
       <PanelesDeLaPlanilla p={p} planilla={planilla} />
     </section>

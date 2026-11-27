@@ -4,7 +4,7 @@ Orígenes de vehículos configurables (subasta/apibara o manual), su layout de c
 
 ## Entra y sale
 
-- Entra: `/configuracion/origenes` (la lista: sólo los orígenes que quien mira abre, tope 100 con aviso) —cada tarjeta es un enlace «Abrir <origen>» con su «⋯» como hermano: «Abrir» primero y, con `origenes.gestionar`, activar, desactivar y «Eliminar origen» (`accionesDeLaTarjeta()`; la confirmación va en `?panel=eliminar-origen&origen=<id>`, una por lista: `useEliminarOrigenDeLaLista()`)— y **la página del origen**,
+- Entra: `/configuracion/origenes` (la lista: sólo los orígenes que quien mira abre, tope 100 con aviso) —cada tarjeta es un enlace «Abrir <origen>» con su «⋯» como hermano: «Abrir» primero y, con `origenes.gestionar`, activar, desactivar y «Eliminar origen» (`accionesDeLaTarjeta()`; la confirmación va en `?panel=eliminar-origen&origen=<id>`, una por lista: `useEliminarOrigenDeLaLista()`); con el Modo Live encendido, `ListaDeOrigenes soloLectura`: sólo «Abrir», sin «Nuevo origen» ni el aviso del permiso— y **la página del origen**,
   `/configuracion/origenes/[id]/fases|planilla|hoja|tarjeta|campos|categorias` (`src/app` arma el layout de `[id]` con las migas y el selector de origen, la
   cabecera y las pestañas con su ⚠; Fases, Planilla, Hoja y Tarjeta dibujan pantallas de `flujos` y `cotizaciones`, que este módulo no conoce). `/[id]` sin
   pestaña va a la última que la persona abrió (`equipo`: «Última pestaña del origen»; `[id]/route.ts`, `[id]/pestana-de-entrada.ts`). Las pantallas van partidas por pestaña: `pantallas/origen.ts` (la

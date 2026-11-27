@@ -39,9 +39,11 @@ export default async function PaginaOrigenes() {
       !integraciones.ok || integraciones.data.some((una) => una.clave === 'apibara' && una.activa)
   }
   const veLoDeTodos = puede(sesion.permisos, 'cotizaciones.configurar')
+  // Con el Modo Live (Configuración de orígenes en «Sólo lectura»): sólo las tarjetas para abrir cada origen, sin «Para todos los orígenes» (se edita).
+  const enElLive = sesion.live.encendido
   return (
     <div className="grid gap-6">
-      {veLoDeTodos ? (
+      {enElLive ? null : veLoDeTodos ? (
         <ParaTodosLosOrigenes
           puedeCambiarLaVigencia={puedeCambiarAjustesDeCotizacion(sesion.permisos)}
           puedeIrARoles={
@@ -57,6 +59,7 @@ export default async function PaginaOrigenes() {
         hayMas={hayMas}
         puedeGestionar={puede(sesion.permisos, 'origenes.gestionar')}
         apibaraActiva={apibaraActiva}
+        soloLectura={enElLive}
       />
     </div>
   )

@@ -12,6 +12,8 @@ type Props = {
   rechazo: string | null
   // Un grupo sin filas (se dibuja al final, para arreglarlo).
   vacia: boolean
+  // Sin su «⋯» en sólo lectura (Modo Live).
+  conMenu: boolean
   motivoParaQuitar: string | null
   alEditar: () => void
   alQuitar: () => void
@@ -47,12 +49,14 @@ export function CabeceraDeLaBanda(p: Props) {
           {p.vacia ? (
             <span className="shrink-0 text-(length:--text-xs)">Esta banda no tiene filas.</span>
           ) : null}
-          <MenuDeLaBanda
-            etiqueta={grupo.etiqueta}
-            motivoParaQuitar={p.motivoParaQuitar}
-            alEditar={p.alEditar}
-            alQuitar={p.alQuitar}
-          />
+          {p.conMenu ? (
+            <MenuDeLaBanda
+              etiqueta={grupo.etiqueta}
+              motivoParaQuitar={p.motivoParaQuitar}
+              alEditar={p.alEditar}
+              alQuitar={p.alQuitar}
+            />
+          ) : null}
         </div>
         {p.rechazo === null ? null : (
           <p

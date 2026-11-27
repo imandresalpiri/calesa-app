@@ -27,6 +27,8 @@ type Props = {
   puedeGestionar: boolean
   // Si la integración no se pudo leer, la página la da por activa: no se inventa una falta.
   apibaraActiva: boolean
+  // Con el Modo Live (Configuración de orígenes en «Sólo lectura»): sólo abrir, sin «Nuevo origen» ni el aviso de quién los gestiona.
+  soloLectura?: boolean
 }
 
 // «Nuevo origen» lleva a la página del primer paso de la puesta en marcha. Sin `origenes.gestionar` va apagado (no es un enlace) y el motivo se dice
@@ -50,7 +52,13 @@ function BotonNuevo({ puedeGestionar }: { puedeGestionar: boolean }) {
 
 // Los orígenes que la persona abre como tarjetas, también los desactivados, con su estado y lo que les falta. Abrir uno lleva a su página (la tarjeta entera, o «Abrir» en su «⋯», que lleva además activar, desactivar y eliminar);
 // crear lleva a `/configuracion/origenes/nuevo`. Son decenas: se dibujan hasta el tope, con su aviso.
-export function ListaDeOrigenes({ origenes, hayMas, puedeGestionar, apibaraActiva }: Props) {
+export function ListaDeOrigenes({
+  origenes,
+  hayMas,
+  puedeGestionar,
+  apibaraActiva,
+  soloLectura = false,
+}: Props) {
   const router = useRouter()
   const ediciones = useOrigenes()
   const eliminacion = useEliminarOrigenDeLaLista(origenes, ediciones)
@@ -64,9 +72,9 @@ export function ListaDeOrigenes({ origenes, hayMas, puedeGestionar, apibaraActiv
             De dónde vienen los vehículos: sus datos, sus campos y sus categorías.
           </p>
         </div>
-        <BotonNuevo puedeGestionar={puedeGestionar} />
+        {soloLectura ? null : <BotonNuevo puedeGestionar={puedeGestionar} />}
       </div>
-      {puedeGestionar ? null : <Aviso>{MOTIVO_SIN_PERMISO_ORIGENES}</Aviso>}
+      {puedeGestionar || soloLectura ? null : <Aviso>{MOTIVO_SIN_PERMISO_ORIGENES}</Aviso>}
       {origenes.length === 0 && !puedeGestionar ? (
         <EstadoVacio titulo="No hay orígenes que puedas abrir." />
       ) : origenes.length === 0 ? (
@@ -89,7 +97,7 @@ export function ListaDeOrigenes({ origenes, hayMas, puedeGestionar, apibaraActiv
               origen={origen}
               faltas={faltasDeLaTarjeta(origen, { apibaraActiva })}
               acciones={accionesDeLaTarjeta(origen, {
-                gestiona: puedeGestionar,
+                gestiona: puedeGestionar && !soloLectura,
                 enCurso: ediciones.enCurso,
                 abrir: () => {
                   router.push(rutaDelOrigen(origen.id) as Route)

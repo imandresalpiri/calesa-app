@@ -19,13 +19,20 @@ type PropsDelEditor = {
   leida: FormulaParaEditar
   // El catálogo de tablas del origen (BUSCARV); null si no se pudo leer.
   tablas?: CatalogoDeTablas
+  // Con el Modo Live (Configuración de orígenes en «Sólo lectura»): se ve y nada cambia.
+  soloLectura?: boolean
 }
 
 // La fórmula de trabajo de la planilla: empieza en la leída y cambia sólo con `cambiar()` (lo escrito en una celda que entró, insertar, mover, eliminar, el tipo de
 // celda, las bandas). Lo que se escribe no se compila al tipear: vive en la edición de la planilla y llega aquí al aplicar. Tras cada cambio (y al leer) corre
 // `validarFormula()`: lo que rechaza queda aplicado y se dice en su fila (un borrador inválido sólo vive aquí: la base valida al guardar). `abierta` es la fila con
 // texto sin aplicar: «Guardar el borrador» espera. Guardar y lo aplicado en la pestaña son de `useGuardadoDelEditor`; mientras guarda, nada cambia.
-export function useEditorDeLaFormula({ origenId, leida, tablas = null }: PropsDelEditor) {
+export function useEditorDeLaFormula({
+  origenId,
+  leida,
+  tablas = null,
+  soloLectura = false,
+}: PropsDelEditor) {
   const [trabajo, setTrabajo] = useState<Formula>(leida.formula)
   const [abierta, setAbierta] = useState<string | null>(null)
   const [aplicada, setAplicada] = useState<Aplicada | null>(null)
@@ -52,18 +59,18 @@ export function useEditorDeLaFormula({ origenId, leida, tablas = null }: PropsDe
   // Estables mientras no cambia `enCurso`: las filas de la planilla son `memo`.
   const cambiar = useCallback(
     (formula: Formula, deLaFila: Aplicada | null = null): boolean => {
-      if (enCurso) return false
+      if (enCurso || soloLectura) return false
       setTrabajo(formula)
       setAplicada(deLaFila)
       return true
     },
-    [enCurso],
+    [enCurso, soloLectura],
   )
   const abrir = useCallback(
     (id: string) => {
-      if (!enCurso) setAbierta(id)
+      if (!enCurso && !soloLectura) setAbierta(id)
     },
-    [enCurso],
+    [enCurso, soloLectura],
   )
   const cerrar = useCallback(() => {
     setAbierta(null)
@@ -71,8 +78,10 @@ export function useEditorDeLaFormula({ origenId, leida, tablas = null }: PropsDe
   return {
     trabajo,
     tablas,
-    // Nada con texto sin aplicar ni guardándose: se puede operar sobre filas y bandas.
+    // Nada con texto sin aplicar ni guardándose: se puede operar sobre filas y bandas. En sólo lectura sigue libre (abrir una celda dice su motivo) y
+    // `cambiar` no deja pasar nada.
     libre: abierta === null && !enCurso,
+    soloLectura,
     enCurso,
     filas,
     ...previa,

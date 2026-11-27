@@ -117,6 +117,29 @@ describe('useEditorDeLaFormula: cambiar la fórmula de trabajo (T3)', () => {
   })
 })
 
+describe('useEditorDeLaFormula: en sólo lectura (Modo Live)', () => {
+  it('nada cambia la fórmula de trabajo ni abre una fila, y sigue libre (abrir una celda dice su motivo)', () => {
+    const leida = leidaDe(formula())
+    const { result } = renderHook(() =>
+      useEditorDeLaFormula({ origenId: ORIGEN, leida, soloLectura: true }),
+    )
+    expect(result.current.soloLectura).toBe(true)
+    let entro = true
+    act(() => {
+      entro = result.current.cambiar(
+        formulaDePrueba([{ id: 'otra', texto: '=1', etiqueta: 'Otra' }]),
+      )
+    })
+    expect(entro).toBe(false)
+    act(() => {
+      result.current.abrir('base')
+    })
+    expect(result.current.abierta).toBeNull()
+    expect(result.current.libre).toBe(true)
+    expect(result.current.trabajo).toBe(leida.formula)
+  })
+})
+
 describe('useEditorDeLaFormula: pisar un ⚙ y validar (T3)', () => {
   it('4-5: con el texto que ya no manda, recompilar no pisa el ⚙ hasta «Pisar el valor»', () => {
     const { result } = montar(leidaDe(conElAjuste(formula(), 'total__2', -0.03)))

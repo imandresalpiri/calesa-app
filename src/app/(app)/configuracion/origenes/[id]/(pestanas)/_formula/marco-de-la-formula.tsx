@@ -11,6 +11,7 @@ import { DrawerDeLasTablas } from '@/modules/cotizaciones/pantallas/tablas-drawe
 import { leerOrigenes } from '@/modules/origenes'
 import { datosO } from '@/shared/lib/errores'
 import { EsqueletoFormulario } from '@/shared/ui/esqueletos'
+import { EstadoVacio } from '@/shared/ui/estados'
 import {
   PANEL_DE_LAS_TABLAS,
   rutaDeLaFormula,
@@ -31,11 +32,43 @@ type Props = {
   children: ReactNode
 }
 
+// Debajo de la barra: sin fórmulas, «Empezar la fórmula» (con el Modo Live, sólo el vacío); con una archivada, su aviso; si no, el editor de la pestaña.
+function CuerpoDeLaFormula({
+  abierta,
+  parte,
+  paraCopiar,
+  children,
+}: Pick<Props, 'abierta' | 'parte' | 'children'> & {
+  paraCopiar: readonly { id: string; nombre: string }[]
+}) {
+  const { id, nombre } = abierta.origen
+  const { elegida, soloLectura } = abierta
+  if (elegida === null) {
+    return soloLectura ? (
+      <EstadoVacio titulo="Este origen todavía no tiene fórmulas." />
+    ) : (
+      <EmpezarLaFormula origen={{ id, nombre }} origenesParaCopiar={paraCopiar} />
+    )
+  }
+  if (abierta.archivada) {
+    return (
+      <AvisoDeLaArchivada
+        origenId={id}
+        formulaId={elegida.id}
+        parte={parte}
+        soloLectura={soloLectura}
+      />
+    )
+  }
+  return children
+}
+
 // Lo común a Planilla, Hoja y Tarjeta: la barra de la fórmula (con «Versiones» y el drawer «Tablas») y, debajo, el editor de la pestaña (que lleva sus botones a la barra). Sin fórmulas, «Empezar la
 // fórmula»; con una archivada, su aviso; con una pedida que no se abrió, el aviso arriba y la de trabajo. Los orígenes (de cuáles se copia) se leen una vez por
-// request (`leerOrigenes()`).
+// request (`leerOrigenes()`). Con el Modo Live (`soloLectura`), la barra sólo elige qué fórmula ver: sin «Versiones», «Tablas» ni «Empezar la fórmula».
 export async function MarcoDeLaFormula({ abierta, parte, consulta, children }: Props) {
   const { id, nombre, activo } = abierta.origen
+  const { soloLectura } = abierta
   const origenes = datosO(await leerOrigenes()).map((otro) => ({
     id: otro.id,
     nombre: otro.nombre,
@@ -73,20 +106,17 @@ export async function MarcoDeLaFormula({ abierta, parte, consulta, children }: P
           lectura={abierta.lectura}
           origenesParaCopiar={paraCopiar}
           versiones={
-            elegida && !abierta.archivada ? (
+            elegida && !abierta.archivada && !soloLectura ? (
               <BotonDeLasVersiones origenId={id} formulaId={elegida.id} parte={parte} />
             ) : null
           }
-          tablas={tablas}
+          tablas={soloLectura ? null : tablas}
+          soloLectura={soloLectura}
         />
         {abierta.ignorada ? <FormulaNoEncontrada /> : null}
-        {elegida === null ? (
-          <EmpezarLaFormula origen={{ id, nombre }} origenesParaCopiar={paraCopiar} />
-        ) : abierta.archivada ? (
-          <AvisoDeLaArchivada origenId={id} formulaId={elegida.id} parte={parte} />
-        ) : (
-          children
-        )}
+        <CuerpoDeLaFormula abierta={abierta} parte={parte} paraCopiar={paraCopiar}>
+          {children}
+        </CuerpoDeLaFormula>
       </div>
     </ConLaBarraDeLaFormula>
   )

@@ -26,6 +26,8 @@ export type OrigenAbierto =
       origen: OrigenConUso
       puedeGestionar: boolean
       pestanas: PestanaAbierta[]
+      // Con el Modo Live encendido: Planilla, Hoja y Tarjeta se ven y nada se edita (la base y las actions siguen con los permisos reales).
+      soloLectura: boolean
     }
 
 // El origen de la URL, si existe: un id que no es un uuid o un origen que no existe son el 404. `leerOrigenes()` lee una vez por request
@@ -53,7 +55,8 @@ export async function abrirOrigen(id: string, parte: ParteDelOrigen): Promise<Or
     return { tipo: 'ajeno', puedeVerOtros: puedeAbrirOrigenes(sesion.permisos) }
   }
   const origen = await leerElOrigen(id)
-  const pestanas = pestanasDelOrigen(sesion.permisos, origen.id)
+  const soloLectura = sesion.live.encendido
+  const pestanas = pestanasDelOrigen(sesion.permisos, origen.id, soloLectura)
   const pedida = pestanas.find((pestana) => pestana.clave === parte)
   const primera = pestanas.find((pestana) => pestana.motivo === undefined)
   if (pedida?.motivo !== undefined && primera) {
@@ -65,5 +68,6 @@ export async function abrirOrigen(id: string, parte: ParteDelOrigen): Promise<Or
     origen,
     puedeGestionar: puede(sesion.permisos, 'origenes.gestionar'),
     pestanas,
+    soloLectura,
   }
 }

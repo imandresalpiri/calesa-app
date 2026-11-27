@@ -126,7 +126,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `ContextoDelTotal` (`useDelTotal()`). Con la pieza `{ tipo: 'total' }` en una sección principal, `TotalDeHoja` la dibuja ahí a todo el ancho; sin ella, o en par,
   va suelta justo encima de «Avanzado» (`totalSuelto()`, `ordenDeLaHoja()`). Debajo de «Avanzado», el cierre (`CierreDeLaHoja`, `data-cierre-de-la-hoja`):
   «Guardar» a todo el ancho con su motivo y lo que falta elegir, y la región viva de `AvisoDelGuardado`. El Modo Live, sólo en la barra de arriba (y en el pie de la
-  vista previa, `LiveDeLaVistaPrevia` de `tarjeta`).
+  vista previa, `LiveDeLaVistaPrevia` de `tarjeta`, que escribe la cookie con `useConmutarElLive()` y no se dibuja si el rol no puede encenderlo).
 - **La ranura de la cabecera** (glosario: «Ranura de la cabecera»; `features/hoja/components/ranura-de-la-cabecera/`): `src/app` pone
   `ProveedorDeLaRanuraDeLaCabecera` sobre las barras y la hoja y `<RanuraDeLaCabecera reserva>` en la fila de las barras (`data-cabecera-de-la-hoja`, dentro de un
   `@container/cabecera` aparte: una consulta de contenedor no mira al propio contenedor; en la nueva, `barras-de-la-hoja.tsx`; en una guardada, `CabeceraDeLaGuardada`);
@@ -177,6 +177,12 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   dibuja la planilla. La pestaña Tarjeta va a ancho completo y su página pide la referencia del lienzo sin esperarla
   (`origenes/[id]/(pestanas)/tarjeta/referencia.ts`, con `leerListadoDeCotizaciones()` y `UNA` del área `listado`, `leerHojaDeUnaGuardada()`, y `referenciaPlana()` y
   `calculoDeLoGuardado()` del núcleo).
+- **La configuración del origen con el Modo Live** (`soloLectura`, de `abrirOrigen()` con `sesion.live.encendido`; el texto, `SOLO_LECTURA_EN_EL_LIVE` de
+  `entities/solo-lectura-en-el-live.ts`, del núcleo): la Planilla (`SeccionDeLaFormula soloLectura` → `useEditorDeLaFormula({ soloLectura })`: `cambiar` no
+  entra, `abrir` no abre y toda celda dice el motivo en la barra; sin menús de fila ni de banda, sin arrastrar, sin paneles de edición, sin «Guardar el
+  borrador», «Publicar…», «Versiones» ni «Información de la fórmula»; «Totales», «Tarjeta» y «¿Cómo se escribe?» quedan), la Hoja (`HojaSoloLectura` en
+  todo ancho, `aviso`) y la Tarjeta (`TarjetaEnElLive` del área `plantilla`: el lienzo de sólo lectura del celular en todo ancho). La protección es de la
+  pantalla: las actions y la RLS usan los permisos reales.
 - Niveles: en la matriz de Roles, bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`; `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|eliminar-nivel&nivel=<id>`). `pantallas/configuracion.ts` sale `NivelesEnLaMatriz`: una render prop que da a la matriz de `equipo` los huecos (`cabeza`, `menuDelNivel`, `pie`, `ventanas`); la une `src/app/(app)/configuracion/roles/matriz-con-niveles.tsx`.
 - Con Live, las cifras de la ayuda de una celda de dinero pasan por `<Monto>` (sin su moneda); las de otra celda, igual que sin él.
 - **Llenar una celda desde la ayuda:** en un bloque de tabla, la cifra de una columna con `llena` es un botón si `destinoDeLaAyuda()` (`entities/destino-de-la-ayuda.ts`)

@@ -33,14 +33,16 @@ export function CuadriculaDeLaPlanilla({ planilla, nombreDelOrigen }: Props) {
           titulo="Esta fórmula no tiene filas."
           descripcion="Cada fila es un concepto de la cotización: un valor, lo que escribe el asesor o un cálculo con otras filas."
           accion={
-            <Button
-              className="min-h-[44px] md:min-h-9"
-              onClick={() => {
-                planilla.ops.insertar(null, 'abajo')
-              }}
-            >
-              Sumar la primera fila
-            </Button>
+            planilla.editor.soloLectura ? undefined : (
+              <Button
+                className="min-h-[44px] md:min-h-9"
+                onClick={() => {
+                  planilla.ops.insertar(null, 'abajo')
+                }}
+              >
+                Sumar la primera fila
+              </Button>
+            )
           }
         />
       ) : null}

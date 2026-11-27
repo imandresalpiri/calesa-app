@@ -35,6 +35,8 @@ type Props = {
   // Lo que pone `src/app` de otras áreas: el botón «Versiones» y el de «Tablas».
   versiones?: ReactNode
   tablas?: ReactNode
+  // Con el Modo Live: sólo el selector para ver otra fórmula, sin «Nueva fórmula», sin el «⋯» de cada una y sin sus paneles.
+  soloLectura?: boolean
 }
 
 // Las que pueden abrir un panel: las sin archivar, las archivadas leídas y la elegida (una archivada pedida por URL que aún no se leyó).
@@ -55,6 +57,29 @@ function laActiva(formulas: readonly FormulaDeLaLista[]): { id: string; nombre: 
   return activa ? { id: activa.id, nombre: activa.nombre } : null
 }
 
+const SIN_ACCIONES = () => []
+
+// «Nueva fórmula»: su panel por URL, si se ofrece (con una fórmula elegida, bajo el tope y fuera del Modo Live; sin elegida, el cuerpo de la página es «Empezar la
+// fórmula», que monta el suyo) y si ya se montó.
+function useNuevaFormula(
+  lectura: Props['lectura'],
+  cuantas: number,
+  conElegida: boolean,
+  soloLectura: boolean,
+) {
+  const panel = usePanelPorUrl(PANEL_NUEVA_FORMULA, [CLAVE_DE_LA_COPIA])
+  const apertura = useApertura(panel.abierto)
+  const enElTope = lectura.hayMas || cuantas >= TOPE_DE_FORMULAS_DEL_ORIGEN
+  const ofrecida = conElegida && !enElTope && !soloLectura
+  const montada = useAbiertoAlgunaVez(panel.abierto && ofrecida)
+  const alNueva = soloLectura
+    ? null
+    : () => {
+        panel.abrir()
+      }
+  return { panel, apertura, enElTope, ofrecida, montada, alNueva }
+}
+
 // Las pestañas que llevan su ⓘ de información junto al estado.
 const PARTES_CON_INFORMACION: ReadonlySet<ParteDeLaFormula> = new Set(['planilla', 'tarjeta'])
 
@@ -70,24 +95,21 @@ export function BarraDeLaFormulaDelOrigen({
   origenesParaCopiar,
   versiones,
   tablas,
+  soloLectura = false,
 }: Props) {
-  useFormulaEnLaUrl(elegida?.id ?? null)
+  const elegidaId = elegida?.id ?? null
+  useFormulaEnLaUrl(elegidaId)
   const formulas = ordenDeLaLista(lectura.formulas)
   const archivadas = useArchivadas(origen.id, lectura)
-  const nueva = usePanelPorUrl(PANEL_NUEVA_FORMULA, [CLAVE_DE_LA_COPIA])
-  const aperturaDeNueva = useApertura(nueva.abierto)
-  const enElTope = lectura.hayMas || formulas.length >= TOPE_DE_FORMULAS_DEL_ORIGEN
-  // Sin fórmula elegida, el cuerpo de la página es «Empezar la fórmula», que monta su propio «Nueva fórmula».
-  const conNueva = elegida !== null && !enElTope
-  const nuevaMontada = useAbiertoAlgunaVez(nueva.abierto && conNueva)
+  const nueva = useNuevaFormula(lectura, formulas.length, elegida !== null, soloLectura)
   const { menuDe, paneles } = usePanelesDeLaFormula({
     origen,
     formulas: conocidasDe(formulas, archivadas.formulas, elegida),
     activa: laActiva(formulas),
     alCopiar: (formula) => {
-      nueva.abrir({ [CLAVE_DE_LA_COPIA]: formula.id })
+      nueva.panel.abrir({ [CLAVE_DE_LA_COPIA]: formula.id })
     },
-    elegidaId: elegida?.id ?? null,
+    elegidaId,
     parte,
   })
   return (
@@ -102,11 +124,9 @@ export function BarraDeLaFormulaDelOrigen({
         formulas={formulas}
         archivadas={archivadas}
         hayArchivadas={lectura.hayArchivadas}
-        menuDe={menuDe}
-        enElTope={enElTope}
-        alNueva={() => {
-          nueva.abrir()
-        }}
+        menuDe={soloLectura ? SIN_ACCIONES : menuDe}
+        enElTope={nueva.enElTope}
+        alNueva={nueva.alNueva}
       />
       {/* El estado y, en la Planilla y la Tarjeta, el botón ⓘ de información junto a él: en el celular se parten juntos. */}
       <div className="flex min-w-0 items-center gap-1">
@@ -118,17 +138,17 @@ export function BarraDeLaFormulaDelOrigen({
         {tablas}
         <RanuraDeLaBarra />
       </div>
-      {nuevaMontada && conNueva ? (
+      {nueva.montada && nueva.ofrecida ? (
         <ModalDeNuevaFormulaDiferido
-          key={aperturaDeNueva}
-          abierto={nueva.abierto}
-          alCerrar={nueva.cerrar}
+          key={nueva.apertura}
+          abierto={nueva.panel.abierto}
+          alCerrar={nueva.panel.cerrar}
           origen={origen}
           origenesParaCopiar={origenesParaCopiar}
-          copiaInicial={nueva.valor(CLAVE_DE_LA_COPIA)}
+          copiaInicial={nueva.panel.valor(CLAVE_DE_LA_COPIA)}
         />
       ) : null}
-      {paneles}
+      {soloLectura ? null : paneles}
     </div>
   )
 }

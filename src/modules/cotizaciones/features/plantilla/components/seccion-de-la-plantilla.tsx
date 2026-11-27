@@ -14,6 +14,7 @@ import {
 } from '../../../entities/referencia-de-la-tarjeta'
 import type { PropsDelLienzoDeLaPlantilla } from '../../../entities/vista-previa-de-la-plantilla'
 import { PestanaDeLaTarjeta } from './pestana-de-la-tarjeta'
+import { TarjetaEnElLive } from './tarjeta-en-el-live'
 
 type Origen = { id: string; nombre: string; activo: boolean }
 
@@ -31,6 +32,8 @@ type Props = {
   puedeCambiarElLogo: boolean
   // Lo que se dibuja si la planilla todavía no tiene una versión publicada, en vez del vacío con «Ir a la planilla» (la puesta en marcha deja seguir).
   sinPlanilla?: ReactNode
+  // Con el Modo Live (Configuración de orígenes en «Sólo lectura»): la tarjeta se ve y no se edita.
+  soloLectura?: boolean
 }
 
 // La pestaña «Tarjeta» de la Fórmula de un origen (Configuración › Orígenes), leída en el servidor con la sesión de quien mira y detrás de `<Suspense>`: el borrador, la
@@ -43,6 +46,7 @@ export async function SeccionDeLaPlantilla({
   Lienzo,
   puedeCambiarElLogo,
   sinPlanilla,
+  soloLectura = false,
 }: Props) {
   const [lectura, deReferencia] = await Promise.all([
     leerPlantillaDelOrigen(formula.id),
@@ -69,10 +73,22 @@ export async function SeccionDeLaPlantilla({
       />
     )
   }
+  const recortada = recortarLaReferencia(deReferencia, idsDelContexto(editor.contexto))
+  if (soloLectura) {
+    // Al navegador, sólo lo que dibuja la tarjeta quieta.
+    const { inicial, contexto, tonos } = editor
+    return (
+      <TarjetaEnElLive
+        editor={{ inicial, contexto, tonos }}
+        referencia={recortada}
+        Lienzo={Lienzo}
+      />
+    )
+  }
   return (
     <PestanaDeLaTarjeta
       editor={editor}
-      referencia={recortarLaReferencia(deReferencia, idsDelContexto(editor.contexto))}
+      referencia={recortada}
       Lienzo={Lienzo}
       puedeCambiarElLogo={puedeCambiarElLogo}
     />

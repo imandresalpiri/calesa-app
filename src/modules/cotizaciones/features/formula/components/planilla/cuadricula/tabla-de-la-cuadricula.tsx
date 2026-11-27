@@ -31,7 +31,10 @@ function TramoDeLaCuadricula({ planilla, tramo, grupo, conRechazo, arrastre }: P
       ? undefined
       : filaDe(hoja, hoja.numeroDe.get(cuadricula.activa.id) ?? 0)
   const entrada = e === null ? null : <EntradaDeLaPlanilla planilla={planilla} edicion={e} />
-  const menu = activa === undefined ? null : <MenuDeLaFila planilla={planilla} fila={activa} />
+  // En sólo lectura (Modo Live), ni la fila ni la banda llevan su «⋯».
+  const soloLectura = planilla.editor.soloLectura
+  const menu =
+    activa === undefined || soloLectura ? null : <MenuDeLaFila planilla={planilla} fila={activa} />
   const rechazo = planilla.editor.rechazo
   return (
     <tbody {...(grupo === undefined ? {} : { 'data-tono': grupo.tono, 'data-grupo': grupo.id })}>
@@ -41,6 +44,7 @@ function TramoDeLaCuadricula({ planilla, tramo, grupo, conRechazo, arrastre }: P
           tipoDeCambio={planilla.tipoDeCambioDe(grupo.bucket)}
           rechazo={conRechazo && rechazo?.grupoId === grupo.id ? rechazo.mensaje : null}
           vacia={tramo.filas.length === 0}
+          conMenu={!soloLectura}
           motivoParaQuitar={bandas.motivoParaQuitar(grupo.id)}
           alEditar={() => {
             paneles.banda.abrir({ banda: grupo.id })
@@ -73,7 +77,7 @@ export function TablaDeLaCuadricula({
   const { cuadricula, acciones, edicion, hoja, ops, menu } = planilla
   const editando = edicion.edicion !== null
   const { arrastre, alApretar } = useArrastreDeFila({
-    apagado: editando || !planilla.editor.libre,
+    apagado: editando || !planilla.editor.libre || planilla.editor.soloLectura,
     alSoltar: (id, sobre) => {
       soltarFila(hoja, ops, id, sobre)
     },
@@ -107,7 +111,7 @@ export function TablaDeLaCuadricula({
       }}
       onContextMenu={(e) => {
         const celda = celdaDelEvento(e)
-        if (celda === null || editando || arrastre !== null) return
+        if (celda === null || editando || arrastre !== null || planilla.editor.soloLectura) return
         e.preventDefault()
         cuadricula.elegir(celda)
         menu.alCambiar(true)

@@ -29,6 +29,8 @@ type Props = {
   puedeCambiarTiposDeCambio: boolean
   // Los tipos de cambio de la empresa (`empresa`, que este módulo no lee aquí): la página los pide sin esperarlos. Nunca rechaza (sin lectura, ninguno).
   tiposDeCambio: Promise<readonly TipoDeCambioDeLaEmpresa[]>
+  // Con el Modo Live (Configuración de orígenes en «Sólo lectura»): la planilla se ve y nada se edita, publica ni descarta.
+  soloLectura?: boolean
 }
 
 // La pestaña «Fórmula» de la Fórmula de un origen (Configuración › Orígenes) (4.20-2a), leída en el servidor con la sesión de quien mira y detrás de `<Suspense>`: la
@@ -42,6 +44,7 @@ export async function SeccionDeLaFormula({
   NuevoColor,
   puedeCambiarTiposDeCambio,
   tiposDeCambio,
+  soloLectura = false,
 }: Props) {
   const [leida, deLaTarjeta, tablas, tipos] = await Promise.all([
     leerFormulaDelOrigen(formula),
@@ -60,6 +63,7 @@ export async function SeccionDeLaFormula({
       NuevoColor={NuevoColor}
       puedeCambiarTiposDeCambio={puedeCambiarTiposDeCambio}
       tiposDeCambio={tipos}
+      soloLectura={soloLectura}
     />
   )
 }
