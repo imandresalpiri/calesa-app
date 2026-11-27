@@ -485,6 +485,19 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   con aviso de tope; «Anular» el vigente pide motivo en `?panel=anular-comprobante` (sin id: hay a lo sumo uno).
   En el pie de «Vista previa», **«Retocar»** (quien la puede guardar): el mismo modal pasa al modo «Retocar la tarjeta» (estados en «Cotización: retocar la
   tarjeta»). Estados en Flujo 2.
+- **Artes** — `/artes` (`cotizaciones.ver` en algún origen; sin entrada en el menú): las plantillas de arte y la biblioteca de imágenes, en dos
+  pestañas a la vista (`?pestana=imagenes`; sin el parámetro, «Plantillas»). Cambiar de pestaña borra los filtros y los paneles. **Plantillas:** una
+  rejilla de tarjetas del mismo alto (miniatura de caja fija con la proporción del formato, nombre, formato y origen, «De la empresa» o «Privada», «Por
+  defecto para imagen|PDF» si lo es, y «Tuya» o «De <autor>»); tocar la tarjeta abre `/artes/<id>`, y el «⋯» (sobre la miniatura) lleva «Abrir»,
+  «Duplicar», «Duplicar en otro formato» (apagada: «Llega con el editor de artes.»), «Usar por defecto para imagen|PDF en <origen>» o «Quitar como por
+  defecto», «Hacerla de la empresa» o «Hacerla privada» y «Eliminar» (lo que no se puede, apagado con su nota). Filtros como chips en la URL: Origen
+  (`?origen=`), Formato (`?formato=`) y «De quién» (`?de=mias|empresa`), con «Limpiar filtros»; «Nueva plantilla» (`?panel=nueva`) pide nombre, origen
+  (sólo los activos), formato y, si es «Personalizado», ancho y alto (los dos campos siempre a la vista; apagados con la medida del formato). Nace privada.
+  **Imágenes:** la misma rejilla (miniatura sobre damero, nombre, medidas y tipo, «De la empresa» o «Personal»), con «Subir imagen» (`?panel=subir`:
+  el archivo, que se prepara al elegirlo; el nombre, que sale del archivo; y «Dónde», Personal o De la empresa); el «⋯» lleva «Renombrar»
+  (`?panel=renombrar&imagen=<id>`) y «Quitar» (`?panel=quitar&imagen=<id>`, que antes cuenta cuántas plantillas la usan). Las dos, de a
+  `TAMANO_DE_VER_MAS` con «Ver más», hasta `TOPE_DE_LO_CARGADO`. Estados en «Artes (estados propios)».
+- **Plantilla de arte** — `/artes/[id]` (quien la ve): su nombre y «El editor de artes llega pronto.» con «Volver a Artes». No redirige.
 - **Logística** — `/logistica` (`logistica.ver` en algún origen): siempre **en un origen**, elegido arriba como en Vehículos (sin «Todos»); toda página lleva la barra de Logística con
   los orígenes y las pestañas del elegido (ver «Logística: estados propios» › «La barra y el origen»). `/logistica` es la **Cadena** (la gráfica y «dónde está»); en la URL: `?origen=`
   (orígenes con la logística encendida; sin él, el último que usaste), `q` («dónde está»: nombre, VIN o lote; 3 letras o números), `en=todos` («Buscar en todos los orígenes») y `?panel=lote`
@@ -2201,6 +2214,32 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   colores, que es el máximo. Elimina uno que ningún grupo use.»). Esqueleto en la tarjeta; una lectura que falla deja esa tarjeta con «Reintentar». Sin conexión lo escrito queda y sale al volver.
 - **200 %:** cada fila apila nombre, muestras y acciones; el modal es `ModalDeFormulario`.
 
+### Artes (estados propios)
+
+- **Vacíos:** sin plantillas, «Todavía no hay plantillas de arte.» con «Nueva plantilla»; con filtros, «Ninguna plantilla de arte con estos filtros.» con
+  «Limpiar filtros»; sin imágenes, «Todavía no hay imágenes en tu biblioteca.» con «Subir imagen».
+- **Sin permiso:** sin `cotizaciones.ver` en ningún origen (también al entrar por la URL a `/artes` o `/artes/<id>`), «Necesitas ver cotizaciones en
+  algún origen para usar Artes.». Una de la empresa sin `artes.empresa.gestionar`: «Abrir» y «Duplicar» sí; hacerla privada y eliminar, apagadas con
+  «Sólo quien tiene Artes › gestionar las de la empresa.» (la base rechaza igual: «No tienes el permiso para cambiar las artes de la empresa.»).
+  «Hacerla de la empresa» y subir «De la empresa», apagadas con la misma nota.
+- **Reglas:** hacer de la empresa una que usa imágenes personales: «Usa imágenes personales: pásalas a la biblioteca de la empresa o quítalas antes.».
+  Personalizado fuera de rango: «Cada lado va de 320 a 4096 px.», junto al campo. Nombre vacío o largo: «Escribe un nombre de hasta 80 letras.».
+- **Archivo inválido**, en una línea reservada junto a la zona del archivo: «Sube una imagen PNG, WebP, JPG o SVG.», «La imagen pesa más de 10 MB.»,
+  «Aun reducida pesa más de 5 MB; prueba con otra.» o el motivo del SVG.
+- **Imagen en uso:** la confirmación de quitar lee los usos al abrirse («Revisando si alguna plantilla de arte la usa…», en una línea reservada) y dice
+  «La usa 1 plantilla. Quítala de esa plantilla antes.» o «La usan N plantillas. …» («100+» con más de 100) con «Quitar» apagado; si no puede leerlos,
+  «Reintentar». Si la base la encuentra en uso al quitarla, el mismo texto.
+- **Lo reversible va directo, con «Deshacer»:** hacer de la empresa una propia, hacer privada una propia y usar o quitar la por defecto («Ahora
+  <nombre> es tu plantilla por defecto para imagen en <origen>.»). Hacer privada la de otra persona (deja de verla quien la cambia) y eliminar
+  confirman nombrándola. Duplicar avisa con «Abrir».
+- **Lo que ya no está:** una plantilla cuyo origen ya no se ve no aparece y su por defecto vuelve a lo de hoy, sin texto. `/artes/<id>` que no existe
+  o no se ve: «No encontramos esta plantilla de arte.» con «Volver a Artes». Un `?panel=` sobre una fila que no está en lo cargado avisa («Esa plantilla
+  de arte ya no está en la lista.», «Esa imagen ya no está en la biblioteca.») y limpia la URL.
+- **Conflicto** (`PT409`): el aviso de conflicto con «Recargar». **Tope de «Ver más»:** «Mostrando las 500 más recientes. Filtra por origen o formato
+  para ver otras.» (en Imágenes, «Quita las que ya no uses para ver las más viejas.»).
+- **Celular:** una columna, objetivos de 44 px, texto al 200 % sin cortar, pestañas y filtros con ajuste de línea. Nada salta: la miniatura tiene
+  caja fija y las líneas de error, de preparación y de usos están reservadas.
+
 ### Leads: listado (estados propios)
 
 - **Entrar:** `leads.ver`; sin él, sin permiso (a quién pedirlo) y sin consulta. «Propios», sólo la cartera; «todos», todo, con el teléfono
@@ -2490,6 +2529,8 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
 - **Roles:** «Recibir turnos de la web» es un interruptor más de la matriz; un rol sin él vende igual pero no recibe turnos. Rol que no
   dominas: columna de sólo lectura, con su motivo en «Avisos de <rol>»; permiso que no tienes: celda deshabilitada con el motivo en su descripción;
   conflicto «Otra persona cambió este rol · Recargar» (sigue arriba: no es un aviso del rol).
+- **Artes:** el bloque «Artes» de la matriz tiene un solo permiso, «Gestionar las de la empresa» (`artes.empresa.gestionar`, sin origen), que nace en
+  el rol `dueno`. Ver y crear plantillas de arte va con `cotizaciones.ver` del origen.
 
 ### Modo Live (estados propios)
 

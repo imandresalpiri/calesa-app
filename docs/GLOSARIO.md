@@ -699,6 +699,18 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   vehículo, para marcar); la pestaña **«Texto»**, un **formato** («Simple», «WhatsApp», «Facebook», «TikTok») y una **zona** («Hora de <la ciudad de la
   empresa>» o «Hora del patio»); el texto firma con el asesor (quien comparte: «Asesor: nombre, cargo» y «WhatsApp: …»). Botones: «Compartir» (el menú del sistema del celular), «Copiar imagen», «Descargar imagen», «Copiar texto» y «Descargar PDF».
   Sólo lleva lo del nivel «todos» (lo que dibuja la tarjeta de la cotización). No es el **Compartir** de un lead ni **Compartir los tipos de cambio**.
+- **Arte** — una pieza para redes o un PDF que arma una persona sobre una cotización o un vehículo, a partir de una **Plantilla de arte**. Se
+  gestiona en `/artes` (módulo `artes`). No es la **Imagen de la tarjeta** ni el **PDF de la cotización**, que salen de la **Plantilla de tarjeta**.
+- **Plantilla de arte** — `artes_plantillas`, `PlantillaDeArte`: el diseño de un arte, con su **Formato de arte**, su origen y su documento de capas.
+  Nace **privada** (sólo la ve su autor); **de la empresa** la ve quien ve cotizaciones de su origen y la cambia quien tiene `artes.empresa.gestionar`.
+  Se escribe sólo por `artes_plantilla_*`. Nunca sólo «plantilla»: la **Plantilla de tarjeta** es otra cosa.
+- **Formato de arte** — `FORMATOS_DE_ARTE`, `artes_plantillas.formato`: la medida de una plantilla de arte, fija desde que se crea. De imagen, en px
+  («Cuadrado», «Vertical», «Historia», «Horizontal», «Pantalla» y «Personalizado», de 320 a 4.096 por lado); de PDF, en puntos («Carta», «A4»).
+- **Biblioteca de imágenes** — `artes_imagenes`, bucket privado `artes`: las imágenes que usan las plantillas de arte, **de la empresa** (las carga
+  quien tiene `artes.empresa.gestionar`, las ve todo el equipo de Artes) o **personales** (sólo su dueño). Una plantilla de la empresa sólo usa
+  imágenes de la empresa. Una imagen que alguna plantilla usa no se quita (`artes_plantillas_imagenes`).
+- **Plantilla por defecto** — `artes_por_defecto`, `artes_por_defecto_poner()`: la plantilla de arte que cada persona elige por origen y tipo
+  (imagen o PDF) para compartir una cotización. Sin una, o si ya no la ve, se comparte lo de hoy: la **Imagen de la tarjeta** o el **PDF de la cotización**.
 - **Revisión** — `cotizaciones_revisiones`: diff de cada edición.
 - **Reporte** — `cotizaciones_reportes` / `cotizacion_reportar()`, `cotizacion_reporte_retirar()`: marca de problema, uno por persona, con
   motivo; no cambia estado ni versión. «Reportada» = activa con reportes (el valor `reportada` del enum no se usa).
