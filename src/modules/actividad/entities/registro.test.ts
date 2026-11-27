@@ -35,6 +35,11 @@ describe('el registro en la frase', () => {
     expect(enlaceDelRegistro({ ...base, tabla: 'declaraciones_aduana' })).toBe(
       `/logistica/aduana?declaracion=${ID}`,
     )
+    expect(enlaceDelRegistro({ ...base, tabla: 'embarques' })).toBe(`/logistica/embarques/${ID}`)
+    expect(enlaceDelRegistro({ ...base, tabla: 'contenedores' })).toBe(
+      `/logistica/embarques?contenedor=${ID}`,
+    )
+    expect(enlaceDelRegistro({ ...base, tabla: 'embarques', registroTitulo: null })).toBeNull()
     expect(enlaceDelRegistro({ ...base, tabla: 'vehiculos', registroTitulo: null })).toBeNull()
     expect(enlaceDelRegistro({ ...base, tabla: 'tabla_desconocida' })).toBeNull()
   })

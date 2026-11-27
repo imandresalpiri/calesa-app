@@ -1,7 +1,12 @@
 // El registro de un cambio en la frase de la actividad: su icono por tipo, cómo se nombra cuando no hay título (borrado, sin acceso o de
 // configuración) y a qué página lleva. La base da el título y el destino (`actividad_listar` › `registro_titulo`, `registro_destino`); acá sólo
 // se decide cómo se dice y a dónde va. Las claves son las tablas de `ENTIDADES_DE_LA_ACTIVIDAD`.
-import { RUTAS, unidadDeLogistica } from '@/shared/lib/rutas'
+import {
+  contenedorDeLogistica,
+  embarqueDeLogistica,
+  RUTAS,
+  unidadDeLogistica,
+} from '@/shared/lib/rutas'
 import type { DestinoDelRegistro, FilaDeActividad } from './actividad'
 
 export type IconoDeEntidad =
@@ -39,7 +44,6 @@ const ENTIDADES: Readonly<Record<string, Entidad>> = {
   gastos: { icono: 'gasto', enFrase: 'un gasto', deUnaUnidad: true },
   pagos: { icono: 'pago', enFrase: 'un pago', deUnaUnidad: true },
   transportes: { icono: 'transporte', enFrase: 'un transporte', deUnaUnidad: true },
-  // Sin página propia por id: su resumen va por la clave (`?booking=`, `?contenedor=`), que el registro no trae.
   embarques: { icono: 'transporte', enFrase: 'un embarque' },
   contenedores: { icono: 'transporte', enFrase: 'un contenedor' },
   repuestos_compras: { icono: 'repuestos', enFrase: 'una compra', deUnaUnidad: true },
@@ -194,6 +198,9 @@ const PAGINA_PROPIA: Readonly<Record<string, (id: string) => string>> = {
   vehiculos: (id) => `${RUTAS.vehiculos}/${id}`,
   cotizaciones: (id) => `${RUTAS.cotizaciones}/${id}`,
   declaraciones_aduana: (id) => `${RUTAS.aduana}?declaracion=${id}`,
+  // Sin el origen: la página del embarque y el drawer del contenedor lo toman de la entidad.
+  embarques: (id) => embarqueDeLogistica(id),
+  contenedores: (id) => contenedorDeLogistica(id),
 }
 
 // La página del registro de una fila visible: la de Configuración para lo de configuración; para lo demás, sólo si la base dio su título
