@@ -9,11 +9,13 @@ import {
 } from '../../entities/alertas/grupo-leido'
 import type { GrupoDeLaBandeja } from '../../entities/alertas/grupos'
 
-// Un grupo de la bandeja del día se lee con `logistica_bandeja_grupo()` y la sesión de quien mira: la base decide el alcance por origen y por permiso, recorre cada grupo por su índice y devuelve
+// Un grupo de la bandeja del día se lee con `logistica_bandeja_grupo()` y la sesión de quien mira: la base decide el alcance en el origen elegido y por permiso, recorre cada grupo por su índice y devuelve
 // `tope` filas (más el conteo hasta `TOPE_DE_LA_BANDEJA` sólo en la primera página). La respuesta es `Json`: la entidad la valida.
 
 export type PedidoDeUnGrupo = {
   grupo: GrupoDeLaBandeja
+  // El origen elegido en Logística: la bandeja del día es de un origen.
+  origenId: string
   // De a cuántas filas: la portada pide `PRIMERAS_DE_LA_BANDEJA`; la página del grupo, `TAMANO_DE_LA_BANDEJA`.
   tope: number
   // Con conteo (la primera página): «37» o «100+».
@@ -29,6 +31,7 @@ export async function leerGrupoDeLaBase(
   const supabase = await createClient()
   const { data, error } = await supabase.rpc('logistica_bandeja_grupo', {
     p_grupo: pedido.grupo,
+    p_origen: pedido.origenId,
     p_tope: Math.min(pedido.tope, TAMANO_DE_LA_BANDEJA),
     ...(pedido.conConteo && pedido.cursor === null ? { p_conteo: TOPE_DE_LA_BANDEJA } : {}),
     ...(pedido.cursor ? { p_desde: pedido.cursor.desde, p_id: pedido.cursor.id } : {}),

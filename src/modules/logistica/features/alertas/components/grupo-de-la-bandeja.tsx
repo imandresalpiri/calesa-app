@@ -13,10 +13,12 @@ type Props = {
   ahora: Date
   zona: string
   origenes: ReadonlyMap<string, string> | null
+  // El origen de la bandeja: «Ver todos» lo lleva.
+  origenId: string
 }
 
-// Un grupo de la bandeja del día en la portada: el título con su cantidad (con tope: «37», «100+»), las primeras filas y «Ver todos». Un grupo que no cargó dice cuál y ofrece «Reintentar».
-export function GrupoDeLaBandeja({ grupo, permisos, ahora, zona, origenes }: Props) {
+// Un grupo de la bandeja del día de un origen: el título con su cantidad (con tope: «37», «100+»), las primeras filas y «Ver todos». Un grupo que no cargó dice cuál y ofrece «Reintentar».
+export function GrupoDeLaBandeja({ grupo, permisos, ahora, zona, origenes, origenId }: Props) {
   if (grupo.estado === 'error') {
     return (
       <section
@@ -49,7 +51,7 @@ export function GrupoDeLaBandeja({ grupo, permisos, ahora, zona, origenes }: Pro
         </h3>
         {lectura.hayMas ? (
           <Link
-            href={rutaDelGrupoDeLaBandeja(grupo.grupo) as Route}
+            href={rutaDelGrupoDeLaBandeja(grupo.grupo, { origenId }) as Route}
             prefetch={false}
             aria-label={`Ver todos: ${grupo.titulo}`}
             className="inline-flex min-h-11 items-center rounded-(--radius-input) text-(length:--text-sm) text-(--color-primario) underline-offset-2 outline-none hover:underline focus-visible:shadow-(--shadow-focus) md:min-h-8"

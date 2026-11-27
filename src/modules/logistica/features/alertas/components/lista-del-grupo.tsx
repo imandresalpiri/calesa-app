@@ -8,6 +8,7 @@ import { EstadoPaginaSinFilas, EstadoVacio } from '@/shared/ui/estados'
 import { Paginacion } from '@/shared/ui/paginacion'
 import { rutaDelGrupoDeLaBandeja, type GrupoDeLaBandeja } from '../../../entities/alertas/grupos'
 import type { LecturaDelGrupo } from '../../../entities/alertas/grupo-leido'
+import { enElOrigen } from '../../../entities/nucleo/enlaces'
 import { FilasDelGrupo } from './filas-del-grupo'
 
 type Props = {
@@ -20,6 +21,8 @@ type Props = {
   ahora: Date
   zona: string
   origenes: ReadonlyMap<string, string> | null
+  // El origen de la bandeja: «Ver la bandeja» y «Seguir buscando» lo llevan (la paginación conserva la URL).
+  origenId: string
 }
 
 // Una frase por grupo para el vacío: «No hay demorados hoy.»
@@ -44,6 +47,7 @@ export function ListaDelGrupo({
   ahora,
   zona,
   origenes,
+  origenId,
 }: Props) {
   // El cursor de lo que sigue: el de la última fila leída (o, con la base parada a medio camino, hasta donde llegó).
   const siguiente = lectura.siguiente
@@ -55,7 +59,7 @@ export function ListaDelGrupo({
     : null
   const volver = (
     <Link
-      href={RUTAS.logistica as Route}
+      href={enElOrigen(RUTAS.bandejaDeLogistica, origenId) as Route}
       className={buttonVariants({ variant: 'outline', className: 'h-11 md:h-9' })}
     >
       Ver la bandeja
@@ -70,7 +74,7 @@ export function ListaDelGrupo({
             : 'Se revisó mucho sin encontrar más en este grupo.'}
         </p>
         <Link
-          href={rutaDelGrupoDeLaBandeja(grupo, siguiente) as Route}
+          href={rutaDelGrupoDeLaBandeja(grupo, { origenId, cursor: siguiente }) as Route}
           className={buttonVariants({ variant: 'outline', className: 'h-11 md:h-9' })}
         >
           Seguir buscando
