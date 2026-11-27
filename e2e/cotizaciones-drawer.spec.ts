@@ -63,7 +63,7 @@ async function esElResumenDe(page: Page, id: string): Promise<Locator> {
   await expect.poll(() => new URL(page.url()).searchParams.get('cotizacion')).toBe(id)
   const drawer = resumen(page, id)
   await expect(drawer).toBeVisible()
-  await expect(drawer.getByText('Cliente', { exact: true })).toBeVisible()
+  await expect(drawer.getByRole('term').filter({ hasText: /^Cliente$/ })).toBeVisible()
   await expect(barra(drawer).getByRole('link', { name: 'Abrir cotización' })).toHaveAttribute(
     'href',
     `/cotizaciones/${id}`,
@@ -306,6 +306,8 @@ test('E2E en Modo Live el resumen ofrece «Compartir cotización» en la barra y
   await page.goto(deLaPrueba(`&cotizacion=${suelta}`))
   await expect(page.locator('html')).toHaveClass(/\blive\b/)
   const drawer = await esElResumenDe(page, suelta)
+  // Con Clientes apagado (lo por defecto del Live), el cliente se nombra «Cliente».
+  await expect(drawer.getByRole('definition').filter({ hasText: /^Cliente$/ })).toBeVisible()
   await expect(barra(drawer).getByRole('button', { name: 'Compartir cotización' })).toBeVisible()
   await barra(drawer)
     .getByRole('button', { name: `Más acciones de N.º ${numeroDe(suelta)}` })
