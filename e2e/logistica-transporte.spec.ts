@@ -129,7 +129,7 @@ test('E2E ver el contenedor con sus dos unidades en /logistica/embarques y busca
     eta_el: '2026-12-15',
   })
   await entrar(page, terreno.conTransporte, { fresco: true })
-  await page.goto('/logistica/embarques?grupo=contenedores')
+  await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores`)
   const fila = page.getByRole('row').filter({ hasText: 'ECMU123456' })
   await expect(fila).toContainText(terreno.naviera.nombre)
   await expect(fila).toContainText('15 dic 2026')
@@ -145,9 +145,9 @@ test('E2E ver el contenedor con sus dos unidades en /logistica/embarques y busca
   await expect(panel.getByText('Mover el grupo')).toHaveCount(0)
 
   // La búsqueda por el comienzo de la clave la sigue mostrando; otra que no coincide lo dice.
-  await page.goto('/logistica/embarques?grupo=contenedores&q=ecm')
+  await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores&q=ecm`)
   await expect(page.getByRole('row').filter({ hasText: 'ECMU123456' })).toBeVisible()
-  await page.goto('/logistica/embarques?grupo=contenedores&q=zzz')
+  await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores&q=zzz`)
   await expect(page.getByText('Ningún contenedor coincide con los filtros.')).toBeVisible()
 })
 
@@ -159,7 +159,9 @@ test('E2E «Editar grupo» cambia la ETA de las tres unidades de un contenedor',
     eta_el: '2026-12-20',
   })
   await entrar(page, terreno.conTransporte, { fresco: true })
-  await page.goto('/logistica/embarques?grupo=contenedores&contenedor=ECMU123456')
+  await page.goto(
+    `/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores&contenedor=ECMU123456`,
+  )
   const resumen = page.getByRole('dialog', { name: 'Contenedor' })
   await expect(resumen.getByText('3 unidades')).toBeVisible()
   await resumen.getByRole('button', { name: 'Editar grupo' }).click()
@@ -188,7 +190,7 @@ test('E2E «Editar grupo» cambia la ETA de las tres unidades de un contenedor',
     expect(t?.eta_el).toBe('2026-12-30')
     expect(t?.contenedor).toBe('ECMU123456')
   }
-  await page.goto('/logistica/embarques?grupo=contenedores')
+  await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores`)
   await expect(page.getByRole('row').filter({ hasText: 'ECMU123456' })).toContainText('30 dic 2026')
 })
 

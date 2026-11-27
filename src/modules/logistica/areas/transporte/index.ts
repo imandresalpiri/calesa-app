@@ -26,5 +26,8 @@ export {
   tipoDeGrupoDeLaVista,
   tipoDeLaBaseDe,
   vistaDeGrupos,
+  vistaDelOrigen,
+  vistasDeTransporte,
+  ETIQUETA_DE_VISTA_DE_GRUPOS,
   type VistaDeGrupos,
 } from '../../entities/transporte/paneles'

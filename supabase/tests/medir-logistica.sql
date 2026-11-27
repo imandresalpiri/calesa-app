@@ -333,7 +333,7 @@ select pg_temp.cursores(true);
 select pg_temp.tanda('120.000');
 select pg_temp.tanda_lista('120.000');
 
--- La bandeja: cada grupo, la primera página (las 5 de la portada con el conteo hasta 100) y una página de 20 con cursor profundo; las consultas de adentro.
+-- La bandeja del origen: cada grupo, la primera página (las 5 de la pestaña con el conteo hasta 100) y una página de 20 con cursor profundo; las consultas de adentro.
 create function pg_temp.bandeja() returns void language plpgsql as $$
 declare
   o uuid := (select id from _o); v_hoy date := public._bandeja_dia_hoy(); c_tam int := current_setting('medir.tam_bandeja')::int;
@@ -357,19 +357,19 @@ begin
   -- Las RPC: la portada (5 filas y el conteo hasta 100) de cada grupo y una página con cursor.
   foreach g in array array['demorados', 'trabados', 'por_aprobar', 'por_vencer', 'llegadas', 'salidas', 'sin_resolver'] loop
     perform pg_temp.m('bandeja · ' || g || ', la portada', 'authenticated', 'duena',
-      format('select public.logistica_bandeja_grupo(%L, 5, 100)', g), case g when 'trabados' then 100 else 60 end, null, 6144);
+      format('select public.logistica_bandeja_grupo(%L, %L, 5, 100)', g, o), case g when 'trabados' then 100 else 60 end, null, 6144);
     perform pg_temp.m('bandeja · ' || g || ', la portada', 'authenticated', 'ana',
-      format('select public.logistica_bandeja_grupo(%L, 5, 100)', g), 300, null, 6144);
+      format('select public.logistica_bandeja_grupo(%L, %L, 5, 100)', g, o), 300, null, 6144);
     select * into k from _cur where clave = case g when 'por_aprobar' then 'aprobar' when 'por_vencer' then 'vencer' else g end;
     continue when g = 'trabados' or k.id is null;
     perform pg_temp.m('bandeja · ' || g || ', página con cursor profundo', 'authenticated', 'duena',
-      format('select public.logistica_bandeja_grupo(%L, %s, null, %L, %L)', g, c_tam, k.ts, k.id), 40, null, 12288);
+      format('select public.logistica_bandeja_grupo(%L, %L, %s, null, %L, %L)', g, o, c_tam, k.ts, k.id), 40, null, 12288);
   end loop;
 end $$;
 grant execute on all functions in schema pg_temp to authenticated;
 select pg_temp.bandeja();
 
--- Los grupos de `/logistica/embarques` (las dos vistas: la primera página, una con cursor profundo y la de un filtro que nadie cumple, que corta a las 2.000
+-- Los grupos de `/logistica/embarques` en el origen (las dos vistas: la primera página, una con cursor profundo y la de un filtro que nadie cumple, que corta a las 2.000
 -- unidades), el resumen de un contenedor de 8 con su embarque (≤ 10 ms) y la lista de una fase filtrada por ese contenedor y por su booking (la dueña la
 -- lee desde sus unidades, ≤ 2 ms; Ana parte de lo propio, como sin filtro).
 insert into public.navieras (nombre) values ('Medir naviera sin unidades');
@@ -391,9 +391,9 @@ begin
     end if;
     foreach v_caso in array array['la primera página', 'con cursor profundo', 'con un filtro que nadie cumple'] loop
       q := case v_caso
-             when 'la primera página' then format('select public.transporte_grupos(%L, null, 50, %L)', v_tipo, '{}')
-             when 'con cursor profundo' then format('select public.transporte_grupos(%L, %L, 50, %L)', v_tipo, v_cursor, '{}')
-             else format('select public.transporte_grupos(%L, null, 50, %L)', v_tipo, jsonb_build_object('naviera', v_naviera)) end;
+             when 'la primera página' then format('select public.transporte_grupos(%L, null, 50, %L, %L)', v_tipo, '{}', o)
+             when 'con cursor profundo' then format('select public.transporte_grupos(%L, %L, 50, %L, %L)', v_tipo, v_cursor, '{}', o)
+             else format('select public.transporte_grupos(%L, null, 50, %L, %L)', v_tipo, jsonb_build_object('naviera', v_naviera), o) end;
       -- Lo medido por dos: ≤ 50 ms (Ana) la página; el filtro que nadie cumple recorre sus 2.000 unidades antes de cortar (≤ 80 ms).
       v_ms := case v_caso when 'con un filtro que nadie cumple' then 200 else 100 end;
       perform pg_temp.m('grupos · ' || v_tipo || ', ' || v_caso, 'authenticated', 'duena', q, v_ms, null, 24576);

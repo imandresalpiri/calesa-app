@@ -33,3 +33,27 @@ export function tipoDeLaBaseDe(vista: VistaDeGrupos): 'booking' | 'contenedor' {
 export function tipoDeGrupoDeLaVista(vista: VistaDeGrupos): 'embarque' | 'contenedor' {
   return vista === 'contenedores' ? 'contenedor' : 'embarque'
 }
+
+// La regla del flujo (`flujos_reglas`) que pide cada vista: los embarques, `transporte`; los contenedores, `contenedor`.
+const REGLA_DE_LA_VISTA: Record<VistaDeGrupos, string> = {
+  embarques: 'transporte',
+  contenedores: 'contenedor',
+}
+
+/** Las vistas de `/logistica/embarques` que usa el flujo de un origen, en su orden. Vacío: el origen no usa Embarques. */
+export function vistasDeTransporte(reglas: readonly string[]): VistaDeGrupos[] {
+  return VISTAS_DE_GRUPOS.filter((vista) => reglas.includes(REGLA_DE_LA_VISTA[vista]))
+}
+
+/**
+ * La vista que se dibuja entre las del origen: la que pide la URL o, sin pedido, la primera. `no_usa`: la URL pide una que el origen no usa (o el origen no usa
+ * ninguna).
+ */
+export function vistaDelOrigen(
+  valor: string | null | undefined,
+  vistas: readonly VistaDeGrupos[],
+): VistaDeGrupos | 'no_usa' {
+  const pedida = valor === undefined || valor === null || valor === '' ? null : vistaDeGrupos(valor)
+  const vista = pedida ?? vistas[0]
+  return vista !== undefined && vistas.includes(vista) ? vista : 'no_usa'
+}
