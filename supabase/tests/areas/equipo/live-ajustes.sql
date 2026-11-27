@@ -13,7 +13,7 @@ begin
 end;
 $$;
 
--- A y B con el rol «x» (sin permisos especiales), C con el rol «y» que configura (y gestiona roles: puede «Ver como»).
+-- A y B con el rol «x» (sin permisos especiales), C con el rol «y» que configura (ve el equipo y gestiona roles: puede «Ver como»).
 create or replace function pg_temp.lva_terreno(a uuid, b uuid, c uuid) returns void language plpgsql as $$
 declare v_x uuid; v_y uuid;
 begin
@@ -29,7 +29,8 @@ begin
   insert into public.roles (clave, nombre, orden) values ('lva_y', 'Lva Y', 901) returning id into v_y;
   insert into public.usuarios_roles (usuario_id, rol_id, es_principal) values (a, v_x, true), (b, v_x, true), (c, v_y, true);
   insert into public.roles_permisos (rol_id, permiso_clave, alcance) values
-    (v_x, 'vehiculos.ver', 'todos'), (v_y, 'live.configurar', 'todos'), (v_y, 'equipo.roles.gestionar', 'todos');
+    (v_x, 'vehiculos.ver', 'todos'), (v_y, 'live.configurar', 'todos'), (v_y, 'equipo.roles.gestionar', 'todos'),
+    (v_y, 'equipo.usuarios.ver', 'todos');
 end;
 $$;
 
@@ -314,5 +315,26 @@ begin
   if r -> 'personas' -> 0 -> 'rol' -> 'ajustes' <> '{"clientes": "nombres"}'::jsonb then
     raise exception 'el rol de Beto no trajo sus ajustes: %', r;
   end if;
+end $$;
+rollback;
+
+-- @test equipo: live_personas pide además ver el equipo (nombres y correos son de «Ver el equipo»)
+begin;
+do $$
+declare
+  a constant uuid := '00000000-0000-4000-8000-0000000fa051';
+  b constant uuid := '00000000-0000-4000-8000-0000000fa052';
+  c constant uuid := '00000000-0000-4000-8000-0000000fa053';
+  v text;
+begin
+  perform pg_temp.lva_terreno(a, b, c);
+  delete from public.roles_permisos where rol_id = pg_temp.lva_rol('lva_y') and permiso_clave = 'equipo.usuarios.ver';
+  perform pg_temp.lva_como(c);
+  v := pg_temp.lva_falla('select public.live_personas()');
+  if v not like '42501/%' then raise exception 'live_personas sin ver el equipo esperaba 42501, dio %', v; end if;
+  v := pg_temp.lva_falla('select public.live_personas(''Lva Ana'')');
+  if v not like '42501/%' then raise exception 'la búsqueda sin ver el equipo esperaba 42501, dio %', v; end if;
+  -- Los ajustes de los roles siguen al alcance de quien configura.
+  perform public.live_rol_guardar(pg_temp.lva_rol('lva_x'), '{"inicio": true}', null);
 end $$;
 rollback;

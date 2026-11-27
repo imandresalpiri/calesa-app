@@ -34,10 +34,14 @@ async function ModoLive({ searchParams }: PageProps<'/configuracion/modo-live'>)
     return <EstadoSinPermiso />
   }
   const texto = textoDeLaBusquedaDelLive(unParametro(parametros['q']))
+  // Los nombres y correos de «Ajustes por persona» son del equipo: sin verlo, la base no los da (`live_personas()`) y no se piden.
+  const veElEquipo =
+    puede(sesion.permisos, 'equipo.usuarios.ver') ||
+    puede(sesion.permisos, 'equipo.usuarios.gestionar')
   // También los orígenes inactivos: uno que un rol tiene elegido se nombra «(inactivo)» en vez de perderse.
   const [roles, personas, origenes] = await Promise.all([
     leerAjustesDeLosRoles(),
-    leerPersonasDelLive({ texto, cursor: null }),
+    veElEquipo ? leerPersonasDelLive({ texto, cursor: null }) : null,
     getOrigenes(true),
   ])
   const delLive = datosO(origenes).map(({ id, nombre, activo }) => ({ id, nombre, activo }))
@@ -63,7 +67,18 @@ async function ModoLive({ searchParams }: PageProps<'/configuracion/modo-live'>)
         <p className="text-(length:--text-sm) text-(--color-ink-soft)">
           Lo propio de una persona pisa lo de su rol sólo en los campos que cambies.
         </p>
-        <AjustesPorPersona pagina={datosO(personas)} buscando={texto !== null} origenes={delLive} />
+        {personas === null ? (
+          <EstadoSinPermiso
+            titulo="No puedes ver al equipo"
+            descripcion="Para darle a una persona sus ajustes propios te hace falta «Ver el equipo»."
+          />
+        ) : (
+          <AjustesPorPersona
+            pagina={datosO(personas)}
+            buscando={texto !== null}
+            origenes={delLive}
+          />
+        )}
       </div>
     </div>
   )

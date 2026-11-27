@@ -243,6 +243,9 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   lo que se decide con `puede()` se apagan solos, como con «Ver como». RLS, RPC y `actionClient` siguen con los permisos reales: el Live es
   presentación, no seguridad, y por eso sus ajustes no pasan por `/actividad` ni exigen dominar a la persona (no otorgan permisos y así no se
   redefine `_actividad_recorte()`; decidido sin preguntar). Se escriben sólo por RPC definer con `live.configurar`.
+- **«Ajustes por persona» pide además «Ver el equipo».** `live_personas()` da nombres y correos de todo el equipo: con `live.configurar`
+  sólo, la base responde 42501 como `equipo_lista()`, y la página muestra en ese grupo «No puedes ver al equipo» sin pedirlo. «Por rol»
+  sigue a la vista. Decidido sin preguntar: `live.configurar` no es un permiso del equipo.
 - **Los ajustes del Live viajan en `mi_sesion()`** (clave `live: { rol, persona }`: dos lecturas por clave primaria en la ida que ya
   existe). Al navegador van sólo `puedeEncender` y si la pantalla se dibujó encendida. Mandan los del rol principal (`roles[0]`, el orden del
   menú del usuario: así se puede escribir «Como su rol (<rol>)»; decidido sin preguntar), pisados campo a campo por los propios de la

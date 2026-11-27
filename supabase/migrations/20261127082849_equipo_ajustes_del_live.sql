@@ -244,6 +244,7 @@ $$;
 -- «Ajustes por persona»: sin texto (o con uno sin 3 letras o dígitos seguidos), quienes tienen ajuste propio y siguen activos, por cursor
 -- (`live_ajustes_personas_actualizado_idx`; con cursor y sin cursor son dos consultas). Con texto, las personas vigentes que lo nombran, con el
 -- recorrido y el trigram de `equipo_lista()` (`_equipo_lista_sql`), sin cursor: tope y «escribe más». Cada una con su rol principal (y sus ajustes) y lo propio.
+-- Nombres y correos del equipo: pide además lo que pide `equipo_lista()` («Ver el equipo» o gestionarlo).
 -- ---------------------------------------------------------------------------------------------------
 create function public.live_personas(p_texto text default null, p_cursor_en timestamptz default null, p_cursor_id uuid default null,
                                      p_limite integer default 21) returns jsonb
@@ -258,6 +259,9 @@ declare
 begin
   perform public.assert_activo();
   perform public.assert_permiso('live.configurar');
+  if not (public.tiene_permiso('equipo.usuarios.ver') or public.tiene_permiso('equipo.usuarios.gestionar')) then
+    raise exception 'Te falta el permiso «Ver el equipo».' using errcode = '42501';
+  end if;
   if v_texto <> '' and public._equipo_lista_indexable(v_texto) then
     execute public._equipo_lista_sql(v_texto, 'vigentes', v_limite, 'recorrer') into v_ids;
     if cardinality(v_ids) < v_limite then

@@ -2444,7 +2444,8 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
 ### Modo Live (estados propios)
 
 - **Configuración › Modo Live:** cargando, el esqueleto de las tarjetas; sin permiso, «No tienes permiso»; con el Live encendido, la página
-  misma se oculta. «Ajustes por persona» sin nadie: «Nadie tiene ajustes propios.» («Busca a una persona para darle los suyos.»); buscando sin
+  misma se oculta. Sin «Ver el equipo», «Ajustes por persona» es «No puedes ver al equipo» y «Por rol» sigue. «Ajustes por persona» sin
+  nadie: «Nadie tiene ajustes propios.» («Busca a una persona para darle los suyos.»); buscando sin
   resultados, «Limpiar búsqueda»; al tope, «Mostrando las 20 primeras por nombre» («Escribe más para afinar la búsqueda.») o «Mostrando las N
   cambiadas hace menos» («Busca por nombre para llegar a las demás.»). Los modales: «Sólo estos» sin ningún origen no se guarda y lo dice en
   «Orígenes»; un conflicto deja «Recargar» y conserva lo elegido; cerrar con cambios pregunta; abrir por URL a alguien que no está en la lista

@@ -81,7 +81,7 @@ RPC: `mi_sesion(p_perspectiva)`, `permisos_efectivos`, `mis_permisos`, `tiene_pe
 `equipo.usuarios.ver` o `.gestionar`), `equipo_aceptar_invitacion`, `roles_personas()`. Baja por lotes: `_baja_lote*`, `_baja_terminar`,
 `_bajas_en_curso()`, `_lead_aplicar_bajas`, job `equipo-bajas` cada minuto.
 Modo Live: `live_rol_guardar`, `live_rol_quitar`, `live_persona_guardar` (`{}` borra la fila), `live_persona_quitar` (las cuatro con
-`live.configurar` y versión, `PT409`) y `live_personas(texto, cursor, límite)` (definer, ≤ 21; cada persona con su rol principal y sus ajustes);
+`live.configurar` y versión, `PT409`) y `live_personas(texto, cursor, límite)` (definer, ≤ 21, `live.configurar` y «Ver el equipo»; cada persona con su rol principal y sus ajustes);
 `mi_sesion()` entrega los del rol y los propios.
 
 ## No se rompe
