@@ -220,12 +220,18 @@ test('dos sesiones dan el conflicto con nombre y valor', async ({ page, browser 
   await page.keyboard.press('Escape')
   await expect(popover).toBeHidden()
 
-  // El Modo Live oculta las cifras y no ofrece el lápiz: el campo las mostraría.
+  // El Modo Live oculta sólo los símbolos de moneda: el lápiz sigue.
   const live = page.getByRole('button', { name: 'Modo Live: ocultar los símbolos de moneda' })
   await live.click()
   await expect(live).toHaveAttribute('aria-pressed', 'true')
   const conLive = await abrirElPopover(page)
-  await expect(conLive.getByRole('button', { name: /^Cambiar el valor de/ })).toHaveCount(0)
+  await expect(conLive.getByRole('button', { name: /^Cambiar el valor de/ }).first()).toBeVisible()
+  await expect(
+    conLive
+      .getByRole('listitem')
+      .filter({ hasText: 'Paralelo' })
+      .locator('[data-monto-sin-moneda]'),
+  ).toHaveText(/^12,50$/)
   await capturar(page, info, 'live')
   await page.keyboard.press('Escape')
   await live.click()

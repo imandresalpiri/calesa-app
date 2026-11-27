@@ -10,7 +10,7 @@ import { UltimoCambio } from './ultimo-cambio'
 
 type Props = {
   tipo: TipoCambioVigente
-  // Quien gestiona los tipos de cambio, sin el Modo Live: ve el lápiz.
+  // Quien gestiona los tipos de cambio: ve el lápiz.
   puedeCambiar: boolean
   editando: boolean
   alEditar: () => void
@@ -20,7 +20,7 @@ type Props = {
 }
 
 // Un tipo de cambio del popover: nombre y valor («1 USD = Bs 12,20», por <Monto>) y, debajo, quién y cuándo lo cambió por última vez. Quien
-// puede, lo cambia ahí mismo con el lápiz (su nombre no lleva el monto: el Modo Live lo dejaría a la vista).
+// puede, lo cambia ahí mismo con el lápiz (su nombre no lleva el monto: el CSS del Modo Live no alcanza un `aria-label`).
 export function FilaDeTipoCambio(props: Props) {
   const { tipo, puedeCambiar, editando, alEditar, alDejarDeEditar, releer, alRetener } = props
   // «Recargar» tras un conflicto vuelve a montar el editor con lo releído.

@@ -876,7 +876,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   los vigentes con quién y cuándo cambió el valor por última vez (nunca el correo) y, para quien gestiona los tipos de cambio, el lápiz
   «Cambiar el valor de <nombre>»: Enter guarda, Esc cancela, el motivo junto al campo; con algo escrito el popover no se cierra al tocar
   afuera; sin red, lo escrito queda y se guarda al volver; un `PT409` dice «<Nombre> lo cambió a <monto> hace N minutos» con «Recargar».
-  Con el Modo Live, cifras ocultas y sin lápiz. Al pie, «Compartir» (toda persona; con el Modo Live no se ofrece, y con un valor a medio
+  Con el Modo Live, los valores sin su moneda y con el lápiz igual. Al pie, «Compartir» (toda persona, también con el Modo Live; con un valor a medio
   editar espera: «Termina de cambiar el valor para compartir.») y «Configurar los tipos de cambio» (quien gestiona). **«Compartir»** cambia el
   contenido del popover por su panel (`Volver a los tipos de cambio`): casillas de los activos (por defecto los de la barra; sólo para ese envío),
   la imagen y el texto tal como saldrán (logo, nombre, momento en la zona de la empresa, un tipo por línea, leyenda) y los botones, que se apagan

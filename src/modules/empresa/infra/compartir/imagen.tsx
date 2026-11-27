@@ -125,7 +125,15 @@ function Cabecera({ empresa, logo }: { empresa: string; logo: string | null }) {
   )
 }
 
-function FilaDeTipo({ tipo, locale }: { tipo: TipoParaCompartir; locale: string }) {
+function FilaDeTipo({
+  tipo,
+  locale,
+  sinMoneda,
+}: {
+  tipo: TipoParaCompartir
+  locale: string
+  sinMoneda: boolean
+}) {
   return (
     <div
       style={{
@@ -140,7 +148,7 @@ function FilaDeTipo({ tipo, locale }: { tipo: TipoParaCompartir; locale: string 
         {recortar(tipo.nombre, 18)}
       </div>
       <div style={{ display: 'flex', fontSize: 40, fontWeight: 600 }}>
-        {valorParaCompartir(tipo, locale)}
+        {valorParaCompartir(tipo, locale, { sinMoneda })}
       </div>
     </div>
   )
@@ -184,7 +192,12 @@ function Imagen({ datos, logo }: { datos: ParaCompartir; logo: string | null }) 
           {`Tipos de cambio · ${momentoParaCompartir(datos.ahora, datos.zonaHoraria)}`}
         </div>
         {datos.tipos.map((tipo) => (
-          <FilaDeTipo key={tipo.id} tipo={tipo} locale={datos.locale} />
+          <FilaDeTipo
+            key={tipo.id}
+            tipo={tipo}
+            locale={datos.locale}
+            sinMoneda={datos.sinMoneda === true}
+          />
         ))}
         {leyenda === null ? null : (
           <div

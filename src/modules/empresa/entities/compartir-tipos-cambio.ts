@@ -2,7 +2,7 @@
 // empresa, el momento en su zona, un tipo por línea y la leyenda). Acá, lo puro: el tope, el armado del texto y los ids de la URL.
 import { z } from 'zod'
 import { formatearFechaHoraConZona } from '@/shared/lib/fechas'
-import { formatearMonto } from '@/shared/lib/formato'
+import { formatearMonto, formatearMontoSinMoneda } from '@/shared/lib/formato'
 import type { Tables } from '@/shared/types/database.types'
 import { decimalesDeValor } from './tipos-cambio'
 import { TOPE_DEL_POPOVER } from './tipos-cambio-vigentes'
@@ -51,14 +51,23 @@ export type ParaCompartir = {
   leyenda: string | null
   // En el orden en que se pidieron.
   tipos: readonly TipoParaCompartir[]
+  // La vista del Modo Live (`?sin-moneda=1`): los valores sin su moneda. Lo que se copia y se comparte va siempre sin esto.
+  sinMoneda?: boolean
 }
 
-// «1 USD = Bs 6,96», con los decimales con que se ve en toda la app.
+// `?sin-moneda=` de las rutas de compartir: sólo `1` pide la vista sin moneda; otro valor se ignora.
+export const CLAVE_SIN_MONEDA = 'sin-moneda'
+export const sinMonedaDe = (valor: string | null): boolean => valor === '1'
+
+// «1 USD = Bs 6,96», con los decimales con que se ve en toda la app. Con `sinMoneda`, «1 USD = 6,96»: el valor sin su moneda; «1 USD» queda, porque sin él no se sabe
+// de qué tipo es la cifra.
 export function valorParaCompartir(
   tipo: Pick<TipoParaCompartir, 'monedaDe' | 'monedaA' | 'valor'>,
   locale: string,
+  { sinMoneda = false }: { sinMoneda?: boolean } = {},
 ): string {
-  const monto = formatearMonto(tipo.valor, {
+  const formatear = sinMoneda ? formatearMontoSinMoneda : formatearMonto
+  const monto = formatear(tipo.valor, {
     moneda: tipo.monedaA,
     locale,
     decimales: decimalesDeValor(tipo.valor),
@@ -92,7 +101,10 @@ export function armarTextoParaCompartir(datos: ParaCompartir): string {
       ? momentoParaCompartir(datos.ahora, datos.zonaHoraria)
       : `Tipos de cambio · ${momentoParaCompartir(datos.ahora, datos.zonaHoraria)}`,
     '',
-    ...datos.tipos.map((tipo) => `${tipo.nombre}: ${valorParaCompartir(tipo, datos.locale)}`),
+    ...datos.tipos.map(
+      (tipo) =>
+        `${tipo.nombre}: ${valorParaCompartir(tipo, datos.locale, { sinMoneda: datos.sinMoneda === true })}`,
+    ),
   ]
   const leyenda = normalizarLeyenda(datos.leyenda)
   if (leyenda !== null) {

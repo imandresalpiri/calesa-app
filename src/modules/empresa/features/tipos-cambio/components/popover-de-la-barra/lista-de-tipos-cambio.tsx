@@ -13,7 +13,7 @@ import { FilaDeTipoCambio } from './fila-de-tipo-cambio'
 type Props = {
   filas: readonly TipoCambioVigente[]
   hayMas: boolean
-  // Quien gestiona los tipos de cambio, sin el Modo Live.
+  // Quien gestiona los tipos de cambio.
   puedeCambiar: boolean
   releer: () => Promise<TipoCambioVigente[] | null>
   alRetener: (retener: boolean) => void

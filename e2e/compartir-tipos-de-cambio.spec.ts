@@ -248,18 +248,32 @@ test('sin conexión se dice y se puede reintentar', async ({ page }) => {
   await expect(popover.getByLabel('Texto', { exact: true })).toHaveValue(/Oficial/)
 })
 
-test('con el Modo Live no se ofrece compartir', async ({ page }) => {
+test('con el Modo Live se comparte: la vista previa sin moneda y lo copiado completo', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await entrar(page, duena)
   const live = page.getByRole('button', { name: 'Modo Live: ocultar los símbolos de moneda' })
   await live.click()
   await expect(live).toHaveAttribute('aria-pressed', 'true')
-  await page
-    .locator('header [data-hueco="tipo-cambio"]')
-    .getByRole('button', { name: 'Tipos de cambio' })
-    .click()
-  const popover = page.getByRole('dialog', { name: 'Tipos de cambio' })
-  await expect(popover.getByRole('listitem').filter({ hasText: 'Oficial' })).toBeVisible()
-  await expect(popover.getByRole('button', { name: 'Compartir', exact: true })).toHaveCount(0)
+  const pedidos: string[] = []
+  page.on('request', (r) => {
+    if (r.url().includes('/tipos-de-cambio/')) pedidos.push(r.url())
+  })
+  const popover = await abrirCompartir(page)
+  const texto = popover.getByLabel('Texto', { exact: true })
+  await expect(texto).toHaveValue(/Oficial: 1 USD = 11,68/)
+  await expect(texto).not.toHaveValue(/Bs/)
+  await expect(
+    popover.getByRole('img', { name: 'Vista previa de la imagen que se comparte' }),
+  ).toBeVisible()
+  expect(pedidos.some((u) => u.includes('/tipos-de-cambio/imagen?sin-moneda=1&ids='))).toBe(true)
+  await popover.getByRole('button', { name: 'Copiar texto' }).click()
+  await expect(page.getByText('Texto copiado')).toBeVisible()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(
+    /Oficial: 1 USD = Bs\s11,68/,
+  )
   await page.keyboard.press('Escape')
   await live.click()
   await expect(live).toHaveAttribute('aria-pressed', 'false')

@@ -4,8 +4,8 @@ import { useCallback, useState } from 'react'
 
 const MOTIVO_EDITANDO = 'Termina de cambiar el valor para compartir.'
 
-// El estado de «Compartir» dentro del popover de la barra. `puedeCompartir`: hay tipos a la vista y no está el Modo Live (la imagen y el texto llevan
-// cifras); si se enciende con el panel abierto, vuelve la lista. Con algo escrito en un editor, «Compartir» espera: el panel reemplazaría la lista y se
+// El estado de «Compartir» dentro del popover de la barra. `puedeCompartir`: hay tipos a la vista (también con el Modo Live: la vista previa va sin moneda).
+// Con algo escrito en un editor, «Compartir» espera: el panel reemplazaría la lista y se
 // perdería lo tipeado. `retener` es el `alRetener` de los editores: avisa al popover y se acuerda.
 export function useCompartirDelPopover(
   puedeCompartir: boolean,
