@@ -206,6 +206,132 @@ html:has([data-lienzo-marco]) {
 }
 
 /*
+ * El marco del Live (`_shell/marco-del-live.tsx`, docs/GLOSARIO.md › «Marco del Live»): con la clase `live` en <html>, un borde alrededor de la ventana y el
+ * distintivo «EN VIVO», por encima de todo y sin recibir clics ni cambiar el tamaño de nada (`position: fixed`, `inset`, sin padding en el layout). Lo dibuja
+ * el CSS según esa clase, como <Monto>: ni un instante sin marco al recargar. Sin la clase no se ve. El borde lleva un brillo que lo recorre (el ángulo de un
+ * degradado cónico, `@property`) y el borde interior respira (opacidad): sólo CSS, sin JS por cuadro. Con `prefers-reduced-motion: reduce` queda fijo.
+ */
+@property --angulo-del-live {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 40deg;
+}
+
+[data-marco-del-live] {
+  display: none;
+}
+
+.live [data-marco-del-live] {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+}
+
+/* El borde fijo y su resplandor interior, que respira. */
+[data-marco-del-live]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--color-primario) 45%, transparent),
+    inset 0 0 28px 2px color-mix(in srgb, var(--color-primario) 22%, transparent);
+  animation: respirar-el-marco-del-live 4.5s ease-in-out infinite;
+}
+
+/* El brillo que recorre el borde: un degradado cónico que gira, visto sólo por un anillo de 3 px (la máscara). */
+[data-marco-del-live]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 3px;
+  background: conic-gradient(
+    from var(--angulo-del-live),
+    transparent 0deg,
+    color-mix(in srgb, var(--color-primario) 55%, transparent) 40deg,
+    color-mix(in srgb, var(--color-primario) 70%, white) 75deg,
+    transparent 120deg,
+    transparent 200deg,
+    color-mix(in srgb, var(--color-primario) 45%, transparent) 250deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  animation: girar-el-marco-del-live 9s linear infinite;
+}
+
+[data-marco-del-live-etiqueta] {
+  position: absolute;
+  top: 0;
+  /* A la derecha del centro: la barra superior tiene el buscador a la izquierda y los botones a la derecha, y ahí queda libre. */
+  left: calc(50% + 4.5rem);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.625rem 0.1875rem;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
+/* El punto de «EN VIVO» (también el de la ventana de cámara): late con la opacidad. */
+.punto-en-vivo {
+  display: inline-block;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: currentColor;
+  animation: latir-en-vivo 1.6s ease-in-out infinite;
+}
+
+@keyframes girar-el-marco-del-live {
+  to {
+    --angulo-del-live: 400deg;
+  }
+}
+
+@keyframes respirar-el-marco-del-live {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes latir-en-vivo {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-marco-del-live]::before,
+  [data-marco-del-live]::after,
+  .punto-en-vivo {
+    animation: none;
+  }
+}
+
+/*
  * La imagen de la tarjeta de una cotización: con el Modo Live se pide la variante sin moneda (`?sin-moneda=1`) y la que no corresponde no se ve, por CSS como
  * <Monto>, ni un instante al cambiar el Modo Live.
  */

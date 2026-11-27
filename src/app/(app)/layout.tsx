@@ -22,12 +22,14 @@ import { ProveedorRegional } from '@/shared/ui/regional'
 import { BarraLateral } from './_shell/barra-lateral'
 import { EsqueletoShell } from './_shell/esqueleto-shell'
 import { Marco } from './_shell/marco'
+import { MarcoDelLive } from './_shell/marco-del-live'
 import { MenuUsuario } from './_shell/menu-usuario'
 import { accionesDeLaPaleta, tiposDeLaPaleta } from './_shell/acciones-de-la-paleta'
 import { HuecoBuscador } from './_shell/huecos/buscador'
 import { HuecoCampana } from './_shell/huecos/campana'
 import { HuecoChat } from './_shell/huecos/chat'
 import { HuecoSilencioDelPush } from './_shell/huecos/silencio-del-push'
+import { HuecoVentanaDeCamara } from './_shell/huecos/ventana-de-camara'
 import { entradasVisibles } from './_shell/navegacion'
 import { NuevoDeLaBarraSuperior } from './_shell/nuevo/nuevo-de-la-barra-superior'
 import { opcionesDeNuevo } from './_shell/nuevo/opciones'
@@ -75,6 +77,24 @@ function menuDelUsuario(sesion: SesionDelShell): ReactNode {
       entradas={entradas}
       alCerrarSesion={cerrarSesion}
       puedeConfigurarAyuda={puede(sesion.permisos, 'empresa.ajustes.gestionar')}
+    />
+  )
+}
+
+// La ventana de cámara del Modo Live: lee lo suyo sólo con el Live encendido, por su cuenta y detrás de su <Suspense>.
+function ventanaDelLive(
+  sesion: SesionDelShell,
+  ajustes: Awaited<ReturnType<typeof getAjustes>>,
+): ReactNode {
+  return (
+    <HuecoVentanaDeCamara
+      usuarioId={sesion.usuarioId}
+      enElLive={sesion.live.encendido}
+      empresa={{
+        nombre: ajustes.nombre,
+        logoRuta: ajustes.logoRuta,
+        logoOscuroRuta: ajustes.logoOscuroRuta,
+      }}
     />
   )
 }
@@ -143,6 +163,8 @@ async function Shell({ children }: { children: ReactNode }) {
                     )
                   }
                   flotante={<HuecoChat sesion={sesion} zona={ajustes.zonaHoraria} />}
+                  // La ventana de cámara del Live: sólo con el Live encendido y en escritorio (la puerta lo decide en el navegador).
+                  ventana={ventanaDelLive(sesion, ajustes)}
                   menuUsuario={menuDelUsuario(sesion)}
                 >
                   {children}
@@ -160,8 +182,12 @@ async function Shell({ children }: { children: ReactNode }) {
 // leer la sesión es de cada request y por eso va detrás de <Suspense>.
 export default function LayoutApp({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={<EsqueletoShell />}>
-      <Shell>{children}</Shell>
-    </Suspense>
+    <>
+      {/* El marco del Live va fuera del <Suspense>: se ve ya en la cáscara de carga (el CSS lo muestra sólo con la clase `live`). */}
+      <MarcoDelLive />
+      <Suspense fallback={<EsqueletoShell />}>
+        <Shell>{children}</Shell>
+      </Suspense>
+    </>
   )
 }
