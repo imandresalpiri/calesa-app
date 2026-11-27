@@ -6,6 +6,7 @@ import type { AjustesDeCotizacion } from './ajustes-de-cotizacion'
 import type { LeyendaDeTiposCambio, ParaCompartir } from './compartir-tipos-cambio'
 import type { AjustesEmpresa, CambiosDeAjustes } from './ajustes-empresa'
 import type { CamposDeEnlace, Direccion, ListaDeEnlacesDeLaEmpresa } from './enlaces-de-ayuda'
+import type { ListaDeLogos, UsosDelLogo } from './logos'
 import type { ClaveIntegracion, Integracion } from './integraciones'
 import type { UsosDelMes } from './asistente-ia/usos'
 import type { ElementoAGuardar, MisEnlacesLeidos } from './mis-enlaces-de-ayuda'
@@ -175,3 +176,37 @@ export type RepositorioDeMisEnlacesDeAyuda = {
 export type LectorDeEnlacesDeAyuda = () => Promise<Resultado<ListaDeEnlacesDeLaEmpresa>>
 // Lo de quien mira, de una sola lectura (`enlaces_de_ayuda_de_mi()`).
 export type LectorDeMisEnlacesDeAyuda = () => Promise<Resultado<MisEnlacesLeidos>>
+
+// Variantes del logo (docs/GLOSARIO.md). Cada escritura devuelve la lista entera (con las dos fijas) y la ruta de la que se sumó o se quitó; un
+// rechazo de un campo lo nombra en `campo` (`nombre`, `archivo` o `tope`).
+export type RespuestaDeLogos = { lista: ListaDeLogos; ruta: string | null }
+
+export type RepositorioDeLogos = {
+  // Con el id del intento: repetirlo no suma otra. La ruta ya está subida al bucket `marca`.
+  crear: (pedido: {
+    id: string
+    nombre: string
+    ruta: string
+    tipo: string
+    ancho: number
+    alto: number
+  }) => Promise<{ ok: true; data: RespuestaDeLogos } | FalloDeEnlace>
+  renombrar: (pedido: {
+    id: string
+    actualizadoEnEsperado: string
+    nombre: string
+  }) => Promise<{ ok: true; data: RespuestaDeLogos } | FalloDeEnlace>
+  // `ids`: todas las variantes propias, en el orden nuevo.
+  ordenar: (pedido: {
+    ids: string[]
+  }) => Promise<{ ok: true; data: RespuestaDeLogos } | FalloDeEnlace>
+  // Una que ya no está no es un error: vuelve la lista y la ruta es nula.
+  quitar: (pedido: {
+    id: string
+    actualizadoEnEsperado: string
+  }) => Promise<{ ok: true; data: RespuestaDeLogos } | FalloDeEnlace>
+  usos: (pedido: { id: string }) => Promise<Resultado<UsosDelLogo>>
+}
+
+// Las variantes del logo con «Principal» y «Para fondo oscuro» primero: la lee toda persona activa.
+export type LectorDeLogos = () => Promise<Resultado<ListaDeLogos>>

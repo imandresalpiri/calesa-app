@@ -33,6 +33,11 @@ export type { FormatoParaCompartir } from './features/compartir-tipos-cambio/res
 // Enlaces de ayuda (docs/GLOSARIO.md): los de la empresa para Configuración y los de quien mira para Perfil
 export { leerEnlacesDeAyuda, leerMisEnlacesDeAyuda } from './composicion'
 
+// Variantes del logo (docs/GLOSARIO.md): «Principal», «Para fondo oscuro» y las demás, con su archivo; las usan la ventana de cámara del Live y el editor de artes
+export { leerLogos } from './composicion'
+export { conArchivo, esFija } from './entities/logos'
+export type { ListaDeLogos, VarianteDelLogo } from './entities/logos'
+
 // Integraciones: el interruptor, lo no secreto y si están prendidas
 export { integracionActiva, leerIntegraciones, leerVehiculosQueCambian } from './composicion'
 export type { ClaveIntegracion } from './entities/integraciones'

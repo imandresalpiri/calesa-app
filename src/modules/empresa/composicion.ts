@@ -9,6 +9,7 @@ import type {
   LectorDeHistorial,
   LectorDeIntegraciones,
   LectorDeLeyendaDeTiposCambio,
+  LectorDeLogos,
   LectorDeMisEnlacesDeAyuda,
   LectorDeMonedasYTiposCambio,
   LectorDeUltimosCambios,
@@ -19,6 +20,7 @@ import type {
   RedactorDelAsistente,
   RepositorioAjustesDeCotizacion,
   RepositorioDeEnlacesDeAyuda,
+  RepositorioDeLogos,
   RepositorioDeMisEnlacesDeAyuda,
   RepositorioEmpresa,
   RepositorioIntegraciones,
@@ -30,6 +32,7 @@ import { asistenteParaCompartir, type AsistenteParaCompartir } from './entities/
 import { ajustesDeCotizacionSupabase } from './infra/ajustes-de-cotizacion'
 import { empresaSupabase } from './infra/empresa'
 import { enlacesDeAyudaSupabase, misEnlacesDeAyudaSupabase } from './infra/enlaces-de-ayuda'
+import { logosSupabase } from './infra/logos'
 import { dibujarImagenDeTiposCambio } from './infra/compartir/imagen'
 import { integracionesSupabase } from './infra/integraciones'
 import { leyendaDeTiposCambioSupabase } from './infra/leyenda-de-tipos-cambio'
@@ -43,6 +46,7 @@ import { getAjustesDeCotizacion } from './infra/queries/ajustes-de-cotizacion'
 import { getParaCompartir } from './infra/queries/compartir'
 import { getEnlacesDeAyuda, getMisEnlacesDeAyuda } from './infra/queries/enlaces-de-ayuda'
 import { getLeyendaDeTiposCambio } from './infra/queries/leyenda'
+import { getLogos } from './infra/queries/logos'
 import {
   getIntegraciones,
   getVehiculosQueCambian,
@@ -77,6 +81,7 @@ export const repositorioLeyendaDeTiposCambio: RepositorioLeyendaDeTiposCambio =
 export const repositorioDeEnlacesDeAyuda: RepositorioDeEnlacesDeAyuda = enlacesDeAyudaSupabase
 export const repositorioDeMisEnlacesDeAyuda: RepositorioDeMisEnlacesDeAyuda =
   misEnlacesDeAyudaSupabase
+export const repositorioDeLogos: RepositorioDeLogos = logosSupabase
 export const probadorDeRevalidacion: ProbadorDeRevalidacion = probarRevalidacion
 export const probadorDelAsistente: ProbadorDelAsistente = probarElAsistente
 export const redactarConElAsistente: RedactorDelAsistente = redactarEnElProveedor
@@ -92,6 +97,7 @@ export const leerAjustesDeCotizacion: LectorDeAjustesDeCotizacion = getAjustesDe
 export const leerLeyendaDeTiposCambio: LectorDeLeyendaDeTiposCambio = getLeyendaDeTiposCambio
 export const leerEnlacesDeAyuda: LectorDeEnlacesDeAyuda = getEnlacesDeAyuda
 export const leerMisEnlacesDeAyuda: LectorDeMisEnlacesDeAyuda = getMisEnlacesDeAyuda
+export const leerLogos: LectorDeLogos = getLogos
 
 // El asistente de IA para el panel de compartir: si se puede usar y sus atajos activos. Si la base no responde, no configurado.
 export async function atajosDelAsistente(): Promise<AsistenteParaCompartir> {

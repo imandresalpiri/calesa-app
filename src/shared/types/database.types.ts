@@ -3877,6 +3877,54 @@ export type Database = {
           },
         ]
       }
+      logos_empresa: {
+        Row: {
+          actualizado_en: string
+          alto: number
+          ancho: number
+          creado_en: string
+          creado_por: string | null
+          id: string
+          nombre: string
+          orden: number
+          ruta: string
+          tipo: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          alto: number
+          ancho: number
+          creado_en?: string
+          creado_por?: string | null
+          id: string
+          nombre: string
+          orden: number
+          ruta: string
+          tipo: string
+        }
+        Update: {
+          actualizado_en?: string
+          alto?: number
+          ancho?: number
+          creado_en?: string
+          creado_por?: string | null
+          id?: string
+          nombre?: string
+          orden?: number
+          ruta?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'logos_empresa_creado_por_fkey'
+            columns: ['creado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       lotes_papelera: {
         Row: {
           actualizado_en: string
@@ -9683,6 +9731,10 @@ export type Database = {
       _logistica_dias: { Args: { p_fase: string }; Returns: number }
       _logistica_filtros: { Args: { p: Json }; Returns: Json }
       _logistica_lo_propio: { Args: { p_origen: string }; Returns: string[] }
+      _logo_nombre: { Args: { p_texto: string }; Returns: string }
+      _logo_nombre_clave: { Args: { p_nombre: string }; Returns: string }
+      _logos_empresa_lista: { Args: Record<PropertyKey, never>; Returns: Json }
+      _logos_empresa_tope: { Args: Record<PropertyKey, never>; Returns: number }
       _lote_con_hermanas: { Args: { p_cotizaciones: string[]; p_lote: string }; Returns: string[] }
       _lote_papelera_tocar: { Args: { p_lote: string }; Returns: string }
       _monto_en_base: {
@@ -12358,6 +12410,28 @@ export type Database = {
         Returns: Json
       }
       logistica_unidad: { Args: { p_vehiculo: string }; Returns: Json }
+      logo_variante_crear: {
+        Args: {
+          p_alto: number
+          p_ancho: number
+          p_id: string
+          p_nombre: string
+          p_ruta: string
+          p_tipo: string
+        }
+        Returns: Json
+      }
+      logo_variante_quitar: {
+        Args: { p_actualizado_en_esperado: string; p_id: string }
+        Returns: Json
+      }
+      logo_variante_renombrar: {
+        Args: { p_actualizado_en_esperado: string; p_id: string; p_nombre: string }
+        Returns: Json
+      }
+      logo_variante_usos: { Args: { p_id: string }; Returns: Json }
+      logo_variantes_ordenar: { Args: { p_ids: string[] }; Returns: Json }
+      logos_empresa_leer: { Args: Record<PropertyKey, never>; Returns: Json }
       margen_vehiculo: { Args: { p_vehiculo: string }; Returns: Json }
       mensaje_editar: {
         Args: {

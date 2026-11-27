@@ -16,6 +16,8 @@ import {
 export type LogoListo = {
   contenido: Blob
   extension: ExtensionDeLogo
+  // Lo que mide el archivo que se sube (ya reducido si hacía falta): la variante guarda su ancho y su alto.
+  medidas: Dimensiones
   // No impide guardar: dice que los íconos van a salir borrosos.
   aviso: string | null
 }
@@ -31,10 +33,11 @@ async function medidasDe(archivo: Blob): Promise<Dimensiones> {
 
 async function prepararSvg(archivo: File): Promise<Resultado<LogoListo>> {
   const texto = await archivo.text()
-  const motivo = motivoDeSvgInvalido(texto) ?? (medidasDeSvg(texto) ? null : NO_SE_PUDO_LEER)
-  return motivo
-    ? fallo('validacion', motivo)
-    : ok({ contenido: archivo, extension: 'svg', aviso: null })
+  const medidas = medidasDeSvg(texto)
+  const motivo = motivoDeSvgInvalido(texto) ?? (medidas ? null : NO_SE_PUDO_LEER)
+  return motivo || !medidas
+    ? fallo('validacion', motivo ?? NO_SE_PUDO_LEER)
+    : ok({ contenido: archivo, extension: 'svg', medidas, aviso: null })
 }
 
 // Revisa el archivo recién elegido y lo deja listo para subir, sin subir nada todavía: un SVG va
@@ -61,6 +64,7 @@ export async function prepararLogo(archivo: File): Promise<Resultado<LogoListo>>
     return ok({
       contenido,
       extension: grande ? 'png' : extension,
+      medidas: grande ? await medidasDe(contenido) : medidas,
       aviso: avisoDeLogoChico(archivo.type, medidas),
     })
   } catch (error) {
