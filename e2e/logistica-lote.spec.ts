@@ -54,7 +54,7 @@ test('E2E lote · un contenedor con una unidad sin su documento: mueve las siete
 }) => {
   await entrar(page, terreno.primera.correo, { fresco: true })
   await page.goto(
-    `/logistica?origen=${terreno.origen.id}&panel=lote&contenedor=${lote.contenedor}&destino=${terreno.c.id}`,
+    `/logistica?origen=${terreno.origen.id}&panel=lote&contenedor=${lote.contenedorId}&destino=${terreno.c.id}`,
   )
   await expect(page.getByRole('heading', { name: 'Mover varias unidades' })).toBeVisible()
   await expect(page.getByText('Se eligieron 8.')).toBeVisible()
