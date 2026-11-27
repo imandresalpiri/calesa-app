@@ -3823,6 +3823,60 @@ export type Database = {
           },
         ]
       }
+      live_ajustes_personas: {
+        Row: {
+          actualizado_en: string
+          ajustes: NonNullable<Json>
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          ajustes: NonNullable<Json>
+          usuario_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          ajustes?: NonNullable<Json>
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'live_ajustes_personas_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: true
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      live_ajustes_roles: {
+        Row: {
+          actualizado_en: string
+          ajustes: NonNullable<Json>
+          rol_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          ajustes: NonNullable<Json>
+          rol_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          ajustes?: NonNullable<Json>
+          rol_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'live_ajustes_roles_rol_id_fkey'
+            columns: ['rol_id']
+            isOneToOne: true
+            referencedRelation: 'roles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       lotes_papelera: {
         Row: {
           actualizado_en: string
@@ -9608,6 +9662,7 @@ export type Database = {
         Returns: string
       }
       _limpieza_ventana_de_aviso: { Args: Record<PropertyKey, never>; Returns: number }
+      _live_ajustes_validos: { Args: { p: Json }; Returns: boolean }
       _logistica_alcance: {
         Args: { p_origen: string }
         Returns: Database['public']['Enums']['alcance_permiso']
@@ -12253,6 +12308,26 @@ export type Database = {
         Returns: string
       }
       limpieza_ultima: { Args: Record<PropertyKey, never>; Returns: Json }
+      live_persona_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_ajustes: Json; p_usuario: string }
+        Returns: string
+      }
+      live_persona_quitar: {
+        Args: { p_actualizado_en_esperado: string; p_usuario: string }
+        Returns: undefined
+      }
+      live_personas: {
+        Args: { p_cursor_en?: string; p_cursor_id?: string; p_limite?: number; p_texto?: string }
+        Returns: Json
+      }
+      live_rol_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_ajustes: Json; p_rol: string }
+        Returns: string
+      }
+      live_rol_quitar: {
+        Args: { p_actualizado_en_esperado: string; p_rol: string }
+        Returns: undefined
+      }
       logistica_bandeja: { Args: { p_tope?: number }; Returns: Json }
       logistica_bandeja_grupo: {
         Args: {

@@ -7028,3 +7028,31 @@ begin
   reset role;
 end $$;
 rollback;
+
+-- @test equipo: los ajustes del Live los lee quien tiene el rol, no quien tiene otro; nadie los escribe directo (policies «live_ajustes_*: leer»)
+begin;
+do $$
+declare v_rol uuid; v_otro uuid; v_codigo text; v_n int;
+  v_quien uuid := '00000000-0000-4000-8000-000000058701';
+begin
+  insert into auth.users (id, email, raw_app_meta_data) values (v_quien, 'humo.live@ejemplo.com', '{"invitado": true}');
+  update public.perfiles set invitacion_aceptada_en = now() where id = v_quien;
+  delete from public.usuarios_roles where usuario_id = v_quien;
+  insert into public.roles (clave, nombre) values ('humo_live', 'Humo live') returning id into v_rol;
+  insert into public.roles (clave, nombre) values ('humo_live_otro', 'Humo live otro') returning id into v_otro;
+  insert into public.usuarios_roles (usuario_id, rol_id, es_principal) values (v_quien, v_rol, true);
+  insert into public.live_ajustes_roles (rol_id, ajustes) values (v_rol, '{"inicio": true}'), (v_otro, '{"inicio": false}');
+  perform set_config('request.jwt.claim.sub', v_quien::text, true);
+  perform set_config('request.jwt.claim.role', 'authenticated', true);
+  set local role authenticated;
+  select count(*) into v_n from public.live_ajustes_roles where rol_id in (v_rol, v_otro);
+  if v_n <> 1 then raise exception 'con un rol, se leyeron % filas de ajustes del Live', v_n; end if;
+  begin
+    update public.live_ajustes_roles set ajustes = '{}' where rol_id = v_rol;
+    v_codigo := 'sin error';
+  exception when others then v_codigo := sqlstate;
+  end;
+  if v_codigo <> '42501' then raise exception 'el update directo de live_ajustes_roles dio %', v_codigo; end if;
+  reset role;
+end $$;
+rollback;
