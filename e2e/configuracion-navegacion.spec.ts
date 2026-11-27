@@ -94,7 +94,7 @@ test('E2E desde cada sección del menú se vuelve al inicio de Configuración', 
   expect(rutas.length).toBeGreaterThanOrEqual(9)
   // Cotización, Flujos y Logística ya no son secciones: lo de cada origen vive en su página y Catálogos ya no es una sección.
   for (const [grupo, secciones] of [
-    ['Empresa y equipo', ['Empresa', 'Equipo', 'Roles y permisos']],
+    ['Empresa y equipo', ['Empresa', 'Equipo', 'Roles y permisos', 'Modo Live']],
     ['Ventas', ['Leads', 'Orígenes']],
   ] as const) {
     await expect(
