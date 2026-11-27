@@ -46,6 +46,7 @@ describe('claveDelNombreDeLogo', () => {
   it('no distingue mayúsculas, tildes ni espacios', () => {
     expect(claveDelNombreDeLogo(' Para  Fondo Óscuro ')).toBe('parafondooscuro')
     expect(claveDelNombreDeLogo('ÍCONO')).toBe(claveDelNombreDeLogo('icono'))
+    expect(claveDelNombreDeLogo('Para\u00a0Sol')).toBe('parasol')
   })
 })
 

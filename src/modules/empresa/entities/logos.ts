@@ -63,7 +63,11 @@ const largoDe = (texto: string): number => Array.from(texto).length
 
 // La clave de un nombre: sin mayúsculas, tildes ni espacios (`_logo_nombre_clave()`).
 export function claveDelNombreDeLogo(nombre: string): string {
-  return nombre.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s/g, '')
+  return nombre
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[\s\u00a0\u200b-\u200d\ufeff]/g, '')
 }
 
 // Por qué un nombre no sirve (o nulo): vacío, largo o repetido. «Principal» y «Para fondo oscuro» ya están en la lista; `ignorar` es la que se renombra.
