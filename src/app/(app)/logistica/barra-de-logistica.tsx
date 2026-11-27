@@ -103,7 +103,7 @@ function Barra({
           <Link
             href={rutaDeParteDelOrigen(configurar, 'fases')}
             aria-label="Configurar la logística"
-            className="inline-flex h-full shrink-0 items-center gap-1.5 rounded-(--radius-pill) px-3 text-(length:--text-sm) text-(--color-ink-soft) hover:text-(--color-ink)"
+            className="inline-flex h-full min-w-[44px] shrink-0 items-center justify-center gap-1.5 rounded-(--radius-pill) px-3 text-(length:--text-sm) text-(--color-ink-soft) hover:text-(--color-ink)"
           >
             <SettingsIcon aria-hidden className="size-4" />
             <span className="max-sm:sr-only">Configurar</span>
