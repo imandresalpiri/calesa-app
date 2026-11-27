@@ -35,7 +35,7 @@ type Contexto = {
   origenId: string
   capacidades: CapacidadesDeLaTarjeta
   puedeEditarRepuestos: boolean
-  // Los huecos visibles de la tarjeta (Dinero lee gastos y pagos sólo si se ven).
+  // Los huecos visibles de la tarjeta (Dinero lee gastos, pagos y margen sólo si se ven).
   huecos: ReadonlySet<string>
   // Las pasadas que ya leyó la cadena (nulas si no se pudieron leer): el Historial no hace otra consulta.
   pasadas: readonly PasadaLeida[] | null
@@ -53,6 +53,7 @@ const LECTURAS: Record<ClaveDeTarjeta, (c: Contexto) => Promise<ResumenDeTarjeta
     return leerResumenDeDinero(c.vehiculoId, {
       verGastos,
       verPagos,
+      verMargen: c.huecos.has('margen'),
       puedeRegistrarGasto: verGastos && c.capacidades.editarGastos,
       puedeRegistrarPago: verPagos && c.capacidades.editarPagos,
     })
@@ -118,7 +119,9 @@ export function TarjetasDeLaUnidad({ unidad, permisos, huecos, pasadas, claveDeL
             huecos={tarjeta.huecos.map((h) => h.clave)}
             url={urlDeLaTarjeta(tarjeta.clave)}
             {...(claveDeLaUrl ? { claveDeLaUrl } : {})}
-            contenido={<ContenidoDeLaTarjeta unidad={unidad} huecos={tarjeta.huecos} />}
+            contenido={
+              <ContenidoDeLaTarjeta clave={tarjeta.clave} unidad={unidad} huecos={tarjeta.huecos} />
+            }
           >
             <Suspense fallback={<EsqueletoDelResumen />}>
               <ResumenDelServidor

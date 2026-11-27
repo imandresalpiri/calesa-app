@@ -4,30 +4,47 @@ import { resumenDeDinero, type DineroDelResumen } from './resumen'
 const dinero = (extra: Partial<DineroDelResumen> = {}): DineroDelResumen => ({
   gastos: 0,
   pagos: [],
+  margen: null,
   puedeRegistrarGasto: false,
   puedeRegistrarPago: false,
   ...extra,
 })
 
 describe('resumenDeDinero', () => {
-  it('vacío', () => {
-    expect(resumenDeDinero(dinero()).lineas).toEqual(['Sin gastos ni pagos todavía.'])
+  it('vacío: una línea por vista', () => {
+    expect(resumenDeDinero(dinero()).lineas).toEqual(['Sin gastos todavía', 'Sin pagos todavía'])
   })
 
   it('cuenta gastos y pagos sin sumar montos, con «más de» pasado el tope', () => {
     expect(resumenDeDinero(dinero({ gastos: 3, pagos: [true, true] })).lineas).toEqual([
-      '3 gastos · 2 pagos',
+      '3 gastos',
+      '2 pagos',
     ])
     expect(resumenDeDinero(dinero({ gastos: 51, pagos: [true] })).lineas).toEqual([
-      'más de 50 gastos · 1 pago',
+      'más de 50 gastos',
+      '1 pago',
     ])
   })
 
-  it('sólo nombra los huecos que se ven', () => {
+  it('el margen es la cifra de la base: un nulo es «sin venta registrada», un 0 es un monto', () => {
+    expect(resumenDeDinero(dinero({ margen: { valor: 1200 } })).lineas[2]).toEqual({
+      etiqueta: 'Margen',
+      monto: 1200,
+    })
+    expect(resumenDeDinero(dinero({ margen: { valor: 0 } })).lineas[2]).toEqual({
+      etiqueta: 'Margen',
+      monto: 0,
+    })
+    expect(resumenDeDinero(dinero({ margen: { valor: null } })).lineas[2]).toBe(
+      'Margen: sin venta registrada',
+    )
+  })
+
+  it('sólo nombra las vistas que se ven', () => {
     expect(resumenDeDinero(dinero({ gastos: null, pagos: [true] })).lineas).toEqual(['1 pago'])
-    expect(resumenDeDinero(dinero({ gastos: null, pagos: null })).lineas).toEqual([
-      'El margen contra la cotización final.',
-    ])
+    expect(
+      resumenDeDinero(dinero({ gastos: null, pagos: null, margen: { valor: null } })).lineas,
+    ).toEqual(['Margen: sin venta registrada'])
   })
 
   it('avisa los pagos sin confirmar', () => {

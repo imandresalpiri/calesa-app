@@ -14,9 +14,12 @@ export type AccionDeLaTarjeta = {
   destino: DestinoDeLaAccion
 }
 
+/** Una línea del resumen: un texto o un monto de la base con su etiqueta («Margen: $ 1.200», con `<Monto>`: el servidor no formatea dinero). */
+export type LineaDelResumen = string | { etiqueta: string; monto: number }
+
 export type ResumenDeTarjeta = {
-  // Hasta dos líneas; la tarjeta las corta con elipsis.
-  lineas: string[]
+  // Hasta tres líneas; la tarjeta las corta con elipsis.
+  lineas: LineaDelResumen[]
   // El aviso propio del tema («2 por aprobar», «Pago sin confirmar»); nulo sin aviso.
   aviso: string | null
   acciones: AccionDeLaTarjeta[]
