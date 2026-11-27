@@ -19,6 +19,7 @@ const config = {
         'vehiculos',
         'leads',
         'cotizaciones',
+        'artes',
         'flujos',
         'logistica',
         'repuestos',

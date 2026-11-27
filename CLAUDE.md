@@ -63,7 +63,7 @@ chat, agenda y la web pública. Una empresa por despliegue. Sólo español, de t
 ## Commits
 
 Conventional Commits: tipo en inglés, descripción en español, infinitivo y minúscula (`feat(leads): verificar el teléfono al tipear`).
-Scopes: equipo, empresa, origenes, vehiculos, leads, cotizaciones, flujos, logistica, repuestos, agenda, chat, notificaciones, actividad,
+Scopes: equipo, empresa, origenes, vehiculos, leads, cotizaciones, artes, flujos, logistica, repuestos, agenda, chat, notificaciones, actividad,
 web, buscador, tablero, datos, shared, app, db, ci, deps, config, docs, kit (`chore(kit)`: lo que trae el flujo del kit). Un commit = un cambio: si el mensaje necesita «y», son dos.
 El título del PR sigue la misma regla: es el commit que queda en `main` (squash).
 
