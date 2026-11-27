@@ -105,6 +105,8 @@ begin
   if v <> '22023/nombre' then raise exception 'un nombre repetido sin tildes ni mayúsculas esperaba 22023/nombre, dio %', v; end if;
   v := pg_temp.lv_falla(format('select public.logo_variante_crear(%L, %L, %L, %L, 10, 10)', l2, 'mono cromo', pg_temp.lv_ruta(2), 'png'));
   if v <> '22023/nombre' then raise exception 'un nombre repetido sin espacios esperaba 22023/nombre, dio %', v; end if;
+  v := pg_temp.lv_falla(format('select public.logo_variante_crear(%L, %L, %L, %L, 10, 10)', l2, 'mono' || chr(160) || 'cromo', pg_temp.lv_ruta(2), 'png'));
+  if v <> '22023/nombre' then raise exception 'un nombre repetido con espacio duro esperaba 22023/nombre, dio %', v; end if;
   v := pg_temp.lv_falla(format('select public.logo_variante_crear(%L, %L, %L, %L, 10, 10)', l2, 'principal', pg_temp.lv_ruta(2), 'png'));
   if v <> '22023/nombre' then raise exception '«principal» esperaba 22023/nombre, dio %', v; end if;
   v := pg_temp.lv_falla(format('select public.logo_variante_crear(%L, %L, %L, %L, 10, 10)', l2, 'Para fondo  oscuro', pg_temp.lv_ruta(2), 'png'));
@@ -187,6 +189,8 @@ begin
   if v not like 'PT409/%' then raise exception 'ordenar con una lista incompleta esperaba PT409, dio %', v; end if;
   v := pg_temp.lv_falla(format('select public.logo_variantes_ordenar(array[%L, %L, %L, %L]::uuid[])', c, a, b, gen_random_uuid()));
   if v not like 'PT409/%' then raise exception 'ordenar con una lista de más esperaba PT409, dio %', v; end if;
+  v := pg_temp.lv_falla('select public.logo_variantes_ordenar((select array_agg(gen_random_uuid()) from generate_series(1, 13)))');
+  if v not like 'PT409/%' then raise exception 'ordenar con más ids que el tope esperaba PT409, dio %', v; end if;
   v := pg_temp.lv_falla(format('select public.logo_variantes_ordenar(array[%L, %L, %L, %L]::uuid[])', c, a, b, b));
   if v not like 'PT409/%' then raise exception 'ordenar con un id repetido esperaba PT409, dio %', v; end if;
 

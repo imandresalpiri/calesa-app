@@ -9,11 +9,11 @@ create function public._logos_empresa_tope() returns integer
   set search_path = ''
 as $$ select 12 $$;
 
--- La clave de un nombre: sin mayúsculas, tildes ni espacios. «Para Fondo  Oscuro» y «parafondooscuro» son el mismo.
+-- La clave de un nombre: sin mayúsculas, tildes ni espacios (también el duro y los de ancho cero). «Para Fondo  Oscuro» y «parafondooscuro» son el mismo.
 create function public._logo_nombre_clave(p_nombre text) returns text
   language sql immutable strict
   set search_path = ''
-as $$ select public._sin_tildes(pg_catalog.regexp_replace(p_nombre, '\s', '', 'g')) $$;
+as $$ select public._sin_tildes(pg_catalog.regexp_replace(p_nombre, '[\s\u00a0\u200b-\u200d\ufeff]', '', 'g')) $$;
 
 revoke all on function public._logos_empresa_tope() from public, anon, authenticated;
 revoke all on function public._logo_nombre_clave(text) from public, anon, authenticated;
@@ -207,7 +207,9 @@ begin
     raise exception 'Falta la lista de logos.' using errcode = '22023';
   end if;
   lock table public.logos_empresa in share row exclusive mode;
-  if cardinality(p_ids) <> (select count(distinct x) from unnest(p_ids) x)
+  -- Con más ids que el tope no puede coincidir con lo que hay: PT409 sin recorrerlos.
+  if cardinality(p_ids) > public._logos_empresa_tope()
+     or cardinality(p_ids) <> (select count(*) from (select distinct x from unnest(p_ids) x limit public._logos_empresa_tope() + 1) d)
      or exists (select 1 from unnest(p_ids) x where not exists (select 1 from public.logos_empresa l where l.id = x))
      or exists (select 1 from public.logos_empresa l where l.id <> all (p_ids)) then
     raise exception 'La lista de logos cambió mientras la ordenabas.' using errcode = 'PT409';
