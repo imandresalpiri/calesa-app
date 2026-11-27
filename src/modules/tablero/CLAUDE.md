@@ -25,7 +25,7 @@ Abierto: **9-14a** (la dueña no actúa sobre un lead ajeno sin tenerlo; `docs/P
   `tablero_margen` (`logistica.margen.ver`, sólo sus orígenes, en moneda base), `tablero_cola_web` (`web.cola.gestionar`). «Convertidos» sale de
   `leads.cliente_desde` (sin grant: la leen esas RPC).
 - Cada cifra es un `role="group"` «Título: valor»; una de dinero (`cifra-de-monto`) lleva en el nombre sólo el título, y el monto por `<Monto>`, para que
-  el Modo Live no lo deje en el nombre. Una gráfica (HTML y SVG de servidor) es `role="img"`. «Ver como tabla» (`graficas/ver-como-tabla.tsx`, el único
+  el Modo Live (que quita la moneda por CSS) no la deje en el nombre. Una gráfica (HTML y SVG de servidor) es `role="img"`. «Ver como tabla» (`graficas/ver-como-tabla.tsx`, el único
   cliente de un widget) abre un modal en `?panel=tabla&grafica=<clave del widget>` con la `<TablaEquivalente>` que dibujó el servidor y le pasa como hijo;
   sólo abre el widget cuya clave es la de la URL, y el modal (`modal-de-la-tabla.tsx`) va por `diferido()`.
 - «Personalizar» (`?panel=personalizar`): guarda al cambiar con `guardarPreferencia`; «Restablecer» manda `null`; sólo ofrece lo que

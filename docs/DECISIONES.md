@@ -145,6 +145,21 @@ las trampas, en `docs/LECCIONES.md`.
 - **«Completados» de tus recordatorios: una sección a la vista, leída al acercarse** (decidido sin preguntar). Vive dentro del drawer «Tus recordatorios» (`?todos=recordatorios`) y se lee la primera vez que está a 200 px de la vista (`useALaVista`), por cursor y con «Ver más». Descartado: un drawer sobre otro drawer.
 - **El historial de cotizaciones del vehículo abre un modal en `?ver=historial`** (decidido sin preguntar). En la hoja `?panel=` ya es del panel del vehículo, así que el modal usa otra clave; lee la primera página al montarse, de a 20 hasta el tope, con «Ver más». Un modal que sale de un drawer está permitido; uno sobre otro modal, no.
 - **Sin saltos de interfaz.** Lo que cambia de contenido dentro de un área (cargar, editar, cambiar de vista, mostrar un aviso) no cambia el tamaño del área: alto fijo o reservado, y el esqueleto mide lo mismo que el contenido. Lo que se mueve bajo el puntero hace errar el toque y desorienta; el e2e lo mide con `boundingBox()` antes y después.
+- **El Modo Live oculta sólo la moneda, nunca el número.** Se usa en una pantalla compartida o en vivo: lo que no conviene mostrar es la
+  moneda (de dónde sale el costo), no la cifra con la que se conversa. Con él, todo monto se ve con los mismos decimales y separadores y sin
+  su símbolo ni su código; no hay montos tapados, campos de contraseña, imágenes borrosas ni acciones que se apaguen. Decidido sin preguntar:
+  - El número sin moneda sale de `formatearMontoSinMoneda()` con `Intl.NumberFormat#formatToParts`: quita las partes `currency` y los
+    literales de sólo espacios. Nunca un recorte del texto ya formateado, que depende del locale.
+  - Lo que el CSS no alcanza (un `title`, un `aria-label`, un aviso, el título de un `<Confirmar>`) se arma con `useMontoEnTexto()`, que lee
+    el modo; al hidratar puede corregirse el atributo.
+  - La imagen de la tarjeta sin moneda es otra URL (`?sin-moneda=1`) con otra ETag (sufijo `.s`), y se cachean aparte. Un valor que no es `1`
+    se ignora y no da 400, como un `?ancho=` fuera de la lista.
+  - «Compartir» se ofrece igual. Lo que se copia, descarga o comparte sale completo, con su moneda: va a un cliente, no a la pantalla. Lo que
+    el panel muestra va sin moneda: la imagen `?sin-moneda=1`, pedida aparte de la completa, que se arma antes del toque porque Safari no
+    copia tras un `await`. El texto sale de los gemelos `…SinMoneda` de cada línea de `DatosParaCompartir`. En los tipos de cambio, la vista
+    previa pide `?sin-moneda=1` y «1 USD =» queda: sin él no se sabe de qué tipo es la cifra.
+  - Retocar un texto de la tarjeta abre el texto que se guarda, con su moneda: quitársela cambiaría lo guardado.
+  - La ayuda de la hoja da la cifra sin su moneda en el nombre del botón y en el aviso, y su tabla se edita también con el Modo Live.
 
 ### La página del origen en pestañas planas
 
@@ -241,7 +256,7 @@ las trampas, en `docs/LECCIONES.md`.
   tabla, RLS ni RPC propias, y se guardan juntos en un modal.
 - **Color de marca con contraste.** Se rechaza el color sobre el que ni blanco ni tinta oscura llegan a 4,5:1; el mejor va a `--color-sobre-primario`. Entra por un `<style>`, no por `<html style>`.
 - **Íconos y logo.** Íconos dibujados con Canvas en el navegador, subidos a `marca/iconos/<hash>.png` y servidos por el manifest (sin `sharp`). El logo no se comprime como foto: SVG sin código ≤ 200 KB; raster ≤ 1024 px o PNG sin pérdida; tope 1 MB.
-- **Monedas y tipos de cambio.** Moneda base + N tipos de cambio nombrados con historial; la fórmula declara buckets → clave de TC y la cotización congela los TC usados. El modo Live oculta cifras y símbolos en toda la app.
+- **Monedas y tipos de cambio.** Moneda base + N tipos de cambio nombrados con historial; la fórmula declara buckets → clave de TC y la cotización congela los TC usados. El Modo Live oculta sólo los símbolos y los códigos de moneda en toda la app: los números se ven.
 - **La barra la elige la empresa.** «En la barra» es una columna de `tipos_cambio` escrita por `tipo_cambio_guardar(p_en_la_barra)` (un solo «Guardar» y una versión por fila, no una RPC gemela que daría PT409 contra el panel), con tope de 3 activos tras un candado consultivo tomado antes que la fila. Desactivar no desmarca y la barra filtra activos: reactivar uno marcado con 3 ya a la vista no se rechaza ni lo desmarca; la barra corta en 3 por el orden de `vigentes()` (el por defecto, `orden`, `nombre`) y el panel del que queda afuera lo dice. Sin ninguno, el por defecto. El último cambio de cada tipo (del historial, no de `actualizado_*`) lo ve toda persona activa por `tipos_cambio_vigentes()` (definer); el historial entero sigue siendo de quien gestiona. El conflicto del popover se arma en el cliente con lo releído, porque el monto va por `<Monto>`; el PT409 de la RPC no cambia. Con el Modo Live el popover no ofrece cambiar el valor.
 - **Compartir los tipos de cambio sale del servidor.** El texto y la imagen (`ImageResponse` de `next/og`, Geist en `infra/compartir/fuentes/`, sin `html-to-image` ni JS en el marco) los arman `/tipos-de-cambio/texto` e `/imagen` con la sesión de quien pide, de la misma lectura (`tipos_cambio_vigentes()` y la fila de `ajustes_empresa`): la zona, el locale, el logo y la leyenda son los de la empresa, no los del navegador, y las dos salidas dicen lo mismo. Las pide el panel diferido al elegir los tipos (con 250 ms de espera) y guarda el resultado: copiar, descargar y el menú del sistema son síncronos con el gesto (Safari no deja escribir el portapapeles tras un `await`). No hay permiso de «ver»: lo comparte toda persona activa, como ve el popover. Con el Modo Live se ofrece igual: la vista previa pide `?sin-moneda=1` (el valor sin su moneda; «1 USD =» queda, porque sin él no se sabe de qué tipo es la cifra) y lo que se copia, descarga o comparte va completo. El logo se baja en el servidor (hasta `PESO_MAXIMO_LOGO`, PNG, JPEG, GIF o SVG); uno que no se puede traer deja sólo el nombre. La leyenda comparte la versión de la fila de `ajustes_empresa` con el formulario de Empresa (como la vigencia): guardar una deja con `PT409` a la otra.
 - **Ajustes de cotización aparte.** La vigencia la cambia sólo `cotizaciones.configurar` concedida sin origen, por `empresa_guardar_ajustes_de_cotizacion` (dos permisos no se mezclan en una RPC; el vehículo y el lead obligatorios no son ajuste de empresa sino por rol y origen: Cotizaciones › La hoja); comparte versión con Empresa y revalida las dos pantallas.
@@ -941,7 +956,7 @@ las trampas, en `docs/LECCIONES.md`.
   llama a `tabla_referencia_publicar()` con la versión leída; sin borrador en la pestaña (cerrar la ayuda con cambios pregunta). Se lee la tabla viva al primer
   toque; si cambió desde que se abrió la hoja, sólo se abre (lo pedido se haría sobre filas que la persona no vio). Publicada, si una fórmula del origen pasó a
   la versión siguiente, la hoja se vuelve a abrir con ella y el borrador repone lo tipeado; lo que no vuelve (`loQueNoVuelve()`) se avisa con un texto genérico
-  (sin nombrar celdas que tal vez ya no existen). Sólo en la hoja nueva sin Modo Live: en una guardada o con Live, «Editar en la configuración». Descartadas:
+  (sin nombrar celdas que tal vez ya no existen). Sólo en la hoja nueva (también con el Modo Live, que deja ver los números): en una guardada, «Editar en la configuración». Descartadas:
   guardar cada fila al salir de ella (una publicación por fila: N+1 versiones de cada fórmula) y editar la copia congelada (no es lo que se cotiza después).
 - **«Ver total Bs» se guarda con la cotización.** `ver_total_bs` validado contra el diseño de esa versión; `moneda_bs` sale del TC de `total_en`; si es nula no hay interruptor. El modo de TC es parte de las entradas.
 - **La ayuda de tabla.** Si la celda es de dinero, cada cifra pasa por `<Monto>`; sólo columnas declaradas; tope 1.000 filas. `dato_del_vehiculo` (columna ← campo de texto) guarda en el vehículo por `vehiculo_guardar` y recarga.
@@ -984,7 +999,7 @@ las trampas, en `docs/LECCIONES.md`.
   vacíos y sin datos escribe `texto`), así el tope de 20 partes mide algo real y dos plantillas iguales se comparan iguales. Las ramas de unas condiciones y
   la lista de respaldo siguen con texto simple.
 - **Un dato sin valor dentro de un texto no escribe nada.** El «—» de una celda «Dato» dentro de una frase se leería como parte del texto: «Comisión giro »
-  queda así. Un monto adentro va en `tramos` (sólo entonces) para que el HTML lo dibuje con `<Monto>` y el Modo Live lo tape; no lleva la segunda línea en Bs
+  queda así. Un monto adentro va en `tramos` (sólo entonces) para que el HTML lo dibuje con `<Monto>` y el Modo Live le quite la moneda; no lleva la segunda línea en Bs
   del total. El PDF, la imagen y «Copiar texto» usan las líneas, con cifras.
 - **El campo del texto con datos es un `contentEditable` propio, sin librería.** Las pastillas son `<span contenteditable="false">` que dibuja el hook, no
   React; lo que se tipea lo escribe el navegador y se lee de vuelta, y Enter, pegar, Retroceso y Supr junto a una pastilla, las flechas junto a ella y

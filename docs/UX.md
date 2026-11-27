@@ -806,7 +806,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 - **Fechas de subasta:** en la zona de quien mira (`/perfil` › «Zona horaria»; sin elegir, la de la empresa), con la abreviatura («14:00
   GMT-4»); en el tooltip (y debajo, en la ficha) la hora del patio y la de la empresa. Lo demás, en la zona de la empresa.
 - **Formatos:** `Intl` con locale y moneda de la empresa (`es-BO` por defecto); montos con cifras tabulares; fechas cruzan servidor↔cliente
-  como ISO y se muestran en la zona de la empresa. **Modo Live** oculta cifras sensibles **y** símbolos de moneda. Voz: español neutro con
+  como ISO y se muestran en la zona de la empresa. **Modo Live** oculta los símbolos y los códigos de moneda; los números se ven con sus decimales (lo que se comparte sale completo). Voz: español neutro con
   tuteo. Densidad: compacta en escritorio (filas 36–40 px), cómoda en táctil (48 px), recordada por usuario.
 - **Atajos:** `Ctrl/Cmd+K` buscar/comandos · `N` nuevo, lo propio de la pantalla (vehículo en vehículos; si no hay, un lead) · `Shift+N` abre «Nuevo» (elegir qué crear;
   no abre encima de otro diálogo ni mientras se escribe) · `Ctrl/Cmd+S` guardar · `Ctrl/Cmd+Enter` guardar y seguir · `Ctrl/Cmd+B` plegar o desplegar el menú lateral · `Esc` cerrar panel o volver un paso · `?` abre «Atajos
@@ -1495,7 +1495,7 @@ de su hueco).
 - **Gráficas** (barras por día de leads y cotizaciones; rankings de leads por origen y por persona y de cotizaciones por origen): leyenda en
   texto, «Ver como tabla» con todos los números (un modal en `?panel=tabla&grafica=<widget>`; el widget no cambia de alto), tope dicho (10 orígenes, 20 personas), vacío y error por widget.
 - **«Margen del mes»** (con `logistica.margen.ver` en algún origen; suma sólo esos): monto por `<Monto>` en un grupo llamado sólo «Margen
-  del mes» (Modo Live lo oculta entero), nulo «Sin venta registrada»; nota con venta, real y cotizado y cuántos vehículos entran y cuántos
+  del mes» (con el Modo Live, sin su moneda), nulo «Sin venta registrada»; nota con venta, real y cotizado y cuántos vehículos entran y cuántos
   no tienen venta.
 - **«Cola de la web»** (con `web.cola.gestionar`): turnos, tasa de contacto (sin los directos; nula «Sin datos»), mediana hasta «Contacté»,
   la cuenta por estado y «Turnos por persona» con «Ver como tabla».
@@ -1638,7 +1638,7 @@ barra de la fórmula; la activa es la que se cotiza.
   está activa, archivada o no está: avisa y limpia.
 - **Archivar o eliminar la elegida** lleva a la misma pestaña sin `?formula=` (la de trabajo). Una archivada elegida y una `?formula=` que no se
   abre: «Barra de la fórmula (estados propios)».
-- **Modo Live:** la lista y los modales no muestran montos.
+- **Modo Live:** los montos de la lista y de los modales van sin su moneda.
 
 ### Cotización: fórmula (estados propios)
 
@@ -2372,7 +2372,7 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   «Compras» (con `repuestos.costos.ver`): un renglón mientras lee; «No se pudieron cargar las compras del ítem.» con «Reintentar»; «Este ítem no tiene compras registradas.»; «Registrar compra»
   (`?pestana=compras&panel=compra&compra=nueva&item_de_compra=<id>`, con el ítem ya elegido; sin `repuestos.costos.editar` o cerrado, su motivo) y «Ver todas en Compras» en el «⋯» de la tarjeta.
 - **Compras:** panel sólo con `repuestos.costos.ver` (sin él no hay pestaña y `?pestana=compras` deja sólo la hoja, sin leer nada).
-  - «Margen del proyecto»: una tarjeta por moneda con precios, compras y margen (`<Monto>`; Modo Live los oculta); con algún ítem sin
+  - «Margen del proyecto»: una tarjeta por moneda con precios, compras y margen (`<Monto>`; con el Modo Live, sin su moneda); con algún ítem sin
     precio o sin moneda, «Sin precio en N ítems» («más de 200»), nunca 0; sin nada, su vacío.
   - Lista de la más reciente: proveedor («Sin proveedor»), fecha, ítem («Sin ítem»), monto y, fuera de la moneda base, «Equivale a …».
     Esqueleto, vacío, tope 200 con aviso, error en el panel con «Reintentar».
