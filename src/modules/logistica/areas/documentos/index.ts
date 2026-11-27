@@ -1,2 +1,2 @@
-// La API de servidor de el área `documentos` de `logistica` (6.01): la llena el paso 6.06. Sale por el `index.ts` de la raíz.
-export {}
+// La API de servidor del área `documentos` de `logistica`: el resumen de su tarjeta en la página de la unidad. Sale por el `index.ts` de la raíz.
+export { leerResumenDeDocumentos } from './composicion'

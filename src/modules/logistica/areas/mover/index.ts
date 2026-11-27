@@ -13,3 +13,5 @@ export type {
 export { CLAVE_DE_FASE_VISTA } from '../../entities/mover/fase-vista'
 export { opcionesDelFiltro } from '../../entities/mover/filtro-del-historial'
 export type { OpcionDelFiltro } from '../../entities/mover/filtro-del-historial'
+export { leerResumenDeNotas } from './composicion'
+export { resumenDelHistorial } from '../../entities/mover/resumen-de-notas'

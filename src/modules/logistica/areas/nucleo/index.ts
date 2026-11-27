@@ -24,3 +24,10 @@ export {
 export type { ClaveDeTarjeta, TarjetaConSusHuecos } from '../../entities/nucleo/tarjetas'
 export { demoraDeLaUnidad } from '../../entities/nucleo/demora'
 export type { FaseParaLaDemora } from '../../entities/nucleo/demora'
+export { capacidadesDeLaTarjeta } from '../../entities/nucleo/acciones-de-la-tarjeta'
+export type { CapacidadesDeLaTarjeta } from '../../entities/nucleo/acciones-de-la-tarjeta'
+export type {
+  AccionDeLaTarjeta,
+  DestinoDeLaAccion,
+  ResumenDeTarjeta,
+} from '../../entities/nucleo/tarjeta'

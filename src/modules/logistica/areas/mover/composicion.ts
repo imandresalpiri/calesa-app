@@ -9,3 +9,4 @@ export const repositorioDeNotas: RepositorioDeNotas = notasSupabase
 
 // Las pasadas de la cadena de la unidad, en el servidor (`historial_fases_vehiculo_idx`, tope 50 + 1).
 export { leerPasadasDeLaUnidad } from '../../infra/mover/historial'
+export { leerResumenDeNotas } from '../../infra/mover/resumen'
