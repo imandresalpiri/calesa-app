@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   ATAJOS,
   atajoDe,
+  atajosDeLaPantalla,
   combinacionDe,
   esMac,
+  teclasDeLaCombinacion,
   teclasDelAtajo,
   valeMientrasSeEscribe,
   type ClaveAtajo,
@@ -32,6 +34,23 @@ describe('combinacionDe', () => {
   })
 })
 
+describe('combinacionDe con Alt', () => {
+  it('toma la letra de la tecla física: Option+M en macOS escribe «µ» y sigue siendo alt+m', () => {
+    expect(combinacionDe(tecla('µ', { code: 'KeyM', altKey: true }))).toBe('alt+m')
+    expect(combinacionDe(tecla('Dead', { code: 'KeyR', altKey: true }))).toBe('alt+r')
+  })
+
+  it('Mayús cuenta con Alt y una letra', () => {
+    expect(combinacionDe(tecla('R', { code: 'KeyR', altKey: true, shiftKey: true }))).toBe(
+      'alt+shift+r',
+    )
+  })
+
+  it('sin Alt, el `code` no manda: el teclado del usuario sí', () => {
+    expect(combinacionDe(tecla('n', { code: 'KeyM' }))).toBe('n')
+  })
+})
+
 describe('atajoDe', () => {
   it('reconoce los atajos del catálogo', () => {
     expect(atajoDe(tecla('Escape'))).toBe('cerrar')
@@ -42,6 +61,20 @@ describe('atajoDe', () => {
     expect(atajoDe(tecla('Enter', { ctrlKey: true }))).toBe('guardarYSeguir')
     expect(atajoDe(tecla('b', { ctrlKey: true }))).toBe('plegarMenu')
     expect(atajoDe(tecla('B', { metaKey: true }))).toBe('plegarMenu')
+  })
+
+  it('reconoce los de la tarjeta, sólo con Alt', () => {
+    expect(atajoDe(tecla('m', { code: 'KeyM', altKey: true }))).toBe('combinarCeldas')
+    expect(atajoDe(tecla('u', { code: 'KeyU', altKey: true }))).toBe('separarCeldas')
+    expect(atajoDe(tecla('r', { code: 'KeyR', altKey: true }))).toBe('insertarFilaAbajo')
+    expect(atajoDe(tecla('R', { code: 'KeyR', altKey: true, shiftKey: true }))).toBe(
+      'insertarFilaArriba',
+    )
+    expect(atajoDe(tecla('c', { code: 'KeyC', altKey: true }))).toBe('insertarColumnaDerecha')
+    expect(atajoDe(tecla('C', { code: 'KeyC', altKey: true, shiftKey: true }))).toBe(
+      'insertarColumnaIzquierda',
+    )
+    expect(atajoDe(tecla('m', { code: 'KeyM' }))).toBeNull()
   })
 
   it('devuelve null para lo que no es un atajo', () => {
@@ -65,6 +98,36 @@ describe('valeMientrasSeEscribe', () => {
   it('frena los de una sola tecla', () => {
     expect(valeMientrasSeEscribe('nuevo')).toBe(false)
     expect(valeMientrasSeEscribe('ayuda')).toBe(false)
+  })
+})
+
+describe('teclasDeLaCombinacion', () => {
+  it('escribe Alt como ⌥ en macOS y Mayús aparte', () => {
+    expect(teclasDeLaCombinacion('alt+shift+r', { mac: false })).toEqual(['Alt', 'Mayús', 'R'])
+    expect(teclasDeLaCombinacion('alt+shift+r', { mac: true })).toEqual(['⌥', 'Mayús', 'R'])
+    expect(teclasDeLaCombinacion('mod+z', { mac: true })).toEqual(['⌘', 'Z'])
+    expect(teclasDeLaCombinacion('shift+ ', { mac: false })).toEqual(['Mayús', 'Espacio'])
+  })
+})
+
+describe('atajosDeLaPantalla', () => {
+  it('lista los de la tarjeta y ninguno más', () => {
+    const combinaciones = atajosDeLaPantalla('tarjeta').map((a) => a.combinacion)
+    expect(combinaciones).toEqual([
+      'alt+m',
+      'alt+u',
+      'alt+r',
+      'alt+shift+r',
+      'alt+c',
+      'alt+shift+c',
+    ])
+    expect(atajosDeLaPantalla('otra')).toEqual([])
+  })
+
+  it('ninguno choca con otro del catálogo ni con Ctrl o Cmd', () => {
+    const todas = (Object.keys(ATAJOS) as ClaveAtajo[]).map((c) => ATAJOS[c].combinacion)
+    expect(new Set(todas).size).toBe(todas.length)
+    expect(atajosDeLaPantalla('tarjeta').every((a) => a.combinacion.startsWith('alt+'))).toBe(true)
   })
 })
 

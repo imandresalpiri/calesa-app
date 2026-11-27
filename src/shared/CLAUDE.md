@@ -57,7 +57,8 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
   opción con `motivo` va apagada y lo dice debajo). Lo usan las tablas de referencia, los catálogos de logística y los tipos de documento.
 - `lib/ancho.ts` (`anchoDeLaPeticion()`, `CORTE_DEL_TABLERO`/`CORTE_DE_LA_TABLA`/`CORTE_DEL_PANEL`), `ui/ancho-de-pantalla.tsx` (`useAlMenos()`).
 - `lib/atajos.ts` + `ui/atajos/`: `ATAJOS`, `teclasDelAtajo()`, `<ProveedorAtajos>`, `useAtajo()` (responde el último registrado); `<AyudaDeAtajos>`
-  registra `?` y abre `<ListaDeAtajos>` por `diferido()`.
+  registra `?` y abre `<ListaDeAtajos>` por `diferido()`. Un atajo con `pantalla` sale sólo en el grupo de esa pantalla, que la suma con `useAyudaDePantalla()`;
+  con Alt, la letra sale de `KeyboardEvent.code` (en macOS Option cambia `key`). `teclasDeLaCombinacion()` los escribe (`Alt`/`⌥`, `Mayús`).
 - `lib/instalacion.ts` (`ofrecerInstalacion()`: `ninguna`, `prompt` o `instrucciones` en iOS) y `ui/{use-instalacion.ts,instalar-app.tsx}`.
 - `lib/color.ts` (`tokensDeMarca()`, `cssDeMarca()`), `lib/imagenes.ts` (`comprimirImagen()`, `extensionDe()`, `hashDe()`), `lib/almacen.ts`,
   `lib/iconos.ts` (catálogo cerrado), `lib/apibara.ts`, `lib/numeros-de-lead.ts`.
