@@ -1,4 +1,3 @@
-// @sin-celular-archivo: la ventana de cámara es sólo de escritorio (desde 1024 px); en el celular sólo se ve el marco y lo prueba live-marco-celular
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './soporte/prueba'
 import {
@@ -15,7 +14,12 @@ import { literal, sql } from './soporte/sql'
 // Chromium: el marco no recibe clics; la ventana muestra el video y los datos de quien presenta, se mueve, cambia de tamaño y se minimiza, y vuelve igual al
 // recargar; elegir qué datos se ven; con `reducedMotion` el borde queda fijo; al apagar el Live no queda ni marco ni ventana y la cámara se apaga.
 test.describe.configure({ mode: 'serial' })
+// La ventana de cámara es de escritorio (desde 1024 px): el spec fija un navegador de escritorio para que valga igual en los dos proyectos
+// (en el celular sólo se ve el marco y lo prueba `live-marco-celular`).
 test.use({
+  viewport: { width: 1280, height: 720 },
+  isMobile: false,
+  hasTouch: false,
   launchOptions: {
     args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
   },

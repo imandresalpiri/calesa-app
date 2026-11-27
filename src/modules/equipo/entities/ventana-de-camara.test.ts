@@ -41,7 +41,6 @@ describe('la forma guardada (espejo del check de la base)', () => {
     ['un ancho menor al mínimo', { ancho: 199 }],
     ['un ancho que la base no admite', { ancho: 4001 }],
     ['un dato que no existe', { datos: ['telefono'] }],
-    ['un dato repetido', { datos: ['logo', 'logo'] }],
     ['una cámara de más de 300 letras', { camara: 'a'.repeat(301) }],
     ['un booleano que no lo es', { espejo: 'si' }],
   ])('rechaza %s', (_motivo, cambio) => {

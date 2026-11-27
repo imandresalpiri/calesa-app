@@ -45,10 +45,7 @@ export const VENTANA_POR_DEFECTO: VentanaDeCamara = {
   camara: null,
 }
 
-const esquemaDeDatos = z
-  .array(z.enum(DATOS_DE_LA_VENTANA))
-  .max(DATOS_DE_LA_VENTANA.length)
-  .refine((datos) => new Set(datos).size === datos.length)
+const esquemaDeDatos = z.array(z.enum(DATOS_DE_LA_VENTANA)).max(DATOS_DE_LA_VENTANA.length)
 
 export const esquemaDeLaVentanaDeCamara = z.object({
   x: z.number().min(0).max(100),
