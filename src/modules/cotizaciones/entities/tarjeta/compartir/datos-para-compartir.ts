@@ -6,10 +6,13 @@ import { z } from 'zod'
 // Las fotos de un vehículo, como mucho (el tope de `vehiculos_imagenes`).
 export const TOPE_DE_FOTOS_PARA_COMPARTIR = 24
 
+// El monto y su segunda línea, con su moneda (lo que se copia y se comparte) y sin ella (lo que el panel muestra con el Modo Live).
 const esquemaDeLaLinea = z.object({
   concepto: z.string().nullable(),
   monto: z.string(),
   segunda: z.string().nullable(),
+  montoSinMoneda: z.string(),
+  segundaSinMoneda: z.string().nullable(),
 })
 
 const esquemaDeLaVersion = z.object({

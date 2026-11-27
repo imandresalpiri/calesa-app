@@ -41,7 +41,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `conteo`, o `suelta`, con `cortada`); con texto, la búsqueda agrupada en la página (`agruparLaPagina()`); sin agrupar, `entradasSinAgrupar()`. Los nombres, el modo
   (`leerModosDeCotizaciones()`, `cotizaciones_modos_de()`), el «⋯» y lo visto van sobre las cotizaciones que se dibujan. La tarjeta (`TarjetaEnLaLista`) lleva la
   imagen de la tarjeta por el hueco `Imagen` (`ancho={480}`, `recorte="cubrir"`, `lugar="lista"`: su visor es `?visor=imagen-de-la-lista-<id>`), el «⋯» sin «Compartir» (`MenuDeFila(fila, { sinCompartir })`) y «Compartir» (`compartirDe`, nulo
-  sin la oferta o en Modo Live); la tabla, la columna «Título». «N cotizaciones de este vehículo» (`BotonDelConteo`) abre el modal del grupo (`ModalDelGrupoDiferido`, `features/listado/components/grupo/`; la URL `?panel=cotizaciones-del-vehiculo&vehiculo=<id>`
+  sin la oferta); la tabla, la columna «Título». «N cotizaciones de este vehículo» (`BotonDelConteo`) abre el modal del grupo (`ModalDelGrupoDiferido`, `features/listado/components/grupo/`; la URL `?panel=cotizaciones-del-vehiculo&vehiculo=<id>`
   por `useModalDelGrupo()` con `usePanelPorUrl()`; `PANEL_DE_COTIZACIONES_DEL_VEHICULO`, `tituloDelModalDelGrupo()` y `idDelVehiculoDelModal()` del núcleo; con ese panel la página **no lee `?vehiculo=` como filtro**,
   `pedidoDeLaPagina()`; `Modal` con `completoEnCelular`): lo lee `useGrupoDelListado()` desde el navegador (`areas/listado/composicion.client.ts`, `leerGrupoDelListado()`:
   `cotizaciones_listado(p_vehiculo)` o `cotizaciones_buscar(p_texto, p_vehiculo)` con los filtros de la página, de a `TAMANO_DE_ESTE_VEHICULO` hasta `TOPE_DE_ESTE_VEHICULO`, y los autores por
@@ -257,8 +257,9 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `diferido()`), en `?panel=compartir` en el detalle (`CompartirDeLaGuardada`, a la vista en la cabecera por el hueco `compartir` de la vista previa, sólo con
   `cotizacionId`) y en `?panel=compartir&para=<id>` fuera de él (`DialogoDeCompartirDeLaFila` y `useAbrirCompartirDeLaFila()` por `pantallas/tarjeta-compartir.ts`:
   el «⋯» del listado; también para las tarjetas, el resumen y la ficha del vehículo); la pestaña en `?compartir=texto` (`entities/tarjeta/compartir/url.ts`). Con
-  el Modo Live ni el botón ni la línea del «⋯»; por URL, el aviso. Lee `GET /cotizaciones/[id]/compartir` (`DatosParaCompartir`: `paraCompartirDeUnaGuardada()`
-  da los montos de la tarjeta de lo guardado con `lineasDeLaTarjeta()`; `src/app` suma el vehículo con `zonaDelPatioDe()` de `vehiculos` y la subasta) y, al
+  el Modo Live se ofrece igual: el panel muestra la imagen `?sin-moneda=1` (`vistaSinMoneda`) y el texto de los gemelos `…SinMoneda` (`textoALaVista`), y lo que se
+  copia, descarga o comparte va completo, con su moneda (la imagen con moneda se pide a la par, lista antes del toque). Lee `GET /cotizaciones/[id]/compartir` (`DatosParaCompartir`: `paraCompartirDeUnaGuardada()`
+  da los montos de la tarjeta de lo guardado con `lineasDeLaTarjeta()`, cada uno con su gemelo sin moneda de la geometría dibujada con `sinMoneda`; `src/app` suma el vehículo con `zonaDelPatioDe()` de `vehiculos` y la subasta) y, al
   elegir «Fotos», `…/compartir/fotos` (`leerVehiculoDeLaCotizacion()` por `cotizaciones_pkey` y `leerGaleria()`); la imagen de la tarjeta (`pedirLaImagenParaCompartir()`), por su
   ruta con la caché del navegador, pasada a PNG en el navegador. El texto lo arma `textoParaCompartir()` (puro), con la firma del asesor (quien comparte: `DatosParaCompartir.asesor`; «Creado por» es `autor`, de
   `leerAutorDeLaCotizacion()`); los motivos de los botones, `motivosDeCompartir()`. Desde el navegador,
@@ -376,7 +377,7 @@ por `pantallas/<área>-<pantalla>.ts`. Un hueco vacío es un objeto sin componen
   `leerAprobadasDeVehiculos([id])` (`index.ts`); lo que lo abre y el diálogo, `useAbrirCompartirDeLaFila` y `DialogoDeCompartirDeLaFila` de `pantallas/tarjeta-compartir.ts`.
   A la derecha, «Cotizaciones de este vehículo»: `TarjetasDelVehiculo` de `pantallas/aprobada-fichas.ts` (la isla del área `aprobada`, abajo, al acercarse, sin título propio: lo dibuja el
   servidor con «Cotizar» y una ranura `ID_DE_LA_RANURA_DE_COMPARAR` donde la isla pone «Comparar» con un portal); `src/app` le pasa la fila de tarjetas del listado (`Tarjetas`, de
-  `pantallas/listado-fichas.ts`) con la imagen (`pantallas/tarjeta-imagen.ts`) y `compartir` (`useAbrirCompartirDeLaFila()`, nulo en Modo Live) ya unidos, `aprobarEn` y `alCambiar`, que refresca la página.
+  `pantallas/listado-fichas.ts`) con la imagen (`pantallas/tarjeta-imagen.ts`) y `compartir` (`useAbrirCompartirDeLaFila()`) ya unidos, `aprobarEn` y `alCambiar`, que refresca la página.
 - **La fila de tarjetas** (glosario: «Fila de tarjetas»): las últimas `TARJETAS_EN_LA_FICHA` (10) cotizaciones que quien mira ve, cada una `TarjetaEnLaLista` (la de la vista Tarjetas del listado, con
   `sinCliente`, `casilla` y `aprobar`; `FilaParaLaTarjeta` = `DatosDeLaTarjeta`, del núcleo) dentro de `FilaDeTarjetas` (snap, flechas ‹ ›, `useDesborde`, la última «Ver más» a `rutaDelListado({ lead | vehiculo })`);
   el clic abre el resumen sobre la ficha (`useResumenDeCotizacion({ delServidor: true })`: `?cotizacion=` pide la página, el servidor dibuja el resumen) y deja marcada la abierta. **Una sola lectura**, sin cursor.

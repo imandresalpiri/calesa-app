@@ -14,7 +14,7 @@ import { literal, sql } from './soporte/sql'
 // cotizaciones es una tarjeta con la imagen de la tarjeta de su aprobada (la miniatura) y «4 cotizaciones de este vehículo», que abre un modal (`?panel=cotizaciones-del-vehiculo&vehiculo=`)
 // con la aprobada primero, sus casillas y «Comparar» en el pie, de a 10 con «Ver más»; elegir una línea lo cierra y abre su resumen; la lista no despliega nada; una sin vehículo va suelta; «Compartir» de la tarjeta abre su panel y el «⋯» de la tarjeta no lo repite (en la tabla va primero, con la columna
 // «Título»); «Tabla | Tarjetas» y «Agrupar por vehículo» se recuerdan; «Mías» deja en el grupo sólo las suyas; las tarjetas miden lo mismo; la imagen abre el visor y
-// la tarjeta el resumen; en Modo Live no hay «Compartir». El terreno es el de `soporte/cotizaciones-final.ts` (sembrado sin triggers: la aprobada se rellena a mano).
+// la tarjeta el resumen; en Modo Live «Compartir» sigue y la imagen va sin moneda. El terreno es el de `soporte/cotizaciones-final.ts` (sembrado sin triggers: la aprobada se rellena a mano).
 test.describe.configure({ mode: 'serial' })
 
 let t: TerrenoDeLaFinal
@@ -287,7 +287,7 @@ test('E2E el clic en la imagen no abre el resumen y el de la tarjeta sí; el vis
   await expect(page).toHaveURL(new RegExp(`cotizacion=${suelta}`))
 })
 
-test('E2E en Modo Live la tarjeta no ofrece «Compartir» y la imagen va oculta', async ({
+test('E2E en Modo Live la tarjeta ofrece «Compartir» y la imagen va sin moneda', async ({
   page,
 }, info) => {
   await entrar(page, t.duena, { fresco: true })
@@ -297,6 +297,11 @@ test('E2E en Modo Live la tarjeta no ofrece «Compartir» y la imagen va oculta'
   await page.goto(deLaPrueba())
   await expect(page.locator('html')).toHaveClass(/\blive\b/)
   await expect(page.locator('article').first()).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Compartir', exact: true })).toHaveCount(0)
+  await expect(
+    page.getByRole('button', { name: 'Compartir', exact: true }).filter({ visible: true }).first(),
+  ).toBeVisible()
+  await expect(
+    page.locator('article').first().locator('img[data-imagen-moneda="sin"]'),
+  ).toBeVisible({ timeout: 30_000 })
   await capturar(page, info, 'tarjetas-en-modo-live')
 })

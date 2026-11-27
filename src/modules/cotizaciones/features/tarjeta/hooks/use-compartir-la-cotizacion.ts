@@ -3,6 +3,7 @@
 import { parseAsStringLiteral, useQueryState } from 'nuqs'
 import { useState } from 'react'
 import { capacidadesDelNavegador } from '@/shared/lib/compartir'
+import { useLive } from '@/shared/ui/live'
 import { useEnLinea } from '@/shared/ui/use-en-linea'
 import type { FotoParaCompartir } from '../../../entities/tarjeta/compartir/datos-para-compartir'
 import {
@@ -30,8 +31,8 @@ const estadoDe = (parte: ParteDeCompartir<unknown>): EstadoDeLaParte =>
   parte.estado === 'listo' ? 'listo' : parte.estado === 'error' ? 'error' : 'leyendo'
 
 // El estado de una apertura de «Compartir la cotización»: la pestaña (en la URL, `?compartir=texto`), lo elegido para este envío (la imagen, el formato, la zona y las
-// fotos marcadas: estado local, como las casillas de los tipos de cambio), lo leído, el texto armado y el motivo de cada botón. Con `activo` falso (Modo Live) no
-// pide nada.
+// fotos marcadas: estado local, como las casillas de los tipos de cambio), lo leído, el texto armado y el motivo de cada botón. Con `activo` falso (un id que no
+// vale) no pide nada. `texto` es el que se copia y se comparte, siempre con su moneda; `textoALaVista`, el que se muestra: con el Modo Live, sin moneda.
 export function useCompartirLaCotizacion(cotizacionId: string, activo: boolean) {
   const [pestana, setPestana] = useQueryState(
     CLAVE_DE_LA_PESTANA_DE_COMPARTIR,
@@ -44,9 +45,11 @@ export function useCompartirLaCotizacion(cotizacionId: string, activo: boolean) 
   const [capacidades] = useState(capacidadesDelNavegador)
   const [ahora] = useState(() => new Date().toISOString())
   const enLinea = useEnLinea()
+  const { live } = useLive()
   const lecturas = useParaCompartirLaCotizacion(cotizacionId, {
     activo,
     conFotos: opcion === 'fotos',
+    live,
   })
   const { datos, imagen, fotos } = lecturas
   const fotosMarcadas = useFotosMarcadas(
@@ -59,6 +62,10 @@ export function useCompartirLaCotizacion(cotizacionId: string, activo: boolean) 
       ? zonaElegida
       : 'empresa'
   const texto = leidos === null ? null : textoParaCompartir(leidos, { formato, zona, ahora })
+  const textoALaVista =
+    leidos === null || !live
+      ? texto
+      : textoParaCompartir(leidos, { formato, zona, ahora, sinMoneda: true })
   const motivos = motivosDeCompartir({
     opcion,
     imagen: estadoDe(imagen.parte),
@@ -83,7 +90,9 @@ export function useCompartirLaCotizacion(cotizacionId: string, activo: boolean) 
     ...lecturas,
     leidos,
     fotosMarcadas,
+    live,
     texto,
+    textoALaVista,
     motivos,
   }
 }

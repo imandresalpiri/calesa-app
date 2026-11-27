@@ -5,6 +5,7 @@
 // - «Simple»: sin marcas y sin líneas en blanco;
 // - «Facebook» y «TikTok»: sin marcas, una línea en blanco entre bloques (título · vehículo · conceptos · total · asesor);
 // - «WhatsApp»: como Facebook, con el título y la línea del total en negrita (`*…*`; un texto que ya trae `*` va sin marca).
+// Con `sinMoneda`, los montos van sin su moneda (los gemelos `…SinMoneda`): lo que el panel muestra con el Modo Live. Lo que se copia y se comparte, siempre sin él.
 import { ciudadDeLaZona, formatearDiaLargo, formatearHora } from '@/shared/lib/fechas'
 import { formatearNumero } from '@/shared/lib/formato'
 import type { DatosParaCompartir, VehiculoParaCompartir } from './datos-para-compartir'
@@ -37,7 +38,12 @@ export function zonasDisponibles(datos: DatosParaCompartir): OpcionDeZona[] {
     : [empresa]
 }
 
-type Opciones = { formato: FormatoDeTexto; zona: ZonaParaCompartir; ahora: string }
+type Opciones = {
+  formato: FormatoDeTexto
+  zona: ZonaParaCompartir
+  ahora: string
+  sinMoneda?: boolean
+}
 
 // «Se subasta el jueves 19 de noviembre a las 22:00 (hora del patio)»: sólo si el cierre todavía no pasó (un «Se subasta» de algo cerrado engaña).
 function lineaDeLaSubasta(
@@ -71,33 +77,50 @@ function bloqueDelVehiculo(datos: DatosParaCompartir, opciones: Opciones): strin
   ].filter((l): l is string => l !== null && l.trim() !== '')
 }
 
-const lineaDe = (l: LineaDeLaTarjeta, concepto: string | null = l.concepto) =>
-  concepto === null ? l.monto : `${concepto}: ${l.monto}`
+// El monto y la segunda línea de una línea, con su moneda o sin ella.
+const montoDe = (l: LineaDeLaTarjeta, sinMoneda: boolean) =>
+  sinMoneda ? l.montoSinMoneda : l.monto
+const segundaDe = (l: LineaDeLaTarjeta, sinMoneda: boolean) =>
+  sinMoneda ? l.segundaSinMoneda : l.segunda
+
+const lineaDe = (l: LineaDeLaTarjeta, sinMoneda: boolean, concepto: string | null = l.concepto) =>
+  concepto === null ? montoDe(l, sinMoneda) : `${concepto}: ${montoDe(l, sinMoneda)}`
 
 // `*…*` en WhatsApp; un texto con `*` rompería la negrita: va sin marca.
 const negrita = (texto: string, formato: FormatoDeTexto) =>
   formato === 'whatsapp' && !texto.includes('*') ? `*${texto}*` : texto
 
-function bloqueDelTotal(datos: DatosParaCompartir, formato: FormatoDeTexto): string[] {
+function bloqueDelTotal(
+  datos: DatosParaCompartir,
+  formato: FormatoDeTexto,
+  sinMoneda: boolean,
+): string[] {
   const total = datos.total
   return [
-    total === null ? null : negrita(lineaDe(total, total.concepto ?? 'Total'), formato),
-    total?.segunda ?? null,
+    total === null ? null : negrita(lineaDe(total, sinMoneda, total.concepto ?? 'Total'), formato),
+    total === null ? null : segundaDe(total, sinMoneda),
     datos.modo === null ? null : `Modo de tipo de cambio: ${datos.modo}`,
   ].filter((l): l is string => l !== null)
 }
 
-const lineasDe = (conceptos: DatosParaCompartir['conceptos']) =>
-  conceptos.flatMap((l) => [lineaDe(l), ...(l.segunda === null ? [] : [l.segunda])])
+const lineasDe = (conceptos: DatosParaCompartir['conceptos'], sinMoneda: boolean) =>
+  conceptos.flatMap((l) => {
+    const segunda = segundaDe(l, sinMoneda)
+    return [lineaDe(l, sinMoneda), ...(segunda === null ? [] : [segunda])]
+  })
 
 // Las cotizaciones hermanas: un bloque por opción (su etiqueta, sus conceptos y su total), una debajo de la otra; el modo, una vez al final.
-function bloquesDeLasVersiones(datos: DatosParaCompartir, formato: FormatoDeTexto): string[][] {
+function bloquesDeLasVersiones(
+  datos: DatosParaCompartir,
+  formato: FormatoDeTexto,
+  sinMoneda: boolean,
+): string[][] {
   const versiones = datos.versiones ?? []
   return [
     ...versiones.map((v) => [
       negrita(v.etiqueta, formato),
-      ...lineasDe(v.conceptos),
-      ...bloqueDelTotal({ ...datos, total: v.total, modo: null }, formato),
+      ...lineasDe(v.conceptos, sinMoneda),
+      ...bloqueDelTotal({ ...datos, total: v.total, modo: null }, formato, sinMoneda),
     ]),
     datos.modo === null ? [] : [`Modo de tipo de cambio: ${datos.modo}`],
   ]
@@ -114,10 +137,10 @@ function bloqueDelAsesor(datos: DatosParaCompartir): string[] {
 }
 
 export function textoParaCompartir(datos: DatosParaCompartir, opciones: Opciones): string {
-  const { formato } = opciones
+  const { formato, sinMoneda = false } = opciones
   const cifras = datos.versiones
-    ? bloquesDeLasVersiones(datos, formato)
-    : [lineasDe(datos.conceptos), bloqueDelTotal(datos, formato)]
+    ? bloquesDeLasVersiones(datos, formato, sinMoneda)
+    : [lineasDe(datos.conceptos, sinMoneda), bloqueDelTotal(datos, formato, sinMoneda)]
   const bloques = [
     [negrita(datos.titulo.texto, formato)],
     bloqueDelVehiculo(datos, opciones),

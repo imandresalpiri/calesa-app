@@ -62,38 +62,52 @@ type EntradaDeLaGeometria = Pick<EntradaDelPdf, 'lectura' | 'contexto' | 'locale
 // La geometría de la tarjeta de **lo guardado** de una cotización (`calculoDeLoGuardado()`, como «Vista previa» de esa guardada; nunca lo de hoy), con la lectura
 // de la tarjeta de SU versión como quien pide y SUS retoques (los que aplican: `lecturaRetocada()`). El PDF, compartir y la imagen salen de aquí. `sin_permiso`
 // si la tarjeta no se ve.
-async function geometriaDeUnaGuardada(
+// `dibujar(sinMoneda)` dibuja la geometría de la misma lectura con su moneda o sin ella (la variante del Modo Live), sin volver a leer.
+async function dibujoDeUnaGuardada(
   entrada: EntradaDeLaGeometria,
-  { sinMoneda = false }: { sinMoneda?: boolean } = {},
-): Promise<Resultado<{ geometria: Geometria; hoja: HojaDeUnaGuardada }>> {
+): Promise<Resultado<{ dibujar: (sinMoneda: boolean) => Geometria; hoja: HojaDeUnaGuardada }>> {
   const { hoja, inicial } = entrada.lectura
   const tarjeta = await getTarjeta(hoja.diseno.formula.id)
   if (!tarjeta.ok) {
     return { ok: false, error: tarjeta.error }
   }
-  const geometria = geometriaDeLaTarjeta({
-    lectura: lecturaRetocada(tarjeta.data, hoja.cotizacion.tarjetaRetoques).lectura,
-    calculo: calculoDeLoGuardado(hoja, inicial.respuesta),
-    contexto: entrada.contexto,
-    monedaBs: hoja.diseno.cabecera.monedaBs,
-    locale: entrada.locale,
-    ...(sinMoneda ? { sinMoneda } : {}),
-  })
-  return ok({ geometria, hoja })
+  const lectura = lecturaRetocada(tarjeta.data, hoja.cotizacion.tarjetaRetoques).lectura
+  const calculo = calculoDeLoGuardado(hoja, inicial.respuesta)
+  const dibujar = (sinMoneda: boolean) =>
+    geometriaDeLaTarjeta({
+      lectura,
+      calculo,
+      contexto: entrada.contexto,
+      monedaBs: hoja.diseno.cabecera.monedaBs,
+      locale: entrada.locale,
+      ...(sinMoneda ? { sinMoneda } : {}),
+    })
+  return ok({ dibujar, hoja })
+}
+
+async function geometriaDeUnaGuardada(
+  entrada: EntradaDeLaGeometria,
+  { sinMoneda = false }: { sinMoneda?: boolean } = {},
+): Promise<Resultado<{ geometria: Geometria; hoja: HojaDeUnaGuardada }>> {
+  const dibujo = await dibujoDeUnaGuardada(entrada)
+  return dibujo.ok
+    ? ok({ geometria: dibujo.data.dibujar(sinMoneda), hoja: dibujo.data.hoja })
+    : dibujo
 }
 
 // Las cifras de «Compartir la cotización»: los montos de la tarjeta de lo guardado como líneas de texto (sólo lo que la tarjeta dibuja: el nivel «todos», K4) y el
-// nombre del modo con que se guardó. Lo pide `GET /cotizaciones/[id]/compartir`; el texto lo arma el navegador. `sin_permiso` si la tarjeta no se ve.
+// nombre del modo con que se guardó; cada monto con su gemelo sin moneda (la misma geometría con `sinMoneda`, de la misma lectura: el Modo Live del panel). Lo pide
+// `GET /cotizaciones/[id]/compartir`; el texto lo arma el navegador. `sin_permiso` si la tarjeta no se ve.
 export async function paraCompartirDeUnaGuardada(
   entrada: EntradaDeLaGeometria,
 ): Promise<Resultado<LineasDeLaTarjeta & { modo: string | null }>> {
-  const armada = await geometriaDeUnaGuardada(entrada)
-  if (!armada.ok) {
-    return armada
+  const dibujo = await dibujoDeUnaGuardada(entrada)
+  if (!dibujo.ok) {
+    return dibujo
   }
-  const { geometria, hoja } = armada.data
+  const { dibujar, hoja } = dibujo.data
   return ok({
-    ...lineasDeLaTarjeta(geometria),
+    ...lineasDeLaTarjeta(dibujar(false), dibujar(true)),
     modo: nombreDelModo(hoja.diseno.cabecera, hoja.cotizacion.modoTc),
   })
 }

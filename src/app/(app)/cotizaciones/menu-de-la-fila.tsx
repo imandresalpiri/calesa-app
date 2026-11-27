@@ -8,7 +8,6 @@ import {
   type ClaveDeAccionDeCotizacion,
   type MenuDeUnaFila,
 } from '@/modules/cotizaciones/pantallas/listado'
-import { useLive } from '@/shared/ui/live'
 import { MasAcciones, type AccionDeMenu } from '@/shared/ui/lista'
 
 // Lo que pasa al elegir cada acción: lo decide quien compone la pantalla (`listado-con-acciones.tsx`), con las actions y los diálogos de cada área.
@@ -142,13 +141,12 @@ const LINEAS: Readonly<Record<ClaveDeLaFila, Constructor>> = {
 const esDeLaFila = (clave: ClaveDeAccionDeCotizacion): clave is ClaveDeLaFila => clave in LINEAS
 
 // El «⋯» de una cotización del listado, en la fila de la tabla, en la tarjeta de la lista y en la barra del resumen: la lista de siempre (`accionesDeCotizacion()`), por bloques y con un separador
-// entre ellos. Lo que quien mira no puede hacer no está; lo que se sabe que la base rechazaría se ve apagado con su motivo. Con el Modo Live no se ofrece «Compartir
-// cotización…», y en la tarjeta y el resumen tampoco (`sinCompartir`: ya está a la vista). Sin nada que ofrecer no se dibuja.
+// entre ellos. Lo que quien mira no puede hacer no está; lo que se sabe que la base rechazaría se ve apagado con su motivo. En la tarjeta y el resumen no se ofrece
+// «Compartir cotización…» (`sinCompartir`: ya está a la vista). Sin nada que ofrecer no se dibuja.
 export function MenuDeLaFila(props: Props) {
   const { cotizacion, menu, sinCompartir = false, conBorde = false } = props
-  const { live } = useLive()
   const bloques = accionesDeCotizacion(
-    live || sinCompartir ? { ...menu.ofertas, compartir: undefined } : menu.ofertas,
+    sinCompartir ? { ...menu.ofertas, compartir: undefined } : menu.ofertas,
   )
   if (bloques.length === 0) {
     return null

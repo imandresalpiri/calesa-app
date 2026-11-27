@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatearMonto } from '@/shared/lib/formato'
+import { formatearMonto, formatearMontoSinMoneda } from '@/shared/lib/formato'
 import { geometriaDeLaTarjeta } from '../geometria-de-la-tarjeta'
 import { tarjetaDesde, type LecturaDeLaTarjeta } from '../lectura-de-la-tarjeta'
 import { calculoDePrueba, CONTEXTO_DE_PRUEBA, crudaDeLaTarjeta } from '../tarjeta.soporte'
@@ -7,17 +7,28 @@ import { lineasDeLaTarjeta } from './lineas-de-la-tarjeta'
 
 const usd = (v: number) => formatearMonto(v, { moneda: 'USD', locale: 'es-BO' })
 const bob = (v: number) => formatearMonto(v, { moneda: 'BOB', locale: 'es-BO' })
+const sin = (v: number) => formatearMontoSinMoneda(v, { moneda: 'USD', locale: 'es-BO' })
+const sinBs = (v: number) => formatearMontoSinMoneda(v, { moneda: 'BOB', locale: 'es-BO' })
+// Una línea con su gemela sin moneda.
+const linea = (concepto: string, v: number, segunda: number | null = null) => ({
+  concepto,
+  monto: usd(v),
+  segunda: segunda === null ? null : bob(segunda),
+  montoSinMoneda: sin(v),
+  segundaSinMoneda: segunda === null ? null : sinBs(segunda),
+})
 
 function lineas(l: LecturaDeLaTarjeta, calculo = calculoDePrueba({ verTotalBs: true })) {
-  return lineasDeLaTarjeta(
+  const dibujar = (sinMoneda: boolean) =>
     geometriaDeLaTarjeta({
       lectura: l,
       calculo,
       contexto: CONTEXTO_DE_PRUEBA,
       monedaBs: 'BOB',
       locale: 'es-BO',
-    }),
-  )
+      sinMoneda,
+    })
+  return lineasDeLaTarjeta(dibujar(false), dibujar(true))
 }
 
 describe('lineasDeLaTarjeta', () => {
@@ -26,11 +37,20 @@ describe('lineasDeLaTarjeta', () => {
     if (l === null) throw new Error('no se lee')
     expect(lineas(l)).toEqual({
       conceptos: [
-        { concepto: 'Remate', monto: usd(1000), segunda: null },
-        { concepto: 'Flete marítimo', monto: usd(300), segunda: null },
-        { concepto: 'GARANTÍA PARA LA PARTICIPACIÓN', monto: usd(50), segunda: null },
+        linea('Remate', 1000),
+        linea('Flete marítimo', 300),
+        linea('GARANTÍA PARA LA PARTICIPACIÓN', 50),
       ],
-      total: { concepto: 'TOTAL DÓLARES', monto: usd(1355), segunda: bob(9430.8) },
+      total: linea('TOTAL DÓLARES', 1355, 9430.8),
+    })
+  })
+
+  it('el gemelo sin moneda es el número solo, con los mismos decimales', () => {
+    const l = tarjetaDesde(crudaDeLaTarjeta())
+    if (l === null) throw new Error('no se lee')
+    expect(lineas(l).total).toMatchObject({
+      montoSinMoneda: '1.355,00',
+      segundaSinMoneda: '9.430,80',
     })
   })
 
@@ -45,7 +65,7 @@ describe('lineasDeLaTarjeta', () => {
   it('sin plantilla: sólo el total de la de por omisión', () => {
     expect(lineas({ estado: 'sin_plantilla' }, calculoDePrueba())).toEqual({
       conceptos: [],
-      total: { concepto: 'Total', monto: usd(1355), segunda: null },
+      total: linea('Total', 1355),
     })
   })
 })

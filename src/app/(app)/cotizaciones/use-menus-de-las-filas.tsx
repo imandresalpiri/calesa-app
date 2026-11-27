@@ -14,14 +14,13 @@ import {
   DialogoDeCompartirDeLaFila,
   useAbrirCompartirDeLaFila,
 } from '@/modules/cotizaciones/pantallas/tarjeta-compartir'
-import { useLive } from '@/shared/ui/live'
 import { MenuDeLaFila } from './menu-de-la-fila'
 import { useAccionesDeLaLista } from './use-acciones-de-la-lista'
 
 type Fila = { id: string; numero: number }
 
 // Lo que el listado y el resumen de una ficha comparten de las acciones de una cotización: el «⋯» de cada fila (`menuDeFila`), «Compartir» de la barra del resumen (`compartirDe`, nulo sin
-// la oferta del «⋯» o en Modo Live), el refresco tras aprobar desde «De este vehículo» y los diálogos del «⋯» montados una vez (compartir, marcar final, reportar y moderar:
+// la oferta del «⋯»), el refresco tras aprobar desde «De este vehículo» y los diálogos del «⋯» montados una vez (compartir, marcar final, reportar y moderar:
 // `?panel=…&para=<id>`). `filas` son las cotizaciones sobre las que se ofrece algo; `menus`, lo que el servidor leyó de cada una.
 export function useMenusDeLasFilas(
   filas: readonly Fila[],
@@ -34,12 +33,11 @@ export function useMenusDeLasFilas(
 } {
   const acciones = useAccionesDeLaLista(filas, menus)
   const router = useRouter()
-  const { live } = useLive()
   const abrirCompartir = useAbrirCompartirDeLaFila()
   return {
-    // «Compartir» de la tarjeta: lo que ofrece su «⋯» (sin Modo Live), con el mismo panel.
+    // «Compartir» de la tarjeta: lo que ofrece su «⋯», con el mismo panel.
     compartirDe: (fila) =>
-      live || menus[fila.id]?.ofertas.compartir === undefined
+      menus[fila.id]?.ofertas.compartir === undefined
         ? null
         : () => {
             abrirCompartir(fila.id)

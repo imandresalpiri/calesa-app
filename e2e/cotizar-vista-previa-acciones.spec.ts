@@ -29,7 +29,7 @@ import {
 import { literal, sql } from './soporte/sql'
 import { cargarVehiculos, vehiculoPorTitulo } from './soporte/vehiculos'
 
-// Las acciones del pie de «Vista previa» (paso 4.18-3b, P5–P7 del 4.18-3): «Copiar texto» deja en el portapapeles la tarjeta que dibuja el modal como texto, con cifras aunque
+// Las acciones del pie de «Vista previa» (paso 4.18-3b, P5–P7 del 4.18-3): «Copiar texto» deja en el portapapeles la tarjeta que dibuja el modal como texto, con su moneda aunque
 // Live esté encendido; en una guardada, lo guardado. «Descargar PDF», sólo en una guardada, pide el PDF de lo guardado desde el navegador y lo baja; si falla, lo dice en el modal.
 test.describe.configure({ mode: 'serial' })
 
@@ -102,7 +102,7 @@ async function copiarElTexto(page: Page): Promise<string> {
 }
 
 const sinBlancos = (texto: string) => texto.replace(/\s/g, '')
-// El monto del total de la tarjeta, sin la máscara de Live.
+// El monto del total de la tarjeta, con su moneda (el nodo que el Modo Live esconde).
 const totalDe = (t: Locator) => textoDe(total(t).locator('[data-monto-valor]'))
 const descargar = (page: Page) => dialogo(page).getByRole('button', { name: 'Descargar PDF' })
 const alertaDelPie = (page: Page) => dialogo(page).getByRole('alert')
@@ -160,7 +160,7 @@ test('E2E E2 en una guardada «Descargar PDF» baja su PDF, con el total de la t
   await expect(alertaDelPie(page)).toHaveCount(0)
 })
 
-test('E2E E3 con Live encendido lo copiado lleva las cifras', async ({ page }) => {
+test('E2E E3 con Live encendido lo copiado lleva la moneda', async ({ page }) => {
   await cotizarEnLaSubasta(page, asesora.email, urlDeLaSubasta(subasta, leadDeLaAsesora, vehiculo))
   const t = await abrirLaVistaPrevia(page)
   const totalDeLaTarjeta = await totalDe(t)
@@ -169,6 +169,7 @@ test('E2E E3 con Live encendido lo copiado lleva las cifras', async ({ page }) =
     .click()
   await expect(page.locator('html')).toHaveClass(/live/)
   await expect(total(t).locator('[data-monto-valor]')).toBeHidden()
+  await expect(total(t).locator('[data-monto-sin-moneda]')).toBeVisible()
   const texto = await copiarElTexto(page)
   expect(sinBlancos(texto)).toContain(`TOTALDÓLARES:${totalDeLaTarjeta}`)
 })

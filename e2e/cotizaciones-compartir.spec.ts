@@ -1,4 +1,4 @@
-import { botonDelMenuDeLaGuardada, cabeceraDeLaGuardada } from './soporte/menu-de-la-guardada'
+import { cabeceraDeLaGuardada } from './soporte/menu-de-la-guardada'
 import type { Page } from '@playwright/test'
 import { expect, test } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
@@ -22,7 +22,7 @@ import { formatearDiaLargo, formatearHora } from '../src/shared/lib/fechas'
 
 // «Compartir la cotización» (`docs/GLOSARIO.md` › «Compartir la cotización»): desde el detalle y desde el «⋯» de la lista se abre el panel; «Imagen › Cotización»
 // muestra la imagen de la tarjeta, «Fotos» marca dos; «Texto» en «WhatsApp» con la hora del patio dice el título, el lote, el cierre de la subasta en esa zona y los montos;
-// «Copiar texto» copia y «Descargar PDF» baja el PDF; con el Modo Live no se ofrece; lo que un nivel esconde no viaja. La subasta de la semilla, con su plantilla.
+// «Copiar texto» copia y «Descargar PDF» baja el PDF; con el Modo Live se ve sin moneda y se copia completo; lo que un nivel esconde no viaja. La subasta de la semilla, con su plantilla.
 test.describe.configure({ mode: 'serial' })
 
 const LOTE = '44551234'
@@ -195,10 +195,11 @@ test('E2E desde la tarjeta de la lista se abre con su id; un id ajeno dice que n
   await expect(panel(page).getByText('No tienes acceso a esta cotización.')).toBeVisible()
 })
 
-test('E2E con el Modo Live no se ofrece: ni en el detalle ni en el «⋯», y la URL lo dice', async ({
+test('E2E con el Modo Live se comparte: se ve sin moneda y lo copiado va completo', async ({
   page,
-}) => {
-  const numero = numeroDe(guardada)
+  context,
+}, info) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await abrirLaHoja(page, asesora.email, `/cotizaciones/${guardada}`)
   // El de la barra (la hoja también tiene el suyo).
   const live = page
@@ -206,27 +207,26 @@ test('E2E con el Modo Live no se ofrece: ni en el detalle ni en el «⋯», y la
     .first()
   await live.click()
   await expect(live).toHaveAttribute('aria-pressed', 'true')
-  await expect(botonDelMenuDeLaGuardada(page)).toBeVisible()
-  await expect(
-    cabeceraDeLaGuardada(page).getByRole('button', { name: 'Compartir', exact: true }),
-  ).toHaveCount(0)
+  await cabeceraDeLaGuardada(page).getByRole('button', { name: 'Compartir', exact: true }).click()
+  await expect(panel(page).getByText(`Creado por ${asesora.nombre}`)).toBeVisible()
+  await expect(panel(page).getByText('Con el Modo Live no se comparte.')).toHaveCount(0)
 
-  await page.goto(`/cotizaciones/${guardada}?panel=compartir`)
-  await expect(panel(page).getByText('Con el Modo Live no se comparte.')).toBeVisible()
+  // La imagen a la vista es la variante sin moneda.
+  const imagen = panel(page).locator('img[data-compartir-tarjeta]')
+  await expect(imagen).toHaveAttribute('data-imagen-moneda', 'sin', { timeout: 30_000 })
+  await expect(imagen).toHaveAttribute('src', /^blob:/, { timeout: 30_000 })
+  await expect(imagen).toBeVisible()
+  await capturar(page, info, 'imagen-en-modo-live')
 
-  await page.goto(`/cotizaciones?q=${numero}`)
-  // Ni la acción principal de la tarjeta ni el «⋯» (en la tabla, tampoco).
-  await expect(
-    page.getByRole('button', { name: `Más acciones de N.º ${numero}` }).first(),
-  ).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Compartir', exact: true })).toHaveCount(0)
-  await page.goto(`/cotizaciones?q=${numero}&vista=tabla`)
-  await page
-    .getByRole('button', { name: `Más acciones de N.º ${numero}` })
-    .first()
-    .click()
-  await expect(page.getByRole('menuitem').first()).toBeVisible()
-  await expect(page.getByRole('menuitem', { name: 'Compartir cotización…' })).toHaveCount(0)
+  // El texto a la vista, con los números y sin moneda; el que se copia, con su moneda.
+  await panel(page).getByRole('tab', { name: 'Texto' }).click()
+  const valor = texto(page)
+  await expect(valor).toHaveValue(/\n\*?[^\n]+: [\d.,]+\*?\n/)
+  await expect(valor).not.toHaveValue(/\$|US\$|USD|Bs/)
+  await panel(page).getByRole('button', { name: 'Copiar texto' }).click()
+  await expect
+    .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+    .toMatch(/TOTAL DÓLARES: USD\s[\d.,]+/)
 })
 
 test('E2E lo que un nivel esconde no viaja: ni Ana ni la dueña (que ve «costos») reciben una etiqueta de un nivel', async ({

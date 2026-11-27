@@ -86,12 +86,11 @@ describe('MenuDeLaFila', () => {
     ])
   })
 
-  it('con el Modo Live no ofrece «Compartir cotización…»', async () => {
+  it('con el Modo Live también ofrece «Compartir cotización…»', async () => {
     document.documentElement.classList.add(CLASE_LIVE)
     try {
       await abrir()
-      expect(lineas()).not.toContain('Compartir cotización…')
-      expect(lineas()[0]).toBe('Aprobar')
+      expect(lineas()[0]).toBe('Compartir cotización…')
     } finally {
       document.documentElement.classList.remove(CLASE_LIVE)
     }

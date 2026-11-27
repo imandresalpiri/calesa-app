@@ -2,7 +2,6 @@
 
 import type { ComponentProps } from 'react'
 import { Button } from '@/shared/ui/button'
-import { useLive } from '@/shared/ui/live'
 import { Modal } from '@/shared/ui/modal'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { MOTIVO_SIN_RED } from '../../../../entities/tarjeta/compartir/motivos-de-compartir'
@@ -24,11 +23,10 @@ export type PropsDelPanelDeCompartir = {
 
 const TITULO = 'Compartir cotización'
 const SIN_ACCESO = 'No tienes acceso a esta cotización.'
-const CON_LIVE = 'Con el Modo Live no se comparte.'
 
 type Estado = ReturnType<typeof useCompartirLaCotizacion>
 
-// El panel cuando no hay nada que compartir (sin acceso o con el Modo Live): el motivo y «Cerrar».
+// El panel cuando no hay nada que compartir (sin acceso): el motivo y «Cerrar».
 function PanelConAviso({
   abierto,
   alCerrar,
@@ -90,14 +88,11 @@ function PieDeCompartir({
 
 // «Compartir cotización» (`docs/GLOSARIO.md` › «Compartir la cotización»): la imagen (la de la tarjeta o las fotos marcadas del vehículo) y el texto tal como saldrán, y los
 // botones para copiarlos, descargarlos, mandarlos por el menú del sistema o bajar el PDF. Lo abre su URL (`?panel=compartir`, y `&para=<id>` fuera del detalle); se pide
-// con `diferido()` y cada apertura empieza de cero (`key`). Con el Modo Live no se comparte.
+// con `diferido()` y cada apertura empieza de cero (`key`). Con el Modo Live se ve sin moneda (la imagen `?sin-moneda=1` y el texto de los gemelos `…SinMoneda`), y
+// lo que se copia, descarga o comparte va siempre completo, con su moneda.
 export function PanelDeCompartir(props: PropsDelPanelDeCompartir) {
-  const { live } = useLive()
   const valido = esIdDeCotizacion(props.cotizacionId)
-  const c = useCompartirLaCotizacion(props.cotizacionId, !live && valido)
-  if (live) {
-    return <PanelConAviso {...props} aviso={CON_LIVE} />
-  }
+  const c = useCompartirLaCotizacion(props.cotizacionId, valido)
   if (
     !valido ||
     (c.datos.parte.estado === 'error' && c.datos.parte.error.codigo === 'no_encontrado')
@@ -144,7 +139,7 @@ export function PanelDeCompartir(props: PropsDelPanelDeCompartir) {
         <TabsContent value="texto" className="pt-3">
           <TextoParaCompartir
             datos={c.datos.parte}
-            texto={c.texto}
+            texto={c.textoALaVista}
             formato={c.formato}
             zona={c.zona}
             alElegirFormato={c.setFormato}

@@ -363,7 +363,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   - **Cotizaciones del lead y del vehículo** (bloque): una **fila de tarjetas** que se desliza, sólo tarjetas (sin filas de letras), de las **últimas 10** que quien mira ve
     (la más reciente primero; en el vehículo, la aprobada primero) y, al final, la tarjeta **«Ver más»** a `/cotizaciones?lead=` o `?vehiculo=` (el listado filtrado). Cada tarjeta es la
     de la lista (`docs/GLOSARIO.md` › «Fila de tarjetas»): la imagen de la tarjeta, el título en dos líneas, «N.º n» con «Aprobada», «Final», autor · hace…, el total con su modo
-    (`<Monto>`), la vigencia y **«Compartir»** a la vista (no en Modo Live); sin línea de cliente ni «⋯» (el resumen que abre lo trae). Un clic abre el resumen sobre la ficha (`?cotizacion=`)
+    (`<Monto>`), la vigencia y **«Compartir»** a la vista; sin línea de cliente ni «⋯» (el resumen que abre lo trae). Un clic abre el resumen sobre la ficha (`?cotizacion=`)
     y deja marcada la tarjeta abierta; cerrarlo deja la ficha donde estaba. Se desliza con el dedo, la rueda o las flechas ‹ › (escritorio); un degradado en el borde dice que sigue. En el lead, «Cotizar»
     en el título (la hoja con este lead en el primer origen donde quien mira cotiza, como «Cotizar lead»). En el vehículo, «Cotizar» en el título, **«Aprobar esta»** al pie de cada tarjeta menos la
     aprobada (con `cotizaciones.aprobar` del origen; apagado con su motivo; tras aprobar la ficha se refresca) y una casilla sobre la imagen para **«Comparar»** 2 o 3, cuyo botón va en el título del bloque. Los dos
@@ -414,11 +414,11 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   buscando» (también en lugar del vacío). **La tarjeta de la lista:** la imagen de la tarjeta arriba (miniatura de 480 px, 15:8, recortada desde arriba a la izquierda,
   pedida a la vista y de a cuatro por página; su clic abre el visor en `?visor=imagen-de-la-lista-<id>`, así no se cruza con el del resumen abierto) con el «⋯» encima (sin «Compartir»), el título (dos líneas, entero en `title`), «N.º n» con «Aprobada», «Final» y el origen
   con su color en una línea, el total con su modo, «Cliente:» enlazado a su ficha (con `leads.ver`; si no, su nombre o «—»), autor · «hace…», la vigencia, la fila
-  del conteo y **«Compartir»** como acción principal a todo el ancho (no en Modo Live). Todas miden lo mismo (filas de alto fijo, sin `auto-rows-fr`: el despliegue va
+  del conteo y **«Compartir»** como acción principal a todo el ancho. Todas miden lo mismo (filas de alto fijo, sin `auto-rows-fr`: el despliegue va
   a todo el ancho). **La tabla:** «Cotización» (sólo «N.º n»), **«Título»**, cliente, vehículo, origen, clase, total, vigencia, creada y el «⋯» con «Compartir
   cotización…» primero. Y el resumen `?cotizacion=` (la fila, la tarjeta y el resumen nombran la cotización por su
   **título** —el suyo o, sin él, el de su vehículo—, en dos líneas como mucho y entero en `title`; en la tarjeta de la lista el título es el enlace a la ficha del vehículo y la celda «Vehículo» de la tabla también, con el mismo permiso: tocar el resto de la tarjeta o la fila abre el resumen) (un panel ancho —a todo el ancho en el celular—; arriba, la
-  **barra del resumen**: «Abrir cotización» (primario, a `/cotizaciones/<id>`), «Compartir cotización» (el mismo panel de la tarjeta; no en Modo Live ni sin la oferta)
+  **barra del resumen**: «Abrir cotización» (primario, a `/cotizaciones/<id>`), «Compartir cotización» (el mismo panel de la tarjeta; no sin la oferta)
   y, al final, el «⋯» de la fila sin «Compartir» (también para una línea del modal de un grupo o una de otra página); los dos botones crecen por igual: en el celular
   mitad y mitad con el «⋯» a 44 px y, con el texto al 200 %, se parten en filas sin salirse; sin la cotización a la vista (no disponible, error, cargando) no hay barra;
   sus diálogos se abren sobre el resumen sin cerrarlo. Debajo, la **cabecera resumida** (fija, ≤ 120 px de alto en escritorio; crece con el texto al 200 %): a la izquierda la **miniatura de la imagen
@@ -435,7 +435,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   número; quien no ve a un lead o a un vehículo no encuentra por él; con más de 50 coincidencias en una fuente avisa «Escribe más para afinarla»; sin
   resultados dice qué se buscó y ofrece «Limpiar búsqueda»), **vistas guardadas** en «Vista y opciones» como en leads y vehículos (la búsqueda, los filtros, la vista y la
   agrupación) y, a la derecha de cada fila y sobre la imagen de cada tarjeta, el **«⋯»** con la lista única de acciones según el rol: primero y sola, «Compartir
-  cotización…» (toda persona que ve la fila; con el Modo Live no está; en la tarjeta tampoco, porque es su acción principal; abre «Compartir la cotización» en
+  cotización…» (toda persona que ve la fila; en la tarjeta no, porque es su acción principal; abre «Compartir la cotización» en
   `?panel=compartir&para=<id>`), «Aprobar» (`cotizaciones.aprobar`; apagada con su motivo sin vehículo o
   si es inválida), «Marcar final…» (`cotizaciones.final.gestionar`, en una preventa; apagada sin vehículo o cliente), casilla «Favorita», «Reportar…»,
   moderar («Invalidar…», «Descartar los reportes…», «Reactivar…», con `cotizaciones.moderar`) y, al final y separada, «Enviar a la papelera» (sin preguntar,
@@ -465,7 +465,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   («Aprobada», todos los que la ven, o «Aprobar», con `cotizaciones.aprobar` del origen: sin confirmar; apagado con su motivo sin vehículo o si es inválida;
   al entrar pasa a la insignia y el aviso ofrece «Deshacer» 10 s; PT409 con quién y cuándo y «Recargar»; después «Reportada» o «Inválida»), **«Guardar»**
   (sólo con `puede_guardar`; su motivo y «Elegir el vehículo» debajo; lo que dice el guardado va en el cierre de la hoja, bajo «Avanzado»; quien sólo la ve lee en su lugar «Sólo lectura: no puedes guardar esta cotización.») y **«Compartir»** (toda persona que
-  la ve; sin ícono; con el Modo Live no está: «Compartir la cotización» en `?panel=compartir`, estados en «Cotización: compartir»); debajo, la cadena de
+  la ve; sin ícono; también con el Modo Live: «Compartir la cotización» en `?panel=compartir`, estados en «Cotización: compartir»); debajo, la cadena de
   versiones. **Lo demás, en el «⋯»** (`<MasAcciones>` con borde, arriba a la derecha), en el orden de la lista única (`accionesDeCotizacion()`, la misma
   del «⋯» del listado sin «Compartir cotización…» ni «Aprobar», que aquí están a la vista): «Vista previa» (`?panel=vista-previa`) · «Descargar PDF»
   («Descargando…» apagado mientras baja; un fallo lo avisa y se vuelve a elegir) · «Revisiones» · «Marcar final…» (en una preventa, con
@@ -1903,7 +1903,7 @@ tarjetas, el resumen y la ficha del vehículo). Lo abre toda persona que ve la c
   con «Reintentar». Avisos: «Texto copiado», «Imagen copiada»; con la imagen de la tarjeta fallida, «Compartir» manda el texto y avisa «Se compartió el texto. La imagen no se
   pudo armar.».
 - **Sin acceso** (no existe, en la papelera, no se ve o el id no es de una cotización): «No tienes acceso a esta cotización.» con «Cerrar», sin pie de acciones.
-- **Modo Live:** ni el botón ni la línea del «⋯»; por URL, «Con el Modo Live no se comparte.» con «Cerrar» (también si se enciende con el panel abierto).
+- **Modo Live:** se comparte igual. La imagen y el texto a la vista van sin moneda (la variante `?sin-moneda=1` y los mismos números sin su símbolo); lo que se copia, descarga o comparte sale completo, con su moneda. Encenderlo o apagarlo con el panel abierto cambia lo que se ve, no lo que se comparte.
 - **Sin red:** arriba «No hay conexión.»; «Descargar PDF» y lo que todavía no se bajó, apagados con ese motivo; lo que ya está en memoria se copia o comparte.
 - **Texto al 200 %:** el cuerpo se desplaza con su pista y el pie queda a la vista.
 
