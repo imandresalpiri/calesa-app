@@ -1,4 +1,6 @@
-// Los huecos del panel de la unidad del área `dinero` de `logistica` (6.01, llenada en 6.11-1): «Gastos», «Pagos» (6.11-2) y «Margen». Sólo `src/app` importa este archivo (`.claude/rules/modulos.md`).
+// Los huecos del panel de la unidad del área `dinero` de `logistica`: «Gastos», «Pagos» y «Margen», las tres vistas del drawer de la tarjeta «Dinero» (cada una con los `?panel=` que atiende). Sólo `src/app` importa este archivo (`.claude/rules/modulos.md`).
+import { PANELES_DEL_GASTO, PANELES_DEL_MARGEN } from '../entities/dinero/paneles'
+import { PANELES_DEL_PAGO } from '../entities/dinero/paneles-de-pago'
 import type { HuecoDeLaUnidad } from '../entities/nucleo/hueco'
 import {
   HuecoDeGastosDiferido,
@@ -13,6 +15,7 @@ export const HUECOS_DE_DINERO_EN_LA_UNIDAD: readonly HuecoDeLaUnidad[] = [
     // Los costos no se anuncian: sin la clave el bloque no se dibuja.
     permisos: ['logistica.gastos.ver'],
     regla: 'gastos',
+    paneles: PANELES_DEL_GASTO,
     componente: HuecoDeGastosDiferido,
   },
   {
@@ -21,6 +24,7 @@ export const HUECOS_DE_DINERO_EN_LA_UNIDAD: readonly HuecoDeLaUnidad[] = [
     // Lo cobrado no se anuncia: sin la clave el bloque no se dibuja.
     permisos: ['logistica.pagos.ver'],
     regla: 'pagos',
+    paneles: PANELES_DEL_PAGO,
     componente: HuecoDePagosDiferido,
   },
   {
@@ -29,6 +33,7 @@ export const HUECOS_DE_DINERO_EN_LA_UNIDAD: readonly HuecoDeLaUnidad[] = [
     permisos: ['logistica.margen.ver'],
     // El margen existe aunque el flujo apague `gastos` o `pagos` (D-margen).
     regla: null,
+    paneles: PANELES_DEL_MARGEN,
     componente: HuecoDeMargenDiferido,
   },
 ]

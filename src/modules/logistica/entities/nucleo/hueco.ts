@@ -15,6 +15,8 @@ export type HuecoDeLaUnidad = {
   permisos: readonly ClavePermiso[]
   // La regla de `flujos_reglas` que lo enciende (`transporte`, `aduana`, `gastos`, `pagos`…). Nula: no depende de una regla.
   regla: string | null
+  // Los `?panel=` que atiende (un gasto, un pago): en una tarjeta con varios huecos, uno abierto en la URL muestra la vista de este hueco (`vistaActiva`).
+  paneles?: readonly string[]
   // La variante para un ítem de repuesto (8.13-2): sin ella, el hueco no se dibuja para un ítem. Con ella, se filtra por estos permisos (sin origen: el flujo de repuestos no tiene) y esta regla,
   // y se dibuja con su `componente` (que recibe la unidad abierta, sin origen). `componente` del hueco es de las áreas que sólo tratan vehículos y nunca ve un ítem.
   repuesto?: {

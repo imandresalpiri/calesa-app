@@ -20,5 +20,10 @@ export {
 } from '../../entities/dinero/listas'
 export type { CategoriaDeGasto } from '../../entities/dinero/categoria'
 export { CLAVE_DE_PAGO, PANELES_DEL_PAGO } from '../../entities/dinero/paneles-de-pago'
-export { CLAVE_DE_GASTO, PANELES_DEL_GASTO } from '../../entities/dinero/paneles'
+export {
+  CLAVE_DE_GASTO,
+  CLAVE_DE_LA_VISTA_DE_DINERO,
+  PANELES_DEL_GASTO,
+  PANELES_DEL_MARGEN,
+} from '../../entities/dinero/paneles'
 export { leerResumenDeDinero } from './composicion'

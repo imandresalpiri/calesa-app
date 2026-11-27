@@ -4,6 +4,11 @@ export const PANEL_GASTO = 'gasto'
 export const PANEL_ELIMINAR_GASTO = 'eliminar-gasto'
 /** Todos los `?panel=` del hueco «Gastos»: con uno en la URL, la página de la unidad abre sola la tarjeta Dinero (el hueco atiende su panel adentro). */
 export const PANELES_DEL_GASTO = [PANEL_GASTO, PANEL_ELIMINAR_GASTO] as const
+// El desglose del margen (`?panel=desglose-del-margen`): un modal de sólo lectura sobre la vista «Margen».
+export const PANEL_DESGLOSE_DEL_MARGEN = 'desglose-del-margen'
+export const PANELES_DEL_MARGEN = [PANEL_DESGLOSE_DEL_MARGEN] as const
+// La vista del drawer de la tarjeta «Dinero» (`?dinero=gastos|pagos|margen`): la clave es la de la tarjeta (`VistasDeLaTarjeta`).
+export const CLAVE_DE_LA_VISTA_DE_DINERO = 'dinero'
 // El diálogo de «Prorratear» del resumen de un grupo (`?panel=prorratear`, 6.11-4): nombra el reparto antes de escribir nada.
 export const PANEL_PRORRATEAR = 'prorratear'
 // Los modales de «Categorías de gasto» dentro de su drawer (`?panel=categorias-de-gasto`, 6.11-4): `?accion=nueva-categoria&de=origen|compartido` y

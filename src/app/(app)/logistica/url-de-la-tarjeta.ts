@@ -1,10 +1,12 @@
 import {
   CLAVE_DE_DONDE_VIAJA,
   CLAVE_DE_GASTO,
+  CLAVE_DE_LA_VISTA_DE_DINERO,
   CLAVE_DE_PAGO,
   CLAVE_DE_SUBIR,
   CLAVE_DEL_TIPO_A_SUBIR,
   PANELES_DEL_GASTO,
+  PANELES_DEL_MARGEN,
   PANELES_DEL_PAGO,
   type ClaveDeTarjeta,
 } from '@/modules/logistica'
@@ -23,9 +25,15 @@ const URL_DE_LA_TARJETA: Partial<Record<ClaveDeTarjeta, UrlDeLaTarjeta>> = {
   },
   // «Elegir o crear» del hueco (`?transporte=donde-viaja`) se cierra con su drawer.
   transporte: { claves: [CLAVE_DE_DONDE_VIAJA] },
+  // `?dinero=gastos|pagos|margen` es la vista del drawer; un `?panel=` de gasto, pago o desglose del margen lo abre en la suya.
   dinero: {
-    claves: [CLAVE_DE_PANEL, CLAVE_DE_GASTO, CLAVE_DE_PAGO],
-    abreSola: [{ clave: CLAVE_DE_PANEL, valores: [...PANELES_DEL_GASTO, ...PANELES_DEL_PAGO] }],
+    claves: [CLAVE_DE_PANEL, CLAVE_DE_GASTO, CLAVE_DE_PAGO, CLAVE_DE_LA_VISTA_DE_DINERO],
+    abreSola: [
+      {
+        clave: CLAVE_DE_PANEL,
+        valores: [...PANELES_DEL_GASTO, ...PANELES_DEL_PAGO, ...PANELES_DEL_MARGEN],
+      },
+    ],
   },
 }
 
