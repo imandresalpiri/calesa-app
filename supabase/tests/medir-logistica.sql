@@ -397,7 +397,7 @@ select pg_temp.fase_por_entidad();
 -- unidades para el lote.
 create function pg_temp.entidades() returns void language plpgsql as $$
 declare
-  o uuid := (select id from _o); v_emb uuid; v_cont uuid; v_cur_e uuid; v_cur_c uuid; v_pre_e text; v_pre_c text; q text; v_caso text; v_tipo text; v_ms int;
+  o uuid := (select id from _o); v_emb uuid; v_cont uuid; v_cur_e uuid; v_cur_c uuid; v_pre_e text; v_pre_c text; q text; v_caso text; v_tipo text;
 begin
   select c.id, c.embarque_id into v_cont, v_emb from public.contenedores c where c.origen_id = o and c.embarque_id is not null order by c.numero limit 1;
   select e.id into v_cur_e from public.embarques e where e.origen_id = o order by e.booking offset 1000 limit 1;
@@ -417,9 +417,9 @@ begin
              when 'con un prefijo' then format('select public.%s_listar(%L, null, 50, %L)', v_tipo, o,
                                                 jsonb_build_object('prefijo', case v_tipo when 'embarques' then v_pre_e else v_pre_c end))
              else format('select public.%s_listar(%L, null, 50, %L)', v_tipo, o, '{"estado": "entregado"}') end;
-      v_ms := case v_caso when 'con un estado que nadie cumple' then 400 else 250 end;
-      perform pg_temp.m('entidades · ' || v_tipo || ', ' || v_caso, 'authenticated', 'duena', q, v_ms, null, 49152);
-      perform pg_temp.m('entidades · ' || v_tipo || ', ' || v_caso, 'authenticated', 'ana', q, v_ms, null, 49152);
+      -- ≤ 100 ms y ≤ 40 KB en todos los casos, también el que recorre 500 sin llenar la página (medido: 15–50 ms, ≈ 23 KB).
+      perform pg_temp.m('entidades · ' || v_tipo || ', ' || v_caso, 'authenticated', 'duena', q, 100, null, 40960);
+      perform pg_temp.m('entidades · ' || v_tipo || ', ' || v_caso, 'authenticated', 'ana', q, 100, null, 40960);
     end loop;
   end loop;
   perform pg_temp.m('entidades · un embarque por su id', 'authenticated', 'duena', format('select public.embarque_leer(%L)', v_emb), 30, null, 16384);

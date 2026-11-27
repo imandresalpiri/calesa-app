@@ -8530,6 +8530,10 @@ export type Database = {
         Args: { p_crear: boolean; p_embarque: string; p_numero: string; p_origen: string }
         Returns: Record<string, unknown>
       }
+      _conteo_visible_de: {
+        Args: { p_alcance: string; p_contenedor: string; p_embarque: string }
+        Returns: Json
+      }
       _contraste_aa: { Args: { p_razon: number }; Returns: boolean }
       _cotizacion_a_papelera: {
         Args: { p_con_version: boolean; p_esperado: string; p_id: string; p_lote: string }
@@ -9013,7 +9017,7 @@ export type Database = {
         Returns: undefined
       }
       _faltan_de: {
-        Args: { p_contenedor: string; p_embarque: string; p_tope: number }
+        Args: { p_alcance: string; p_contenedor: string; p_embarque: string; p_tope: number }
         Returns: Json
       }
       _fase_aplicar: {
@@ -10915,7 +10919,7 @@ export type Database = {
       _vehiculos_cotizado_rellenar: { Args: Record<PropertyKey, never>; Returns: number }
       _vehiculos_de: { Args: { p_contenedor: string; p_embarque: string }; Returns: Json }
       _vehiculos_de_la_entidad: {
-        Args: { p_contenedor: string; p_embarque: string; p_falta: boolean }
+        Args: { p_alcance: string; p_contenedor: string; p_embarque: string; p_falta: boolean }
         Returns: {
           fila: Json
           k: number
@@ -10949,6 +10953,10 @@ export type Database = {
           p_yo: string
         }
         Returns: Json
+      }
+      _vehiculos_vivos_de: {
+        Args: { p_contenedor: string; p_embarque: string; p_limite: number }
+        Returns: string[]
       }
       _version_publicada_por: { Args: { p_formula: string }; Returns: string }
       _web_ajustes_objeto: {

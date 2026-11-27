@@ -299,6 +299,8 @@ declare
     'buscador_cotizaciones', 'devuelve cotizaciones del buscador (7.12-1): su número de cotización, título, clase y estado; del lead sólo mira en_cartera, nunca su número',
     'repuesto_proyecto_crear', 'devuelve id, número del proyecto de repuestos y actualizado_en (8.08-1): del lead sólo guarda el id, que trg_lead_visible exige visible; nunca su número',
     'declaraciones_listar', 'devuelve declaraciones de aduana (6.07-3): su número de declaración y los primeros vehículos que quien llama ve (id y título); del lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
+    'embarque_leer', 'devuelve un embarque (T572): booking, contenedores y los vehículos que quien llama ve (id, título, VIN, lote, fase y su declaración); del lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
+    'contenedor_leer', 'devuelve un contenedor (T572): número, su embarque y los vehículos que quien llama ve; del lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
     'declaracion_leer', 'devuelve una declaración de aduana (6.07-3): su número de declaración y los vehículos que quien llama ve; del lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
     'lead_relacionados', 'devuelve vehículos (T17): su número de vehículo, con el predicado de las policies de quien llama; del lead sólo mira puedo_actuar, nunca su número',
     'lead_relacionados_pagina', 'devuelve vehículos (T17): su número de vehículo y la fecha de su relación; nunca el número de un lead',

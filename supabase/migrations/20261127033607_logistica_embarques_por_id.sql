@@ -89,40 +89,89 @@ comment on function public._vehiculo_le_falta(uuid) is
 revoke all on function public._vehiculo_le_falta(uuid) from public, anon, authenticated;
 grant execute on function public._vehiculo_le_falta(uuid) to service_role;
 
--- Cuántos de los vehículos visibles de un embarque o un contenedor tienen algo que falta, evaluando a lo sumo `p_tope` (el presupuesto de la
--- lista: 200 evaluaciones por llamada repartidas entre sus filas). `hay_mas`: había más visibles que los evaluados.
-create function public._faltan_de(p_embarque uuid, p_contenedor uuid, p_tope integer) returns jsonb
+-- Lo que la lista pide por fila (cuántos vehículos ve y cuántos tienen algo que falta) va en plpgsql, que guarda el plan de sus consultas: una
+-- función `language sql` que no se inlinea (security definer, `set search_path`) se planifica otra vez en cada llamada, y 50 filas por 3
+-- funciones era casi todo el costo de la lista. Por lo mismo, el alcance de `logistica.ver` en el origen se resuelve una vez por llamada
+-- (`p_alcance`, de alcance_de) y la visibilidad de cada vehículo se calcula aquí con la regla de puede_vehiculo, sin llamarla por vehículo.
+
+-- Los vehículos vivos de un embarque (directos y en sus contenedores) o de un contenedor, hasta `p_limite`: las unidades de _unidades_de que son
+-- vehículos, del origen de su embarque o contenedor (transporte_invariante).
+create function public._vehiculos_vivos_de(p_embarque uuid, p_contenedor uuid, p_limite integer) returns setof uuid
   language plpgsql stable security definer
   set search_path = ''
 as $$
-declare u record; v_k integer := 0; v_n integer := 0; v_mas boolean := false;
 begin
-  for u in
-    select x.vehiculo_id from public._unidades_de(p_embarque, p_contenedor) x where x.vehiculo_id is not null limit 1000
-  loop
-    continue when not public.puede_vehiculo(u.vehiculo_id, 'logistica.ver');
-    if v_k >= p_tope then
-      v_mas := true;
-      exit;
-    end if;
-    v_k := v_k + 1;
-    if public._vehiculo_le_falta(u.vehiculo_id) then
-      v_n := v_n + 1;
-    end if;
-  end loop;
-  return jsonb_build_object('n', v_n, 'hay_mas', v_mas);
+  return query
+    select u.vehiculo_id
+      from (select t.vehiculo_id from public.transportes t where p_embarque is not null and t.embarque_id = p_embarque   -- transportes_embarque_idx
+            union all
+            select t.vehiculo_id
+              from public.contenedores c join public.transportes t on t.contenedor_id = c.id                         -- contenedores_embarque_idx
+             where p_embarque is not null and c.embarque_id = p_embarque
+            union all
+            select t.vehiculo_id from public.transportes t where p_contenedor is not null and t.contenedor_id = p_contenedor) u
+     where u.vehiculo_id is not null
+       and exists (select 1 from public.vehiculos v where v.id = u.vehiculo_id and v.eliminado_en is null)            -- vehiculos_pkey
+     limit p_limite;
 end;
 $$;
-comment on function public._faltan_de(uuid, uuid, integer) is
+comment on function public._vehiculos_vivos_de(uuid, uuid, integer) is
+  'Los ids de los vehículos vivos de un embarque (con los de sus contenedores) o de un contenedor, hasta p_limite.';
+revoke all on function public._vehiculos_vivos_de(uuid, uuid, integer) from public, anon, authenticated;
+grant execute on function public._vehiculos_vivos_de(uuid, uuid, integer) to service_role;
+
+-- Cuántos vehículos lleva un embarque o un contenedor, contando sólo los que la persona ve (hasta 100: `hay_mas` con 101 visibles) y si hay
+-- alguno que no ve, de los primeros 1.000. Con alcance «todos» no hay ocultos: bastan 101.
+create function public._conteo_visible_de(p_embarque uuid, p_contenedor uuid, p_alcance text) returns jsonb
+  language plpgsql stable security definer
+  set search_path = ''
+as $$
+begin
+  return (
+    select jsonb_build_object('n', least(count(*) filter (where x.visible), 100), 'hay_mas', count(*) filter (where x.visible) > 100,
+                              'hay_ocultas', coalesce(bool_or(not x.visible), false))
+      from (select coalesce(case p_alcance when 'todos' then true
+                                     when 'propios' then v.creado_por = (select auth.uid()) or (v.lead_id is not null and public.en_cartera(v.lead_id))
+                                     else false end, false) as visible
+              from public._vehiculos_vivos_de(p_embarque, p_contenedor, case when p_alcance = 'todos' then 101 else 1000 end) u(id)
+              join public.vehiculos v on v.id = u.id) x);                                                              -- vehiculos_pkey
+end;
+$$;
+comment on function public._conteo_visible_de(uuid, uuid, text) is
+  'Cuántos vehículos visibles (con el alcance de logistica.ver ya resuelto) lleva un embarque o un contenedor, hasta 100, y si hay alguno que no se ve.';
+revoke all on function public._conteo_visible_de(uuid, uuid, text) from public, anon, authenticated;
+grant execute on function public._conteo_visible_de(uuid, uuid, text) to service_role;
+
+-- Cuántos de los vehículos visibles de un embarque o un contenedor tienen algo que falta, evaluando a lo sumo `p_tope` (el presupuesto de la
+-- lista: 200 evaluaciones por llamada repartidas entre sus filas). `hay_mas`: había más visibles que los evaluados. El CASE asegura que
+-- _vehiculo_le_falta sólo corre en los evaluados.
+create function public._faltan_de(p_embarque uuid, p_contenedor uuid, p_alcance text, p_tope integer) returns jsonb
+  language plpgsql stable security definer
+  set search_path = ''
+as $$
+begin
+  return (
+    select jsonb_build_object('n', count(*) filter (where case when w.k <= p_tope then public._vehiculo_le_falta(w.id) else false end),
+                              'hay_mas', count(*) > p_tope)
+      from (select v.id, row_number() over () as k
+              from public._vehiculos_vivos_de(p_embarque, p_contenedor, 1000) u(id)
+              join public.vehiculos v on v.id = u.id                                                                   -- vehiculos_pkey
+             where coalesce(case p_alcance when 'todos' then true
+                                      when 'propios' then v.creado_por = (select auth.uid()) or (v.lead_id is not null and public.en_cartera(v.lead_id))
+                                      else false end, false)
+             limit p_tope + 1) w);
+end;
+$$;
+comment on function public._faltan_de(uuid, uuid, text, integer) is
   'Cuántos vehículos visibles de un embarque o un contenedor tienen algo que falta para su fase siguiente, evaluando hasta p_tope; hay_mas si quedaron sin evaluar.';
-revoke all on function public._faltan_de(uuid, uuid, integer) from public, anon, authenticated;
-grant execute on function public._faltan_de(uuid, uuid, integer) to service_role;
+revoke all on function public._faltan_de(uuid, uuid, text, integer) from public, anon, authenticated;
+grant execute on function public._faltan_de(uuid, uuid, text, integer) to service_role;
 
 -- Los vehículos visibles de un embarque (directos y en sus contenedores) o de un contenedor, como los dibuja la página y el drawer: hasta 201
 -- (201 = hay más) de las primeras 1.000 unidades, por número de contenedor (los sueltos al final) y título. Por vehículo, su fase con su color,
 -- su contenedor, la versión de su fila de transporte, la declaración viva que lo cubre (declaraciones_vehiculo_activo_unico) y si le falta algo.
--- `p_falta`: sólo los que tienen algo que falta.
-create function public._vehiculos_de_la_entidad(p_embarque uuid, p_contenedor uuid, p_falta boolean)
+-- `p_falta`: sólo los que tienen algo que falta. `p_alcance`: el de logistica.ver en su origen.
+create function public._vehiculos_de_la_entidad(p_embarque uuid, p_contenedor uuid, p_alcance text, p_falta boolean)
   returns table (k bigint, fila jsonb, oculto boolean)
   language sql stable security definer
   set search_path = ''
@@ -133,7 +182,11 @@ as $$
      where x.vehiculo_id is not null
      limit 1000
   ), w as (
-    select u.transporte_id, u.vehiculo_id, public.puede_vehiculo(u.vehiculo_id, 'logistica.ver') as visible from u
+    select u.transporte_id, u.vehiculo_id,
+           coalesce(case p_alcance when 'todos' then true
+                           when 'propios' then v.creado_por = (select auth.uid()) or (v.lead_id is not null and public.en_cartera(v.lead_id))
+                           else false end, false) as visible
+      from u join public.vehiculos v on v.id = u.vehiculo_id                                                           -- vehiculos_pkey
   ), r as (
     select w.vehiculo_id, v.titulo, v.vin, v.lote, v.fase_id, f.nombre as fase, f.color as fase_color, t.contenedor_id, c.numero as contenedor,
            t.actualizado_en, public._vehiculo_le_falta(w.vehiculo_id) as falta
@@ -162,10 +215,10 @@ as $$
   union all
   (select null, null, true from w where not w.visible limit 1);
 $$;
-comment on function public._vehiculos_de_la_entidad(uuid, uuid, boolean) is
+comment on function public._vehiculos_de_la_entidad(uuid, uuid, text, boolean) is
   'Los vehículos visibles (hasta 201) de un embarque o un contenedor con su fase, contenedor, versión de su transporte, declaración viva y si le falta algo; una fila con oculto si hay alguno que no se ve.';
-revoke all on function public._vehiculos_de_la_entidad(uuid, uuid, boolean) from public, anon, authenticated;
-grant execute on function public._vehiculos_de_la_entidad(uuid, uuid, boolean) to service_role;
+revoke all on function public._vehiculos_de_la_entidad(uuid, uuid, text, boolean) from public, anon, authenticated;
+grant execute on function public._vehiculos_de_la_entidad(uuid, uuid, text, boolean) to service_role;
 
 -- ---------------------------------------------------------------------------------------------------------------------------------------------
 -- 2. Las listas: embarques y contenedores de un origen, por cursor.
@@ -183,7 +236,7 @@ declare
   c_recorrido constant integer := 500;
   -- «Algo que falta»: 200 evaluaciones por llamada, repartidas entre las filas de la página.
   v_por integer;
-  f record; e record; v_hoy date; v_gt text := ''; v_estado text; v_vehiculos jsonb;
+  v_alcance text; f record; e record; v_hoy date; v_gt text := ''; v_estado text; v_vehiculos jsonb;
   v_filas jsonb := '[]'::jsonb; v_n integer := 0; v_mirados integer := 0; v_ultimo uuid; v_mirado uuid; v_siguiente uuid;
   v_cortada boolean := false;
 begin
@@ -191,7 +244,8 @@ begin
   if p_origen is null then
     raise exception 'Los embarques son de un origen.' using errcode = '22023', hint = 'p_origen';
   end if;
-  if public.alcance_de('logistica.ver', p_origen) is null then
+  v_alcance := public.alcance_de('logistica.ver', p_origen);
+  if v_alcance is null then
     raise exception 'No tienes permiso para ver la logística de este origen.' using errcode = '42501';
   end if;
   select * into f from public._embarques_filtros(p_filtros, false);
@@ -241,7 +295,7 @@ begin
       v_siguiente := v_ultimo;
       exit;
     end if;
-    v_vehiculos := public._vehiculos_de(e.id, null);
+    v_vehiculos := public._conteo_visible_de(e.id, null, v_alcance);
     v_filas := v_filas || jsonb_build_array(jsonb_build_object(
       'id', e.id, 'booking', e.booking, 'naviera_id', e.naviera_id, 'puerto_origen_id', e.puerto_origen_id,
       'puerto_destino_id', e.puerto_destino_id, 'zarpe_estimado_el', e.zarpe_estimado_el, 'zarpe_el', e.zarpe_el, 'eta_el', e.eta_el,
@@ -250,7 +304,7 @@ begin
                          from (select 1 from public.contenedores c where c.embarque_id = e.id limit 101) c),                 -- contenedores_embarque_idx
       'vehiculos', jsonb_build_object('n', v_vehiculos -> 'n', 'hay_mas', v_vehiculos -> 'hay_mas'),
       'hay_ocultos', v_vehiculos -> 'hay_ocultas',
-      'faltan', public._faltan_de(e.id, null, v_por)));
+      'faltan', public._faltan_de(e.id, null, v_alcance, v_por)));
     v_n := v_n + 1;
     v_ultimo := e.id;
   end loop;
@@ -272,7 +326,7 @@ declare
   v_tope integer := public._acotar_pagina(p_tope, 50, 100);
   c_recorrido constant integer := 500;
   v_por integer;
-  f record; c record; v_emb_id uuid; v_emb_booking text; v_emb_eta date; v_gt text := ''; v_estado text; v_vehiculos jsonb;
+  v_alcance text; f record; c record; v_emb_id uuid; v_emb_booking text; v_emb_eta date; v_gt text := ''; v_estado text; v_vehiculos jsonb;
   v_filas jsonb := '[]'::jsonb; v_n integer := 0; v_mirados integer := 0; v_ultimo uuid; v_mirado uuid; v_siguiente uuid;
   v_cortada boolean := false;
 begin
@@ -280,7 +334,8 @@ begin
   if p_origen is null then
     raise exception 'Los contenedores son de un origen.' using errcode = '22023', hint = 'p_origen';
   end if;
-  if public.alcance_de('logistica.ver', p_origen) is null then
+  v_alcance := public.alcance_de('logistica.ver', p_origen);
+  if v_alcance is null then
     raise exception 'No tienes permiso para ver la logística de este origen.' using errcode = '42501';
   end if;
   select * into f from public._embarques_filtros(p_filtros, true);
@@ -327,7 +382,7 @@ begin
     if c.embarque_id is not null then
       select x.id, x.booking, x.eta_el into v_emb_id, v_emb_booking, v_emb_eta from public.embarques x where x.id = c.embarque_id; -- embarques_pkey
     end if;
-    v_vehiculos := public._vehiculos_de(null, c.id);
+    v_vehiculos := public._conteo_visible_de(null, c.id, v_alcance);
     v_filas := v_filas || jsonb_build_array(jsonb_build_object(
       'id', c.id, 'numero', c.numero, 'tipo', c.tipo, 'tipo_nombre', (select t.nombre from public.tipos_contenedor t where t.clave = c.tipo),
       'sello', c.sello, 'actualizado_en', c.actualizado_en, 'estado', v_estado,
@@ -335,7 +390,7 @@ begin
       'eta_el', v_emb_eta,
       'vehiculos', jsonb_build_object('n', v_vehiculos -> 'n', 'hay_mas', v_vehiculos -> 'hay_mas'),
       'hay_ocultos', v_vehiculos -> 'hay_ocultas',
-      'faltan', public._faltan_de(null, c.id, v_por)));
+      'faltan', public._faltan_de(null, c.id, v_alcance, v_por)));
     v_n := v_n + 1;
     v_ultimo := c.id;
   end loop;
@@ -357,11 +412,16 @@ create function public.embarque_leer(p_id uuid, p_falta boolean default false) r
   language plpgsql stable security definer
   set search_path = ''
 as $$
-declare e public.embarques; v_contenedores jsonb; v_mas_cont boolean; v_vehiculos jsonb; v_mas boolean; v_ocultos boolean; v_conteo jsonb;
+declare
+  e public.embarques; v_alcance text; v_contenedores jsonb; v_mas_cont boolean; v_vehiculos jsonb; v_mas boolean; v_ocultos boolean;
+  v_conteo jsonb;
 begin
   perform public.assert_activo();
   select * into e from public.embarques x where x.id = p_id;                                                           -- embarques_pkey
-  if e.id is null or e.origen_id is null or public.alcance_de('logistica.ver', e.origen_id) is null then
+  if e.origen_id is not null then
+    v_alcance := public.alcance_de('logistica.ver', e.origen_id);
+  end if;
+  if e.id is null or v_alcance is null then
     raise exception 'El embarque no existe o no lo ves.' using errcode = 'P0002';
   end if;
   select coalesce(jsonb_agg(jsonb_build_object('id', y.id, 'numero', y.numero, 'tipo', y.tipo, 'tipo_nombre', y.tipo_nombre, 'sello', y.sello,
@@ -375,8 +435,8 @@ begin
   select coalesce(jsonb_agg(x.fila order by x.k) filter (where not x.oculto and x.k <= 200), '[]'::jsonb),
          coalesce(bool_or(not x.oculto and x.k > 200), false), coalesce(bool_or(x.oculto), false)
     into v_vehiculos, v_mas, v_ocultos
-    from public._vehiculos_de_la_entidad(e.id, null, p_falta) x;
-  v_conteo := public._vehiculos_de(e.id, null);
+    from public._vehiculos_de_la_entidad(e.id, null, v_alcance, p_falta) x;
+  v_conteo := public._conteo_visible_de(e.id, null, v_alcance);
   return jsonb_build_object(
     'id', e.id, 'origen_id', e.origen_id, 'booking', e.booking, 'naviera_id', e.naviera_id, 'puerto_origen_id', e.puerto_origen_id,
     'puerto_destino_id', e.puerto_destino_id, 'zarpe_estimado_el', e.zarpe_estimado_el, 'zarpe_el', e.zarpe_el, 'eta_el', e.eta_el,
@@ -397,11 +457,14 @@ create function public.contenedor_leer(p_id uuid) returns jsonb
   language plpgsql stable security definer
   set search_path = ''
 as $$
-declare c public.contenedores; m public.embarques; v_vehiculos jsonb; v_mas boolean; v_ocultos boolean;
+declare c public.contenedores; m public.embarques; v_alcance text; v_vehiculos jsonb; v_mas boolean; v_ocultos boolean;
 begin
   perform public.assert_activo();
   select * into c from public.contenedores x where x.id = p_id;                                                        -- contenedores_pkey
-  if c.id is null or c.origen_id is null or public.alcance_de('logistica.ver', c.origen_id) is null then
+  if c.origen_id is not null then
+    v_alcance := public.alcance_de('logistica.ver', c.origen_id);
+  end if;
+  if c.id is null or v_alcance is null then
     raise exception 'El contenedor no existe o no lo ves.' using errcode = 'P0002';
   end if;
   if c.embarque_id is not null then
@@ -410,7 +473,7 @@ begin
   select coalesce(jsonb_agg(x.fila order by x.k) filter (where not x.oculto and x.k <= 200), '[]'::jsonb),
          coalesce(bool_or(not x.oculto and x.k > 200), false), coalesce(bool_or(x.oculto), false)
     into v_vehiculos, v_mas, v_ocultos
-    from public._vehiculos_de_la_entidad(null, c.id, false) x;
+    from public._vehiculos_de_la_entidad(null, c.id, v_alcance, false) x;
   return jsonb_build_object(
     'id', c.id, 'origen_id', c.origen_id, 'numero', c.numero, 'tipo', c.tipo,
     'tipo_nombre', (select t.nombre from public.tipos_contenedor t where t.clave = c.tipo), 'sello', c.sello, 'notas', c.notas,
