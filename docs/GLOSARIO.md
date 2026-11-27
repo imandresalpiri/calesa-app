@@ -581,6 +581,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   cámara de quien presenta arriba y los datos que eligió debajo (nombre y cargo, WhatsApp o teléfono, logo, redes y web de la empresa). Se arrastra,
   cambia de tamaño, se minimiza a una píldora «EN VIVO · nombre» y guarda su lugar, tamaño, datos y cámara por persona (`preferencias_usuario`, clave
   `live.ventana`). La cámara sólo se muestra: nunca se graba ni se sube.
+- **Variante del logo** — una versión con nombre del logo de la empresa (`logos_empresa`: «Ícono», «Monocromo»…), hasta 12, además de las dos fijas
+  «Principal» y «Para fondo oscuro» (las columnas de siempre de `ajustes_empresa`, que se cambian en Identidad y la lista trae primero). Se sube en
+  Configuración › Empresa › Datos de la empresa › «Logos» (`?panel=logos`), con su nombre (único sin mayúsculas, tildes ni espacios), orden y versión. La eligen
+  la ventana de cámara del Live y, más adelante, el editor de artes (`leerLogos()`). Quitar la que usa una ventana de cámara la devuelve al logo principal.
 - **Oculto en Modo Live** — `EstadoOcultoEnLive`: la pantalla que se ve al abrir por URL algo que el Live oculta, con «Salir del Modo Live» (apaga y
   vuelve a la misma URL).
 - **Tabla de referencia** — `tablas_referencia`, `_filas`: alimentan nodos tabla/tramo (impuestos, tramos, tarifas, depreciación).

@@ -5,7 +5,7 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
 ## Entra y sale
 
 - Entra: Configuración › Empresa, cuatro sub-rutas (`src/app/(app)/configuracion/empresa/`): «Datos de la empresa» (`/configuracion/empresa`:
-  `TarjetasDeLaEmpresa`, seis tarjetas: Identidad, Región, Enlaces de ayuda, Datos legales y de contacto, Políticas, Íconos de la app; en ese orden entran a 1440×900), «Monedas y tipos de cambio» (`/monedas`: `MonedasYTiposCambio`, tarjetas: la moneda base, un grupo por par con una `TarjetaDeTipoCambio` cada tipo, las monedas activas y «Al compartir»), «Integraciones» (`/integraciones`:
+  `TarjetasDeLaEmpresa`, siete tarjetas: Identidad, Región, Enlaces de ayuda, Datos legales y de contacto, Políticas, Logos, Íconos de la app; en ese orden entran a 1440×900), «Monedas y tipos de cambio» (`/monedas`: `MonedasYTiposCambio`, tarjetas: la moneda base, un grupo por par con una `TarjetaDeTipoCambio` cada tipo, las monedas activas y «Al compartir»), «Integraciones» (`/integraciones`:
   `TarjetasDeIntegraciones`, una tarjeta por integración con su estado), todas de `pantallas/configuracion-empresa.ts`, y «Comprobantes» (`/comprobantes`, del módulo `cotizaciones`). Configuración › Orígenes › «Para todos los orígenes» › Vigencia (`SeccionDeLaVigencia`, de
   `pantallas/configuracion-cotizacion.ts`: `TarjetaDeVigencia` y su modal `?panel=vigencia`, con `useEnvioConVersion()`; la versión entra por props, nunca en la `key`): la vigencia de las cotizaciones (si el vehículo y el lead son obligatorios se decide por rol y origen, en «Roles y permisos»). Sin poder cambiarla (`puedeCambiarAjustesDeCotizacion`), la tarjeta no abre y el motivo (`MOTIVO_SIN_PERMISO_AJUSTES_DE_COTIZACION`) va en un `<Aviso>` de la página; `?panel=vigencia` sin permiso se limpia con `useRevisionAlAbrir`.
   Perfil › «Ayuda» (`TarjetaDeMisEnlaces`, de `pantallas/perfil.ts`): los enlaces de ayuda de quien mira. El menú del perfil (`src/app/(app)/_shell/ayuda/`)
@@ -29,6 +29,8 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
     (`cotizaciones.configurar` en todos los orígenes, espejo de la RPC), `type AjustesDeCotizacion`. La action `guardarAjustesDeCotizacion` no sale
     por `client.ts`: la usa `<FormularioDeAjustesDeCotizacion>`, de este módulo.
   - Enlaces de ayuda: `leerEnlacesDeAyuda()` (los de la empresa, con los desactivados, tope + 1) y `leerMisEnlacesDeAyuda()` (`enlaces_de_ayuda_de_mi()`).
+  - Variantes del logo: `leerLogos()` (`ListaDeLogos`: `{tope, variantes}` con «Principal» y «Para fondo oscuro» primero y las propias en su orden), `conArchivo()` (las que tienen
+    archivo: lo que ofrecen la ventana de cámara del Live y el editor de artes), `esFija()`, tipos `ListaDeLogos` y `VarianteDelLogo`.
 - Pantallas: `pantallas/perfil.ts` (`<TarjetaDeMisEnlaces>`), `pantallas/configuracion-empresa.ts` (`<TarjetasDeLaEmpresa>`, `<TarjetasDeIntegraciones>`, `<MonedasYTiposCambio>`) y
   `pantallas/configuracion-cotizacion.ts` (`<FormularioDeAjustesDeCotizacion>`).
 - Compartir los tipos de cambio: `responderCompartirTiposCambio('texto' | 'imagen', parametros)` (la usan las rutas `src/app/(app)/tipos-de-cambio/texto` e `imagen`,
@@ -91,6 +93,10 @@ propio, hasta 20; la RLS deja leer sólo las propias) se escribe sólo por `enla
 reemplaza la lista entera con la versión de la persona (`enlaces_de_ayuda_versiones`, aparte de sus filas para que la cascada de un enlace quitado
 no la haga retroceder; nula si nunca guardó). `enlaces_de_ayuda_de_mi()`: los activos
 de la empresa y las filas propias, en una lectura.
+`logos_empresa` (las variantes propias del logo: nombre ≤ 40 único sin mayúsculas, tildes ni espacios, ruta `logos/<hash>.<ext>`, tipo, ancho y alto, orden; hasta 12) se escribe sólo por
+`logo_variante_crear` (idempotente por id), `logo_variante_renombrar`, `logo_variantes_ordenar` y `logo_variante_quitar` (`empresa.ajustes.gestionar`; cada una devuelve la lista entera con
+las dos fijas de `ajustes_empresa`; `hint` = `nombre`, `archivo` o `tope`; «Principal» y «Para fondo oscuro» están reservados). `logo_variante_usos()` cuenta las ventanas de cámara que la
+eligieron (tope 100) y `logo_variante_quitar` las devuelve al principal. `storage_refcount()` suma la tabla.
 
 ## No se rompe
 
@@ -143,6 +149,10 @@ valor}`, la misma revalidación): sin el permiso no hay lápiz; con el Modo Live
   son síncronos con el gesto; lo que el navegador no puede (`src/shared/lib/compartir.ts`, genérico) se apaga con su motivo (`motivos-de-las-acciones.ts`). Con el Modo Live
   la vista previa pide también `?sin-moneda=1` (`valorParaCompartir(…, { sinMoneda })`: «1 USD = 6,96») y los botones usan la completa.
 
+- **Variantes del logo** (`features/logos/`, `entities/logos.ts`, `entities/paneles-de-logos.ts`): la tarjeta «Logos» y su modal (`?panel=logos`, `nuevo-logo`, `renombrar-logo` y `quitar-logo`
+  con `&logo=`) calcan a los enlaces de ayuda: la lista se siembra por una firma, una escritura a la vez y cada respuesta trae la lista entera. Sumar sube el archivo primero (`subirLogo`) y, si
+  la base lo rechaza, lo descarta por `storage_refcount`; quitar lo descarta igual. El orden cambia al instante y vuelve atrás si la base no lo acepta. El SVG sube tal cual y un raster > 1024 px se
+  reduce a PNG, con las reglas de `entities/marca.ts`. Las dos fijas se cambian en Identidad (`guardarConLogos()`).
 - **Enlaces de ayuda** (`features/enlaces-de-ayuda/`, `features/mis-enlaces-de-ayuda/`): se guarda lo que la persona oculta y su orden, nunca una
   lista cerrada de visibles: uno nuevo de la empresa le aparece visible al final, y uno quitado o desactivado desaparece sin error
   (`armarMisElementos()`). Los propios no los ve nadie más (RLS). El menú los lee al abrir «Ayuda», nunca en el layout. Empresa: `?panel=enlaces-de-ayuda`,
