@@ -11,7 +11,7 @@ export {
   leerTiposDeLaUnidad,
   NO_SE_CARGARON_LOS_TIPOS,
 } from '../../infra/documentos/tipos.client'
-export { urlDelDocumento } from '../../infra/documentos/archivo.client'
+export { urlDelDocumento, urlsDeLasMiniaturas } from '../../infra/documentos/archivo.client'
 export { leerMisPermisos } from '../../infra/documentos/permisos.client'
 export { MENSAJE_DE_SUBIDA_FALLIDA, subirDocumento } from '../../infra/documentos/subir.client'
 export {

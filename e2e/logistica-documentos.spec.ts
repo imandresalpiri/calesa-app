@@ -13,7 +13,7 @@ import { abrirSeccionDeLaUnidad } from './soporte/unidad'
 
 // Documentos de la unidad (6.06). Parte 2: quien tiene `logistica.documentos.subir` elige un PDF, lo deja en la bandeja (sin subir nada), elige el tipo «E2E BL» y «Subir 1 documento»: el
 // objeto va al bucket y la fila queda «Subido» en la lista. Quien no tiene esa clave ve la zona apagada y su motivo. Parte 3: otra cuenta con `logistica.documentos.aprobar` aprueba ese BL, la fila
-// pasa a «Aprobado» y el requisito de «Qué falta» queda «Cumplido» (el botón de mover se habilita); quien sólo sube ve «Aprobar» apagado y por qué.
+// pasa a «Aprobado» y el requisito de «Qué falta» queda «Cumplido» (el botón de mover se habilita); quien sólo sube ve «Aprobar» apagado en el «⋯» y por qué.
 test.describe.configure({ mode: 'serial' })
 
 let proyecto = ''
@@ -101,9 +101,12 @@ test('E2E sin la clave de aprobar, «Aprobar» queda apagado y dice por qué', a
   await abrirSeccionDeLaUnidad(page, 'documentos')
   const hueco = page.locator('[data-hueco="documentos"]')
   await expect(hueco.getByText('Subido', { exact: true })).toBeVisible()
-  await expect(hueco.getByRole('button', { name: 'Aprobar' })).toBeDisabled()
-  await expect(hueco.getByRole('switch', { name: 'Visible en el portal' })).toBeDisabled()
-  await expect(hueco.getByText('Necesitas permiso para aprobar documentos.').first()).toBeVisible()
+  // Aprobar vive en el «⋯» de la fila: ahí queda apagado, igual que «Visible en el portal», y el motivo está escrito bajo ellos.
+  await hueco.getByRole('button', { name: 'Más acciones de bl.pdf' }).click()
+  const menu = page.getByRole('menu')
+  await expect(menu.getByRole('menuitem', { name: 'Aprobar' })).toBeDisabled()
+  await expect(menu.getByRole('menuitemcheckbox', { name: 'Visible en el portal' })).toBeDisabled()
+  await expect(menu.getByText('Necesitas permiso para aprobar documentos.')).toBeVisible()
 })
 
 test('E2E aprobar el BL: la fila queda «Aprobado» y «Qué falta» cumple el requisito del destino', async ({
@@ -120,9 +123,15 @@ test('E2E aprobar el BL: la fila queda «Aprobado» y «Qué falta» cumple el r
   await abrirSeccionDeLaUnidad(page, 'documentos')
   const hueco = page.locator('[data-hueco="documentos"]')
   await expect(hueco.getByText('Subido', { exact: true })).toBeVisible()
-  await hueco.getByRole('button', { name: 'Aprobar' }).click()
+  await hueco.getByRole('button', { name: 'Más acciones de bl.pdf' }).click()
+  await page.getByRole('menuitem', { name: 'Aprobar' }).click()
   await expect(hueco.getByText('Aprobado', { exact: true })).toBeVisible()
-  await expect(hueco.getByRole('button', { name: 'Aprobar' })).toHaveCount(0)
+  // Ya aprobado, «Aprobar» no se ofrece en el «⋯».
+  await hueco.getByRole('button', { name: 'Más acciones de bl.pdf' }).click()
+  await expect(page.getByRole('menuitem', { name: 'Ver', exact: true })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: 'Aprobar' })).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toBeHidden()
 
   const fila = await admin()
     .from('documentos')

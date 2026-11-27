@@ -1,6 +1,13 @@
-// El diálogo de eliminar un documento en la URL de la pantalla que lo muestra (6.06-3): `?panel=eliminar-documento&documento=<id>`. Va aparte del `?vehiculo=` del panel de la unidad.
+// Los diálogos de un documento en la URL de la pantalla que lo muestra: eliminar y editar (`?panel=eliminar-documento&documento=<id>`, `?panel=editar-documento&documento=<id>`) y su vista previa
+// (`?documento=<id>`, sin `?panel=`). Van aparte del `?vehiculo=` del panel de la unidad.
 export const PANEL_ELIMINAR_DOCUMENTO = 'eliminar-documento'
+export const PANEL_EDITAR_DOCUMENTO = 'editar-documento'
 export const CLAVE_DE_DOCUMENTO = 'documento'
+/** Los `?panel=` que llevan `?documento=` sin ser la vista previa. */
+export const PANELES_DE_UN_DOCUMENTO: readonly string[] = [
+  PANEL_ELIMINAR_DOCUMENTO,
+  PANEL_EDITAR_DOCUMENTO,
+]
 
 export const MENSAJE_DOCUMENTO_YA_NO_ESTA = 'Ese documento ya no está.'
 

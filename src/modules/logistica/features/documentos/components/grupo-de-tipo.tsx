@@ -10,13 +10,12 @@ import { FilaDeDocumento } from './fila-de-documento'
 type Props = {
   grupo: GrupoDeTipo
   contexto: ContextoDeLaFila
-  nombres: Readonly<Record<string, string>>
   hoy: string
 }
 
 // Un tipo de documento y lo suyo: si lo pide una fase («Lo pide «X»», «Obligatorio», «N de M aprobados») y sus documentos. Un tipo pedido sin documentos lo dice. La cuenta
 // de aprobados la hizo `agruparPorTipo`: acá sólo se dibuja.
-export function GrupoDeTipoDeDocumento({ grupo, contexto, nombres, hoy }: Props) {
+export function GrupoDeTipoDeDocumento({ grupo, contexto, hoy }: Props) {
   const { resumen, pedidoPor } = grupo
   const obligatorio = pedidoPor.some((r) => r.bloqueante)
   return (
@@ -53,7 +52,6 @@ export function GrupoDeTipoDeDocumento({ grupo, contexto, nombres, hoy }: Props)
               documento={d}
               tipo={grupo.tipo}
               contexto={contexto}
-              nombres={nombres}
               hoy={hoy}
             />
           ))}

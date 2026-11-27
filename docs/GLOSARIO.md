@@ -668,6 +668,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   y la tarjeta muestra sólo el total (fecha, número, asesor, vehículo, logo; sin filas, que podrían ser de un nivel restringido).
 - **Vista previa** — `?panel=vista-previa`, `<VistaPreviaDeLaHoja>`: modal con la tarjeta de la cotización (`<TarjetaDeCotizacion>`,
   `geometriaDeLaTarjeta()`) como la vería el cliente, escalada como una imagen; en una guardada, lo guardado.
+- **Vista previa (de un documento)** — `?documento=<id>`, `VistaPreviaDelDocumento` / `VistaPreviaLocal` (`logistica/features/documentos`): el modal de tamaño fijo con el archivo de un documento (imagen con zoom, PDF o aviso), flechas entre los de la lista y, en el pie, aprobar, rechazar con motivo y «Visible en el portal»; la de un archivo de la bandeja de subida es sólo para ver. La **miniatura** es lo que reconoce a la fila (`MiniaturaDelDocumento`). No es la «Vista previa» de la hoja de cotización.
 - **Retoque de la tarjeta** — `cotizaciones.tarjeta_retoques`, `RetoquesDeLaTarjeta`, `cotizacion_retocar_tarjeta()`, `aplicarRetoques()`: el texto
   de una celda de texto cambiado o una fila oculta en la tarjeta de **una** cotización guardada, sin tocar la plantilla del origen; vale en la vista
   previa, el PDF, «Copiar texto», compartir y la imagen de la tarjeta, y cotizar encima se lo lleva. Nunca una cifra, un color ni el logo. Un retoque de una celda o

@@ -179,7 +179,11 @@ describe('editar la tabla desde la ayuda: lo que no sale', () => {
     leer.mockResolvedValue(leida())
     montar()
     fireEvent.click(screen.getByRole('button', { name: 'Añadir fila' }))
-    expect(await screen.findByRole('textbox', { name: 'Tipo, fila 3' })).toHaveFocus()
+    const campo = await screen.findByRole('textbox', { name: 'Tipo, fila 3' })
+    // El foco lo pone un efecto tras montar el campo: con la máquina cargada llega después de que el campo aparece.
+    await waitFor(() => {
+      expect(campo).toHaveFocus()
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Guardar' })).not.toBeInTheDocument()

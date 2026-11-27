@@ -26,7 +26,7 @@ export const REGISTRO: Record<string, ConfirmarConUrl> = {
   },
   // `?panel=eliminar-documento&documento=<id>` (6.06-3): eliminar un documento de una unidad.
   'src/modules/logistica/features/documentos/components/confirmar-eliminar-documento.tsx': {
-    abre: 'src/modules/logistica/features/documentos/hooks/use-eliminar-documento-por-url.ts',
+    abre: 'src/modules/logistica/features/documentos/hooks/use-documento-por-url.ts',
     senal: 'PANEL_ELIMINAR_DOCUMENTO',
   },
   // `?eliminar=guia` (8.03-1): eliminar una guía del sitio desde su página.

@@ -32,6 +32,15 @@ const tipo: TipoDeDocumento = {
   orden: 1,
 }
 
+const sinMiniaturas = { url: () => null, renovar: () => Promise.resolve(false) }
+const abrir = () => ({
+  miniaturas: sinMiniaturas,
+  alVer: vi.fn(),
+  alRechazar: vi.fn(),
+  alEditar: vi.fn(),
+  alEliminar: vi.fn(),
+})
+
 const documento = {
   id: '44444444-4444-4444-8444-444444444444',
   estado: 'subido',
@@ -45,7 +54,7 @@ function dibujar(claves: { aprobar: boolean | null; subir: boolean | null }) {
     <AccionesDelDocumento
       documento={documento}
       tipo={tipo}
-      contexto={{ unidadId: 'u1', claves, tipos: [tipo], releer, alEliminar: vi.fn() }}
+      contexto={{ unidadId: 'u1', claves, tipos: [tipo], releer, ...abrir() }}
     />,
   )
   return releer
@@ -118,7 +127,7 @@ describe('AccionesDelDocumento', () => {
           claves: { aprobar: true, subir: true },
           tipos: [tipo],
           releer: vi.fn(),
-          alEliminar: vi.fn(),
+          ...abrir(),
         }}
       />,
     )

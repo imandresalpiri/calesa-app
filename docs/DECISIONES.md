@@ -1543,6 +1543,8 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
 - **`visible_portal` lo marca sólo quien aprueba**, que puede aprobar lo propio (sin cuatro ojos). Mime y bytes salen de `storage.objects.metadata`, no del cliente.
 - **Una foto de cámara es documento y no se comprime.** El tipo se elige antes que los archivos; uno por vez, cortando ante un fallo que se repetiría.
 
+- **Un documento se reconoce por su miniatura y se revisa en su vista previa.** La fila no lleva botones sueltos: un «⋯» con las siete acciones y, al tocarla, un modal de tamaño fijo con el archivo y el pie de revisar. El PDF va en un `<iframe>` y, sin visor, en un aviso con «Descargar»: `pdfjs-dist` (miniatura de la primera página y visor propio) se descartó por su peso en JS y por ser una dependencia nueva; el PDF es un icono. El zoom es de botones, rueda, doble toque y arrastrar, sin pellizco. La vista previa de la bandeja es local (`URL.createObjectURL`): no hay documento ni URL firmada que pedir.
+
 ### Gastos y pagos
 
 - **El tipo de cambio lo elige quien carga** y la base guarda valor e id; moneda→base multiplica, base→moneda divide; en moneda base un tipo es 22023. El equivalente lo calcula siempre la base.
