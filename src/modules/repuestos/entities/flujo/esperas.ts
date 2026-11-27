@@ -76,9 +76,15 @@ export function esperasDesde(filas: unknown): Resultado<EsperasDelVehiculo> {
 }
 
 /** El encabezado del hueco «Repuestos» del vehículo (8.13-3): «Espera 1 repuesto», «Espera 3 repuestos», «Espera más de 50 repuestos»; sin ítems, «Este vehículo no espera ningún repuesto.». Nunca un total. */
+export const TEXTO_SIN_ESPERAS = 'Este vehículo no espera ningún repuesto.'
+
+/** Lo que dice el vacío debajo del encabezado: qué verá cuando espere (el hueco y la tarjeta «Repuestos» de la unidad). */
+export const TEXTO_CUANDO_ESPERE =
+  'Cuando espere un repuesto, verás cuál, en qué proyecto y qué fase espera.'
+
 export function encabezadoDeLasEsperas(esperas: EsperasDelVehiculo): string {
   const n = esperas.items.length
-  if (n === 0) return 'Este vehículo no espera ningún repuesto.'
+  if (n === 0) return TEXTO_SIN_ESPERAS
   if (!esperas.hayMas && n === 1) return 'Espera 1 repuesto'
   return `Espera ${conteoEnFrase({ n, hayMas: esperas.hayMas })} repuestos`
 }

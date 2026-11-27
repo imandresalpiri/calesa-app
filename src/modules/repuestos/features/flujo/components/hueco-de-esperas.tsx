@@ -7,6 +7,7 @@ import { EstadoError } from '@/shared/ui/estados'
 import {
   encabezadoDeLasEsperas,
   fraseDeUnaEspera,
+  TEXTO_CUANDO_ESPERE,
   type EsperaDeItem,
 } from '../../../entities/flujo/esperas'
 import { useEsperasDelVehiculo } from '../hooks/use-esperas-del-vehiculo'
@@ -65,7 +66,9 @@ export function HuecoDeEsperas({ unidad }: Props) {
             <ItemQueEspera key={item.itemId} item={item} />
           ))}
         </ul>
-      ) : null}
+      ) : (
+        <p className="text-(length:--text-sm) text-(--color-ink-soft)">{TEXTO_CUANDO_ESPERE}</p>
+      )}
     </div>
   )
 }

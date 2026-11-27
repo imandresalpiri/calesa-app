@@ -490,8 +490,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (orígenes con la logística encendida; sin él, el último que usaste), `q` («dónde está»: nombre, VIN o lote; 3 letras o números), `en=todos` («Buscar en todos los orígenes») y `?panel=lote`
   (el lote de un contenedor o un embarque, por su id: `contenedor`, `embarque`). `/logistica/bandeja` (la **Bandeja del día** del origen; `?origen=`). `/logistica/fase/[fase]` (la lista de una fase: `[fase]` es el id o `sin_fase`;
   `?origen=`, `q`, `demoradas`, `por_aprobar`, `contenedor` y `embarque` (por su id: el chip dice «Contenedor: <número>»; uno que ya no está, «Ese contenedor ya no existe o no lo ves.» con «Quitar filtro»), `naviera`, `cursor`), `/logistica/bandeja/[grupo]` (un grupo entero del origen: `demorados`, `trabados`, `por-aprobar`, `por-vencer`,
-  `llegadas`, `salidas`, `sin-resolver`; `?origen=`, `cursor`), `/logistica/vehiculo/[id]` (la página de la unidad, a la que lleva todo vehículo y la notificación de demora; `?hueco=documentos` abre esa
-  pestaña o ese bloque; **meta:** en escritorio, a 1440×900 y a 1280×800, la unidad entra sin desplazar la página, y mover, subir y anotar se hacen sin salir de ella), `/embarques`, `/aduana`, `/gastos` (`?ver=gastos|pagos`), todas con `?origen=`. La página de la unidad tiene el hueco «Repuestos» (con `repuestos.ver`): «Espera N repuestos», cada ítem con su proyecto,
+  `llegadas`, `salidas`, `sin-resolver`; `?origen=`, `cursor`), `/logistica/vehiculo/[id]` (la página de la unidad, a la que lleva todo vehículo y la notificación de demora; `?hueco=<tarjeta>` abre el
+  drawer de esa tarjeta, `?fase_vista=<fase>` elige qué fase mira «Qué falta», `?historial_fase=`/`?historial_quien=` filtran el Historial y `?ver=ficha` abre la ficha completa; **meta:** en escritorio, a 1440×900 y a 1280×800, la unidad entra sin desplazar la página, y mover, subir y anotar se hacen sin salir de ella), `/embarques`, `/aduana`, `/gastos` (`?ver=gastos|pagos`), todas con `?origen=`. La página de la unidad tiene el hueco «Repuestos» (con `repuestos.ver`): «Espera N repuestos», cada ítem con su proyecto,
   «Para pasar a «X» espera que llegue a «Y».» y el enlace a su panel; sin espera, «Este vehículo no espera ningún repuesto.». Ver «Logística: estados propios». **Configurar:** el ⚙ «Configurar» (nombre accesible «Configurar la logística»; a la derecha de la barra, en toda página de Logística) lleva a `/configuracion/origenes/<id>/fases` del origen elegido (en la página de un vehículo, el de su vehículo) o, si la persona no lo configura, del primero que sí (activos primero), donde están su flujo y sus catálogos («Catálogos de logística (drawer)»). Lo ve quien tiene `flujos.configurar` o `logistica.catalogos.gestionar` en algún origen; sin ninguno, no se dibuja.
 - **Repuestos** — `/repuestos` (`repuestos.ver`): proyectos por cursor `numero` (`?q=` de 3 letras o un número,
   `?estado=abiertos|cerrados|todos`, `?por=`, `?cursor=`) con número, vehículo o «Externo», cliente, estado derivado, ítems («200+») y
@@ -1352,29 +1352,49 @@ guarda sin esperar. En la página de un vehículo la barra marca el origen del v
 | No se pudieron leer los orígenes               | «No pudimos leer los orígenes.» con «Reintentar».                                                                                                              |
 | Sin red al guardar el último origen            | Nada visible: se vuelve a intentar la próxima vez que lo elijas.                                                                                               |
 
-La unidad se dibuja de dos maneras: en su página `/logistica/vehiculo/<id>`, **en zonas** (escritorio) o **en bloques con una barra «Mover»** (celular y tableta vertical; `<PaginaDeLaUnidad>`), y, dentro
-de un drawer: el de `/logistica/gastos?vehiculo=<id>`, con una **sección a la vista por hueco** que monta su contenido al acercarse (`<PanelDeLaUnidad>`), y el del ítem de repuesto (`?item=`), cuyas piezas (`<QueFaltaDelItem>` y una tarjeta por hueco, `<TarjetaDelHuecoDelItem>`) las coloca `repuestos` en su panel en dos columnas (el atajo de una falta abre la tarjeta
-de su hueco).
+La unidad se dibuja en su página `/logistica/vehiculo/<id>` (`<PaginaDeLaUnidad>`: la cabecera baja, la **cadena** y las **tarjetas** con «Qué falta» al costado; en el
+celular, una columna con la barra «Mover») y dentro de dos drawers: el de `/logistica/gastos?vehiculo=<id>` (`<PanelDeLaUnidad>`: la cabecera, «Qué falta» y las mismas
+tarjetas en una columna, sin cadena) y el del ítem de repuesto (`?item=`), cuyas piezas (`<QueFaltaDelItem>` y las tarjetas de Documentos, Notas e Historial con un resumen
+fijo, `<TarjetaDelHuecoDelItem>`) las coloca `repuestos` en su panel en dos columnas. En los dos drawers cada tarjeta abre el suyo en `?seccion=<tarjeta>` (un segundo drawer:
+Esc cierra sólo el de arriba). El atajo de una falta abre la tarjeta de su hueco.
 
 - **Entrada:** la unidad se lee bajo la RLS de `vehiculos` y se pide `logistica.ver` en su origen; sin esa clave, «No tienes permiso para
   ver esto». Lo que no existe, está en la papelera, no se ve o trae un id inválido: «Este vehículo ya no está disponible» con «No existe o
   ya no tienes acceso.» e «Ir a Logística» (nunca «sin permiso»: confirmaría que existe). En el drawer, el mismo estado va dentro.
-- **Cabecera** (≤ 7,5 rem en la página): la portada (`w-28`, 4:3, con las fotos en el lugar), título (el primer `h2`), origen, situación (`<BadgeDeSituacion>`: la fase, «Sin fase», «En subasta» o «Sin resolver»), «Desde hace N días en esta fase», «Abrir
-  ficha» y «Relacionados» de un vehículo **en una línea** (con `leads.ver`; ver «Relacionados (estados propios)»; «Desvincular» y los selectores de leads llevan a la ficha). En un drawer, la cabecera es una columna suelta y los relacionados, también en una línea.
-- **Zonas** (página, desde 1024 px de pantalla; las dos columnas con alto fijo desde 56 rem de contenedor, por debajo una columna con alto natural): **principal**, «Qué falta» con mover, siempre a la vista, hasta el 55 % del alto, con su propio desplazamiento y la fila del botón pegada abajo;
-  debajo, **pestañas** con su propio desplazamiento cada una: Documentos · Transporte · Repuestos · Aduana · **Dinero** (gastos, pagos y margen apilados); a la derecha, **lateral**: Notas · Historial. Cada hueco aparece con su permiso en el origen y su regla del flujo encendida; una pestaña sin
-  huecos no se dibuja («Dinero» existe si hay alguno de los tres) y una zona vacía deja que la grilla se reacomode. La pestaña elegida va en `?hueco=` (sin recargar, sin sumar al historial). Lo de cada pestaña se monta la primera vez que se elige y queda montado: la nota a medias, el borrador de transporte
-  y la bandeja de documentos no se pierden. Los atajos («Ir a Documentos», «Ir a Gastos») eligen la pestaña y llevan el foco a ella. **Subir documentos** va en un drawer (`?subir=documentos`) abierto por el botón «Subir documentos» del hueco (apagado, con «Necesitas permiso para subir documentos.» escrito debajo, sin `logistica.documentos.subir`); con archivos en la bandeja cerrar pregunta, y al terminar sin fallos se cierra solo (con fallos queda abierto con «Reintentar los N que faltan»). En el celular y en los drawers la bandeja sigue en línea. En escritorio se piden al abrir tres huecos (Qué falta, Documentos, Notas); en el celular, uno.
-- **Celular y tableta vertical:** una columna, una sección a la vista por hueco (monta su contenido al acercarse) en este orden —qué falta, documentos, notas, historial, transporte, repuestos, aduana, gastos, pagos, margen— y una barra «Mover» pegada abajo (44 px, sólo con `flujos.mover` del origen y el hueco «Qué falta»)
-  que lo trae a la vista y le da el foco. Si el flujo del origen no se pudo leer, los huecos que piden una regla no se dibujan y una línea lo dice; el resto sigue. La ficha del
-  vehículo lleva «Ver en logística» (un enlace corto de su cabecera, con `logistica.ver`) a `/logistica/vehiculo/<id>`.
+- **Cabecera** (en la página, 5 rem de alto fijo desde 56 rem de contenedor): la portada chica, título (el primer `h2`), «VIN X · Lote N», origen, situación
+  (`<BadgeDeSituacion>`: la fase, «Sin fase», «En subasta» o «Sin resolver»), «Desde hace N días en esta fase» con «Demorada» si pasó la demora de su fase (la de la empresa si la
+  fase no tiene) y «Relacionados» de un vehículo **en una línea** (con `leads.ver`; ver «Relacionados (estados propios)»). **Tocarla abre la ficha completa** del vehículo en un
+  modal (`?ver=ficha`, botón «Ver la ficha de <título>», con «Abrir en Vehículos» en el pie si la persona ve Vehículos en ese origen; Esc o «atrás» lo cierran y el foco vuelve a la
+  cabecera); un relacionado se toca aparte. Lo que no se pudo leer (la identidad, la ficha) deja la cabecera sin eso. En un drawer, la cabecera es una columna suelta.
+- **Cadena** (página; 3,5 rem de alto fijo): de izquierda a derecha, las fases por las que pasó (más reciente a la derecha, con «Cambios anteriores» primero si el tope cortó, que
+  abre el Historial), la actual (marcada, al centro al llegar) y las que le faltan por el camino principal (punteadas). «Jubilada» en una fase que ya no se usa; sin fase, «Sin
+  fase» y las iniciales. Un solo Tab la cruza: ← → Inicio Fin mueven el foco sin elegir; Enter o tocar **elige** la fase (`?fase_vista=`, `replace`, sin ir al servidor) y
+  «Qué falta» la muestra con «Viendo «X»» y «Volver a la actual»: una pasada dice cuándo entró y salió, quién («Sistema» sin persona) y su nota; una destino de la actual, sus
+  requisitos con mover; otra, «Primero tiene que pasar por «Y».» (o «No se puede mover ahí desde la fase actual.») y lo que pedirá, leído al tocarla, sin «Mover». Una
+  `?fase_vista=` que no es de la cadena, o que pasó a ser la actual (se movió ahí), se quita de la URL. Si se desplaza de costado, con su pista.
+- **Tarjetas** (página; dos columnas desde 40 rem, a la izquierda de «Qué falta», con su propio desplazamiento): Documentos · Transporte · Repuestos · Aduana · **Dinero**
+  (gastos, pagos y margen) · Notas · Historial, cada una con su permiso en el origen y su regla del flujo encendida (sin ningún hueco suyo, no se dibuja). **Alto fijo** (8 rem):
+  el título, hasta dos líneas de lo que hay (leídas en el servidor, acotadas, tras su esqueleto del mismo alto: «2 por aprobar», «Pago sin confirmar», la última nota), un
+  renglón de aviso y su «⋯» con la lista única de sus acciones (la del toque primero, en negrita: «Ver los documentos», «Escribir una nota», «Pedir repuestos para este
+  vehículo» o «Agregar un repuesto», que llevan a Repuestos). Lo que traba mover en «Qué falta» marca la tarjeta que lo resuelve («Falta «BL»», con el borde de aviso). Tocarla
+  abre sus huecos en un drawer al costado (`?hueco=<tarjeta>`; Dinero, sus tres como secciones hermanas); un enlace de siempre (`?subir=documentos`, `?panel=pago&pago=<id>`)
+  abre su tarjeta solo. El hueco se monta al abrir el drawer; al cerrarlo, si algo cambió adentro, los resúmenes se releen. Ninguna tarjeta lee en el navegador al cargar.
+  **Subir documentos** va en un drawer (`?subir=documentos`) sobre el de Documentos, abierto por su botón «Subir documentos» (apagado, con «Necesitas permiso para subir
+  documentos.» escrito debajo, sin `logistica.documentos.subir`); con archivos en la bandeja cerrar pregunta, y al terminar sin fallos se cierra solo y queda el de Documentos con
+  lo subido (con fallos queda abierto con «Reintentar los N que faltan»).
+- **«Qué falta» al costado** (página, desde 56 rem: 24 rem a la derecha, con su propio desplazamiento; la página no se desplaza a 1440×900 ni a 1280×800 y nada cambia de
+  tamaño al elegir una fase, abrir un drawer o llegar los avisos). Con el texto al 200 % la página vuelve a una columna.
+- **Celular y tableta vertical:** una columna —cabecera, cadena (la actual al centro), «Qué falta», tarjetas— y una barra «Mover» pegada abajo (44 px, sólo con `flujos.mover` del
+  origen y el hueco «Qué falta») que lo trae a la vista y le da el foco. El mismo DOM que en escritorio: la forma la pone el CSS (`@container`), nada salta al hidratar ni al
+  girar. Si el flujo del origen no se pudo leer, los huecos que piden una regla no se dibujan y una línea lo dice; el resto sigue. La ficha del vehículo lleva «Ver en logística»
+  (un enlace corto de su cabecera, con `logistica.ver`) a `/logistica/vehiculo/<id>`.
 - **«Qué falta» y mover** (el primero): una tarjeta por destino (las salidas de la fase actual; sin fase, las iniciales)
   con cada requisito y su estado **dicho con texto** («Cumplido» / «Falta»), «Obligatorio» / «Informativo», su detalle («1 de 2
   aprobados») y, en cada falta (obligatoria o informativa), **lo que la destraba**: un botón chico con el verbo («Subir», «Revisar», «Completar»,
   «Registrar», «Ir a Documentos/Transporte/Aduana/Pagos/Repuestos/Cotizaciones», «Ir al vehículo», «Ir al proyecto», «Vincular», «Pedirlo»; el nombre accesible
   lleva el objeto: «Subir «BL»») y, si hay más, hasta dos en el «⋯» del requisito («Más acciones de «BL»»). Mide 44 px en
-  el celular: la tarjeta no crece. «Subir» abre «Subir documentos» con el tipo elegido (drawer en escritorio, la bandeja del bloque en el celular); con uno
-  ya subido, «Revisar» lleva a Documentos con el grupo del tipo a la vista (no se aprueba sin mirar el archivo); «Completar» lleva el foco al campo del
+  el celular: la tarjeta no crece. «Subir» abre la tarjeta Documentos y «Subir documentos» con el tipo elegido; con uno
+  ya subido, «Revisar» abre Documentos con el grupo del tipo a la vista (no se aprueba sin mirar el archivo); «Completar» lleva el foco al campo del
   transporte; «Registrar» abre «Registrar pago» vacío. Quien no puede: «Pedirlo» (con `agenda.tareas.asignar`) o «Pídeselo a quien administra los roles.»
   (en la línea sin otra acción; como nota del «⋯» si hay una). Lo que nunca podrá no aparece. Regla apagada (quien tiene la clave del hueco y el hueco no
   se dibuja): ninguna acción. **En un drawer** (gastos, ítem), lo que sacaría de la pantalla dice «Abrir la unidad». La ficha del vehículo no lo
@@ -1411,11 +1431,13 @@ de su hueco).
   contenedor sin embarque, o «Esta unidad todavía no tiene transporte cargado.»; tipear o guardar no la mueve. Un booking nuevo crea su
   embarque; uno que ya existe en el origen no acepta, de paso, otra naviera o fechas («El embarque «X» ya existe: guarda el booking y después
   cambia sus datos.», junto a «Booking»).
-- **Notas e historial** (zona lateral en la página; secciones a la vista en un drawer o en el celular): «Notas» con «Escribir una nota» (`<Textarea>`, contador de 2.000, «Guardar nota», `Ctrl/Cmd+Enter`; el
+- **Notas e historial** (dos tarjetas; «Escribir una nota» abre Notas con el campo enfocado): «Notas» con «Escribir una nota» (`<Textarea>`, contador de 2.000, «Guardar nota», `Ctrl/Cmd+Enter`; el
   error junto al botón y el texto queda) y las notas de la más nueva: quién, cuándo, texto; la que dejó un cambio de fase dice «al pasar a
   «<fase>»» y no se edita. «Editar» sólo la propia, en el lugar. **No hay «Borrar»**: la base no deja el borrado suave por `update` (pide
   una RPC). «Historial», sólo lectura: una línea por cambio, quién («Sistema» sin persona), cuándo y la nota. Las dos: de a 20 con «Ver
-  más» hasta 500 (`<AvisoDeTope>`), «Ir a una fecha» y «Volver a los más recientes»; esqueleto, vacíos y error dentro del bloque.
+  más» hasta 500 (`<AvisoDeTope>`), «Ir a una fecha» y «Volver a los más recientes»; esqueleto, vacíos y error dentro del drawer. En la página, el Historial se filtra por
+  «Fase» (a la que entró) y «Quién» (la persona o «Sistema»), con las opciones de las pasadas que ya leyó la cadena (`?historial_fase=`, `?historial_quien=`, `replace`); el
+  filtro lo hace la base. Sin nada que cumpla: «Nada coincide con los filtros» con «Quitar filtros». En un drawer, sin filtros.
 - **Lote** — con `flujos.mover` en el origen, cada fila de la lista de una fase lleva casilla de 44 px y la cabecera «Elegir los de esta página» (los de la página, hasta 200; «Sin fase» no ofrece selección). Una sola fase: elegir en otra vacía la selección y lo dice. Con elegidos, barra fija abajo («N elegidos en «F»»,
   «Limpiar», «Mover a…») que abre `?panel=lote` (claves `destino`, `contenedor`, `embarque`; la selección no sobrevive a recargar). El
   drawer: un botón por salida; con destino, «N listas, M no pueden entrar» y una línea por unidad (las primeras 20 con «Mostrar todas»), la
@@ -1495,12 +1517,12 @@ de su hueco).
   sólo las compartidas que no tapa ninguno); muestra cuánto le toca a cada unidad y la suma antes de confirmar;
   sin unidades no hay nada que repartir; más de 200 no se reparte; el equivalente en base lo calcula la base.
 - **Estados de la página de la unidad:**
-  - Cargando: `EsqueletoDeLaUnidad`, con la forma de las zonas (en `loading.tsx` y en el `Suspense`); un hueco, `EsqueletoDelHueco` mientras llega su código y después el suyo; la foto y los relacionados, esqueletos del mismo tamaño, sin salto.
+  - Cargando: `EsqueletoDeLaUnidad`, con la forma de la página (cabecera, cadena, tarjetas y «Qué falta»; en `loading.tsx`); el resumen de cada tarjeta, `EsqueletoDelResumen` del mismo alto; un hueco, `EsqueletoDelHueco` mientras llega su código; la foto y los relacionados, esqueletos del mismo tamaño, sin salto.
   - No existe, papelera o no se ve: «Este vehículo ya no está disponible» (sin confirmar que existe); sin `logistica.ver`: «No tienes permiso para ver esto».
-  - Sin permiso para un hueco: no aparece, ni su pestaña; la zona vacía no se dibuja. Flujo ilegible: aviso en la cabecera y los huecos con regla no se dibujan. Sin fase: «Sin fase», sin días, y «Qué falta» con los destinos iniciales. «Sin resolver»: la insignia y «La ganamos» en «Qué falta».
-  - Error de lectura de un hueco: el suyo, con «Reintentar», dentro de su zona. Error al dibujar un hueco: «No pudimos mostrar «<título>».» con «Reintentar» (`LimiteDelHueco`); sin red al pedir su código: el aviso de `diferido` en su zona. Conflicto (`PT409`): como en mover, transporte y documentos.
+  - Sin permiso para un hueco: no aparece; una tarjeta sin huecos no se dibuja. El resumen que no se pudo leer: «No pudimos leer el resumen.» y la tarjeta se abre igual. Flujo ilegible: aviso en la cabecera y los huecos con regla no se dibujan. Sin fase: «Sin fase», sin días, y «Qué falta» con los destinos iniciales. «Sin resolver»: la insignia y «La ganamos» en «Qué falta».
+  - Error de lectura de un hueco: el suyo, con «Reintentar», dentro de su drawer. Error al dibujar un hueco: «No pudimos mostrar «<título>».» con «Reintentar» (`LimiteDelHueco`); sin red al pedir su código: el aviso de `diferido` en su lugar. Los requisitos de una fase vista que no se pudieron leer: «No pudimos leer los requisitos de «X».» con «Reintentar». Conflicto (`PT409`): como en mover, transporte y documentos.
   - Topes: documentos 50 con `<AvisoDeTope>`; notas e historial «Ver más» hasta 500 con «Ir a una fecha»; gastos y pagos 50 con «Ver todos en Gastos».
-  - Límites: con «Ver como» la franja hace desplazar la página; redimensionar cruzando 1024 px remonta los huecos y pierde lo escrito (`docs/PENDIENTES.md`).
+  - Límites: con «Ver como» la franja hace desplazar la página.
 
 ### Tablero: estados propios
 

@@ -15,6 +15,6 @@ export function rutaDeLasImagenesDelItem(proyectoId: string, itemId: string): st
 }
 
 // «Agregar ítem»: un drawer de abajo con su propia clave (`?panel=nuevo-item`): una fila editable por cada ítem agregado en esa apertura y, al pie, la fila nueva (8.09-2, C10).
-export const PANEL_NUEVO_ITEM = 'nuevo-item'
+export { PANEL_NUEVO_ITEM } from '../nucleo/paneles'
 export const MENSAJE_NO_SE_PUEDEN_AGREGAR =
   'No se pueden agregar ítems: el proyecto está cerrado o no tienes permiso para editarlo.'

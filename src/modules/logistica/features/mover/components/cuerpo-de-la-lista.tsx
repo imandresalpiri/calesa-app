@@ -3,7 +3,7 @@
 import { Fragment, type ReactNode } from 'react'
 import { Aviso } from '@/shared/ui/aviso'
 import { Button } from '@/shared/ui/button'
-import { EstadoVacio } from '@/shared/ui/estados'
+import { EstadoSinResultados, EstadoVacio } from '@/shared/ui/estados'
 import { Skeleton } from '@/shared/ui/skeleton'
 import type { ListaDeLaUnidad } from '../hooks/use-lista-de-la-unidad'
 import { DesdeLaFecha, PieDeLaLista } from './pie-de-la-lista'
@@ -14,6 +14,8 @@ type Props<Fila extends { id: string | number }> = {
   // «Cargando las notas»: lo que lee un lector de pantalla mientras llega la primera página.
   cargando: string
   vacio: string
+  // Con un filtro puesto, la lista vacía es «vacío por filtro» y ofrece quitarlo (el Historial en su página).
+  vacioPorFiltro?: { descripcion: string; alQuitar: () => void } | null
   sustantivo: { plural: string; articulo: 'los' | 'las' }
   // Devuelve el `<li>` entero.
   fila: (fila: Fila) => ReactNode
@@ -26,6 +28,7 @@ export function CuerpoDeLaLista<Fila extends { id: string | number }>({
   zona,
   cargando,
   vacio,
+  vacioPorFiltro = null,
   sustantivo,
   fila,
 }: Props<Fila>) {
@@ -60,7 +63,13 @@ export function CuerpoDeLaLista<Fila extends { id: string | number }>({
   return (
     <div className="grid gap-3">
       <DesdeLaFecha lista={lista} zona={zona} />
-      {filas.length === 0 ? (
+      {filas.length === 0 && vacioPorFiltro ? (
+        <EstadoSinResultados
+          descripcion={vacioPorFiltro.descripcion}
+          alLimpiar={vacioPorFiltro.alQuitar}
+          etiquetaDeLimpiar="Quitar filtros"
+        />
+      ) : filas.length === 0 ? (
         <EstadoVacio
           compacto
           titulo={lista.desde === null ? vacio : 'No hay nada hasta esa fecha.'}

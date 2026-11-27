@@ -8,6 +8,7 @@ import { Button } from '@/shared/ui/button'
 import { Label } from '@/shared/ui/label'
 import { Textarea } from '@/shared/ui/textarea'
 import { esquemaDelCuerpoDeLaNota, restantesDeLaNota } from '../../../entities/mover/notas'
+import { ATRIBUTO_DE_NOTA_NUEVA } from '../../../entities/mover/resumen-de-notas'
 
 type Props = {
   etiqueta: string
@@ -75,6 +76,8 @@ export function CampoDeNota({
       <Textarea
         id={id}
         name="nota"
+        // El de una nota nueva lleva su marca: «Escribir una nota» de la tarjeta Notas le lleva el foco al abrir el drawer.
+        {...(alCancelar ? {} : { [ATRIBUTO_DE_NOTA_NUEVA]: '' })}
         value={texto}
         autoFocus={autoFoco}
         aria-invalid={restantesDeLaNota(texto) < 0}

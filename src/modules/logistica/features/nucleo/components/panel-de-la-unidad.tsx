@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import type { HuecoDeLaUnidad } from '../../../entities/nucleo/hueco'
 import type { UnidadAbierta } from '../../../entities/nucleo/unidad'
-import { BloquesDeLaUnidad } from './bloques-de-la-unidad'
 import { CabeceraDeLaUnidad } from './cabecera-de-la-unidad'
-import { seccionesDeLaUnidad } from './contenido-del-hueco'
+import { ColumnaDeQueFalta } from './columna-de-que-falta'
+import { ContenidoDelHueco } from './contenido-del-hueco'
 
 type Props = {
   unidad: UnidadAbierta
@@ -11,16 +11,20 @@ type Props = {
   origen: string
   // La fase de la unidad (nombre y color); nula si no tiene.
   fase: { nombre: string; color: string } | null
-  // Los huecos que se dibujan, ya filtrados y en orden (`huecosVisibles`): el panel no decide permisos.
+  // Los huecos que se dibujan, ya filtrados y en orden (`huecosVisibles`): el panel no decide permisos. De aquí sale «Qué falta»; los demás van en las tarjetas.
   huecos: readonly HuecoDeLaUnidad[]
   // Una línea de aviso bajo la cabecera (p. ej. que no se pudo leer el flujo del origen).
   aviso?: string | null
-  // Lo que va bajo la cabecera, antes de los huecos: el bloque «Relacionados» de un vehículo (vive en `vehiculos` y lo compone la página; `logistica` no lo conoce). Nulo en un ítem de repuesto.
+  // Lo que va bajo la cabecera: el bloque «Relacionados» de un vehículo (vive en `vehiculos` y lo compone `src/app`; `logistica` no lo conoce).
   relacionados?: ReactNode
+  // Las tarjetas con sus resúmenes del servidor (`TarjetasDeLaUnidad` de `src/app`, con `?seccion=`): cada una abre sus huecos en un segundo drawer.
+  tarjetas: ReactNode
 }
 
-// El panel de la unidad (6.01): la cabecera con el título, el origen, la fase y los días en ella, y debajo una sección a la vista por hueco. No lee nada: recibe lo que se dibuja. Es el contenido de los drawers
-// (gastos y pagos, ítem de repuesto); la página de la unidad usa `PaginaDeLaUnidad`. Un hueco recibe sólo `{ unidad }` (datos serializables) y carga lo suyo al abrirse.
+const QUE_FALTA = 'que-falta'
+
+// El panel de la unidad en el drawer de gastos y pagos (6.01): la cabecera, «Qué falta» a la vista y las tarjetas en una columna, sin cadena (D33: el drawer es angosto). No lee
+// nada: recibe lo que se dibuja. La página de la unidad usa `PaginaDeLaUnidad`. Compatible con servidor.
 export function PanelDeLaUnidad({
   unidad,
   origen,
@@ -28,12 +32,19 @@ export function PanelDeLaUnidad({
   huecos,
   aviso = null,
   relacionados = null,
+  tarjetas,
 }: Props) {
+  const queFalta = huecos.find((h) => h.clave === QUE_FALTA)
   return (
-    <div className="grid gap-4" data-slot="panel-de-la-unidad">
+    <div className="grid min-w-0 gap-4" data-slot="panel-de-la-unidad">
       <CabeceraDeLaUnidad unidad={unidad} origen={origen} fase={fase} aviso={aviso} />
       {relacionados}
-      <BloquesDeLaUnidad secciones={seccionesDeLaUnidad(unidad, huecos)} />
+      {queFalta ? (
+        <ColumnaDeQueFalta titulo={queFalta.titulo}>
+          <ContenidoDelHueco hueco={queFalta} unidad={unidad} />
+        </ColumnaDeQueFalta>
+      ) : null}
+      {tarjetas}
     </div>
   )
 }

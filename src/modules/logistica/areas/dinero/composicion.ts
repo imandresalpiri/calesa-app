@@ -15,3 +15,6 @@ export const repositorioDePagos: RepositorioDePagos = pagosSupabase
 
 // Crear, corregir y eliminar una categoría de gasto (6.11-4).
 export const repositorioDeCategorias: RepositorioDeCategorias = categoriasSupabase
+
+// El resumen de su tarjeta en la página de la unidad (`docs/GLOSARIO.md` › «Tarjeta de la unidad»).
+export { leerResumenDeDinero } from '../../infra/dinero/resumen'

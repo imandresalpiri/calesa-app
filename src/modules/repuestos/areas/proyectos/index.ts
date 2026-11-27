@@ -33,4 +33,5 @@ export {
   nuevoProyectoEnLaUrl,
 } from '../../entities/proyectos/paneles'
 export { proyectoDe } from '../../infra/proyectos/resumen'
+export { accionDeEmpezar, type AccionDeEmpezar } from '../../entities/proyectos/empezar'
 export { type ProyectoDeVehiculo } from '../../entities/proyectos/resumen'

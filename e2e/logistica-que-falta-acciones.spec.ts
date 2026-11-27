@@ -52,7 +52,7 @@ test('E2E que falta · un documento que falta ofrece «Subir» con su tipo; subi
   await capturar(page, info, 'acciones')
   await bl.getByRole('button', { name: `Subir «${terreno.tipoDeBl.nombre}»` }).click()
 
-  // En escritorio la subida es un drawer; en el celular, la bandeja en línea del bloque. Las dos con el tipo ya elegido.
+  // La subida es un drawer sobre el de Documentos, con el tipo ya elegido.
   const bandeja = page.getByRole('form', { name: 'Subir documentos' })
   await expect(bandeja.getByLabel('Tipo de documento')).toHaveValue(terreno.tipoDeBl.id)
   await capturar(page, info, 'subir-con-el-tipo')
@@ -63,7 +63,12 @@ test('E2E que falta · un documento que falta ofrece «Subir» con su tipo; subi
   })
   await bandeja.getByRole('button', { name: 'Subir 1 documento' }).click()
 
-  // Subido, falta aprobarlo: «Revisar» lleva al grupo del tipo en Documentos (no se aprueba sin mirar el archivo).
+  // Subido, falta aprobarlo. La subida se cierra sola y queda el drawer de Documentos con lo subido; al cerrarlo, «Revisar» lleva al grupo del tipo (no se aprueba sin mirar
+  // el archivo).
+  const documentos = page.locator('[data-hueco="documentos"]')
+  await expect(documentos.getByText('Subido', { exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(documentos).toBeHidden()
   const revisar = bl.getByRole('button', { name: `Revisar «${terreno.tipoDeBl.nombre}»` })
   await expect(revisar).toBeVisible()
   await revisar.click()

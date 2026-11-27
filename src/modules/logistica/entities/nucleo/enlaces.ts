@@ -3,7 +3,7 @@ import type { ComponentType } from 'react'
 import type { ClavePermiso } from '@/shared/lib/permisos'
 import { unidadDeLogistica, type PanelDeCatalogo } from '@/shared/lib/rutas'
 import type { PropsDelCatalogoDelOrigen } from './catalogo-del-origen'
-import { ORDEN_DE_HUECOS } from './hueco'
+import { esTarjetaConocida, tarjetaDelHueco } from './tarjetas'
 
 /** La clave de la URL con el origen de toda página de Logística (`?origen=`): la barra de arriba, la cadena, la bandeja, las áreas y sus formularios. */
 export const CLAVE_DE_ORIGEN_DE_LOGISTICA = 'origen'
@@ -32,21 +32,15 @@ export type CatalogoDeLogistica = {
   componente: ComponentType<PropsDelCatalogoDelOrigen>
 }
 
-/** La clave de la URL con la que un enlace pide abrir un hueco de la unidad (`?hueco=documentos`): la página lo dibuja abierto desde el principio. */
+/** La clave de la URL con la que un enlace pide abrir una tarjeta de la unidad (`?hueco=documentos`, `?hueco=dinero`): la página abre su drawer de entrada. */
 export const CLAVE_DEL_HUECO_ABIERTO = 'hueco'
 
-/** ¿Es la clave de un hueco del panel? Lo que no lo es (una URL a mano) no abre nada. */
-export function esHuecoConocido(
-  clave: string | null | undefined,
-): clave is (typeof ORDEN_DE_HUECOS)[number] {
-  return (ORDEN_DE_HUECOS as readonly string[]).includes(clave ?? '')
-}
-
 /**
- * A dónde lleva el nombre de un vehículo en logística: su página `/logistica/vehiculo/<id>`. Con un hueco conocido (`documentos`…) la página lo abre de entrada; uno desconocido se descarta,
- * nunca llega a la URL.
+ * A dónde lleva el nombre de un vehículo en logística: su página `/logistica/vehiculo/<id>`. Con la clave de un hueco (`documentos`, `pagos`…) o de una tarjeta (`dinero`), la página abre
+ * de entrada el drawer de la tarjeta que lo contiene (`pagos` → `?hueco=dinero`). «Qué falta» está siempre a la vista y una clave desconocida se descarta: ninguna llega a la URL.
  */
-export function rutaDeLaUnidad(id: string, hueco?: string | null): string {
+export function rutaDeLaUnidad(id: string, clave?: string | null): string {
   const base = unidadDeLogistica(id)
-  return esHuecoConocido(hueco) ? `${base}?${CLAVE_DEL_HUECO_ABIERTO}=${hueco}` : base
+  const tarjeta = esTarjetaConocida(clave) ? clave : tarjetaDelHueco(clave)
+  return tarjeta === null ? base : `${base}?${CLAVE_DEL_HUECO_ABIERTO}=${tarjeta}`
 }

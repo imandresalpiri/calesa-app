@@ -16,7 +16,7 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
     `equipo`. `registroDisponible()`.
   - `leerAjustes()`: como `getAjustes()` pero falla en vez de dar lo de fábrica (la pantalla y el PDF de una cotización). `PESO_MAXIMO_LOGO` (1 MB,
     `entities/marca.ts`): el PDF no baja un logo más pesado.
-  - `getPoliticaDeLimpieza()` (sin poder leerla, apagada), `getTiposCambio()` (vigentes, el por defecto adelante; vacía si falla),
+  - `getPoliticaDeLimpieza()` (sin poder leerla, apagada), `getDemoraPorDefecto()` (`demora_dias_default`, la demora de una fase de logística sin días propios; nula si no se puede leer: la usa la página de la unidad de `logistica`), `getTiposCambio()` (vigentes, el por defecto adelante; vacía si falla),
     `integracionActiva('apibara')` (si la base no responde, no).
   - Asistente de IA: `atajosDelAsistente()` (`{configurado, atajos}`: encendido, con clave y legible, y los atajos activos como `{id, nombre}`, para
     el panel de compartir de `cotizaciones`), `redactarConElAsistente(pedido)` (generar con un atajo o reescribir con una instrucción; quien llama

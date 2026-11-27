@@ -45,7 +45,7 @@ export function abrirHueco(clave: string): boolean {
   return true
 }
 
-// Abre el bloque cuando alguien pide su hueco por el aviso: lo usa `BloqueDelHueco`.
+// Abre lo que contiene el hueco cuando alguien lo pide por el aviso: lo usan la tarjeta de la unidad (abre su drawer) y «Qué falta» (se trae a la vista).
 export function useAlPedirAbrirElHueco(clave: string, alAbrir: () => void): void {
   const ultima = useRef(alAbrir)
   useEffect(() => {

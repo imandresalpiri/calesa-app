@@ -62,3 +62,20 @@ export const getPoliticaDeLimpieza = cache(async (): Promise<PoliticaDeLimpieza>
   }
   return politicaDeLimpiezaDesde(data)
 })
+
+// Los días que una fase de logística tolera si no dice los suyos (`ajustes_empresa.demora_dias_default`, lo que usa `_logistica_dias`): la insignia «Demorada» de la
+// página de la unidad. La lee cualquier cuenta con sesión; si no se puede leer, nulo (sólo alertan las fases con días propios: no se inventa una demora).
+export const getDemoraPorDefecto = cache(async (): Promise<number | null> => {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('ajustes_empresa')
+    .select('demora_dias_default')
+    .eq('id', 1)
+    .limit(1)
+    .maybeSingle()
+  if (error || !data) {
+    console.error('No se pudo leer la demora por defecto', error)
+    return null
+  }
+  return data.demora_dias_default
+})

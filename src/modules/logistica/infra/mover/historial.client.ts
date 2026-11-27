@@ -9,6 +9,7 @@ import {
   leerCursorDeHistorial,
 } from '../../entities/mover/cursor-de-historial'
 import { cambiosDesde, type CambioDeFase } from '../../entities/mover/historial'
+import { QUIEN_ES_EL_SISTEMA, SIN_FILTRO } from '../../entities/mover/filtro-del-historial'
 import type { PaginaDeLaUnidad, PedidoDeLaLista } from '../../entities/mover/pagina-de-la-unidad'
 
 export const NO_SE_LEYO_EL_HISTORIAL = 'No se pudo cargar el historial.'
@@ -20,6 +21,7 @@ export async function leerHistorialDeLaUnidad({
   tipo,
   cursor,
   hasta,
+  filtro = SIN_FILTRO,
 }: PedidoDeLaLista): Promise<Resultado<PaginaDeLaUnidad<CambioDeFase>>> {
   const lectura = leerCursorDeHistorial(cursor)
   let consulta = createClient()
@@ -28,6 +30,12 @@ export async function leerHistorialDeLaUnidad({
       'id, creado_en, nota, de:fases!historial_fases_de_fase_id_fkey(nombre), a:fases!historial_fases_a_fase_id_fkey(nombre), quien:perfiles!historial_fases_usuario_id_fkey(nombre)',
     )
     .eq(tipo === 'repuesto' ? 'repuesto_id' : 'vehiculo_id', unidadId)
+  // El filtro de la tarjeta Historial: la fase a la que entró por `historial_fases_vehiculo_fase_idx (vehiculo_id, a_fase_id, creado_en desc, id desc)` y quién lo movió por
+  // `historial_fases_vehiculo_quien_idx (vehiculo_id, usuario_id, creado_en desc, id desc)` («Sistema» = `usuario_id is null`, que el btree también sirve). Con los dos, uno
+  // de los índices y el otro filtra sobre lo que ese recorre.
+  if (filtro.fase !== null) consulta = consulta.eq('a_fase_id', filtro.fase)
+  if (filtro.quien === QUIEN_ES_EL_SISTEMA) consulta = consulta.is('usuario_id', null)
+  else if (filtro.quien !== null) consulta = consulta.eq('usuario_id', filtro.quien)
   if (hasta !== null) {
     consulta = consulta.lt('creado_en', hasta)
   }

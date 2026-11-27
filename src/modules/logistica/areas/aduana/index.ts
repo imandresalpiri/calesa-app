@@ -15,3 +15,4 @@ export {
 } from '../../entities/aduana/declaracion'
 export type { RepositorioDeAduana } from '../../entities/aduana/repositorio'
 export { PANEL_EDITAR_DECLARACION, PANEL_NUEVA_DECLARACION } from '../../entities/aduana/paneles'
+export { leerResumenDeAduana } from './composicion'

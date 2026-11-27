@@ -42,11 +42,12 @@ export const REGISTRO: Record<string, RegistroDeDrawer> = {
   'src/modules/repuestos/features/items/components/drawer-de-imagenes.tsx': {
     sinFormulario: 'sube y quita imágenes al instante: no guarda nada tipeado',
   },
-  // La tarjeta de Documentos, Notas o Historial del panel de un ítem (`?seccion=<clave>`): el hueco de logística entero en un drawer. Lo escrito que se pierde al cerrar son los archivos de la bandeja de Documentos, que lo dice con `useCambiosSinGuardar`; una nota se guarda con su botón y no queda borrador.
-  'src/modules/logistica/features/nucleo/components/tarjeta-del-hueco.tsx': {
-    formulario: 'src/modules/logistica/features/documentos/hooks/use-cambios-de-la-bandeja.ts',
-    mecanismo: 'contexto',
-  },
+  // La tarjeta de la unidad (en su página `?hueco=<tarjeta>`; en el drawer de gastos y en el panel de un ítem `?seccion=<tarjeta>`): su drawer lleva el contenido de sus huecos. Lo escrito que se pierde al cerrar son los archivos de la bandeja de Documentos, que lo dice con `useCambiosSinGuardar` por el contexto; una nota se guarda con su botón y no queda borrador.
+  'src/modules/logistica/features/nucleo/components/tarjeta-de-la-unidad/tarjeta-de-la-unidad.tsx':
+    {
+      formulario: 'src/modules/logistica/features/documentos/hooks/use-cambios-de-la-bandeja.ts',
+      mecanismo: 'contexto',
+    },
   // El panel del ítem de `/repuestos/[id]` (`?item=<id>`): la fila del ítem editable.
   'src/modules/repuestos/features/items/components/panel-del-item-en-la-hoja.tsx': {
     sinFormulario:

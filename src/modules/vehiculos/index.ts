@@ -29,6 +29,8 @@ export type {
 // Con qué se vuelve a preguntar a apibara por un vehículo (enlace, lote o VIN); null = no se puede («Actualizar los datos» apagada).
 export { entradaDeRefresco } from './entities/subasta'
 export type { Vehiculo } from './entities/vehiculo'
+// «VIN X · Lote N»: lo que identifica al vehículo donde no cabe su ficha (la cabecera de la unidad de logística).
+export { vinOLote } from './entities/vin-o-lote'
 // La zona del patio de un vehículo de subasta (de sus atributos): la hora del patio en el texto para compartir una cotización
 export { zonaDelPatioDe } from './entities/zona-del-patio'
 export type {
