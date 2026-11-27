@@ -126,15 +126,15 @@ describe('las acciones en la ficha del vehículo (todos los huecos existen; sól
     expect(dibujar.mas).toMatchObject([{ tipo: 'revisar' }])
   })
 
-  it('transporte, aduana y pagos pasan a «Abrir la unidad» en su hueco', () => {
-    for (const [accion, hueco] of [
+  it('transporte, aduana y pagos pasan a «Abrir la unidad» con la tarjeta de su hueco', () => {
+    for (const [accion, tarjeta] of [
       [alHueco('transporte', 'Contenedor', 'transporte.contenedor'), 'transporte'],
       [alHueco('aduana', 'Canal'), 'aduana'],
-      [registrarPago('Flete'), 'pagos'],
+      [registrarPago('Flete'), 'dinero'],
     ] as const) {
       expect(accionesADibujar(resueltas({ principal: accion }), enLaFicha).principal).toEqual({
         tipo: 'ir',
-        ruta: `/logistica/vehiculo/${VEHICULO}?hueco=${hueco}`,
+        ruta: `/logistica/vehiculo/${VEHICULO}?hueco=${tarjeta}`,
         etiqueta: ABRIR_LA_UNIDAD,
         nombre: `${ABRIR_LA_UNIDAD}: ${accion.nombre}`,
       })

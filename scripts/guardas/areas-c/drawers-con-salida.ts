@@ -43,6 +43,12 @@ export const REGISTRO: Record<string, RegistroDeDrawer> = {
     sinFormulario: 'sube y quita imágenes al instante: no guarda nada tipeado',
   },
   // La tarjeta de Documentos, Notas o Historial del panel de un ítem (`?seccion=<clave>`): el hueco de logística entero en un drawer. Lo escrito que se pierde al cerrar son los archivos de la bandeja de Documentos, que lo dice con `useCambiosSinGuardar`; una nota se guarda con su botón y no queda borrador.
+  // La tarjeta de la página de la unidad: su drawer lleva el contenido de sus huecos (la bandeja de Documentos avisa por el contexto, como en la tarjeta del ítem).
+  'src/modules/logistica/features/nucleo/components/tarjeta-de-la-unidad/tarjeta-de-la-unidad.tsx':
+    {
+      formulario: 'src/modules/logistica/features/documentos/hooks/use-cambios-de-la-bandeja.ts',
+      mecanismo: 'contexto',
+    },
   'src/modules/logistica/features/nucleo/components/tarjeta-del-hueco.tsx': {
     formulario: 'src/modules/logistica/features/documentos/hooks/use-cambios-de-la-bandeja.ts',
     mecanismo: 'contexto',

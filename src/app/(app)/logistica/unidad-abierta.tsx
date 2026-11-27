@@ -29,17 +29,8 @@ export function UnidadNoDisponible() {
 // La unidad con ese id y su panel de bloques, o el estado que toque (6.01): el drawer de gastos y pagos. La página de la unidad usa `PaginaDeLaUnidad` (`vehiculo/[id]/unidad-en-su-pagina.tsx`) con la misma `prepararUnidad`. Exige las dos cosas (D3): la fila bajo la
 // RLS de `vehiculos` (`vehiculos.ver`) y `logistica.ver` en el origen de la unidad. Un error de lectura sube al `error.tsx` de `(app)`, que ofrece «Reintentar»; el del flujo del
 // origen no tumba el panel: deja apagados los huecos que piden una regla y lo dice.
-export async function UnidadAbierta({
-  id,
-  permisos,
-  huecoAbierto,
-}: {
-  id: string
-  permisos: Permisos
-  // `?hueco=documentos`: el bloque que un enlace (la bandeja del día) pide ver abierto desde el principio. Una clave desconocida se ignora.
-  huecoAbierto?: string
-}) {
-  const preparada = await prepararUnidad(id, permisos, huecoAbierto)
+export async function UnidadAbierta({ id, permisos }: { id: string; permisos: Permisos }) {
+  const preparada = await prepararUnidad(id, permisos)
   if (preparada.tipo === 'no_disponible') {
     return <UnidadNoDisponible />
   }

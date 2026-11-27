@@ -9,7 +9,6 @@ import {
 import {
   cadenaDeLaUnidad,
   demoraDeLaUnidad,
-  esHuecoConocido,
   leerPasadasDeLaUnidad,
   leerUnidad,
   type CadenaDeLaUnidad,
@@ -109,14 +108,6 @@ function prepararLaCadena(lecturas: LecturasDeLaCadena): CadenaPreparada {
   return { cadena, pasadas: pasadas ?? [], demora }
 }
 
-// `?hueco=` deja ese hueco abierto desde el principio en los bloques; una clave desconocida se ignora.
-function conElHuecoAbierto(huecos: HuecoDeLaUnidad[], huecoAbierto: string | undefined) {
-  if (!esHuecoConocido(huecoAbierto)) return huecos
-  return huecos.map((hueco) =>
-    hueco.clave === huecoAbierto ? { ...hueco, abiertoAlInicio: true } : hueco,
-  )
-}
-
 const faseDeLaLista = (fases: readonly FaseResumen[] | null, faseId: string | null) =>
   fases?.find((una) => una.id === faseId) ?? null
 
@@ -133,12 +124,11 @@ async function leerParaLaCadena(
 
 // Todo lo que pide dibujar la unidad con ese id, para quien mira: la unidad bajo la RLS de `vehiculos`, `logistica.ver` en su origen, el origen, la fase y los huecos que se dibujan (permisos y reglas del flujo).
 // La comparten la página de la unidad y el drawer de gastos. Un error de lectura sube al `error.tsx` de `(app)`, que ofrece «Reintentar»; el del flujo del origen no tumba nada: deja apagados los huecos que
-// piden una regla y lo dice (`aviso`). `huecoAbierto` (`?hueco=`) deja ese hueco abierto desde el principio en los bloques; una clave desconocida se ignora. Con `conCadena` (la página), lee además
+// piden una regla y lo dice (`aviso`). Con `conCadena` (la página), lee además
 // las pasadas y la demora por defecto, en paralelo con lo demás: un fallo de esas lecturas degrada la cadena, nunca la página.
 export async function prepararUnidad(
   id: string,
   permisos: Permisos,
-  huecoAbierto?: string,
   { conCadena = false }: { conCadena?: boolean } = {},
 ): Promise<UnidadPreparada> {
   const unidad = datosO(await leerUnidad(id))
@@ -158,7 +148,7 @@ export async function prepararUnidad(
     unidad,
     origen: origen?.nombre ?? '',
     fase: faseDeLaLista(listaDeFases, unidad.faseId),
-    huecos: conElHuecoAbierto(huecos, huecoAbierto),
+    huecos,
     aviso,
     cadena:
       paraLaCadena &&
