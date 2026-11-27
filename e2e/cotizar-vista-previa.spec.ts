@@ -198,7 +198,9 @@ test('E2E «Mostrar garantía» y «Ver total en moneda local» suman lo suyo a 
 test('E2E el Modo Live del pie del modal tapa los montos de la tarjeta', async ({ page }) => {
   await cotizarEnLaSubasta(page, asesora.email, urlDeLaSubasta(subasta, leadDeLaAsesora, vehiculo))
   const t = await abrirLaVistaPrevia(page)
-  const live = dialogo(page).getByRole('button', { name: 'Modo Live: ocultar los montos' })
+  const live = dialogo(page).getByRole('button', {
+    name: 'Modo Live: ocultar los símbolos de moneda',
+  })
   await expect(live).toHaveAttribute('aria-pressed', 'false')
   await expect(total(t).locator('[data-monto-valor]')).toBeVisible()
   await live.click()

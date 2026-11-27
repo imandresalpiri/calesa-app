@@ -250,7 +250,7 @@ test('sin conexión se dice y se puede reintentar', async ({ page }) => {
 
 test('con el Modo Live no se ofrece compartir', async ({ page }) => {
   await entrar(page, duena)
-  const live = page.getByRole('button', { name: 'Modo Live: ocultar los montos' })
+  const live = page.getByRole('button', { name: 'Modo Live: ocultar los símbolos de moneda' })
   await live.click()
   await expect(live).toHaveAttribute('aria-pressed', 'true')
   await page

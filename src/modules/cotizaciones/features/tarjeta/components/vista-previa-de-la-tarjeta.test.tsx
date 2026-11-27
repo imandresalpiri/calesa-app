@@ -77,7 +77,9 @@ describe('<VistaPreviaDeLaTarjeta>: el modal «Vista previa»', () => {
     await waitFor(() => {
       expect(screen.getByText('TOTAL DÓLARES')).toBeTruthy()
     })
-    expect(screen.getByRole('button', { name: 'Modo Live: ocultar los montos' })).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'Modo Live: ocultar los símbolos de moneda' }),
+    ).toBeTruthy()
     expect(screen.getByRole('group', { name: 'Tarjeta de la cotización' })).toBeTruthy()
     expect(screen.getByText('Ana Pérez')).toBeTruthy()
   })
@@ -196,7 +198,9 @@ describe('<VistaPreviaDeLaTarjeta>: el pie', () => {
     const texto = escribir.mock.calls[0]?.[0] ?? ''
     expect(texto).toContain('Asesor: Ana Pérez')
     expect(texto).toContain('TOTAL DÓLARES: ')
-    expect(screen.getByRole('button', { name: 'Modo Live: ocultar los montos' })).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'Modo Live: ocultar los símbolos de moneda' }),
+    ).toBeTruthy()
     // La hoja nueva no tiene PDF que bajar.
     expect(screen.queryByRole('button', { name: 'Descargar PDF' })).toBeNull()
   })

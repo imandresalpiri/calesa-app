@@ -4,8 +4,8 @@ import { EyeIcon, EyeOffIcon } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { useLive } from '@/shared/ui/live'
 
-// Modo Live: para mostrarle la pantalla a un cliente. Oculta toda cifra de dinero y su símbolo
-// de moneda, en toda la app.
+// Modo Live: para mostrarle la pantalla a un cliente. Oculta los símbolos y los códigos de moneda
+// en toda la app; los números se ven.
 export function ConmutadorLive() {
   const { live, alternar } = useLive()
 
@@ -15,9 +15,11 @@ export function ConmutadorLive() {
       size="icon-lg"
       className="size-[44px] md:size-9"
       aria-pressed={live}
-      aria-label="Modo Live: ocultar los montos"
+      aria-label="Modo Live: ocultar los símbolos de moneda"
       title={
-        live ? 'Modo Live encendido: los montos están ocultos' : 'Modo Live: ocultar los montos'
+        live
+          ? 'Modo Live encendido: se ven los números sin moneda'
+          : 'Modo Live: ocultar los símbolos de moneda'
       }
       onClick={alternar}
     >

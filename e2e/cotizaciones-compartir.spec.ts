@@ -201,7 +201,9 @@ test('E2E con el Modo Live no se ofrece: ni en el detalle ni en el «⋯», y la
   const numero = numeroDe(guardada)
   await abrirLaHoja(page, asesora.email, `/cotizaciones/${guardada}`)
   // El de la barra (la hoja también tiene el suyo).
-  const live = page.getByRole('button', { name: 'Modo Live: ocultar los montos' }).first()
+  const live = page
+    .getByRole('button', { name: 'Modo Live: ocultar los símbolos de moneda' })
+    .first()
   await live.click()
   await expect(live).toHaveAttribute('aria-pressed', 'true')
   await expect(botonDelMenuDeLaGuardada(page)).toBeVisible()

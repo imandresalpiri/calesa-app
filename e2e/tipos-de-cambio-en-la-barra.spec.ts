@@ -221,7 +221,7 @@ test('dos sesiones dan el conflicto con nombre y valor', async ({ page, browser 
   await expect(popover).toBeHidden()
 
   // El Modo Live oculta las cifras y no ofrece el lápiz: el campo las mostraría.
-  const live = page.getByRole('button', { name: 'Modo Live: ocultar los montos' })
+  const live = page.getByRole('button', { name: 'Modo Live: ocultar los símbolos de moneda' })
   await live.click()
   await expect(live).toHaveAttribute('aria-pressed', 'true')
   const conLive = await abrirElPopover(page)
