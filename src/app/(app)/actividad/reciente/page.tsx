@@ -9,6 +9,7 @@ import { ZONA_POR_DEFECTO } from '@/shared/lib/fechas'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoVacio } from '@/shared/ui/estados'
 import { Skeleton } from '@/shared/ui/skeleton'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Actividad reciente' }
 
@@ -35,6 +36,10 @@ async function Contenido({
 }: {
   searchParams: PageProps<'/actividad/reciente'>['searchParams']
 }) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   await connection()
   const [sesion, parametros, ajustes] = await Promise.all([
     requerirSesion(),

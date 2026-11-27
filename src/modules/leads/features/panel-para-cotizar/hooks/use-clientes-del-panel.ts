@@ -11,6 +11,7 @@ import {
   idsDeTiposDeLaClase,
   leerTextoDelPanel,
   pestanaDelPanel,
+  type BusquedaDelPanel,
   type ClienteDelPanel,
   type ListaDelPanel,
   type PestanaDelPanel,
@@ -49,38 +50,34 @@ function leidaDe(
 type Opciones = {
   // `leads.numero_global.ver` (lo decide la página con `puede()`): con él «#n» busca el número global y el propio de cualquier creador.
   numeroGlobal: boolean
+  // El Modo Live con «Sólo nombres»: sin pestañas de clase (siempre «Todos»), sólo el nombre de cada uno y la búsqueda sólo por nombre.
+  soloNombres?: boolean
 }
 
-// La pestaña (`?clase=`), lo que se busca (`?buscar=`) y la página (`?cursor=`) del panel del cliente, y la lectura que les toca: con un texto que se busca
-// (`leerTextoDelPanel()`) manda la búsqueda y las pestañas se esconden; con uno que no alcanza, siguen las pestañas. Se escriben en la URL sin ir al servidor y
-// reemplazando la entrada del historial: pedirle la página al servidor volvería a montar la hoja abierta detrás, y «atrás» cierra el panel en vez de recorrer
-// sus páginas. El catálogo de tipos se lee al abrir —en «Todos» y en la búsqueda, a la vez que la primera página; la pestaña de una clase lo espera, porque
-// necesita los ids de sus tipos— y la lista se muestra cuando llegan los dos; si el catálogo no llega, toda la lista es el error. Cada respuesta guarda el
-// pedido que la trajo: mientras no llega la del actual, se está cargando, y una que llega tarde no se muestra.
-export function useClientesDelPanel({ numeroGlobal }: Opciones) {
-  const [url, escribir] = useQueryStates(PARAMETROS, { history: 'replace' })
-  const pestana = pestanaDelPanel(url[CLAVE_DE_CLASE])
-  const texto = url[CLAVE_DE_BUSQUEDA] ?? ''
-  const leido = useMemo(() => leerTextoDelPanel(texto), [texto])
-  const busqueda = leido.busqueda
-  const lista: ListaDelPanel = busqueda === null ? pestana : 'busqueda'
-  const cursorDeUrl = url[CLAVE_DE_CURSOR] ?? ''
-  const [intento, setIntento] = useState(0)
-  const { tipos, error: errorDelCatalogo } = useCatalogoDelPanel(intento)
-  const textoDeLaBusqueda = busqueda?.texto ?? ''
-  const clave = `${lista}|${textoDeLaBusqueda}|${cursorDeUrl}|${String(intento)}`
+// Lo que pide la página del panel, en valores simples (las dependencias de su efecto). `clave` los resume: una respuesta se muestra sólo si es la de la clave actual.
+type PedidoDeLaPagina = {
+  clave: string
+  // La pestaña de una clase espera el catálogo: no sale hasta tenerlo.
+  espera: boolean
+  lista: ListaDelPanel
+  busqueda: BusquedaDelPanel | null
+  cursorDeUrl: string
+  numeroGlobal: boolean
+  soloNombres: boolean
+  // Los ids de los tipos de la clase, separados por `|` (vacío en «Todos» y en la búsqueda).
+  tiposDeLaClase: string
+}
+
+// La lectura de la página del pedido: cada respuesta guarda la clave que la trajo; una que llega tarde no se muestra.
+function usePaginaDelPanel(pedido: PedidoDeLaPagina) {
+  const { clave, espera, lista, busqueda, cursorDeUrl, numeroGlobal, soloNombres, tiposDeLaClase } =
+    pedido
   const [respuesta, setRespuesta] = useState<{
     clave: string
     resultado: Resultado<Pagina<ClienteDelPanel>>
   } | null>(null)
-
-  // La pestaña de una clase pide los tipos de esa clase: no sale hasta tener el catálogo. «Todos» y la búsqueda no dependen de él: que llegue no los vuelve a pedir.
-  const deUnaClase = lista === 'prospecto' || lista === 'cliente'
-  const esperaElCatalogo = deUnaClase && tipos === null
-  const tiposDeLaClase =
-    deUnaClase && tipos !== null ? idsDeTiposDeLaClase(tipos, lista).join('|') : ''
   useEffect(() => {
-    if (esperaElCatalogo) {
+    if (espera) {
       return undefined
     }
     let vigente = true
@@ -90,6 +87,7 @@ export function useClientesDelPanel({ numeroGlobal }: Opciones) {
       cursor: leerCursor(cursorDeUrl),
       busqueda,
       todos: numeroGlobal,
+      soloNombres,
     })
       .catch(() => fallo('inesperado', MENSAJE_DE_LECTURA))
       .then((resultado) => {
@@ -101,13 +99,49 @@ export function useClientesDelPanel({ numeroGlobal }: Opciones) {
     return () => {
       vigente = false
     }
-  }, [clave, esperaElCatalogo, lista, busqueda, cursorDeUrl, numeroGlobal, tiposDeLaClase])
+  }, [clave, espera, lista, busqueda, cursorDeUrl, numeroGlobal, soloNombres, tiposDeLaClase])
+  return respuesta?.clave === clave ? respuesta.resultado : null
+}
 
-  const leida = leidaDe(
-    respuesta?.clave === clave ? respuesta.resultado : null,
-    tipos,
-    errorDelCatalogo,
-  )
+// Con «Sólo nombres» no hay pestañas de clase: siempre «Todos».
+const pestanaDe = (valor: string | null, soloNombres: boolean): PestanaDelPanel =>
+  soloNombres ? 'todos' : pestanaDelPanel(valor)
+
+// La pestaña (`?clase=`), lo que se busca (`?buscar=`) y la página (`?cursor=`) del panel del cliente, y la lectura que les toca: con un texto que se busca
+// (`leerTextoDelPanel()`) manda la búsqueda y las pestañas se esconden; con uno que no alcanza, siguen las pestañas. Se escriben en la URL sin ir al servidor y
+// reemplazando la entrada del historial: pedirle la página al servidor volvería a montar la hoja abierta detrás, y «atrás» cierra el panel en vez de recorrer
+// sus páginas. El catálogo de tipos se lee al abrir —en «Todos» y en la búsqueda, a la vez que la primera página; la pestaña de una clase lo espera, porque
+// necesita los ids de sus tipos— y la lista se muestra cuando llegan los dos; si el catálogo no llega, toda la lista es el error. Cada respuesta guarda el
+// pedido que la trajo: mientras no llega la del actual, se está cargando, y una que llega tarde no se muestra.
+export function useClientesDelPanel(opciones: Opciones) {
+  const { numeroGlobal } = opciones
+  const soloNombres = opciones.soloNombres === true
+  const [url, escribir] = useQueryStates(PARAMETROS, { history: 'replace' })
+  const pestana = pestanaDe(url[CLAVE_DE_CLASE], soloNombres)
+  const texto = url[CLAVE_DE_BUSQUEDA] ?? ''
+  const leido = useMemo(() => leerTextoDelPanel(texto), [texto])
+  const busqueda = leido.busqueda
+  const lista: ListaDelPanel = busqueda === null ? pestana : 'busqueda'
+  const cursorDeUrl = url[CLAVE_DE_CURSOR] ?? ''
+  const [intento, setIntento] = useState(0)
+  const { tipos, error: errorDelCatalogo } = useCatalogoDelPanel(intento)
+  const textoDeLaBusqueda = busqueda?.texto ?? ''
+  const clave = `${lista}|${textoDeLaBusqueda}|${cursorDeUrl}|${String(intento)}`
+
+  // La pestaña de una clase pide los tipos de esa clase: no sale hasta tener el catálogo. «Todos» y la búsqueda no dependen de él: que llegue no los vuelve a pedir.
+  const deUnaClase = lista === 'prospecto' || lista === 'cliente'
+  const resultado = usePaginaDelPanel({
+    clave,
+    espera: deUnaClase && tipos === null,
+    lista,
+    busqueda,
+    cursorDeUrl,
+    numeroGlobal,
+    soloNombres,
+    tiposDeLaClase: deUnaClase && tipos !== null ? idsDeTiposDeLaClase(tipos, lista).join('|') : '',
+  })
+
+  const leida = leidaDe(resultado, tipos, errorDelCatalogo)
 
   return {
     lista,

@@ -80,7 +80,12 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
   `<TiraDeMiniaturas>` (con `conTeclado`, ← → Home End marcan y Enter elige), `useImagenes()` y `useVisorDeGaleria()` (una galería ya leída); el visor vive en `?visor=<clave>&foto=<n>` (la foto cambia con `replace`).
 - `ui/lista/`: `UnaSolaVista` (con `preferida`), `ConmutadorDeVista` («Tabla | Tarjetas», `lib/vista-de-lista.ts`; va en «Vista y opciones»), `TablaDeLista`,
   `FilaDeLista`, `TarjetaDeLista`, `EsquinaDeAcciones` (el lugar del «⋯» en la tarjeta; `sobreImagen` sobre una foto), `MasAcciones`, `AbrirResumen`, `EnlaceDeLaFila` (el nombre como enlace a la ficha en una lista sin resumen: la fila y la tarjeta reciben `href` en vez de `alAbrir`, `ir-desde-la-fila.ts`), `SimbolosDeLista`, `PestanasDelResumen` (con `alto="lleno"` ocupa el alto de su contenedor; `panelDesplazable` hace que cada pestaña se desplace en su marco; `reparto="igual"`: toda la fila en partes iguales, con desplazamiento de costado si no caben).
-- `ui/monto.tsx` + `live.ts` + `guion-live.tsx` (Modo Live: sin símbolos de moneda), `ui/monto-en-texto.ts` (`useMontoEnTexto()`: un monto en un
+- Modo Live: `lib/modo-live.ts` (la cookie `modo-live`, `cookieDelLive()`, `liveDeLaCookie()` y el guion del primer pintado), `ui/live.ts`
+  (`useLive()`, la clase `live` de `<html>` y `localStorage`), `ui/proveedor-del-live.tsx` (`<ProveedorDelLive puedeEncender enElServidor>` del marco:
+  `useConmutarElLive()` escribe la cookie y hace `router.refresh()`, `useLiveEnElServidor()`; apaga el de quien ya no puede y avisa si otra pestaña
+  lo cambió) y `ui/estados/estado-oculto-en-live.tsx` (`<EstadoOcultoEnLive>` con «Salir del Modo Live», `salir-del-live.tsx`). Qué oculta lo decide
+  `equipo` (sus ajustes); `shared` sólo sabe si está encendido.
+- `ui/monto.tsx` + `guion-live.tsx` (Modo Live: sin símbolos de moneda), `ui/monto-en-texto.ts` (`useMontoEnTexto()`: un monto en un
   `title`, un `aria-label` o un aviso, sin moneda con el Live), `ui/monto-con-decimales.tsx` (`<MontoConDecimales>`: un monto con los «Decimales» de su
   celda, redondeado antes como la base; sin ellos, `<Monto>`), `regional.tsx`, `densidad.tsx`, `marca.tsx`, `estilo-de-marca.tsx`.
 - `lib/acciones-del-aviso.ts` (las acciones de un aviso como datos: `AccionDelAviso`, `resolverAcciones()`, `pedidoDe()`, `hrefDePanel()`; `ErrorApp.causa`)

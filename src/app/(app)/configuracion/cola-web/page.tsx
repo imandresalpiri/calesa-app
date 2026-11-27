@@ -8,6 +8,7 @@ import { EncabezadoDeConfiguracion } from '../_navegacion/encabezado-de-configur
 import { EsqueletoDeLaCola } from './esqueleto-de-la-cola'
 import { SECCION_DE_COLA_WEB } from './seccion'
 import { TableroDeLaCola } from './tablero-de-la-cola'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: SECCION_DE_COLA_WEB.titulo }
 
@@ -18,6 +19,10 @@ export const metadata: Metadata = { title: SECCION_DE_COLA_WEB.titulo }
 export default async function PaginaDeColaWeb({
   searchParams,
 }: PageProps<'/configuracion/cola-web'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   if (!puede(sesion.permisos, 'web.cola.gestionar')) {
     return <EstadoSinPermiso />

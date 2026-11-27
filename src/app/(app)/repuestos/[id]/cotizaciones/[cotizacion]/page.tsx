@@ -25,6 +25,7 @@ import { RUTAS } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
 import { EstadoSinPermiso, EstadoVacio } from '@/shared/ui/estados'
 import { EsqueletoListado } from '@/shared/ui/esqueletos'
+import { SiSeVeEnElLive } from '../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Cotización de repuestos' }
 
@@ -36,7 +37,9 @@ export default function PaginaDeUnaCotizacion({
 }: PageProps<'/repuestos/[id]/cotizaciones/[cotizacion]'>) {
   return (
     <Suspense fallback={<EsqueletoListado filas={6} columnas={6} />}>
-      <Cotizacion params={params} />
+      <SiSeVeEnElLive area="repuestos">
+        <Cotizacion params={params} />
+      </SiSeVeEnElLive>
     </Suspense>
   )
 }

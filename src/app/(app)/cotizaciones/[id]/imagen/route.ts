@@ -10,9 +10,20 @@ import {
   sinMonedaDeLaImagen,
   type ContextoLeido,
 } from '@/modules/cotizaciones'
-import { requerirSesion } from '@/modules/equipo'
+import { clienteDeLaCotizacion, requerirSesion, type EstadoDelLive } from '@/modules/equipo'
 import type { Permisos } from '@/shared/lib/permisos'
-import { asesorLeido, clienteDe, vehiculoDe, vehiculoDeLaTarjeta } from '../../datos-de-la-tarjeta'
+import {
+  asesorLeido,
+  clienteDe,
+  vehiculoDe,
+  vehiculoDeLaTarjeta,
+  type QuienNombraAlCliente,
+} from '../../datos-de-la-tarjeta'
+import {
+  origenesElegidosEnElLive,
+  origenOcultoEnElLive,
+  rutaOcultaEnElLive,
+} from '../../../_live/guarda'
 
 // La imagen de la tarjeta de una cotización guardada (`docs/COTIZADOR.md` › «La imagen de la tarjeta»): lo guardado en WebP, armado al pedirlo para quien lo pide
 // (su asesor es esa persona; el cliente, sólo si lo ve), con su sesión (la base decide; nunca la secret key). No se guarda en ningún lado del servidor.
@@ -62,14 +73,14 @@ const leida = <T>(lectura: Promise<T>) =>
     () => ({ valor: null, ok: false }),
   )
 
-// Lo que dibuja la imagen de quien pide: lo que esa persona ve, como el PDF (el cliente sólo con `leads.ver`; un error al leerlo, sin ese dato y sin que la imagen
-// quede `completa`) y ella como asesor.
+// Lo que dibuja la imagen de quien pide: lo que esa persona ve, como el PDF (el cliente sólo con `leads.ver`, o «Cliente» con el Modo Live que lo oculta; un error al
+// leerlo, sin ese dato y sin que la imagen quede `completa`) y ella como asesor.
 async function contextoDeQuienMira(
-  permisos: Permisos,
+  quien: QuienNombraAlCliente,
   cotizacion: { leadId: string | null; vehiculoId: string | null },
 ): Promise<ContextoLeido> {
   const [cliente, vehiculo, asesor] = await Promise.all([
-    leida(clienteDe(permisos, cotizacion.leadId)),
+    leida(clienteDe(quien, cotizacion.leadId)),
     leida(vehiculoDe(cotizacion.vehiculoId)),
     asesorLeido(),
   ])
@@ -83,13 +94,19 @@ async function contextoDeQuienMira(
   }
 }
 
-// La etiqueta de quien mira con sus permisos, o nula con «Ver como». Un fallo de la huella es la respuesta (404 o 500).
+// La etiqueta de quien mira con sus permisos, o nula con «Ver como» (y con el Live en algunos orígenes). Un fallo de la huella es la respuesta (404 o 500).
 async function etiquetaDe(
   id: string,
-  sesion: { usuarioId: string; perspectiva: { rol: unknown } },
+  sesion: {
+    usuarioId: string
+    perspectiva: { rol: unknown }
+    permisos: Permisos
+    live: EstadoDelLive
+  },
   variante: { ancho: ReturnType<typeof anchoDeLaImagen>; sinMoneda: boolean },
 ): Promise<{ etiqueta: string | null } | { respuesta: Response }> {
-  if (sesion.perspectiva.rol !== null) {
+  // Con «Ver como», o con el Modo Live en algunos orígenes (el de la cotización se sabe recién al leerla): sin ETag ni 304, se arma y se comprueba.
+  if (sesion.perspectiva.rol !== null || (await origenesElegidosEnElLive())) {
     return { etiqueta: null }
   }
   const huella = await leerHuellaDeLaImagen(id)
@@ -97,7 +114,13 @@ async function etiquetaDe(
     return { respuesta: falla(huella.error.codigo) }
   }
   return {
-    etiqueta: etiquetaDeLaImagen({ huella: huella.data, usuarioId: sesion.usuarioId, ...variante }),
+    etiqueta: etiquetaDeLaImagen({
+      huella: huella.data,
+      usuarioId: sesion.usuarioId,
+      ...variante,
+      // Con el Modo Live que oculta los clientes, otra imagen: «Cliente» en vez del nombre.
+      clienteOculto: clienteDeLaCotizacion(sesion.live, sesion.permisos) === 'reemplazar',
+    }),
   }
 }
 
@@ -107,6 +130,9 @@ export async function GET(
 ) {
   // La segunda barrera tras el proxy: sin sesión, al ingreso; con la cuenta dada de baja, a cerrar la sesión. Antes de leer nada.
   const sesion = await requerirSesion()
+  if (await rutaOcultaEnElLive('cotizaciones')) {
+    return texto(NO_DISPONIBLE, 404)
+  }
   const { id } = await params
   if (!z.guid().safeParse(id).success) {
     return texto(NO_DISPONIBLE, 404)
@@ -127,13 +153,20 @@ export async function GET(
       headers: { ...conEtiqueta(etiqueta), 'Server-Timing': tiempos({ huella }) },
     })
   }
+  let origenId: string | null = null
   const armada = await armarLaImagen(id, {
-    contextoDe: (hoja) => contextoDeQuienMira(sesion.permisos, hoja.cotizacion),
+    contextoDe: (hoja) => {
+      origenId = hoja.cotizacion.origenId
+      return contextoDeQuienMira(sesion, hoja.cotizacion)
+    },
     ancho,
     sinMoneda,
   })
   if (!armada.ok) {
     return falla(armada.error.codigo)
+  }
+  if (await origenOcultoEnElLive(origenId)) {
+    return texto(NO_DISPONIBLE, 404)
   }
   const { conRecalculo, completa } = armada.data
   const cabeceras =

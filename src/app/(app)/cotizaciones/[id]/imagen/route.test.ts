@@ -79,6 +79,7 @@ const activa = {
   estado: 'activa',
   permisos: [],
   perspectiva: { disponible: false, rol: null, roles: [] },
+  live: { encendido: false, puedeEncender: true },
 }
 const hoja = { cotizacion: { id: ID, leadId: LEAD, vehiculoId: VEHICULO } }
 const fallo = (codigo: string) => ({ ok: false, error: { codigo, mensaje: 'x' } })

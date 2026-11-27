@@ -160,8 +160,9 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
   const [anuncio, setAnuncio] = useState('')
   const tarjeta = nombradoPor(p.tarjeta)
   const usos = useMemo(() => ({ diseno: p.diseno, tarjeta }), [p.diseno, tarjeta])
+  // En sólo lectura (Modo Live) tampoco cambia la unidad de ejemplo (Supr o la barra espaciadora en Ejemplo).
   const alCambiarUnidad = (cambio: CambioDeLaUnidad) => {
-    p.alCambiarUnidad((u) => unidadConElCambio(u, cambio))
+    if (!editor.soloLectura) p.alCambiarUnidad((u) => unidadConElCambio(u, cambio))
   }
   const ed = useEdicionDeLaPlanilla({ editor, hoja, calculo, unidad: p.unidad, alCambiarUnidad })
   const { edicion } = ed
@@ -194,7 +195,7 @@ export function usePlanilla(p: PropsDeLaPlanilla) {
     elegir: cuadricula.elegir,
     alCambiarUnidad,
     abrirMenu: () => {
-      setMenuAbierto(true)
+      if (!editor.soloLectura) setMenuAbierto(true)
     },
     enfocar,
     anunciar: setAnuncio,

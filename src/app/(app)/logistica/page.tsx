@@ -2,6 +2,7 @@ import type { Metadata, Route } from 'next'
 import Link from 'next/link'
 import { connection } from 'next/server'
 import { Suspense } from 'react'
+import { getLive } from '@/modules/equipo'
 import {
   buscaEnTodos,
   CLAVE_DE_BUSQUEDA_DE_LA_CADENA,
@@ -27,6 +28,7 @@ import { abrirLaPestana } from './abrir-la-pestana'
 import { BarraDeLogistica } from './barra-de-logistica'
 import { EsqueletoDeLaBarra } from './esqueleto-de-la-barra'
 import { MarcasDeLogistica } from './marcas-de-logistica'
+import { SiSeVeEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Logística' }
 
@@ -39,12 +41,14 @@ export default function PaginaDeLogistica({ searchParams }: PageProps<'/logistic
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       {/* El h1 va fuera del Suspense: está también cargando y sin permiso. Sin cabecera visible: la ocupa la barra. */}
       <h1 className="sr-only">Logística</h1>
-      <Suspense fallback={<EsqueletoDeLaBarra />}>
-        <BarraDeLogistica searchParams={searchParams} pestana="cadena" />
-      </Suspense>
-      <Suspense fallback={<EsqueletoDeLaGrafica />}>
-        <Cadena searchParams={searchParams} />
-      </Suspense>
+      <SiSeVeEnElLive area="logistica.cadena">
+        <Suspense fallback={<EsqueletoDeLaBarra />}>
+          <BarraDeLogistica searchParams={searchParams} pestana="cadena" />
+        </Suspense>
+        <Suspense fallback={<EsqueletoDeLaGrafica />}>
+          <Cadena searchParams={searchParams} />
+        </Suspense>
+      </SiSeVeEnElLive>
     </div>
   )
 }
@@ -66,6 +70,8 @@ async function Cadena({ searchParams }: Pick<PageProps<'/logistica'>, 'searchPar
   const abierta = await abrirLaPestana(searchParams, 'cadena')
   if (abierta.tipo === 'estado') return abierta.estado
   const { permisos, origen, origenes, parametros } = abierta
+  // Con el Modo Live («Sólo la cadena»): sólo la gráfica, sin enlaces; ni «Dónde está» ni el lote.
+  if ((await getLive()).encendido) return <CadenaEnElLive origen={origen} />
 
   const q = (unParametro(parametros[CLAVE_DE_BUSQUEDA_DE_LA_CADENA]) ?? '').trim().slice(0, 100)
   const buscando = cumpleElMinimo(q, MINIMO_DE_BUSQUEDA_DE_LA_CADENA)
@@ -108,6 +114,20 @@ async function Cadena({ searchParams }: Pick<PageProps<'/logistica'>, 'searchPar
       {cadena}
       <DrawerDelLote origenId={origen.id} />
     </ProveedorDeLaSeleccion>
+  )
+}
+
+// La cadena con el Modo Live: la gráfica del origen, sin enlaces a las fases ni a configurar el flujo.
+function CadenaEnElLive({ origen }: { origen: OrigenDeLaCadena }) {
+  return (
+    <section
+      aria-label={`La cadena de ${origen.nombre}`}
+      className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3"
+    >
+      <Suspense key={origen.id} fallback={<EsqueletoDeLaGrafica />}>
+        <CadenaDelOrigen origenId={origen.id} enlaceAFlujos={false} sinEnlaces />
+      </Suspense>
+    </section>
   )
 }
 
@@ -163,13 +183,15 @@ async function DondeEsta({
   )
 }
 
-// La gráfica de un origen. Si falla la lectura, el error con «Reintentar»; un origen sin fases dice dónde configurarlas.
+// La gráfica de un origen. Si falla la lectura, el error con «Reintentar»; un origen sin fases dice dónde configurarlas. `sinEnlaces`: la del Modo Live.
 async function CadenaDelOrigen({
   origenId,
   enlaceAFlujos,
+  sinEnlaces = false,
 }: {
   origenId: string
   enlaceAFlujos: boolean
+  sinEnlaces?: boolean
 }) {
   const resumen = await leerResumenDeLaCadena(origenId)
   if (!resumen.ok) {
@@ -183,5 +205,5 @@ async function CadenaDelOrigen({
       />
     )
   }
-  return <GraficaDeLaCadena resumen={resumen.data} origenId={origenId} />
+  return <GraficaDeLaCadena resumen={resumen.data} origenId={origenId} sinEnlaces={sinEnlaces} />
 }

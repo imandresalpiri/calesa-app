@@ -30,6 +30,8 @@ type Props = {
   // `leads.crear` (lo decide la página con `puede()`): con él, el campo lleva «+», que abre «Nuevo lead».
   puedeCrear: boolean
   focoAlCerrar?: RefObject<HTMLButtonElement | null>
+  // El Modo Live con «Sólo nombres»: sólo el nombre de cada uno, sin pestañas de clase, sin buscar por número y sin «Nuevo lead».
+  soloNombres?: boolean
 }
 
 const PESTANAS = PESTANAS_DEL_PANEL.map((clave) => ({
@@ -50,6 +52,7 @@ export function PanelDelCliente({
   numeroGlobal,
   puedeCrear,
   focoAlCerrar,
+  soloNombres = false,
 }: Props) {
   const parsers = useMemo(
     () =>
@@ -110,7 +113,8 @@ export function PanelDelCliente({
           elegido={elegido}
           numeroGlobal={numeroGlobal}
           alElegir={ir}
-          alNuevoLead={puedeCrear ? nuevoLead : undefined}
+          alNuevoLead={puedeCrear && !soloNombres ? nuevoLead : undefined}
+          soloNombres={soloNombres}
         />
       ) : null}
     </Drawer>
@@ -123,10 +127,11 @@ function ContenidoDelPanel(props: {
   numeroGlobal: boolean
   alElegir: (id: string | null) => void
   alNuevoLead: (() => void) | undefined
+  soloNombres: boolean
 }) {
-  const { elegido, numeroGlobal, alElegir, alNuevoLead } = props
+  const { elegido, numeroGlobal, alElegir, alNuevoLead, soloNombres } = props
   const { lista, pestana, texto, leido, leida, cambiarPestana, cambiarTexto, irA, reintentar } =
-    useClientesDelPanel({ numeroGlobal })
+    useClientesDelPanel({ numeroGlobal, soloNombres })
   const tipoDelElegido =
     elegido && leida.estado === 'lista' ? nombreDelTipo(leida.tipos, elegido.tipoId) : null
   return (
@@ -137,6 +142,7 @@ function ContenidoDelPanel(props: {
         aviso={leido.aviso}
         alCambiar={cambiarTexto}
         alNuevoLead={alNuevoLead}
+        soloNombres={soloNombres}
       />
       {elegido ? (
         <ElegidoDelPanel
@@ -147,8 +153,10 @@ function ContenidoDelPanel(props: {
           }}
         />
       ) : null}
-      {lista === 'busqueda' ? (
-        <h3 className="text-(length:--text-sm) font-medium text-(--color-ink)">Resultados</h3>
+      {lista === 'busqueda' || soloNombres ? (
+        <h3 className="text-(length:--text-sm) font-medium text-(--color-ink)">
+          {lista === 'busqueda' ? 'Resultados' : TITULO_DE_LA_PESTANA.todos}
+        </h3>
       ) : (
         // Al 200 % en el celular no entran las tres: la barra se desplaza dentro de su ancho y dice por dónde sigue.
         <PestanasConDesborde

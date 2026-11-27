@@ -41,6 +41,8 @@ export type PedidoDelPanel = {
   busqueda: BusquedaDelPanel | null
   // Con `leads.numero_global.ver`, «#n» busca el global y el propio de cualquier creador; sin él, el propio (lo resuelve la base).
   todos: boolean
+  // El Modo Live con «Sólo nombres»: se pide sólo el nombre (`columnasDelPanel()`) y se busca sólo por nombre (un número no busca nada).
+  soloNombres?: boolean
 }
 
 const MENSAJE_DE_LECTURA = 'No se pudieron cargar los leads.'
@@ -51,13 +53,15 @@ type PaginaLeida = Resultado<Pagina<ClienteDelPanel>>
 // una clase suma `tipo_lead_id in (…)`, que la base resuelve como filtro sobre el recorrido de la cartera: con una clase que la persona no tiene recorre
 // su cartera entera (≤ 400 ms con 80.000, el límite declarado de 4-65, `docs/RENDIMIENTO.md`).
 async function leerMios(pedido: PedidoDelPanel): Promise<PaginaLeida> {
-  const { lista, tiposDeLaClase, cursor } = pedido
+  const { lista, tiposDeLaClase, cursor, soloNombres } = pedido
   // Una clase siempre tiene algún tipo (la base lo impone): sin ninguno no hay leads de ella.
   if (lista !== 'todos' && tiposDeLaClase.length === 0) {
     return ok({ filas: [], siguiente: null, anterior: null })
   }
   const orden = ORDEN_DEL_PANEL[lista]
-  const base = createClient().from('leads_cartera_vista').select(columnasDelPanel(lista))
+  const base = createClient()
+    .from('leads_cartera_vista')
+    .select(columnasDelPanel(lista, { soloNombres }))
   const filtrada = lista === 'todos' ? base : base.in('tipo_lead_id', [...tiposDeLaClase])
   const { data, error } = await ordenarPorCursor(
     aplicarCursor(filtrada, cursor, orden),
@@ -97,12 +101,18 @@ async function leerIdsDelNumero(numero: number, todos: boolean): Promise<Resulta
 // La búsqueda es la del listado (`leerPorCandidatos`): una ventana de `leads_candidatos()` —sin condiciones de página, los candidatos son la página y la ventana trae
 // hasta 300— y sus filas de `leads_vista_por_ids()` en el orden de alta. Sólo número: son los ids de ese número. La RLS dice cuáles ve quien mira.
 async function leerBusqueda(pedido: PedidoDelPanel): Promise<PaginaLeida> {
-  const { busqueda, cursor, todos } = pedido
+  const { busqueda, cursor, todos, soloNombres = false } = pedido
   if (busqueda === null) {
     return fallo('inesperado', 'No hay nada que buscar.')
   }
+  // Con «Sólo nombres» el número no se busca: sólo número, nada.
+  if (soloNombres && busqueda.soloNumero) {
+    return ok({ filas: [], siguiente: null, anterior: null })
+  }
   const delNumero =
-    busqueda.numero === null ? ok<string[]>([]) : await leerIdsDelNumero(busqueda.numero, todos)
+    busqueda.numero === null || soloNombres
+      ? ok<string[]>([])
+      : await leerIdsDelNumero(busqueda.numero, todos)
   if (!delNumero.ok) {
     return delNumero
   }
@@ -129,7 +139,7 @@ async function leerBusqueda(pedido: PedidoDelPanel): Promise<PaginaLeida> {
     aplicarCursor(
       createClient()
         .rpc('leads_vista_por_ids', { p_leads: ids })
-        .select(columnasDelPanel('busqueda')),
+        .select(columnasDelPanel('busqueda', { soloNombres })),
       cursor,
       orden,
     ),

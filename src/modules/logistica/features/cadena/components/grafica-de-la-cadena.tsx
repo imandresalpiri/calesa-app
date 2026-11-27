@@ -9,11 +9,13 @@ import { LeyendaDeLaGrafica } from './leyenda-de-la-grafica'
 type Props = {
   resumen: ResumenDeLaCadena
   origenId: string
+  // El Modo Live con «Sólo la cadena»: las fases no llevan a su lista (la lista no se ve).
+  sinEnlaces?: boolean
 }
 
 // La cadena de un origen como gráfica: una línea de recorrido con una fase por punto (una `<ol>`, porque es una secuencia de verdad), cada una con cuántos vehículos tiene y cuántos están
-// demorados o trabados. Server Component, sin JS propio. Los números son conteos con tope («1.000+»), nunca un total.
-export function GraficaDeLaCadena({ resumen, origenId }: Props) {
+// demorados o trabados. Server Component, sin JS propio. Los números son conteos con tope («1.000+»), nunca un total. Con `sinEnlaces`, las fases no son enlaces.
+export function GraficaDeLaCadena({ resumen, origenId, sinEnlaces = false }: Props) {
   const maximo = maximoDeLaCadena(resumen)
   return (
     <div className="grid gap-3">
@@ -25,6 +27,7 @@ export function GraficaDeLaCadena({ resumen, origenId }: Props) {
             fase={fase}
             origenId={origenId}
             maximo={maximo}
+            sinEnlace={sinEnlaces}
           />
         ))}
       </ol>

@@ -18,7 +18,7 @@ import {
   type PedidoDelListado,
 } from '@/modules/cotizaciones'
 import { HUECOS_DE_PAPELERA_EN_EL_LISTADO } from '@/modules/cotizaciones/pantallas/papelera-listado'
-import { leerVistas, requerirSesion } from '@/modules/equipo'
+import { leerVistas, requerirSesion, type EstadoDelLive } from '@/modules/equipo'
 import { MarcasDeVistoDeLaPagina } from '@/modules/equipo/pantallas/marcas-de-visto'
 import { getOrigenes } from '@/modules/origenes'
 import { leerVehiculo } from '@/modules/vehiculos'
@@ -38,6 +38,7 @@ import { conLaDelResumen } from './la-del-resumen'
 import { leerLaDelResumen, leerLaPagina, nombreDelLead } from './lecturas-de-la-pagina'
 import { ListadoConAcciones } from './listado-con-acciones'
 import { menusDeLaPagina, quienesDelResumen } from './menus-de-la-pagina'
+import { SiSeVeEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Cotizaciones' }
 
@@ -47,7 +48,9 @@ export const metadata: Metadata = { title: 'Cotizaciones' }
 export default function PaginaDeCotizaciones({ searchParams }: PageProps<'/cotizaciones'>) {
   return (
     <Suspense fallback={<EsqueletoListado filas={8} columnas={8} />}>
-      <Listado searchParams={searchParams} />
+      <SiSeVeEnElLive area="cotizaciones">
+        <Listado searchParams={searchParams} />
+      </SiSeVeEnElLive>
     </Suspense>
   )
 }
@@ -74,6 +77,23 @@ function juntoDelListado(permisos: Permisos): ReactNode {
 }
 
 type Parametros = Awaited<PageProps<'/cotizaciones'>['searchParams']>
+
+// Con el Modo Live en algunos orígenes la lista no pide «todos» (las lecturas usan la RLS, con los permisos reales): sin un origen que el Live muestre,
+// se pide el primero de los visibles (`visibles` ya sale de los permisos recortados).
+function conOrigenDelLive(
+  pedido: PedidoDelListado,
+  live: EstadoDelLive,
+  visibles: readonly { id: string }[],
+): PedidoDelListado {
+  if (!live.encendido || live.ajustes.origenes === 'todos') {
+    return pedido
+  }
+  if (pedido.origenId !== undefined && visibles.some((origen) => origen.id === pedido.origenId)) {
+    return pedido
+  }
+  const primero = visibles[0]
+  return primero === undefined ? pedido : { ...pedido, origenId: primero.id }
+}
 
 // Lo que pide la URL (con las preferencias de la persona): el tamaño, los filtros y el cursor, y si pide la lista agrupada por vehículo (`docs/UX.md` ›
 // «Cotizaciones»: la URL o la preferencia; con `?vehiculo=` la página no agrupa aunque se pida).
@@ -121,20 +141,18 @@ async function Listado({
     )
   }
   const esquema = esquemaDelListado(visibles)
-  const { tamano, pedido, agruparPedido } = pedidoDeLaPagina(
-    esquema,
-    parametros,
-    sesion.preferencias,
-  )
+  const deLaUrl = pedidoDeLaPagina(esquema, parametros, sesion.preferencias)
+  const { tamano, agruparPedido } = deLaUrl
+  const pedido = conOrigenDelLive(deLaUrl.pedido, sesion.live, visibles)
   const agrupada = agruparPedido && pedido.vehiculoId === undefined
-  const { pagina, cotizaciones, acotada } = await leerLaPagina(sesion.permisos, pedido, agrupada)
+  const { pagina, cotizaciones, acotada } = await leerLaPagina(sesion, pedido, agrupada)
   // La del resumen, si la URL trae una que no está en la página (también una línea del modal de un grupo); lo demás, en paralelo.
   const idDelResumenUrl = idDelResumen(unParametro(parametros[CLAVE_DE_RESUMEN_DE_COTIZACION]))
   const faltaLaDelResumen =
     idDelResumenUrl !== null && !cotizaciones.some((fila) => fila.id === idDelResumenUrl)
   const [delServidor, deUnLead, vistas] = await Promise.all([
-    faltaLaDelResumen ? leerLaDelResumen(sesion.permisos, idDelResumenUrl) : null,
-    nombreDelLead(sesion.permisos, pedido.leadId),
+    faltaLaDelResumen ? leerLaDelResumen(sesion, idDelResumenUrl) : null,
+    nombreDelLead(sesion, pedido.leadId),
     leerVistas('cotizaciones'),
   ])
   // El «⋯» de cada fila y el de la del resumen que no está en la página: su versión, sus marcas y lo que ofrece a quien mira (tres lecturas por clave primaria

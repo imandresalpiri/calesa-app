@@ -47,10 +47,15 @@ export const ORDEN_DEL_PANEL: Record<ListaDelPanel, OrdenDeCursor> = {
   busqueda: POR_ALTA,
 }
 
-// Lo que se pide de cada lead: lo que dibuja su fila (el nombre, los números, el tipo) y el instante por el que pagina su lista.
+// Lo que se pide de cada lead: lo que dibuja su fila (el nombre, los números, el tipo) y el instante por el que pagina su lista. Con `soloNombres` (el Modo Live con
+// «Sólo nombres»), sólo el nombre y ese instante: ni el tipo ni los números llegan al navegador.
 const COLUMNAS_COMUNES = 'id, nombre, tipo_lead_id, numero, numero_propio, numero_propio_creador'
-export function columnasDelPanel(lista: ListaDelPanel): string {
-  return `${COLUMNAS_COMUNES}, ${lista === 'busqueda' ? 'creado_en' : 'reciente_en'}`
+export function columnasDelPanel(
+  lista: ListaDelPanel,
+  { soloNombres = false }: { soloNombres?: boolean } = {},
+): string {
+  const instante = lista === 'busqueda' ? 'creado_en' : 'reciente_en'
+  return `${soloNombres ? 'id, nombre' : COLUMNAS_COMUNES}, ${instante}`
 }
 
 export type ClienteDelPanel = {
@@ -67,7 +72,8 @@ const esquemaDelPanel = z.array(
   z.object({
     id: z.guid(),
     nombre: z.string(),
-    tipo_lead_id: z.guid().nullable(),
+    // No llega con `soloNombres` (`columnasDelPanel()`).
+    tipo_lead_id: z.guid().nullish(),
     reciente_en: z.string().nullish(),
     creado_en: z.string().nullish(),
     ...CAMPOS_DE_NUMEROS,
@@ -92,7 +98,7 @@ export function clientesDelPanelDesde(
   const clientes = leidas.data.map((fila) => ({
     id: fila.id,
     nombre: fila.nombre,
-    tipoId: fila.tipo_lead_id,
+    tipoId: fila.tipo_lead_id ?? null,
     numeros: numerosDesde(fila),
     recienteEn: fila.reciente_en ?? null,
     creadoEn: fila.creado_en ?? null,

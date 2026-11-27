@@ -5,19 +5,36 @@ import {
   tituloDeLaCotizacion,
   type AsesorDeLaTarjeta,
 } from '@/modules/cotizaciones'
-import { leerClienteElegido } from '@/modules/leads'
+import { CLIENTE_EN_EL_LIVE, clienteDeLaCotizacion, type EstadoDelLive } from '@/modules/equipo'
+import { leerClienteElegido, leerNombresDeLeads } from '@/modules/leads'
 import { leerVehiculo } from '@/modules/vehiculos'
 import { urlPublicaONull } from '@/shared/lib/almacen'
 import { datosO } from '@/shared/lib/errores'
-import { puede, type Permisos } from '@/shared/lib/permisos'
+import type { Permisos } from '@/shared/lib/permisos'
 
-// Lo que una guardada lee para su tarjeta y la comparten su página y la ruta de su PDF: el cliente (sólo con `leads.ver`, y si quien mira lo ve), el vehículo (si
-// lo ve) y el asesor, que es quien mira. Un error al leer el cliente o el vehículo sube (la página lo lleva a su `error.tsx`); la ruta del PDF lo pasa por `oNulo()`
-// y el PDF sale sin ese dato. Un error al leer el asesor lo deja sin nombrar.
-export async function clienteDe(permisos: Permisos, leadId: string | null) {
-  return leadId === null || !puede(permisos, 'leads.ver')
-    ? null
-    : datosO(await leerClienteElegido(leadId))
+// Quien mira, para nombrar al cliente: sus permisos (los del Live, con el Live encendido) y su Modo Live.
+export type QuienNombraAlCliente = { permisos: Permisos; live: EstadoDelLive }
+
+// Lo que una guardada lee para su tarjeta y la comparten su página, la ruta de su PDF y la de su imagen: el cliente (sólo con `leads.ver`, y si quien mira lo ve), el
+// vehículo (si lo ve) y el asesor, que es quien mira. Con el Modo Live, el cliente sale como «Cliente» sin leer nada o, con «Sólo nombres», sólo su nombre
+// (`clienteDeLaCotizacion()`). Un error al leer el cliente o el vehículo sube (la página lo lleva a su `error.tsx`); la ruta del PDF lo pasa por `oNulo()` y el PDF
+// sale sin ese dato. Un error al leer el asesor lo deja sin nombrar.
+export async function clienteDe(
+  quien: QuienNombraAlCliente,
+  leadId: string | null,
+): Promise<{ nombre: string } | null> {
+  if (leadId === null) {
+    return null
+  }
+  const que = clienteDeLaCotizacion(quien.live, quien.permisos)
+  if (que !== 'leer') {
+    return que === 'reemplazar' ? { nombre: CLIENTE_EN_EL_LIVE } : null
+  }
+  if (quien.live.encendido && quien.live.nombresDeClientes) {
+    const nombre = datosO(await leerNombresDeLeads([leadId])).get(leadId)
+    return nombre === undefined ? null : { nombre }
+  }
+  return datosO(await leerClienteElegido(leadId))
 }
 
 export async function vehiculoDe(vehiculoId: string | null) {

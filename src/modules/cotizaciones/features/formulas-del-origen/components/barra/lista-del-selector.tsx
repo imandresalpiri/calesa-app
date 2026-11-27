@@ -23,7 +23,8 @@ type Props = {
   hayArchivadas: boolean
   menuDe: (formula: FormulaDeLaLista) => AccionDeMenu[]
   enElTope: boolean
-  alNueva: () => void
+  // Nulo en sólo lectura (Modo Live): sin «Nueva fórmula».
+  alNueva: (() => void) | null
   // Cierra el selector.
   alCerrar: () => void
 }
@@ -76,15 +77,17 @@ export function ListaDelSelector({
         </ul>
       )}
       {enElTope ? <AvisoDeTope texto={MENSAJE_DEL_TOPE} /> : null}
-      <div>
-        <BotonDeNuevaFormula
-          enElTope={enElTope}
-          alAbrir={() => {
-            alCerrar()
-            alNueva()
-          }}
-        />
-      </div>
+      {alNueva === null ? null : (
+        <div>
+          <BotonDeNuevaFormula
+            enElTope={enElTope}
+            alAbrir={() => {
+              alCerrar()
+              alNueva()
+            }}
+          />
+        </div>
+      )}
       {hayArchivadas ? <Archivadas archivadas={archivadas} fila={fila} /> : null}
     </div>
   )

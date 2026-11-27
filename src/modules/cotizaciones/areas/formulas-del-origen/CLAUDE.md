@@ -40,6 +40,8 @@ tarjeta sirve. Acá se lee, se dibuja y se pide.
   planilla, que abre con «Información de la fórmula» (`PANEL_DE_LA_INFORMACION` del núcleo) si hay alguno. En la Planilla y la Tarjeta, la barra pone `<RanuraDelEstado>`
   junto al estado, donde llega el ⓘ de cada una (`<AccionesEnLaBarra lugar="estado">`). «Activar» manda las ocho esperadas que se vieron (`esperadasDeActivar()`); un rechazo con `hint` ofrece ir al lugar
   (`destinoDelRechazoDeActivar()`). Eliminar una ya usada (23503) ofrece «Archivar».
+- Con el Modo Live (`soloLectura`, que pasa `src/app` con `sesion.live.encendido`), la barra sólo elige qué fórmula ver: el selector sin «Nueva fórmula»
+  (`alNueva` nulo) ni el «⋯» de cada fila, y sin montar los paneles; «Versiones» y «Tablas» no llegan.
 
 ## No se rompe
 

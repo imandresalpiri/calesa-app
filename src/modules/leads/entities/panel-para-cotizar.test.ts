@@ -76,6 +76,12 @@ describe('el orden y las columnas de cada lista', () => {
     expect(busqueda).not.toContain('reciente_en')
     expect(columnasDelPanel('cliente')).toBe(columnasDelPanel('todos'))
   })
+
+  it('con «Sólo nombres» (Modo Live) pide sólo el id, el nombre y el instante por el que pagina: ni el tipo ni los números', () => {
+    expect(columnasDelPanel('todos', { soloNombres: true })).toBe('id, nombre, reciente_en')
+    expect(columnasDelPanel('busqueda', { soloNombres: true })).toBe('id, nombre, creado_en')
+    expect(columnasDelPanel('todos', { soloNombres: false })).toBe(columnasDelPanel('todos'))
+  })
 })
 
 describe('leerTextoDelPanel', () => {
@@ -183,6 +189,20 @@ describe('clientesDelPanelDesde', () => {
   it('un lead sin tipo queda sin tipo', () => {
     const [cliente] = clientesDelPanelDesde([fila({ tipo_lead_id: null })], 'todos') ?? []
     expect(cliente?.tipoId).toBeNull()
+  })
+
+  it('la fila de «Sólo nombres» (sin tipo ni números) es una fila, sin tipo y sin números', () => {
+    const [cliente] =
+      clientesDelPanelDesde(
+        [{ id: ID, nombre: 'Ana', reciente_en: '2026-10-30T12:00:00+00:00' }],
+        'todos',
+      ) ?? []
+    expect(cliente).toMatchObject({
+      id: ID,
+      nombre: 'Ana',
+      tipoId: null,
+      numeros: { numero: null, numeroPropio: null, creadorDelPropio: null },
+    })
   })
 })
 

@@ -9,6 +9,7 @@ import { leerFaltas } from '../lectura-de-que-falta'
 import type { SeccionConFaltas } from '../que-falta'
 import { QueFaltaDeLaSeccion } from '../que-falta-de-la-seccion'
 import { gruposVisibles } from '../secciones'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Configuración' }
 
@@ -23,6 +24,10 @@ function tieneFaltas(clave: string): clave is SeccionConFaltas {
 // enlace), una frase de qué se configura y lo que falta, que llega después sin frenar las tarjetas. El menú de Configuración va a la
 // izquierda, como en cualquier sección (el layout).
 export default async function PaginaInicioDeConfiguracion() {
+  const oculto = await ocultoEnElLive('origenes.lectura')
+  if (oculto) {
+    return oculto
+  }
   const sesion = await requerirSesion()
   const grupos = gruposVisibles(sesion.permisos)
   if (grupos.length === 0) {

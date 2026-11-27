@@ -7,6 +7,7 @@ import { CLAVE_DE_CURSOR } from '@/shared/lib/filtros'
 import { LOTES_POR_PAGINA, leerCursor } from '@/shared/lib/paginacion'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Papelera de leads' }
 
@@ -16,6 +17,10 @@ export const metadata: Metadata = { title: 'Papelera de leads' }
 export default async function PaginaPapeleraDeLeads({
   searchParams,
 }: PageProps<'/leads/papelera'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   if (!puedeAbrirLaPapelera(sesion.permisos)) {
     return (

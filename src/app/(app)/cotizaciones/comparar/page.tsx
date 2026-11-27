@@ -17,6 +17,7 @@ import { datosO } from '@/shared/lib/errores'
 import { origenesCon } from '@/shared/lib/permisos'
 import { RUTAS, returnToSeguro, unParametro } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Comparar cotizaciones' }
 
@@ -41,6 +42,10 @@ async function Comparar({
 }: {
   searchParams: PageProps<'/cotizaciones/comparar'>['searchParams']
 }) {
+  const oculto = await ocultoEnElLive('cotizaciones')
+  if (oculto) {
+    return oculto
+  }
   await connection()
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   const volverA = returnToSeguro(unParametro(parametros['returnTo'])) ?? RUTAS.cotizaciones

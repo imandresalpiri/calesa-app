@@ -4,6 +4,7 @@ import { CLAVE_DEL_CONTENEDOR_ABIERTO, CLAVE_DE_FALTA, VALOR_DE_FALTA } from '@/
 import { CLAVE_DE_PANEL } from '@/shared/lib/filtros'
 import { unParametro } from '@/shared/lib/rutas'
 import { EmbarqueEnSuPagina } from './embarque-en-su-pagina'
+import { ocultoEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Embarque' }
 
@@ -13,6 +14,9 @@ export default async function PaginaDelEmbarque({
   params,
   searchParams,
 }: PageProps<'/logistica/embarques/[id]'>) {
+  // Con el Modo Live y la logística oculta: la pantalla oculta, antes de leer nada.
+  const oculto = await ocultoEnElLive('logistica')
+  if (oculto) return oculto
   const [sesion, { id }, parametros] = await Promise.all([requerirSesion(), params, searchParams])
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">

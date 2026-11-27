@@ -22,6 +22,25 @@ type Props = {
   claveDeLaUrl: string
   // El rol no puede guardar sin lead en este origen (`cotizaciones.crear.sin_lead`): sin cliente elegido, la barra dice «Obligatorio».
   obligatorio?: boolean
+  // El Modo Live de quien mira (lo decide la página): `'apagado'` oculta los clientes (la barra no abre nada); `'nombres'`, el panel sólo con nombres; null, como siempre.
+  enElLive?: 'apagado' | 'nombres' | null
+}
+
+const CAJA =
+  'flex min-h-[44px] w-full min-w-0 items-center gap-2 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) px-2 py-1 text-left md:pointer-fine:min-h-9'
+
+// Con el Modo Live que oculta los clientes: la misma caja y el mismo alto, sin abrir nada (el cliente se elige al salir del Live).
+function BarraApagadaPorElLive() {
+  return (
+    <div className="min-w-0">
+      <div role="group" aria-disabled="true" className={CAJA}>
+        <span className="sr-only">Cliente: </span>
+        <span className="min-w-0 flex-1 truncate text-(--color-ink-soft)">
+          Se elige al salir del Modo Live
+        </span>
+      </div>
+    </div>
+  )
 }
 
 // La barra del cliente sobre la hoja de cotizar, baja como la del vehículo (44 px en el celular, 36 con puntero fino desde `md`): una sola parada de Tab que abre el panel del cliente (`?panel=cliente`). Va fuera de la hoja (`[data-hoja]`) y del
@@ -33,6 +52,7 @@ export function BarraDelCliente({
   puedeCrear,
   claveDeLaUrl,
   obligatorio = false,
+  enElLive = null,
 }: Props) {
   const panel = usePanelPorUrl(PANEL_DEL_CLIENTE, [
     CLAVE_DE_CLASE,
@@ -41,6 +61,9 @@ export function BarraDelCliente({
   ])
   const montado = useAbiertoAlgunaVez(panel.abierto)
   const boton = useRef<HTMLButtonElement>(null)
+  if (enElLive === 'apagado') {
+    return <BarraApagadaPorElLive />
+  }
   if (!puedeVer) {
     return (
       <p className="text-(length:--text-sm) text-(--color-ink-soft)">No puedes ver los leads.</p>
@@ -57,7 +80,7 @@ export function BarraDelCliente({
         onClick={() => {
           panel.abrir()
         }}
-        className="flex min-h-[44px] w-full min-w-0 items-center gap-2 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) px-2 py-1 text-left hover:bg-(--color-surface-3) md:pointer-fine:min-h-9"
+        className={`${CAJA} hover:bg-(--color-surface-3)`}
       >
         <span className="sr-only">Cliente: </span>
         {elegido ? (
@@ -93,6 +116,7 @@ export function BarraDelCliente({
           numeroGlobal={numeroGlobal}
           puedeCrear={puedeCrear}
           focoAlCerrar={boton}
+          soloNombres={enElLive === 'nombres'}
         />
       ) : null}
     </div>

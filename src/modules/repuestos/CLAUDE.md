@@ -97,6 +97,10 @@ Abiertos que lo tocan: **8-13a** a **8-13c** y la revisión de seguridad del sto
 - **`flujo`** — la Cadena, `/repuestos?vista=cadena` (`pantallas/flujo-cadena.ts`: `CadenaDeRepuestos`, columnas por fase, `?fase=` en el celular):
   `leerCadenaDeRepuestos(filtros)`, `esquemaDeLaCadena`, `pedidoDeLaCadena`, `rutaDeLaCadena({ proyecto?, q? })`, claves `vista`, `q`, `proyecto`, `fase`.
   Una consulta por fase con `limit 51` (nunca por tarjeta), «Ver más» por cursor `(fase_desde, id)` (`verMasDeLaColumnaDeRepuestos`); `?proyecto=` sólo por URL.
+- **`flujo`** — los números del Modo Live (`/repuestos` con «Sólo estadísticas»; `pantallas/flujo-numeros.ts`: `<NumerosDeRepuestos>`, Server Component sin JS):
+  `leerNumerosDeRepuestos()` lee las fases como la Cadena y, por fase más «Sin fase», `proyecto_id` con el filtro y el índice de una columna y `limit
+TOPE_DE_LOS_NUMEROS + 1` (500), en paralelo. Una tarjeta por fase con «Ítems» y «Proyectos» (los distintos entre lo leído, «+» si los ítems pasan el
+  tope; `entities/flujo/numeros.ts`), sin descripciones, enlaces, vistas, ⚙ ni «Nuevo proyecto».
 - **`flujo`** — Inicio: `leerRepuestosPorMover(tope)` y `leerEsperasDeInicio(tope)` (`tope` 1..`TOPE_DE_INICIO` = 20, otro es `validacion`) para los
   bloques `repuestos-por-mover` (`repuestos.mover`) y `esperas-repuestos` (`repuestos.ver`) de `tablero`: ítem vivo, sin stock, en fase no final de un
   proyecto vivo (el segundo, sólo con vehículo), `limit tope + 1`, bajo la RLS de `repuestos.ver` (sin ella, vacío). «Por mover» es «en vuelo», no

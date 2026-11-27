@@ -14,10 +14,12 @@ import {
   esquemaDelListado,
   estadoDelListadoDe,
   leerCursorDeProyectos,
+  leerNumerosDeRepuestos,
   leerProyectosDelListado,
   nuevoProyectoEnLaUrl,
   pedidoDelListado,
 } from '@/modules/repuestos'
+import { NumerosDeRepuestos } from '@/modules/repuestos/pantallas/flujo-numeros'
 import { BotonNuevoProyecto, ListadoDeProyectos } from '@/modules/repuestos/pantallas/proyectos'
 import { leerLeadParaEnlazar } from '@/modules/leads'
 import { leerVehiculo } from '@/modules/vehiculos'
@@ -35,6 +37,7 @@ import { ListadoDeStock } from './listado-de-stock'
 import { NuevoProyecto, type LeadResueltoDeLaUrl, type VehiculoDeLaUrl } from './nuevo-proyecto'
 import { BotonDeConfigurar } from './boton-de-configurar'
 import { grupoDeVista } from './vistas-de-repuestos'
+import { ocultoEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Repuestos' }
 
@@ -110,10 +113,18 @@ async function Listado({
 }: {
   searchParams: PageProps<'/repuestos'>['searchParams']
 }) {
+  const oculto = await ocultoEnElLive('repuestos.estadisticas')
+  if (oculto) {
+    return oculto
+  }
   await connection()
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   if (!puede(sesion.permisos, 'repuestos.ver')) {
     return <EstadoSinPermiso />
+  }
+  // Con el Modo Live (la guarda ya dejó pasar sólo «Sólo estadísticas»): los números por fase, sin vistas, ⚙ ni «Nuevo proyecto».
+  if (sesion.live.encendido) {
+    return <NumerosDeRepuestos fases={datosO(await leerNumerosDeRepuestos())} />
   }
   // El ⚙ «Configurar» (Repuestos › Configuración) va en la fila de filtros de las tres vistas, sólo con `repuestos.configurar`.
   const configurar = puede(sesion.permisos, 'repuestos.configurar') ? <BotonDeConfigurar /> : null

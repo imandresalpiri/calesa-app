@@ -11,6 +11,7 @@ import {
   type VersionDelEditor,
 } from '../../../entities/diseno/version-del-editor'
 import type { ListaDeNiveles } from '../../../entities/nivel'
+import { SOLO_LECTURA_EN_EL_LIVE } from '../../../entities/solo-lectura-en-el-live'
 import { NuevoNivelAlVuelo } from '../../niveles/components/nuevo-nivel-al-vuelo'
 import type { TonoDelCatalogo } from './aspecto'
 import { useCreadosAlVuelo } from '../hooks/use-creados-al-vuelo'
@@ -38,6 +39,8 @@ type Props = {
   listaDeNiveles: ListaDeNiveles | null
   // `cotizaciones.configurar` (sin origen, como `tono_crear()`): ofrece «+ Nuevo color».
   puedeCrearColores: boolean
+  // Con el Modo Live: la hoja en sólo lectura en todo ancho, sin el editor.
+  soloLectura: boolean
 }
 
 // La versión que se edita y cuántas veces cambió por algo que el editor no hizo (va en su `key`).
@@ -53,7 +56,7 @@ function useGeneracion(leida: DisenoParaEditar | null) {
   return generacion.vez
 }
 
-// La pestaña «Hoja» de la Fórmula de un origen (Configuración › Orígenes): el editor de la hoja desde 1.024 px y, por debajo, la hoja en sólo lectura. Sin
+// La pestaña «Hoja» de la Fórmula de un origen (Configuración › Orígenes): el editor de la hoja desde 1.024 px y, por debajo (o con el Modo Live), la hoja en sólo lectura. Sin
 // versión o sin diseño, un vacío. El editor no se vuelve a montar al guardar (su `key` no lleva la versión); lo monta de nuevo «Recargar» tras un conflicto
 // (en la misma transición que trae la pestaña, sobre lo que haya entonces) y una versión que cambió por otra cosa (`pideOtroEditor()`: «Publicar…» de la barra).
 // «+ Nuevo nivel» (del núcleo, con su modal montado una vez aquí) y «+ Nuevo color» suman lo creado a lo leído hasta que la página lo traiga.
@@ -64,6 +67,7 @@ export function DisenoDelOrigen({
   listaDeNiveles,
   puedeCrearColores,
   tablas,
+  soloLectura,
   ...leidos
 }: Props) {
   const router = useRouter()
@@ -86,6 +90,17 @@ export function DisenoDelOrigen({
           ? 'Esta fórmula todavía no tiene una versión: guarda su planilla primero.'
           : 'Esta versión no tiene diseño de la hoja.'}
       </p>
+    )
+  }
+  if (soloLectura) {
+    return (
+      <HojaSoloLectura
+        origen={origen}
+        leida={leida}
+        diseno={diseno}
+        tonos={creados.tonos}
+        aviso={SOLO_LECTURA_EN_EL_LIVE}
+      />
     )
   }
   if (!editable) {

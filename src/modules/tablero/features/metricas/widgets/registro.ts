@@ -2,6 +2,7 @@ import {
   aplicarPreferencia,
   widgetsVisibles,
   type ClaveDeWidget,
+  type LiveDelTablero,
   type PreferenciaDeWidgets,
   type WidgetConClave,
 } from '../../../entities/widgets'
@@ -39,15 +40,20 @@ const CUERPOS: Record<ClaveDeWidget, CuerpoDeWidget> = {
 export type WidgetParaMontar = { widget: WidgetConClave; cuerpo: CuerpoDeWidget }
 
 // Los widgets de esta persona con su cuerpo: los que muestra, en el orden que eligió (el del catálogo si no eligió), y los
-// que ocultó. Sólo salen los que sus permisos dejan ver: una clave de la preferencia que no ve se ignora.
+// que ocultó. Sólo salen los que sus permisos dejan ver: una clave de la preferencia que no ve se ignora. Con el Modo Live, los suyos en el
+// orden del catálogo: la preferencia no cuenta (no se personaliza).
 export function widgetsParaMontar(
   permisos: Permisos,
-  preferencia: PreferenciaDeWidgets | null = null,
+  preferencia: PreferenciaDeWidgets | null,
+  live: LiveDelTablero,
 ): { mostrados: readonly WidgetParaMontar[]; ocultos: readonly WidgetParaMontar[] } {
   const montar = (widget: WidgetConClave): WidgetParaMontar => ({
     widget,
     cuerpo: CUERPOS[widget.clave],
   })
-  const { mostrados, ocultos } = aplicarPreferencia(widgetsVisibles(permisos), preferencia)
+  const { mostrados, ocultos } = aplicarPreferencia(
+    widgetsVisibles(permisos, live),
+    live.encendido ? null : preferencia,
+  )
   return { mostrados: mostrados.map(montar), ocultos: ocultos.map(montar) }
 }

@@ -4,6 +4,7 @@ import { ArbolDeCategorias } from '@/modules/origenes/pantallas/origen-categoria
 import { datosO } from '@/shared/lib/errores'
 import { abrirOrigen } from '../../abrir-origen'
 import { NoSeAbre } from '../../no-se-abre'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Categorías del origen' }
 
@@ -12,6 +13,10 @@ export const metadata: Metadata = { title: 'Categorías del origen' }
 export default async function PaginaCategoriasDelOrigen({
   params,
 }: PageProps<'/configuracion/origenes/[id]/categorias'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const abierto = await abrirOrigen((await params).id, 'categorias')
   if (abierto.tipo !== 'abierto') {
     return <NoSeAbre abierto={abierto} />

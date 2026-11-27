@@ -5,6 +5,7 @@ import { abrirLaPestana } from '../abrir-la-pestana'
 import { BandejaDelOrigen } from '../bandeja-del-dia'
 import { BarraDeLogistica } from '../barra-de-logistica'
 import { EsqueletoDeLaBarra } from '../esqueleto-de-la-barra'
+import { SiSeVeEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Bandeja del día · Logística' }
 
@@ -15,12 +16,14 @@ export default function PaginaDeLaBandeja({ searchParams }: PageProps<'/logistic
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       {/* El h1 va fuera del Suspense: está también cargando y sin permiso. Sin cabecera visible: la ocupa la barra. */}
       <h1 className="sr-only">Bandeja del día</h1>
-      <Suspense fallback={<EsqueletoDeLaBarra />}>
-        <BarraDeLogistica searchParams={searchParams} pestana="bandeja" />
-      </Suspense>
-      <Suspense fallback={<EsqueletoDeLaBandeja />}>
-        <Contenido searchParams={searchParams} />
-      </Suspense>
+      <SiSeVeEnElLive area="logistica">
+        <Suspense fallback={<EsqueletoDeLaBarra />}>
+          <BarraDeLogistica searchParams={searchParams} pestana="bandeja" />
+        </Suspense>
+        <Suspense fallback={<EsqueletoDeLaBandeja />}>
+          <Contenido searchParams={searchParams} />
+        </Suspense>
+      </SiSeVeEnElLive>
     </div>
   )
 }

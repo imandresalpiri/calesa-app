@@ -18,3 +18,13 @@ export function bytesDeClavePublica(clave: string): Uint8Array<ArrayBuffer> | nu
   for (let i = 0; i < binario.length; i += 1) bytes[i] = binario.charCodeAt(i)
   return bytes
 }
+
+// Al revés: los bytes de la clave con que se suscribió el navegador (`PushSubscription.options.applicationServerKey`) → base64url sin relleno, o nulo
+// si no son los 65 de una clave VAPID. Con ella se vuelve a suscribir sin pedirla al servidor (el push silenciado por el Modo Live).
+export function textoDeClavePublica(bytes: ArrayBuffer | Uint8Array): string | null {
+  const vista = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes)
+  if (vista.length !== LARGO_DE_CLAVE_PUBLICA) return null
+  let binario = ''
+  for (const byte of vista) binario += String.fromCharCode(byte)
+  return btoa(binario).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}

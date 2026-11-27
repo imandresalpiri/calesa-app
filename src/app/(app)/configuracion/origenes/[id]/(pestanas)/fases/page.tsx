@@ -3,6 +3,7 @@ import { unParametro } from '@/shared/lib/rutas'
 import { EditorDelFlujo } from '../../../../_flujo/editor-del-flujo'
 import { abrirOrigen } from '../../abrir-origen'
 import { NoSeAbre } from '../../no-se-abre'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Fases del origen' }
 
@@ -13,6 +14,10 @@ export default async function PaginaFlujoDelOrigen({
   params,
   searchParams,
 }: PageProps<'/configuracion/origenes/[id]/fases'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const [{ id }, parametros] = await Promise.all([params, searchParams])
   const abierto = await abrirOrigen(id, 'fases')
   if (abierto.tipo !== 'abierto') {

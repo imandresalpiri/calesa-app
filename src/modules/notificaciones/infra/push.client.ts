@@ -1,6 +1,6 @@
 // Lo del navegador para los avisos push: soporte, permiso, service worker y suscripción. Sólo corre en el cliente y
 // no importa nada del servidor. Quien guarda o quita la fila de la base es la action; esto es la mitad del navegador.
-import { bytesDeClavePublica } from '../entities/clave-publica'
+import { bytesDeClavePublica, textoDeClavePublica } from '../entities/clave-publica'
 
 export type EstadoDelNavegador = {
   soporte: boolean
@@ -88,5 +88,27 @@ export async function desuscribirEnElNavegador(): Promise<void> {
     await suscripcion?.unsubscribe()
   } catch {
     // Sin suscripción local no hay nada que deshacer: la fila de la base ya es lo que manda.
+  }
+}
+
+export type BajaDelNavegador = { endpoint: string; clavePublica: string | null }
+
+// Da de baja la suscripción local y dice cuál era y con qué clave pública se hizo (para volver a suscribir sin pedirla al servidor); nula si no
+// había ninguna o no se pudo leer. El push silenciado por el Modo Live.
+export async function darDeBajaEnElNavegador(): Promise<BajaDelNavegador | null> {
+  if (!soportaPush()) return null
+  try {
+    const registro = await navigator.serviceWorker.getRegistration('/')
+    const suscripcion = await registro?.pushManager.getSubscription()
+    if (!suscripcion) return null
+    const clave = suscripcion.options.applicationServerKey
+    const baja = {
+      endpoint: suscripcion.endpoint,
+      clavePublica: clave === null ? null : textoDeClavePublica(clave),
+    }
+    await suscripcion.unsubscribe()
+    return baja
+  } catch {
+    return null
   }
 }

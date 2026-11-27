@@ -3,6 +3,7 @@ import { getPermisos } from '@/modules/equipo'
 import { exportarLeadsEnCsv, type SalidaDeExportacion } from '@/modules/leads'
 import { esDelimitador } from '@/shared/lib/csv/escribir'
 import { ZONA_POR_DEFECTO } from '@/shared/lib/fechas'
+import { rutaOcultaEnElLive } from '../../_live/guarda'
 
 // La exportación de leads (parte 8). Es un POST: un GET se podría disparar desde otra página y gastaría
 // el cupo por hora de quien lo abre. Autentica por la cookie de sesión (el proxy ya la refrescó) y
@@ -82,6 +83,12 @@ export async function POST(peticion: Request) {
   const pedido = await leerPedido(peticion)
   if (!pedido) {
     return respuesta({ codigo: 'pedido', mensaje: 'No entendimos el pedido.' }, 400)
+  }
+  if (await rutaOcultaEnElLive('clientes')) {
+    return respuesta(
+      { codigo: 'oculto', mensaje: 'Esto no se muestra mientras compartes la pantalla.' },
+      404,
+    )
   }
   const [permisos, ajustesLeidos] = await Promise.all([getPermisos(), leerAjustes()])
   // Si no se pueden leer: la zona por defecto y el teléfono con «+» (como el listado).

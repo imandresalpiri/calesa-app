@@ -19,6 +19,8 @@ type Props = {
   puedeCrearNiveles: boolean
   // `cotizaciones.configurar` sin origen (como `tono_crear()`): el inspector ofrece «+ Nuevo color».
   puedeCrearColores: boolean
+  // Con el Modo Live (Configuración de orígenes en «Sólo lectura»): la hoja se ve y no se edita.
+  soloLectura?: boolean
 }
 
 // La pestaña «Hoja» de la Fórmula de un origen (Configuración › Orígenes) (el diseño de la hoja, 4.22-2), leída en el servidor con la sesión de quien mira y detrás de
@@ -30,12 +32,13 @@ export async function SeccionDelDiseno({
   formula,
   puedeCrearNiveles,
   puedeCrearColores,
+  soloLectura = false,
 }: Props) {
   const [leida, niveles, catalogo, lista, tablas] = await Promise.all([
     leerDisenoDelOrigen(formula.id),
     leerNivelesDelDiseno(),
     leerTonosDelCatalogo(),
-    puedeCrearNiveles ? leerNivelesDeAcceso() : null,
+    puedeCrearNiveles && !soloLectura ? leerNivelesDeAcceso() : null,
     leerCatalogoDeTablas(origen.id),
   ])
   // El tono es adorno: si su lectura falla, la vista previa se dibuja sin colores, el color de una sección no se elige (`catalogo` nulo) y la pestaña sigue.
@@ -60,7 +63,8 @@ export async function SeccionDelDiseno({
       tablas={tablas}
       // «+ Nuevo nivel» es un atajo: si su lista no se leyó, no se ofrece y la pestaña sigue.
       listaDeNiveles={lista?.ok ? lista.data : null}
-      puedeCrearColores={puedeCrearColores && catalogo.ok}
+      puedeCrearColores={puedeCrearColores && catalogo.ok && !soloLectura}
+      soloLectura={soloLectura}
     />
   )
 }

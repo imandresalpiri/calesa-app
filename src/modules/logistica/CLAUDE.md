@@ -74,6 +74,8 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   `FilterShell`, búsqueda y la selección del lote. **Un vehículo se abre siempre en su página** (`/logistica/vehiculo/[id]`), nunca en un drawer: el nombre es un `EnlaceALaUnidad` y un clic
   en el resto de la fila va ahí (`useIrALaUnidad`). La fila dice «En subasta» o «Sin resolver» cuando la subasta manda (`situacion` de `vehiculos`, la calcula la base). «Dónde está» es un formulario (`?q=`) sobre la gráfica, en el origen elegido; con dos orígenes o más, un enlace lo pasa a todos (`?en=todos`, cada fila con «· <origen>») o de vuelta.
   Con `?panel=lote` abre el lote de un contenedor o un embarque por su id («Mover el contenedor» de Embarques lo pide con `?origen=` de la pestaña: `GrupoDeLogistica.origenId`).
+  Con el Modo Live («Sólo la cadena», la única pantalla de Logística que se ve): `GraficaDeLaCadena sinEnlaces` (cada fase, la misma caja sin enlace) y la barra sólo con los
+  orígenes (su segunda fila queda, con su alto, sin pestañas ni ⚙); sin «Dónde está» ni el lote (`src/app/(app)/logistica/page.tsx`).
 - **Bandeja del día** (área `alertas`, `/logistica/bandeja`, del origen elegido): siete grupos en este orden —Demorados, Trabados, Documentos por aprobar, Documentos por vencer, Llegadas esperadas, Salen hoy,
   Subastas sin resolver— que lee `logistica_bandeja_grupo` (una lectura por grupo, en paralelo, cada una con su error aparte; un grupo vacío no se dibuja y todos vacíos dicen «Nada pendiente
   hoy», con «Ver la cadena» del mismo origen). La portada trae las primeras 5 de cada uno con el conteo hasta 100 y «Ver todos» → `/logistica/bandeja/[grupo]?origen=` (de a 20 por cursor, `leerCursor`; título

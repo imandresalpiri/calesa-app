@@ -1402,7 +1402,7 @@ objetos en el bucket. Lo que evita volver a dibujarla es la caché del navegador
   cliente y el vehículo vivos **sólo si quien pide los ve** (nombre; título, lote y VIN: no su `actualizado_en`, que una fase o una foto mueven), quien
   pide (su nombre, correo, WhatsApp, cargo y foto: el asesor) y los ajustes de la empresa. Todo por clave primaria o índice único, y dos catálogos de
   decenas de filas. Devuelve sólo el md5.
-- **La ETag** la arma la app (`etiquetaDeLaImagen()`): `"<huella>.<usuario>.v<VERSION_DEL_DIBUJO>.<ancho o g>"`, con `.s` al final la sin moneda (nunca un 304 de la otra variante). El usuario va aparte para que dos
+- **La ETag** la arma la app (`etiquetaDeLaImagen()`): `"<huella>.<usuario>.v<VERSION_DEL_DIBUJO>.<ancho o g>"`, con `.s` al final la sin moneda y `.c` la del Modo Live con el cliente oculto («Cliente» en vez del nombre): nunca un 304 de la otra variante. El usuario va aparte para que dos
   personas nunca compartan una; un cambio en cómo se dibuja sube `VERSION_DEL_DIBUJO` (`entities/tarjeta/etiqueta-de-la-imagen.ts`), sin migración.
 - **La ruta** `GET /cotizaciones/<id>/imagen` (`requerirSesion()`; `?ancho=480`, la miniatura; otro ancho se ignora; `?sin-moneda=1`, los montos sin su moneda, la que se ve con el Modo Live; otro valor se ignora): lo que no existe, está en la papelera
   o no se ve, el mismo 404 en texto que el PDF. Con un `If-None-Match` igual (también `W/` o en una lista), 304 sin dibujar nada; si no, la arma y la

@@ -8,6 +8,7 @@ import { puede } from '@/shared/lib/permisos'
 import { NoSeAbre } from '../../no-se-abre'
 import { abrirLaFormulaDeLaPestana, formulaPedida } from '../_formula/abrir-formula'
 import { MarcoDeLaFormula } from '../_formula/marco-de-la-formula'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Planilla de la fórmula' }
 
@@ -19,6 +20,10 @@ export default async function PaginaDeLaPlanilla({
   params,
   searchParams,
 }: PageProps<'/configuracion/origenes/[id]/planilla'>) {
+  const oculto = await ocultoEnElLive('origenes.lectura')
+  if (oculto) {
+    return oculto
+  }
   const [{ id }, consulta] = await Promise.all([params, searchParams])
   const abierta = await abrirLaFormulaDeLaPestana(id, 'planilla', formulaPedida(consulta))
   if (abierta.tipo !== 'abierto') {
@@ -34,19 +39,19 @@ export default async function PaginaDeLaPlanilla({
           formula={abierta.formula}
           tarjeta={leerLaTarjetaDeLaFormula(origen, abierta.formula.id)}
           TarjetaEnVivo={TarjetaEnVivoDiferida}
-          // El catálogo de colores es de la empresa: como `tono_crear()`, sin origen.
+          // El catálogo de colores es de la empresa: como `tono_crear()`, sin origen. Con el Modo Live, nada se crea.
           NuevoColor={
-            puede(abierta.sesion.permisos, 'cotizaciones.configurar')
+            !abierta.soloLectura && puede(abierta.sesion.permisos, 'cotizaciones.configurar')
               ? NuevoColorAlVueloDiferido
               : null
           }
           tiposDeCambio={getTiposCambio().then((tipos) =>
             tipos.map(({ clave, nombre: elNombre }) => ({ clave, nombre: elNombre })),
           )}
-          puedeCambiarTiposDeCambio={puede(
-            abierta.sesion.permisos,
-            'empresa.tipos_cambio.gestionar',
-          )}
+          puedeCambiarTiposDeCambio={
+            !abierta.soloLectura && puede(abierta.sesion.permisos, 'empresa.tipos_cambio.gestionar')
+          }
+          soloLectura={abierta.soloLectura}
         />
       ) : null}
     </MarcoDeLaFormula>

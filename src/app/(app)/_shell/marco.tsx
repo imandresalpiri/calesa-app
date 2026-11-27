@@ -8,6 +8,8 @@ import { LateralPlegable } from './lateral-plegable'
 
 type Props = {
   nombreEmpresa: string
+  // Si el servidor dibujó esta pantalla con el Modo Live encendido (`data-live` del contenido: lo esperan los e2e).
+  enElLive?: boolean
   // <Marca>, <BarraLateral> y <MenuUsuario> ya armados con los datos de la sesión.
   marca: ReactNode
   navegacion: ReactNode
@@ -35,6 +37,7 @@ type Props = {
 // permisos ni de ajustes: recibe las piezas ya resueltas.
 export function Marco({
   nombreEmpresa,
+  enElLive = false,
   marca,
   navegacion,
   menuUsuario,
@@ -92,7 +95,11 @@ export function Marco({
         </header>
         {aviso}
         {/* `md:pb-14`: el último renglón y el paginador quedan por encima de lo que flota abajo a la derecha (`flotantes.tsx`). */}
-        <main id="contenido" className="flex-1 p-4 md:p-6 md:pb-14">
+        <main
+          id="contenido"
+          data-live={enElLive ? 'encendido' : 'apagado'}
+          className="flex-1 p-4 md:p-6 md:pb-14"
+        >
           {children}
         </main>
       </div>

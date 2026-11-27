@@ -5,11 +5,16 @@ import { EncabezadoDeConfiguracion } from '../../_navegacion/encabezado-de-confi
 import { entrarASubseccion } from '../entrar'
 import { LEGALES_DEL_SITIO } from '../seccion'
 import { SeccionLegales } from './seccion'
+import { ocultoEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: LEGALES_DEL_SITIO.titulo }
 
 // Configuración › Sitio web › Legales (`web.ajustes.gestionar`): los términos y la privacidad, una tarjeta por documento que se edita en un modal.
 export default async function PaginaDeLegalesDelSitio() {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const { permisos } = await requerirSesion()
   if (entrarASubseccion(permisos, LEGALES_DEL_SITIO) === 'sin-permiso') {
     return <EstadoSinPermiso />

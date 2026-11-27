@@ -15,7 +15,7 @@ export async function redirigirAlEntrar(
   await connection()
   const sesion = await requerirSesion()
   const recordadas = await leerLasPestanasRecordadas(sesion.usuarioId)
-  const abiertas = pestanasDelOrigen(sesion.permisos, id)
+  const abiertas = pestanasDelOrigen(sesion.permisos, id, sesion.live.encendido)
     .filter((pestana) => pestana.motivo === undefined)
     .map((pestana) => pestana.clave)
   return redireccionPermanente(

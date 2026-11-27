@@ -7,7 +7,7 @@ Abierto: **7-5** (pedida sin red, la suscripción de fondo pone su barra «Sin c
 ## Entra y sale
 
 - Entra: `notificar()` desde RPC y triggers de otros módulos; suscripciones push del navegador.
-- Sale: `<Campana>` (`shell.client.ts`), `pantallas/notificaciones.ts`, `pantallas/perfil.ts` (`<NotificacionesDelPerfil>`: la tarjeta «Notificaciones» de `/perfil` —el interruptor del push a la vista— y su modal, con los avisos por tipo y «Tus navegadores»; `#notificaciones` lo abre),
+- Sale: `<Campana>` y `<SilencioDelPushEnElLive>` (`shell.client.ts`; el segundo, `src/app/(app)/_shell/huecos/silencio-del-push.tsx`, dentro de `<ProveedorDelLive>`), `pantallas/notificaciones.ts`, `pantallas/perfil.ts` (`<NotificacionesDelPerfil>`: la tarjeta «Notificaciones» de `/perfil` —el interruptor del push a la vista— y su modal, con los avisos por tipo y «Tus navegadores»; `#notificaciones` lo abre),
   `leerPaginaDeNotificaciones()` y `filtroDeLista()`. Depende de `equipo`.
 
 ## Archivos clave
@@ -57,3 +57,8 @@ Abierto: **7-5** (pedida sin red, la suscripción de fondo pone su barra «Sin c
 - `usePush()` usa `getRegistration()` (nunca `ready`, que se cuelga sin registro) y registra `/sw.js` al encender (el layout sólo lo registra en
   producción). Si la base rechaza la suscripción, da de baja la del navegador. Dos pestañas pueden pisarse una clave de la preferencia.
   `notificationclick` sólo abre rutas del mismo origen con una sola `/` inicial; si no, `/notificaciones` (`sw.test.ts`).
+- **El push con el Modo Live** (`entities/silencio-del-push.ts`, `features/push/silenciar-en-el-live.client.ts`): con el Live que dibujó el servidor
+  encendido, el dispositivo da de baja su suscripción (`darDeBajaEnElNavegador()`), quita su fila y deja en `localStorage` la marca
+  `push-silenciado-por-live` con la clave pública con que estaba suscrito (`textoDeClavePublica()`); al apagarlo, con la marca y el permiso dado, vuelve a
+  suscribir con esa clave y guarda la fila (nunca pide permiso). El código se pide por `import()` sólo al cambiar el estado; las pestañas se turnan con
+  `navigator.locks` y releen la marca. No se descarta en `sw.js`: Chrome exige mostrar algo por cada push (`userVisibleOnly`).

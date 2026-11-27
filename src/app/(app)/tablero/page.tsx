@@ -4,6 +4,7 @@ import { leerAjustes } from '@/modules/empresa'
 import { requerirSesion } from '@/modules/equipo'
 import { ZONA_POR_DEFECTO } from '@/shared/lib/fechas'
 import { PanelDelTablero } from '@/modules/tablero/pantallas/tablero'
+import { ocultoEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Tablero' }
 
@@ -11,6 +12,10 @@ type Props = { searchParams: Promise<{ periodo?: string | string[] }> }
 
 // El tablero de métricas: el período viene de la URL y los widgets, de los permisos de quien entra.
 export default async function PaginaTablero({ searchParams }: Props) {
+  const oculto = await ocultoEnElLive('tablero')
+  if (oculto) {
+    return oculto
+  }
   // La sesión y los ajustes se leen al pedir la pantalla, no al prepararla.
   await connection()
   const [sesion, ajustes, { periodo }] = await Promise.all([
@@ -23,6 +28,7 @@ export default async function PaginaTablero({ searchParams }: Props) {
       permisos={sesion.permisos}
       periodo={periodo}
       preferencia={sesion.preferencias.widgetsDelTablero}
+      live={sesion.live}
       // Si no se pueden leer los ajustes: la zona por defecto (como la bandeja).
       zona={ajustes.ok ? ajustes.data.ajustes.zonaHoraria : ZONA_POR_DEFECTO}
     />

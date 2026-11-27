@@ -14,12 +14,22 @@ import { ListaEquipo } from '@/modules/equipo/pantallas/equipo'
 import { datosO } from '@/shared/lib/errores'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
+import { SiSeVeEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Equipo' }
 
 // Las personas del equipo. Verlas pide `equipo.usuarios.ver`; invitar, cambiar roles, bloquear y
 // dar de baja, `equipo.usuarios.gestionar` (y la base lo vuelve a comprobar en cada RPC).
-export default async function PaginaEquipo({ searchParams }: PageProps<'/configuracion/equipo'>) {
+// Con el Modo Live y el área oculta, la pantalla «Oculto en Modo Live» antes de leer nada (`loading.tsx` es su `<Suspense>`).
+export default function PaginaEquipo(props: PageProps<'/configuracion/equipo'>) {
+  return (
+    <SiSeVeEnElLive area="siempre-oculto">
+      <Equipo {...props} />
+    </SiSeVeEnElLive>
+  )
+}
+
+async function Equipo({ searchParams }: PageProps<'/configuracion/equipo'>) {
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   const puedeGestionar = puede(sesion.permisos, 'equipo.usuarios.gestionar')
   if (!puedeGestionar && !puede(sesion.permisos, 'equipo.usuarios.ver')) {

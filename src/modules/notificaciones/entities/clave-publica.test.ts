@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bytesDeClavePublica, LARGO_DE_CLAVE_PUBLICA } from './clave-publica'
+import { bytesDeClavePublica, LARGO_DE_CLAVE_PUBLICA, textoDeClavePublica } from './clave-publica'
 
 function base64url(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes))
@@ -24,5 +24,23 @@ describe('bytesDeClavePublica', () => {
     expect(bytesDeClavePublica(base64url(new Uint8Array(32)))).toBeNull()
     expect(bytesDeClavePublica('')).toBeNull()
     expect(bytesDeClavePublica('abc+/=')).toBeNull()
+  })
+})
+
+describe('textoDeClavePublica', () => {
+  it('los 65 bytes → la clave en base64url, que vuelve a dar esos bytes', () => {
+    const original = Uint8Array.from(
+      { length: LARGO_DE_CLAVE_PUBLICA },
+      (_, i) => (i * 13 + 251) % 256,
+    )
+    const clave = textoDeClavePublica(original.buffer)
+    expect(clave).toBe(base64url(original))
+    expect(Array.from(bytesDeClavePublica(clave ?? '') ?? [])).toEqual(Array.from(original))
+    expect(textoDeClavePublica(original)).toBe(clave)
+  })
+
+  it('otro largo no es una clave', () => {
+    expect(textoDeClavePublica(new Uint8Array(32))).toBeNull()
+    expect(textoDeClavePublica(new ArrayBuffer(0))).toBeNull()
   })
 })

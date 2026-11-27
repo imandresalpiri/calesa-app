@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Resultado } from '@/shared/lib/errores'
+import { ProveedorDelLive } from '@/shared/ui/proveedor-del-live'
 import type { LecturaDeLaTarjeta } from '../../../entities/tarjeta/lectura-de-la-tarjeta'
 import { tarjetaDesde } from '../../../entities/tarjeta/lectura-de-la-tarjeta'
 import { calculoDePrueba, crudaDeLaTarjeta } from '../../../entities/tarjeta/tarjeta.soporte'
@@ -44,18 +45,21 @@ const pagina: DatosDeLaPagina = {
 }
 
 function dibujar(mas: Partial<React.ComponentProps<typeof VistaPreviaDeLaTarjeta>> = {}) {
+  // El interruptor del pie sale sólo para quien puede encender el Live (lo dice el marco).
   return render(
-    <VistaPreviaDeLaTarjeta
-      abierta
-      cerrar={() => undefined}
-      formulaId={FORMULA}
-      calculo={calculoDePrueba()}
-      estado={{ tipo: 'al_dia' }}
-      monedaBs="BOB"
-      avisos={{ difiere: false, cambiosSinGuardar: false }}
-      pagina={pagina}
-      {...mas}
-    />,
+    <ProveedorDelLive puedeEncender enElServidor={false}>
+      <VistaPreviaDeLaTarjeta
+        abierta
+        cerrar={() => undefined}
+        formulaId={FORMULA}
+        calculo={calculoDePrueba()}
+        estado={{ tipo: 'al_dia' }}
+        monedaBs="BOB"
+        avisos={{ difiere: false, cambiosSinGuardar: false }}
+        pagina={pagina}
+        {...mas}
+      />
+    </ProveedorDelLive>,
   )
 }
 

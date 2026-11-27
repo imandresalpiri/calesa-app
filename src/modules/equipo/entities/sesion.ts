@@ -2,6 +2,13 @@
 // Sale de la RPC `mi_sesion()` (una sola ida a la base). Acá sólo se le da forma.
 import { z } from 'zod'
 import { concesionesDe, type Permisos } from '@/shared/lib/permisos'
+import {
+  LIVE_APAGADO,
+  estadoDelLive,
+  liveDeLaSesionDesde,
+  type EstadoDelLive,
+} from './live-combinar'
+import { permisosDelLive } from './live-permisos'
 import { SIN_PERSPECTIVA, perspectivaDesde, type Perspectiva } from './perspectiva'
 import { preferenciasDesde, type Preferencias } from './preferencias'
 import { VISTOS_POR_DEFECTO } from './vistos'
@@ -30,10 +37,13 @@ export type Sesion = {
   // Los nombres salen de la base: sirven para mostrarlos, nunca para decidir qué se puede hacer.
   roles: RolDeLaPersona[]
   // Los EFECTIVOS: con una perspectiva «ver como» activa, los que la interfaz debe dibujar
-  // (nunca más que los reales). Vacío si la cuenta no está activa o no tiene ningún rol.
+  // (nunca más que los reales); con el Modo Live encendido, además recortados a lo que dejan ver sus
+  // ajustes (`permisosDelLive`). Vacío si la cuenta no está activa o no tiene ningún rol.
   permisos: Permisos
   perspectiva: Perspectiva
   preferencias: Preferencias
+  // El Modo Live de este request: la cookie `modo-live` y los ajustes del rol y de la persona.
+  live: EstadoDelLive
 }
 
 const esquemaSesion = z.object({
@@ -58,15 +68,27 @@ const esquemaSesion = z.object({
   permisos: z.unknown(),
   perspectiva: z.unknown(),
   preferencias: z.unknown(),
+  live: z.unknown(),
 })
 
 // `null` cuando la RPC no devolvió nada: hay sesión de Auth pero no hay perfil (la cuenta se
-// eliminó con la sesión abierta). Una forma inesperada sí es un error: lanza.
-export function sesionDesde(json: unknown): Sesion | null {
+// eliminó con la sesión abierta). Una forma inesperada sí es un error: lanza. `cookieDelLive`: la
+// cookie `modo-live` dice que está encendido.
+export function sesionDesde(
+  json: unknown,
+  { cookieDelLive = false }: { cookieDelLive?: boolean } = {},
+): Sesion | null {
   if (json === null || json === undefined) {
     return null
   }
-  const { estado, perfil, roles, permisos, perspectiva, preferencias } = esquemaSesion.parse(json)
+  const { estado, perfil, roles, permisos, perspectiva, preferencias, live } =
+    esquemaSesion.parse(json)
+  const efectivos = concesionesDe(permisos)
+  const estadoLive = estadoDelLive({
+    cookie: cookieDelLive,
+    live: liveDeLaSesionDesde(live),
+    permisos: efectivos,
+  })
   return {
     usuarioId: perfil.id,
     estado,
@@ -81,9 +103,10 @@ export function sesionDesde(json: unknown): Sesion | null {
       color: rol.color,
       esPrincipal: rol.es_principal,
     })),
-    permisos: concesionesDe(permisos),
+    permisos: estadoLive.encendido ? permisosDelLive(efectivos, estadoLive.ajustes) : efectivos,
     perspectiva: perspectivaDesde(perspectiva),
     preferencias: preferenciasDesde(preferencias),
+    live: estadoLive,
   }
 }
 
@@ -114,6 +137,7 @@ export function sesionSinPerfil(usuarioId: string, email: string): Sesion {
       menuPlegado: null,
       ultimoOrigenDeLogistica: null,
     },
+    live: LIVE_APAGADO,
   }
 }
 

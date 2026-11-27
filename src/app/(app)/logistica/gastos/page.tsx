@@ -24,6 +24,7 @@ import { CLAVE_DE_UNIDAD } from '../clave-de-unidad'
 import { DrawerDeLaUnidad } from '../drawer-de-la-unidad'
 import { MarcasDeLogistica } from '../marcas-de-logistica'
 import { UnidadAbierta } from '../unidad-abierta'
+import { SiSeVeEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Gastos' }
 
@@ -37,12 +38,14 @@ export default function PaginaDeGastosDeLogistica({
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       {/* El h1 va fuera del Suspense: está también cargando y sin permiso (9.12-5, R3). Sin cabecera visible: la ocupa la barra. */}
       <h1 className="sr-only">Gastos</h1>
-      <Suspense fallback={<EsqueletoDeLaBarra />}>
-        <BarraDeLogistica searchParams={searchParams} pestana="gastos" />
-      </Suspense>
-      <Suspense fallback={<EsqueletoListado filas={8} columnas={5} />}>
-        <Listado searchParams={searchParams} />
-      </Suspense>
+      <SiSeVeEnElLive area="logistica">
+        <Suspense fallback={<EsqueletoDeLaBarra />}>
+          <BarraDeLogistica searchParams={searchParams} pestana="gastos" />
+        </Suspense>
+        <Suspense fallback={<EsqueletoListado filas={8} columnas={5} />}>
+          <Listado searchParams={searchParams} />
+        </Suspense>
+      </SiSeVeEnElLive>
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { RUTAS, unParametro } from '@/shared/lib/rutas'
 import { EsqueletoDeNotificaciones } from './esqueleto-de-notificaciones'
 import { RUTAS_CON_PANTALLA } from '../_shell/rutas-con-pantalla'
 import { ListaConAcciones } from './lista-con-acciones'
+import { ocultoEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Notificaciones' }
 
@@ -17,6 +18,10 @@ async function Avisos({
 }: {
   parametros: PageProps<'/notificaciones'>['searchParams']
 }) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   await connection()
   const [sesion, pedidos] = await Promise.all([requerirSesion(), parametros])
   const ver = filtroDeLista(unParametro(pedidos['ver']))

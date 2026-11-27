@@ -65,7 +65,9 @@ Leads (prospectos y clientes) con teléfono principal único y enmascarado salvo
   listado no lee los vehículos del lead (`entities/oportunidad-rapida.ts`). «Ver oportunidades» (lead en la cartera, sin `leads.editar`): `rutaDeLasOportunidadesDe()`.
 - Hoja de cotizar: `<BarraDelCliente>` (baja, como la del vehículo: 44 px, 36 con puntero fino, en la fila de la cabecera de la hoja; con `obligatorio`: sin cliente elegido, una etiqueta «Obligatorio» propia, no `<Badge>`, que arrastra Base UI a la carga en frío; `pantallas/cotizar` también saca `PANEL_DEL_CLIENTE`, que la página pasa a la hoja para su «Elegir el cliente») y su panel (`features/panel-para-cotizar/`, `?panel=cliente&clase=&buscar=&cursor=`: «míos» por
   `reciente_en` o búsqueda por nombre o `#n`; elegir escribe `?lead=` con `history: 'replace', shallow: false`; lecturas del navegador en
-  `infra/panel-para-cotizar.client.ts`). Su «+» abre el alta con `?panel=nuevo-lead&elegir=<clave>` (`claveParaElegir()`: 1 a 20 minúsculas, ni
+  `infra/panel-para-cotizar.client.ts`). Con el Modo Live (`enElLive`, lo decide `src/app` con `barraDelClienteEnElLive()` de `equipo`): `'apagado'`, la misma
+  caja con `aria-disabled` y «Se elige al salir del Modo Live», sin panel; `'nombres'`, el panel con `soloNombres` (pide sólo `id, nombre` y el instante del
+  cursor, sin pestañas de clase, sin buscar por número y sin «Nuevo lead»). El «+» del panel abre el alta con `?panel=nuevo-lead&elegir=<clave>` (`claveParaElegir()`: 1 a 20 minúsculas, ni
   `panel` ni `elegir`): `usePanelDeAlta()` entrega `paraElegir` y `elegirElCreado(id)`, el aviso va sin «Abrir ficha» y el foco vuelve a la barra
   (`data-elige`); si el teléfono ya es de un lead que se ve, su aviso ofrece «Elegir» (`alElegir` = `elegirElCreado`). «Cotizar lead» del «⋯» de la ficha:
   `paraCotizar`, de `src/app`.

@@ -9,6 +9,7 @@ import {
   TAMANO_DE_COLUMNA,
   TAMANO_DE_ESTE_VEHICULO,
   TAMANO_DE_LA_FASE,
+  TAMANO_DE_PERSONAS_DEL_LIVE,
   TAMANO_DE_VER_MAS,
   TOPE_DE_LO_CARGADO,
   TOPE_DEL_EQUIPO,
@@ -139,6 +140,13 @@ export const RPC_PAGINADAS_DEL_NUCLEO: readonly RpcPaginada[] = [
     parametro: 'p_limite',
     pideElCodigo: TOPE_DEL_EQUIPO + 1,
     lista: 'lista del equipo',
+  },
+  // «Ajustes por persona» de Configuración › Modo Live pide `TAMANO_DE_PERSONAS_DEL_LIVE + 1` (la primera página en el servidor y «Ver más» en el navegador).
+  {
+    rpc: 'live_personas',
+    parametro: 'p_limite',
+    pideElCodigo: TAMANO_DE_PERSONAS_DEL_LIVE + 1,
+    lista: '«Ajustes por persona» del Modo Live',
   },
   {
     rpc: 'embudo_etapa_pagina',

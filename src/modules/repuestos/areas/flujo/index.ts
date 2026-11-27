@@ -1,4 +1,4 @@
-// La API de servidor del área `flujo` de `repuestos` (8.13): `esperasQueDestraban(vehiculoId)` para el panel del vehículo de `logistica`, `leerItemDelPanel(id)` e `itemAbiertoDe(parametros)` para el panel del ítem (`?item=`), y la Cadena (`?vista=cadena`): `leerCadenaDeRepuestos(filtros)`, sus claves y `rutaDeLaCadena` (los «Ver todas» de Inicio); y las dos lecturas de los bloques de Inicio con los textos de sus filas (8.13-4); y el flujo de los pasos de `/repuestos/[id]` (`leerFlujoDeLosPasos`) con sus paneles. Sale por el `index.ts` de la raíz.
+// La API de servidor del área `flujo` de `repuestos` (8.13): `esperasQueDestraban(vehiculoId)` para el panel del vehículo de `logistica`, `leerItemDelPanel(id)` e `itemAbiertoDe(parametros)` para el panel del ítem (`?item=`), y la Cadena (`?vista=cadena`): `leerCadenaDeRepuestos(filtros)`, sus claves y `rutaDeLaCadena` (los «Ver todas» de Inicio); los números del Modo Live (`leerNumerosDeRepuestos()`); y las dos lecturas de los bloques de Inicio con los textos de sus filas (8.13-4); y el flujo de los pasos de `/repuestos/[id]` (`leerFlujoDeLosPasos`) con sus paneles. Sale por el `index.ts` de la raíz.
 export { esperasQueDestraban } from '../../infra/flujo/esperas'
 export {
   resumenDeLasEsperas,
@@ -6,6 +6,7 @@ export {
   type ResumenDeLaTarjetaDeEsperas,
 } from '../../entities/flujo/tarjeta-de-esperas'
 export { leerCadenaDeRepuestos } from '../../infra/flujo/cadena'
+export { leerNumerosDeRepuestos } from '../../infra/flujo/numeros'
 export { leerEsperasDeInicio, leerRepuestosPorMover } from '../../infra/flujo/inicio'
 export { leerItemDelPanel } from '../../infra/flujo/item-del-panel'
 export { leerFlujoDeLosPasos } from '../../infra/flujo/pasos'
