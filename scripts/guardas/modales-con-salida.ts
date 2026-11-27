@@ -78,6 +78,11 @@ export const MODALES: Record<string, RegistroDeModal> = {
       '«Ayuda» del menú del perfil: sólo lista los enlaces de ayuda de quien mira, que se abren en otra pestaña; nada tipeado',
     tambien: ['src/app/(app)/_shell/ayuda/lista-de-ayuda.tsx'],
   },
+  // --- origenes
+  'src/modules/origenes/features/campos/components/datos-nuevos-de-apibara.tsx': {
+    sinFormulario:
+      '«Ver cuáles» de los datos nuevos de apibara: sólo lista las rutas y un ejemplo de cada una; «Agregarlos» está en el aviso, fuera del modal',
+  },
   // --- equipo
   'src/modules/equipo/features/equipo/components/invitar-persona.tsx': {
     sinFormulario:
@@ -98,6 +103,10 @@ export const MODALES: Record<string, RegistroDeModal> = {
   'src/modules/equipo/features/roles/components/avisos-de-roles.tsx': {
     sinFormulario:
       '«Avisos de <rol>» de la matriz de Roles: de sólo lectura, sin un campo que perder',
+  },
+  'src/modules/equipo/features/roles/components/modal-de-quien-crea.tsx': {
+    sinFormulario:
+      '«Quién crea y quién ve» de la matriz de Roles: cada elección (un interruptor o un selector) guarda al instante por las actions de la matriz; no hay nada tipeado que perder',
   },
   // --- flujos
   'src/modules/flujos/features/fases/components/resultado-de-la-copia.tsx': {

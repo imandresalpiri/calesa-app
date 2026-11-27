@@ -4,7 +4,9 @@ import { useAction } from 'next-safe-action/hooks'
 import { resultadoDeAccion } from '@/shared/lib/formularios'
 import { Aviso } from '@/shared/ui/aviso'
 import { Button } from '@/shared/ui/button'
+import { Modal } from '@/shared/ui/modal'
 import { avisarError, avisarExito } from '@/shared/ui/toasts'
+import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import {
   textoDeDatosNuevos,
   type DatoNuevoDeApibara,
@@ -17,9 +19,11 @@ type Props = {
 }
 
 // «apibara trae N datos que este origen no usa»: lo que la API sumó después de que el origen nació.
-// Nada se pierde (está en la respuesta guardada de cada vehículo); agregarlos los vuelve campos.
+// Nada se pierde (está en la respuesta guardada de cada vehículo); agregarlos los vuelve campos. «Ver cuáles» abre la lista en un modal con su URL
+// (`?panel=datos-nuevos-de-apibara`).
 export function DatosNuevosDeApibara({ origenId, datos }: Props) {
   const { executeAsync, isPending } = useAction(agregarDatosDeApibara)
+  const panel = usePanelPorUrl('datos-nuevos-de-apibara')
 
   async function agregar() {
     try {
@@ -48,18 +52,18 @@ export function DatosNuevosDeApibara({ origenId, datos }: Props) {
     <Aviso tono="info">
       <div className="grid gap-2">
         <p>{textoDeDatosNuevos(datos.length)}</p>
-        <details>
-          <summary className="cursor-pointer text-(length:--text-sm)">Ver cuáles</summary>
-          <ul className="mt-1 grid gap-0.5 text-(length:--text-sm)">
-            {datos.map((dato) => (
-              <li key={dato.ruta}>
-                <code>{dato.ruta}</code>
-                {dato.ejemplo ? ` · por ejemplo ${dato.ejemplo}` : ''}
-              </li>
-            ))}
-          </ul>
-        </details>
-        <div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            aria-haspopup="dialog"
+            className="h-11 md:h-8"
+            onClick={() => {
+              panel.abrir()
+            }}
+          >
+            Ver cuáles
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -71,6 +75,22 @@ export function DatosNuevosDeApibara({ origenId, datos }: Props) {
           </Button>
         </div>
       </div>
+      <Modal
+        abierto={panel.abierto}
+        alCerrar={panel.cerrar}
+        titulo="Datos nuevos de apibara"
+        descripcion={textoDeDatosNuevos(datos.length)}
+        ancho="amplio"
+      >
+        <ul className="grid gap-1 text-(length:--text-sm)">
+          {datos.map((dato) => (
+            <li key={dato.ruta} className="min-w-0 break-words">
+              <code>{dato.ruta}</code>
+              {dato.ejemplo ? ` · por ejemplo ${dato.ejemplo}` : ''}
+            </li>
+          ))}
+        </ul>
+      </Modal>
     </Aviso>
   )
 }

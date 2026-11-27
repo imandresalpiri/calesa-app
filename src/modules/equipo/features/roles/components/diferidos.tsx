@@ -8,8 +8,8 @@ export const AvisosDeRolesDiferido = diferido(() =>
   import('./avisos-de-roles').then((modulo) => modulo.AvisosDeRoles),
 )
 
-// «Quién crea y quién ve» (el resumen plegable del bloque de cotizaciones) se pide recién al desplegarse: la matriz no carga su código para dibujarse. Se monta
-// con `useAbiertoAlgunaVez()`.
+// «Quién crea y quién ve» (el modal que abre el botón del bloque de cotizaciones) se pide recién al abrirse: la matriz no carga su código para dibujarse. Se
+// monta con `useAbiertoAlgunaVez()`, dentro del modal.
 export const QuienCreaYQuienVeDiferido = diferido(
   () => import('./quien-crea-y-quien-ve').then((modulo) => modulo.QuienCreaYQuienVe),
   {
