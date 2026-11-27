@@ -16,6 +16,7 @@ import {
   type TerrenoDeDocumentos,
 } from './soporte/documentos'
 import { fotos } from './soporte/fotos'
+import { capturar } from './soporte/recorrido'
 import { abrirSeccionDeLaUnidad } from './soporte/unidad'
 
 // Un documento se reconoce por su miniatura y se revisa en su vista previa (T574): la fila muestra la imagen o el icono de su tipo, tocarla abre un modal de tamaño fijo en `?documento=<id>` con
@@ -78,7 +79,7 @@ async function cajaDe(modal: Locator): Promise<{ width: number; height: number }
 
 test('E2E la fila muestra la miniatura de la imagen y el icono del PDF; tocarla abre la vista previa y Esc devuelve el foco', async ({
   page,
-}) => {
+}, info) => {
   const hueco = await abrirLosDocumentos(page, duena(), terreno.enA.id)
   const imagen = hueco.locator('[data-documento-id]').filter({ hasText: 'foto-1.png' })
   const pdf = hueco.locator('[data-documento-id]').filter({ hasText: 'bl.pdf' })
@@ -89,6 +90,7 @@ test('E2E la fila muestra la miniatura de la imagen y el icono del PDF; tocarla 
     .toBeGreaterThan(0)
   await expect(pdf.locator('[data-miniatura-del-documento="icono"]')).toContainText('PDF')
 
+  await capturar(page, info, 'lista-con-miniaturas')
   const alto = await imagen.boundingBox()
   await page.getByRole('button', { name: 'Ver foto-1.png' }).click()
   const modal = vista(page)
@@ -98,6 +100,8 @@ test('E2E la fila muestra la miniatura de la imagen y el icono del PDF; tocarla 
   await expect(nombreMostrado(modal)).toHaveText('foto-1.png')
   // La lista de atrás no cambió de alto al abrirse el modal.
   expect((await imagen.boundingBox())?.height).toBe(alto?.height)
+  await cajaDe(modal)
+  await capturar(page, info, 'vista-previa-de-imagen')
 
   await page.keyboard.press('Escape')
   await expect(modal).toBeHidden()
@@ -107,7 +111,7 @@ test('E2E la fila muestra la miniatura de la imagen y el icono del PDF; tocarla 
 
 test('E2E las flechas pasan de un documento a otro y el modal no cambia de tamaño entre imagen y PDF', async ({
   page,
-}) => {
+}, info) => {
   const hueco = await abrirLosDocumentos(page, duena(), terreno.enA.id)
   await hueco.getByRole('button', { name: 'Ver bl.pdf' }).click()
   const modal = vista(page)
@@ -117,6 +121,7 @@ test('E2E las flechas pasan de un documento a otro y el modal no cambia de tama�
     modal.locator('[data-visor-de-pdf], [data-mensaje-de-la-vista-previa]'),
   ).toBeVisible()
   const delPdf = await cajaDe(modal)
+  await capturar(page, info, 'vista-previa-de-pdf')
 
   // El vecino de un PDF es una imagen, vaya por donde vaya la flecha.
   const siguiente = modal.getByRole('button', { name: 'Documento siguiente' })
@@ -140,6 +145,7 @@ test('E2E las flechas pasan de un documento a otro y el modal no cambia de tama�
   const zoom = modal.locator('[data-imagen-con-zoom]')
   await modal.getByRole('button', { name: 'Acercar' }).click()
   await expect(zoom).not.toHaveAttribute('data-escala', '1')
+  await capturar(page, info, 'imagen-con-zoom')
   await modal.getByRole('button', { name: 'Ajustar a la caja' }).click()
   await expect(zoom).toHaveAttribute('data-escala', '1')
   expect(await cajaDe(modal)).toEqual(delPdf)
@@ -147,7 +153,7 @@ test('E2E las flechas pasan de un documento a otro y el modal no cambia de tama�
 
 test('E2E desde el pie de la vista previa se aprueba uno y se rechaza otro con su motivo', async ({
   page,
-}) => {
+}, info) => {
   const hueco = await abrirLosDocumentos(page, duena(), terreno.enA.id)
   await hueco.getByRole('button', { name: 'Ver foto-1.png' }).click()
   const modal = vista(page)
@@ -175,6 +181,7 @@ test('E2E desde el pie de la vista previa se aprueba uno y se rechaza otro con s
   await pie.getByRole('button', { name: 'Rechazar' }).click()
   const motivo = modal.getByLabel('Motivo del rechazo')
   await expect(motivo).toBeFocused()
+  await capturar(page, info, 'rechazo-con-motivo')
   await expect(pie.getByRole('button', { name: 'Confirmar rechazo' })).toBeDisabled()
   expect((await pie.boundingBox())?.height).toBe(alto?.height)
   await motivo.fill('Falta la hoja de firmas')
@@ -196,12 +203,13 @@ test('E2E desde el pie de la vista previa se aprueba uno y se rechaza otro con s
 
 test('E2E el «⋯» de una fila reúne las siete acciones y «Rechazar» abre la vista previa con el motivo enfocado', async ({
   page,
-}) => {
+}, info) => {
   const hueco = await abrirLosDocumentos(page, duena(), terreno.enA.id)
   // `foto-2.png` sigue «subido»: todas las acciones corresponden.
   await hueco.getByRole('button', { name: 'Más acciones de foto-2.png' }).click()
   const menu = page.getByRole('menu')
   await expect(menu.getByRole('menuitem', { name: 'Ver', exact: true })).toBeEnabled()
+  await capturar(page, info, 'menu-de-siete-acciones')
   await expect(menu.getByRole('menuitem', { name: 'Descargar' })).toBeEnabled()
   await expect(menu.getByRole('menuitem', { name: 'Aprobar' })).toBeEnabled()
   await expect(menu.getByRole('menuitem', { name: 'Rechazar…' })).toBeEnabled()
@@ -231,7 +239,7 @@ test('E2E el «⋯» de una fila reúne las siete acciones y «Rechazar» abre l
 
 test('E2E quien sólo sube ve apagado lo que no puede, con su motivo, y el «⋯» le ofrece lo demás', async ({
   page,
-}) => {
+}, info) => {
   const hueco = await abrirLosDocumentos(page, terreno.quienSube.correo, terreno.enA.id)
   await hueco.getByRole('button', { name: 'Más acciones de foto-2.png' }).click()
   const menu = page.getByRole('menu')
@@ -240,6 +248,7 @@ test('E2E quien sólo sube ve apagado lo que no puede, con su motivo, y el «⋯
   await expect(menu.getByRole('menuitem', { name: 'Rechazar…' })).toBeDisabled()
   await expect(menu.getByRole('menuitemcheckbox', { name: 'Visible en el portal' })).toBeDisabled()
   await expect(menu.getByText('Necesitas permiso para aprobar documentos.')).toBeVisible()
+  await capturar(page, info, 'menu-con-apagadas')
   await expect(menu.getByRole('menuitem', { name: 'Editar…' })).toBeEnabled()
   await page.keyboard.press('Escape')
 
@@ -252,7 +261,7 @@ test('E2E quien sólo sube ve apagado lo que no puede, con su motivo, y el «⋯
 
 test('E2E la bandeja de subida muestra miniaturas y se mira antes de confirmar, sin aprobar ni subir', async ({
   page,
-}) => {
+}, info) => {
   const hueco = await abrirLosDocumentos(page, terreno.quienSube.correo, terreno.enB.id)
   await hueco.getByRole('button', { name: 'Subir documentos' }).click()
   const bandeja = page.getByRole('dialog', { name: 'Subir documentos' })
@@ -278,6 +287,7 @@ test('E2E la bandeja de subida muestra miniaturas y se mira antes de confirmar, 
     .toBeGreaterThan(0)
   await expect(lista.locator('[data-miniatura-del-documento="icono"]')).toContainText('PDF')
 
+  await capturar(page, info, 'bandeja-con-miniaturas')
   await lista.getByRole('button', { name: 'Ver foto-3.png' }).click()
   const modal = vista(page)
   await expect(modal.locator('[data-imagen-con-zoom] img')).toBeVisible()
@@ -285,6 +295,7 @@ test('E2E la bandeja de subida muestra miniaturas y se mira antes de confirmar, 
   await expect(modal.getByRole('button', { name: 'Aprobar' })).toHaveCount(0)
   await expect(modal.getByRole('button', { name: 'Rechazar' })).toHaveCount(0)
   const delaImagen = await cajaDe(modal)
+  await capturar(page, info, 'vista-previa-local')
   await page.keyboard.press('Escape')
   await expect(modal).toBeHidden()
   // Esc cerró sólo la vista previa: la bandeja sigue abierta y con sus archivos.
