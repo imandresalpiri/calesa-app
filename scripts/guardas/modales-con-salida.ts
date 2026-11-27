@@ -192,6 +192,14 @@ export const MODALES: Record<string, RegistroDeModal> = {
       'la lista de los enlaces de ayuda de la empresa: «Nuevo enlace», «Editar» y «Quitar» abren su propio modal (con su aviso de cambios); nada tipeado en éste',
     tambien: ['src/modules/empresa/features/enlaces-de-ayuda/components/catalogo-de-enlaces.tsx'],
   },
+  'src/modules/empresa/features/logos/components/editor-de-logos.tsx': {
+    sinFormulario:
+      'la lista de las variantes del logo: «Subir un logo», «Renombrar» y «Quitar» abren su propio modal (con su aviso de cambios), y mover guarda al instante; nada tipeado en éste',
+    tambien: [
+      'src/modules/empresa/features/logos/components/lista-de-logos.tsx',
+      'src/modules/empresa/features/logos/components/fila-de-logo.tsx',
+    ],
+  },
   'src/modules/empresa/features/mis-enlaces-de-ayuda/components/editor-de-mis-enlaces.tsx': {
     sinFormulario:
       'la lista de los enlaces de ayuda de una persona: «Mostrar» y mover guardan al instante, y agregar o editar uno propio abren su propio modal (con su aviso de cambios); nada tipeado en éste',
