@@ -16,7 +16,7 @@ describe('el hueco «Mover el contenedor»', () => {
   it('con el origen de la pestaña, va a la Cadena de ese origen', () => {
     render(<HuecoMoverElGrupo grupo={{ tipo: 'contenedor', id: C, origenId: 'o1' }} />)
     const enlace = screen.getByRole('link', { name: 'Marcar que llegó' })
-    expect(enlace.getAttribute('href')).toBe(`/logistica?panel=lote&contenedor=${C}&origen=o1`)
+    expect(enlace.getAttribute('href')).toBe(`/logistica?origen=o1&panel=lote&contenedor=${C}`)
   })
 
   it('un embarque o una declaración no tienen nada que mover aquí', () => {
