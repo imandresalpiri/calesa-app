@@ -57,9 +57,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 - **[—]** «Documentos por aprobar» de Inicio sólo trae los documentos de vehículos (`_bandeja_por_aprobar`): quien sólo aprueba los de repuestos no ve el bloque. Sumar los de los ítems pide ampliar esa RPC y su medición.
 - **[—]** Un bloque «Subastas sin resolver» en Inicio — hoy es un grupo de la bandeja del día (`/logistica/bandeja`) y «Subasta: Sin resolver» en el inventario.
-- **[—]** El resumen de un grupo de `/logistica/embarques` (`transporte_grupo`, «Editar grupo») junta las unidades de la clave en todos los orígenes, aunque la lista sea de uno: decidir si
-  el resumen se acota al origen de la pestaña (la clave de un booking puede cruzar orígenes a propósito).
-- **[A1c]** Avisos sin salida: el bloqueo de eliminar una fase no enlaza «las fases que esperan» ni «las unidades en ella» (`ImpactoDeFase` sólo trae conteos; pide los ids); «Editar grupo» con más unidades de las que se muestran y «súbelo por partes» de documentos de un grupo de más de 100 no dicen el paso siguiente; «No pudimos leer los títulos» del panel de fuera de regla no ofrece «Reintentar».
+- **[A1c]** Avisos sin salida: el bloqueo de eliminar una fase no enlaza «las fases que esperan» ni «las unidades en ella» (`ImpactoDeFase` sólo trae conteos; pide los ids); «súbelo por partes» de documentos de un grupo de más de 100 no dicen el paso siguiente; «No pudimos leer los títulos» del panel de fuera de regla no ofrece «Reintentar».
 - **[6-2]** Publicar en la vitrina mueve la versión de la ficha (`vehiculo_vitrina` usa `vehiculos.actualizado_en`) — una columna `vitrina_actualizado_en` que la RPC exija y devuelva.
 - **[6-4]** Se puede pedir un requisito de dato cuya regla está apagada (`transporte.*`, `aduana.*`, `pagos.*`) y nadie puede cumplirlo, y «Qué falta» igual ofrece «Pedirlo» a quien no tiene la clave del hueco — que `revisar_flujo()` lo avise con un código propio o que la RPC lo rechace (saberlo en «Qué falta» exige leer las reglas).
 - **[—]** «Qué falta» no marca un requisito «ya pedido»: pedirlo dos veces da dos tareas (el id del intento sólo evita el doble clic). Marcarlo pide una lectura nueva.
@@ -73,14 +71,14 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Pasar un catálogo de logística de propio a compartido (o al revés) no se ofrece — decidir qué pasa con el compartido que tapaba y con
   los permisos de cada origen que empezaría a usarlo.
 - **[—]** `/logistica/gastos` sin filtro por vehículo ni por proveedor — `gastos_listar` sólo filtra origen, categoría y fechas; pide migración.
-- **[—]** Eliminar un embarque o un contenedor vacío: hoy queda al sacarle su última unidad o vaciar su booking (lo frena la FK `restrict`); no se
-  ve en `/logistica/embarques` (lista sólo grupos con unidades), pero su clave sigue tomada en el origen y tipearla otra vez lo reusa con sus datos
-  — una RPC `embarque_eliminar|contenedor_eliminar` que exija que esté vacío.
+- **[—]** Eliminar un embarque o un contenedor vacío: hoy queda al sacarle su última unidad o vaciar su booking (lo frena la FK `restrict`); se ve en
+  `/logistica/embarques` («Este embarque todavía no tiene contenedores.») y su clave sigue tomada en el origen — una RPC `embarque_eliminar|contenedor_eliminar`
+  que exija que esté vacío, con su «Eliminar» en el «⋯».
 - **[—]** `embarque_guardar` y `contenedor_guardar` no tienen tope de unidades: revisan el permiso y bloquean cada una (`_entidad_editable`,
-  `_entidad_bloquear_unidades`), y `transporte_asignar` suma de a ≤ 200 sin tope total. Ninguna pantalla los guarda sueltos: con la suya, un
-  tope de unidades por embarque (o el de 200 del grupo).
-- **[—]** Las pantallas propias de embarques y contenedores (crear uno sin unidades, su tipo y su sello, sumarle o sacarle vehículos en lote) no existen:
-  la base ya tiene `embarque_crear|guardar`, `contenedor_crear|guardar` y `transporte_asignar|quitar`, sin action ni interfaz.
+  `_entidad_bloquear_unidades`), y `transporte_asignar` suma de a ≤ 200 sin tope total. «Editar el embarque» los guarda desde su página: falta
+  un tope de unidades por embarque (o el de 200 del grupo).
+- **[—]** El hueco «Transporte» del vehículo todavía edita la fila suelta: ponerlo en un embarque o contenedor que ya existe (o crearlo ahí) va por
+  `ponerElVehiculoEnTransporte`, que ya está, sin interfaz (tarea 15).
 - **[—]** El diff de la actividad de un transporte nombra su embarque y su contenedor por id (`embarque_id`, `contenedor_id`), no por booking o número.
 
 ### Repuestos
@@ -150,8 +148,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-14]** La página profunda del historial de un vehículo muy cotizado ordena sus cotizaciones (crece con las de ese vehículo, no con N) — límite sin assert.
 - **[4-65]** La pestaña de una clase de lead que quien mira no tiene recorre su cartera (hasta ≈ 400 ms con 80.000) — salida no hecha: copiar la clase en la cartera.
 - **[5a-40]** La baja de 200.000 leads tarda 9 corridas y 15 s porque ningún update de `cartera` es HOT (11 btree) — un índice que sostenga lo ajeno sin nombrar la cartera, sin romper `medir-escala.sql`; la persona aceptó el número actual.
-- **[—]** `leerCatalogosDeTransporte` (`/logistica/embarques`, «Editar grupo») lee hasta 200 puertos y 200 navieras de todos los orígenes y descarta
-  `hayMas`: con los propios por origen, lo que pasa del tope se ve «—» sin aviso — devolver `hayMas` con `<AvisoDeTope>` o leer por id lo que nombran los grupos. Con la lista ya de un
+- **[—]** `leerCatalogosDeTransporte` (`/logistica/embarques`, «Editar el embarque») lee hasta 200 puertos y 200 navieras de todos los orígenes y descarta
+  `hayMas`: con los propios por origen, lo que pasa del tope se ve «—» sin aviso — devolver `hayMas` con `<AvisoDeTope>` o leer por id lo que nombran los embarques. Con la lista ya de un
   origen, leer sólo los de ese origen y los compartidos.
 - **[—]** Cada página de Logística lee el flujo de cada origen de la persona (`leerOrigenesDeLaCadena`: una lectura corta por origen, en paralelo, una vez por pedido) para saber qué pestañas
   tiene — si con muchos orígenes se mide lenta, una sola lectura de las reglas de todos.
@@ -306,8 +304,6 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-47]** La ayuda de una tabla corta en 1.000 filas sin enlace al editor, y una tabla congelada sin copia viva sale con claves en vez de etiquetas — falta el enlace y congelar `columnas` (espera a la baja de tablas).
 - **[—]** `LugarDelAjuste` no recuerda la última celda: el panel del ⚙ no se desliza y el foco se devuelve a mano; tras publicar o descartar el borrador de la fórmula, el foco cae al `body`.
 - **[—]** Panel de la unidad: «Qué falta» deja un hueco vacío arriba del primer destino y de «Desde esta fase no hay a dónde mover.».
-- **[—]** El resumen del contenedor pone «Mover el grupo» debajo de toda la lista: con 8 unidades hay que desplazar para llegar a «Marcar que llegó».
-- **[—]** `/logistica/embarques` › Contenedores dice «Las primeras.» sobre la lista sin decir de qué.
 - **[—]** En el celular, la línea del aviso del hueco «Transporte» con « y otros que no puedes ver» ocupa dos líneas y reserva una: la ruta baja al llegar ese aviso (`linea-del-aviso.tsx`).
 - **[—]** El margen sin gastos dice «Real USD 0,00» junto a «Sin venta registrada» y parece un costo cargado — «Sin gastos» lo diría sin cifra.
 - **[—]** `logistica_bandeja` de Inicio con el alcance «propios» recorre la fase entera (su rama por fila no parte de `_logistica_lo_propio`): pasarla a esa lectura y medirla con volumen.

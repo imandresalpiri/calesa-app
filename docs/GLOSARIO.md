@@ -1031,18 +1031,23 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   ofrece las suyas (`flujos_transporte_oferta`). No: «línea marítima», «carrier».
 - **Embarque** — `embarques` / `embarque_crear|guardar()`: el booking en un origen, dueño de la naviera, los puertos, el zarpe (estimado y el de
   siempre), la ETA y el arribo; sus vehículos van sueltos en él o en sus contenedores, y lo suyo cambia para todos. El booking es único por origen
-  (sin espacios ni mayúsculas de más); su estado se calcula. No: «carga», «viaje», «booking» a secas.
+  (sin espacios ni mayúsculas de más); su estado se calcula. Se lista con `embarques_listar()` y se abre en su página por id
+  (`/logistica/embarques/<id>`, `embarque_leer()`). No: «carga», «viaje», «booking» a secas.
 - **Contenedor** — `contenedores` / `contenedor_crear|guardar()`: número (único por origen), tipo y sello, en un embarque o todavía sin él (entonces
-  sus vehículos llevan sus fechas propias). Entrar a un embarque, cambiar de embarque o salir de él cambia los datos de todos sus vehículos.
+  sus vehículos llevan sus fechas propias). Entrar a un embarque, cambiar de embarque o salir de él cambia los datos de todos sus vehículos. Se lista con
+  `contenedores_listar()` y se abre en su drawer por id (`?contenedor=<id>`, `contenedor_leer()`).
+- **Suelto** — `QUE_SON_LOS_SUELTOS`, la sección «Sueltos» de la página de un embarque: vehículo de un embarque que no va en un contenedor. No: «sin contenedor».
+- **Algo que falta** — `faltan` de `embarques_listar()` / `contenedores_listar()` y `falta` por vehículo de `embarque_leer()`: al vehículo le falta un requisito bloqueante
+  de su fase siguiente (el criterio de los trabados, sin mirar la demora). En la lista, con tope de 200 evaluaciones por llamada (`{ n, hay_mas }`). No es «Trabado»
+  (que además está demorado).
 - **Estado del embarque** — `embarque_estado()` / `contenedor_estado()`, espejo en `entities/transporte/estado.ts`: «Entregado» si tiene vehículos
   y todos están en una fase final (manda); si no, «Llegó» con arribo, «En tránsito» si zarpó hasta hoy (el día de la empresa) y si no «Armándose».
   Un contenedor sin embarque está «Sin embarque». Se calcula, nunca se escribe.
 - **Tipo de contenedor** — `tipos_contenedor`: «20′ estándar», «40′ High Cube»…, un catálogo de la empresa (clave, nombre, orden, activo); el contenedor lo nombra por su clave.
 - **De repuestos (embarque o contenedor)** — `origen_id` nulo: el de los ítems de repuesto, que no tienen origen; lo ve y lo escribe quien tiene
   `repuestos.ver` / `repuestos.editar`.
-- **Grupo (de transporte)** — los embarques (o contenedores) con un mismo booking (o número) en todos los orígenes: la clave de `?booking=` /
-  `?contenedor=` de `/logistica/embarques`. `transporte_grupos()` los pagina y `transporte_grupo()` lista sus unidades (las visibles, hasta 200).
-  No: «lote», «carga», ni un grupo de campos.
+- **Grupo (de transporte)** — un embarque o un contenedor visto como el conjunto de sus vehículos, por su id: lo que mueven el lote, los documentos y el
+  prorrateo de un grupo (`transporte_unidades()`: las visibles, hasta 200). No: «lote», «carga», ni un grupo de campos.
 - **Declaración aduanera** — `declaraciones_aduana`, `declaraciones_vehiculos`: DUI: número, canal de aforo, vencimiento de tributos; N:M.
 - **Gasto** — `gastos`, `categorias_gasto`: costo real imputado a una unidad, en su moneda y en base.
 - **Categoría de gasto** — `categorias_gasto` / `categoria_gasto_crear()`: a qué va un gasto (flete, tributos…), con `proposito` opcional,
