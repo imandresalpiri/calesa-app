@@ -1370,6 +1370,12 @@ Esc cierra sólo el de arriba). El atajo de una falta abre la tarjeta de su huec
   **Subir documentos** va en un drawer (`?subir=documentos`) sobre el de Documentos, abierto por su botón «Subir documentos» (apagado, con «Necesitas permiso para subir
   documentos.» escrito debajo, sin `logistica.documentos.subir`); con archivos en la bandeja cerrar pregunta, y al terminar sin fallos se cierra solo y queda el de Documentos con
   lo subido (con fallos queda abierto con «Reintentar los N que faltan»).
+  **Documentos (la lista del drawer)**: una fila por documento, de 44 px como mínimo, con su **miniatura** de 56 px (la imagen liviana o el icono de su tipo con la extensión en texto; mide lo mismo antes y después de llegar), el nombre, el
+  estado y vencimiento en texto y un solo «⋯» con las siete acciones (Ver, Descargar, Aprobar, Rechazar…, «Visible en el portal», Editar…, Eliminar…; lo que no puedes, apagado con su motivo). Tocar la fila abre la **vista previa**
+  (`?documento=<id>`): un modal de tamaño fijo —a pantalla completa en el celular— con el archivo (imagen con zoom: botones, rueda, doble toque y arrastrar; PDF en el visor del navegador o, sin él, «Este navegador no muestra el PDF aquí.»
+  con «Abrir en otra pestaña» y «Descargar»; otro tipo, «No hay vista previa de este tipo de archivo.»), flechas ←/→ de 44 px (también con el teclado, salvo mientras escribes el motivo), «2 de 7» y los datos, y en el pie, fijo,
+  Aprobar, Rechazar con su motivo en la misma línea y «Visible en el portal». Imagen, PDF y aviso miden lo mismo. Esc o «atrás» la cierran y el foco vuelve a la fila. «Rechazar…» del «⋯» la abre con el motivo enfocado. Un documento sin archivo
+  no abre vista previa. En la bandeja de subir, cada archivo lleva su miniatura local y tocarlo abre la misma vista previa sólo para ver (sin aprobar ni rechazar): lo mira antes de confirmar y no sube nada.
 - **«Qué falta» al costado** (página, desde 56 rem: 24 rem a la derecha, con su propio desplazamiento; la página no se desplaza a 1440×900 ni a 1280×800 y nada cambia de
   tamaño al elegir una fase, abrir un drawer o llegar los avisos). Con el texto al 200 % la página vuelve a una columna.
 - **Celular y tableta vertical:** una columna —cabecera, cadena (la actual al centro), «Qué falta», tarjetas— y una barra «Mover» pegada abajo (44 px, sólo con `flujos.mover` del
