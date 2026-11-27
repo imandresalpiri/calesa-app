@@ -1,10 +1,27 @@
-// Las claves de URL de `/logistica/embarques` (6.08-3): la vista (`?grupo=embarques|contenedores`) y el resumen abierto (`?booking=<clave>` en embarques, `?contenedor=<clave>` en
-// contenedores: las mismas claves que ya usa el lote de `mover`) y el panel de «Editar grupo» (6.08-4).
+// Las claves de URL de `/logistica/embarques` y de la página de un embarque (`/logistica/embarques/[id]`): la vista (`?grupo=embarques|contenedores`), el drawer de un contenedor
+// (`?contenedor=<uuid>`, la misma clave que usa el lote de `mover`), el panel abierto (`?panel=`) y el filtro «algo que falta» de la página (`?falta=1`).
 export const CLAVE_DE_GRUPO = 'grupo'
-export const CLAVE_DE_BOOKING = 'booking'
-export const CLAVE_DE_CONTENEDOR = 'contenedor'
-// El valor de `?panel=` que abre el formulario de «Editar grupo»; tapa al resumen, no convive con él.
-export const PANEL_EDITAR_GRUPO = 'editar-grupo'
+export const CLAVE_DEL_CONTENEDOR_ABIERTO = 'contenedor'
+export const CLAVE_DE_FALTA = 'falta'
+export const VALOR_DE_FALTA = '1'
+
+// Los valores de `?panel=`: un modal o un drawer a la vez. «Agregar vehículos» lleva el destino en `?contenedor=` (sin él, el embarque de la página).
+export const PANEL_NUEVO_EMBARQUE = 'nuevo-embarque'
+export const PANEL_EDITAR_EMBARQUE = 'editar-embarque'
+export const PANEL_AGREGAR_CONTENEDOR = 'agregar-contenedor'
+export const PANEL_EDITAR_CONTENEDOR = 'editar-contenedor'
+export const PANEL_AGREGAR_VEHICULOS = 'agregar-vehiculos'
+// Un hueco del grupo (documentos, gastos) en su drawer: `?panel=grupo-<clave>`.
+export const PREFIJO_DEL_PANEL_DEL_HUECO = 'grupo-'
+
+/** `?panel=grupo-<clave>` → la clave del hueco; nulo si el panel no es uno de ellos. */
+export function huecoDelPanel(panel: string | null | undefined): string | null {
+  if (!panel?.startsWith(PREFIJO_DEL_PANEL_DEL_HUECO)) return null
+  const clave = panel.slice(PREFIJO_DEL_PANEL_DEL_HUECO.length)
+  return clave === '' ? null : clave
+}
+
+export const panelDelHueco = (clave: string) => `${PREFIJO_DEL_PANEL_DEL_HUECO}${clave}`
 
 export const VISTAS_DE_GRUPOS = ['embarques', 'contenedores'] as const
 export type VistaDeGrupos = (typeof VISTAS_DE_GRUPOS)[number]
@@ -19,17 +36,7 @@ export function vistaDeGrupos(valor: string | null | undefined): VistaDeGrupos {
   return valor === 'contenedores' ? 'contenedores' : 'embarques'
 }
 
-/** La clave de URL del resumen de esa vista. */
-export function claveDelResumenDe(vista: VistaDeGrupos): string {
-  return vista === 'contenedores' ? CLAVE_DE_CONTENEDOR : CLAVE_DE_BOOKING
-}
-
-/** El `p_tipo` de `transporte_grupos()` y `transporte_grupo()`. */
-export function tipoDeLaBaseDe(vista: VistaDeGrupos): 'booking' | 'contenedor' {
-  return vista === 'contenedores' ? 'contenedor' : 'booking'
-}
-
-/** El `tipo` del grupo para los huecos del resumen (`GrupoDeLogistica`). */
+/** La entidad de los huecos del grupo para esa vista. */
 export function tipoDeGrupoDeLaVista(vista: VistaDeGrupos): 'embarque' | 'contenedor' {
   return vista === 'contenedores' ? 'contenedor' : 'embarque'
 }

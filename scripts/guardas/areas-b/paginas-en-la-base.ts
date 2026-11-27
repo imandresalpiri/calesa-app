@@ -1,6 +1,7 @@
-// Parte del registro de RPC con tamaño de página: los pendientes de la agenda («Sin fecha», vencidas y recordatorios), las secciones del buscador (7.12-2) los grupos de transporte (6.08-3) y el tablero de la cola web (8.04-2). La guarda
+// Parte del registro de RPC con tamaño de página: los pendientes de la agenda («Sin fecha», vencidas y recordatorios), las secciones del buscador (7.12-2) los embarques y contenedores de logística y el tablero de la cola web (8.04-2). La guarda
 // (`paginas-en-la-base.ts`) suma esta parte a `RPC_PAGINADAS` con `import.meta.glob('./areas-*/paginas-en-la-base.ts')` (`registros-de-carriles.ts`).
 import { CANDIDATOS_PARA_ELEGIR, POR_SECCION } from '../../../src/modules/buscador/entities/ranking'
+import { TOPE_PARA_ELEGIR } from '../../../src/modules/logistica/entities/transporte/filtros-de-embarques'
 import {
   TAMANO_DE_PAGINA_POR_DEFECTO,
   TAMANO_DE_VER_MAS,
@@ -51,12 +52,34 @@ export const REGISTRO: readonly RpcPaginada[] = [
     pideElCodigo: POR_SECCION,
     lista: 'buscador, sección cotizaciones',
   },
-  // Embarques y contenedores de `/logistica/embarques` (6.08-3), por cursor opaco; la base acota con `_acotar_pagina(p_tope, 50, 100)` y recorre a lo sumo 2.000 filas por llamada.
+  // Los embarques y los contenedores de un origen en `/logistica/embarques`, por cursor (el id del último); la base acota con
+  // `_acotar_pagina(p_tope, 50, 100)` y recorre a lo sumo 500 filas por llamada.
   {
-    rpc: 'transporte_grupos',
+    rpc: 'embarques_listar',
     parametro: 'p_tope',
     pideElCodigo: TAMANO_DE_PAGINA_POR_DEFECTO,
-    lista: 'embarques y contenedores de /logistica/embarques',
+    lista: 'embarques de un origen en /logistica/embarques',
+  },
+  {
+    rpc: 'contenedores_listar',
+    parametro: 'p_tope',
+    pideElCodigo: TAMANO_DE_PAGINA_POR_DEFECTO,
+    lista: 'contenedores de un origen en /logistica/embarques?grupo=contenedores',
+  },
+  // Los selectores de los formularios: «Elegir uno sin embarque» de «Agregar contenedor» y «Embarque» de un contenedor, de a `TOPE_PARA_ELEGIR`; con más, se busca por prefijo.
+  {
+    rpc: 'contenedores_listar',
+    parametro: 'p_tope',
+    pideElCodigo: TOPE_PARA_ELEGIR,
+    pideMenosQueElDefecto: true,
+    lista: 'contenedores sin embarque para sumar a un embarque',
+  },
+  {
+    rpc: 'embarques_listar',
+    parametro: 'p_tope',
+    pideElCodigo: TOPE_PARA_ELEGIR,
+    pideMenosQueElDefecto: true,
+    lista: 'embarques del origen para asignar un contenedor',
   },
   // Las habilitadas de la cola web (8.04-2): tabla de configuración, a lo sumo el equipo; la base acota con `_acotar_pagina(p_tope, 100, 200)`.
   {

@@ -27,6 +27,9 @@ export type RpcPaginada = {
   // Una lectura que pide a propósito más que el valor por defecto de la base (hasta su máximo), porque filtra después de leer: el defecto sigue siendo el de la otra
   // lectura de la misma RPC (la del registro sin esta marca) y el máximo de la base no puede ser menor que `pideElCodigo`.
   pideMasQueElDefecto?: true
+  // Un selector que pide a propósito menos que el valor por defecto de la base (las primeras opciones; con más, se busca): el defecto sigue siendo el de la otra lectura de
+  // la misma RPC (la del registro sin esta marca) y no puede ser menor que `pideElCodigo`.
+  pideMenosQueElDefecto?: true
   // Qué lista es, para el mensaje de un fallo.
   lista: string
 }

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { leerFiltros } from '@/shared/lib/filtros'
-import { esquemaDeFiltrosDeGrupos, gruposFiltrados, pedidoDeGrupos } from './filtros'
+import {
+  embarquesFiltrados,
+  esquemaDeFiltrosDeEmbarques,
+  pedidoDeEmbarques,
+} from './filtros-de-embarques'
 import type { VistaDeGrupos } from './paneles'
 
 const NAVIERA = '11111111-1111-4111-8111-111111111111'
@@ -21,45 +25,55 @@ const pedido = (
   url: Record<string, string>,
   { vista = 'embarques', desde = null }: { vista?: VistaDeGrupos; desde?: string | null } = {},
 ) =>
-  pedidoDeGrupos(leerFiltros(esquemaDeFiltrosDeGrupos(vista, catalogos), url), {
+  pedidoDeEmbarques(leerFiltros(esquemaDeFiltrosDeEmbarques(vista, catalogos), url), {
     origenId: DEL_ORIGEN,
     vista,
     desde,
   })
 
 describe('lo que la URL pide a la base', () => {
-  it('sin nada en la URL no filtra y la vista fija el tipo', () => {
-    expect(pedido({})).toEqual({ origenId: DEL_ORIGEN, tipo: 'booking', filtros: {}, desde: null })
-    expect(pedido({}, { vista: 'contenedores' }).tipo).toBe('contenedor')
-    expect(gruposFiltrados(pedido({}).filtros)).toBe(false)
+  it('sin nada en la URL no filtra', () => {
+    expect(pedido({})).toEqual({
+      origenId: DEL_ORIGEN,
+      vista: 'embarques',
+      filtros: {},
+      desde: null,
+    })
+    expect(embarquesFiltrados(pedido({}).filtros)).toBe(false)
   })
 
   it('manda sólo las claves de la RPC', () => {
     const filtros = pedido({
+      estado: 'en_transito',
       naviera: NAVIERA,
       puerto_origen: ORIGEN,
       puerto_destino: DESTINO,
-      en_transito: 'si',
       q: 'ecm',
     }).filtros
     expect(filtros).toEqual({
+      estado: 'en_transito',
       naviera: NAVIERA,
       puerto_origen: ORIGEN,
       puerto_destino: DESTINO,
-      en_transito: true,
       prefijo: 'ecm',
     })
-    expect(gruposFiltrados(filtros)).toBe(true)
+    expect(embarquesFiltrados(filtros)).toBe(true)
   })
 
-  it('«no» manda falso y «todos» no manda nada', () => {
-    expect(pedido({ en_transito: 'no' }).filtros).toEqual({ en_transito: false })
-    expect(pedido({ en_transito: 'todos' }).filtros).toEqual({})
-    expect(pedido({ en_transito: 'quizá' }).filtros).toEqual({})
+  it('«Sin embarque» es un estado sólo de los contenedores', () => {
+    expect(pedido({ estado: 'sin_embarque' }).filtros).toEqual({})
+    expect(pedido({ estado: 'sin_embarque' }, { vista: 'contenedores' }).filtros).toEqual({
+      estado: 'sin_embarque',
+    })
+    expect(pedido({ estado: 'quizá' }).filtros).toEqual({})
+    expect(pedido({ estado: 'todos' }).filtros).toEqual({})
   })
 
-  it('el prefijo conserva el texto tal cual (la base lo normaliza)', () => {
-    expect(pedido({ q: 'ecmu 12' }).filtros).toEqual({ prefijo: 'ecmu 12' })
+  it('en contenedores no van naviera ni puertos', () => {
+    expect(
+      pedido({ naviera: NAVIERA, puerto_origen: ORIGEN, q: 'MSCU' }, { vista: 'contenedores' })
+        .filtros,
+    ).toEqual({ prefijo: 'MSCU' })
   })
 
   it('una búsqueda sin tres letras o números seguidos no filtra', () => {
@@ -79,20 +93,25 @@ describe('lo que la URL pide a la base', () => {
 })
 
 describe('el esquema', () => {
-  it('la búsqueda se llama según la vista', () => {
-    expect(esquemaDeFiltrosDeGrupos('embarques', catalogos).busqueda?.etiqueta).toBe(
-      'Buscar por booking',
-    )
-    expect(esquemaDeFiltrosDeGrupos('contenedores', catalogos).busqueda?.etiqueta).toBe(
-      'Buscar por contenedor',
-    )
+  it('la búsqueda y el estado según la vista', () => {
+    const embarques = esquemaDeFiltrosDeEmbarques('embarques', catalogos)
+    const contenedores = esquemaDeFiltrosDeEmbarques('contenedores', catalogos)
+    expect(embarques.busqueda?.etiqueta).toBe('Buscar por booking')
+    expect(contenedores.busqueda?.etiqueta).toBe('Buscar por número')
+    const estados = (e: typeof embarques) => {
+      const f = e.filtros[0]
+      return f?.tipo === 'eleccion' ? f.opciones.map((o) => o.etiqueta) : []
+    }
+    expect(estados(embarques)).toEqual(['Todos', 'Armándose', 'En tránsito', 'Llegó', 'Entregado'])
+    expect(estados(contenedores)).toContain('Sin embarque')
+    expect(contenedores.filtros.map((f) => f.clave)).toEqual(['estado'])
   })
 
   it('sin navieras ni puertos activos, esos filtros no se dibujan', () => {
-    const sin = esquemaDeFiltrosDeGrupos('embarques', {
+    const sin = esquemaDeFiltrosDeEmbarques('embarques', {
       navieras: [{ id: NAVIERA, nombre: 'Vieja', activo: false }],
       puertos: [],
     })
-    expect(sin.filtros.map((f) => f.clave)).toEqual(['en_transito'])
+    expect(sin.filtros.map((f) => f.clave)).toEqual(['estado'])
   })
 })

@@ -1,33 +1,56 @@
-// La API de servidor de el área `transporte` de `logistica` (6.08-3): las lecturas de `/logistica/embarques` (lista, grupo y catálogos), el pedido y las claves de URL. Sale por el `index.ts` de la raíz.
-export { leerGrupo, leerGrupos } from '../../infra/transporte/grupos'
+// La API de servidor del área `transporte` de `logistica`: las lecturas de `/logistica/embarques` y de la página de un embarque (la lista, un embarque, un contenedor, los tipos de
+// contenedor y los catálogos), el pedido de la lista y las claves de URL. Sale por el `index.ts` de la raíz.
+export {
+  leerContenedor,
+  leerContenedores,
+  leerEmbarque,
+  leerEmbarques,
+  leerTiposDeContenedor,
+  type TipoDeContenedor,
+} from '../../infra/transporte/embarques'
 export {
   leerCatalogosDeTransporte,
   type CatalogosDeTransporte,
 } from '../../infra/transporte/lectura-de-catalogos'
 export {
-  esquemaDeFiltrosDeGrupos,
-  gruposFiltrados,
-  pedidoDeGrupos,
-  type PedidoDeGrupos,
-} from '../../entities/transporte/filtros'
+  CLAVE_DE_ESTADO,
+  esquemaDeFiltrosDeEmbarques,
+  embarquesFiltrados,
+  pedidoDeEmbarques,
+  type PedidoDeEmbarques,
+} from '../../entities/transporte/filtros-de-embarques'
+export type {
+  ContenedorLeido,
+  EmbarqueLeido,
+  VehiculoDelEmbarque,
+} from '../../entities/transporte/embarque'
+export type {
+  ContenedorDeLaLista,
+  EmbarqueDeLaLista,
+  PaginaDeContenedores,
+  PaginaDeEmbarques,
+} from '../../entities/transporte/lista-de-embarques'
 export {
-  nombreDeCatalogo,
-  textoDeUnidades,
-  valorDelGrupo,
-  type GrupoDeTransporte,
-  type GrupoLeido,
-  type PaginaDeGrupos,
-  type UnidadDelGrupo,
-} from '../../entities/transporte/grupos'
-export {
+  CLAVE_DEL_CONTENEDOR_ABIERTO,
+  CLAVE_DE_FALTA,
   CLAVE_DE_GRUPO,
-  PANEL_EDITAR_GRUPO,
-  claveDelResumenDe,
+  ETIQUETA_DE_VISTA_DE_GRUPOS,
+  huecoDelPanel,
+  PANEL_AGREGAR_CONTENEDOR,
+  PANEL_AGREGAR_VEHICULOS,
+  PANEL_EDITAR_CONTENEDOR,
+  PANEL_EDITAR_EMBARQUE,
+  PANEL_NUEVO_EMBARQUE,
   tipoDeGrupoDeLaVista,
-  tipoDeLaBaseDe,
+  VALOR_DE_FALTA,
   vistaDeGrupos,
   vistaDelOrigen,
   vistasDeTransporte,
-  ETIQUETA_DE_VISTA_DE_GRUPOS,
   type VistaDeGrupos,
 } from '../../entities/transporte/paneles'
+export {
+  EMBARQUE_QUE_NO_ESTA,
+  CONTENEDOR_QUE_NO_ESTA,
+  tituloDelContenedor,
+  tituloDelEmbarque,
+} from '../../entities/transporte/textos'

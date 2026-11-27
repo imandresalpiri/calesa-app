@@ -119,13 +119,21 @@ begin return public._acotar_pagina(p_tamano, 25, 100); end $_$;`,
   })
 })
 
-// El defecto de la base es el del código; salvo una lectura que pide a propósito más (`pideMasQueElDefecto`), donde el defecto no puede ser mayor.
+// El defecto de la base es el del código; salvo una lectura que pide a propósito más (`pideMasQueElDefecto`), donde el defecto no puede ser mayor, o menos
+// (`pideMenosQueElDefecto`), donde no puede ser menor.
 function exigirElDefecto(r: (typeof RPC_PAGINADAS)[number], defecto: number | undefined): void {
   if (r.pideMasQueElDefecto) {
     expect(
       defecto ?? 0,
       `${r.rpc} pide más que el defecto: el defecto no es mayor`,
     ).toBeLessThanOrEqual(r.pideElCodigo)
+    return
+  }
+  if (r.pideMenosQueElDefecto) {
+    expect(
+      defecto ?? 0,
+      `${r.rpc} pide menos que el defecto: el defecto no es menor`,
+    ).toBeGreaterThanOrEqual(r.pideElCodigo)
     return
   }
   expect(defecto, `el valor por defecto de ${r.rpc} no es el del código`).toBe(r.pideElCodigo)

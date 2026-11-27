@@ -1,14 +1,13 @@
-import type { VistaDeGrupos } from '../../../entities/transporte/paneles'
-
-// Lo que la lista de grupos necesita de los catálogos para nombrar naviera y puertos (id y nombre).
+// Lo que la lista de embarques necesita de los catálogos para nombrar naviera y puertos (id y nombre), y lo que comparten sus filas.
 export type CatalogosParaNombrar = {
   navieras: readonly { id: string; nombre: string }[]
   puertos: readonly { id: string; nombre: string }[]
 }
 
 export type PropsDeLaFila = {
-  vista: VistaDeGrupos
   catalogos: CatalogosParaNombrar
-  alAbrir: (clave: string) => void
-  abierto: string | null
+  // El origen de la pestaña: los enlaces a un embarque lo conservan.
+  origenId: string
+  // `logistica.transporte.editar` en el origen (lo decide `src/app`).
+  puedeEditar: boolean
 }

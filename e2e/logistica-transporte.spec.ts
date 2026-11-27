@@ -9,7 +9,6 @@ import {
   crearDuenaDePrueba,
 } from './soporte/base'
 import {
-  agregarUnidadAlContenedor,
   borrarTransporte,
   crearTransporteDe,
   ponerEnElContenedorDe,
@@ -17,6 +16,7 @@ import {
   transporteDe,
   type TerrenoDeTransporte,
 } from './soporte/transporte'
+import { literal, sql } from './soporte/sql'
 import { abrirSeccionDeLaUnidad } from './soporte/unidad'
 
 // El transporte de la unidad (6.08-2): quien lo edita carga naviera, contenedor y fechas desde el hueco «Transporte» del panel y la base lo guarda en mayúsculas; un rechazo (la ETA antes del
@@ -119,10 +119,17 @@ test('E2E quien sólo ve la logística lee el transporte sin poder editarlo', as
   await expect(hueco.getByRole('button', { name: 'Guardar' })).toHaveCount(0)
 })
 
-test('E2E ver el contenedor con sus dos unidades en /logistica/embarques y buscarlo', async ({
+// El id del contenedor con ese número en el origen del terreno: la URL abre un contenedor por su id, no por su número.
+function idDelContenedor(numero: string): string {
+  return sql(
+    `select id from public.contenedores where origen_id = ${literal(terreno.origen.id)} and numero = ${literal(numero)}`,
+  )
+}
+
+test('E2E ver el contenedor con sus dos vehículos en /logistica/embarques y buscarlo', async ({
   page,
 }) => {
-  // La segunda unidad entra al mismo contenedor y con la misma naviera y ETA (la primera ya los tiene por el primer test).
+  // La segunda unidad entra al mismo contenedor (la primera ya va en él por el primer test).
   await ponerEnElContenedorDe(terreno.sinFase.id, {
     contenedor: 'ECMU123456',
     naviera_id: terreno.naviera.id,
@@ -131,67 +138,60 @@ test('E2E ver el contenedor con sus dos unidades en /logistica/embarques y busca
   await entrar(page, terreno.conTransporte, { fresco: true })
   await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores`)
   const fila = page.getByRole('row').filter({ hasText: 'ECMU123456' })
-  await expect(fila).toContainText(terreno.naviera.nombre)
-  await expect(fila).toContainText('15 dic 2026')
-  await expect(fila).toContainText('2 unidades')
+  await expect(fila).toContainText('Sin embarque')
+  await expect(fila).toContainText('2 vehículos')
 
   await fila.getByRole('button', { name: 'Abrir el contenedor ECMU123456' }).click()
-  await expect(page).toHaveURL(/contenedor=ECMU123456/)
+  await expect(page).toHaveURL(new RegExp(`contenedor=${idDelContenedor('ECMU123456')}`))
   const panel = page.getByRole('dialog', { name: 'Contenedor' })
   await expect(panel.getByRole('heading', { name: 'Contenedor ECMU123456' })).toBeVisible()
   await expect(panel.getByText(terreno.enFase.titulo)).toBeVisible()
   await expect(panel.getByText(terreno.sinFase.titulo)).toBeVisible()
-  // No tiene `flujos.mover`: el hueco de mover el grupo no se dibuja.
-  await expect(panel.getByText('Mover el grupo')).toHaveCount(0)
+  // No tiene `flujos.mover`: «Mover el contenedor» no se dibuja.
+  await expect(panel.getByText('Mover el contenedor')).toHaveCount(0)
 
-  // La búsqueda por el comienzo de la clave la sigue mostrando; otra que no coincide lo dice.
+  // La búsqueda por el comienzo del número lo sigue mostrando; otra que no coincide lo dice.
   await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores&q=ecm`)
   await expect(page.getByRole('row').filter({ hasText: 'ECMU123456' })).toBeVisible()
   await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores&q=zzz`)
   await expect(page.getByText('Ningún contenedor coincide con los filtros.')).toBeVisible()
 })
 
-test('E2E «Editar grupo» cambia la ETA de las tres unidades de un contenedor', async ({ page }) => {
-  // Una tercera unidad en el mismo contenedor, con otra ETA: la ETA del grupo será «Varios».
-  const tercera = await agregarUnidadAlContenedor(terreno, 'E2E Tercera del contenedor', {
-    contenedor: 'ECMU123456',
-    naviera_id: terreno.naviera.id,
-    eta_el: '2026-12-20',
-  })
+test('E2E «Editar el contenedor» le pone el sello y vuelve al drawer', async ({ page }) => {
+  await entrar(page, terreno.conTransporte, { fresco: true })
+  const id = idDelContenedor('ECMU123456')
+  await page.goto(
+    `/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores&contenedor=${id}`,
+  )
+  const drawer = page.getByRole('dialog', { name: 'Contenedor' })
+  await expect(drawer.getByText('Sin sello')).toBeVisible()
+  await drawer.getByRole('button', { name: 'Más acciones de Contenedor ECMU123456' }).click()
+  await page.getByRole('menuitem', { name: 'Editar el contenedor' }).click()
+  await expect(page).toHaveURL(/panel=editar-contenedor/)
+
+  const modal = page.getByRole('dialog', { name: 'Editar el contenedor' })
+  await expect(modal.getByLabel('Número')).toHaveValue('ECMU123456')
+  await modal.getByLabel('Sello').fill('SL-778')
+  await modal.getByRole('button', { name: 'Guardar' }).click()
+  await expect(page.getByText('Contenedor guardado.')).toBeVisible()
+
+  // Vuelve al drawer del mismo contenedor, sin el modal, con el sello nuevo.
+  await expect(page).not.toHaveURL(/panel=editar-contenedor/)
+  await expect(page).toHaveURL(new RegExp(`contenedor=${id}`))
+  await expect(drawer.getByText('Sello SL-778')).toBeVisible()
+  expect(sql(`select sello from public.contenedores where id = ${literal(id)}`)).toBe('SL-778')
+})
+
+test('E2E un contenedor que no existe lo dice en su drawer', async ({ page }) => {
   await entrar(page, terreno.conTransporte, { fresco: true })
   await page.goto(
     `/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores&contenedor=ECMU123456`,
   )
-  const resumen = page.getByRole('dialog', { name: 'Contenedor' })
-  await expect(resumen.getByText('3 unidades')).toBeVisible()
-  await resumen.getByRole('button', { name: 'Editar grupo' }).click()
-  await expect(page).toHaveURL(/panel=editar-grupo/)
-  await expect(page).toHaveURL(/contenedor=ECMU123456/)
-
-  const panel = page.getByRole('dialog', { name: 'Editar el contenedor ECMU123456' })
-  // La ETA y el zarpe difieren entre las tres (sólo la primera tiene zarpe): dicen «Varios»; lo demás sale con su valor común.
-  await expect(panel.getByText('Varios: cada unidad tiene el suyo.', { exact: false })).toHaveCount(
-    2,
-  )
-  await expect(panel.getByLabel('Zarpe')).toHaveValue('')
-  await expect(panel.getByLabel('Naviera')).toHaveValue(terreno.naviera.id)
-  await expect(panel.getByLabel('Contenedor', { exact: true })).toHaveValue('ECMU123456')
-  await expect(panel.getByText('Se aplicará a las 3 unidades.')).toBeVisible()
-  await panel.getByLabel('ETA').fill('2026-12-30')
-  await panel.getByRole('button', { name: 'Guardar' }).click()
-  await expect(page.getByText('Se aplicó a las 3 unidades.')).toBeVisible()
-
-  // Vuelve al resumen del mismo contenedor, sin el panel de edición.
-  await expect(page).not.toHaveURL(/panel=editar-grupo/)
-  await expect(page).toHaveURL(/contenedor=ECMU123456/)
-  await expect(page.getByRole('heading', { name: 'Contenedor ECMU123456' })).toBeVisible()
-  for (const id of [terreno.enFase.id, terreno.sinFase.id, tercera]) {
-    const t = await transporteDe(id)
-    expect(t?.eta_el).toBe('2026-12-30')
-    expect(t?.contenedor).toBe('ECMU123456')
-  }
-  await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores`)
-  await expect(page.getByRole('row').filter({ hasText: 'ECMU123456' })).toContainText('30 dic 2026')
+  await expect(
+    page
+      .getByRole('dialog', { name: 'Contenedor' })
+      .getByText('Este contenedor no existe o ya no lo ves.'),
+  ).toBeVisible()
 })
 
 test('E2E quien no ve la logística no entra a /logistica/embarques', async ({ page }) => {

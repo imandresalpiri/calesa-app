@@ -1,38 +1,44 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { requerirSesion } from '@/modules/equipo'
 import {
-  claveDelResumenDe,
+  CLAVE_DEL_CONTENEDOR_ABIERTO,
   CLAVE_DE_GRUPO,
   enElOrigen,
   ETIQUETA_DE_VISTA_DE_GRUPOS,
-  esquemaDeFiltrosDeGrupos,
+  esquemaDeFiltrosDeEmbarques,
   leerCatalogosDeTransporte,
-  leerGrupos,
-  PANEL_EDITAR_GRUPO,
-  pedidoDeGrupos,
+  leerContenedores,
+  leerEmbarques,
+  PANEL_NUEVO_EMBARQUE,
+  pedidoDeEmbarques,
   vistaDeGrupos,
   vistaDelOrigen,
   vistasDeTransporte,
+  type PedidoDeEmbarques,
 } from '@/modules/logistica'
-import { DrawerDelGrupo, ListadoDeEmbarques } from '@/modules/logistica/pantallas/transporte'
+import {
+  DrawerDelContenedor,
+  ListadoDeEmbarques,
+  ModalDelEmbarque,
+} from '@/modules/logistica/pantallas/transporte'
 import { datosO } from '@/shared/lib/errores'
 import { CLAVE_DE_CURSOR, CLAVE_DE_PANEL, leerFiltros } from '@/shared/lib/filtros'
+import { puede } from '@/shared/lib/permisos'
 import { RUTAS, unParametro } from '@/shared/lib/rutas'
 import { EsqueletoDetalle, EsqueletoListado } from '@/shared/ui/esqueletos'
 import { abrirLaPestana } from '../abrir-la-pestana'
 import { BarraDeLogistica } from '../barra-de-logistica'
 import { EsqueletoDeLaBarra } from '../esqueleto-de-la-barra'
 import { EstadoDelOrigen } from '../estado-del-origen'
-import { GrupoAbierto } from './grupo-abierto'
-import { GrupoEnEdicion } from './grupo-en-edicion'
-import { puedeEditarTransporte } from './huecos-del-grupo'
+import { ContenedorAbierto } from './contenedor-abierto'
 
 export const metadata: Metadata = { title: 'Embarques' }
 
-// Los embarques (por booking) y los contenedores del origen elegido que quien mira puede ver (`docs/UX.md` › «Logística»): una página por cursor opaco, con sus
-// filtros en la URL (`naviera`, `puerto_origen`, `puerto_destino`, `en_transito`, `q`). Sólo las vistas que usa el flujo del origen (`vistasDeTransporte`); la URL
-// que pide la otra dice que el origen no la usa. Lo que se ve lo decide la base (`transporte_grupos()` cuenta sólo las unidades visibles); acá sólo se arma el
-// pedido y se dibuja. La fila abre el resumen (`?booking=` o `?contenedor=`), que junta la clave en todos los orígenes. Ningún total exacto: lo que se muestra es la fila.
+// Los embarques y los contenedores del origen elegido (`docs/UX.md` › «Logística»): una página por cursor opaco, con sus filtros en la URL (`estado`, `naviera`, `puerto_origen`,
+// `puerto_destino`, `q`). Sólo las vistas que usa el flujo del origen (`vistasDeTransporte`); la URL que pide la otra dice que el origen no la usa. La base lista las entidades del
+// origen (también las vacías) y cuenta sólo los vehículos que quien mira ve; acá sólo se arma el pedido y se dibuja. Un embarque se abre en su página
+// (`/logistica/embarques/<id>`); un contenedor, en su drawer (`?contenedor=`). Ningún total exacto.
 export default function PaginaDeEmbarques({ searchParams }: PageProps<'/logistica/embarques'>) {
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
@@ -46,6 +52,12 @@ export default function PaginaDeEmbarques({ searchParams }: PageProps<'/logistic
       </Suspense>
     </div>
   )
+}
+
+async function leerLaPagina(pedido: PedidoDeEmbarques) {
+  return pedido.vista === 'contenedores'
+    ? { vista: 'contenedores' as const, pagina: datosO(await leerContenedores(pedido)) }
+    : { vista: 'embarques' as const, pagina: datosO(await leerEmbarques(pedido)) }
 }
 
 async function Listado({
@@ -72,52 +84,44 @@ async function Listado({
       />
     )
   }
-  const catalogos = datosO(await leerCatalogosDeTransporte())
-  const esquema = esquemaDeFiltrosDeGrupos(vista, catalogos)
-  const pedido = pedidoDeGrupos(leerFiltros(esquema, parametros), {
+  const [sesion, catalogos] = await Promise.all([
+    requerirSesion(),
+    leerCatalogosDeTransporte().then(datosO),
+  ])
+  const esquema = esquemaDeFiltrosDeEmbarques(vista, catalogos)
+  const pedido = pedidoDeEmbarques(leerFiltros(esquema, parametros), {
     origenId: origen.id,
     vista,
     desde: unParametro(parametros[CLAVE_DE_CURSOR]) ?? null,
   })
-  const pagina = datosO(await leerGrupos(pedido))
-  const clave = claveDelResumenDe(vista)
-  const abierto = unParametro(parametros[clave])
-  // El formulario de «Editar grupo» tapa al resumen (D36); sin permiso, `?panel=editar-grupo` se ignora (D37).
-  const editando =
-    unParametro(parametros[CLAVE_DE_PANEL]) === PANEL_EDITAR_GRUPO &&
-    puedeEditarTransporte(permisos)
+  const lista = await leerLaPagina(pedido)
+  const puedeEditar = puede(permisos, 'logistica.transporte.editar', origen.id)
+  const panel = unParametro(parametros[CLAVE_DE_PANEL])
+  const contenedor = unParametro(parametros[CLAVE_DEL_CONTENEDOR_ABIERTO])
   return (
     <>
       <ListadoDeEmbarques
-        pagina={pagina}
-        vista={vista}
+        lista={lista}
         vistas={vistas}
         origenId={origen.id}
+        origenNombre={origen.nombre}
         esquema={esquema}
-        catalogos={{
-          navieras: catalogos.navieras.map((n) => ({ id: n.id, nombre: n.nombre })),
-          puertos: catalogos.puertos.map((p) => ({ id: p.id, nombre: p.nombre })),
-        }}
+        catalogos={catalogos}
+        puedeEditar={puedeEditar}
         ruta={RUTAS.embarques}
-        claveDelResumen={clave}
+        vistaPreferida={sesion.preferencias.vistaDeEmbarques}
       />
-      {abierto && editando ? (
-        <Suspense key={`editar-${vista}-${abierto}`} fallback={<EsqueletoDetalle />}>
-          <GrupoEnEdicion clave={abierto} vista={vista} claveDeUrl={clave} />
-        </Suspense>
-      ) : abierto ? (
-        <DrawerDelGrupo clave={clave} vista={vista}>
-          <Suspense key={`${vista}-${abierto}`} fallback={<EsqueletoDetalle />}>
-            <GrupoAbierto
-              clave={abierto}
-              vista={vista}
-              permisos={permisos}
-              claveDeUrl={clave}
-              origenId={origen.id}
-            />
-          </Suspense>
-        </DrawerDelGrupo>
+      {/* Sin permiso, `?panel=nuevo-embarque` no abre nada. */}
+      {panel === PANEL_NUEVO_EMBARQUE && puedeEditar && contenedor === undefined ? (
+        <ModalDelEmbarque original={null} origenId={origen.id} catalogos={catalogos} />
       ) : null}
+      {contenedor === undefined ? null : (
+        <DrawerDelContenedor>
+          <Suspense key={contenedor} fallback={<EsqueletoDetalle />}>
+            <ContenedorAbierto id={contenedor} panel={panel} permisos={permisos} />
+          </Suspense>
+        </DrawerDelContenedor>
+      )}
     </>
   )
 }

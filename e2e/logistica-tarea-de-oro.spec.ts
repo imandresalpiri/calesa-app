@@ -189,7 +189,7 @@ test('E2E R4 logística marca que llegó un contenedor de 8 desde embarques en �
     .getByRole('row')
     .or(page.getByRole('listitem'))
     .filter({ has: page.getByRole('button', { name: `Abrir el contenedor ${lote.contenedor}` }) })
-  await expect(fila).toContainText('8 unidades')
+  await expect(fila).toContainText('8 vehículos')
   await capturar(page, info, 'embarques')
   const g = new Gestos(page)
   const inicio = performance.now()
@@ -199,9 +199,9 @@ test('E2E R4 logística marca que llegó un contenedor de 8 desde embarques en �
   await expect(
     resumen.getByRole('heading', { name: `Contenedor ${lote.contenedor}` }),
   ).toBeVisible()
-  await g.tocar(resumen.getByText('Mover el grupo', { exact: true }))
   await capturar(page, info, 'contenedor')
-  await g.tocar(resumen.getByRole('link', { name: 'Marcar que llegó' }))
+  // «Mover el contenedor» está a la vista en su drawer: lleva al lote de la Cadena con sus vehículos.
+  await g.tocar(resumen.getByRole('link', { name: 'Mover el contenedor' }))
   await expect(page.getByRole('heading', { name: 'Mover varias unidades' })).toBeVisible()
   await expect(page.getByText('Se eligieron 8.')).toBeVisible()
   await expect(page.getByText('Elige a dónde mover.')).toBeVisible()
@@ -217,8 +217,8 @@ test('E2E R4 logística marca que llegó un contenedor de 8 desde embarques en �
   await expect(resultado).toContainText(`No se movió «${lote.sinBl.titulo}». ${falta}`)
   const fin = performance.now()
 
-  // Las decisiones: el contenedor, el hueco, marcar, el destino, revisar la vista previa y confirmar.
-  const klm = g.klm(6)
+  // Las decisiones: el contenedor, moverlo, el destino, revisar la vista previa y confirmar.
+  const klm = g.klm(5)
   const robot = (fin - inicio) / 1000
   anotar(info, g, { tramo: 'contenedor de 8', meta: 60, robot, klm })
   await capturar(page, info, 'resultado')
