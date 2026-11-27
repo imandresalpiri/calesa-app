@@ -18,6 +18,8 @@ export const PANTALLAS_DEL_LIVE: Readonly<Record<string, AreaDelLive | 'siempre-
   'cotizaciones/comparar/page.tsx': 'cotizaciones',
   'cotizaciones/[id]/compartir/route.ts': 'cotizaciones',
   'cotizaciones/[id]/compartir/fotos/route.ts': 'cotizaciones',
+  'artes/page.tsx': 'cotizaciones',
+  'artes/[id]/page.tsx': 'cotizaciones',
   'cotizaciones/[id]/imagen/route.ts': 'cotizaciones',
   'cotizaciones/[id]/pdf/route.ts': 'cotizaciones',
   'cotizaciones/papelera/page.tsx': 'siempre-oculto',
