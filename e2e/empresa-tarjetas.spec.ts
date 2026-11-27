@@ -117,15 +117,15 @@ test('Comprobantes: la tarjeta abre su modal con ?panel=serie', async ({ page })
   await expect(page.getByRole('dialog', { name: 'Cambiar serie' })).toBeHidden()
 })
 
-// A 1440×900 cada página entra entera: sin desplazar la página ni el `main`.
-test('a 1440×900 ninguna de las tres páginas se desplaza', async ({ browser }) => {
+// A 1440×900 Integraciones y Comprobantes entran enteras: sin desplazar la página ni el `main`. Datos de la empresa, con siete tarjetas en
+// dos columnas, ya no cabe y se desplaza.
+test('a 1440×900 ni Integraciones ni Comprobantes se desplazan', async ({ browser }) => {
   const contexto = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const page = await contexto.newPage()
   try {
     await entrar(page)
     const medidas: string[] = []
     for (const ruta of [
-      '/configuracion/empresa',
       '/configuracion/empresa/integraciones',
       '/configuracion/empresa/comprobantes',
     ]) {

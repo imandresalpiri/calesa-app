@@ -1,7 +1,8 @@
 import { Suspense } from 'react'
+import { conArchivo, leerLogos } from '@/modules/empresa'
 import { leerAjustesDelSitio, leerDireccionPublica, redesConEtiqueta } from '@/modules/web'
 import { PuertaDeLaVentana, leerLaVentanaDeCamara } from '@/modules/equipo/shell'
-import { urlPublicaONull } from '@/shared/lib/almacen'
+import { urlPublica, urlPublicaONull } from '@/shared/lib/almacen'
 
 type Props = {
   usuarioId: string
@@ -19,10 +20,24 @@ async function redesYWebDeLaEmpresa() {
   }
 }
 
+// Las variantes del logo con archivo, listas para elegir en la ventana: `principal` y `oscuro` (si tienen archivo) y las propias. Si no se pueden leer, sin ellas.
+async function logosDeLaEmpresa() {
+  const logos = await leerLogos()
+  if (!logos.ok) {
+    return []
+  }
+  return conArchivo(logos.data).map((logo) => ({
+    id: logo.id,
+    nombre: logo.nombre,
+    url: urlPublica('marca', logo.ruta),
+  }))
+}
+
 async function VentanaLeida({ usuarioId, empresa }: Omit<Props, 'enElLive'>) {
-  const [{ ventana, ficha }, { redes, web }] = await Promise.all([
+  const [{ ventana, ficha }, { redes, web }, logos] = await Promise.all([
     leerLaVentanaDeCamara(usuarioId),
     redesYWebDeLaEmpresa(),
+    logosDeLaEmpresa(),
   ])
   return (
     <PuertaDeLaVentana
@@ -34,6 +49,7 @@ async function VentanaLeida({ usuarioId, empresa }: Omit<Props, 'enElLive'>) {
             nombre: empresa.nombre,
             logoUrl: urlPublicaONull('marca', empresa.logoRuta),
             logoOscuroUrl: urlPublicaONull('marca', empresa.logoOscuroRuta),
+            logos,
             redes,
             web,
           },

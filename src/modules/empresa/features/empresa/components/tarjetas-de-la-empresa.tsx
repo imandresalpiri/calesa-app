@@ -10,9 +10,11 @@ import {
 } from '@/shared/ui/tarjetas-de-ajustes'
 import type { AjustesEmpresa } from '../../../entities/ajustes-empresa'
 import type { ListaDeEnlacesDeLaEmpresa } from '../../../entities/enlaces-de-ayuda'
+import type { ListaDeLogos } from '../../../entities/logos'
 import { MOTIVO_SIN_LOGO, MOTIVO_SIN_PERMISO_AJUSTES } from '../../../entities/motivos'
 import { TarjetaDeEnlacesDeAyuda } from '../../enlaces-de-ayuda/components/tarjeta-de-enlaces-de-ayuda'
 import { useVolverALosNeutros } from '../../iconos/hooks/use-iconos'
+import { TarjetaDeLogos } from '../../logos/components/tarjeta-de-logos'
 import { usePanelesDeLaEmpresa, type MotivosDeLosPaneles } from '../hooks/use-paneles-de-la-empresa'
 import {
   ModalDeDatosLegalesDiferido,
@@ -40,6 +42,8 @@ type Props = {
   puedeEditar: boolean
   // Los enlaces de ayuda de la empresa (hasta el tope + 1), para su tarjeta.
   enlacesDeAyuda: ListaDeEnlacesDeLaEmpresa
+  // Las variantes del logo (las dos fijas y las propias), para su tarjeta.
+  logos: ListaDeLogos
 }
 
 // La tarjeta de los íconos: el ícono en uso y, si ya se dibujaron, «Volver a los íconos neutros» en el «⋯».
@@ -133,7 +137,7 @@ function ModalesDeLaEmpresa({ props, paneles }: { props: Props; paneles: Paneles
   )
 }
 
-// Las seis tarjetas de Datos de la empresa (la de los enlaces de ayuda, con su lista y sus modales, va tercera: así «Datos legales» abre la
+// Las siete tarjetas de Datos de la empresa (la de los enlaces de ayuda, con su lista y sus modales, va tercera: así «Datos legales» abre la
 // segunda columna y la página entra a 1440×900), con lo guardado a la vista; cada «Editar» abre su modal (`?panel=<tarjeta>`), que se pide
 // recién entonces. Una escritura por modal, todas con la misma versión de la fila.
 export function TarjetasDeLaEmpresa(props: Props) {
@@ -171,6 +175,11 @@ export function TarjetasDeLaEmpresa(props: Props) {
         <TarjetaEditable titulo="Políticas" motivo={motivo} abrir={paneles.politicas.abrir}>
           <ValoresDeLaTarjeta filas={filasDePoliticas(ajustes)} />
         </TarjetaEditable>
+        <TarjetaDeLogos
+          lista={props.logos}
+          motivo={motivo}
+          alCambiarEnIdentidad={paneles.identidad.abrir}
+        />
         <TarjetaDeIconos props={props} motivo={motivos.iconos} abrir={paneles.iconos.abrir} />
       </TarjetasDeAjustes>
       <ModalesDeLaEmpresa props={props} paneles={paneles} />

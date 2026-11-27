@@ -1,6 +1,7 @@
 'use client'
 
 import { SettingsIcon } from 'lucide-react'
+import { Fragment } from 'react'
 import { Button } from '@/shared/ui/button'
 import { Checkbox } from '@/shared/ui/checkbox'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
@@ -13,6 +14,7 @@ import {
   type VentanaDeCamara,
 } from '../../../entities/ventana-de-camara'
 import type { Dispositivo } from '../hooks/use-camara'
+import { SelectorDeLogo } from './selector-de-logo'
 
 type Props = {
   ventana: VentanaDeCamara
@@ -39,7 +41,10 @@ const SIN_VALOR: Record<
     motivo: 'No tienes WhatsApp ni teléfono: cárgalo en tu perfil.',
     hay: (d) => contactoAMostrar(d) !== null,
   },
-  logo: { motivo: 'La empresa no tiene logo cargado.', hay: (d) => d.empresa.logoUrl !== null },
+  logo: {
+    motivo: 'La empresa no tiene logo cargado.',
+    hay: (d) => d.empresa.logoUrl !== null || d.empresa.logos.length > 0,
+  },
   redes_y_web: {
     motivo: 'La empresa no cargó redes ni web.',
     hay: (d) => d.empresa.redes.length > 0 || Boolean(d.empresa.web),
@@ -91,26 +96,35 @@ function DatosAMostrar({ ventana, datos, cambiar }: Pick<Props, 'ventana' | 'dat
       {DATOS_DE_LA_VENTANA.map((dato) => {
         const motivo = motivoSinValor(dato, datos)
         return (
-          <label
-            key={dato}
-            className="grid grid-cols-[auto_1fr] items-center gap-x-2 text-(length:--text-sm)"
-          >
-            <Checkbox
-              checked={motivo === null && ventana.datos.includes(dato)}
-              disabled={motivo !== null}
-              onCheckedChange={(elegido) => {
-                alternarDato(dato, elegido)
-              }}
-            />
-            <span className={motivo ? 'text-(--color-ink-faint)' : 'text-(--color-ink)'}>
-              {ETIQUETA[dato]}
-            </span>
-            {motivo ? (
-              <span className="col-start-2 text-(length:--text-xs) text-(--color-ink-faint)">
-                {motivo}
+          <Fragment key={dato}>
+            <label className="grid grid-cols-[auto_1fr] items-center gap-x-2 text-(length:--text-sm)">
+              <Checkbox
+                checked={motivo === null && ventana.datos.includes(dato)}
+                disabled={motivo !== null}
+                onCheckedChange={(elegido) => {
+                  alternarDato(dato, elegido)
+                }}
+              />
+              <span className={motivo ? 'text-(--color-ink-faint)' : 'text-(--color-ink)'}>
+                {ETIQUETA[dato]}
               </span>
+              {motivo ? (
+                <span className="col-start-2 text-(length:--text-xs) text-(--color-ink-faint)">
+                  {motivo}
+                </span>
+              ) : null}
+            </label>
+            {dato === 'logo' && datos.empresa.logos.length > 1 ? (
+              <SelectorDeLogo
+                logos={datos.empresa.logos}
+                elegido={ventana.logo}
+                alElegir={(logo) => {
+                  cambiar({ logo })
+                }}
+                deshabilitado={motivo !== null || !ventana.datos.includes('logo')}
+              />
             ) : null}
-          </label>
+          </Fragment>
         )
       })}
     </fieldset>

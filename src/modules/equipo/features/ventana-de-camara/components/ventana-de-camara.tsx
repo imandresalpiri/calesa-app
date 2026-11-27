@@ -60,7 +60,12 @@ function ContenidoDeLaVentana({
         alReintentar={camara.reintentar}
       />
       <div className="min-h-0 overflow-y-auto" data-datos-de-la-ventana="">
-        <DatosDeLaVentana datos={datos} elegidos={ventana.datos} fichaWeb={ventana.ficha_web} />
+        <DatosDeLaVentana
+          datos={datos}
+          elegidos={ventana.datos}
+          fichaWeb={ventana.ficha_web}
+          logo={ventana.logo}
+        />
       </div>
     </>
   )

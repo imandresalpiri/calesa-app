@@ -3,6 +3,7 @@ import {
   cargoAMostrar,
   contactoAMostrar,
   direccionLegible,
+  logoDeLaVentana,
   type DatoDeLaVentana,
   type DatosDeQuienPresenta,
 } from '../../../entities/ventana-de-camara'
@@ -11,12 +12,25 @@ type Props = {
   datos: DatosDeQuienPresenta
   elegidos: readonly DatoDeLaVentana[]
   fichaWeb: boolean
+  // La variante del logo elegida (`ventana.logo`).
+  logo: string | null
 }
 
-function Logo({ url, oscuro }: { url: string; oscuro: string | null }) {
-  // Con logo para el tema oscuro van los dos y el tema elige por CSS: sin parpadeo al cambiar.
+function Logo({
+  url,
+  oscuro,
+  enOscuro,
+}: {
+  url: string
+  oscuro: string | null
+  enOscuro: boolean
+}) {
+  // Con logo para el tema oscuro van los dos y el tema elige por CSS: sin parpadeo al cambiar. La variante «Para fondo oscuro» va sobre fondo oscuro
+  // (`dark` resuelve ahí los tokens), sea cual sea el tema.
   return (
-    <>
+    <span
+      className={`${enOscuro ? 'dark rounded-(--radius-md) bg-(--color-surface-2) p-1' : ''} flex min-w-0`}
+    >
       <Image
         src={url}
         alt=""
@@ -35,7 +49,7 @@ function Logo({ url, oscuro }: { url: string; oscuro: string | null }) {
           className="hidden h-8 w-auto max-w-full object-contain object-left dark:block"
         />
       ) : null}
-    </>
+    </span>
   )
 }
 
@@ -71,11 +85,12 @@ function RedesYWeb({
 
 // Lo de quien presenta que eligió mostrar, debajo del video. Lo que no tiene valor no se dibuja (ni su renglón): la ventana no cambia de ancho. Los textos se
 // parten en líneas (`break-words`) y, si no caben a lo alto, el bloque de afuera se desplaza por dentro.
-export function DatosDeLaVentana({ datos, elegidos, fichaWeb }: Props) {
+export function DatosDeLaVentana({ datos, elegidos, fichaWeb, logo }: Props) {
   const { empresa } = datos
   const contacto = contactoAMostrar(datos)
   const web = empresa.web ? direccionLegible(empresa.web) : null
   const ve = (dato: DatoDeLaVentana) => elegidos.includes(dato)
+  const delLogo = logoDeLaVentana(empresa, logo)
 
   return (
     <div className="grid min-w-0 gap-1.5 p-3 text-(length:--text-sm) [overflow-wrap:anywhere]">
@@ -83,8 +98,8 @@ export function DatosDeLaVentana({ datos, elegidos, fichaWeb }: Props) {
         <NombreYCargo nombre={datos.nombre} cargo={cargoAMostrar(datos, fichaWeb)} />
       ) : null}
       {ve('contacto') && contacto ? <p className="text-(--color-ink)">{contacto}</p> : null}
-      {ve('logo') && empresa.logoUrl ? (
-        <Logo url={empresa.logoUrl} oscuro={empresa.logoOscuroUrl} />
+      {ve('logo') && delLogo ? (
+        <Logo url={delLogo.url} oscuro={delLogo.oscuro} enOscuro={delLogo.enOscuro} />
       ) : null}
       {ve('redes_y_web') && (empresa.redes.length > 0 || web) ? (
         <RedesYWeb redes={empresa.redes} web={web} />

@@ -13,6 +13,7 @@ import {
   llevarAdentro,
   porcentajeDePosicion,
   posicionEnPx,
+  logoDeLaVentana,
   ventanaDesde,
   type DatosDeQuienPresenta,
 } from './ventana-de-camara'
@@ -43,6 +44,7 @@ describe('la forma guardada (espejo del check de la base)', () => {
     ['un dato que no existe', { datos: ['telefono'] }],
     ['una cámara de más de 300 letras', { camara: 'a'.repeat(301) }],
     ['un booleano que no lo es', { espejo: 'si' }],
+    ['un logo que no es «oscuro» ni un id', { logo: 'monocromo' }],
   ])('rechaza %s', (_motivo, cambio) => {
     expect(
       esquemaDeLaVentanaDeCamara.safeParse({ ...VENTANA_POR_DEFECTO, ...cambio }).success,
@@ -70,6 +72,17 @@ describe('ventanaDesde(): lo guardado, tolerante', () => {
     expect(leida.minimizada).toBe(true)
     expect(leida.y).toBe(VENTANA_POR_DEFECTO.y)
     expect(leida.datos).toEqual(VENTANA_POR_DEFECTO.datos)
+  })
+
+  it('el logo elegido: null (el principal), «oscuro» o el id de una variante; otra cosa vuelve a null', () => {
+    const id = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f'
+    expect(ventanaDesde({ logo: null }).logo).toBeNull()
+    expect(ventanaDesde({ logo: 'oscuro' }).logo).toBe('oscuro')
+    expect(ventanaDesde({ logo: id }).logo).toBe(id)
+    expect(ventanaDesde({ logo: 'monocromo' }).logo).toBeNull()
+    expect(esquemaDeLaVentanaDeCamara.safeParse({ ...VENTANA_POR_DEFECTO, logo: id }).success).toBe(
+      true,
+    )
   })
 
   it('una cámara null se conserva como «la primera»', () => {
@@ -158,8 +171,50 @@ const PERSONA: DatosDeQuienPresenta = {
   cargoWeb: 'Asesora comercial',
   telefono: '+591 70000000',
   whatsapp: null,
-  empresa: { nombre: 'Importadora', logoUrl: null, logoOscuroUrl: null, redes: [], web: null },
+  empresa: {
+    nombre: 'Importadora',
+    logoUrl: null,
+    logoOscuroUrl: null,
+    logos: [],
+    redes: [],
+    web: null,
+  },
 }
+
+describe('el logo que dibuja la ventana', () => {
+  const empresa = {
+    ...PERSONA.empresa,
+    logoUrl: 'https://x/principal.png',
+    logoOscuroUrl: 'https://x/oscuro.png',
+    logos: [
+      { id: 'principal', nombre: 'Principal', url: 'https://x/principal.png' },
+      { id: 'oscuro', nombre: 'Para fondo oscuro', url: 'https://x/oscuro.png' },
+      { id: 'abc', nombre: 'Ícono', url: 'https://x/icono.png' },
+    ],
+  }
+
+  it('sin elegir, el principal con su pareja oscura', () => {
+    expect(logoDeLaVentana(empresa, null)).toEqual({
+      url: 'https://x/principal.png',
+      oscuro: 'https://x/oscuro.png',
+      enOscuro: false,
+    })
+  })
+
+  it('una variante elegida va sola; la de fondo oscuro, sobre fondo oscuro', () => {
+    expect(logoDeLaVentana(empresa, 'abc')).toEqual({
+      url: 'https://x/icono.png',
+      oscuro: null,
+      enOscuro: false,
+    })
+    expect(logoDeLaVentana(empresa, 'oscuro')?.enOscuro).toBe(true)
+  })
+
+  it('una variante que ya no está vuelve al principal, y sin principal no hay logo', () => {
+    expect(logoDeLaVentana(empresa, 'quitada')?.url).toBe('https://x/principal.png')
+    expect(logoDeLaVentana({ ...empresa, logoUrl: null }, 'quitada')).toBeNull()
+  })
+})
 
 describe('los datos de quien presenta', () => {
   it('con la ficha web, el cargo de la ficha; sin ella o sin cargo web, el del equipo', () => {

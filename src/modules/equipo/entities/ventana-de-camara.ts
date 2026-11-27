@@ -32,6 +32,8 @@ export type VentanaDeCamara = {
   datos: DatoDeLaVentana[]
   // El `deviceId` de la cámara elegida; null = la primera que haya.
   camara: string | null
+  // La variante del logo que se muestra: `null` = la principal, `'oscuro'` = la de fondo oscuro, o el id de una variante propia (`logos_empresa`).
+  logo: string | null
 }
 
 export const VENTANA_POR_DEFECTO: VentanaDeCamara = {
@@ -43,6 +45,7 @@ export const VENTANA_POR_DEFECTO: VentanaDeCamara = {
   ficha_web: false,
   datos: ['nombre_y_cargo', 'contacto', 'logo'],
   camara: null,
+  logo: null,
 }
 
 const esquemaDeDatos = z.array(z.enum(DATOS_DE_LA_VENTANA)).max(DATOS_DE_LA_VENTANA.length)
@@ -56,6 +59,7 @@ export const esquemaDeLaVentanaDeCamara = z.object({
   ficha_web: z.boolean(),
   datos: esquemaDeDatos,
   camara: z.string().max(300).nullable(),
+  logo: z.union([z.literal('oscuro'), z.guid()]).nullable(),
 })
 
 // Lo guardado, campo por campo y tolerante: lo que falta o ya no vale (un dato que se quitó de la lista) vuelve a lo por defecto, sin tirar el resto.
@@ -78,6 +82,7 @@ export function ventanaDesde(crudo: unknown): VentanaDeCamara {
     ficha_web: de('ficha_web'),
     datos: de('datos'),
     camara: de('camara'),
+    logo: de('logo'),
   }
 }
 
@@ -149,11 +154,15 @@ export type FichaDeQuienPresenta = {
   whatsapp: string | null
 }
 
+export type VarianteParaLaVentana = { id: string; nombre: string; url: string }
+
 export type DatosDeQuienPresenta = FichaDeQuienPresenta & {
   empresa: {
     nombre: string
     logoUrl: string | null
     logoOscuroUrl: string | null
+    // Las variantes del logo con archivo, en el orden de la lista de la empresa (`principal` y `oscuro` entre ellas): lo que se elige en la ventana.
+    logos: readonly VarianteParaLaVentana[]
     // Las redes con valor, con su etiqueta («Instagram»), y la web.
     redes: readonly { clave: string; etiqueta: string; valor: string }[]
     web: string | null
@@ -177,4 +186,21 @@ export function direccionLegible(url: string): string {
     .replace(/^https?:\/\//i, '')
     .replace(/^www\./i, '')
     .replace(/\/+$/, '')
+}
+
+// El logo que dibuja la ventana: el de la variante elegida o, si ya no está (la quitaron) o no se eligió ninguna, el principal. `enOscuro`: la variante
+// «Para fondo oscuro» se ve sobre fondo oscuro, sea cual sea el tema; la principal con su pareja oscura la resuelve el tema por CSS.
+export type LogoDeLaVentana = { url: string; oscuro: string | null; enOscuro: boolean }
+
+export function logoDeLaVentana(
+  empresa: DatosDeQuienPresenta['empresa'],
+  elegido: string | null,
+): LogoDeLaVentana | null {
+  const variante = elegido === null ? null : empresa.logos.find((v) => v.id === elegido)
+  if (variante) {
+    return { url: variante.url, oscuro: null, enOscuro: variante.id === 'oscuro' }
+  }
+  return empresa.logoUrl === null
+    ? null
+    : { url: empresa.logoUrl, oscuro: empresa.logoOscuroUrl, enOscuro: false }
 }

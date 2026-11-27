@@ -42,6 +42,10 @@ export const CONFIRMAR_CON_URL_DEL_NUCLEO: Record<string, ConfirmarConUrl> = {
     abre: 'src/modules/empresa/features/enlaces-de-ayuda/hooks/use-quitar-enlace-por-url.ts',
     senal: 'PANEL_QUITAR_ENLACE_DE_AYUDA',
   },
+  'src/modules/empresa/features/logos/components/quitar-logo.tsx': {
+    abre: 'src/modules/empresa/features/logos/hooks/use-quitar-logo-por-url.ts',
+    senal: 'PANEL_QUITAR_LOGO',
+  },
   'src/modules/leads/features/tipos-de-seguimiento/components/eliminar-tipo-de-seguimiento.tsx': {
     abre: 'src/modules/leads/features/tipos-de-seguimiento/hooks/use-eliminar-tipo-de-seguimiento-por-url.ts',
     senal: 'PANEL_ELIMINAR_TIPO_DE_SEGUIMIENTO',

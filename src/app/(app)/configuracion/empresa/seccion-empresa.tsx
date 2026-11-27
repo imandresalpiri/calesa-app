@@ -1,13 +1,23 @@
-import { leerAjustes, leerEnlacesDeAyuda, urlDeIcono, zonasHorarias } from '@/modules/empresa'
+import {
+  leerAjustes,
+  leerEnlacesDeAyuda,
+  leerLogos,
+  urlDeIcono,
+  zonasHorarias,
+} from '@/modules/empresa'
 import { TarjetasDeLaEmpresa } from '@/modules/empresa/pantallas/configuracion-empresa'
 import { urlPublica, urlPublicaONull } from '@/shared/lib/almacen'
 import { datosO } from '@/shared/lib/errores'
 
-// Lo que dibuja Datos de la empresa: seis tarjetas con lo guardado, que se editan en un modal cada una. La lee cualquiera que llegue a la
+// Lo que dibuja Datos de la empresa: siete tarjetas con lo guardado, que se editan en un modal cada una. La lee cualquiera que llegue a la
 // pantalla; quien no tiene `empresa.ajustes.gestionar` la ve con «Editar» apagado y el motivo. Sin `key`: las tarjetas y sus modales
 // reciben lo guardado por props y cada modal arranca de cero en cada apertura.
 export async function SeccionEmpresa({ puedeEditar }: { puedeEditar: boolean }) {
-  const [leidos, enlaces] = await Promise.all([leerAjustes(), leerEnlacesDeAyuda()])
+  const [leidos, enlaces, logos] = await Promise.all([
+    leerAjustes(),
+    leerEnlacesDeAyuda(),
+    leerLogos(),
+  ])
   const { ajustes } = datosO(leidos)
 
   return (
@@ -19,6 +29,7 @@ export async function SeccionEmpresa({ puedeEditar }: { puedeEditar: boolean }) 
       zonas={zonasHorarias()}
       puedeEditar={puedeEditar}
       enlacesDeAyuda={datosO(enlaces)}
+      logos={datosO(logos)}
     />
   )
 }

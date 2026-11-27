@@ -71,7 +71,8 @@ parte })` de `client.ts` (lee, funde con `conLaPestana()` y hace upsert; sin rev
   `leerLaVentanaDeCamara()` (su ventana y su ficha por la PK, sólo con el Live encendido; sale por `shell.ts` con `<PuertaDeLaVentana>`), la action
   `guardarLaVentanaDeCamara`, `<PuertaDeLaVentana>` (Live + 1024 px → `diferido()` de `<VentanaDeCamara>`) y los hooks `useCamara` (apaga las pistas al
   desmontarse), `useGestoDeLaVentana` (arrastre, esquina, flechas) y `useVentanaGuardada` (espera de 500 ms). **No** viaja en `ProveedorPreferencias`. El
-  logo y las redes de la empresa los arma el layout (`huecos/ventana-de-camara.tsx`) y entran por props. Lo que se dibuja en un portal (el popover) llega a
+  logo (las variantes con archivo de `leerLogos()`, para elegir una: `ventana.logo`; `logoDeLaVentana()` cae al principal si la elegida ya no está) y las redes de la empresa los arma el layout
+  (`huecos/ventana-de-camara.tsx`) y entran por props. Lo que se dibuja en un portal (el popover) llega a
   la barra por el árbol de React: el arrastre ignora lo que no está dentro de ella. Prueba: `supabase/tests/areas/equipo/preferencia-de-la-ventana-de-camara.sql`.
 
 - La lista del equipo (`features/equipo/components/`): tocar la fila o la tarjeta de una persona abre su acción principal, «Cambiar sus roles» (`alAbrirPersona()`: nada si no hay «⋯», si sale apagada o si la persona está dada de baja); el resto vive sólo en su «⋯». Roles: la cabecera de un rol lleva su «⋯» con «Eliminar el rol…» (destructiva: tocar la cabecera no hace nada).

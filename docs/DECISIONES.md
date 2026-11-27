@@ -243,6 +243,14 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   lo que se decide con `puede()` se apagan solos, como con «Ver como». RLS, RPC y `actionClient` siguen con los permisos reales: el Live es
   presentación, no seguridad, y por eso sus ajustes no pasan por `/actividad` ni exigen dominar a la persona (no otorgan permisos y así no se
   redefine `_actividad_recorte()`; decidido sin preguntar). Se escriben sólo por RPC definer con `live.configurar`.
+- **Las variantes del logo son una tabla propia, con «Principal» y «Para fondo oscuro» como filas fijas de la lista.** Esas dos siguen siendo las columnas de `ajustes_empresa`
+  (las usan el PDF, el marco, la web y los íconos, y se editan en Identidad con la versión de los ajustes); `logos_empresa` guarda sólo las propias (hasta 12, nombre único sin
+  mayúsculas, tildes ni espacios, orden y versión por fila) y `logos_empresa_leer()` devuelve la lista entera con las fijas primero, así que ni la lista ni quien elige un logo distinguen
+  de dónde sale cada uno. Las fijas no se renombran, ordenan ni quitan. Se escribe sólo por RPC (`logo_variante_crear|renombrar|quitar`, `logo_variantes_ordenar`), con la versión de la fila y
+  `PT409`; ordenar manda todos los ids y un conjunto que no coincide es conflicto. El archivo se sube antes (por su hash, a `marca/logos/`) y `storage_refcount()` cuenta la tabla: quitar la
+  variante no borra un archivo que otra fila use. La ventana de cámara guarda `logo` (`null` = el principal, `oscuro` o el id de una variante) en `live.ventana`; quitar una variante la limpia de esas
+  ventanas en la misma RPC y el aviso de «Quitar» cuenta cuántas la usaban (hasta 100). `leerLogos()` sale del `index.ts` de `empresa` para el editor de artes: lo propio, sin componentes.
+  El orden por teclado va en el asa (↑ y ↓), no en el `KeyboardSensor` de dnd-kit: el diálogo de Base UI detiene las flechas antes de que lleguen al documento, donde ese sensor las escucha.
 - **La ventana de cámara se guarda en `preferencias_usuario` (`live.ventana`) y la cámara nunca se graba ni se sube.** Una fila por persona, validada por
   `_preferencia_live_ventana_valida()` (espejo de `esquemaDeLaVentanaDeCamara`): la posición en % del espacio libre (sobrevive a otro tamaño de pantalla y
   siempre queda adentro), el ancho en px, minimizada, espejo, los datos y el `deviceId`. Se escribe 500 ms después de soltar (nunca por cuadro), sin red se

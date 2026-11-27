@@ -72,6 +72,8 @@ export type InstantaneaDeEmpresa = {
   ajustes: Fila
   tiposDeCambio: Fila[]
   ultimoHistorial: number
+  // Las variantes del logo (`logos_empresa`).
+  logos: Fila[]
   apibara: { activa: boolean; config: unknown; secretoGuardadoEn: string | null }
 }
 
@@ -93,8 +95,11 @@ export async function tomarInstantaneaDeEmpresa(): Promise<InstantaneaDeEmpresa>
     .eq('clave', 'apibara')
     .single<{ activa: boolean; config: unknown; secreto_guardado_en: string | null }>()
   exigir(integracion.error, 'la integración')
+  const logos = await cliente.from('logos_empresa').select('*').returns<Fila[]>()
+  exigir(logos.error, 'las variantes del logo')
   return {
     ajustes: ajustes.data as Fila,
+    logos: logos.data ?? [],
     tiposDeCambio: tipos.data ?? [],
     ultimoHistorial: Number((historial.data?.[0] as { id?: number } | undefined)?.id ?? 0),
     apibara: {
@@ -102,6 +107,43 @@ export async function tomarInstantaneaDeEmpresa(): Promise<InstantaneaDeEmpresa>
       config: integracion.data?.config ?? {},
       secretoGuardadoEn: integracion.data?.secreto_guardado_en ?? null,
     },
+  }
+}
+
+// Lo que un e2e subió al bucket `marca` ya no lo referencia nadie, salvo lo que la empresa real usa (ajustes, íconos y variantes que acaban de volver).
+async function descartarLoSubidoALaMarca(
+  instantanea: InstantaneaDeEmpresa | undefined,
+): Promise<void> {
+  const cliente = admin()
+  const enUso = new Set(
+    [
+      instantanea?.ajustes['logo_ruta'],
+      instantanea?.ajustes['logo_oscuro_ruta'],
+      ...(instantanea?.logos ?? []).map((fila) => fila['ruta']),
+      ...Object.values(instantanea?.ajustes['iconos'] ?? {}),
+    ].filter((ruta): ruta is string => typeof ruta === 'string'),
+  )
+  for (const carpeta of ['logos', 'iconos']) {
+    const { data: objetos, error } = await cliente.storage.from('marca').list(carpeta)
+    exigir(error, `la carpeta ${carpeta}`)
+    const rutas = (objetos ?? [])
+      .map((objeto) => `${carpeta}/${objeto.name}`)
+      .filter((ruta) => !enUso.has(ruta))
+    if (rutas.length > 0) {
+      exigir((await cliente.storage.from('marca').remove(rutas)).error, `los objetos de ${carpeta}`)
+    }
+  }
+}
+
+// Las variantes del logo como estaban (ninguna, como en el seed, sin instantánea).
+async function dejarLasVariantesDelLogo(filas: Fila[]): Promise<void> {
+  const cliente = admin()
+  exigir(
+    (await cliente.from('logos_empresa').delete().not('id', 'is', null)).error,
+    'las variantes del logo',
+  )
+  if (filas.length > 0) {
+    exigir((await cliente.from('logos_empresa').insert(filas)).error, 'las variantes del logo')
   }
 }
 
@@ -156,23 +198,8 @@ export async function restaurarEmpresa(instantanea?: InstantaneaDeEmpresa): Prom
   exigir(apibara.error, 'la integración')
   // Lo que un e2e subió al bucket `marca` ya no lo referencia nadie... salvo lo que la empresa
   // real usa: lo que referencian los ajustes que acaban de volver se queda.
-  const enUso = new Set(
-    [
-      instantanea?.ajustes['logo_ruta'],
-      instantanea?.ajustes['logo_oscuro_ruta'],
-      ...Object.values(instantanea?.ajustes['iconos'] ?? {}),
-    ].filter((ruta): ruta is string => typeof ruta === 'string'),
-  )
-  for (const carpeta of ['logos', 'iconos']) {
-    const { data: objetos, error } = await cliente.storage.from('marca').list(carpeta)
-    exigir(error, `la carpeta ${carpeta}`)
-    const rutas = (objetos ?? [])
-      .map((objeto) => `${carpeta}/${objeto.name}`)
-      .filter((ruta) => !enUso.has(ruta))
-    if (rutas.length > 0) {
-      exigir((await cliente.storage.from('marca').remove(rutas)).error, `los objetos de ${carpeta}`)
-    }
-  }
+  await dejarLasVariantesDelLogo(instantanea?.logos ?? [])
+  await descartarLoSubidoALaMarca(instantanea)
 }
 
 // Los de supabase/seed.sql (los de las capturas del cotizador): el oficial es el único por defecto y el único en la barra superior.
