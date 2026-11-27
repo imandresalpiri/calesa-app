@@ -5,9 +5,3 @@ export {
   NO_SE_CARGO_LA_ADUANA,
   type AduanaDeLaUnidad,
 } from '../../infra/aduana/unidad.client'
-export {
-  buscarUnidades,
-  NO_SE_BUSCO,
-  type UnidadesBuscadas,
-} from '../../infra/aduana/buscar-unidades.client'
-export type { UnidadBuscada } from '../../entities/aduana/unidad-buscada'

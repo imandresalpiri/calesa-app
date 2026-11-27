@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Skeleton } from '@/shared/ui/skeleton'
-import type { UnidadBuscada } from '../../../areas/aduana/composicion.client'
+import type { UnidadBuscada } from '../../../entities/nucleo/unidad-buscada'
 import { useBuscarUnidades } from '../hooks/use-buscar-unidades'
 
 type Props = {
@@ -16,6 +16,19 @@ type Props = {
   alAgregar: (unidad: UnidadBuscada) => void
   // El origen elegido en Logística: se busca sólo ahí.
   origenId: string
+  // Una línea más bajo la unidad (dónde va hoy: «Está en el contenedor «MSCU1234»»); nula, nada.
+  marca?: (unidad: UnidadBuscada) => string | null
+}
+
+function MarcaDeLaUnidad({ texto }: { texto: string | null }) {
+  if (texto === null) {
+    return null
+  }
+  return (
+    <span className="text-(length:--text-xs) [overflow-wrap:anywhere] text-(--color-aviso-ink)">
+      {texto}
+    </span>
+  )
 }
 
 function Resultados({
@@ -23,6 +36,7 @@ function Resultados({
   hayMas,
   yaEstan,
   alAgregar,
+  marca,
 }: Omit<Props, 'origenId'> & { unidades: readonly UnidadBuscada[]; hayMas: boolean }) {
   if (unidades.length === 0) {
     return (
@@ -48,6 +62,7 @@ function Resultados({
                   .filter((parte) => parte !== null)
                   .join(' · ')}
               </span>
+              <MarcaDeLaUnidad texto={marca?.(unidad) ?? null} />
             </span>
             {yaEstan.has(unidad.id) ? (
               <Badge variant="outline">Ya está</Badge>
@@ -75,8 +90,9 @@ function Resultados({
   )
 }
 
-// Buscar un vehículo por título, VIN o lote para sumarlo a la declaración (D4): mínimo 3 letras o números, hasta 10 resultados entre los que ves del origen elegido. Se busca al enviar (Enter o «Buscar»).
-export function BuscadorDeUnidades({ yaEstan, alAgregar, origenId }: Props) {
+// Buscar un vehículo por título, VIN o lote para sumarlo a una declaración, un embarque o un contenedor: mínimo 3 letras o números, hasta 10 resultados entre los que ves
+// del origen elegido. Se busca al enviar (Enter o «Buscar»).
+export function BuscadorDeUnidades({ yaEstan, alAgregar, origenId, marca }: Props) {
   const idCampo = useId()
   const b = useBuscarUnidades(origenId)
   return (
@@ -128,6 +144,7 @@ export function BuscadorDeUnidades({ yaEstan, alAgregar, origenId }: Props) {
           hayMas={b.busqueda.resultado.hayMas}
           yaEstan={yaEstan}
           alAgregar={alAgregar}
+          marca={marca}
         />
       ) : null}
     </div>

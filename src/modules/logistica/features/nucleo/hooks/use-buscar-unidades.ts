@@ -3,12 +3,11 @@
 import { useRef, useState } from 'react'
 import { fallo, type ErrorApp } from '@/shared/lib/errores'
 import { cumpleElMinimo } from '@/shared/lib/filtros'
+import { buscarUnidades, NO_SE_BUSCO } from '../../../areas/nucleo/composicion.client'
 import {
-  buscarUnidades,
-  NO_SE_BUSCO,
+  MINIMO_DE_BUSQUEDA_DE_UNIDADES,
   type UnidadesBuscadas,
-} from '../../../areas/aduana/composicion.client'
-import { MINIMO_DE_BUSQUEDA_DE_ADUANA } from '../../../entities/aduana/filtros'
+} from '../../../entities/nucleo/unidad-buscada'
 
 export type Busqueda =
   | { tipo: 'sin-buscar' }
@@ -16,7 +15,7 @@ export type Busqueda =
   | { tipo: 'error'; error: ErrorApp }
   | { tipo: 'listo'; resultado: UnidadesBuscadas }
 
-// La búsqueda de vehículos para agregar (6.09-2): se pide al enviar el campo (Enter o «Buscar»), no a cada letra, y una respuesta vieja no pisa a una más nueva. Con menos de 3 letras o
+// La búsqueda de vehículos para agregar a una declaración, un embarque o un contenedor: se pide al enviar el campo (Enter o «Buscar»), no a cada letra, y una respuesta vieja no pisa a una más nueva. Con menos de 3 letras o
 // dígitos no llama a la base y dice por qué.
 export function useBuscarUnidades(origenId: string) {
   const [texto, setTexto] = useState('')
@@ -25,8 +24,8 @@ export function useBuscarUnidades(origenId: string) {
   const pedido = useRef(0)
 
   async function buscar() {
-    if (!cumpleElMinimo(texto.trim(), MINIMO_DE_BUSQUEDA_DE_ADUANA)) {
-      setAviso(MINIMO_DE_BUSQUEDA_DE_ADUANA.aviso)
+    if (!cumpleElMinimo(texto.trim(), MINIMO_DE_BUSQUEDA_DE_UNIDADES)) {
+      setAviso(MINIMO_DE_BUSQUEDA_DE_UNIDADES.aviso)
       return
     }
     setAviso(null)

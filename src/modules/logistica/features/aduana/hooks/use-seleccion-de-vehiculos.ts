@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { UnidadBuscada } from '../../../areas/aduana/composicion.client'
+import type { UnidadBuscada } from '../../../entities/nucleo/unidad-buscada'
 
 // Lo que se eligió en pantalla y aún no se guardó: los vehículos marcados para quitar y los que se sumaron con el buscador (6.09-2, D5).
 export function useSeleccionDeVehiculos() {
