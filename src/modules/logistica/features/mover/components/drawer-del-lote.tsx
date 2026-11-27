@@ -5,12 +5,16 @@ import { Button } from '@/shared/ui/button'
 import { Drawer } from '@/shared/ui/drawer'
 import { focoDeQuienAbrio } from '@/shared/ui/foco-de-quien-abre'
 import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
+import { Aviso } from '@/shared/ui/aviso'
 import {
-  CLAVE_DE_BOOKING_DEL_LOTE,
   CLAVE_DE_CONTENEDOR_DEL_LOTE,
   CLAVE_DE_DESTINO_DEL_LOTE,
+  CLAVE_DE_EMBARQUE_DEL_LOTE,
   CLAVES_DEL_LOTE,
   PANEL_DEL_LOTE,
+  grupoDelLote,
+  textoDelGrupoQueNoEsta,
+  type GrupoDelLote,
 } from '../../../entities/mover/claves-del-lote'
 import { useSeleccionDeLaCadena } from '../../nucleo/seleccion/use-seleccion-de-la-cadena'
 import { CuerpoDelGrupo } from './cuerpo-del-grupo'
@@ -37,21 +41,38 @@ function SinUnidades({ alCerrar }: { alCerrar: () => void }) {
 
 type Fuente = {
   origenId: string
-  grupo: { tipo: 'contenedor' | 'booking'; valor: string } | null
+  grupo: GrupoDelLote | null
   destinoInicial: string | null
   alHaberResultado: () => void
   alCerrar: () => void
 }
 
-// De dónde salen las unidades: del grupo de la URL (`?contenedor=` o `?booking=`, que manda, D31) o de la selección de la cadena. Sin ninguna, «No elegiste ninguna unidad.».
+// De dónde salen las unidades: del grupo de la URL (`?contenedor=` o `?embarque=`, por su id, que manda, D31) o de la selección de la cadena. Sin ninguna, «No elegiste ninguna unidad.».
 function ContenidoDelLote({ origenId, grupo, destinoInicial, alHaberResultado, alCerrar }: Fuente) {
   const seleccion = useSeleccionDeLaCadena()
+  if (grupo && !grupo.valido) {
+    return (
+      <div className="grid gap-3">
+        <Aviso tono="aviso">
+          <p>{textoDelGrupoQueNoEsta(grupo.tipo)}</p>
+        </Aviso>
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-11 justify-self-start md:min-h-9"
+          onClick={alCerrar}
+        >
+          Cerrar
+        </Button>
+      </div>
+    )
+  }
   if (grupo) {
     return (
       <CuerpoDelGrupo
         origenId={origenId}
         tipo={grupo.tipo}
-        valor={grupo.valor}
+        id={grupo.id}
         destinoInicial={destinoInicial}
         alHaberResultado={() => undefined}
         alCerrar={alCerrar}
@@ -86,14 +107,10 @@ export function DrawerDelLote({ origenId }: { origenId: string }) {
     huboResultado.current = false
     panel.cerrar()
   }
-  const contenedor = panel.valor(CLAVE_DE_CONTENEDOR_DEL_LOTE)
-  const booking = panel.valor(CLAVE_DE_BOOKING_DEL_LOTE)
-  const grupo =
-    contenedor !== null
-      ? ({ tipo: 'contenedor', valor: contenedor } as const)
-      : booking !== null
-        ? ({ tipo: 'booking', valor: booking } as const)
-        : null
+  const grupo = grupoDelLote(
+    panel.valor(CLAVE_DE_CONTENEDOR_DEL_LOTE),
+    panel.valor(CLAVE_DE_EMBARQUE_DEL_LOTE),
+  )
   return (
     <Drawer
       abierto={panel.abierto}

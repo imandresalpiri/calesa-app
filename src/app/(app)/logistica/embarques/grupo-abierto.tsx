@@ -1,5 +1,6 @@
 import {
   leerCatalogosDeTransporte,
+  huecosPara,
   leerGrupo,
   tipoDeLaBaseDe,
   type VistaDeGrupos,
@@ -8,7 +9,7 @@ import { ResumenDelGrupo } from '@/modules/logistica/pantallas/transporte'
 import { datosO } from '@/shared/lib/errores'
 import type { Permisos } from '@/shared/lib/permisos'
 import { MarcasDeLogistica } from '../marcas-de-logistica'
-import { HUECOS_DEL_GRUPO, huecosDelGrupo, puedeEditarTransporte } from './huecos-del-grupo'
+import { HUECOS_DEL_GRUPO, puedeEditarTransporte } from './huecos-del-grupo'
 
 // El resumen del grupo con esa clave: sus unidades y los huecos que la persona puede usar. Una clave que no existe y una que no se ve dan el mismo grupo sin unidades (la base no distingue); un
 // error de lectura sube al `error.tsx` de `(app)`, que ofrece «Reintentar».
@@ -40,7 +41,11 @@ export async function GrupoAbierto({
         grupo={leido}
         vista={vista}
         catalogos={datosO(catalogos)}
-        huecos={huecosDelGrupo(HUECOS_DEL_GRUPO, permisos)}
+        huecos={huecosPara(
+          vista === 'contenedores' ? 'contenedor' : 'embarque',
+          HUECOS_DEL_GRUPO,
+          permisos,
+        )}
         puedeEditar={puedeEditarTransporte(permisos)}
         claveDeUrl={claveDeUrl}
         origenId={origenId}

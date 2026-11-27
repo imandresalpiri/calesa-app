@@ -10,6 +10,7 @@ export const HUECOS_DE_DOCUMENTOS_EN_EL_GRUPO: readonly HuecoDelGrupo[] = [
     permisos: ['logistica.documentos.subir'],
     // No hay regla de flujo «documentos» (V6 de 6.06-1).
     regla: null,
+    en: ['embarque', 'contenedor'],
     componente: HuecoDeDocumentosDelGrupoDiferido,
   },
 ]

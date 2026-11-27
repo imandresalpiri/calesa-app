@@ -4,7 +4,8 @@ export { refDeUnidad } from '../../entities/nucleo/unidad'
 export type { RefDeUnidad, Unidad, UnidadAbierta } from '../../entities/nucleo/unidad'
 export { huecosVisibles, ORDEN_DE_HUECOS } from '../../entities/nucleo/hueco'
 export type { HuecoDeLaUnidad } from '../../entities/nucleo/hueco'
-export type { GrupoDeLogistica, HuecoDelGrupo } from '../../entities/nucleo/grupo'
+export type { EntidadDelHueco, GrupoDeLogistica, HuecoDelGrupo } from '../../entities/nucleo/grupo'
+export { huecosPara } from '../../entities/nucleo/huecos-del-grupo'
 export type { CatalogoDeLogistica, EnlaceDeLogistica } from '../../entities/nucleo/enlaces'
 export {
   CLAVE_DE_ORIGEN_DE_LOGISTICA,

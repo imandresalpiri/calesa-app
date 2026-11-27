@@ -11,7 +11,7 @@ import {
   PANEL_DEL_LOTE,
 } from '../../../entities/mover/claves-del-lote'
 
-// El hueco «Mover el grupo» del resumen de un contenedor (6.04-3, D11): «Marcar que llegó» abre el lote con las unidades del contenedor para moverlas juntas. Sólo un contenedor lo tiene: un
+// El hueco «Mover el contenedor» de un contenedor (6.04-3, D11): «Marcar que llegó» abre el lote con las unidades del contenedor para moverlas juntas. Sólo un contenedor lo tiene: un
 // embarque o una declaración no se mueven por aquí. Lleva a la Cadena del origen de la pestaña (sin él, la del último que usó la persona).
 export function HuecoMoverElGrupo({ grupo }: { grupo: GrupoDeLogistica }) {
   if (grupo.tipo !== 'contenedor') return null

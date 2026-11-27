@@ -1,5 +1,5 @@
 // Las unidades de un grupo (embarque, contenedor o declaración), leídas desde el navegador con la sesión de quien mira (6.11-4). Un embarque o un contenedor, por la lectura del núcleo
-// (`transporte_grupo()`, sólo lo que quien mira ve, hasta 200: el máximo de un reparto); una declaración, por la clave de `declaraciones_vehiculos` bajo la RLS de `vehiculos` (lo que no
+// (`transporte_unidades()`, sólo lo que quien mira ve, hasta 200: el máximo de un reparto); una declaración, por la clave de `declaraciones_vehiculos` bajo la RLS de `vehiculos` (lo que no
 // deja ver no llega ni se delata), con tope 201: uno más que el máximo de un reparto.
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/browser'
@@ -58,10 +58,7 @@ export async function leerUnidadesDelGrupo(
   if (grupo.tipo === 'declaracion') {
     return deLaDeclaracion(grupo.id)
   }
-  const leido = await leerVehiculosDelGrupo({
-    tipo: grupo.tipo === 'embarque' ? 'booking' : 'contenedor',
-    clave: grupo.id,
-  })
+  const leido = await leerVehiculosDelGrupo({ tipo: grupo.tipo, id: grupo.id })
   if (!leido.ok) {
     return leido
   }

@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
-// Los vehículos de un grupo de transporte (`?booking=` o `?contenedor=`: los embarques o contenedores con esa clave en todos los orígenes) tal como los lista `transporte_grupo()` (hasta 200,
-// los que quien mira ve), en la forma mínima que usan el lote de `mover`, la subida a un grupo de `documentos` y el prorrateo de `dinero`. Está en el núcleo porque un área no importa otra.
+// Los vehículos de un embarque o un contenedor (por su id) tal como los lista `transporte_unidades()` (hasta 200, los que quien mira ve), en la forma mínima que usan el lote de `mover`, la subida a un grupo de `documentos` y el prorrateo de `dinero`. Está en el núcleo porque un área no importa otra.
 // Los ítems de repuesto del grupo no entran: ninguno de los tres los usa.
 
 export type VehiculoDelGrupo = {
@@ -33,7 +32,7 @@ const esquema = z.object({
   hay_mas: z.boolean(),
 })
 
-/** Lo que devolvió `transporte_grupo()`, sólo los vehículos (una vez cada uno); nulo si no tiene la forma esperada. */
+/** Lo que devolvió `transporte_unidades()`, sólo los vehículos (una vez cada uno); nulo si no tiene la forma esperada. */
 export function vehiculosDelGrupoDesde(datos: unknown): VehiculosDelGrupo | null {
   const leido = esquema.safeParse(datos)
   if (!leido.success) {
