@@ -26,14 +26,13 @@ type Props = {
   ocupado: boolean
 }
 
-// Sin nada elegido, «Resumen»: las columnas con su ancho (que se edita en número), «Σ ancho N / 1.600 px» y «Sumar columna»; la paleta (los colores del catálogo,
+// «Columnas» (el panel que abre su botón en la barra): las columnas con su ancho (que se edita en número), «Σ ancho N / 1.600 px» y «Sumar columna»; la paleta (los colores del catálogo,
 // sólo para ver: se editan en «Orígenes › Colores») y el tamaño contra el tope de 24 KiB, que es el que manda.
 export function PanelResumen({ plantilla, tonos, bytes, hacer, ocupado }: Props) {
   const { locale } = useRegional()
   const kib = (n: number) => formatearNumero(n / 1024, { decimales: 1, locale })
   return (
     <div className="grid min-w-0 gap-4" data-panel-resumen="">
-      <p className="font-medium">Resumen</p>
       <SeccionDelPanel titulo="Columnas">
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
           {plantilla.columnas.map((c, k) => (

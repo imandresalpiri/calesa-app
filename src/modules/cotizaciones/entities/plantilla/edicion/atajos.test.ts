@@ -70,4 +70,7 @@ describe('accionDeLaTecla', () => {
     expect(accionDeLaTecla(t('a', { alt: true }))).toBeNull()
     expect(accionDeLaTecla(t('ArrowDown', { alt: true }))).toBeNull()
   })
+  it('`?` no escribe: la grilla lo deja pasar a la ayuda de atajos', () => {
+    expect(accionDeLaTecla(t('?', { shift: true }))).toBeNull()
+  })
 })

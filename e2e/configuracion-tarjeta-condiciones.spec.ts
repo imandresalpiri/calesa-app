@@ -5,7 +5,7 @@ import { borrarPersonasDePrueba, correoDePrueba, crearDuenaDePrueba } from './so
 import { idDePersona, sembrarCotizaciones } from './soporte/cotizaciones-sembradas'
 import { abrirLaVistaPrevia, tarjeta } from './soporte/cotizar-vista-previa'
 import { crearOrigenDePrueba, PREFIJO_CLAVE_E2E } from './soporte/origenes'
-import { sembrarBorradorDePlantilla } from './soporte/plantilla'
+import { abrirElPanel, cerrarElPanel, sembrarBorradorDePlantilla } from './soporte/plantilla'
 import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 import { copiarLaFormulaDeLaSubasta, crearVehiculo } from './soporte/tarjeta-cuadricula'
@@ -179,7 +179,7 @@ const casilla = (page: Page, f: number, k: number) =>
 async function elegirComoDato(page: Page, f: number, cual: string) {
   await casilla(page, f, 0).click()
   await expect(casilla(page, f, 0)).toHaveAttribute('aria-selected', 'true')
-  const panel = panelDe(page)
+  const panel = await abrirElPanel(page, 'Celda')
   await panel
     .getByRole('radiogroup', { name: 'Contenido' })
     .getByRole('radio', { name: 'Dato' })
@@ -256,6 +256,7 @@ test('E2E armar una lista de respaldo, unas condiciones y ocultar una fila segú
   ).toContainText('Se cumplen sus condiciones')
   await capturar(page, info, 'condiciones-de-la-fila')
 
+  await cerrarElPanel(page)
   await page.getByRole('button', { name: 'Guardar borrador' }).click()
   await expect(page.getByText('Se guardó el borrador.')).toBeVisible()
   await expect.poll(() => definicion('borrador')).toContain('"respaldo"')

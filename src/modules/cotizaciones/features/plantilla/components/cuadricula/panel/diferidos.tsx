@@ -18,3 +18,9 @@ export const CondicionesDeLaFilaDiferidas = diferido(
   () => import('./condiciones-de-la-fila').then((m) => m.CondicionesDeLaFila),
   { aviso: 'aqui' },
 )
+
+// El panel al costado (`?panel=celda|columnas`): su cajón y lo de adentro se piden al abrirlo por primera vez (`useAbiertoAlgunaVez()`), no con el editor.
+export const DrawerDelPanelDiferido = diferido(
+  () => import('./drawer-del-panel').then((m) => m.DrawerDelPanel),
+  { aviso: 'aqui' },
+)

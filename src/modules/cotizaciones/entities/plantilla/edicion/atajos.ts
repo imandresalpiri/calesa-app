@@ -37,9 +37,10 @@ const FLECHAS: Readonly<Record<string, Direccion>> = {
   ArrowRight: 'derecha',
 }
 
-// Un carácter que se escribe: una sola letra (o un emoji), sin Ctrl, Cmd ni Alt.
+// Un carácter que se escribe: una sola letra (o un emoji), sin Ctrl, Cmd ni Alt. `?` no: con la grilla enfocada abre la ayuda de atajos (para escribirlo, Enter o F2
+// y luego la tecla).
 const esImprimible = (t: Tecla) =>
-  !t.ctrl && !t.meta && !t.alt && [...t.key].length === 1 && t.key !== ' '
+  !t.ctrl && !t.meta && !t.alt && [...t.key].length === 1 && t.key !== ' ' && t.key !== '?'
 
 // Las flechas, Home y End (con Shift extienden; con Ctrl, Home y End van a la primera y la última casilla).
 function deMovimiento(t: Tecla): AccionDelTeclado | null {

@@ -16,6 +16,7 @@ import {
   sembrarBorradorDePlantilla,
   visibilidadDeLaMini,
   type TerrenoDePlantilla,
+  conLaInformacionDeLaTarjeta,
 } from './soporte/plantilla'
 import { urlDeLaFormula } from './soporte/rutas-de-la-formula'
 
@@ -82,10 +83,11 @@ test('E1: «Publicar…» abre el modal, la nota es obligatoria y con ella se pu
   await publicarEnElModal(page).click()
   await expect(page.getByText('Se publicó la tarjeta.')).toBeVisible()
   await expect(page).not.toHaveURL(/panel=/)
-  await expect(
-    page.getByText(/Publicada: versión 1, .* Primera versión de la tarjeta/),
-  ).toBeVisible()
-  await expect(page.getByText(/Sin borrador: parte de la versión 1 publicada\./)).toBeVisible()
+  await conLaInformacionDeLaTarjeta(page, async (modal) => {
+    await expect(modal.getByRole('heading', { name: 'Publicada: versión 1' })).toBeVisible()
+    await expect(modal.getByText('Primera versión de la tarjeta')).toBeVisible()
+    await expect(modal.getByText(/Sin borrador: parte de la versión 1 publicada\./)).toBeVisible()
+  })
   const publicada = plantillaPublicada(origenId())
   expect(publicada?.version).toBe(1)
   expect(publicada?.nota).toBe('Primera versión de la tarjeta')

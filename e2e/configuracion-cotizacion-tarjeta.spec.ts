@@ -10,6 +10,7 @@ import {
   prepararTerrenoDePlantilla,
   tarjetaDibujada,
   type TerrenoDePlantilla,
+  conLaInformacionDeLaTarjeta,
 } from './soporte/plantilla'
 import { pestanaDelOrigen } from './soporte/pestanas-del-origen'
 import { abrirLaFormula, enElEditor, formulaDeTrabajoDe } from './soporte/rutas-de-la-formula'
@@ -105,9 +106,11 @@ test('E1: sin borrador ni publicada el editor nace de la de por omisión, guarda
   await pestanaDelOrigen(page, 'Tarjeta').click()
   await expect(page).toHaveURL(enElEditor(origenId(), 'tarjeta', formulaDeTrabajoDe(origenId())))
   await expect(page.getByRole('heading', { name: /^Tarjeta de / })).toBeVisible()
-  await expect(
-    page.getByText('Sin borrador ni publicada: parte de la de por omisión.'),
-  ).toBeVisible()
+  await conLaInformacionDeLaTarjeta(page, async (modal) => {
+    await expect(
+      modal.getByText('Sin borrador ni publicada: parte de la de por omisión.'),
+    ).toBeVisible()
+  })
   await expect(page.getByText('Todavía no hay tarjeta: nace de la de por omisión.')).toBeVisible()
   // Sin borrador, «Guardar borrador» está activo desde el principio.
   await expect(guardar(page)).toBeEnabled()
@@ -117,7 +120,9 @@ test('E1: sin borrador ni publicada el editor nace de la de por omisión, guarda
   await expect(page.getByText('Se guardó el borrador.')).toBeVisible()
   await expect.poll(() => borradorGuardado(origenId())?.actualizadoEn ?? null).not.toBeNull()
   await page.reload()
-  await expect(page.getByText(/^Sobre el borrador guardado el /)).toBeVisible()
+  await conLaInformacionDeLaTarjeta(page, async (modal) => {
+    await expect(modal.getByText(/^Sobre el borrador guardado el /)).toBeVisible()
+  })
   await expect(tarjetaDibujada(page).getByText('Cotización número', { exact: true })).toBeVisible()
   // Sin cambios no hay qué guardar.
   await expect(guardar(page)).toBeDisabled()

@@ -103,7 +103,6 @@ export function PanelDeLaFila(props: Props) {
   if (f === undefined) return null
   return (
     <div className="grid min-w-0 gap-4" data-panel-de-la-fila={f.id}>
-      <p className="font-medium">Fila {fila + 1}</p>
       <SeccionDelPanel titulo="Alto">
         <CampoDeNumero
           etiqueta="Alto de la fila"

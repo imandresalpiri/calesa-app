@@ -55,8 +55,11 @@ function laActiva(formulas: readonly FormulaDeLaLista[]): { id: string; nombre: 
   return activa ? { id: activa.id, nombre: activa.nombre } : null
 }
 
-// La barra de la fórmula (docs/GLOSARIO.md › «Barra de la fórmula»), arriba de Planilla, Hoja y Tarjeta: el selector de fórmula, el estado (en la Planilla, con
-// la ranura del botón ⓘ «Información de la fórmula» al lado, `RanuraDelEstado`) y, a la derecha,
+// Las pestañas que llevan su ⓘ de información junto al estado.
+const PARTES_CON_INFORMACION: ReadonlySet<ParteDeLaFormula> = new Set(['planilla', 'tarjeta'])
+
+// La barra de la fórmula (docs/GLOSARIO.md › «Barra de la fórmula»), arriba de Planilla, Hoja y Tarjeta: el selector de fórmula, el estado (en la Planilla y la Tarjeta,
+// con la ranura del botón ⓘ de información al lado, `RanuraDelEstado`) y, a la derecha,
 // «Versiones», «Tablas» y lo que el editor de la pestaña lleva a la ranura (Guardar · Publicar · «⋯»). Monta una vez «Nueva fórmula» y los paneles de cada
 // fórmula (`?panel=…-formula&cual=<id>`). En el celular se parte en renglones.
 export function BarraDeLaFormulaDelOrigen({
@@ -105,10 +108,10 @@ export function BarraDeLaFormulaDelOrigen({
           nueva.abrir()
         }}
       />
-      {/* El estado y, en la Planilla, el botón ⓘ «Información de la fórmula» junto a él: en el celular se parten juntos. */}
+      {/* El estado y, en la Planilla y la Tarjeta, el botón ⓘ de información junto a él: en el celular se parten juntos. */}
       <div className="flex min-w-0 items-center gap-1">
         <EstadoEnLaBarra elegida={elegida} />
-        {parte === 'planilla' && elegida !== null ? <RanuraDelEstado /> : null}
+        {elegida !== null && PARTES_CON_INFORMACION.has(parte) ? <RanuraDelEstado /> : null}
       </div>
       <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
         {versiones}

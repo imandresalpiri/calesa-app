@@ -15,6 +15,7 @@ import {
   publicarPlantillaDeLaMini,
   sembrarBorradorDePlantilla,
   type TerrenoDePlantilla,
+  conLaInformacionDeLaTarjeta,
 } from './soporte/plantilla'
 import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
@@ -89,7 +90,9 @@ test('E7: cancelar, Esc y «atrás» no borran; confirmar borra el borrador y la
   await confirmar(page).click()
   await expect(page.getByText('Se descartó el borrador.')).toBeVisible()
   await expect(page).not.toHaveURL(/panel=/)
-  await expect(page.getByText(/Sin borrador: parte de la versión 1 publicada\./)).toBeVisible()
+  await conLaInformacionDeLaTarjeta(page, async (modal) => {
+    await expect(modal.getByText(/Sin borrador: parte de la versión 1 publicada\./)).toBeVisible()
+  })
   // Sin borrador no hay «⋯» (sólo lleva «Descartar borrador…»).
   await expect(masAcciones(page)).toHaveCount(0)
   expect(borradorGuardado(origenId())).toBeNull()

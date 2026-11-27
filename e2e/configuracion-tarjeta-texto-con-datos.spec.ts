@@ -6,7 +6,13 @@ import { idDePersona, sembrarCotizaciones } from './soporte/cotizaciones-sembrad
 import { leerElPdf } from './soporte/cotizar-pdf'
 import { abrirLaVistaPrevia, dialogo } from './soporte/cotizar-vista-previa'
 import { crearOrigenDePrueba, PREFIJO_CLAVE_E2E } from './soporte/origenes'
-import { casillaDelLienzo, sembrarBorradorDePlantilla, tarjetaDibujada } from './soporte/plantilla'
+import {
+  abrirElPanel,
+  casillaDelLienzo,
+  cerrarElPanel,
+  sembrarBorradorDePlantilla,
+  tarjetaDibujada,
+} from './soporte/plantilla'
 import { capturar } from './soporte/recorrido'
 import { literal, sql } from './soporte/sql'
 import { copiarLaFormulaDeLaSubasta } from './soporte/tarjeta-cuadricula'
@@ -118,7 +124,7 @@ async function textoConUnDato(
 ) {
   await casillaDelLienzo(page, f, 0).click()
   await expect(casillaDelLienzo(page, f, 0)).toHaveAttribute('aria-selected', 'true')
-  const panel = panelDe(page)
+  const panel = await abrirElPanel(page, 'Celda')
   await expect(
     panel.getByRole('radiogroup', { name: 'Contenido' }).getByRole('radio', { name: 'Texto' }),
   ).toBeChecked()
@@ -180,6 +186,7 @@ test('E2E insertar el porcentaje de la transferencia y el total en un texto; bor
   await expect(celdaDibujada(page, 'c_total')).toHaveText(/^Total: USD\s/)
   await expect(celdaDibujada(page, 'c_total').locator('[data-monto]')).toHaveCount(1)
 
+  await cerrarElPanel(page)
   await page.getByRole('button', { name: 'Guardar borrador' }).click()
   await expect(page.getByText('Se guardó el borrador.')).toBeVisible()
   await expect.poll(() => definicion('borrador')).toContain('"partes"')

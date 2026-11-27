@@ -1267,6 +1267,18 @@ publicar valida contra la publicada de **esa** fórmula. Guardar el borrador, pu
 - **El contexto reducido** (`contextoParaElNavegador(contexto, cuadricula)`): los nodos del nivel «todos» (lo que «Dato» ofrece), los restringidos que la
   cuadrícula ya nombra, también en sus listas y condiciones (`nodosNombradosPor()`; marcados: con ellos no se podría publicar), los del tipo de cambio de cada bucket y la variante; de cada uno etiqueta, grupo,
   salida, descripción y el par `tipo`/`op`/`pct`, y el `{ver}` de la visibilidad. Nunca el cuerpo de un nodo ni la `definicion` entera.
+- **La barra y el panel:** una sola barra (`barra/barra-del-editor.tsx`) en grupos —historial, insertar, estilo, filas y columnas, ver, y los botones de los paneles—,
+  cada uno un archivo de `barra/` sobre los mismos `BotonDeLaBarra`/`MenuDeLaBarra`; todo pasa por el reductor y `disponibilidad()` (la misma regla y el mismo motivo
+  que el menú contextual). El panel de la celda y el de las columnas **no están en la pantalla**: son un cajón (`DrawerDelPanel`, por `diferido()` con
+  `useAbiertoAlgunaVez()`, al costado y no modal desde `CORTE_DEL_PANEL`) con la URL `?panel=celda|columnas`, que comparte hook con los modales
+  (`usePanelDeLaTarjeta()`: una sola `useVueltaDelFoco` por clave) y `panelDeLaSeleccion()` decide si dice «Celda» o «Fila». «Un texto», «Un dato» y Enter o F2 sobre un dato
+  abren el cajón con un pedido (`usePedidoAlPanel()`: elige el tipo con el mismo botón que tocaría la persona y enfoca su campo cuando el panel ya dibujó). El
+  borrador de la regla avisa de lo incompleto con `useCambiosSinGuardar()`. «Información de la tarjeta» (`?panel=info-tarjeta`) es un modal con de dónde nace lo
+  que se edita y la publicada. El lienzo no se mueve al elegir, al abrir el panel ni al escribir: la barra y los avisos tienen su alto reservado.
+- **Los atajos:** los de la grilla enfocada los atiende `accionDeLaTecla()` (`edicion/atajos.ts`); los de la ventana, `useAtajosDeLaTarjeta()` con `useAtajo()` y
+  `ATAJOS` con `pantalla: 'tarjeta'` (Alt+M combina, Alt+U separa, Alt+R y Alt+Mayús+R insertan una fila, Alt+C y Alt+Mayús+C una columna; la letra sale de
+  `KeyboardEvent.code`, que en macOS no cambia con Option) y Ctrl/Cmd+S guarda. La lista de «?» suma el grupo «Editor de la tarjeta» (`AYUDA_DE_LA_TARJETA`, por
+  `useAyudaDePantalla()`); la grilla deja pasar «?».
 - **El lienzo es un hueco:** el área `plantilla` no importa la geometría (es del área `tarjeta`). La página pasa `LienzoDeLaPlantillaDiferido`
   (`pantallas/tarjeta-plantilla.ts`, tipos en `entities/vista-previa-de-la-plantilla.ts`): recibe la lectura de la cuadrícula de trabajo
   (`lecturaEnCuadricula()`, recalculada en cada cambio), la referencia, «Ajustar | 100 %» y el margen de la capa («Ajustar» mide el contenedor del marco,

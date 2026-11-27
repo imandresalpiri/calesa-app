@@ -13,6 +13,9 @@ vi.mock('./diferidos', () => ({
       data-nombrado={p.nombrado}
     />
   ),
+  ModalDeLaInformacionDeLaTarjetaDiferido: (p: { abierto: boolean }) => (
+    <div data-testid="modal-informacion" data-abierto={String(p.abierto)} />
+  ),
   ModalDePublicarLaTarjetaDiferido: (p: { abierto: boolean; esperada: string | null }) => (
     <div
       data-testid="modal-publicar"
@@ -24,6 +27,7 @@ vi.mock('./diferidos', () => ({
 
 const HORA = '2026-11-07T15:00:00.123456+00:00'
 const ORIGEN = { id: 'o', nombre: 'Mini' }
+const INFORMACION = { de: 'borrador' as const, publicada: null }
 const FDO = '44444444-4444-4444-8444-444444444444'
 
 beforeEach(() => {
@@ -34,6 +38,12 @@ afterEach(cleanup)
 const panel = (cambios: Partial<PanelDeLaTarjeta>, cerrar = vi.fn()): PanelDeLaTarjeta => ({
   publicando: false,
   descartando: false,
+  informando: false,
+  celda: false,
+  columnas: false,
+  abrirInformacion: vi.fn(),
+  abrirCelda: vi.fn(),
+  abrirColumnas: vi.fn(),
   abrirPublicar: vi.fn(),
   abrirDescartar: vi.fn(),
   cerrar,
@@ -44,6 +54,7 @@ describe('AccionesDeLaPlantilla', () => {
   it('no monta nada mientras ningún panel se abrió', () => {
     render(
       <AccionesDeLaPlantilla
+        informacion={INFORMACION}
         panel={panel({})}
         origen={ORIGEN}
         formulaDelOrigenId={FDO}
@@ -57,6 +68,7 @@ describe('AccionesDeLaPlantilla', () => {
     const cerrar = vi.fn()
     render(
       <AccionesDeLaPlantilla
+        informacion={INFORMACION}
         panel={panel({ publicando: true }, cerrar)}
         origen={ORIGEN}
         formulaDelOrigenId={FDO}
@@ -74,6 +86,7 @@ describe('AccionesDeLaPlantilla', () => {
   it('con borrador monta el modal abierto con la esperada', () => {
     render(
       <AccionesDeLaPlantilla
+        informacion={INFORMACION}
         panel={panel({ publicando: true })}
         origen={ORIGEN}
         formulaDelOrigenId={FDO}
@@ -85,11 +98,14 @@ describe('AccionesDeLaPlantilla', () => {
     expect(modal.getAttribute('data-esperada')).toBe(HORA)
     expect(avisarError).not.toHaveBeenCalled()
   })
+})
 
+describe('AccionesDeLaPlantilla: descartar', () => {
   it('?panel=descartar-plantilla sin borrador no monta el diálogo, avisa y limpia la URL', () => {
     const cerrar = vi.fn()
     render(
       <AccionesDeLaPlantilla
+        informacion={INFORMACION}
         panel={panel({ descartando: true }, cerrar)}
         origen={ORIGEN}
         formulaDelOrigenId={FDO}
@@ -107,6 +123,7 @@ describe('AccionesDeLaPlantilla', () => {
   it('con borrador monta el diálogo abierto con el borrador que nombra', () => {
     render(
       <AccionesDeLaPlantilla
+        informacion={INFORMACION}
         panel={panel({ descartando: true })}
         origen={ORIGEN}
         formulaDelOrigenId={FDO}
@@ -116,5 +133,30 @@ describe('AccionesDeLaPlantilla', () => {
     const dialogo = screen.getByTestId('dialogo-descartar')
     expect(dialogo.getAttribute('data-abierto')).toBe('true')
     expect(dialogo.getAttribute('data-nombrado')).toBe(HORA)
+  })
+})
+
+describe('AccionesDeLaPlantilla: información', () => {
+  it('?panel=info-tarjeta monta «Información de la tarjeta» al abrirse y no antes', () => {
+    const { rerender } = render(
+      <AccionesDeLaPlantilla
+        informacion={INFORMACION}
+        panel={panel({})}
+        origen={ORIGEN}
+        formulaDelOrigenId={FDO}
+        esperada={HORA}
+      />,
+    )
+    expect(screen.queryByTestId('modal-informacion')).toBeNull()
+    rerender(
+      <AccionesDeLaPlantilla
+        informacion={INFORMACION}
+        panel={panel({ informando: true })}
+        origen={ORIGEN}
+        formulaDelOrigenId={FDO}
+        esperada={HORA}
+      />,
+    )
+    expect(screen.getByTestId('modal-informacion').getAttribute('data-abierto')).toBe('true')
   })
 })

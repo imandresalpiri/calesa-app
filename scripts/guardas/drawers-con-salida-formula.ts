@@ -19,6 +19,12 @@ export const DRAWERS_DE_LA_FORMULA: Record<string, RegistroDeDrawer> = {
       'src/modules/cotizaciones/features/formula/components/hoja/cuerpo-del-ajuste-de-la-cabecera.tsx',
     mecanismo: 'contexto',
   },
+  // El panel al costado del editor de la tarjeta (`?panel=celda|columnas`): lo entero va al lienzo al instante; lo a medio armar (una lista, unas condiciones) vive en el
+  // borrador de la regla, que pide `preguntaAlCerrar`, y la pregunta ocupa el pie.
+  'src/modules/cotizaciones/features/plantilla/components/cuadricula/panel/drawer-del-panel.tsx': {
+    formulario: 'src/modules/cotizaciones/features/plantilla/hooks/use-borrador-de-la-regla.ts',
+    mecanismo: 'contexto',
+  },
   // Los paneles de la planilla (D20): cada formulario pide `preguntaAlCerrar` y su pie es `<PieDelPanel>`.
   'src/modules/cotizaciones/features/formula/components/planilla/paneles/panel-de-la-banda.tsx': {
     formulario:

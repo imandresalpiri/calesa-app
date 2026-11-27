@@ -132,6 +132,11 @@ export const MODALES: Record<string, RegistroDeModal> = {
       'src/modules/cotizaciones/features/formula/components/informacion/seccion-de-los-avisos.tsx',
     ],
   },
+  'src/modules/cotizaciones/features/plantilla/components/modal-de-la-informacion-de-la-tarjeta.tsx':
+    {
+      sinFormulario:
+        'sólo lee de dónde nace lo que se edita y la publicada del editor de la tarjeta; nada tipeado',
+    },
   'src/modules/cotizaciones/features/historial/components/modal-del-historial.tsx': {
     sinFormulario:
       'el historial de cotizaciones del vehículo elegido, de sólo lectura: cada fila es un enlace a su cotización y «Ver más» agrega',

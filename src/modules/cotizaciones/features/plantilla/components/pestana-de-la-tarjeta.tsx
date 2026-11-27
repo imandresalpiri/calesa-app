@@ -72,6 +72,7 @@ export function PestanaDeLaTarjeta({ editor, referencia, Lienzo, puedeCambiarElL
       origen={editor.origen}
       formulaDelOrigenId={editor.formulaDelOrigenId}
       esperada={editor.esperada}
+      informacion={editor}
       alIrA={(donde) => {
         setIrA((antes) => ({ donde, vez: (antes?.vez ?? 0) + 1 }))
       }}
@@ -96,6 +97,7 @@ export function PestanaDeLaTarjeta({ editor, referencia, Lienzo, puedeCambiarElL
       <EditorDeLaCuadriculaDiferido
         key={clave.clave}
         {...editor}
+        panel={panel}
         referencia={referencia}
         ejemplo={ejemplo}
         alElegirReferencia={elegir}

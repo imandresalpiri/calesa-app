@@ -10,6 +10,7 @@ import { entrar } from './soporte/alta'
 import { enKB, medirJsEnFrio } from './soporte/js-en-frio'
 import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar-formula'
 import {
+  abrirElPanel,
   crearConfiguradoraDeTarjeta,
   limpiarTerrenoDePlantilla,
   prepararTerrenoDePlantilla,
@@ -160,7 +161,7 @@ test('E7: con 600 miembros, «Dato» dibuja a lo sumo 50 y halla al que falta al
   await abrir(page, con600.id)
   const lienzo = page.getByRole('grid', { name: 'Lienzo de la tarjeta' })
   await lienzo.locator('[data-pos="0:0"]').click()
-  const panel = page.getByRole('complementary', { name: 'Panel de la tarjeta' })
+  const panel = await abrirElPanel(page, 'Celda')
   await panel.getByRole('radio', { name: 'Dato' }).click()
   await expect(panel.getByText('Escribe para acotar.')).toBeVisible()
   await expect(panel.locator('[data-nodo-para-elegir="miembro_600"]')).toHaveCount(0)
