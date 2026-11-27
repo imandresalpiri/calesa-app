@@ -39,7 +39,15 @@ test('con logistica.ver ve la unidad: título, origen, fase y días en la fase',
   await entrar(page, terreno.conLogistica, { fresco: true })
   await page.goto(`/logistica/vehiculo/${terreno.enFase.id}`)
   await expect(page.getByRole('heading', { name: terreno.enFase.titulo })).toBeVisible()
-  await expect(page.getByText(terreno.origen.nombre)).toBeVisible()
+  // El origen lo dice la cabecera de la unidad y lo marca la barra de Logística.
+  await expect(
+    page.locator('[data-slot="cabecera-de-la-unidad"]:visible').getByText(terreno.origen.nombre),
+  ).toBeVisible()
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Orígenes' })
+      .getByRole('link', { name: terreno.origen.nombre }),
+  ).toHaveAttribute('aria-current', 'page')
   await expect(page.getByText(terreno.fase.nombre)).toBeVisible()
   await expect(page.locator('#contenido').getByText('Desde hace 3 días en esta fase')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Abrir ficha' })).toHaveAttribute(

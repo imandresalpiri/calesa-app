@@ -14,7 +14,7 @@ import { NO_SE_LEYO, nuloParaLaBase } from './rpc'
 
 // `/logistica/embarques` lee con `transporte_grupos()` (la lista) y `transporte_grupo()` (las unidades de un grupo), con la sesión de quien mira: la base decide qué unidades ve cada quien
 // (`puede_unidad`) y devuelve sólo eso (6.07-3). Por cursor opaco = el id de un embarque (o contenedor) con la clave siguiente, de a `TAMANO_DE_PAGINA_POR_DEFECTO` grupos; la base recorre a lo
-// sumo 2.000 unidades por llamada y dice `cortada`. Índices: `embarques_booking_origen_key` y `contenedores_numero_origen_key` (la clave) y, por cada una, `transportes_embarque_idx` y
+// sumo 2.000 unidades por llamada y dice `cortada`. La lista es del origen elegido; el grupo de una clave, de todos. Índices: `embarques_origen_booking_idx` y `contenedores_origen_numero_idx` (la clave siguiente), `embarques_booking_origen_key` y `contenedores_numero_origen_key` (sus filas) y, por cada una, `transportes_embarque_idx` y
 // `transportes_contenedor_id_idx`. Sólo RPC: ninguna lectura directa de una tabla con RLS.
 
 function inesperado(): Resultado<never> {
@@ -28,6 +28,7 @@ export async function leerGrupos(pedido: PedidoDeGrupos): Promise<Resultado<Pagi
     p_desde: nuloParaLaBase(pedido.desde),
     p_tope: TAMANO_DE_PAGINA_POR_DEFECTO,
     p_filtros: pedido.filtros,
+    p_origen: pedido.origenId,
   })
   if (error) {
     return { ok: false, error: errorDePostgrest(error) }

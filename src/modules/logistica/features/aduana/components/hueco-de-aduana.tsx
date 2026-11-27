@@ -10,6 +10,7 @@ import { Skeleton } from '@/shared/ui/skeleton'
 import { textoDelCanal } from '../../../entities/aduana/declaracion'
 import { vencimientoDe } from '../../../entities/aduana/estado'
 import { CLAVE_DE_DECLARACION } from '../../../entities/aduana/paneles'
+import { enElOrigen } from '../../../entities/nucleo/enlaces'
 import type { Unidad } from '../../../entities/nucleo/unidad'
 import type { AduanaDeLaUnidad } from '../../../areas/aduana/composicion.client'
 import { useAduanaDeLaUnidad } from '../hooks/use-aduana-de-la-unidad'
@@ -35,14 +36,17 @@ function Tributos({ aduana }: { aduana: AduanaDeLaUnidad }) {
   )
 }
 
-function Vigente({ aduana }: { aduana: AduanaDeLaUnidad }) {
+// Los enlaces a Aduana van en el origen de la unidad: sin `?origen=` abrirían el último que eligió la persona, que puede no usar Aduana.
+function Vigente({ aduana, origenId }: { aduana: AduanaDeLaUnidad; origenId: string }) {
   const hoy = useHoy()
   const vence = vencimientoDe(aduana.venceTributosEl, hoy, aduana.pagada)
   return (
     <div className="grid gap-3" data-hueco="aduana" data-estado="listo">
       <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
         <Link
-          href={`${RUTAS.aduana}?${CLAVE_DE_DECLARACION}=${aduana.declaracionId}` as Route}
+          href={
+            `${enElOrigen(RUTAS.aduana, origenId)}&${CLAVE_DE_DECLARACION}=${aduana.declaracionId}` as Route
+          }
           className="min-w-0 font-medium [overflow-wrap:anywhere] text-(--color-ink) underline-offset-2 hover:underline"
         >
           Declaración {aduana.numero}
@@ -93,7 +97,7 @@ export function HuecoDeAduana({ unidad }: { unidad: Unidad }) {
         </p>
         <div>
           <Link
-            href={RUTAS.aduana as Route}
+            href={enElOrigen(RUTAS.aduana, unidad.origenId) as Route}
             className={buttonVariants({
               variant: 'outline',
               size: 'sm',
@@ -106,5 +110,5 @@ export function HuecoDeAduana({ unidad }: { unidad: Unidad }) {
       </div>
     )
   }
-  return <Vigente aduana={lectura.aduana} />
+  return <Vigente aduana={lectura.aduana} origenId={unidad.origenId} />
 }

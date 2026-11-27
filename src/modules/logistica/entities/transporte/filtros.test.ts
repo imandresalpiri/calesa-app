@@ -7,6 +7,7 @@ const NAVIERA = '11111111-1111-4111-8111-111111111111'
 const ORIGEN = '22222222-2222-4222-8222-222222222222'
 const DESTINO = '33333333-3333-4333-8333-333333333333'
 const CURSOR = '44444444-4444-4444-8444-444444444444'
+const DEL_ORIGEN = '55555555-5555-4555-8555-555555555555'
 
 const catalogos = {
   navieras: [{ id: NAVIERA, nombre: 'Maersk', activo: true }],
@@ -19,11 +20,16 @@ const catalogos = {
 const pedido = (
   url: Record<string, string>,
   { vista = 'embarques', desde = null }: { vista?: VistaDeGrupos; desde?: string | null } = {},
-) => pedidoDeGrupos(leerFiltros(esquemaDeFiltrosDeGrupos(vista, catalogos), url), { vista, desde })
+) =>
+  pedidoDeGrupos(leerFiltros(esquemaDeFiltrosDeGrupos(vista, catalogos), url), {
+    origenId: DEL_ORIGEN,
+    vista,
+    desde,
+  })
 
 describe('lo que la URL pide a la base', () => {
   it('sin nada en la URL no filtra y la vista fija el tipo', () => {
-    expect(pedido({})).toEqual({ tipo: 'booking', filtros: {}, desde: null })
+    expect(pedido({})).toEqual({ origenId: DEL_ORIGEN, tipo: 'booking', filtros: {}, desde: null })
     expect(pedido({}, { vista: 'contenedores' }).tipo).toBe('contenedor')
     expect(gruposFiltrados(pedido({}).filtros)).toBe(false)
   })

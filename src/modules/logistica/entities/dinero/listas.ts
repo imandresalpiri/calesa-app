@@ -9,6 +9,7 @@ import {
 } from '@/shared/lib/paginacion'
 import { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'
 import { RUTAS } from '@/shared/lib/rutas'
+import { CLAVE_DE_ORIGEN_DE_LOGISTICA } from '../nucleo/enlaces'
 
 // Las listas de `/logistica/gastos` (6.11-3): los gastos y los pagos que quien mira puede ver, por cursor `(fecha, id)` y con sus filtros en la URL. Puro: la página lee la URL y
 // este archivo la vuelve el pedido que entienden `gastos_listar()` y `pagos_listar()`. Ninguna suma: lo que la lista muestra es lo que la base devolvió, fila por fila.
@@ -16,7 +17,6 @@ import { RUTAS } from '@/shared/lib/rutas'
 export type VistaDeDinero = 'gastos' | 'pagos'
 
 export const CLAVE_DE_VISTA = 'ver'
-export const CLAVE_DE_ORIGEN_DE_DINERO = 'origen'
 export const CLAVE_DE_CATEGORIA = 'categoria'
 export const CLAVE_DE_CONFIRMACION = 'confirmacion'
 export const CLAVE_DE_FECHA = 'fecha'
@@ -159,14 +159,20 @@ const PERMISO_DE_VISTA: Record<VistaDeDinero, ClavePermiso> = {
   pagos: 'logistica.pagos.ver',
 }
 
-/** Las vistas que la persona puede ver, en el orden en que se ofrecen. */
-export function vistasPermitidas(permisos: Permisos): VistaDeDinero[] {
-  return (['gastos', 'pagos'] as const).filter((vista) => puede(permisos, PERMISO_DE_VISTA[vista]))
+/** Las vistas que la persona puede ver en el origen, en el orden en que se ofrecen. */
+export function vistasPermitidas(permisos: Permisos, origenId: string): VistaDeDinero[] {
+  return (['gastos', 'pagos'] as const).filter((vista) =>
+    puede(permisos, PERMISO_DE_VISTA[vista], origenId),
+  )
 }
 
-/** La vista de `?ver=`: la pedida si la persona puede verla; si no, la que sí puede; ninguna, nulo (la página dice «sin permiso»). */
-export function vistaDe(texto: string | undefined, permisos: Permisos): VistaDeDinero | null {
-  const permitidas = vistasPermitidas(permisos)
+/** La vista de `?ver=` en el origen: la pedida si la persona puede verla; si no, la que sí puede; ninguna, nulo (la página dice «sin permiso»). */
+export function vistaDe(
+  texto: string | undefined,
+  permisos: Permisos,
+  origenId: string,
+): VistaDeDinero | null {
+  const permitidas = vistasPermitidas(permisos, origenId)
   const pedida = permitidas.find((vista) => vista === texto)
   return pedida ?? permitidas[0] ?? null
 }
@@ -176,33 +182,14 @@ export const ETIQUETA_DE_VISTA: Record<VistaDeDinero, string> = {
   pagos: 'Pagos',
 }
 
-type OrigenParaFiltrar = { id: string; nombre: string }
 type CategoriaParaFiltrar = { id: string; nombre: string }
 
-// «Origen» sólo si hay dos o más donde elegir; «Categoría» sólo en gastos y «Confirmación» sólo en pagos; «Fecha» siempre. «Confirmación» es una elección y no un booleano porque
-// la base no tiene «sólo confirmados».
+// «Categoría» sólo en gastos y «Confirmación» sólo en pagos; «Fecha» siempre. El origen no es un filtro: es el de la pestaña (`?origen=`, la barra de Logística).
+// «Confirmación» es una elección y no un booleano porque la base no tiene «sólo confirmados».
 export function esquemaDeFiltrosDeDinero(
   vista: VistaDeDinero,
-  {
-    origenes,
-    categorias,
-  }: { origenes: readonly OrigenParaFiltrar[]; categorias: readonly CategoriaParaFiltrar[] },
+  { categorias }: { categorias: readonly CategoriaParaFiltrar[] },
 ): EsquemaDeFiltros {
-  const deOrigen: EsquemaDeFiltros['filtros'] =
-    origenes.length >= 2
-      ? [
-          {
-            tipo: 'eleccion',
-            clave: CLAVE_DE_ORIGEN_DE_DINERO,
-            etiqueta: 'Origen',
-            porDefecto: TODOS,
-            opciones: [
-              { valor: TODOS, etiqueta: 'Todos' },
-              ...origenes.map((origen) => ({ valor: origen.id, etiqueta: origen.nombre })),
-            ],
-          },
-        ]
-      : []
   const propio: EsquemaDeFiltros['filtros'] =
     vista === 'gastos'
       ? [
@@ -234,11 +221,7 @@ export function esquemaDeFiltrosDeDinero(
         ]
   return {
     busqueda: null,
-    filtros: [
-      ...deOrigen,
-      ...propio,
-      { tipo: 'rango_fecha', clave: CLAVE_DE_FECHA, etiqueta: 'Fecha' },
-    ],
+    filtros: [...propio, { tipo: 'rango_fecha', clave: CLAVE_DE_FECHA, etiqueta: 'Fecha' }],
   }
 }
 
@@ -249,7 +232,8 @@ function eleccion(valores: ValoresDeFiltros, clave: string): string | null {
 
 // Lo que `p_filtros` lleva: sólo las claves que esa RPC acepta (con una de más la base responde 22023).
 export type FiltrosDeDinero = {
-  origen?: string
+  // El origen de la pestaña: siempre va.
+  origen: string
   categoria?: string
   desde?: string
   hasta?: string
@@ -262,7 +246,7 @@ export type PedidoDeDinero = {
   cursor: { fecha: string; id: string } | null
 }
 
-// Una elección que es un id (un origen o una categoría): lo que no es un guid no llega a la base.
+// Una elección que es un id (una categoría): lo que no es un guid no llega a la base.
 function idElegido(valores: ValoresDeFiltros, clave: string): string | null {
   const valor = eleccion(valores, clave)
   return valor !== null && z.guid().safeParse(valor).success ? valor : null
@@ -280,7 +264,10 @@ function rangoDeFechas(valores: ValoresDeFiltros): { desde?: string; hasta?: str
 }
 
 // Lo propio de cada vista: la categoría de los gastos y «sin confirmar» de los pagos.
-function filtrosDeLaVista(vista: VistaDeDinero, valores: ValoresDeFiltros): FiltrosDeDinero {
+function filtrosDeLaVista(
+  vista: VistaDeDinero,
+  valores: ValoresDeFiltros,
+): Omit<FiltrosDeDinero, 'origen'> {
   if (vista === 'gastos') {
     const categoria = idElegido(valores, CLAVE_DE_CATEGORIA)
     return categoria === null ? {} : { categoria }
@@ -289,24 +276,23 @@ function filtrosDeLaVista(vista: VistaDeDinero, valores: ValoresDeFiltros): Filt
 }
 
 /**
- * Lo que pide la URL a `gastos_listar()` o `pagos_listar()`, ya leída con el esquema. Un filtro de la otra vista, un valor que no se ofrece o un cursor hacia atrás se descartan:
- * una URL escrita a mano nunca produce un 22023.
+ * Lo que pide la URL a `gastos_listar()` o `pagos_listar()` en el origen de la pestaña, ya leída con el esquema. Un filtro de la otra vista, un valor que no se
+ * ofrece o un cursor hacia atrás se descartan: una URL escrita a mano nunca produce un 22023.
  */
 export function pedidoDeDinero(
   vista: VistaDeDinero,
   valores: ValoresDeFiltros,
-  { cursor }: { cursor: Cursor | null },
+  { origenId, cursor }: { origenId: string; cursor: Cursor | null },
 ): PedidoDeDinero {
-  const origen = idElegido(valores, CLAVE_DE_ORIGEN_DE_DINERO)
   const filtros: FiltrosDeDinero = {
-    ...(origen === null ? {} : { origen }),
+    origen: origenId,
     ...filtrosDeLaVista(vista, valores),
     ...rangoDeFechas(valores),
   }
   return { filtros, cursor: cursor?.sentido === 'siguiente' ? deLaFecha(cursor) : null }
 }
 
-/** `/logistica/gastos?ver=…&origen=…`: el enlace de «Ver todos en Gastos» desde los huecos de una unidad. */
+/** `/logistica/gastos?ver=…&origen=…`: el enlace de «Ver todos en Gastos» desde los huecos de una unidad (la pestaña del origen de la unidad). */
 export function rutaDeLaLista({
   vista,
   origenId,
@@ -316,7 +302,7 @@ export function rutaDeLaLista({
 }): string {
   const parametros = new URLSearchParams({ [CLAVE_DE_VISTA]: vista })
   if (origenId) {
-    parametros.set(CLAVE_DE_ORIGEN_DE_DINERO, origenId)
+    parametros.set(CLAVE_DE_ORIGEN_DE_LOGISTICA, origenId)
   }
   return `${RUTAS.gastosDeLogistica}?${parametros.toString()}`
 }

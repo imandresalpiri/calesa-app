@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { textoDeFaltan, textoDeUnidades, vencimientoDe } from './estado'
+import { sinVehiculos, textoDeFaltan, textoDeUnidades, vencimientoDe } from './estado'
 
 describe('el texto de «faltan»', () => {
   const base = { pagada: false, faltan: 0, vehiculos: 2, hayOcultos: false }
@@ -85,5 +85,13 @@ describe('el vencimiento de los tributos', () => {
 
   it('el cambio de mes y de año cuenta días de calendario', () => {
     expect(vencimientoDe('2027-01-01', '2026-12-31', false).texto).toBe('Vence mañana')
+  })
+})
+
+describe('sinVehiculos', () => {
+  it('sólo sin ninguno, ni siquiera oculto', () => {
+    expect(sinVehiculos({ vehiculos: 0, hayOcultos: false })).toBe(true)
+    expect(sinVehiculos({ vehiculos: 0, hayOcultos: true })).toBe(false)
+    expect(sinVehiculos({ vehiculos: 2, hayOcultos: false })).toBe(false)
   })
 })

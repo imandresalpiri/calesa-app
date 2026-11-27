@@ -5,7 +5,7 @@ import { Badge } from '@/shared/ui/badge'
 import { AbrirResumen, TarjetaDeLista } from '@/shared/ui/lista'
 import { useRegional } from '@/shared/ui/regional'
 import { textoDelCanal, type FilaDeDeclaracion } from '../../../entities/aduana/declaracion'
-import { textoDeUnidades } from '../../../entities/aduana/estado'
+import { sinVehiculos, textoDeUnidades } from '../../../entities/aduana/estado'
 import { EstadoDeTributos } from './estado-de-tributos'
 
 type Props = {
@@ -37,8 +37,13 @@ export function TarjetasDeDeclaraciones({ declaraciones, alAbrir, abierta }: Pro
             <Badge variant="secondary">{textoDelCanal(declaracion.canal)}</Badge>
           </div>
           <EstadoDeTributos {...declaracion} />
+          {sinVehiculos(declaracion) ? (
+            <Badge variant="outline" className="w-fit">
+              Sin vehículos
+            </Badge>
+          ) : null}
           <p className="text-(length:--text-sm) [overflow-wrap:anywhere] text-(--color-ink-soft)">
-            {textoDeUnidades(declaracion.vehiculos)}
+            {sinVehiculos(declaracion) ? null : textoDeUnidades(declaracion.vehiculos)}
             {declaracion.aceptadaEl
               ? ` · aceptada el ${formatearFecha(declaracion.aceptadaEl, { zona: zonaHoraria })}`
               : ''}

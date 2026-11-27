@@ -13,10 +13,11 @@ const LARGO_MAXIMO = 100
 export async function dondeEstaDe(
   lector: LectorDeDondeEsta,
   busqueda: string,
+  origenId: string | null,
 ): Promise<Resultado<ResultadoDeDondeEsta>> {
   const texto = busqueda.trim().slice(0, LARGO_MAXIMO)
   if (!cumpleElMinimo(texto, MINIMO_DE_BUSQUEDA_DE_LA_CADENA)) {
     return ok({ unidades: [], hayMas: false })
   }
-  return lector(texto)
+  return lector(texto, origenId)
 }

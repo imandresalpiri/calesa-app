@@ -1,5 +1,5 @@
-// Buscar vehículos para sumar a una declaración (6.09-2, D4): `logistica_donde_esta()` por título, VIN o lote (mínimo 3 letras o dígitos, hasta 10), sólo en los orígenes con la regla
-// `logistica` que la persona ve. Se lee con el navegador y la sesión de quien mira; un texto corto no llama a la base.
+// Buscar vehículos para sumar a una declaración (6.09-2, D4): `logistica_donde_esta()` por título, VIN o lote (mínimo 3 letras o dígitos, hasta 10), sólo en el origen elegido
+// en Logística, si tiene la regla `logistica` y la persona lo ve. Se lee con el navegador y la sesión de quien mira; un texto corto no llama a la base.
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { cumpleElMinimo } from '@/shared/lib/filtros'
 import { createClient } from '@/shared/lib/supabase/browser'
@@ -12,7 +12,10 @@ const LARGO_MAXIMO = 100
 
 export type UnidadesBuscadas = { unidades: UnidadBuscada[]; hayMas: boolean }
 
-export async function buscarUnidades(texto: string): Promise<Resultado<UnidadesBuscadas>> {
+export async function buscarUnidades(
+  texto: string,
+  origenId: string,
+): Promise<Resultado<UnidadesBuscadas>> {
   const buscar = texto.trim().slice(0, LARGO_MAXIMO)
   if (!cumpleElMinimo(buscar, MINIMO_DE_BUSQUEDA_DE_ADUANA)) {
     return ok({ unidades: [], hayMas: false })
@@ -21,6 +24,7 @@ export async function buscarUnidades(texto: string): Promise<Resultado<UnidadesB
   const { data, error } = await supabase.rpc('logistica_donde_esta', {
     p_buscar: buscar,
     p_tope: TOPE_DE_UNIDADES_BUSCADAS,
+    p_origen: origenId,
   })
   if (error) {
     return { ok: false, error: errorDePostgrest(error) }

@@ -31,8 +31,10 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   // «Comparar cotizaciones» (T311), con dos cotizaciones de un vehículo de la subasta de la semilla: el marco, la tabla, `<Monto>` y la action de aprobar, sin la hoja.
   // Medido 358,7 KB en 25 chunks, más un 5 % hacia arriba a la decena.
   '/cotizaciones/comparar': 380,
-  // La bandeja del día y la cadena como gráfica (T19): medido 365,0 KB en 26 chunks (el kanban marcaba 401,0), más un 5 % hacia arriba a la decena.
+  // La cadena como gráfica con «Dónde está» y la barra de Logística (T19): medido 365,0 KB en 26 chunks con la bandeja al lado (el kanban marcaba 401,0), más un 5 % hacia arriba a la
+  // decena. La bandeja del día, en su pestaña (T571), con el mismo tope hasta su primera medición.
   '/logistica': 390,
+  '/logistica/bandeja': 390,
   // La lista de una fase (T19): medido 367,0 KB en 27 chunks, más un 5 % hacia arriba a la decena.
   '/logistica/fase/[fase]': 390,
   // El detalle de un vehículo en logística (T20), con el vehículo medido de la subasta de la semilla: medido 438,9 KB en 28 chunks antes de las zonas y 442,3 KB en 27 después, más un 5 % hacia arriba a la decena.

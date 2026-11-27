@@ -1,12 +1,10 @@
 import type { Metadata, Route } from 'next'
 import Link from 'next/link'
-import { connection } from 'next/server'
 import { Suspense } from 'react'
-import { puede, requerirSesion } from '@/modules/equipo'
 import { leerFasesDeOrigen } from '@/modules/flujos'
 import {
-  CLAVE_DE_ORIGEN_DE_LA_CADENA,
   claveDeFase,
+  enElOrigen,
   codificarCursorDeLaFase,
   esquemaDeFiltrosDeLaCadena,
   faseDeLaClave,
@@ -28,12 +26,14 @@ import {
   ProveedorDeLaSeleccion,
 } from '@/modules/logistica/pantallas/mover'
 import { CLAVE_DE_CURSOR, leerFiltros } from '@/shared/lib/filtros'
-import type { Permisos } from '@/shared/lib/permisos'
+import { puede, type Permisos } from '@/shared/lib/permisos'
 import { RUTAS, unParametro } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
-import { EstadoSinPermiso, EstadoVacio } from '@/shared/ui/estados'
+import { EstadoVacio } from '@/shared/ui/estados'
+import { abrirLaPestana } from '../../abrir-la-pestana'
+import { BarraDeLogistica } from '../../barra-de-logistica'
+import { EsqueletoDeLaBarra } from '../../esqueleto-de-la-barra'
 import { MarcasDeLogistica } from '../../marcas-de-logistica'
-import { resolverElOrigen } from '../../origen-de-la-cadena'
 
 export const metadata: Metadata = { title: 'Fase · Logística' }
 
@@ -41,15 +41,21 @@ type Parametros = Record<string, string | string[] | undefined>
 type FaseDeLaLista = { id: string; nombre: string; activa: boolean }
 
 // `/logistica/fase/[fase]`: la lista de una fase de la cadena (`[fase]` es el id de la fase o `sin_fase`), de a `TAMANO_DE_LA_FASE` por cursor, con los filtros de siempre en la URL, la búsqueda y,
-// si quien mira puede mover, la selección del lote (hasta 200). Clic en un vehículo lleva a su página, nunca a un drawer. El origen sale de `?origen=` (uno ajeno no se ve) o es el primero de la persona.
+// si quien mira puede mover, la selección del lote (hasta 200). Clic en un vehículo lleva a su página, nunca a un drawer. El origen sale de `?origen=` (uno que la
+// persona no ve dice «sin permiso») o es el último que usó; en la barra, otro origen abre su Cadena.
 export default function PaginaDeUnaFase({
   params,
   searchParams,
 }: PageProps<'/logistica/fase/[fase]'>) {
   return (
-    <Suspense fallback={<EsqueletoDeLaFase />}>
-      <Fase params={params} searchParams={searchParams} />
-    </Suspense>
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+      <Suspense fallback={<EsqueletoDeLaBarra />}>
+        <BarraDeLogistica searchParams={searchParams} pestana="cadena" />
+      </Suspense>
+      <Suspense fallback={<EsqueletoDeLaFase />}>
+        <Fase params={params} searchParams={searchParams} />
+      </Suspense>
+    </div>
   )
 }
 
@@ -70,28 +76,11 @@ async function Fase({
   params,
   searchParams,
 }: Pick<PageProps<'/logistica/fase/[fase]'>, 'params' | 'searchParams'>) {
-  await connection()
-  const [sesion, { fase: clave }, parametros] = await Promise.all([
-    requerirSesion(),
-    params,
-    searchParams,
-  ])
-  const { permisos } = sesion
-  if (!puede(permisos, 'logistica.ver')) {
-    return <EstadoSinPermiso />
-  }
-  const resuelto = await resolverElOrigen(
-    permisos,
-    unParametro(parametros[CLAVE_DE_ORIGEN_DE_LA_CADENA]),
-    {
-      estricto: true,
-    },
-  )
-  if (resuelto.tipo === 'sin_permiso') return <EstadoSinPermiso />
-  if (resuelto.tipo !== 'ok')
-    return <EstadoDeLaGrafica tipo={resuelto.tipo === 'error' ? 'error' : 'sin_origenes'} />
-  const { origen, origenes } = resuelto
-  const hrefDeLaCadena = `${RUTAS.logistica}?${CLAVE_DE_ORIGEN_DE_LA_CADENA}=${origen.id}`
+  const abierta = await abrirLaPestana(searchParams, 'cadena')
+  if (abierta.tipo === 'estado') return abierta.estado
+  const { permisos, origen, origenes, parametros } = abierta
+  const { fase: clave } = await params
+  const hrefDeLaCadena = enElOrigen(RUTAS.logistica, origen.id)
   const destino = faseDeLaClave(clave)
   if (destino === null) return <YaNoEsta hrefDeLaCadena={hrefDeLaCadena} />
   return (

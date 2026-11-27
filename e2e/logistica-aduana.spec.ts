@@ -47,7 +47,7 @@ test.afterAll(async () => {
 
 test('E2E quien no gestiona la aduana ve la lista sin «Nueva declaración»', async ({ page }) => {
   await entrar(page, terreno.sinGestionar, { fresco: true })
-  await page.goto('/logistica/aduana')
+  await page.goto(`/logistica/aduana?origen=${terreno.origen.id}`)
   await expect(page.getByText('Todavía no hay declaraciones.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Nueva declaración' })).toHaveCount(0)
 })
@@ -56,7 +56,7 @@ test('E2E crear una declaración con dos vehículos, asignarle el canal y verla 
   page,
 }) => {
   await entrar(page, terreno.conAduana, { fresco: true })
-  await page.goto('/logistica/aduana')
+  await page.goto(`/logistica/aduana?origen=${terreno.origen.id}`)
   await expect(page.getByText('Todavía no hay declaraciones.')).toBeVisible()
 
   // El alta: sólo el número es obligatorio.
@@ -105,7 +105,7 @@ test('E2E crear una declaración con dos vehículos, asignarle el canal y verla 
   // Con el gasto de tributos de los dos (sembrado), la declaración queda pagada.
   await sembrarTributos(terreno.enFase.id)
   await sembrarTributos(terreno.tercero.id)
-  await page.goto('/logistica/aduana')
+  await page.goto(`/logistica/aduana?origen=${terreno.origen.id}`)
   await expect(
     page.getByRole('row').filter({ hasText: numero }).getByText('Pagada', { exact: true }),
   ).toBeVisible()

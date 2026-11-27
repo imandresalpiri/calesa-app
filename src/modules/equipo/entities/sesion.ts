@@ -111,6 +111,7 @@ export function sesionSinPerfil(usuarioId: string, email: string): Sesion {
       agruparCotizaciones: null,
       embudoDeLaFicha: null,
       menuPlegado: null,
+      ultimoOrigenDeLogistica: null,
     },
   }
 }

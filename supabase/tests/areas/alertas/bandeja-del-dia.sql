@@ -1,4 +1,4 @@
--- La bandeja del día de `/logistica`: `logistica_bandeja_grupo` (siete grupos por cursor, con conteo con tope). No depende de otro archivo
+-- La bandeja del día de `/logistica/bandeja`: `logistica_bandeja_grupo` (siete grupos por cursor, con conteo con tope, de un origen). No depende de otro archivo
 -- (`SOLO=areas/alertas/bandeja-del-dia.sql`). Cada bloque abre su transacción y la revierte. El plan con volumen: `medir-logistica.sql`.
 --
 -- Qué asegura:
@@ -12,6 +12,8 @@
 --   G7. Sin resolver.
 --   G8. Un grupo o un cursor a medias dan 22023 con su hint.
 --   G9. Privilegios: `anon` no ejecuta la RPC ni `authenticated` los ayudantes.
+--   G10. La bandeja es de un origen: lo de otro origen que la persona también ve no entra, en ningún grupo.
+--   G11. Sin origen, 22023 con hint p_origen.
 
 create or replace function pg_temp.bd_sin_duena() returns void language plpgsql as $f$
 begin
@@ -68,9 +70,9 @@ begin
   return coalesce(v, '{}'::jsonb);
 end $f$;
 
-create or replace function pg_temp.bd_grupo(p_quien uuid, p_grupo text, p_tope int default 20, p_conteo int default null, p_desde text default null, p_id text default null)
-  returns jsonb language sql as $f$
-  select pg_temp.bd_corre(p_quien, format('select public.logistica_bandeja_grupo(%L, %s, %L, %L, %L)', p_grupo, p_tope, p_conteo, p_desde, p_id));
+create or replace function pg_temp.bd_grupo(p_quien uuid, p_origen uuid, p_grupo text, p_tope int default 20, p_conteo int default null, p_desde text default null,
+  p_id text default null) returns jsonb language sql as $f$
+  select pg_temp.bd_corre(p_quien, format('select public.logistica_bandeja_grupo(%L, %L, %s, %L, %L, %L)', p_grupo, p_origen, p_tope, p_conteo, p_desde, p_id));
 $f$;
 
 -- Los ids de las filas (el vehículo, o el documento si lo hay), en su orden.
@@ -100,11 +102,11 @@ begin
 end $f$;
 
 -- Todas las páginas de un grupo (de a p_tope) hasta que no haya siguiente: los ids leídos, en orden.
-create or replace function pg_temp.bd_todas(p_quien uuid, p_grupo text, p_tope int) returns uuid[] language plpgsql as $f$
+create or replace function pg_temp.bd_todas(p_quien uuid, p_origen uuid, p_grupo text, p_tope int) returns uuid[] language plpgsql as $f$
 declare r jsonb; v_ids uuid[] := '{}'; v_desde text; v_id text; v_vueltas int := 0;
 begin
   loop
-    r := pg_temp.bd_grupo(p_quien, p_grupo, p_tope, null, v_desde, v_id);
+    r := pg_temp.bd_grupo(p_quien, p_origen, p_grupo, p_tope, null, v_desde, v_id);
     if r ? 'error' then raise exception 'bd_todas: %', r; end if;
     v_ids := v_ids || pg_temp.bd_ids(r);
     v_vueltas := v_vueltas + 1;
@@ -140,16 +142,16 @@ begin
   insert into public.tipos_documento (nombre) values ('BD tipo ' || substr(gen_random_uuid()::text, 1, 8)) returning id into t;
   insert into public.fases_requisitos (fase_id, tipo, bloqueante, tipo_documento_id) values (dos, 'documento', true, t);
 
-  perform pg_temp.bd_mismos('G1 demorados de la dueña', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'demorados')), o), array[v_mia, v_ajena, v_cartera]);
-  perform pg_temp.bd_mismos('G1 demorados de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, 'demorados')), o), array[v_mia, v_cartera]);
-  perform pg_temp.bd_igual('G1 demorados en orden de vencimiento', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'demorados')), o), array[v_mia, v_ajena, v_cartera]);
-  perform pg_temp.bd_mismos('G1 trabados de la dueña', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'trabados')), o), array[v_mia, v_ajena, v_cartera]);
-  perform pg_temp.bd_mismos('G1 trabados de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, 'trabados')), o), array[v_mia, v_cartera]);
-  perform pg_temp.bd_igual('G1 el motivo del trabado', pg_temp.bd_grupo(duena, 'trabados') #>> '{filas,0,fase_siguiente}', 'bd dos');
-  perform pg_temp.bd_mismos('G1 sin logistica.ver del origen, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(sin_log, 'demorados')), o), '{}');
+  perform pg_temp.bd_mismos('G1 demorados de la dueña', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, o, 'demorados')), o), array[v_mia, v_ajena, v_cartera]);
+  perform pg_temp.bd_mismos('G1 demorados de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, o, 'demorados')), o), array[v_mia, v_cartera]);
+  perform pg_temp.bd_igual('G1 demorados en orden de vencimiento', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, o, 'demorados')), o), array[v_mia, v_ajena, v_cartera]);
+  perform pg_temp.bd_mismos('G1 trabados de la dueña', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, o, 'trabados')), o), array[v_mia, v_ajena, v_cartera]);
+  perform pg_temp.bd_mismos('G1 trabados de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, o, 'trabados')), o), array[v_mia, v_cartera]);
+  perform pg_temp.bd_igual('G1 el motivo del trabado', pg_temp.bd_grupo(duena, o, 'trabados') #>> '{filas,0,fase_siguiente}', 'bd dos');
+  perform pg_temp.bd_mismos('G1 sin logistica.ver del origen, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(sin_log, o, 'demorados')), o), '{}');
   -- Una no ganada no cuenta aunque esté demorada: se prueba con la situación de verdad en G7; acá, que la fila trae su situación.
-  perform pg_temp.bd_igual('G1 la fila trae la situación', pg_temp.bd_grupo(duena, 'demorados') #>> '{filas,0,situacion}', 'fase');
-  perform pg_temp.bd_igual('G1 sin cursor ni conteo pedido, el conteo es nulo', pg_temp.bd_grupo(duena, 'demorados') -> 'conteo', 'null'::jsonb);
+  perform pg_temp.bd_igual('G1 la fila trae la situación', pg_temp.bd_grupo(duena, o, 'demorados') #>> '{filas,0,situacion}', 'fase');
+  perform pg_temp.bd_igual('G1 sin cursor ni conteo pedido, el conteo es nulo', pg_temp.bd_grupo(duena, o, 'demorados') -> 'conteo', 'null'::jsonb);
 end $$;
 rollback;
 
@@ -165,12 +167,12 @@ begin
   perform pg_temp.bd_vehiculo(o, uno, null, v_instante) from generate_series(1, 5);
   perform pg_temp.bd_vehiculo(o, uno, null, v_instante - interval '1 day') from generate_series(1, 3);
   esperado := array(select v.id from public.vehiculos v where v.origen_id = o and v.fase_id = uno);
-  leido := pg_temp.bd_en(pg_temp.bd_todas(duena, 'demorados', 2), o);
+  leido := pg_temp.bd_en(pg_temp.bd_todas(duena, o, 'demorados', 2), o);
   perform pg_temp.bd_mismos('G2 de a 2 se leen todas, una vez cada una', leido, esperado);
   perform pg_temp.bd_igual('G2 sin repetidos', cardinality(leido), cardinality(esperado));
-  perform pg_temp.bd_igual('G2 un tope enorme se acota a 50', jsonb_array_length(pg_temp.bd_grupo(duena, 'demorados', 100000) -> 'filas'), 8);
-  perform pg_temp.bd_igual('G2 la primera página trae su siguiente', pg_temp.bd_grupo(duena, 'demorados', 2) #>> '{siguiente,id}' is not null, true);
-  perform pg_temp.bd_igual('G2 la última no trae siguiente', pg_temp.bd_grupo(duena, 'demorados', 50) -> 'siguiente', 'null'::jsonb);
+  perform pg_temp.bd_igual('G2 un tope enorme se acota a 50', jsonb_array_length(pg_temp.bd_grupo(duena, o, 'demorados', 100000) -> 'filas'), 8);
+  perform pg_temp.bd_igual('G2 la primera página trae su siguiente', pg_temp.bd_grupo(duena, o, 'demorados', 2) #>> '{siguiente,id}' is not null, true);
+  perform pg_temp.bd_igual('G2 la última no trae siguiente', pg_temp.bd_grupo(duena, o, 'demorados', 50) -> 'siguiente', 'null'::jsonb);
 end $$;
 rollback;
 
@@ -184,15 +186,15 @@ declare
 begin
   insert into public.vehiculos (origen_id, titulo, fase_id, fase_desde)
   select o, 'bd ' || g, uno, now() - interval '10 days' - g * interval '1 minute' from generate_series(1, 101) g;
-  r := pg_temp.bd_grupo(duena, 'demorados', 5, 100);
+  r := pg_temp.bd_grupo(duena, o, 'demorados', 5, 100);
   perform pg_temp.bd_igual('G3 con 101, el conteo', r -> 'conteo', '{"n": 100, "hay_mas": true}'::jsonb);
   perform pg_temp.bd_igual('G3 las filas son las del tope', jsonb_array_length(r -> 'filas'), 5);
-  r := pg_temp.bd_grupo(duena, 'demorados', 5, 1000);
+  r := pg_temp.bd_grupo(duena, o, 'demorados', 5, 1000);
   perform pg_temp.bd_igual('G3 el conteo se acota a 100', r -> 'conteo', '{"n": 100, "hay_mas": true}'::jsonb);
-  r := pg_temp.bd_grupo(duena, 'demorados', 5, 200, (pg_temp.bd_grupo(duena, 'demorados', 5) #>> '{siguiente,desde}'), (pg_temp.bd_grupo(duena, 'demorados', 5) #>> '{siguiente,id}'));
+  r := pg_temp.bd_grupo(duena, o, 'demorados', 5, 200, (pg_temp.bd_grupo(duena, o, 'demorados', 5) #>> '{siguiente,desde}'), (pg_temp.bd_grupo(duena, o, 'demorados', 5) #>> '{siguiente,id}'));
   perform pg_temp.bd_igual('G3 con cursor no hay conteo', r -> 'conteo', 'null'::jsonb);
   delete from public.vehiculos where origen_id = o and titulo <> 'bd 1' and titulo <> 'bd 2';
-  r := pg_temp.bd_grupo(duena, 'demorados', 5, 100);
+  r := pg_temp.bd_grupo(duena, o, 'demorados', 5, 100);
   perform pg_temp.bd_igual('G3 con 2, el conteo exacto sin hay_mas', r -> 'conteo', '{"n": 2, "hay_mas": false}'::jsonb);
 end $$;
 rollback;
@@ -208,23 +210,23 @@ begin
   -- 210 demoradas sin ningún requisito en la fase siguiente: ninguna trabada, y se evalúan sólo 200.
   insert into public.vehiculos (origen_id, titulo, fase_id, fase_desde)
   select o, 'bd ' || g, uno, now() - interval '10 days' - g * interval '1 minute' from generate_series(1, 210) g;
-  r := pg_temp.bd_grupo(duena, 'trabados', 20, 100);
+  r := pg_temp.bd_grupo(duena, o, 'trabados', 20, 100);
   perform pg_temp.bd_igual('G4 sin bloqueantes, ningún trabado', r -> 'filas', '[]'::jsonb);
   perform pg_temp.bd_igual('G4 se paró a las 200 evaluadas', r ->> 'cortada', 'true');
   perform pg_temp.bd_igual('G4 dice por dónde seguir', r #>> '{siguiente,id}' is not null, true);
   perform pg_temp.bd_igual('G4 el conteo dice que hay más', r -> 'conteo', '{"n": 0, "hay_mas": true}'::jsonb);
   -- Seguir desde ahí evalúa las diez que quedan, sin repetir.
-  r := pg_temp.bd_grupo(duena, 'trabados', 20, null, r #>> '{siguiente,desde}', r #>> '{siguiente,id}');
+  r := pg_temp.bd_grupo(duena, o, 'trabados', 20, null, r #>> '{siguiente,desde}', r #>> '{siguiente,id}');
   perform pg_temp.bd_igual('G4 al seguir, termina', r ->> 'cortada', 'false');
   -- Con un bloqueante en la fase siguiente, todas quedan trabadas y se pagina por cursor.
   insert into public.tipos_documento (nombre) values ('BD tipo ' || substr(gen_random_uuid()::text, 1, 8)) returning id into t;
   insert into public.fases_requisitos (fase_id, tipo, bloqueante, tipo_documento_id) values (dos, 'documento', true, t);
-  r := pg_temp.bd_grupo(duena, 'trabados', 20, 100);
+  r := pg_temp.bd_grupo(duena, o, 'trabados', 20, 100);
   perform pg_temp.bd_igual('G4 con el bloqueante, una página de 20', jsonb_array_length(r -> 'filas'), 20);
   perform pg_temp.bd_igual('G4 hay más', r ->> 'hay_mas', 'true');
   perform pg_temp.bd_igual('G4 el conteo con el tope', r -> 'conteo', '{"n": 100, "hay_mas": true}'::jsonb);
   perform pg_temp.bd_igual('G4 el motivo', r #>> '{filas,0,motivo}' like 'Documento: BD tipo%', true);
-  v_ids := pg_temp.bd_en(pg_temp.bd_todas(duena, 'trabados', 50), o);
+  v_ids := pg_temp.bd_en(pg_temp.bd_todas(duena, o, 'trabados', 50), o);
   perform pg_temp.bd_igual('G4 recorrida a pedazos (hasta donde llegan las evaluadas por llamada)', cardinality(v_ids) >= 150, true);
 end $$;
 rollback;
@@ -259,21 +261,21 @@ begin
   insert into public.documentos (vehiculo_id, tipo_documento_id, estado, vence_el) values (v_otro, t_solicitar, 'aprobado', v_hoy + 5) returning id into d_solicitar;
   set local session_replication_role = origin;
 
-  perform pg_temp.bd_mismos('G5 por aprobar, quien aprueba', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(aprueba, 'por_aprobar')), o), array[d_subido, d_subido_ajeno]);
-  perform pg_temp.bd_mismos('G5 por aprobar sin el permiso, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(solo_ver, 'por_aprobar')), o), '{}');
-  perform pg_temp.bd_mismos('G5 por aprobar sólo con subir, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(sube, 'por_aprobar')), o), '{}');
-  perform pg_temp.bd_mismos('G5 por aprobar «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, 'por_aprobar')), o), array[d_subido]);
-  perform pg_temp.bd_mismos('G5 por vencer, quien sube', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(sube, 'por_vencer')), o), array[d_pronto, d_solicitar]);
-  perform pg_temp.bd_igual('G5 por vencer por fecha', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'por_vencer')), o), array[d_solicitar, d_pronto]);
-  perform pg_temp.bd_mismos('G5 por vencer sin el permiso, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(solo_ver, 'por_vencer')), o), '{}');
-  perform pg_temp.bd_mismos('G5 por vencer con aprobar sólo, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(aprueba, 'por_vencer')), o), '{}');
-  perform pg_temp.bd_mismos('G5 por vencer «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, 'por_vencer')), o), array[d_pronto]);
-  perform pg_temp.bd_igual('G5 la fila trae el modo y el vencimiento', pg_temp.bd_grupo(duena, 'por_vencer') #>> '{filas,1,modo}', 'renovar');
-  perform pg_temp.bd_igual('G5 el cursor de por vencer sigue sin repetir', pg_temp.bd_en(pg_temp.bd_todas(duena, 'por_vencer', 1), o), array[d_solicitar, d_pronto]);
-  perform pg_temp.bd_igual('G5 el cursor de por aprobar sigue sin repetir', cardinality(pg_temp.bd_en(pg_temp.bd_todas(aprueba, 'por_aprobar', 1), o)), 2);
+  perform pg_temp.bd_mismos('G5 por aprobar, quien aprueba', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(aprueba, o, 'por_aprobar')), o), array[d_subido, d_subido_ajeno]);
+  perform pg_temp.bd_mismos('G5 por aprobar sin el permiso, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(solo_ver, o, 'por_aprobar')), o), '{}');
+  perform pg_temp.bd_mismos('G5 por aprobar sólo con subir, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(sube, o, 'por_aprobar')), o), '{}');
+  perform pg_temp.bd_mismos('G5 por aprobar «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, o, 'por_aprobar')), o), array[d_subido]);
+  perform pg_temp.bd_mismos('G5 por vencer, quien sube', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(sube, o, 'por_vencer')), o), array[d_pronto, d_solicitar]);
+  perform pg_temp.bd_igual('G5 por vencer por fecha', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, o, 'por_vencer')), o), array[d_solicitar, d_pronto]);
+  perform pg_temp.bd_mismos('G5 por vencer sin el permiso, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(solo_ver, o, 'por_vencer')), o), '{}');
+  perform pg_temp.bd_mismos('G5 por vencer con aprobar sólo, nada', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(aprueba, o, 'por_vencer')), o), '{}');
+  perform pg_temp.bd_mismos('G5 por vencer «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, o, 'por_vencer')), o), array[d_pronto]);
+  perform pg_temp.bd_igual('G5 la fila trae el modo y el vencimiento', pg_temp.bd_grupo(duena, o, 'por_vencer') #>> '{filas,1,modo}', 'renovar');
+  perform pg_temp.bd_igual('G5 el cursor de por vencer sigue sin repetir', pg_temp.bd_en(pg_temp.bd_todas(duena, o, 'por_vencer', 1), o), array[d_solicitar, d_pronto]);
+  perform pg_temp.bd_igual('G5 el cursor de por aprobar sigue sin repetir', cardinality(pg_temp.bd_en(pg_temp.bd_todas(aprueba, o, 'por_aprobar', 1), o)), 2);
   -- Un documento de un vehículo en la papelera no sale.
   update public.vehiculos set eliminado_en = now() where id = v_otro;
-  perform pg_temp.bd_mismos('G5 la papelera no cuenta', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(aprueba, 'por_aprobar')), o), array[d_subido]);
+  perform pg_temp.bd_mismos('G5 la papelera no cuenta', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(aprueba, o, 'por_aprobar')), o), array[d_subido]);
 end $$;
 rollback;
 
@@ -310,16 +312,16 @@ begin
   insert into public.transportes (vehiculo_id, zarpe_el, eta_el) values (v_mio, v_hoy, v_hoy - 1);
   insert into public.transportes (vehiculo_id, contenedor_id) values (v_sale_cont, c2);
 
-  perform pg_temp.bd_igual('G6 llegadas, de la más reciente a la más vieja', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'llegadas')), o), array[v_hoy_eta, v_mio, v_viejo]);
-  perform pg_temp.bd_igual('G6 la llegada trae el contenedor', pg_temp.bd_grupo(duena, 'llegadas') #>> '{filas,0,contenedor}', 'CONT1');
-  perform pg_temp.bd_igual('G6 llegadas de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, 'llegadas')), o), array[v_mio]);
-  perform pg_temp.bd_igual('G6 llegadas por cursor', pg_temp.bd_en(pg_temp.bd_todas(duena, 'llegadas', 1), o), array[v_hoy_eta, v_mio, v_viejo]);
-  perform pg_temp.bd_mismos('G6 salidas, sólo el zarpe de hoy', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'salidas')), o), array[v_salida, v_mio, v_sale_cont]);
-  perform pg_temp.bd_igual('G6 la salida trae el booking', (select e ->> 'booking' from jsonb_array_elements(pg_temp.bd_grupo(duena, 'salidas') -> 'filas') e where e ->> 'vehiculo_id' = v_salida::text), 'BK1');
+  perform pg_temp.bd_igual('G6 llegadas, de la más reciente a la más vieja', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, o, 'llegadas')), o), array[v_hoy_eta, v_mio, v_viejo]);
+  perform pg_temp.bd_igual('G6 la llegada trae el contenedor', pg_temp.bd_grupo(duena, o, 'llegadas') #>> '{filas,0,contenedor}', 'CONT1');
+  perform pg_temp.bd_igual('G6 llegadas de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, o, 'llegadas')), o), array[v_mio]);
+  perform pg_temp.bd_igual('G6 llegadas por cursor', pg_temp.bd_en(pg_temp.bd_todas(duena, o, 'llegadas', 1), o), array[v_hoy_eta, v_mio, v_viejo]);
+  perform pg_temp.bd_mismos('G6 salidas, sólo el zarpe de hoy', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, o, 'salidas')), o), array[v_salida, v_mio, v_sale_cont]);
+  perform pg_temp.bd_igual('G6 la salida trae el booking', (select e ->> 'booking' from jsonb_array_elements(pg_temp.bd_grupo(duena, o, 'salidas') -> 'filas') e where e ->> 'vehiculo_id' = v_salida::text), 'BK1');
   perform pg_temp.bd_igual('G6 la salida por su contenedor trae el booking y el contenedor',
-    (select (e ->> 'booking') || ' ' || (e ->> 'contenedor') from jsonb_array_elements(pg_temp.bd_grupo(duena, 'salidas') -> 'filas') e where e ->> 'vehiculo_id' = v_sale_cont::text), 'BK2 CONT2');
-  perform pg_temp.bd_mismos('G6 salidas de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, 'salidas')), o), array[v_mio]);
-  perform pg_temp.bd_igual('G6 salidas por cursor', cardinality(pg_temp.bd_en(pg_temp.bd_todas(duena, 'salidas', 1), o)), 3);
+    (select (e ->> 'booking') || ' ' || (e ->> 'contenedor') from jsonb_array_elements(pg_temp.bd_grupo(duena, o, 'salidas') -> 'filas') e where e ->> 'vehiculo_id' = v_sale_cont::text), 'BK2 CONT2');
+  perform pg_temp.bd_mismos('G6 salidas de «propios»', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(prop, o, 'salidas')), o), array[v_mio]);
+  perform pg_temp.bd_igual('G6 salidas por cursor', cardinality(pg_temp.bd_en(pg_temp.bd_todas(duena, o, 'salidas', 1), o)), 3);
 end $$;
 rollback;
 
@@ -348,9 +350,9 @@ begin
   values (o, 'bd en subasta', sub, now(), 'abierta', now() + interval '2 days') returning id into v_en_subasta;
   perform pg_temp.bd_igual('G7 el terreno', (select array_agg(situacion order by titulo) from public.vehiculos where origen_id = o and eliminado_en is null),
                            array['sin_resolver', 'sin_resolver', 'en_subasta', 'no_ganada']);
-  perform pg_temp.bd_igual('G7 la más vieja primero, sin las no ganadas ni la papelera', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, 'sin_resolver')), o), array[v_a, v_b]);
-  perform pg_temp.bd_igual('G7 por cursor', pg_temp.bd_en(pg_temp.bd_todas(duena, 'sin_resolver', 1), o), array[v_a, v_b]);
-  perform pg_temp.bd_igual('G7 el conteo cuenta al menos las suyas', (pg_temp.bd_grupo(duena, 'sin_resolver', 20, 100) #>> '{conteo,n}')::int >= 2, true);
+  perform pg_temp.bd_igual('G7 la más vieja primero, sin las no ganadas ni la papelera', pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, o, 'sin_resolver')), o), array[v_a, v_b]);
+  perform pg_temp.bd_igual('G7 por cursor', pg_temp.bd_en(pg_temp.bd_todas(duena, o, 'sin_resolver', 1), o), array[v_a, v_b]);
+  perform pg_temp.bd_igual('G7 el conteo cuenta al menos las suyas', (pg_temp.bd_grupo(duena, o, 'sin_resolver', 20, 100) #>> '{conteo,n}')::int >= 2, true);
 end $$;
 rollback;
 
@@ -358,25 +360,48 @@ rollback;
 begin;
 do $$
 declare
-  x record := pg_temp.bd_origen();
+  x record := pg_temp.bd_origen(); o uuid := x.o;
   duena uuid := pg_temp.bd_persona(array['logistica.ver', 'vehiculos.ver']);
   r jsonb; fn text;
 begin
-  r := pg_temp.bd_grupo(duena, 'otro');
+  r := pg_temp.bd_grupo(duena, o, 'otro');
   if r ->> 'error' is distinct from '22023' or r ->> 'hint' is distinct from 'p_grupo' then raise exception 'G8: un grupo desconocido debía dar 22023 p_grupo y dio %', r; end if;
-  r := pg_temp.bd_grupo(duena, 'demorados', 20, null, now()::text, null);
+  r := pg_temp.bd_grupo(duena, o, 'demorados', 20, null, now()::text, null);
   if r ->> 'error' is distinct from '22023' or r ->> 'hint' is distinct from 'cursor' then raise exception 'G8: un cursor sin id debía dar 22023 cursor y dio %', r; end if;
-  r := pg_temp.bd_grupo(duena, 'demorados', 20, null, null, gen_random_uuid()::text);
+  r := pg_temp.bd_grupo(duena, o, 'demorados', 20, null, null, gen_random_uuid()::text);
   if r ->> 'error' is distinct from '22023' or r ->> 'hint' is distinct from 'cursor' then raise exception 'G8: un cursor sin fecha debía dar 22023 cursor y dio %', r; end if;
-  if has_function_privilege('anon', 'public.logistica_bandeja_grupo(text,integer,integer,timestamptz,uuid)', 'execute') then raise exception 'G9: anon ejecuta la RPC'; end if;
-  if not has_function_privilege('authenticated', 'public.logistica_bandeja_grupo(text,integer,integer,timestamptz,uuid)', 'execute') then raise exception 'G9: authenticated no ejecuta la RPC'; end if;
-  foreach fn in array array['public._bandeja_dia_demorados(integer,timestamptz,uuid)', 'public._bandeja_dia_trabados(integer,timestamptz,uuid)',
-      'public._bandeja_dia_por_aprobar(integer,timestamptz,uuid)', 'public._bandeja_dia_por_vencer(integer,timestamptz,uuid)',
-      'public._bandeja_dia_llegadas(integer,timestamptz,uuid)', 'public._bandeja_dia_salidas(integer,timestamptz,uuid)',
-      'public._bandeja_dia_sin_resolver(integer,timestamptz,uuid)', 'public._bandeja_dia_alcance(text)', 'public._bandeja_dia_hoy()'] loop
+  if has_function_privilege('anon', 'public.logistica_bandeja_grupo(text,uuid,integer,integer,timestamptz,uuid)', 'execute') then raise exception 'G9: anon ejecuta la RPC'; end if;
+  if not has_function_privilege('authenticated', 'public.logistica_bandeja_grupo(text,uuid,integer,integer,timestamptz,uuid)', 'execute') then raise exception 'G9: authenticated no ejecuta la RPC'; end if;
+  foreach fn in array array['public._bandeja_dia_demorados(integer,timestamptz,uuid,uuid)', 'public._bandeja_dia_trabados(integer,timestamptz,uuid,uuid)',
+      'public._bandeja_dia_por_aprobar(integer,timestamptz,uuid,uuid)', 'public._bandeja_dia_por_vencer(integer,timestamptz,uuid,uuid)',
+      'public._bandeja_dia_llegadas(integer,timestamptz,uuid,uuid)', 'public._bandeja_dia_salidas(integer,timestamptz,uuid,uuid)',
+      'public._bandeja_dia_sin_resolver(integer,timestamptz,uuid,uuid)', 'public._bandeja_dia_alcance(text,uuid)', 'public._bandeja_dia_hoy()'] loop
     if has_function_privilege('authenticated', fn, 'execute') or has_function_privilege('anon', fn, 'execute') then
       raise exception 'G9: ejecutan el ayudante %', fn;
     end if;
   end loop;
+end $$;
+rollback;
+
+-- @test bandeja del día: es de un origen; lo de otro que la persona también ve no entra; sin origen, 22023 (G10, G11)
+begin;
+do $$
+declare
+  a record := pg_temp.bd_origen(); b record := pg_temp.bd_origen();
+  duena uuid := pg_temp.bd_persona(array['logistica.ver', 'vehiculos.ver']);
+  v_a uuid; v_b uuid; r jsonb; g text;
+begin
+  v_a := pg_temp.bd_vehiculo(a.o, a.uno, null, now() - interval '10 days');
+  v_b := pg_temp.bd_vehiculo(b.o, b.uno, null, now() - interval '10 days');
+  r := pg_temp.bd_grupo(duena, a.o, 'demorados', 50);
+  perform pg_temp.bd_igual('G10 en A, el de A', v_a = any (pg_temp.bd_ids(r)), true);
+  perform pg_temp.bd_igual('G10 en A, nada de B', v_b = any (pg_temp.bd_ids(r)), false);
+  perform pg_temp.bd_igual('G10 en B, el de B', v_b = any (pg_temp.bd_ids(pg_temp.bd_grupo(duena, b.o, 'demorados', 50))), true);
+  -- Ningún grupo de A trae algo de B.
+  foreach g in array array['demorados', 'trabados', 'por_aprobar', 'por_vencer', 'llegadas', 'salidas', 'sin_resolver'] loop
+    perform pg_temp.bd_igual('G10 ' || g || ' de A sin B', cardinality(pg_temp.bd_en(pg_temp.bd_ids(pg_temp.bd_grupo(duena, a.o, g, 50)), b.o)), 0);
+  end loop;
+  r := pg_temp.bd_grupo(duena, null, 'demorados');
+  if r ->> 'error' is distinct from '22023' or r ->> 'hint' is distinct from 'p_origen' then raise exception 'G11: sin origen debía dar 22023 p_origen y dio %', r; end if;
 end $$;
 rollback;

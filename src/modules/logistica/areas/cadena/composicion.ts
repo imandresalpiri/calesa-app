@@ -3,13 +3,11 @@ import 'server-only'
 import type { Resultado } from '@/shared/lib/errores'
 import type { Permisos } from '@/shared/lib/permisos'
 import type { PaginaDeLaFase, ResultadoDeDondeEsta } from '../../entities/cadena/leer'
+import type { OrigenDeLaCadena } from '../../entities/cadena/origenes'
 import type { PedidoDeLaFase } from '../../entities/cadena/repositorios'
 import type { ResumenDeLaCadena } from '../../entities/cadena/resumen'
 import { dondeEstaDe } from '../../features/cadena/donde-esta'
-import {
-  origenesDeLaCadena,
-  type OrigenesDeLaCadena,
-} from '../../features/cadena/origenes-de-la-cadena'
+import { origenesDeLaCadena } from '../../features/cadena/origenes-de-la-cadena'
 import { nombrarVehiculos } from '../../features/nucleo/identidad-de-vehiculos'
 import { leerFaseDeLaBase } from '../../infra/cadena/fase'
 import { leerDondeEstaDeLaBase } from '../../infra/cadena/donde-esta'
@@ -36,12 +34,15 @@ export async function leerLaFase(pedido: PedidoDeLaFase): Promise<Resultado<Pagi
   return { ok: true, data: { vehiculos, hayMas: leida.data.hayMas } }
 }
 
-// «Dónde está» lo que se busca, en todos los orígenes de la persona. Un texto que no alcanza el mínimo no llama a la base.
-export function dondeEsta(busqueda: string): Promise<Resultado<ResultadoDeDondeEsta>> {
-  return dondeEstaDe(leerDondeEstaDeLaBase, busqueda)
+// «Dónde está» lo que se busca, en el origen elegido (nulo: en todos los de la persona). Un texto que no alcanza el mínimo no llama a la base.
+export function dondeEsta(
+  busqueda: string,
+  origenId: string | null,
+): Promise<Resultado<ResultadoDeDondeEsta>> {
+  return dondeEstaDe(leerDondeEstaDeLaBase, busqueda, origenId)
 }
 
-// Las pestañas de origen. Nulo si no se pudo leer la lista de orígenes.
-export function leerOrigenesDeLaCadena(permisos: Permisos): Promise<OrigenesDeLaCadena | null> {
+// Los orígenes de Logística (las pestañas de arriba), con las reglas de su flujo. Nulo si no se pudo leer la lista de orígenes.
+export function leerOrigenesDeLaCadena(permisos: Permisos): Promise<OrigenDeLaCadena[] | null> {
   return origenesDeLaCadena(permisos)
 }

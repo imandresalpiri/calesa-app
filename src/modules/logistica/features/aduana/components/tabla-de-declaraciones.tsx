@@ -12,7 +12,7 @@ import {
 import { useRegional } from '@/shared/ui/regional'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { textoDelCanal, type FilaDeDeclaracion } from '../../../entities/aduana/declaracion'
-import { textoDeUnidades } from '../../../entities/aduana/estado'
+import { sinVehiculos, textoDeUnidades } from '../../../entities/aduana/estado'
 import { EstadoDeTributos } from './estado-de-tributos'
 
 type Props = {
@@ -70,7 +70,11 @@ export function TablaDeDeclaraciones({ declaraciones, alAbrir, abierta }: Props)
               {declaracion.despachante ?? SIN_DATO}
             </TableCell>
             <TableCell className="whitespace-nowrap">
-              {textoDeUnidades(declaracion.vehiculos)}
+              {sinVehiculos(declaracion) ? (
+                <Badge variant="outline">Sin vehículos</Badge>
+              ) : (
+                textoDeUnidades(declaracion.vehiculos)
+              )}
             </TableCell>
           </FilaDeLista>
         ))}

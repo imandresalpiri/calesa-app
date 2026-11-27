@@ -5,11 +5,12 @@ import {
   type MinimoDeBusqueda,
   type ValoresDeFiltros,
 } from '@/shared/lib/filtros'
+import { RUTAS } from '@/shared/lib/rutas'
+import { CLAVE_DE_ORIGEN_DE_LOGISTICA } from '../nucleo/enlaces'
 
 // Los filtros de la cadena (6.03-1): la URL de `/logistica` los lleva y este archivo los vuelve lo que entiende `logistica_cadena()`. Puro: ninguna lectura. La URL conserva
 // aparte `origen`, `fase` y `vehiculo`; `FilterShell` sólo toca las claves de este esquema.
 
-export const CLAVE_DE_ORIGEN_DE_LA_CADENA = 'origen'
 export const CLAVE_DE_FASE_DE_LA_CADENA = 'fase'
 export const CLAVE_DE_BUSQUEDA_DE_LA_CADENA = 'q'
 export const CLAVE_DE_DEMORADAS = 'demoradas'
@@ -17,6 +18,24 @@ export const CLAVE_DE_POR_APROBAR = 'por_aprobar'
 export const CLAVE_DE_CONTENEDOR = 'contenedor'
 export const CLAVE_DE_BOOKING = 'booking'
 export const CLAVE_DE_NAVIERA = 'naviera'
+/** «Buscar en todos los orígenes» de «Dónde está»: `?en=todos` busca sin el origen elegido (la barra sigue en él). */
+export const CLAVE_DE_DONDE_BUSCAR = 'en'
+const EN_TODOS = 'todos'
+
+/** Si «Dónde está» busca en todos los orígenes de la persona (`?en=todos`); cualquier otro valor, en el elegido. */
+export function buscaEnTodos(valor: string | undefined): boolean {
+  return valor === EN_TODOS
+}
+
+/** La Cadena de un origen con «Dónde está» buscando `q`, en ese origen o en todos (`?en=todos`). */
+export function rutaDeDondeEsta(origenId: string, q: string, enTodos: boolean): string {
+  const parametros = new URLSearchParams({
+    [CLAVE_DE_ORIGEN_DE_LOGISTICA]: origenId,
+    [CLAVE_DE_BUSQUEDA_DE_LA_CADENA]: q,
+  })
+  if (enTodos) parametros.set(CLAVE_DE_DONDE_BUSCAR, EN_TODOS)
+  return `${RUTAS.logistica}?${parametros.toString()}`
+}
 
 const TODAS = 'todas'
 const SI = 'si'

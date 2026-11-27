@@ -2,14 +2,18 @@
 -- transacción y la revierte. Los ayudantes son copia de `guardar.sql`; la cabecera y la composición se siembran como superusuario (lo que se prueba es leer).
 --
 -- Qué asegura:
---   L1. Sin logistica.ver ni gestionar, 42501. Con logistica.ver en un origen y sin gestionar: la declaración con v1 y w (w en otro origen) sale con
---       vehiculos = 1 y hay_ocultos; la que sólo tiene w2 no sale. Con el tributo sólo de v1 ve pagada = false y faltan = 0 (D31: lo deducible); con el de
---       w también, pagada = true. Con gestionar y sin logistica.ver salen las dos, con vehiculos = 0.
+--   L1. Sin logistica.ver ni gestionar, 42501. La lista es de un origen (p_origen). Con logistica.ver en un origen y sin gestionar: la declaración con
+--       v1 y w (w en otro origen) sale con vehiculos = 1 y hay_ocultos; la que sólo tiene w2 no sale. Con el tributo sólo de v1 ve pagada = false y
+--       faltan = 0 (D31: lo deducible); con el de w también, pagada = true. Con gestionar y sin logistica.ver, en el origen sale la mixta con
+--       vehiculos = 0, y la de w2 no (es de otro origen).
 --   L2. pagada pasa a verdadera recién con el tributo del último vehículo; un gasto de otra categoría no cuenta; borrar el tributo la devuelve a falsa;
 --       quitar al que no lo tiene la vuelve verdadera; sin vivos, falsa. (El assert de la fila del 6.07.)
 --   L3. El cursor (tope + 1, la página siguiente, un tramo solo da 22023) y los filtros canal, pagada y q; una clave de más, un canal que no existe o un q
 --       de 2 letras, 22023 con la clave.
 --   L4. El lote de la lista (sin y con cursor), en su plan genérico, va por declaraciones_aduana_creado_idx sin Sort ni Seq Scan.
+--   L5. «Sin vehículos»: la declaración sin ninguno vivo (vacía, con su único vehículo quitado o en la papelera) sale en todo origen con aduana; la
+--       que perdió su vehículo del origen y conserva uno de otro, no; sin gestionar no sale (no tiene un vehículo que se vea).
+--   L6. Un origen cuyo flujo no usa la regla aduana da vacío, también con declaraciones sin vehículos; sin origen, 22023 p_origen.
 
 -- La primera cuenta de una base vacía queda dueña (con `SOLO=`): una de relleno antes, para que ninguna de la prueba lo sea.
 create or replace function pg_temp.adu_persona(p_concesiones text[]) returns uuid language plpgsql as $f$
@@ -80,9 +84,9 @@ begin
 end $f$;
 
 -- La página como arreglo jsonb.
-create or replace function pg_temp.adu_listar(p_quien uuid, p_filtros jsonb default null, p_tope int default 50, p_desde timestamptz default null,
+create or replace function pg_temp.adu_listar(p_quien uuid, p_origen uuid, p_filtros jsonb default null, p_tope int default 50, p_desde timestamptz default null,
   p_id uuid default null) returns jsonb language sql as $f$
-  select pg_temp.adu_corre(p_quien, format('select jsonb_agg(to_jsonb(x)) from public.declaraciones_listar(%L, %L, %L, %L) x', p_desde, p_id, p_tope, p_filtros));
+  select pg_temp.adu_corre(p_quien, format('select jsonb_agg(to_jsonb(x)) from public.declaraciones_listar(%L, %L, %L, %L, %L) x', p_desde, p_id, p_tope, p_filtros, p_origen));
 $f$;
 
 -- La fila de la declaración `p_id` en la página (o null si no salió).
@@ -118,18 +122,18 @@ begin
   gestor := pg_temp.adu_persona(array['logistica.aduana.gestionar']);
   d_mix := pg_temp.adu_decl('LUNO-' || (t ->> 's') || '-1', array[(t ->> 'v1')::uuid, (t ->> 'w')::uuid]);
   d_w := pg_temp.adu_decl('LUNO-' || (t ->> 's') || '-2', array[(t ->> 'w2')::uuid]);
-  perform pg_temp.adu_es('L1 sin las claves', pg_temp.adu_listar(sin), '42501');
-  r := pg_temp.adu_listar(uno);
+  perform pg_temp.adu_es('L1 sin las claves', pg_temp.adu_listar(sin, (t ->> 'o')::uuid), '42501');
+  r := pg_temp.adu_listar(uno, (t ->> 'o')::uuid);
   perform pg_temp.adu_resumen('L1 un origen, la mixta', pg_temp.adu_fila(r, d_mix), 1, true, false, 1);
   if pg_temp.adu_fila(r, d_w) is not null then raise exception 'L1: la que sólo tiene un vehículo que no ve no debía salir: %', r; end if;
   -- D31: con el tributo de v1 y no el de w, quien ve sólo v1 lee pagada = false y faltan = 0.
   perform pg_temp.adu_gasto((t ->> 'v1')::uuid, (t ->> 'trib')::uuid);
-  perform pg_temp.adu_resumen('L1 tributo de v1', pg_temp.adu_fila(pg_temp.adu_listar(uno), d_mix), 1, true, false, 0);
+  perform pg_temp.adu_resumen('L1 tributo de v1', pg_temp.adu_fila(pg_temp.adu_listar(uno, (t ->> 'o')::uuid), d_mix), 1, true, false, 0);
   perform pg_temp.adu_gasto((t ->> 'w')::uuid, (t ->> 'trib')::uuid);
-  perform pg_temp.adu_resumen('L1 tributo de w', pg_temp.adu_fila(pg_temp.adu_listar(uno), d_mix), 1, true, true, 0);
-  r := pg_temp.adu_listar(gestor);
+  perform pg_temp.adu_resumen('L1 tributo de w', pg_temp.adu_fila(pg_temp.adu_listar(uno, (t ->> 'o')::uuid), d_mix), 1, true, true, 0);
+  r := pg_temp.adu_listar(gestor, (t ->> 'o')::uuid);
   perform pg_temp.adu_resumen('L1 gestionar, la mixta', pg_temp.adu_fila(r, d_mix), 0, true, true, 0);
-  perform pg_temp.adu_resumen('L1 gestionar, la de w2', pg_temp.adu_fila(r, d_w), 0, true, false, 0);
+  if pg_temp.adu_fila(r, d_w) is not null then raise exception 'L1: la de w2 es de otro origen y no debía salir: %', r; end if;
 end $$;
 rollback;
 
@@ -141,20 +145,20 @@ begin
   p := pg_temp.adu_persona(array['logistica.ver', 'logistica.aduana.gestionar']);
   d := pg_temp.adu_decl('LPAG-' || (t ->> 's'), array[(t ->> 'v1')::uuid, (t ->> 'v2')::uuid, (t ->> 'v3')::uuid]);
   q := jsonb_build_object('q', 'LPAG-' || (t ->> 's'));
-  perform pg_temp.adu_resumen('L2 sin tributos', pg_temp.adu_fila(pg_temp.adu_listar(p, q), d), 3, false, false, 3);
+  perform pg_temp.adu_resumen('L2 sin tributos', pg_temp.adu_fila(pg_temp.adu_listar(p, (t ->> 'o')::uuid, q), d), 3, false, false, 3);
   perform pg_temp.adu_gasto((t ->> 'v1')::uuid, (t ->> 'trib')::uuid);
   g2 := pg_temp.adu_gasto((t ->> 'v2')::uuid, (t ->> 'trib')::uuid);
-  perform pg_temp.adu_resumen('L2 dos de tres', pg_temp.adu_fila(pg_temp.adu_listar(p, q), d), 3, false, false, 1);
+  perform pg_temp.adu_resumen('L2 dos de tres', pg_temp.adu_fila(pg_temp.adu_listar(p, (t ->> 'o')::uuid, q), d), 3, false, false, 1);
   perform pg_temp.adu_gasto((t ->> 'v3')::uuid, (t ->> 'flete')::uuid);
-  perform pg_temp.adu_resumen('L2 un flete no es tributo', pg_temp.adu_fila(pg_temp.adu_listar(p, q), d), 3, false, false, 1);
+  perform pg_temp.adu_resumen('L2 un flete no es tributo', pg_temp.adu_fila(pg_temp.adu_listar(p, (t ->> 'o')::uuid, q), d), 3, false, false, 1);
   perform pg_temp.adu_gasto((t ->> 'v3')::uuid, (t ->> 'trib')::uuid);
-  perform pg_temp.adu_resumen('L2 el último', pg_temp.adu_fila(pg_temp.adu_listar(p, q), d), 3, false, true, 0);
+  perform pg_temp.adu_resumen('L2 el último', pg_temp.adu_fila(pg_temp.adu_listar(p, (t ->> 'o')::uuid, q), d), 3, false, true, 0);
   update public.gastos set eliminado_en = now() where id = g2;
-  perform pg_temp.adu_resumen('L2 tributo borrado', pg_temp.adu_fila(pg_temp.adu_listar(p, q), d), 3, false, false, 1);
+  perform pg_temp.adu_resumen('L2 tributo borrado', pg_temp.adu_fila(pg_temp.adu_listar(p, (t ->> 'o')::uuid, q), d), 3, false, false, 1);
   update public.declaraciones_vehiculos set removido_en = now() where declaracion_id = d and vehiculo_id = (t ->> 'v2')::uuid;
-  perform pg_temp.adu_resumen('L2 quitado el que faltaba', pg_temp.adu_fila(pg_temp.adu_listar(p, q), d), 2, false, true, 0);
+  perform pg_temp.adu_resumen('L2 quitado el que faltaba', pg_temp.adu_fila(pg_temp.adu_listar(p, (t ->> 'o')::uuid, q), d), 2, false, true, 0);
   update public.declaraciones_vehiculos set removido_en = now() where declaracion_id = d and removido_en is null;
-  perform pg_temp.adu_resumen('L2 sin vivos', pg_temp.adu_fila(pg_temp.adu_listar(p, q), d), 0, false, false, 0);
+  perform pg_temp.adu_resumen('L2 sin vivos', pg_temp.adu_fila(pg_temp.adu_listar(p, (t ->> 'o')::uuid, q), d), 0, false, false, 0);
 end $$;
 rollback;
 
@@ -168,33 +172,33 @@ begin
   d2 := pg_temp.adu_decl('LCUR-' || s || '-2', array[(t ->> 'v2')::uuid], now() - interval '2 hours');
   d3 := pg_temp.adu_decl('lcur-' || s || '-10', array[(t ->> 'v3')::uuid], now() - interval '1 hour');
   q := jsonb_build_object('q', 'lcur-' || s);
-  r := pg_temp.adu_listar(p, q, 2);
+  r := pg_temp.adu_listar(p, (t ->> 'o')::uuid, q, 2);
   if jsonb_array_length(r) <> 3 or r -> 0 ->> 'id' <> d3::text or r -> 1 ->> 'id' <> d2::text or r -> 2 ->> 'id' <> d1::text then
     raise exception 'L3: tope 2 debía dar 3 filas (d3, d2, d1) y dio %', r;
   end if;
   ultima := r -> 1;
-  r := pg_temp.adu_listar(p, q, 2, (ultima ->> 'creado_en')::timestamptz, (ultima ->> 'id')::uuid);
+  r := pg_temp.adu_listar(p, (t ->> 'o')::uuid, q, 2, (ultima ->> 'creado_en')::timestamptz, (ultima ->> 'id')::uuid);
   if jsonb_array_length(r) <> 1 or r -> 0 ->> 'id' <> d1::text then raise exception 'L3: tras d2 sólo quedaba d1 y dio %', r; end if;
-  perform pg_temp.adu_es('L3 un tramo del cursor', pg_temp.adu_listar(p, q, 2, now(), null), '22023', 'cursor');
+  perform pg_temp.adu_es('L3 un tramo del cursor', pg_temp.adu_listar(p, (t ->> 'o')::uuid, q, 2, now(), null), '22023', 'cursor');
   -- q sin distinguir mayúsculas y por prefijo: «LCUR-<s>-1» encuentra -1 y -10, no -2.
-  r := pg_temp.adu_listar(p, jsonb_build_object('q', 'LCUR-' || s || '-1'));
+  r := pg_temp.adu_listar(p, (t ->> 'o')::uuid, jsonb_build_object('q', 'LCUR-' || s || '-1'));
   if (select array_agg(x ->> 'id' order by x ->> 'id') from jsonb_array_elements(r) x) is distinct from
      (select array_agg(y order by y) from unnest(array[d1::text, d3::text]) y) then
     raise exception 'L3: el prefijo debía encontrar d1 y d3: %', r;
   end if;
   update public.declaraciones_aduana set canal = 'verde' where id = d2;
-  r := pg_temp.adu_listar(p, q || '{"canal": "verde"}');
+  r := pg_temp.adu_listar(p, (t ->> 'o')::uuid, q || '{"canal": "verde"}');
   if jsonb_array_length(r) <> 1 or r -> 0 ->> 'id' <> d2::text then raise exception 'L3: el canal verde debía dar sólo d2: %', r; end if;
   perform pg_temp.adu_gasto((t ->> 'v1')::uuid, (t ->> 'trib')::uuid);
-  r := pg_temp.adu_listar(p, q || '{"pagada": true}');
+  r := pg_temp.adu_listar(p, (t ->> 'o')::uuid, q || '{"pagada": true}');
   if jsonb_array_length(r) <> 1 or r -> 0 ->> 'id' <> d1::text then raise exception 'L3: pagada debía dar sólo d1: %', r; end if;
-  r := pg_temp.adu_listar(p, q || '{"pagada": false}');
+  r := pg_temp.adu_listar(p, (t ->> 'o')::uuid, q || '{"pagada": false}');
   if jsonb_array_length(r) <> 2 or pg_temp.adu_fila(r, d1) is not null then raise exception 'L3: sin pagar debía dar d3 y d2: %', r; end if;
-  perform pg_temp.adu_es('L3 una clave de más', pg_temp.adu_listar(p, '{"origen": "x"}'), '22023', 'origen');
-  perform pg_temp.adu_es('L3 canal que no existe', pg_temp.adu_listar(p, '{"canal": "azul"}'), '22023', 'canal');
-  perform pg_temp.adu_es('L3 pagada que no es sí o no', pg_temp.adu_listar(p, '{"pagada": "si"}'), '22023', 'pagada');
-  perform pg_temp.adu_es('L3 q de 2', pg_temp.adu_listar(p, '{"q": "lc"}'), '22023', 'q');
-  perform pg_temp.adu_es('L3 filtros que no son objeto', pg_temp.adu_listar(p, '[1]'), '22023', 'filtros');
+  perform pg_temp.adu_es('L3 una clave de más', pg_temp.adu_listar(p, (t ->> 'o')::uuid, '{"origen": "x"}'), '22023', 'origen');
+  perform pg_temp.adu_es('L3 canal que no existe', pg_temp.adu_listar(p, (t ->> 'o')::uuid, '{"canal": "azul"}'), '22023', 'canal');
+  perform pg_temp.adu_es('L3 pagada que no es sí o no', pg_temp.adu_listar(p, (t ->> 'o')::uuid, '{"pagada": "si"}'), '22023', 'pagada');
+  perform pg_temp.adu_es('L3 q de 2', pg_temp.adu_listar(p, (t ->> 'o')::uuid, '{"q": "lc"}'), '22023', 'q');
+  perform pg_temp.adu_es('L3 filtros que no son objeto', pg_temp.adu_listar(p, (t ->> 'o')::uuid, '[1]'), '22023', 'filtros');
 end $$;
 rollback;
 
@@ -208,11 +212,12 @@ begin
 end $$;
 -- La única que cumple el filtro está al fondo: el recorrido cruza los lotes de 200 hasta encontrarla.
 do $$
-declare p uuid := pg_temp.adu_persona(array['logistica.aduana.gestionar']); r jsonb;
+declare t jsonb := pg_temp.adu_terreno(); p uuid := pg_temp.adu_persona(array['logistica.aduana.gestionar']); r jsonb;
 begin
-  r := pg_temp.adu_listar(p, '{"q": "LVOLX-2000"}');
+  -- Sin vehículos: salen en todo origen con aduana.
+  r := pg_temp.adu_listar(p, (t ->> 'o')::uuid, '{"q": "LVOLX-2000"}');
   if jsonb_array_length(r) <> 1 or r -> 0 ->> 'numero' <> 'LVOLX-2000' then raise exception 'L4: debía encontrar la del fondo y dio %', r; end if;
-  r := pg_temp.adu_listar(p, '{"q": "LVOLX-1"}', 100);
+  r := pg_temp.adu_listar(p, (t ->> 'o')::uuid, '{"q": "LVOLX-1"}', 100);
   if jsonb_array_length(r) <> 101 then raise exception 'L4: tope 100 debía dar 101 y dio %', jsonb_array_length(r); end if;
 end $$;
 analyze public.declaraciones_aduana;
@@ -240,4 +245,53 @@ begin
   end loop;
 end $$;
 deallocate adu_lote;
+rollback;
+
+-- @test aduana: la declaración sin vehículos sale en todo origen con aduana; la que perdió el suyo del origen, no (L5)
+begin;
+do $$
+declare t jsonb := pg_temp.adu_terreno(); s text := t ->> 's'; o uuid := (t ->> 'o')::uuid; gestor uuid; uno uuid;
+  d_vacia uuid; d_quitado uuid; d_papelera uuid; d_otro uuid; r jsonb;
+begin
+  gestor := pg_temp.adu_persona(array['logistica.ver', 'logistica.aduana.gestionar']);
+  uno := pg_temp.adu_persona(array['logistica.ver@' || o]);
+  d_vacia := pg_temp.adu_decl('LSIN-' || s || '-1', array[]::uuid[]);
+  d_quitado := pg_temp.adu_decl('LSIN-' || s || '-2', array[(t ->> 'v1')::uuid]);
+  update public.declaraciones_vehiculos set removido_en = now() where declaracion_id = d_quitado;
+  d_papelera := pg_temp.adu_decl('LSIN-' || s || '-3', array[(t ->> 'v2')::uuid]);
+  update public.vehiculos set eliminado_en = now() where id = (t ->> 'v2')::uuid;
+  -- Perdió v3 (del origen) y le queda w (de otro): ya es del otro origen.
+  d_otro := pg_temp.adu_decl('LSIN-' || s || '-4', array[(t ->> 'v3')::uuid, (t ->> 'w')::uuid]);
+  update public.declaraciones_vehiculos set removido_en = now() where declaracion_id = d_otro and vehiculo_id = (t ->> 'v3')::uuid;
+  r := pg_temp.adu_listar(gestor, o, jsonb_build_object('q', 'LSIN-' || s));
+  perform pg_temp.adu_resumen('L5 vacía', pg_temp.adu_fila(r, d_vacia), 0, false, false, 0);
+  perform pg_temp.adu_resumen('L5 con su vehículo quitado', pg_temp.adu_fila(r, d_quitado), 0, false, false, 0);
+  -- hay_ocultos: _declaracion_resumen cuenta el de la papelera como uno que no se ve.
+  perform pg_temp.adu_resumen('L5 con su vehículo en la papelera', pg_temp.adu_fila(r, d_papelera), 0, true, false, 0);
+  if pg_temp.adu_fila(r, d_otro) is not null then raise exception 'L5: la que conserva un vehículo de otro origen no debía salir: %', r; end if;
+  r := pg_temp.adu_listar(uno, o, jsonb_build_object('q', 'LSIN-' || s));
+  if jsonb_array_length(r) <> 0 then raise exception 'L5: sin gestionar no se ve ninguna sin vehículos: %', r; end if;
+end $$;
+rollback;
+
+-- @test aduana: un origen sin la regla aduana da vacío; sin origen, 22023 (L6)
+begin;
+do $$
+declare t jsonb := pg_temp.adu_terreno(); s text := t ->> 's'; gestor uuid; d uuid; r jsonb;
+begin
+  gestor := pg_temp.adu_persona(array['logistica.ver', 'logistica.aduana.gestionar']);
+  d := pg_temp.adu_decl('LREG-' || s || '-1', array[(t ->> 'w')::uuid]);
+  perform pg_temp.adu_decl('LREG-' || s || '-2', array[]::uuid[]);
+  -- o2 no tiene la regla aduana en su flujo (adu_terreno sólo la enciende en o).
+  r := pg_temp.adu_listar(gestor, (t ->> 'o2')::uuid, jsonb_build_object('q', 'LREG-' || s));
+  if jsonb_array_length(r) <> 0 then raise exception 'L6: un origen sin aduana debía dar vacío: %', r; end if;
+  update public.flujos_reglas set activa = true
+   where regla = 'aduana' and flujo_id = (select id from public.flujos where origen_id = (t ->> 'o2')::uuid);
+  insert into public.flujos_reglas (flujo_id, regla, activa)
+  select id, 'aduana', true from public.flujos where origen_id = (t ->> 'o2')::uuid
+  on conflict (flujo_id, regla) do nothing;
+  r := pg_temp.adu_listar(gestor, (t ->> 'o2')::uuid, jsonb_build_object('q', 'LREG-' || s));
+  if jsonb_array_length(r) <> 2 or pg_temp.adu_fila(r, d) is null then raise exception 'L6: con la regla, la de w y la vacía: %', r; end if;
+  perform pg_temp.adu_es('L6 sin origen', pg_temp.adu_listar(gestor, null), '22023', 'p_origen');
+end $$;
 rollback;

@@ -49,6 +49,7 @@ export const RUTAS = {
   nuevoVehiculo: '/vehiculos?panel=nuevo',
   papeleraDeVehiculos: '/vehiculos/papelera',
   logistica: '/logistica',
+  bandejaDeLogistica: '/logistica/bandeja',
   embarques: '/logistica/embarques',
   aduana: '/logistica/aduana',
   gastosDeLogistica: '/logistica/gastos',

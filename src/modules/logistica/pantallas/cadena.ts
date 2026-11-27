@@ -4,4 +4,3 @@ export { BuscadorDeDondeEsta } from '../features/cadena/components/buscador-de-d
 export { EstadoDeLaGrafica } from '../features/cadena/components/estado-de-la-grafica'
 export { FranjaDeDondeEsta } from '../features/cadena/components/franja-de-donde-esta'
 export { GraficaDeLaCadena } from '../features/cadena/components/grafica-de-la-cadena'
-export { PestanasDeOrigen } from '../features/cadena/components/pestanas-de-origen'

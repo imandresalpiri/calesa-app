@@ -56,7 +56,9 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 ### Logística
 
 - **[—]** «Documentos por aprobar» de Inicio sólo trae los documentos de vehículos (`_bandeja_por_aprobar`): quien sólo aprueba los de repuestos no ve el bloque. Sumar los de los ítems pide ampliar esa RPC y su medición.
-- **[—]** Un bloque «Subastas sin resolver» en Inicio — hoy es un grupo de la bandeja del día de `/logistica` y «Subasta: Sin resolver» en el inventario.
+- **[—]** Un bloque «Subastas sin resolver» en Inicio — hoy es un grupo de la bandeja del día (`/logistica/bandeja`) y «Subasta: Sin resolver» en el inventario.
+- **[—]** El resumen de un grupo de `/logistica/embarques` (`transporte_grupo`, «Editar grupo») junta las unidades de la clave en todos los orígenes, aunque la lista sea de uno: decidir si
+  el resumen se acota al origen de la pestaña (la clave de un booking puede cruzar orígenes a propósito).
 - **[A1c]** Avisos sin salida: el bloqueo de eliminar una fase no enlaza «las fases que esperan» ni «las unidades en ella» (`ImpactoDeFase` sólo trae conteos; pide los ids); «Editar grupo» con más unidades de las que se muestran y «súbelo por partes» de documentos de un grupo de más de 100 no dicen el paso siguiente; «No pudimos leer los títulos» del panel de fuera de regla no ofrece «Reintentar».
 - **[6-2]** Publicar en la vitrina mueve la versión de la ficha (`vehiculo_vitrina` usa `vehiculos.actualizado_en`) — una columna `vitrina_actualizado_en` que la RPC exija y devuelva.
 - **[6-4]** Se puede pedir un requisito de dato cuya regla está apagada (`transporte.*`, `aduana.*`, `pagos.*`) y nadie puede cumplirlo, y «Qué falta» igual ofrece «Pedirlo» a quien no tiene la clave del hueco — que `revisar_flujo()` lo avise con un código propio o que la RPC lo rechace (saberlo en «Qué falta» exige leer las reglas).
@@ -149,7 +151,10 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[4-65]** La pestaña de una clase de lead que quien mira no tiene recorre su cartera (hasta ≈ 400 ms con 80.000) — salida no hecha: copiar la clase en la cartera.
 - **[5a-40]** La baja de 200.000 leads tarda 9 corridas y 15 s porque ningún update de `cartera` es HOT (11 btree) — un índice que sostenga lo ajeno sin nombrar la cartera, sin romper `medir-escala.sql`; la persona aceptó el número actual.
 - **[—]** `leerCatalogosDeTransporte` (`/logistica/embarques`, «Editar grupo») lee hasta 200 puertos y 200 navieras de todos los orígenes y descarta
-  `hayMas`: con los propios por origen, lo que pasa del tope se ve «—» sin aviso — devolver `hayMas` con `<AvisoDeTope>` o leer por id lo que nombran los grupos.
+  `hayMas`: con los propios por origen, lo que pasa del tope se ve «—» sin aviso — devolver `hayMas` con `<AvisoDeTope>` o leer por id lo que nombran los grupos. Con la lista ya de un
+  origen, leer sólo los de ese origen y los compartidos.
+- **[—]** Cada página de Logística lee el flujo de cada origen de la persona (`leerOrigenesDeLaCadena`: una lectura corta por origen, en paralelo, una vez por pedido) para saber qué pestañas
+  tiene — si con muchos orígenes se mide lenta, una sola lectura de las reglas de todos.
 - **[6-5]** Medir `gastos_listar` y `pagos_listar` con volumen (≈ 50.000 filas, dueña con «todos» y una persona con «propios»): el filtro `en_cartera` por fila puede ir descartando al profundizar.
 - **[8-13c]** Índice `(fase_id, fase_desde, id)` en `repuestos_items` si la Cadena de repuestos y los bloques de Inicio llegan a miles — hoy alcanza `repuestos_items_fase_id_idx`.
 - **[—]** La planilla de la fórmula tarda ≈ 1 s en abrir con 600 filas y ≈ 2 s con 2.000 (O(filas × nodos), al abrir la pestaña) — una versión por lote de `textoVigente()`/`textoDeNodo()`.

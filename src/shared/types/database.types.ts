@@ -8331,7 +8331,7 @@ export type Database = {
         }[]
       }
       _bandeja_dia_alcance: {
-        Args: { p_clave: string }
+        Args: { p_clave: string; p_origen: string }
         Returns: {
           origenes: string[]
           propios: string[]
@@ -8339,33 +8339,33 @@ export type Database = {
         }[]
       }
       _bandeja_dia_demorados: {
-        Args: { p_desde: string; p_id: string; p_leer: number }
+        Args: { p_desde: string; p_id: string; p_leer: number; p_origen: string }
         Returns: Json
       }
       _bandeja_dia_hoy: { Args: Record<PropertyKey, never>; Returns: string }
       _bandeja_dia_llegadas: {
-        Args: { p_desde: string; p_id: string; p_leer: number }
+        Args: { p_desde: string; p_id: string; p_leer: number; p_origen: string }
         Returns: Json
       }
       _bandeja_dia_por_aprobar: {
-        Args: { p_desde: string; p_id: string; p_leer: number }
+        Args: { p_desde: string; p_id: string; p_leer: number; p_origen: string }
         Returns: Json
       }
       _bandeja_dia_por_vencer: {
-        Args: { p_desde: string; p_id: string; p_leer: number }
+        Args: { p_desde: string; p_id: string; p_leer: number; p_origen: string }
         Returns: Json
       }
       _bandeja_dia_recortar: { Args: { p_filas: Json; p_n: number }; Returns: Json }
       _bandeja_dia_salidas: {
-        Args: { p_desde: string; p_id: string; p_leer: number }
+        Args: { p_desde: string; p_id: string; p_leer: number; p_origen: string }
         Returns: Json
       }
       _bandeja_dia_sin_resolver: {
-        Args: { p_desde: string; p_id: string; p_leer: number }
+        Args: { p_desde: string; p_id: string; p_leer: number; p_origen: string }
         Returns: Json
       }
       _bandeja_dia_trabados: {
-        Args: { p_desde: string; p_id: string; p_leer: number }
+        Args: { p_desde: string; p_id: string; p_leer: number; p_origen: string }
         Returns: Json
       }
       _bandeja_por_aprobar: { Args: { p_n: number }; Returns: Json }
@@ -10674,7 +10674,7 @@ export type Database = {
       }
       _transporte_clave: { Args: { p_clave: string; p_tipo: string }; Returns: string }
       _transporte_de_la_clave: {
-        Args: { p_clave: string; p_tipo: string }
+        Args: { p_clave: string; p_origen?: string; p_tipo: string }
         Returns: {
           arribo_el: string
           eta_el: string
@@ -11557,7 +11557,7 @@ export type Database = {
         Returns: Json
       }
       declaraciones_listar: {
-        Args: { p_desde: string; p_filtros: Json; p_id: string; p_tope: number }
+        Args: { p_desde: string; p_filtros: Json; p_id: string; p_origen: string; p_tope: number }
         Returns: {
           aceptada_el: string
           actualizado_en: string
@@ -12240,6 +12240,7 @@ export type Database = {
           p_desde?: string
           p_grupo: string
           p_id?: string
+          p_origen: string
           p_tope?: number
         }
         Returns: Json
@@ -12256,7 +12257,10 @@ export type Database = {
         Returns: Json
       }
       logistica_cadena_resumen: { Args: { p_origen: string; p_tope?: number }; Returns: Json }
-      logistica_donde_esta: { Args: { p_buscar: string; p_tope?: number }; Returns: Json }
+      logistica_donde_esta: {
+        Args: { p_buscar: string; p_origen?: string; p_tope?: number }
+        Returns: Json
+      }
       logistica_unidad: { Args: { p_vehiculo: string }; Returns: Json }
       margen_vehiculo: { Args: { p_vehiculo: string }; Returns: Json }
       mensaje_editar: {
@@ -13101,7 +13105,7 @@ export type Database = {
         Returns: Json
       }
       transporte_grupos: {
-        Args: { p_desde: string; p_filtros: Json; p_tipo: string; p_tope: number }
+        Args: { p_desde: string; p_filtros: Json; p_origen: string; p_tipo: string; p_tope: number }
         Returns: Json
       }
       transporte_guardar: {

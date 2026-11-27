@@ -15,15 +15,24 @@ const NO_ESTA = 'Esta declaración ya no existe o ya no la ves.'
 export async function DeclaracionAbierta({
   id,
   puedeGestionar,
+  origenId,
 }: {
   id: string
   puedeGestionar: boolean
+  // El origen de la pestaña: el buscador de vehículos busca en él. Nulo: se abrió sin una pestaña de Aduana que dibujar (sólo lectura).
+  origenId: string | null
 }) {
   const resultado = await leerDeclaracion(id)
   if (!resultado.ok && resultado.error.codigo === 'no_encontrado') {
     return <EstadoVacio titulo={NO_ESTA} />
   }
-  return <ResumenDeLaDeclaracion declaracion={datosO(resultado)} puedeGestionar={puedeGestionar} />
+  return (
+    <ResumenDeLaDeclaracion
+      declaracion={datosO(resultado)}
+      puedeGestionar={puedeGestionar}
+      origenId={origenId}
+    />
+  )
 }
 
 // El formulario de edición de la declaración con ese id. Es un panel propio (no convive con el resumen, D8): lee la declaración para llenar el formulario con su versión; si ya no
