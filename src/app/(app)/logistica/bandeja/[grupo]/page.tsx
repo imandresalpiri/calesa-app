@@ -1,9 +1,9 @@
 import type { Metadata, Route } from 'next'
 import Link from 'next/link'
-import { connection } from 'next/server'
 import { Suspense } from 'react'
-import { requerirSesion } from '@/modules/equipo'
+import { getAjustes } from '@/modules/empresa'
 import {
+  enElOrigen,
   grupoDelSlug,
   gruposVisibles,
   leerGrupoDeLaBandeja,
@@ -17,70 +17,78 @@ import { leerCursor, TAMANO_DE_LA_BANDEJA } from '@/shared/lib/paginacion'
 import { RUTAS, unParametro } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
 import { EstadoSinPermiso, EstadoVacio } from '@/shared/ui/estados'
-import { contextoDeLaBandeja } from '../../contexto-de-la-bandeja'
+import { abrirLaPestana } from '../../abrir-la-pestana'
+import { BarraDeLogistica } from '../../barra-de-logistica'
+import { EsqueletoDeLaBarra } from '../../esqueleto-de-la-barra'
 import { MarcasDeLogistica } from '../../marcas-de-logistica'
 
 export const metadata: Metadata = { title: 'Bandeja del día · Logística' }
 
-// `/logistica/bandeja/[grupo]`: un grupo de la bandeja del día entero (demorados, trabados, por aprobar…), de a `TAMANO_DE_LA_BANDEJA` por cursor, con el mismo detalle y la misma acción que la
-// portada. El nombre de la URL sale de `grupos.ts`; uno que no existe dice que no hay tal bandeja. Un grupo que quien mira no ve (sin el permiso de documentos) es «sin permiso».
-export default function PaginaDeUnGrupo({
-  params,
-  searchParams,
-}: PageProps<'/logistica/bandeja/[grupo]'>) {
+type Props = PageProps<'/logistica/bandeja/[grupo]'>
+
+// `/logistica/bandeja/[grupo]`: un grupo de la bandeja del día de un origen entero (demorados, trabados, por aprobar…), de a `TAMANO_DE_LA_BANDEJA` por cursor, con
+// el mismo detalle y la misma acción que la pestaña. El nombre de la URL sale de `grupos.ts`; uno que no existe dice que no hay tal bandeja. Un grupo que quien
+// mira no ve en ese origen (sin el permiso de documentos) es «sin permiso». En la barra, otro origen abre su Bandeja del día (sin el grupo ni el cursor).
+export default function PaginaDeUnGrupo({ params, searchParams }: Props) {
   return (
-    <Suspense fallback={<EsqueletoDeLaBandeja />}>
-      <Grupo params={params} searchParams={searchParams} />
-    </Suspense>
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+      <Suspense fallback={<EsqueletoDeLaBarra />}>
+        <BarraDeLogistica searchParams={searchParams} pestana="bandeja" />
+      </Suspense>
+      <Suspense fallback={<EsqueletoDeLaBandeja />}>
+        <Grupo params={params} searchParams={searchParams} />
+      </Suspense>
+    </div>
   )
 }
 
-const volver = (
-  <Link href={RUTAS.logistica as Route} className={buttonVariants({ variant: 'outline' })}>
-    Ver la bandeja
-  </Link>
-)
+function Volver({ origenId }: { origenId: string }) {
+  return (
+    <Link
+      href={enElOrigen(RUTAS.bandejaDeLogistica, origenId) as Route}
+      className={buttonVariants({ variant: 'outline' })}
+    >
+      Ver la bandeja
+    </Link>
+  )
+}
 
-async function Grupo({
-  params,
-  searchParams,
-}: Pick<PageProps<'/logistica/bandeja/[grupo]'>, 'params' | 'searchParams'>) {
-  await connection()
-  const [sesion, { grupo: slug }, parametros] = await Promise.all([
-    requerirSesion(),
-    params,
-    searchParams,
-  ])
-  const grupo = grupoDelSlug(slug)
+async function Grupo({ params, searchParams }: Pick<Props, 'params' | 'searchParams'>) {
+  const abierta = await abrirLaPestana(searchParams, 'bandeja')
+  if (abierta.tipo === 'estado') return abierta.estado
+  const { permisos, origen, parametros } = abierta
+  const grupo = grupoDelSlug((await params).grupo)
   if (grupo === null) {
-    return <EstadoVacio titulo="Esa bandeja no existe." accion={volver} />
+    return <EstadoVacio titulo="Esa bandeja no existe." accion={<Volver origenId={origen.id} />} />
   }
-  if (!gruposVisibles(sesion.permisos).includes(grupo)) {
+  if (!gruposVisibles(permisos, origen.id).includes(grupo)) {
     return <EstadoSinPermiso />
   }
-  const textoDelCursor = unParametro(parametros[CLAVE_DE_CURSOR])
-  const cursor = leerCursor(textoDelCursor)
-  const [lectura, contexto] = await Promise.all([
+  const cursor = leerCursor(unParametro(parametros[CLAVE_DE_CURSOR]))
+  const [lectura, ajustes] = await Promise.all([
     leerGrupoDeLaBandeja({
       grupo,
+      origenId: origen.id,
       tope: TAMANO_DE_LA_BANDEJA,
       // El conteo («37», «100+») sólo en la primera página.
       conConteo: cursor === null,
       cursor: cursor === null ? null : { desde: cursor.instante, id: cursor.id },
     }),
-    contextoDeLaBandeja(sesion.permisos),
+    getAjustes(),
   ])
   const titulo = TITULO_DE_LOS_GRUPOS[grupo]
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <header className="grid gap-1">
         <Link
-          href={RUTAS.logistica as Route}
+          href={enElOrigen(RUTAS.bandejaDeLogistica, origen.id) as Route}
           className="inline-flex min-h-11 w-fit items-center text-(length:--text-sm) text-(--color-ink-soft) underline-offset-2 hover:underline md:min-h-0"
         >
           La bandeja del día
         </Link>
-        <h1 className="text-(length:--text-xl) font-semibold text-(--color-ink)">{titulo}</h1>
+        <h1 className="text-(length:--text-xl) font-semibold text-(--color-ink)">
+          {titulo} · {origen.nombre}
+        </h1>
       </header>
       {lectura.ok ? (
         <MarcasDeLogistica ids={lectura.data.filas.map((fila) => fila.vehiculoId)}>
@@ -93,10 +101,11 @@ async function Grupo({
             }
             lectura={lectura.data}
             hayCursor={cursor !== null}
-            permisos={sesion.permisos}
+            permisos={permisos}
             ahora={new Date()}
-            zona={contexto.zona}
-            origenes={contexto.origenes}
+            zona={ajustes.zonaHoraria}
+            origenes={null}
+            origenId={origen.id}
           />
         </MarcasDeLogistica>
       ) : (

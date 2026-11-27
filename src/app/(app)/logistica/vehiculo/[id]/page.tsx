@@ -15,8 +15,8 @@ export default async function PaginaDeLaUnidad({
 }: PageProps<'/logistica/vehiculo/[id]'>) {
   const [sesion, { id }, parametros] = await Promise.all([requerirSesion(), params, searchParams])
   return (
-    <div className={CLASE_DEL_ALTO_DEL_DETALLE}>
-      {/* Sin cabecera visible: la unidad abre con su propia tarjeta (9.12-5, R3). */}
+    <div className={`grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 ${CLASE_DEL_ALTO_DEL_DETALLE}`}>
+      {/* Sin cabecera visible: la unidad abre con su propia tarjeta (9.12-5, R3); arriba, la barra de Logística con el origen del vehículo. */}
       <h1 className="sr-only">Unidad de logística</h1>
       <UnidadEnSuPagina
         id={id}

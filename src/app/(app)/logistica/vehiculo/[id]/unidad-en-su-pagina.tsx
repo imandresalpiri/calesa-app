@@ -7,12 +7,14 @@ import { EsqueletoDeRelacionados } from '@/modules/vehiculos/pantallas/relaciona
 import type { Permisos } from '@/shared/lib/permisos'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { RelacionadosDelVehiculoServidor } from '../../../_relacionados/relacionados-del-vehiculo'
+import { BarraDeLaUnidad } from '../../barra-de-logistica'
 import { FotoDeLaUnidad } from '../../foto-de-la-unidad'
 import { UnidadNoDisponible } from '../../unidad-abierta'
 import { prepararUnidad } from '../../unidad-preparada'
 
 // La unidad de logística en su propia página (T20): la cabecera compacta con la portada y «Relacionados» en una línea, y las zonas (escritorio) o los bloques con la barra «Mover» (celular). Registra el «visto»
 // del contexto logística (el drawer de gastos no: ahí lo registra la lista). La portada y los relacionados llegan tras su `Suspense`, con un esqueleto del mismo tamaño.
+// Arriba, la barra de Logística con el origen del vehículo marcado (no se recuerda: entrar a un vehículo no es elegir un origen).
 export async function UnidadEnSuPagina({
   id,
   permisos,
@@ -24,12 +26,19 @@ export async function UnidadEnSuPagina({
   huecoAbierto?: string
 }) {
   const preparada = await prepararUnidad(id, permisos, huecoAbierto)
-  if (preparada.tipo === 'no_disponible') return <UnidadNoDisponible />
-  if (preparada.tipo === 'sin_permiso') return <EstadoSinPermiso />
+  if (preparada.tipo === 'no_disponible' || preparada.tipo === 'sin_permiso') {
+    return (
+      <>
+        <BarraDeLaUnidad origenId={null} />
+        {preparada.tipo === 'no_disponible' ? <UnidadNoDisponible /> : <EstadoSinPermiso />}
+      </>
+    )
+  }
   const { unidad, origen, fase, huecos, aviso } = preparada
   const esVehiculo = unidad.tipo === 'vehiculo'
   return (
     <>
+      <BarraDeLaUnidad origenId={unidad.origenId} />
       <RegistrarVisto modulo="logistica" tipo="vehiculo" id={unidad.id} />
       <PaginaDeLaUnidad
         unidad={unidad}

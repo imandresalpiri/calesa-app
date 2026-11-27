@@ -255,22 +255,40 @@ test('E2E R6 la dueña recorre la cadena, embarques, aduana, gastos e Inicio', a
   page,
 }, info) => {
   await entrar(page, duena.correo)
-  const barra = page.getByRole('navigation', { name: 'Logística', exact: true })
-  const pantallas: { ruta: string; nombre: string; enlace?: string }[] = [
-    { ruta: `/logistica?origen=${terreno.origen.id}`, nombre: 'cadena-duena' },
-    { ruta: '/logistica/embarques', nombre: 'embarques-duena', enlace: 'Embarques' },
-    { ruta: '/logistica/aduana', nombre: 'aduana-duena', enlace: 'Aduana' },
-    { ruta: '/logistica/gastos', nombre: 'gastos-duena', enlace: 'Gastos' },
+  // El origen de prueba es manual (sin aduana): la Aduana se recorre en el de subasta de la semilla.
+  const deSubasta = {
+    id: sql("select id from public.origenes where clave = 'subasta_usa'"),
+    nombre: sql("select nombre from public.origenes where clave = 'subasta_usa'"),
+  }
+  const pantallas: {
+    ruta: string
+    origen: { id: string; nombre: string }
+    nombre: string
+    enlace: string
+  }[] = [
+    { ruta: '/logistica', origen: terreno.origen, nombre: 'cadena-duena', enlace: 'Cadena' },
+    {
+      ruta: '/logistica/bandeja',
+      origen: terreno.origen,
+      nombre: 'bandeja-duena',
+      enlace: 'Bandeja del día',
+    },
+    {
+      ruta: '/logistica/embarques',
+      origen: terreno.origen,
+      nombre: 'embarques-duena',
+      enlace: 'Embarques',
+    },
+    { ruta: '/logistica/aduana', origen: deSubasta, nombre: 'aduana-duena', enlace: 'Aduana' },
+    { ruta: '/logistica/gastos', origen: terreno.origen, nombre: 'gastos-duena', enlace: 'Gastos' },
   ]
   for (const p of pantallas) {
-    await page.goto(p.ruta)
-    await expect(barra).toBeVisible()
-    if (p.enlace) {
-      await expect(barra.getByRole('link', { name: p.enlace })).toHaveAttribute(
-        'aria-current',
-        'page',
-      )
-    }
+    await page.goto(`${p.ruta}?origen=${p.origen.id}`)
+    const barra = page.getByRole('navigation', { name: `Logística de ${p.origen.nombre}` })
+    await expect(barra.getByRole('link', { name: p.enlace })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
     await capturar(page, info, p.nombre)
   }
   await page.goto('/')

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { RUTAS } from '@/shared/lib/rutas'
-import { cadenaFiltrada, CLAVE_DE_ORIGEN_DE_LA_CADENA, type FiltrosDeLaCadena } from './filtros'
+import { CLAVE_DE_ORIGEN_DE_LOGISTICA } from '../nucleo/enlaces'
+import { cadenaFiltrada, type FiltrosDeLaCadena } from './filtros'
 
 // Lo puro de la lista de una fase de la cadena (`/logistica/fase/[fase]`): su clave en la URL, la ruta que lleva a ella con los filtros y el cursor por el que se pide la página siguiente.
 
@@ -44,7 +45,7 @@ export function rutaDeLaFase(
   filtros: FiltrosDeLaCadena = {},
 ): string {
   const consulta = new URLSearchParams()
-  if (origenId !== null) consulta.set(CLAVE_DE_ORIGEN_DE_LA_CADENA, origenId)
+  if (origenId !== null) consulta.set(CLAVE_DE_ORIGEN_DE_LOGISTICA, origenId)
   for (const [k, v] of consultaDeLosFiltros(filtros)) consulta.set(k, v)
   const texto = consulta.toString()
   return `${RUTAS.logistica}/fase/${encodeURIComponent(clave)}${texto === '' ? '' : `?${texto}`}`
