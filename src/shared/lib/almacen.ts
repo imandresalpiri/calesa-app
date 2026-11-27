@@ -5,6 +5,9 @@ import { entornoPublico } from '@/shared/config/entorno'
 // Buckets de lectura pública (supabase/migrations/…_storage_notificaciones_cron.sql). Los
 // privados (`documentos`, `cotizaciones`, `comprobantes`) se sirven con URL firmada desde infra.
 export type BucketPublico = 'marca' | 'avatares' | 'vehiculos' | 'web' | 'repuestos'
+// Los privados a los que sube el navegador: `artes` (la biblioteca de imágenes de las artes, que puede ser personal). Se leen con URL firmada.
+export type BucketPrivado = 'artes'
+export type Bucket = BucketPublico | BucketPrivado
 
 export function urlPublica(bucket: BucketPublico, ruta: string): string {
   const base = entornoPublico().NEXT_PUBLIC_SUPABASE_URL.replace(/\/$/, '')

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { convieneJpeg, dimensionesAjustadas, extensionDe, hashDe } from './imagenes'
+import {
+  convieneJpeg,
+  dimensionesAjustadas,
+  extensionDe,
+  hashDe,
+  hayTransparencia,
+} from './imagenes'
 
 describe('dimensionesAjustadas', () => {
   it('achica el lado mayor y conserva la proporción', () => {
@@ -56,5 +62,19 @@ describe('hashDe', () => {
 
   it('distingue contenidos distintos', async () => {
     expect(await hashDe(new Blob(['hola']))).not.toBe(await hashDe(new Blob(['chau'])))
+  })
+})
+
+describe('hayTransparencia', () => {
+  it('ve un solo píxel con alfa menor a 255', () => {
+    expect(hayTransparencia(new Uint8ClampedArray([10, 20, 30, 255, 0, 0, 0, 254]))).toBe(true)
+  })
+
+  it('no ve transparencia si todo es opaco, aunque un color valga 0', () => {
+    expect(hayTransparencia(new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255]))).toBe(false)
+  })
+
+  it('una imagen vacía no tiene transparencia', () => {
+    expect(hayTransparencia(new Uint8ClampedArray([]))).toBe(false)
   })
 })

@@ -62,6 +62,7 @@ export const RUTAS = {
   catalogosDeRepuestos: '/repuestos/configuracion/catalogos',
   cotizaciones: '/cotizaciones',
   nuevaCotizacion: '/cotizaciones/nuevo',
+  artes: '/artes',
 } as const
 
 // El valor de `?panel=` que abre el alta de un vehículo (`RUTAS.nuevoVehiculo`). Vive acá porque lo leen el módulo `vehiculos` y la paleta del buscador (que no puede importarlo).
@@ -152,6 +153,11 @@ export const esPanelDeCatalogo = (valor: string | null | undefined): valor is Pa
 // El drawer de un catálogo de logística en la pestaña Fases de su origen.
 export function rutaDeUnCatalogo(origenId: string, panel: PanelDeCatalogo): Route {
   return rutaDeParteDelOrigen(origenId, 'fases', { panel })
+}
+
+// Una plantilla de arte: la abre el editor de artes.
+export function rutaDeLaPlantillaDeArte(id: string): Route {
+  return `/artes/${encodeURIComponent(id)}` as Route
 }
 
 // El drawer de los tipos de documento del flujo de repuestos.
