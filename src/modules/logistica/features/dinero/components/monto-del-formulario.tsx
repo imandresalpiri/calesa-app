@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { formatearNumero } from '@/shared/lib/formato'
 import { CampoDeMonto } from '@/shared/ui/campo-de-monto'
 import { Monto } from '@/shared/ui/monto'
@@ -30,10 +30,21 @@ type Props = {
   estado?: ReactNode
 }
 
-// Bajo el monto: el equivalente guardado (en la misma moneda) o, con otra moneda, quién lo calcula. El renglón queda reservado en la moneda base.
-function PieDelMonto({ original, moneda }: { original: MontoGuardado | null; moneda: string }) {
+// Bajo el monto: el equivalente guardado (mientras el monto y la moneda sean los guardados) o, si cambiaron, quién lo calcula. El renglón queda reservado en la moneda base.
+function PieDelMonto({
+  original,
+  moneda,
+  montoCambiado,
+}: {
+  original: MontoGuardado | null
+  moneda: string
+  montoCambiado: boolean
+}) {
   const { locale, monedaBase } = useRegional()
   if (moneda === monedaBase) return null
+  if (original && montoCambiado) {
+    return `La base vuelve a calcular el equivalente en ${monedaBase} al guardar.`
+  }
   if (original && original.moneda === moneda && original.tipoCambioAplicado !== null) {
     return (
       <>
@@ -51,6 +62,8 @@ function PieDelMonto({ original, moneda }: { original: MontoGuardado | null; mon
 
 /** El monto con su moneda en un solo campo (`CampoDeMonto`), lo primero de un gasto o un pago. Mientras llegan las monedas, sólo la elegida, apagada. */
 export function MontoDelFormulario({ prefijo, opciones, original, formulario: f, estado }: Props) {
+  // El monto con que se abrió: si quien corrige lo cambia, el equivalente guardado ya no es el suyo.
+  const [montoInicial] = useState(f.valores.monto)
   const monedas = opciones
     ? opciones.monedas.map((m) => ({ valor: m.codigo, etiqueta: `${m.codigo} · ${m.nombre}` }))
     : [{ valor: f.valores.moneda, etiqueta: f.valores.moneda }]
@@ -70,7 +83,13 @@ export function MontoDelFormulario({ prefijo, opciones, original, formulario: f,
       errorDeMonto={f.errores['monto']}
       deshabilitado={f.enCurso || opciones === null}
       estado={estado}
-      pie={<PieDelMonto original={original} moneda={f.valores.moneda} />}
+      pie={
+        <PieDelMonto
+          original={original}
+          moneda={f.valores.moneda}
+          montoCambiado={f.valores.monto !== montoInicial}
+        />
+      }
     />
   )
 }
