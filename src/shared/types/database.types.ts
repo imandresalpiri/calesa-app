@@ -10087,6 +10087,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      _preferencia_live_ventana_valida: { Args: { p_valor: Json }; Returns: boolean }
       _preferencia_ultima_pestana_valida: { Args: { p_valor: Json }; Returns: boolean }
       _preparar_publicacion: {
         Args: {
