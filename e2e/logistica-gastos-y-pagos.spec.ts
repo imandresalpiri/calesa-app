@@ -17,7 +17,7 @@ import {
 import { abrirSeccionDeLaUnidad } from './soporte/unidad'
 
 // Gastos, pagos y margen en el panel de la unidad (6.11). Tramo 1: con `logistica.gastos.ver` y `editar` se registra un gasto en otra moneda con el tipo de cambio por defecto y la lista muestra
-// el equivalente que devolvió la base; la vista «Margen» dice «Sin venta registrada» en una línea (nunca 0) y su desglose, «Sin cotización final» y el gasto como real; cambiar de vista no mueve el drawer. Quien no tiene `logistica.gastos.ver` ni
+// el equivalente que devolvió la base; la vista «Margen» dice «Sin venta registrada» en una línea (nunca 0) y su desglose, «Sin cotización final» y el gasto como real. Quien no tiene `logistica.gastos.ver` ni
 // `logistica.margen.ver` no ve ninguno de los dos bloques. Tramo 2 (6.11-2): con `logistica.pagos.editar` se registra un pago que queda «Sin confirmar» (su «⋯» no ofrece confirmar); otra cuenta con
 // `logistica.pagos.confirmar` lo confirma, el pago queda sellado con su nombre y de sólo lectura, y el margen pasa de «Sin venta registrada» a la venta, sin recargar la página.
 test.describe.configure({ mode: 'serial' })
@@ -89,19 +89,11 @@ test('E2E registrar un gasto en otra moneda muestra su equivalente y el margen s
   await expect(lista.getByText('Flete marítimo')).toBeVisible()
   await expect(lista.getByText(/Equivale a/)).toContainText(equivalente)
 
-  // Cambiar de vista no mueve el drawer: mide lo mismo en Gastos, Pagos y Margen.
-  const drawer = page
-    .getByRole('dialog')
-    .filter({ has: page.locator('[data-vistas-de-la-tarjeta]') })
-  const caja = await drawer.boundingBox()
+  // Que cambiar de vista no mueva el drawer lo mide `logistica-dinero-sin-saltos.spec.ts`, también en el celular.
   await abrirSeccionDeLaUnidad(page, 'margen')
   const margen = page.locator('[data-hueco="margen"][data-estado="listo"]')
   // El margen en una línea: un nulo es «Sin venta registrada», nunca 0.
   await expect(margen.locator('[data-cifra="margen"]')).toContainText('Sin venta registrada')
-  expect(await drawer.boundingBox()).toEqual(caja)
-  await abrirSeccionDeLaUnidad(page, 'pagos')
-  expect(await drawer.boundingBox()).toEqual(caja)
-  await abrirSeccionDeLaUnidad(page, 'margen')
 
   // El desglose, a un toque: las cifras como las da la base, en la moneda base.
   await margen.getByRole('button', { name: 'Ver el desglose' }).click()
