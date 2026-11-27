@@ -113,10 +113,14 @@ test('E2E el panel de una celda se abre por la URL, sobrevive a recargar y no mu
 }) => {
   await abrirElEditor(page)
   const lienzo = lienzoDeLaTarjeta(page)
-  const antes = await lienzo.boundingBox()
-  expect(antes).not.toBeNull()
+  const medir = () =>
+    lienzo.evaluate((el) => {
+      const { x, y, width, height } = el.getBoundingClientRect()
+      return { x, y, width, height }
+    })
+  const antes = await medir()
   const igual = async (donde: string) => {
-    const caja = await lienzo.boundingBox()
+    const caja = await medir()
     expect(caja, donde).toEqual(antes)
   }
 
