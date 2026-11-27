@@ -81,12 +81,14 @@ type Props = {
   // Los huecos visibles de la unidad (`huecosVisibles`): cada tarjeta se dibuja si alguno de los suyos se ve.
   huecos: readonly HuecoDeLaUnidad[]
   pasadas: readonly PasadaLeida[] | null
+  // La clave de la URL del drawer de cada tarjeta: `?hueco=` en la página (por defecto); `?seccion=` en el drawer de gastos (un segundo drawer).
+  claveDeLaUrl?: string
 }
 
-// Las tarjetas de la página de la unidad (`docs/GLOSARIO.md` › «Tarjeta de la unidad»), en su orden, cada una con su resumen leído en el servidor: el marco (título, toque y drawer)
+// Las tarjetas de la unidad, en su página y en el drawer de gastos (`docs/GLOSARIO.md` › «Tarjeta de la unidad»), en su orden, cada una con su resumen leído en el servidor: el marco (título, toque y drawer)
 // se dibuja enseguida y sólo lo que dice espera su lectura, con un esqueleto del mismo alto. Ninguna tarjeta lee en el navegador; su drawer, sí, al abrirse. `logistica` no conoce
 // `repuestos`: la tarjeta Repuestos la une esta composición.
-export function TarjetasDeLaUnidad({ unidad, permisos, huecos, pasadas }: Props) {
+export function TarjetasDeLaUnidad({ unidad, permisos, huecos, pasadas, claveDeLaUrl }: Props) {
   const origenId = unidad.origenId ?? ''
   const capacidades = capacidadesDeLaTarjeta(permisos, origenId)
   const tarjetas = tarjetasDeLaUnidad(huecos)
@@ -115,6 +117,7 @@ export function TarjetasDeLaUnidad({ unidad, permisos, huecos, pasadas }: Props)
             }
             huecos={tarjeta.huecos.map((h) => h.clave)}
             url={urlDeLaTarjeta(tarjeta.clave)}
+            {...(claveDeLaUrl ? { claveDeLaUrl } : {})}
             contenido={<ContenidoDeLaTarjeta unidad={unidad} huecos={tarjeta.huecos} />}
           >
             <Suspense fallback={<EsqueletoDelResumen />}>

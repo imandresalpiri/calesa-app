@@ -14,7 +14,6 @@ export const HUECOS_DE_MOVER_EN_LA_UNIDAD: readonly HuecoDeLaUnidad[] = [
     permisos: ['logistica.ver'],
     regla: null,
     repuesto: { permisos: ['repuestos.ver'], regla: null, componente: HuecoQueFaltaDiferido },
-    abiertoAlInicio: true,
     componente: HuecoQueFaltaDiferido,
   },
   {

@@ -9,7 +9,7 @@ export const HuecoQueFaltaDiferido = diferido(
   { aviso: 'aqui', esqueleto: <EsqueletoDelHueco /> },
 )
 
-// «Notas» e «Historial»: su código se pide al acercarse su sección (`BloqueDelHueco` monta el hijo entonces) y la lista se lee entonces.
+// «Notas» e «Historial»: su código se pide al abrirse su tarjeta (su drawer monta el hijo entonces) y la lista se lee entonces.
 export const HuecoDeNotasDiferido = diferido(
   () => import('./hueco-de-notas').then((modulo) => modulo.HuecoDeNotas),
   { aviso: 'aqui', esqueleto: <EsqueletoDelHueco /> },

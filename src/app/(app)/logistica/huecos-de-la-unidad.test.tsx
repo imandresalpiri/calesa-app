@@ -1,7 +1,5 @@
-import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { HuecoDeLaUnidad, Unidad } from '@/modules/logistica'
-import { PanelDeLaUnidad } from '@/modules/logistica/pantallas/unidad'
 import type { Permisos } from '@/shared/lib/permisos'
 import { HUECOS_DE_LA_UNIDAD, huecosDeLaUnidad, AVISO_SIN_REGLAS } from './huecos-de-la-unidad'
 
@@ -46,27 +44,15 @@ describe('huecos del panel de la unidad', () => {
     const lista = [hueco('historial'), hueco('documentos'), hueco('que-falta')]
     const r = huecosDeLaUnidad(lista, { unidad, permisos: [], flujo: sinFlujo })
     expect(claves(r)).toEqual(['que-falta', 'documentos', 'historial'])
-    const html = renderToStaticMarkup(
-      <PanelDeLaUnidad unidad={unidad} origen="Miami" fase={null} huecos={r.huecos} />,
-    )
-    const titulos = ['Hueco que-falta', 'Hueco documentos', 'Hueco historial']
-    expect(titulos.map((t) => html.indexOf(t))).toEqual(
-      [...titulos.map((t) => html.indexOf(t))].sort((a, b) => a - b),
-    )
-    expect(titulos.every((t) => html.includes(t))).toBe(true)
   })
 
-  it('con un hueco que no es visible no dibuja ni su título', () => {
+  it('un hueco que no es visible no llega al panel', () => {
     const r = huecosDeLaUnidad([hueco('gastos', ['logistica.gastos.ver'])], {
       unidad,
       permisos: [],
       flujo: sinFlujo,
     })
-    const html = renderToStaticMarkup(
-      <PanelDeLaUnidad unidad={unidad} origen="Miami" fase={null} huecos={r.huecos} />,
-    )
     expect(r.huecos).toEqual([])
-    expect(html).not.toContain('Hueco gastos')
   })
 
   it('sin el permiso del hueco en el origen de la unidad no se ve (la clave de otro origen no cuenta)', () => {
