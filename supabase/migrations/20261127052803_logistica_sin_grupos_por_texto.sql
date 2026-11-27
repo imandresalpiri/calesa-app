@@ -10,3 +10,8 @@ drop function public.transporte_grupo(text, text);
 drop function public.transporte_grupo_aplicar(text, text, jsonb, jsonb);
 drop function public._transporte_de_la_clave(text, text, uuid);
 drop function public._transporte_clave(text, text);
+
+-- El permiso de editar el transporte ya no se aplica por un grupo de texto.
+update public.permisos
+   set aplicado_en = 'transporte_guardar, embarque_crear, embarque_guardar, contenedor_crear, contenedor_guardar, transporte_asignar, transporte_quitar'
+ where clave = 'logistica.transporte.editar';
