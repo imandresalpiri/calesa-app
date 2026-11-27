@@ -1,5 +1,6 @@
-import { Suspense } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import { puede } from '@/modules/equipo'
+import { opcionesDelFiltro } from '@/modules/logistica'
 import { RegistrarVisto } from '@/modules/equipo/pantallas/visto-de-la-ficha'
 import {
   CadenaDeLaUnidadEnLaPagina,
@@ -15,7 +16,7 @@ import { BarraDeLaUnidad } from '../../barra-de-logistica'
 import { FotoDeLaUnidad } from '../../foto-de-la-unidad'
 import { TarjetasDeLaUnidad } from '../../tarjetas-de-la-unidad'
 import { UnidadNoDisponible } from '../../unidad-abierta'
-import { prepararUnidad } from '../../unidad-preparada'
+import { prepararUnidad, type CadenaPreparada } from '../../unidad-preparada'
 import { FichaDeLaCabecera, IdentidadDeLaUnidad } from './cabecera-de-la-pagina'
 
 // La unidad de logística en su propia página: la cabecera baja (portada, «VIN · Lote», la fase con su demora y «Relacionados»; tocarla abre la ficha completa), la cadena de
@@ -33,6 +34,7 @@ export async function UnidadEnSuPagina({ id, permisos }: { id: string; permisos:
     )
   }
   const { unidad, origen, fase, huecos, aviso, cadena } = preparada
+  const pasadas = pasadasLeidas(cadena)
   const pagina = (
     <>
       <BarraDeLaUnidad origenId={unidad.origenId} />
@@ -81,18 +83,42 @@ export async function UnidadEnSuPagina({ id, permisos }: { id: string; permisos:
             unidad={unidad}
             permisos={permisos}
             huecos={huecos}
-            pasadas={cadena && !cadena.cadena.sinPasadas ? cadena.pasadas : null}
+            pasadas={pasadas}
           />
         }
       />
     </>
   )
-  // Sin cadena (no se leyó la unidad para ella) «Qué falta» y las tarjetas se comportan como en un drawer: sin fase vista ni avisos.
-  return cadena ? (
-    <ProveedorDeLaCadena unidadId={unidad.id} cadena={cadena.cadena}>
+  return (
+    <ConLaCadena unidadId={unidad.id} cadena={cadena}>
       {pagina}
+    </ConLaCadena>
+  )
+}
+
+const pasadasLeidas = (cadena: CadenaPreparada | null) =>
+  cadena && !cadena.cadena.sinPasadas ? cadena.pasadas : null
+
+// Sin cadena (no se leyó la unidad para ella) «Qué falta», las tarjetas y el Historial se comportan como en un drawer: sin fase vista, avisos ni filtros. Las opciones del filtro
+// del Historial salen de las pasadas que ya leyó la cadena.
+function ConLaCadena({
+  unidadId,
+  cadena,
+  children,
+}: {
+  unidadId: string
+  cadena: CadenaPreparada | null
+  children: ReactNode
+}) {
+  if (!cadena) return children
+  const pasadas = pasadasLeidas(cadena)
+  return (
+    <ProveedorDeLaCadena
+      unidadId={unidadId}
+      cadena={cadena.cadena}
+      opcionesDelHistorial={pasadas ? opcionesDelFiltro(pasadas) : null}
+    >
+      {children}
     </ProveedorDeLaCadena>
-  ) : (
-    pagina
   )
 }

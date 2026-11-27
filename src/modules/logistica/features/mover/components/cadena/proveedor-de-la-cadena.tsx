@@ -4,13 +4,18 @@ import { createContext, use, useCallback, useMemo, useState, type ReactNode } fr
 import { etiquetaDeRequisito } from '@/modules/flujos/client'
 import { avisosDeQueFalta, destinoPrincipal } from '../../../../entities/mover/avisos-de-que-falta'
 import type { CadenaDeLaUnidad } from '../../../../entities/mover/cadena'
+import type { OpcionDelFiltro } from '../../../../entities/mover/filtro-del-historial'
 import { ProveedorDeAvisosDeLasTarjetas } from '../../../nucleo/avisos-de-las-tarjetas'
 import { useAlCambiarLaUnidad } from '../../../nucleo/hooks/eventos-de-la-unidad'
 import type { QueFalta } from '../../actions/leer-que-falta'
 import type { RequisitosDeLaFase } from '../../actions/leer-requisitos-de-la-fase'
 
+export type OpcionesDelHistorial = { fases: OpcionDelFiltro[]; quienes: OpcionDelFiltro[] }
+
 type ValorDeLaCadena = {
   cadena: CadenaDeLaUnidad
+  // Las opciones del filtro del historial (de las pasadas que ya leyó la cadena; nulas si no se leyeron: el historial va sin filtros).
+  opcionesDelHistorial: OpcionesDelHistorial | null
   // «Qué falta» publica aquí cada lectura que termina: de ella salen los avisos de las tarjetas, sin otra consulta.
   publicar: (dato: QueFalta) => void
   // Los requisitos de las fases que no son destino, por fase, ya leídos: volver a tocar una no la relee. Se vacía cuando la unidad cambia o llega otra cadena.
@@ -53,10 +58,12 @@ function avisosDeLaLectura(dato: QueFalta | null, cadena: CadenaDeLaUnidad) {
 export function ProveedorDeLaCadena({
   unidadId,
   cadena,
+  opcionesDelHistorial = null,
   children,
 }: {
   unidadId: string
   cadena: CadenaDeLaUnidad
+  opcionesDelHistorial?: OpcionesDelHistorial | null
   children: ReactNode
 }) {
   const [queFalta, setQueFalta] = useState<QueFalta | null>(null)
@@ -76,8 +83,13 @@ export function ProveedorDeLaCadena({
     [cadena],
   )
   const valor = useMemo(
-    () => ({ cadena, publicar: setQueFalta, requisitosLeidos: { porFase, guardar } }),
-    [cadena, porFase, guardar],
+    () => ({
+      cadena,
+      opcionesDelHistorial,
+      publicar: setQueFalta,
+      requisitosLeidos: { porFase, guardar },
+    }),
+    [cadena, opcionesDelHistorial, porFase, guardar],
   )
   const avisos = useMemo(() => avisosDeLaLectura(queFalta, cadena), [queFalta, cadena])
   return (
