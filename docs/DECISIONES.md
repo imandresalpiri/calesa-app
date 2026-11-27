@@ -1513,6 +1513,12 @@ las trampas, en `docs/LECCIONES.md`.
 - **Gestionar la aduana y confirmar pagos no son por origen.** `logistica.aduana.gestionar` y `logistica.pagos.confirmar` quedan globales (cambiaría el catálogo y la matriz de Roles); las listas
   de Aduana y de Gastos sí son del origen elegido y las RPC acotan lo que se lee. El resumen de una declaración (`?declaracion=`) abre por id sin mirar el origen: los enlaces de actividad y del
   hueco andan sin `?origen=`.
+- **Dinero, tres pestañas y no tres secciones.** Gastos, Pagos y Margen son vistas del drawer de la tarjeta (`?dinero=`, con `replace`: cambiar de vista no suma «atrás»); sólo la que se ve
+  se monta y lee. Un `?panel=` de un hueco gana sobre la vista pedida: un enlace a un pago tiene que montar «Pagos» para abrirse.
+- **El concepto del pago va arriba**, junto a la fecha: la base lo pide y es el nombre del pago en la lista y en la confirmación; el método, el tipo de cambio y las notas van en «Más datos».
+- **El tipo de cambio siempre reserva su renglón** en «Más datos» (apagado en la moneda base, con su motivo): cambiar de moneda no mueve el modal.
+- **Las tarjetas de la unidad miden 9 rem** para caber tres líneas de resumen (Dinero da una por vista); todas las tarjetas tienen el mismo alto.
+- **El resumen de Dinero da cantidades y el margen, nunca sumas propias**: «3 gastos» sale de la lista acotada y el margen es la cifra de `margen_vehiculo`, la misma de la vista.
 
 ### Transporte, catálogos y aduana
 

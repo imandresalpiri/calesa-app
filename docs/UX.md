@@ -1361,11 +1361,13 @@ Esc cierra sólo el de arriba). El atajo de una falta abre la tarjeta de su huec
   requisitos con mover; otra, «Primero tiene que pasar por «Y».» (o «No se puede mover ahí desde la fase actual.») y lo que pedirá, leído al tocarla, sin «Mover». Una
   `?fase_vista=` que no es de la cadena, o que pasó a ser la actual (se movió ahí), se quita de la URL. Si se desplaza de costado, con su pista.
 - **Tarjetas** (página; dos columnas desde 40 rem, a la izquierda de «Qué falta», con su propio desplazamiento): Documentos · Transporte · Repuestos · Aduana · **Dinero**
-  (gastos, pagos y margen) · Notas · Historial, cada una con su permiso en el origen y su regla del flujo encendida (sin ningún hueco suyo, no se dibuja). **Alto fijo** (8 rem):
-  el título, hasta dos líneas de lo que hay (leídas en el servidor, acotadas, tras su esqueleto del mismo alto: «2 por aprobar», «Pago sin confirmar», la última nota), un
+  (gastos, pagos y margen) · Notas · Historial, cada una con su permiso en el origen y su regla del flujo encendida (sin ningún hueco suyo, no se dibuja). **Alto fijo** (9 rem):
+  el título, hasta tres líneas de lo que hay (leídas en el servidor, acotadas, tras su esqueleto del mismo alto: «2 por aprobar», «Pago sin confirmar», la última nota; en Dinero,
+  una por vista que se ve: «3 gastos» o «Sin gastos todavía», «2 pagos» o «Sin pagos todavía», «Margen: <monto>» o «Margen: sin venta registrada», sin sumar montos), un
   renglón de aviso y su «⋯» con la lista única de sus acciones (la del toque primero, en negrita: «Ver los documentos», «Escribir una nota», «Pedir repuestos para este
   vehículo» o «Agregar un repuesto», que llevan a Repuestos). Lo que traba mover en «Qué falta» marca la tarjeta que lo resuelve («Falta «BL»», con el borde de aviso). Tocarla
-  abre sus huecos en un drawer al costado (`?hueco=<tarjeta>`; Dinero, sus tres como secciones hermanas); un enlace de siempre (`?subir=documentos`, `?panel=pago&pago=<id>`)
+  abre sus huecos en un drawer al costado (`?hueco=<tarjeta>`; Dinero, sus tres como **pestañas** Gastos · Pagos · Margen, `?dinero=gastos|pagos|margen` sin sumar al historial: cada una
+  existe por su permiso y su regla, abre la primera que exista, un `?panel=` de una abre la suya; a lo ancho, de 44 px en el celular; cambiar de pestaña no cambia el tamaño del drawer); un enlace de siempre (`?subir=documentos`, `?panel=pago&pago=<id>`)
   abre su tarjeta solo. El hueco se monta al abrir el drawer; al cerrarlo, si algo cambió adentro, los resúmenes se releen. Ninguna tarjeta lee en el navegador al cargar.
   **Subir documentos** va en un drawer (`?subir=documentos`) sobre el de Documentos, abierto por su botón «Subir documentos» (apagado, con «Necesitas permiso para subir
   documentos.» escrito debajo, sin `logistica.documentos.subir`); con archivos en la bandeja cerrar pregunta, y al terminar sin fallos se cierra solo y queda el de Documentos con
@@ -1519,6 +1521,15 @@ Esc cierra sólo el de arriba). El atajo de una falta abre la tarjeta de su huec
   - Sin permiso para un hueco: no aparece; una tarjeta sin huecos no se dibuja. El resumen que no se pudo leer: «No pudimos leer el resumen.» y la tarjeta se abre igual. Flujo ilegible: aviso en la cabecera y los huecos con regla no se dibujan. Sin fase: «Sin fase», sin días, y «Qué falta» con los destinos iniciales. «Sin resolver»: la insignia y «La ganamos» en «Qué falta».
   - Error de lectura de un hueco: el suyo, con «Reintentar», dentro de su drawer. Error al dibujar un hueco: «No pudimos mostrar «<título>».» con «Reintentar» (`LimiteDelHueco`); sin red al pedir su código: el aviso de `diferido` en su lugar. Los requisitos de una fase vista que no se pudieron leer: «No pudimos leer los requisitos de «X».» con «Reintentar». Conflicto (`PT409`): como en mover, transporte y documentos.
   - Topes: documentos 50 con `<AvisoDeTope>`; notas e historial «Ver más» hasta 500 con «Ir a una fecha»; gastos y pagos 50 con «Ver todos en Gastos».
+  - **Dinero:** «Registrar gasto» y «Registrar pago» abren un **modal corto** (`?panel=gasto&gasto=<id|nuevo>`, `?panel=pago&pago=<id|nuevo>`; a pantalla completa en el celular): arriba el
+    monto con su moneda, la categoría (gasto) o el concepto (pago, que la base pide), la fecha y el comprobante; debajo, a la vista y nunca plegado, «Más datos» (tipo de cambio,
+    proveedor o método, notas). El tipo de cambio reserva su renglón: en la moneda base, apagado con «No aplica: es en <moneda>»; sin uno activo, «Sin tipo de cambio activo para
+    <moneda>». Sin categorías de gasto activas: «Este origen no tiene categorías de gasto activas.» con «Cargar categorías» (con `logistica.catalogos.gestionar`) o «Pídeselo a quien
+    configura la logística.». Conflicto (`PT409`): «No se guardó nada.» con «Recargar», que trae la versión de ahora y conserva lo escrito; sin red, sale al volver. Un pago
+    confirmado se abre como «Pago», sólo lectura con su sello y «Anular pago»; un anulado sale de la lista (su motivo queda en la actividad). Las filas llevan **sólo su «⋯»**
+    (Confirmar pago, Editar, Ver comprobante, Eliminar, Anular pago; lo que no puedes no aparece). **Margen:** una línea con la cifra de la base (un nulo es «Sin venta registrada»,
+    nunca 0) y «Ver el desglose» (`?panel=desglose-del-margen`, un modal: cotizado, real, desviación, venta y margen en la moneda base con lo que es cada una, y lo real por
+    categoría); cargando, un esqueleto del mismo alto; sin permiso o con error, su aviso con «Reintentar».
   - Límites: con «Ver como» la franja hace desplazar la página.
 
 ### Tablero: estados propios
@@ -2435,11 +2446,11 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
     conexión, sale al volver; cerrar con algo escrito pregunta. Guardar relee lista y margen. «⋯» → «Editar» y «Eliminar» (sin preguntar, con
     «Deshacer»).
 - **Pagos** (`repuestos.costos.ver`): «Registrar pago» arriba (apagado con su motivo sin `repuestos.costos.editar` o con el proyecto cerrado) y la
-  lista de pagos del proyecto con su tope; cada pago con «Confirmar pago» (con `logistica.pagos.confirmar`), «Ver comprobante» y su «⋯»
-  («Editar» y «Eliminar» sólo sin confirmar; «Anular pago» sólo confirmado). Tocar un pago abre `?panel=pago&pago=<id|nuevo>`: «Registrar
-  pago» y «Editar pago» con la misma forma que la compra (arriba el monto con su moneda, el estado «Sin confirmar», la fecha y el concepto;
-  luego «Cómo se pagó» —método y tipo de cambio, que se apaga con su motivo en la moneda base—, «Notas» y «Comprobante» con la zona de
-  archivo de arriba). Un pago confirmado, o cualquiera sin permiso de editar, se abre como **«Pago»**, sólo lectura: el mismo orden con el
+  lista de pagos del proyecto con su tope; cada pago con sólo su «⋯» («Confirmar pago» con `logistica.pagos.confirmar`, «Editar» y «Eliminar» sólo
+  sin confirmar, «Ver comprobante», «Anular pago» sólo confirmado). Tocar un pago abre `?panel=pago&pago=<id|nuevo>`: «Registrar
+  pago» y «Editar pago» en el modal corto del pago de la unidad (arriba el monto con su moneda y el estado «Sin confirmar», la fecha, el concepto
+  y el comprobante con la zona de archivo de arriba; luego, a la vista, «Más datos»: método, tipo de cambio —que se apaga con su motivo en la
+  moneda base— y notas). Un pago confirmado, o cualquiera sin permiso de editar, se abre como **«Pago»**, sólo lectura: el mismo orden con el
   sello («Confirmado por … el …»), el comprobante con su vista previa y «Ver comprobante», y «Anular pago» con `logistica.pagos.confirmar`
   (pasa a `?panel=anular-pago`, que pide el motivo). Un pago que ya no está avisa «Ese pago ya no está.». El hueco «Pagos» del vehículo
   usa el mismo panel.
