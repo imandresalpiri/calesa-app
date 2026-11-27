@@ -352,7 +352,7 @@ que asserta `pnpm db:medir:volumen` o el e2e. Mide `medir-escala.sql` salvo que 
   lotes más de la dueña: por el índice, sin recorrer `lotes_papelera` ni `cotizaciones`; quien no tiene la clave descarta los lotes ajenos
   (tope 600; crece con ellos, no con la página).
 - `/cotizaciones/papelera` (`e2e/cotizaciones-papelera.spec.ts`): una página (`tamano + 1`) y «Mostrar los N» un lote al pedirlo. JS en frío
-  ≤ 440 KB. Página 1 con 5 × 20: ≤ 3.000 nodos y ≤ 480.000 B de documento (medido: 477.234, con los botones «Recargar la página» y «Copiar el enlace de esta página» del marco: regla del 5 %), igual (± 2 %) con lotes de 21 que
+  ≤ 440 KB. Página 1 con 5 × 20: ≤ 3.000 nodos y ≤ 485.000 B de documento (medido: 479,3–480,1 KB, con los botones «Recargar la página» y «Copiar el enlace de esta página» y el distintivo del marco del Live: regla del 5 %), igual (± 2 %) con lotes de 21 que
   de 200 (≈ 1 KB por botón «Purgar»: las clases de `Button`). Purgar no lee nada: una llamada por confirmación y relee una página.
 - Orígenes: resumen y categorías con uso, 100 / 50 ms (exento, administración). Tipos de cambio: historial de 30 («Mostrando los 30
   cambios más recientes.»).
