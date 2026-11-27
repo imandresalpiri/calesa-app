@@ -81,6 +81,9 @@ export function motivoDeLogoPesado(peso: number): string | null {
     : null
 }
 
+const CODIGO_EN_UN_SVG =
+  /<(?:[a-z0-9_.-]+:)?script\b|<foreignObject\b|[\s/"']on[a-z]+\s*=|javascript\s*:|attributeName\s*=\s*["']\s*on|@import\b/i
+
 // Un SVG se muestra con <img>, donde no corre código; igual se rechaza lo que no pinta nada en
 // un logo, y el que no dice cuánto mide (no se podría dibujar en los íconos).
 export function motivoDeSvgInvalido(texto: string): string | null {
@@ -88,8 +91,9 @@ export function motivoDeSvgInvalido(texto: string): string | null {
   if (!raiz) {
     return 'El archivo no es un SVG.'
   }
-  // Un manejador puede venir pegado a la etiqueta con una barra: `<svg/onload=…>`.
-  if (/<script\b|<foreignObject\b|[\s/"']on[a-z]+\s*=/i.test(texto)) {
+  // Un manejador puede venir pegado a la etiqueta con una barra (`<svg/onload=…>`), un script con prefijo de espacio de nombres
+  // (`<s:script>`), un enlace `javascript:` o una animación que pone un manejador (`<set attributeName="onload">`).
+  if (CODIGO_EN_UN_SVG.test(texto)) {
     return 'El SVG trae código o contenido incrustado. Expórtalo como SVG simple.'
   }
   const conMedidas =

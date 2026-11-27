@@ -77,6 +77,17 @@ describe('motivoDeSvgInvalido', () => {
     expect(motivoDeSvgInvalido('<svg viewBox="0 0 1 1" onload="x()"/>')).toContain('código')
     expect(motivoDeSvgInvalido('<svg/onload=x() viewBox="0 0 1 1"/>')).toContain('código')
     expect(motivoDeSvgInvalido('<svg viewBox="0 0 1 1"><foreignObject/></svg>')).toContain('código')
+    expect(
+      motivoDeSvgInvalido(
+        '<svg viewBox="0 0 1 1"><s:script xmlns:s="http://www.w3.org/2000/svg">x()</s:script></svg>',
+      ),
+    ).toContain('código')
+    expect(
+      motivoDeSvgInvalido('<svg viewBox="0 0 1 1"><a href="javascript:x()"><rect/></a></svg>'),
+    ).toContain('código')
+    expect(
+      motivoDeSvgInvalido('<svg viewBox="0 0 1 1"><set attributeName="onload" to="x()"/></svg>'),
+    ).toContain('código')
   })
 
   it('rechaza el que no dice cuánto mide y lo que no es un SVG', () => {
