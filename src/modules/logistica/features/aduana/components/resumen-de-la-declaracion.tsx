@@ -13,6 +13,8 @@ type Props = {
   declaracion: DeclaracionLeida
   // Con `logistica.aduana.gestionar` (la base lo vuelve a exigir): enciende los botones de escribir.
   puedeGestionar: boolean
+  // El origen elegido en Logística: el buscador de la composición busca ahí.
+  origenId: string
 }
 
 function Dato({ etiqueta, valor }: { etiqueta: string; valor: string | null }) {
@@ -28,7 +30,7 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: string | null }) {
 
 // El resumen de una declaración: su número y canal, los datos, si está pagada y los vehículos con su tributo dicho en texto («Tiene el tributo» / «Falta el tributo»). Con
 // `logistica.aduana.gestionar` ofrece «Editar» y «Asignar canal». Ningún monto: la aduana sólo dice sí o no por unidad.
-export function ResumenDeLaDeclaracion({ declaracion, puedeGestionar }: Props) {
+export function ResumenDeLaDeclaracion({ declaracion, puedeGestionar, origenId }: Props) {
   const { zonaHoraria } = useRegional()
   const dia = (valor: string | null) =>
     valor === null ? null : formatearFecha(valor, { zona: zonaHoraria })
@@ -60,7 +62,7 @@ export function ResumenDeLaDeclaracion({ declaracion, puedeGestionar }: Props) {
         </div>
       </dl>
       {puedeGestionar ? (
-        <VehiculosDeLaDeclaracion declaracion={declaracion} />
+        <VehiculosDeLaDeclaracion declaracion={declaracion} origenId={origenId} />
       ) : (
         <VehiculosDelResumen declaracion={declaracion} />
       )}

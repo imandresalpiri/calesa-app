@@ -32,6 +32,14 @@ export function textoDeFaltan({ pagada, faltan, vehiculos, hayOcultos }: Faltan)
 }
 
 /** «un vehículo», «37 vehículos» o «más de 200 vehículos». */
+/**
+ * Una declaración todavía sin vehículos: ninguno vivo, ni siquiera uno que quien mira no ve. Sale en la Aduana de todo origen con aduana, con la insignia «Sin
+ * vehículos», hasta que se le pone el primero.
+ */
+export function sinVehiculos(declaracion: { vehiculos: number; hayOcultos: boolean }): boolean {
+  return declaracion.vehiculos === 0 && !declaracion.hayOcultos
+}
+
 export function textoDeUnidades(vehiculos: number): string {
   if (vehiculos === 1) {
     return '1 vehículo'

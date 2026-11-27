@@ -39,6 +39,8 @@ export type FiltrosDeAduana = {
 }
 
 export type PedidoDeAduana = {
+  // El origen elegido en Logística: la base lista sólo sus declaraciones y las que no tienen vehículos.
+  origenId: string
   filtros: FiltrosDeAduana
   // El cursor de una página que sigue `(creado_en, id)`; nunca uno hacia atrás (la RPC sólo camina hacia adelante).
   cursor: { desde: string; id: string } | null
@@ -92,7 +94,7 @@ function eleccion(valores: ValoresDeFiltros, clave: string): string | null {
  */
 export function pedidoDeAduana(
   valores: ValoresDeFiltros,
-  { cursor }: { cursor: Cursor | null },
+  { origenId, cursor }: { origenId: string; cursor: Cursor | null },
 ): PedidoDeAduana {
   const q = valores.busqueda.trim()
   const canal = eleccion(valores, CLAVE_DE_CANAL)
@@ -103,6 +105,7 @@ export function pedidoDeAduana(
     ...(cumpleElMinimo(q, MINIMO_DE_BUSQUEDA_DE_ADUANA) ? { q: q.slice(0, LARGO_MAXIMO) } : {}),
   }
   return {
+    origenId,
     filtros,
     cursor:
       cursor?.sentido === 'siguiente' && z.guid().safeParse(cursor.id).success

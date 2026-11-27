@@ -106,7 +106,13 @@ function AvisosDeLaLista({ declaracion }: { declaracion: DeclaracionLeida }) {
 
 // Los vehículos de la declaración con lo que se puede cambiar (sólo con `logistica.aduana.gestionar`; la base lo vuelve a exigir): «Quitar» marca (se deshace antes de guardar), el
 // buscador suma, y «Guardar vehículos» manda todo junto. Con canal asignado todo queda apagado: la composición quedó fija (D5).
-export function VehiculosDeLaDeclaracion({ declaracion }: { declaracion: DeclaracionLeida }) {
+export function VehiculosDeLaDeclaracion({
+  declaracion,
+  origenId,
+}: {
+  declaracion: DeclaracionLeida
+  origenId: string
+}) {
   const c = useVehiculosDeLaDeclaracion(declaracion)
   const fija = declaracion.canal !== null
   const yaEstan = new Set([
@@ -147,7 +153,9 @@ export function VehiculosDeLaDeclaracion({ declaracion }: { declaracion: Declara
         </ul>
       )}
       <AvisosDeLaLista declaracion={declaracion} />
-      {fija ? null : <BuscadorDeUnidadesDiferido yaEstan={yaEstan} alAgregar={c.sumar} />}
+      {fija ? null : (
+        <BuscadorDeUnidadesDiferido yaEstan={yaEstan} alAgregar={c.sumar} origenId={origenId} />
+      )}
       {c.conflicto ? (
         <AvisoDeConflicto
           mensaje={c.conflicto}
