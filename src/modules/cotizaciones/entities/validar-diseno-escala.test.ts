@@ -35,15 +35,16 @@ function visitas(s: DisenoSintetico): number {
   return medidor.visitas
 }
 
-// El peor ítem cuesta 8 visitas: recorrerlo, buscar su nodo, el nivel de ver y el de editar (2 y 2) y su registro (2); el peor nodo
-// de la fórmula, 5 (indexarlo, y su cobertura con 3). k = 8, fijado por esa cuenta y no por lo medido.
-const K = 8
+// El peor ítem cuesta 9 visitas: recorrerlo, buscar su nodo, el nivel de ver y el de editar (2 y 2), su registro (2) y su lugar en la rejilla; el
+// peor nodo de la fórmula, 5 (indexarlo, y su cobertura con 3). k = 9, fijado por esa cuenta y no por lo medido.
+const K = 9
 
 const ARCHIVOS = [
   'validar-diseno.ts',
   'validar-diseno-contexto.ts',
   'validar-diseno-modos.ts',
   'validar-diseno-secciones.ts',
+  'validar-diseno-rejilla.ts',
   'validar-diseno-cobertura.ts',
   'validar-diseno-ayudas.ts',
 ]

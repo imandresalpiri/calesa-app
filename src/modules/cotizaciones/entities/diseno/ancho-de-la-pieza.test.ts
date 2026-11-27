@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { celda, disenoDe, seccion } from './diseno-de-prueba.soporte'
+import { celda } from './diseno-de-prueba.soporte'
 import {
   acotarColumnas,
   columnasDe,
   columnasPorBorde,
-  ponerColumnas,
   textoDeLasColumnas,
 } from './ancho-de-la-pieza'
 
@@ -19,14 +18,6 @@ describe('el ancho de una pieza', () => {
   it('acota de 1 a 12 y redondea', () => {
     expect([0, 1, 6.4, 6.5, 13, -2].map(acotarColumnas)).toEqual([1, 1, 6, 7, 12, 1])
     expect(textoDeLasColumnas(6)).toBe('6/12')
-  })
-
-  it('pone las columnas; en lo que no es celda, 12 quita la clave', () => {
-    const d = disenoDe([seccion('s', [celda('a', { ancho: 6 }), { tipo: 'total', ancho: 4 }])])
-    const celdaA = ponerColumnas(d, { seccion: 's', tipo: 'celda', nodo: 'a' }, 20)
-    expect(celdaA.secciones[0]?.items[0]).toMatchObject({ ancho: 12 })
-    const total = ponerColumnas(d, { seccion: 's', tipo: 'total' }, 12)
-    expect(total.secciones[0]?.items[1]).toEqual({ tipo: 'total' })
   })
 
   it('el borde arrastrado da lo que mide desde el inicio de la pieza, en columnas de su rejilla', () => {

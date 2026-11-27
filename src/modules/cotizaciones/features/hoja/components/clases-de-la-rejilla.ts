@@ -12,7 +12,16 @@ import {
   columnasDeLaCelda,
   corteDe,
   SECCION_AUTOMATICA,
+  type Corte,
+  type Posicion,
 } from '../../../entities/rejilla-de-la-hoja'
+import {
+  corteConPosicion,
+  FILAS_DE_LA_REJILLA_DE_CELDAS,
+  FILAS_DE_LA_REJILLA_DE_SECCIONES,
+  POSICION_DE_LA_SECCION,
+  POSICION_DEL_ITEM,
+} from './clases-de-la-posicion'
 
 // Los cortes a los que llega `corteDe()` (los demás nunca salen).
 type CorteUsado = 'lg' | '2xl' | '3xl' | '5xl' | '7xl'
@@ -116,6 +125,9 @@ export const CONTENEDOR_DE_SECCIONES = '@container/secciones min-w-0'
 export const REJILLA_DE_SECCIONES =
   'grid grid-cols-12 items-start gap-x-0 gap-y-4 @lg/secciones:gap-x-4'
 
+// Desde qué corte dibuja posiciones una rejilla (`entities/posiciones-de-la-hoja.ts`); sin él, el flujo de siempre.
+type CorteDeSuRejilla = Corte | 'siempre' | undefined
+
 const unir = (...partes: (string | false | undefined)[]) =>
   partes.filter((p): p is string => typeof p === 'string' && p !== '').join(' ')
 
@@ -136,24 +148,40 @@ function filas(
 export type LugarDelItem = (
   | { tipo: 'celda'; ancho: AnchoDeCelda }
   | { tipo: 'atajos' | 'variante' | 'interruptor' | 'subtotal' | 'total'; ancho?: number }
-) & { alto?: number; letra?: Letra; enfasis?: Enfasis }
+) & { alto?: number; letra?: Letra; enfasis?: Enfasis; posicion?: Posicion }
+
+// La posición de una pieza si su rejilla la dibuja (`corte`) y la pieza la trae; con más de una fila, lo de adentro estira para llenarlas.
+const enSuLugar = (
+  tabla: Readonly<Record<string, string>>,
+  pieza: { posicion?: Posicion; alto?: number },
+  corte: CorteDeSuRejilla,
+): { clase?: string; estira: boolean } =>
+  corte === undefined || pieza.posicion === undefined
+    ? { estira: false }
+    : { clase: tabla[corteConPosicion(corte)], estira: (pieza.alto ?? 1) > 1 }
 
 // Un ítem en la rejilla de su sección: sus columnas (la celda, con nombre o en número; los demás, toda la fila si no dicen), sus filas desde el mismo corte
-// (lo de adentro estira para llenarlas), y su letra y énfasis.
-export function claseDelItem(item: LugarDelItem): string {
+// (lo de adentro estira para llenarlas), y su letra y énfasis. Con el corte de su rejilla, además su posición desde ese corte (`estiloDelItem()`).
+export function claseDelItem(item: LugarDelItem, corte?: CorteDeSuRejilla): string {
   const columnas =
     item.tipo === 'celda' ? columnasDeLaCelda(item.ancho) : (item.ancho ?? COLUMNAS_DE_LA_REJILLA)
   const conFilas = filas(FILAS_DEL_ITEM, columnas, item.alto)
+  const lugar = enSuLugar(POSICION_DEL_ITEM, item, corte)
   return unir(
     COLUMNAS_DEL_ITEM[columnas] ?? COLUMNAS_DEL_ITEM[COLUMNAS_DE_LA_REJILLA],
     conFilas,
-    conFilas !== undefined && '[&>*]:h-full',
+    lugar.clase,
+    (conFilas !== undefined || lugar.estira) && '[&>*]:h-full',
     deTexto(item),
   )
 }
 
-// Una sección en la rejilla de las secciones (sólo la de la hoja: en el modal «Avanzado» un `col-span-12` crearía pistas de más).
-export function claseDeLaSeccionEnLaRejilla(seccion: AspectoDeSeccion): string {
+// Una sección en la rejilla de las secciones (sólo la de la hoja: en el modal «Avanzado» un `col-span-12` crearía pistas de más). Con el corte de la
+// rejilla, además su posición desde ese corte (`estiloDeLaSeccion()`).
+export function claseDeLaSeccionEnLaRejilla(
+  seccion: AspectoDeSeccion,
+  corte?: CorteDeSuRejilla,
+): string {
   const columnas = seccion.ancho ?? SECCION_AUTOMATICA.columnas
   const base =
     seccion.ancho === undefined
@@ -163,8 +191,27 @@ export function claseDeLaSeccionEnLaRejilla(seccion: AspectoDeSeccion): string {
     seccion.ancho === undefined && seccion.alto !== undefined && seccion.alto > 1
       ? FILAS_DE_LA_SECCION[SECCION_AUTOMATICA.corte][seccion.alto as 2 | 3 | 4]
       : filas(FILAS_DE_LA_SECCION, columnas, seccion.alto)
-  return unir(base, conFilas, conFilas !== undefined && 'self-stretch')
+  const lugar = enSuLugar(POSICION_DE_LA_SECCION, seccion, corte)
+  return unir(
+    base,
+    conFilas,
+    lugar.clase,
+    (conFilas !== undefined || lugar.estira) && 'self-stretch',
+  )
 }
+
+// La rejilla de las secciones: con el corte, sus filas desde él (`estiloDeLaRejillaDeSecciones()`).
+export const claseDeLaRejillaDeSecciones = (corte?: CorteDeSuRejilla): string =>
+  corte === undefined
+    ? REJILLA_DE_SECCIONES
+    : `${REJILLA_DE_SECCIONES} ${FILAS_DE_LA_REJILLA_DE_SECCIONES[corteConPosicion(corte)]}`
+
+// El bloque del avanzado (docs/GLOSARIO.md › «Bloque del avanzado»): una fila entera con el total suelto, «Avanzado» y el cierre, cada uno a lo ancho y
+// con el espacio de la rejilla entre ellos. Con el corte, en su fila (`estiloDelBloque()`).
+export const claseDelBloque = (corte?: CorteDeSuRejilla): string =>
+  corte === undefined
+    ? 'col-span-12 grid min-w-0 grid-cols-12 gap-y-4'
+    : `col-span-12 grid min-w-0 grid-cols-12 gap-y-4 ${POSICION_DE_LA_SECCION[corteConPosicion(corte)]}`
 
 // El marco de la sección: su relleno, su densidad, su letra y su énfasis; con tono, el borde del tono (sin él, el de siempre). El fondo queda en el token.
 // Sin marco (las secciones del modal «Avanzado», como en V1): sin borde, fondo ni relleno; conserva el contenedor, la densidad, la letra y el énfasis.
@@ -191,8 +238,15 @@ export function claseDelMarcoDeLaSeccion(
   )
 }
 
-export const claseDeLaRejillaDeCeldas = (seccion: AspectoDeSeccion): string =>
-  `grid grid-cols-12 gap-x-0 ${SEPARACION[seccion.separacion ?? 'media']}`
+// La rejilla de las celdas de una sección: con el corte, sus filas desde él (`estiloDeLaRejillaDeCeldas()`).
+export const claseDeLaRejillaDeCeldas = (
+  seccion: AspectoDeSeccion,
+  corte?: CorteDeSuRejilla,
+): string =>
+  unir(
+    `grid grid-cols-12 gap-x-0 ${SEPARACION[seccion.separacion ?? 'media']}`,
+    corte !== undefined && FILAS_DE_LA_REJILLA_DE_CELDAS[corteConPosicion(corte)],
+  )
 
 export const claseDelTitulo = (seccion: AspectoDeSeccion): string =>
   TITULO[seccion.letra ?? 'normal']

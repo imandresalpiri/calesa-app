@@ -233,6 +233,7 @@ export function hojaDeLaVistaPrevia(
       ...aspectoDeCabecera(diseno.cabecera),
     },
     secciones,
+    ...(diseno.avanzado ? { avanzado: { fila: diseno.avanzado.fila } } : {}),
     tarjetaTotal: tarjetaDeLaVistaPrevia(diseno.tarjeta_total, nodos),
     tonos: tonos.filter((t) => usados.has(t.clave)),
   }

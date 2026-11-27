@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { celda, disenoDe, seccion } from './diseno-de-prueba.soporte'
 import { avisoDelCambioDeNivel, cambioDeNivel, nivelEfectivo } from './nivel-al-mover'
-import { moverItemA } from './orden-del-diseno'
+import { destinoEnLaVecina, moverPiezaA } from './mover-en-la-rejilla'
 
 const d = disenoDe([
   seccion('base', [celda('a'), celda('b', { nivel_ver: 'gerencia', nivel_editar: 'gerencia' })]),
@@ -9,6 +9,14 @@ const d = disenoDe([
 ])
 const NOMBRES: Record<string, string> = { costos: 'Costos', gerencia: 'Gerencia' }
 const nombreDe = (clave: string) => NOMBRES[clave] ?? clave
+// La celda `nodo` de «base», en el primer lugar libre de «costos».
+const aCostos = (nodo: string) => {
+  const p = { pieza: 'nodo', nodo } as const
+  const destino = destinoEnLaVecina(d, p, 1)
+  const movida = destino === null ? null : moverPiezaA(d, p, destino)
+  if (destino?.seccion !== 'costos' || movida?.ok !== true) throw new Error('no se movió')
+  return movida.diseno
+}
 
 describe('el nivel de una pieza al moverla', () => {
   it('el suyo, si no el de su sección, si no «todos»', () => {
@@ -29,7 +37,7 @@ describe('el nivel de una pieza al moverla', () => {
 
   it('avisa sólo si cambia quién la ve o quién la edita', () => {
     const pieza = { tipo: 'celda', nodo: 'a' } as const
-    const movido = moverItemA(d, { seccion: 'base', ...pieza }, { seccion: 'costos', indice: 0 })
+    const movido = aCostos('a')
     const cambio = cambioDeNivel(
       { diseno: d, seccion: 'base' },
       { diseno: movido, seccion: 'costos' },
@@ -47,11 +55,7 @@ describe('el nivel de una pieza al moverla', () => {
       'Ahora la ven todos: antes la veía «Costos».',
     )
     const propia = { tipo: 'celda', nodo: 'b' } as const
-    const conSuNivel = moverItemA(
-      d,
-      { seccion: 'base', ...propia },
-      { seccion: 'costos', indice: 0 },
-    )
+    const conSuNivel = aCostos('b')
     expect(
       cambioDeNivel(
         { diseno: d, seccion: 'base' },

@@ -3,6 +3,7 @@
 // no compila sin su lugar). Las del total apuntan a la tarjeta del total aunque `donde` sea su sección: es la pieza que se mueve.
 import type { Diseno, ItemDeDiseno, SeccionDeDiseno } from '../diseno'
 import type { RechazoDeDiseno, ReglaDeDiseno } from '../motivos-de-diseno'
+import { primeraPiezaQueNoCabe } from '../validar-diseno-rejilla'
 import { piezaDelItemDeLaHoja, type PiezaDeLaHoja } from './pieza-de-la-hoja'
 
 type QueNombra =
@@ -16,6 +17,7 @@ type QueNombra =
   | 'cabecera'
   | 'sin_lugar'
   | 'tono'
+  | 'rejilla'
 
 const QUE_NOMBRA: Record<ReglaDeDiseno, QueNombra> = {
   forma: 'campo',
@@ -37,6 +39,8 @@ const QUE_NOMBRA: Record<ReglaDeDiseno, QueNombra> = {
   total_repetido: 'total',
   total_en_avanzado: 'total',
   total_con_nivel: 'total',
+  pieza_fuera_de_la_rejilla: 'rejilla',
+  piezas_se_pisan: 'rejilla',
   nodo_inexistente: 'nodo',
   celda_no_es_valor: 'nodo',
   secundario_sin_porcentaje: 'nodo',
@@ -99,12 +103,23 @@ function deSeccionONodo(d: Diseno, donde: string | undefined): LugarEnLaHoja | n
 const indice = (texto: string | undefined) =>
   texto !== undefined && /^\d+$/.test(texto) ? Number(texto) : -1
 
-// La ruta de Zod de un rechazo de forma: `diseno.secciones.2.items.1.alto` es ese ítem; `diseno.secciones.2.relleno`, la sección; la cabecera y la tarjeta, las suyas.
+// La pieza de un rechazo de la rejilla: la primera que no cabe en el diseño de trabajo; si ya cabe todo, la sección o el nodo que nombra.
+function deLaRejilla(d: Diseno, donde: string | undefined): LugarEnLaHoja | null {
+  const choque = primeraPiezaQueNoCabe(d)
+  if (choque === null) return conSeccion(d, donde) ?? delNodo(d, donde)
+  return choque.item === undefined
+    ? deLaSeccion(choque.seccion.id)
+    : pieza(piezaDelItemDeLaHoja(choque.item))
+}
+
+// La ruta de Zod de un rechazo de forma: `diseno.secciones.2.items.1.alto` (o `….posicion.fila`) es ese ítem; `diseno.secciones.2.relleno`, la sección;
+// `diseno.avanzado`, el bloque «Avanzado»; la cabecera y la tarjeta, las suyas.
 function delCampo(d: Diseno, campo: string | undefined): LugarEnLaHoja | null {
   const [raiz, parte, a, b, c] = (campo ?? '').split('.')
   if (raiz !== 'diseno') return null
   if (parte === 'cabecera') return CABECERA
   if (parte === 'tarjeta_total') return TOTAL
+  if (parte === 'avanzado') return pieza({ pieza: 'bloque-avanzado' })
   const s = parte === 'secciones' ? d.secciones[indice(a)] : undefined
   if (s === undefined) return null
   const it = b === 'items' && c !== undefined ? s.items[indice(c)] : undefined
@@ -130,6 +145,7 @@ const RESOLVER: Record<QueNombra, (d: Diseno, r: Rechazo) => LugarEnLaHoja | nul
   sin_lugar: (_d, r) => (r.donde === undefined ? null : { tipo: 'sin_lugar', nodo: r.donde }),
   // El tono de un grupo es de la planilla: en la hoja no tiene pieza.
   tono: (d, r) => (r.donde === 'cabecera' ? CABECERA : conSeccion(d, r.donde)),
+  rejilla: (d, r) => deLaRejilla(d, r.donde),
 }
 
 export const lugarDelRechazo = (d: Diseno, rechazo: Rechazo): LugarEnLaHoja | null =>

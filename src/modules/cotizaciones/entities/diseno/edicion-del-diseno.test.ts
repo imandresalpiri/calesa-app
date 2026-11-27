@@ -60,9 +60,11 @@ describe('pedidoDeGuardarDiseno', () => {
 describe('ponerSeccion y ponerAncho', () => {
   it('cambian lo pedido sin mutar; un título de blancos quita la clave; se corta a 80', () => {
     const conTitulo = ponerSeccion(diseno, 's', { titulo: '  Costos  ', presentacion: 'avanzado' })
-    expect(conTitulo.secciones[0]).toMatchObject({ titulo: 'Costos', presentacion: 'avanzado' })
+    // Pasada a avanzada va con su bloque, después de las principales que quedan.
+    expect(conTitulo.secciones.map((s) => s.id)).toEqual(['t', 's'])
+    expect(conTitulo.secciones[1]).toMatchObject({ titulo: 'Costos', presentacion: 'avanzado' })
     expect(diseno.secciones[0]).not.toHaveProperty('titulo')
-    expect(ponerSeccion(conTitulo, 's', { titulo: '   ' }).secciones[0]).not.toHaveProperty(
+    expect(ponerSeccion(conTitulo, 's', { titulo: '   ' }).secciones[1]).not.toHaveProperty(
       'titulo',
     )
     const largo = ponerSeccion(diseno, 's', { titulo: 'x'.repeat(100) })
@@ -117,6 +119,7 @@ describe('hayCambiosEnElDiseno', () => {
     if (primera === undefined) throw new Error('sin sección')
     otro.secciones[0] = {
       items: primera.items,
+      posicion: primera.posicion,
       presentacion: primera.presentacion,
       id: primera.id,
     }

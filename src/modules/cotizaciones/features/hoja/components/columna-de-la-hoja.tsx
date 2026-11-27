@@ -54,6 +54,8 @@ export function ColumnaDeLaHoja({
       <RegionDelAvisoDePisado visible={h.avisoDePisado} alCerrar={h.cerrarAvisoDePisado} />
       <SeccionesDeLaHoja
         secciones={secciones}
+        todas={hoja.secciones}
+        avanzado={hoja.avanzado}
         contexto={contexto}
         acciones={h.acciones}
         guardando={guardando}

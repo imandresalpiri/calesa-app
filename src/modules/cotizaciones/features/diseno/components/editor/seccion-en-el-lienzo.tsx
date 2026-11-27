@@ -1,67 +1,65 @@
 'use client'
 
-import { SortableContext, useSortable } from '@dnd-kit/sortable'
-import type { ClaveDePieza } from '../../../../entities/diseno'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
+import { SECCION_SIN_TITULO } from '../../../../entities/diseno/anuncios-de-la-rejilla'
 import type { SeccionDelLienzo } from '../../../../entities/diseno/lienzo-de-la-hoja'
 import {
   mismaPieza,
-  piezaDelItemDeLaHoja,
   textoDeLaPieza,
   type PiezaDeLaHoja,
 } from '../../../../entities/diseno/pieza-de-la-hoja'
-import { piezaDelItem } from '../../../../entities/diseno'
+import type { Corte } from '../../../../entities/rejilla-de-la-hoja'
+import { estiloDeLaSeccion } from '../../../hoja/components/clases-de-la-posicion'
 import {
-  claseDeLaRejillaDeCeldas,
   claseDeLaSeccionEnLaRejilla,
   claseDelMarcoDeLaSeccion,
   claseDelTitulo,
 } from '../../../hoja/components/clases-de-la-rejilla'
-import { idDeLaSeccion, idDelFin } from '../../hooks/ids-del-lienzo'
-import { useTeclasDeLaPieza } from '../../hooks/use-teclas-de-la-pieza'
+import {
+  idDeLaAvanzada,
+  idDeLaRejilla,
+  idDeLaSeccion,
+  type DatosDeDondeCae,
+} from '../../hooks/ids-del-lienzo'
 import type { ApoyoDelLienzo } from '../../hooks/use-apoyo-del-lienzo'
-import { HuecoParaSumar, MenuParaSumar } from './hueco-para-sumar'
-import { caeAlFinal, marcaDeSoltar, type MarcaDeSoltar } from './marca-de-soltar'
+import { useTeclasDeLaPieza } from '../../hooks/use-teclas-de-la-pieza'
+import { BordesDelTamano } from './borde-del-tamano'
+import { MarcaEnLaRejilla } from './marca-en-la-rejilla'
 import { A_TAMANO_REAL } from './marco-escalado'
 import { MenuDeLaPieza } from './menu-de-la-pieza'
-import { PiezaEnElLienzo } from './pieza-en-el-lienzo'
+import { RejillaDeLaSeccionEnElLienzo } from './rejilla-de-la-seccion-en-el-lienzo'
 
 type Props = {
   seccion: SeccionDelLienzo
   // Los ids del arrastre de sus piezas, en su orden.
   ids: readonly string[]
-  // Si la sección puede ir antes o después (Alt+↑/↓ y su «⋯»).
-  puedeMoverse: { antes: boolean; despues: boolean }
-  // Dónde cae la sección que se arrastra, si es sobre esta.
-  marca: MarcaDeSoltar
+  // Una principal: desde qué corte la rejilla de las secciones dibuja posiciones.
+  corte: Corte | 'siempre' | undefined
   apoyo: ApoyoDelLienzo
 }
 
-export const SIN_TITULO = 'Sección sin título'
-
-const MARCA_DE_SECCION: Record<'antes' | 'despues', string> = {
-  antes: 'shadow-[0_-4px_0_0_var(--color-accent)]',
-  despues: 'shadow-[0_4px_0_0_var(--color-accent)]',
-}
+const CAE_UNA_PIEZA: DatosDeDondeCae = { acepta: 'pieza' }
+const CAE_UNA_AVANZADA: DatosDeDondeCae = { acepta: 'avanzada' }
 
 function marcoDe(elegida: boolean, rechazada: boolean) {
-  if (elegida) return 'outline-2 outline-offset-2 outline-(--color-accent)'
-  if (rechazada) return 'outline-2 outline-offset-2 outline-(--color-danger)'
+  if (elegida) return 'outline-2 outline-offset-2 outline-(--color-primario)'
+  if (rechazada) return 'outline-2 outline-offset-2 outline-(--color-peligro)'
   return 'hover:outline hover:outline-offset-2 hover:outline-(--color-line-strong)'
 }
 
-type Estado = { elegida: boolean; rechazada: boolean; marca: MarcaDeSoltar; arrastrada: boolean }
+type Estado = { elegida: boolean; rechazada: boolean; arrastrada: boolean }
 
-// En la rejilla de las secciones (una principal) lleva su ancho; una avanzada va a lo ancho de su bloque.
+// En la rejilla de las secciones (una principal) lleva su ancho y su lugar; una avanzada va a lo ancho de su bloque.
 function claseDeLaSeccion(
   seccion: SeccionDelLienzo,
-  { elegida, rechazada, marca, arrastrada }: Estado,
+  corte: Props['corte'],
+  { elegida, rechazada, arrastrada }: Estado,
 ) {
   return [
-    seccion.presentacion === 'principal' ? claseDeLaSeccionEnLaRejilla(seccion) : '',
+    seccion.presentacion === 'principal' ? claseDeLaSeccionEnLaRejilla(seccion, corte) : '',
     claseDelMarcoDeLaSeccion(seccion, { sinMarco: false }),
     'relative',
     marcoDe(elegida, rechazada),
-    marca === null ? '' : MARCA_DE_SECCION[marca],
     arrastrada ? 'opacity-50' : '',
   ].join(' ')
 }
@@ -85,7 +83,7 @@ function Cabeza({
       {rechazo === null ? null : (
         <p
           id={`rechazo-${texto}`}
-          className="pointer-events-none relative mb-2 text-(length:--text-sm) text-(--color-danger)"
+          className="pointer-events-none relative mb-2 text-(length:--text-sm) text-(--color-peligro-ink)"
         >
           {rechazo}
         </p>
@@ -94,23 +92,14 @@ function Cabeza({
   )
 }
 
-function MenuDeLaSeccion({
-  seccion,
-  nombre,
-  puedeMoverse,
-  apoyo,
-}: Pick<Props, 'seccion' | 'puedeMoverse' | 'apoyo'> & { nombre: string }) {
+function MenuDeLaSeccion({ seccion, apoyo }: Pick<Props, 'seccion' | 'apoyo'>) {
   return (
     <div
       className={`${A_TAMANO_REAL} absolute -top-3 right-2 z-20 rounded-(--radius-md) bg-(--color-surface) shadow-(--shadow-sm)`}
     >
       <MenuDeLaPieza
-        nombre={`la sección «${nombre}»`}
-        puedeMover={puedeMoverse}
+        nombre={`la sección «${seccion.titulo ?? SECCION_SIN_TITULO}»`}
         ocupado={apoyo.ocupado}
-        alMover={(paso) => {
-          apoyo.moverSeccion(seccion.id, paso)
-        }}
         alQuitar={() => {
           apoyo.quitarSeccion(seccion.id)
         }}
@@ -120,79 +109,65 @@ function MenuDeLaSeccion({
   )
 }
 
-// Las piezas de la sección, con la marca de lo que se arrastra y, tras la elegida, un «+» para sumar ahí.
-function Piezas({ seccion, ids, apoyo }: Pick<Props, 'seccion' | 'ids' | 'apoyo'>) {
-  return seccion.piezas.map((pieza, indice) => {
-    const id = ids[indice] ?? `${seccion.id}:${String(indice)}`
-    const clave: ClaveDePieza = { ...piezaDelItem(pieza.item), seccion: seccion.id }
-    const deLaHoja = piezaDelItemDeLaHoja(pieza.item)
-    const texto = textoDeLaPieza(deLaHoja)
-    const elegida = mismaPieza(apoyo.elegida, deLaHoja)
-    const nombre = apoyo.nombreDe(clave)
-    return (
-      <PiezaEnElLienzo
-        key={id}
-        id={id}
-        texto={texto}
-        pieza={pieza}
-        clave={clave}
-        nombre={nombre}
-        contexto={apoyo.contexto}
-        elegida={elegida}
-        rechazo={apoyo.rechazo?.texto === texto ? apoyo.rechazo.mensaje : null}
-        destino={marcaDeSoltar(apoyo.destino, apoyo.activo, seccion.id, indice)}
-        ocupado={apoyo.ocupado}
-        puedeMover={apoyo.puedeMover(clave)}
-        alElegir={() => {
-          apoyo.elegir(deLaHoja)
-        }}
-        alSoltar={() => {
-          apoyo.elegir(null)
-        }}
-        alMover={(paso) => {
-          apoyo.moverUnPaso(clave, paso)
-        }}
-        alPonerColumnas={(n) => {
-          apoyo.ponerColumnas(clave, n)
-        }}
-        alQuitar={() => {
-          apoyo.quitar(clave)
-        }}
-        sumarDespues={
-          elegida ? (
-            <MenuParaSumar
-              etiqueta={`Sumar una pieza después de ${nombre}`}
-              disparador="boton"
-              ofertas={() => apoyo.ofertas(seccion.diseno)}
-              ocupado={apoyo.ocupado}
-              alSumar={(tipo, nodo) => {
-                apoyo.sumar(seccion.id, indice + 1, tipo, nodo)
-              }}
-            />
-          ) : null
-        }
-      />
-    )
-  })
+// Lo que lleva la sección elegida: una principal, sus bordes del ancho y del alto; y su «⋯» (después: donde se toca con un borde, gana él).
+function DeLaElegida({ seccion, apoyo }: Pick<Props, 'seccion' | 'apoyo'>) {
+  return (
+    <>
+      {seccion.presentacion === 'principal' ? (
+        <BordesDelTamano
+          pieza={{ pieza: 'seccion', seccion: seccion.id }}
+          nombre={`la sección «${seccion.titulo ?? SECCION_SIN_TITULO}»`}
+          apoyo={apoyo}
+        />
+      ) : null}
+      <MenuDeLaSeccion seccion={seccion} apoyo={apoyo} />
+    </>
+  )
 }
 
-// Una sección del lienzo, con el marco, el ancho y el color con que la dibuja la hoja (`SeccionDeHoja`). Todo su fondo es el botón «Elegir la sección «X»» (que
-// la elige y, arrastrado, la ordena); encima, el título y la rejilla de sus piezas, que dejan pasar el clic salvo en cada pieza. Elegida, su «⋯» (Mover antes,
-// Mover después, Quitar la sección) y Alt+↑/↓. Al final, el «+» («Sumar una pieza aquí»), donde cae también lo que se suelta al final.
-export function SeccionEnElLienzo({ seccion, ids, puedeMoverse, marca, apoyo }: Props) {
-  const { setNodeRef, setActivatorNodeRef, listeners, isDragging } = useSortable({
-    id: idDeLaSeccion(seccion.id),
+// Lo que se arrastra y donde cae de una sección: ella misma (una principal en la rejilla de las secciones, una avanzada sobre otra), la rejilla de sus piezas y,
+// si es avanzada, ella como lugar donde cae otra avanzada (no mientras se arrastra ella).
+function useArrastreDeLaSeccion(seccion: SeccionDelLienzo, apoyo: ApoyoDelLienzo) {
+  const avanzada = seccion.presentacion === 'avanzado'
+  const id = idDeLaSeccion(seccion.id)
+  const arrastre = useDraggable({
+    id,
+    data: { clase: avanzada ? 'avanzada' : 'principal' },
     disabled: apoyo.ocupado,
   })
+  const rejilla = useDroppable({ id: idDeLaRejilla(seccion.id), data: CAE_UNA_PIEZA })
+  const otraAvanzada = useDroppable({
+    id: idDeLaAvanzada(seccion.id),
+    data: CAE_UNA_AVANZADA,
+    disabled: !avanzada || apoyo.activo === id,
+  })
+  return {
+    ...arrastre,
+    setNodeRef: (el: HTMLElement | null) => {
+      arrastre.setNodeRef(el)
+      otraAvanzada.setNodeRef(el)
+    },
+    setRejillaRef: rejilla.setNodeRef,
+  }
+}
+
+// Una sección del lienzo, con el marco, el ancho, el lugar y el color con que la dibuja la hoja (`SeccionDeHoja`). Todo su fondo es el botón «Elegir la sección
+// «X»» (que la elige y, arrastrado, la mueve: la marca dice dónde cae); encima, el título y la rejilla de sus piezas, que dejan pasar el clic salvo en cada pieza.
+// Elegida, su «⋯» (Quitar la sección), Alt+flechas (una celda; una avanzada, un lugar de su lista) y, una principal, sus bordes y Alt+Shift+flechas (su ancho y
+// su alto).
+export function SeccionEnElLienzo({ seccion, ids, corte, apoyo }: Props) {
+  const { setNodeRef, setActivatorNodeRef, listeners, isDragging, setRejillaRef } =
+    useArrastreDeLaSeccion(seccion, apoyo)
   const pieza: PiezaDeLaHoja = { pieza: 'seccion', seccion: seccion.id }
   const texto = textoDeLaPieza(pieza)
   const elegida = mismaPieza(apoyo.elegida, pieza)
   const rechazo = apoyo.rechazo?.texto === texto ? apoyo.rechazo.mensaje : null
-  const nombre = seccion.titulo ?? SIN_TITULO
   const teclas = useTeclasDeLaPieza({
-    alCambiarAncho: null,
-    alMover: (paso) => {
-      apoyo.moverSeccion(seccion.id, paso)
+    alMover: (direccion) => {
+      apoyo.moverConTeclas(pieza, direccion)
+    },
+    alCambiarTamano: (lado, paso) => {
+      apoyo.cambiarTamanoUnPaso(pieza, lado, paso)
     },
     alSoltar: elegida
       ? () => {
@@ -207,11 +182,11 @@ export function SeccionEnElLienzo({ seccion, ids, puedeMoverse, marca, apoyo }: 
       data-tono={seccion.tono}
       data-pieza={texto}
       data-elegida={elegida ? '' : undefined}
-      aria-label={nombre}
-      className={claseDeLaSeccion(seccion, {
+      aria-label={seccion.titulo ?? SECCION_SIN_TITULO}
+      style={seccion.presentacion === 'principal' ? estiloDeLaSeccion(seccion, corte) : undefined}
+      className={claseDeLaSeccion(seccion, corte, {
         elegida,
         rechazada: rechazo !== null,
-        marca,
         arrastrada: isDragging,
       })}
     >
@@ -219,7 +194,7 @@ export function SeccionEnElLienzo({ seccion, ids, puedeMoverse, marca, apoyo }: 
         type="button"
         ref={setActivatorNodeRef}
         {...listeners}
-        aria-label={`Elegir la sección «${nombre}»`}
+        aria-label={`Elegir la sección «${seccion.titulo ?? SECCION_SIN_TITULO}»`}
         aria-pressed={elegida}
         aria-describedby={rechazo === null ? undefined : `rechazo-${texto}`}
         data-elegir={texto}
@@ -231,31 +206,14 @@ export function SeccionEnElLienzo({ seccion, ids, puedeMoverse, marca, apoyo }: 
         className="absolute inset-0 z-0 cursor-pointer touch-none rounded-[inherit] outline-none focus-visible:shadow-(--shadow-focus) disabled:cursor-wait"
       />
       <Cabeza seccion={seccion} texto={texto} rechazo={rechazo} />
-      <div
-        data-rejilla-de-celdas=""
-        className={`${claseDeLaRejillaDeCeldas(seccion)} pointer-events-none relative [&>*]:pointer-events-auto`}
-      >
-        <SortableContext items={[...ids]}>
-          <Piezas seccion={seccion} ids={ids} apoyo={apoyo} />
-        </SortableContext>
-        <HuecoParaSumar
-          idDelFin={idDelFin(seccion.id)}
-          destino={caeAlFinal(apoyo.destino, seccion.id, seccion.piezas.length)}
-          ofertas={() => apoyo.ofertas(seccion.diseno)}
-          ocupado={apoyo.ocupado}
-          alSumar={(tipo, nodo) => {
-            apoyo.sumar(seccion.id, seccion.piezas.length, tipo, nodo)
-          }}
-        />
-      </div>
-      {elegida ? (
-        <MenuDeLaSeccion
-          seccion={seccion}
-          nombre={nombre}
-          puedeMoverse={puedeMoverse}
-          apoyo={apoyo}
-        />
-      ) : null}
+      <RejillaDeLaSeccionEnElLienzo
+        seccion={seccion}
+        ids={ids}
+        apoyo={apoyo}
+        setNodeRef={setRejillaRef}
+      />
+      {elegida ? <DeLaElegida seccion={seccion} apoyo={apoyo} /> : null}
+      <MarcaEnLaRejilla marca={apoyo.marca} en={idDeLaAvanzada(seccion.id)} />
     </section>
   )
 }

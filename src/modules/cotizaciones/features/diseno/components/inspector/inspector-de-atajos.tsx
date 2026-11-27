@@ -4,8 +4,9 @@ import { Campo } from '@/shared/ui/campo'
 import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
 import { MAXIMO_DE_ATAJOS, type ClaveDePieza, type ItemDeDiseno } from '../../../../entities/diseno'
 import { columnasParaAtajos } from '../../../../entities/diseno/edicion-de-items'
+import { piezaDelItemDeLaHoja } from '../../../../entities/diseno/pieza-de-la-hoja'
 import { CamposDelAspectoDelItem } from '../aspecto'
-import { errorDelAspecto, type ApoyoDelInspector } from './apoyo-del-inspector'
+import { errorDelAspecto, lugarEnElInspector, type ApoyoDelInspector } from './apoyo-del-inspector'
 
 type Props = {
   seccion: string
@@ -21,6 +22,7 @@ export function InspectorDeAtajos({ seccion, item, apoyo }: Props) {
   const { editor, ediciones } = apoyo
   const clave: ClaveDePieza = { tipo: 'atajos', nodo: item.nodo, seccion }
   const base = `${seccion}__${item.nodo}-atajos`
+  const error = errorDelAspecto(editor, { pieza: 'item', clave })
   const columnas = columnasParaAtajos(editor.nodos, item.nodo, item.columna)
   return (
     <div className="grid min-w-0 gap-3">
@@ -53,8 +55,8 @@ export function InspectorDeAtajos({ seccion, item, apoyo }: Props) {
       <CamposDelAspectoDelItem
         base={base}
         item={item}
+        lugar={lugarEnElInspector(apoyo, piezaDelItemDeLaHoja(item), base, error)}
         ocupado={editor.ocupado}
-        error={errorDelAspecto(editor, { pieza: 'item', clave })}
         alPoner={(cambios) => {
           ediciones.ponerAspectoDeItem(clave, cambios)
         }}

@@ -213,6 +213,10 @@ const DATOS_DE_PRUEBA = {
   'areas/tarjeta/retoques.sql': {
     _juego_de_retoques: 'src/modules/cotizaciones/entities/tarjeta/retoques/casos-de-retoques.json',
   },
+  // El juego espejo de la conversión del diseño de la hoja a la rejilla: lo genera TS con `disenoEnRejilla()` (`diseno-en-rejilla.test.ts`).
+  'areas/diseno/rejilla.sql': {
+    _juego_de_rejilla: 'src/modules/cotizaciones/entities/casos-de-rejilla.json',
+  },
   // El juego espejo de los colores del catálogo: lo genera TS con `derivarColores()` (`supabase/tests/casos-de-colores.ts`).
   'areas/diseno/colores.sql': {
     _casos_de_colores: path.join(base, 'tests', 'casos-de-colores.json'),

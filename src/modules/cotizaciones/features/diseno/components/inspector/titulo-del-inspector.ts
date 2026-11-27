@@ -3,9 +3,8 @@ import {
   ETIQUETAS_PARA_SUMAR,
   type TipoParaSumar,
 } from '../../../../entities/diseno/ofertas-para-sumar'
+import { SECCION_SIN_TITULO } from '../../../../entities/diseno/anuncios-de-la-rejilla'
 import { ubicarLaPieza, type PiezaDeLaHoja } from '../../../../entities/diseno/pieza-de-la-hoja'
-
-export const SECCION_SIN_TITULO = 'Sección sin título'
 
 const deUnItem = (pieza: Extract<PiezaDeLaHoja, { nodo: string }>, d: Diseno): TipoParaSumar => {
   if (pieza.pieza === 'atajos') return 'atajos'
@@ -24,6 +23,8 @@ export function tituloDelInspector(
       return 'Cabecera de la hoja'
     case 'total':
       return ETIQUETAS_PARA_SUMAR.total
+    case 'bloque-avanzado':
+      return 'Bloque «Avanzado»'
     case 'seccion': {
       const titulo = d.secciones.find((s) => s.id === pieza.seccion)?.titulo ?? null
       return titulo === null ? SECCION_SIN_TITULO : `Sección «${titulo}»`

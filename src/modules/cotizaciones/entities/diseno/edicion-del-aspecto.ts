@@ -26,9 +26,8 @@ import {
 import { esquemaId } from '../nodos'
 import { conSeccion } from './edicion-del-diseno'
 
+// El ancho y el alto no son del aspecto: los escribe `ponerTamano()` (`tamano-en-la-rejilla.ts`), que revisa que la pieza entre sin pisar a nadie.
 export type CambioDeAspectoDeSeccion = {
-  ancho?: number | null
-  alto?: number | null
   relleno?: Relleno
   separacion?: Separacion
   densidad?: DensidadDeSeccion
@@ -37,8 +36,6 @@ export type CambioDeAspectoDeSeccion = {
   tono?: string | null
 }
 export type CambioDeAspectoDeItem = {
-  ancho?: AnchoDeCelda | null
-  alto?: number | null
   letra?: Letra
   enfasis?: Enfasis
 }
@@ -91,7 +88,6 @@ const deTexto = (c: { letra?: Letra; enfasis?: Enfasis }) => ({
   enfasis: enEscala(c.enfasis, ENFASIS, ASPECTO_POR_DEFECTO.enfasis),
 })
 
-// Sin ancho, la sección es «Automática»; con 12 columnas ocupa su fila (no es lo mismo: no se quita).
 export function ponerAspectoDeSeccion(
   d: Diseno,
   seccionId: string,
@@ -99,15 +95,6 @@ export function ponerAspectoDeSeccion(
 ): Diseno {
   return conSeccion(d, seccionId, (s) =>
     aplicar(s, {
-      ancho:
-        c.ancho === undefined
-          ? undefined
-          : c.ancho === null
-            ? null
-            : entero(c.ancho, COLUMNAS_DE_LA_REJILLA)
-              ? c.ancho
-              : undefined,
-      alto: filasDe(c.alto),
       relleno: enEscala(c.relleno, RELLENOS, ASPECTO_POR_DEFECTO.relleno),
       separacion: enEscala(c.separacion, SEPARACIONES, ASPECTO_POR_DEFECTO.separacion),
       densidad: enEscala(c.densidad, DENSIDADES_DE_SECCION, ASPECTO_POR_DEFECTO.densidad),
@@ -145,7 +132,40 @@ export function ponerAspectoDeItem(
       items: s.items.map((it) => {
         if (hecho || !esLaPieza(it, item)) return it
         hecho = true
-        return aplicar(it, { ancho: anchoDe(it, c.ancho), alto: filasDe(c.alto), ...deTexto(c) })
+        return aplicar(it, deTexto(c))
+      }),
+    }
+  })
+}
+
+// El tamaño escrito tal cual, sin mirar la geometría: sólo lo llama `ponerTamano()`, que ya sabe que entra. Sin ancho, la sección es «Automática»; con
+// 12 columnas ocupa su fila (no es lo mismo: no se quita).
+export type TamanoDeSeccion = { ancho?: number | null; alto?: number | null }
+export type TamanoDelItem = { ancho?: AnchoDeCelda | null; alto?: number | null }
+
+export function escribirTamanoDeSeccion(d: Diseno, seccionId: string, t: TamanoDeSeccion): Diseno {
+  const ancho =
+    t.ancho === undefined || t.ancho === null || entero(t.ancho, COLUMNAS_DE_LA_REJILLA)
+      ? t.ancho
+      : undefined
+  return conSeccion(d, seccionId, (s) => aplicar(s, { ancho, alto: filasDe(t.alto) }))
+}
+
+// La primera pieza así en la sección (`esLaPieza`).
+export function escribirTamanoDelItem(
+  d: Diseno,
+  seccionId: string,
+  item: PiezaEnLaSeccion,
+  t: TamanoDelItem,
+): Diseno {
+  return conSeccion(d, seccionId, (s) => {
+    let hecho = false
+    return {
+      ...s,
+      items: s.items.map((it) => {
+        if (hecho || !esLaPieza(it, item)) return it
+        hecho = true
+        return aplicar(it, { ancho: anchoDe(it, t.ancho), alto: filasDe(t.alto) })
       }),
     }
   })

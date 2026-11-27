@@ -11,34 +11,23 @@ import {
   hojaDeLaVistaPrevia,
   type HojaDeLaVistaPrevia,
 } from '../../../../entities/diseno/hoja-del-diseno'
-import {
-  seccionesDelLienzo,
-  type SeccionDelLienzo,
-} from '../../../../entities/diseno/lienzo-de-la-hoja'
+import { nombrarEnLaHoja } from '../../../../entities/diseno/anuncios-de-la-rejilla'
+import { seccionesDelLienzo } from '../../../../entities/diseno/lienzo-de-la-hoja'
 import type { PiezaDeLaHoja } from '../../../../entities/diseno/pieza-de-la-hoja'
 import { dondeVaElTotal } from '../../../../entities/diseno/total-de-la-hoja'
 import { entradasIniciales, indiceDeHoja } from '../../../../entities/entradas'
-import {
-  idsDelLienzo,
-  ID_DE_SECCION,
-  ID_DEL_FIN,
-  type IdsDelLienzo,
-} from '../../hooks/ids-del-lienzo'
-import { nombreDeLaPieza } from '../../hooks/operaciones-de-la-hoja'
+import { idsDelLienzo } from '../../hooks/ids-del-lienzo'
 import { useApoyoDelLienzo } from '../../hooks/use-apoyo-del-lienzo'
 import { useArrastreDeLaHoja } from '../../hooks/use-arrastre-de-la-hoja'
-import type { EdicionesDelDiseno } from '../../hooks/use-ediciones-del-diseno'
 import type { EditorDelDiseno } from '../../hooks/use-editor-del-diseno'
 import { MarcoEscalado } from './marco-escalado'
 import { CabeceraDelLienzo, TotalSueltoDelLienzo } from './piezas-fijas-del-lienzo'
-import { SIN_TITULO } from './seccion-en-el-lienzo'
 import { SeccionesDelLienzo } from './secciones-del-lienzo'
 import { SumarSeccion } from './sumar-seccion'
 
 type Props = {
   origen: { id: string; nombre: string }
   editor: EditorDelDiseno
-  ediciones: EdicionesDelDiseno
   // Los parámetros de la versión, para las cifras de prueba.
   params: unknown
   tonos: readonly Tono[]
@@ -62,22 +51,6 @@ function useContexto(hoja: HojaDeLaVistaPrevia, definicion: unknown, params: unk
   )
 }
 
-// Cómo se llama lo que se arrastra o lo que está debajo, para los anuncios del arrastre.
-function nombrePorId(
-  ids: IdsDelLienzo,
-  secciones: readonly SeccionDelLienzo[],
-  etiquetas: ReadonlyMap<string, string>,
-) {
-  const titulo = (id: string) => secciones.find((s) => s.id === id)?.titulo ?? SIN_TITULO
-  return (id: string) => {
-    if (id.startsWith(ID_DE_SECCION))
-      return `la sección «${titulo(id.slice(ID_DE_SECCION.length))}»`
-    if (id.startsWith(ID_DEL_FIN)) return `el final de «${titulo(id.slice(ID_DEL_FIN.length))}»`
-    const lugar = ids.lugares.get(id)
-    return lugar === undefined ? id : nombreDeLaPieza(lugar.clave, etiquetas)
-  }
-}
-
 // Lo que sigue al puntero mientras se arrastra: el nombre de la pieza o la sección (fuera del lienzo escalado, a tamaño real).
 function LoQueSeArrastra({ nombre }: { nombre: string | null }) {
   if (typeof document === 'undefined') return null
@@ -94,12 +67,12 @@ function LoQueSeArrastra({ nombre }: { nombre: string | null }) {
 }
 
 // El lienzo del editor de la hoja: la hoja dibujada con los componentes de `/cotizaciones/nuevo` a la vista elegida (escalada para entrar), con cifras de prueba.
-// Cada pieza se elige con un clic y se mueve arrastrándola (entre secciones también); cada sección, igual. La cabecera se elige; la tarjeta del total suelta, sólo si
-// todavía no está en una sección (un diseño de antes: su inspector la ubica). Debajo, «+ Sección principal» y «+ Sección avanzada».
+// Cada pieza se elige con un clic y se mueve arrastrándola a un lugar libre (de su sección o de otra); cada sección y el bloque «Avanzado», igual en la rejilla
+// de las secciones. La cabecera se elige; la tarjeta del total suelta, en el bloque, sólo si todavía no está en una sección (un diseño de antes: su inspector la
+// ubica). Debajo, «+ Sección principal» y «+ Sección avanzada».
 export function LienzoDeLaHoja({
   origen,
   editor,
-  ediciones,
   params,
   tonos,
   vista,
@@ -115,28 +88,28 @@ export function LienzoDeLaHoja({
   )
   const contexto = useContexto(hoja, definicion, params)
   const ids = useMemo(() => idsDelLienzo(trabajo), [trabajo])
-  const nombre = nombrePorId(ids, secciones, editor.nombresDeNodos)
+  const nombrar = useMemo(
+    () => nombrarEnLaHoja(trabajo, editor.nombresDeNodos),
+    [trabajo, editor.nombresDeNodos],
+  )
   const arrastre = useArrastreDeLaHoja({
     trabajo,
     ids,
     ocupado: editor.ocupado,
-    nombreDe: nombre,
-    alMover: (clave, destino) => {
-      const anuncio = editor.mover(clave, destino)
+    nombrar,
+    alSoltar: (p, caida) => {
+      const anuncio = editor.soltar(p, caida)
       if (anuncio !== null) alAnunciar(anuncio)
     },
-    alMoverSeccion: ediciones.moverSeccion,
+    alAnunciar,
   })
   const apoyo = useApoyoDelLienzo({
     editor,
-    ediciones,
     contexto,
     elegida,
     elegir,
-    arrastre: {
-      activo: arrastre.activo === null ? null : (ids.lugares.get(arrastre.activo) ?? null),
-      destino: arrastre.destino,
-    },
+    nombrar,
+    arrastre,
     alAnunciar,
   })
   return (
@@ -149,16 +122,16 @@ export function LienzoDeLaHoja({
           <SeccionesDelLienzo
             secciones={secciones}
             ids={ids}
-            sobre={arrastre.seccionDestino}
-            activo={arrastre.activo}
+            avanzado={trabajo.avanzado}
+            totalSuelto={
+              dondeVaElTotal(trabajo) === null ? (
+                <TotalSueltoDelLienzo hoja={hoja} contexto={contexto} apoyo={apoyo} />
+              ) : null
+            }
             apoyo={apoyo}
-            editor={editor}
           />
-          <LoQueSeArrastra nombre={arrastre.activo === null ? null : nombre(arrastre.activo)} />
+          <LoQueSeArrastra nombre={arrastre.nombre} />
         </DndContext>
-        {dondeVaElTotal(trabajo) === null ? (
-          <TotalSueltoDelLienzo hoja={hoja} contexto={contexto} apoyo={apoyo} />
-        ) : null}
         <SumarSeccion
           ocupado={editor.ocupado}
           alSumar={(presentacion) => {

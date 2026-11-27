@@ -81,7 +81,7 @@ export function useEditorDeLaHoja({
       const seccion = secciones.find((s) => s.presentacion === 'principal') ?? secciones[0]
       if (seccion === undefined) return
       const item = itemParaSumar(editor.definicion, fila.tipo, fila.nodo)
-      editor.sumar(seccion.id, seccion.items.length, item)
+      editor.sumar(seccion.id, item)
       const pieza = piezaDelItemDeLaHoja(item)
       elegir(pieza)
       enfocarLaPieza(textoDeLaPieza(pieza))

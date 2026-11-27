@@ -8,6 +8,7 @@ import {
   correoDePrueba,
   crearDuenaDePrueba,
 } from './soporte/base'
+import { arrastrarEnElLienzo } from './soporte/arrastre-del-lienzo'
 import { barraDeLaFormula } from './soporte/barra-de-la-formula'
 import { borrarOrigenesDeCotizar, crearOrigenDeCotizar } from './soporte/cotizar-formula'
 import { leerElBorradorDelDiseno, publicarFormulaDeTresSumandos } from './soporte/diseno-editor'
@@ -17,8 +18,8 @@ import { abrirLaFormula } from './soporte/rutas-de-la-formula'
 
 // El editor de la hoja (docs/UX.md › «Cotización: hoja (estados propios)»; docs/GLOSARIO.md › «Inspector de la hoja»): la hoja de verdad en el lienzo, cada pieza
 // elegida en él (`?pieza=`) y editada en el inspector. Un recorrido en escritorio sobre la fórmula de tres sumandos (Base: Precio y Flete · Extras: Aduana ·
-// Resumen: Total): el rótulo, arrastrar a otra sección con su aviso de nivel, el ancho con el borde y con Alt+→, la tarjeta del total como pieza publicada desde
-// la barra, quitar y volver a sumar desde «Sin lugar en la hoja», un nivel creado desde el inspector y salir con cambios.
+// Resumen: Total): el rótulo, arrastrar a un lugar libre de otra sección con su aviso de nivel, el ancho con el borde y con Alt+Shift+→, la tarjeta del total
+// como pieza publicada desde la barra, quitar y volver a sumar desde «Sin lugar en la hoja», un nivel creado desde el inspector y salir con cambios.
 test.describe.configure({ mode: 'serial' })
 
 let duena = ''
@@ -71,19 +72,6 @@ async function guardarElBorrador(page: Page) {
   await expect(estado(page)).toHaveText('Se guardó el borrador.')
 }
 
-// Arrastra una pieza (por su esquina: elegida, su «+» cae sobre su centro) sobre otra y suelta cuando la marca dice que cae antes de ella.
-async function arrastrarAntesDe(page: Page, pieza: string, destino: string) {
-  await boton(page, pieza).hover({ position: { x: 12, y: 6 } })
-  await page.mouse.down()
-  await boton(page, pieza).hover({ position: { x: 40, y: 6 }, force: true })
-  await boton(page, destino).hover({ force: true })
-  await expect(lienzo(page).locator(`[data-pieza="${destino}"]`)).toHaveAttribute(
-    'data-destino',
-    'antes',
-  )
-  await page.mouse.up()
-}
-
 const piezasDe = (page: Page, id: string) =>
   seccion(page, id)
     .locator('[data-rejilla-de-celdas] > [data-pieza]')
@@ -107,18 +95,22 @@ test('E1: elige una celda, cambia su rótulo y guarda el borrador con la definic
   expect(definicion?.nodos.find((n) => n.id === 'precio')?.etiqueta).toBe('Precio de subasta')
 })
 
-test('E2: arrastra una celda a otra sección y el inspector avisa el nivel', async ({ page }) => {
+test('E2: arrastra una celda a un lugar libre de otra sección y el inspector avisa el nivel', async ({
+  page,
+}) => {
   await abrirElEditor(page)
   await elegir(page, 'seccion-extras')
   await inspector(page).getByLabel('Quién la ve').selectOption('costos')
   // El aviso de lo que se deduce sube el lienzo: se arrastra con él ya dibujado.
   await expect(page.locator('[data-avisos-del-diseno]')).toContainText('puede deducir «Aduana»')
   await elegir(page, 'flete')
-  await arrastrarAntesDe(page, 'flete', 'aduana')
-  await expect.poll(() => piezasDe(page, 'extras')).toEqual(['flete', 'aduana'])
+  // Debajo de «Aduana», en la fila del «+» de «Extras»: un lugar libre.
+  const hueco = seccion(page, 'extras').locator('[data-hueco-para-sumar]')
+  await arrastrarEnElLienzo(page, 'flete', hueco, { marca: 'libre' })
+  await expect.poll(() => piezasDe(page, 'extras')).toEqual(['aduana', 'flete'])
   await expect.poll(() => piezasDe(page, 'base')).toEqual(['precio'])
   await expect(page.locator('[data-anuncio-de-la-hoja]')).toHaveText(
-    'Moviste «Flete» a «Extras», posición 1 de 2.',
+    'Moviste «Flete» a «Extras», columna 1, fila 2.',
   )
   await expect(inspector(page)).toHaveAttribute('data-pieza', 'flete')
   await expect(inspector(page).locator('[data-aviso-de-nivel]')).toContainText(
@@ -126,21 +118,24 @@ test('E2: arrastra una celda a otra sección y el inspector avisa el nivel', asy
   )
   await guardarElBorrador(page)
   const extras = leerElBorradorDelDiseno(origen.id)?.diseno.secciones.find((s) => s.id === 'extras')
-  expect(extras?.items.map((i) => i.nodo)).toEqual(['flete', 'aduana'])
+  expect(extras?.items.map((i) => [i.nodo, i.posicion])).toEqual([
+    ['aduana', { columna: 1, fila: 1 }],
+    ['flete', { columna: 1, fila: 2 }],
+  ])
 })
 
-test('E3: cambia el ancho con el borde y con Alt+→', async ({ page }) => {
+test('E3: cambia el ancho con el borde y con Alt+Shift+→', async ({ page }) => {
   await abrirElEditor(page)
   await elegir(page, 'precio')
   const ancho = inspector(page).getByLabel('Ancho', { exact: true })
   await expect(ancho).toHaveValue('12')
   // El borde derecho llevado hasta la mitad de la pieza: la mitad de la rejilla.
-  const borde = page.locator('[data-borde-de-ancho]')
+  const borde = page.locator('[data-borde-del-tamano="derecho"]')
   await expect(borde).toHaveAccessibleName('Ancho de «Precio de subasta»: 12 de 12 columnas')
   await borde.dragTo(boton(page, 'precio'), { steps: 10, force: true })
   await expect(ancho).toHaveValue('6')
   await boton(page, 'precio').focus()
-  await page.keyboard.press('Alt+ArrowRight')
+  await page.keyboard.press('Alt+Shift+ArrowRight')
   await expect(ancho).toHaveValue('7')
   await guardarElBorrador(page)
   const base = leerElBorradorDelDiseno(origen.id)?.diseno.secciones.find((s) => s.id === 'base')

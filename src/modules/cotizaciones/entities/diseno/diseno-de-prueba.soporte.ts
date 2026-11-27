@@ -1,6 +1,7 @@
 // La fórmula y el diseño mínimos que comparten las pruebas de `entities/diseno/`: un total que suma tres sumandos (a, b y c), una
 // comisión con su porcentaje, una resta y una variante. El diseño dibuja todo menos `libre`; cada prueba lo cambia con `ponerSeccion()`.
-import { esquemaDiseno, type Diseno, type ItemDeDiseno, type SeccionDeDiseno } from '../diseno'
+import { esquemaDiseno, type Diseno } from '../diseno'
+import type { ItemSinPosicion, SeccionSinPosicion } from '../diseno-sin-posicion'
 import { esquemaDefinicion, type Definicion } from '../formula'
 
 export const formulaDePrueba: Definicion = esquemaDefinicion.parse({
@@ -39,10 +40,11 @@ export const formulaDePrueba: Definicion = esquemaDefinicion.parse({
   ],
 })
 
+// Las piezas se escriben sin posición (como un diseño de flujo): `disenoDe()` las convierte a la rejilla al leerlas, como la base.
 export const celda = (
   nodo: string,
-  extra: Partial<Extract<ItemDeDiseno, { tipo: 'celda' }>> = {},
-): ItemDeDiseno => ({
+  extra: Partial<Extract<ItemSinPosicion, { tipo: 'celda' }>> = {},
+): ItemSinPosicion => ({
   tipo: 'celda',
   nodo,
   ancho: 'completo',
@@ -51,18 +53,31 @@ export const celda = (
 
 export const seccion = (
   id: string,
-  items: ItemDeDiseno[],
-  extra: Partial<SeccionDeDiseno> = {},
-): SeccionDeDiseno => ({
+  items: ItemSinPosicion[],
+  extra: Partial<SeccionSinPosicion> = {},
+): SeccionSinPosicion => ({
   id,
   presentacion: 'principal',
   items,
   ...extra,
 })
 
-export const disenoDe = (secciones: SeccionDeDiseno[]): Diseno =>
+// Una posición para una pieza de un diseño de rejilla: `celda('a', en(7, 1))`. Un diseño con una sola posición ya es de rejilla y las pide todas.
+export const en = (columna: number, fila: number) => ({ posicion: { columna, fila } })
+
+export const disenoDe = (secciones: SeccionSinPosicion[], avanzado?: { fila: number }): Diseno =>
   esquemaDiseno.parse({
     cabecera: { modos: [], ver_total_bs: false },
     secciones,
     tarjeta_total: { nodo: 'total', secundarios: [] },
+    ...(avanzado === undefined ? {} : { avanzado }),
   })
+
+// Un diseño de rejilla para las pruebas de mover y medir: «base» (columnas 1 a 6) con a y b lado a lado y c debajo; «extra» (7 a 12) con neto; el bloque
+// «Avanzado» en la fila 2 y «av» en su lista.
+export const disenoDeRejillaDePrueba = (): Diseno =>
+  disenoDe([
+    seccion('base', [celda('a', { ancho: 'mitad' }), celda('b', { ancho: 'mitad' }), celda('c')]),
+    seccion('extra', [celda('neto')]),
+    seccion('av', [celda('comision')], { presentacion: 'avanzado' }),
+  ])

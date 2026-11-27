@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { Diseno } from './diseno'
+import { type Diseno } from './diseno'
+import { enRejilla } from './diseno-sin-posicion'
 import type { Nodo } from './nodos'
 import { nodosDelDiseno } from './nodos-del-diseno'
 
@@ -24,7 +25,7 @@ const NODOS = [
   },
 ] as Nodo[]
 
-const DISENO: Diseno = {
+const DISENO: Diseno = enRejilla({
   cabecera: {
     modos: [
       {
@@ -49,7 +50,7 @@ const DISENO: Diseno = {
     },
   ],
   tarjeta_total: { nodo: 'total', secundarios: ['garantia'] },
-}
+})
 
 describe('nodosDelDiseno', () => {
   it('junta los ítems (también los atajos), el pct de una celda con secundario, los modos y el resumen', () => {

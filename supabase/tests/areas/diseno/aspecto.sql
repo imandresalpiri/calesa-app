@@ -221,10 +221,10 @@ begin
   if r ? 'error' then raise exception 'la hoja: %', r; end if;
   v_sec := jsonb_path_query_first(r, 'strict $.secciones[*] ? (@.id == "compra")');
   if (select array_agg(k order by k) from jsonb_object_keys(v_sec) k)
-     is distinct from array['alto', 'ancho', 'densidad', 'enfasis', 'id', 'items', 'letra', 'presentacion', 'relleno', 'separacion', 'titulo', 'tono'] then
+     is distinct from array['alto', 'ancho', 'densidad', 'enfasis', 'id', 'items', 'letra', 'posicion', 'presentacion', 'relleno', 'separacion', 'titulo', 'tono'] then
     raise exception 'las claves de una sección con aspecto: %', (select array_agg(k order by k) from jsonb_object_keys(v_sec) k);
   end if;
-  if v_sec - 'items' - 'id' - 'titulo' - 'presentacion' is distinct from
+  if v_sec - 'items' - 'id' - 'titulo' - 'presentacion' - 'posicion' is distinct from
      '{"ancho": 8, "alto": 2, "relleno": "chico", "separacion": "grande", "densidad": "compacta", "letra": "chica", "enfasis": "fuerte", "tono": "asp_compra"}'::jsonb then
     raise exception 'el aspecto de la sección: %', v_sec - 'items';
   end if;
@@ -287,7 +287,7 @@ begin
 end $$;
 rollback;
 
--- @test aspecto: la hoja de la semilla (subasta_usa) no trae ninguna clave de aspecto: las mismas claves de siempre (y el ⚙ de la cabecera)
+-- @test aspecto: la hoja de la semilla (subasta_usa) no trae ninguna clave de aspecto: las mismas claves de siempre más la posición (y el ⚙ de la cabecera)
 begin;
 do $$
 declare
@@ -302,7 +302,7 @@ begin
     raise exception 'la cabecera de la semilla: %', r -> 'cabecera';
   end if;
   if exists (select 1 from jsonb_path_query(r, 'strict $.secciones[*]') x
-              where (select array_agg(k order by k) from jsonb_object_keys(x) k) not in (array['id', 'items', 'presentacion', 'titulo'], array['id', 'items', 'presentacion'])) then
+              where (select array_agg(k order by k) from jsonb_object_keys(x) k) not in (array['id', 'items', 'posicion', 'presentacion', 'titulo'], array['id', 'items', 'posicion', 'presentacion'])) then
     raise exception 'una sección de la semilla trae otras claves';
   end if;
   if exists (select 1 from jsonb_path_query(r, 'strict $.secciones[*].items[*]') i where i ? 'alto' or i ? 'letra' or i ? 'enfasis' or (i ->> 'tipo' <> 'celda' and i ? 'ancho')) then

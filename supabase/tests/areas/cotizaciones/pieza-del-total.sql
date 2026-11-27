@@ -5,8 +5,8 @@
 --
 -- Qué asegura:
 --   P1. `cotizacion_hoja` manda la pieza a todos (con y sin el nivel de la sección reservada) en su sección y su lugar, como {tipo, nodo, etiqueta, formato} más
---       su aspecto, una sola vez; en una sección propia, la sección viaja con ella y sin sus niveles.
---   P2. Sin la pieza, la respuesta es la misma menos la pieza, para quien tiene el nivel y para quien no.
+--       su aspecto y su posición, una sola vez; en una sección propia, la sección viaja con ella y sin sus niveles.
+--   P2. Sin la pieza, la respuesta es la misma menos la pieza (lo demás queda en su lugar de la rejilla), para quien tiene el nivel y para quien no.
 --   P3. Con una variante en par la pieza no viaja: la respuesta es la del diseño sin ella, y ninguna sección viaja vacía.
 
 -- La primera persona de la base es la dueña (la crea `humo.sql`; sola, este archivo la crea): las de las pruebas tienen que ser las siguientes.
@@ -54,7 +54,7 @@ end $f$;
 
 -- Un origen con su fórmula publicada: la variante `v` (en par con `p_en_par`), `precio` y `flete` abiertos, `reservado` en una sección que sólo ve «costos»
 -- y el total que los suma. `p_total` dice dónde va la pieza: 'datos' (entre precio y flete, con todo su aspecto), 'sola' (en una sección propia, sin aspecto,
--- que se ve abierta y se edita con «costos») o nulo (sin pieza).
+-- que se ve abierta y se edita con «costos») o nulo (sin pieza: el de 'datos' en la rejilla y sin ella, con lo demás en su lugar).
 create or replace function pg_temp.pt_terreno(p_total text, p_en_par boolean default false) returns uuid language plpgsql as $f$
 declare o uuid; v_def jsonb; v_dis jsonb; v_datos jsonb; v_secs jsonb;
 begin
@@ -71,7 +71,7 @@ begin
                          'salida', 'total', 'bucket', 'origen')),
     'buckets', jsonb_build_object('origen', 'tc'));
   v_datos := jsonb_build_array(jsonb_build_object('tipo', 'variante', 'nodo', 'v'), jsonb_build_object('tipo', 'celda', 'nodo', 'precio', 'ancho', 'mitad'))
-          || case when p_total = 'datos' then '[{"tipo": "total", "ancho": 4, "alto": 2, "letra": "grande", "enfasis": "fuerte"}]'::jsonb else '[]'::jsonb end
+          || case when coalesce(p_total, 'datos') = 'datos' then '[{"tipo": "total", "ancho": 4, "alto": 2, "letra": "grande", "enfasis": "fuerte"}]'::jsonb else '[]'::jsonb end
           || jsonb_build_array(jsonb_build_object('tipo', 'celda', 'nodo', 'flete', 'ancho', 'mitad'));
   v_secs := jsonb_build_array(jsonb_build_object('id', 'datos', 'titulo', 'Datos', 'presentacion', 'principal', 'items', v_datos))
          || case when p_total = 'sola'
@@ -80,6 +80,11 @@ begin
                                                  'items', '[{"tipo": "celda", "nodo": "reservado", "ancho": "completo"}]'::jsonb));
   v_dis := jsonb_build_object('cabecera', jsonb_build_object('ver_total_bs', false, 'modos', '[]'::jsonb), 'secciones', v_secs,
                               'tarjeta_total', jsonb_build_object('nodo', 'total', 'secundarios', '[]'::jsonb));
+  if p_total is null then
+    v_dis := public._diseno_en_rejilla(v_dis);
+    v_dis := jsonb_set(v_dis, '{secciones,0,items}', (select jsonb_agg(x.i order by x.o) from jsonb_array_elements(v_dis -> 'secciones' -> 0 -> 'items') with ordinality x (i, o)
+                                                       where x.i ->> 'tipo' is distinct from 'total'));
+  end if;
   insert into public.origenes (clave, nombre) values ('pt_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 20), 'pt origen ' || substr(gen_random_uuid()::text, 1, 8)) returning id into o;
   insert into public.formulas (origen_id, version, estado, definicion, params, diseno, visibilidad)
   values (o, 1, 'publicada', v_def, '{}', v_dis, public._preparar_publicacion(v_def, '{}'::jsonb, v_dis, false));
@@ -101,7 +106,7 @@ create or replace function pg_temp.pt_comparable(p jsonb, p_sin_pieza boolean) r
       from jsonb_array_elements(p -> 'secciones') with ordinality s (v, o)), '[]'::jsonb))
 $f$;
 
--- @test pieza del total: P1 viaja a todos en su sección y su lugar, con el nodo de la tarjeta y su aspecto; en una sección propia, la sección viaja sin sus niveles
+-- @test pieza del total: P1 viaja a todos en su sección y su lugar, con el nodo de la tarjeta, su aspecto y su posición; en una sección propia, la sección viaja sin sus niveles
 begin;
 do $$
 declare
@@ -109,7 +114,8 @@ declare
   sin uuid := pg_temp.pt_persona(array['cotizaciones.ver', 'cotizaciones.crear', 'cotizaciones.editar']);
   con uuid := pg_temp.pt_persona(array['cotizaciones.ver', 'cotizaciones.crear', 'cotizaciones.editar', 'cotizaciones.nivel.costos.ver', 'cotizaciones.nivel.costos.editar']);
   v_quien uuid; r jsonb; v_con boolean;
-  v_pieza constant jsonb := '{"tipo": "total", "nodo": "total", "etiqueta": "Total PT", "formato": "usd", "ancho": 4, "alto": 2, "letra": "grande", "enfasis": "fuerte"}';
+  v_pieza constant jsonb := '{"tipo": "total", "nodo": "total", "etiqueta": "Total PT", "formato": "usd", "ancho": 4, "alto": 2, "letra": "grande", "enfasis": "fuerte",
+                                "posicion": {"columna": 7, "fila": 2}}';
   v_abierta constant text[] := array['datos/variante:v', 'datos/celda:precio', 'datos/total:total', 'datos/celda:flete'];
 begin
   foreach v_quien in array array[sin, con] loop
@@ -126,7 +132,8 @@ begin
     -- En una sección propia (ver abierto, editar con «costos»): la sección viaja con la pieza sola, sin su nivel ni título, igual para los dos.
     r := pg_temp.pt_hoja(v_quien, o_sola);
     if r ? 'error' then raise exception 'P1: no hay hoja con la pieza sola (con el nivel: %): %', v_con, r; end if;
-    if r -> 'secciones' -> 1 is distinct from '{"id": "resumen", "presentacion": "principal", "items": [{"tipo": "total", "nodo": "total", "etiqueta": "Total PT", "formato": "usd"}]}'::jsonb then
+    if r -> 'secciones' -> 1 is distinct from '{"id": "resumen", "presentacion": "principal", "posicion": {"columna": 7, "fila": 1},
+                                           "items": [{"tipo": "total", "nodo": "total", "etiqueta": "Total PT", "formato": "usd", "posicion": {"columna": 1, "fila": 1}}]}'::jsonb then
       raise exception 'P1: la sección de la pieza sola (con el nivel: %): %', v_con, r -> 'secciones' -> 1;
     end if;
     if pg_temp.pt_items(r) is distinct from (array['datos/variante:v', 'datos/celda:precio', 'datos/celda:flete', 'resumen/total:total']

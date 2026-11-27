@@ -1,11 +1,13 @@
 'use client'
 
-import { useDroppable } from '@dnd-kit/core'
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/shared/ui/button'
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from '@/shared/ui/popover'
 import type { OfertaParaSumar, TipoParaSumar } from '../../../../entities/diseno/ofertas-para-sumar'
+import type { Corte } from '../../../../entities/rejilla-de-la-hoja'
+import { estiloDelItem } from '../../../hoja/components/clases-de-la-posicion'
+import { claseDelItem } from '../../../hoja/components/clases-de-la-rejilla'
 import { A_TAMANO_REAL } from './marco-escalado'
 
 const RENGLON = 'min-h-11 w-full justify-start text-left whitespace-normal md:min-h-8'
@@ -124,23 +126,21 @@ export function MenuParaSumar({ etiqueta, disparador, ofertas, ocupado, alSumar 
 }
 
 type Props = Omit<PropsDelMenu, 'etiqueta' | 'disparador'> & {
-  // El id del arrastre del final de la sección.
-  idDelFin: string
-  // Si lo que se arrastra caería aquí.
-  destino: boolean
+  // Su fila (la que sigue a la última ocupada) y el corte de la rejilla de la sección; sin corte, va al final en orden de lectura.
+  fila: number
+  corte: Corte | 'siempre' | undefined
 }
 
 export const SUMAR_AQUI = 'Sumar una pieza aquí'
 
-// El final de una sección del lienzo: su «+» («Sumar una pieza aquí») y el lugar donde cae lo que se suelta al final (o en una sección vacía).
-export function HuecoParaSumar({ idDelFin, destino, ...menu }: Props) {
-  const { setNodeRef } = useDroppable({ id: idDelFin })
+// El final de una sección del lienzo: su «+» («Sumar una pieza aquí»), a lo ancho en la fila siguiente a la última ocupada (nunca encima de una pieza).
+export function HuecoParaSumar({ fila, corte, ...menu }: Props) {
+  const lugar = { tipo: 'total', ancho: 12, posicion: { columna: 1, fila } } as const
   return (
     <div
-      ref={setNodeRef}
       data-hueco-para-sumar=""
-      data-destino={destino ? '' : undefined}
-      className={`col-span-12 min-w-0 rounded-(--radius-md) ${destino ? 'outline-2 outline-(--color-accent)' : ''}`}
+      style={estiloDelItem(lugar, corte)}
+      className={`${claseDelItem(lugar, corte)} min-w-0 rounded-(--radius-md)`}
     >
       <MenuParaSumar etiqueta={SUMAR_AQUI} disparador="hueco" {...menu} />
     </div>

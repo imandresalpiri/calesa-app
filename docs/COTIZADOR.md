@@ -445,7 +445,7 @@ fórmula de trabajo.
 (`entities/validar-diseno.ts`, sobre el Zod de `entities/diseno.ts`) y `validar_diseno()` en la base, con juego
 (`entities/casos-de-diseno.json`) y corpus. **Declarativo:** nada de CSS, clases, HTML ni hex.
 Forma: `{ cabecera: {modos[], ver_total_bs, …aspecto, modo_por_defecto?, ver_total_bs_por_defecto?, modos_visibles?}, secciones[],
-tarjeta_total: {nodo, secundarios[]} }`.
+tarjeta_total: {nodo, secundarios[]}, avanzado?: {fila} }`.
 
 - **`cabecera.modos[]`** `{clave, nombre, buckets: [{bucket, nodo}], total_en}`: nombra **nodos `tipo_cambio`** (no claves) y llena
   **exactamente** los buckets de la fórmula; no hay modos en una fórmula sin `total_en`.
@@ -454,8 +454,21 @@ tarjeta_total: {nodo, secundarios[]} }`.
   `modos_visibles` (las claves de los modos que se dibujan en el encabezado, en cualquier orden; sin la lista, todos). Una guardada abre con
   lo suyo, y **el modo que tiene elegido se dibuja aunque no esté entre los visibles**: la visibilidad es del encabezado, no una regla de
   guardado (`_cotizacion_modo` acepta cualquier modo del diseño).
-- **`secciones[]`, en orden** (el del DOM, de lectura y del `Tab`): `id`, `titulo?`, `presentacion` (`principal`/`avanzado`),
-  `nivel_ver?`/`nivel_editar?` (los heredan sus ítems), `items[]`. Las `avanzado` van juntas en **un** modal «Avanzado».
+- **`secciones[]`:** `id`, `titulo?`, `presentacion` (`principal`/`avanzado`), `posicion`, `nivel_ver?`/`nivel_editar?` (los heredan sus ítems),
+  `items[]`. Las `avanzado` van juntas en **un** modal «Avanzado», en el orden de la lista; su `posicion` sólo las ordena.
+- **La rejilla** (`docs/GLOSARIO.md` › «Rejilla de la hoja», `entities/rejilla-de-la-hoja.ts`): cada sección y cada ítem lleva
+  `posicion: {columna, fila}` (columna 1 a 12, fila 1 a 200), dónde empieza en su rejilla: las principales en la de las secciones, los ítems en la de
+  su sección. Ocupa `ancho` columnas y `alto` filas desde ahí (el `alto` vale también a 12 columnas). **Los huecos se respetan y nada se corre
+  solo:** una fila sin ninguna pieza mide 2,5 rem. `avanzado.fila` es la fila entera del **bloque «Avanzado»** (el total suelto, el botón y el cierre);
+  sin la clave, va debajo de la última. Una sección sin `ancho` es «Automática»: 6 columnas desde 64 rem del contenedor de las secciones. **El corte
+  de la rejilla:** cada pieza de N columnas pide que le toquen 16 rem (`corteDe()`) y la rejilla entera dibuja las posiciones desde el corte de la más
+  exigente (`corteDeLaRejilla()`); por debajo, como al 200 %, apila sus piezas en **orden de lectura** (fila y luego columna), que es también el del DOM,
+  el del `Tab` y el del lector de pantalla.
+- **La conversión al leer:** un diseño sin ninguna `posicion` ni `avanzado` es de flujo (lo escribe `_fdo_formula_en_blanco()` y lo traen las
+  versiones de antes) y se lee en la rejilla con el **mismo dibujo** que le daba el flujo a lo ancho de escritorio (`disenoEnRejilla()`, espejo de
+  `_diseno_en_rejilla()`, con el juego `entities/casos-de-rejilla.json`, 210 casos): cada pieza, en el lugar que CSS le daba sin `dense`
+  (`colocarEnFlujo()`); el bloque, en la fila donde aparecía la primera avanzada, y sin el `alto` que a 12 columnas no hacía nada. Es idempotente y
+  tolerante (lo que no tiene forma lo rechaza la forma), y ninguna versión guardada se reescribe: el editor guarda la rejilla al guardar.
 - **`items`:** `celda` (`nodo`, `ancho`, `secundario?`, `ayuda?` = de 1 a 8 **bloques** en orden (`docs/GLOSARIO.md` › «Bloque de la ayuda»):
   `titulo`, `texto` (con saltos de línea y `**negrita**`, lo único que se interpreta), `enlaces` (de 1 a 5 `{titulo, url}` —título de 1 a 60
   caracteres, URL `https://` de hasta 2000—) y hasta 3 `tabla` (`{tabla, columnas?: [{columna, llena?}], resaltar?}`: sin `columnas`, todas las de
@@ -475,8 +488,8 @@ tarjeta_total: {nodo, secundarios[]} }`.
   `densidad` (`compacta`|`comoda`), `letra`, `enfasis` y `tono` (una clave del catálogo). Cabecera: `tono`, `relleno`, `letra` y `enfasis`
   (no lleva ancho ni alto: va sola en su fila). Los enteros se leen como JS (`0.99999999999999999` es 1). La tarjeta suelta (sin la pieza) no lleva
   aspecto; la pieza `total`, el de todo ítem.
-  Lo dibuja la **rejilla de la hoja** (`entities/rejilla-de-la-hoja.ts`, clases en `features/hoja/components/clases-de-la-rejilla.ts`): una
-  pieza de N columnas toma su ancho cuando le tocan 16 rem; el PDF y la tarjeta no lo siguen.
+  Lo dibuja la **rejilla de la hoja** (arriba; clases en `features/hoja/components/clases-de-la-rejilla.ts` y `clases-de-la-posicion.ts`); el PDF y
+  la tarjeta no lo siguen.
 - **`tarjeta_total`:** el nodo total y sus `secundarios` (`aparte`). Un nodo aparece a lo sumo una vez. Nivel efectivo de un ítem: el
   suyo (sólo la celda), si no el de su sección, si no `todos`. El diseño no lleva `solo_en`. **El tono de una celda es el del grupo de la
   fórmula** (`definicion.grupos[].tono`); el de una sección pinta su borde y sus celdas sin grupo, sus franjas y sus chips (no su fondo ni sus
@@ -486,7 +499,7 @@ tarjeta_total: {nodo, secundarios[]} }`.
 
 **Primero la forma (`forma`)**, el Zod de `diseno.ts`; **después, el tamaño (`demasiados_items`)**: a lo sumo 40 ítems sumando todas las
 secciones (principal o avanzado; la cabecera y `tarjeta_total` no cuentan, la pieza `total` sí), con `donde` = la sección en la que la suma pasa del tope
-(`MAXIMO_DE_ITEMS_DEL_DISENO`; en la base, `_diseno_maximo_de_items()`). El borrador lo admite; publicar lo rechaza. **Después, 40 reglas
+(`MAXIMO_DE_ITEMS_DEL_DISENO`; en la base, `_diseno_maximo_de_items()`). El borrador lo admite; publicar lo rechaza. **Después, 42 reglas
 cruzadas** con código estable (lista en `entities/motivos-de-diseno.ts`; `donde` = id del nodo, sección, modo o grupo; en la base,
 `hint`), en pasadas: §1 los modos; §1b lo que la cabecera trae por defecto, todas con `donde` = `cabecera` y en este orden:
 `modo_por_defecto_inexistente`, cada modo visible en orden (`modo_visible_inexistente` y después `modo_visible_repetido`),
@@ -494,7 +507,10 @@ cruzadas** con código estable (lista en `entities/motivos-de-diseno.ts`; `donde
 `ver_total_bs_por_defecto_no_ofrecido` (encendido sin `ver_total_bs`; apagado siempre vale); §2–5 las secciones, la tarjeta, los atajos y la
 cobertura (en §2, la pieza `total` se revisa entera antes de buscar un nodo, con `donde` = su sección: `total_repetido` —una sola en el
 diseño—, `total_en_avanzado` —sólo en una sección principal— y `total_con_nivel` —su sección no lleva `nivel_ver`: la ven todos—; no es el
-dibujo de un nodo, así que no cuenta para `nodo_repetido`, los atajos ni la cobertura); §6 `tono_inexistente`, que revisa el tono de cada grupo, después el de la cabecera (`donde` = `cabecera`) y después el de cada
+dibujo de un nodo, así que no cuenta para `nodo_repetido`, los atajos ni la cobertura; también en §2, **la geometría** (`validar-diseno-rejilla.ts`),
+la sección tras sus reglas y cada ítem tras las suyas: `pieza_fuera_de_la_rejilla` —se sale de las 12 columnas o de las 200 filas— y
+`piezas_se_pisan` —la primera, en el orden de la lista, que cae sobre una celda ocupada—, con una ocupación para las principales (con la fila del
+bloque ya marcada), otra para las avanzadas y otra por sección; `donde` = el nodo, o la sección si la pieza es ella o la tarjeta del total); §6 `tono_inexistente`, que revisa el tono de cada grupo, después el de la cabecera (`donde` = `cabecera`) y después el de cada
 sección (`donde` = su id); §7 la ayuda, celda por celda en el orden del diseño y bloque por bloque (`revisarAyudas()`, espejo de
 `_diseno_ayudas()`; `donde` = el nodo de la celda): `ayuda_enlace_no_https` (la URL de un enlace cumple `^https://[!-~]+$`, ASCII imprimible sin
 espacios, la misma clase en JS y en Postgres: `URL_DE_ENLACE`); **sólo con el catálogo de tablas del origen** (el que trae publicar a mano,
@@ -503,7 +519,9 @@ espacios, la misma clase en JS y en Postgres: `URL_DE_ENLACE`); **sólo con el c
 `ayuda_llena_no_acepta_valor` (lo que `llena` nombra es un nodo con celda en el diseño —o el porcentaje de una con secundario— que la hoja deja
 escribir: un dato que se tipea, una constante o un cálculo que se puede pisar; un tipo de cambio, no). Sin catálogo (el borrador, la N+1 de una
 tabla, el ⚙, revertir) esas dos no corren: la N+1 de una tabla publica aunque la ayuda nombre una columna que ya no está, y el editor lo marca en el
-bloque. La forma de un bloque (los tipos, los topes, los largos, una columna repetida en el bloque) es `forma`. Las de nivel: `nivel_no_admitido` (el total, lo `aparte` o la variante con nivel efectivo de ver que no es «todos»: la base
+bloque. La forma de un bloque (los tipos, los topes, los largos, una columna repetida en el bloque) es `forma`; la de la
+posición, también: en la base, D100–D103 (la de una sección), D104–D105 (`avanzado`) y D106–D109 (la de un ítem), con el mismo campo que Zod
+(`diseno.secciones.0.posicion.columna`). El juego `casos-de-diseno.json` tiene 506 casos, una regla por caso. Las de nivel: `nivel_no_admitido` (el total, lo `aparte` o la variante con nivel efectivo de ver que no es «todos»: la base
 siempre manda el total y lo `aparte`) y `editar_sin_ver` (ver restringido con editar ausente o «todos»; **ver abierto con editar
 restringido vale**). El primero que falla manda. **La definición llega ya validada.** `validar_diseno(def, diseno, niveles, retirados,
 tonos)`: STABLE, invoker, `search_path` vacío, 22023 con la regla en DETAIL y `donde` en HINT.
@@ -516,6 +534,8 @@ la pide.
 
 - **`formulas.diseno` y `formulas.visibilidad`** (jsonb): nulas sólo en un borrador. **Publicar exige el diseño** (22023
   `diseno_faltante`; `check` `formulas_publicada_con_diseno`, también en las archivadas).
+- **La rejilla:** `_diseno_en_rejilla(diseño)` (STABLE, invoker, `search_path` vacío, nunca lanza) convierte un diseño de flujo; la llaman primero
+  `_diseno_forma()`, `validar_diseno()` y `_cotizacion_hoja()`, que manda la `posicion` de cada pieza y `avanzado` con el aspecto.
 - **Guardar:** `formula_guardar_borrador(origen, definición, params, diseño, nota?, …)` valida la fórmula y sólo la **forma** del diseño.
   Desde la Hoja, la definición va con los rótulos y formatos que el inspector editó (`edicion-de-nodos.ts`; sin cambios, la leída).
   **Publicar** (`formula_publicar()` → `_publicar_formula()`; el ⚙ y revertir → `_publicar_version()`): toma el borrador `for update` y

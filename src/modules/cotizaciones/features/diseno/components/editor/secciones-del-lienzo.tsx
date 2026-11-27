@@ -1,80 +1,79 @@
 'use client'
 
-import { SortableContext } from '@dnd-kit/sortable'
+import { useDroppable } from '@dnd-kit/core'
+import type { ReactNode } from 'react'
+import type { Diseno } from '../../../../entities/diseno'
 import type { SeccionDelLienzo } from '../../../../entities/diseno/lienzo-de-la-hoja'
+import { rejillaDeLasSecciones } from '../../../../entities/posiciones-de-la-hoja'
+import { estiloDeLaRejillaDeSecciones } from '../../../hoja/components/clases-de-la-posicion'
 import {
+  claseDeLaRejillaDeSecciones,
   CONTENEDOR_DE_SECCIONES,
-  REJILLA_DE_SECCIONES,
 } from '../../../hoja/components/clases-de-la-rejilla'
-import { idDeLaSeccion, type IdsDelLienzo } from '../../hooks/ids-del-lienzo'
-import { vecinaDeLaSeccion, type ApoyoDelLienzo } from '../../hooks/use-apoyo-del-lienzo'
-import type { EditorDelDiseno } from '../../hooks/use-editor-del-diseno'
-import type { MarcaDeSoltar } from './marca-de-soltar'
+import {
+  ID_DE_LAS_SECCIONES,
+  type DatosDeDondeCae,
+  type IdsDelLienzo,
+} from '../../hooks/ids-del-lienzo'
+import type { ApoyoDelLienzo } from '../../hooks/use-apoyo-del-lienzo'
+import { BloqueDelLienzo } from './bloque-del-lienzo'
+import { MarcaEnLaRejilla } from './marca-en-la-rejilla'
 import { SeccionEnElLienzo } from './seccion-en-el-lienzo'
-
-// Dónde cae la sección que se arrastra sobre otra: después si viene de antes, antes si viene de después.
-function marcaDeLaSeccion(
-  secciones: readonly SeccionDelLienzo[],
-  activo: string | null,
-  sobre: string | null,
-  id: string,
-): MarcaDeSoltar {
-  if (activo === null || sobre !== idDeLaSeccion(id) || activo === sobre) return null
-  const indice = (x: string) => secciones.findIndex((s) => idDeLaSeccion(s.id) === x)
-  return indice(activo) < indice(sobre) ? 'despues' : 'antes'
-}
 
 export type PropsDeLasSecciones = {
   secciones: readonly SeccionDelLienzo[]
   ids: IdsDelLienzo
-  sobre: string | null
-  activo: string | null
+  // La fila del bloque «Avanzado» (`avanzado` del diseño).
+  avanzado: Diseno['avanzado']
+  // La tarjeta del total suelta (sin la pieza en una sección), o nada.
+  totalSuelto: ReactNode
   apoyo: ApoyoDelLienzo
-  editor: EditorDelDiseno
 }
 
-// Las secciones del lienzo: las principales en la rejilla de la hoja y, aparte, las que van detrás de «Avanzado». Una sola lista ordenable: el orden es el del
-// diseño.
+const CAE_UNA_PRINCIPAL: DatosDeDondeCae = { acepta: 'principal' }
+
+// Las secciones del lienzo en la rejilla de las secciones de la hoja: las principales en su lugar y el bloque «Avanzado» (la tarjeta del total suelta y las que
+// van detrás de «Avanzado») en su fila entera. La rejilla es donde cae una principal o el bloque que se arrastra, con su marca.
 export function SeccionesDelLienzo({
   secciones,
   ids,
-  sobre,
-  activo,
+  avanzado,
+  totalSuelto,
   apoyo,
-  editor,
 }: PropsDeLasSecciones) {
+  const { setNodeRef } = useDroppable({ id: ID_DE_LAS_SECCIONES, data: CAE_UNA_PRINCIPAL })
+  const avanzadas = secciones.filter((s) => s.presentacion === 'avanzado')
+  const hayBloque = avanzadas.length > 0 || totalSuelto !== null
+  const rejilla = rejillaDeLasSecciones(secciones, { avanzado, hayBloque })
   const dibujar = (s: SeccionDelLienzo) => (
     <SeccionEnElLienzo
       key={s.id}
       seccion={s}
       ids={ids.porSeccion.get(s.id) ?? []}
-      puedeMoverse={{
-        antes: vecinaDeLaSeccion(editor.trabajo, s.id, -1) !== null,
-        despues: vecinaDeLaSeccion(editor.trabajo, s.id, 1) !== null,
-      }}
-      marca={marcaDeLaSeccion(secciones, activo, sobre, s.id)}
+      corte={rejilla?.corte}
       apoyo={apoyo}
     />
   )
-  const avanzadas = secciones.filter((s) => s.presentacion === 'avanzado')
   return (
-    <SortableContext items={secciones.map((s) => idDeLaSeccion(s.id))}>
-      <div data-secciones="" className={CONTENEDOR_DE_SECCIONES}>
-        <div className={REJILLA_DE_SECCIONES}>
-          {secciones.filter((s) => s.presentacion === 'principal').map(dibujar)}
-        </div>
+    <div data-secciones="" className={CONTENEDOR_DE_SECCIONES}>
+      <div
+        ref={setNodeRef}
+        data-rejilla={ID_DE_LAS_SECCIONES}
+        style={estiloDeLaRejillaDeSecciones(rejilla?.filas)}
+        className={`${claseDeLaRejillaDeSecciones(rejilla?.corte)} relative`}
+      >
+        {secciones.filter((s) => s.presentacion === 'principal').map(dibujar)}
+        {hayBloque ? (
+          <BloqueDelLienzo
+            rejilla={rejilla}
+            enSuFila={avanzado !== undefined}
+            totalSuelto={totalSuelto}
+            avanzadas={avanzadas.map(dibujar)}
+            apoyo={apoyo}
+          />
+        ) : null}
+        <MarcaEnLaRejilla marca={apoyo.marca} en={ID_DE_LAS_SECCIONES} />
       </div>
-      {avanzadas.length === 0 ? null : (
-        <div
-          data-avanzadas=""
-          className="grid min-w-0 gap-3 rounded-(--radius-card) border border-dashed border-(--color-line-strong) p-3"
-        >
-          <p className="text-(length:--text-sm) text-(--color-ink-soft)">
-            Detrás del botón «Avanzado» de la hoja:
-          </p>
-          {avanzadas.map(dibujar)}
-        </div>
-      )}
-    </SortableContext>
+    </div>
   )
 }

@@ -118,8 +118,12 @@ const publicada = (origenId: string, columna: string) =>
     `select ${columna} from public.formulas where origen_id = ${literal(origenId)}::uuid and estado = 'publicada'`,
   )
 
+// El diseño de una versión como lo lee la app: uno de flujo, en la rejilla (`_diseno_en_rejilla()`, `docs/COTIZADOR.md` › «El diseño de la hoja»); el borrador
+// que se crea sobre ella lleva ese mismo diseño, ya con sus posiciones.
 const disenoDe = (id: string) =>
-  sql(`select diseno::text from public.formulas where id = ${literal(id)}::uuid`)
+  sql(
+    `select public._diseno_en_rejilla(diseno)::text from public.formulas where id = ${literal(id)}::uuid`,
+  )
 
 test('G1: sobre la publicada crea el borrador con su diseño; el segundo guardado pisa con la hora nueva, sin releer ni volver a montar la planilla', async ({
   page,

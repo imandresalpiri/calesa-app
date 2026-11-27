@@ -25,7 +25,12 @@ const acciones: AccionesDeHoja = {
 const MARCO_DE_SIEMPRE =
   '@container grid min-w-0 content-start gap-3 rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-4'
 
-function dibujar(seccion: Seccion, enLaRejilla?: boolean, sinMarco?: boolean) {
+function dibujar(
+  seccion: Seccion,
+  enLaRejilla?: boolean,
+  sinMarco?: boolean,
+  corte?: 'siempre' | '5xl',
+) {
   const { container } = render(
     <SeccionDeHoja
       seccion={seccion}
@@ -33,6 +38,7 @@ function dibujar(seccion: Seccion, enLaRejilla?: boolean, sinMarco?: boolean) {
       acciones={acciones}
       enLaRejilla={enLaRejilla}
       sinMarco={sinMarco}
+      {...(corte === undefined ? {} : { corte })}
     />,
   )
   const nodo = container.querySelector('[data-seccion]')
@@ -70,5 +76,36 @@ describe('SeccionDeHoja', () => {
     expect(sinMarco.className).toBe('@container grid min-w-0 content-start gap-3')
     expect(sinMarco.getAttribute('data-tono')).toBe('verde')
     expect(sinMarco.querySelectorAll('*').length).toBe(dibujar(vieja).querySelectorAll('*').length)
+  })
+
+  it('con posiciones: los ítems en orden de lectura, cada uno con sus variables, y la rejilla con sus filas desde su corte', () => {
+    const [primero, segundo] = vieja.items
+    if (!primero || !segundo) throw new Error('la sección de prueba trae menos de dos ítems')
+    // Declarados al revés: el segundo arriba, el primero dos filas debajo (la del medio, vacía).
+    const enRejilla: Seccion = {
+      ...vieja,
+      posicion: { columna: 1, fila: 3 },
+      items: [
+        { ...primero, posicion: { columna: 1, fila: 3 } },
+        { ...segundo, posicion: { columna: 1, fila: 1 } },
+      ],
+    }
+    const nodo = dibujar(enRejilla, true, false, 'siempre')
+    expect(nodo.getAttribute('style')).toBe(
+      '--seccion-columna: 1; --seccion-fila: 3; --seccion-alto: 1;',
+    )
+    expect(nodo.className).toContain('col-start-(--seccion-columna)')
+    const rejilla = nodo.querySelector(':scope > div')
+    expect(rejilla?.getAttribute('style')).toBe('--filas-de-la-seccion: auto 2.5rem auto;')
+    const items = [...(rejilla?.children ?? [])]
+    expect(items.map((i) => i.getAttribute('data-nodo') ?? i.getAttribute('data-atajos'))).toEqual([
+      segundo.nodo,
+      primero.nodo,
+    ])
+    expect(items[0]?.getAttribute('style')).toBe(
+      '--pieza-columna: 1; --pieza-fila: 1; --pieza-alto: 1;',
+    )
+    // Sin el corte de la rejilla de las secciones, la sección va en el flujo aunque traiga posición.
+    expect(dibujar(enRejilla, true).hasAttribute('style')).toBe(false)
   })
 })

@@ -19,6 +19,7 @@ import {
 } from '../../../entities/diseno/edicion-del-diseno'
 import type { Definicion } from '../../../entities/formula'
 import type { Formato } from '../../../entities/nodos'
+import { ordenarPorLectura } from '../../../entities/diseno/lugar-en-la-rejilla'
 import { operacionesDeLaHoja } from './operaciones-de-la-hoja'
 import { useAvisoDeNivel } from './use-aviso-de-nivel'
 import { useGuardadoDelDiseno } from './use-guardar-diseno'
@@ -90,8 +91,13 @@ export function useEditorDelDiseno({
     nombresDeNiveles,
   })
 
+  // Todo cambio deja las piezas en orden de lectura (`ordenarPorLectura()`): el orden del arreglo es el de la hoja apilada y del Tab. Lo que no cambia nada
+  // devuelve el mismo diseño.
   const aplicar = useCallback((cambio: (d: Diseno) => Diseno) => {
-    setTrabajo(cambio)
+    setTrabajo((d) => {
+      const despues = cambio(d)
+      return despues === d ? d : ordenarPorLectura(despues)
+    })
   }, [])
   const aviso = useAvisoDeNivel(nombresDeNiveles)
 

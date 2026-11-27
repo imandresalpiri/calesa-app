@@ -955,6 +955,18 @@ las trampas, en `docs/LECCIONES.md`.
 - **Una auxiliar `<fila>__<n>` no pide celda.** La regla vive en `compilador-auxiliares.ts` con espejo `_diseno_auxiliares()`; una fila constante propia sí pide celda.
 - **Tope de 40 ítems por diseño.** El borrador lo admite; publicar, el ⚙ y revertir lo rechazan (`_diseno_maximo_de_items()`). Como la cobertura obliga a dibujar inputs y banderas, una fórmula con más de 40 tampoco se publica.
 - **«Se deduce restando» es sólo un aviso** sobre sumas directas; la autoridad es la visibilidad que compila la base al publicar.
+- **La hoja en una rejilla libre.** Toda sección y todo ítem del diseño llevan su posición (`posicion: { columna, fila }`, 12 columnas y hasta 200 filas) y
+  la raíz, la fila del bloque del avanzado (`avanzado: { fila }`). Los huecos se respetan y nada se corre solo: un lugar que pisa a otra pieza o se sale
+  no se ocupa (`piezas_se_pisan`, `pieza_fuera_de_la_rejilla`); las avanzadas, que son una lista, se intercambian. Cada rejilla dibuja las posiciones
+  desde el corte de su pieza más exigente (`corteDeLaRejilla()`) y debajo apila en orden de lectura; el DOM y el Tab siguen siempre ese orden. Una fila
+  sin piezas mide 2,5 rem (`ALTO_DE_UNA_FILA_VACIA`): lo que el nivel esconde deja su lugar y el lienzo coincide con la hoja; la que esconde una
+  condición queda `auto` y colapsa, como antes. La posición va en tres variables del estilo en línea de cada pieza y en una tabla de clases por corte,
+  sobre los nodos de siempre (la hoja está al borde de su tope de nodos). **El bloque «Avanzado» es una fila:** el total suelto, el botón y el cierre
+  van en un solo envoltorio a todo el ancho (un nodo por hoja), que se mueve de fila y no comparte la suya; hace falta porque la semilla lo dibuja entre
+  secciones y la conversión lo conserva ahí. Descartados: posición sólo en las secciones (los huecos entre celdas seguirían sin control) o sólo en
+  los ítems (se perderían las secciones lado a lado), intercambiar al soltar sobre otra pieza (con tamaños distintos habría que empujar), colapsar
+  pieza por pieza (una pieza a 12 columnas pisaría a la de al lado), filas vacías que colapsan (el hueco dejado a propósito desaparecería) y
+  `react-grid-layout` (una dependencia y JS en la pestaña por lo que dnd-kit ya hace, y empuja a las vecinas al soltar).
 - **La plantilla lee la fórmula con lo que mira `validarPlantilla()`** (`looseObject`, `lectura-sobre.ts`), no con `esquemaDefinicion`: no se rompe con cada cambio de la fórmula. Guardar valida la forma; lo que cruza con la fórmula lo rechaza publicar.
 - **La tarjeta de la cotización es una cuadrícula declarativa.** La forma 2 de la plantilla (columnas, filas y celdas libres, como en V1) se valida
   espejo en TS y SQL con listas cerradas (variables, `mostrar`, `ocultar_si`, 8 tamaños de letra) y nodos por id; los colores son una clave del
@@ -982,6 +994,12 @@ las trampas, en `docs/LECCIONES.md`.
 - **Un texto con datos no se escribe en el lugar.** Enter, F2 o doble clic sobre él llevan al campo «Texto» del panel, como sobre un dato: el campo del
   lienzo es texto plano y perdería los datos. Tipear una letra lo reemplaza, como en cualquier celda de texto. Copiarlo como texto (TSV) pone sólo sus
   partes de texto (el sistema no sabe de datos); la copia interna de celdas las conserva.
+- **La rejilla se convierte al leerla y no se migra.** Un diseño sin ninguna `posicion` ni `avanzado` es de flujo (las versiones de antes y el de
+  `_fdo_formula_en_blanco()`) y se convierte **al leerlo** (`disenoEnRejilla()` y su espejo `_diseno_en_rejilla(jsonb)`, `stable` como las demás
+  `_diseno_*`, primero en `validar_diseno()`, `_diseno_forma()` y `_cotizacion_hoja()`): una versión publicada es inmutable y una cotización guardada
+  dibuja con la de su `formula_id`, así que nada se reescribe, y el editor guarda siempre en rejilla. La conversión copia cómo CSS acomoda solas las
+  piezas a lo ancho de escritorio (sin `dense`, cada una en su ancho: el «mismo dibujo»), así un diseño viejo se ve igual; el juego
+  `casos-de-rejilla.json` la fija de los dos lados y es idempotente. Descartado: migrar los diseños (reescribe versiones publicadas).
 - **La forma 1 se convierte al leerla y no se migra.** `cotizacion_tarjeta` convierte la publicada (`_plantilla_convertir()`, espejo
   `convertirPlantilla()`) con la misma apariencia y la vuelve a validar como cuadrícula. Los ids de la
   conversión son deterministas (el de la fila sale del nodo, `n_<nodo>`; el de la celda, de su fila y su columna; uno de más de 41 caracteres se acorta
@@ -1123,9 +1141,10 @@ las trampas, en `docs/LECCIONES.md`.
   cerradas y validadas igual en TS y en SQL: nada de px, CSS ni hex. No se llaman `estilo`, `clase` ni `color` (el juego las rechaza). Sin la clave, lo de siempre, así un diseño viejo se ve igual;
   el editor quita la clave en vez de escribir el valor por defecto. La cabecera no lleva ancho ni alto (va sola en su fila); la tarjeta del resumen no lleva aspecto (es fija) y la pieza
   del total lleva el de todo ítem (ancho, alto, letra y énfasis).
-- **La regla de los 16 rem.** Una pieza de N columnas toma su ancho cuando le tocan 16 rem o más (`mitad` desde 32 rem, `tercio` desde 48); si no, la fila entera. Los cortes
-  van en rem, así al 200 % la rejilla colapsa sola, y bajo el primer corte no hay hueco de columna. Una sección sin ancho es «Automática» (la mitad desde 64 rem). El alto son filas de
-  la rejilla desde el mismo corte. Todo en clases y variables sobre los nodos de siempre: la hoja está al borde de su tope de nodos.
+- **El corte es de la rejilla entera, no de cada pieza.** Una pieza de N columnas pide que le toquen 16 rem (`mitad` desde 32 rem, `tercio` desde 48) y su
+  rejilla dibuja las posiciones desde el corte de la más exigente; debajo, todas apiladas en orden de lectura. Pieza por pieza, la que pasara a la fila
+  entera pisaría a su vecina, que sigue en su columna. Los cortes van en rem, así al 200 % la rejilla apila sola. Una sección sin ancho es «Automática»
+  (la mitad desde 64 rem). El alto son filas de la rejilla, también a 12 columnas.
 - **El color de una sección no pinta su fondo.** Su borde, sus celdas sin grupo, sus franjas y sus chips toman el color; el fondo, el título y los textos sueltos (leyendas, interruptor) quedan en
   los tokens: la base sólo garantiza el AA de la tinta sobre el fondo derivado, no del texto de la interfaz sobre él. El color del grupo gana en su celda; un chip marcado vuelve al primario.
   Es el catálogo de colores (sin lista nueva de tokens): ya es de la empresa y con contraste garantizado.
@@ -1133,10 +1152,15 @@ las trampas, en `docs/LECCIONES.md`.
   se configura se ve como lo verá quien cotiza, sin un formulario por sección. Lo que dibuja la hoja va `inert` bajo un botón por pieza, así ninguna XCell recibe el foco ni el clic.
   El rótulo y el formato que se editan en el inspector viajan en la `definicion` del mismo Guardar (`edicion-de-nodos.ts`). El servidor no la limita a esos dos campos:
   es la misma action, la misma RPC y el mismo `cotizaciones.configurar` con que la Planilla edita la fórmula entera, así que no da nada que ese permiso no diera.
-- **Las piezas se mueven entre secciones, y el editor avisa el nivel.** Una pieza hereda el nivel de su sección: moverla puede cambiar quién la ve. En vez de prohibirlo, el inspector lo dice
-  («Ahora la ve «Costos»: antes la veían todos.») y una combinación inválida (`editar_sin_ver`, `nivel_no_admitido`) queda marcada como cualquier rechazo. Se arrastra con dnd-kit
-  (un `DndContext`, un `SortableContext` por sección), sólo en el `diferido()` de la pestaña; nada se reordena mientras se arrastra (el lienzo está escalado y una traslación se
-  escalaría dos veces): una marca dice dónde cae y el cambio llega al soltar. Con el teclado, Alt+flechas y el «⋯» de la pieza.
+- **Las piezas se mueven a un lugar libre, también de otra sección, y el editor avisa el nivel.** Una pieza hereda el nivel de su sección: moverla puede
+  cambiar quién la ve. En vez de prohibirlo, el inspector lo dice («Ahora la ve «Costos»: antes la veían todos.») y una combinación inválida
+  (`editar_sin_ver`, `nivel_no_admitido`) queda marcada como cualquier rechazo. Soltar donde pisa a otra o se sale no mueve a nadie: es un lugar
+  inválido, no un intercambio (con tamaños distintos habría que empujar), y la marca lo dice antes de soltar («Ahí está «Flete».»); sólo las avanzadas,
+  que son una lista, se intercambian. Se arrastra con dnd-kit (un `DndContext`, sólo en el `diferido()` de la pestaña) y los destinos son las rejillas,
+  no las piezas: la de cada sección para los ítems, la de las secciones para las principales y el bloque, y la lista de avanzadas. La celda sale de la
+  esquina de lo que se arrastra y de la geometría medida de la rejilla (`medir-la-rejilla.ts`, sus pistas en px de CSS: el lienzo va con `zoom` y el punto
+  se divide por la escala). Nada se corre mientras se arrastra (una traslación en el lienzo escalado se escalaría dos veces): la marca es lo único que
+  cambia y el cambio llega al soltar. Con el teclado, Alt+flechas (una celda) y Alt+Shift+flechas (el tamaño); el «⋯» lleva a la sección vecina.
 - **La ayuda se arma en el inspector, bloque por bloque.** «+ Bloque» es un menú (Título, Texto, Enlaces, Tabla; cada tipo apagado con su motivo) y el bloque
   nace vacío al final, marcado con «Completa este bloque.» hasta llenarlo; uno de tabla nace con la primera tabla del origen que la ayuda no usa (las propias
   antes que las compartidas). Cada bloque se mueve con su «⋯» o Alt+↑/↓ (el foco vuelve a su «⋯») y se quita con «Deshacer», que lo devuelve sobre el diseño

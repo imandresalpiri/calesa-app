@@ -22,6 +22,8 @@ export const REGLAS_DE_DISENO = [
   'total_repetido',
   'total_en_avanzado',
   'total_con_nivel',
+  'pieza_fuera_de_la_rejilla',
+  'piezas_se_pisan',
   'nodo_inexistente',
   'celda_no_es_valor',
   'secundario_sin_porcentaje',
@@ -55,7 +57,8 @@ export type DatosDeRechazoDeDiseno = {
   ref?: string
   nivel?: string
   campo?: string
-  pieza?: 'grupo' | 'cabecera' | 'seccion'
+  // En la geometría de la rejilla, si la pieza es una sección o la tarjeta del total (las dos nombran la sección); sin ella, un ítem con su nodo.
+  pieza?: 'grupo' | 'cabecera' | 'seccion' | 'total'
   // La tabla de la columna que falta (`ayuda_columna_inexistente`).
   tabla?: string
 }
@@ -69,6 +72,11 @@ export type RechazoDeDiseno = {
 }
 
 const q = (s: string | undefined) => `«${s ?? '?'}»`
+// De qué pieza habla un rechazo de la rejilla.
+const sujetoDeLaRejilla = (d: DatosDeRechazoDeDiseno) =>
+  d.pieza === 'total'
+    ? 'La tarjeta del total'
+    : `${d.pieza === 'seccion' ? 'La sección' : 'La pieza'} ${q(d.donde)}`
 
 const MENSAJES: Record<ReglaDeDiseno, (d: DatosDeRechazoDeDiseno) => string> = {
   forma: (d) => `El diseño no tiene la forma esperada en ${q(d.campo)}.`,
@@ -101,6 +109,9 @@ const MENSAJES: Record<ReglaDeDiseno, (d: DatosDeRechazoDeDiseno) => string> = {
   total_en_avanzado: () => 'La tarjeta del total no va en una sección avanzada.',
   total_con_nivel: (d) =>
     `La tarjeta del total la ven todos: la sección ${q(d.donde)} tiene un nivel.`,
+  pieza_fuera_de_la_rejilla: (d) =>
+    `${sujetoDeLaRejilla(d)} se sale de la rejilla: 12 columnas y 200 filas.`,
+  piezas_se_pisan: (d) => `${sujetoDeLaRejilla(d)} se pisa con otra en la rejilla.`,
   nodo_inexistente: (d) => `El diseño nombra ${q(d.donde)}, que no es un nodo de la fórmula.`,
   celda_no_es_valor: (d) =>
     `${q(d.donde)} no se dibuja como celda: la variante va como chips y una bandera como interruptor.`,
