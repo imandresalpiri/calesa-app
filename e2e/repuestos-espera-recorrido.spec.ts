@@ -134,6 +134,9 @@ test('la dueña pasa el ítem a «Recibido» desde la Cadena y el vehículo ya p
   await expect(
     bloque(page, 'repuestos').getByText('Este vehículo no espera ningún repuesto.'),
   ).toBeVisible()
+  // El drawer de la tarjeta deja la página fuera del árbol accesible: se cierra antes de ir a «Qué falta».
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Repuestos' })).toBeHidden()
   await page.getByRole('button', { name: 'Elegir el destino «Listo»' }).click()
   await expect(page.getByText('Cumplido', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Mover a «Listo»' })).toBeEnabled()

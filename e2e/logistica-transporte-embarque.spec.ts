@@ -26,7 +26,9 @@ let terreno: TerrenoDeTransporte
 
 const AVISO_DE_LOS_DOS = 'Cambia para los 2 vehículos de este embarque.'
 
-const marcoDelHueco = (page: Page) => page.locator('[data-bloque-del-hueco="transporte"]')
+// El marco del hueco en el drawer de su tarjeta (la tarjeta deja otra ancla, escondida, en la página).
+const marcoDelHueco = (page: Page) =>
+  page.locator('[role="dialog"] [data-bloque-del-hueco="transporte"]')
 
 async function abrirElHueco(page: Page, vehiculoId: string): Promise<Locator> {
   await page.goto(`/logistica/vehiculo/${vehiculoId}`)

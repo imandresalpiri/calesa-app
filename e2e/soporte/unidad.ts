@@ -17,21 +17,23 @@ export async function abrirSeccionDeLaUnidad(page: Page, clave: string): Promise
   const ancla = page.locator(`[data-bloque-del-hueco="${clave}"]`).first()
   await ancla.waitFor({ state: 'attached' })
   const hueco = page.locator(`[data-hueco="${clave}"]`)
+  // El drawer de la tarjeta ya muestra el hueco cuando aparece su ancla adentro, aunque el hueco todavía lea (su esqueleto no lleva `data-hueco`).
+  const abierto = page.locator(`[role="dialog"] [data-bloque-del-hueco="${clave}"]`)
   const tarjeta = TARJETA_DEL_HUECO[clave] ?? clave
   const toque = page.locator(`[data-slot="panel-de-la-unidad"] [data-abre-tarjeta="${tarjeta}"]`)
   if ((await toque.count()) > 0) {
     // Un toque antes de que la página hidrate se pierde (la tarjeta viene del servidor): se repite hasta que el drawer muestre el hueco.
     const otro = page.locator(
-      `[role="dialog"] [data-hueco]:not([data-hueco="${clave}"]):not([data-hueco="que-falta"])`,
+      `[role="dialog"] [data-bloque-del-hueco]:not([hidden]):not([data-bloque-del-hueco="${clave}"]):not([data-bloque-del-hueco="que-falta"])`,
     )
     await expect(async () => {
-      if (await hueco.isVisible()) return
+      if (await abierto.isVisible()) return
       if ((await otro.count()) > 0 && (await otro.first().isVisible())) {
         await page.keyboard.press('Escape')
         await expect(otro.first()).toBeHidden({ timeout: 1000 })
       }
       await toque.click({ timeout: 1000 })
-      await expect(hueco).toBeVisible({ timeout: 1000 })
+      await expect(abierto).toBeVisible({ timeout: 1000 })
     }).toPass()
   } else {
     // «Qué falta» (o un hueco sin tarjeta): a la vista.
