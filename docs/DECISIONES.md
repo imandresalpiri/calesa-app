@@ -243,6 +243,17 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   lo que se decide con `puede()` se apagan solos, como con «Ver como». RLS, RPC y `actionClient` siguen con los permisos reales: el Live es
   presentación, no seguridad, y por eso sus ajustes no pasan por `/actividad` ni exigen dominar a la persona (no otorgan permisos y así no se
   redefine `_actividad_recorte()`; decidido sin preguntar). Se escriben sólo por RPC definer con `live.configurar`.
+- **La ventana de cámara se guarda en `preferencias_usuario` (`live.ventana`) y la cámara nunca se graba ni se sube.** Una fila por persona, validada por
+  `_preferencia_live_ventana_valida()` (espejo de `esquemaDeLaVentanaDeCamara`): la posición en % del espacio libre (sobrevive a otro tamaño de pantalla y
+  siempre queda adentro), el ancho en px, minimizada, espejo, los datos y el `deviceId`. Se escribe 500 ms después de soltar (nunca por cuadro), sin red se
+  reenvía al volver y al apagar el Live se manda lo pendiente. No viaja con la sesión: sólo con el Live encendido el layout la lee, junto con la ficha de
+  quien presenta, el logo y las redes (`ajustes_web.redes`), detrás de su propio `<Suspense>`. La ventana se pide con `diferido()` sólo en escritorio y con
+  el Live encendido. Decidido sin preguntar: el video es siempre 16:9 (`object-fit: cover`) para que cargar, fallar y mostrar midan lo mismo; «ficha web»
+  cambia sólo el cargo (`cargo_web`, y `cargo` si no lo escribió) y el contacto es WhatsApp (`whatsapp_web`) o, si no hay, el teléfono; por defecto
+  nombre y cargo, contacto y logo, arriba a la derecha y con espejo.
+- **El marco del Live es sólo CSS sobre la clase `live`.** Un `div` fijo (`pointer-events: none`, `inset: 0`, sin padding en el layout) fuera del `<Suspense>`
+  del layout: el borde es un degradado cónico que gira (`@property --angulo-del-live`) visto por una máscara y un resplandor interior que respira
+  (opacidad); sin JS por cuadro y sin animación con `prefers-reduced-motion`.
 - **«Ajustes por persona» pide además «Ver el equipo».** `live_personas()` da nombres y correos de todo el equipo: con `live.configurar`
   sólo, la base responde 42501 como `equipo_lista()`, y la página muestra en ese grupo «No puedes ver al equipo» sin pedirlo. «Por rol»
   sigue a la vista. Decidido sin preguntar: `live.configurar` no es un permiso del equipo.

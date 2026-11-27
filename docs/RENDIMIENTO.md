@@ -751,6 +751,9 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `diferido()` y su código se adelanta al pasar el puntero. Al abrirlo, una `tipos_cambio_vigentes()` de ≤ 31 filas (un `limit 1` por tipo
   sobre `tipos_cambio_historial_tipo_idx` y dos búsquedas por `perfiles_pkey`), sin caché; tras guardar se relee sin esqueleto. Es una
   tabla de configuración: sin medición de volumen.
+- El marco del Live: en frío sólo viaja su CSS y un `div` con el distintivo (sin JS; fuera del Live es `display: none`). La ventana de cámara va con
+  `diferido()` detrás de `<PuertaDeLaVentana>` (un `useLive()` y una consulta de medios): se pide sólo con el Live encendido en escritorio; con el Live
+  apagado no lee la base ni descarga su código. Una fila por persona (`live.ventana`, PK `(usuario_id, clave)`), que se escribe al soltar, con espera.
 - Documento de `/perfil` (HTML con el payload RSC, sin comprimir) ≤ 124 KB (medido: 123,3, con los botones «Recargar la página» y «Copiar el enlace de esta página» del marco: regla del 5 %) (`PRESUPUESTO_DEL_DOCUMENTO_DE_PERFIL_EN_KB`), igual con la
   semilla y con 100 + 100 + 100 catálogos (± 1 KB): lo paga toda pantalla del marco. Las ≈ 30 acciones de la paleta viajan como props del
   hueco del buscador; el formulario de «Tu ficha en la web» se monta y se pide con `diferido()` al abrirla. El layout `(app)` no manda
