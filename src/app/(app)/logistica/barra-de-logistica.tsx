@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { connection } from 'next/server'
 import { SettingsIcon } from 'lucide-react'
 import { CLAVE_DE_ORIGEN_DE_LOGISTICA, type OrigenDeLaCadena } from '@/modules/logistica'
-import { PestanasDeOrigen } from '@/modules/logistica/pantallas/barra'
+import { FilaConDesborde, PestanasDeOrigen } from '@/modules/logistica/pantallas/barra'
 import type { Permisos } from '@/shared/lib/permisos'
 import { rutaDeParteDelOrigen, unParametro } from '@/shared/lib/rutas'
 import {
@@ -126,10 +126,7 @@ function PestanasDelOrigen({
   permisos: Permisos
 }) {
   return (
-    <nav
-      aria-label={`Logística de ${origen.nombre}`}
-      className="flex h-full min-w-0 flex-1 items-center gap-1 overflow-x-auto overflow-y-hidden"
-    >
+    <FilaConDesborde nombre={`Logística de ${origen.nombre}`}>
       {pestanasDelOrigen(permisos, origen).map((p) => (
         <Link
           key={p.clave}
@@ -154,7 +151,7 @@ function PestanasDelOrigen({
           </Link>
         </p>
       ) : null}
-    </nav>
+    </FilaConDesborde>
   )
 }
 
