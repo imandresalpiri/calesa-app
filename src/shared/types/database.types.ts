@@ -11592,6 +11592,7 @@ export type Database = {
           id: string
           numero: string
           pagada: boolean
+          primeros: Json
           vehiculos: number
           vence_tributos_el: string
         }[]

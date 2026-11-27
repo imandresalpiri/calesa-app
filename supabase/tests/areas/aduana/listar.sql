@@ -14,6 +14,7 @@
 --   L5. «Sin vehículos»: la declaración sin ninguno vivo (vacía, con su único vehículo quitado o en la papelera) sale en todo origen con aduana; la
 --       que perdió su vehículo del origen y conserva uno de otro, no; sin gestionar no sale (no tiene un vehículo que se vea).
 --   L6. Un origen cuyo flujo no usa la regla aduana da vacío, también con declaraciones sin vehículos; sin origen, 22023 p_origen.
+--   L7. primeros: hasta tres de los que se ven, por título; uno oculto nunca; con gestionar y sin ver ninguno, vacío.
 
 -- La primera cuenta de una base vacía queda dueña (con `SOLO=`): una de relleno antes, para que ninguna de la prueba lo sea.
 create or replace function pg_temp.adu_persona(p_concesiones text[]) returns uuid language plpgsql as $f$
@@ -293,5 +294,30 @@ begin
   r := pg_temp.adu_listar(gestor, (t ->> 'o2')::uuid, jsonb_build_object('q', 'LREG-' || s));
   if jsonb_array_length(r) <> 2 or pg_temp.adu_fila(r, d) is null then raise exception 'L6: con la regla, la de w y la vacía: %', r; end if;
   perform pg_temp.adu_es('L6 sin origen', pg_temp.adu_listar(gestor, null), '22023', 'p_origen');
+end $$;
+rollback;
+
+-- @test aduana: primeros nombra hasta tres vehículos que ves, por título, nunca uno oculto (L7)
+begin;
+do $$
+declare t jsonb := pg_temp.adu_terreno(); uno uuid; gestor uuid; d uuid; v4 uuid; r jsonb;
+begin
+  uno := pg_temp.adu_persona(array['logistica.ver@' || (t ->> 'o')]);
+  gestor := pg_temp.adu_persona(array['logistica.aduana.gestionar']);
+  insert into public.vehiculos (origen_id, titulo) values ((t ->> 'o')::uuid, 'adu v0') returning id into v4;
+  d := pg_temp.adu_decl('LPRI-' || (t ->> 's'),
+    array[(t ->> 'v3')::uuid, (t ->> 'v1')::uuid, (t ->> 'w')::uuid, (t ->> 'v2')::uuid, v4]);
+  r := pg_temp.adu_fila(pg_temp.adu_listar(uno, (t ->> 'o')::uuid), d);
+  if (select array_agg(x ->> 'titulo' order by n) from jsonb_array_elements(r -> 'primeros') with ordinality e(x, n))
+     is distinct from array['adu v0', 'adu v1', 'adu v2'] then
+    raise exception 'L7: debía nombrar adu v0, adu v1 y adu v2, en ese orden: %', r;
+  end if;
+  if (select array_agg(x ->> 'vehiculo_id') from jsonb_array_elements(r -> 'primeros') x) && array[t ->> 'w'] then
+    raise exception 'L7: w es de otro origen y no debía nombrarse: %', r;
+  end if;
+  if (r ->> 'vehiculos')::int <> 4 then raise exception 'L7: el conteo sigue siendo de los que ve (4): %', r; end if;
+  -- Con gestionar y sin ver ninguno, la fila sale sin nombres.
+  r := pg_temp.adu_fila(pg_temp.adu_listar(gestor, (t ->> 'o')::uuid), d);
+  if r -> 'primeros' is distinct from '[]'::jsonb then raise exception 'L7: sin ver ninguno, primeros vacío: %', r; end if;
 end $$;
 rollback;

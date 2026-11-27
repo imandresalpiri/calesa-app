@@ -5,13 +5,30 @@ import { Badge } from '@/shared/ui/badge'
 import { AbrirResumen, TarjetaDeLista } from '@/shared/ui/lista'
 import { useRegional } from '@/shared/ui/regional'
 import { textoDelCanal, type FilaDeDeclaracion } from '../../../entities/aduana/declaracion'
-import { sinVehiculos, textoDeUnidades } from '../../../entities/aduana/estado'
+import { sinVehiculos } from '../../../entities/aduana/estado'
+import { vehiculosDeLaFila } from '../../../entities/aduana/textos'
 import { EstadoDeTributos } from './estado-de-tributos'
 
 type Props = {
   declaraciones: readonly FilaDeDeclaracion[]
   alAbrir: (id: string) => void
   abierta: string | null
+}
+
+// La fecha de aceptación y el despachante, en una línea; nada si no hay ninguno.
+function Detalle({ declaracion, zona }: { declaracion: FilaDeDeclaracion; zona: string }) {
+  const partes = [
+    declaracion.aceptadaEl
+      ? `Aceptada el ${formatearFecha(declaracion.aceptadaEl, { zona })}`
+      : null,
+    declaracion.despachante,
+  ].filter((parte) => parte !== null)
+  if (partes.length === 0) return null
+  return (
+    <p className="text-(length:--text-sm) [overflow-wrap:anywhere] text-(--color-ink-soft)">
+      {partes.join(' · ')}
+    </p>
+  )
 }
 
 // Las declaraciones de la página en el celular: una tarjeta por declaración, con lo mismo que la fila de la tabla. Un toque abre el resumen.
@@ -41,14 +58,16 @@ export function TarjetasDeDeclaraciones({ declaraciones, alAbrir, abierta }: Pro
             <Badge variant="outline" className="w-fit">
               Sin vehículos
             </Badge>
-          ) : null}
-          <p className="text-(length:--text-sm) [overflow-wrap:anywhere] text-(--color-ink-soft)">
-            {sinVehiculos(declaracion) ? null : textoDeUnidades(declaracion.vehiculos)}
-            {declaracion.aceptadaEl
-              ? ` · aceptada el ${formatearFecha(declaracion.aceptadaEl, { zona: zonaHoraria })}`
-              : ''}
-            {declaracion.despachante ? ` · ${declaracion.despachante}` : ''}
-          </p>
+          ) : (
+            <p className="text-(length:--text-sm) [overflow-wrap:anywhere] text-(--color-ink)">
+              {vehiculosDeLaFila(
+                declaracion.primeros,
+                declaracion.vehiculos,
+                declaracion.hayOcultos,
+              )}
+            </p>
+          )}
+          <Detalle declaracion={declaracion} zona={zonaHoraria} />
         </TarjetaDeLista>
       ))}
     </ul>

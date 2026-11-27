@@ -12,7 +12,8 @@ import {
 import { useRegional } from '@/shared/ui/regional'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { textoDelCanal, type FilaDeDeclaracion } from '../../../entities/aduana/declaracion'
-import { sinVehiculos, textoDeUnidades } from '../../../entities/aduana/estado'
+import { sinVehiculos } from '../../../entities/aduana/estado'
+import { vehiculosDeLaFila } from '../../../entities/aduana/textos'
 import { EstadoDeTributos } from './estado-de-tributos'
 
 type Props = {
@@ -35,7 +36,7 @@ export function TablaDeDeclaraciones({ declaraciones, alAbrir, abierta }: Props)
           <TableHead>Aceptada</TableHead>
           <TableHead>Tributos</TableHead>
           <TableHead>Despachante</TableHead>
-          <TableHead>Unidades</TableHead>
+          <TableHead>Vehículos</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -69,11 +70,15 @@ export function TablaDeDeclaraciones({ declaraciones, alAbrir, abierta }: Props)
             <TableCell className="max-w-48 truncate">
               {declaracion.despachante ?? SIN_DATO}
             </TableCell>
-            <TableCell className="whitespace-nowrap">
+            <TableCell className="max-w-80 truncate">
               {sinVehiculos(declaracion) ? (
                 <Badge variant="outline">Sin vehículos</Badge>
               ) : (
-                textoDeUnidades(declaracion.vehiculos)
+                vehiculosDeLaFila(
+                  declaracion.primeros,
+                  declaracion.vehiculos,
+                  declaracion.hayOcultos,
+                )
               )}
             </TableCell>
           </FilaDeLista>

@@ -58,6 +58,9 @@ test('E2E crear una declaración con dos vehículos, asignarle el canal y verla 
   await entrar(page, terreno.conAduana, { fresco: true })
   await page.goto(`/logistica/aduana?origen=${terreno.origen.id}`)
   await expect(page.getByText('Todavía no hay declaraciones.')).toBeVisible()
+  await expect(
+    page.getByText('Una declaración es el trámite de aduana de uno o varios vehículos.').first(),
+  ).toBeVisible()
 
   // El alta: sólo el número es obligatorio.
   await page.getByRole('button', { name: 'Nueva declaración' }).click()
@@ -84,6 +87,8 @@ test('E2E crear una declaración con dos vehículos, asignarle el canal y verla 
   }
   await resumen.getByRole('button', { name: 'Guardar vehículos' }).click()
   await expect(resumen.getByText('Falta el tributo')).toHaveCount(2)
+  // Cada vehículo dice dónde viaja: éstos no van en ningún contenedor ni embarque.
+  await expect(resumen.getByText('Sin transporte')).toHaveCount(2)
 
   // El resumen ya dice cuántos tributos faltan (la lista, detrás del panel modal, no se consulta por rol).
   await expect(resumen.getByText('Faltan los tributos de 2')).toBeVisible()
@@ -106,9 +111,13 @@ test('E2E crear una declaración con dos vehículos, asignarle el canal y verla 
   await sembrarTributos(terreno.enFase.id)
   await sembrarTributos(terreno.tercero.id)
   await page.goto(`/logistica/aduana?origen=${terreno.origen.id}`)
-  await expect(
-    page.getByRole('row').filter({ hasText: numero }).getByText('Pagada', { exact: true }),
-  ).toBeVisible()
+  const fila = page.getByRole('row').filter({ hasText: numero })
+  await expect(fila.getByText('Pagada', { exact: true })).toBeVisible()
+  // La fila nombra sus vehículos, por título.
+  const nombres = [terreno.enFase.titulo, terreno.tercero.titulo].sort((a, b) =>
+    a.localeCompare(b, 'es'),
+  )
+  await expect(fila).toContainText(`${nombres[0]} y ${nombres[1]}`)
 
   // Y el panel de la unidad lo dice.
   await page.goto(`/logistica/vehiculo/${terreno.enFase.id}`)

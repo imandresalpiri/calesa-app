@@ -40,14 +40,6 @@ export function sinVehiculos(declaracion: { vehiculos: number; hayOcultos: boole
   return declaracion.vehiculos === 0 && !declaracion.hayOcultos
 }
 
-export function textoDeUnidades(vehiculos: number): string {
-  if (vehiculos === 1) {
-    return '1 vehículo'
-  }
-  const hayMas = vehiculos > TOPE_DE_VEHICULOS_DE_LA_DECLARACION
-  return `${conteoEnFrase({ n: Math.min(vehiculos, TOPE_DE_VEHICULOS_DE_LA_DECLARACION), hayMas })} vehículos`
-}
-
 export type TipoDeVencimiento = 'sin-fecha' | 'vencida' | 'por-vencer' | 'vigente'
 export type Vencimiento = { tipo: TipoDeVencimiento; texto: string }
 

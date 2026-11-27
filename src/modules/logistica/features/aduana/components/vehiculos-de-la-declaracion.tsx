@@ -8,6 +8,7 @@ import type { UnidadBuscada } from '../../../entities/nucleo/unidad-buscada'
 import type { DeclaracionLeida } from '../../../entities/aduana/declaracion'
 import { useVehiculosDeLaDeclaracion } from '../hooks/use-vehiculos-de-la-declaracion'
 import { BuscadorDeUnidadesDiferido } from './diferidos'
+import { TituloYDondeViaja } from './donde-viaja'
 
 type Composicion = ReturnType<typeof useVehiculosDeLaDeclaracion>
 
@@ -27,9 +28,7 @@ function FilaDeVehiculo({
 }) {
   return (
     <li className={FILA}>
-      <span className="min-w-0 font-medium [overflow-wrap:anywhere] text-(--color-ink)">
-        {vehiculo.titulo}
-      </span>
+      <TituloYDondeViaja vehiculo={vehiculo} />
       <span className="flex flex-wrap items-center gap-2 text-(length:--text-sm) text-(--color-ink-soft)">
         {vehiculo.fase ? <span>{vehiculo.fase}</span> : null}
         {seQuita ? (

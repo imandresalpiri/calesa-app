@@ -6,6 +6,7 @@
 --       ninguno, la cabecera con vehiculos = []; sin las claves, 42501; un vehículo quitado no sale; pagada, faltan y tributo por vehículo siguen al
 --       tributo del último (el assert de la fila, también en la lectura).
 --   R2. El actualizado_en que devuelve sirve de esperada para declaracion_guardar; tras guardar, el viejo da PT409.
+--   R4. Cada vehículo trae su contenedor ({id, numero}) y su embarque ({id, booking}; el del contenedor si va en uno), nulos si no viaja.
 --   R3. La policy de leer (D41): con logistica.ver en un origen y sin gestionar, un select directo de declaraciones_aduana devuelve la que tiene v1 y no
 --       la que sólo tiene w2 ni la que tuvo a v2 ya quitado; con gestionar, las tres.
 
@@ -175,5 +176,34 @@ begin
   if r is distinct from jsonb_build_array(d1) then raise exception 'R3: con un origen debía leer sólo la de v1 y leyó %', r; end if;
   r := pg_temp.adu_corre(gestor, format('select coalesce(jsonb_agg(id order by numero), ''[]'') from public.declaraciones_aduana where id = any (%L)', ids));
   if r is distinct from jsonb_build_array(d1, d_w, d_q) then raise exception 'R3: con gestionar debía leer las tres y leyó %', r; end if;
+end $$;
+rollback;
+
+-- @test aduana: cada vehículo dice su contenedor y su embarque (el del contenedor, si va en uno), o nulos si no viaja en ninguno (R4)
+begin;
+do $$
+declare t jsonb := pg_temp.adu_terreno(); uno uuid; d uuid; emb uuid; cont uuid; suelto uuid; r jsonb; x jsonb;
+begin
+  uno := pg_temp.adu_persona(array['logistica.ver@' || (t ->> 'o')]);
+  insert into public.embarques (origen_id, booking) values ((t ->> 'o')::uuid, 'RBK-' || upper(t ->> 's')) returning id into emb;
+  insert into public.contenedores (origen_id, numero, embarque_id) values ((t ->> 'o')::uuid, 'RCNT' || upper(t ->> 's'), emb) returning id into cont;
+  insert into public.embarques (origen_id, booking) values ((t ->> 'o')::uuid, 'RSU-' || upper(t ->> 's')) returning id into suelto;
+  insert into public.transportes (vehiculo_id, contenedor_id) values ((t ->> 'v1')::uuid, cont);
+  insert into public.transportes (vehiculo_id, embarque_id) values ((t ->> 'v2')::uuid, suelto);
+  d := pg_temp.adu_decl('RTRA-' || (t ->> 's'), array[(t ->> 'v1')::uuid, (t ->> 'v2')::uuid, (t ->> 'v3')::uuid]);
+  r := pg_temp.adu_leer(uno, d);
+  x := (select e from jsonb_array_elements(r -> 'vehiculos') e where e ->> 'vehiculo_id' = t ->> 'v1');
+  if x -> 'contenedor' is distinct from jsonb_build_object('id', cont, 'numero', 'RCNT' || upper(t ->> 's'))
+     or x -> 'embarque' is distinct from jsonb_build_object('id', emb, 'booking', 'RBK-' || upper(t ->> 's')) then
+    raise exception 'R4: v1 va en el contenedor, dentro de su embarque: %', x;
+  end if;
+  x := (select e from jsonb_array_elements(r -> 'vehiculos') e where e ->> 'vehiculo_id' = t ->> 'v2');
+  if x -> 'contenedor' is distinct from 'null'::jsonb or x -> 'embarque' is distinct from jsonb_build_object('id', suelto, 'booking', 'RSU-' || upper(t ->> 's')) then
+    raise exception 'R4: v2 va suelto en su embarque: %', x;
+  end if;
+  x := (select e from jsonb_array_elements(r -> 'vehiculos') e where e ->> 'vehiculo_id' = t ->> 'v3');
+  if x -> 'contenedor' is distinct from 'null'::jsonb or x -> 'embarque' is distinct from 'null'::jsonb then
+    raise exception 'R4: v3 no viaja en ninguno: %', x;
+  end if;
 end $$;
 rollback;

@@ -10,6 +10,8 @@ import {
 const ID = '44444444-4444-4444-8444-444444444444'
 const VEHICULO = '55555555-5555-4555-8555-555555555555'
 const ORIGEN = '66666666-6666-4666-8666-666666666666'
+const CONTENEDOR = '77777777-7777-4777-8777-777777777777'
+const EMBARQUE = '88888888-8888-4888-8888-888888888888'
 
 const fila = {
   id: ID,
@@ -22,6 +24,7 @@ const fila = {
   creado_en: '2026-11-10T10:00:00Z',
   actualizado_en: '2026-11-10T10:00:00Z',
   vehiculos: 2,
+  primeros: [{ vehiculo_id: VEHICULO, titulo: 'Toyota Hilux' }],
   hay_ocultos: false,
   pagada: false,
   faltan: 2,
@@ -49,6 +52,7 @@ describe('lo que devuelve la base', () => {
         creadoEn: '2026-11-10T10:00:00Z',
         actualizadoEn: '2026-11-10T10:00:00Z',
         vehiculos: 2,
+        primeros: [{ vehiculoId: VEHICULO, titulo: 'Toyota Hilux' }],
         hayOcultos: false,
         pagada: false,
         faltan: 2,
@@ -79,6 +83,8 @@ describe('lo que devuelve la base', () => {
           fase: null,
           agregado_en: '2026-11-10T10:00:00Z',
           tributo: true,
+          contenedor: { id: CONTENEDOR, numero: 'MSCU1234567' },
+          embarque: { id: EMBARQUE, booking: 'BK-1' },
         },
       ],
     })
@@ -93,6 +99,8 @@ describe('lo que devuelve la base', () => {
         fase: null,
         agregadoEn: '2026-11-10T10:00:00Z',
         tributo: true,
+        contenedor: { id: CONTENEDOR, numero: 'MSCU1234567' },
+        embarque: { id: EMBARQUE, booking: 'BK-1' },
       },
     ])
     expect(declaracionDesde({ ...fila, vehiculos: 2 })).toBeNull()

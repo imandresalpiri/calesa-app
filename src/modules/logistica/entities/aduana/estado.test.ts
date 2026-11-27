@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sinVehiculos, textoDeFaltan, textoDeUnidades, vencimientoDe } from './estado'
+import { sinVehiculos, textoDeFaltan, vencimientoDe } from './estado'
 
 describe('el texto de «faltan»', () => {
   const base = { pagada: false, faltan: 0, vehiculos: 2, hayOcultos: false }
@@ -31,14 +31,6 @@ describe('el texto de «faltan»', () => {
     expect(textoDeFaltan({ ...base, faltan: 201, vehiculos: 201 })).toBe(
       'Faltan los tributos de más de 200',
     )
-  })
-})
-
-describe('las unidades de la fila', () => {
-  it('uno, varios y más de 200', () => {
-    expect(textoDeUnidades(1)).toBe('1 vehículo')
-    expect(textoDeUnidades(37)).toBe('37 vehículos')
-    expect(textoDeUnidades(201)).toBe('más de 200 vehículos')
   })
 })
 
