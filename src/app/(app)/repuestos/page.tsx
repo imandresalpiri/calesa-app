@@ -14,10 +14,12 @@ import {
   esquemaDelListado,
   estadoDelListadoDe,
   leerCursorDeProyectos,
+  leerNumerosDeRepuestos,
   leerProyectosDelListado,
   nuevoProyectoEnLaUrl,
   pedidoDelListado,
 } from '@/modules/repuestos'
+import { NumerosDeRepuestos } from '@/modules/repuestos/pantallas/flujo-numeros'
 import { BotonNuevoProyecto, ListadoDeProyectos } from '@/modules/repuestos/pantallas/proyectos'
 import { leerLeadParaEnlazar } from '@/modules/leads'
 import { leerVehiculo } from '@/modules/vehiculos'
@@ -119,6 +121,10 @@ async function Listado({
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   if (!puede(sesion.permisos, 'repuestos.ver')) {
     return <EstadoSinPermiso />
+  }
+  // Con el Modo Live (la guarda ya dejó pasar sólo «Sólo números»): los números por fase, sin vistas, ⚙ ni «Nuevo proyecto».
+  if (sesion.live.encendido) {
+    return <NumerosDeRepuestos fases={datosO(await leerNumerosDeRepuestos())} />
   }
   // El ⚙ «Configurar» (Repuestos › Configuración) va en la fila de filtros de las tres vistas, sólo con `repuestos.configurar`.
   const configurar = puede(sesion.permisos, 'repuestos.configurar') ? <BotonDeConfigurar /> : null
