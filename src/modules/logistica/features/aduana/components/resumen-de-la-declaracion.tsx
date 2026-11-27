@@ -14,7 +14,8 @@ type Props = {
   // Con `logistica.aduana.gestionar` (la base lo vuelve a exigir): enciende los botones de escribir.
   puedeGestionar: boolean
   // El origen elegido en Logística: el buscador de la composición busca ahí.
-  origenId: string
+  // El origen de la pestaña, donde busca vehículos para agregar; nulo si la declaración se abrió fuera de una pestaña de Aduana (sólo lectura).
+  origenId: string | null
 }
 
 function Dato({ etiqueta, valor }: { etiqueta: string; valor: string | null }) {
@@ -61,7 +62,7 @@ export function ResumenDeLaDeclaracion({ declaracion, puedeGestionar, origenId }
           <Dato etiqueta="Notas" valor={declaracion.notas} />
         </div>
       </dl>
-      {puedeGestionar ? (
+      {puedeGestionar && origenId !== null ? (
         <VehiculosDeLaDeclaracion declaracion={declaracion} origenId={origenId} />
       ) : (
         <VehiculosDelResumen declaracion={declaracion} />

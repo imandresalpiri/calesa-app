@@ -51,7 +51,22 @@ async function Listado({
   searchParams: PageProps<'/logistica/aduana'>['searchParams']
 }) {
   const abierta = await abrirLaPestana(searchParams, 'aduana')
-  if (abierta.tipo === 'estado') return abierta.estado
+  if (abierta.tipo === 'estado') {
+    // Un enlace a una declaración (la actividad, que no sabe su origen) la abre aunque el origen que se resolvió no tenga Aduana: en lectura, y la base decide si la ve.
+    const pedida = unParametro((await searchParams)[CLAVE_DE_DECLARACION])
+    return (
+      <>
+        {abierta.estado}
+        {pedida ? (
+          <DrawerDeLaDeclaracion clave={CLAVE_DE_DECLARACION}>
+            <Suspense key={pedida} fallback={<EsqueletoDetalle />}>
+              <DeclaracionAbierta id={pedida} puedeGestionar={false} origenId={null} />
+            </Suspense>
+          </DrawerDeLaDeclaracion>
+        ) : null}
+      </>
+    )
+  }
   const { permisos, origen, parametros } = abierta
   const esquema = esquemaDeFiltrosDeAduana()
   const pedido = pedidoDeAduana(leerFiltros(esquema, parametros), {

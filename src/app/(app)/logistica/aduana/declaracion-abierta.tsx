@@ -19,8 +19,8 @@ export async function DeclaracionAbierta({
 }: {
   id: string
   puedeGestionar: boolean
-  // El origen de la pestaña: el buscador de vehículos busca en él.
-  origenId: string
+  // El origen de la pestaña: el buscador de vehículos busca en él. Nulo: se abrió sin una pestaña de Aduana que dibujar (sólo lectura).
+  origenId: string | null
 }) {
   const resultado = await leerDeclaracion(id)
   if (!resultado.ok && resultado.error.codigo === 'no_encontrado') {
