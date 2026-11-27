@@ -565,7 +565,17 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **XCell** — `src/shared/ui/xcell`: celda numérica editable del cotizador: valor, default, revertir, ayuda, ⚙, sugerido, teclado. Con el aspecto
   de V1: un campo de alto fijo (56 px como mínimo) con rótulo · valor(es) · acciones (candado · ⚙ · ? · ↺); tocar cualquier parte la edita, el rótulo
   flota y la nota va dentro; `XCELL_COMPACTA` la vuelve densa (la hoja de ítems).
-- **Modo Live** — `useLive()` / `<Monto>`: oculta los símbolos y los códigos de moneda en toda la app; los números se ven. Lo que se comparte sale completo, con su moneda.
+- **Modo Live** — `useLive()` / `Sesion.live` / la cookie `modo-live`: para mostrar la pantalla en vivo lo que la importadora ofrece sin lo sensible.
+  Oculta los símbolos y los códigos de moneda en toda la app (los números se ven) y lo que apagan los Ajustes del Live de quien mira: el servidor no
+  lo dibuja ni lo manda. Lo que se comparte sale completo, con su moneda. Se enciende desde la barra superior (`ConmutadorLive`).
+- **Ajustes del Live** — `live_ajustes_roles` (por rol) y `live_ajustes_personas` (por persona), `AjustesDelLive` en `equipo/entities/live.ts`: qué
+  puede y qué ve alguien con el Modo Live encendido («Puede encender el Modo Live», Vehículos y sus orígenes, Cotizaciones, Clientes, Logística,
+  Repuestos, Inicio y Tablero, Configuración de orígenes). Por campo manda lo propio de la persona, si no lo de su rol principal y si no lo por
+  defecto (`combinarAjustesDelLive()`). Se configuran en Configuración › Modo Live (`live.configurar`).
+- **Ajuste propio (del Live)** — un campo de `live_ajustes_personas` que pisa lo de su rol para esa persona; lo demás se ve «Como su rol (…)». Sigue
+  si la persona cambia de rol; «Volver a lo de su rol» lo quita.
+- **Oculto en Modo Live** — `EstadoOcultoEnLive`: la pantalla que se ve al abrir por URL algo que el Live oculta, con «Salir del Modo Live» (apaga y
+  vuelve a la misma URL).
 - **Tabla de referencia** — `tablas_referencia`, `_filas`: alimentan nodos tabla/tramo (impuestos, tramos, tarifas, depreciación).
 - **Publicar una tabla de referencia** — `tabla_referencia_publicar()`: reemplaza sus filas, sube `tablas_referencia.version` y publica la
   N+1 de cada fórmula que la usa con la copia congelada.

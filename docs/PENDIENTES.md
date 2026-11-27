@@ -53,6 +53,11 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Ordenar el listado de leads por último seguimiento o por próximo recordatorio, y mostrar ambos en la tarjeta del kanban (que lee oportunidades, no leads) — el listado ordena sólo por `creado_en` en todos sus caminos; un orden propio pide cursor, ruta e índice (el recordatorio es personal) y su medición.
 - **[8-05a]** Vincular a un lead una solicitud web ya contactada — `web_confirmar_contacto` sólo escribe `lead_id` en `asignada` o `vencida`; pide una RPC nueva.
 
+### Modo Live
+
+- **[—]** «Sólo nombres» no abre `/leads` y, con el Live, Inicio no muestra la bandeja del día (`docs/DECISIONES.md` › «Lo que el Live muestra»)
+  — decidido lo más conservador; una lista de leads sólo con nombres o un bloque de Inicio a la vista piden cada uno otra lectura y su ajuste.
+
 ### Logística
 
 - **[—]** «Documentos por aprobar» de Inicio sólo trae los documentos de vehículos (`_bandeja_por_aprobar`): quien sólo aprueba los de repuestos no ve el bloque. Sumar los de los ítems pide ampliar esa RPC y su medición.

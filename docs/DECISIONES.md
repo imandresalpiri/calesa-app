@@ -145,9 +145,11 @@ las trampas, en `docs/LECCIONES.md`.
 - **«Completados» de tus recordatorios: una sección a la vista, leída al acercarse** (decidido sin preguntar). Vive dentro del drawer «Tus recordatorios» (`?todos=recordatorios`) y se lee la primera vez que está a 200 px de la vista (`useALaVista`), por cursor y con «Ver más». Descartado: un drawer sobre otro drawer.
 - **El historial de cotizaciones del vehículo abre un modal en `?ver=historial`** (decidido sin preguntar). En la hoja `?panel=` ya es del panel del vehículo, así que el modal usa otra clave; lee la primera página al montarse, de a 20 hasta el tope, con «Ver más». Un modal que sale de un drawer está permitido; uno sobre otro modal, no.
 - **Sin saltos de interfaz.** Lo que cambia de contenido dentro de un área (cargar, editar, cambiar de vista, mostrar un aviso) no cambia el tamaño del área: alto fijo o reservado, y el esqueleto mide lo mismo que el contenido. Lo que se mueve bajo el puntero hace errar el toque y desorienta; el e2e lo mide con `boundingBox()` antes y después.
-- **El Modo Live oculta sólo la moneda, nunca el número.** Se usa en una pantalla compartida o en vivo: lo que no conviene mostrar es la
-  moneda (de dónde sale el costo), no la cifra con la que se conversa. Con él, todo monto se ve con los mismos decimales y separadores y sin
-  su símbolo ni su código; no hay montos tapados, campos de contraseña, imágenes borrosas ni acciones que se apaguen. Decidido sin preguntar:
+- **El Modo Live oculta la moneda y lo que sus ajustes apagan, nunca el número de lo que se ve.** Se usa en una pantalla compartida o en
+  vivo: lo que no conviene mostrar es la moneda (de dónde sale el costo) y lo que los ajustes del rol o de la persona apagan (clientes,
+  logística, repuestos, orígenes; `docs/GLOSARIO.md` › «Ajustes del Live»), no la cifra con la que se conversa. Lo que se ve lleva todo monto
+  con los mismos decimales y separadores y sin su símbolo ni su código; no hay montos tapados, campos de contraseña ni imágenes borrosas: lo
+  oculto no se dibuja. Decidido sin preguntar:
   - El número sin moneda sale de `formatearMontoSinMoneda()` con `Intl.NumberFormat#formatToParts`: quita las partes `currency` y los
     literales de sólo espacios. Nunca un recorte del texto ya formateado, que depende del locale.
   - Lo que el CSS no alcanza (un `title`, un `aria-label`, un aviso, el título de un `<Confirmar>`) se arma con `useMontoEnTexto()`, que lee
@@ -160,6 +162,14 @@ las trampas, en `docs/LECCIONES.md`.
     previa pide `?sin-moneda=1` y «1 USD =» queda: sin él no se sabe de qué tipo es la cifra.
   - Retocar un texto de la tarjeta abre el texto que se guarda, con su moneda: quitársela cambiaría lo guardado.
   - La ayuda de la hoja da la cifra sin su moneda en el nombre del botón y en el aviso, y su tabla se edita también con el Modo Live.
+- **El Modo Live va en una cookie (`modo-live`), no sólo en `localStorage`.** El servidor tiene que saberlo para no dibujar ni mandar lo
+  oculto: con `localStorage` llegaría al navegador y sólo el CSS lo taparía. La escribe el navegador al conmutar (`1`/`0`, un año,
+  `SameSite=Lax`, nada de la persona) y conmutar hace `router.refresh()`; `getSesion()` la lee junto a `perspectiva`. `localStorage` y el
+  evento `storage` siguen para el primer pintado de una pestaña nueva y para avisar a las otras («El Modo Live cambió.», con «Recargar»); lo
+  guardado antes de la cookie se pasa a ella al montar. Quien ya no puede encenderlo lo encuentra apagado, con su aviso.
+- **Con el Modo Live, el marco se achica:** sin campana (las notificaciones se ocultan siempre), sin «Ver como» en el menú del usuario (su
+  lista nombra los roles de la empresa; el banner de una perspectiva ya elegida sigue) y, para quien no puede encenderlo, sin el interruptor.
+  El nombre accesible del interruptor no cambia («Modo Live: ocultar los símbolos de moneda»). Decidido sin preguntar.
 
 ### La página del origen en pestañas planas
 
@@ -228,6 +238,36 @@ las trampas, en `docs/LECCIONES.md`.
   es el rol a la vista y siempre está. Sin el filtro por rol en Equipo, «Quítaselo a las personas…» no lleva botón. El motivo de una celda apagada y el de
   la papelera siguen en su descripción accesible.
 - **«Ver como» sólo dibuja.** Cookie `perspectiva`; `mi_sesion(p_perspectiva)` da `permisos_efectivos()` (míos ∩ del rol) sólo con `equipo.roles.gestionar`. RLS, RPC y `actionClient` siguen con los reales; lo que escribe en la cuenta real (`/perfil`) queda de sólo lectura.
+- **El Modo Live es una perspectiva que recorta lo que se dibuja; la base no lo conoce.** Con el Live encendido, `sesion.permisos =
+permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el alta de lead, el chat, las secciones de Configuración y todo
+  lo que se decide con `puede()` se apagan solos, como con «Ver como». RLS, RPC y `actionClient` siguen con los permisos reales: el Live es
+  presentación, no seguridad, y por eso sus ajustes no pasan por `/actividad` ni exigen dominar a la persona (no otorgan permisos y así no se
+  redefine `_actividad_recorte()`; decidido sin preguntar). Se escriben sólo por RPC definer con `live.configurar`.
+- **Los ajustes del Live viajan en `mi_sesion()`** (clave `live: { rol, persona }`: dos lecturas por clave primaria en la ida que ya
+  existe). Al navegador van sólo `puedeEncender` y si la pantalla se dibujó encendida. Mandan los del rol principal (`roles[0]`, el orden del
+  menú del usuario: así se puede escribir «Como su rol (<rol>)»; decidido sin preguntar), pisados campo a campo por los propios de la
+  persona; con «Ver como» válida, los del rol mirado sin los propios. Una persona sin rol sigue lo por defecto.
+- **La guarda del Live va en cada `page.tsx` y `route.ts`, no en un layout.** `ocultoEnElLive(área)` (o `<SiSeVeEnElLive área>` cuando la
+  página lee `searchParams`), con la tabla de áreas de `src/app/(app)/_live/pantallas-del-live.ts`; `scripts/guardas/live-en-las-paginas.test.ts`
+  falla si una página nueva no está en la tabla o no se guarda. Un layout no se vuelve a dibujar al navegar dentro de su segmento: lo oculto
+  llegaría igual. La sesión está en `cache()`, así que la guarda no suma lecturas.
+- **Lo que el Live muestra, área por área** (decidido sin preguntar, lo más conservador en cada caso):
+  - «Sólo nombres» no abre `/leads`: el módulo sigue oculto y el nombre se ve sólo donde se muestra un cliente (cotizaciones y el panel de la
+    hoja). Una lista de leads sólo con nombres pediría otra lectura grande.
+  - Las papeleras (vehículos y cotizaciones) se ocultan siempre: no son «lo que ofrece la importadora».
+  - La tarjeta de la cotización (vista previa, imagen, PDF y «Compartir») dice «Cliente» o su nombre según los ajustes, también en lo que
+    se comparte: la imagen completa se baja al navegador. Es otra imagen, con otra ETag (sufijo `.c`). `clienteDe()` es la única entrada.
+  - Inicio no lee la bandeja de hoy (trabajo personal, leads, detalle de logística, repuestos o equipo): muestra un estado propio con accesos
+    a Vehículos y Cotizaciones.
+  - El tablero deja sólo los widgets `cotizaciones-*`, sin «Personalizar», y sin «Por origen» cuando se ven sólo algunos orígenes.
+  - La paleta busca leads sólo con «Completo», y vehículos y cotizaciones sólo con todos los orígenes (sus RPC no filtran por origen); si no,
+    sólo ofrece acciones. Lo mismo en «Últimos abiertos».
+  - Logística «Sólo la cadena» es el gráfico, sin enlaces a las fases, «Dónde está», el lote, las pestañas ni ⚙. Repuestos «Sólo
+    estadísticas» es una tarjeta por fase con Ítems y Proyectos, contados con tope («500+») y sin enlaces.
+  - Orígenes «Sólo lectura» deja Planilla, Hoja y Tarjeta sin nada que se edite ni el «⋯» («Copiar», «Versiones», «Tablas», «Datos», la
+    puesta en marcha); la lista de orígenes, sólo las tarjetas que abren cada uno.
+  - Los tipos de cambio de la barra se ven sin su moneda y sin lápiz: `empresa` se oculta siempre, y cambiar un valor en plena transmisión no
+    es mostrar.
 - **`mi_sesion()`: la sesión en una ida.** RPC definer con cuenta, perfil, roles, concesiones y preferencias, envuelta en `cache()`. Un dato nuevo del shell sobre la persona se suma ahí.
 - **La versión de un rol cubre sus concesiones.** `roles.actualizado_en` la reciben otorgar, revocar y eliminar (PT409); asignar/quitar rol es idempotente; bloquear y baja usan el estado de la cuenta como precondición.
 - **Baja en dos tiempos.** `equipo_dar_de_baja` hace lo instantáneo y el primer lote; el job `equipo-bajas` sigue con `skip locked`. Mientras dura, `_bajas_en_curso()` hace que toda regla vea el estado final (lo vigila `humo.sql`).
@@ -1621,6 +1661,9 @@ las trampas, en `docs/LECCIONES.md`.
 ## Notificaciones
 
 - **Las preferencias no apagan la campana.** La campana es el registro; las preferencias gobiernan sólo el push.
+- **El push con el Modo Live:** al encenderlo, ese dispositivo da de baja su suscripción y la vuelve a crear al apagarlo, sin volver a pedir
+  permiso. Chrome exige mostrar algo por cada push (`userVisibleOnly`): no se puede descartar en `sw.js`. Lo que llega mientras tanto queda
+  en la campana. Decidido sin preguntar.
 - **Abrir un aviso lo acciona sólo en `tarea_asignada`, `recordatorio` y `demora_fase`**; los demás, por su acción propia.
 - **Ningún aviso nombra al lead** (puede llamarse como su teléfono, viaja por Realtime y queda tras perder el acceso): se abre por la `ruta`.
 - **Repetir un aviso borra el abierto anterior y deja uno nuevo** (si no, el antispam se lo traga). Un destinatario sin perfil se descarta: avisar nunca hace fallar la operación.
