@@ -1,6 +1,9 @@
 'use client'
 
+import { useState } from 'react'
+import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import type { EntradaDeLaBandeja, Rechazado } from '../hooks/use-bandeja'
+import { VistaPreviaLocalDiferida } from './diferidos'
 import { FilaDeLaBandeja } from './fila-de-la-bandeja'
 
 type Props = {
@@ -16,6 +19,10 @@ type Props = {
 
 // La bandeja: lo que se va a subir, lo que el tipo no admite y lo que no entró, cada uno con su porqué. Nada se subió todavía.
 export function Bandeja({ entran, fuera, rechazados, fallos, deshabilitado, alQuitar }: Props) {
+  const [viendoHash, setViendoHash] = useState<string | null>(null)
+  // Si el archivo sale de la bandeja (se quitó o se subió), la vista previa se cierra sola.
+  const viendo = entran.find((e) => e.datos.hash === viendoHash) ?? null
+  const montar = useAbiertoAlgunaVez(viendo !== null)
   if (entran.length === 0 && fuera.length === 0 && rechazados.length === 0) {
     return null
   }
@@ -32,9 +39,20 @@ export function Bandeja({ entran, fuera, rechazados, fallos, deshabilitado, alQu
               alQuitar={() => {
                 alQuitar(e.datos.hash)
               }}
+              alVer={() => {
+                setViendoHash(e.datos.hash)
+              }}
             />
           ))}
         </ul>
+      ) : null}
+      {montar ? (
+        <VistaPreviaLocalDiferida
+          entrada={viendo}
+          cerrar={() => {
+            setViendoHash(null)
+          }}
+        />
       ) : null}
       {fuera.length > 0 || rechazados.length > 0 ? (
         <ul

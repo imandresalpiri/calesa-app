@@ -17,6 +17,8 @@ type Props = {
   documento: DocumentoDeLaUnidad
   tipo: TipoDeDocumento | null
   contexto: ContextoDeLaFila
+  // Un motivo que la pantalla ya dijo junto a otro botón (el pie de la vista previa lo dice una sola vez): no se repite en texto.
+  motivoYaDicho?: string | null
 }
 
 function TextoDelInterruptor({
@@ -46,14 +48,15 @@ function TextoDelInterruptor({
 
 // «Visible en el portal» de un documento (D23): un interruptor con su etiqueta. Lo enciende quien aprueba y sólo si el tipo lo admite; apagado dice por qué. Apagar siempre se puede.
 // Cambiar manda sólo `visible_portal` con la versión de la fila; si la base lo rechaza, el interruptor vuelve a su valor y se dice el motivo tal cual.
-export function InterruptorDelPortal({ documento, tipo, contexto }: Props) {
+export function InterruptorDelPortal({ documento, tipo, contexto, motivoYaDicho = null }: Props) {
   const id = useId()
   const puede = quePuedeHacer(documento, tipo, contexto.claves).portal
   const { editar, enCurso, error, conflicto } = useEditarElDocumento(contexto.unidadId, documento)
   const motivo = puede.tipo === 'apagada' ? puede.motivo : null
   const avisoDelTipo = yaNoSeVeEnElPortal(documento, tipo) ? YA_NO_SE_VE_EN_EL_PORTAL : null
   const idMotivo = `${id}-motivo`
-  const texto = conflicto ?? error ?? motivo ?? avisoDelTipo
+  const dicho = conflicto ?? error ?? motivo ?? avisoDelTipo
+  const texto = dicho !== null && dicho === motivoYaDicho ? null : dicho
 
   return (
     <div className="grid gap-1" data-portal-del-documento>

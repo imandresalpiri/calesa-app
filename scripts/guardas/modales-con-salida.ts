@@ -53,6 +53,15 @@ export const MODALES: Record<string, RegistroDeModal> = {
     sinFormulario:
       'sólo dibuja los estados de carga, error y sin tipos; los formularios de anotar y agendar son ModalDeFormulario',
   },
+  // --- logistica
+  'src/modules/logistica/features/documentos/components/vista-previa-del-documento.tsx': {
+    sinFormulario:
+      'sólo mira el archivo de un documento; lo único tipeado es el motivo de un rechazo, una línea del pie que se reescribe y no cambia nada hasta enviarla',
+  },
+  'src/modules/logistica/features/documentos/components/vista-previa-local.tsx': {
+    sinFormulario:
+      'sólo mira un archivo de la bandeja de subida antes de confirmar; no hay nada tipeado que se pierda al cerrar',
+  },
   // --- repuestos
   'src/modules/repuestos/features/items/components/modal-del-grupo.tsx': {
     sinFormulario:

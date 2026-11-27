@@ -9,6 +9,7 @@ import {
   motivoDeRechazoValido,
   quePuedeHacer,
   type Accion,
+  type QuePuedeHacer,
 } from '../../../entities/documentos/revision'
 import { useRevisarElDocumento } from '../hooks/use-revisar-el-documento'
 import { CampoDelMotivo } from './campo-del-motivo'
@@ -18,6 +19,10 @@ type Props = {
   documento: DocumentoDeLaUnidad
   tipo: TipoDeDocumento | null
   contexto: ContextoDeLaFila
+  // El pie de la vista previa (de alto fijo): el motivo del rechazo se escribe en la misma línea de los botones.
+  enLinea?: boolean
+  // Arranca con el campo del motivo abierto y enfocado (rechazar desde el «⋯»): sólo si se puede rechazar.
+  rechazarAlAbrir?: boolean
 }
 
 const sePuede = (accion: Accion, enCurso: boolean) => accion.tipo === 'habilitada' && !enCurso
@@ -57,17 +62,76 @@ function AvisosDeLaRevision({
   )
 }
 
+// El campo del motivo arranca abierto sólo si se pidió rechazar y se puede.
+const motivoInicial = (rechazarAlAbrir: boolean, puede: QuePuedeHacer): string | null =>
+  rechazarAlAbrir && puede.rechazar.tipo === 'habilitada' ? '' : null
+
+const hayBotones = (puede: QuePuedeHacer): boolean =>
+  puede.aprobar.tipo !== 'oculta' || puede.rechazar.tipo !== 'oculta'
+
+type PropsDeLosBotones = {
+  puede: QuePuedeHacer
+  enCurso: boolean
+  describe: string | undefined
+  // Escribiendo el motivo: «Rechazar» ya no está; en línea, tampoco «Aprobar».
+  escribiendo: boolean
+  enLinea: boolean
+  aprobar: () => void
+  pedirMotivo: () => void
+}
+
+function BotonesDeRevisar({
+  puede,
+  enCurso,
+  describe,
+  escribiendo,
+  enLinea,
+  aprobar,
+  pedirMotivo,
+}: PropsDeLosBotones) {
+  return (
+    <div className={enLinea && escribiendo ? 'hidden' : 'flex flex-wrap gap-2'}>
+      {puede.aprobar.tipo !== 'oculta' ? (
+        <Button
+          className="min-h-11 md:min-h-9"
+          disabled={!sePuede(puede.aprobar, enCurso)}
+          aria-describedby={describe}
+          onClick={aprobar}
+        >
+          Aprobar
+        </Button>
+      ) : null}
+      {puede.rechazar.tipo !== 'oculta' && !escribiendo ? (
+        <Button
+          variant="outline"
+          className="min-h-11 md:min-h-9"
+          disabled={!sePuede(puede.rechazar, enCurso)}
+          aria-describedby={describe}
+          onClick={pedirMotivo}
+        >
+          Rechazar
+        </Button>
+      ) : null}
+    </div>
+  )
+}
+
 // «Aprobar» y «Rechazar» en la fila de un documento (6.06-3). Sin la clave de aprobar quedan apagados y dicen por qué; no se esconden. Rechazar pide el motivo en un campo junto al
 // botón. Si otra persona cambió la fila (`PT409`) se dice aquí, con el motivo todavía escrito.
-export function AccionesDelDocumento({ documento, tipo, contexto }: Props) {
+export function AccionesDelDocumento({
+  documento,
+  tipo,
+  contexto,
+  enLinea = false,
+  rechazarAlAbrir = false,
+}: Props) {
   const puede = quePuedeHacer(documento, tipo, contexto.claves)
   const { revisar, enCurso, error, conflicto } = useRevisarElDocumento(contexto.unidadId, documento)
-  const [motivo, setMotivo] = useState<string | null>(null)
+  const [motivo, setMotivo] = useState<string | null>(motivoInicial(rechazarAlAbrir, puede))
   const idMotivo = `revisar-${documento.id}-motivo`
   const porQue = motivoApagado([puede.aprobar, puede.rechazar])
   const describe = porQue ? idMotivo : undefined
-  const hayBotones = puede.aprobar.tipo !== 'oculta' || puede.rechazar.tipo !== 'oculta'
-  if (!hayBotones && !error && !conflicto) return null
+  if (!hayBotones(puede) && !error && !conflicto) return null
 
   function confirmarRechazo() {
     const valido = motivoDeRechazoValido(motivo ?? '')
@@ -79,31 +143,17 @@ export function AccionesDelDocumento({ documento, tipo, contexto }: Props) {
 
   return (
     <div className="grid gap-2" data-acciones-de-revision>
-      <div className="flex flex-wrap gap-2">
-        {puede.aprobar.tipo !== 'oculta' ? (
-          <Button
-            className="min-h-11 md:min-h-9"
-            disabled={!sePuede(puede.aprobar, enCurso)}
-            aria-describedby={describe}
-            onClick={() => void revisar('aprobado', null)}
-          >
-            Aprobar
-          </Button>
-        ) : null}
-        {puede.rechazar.tipo !== 'oculta' && motivo === null ? (
-          <Button
-            variant="outline"
-            className="min-h-11 md:min-h-9"
-            disabled={!sePuede(puede.rechazar, enCurso)}
-            aria-describedby={describe}
-            onClick={() => {
-              setMotivo('')
-            }}
-          >
-            Rechazar
-          </Button>
-        ) : null}
-      </div>
+      <BotonesDeRevisar
+        puede={puede}
+        enCurso={enCurso}
+        describe={describe}
+        escribiendo={motivo !== null}
+        enLinea={enLinea}
+        aprobar={() => void revisar('aprobado', null)}
+        pedirMotivo={() => {
+          setMotivo('')
+        }}
+      />
       {porQue ? (
         <p id={idMotivo} className="text-(length:--text-sm) text-(--color-ink-soft)">
           {porQue}
@@ -119,6 +169,8 @@ export function AccionesDelDocumento({ documento, tipo, contexto }: Props) {
           }}
           alConfirmar={confirmarRechazo}
           enCurso={enCurso}
+          enLinea={enLinea}
+          enfocar={rechazarAlAbrir}
         />
       ) : null}
       <AvisosDeLaRevision conflicto={conflicto} error={error} releer={contexto.releer} />
