@@ -75,8 +75,22 @@ const vehiculo = {
   atributos: { ubicacion_estado: 'TX' },
 }
 const LINEAS = {
-  conceptos: [{ concepto: 'Remate', monto: '$ 1.000,00', segunda: null }],
-  total: { concepto: 'Total', monto: '$ 1.300,00', segunda: null },
+  conceptos: [
+    {
+      concepto: 'Remate',
+      monto: '$ 1.000,00',
+      segunda: null,
+      montoSinMoneda: '1.000,00',
+      segundaSinMoneda: null,
+    },
+  ],
+  total: {
+    concepto: 'Total',
+    monto: '$ 1.300,00',
+    segunda: null,
+    montoSinMoneda: '1.300,00',
+    segundaSinMoneda: null,
+  },
   modo: 'Oficial',
 }
 // Quien comparte: Luis, aunque la creó Ana.

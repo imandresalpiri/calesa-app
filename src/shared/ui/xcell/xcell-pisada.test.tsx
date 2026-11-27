@@ -65,7 +65,7 @@ describe('lo calculado de una celda pisada', () => {
     )
     expect(nota?.getAttribute('role')).toBeNull()
     expect(nota?.querySelector('[data-monto-valor]')?.textContent).toBe('$480.00')
-    expect(nota?.querySelector('[data-monto-oculto]')).not.toBeNull()
+    expect(nota?.querySelector('[data-monto-sin-moneda]')?.textContent).toBe('480.00')
     const marca = container.querySelector('[role="img"][aria-label="Editado a mano"]')
     for (const parada of ['0', '1']) {
       const boton = container.querySelector(`[data-parada="${parada}"]`)

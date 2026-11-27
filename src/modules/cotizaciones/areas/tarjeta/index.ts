@@ -14,8 +14,8 @@
 // `imagenDeUnaGuardada(entrada)`: la misma tarjeta como PNG (`{ bytes, ancho, alto, completa }`), la base de la imagen.
 //
 // La imagen de la tarjeta (`docs/COTIZADOR.md` › «La imagen de la tarjeta»), para `GET /cotizaciones/[id]/imagen`: `leerHuellaDeLaImagen(id)` (la huella de lo que
-// dibuja para quien pide; lo que no ve, `no_encontrado`), `etiquetaDeLaImagen({ huella, usuarioId, ancho })` y `coincideLaEtiqueta(siNoneMatch, etiqueta)` (la
-// ETag y el 304), y `armarLaImagen(id, { contextoDe, ancho })` (el WebP de lo guardado con el contexto de quien mira, `ContextoLeido`; `conRecalculo` falso sin el
+// dibuja para quien pide; lo que no ve, `no_encontrado`), `etiquetaDeLaImagen({ huella, usuarioId, ancho, sinMoneda })` y `coincideLaEtiqueta(siNoneMatch, etiqueta)`
+// (la ETag y el 304), y `armarLaImagen(id, { contextoDe, ancho, sinMoneda })` (el WebP de lo guardado con el contexto de quien mira, `ContextoLeido`; `conRecalculo` falso sin el
 // primer recálculo y `completa` falso si una lectura falló o el logo o la foto no llegaron). El componente sale por `pantallas/tarjeta-imagen.ts`.
 export {
   imagenDeUnaGuardada,

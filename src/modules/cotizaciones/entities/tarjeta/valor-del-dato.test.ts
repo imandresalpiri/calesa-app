@@ -183,4 +183,22 @@ describe('los «Decimales» de cada celda en la tarjeta', () => {
     })
     expect(pct).toBe('4,26%')
   })
+
+  it('`sinMoneda` (la imagen del Modo Live): el monto, el total, su Bs y la parte de un texto, sin la moneda; sin la opción, como el PDF', () => {
+    const sin = (tarjeta: TarjetaLista): EntradaDelContenido => ({
+      ...conLa(tarjeta),
+      sinMoneda: true,
+    })
+    const r = datoDibujado(sin(conDecimales), monto('total'))
+    expect(r.tipo === 'monto' && `${r.texto} | ${r.segunda?.texto ?? ''}`).toBe(
+      '1.355,457 | 9.434,022',
+    )
+    const s = datoDibujado(sin(TARJETA), monto('remate'))
+    expect(s.tipo === 'monto' && s.texto).toBe('1.234,57')
+    expect(parteDibujada(sin(conDecimales), monto('remate'))).toMatchObject({
+      texto: '1.235',
+      moneda: 'USD',
+    })
+    expect(textoDe(monto('total'))).toBe('USD 1.355,457 | Bs 9.434,022')
+  })
 })

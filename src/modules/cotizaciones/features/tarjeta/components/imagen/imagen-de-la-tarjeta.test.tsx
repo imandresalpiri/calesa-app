@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -133,15 +133,35 @@ describe('<ImagenDeLaTarjeta>: el visor y el Modo Live', () => {
     expect(visor).not.toHaveBeenCalled()
   })
 
-  it('en Modo Live lleva «Oculto en Modo Live» y el clic no abre el visor', async () => {
+  it('con el Modo Live pide la variante sin moneda, también el visor, y el clic la abre', async () => {
     document.documentElement.classList.add('live')
     montar()
+    expect(urlDe(await conTurno())).toBe(`/cotizaciones/${ID}/imagen?sin-moneda=1`)
+    expect(imagen().getAttribute('data-imagen-moneda')).toBe('sin')
     await cargar()
-    expect(screen.getByText('Oculto en Modo Live').hasAttribute('data-imagen-oculta')).toBe(true)
-    expect(imagen().hasAttribute('data-imagen')).toBe(true)
-    const boton = screen.getByRole('button', { name: /en grande/ })
-    expect(boton).toHaveProperty('disabled', true)
-    fireEvent.click(boton)
-    expect(visor).not.toHaveBeenCalled()
+    expect(screen.queryByText('Oculto en Modo Live')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /en grande/ }))
+    expect(visor).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        url: `/cotizaciones/${ID}/imagen?sin-moneda=1`,
+        variante: 'sin',
+        pedidos: 1,
+      }),
+    )
+  })
+
+  it('cambiar el Modo Live vuelve a pedirla en la otra variante, con el recuadro mientras llega', async () => {
+    montar()
+    await cargar()
+    expect(imagen().getAttribute('data-imagen-moneda')).toBe('con')
+    act(() => {
+      document.documentElement.classList.add('live')
+      window.dispatchEvent(new StorageEvent('storage', { key: 'modo-live', newValue: '1' }))
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('status').textContent).toBe('Preparando la imagen…')
+    })
+    expect(urlDe(await conTurno())).toBe(`/cotizaciones/${ID}/imagen?sin-moneda=1`)
+    expect(screen.getByRole('button', { name: /en grande/ })).toHaveProperty('disabled', true)
   })
 })

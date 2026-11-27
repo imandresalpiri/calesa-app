@@ -105,9 +105,12 @@ describe('los textos del valor que se usa', () => {
     expect(avisoDelValor(iva, 0.1494, REGIONAL, false)).toMatch(/^IVA = 14,94\s?%$/)
   })
 
-  it('con el Modo Live un destino de dinero no dice la cifra; un porcentaje, sí', () => {
-    expect(nombreDelValor(flete, 1500, REGIONAL, true)).toBe('Usar este valor en Flete')
-    expect(avisoDelValor(flete, 1500, REGIONAL, true)).toBe('Flete actualizado.')
-    expect(avisoDelValor(iva, 0.1494, REGIONAL, true)).toMatch(/^IVA = 14,94/)
+  it('con el Modo Live un monto va sin su moneda, con la misma cifra; un porcentaje, igual', () => {
+    expect(textoDelValor(1500, 'usd', REGIONAL, true)).toBe('1.500,00')
+    expect(textoDelValor(1500, 'moneda', REGIONAL, true)).toBe('1.500,00')
+    expect(nombreDelValor(flete, 1500, REGIONAL, true)).toBe('Usar 1.500,00 en Flete')
+    expect(avisoDelValor(flete, 1500, REGIONAL, true)).toBe('Flete = 1.500,00')
+    expect(avisoDelValor(flete, 1500, REGIONAL, false)).toMatch(/US\$|USD/)
+    expect(avisoDelValor(iva, 0.1494, REGIONAL, true)).toMatch(/^IVA = 14,94\s?%$/)
   })
 })

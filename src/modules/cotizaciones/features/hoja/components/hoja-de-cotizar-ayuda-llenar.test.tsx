@@ -221,14 +221,17 @@ describe('HojaDeCotizar: un valor de la tabla de la ayuda llena su celda', () =>
     expect(nombres).toHaveLength(4)
   })
 
-  it('con el Modo Live, un destino de dinero no dice la cifra en el botón ni en el aviso', async () => {
+  it('con el Modo Live, un destino de dinero dice la cifra sin su moneda en el botón y en el aviso', async () => {
     document.documentElement.classList.add(CLASE_LIVE)
     montar()
     const panel = await abrir()
-    const deFlete = within(panel).getAllByRole('button', { name: 'Usar este valor en FLETE' })
+    const deFlete = within(panel).getAllByRole('button', { name: /^Usar [\d.,]+ en FLETE$/ })
     expect(deFlete).toHaveLength(2)
     fireEvent.click(deFlete[1] as HTMLElement)
-    expect(avisarConDeshacer).toHaveBeenCalledWith('FLETE actualizado.', expect.any(Function))
+    expect(avisarConDeshacer).toHaveBeenCalledWith(
+      expect.stringMatching(/^FLETE = [\d.,]+$/),
+      expect.any(Function),
+    )
   })
 })
 

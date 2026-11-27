@@ -190,10 +190,10 @@ html:has([data-lienzo-marco]) {
 }
 
 /*
- * Modo Live: con la clase `live` en <html>, toda cifra de dinero y su símbolo de moneda salen de
- * la vista y del árbol de accesibilidad. <Monto> siempre trae las dos versiones; acá se elige.
+ * Modo Live: con la clase `live` en <html>, todo monto se ve con su número y sin el símbolo ni el código de su moneda. <Monto> siempre
+ * trae las dos versiones; acá se elige, y la que no va sale de la vista y del árbol de accesibilidad.
  */
-[data-monto-oculto] {
+[data-monto-sin-moneda] {
   display: none;
 }
 
@@ -201,25 +201,17 @@ html:has([data-lienzo-marco]) {
   display: none;
 }
 
-.live [data-monto-oculto] {
+.live [data-monto-sin-moneda] {
   display: inline;
 }
 
 /*
- * La imagen de la tarjeta de una cotización (con cifras): con el Modo Live se ve borrosa y con «Oculto en Modo Live» encima, por CSS como <Monto> (sin un instante
- * con las cifras a la vista antes de hidratar). El clic al visor lo corta `useLive()`.
+ * La imagen de la tarjeta de una cotización: con el Modo Live se pide la variante sin moneda (`?sin-moneda=1`) y la que no corresponde no se ve, por CSS como
+ * <Monto>, ni un instante al cambiar el Modo Live.
  */
-[data-imagen-oculta] {
-  display: none;
-}
-
-.live [data-imagen] {
-  filter: blur(1rem);
-}
-
-.live [data-imagen-oculta] {
-  display: flex;
-  background-color: color-mix(in oklab, var(--color-paper) 55%, transparent);
+.live [data-imagen-moneda='con'],
+html:not(.live) [data-imagen-moneda='sin'] {
+  visibility: hidden;
 }
 
 /*

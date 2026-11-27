@@ -26,11 +26,13 @@ function texto(cuerpo: string, status: number): Response {
 }
 
 // Responde lo que el popover de la barra pide para compartir: el texto para WhatsApp o la imagen PNG de los tipos elegidos (`ids`: la lista de la URL, ya
-// leída del `searchParams`), con la sesión de quien pide. Quien llama pidió la sesión antes. Los dos formatos salen de la misma lectura.
+// leída del `searchParams`), con la sesión de quien pide. Quien llama pidió la sesión antes. Los dos formatos salen de la misma lectura. `sinMoneda`: la vista del
+// Modo Live (`?sin-moneda=1`), los valores sin su moneda.
 export async function responderParaCompartir(
   formato: FormatoParaCompartir,
   ids: string | null,
   { leer, dibujar }: Puertos,
+  { sinMoneda = false }: { sinMoneda?: boolean } = {},
 ): Promise<Response> {
   const elegidos = idsParaCompartir(ids)
   if (elegidos === null) {
@@ -42,10 +44,11 @@ export async function responderParaCompartir(
     const status = ESTADO_DE[codigo]
     return status === undefined ? texto(NO_SE_PUDO, 500) : texto(mensaje, status)
   }
+  const datos = sinMoneda ? { ...lectura.data, sinMoneda } : lectura.data
   if (formato === 'texto') {
-    return texto(armarTextoParaCompartir(lectura.data), 200)
+    return texto(armarTextoParaCompartir(datos), 200)
   }
-  const imagen = await dibujar(lectura.data)
+  const imagen = await dibujar(datos)
   if (!imagen.ok) {
     return texto(NO_SE_PUDO, 500)
   }

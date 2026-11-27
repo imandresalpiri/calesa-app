@@ -66,7 +66,7 @@ function useParte<T>(
       void (async () => {
         try {
           const respuesta = await pedir(
-            `${ruta}?ids=${encodeURIComponent(elegidos)}`,
+            `${ruta}${ruta.includes('?') ? '&' : '?'}ids=${encodeURIComponent(elegidos)}`,
             tipo,
             control.signal,
           )
@@ -116,15 +116,42 @@ const leerImagen = async (respuesta: Response) => {
   }
 }
 
+const SIN_ELEGIR: readonly string[] = []
+const SIN_MONEDA = '?sin-moneda=1'
+
 // El texto y la imagen de los tipos elegidos, cada uno por su lado: si la imagen falla, el texto sigue disponible (y al revés). Los pide al servidor, que
-// los arma con lo mismo (la empresa, el momento en su zona, los tipos, la leyenda).
-export function useParaCompartir(ids: readonly string[]) {
+// los arma con lo mismo (la empresa, el momento en su zona, los tipos, la leyenda). Con el Modo Live (`live`) pide además la vista sin moneda
+// (`?sin-moneda=1`): `textoALaVista` e `imagenALaVista` son lo que se muestra; `texto` e `imagen`, lo que se copia y se comparte, siempre con su moneda.
+export function useParaCompartir(ids: readonly string[], live: boolean) {
   const texto = useParte(ids, 'text/plain', '/tipos-de-cambio/texto', leerTexto)
   const imagen = useParte(ids, 'image/png', '/tipos-de-cambio/imagen', leerImagen)
+  const idsSinMoneda = live ? ids : SIN_ELEGIR
+  const textoSin = useParte(
+    idsSinMoneda,
+    'text/plain',
+    `/tipos-de-cambio/texto${SIN_MONEDA}`,
+    leerTexto,
+  )
+  const imagenSin = useParte(
+    idsSinMoneda,
+    'image/png',
+    `/tipos-de-cambio/imagen${SIN_MONEDA}`,
+    leerImagen,
+  )
+  const textoALaVista = live && ids.length > 0 ? textoSin : texto
+  const imagenALaVista = live && ids.length > 0 ? imagenSin : imagen
   return {
     texto: texto.parte,
     imagen: imagen.parte,
-    reintentarTexto: texto.reintentar,
-    reintentarImagen: imagen.reintentar,
+    textoALaVista: textoALaVista.parte,
+    imagenALaVista: imagenALaVista.parte,
+    reintentarTexto: () => {
+      texto.reintentar()
+      if (live) textoSin.reintentar()
+    },
+    reintentarImagen: () => {
+      imagen.reintentar()
+      if (live) imagenSin.reintentar()
+    },
   }
 }

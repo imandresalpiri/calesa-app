@@ -2,15 +2,12 @@
 
 import { useLayoutEffect, useRef } from 'react'
 import type { EdicionDeLaCelda } from '../../../hooks/use-edicion-con-referencias'
-import { MARCAS_DE_GESTORES } from '../../hoja/marcas-de-gestores'
 import { alTeclearEnLaEdicion, type AccionesDeLaEdicion } from '../teclas-de-la-edicion'
 
 type Props = {
   edicion: EdicionDeLaCelda
   // «C5, Remate, valor».
   nombre: string
-  // Con el Modo Live, un monto se escribe como contraseña.
-  secreto: boolean
   // La lista de sugerencias y la elegida (para el lector), y el error bajo la barra.
   idDeLaLista: string | null
   idDeLaElegida: string | null
@@ -41,8 +38,7 @@ export function EntradaDeLaCelda(p: Props) {
   return (
     <input
       ref={campo}
-      type={p.secreto ? 'password' : 'text'}
-      {...(p.secreto ? MARCAS_DE_GESTORES : {})}
+      type="text"
       autoComplete="off"
       spellCheck={false}
       aria-label={p.nombre}

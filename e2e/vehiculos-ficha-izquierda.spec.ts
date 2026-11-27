@@ -194,7 +194,7 @@ test('E2E ficha izquierda · sin aprobada, el costo dice «—» y «Cotizar» l
   )
 })
 
-test('E2E ficha izquierda · en Modo Live el costo es texto y no se ofrece «Compartir»', async ({
+test('E2E ficha izquierda · en Modo Live el costo comparte y su monto va sin moneda', async ({
   page,
 }) => {
   await entrar(page, duena)
@@ -209,7 +209,12 @@ test('E2E ficha izquierda · en Modo Live el costo es texto y no se ofrece «Com
     'Compra directa',
     'Costo estimado',
   ])
-  await expect(bloque.getByRole('button', { name: /Compartir/ })).toHaveCount(0)
+  const costo = bloque.getByRole('button', { name: /^Compartir la cotización aprobada/ })
+  await expect(costo).toBeVisible()
+  // El nombre accesible y lo visible: el número sin su moneda.
+  await expect(costo).toHaveAccessibleName(/\([\d.,]+( · [^)]+)?\)$/)
+  await expect(costo.locator('[data-monto-sin-moneda]')).toHaveText(/^[\d.,\s]+$/)
+  await expect(costo.locator('[data-monto-valor]')).toBeHidden()
 })
 
 test('E2E ficha izquierda · la cuenta regresiva sólo en una subasta viva, y «Editar fechas de subasta» en el «⋯»', async ({

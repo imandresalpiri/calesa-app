@@ -102,8 +102,8 @@ Inventario de vehículos por origen con atributos dinámicos: listado con filtro
   por id de vehículo: `{ ruta, monto, moneda, modo }`, o `null` si quien mira no tiene `cotizaciones.ver` en algún origen: ni columna ni fila) y lo arma
   `src/app/(app)/vehiculos/aprobadas.ts` con `leerAprobadasDeVehiculos()` de `cotizaciones` (este módulo no la importa; el modo llega en la misma lectura).
   `entities/cotizacion-aprobada-de-la-fila.ts` (`ROTULO_DEL_COSTO_ESTIMADO`, `costoEstimadoDe()`, `nombreDeCompartirLaAprobada()`); `costo-estimado.tsx` dibuja `<Monto valor moneda>` y « · modo»
-  en un botón (`data-no-abre`; el modo se corta, el monto no) que abre «Compartir la cotización» de la aprobada (`cotizacionId`), «Sin total» sin monto ni modo y «—» sin aprobada; en Modo Live o sin
-  `compartirAprobada` es texto. El botón llama a `useCompartirLaAprobada()` (contexto de `features/listado/hooks/compartir-de-la-aprobada.tsx`, que pone `ListadoDeVehiculos` con su prop `compartirAprobada`):
+  en un botón (`data-no-abre`; el modo se corta, el monto no) que abre «Compartir la cotización» de la aprobada (`cotizacionId`), «Sin total» sin monto ni modo y «—» sin aprobada; sin
+  `compartirAprobada` es texto (con el Modo Live sigue siendo el botón, con el monto sin su moneda también en su nombre accesible: `useMontoEnTexto()`). El botón llama a `useCompartirLaAprobada()` (contexto de `features/listado/hooks/compartir-de-la-aprobada.tsx`, que pone `ListadoDeVehiculos` con su prop `compartirAprobada`):
   `src/app/(app)/vehiculos/listado-con-compartir.tsx` la une con `useAbrirCompartirDeLaFila()` y monta `DialogoDeCompartirDeLaFila` una vez. El monto cruza como texto.
 - **Cuenta regresiva del cierre** (`entities/cuenta-regresiva-del-cierre.ts`: `cuentaDelCierre(cierre, ahora, conSegundos)`, tonos y textos; `features/subasta/components/cuenta-regresiva-del-cierre.tsx`,
   que reusa la ficha en «Cierre» y que la tarjeta (`datos-de-la-tarjeta.tsx`, arriba del `<dl>`) y la fila (`CeldaDeFase`, bajo la insignia) dibujan sólo con `origen.tipo === 'subasta'` y situación

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { startTransition, useContext, type ComponentType } from 'react'
 import { consultaDelDrawerDeLasTablas, rutaDeParteDelOrigen } from '@/shared/lib/rutas'
 import { EstadoVacio } from '@/shared/ui/estados'
-import { useLive } from '@/shared/ui/live'
 import type { ContextoDeHoja } from '../../../../entities/binding'
 import { destinosDelBloque, type DestinoDeLaAyuda } from '../../../../entities/destino-de-la-ayuda'
 import { filaDelVehiculo } from '../../../../entities/fila-del-vehiculo'
@@ -57,7 +56,7 @@ function TituloDeLaTabla({ nombre }: { nombre: string }) {
   )
 }
 
-// «Editar en la configuración»: a quien configura, donde la tabla no se edita aquí (una guardada, el Modo Live), el drawer de tablas del origen con esa tabla abierta.
+// «Editar en la configuración»: a quien configura, donde la tabla no se edita aquí (una guardada), el drawer de tablas del origen con esa tabla abierta.
 function EditarEnLaConfiguracion({ origenId, tablaId }: { origenId: string; tablaId: string }) {
   return (
     <Link
@@ -87,7 +86,7 @@ type PropsDeLaTablaLeida = Omit<Props, 'lectura'> & {
 }
 
 // Lo leído: el nombre de la tabla arriba y sus filas con las columnas del bloque. A quien configura (sólo a él le llega el id de la tabla viva), el aviso de cada columna que
-// el bloque pide y la tabla ya no tiene; a los demás, la columna simplemente no se dibuja. Con el hueco de la edición (la hoja nueva de quien configura, sin Modo Live), la
+// el bloque pide y la tabla ya no tiene; a los demás, la columna simplemente no se dibuja. Con el hueco de la edición (la hoja nueva de quien configura), la
 // tabla se edita ahí mismo; si no, a quien configura, el camino a la configuración.
 function TablaLeida({
   bloque,
@@ -99,7 +98,6 @@ function TablaLeida({
   alPublicada,
 }: PropsDeLaTablaLeida) {
   const Edicion = useContext(ContextoDeLaEdicionDeLaTabla)
-  const { live } = useLive()
   const { columnas, faltan } = columnasDelBloque(
     tabla,
     bloque.columnas === null ? null : bloque.columnas.map((c) => c.columna),
@@ -112,7 +110,7 @@ function TablaLeida({
     alElegir,
     filaResaltada: filaResaltadaDe(bloque, tabla, contexto),
   }
-  const seEdita = Edicion !== null && bloque.id !== null && !live
+  const seEdita = Edicion !== null && bloque.id !== null
   const quieta =
     tabla.filas.length === 0 ? (
       <EstadoVacio compacto titulo="Esta tabla no tiene filas." />

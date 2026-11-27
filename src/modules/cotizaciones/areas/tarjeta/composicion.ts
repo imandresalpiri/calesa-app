@@ -62,36 +62,52 @@ type EntradaDeLaGeometria = Pick<EntradaDelPdf, 'lectura' | 'contexto' | 'locale
 // La geometría de la tarjeta de **lo guardado** de una cotización (`calculoDeLoGuardado()`, como «Vista previa» de esa guardada; nunca lo de hoy), con la lectura
 // de la tarjeta de SU versión como quien pide y SUS retoques (los que aplican: `lecturaRetocada()`). El PDF, compartir y la imagen salen de aquí. `sin_permiso`
 // si la tarjeta no se ve.
-async function geometriaDeUnaGuardada(
+// `dibujar(sinMoneda)` dibuja la geometría de la misma lectura con su moneda o sin ella (la variante del Modo Live), sin volver a leer.
+async function dibujoDeUnaGuardada(
   entrada: EntradaDeLaGeometria,
-): Promise<Resultado<{ geometria: Geometria; hoja: HojaDeUnaGuardada }>> {
+): Promise<Resultado<{ dibujar: (sinMoneda: boolean) => Geometria; hoja: HojaDeUnaGuardada }>> {
   const { hoja, inicial } = entrada.lectura
   const tarjeta = await getTarjeta(hoja.diseno.formula.id)
   if (!tarjeta.ok) {
     return { ok: false, error: tarjeta.error }
   }
-  const geometria = geometriaDeLaTarjeta({
-    lectura: lecturaRetocada(tarjeta.data, hoja.cotizacion.tarjetaRetoques).lectura,
-    calculo: calculoDeLoGuardado(hoja, inicial.respuesta),
-    contexto: entrada.contexto,
-    monedaBs: hoja.diseno.cabecera.monedaBs,
-    locale: entrada.locale,
-  })
-  return ok({ geometria, hoja })
+  const lectura = lecturaRetocada(tarjeta.data, hoja.cotizacion.tarjetaRetoques).lectura
+  const calculo = calculoDeLoGuardado(hoja, inicial.respuesta)
+  const dibujar = (sinMoneda: boolean) =>
+    geometriaDeLaTarjeta({
+      lectura,
+      calculo,
+      contexto: entrada.contexto,
+      monedaBs: hoja.diseno.cabecera.monedaBs,
+      locale: entrada.locale,
+      ...(sinMoneda ? { sinMoneda } : {}),
+    })
+  return ok({ dibujar, hoja })
+}
+
+async function geometriaDeUnaGuardada(
+  entrada: EntradaDeLaGeometria,
+  { sinMoneda = false }: { sinMoneda?: boolean } = {},
+): Promise<Resultado<{ geometria: Geometria; hoja: HojaDeUnaGuardada }>> {
+  const dibujo = await dibujoDeUnaGuardada(entrada)
+  return dibujo.ok
+    ? ok({ geometria: dibujo.data.dibujar(sinMoneda), hoja: dibujo.data.hoja })
+    : dibujo
 }
 
 // Las cifras de «Compartir la cotización»: los montos de la tarjeta de lo guardado como líneas de texto (sólo lo que la tarjeta dibuja: el nivel «todos», K4) y el
-// nombre del modo con que se guardó. Lo pide `GET /cotizaciones/[id]/compartir`; el texto lo arma el navegador. `sin_permiso` si la tarjeta no se ve.
+// nombre del modo con que se guardó; cada monto con su gemelo sin moneda (la misma geometría con `sinMoneda`, de la misma lectura: el Modo Live del panel). Lo pide
+// `GET /cotizaciones/[id]/compartir`; el texto lo arma el navegador. `sin_permiso` si la tarjeta no se ve.
 export async function paraCompartirDeUnaGuardada(
   entrada: EntradaDeLaGeometria,
 ): Promise<Resultado<LineasDeLaTarjeta & { modo: string | null }>> {
-  const armada = await geometriaDeUnaGuardada(entrada)
-  if (!armada.ok) {
-    return armada
+  const dibujo = await dibujoDeUnaGuardada(entrada)
+  if (!dibujo.ok) {
+    return dibujo
   }
-  const { geometria, hoja } = armada.data
+  const { dibujar, hoja } = dibujo.data
   return ok({
-    ...lineasDeLaTarjeta(geometria),
+    ...lineasDeLaTarjeta(dibujar(false), dibujar(true)),
     modo: nombreDelModo(hoja.diseno.cabecera, hoja.cotizacion.modoTc),
   })
 }
@@ -152,13 +168,14 @@ export async function pdfDeUnaGuardada(
 
 // La tarjeta de lo guardado como imagen PNG (`ImageResponse`, al ancho de la tarjeta en px): la misma geometría que el PDF. `next/og` se carga sólo aquí, con
 // `import()`, y nunca llega al navegador. La base de `webpDeUnaGuardada()`. `completa`, con el logo y la foto que dibuja. `sin_permiso` si la tarjeta no se ve;
-// lo demás, `inesperado`.
+// lo demás, `inesperado`. Con `sinMoneda`, los montos sin su moneda (la imagen que se ve con el Modo Live); el PDF nunca la pide.
 export async function imagenDeUnaGuardada(
   entrada: EntradaDelPdf,
+  opciones: { sinMoneda?: boolean } = {},
 ): Promise<
   Resultado<{ bytes: Uint8Array<ArrayBuffer>; ancho: number; alto: number; completa: boolean }>
 > {
-  const armada = await geometriaDeUnaGuardada(entrada)
+  const armada = await geometriaDeUnaGuardada(entrada, opciones)
   if (!armada.ok) {
     return armada
   }
@@ -180,12 +197,13 @@ export async function imagenDeUnaGuardada(
 }
 
 // La imagen de la tarjeta (`docs/COTIZADOR.md` › «La imagen de la tarjeta»): lo guardado (`imagenDeUnaGuardada()`) en WebP de hasta 1.600 px, o del ancho de la
-// miniatura que se pida, achicada del PNG, y si salió `completa`. `sharp` se carga sólo aquí, con `import()`, y nunca llega al navegador.
+// miniatura que se pida, achicada del PNG, y si salió `completa`. `sharp` se carga sólo aquí, con `import()`, y nunca llega al navegador. `sinMoneda`: la variante
+// del Modo Live (`?sin-moneda=1`).
 export async function webpDeUnaGuardada(
   entrada: EntradaDelPdf,
-  { ancho }: { ancho: AnchoDeLaImagen | null },
+  { ancho, sinMoneda = false }: { ancho: AnchoDeLaImagen | null; sinMoneda?: boolean },
 ): Promise<Resultado<{ bytes: Uint8Array<ArrayBuffer>; completa: boolean }>> {
-  const png = await imagenDeUnaGuardada(entrada)
+  const png = await imagenDeUnaGuardada(entrada, { sinMoneda })
   if (!png.ok) {
     return png
   }

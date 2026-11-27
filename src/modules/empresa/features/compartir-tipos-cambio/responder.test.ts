@@ -37,6 +37,14 @@ describe('responderParaCompartir', () => {
     expect(p.dibujar).not.toHaveBeenCalled()
   })
 
+  it('con `sinMoneda` arma los valores sin su moneda, en el texto y en la imagen', async () => {
+    const p = puertos()
+    const texto = await responderParaCompartir('texto', A, p, { sinMoneda: true })
+    expect(await texto.text()).toContain('Oficial: 1 USD = 6,96')
+    await responderParaCompartir('imagen', A, p, { sinMoneda: true })
+    expect(p.dibujar).toHaveBeenCalledWith({ ...datos, sinMoneda: true })
+  })
+
   it('la imagen sale en image/png', async () => {
     const respuesta = await responderParaCompartir('imagen', A, puertos())
     expect(respuesta.status).toBe(200)

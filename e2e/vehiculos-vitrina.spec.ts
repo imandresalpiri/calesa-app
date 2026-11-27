@@ -156,7 +156,7 @@ test('con el permiso se publica con su precio, mirando lo que verá el visitante
 
   // Un «hasta» menor que el precio se dice junto al campo y no se guarda.
   await panel(page).getByLabel('Precio público').fill('21500')
-  await expect(previa.getByText(/21\.500/)).toBeVisible()
+  await expect(previa.locator('[data-monto-valor]', { hasText: /21\.500/ })).toBeVisible()
   await panel(page).getByLabel('Precio hasta').fill('100')
   await panel(page).getByRole('button', { name: 'Guardar' }).click()
   await expect(panel(page).getByText('No puede ser menor que el precio público.')).toBeVisible()

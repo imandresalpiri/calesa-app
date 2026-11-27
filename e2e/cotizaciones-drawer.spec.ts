@@ -13,7 +13,7 @@ import { literal, sql } from './soporte/sql'
 // El drawer de la cotización (el resumen `?cotizacion=`, `docs/UX.md` › «Cotizaciones», T320): se abre igual desde la tabla, la tarjeta y la línea del modal de un
 // grupo (que se cierra al abrirlo), con la abierta marcada; arriba «Abrir cotización», «Compartir cotización» y el «⋯» sin «Compartir» (también para la línea del grupo, que no está en
 // la página); sus diálogos se abren sobre el resumen sin cerrarlo; «Aprobar esta» de «De este vehículo» cambia la insignia en el resumen y en la lista sin recargar;
-// las pestañas siguen; en Modo Live no hay «Compartir». La imagen de la tarjeta y su visor los recorre `cotizaciones-imagen-de-la-tarjeta.spec.ts`.
+// las pestañas siguen; en Modo Live «Compartir» sigue. La imagen de la tarjeta y su visor los recorre `cotizaciones-imagen-de-la-tarjeta.spec.ts`.
 test.describe.configure({ mode: 'serial' })
 
 let t: TerrenoDeLaFinal
@@ -296,7 +296,7 @@ test('E2E «Aprobar esta» de «De este vehículo» cambia la insignia en el res
   )
 })
 
-test('E2E en Modo Live el resumen no ofrece «Compartir cotización» ni en la barra ni en el «⋯»', async ({
+test('E2E en Modo Live el resumen ofrece «Compartir cotización» en la barra y el «⋯» no lo repite', async ({
   page,
 }) => {
   await entrar(page, t.duena, { fresco: true })
@@ -306,7 +306,7 @@ test('E2E en Modo Live el resumen no ofrece «Compartir cotización» ni en la b
   await page.goto(deLaPrueba(`&cotizacion=${suelta}`))
   await expect(page.locator('html')).toHaveClass(/\blive\b/)
   const drawer = await esElResumenDe(page, suelta)
-  await expect(barra(drawer).getByRole('button', { name: 'Compartir cotización' })).toHaveCount(0)
+  await expect(barra(drawer).getByRole('button', { name: 'Compartir cotización' })).toBeVisible()
   await barra(drawer)
     .getByRole('button', { name: `Más acciones de N.º ${numeroDe(suelta)}` })
     .click()

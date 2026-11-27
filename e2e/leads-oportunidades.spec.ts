@@ -81,7 +81,9 @@ test('crear desde el panel: lo que falta se dice junto al campo y entra en la et
   await expect(item(page, titulo)).toBeVisible()
   // En la columna de la etapa inicial, con el título y el monto (las notas se ven al editarla).
   await expect(columna(page, 'Nuevo').getByRole('article', { name: titulo })).toBeVisible()
-  await expect(item(page, titulo).getByText(/25\.000,50/)).toBeVisible()
+  await expect(
+    item(page, titulo).locator('[data-monto-valor]', { hasText: /25\.000,50/ }),
+  ).toBeVisible()
 })
 
 // @sin-celular: igual en pasos y elementos en escritorio y celular, y su JS del celular lo ejecuta otra prueba que se queda (scripts/comparar-anchos.mjs, 5a-fix-3)

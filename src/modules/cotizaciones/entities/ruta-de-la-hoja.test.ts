@@ -6,6 +6,7 @@ import {
   rutaDeLaImagen,
   rutaDelListado,
   rutaDelPdf,
+  sinMonedaDeLaImagen,
 } from './ruta-de-la-hoja'
 
 describe('rutaDeLaHoja', () => {
@@ -66,6 +67,19 @@ describe('la miniatura y el reintento de la imagen', () => {
     expect(rutaDeLaImagen(id, { ancho: 480, intento: 1 })).toBe(
       `/cotizaciones/${id}/imagen?ancho=480&intento=1`,
     )
+  })
+
+  it('con `sinMoneda`, la variante del Modo Live: otra URL, con el ancho y el intento', () => {
+    const id = '00000000-0000-4000-8000-000000000001'
+    expect(rutaDeLaImagen(id, { sinMoneda: true })).toBe(`/cotizaciones/${id}/imagen?sin-moneda=1`)
+    expect(rutaDeLaImagen(id, { sinMoneda: false })).toBe(`/cotizaciones/${id}/imagen`)
+    expect(rutaDeLaImagen(id, { ancho: 480, sinMoneda: true, intento: 1 })).toBe(
+      `/cotizaciones/${id}/imagen?ancho=480&sin-moneda=1&intento=1`,
+    )
+    expect(sinMonedaDeLaImagen('1')).toBe(true)
+    expect(sinMonedaDeLaImagen('0')).toBe(false)
+    expect(sinMonedaDeLaImagen('si')).toBe(false)
+    expect(sinMonedaDeLaImagen(null)).toBe(false)
   })
 
   it('`?ancho=` sólo entiende los anchos de la miniatura', () => {

@@ -31,8 +31,8 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
   - Enlaces de ayuda: `leerEnlacesDeAyuda()` (los de la empresa, con los desactivados, tope + 1) y `leerMisEnlacesDeAyuda()` (`enlaces_de_ayuda_de_mi()`).
 - Pantallas: `pantallas/perfil.ts` (`<TarjetaDeMisEnlaces>`), `pantallas/configuracion-empresa.ts` (`<TarjetasDeLaEmpresa>`, `<TarjetasDeIntegraciones>`, `<MonedasYTiposCambio>`) y
   `pantallas/configuracion-cotizacion.ts` (`<FormularioDeAjustesDeCotizacion>`).
-- Compartir los tipos de cambio: `responderCompartirTiposCambio('texto' | 'imagen', ids)` (la usan las rutas `src/app/(app)/tipos-de-cambio/texto` e `imagen`,
-  tras `requerirSesion()`: `ids` = guid separados por coma, de 1 a 30, validados por `idsParaCompartir()`; 400, 404 o 500 en `text/plain`, sin caché) y
+- Compartir los tipos de cambio: `responderCompartirTiposCambio('texto' | 'imagen', parametros)` (la usan las rutas `src/app/(app)/tipos-de-cambio/texto` e `imagen`,
+  tras `requerirSesion()`, con los `searchParams`: `ids` = guid separados por coma, de 1 a 30, validados por `idsParaCompartir()`, y `sin-moneda=1`, la vista del Modo Live; 400, 404 o 500 en `text/plain`, sin caché) y
   `leerLeyendaDeTiposCambio()` (con la versión de la fila; falla en vez de dar una vacía). La action `guardarLeyendaDeTiposCambio` la usa
   `<ModalDeLeyenda>` (`?panel=leyenda`, desde la tarjeta «Al compartir» de `<MonedasYTiposCambio>`).
 - `shell.ts`: `getAjustes()`, `getTiposCambioDeLaBarra()` (los de la barra: hasta 3, sólo `{id, nombre, monedaA, valor}`, de la misma lectura
@@ -128,7 +128,7 @@ de la empresa y las filas propias, en una lectura.
 - El último cambio de cada tipo de cambio (popover de la barra) sale del historial, no de `actualizado_*` (que se mueve al renombrar o marcar), y
   lo ve toda persona activa con el nombre, nunca el correo; el historial entero sigue siendo de quien gestiona.
 - En el popover de la barra quien tiene `empresa.tipos_cambio.gestionar` cambia el valor con `guardarTipoCambio` (`{id, actualizadoEnEsperado,
-valor}`, la misma revalidación): sin el permiso o con el Modo Live no hay lápiz (el campo mostraría la cifra) y un editor abierto se cierra.
+valor}`, la misma revalidación): sin el permiso no hay lápiz; con el Modo Live sí (los números se ven, sólo se ocultan los símbolos de moneda).
   El PT409 se dice con lo releído («<Nombre> lo cambió a <Monto> hace N minutos»), armado en el cliente: un monto escrito por la base
   esquivaría `<Monto>`. Con algo sin guardar, guardando o esperando la red, el popover no se cierra al tocar afuera ni con Esc.
 - `registro_abierto = false` lo aplica la base (trigger en `auth.users`); `registroDisponible()` lo repite: registro abierto **o** todavía no hay
@@ -140,7 +140,8 @@ valor}`, la misma revalidación): sin el permiso o con el Modo Live no hay lápi
   `ImageResponse` (1080 px, alto según los tipos y la leyenda, Geist de `infra/compartir/fuentes/`, que `next.config.ts` lleva al desplegar con
   `outputFileTracingIncludes`); el logo se baja en el servidor (≤ `PESO_MAXIMO_LOGO`, PNG, JPEG, GIF o SVG) y uno que falla deja sólo el nombre. El panel
   (`components/popover-de-la-barra/compartir/`, diferido) pide texto e imagen por separado (una falla no tapa a la otra), guarda el resultado y los botones
-  son síncronos con el gesto; lo que el navegador no puede (`src/shared/lib/compartir.ts`, genérico) se apaga con su motivo (`motivos-de-las-acciones.ts`). Sin «Compartir» con el Modo Live.
+  son síncronos con el gesto; lo que el navegador no puede (`src/shared/lib/compartir.ts`, genérico) se apaga con su motivo (`motivos-de-las-acciones.ts`). Con el Modo Live
+  la vista previa pide también `?sin-moneda=1` (`valorParaCompartir(…, { sinMoneda })`: «1 USD = 6,96») y los botones usan la completa.
 
 - **Enlaces de ayuda** (`features/enlaces-de-ayuda/`, `features/mis-enlaces-de-ayuda/`): se guarda lo que la persona oculta y su orden, nunca una
   lista cerrada de visibles: uno nuevo de la empresa le aparece visible al final, y uno quitado o desactivado desaparece sin error

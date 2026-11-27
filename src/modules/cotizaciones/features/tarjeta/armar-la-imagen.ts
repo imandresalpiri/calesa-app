@@ -27,15 +27,18 @@ export type ContextoLeido = { contexto: ContextoDeQuienMira; completo: boolean }
 // Arma la imagen de la tarjeta de una guardada para quien la pide, con su sesión (`docs/COTIZADOR.md` › «La imagen de la tarjeta»): la hoja de lo guardado y el
 // primer recálculo (`leerHojaDeUnaGuardada`), los ajustes de la empresa (`leerAjustes()`, que falla en vez de dar lo de fábrica: la zona, el formato y el logo) y
 // el contexto de quien mira (el cliente si lo ve, el vehículo y él como asesor, que lo arma `src/app`), en el ancho pedido. Va en `features/` porque cruza con
-// `empresa`. Lo que no existe, está en la papelera o no se ve, `sin_permiso`; lo demás que falle al armar, `inesperado`.
+// `empresa`. Con `sinMoneda`, los montos sin su moneda (la variante que se ve con el Modo Live). Lo que no existe, está en la papelera o no se ve, `sin_permiso`; lo
+// demás que falle al armar, `inesperado`.
 export async function armarLaImagen(
   id: string,
   {
     contextoDe,
     ancho,
+    sinMoneda = false,
   }: {
     contextoDe: (hoja: HojaDeUnaGuardada) => Promise<ContextoLeido>
     ancho: AnchoDeLaImagen | null
+    sinMoneda?: boolean
   },
 ): Promise<Resultado<ImagenArmada>> {
   const lectura = await leerHojaDeUnaGuardada(id)
@@ -66,7 +69,7 @@ export async function armarLaImagen(
       empresa: nombre,
       topeDelLogo: PESO_MAXIMO_LOGO,
     },
-    { ancho },
+    { ancho, sinMoneda },
   )
   if (!imagen.ok) {
     return imagen

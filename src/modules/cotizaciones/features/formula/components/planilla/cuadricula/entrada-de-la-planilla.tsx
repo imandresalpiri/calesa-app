@@ -1,12 +1,10 @@
 'use client'
 
-import { useLive } from '@/shared/ui/live'
 import { filaDe, type FilaDeLaHoja } from '../../../../../entities/formula/hoja-de-la-planilla'
 import { nombreDeLaCelda } from '../../../../../entities/formula/texto-de-la-celda'
 import type { EdicionDeLaCelda } from '../../../hooks/use-edicion-con-referencias'
 import type { Planilla } from '../../../hooks/use-planilla'
 import { idsDeLaEdicion } from '../ids-de-la-edicion'
-import { esMontoQueSeEscribe } from '../monto-secreto'
 import { NOMBRE_DE_LA_COLUMNA } from './clases'
 import { EntradaDeLaCelda } from './entrada-de-la-celda'
 
@@ -25,7 +23,6 @@ export function EntradaDeLaPlanilla({
   planilla: Planilla
   edicion: EdicionDeLaCelda
 }) {
-  const { live } = useLive()
   const fila = filaDe(planilla.hoja, planilla.hoja.numeroDe.get(e.id) ?? 0)
   const { sugerencias } = planilla
   const ids = idsDeLaEdicion(planilla.prefijo)
@@ -34,7 +31,6 @@ export function EntradaDeLaPlanilla({
     <EntradaDeLaCelda
       edicion={e}
       nombre={nombreDe(e, fila)}
-      secreto={live && esMontoQueSeEscribe(fila?.nodo, e.col)}
       idDeLaLista={conLista ? ids.lista : null}
       idDeLaElegida={conLista ? ids.opcion(sugerencias.indice) : null}
       idDelError={e.error === null ? null : ids.error}

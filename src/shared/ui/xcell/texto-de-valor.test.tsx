@@ -41,17 +41,24 @@ describe('TextoDeValor con `decimales`', () => {
     ).toBe('14,9%')
   })
 
-  it('el dinero sigue por `<Monto>` (Modo Live: «•••»), y el texto plano no dice la cifra', () => {
+  it('el dinero sigue por `<Monto>` (Modo Live: el número sin moneda), y el texto plano sin moneda dice lo mismo', () => {
     const monto = dibujar({ valor: 1234.5678, formato: 'monto', moneda: 'USD', decimales: 0 })
     expect(plano(monto.querySelector('[data-monto-valor]')?.textContent ?? '')).toBe('USD 1.235')
-    expect(monto.querySelector('[data-monto-oculto]')?.textContent).toBe('•••')
+    expect(monto.querySelector('[data-monto-sin-moneda]')?.textContent).toBe('1.235')
     expect(
       textoPlanoDeValor(
         { valor: 1234.5678, formato: 'monto', moneda: 'USD', decimales: 0 },
         ES,
         true,
       ),
-    ).toBe('•••')
+    ).toBe('1.235')
+    expect(
+      textoPlanoDeValor(
+        { valor: 1234.5, formato: 'monto', moneda: 'BOB', decimales: undefined },
+        ES,
+        true,
+      ),
+    ).toBe('1.234,50')
   })
 
   it('sin `decimales`, lo de siempre: 2 en un monto, hasta 2 en un número y en un porcentaje', () => {

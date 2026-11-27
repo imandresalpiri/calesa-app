@@ -18,9 +18,9 @@ import { PanelDeCompartir } from './panel-de-compartir'
 
 const ID = '0b7a2f0e-1c2d-4e5f-8a9b-0c1d2e3f4a5b'
 
-function abrir(cotizacionId = ID) {
+function abrir(cotizacionId = ID, pestana = '') {
   render(
-    <NuqsTestingAdapter searchParams="?panel=compartir">
+    <NuqsTestingAdapter searchParams={`?panel=compartir${pestana}`}>
       <PanelDeCompartir abierto alCerrar={() => undefined} cotizacionId={cotizacionId} />
     </NuqsTestingAdapter>,
   )
@@ -77,11 +77,40 @@ describe('<PanelDeCompartir>', () => {
     expect(await screen.findByText('No tienes acceso a esta cotización.')).toBeTruthy()
     expect(pedirLosDatos).not.toHaveBeenCalled()
   })
+})
 
-  it('con el Modo Live no se comparte ni se pide nada', async () => {
+describe('<PanelDeCompartir> con el Modo Live', () => {
+  beforeEach(() => {
     document.documentElement.classList.add(CLASE_LIVE)
+    // jsdom no tiene `URL.createObjectURL`: la vista sin moneda sale con una URL fija.
+    URL.createObjectURL = vi.fn(() => 'blob:sin-moneda')
+    URL.revokeObjectURL = vi.fn()
+    pedirLaImagenParaCompartir.mockImplementation(
+      (_id: string, _senal: AbortSignal, opciones?: { sinMoneda?: boolean }) =>
+        opciones?.sinMoneda === true
+          ? Promise.resolve({ ok: true, data: new Blob(['webp'], { type: 'image/webp' }) })
+          : new Promise(() => undefined),
+    )
+  })
+
+  it('se comparte: muestra la imagen sin moneda y pide también la completa, la que se copia', async () => {
     abrir()
-    expect(await screen.findByText('Con el Modo Live no se comparte.')).toBeTruthy()
-    expect(pedirLosDatos).not.toHaveBeenCalled()
+    expect(await screen.findByText('Creado por Ana Pérez')).toBeTruthy()
+    expect(screen.queryByText('Con el Modo Live no se comparte.')).toBeNull()
+    const vista = await screen.findByAltText('Imagen de la tarjeta de la cotización n.º 12')
+    expect(vista.getAttribute('src')).toBe('blob:sin-moneda')
+    expect(vista.getAttribute('data-imagen-moneda')).toBe('sin')
+    expect(pedirLaImagenParaCompartir).toHaveBeenCalledWith(ID, expect.anything(), {
+      sinMoneda: true,
+    })
+    expect(pedirLaImagenParaCompartir).toHaveBeenCalledWith(ID, expect.anything())
+  })
+
+  it('el texto a la vista va sin moneda, con los mismos números', async () => {
+    abrir(ID, '&compartir=texto')
+    await screen.findByText('Creado por Ana Pérez')
+    const texto = (screen.getByRole('textbox') as HTMLTextAreaElement).value
+    expect(texto).toContain('TOTAL: 1.300,00')
+    expect(texto).not.toMatch(/\$|Bs /)
   })
 })

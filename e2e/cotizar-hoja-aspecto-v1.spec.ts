@@ -144,7 +144,7 @@ test('los chips son píldoras con la elegida rellena; el interruptor va sin caja
   expect(await estilo(anio, 'background-color')).toBe(primario)
 })
 
-test('la tarjeta del total: superficie invertida, el rótulo en mayúsculas y la cifra tapada con Live', async ({
+test('la tarjeta del total: superficie invertida, el rótulo en mayúsculas y el Modo Live sólo en la barra', async ({
   page,
 }) => {
   await abrir(page)

@@ -45,16 +45,25 @@ export type AnchoDeLaImagen = (typeof ANCHOS_DE_LA_IMAGEN)[number]
 export const CLAVE_DEL_ANCHO = 'ancho'
 // «Reintentar» pide otra URL (`?intento=n`): el navegador no reusa la respuesta que falló. La ruta lo ignora.
 export const CLAVE_DEL_INTENTO = 'intento'
+// La variante del Modo Live (`?sin-moneda=1`): los montos sin su símbolo ni su código de moneda. Otra URL y otra ETag: se cachean aparte.
+export const CLAVE_SIN_MONEDA = 'sin-moneda'
 
 // La imagen de la tarjeta de una cotización guardada (`docs/COTIZADOR.md` › «La imagen de la tarjeta»): bajo su página, la arma su route handler para quien la pide.
-// El único lugar que escribe esa ruta; con `ancho`, la miniatura (la de las listas); con `intento` > 0, la de «Reintentar».
+// El único lugar que escribe esa ruta; con `ancho`, la miniatura (la de las listas); con `sinMoneda`, la del Modo Live; con `intento` > 0, la de «Reintentar».
 export const rutaDeLaImagen = (
   id: string,
-  { ancho, intento = 0 }: { ancho?: AnchoDeLaImagen | undefined; intento?: number } = {},
+  {
+    ancho,
+    intento = 0,
+    sinMoneda = false,
+  }: { ancho?: AnchoDeLaImagen | undefined; intento?: number; sinMoneda?: boolean } = {},
 ): string => {
   const parametros = new URLSearchParams()
   if (ancho !== undefined) {
     parametros.set(CLAVE_DEL_ANCHO, String(ancho))
+  }
+  if (sinMoneda) {
+    parametros.set(CLAVE_SIN_MONEDA, '1')
   }
   if (intento > 0) {
     parametros.set(CLAVE_DEL_INTENTO, String(intento))
@@ -63,6 +72,9 @@ export const rutaDeLaImagen = (
   const ruta = `${rutaDeLaCotizacion(id)}/imagen`
   return consulta === '' ? ruta : `${ruta}?${consulta}`
 }
+
+// `?sin-moneda=` leído: sólo `1` pide la variante del Modo Live; otro valor se ignora, como un `?ancho=` que no es de la lista.
+export const sinMonedaDeLaImagen = (texto: string | null | undefined): boolean => texto === '1'
 
 // `?ancho=` leído: uno de los anchos de la miniatura, o nulo (la grande).
 export function anchoDeLaImagen(texto: string | null | undefined): AnchoDeLaImagen | null {

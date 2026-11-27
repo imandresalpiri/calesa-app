@@ -209,7 +209,9 @@ test('E2E con el Modo Live encendido el logo se sigue viendo', async ({ page }) 
     await ponerElLogo(logos.webp.datos, logos.webp.extension, logos.webp.tipo)
     await entrar(page, duena, { fresco: true })
     const t = await abrirLaGuardada(page)
-    const live = dialogo(page).getByRole('button', { name: 'Modo Live: ocultar los montos' })
+    const live = dialogo(page).getByRole('button', {
+      name: 'Modo Live: ocultar los símbolos de moneda',
+    })
     await live.click()
     await expect(page.locator('html')).toHaveClass(/live/)
     await expect(celdaDelLogo(t).locator('img[data-logo-de-la-celda]')).toBeVisible()

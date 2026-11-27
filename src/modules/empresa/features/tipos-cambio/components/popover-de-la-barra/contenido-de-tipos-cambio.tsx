@@ -2,7 +2,6 @@
 
 import { CoinsIcon } from 'lucide-react'
 import { EstadoError, EstadoVacio } from '@/shared/ui/estados'
-import { useLive } from '@/shared/ui/live'
 import { PopoverDescription, PopoverHeader, PopoverTitle } from '@/shared/ui/popover'
 import { useRegional } from '@/shared/ui/regional'
 import { Skeleton } from '@/shared/ui/skeleton'
@@ -33,8 +32,7 @@ function EsqueletoDeTipos() {
 }
 
 // Lo que se dibuja dentro del popover de la barra: todos los vigentes (el por defecto adelante, hasta 30), cada uno con su último cambio y,
-// para quien los gestiona, el lápiz para cambiar el valor. Con el Modo Live no se ofrece: el campo mostraría la cifra, y un editor abierto
-// se cierra. Su código viaja diferido (`diferidos.tsx`) y lee al abrirse: el marco no lo paga hasta que alguien lo abre.
+// para quien los gestiona, el lápiz para cambiar el valor (también con el Modo Live: los números se ven). Su código viaja diferido (`diferidos.tsx`) y lee al abrirse: el marco no lo paga hasta que alguien lo abre.
 export function ContenidoDeTiposCambio({
   puedeGestionar,
   alCerrar,
@@ -42,10 +40,9 @@ export function ContenidoDeTiposCambio({
   idsEnLaBarra,
 }: Props) {
   const { zonaHoraria } = useRegional()
-  const { live } = useLive()
   const { vigentes, releer, reintentar } = useTiposCambioVigentes()
   const hayTipos = vigentes.estado === 'listo' && vigentes.filas.length > 0
-  const compartir = useCompartirDelPopover(hayTipos && !live, alRetener)
+  const compartir = useCompartirDelPopover(hayTipos, alRetener)
 
   if (compartir.compartiendo && vigentes.estado === 'listo') {
     return (
@@ -79,7 +76,7 @@ export function ContenidoDeTiposCambio({
         <ListaDeTiposCambio
           filas={vigentes.filas}
           hayMas={vigentes.hayMas}
-          puedeCambiar={puedeGestionar && !live}
+          puedeCambiar={puedeGestionar}
           releer={releer}
           alRetener={compartir.retener}
         />

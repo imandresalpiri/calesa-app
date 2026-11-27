@@ -95,7 +95,7 @@ describe('la ayuda y el ⚙', () => {
     expect(c.parada(PARADA_DE_RESTABLECER)).toBeNull()
   })
 
-  it('en Modo Live siguen y no dicen ninguna cifra', () => {
+  it('en Modo Live siguen y no dicen ningún símbolo de moneda', () => {
     conLive()
     const { container } = render(<XCell {...BASE} {...ACCIONES()} />)
     const texto = [...container.querySelectorAll('[data-parada]')]
@@ -103,7 +103,7 @@ describe('la ayuda y el ⚙', () => {
       .map((e) => `${e.getAttribute('aria-label') ?? ''}${e.getAttribute('title') ?? ''}`)
       .join(' ')
     expect(container.querySelectorAll('[data-parada]')).toHaveLength(3)
-    expect(texto).not.toMatch(/\d/)
+    expect(texto).not.toMatch(/USD|US\$|\$|Bs/u)
   })
 })
 
@@ -152,7 +152,7 @@ describe('el anuncio de las flechas', () => {
   })
 })
 
-describe('Modo Live y los gestores de contraseñas', () => {
+describe('la entrada con el Modo Live', () => {
   const abrirEntrada = (live: boolean) => {
     if (live) conLive()
     const { container } = render(<XCell {...BASE} />)
@@ -160,19 +160,14 @@ describe('Modo Live y los gestores de contraseñas', () => {
     return container.querySelector('input') as HTMLInputElement
   }
 
-  it('la entrada de contraseña lleva las marcas que ignoran 1Password, LastPass, Bitwarden y Dashlane', () => {
-    const entrada = abrirEntrada(true)
-    expect(entrada.type).toBe('password')
-    expect(entrada.getAttribute('autocomplete')).toBe('off')
-    expect(entrada.hasAttribute('data-1p-ignore')).toBe(true)
-    expect(entrada.getAttribute('data-lpignore')).toBe('true')
-    expect(entrada.hasAttribute('data-bwignore')).toBe(true)
-    expect(entrada.getAttribute('data-form-type')).toBe('other')
-  })
-
-  it('sin Live es un cuadro de texto y no las necesita', () => {
-    const entrada = abrirEntrada(false)
-    expect(entrada.type).toBe('text')
-    expect(entrada.hasAttribute('data-1p-ignore')).toBe(false)
+  it('con Live y sin él es un cuadro de texto con el número a la vista, sin moneda', () => {
+    for (const live of [true, false]) {
+      const entrada = abrirEntrada(live)
+      expect(entrada.type).toBe('text')
+      expect(entrada.getAttribute('autocomplete')).toBe('off')
+      expect(entrada.value).not.toMatch(/[A-Z$]/u)
+      cleanup()
+      document.documentElement.classList.remove(CLASE_LIVE)
+    }
   })
 })

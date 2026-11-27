@@ -3,6 +3,7 @@
 import { ArrowLeftIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/shared/ui/button'
+import { useLive } from '@/shared/ui/live'
 import { PopoverDescription, PopoverHeader, PopoverTitle } from '@/shared/ui/popover'
 import type { TipoCambioVigente } from '../../../../../entities/tipos-cambio-vigentes'
 import { useParaCompartir } from '../../../hooks/use-para-compartir'
@@ -30,12 +31,14 @@ function marcadosAlAbrir(
 }
 
 // «Compartir» del popover de la barra: elegir los tipos (sólo para este envío), ver la imagen y el texto tal como saldrán y copiarlos, descargarlos o
-// mandarlos por el menú del sistema. Se pide con `diferido()` al tocar «Compartir».
+// mandarlos por el menú del sistema. Se pide con `diferido()` al tocar «Compartir». Con el Modo Live la vista previa va sin moneda y lo que se copia, descarga o
+// comparte, completo.
 export function PanelDeCompartir({ filas, idsEnLaBarra, alVolver }: Props) {
   const [elegidos, setElegidos] = useState(() => marcadosAlAbrir(filas, idsEnLaBarra))
   // En el orden de la lista (el que el popover muestra), no en el de los toques.
   const ids = filas.filter((tipo) => elegidos.has(tipo.id)).map((tipo) => tipo.id)
-  const { texto, imagen, reintentarTexto, reintentarImagen } = useParaCompartir(ids)
+  const { live } = useLive()
+  const para = useParaCompartir(ids, live)
 
   return (
     <div className="grid max-h-[calc(100dvh-5rem)] min-w-0 gap-3 overflow-y-auto">
@@ -70,14 +73,14 @@ export function PanelDeCompartir({ filas, idsEnLaBarra, alVolver }: Props) {
         }}
       />
       <VistaPrevia
-        imagen={imagen}
-        texto={texto}
-        reintentarImagen={reintentarImagen}
-        reintentarTexto={reintentarTexto}
+        imagen={para.imagenALaVista}
+        texto={para.textoALaVista}
+        reintentarImagen={para.reintentarImagen}
+        reintentarTexto={para.reintentarTexto}
       />
       {/* Los botones quedan a la vista aunque el panel se desplace. */}
       <div className="bg-popover sticky bottom-0 border-t border-(--color-line) pt-2">
-        <AccionesDeCompartir imagen={imagen} texto={texto} sinElegir={ids.length === 0} />
+        <AccionesDeCompartir imagen={para.imagen} texto={para.texto} sinElegir={ids.length === 0} />
       </div>
     </div>
   )

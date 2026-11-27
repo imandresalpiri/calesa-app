@@ -36,8 +36,8 @@ const nunca = () => false
 
 // Lo que daría un cálculo pisado sin lo escrito, en la línea de la nota: «Calculado: $480». El dinero pasa por `<Monto>` (`TextoDeValor`: Modo Live); sin
 // valor (le falta un dato), «Calculado: —». No es un aviso: sin `role=alert`. Lo que no entra en la línea se lee entero en `title`, que dice lo mismo que
-// lo dibujado: con el Modo Live, «•••» como `<Monto>` (por eso lee `useLive()`; sólo lo llevan las celdas pisadas). En el servidor y al hidratar no se sabe
-// si el modo está encendido: el `title` tapa la cifra hasta hidratar (un atributo no lo esconde el CSS del modo).
+// lo dibujado: con el Modo Live, el número sin su moneda como `<Monto>` (por eso lee `useLive()`; sólo lo llevan las celdas pisadas). En el servidor y al
+// hidratar no se sabe si el modo está encendido: el `title` va sin moneda hasta hidratar (un atributo no lo alcanza el CSS del modo).
 export function CalculadoDeXCell({ id, valor, formato, moneda, decimales }: PropsDelCalculado) {
   const regional = useRegional()
   const { live } = useLive()

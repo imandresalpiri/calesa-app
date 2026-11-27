@@ -18,8 +18,6 @@ type Props = {
   // El ancho de la tarjeta escalada: el campo en la celda no se sale de él.
   anchoDelMarco: number
   error: string | null
-  // Con Live, el motivo por el que el campo no se abre (un texto con un monto: `campoTapadoPorLive()`); va en su lugar, sin el texto.
-  tapado: string | null
   enCurso: boolean
   alEscribir: (texto: string) => void
   alDejar: () => void
@@ -92,7 +90,7 @@ function MarcoDelCampo({
 
 // El texto de una celda: «n de 300» en code points y, si pasa, su motivo junto a él (sin `maxLength`: el texto largo queda y la celda se marca). Enter lo deja
 // (también largo), Mayús+Enter es un salto de línea y Esc lo cancela (sin cerrar el modal). Encima de la celda, o a lo ancho del modal bajo la tarjeta cuando
-// no se escribiría cómodo (`lugarDelCampo()`). Tapado por Live, en su lugar va el motivo (enfocable, y Esc también lo cancela).
+// no se escribiría cómodo (`lugarDelCampo()`).
 export function CampoDelRetoque({
   celda,
   texto,
@@ -100,7 +98,6 @@ export function CampoDelRetoque({
   escala,
   anchoDelMarco,
   error,
-  tapado,
   enCurso,
   alEscribir,
   alDejar,
@@ -108,16 +105,15 @@ export function CampoDelRetoque({
 }: Props) {
   const id = useId()
   const campo = useRef<HTMLTextAreaElement>(null)
-  const motivo = useRef<HTMLParagraphElement>(null)
   const n = caracteres(texto)
   const largo = n > MAXIMO_DE_CARACTERES_DE_UN_RETOQUE
   useEffect(() => {
-    const t = campo.current ?? motivo.current
+    const t = campo.current
     if (t === null) return
     if (lugar === 'ancho_del_modal') t.scrollIntoView({ block: 'nearest' })
     t.focus()
-    if (t instanceof HTMLTextAreaElement) t.setSelectionRange(t.value.length, t.value.length)
-  }, [celda.id, lugar, tapado])
+    t.setSelectionRange(t.value.length, t.value.length)
+  }, [celda.id, lugar])
   const teclas = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
@@ -128,38 +124,22 @@ export function CampoDelRetoque({
       alCancelar()
     }
   }
-  const contenido: ReactNode =
-    tapado === null ? (
-      <>
-        <Textarea
-          ref={campo}
-          aria-label="Texto de la celda"
-          value={texto}
-          disabled={enCurso}
-          aria-invalid={largo || error !== null}
-          aria-describedby={`${id}-n${largo ? ` ${id}-m` : ''}${error === null ? '' : ` ${id}-e`}`}
-          className="min-h-10 bg-(--color-surface)"
-          onChange={(e) => {
-            alEscribir(e.target.value)
-          }}
-          onKeyDown={teclas}
-        />
-        <PieDelCampo id={id} n={n} largo={largo} error={error} />
-      </>
-    ) : (
-      <p
-        ref={motivo}
-        tabIndex={-1}
-        data-campo-tapado-por-live=""
-        className="p-1 text-(length:--text-sm) text-(--color-ink-soft)"
-        onKeyDown={teclas}
-      >
-        {tapado}
-      </p>
-    )
   return (
     <MarcoDelCampo celda={celda} lugar={lugar} escala={escala} anchoDelMarco={anchoDelMarco}>
-      {contenido}
+      <Textarea
+        ref={campo}
+        aria-label="Texto de la celda"
+        value={texto}
+        disabled={enCurso}
+        aria-invalid={largo || error !== null}
+        aria-describedby={`${id}-n${largo ? ` ${id}-m` : ''}${error === null ? '' : ` ${id}-e`}`}
+        className="min-h-10 bg-(--color-surface)"
+        onChange={(e) => {
+          alEscribir(e.target.value)
+        }}
+        onKeyDown={teclas}
+      />
+      <PieDelCampo id={id} n={n} largo={largo} error={error} />
     </MarcoDelCampo>
   )
 }

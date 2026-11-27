@@ -127,23 +127,13 @@ describe('PanelDelAjuste de un tipo de cambio: lo que muestra mientras lee', () 
 })
 
 describe('PanelDelAjuste de un tipo de cambio: el formulario', () => {
-  it('con el Modo Live, «Valor nuevo» es de contraseña con las marcas de los gestores', async () => {
+  it('con el Modo Live, «Valor nuevo» sigue de texto: el número se ve', async () => {
     document.documentElement.classList.add(CLASE_LIVE)
     montar()
     await responder(1, leida())
-    expect(campo()).toHaveAttribute('type', 'password')
+    expect(campo()).toHaveAttribute('type', 'text')
     expect(campo()).toHaveAttribute('autocomplete', 'off')
     expect(campo()).toHaveAttribute('inputmode', 'decimal')
-    for (const marca of ['data-1p-ignore', 'data-lpignore', 'data-bwignore']) {
-      expect(campo()).toHaveAttribute(marca, 'true')
-    }
-    expect(campo()).toHaveAttribute('data-form-type', 'other')
-  })
-
-  it('sin el Modo Live es de texto, sin las marcas', async () => {
-    montar()
-    await responder(1, leida())
-    expect(campo()).toHaveAttribute('type', 'text')
     expect(campo()).not.toHaveAttribute('data-1p-ignore')
   })
 

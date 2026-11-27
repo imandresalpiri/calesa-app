@@ -3,9 +3,11 @@ import {
   anchoDeLaImagen,
   armarLaImagen,
   CLAVE_DEL_ANCHO,
+  CLAVE_SIN_MONEDA,
   coincideLaEtiqueta,
   etiquetaDeLaImagen,
   leerHuellaDeLaImagen,
+  sinMonedaDeLaImagen,
   type ContextoLeido,
 } from '@/modules/cotizaciones'
 import { requerirSesion } from '@/modules/equipo'
@@ -15,10 +17,11 @@ import { asesorLeido, clienteDe, vehiculoDe, vehiculoDeLaTarjeta } from '../../d
 // La imagen de la tarjeta de una cotización guardada (`docs/COTIZADOR.md` › «La imagen de la tarjeta»): lo guardado en WebP, armado al pedirlo para quien lo pide
 // (su asesor es esa persona; el cliente, sólo si lo ve), con su sesión (la base decide; nunca la secret key). No se guarda en ningún lado del servidor.
 //
-//   GET /cotizaciones/<id>/imagen[?ancho=480]
+//   GET /cotizaciones/<id>/imagen[?ancho=480][&sin-moneda=1]
 //   200 image/webp | 304 | 307 al ingreso o a cerrar la sesión | 404 text/plain | 500 text/plain
 //
-// La ETag es la huella de lo que dibuja para quien pide (`cotizacion_imagen_huella()`), quien pide, la versión del dibujo y el ancho; con `private, no-cache` el
+// `?sin-moneda=1` es la variante que se ve con el Modo Live: los montos sin su moneda (otro valor se ignora, como un ancho que no es de la lista).
+// La ETag es la huella de lo que dibuja para quien pide (`cotizacion_imagen_huella()`), quien pide, la versión del dibujo, el ancho y la variante; con `private, no-cache` el
 // navegador pregunta cada vez y, si nada cambió, recibe un 304 sin que se arme nada. Con «Ver como» (la interfaz muestra los permisos de otro rol) o sin el primer
 // recálculo (la tarjeta sale sólo con el total) o incompleta (una lectura falló o el logo o la foto no llegaron: con la ETag quedaría fija), `no-store` y sin ETag.
 // Lo que no existe, está en la papelera o no se ve es el mismo 404 que el PDF, nunca 403.
@@ -84,7 +87,7 @@ async function contextoDeQuienMira(
 async function etiquetaDe(
   id: string,
   sesion: { usuarioId: string; perspectiva: { rol: unknown } },
-  ancho: ReturnType<typeof anchoDeLaImagen>,
+  variante: { ancho: ReturnType<typeof anchoDeLaImagen>; sinMoneda: boolean },
 ): Promise<{ etiqueta: string | null } | { respuesta: Response }> {
   if (sesion.perspectiva.rol !== null) {
     return { etiqueta: null }
@@ -94,7 +97,7 @@ async function etiquetaDe(
     return { respuesta: falla(huella.error.codigo) }
   }
   return {
-    etiqueta: etiquetaDeLaImagen({ huella: huella.data, usuarioId: sesion.usuarioId, ancho }),
+    etiqueta: etiquetaDeLaImagen({ huella: huella.data, usuarioId: sesion.usuarioId, ...variante }),
   }
 }
 
@@ -108,9 +111,11 @@ export async function GET(
   if (!z.guid().safeParse(id).success) {
     return texto(NO_DISPONIBLE, 404)
   }
-  const ancho = anchoDeLaImagen(new URL(peticion.url).searchParams.get(CLAVE_DEL_ANCHO))
+  const consulta = new URL(peticion.url).searchParams
+  const ancho = anchoDeLaImagen(consulta.get(CLAVE_DEL_ANCHO))
+  const sinMoneda = sinMonedaDeLaImagen(consulta.get(CLAVE_SIN_MONEDA))
   const inicio = performance.now()
-  const leida = await etiquetaDe(id, sesion, ancho)
+  const leida = await etiquetaDe(id, sesion, { ancho, sinMoneda })
   if ('respuesta' in leida) {
     return leida.respuesta
   }
@@ -125,6 +130,7 @@ export async function GET(
   const armada = await armarLaImagen(id, {
     contextoDe: (hoja) => contextoDeQuienMira(sesion.permisos, hoja.cotizacion),
     ancho,
+    sinMoneda,
   })
   if (!armada.ok) {
     return falla(armada.error.codigo)

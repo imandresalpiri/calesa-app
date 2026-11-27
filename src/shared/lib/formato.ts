@@ -47,6 +47,27 @@ export function formatearMonto(valor: number, opciones: OpcionesMonto): string {
   }).format(valor)
 }
 
+// El mismo número que `formatearMonto`, sin el símbolo ni el código de la moneda (el Modo Live): mismos decimales, separadores y
+// signo. Se quitan las partes `currency` y los espacios que las separan del número (en es-BO un NBSP; en otros locales U+202F o un
+// espacio detrás): 1234.5 USD → «1.234,50». Nunca un `replace` de lo que no es dígito: rompería el signo y los separadores de otro locale.
+export function formatearMontoSinMoneda(valor: number, opciones: OpcionesMonto): string {
+  const { moneda, locale = LOCALE_POR_DEFECTO, decimales = 2 } = opciones
+  return formateador(locale, {
+    style: 'currency',
+    currency: moneda,
+    minimumFractionDigits: decimales,
+    maximumFractionDigits: decimales,
+  })
+    .formatToParts(valor)
+    .filter(
+      (parte) =>
+        parte.type !== 'currency' && !(parte.type === 'literal' && /^\s*$/u.test(parte.value)),
+    )
+    .map((parte) => parte.value)
+    .join('')
+    .trim()
+}
+
 // Recibe una fracción: 0.125 → «12,5%». Los `decimales` son los de los puntos (con `fijos` y 2, 0.125 → «12,50%»).
 export function formatearPorcentaje(fraccion: number, opciones: OpcionesNumero = {}): string {
   const { locale = LOCALE_POR_DEFECTO, decimales = 1, fijos } = opciones

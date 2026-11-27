@@ -35,6 +35,11 @@ describe('valorParaCompartir', () => {
   it('usa el locale de la empresa', () => {
     expect(valorParaCompartir(datos.tipos[0]!, 'en-US')).toContain('6.96')
   })
+
+  it('con `sinMoneda`, el valor sin su moneda y con los mismos decimales; «1 USD» queda', () => {
+    expect(valorParaCompartir(datos.tipos[0]!, 'es-BO', { sinMoneda: true })).toBe('1 USD = 6,96')
+    expect(valorParaCompartir(datos.tipos[1]!, 'es-BO', { sinMoneda: true })).toBe('1 USD = 12,405')
+  })
 })
 
 describe('armarTextoParaCompartir', () => {
@@ -51,6 +56,12 @@ describe('armarTextoParaCompartir', () => {
     expect(lineas[5]).toBe('')
     expect(lineas[6]).toBe('Valores referenciales')
     expect(lineas).toHaveLength(7)
+  })
+
+  it('con `sinMoneda` (la vista del Modo Live) los mismos valores sin su moneda', () => {
+    const texto = armarTextoParaCompartir({ ...datos, sinMoneda: true })
+    expect(texto).toContain('Oficial: 1 USD = 6,96')
+    expect(texto).not.toContain('Bs')
   })
 
   it('sin leyenda no deja línea vacía al final', () => {

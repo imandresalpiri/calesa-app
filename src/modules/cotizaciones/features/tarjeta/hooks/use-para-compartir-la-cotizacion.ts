@@ -32,6 +32,27 @@ async function leerLaImagen(
   }
 }
 
+// La vista sin moneda que el panel muestra con el Modo Live (sólo se mira: no hace falta el PNG): la URL del blob, de una o de las dos hermanas apiladas.
+export type VistaSinMoneda = { url: string }
+
+async function leerLaVista(
+  ids: readonly string[],
+  senal: AbortSignal,
+): Promise<Resultado<VistaSinMoneda>> {
+  const webps = await Promise.all(
+    ids.map((id) => pedirLaImagenParaCompartir(id, senal, { sinMoneda: true })),
+  )
+  const [a, b] = webps
+  if (!a?.ok) return a ?? fallo('inesperado', NO_SE_ARMO)
+  if (b !== undefined && !b.ok) return b
+  try {
+    const blob = b === undefined ? a.data : await apilarImagenes(a.data, b.data)
+    return ok({ url: URL.createObjectURL(blob) })
+  } catch {
+    return fallo('inesperado', NO_SE_ARMO)
+  }
+}
+
 // Las dos imágenes de las hermanas, apiladas en el orden de las opciones (glosario: «Cotizaciones hermanas»): si una no llega, ninguna (no se ofrece una sola a medias).
 async function leerLasDosImagenes(
   versiones: NonNullable<DatosParaCompartir['versiones']>,
@@ -50,15 +71,26 @@ async function leerLasDosImagenes(
   }
 }
 
-const soltarLaImagen = (imagen: ImagenDeLaTarjetaParaCompartir) => {
+const soltarLaImagen = (imagen: { url: string }) => {
   URL.revokeObjectURL(imagen.url)
 }
 
+// La vista sin moneda, con el Modo Live: va a la par de los datos, como la propia; si resultan hermanas, se pide la de las dos (la clave cambia).
+function useVistaSinMoneda(id: string, versiones: DatosParaCompartir['versiones'], pedir: boolean) {
+  const ids = versiones ? versiones.map((v) => v.cotizacionId) : [id]
+  return useParteDeCompartir(
+    (senal) => leerLaVista(ids, senal),
+    pedir ? `sin:${ids.join(':')}` : null,
+    soltarLaImagen,
+  )
+}
+
 // Lo que el panel «Compartir la cotización» pide, cada parte por su lado (si una falla, las otras siguen): los datos del texto y la imagen de la tarjeta, una vez por apertura
-// mientras `activo` (con el Modo Live no se pide nada), y la lista de fotos sólo cuando se eligen («Fotos»).
+// mientras `activo` (un id válido), la lista de fotos sólo cuando se eligen («Fotos») y, con el Modo Live (`live`), la vista sin moneda: lo que se ve en el panel. La
+// imagen con moneda se pide igual: es la que se copia y se comparte, armada antes del toque (Safari no copia tras un `await`).
 export function useParaCompartirLaCotizacion(
   id: string,
-  { activo, conFotos }: { activo: boolean; conFotos: boolean },
+  { activo, conFotos, live }: { activo: boolean; conFotos: boolean; live: boolean },
 ) {
   const datos = useParteDeCompartir((senal) => pedirLosDatos(id, senal), activo ? id : null)
   // La imagen va a la par de los datos (es lo que más tarda); las fotos, sólo con acceso y al elegirlas.
@@ -77,9 +109,10 @@ export function useParaCompartirLaCotizacion(
     soltarLaImagen,
   )
   const imagen = versiones ? apilada : propia
+  const vistaSinMoneda = useVistaSinMoneda(id, versiones, activo && live)
   const fotos = useParteDeCompartir(
     (senal) => pedirLasFotos(id, senal),
     activo && conFotos && datos.parte.estado === 'listo' ? id : null,
   )
-  return { datos, imagen, fotos }
+  return { datos, imagen, vistaSinMoneda, fotos }
 }

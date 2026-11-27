@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { formatearMonto } from '@/shared/lib/formato'
 import type { ErrorApp } from '@/shared/lib/errores'
 import { Aviso } from '@/shared/ui/aviso'
 import { Confirmar } from '@/shared/ui/confirmar'
-import { useRegional } from '@/shared/ui/regional'
+import { useMontoEnTexto } from '@/shared/ui/monto-en-texto'
 
 type Props = {
   abierto: boolean
@@ -17,7 +16,7 @@ type Props = {
   alCerrar: () => void
 }
 
-// La confirmación del prorrateo (`?panel=prorratear`): nombra el reparto («Repartir 100,00 USD entre 3 unidades»). Si una unidad falla, no se crea ninguno.
+// La confirmación del prorrateo (`?panel=prorratear`): nombra el reparto («Repartir 100,00 USD entre 3 unidades»; con el Modo Live, sin la moneda: `useMontoEnTexto()`). Si una unidad falla, no se crea ninguno.
 export function ConfirmarProrrateo({
   abierto,
   monto,
@@ -26,7 +25,7 @@ export function ConfirmarProrrateo({
   confirmar,
   alCerrar,
 }: Props) {
-  const { locale } = useRegional()
+  const montoEnTexto = useMontoEnTexto()
   const [error, setError] = useState<ErrorApp | null>(null)
   const [enCurso, setEnCurso] = useState(false)
 
@@ -53,7 +52,7 @@ export function ConfirmarProrrateo({
       abierto={abierto}
       alCerrar={cerrar}
       alConfirmar={alConfirmar}
-      titulo={`Repartir ${formatearMonto(monto, { moneda, locale })} entre ${cuantas}`}
+      titulo={`Repartir ${montoEnTexto(monto, { moneda })} entre ${cuantas}`}
       descripcion="Se crea un gasto en cada unidad, en partes iguales. Si una unidad falla, no se crea ninguno."
       etiquetaConfirmar="Repartir"
       enCurso={enCurso}

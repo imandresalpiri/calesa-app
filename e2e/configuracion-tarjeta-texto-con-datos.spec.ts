@@ -15,7 +15,7 @@ import { copiarLaFormulaDeLaSubasta } from './soporte/tarjeta-cuadricula'
 
 // El texto con datos de la tarjeta (glosario: «Texto con datos», «Pastilla»; `docs/COTIZADOR.md` › «Plantilla de tarjeta (PDF)»): en el editor, una celda de
 // texto lleva «Comisión giro » y el porcentaje de la transferencia como pastilla (Retroceso la borra entera, Ctrl+Z la devuelve) y otra «Total: » con el monto
-// del total; se publica. Una guardada de ese origen, con `transferencia_pct` = 0,042, lo muestra en la vista previa (con Live, el monto de adentro tapado), en
+// del total; se publica. Una guardada de ese origen, con `transferencia_pct` = 0,042, lo muestra en la vista previa (con Live, el monto de adentro sin símbolo), en
 // el PDF y en la imagen. Un origen propio con una copia de la fórmula v1 de `subasta_usa`, nunca la de la semilla.
 test.describe.configure({ mode: 'serial' })
 
@@ -200,7 +200,7 @@ test('E2E insertar el porcentaje de la transferencia y el total en un texto; bor
   })
 })
 
-test('E2E la guardada muestra la comisión con su porcentaje en la vista previa, el PDF y la imagen; con Live, el monto de adentro va tapado', async ({
+test('E2E la guardada muestra la comisión con su porcentaje en la vista previa, el PDF y la imagen; con Live, el monto de adentro va sin símbolo', async ({
   page,
 }, info) => {
   await entrar(page, duena, { fresco: true })
@@ -212,10 +212,13 @@ test('E2E la guardada muestra la comisión con su porcentaje en la vista previa,
   await expect(total.locator('[data-monto-valor]')).toBeVisible()
   await capturar(page, info, 'texto-con-datos-en-la-vista-previa')
 
-  const live = dialogo(page).getByRole('button', { name: 'Modo Live: ocultar los montos' })
+  const live = dialogo(page).getByRole('button', {
+    name: 'Modo Live: ocultar los símbolos de moneda',
+  })
   await live.click()
   await expect(page.locator('html')).toHaveClass(/live/)
-  await expect(total.locator('[data-monto-oculto]')).toBeVisible()
+  await expect(total.locator('[data-monto-sin-moneda]')).toBeVisible()
+  await expect(total.locator('[data-monto-sin-moneda]')).toHaveText(/^-?[\d.,]+$/)
   await expect(total.locator('[data-monto-valor]')).toBeHidden()
   await expect(t.locator('[data-celda="c_comision"]')).toHaveText(COMISION)
   await live.click()

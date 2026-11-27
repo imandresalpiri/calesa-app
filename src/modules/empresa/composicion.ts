@@ -25,6 +25,7 @@ import type {
   RepositorioLeyendaDeTiposCambio,
   RepositorioTiposCambio,
 } from './entities/repositorios'
+import { CLAVE_SIN_MONEDA, sinMonedaDe } from './entities/compartir-tipos-cambio'
 import { asistenteParaCompartir, type AsistenteParaCompartir } from './entities/asistente-ia/config'
 import { ajustesDeCotizacionSupabase } from './infra/ajustes-de-cotizacion'
 import { empresaSupabase } from './infra/empresa'
@@ -98,15 +99,18 @@ export async function atajosDelAsistente(): Promise<AsistenteParaCompartir> {
   )
 }
 
-// Lo que el popover de la barra pide para compartir los tipos de cambio (`/tipos-de-cambio/texto` y `/imagen`).
+// Lo que el popover de la barra pide para compartir los tipos de cambio (`/tipos-de-cambio/texto` y `/imagen`), con los parámetros de su URL: `ids` y
+// `sin-moneda` (la vista del Modo Live).
 export function responderCompartirTiposCambio(
   formato: FormatoParaCompartir,
-  ids: string | null,
+  parametros: URLSearchParams,
 ): Promise<Response> {
-  return responderParaCompartir(formato, ids, {
-    leer: getParaCompartir,
-    dibujar: dibujarImagenDeTiposCambio,
-  })
+  return responderParaCompartir(
+    formato,
+    parametros.get('ids'),
+    { leer: getParaCompartir, dibujar: dibujarImagenDeTiposCambio },
+    { sinMoneda: sinMonedaDe(parametros.get(CLAVE_SIN_MONEDA)) },
+  )
 }
 
 // Lo que consumen el shell y otros módulos: nunca tumban una pantalla.

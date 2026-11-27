@@ -261,28 +261,29 @@ async function valoresEnElArbol(page: Page, nombre: string): Promise<string[]> {
     .map((n) => String(n.value?.value ?? ''))
 }
 
-test('Modo Live: la cifra tipeada no queda a la vista ni en el árbol de accesibilidad', async ({
+test('Modo Live: el número sin símbolo, sin contraseña; encenderlo a mitad de una edición no la toca', async ({
   page,
 }) => {
   await abrir(page, { live: true })
   const boton = page.locator('[data-caso="normal"] [data-parada="0"]')
   expect(await boton.getAttribute('aria-labelledby'), 'el valor sin editar').not.toBeNull()
-  await expect(boton).toContainText('•••')
+  await expect(boton.locator('[data-monto-sin-moneda]')).toBeVisible()
+  await expect(boton.locator('[data-monto-valor]')).toBeHidden()
+  await expect(boton.locator('[data-monto-sin-moneda]')).toHaveText(/^-?[\d.,]+$/)
   await boton.focus()
   await page.keyboard.press('Enter')
   const entrada = page.locator('[data-caso="normal"] input')
   await expect(entrada).toBeVisible()
-  await expect(entrada).toHaveAttribute('type', 'password')
-  const valores = await valoresEnElArbol(page, 'Fees')
-  expect(valores, 'hay un cuadro de texto «Fees» en el árbol').toHaveLength(1)
-  expect(valores.join(), 'la cifra de la entrada abierta').not.toMatch(/1\.?234/)
-  // Las marcas que ignoran los gestores de contraseñas. Que Chrome no ofrezca «Guardar contraseña» NO se puede probar aquí: el Chromium
-  // de Playwright no trae gestor (ver la ficha de la xcell).
-  await expect(entrada).toHaveAttribute('autocomplete', 'off')
-  await expect(entrada).toHaveAttribute('data-1p-ignore', 'true')
-  await expect(entrada).toHaveAttribute('data-lpignore', 'true')
-  await expect(entrada).toHaveAttribute('data-bwignore', 'true')
-  await expect(entrada).toHaveAttribute('data-form-type', 'other')
+  await expect(entrada).toHaveAttribute('type', 'text')
+  expect(await valoresEnElArbol(page, 'Fees')).toEqual(['1234,567'])
+  // Se apaga y se vuelve a encender el modo mientras se edita: lo tipeado y el foco siguen.
+  await entrada.press('End')
+  await page.keyboard.type('8')
+  await page.evaluate(() => document.documentElement.classList.toggle('live'))
+  await page.evaluate(() => document.documentElement.classList.toggle('live'))
+  await expect(entrada).toBeFocused()
+  await expect(entrada).toHaveValue('1234,5678')
+  await expect(entrada).toHaveAttribute('type', 'text')
 })
 
 test('sin el Modo Live la entrada es un cuadro de texto con su valor a la vista del lector', async ({

@@ -3,7 +3,12 @@
 // redondea otra cifra (1234,5649999999998 con 2 da «1.234,56» y la base, 1234,57). Redondear antes además vuelve 0 lo que se ve 0
 // (−0,001 con 2 es «0,00», nunca «−0,00»). Va aparte de `formato.ts` (que viaja en toda pantalla): el BigInt de `redondear()` lo
 // pagan sólo quienes muestran una cifra fija.
-import { formatearMonto, formatearNumero, formatearPorcentaje } from './formato'
+import {
+  formatearMonto,
+  formatearMontoSinMoneda,
+  formatearNumero,
+  formatearPorcentaje,
+} from './formato'
 import { redondear } from './redondeo'
 
 export type TipoDeCifra = 'monto' | 'numero' | 'porcentaje'
@@ -14,7 +19,13 @@ export function redondeadaParaMostrar(valor: number, tipo: TipoDeCifra, decimale
   return redondear(valor, tipo === 'porcentaje' ? decimales + 2 : decimales)
 }
 
-type Opciones = { decimales: number; locale: string; moneda?: string | undefined }
+// `sinMoneda`: el monto con los decimales y separadores de su moneda, sin su símbolo (el Modo Live).
+type Opciones = {
+  decimales: number
+  locale: string
+  moneda?: string | undefined
+  sinMoneda?: boolean
+}
 
 // El texto de una cifra con N decimales fijos. Un monto sin moneda va sin ella (como `<Monto moneda={null}>`). En pantalla, el
 // dinero sigue por `<Monto>` con la cifra de `redondeadaParaMostrar()`: esto es el texto plano (un `title`, la tarjeta, el PDF).
@@ -23,10 +34,14 @@ export function formatearConDecimales(
   tipo: TipoDeCifra,
   opciones: Opciones,
 ): string {
-  const { decimales, locale, moneda } = opciones
+  const { decimales, locale, moneda, sinMoneda = false } = opciones
   const redondeada = redondeadaParaMostrar(valor, tipo, decimales)
   if (tipo === 'monto' && moneda !== undefined) {
-    return formatearMonto(redondeada, { moneda, locale, decimales })
+    return (sinMoneda ? formatearMontoSinMoneda : formatearMonto)(redondeada, {
+      moneda,
+      locale,
+      decimales,
+    })
   }
   if (tipo === 'porcentaje') {
     return formatearPorcentaje(redondeada, { locale, decimales, fijos: true })

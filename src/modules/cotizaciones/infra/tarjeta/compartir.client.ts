@@ -93,10 +93,15 @@ export async function pedirLasFotos(
   return leidas.ok ? ok(leidas.data.fotos) : leidas
 }
 
-// La imagen de la tarjeta (WebP) para quien comparte: con la caché del navegador, que revalida con su ETag (un 304 barato si no cambió).
-export async function pedirLaImagenParaCompartir(id: string, senal?: AbortSignal) {
+// La imagen de la tarjeta (WebP) para quien comparte: con la caché del navegador, que revalida con su ETag (un 304 barato si no cambió). `sinMoneda`: la variante
+// sin moneda (`?sin-moneda=1`), la que el panel muestra con el Modo Live (nunca la que se comparte).
+export async function pedirLaImagenParaCompartir(
+  id: string,
+  senal?: AbortSignal,
+  { sinMoneda = false }: { sinMoneda?: boolean } = {},
+) {
   const pedido = { tipo: IMAGEN, cache: 'default', alFallar: NO_SE_ARMO_LA_IMAGEN, senal } as const
-  return leerBlob(await pedir(rutaDeLaImagen(id), pedido), NO_SE_ARMO_LA_IMAGEN)
+  return leerBlob(await pedir(rutaDeLaImagen(id, { sinMoneda }), pedido), NO_SE_ARMO_LA_IMAGEN)
 }
 
 // Una foto a tamaño completo, del bucket público (otro origen): un `fetch` (nunca un `<img>`) para tener los bytes que se comparten.

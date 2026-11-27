@@ -195,19 +195,22 @@ test('E2E «Mostrar garantía» y «Ver total en moneda local» suman lo suyo a 
   await expect(t.locator('[data-total-bs-de-la-tarjeta]')).toHaveCount(0)
 })
 
-test('E2E el Modo Live del pie del modal tapa los montos de la tarjeta', async ({ page }) => {
+test('E2E el Modo Live del pie del modal deja los montos de la tarjeta sin moneda', async ({
+  page,
+}) => {
   await cotizarEnLaSubasta(page, asesora.email, urlDeLaSubasta(subasta, leadDeLaAsesora, vehiculo))
   const t = await abrirLaVistaPrevia(page)
-  const live = dialogo(page).getByRole('button', { name: 'Modo Live: ocultar los montos' })
+  const live = dialogo(page).getByRole('button', {
+    name: 'Modo Live: ocultar los símbolos de moneda',
+  })
   await expect(live).toHaveAttribute('aria-pressed', 'false')
   await expect(total(t).locator('[data-monto-valor]')).toBeVisible()
   await live.click()
   await expect(live).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.locator('html')).toHaveClass(/live/)
   await expect(total(t).locator('[data-monto-valor]')).toBeHidden()
   await expect(t.locator('[data-fila^="n_"] [data-monto-valor]').first()).toBeHidden()
+  await expect(total(t).locator('[data-monto-sin-moneda]')).toHaveText(/^-?[\d.,\s]+$/)
   await live.click()
-  await expect(page.locator('html')).not.toHaveClass(/live/)
   await expect(total(t).locator('[data-monto-valor]')).toBeVisible()
 })
 

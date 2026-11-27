@@ -9,7 +9,6 @@ import {
 import { TarjetasDeLaFicha } from '@/modules/cotizaciones/pantallas/listado-fichas'
 import { ImagenDeLaTarjeta } from '@/modules/cotizaciones/pantallas/tarjeta-imagen'
 import { useAbrirCompartirDeLaFila } from '@/modules/cotizaciones/pantallas/tarjeta-compartir'
-import { useLive } from '@/shared/ui/live'
 
 type Props = {
   vehiculo: { id: string; titulo: string }
@@ -18,20 +17,13 @@ type Props = {
   volverA: string
 }
 
-// La fila de tarjetas del listado con lo del área `tarjeta` ya unido (la imagen de la tarjeta y «Compartir»; su diálogo ya está en los paneles de la ficha). En Modo Live
-// «Compartir» no se ofrece. Va fuera de `CotizacionesDeEsteVehiculo` para que su identidad no cambie en cada dibujo.
+// La fila de tarjetas del listado con lo del área `tarjeta` ya unido (la imagen de la tarjeta y «Compartir»; su diálogo ya está en los paneles de la ficha).
+// Va fuera de `CotizacionesDeEsteVehiculo` para que su identidad no cambie en cada dibujo.
 function TarjetasConImagenYCompartir(
   props: Omit<ComponentProps<typeof TarjetasDeLaFicha>, 'Imagen' | 'compartir' | 'dialogos'>,
 ) {
-  const { live } = useLive()
   const abrirCompartir = useAbrirCompartirDeLaFila()
-  return (
-    <TarjetasDeLaFicha
-      {...props}
-      Imagen={ImagenDeLaTarjeta}
-      compartir={live ? null : abrirCompartir}
-    />
-  )
+  return <TarjetasDeLaFicha {...props} Imagen={ImagenDeLaTarjeta} compartir={abrirCompartir} />
 }
 
 // Las cotizaciones de este vehículo en la ficha: la fila de tarjetas (al acercarse, con su código por `diferido()`), con las casillas de «Comparar» y «Aprobar esta» de `aprobada`.

@@ -41,7 +41,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `conteo`, o `suelta`, con `cortada`); con texto, la búsqueda agrupada en la página (`agruparLaPagina()`); sin agrupar, `entradasSinAgrupar()`. Los nombres, el modo
   (`leerModosDeCotizaciones()`, `cotizaciones_modos_de()`), el «⋯» y lo visto van sobre las cotizaciones que se dibujan. La tarjeta (`TarjetaEnLaLista`) lleva la
   imagen de la tarjeta por el hueco `Imagen` (`ancho={480}`, `recorte="cubrir"`, `lugar="lista"`: su visor es `?visor=imagen-de-la-lista-<id>`), el «⋯» sin «Compartir» (`MenuDeFila(fila, { sinCompartir })`) y «Compartir» (`compartirDe`, nulo
-  sin la oferta o en Modo Live); la tabla, la columna «Título». «N cotizaciones de este vehículo» (`BotonDelConteo`) abre el modal del grupo (`ModalDelGrupoDiferido`, `features/listado/components/grupo/`; la URL `?panel=cotizaciones-del-vehiculo&vehiculo=<id>`
+  sin la oferta); la tabla, la columna «Título». «N cotizaciones de este vehículo» (`BotonDelConteo`) abre el modal del grupo (`ModalDelGrupoDiferido`, `features/listado/components/grupo/`; la URL `?panel=cotizaciones-del-vehiculo&vehiculo=<id>`
   por `useModalDelGrupo()` con `usePanelPorUrl()`; `PANEL_DE_COTIZACIONES_DEL_VEHICULO`, `tituloDelModalDelGrupo()` y `idDelVehiculoDelModal()` del núcleo; con ese panel la página **no lee `?vehiculo=` como filtro**,
   `pedidoDeLaPagina()`; `Modal` con `completoEnCelular`): lo lee `useGrupoDelListado()` desde el navegador (`areas/listado/composicion.client.ts`, `leerGrupoDelListado()`:
   `cotizaciones_listado(p_vehiculo)` o `cotizaciones_buscar(p_texto, p_vehiculo)` con los filtros de la página, de a `TAMANO_DE_ESTE_VEHICULO` hasta `TOPE_DE_ESTE_VEHICULO`, y los autores por
@@ -178,17 +178,17 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   (`origenes/[id]/(pestanas)/tarjeta/referencia.ts`, con `leerListadoDeCotizaciones()` y `UNA` del área `listado`, `leerHojaDeUnaGuardada()`, y `referenciaPlana()` y
   `calculoDeLoGuardado()` del núcleo).
 - Niveles: en la matriz de Roles, bloque «Cotizaciones» (`/configuracion/roles?bloque=cotizaciones`; `equipo.roles.ver|gestionar`; `?panel=nuevo-nivel|renombrar-nivel|eliminar-nivel&nivel=<id>`). `pantallas/configuracion.ts` sale `NivelesEnLaMatriz`: una render prop que da a la matriz de `equipo` los huecos (`cabeza`, `menuDelNivel`, `pie`, `ventanas`); la une `src/app/(app)/configuracion/roles/matriz-con-niveles.tsx`.
-- Con Live, las cifras de la ayuda de una celda de dinero pasan por `<Monto>`; las de otra celda quedan a la vista.
+- Con Live, las cifras de la ayuda de una celda de dinero pasan por `<Monto>` (sin su moneda); las de otra celda, igual que sin él.
 - **Llenar una celda desde la ayuda:** en un bloque de tabla, la cifra de una columna con `llena` es un botón si `destinoDeLaAyuda()` (`entities/destino-de-la-ayuda.ts`)
   encuentra el lado de la celda dibujado y sin candado (`bloqueoDeLado`). Tocarla llama a `acciones.alAplicar(nodo, valor)` de `use-hoja.ts` (el mismo camino que
   tipear, con «Editado a mano» si pisa un cálculo), cierra la ayuda, deja el foco en el botón del valor (`data-lado` de la XCell) y avisa «IVA % = 14,94 %» con
-  «Deshacer» (`useAplicarDesdeLaAyuda`), que repone lo de antes sólo si la hoja sigue como la dejó el clic. Con Live y un destino de dinero, el aviso no dice la cifra.
+  «Deshacer» (`useAplicarDesdeLaAyuda`), que repone lo de antes sólo si la hoja sigue como la dejó el clic. Con Live y un destino de dinero, el nombre del botón y el aviso dicen la cifra sin su moneda (`textoDelValor(…, sinMoneda)`).
   Sin `alAplicar` (la hoja en par, el lienzo del editor) nada se elige. «Tu vehículo» (`resaltar`): `filaDelVehiculo()` (`entities/fila-del-vehiculo.ts`, igualdad
   estricta como el motor, la primera gana) con los valores de los nodos del recálculo y `valoresDelVehiculo` del `ContextoDeHoja`, que arma `src/app` con
   `valoresParaCasar()` de `vehiculos` sobre `camposQueCasanLaAyuda(hoja)` (de `index.ts`).
 - **Editar una tabla desde la ayuda** (área `tablas`; glosario: «Bloque de la ayuda»): en la hoja nueva de quien configura el origen (`src/app` pone
-  `ProveedorDeLaEdicionDeLaTabla` de `pantallas/tablas-hoja.ts` con `puede(…, 'cotizaciones.configurar', origen)`), un bloque de tabla con el id de la tabla viva y
-  sin Modo Live dibuja el hueco `ContextoDeLaEdicionDeLaTabla` (`features/hoja/components/ayuda/hueco-de-la-edicion.tsx`; sus props, `PropsDeLaEdicionDeLaTabla`
+  `ProveedorDeLaEdicionDeLaTabla` de `pantallas/tablas-hoja.ts` con `puede(…, 'cotizaciones.configurar', origen)`), un bloque de tabla con el id de la tabla viva
+  (también con el Modo Live) dibuja el hueco `ContextoDeLaEdicionDeLaTabla` (`features/hoja/components/ayuda/hueco-de-la-edicion.tsx`; sus props, `PropsDeLaEdicionDeLaTabla`
   de `huecos.ts`) por `diferido()` (`features/tablas/components/ayuda/`; mientras llega, la tabla quieta). ✎, 🗑 o «+ Añadir fila» leen la tabla viva entera
   (`leerTablaParaEditarEnElNavegador()`, `areas/tablas/composicion.client.ts`; más de 2.000 filas o una que no se lee: «Esta tabla se edita en la configuración.») y
   lo pedido se hace al llegar, salvo si cambió desde que se abrió la hoja (`tablaCambio()`: sólo se abre, con el aviso). Lo puro en `entities/tablas/edicion-en-la-ayuda.ts`
@@ -196,7 +196,7 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   nota «Desde la ayuda de «<rótulo>».», `useGuardadoEnLaAyuda`: PT409 con «Recargar», el 22023 de una celda en su campo, sin red sale al volver). Sin borrador: cerrar
   la ayuda con cambios pregunta (`useCambiosSinGuardar(…, { preguntaAlCerrar: true })`). Publicada, si una fórmula de este origen pasó a la versión siguiente
   (`origenId` del `ContextoDeHoja`), `router.refresh()`: la hoja vuelve con otra abierta y el borrador repone lo tipeado (`loQueNoVuelve()` avisa si algo no volvió);
-  si a los 10 s sigue ahí, «Recargar». Si no, la tabla se lee de nuevo (`olvidarYLeer()`). En una guardada o con Live, a quien configura sólo «Editar en la
+  si a los 10 s sigue ahí, «Recargar». Si no, la tabla se lee de nuevo (`olvidarYLeer()`). En una guardada, a quien configura sólo «Editar en la
   configuración» (`?tabla=<id>` del drawer de tablas).
 - Los `loading.tsx` de la hoja importan `pantallas/esqueleto-de-hoja.ts`, nunca el barril de su pantalla (con él, el HTML en frío baja dos chunks casi
   iguales). El núcleo del guardado (`useNucleoDelGuardado`: pendiente, un envío a la vez, reintento al volver la red) es el mismo de la hoja nueva y de la
@@ -257,8 +257,9 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   `diferido()`), en `?panel=compartir` en el detalle (`CompartirDeLaGuardada`, a la vista en la cabecera por el hueco `compartir` de la vista previa, sólo con
   `cotizacionId`) y en `?panel=compartir&para=<id>` fuera de él (`DialogoDeCompartirDeLaFila` y `useAbrirCompartirDeLaFila()` por `pantallas/tarjeta-compartir.ts`:
   el «⋯» del listado; también para las tarjetas, el resumen y la ficha del vehículo); la pestaña en `?compartir=texto` (`entities/tarjeta/compartir/url.ts`). Con
-  el Modo Live ni el botón ni la línea del «⋯»; por URL, el aviso. Lee `GET /cotizaciones/[id]/compartir` (`DatosParaCompartir`: `paraCompartirDeUnaGuardada()`
-  da los montos de la tarjeta de lo guardado con `lineasDeLaTarjeta()`; `src/app` suma el vehículo con `zonaDelPatioDe()` de `vehiculos` y la subasta) y, al
+  el Modo Live se ofrece igual: el panel muestra la imagen `?sin-moneda=1` (`vistaSinMoneda`) y el texto de los gemelos `…SinMoneda` (`textoALaVista`), y lo que se
+  copia, descarga o comparte va completo, con su moneda (la imagen con moneda se pide a la par, lista antes del toque). Lee `GET /cotizaciones/[id]/compartir` (`DatosParaCompartir`: `paraCompartirDeUnaGuardada()`
+  da los montos de la tarjeta de lo guardado con `lineasDeLaTarjeta()`, cada uno con su gemelo sin moneda de la geometría dibujada con `sinMoneda`; `src/app` suma el vehículo con `zonaDelPatioDe()` de `vehiculos` y la subasta) y, al
   elegir «Fotos», `…/compartir/fotos` (`leerVehiculoDeLaCotizacion()` por `cotizaciones_pkey` y `leerGaleria()`); la imagen de la tarjeta (`pedirLaImagenParaCompartir()`), por su
   ruta con la caché del navegador, pasada a PNG en el navegador. El texto lo arma `textoParaCompartir()` (puro), con la firma del asesor (quien comparte: `DatosParaCompartir.asesor`; «Creado por» es `autor`, de
   `leerAutorDeLaCotizacion()`); los motivos de los botones, `motivosDeCompartir()`. Desde el navegador,
@@ -269,16 +270,16 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   el asistente) y después `redactarConElAsistente()` de `empresa`, con la firma de `leerAsesorQueMira()` y `puedeConfigurar` (`empresa.ajustes.gestionar`).
   Dan `{ texto }` sin revalidar.
 - **La imagen de la tarjeta** (área `tarjeta`; glosario, `docs/COTIZADOR.md` › «La imagen de la tarjeta»): `GET /cotizaciones/[id]/imagen` (`rutaDeLaImagen(id,
-{ ancho?, intento? })`, el mismo 404 que el PDF; `?ancho=480` es la miniatura de las listas y otro ancho se ignora; `?intento=`, sólo otra URL) se arma **al pedirla, para
+{ ancho?, intento?, sinMoneda? })`, el mismo 404 que el PDF; `?ancho=480` es la miniatura de las listas y otro ancho se ignora; `?sin-moneda=1`, los montos sin su moneda (la que se ve con el Modo Live; otro valor se ignora); `?intento=`, sólo otra URL) se arma **al pedirla, para
   quien la pide**, y no se guarda. Lee la huella (`leerHuellaDeLaImagen()`, `cotizacion_imagen_huella()`; lo que no se ve, 404) y, con un `If-None-Match` que
-  `coincideLaEtiqueta()` con `etiquetaDeLaImagen()` (huella, usuario, `VERSION_DEL_DIBUJO` y ancho), responde 304 sin dibujar; si no, `armarLaImagen(id, { contextoDe,
-ancho })` (en `features/tarjeta/` porque cruza con `empresa`: la hoja de lo guardado, los ajustes, el logo y el WebP de `webpDeUnaGuardada()`, `sharp` con
+  `coincideLaEtiqueta()` con `etiquetaDeLaImagen()` (huella, usuario, `VERSION_DEL_DIBUJO`, ancho y `.s` la sin moneda), responde 304 sin dibujar; si no, `armarLaImagen(id, { contextoDe,
+ancho, sinMoneda })` (en `features/tarjeta/` porque cruza con `empresa`: la hoja de lo guardado, los ajustes, el logo y el WebP de `webpDeUnaGuardada()`, `sharp` con
   `import()`) con el contexto de quien pide (`datos-de-la-tarjeta.ts`, como el PDF: el cliente sólo con `leads.ver`, y él como asesor). Con la ETag, `private,
 no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o incompleta (una lectura del contexto falló o no llegó el logo o la foto: `completa`),
   `no-store` y sin ETag; un fallo, 500 en texto. `Server-Timing` dice lo que tardó la
   huella y el armado. El componente `<ImagenDeLaTarjeta>` sale por
   `pantallas/tarjeta-imagen.ts` (marco de la proporción que le den, pedida a la vista y de a cuatro por página con `useCargaDeLaImagen()`, recuadro con el total, visor por `diferido()` con la clave de
-  `claveDelVisorDeLaImagen()`, que acepta también la de antes, `portada-…`; Modo Live por CSS en `globals.css`).
+  `claveDelVisorDeLaImagen()`, que acepta también la de antes, `portada-…`; con el Modo Live pide la variante sin moneda, la capa con `key` por variante, y el CSS de `globals.css` esconde la que no corresponde: `data-imagen-moneda`).
 - **El editor de la hoja** (la pestaña «Hoja»: `/configuracion/origenes/<id>/hoja?formula=<fórmula>`, `cotizaciones.configurar`; glosario: «Inspector de la
   hoja»): lee el borrador o la publicada y los niveles de `cotizaciones_niveles` (no de `niveles_con_uso()`) y edita **sobre la hoja**: el lienzo
   (`components/editor/`) dibuja el diseño de trabajo con las piezas de cotizar (`hojaDeLaVistaPrevia()`, `ItemDeHoja`, `TotalDeHoja`, `CabeceraDeHoja`,
@@ -376,7 +377,7 @@ por `pantallas/<área>-<pantalla>.ts`. Un hueco vacío es un objeto sin componen
   `leerAprobadasDeVehiculos([id])` (`index.ts`); lo que lo abre y el diálogo, `useAbrirCompartirDeLaFila` y `DialogoDeCompartirDeLaFila` de `pantallas/tarjeta-compartir.ts`.
   A la derecha, «Cotizaciones de este vehículo»: `TarjetasDelVehiculo` de `pantallas/aprobada-fichas.ts` (la isla del área `aprobada`, abajo, al acercarse, sin título propio: lo dibuja el
   servidor con «Cotizar» y una ranura `ID_DE_LA_RANURA_DE_COMPARAR` donde la isla pone «Comparar» con un portal); `src/app` le pasa la fila de tarjetas del listado (`Tarjetas`, de
-  `pantallas/listado-fichas.ts`) con la imagen (`pantallas/tarjeta-imagen.ts`) y `compartir` (`useAbrirCompartirDeLaFila()`, nulo en Modo Live) ya unidos, `aprobarEn` y `alCambiar`, que refresca la página.
+  `pantallas/listado-fichas.ts`) con la imagen (`pantallas/tarjeta-imagen.ts`) y `compartir` (`useAbrirCompartirDeLaFila()`) ya unidos, `aprobarEn` y `alCambiar`, que refresca la página.
 - **La fila de tarjetas** (glosario: «Fila de tarjetas»): las últimas `TARJETAS_EN_LA_FICHA` (10) cotizaciones que quien mira ve, cada una `TarjetaEnLaLista` (la de la vista Tarjetas del listado, con
   `sinCliente`, `casilla` y `aprobar`; `FilaParaLaTarjeta` = `DatosDeLaTarjeta`, del núcleo) dentro de `FilaDeTarjetas` (snap, flechas ‹ ›, `useDesborde`, la última «Ver más» a `rutaDelListado({ lead | vehiculo })`);
   el clic abre el resumen sobre la ficha (`useResumenDeCotizacion({ delServidor: true })`: `?cotizacion=` pide la página, el servidor dibuja el resumen) y deja marcada la abierta. **Una sola lectura**, sin cursor.

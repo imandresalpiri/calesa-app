@@ -3,12 +3,10 @@
 import { Button } from '@/shared/ui/button'
 import { Campo } from '@/shared/ui/campo'
 import { Checkbox } from '@/shared/ui/checkbox'
-import { useLive } from '@/shared/ui/live'
 import { MENSAJE_SIN_LA_CONSTANTE } from '../../../../entities/formula/ajuste'
 import { ValorDeNodo } from '../../../hoja/components/valor-de-nodo'
 import type { BloqueDeConstante as Bloque } from '../../hooks/use-ajuste-de-constante'
 import { EsqueletoDelValor } from './esqueleto-del-valor'
-import { MARCAS_DE_GESTORES } from './marcas-de-gestores'
 
 type Props = {
   bloque: Bloque
@@ -24,10 +22,9 @@ type Props = {
   alEnviar: () => void
 }
 
-// «Valor nuevo» con el Modo Live (como una celda: contraseña, sin gestores), su aviso y, en un porcentaje, cómo se tipea.
-const propsDelCampo = (bloque: Bloque, live: boolean) => ({
-  type: live ? 'password' : 'text',
-  ...(live ? MARCAS_DE_GESTORES : {}),
+// El aviso de «Valor nuevo» y, en un porcentaje, cómo se tipea.
+const propsDelCampo = (bloque: Bloque) => ({
+  type: 'text',
   ...(bloque.aviso ? { error: bloque.aviso } : {}),
   ...(bloque.formato === 'pct' ? { ayuda: 'En porcentaje: 13 es 13 %.' } : {}),
 })
@@ -36,7 +33,6 @@ const propsDelCampo = (bloque: Bloque, live: boolean) => ({
 // Enter envía. El valor por defecto pasa por `<ValorDeNodo>` (el dinero, por `<Monto>`).
 export function BloqueDeConstante(props: Props) {
   const { bloque, conNombre, leyendo, enCurso, bloqueado, alEscribir, alMarcar, alEnviar } = props
-  const { live } = useLive()
   const apagado = leyendo || enCurso
   return (
     <form
@@ -75,7 +71,7 @@ export function BloqueDeConstante(props: Props) {
             etiqueta="Valor nuevo"
             inputMode="decimal"
             autoComplete="off"
-            {...propsDelCampo(bloque, live)}
+            {...propsDelCampo(bloque)}
             spellCheck={false}
             value={bloque.texto}
             disabled={apagado}

@@ -152,24 +152,24 @@ La hoja es **configurable por origen** (`docs/COTIZADOR.md` › «El diseño de 
      hoja, «Aplicar también a esta cotización». La hoja sigue en su versión. Si otra persona publicó antes, el mensaje de la base y «Volver
      a leer», sin perder lo tipeado. Cerrar con algo tipeado pregunta.
    - **Una celda de tipo de cambio** abre «Tipo de cambio de <celda>»: en la hoja nueva, el valor de hoy (por `<Monto>`), que cambiarlo
-     afecta a toda la empresa (las guardadas conservan el suyo) y «Valor nuevo» (con Modo Live, como una celda); al cambiarlo la hoja se
+     afecta a toda la empresa (las guardadas conservan el suyo) y «Valor nuevo» (de texto, también con el Modo Live); al cambiarlo la hoja se
      reabre con el valor nuevo y lo tipeado vuelve. Sin fila o desactivado, dice dónde se cambia; en una guardada, que se cambia en
      Configuración › Empresa › Monedas y que la cotización conserva el suyo.
    - **La ayuda** («Ayuda de X», `?ayuda=bloques&nodo=`) abre un panel con sus bloques en orden: el primer título va de nombre del panel (sin
      él, «Ayuda de <rótulo>») y no se repite; un texto con sus saltos de línea y su **negrita**; los enlaces; y cada tabla (la de la hoja abierta,
-     sólo las columnas que el bloque nombra, en su orden; cargando, sin filas, tope de 1.000 filas, fallo con «Reintentar» o «Recargar»). Con Modo
-     Live las cifras de dinero se tapan. **Llenar una celda:** en una columna que llena una celda, cada cifra es un botón («Usar 14,94 % en IVA %»)
+     sólo las columnas que el bloque nombra, en su orden; cargando, sin filas, tope de 1.000 filas, fallo con «Reintentar» o «Recargar»). Con el Modo
+     Live las cifras de dinero van sin su moneda. **Llenar una celda:** en una columna que llena una celda, cada cifra es un botón («Usar 14,94 % en IVA %»)
      si esa celda se dibuja y se edita; tocarlo la escribe (como tipearla, con «Editado a mano» si pisa un cálculo), cierra la ayuda, deja el foco en
-     la celda y avisa «IVA % = 14,94 %» con «Deshacer» (con Live y una celda de dinero, sin la cifra). **«Tu vehículo»:** con un vehículo elegido,
+     la celda y avisa «IVA % = 14,94 %» con «Deshacer» (con Live y una celda de dinero, la cifra sin su moneda: «Flete = 1.500,00»). **«Tu vehículo»:** con un vehículo elegido,
      la fila que casa con él va marcada y dice «Tu vehículo» delante de su primer valor. Una tabla que ya no está no se dibuja.
-   - **Editar la tabla desde la ayuda** (sólo en la hoja nueva, a quien configura el origen, sin Modo Live): ✎ «Editar la fila N», 🗑 «Quitar la fila
+   - **Editar la tabla desde la ayuda** (sólo en la hoja nueva, a quien configura el origen; también con el Modo Live): ✎ «Editar la fila N», 🗑 «Quitar la fila
      N» (tachada, con «Volver la fila N») y «+ Añadir fila»; se edita una fila a la vez, en sus campos («Factor, fila 2», con «Listo» o Enter y
      «Cancelar»), y no se dibujan los botones de valor ni «Tu vehículo» (vuelven al cerrar una fila sin nada editado). El primer toque lee la tabla entera («Abriendo…»); si cambió desde que se abrió la hoja, sólo se abre con «La tabla cambió
      desde que abriste la hoja: estás editando la de hoy.»; más de 2.000 filas o una que no se lee, «Esta tabla se edita en la configuración.». Al pie,
      «Cambios sin guardar.» (o «Corrige la celda marcada para guardar.») con «Descartar» y «Guardar» («Guardando…»), que publica la tabla con la nota «Desde la ayuda de «<rótulo>».»: «Tabla
      publicada (versión N).», y la hoja vuelve con la versión nueva de la fórmula y lo tipeado («Poniendo la hoja al día con la tabla nueva…»; a los
      10 s, «Recargar»). Otra persona publicó entre medio: su nombre y cuándo, con «Recargar», y lo editado sigue; una celda que la base rechaza, en su
-     campo. Cerrar la ayuda con cambios pregunta. En una guardada o con Live, a quien configura sólo «Editar en la configuración» (el drawer de tablas
+     campo. Cerrar la ayuda con cambios pregunta. En una guardada, a quien configura sólo «Editar en la configuración» (el drawer de tablas
      con esa tabla).
 4. **El total y «Guardar», sin resumen al costado:** la hoja va a todo el ancho. El total va en la **tarjeta del total** (de superficie invertida,
    con la etiqueta chica en mayúsculas y el monto grande): donde el diseño la ubica, a todo el ancho de su sección, o sin la pieza, sola arriba de
@@ -329,7 +329,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   **Tabla:** Nombre, Fase, Año, «Lote» (subasta), «Precio» o «Puja actual», «Compra directa» (subasta), «Costo estimado» (con `cotizaciones.ver`) y los campos
   «en tarjeta». En un origen de subasta con el campo de la puja, «Precio» es «Puja actual» (USD, «final» si terminó o se vendió; sin puja, «—»).
   **«Costo estimado»** (con `cotizaciones.ver` en algún origen): el primer resultado de la aprobada del vehículo con su moneda y el modo de tipo de cambio de
-  su cotización («US$27.999 · Unificado»), todo en un botón que abre «Compartir la cotización» de la aprobada sobre la lista (`?panel=compartir&para=<id>`; en Modo Live es texto; nombre accesible «Compartir la cotización aprobada (US$27.999 · Unificado)») (sin modo, sólo el monto; sin total, «Sin total»; sin aprobada o una que no se ve,
+  su cotización («US$27.999 · Unificado»), todo en un botón que abre «Compartir la cotización» de la aprobada sobre la lista (`?panel=compartir&para=<id>`; también en Modo Live, con el monto sin su moneda, también en el nombre accesible; nombre accesible «Compartir la cotización aprobada (US$27.999 · Unificado)») (sin modo, sólo el monto; sin total, «Sin total»; sin aprobada o una que no se ve,
   «—»); sin la clave no se dibuja ni se consulta. **«Compra directa»** (subasta): el campo del layout con la ruta de apibara `pricing.buy_now_usd`, en USD; sin
   ese campo activo o sin el dato, «—» (ese campo no se repite entre los «en tarjeta»).
   `/vehiculos/papelera` (por lote).
@@ -341,7 +341,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   del origen) y «Repuestos · Proyecto #N» (`repuestos.ver`, si tiene proyecto). Debajo, en este orden, **la subasta y el costo**, sin título a la vista y como la tarjeta de la lista: la **cuenta regresiva** del cierre (sólo
   en un vehículo en subasta; sin fecha, «Sin fecha de cierre») y, en filas fijas, «Puja actual» o «Puja final» (en un origen manual, «Precio»), «Compra
   directa» (sólo en un origen de subasta con el campo de apibara) y **«Costo estimado»** (`cotizaciones.ver` del origen): el total de la aprobada con su
-  modo, que es el botón que abre Compartir de esa cotización (`?panel=compartir&para=<id>`; en Modo Live, texto); sin aprobada que quien mira vea, «—» y
+  modo, que es el botón que abre Compartir de esa cotización (`?panel=compartir&para=<id>`; también en Modo Live); sin aprobada que quien mira vea, «—» y
   «Cotizar» si cotiza en el origen. «Editar fechas de subasta» está en el «⋯» del vehículo (`?panel=fechas-de-subasta`); consultar de nuevo es «Actualizar
   los datos» del mismo «⋯». Después, **«Datos principales»** (sólo los datos clave del
   origen, en dos columnas en la lateral y una en el celular y al 200 %, y «Ver más» a lo ancho, que abre la **ficha completa** en `?ver=ficha`: casi toda
@@ -363,7 +363,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   - **Cotizaciones del lead y del vehículo** (bloque): una **fila de tarjetas** que se desliza, sólo tarjetas (sin filas de letras), de las **últimas 10** que quien mira ve
     (la más reciente primero; en el vehículo, la aprobada primero) y, al final, la tarjeta **«Ver más»** a `/cotizaciones?lead=` o `?vehiculo=` (el listado filtrado). Cada tarjeta es la
     de la lista (`docs/GLOSARIO.md` › «Fila de tarjetas»): la imagen de la tarjeta, el título en dos líneas, «N.º n» con «Aprobada», «Final», autor · hace…, el total con su modo
-    (`<Monto>`), la vigencia y **«Compartir»** a la vista (no en Modo Live); sin línea de cliente ni «⋯» (el resumen que abre lo trae). Un clic abre el resumen sobre la ficha (`?cotizacion=`)
+    (`<Monto>`), la vigencia y **«Compartir»** a la vista; sin línea de cliente ni «⋯» (el resumen que abre lo trae). Un clic abre el resumen sobre la ficha (`?cotizacion=`)
     y deja marcada la tarjeta abierta; cerrarlo deja la ficha donde estaba. Se desliza con el dedo, la rueda o las flechas ‹ › (escritorio); un degradado en el borde dice que sigue. En el lead, «Cotizar»
     en el título (la hoja con este lead en el primer origen donde quien mira cotiza, como «Cotizar lead»). En el vehículo, «Cotizar» en el título, **«Aprobar esta»** al pie de cada tarjeta menos la
     aprobada (con `cotizaciones.aprobar` del origen; apagado con su motivo; tras aprobar la ficha se refresca) y una casilla sobre la imagen para **«Comparar»** 2 o 3, cuyo botón va en el título del bloque. Los dos
@@ -414,16 +414,16 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   buscando» (también en lugar del vacío). **La tarjeta de la lista:** la imagen de la tarjeta arriba (miniatura de 480 px, 15:8, recortada desde arriba a la izquierda,
   pedida a la vista y de a cuatro por página; su clic abre el visor en `?visor=imagen-de-la-lista-<id>`, así no se cruza con el del resumen abierto) con el «⋯» encima (sin «Compartir»), el título (dos líneas, entero en `title`), «N.º n» con «Aprobada», «Final» y el origen
   con su color en una línea, el total con su modo, «Cliente:» enlazado a su ficha (con `leads.ver`; si no, su nombre o «—»), autor · «hace…», la vigencia, la fila
-  del conteo y **«Compartir»** como acción principal a todo el ancho (no en Modo Live). Todas miden lo mismo (filas de alto fijo, sin `auto-rows-fr`: el despliegue va
+  del conteo y **«Compartir»** como acción principal a todo el ancho. Todas miden lo mismo (filas de alto fijo, sin `auto-rows-fr`: el despliegue va
   a todo el ancho). **La tabla:** «Cotización» (sólo «N.º n»), **«Título»**, cliente, vehículo, origen, clase, total, vigencia, creada y el «⋯» con «Compartir
   cotización…» primero. Y el resumen `?cotizacion=` (la fila, la tarjeta y el resumen nombran la cotización por su
   **título** —el suyo o, sin él, el de su vehículo—, en dos líneas como mucho y entero en `title`; en la tarjeta de la lista el título es el enlace a la ficha del vehículo y la celda «Vehículo» de la tabla también, con el mismo permiso: tocar el resto de la tarjeta o la fila abre el resumen) (un panel ancho —a todo el ancho en el celular—; arriba, la
-  **barra del resumen**: «Abrir cotización» (primario, a `/cotizaciones/<id>`), «Compartir cotización» (el mismo panel de la tarjeta; no en Modo Live ni sin la oferta)
+  **barra del resumen**: «Abrir cotización» (primario, a `/cotizaciones/<id>`), «Compartir cotización» (el mismo panel de la tarjeta; no sin la oferta)
   y, al final, el «⋯» de la fila sin «Compartir» (también para una línea del modal de un grupo o una de otra página); los dos botones crecen por igual: en el celular
   mitad y mitad con el «⋯» a 44 px y, con el texto al 200 %, se parten en filas sin salirse; sin la cotización a la vista (no disponible, error, cargando) no hay barra;
   sus diálogos se abren sobre el resumen sin cerrarlo. Debajo, la **cabecera resumida** (fija, ≤ 120 px de alto en escritorio; crece con el texto al 200 %): a la izquierda la **miniatura de la imagen
   de la tarjeta** (480 px, 15:8, recortada desde arriba a la izquierda; su clic abre el visor de fotos `?visor=imagen-<id>`, que cerrar el resumen borra; mientras se arma o si falla, un recuadro chico con el total y «Preparando…» o «Reintentar»;
-  en Modo Live, borrosa con «Oculto en Modo Live» y sin visor) y, a su derecha, el título (el número va en el del panel; con un vehículo vinculado que quien mira ve —`vehiculos.ver` del origen—, el título y el dato «Vehículo» son enlaces a `/vehiculos/<id>`, «Ver <título> en Vehículos», en la misma pestaña; en la ficha del propio vehículo, texto), el total con su modo, la clase con «Aprobada» y «Vencida», cliente, vehículo, creada · autor y la vigencia; en el celular, la
+  con el Modo Live, la imagen sin moneda, con su visor) y, a su derecha, el título (el número va en el del panel; con un vehículo vinculado que quien mira ve —`vehiculos.ver` del origen—, el título y el dato «Vehículo» son enlaces a `/vehiculos/<id>`, «Ver <título> en Vehículos», en la misma pestaña; en la ficha del propio vehículo, texto), el total con su modo, la clase con «Aprobada» y «Vencida», cliente, vehículo, creada · autor y la vigencia; en el celular, la
   miniatura a la izquierda y el texto en líneas cortas. Y, ocupando el resto del alto, las **pestañas** `?pestana=` (todo el ancho del panel en partes iguales; si no caben, la lista se desplaza de costado con su pista; la
   cabecera queda fija y cada pestaña se desplaza por su cuenta): «Todo» —adjuntos, revisiones y comentarios en una línea de tiempo, lo más nuevo arriba, con «Ver más»; vacía ofrece «Agregar comentario» y, con permiso
   para guardarla, «Adjuntar»—, «Adjuntos» —los archivos y, en una final o con alguno, sus comprobantes de sólo lectura—, «Revisiones», «Comentarios» y, sólo con un vehículo que quien mira ve, **«De este vehículo»** (`?pestana=vehiculo`; sin
@@ -435,7 +435,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   número; quien no ve a un lead o a un vehículo no encuentra por él; con más de 50 coincidencias en una fuente avisa «Escribe más para afinarla»; sin
   resultados dice qué se buscó y ofrece «Limpiar búsqueda»), **vistas guardadas** en «Vista y opciones» como en leads y vehículos (la búsqueda, los filtros, la vista y la
   agrupación) y, a la derecha de cada fila y sobre la imagen de cada tarjeta, el **«⋯»** con la lista única de acciones según el rol: primero y sola, «Compartir
-  cotización…» (toda persona que ve la fila; con el Modo Live no está; en la tarjeta tampoco, porque es su acción principal; abre «Compartir la cotización» en
+  cotización…» (toda persona que ve la fila; en la tarjeta no, porque es su acción principal; abre «Compartir la cotización» en
   `?panel=compartir&para=<id>`), «Aprobar» (`cotizaciones.aprobar`; apagada con su motivo sin vehículo o
   si es inválida), «Marcar final…» (`cotizaciones.final.gestionar`, en una preventa; apagada sin vehículo o cliente), casilla «Favorita», «Reportar…»,
   moderar («Invalidar…», «Descartar los reportes…», «Reactivar…», con `cotizaciones.moderar`) y, al final y separada, «Enviar a la papelera» (sin preguntar,
@@ -465,7 +465,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   («Aprobada», todos los que la ven, o «Aprobar», con `cotizaciones.aprobar` del origen: sin confirmar; apagado con su motivo sin vehículo o si es inválida;
   al entrar pasa a la insignia y el aviso ofrece «Deshacer» 10 s; PT409 con quién y cuándo y «Recargar»; después «Reportada» o «Inválida»), **«Guardar»**
   (sólo con `puede_guardar`; su motivo y «Elegir el vehículo» debajo; lo que dice el guardado va en el cierre de la hoja, bajo «Avanzado»; quien sólo la ve lee en su lugar «Sólo lectura: no puedes guardar esta cotización.») y **«Compartir»** (toda persona que
-  la ve; sin ícono; con el Modo Live no está: «Compartir la cotización» en `?panel=compartir`, estados en «Cotización: compartir»); debajo, la cadena de
+  la ve; sin ícono; también con el Modo Live: «Compartir la cotización» en `?panel=compartir`, estados en «Cotización: compartir»); debajo, la cadena de
   versiones. **Lo demás, en el «⋯»** (`<MasAcciones>` con borde, arriba a la derecha), en el orden de la lista única (`accionesDeCotizacion()`, la misma
   del «⋯» del listado sin «Compartir cotización…» ni «Aprobar», que aquí están a la vista): «Vista previa» (`?panel=vista-previa`) · «Descargar PDF»
   («Descargando…» apagado mientras baja; un fallo lo avisa y se vuelve a elegir) · «Revisiones» · «Marcar final…» (en una preventa, con
@@ -806,7 +806,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
 - **Fechas de subasta:** en la zona de quien mira (`/perfil` › «Zona horaria»; sin elegir, la de la empresa), con la abreviatura («14:00
   GMT-4»); en el tooltip (y debajo, en la ficha) la hora del patio y la de la empresa. Lo demás, en la zona de la empresa.
 - **Formatos:** `Intl` con locale y moneda de la empresa (`es-BO` por defecto); montos con cifras tabulares; fechas cruzan servidor↔cliente
-  como ISO y se muestran en la zona de la empresa. **Modo Live** oculta cifras sensibles **y** símbolos de moneda. Voz: español neutro con
+  como ISO y se muestran en la zona de la empresa. **Modo Live** oculta los símbolos y los códigos de moneda; los números se ven con sus decimales (lo que se comparte sale completo). Voz: español neutro con
   tuteo. Densidad: compacta en escritorio (filas 36–40 px), cómoda en táctil (48 px), recordada por usuario.
 - **Atajos:** `Ctrl/Cmd+K` buscar/comandos · `N` nuevo, lo propio de la pantalla (vehículo en vehículos; si no hay, un lead) · `Shift+N` abre «Nuevo» (elegir qué crear;
   no abre encima de otro diálogo ni mientras se escribe) · `Ctrl/Cmd+S` guardar · `Ctrl/Cmd+Enter` guardar y seguir · `Ctrl/Cmd+B` plegar o desplegar el menú lateral · `Esc` cerrar panel o volver un paso · `?` abre «Atajos
@@ -876,7 +876,7 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   los vigentes con quién y cuándo cambió el valor por última vez (nunca el correo) y, para quien gestiona los tipos de cambio, el lápiz
   «Cambiar el valor de <nombre>»: Enter guarda, Esc cancela, el motivo junto al campo; con algo escrito el popover no se cierra al tocar
   afuera; sin red, lo escrito queda y se guarda al volver; un `PT409` dice «<Nombre> lo cambió a <monto> hace N minutos» con «Recargar».
-  Con el Modo Live, cifras ocultas y sin lápiz. Al pie, «Compartir» (toda persona; con el Modo Live no se ofrece, y con un valor a medio
+  Con el Modo Live, los valores sin su moneda y con el lápiz igual. Al pie, «Compartir» (toda persona, también con el Modo Live; con un valor a medio
   editar espera: «Termina de cambiar el valor para compartir.») y «Configurar los tipos de cambio» (quien gestiona). **«Compartir»** cambia el
   contenido del popover por su panel (`Volver a los tipos de cambio`): casillas de los activos (por defecto los de la barra; sólo para ese envío),
   la imagen y el texto tal como saldrán (logo, nombre, momento en la zona de la empresa, un tipo por línea, leyenda) y los botones, que se apagan
@@ -1032,8 +1032,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   «Reintentar». La foto: sin fotos, el recuadro 4:3
   con su ícono (el «⋯» y la vitrina igual encima) y sin tira; con una, sin tira ni flechas; si la lectura falla, la portada en su lugar y el visor dice «No
   se pudieron cargar las fotos.» con «Reintentar». La vitrina de la foto sin `vehiculos.vitrina`: apagada (`aria-disabled`) con el motivo para el lector y
-  en un aviso al tocarla. Subasta y costo: mientras se lee, su esqueleto; sin aprobada, «Costo estimado» dice «—» (y «Cotizar»); en Modo Live, el costo no es botón
-  (sin «Compartir») y los montos van tapados; origen manual, sin cuenta ni «Compra directa», «Precio» y «Costo estimado»; subasta sin fecha de cierre,
+  en un aviso al tocarla. Subasta y costo: mientras se lee, su esqueleto; sin aprobada, «Costo estimado» dice «—» (y «Cotizar»); en Modo Live, el costo sigue siendo
+  el botón de «Compartir» y los montos van sin su moneda; origen manual, sin cuenta ni «Compra directa», «Precio» y «Costo estimado»; subasta sin fecha de cierre,
   «Sin fecha de cierre»; fuera de «En subasta» (cerrada, ganada), sin cuenta; sin poder editar, «Editar fechas de subasta» no aparece en el «⋯». «Datos principales»: sin datos clave
   guardados, los de fábrica de su tipo; un dato vacío, «—». La ficha completa sin red: «Sin conexión. No se pudo abrir esto.» con «Reintentar»; mientras
   lee los grupos, su esqueleto, y si falla, «No pudimos cargar la ficha del vehículo.» con «Reintentar». Sin fase: «Sin fase» en la cabecera. Subasta sin
@@ -1495,7 +1495,7 @@ de su hueco).
 - **Gráficas** (barras por día de leads y cotizaciones; rankings de leads por origen y por persona y de cotizaciones por origen): leyenda en
   texto, «Ver como tabla» con todos los números (un modal en `?panel=tabla&grafica=<widget>`; el widget no cambia de alto), tope dicho (10 orígenes, 20 personas), vacío y error por widget.
 - **«Margen del mes»** (con `logistica.margen.ver` en algún origen; suma sólo esos): monto por `<Monto>` en un grupo llamado sólo «Margen
-  del mes» (Modo Live lo oculta entero), nulo «Sin venta registrada»; nota con venta, real y cotizado y cuántos vehículos entran y cuántos
+  del mes» (con el Modo Live, sin su moneda), nulo «Sin venta registrada»; nota con venta, real y cotizado y cuántos vehículos entran y cuántos
   no tienen venta.
 - **«Cola de la web»** (con `web.cola.gestionar`): turnos, tasa de contacto (sin los directos; nula «Sin datos»), mediana hasta «Contacté»,
   la cuenta por estado y «Turnos por persona» con «Ver como tabla».
@@ -1638,7 +1638,7 @@ barra de la fórmula; la activa es la que se cotiza.
   está activa, archivada o no está: avisa y limpia.
 - **Archivar o eliminar la elegida** lleva a la misma pestaña sin `?formula=` (la de trabajo). Una archivada elegida y una `?formula=` que no se
   abre: «Barra de la fórmula (estados propios)».
-- **Modo Live:** la lista y los modales no muestran montos.
+- **Modo Live:** los montos de la lista y de los modales van sin su moneda.
 
 ### Cotización: fórmula (estados propios)
 
@@ -1724,7 +1724,7 @@ publicar, revertir, descartar y editar una fórmula del origen. `?fila=<nodo>` e
   de un valor fijo escribe `params` y reescribe su texto como el ⚙, sin preguntar. En una fila del asesor, un dato del vehículo, un interruptor
   o la variante, la unidad de ejemplo se escribe en Ejemplo (no se guarda); su C no toma un número: «Esta celda la escribe el asesor al
   cotizar: el ejemplo va en la columna Ejemplo. Para un valor fijo, cambia su tipo en «Tipo de celda».» (o «Esta celda se llena al cotizar:
-  …»), y vacía no cambia nada. En Live, los montos de C (valor fijo) y de Ejemplo pasan por `<Monto>` y su entrada va como contraseña.
+  …»), y vacía no cambia nada. En Live, los montos de C (valor fijo) y de Ejemplo pasan por `<Monto>` (sin su moneda) y su entrada es de texto, con el número a la vista.
 - **Filas:** el «⋯» de la fila activa (arriba a la derecha de la fila, `Acciones de la fila N`) y el clic derecho abren la misma lista:
   «Insertar arriba», «Insertar abajo» (la fila nueva, «Fila nueva», un valor fijo en 0 con la banda de la de referencia, abre su concepto
   elegido para escribir), «Duplicar», «Mover arriba» y «Mover abajo» (Alt+↑ y Alt+↓; apagados en la primera y la última), «Tipo de celda ›»,
@@ -1903,7 +1903,7 @@ tarjetas, el resumen y la ficha del vehículo). Lo abre toda persona que ve la c
   con «Reintentar». Avisos: «Texto copiado», «Imagen copiada»; con la imagen de la tarjeta fallida, «Compartir» manda el texto y avisa «Se compartió el texto. La imagen no se
   pudo armar.».
 - **Sin acceso** (no existe, en la papelera, no se ve o el id no es de una cotización): «No tienes acceso a esta cotización.» con «Cerrar», sin pie de acciones.
-- **Modo Live:** ni el botón ni la línea del «⋯»; por URL, «Con el Modo Live no se comparte.» con «Cerrar» (también si se enciende con el panel abierto).
+- **Modo Live:** se comparte igual. La imagen y el texto a la vista van sin moneda (la variante `?sin-moneda=1` y los mismos números sin su símbolo); lo que se copia, descarga o comparte sale completo, con su moneda. Encenderlo o apagarlo con el panel abierto cambia lo que se ve, no lo que se comparte.
 - **Sin red:** arriba «No hay conexión.»; «Descargar PDF» y lo que todavía no se bajó, apagados con ese motivo; lo que ya está en memoria se copia o comparte.
 - **Texto al 200 %:** el cuerpo se desplaza con su pista y el pie queda a la vista.
 
@@ -1937,7 +1937,7 @@ El modo «Retocar la tarjeta» de «Vista previa» en una guardada (`/cotizacion
   recargar. **Ya no se puede retocar** (la papelera, el permiso): «Ya no puedes retocar esta cotización.» con «Recargar». **Sin red o un fallo:** «No se
   pudo guardar.» con «Reintentar» (el mismo pedido); lo escrito queda. **Una regla de la base:** su mensaje junto a la celda o la fila (se abre su campo);
   sin lugar, arriba.
-- **Modo Live:** los montos de la tarjeta siguen tapados; retocar textos funciona igual.
+- **Modo Live:** los montos de la tarjeta van sin su moneda; retocar textos funciona igual, y el campo de un texto con un monto lleva el texto que se guarda, con su moneda.
 
 ### Cotización: tablas (estados propios)
 
@@ -2372,7 +2372,7 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
   «Compras» (con `repuestos.costos.ver`): un renglón mientras lee; «No se pudieron cargar las compras del ítem.» con «Reintentar»; «Este ítem no tiene compras registradas.»; «Registrar compra»
   (`?pestana=compras&panel=compra&compra=nueva&item_de_compra=<id>`, con el ítem ya elegido; sin `repuestos.costos.editar` o cerrado, su motivo) y «Ver todas en Compras» en el «⋯» de la tarjeta.
 - **Compras:** panel sólo con `repuestos.costos.ver` (sin él no hay pestaña y `?pestana=compras` deja sólo la hoja, sin leer nada).
-  - «Margen del proyecto»: una tarjeta por moneda con precios, compras y margen (`<Monto>`; Modo Live los oculta); con algún ítem sin
+  - «Margen del proyecto»: una tarjeta por moneda con precios, compras y margen (`<Monto>`; con el Modo Live, sin su moneda); con algún ítem sin
     precio o sin moneda, «Sin precio en N ítems» («más de 200»), nunca 0; sin nada, su vacío.
   - Lista de la más reciente: proveedor («Sin proveedor»), fecha, ítem («Sin ítem»), monto y, fuera de la moneda base, «Equivale a …».
     Esqueleto, vacío, tope 200 con aviso, error en el panel con «Reintentar».

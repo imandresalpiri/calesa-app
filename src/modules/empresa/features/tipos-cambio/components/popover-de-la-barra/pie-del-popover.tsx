@@ -9,7 +9,7 @@ import { Button } from '@/shared/ui/button'
 type Props = {
   puedeGestionar: boolean
   alCerrar: () => void
-  // Compartir se ofrece con tipos a la vista y sin el Modo Live (la imagen y el texto llevan cifras): sin esto, no hay botón.
+  // Compartir se ofrece con tipos a la vista: sin esto, no hay botón.
   alCompartir: (() => void) | null
   // Por qué «Compartir» está apagado (se está editando un valor), o null.
   motivoSinCompartir: string | null

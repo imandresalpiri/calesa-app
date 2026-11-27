@@ -1,11 +1,18 @@
 // Los montos de la tarjeta de una cotización como líneas de texto, para «Compartir la cotización»: de la misma geometría que dibujan el HTML, el PDF y la imagen
 // (sólo lo del nivel «todos»: `cotizacion_tarjeta`, K4), nunca de lo guardado suelto. Por cada celda con un monto, en orden de lectura, su concepto (el texto de la
 // celda de antes en su fila, si lo hay), el monto y su segunda línea (el total en moneda local). El monto del total (`marca.total`) va aparte. Las filas sin monto
-// (la cabecera: cliente, asesor, fecha) no salen.
+// (la cabecera: cliente, asesor, fecha) no salen. Cada monto lleva su gemelo sin moneda (`…SinMoneda`), de la geometría dibujada con `sinMoneda`: lo que el panel
+// muestra con el Modo Live (lo que se copia y se comparte va siempre con su moneda).
 import type { CeldaDibujada, Geometria } from '../geometria-de-la-tarjeta'
 import { textoDe } from '../texto-de-la-tarjeta'
 
-export type LineaDeLaTarjeta = { concepto: string | null; monto: string; segunda: string | null }
+export type LineaDeLaTarjeta = {
+  concepto: string | null
+  monto: string
+  segunda: string | null
+  montoSinMoneda: string
+  segundaSinMoneda: string | null
+}
 
 export type LineasDeLaTarjeta = { conceptos: LineaDeLaTarjeta[]; total: LineaDeLaTarjeta | null }
 
@@ -15,7 +22,9 @@ function conceptoDe(anterior: CeldaDibujada | undefined): string | null {
   return texto === '' ? null : texto
 }
 
-export function lineasDeLaTarjeta(geometria: Geometria): LineasDeLaTarjeta {
+// `sinMoneda`: la misma geometría dibujada con `sinMoneda` (las mismas celdas, con sus ids).
+export function lineasDeLaTarjeta(geometria: Geometria, sinMoneda: Geometria): LineasDeLaTarjeta {
+  const gemelas = new Map(sinMoneda.celdas.map((c) => [c.id, c]))
   const porFila = new Map<string, CeldaDibujada[]>()
   for (const c of geometria.celdas) {
     if (c.contenido.tipo === 'monto' || textoDe(c) !== '') {
@@ -27,10 +36,14 @@ export function lineasDeLaTarjeta(geometria: Geometria): LineasDeLaTarjeta {
   for (const celdas of porFila.values()) {
     celdas.forEach((c, i) => {
       if (c.contenido.tipo !== 'monto') return
+      const gemela = gemelas.get(c.id)?.contenido
+      const sin = gemela?.tipo === 'monto' ? gemela : c.contenido
       const linea = {
         concepto: conceptoDe(celdas[i - 1]),
         monto: c.contenido.texto,
         segunda: c.contenido.segunda?.texto ?? null,
+        montoSinMoneda: sin.texto,
+        segundaSinMoneda: sin.segunda?.texto ?? null,
       }
       if (c.marca.total === true && total === null) total = linea
       else conceptos.push(linea)

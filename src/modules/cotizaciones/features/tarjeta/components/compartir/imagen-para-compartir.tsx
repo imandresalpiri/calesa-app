@@ -39,9 +39,10 @@ export function ImagenParaCompartir({ c, opcion, conFotos, numero }: Props) {
         />
       ) : (
         <TarjetaParaCompartir
-          imagen={c.imagen.parte}
+          imagen={c.live ? c.vistaSinMoneda.parte : c.imagen.parte}
+          sinMoneda={c.live}
           numero={numero}
-          alReintentar={c.imagen.reintentar}
+          alReintentar={c.live ? c.vistaSinMoneda.reintentar : c.imagen.reintentar}
         />
       )}
     </>

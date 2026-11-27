@@ -146,6 +146,16 @@ describe('textoParaCompartir: lo que falta no deja línea', () => {
     const sinCifras = { ...datos, conceptos: [], total: null, modo: null }
     expect(texto(sinCifras)).not.toMatch(/\$|Bs|Total/i)
   })
+
+  it('con `sinMoneda` (la vista del Modo Live) los mismos números sin su moneda; el resto, igual', () => {
+    const opciones = { formato: 'whatsapp', zona: 'empresa', ahora: ANTES_DEL_CIERRE } as const
+    const conMoneda = textoParaCompartir(datos, opciones)
+    const sinMoneda = textoParaCompartir(datos, { ...opciones, sinMoneda: true })
+    expect(sinMoneda).toContain('Remate: 1.000,00\n300,00')
+    expect(sinMoneda).toContain('*TOTAL: 1.300,00*\n9.048,00')
+    expect(sinMoneda).not.toMatch(/\$|Bs /)
+    expect(sinMoneda.split('\n')).toHaveLength(conMoneda.split('\n').length)
+  })
 })
 
 describe('zonasDisponibles', () => {
@@ -163,7 +173,13 @@ describe('zonasDisponibles', () => {
 
 describe('textoParaCompartir de las cotizaciones hermanas', () => {
   it('las cotizaciones hermanas: un bloque por opción, una debajo de la otra, y el modo una vez', () => {
-    const linea = (concepto: string | null, monto: string) => ({ concepto, monto, segunda: null })
+    const linea = (concepto: string | null, monto: string) => ({
+      concepto,
+      monto,
+      segunda: null,
+      montoSinMoneda: monto.replace('$ ', ''),
+      segundaSinMoneda: null,
+    })
     const enPar: DatosParaCompartir = {
       ...datos,
       vehiculo: null,
