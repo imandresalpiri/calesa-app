@@ -154,7 +154,7 @@ test('E2E ver el contenedor con sus dos vehículos en /logistica/embarques y bus
   await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores&q=ecm`)
   await expect(page.getByRole('row').filter({ hasText: 'ECMU123456' })).toBeVisible()
   await page.goto(`/logistica/embarques?origen=${terreno.origen.id}&grupo=contenedores&q=zzz`)
-  await expect(page.getByText('Ningún contenedor coincide con los filtros.')).toBeVisible()
+  await expect(page.getByText('Ningún contenedor con estos filtros.')).toBeVisible()
 })
 
 test('E2E «Editar el contenedor» le pone el sello y vuelve al drawer', async ({ page }) => {
