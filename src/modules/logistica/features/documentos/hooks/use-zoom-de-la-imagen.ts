@@ -58,7 +58,12 @@ export function useZoomDeLaImagen() {
     },
     manejadores: {
       onPointerDown: (evento: PointerEvent<HTMLDivElement>) => {
-        if (vista.escala === 1) return
+        // Con un botón en medio (Alejar, Ajustar), el arrastre no captura el puntero: el clic llegaría a la caja y no al botón.
+        if (
+          vista.escala === 1 ||
+          (evento.target instanceof Element && evento.target.closest('button'))
+        )
+          return
         evento.currentTarget.setPointerCapture(evento.pointerId)
         arrastre.current = {
           desdeX: evento.clientX,

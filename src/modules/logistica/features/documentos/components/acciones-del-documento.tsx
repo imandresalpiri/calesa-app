@@ -170,7 +170,7 @@ export function AccionesDelDocumento({
           alConfirmar={confirmarRechazo}
           enCurso={enCurso}
           enLinea={enLinea}
-          enfocar={rechazarAlAbrir}
+          enfocar
         />
       ) : null}
       <AvisosDeLaRevision conflicto={conflicto} error={error} releer={contexto.releer} />
