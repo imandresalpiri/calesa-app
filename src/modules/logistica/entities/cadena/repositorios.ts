@@ -1,7 +1,7 @@
 // Lo que la cadena necesita de afuera, dicho como interfaz (6.03-1). La implementación (Supabase) vive en `infra/cadena/` y la une `areas/cadena/composicion.ts`.
 import type { Resultado } from '@/shared/lib/errores'
 import type { CursorDeLaFase } from './fase'
-import type { FiltrosDeLaCadena, NavieraParaFiltrar } from './filtros'
+import type { FiltrosDeLaCadena, NavieraParaFiltrar, TipoDeEntidadDelFiltro } from './filtros'
 import type { PaginaDeLaFase, ResultadoDeDondeEsta } from './leer'
 import type { ResumenDeLaCadena } from './resumen'
 
@@ -25,3 +25,9 @@ export type LectorDeDondeEsta = (
 ) => Promise<Resultado<ResultadoDeDondeEsta>>
 // Las navieras activas que usa un origen (sus propias y las compartidas que no tapa).
 export type LectorDeNavieras = (origenId: string) => Promise<Resultado<NavieraParaFiltrar[]>>
+// El número del contenedor o el booking del embarque que filtra una fase, en su origen y bajo la RLS de quien mira; nulo si no existe o no se ve.
+export type LectorDelNombreDelFiltro = (
+  tipo: TipoDeEntidadDelFiltro,
+  id: string,
+  origenId: string,
+) => Promise<Resultado<string | null>>

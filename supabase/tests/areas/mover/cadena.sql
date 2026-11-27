@@ -233,7 +233,7 @@ begin
 end $$;
 rollback;
 
--- @test cadena: los filtros dejan la tarjeta esperada (por booking, también las de sus contenedores, con cursor y en «Sin fase»); filtro, fase o cursor malos dan 22023 con su hint (CA5)
+-- @test cadena: los filtros dejan la tarjeta esperada (por el id del embarque, también las de sus contenedores, con cursor y en «Sin fase»); filtro, fase o cursor malos dan 22023 con su hint (CA5)
 begin;
 do $$
 declare
@@ -257,7 +257,11 @@ begin
   insert into public.transportes (vehiculo_id, contenedor_id) values (v_tr, cont);
   perform pg_temp.mc_mismos('CA5 demoradas', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"demoradas": true}')), array[v_dem]);
   perform pg_temp.mc_mismos('CA5 por aprobar', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"por_aprobar": true}')), array[v_apr]);
-  perform pg_temp.mc_mismos('CA5 contenedor', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"contenedor": " abcu1234567 "}')), array[v_tr]);
+  perform pg_temp.mc_mismos('CA5 contenedor', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => jsonb_build_object('contenedor', cont))), array[v_tr]);
+  perform pg_temp.mc_mismos('CA5 contenedor que no existe', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => jsonb_build_object('contenedor', gen_random_uuid()))), '{}'::uuid[]);
+  perform pg_temp.mc_es('CA5 contenedor por su número (URL vieja)', pg_temp.mc_columna(duena, o, f, p_filtros => '{"contenedor": "ABCU1234567"}'), '22023', 'contenedor');
+  perform pg_temp.mc_es('CA5 embarque por su booking (URL vieja)', pg_temp.mc_columna(duena, o, f, p_filtros => '{"embarque": "BK778899"}'), '22023', 'embarque');
+  perform pg_temp.mc_es('CA5 booking ya no es un filtro', pg_temp.mc_columna(duena, o, f, p_filtros => '{"booking": "BK778899"}'), '22023', 'filtros');
   perform pg_temp.mc_mismos('CA5 naviera', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => jsonb_build_object('naviera', nav))), array[v_tr]);
   perform pg_temp.mc_mismos('CA5 q por título', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"q": "hilux"}')), array[v_q]);
   perform pg_temp.mc_mismos('CA5 q por prefijo de booking', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"q": "bk778"}')), array[v_tr]);
@@ -267,21 +271,21 @@ begin
   perform pg_temp.mc_es('CA5 naviera que no es uuid', pg_temp.mc_columna(duena, o, f, p_filtros => '{"naviera": "x"}'), '22023', 'filtros');
   perform pg_temp.mc_es('CA5 fase de otro origen', pg_temp.mc_columna(duena, o, fb), '22023', 'p_fase');
   perform pg_temp.mc_es('CA5 cursor sin p_desde', pg_temp.mc_columna(duena, o, f, null, v_q), '22023', 'cursor');
-  -- Por booking, las del embarque directas y las de sus contenedores (se leen desde las unidades de la entidad), por página y en «Sin fase».
+  -- Por embarque, las del embarque directas y las de sus contenedores (se leen desde las unidades de la entidad), por página y en «Sin fase».
   v_e := pg_temp.mc_vehiculo(o, f, null, now() - interval '1 day');
   insert into public.transportes (vehiculo_id, embarque_id) values (v_e, emb);
   v_sin := pg_temp.mc_vehiculo(o, null);
   insert into public.transportes (vehiculo_id, contenedor_id) values (v_sin, cont);
-  perform pg_temp.mc_mismos('CA5 booking', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => '{"booking": "bk778899"}')), array[v_tr, v_e]);
-  r := pg_temp.mc_columna(duena, o, f, p_tope => 1, p_filtros => '{"booking": "bk778899"}');
+  perform pg_temp.mc_mismos('CA5 embarque', pg_temp.mc_ids(pg_temp.mc_columna(duena, o, f, p_filtros => jsonb_build_object('embarque', emb))), array[v_tr, v_e]);
+  r := pg_temp.mc_columna(duena, o, f, p_tope => 1, p_filtros => jsonb_build_object('embarque', emb));
   -- La más antigua en la fase primero, y la página dice que hay más.
-  perform pg_temp.mc_mismos('CA5 booking, la primera página', pg_temp.mc_ids(r), array[v_e]);
+  perform pg_temp.mc_mismos('CA5 embarque, la primera página', pg_temp.mc_ids(r), array[v_e]);
   if (r ->> 'hay_mas')::boolean is not true then
-    raise exception 'CA5 booking: la primera página debía tener más: %', r;
+    raise exception 'CA5 embarque: la primera página debía tener más: %', r;
   end if;
-  r := pg_temp.mc_columna(duena, o, f, r -> 'tarjetas' -> 0 ->> 'fase_desde', (r -> 'tarjetas' -> 0 ->> 'id')::uuid, 1, '{"booking": "bk778899"}');
-  perform pg_temp.mc_mismos('CA5 booking, con cursor', pg_temp.mc_ids(r), array[v_tr]);
+  r := pg_temp.mc_columna(duena, o, f, r -> 'tarjetas' -> 0 ->> 'fase_desde', (r -> 'tarjetas' -> 0 ->> 'id')::uuid, 1, jsonb_build_object('embarque', emb));
+  perform pg_temp.mc_mismos('CA5 embarque, con cursor', pg_temp.mc_ids(r), array[v_tr]);
   perform pg_temp.mc_mismos('CA5 contenedor en «Sin fase»',
-    pg_temp.mc_ids(pg_temp.mc_columna(duena, o, null, p_filtros => '{"contenedor": "ABCU1234567"}')), array[v_sin]);
+    pg_temp.mc_ids(pg_temp.mc_columna(duena, o, null, p_filtros => jsonb_build_object('contenedor', cont))), array[v_sin]);
 end $$;
 rollback;

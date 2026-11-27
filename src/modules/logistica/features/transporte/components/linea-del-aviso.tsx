@@ -1,4 +1,4 @@
-// La línea sobre los campos del hueco «Transporte» y de «Editar grupo» que dice que el cambio no es sólo de esta unidad (`avisoDelTransporte`). Su alto (un renglón) está reservado
+// La línea sobre los campos del hueco «Transporte» que dice que el cambio no es sólo de esta unidad (`avisoDelTransporte`). Su alto (un renglón) está reservado
 // siempre, también vacía y en el esqueleto: el formulario no salta cuando el aviso llega o se va. Compatible con servidor.
 export function LineaDelAviso({ texto }: { texto: string | null }) {
   return (

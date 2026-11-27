@@ -14,3 +14,12 @@ export {
   type TransporteDeLaUnidad,
 } from '../../infra/transporte/unidad.client'
 export { leerMisPermisos } from '../../infra/transporte/permisos.client'
+
+// Lo que ofrecen los selectores de los formularios de un embarque y un contenedor.
+export {
+  leerContenedoresSinEmbarque,
+  leerEmbarquesParaElegir,
+  NO_SE_CARGARON_LAS_OPCIONES,
+  TOPE_PARA_ELEGIR,
+  type OpcionesParaElegir,
+} from '../../infra/transporte/para-elegir.client'

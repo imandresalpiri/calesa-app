@@ -1,5 +1,5 @@
--- Medición de la logística para cientos de miles de vehículos: el número de cada fase, la lista de una fase, la bandeja del día (`/logistica`), los grupos de
--- `/logistica/embarques` y la migración de los textos de booking y contenedor a embarques y contenedores.
+-- Medición de la logística para cientos de miles de vehículos: el número de cada fase, la lista de una fase, la bandeja del día (`/logistica`), la lista
+-- de una fase filtrada por un contenedor o un embarque, los embarques y contenedores por su id y la migración de los textos de booking y contenedor a embarques y contenedores.
 -- `pnpm db:medir:volumen` (o `MEDIR_SOLO=medir-logistica pnpm db:medir:volumen`), contra el Supabase LOCAL con la siembra de volumen (la dueña y los
 -- 50.000 leads «Volumen» de `sembrar.sql`). Todo en una transacción que se revierte; `session_replication_role = replica` arma el terreno sin triggers.
 --
@@ -369,42 +369,20 @@ end $$;
 grant execute on all functions in schema pg_temp to authenticated;
 select pg_temp.bandeja();
 
--- Los grupos de `/logistica/embarques` en el origen (las dos vistas: la primera página, una con cursor profundo y la de un filtro que nadie cumple, que corta a las 2.000
--- unidades), el resumen de un contenedor de 8 con su embarque (≤ 10 ms) y la lista de una fase filtrada por ese contenedor y por su booking (la dueña la
--- lee desde sus unidades, ≤ 2 ms; Ana parte de lo propio, como sin filtro).
-insert into public.navieras (nombre) values ('Medir naviera sin unidades');
-create function pg_temp.grupos() returns void language plpgsql as $$
+-- La lista de una fase filtrada por un contenedor de 8 con su embarque y por ese embarque, los dos por su id (la dueña la lee desde sus unidades, ≤ 2 ms;
+-- Ana parte de lo propio, como sin filtro).
+create function pg_temp.fase_por_entidad() returns void language plpgsql as $$
 declare
   o uuid := (select id from _o); f3 uuid := (select id from _f where i = 3); c_fase int := current_setting('medir.tam_fase')::int;
-  v_naviera uuid := (select n.id from public.navieras n where n.nombre = 'Medir naviera sin unidades');
-  v_cursor uuid; v_numero text; v_booking text; v_tipo text; q text; v_caso text; v_filtro jsonb; v_ms int;
+  v_cont uuid; v_emb uuid; v_caso text; v_filtro jsonb;
 begin
-  select c.numero, e.booking into v_numero, v_booking
-    from public.contenedores c join public.embarques e on e.id = c.embarque_id
-   where c.origen_id = o and exists (select 1 from public.transportes t join public.vehiculos v on v.id = t.vehiculo_id where t.contenedor_id = c.id and v.fase_id = f3)
+  select c.id, c.embarque_id into v_cont, v_emb
+    from public.contenedores c
+   where c.origen_id = o and c.embarque_id is not null
+     and exists (select 1 from public.transportes t join public.vehiculos v on v.id = t.vehiculo_id where t.contenedor_id = c.id and v.fase_id = f3)
    order by c.numero limit 1;
-  foreach v_tipo in array array['booking', 'contenedor'] loop
-    if v_tipo = 'booking' then
-      select e.id into v_cursor from public.embarques e where e.origen_id = o order by e.booking offset 1000 limit 1;
-    else
-      select c.id into v_cursor from public.contenedores c where c.origen_id = o order by c.numero offset 2000 limit 1;
-    end if;
-    foreach v_caso in array array['la primera página', 'con cursor profundo', 'con un filtro que nadie cumple'] loop
-      q := case v_caso
-             when 'la primera página' then format('select public.transporte_grupos(%L, null, 50, %L, %L)', v_tipo, '{}', o)
-             when 'con cursor profundo' then format('select public.transporte_grupos(%L, %L, 50, %L, %L)', v_tipo, v_cursor, '{}', o)
-             else format('select public.transporte_grupos(%L, null, 50, %L, %L)', v_tipo, jsonb_build_object('naviera', v_naviera), o) end;
-      -- Lo medido por dos: ≤ 50 ms (Ana) la página; el filtro que nadie cumple recorre sus 2.000 unidades antes de cortar (≤ 80 ms).
-      v_ms := case v_caso when 'con un filtro que nadie cumple' then 200 else 100 end;
-      perform pg_temp.m('grupos · ' || v_tipo || ', ' || v_caso, 'authenticated', 'duena', q, v_ms, null, 24576);
-      perform pg_temp.m('grupos · ' || v_tipo || ', ' || v_caso, 'authenticated', 'ana', q, v_ms, null, 24576);
-    end loop;
-  end loop;
-  perform pg_temp.m('grupo · un contenedor de 8', 'authenticated', 'duena', format('select public.transporte_grupo(%L, %L)', 'contenedor', v_numero), 20, null, 12288);
-  perform pg_temp.m('grupo · un contenedor de 8', 'authenticated', 'ana', format('select public.transporte_grupo(%L, %L)', 'contenedor', v_numero), 20, null, 12288);
-  perform pg_temp.m('grupo · un embarque de 8', 'authenticated', 'duena', format('select public.transporte_grupo(%L, %L)', 'booking', v_booking), 20, null, 12288);
-  foreach v_caso in array array['contenedor', 'booking'] loop
-    v_filtro := jsonb_build_object(v_caso, case v_caso when 'contenedor' then v_numero else v_booking end);
+  foreach v_caso in array array['contenedor', 'embarque'] loop
+    v_filtro := jsonb_build_object(v_caso, case v_caso when 'contenedor' then v_cont else v_emb end);
     perform pg_temp.m('lista de la fase, por ' || v_caso, 'authenticated', 'duena',
       format('select public.logistica_cadena_columna(%L, %L, null, null, %s, %L)', o, f3, c_fase, v_filtro), 10, null, 24576);
     perform pg_temp.m('lista de la fase, por ' || v_caso, 'authenticated', 'ana',
@@ -412,7 +390,46 @@ begin
   end loop;
 end $$;
 grant execute on all functions in schema pg_temp to authenticated;
-select pg_temp.grupos();
+select pg_temp.fase_por_entidad();
+
+-- Las entidades por su id: la lista de embarques y la de contenedores del origen (la primera página, una con cursor profundo, la de un estado que nadie
+-- cumple, que corta a los 500 mirados, la de un estado común —en tránsito; sin embarque— y la de un prefijo), un embarque de 8 por su id (con sus vehículos, sus declaraciones y lo que les falta), su contenedor y sus
+-- unidades para el lote.
+create function pg_temp.entidades() returns void language plpgsql as $$
+declare
+  o uuid := (select id from _o); v_emb uuid; v_cont uuid; v_cur_e uuid; v_cur_c uuid; v_pre_e text; v_pre_c text; q text; v_caso text; v_tipo text;
+begin
+  select c.id, c.embarque_id into v_cont, v_emb from public.contenedores c where c.origen_id = o and c.embarque_id is not null order by c.numero limit 1;
+  select e.id into v_cur_e from public.embarques e where e.origen_id = o order by e.booking offset 1000 limit 1;
+  select c.id into v_cur_c from public.contenedores c where c.origen_id = o order by c.numero offset 2000 limit 1;
+  -- Un prefijo que acota a unos pocos: el booking y el número del medio sin sus dos últimos caracteres.
+  select left(e.booking, length(e.booking) - 2) into v_pre_e from public.embarques e where e.id = v_cur_e;
+  select left(c.numero, length(c.numero) - 2) into v_pre_c from public.contenedores c where c.id = v_cur_c;
+  foreach v_tipo in array array['embarques', 'contenedores'] loop
+    foreach v_caso in array array['la primera página', 'con cursor profundo', 'con un estado que nadie cumple', 'con un estado común', 'con un prefijo'] loop
+      q := case v_caso
+             when 'la primera página' then format('select public.%s_listar(%L, null, 50, %L)', v_tipo, o, '{}')
+             when 'con cursor profundo' then format('select public.%s_listar(%L, %L, 50, %L)', v_tipo, o,
+                                                     case v_tipo when 'embarques' then v_cur_e else v_cur_c end, '{}')
+             -- Los embarques en tránsito; los contenedores sin embarque (dos de cada tres).
+             when 'con un estado común' then format('select public.%s_listar(%L, null, 50, %L)', v_tipo, o,
+                                                     case v_tipo when 'embarques' then '{"estado": "en_transito"}' else '{"estado": "sin_embarque"}' end)
+             when 'con un prefijo' then format('select public.%s_listar(%L, null, 50, %L)', v_tipo, o,
+                                                jsonb_build_object('prefijo', case v_tipo when 'embarques' then v_pre_e else v_pre_c end))
+             else format('select public.%s_listar(%L, null, 50, %L)', v_tipo, o, '{"estado": "entregado"}') end;
+      -- ≤ 100 ms y ≤ 40 KB en todos los casos, también el que recorre 500 sin llenar la página (medido: 15–50 ms, ≈ 23 KB).
+      perform pg_temp.m('entidades · ' || v_tipo || ', ' || v_caso, 'authenticated', 'duena', q, 100, null, 40960);
+      perform pg_temp.m('entidades · ' || v_tipo || ', ' || v_caso, 'authenticated', 'ana', q, 100, null, 40960);
+    end loop;
+  end loop;
+  perform pg_temp.m('entidades · un embarque por su id', 'authenticated', 'duena', format('select public.embarque_leer(%L)', v_emb), 30, null, 16384);
+  perform pg_temp.m('entidades · un embarque por su id', 'authenticated', 'ana', format('select public.embarque_leer(%L)', v_emb), 30, null, 16384);
+  perform pg_temp.m('entidades · un contenedor por su id', 'authenticated', 'duena', format('select public.contenedor_leer(%L)', v_cont), 20, null, 12288);
+  perform pg_temp.m('entidades · las unidades de un embarque', 'authenticated', 'duena',
+    format('select public.transporte_unidades(%L, %L)', 'embarque', v_emb), 20, null, 12288);
+end $$;
+grant execute on all functions in schema pg_temp to authenticated;
+select pg_temp.entidades();
 
 -- ---------------------------------------------------------------------------------------------------------------------------------
 -- Lo medido, y lo que no se cumplió

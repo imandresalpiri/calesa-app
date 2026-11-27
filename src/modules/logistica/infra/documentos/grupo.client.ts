@@ -1,5 +1,5 @@
 // Las unidades de un grupo (embarque, contenedor o declaración) para subirles un documento, leídas desde el navegador con la sesión de quien mira (6.06-3). Un embarque o un contenedor, por
-// la lectura del núcleo (`transporte_grupo()`, sólo lo que quien mira ve); una declaración, por la clave de `declaraciones_vehiculos` bajo la RLS de `vehiculos` (lo que no deja ver no llega
+// la lectura del núcleo (`transporte_unidades()`, sólo lo que quien mira ve); una declaración, por la clave de `declaraciones_vehiculos` bajo la RLS de `vehiculos` (lo que no deja ver no llega
 // ni se delata). El tope es 101: uno más que lo que `documento_registrar` acepta por pedido, para saber si el grupo se pasa.
 import { cortarAlTope } from '@/shared/lib/conteo'
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
@@ -54,10 +54,7 @@ export async function leerUnidadesDelGrupo(
   if (grupo.tipo === 'declaracion') {
     return deLaDeclaracion(grupo.id)
   }
-  const leido = await leerVehiculosDelGrupo({
-    tipo: grupo.tipo === 'embarque' ? 'booking' : 'contenedor',
-    clave: grupo.id,
-  })
+  const leido = await leerVehiculosDelGrupo({ tipo: grupo.tipo, id: grupo.id })
   if (!leido.ok) {
     return leido
   }

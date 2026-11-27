@@ -2,8 +2,9 @@
 
 import { Badge } from '@/shared/ui/badge'
 import type { DeclaracionLeida } from '../../../entities/aduana/declaracion'
+import { TituloYDondeViaja } from './donde-viaja'
 
-// Los vehículos de la declaración, con su tributo dicho en texto («Tiene el tributo» / «Falta el tributo»); sin ningún monto.
+// Los vehículos de la declaración, con dónde viaja cada uno (contenedor y embarque) y su tributo dicho en texto («Tiene el tributo» / «Falta el tributo»); sin ningún monto.
 export function VehiculosDelResumen({ declaracion }: { declaracion: DeclaracionLeida }) {
   return (
     <section aria-labelledby="vehiculos-de-la-declaracion" className="grid min-w-0 gap-2">
@@ -24,9 +25,7 @@ export function VehiculosDelResumen({ declaracion }: { declaracion: DeclaracionL
               key={vehiculo.vehiculoId}
               className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-(--radius-card) border border-(--color-line) px-3 py-2"
             >
-              <span className="min-w-0 font-medium [overflow-wrap:anywhere] text-(--color-ink)">
-                {vehiculo.titulo}
-              </span>
+              <TituloYDondeViaja vehiculo={vehiculo} />
               <span className="flex flex-wrap items-center gap-2 text-(length:--text-sm) text-(--color-ink-soft)">
                 {vehiculo.fase ? <span>{vehiculo.fase}</span> : null}
                 <Badge variant={vehiculo.tributo ? 'secondary' : 'outline'}>

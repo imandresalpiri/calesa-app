@@ -154,7 +154,9 @@ export async function aprobarElBl(terreno: TerrenoDeMover, vehiculoId: string): 
 }
 
 export type LoteSembrado = {
+  // El número del contenedor (lo que se lee en pantalla) y su id (lo que va en la URL).
   contenedor: string
+  contenedorId: string
   // Los ocho del contenedor, todos en B: los siete primeros con el BL aprobado, el último sin él.
   delContenedor: Unidad[]
   sinBl: Unidad
@@ -201,7 +203,7 @@ export async function sembrarLote(
   for (const u of [...delContenedor.slice(0, 7), suelta]) {
     await aprobarElBl(terreno, u.id)
   }
-  return { contenedor, delContenedor, sinBl, suelta }
+  return { contenedor, contenedorId, delContenedor, sinBl, suelta }
 }
 
 // Quita lo que `sembrarMover` creó (los vehículos primero: un origen con vehículos no se borra; los documentos caen con ellos). Las personas y los roles los limpia el spec.

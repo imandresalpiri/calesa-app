@@ -25,6 +25,7 @@ export type TerrenoDeLaCadena = {
   conTransporte: Unidad
   enLaJubilada: Unidad
   contenedor: string
+  contenedorId: string
   persona: string
 }
 
@@ -159,11 +160,8 @@ async function sembrarLosVehiculos(
   })
   const conTransporte = unidad('conTransporte', 5)
   const contenedor = `ECMU${proyecto === 'celular' ? '7' : '8'}654321`
-  await ponerEn(
-    [conTransporte.id],
-    { contenedorId: await contenedorDe(a.id, contenedor) },
-    { eta_el: '2026-12-15' },
-  )
+  const contenedorId = await contenedorDe(a.id, contenedor)
+  await ponerEn([conTransporte.id], { contenedorId }, { eta_el: '2026-12-15' })
   // La cola: 51 vehículos, el más antiguo primero; el último (el más nuevo en la fase) queda fuera de la primera página.
   await cargarVehiculos(
     b.id,
@@ -185,6 +183,7 @@ async function sembrarLosVehiculos(
     conTransporte,
     enLaJubilada: unidad('enLaJubilada', 6),
     contenedor,
+    contenedorId,
     persona: await crearLaPersona(proyecto, [a.id, b.id]),
   }
 }

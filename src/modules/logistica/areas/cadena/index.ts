@@ -2,13 +2,14 @@
 // La pantalla la consume por `pantallas/cadena.ts` y `pantallas/cadena-fase.ts`. Sale por el `index.ts` de la raíz.
 export {
   dondeEsta,
+  leerEntidadDelFiltro,
   leerLaFase,
   leerNavieras,
   leerOrigenesDeLaCadena,
   leerResumenDeLaCadena,
 } from './composicion'
 export {
-  CLAVE_DE_BOOKING,
+  CLAVE_DE_EMBARQUE,
   CLAVE_DE_BUSQUEDA_DE_LA_CADENA,
   CLAVE_DE_DONDE_BUSCAR,
   buscaEnTodos,
@@ -19,9 +20,13 @@ export {
   CLAVE_DE_NAVIERA,
   CLAVE_DE_POR_APROBAR,
   MINIMO_DE_BUSQUEDA_DE_LA_CADENA,
+  avisoDeEntidadQueNoEsta,
   cadenaFiltrada,
+  entidadPedida,
   esquemaDeFiltrosDeLaCadena,
   pedidoDeLaCadena,
+  type EntidadDelFiltro,
+  type EntidadPedida,
   type FiltrosDeLaCadena,
   type NavieraParaFiltrar,
 } from '../../entities/cadena/filtros'

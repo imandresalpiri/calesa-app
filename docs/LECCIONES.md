@@ -87,6 +87,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   sembrado. Un archivo de la lista fija se prueba con la corrida entera; uno de `areas/` arma lo suyo y sí corre solo.
 - PGlite ordena con colación C y la base real con ICU: escribe `collate "C"` explícito y prueba el orden con casos no ASCII, o la diferencia pasa sin verse.
 - PGlite no trae los privilegios por defecto de Supabase: un grant se prueba mirando la definición o en la base real.
+- En plpgsql, guarda lo que puede faltar en variables con tipo, no en un `record`: uno que nunca se asignó (`m := null` no le da forma) da «record is not assigned yet» al leer `m.id` en la base real, y PGlite lo deja pasar. Lo ve `db:medir:volumen`, que corre en la base real.
+- Lo que una lista llama por fila va en plpgsql, no en `language sql`: una función SQL que no se inlinea (`security definer`, `set search_path`) se planifica en cada llamada, y tres por fila en una página de 50 eran el 90 % de `embarques_listar`. Y un permiso por fila se resuelve una vez por llamada (el alcance del origen), no con `puede_vehiculo()` por vehículo.
 - Compara un valor que puede ser nulo con `is distinct from` o `is not true`: `= false` deja pasar el nulo y la prueba no cae.
 - Inspecciona el cuerpo de una función con `pg_get_functiondef`, no `prosrc`: una `language sql` con `begin atomic` deja `prosrc` vacío.
 - Comprueba que una mutación cae por la causa que buscabas: un rojo por un motivo ajeno (la fila propia ya tomada) no demuestra nada.

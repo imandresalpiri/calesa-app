@@ -71,6 +71,36 @@ export function unidadDeLogistica(id: string): string {
   return `${RUTAS.logistica}/vehiculo/${encodeURIComponent(id)}`
 }
 
+// Un embarque, un contenedor y una declaración por su id (las enlazan transporte, aduana y la actividad, que no se importan entre sí). `origen` es la clave de URL del origen en
+// Logística (`CLAVE_DE_ORIGEN_DE_LOGISTICA` de `logistica`, que `shared` no importa); sin él, la página resuelve el último origen. El contenedor y la declaración abren su drawer sobre
+// la lista de su pestaña.
+function consultaDeLogistica(pares: Record<string, string | undefined>): string {
+  const consulta = new URLSearchParams()
+  for (const [clave, valor] of Object.entries(pares)) {
+    if (valor !== undefined) consulta.set(clave, valor)
+  }
+  const texto = consulta.toString()
+  return texto === '' ? '' : `?${texto}`
+}
+
+export function embarqueDeLogistica(id: string, origenId?: string): string {
+  return `${RUTAS.embarques}/${encodeURIComponent(id)}${consultaDeLogistica({ origen: origenId })}`
+}
+
+export function contenedorDeLogistica(id: string, origenId?: string): string {
+  return `${RUTAS.embarques}${consultaDeLogistica({ origen: origenId, contenedor: id })}`
+}
+
+export function declaracionDeAduana(id: string, origenId?: string): string {
+  return `${RUTAS.aduana}${consultaDeLogistica({ origen: origenId, declaracion: id })}`
+}
+
+// «Mover el contenedor»: el lote de la Cadena con las unidades del contenedor (`?panel=lote&contenedor=<id>`, las claves de `logistica/entities/mover/claves-del-lote.ts`, que lo
+// comprueba en su test). Lo abren el drawer del contenedor (transporte) y el hueco «Mover el contenedor» (mover), que no se importan entre sí.
+export function loteDelContenedor(id: string, origenId?: string | null): string {
+  return `${RUTAS.logistica}${consultaDeLogistica({ origen: origenId ?? undefined, panel: 'lote', contenedor: id })}`
+}
+
 // Las pestañas de la página de un origen, en su orden: cada una es una sub-ruta `/configuracion/origenes/<id>/<parte>`. Viven acá porque
 // las arman las actions y los enlaces de otros módulos (cotizaciones, flujos), que no pueden importar `src/app`.
 export const PARTES_DEL_ORIGEN = [

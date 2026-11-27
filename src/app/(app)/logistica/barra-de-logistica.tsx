@@ -43,18 +43,24 @@ export async function BarraDeLogistica({
   )
 }
 
-// La barra en la página de una unidad: marca el origen del vehículo y sus pestañas son las de ese origen. Entrar a un vehículo no es elegir un origen: no se
-// recuerda. Si la persona no tiene ese origen entre los suyos (la base igual le deja ver la unidad), ninguno queda marcado y las pestañas son las del que se
-// abriría sin `?origen=`; también si la unidad no se pudo abrir (`origenId` nulo).
-export async function BarraDeLaUnidad({ origenId }: { origenId: string | null }) {
+// La barra en la página de una unidad o de un embarque: marca el origen del vehículo (o del embarque) y sus pestañas son las de ese origen, con `pestana` marcada (la de un embarque es
+// Embarques; la de una unidad, ninguna). Entrar a uno no es elegir un origen: no se recuerda. Si la persona no tiene ese origen entre los suyos (la base igual le deja verlo), ninguno
+// queda marcado y las pestañas son las del que se abriría sin `?origen=`; también si no se pudo abrir (`origenId` nulo).
+export async function BarraDeLaUnidad({
+  origenId,
+  pestana = null,
+}: {
+  origenId: string | null
+  pestana?: PestanaDeLogistica | null
+}) {
   const delVehiculo = origenId === null ? null : await origenDeLaPagina(origenId)
   if (delVehiculo !== null && delVehiculo.resuelto.tipo === 'ok') {
-    return <Barra datos={delVehiculo} pestana={null} marcado={origenId} recordar={false} />
+    return <Barra datos={delVehiculo} pestana={pestana} marcado={origenId} recordar={false} />
   }
   return (
     <Barra
       datos={await origenDeLaPagina(undefined)}
-      pestana={null}
+      pestana={pestana}
       marcado={null}
       recordar={false}
     />

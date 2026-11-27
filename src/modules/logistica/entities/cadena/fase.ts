@@ -30,7 +30,7 @@ function consultaDeLosFiltros(filtros: FiltrosDeLaCadena): URLSearchParams {
   if (filtros.demoradas) consulta.set('demoradas', 'si')
   if (filtros.por_aprobar) consulta.set('por_aprobar', 'si')
   if (filtros.contenedor !== undefined) consulta.set('contenedor', filtros.contenedor)
-  if (filtros.booking !== undefined) consulta.set('booking', filtros.booking)
+  if (filtros.embarque !== undefined) consulta.set('embarque', filtros.embarque)
   if (filtros.naviera !== undefined) consulta.set('naviera', filtros.naviera)
   return consulta
 }

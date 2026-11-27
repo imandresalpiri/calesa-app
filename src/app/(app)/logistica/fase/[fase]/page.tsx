@@ -3,15 +3,21 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { leerFasesDeOrigen } from '@/modules/flujos'
 import {
+  avisoDeEntidadQueNoEsta,
   claveDeFase,
   enElOrigen,
   codificarCursorDeLaFase,
+  entidadPedida,
   esquemaDeFiltrosDeLaCadena,
   faseDeLaClave,
   leerCursorDeLaFase,
+  leerEntidadDelFiltro,
   leerLaFase,
   leerNavieras,
   pedidoDeLaCadena,
+  rutaDeLaFase,
+  type EntidadDelFiltro,
+  type NavieraParaFiltrar,
   type OrigenDeLaCadena,
 } from '@/modules/logistica'
 import { EsqueletoDeLaFase } from '@/modules/logistica/pantallas/cadena-esqueletos'
@@ -25,6 +31,7 @@ import {
   DrawerDelLote,
   ProveedorDeLaSeleccion,
 } from '@/modules/logistica/pantallas/mover'
+import { ok, type Resultado } from '@/shared/lib/errores'
 import { CLAVE_DE_CURSOR, leerFiltros } from '@/shared/lib/filtros'
 import { puede, type Permisos } from '@/shared/lib/permisos'
 import { RUTAS, unParametro } from '@/shared/lib/rutas'
@@ -111,8 +118,43 @@ async function buscarLaFase(
 const puedeMoverEn = (permisos: Permisos, origenId: string) =>
   puede(permisos, 'flujos.mover', origenId) || puede(permisos, 'flujos.mover.cualquiera', origenId)
 
+// El contenedor o el embarque que pide la URL (`?contenedor=<uuid>`, `?embarque=<uuid>`), nombrado para su chip: `ninguno` si no pide, `no_esta` si
+// no es un uuid, no existe, es de otro origen o no se ve; un error si no se pudo leer.
+async function entidadDeLaUrl(
+  parametros: Parametros,
+  origenId: string,
+): Promise<Resultado<EntidadDelFiltro | 'ninguno' | 'no_esta'>> {
+  const pedida = entidadPedida(parametros)
+  if (pedida === null) return ok('ninguno')
+  const leida = await leerEntidadDelFiltro(pedida, origenId)
+  if (!leida.ok) return leida
+  return ok(leida.data ?? 'no_esta')
+}
+
+// Un contenedor o un embarque del filtro que no está: el aviso y la misma fase con los demás filtros, sin ése.
+function laQueNoEsta({
+  origenId,
+  faseId,
+  parametros,
+  navieras,
+}: {
+  origenId: string
+  faseId: string | null
+  parametros: Parametros
+  navieras: NavieraParaFiltrar[]
+}) {
+  const sinLaEntidad = pedidoDeLaCadena(
+    leerFiltros(esquemaDeFiltrosDeLaCadena({ navieras }), parametros),
+  )
+  return {
+    tipo: 'no_esta' as const,
+    aviso: avisoDeEntidadQueNoEsta(entidadPedida(parametros)?.tipo ?? 'contenedor'),
+    sinElFiltro: rutaDeLaFase(origenId, claveDeFase(faseId), sinLaEntidad),
+  }
+}
+
 // La página de la lista (con los filtros y el cursor de la URL) y el cursor de la que sigue; nulo si no se pudo leer. El cursor es el último leído: `(fase_desde, id)` en una fase, sólo `id` en
-// «Sin fase».
+// «Sin fase». Un contenedor o un embarque que no está no lee la fase: `no_esta`, con la ruta sin ese filtro.
 async function leerLaPagina({
   origenId,
   faseId,
@@ -122,8 +164,18 @@ async function leerLaPagina({
   faseId: string | null
   parametros: Parametros
 }) {
-  const navieras = await leerNavieras(origenId)
-  const esquema = esquemaDeFiltrosDeLaCadena({ navieras: navieras.ok ? navieras.data : [] })
+  const [navieras, entidad] = await Promise.all([
+    leerNavieras(origenId),
+    entidadDeLaUrl(parametros, origenId),
+  ])
+  if (!entidad.ok) return null
+  const deNavieras = navieras.ok ? navieras.data : []
+  if (entidad.data === 'no_esta')
+    return laQueNoEsta({ origenId, faseId, parametros, navieras: deNavieras })
+  const esquema = esquemaDeFiltrosDeLaCadena({
+    navieras: deNavieras,
+    entidad: entidad.data === 'ninguno' ? null : entidad.data,
+  })
   const filtros = pedidoDeLaCadena(leerFiltros(esquema, parametros))
   const cursor = leerCursorDeLaFase(unParametro(parametros[CLAVE_DE_CURSOR]), {
     sinFase: faseId === null,
@@ -135,7 +187,7 @@ async function leerLaPagina({
     leida.data.hayMas && ultimo !== undefined && (faseId === null || ultimo.faseDesde !== null)
       ? codificarCursorDeLaFase({ desde: faseId === null ? null : ultimo.faseDesde, id: ultimo.id })
       : null
-  return { pagina: leida.data, siguiente, esquema, filtros }
+  return { tipo: 'pagina' as const, pagina: leida.data, siguiente, esquema, filtros }
 }
 
 // La fase de la lista: nula en «Sin fase» (no es una fase del flujo); `ya_no_esta` si el flujo ya no la tiene; `error` si no se pudo leer.
@@ -167,17 +219,38 @@ async function LaFase({
   if (fase === 'ya_no_esta') return <YaNoEsta hrefDeLaCadena={hrefDeLaCadena} />
   const leida = await leerLaPagina({ origenId: origen.id, faseId, parametros })
   if (leida === null) return <EstadoDeLaGrafica tipo="error" />
+  const encabezado = (
+    <EncabezadoDeLaFase
+      nombre={fase?.nombre ?? 'Sin fase'}
+      jubilada={fase !== null && !fase.activa}
+      hrefDeLaCadena={hrefDeLaCadena}
+      origen={conVariosOrigenes ? origen.nombre : null}
+    />
+  )
+  if (leida.tipo === 'no_esta') {
+    return (
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+        {encabezado}
+        <EstadoVacio
+          titulo={leida.aviso}
+          accion={
+            <Link
+              href={leida.sinElFiltro as Route}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              Quitar filtro
+            </Link>
+          }
+        />
+      </div>
+    )
+  }
   const { pagina, siguiente, esquema, filtros } = leida
 
   const lectura = (
     <MarcasDeLogistica ids={pagina.vehiculos.map((vehiculo) => vehiculo.id)}>
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
-        <EncabezadoDeLaFase
-          nombre={fase?.nombre ?? 'Sin fase'}
-          jubilada={fase !== null && !fase.activa}
-          hrefDeLaCadena={hrefDeLaCadena}
-          origen={conVariosOrigenes ? origen.nombre : null}
-        />
+        {encabezado}
         <ListaDeLaFase
           vehiculos={pagina.vehiculos}
           siguiente={siguiente}

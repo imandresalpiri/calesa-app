@@ -50,7 +50,9 @@ declare
     ('tablero_cotizaciones', 'agregado de un período cerrado (≤ 366 días) por índice de fecha: cotizaciones_listado_idx'),
     -- 9.11: el margen del mes y la cola web, con la misma excepción.
     ('tablero_margen', 'agregado de un período cerrado (≤ 366 días) por índice de fecha: pagos_tablero_confirmado_idx y pagos_fecha_idx'),
-    ('tablero_cola_web', 'agregado de un período cerrado (≤ 366 días) por índice de fecha: solicitudes_contacto_web_asignada_idx')
+    ('tablero_cola_web', 'agregado de un período cerrado (≤ 366 días) por índice de fecha: solicitudes_contacto_web_asignada_idx'),
+    -- T572: cuenta lo que le da _vehiculos_vivos_de, que corta en su p_limite (101 con alcance «todos», 1.000 si no).
+    ('_conteo_visible_de', 'los vehículos de un embarque o un contenedor, con el tope de _vehiculos_vivos_de (101 o 1.000)')
   ) t (f, m));
   v_malas text[];
   v_vivas text[];

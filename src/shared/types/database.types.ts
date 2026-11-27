@@ -8530,6 +8530,10 @@ export type Database = {
         Args: { p_crear: boolean; p_embarque: string; p_numero: string; p_origen: string }
         Returns: Record<string, unknown>
       }
+      _conteo_visible_de: {
+        Args: { p_alcance: string; p_contenedor: string; p_embarque: string }
+        Returns: Json
+      }
       _contraste_aa: { Args: { p_razon: number }; Returns: boolean }
       _cotizacion_a_papelera: {
         Args: { p_con_version: boolean; p_esperado: string; p_id: string; p_lote: string }
@@ -8881,6 +8885,10 @@ export type Database = {
         Returns: Record<string, unknown>
       }
       _embarques_desde_textos: { Args: { p_fuente: unknown }; Returns: Json }
+      _embarques_filtros: {
+        Args: { p_contenedores: boolean; p_filtros: Json }
+        Returns: Record<string, unknown>
+      }
       _embudo_conflicto: { Args: { p_cuando: string }; Returns: undefined }
       _embudo_defecto_de: { Args: { p_usuario: string }; Returns: string }
       _embudo_etapas_de_fabrica: { Args: Record<PropertyKey, never>; Returns: Json }
@@ -9007,6 +9015,10 @@ export type Database = {
       _exigir_version: {
         Args: { p_actual: string; p_esperado: string; p_mensaje: string }
         Returns: undefined
+      }
+      _faltan_de: {
+        Args: { p_alcance: string; p_contenedor: string; p_embarque: string; p_tope: number }
+        Returns: Json
       }
       _fase_aplicar: {
         Args: {
@@ -10672,21 +10684,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      _transporte_clave: { Args: { p_clave: string; p_tipo: string }; Returns: string }
-      _transporte_de_la_clave: {
-        Args: { p_clave: string; p_origen?: string; p_tipo: string }
-        Returns: {
-          arribo_el: string
-          eta_el: string
-          naviera_id: string
-          puerto_destino_id: string
-          puerto_origen_id: string
-          repuesto_id: string
-          transporte_id: string
-          vehiculo_id: string
-          zarpe_el: string
-        }[]
-      }
       _transporte_destino: {
         Args: { p_destino: string; p_tipo: string }
         Returns: Record<string, unknown>
@@ -10695,7 +10692,6 @@ export type Database = {
         Args: { p_repuestos: string[]; p_vehiculos: string[] }
         Returns: undefined
       }
-      _transporte_grupos_filtros: { Args: { p_filtros: Json }; Returns: Record<string, unknown> }
       _transporte_lote: {
         Args: { p_unidades: Json }
         Returns: {
@@ -10860,6 +10856,7 @@ export type Database = {
         Args: { p_clave: string; p_datos: Json; p_nombre: string }
         Returns: string
       }
+      _vehiculo_le_falta: { Args: { p_vehiculo: string }; Returns: boolean }
       _vehiculo_motivo_de_bloqueo: {
         Args: {
           p_al_enviar: boolean
@@ -10921,6 +10918,14 @@ export type Database = {
       }
       _vehiculos_cotizado_rellenar: { Args: Record<PropertyKey, never>; Returns: number }
       _vehiculos_de: { Args: { p_contenedor: string; p_embarque: string }; Returns: Json }
+      _vehiculos_de_la_entidad: {
+        Args: { p_alcance: string; p_contenedor: string; p_embarque: string; p_falta: boolean }
+        Returns: {
+          fila: Json
+          k: number
+          oculto: boolean
+        }[]
+      }
       _vehiculos_inventario_condicion: {
         Args: { p_columna: string; p_filtro?: Json; p_i: number; p_tipo: string }
         Returns: string
@@ -10948,6 +10953,10 @@ export type Database = {
           p_yo: string
         }
         Returns: Json
+      }
+      _vehiculos_vivos_de: {
+        Args: { p_contenedor: string; p_embarque: string; p_limite: number }
+        Returns: string[]
       }
       _version_publicada_por: { Args: { p_formula: string }; Returns: string }
       _web_ajustes_objeto: {
@@ -11189,6 +11198,11 @@ export type Database = {
       contenedor_estado: { Args: { p_contenedor: string }; Returns: string }
       contenedor_guardar: {
         Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_id: string }
+        Returns: Json
+      }
+      contenedor_leer: { Args: { p_id: string }; Returns: Json }
+      contenedores_listar: {
+        Args: { p_desde: string; p_filtros: Json; p_origen: string; p_tope: number }
         Returns: Json
       }
       cotizacion_adjuntar: {
@@ -11570,6 +11584,7 @@ export type Database = {
           id: string
           numero: string
           pagada: boolean
+          primeros: Json
           vehiculos: number
           vence_tributos_el: string
         }[]
@@ -11612,6 +11627,11 @@ export type Database = {
       embarque_estado: { Args: { p_embarque: string }; Returns: string }
       embarque_guardar: {
         Args: { p_actualizado_en_esperado: string; p_cambios: Json; p_id: string }
+        Returns: Json
+      }
+      embarque_leer: { Args: { p_falta?: boolean; p_id: string }; Returns: Json }
+      embarques_listar: {
+        Args: { p_desde: string; p_filtros: Json; p_origen: string; p_tope: number }
         Returns: Json
       }
       embudo_crear: { Args: { p_id: string; p_nombre: string }; Returns: Json }
@@ -13099,15 +13119,6 @@ export type Database = {
         Args: { p_destino: string; p_mover?: boolean; p_tipo: string; p_unidades: Json }
         Returns: Json
       }
-      transporte_grupo: { Args: { p_clave: string; p_tipo: string }; Returns: Json }
-      transporte_grupo_aplicar: {
-        Args: { p_cambios: Json; p_clave: string; p_esperadas: Json; p_tipo: string }
-        Returns: Json
-      }
-      transporte_grupos: {
-        Args: { p_desde: string; p_filtros: Json; p_origen: string; p_tipo: string; p_tope: number }
-        Returns: Json
-      }
       transporte_guardar: {
         Args: {
           p_actualizado_en_esperado: string
@@ -13121,6 +13132,7 @@ export type Database = {
       }
       transporte_leer: { Args: { p_vehiculo: string }; Returns: Json }
       transporte_quitar: { Args: { p_tipo: string; p_unidades: Json }; Returns: Json }
+      transporte_unidades: { Args: { p_id: string; p_tipo: string }; Returns: Json }
       unidad_llego_a_fase: {
         Args: { p_fase: string; p_repuesto: string; p_vehiculo: string }
         Returns: boolean

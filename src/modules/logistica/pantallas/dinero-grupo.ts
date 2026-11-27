@@ -9,6 +9,7 @@ export const HUECOS_DE_DINERO_EN_EL_GRUPO: readonly HuecoDelGrupo[] = [
     // Los costos no se anuncian: sin la clave el bloque no se dibuja. La base la pide por cada unidad.
     permisos: ['logistica.gastos.editar'],
     regla: 'gastos',
+    en: ['embarque', 'contenedor'],
     componente: HuecoDeProrrateoDiferido,
   },
 ]

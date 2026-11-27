@@ -49,6 +49,8 @@ export type Preferencias = {
   vistaDeVehiculos: VistaDeLista | null
   // Cómo ve la lista de cotizaciones en escritorio (`cotizaciones.vista`). null = nunca eligió: las tarjetas.
   vistaDeCotizaciones: VistaDeLista | null
+  // Cómo ve la lista de embarques y contenedores de Logística en escritorio (`embarques.vista`). null = nunca eligió: la tabla.
+  vistaDeEmbarques: VistaDeLista | null
   // Si ve la lista de cotizaciones agrupada por vehículo (`cotizaciones.agrupar`). null = nunca eligió: agrupada.
   agruparCotizaciones: boolean | null
   // El embudo que dejó a la vista en el bloque «Oportunidades» de la ficha de un lead (`leads.embudo_de_la_ficha`): su id. null = nunca eligió: el por defecto.
@@ -62,6 +64,7 @@ export type Preferencias = {
 
 export const CLAVE_DE_VISTA_DE_VEHICULOS = 'vehiculos.vista'
 export const CLAVE_DE_VISTA_DE_COTIZACIONES = 'cotizaciones.vista'
+export const CLAVE_DE_VISTA_DE_EMBARQUES = 'embarques.vista'
 export const CLAVE_DE_AGRUPAR_COTIZACIONES = 'cotizaciones.agrupar'
 export const CLAVE_DE_EMBUDO_DE_LA_FICHA = 'leads.embudo_de_la_ficha'
 export const CLAVE_DEL_MENU_PLEGADO = 'menu.plegado'
@@ -108,6 +111,7 @@ export function preferenciasDesde(crudo: unknown): Preferencias {
     zonaHoraria: elegido(esquemaZonaHoraria, valores[CLAVE_DE_ZONA_HORARIA]),
     vistaDeVehiculos: elegido(esquemaVistaDeLista, valores[CLAVE_DE_VISTA_DE_VEHICULOS]),
     vistaDeCotizaciones: elegido(esquemaVistaDeLista, valores[CLAVE_DE_VISTA_DE_COTIZACIONES]),
+    vistaDeEmbarques: elegido(esquemaVistaDeLista, valores[CLAVE_DE_VISTA_DE_EMBARQUES]),
     agruparCotizaciones: elegido(z.boolean(), valores[CLAVE_DE_AGRUPAR_COTIZACIONES]),
     embudoDeLaFicha: elegido(z.guid(), valores[CLAVE_DE_EMBUDO_DE_LA_FICHA]),
     menuPlegado: elegido(z.boolean(), valores[CLAVE_DEL_MENU_PLEGADO]),
@@ -135,6 +139,10 @@ export const esquemaPreferencia = z.discriminatedUnion('clave', [
   }),
   z.object({
     clave: z.literal(CLAVE_DE_VISTA_DE_COTIZACIONES),
+    valor: esquemaVistaDeLista.nullable(),
+  }),
+  z.object({
+    clave: z.literal(CLAVE_DE_VISTA_DE_EMBARQUES),
     valor: esquemaVistaDeLista.nullable(),
   }),
   z.object({ clave: z.literal(CLAVE_DE_AGRUPAR_COTIZACIONES), valor: z.boolean().nullable() }),

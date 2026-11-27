@@ -21,14 +21,14 @@ type Leida = {
     | { tipo: 'listo'; unidades: UnidadDelGrupo[]; hayMas: boolean }
 }
 
-// Las unidades de un contenedor o una reserva (6.04-3): una lectura al abrir el drawer, con la sesión de quien mira. Mientras no llega, «cargando»; «Reintentar» pide otra.
-export function useUnidadesDelGrupo({ origenId, tipo, valor }: PedidoDelGrupo) {
+// Las unidades de un contenedor o un embarque (6.04-3): una lectura al abrir el drawer, con la sesión de quien mira. Mientras no llega, «cargando»; «Reintentar» pide otra.
+export function useUnidadesDelGrupo({ origenId, tipo, id }: PedidoDelGrupo) {
   const [intento, setIntento] = useState(0)
   const [leida, setLeida] = useState<Leida | null>(null)
-  const clave = `${origenId}|${tipo}|${valor}|${String(intento)}`
+  const clave = `${origenId}|${tipo}|${id}|${String(intento)}`
   useEffect(() => {
     let vigente = true
-    void leerUnidadesDelGrupo({ origenId, tipo, valor })
+    void leerUnidadesDelGrupo({ origenId, tipo, id })
       .catch(() => ({
         ok: false as const,
         error: { codigo: 'inesperado' as const, mensaje: NO_SE_LEYO_EL_GRUPO },
@@ -45,7 +45,7 @@ export function useUnidadesDelGrupo({ origenId, tipo, valor }: PedidoDelGrupo) {
     return () => {
       vigente = false
     }
-  }, [origenId, tipo, valor, clave])
+  }, [origenId, tipo, id, clave])
   const lectura: LecturaDelGrupo = leida?.clave === clave ? leida.lectura : { tipo: 'cargando' }
   return {
     lectura,

@@ -3,6 +3,7 @@
 import { parseAsString, useQueryState } from 'nuqs'
 import type { ReactNode } from 'react'
 import { Drawer } from '@/shared/ui/drawer'
+import { QUE_ES_LA_DECLARACION } from '../../../entities/aduana/textos'
 
 type Props = {
   // El `?declaracion=` de la página (la pone `src/app`: una constante importada de un archivo `'use client'` llega como referencia).
@@ -21,7 +22,7 @@ export function DrawerDeLaDeclaracion({ clave, children }: Props) {
         void setId(null)
       }}
       titulo="Declaración"
-      descripcion="Los datos de la declaración aduanera y sus vehículos."
+      descripcion={QUE_ES_LA_DECLARACION}
       ancho="amplio"
     >
       {children}

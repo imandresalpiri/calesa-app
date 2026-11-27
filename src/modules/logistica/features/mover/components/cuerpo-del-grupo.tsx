@@ -14,9 +14,9 @@ type Props = PedidoDelGrupo & {
   alCerrar: () => void
 }
 
-const NOMBRE_DEL_GRUPO = { contenedor: 'contenedor', booking: 'reserva' } as const
+const NOMBRE_DEL_GRUPO = { contenedor: 'contenedor', embarque: 'embarque' } as const
 
-// El lote de un grupo (6.04-3, D30): las unidades de un contenedor o una reserva que están en una misma fase (la de más unidades, D1). La frase dice cuántas entraron y cuántas no; «Marcar que
+// El lote de un grupo (6.04-3, D30): las unidades de un contenedor o un embarque que están en una misma fase (la de más unidades, D1). La frase dice cuántas entraron y cuántas no; «Marcar que
 // llegó» de un contenedor abre esto (D11). Con más de 200, entran las primeras 200.
 export function CuerpoDelGrupo({ destinoInicial, alHaberResultado, alCerrar, ...pedido }: Props) {
   const { lectura, reintentar } = useUnidadesDelGrupo(pedido)

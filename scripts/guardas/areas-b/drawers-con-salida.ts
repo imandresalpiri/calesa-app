@@ -1,4 +1,4 @@
-// Parte del registro de `<Drawer>`: los de la agenda (7.07-2) —el detalle de un evento y de una tarea (sin formulario) y los formularios de alta y edición (con su `<CambiosSinGuardar>`)— y el resumen de un grupo de transporte (6.08-3). La guarda
+// Parte del registro de `<Drawer>`: los de la agenda (7.07-2) —el detalle de un evento y de una tarea (sin formulario) y los formularios de alta y edición (con su `<CambiosSinGuardar>`)— y los drawers de embarques y contenedores. La guarda
 // (`drawers-con-salida.ts`) suma esta parte a `DRAWERS` con `import.meta.glob('./areas-*/drawers-con-salida.ts')` (`registros-de-carriles.ts`).
 import type { RegistroDeDrawer } from '../drawers-con-salida'
 
@@ -28,13 +28,19 @@ export const REGISTRO: Record<string, RegistroDeDrawer> = {
     formulario: 'src/modules/agenda/features/tareas/components/panel-de-formulario-de-tarea.tsx',
     mecanismo: 'contexto',
   },
-  // El resumen de un embarque o contenedor de `/logistica/embarques` (6.08-3).
-  'src/modules/logistica/features/transporte/components/drawer-del-grupo.tsx': {
+  // El drawer de un contenedor de `/logistica/embarques` y de la página de un embarque (`?contenedor=`).
+  'src/modules/logistica/features/transporte/components/drawer-del-contenedor.tsx': {
     sinFormulario:
-      'sólo es el marco del resumen de un grupo (6.08-3): no guarda nada tipeado; lo que cada área escriba en sus huecos va en formularios que preguntan por sí solos',
-  }, // El formulario de «Editar grupo» (6.08-4): tapa al resumen y pregunta antes de perder lo escrito.
-  'src/modules/logistica/features/transporte/components/drawer-de-edicion-del-grupo.tsx': {
-    formulario: 'src/modules/logistica/features/transporte/components/formulario-del-grupo.tsx',
+      'sólo es el marco del contenedor (qué es, su embarque y sus vehículos): no guarda nada tipeado; editarlo, agregarle vehículos y sus huecos se abren encima, cada uno con su salida',
+  },
+  // Un hueco de un embarque o un contenedor (`?panel=grupo-<clave>`): subir un documento a los vehículos, prorratear un gasto.
+  'src/modules/logistica/features/transporte/components/drawer-del-hueco.tsx': {
+    sinFormulario:
+      'sólo es el marco del hueco: lo que cada área escribe en él va en formularios que preguntan por sí solos',
+  },
+  // «Agregar vehículos» a un embarque o un contenedor (`?panel=agregar-vehiculos`): con alguno elegido, pregunta al cerrar.
+  'src/modules/logistica/features/transporte/components/drawer-agregar-vehiculos.tsx': {
+    formulario: 'src/modules/logistica/features/transporte/components/drawer-agregar-vehiculos.tsx',
     mecanismo: 'contexto',
   },
   // El panel de la derecha de la página de una guía en una pantalla angosta: `?panel=lateral`. Es sólo el marco; lo escrito vive en la página.

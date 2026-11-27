@@ -36,10 +36,14 @@ export type FilaDeDeclaracion = {
   actualizadoEn: string
   // Los que quien mira ve, acotado a 201 por la base (D9).
   vehiculos: number
+  // Hasta tres de los que ve, por título, para nombrarlos en la fila (`vehiculosDeLaFila`).
+  primeros: VehiculoNombrado[]
   hayOcultos: boolean
   pagada: boolean
   faltan: number
 }
+
+export type VehiculoNombrado = { vehiculoId: string; titulo: string }
 
 export type VehiculoDeDeclaracion = {
   vehiculoId: string
@@ -50,9 +54,12 @@ export type VehiculoDeDeclaracion = {
   agregadoEn: string
   // ¿Tiene un gasto vivo de tributos? Sólo un sí o no: ningún monto.
   tributo: boolean
+  // Dónde viaja: su contenedor y su embarque (el del contenedor, si va en uno); nulos si no viaja en ninguno.
+  contenedor: { id: string; numero: string } | null
+  embarque: { id: string; booking: string } | null
 }
 
-export type DeclaracionLeida = Omit<FilaDeDeclaracion, 'vehiculos'> & {
+export type DeclaracionLeida = Omit<FilaDeDeclaracion, 'vehiculos' | 'primeros'> & {
   notas: string | null
   vehiculos: VehiculoDeDeclaracion[]
   // Hay más de los 200 que se devuelven.
@@ -75,6 +82,7 @@ const esquemaDeFila = z.object({
   creado_en: z.string(),
   actualizado_en: z.string(),
   vehiculos: z.number(),
+  primeros: z.array(z.object({ vehiculo_id: z.guid(), titulo: z.string() })),
   hay_ocultos: z.boolean(),
   pagada: z.boolean(),
   faltan: z.number(),
@@ -88,9 +96,11 @@ const esquemaDeVehiculo = z.object({
   fase: z.string().nullable(),
   agregado_en: z.string(),
   tributo: z.boolean(),
+  contenedor: z.object({ id: z.guid(), numero: z.string() }).nullable(),
+  embarque: z.object({ id: z.guid(), booking: z.string() }).nullable(),
 })
 
-const esquemaDeLeida = esquemaDeFila.omit({ vehiculos: true }).extend({
+const esquemaDeLeida = esquemaDeFila.omit({ vehiculos: true, primeros: true }).extend({
   notas: z.string().nullable(),
   vehiculos: z.array(esquemaDeVehiculo),
   hay_mas: z.boolean(),
@@ -113,6 +123,7 @@ export function filasDeDeclaracionDesde(datos: unknown): FilaDeDeclaracion[] | n
     creadoEn: d.creado_en,
     actualizadoEn: d.actualizado_en,
     vehiculos: d.vehiculos,
+    primeros: d.primeros.map((p) => ({ vehiculoId: p.vehiculo_id, titulo: p.titulo })),
     hayOcultos: d.hay_ocultos,
     pagada: d.pagada,
     faltan: d.faltan,
@@ -149,6 +160,8 @@ export function declaracionDesde(datos: unknown): DeclaracionLeida | null {
       fase: v.fase,
       agregadoEn: v.agregado_en,
       tributo: v.tributo,
+      contenedor: v.contenedor,
+      embarque: v.embarque,
     })),
   }
 }

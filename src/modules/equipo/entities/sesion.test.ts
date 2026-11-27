@@ -53,6 +53,7 @@ describe('sesionDesde', () => {
         zonaHoraria: null,
         vistaDeVehiculos: null,
         vistaDeCotizaciones: null,
+        vistaDeEmbarques: null,
         agruparCotizaciones: null,
         embudoDeLaFicha: null,
         menuPlegado: null,

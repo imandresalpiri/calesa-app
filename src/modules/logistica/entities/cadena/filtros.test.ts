@@ -1,15 +1,23 @@
 import { describe, expect, it } from 'vitest'
 import { leerFiltros } from '@/shared/lib/filtros'
 import {
+  avisoDeEntidadQueNoEsta,
   buscaEnTodos,
   cadenaFiltrada,
+  entidadPedida,
   esquemaDeFiltrosDeLaCadena,
   pedidoDeLaCadena,
   rutaDeDondeEsta,
 } from './filtros'
 
 const NAVIERA = '11111111-1111-4111-8111-111111111111'
+const CONTENEDOR = '22222222-2222-4222-8222-222222222222'
+const EMBARQUE = '33333333-3333-4333-8333-333333333333'
 const esquema = esquemaDeFiltrosDeLaCadena({ navieras: [{ id: NAVIERA, nombre: 'Maersk' }] })
+const conContenedor = esquemaDeFiltrosDeLaCadena({
+  navieras: [{ id: NAVIERA, nombre: 'Maersk' }],
+  entidad: { tipo: 'contenedor', id: CONTENEDOR, nombre: 'MSKU1234567' },
+})
 const pedido = (url: Record<string, string>) => pedidoDeLaCadena(leerFiltros(esquema, url))
 
 describe('pedidoDeLaCadena', () => {
@@ -34,9 +42,23 @@ describe('pedidoDeLaCadena', () => {
     expect(pedido({ q: ' 1HGCM82633A004352 ' })).toEqual({ q: '1HGCM82633A004352' })
   })
 
-  it('contenedor y booking van recortados y los vacíos quedan fuera', () => {
-    expect(pedido({ contenedor: '  MSKU123  ', booking: '   ' })).toEqual({ contenedor: 'MSKU123' })
-    expect(cadenaFiltrada(pedido({ booking: 'BK-9' }))).toBe(true)
+  it('el contenedor sólo filtra si el esquema lo nombró, y por su id', () => {
+    expect(pedido({ contenedor: CONTENEDOR })).toEqual({})
+    const conId = pedidoDeLaCadena(leerFiltros(conContenedor, { contenedor: CONTENEDOR }))
+    expect(conId).toEqual({ contenedor: CONTENEDOR })
+    expect(cadenaFiltrada(conId)).toBe(true)
+    expect(pedidoDeLaCadena(leerFiltros(conContenedor, { contenedor: 'MSKU1234567' }))).toEqual({})
+  })
+
+  it('el chip del contenedor dice su número, no el id', () => {
+    const filtro = conContenedor.filtros.find((f) => f.clave === 'contenedor')
+    expect(filtro?.etiqueta).toBe('Contenedor')
+    expect(filtro?.tipo === 'eleccion' ? filtro.opciones.map((o) => o.etiqueta) : []).toContain(
+      'MSKU1234567',
+    )
+    expect(esquema.filtros.some((f) => f.clave === 'contenedor' || f.clave === 'embarque')).toBe(
+      false,
+    )
   })
 
   it('«naviera» sólo si es una de las ofrecidas o al menos un guid', () => {
@@ -56,17 +78,48 @@ describe('pedidoDeLaCadena', () => {
   })
 
   it('lo que sale es lo que la RPC acepta, y nada más', () => {
-    const todo = pedido({
-      q: 'toyota',
-      demoradas: 'si',
-      por_aprobar: 'si',
-      contenedor: 'MSKU',
-      booking: 'BK',
-      naviera: NAVIERA,
-    })
-    expect(Object.keys(todo).sort()).toEqual(
-      ['booking', 'contenedor', 'demoradas', 'naviera', 'por_aprobar', 'q'].sort(),
+    const todo = pedidoDeLaCadena(
+      leerFiltros(conContenedor, {
+        q: 'toyota',
+        demoradas: 'si',
+        por_aprobar: 'si',
+        contenedor: CONTENEDOR,
+        naviera: NAVIERA,
+      }),
     )
+    expect(Object.keys(todo).sort()).toEqual(
+      ['contenedor', 'demoradas', 'naviera', 'por_aprobar', 'q'].sort(),
+    )
+  })
+})
+
+describe('el contenedor o el embarque de la URL', () => {
+  it('sin ninguno no pide nada; el contenedor manda sobre el embarque', () => {
+    expect(entidadPedida({})).toBeNull()
+    expect(entidadPedida({ contenedor: '  ' })).toBeNull()
+    expect(entidadPedida({ embarque: EMBARQUE })).toEqual({
+      tipo: 'embarque',
+      id: EMBARQUE,
+      valido: true,
+    })
+    expect(entidadPedida({ contenedor: CONTENEDOR, embarque: EMBARQUE })).toEqual({
+      tipo: 'contenedor',
+      id: CONTENEDOR,
+      valido: true,
+    })
+  })
+
+  it('una URL vieja con el número o el booking no es un id', () => {
+    expect(entidadPedida({ contenedor: 'MSKU1234567' })).toEqual({
+      tipo: 'contenedor',
+      valido: false,
+    })
+    expect(entidadPedida({ embarque: ['BK-9'] })).toEqual({ tipo: 'embarque', valido: false })
+  })
+
+  it('el aviso nombra la entidad', () => {
+    expect(avisoDeEntidadQueNoEsta('contenedor')).toBe('Ese contenedor ya no existe o no lo ves.')
+    expect(avisoDeEntidadQueNoEsta('embarque')).toBe('Ese embarque ya no existe o no lo ves.')
   })
 })
 

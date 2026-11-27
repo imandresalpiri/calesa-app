@@ -2,19 +2,21 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { HuecoMoverElGrupo } from './hueco-mover-el-grupo'
 
-describe('el hueco «Mover el grupo»', () => {
+const C = '6a1f5d3e-8c2b-4a7e-9f10-2b3c4d5e6f70'
+
+describe('el hueco «Mover el contenedor»', () => {
   afterEach(cleanup)
 
-  it('el contenedor lleva al lote con sus unidades', () => {
-    render(<HuecoMoverElGrupo grupo={{ tipo: 'contenedor', id: 'MSKU 123/4' }} />)
+  it('el contenedor lleva al lote con sus unidades, por su id', () => {
+    render(<HuecoMoverElGrupo grupo={{ tipo: 'contenedor', id: C }} />)
     const enlace = screen.getByRole('link', { name: 'Marcar que llegó' })
-    expect(enlace.getAttribute('href')).toBe('/logistica?panel=lote&contenedor=MSKU+123%2F4')
+    expect(enlace.getAttribute('href')).toBe(`/logistica?panel=lote&contenedor=${C}`)
   })
 
   it('con el origen de la pestaña, va a la Cadena de ese origen', () => {
-    render(<HuecoMoverElGrupo grupo={{ tipo: 'contenedor', id: 'MSKU1234', origenId: 'o1' }} />)
+    render(<HuecoMoverElGrupo grupo={{ tipo: 'contenedor', id: C, origenId: 'o1' }} />)
     const enlace = screen.getByRole('link', { name: 'Marcar que llegó' })
-    expect(enlace.getAttribute('href')).toBe('/logistica?panel=lote&contenedor=MSKU1234&origen=o1')
+    expect(enlace.getAttribute('href')).toBe(`/logistica?origen=o1&panel=lote&contenedor=${C}`)
   })
 
   it('un embarque o una declaración no tienen nada que mover aquí', () => {

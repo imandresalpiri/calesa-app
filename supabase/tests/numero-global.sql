@@ -298,12 +298,14 @@ declare
     'buscador_leads', 'devuelve ids de leads (7.12-1): los de leads_ids_del_numero y leads_candidatos que quien llama ve en leads_vista_por_ids, nunca un número',
     'buscador_cotizaciones', 'devuelve cotizaciones del buscador (7.12-1): su número de cotización, título, clase y estado; del lead sólo mira en_cartera, nunca su número',
     'repuesto_proyecto_crear', 'devuelve id, número del proyecto de repuestos y actualizado_en (8.08-1): del lead sólo guarda el id, que trg_lead_visible exige visible; nunca su número',
+    'declaraciones_listar', 'devuelve declaraciones de aduana (6.07-3): su número de declaración y los primeros vehículos que quien llama ve (id y título); del lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
+    'embarque_leer', 'devuelve un embarque (T572): booking, contenedores y los vehículos que quien llama ve (id, título, VIN, lote, fase y su declaración); del lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
+    'contenedor_leer', 'devuelve un contenedor (T572): número, su embarque y los vehículos que quien llama ve; del lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
     'declaracion_leer', 'devuelve una declaración de aduana (6.07-3): su número de declaración y los vehículos que quien llama ve; del lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
     'lead_relacionados', 'devuelve vehículos (T17): su número de vehículo, con el predicado de las policies de quien llama; del lead sólo mira puedo_actuar, nunca su número',
     'lead_relacionados_pagina', 'devuelve vehículos (T17): su número de vehículo y la fecha de su relación; nunca el número de un lead',
     'actividad_diff', 'devuelve el diff de un cambio recortado por _actividad_recortar() (9.01-1): de un lead, la lista cerrada que quita numero, numero_propio y telefono_principal (que lead_auditar ya no guarda); areas/actividad/actividad.sql T3',
-    'transporte_grupos', 'devuelve grupos de transporte: el booking del embarque o el número del contenedor (contenedores.numero) y sus unidades; de un lead sólo mira lead_id para el alcance propios (en_cartera), nunca su número',
-    'logistica_cadena_columna', 'devuelve tarjetas de la cadena (por _logistica_columna): el vehículo, su contenedor y su booking; el filtro por contenedor compara contenedores.numero y de un lead sólo mira lead_id para lo propio, nunca su número',
+    'logistica_cadena_columna', 'devuelve tarjetas de la cadena (por _logistica_columna): el vehículo, su contenedor (contenedores.numero) y su booking; el filtro por contenedor o embarque va por su id y de un lead sólo mira lead_id para lo propio, nunca su número',
     'actividad_listar', 'devuelve la página de la actividad (9.01-1): la cabecera, los nombres de los campos que cambiaron y, de una fila visible, el nombre del lead y su primer cambio, sacados de _actividad_recortar() (que quita numero, numero_propio y telefono_principal): nunca un número ni un teléfono; areas/actividad/listar.sql T3');
   r record; v_fallas text := '';
 begin

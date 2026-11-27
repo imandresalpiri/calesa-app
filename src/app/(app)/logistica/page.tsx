@@ -32,8 +32,8 @@ export const metadata: Metadata = { title: 'Logística' }
 
 // `/logistica`: la Cadena del origen elegido (sin `?origen=`, el último que usó la persona): la gráfica (una línea con una fase por punto: cuántos vehículos tiene
 // y cuántos están demorados o trabados) y «Dónde está» en ese origen, con «Buscar en todos los orígenes» (`?en=todos`). Clic en una fase lleva a su lista
-// (`/logistica/fase/[fase]`) y clic en un vehículo, a su página (`/logistica/vehiculo/[id]`): nunca un drawer. Con `?panel=lote` (el enlace de «Mover el grupo») se
-// abre el lote de un contenedor o un booking. La bandeja del día es su propia pestaña (`/logistica/bandeja`).
+// (`/logistica/fase/[fase]`) y clic en un vehículo, a su página (`/logistica/vehiculo/[id]`): nunca un drawer. Con `?panel=lote` («Mover el contenedor») se
+// abre el lote de un contenedor o un embarque. La bandeja del día es su propia pestaña (`/logistica/bandeja`).
 export default function PaginaDeLogistica({ searchParams }: PageProps<'/logistica'>) {
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
@@ -49,7 +49,7 @@ export default function PaginaDeLogistica({ searchParams }: PageProps<'/logistic
   )
 }
 
-// `?panel=lote` (el enlace de «Mover el grupo») abre el lote de un contenedor o un booking; sólo se arma con `flujos.mover` en el origen y la base vuelve a decidir al mover.
+// `?panel=lote` («Mover el contenedor») abre el lote de un contenedor o un embarque, por su id; sólo se arma con `flujos.mover` en el origen y la base vuelve a decidir al mover.
 function pideElLote(
   parametros: Record<string, string | string[] | undefined>,
   permisos: Permisos,

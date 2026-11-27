@@ -16,7 +16,9 @@ La tarea de oro 3 la prueba `e2e/logistica-tarea-de-oro.spec.ts`. Abiertos (`doc
   orígenes», `?en=todos`, `buscaEnTodos`, `rutaDeDondeEsta`; texto corto no llama a la base), `leerOrigenesDeLaCadena(permisos)` (los orígenes de la barra, cada uno con las `reglas`
   activas de su flujo, nulas si no se pudo leer: `OrigenDeLaCadena`), `origenElegido(origenes, pedido, ultimo)` (el pedido, si no el último, si no el primero; también por
   `pantallas/cadena-origen.ts`, para `src/app`), `leerNavieras(origenId)` (las activas que usa el origen), `esquemaDeFiltrosDeLaCadena`, `pedidoDeLaCadena`, `claveDeFase`, `faseDeLaClave`, `rutaDeLaFase`, el cursor de una
-  fase y las claves de URL de los filtros (`q`, `demoradas`, `por_aprobar`, `contenedor`, `booking`, `naviera`; el origen es `CLAVE_DE_ORIGEN_DE_LOGISTICA` del núcleo).
+  fase y las claves de URL de los filtros (`q`, `demoradas`, `por_aprobar`, `contenedor`, `embarque`, `naviera`; el origen es `CLAVE_DE_ORIGEN_DE_LOGISTICA` del núcleo).
+  `contenedor` y `embarque` son el id de la entidad (`entidadPedida`), no se escriben: llegan por un enlace y se dibujan como chip con su número o su booking
+  (`leerEntidadDelFiltro`, por la PK y en el origen, bajo la RLS); uno que no es un uuid, no existe o no se ve dice `avisoDeEntidadQueNoEsta` con «Quitar filtro».
 - Área `alertas`: `bandejaLogistica(tope)` (demoradas, trabados y por aprobar de quien mira; una lectura de `logistica_bandeja` por request con `cache()`),
   `detalleDeDemorada` y `detalleDeTrabado`, para los bloques de Inicio de `tablero`, que arman su «Ver todas» con `rutaDelGrupoDeLaBandeja` (sin origen: abre el grupo del último
   origen); y la bandeja del día de un origen: `leerGrupoDeLaBandeja` (con `origenId`), `gruposVisibles(permisos, origenId)`, `grupoDelSlug`, `rutaDelGrupoDeLaBandeja(grupo, { origenId, cursor })`,
@@ -39,16 +41,16 @@ y `pantallas/<área>.ts` (y `pantallas/<área>-<pantalla>.ts`). El **núcleo** (
 `index.ts`, `client.ts` y `composicion.ts` de la raíz sólo hacen `export *` del núcleo y de cada área. **Un área no importa otra y el núcleo no importa ningún
 área** (`scripts/guardas/areas-de-logistica.test.ts`): lo compartido va al núcleo.
 
-| Área         | Qué es                                                                                                              |
-| ------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `nucleo`     | `Unidad`, `HuecoDeLaUnidad`, el panel de la unidad, el orden de sus huecos y la selección del lote                  |
-| `cadena`     | la Cadena de un origen (`/logistica`: la gráfica y «dónde está») y la lista de una fase (`/logistica/fase/[fase]`)  |
-| `mover`      | «Qué falta», mover con nota, notas, historial y el lote                                                             |
-| `documentos` | subir, aprobar o rechazar, editar fechas, «Visible en el portal», eliminar y subir a un grupo                       |
-| `transporte` | embarques y contenedores (hueco «Transporte», `/logistica/embarques`, «Editar grupo», catálogos Puertos y Navieras) |
-| `aduana`     | declaraciones (hueco «Aduana», `/logistica/aduana`, alta, edición, composición y canal)                             |
-| `dinero`     | gastos, pagos y margen (tres huecos, `/logistica/gastos`, prorratear, categorías de gasto, pagos de un proyecto)    |
-| `alertas`    | alertas por demora y por vencimiento, la bandeja del día (`/logistica/bandeja`) y la bandeja de Inicio              |
+| Área         | Qué es                                                                                                                        |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `nucleo`     | `Unidad`, `HuecoDeLaUnidad`, el panel de la unidad, el orden de sus huecos y la selección del lote                            |
+| `cadena`     | la Cadena de un origen (`/logistica`: la gráfica y «dónde está») y la lista de una fase (`/logistica/fase/[fase]`)            |
+| `mover`      | «Qué falta», mover con nota, notas, historial y el lote                                                                       |
+| `documentos` | subir, aprobar o rechazar, editar fechas, «Visible en el portal», eliminar y subir a un grupo                                 |
+| `transporte` | embarques y contenedores (hueco «Transporte», `/logistica/embarques`, la página de un embarque, catálogos Puertos y Navieras) |
+| `aduana`     | declaraciones (hueco «Aduana», `/logistica/aduana`, alta, edición, composición y canal)                                       |
+| `dinero`     | gastos, pagos y margen (tres huecos, `/logistica/gastos`, prorratear, categorías de gasto, pagos de un proyecto)              |
+| `alertas`    | alertas por demora y por vencimiento, la bandeja del día (`/logistica/bandeja`) y la bandeja de Inicio                        |
 
 **Los huecos.** El panel no sabe qué lleva: cada área los declara en su `pantallas/` (`<área>-unidad.ts` → `HUECOS_DE_<ÁREA>_EN_LA_UNIDAD`; `<área>-grupo.ts`;
 `<área>-enlace.ts`; `<área>-catalogos.ts`) y sólo `src/app` los junta. Un hueco se dibuja si la persona tiene alguna de sus claves **en el origen de la unidad**
@@ -60,12 +62,12 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
 - **Siempre en un origen** (`docs/DECISIONES.md` › «Logística siempre en un origen, el último que usaste»): toda página de `/logistica/*` lleva la barra con los orígenes y las pestañas del
   elegido —Cadena y Bandeja del día siempre; Embarques, Aduana y Gastos con la regla y el permiso de su `EnlaceDeLogistica` (`src/app/(app)/logistica/enlaces.ts`: `pestanasDelOrigen`,
   `pestanaDisponible`, `hrefDeOtroOrigen`)—, todas con `?origen=`. Sin `?origen=`, el último origen (sin redirigir); la página de la unidad marca el de su vehículo y no lo guarda. Las RPC de
-  cada pestaña piden el origen: `logistica_bandeja_grupo` (obligatorio), `transporte_grupos` (obligatorio), `declaraciones_listar` (obligatorio) y `logistica_donde_esta` (nulo: todos).
+  cada pestaña piden el origen: `logistica_bandeja_grupo` (obligatorio), `embarques_listar` y `contenedores_listar` (obligatorio), `declaraciones_listar` (obligatorio) y `logistica_donde_esta` (nulo: todos).
 - **Cadena:** `/logistica` dibuja la cadena del origen como gráfica (un Server Component sin JS propio: `GraficaDeLaCadena`, una `<ol>` con un punto por fase, su cifra y su
   barra, con «demorados» y «trabados» dichos con texto). Cada fase es un enlace a `/logistica/fase/[fase]` (`[fase]` = el id o `sin_fase`): la lista de a 50 por cursor `(fase_desde, id)`, con
   `FilterShell`, búsqueda y la selección del lote. **Un vehículo se abre siempre en su página** (`/logistica/vehiculo/[id]`), nunca en un drawer: el nombre es un `EnlaceALaUnidad` y un clic
   en el resto de la fila va ahí (`useIrALaUnidad`). La fila dice «En subasta» o «Sin resolver» cuando la subasta manda (`situacion` de `vehiculos`, la calcula la base). «Dónde está» es un formulario (`?q=`) sobre la gráfica, en el origen elegido; con dos orígenes o más, un enlace lo pasa a todos (`?en=todos`, cada fila con «· <origen>») o de vuelta.
-  Con `?panel=lote` abre el lote de un contenedor o un booking («Mover el grupo» de Embarques lo pide con `?origen=` de la pestaña: `GrupoDeLogistica.origenId`).
+  Con `?panel=lote` abre el lote de un contenedor o un embarque por su id («Mover el contenedor» de Embarques lo pide con `?origen=` de la pestaña: `GrupoDeLogistica.origenId`).
 - **Bandeja del día** (área `alertas`, `/logistica/bandeja`, del origen elegido): siete grupos en este orden —Demorados, Trabados, Documentos por aprobar, Documentos por vencer, Llegadas esperadas, Salen hoy,
   Subastas sin resolver— que lee `logistica_bandeja_grupo` (una lectura por grupo, en paralelo, cada una con su error aparte; un grupo vacío no se dibuja y todos vacíos dicen «Nada pendiente
   hoy», con «Ver la cadena» del mismo origen). La portada trae las primeras 5 de cada uno con el conteo hasta 100 y «Ver todos» → `/logistica/bandeja/[grupo]?origen=` (de a 20 por cursor, `leerCursor`; título
@@ -126,10 +128,10 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   6-7). La nota de un cambio de fase no se edita (`quePuedeHacerConLaNota`). «Ver en logística» de la ficha lo pone `src/app`.
 - **Área `mover`, el lote.** La **selección vive en el núcleo** (`entities/nucleo/seleccion.ts`: una sola fase, hasta 200; `useSeleccionDeLaCadena()`, `null`
   sin proveedor). La lista de una fase sólo la lee («Elegir los de esta página»: la página, hasta 200); `mover` la provee (`ProveedorDeLaSeleccion`, que montan `src/app/(app)/logistica/fase/[fase]/page.tsx` sólo con `flujos.mover` en
-  el origen y en una fase de verdad —se vacía al cambiar de fase, origen o filtros, y sobrevive a «Siguiente»— y la portada, con `?panel=lote`, para un grupo) y dibuja `BarraDelLote` y `DrawerDelLote` (`?panel=lote` con `destino`, `contenedor`, `booking`). El drawer usa
+  el origen y en una fase de verdad —se vacía al cambiar de fase, origen o filtros, y sobrevive a «Siguiente»— y la portada, con `?panel=lote`, para un grupo) y dibuja `BarraDelLote` y `DrawerDelLote` (`?panel=lote` con `destino`, `contenedor`, `embarque`). El drawer usa
   `destinosDeLaFase`, `previsualizarCambioLote` (una llamada, hasta 200) y `cambiarFaseLote`; el resultado es el de **todo** el lote (las que la vista dejó
-  afuera cuentan como no movidas) y «Reintentar» vuelve a la vista previa con las no movidas. Un grupo (`?contenedor=` o `?booking=`) lee sus unidades por
-  `transporte_grupo` (`infra/nucleo/unidades-del-grupo.client.ts`; las del origen del lote, en el cliente), de a 201, y entran las de una misma fase; `pantallas/mover-grupo.ts` declara «Mover el grupo» con «Marcar que llegó» para un contenedor.
+  afuera cuentan como no movidas) y «Reintentar» vuelve a la vista previa con las no movidas. Un grupo (`?contenedor=` o `?embarque=`, por su id) lee sus unidades por
+  `transporte_unidades` (`infra/nucleo/unidades-del-grupo.client.ts`; las del origen del lote, en el cliente), hasta 200 con `hay_mas`, y entran las de una misma fase; `pantallas/mover-grupo.ts` declara «Mover el grupo» con «Marcar que llegó» para un contenedor.
 - **Área `documentos`.** `entities/documentos/`: `admision.ts` (qué entra a la bandeja, fechas por modo de vencimiento), vencimiento («vence hoy» aún vale),
   qué cuenta para un requisito (aprobado, vivo, sin vencer, mime **del requisito**, entre min y max: repite `evaluar_requisitos` sólo para «N de M») y
   `revision.ts` (`quePuedeHacer`: cada acción oculta, habilitada o apagada con motivo). `pantallas/documentos-unidad.ts` declara «Documentos» (`logistica.ver`,
@@ -144,7 +146,10 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   unidad y una fila por unidad (hasta 100).
 - **Área `aduana`.** `/logistica/aduana` (`pantallas/aduana.ts`; `ENLACE_DE_ADUANA`: regla `aduana`, `logistica.ver` o `logistica.aduana.gestionar` en el origen). La lista es del origen
   (`declaraciones_listar` con `p_origen`): las declaraciones con algún vehículo vivo de él y las que no tienen ninguno, con la insignia «Sin vehículos» (`sinVehiculos` de `entities/aduana/estado.ts`);
-  el buscador de «Vehículos de la declaración» busca en ese origen. El resumen (`?declaracion=`) abre por id, sin mirar el origen: si la pestaña no se puede dibujar en el origen resuelto (el enlace de la actividad no lo lleva), se abre igual, en lectura. Los enlaces del hueco van con el origen de la unidad. `entities/aduana/`: `declaracion.ts` (`actualizadoEn` es
+  el buscador de «Vehículos de la declaración» busca en ese origen. Arriba de la lista y en el drawer, la línea «qué es» (`QUE_ES_LA_DECLARACION` de `entities/aduana/textos.ts`);
+  cada fila nombra sus vehículos (`primeros`: hasta tres que quien mira ve, por título; `vehiculosDeLaFila` suma «y N más», con tope «100+», y «otros que no puedes ver»).
+  Cada vehículo del resumen y de la composición dice dónde viaja (`TituloYDondeViaja`, `features/aduana/components/donde-viaja.tsx`): enlaces «Contenedor X» y «Embarque Y»
+  (`contenedor` y `embarque` de `declaracion_leer`, por `transportes_con_embarque`) o «Sin transporte». El resumen (`?declaracion=`) abre por id, sin mirar el origen: si la pestaña no se puede dibujar en el origen resuelto (el enlace de la actividad no lo lleva), se abre igual, en lectura. Los enlaces del hueco van con el origen de la unidad. `entities/aduana/`: `declaracion.ts` (`actualizadoEn` es
   la versión), `estado.ts` («pagada» y «faltan» los calcula la base, nunca el cliente; el día es el de la empresa), `filtros.ts` (sólo `canal`, `pagada`, `q`;
   cursor `(creado_en, id)`, sin «Anterior»), `escritura.ts` (`cambiosDeDeclaracion`: sólo lo que cambió, `null` vacía). Lee `declaraciones_listar` (en la guarda
   de páginas) y `declaracion_leer`; el hueco «Aduana» lee el vínculo vivo por `declaraciones_vehiculos` y «Tributos pagados» (sin montos); fuera de las 200 que
@@ -212,31 +217,26 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   escrito sigue. Sin `logistica.transporte.editar` del origen, campos apagados con el motivo. `entities/transporte/transporte.ts` repite los textos de la base
   (contenedor y booking `^[A-Z0-9./-]{1,40}$` tras quitar **todo** espacio y pasar a mayúsculas; notas ≤ 2.000; ETA y arribo no antes del zarpe) sólo en lo
   que cambió; `porCampoDe` lleva el `hint` al campo. Un rechazo sin campo va en un aviso sobre «Guardar».
-  **`/logistica/embarques`:** los grupos del origen elegido; vistas `?grupo=embarques|contenedores` según sus reglas (`vistasDeTransporte(reglas)` por `REGLA_DE_LA_VISTA`; `vistaDelOrigen(pedida, vistas)`
-  da la primera sin pedido y `no_usa` si pide una que el flujo no usa: «<origen> no usa Contenedores.»; las dos vistas se dibujan sólo si hay dos; cambiar suelta filtros y cursor y conserva el
-  origen). Sólo por RPC: `transporte_grupos()` con `p_origen` (los de repuestos, sin origen, no salen; la sonda por `embarques_origen_booking_idx` / `contenedores_origen_numero_idx`) por **cursor opaco**
-  (`?cursor=` es el id de un embarque o un contenedor, validado con `z.guid()`, no con `leerCursor`; en `scripts/guardas/areas-b/paginas-en-la-base.ts`) y `transporte_grupo()`
-  (≤ 200, `hay_mas`, `hay_ocultas`: nunca un total). `cortada` (la base paró a las 2.000 filas) ofrece «Seguir buscando». Filtros
-  (`entities/transporte/filtros.ts`): `naviera`, `puerto_origen`, `puerto_destino` (sin opciones no se dibujan), `en_transito` (sin arribo), `q` por prefijo.
-  Lo que sigue entre orígenes: el resumen de una clave (`transporte_grupo`) junta los embarques (o contenedores) con ese booking (o número) en todos, y `leerCatalogosDeTransporte` lee
-  todos y nombra un propio «<nombre> · <origen>» (`nombreConOrigen`) para los filtros (`docs/PENDIENTES.md`).
-  La fila escribe lo común, «Varias»/«Varios» si difieren y «—» si ninguna lo tiene o el id ya no está en el catálogo, nunca el uuid (`textosDelGrupo`). El
-  resumen (`?booking=` o `?contenedor=`) lista unidades con fase y ETA (sin «días en la fase»: sería N+1) y monta los huecos de grupo de `mover`, `documentos`
-  y `dinero` (`src/app/(app)/logistica/embarques/huecos-del-grupo.ts`) por permiso en cualquier origen, **sin mirar la regla de flujo**; la base exige por unidad. Esos huecos leen las unidades del
-  grupo por `transporte_grupo` (`entities/nucleo/unidades-del-grupo.ts`).
-  **«Editar grupo»:** `?panel=editar-grupo` **tapa** al resumen (`src/app` dibuja uno u otro). El botón sale con `logistica.transporte.editar` o
-  `repuestos.editar` (`puedeEditarTransporte`, sin origen). `entities/transporte/edicion-del-grupo.ts`: lo que difiere sale vacío y un «Varios» vacío nunca se
-  vacía; las versiones esperadas son las que vio el resumen. `aplicarAlGrupo` → `transporte_grupo_aplicar` (todo o nada, **sin `notas`**, devuelve la clave
-  nueva si cambió contenedor o booking); `PT409` → «No se cambió ninguna: <motivo>» con «Recargar» que conserva lo escrito. Opciones: los activos que pueden usar
-  todas las unidades (`alcanceDelGrupo`: con un origen, lo que usa; con varios o con un ítem, los compartidos que ninguno tapa) más lo común guardado, rotulado (un
-  grupo cruza flujos; la base revisa oferta, origen y fase por unidad). Cada embarque del grupo pide `_embarque_editable`; un contenedor que va en un
-  embarque lo dice sobre sus bloques (`lineaDelEmbarqueDelGrupo`): lo del embarque cambia para todos sus vehículos.
+  **`/logistica/embarques`:** los embarques o los contenedores del origen elegido, cada uno con su estado (`entities/transporte/estado.ts`: lo calcula la base) y lo que lleva;
+  vistas `?grupo=embarques|contenedores` según sus reglas (`vistasDeTransporte(reglas)` por `REGLA_DE_LA_VISTA`; `vistaDelOrigen(pedida, vistas)` da la primera sin pedido y `no_usa` si
+  pide una que el flujo no usa: «<origen> no usa Contenedores.»; las dos vistas se dibujan sólo si hay dos; cambiar suelta filtros y cursor y conserva el origen). Sólo por RPC:
+  `embarques_listar()` y `contenedores_listar()` con `p_origen` (también los vacíos; los de repuestos, sin origen, no salen) por **cursor opaco** (`?cursor=` es el id de la última
+  fila, validado con `z.guid()`; en `scripts/guardas/areas-b/paginas-en-la-base.ts`); `cortada` (la base miró 500 sin llenar la página) ofrece «Seguir buscando». Filtros
+  (`entities/transporte/filtros-de-embarques.ts`): `estado`, `naviera`, `puerto_origen`, `puerto_destino` (sólo en embarques; sin opciones no se dibujan) y `q` por prefijo (3 letras o
+  dígitos). Un embarque se abre en **su página** (`/logistica/embarques/<id>`, `embarqueDeLogistica`): `embarque_leer` (qué es, su estado, sus contenedores con sus vehículos y los
+  sueltos al final, `entities/transporte/secciones-del-embarque.ts`; `?falta=1`, sólo lo que falta). Un contenedor, en su drawer (`?contenedor=<uuid>`, `contenedorDeLogistica`, en
+  la lista y sobre la página de su embarque): `contenedor_leer`. El que no existe, el que no es un uuid y el que no se ve dicen lo mismo (un solo `P0002`). Ningún número es un
+  total exacto (`{ n, hayMas }`). `leerCatalogosDeTransporte` lee todos los orígenes y nombra un propio «<nombre> · <origen>» (`nombreConOrigen`) para los filtros
+  (`docs/PENDIENTES.md`). Los huecos de `mover`, `documentos` y `dinero` de un embarque o un contenedor (`src/app/(app)/logistica/embarques/huecos-del-grupo.ts`, `?panel=grupo-<clave>`)
+  se ofrecen por permiso **sin mirar la regla de flujo**; la base exige por unidad, y leen sus unidades por `transporte_unidades` (`entities/nucleo/unidades-del-grupo.ts`).
+  «⋯» de la fila, de la cabecera y de cada contenedor: `entities/transporte/acciones-de-embarques.ts`. **«Editar el embarque»** y **«Editar el contenedor»** escriben la entidad por
+  `embarque_guardar` y `contenedor_guardar` con su versión (`PT409` → «Recargar» conserva lo escrito); lo del embarque cambia para todos sus vehículos.
 
 ## Tablas
 
 `documentos`, `puertos`, `navieras`, `transportes` (1:1 con la unidad: su contenedor o su embarque y lo propio; se lee por la vista
 `transportes_con_embarque`, con lo de su embarque), `embarques`, `contenedores`, `tipos_contenedor` (catálogo fijo, por migración), `declaraciones_aduana`, `declaraciones_vehiculos`, `categorias_gasto`, `gastos`, `pagos`, `notas`.
-RPC: `transporte_leer`, `transporte_guardar`, `transporte_grupos` (de un origen; índices `embarques_origen_booking_idx`, `contenedores_origen_numero_idx`), `transporte_grupo`, `transporte_grupo_aplicar`, `embarque_crear|guardar`,
+RPC: `transporte_leer`, `transporte_guardar`, `embarques_listar` y `contenedores_listar` (de un origen), `embarque_leer`, `contenedor_leer`, `transporte_unidades`, `embarque_crear|guardar`,
 `contenedor_crear|guardar`, `transporte_asignar|quitar` (en lote, ≤ 200) y el estado calculado `embarque_estado`/`contenedor_estado`; `margen_vehiculo`, `alertas_demora` (cron), `storage_refcount`, `logistica_cadena_resumen`, `logistica_cadena_columna` (la lista de una fase), `logistica_bandeja_grupo` (de un origen; índices `transportes_llegadas_idx` y `transportes_salidas_idx`), `logistica_donde_esta` (`p_origen` nulo: todos), `declaraciones_listar` (de un origen) y los ayudantes `_logistica_lo_propio` y `_bandeja_dia_*`; mover vía `flujos`. La oferta de transporte es de `flujos` (`flujo_oferta_guardar`);
 logística sólo la lee con `flujo_oferta()`. Puertos, navieras y categorías de gasto (propios de un origen o compartidos) se escriben sólo por RPC: `puerto_crear|guardar`,
 `naviera_crear|guardar`, `categoria_gasto_crear|guardar|eliminar`. Gastos y pagos se escriben sólo por RPC: `gasto_registrar`, `gasto_guardar`, `gasto_eliminar`, `gastos_prorratear`,

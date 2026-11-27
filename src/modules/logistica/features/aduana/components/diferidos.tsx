@@ -11,7 +11,9 @@ export const HuecoDeAduanaDiferido = diferido(
 
 // El buscador de vehículos de la composición (6.09-2) y el formulario de la declaración se piden al usarse: el resumen y la lista no cargan su código.
 export const BuscadorDeUnidadesDiferido = diferido(() =>
-  import('./buscador-de-unidades').then((modulo) => modulo.BuscadorDeUnidades),
+  import('../../nucleo/components/buscador-de-unidades').then(
+    (modulo) => modulo.BuscadorDeUnidades,
+  ),
 )
 
 export const DrawerDeDeclaracionDiferido = diferido(
