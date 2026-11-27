@@ -105,12 +105,6 @@ export const PERMITIDAS: readonly Permitida[] = [
     destino: 'Location: url.data',
     motivo: 'Un documento del portal: a su URL firmada de Storage',
   },
-  {
-    archivo: 'src/app/(app)/logistica/configuracion/route.ts',
-    destino: 'primeraPestanaAbierta(permisos)',
-    motivo:
-      'La configuración de Logística no tiene página índice; la quita `feat/configuracion-de-logistica-en-fases`, que borra también esta línea',
-  },
 ]
 
 // Un texto entre comillas (se conserva) o un comentario (se borra). Las plantillas con `${…}` anidados no se separan; alcanza para buscar llamadas.

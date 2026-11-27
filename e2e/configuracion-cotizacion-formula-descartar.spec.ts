@@ -1,6 +1,8 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
 import { expect, test, type Page } from './soporte/prueba'
+import { estadoDeLaBarra } from './soporte/barra-de-la-formula'
 import { enLaPestana } from './soporte/pestanas-del-origen'
+import { abrirLaInformacion, seccionDeLaInformacion } from './soporte/informacion-de-la-formula'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
   PREFIJO_ROL_E2E,
@@ -71,8 +73,12 @@ async function abrirFormula(page: Page, origenId: string, resto = '') {
 
 const dialogo = (page: Page) =>
   page.getByRole('dialog', { name: 'Descartar el borrador de Pía Descarta' })
-const botonDescartar = (page: Page) => page.getByRole('button', { name: 'Descartar…', exact: true })
-const borrador = (page: Page) => page.getByRole('region', { name: 'Borrador' })
+// «Descartar el borrador…» está en la sección «Borrador» del modal «Información de la fórmula»: el clic cambia ese modal por la confirmación.
+const descartar = async (page: Page) =>
+  (await abrirLaInformacion(page))
+    .getByRole('button', { name: 'Descartar el borrador…', exact: true })
+    .click()
+const borrador = (page: Page) => seccionDeLaInformacion(page, 'Borrador')
 const idDe = (correo: string) =>
   sql(`select id from public.perfiles where email = ${literal(correo)}`)
 
@@ -81,36 +87,38 @@ test('quien configura el origen descarta el borrador de otra persona; cancelar, 
 }) => {
   await entrar(page, configuradora, { fresco: true })
   await abrirFormula(page, alDia.id)
-  await expect(borrador(page)).toBeVisible()
-  await botonDescartar(page).click()
+  await expect(await borrador(page)).toBeVisible()
+  await descartar(page)
   await expect(dialogo(page)).toBeVisible()
   await expect(page).toHaveURL(/panel=descartar-borrador/)
   await expect(dialogo(page)).toContainText('no se puede deshacer')
-  // Recargar lo reabre; «atrás» lo cierra y el borrador sigue.
+  // Recargar lo reabre; «atrás» vuelve a la información de la fórmula y el borrador sigue.
   await page.reload()
   await expect(dialogo(page)).toBeVisible()
   await page.goBack()
   await expect(dialogo(page)).toBeHidden()
-  await expect(page).not.toHaveURL(/panel=/)
-  await expect(borrador(page)).toBeVisible()
-  await botonDescartar(page).click()
+  await expect(page).toHaveURL(/panel=info-formula/)
+  await expect(await borrador(page)).toBeVisible()
+  await descartar(page)
   await dialogo(page).getByRole('button', { name: 'Cancelar' }).click()
   await expect(dialogo(page)).toBeHidden()
   await expect(page).not.toHaveURL(/panel=/)
-  await expect(borrador(page)).toBeVisible()
-  await botonDescartar(page).click()
+  await expect(await borrador(page)).toBeVisible()
+  await descartar(page)
   await page.keyboard.press('Escape')
   await expect(dialogo(page)).toBeHidden()
-  await expect(borrador(page)).toBeVisible()
-  await botonDescartar(page).click()
+  await expect(await borrador(page)).toBeVisible()
+  await descartar(page)
   await dialogo(page).getByRole('button', { name: 'Descartar borrador' }).click()
   await expect(page.getByText('Se descartó el borrador.')).toBeVisible()
   await expect(dialogo(page)).toBeHidden()
-  await expect(borrador(page)).toHaveCount(0)
-  await expect(page.getByRole('region', { name: 'Publicada' })).toContainText(
+  await expect(page).not.toHaveURL(/panel=/)
+  // La página volvió sin el borrador (la barra lo dice) antes de abrir la información: abrirla escribe la URL.
+  await expect(estadoDeLaBarra(page)).toHaveText('Publicada v1')
+  await expect(await borrador(page)).toHaveCount(0)
+  await expect(await seccionDeLaInformacion(page, 'Publicada')).toContainText(
     'Publicada: versión 1',
   )
-  await expect(page).not.toHaveURL(/panel=/)
   const origen = `${literal(alDia.id)}::uuid`
   expect(
     sql(`select count(*) from public.formulas where origen_id = ${origen} and estado = 'borrador'`),
@@ -125,13 +133,14 @@ test('quien configura el origen descarta el borrador de otra persona; cancelar, 
 test('un borrador atrasado no se publica pero se descarta', async ({ page }) => {
   await entrar(page, configuradora)
   await abrirFormula(page, atrasado.id)
-  await expect(borrador(page)).toContainText('publicarlo dará conflicto')
+  await expect(await borrador(page)).toContainText('publicarlo dará conflicto')
   await expect(page.getByRole('button', { name: 'Publicar…' })).toHaveCount(0)
-  await botonDescartar(page).click()
+  await descartar(page)
   await dialogo(page).getByRole('button', { name: 'Descartar borrador' }).click()
   await expect(page.getByText('Se descartó el borrador.')).toBeVisible()
-  await expect(borrador(page)).toHaveCount(0)
-  await expect(page.getByRole('region', { name: 'Publicada' })).toContainText(
+  await expect(estadoDeLaBarra(page)).toHaveText('Publicada v2')
+  await expect(await borrador(page)).toHaveCount(0)
+  await expect(await seccionDeLaInformacion(page, 'Publicada')).toContainText(
     'Publicada: versión 2',
   )
 })
@@ -142,5 +151,7 @@ test('la URL no abre descartar sin borrador', async ({ page }) => {
   await expect(page.getByText('No hay borrador para descartar.')).toBeVisible()
   await expect(page).not.toHaveURL(/panel=/)
   await expect(page.getByRole('dialog')).toHaveCount(0)
-  await expect(botonDescartar(page)).toHaveCount(0)
+  await expect(
+    (await abrirLaInformacion(page)).getByRole('button', { name: 'Descartar el borrador…' }),
+  ).toHaveCount(0)
 })

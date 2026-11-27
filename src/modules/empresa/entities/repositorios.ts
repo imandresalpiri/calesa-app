@@ -7,6 +7,7 @@ import type { LeyendaDeTiposCambio, ParaCompartir } from './compartir-tipos-camb
 import type { AjustesEmpresa, CambiosDeAjustes } from './ajustes-empresa'
 import type { CamposDeEnlace, Direccion, ListaDeEnlacesDeLaEmpresa } from './enlaces-de-ayuda'
 import type { ClaveIntegracion, Integracion } from './integraciones'
+import type { UsosDelMes } from './asistente-ia/usos'
 import type { ElementoAGuardar, MisEnlacesLeidos } from './mis-enlaces-de-ayuda'
 import type { CambioDeValor, Moneda, TipoCambio } from './tipos-cambio'
 import type { TipoCambioVigente, UltimoCambio } from './tipos-cambio-vigentes'
@@ -82,6 +83,23 @@ export type RepositorioIntegraciones = {
 // «Probar» de la web pública: un POST con la dirección y el secreto guardados. Vuelve sólo el
 // código de respuesta; el secreto no sale del servidor.
 export type ProbadorDeRevalidacion = () => Promise<Resultado<{ codigo: number; conHttps: boolean }>>
+
+// Lo que se le pide al asistente de IA desde el navegador: un atajo o una instrucción libre sobre un texto. La firma (el nombre de quien comparte)
+// y `puedeConfigurar` (si el error ofrece ir a Integraciones) los pone el servidor.
+export type PedidoAlAsistente = (
+  { tipo: 'generar'; atajoId: string } | { tipo: 'reescribir'; instruccion: string }
+) & { texto: string; firma: string | null; puedeConfigurar: boolean }
+
+// Redacta con la clave guardada y cuenta un uso de quien pide si el proveedor respondió. La clave no sale del servidor.
+export type RedactorDelAsistente = (
+  pedido: PedidoAlAsistente,
+) => Promise<Resultado<{ texto: string }>>
+
+// «Probar conexión»: un pedido mínimo con la clave guardada. Vuelve el modelo que respondió; no cuenta como uso.
+export type ProbadorDelAsistente = () => Promise<Resultado<{ modelo: string }>>
+
+// Los usos del mes: los de todos para quien gestiona la empresa, los propios para los demás (RLS).
+export type LectorDeUsosDelAsistente = () => Promise<Resultado<UsosDelMes>>
 
 export type AjustesParaEditar = {
   ajustes: AjustesEmpresa

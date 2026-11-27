@@ -78,7 +78,8 @@ async function guiaPublica(slug: string): Promise<{ cuerpo_html: string; titulo:
   return data[0] ?? null
 }
 
-const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto', exact: true })
+const editor = (page: Page) => page.getByRole('textbox', { name: 'Texto de la guía', exact: true })
+const tituloDeLaGuia = (page: Page) => page.getByRole('textbox', { name: 'Título', exact: true })
 
 async function escribirLaGuia(page: Page) {
   await editor(page).click()
@@ -114,11 +115,11 @@ test('la dueña escribe una guía con título, lista y enlace, la guarda, la pub
   await expect(page.getByLabel('Dirección', { exact: true })).toHaveValue(SLUG)
   await page.getByRole('button', { name: 'Crear borrador' }).click()
   await expect(page).toHaveURL(/\/configuracion\/web\/guias\/[0-9a-f-]{36}$/)
-  await expect(page.getByRole('heading', { name: TITULO, level: 1 })).toBeVisible()
-  await expect(page.getByText('Borrador', { exact: true })).toBeVisible()
+  await expect(tituloDeLaGuia(page)).toHaveValue(TITULO)
+  await expect(page.getByText('Borrador', { exact: true }).first()).toBeVisible()
 
   await escribirLaGuia(page)
-  await page.getByRole('button', { name: 'Guardar', exact: true }).click()
+  await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click()
   await expect(page.getByText('Guía guardada')).toBeVisible()
   const guardado = sql(
     `select cuerpo_doc::text from public.web_guias where slug = ${literal(SLUG)}`,
@@ -136,7 +137,8 @@ test('la dueña escribe una guía con título, lista y enlace, la guarda, la pub
   expect(visible?.cuerpo_html).toContain('<ul><li><p>Elegir el vehículo</p></li>')
   expect(visible?.cuerpo_html).toContain(`<a href="${ENLACE}" rel="noopener noreferrer nofollow">`)
 
-  await page.getByRole('button', { name: 'Despublicar', exact: true }).click()
+  await page.getByRole('button', { name: 'Más acciones de publicación' }).click()
+  await page.getByRole('menuitem', { name: 'Despublicar', exact: true }).click()
   await expect(page.getByText('Guía despublicada')).toBeVisible()
   expect(await guiaPublica(SLUG)).toBeNull()
 })
@@ -151,15 +153,17 @@ test('quien gestiona el contenido sin publicar ve «Publicar» apagado con su mo
   const id = sql(`select id from public.web_guias where slug = ${literal(slug)}`)
   await entrar(page, soloGestiona)
   await page.goto(`/configuracion/web/guias/${id}`)
-  await expect(page.getByRole('heading', { name: 'E2E Guía sin publicar', level: 1 })).toBeVisible()
+  await expect(tituloDeLaGuia(page)).toHaveValue('E2E Guía sin publicar')
 
   await expect(page.getByRole('button', { name: 'Publicar', exact: true })).toBeDisabled()
-  await expect(page.getByText('Tu rol no publica guías.')).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'Publicar', exact: true }),
+  ).toHaveAccessibleDescription('Tu rol no publica guías.')
 
   await editor(page).click()
   await page.keyboard.press('End')
   await page.keyboard.type(' y más texto')
-  await page.getByRole('button', { name: 'Guardar', exact: true }).click()
+  await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click()
   await expect(page.getByText('Guía guardada')).toBeVisible()
   expect(
     sql(

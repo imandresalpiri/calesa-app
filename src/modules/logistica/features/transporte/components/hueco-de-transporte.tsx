@@ -38,7 +38,11 @@ function DeUnVehiculo({ unidad }: { unidad: Unidad }) {
       puedeEditar={
         permisos !== null && puede(permisos, 'logistica.transporte.editar', unidad.origenId)
       }
-      puedeCargarNavieras={permisos !== null && puede(permisos, 'logistica.catalogos.gestionar')}
+      origenParaCargarNavieras={
+        permisos !== null && puede(permisos, 'logistica.catalogos.gestionar', unidad.origenId)
+          ? unidad.origenId
+          : null
+      }
       releer={releer}
     />
   )

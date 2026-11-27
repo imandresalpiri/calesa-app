@@ -3,12 +3,15 @@
 import { createContext, use } from 'react'
 import type { EstadoDeLaEdicion } from '../../../entities/estado-de-la-edicion'
 
-// Lo que la barra de la fórmula (docs/GLOSARIO.md › «Barra de la fórmula») comparte con los editores de Planilla, Hoja y Tarjeta: el lugar
-// donde van sus botones y el estado de lo que se edita.
+// Lo que la barra de la fórmula (docs/GLOSARIO.md › «Barra de la fórmula») comparte con los editores de Planilla, Hoja y Tarjeta: los lugares
+// donde van sus botones (las acciones y, junto al estado, la información) y el estado de lo que se edita.
 export type ContextoDeLaBarra = {
   // El lugar de la barra donde van las acciones del editor; nulo hasta que la barra se montó.
   ranura: HTMLElement | null
   setRanura: (nodo: HTMLElement | null) => void
+  // El lugar junto al estado (el botón ⓘ «Información de la fórmula» de la Planilla); nulo hasta que se montó.
+  ranuraDelEstado: HTMLElement | null
+  setRanuraDelEstado: (nodo: HTMLElement | null) => void
   estado: EstadoDeLaEdicion
   registrarEstado: (estado: EstadoDeLaEdicion) => void
 }

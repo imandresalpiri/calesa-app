@@ -6,7 +6,7 @@ import { PLATAFORMAS_APIBARA, type PlataformaApibara } from '@/shared/lib/apibar
 import { conteoEnFrase, type ConteoAcotado } from '@/shared/lib/conteo'
 import type { Tables } from '@/shared/types/database.types'
 
-export const CLAVES_INTEGRACION = ['apibara', 'push_web', 'web_publica'] as const
+export const CLAVES_INTEGRACION = ['apibara', 'asistente_ia', 'push_web', 'web_publica'] as const
 export type ClaveIntegracion = (typeof CLAVES_INTEGRACION)[number]
 
 export type Integracion = {
@@ -170,9 +170,12 @@ export function configDeWebPublica(config: unknown): ConfigWebPublica {
 export const LARGO_MINIMO_SECRETO = 8
 export const LARGO_MAXIMO_SECRETO = 500
 
-// apibara no se activa sin su clave: prendida sin ella, cada alta por link fallaría.
+// apibara y el asistente de IA no se activan sin su clave: prendidos sin ella, cada alta por link o cada texto pedido fallaría. La base
+// repite la regla (`integracion_guardar`).
+const SE_ACTIVAN_CON_CLAVE: readonly ClaveIntegracion[] = ['apibara', 'asistente_ia']
+
 export function puedeActivarse(integracion: Pick<Integracion, 'clave' | 'secretoGuardadoEn'>) {
-  return integracion.clave !== 'apibara' || integracion.secretoGuardadoEn !== null
+  return !SE_ACTIVAN_CON_CLAVE.includes(integracion.clave) || integracion.secretoGuardadoEn !== null
 }
 
 // --- Estado de cada integración, el que dice su tarjeta ---------------------------------------
@@ -185,13 +188,13 @@ export const ETIQUETA_DEL_ESTADO = {
   falta_la_clave: 'Falta la clave',
 } as const satisfies Record<EstadoDeIntegracion, string>
 
-// «Falta la clave»: apibara sin su clave guardada (no se puede activar); la web pública prendida sin secreto (la base no avisa al sitio);
-// los avisos push prendidos sin la clave pública (nadie puede activarlos en su navegador). Lo demás es prendida o apagada.
+// «Falta la clave»: apibara o el asistente de IA sin su clave guardada (no se pueden activar); la web pública prendida sin secreto (la base
+// no avisa al sitio); los avisos push prendidos sin la clave pública (nadie puede activarlos en su navegador). Lo demás es prendida o apagada.
 export function estadoDeIntegracion(
   integracion: Pick<Integracion, 'clave' | 'activa' | 'secretoGuardadoEn'>,
   { sinClavePublica }: { sinClavePublica: boolean },
 ): EstadoDeIntegracion {
-  if (integracion.clave === 'apibara' && integracion.secretoGuardadoEn === null) {
+  if (!puedeActivarse(integracion)) {
     return 'falta_la_clave'
   }
   if (!integracion.activa) {

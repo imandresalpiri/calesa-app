@@ -197,7 +197,7 @@ test('E2E la dueña la aprueba: la pregunta avisa, la insignia se va y Luis ya l
   await expect(fila(page, t.titulo)).toBeVisible()
 })
 
-test('E2E el resumen «Quién crea y quién ve» de Roles le da las privadas al rol de Luis en el origen', async ({
+test('E2E el modal «Quién crea y quién ve» de Roles le da las privadas al rol de Luis en el origen', async ({
   page,
 }) => {
   const privadasDeLuis = (): string =>
@@ -206,8 +206,12 @@ test('E2E el resumen «Quién crea y quién ve» de Roles le da las privadas al 
        where r.clave = ${literal(ROL_DE_LUIS.clave)} and rp.permiso_clave = 'cotizaciones.privadas.ver'
          and rp.origen_id = ${literal(t.origen.id)}::uuid`).trim()
   expect(privadasDeLuis()).toBe('0')
-  // Con `?origen=` el resumen «Quién crea y quién ve» de la matriz de Roles entra abierto.
-  await abrir(page, t.duena, `/configuracion/roles?bloque=cotizaciones&origen=${t.origen.id}`)
+  // `?panel=quien-crea-y-quien-ve` abre el modal de la matriz de Roles y `?origen=` elige el lugar.
+  await abrir(
+    page,
+    t.duena,
+    `/configuracion/roles?bloque=cotizaciones&panel=quien-crea-y-quien-ve&origen=${t.origen.id}`,
+  )
   const ve = page.getByRole('combobox', { name: `Ve: ${ROL_DE_LUIS.nombre}` })
   await expect(ve).toHaveValue('sin_privadas')
   await ve.selectOption({ label: 'Todas, también las privadas' })

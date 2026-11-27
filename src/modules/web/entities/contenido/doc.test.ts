@@ -12,11 +12,11 @@ describe('htmlDelDocumento', () => {
     )
   })
 
-  it('nunca deja salir un script, un javascript: ni una imagen de otro host', () => {
+  it('nunca deja salir un script, un iframe, un javascript: ni una imagen de otro host', () => {
     for (const { documento } of CASOS_DEL_DOCUMENTO) {
       const resultado = htmlDelDocumento(documento)
       if (resultado.ok) {
-        expect(resultado.html).not.toMatch(/<script|javascript:|data-ruta="[^"]*:/i)
+        expect(resultado.html).not.toMatch(/<script|<iframe|javascript:|data-ruta="[^"]*:/i)
       }
     }
   })
@@ -54,6 +54,9 @@ describe('contra _web_doc_html() de la base', () => {
     '_web_doc_ruta_valida',
     '_web_doc_marcas',
     '_web_doc_imagen',
+    '_web_doc_galeria',
+    '_web_doc_boton',
+    '_web_doc_video',
     '_web_doc_nodo',
     '_web_doc_html',
   ]

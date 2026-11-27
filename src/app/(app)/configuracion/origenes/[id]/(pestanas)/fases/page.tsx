@@ -6,8 +6,9 @@ import { NoSeAbre } from '../../no-se-abre'
 
 export const metadata: Metadata = { title: 'Fases del origen' }
 
-// Configuración › Orígenes › un origen › Fases: las fases por las que pasa un vehículo de este origen, con sus reglas y sus tipos de documento en el panel.
-// Pide `flujos.configurar` en este origen; nunca abre el flujo de otro.
+// Configuración › Orígenes › un origen › Fases: las fases por las que pasa un vehículo de este origen, con sus reglas en el panel y, arriba del diagrama,
+// los catálogos de su logística, cada uno en su drawer (`?panel=`). Pide `flujos.configurar` o los catálogos de logística en este origen (con sólo los
+// catálogos, el diagrama se ve en lectura); nunca abre el flujo de otro.
 export default async function PaginaFlujoDelOrigen({
   params,
   searchParams,
@@ -22,6 +23,7 @@ export default async function PaginaFlujoDelOrigen({
       permisos={abierto.sesion.permisos}
       fijo={{ origenId: abierto.origen.id }}
       seccionPedida={unParametro(parametros['seccion'])}
+      panelPedido={unParametro(parametros['panel'])}
     />
   )
 }

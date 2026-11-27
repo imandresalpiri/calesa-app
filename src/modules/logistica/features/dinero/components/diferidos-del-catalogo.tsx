@@ -2,7 +2,7 @@
 
 import { diferido } from '@/shared/ui/diferido'
 
-// El catálogo «Categorías de gasto» de Logística › Configuración (6.11-4) se pide al abrir su pestaña: la página de configuración no carga el código de la lista, el formulario ni el diálogo.
-export const CategoriasDeGastoDiferido = diferido(() =>
-  import('./categorias-de-gasto').then((modulo) => modulo.CategoriasDeGasto),
+// El drawer «Categorías de gasto» de las fases de un origen (6.11-4) pide su código al abrirse: la pestaña no carga la lista, el formulario ni el modal.
+export const CategoriasDelOrigenDiferido = diferido(() =>
+  import('./categorias-del-origen').then((modulo) => modulo.CategoriasDelOrigen),
 )

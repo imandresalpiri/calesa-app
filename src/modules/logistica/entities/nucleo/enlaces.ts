@@ -1,10 +1,11 @@
 import type { ComponentType } from 'react'
 
 import type { ClavePermiso } from '@/shared/lib/permisos'
-import { unidadDeLogistica } from '@/shared/lib/rutas'
+import { unidadDeLogistica, type PanelDeCatalogo } from '@/shared/lib/rutas'
+import type { PropsDelCatalogoDelOrigen } from './catalogo-del-origen'
 import { ORDEN_DE_HUECOS } from './hueco'
 
-// Un enlace de la sub-navegación de `/logistica` (Embarques, Aduana, Gastos) y un catálogo de logística de Logística › Configuración (6.01). Nulo hasta que
+// Un enlace de la sub-navegación de `/logistica` (Embarques, Aduana, Gastos) y un catálogo de logística de las fases de un origen (6.01). Nulo hasta que
 // existe la página o el catálogo: el layout y la sección sólo dibujan lo que está lleno y que la persona puede ver.
 export type EnlaceDeLogistica = {
   titulo: string
@@ -12,14 +13,13 @@ export type EnlaceDeLogistica = {
   permiso: ClavePermiso
 }
 
-// Un catálogo de logística en Logística › Configuración: su `clave` es el último tramo de su sub-ruta (`/logistica/configuracion/<clave>`) y su `descripcion`, la frase
-// que la página dice bajo el título (una, de qué se configura ahí).
+// Un catálogo de logística en la pestaña Fases de cada origen: su `clave` es la de su drawer (`?panel=<clave>`), su `titulo` el del botón arriba del diagrama y
+// del drawer, y su `componente` lo que el drawer dibuja con el origen de la pestaña.
 export type CatalogoDeLogistica = {
-  clave: string
+  clave: PanelDeCatalogo
   titulo: string
-  descripcion: string
   permiso: ClavePermiso
-  componente: ComponentType
+  componente: ComponentType<PropsDelCatalogoDelOrigen>
 }
 
 /** La clave de la URL con la que un enlace pide abrir un hueco de la unidad (`?hueco=documentos`): la página lo dibuja abierto desde el principio. */

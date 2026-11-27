@@ -42,9 +42,24 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
   HTML); `doc.casos.ts` corre contra los dos en `doc.test.ts` (PGlite). Imagen = `{ruta, alt}` relativa al bucket `web`: sale `<img data-ruta alt>` y el
   sitio arma la URL. `documento-limpio.ts` reduce lo de Tiptap a esa lista (la frontera sigue siendo la base). **El editor** es propio del área
   (`features/contenido/editor/`, `EditorDeDocumento`, diferido; no importa el de `leads`; los legales lo usan con `imagenes={false}`): la imagen sólo va en
-  el primer nivel y sólo lee `img[data-ruta]`.
+  el primer nivel y sólo lee `img[data-ruta]`. **Dos modos**: el de los legales (texto, títulos, listas, citas y enlaces) y el de la **guía**
+  (`use-editor-de-la-guia.ts`, `extensiones.ts` con `modo === 'guia'`), que suma cuatro bloques de primer nivel con su forma JSON: `horizontalRule`,
+  `gallery {imagenes: [{ruta, alt}]}` (1 a 12), `button {texto, href}` y `video {url}` (sólo el enlace canónico de YouTube o Vimeo, sin `<iframe>`). Sus
+  nodos están en `editor/bloques/`; el catálogo de lo que «/» ofrece es `entities/contenido/bloques-de-la-guia.ts` (`BLOQUES_DE_LA_GUIA`,
+  `filtrarBloques`, `destinoAlMover`) y la vista previa es `entities/contenido/vista-previa.ts` (`htmlParaLaVistaPrevia`, el mismo HTML que da la
+  base). **La lista blanca está espejada TS↔SQL** (`doc.ts`/`doc-nodos.ts`/`doc-bloques.ts` y `_web_doc_html()`, `_web_doc_galeria|boton|video`): un
+  bloque nuevo se suma en los dos y en `doc.casos.ts`. Los legales no llevan separador, galería, botón ni video (la base los rechaza con hint
+  `legales`). Las imágenes de una galería cuentan en `storage_refcount('web', …)` y `quitarSiHuerfano` las limpia al guardar o eliminar. Las subidas
+  pendientes viven fuera del documento (`subidas.client.ts`, de a 2): una imagen sin `ruta` no se guarda y «Guardar» espera a que terminen.
 - `contenido` › guías: `/configuracion/web/guias/[id]` (`pantallas/guia.ts`, `web.contenido.gestionar`; publicar, programar y despublicar piden además
-  `web.guias.publicar`, que la action comprueba antes). `infra/contenido/guias-escritura.ts`: `update … where actualizado_en = <esperado>` (cero filas =
+  `web.guias.publicar`, que la action comprueba antes). **La pantalla es un editor de bloques** (`features/contenido/guias/components/formulario-de-guia.tsx`,
+  `use-formulario-de-la-guia.ts`): `BarraDeLaGuia` fija arriba (volver, deshacer/rehacer, estado, «Vista previa», `AccionesDePublicacion`: la principal, la de
+  al lado y el «⋯»; `accionesDeLaBarra()` de `entities/contenido/guias.ts` dice cuáles y su motivo), `ArticuloDeLaGuia` (el título grande sin etiqueta visible,
+  su nombre es «Título», y `LienzoDeLaGuia`) y `PanelDeLaGuia` con las pestañas «Publicación» (`?pestana=`) y «Bloque». El panel va al lado con
+  `localStorage` `guia:panel` (`panel-lateral.ts`) y debajo de 1024 px es un `<Drawer>` `?panel=lateral`; la vista previa, un `<Modal ancho="completa">`
+  `?panel=vista-previa`. **`key={guia.actualizadoEn}` en la página reinicia el editor tras guardar: deshacer y rehacer no cruzan un guardado.**
+  `motivoDelCuerpo` (la misma regla de la base) frena el guardado y la publicación en el cliente: un botón o un video mal escritos no viajan. Salir con
+  cambios pregunta en la propia barra (`useSalidaConCambios`). `infra/contenido/guias-escritura.ts`: `update … where actualizado_en = <esperado>` (cero filas =
   conflicto o «ya no existe»), nunca manda `cuerpo_html` ni `minutos_lectura`. Al guardar o eliminar se quitan del bucket `web` las imágenes y la portada
   que ya no están (`quitarSiHuerfano`); una subida nunca guardada queda huérfana (deuda aceptada). Categorías: panel `?panel=categorias` de «Guías»
   (el campo de la guía es un `<ComboDeCatalogo>` que también la crea: `crearCategoriaDesdeLaGuia`, sin revalidar);
@@ -54,8 +69,8 @@ sólo `web.cola.participar`), en `docs/PENDIENTES.md`.
   drawer «Categorías» (`?panel=categorias&quitar=<id>`, `features/contenido/categorias-de-faq/`) con `agregar|guardar|mover|quitarCategoriaDeFaq`, que
   revalidan: escritura directa con la versión, mover por `ordenesTrasMover()` y quitar por `web_categoria_faq_eliminar`. La foto de un testimonio
   (`foto-de-testimonio.client.ts`) va a WebP, sube por hash al bucket `web` y se limpia con `quitarSiHuerfano`.
-- `cola`: `/configuracion/cola-web` (`pantallas/cola.ts`): una página a todo el ancho con «Sin asignar», «En la rueda» (con «Agregar a la rueda» junto al título y, dentro, los
-  grupos de las habilitadas que hoy no reciben turnos) y «Política de la cola», cada una con su título (`SeccionDeLaCola`) y sus tarjetas en `REJILLA_DE_TARJETAS`
+- `cola`: `/configuracion/cola-web` (`pantallas/cola.ts`): una página a todo el ancho con «Sin asignar», «En la rueda» (con «Agregar a la rueda» junto al título), los
+  grupos de las habilitadas que hoy no reciben turnos (secciones aparte, debajo) y «Política de la cola», cada una con su título (`SeccionDeLaCola`) y sus tarjetas en `REJILLA_DE_TARJETAS`
   (`auto-fill`; el esqueleto de `src/app` repite la clase porque no importa `@/modules/web`). `entities/cola/orden-de-la-rueda.ts` (`ordenDeLaRueda`) es **espejo documentado** del paso 5
   de `web.solicitar_asesor`, con test: la base decide, esto sólo dibuja. La política se lee en `infra/cola/` porque un área no importa `sitio`. **Todo se edita en un
   modal por URL**, pedido con `diferido()` al abrirse por primera vez: la política (`?panel=politica`, `TarjetaDeLaPolitica`: tarjeta clicable con un botón sr-only y su «⋯»

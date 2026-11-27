@@ -2,8 +2,18 @@
 // `rel` y la `class` de un enlace, el `type` de una lista numerada, el nivel 1 o 4 de un título): se deja sólo lo que acepta. Un nodo o una
 // marca que no conoce se pierde, pero su texto queda. Es defensa en el navegador, no la frontera: la base rechaza lo que no esté en la lista.
 // Propio del área `contenido` de `web` (el editor de `leads` es otro: `web` no importa `leads`).
-import { MAXIMO_DEL_ALT, hrefSeguro, htmlDelDocumento, rutaDeImagenSegura } from './doc'
+import { hrefSeguro, htmlDelDocumento } from './doc'
 import { esObjeto } from './doc-nodos'
+import { TIPOS_DE_BLOQUE_DE_DATOS, limpiarBloqueDeDatos } from './documento-limpio-bloques'
+import type { BloqueDeDatos } from './documento-limpio-bloques'
+
+export type {
+  BotonDelDocumento,
+  Galeria,
+  Imagen,
+  Separador,
+  VideoDelDocumento,
+} from './documento-limpio-bloques'
 
 type Crudo = Record<string, unknown>
 
@@ -23,8 +33,7 @@ export type ListaNumerada = {
 }
 export type BloqueDeLista = Parrafo | ListaConVinetas | ListaNumerada
 export type Cita = { type: 'blockquote'; content: BloqueDeLista[] }
-export type Imagen = { type: 'image'; attrs: { ruta: string; alt: string } }
-export type Bloque = BloqueDeLista | Titulo | Cita | Imagen
+export type Bloque = BloqueDeLista | Titulo | Cita | BloqueDeDatos
 export type DocumentoDelSitio = { type: 'doc'; content: Bloque[] }
 
 // doc › lista › ítem › lista › ítem › párrafo › texto: la base admite hasta la profundidad 6, así que una lista sólo cabe hasta la
@@ -83,7 +92,7 @@ function parrafo(contenido: EnLinea[]): Parrafo {
   return contenido.length > 0 ? { type: 'paragraph', content: contenido } : { type: 'paragraph' }
 }
 
-// Los bloques de un ítem o de una cita: párrafos y listas. Un título, una cita o una imagen de adentro baja a párrafo (o a sus hijos).
+// Los bloques de un ítem o de una cita: párrafos y listas. Un título o una cita de adentro baja a párrafo (o a sus hijos); una imagen, galería, botón, video o separador cae.
 function limpiarBloquesDeLista(nodos: unknown, profundidad: number): BloqueDeLista[] {
   return comoLista(nodos).flatMap((nodo): BloqueDeLista[] => {
     if (!esObjeto(nodo)) {
@@ -96,7 +105,7 @@ function limpiarBloquesDeLista(nodos: unknown, profundidad: number): BloqueDeLis
     if (tipo === 'blockquote') {
       return limpiarBloquesDeLista(nodo['content'], profundidad)
     }
-    if (tipo === 'image') {
+    if (typeof tipo === 'string' && TIPOS_DE_BLOQUE_DE_DATOS.includes(tipo)) {
       return []
     }
     return [parrafo(limpiarEnLinea(nodo['content']))]
@@ -165,21 +174,14 @@ function nivelDelTitulo(nodo: Crudo): 2 | 3 {
   return esObjeto(attrs) && attrs['level'] === 2 ? 2 : 3
 }
 
-function limpiarImagen(nodo: Crudo): Imagen[] {
-  const attrs = nodo['attrs']
-  const ruta = esObjeto(attrs) ? rutaDeImagenSegura(attrs['ruta']) : null
-  if (ruta === null || !esObjeto(attrs)) {
-    return []
-  }
-  const alt =
-    typeof attrs['alt'] === 'string' ? [...attrs['alt']].slice(0, MAXIMO_DEL_ALT).join('') : ''
-  return [{ type: 'image', attrs: { ruta, alt } }]
-}
-
 function limpiarBloques(nodos: unknown): Bloque[] {
   return comoLista(nodos).flatMap((nodo): Bloque[] => {
     if (!esObjeto(nodo)) {
       return []
+    }
+    const deDatos = limpiarBloqueDeDatos(nodo)
+    if (deDatos !== null) {
+      return deDatos
     }
     switch (nodo['type']) {
       case 'bulletList':
@@ -195,15 +197,13 @@ function limpiarBloques(nodos: unknown): Bloque[] {
         const contenido = limpiarBloquesDeLista(nodo['content'], 2)
         return contenido.length > 0 ? [{ type: 'blockquote', content: contenido }] : []
       }
-      case 'image':
-        return limpiarImagen(nodo)
       default:
         return [parrafo(limpiarEnLinea(nodo['content']))]
     }
   })
 }
 
-// Lo que emite el editor, reducido a la lista blanca. Sin texto ni imagen, es «sin cuerpo» (`null`). Lo que pasa de tamaño o de niveles
+// Lo que emite el editor, reducido a la lista blanca. Sin texto ni bloques con contenido, es «sin cuerpo» (`null`). Lo que pasa de tamaño o de niveles
 // no se toca: el motivo lo dice `htmlDelDocumento` junto al editor.
 export function documentoLimpio(valor: unknown): DocumentoDelSitio | null {
   const documento: DocumentoDelSitio = {

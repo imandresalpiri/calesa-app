@@ -3,14 +3,27 @@ import { rutaDeParteDelOrigen, type ParteDelOrigen } from '@/shared/lib/rutas'
 import { PESTANAS_DEL_ORIGEN } from './pestanas'
 
 // Quién abre Configuración › Orígenes y la página de cada origen. `origenes.gestionar` edita sus datos, campos y categorías; quien
-// configura lo que cuelga de un origen (su flujo, su fórmula) necesita ver cómo está armado, y lo ve deshabilitado, con el motivo. La
-// lista de orígenes y la página de uno se abren con cualquiera de los tres **en ese origen**; cada pestaña pide además el suyo. La base
-// vuelve a exigir lo suyo en cada RPC y policy: esto sólo decide qué se dibuja y adónde se redirige.
+// configura lo que cuelga de un origen (su flujo, su fórmula, los catálogos de su logística) necesita ver cómo está armado, y lo ve deshabilitado,
+// con el motivo. La lista de orígenes y la página de uno se abren con cualquiera de los cuatro **en ese origen**; cada pestaña pide además el suyo.
+// La base vuelve a exigir lo suyo en cada RPC y policy (`origenes_resumen()` acepta los cuatro): esto sólo decide qué se dibuja y adónde se redirige.
 export const PERMISOS_DE_ORIGENES = [
   'origenes.gestionar',
   'flujos.configurar',
   'cotizaciones.configurar',
+  'logistica.catalogos.gestionar',
 ] as const satisfies readonly ClavePermiso[]
+
+// La puesta en marcha de un origen nuevo (Campos, Flujo, Fórmula, Tarjeta y Publicar) no tiene nada de los catálogos de logística: se abre con los tres
+// de siempre.
+export const PERMISOS_DE_LA_PUESTA_EN_MARCHA = [
+  'origenes.gestionar',
+  'flujos.configurar',
+  'cotizaciones.configurar',
+] as const satisfies readonly ClavePermiso[]
+
+export function puedeAbrirLaPuestaEnMarcha(permisos: Permisos, origenId: string): boolean {
+  return PERMISOS_DE_LA_PUESTA_EN_MARCHA.some((clave) => puede(permisos, clave, origenId))
+}
 
 // En algún origen: la sección del menú y del inicio.
 export function puedeAbrirOrigenes(permisos: Permisos): boolean {
@@ -34,7 +47,9 @@ export type PestanaAbierta = {
 // abren siempre que se abre el origen (en sólo lectura sin `origenes.gestionar`).
 export function pestanasDelOrigen(permisos: Permisos, origenId: string): PestanaAbierta[] {
   return PESTANAS_DEL_ORIGEN.map((pestana) => {
-    const abre = pestana.permiso === null || puede(permisos, pestana.permiso, origenId)
+    const abre =
+      pestana.permisos === null ||
+      pestana.permisos.some((clave) => puede(permisos, clave, origenId))
     return {
       clave: pestana.clave,
       titulo: pestana.titulo,
@@ -54,7 +69,7 @@ export function puedeAbrirLaPestana(
   )
 }
 
-// La primera pestaña que la persona abre en este origen (Fases con `flujos.configurar`; si abre el origen, al menos Campos).
+// La primera pestaña que la persona abre en este origen (Fases con `flujos.configurar` o los catálogos de logística; si abre el origen, al menos Campos).
 export function primeraPestanaAbierta(permisos: Permisos, origenId: string): PestanaAbierta | null {
   if (!puedeAbrirElOrigen(permisos, origenId)) {
     return null

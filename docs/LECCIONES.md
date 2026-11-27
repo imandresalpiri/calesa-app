@@ -242,6 +242,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Una ruta o un parámetro que se muda no deja redirección: se actualizan sus enlaces y, con una migración, sus datos guardados; la URL vieja da «no existe». Una redirección por cada mudanza se acumula y nadie la quita. (kit)
 - Un solo nivel de secciones por pantalla, a la vista: un acordeón o una sección dentro de otra esconden lo que hay y obligan a adivinar dónde está. Lo secundario va en un drawer o un modal con su URL. (kit)
 - Lo que cambia de contenido dentro de un área (cargar, editar, cambiar de vista, mostrar un aviso) no cambia su tamaño: alto fijo o reservado, y el esqueleto mide lo mismo que el contenido; si no, lo de abajo salta y el toque cae en otro lado. Se comprueba midiendo con `boundingBox()` antes y después.
+  Lo que llega con la página y nada de la pantalla cambia (una lista corta de una tarjeta de ajustes) no reserva el alto de su tope: en una página que
+  entra a 1440×900 (`e2e/empresa-tarjetas.spec.ts`) ese hueco vacío es lo que la hace desplazar.
 - Un alto fijo que tiene que contener texto sale de la letra (`max(44px, letra × 1,5 + relleno)`), no de un px literal: con la «Letra» grande o el texto al
   200 % un alto en px corta el valor. Lo que cambia de estado va en un lugar del mismo alto (una etiqueta que flota con `transform`, una línea cortada con «…»).
 - `container-type` crea un contexto de apilamiento: el globo (`::after`) de un nodo de adentro queda debajo del contenedor vecino que viene después. El
@@ -314,6 +316,9 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Sin red, espera el texto del pendiente, no el `requestfailed`: el evento no prueba lo que ve la persona.
 - Afirma el estado nuevo (en la base o con `expect.poll`), nunca un toast que se cierra solo, una lista leída una vez tras mutar ni un `toHaveURL` que la página anterior ya cumple.
 - nuqs dibuja al instante y escribe la URL después: espera la clave en la URL antes de `reload()` o «atrás», o recarga la URL de antes (pasa en el celular).
+- Tras una action que revalida, espera una señal de la página nueva (el estado de la barra, un texto) antes de abrir un panel por URL: escribir la clave con
+  nuqs mientras Next aplica lo revalidado deja la página de antes. Y un ayudante que abre un modal diferido decide por la URL, no por `isVisible()`, que da
+  «no» mientras se monta (`e2e/soporte/informacion-de-la-formula.ts`).
 - Al cerrar un panel por URL con `shallow: false`, la clave sale de la URL recién cuando vuelve el servidor: un ayudante que decide por `page.url()` si hacer clic espera antes a que la URL ya no la nombre y no quede un diálogo (`abrirElCampo()`).
 - Abre un popover o una hoja sólo con la pantalla en su forma final: la primera visita al embudo cambia de rama al llegar el tablero y desmonta lo abierto. `abrirVistaYOpciones()` reabre si se cerró solo.
 - Mide cajas dentro de un diálogo sólo cuando termina la animación (`quieto()`): durante la escala 44 px miden 42 y `getBoundingClientRect` miente.
@@ -323,7 +328,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Tras guardar en el panel de una fase, recarga antes de otra escritura del mismo flujo: si sale antes de que llegue la versión nueva, da `PT409`.
 - Compara y ordena fechas como timestamp (`Date.parse`), nunca como texto ISO: «…:23Z» queda por delante de «…:23.078Z» y un orden por texto puede borrar a la dueña.
 - En una prueba `@sin-celular` no midas ni con una función propia del spec (la guarda la cuenta como ayudante que mide): afirma estilos con
-  `toHaveCSS` y arrastra con `hover` en pasos (dnd-kit toma la fila en el primer movimiento y la lleva en los siguientes).
+  `toHaveCSS` y arrastra con `hover` en pasos (dnd-kit toma la fila en el primer movimiento y la lleva en los siguientes). El «sin saltos» de
+  una pantalla sin celular (Configuración) se fija en Vitest: el contenedor de alto reservado contiene lo de antes y lo de después.
 - Un `dragTo` sobre dnd-kit suelta sin esperar la colisión del último paso y cae en otro lugar (en el editor de la hoja, al final de la
   sección): arrastra con `mouse.down()` y `hover`, espera la marca de soltar (`data-marca-de-soltar`) y recién entonces `mouse.up()`
   (`e2e/soporte/arrastre-del-lienzo.ts`). Para un lugar libre sin pieza encima que sirva de destino, avanza de a pasos y lee el texto de la marca

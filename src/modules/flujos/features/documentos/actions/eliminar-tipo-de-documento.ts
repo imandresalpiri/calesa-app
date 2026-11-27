@@ -22,7 +22,6 @@ export const eliminarTipoDeDocumento = actionClient
       // La pantalla relee la lista: ninguna RPC la devuelve.
       revalidatePath(RUTAS.origenes, 'layout')
       revalidatePath(RUTAS.configuracionDeRepuestos, 'layout')
-      revalidatePath(RUTAS.configuracionDeLogistica, 'layout')
     }
     return hecho
   })

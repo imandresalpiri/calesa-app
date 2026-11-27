@@ -255,12 +255,13 @@ export function textoDeUso(nombre: string, uso: number, femenino: boolean): stri
   return textoDeUsoDeCatalogo({ nombre, uso, femenino, usadoPor: USADO_POR })
 }
 
-// Los paneles de «Puertos» y «Navieras» en Logística › Configuración: `?panel=nuevo-puerto`, `?panel=editar-puerto&puerto=<id>`, `?panel=nueva-naviera` y `?panel=editar-naviera&naviera=<id>`.
-export const PANEL_NUEVO_PUERTO = 'nuevo-puerto'
-export const PANEL_EDITAR_PUERTO = 'editar-puerto'
+// Los modales de «Puertos» y «Navieras» dentro de su drawer (`?panel=puertos|navieras`): `?accion=nuevo-puerto&de=origen|compartido`,
+// `?accion=editar-puerto&puerto=<id>`, `?accion=nueva-naviera&de=…` y `?accion=editar-naviera&naviera=<id>`.
+export const ACCION_NUEVO_PUERTO = 'nuevo-puerto'
+export const ACCION_EDITAR_PUERTO = 'editar-puerto'
 export const CLAVE_DE_PUERTO = 'puerto'
-export const PANEL_NUEVA_NAVIERA = 'nueva-naviera'
-export const PANEL_EDITAR_NAVIERA = 'editar-naviera'
+export const ACCION_NUEVA_NAVIERA = 'nueva-naviera'
+export const ACCION_EDITAR_NAVIERA = 'editar-naviera'
 export const CLAVE_DE_NAVIERA = 'naviera'
 export const MENSAJE_PUERTO_YA_NO_ESTA = 'Ese puerto ya no está.'
 export const MENSAJE_NAVIERA_YA_NO_ESTA = 'Esa naviera ya no está.'

@@ -3,6 +3,7 @@ import type { Permisos } from '@/shared/lib/permisos'
 import {
   flujoParaConfigurarDesde,
   flujosConfigurables,
+  flujosVisibles,
   type FilasDeFlujo,
   type FlujoConfigurable,
 } from './flujo'
@@ -187,5 +188,53 @@ describe('flujosConfigurables', () => {
     expect(
       ids([concesion('flujos.configurar', null), concesion('repuestos.configurar', null)]),
     ).toEqual([guid(1), guid(2), guid(3)])
+  })
+})
+
+describe('flujosVisibles', () => {
+  const de = (
+    n: number,
+    ambito: 'vehiculos' | 'repuestos',
+    origenId: string | null,
+  ): FlujoConfigurable => ({
+    id: guid(n),
+    ambito,
+    origenId,
+    nombre: `Flujo ${String(n)}`,
+    activo: true,
+  })
+  const flujos = [
+    de(1, 'vehiculos', ORIGEN_A),
+    de(2, 'vehiculos', ORIGEN_B),
+    de(3, 'repuestos', null),
+  ]
+  const con = (clave: string, origenId: string | null): Permisos =>
+    [{ clave, origenId, alcance: 'todos' }] as Permisos
+  const vistos = (permisos: Permisos) =>
+    flujosVisibles(flujos, permisos).map((f) => [f.id, f.soloLectura])
+
+  it('el que configura va editable', () => {
+    expect(vistos(con('flujos.configurar', ORIGEN_A))).toEqual([[guid(1), false]])
+  })
+
+  it('con sólo los catálogos de logística del origen, va en lectura; el de otro origen no', () => {
+    expect(vistos(con('logistica.catalogos.gestionar', ORIGEN_A))).toEqual([[guid(1), true]])
+  })
+
+  it('con las dos claves en el origen, editable', () => {
+    expect(
+      vistos([
+        ...con('flujos.configurar', ORIGEN_A),
+        ...con('logistica.catalogos.gestionar', ORIGEN_A),
+      ]),
+    ).toEqual([[guid(1), false]])
+  })
+
+  it('el de repuestos nunca va en lectura: sólo con repuestos.configurar', () => {
+    expect(vistos(con('logistica.catalogos.gestionar', null))).toEqual([
+      [guid(1), true],
+      [guid(2), true],
+    ])
+    expect(vistos(con('repuestos.configurar', null))).toEqual([[guid(3), false]])
   })
 })

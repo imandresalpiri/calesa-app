@@ -90,6 +90,19 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   motivo y constancia `pago.anulado` en `actividad`; no vuelve ni deja sin cumplir lo que pide de pagos la fase actual del vehículo o de un ítem del proyecto.
   Eliminar es sólo para uno sin confirmar.
 - **Comprobante de un gasto o pago** — `comprobante_ruta` de `gastos`, `pagos` y `repuestos_compras`, bucket `comprobantes` /
+  `comprobante_puede()`: archivo que los respalda (`<unidad|proyecto>/<sha-256>.<ext>`); lo lee quien ve la fila (una compra, con
+  `repuestos.costos.ver`). No es el **Comprobante** de venta.
+- **Integración** — `integraciones` / `Integracion`, `integracionActiva()`: interruptor + config no secreta (apibara, push, web pública, asistente de IA).
+- **Asistente de IA** — integración `asistente_ia` / `AsistenteIa…`, `redactarConElAsistente()`: un proveedor compatible con la API de OpenAI (DeepSeek o
+  «Otro proveedor»: dirección base y modelo) que redacta los textos de compartir una cotización; su clave va a Vault y de ella se ven la fecha y los
+  últimos 4 (`config.clave_termina_en`). Siempre «asistente de IA»: «asistente» solo sigue prohibido como sinónimo de «puesta en marcha».
+- **Prompt base** — `config.prompt_base` del asistente de IA: lo que la IA recibe en cada pedido (el tono, lo que no inventa), el mismo para toda la
+  empresa; hasta 4.000 caracteres, se edita en «Prompt base y atajos».
+- **Atajo del asistente** — `config.atajos` / `AtajoDelAsistente`: un botón con nombre (hasta 40 caracteres, único sin mirar mayúsculas) y una
+  instrucción (hasta 500) que «generar» manda con el texto; el orden de la lista es el de los botones, y uno inactivo no se ofrece. Hasta 20; su tope de
+  salida (`max_tokens`) no se edita.
+- **Usos del asistente** — `asistente_ia_usos` / `asistente_ia_contar_uso()`, `UsosDelMes`: cuántos pedidos de cada persona respondió el proveedor en
+  el mes (el de la zona de la empresa); la tarjeta muestra hasta 5 personas y «y N más». No es un tope.
   `comprobante_puede()`: archivo que los respalda (`<unidad|proyecto>/<sha-256>.<ext>`, uno por fila); lo lee quien ve la fila (una compra, con
   `repuestos.costos.ver`). Se sube y se ve en la «zona del comprobante» del panel del pago, del gasto y de la compra. No es el **Comprobante** de venta.
 - **Integración** — `integraciones` / `Integracion`, `integracionActiva()`: interruptor + config no secreta (apibara, push, web pública).
@@ -148,8 +161,10 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   Tarjeta, Publicar y **Listo** («Cotizar con <origen>»). El avance se deriva de lo que hay (campos, fases, fórmula de trabajo, fórmula activa), sin
   guardar un «paso actual»: cada paso guarda con sus botones, «Seguir» va al siguiente y la raíz lleva al que falta. Un paso sin el permiso en ese
   origen se salta y dice su motivo. Se retoma con «Seguir la puesta en marcha» de la página del origen. No: «asistente», «wizard», «onboarding».
-- **Configuración de logística** — `/logistica/configuracion/<clave>` (`RUTAS.configuracionDeLogistica`): la página de Logística con las pestañas Puertos, Navieras, Categorías de gasto y
-  Tipos de documento; se entra con el botón ⚙ «Configurar» de la cabecera de Logística. No: «Catálogos de logística» como sección de Configuración.
+- **Catálogos de logística** — puertos, navieras, categorías de gasto y tipos de documento: se configuran en la pestaña Fases de cada origen, cada uno en
+  su drawer arriba del diagrama (`?panel=puertos|navieras|categorias-de-gasto|tipos-de-documento`), con los de ese origen y los compartidos; en el flujo de
+  repuestos, sólo los tipos de documento. El ⚙ «Configurar» de la cabecera de Logística lleva ahí. No: «Configuración de logística», ni una sección de
+  Configuración.
 - **Configuración de repuestos** — `/repuestos/configuracion/<flujo|cotizador|catalogos>` (`RUTAS.configuracionDeRepuestos`): la página de Repuestos con las pestañas Flujo, Cotizador y Catálogos; se entra
   con el botón ⚙ «Configurar» (nombre accesible «Configurar los repuestos») de la fila de filtros de `/repuestos`. No: «Configuración › Repuestos» como sección de Configuración.
 - **Flujo de repuestos** — `/repuestos/configuracion/flujo` (`RUTAS.flujoDeRepuestos`): el flujo de los repuestos, que se configura en la primera pestaña de la configuración de repuestos
@@ -509,8 +524,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   cotizar y apaga la activa anterior. Cada pieza va con su esperada (PT409 si cambió). No: «publicar la fórmula» (eso es una versión), «usar».
 - **Avisos de la copia** — `AvisoDeLaCopia` (`entities/avisos-de-la-copia.ts`), `avisos` de `formula_del_origen_crear()`: lo que copiar una fórmula de
   otro origen cambió o no pudo resolver —una tabla creada con las filas de la copia, una tabla del destino usada en su lugar, un dato del vehículo
-  que el origen no tiene—. Se muestran arriba de la planilla de la copia hasta «Ocultar» (`sessionStorage`), y los datos que faltan quedan marcados
-  en su fila (`useCamposDeLaFormula()`).
+  que el origen no tiene—. La planilla de la copia abre con «Información de la fórmula», que los muestra en su sección hasta «Ocultar» (`sessionStorage`,
+  `useAvisosDeLaCopia()`), y los datos que faltan quedan marcados en su fila (`useCamposDeLaFormula()`).
+- **Información de la fórmula** — `?panel=info-formula` (`PANEL_DE_LA_INFORMACION`), `<BotonDeLaInformacion>`, `<InformacionDeLaFormula>`,
+  `marcaDeLaInformacion()` (`cotizaciones/entities/informacion-de-la-formula.ts`): el modal de la Planilla con la información de la versión —la publicada, el
+  borrador (con «Descartar el borrador…») y los avisos de la copia—, que abre el botón ⓘ junto al estado de la barra de la fórmula. El botón lleva una
+  marca si algo bloquea: sin publicada, el borrador atrasado o avisos de la copia pendientes. No: «detalles», «info de la versión».
 - **Nodo** — `definicion.nodos[]`: una línea de la fórmula: input, constante, tipo de cambio, campo, bandera, tabla, tramo, cálculo.
 - **Constante** — nodo `constante` + `params`: valor por defecto versionado que el ⚙ de la XCell cambia.
 - **Versión del flujo** — `flujos.actualizado_en` como texto ISO: la lee el editor del flujo y la devuelve cada escritura para detectar
@@ -522,8 +541,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   (nombre, descripción, color, icono) y «Ajustes» («En el flujo», «Alerta por demora», «Transporte y aduana», «Web y portal»). Identidad y Ajustes son un solo
   formulario y un solo «Guardar». No: «Datos», «tabs».
 - **Panel del flujo** — `PanelDelFlujo`: el `<Drawer>` al costado del editor del flujo (pestaña Fases de un origen, Flujo de repuestos) (no modal desde 1024 px) con una fase (`?fase=<id>`) o lo
-  del flujo entero, «Reglas del flujo» o «Tipos de documento» (`?seccion=reglas|documentos`); gana `?seccion=`. No: «sidebar», «inspector» para
-  lo del flujo.
+  del flujo entero, «Reglas del flujo» (`?seccion=reglas`); gana `?seccion=`. Los catálogos de logística no van ahí: cada uno en su drawer (`?panel=`).
+  No: «sidebar», «inspector» para lo del flujo.
 - **Diagrama del flujo** — `DiagramaDelFlujo`: las fases como cajas, cada una en su posición, y las salidas como flechas; ahí se mueven, se crean
   y se vinculan. La lista es la versión navegable. No: «grafo», «tablero».
 - **Posición de la fase** — `fases.posicion_x|y` (rem) / `fase_posiciones_guardar()`: dónde se dibuja su caja en el diagrama; una sola, del flujo.
@@ -563,10 +582,12 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Propio / compartido (catálogo)** — un puerto, una naviera, una categoría de gasto (`origen_id`) o un tipo de documento (`flujo_id`) es
   propio de un origen (del flujo de repuestos, un tipo) o compartido con todos (nulo). Un origen **usa** sus propios y los compartidos que no tapa;
   la base exige que lo que se guarda sea de lo que usa el origen de la unidad («es de otro origen»). Un compartido pide
-  `logistica.catalogos.gestionar` en cada origen que lo usa; un propio, en su origen (un tipo propio, también quien configura su flujo).
+  `logistica.catalogos.gestionar` en cada origen que lo usa; un propio, en su origen (un tipo propio, también quien configura su flujo). Al crear,
+  **«Para»** (`CampoParaQuien`) pregunta «Sólo de <origen>» (por defecto) o «Compartido con todos los orígenes»; editar un compartido avisa
+  «Cambia para todos los orígenes que lo usan.».
 - **Tapar** — un propio **activo** tapa en su origen al compartido de su misma **clave** (`_catalogo_clave()` / `claveDeCatalogo()`: sin
   mayúsculas, tildes ni espacios de más; un puerto, de nombre y país). Nada se reescribe: lo guardado sigue apuntando al compartido, rotulado
-  «(tapado)». Igual en las tablas de referencia (abajo).
+  «(tapado)»; en el drawer del catálogo, el compartido lleva «Tapado por el de <origen>». Igual en las tablas de referencia (abajo).
 - **Tabla compartida** — tabla de referencia con `origen_id` nulo: la usan los orígenes sin una propia de esa clave; la propia la **tapa** (va
   `tapada` en la lista de ese origen). Se ve en el grupo «Compartidas» del drawer de las tablas de cada origen que la recibe (las propias, en «De <origen>») y se edita ahí, con el aviso
   de a quién le cambia; publicarla pide `cotizaciones.configurar` en cada origen que la usa.
@@ -742,9 +763,21 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   asesor, los datos del vehículo, los interruptores y la variante para ver el efecto de cada cambio en Ejemplo, «Totales» y la tarjeta en vivo. Arranca en ceros como las «Cifras
   de prueba», vuelve a ceros desde el «⋯» de la planilla y no se guarda.
 - **Barra de fórmula** — `BarraDeFormula` (`components/planilla/barra/`), fija arriba de la cuadrícula: el nombre de la celda activa («C5», «Ejemplo 5»),
-  `fx ▾` (inserta una función, `insertarFuncion()`), su texto (el mismo que se edita en la celda, uno solo a la vez; vacío, «Escribe = y toca las celdas:
-  =C5+C7»), con cada referencia pintada de su color, la leyenda, las sugerencias y el error con su tramo; a la derecha «Totales», «Tarjeta» y «?» (los
-  tipos de celda). Debajo, una línea: «De dónde sale: …» de la fila elegida. No es la **Barra de la fórmula** (la de la página: estado, guardar, publicar).
+  `fx ▾` (inserta una función, `insertarFuncion()`), las **Operación rápida** y «¿Cómo se escribe?», su texto (el mismo que se edita en la celda, uno solo a
+  la vez; vacío, «Escribe = y toca las celdas: =C5+C7»), con cada referencia pintada de su color, el **Resultado al lado**, la leyenda, las sugerencias y el
+  error con su tramo; a la derecha «Totales», «Tarjeta» y «?» (los tipos de celda). Debajo, un renglón: «De dónde sale: …» de la fila elegida o, escribiendo,
+  la **Firma en el cursor**, «Siguiente» y, en el celular, «Elegir celda». No es la **Barra de la fórmula** (la de la página: estado, guardar, publicar).
+- **Firma en el cursor** — `firmaEnElCursor()` (`entities/formula/firma-en-el-cursor.ts`), `RenglonDeLaEdicion`: mientras se escribe dentro de una función en C, su
+  forma en el renglón bajo la barra de fórmula con el valor que se escribe en negrita («SI(condición; **si se cumple**; si no)»); gana la de más adentro. Sin
+  función y con el cursor esperando un operando, «Toca una celda para usarla.». No: «tooltip», «ayuda de argumentos».
+- **Operación rápida** — `OPERACIONES_RAPIDAS`, `insertarOperacion()` (`entities/formula/operaciones-rapidas.ts`), `OperacionesRapidas`: los botones «Sumar»
+  (`=␣+␣`), «Porcentaje de» (`=PORCENTAJE_DE(␣; ␣%)`) y «Si… entonces…» (`=SI(␣; ␣; ␣)`) de la barra de fórmula; insertan la forma con sus lugares por llenar
+  y el cursor en el primero. Sin «=», envuelven lo escrito, como `fx ▾`. No: «atajo», «plantilla de fórmula».
+- **Lugar por llenar** — `EdicionDeLaCelda.lugares`: cada ␣ de una operación rápida, guardado como distancia al final del texto; Tab o «Siguiente» llevan al
+  próximo y, tras tocar una celda, el cursor salta un `+ - * /` hasta él. No: «hueco» (que ya nombra otra cosa), «campo».
+- **Resultado al lado** — `resultadoAlLado()` (`entities/formula/resultado-al-lado.ts`), `ResultadoAlLado`: mientras se escribe una C que empieza con «=», la cifra
+  que daría con la unidad de ejemplo, en la caja entre el texto y «Aplicar», con los decimales de la celda. Se calcula 150 ms después de la última tecla y sólo con
+  un texto que compila; sin cifra, la caja queda vacía. No: «vista previa» (la columna Ejemplo de toda la planilla), «preview».
 - **Referencia (de la planilla)** — `C5`, `B9` (`entities/formula/referencias-a1.ts`): cómo un cálculo de la planilla nombra otra fila, como en
   Excel: `C<n>` es el valor de la fila n y `B<n>` su %. Se guarda el id del nodo (`nodo.texto` con ids) y se muestra como A1 (`aA1()`); lo tipeado
   pasa a ids antes de compilar (`deA1()`). Insertar, mover o borrar filas cambia lo que se muestra, nunca lo guardado. No distingue mayúsculas; los
@@ -881,7 +914,7 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   `nivel_crear|renombrar|retirar|restaurar|eliminar()`: quién ve y edita una celda o sección. En la matriz de Roles se rotulan «Niveles de acceso» (bloque «Cotizaciones»);
   «Todos» es el renglón fijo, sin celdas.
 - **Quién crea y quién ve** — `entities/cuadro-de-cotizaciones.ts` de `equipo` (`celdaDelCuadro()`, `cambiosDelCuadro()`),
-  el resumen plegable del bloque «Cotizaciones» de la matriz de Roles (`/configuracion/roles?bloque=cotizaciones`): el cuadro rol × lugar («Todos los orígenes» o un origen) con «Crea» (`cotizaciones.crear`) y «Ve»,
+  el modal (`?panel=quien-crea-y-quien-ve`) que abre el botón del bloque «Cotizaciones» de la matriz de Roles (`/configuracion/roles?bloque=cotizaciones`): el cuadro rol × lugar («Todos los orígenes» o un origen) con «Crea» (`cotizaciones.crear`) y «Ve»,
   una escalera de cuatro escalones (`Ve`): «No ve», «Sólo las suyas» (`cotizaciones.ver` con «lo propio»), «Todas menos las privadas» (con «todo») y
   «Todas, también las privadas» (además `cotizaciones.privadas.ver`). Escribe en la matriz de Roles; no es otro permiso. No: «visibilidad», «alcance».
 - **Retirar un nivel** — `nivel_retirar()` / `cotizaciones_niveles.retirado_en`: deja de ofrecerse.
@@ -981,15 +1014,17 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   si el tipo lo admite (`tipos_documento.visible_portal_permitido`); apagarlo siempre se puede. No: «público», «compartido».
 - **Tipo de documento** — `tipos_documento` / `tipo_documento_crear()`: qué documento pide el ciclo (Título, BL…); **propio** del flujo de un
   origen (o del de repuestos) o **compartido** con todos (`flujo_id` nulo); el propio **tapa** al compartido de su misma clave en ese flujo. Formatos y
-  vencimiento (`ninguno`, `solicitar`, `renovar`, con `aviso_dias`). En uso se desactiva. No: «clase de documento», «de la empresa».
+  vencimiento (`ninguno`, `solicitar`, `renovar`, con `aviso_dias`). Se configura en el drawer «Tipos de documento» arriba del diagrama de la pestaña
+  Fases de cada origen (y del flujo de repuestos), o desde un requisito («Crear tipo de documento»). En uso se desactiva; sin uso se elimina. No:
+  «clase de documento», «de la empresa».
 - **Transporte** — `transportes` (se lee por la vista `transportes_con_embarque`): lo de UNA unidad: su contenedor o su embarque (uno u otro, nunca los dos) y lo
   propio (notas; naviera, puertos y fechas sólo si no va en un embarque). Se escribe por `transporte_guardar` o, en lote, `transporte_asignar|quitar`.
 - **Puerto** — `puertos`: origen o destino de un transporte; nombre, país y código opcionales, `orden`, `activo`. **Propio** de un origen
-  (`origen_id`) o **compartido** con todos (nulo); el propio tapa al compartido de su misma clave de nombre y país. Los compartidos se editan en
-  Logística › Configuración › Puertos; se desactiva, no se elimina. No: «terminal», «destino».
+  (`origen_id`) o **compartido** con todos (nulo); el propio tapa al compartido de su misma clave de nombre y país. Se configura en el drawer
+  «Puertos» arriba del diagrama de la pestaña Fases de cada origen; se desactiva, no se elimina. No: «terminal», «destino».
 - **Naviera** — `navieras`: la empresa que lleva el contenedor; nombre y `activo`. Propia de un origen o compartida, como el puerto (tapa por
-  nombre). Las compartidas, en Logística › Configuración › Navieras; se desactiva; cada flujo ofrece las suyas (`flujos_transporte_oferta`). No:
-  «línea marítima», «carrier».
+  nombre). Se configura en el drawer «Navieras» arriba del diagrama de la pestaña Fases de cada origen; se desactiva, no se elimina; cada flujo
+  ofrece las suyas (`flujos_transporte_oferta`). No: «línea marítima», «carrier».
 - **Embarque** — `embarques` / `embarque_crear|guardar()`: el booking en un origen, dueño de la naviera, los puertos, el zarpe (estimado y el de
   siempre), la ETA y el arribo; sus vehículos van sueltos en él o en sus contenedores, y lo suyo cambia para todos. El booking es único por origen
   (sin espacios ni mayúsculas de más); su estado se calcula. No: «carga», «viaje», «booking» a secas.
@@ -1007,8 +1042,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Declaración aduanera** — `declaraciones_aduana`, `declaraciones_vehiculos`: DUI: número, canal de aforo, vencimiento de tributos; N:M.
 - **Gasto** — `gastos`, `categorias_gasto`: costo real imputado a una unidad, en su moneda y en base.
 - **Categoría de gasto** — `categorias_gasto` / `categoria_gasto_crear()`: a qué va un gasto (flete, tributos…), con `proposito` opcional,
-  `orden` y `activo`. Propia de un origen o compartida, como el puerto (tapa por nombre); las compartidas, en Logística › Configuración ›
-  Categorías de gasto. Sin gastos se elimina; con gastos se desactiva. No: «rubro», «concepto».
+  `orden` y `activo`. Propia de un origen o compartida, como el puerto (tapa por nombre). Se configura en el drawer «Categorías de gasto» arriba
+  del diagrama de la pestaña Fases de cada origen; se desactiva, no se elimina desde la app. No: «rubro», «concepto».
 - **Pago** — `pagos`: pago del cliente; confirmar es un acto sellado.
 - **Desviación / Margen** — `margen_vehiculo()`: cotizado − real / venta − real (null sin venta); `por_categoria` reparte el real por
   categoría de gasto.
@@ -1098,6 +1133,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   sigue recibiendo el nombre en `web.faqs.categoria`). Se elige de un catálogo (`<ComboDeCatalogo>`) con nombre único sin importar mayúsculas,
   tildes ni espacios, como el grupo de campos, y se gestiona en el drawer «Categorías» (`?panel=categorias`): quitar una con preguntas pide a
   dónde moverlas. Las categorías de guías (`web_categorias_guias`) tienen el mismo nombre único. No: «etiqueta», ni la categoría de un origen.
+- **Bloque (de la guía)** — `BloqueDeLaGuia` (`BLOQUES_DE_LA_GUIA`, `entities/contenido/bloques-de-la-guia.ts`): cada pieza del primer nivel del texto de una guía que se inserta con «/» o «+»: párrafo,
+  título grande o chico, lista con viñetas o numerada, cita, imagen, galería (1 a 12 imágenes), botón (texto y enlace), video (enlace de YouTube o Vimeo) y separador. Se mueve, se quita y se
+  configura (pestaña «Bloque» del panel) uno a uno. No: «sección», «widget», ni el «bloque» de la ayuda de una celda.
 - **Programada** — guía con `web_guias.publicada_en` futura: aún no se ve (`estadoDeGuia()`: «Borrador», «Programada» o «Publicada»).
 - **Consentimiento (de un testimonio)** — `web_testimonio_consentir` / `web_testimonio_retirar`: quién lo registró, cuándo, por qué canal, y si
   se muestran ciudad, vehículo y foto. Cambiar nombre, texto o foto lo anula.

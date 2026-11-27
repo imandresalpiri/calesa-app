@@ -42,6 +42,8 @@ type Props = {
   titulo: string
   descripcion?: string
   ancho?: 'normal' | 'amplio' | 'grande'
+  // En el celular, toda la pantalla: para un formulario largo que se recorre (una lista de filas que se editan).
+  completoEnCelular?: boolean
   focoInicial?: () => HTMLElement | null
   focoAlCerrar?: () => HTMLElement | boolean
   formulario: FormularioDelModal
@@ -157,6 +159,7 @@ export function ModalDeFormulario({
   titulo,
   descripcion,
   ancho,
+  completoEnCelular,
   focoInicial,
   focoAlCerrar,
   formulario,
@@ -185,6 +188,7 @@ export function ModalDeFormulario({
       titulo={titulo}
       descripcion={descripcion}
       ancho={ancho}
+      completoEnCelular={completoEnCelular}
       bloqueado={enCurso}
       focoInicial={focoInicial}
       focoAlCerrar={focoAlCerrar}

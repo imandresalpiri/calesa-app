@@ -6,17 +6,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import type { Planilla } from '../../../hooks/use-planilla'
 import { BOTON_DEL_MENU } from './menu-de-la-banda'
 import { RENGLON } from './submenus-de-la-fila'
 
-type Panel = 'nueva-banda' | 'total' | 'ayuda'
+type Panel = 'nueva-banda' | 'total'
 
-// El «⋯» de la planilla (D21): «Nueva banda», «Total y tipos de cambio», «Unidad de ejemplo: volver a ceros» (apagado si ya está en ceros) y «¿Cómo se escribe?».
-// Los paneles se abren cuando el menú terminó de cerrarse.
+// El «⋯» de la planilla (D21): «Nueva banda», «Total y tipos de cambio» y «Unidad de ejemplo: volver a ceros» (apagado si ya está en ceros). «¿Cómo se escribe?»
+// está a un toque en la barra de fórmula, junto a las operaciones rápidas. Los paneles se abren cuando el menú terminó de cerrarse.
 export function MenuDeLaPlanilla({ planilla }: { planilla: Planilla }) {
   const [panel, setPanel] = useState<Panel | null>(null)
   const { paneles } = planilla
@@ -26,9 +25,6 @@ export function MenuDeLaPlanilla({ planilla }: { planilla: Planilla }) {
     },
     total: () => {
       paneles.total.abrir()
-    },
-    ayuda: () => {
-      paneles.ayuda.abrir()
     },
   }
   return (
@@ -68,15 +64,6 @@ export function MenuDeLaPlanilla({ planilla }: { planilla: Planilla }) {
           onClick={planilla.volverACeros}
         >
           Unidad de ejemplo: volver a ceros
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className={RENGLON}
-          onClick={() => {
-            setPanel('ayuda')
-          }}
-        >
-          ¿Cómo se escribe?
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

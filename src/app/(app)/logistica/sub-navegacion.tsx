@@ -4,9 +4,11 @@ import type { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { SettingsIcon } from 'lucide-react'
+import { parseAsString, useQueryState } from 'nuqs'
 import { cn } from 'cn'
-import { RUTAS } from '@/shared/lib/rutas'
-import { esEnlaceActual, esLaConfiguracion, type EnlaceDelMenu } from './enlaces'
+import { CLAVE_DE_ORIGEN_DE_LA_CADENA } from '@/modules/logistica/client'
+import { rutaDeParteDelOrigen } from '@/shared/lib/rutas'
+import { destinoDeConfigurar, esEnlaceActual, type EnlaceDelMenu } from './enlaces'
 
 // La sub-navegación de `/logistica`: Cadena y las áreas que ya tienen página. Marca la actual con `aria-current`.
 export function SubNavegacion({ enlaces }: { enlaces: readonly EnlaceDelMenu[] }) {
@@ -33,19 +35,20 @@ export function SubNavegacion({ enlaces }: { enlaces: readonly EnlaceDelMenu[] }
   )
 }
 
-// «Configurar»: el enlace a la configuración de la logística, a la derecha de la fila de la barra (o solo). Con el nombre «Configurar la logística»; en la página de configuración queda marcado y la barra no
-// marca ningún enlace. Es un enlace, no un botón con JS: lo único del cliente es saber en qué página está.
-export function BotonDeConfigurar() {
-  const actual = esLaConfiguracion(usePathname())
+// «Configurar»: el enlace a la pestaña Fases del origen que muestra la cadena (`?origen=`), donde se configuran su flujo y sus catálogos; si la persona no
+// configura ése, al primero que configura. A la derecha de la fila de la barra (o solo), con el nombre «Configurar la logística». Es un enlace: lo único del
+// cliente es leer `?origen=`.
+export function BotonDeConfigurar({ permitidos }: { permitidos: readonly string[] }) {
+  const [pedido] = useQueryState(CLAVE_DE_ORIGEN_DE_LA_CADENA, parseAsString)
+  const destino = destinoDeConfigurar(pedido, permitidos)
+  if (destino === null) {
+    return null
+  }
   return (
     <Link
-      href={RUTAS.configuracionDeLogistica as Route}
+      href={rutaDeParteDelOrigen(destino, 'fases')}
       aria-label="Configurar la logística"
-      aria-current={actual ? 'page' : undefined}
-      className={cn(
-        'ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-(--radius-pill) px-3 text-(length:--text-sm) text-(--color-ink-soft) hover:text-(--color-ink) md:min-h-8',
-        actual && 'bg-(--color-surface) font-medium text-(--color-ink)',
-      )}
+      className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-(--radius-pill) px-3 text-(length:--text-sm) text-(--color-ink-soft) hover:text-(--color-ink) md:min-h-8"
     >
       <SettingsIcon aria-hidden className="size-4" />
       Configurar

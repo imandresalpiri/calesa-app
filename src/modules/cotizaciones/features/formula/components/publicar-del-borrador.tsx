@@ -2,18 +2,30 @@
 
 import { Button } from '@/shared/ui/button'
 import { AccionesEnLaBarra } from '../../barra-de-la-formula/components'
-import { ID_DEL_MOTIVO_DE_PUBLICAR_LA_FORMULA } from './botones-del-borrador'
 
 type Props = {
   alPublicar: () => void
-  // Hay cambios aplicados sin guardar: «Publicar…» espera (su motivo está escrito en la tarjeta del borrador).
+  // Hay cambios aplicados sin guardar: «Publicar…» espera, con su motivo al lado.
   espera: boolean
 }
 
-// «Publicar…» del borrador en la barra de la fórmula (fuera de ella lo dibuja la tarjeta del borrador).
+export const MOTIVO_DE_PUBLICAR = 'Guarda el borrador antes de publicar: se publica lo guardado.'
+export const ID_DEL_MOTIVO_DE_PUBLICAR_LA_FORMULA = 'formula-motivo-de-publicar'
+
+// «Publicar…» del borrador al día (4.20-2b), en la barra de la fórmula (orden 2, tras «Guardar el borrador»); fuera de ella (la puesta en marcha), en su lugar. Con
+// cambios aplicados sin guardar se ve apagado, con su motivo escrito al lado (`aria-describedby`): se publica lo guardado.
 export function PublicarDelBorrador({ alPublicar, espera }: Props) {
   return (
     <AccionesEnLaBarra orden={2}>
+      {espera ? (
+        <span
+          id={ID_DEL_MOTIVO_DE_PUBLICAR_LA_FORMULA}
+          className="text-(length:--text-sm) text-(--color-ink-soft)"
+          data-motivo-de-publicar=""
+        >
+          {MOTIVO_DE_PUBLICAR}
+        </span>
+      ) : null}
       <Button
         type="button"
         variant="outline"

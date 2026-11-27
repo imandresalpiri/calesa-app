@@ -493,7 +493,6 @@ inferior), que no se dibuja hasta abrirse: la carga sólo paga el botón. En el 
 - Lo medido se arma en una transacción que se revierte: `session_replication_role = replica`, 195.000 vehículos con la fase 3 en 15.000 y después 105.000 más a ella (sumar y no mover: mover deja filas
   muertas en los índices y cambia lo que se mide).
 - JS en frío (`e2e/presupuesto-js.spec.ts`): `/logistica` ≤ 390 KB (medido 373,8, con el ⚙ «Configurar») y `/logistica/fase/[fase]` ≤ 390 KB (medido 367,0 en 27 chunks): sobre lo medido más un 5 %, a la decena.
-- JS en frío de Logística › Configuración (`/logistica/configuracion/puertos`, el marco de Logística con la tira de pestañas y el catálogo de Puertos; las otras pestañas pesan lo mismo, cada una su editor): ≤ 390 KB (medido 365,6 en 28 chunks). El ⚙ «Configurar» vive en la `sub-navegacion` que ya viaja con `/logistica` (sin JS más que su icono). Cada catálogo conserva su tope y su aviso; sin consulta nueva ni volumen propio (decenas de filas).
 - JS en frío del detalle de un vehículo (`/logistica/vehiculo/[id]`): ≤ 470 KB (medido 446,1; el popover de relacionados, cada hueco y el modal «Pedírselo a alguien» van con `diferido()`), sobre lo medido más un 5 %, a la decena.
 - **Acciones de «Qué falta»** (`/logistica/vehiculo/[id]`): sin lectura nueva; viajan en la respuesta de la action de siempre (≈ 150 a 250 B por falta) y
   `por_revisar` sale del mismo `count` por `documentos_unidad_tipo_idx`. Se dibuja un botón por falta y el «⋯» sólo con más. «Pedírselo a alguien» llega
@@ -597,7 +596,8 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 - Imágenes de un ítem: `limit 9` por `repuestos_items_imagenes_item_id_idx`, sólo al abrir el panel; el trigger cuenta con `limit 8` bajo
   un candado por ítem. **Excepción a «nunca el original»:** sin miniatura y con `unoptimized`, cada imagen baja el WebP de ≤ 1600 px (≤ 8
   por panel abierto).
-- Catálogos de logística (Logística › Configuración): 4 × `limit 201` por PostgREST (decenas de filas); tope 200 con `<AvisoDeTope>`.
+- Catálogos de logística (el drawer de cada uno en la pestaña Fases de un origen): se leen al abrir su drawer, cada grupo («De <origen>» y los
+  compartidos) con `limit 201` por PostgREST (decenas de filas); tope 200 con `<AvisoDeTope>`.
 - Configuración del cotizador (`/repuestos/configuracion/cotizador`): tres lecturas en paralelo bajo `repuestos.cotizar` o
   `repuestos.configurar`: la configuración por su PK (`order by id desc`, la primera es la vigente) tope 20 + 1, los tramos por
   `repuestos_tramos_logistica_moneda_idx` y las cajas por `repuestos_cajas_moneda_monto_key`, tope 200 + 1 cada una, con `<AvisoDeTope>`.
@@ -674,7 +674,12 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `/configuracion/origenes`) y, con una subasta activa, las integraciones; lo que falta se dibuja hasta 3 por tarjeta (inicio: 356,4 KB en frío).
   Los orígenes que la persona abre entran al menú como sub-ítems de «Orígenes» al pedir la página (`getOrigenes(true)`, con `cache()`, tope 20 con
   «Ver todos»): no cruzan como código, son enlaces del mismo menú.
-- Configuración › Empresa (tarjetas de ajustes, cada modal con `diferido()` al abrirse por primera vez): JS en frío (KB gz, `.next-e2e`) `/empresa` 228,4, `/empresa/integraciones` 228,4, `/empresa/comprobantes` 358,9 (sin tope propio).
+- Configuración › Empresa (tarjetas de ajustes, cada modal con `diferido()` al abrirse por primera vez): JS en frío (KB gz, `.next-e2e`) `/empresa` 467,4,
+  `/empresa/integraciones` 467,4 (las dos pagan el mismo `pantallas/configuracion-empresa`; la tarjeta del asistente de IA y su hook, 2,5 de eso),
+  `/empresa/comprobantes` 358,9 (sin tope propio). Los usos del asistente (`asistente_ia_usos`: una fila por persona y mes) se leen en la misma
+  pantalla con `asistente_ia_usos_del_mes()`: las 6 personas del mes que más lo usaron (`limit 6`) y el conteo con `limit 101` (la tarjeta muestra
+  5 y «y N más», con «+» pasadas las 100), los dos por `asistente_ia_usos_mes_usos_idx` (`mes, usos desc, usuario_id`); contar un uso es un upsert por la
+  clave primaria (`usuario_id, mes`).
 - Configuración › Leads (seis tarjetas, cada modal con `diferido()` al abrirse por primera vez; sin tope propio): JS en frío (KB gz, `.next-e2e`) `/configuracion/leads` 405,1 contra 458,9 de `/configuracion/empresa` medida en la misma corrida.
 - La puesta en marcha de un origen (topes en `e2e/soporte/presupuestos.ts`): `/configuracion/origenes/nuevo` 389,7 (tope 420: el formulario de
   Datos y el paso a paso; sin el marco del origen) y `/configuracion/origenes/<id>/puesta-en-marcha/formula` 461,4 (tope 470, con el bloque «Para todos los orígenes»: la planilla del paso, por el mismo
@@ -688,7 +693,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   editor llega por `diferido()`), `/campos` 409,9 (tope 420; el editor de campos de `shared`: el arrastre y el formulario del campo van en su `diferido()` y la búsqueda filtra en el cliente; la lista del combo del grupo y el cuerpo del drawer «Grupos», en los suyos) y `/categorias` 410,8 (tope 420 por la regla del 5 %: el layout del origen trae el grupo de campos y su orden). Cada pestaña paga en frío las migas con el selector de origen, el drawer
   «Datos» y su botón, el tooltip del ⚠ (que sólo lleva la página del origen: `PestanasConDesborde` lo recibe por `conAviso`) y, en las tres de la fórmula, la barra (el selector con su popover, el estado, «Versiones», «Tablas» y el lugar de
   «Guardar» y «Publicar…»). La lista del selector (con las archivadas), los paneles de cada fórmula (nueva, renombrar, activar, archivar,
-  eliminar) y los de las tablas van por `diferido()`; la lista de las tablas se lee en el servidor sólo con `?panel=tablas`. `/configuracion/roles` 388,2 (la matriz con los niveles y el resumen plegable; tope 410).
+  eliminar) y los de las tablas van por `diferido()`; la lista de las tablas se lee en el servidor sólo con `?panel=tablas`. `/configuracion/roles` 388,2 (la matriz con los niveles y el botón de «Quién crea y quién ve»; tope 410).
   La cabecera del origen (migas,
   encabezado, «Datos», el «⋯» y las pestañas con su ⚠) lee `origenes_resumen()` una vez por pedido (`leerElOrigen`, con `cache()`, la comparten la cabecera y
   la pestaña) y la lista de orígenes del selector (`leerOrigenes()`, la misma que el menú); no lee apibara: nada cuenta ni crece con las cotizaciones.
@@ -738,6 +743,10 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   a la vista (200 px), no con la ficha; su título con «Cotizar» viaja con el documento.
   «Cotizar lead» del «⋯» de la cabecera suma, para quien tiene `cotizaciones.crear`, `getOrigenes()` (una por request) y ~90 B.
 - «Nuevo lead» es un solo drawer: 1 montaje y 1 entrada animada por apertura, 1 lectura de cada pedido (`e2e/leads-alta-un-drawer.spec.ts`).
+
+- La página de una guía (`/configuracion/web/guias/[id]`, un editor de bloques; sin presupuesto propio: un documento con el editor en frío no es una pantalla que se pida a diario): medido
+  362,5 KB en 25 chunks contra 362,6 KB en 26 antes del editor de bloques. Todo el editor (Tiptap, los bloques, la barrita, el panel, la vista previa) viaja con `diferido()` al abrir la guía;
+  el esqueleto de `EsqueletoDeEditorDeArticulo` mide lo mismo que el artículo (sin saltos).
 
 ## Cotizador (fórmula, diseño, cotizaciones)
 
@@ -801,7 +810,10 @@ fallar.
   la tarjeta (la lectura de la pestaña «Tarjeta», con lo que nombra). Nada se relee al tipear, al aplicar ni al insertar, mover o eliminar una
   fila. Dibuja hasta 500 filas (`TOPE_DE_LO_CARGADO`) con `<AvisoDeTope>` y «Buscar fila»: ≤ 6.300 nodos. El «⋯» y el clic derecho de las filas,
   las sugerencias y los bordes de las referencias son una sola instancia, no uno por fila; la sesión, la planilla, la tarjeta en vivo y los
-  paneles (banda, total, tipo de celda y «¿Cómo se escribe?») van por `diferido()`, y arrastrar el número usa eventos de puntero, sin dnd-kit.
+  paneles (banda, total, tipo de celda y «¿Cómo se escribe?», que abre el libro de la barra de fórmula) y el modal «Información de la fórmula» van por
+  `diferido()`, y arrastrar el número usa eventos de puntero, sin dnd-kit. El resultado al lado (`resultadoAlLado()`) compila, valida y evalúa la
+  fórmula entera una vez por pausa de 150 ms, O(filas), en el chunk de la planilla (`resultado-al-lado.escala.test.ts`: razón por fila ≤ 1,1 entre 60 y
+  600 filas); el e2e con volumen pide la cifra ≤ 1 s tras tipear en la última de 600.
   La hoja numerada (`hojaDeLaPlanilla()`), `aA1()`, `deA1()`, «de dónde sale», los usos de cada fila (`indiceDeUsos()`) y las bandas son O(filas),
   una vez por fórmula de trabajo; tipear en la unidad de ejemplo o cambiar el modo sólo vuelve a correr `evaluar()` (lineal). El estado de
   las filas es O(filas × nodos), una vez por fórmula de trabajo; filtrar y tipear no lo recalculan

@@ -91,8 +91,9 @@ RPC: `origen_crear|guardar|eliminar`, `origen_datos_clave_guardar`, `origen_apib
   `/configuracion/origenes`; `hooks/use-grupos-del-origen.ts`). Sin el permiso, el drawer se abre de sólo lectura.
 - Categoría: un nivel de anidado, un nombre por lugar (sin mayúsculas); con subcategorías activas no se desactiva; con subcategorías o vehículos no se
   elimina.
-- Entra quien tiene `origenes.gestionar`; de sólo lectura, `flujos.configurar` o `cotizaciones.configurar`, cada uno **en ese origen** (la base
-  pide el permiso en algún origen: el filtro por origen es de `src/app`). No hay `origenes.ver`.
+- Entra quien tiene `origenes.gestionar`; de sólo lectura, `flujos.configurar`, `cotizaciones.configurar` o `logistica.catalogos.gestionar`, cada uno
+  **en ese origen** (la base pide el permiso en algún origen, también en `origenes_resumen()`: el filtro por origen es de `src/app`). La pestaña Fases la abre
+  `flujos.configurar` o `logistica.catalogos.gestionar` (con sólo los catálogos, el diagrama en lectura y los catálogos arriba). No hay `origenes.ver`.
 - Plataformas: las que están en `integraciones.config.plataformas` (techo) y en `origenes.apibara_plataformas`; sin elegida, las de la integración.
 
 ## Ojo

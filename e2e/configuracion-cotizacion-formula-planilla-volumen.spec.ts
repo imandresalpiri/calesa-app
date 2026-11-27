@@ -23,6 +23,7 @@ import {
   abrirCostado,
   abrirPlanilla,
   celdaDe,
+  entradaDeLaCelda,
   escribirEnLaCelda,
   filaDe,
   grilla,
@@ -165,6 +166,30 @@ test('con 600 filas: 500 dibujadas con su aviso y su tope de nodos, «Buscar fil
   await expect(
     planilla(page).getByText('Ninguna fila tiene «no-existe» en el concepto.'),
   ).toBeVisible()
+})
+
+test('con 600 filas, el resultado al lado aparece en menos de 1 s tras tipear en la última', async ({
+  page,
+}, info) => {
+  await entrar(page, duena, { fresco: true })
+  await abrirPlanilla(page, grande.id)
+  const remate = await a1De(page, 'remate')
+  await escribirEnLaCelda(page, celdaDe(page, 'remate', 'D'), '10')
+  await buscar(page).fill('Fila 599')
+  await expect(filaDe(page, 'fila_599')).toBeVisible()
+  await celdaDe(page, 'fila_599').dblclick()
+  const entrada = entradaDeLaCelda(page)
+  await expect(entrada).toBeFocused()
+  const resultado = planilla(page).getByRole('status', {
+    name: 'Resultado con la unidad de ejemplo',
+  })
+  await expect(resultado).toBeVisible()
+  await entrada.fill(`=${remate}*3`)
+  const desde = Date.now()
+  await expect(resultado).toContainText('30')
+  const ms = Date.now() - desde
+  info.annotations.push({ type: 'medida', description: `resultado al lado: ${String(ms)} ms` })
+  expect(ms).toBeLessThanOrEqual(1000)
 })
 
 test('con 600 filas y una tabla, abrir hace 3 pedidos de lo de prueba y ninguno más al buscar ni al aplicar', async ({

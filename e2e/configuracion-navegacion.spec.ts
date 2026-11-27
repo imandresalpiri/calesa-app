@@ -130,7 +130,7 @@ test('E2E el menú marca la sección actual y salta a otra', async ({ page }) =>
     'aria-current',
     'page',
   )
-  // Catálogos ya no está en el menú: sus tablas, en el drawer de cada origen; los de logística, en Logística › Configuración.
+  // Catálogos ya no está en el menú: sus tablas, en el drawer de cada origen; los de logística, arriba del diagrama de su pestaña Fases.
   await expect(menu(page).getByRole('link', { name: 'Catálogos', exact: true })).toHaveCount(0)
   await expect(
     menu(page).getByRole('link', { name: 'Tablas compartidas', exact: true }),

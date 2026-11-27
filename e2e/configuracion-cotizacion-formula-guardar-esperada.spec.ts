@@ -1,5 +1,6 @@
 import { expect, test, type Page } from './soporte/prueba'
 import { enLaPestana } from './soporte/pestanas-del-origen'
+import { abrirLaInformacion, seccionDeLaInformacion } from './soporte/informacion-de-la-formula'
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
   borrarPersonasDePrueba,
@@ -67,7 +68,7 @@ test('G6: si otra persona guardó el borrador, publicar da su conflicto con «Re
   await expect(modal.getByLabel('Nota')).toHaveValue('Con la hora')
   await modal.getByRole('button', { name: 'Publicar', exact: true }).click()
   await expect(modal).toBeHidden()
-  await expect(page.getByRole('region', { name: 'Publicada' })).toContainText(
+  await expect(await seccionDeLaInformacion(page, 'Publicada')).toContainText(
     'Publicada: versión 2',
   )
 })
@@ -77,7 +78,11 @@ test('G6: si otra persona guardó el borrador, descartar da su conflicto con «R
 }) => {
   await entrar(page, duena, { fresco: true })
   await abrirFormula(page, paraDescartar.id)
-  await page.getByRole('button', { name: 'Descartar…', exact: true }).click()
+  await (
+    await abrirLaInformacion(page)
+  )
+    .getByRole('button', { name: 'Descartar el borrador…', exact: true })
+    .click()
   const dialogo = page.getByRole('dialog', { name: 'Descartar el borrador de Esme Espera' })
   guardaOtraPersona(paraDescartar.id)
   await dialogo.getByRole('button', { name: 'Descartar borrador' }).click()
@@ -86,5 +91,5 @@ test('G6: si otra persona guardó el borrador, descartar da su conflicto con «R
   await expect(dialogo).not.toContainText('El borrador cambió después de que lo abriste')
   await dialogo.getByRole('button', { name: 'Descartar borrador' }).click()
   await expect(dialogo).toBeHidden()
-  await expect(page.getByRole('region', { name: 'Borrador' })).toHaveCount(0)
+  await expect(await seccionDeLaInformacion(page, 'Borrador')).toHaveCount(0)
 })

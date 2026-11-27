@@ -22,12 +22,12 @@ type Props = {
   alCambiarEnLaBarra: (tipo: TipoCambio, enLaBarra: boolean) => void
 }
 
-// Un par de monedas (USD → BOB) con sus tipos de cambio como tarjetas y «+ Tipo de cambio» para sumar otro entre las mismas dos.
+// Un par de monedas (USD → BOB), un grupo (no una sección: las tarjetas son las secciones) con sus tipos de cambio como tarjetas y «+ Tipo de cambio» para sumar otro entre las mismas dos.
 export function GrupoDePar(props: Props) {
   const { grupo, tipos, ultimosCambios, puedeGestionar, puedeSumar, enCurso } = props
   const titulo = `grupo-${grupo.clave}`
   return (
-    <section aria-labelledby={titulo} className="grid grid-cols-[minmax(0,1fr)] gap-3">
+    <div role="group" aria-labelledby={titulo} className="grid grid-cols-[minmax(0,1fr)] gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2
           id={titulo}
@@ -72,6 +72,6 @@ export function GrupoDePar(props: Props) {
           />
         ))}
       </TarjetasDeAjustes>
-    </section>
+    </div>
   )
 }

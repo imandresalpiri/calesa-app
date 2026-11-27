@@ -53,6 +53,8 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
   ítems pide a dónde moverlos; el cuerpo diferido; `motivoSinPermiso` lo deja de sólo lectura) `operacionesDesdeAcciones()` (cinco actions →
   `OperacionesDelCatalogo`) y `useConLosCreados()` (lo creado desde el combo, que no revalida, queda en la lista del combo y del drawer hasta
   que la lectura lo trae; lo quitado sale). En el editor de campos, «Grupos» (`<DrawerDeGrupos>`, si `GruposDelEditor.operaciones` llega).
+- `ui/campo-para-quien.tsx`: `<CampoParaQuien>`, el «Para» de lo propio o compartido (radios «Sólo de <origen>» o «Compartido con todos los orígenes»; una
+  opción con `motivo` va apagada y lo dice debajo). Lo usan las tablas de referencia, los catálogos de logística y los tipos de documento.
 - `lib/ancho.ts` (`anchoDeLaPeticion()`, `CORTE_DEL_TABLERO`/`CORTE_DE_LA_TABLA`/`CORTE_DEL_PANEL`), `ui/ancho-de-pantalla.tsx` (`useAlMenos()`).
 - `lib/atajos.ts` + `ui/atajos/`: `ATAJOS`, `teclasDelAtajo()`, `<ProveedorAtajos>`, `useAtajo()` (responde el último registrado); `<AyudaDeAtajos>`
   registra `?` y abre `<ListaDeAtajos>` por `diferido()`.
@@ -91,7 +93,7 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
 - `ui/barra-de-cambios-sin-guardar.tsx`: `<BarraDeCambiosSinGuardar>` (la barra pegada abajo de un formulario de página) sobre
   `ui/use-salida-con-cambios.ts` (`useSalidaConCambios()`: enlaces frenados en la captura según `lib/destino-de-un-clic.ts`, `beforeunload` y
   `anotarCambiosSinGuardar()` de `ui/salida-con-cambios.ts`; el «atrás» no se frena).
-- `ui/estados/`, `ui/esqueletos/` (sin tope de ancho; `EsqueletoFormulario` sólo para un formulario, `EsqueletoTarjetas` con las columnas de `<TarjetasDeAjustes>`); `ui/toasts.ts` (`avisarError()`, `avisarConDeshacer()`), `ui/sonner.tsx`, `ui/pie-del-panel.tsx`,
+- `ui/estados/`, `ui/esqueletos/` (sin tope de ancho; `EsqueletoFormulario` sólo para un formulario, `EsqueletoDeEditorDeArticulo` para el editor de una guía, `EsqueletoTarjetas` con las columnas de `<TarjetasDeAjustes>`); `ui/toasts.ts` (`avisarError()`, `avisarConDeshacer()`), `ui/sonner.tsx`, `ui/pie-del-panel.tsx`,
   `ui/zona-de-archivos.tsx` (varios archivos; sólo los entrega). Los paneles de dinero (pago, compra, gasto): `ui/zona-de-archivo.tsx` (`<ZonaDeArchivo>`: un archivo, siempre a
   la vista con el mismo alto, vacía o con su vista previa `miniatura-de-archivo.tsx`, «Ver», «Reemplazar», «Quitar», error y «Reintentar» en un renglón reservado) sobre
   `use-archivo-de-la-zona.ts` (sube al elegir, recuerda el último para reintentar), `ui/campo-de-monto.tsx` (el monto grande con su moneda pegada en un campo),
@@ -115,7 +117,8 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
 
 - `use-instalacion.ts` pone sus oyentes (`beforeinstallprompt`, `appinstalled`) al evaluarse el módulo, no en un efecto: el navegador avisa una vez y
   el menú se monta tarde. Un evento sirve una sola vez.
-- `admin.ts` importa `server-only`; el lint sólo deja importarlo desde `equipo/infra/invitaciones.ts`, `empresa/infra/revalidacion-prueba.ts` y
+- `admin.ts` importa `server-only`; el lint sólo deja importarlo desde `equipo/infra/invitaciones.ts`, `empresa/infra/revalidacion-prueba.ts`,
+  `empresa/infra/asistente-ia/proveedor.ts` y
   `web/infra/portal/rpc.ts`.
 - Esc dentro de un diálogo lo atiende Base UI (cierra el de más arriba y detiene el evento): el atajo «cerrar» no lo ve, por eso `<Modal>` no lo
   registra. Un `<Modal>` abierto desde un `<Drawer>` se dibuja dentro de los hijos del Drawer.

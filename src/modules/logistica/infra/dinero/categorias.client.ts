@@ -1,23 +1,35 @@
-// Las categorías de gasto de Logística › Configuración, leídas desde el navegador (6.11-4): las compartidas con todos los orígenes (`origen_id` nulo), también las
-// desactivadas, con su versión, y sin recordar nada (la lista se relee tras cada escritura). Es un catálogo de decenas de filas: `.limit(200)`, como `leerOpcionesDeGasto`
-// (`categorias_gasto_origen_clave_key`: el origen va primero).
-import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
+// Las categorías de gasto de un origen, leídas desde el navegador para su drawer en las fases del origen (6.11-4): las propias del origen y las
+// compartidas con todos (`origen_id` nulo), también las desactivadas, con su versión. Es un catálogo de decenas de filas: cada grupo con `.limit(201)` y
+// `cortarAlTope` a 200 (`leerCatalogoDelOrigen`). Índice: `categorias_gasto_origen_clave_key` (el origen va primero: sirve para `=` y para `is null`).
+import type { Resultado } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/browser'
-import { categoriasDesde, type CategoriaDeGasto } from '../../entities/dinero/categoria'
+import {
+  categoriasDesde,
+  ordenarCategorias,
+  TOPE_DE_CATEGORIAS_DE_GASTO,
+  type CategoriaDeGasto,
+} from '../../entities/dinero/categoria'
+import type { CatalogoDelOrigenLeido } from '../../entities/nucleo/catalogo-del-origen'
+import { leerCatalogoDelOrigen } from '../nucleo/catalogo-del-origen.client'
 
 export const NO_SE_CARGARON_LAS_CATEGORIAS = 'No se pudieron cargar las categorías.'
 
-export async function leerCategoriasDeConfiguracion(): Promise<Resultado<CategoriaDeGasto[]>> {
-  const { data, error } = await createClient()
-    .from('categorias_gasto')
-    .select('id, origen_id, nombre, proposito, activo, orden, actualizado_en')
-    .is('origen_id', null)
-    .order('orden')
-    .order('nombre')
-    .limit(200)
-  if (error) {
-    return { ok: false, error: errorDePostgrest(error) }
-  }
-  const lista = categoriasDesde(data)
-  return lista ? ok(lista) : fallo('inesperado', NO_SE_CARGARON_LAS_CATEGORIAS)
+export function leerCategoriasDelOrigen(
+  origenId: string,
+): Promise<Resultado<CatalogoDelOrigenLeido<CategoriaDeGasto>>> {
+  return leerCatalogoDelOrigen(origenId, {
+    consulta: (origen) => {
+      const consulta = createClient()
+        .from('categorias_gasto')
+        .select('id, origen_id, nombre, proposito, activo, orden, actualizado_en')
+      return (origen === null ? consulta.is('origen_id', null) : consulta.eq('origen_id', origen))
+        .order('orden')
+        .order('nombre')
+        .limit(TOPE_DE_CATEGORIAS_DE_GASTO + 1)
+    },
+    desde: categoriasDesde,
+    ordenar: ordenarCategorias,
+    tope: TOPE_DE_CATEGORIAS_DE_GASTO,
+    mensaje: NO_SE_CARGARON_LAS_CATEGORIAS,
+  })
 }

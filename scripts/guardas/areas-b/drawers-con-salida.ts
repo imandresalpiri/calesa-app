@@ -37,6 +37,11 @@ export const REGISTRO: Record<string, RegistroDeDrawer> = {
     formulario: 'src/modules/logistica/features/transporte/components/formulario-del-grupo.tsx',
     mecanismo: 'contexto',
   },
+  // El panel de la derecha de la página de una guía en una pantalla angosta: `?panel=lateral`. Es sólo el marco; lo escrito vive en la página.
+  'src/modules/web/features/contenido/guias/components/panel-en-drawer.tsx': {
+    sinFormulario:
+      'sólo es el marco del panel de la guía (publicación y opciones del bloque): lo escrito vive en la página de la guía, que guarda su borrador y pregunta al salir (useSalidaConCambios); cerrar el cajón no descarta nada',
+  },
   // «Nueva guía» de Configuración › Sitio web › Guías (8.03-1): `?panel=guia-nueva`; el formulario dice que tiene algo escrito.
   'src/modules/web/features/contenido/guias/components/drawer-nueva-guia.tsx': {
     formulario: 'src/modules/web/features/contenido/guias/components/formulario-de-nueva-guia.tsx',

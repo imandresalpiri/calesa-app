@@ -30,6 +30,14 @@ describe('FUNCIONES_DE_LA_AYUDA', () => {
     expect(FUNCIONES_DE_LA_AYUDA.map((f) => f.nombre).sort()).toEqual([...FUNCIONES.keys()].sort())
   })
 
+  it.each(FUNCIONES_DE_LA_AYUDA.map((f) => [f.nombre, f] as const))(
+    '%s: la firma se arma con sus valores',
+    (_, f) => {
+      const valores = [...f.argumentos, ...(f.repite ? ['…'] : [])].join('; ')
+      expect(f.firma).toBe(`${f.nombre}(${valores})`)
+    },
+  )
+
   it.each(FUNCIONES_DE_LA_AYUDA.map((f) => [f.nombre, f.ejemplo] as const))(
     '%s: su ejemplo compila',
     (_, ejemplo) => {

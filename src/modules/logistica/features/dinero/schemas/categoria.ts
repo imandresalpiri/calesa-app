@@ -33,8 +33,3 @@ export const esquemaGuardarCategoria = z.object({
     })
     .refine((c) => Object.keys(c).length > 0),
 })
-
-export const esquemaEliminarCategoria = z.object({
-  id: z.guid(),
-  actualizadoEn: z.string().min(1),
-})

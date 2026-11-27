@@ -4,10 +4,10 @@ export const PANEL_GASTO = 'gasto'
 export const PANEL_ELIMINAR_GASTO = 'eliminar-gasto'
 // El diálogo de «Prorratear» del resumen de un grupo (`?panel=prorratear`, 6.11-4): nombra el reparto antes de escribir nada.
 export const PANEL_PRORRATEAR = 'prorratear'
-// Los paneles de «Categorías de gasto» en Logística › Configuración (6.11-4): `?panel=nueva-categoria`, `?panel=editar-categoria&categoria=<id>` y `?panel=eliminar-categoria&categoria=<id>`.
-export const PANEL_NUEVA_CATEGORIA = 'nueva-categoria'
-export const PANEL_EDITAR_CATEGORIA = 'editar-categoria'
-export const PANEL_ELIMINAR_CATEGORIA = 'eliminar-categoria'
+// Los modales de «Categorías de gasto» dentro de su drawer (`?panel=categorias-de-gasto`, 6.11-4): `?accion=nueva-categoria&de=origen|compartido` y
+// `?accion=editar-categoria&categoria=<id>`. No se eliminan: se desactivan.
+export const ACCION_NUEVA_CATEGORIA = 'nueva-categoria'
+export const ACCION_EDITAR_CATEGORIA = 'editar-categoria'
 export const CLAVE_DE_CATEGORIA = 'categoria'
 export const MENSAJE_CATEGORIA_YA_NO_ESTA = 'Esa categoría ya no está.'
 export const CLAVE_DE_GASTO = 'gasto'

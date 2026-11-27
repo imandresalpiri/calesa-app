@@ -382,6 +382,36 @@ export type Database = {
           },
         ]
       }
+      asistente_ia_usos: {
+        Row: {
+          actualizado_en: string
+          mes: string
+          usos: number
+          usuario_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          mes: string
+          usos: number
+          usuario_id: string
+        }
+        Update: {
+          actualizado_en?: string
+          mes?: string
+          usos?: number
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'asistente_ia_usos_usuario_id_fkey'
+            columns: ['usuario_id']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       categorias: {
         Row: {
           activa: boolean
@@ -8249,6 +8279,8 @@ export type Database = {
       _aprobada_candado: { Args: { p_vehiculos: string[] }; Returns: undefined }
       _aprobada_poner: { Args: { p_cotizacion: string; p_vehiculo: string }; Returns: undefined }
       _aprobada_reponer: { Args: { p_vehiculo: string }; Returns: undefined }
+      _asistente_ia_config: { Args: { p_guardada: Json; p_nueva: Json }; Returns: Json }
+      _asistente_ia_origen: { Args: { p_url: string }; Returns: string }
       _atributos_completar: {
         Args: {
           p_activas: string[]
@@ -10923,6 +10955,8 @@ export type Database = {
         Returns: Json
       }
       _web_ajustes_valor: { Args: { p_clave: string; p_valor: Json }; Returns: Json }
+      _web_doc_boton: { Args: { p_nodo: Json }; Returns: string }
+      _web_doc_galeria: { Args: { p_nodo: Json }; Returns: string }
       _web_doc_html: { Args: { p_doc: Json }; Returns: string }
       _web_doc_imagen: { Args: { p_nodo: Json }; Returns: string }
       _web_doc_marcas: { Args: { p_html: string; p_marcas: Json }; Returns: string }
@@ -10932,6 +10966,7 @@ export type Database = {
         Returns: string
       }
       _web_doc_ruta_valida: { Args: { p_ruta: string }; Returns: boolean }
+      _web_doc_video: { Args: { p_nodo: Json }; Returns: string }
       _web_html_escapar: { Args: { p_texto: string }; Returns: string }
       _web_legales_validar: { Args: { p_anterior: Json; p_legales: Json }; Returns: Json }
       _zarpe_estimado: { Args: { p_actual: string; p_cambios: Json }; Returns: string }
@@ -10984,6 +11019,8 @@ export type Database = {
       apibara_consulta_leer: { Args: { p_consulta: string }; Returns: Json }
       apibara_consultas_purgar: { Args: Record<PropertyKey, never>; Returns: number }
       apibara_contexto: { Args: { p_origen: string }; Returns: Json }
+      asistente_ia_contar_uso: { Args: Record<PropertyKey, never>; Returns: number }
+      asistente_ia_usos_del_mes: { Args: Record<PropertyKey, never>; Returns: Json }
       assert_activo: { Args: Record<PropertyKey, never>; Returns: undefined }
       assert_permiso: { Args: { p_clave: string; p_origen?: string }; Returns: undefined }
       atributos_lead: { Args: { p_lead: string }; Returns: Json }

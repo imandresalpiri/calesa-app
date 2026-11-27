@@ -7,6 +7,7 @@ import {
   type DestinoFueraDelNavegador,
 } from '../destinos-de-busqueda'
 import { gruposVisibles, paraElNavegador, type GrupoDelNavegador } from '../secciones'
+import { destinosDeLosCatalogos } from './destinos-de-los-catalogos'
 import { conOrigenesEnElMenu, subseccionesDeOrigenes } from './origenes-del-menu'
 
 // Lo que el menú, el selector y el buscador de Configuración reciben: las secciones que esta persona puede abrir, con un sub-ítem por origen
@@ -26,9 +27,14 @@ export const gruposDeQuienMira = cache(async (): Promise<GrupoDelNavegador[]> =>
     : grupos
 })
 
-// Lo que el buscador encuentra y no es de Configuración (Logística › Puertos), según los permisos de quien mira. Una vez por request, como `gruposDeQuienMira`.
+// Lo que el buscador encuentra y no es una sección de Configuración (Repuestos › Cotizador de repuestos, Orígenes › Miami › Fases › Puertos), según los
+// permisos de quien mira. Una vez por request, como `gruposDeQuienMira`; si los orígenes no se pueden leer, sin sus catálogos.
 export const destinosFueraDeQuienMira = cache(async (): Promise<DestinoFueraDelNavegador[]> => {
   await connection()
   const { permisos } = await requerirSesion()
-  return destinosFueraDeConfiguracion(permisos)
+  const origenes = await getOrigenes(true)
+  return [
+    ...(origenes.ok ? destinosDeLosCatalogos(origenes.data, permisos) : []),
+    ...destinosFueraDeConfiguracion(permisos),
+  ]
 })

@@ -1,4 +1,5 @@
 // @sin-celular-archivo: Configuración se usa en escritorio; la persona pidió no probarla en celular (2026-11-08)
+import { cerrarLaInformacion, seccionDeLaInformacion } from './soporte/informacion-de-la-formula'
 import { expect, test, type Page } from './soporte/prueba'
 import { CONTRASENA, entrar } from './soporte/alta'
 import { detalleDelEstado, estadoDeLaBarra } from './soporte/barra-de-la-formula'
@@ -152,10 +153,11 @@ test('G1: sobre la publicada crea el borrador con su diseño; el segundo guardad
   expect(segundo!.actualizado_en).not.toBe(primero!.actualizado_en)
   expect(lecturas).toEqual([])
   await expect(guardar(page)).toBeDisabled()
-  // La tarjeta de arriba no lleva «Editar»: se edita en la planilla.
-  const tarjeta = page.getByRole('region', { name: 'Borrador' })
-  await expect(tarjeta).toBeVisible()
-  await expect(tarjeta.getByRole('button', { name: 'Editar', exact: true })).toHaveCount(0)
+  // El borrador está en «Información de la fórmula», sin «Editar»: se edita en la planilla.
+  const borrador = await seccionDeLaInformacion(page, 'Borrador')
+  await expect(borrador).toBeVisible()
+  await expect(borrador.getByRole('button', { name: 'Editar', exact: true })).toHaveCount(0)
+  await cerrarLaInformacion(page)
   await laComisionDice(page, '*6%')
 })
 
