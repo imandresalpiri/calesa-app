@@ -144,7 +144,7 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   unidad y una fila por unidad (hasta 100).
 - **Área `aduana`.** `/logistica/aduana` (`pantallas/aduana.ts`; `ENLACE_DE_ADUANA`: regla `aduana`, `logistica.ver` o `logistica.aduana.gestionar` en el origen). La lista es del origen
   (`declaraciones_listar` con `p_origen`): las declaraciones con algún vehículo vivo de él y las que no tienen ninguno, con la insignia «Sin vehículos» (`sinVehiculos` de `entities/aduana/estado.ts`);
-  el buscador de «Vehículos de la declaración» busca en ese origen. El resumen (`?declaracion=`) abre por id, sin mirar el origen. `entities/aduana/`: `declaracion.ts` (`actualizadoEn` es
+  el buscador de «Vehículos de la declaración» busca en ese origen. El resumen (`?declaracion=`) abre por id, sin mirar el origen: si la pestaña no se puede dibujar en el origen resuelto (el enlace de la actividad no lo lleva), se abre igual, en lectura. Los enlaces del hueco van con el origen de la unidad. `entities/aduana/`: `declaracion.ts` (`actualizadoEn` es
   la versión), `estado.ts` («pagada» y «faltan» los calcula la base, nunca el cliente; el día es el de la empresa), `filtros.ts` (sólo `canal`, `pagada`, `q`;
   cursor `(creado_en, id)`, sin «Anterior»), `escritura.ts` (`cambiosDeDeclaracion`: sólo lo que cambió, `null` vacía). Lee `declaraciones_listar` (en la guarda
   de páginas) y `declaracion_leer`; el hueco «Aduana» lee el vínculo vivo por `declaraciones_vehiculos` y «Tributos pagados» (sin montos); fuera de las 200 que
