@@ -1,11 +1,17 @@
 // Lo que vale y cómo se dibuja un dato de una celda de la tarjeta (una variable de la cotización o algo de un nodo: su monto, etiqueta, descripción, porcentaje,
 // tipo de cambio o plazo, D6, D8, D17 y D18 de T310), y si tiene valor (lo que mira la lista de respaldo y la condición «está vacío»). Va aparte del contenido de
 // la celda porque lo usan el contenido y las condiciones (`condiciones-de-la-celda.ts`), que se importan en ese orden. Un dato de un nodo que no aplica queda
-// vacío; un monto nulo, «—». Los montos con `formatearMonto()` (el texto de `<Monto>` y del PDF); en pantalla los tapa `<Monto>` en Modo Live. Dentro de un texto con
+// vacío; un monto nulo, «—». Los montos con `formatearMonto()` (el texto de `<Monto>` y del PDF); con `sinMoneda` (la imagen que se ve con el Modo Live), el número
+// sin su moneda (`formatearMontoSinMoneda()`); en pantalla, `<Monto>` elige por CSS. Dentro de un texto con
 // datos (`parteDibujada()`) va el mismo formato, pero sin valor no escribe nada (nunca «—»). El monto (y su segunda en Bs) y el porcentaje van con los «Decimales» de
 // su celda (glosario: «Decimales (de una celda)»; los del `pct` para el porcentaje); sin ellos, lo de siempre. El tipo de cambio, siempre con 4.
 import { formatearConDecimales } from '@/shared/lib/cifra-fija'
-import { formatearMonto, formatearNumero, formatearPorcentaje } from '@/shared/lib/formato'
+import {
+  formatearMonto,
+  formatearMontoSinMoneda,
+  formatearNumero,
+  formatearPorcentaje,
+} from '@/shared/lib/formato'
 import type { CalculoDeLaTarjeta } from '../calculo-de-la-tarjeta'
 import type { DatoDeLaCelda, Mostrar } from '../cuadricula-de-la-tarjeta'
 import { valorDeLaVariable, type ContextoDeLaCotizacion } from './contexto-de-la-cotizacion'
@@ -18,7 +24,7 @@ export type MontoDibujado = { valor: number; moneda: string; texto: string; deci
 // Un tramo de un texto con datos: un texto (con sus saltos de línea adentro) o un monto, que en pantalla va con `<Monto>`.
 export type TramoDelTexto = string | MontoDibujado
 export type ContenidoDibujado =
-  // `tramos`, sólo en un texto con datos que lleva un monto: el HTML lo dibuja por tramos para que Live lo tape; el PDF, la imagen y «Copiar texto» leen `lineas`.
+  // `tramos`, sólo en un texto con datos que lleva un monto: el HTML lo dibuja por tramos con `<Monto>` (el Modo Live); el PDF, la imagen y «Copiar texto» leen `lineas`.
   | { tipo: 'texto'; lineas: string[]; tramos?: readonly TramoDelTexto[] }
   | ({ tipo: 'monto'; segunda: MontoDibujado | null } & MontoDibujado)
   | { tipo: 'logo' }
@@ -32,6 +38,8 @@ export type EntradaDelContenido = {
   contexto: ContextoDeLaCotizacion
   monedaBs: string | null
   locale: string
+  // Los montos sin su símbolo ni su código de moneda: sólo la imagen que se ve con el Modo Live (`?sin-moneda=1`). El PDF y lo que se comparte, nunca.
+  sinMoneda?: boolean
 }
 
 export const textoDibujado = (t: string): ContenidoDibujado => ({
@@ -90,14 +98,18 @@ function montoDibujado(
   moneda: string,
 ): MontoDibujado {
   const decimales = e.tarjeta.nodos.get(nodo)?.decimales
-  const { locale } = e
+  const { locale, sinMoneda = false } = e
   return decimales === undefined
-    ? { valor, moneda, texto: formatearMonto(valor, { moneda, locale }) }
+    ? {
+        valor,
+        moneda,
+        texto: (sinMoneda ? formatearMontoSinMoneda : formatearMonto)(valor, { moneda, locale }),
+      }
     : {
         valor,
         moneda,
         decimales,
-        texto: formatearConDecimales(valor, 'monto', { decimales, locale, moneda }),
+        texto: formatearConDecimales(valor, 'monto', { decimales, locale, moneda, sinMoneda }),
       }
 }
 

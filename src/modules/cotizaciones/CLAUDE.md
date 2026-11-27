@@ -269,16 +269,16 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
   el asistente) y después `redactarConElAsistente()` de `empresa`, con la firma de `leerAsesorQueMira()` y `puedeConfigurar` (`empresa.ajustes.gestionar`).
   Dan `{ texto }` sin revalidar.
 - **La imagen de la tarjeta** (área `tarjeta`; glosario, `docs/COTIZADOR.md` › «La imagen de la tarjeta»): `GET /cotizaciones/[id]/imagen` (`rutaDeLaImagen(id,
-{ ancho?, intento? })`, el mismo 404 que el PDF; `?ancho=480` es la miniatura de las listas y otro ancho se ignora; `?intento=`, sólo otra URL) se arma **al pedirla, para
+{ ancho?, intento?, sinMoneda? })`, el mismo 404 que el PDF; `?ancho=480` es la miniatura de las listas y otro ancho se ignora; `?sin-moneda=1`, los montos sin su moneda (la que se ve con el Modo Live; otro valor se ignora); `?intento=`, sólo otra URL) se arma **al pedirla, para
   quien la pide**, y no se guarda. Lee la huella (`leerHuellaDeLaImagen()`, `cotizacion_imagen_huella()`; lo que no se ve, 404) y, con un `If-None-Match` que
-  `coincideLaEtiqueta()` con `etiquetaDeLaImagen()` (huella, usuario, `VERSION_DEL_DIBUJO` y ancho), responde 304 sin dibujar; si no, `armarLaImagen(id, { contextoDe,
-ancho })` (en `features/tarjeta/` porque cruza con `empresa`: la hoja de lo guardado, los ajustes, el logo y el WebP de `webpDeUnaGuardada()`, `sharp` con
+  `coincideLaEtiqueta()` con `etiquetaDeLaImagen()` (huella, usuario, `VERSION_DEL_DIBUJO`, ancho y `.s` la sin moneda), responde 304 sin dibujar; si no, `armarLaImagen(id, { contextoDe,
+ancho, sinMoneda })` (en `features/tarjeta/` porque cruza con `empresa`: la hoja de lo guardado, los ajustes, el logo y el WebP de `webpDeUnaGuardada()`, `sharp` con
   `import()`) con el contexto de quien pide (`datos-de-la-tarjeta.ts`, como el PDF: el cliente sólo con `leads.ver`, y él como asesor). Con la ETag, `private,
 no-cache`; con «Ver como» (sin leer la huella), sin el primer recálculo o incompleta (una lectura del contexto falló o no llegó el logo o la foto: `completa`),
   `no-store` y sin ETag; un fallo, 500 en texto. `Server-Timing` dice lo que tardó la
   huella y el armado. El componente `<ImagenDeLaTarjeta>` sale por
   `pantallas/tarjeta-imagen.ts` (marco de la proporción que le den, pedida a la vista y de a cuatro por página con `useCargaDeLaImagen()`, recuadro con el total, visor por `diferido()` con la clave de
-  `claveDelVisorDeLaImagen()`, que acepta también la de antes, `portada-…`; Modo Live por CSS en `globals.css`).
+  `claveDelVisorDeLaImagen()`, que acepta también la de antes, `portada-…`; con el Modo Live pide la variante sin moneda, la capa con `key` por variante, y el CSS de `globals.css` esconde la que no corresponde: `data-imagen-moneda`).
 - **El editor de la hoja** (la pestaña «Hoja»: `/configuracion/origenes/<id>/hoja?formula=<fórmula>`, `cotizaciones.configurar`; glosario: «Inspector de la
   hoja»): lee el borrador o la publicada y los niveles de `cotizaciones_niveles` (no de `niveles_con_uso()`) y edita **sobre la hoja**: el lienzo
   (`components/editor/`) dibuja el diseño de trabajo con las piezas de cotizar (`hojaDeLaVistaPrevia()`, `ItemDeHoja`, `TotalDeHoja`, `CabeceraDeHoja`,

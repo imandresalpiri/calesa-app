@@ -24,6 +24,19 @@ describe('etiquetaDeLaImagen', () => {
     expect(otra).not.toBe(una)
     expect(etiquetaDeLaImagen({ huella: HUELLA, usuarioId: USUARIO, ancho: 480 })).not.toBe(una)
   })
+
+  it('la variante sin moneda (el Modo Live) suma `.s`: nunca coincide con la otra', () => {
+    const con = etiquetaDeLaImagen({ huella: HUELLA, usuarioId: USUARIO, ancho: 480 })
+    const sin = etiquetaDeLaImagen({
+      huella: HUELLA,
+      usuarioId: USUARIO,
+      ancho: 480,
+      sinMoneda: true,
+    })
+    expect(sin).toBe(`"${HUELLA}.${USUARIO}.v${String(VERSION_DEL_DIBUJO)}.480.s"`)
+    expect(coincideLaEtiqueta(con, sin)).toBe(false)
+    expect(coincideLaEtiqueta(sin, con)).toBe(false)
+  })
 })
 
 describe('coincideLaEtiqueta', () => {

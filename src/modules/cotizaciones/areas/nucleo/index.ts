@@ -97,8 +97,10 @@ export {
   CLAVE_DE_ORIGEN,
   CLAVE_DE_VEHICULO,
   CLAVE_DEL_ANCHO,
+  CLAVE_SIN_MONEDA,
   RUTA_DE_LA_HOJA,
   anchoDeLaImagen,
+  sinMonedaDeLaImagen,
   rutaDeLaHoja,
   rutaDelListado,
 } from '../../entities/ruta-de-la-hoja'

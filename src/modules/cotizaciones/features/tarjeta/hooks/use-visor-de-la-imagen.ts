@@ -11,22 +11,20 @@ import {
 } from '../../../entities/tarjeta/clave-del-visor-de-la-imagen'
 
 // El visor de la imagen de la tarjeta: su clave en `?visor=` (la de la URL si la nombra, la de hoy o la de antes: el visor se abre con la que dice), si ya hay que
-// montarlo (un clic o la URL; nunca en Modo Live) y los pedidos de abrirlo (cada clic suma uno).
+// montarlo (un clic o la URL) y los pedidos de abrirlo (cada clic suma uno).
 export function useVisorDeLaImagen({
   cotizacionId,
   lugar,
-  live,
 }: {
   cotizacionId: string
   lugar: LugarDeLaImagen
-  live: boolean
 }) {
   const [pedidos, setPedidos] = useState(0)
   const [enLaUrl] = useQueryState(CLAVE_DEL_VISOR, parseAsString)
   const laNombraLaUrl = esClaveDelVisorDeLaImagen(enLaUrl, cotizacionId, lugar)
   const clave =
     laNombraLaUrl && enLaUrl !== null ? enLaUrl : claveDelVisorDeLaImagen(cotizacionId, lugar)
-  const montar = useAbiertoAlgunaVez(!live && (pedidos > 0 || laNombraLaUrl))
+  const montar = useAbiertoAlgunaVez(pedidos > 0 || laNombraLaUrl)
   return {
     clave,
     montar,

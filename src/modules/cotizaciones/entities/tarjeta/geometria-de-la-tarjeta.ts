@@ -82,6 +82,8 @@ export type EntradaDeLaGeometria = {
   contexto: ContextoDeLaCotizacion
   monedaBs: string | null
   locale: string
+  // Los montos sin moneda (`EntradaDelContenido.sinMoneda`): la imagen del Modo Live.
+  sinMoneda?: boolean
 }
 
 // Por qué no se dibuja una fila; nulo si se dibuja. Un nodo sin estado (que no es el total) no está en la versión del cálculo: va antes que «no aplica». Una

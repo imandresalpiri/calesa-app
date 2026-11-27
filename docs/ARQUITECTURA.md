@@ -146,7 +146,7 @@ Un módulo tiene **dos entradas** y nada más se importa desde afuera:
 - **Archivos**: un objeto se nombra por el hash de su contenido (subir dos veces es la misma ruta), cuenta en `storage_refcount()` y se borra por la
   cola (`cola_gc_storage`, `storage-gc`), nunca con un `delete`. La imagen de la tarjeta de una cotización (WebP con `sharp`,
   ≤ 1.600 px) no se guarda: se arma al pedirla, para quien la pide, y la reusa la caché del navegador con su ETag.
-- **Modo Live**: `useLive()` + `<Monto>`; clase en `<html>`; todo monto pasa por ahí, y una imagen con cifras (la imagen de la tarjeta) se ve borrosa por el mismo CSS.
+- **Modo Live**: `useLive()` + `<Monto>`; clase en `<html>`; oculta los símbolos y los códigos de moneda y deja los números; todo monto pasa por ahí, y la imagen de la tarjeta se pide sin moneda (`?sin-moneda=1`) y el mismo CSS esconde la otra.
 - **Campos configurables**: el motor es de `shared` (`lib/campos` puro, `ui/campos` el editor) y de la base
   (`_campo_*`, `_campos_*`, `_atributos_*`). `origenes` (el layout de un vehículo) y `leads` ponen lo suyo:
   qué campos hay, claves reservadas, permiso y banderas. Un campo con datos se desactiva, no se borra; lo

@@ -1391,9 +1391,9 @@ objetos en el bucket. Lo que evita volver a dibujarla es la caché del navegador
   cliente y el vehículo vivos **sólo si quien pide los ve** (nombre; título, lote y VIN: no su `actualizado_en`, que una fase o una foto mueven), quien
   pide (su nombre, correo, WhatsApp, cargo y foto: el asesor) y los ajustes de la empresa. Todo por clave primaria o índice único, y dos catálogos de
   decenas de filas. Devuelve sólo el md5.
-- **La ETag** la arma la app (`etiquetaDeLaImagen()`): `"<huella>.<usuario>.v<VERSION_DEL_DIBUJO>.<ancho o g>"`. El usuario va aparte para que dos
+- **La ETag** la arma la app (`etiquetaDeLaImagen()`): `"<huella>.<usuario>.v<VERSION_DEL_DIBUJO>.<ancho o g>"`, con `.s` al final la sin moneda (nunca un 304 de la otra variante). El usuario va aparte para que dos
   personas nunca compartan una; un cambio en cómo se dibuja sube `VERSION_DEL_DIBUJO` (`entities/tarjeta/etiqueta-de-la-imagen.ts`), sin migración.
-- **La ruta** `GET /cotizaciones/<id>/imagen` (`requerirSesion()`; `?ancho=480`, la miniatura; otro ancho se ignora): lo que no existe, está en la papelera
+- **La ruta** `GET /cotizaciones/<id>/imagen` (`requerirSesion()`; `?ancho=480`, la miniatura; otro ancho se ignora; `?sin-moneda=1`, los montos sin su moneda, la que se ve con el Modo Live; otro valor se ignora): lo que no existe, está en la papelera
   o no se ve, el mismo 404 en texto que el PDF. Con un `If-None-Match` igual (también `W/` o en una lista), 304 sin dibujar nada; si no, la arma y la
   entrega con la `ETag` y `Cache-Control: private, no-cache`. Con «Ver como» (la perspectiva cambia los permisos, no la persona), sin el primer recálculo
   (la tarjeta saldría sólo con el total) o incompleta (falló leer el cliente, el vehículo o el asesor, o no llegó el logo o la foto que la tarjeta dibuja:
@@ -1403,5 +1403,5 @@ objetos en el bucket. Lo que evita volver a dibujarla es la caché del navegador
   `object-contain` en un marco de la proporción que le dan (15:8 por omisión), pedida recién a la vista y con turno en la cola de la página (a lo sumo
   cuatro a la vez: `useCargaDeLaImagen()`, `crearCola()`); mientras espera o carga, un recuadro del mismo tamaño con el
   total y «Preparando la imagen…»; si falla, «No se pudo armar la imagen.» con «Reintentar» (otra URL, `?intento=`); el clic la abre en el visor de
-  fotos (`?visor=imagen-<id>`, o `imagen-de-la-lista-<id>` desde la tarjeta de la lista; `portada-…` y `portada-de-la-lista-…` también lo abren); en Modo
-  Live, borrosa con «Oculto en Modo Live» y sin visor.
+  fotos (`?visor=imagen-<id>`, o `imagen-de-la-lista-<id>` desde la tarjeta de la lista; `portada-…` y `portada-de-la-lista-…` también lo abren); con el Modo
+  Live, la variante sin moneda (`?sin-moneda=1`, también en el visor): cambiar el Modo Live la vuelve a pedir y el CSS esconde la otra (`data-imagen-moneda`).

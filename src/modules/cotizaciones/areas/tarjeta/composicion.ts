@@ -64,6 +64,7 @@ type EntradaDeLaGeometria = Pick<EntradaDelPdf, 'lectura' | 'contexto' | 'locale
 // si la tarjeta no se ve.
 async function geometriaDeUnaGuardada(
   entrada: EntradaDeLaGeometria,
+  { sinMoneda = false }: { sinMoneda?: boolean } = {},
 ): Promise<Resultado<{ geometria: Geometria; hoja: HojaDeUnaGuardada }>> {
   const { hoja, inicial } = entrada.lectura
   const tarjeta = await getTarjeta(hoja.diseno.formula.id)
@@ -76,6 +77,7 @@ async function geometriaDeUnaGuardada(
     contexto: entrada.contexto,
     monedaBs: hoja.diseno.cabecera.monedaBs,
     locale: entrada.locale,
+    ...(sinMoneda ? { sinMoneda } : {}),
   })
   return ok({ geometria, hoja })
 }
@@ -152,13 +154,14 @@ export async function pdfDeUnaGuardada(
 
 // La tarjeta de lo guardado como imagen PNG (`ImageResponse`, al ancho de la tarjeta en px): la misma geometría que el PDF. `next/og` se carga sólo aquí, con
 // `import()`, y nunca llega al navegador. La base de `webpDeUnaGuardada()`. `completa`, con el logo y la foto que dibuja. `sin_permiso` si la tarjeta no se ve;
-// lo demás, `inesperado`.
+// lo demás, `inesperado`. Con `sinMoneda`, los montos sin su moneda (la imagen que se ve con el Modo Live); el PDF nunca la pide.
 export async function imagenDeUnaGuardada(
   entrada: EntradaDelPdf,
+  opciones: { sinMoneda?: boolean } = {},
 ): Promise<
   Resultado<{ bytes: Uint8Array<ArrayBuffer>; ancho: number; alto: number; completa: boolean }>
 > {
-  const armada = await geometriaDeUnaGuardada(entrada)
+  const armada = await geometriaDeUnaGuardada(entrada, opciones)
   if (!armada.ok) {
     return armada
   }
@@ -180,12 +183,13 @@ export async function imagenDeUnaGuardada(
 }
 
 // La imagen de la tarjeta (`docs/COTIZADOR.md` › «La imagen de la tarjeta»): lo guardado (`imagenDeUnaGuardada()`) en WebP de hasta 1.600 px, o del ancho de la
-// miniatura que se pida, achicada del PNG, y si salió `completa`. `sharp` se carga sólo aquí, con `import()`, y nunca llega al navegador.
+// miniatura que se pida, achicada del PNG, y si salió `completa`. `sharp` se carga sólo aquí, con `import()`, y nunca llega al navegador. `sinMoneda`: la variante
+// del Modo Live (`?sin-moneda=1`).
 export async function webpDeUnaGuardada(
   entrada: EntradaDelPdf,
-  { ancho }: { ancho: AnchoDeLaImagen | null },
+  { ancho, sinMoneda = false }: { ancho: AnchoDeLaImagen | null; sinMoneda?: boolean },
 ): Promise<Resultado<{ bytes: Uint8Array<ArrayBuffer>; completa: boolean }>> {
-  const png = await imagenDeUnaGuardada(entrada)
+  const png = await imagenDeUnaGuardada(entrada, { sinMoneda })
   if (!png.ok) {
     return png
   }

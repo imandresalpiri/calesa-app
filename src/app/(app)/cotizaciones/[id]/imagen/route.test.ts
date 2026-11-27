@@ -27,14 +27,19 @@ vi.mock('@/modules/cotizaciones', async () => {
     etiquetaDeLaImagen: unknown
     coincideLaEtiqueta: unknown
   }>('@/modules/cotizaciones/entities/tarjeta/etiqueta-de-la-imagen')
-  const ruta = await vi.importActual<{ anchoDeLaImagen: unknown; CLAVE_DEL_ANCHO: unknown }>(
-    '@/modules/cotizaciones/entities/ruta-de-la-hoja',
-  )
+  const ruta = await vi.importActual<{
+    anchoDeLaImagen: unknown
+    CLAVE_DEL_ANCHO: unknown
+    sinMonedaDeLaImagen: unknown
+    CLAVE_SIN_MONEDA: unknown
+  }>('@/modules/cotizaciones/entities/ruta-de-la-hoja')
   return {
     etiquetaDeLaImagen: etiqueta.etiquetaDeLaImagen,
     coincideLaEtiqueta: etiqueta.coincideLaEtiqueta,
     anchoDeLaImagen: ruta.anchoDeLaImagen,
     CLAVE_DEL_ANCHO: ruta.CLAVE_DEL_ANCHO,
+    sinMonedaDeLaImagen: ruta.sinMonedaDeLaImagen,
+    CLAVE_SIN_MONEDA: ruta.CLAVE_SIN_MONEDA,
     leerHuellaDeLaImagen: (id: string) => leerHuella(id),
     armarLaImagen: (id: string, opciones: unknown) => armar(id, opciones),
     leerAsesorQueMira: () => leerAsesor(),
@@ -77,12 +82,12 @@ const activa = {
 }
 const hoja = { cotizacion: { id: ID, leadId: LEAD, vehiculoId: VEHICULO } }
 const fallo = (codigo: string) => ({ ok: false, error: { codigo, mensaje: 'x' } })
-const etiqueta = (ancho: 480 | null = null) =>
-  etiquetaDeLaImagen({ huella: HUELLA, usuarioId: YO, ancho })
+const etiqueta = (ancho: 480 | null = null, sinMoneda = false) =>
+  etiquetaDeLaImagen({ huella: HUELLA, usuarioId: YO, ancho, sinMoneda })
 
 // Con qué pidió la ruta armar la imagen: el ancho y lo que devuelve su `contextoDe` con la hoja (el contexto y si se leyó entero). El armado de prueba sale
 // `completa` si el contexto se leyó entero.
-let pedidoDeArmar: { ancho: unknown; contexto: unknown } | null = null
+let pedidoDeArmar: { ancho: unknown; sinMoneda: unknown; contexto: unknown } | null = null
 
 const pedir = (id = ID, cabeceras: Record<string, string> = {}, consulta = '') =>
   GET(
@@ -101,11 +106,12 @@ beforeEach(() => {
       _id: string,
       opciones: {
         ancho: unknown
+        sinMoneda?: unknown
         contextoDe: (h: typeof hoja) => Promise<{ completo: boolean }>
       },
     ) => {
       const leido = await opciones.contextoDe(hoja)
-      pedidoDeArmar = { ancho: opciones.ancho, contexto: leido }
+      pedidoDeArmar = { ancho: opciones.ancho, sinMoneda: opciones.sinMoneda, contexto: leido }
       return { ok: true, data: { bytes: BYTES, conRecalculo: true, completa: leido.completo } }
     },
   )
@@ -204,7 +210,29 @@ describe('GET /cotizaciones/[id]/imagen: la ETag', () => {
     expect(rara.headers.get('etag')).toBe(etiqueta())
     expect(pedidoDeArmar?.ancho).toBeNull()
   })
+})
 
+describe('GET /cotizaciones/[id]/imagen: la variante sin moneda', () => {
+  it('?sin-moneda=1 arma la variante del Modo Live con su propia ETag y su 304; otro valor se ignora', async () => {
+    const sin = await pedir(ID, {}, '?sin-moneda=1')
+    expect([sin.status, sin.headers.get('etag')]).toEqual([200, etiqueta(null, true)])
+    expect(etiqueta(null, true)).not.toBe(etiqueta())
+    expect(pedidoDeArmar?.sinMoneda).toBe(true)
+    expect(
+      (await pedir(ID, { 'If-None-Match': etiqueta(null, true) }, '?sin-moneda=1')).status,
+    ).toBe(304)
+    // La etiqueta de la otra variante nunca da un 304: el navegador no muestra la de con moneda en el Modo Live, ni al revés.
+    expect((await pedir(ID, { 'If-None-Match': etiqueta() }, '?sin-moneda=1')).status).toBe(200)
+    expect((await pedir(ID, { 'If-None-Match': etiqueta(null, true) })).status).toBe(200)
+    const chica = await pedir(ID, {}, '?ancho=480&sin-moneda=1')
+    expect(chica.headers.get('etag')).toBe(etiqueta(480, true))
+    const rara = await pedir(ID, {}, '?sin-moneda=si')
+    expect(rara.headers.get('etag')).toBe(etiqueta())
+    expect(pedidoDeArmar?.sinMoneda).toBe(false)
+  })
+})
+
+describe('GET /cotizaciones/[id]/imagen: sin guardarse', () => {
   it('sin el primer recálculo se entrega con no-store y sin ETag', async () => {
     armar.mockResolvedValue({
       ok: true,

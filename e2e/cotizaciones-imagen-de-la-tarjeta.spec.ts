@@ -46,7 +46,7 @@ import {
 // La imagen de la tarjeta (`docs/COTIZADOR.md` › «La imagen de la tarjeta»): se arma al pedirla y para quien la pide, que es el asesor de la tarjeta. Ana (asesora)
 // crea; Luis (el dueño) la mira y la comparte: la vista previa, el texto de «Compartir», la imagen y el PDF dicen a Luis, con su WhatsApp, su cargo y su foto, y
 // Ana sigue como «Creado por». La lista pide sólo las miniaturas a la vista y de a cuatro; con la ETag de quien mira, 304; otro cargo u otra plantilla, otra ETag.
-// En Modo Live, borrosa y sin «Compartir»; la clave vieja del visor lo abre; lo que no se ve, el 404 del PDF. Un origen
+// Con el Modo Live, la variante sin moneda con su visor y su ETag; la clave vieja del visor lo abre; lo que no se ve, el 404 del PDF. Un origen
 // propio con la fórmula de la subasta y la réplica de V1 con las celdas del asesor: nunca la plantilla de la semilla.
 test.describe.configure({ mode: 'serial' })
 
@@ -229,8 +229,8 @@ test('E2E la lista pide sólo las miniaturas a la vista y nunca más de cuatro a
   await exigirLaImagenConSu304(page, info, id)
 })
 
-// @sin-celular: el Modo Live lo dibuja el CSS igual en cualquier ancho; la lista del celular ya corre en la prueba de las miniaturas
-test('E2E en Modo Live la imagen del resumen se ve borrosa con «Oculto en Modo Live», sin visor y sin «Compartir»', async ({
+// @sin-celular: la variante la elige `useLive()` igual en cualquier ancho; la lista del celular ya corre en la prueba de las miniaturas
+test('E2E con el Modo Live la imagen del resumen es la sin moneda, se ve entera y abre su visor; apagarlo vuelve a la de siempre', async ({
   page,
 }, info) => {
   await entrar(page, luis, { fresco: true })
@@ -242,17 +242,46 @@ test('E2E en Modo Live la imagen del resumen se ve borrosa con «Oculto en Modo 
   const resumen = page.getByRole('dialog')
   const imagen = resumen.getByAltText(textoDeLaImagen(guardada))
   await expect.poll(() => anchoCargado(imagen)).toBeGreaterThan(0)
-  await expect(resumen.getByText('Oculto en Modo Live')).toBeVisible()
-  expect(await imagen.evaluate((img) => getComputedStyle(img).filter)).toContain('blur')
+  await expect(imagen).toHaveAttribute('src', /[?&]sin-moneda=1(&|$)/)
+  await expect(imagen).toHaveAttribute('data-imagen-moneda', 'sin')
+  expect(await imagen.evaluate((img) => getComputedStyle(img).visibility)).toBe('visible')
+  expect(await imagen.evaluate((img) => getComputedStyle(img).filter)).toBe('none')
+  await expect(resumen.getByText('Oculto en Modo Live')).toHaveCount(0)
   await capturar(page, info, 'imagen-en-modo-live')
-  const boton = page.getByRole('button', {
-    name: `Ver la ${textoDeLaImagen(guardada).toLocaleLowerCase('es')} en grande`,
+
+  // La ruta: la sin moneda es otra imagen con otra ETag (`.s`), y la de una variante nunca da un 304 de la otra.
+  const con = await page.request.get(rutaDeLaImagen(guardada))
+  const sin = await page.request.get(rutaDeLaImagen(guardada, '?sin-moneda=1'))
+  expect(sin.status()).toBe(200)
+  expect(etiquetaDe(sin)).toMatch(/\.s"$/)
+  expect(etiquetaDe(sin)).not.toBe(etiquetaDe(con))
+  expect(Buffer.compare(await sin.body(), await con.body())).not.toBe(0)
+  const cruzada = await page.request.get(rutaDeLaImagen(guardada, '?sin-moneda=1'), {
+    headers: { 'if-none-match': etiquetaDe(con) },
   })
-  await expect(boton).toBeDisabled()
-  await boton.click({ force: true })
-  await expect(page.locator('[data-visor-de-imagenes]')).toHaveCount(0)
-  await expect(resumen.getByRole('link', { name: 'Abrir cotización' })).toBeVisible()
-  await expect(resumen.getByRole('button', { name: 'Compartir cotización' })).toHaveCount(0)
+  expect(cruzada.status()).toBe(200)
+
+  // El visor, con la misma variante.
+  await page
+    .getByRole('button', {
+      name: `Ver la ${textoDeLaImagen(guardada).toLocaleLowerCase('es')} en grande`,
+    })
+    .click()
+  const visor = page.getByRole('dialog', { name: textoDeLaImagen(guardada) })
+  await expect(visor).toBeVisible()
+  await expect(visor.locator('img').first()).toHaveAttribute('src', /[?&]sin-moneda=1(&|$)/)
+  await page.keyboard.press('Escape')
+  await expect(visor).toHaveCount(0)
+
+  // Apagarlo (desde otra pestaña: el resumen tapa la barra) la vuelve a pedir con su moneda.
+  await page.evaluate(() => {
+    window.localStorage.setItem('modo-live', '0')
+    window.dispatchEvent(new StorageEvent('storage', { key: 'modo-live', newValue: '0' }))
+  })
+  await expect(page.locator('html')).not.toHaveClass(/\blive\b/)
+  await expect(imagen).toHaveAttribute('data-imagen-moneda', 'con')
+  await expect(imagen).not.toHaveAttribute('src', /sin-moneda/)
+  await expect.poll(() => anchoCargado(imagen)).toBeGreaterThan(0)
 })
 
 // @sin-celular: la ETag la decide el servidor con la huella de quien pide, igual para cualquier pantalla que la pida

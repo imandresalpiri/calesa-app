@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useState } from 'react'
 import { useALaVista } from '@/shared/ui/use-a-la-vista'
 import { useLive } from '@/shared/ui/live'
 import { rutaDeLaImagen, type AnchoDeLaImagen } from '../../../../entities/ruta-de-la-hoja'
@@ -29,21 +30,39 @@ export type PropsDeLaImagen = {
   // Dónde se dibuja: el visor vive en `?visor=` con una clave por lugar (`claveDelVisorDeLaImagen()`), así la tarjeta y el resumen abierto de la misma cotización
   // no abren dos visores.
   lugar?: LugarDeLaImagen
-  // La miniatura de una cabecera (el resumen): su recuadro y su aviso de Modo Live en letra chica, sin crecer.
+  // La miniatura de una cabecera (el resumen): su recuadro en letra chica, sin crecer.
   miniatura?: boolean
 }
 
-// La imagen (la miniatura, si se pidió un ancho) y la del visor (siempre la grande). «Reintentar» suma `?intento=`: otra URL (la anterior quedó fallida en el navegador).
-const urlsDeLaImagen = (id: string, ancho: AnchoDeLaImagen | undefined, intento: number) => ({
-  url: rutaDeLaImagen(id, ancho === undefined ? { intento } : { ancho, intento }),
-  urlDelVisor: rutaDeLaImagen(id, { intento }),
-})
+// La variante que se pide: con su moneda o, con el Modo Live, sin ella (`?sin-moneda=1`).
+export type VarianteDeLaImagen = 'con' | 'sin'
+
+// La imagen (la miniatura, si se pidió un ancho) y la del visor (siempre la grande), de la variante. «Reintentar» suma `?intento=`: otra URL (la anterior quedó
+// fallida en el navegador).
+const urlsDeLaImagen = (
+  id: string,
+  {
+    ancho,
+    intento,
+    variante,
+  }: { ancho: AnchoDeLaImagen | undefined; intento: number; variante: VarianteDeLaImagen },
+) => {
+  const sinMoneda = variante === 'sin'
+  return {
+    url: rutaDeLaImagen(
+      id,
+      ancho === undefined ? { intento, sinMoneda } : { ancho, intento, sinMoneda },
+    ),
+    urlDelVisor: rutaDeLaImagen(id, { intento, sinMoneda }),
+  }
+}
 
 // La imagen de la tarjeta (`docs/COTIZADOR.md` › «La imagen de la tarjeta»), pedida a su ruta recién a la vista (200 px antes) y con turno en la cola de la página
 // (`useCargaDeLaImagen()`: a lo sumo cuatro a la vez; la que sale de la vista antes de su turno deja la fila). Mientras espera, llega o si falla, el recuadro con el
 // total en el mismo marco, que crece si el texto no cabe; con turno va `eager` (`lazy` podría no pedirla nunca si sale de la vista, y el turno quedaría tomado). El
-// clic la abre en el visor de fotos (su código llega al primer clic; un enlace con la clave de antes, `portada-…`, también lo abre). En Modo Live, borrosa con
-// «Oculto en Modo Live» y sin visor: lo hace el CSS de `globals.css` (`data-imagen`, `data-imagen-oculta`) antes de hidratar, y `useLive()` corta el clic.
+// clic la abre en el visor de fotos (su código llega al primer clic; un enlace con la clave de antes, `portada-…`, también lo abre). Con el Modo Live se pide la
+// variante sin moneda: la capa lleva `key` por variante (encender o apagar el Modo Live la vuelve a pedir, con su recuadro mientras llega) y el CSS de
+// `globals.css` esconde la que no corresponde (`data-imagen-moneda`): con el Modo Live encendido nunca se ve una con moneda.
 export function ImagenDeLaTarjeta({
   cotizacionId,
   numero,
@@ -55,12 +74,12 @@ export function ImagenDeLaTarjeta({
   miniatura = false,
 }: PropsDeLaImagen) {
   const { live } = useLive()
+  const variante: VarianteDeLaImagen = live ? 'sin' : 'con'
   const [observar, aLaVista] = useALaVista<HTMLDivElement>({ seguir: true })
-  const imagen = useCargaDeLaImagen(aLaVista)
-  const visor = useVisorDeLaImagen({ cotizacionId, lugar, live })
-  const { url, urlDelVisor } = urlsDeLaImagen(cotizacionId, ancho, imagen.intento)
+  const visor = useVisorDeLaImagen({ cotizacionId, lugar })
+  // El intento de la imagen que se abrió: la del visor sale con el mismo (una URL fallida antes no se repite).
+  const [intentoDelVisor, setIntentoDelVisor] = useState(0)
   const texto = `Imagen de la tarjeta de la cotización n.º ${String(numero)}`
-  const lista = imagen.carga === 'lista'
 
   return (
     <div
@@ -69,11 +88,69 @@ export function ImagenDeLaTarjeta({
       className="relative grid w-full overflow-hidden rounded-(--radius-card) border border-(--color-line) bg-(--color-paper-dim)"
       style={{ aspectRatio: String(proporcion) }}
     >
+      <CapaDeLaImagen
+        key={variante}
+        cotizacionId={cotizacionId}
+        texto={texto}
+        total={total}
+        ancho={ancho}
+        recorte={recorte}
+        miniatura={miniatura}
+        variante={variante}
+        aLaVista={aLaVista}
+        alAbrir={(intento) => {
+          setIntentoDelVisor(intento)
+          visor.abrir()
+        }}
+      />
+      {visor.montar ? (
+        <VisorDeLaImagenDiferido
+          clave={visor.clave}
+          variante={variante}
+          titulo={texto}
+          url={
+            urlsDeLaImagen(cotizacionId, { ancho, intento: intentoDelVisor, variante }).urlDelVisor
+          }
+          pedidos={visor.pedidos}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+type PropsDeLaCapa = Required<Pick<PropsDeLaImagen, 'recorte' | 'miniatura'>> &
+  Pick<PropsDeLaImagen, 'cotizacionId' | 'total' | 'ancho'> & {
+    texto: string
+    variante: VarianteDeLaImagen
+    aLaVista: boolean
+    // El clic en la imagen cargada, con su intento.
+    alAbrir: (intento: number) => void
+  }
+
+// La imagen de una variante, su carga y su recuadro: otra variante es otra capa (`key`), con su carga desde cero.
+function CapaDeLaImagen({
+  cotizacionId,
+  texto,
+  total,
+  ancho,
+  recorte,
+  miniatura,
+  variante,
+  aLaVista,
+  alAbrir,
+}: PropsDeLaCapa) {
+  const imagen = useCargaDeLaImagen(aLaVista)
+  const { url } = urlsDeLaImagen(cotizacionId, { ancho, intento: imagen.intento, variante })
+  const lista = imagen.carga === 'lista'
+  return (
+    <>
       <button
         type="button"
         aria-label={`Ver la ${texto.toLocaleLowerCase('es')} en grande`}
-        disabled={live || !lista}
-        onClick={visor.abrir}
+        disabled={!lista}
+        onClick={() => {
+          alAbrir(imagen.intento)
+        }}
         className="absolute inset-0 outline-none focus-visible:shadow-(--shadow-focus) enabled:cursor-zoom-in"
       >
         {imagen.conTurno ? (
@@ -87,21 +164,13 @@ export function ImagenDeLaTarjeta({
             sizes="(min-width: 48rem) 32rem, 100vw"
             className={recorte === 'cubrir' ? 'object-cover object-left-top' : 'object-contain'}
             data-imagen
+            data-imagen-moneda={variante}
             onLoad={imagen.alCargar}
             onError={imagen.alFallar}
           />
         ) : null}
       </button>
-      {lista ? (
-        <p
-          data-imagen-oculta
-          className={`pointer-events-none absolute inset-0 items-center justify-center text-center font-medium text-(--color-ink) ${
-            miniatura ? 'p-1 text-(length:--text-xs)' : 'p-4 text-(length:--text-sm)'
-          }`}
-        >
-          Oculto en Modo Live
-        </p>
-      ) : (
+      {lista ? null : (
         <RecuadroDeLaImagen
           total={total}
           fallo={imagen.carga === 'fallo'}
@@ -109,14 +178,6 @@ export function ImagenDeLaTarjeta({
           miniatura={miniatura}
         />
       )}
-      {visor.montar ? (
-        <VisorDeLaImagenDiferido
-          clave={visor.clave}
-          titulo={texto}
-          url={urlDelVisor}
-          pedidos={visor.pedidos}
-        />
-      ) : null}
-    </div>
+    </>
   )
 }
