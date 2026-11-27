@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CLAVE_DEL_HUECO_ABIERTO, esHuecoConocido, rutaDeLaUnidad } from './enlaces'
+import { CLAVE_DEL_HUECO_ABIERTO, enElOrigen, esHuecoConocido, rutaDeLaUnidad } from './enlaces'
 import { ORDEN_DE_HUECOS } from './hueco'
 
 describe('rutaDeLaUnidad', () => {
@@ -20,6 +20,13 @@ describe('rutaDeLaUnidad', () => {
 
   it('escapa un id raro', () => {
     expect(rutaDeLaUnidad('a/b')).toBe('/logistica/vehiculo/a%2Fb')
+  })
+})
+
+describe('enElOrigen', () => {
+  it('pone el origen en la URL, escapado', () => {
+    expect(enElOrigen('/logistica/bandeja', 'o1')).toBe('/logistica/bandeja?origen=o1')
+    expect(enElOrigen('/logistica', 'a b')).toBe('/logistica?origen=a%20b')
   })
 })
 

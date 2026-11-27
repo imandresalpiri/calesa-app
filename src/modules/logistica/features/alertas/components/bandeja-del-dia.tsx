@@ -9,10 +9,11 @@ type Props = {
   ahora: Date
   zona: string
   origenes: ReadonlyMap<string, string> | null
+  origenId: string
 }
 
-// La bandeja del día: lo que le toca hoy a quien mira, por grupos y con su acción. Server Component: sólo las filas y los botones llevan JS. Nada pendiente dice «Nada pendiente hoy».
-export function BandejaDelDia({ estado, permisos, ahora, zona, origenes }: Props) {
+// La bandeja del día de un origen: lo que le toca hoy a quien mira, por grupos y con su acción. Server Component: sólo las filas y los botones llevan JS. Nada pendiente dice «Nada pendiente hoy».
+export function BandejaDelDia({ estado, permisos, ahora, zona, origenes, origenId }: Props) {
   return (
     <section
       aria-labelledby="bandeja-titulo"
@@ -22,7 +23,7 @@ export function BandejaDelDia({ estado, permisos, ahora, zona, origenes }: Props
         Bandeja del día
       </h2>
       {estado.tipo === 'vacia' ? (
-        <BandejaVacia />
+        <BandejaVacia origenId={origenId} />
       ) : (
         estado.grupos.map((grupo) => (
           <GrupoDeLaBandeja
@@ -32,6 +33,7 @@ export function BandejaDelDia({ estado, permisos, ahora, zona, origenes }: Props
             ahora={ahora}
             zona={zona}
             origenes={origenes}
+            origenId={origenId}
           />
         ))
       )}

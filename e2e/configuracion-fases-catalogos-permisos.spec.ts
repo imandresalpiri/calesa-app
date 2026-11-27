@@ -127,6 +127,6 @@ test('E2E sin permisos de configurar, Logística no muestra el ⚙', async ({ pa
   const configurar = page.getByRole('link', { name: 'Configurar la logística' })
   await entrar(page, soloLogistica, { fresco: true })
   await page.goto('/logistica')
-  await expect(page.getByRole('navigation', { name: 'Logística' })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: /^Logística de / })).toBeVisible()
   await expect(configurar).toHaveCount(0)
 })

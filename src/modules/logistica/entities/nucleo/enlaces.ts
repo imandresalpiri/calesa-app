@@ -5,12 +5,22 @@ import { unidadDeLogistica, type PanelDeCatalogo } from '@/shared/lib/rutas'
 import type { PropsDelCatalogoDelOrigen } from './catalogo-del-origen'
 import { ORDEN_DE_HUECOS } from './hueco'
 
-// Un enlace de la sub-navegación de `/logistica` (Embarques, Aduana, Gastos) y un catálogo de logística de las fases de un origen (6.01). Nulo hasta que
-// existe la página o el catálogo: el layout y la sección sólo dibujan lo que está lleno y que la persona puede ver.
+/** La clave de la URL con el origen de toda página de Logística (`?origen=`): la barra de arriba, la cadena, la bandeja, las áreas y sus formularios. */
+export const CLAVE_DE_ORIGEN_DE_LOGISTICA = 'origen'
+
+/** Una ruta de Logística en un origen: `<ruta>?origen=<id>`. */
+export function enElOrigen(ruta: string, origenId: string): string {
+  return `${ruta}?${CLAVE_DE_ORIGEN_DE_LOGISTICA}=${encodeURIComponent(origenId)}`
+}
+
+// Una pestaña de un área en la barra de cada origen de Logística (Embarques, Aduana, Gastos). Nula hasta que existe la página. Va si el flujo del origen tiene
+// encendida alguna de sus `reglas` (`flujos_reglas`) y la persona tiene alguno de sus `permisos` en ese origen. `clave` la nombra en la barra y en su página.
 export type EnlaceDeLogistica = {
+  clave: 'embarques' | 'aduana' | 'gastos'
   titulo: string
   ruta: string
-  permiso: ClavePermiso
+  reglas: readonly string[]
+  permisos: readonly ClavePermiso[]
 }
 
 // Un catálogo de logística en la pestaña Fases de cada origen: su `clave` es la de su drawer (`?panel=<clave>`), su `titulo` el del botón arriba del diagrama y

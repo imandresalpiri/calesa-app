@@ -1,14 +1,7 @@
-import { Suspense, type ReactNode } from 'react'
-import { MenuDeLogistica } from './menu-de-logistica'
+import type { ReactNode } from 'react'
 
-// Logística (6.01): la sub-navegación y, debajo, la pantalla. Cadena, Embarques, Aduana y Gastos se suman a la barra cuando su página existe y la persona la puede ver.
+// Logística (6.01): cada página dibuja arriba su barra (`BarraDeLogistica`: los orígenes y las pestañas del elegido) y, debajo, su contenido. El layout no lleva
+// la barra: no recibe `?origen=` ni se vuelve a dibujar al navegar entre páginas hermanas.
 export default function LayoutDeLogistica({ children }: { children: ReactNode }) {
-  return (
-    <div className="grid gap-4">
-      <Suspense fallback={null}>
-        <MenuDeLogistica />
-      </Suspense>
-      {children}
-    </div>
-  )
+  return <div className="grid gap-4">{children}</div>
 }

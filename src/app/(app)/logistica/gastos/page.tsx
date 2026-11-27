@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
-import { connection } from 'next/server'
 import { Suspense } from 'react'
-import { puede, requerirSesion } from '@/modules/equipo'
 import {
   CLAVE_DE_VISTA,
   esquemaDeFiltrosDeDinero,
@@ -11,17 +9,17 @@ import {
   pedidoDeDinero,
   vistaDe,
   vistasPermitidas,
-  type VistaDeDinero,
 } from '@/modules/logistica'
 import { ListadoDeDinero } from '@/modules/logistica/pantallas/dinero'
-import { getOrigenes } from '@/modules/origenes'
 import { datosO } from '@/shared/lib/errores'
 import { CLAVE_DE_CURSOR, leerFiltros } from '@/shared/lib/filtros'
 import { leerCursor } from '@/shared/lib/paginacion'
-import type { Permisos } from '@/shared/lib/permisos'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { EsqueletoDetalle, EsqueletoListado } from '@/shared/ui/esqueletos'
+import { abrirLaPestana } from '../abrir-la-pestana'
+import { BarraDeLogistica } from '../barra-de-logistica'
+import { EsqueletoDeLaBarra } from '../esqueleto-de-la-barra'
 import { CLAVE_DE_UNIDAD } from '../clave-de-unidad'
 import { DrawerDeLaUnidad } from '../drawer-de-la-unidad'
 import { MarcasDeLogistica } from '../marcas-de-logistica'
@@ -29,32 +27,24 @@ import { UnidadAbierta } from '../unidad-abierta'
 
 export const metadata: Metadata = { title: 'Gastos' }
 
-// Los gastos y los pagos que quien mira puede ver (`docs/UX.md` › «Logística»): `?ver=gastos|pagos`, una página por cursor `(fecha, id)` con sus filtros en la URL. Lo que se ve lo
-// decide la base (`gastos_listar()` y `pagos_listar()` son invocadoras y salen vacías sin la clave del origen); acá sólo se arma el pedido y se dibuja. La fila abre el panel de su unidad
+// Los gastos y los pagos del origen elegido que quien mira puede ver (`docs/UX.md` › «Logística»): `?ver=gastos|pagos`, una página por cursor `(fecha, id)` con
+// sus filtros en la URL (el origen no es uno: es el de la barra). Lo que se ve lo decide la base (`gastos_listar()` y `pagos_listar()` son invocadoras y salen vacías sin la clave del origen); acá sólo se arma el pedido y se dibuja. La fila abre el panel de su unidad
 // (`?vehiculo=`), el mismo de `/logistica`. Ninguna suma: lo que se muestra es la fila.
 export default function PaginaDeGastosDeLogistica({
   searchParams,
 }: PageProps<'/logistica/gastos'>) {
   return (
-    <>
-      {/* El h1 va fuera del Suspense: está también cargando y sin permiso (9.12-5, R3). Sin cabecera visible: la ocupa la barra de filtros. */}
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+      {/* El h1 va fuera del Suspense: está también cargando y sin permiso (9.12-5, R3). Sin cabecera visible: la ocupa la barra. */}
       <h1 className="sr-only">Gastos</h1>
+      <Suspense fallback={<EsqueletoDeLaBarra />}>
+        <BarraDeLogistica searchParams={searchParams} pestana="gastos" />
+      </Suspense>
       <Suspense fallback={<EsqueletoListado filas={8} columnas={5} />}>
         <Listado searchParams={searchParams} />
       </Suspense>
-    </>
+    </div>
   )
-}
-
-const CLAVE_DE_VER: Record<VistaDeDinero, 'logistica.gastos.ver' | 'logistica.pagos.ver'> = {
-  gastos: 'logistica.gastos.ver',
-  pagos: 'logistica.pagos.ver',
-}
-
-// Los orígenes donde la persona ve esa vista (también los desactivados: sus gastos siguen ahí).
-async function origenesDeLaVista(permisos: Permisos, vista: VistaDeDinero) {
-  const todos = datosO(await getOrigenes(true))
-  return todos.filter((origen) => puede(permisos, CLAVE_DE_VER[vista], origen.id))
 }
 
 async function Listado({
@@ -62,21 +52,23 @@ async function Listado({
 }: {
   searchParams: PageProps<'/logistica/gastos'>['searchParams']
 }) {
-  await connection()
-  const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
-  const { permisos } = sesion
-  const vista = puede(permisos, 'logistica.ver')
-    ? vistaDe(unParametro(parametros[CLAVE_DE_VISTA]), permisos)
-    : null
+  const abierta = await abrirLaPestana(searchParams, 'gastos')
+  if (abierta.tipo === 'estado') return abierta.estado
+  const { permisos, origen, parametros } = abierta
+  const vista = vistaDe(unParametro(parametros[CLAVE_DE_VISTA]), permisos, origen.id)
   if (vista === null) {
     return <EstadoSinPermiso />
   }
-  const [origenes, categorias] = await Promise.all([
-    origenesDeLaVista(permisos, vista),
-    vista === 'gastos' ? leerCategoriasDeGasto().then(datosO) : Promise.resolve([]),
-  ])
-  const esquema = esquemaDeFiltrosDeDinero(vista, { origenes, categorias })
+  // Las categorías que pueden tener los gastos del origen: las suyas y las compartidas.
+  const categorias =
+    vista === 'gastos'
+      ? datosO(await leerCategoriasDeGasto()).filter(
+          (c) => c.origenId === null || c.origenId === origen.id,
+        )
+      : []
+  const esquema = esquemaDeFiltrosDeDinero(vista, { categorias })
   const pedido = pedidoDeDinero(vista, leerFiltros(esquema, parametros), {
+    origenId: origen.id,
     cursor: leerCursor(unParametro(parametros[CLAVE_DE_CURSOR])),
   })
   const lista =
@@ -93,9 +85,10 @@ async function Listado({
       >
         <ListadoDeDinero
           lista={lista}
-          vistas={vistasPermitidas(permisos)}
+          vistas={vistasPermitidas(permisos, origen.id)}
           esquema={esquema}
           claveDeUnidad={CLAVE_DE_UNIDAD}
+          origenId={origen.id}
         />
       </MarcasDeLogistica>
       {unidad ? (

@@ -26,16 +26,10 @@ const CATEGORIA = '33333333-3333-4333-8333-333333333333'
 const ID = '44444444-4444-4444-8444-444444444444'
 
 const esquema = (vista: VistaDeDinero) =>
-  esquemaDeFiltrosDeDinero(vista, {
-    origenes: [
-      { id: ORIGEN_A, nombre: 'Miami' },
-      { id: ORIGEN_B, nombre: 'Dubái' },
-    ],
-    categorias: [{ id: CATEGORIA, nombre: 'Flete' }],
-  })
+  esquemaDeFiltrosDeDinero(vista, { categorias: [{ id: CATEGORIA, nombre: 'Flete' }] })
 
 const pedido = (vista: VistaDeDinero, url: Record<string, string>, cursor: Cursor | null = null) =>
-  pedidoDeDinero(vista, leerFiltros(esquema(vista), url), { cursor })
+  pedidoDeDinero(vista, leerFiltros(esquema(vista), url), { origenId: ORIGEN_A, cursor })
 
 const filaDeGasto = {
   id: ID,
@@ -58,7 +52,7 @@ const filaDeGasto = {
 describe('lo que la URL pide a la base', () => {
   it('gastos manda la categoría y nunca «sin confirmar»', () => {
     expect(
-      pedido('gastos', { categoria: CATEGORIA, confirmacion: 'sin_confirmar', origen: ORIGEN_A })
+      pedido('gastos', { categoria: CATEGORIA, confirmacion: 'sin_confirmar', origen: ORIGEN_B })
         .filtros,
     ).toEqual({ origen: ORIGEN_A, categoria: CATEGORIA })
   })
@@ -67,22 +61,23 @@ describe('lo que la URL pide a la base', () => {
     expect(
       pedido('pagos', { confirmacion: 'sin_confirmar', categoria: CATEGORIA }).filtros,
     ).toEqual({
+      origen: ORIGEN_A,
       sin_confirmar: true,
     })
-    expect(pedido('pagos', { categoria: CATEGORIA }).filtros).toEqual({})
+    expect(pedido('pagos', { categoria: CATEGORIA }).filtros).toEqual({ origen: ORIGEN_A })
   })
 
   it('el rango de fechas llega como desde y hasta', () => {
     expect(
       pedido('pagos', { 'fecha.desde': '2026-11-01', 'fecha.hasta': '2026-11-30' }).filtros,
-    ).toEqual({ desde: '2026-11-01', hasta: '2026-11-30' })
+    ).toEqual({ origen: ORIGEN_A, desde: '2026-11-01', hasta: '2026-11-30' })
   })
 
-  it('un origen que no se ofrece y un cursor hacia atrás se descartan', () => {
+  it('el origen es siempre el de la pestaña y un cursor hacia atrás se descarta', () => {
     const atras = leerCursor(
       codificarCursor({ instante: '2026-11-10T00:00:00Z', id: ID, sentido: 'anterior' }),
     )
-    expect(pedido('gastos', { origen: 'cualquiera' }, atras).filtros).toEqual({})
+    expect(pedido('gastos', { origen: 'cualquiera' }, atras).filtros).toEqual({ origen: ORIGEN_A })
     expect(pedido('gastos', {}, atras).cursor).toBeNull()
   })
 
@@ -107,12 +102,9 @@ describe('lo que la URL pide a la base', () => {
     }
   })
 
-  it('el origen sólo se ofrece con dos o más donde elegir', () => {
-    const uno = esquemaDeFiltrosDeDinero('gastos', {
-      origenes: [{ id: ORIGEN_A, nombre: 'Miami' }],
-      categorias: [],
-    })
-    expect(uno.filtros.map((f) => f.clave)).toEqual(['categoria', 'fecha'])
+  it('el origen no es un filtro: lo elige la barra', () => {
+    expect(esquema('gastos').filtros.map((f) => f.clave)).toEqual(['categoria', 'fecha'])
+    expect(esquema('pagos').filtros.map((f) => f.clave)).toEqual(['confirmacion', 'fecha'])
   })
 
   it('la ruta de «Ver todos» lleva la vista y el origen de la unidad', () => {
@@ -124,16 +116,22 @@ describe('lo que la URL pide a la base', () => {
 })
 
 describe('la vista de ?ver=', () => {
-  const permisos = (claves: ClavePermiso[]): Permisos =>
-    claves.map((clave) => ({ clave, origenId: null, alcance: 'todos' as const }))
+  const permisos = (claves: ClavePermiso[], origenId: string | null = null): Permisos =>
+    claves.map((clave) => ({ clave, origenId, alcance: 'todos' as const }))
 
   it('la pedida si puede; si no, la que sí; ninguna, nulo', () => {
-    expect(vistaDe('pagos', permisos(['logistica.gastos.ver', 'logistica.pagos.ver']))).toBe(
-      'pagos',
-    )
-    expect(vistaDe('pagos', permisos(['logistica.gastos.ver']))).toBe('gastos')
-    expect(vistaDe('x', permisos(['logistica.pagos.ver']))).toBe('pagos')
-    expect(vistaDe('gastos', permisos([]))).toBeNull()
+    expect(
+      vistaDe('pagos', permisos(['logistica.gastos.ver', 'logistica.pagos.ver']), ORIGEN_A),
+    ).toBe('pagos')
+    expect(vistaDe('pagos', permisos(['logistica.gastos.ver']), ORIGEN_A)).toBe('gastos')
+    expect(vistaDe('x', permisos(['logistica.pagos.ver']), ORIGEN_A)).toBe('pagos')
+    expect(vistaDe('gastos', permisos([]), ORIGEN_A)).toBeNull()
+  })
+
+  it('el permiso cuenta en el origen de la pestaña', () => {
+    const enB = permisos(['logistica.gastos.ver', 'logistica.pagos.ver'], ORIGEN_B)
+    expect(vistaDe('gastos', enB, ORIGEN_A)).toBeNull()
+    expect(vistaDe('pagos', enB, ORIGEN_B)).toBe('pagos')
   })
 })
 

@@ -7,7 +7,9 @@ export type { HuecoDeLaUnidad } from '../../entities/nucleo/hueco'
 export type { GrupoDeLogistica, HuecoDelGrupo } from '../../entities/nucleo/grupo'
 export type { CatalogoDeLogistica, EnlaceDeLogistica } from '../../entities/nucleo/enlaces'
 export {
+  CLAVE_DE_ORIGEN_DE_LOGISTICA,
   CLAVE_DEL_HUECO_ABIERTO,
+  enElOrigen,
   esHuecoConocido,
   rutaDeLaUnidad,
 } from '../../entities/nucleo/enlaces'

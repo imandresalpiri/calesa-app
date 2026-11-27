@@ -18,6 +18,10 @@ export type LectorDelResumen = (origenId: string) => Promise<Resultado<ResumenDe
 // `logistica_cadena_columna()`: una página de la lista de una fase.
 export type LectorDeLaFase = (pedido: PedidoDeLaFase) => Promise<Resultado<PaginaDeLaFase>>
 // `logistica_donde_esta()`: dónde está lo que se busca, en todos los orígenes de la persona.
-export type LectorDeDondeEsta = (buscar: string) => Promise<Resultado<ResultadoDeDondeEsta>>
+// `origenId` nulo: en todos los orígenes de la persona («Buscar en todos los orígenes»).
+export type LectorDeDondeEsta = (
+  buscar: string,
+  origenId: string | null,
+) => Promise<Resultado<ResultadoDeDondeEsta>>
 // Las navieras activas que usa un origen (sus propias y las compartidas que no tapa).
 export type LectorDeNavieras = (origenId: string) => Promise<Resultado<NavieraParaFiltrar[]>>

@@ -18,7 +18,7 @@ export type Busqueda =
 
 // La búsqueda de vehículos para agregar (6.09-2): se pide al enviar el campo (Enter o «Buscar»), no a cada letra, y una respuesta vieja no pisa a una más nueva. Con menos de 3 letras o
 // dígitos no llama a la base y dice por qué.
-export function useBuscarUnidades() {
+export function useBuscarUnidades(origenId: string) {
   const [texto, setTexto] = useState('')
   const [busqueda, setBusqueda] = useState<Busqueda>({ tipo: 'sin-buscar' })
   const [aviso, setAviso] = useState<string | null>(null)
@@ -33,7 +33,9 @@ export function useBuscarUnidades() {
     pedido.current += 1
     const este = pedido.current
     setBusqueda({ tipo: 'cargando' })
-    const resultado = await buscarUnidades(texto).catch(() => fallo('inesperado', NO_SE_BUSCO))
+    const resultado = await buscarUnidades(texto, origenId).catch(() =>
+      fallo('inesperado', NO_SE_BUSCO),
+    )
     if (este === pedido.current) {
       setBusqueda(
         resultado.ok

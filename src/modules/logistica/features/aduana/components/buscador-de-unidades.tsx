@@ -14,6 +14,8 @@ type Props = {
   // Las que ya están en la declaración o ya se eligieron: no se ofrecen otra vez.
   yaEstan: ReadonlySet<string>
   alAgregar: (unidad: UnidadBuscada) => void
+  // El origen elegido en Logística: se busca sólo ahí.
+  origenId: string
 }
 
 function Resultados({
@@ -21,7 +23,7 @@ function Resultados({
   hayMas,
   yaEstan,
   alAgregar,
-}: Props & { unidades: readonly UnidadBuscada[]; hayMas: boolean }) {
+}: Omit<Props, 'origenId'> & { unidades: readonly UnidadBuscada[]; hayMas: boolean }) {
   if (unidades.length === 0) {
     return (
       <p className="text-(length:--text-sm) text-(--color-ink-soft)">
@@ -73,10 +75,10 @@ function Resultados({
   )
 }
 
-// Buscar un vehículo por título, VIN o lote para sumarlo a la declaración (D4): mínimo 3 letras o números, hasta 10 resultados entre los que ves. Se busca al enviar (Enter o «Buscar»).
-export function BuscadorDeUnidades({ yaEstan, alAgregar }: Props) {
+// Buscar un vehículo por título, VIN o lote para sumarlo a la declaración (D4): mínimo 3 letras o números, hasta 10 resultados entre los que ves del origen elegido. Se busca al enviar (Enter o «Buscar»).
+export function BuscadorDeUnidades({ yaEstan, alAgregar, origenId }: Props) {
   const idCampo = useId()
-  const b = useBuscarUnidades()
+  const b = useBuscarUnidades(origenId)
   return (
     <div className="grid gap-2">
       <form

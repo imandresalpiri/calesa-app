@@ -17,11 +17,13 @@ export async function GrupoAbierto({
   vista,
   permisos,
   claveDeUrl,
+  origenId,
 }: {
   clave: string
   vista: VistaDeGrupos
   permisos: Permisos
   claveDeUrl: string
+  origenId: string
 }) {
   const [grupo, catalogos] = await Promise.all([
     leerGrupo(tipoDeLaBaseDe(vista), clave),
@@ -41,6 +43,7 @@ export async function GrupoAbierto({
         huecos={huecosDelGrupo(HUECOS_DEL_GRUPO, permisos)}
         puedeEditar={puedeEditarTransporte(permisos)}
         claveDeUrl={claveDeUrl}
+        origenId={origenId}
       />
     </MarcasDeLogistica>
   )

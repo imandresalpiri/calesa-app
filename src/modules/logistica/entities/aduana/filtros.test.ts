@@ -5,13 +5,15 @@ import { CANALES_DE_AFORO } from './declaracion'
 import { aduanaFiltrada, esquemaDeFiltrosDeAduana, paginaDeAduana, pedidoDeAduana } from './filtros'
 
 const ID = '44444444-4444-4444-8444-444444444444'
+const ORIGEN = '55555555-5555-4555-8555-555555555555'
 
 const pedido = (url: Record<string, string>, cursor: Cursor | null = null) =>
-  pedidoDeAduana(leerFiltros(esquemaDeFiltrosDeAduana(), url), { cursor })
+  pedidoDeAduana(leerFiltros(esquemaDeFiltrosDeAduana(), url), { origenId: ORIGEN, cursor })
 
 describe('lo que la URL pide a la base', () => {
   it('sin nada en la URL no filtra', () => {
     expect(pedido({}).filtros).toEqual({})
+    expect(pedido({}).origenId).toBe(ORIGEN)
     expect(aduanaFiltrada(pedido({}).filtros)).toBe(false)
   })
 

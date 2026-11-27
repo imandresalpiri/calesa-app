@@ -19,7 +19,9 @@ Autenticación, perfiles, roles y permisos (RBAC puro), invitaciones, bloqueo, b
   cada una con su `check` en `preferencias_usuario` (`supabase/tests/areas/equipo/preferencias-de-cotizaciones.sql`, `preferencias-del-embudo-de-la-ficha.sql`). `menu.plegado` (booleano, el menú lateral plegado) sí
   viaja en `ProveedorPreferencias`: `<ProveedorDelMenuPlegado>` aplica el cambio al instante, lo guarda esperando la respuesta y, sin red, reenvía el último valor al volver
   (`useReintentoAlVolver`); `useMenuPlegado()` (`shell.client.ts`) lo lee el menú lateral y deja su copia en la cookie `menu-plegado` para la cáscara (`@/shared/lib/menu-plegado`);
-  su `check` en `supabase/tests/areas/equipo/preferencia-del-menu-plegado.sql`.
+  su `check` en `supabase/tests/areas/equipo/preferencia-del-menu-plegado.sql`. `logistica.ultimo_origen` (`ultimoOrigenDeLogistica`, el uuid del «Último origen»
+  de Logística; `CLAVE_DEL_ULTIMO_ORIGEN_DE_LOGISTICA` sale por `client.ts`) no viaja al cliente: lo leen en el servidor las páginas de Logística desde la sesión y lo
+  escribe `guardarPreferencia` al elegir un origen; su `check` en `supabase/tests/areas/equipo/preferencia-del-ultimo-origen-de-logistica.sql`.
 - `entities/ultima-pestana.ts` — «Última pestaña del origen» (`origenes.ultima_pestana`, `{ <origenId>: <pestaña> }`, `TOPE_DE_PESTANAS_RECORDADAS` = 30,
   espejo del `check` `preferencias_ultima_pestana_valida`, que valida la forma y no los nombres): **no** viaja en `ProveedorPreferencias`. La lee sólo la entrada
   a `/configuracion/origenes/<id>` (`leerLasPestanasRecordadas(usuarioId)` de `index.ts`, por la PK; si falla, `{}`) y la escribe `recordarLaPestana({ origenId,

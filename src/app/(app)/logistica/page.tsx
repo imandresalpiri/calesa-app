@@ -1,13 +1,15 @@
-import type { Metadata } from 'next'
+import type { Metadata, Route } from 'next'
+import Link from 'next/link'
 import { connection } from 'next/server'
 import { Suspense } from 'react'
-import { puede, requerirSesion } from '@/modules/equipo'
 import {
+  buscaEnTodos,
   CLAVE_DE_BUSQUEDA_DE_LA_CADENA,
-  CLAVE_DE_ORIGEN_DE_LA_CADENA,
+  CLAVE_DE_DONDE_BUSCAR,
   dondeEsta,
   leerResumenDeLaCadena,
   MINIMO_DE_BUSQUEDA_DE_LA_CADENA,
+  rutaDeDondeEsta,
   type OrigenDeLaCadena,
 } from '@/modules/logistica'
 import {
@@ -15,33 +17,35 @@ import {
   EstadoDeLaGrafica,
   FranjaDeDondeEsta,
   GraficaDeLaCadena,
-  PestanasDeOrigen,
 } from '@/modules/logistica/pantallas/cadena'
-import { EsqueletoDeLaBandeja } from '@/modules/logistica/pantallas/alertas-esqueletos'
 import { EsqueletoDeLaGrafica } from '@/modules/logistica/pantallas/cadena-esqueletos'
 import { DrawerDelLote, ProveedorDeLaSeleccion } from '@/modules/logistica/pantallas/mover'
 import { cumpleElMinimo } from '@/shared/lib/filtros'
-import type { Permisos } from '@/shared/lib/permisos'
+import { puede, type Permisos } from '@/shared/lib/permisos'
 import { rutaDeParteDelOrigen, unParametro } from '@/shared/lib/rutas'
-import { EstadoSinPermiso } from '@/shared/ui/estados'
-import { BandejaDeLaPortada } from './bandeja-del-dia'
+import { abrirLaPestana } from './abrir-la-pestana'
+import { BarraDeLogistica } from './barra-de-logistica'
+import { EsqueletoDeLaBarra } from './esqueleto-de-la-barra'
 import { MarcasDeLogistica } from './marcas-de-logistica'
-import { resolverElOrigen } from './origen-de-la-cadena'
 
 export const metadata: Metadata = { title: 'Logística' }
 
-// `/logistica`: lo primero es la bandeja del día (lo que le toca hoy a quien mira, por grupos y con su acción) y al lado la cadena como gráfica (una línea con una fase por punto: cuántos vehículos tiene y cuántos están demorados o trabados), las pestañas de origen y «dónde está» en todos los
-// orígenes de la persona. Clic en una fase lleva a la lista de esa fase (`/logistica/fase/[fase]`) y clic en un vehículo, a su página (`/logistica/vehiculo/[id]`): nunca un drawer. Entra
-// quien tiene `logistica.ver` en algún origen; lo que se ve de cada origen lo decide la base. Con `?panel=lote` (el enlace de «Mover el grupo») se abre el lote de un contenedor o un booking.
+// `/logistica`: la Cadena del origen elegido (sin `?origen=`, el último que usó la persona): la gráfica (una línea con una fase por punto: cuántos vehículos tiene
+// y cuántos están demorados o trabados) y «Dónde está» en ese origen, con «Buscar en todos los orígenes» (`?en=todos`). Clic en una fase lleva a su lista
+// (`/logistica/fase/[fase]`) y clic en un vehículo, a su página (`/logistica/vehiculo/[id]`): nunca un drawer. Con `?panel=lote` (el enlace de «Mover el grupo») se
+// abre el lote de un contenedor o un booking. La bandeja del día es su propia pestaña (`/logistica/bandeja`).
 export default function PaginaDeLogistica({ searchParams }: PageProps<'/logistica'>) {
   return (
-    <>
-      {/* El h1 va fuera del Suspense: está también cargando y sin permiso. Sin cabecera visible: la ocupan las pestañas de origen. */}
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+      {/* El h1 va fuera del Suspense: está también cargando y sin permiso. Sin cabecera visible: la ocupa la barra. */}
       <h1 className="sr-only">Logística</h1>
-      <Suspense fallback={<EsqueletoDeLaGrafica />}>
-        <Portada searchParams={searchParams} />
+      <Suspense fallback={<EsqueletoDeLaBarra />}>
+        <BarraDeLogistica searchParams={searchParams} pestana="cadena" />
       </Suspense>
-    </>
+      <Suspense fallback={<EsqueletoDeLaGrafica />}>
+        <Cadena searchParams={searchParams} />
+      </Suspense>
+    </div>
   )
 }
 
@@ -58,44 +62,28 @@ function pideElLote(
   )
 }
 
-// La sección de la cadena: las pestañas de origen, «dónde está» y la gráfica del origen elegido.
-function LaCadena({
-  origen,
-  origenes,
-  fallaron,
-  q,
-  buscando,
-  enlaceAFlujos,
-}: {
-  origen: OrigenDeLaCadena
-  origenes: OrigenDeLaCadena[]
-  fallaron: number
-  q: string
-  buscando: boolean
-  enlaceAFlujos: boolean
-}) {
-  return (
+async function Cadena({ searchParams }: Pick<PageProps<'/logistica'>, 'searchParams'>) {
+  const abierta = await abrirLaPestana(searchParams, 'cadena')
+  if (abierta.tipo === 'estado') return abierta.estado
+  const { permisos, origen, origenes, parametros } = abierta
+
+  const q = (unParametro(parametros[CLAVE_DE_BUSQUEDA_DE_LA_CADENA]) ?? '').trim().slice(0, 100)
+  const buscando = cumpleElMinimo(q, MINIMO_DE_BUSQUEDA_DE_LA_CADENA)
+  const enTodos = buscaEnTodos(unParametro(parametros[CLAVE_DE_DONDE_BUSCAR]))
+
+  const cadena = (
     <section
-      id="cadena"
-      aria-labelledby="cadena-titulo"
+      aria-label={`La cadena de ${origen.nombre}`}
       className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3"
     >
-      <h2 id="cadena-titulo" className="text-(length:--text-lg) font-semibold text-(--color-ink)">
-        La cadena
-      </h2>
-      <PestanasDeOrigen origenes={origenes} actual={origen.id} />
-      {fallaron > 0 ? (
-        <p role="status" className="text-(length:--text-sm) text-(--color-ink-soft)">
-          {fallaron === 1
-            ? 'No se pudo comprobar 1 origen.'
-            : `No se pudo comprobar ${String(fallaron)} orígenes.`}
-        </p>
-      ) : null}
-      <BuscadorDeDondeEsta origenId={origen.id} q={q} />
+      <BuscadorDeDondeEsta origenId={origen.id} q={q} enTodos={enTodos} />
       {buscando ? (
-        <Suspense key={q} fallback={null}>
-          <DondeEsta q={q} />
-        </Suspense>
+        <>
+          <OtroAlcance origen={origen} q={q} enTodos={enTodos} hayOtros={origenes.length > 1} />
+          <Suspense key={`${q}|${String(enTodos)}`} fallback={null}>
+            <DondeEsta q={q} origen={origen} origenes={enTodos ? origenes : null} />
+          </Suspense>
+        </>
       ) : q !== '' ? (
         <p role="status" className="text-(length:--text-sm) text-(--color-ink-soft)">
           {MINIMO_DE_BUSQUEDA_DE_LA_CADENA.aviso}
@@ -106,73 +94,65 @@ function LaCadena({
         key={origen.id}
         fallback={<EsqueletoDeLaGrafica />}
       >
-        <CadenaDelOrigen origenId={origen.id} enlaceAFlujos={enlaceAFlujos} />
+        <CadenaDelOrigen
+          origenId={origen.id}
+          enlaceAFlujos={puede(permisos, 'flujos.configurar', origen.id)}
+        />
       </Suspense>
     </section>
   )
-}
-
-async function Portada({
-  searchParams,
-}: {
-  searchParams: PageProps<'/logistica'>['searchParams']
-}) {
-  await connection()
-  const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
-  const { permisos } = sesion
-  if (!puede(permisos, 'logistica.ver')) {
-    return <EstadoSinPermiso />
-  }
-
-  const resuelto = await resolverElOrigen(
-    permisos,
-    unParametro(parametros[CLAVE_DE_ORIGEN_DE_LA_CADENA]),
-    {
-      estricto: false,
-    },
-  )
-  if (resuelto.tipo !== 'ok') {
-    return <EstadoDeLaGrafica tipo={resuelto.tipo === 'error' ? 'error' : 'sin_origenes'} />
-  }
-  const { origen, origenes, fallaron } = resuelto
-
-  const q = (unParametro(parametros[CLAVE_DE_BUSQUEDA_DE_LA_CADENA]) ?? '').trim().slice(0, 100)
-  const buscando = cumpleElMinimo(q, MINIMO_DE_BUSQUEDA_DE_LA_CADENA)
   // El lote de un grupo (`?panel=lote&contenedor=…`) sólo se arma con `flujos.mover` en el origen; la base vuelve a decidir al mover.
-  const conLote = pideElLote(parametros, permisos, origen.id)
-
-  const contenido = (
-    <LaCadena
-      origen={origen}
-      origenes={origenes}
-      fallaron={fallaron}
-      q={q}
-      buscando={buscando}
-      enlaceAFlujos={puede(permisos, 'flujos.configurar')}
-    />
-  )
-  const portada = (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <Suspense fallback={<EsqueletoDeLaBandeja />}>
-        <BandejaDeLaPortada permisos={permisos} />
-      </Suspense>
-      {contenido}
-    </div>
-  )
-  if (!conLote) return portada
+  if (!pideElLote(parametros, permisos, origen.id)) return cadena
   return (
     <ProveedorDeLaSeleccion origenId={origen.id} firmaDelPedido="lote">
-      {portada}
+      {cadena}
       <DrawerDelLote origenId={origen.id} />
     </ProveedorDeLaSeleccion>
   )
 }
 
-// Dónde está lo que se busca, en todos los orígenes de la persona. Si no se puede comprobar, lo dice sin tumbar la portada.
-async function DondeEsta({ q }: { q: string }) {
+// La salida a buscar en todos los orígenes (o, ya ahí, a volver al elegido). Con un solo origen no hay a dónde ir.
+function OtroAlcance({
+  origen,
+  q,
+  enTodos,
+  hayOtros,
+}: {
+  origen: OrigenDeLaCadena
+  q: string
+  enTodos: boolean
+  hayOtros: boolean
+}) {
+  if (!hayOtros) return null
+  return (
+    <Link
+      href={rutaDeDondeEsta(origen.id, q, !enTodos) as Route}
+      className="inline-flex min-h-11 w-fit items-center text-(length:--text-sm) text-(--color-primario) underline-offset-2 hover:underline md:min-h-8"
+    >
+      {enTodos ? `Buscar sólo en ${origen.nombre}` : 'Buscar en todos los orígenes'}
+    </Link>
+  )
+}
+
+// Dónde está lo que se busca, en el origen o (con `origenes`) en todos los de la persona. Si no se puede comprobar, lo dice sin tumbar la Cadena.
+async function DondeEsta({
+  q,
+  origen,
+  origenes,
+}: {
+  q: string
+  origen: OrigenDeLaCadena
+  origenes: OrigenDeLaCadena[] | null
+}) {
   await connection()
-  const donde = await dondeEsta(q)
-  const franja = <FranjaDeDondeEsta resultado={donde.ok ? donde.data : null} ahora={new Date()} />
+  const donde = await dondeEsta(q, origenes === null ? origen.id : null)
+  const franja = (
+    <FranjaDeDondeEsta
+      resultado={donde.ok ? donde.data : null}
+      ahora={new Date()}
+      origenes={origenes === null ? null : new Map(origenes.map((o) => [o.id, o.nombre]))}
+    />
+  )
   // Hasta 10 vehículos: su «visto» es el de `/logistica/vehiculo/[id]`.
   return donde.ok ? (
     <MarcasDeLogistica ids={donde.data.unidades.map((unidad) => unidad.id)}>

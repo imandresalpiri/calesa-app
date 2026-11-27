@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest'
 import type { Permisos } from '@/shared/lib/permisos'
 import {
   destinoDeConfigurar,
-  enlacesDeLogistica,
-  esEnlaceActual,
+  hrefDeOtroOrigen,
   origenesParaConfigurar,
+  pestanaDisponible,
+  pestanasDelOrigen,
+  pestanasQuePidenElFlujo,
+  tituloDeLaPestana,
 } from './enlaces'
 
 const concede = (clave: string, origenId: string | null = null): Permisos[number] => ({
@@ -13,60 +16,91 @@ const concede = (clave: string, origenId: string | null = null): Permisos[number
   alcance: 'todos',
 })
 
-describe('enlaces de la sub-navegación de logística', () => {
-  it('sin logistica.ver en ningún origen no hay ninguno', () => {
-    expect(enlacesDeLogistica([])).toEqual([])
-    expect(enlacesDeLogistica([concede('vehiculos.ver')])).toEqual([])
+const TODAS_LAS_REGLAS = ['logistica', 'transporte', 'contenedor', 'aduana', 'gastos', 'pagos']
+const origen = (reglas: readonly string[] | null, id = 'o1') => ({ id, reglas })
+const ver = [concede('logistica.ver', 'o1')]
+const claves = (permisos: Permisos, reglas: readonly string[] | null) =>
+  pestanasDelOrigen(permisos, origen(reglas)).map((p) => p.clave)
+
+describe('las pestañas de un origen', () => {
+  it('Cadena y Bandeja del día van siempre; las de un área, con su regla y su permiso en el origen', () => {
+    expect(claves(ver, TODAS_LAS_REGLAS)).toEqual(['cadena', 'bandeja', 'embarques', 'aduana'])
+    expect(claves([...ver, concede('logistica.gastos.ver', 'o1')], TODAS_LAS_REGLAS)).toEqual([
+      'cadena',
+      'bandeja',
+      'embarques',
+      'aduana',
+      'gastos',
+    ])
   })
 
-  it('con logistica.ver (aunque sea en un origen) están Cadena, Embarques y Aduana; con sólo ése, ningún otro enlace de las áreas', () => {
-    expect(enlacesDeLogistica([concede('logistica.ver', 'o1')])).toEqual([
-      { titulo: 'Cadena', ruta: '/logistica' },
-      { titulo: 'Embarques', ruta: '/logistica/embarques' },
-      { titulo: 'Aduana', ruta: '/logistica/aduana' },
+  it('un origen sin aduana no da Aduana; sólo contenedor da Embarques; sólo pagos da Gastos', () => {
+    const conGastos = [...ver, concede('logistica.pagos.ver', 'o1')]
+    expect(claves(conGastos, ['logistica', 'contenedor', 'pagos'])).toEqual([
+      'cadena',
+      'bandeja',
+      'embarques',
+      'gastos',
+    ])
+    expect(pestanaDisponible(ver, origen(['contenedor']), 'aduana')).toBe('no_usa')
+  })
+
+  it('sin gastos.ver ni pagos.ver no hay Gastos; un permiso de otro origen no cuenta', () => {
+    expect(pestanaDisponible(ver, origen(TODAS_LAS_REGLAS), 'gastos')).toBe('sin_permiso')
+    expect(
+      pestanaDisponible(
+        [...ver, concede('logistica.gastos.ver', 'o2')],
+        origen(TODAS_LAS_REGLAS),
+        'gastos',
+      ),
+    ).toBe('sin_permiso')
+    expect(
+      pestanaDisponible([concede('logistica.ver', 'o2')], origen(TODAS_LAS_REGLAS), 'aduana'),
+    ).toBe('sin_permiso')
+  })
+
+  it('con el flujo sin leer sólo Cadena y Bandeja, y las demás «flujo_no_leido»', () => {
+    expect(claves(ver, null)).toEqual(['cadena', 'bandeja'])
+    expect(pestanaDisponible(ver, origen(null), 'embarques')).toBe('flujo_no_leido')
+    expect(pestanaDisponible(ver, origen(null), 'cadena')).toBe('si')
+    expect(pestanasQuePidenElFlujo()).toEqual(['Embarques', 'Aduana', 'Gastos'])
+  })
+
+  it('todas llevan `?origen=` con el origen', () => {
+    expect(pestanasDelOrigen(ver, origen(TODAS_LAS_REGLAS)).map((p) => p.href)).toEqual([
+      '/logistica?origen=o1',
+      '/logistica/bandeja?origen=o1',
+      '/logistica/embarques?origen=o1',
+      '/logistica/aduana?origen=o1',
     ])
   })
 
-  it('con logistica.gastos.ver suma «Gastos» después de Cadena; con sólo pagos.ver, no', () => {
-    expect(
-      enlacesDeLogistica([concede('logistica.ver', 'o1'), concede('logistica.gastos.ver', 'o1')]),
-    ).toEqual([
-      { titulo: 'Cadena', ruta: '/logistica' },
-      { titulo: 'Embarques', ruta: '/logistica/embarques' },
-      { titulo: 'Aduana', ruta: '/logistica/aduana' },
-      { titulo: 'Gastos', ruta: '/logistica/gastos' },
-    ])
-    expect(
-      enlacesDeLogistica([concede('logistica.ver', 'o1'), concede('logistica.pagos.ver', 'o1')]),
-    ).toEqual([
-      { titulo: 'Cadena', ruta: '/logistica' },
-      { titulo: 'Embarques', ruta: '/logistica/embarques' },
-      { titulo: 'Aduana', ruta: '/logistica/aduana' },
-    ])
+  it('el título de cada una', () => {
+    expect(tituloDeLaPestana('bandeja')).toBe('Bandeja del día')
+    expect(tituloDeLaPestana('aduana')).toBe('Aduana')
   })
 })
 
-describe('el enlace actual', () => {
-  const cadena = { titulo: 'Cadena', ruta: '/logistica' }
-  const aduana = { titulo: 'Aduana', ruta: '/logistica/aduana' }
+describe('ir a otro origen', () => {
+  const ambos = [concede('logistica.ver')]
 
-  it('«Cadena» es la actual en la portada, en la lista de una fase y en la de un grupo de la bandeja', () => {
-    expect(esEnlaceActual(cadena, '/logistica')).toBe(true)
-    expect(esEnlaceActual(cadena, '/logistica/fase/sin_fase')).toBe(true)
-    expect(esEnlaceActual(cadena, '/logistica/bandeja/demorados')).toBe(true)
+  it('conserva la pestaña si el otro origen la tiene; si no, cae a su Cadena', () => {
+    expect(hrefDeOtroOrigen('aduana', origen(['aduana'], 'o2'), ambos)).toBe(
+      '/logistica/aduana?origen=o2',
+    )
+    expect(hrefDeOtroOrigen('aduana', origen(['transporte'], 'o2'), ambos)).toBe(
+      '/logistica?origen=o2',
+    )
+    expect(hrefDeOtroOrigen('bandeja', origen([], 'o2'), ambos)).toBe(
+      '/logistica/bandeja?origen=o2',
+    )
   })
 
-  it('no lo es en las otras áreas ni en la página de un vehículo', () => {
-    expect(esEnlaceActual(cadena, '/logistica/aduana')).toBe(false)
-    expect(esEnlaceActual(cadena, '/logistica/embarques')).toBe(false)
-    expect(esEnlaceActual(cadena, '/logistica/vehiculo/abc')).toBe(false)
-  })
-
-  it('las áreas marcan su ruta y lo que cuelga de ella, y no las de las otras', () => {
-    expect(esEnlaceActual(aduana, '/logistica/aduana')).toBe(true)
-    expect(esEnlaceActual(aduana, '/logistica/aduana/algo')).toBe(true)
-    expect(esEnlaceActual(aduana, '/logistica')).toBe(false)
-    expect(esEnlaceActual(aduana, '/logistica/aduanas')).toBe(false)
+  it('desde la unidad (sin pestaña) o con el flujo sin leer, a su Cadena', () => {
+    expect(hrefDeOtroOrigen(null, origen(TODAS_LAS_REGLAS, 'o2'), ambos)).toBe(
+      '/logistica?origen=o2',
+    )
+    expect(hrefDeOtroOrigen('embarques', origen(null, 'o2'), ambos)).toBe('/logistica?origen=o2')
   })
 })
 

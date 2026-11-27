@@ -17,6 +17,8 @@ type Props = {
   puedeEditar: boolean
   // El `?booking=` o `?contenedor=` de la página, para abrir `?panel=editar-grupo` sin perder la clave.
   claveDeUrl: string
+  // El origen de la pestaña: los huecos que llevan a otra página de Logística lo conservan.
+  origenId: string
 }
 
 // El resumen de un grupo (6.08-3): su clave, cuántas unidades ve quien mira, las unidades con su fase y su ETA y, debajo, una sección a la vista por hueco (mover, documentos y gastos del
@@ -28,6 +30,7 @@ export function ResumenDelGrupo({
   huecos,
   puedeEditar,
   claveDeUrl,
+  origenId,
 }: Props) {
   const que = vista === 'contenedores' ? 'contenedor' : 'embarque'
   const titulo = vista === 'contenedores' ? 'Contenedor' : 'Embarque'
@@ -73,7 +76,7 @@ export function ResumenDelGrupo({
               {huecos.map((hueco) => (
                 <HuecoDelGrupo key={hueco.clave} titulo={hueco.titulo}>
                   <hueco.componente
-                    grupo={{ tipo: tipoDeGrupoDeLaVista(vista), id: grupo.clave }}
+                    grupo={{ tipo: tipoDeGrupoDeLaVista(vista), id: grupo.clave, origenId }}
                   />
                 </HuecoDelGrupo>
               ))}

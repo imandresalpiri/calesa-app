@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { leerFiltros } from '@/shared/lib/filtros'
-import { cadenaFiltrada, esquemaDeFiltrosDeLaCadena, pedidoDeLaCadena } from './filtros'
+import {
+  buscaEnTodos,
+  cadenaFiltrada,
+  esquemaDeFiltrosDeLaCadena,
+  pedidoDeLaCadena,
+  rutaDeDondeEsta,
+} from './filtros'
 
 const NAVIERA = '11111111-1111-4111-8111-111111111111'
 const esquema = esquemaDeFiltrosDeLaCadena({ navieras: [{ id: NAVIERA, nombre: 'Maersk' }] })
@@ -61,5 +67,18 @@ describe('pedidoDeLaCadena', () => {
     expect(Object.keys(todo).sort()).toEqual(
       ['booking', 'contenedor', 'demoradas', 'naviera', 'por_aprobar', 'q'].sort(),
     )
+  })
+})
+
+describe('«Dónde está» en todos los orígenes', () => {
+  it('sólo `todos` busca en todos', () => {
+    expect(buscaEnTodos('todos')).toBe(true)
+    expect(buscaEnTodos(undefined)).toBe(false)
+    expect(buscaEnTodos('otro')).toBe(false)
+  })
+
+  it('la ruta lleva el origen, lo buscado y, si toca, `en=todos`', () => {
+    expect(rutaDeDondeEsta('o1', 'abc 1', false)).toBe('/logistica?origen=o1&q=abc+1')
+    expect(rutaDeDondeEsta('o1', 'abc', true)).toBe('/logistica?origen=o1&q=abc&en=todos')
   })
 })

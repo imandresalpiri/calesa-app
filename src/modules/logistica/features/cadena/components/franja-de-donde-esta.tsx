@@ -7,9 +7,11 @@ import type { ResultadoDeDondeEsta, UnidadDondeEsta } from '../../../entities/ca
 import { EnlaceALaUnidad } from '../../nucleo/components/enlace-a-la-unidad'
 
 type Props = {
-  // Lo que encontró «dónde está» para la búsqueda (en todos los orígenes de la persona), o `null` si no se pudo comprobar.
+  // Lo que encontró «dónde está» para la búsqueda (en el origen elegido o en todos), o `null` si no se pudo comprobar.
   resultado: ResultadoDeDondeEsta | null
   ahora: Date
+  // Buscando en todos los orígenes: el nombre de cada uno, para decir de cuál es cada vehículo. Nulo en un origen.
+  origenes: ReadonlyMap<string, string> | null
 }
 
 function cuantoHace(faseDesde: string | null, ahora: Date): string | null {
@@ -36,9 +38,9 @@ function cuantas(n: number): string {
   return n === 1 ? 'Encontré 1 vehículo.' : `Encontré ${String(n)} vehículos.`
 }
 
-// Bajo el buscador, cuando se busca: dónde está cada unidad que coincide, **de todos tus orígenes**. El nombre lleva a la página del vehículo. No se dibuja con una búsqueda corta; si no se pudo
-// comprobar, lo dice sin tumbar la portada.
-export function FranjaDeDondeEsta({ resultado, ahora }: Props) {
+// Bajo el buscador, cuando se busca: dónde está cada unidad que coincide, del origen elegido o, buscando en todos, con su origen. El nombre lleva a la página del
+// vehículo. No se dibuja con una búsqueda corta; si no se pudo comprobar, lo dice sin tumbar la Cadena.
+export function FranjaDeDondeEsta({ resultado, ahora, origenes }: Props) {
   if (resultado === null) {
     return (
       <p role="status" className="text-(length:--text-sm) text-(--color-ink-soft)">
@@ -67,7 +69,8 @@ export function FranjaDeDondeEsta({ resultado, ahora }: Props) {
             >
               <EnlaceALaUnidad id={unidad.id} nombre={unidad.titulo} />
               <span>
-                · <Detalle unidad={unidad} ahora={ahora} />
+                {origenes !== null ? `· ${origenes.get(unidad.origenId) ?? 'Otro origen'} ` : null}·{' '}
+                <Detalle unidad={unidad} ahora={ahora} />
               </span>
             </li>
           ))}

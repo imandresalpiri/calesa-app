@@ -42,6 +42,8 @@ export type FiltrosDeGrupos = {
 }
 
 export type PedidoDeGrupos = {
+  // El origen elegido en Logística: la clave junta sólo los embarques (o contenedores) de ese origen.
+  origenId: string
   tipo: 'booking' | 'contenedor'
   filtros: FiltrosDeGrupos
   // El `siguiente` opaco de la página anterior (un uuid); nulo = la primera página.
@@ -120,7 +122,7 @@ function guid(valor: string | null): string | null {
  */
 export function pedidoDeGrupos(
   valores: ValoresDeFiltros,
-  { vista, desde }: { vista: VistaDeGrupos; desde: string | null },
+  { origenId, vista, desde }: { origenId: string; vista: VistaDeGrupos; desde: string | null },
 ): PedidoDeGrupos {
   const q = valores.busqueda.trim()
   const naviera = guid(eleccion(valores, CLAVE_DE_NAVIERA_DEL_FILTRO))
@@ -136,7 +138,7 @@ export function pedidoDeGrupos(
       ? { prefijo: q.slice(0, LARGO_MAXIMO) }
       : {}),
   }
-  return { tipo: tipoDeLaBaseDe(vista), filtros, desde: guid(desde) }
+  return { origenId, tipo: tipoDeLaBaseDe(vista), filtros, desde: guid(desde) }
 }
 
 /** ¿Alguno de los filtros está filtrando? Para decir «ningún contenedor coincide» y no «todavía no hay». */

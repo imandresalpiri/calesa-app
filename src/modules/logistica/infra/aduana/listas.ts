@@ -13,7 +13,7 @@ import { paginaDeAduana, type PedidoDeAduana } from '../../entities/aduana/filtr
 import type { LecturasDeAduana } from '../../entities/aduana/repositorio'
 
 // La lista de `/logistica/aduana` se lee con `declaraciones_listar()` y el resumen con `declaracion_leer()`, con la sesión de quien mira: la base decide qué declaraciones ve
-// (`logistica.aduana.gestionar`, o `logistica.ver` con un vehículo que ve) y de dónde sale «pagada» (6.07). Por cursor `(creado_en desc, id desc)` sobre `declaraciones_aduana_creado_idx`;
+// (`logistica.aduana.gestionar`, o `logistica.ver` con un vehículo que ve), sólo las del origen elegido y las que no tienen vehículos, y de dónde sale «pagada» (6.07). Por cursor `(creado_en desc, id desc)` sobre `declaraciones_aduana_creado_idx`;
 // una fila de más dice si hay otra página. Sólo RPC: ninguna lectura directa de una tabla con RLS.
 
 const NO_ESTA = 'Esta declaración ya no existe o ya no la ves.'
@@ -31,6 +31,7 @@ export async function leerDeclaraciones(
     p_id: nuloParaLaBase(pedido.cursor?.id ?? null),
     p_tope: TAMANO_DE_PAGINA_POR_DEFECTO,
     p_filtros: pedido.filtros,
+    p_origen: pedido.origenId,
   })
   if (error) {
     return { ok: false, error: errorDePostgrest(error) }

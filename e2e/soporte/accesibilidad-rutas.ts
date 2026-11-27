@@ -56,7 +56,7 @@ export const DINAMICAS: Record<string, (t: Terreno) => Destino> = {
   '/leads/[id]': (t) => ({ url: `/leads/${t.lead}` }),
   '/vehiculos/[id]': (t) => ({ url: `/vehiculos/${t.vehiculo}` }),
   '/logistica/vehiculo/[id]': (t) => ({ url: `/logistica/vehiculo/${t.vehiculo}` }),
-  '/logistica/bandeja/[grupo]': () => ({ url: '/logistica/bandeja/demorados' }),
+  '/logistica/bandeja/[grupo]': (t) => ({ url: `/logistica/bandeja/demorados?origen=${t.origen}` }),
   '/logistica/fase/[fase]': (t) => ({ url: `/logistica/fase/sin_fase?origen=${t.origen}` }),
   // La página de un origen sin parte es un `route.ts` (308 a la última pestaña que se abrió): no es una página y no se barre. Se barren sus pestañas; las de la
   // fórmula, con la de trabajo elegida (sin `?formula=` la escribe el navegador con `replace`).
