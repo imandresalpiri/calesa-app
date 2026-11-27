@@ -144,7 +144,7 @@ test('los chips son píldoras con la elegida rellena; el interruptor va sin caja
   expect(await estilo(anio, 'background-color')).toBe(primario)
 })
 
-test('la tarjeta del total: superficie invertida, el rótulo en mayúsculas y la cifra sin moneda con Live', async ({
+test('la tarjeta del total: superficie invertida, el rótulo en mayúsculas y el Modo Live sólo en la barra', async ({
   page,
 }) => {
   await abrir(page)
@@ -157,8 +157,6 @@ test('la tarjeta del total: superficie invertida, el rótulo en mayúsculas y la
   await expect(live).toHaveCount(1)
   await live.click()
   await expect(tarjeta.locator('[data-total] [data-monto-valor]')).toBeHidden()
-  await expect(tarjeta.locator('[data-total] [data-monto-sin-moneda]')).toBeVisible()
-  await expect(tarjeta.locator('[data-total] [data-monto-sin-moneda]')).toHaveText(/^-?[\d.,\s]+$/)
   await live.click()
 })
 
