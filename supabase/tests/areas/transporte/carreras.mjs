@@ -1,12 +1,12 @@
-// Las carreras del transporte (paso 6.07-1, C20), con conexiones reales a la base del Supabase LOCAL. Ninguna termina en 40P01 ni deja un grupo a medias.
-// Los grupos son embarques: la ETA es del embarque y la cambia para sus tres unidades; las notas son de cada unidad.
-//   K1. A guarda las notas de una unidad del grupo de 3 sin confirmar; B aplica la ETA al grupo con las versiones de antes: espera y, cuando A
-//       confirma, PT409; la ETA no cambia y las notas son las de A.
-//   K2. A aplica la ETA al grupo sin confirmar; B guarda otra ETA desde una unidad con las versiones de antes: espera el embarque y PT409; las 3
+// Las carreras del transporte (paso 6.07-1, C20), con conexiones reales a la base del Supabase LOCAL. Ninguna termina en 40P01 ni deja un embarque a medias.
+// La ETA es del embarque y la cambia para sus tres unidades (`embarque_guardar`, que toma sus unidades); las notas son de cada unidad.
+//   K1. A guarda las notas de una unidad del embarque de 3 sin confirmar; B guarda la ETA del embarque con su versión: espera la unidad y, cuando A
+//       confirma, pasa (las notas no son del embarque); las 3 con la ETA de B y las notas, las de A.
+//   K2. A guarda la ETA del embarque sin confirmar; B guarda otra ETA desde una unidad con las versiones de antes: espera el embarque y PT409; las 3
 //       quedan con lo de A.
-//   K3. Dos unidades Ua < Ub por id de vehículo con sus transportes al revés (Tb < Ta). X tiene Ub tomada; aplicar al grupo y `cambiar_fase_lote` de
-//       las dos esperan, en los dos órdenes, y al soltar X pasan los dos. Con las unidades tomadas en el orden de `transportes.id` el segundo orden
-//       (aplicar primero) se trancaba: aplicar tenía Ub y esperaba Ua, el lote tenía Ua y esperaba Ub.
+//   K3. Dos unidades Ua < Ub por id de vehículo con sus transportes al revés (Tb < Ta). X tiene Ub tomada; guardar el embarque y `cambiar_fase_lote`
+//       de las dos esperan, en los dos órdenes, y al soltar X pasan los dos: las unidades se toman en el orden de los vehículos, nunca en el de
+//       `transportes.id`.
 //   K4. A vacía el contenedor sin confirmar y B mueve la unidad a una fase que lo exige: B espera y, cuando A confirma, no entra (23514). Al revés: B
 //       mueve primero y A, al vaciar, espera y recibe 23514; el contenedor sigue.
 //   K5. Dos personas ponen el mismo vehículo en contenedores distintos con la misma versión: una pasa y la otra espera la fila y da PT409; el
@@ -19,7 +19,7 @@
 import {
   armarCarrera,
   armarTrabada,
-  esperadasDe,
+  embarqueDe,
   fila,
   limpiarTransporte,
   sinInterbloqueo,
@@ -35,9 +35,10 @@ export async function carrerasDeTransporte({ orquesta, espero, conectar, esperar
   const trabada = armarTrabada({ orquesta, conectar, esperarBloqueo })
   await limpiarTransporte(orquesta)
   const t = await terrenoTransporte(orquesta)
-  const aplicar = (booking, esperadas, cambios) => ({
-    sql: `public.transporte_grupo_aplicar('booking', $1, $2::jsonb, $3::jsonb)::text`,
-    args: [booking, esperadas, JSON.stringify(cambios)],
+  // `embarque` es el de `embarqueDe()`: su id y la versión leída antes de la carrera.
+  const guardarEmbarque = (embarque, cambios) => ({
+    sql: `public.embarque_guardar($1, $2::timestamptz, $3::jsonb)::text`,
+    args: [embarque.id, embarque.version, JSON.stringify(cambios)],
   })
   // `version` es la de `versionDe()`: la fila, su embarque y su contenedor.
   const guardar = (v, version, cambios) => ({
@@ -59,23 +60,23 @@ export async function carrerasDeTransporte({ orquesta, espero, conectar, esperar
       )
     ).rows.map((r) => r.n)
 
-  console.log('Aplicar al grupo contra guardar una unidad')
+  console.log('Guardar el embarque contra guardar una unidad')
   {
     const vs = []
     for (const n of [1, 2, 3])
       vs.push(await unidad(orquesta, t, { n: `k1 ${n}`, booking: 'CARR-K1' }))
-    const esperadas = await esperadasDe(orquesta, 'CARR-K1')
+    const embarque = await embarqueDe(orquesta, 'CARR-K1')
     const { a, b } = await carrera({
       a: guardar(vs[1], await versionDe(orquesta, vs[1]), { notas: 'de A' }),
-      b: aplicar('CARR-K1', esperadas, { eta_el: '2026-12-24' }),
+      b: guardarEmbarque(embarque, { eta_el: '2026-12-24' }),
     })
     const e = await etas('CARR-K1')
     const n = await notas('CARR-K1')
     espero(
-      'K1: A guarda las notas de una unidad; B aplica la ETA al grupo, espera y da PT409; sólo cambió la de A; sin 40P01',
+      'K1: A guarda las notas de una unidad; B guarda la ETA del embarque, espera y pasa; las 3 con la ETA y las notas de A; sin 40P01',
       a.ok &&
-        b.codigo === 'PT409' &&
-        e.every((x) => x === '-') &&
+        b.ok &&
+        e.every((x) => x === '2026-12-24') &&
         n.filter((x) => x === 'de A').length === 1 &&
         n.filter((x) => x === '-').length === 2 &&
         sinInterbloqueo(a, b),
@@ -86,22 +87,22 @@ export async function carrerasDeTransporte({ orquesta, espero, conectar, esperar
     const vs = []
     for (const n of [1, 2, 3])
       vs.push(await unidad(orquesta, t, { n: `k2 ${n}`, booking: 'CARR-K2' }))
-    const esperadas = await esperadasDe(orquesta, 'CARR-K2')
+    const embarque = await embarqueDe(orquesta, 'CARR-K2')
     const vieja = await versionDe(orquesta, vs[2])
     const { a, b } = await carrera({
-      a: aplicar('CARR-K2', esperadas, { eta_el: '2026-12-24' }),
+      a: guardarEmbarque(embarque, { eta_el: '2026-12-24' }),
       b: guardar(vs[2], vieja, { eta_el: '2026-12-01' }),
     })
     const e = await etas('CARR-K2')
     espero(
-      'K2: A aplica la ETA al grupo; B guarda otra desde una unidad, espera el embarque y da PT409; las 3 con lo de A; sin 40P01',
+      'K2: A guarda la ETA del embarque; B guarda otra desde una unidad, espera el embarque y da PT409; las 3 con lo de A; sin 40P01',
       a.ok && b.codigo === 'PT409' && e.every((x) => x === '2026-12-24') && sinInterbloqueo(a, b),
       { a, b, e },
     )
   }
 
   console.log(
-    'Aplicar al grupo contra mover un lote, con las unidades y sus transportes en órdenes opuestos',
+    'Guardar el embarque contra mover un lote, con las unidades y sus transportes en órdenes opuestos',
   )
   {
     const ua = '00000000-0000-4000-8000-0000000e0701'
@@ -125,22 +126,22 @@ export async function carrerasDeTransporte({ orquesta, espero, conectar, esperar
     const r1 = await trabada({
       bloqueada: ub,
       a: lote(t.uno, t.tres),
-      b: aplicar('CARR-K3', await esperadasDe(orquesta, 'CARR-K3'), { eta_el: '2026-12-01' }),
+      b: guardarEmbarque(await embarqueDe(orquesta, 'CARR-K3'), { eta_el: '2026-12-01' }),
     })
     const movidos1 = r1.a.ok && JSON.parse(r1.a.valor).every((u) => u.ok === true)
     espero(
-      'K3 (lote primero): el lote y aplicar esperan a X y pasan los dos; sin 40P01',
+      'K3 (lote primero): el lote y el embarque esperan a X y pasan los dos; sin 40P01',
       movidos1 && r1.b.ok && sinInterbloqueo(r1.a, r1.b),
       r1,
     )
     const r2 = await trabada({
       bloqueada: ub,
-      a: aplicar('CARR-K3', await esperadasDe(orquesta, 'CARR-K3'), { eta_el: '2026-12-24' }),
+      a: guardarEmbarque(await embarqueDe(orquesta, 'CARR-K3'), { eta_el: '2026-12-24' }),
       b: lote(t.tres, t.uno),
     })
     const movidos2 = r2.b.ok && JSON.parse(r2.b.valor).every((u) => u.ok === true)
     espero(
-      'K3 (aplicar primero): aplicar y el lote esperan a X y pasan los dos; sin 40P01',
+      'K3 (embarque primero): el embarque y el lote esperan a X y pasan los dos; sin 40P01',
       r2.a.ok && movidos2 && sinInterbloqueo(r2.a, r2.b),
       r2,
     )

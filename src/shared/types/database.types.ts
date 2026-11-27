@@ -10680,21 +10680,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      _transporte_clave: { Args: { p_clave: string; p_tipo: string }; Returns: string }
-      _transporte_de_la_clave: {
-        Args: { p_clave: string; p_origen?: string; p_tipo: string }
-        Returns: {
-          arribo_el: string
-          eta_el: string
-          naviera_id: string
-          puerto_destino_id: string
-          puerto_origen_id: string
-          repuesto_id: string
-          transporte_id: string
-          vehiculo_id: string
-          zarpe_el: string
-        }[]
-      }
       _transporte_destino: {
         Args: { p_destino: string; p_tipo: string }
         Returns: Record<string, unknown>
@@ -10703,7 +10688,6 @@ export type Database = {
         Args: { p_repuestos: string[]; p_vehiculos: string[] }
         Returns: undefined
       }
-      _transporte_grupos_filtros: { Args: { p_filtros: Json }; Returns: Record<string, unknown> }
       _transporte_lote: {
         Args: { p_unidades: Json }
         Returns: {
@@ -13125,15 +13109,6 @@ export type Database = {
       }
       transporte_asignar: {
         Args: { p_destino: string; p_mover?: boolean; p_tipo: string; p_unidades: Json }
-        Returns: Json
-      }
-      transporte_grupo: { Args: { p_clave: string; p_tipo: string }; Returns: Json }
-      transporte_grupo_aplicar: {
-        Args: { p_cambios: Json; p_clave: string; p_esperadas: Json; p_tipo: string }
-        Returns: Json
-      }
-      transporte_grupos: {
-        Args: { p_desde: string; p_filtros: Json; p_origen: string; p_tipo: string; p_tope: number }
         Returns: Json
       }
       transporte_guardar: {

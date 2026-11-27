@@ -12,9 +12,8 @@ import { createClient } from '@/shared/lib/supabase/server'
 import { TOPE_DE_CATALOGO_DE_TRANSPORTE } from '../../entities/transporte/catalogo'
 import { elementosDesde, type ElementoDelCatalogo } from '../../entities/transporte/oferta'
 
-// Las navieras y los puertos (todos, de todos los orígenes, activos o no) para nombrar lo que dicen los grupos, para los filtros y para «Editar grupo» (que ofrece lo que pueden usar sus
-// unidades: `alcanceDelGrupo`). `/logistica/embarques` mezcla orígenes: un propio se nombra «<nombre> · <origen>» (`origen:origenes(nombre)`). Decenas de filas (`navieras_pkey`,
-// `puertos_pkey`; policy `using (true)`), tope de 200 con una fila de más para saber si se cortó: no es una tabla que crece. Una sola lectura por pedido (`cache()`).
+// Las navieras y los puertos (todos, de todos los orígenes, activos o no) para nombrar lo que dicen los embarques y para los filtros. `/logistica/embarques` mezcla
+// orígenes: un propio se nombra «<nombre> · <origen>» (`origen:origenes(nombre)`). Decenas de filas (`navieras_pkey`, `puertos_pkey`; policy `using (true)`), tope de 200 con una fila de más para saber si se cortó: no es una tabla que crece. Una sola lectura por pedido (`cache()`).
 export type CatalogosDeTransporte = {
   navieras: ElementoDelCatalogo[]
   puertos: ElementoDelCatalogo[]

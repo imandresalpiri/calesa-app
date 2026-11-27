@@ -118,16 +118,13 @@ export async function unidad(
   return v
 }
 
-// Las versiones que ve el grupo: la mayor entre la fila, su contenedor y su embarque (la de `transporte_grupo`).
-export const esperadasDe = async (db, booking) =>
-  (
-    await fila(
-      db,
-      `select jsonb_object_agg(x.id, to_jsonb(greatest(x.actualizado_en, x.contenedor_actualizado_en, x.embarque_actualizado_en)))::text as e
-         from public.transportes_con_embarque x where x.booking = $1`,
-      [booking],
-    )
-  ).e
+// El embarque del booking y la versión que pasa a `embarque_guardar`.
+export const embarqueDe = async (db, booking) =>
+  await fila(
+    db,
+    `select id, to_jsonb(actualizado_en) #>> '{}' as version from public.embarques where booking = $1 limit 1`,
+    [booking],
+  )
 // Las versiones que pasa la ficha a `transporte_guardar`: la de la fila, la de su embarque y la de su contenedor.
 export const versionDe = async (db, v) =>
   await fila(

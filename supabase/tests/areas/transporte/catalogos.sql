@@ -10,8 +10,8 @@
 --   K4. Versión vieja → PT409; sin cambios no pide versión; el mismo id es idempotente y en otro origen da 42501; claves y validaciones cerradas
 --       (`orden` 10.0 es 10; la clave de lo guardado es la de lo tipeado, también con un espacio duro); `uso` sólo al desactivar, con
 --       transportes y embarques.
---   K5. Un propio de otro origen no entra en `transporte_guardar`, `transporte_grupo_aplicar` ni `flujo_oferta_guardar` (22023 y su hint); el flujo de
---       repuestos sólo ofrece compartidos; lo ya guardado sin cambiar sigue pasando; `transporte_grupo` trae el origen de cada unidad.
+--   K5. Un propio de otro origen no entra en `transporte_guardar`, `embarque_guardar` ni `flujo_oferta_guardar` (22023 y su hint); el flujo de
+--       repuestos sólo ofrece compartidos; lo ya guardado sin cambiar sigue pasando.
 
 -- La primera cuenta de una base vacía queda dueña (con `SOLO=`): una de relleno antes, para que ninguna de la prueba lo sea.
 create or replace function pg_temp.cat_persona(p_concesiones text[]) returns uuid language plpgsql as $f$
@@ -261,11 +261,11 @@ end $$;
 set constraints public.trg_transporte_invariante, public.trg_contenedor_invariante immediate;
 rollback;
 
--- @test transporte: un propio de otro origen no entra en el transporte, el grupo ni la oferta; lo guardado sin cambiar sigue (K5)
+-- @test transporte: un propio de otro origen no entra en el transporte, el embarque ni la oferta; lo guardado sin cambiar sigue (K5)
 begin;
 do $$
 declare t jsonb := pg_temp.cat_terreno(); s text := t ->> 's'; a uuid := (t ->> 'a')::uuid; b uuid := (t ->> 'b')::uuid;
-  admin uuid; editor uuid; conf uuid; nav_a uuid; nav_b uuid; pto_b uuid; v1 uuid; v2 uuid; r jsonb; g jsonb; e jsonb; fl_rep uuid;
+  admin uuid; editor uuid; conf uuid; nav_a uuid; nav_b uuid; pto_b uuid; v1 uuid; v2 uuid; r jsonb; fl_rep uuid;
 begin
   admin := pg_temp.cat_persona(array['logistica.catalogos.gestionar']);
   editor := pg_temp.cat_persona(array['logistica.ver', 'logistica.transporte.editar']);
@@ -284,16 +284,12 @@ begin
     r := pg_temp.cat_corre(editor, format('select public.transporte_guardar(%L, null, null, %L)', v1, jsonb_build_object('naviera_id', nav_a, 'booking', 'K5' || s)));
     if r ? 'error' then raise exception 'K5: la naviera de A debía entrar en un vehículo de A: %', r; end if;
   end loop;
-  -- transporte_grupo trae el origen; transporte_grupo_aplicar rechaza la de B.
-  g := pg_temp.cat_corre(editor, format('select public.transporte_grupo(%L, %L)', 'booking', 'K5' || s));
-  if jsonb_array_length(g -> 'unidades') <> 2
-     or exists (select 1 from jsonb_array_elements(g -> 'unidades') u where u ->> 'origen_id' is distinct from a::text) then
-    raise exception 'K5: cada unidad del grupo debía traer su origen: %', g;
-  end if;
-  e := (select jsonb_object_agg(u ->> 'transporte_id', u ->> 'actualizado_en') from jsonb_array_elements(g -> 'unidades') u);
-  r := pg_temp.cat_corre(editor, format('select public.transporte_grupo_aplicar(%L, %L, %L, %L)', 'booking', 'K5' || s, e, jsonb_build_object('naviera_id', nav_b)));
-  perform pg_temp.cat_es('K5 grupo con la de B', r, '22023', 'naviera_id');
-  if r ->> 'mensaje' not like '%: Esa naviera es de otro origen.' then raise exception 'K5: el grupo debía decir cuál y por qué: %', r; end if;
+  -- embarque_guardar rechaza la de B: la naviera del embarque es la de sus dos unidades de A.
+  r := pg_temp.cat_corre(editor, format('select public.embarque_guardar(%L, %L, %L)',
+                                        (select id from public.embarques where booking = upper('K5' || s) and origen_id = a),
+                                        (select actualizado_en from public.embarques where booking = upper('K5' || s) and origen_id = a),
+                                        jsonb_build_object('naviera_id', nav_b)));
+  perform pg_temp.cat_es('K5 embarque con la de B', r, '22023', 'naviera_id', 'Esa naviera es de otro origen.');
   -- Lo ya guardado sin cambiar sigue: un transporte que apunta a la de B (de antes) se corrige en otro campo.
   -- La naviera es de su embarque.
   update public.embarques set naviera_id = nav_b where booking = upper('K5' || s) and origen_id = a;
