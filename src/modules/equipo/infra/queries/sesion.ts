@@ -2,6 +2,7 @@ import 'server-only'
 import { cookies } from 'next/headers'
 import { connection } from 'next/server'
 import { cache } from 'react'
+import { COOKIE_DEL_LIVE, liveDeLaCookie } from '@/shared/lib/modo-live'
 import { createClient, type ClienteSupabase } from '@/shared/lib/supabase/server'
 import { COOKIE_PERSPECTIVA, leerPerspectiva } from '../../entities/perspectiva'
 import type { LectorDeSesion } from '../../entities/repositorios'
@@ -9,7 +10,8 @@ import { sesionDesde, sesionSinPerfil, type EstadoCuenta, type Sesion } from '..
 
 // Con un cliente que ya tiene sesión: perfil, roles, permisos y preferencias en una sola ida.
 // La perspectiva «ver como» viaja en una cookie con el id del rol; la base decide si esta persona
-// puede usarla y devuelve los permisos efectivos (nunca más que los reales).
+// puede usarla y devuelve los permisos efectivos (nunca más que los reales). El Modo Live viaja en la
+// cookie `modo-live`: con él encendido, la sesión lleva sus ajustes y los permisos recortados.
 async function leerSesion(
   supabase: ClienteSupabase,
   usuarioId: string,
@@ -17,6 +19,7 @@ async function leerSesion(
 ): Promise<Sesion> {
   const almacen = await cookies()
   const perspectiva = leerPerspectiva(almacen.get(COOKIE_PERSPECTIVA)?.value)
+  const cookieDelLive = liveDeLaCookie(almacen.get(COOKIE_DEL_LIVE)?.value)
   const { data, error } = await supabase.rpc(
     'mi_sesion',
     perspectiva ? { p_perspectiva: perspectiva } : {},
@@ -25,7 +28,7 @@ async function leerSesion(
     throw new Error(`mi_sesion() falló: ${error.message}`)
   }
   // Sesión de Auth sin perfil: la cuenta se eliminó con la sesión abierta.
-  return sesionDesde(data) ?? sesionSinPerfil(usuarioId, email)
+  return sesionDesde(data, { cookieDelLive }) ?? sesionSinPerfil(usuarioId, email)
 }
 
 // La sesión de este request, o null si nadie ingresó. `cache()` la reparte entre el layout, la

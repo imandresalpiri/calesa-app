@@ -25,6 +25,10 @@ const json = {
     roles: [{ id: ROL, nombre: 'Dueño', color: '#465fff' }],
   },
   preferencias: { densidad: 'comoda' },
+  live: {
+    rol: { id: ROL, nombre: 'Dueño', ajustes: { clientes: 'completo' } },
+    persona: null,
+  },
 }
 
 describe('sesionDesde', () => {
@@ -59,9 +63,49 @@ describe('sesionDesde', () => {
         menuPlegado: null,
         ultimoOrigenDeLogistica: null,
       },
+      // Sin la cookie `modo-live`: apagado.
+      live: { encendido: false, puedeEncender: true },
     })
   })
+})
 
+describe('sesionDesde con el Modo Live', () => {
+  it('con la cookie del Live recorta los permisos que dibujan y lleva los ajustes combinados', () => {
+    const sesion = sesionDesde(
+      {
+        ...json,
+        permisos: [
+          { clave: 'leads.ver', origen_id: null, alcance: 'todos' },
+          { clave: 'chat.participar', origen_id: null, alcance: 'todos' },
+          { clave: 'vehiculos.ver', origen_id: null, alcance: 'todos' },
+        ],
+      },
+      { cookieDelLive: true },
+    )
+    expect(sesion?.permisos).toEqual([
+      { clave: 'leads.ver', origenId: null, alcance: 'todos' },
+      { clave: 'vehiculos.ver', origenId: null, alcance: 'todos' },
+    ])
+    expect(sesion?.live).toMatchObject({ encendido: true, ajustes: { clientes: 'completo' } })
+  })
+
+  it('si su rol no puede encender el Live, la cookie no lo enciende', () => {
+    const sesion = sesionDesde(
+      {
+        ...json,
+        live: {
+          rol: { id: ROL, nombre: 'Dueño', ajustes: { puede_encender: false } },
+          persona: null,
+        },
+      },
+      { cookieDelLive: true },
+    )
+    expect(sesion?.live).toEqual({ encendido: false, puedeEncender: false })
+    expect(sesion?.permisos).toEqual([{ clave: 'leads.ver', origenId: null, alcance: 'todos' }])
+  })
+})
+
+describe('sesionDesde con niveles', () => {
   it('trae los permisos de un nivel de acceso de la sesión', () => {
     const sesion = sesionDesde({
       ...json,
@@ -89,6 +133,7 @@ describe('sesionSinPerfil', () => {
     const sesion = sesionSinPerfil(ID, 'x@ejemplo.com')
     expect(sesion.estado).toBe('baja')
     expect(sesion.permisos).toEqual([])
+    expect(sesion.live).toEqual({ encendido: false, puedeEncender: false })
   })
 })
 
