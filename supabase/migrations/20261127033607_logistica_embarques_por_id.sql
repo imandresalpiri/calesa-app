@@ -170,7 +170,8 @@ grant execute on function public._faltan_de(uuid, uuid, text, integer) to servic
 -- Los vehículos visibles de un embarque (directos y en sus contenedores) o de un contenedor, como los dibuja la página y el drawer: hasta 201
 -- (201 = hay más) de las primeras 1.000 unidades, por número de contenedor (los sueltos al final) y título. Por vehículo, su fase con su color,
 -- su contenedor, la versión de su fila de transporte, la declaración viva que lo cubre (declaraciones_vehiculo_activo_unico) y si le falta algo.
--- `p_falta`: sólo los que tienen algo que falta. `p_alcance`: el de logistica.ver en su origen.
+-- `p_falta`: sólo los que tienen algo que falta (evalúa todos los visibles); sin él, «le falta algo» se evalúa sólo en los 201 que devuelve.
+-- `p_alcance`: el de logistica.ver en su origen.
 create function public._vehiculos_de_la_entidad(p_embarque uuid, p_contenedor uuid, p_alcance text, p_falta boolean)
   returns table (k bigint, fila jsonb, oculto boolean)
   language sql stable security definer
@@ -189,7 +190,7 @@ as $$
       from u join public.vehiculos v on v.id = u.vehiculo_id                                                           -- vehiculos_pkey
   ), r as (
     select w.vehiculo_id, v.titulo, v.vin, v.lote, v.fase_id, f.nombre as fase, f.color as fase_color, t.contenedor_id, c.numero as contenedor,
-           t.actualizado_en, public._vehiculo_le_falta(w.vehiculo_id) as falta
+           t.actualizado_en
       from w
       join public.vehiculos v on v.id = w.vehiculo_id                                                                  -- vehiculos_pkey
       join public.transportes t on t.id = w.transporte_id                                                              -- transportes_pkey
@@ -199,12 +200,13 @@ as $$
   ), s as (
     select r.*, row_number() over (order by r.contenedor nulls last, r.titulo, r.vehiculo_id) as k
       from r
-     where not coalesce(p_falta, false) or r.falta
+     where not coalesce(p_falta, false) or public._vehiculo_le_falta(r.vehiculo_id)
   )
   select s.k,
          jsonb_build_object('vehiculo_id', s.vehiculo_id, 'titulo', s.titulo, 'vin', s.vin, 'lote', s.lote, 'fase_id', s.fase_id, 'fase', s.fase,
                             'fase_color', s.fase_color, 'contenedor_id', s.contenedor_id, 'contenedor', s.contenedor,
-                            'transporte_actualizado_en', s.actualizado_en, 'falta', s.falta,
+                            'transporte_actualizado_en', s.actualizado_en,
+                            'falta', coalesce(p_falta, false) or public._vehiculo_le_falta(s.vehiculo_id),
                             'declaracion', (select jsonb_build_object('id', d.id, 'numero', d.numero)
                                               from public.declaraciones_vehiculos dv
                                               join public.declaraciones_aduana d on d.id = dv.declaracion_id
