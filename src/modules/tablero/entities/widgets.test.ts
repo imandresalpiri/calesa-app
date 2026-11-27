@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Permisos } from '@/shared/lib/permisos'
-import { aplicarPreferencia, widgetsVisibles, WIDGETS_TABLERO } from './widgets'
+import { aplicarPreferencia, widgetsVisibles, WIDGETS_DEL_LIVE, WIDGETS_TABLERO } from './widgets'
 
 const CON_PERMISO: Permisos = [{ clave: 'tablero.metricas.ver', origenId: null, alcance: 'todos' }]
 const SIN_PERMISO: Permisos = [{ clave: 'leads.ver', origenId: null, alcance: 'todos' }]
@@ -141,5 +141,37 @@ describe('aplicarPreferencia', () => {
     })
     expect(claves(otra.mostrados)).toEqual(claves(una.mostrados))
     expect(claves(otra.ocultos)).toEqual(claves(una.ocultos))
+  })
+})
+
+describe('widgetsVisibles con el Modo Live', () => {
+  const TODO: Permisos = [
+    ...CON_PERMISO,
+    { clave: 'logistica.margen.ver', origenId: null, alcance: 'todos' },
+    { clave: 'web.cola.gestionar', origenId: null, alcance: 'todos' },
+  ]
+  const enElLive = (cotizaciones: boolean, origenes: 'todos' | readonly string[] = 'todos') =>
+    ({ encendido: true, ajustes: { cotizaciones, origenes } }) as const
+
+  it('sólo las métricas de cotizaciones, en el orden del catálogo: ni leads, ni margen, ni la cola', () => {
+    expect(widgetsVisibles(TODO, enElLive(true)).map((w) => w.clave)).toEqual(WIDGETS_DEL_LIVE)
+  })
+
+  it('con sólo algunos orígenes a la vista, sin «Cotizaciones por origen» (nombraría los demás)', () => {
+    const claves = widgetsVisibles(TODO, enElLive(true, ['7b0e1f6a-2c3d-4e5f-8a9b-0c1d2e3f4a5b']))
+    expect(claves.map((w) => w.clave)).toEqual([
+      'cotizaciones-creadas',
+      'cotizaciones-finales',
+      'cotizaciones-por-dia',
+    ])
+  })
+
+  it('con las cotizaciones ocultas, ninguno; sin el permiso del tablero, ninguno', () => {
+    expect(widgetsVisibles(TODO, enElLive(false))).toEqual([])
+    expect(widgetsVisibles(SIN_PERMISO, enElLive(true))).toEqual([])
+  })
+
+  it('con el Live apagado, como siempre', () => {
+    expect(widgetsVisibles(TODO, { encendido: false })).toEqual(widgetsVisibles(TODO))
   })
 })

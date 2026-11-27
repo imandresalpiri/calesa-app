@@ -126,10 +126,39 @@ function estaDisponible(widget: WidgetDelCatalogo): boolean {
   return widget.disponible
 }
 
-// Los widgets que esta persona puede ver, en el orden del catálogo. Un hueco (`disponible: false`) no sale.
-export function widgetsVisibles(permisos: Permisos): readonly WidgetConClave[] {
+// Lo que el tablero mira del Modo Live (glosario: «Modo Live»): la forma de `EstadoDelLive` de `equipo`, sólo con lo que usa.
+export type LiveDelTablero =
+  | { encendido: false }
+  | { encendido: true; ajustes: { cotizaciones: boolean; origenes: 'todos' | readonly string[] } }
+
+const SIN_LIVE: LiveDelTablero = { encendido: false }
+
+// Con el Modo Live, sólo las métricas de cotizaciones (las de leads, margen y la cola no son de vehículos ni de cotizaciones), y sólo si sus
+// ajustes muestran las cotizaciones.
+export const WIDGETS_DEL_LIVE: readonly ClaveDeWidget[] = [
+  'cotizaciones-creadas',
+  'cotizaciones-finales',
+  'cotizaciones-por-dia',
+  'cotizaciones-por-origen',
+]
+
+function seVeEnElLive(widget: WidgetConClave, live: LiveDelTablero): boolean {
+  if (!live.encendido) return true
+  if (!live.ajustes.cotizaciones || !WIDGETS_DEL_LIVE.includes(widget.clave)) return false
+  // «Por origen» nombra los orígenes: con sólo algunos a la vista, nombraría los demás.
+  return widget.clave !== 'cotizaciones-por-origen' || live.ajustes.origenes === 'todos'
+}
+
+// Los widgets que esta persona puede ver, en el orden del catálogo. Un hueco (`disponible: false`) no sale; con el Modo Live, sólo los suyos.
+export function widgetsVisibles(
+  permisos: Permisos,
+  live: LiveDelTablero = SIN_LIVE,
+): readonly WidgetConClave[] {
   return WIDGETS_TABLERO.filter(
-    (widget) => estaDisponible(widget) && widget.permisos.some((clave) => puede(permisos, clave)),
+    (widget) =>
+      estaDisponible(widget) &&
+      seVeEnElLive(widget, live) &&
+      widget.permisos.some((clave) => puede(permisos, clave)),
   )
 }
 

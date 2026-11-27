@@ -6,7 +6,7 @@ Abierto: **9-14a** (la dueña no actúa sobre un lead ajeno sin tenerlo; `docs/P
 
 ## Entra y sale
 
-- Entra: permisos del usuario, `?periodo=` y la preferencia `tablero.widgets`.
+- Entra: permisos del usuario, `?periodo=`, la preferencia `tablero.widgets` y el Modo Live (`live`).
 - Sale: `<Bandeja>` para `/` (`pantallas/inicio.ts`) y `<PanelDelTablero>` para `/tablero` (`pantallas/tablero.ts`); `index.ts` no exporta nada.
 - Depende, por su entrada, de `leads`, `agenda`, `equipo`, `logistica`, `web` y `repuestos`.
 
@@ -30,6 +30,11 @@ Abierto: **9-14a** (la dueña no actúa sobre un lead ajeno sin tenerlo; `docs/P
   sólo abre el widget cuya clave es la de la URL, y el modal (`modal-de-la-tabla.tsx`) va por `diferido()`.
 - «Personalizar» (`?panel=personalizar`): guarda al cambiar con `guardarPreferencia`; «Restablecer» manda `null`; sólo ofrece lo que
   `widgetsVisibles(permisos)` deja ver.
+- **Modo Live** (glosario): `/tablero` sale con «Inicio y Tablero» de sus ajustes y recibe `live` (`LiveDelTablero`, la forma de `EstadoDelLive` sin
+  importar `equipo`). `widgetsVisibles(permisos, live)` deja sólo `WIDGETS_DEL_LIVE` (los cuatro `cotizaciones-*`) si sus ajustes muestran las
+  cotizaciones, y «Cotizaciones por origen» sólo con todos los orígenes a la vista (nombra los demás). Sin «Personalizar» y sin aplicar la preferencia;
+  sin ninguno, «En el Modo Live, el Tablero muestra sólo las métricas de cotizaciones.». Las cifras son de los orígenes que quien mira ve de verdad (la
+  RPC no filtra por los del Live).
 
 ## Tablas
 

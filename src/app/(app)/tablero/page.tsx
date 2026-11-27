@@ -28,6 +28,7 @@ export default async function PaginaTablero({ searchParams }: Props) {
       permisos={sesion.permisos}
       periodo={periodo}
       preferencia={sesion.preferencias.widgetsDelTablero}
+      live={sesion.live}
       // Si no se pueden leer los ajustes: la zona por defecto (como la bandeja).
       zona={ajustes.ok ? ajustes.data.ajustes.zonaHoraria : ZONA_POR_DEFECTO}
     />
