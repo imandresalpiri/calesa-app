@@ -272,7 +272,7 @@ declare
   v_tope integer := public._acotar_pagina(p_tope, 50, 100);
   c_recorrido constant integer := 500;
   v_por integer;
-  f record; c record; m record; v_gt text := ''; v_estado text; v_vehiculos jsonb;
+  f record; c record; v_emb_id uuid; v_emb_booking text; v_emb_eta date; v_gt text := ''; v_estado text; v_vehiculos jsonb;
   v_filas jsonb := '[]'::jsonb; v_n integer := 0; v_mirados integer := 0; v_ultimo uuid; v_mirado uuid; v_siguiente uuid;
   v_cortada boolean := false;
 begin
@@ -322,16 +322,17 @@ begin
       v_siguiente := v_ultimo;
       exit;
     end if;
-    m := null;
+    -- Tres variables y no un `record`: uno sin asignar no se lee ni puesto en null (la base real da «record is not assigned yet»).
+    v_emb_id := null; v_emb_booking := null; v_emb_eta := null;
     if c.embarque_id is not null then
-      select x.id, x.booking, x.eta_el into m from public.embarques x where x.id = c.embarque_id;                       -- embarques_pkey
+      select x.id, x.booking, x.eta_el into v_emb_id, v_emb_booking, v_emb_eta from public.embarques x where x.id = c.embarque_id; -- embarques_pkey
     end if;
     v_vehiculos := public._vehiculos_de(null, c.id);
     v_filas := v_filas || jsonb_build_array(jsonb_build_object(
       'id', c.id, 'numero', c.numero, 'tipo', c.tipo, 'tipo_nombre', (select t.nombre from public.tipos_contenedor t where t.clave = c.tipo),
       'sello', c.sello, 'actualizado_en', c.actualizado_en, 'estado', v_estado,
-      'embarque', case when m.id is null then null else jsonb_build_object('id', m.id, 'booking', m.booking) end,
-      'eta_el', m.eta_el,
+      'embarque', case when v_emb_id is null then null else jsonb_build_object('id', v_emb_id, 'booking', v_emb_booking) end,
+      'eta_el', v_emb_eta,
       'vehiculos', jsonb_build_object('n', v_vehiculos -> 'n', 'hay_mas', v_vehiculos -> 'hay_mas'),
       'hay_ocultos', v_vehiculos -> 'hay_ocultas',
       'faltan', public._faltan_de(null, c.id, v_por)));
