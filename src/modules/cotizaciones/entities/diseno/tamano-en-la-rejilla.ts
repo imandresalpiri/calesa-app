@@ -10,7 +10,7 @@ import {
 } from '../diseno'
 import { ultimaFila, type PiezaEnLaRejilla } from '../rejilla-de-la-hoja'
 import type { Nombrar } from './anuncios-de-la-rejilla'
-import { ponerAspectoDeItem, ponerAspectoDeSeccion } from './edicion-del-aspecto'
+import { escribirTamanoDelItem, escribirTamanoDeSeccion } from './edicion-del-aspecto'
 import {
   lugarDe,
   lugarLibre,
@@ -98,12 +98,12 @@ export function ponerTamano(d: Diseno, p: PiezaDeLaHoja, deseado: TamanoPedido):
   if (p.pieza === 'seccion') {
     const automatica = deseado.ancho === 'automatica' && ancho === 6
     const conAncho = tocaAncho ? { ancho: automatica ? null : ancho } : {}
-    return ponerAspectoDeSeccion(d, p.seccion, { ...conAncho, ...conAlto })
+    return escribirTamanoDeSeccion(d, p.seccion, { ...conAncho, ...conAlto })
   }
   const u = ubicarLaPieza(d, p)
   if (u === null) return d
   const conAncho = tocaAncho ? { ancho } : {}
-  return ponerAspectoDeItem(d, u.seccion.id, piezaDelItem(u.item), { ...conAncho, ...conAlto })
+  return escribirTamanoDelItem(d, u.seccion.id, piezaDelItem(u.item), { ...conAncho, ...conAlto })
 }
 
 // Una opción de un campo del lugar: su valor y, si no entra, por qué («se pisa con «Flete»», «se sale de las 12 columnas»).
