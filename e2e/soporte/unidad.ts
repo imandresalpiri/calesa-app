@@ -10,7 +10,7 @@ const TARJETA_DEL_HUECO: Readonly<Record<string, string>> = {
 }
 
 /**
- * Abre la sección de ese hueco: toca su tarjeta (abre el drawer), cerrando antes con Escape el de otra tarjeta si quedó abierto (como haría una persona: la tarjeta está debajo).
+ * Abre la sección de ese hueco: toca su tarjeta (abre el drawer) o, con el drawer de su tarjeta ya abierto en otra vista, su pestaña; si no, cierra antes con Escape el de otra tarjeta si quedó abierto (como haría una persona: la tarjeta está debajo).
  * «Qué falta» se trae a la vista. Devuelve el contenido del hueco (`[data-hueco=<clave>]`). Espera a que el hueco exista (con permiso y regla) antes de decidir el lugar.
  */
 export async function abrirSeccionDeLaUnidad(page: Page, clave: string): Promise<Locator> {
@@ -26,8 +26,15 @@ export async function abrirSeccionDeLaUnidad(page: Page, clave: string): Promise
     const otro = page.locator(
       `[role="dialog"] [data-bloque-del-hueco]:not([hidden]):not([data-bloque-del-hueco="${clave}"]):not([data-bloque-del-hueco="que-falta"])`,
     )
+    // Dinero junta gastos, pagos y margen en pestañas: con su drawer abierto en otra vista, se elige la pestaña.
+    const pestana = page.locator(`[role="dialog"] [role="tab"][data-vista="${clave}"]`)
     await expect(async () => {
       if (await abierto.isVisible()) return
+      if ((await pestana.count()) > 0 && (await pestana.isVisible())) {
+        await pestana.click({ timeout: 1000 })
+        await expect(abierto).toBeVisible({ timeout: 1000 })
+        return
+      }
       if ((await otro.count()) > 0 && (await otro.first().isVisible())) {
         await page.keyboard.press('Escape')
         await expect(otro.first()).toBeHidden({ timeout: 1000 })

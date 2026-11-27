@@ -70,14 +70,15 @@ test('E2E la pestaña «Pagos» registra, confirma y anula el pago del cliente; 
     ).trim(),
   ).toBe(`${proyecto} - 250.00`)
 
-  await page.getByRole('button', { name: 'Confirmar pago' }).click()
+  await page.getByRole('button', { name: /Más acciones de pago Anticipo del cliente/ }).click()
+  await page.getByRole('menuitem', { name: 'Confirmar pago' }).click()
   const confirmar = page.getByRole('dialog', { name: 'Confirmar el pago «Anticipo del cliente»' })
   await expect(confirmar).toContainText('se anula con un motivo')
   await confirmar.getByRole('button', { name: 'Confirmar pago' }).click()
   await expect(confirmar).toBeHidden()
   await expect(lista.getByText(/Confirmado por Rita Pagos/)).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Confirmar pago' })).toHaveCount(0)
   await page.getByRole('button', { name: /Más acciones de pago Anticipo del cliente/ }).click()
+  await expect(page.getByRole('menuitem', { name: 'Confirmar pago' })).toHaveCount(0)
   await expect(page.getByRole('menuitem', { name: 'Editar' })).toHaveCount(0)
   await expect(page.getByRole('menuitem', { name: 'Eliminar' })).toHaveCount(0)
   await page.getByRole('menuitem', { name: 'Anular pago' }).click()

@@ -17,8 +17,8 @@ import {
 import { abrirSeccionDeLaUnidad } from './soporte/unidad'
 
 // Gastos, pagos y margen en el panel de la unidad (6.11). Tramo 1: con `logistica.gastos.ver` y `editar` se registra un gasto en otra moneda con el tipo de cambio por defecto y la lista muestra
-// el equivalente que devolvió la base; el hueco «Margen» dice «Sin cotización final» y «Sin venta registrada» (nunca 0) y su real es el gasto. Quien no tiene `logistica.gastos.ver` ni
-// `logistica.margen.ver` no ve ninguno de los dos bloques. Tramo 2 (6.11-2): con `logistica.pagos.editar` se registra un pago que queda «Sin confirmar» (sin botón de confirmar); otra cuenta con
+// el equivalente que devolvió la base; la vista «Margen» dice «Sin venta registrada» en una línea (nunca 0) y su desglose, «Sin cotización final» y el gasto como real; cambiar de vista no mueve el drawer. Quien no tiene `logistica.gastos.ver` ni
+// `logistica.margen.ver` no ve ninguno de los dos bloques. Tramo 2 (6.11-2): con `logistica.pagos.editar` se registra un pago que queda «Sin confirmar» (su «⋯» no ofrece confirmar); otra cuenta con
 // `logistica.pagos.confirmar` lo confirma, el pago queda sellado con su nombre y de sólo lectura, y el margen pasa de «Sin venta registrada» a la venta, sin recargar la página.
 test.describe.configure({ mode: 'serial' })
 
@@ -89,16 +89,34 @@ test('E2E registrar un gasto en otra moneda muestra su equivalente y el margen s
   await expect(lista.getByText('Flete marítimo')).toBeVisible()
   await expect(lista.getByText(/Equivale a/)).toContainText(equivalente)
 
+  // Cambiar de vista no mueve el drawer: mide lo mismo en Gastos, Pagos y Margen.
+  const drawer = page
+    .getByRole('dialog')
+    .filter({ has: page.locator('[data-vistas-de-la-tarjeta]') })
+  const caja = await drawer.boundingBox()
   await abrirSeccionDeLaUnidad(page, 'margen')
-  const margen = page.locator('[data-hueco="margen"]')
-  await expect(margen.locator('[data-cifra="cotizado"]')).toContainText('Sin cotización final')
-  await expect(margen.locator('[data-cifra="desviacion"]')).toContainText('Sin cotización final')
-  await expect(margen.locator('[data-cifra="venta"]')).toContainText('Sin venta registrada')
+  const margen = page.locator('[data-hueco="margen"][data-estado="listo"]')
+  // El margen en una línea: un nulo es «Sin venta registrada», nunca 0.
   await expect(margen.locator('[data-cifra="margen"]')).toContainText('Sin venta registrada')
-  await expect(margen.locator('[data-cifra="real"]')).toContainText(equivalente)
-  await expect(margen.getByRole('region', { name: 'Real por categoría' })).toContainText(
+  expect(await drawer.boundingBox()).toEqual(caja)
+  await abrirSeccionDeLaUnidad(page, 'pagos')
+  expect(await drawer.boundingBox()).toEqual(caja)
+  await abrirSeccionDeLaUnidad(page, 'margen')
+
+  // El desglose, a un toque: las cifras como las da la base, en la moneda base.
+  await margen.getByRole('button', { name: 'Ver el desglose' }).click()
+  const desglose = page.getByRole('dialog', { name: 'Desglose del margen' })
+  await expect(desglose).toBeVisible()
+  await expect(desglose.locator('[data-cifra="cotizado"]')).toContainText('Sin cotización final')
+  await expect(desglose.locator('[data-cifra="desviacion"]')).toContainText('Sin cotización final')
+  await expect(desglose.locator('[data-cifra="venta"]')).toContainText('Sin venta registrada')
+  await expect(desglose.locator('[data-cifra="margen"]')).toContainText('Sin venta registrada')
+  await expect(desglose.locator('[data-cifra="real"]')).toContainText(equivalente)
+  await expect(desglose.getByRole('region', { name: 'Real por categoría' })).toContainText(
     'Flete marítimo',
   )
+  await page.keyboard.press('Escape')
+  await expect(desglose).toBeHidden()
 })
 
 test('E2E registrar un pago, confirmarlo con otra cuenta y ver la venta en el margen', async ({
@@ -123,8 +141,11 @@ test('E2E registrar un pago, confirmarlo con otra cuenta y ver la venta en el ma
   const lista = page.getByRole('list', { name: 'Pagos de la unidad' })
   await expect(lista.getByText('Anticipo e2e')).toBeVisible()
   await expect(lista.getByText('Sin confirmar')).toBeVisible()
-  // Quien carga el pago no tiene la clave de confirmar: ni botón ni sello.
-  await expect(page.getByRole('button', { name: 'Confirmar pago' })).toHaveCount(0)
+  // Quien carga el pago no tiene la clave de confirmar: su «⋯» no lo ofrece y no hay sello.
+  await page.getByRole('button', { name: /Más acciones de pago Anticipo e2e/ }).click()
+  await expect(page.getByRole('menuitem', { name: 'Editar' })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: 'Confirmar pago' })).toHaveCount(0)
+  await page.keyboard.press('Escape')
   await expect(lista.getByText(/Confirmado por/)).toHaveCount(0)
 
   // Otra cuenta, con la clave de confirmar, abre el margen (sin venta) y confirma el pago.
@@ -134,15 +155,17 @@ test('E2E registrar un pago, confirmarlo con otra cuenta y ver la venta en el ma
     await entrar(otra, terreno.conConfirmacion, { fresco: true })
     await otra.goto(`/logistica/vehiculo/${terreno.enFase.id}`)
     await abrirSeccionDeLaUnidad(otra, 'margen')
-    const margen = otra.locator('[data-hueco="margen"]')
-    await expect(margen.locator('[data-cifra="venta"]')).toContainText('Sin venta registrada')
+    const margen = otra.locator('[data-hueco="margen"][data-estado="listo"]')
+    await expect(margen.locator('[data-cifra="margen"]')).toContainText('Sin venta registrada')
     await abrirSeccionDeLaUnidad(otra, 'pagos')
     const pagos = otra.getByRole('list', { name: 'Pagos de la unidad' })
     await expect(pagos.getByText('Anticipo e2e')).toBeVisible()
     // Quien confirma no tiene la clave de editar: ni «Registrar pago» ni «Editar».
     await expect(otra.getByRole('button', { name: 'Registrar pago' })).toHaveCount(0)
 
-    await otra.getByRole('button', { name: 'Confirmar pago' }).click()
+    await otra.getByRole('button', { name: /Más acciones de pago Anticipo e2e/ }).click()
+    await expect(otra.getByRole('menuitem', { name: 'Editar' })).toHaveCount(0)
+    await otra.getByRole('menuitem', { name: 'Confirmar pago' }).click()
     const confirmar = otra.getByRole('dialog', { name: 'Confirmar el pago «Anticipo e2e»' })
     await expect(confirmar).toBeVisible()
     await expect(confirmar).toContainText('Queda sellado')
@@ -154,17 +177,19 @@ test('E2E registrar un pago, confirmarlo con otra cuenta y ver la venta en el ma
       pagos.getByText(new RegExp(`Confirmado por ${NOMBRE_DE_QUIEN_CONFIRMA}`)),
     ).toBeVisible()
     await expect(pagos.getByText('Sin confirmar')).toHaveCount(0)
-    await expect(otra.getByRole('button', { name: 'Confirmar pago' })).toHaveCount(0)
     await otra.getByRole('button', { name: /Más acciones de pago Anticipo e2e/ }).click()
     await expect(otra.getByRole('menuitem', { name: 'Anular pago' })).toBeVisible()
+    await expect(otra.getByRole('menuitem', { name: 'Confirmar pago' })).toHaveCount(0)
     await expect(otra.getByRole('menuitem', { name: 'Editar' })).toHaveCount(0)
     await expect(otra.getByRole('menuitem', { name: 'Eliminar' })).toHaveCount(0)
     await otra.keyboard.press('Escape')
 
     // Sin recargar: el margen ya tiene la venta (la suma de los pagos confirmados).
-    await expect(margen.locator('[data-cifra="venta"]')).toContainText(formato(monto))
-    await expect(margen.locator('[data-cifra="venta"]')).not.toContainText('Sin venta registrada')
+    await abrirSeccionDeLaUnidad(otra, 'margen')
     await expect(margen.locator('[data-cifra="margen"]')).not.toContainText('Sin venta registrada')
+    await margen.getByRole('button', { name: 'Ver el desglose' }).click()
+    const desglose = otra.getByRole('dialog', { name: 'Desglose del margen' })
+    await expect(desglose.locator('[data-cifra="venta"]')).toContainText(formato(monto))
   } finally {
     await contexto.close()
   }

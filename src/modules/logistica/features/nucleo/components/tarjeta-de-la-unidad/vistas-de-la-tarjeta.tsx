@@ -55,7 +55,12 @@ export function VistasDeLaTarjeta({ clave, vistas }: Props) {
     >
       <TabsList className="h-auto w-full">
         {vistas.map((v) => (
-          <TabsTrigger key={v.clave} value={v.clave} className="min-h-11 md:min-h-9">
+          <TabsTrigger
+            key={v.clave}
+            value={v.clave}
+            className="min-h-11 md:min-h-9"
+            data-vista={v.clave}
+          >
             {v.titulo}
           </TabsTrigger>
         ))}

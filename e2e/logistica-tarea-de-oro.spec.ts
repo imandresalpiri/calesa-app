@@ -242,9 +242,15 @@ test('E2E R5 la dueña ve el margen de una unidad sin venta: «Sin venta registr
   await entrar(page, duena.correo, { fresco: true })
   await page.goto(`/logistica/vehiculo/${unidad.id}`)
   await abrirSeccionDeLaUnidad(page, 'margen')
-  const margen = page.locator('[data-hueco="margen"]')
+  const margen = page.locator('[data-hueco="margen"][data-estado="listo"]')
+  const linea = margen.locator('[data-cifra="margen"]')
+  await expect(linea).toContainText('Sin venta registrada')
+  await expect(linea).not.toHaveText(/^\D*0([.,]0+)?\D*$/)
+  // El desglose, a un toque: la venta tampoco es 0.
+  await margen.getByRole('button', { name: 'Ver el desglose' }).click()
+  const desglose = page.getByRole('dialog', { name: 'Desglose del margen' })
   for (const cifra of ['venta', 'margen']) {
-    const lugar = margen.locator(`[data-cifra="${cifra}"]`)
+    const lugar = desglose.locator(`[data-cifra="${cifra}"]`)
     await expect(lugar).toContainText('Sin venta registrada')
     await expect(lugar).not.toHaveText(/^\D*0([.,]0+)?\D*$/)
   }

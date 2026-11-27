@@ -194,9 +194,8 @@ test('E2E R4 la asesora registra el pago de esa unidad y la dueña lo confirma',
   const tr = terreno()
   await cambiarDeCuenta(page, tr.asesora.email)
   await page.goto(`/logistica/vehiculo/${tr.vehiculo.id}`)
-  await registrarElPago(page, { concepto: CONCEPTO, monto: MONTO })
   // Quien carga el pago no tiene la clave de confirmar.
-  await expect(page.getByRole('button', { name: 'Confirmar pago' })).toHaveCount(0)
+  await registrarElPago(page, { concepto: CONCEPTO, monto: MONTO }, { sinPoderConfirmar: true })
 
   await cambiarDeCuenta(page, tr.duena)
   await page.goto(`/logistica/vehiculo/${tr.vehiculo.id}`)
