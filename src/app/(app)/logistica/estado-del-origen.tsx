@@ -9,6 +9,9 @@ import { EstadoError, EstadoSinPermiso, EstadoVacio } from '@/shared/ui/estados'
 
 type Ir = { nombre: string; href: string }
 
+// La salida de cada estado: en el celular, un blanco de 44 px.
+const BOTON = buttonVariants({ variant: 'outline', className: 'min-h-[44px] md:min-h-8' })
+
 // Los estados de una página de Logística cuando no hay qué dibujar del origen (`docs/UX.md` › «Logística: estados propios»). Textos y destinos los arma el
 // servidor (`abrir-la-pestana.tsx`); aquí sólo «Reintentar», que vuelve a pedir la página.
 export type EstadoDelOrigen =
@@ -23,7 +26,7 @@ export type EstadoDelOrigen =
 function IrA({ ir }: { ir: Ir | null }) {
   if (ir === null) return undefined
   return (
-    <Link href={ir.href as Route} className={buttonVariants({ variant: 'outline' })}>
+    <Link href={ir.href as Route} className={BOTON}>
       Ir a {ir.nombre}
     </Link>
   )
@@ -44,10 +47,7 @@ export function EstadoDelOrigen({ estado }: { estado: EstadoDelOrigen }) {
           titulo="Ningún origen tiene la logística encendida."
           accion={
             estado.configurar ? (
-              <Link
-                href={RUTAS.origenes as Route}
-                className={buttonVariants({ variant: 'outline' })}
-              >
+              <Link href={RUTAS.origenes as Route} className={BOTON}>
                 Configurar orígenes
               </Link>
             ) : undefined
@@ -86,10 +86,7 @@ export function EstadoDelOrigen({ estado }: { estado: EstadoDelOrigen }) {
         <EstadoVacio
           titulo={`${estado.origen} no usa ${estado.pestana}.`}
           accion={
-            <Link
-              href={estado.hrefDeLaCadena as Route}
-              className={buttonVariants({ variant: 'outline' })}
-            >
+            <Link href={estado.hrefDeLaCadena as Route} className={BOTON}>
               Ver la cadena
             </Link>
           }
