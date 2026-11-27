@@ -1,6 +1,7 @@
 'use client'
 
 import { parseAsString, useQueryState } from 'nuqs'
+import { useCallback } from 'react'
 import { CLAVE_DE_FASE_VISTA } from '../../../entities/mover/fase-vista'
 
 const PARSER = parseAsString.withOptions({ history: 'replace', shallow: true })
@@ -9,10 +10,11 @@ const PARSER = parseAsString.withOptions({ history: 'replace', shallow: true })
 // va al servidor. `null` = la actual.
 export function useFaseVista(): [string | null, (clave: string | null) => void] {
   const [clave, escribir] = useQueryState(CLAVE_DE_FASE_VISTA, PARSER)
-  return [
-    clave,
-    (nueva) => {
+  const elegir = useCallback(
+    (nueva: string | null) => {
       void escribir(nueva)
     },
-  ]
+    [escribir],
+  )
+  return [clave, elegir]
 }

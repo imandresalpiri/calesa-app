@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { NodoDeLaCadena } from './cadena'
-import { nodoVisto, queMostrarDeLaFase, textoDePrimero } from './fase-vista'
+import {
+  noSeLeyeronLosRequisitos,
+  nodoVisto,
+  queMostrarDeLaFase,
+  textoDeLaFaseVista,
+  textoDePrimero,
+} from './fase-vista'
 
 const nodo = (
   clave: string,
@@ -66,5 +72,10 @@ describe('queMostrarDeLaFase', () => {
       tipo: 'pasada',
       nodo: { entro: '2026-11-01', salio: '2026-11-05', quienSalio: 'Ana', notaSalio: 'Listo' },
     })
+  })
+
+  it('los textos de la fase vista nombran la fase', () => {
+    expect(textoDeLaFaseVista('Aduana')).toBe('Viendo «Aduana»')
+    expect(noSeLeyeronLosRequisitos('Aduana')).toBe('No pudimos leer los requisitos de «Aduana».')
   })
 })

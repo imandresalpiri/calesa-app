@@ -94,7 +94,7 @@ export function TarjetaDeLaUnidad({
     if (pedido.enfocar) enfocarAlAparecer(pedido.enfocar, { campo: true })
   }
   return (
-    <ProveedorDeLaTarjeta value={abrir}>
+    <ProveedorDeLaTarjeta value={{ clave, abrir }}>
       <section
         aria-labelledby={idDelTitulo}
         data-tarjeta={clave}

@@ -44,6 +44,11 @@ export function CadenaDeLaUnidadEnLaPagina({ cadena }: { cadena: CadenaDeLaUnida
   ]
     .filter((t) => t !== null)
     .join(' ')
+  // Una fase vista que no es de la cadena (otro flujo, una URL vieja) o que ya es la actual (se movió ahí) se ignora y se limpia de la URL, sin redirigir.
+  const sobra = clave !== null && visto === null
+  useEffect(() => {
+    if (sobra) elegir(null)
+  }, [sobra, elegir])
   // Sólo al llegar: después, elegir no mueve la cadena bajo el dedo.
   const alLlegar = useRef(claveVista)
   useEffect(() => {

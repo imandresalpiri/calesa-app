@@ -30,6 +30,18 @@ type Props = {
   borrador: BorradorDeMover
   // El modo «La ganamos» de la URL (sólo vale para un vehículo).
   modoGanada: ModoGanada
+  // La fase directa que se mira en la cadena: sólo ese destino, abierto (sin «fuera de regla» ni «hay más»: son de lo de hoy).
+  soloDestino?: string | null
+}
+
+function soloElDestino(dato: QueFalta, faseId: string | null | undefined): QueFalta {
+  if (!faseId) return dato
+  return {
+    ...dato,
+    destinos: dato.destinos.filter((d) => d.faseId === faseId),
+    fueraDeRegla: [],
+    hayMasDestinos: false,
+  }
 }
 
 // El destino que abre solo: el de «La ganamos» o, fuera de ese modo, el que pidió el botón del siguiente (`?destino=`) si está entre los leídos. Si la unidad cambió de
@@ -51,7 +63,7 @@ function armarLaLista({
   borrador,
   modoGanada,
   destinoInicial,
-}: Omit<Props, 'actualizando' | 'releer'> & { destinoInicial: string | null }) {
+}: Omit<Props, 'actualizando' | 'releer' | 'soloDestino'> & { destinoInicial: string | null }) {
   const esVehiculo = unidad.tipo === 'vehiculo'
   const modo =
     modoGanada.activo && esVehiculo
@@ -73,10 +85,15 @@ function armarLaLista({
 }
 
 // Lo que dibuja «Qué falta» con la lectura lista: los destinos (o los de «La ganamos») y lo que cada uno pide.
-export function CuerpoDeQueFalta(props: Props) {
-  const { unidad, dato, actualizando, releer, modoGanada } = props
-  const destinoInicial = useDestinoInicialDelMover()
-  const { modo, vista, borrador, ofrecer } = armarLaLista({ ...props, destinoInicial })
+export function CuerpoDeQueFalta({ soloDestino = null, ...props }: Props) {
+  const { unidad, actualizando, releer, modoGanada } = props
+  const dato = soloElDestino(props.dato, soloDestino)
+  const inicial = useDestinoInicialDelMover()
+  const { modo, vista, borrador, ofrecer } = armarLaLista({
+    ...props,
+    dato,
+    destinoInicial: soloDestino ?? inicial,
+  })
   const acciones = useAccionesDeQueFalta(unidad, dato.acciones)
   return (
     <div className="grid gap-3" data-hueco="que-falta" data-estado="listo">

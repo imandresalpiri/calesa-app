@@ -47,3 +47,16 @@ export function queMostrarDeLaFase(
 export function textoDePrimero(primero: string): string {
   return `Primero tiene que pasar por «${primero}».`
 }
+
+/** La que no es destino y tampoco tiene otra antes en el camino (no hay salida de la actual hacia ella). */
+export const NO_SE_LLEGA_DESDE_LA_ACTUAL = 'No se puede mover ahí desde la fase actual.'
+
+/** El encabezado de «Qué falta» mientras se mira otra fase de la cadena. */
+export function textoDeLaFaseVista(nombre: string): string {
+  return `Viendo «${nombre}»`
+}
+
+/** Cuando falla la lectura de los requisitos de una fase que no es destino. */
+export function noSeLeyeronLosRequisitos(nombre: string): string {
+  return `No pudimos leer los requisitos de «${nombre}».`
+}

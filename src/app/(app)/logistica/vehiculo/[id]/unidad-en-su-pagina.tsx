@@ -1,7 +1,10 @@
 import { Suspense } from 'react'
 import { puede } from '@/modules/equipo'
 import { RegistrarVisto } from '@/modules/equipo/pantallas/visto-de-la-ficha'
-import { CadenaDeLaUnidadEnLaPagina } from '@/modules/logistica/pantallas/mover-cadena'
+import {
+  CadenaDeLaUnidadEnLaPagina,
+  ProveedorDeLaCadena,
+} from '@/modules/logistica/pantallas/mover-cadena'
 import { PaginaDeLaUnidad } from '@/modules/logistica/pantallas/unidad-pagina'
 import { EsqueletoDeLaFoto } from '@/modules/logistica/pantallas/unidad-esqueletos'
 import { EsqueletoDeRelacionados } from '@/modules/vehiculos/pantallas/relacionados'
@@ -30,7 +33,7 @@ export async function UnidadEnSuPagina({ id, permisos }: { id: string; permisos:
     )
   }
   const { unidad, origen, fase, huecos, aviso, cadena } = preparada
-  return (
+  const pagina = (
     <>
       <BarraDeLaUnidad origenId={unidad.origenId} />
       <RegistrarVisto modulo="logistica" tipo="vehiculo" id={unidad.id} />
@@ -83,5 +86,13 @@ export async function UnidadEnSuPagina({ id, permisos }: { id: string; permisos:
         }
       />
     </>
+  )
+  // Sin cadena (no se leyó la unidad para ella) «Qué falta» y las tarjetas se comportan como en un drawer: sin fase vista ni avisos.
+  return cadena ? (
+    <ProveedorDeLaCadena unidadId={unidad.id} cadena={cadena.cadena}>
+      {pagina}
+    </ProveedorDeLaCadena>
+  ) : (
+    pagina
   )
 }
