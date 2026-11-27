@@ -574,6 +574,13 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   defecto (`combinarAjustesDelLive()`). Se configuran en Configuración › Modo Live (`live.configurar`).
 - **Ajuste propio (del Live)** — un campo de `live_ajustes_personas` que pisa lo de su rol para esa persona; lo demás se ve «Como su rol (…)». Sigue
   si la persona cambia de rol; «Volver a lo de su rol» lo quita.
+- **Marco del Live** — `[data-marco-del-live]` (`app/(app)/_shell/marco-del-live.tsx`, CSS en `globals.css`): con el Modo Live encendido, un borde animado
+  alrededor de la ventana y el distintivo «EN VIVO», sobre toda la app, sin recibir clics ni tapar nada. Lo muestra la clase `live` de `<html>`; fuera del
+  Live no se ve. Con `prefers-reduced-motion: reduce` el borde queda fijo.
+- **Ventana de cámara** — `VentanaDeCamara` (`equipo/features/ventana-de-camara/`): la ventana flotante del Modo Live en escritorio (desde 1024 px), con la
+  cámara de quien presenta arriba y los datos que eligió debajo (nombre y cargo, WhatsApp o teléfono, logo, redes y web de la empresa). Se arrastra,
+  cambia de tamaño, se minimiza a una píldora «EN VIVO · nombre» y guarda su lugar, tamaño, datos y cámara por persona (`preferencias_usuario`, clave
+  `live.ventana`). La cámara sólo se muestra: nunca se graba ni se sube.
 - **Oculto en Modo Live** — `EstadoOcultoEnLive`: la pantalla que se ve al abrir por URL algo que el Live oculta, con «Salir del Modo Live» (apaga y
   vuelve a la misma URL).
 - **Tabla de referencia** — `tablas_referencia`, `_filas`: alimentan nodos tabla/tramo (impuestos, tramos, tarifas, depreciación).

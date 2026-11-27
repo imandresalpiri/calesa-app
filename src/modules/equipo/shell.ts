@@ -11,3 +11,8 @@ export { cerrarSesion } from './features/auth/actions/cerrar-sesion'
 export { ProveedorPreferencias } from './features/perfil/components/proveedor-preferencias'
 export { BannerPerspectiva } from './features/perspectiva/components/banner-perspectiva'
 export { ProveedorPerspectiva } from './features/perspectiva/components/proveedor-perspectiva'
+// La ventana de cámara del Modo Live (docs/GLOSARIO.md › «Ventana de cámara»): lo que el hueco del layout lee (con el Live encendido) y la puerta que la
+// pide, en escritorio, sólo con el Live encendido.
+export { leerLaVentanaDeCamara } from './features/ventana-de-camara/leer-la-ventana'
+export { PuertaDeLaVentana } from './features/ventana-de-camara/components/puerta-de-la-ventana'
+export type { DatosDeQuienPresenta } from './entities/ventana-de-camara'

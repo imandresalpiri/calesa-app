@@ -7,4 +7,5 @@ export {
   leerDireccionPublica,
   leerVehiculosQueDejanDeVerse,
 } from './composicion'
+export { redesConEtiqueta } from '../../entities/sitio/ajustes'
 export type { AjustesDelSitio } from '../../entities/sitio/ajustes'

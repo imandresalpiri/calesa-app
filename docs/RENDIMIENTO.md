@@ -352,7 +352,7 @@ que asserta `pnpm db:medir:volumen` o el e2e. Mide `medir-escala.sql` salvo que 
   lotes más de la dueña: por el índice, sin recorrer `lotes_papelera` ni `cotizaciones`; quien no tiene la clave descarta los lotes ajenos
   (tope 600; crece con ellos, no con la página).
 - `/cotizaciones/papelera` (`e2e/cotizaciones-papelera.spec.ts`): una página (`tamano + 1`) y «Mostrar los N» un lote al pedirlo. JS en frío
-  ≤ 440 KB. Página 1 con 5 × 20: ≤ 3.000 nodos y ≤ 480.000 B de documento (medido: 477.234, con los botones «Recargar la página» y «Copiar el enlace de esta página» del marco: regla del 5 %), igual (± 2 %) con lotes de 21 que
+  ≤ 440 KB. Página 1 con 5 × 20: ≤ 3.000 nodos y ≤ 485.000 B de documento (medido: 479,3–480,1 KB, con los botones «Recargar la página» y «Copiar el enlace de esta página» y el distintivo del marco del Live: regla del 5 %), igual (± 2 %) con lotes de 21 que
   de 200 (≈ 1 KB por botón «Purgar»: las clases de `Button`). Purgar no lee nada: una llamada por confirmación y relee una página.
 - Orígenes: resumen y categorías con uso, 100 / 50 ms (exento, administración). Tipos de cambio: historial de 30 («Mostrando los 30
   cambios más recientes.»).
@@ -751,6 +751,9 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `diferido()` y su código se adelanta al pasar el puntero. Al abrirlo, una `tipos_cambio_vigentes()` de ≤ 31 filas (un `limit 1` por tipo
   sobre `tipos_cambio_historial_tipo_idx` y dos búsquedas por `perfiles_pkey`), sin caché; tras guardar se relee sin esqueleto. Es una
   tabla de configuración: sin medición de volumen.
+- El marco del Live: en frío sólo viaja su CSS y un `div` con el distintivo (sin JS; fuera del Live es `display: none`). La ventana de cámara va con
+  `diferido()` detrás de `<PuertaDeLaVentana>` (un `useLive()` y una consulta de medios): se pide sólo con el Live encendido en escritorio; con el Live
+  apagado no lee la base ni descarga su código. Una fila por persona (`live.ventana`, PK `(usuario_id, clave)`), que se escribe al soltar, con espera.
 - Documento de `/perfil` (HTML con el payload RSC, sin comprimir) ≤ 124 KB (medido: 123,3, con los botones «Recargar la página» y «Copiar el enlace de esta página» del marco: regla del 5 %) (`PRESUPUESTO_DEL_DOCUMENTO_DE_PERFIL_EN_KB`), igual con la
   semilla y con 100 + 100 + 100 catálogos (± 1 KB): lo paga toda pantalla del marco. Las ≈ 30 acciones de la paleta viajan como props del
   hueco del buscador; el formulario de «Tu ficha en la web» se monta y se pide con `diferido()` al abrirla. El layout `(app)` no manda

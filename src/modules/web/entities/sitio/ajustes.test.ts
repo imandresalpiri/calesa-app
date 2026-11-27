@@ -4,6 +4,7 @@ import {
   avisoDeOrigenApagado,
   cambiosDeAjustes,
   origenesAGuardar,
+  redesConEtiqueta,
   type EntradaDeCambios,
 } from './ajustes'
 
@@ -114,5 +115,21 @@ describe('ajustesDelSitioDesde', () => {
     expect(ajustes.redes).toEqual({ facebook: 'https://f.com/x' })
     expect(ajustes.seo).toEqual({ titulo: 'T' })
     expect(ajustes.actualizadoEn).toBe('2026-11-12T10:00:00.123456+00:00')
+  })
+})
+
+describe('redesConEtiqueta()', () => {
+  it('deja las que tienen valor, en el orden del sitio y con su etiqueta', () => {
+    expect(
+      redesConEtiqueta({
+        youtube: 'https://youtube.com/@a',
+        facebook: ' ',
+        instagram: 'https://instagram.com/a',
+      }),
+    ).toEqual([
+      { clave: 'instagram', etiqueta: 'Instagram', valor: 'https://instagram.com/a' },
+      { clave: 'youtube', etiqueta: 'YouTube', valor: 'https://youtube.com/@a' },
+    ])
+    expect(redesConEtiqueta({})).toEqual([])
   })
 })

@@ -25,6 +25,16 @@ export const ETIQUETA_DE_RED: Record<RedDelSitio, string> = {
   linkedin: 'LinkedIn',
 }
 
+// Las redes con valor, en el orden de `REDES_DEL_SITIO` y con su etiqueta: lo que muestra la ventana de cámara del Modo Live. Las vacías no entran.
+export function redesConEtiqueta(
+  redes: Partial<Record<RedDelSitio, string>>,
+): { clave: RedDelSitio; etiqueta: string; valor: string }[] {
+  return REDES_DEL_SITIO.flatMap((clave) => {
+    const valor = redes[clave]?.trim()
+    return valor ? [{ clave, etiqueta: ETIQUETA_DE_RED[clave], valor }] : []
+  })
+}
+
 export type AjustesDelSitio = {
   nombreSitio: string | null
   lema: string | null

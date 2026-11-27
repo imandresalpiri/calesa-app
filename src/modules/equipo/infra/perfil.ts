@@ -76,9 +76,33 @@ const escribirPreferencia: RepositorioPerfil['escribirPreferencia'] = async (
   return ok(null)
 }
 
+const leerFichaDeQuienPresenta: RepositorioPerfil['leerFichaDeQuienPresenta'] = async (
+  usuarioId,
+) => {
+  const supabase = await createClient()
+  // Por la PK: una fila. `perfiles: leer` deja ver la propia.
+  const { data, error } = await supabase
+    .from('perfiles')
+    .select('nombre, cargo, cargo_web, telefono, whatsapp_web')
+    .eq('id', usuarioId)
+    .limit(1)
+  if (error) {
+    return { ok: false, error: errorDePostgrest(error) }
+  }
+  const fila = data[0]
+  return ok({
+    nombre: fila?.nombre ?? '',
+    cargo: fila?.cargo ?? null,
+    cargoWeb: fila?.cargo_web ?? null,
+    telefono: fila?.telefono ?? null,
+    whatsapp: fila?.whatsapp_web ?? null,
+  })
+}
+
 export const perfilSupabase: RepositorioPerfil = {
   actualizar,
   guardarPreferencia,
   leerPreferencia,
   escribirPreferencia,
+  leerFichaDeQuienPresenta,
 }

@@ -27,8 +27,9 @@ test.describe.configure({ mode: 'serial' })
 const NODOS_DE_LA_PAPELERA_DE_COTIZACIONES = 3_000
 // El documento mide 91.005 B con la papelera vacía (el marco). Con 5 lotes × 20 filas medía 342.766 B en el 4.24-2 y, con «Purgar» en cada fila y «Purgar el lote»
 // (4.24-2b, la dueña tiene la clave), 452.015 B: ≈ 1 KB por botón, casi todo las 598 letras de clases de la base de `Button` (`src/shared/ui/button.tsx`). Lo que importa
-// es que no crezca con el lote: con 21 o con 200 mide lo mismo. Tope: lo medido más un 5 % (una variante más liviana ahorraría ≈ 2,5 %, no el botón).
-const BYTES_DE_LA_PAPELERA_DE_COTIZACIONES = 480_000
+// es que no crezca con el lote: con 21 o con 200 mide lo mismo. Tope: lo medido más un 5 % (una variante más liviana ahorraría ≈ 2,5 %, no el botón);
+// con el marco del Live (su distintivo viaja en toda pantalla) mide 479,3–480,1 KB según los ids del terreno: 485.000 (regla del 5 %).
+const BYTES_DE_LA_PAPELERA_DE_COTIZACIONES = 485_000
 // Medido 417,9 KB en 23 chunks (el marco de `(app)` pone casi todo: `/perfil` mide 417,2), más un 5 % hacia arriba a la decena. Con el Modo Live
 // configurable en el marco (T587: su proveedor y el silencio del push), 441,3 KB en 28 chunks: 445 (regla del 5 %).
 const PRESUPUESTO_DE_JS_DE_LA_PAPELERA_EN_KB = 445

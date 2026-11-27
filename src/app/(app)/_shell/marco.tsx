@@ -30,6 +30,8 @@ type Props = {
   buscador?: ReactNode
   // Lo que flota sobre toda pantalla, como la burbuja del chat (`huecos/chat.tsx`): va a la derecha de «Copiar el enlace de esta página» (`flotantes.tsx`).
   flotante?: ReactNode
+  // La ventana de cámara del Modo Live (`huecos/ventana-de-camara.tsx`): flota sobre la pantalla; sin Live no dibuja nada.
+  ventana?: ReactNode
   children: ReactNode
 }
 
@@ -48,6 +50,7 @@ export function Marco({
   campana,
   buscador = <HuecoBuscador acciones={[]} />,
   flotante,
+  ventana,
   children,
 }: Props) {
   return (
@@ -104,6 +107,7 @@ export function Marco({
         </main>
       </div>
       <Flotantes>{flotante}</Flotantes>
+      {ventana}
     </div>
   )
 }

@@ -2506,6 +2506,18 @@ Toda lista que crece dibuja a lo sumo un tope y lo dice, con un camino a lo anti
 - **Orígenes «Sólo lectura»:** la página del origen con Planilla, Hoja y Tarjeta, nada editable y sin «⋯»; la lista, sólo las tarjetas que
   abren cada origen. **«Sólo estos» orígenes:** las listas traen sólo los suyos y un vehículo o una cotización de otro, abierto por URL, dice
   «Oculto en Modo Live» (sus imágenes y su PDF dan 404).
+- **El marco del Live:** con el Live encendido, en toda pantalla, un borde alrededor de la ventana con un brillo que lo recorre y el distintivo «EN VIVO»
+  arriba, a la derecha del centro de la barra superior (no tapa el buscador ni los botones). No recibe clics ni mueve nada; con movimiento reducido el
+  borde queda fijo; fuera del Live no hay nada. En el celular y la tableta vertical es lo único que se ve.
+- **La ventana de cámara (sólo desde 1024 px):** barra con «EN VIVO», ⚙ y «Minimizar» (se arrastra por la barra; con la ventana enfocada, las flechas
+  la mueven 16 px, con Mayús 64); el video siempre 16:9 y debajo los datos elegidos (sin valor, ni su renglón; con el texto grande se parten y el bloque se
+  desplaza por dentro). Cambia de tamaño desde la esquina que mira al centro (200 px como mínimo, la mitad de la ventana del navegador como máximo; con
+  las flechas sobre la esquina, de a 20 px). Minimizada: la píldora «EN VIVO · nombre» en el mismo lugar. ⚙ abre un popover con la cámara, «Espejo»,
+  los datos a mostrar (la opción sin valor queda apagada y dice por qué: «No tienes WhatsApp ni teléfono: cárgalo en tu perfil.», «La empresa no tiene logo
+  cargado.», «La empresa no cargó redes ni web.») y «Cargo de mi ficha web». Cargando la cámara, el cuadro del video vacío; sin permiso, «Sin cámara:
+  revisa el permiso del navegador.»; sin cámara, «No se encontró una cámara.»; con un error, «No se pudo abrir la cámara.», todos con «Reintentar» y del
+  mismo alto que el video. Si la cámara elegida ya no está, se usa la primera y se avisa una vez («La cámara elegida ya no está: se usa la primera.»).
+  Al achicar la ventana del navegador la de cámara vuelve adentro. Al apagar el Live desaparece y la cámara se apaga.
 
 ## Decisiones de UX
 

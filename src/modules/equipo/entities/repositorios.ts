@@ -3,6 +3,7 @@
 import type { Resultado } from '@/shared/lib/errores'
 import type { PedidoDeCanje } from './canje'
 import type { Preferencia } from './preferencias'
+import type { FichaDeQuienPresenta } from './ventana-de-camara'
 import type { EstadoCuenta, Sesion } from './sesion'
 
 export type Credenciales = { email: string; contrasena: string }
@@ -51,4 +52,6 @@ export type RepositorioPerfil = {
     clave: string,
     valor: unknown,
   ) => Promise<Resultado<null>>
+  // Lo propio de `perfiles` que muestra la ventana de cámara del Live (nombre, cargo, teléfono y los de su ficha web), por la PK.
+  leerFichaDeQuienPresenta: (usuarioId: string) => Promise<Resultado<FichaDeQuienPresenta>>
 }
