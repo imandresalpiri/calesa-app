@@ -158,6 +158,7 @@ export const NAVEGACION = [
       'equipo.usuarios.gestionar',
       'equipo.roles.ver',
       'equipo.roles.gestionar',
+      'live.configurar',
       'empresa.ajustes.gestionar',
       'empresa.tipos_cambio.gestionar',
       'origenes.gestionar',

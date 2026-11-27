@@ -304,8 +304,15 @@ begin
   -- Con texto: las personas vigentes que lo nombran, con su rol principal y sin ajustes si no los tienen.
   r := public.live_personas('Beto');
   if jsonb_array_length(r -> 'personas') <> 1 or jsonb_path_query_first(r, '$.personas[0].id') <> to_jsonb(b)
-     or jsonb_path_query_first(r, '$.personas[0].rol.nombre') <> '"Lva X"'::jsonb or r -> 'personas' -> 0 -> 'ajustes' <> 'null'::jsonb then
+     or jsonb_path_query_first(r, '$.personas[0].rol.nombre') <> '"Lva X"'::jsonb or r -> 'personas' -> 0 -> 'ajustes' <> 'null'::jsonb
+     or r -> 'personas' -> 0 -> 'rol' -> 'ajustes' <> 'null'::jsonb then
     raise exception 'buscar a Beto no dio lo esperado: %', r;
+  end if;
+  -- El rol trae sus ajustes (el modal de la persona dice «Como su rol (…)» con ellos).
+  perform public.live_rol_guardar(pg_temp.lva_rol('lva_x'), '{"clientes": "nombres"}', null);
+  r := public.live_personas('Beto');
+  if r -> 'personas' -> 0 -> 'rol' -> 'ajustes' <> '{"clientes": "nombres"}'::jsonb then
+    raise exception 'el rol de Beto no trajo sus ajustes: %', r;
   end if;
 end $$;
 rollback;

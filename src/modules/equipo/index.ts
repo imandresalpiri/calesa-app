@@ -60,3 +60,7 @@ export {
 // Vistas guardadas de un listado (`<VistasGuardadas>` sale por `client.ts`)
 export { leerVistas } from './composicion'
 export type { VistaGuardada } from './entities/vista'
+
+// Configuración › Modo Live (`pantallas/modo-live`): los ajustes de cada rol y la primera página de «Ajustes por persona» (con `texto`, la búsqueda).
+export { leerAjustesDeLosRoles, leerPersonasDelLive } from './composicion'
+export { textoDeLaBusquedaDelLive, type OrigenDelLive } from './entities/live-configuracion'

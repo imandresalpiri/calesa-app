@@ -71,6 +71,7 @@ export const PANTALLAS_DEL_LIVE: Readonly<Record<string, AreaDelLive | 'siempre-
   'configuracion/equipo/page.tsx': 'siempre-oculto',
   'configuracion/leads/page.tsx': 'siempre-oculto',
   'configuracion/leads/campos/page.tsx': 'siempre-oculto',
+  'configuracion/modo-live/page.tsx': 'siempre-oculto',
   'configuracion/roles/page.tsx': 'siempre-oculto',
   'configuracion/web/page.tsx': 'siempre-oculto',
   'configuracion/web/ajustes/page.tsx': 'siempre-oculto',

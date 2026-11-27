@@ -20,6 +20,7 @@ export const RUTAS = {
   inicioDeConfiguracion: '/configuracion/inicio',
   equipo: '/configuracion/equipo',
   roles: '/configuracion/roles',
+  modoLive: '/configuracion/modo-live',
   // El bloque «Cotizaciones» de la matriz de Roles, a la vista: ahí viven los niveles de acceso y «Quién crea y quién ve». Sólo un enlace (no se revalida).
   cotizacionesEnRoles: '/configuracion/roles?bloque=cotizaciones',
   empresa: '/configuracion/empresa',

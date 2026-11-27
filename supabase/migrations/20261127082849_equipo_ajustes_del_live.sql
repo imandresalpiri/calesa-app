@@ -243,7 +243,7 @@ $$;
 -- ---------------------------------------------------------------------------------------------------
 -- «Ajustes por persona»: sin texto (o con uno sin 3 letras o dígitos seguidos), quienes tienen ajuste propio y siguen activos, por cursor
 -- (`live_ajustes_personas_actualizado_idx`; con cursor y sin cursor son dos consultas). Con texto, las personas vigentes que lo nombran, con el
--- recorrido y el trigram de `equipo_lista()` (`_equipo_lista_sql`), sin cursor: tope y «escribe más». Cada una con su rol principal y lo propio.
+-- recorrido y el trigram de `equipo_lista()` (`_equipo_lista_sql`), sin cursor: tope y «escribe más». Cada una con su rol principal (y sus ajustes) y lo propio.
 -- ---------------------------------------------------------------------------------------------------
 create function public.live_personas(p_texto text default null, p_cursor_en timestamptz default null, p_cursor_id uuid default null,
                                      p_limite integer default 21) returns jsonb
@@ -278,7 +278,8 @@ begin
   end if;
   select coalesce(jsonb_agg(jsonb_build_object(
            'id', p.id, 'nombre', p.nombre, 'email', p.email,
-           'rol', (select jsonb_build_object('id', r.id, 'nombre', r.nombre)
+           'rol', (select jsonb_build_object('id', r.id, 'nombre', r.nombre,
+                                             'ajustes', (select la.ajustes from public.live_ajustes_roles la where la.rol_id = r.id))
                      from public.usuarios_roles ur join public.roles r on r.id = ur.rol_id
                     where ur.usuario_id = p.id
                     order by ur.es_principal desc, r.orden, r.nombre limit 1),

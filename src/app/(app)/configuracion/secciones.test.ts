@@ -33,6 +33,7 @@ describe('secciones de configuración', () => {
       'empresa',
       'equipo',
       'roles',
+      'modo-live',
       'leads',
       'origenes',
       'web',

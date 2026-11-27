@@ -65,12 +65,11 @@ export const AJUSTES_POR_DEFECTO_DEL_LIVE: AjustesDelLive = {
 // Cómo se ve un cliente con «Clientes» apagado (cotizaciones, su tarjeta, el PDF y lo que se comparte).
 export const CLIENTE_EN_EL_LIVE = 'Cliente'
 
+export const MOTIVO_SIN_ORIGENES = 'Elige al menos un origen o «Todos los orígenes activos».'
+
 const esquemaDeOrigenes = z.union([
   z.literal('todos'),
-  z
-    .array(z.guid())
-    .min(1, { error: 'Elige al menos un origen o «Todos los orígenes activos».' })
-    .max(TOPE_DE_ORIGENES_DEL_LIVE),
+  z.array(z.guid()).min(1, { error: MOTIVO_SIN_ORIGENES }).max(TOPE_DE_ORIGENES_DEL_LIVE),
 ])
 
 const formaDeLosAjustes = {

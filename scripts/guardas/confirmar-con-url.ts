@@ -87,6 +87,15 @@ export const CONFIRMAR_CON_URL_DEL_NUCLEO: Record<string, ConfirmarConUrl> = {
     abre: 'src/modules/equipo/features/roles/components/matriz-de-roles.tsx',
     senal: 'eliminar: parseAsString',
   },
+  // Configuración › Modo Live: `?panel=rol-por-defecto&rol=<id>` y `?panel=persona-a-su-rol&persona=<id>`.
+  'src/modules/equipo/features/live/components/volver-a-lo-por-defecto.tsx': {
+    abre: 'src/modules/equipo/features/live/hooks/use-paneles-de-los-roles.ts',
+    senal: 'PANEL_ROL_POR_DEFECTO',
+  },
+  'src/modules/equipo/features/live/components/volver-a-lo-de-su-rol.tsx': {
+    abre: 'src/modules/equipo/features/live/hooks/use-paneles-de-las-personas.ts',
+    senal: 'PANEL_PERSONA_A_SU_ROL',
+  },
   // «Quitar» de un catálogo que se elige (grupos de campos, categorías de FAQ): `?panel=<panel>&quitar=<id>`.
   'src/shared/ui/catalogo-en-drawer/confirmar-quitar.tsx': {
     abre: 'src/shared/ui/catalogo-en-drawer/use-quitar-por-url.ts',
