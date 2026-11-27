@@ -53,14 +53,18 @@ describe('«Costo estimado»', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 
-  it('en Modo Live no es botón', () => {
+  it('en Modo Live sigue siendo el botón, con el número sin su moneda en el nombre', () => {
     document.documentElement.classList.add('live')
     render(
       <ProveedorDeCompartirLaAprobada compartir={() => undefined}>
         <CostoEstimado aprobada={aprobada('27999')} />
       </ProveedorDeCompartirLaAprobada>,
     )
-    expect(screen.queryByRole('button')).toBeNull()
+    expect(
+      screen.getByRole('button', {
+        name: /^Compartir la cotización aprobada \([\d.,]*27.999[\d.,]* · Unificado\)$/,
+      }),
+    ).toBeTruthy()
   })
 
   it('sin cómo compartir, es texto', () => {

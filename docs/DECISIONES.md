@@ -462,7 +462,7 @@ las trampas, en `docs/LECCIONES.md`.
   foto) y, en la tarjeta, los puntos del carrusel van a la derecha (`puntos="derecha"`) para que nunca se toquen.
 - **«Costo estimado» es la cotización aprobada con otro nombre en la lista.** El mismo dato (el primer resultado con su moneda), con el modo de tipo de cambio de
   su cotización dentro del mismo botón; los tipos siguen llamándose «aprobada» y sólo cambia el rótulo de la UI (`ROTULO_DEL_COSTO_ESTIMADO`). No enlaza a la
-  cotización: abre «Compartir la cotización» de la aprobada sobre la lista (`?panel=compartir&para=<id>`); en Modo Live es texto. `vehiculos` no conoce
+  cotización: abre «Compartir la cotización» de la aprobada sobre la lista (`?panel=compartir&para=<id>`), también en Modo Live (se ve sin moneda; el panel comparte completo). `vehiculos` no conoce
   `cotizaciones`: el diálogo y el hook que lo abre los une `src/app/(app)/vehiculos/listado-con-compartir.tsx` y llegan a cada dato por contexto.
 - **La cuenta regresiva de la lista sale de `vehiculos_inventario()` y de la tabla, no de otra consulta.** Esas dos lecturas traen `cierre_subasta_en` (la columna
   generada de la base) y la lista cuenta con un solo temporizador por página (módulo `use-cuenta-del-cierre.ts`: cada segundo, o cada minuto con

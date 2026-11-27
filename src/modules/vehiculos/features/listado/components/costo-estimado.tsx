@@ -2,10 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { cn } from 'cn'
-import { formatearMonto } from '@/shared/lib/formato'
-import { useLive } from '@/shared/ui/live'
 import { Monto } from '@/shared/ui/monto'
-import { useRegional } from '@/shared/ui/regional'
+import { useMontoEnTexto } from '@/shared/ui/monto-en-texto'
 import {
   costoEstimadoDe,
   nombreDeCompartirLaAprobada,
@@ -38,7 +36,8 @@ function Contenido({ costo }: { costo: Costo }) {
 const BASE = 'inline-flex max-w-full min-w-0 items-baseline'
 
 // Todo el costo es un botón que abre «Compartir la cotización» de la aprobada, sin salir de la lista (`data-no-abre`: el clic no abre la ficha del vehículo). En el celular su zona
-// de toque se estira (44 px) sin mover nada. En Modo Live no se comparte: queda como texto, con el monto oculto por `<Monto>`.
+// de toque se estira (44 px) sin mover nada. También con el Modo Live: el monto sin su moneda (`<Monto>` y, en el nombre accesible, `useMontoEnTexto()`); el panel
+// comparte completo.
 function Costo({
   aprobada,
   className,
@@ -47,15 +46,13 @@ function Costo({
   className?: string
 }) {
   const costo = costoEstimadoDe(aprobada)
-  const { live } = useLive()
   const compartir = useCompartirLaAprobada()
-  const { locale } = useRegional()
+  const montoEnTexto = useMontoEnTexto()
   const contenido: ReactNode = <Contenido costo={costo} />
-  if (live || compartir === null) {
+  if (compartir === null) {
     return <span className={cn(BASE, 'text-(--color-ink)', className)}>{contenido}</span>
   }
-  const monto =
-    costo.tipo === 'monto' ? formatearMonto(costo.valor, { moneda: costo.moneda, locale }) : ''
+  const monto = costo.tipo === 'monto' ? montoEnTexto(costo.valor, { moneda: costo.moneda }) : ''
   return (
     <button
       type="button"
