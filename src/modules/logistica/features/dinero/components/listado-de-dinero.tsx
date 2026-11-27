@@ -21,11 +21,21 @@ type Props = {
   esquema: EsquemaDeFiltros
   // El `?vehiculo=` de la página (la clave la pone `src/app`, dueña del panel de la unidad).
   claveDeUnidad: string
+  // El origen de la pestaña: cambiar de vista se queda en él.
+  origenId: string
 }
 
 // Las vistas «Gastos» y «Pagos»: enlaces (la vista es `?ver=`) y no pestañas, así recargar y compartir llevan a la misma lista. Cambiar de vista no conserva filtros ni página: no
-// son los mismos (D5 de 6.11-3).
-function Vistas({ vista, vistas }: { vista: VistaDeDinero; vistas: readonly VistaDeDinero[] }) {
+// son los mismos (D5 de 6.11-3); sí el origen.
+function Vistas({
+  vista,
+  vistas,
+  origenId,
+}: {
+  vista: VistaDeDinero
+  vistas: readonly VistaDeDinero[]
+  origenId: string
+}) {
   if (vistas.length < 2) {
     return null
   }
@@ -34,7 +44,7 @@ function Vistas({ vista, vistas }: { vista: VistaDeDinero; vistas: readonly Vist
       {vistas.map((cada) => (
         <Link
           key={cada}
-          href={rutaDeLaLista({ vista: cada }) as Route}
+          href={rutaDeLaLista({ vista: cada, origenId }) as Route}
           aria-current={cada === vista ? 'page' : undefined}
           className={buttonVariants({
             variant: cada === vista ? 'secondary' : 'ghost',
@@ -49,11 +59,11 @@ function Vistas({ vista, vistas }: { vista: VistaDeDinero; vistas: readonly Vist
 }
 
 // La lista de gastos o de pagos con sus filtros en la URL. La fila abre el panel de su unidad (`?vehiculo=`) conservando filtros y página.
-export function ListadoDeDinero({ lista, vistas, esquema, claveDeUnidad }: Props) {
+export function ListadoDeDinero({ lista, vistas, esquema, claveDeUnidad, origenId }: Props) {
   const unidad = useAbrirLaUnidad(claveDeUnidad)
   return (
     <div className="grid gap-4">
-      <Vistas vista={lista.vista} vistas={vistas} />
+      <Vistas vista={lista.vista} vistas={vistas} origenId={origenId} />
       <FilterShell esquema={esquema}>
         <ResultadoDeDinero lista={lista} alAbrir={unidad.abrir} abierta={unidad.abierta} />
       </FilterShell>

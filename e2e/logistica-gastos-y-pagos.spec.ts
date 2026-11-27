@@ -177,10 +177,10 @@ test('E2E la lista de /logistica/gastos muestra el gasto y el pago, filtra y abr
   page,
 }) => {
   await entrar(page, terreno.conDinero, { fresco: true })
-  await page.goto('/logistica')
-  const barra = page.getByRole('navigation', { name: 'Logística', exact: true })
+  await page.goto(`/logistica?origen=${terreno.origen.id}`)
+  const barra = page.getByRole('navigation', { name: `Logística de ${terreno.origen.nombre}` })
   await barra.getByRole('link', { name: 'Gastos' }).click()
-  await expect(page).toHaveURL(/\/logistica\/gastos/)
+  await expect(page).toHaveURL(new RegExp(`/logistica/gastos\\?origen=${terreno.origen.id}`))
   await expect(barra.getByRole('link', { name: 'Gastos' })).toHaveAttribute('aria-current', 'page')
 
   // Los gastos: la unidad, la categoría y el equivalente que guardó la base; ningún total.
@@ -205,12 +205,14 @@ test('E2E la lista de /logistica/gastos muestra el gasto y el pago, filtra y abr
     .getByRole('navigation', { name: 'Qué lista ver' })
     .getByRole('link', { name: 'Pagos' })
     .click()
-  await expect(page).toHaveURL(/ver=pagos/)
+  await expect(page).toHaveURL(new RegExp(`ver=pagos&origen=${terreno.origen.id}`))
   await expect(page.getByRole('button', { name: /Anticipo e2e/ })).toBeVisible()
   await expect(page.getByText('Confirmado', { exact: true })).toBeVisible()
 
   // El pago ya está confirmado: «sin confirmar» no encuentra nada y «Limpiar filtros» lo trae de vuelta.
-  await page.goto('/logistica/gastos?ver=pagos&confirmacion=sin_confirmar')
+  await page.goto(
+    `/logistica/gastos?origen=${terreno.origen.id}&ver=pagos&confirmacion=sin_confirmar`,
+  )
   await expect(page.getByText('Nada coincide con los filtros')).toBeVisible()
   await page.getByRole('button', { name: 'Limpiar filtros' }).click()
   await expect(page.getByRole('button', { name: /Anticipo e2e/ })).toBeVisible()
@@ -220,6 +222,6 @@ test('E2E sin gastos.ver ni pagos.ver /logistica/gastos dice que no hay permiso'
   page,
 }) => {
   await entrar(page, terreno.conLogistica, { fresco: true })
-  await page.goto('/logistica/gastos')
+  await page.goto(`/logistica/gastos?origen=${terreno.origen.id}`)
   await expect(page.getByText('No tienes permiso para ver esto')).toBeVisible()
 })
