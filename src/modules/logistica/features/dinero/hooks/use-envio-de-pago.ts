@@ -43,7 +43,7 @@ export function useEnvioDePago({
 }: Args) {
   const [aviso, setAviso] = useState<string | null>(null)
   const [conflicto, setConflicto] = useConflictoHastaLaVersion(original?.actualizadoEn ?? null)
-  const recarga = useRecargaDeDinero(unidadId, conflicto)
+  const recarga = useRecargaDeDinero(unidadId, conflicto, original)
   const [pendiente, setPendiente] = useState<DatosDePago | null>(null)
   const [enCurso, setEnCurso] = useState(false)
   const ambito = useAmbitoDePago()

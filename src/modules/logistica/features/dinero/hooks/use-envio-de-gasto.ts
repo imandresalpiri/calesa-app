@@ -42,7 +42,7 @@ export function useEnvioDeGasto({
   const [aviso, setAviso] = useState<string | null>(null)
   // El conflicto se va cuando llega la versión nueva (la trae «Recargar»): lo escrito queda y el próximo envío lleva esa versión.
   const [conflicto, setConflicto] = useConflictoHastaLaVersion(original?.actualizadoEn ?? null)
-  const recarga = useRecargaDeDinero(unidadId, conflicto)
+  const recarga = useRecargaDeDinero(unidadId, conflicto, original)
   const [pendiente, setPendiente] = useState<DatosDeGasto | null>(null)
   const [enCurso, setEnCurso] = useState(false)
 
