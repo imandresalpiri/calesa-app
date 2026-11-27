@@ -245,6 +245,13 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** A 1280 px, la tabla de `/logistica/aduana` desborda: la columna Vehículos queda a la derecha y se llega desplazando; y en la de contenedores
+  «Revisar qué falta» se corta contra el «⋯» fijo — una columna menos o el texto de la fila en dos renglones (`aduana/components/tabla-de-declaraciones.tsx`,
+  `transporte/components/tabla-de-contenedores.tsx`).
+- **[—]** «Los primeros.» sobre la lista de embarques y la de contenedores no dice en qué orden: nombrarlo («Los de ETA más cercana primero.») en
+  `entities/transporte/textos.ts`.
+- **[—]** En el celular al 200 %, los botones flotantes de compartir y chat tapan el buscador de `/logistica/embarques` y de `/logistica/aduana`: el mismo
+  margen de abajo que pide el vacío de Fases (línea siguiente).
 - **[—]** En el celular, los botones flotantes de compartir y chat tapan parte del vacío de la pestaña Fases de un origen sin fases (el texto «El flujo de … todavía
   no tiene fases.»): dejarle al vacío el margen de abajo que ocupan.
 - **[—]** Integraciones con la clave del asistente de IA cargada desborda 74 px a 1440×900: el lugar reservado de «Probar conexión» (`min-h-28`) y la
