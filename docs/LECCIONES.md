@@ -357,6 +357,7 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Un embudo creado por `embudo_crear()` nace con «Nueva», «Ganada» y «Perdida», no con las etapas del de por defecto («Nuevo», «Ganado»…): nombra la etapa del embudo que usas.
 - Para simular un estado que un job cierra, retén un candado que el job no puede tomar; no pauses `cron.job`.
 - Para probar qué camino usa la pantalla, mide con `pg_stat_statements` (con `workers: 1`) que crece una lectura y no la otra.
+- En un editor de ProseMirror/Tiptap, tras mover el cursor con una tecla (`Control+End`) espera dos cuadros (`esperarDosCuadros`) antes de la siguiente: el editor se entera por un `selectionchange` que llega después y, en un runner cargado, un «Enter» o un texto inmediatos caen al inicio del documento (`<p></p><p>/botonTexto inicial</p>`).
 - Distingue las Server Actions propias con un marcador (`intento`) en un vigilante que cuenta por URL: otras actions van a la misma URL (registrar la visita).
 
 ### El marco y las cuentas de pedidos
