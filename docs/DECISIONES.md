@@ -1405,13 +1405,38 @@ las trampas, en `docs/LECCIONES.md`.
   - la página de un vehículo cuyo origen no está entre los de la persona no marca ninguno y sus pestañas son las del origen que se abriría sin `?origen=`;
   - Gastos no tiene filtro de origen: la lista es la del origen elegido y la categoría ofrece las de ese origen y las compartidas;
   - los catálogos de los filtros de Embarques siguen entre orígenes (`docs/PENDIENTES.md`).
-- **La unidad en su página va en zonas y el alto lo pone `src/app`.** Con 1440×900 y 1280×800 todo lo importante entra sin desplazar la página: «Qué falta» con mover arriba a la izquierda, las pestañas (Documentos, Transporte, Repuestos, Aduana, Dinero) debajo y notas e historial a la derecha, cada zona con su desplazamiento. La forma (zonas o bloques con la barra «Mover») se elige por el ancho de la **pantalla** (1024 px, `useAlMenos`: el servidor lo adivina por cookie y la hidratación no salta); las dos columnas con alto fijo, por el ancho del **contenedor** (`@container/unidad`, 56 rem): con el texto al 200 % los rem crecen y el arreglo vuelve solo a una columna con alto natural. El alto (`--alto-del-detalle`) lo define la página, no el módulo: el marco sabe cuánto ocupa (`<main>`, la barra de Logística, el `gap`); la cabecera va fuera del cambio de forma.
-- **La zona de cada hueco la dice un solo mapa del núcleo (`ZONA_DEL_HUECO`), junto a `ORDEN_DE_HUECOS`**, no la declaración de cada área: el orden ya es central y la zona es el mismo tipo de dato con la misma clave; así `repuestos` no conoce los nombres de las zonas de `logistica`, y el `Record` obliga a ponerle zona a toda clave nueva. «Dinero» junta gastos, pagos y margen porque caben cinco pestañas a 1280 px y es la palabra de la persona.
-- **`ORDEN_DE_HUECOS` va por lo que más se hace:** qué falta, documentos, notas, historial, transporte, repuestos, aduana, gastos, pagos, margen. Rige también el orden de los bloques en el celular y en el drawer de gastos (a propósito). El panel del ítem no usa este orden: lo coloca `repuestos` en dos columnas (ver «El panel del ítem va en dos columnas»).
-- **La pestaña elegida va en `?hueco=`, con `shallow` y `replace`** (aunque `ui.md` pida `shallow: false`): el servidor no depende de la pestaña, así que un viaje por pestaña no aporta nada. Cada zona recuerda lo último que eligió porque las dos comparten la clave de la URL.
-- **Subir documentos va en un drawer sólo en las zonas de la página** (`?subir=documentos`, clave propia: `?panel=` cerraría el drawer del ítem de repuesto y una clave aparte convive con `?vehiculo=` e `?item=`): una pestaña con alto fijo no tiene lugar para la bandeja. En los bloques (celular, drawers, ficha del vehículo) la subida sigue en línea: no toca el ítem, la ficha ni sus specs. Un contexto del núcleo (`useEnZonas`) se lo dice al área, sin que el núcleo importe un área.
-- **Transporte sigue en línea dentro de su pestaña:** su borrador por campo y su `PT409` con «Recargar» viven en el formulario y la pestaña ya tiene su propio desplazamiento.
-- **Cada hueco va en un límite de error** (`LimiteDelHueco`) y su `diferido()` avisa y muestra el esqueleto en su zona: un hueco roto o sin código no tumba la página ni deja un blanco.
+- **La unidad en su página va en cadena, tarjetas y «Qué falta» al costado; el alto lo pone `src/app`.** Con 1440×900 y 1280×800 todo entra sin desplazar la página: una cabecera baja
+  (tocarla abre la ficha completa, `?ver=ficha`), la cadena de fases en una fila y, debajo, siete tarjetas de alto fijo en dos columnas con «Qué falta» a la derecha, cada parte con su desplazamiento.
+  Cada tarjeta dice en dos líneas lo que importa y abre sus huecos en un drawer al costado (`?hueco=<tarjeta>`): se ve el estado de todo de un vistazo, en vez de una pestaña a la vez
+  (las zonas escondían cuatro de cinco). La forma sale sólo de CSS (`@container/unidad`: desde 56 rem, tarjetas y «Qué falta» lado a lado con alto fijo; desde 40 rem, tarjetas en dos
+  columnas), con el mismo DOM en todo ancho: nada salta al hidratar y con el texto al 200 % vuelve sola a una columna. Debajo de 56 rem: cabecera, cadena, «Qué falta», tarjetas y la barra
+  «Mover». El alto (`--alto-del-detalle`) lo define la página, no el módulo: el marco sabe cuánto ocupa. Descartados: mantener `useAlMenos` para elegir la forma (salta al hidratar),
+  pestañas dentro del drawer de Dinero (una sección dentro de otra) y leer los resúmenes en el navegador al montar cada tarjeta (siete viajes por vista).
+- **La tarjeta de cada hueco la dice un solo mapa del núcleo (`TARJETA_DEL_HUECO`), junto a `ORDEN_DE_HUECOS` y `ORDEN_DE_TARJETAS`**, no la declaración de cada área: el orden ya es central y
+  la tarjeta es el mismo tipo de dato con la misma clave; así `repuestos` no conoce las tarjetas de `logistica`, y el `Record` obliga a ponerle tarjeta a toda clave nueva. Una tarjeta se
+  dibuja si alguno de sus huecos se ve (permiso y regla). «Dinero» junta gastos, pagos y margen (tres `h3` hermanas en su drawer) porque es la palabra de la persona. Orden de las tarjetas:
+  documentos, transporte, repuestos, aduana, dinero, notas, historial.
+- **`ORDEN_DE_HUECOS` va por lo que más se hace:** qué falta, documentos, notas, historial, transporte, repuestos, aduana, gastos, pagos, margen. Rige el orden de los huecos dentro de una
+  tarjeta y de los atajos. El panel del ítem no usa este orden: lo coloca `repuestos` en dos columnas (ver «El panel del ítem va en dos columnas»).
+- **Los resúmenes de las tarjetas se leen en el servidor**, una lectura acotada por tarjeta visible (con su tope y su índice), en paralelo y cada una tras su `<Suspense>` con un esqueleto
+  del mismo alto: el marco de la tarjeta se dibuja enseguida y sólo el resumen llega después. Ninguna tarjeta lee en el navegador. **Excepción:** el aviso que sale de un requisito que
+  falta («Falta el BL», «Faltan 2 documentos») se calcula en el cliente sobre el último «Qué falta» leído: sigue al día al releer, sin otra consulta. Al cerrar el drawer de una tarjeta,
+  si mientras estuvo abierto algo cambió en la unidad (`logistica:unidad-cambio`), la página se relee (`router.refresh()`, que conserva el estado del cliente), una vez escrita la URL.
+- **La lectura inicial de «Qué falta» sigue en el navegador:** llevarla al servidor alarga el TTFB de la página y no acorta la tarea de oro; sus avisos llegan a una ranura de alto reservado.
+- **La tarjeta abierta va en `?hueco=`, con `shallow` y `replace`; la fase que se mira, en `?fase_vista=`; el filtro del historial, en `?historial_fase=` y `?historial_quien=`**, todas con
+  `shallow` (aunque `ui.md` pida `shallow: false`): el servidor no depende de ellas, y un repintado del servidor volvería a leer los siete resúmenes. Una `fase_vista` que no es de la cadena
+  se ignora y se limpia; mover con éxito la limpia. En el drawer de gastos y en el panel del ítem la tarjeta va en `?seccion=` (un segundo drawer: `?panel=` cerraría el de afuera).
+- **El historial se filtra en la base** por la fase a la que entró (`a_fase_id`, «Fase») y por quién la movió (`usuario_id`, o «Sistema»), cada filtro con su índice: `historial_fases` no
+  tiene columna de tipo y la fase de destino ya distingue cada cambio (un `tipo` nuevo sería migrar datos sin necesidad). Las opciones salen de las pasadas que ya leyó la cadena (tope 50); sin
+  cadena (drawers), el historial no muestra filtros.
+- **La demora va en la cabecera** («Demorada» junto a «Desde hace N días»), calculada en el servidor por `demoraDeLaUnidad`, espejo de `_logistica_dias` (fase de logística no final, regla
+  `alerta_demora`, días de la fase o los de la empresa, sin las no ganadas): es de la unidad en su fase, no de una tarjeta, y ninguna RPC la da por vehículo.
+- **Subir documentos va en un drawer sobre el de Documentos en la página** (`?subir=documentos`, clave propia: `?panel=` cerraría el drawer del ítem de repuesto y una clave aparte convive con
+  `?vehiculo=` e `?item=`; `useEnLaPagina()` lo decide). «Subir» de «Qué falta» abre los dos de una vez, con el tipo ya elegido, y al terminar queda el de Documentos con lo subido. En los drawers
+  (gastos, ítem) la subida sigue en línea.
+- **Transporte sigue en línea dentro de su drawer:** su borrador por campo y su `PT409` con «Recargar» viven en el formulario.
+- **Cada hueco va en un límite de error** (`LimiteDelHueco`) y su `diferido()` avisa y muestra el esqueleto en su drawer: un hueco roto o sin código no tumba la página ni deja un blanco; un
+  resumen que no se lee dice «No pudimos leer el resumen.» y la tarjeta se abre igual.
 - **«La ganamos» es el mover de siempre** (`?ganada=si`), sólo hacia fases que no son la subasta; `vehiculo_subasta_ganada` envuelve
   `cambiar_fase` en una transacción: nunca queda un «ganada» que sigue en la subasta. `cambiar_fase` no se toca.
 - **La cadena excluye las no ganadas con un índice parcial** (`vehiculos_cadena_idx … where situacion <> 'no_ganada'`): un filtro sin índice
@@ -1546,7 +1571,7 @@ las trampas, en `docs/LECCIONES.md`.
   a su izquierda mientras va pegada: la cabecera entera (vehículo, cliente, notas) ocuparía un tercio de la pantalla. Cada pestaña reserva su alto (`min-h-80`)
   mientras llega. Sin «Cerrar»: cambiar de pestaña lo cierra.
 - **El panel del ítem va en dos columnas y lo compone `repuestos`** (`item-abierto.tsx`), no una pieza de `logistica`: lo del ítem a la izquierda en el orden en que se usa y sus tarjetas a la derecha. `logistica` ya
-  no tiene un panel de ítem; da piezas sueltas (`QueFaltaDelItem` y `TarjetaDelHuecoDelItem`) y el drawer de `/logistica/gastos?vehiculo=` sigue con su `PanelDeLaUnidad`. Se descartó mantener «todo a la vista»
+  no tiene un panel de ítem; da piezas sueltas (`QueFaltaDelItem` y `TarjetaDelHuecoDelItem`, una `TarjetaDeLaUnidad` con un resumen fijo, sin lectura) y el drawer de `/logistica/gastos?vehiculo=` sigue con su `PanelDeLaUnidad` (cabecera, «Qué falta» y las tarjetas en una columna, sin cadena: los dos son angostos). Se descartó mantener «todo a la vista»
   apilado: obligaba a bajar por siete secciones para llegar a lo que se usa (mover, cantidad, precio). El destino ya elegido viaja en `?destino=` y llega a «Qué falta» por un contexto nulo por defecto.
   Lo de logística (documentos, historial, notas) abre en un drawer al costado con su propia clave (`?seccion=`) y los grupos del ítem se editan en un modal con `?editar=`: `?panel=` cerraría el panel del ítem, porque
   `?item=` sólo vale sin `?panel=`. Documentos, Historial y Notas muestran una línea fija y no leen nada hasta abrirse (un número que se muestra nunca es un total exacto), así que el panel hace menos lecturas al abrir
