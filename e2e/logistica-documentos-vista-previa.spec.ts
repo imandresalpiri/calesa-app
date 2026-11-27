@@ -25,14 +25,17 @@ test.describe.configure({ mode: 'serial' })
 let proyecto = ''
 let terreno: TerrenoDeDocumentos
 let sembrados: DocumentoSembrado[] = []
+// `correoDePrueba` lleva la hora: se arma una sola vez.
+let correoDeLaDuena = ''
 
 test.beforeAll(async ({}, info) => {
   proyecto = info.project.name
   await borrarDocumentos(proyecto)
   await borrarPersonasDePrueba()
   await borrarRolesDePrueba()
+  correoDeLaDuena = correoDePrueba(`duena-vista-previa-${proyecto}`)
   await crearDuenaDePrueba({
-    email: correoDePrueba(`duena-vista-previa-${proyecto}`),
+    email: correoDeLaDuena,
     contrasena: CONTRASENA,
     nombre: 'Vera Vistaprevia',
   })
@@ -57,13 +60,17 @@ async function abrirLosDocumentos(
   return abrirSeccionDeLaUnidad(page, 'documentos')
 }
 
-const duena = () => correoDePrueba(`duena-vista-previa-${proyecto}`)
+const duena = () => correoDeLaDuena
 const vista = (page: Page) => page.getByRole('dialog', { name: 'Vista previa' })
 const nombreMostrado = (modal: Locator) =>
   modal.locator('[data-vista-previa-del-documento] [title]').first()
 
 // El alto y el ancho del modal: no cambian entre una imagen, un PDF y un aviso.
 async function cajaDe(modal: Locator): Promise<{ width: number; height: number }> {
+  // Se mide con la animación de apertura terminada: a medio abrir el modal es más chico.
+  await modal.evaluate((el) =>
+    Promise.all(el.getAnimations().map((animacion) => animacion.finished)),
+  )
   const caja = await modal.boundingBox()
   if (!caja) throw new Error('El modal no tiene caja.')
   return { width: Math.round(caja.width), height: Math.round(caja.height) }
@@ -121,8 +128,11 @@ test('E2E las flechas pasan de un documento a otro y el modal no cambia de tama�
 
   // El teclado también las recorre: ← y → no salen del modal.
   const antes = await nombreMostrado(modal).textContent()
-  await page.keyboard.press('ArrowRight')
-  await page.keyboard.press('ArrowLeft')
+  // Cada flecha cambia la URL: se espera el documento nuevo antes de la siguiente.
+  const tecla = (await siguiente.isEnabled()) ? 'ArrowRight' : 'ArrowLeft'
+  await page.keyboard.press(tecla)
+  await expect(nombreMostrado(modal)).not.toHaveText(antes ?? '')
+  await page.keyboard.press(tecla === 'ArrowRight' ? 'ArrowLeft' : 'ArrowRight')
   await expect(nombreMostrado(modal)).toHaveText(antes ?? '')
   expect(await cajaDe(modal)).toEqual(delPdf)
 
@@ -143,6 +153,7 @@ test('E2E desde el pie de la vista previa se aprueba uno y se rechaza otro con s
   const modal = vista(page)
   await expect(nombreMostrado(modal)).toHaveText('foto-1.png')
   const pie = modal.locator('[data-pie-de-la-vista-previa]')
+  await cajaDe(modal)
   const alto = await pie.boundingBox()
   await pie.getByRole('button', { name: 'Aprobar' }).click()
   await expect(modal.getByText('Aprobado', { exact: true })).toBeVisible()
