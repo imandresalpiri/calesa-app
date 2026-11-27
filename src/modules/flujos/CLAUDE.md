@@ -199,6 +199,9 @@ El módulo se parte por área (`scripts/guardas/areas-de-flujos.test.ts`): el **
   encendida, la oferta (puertos de origen, de destino y navieras activos que usa el origen del flujo: `leerCatalogoDeTransporte(origenId)`, sus propios y
   los compartidos que no tapa, con `catalogoDelOrigen`; el de repuestos, sólo los compartidos). La ve quien configura (`flujos.configurar` o `repuestos.configurar`).
 - `entities/reglas/catalogo.ts`: las 10 claves con su texto, comparadas en un test con el check de la base y `_flujo_regla_admitida`.
+- **Las reglas deciden las pestañas de Logística** de un origen (`reglasActivas` de `leerFlujoDeOrigen`): `logistica` pone el origen en la barra; `transporte` o `contenedor`,
+  Embarques (con una sola, sólo su vista); `aduana`, Aduana; `gastos` o `pagos`, Gastos. Cadena y Bandeja del día no piden regla. Cada área de `logistica` lo declara en su
+  `EnlaceDeLogistica`; apagar una regla esconde su pestaña y la URL dice «<origen> no usa …».
 - **Apagar pregunta antes de escribir:** `cambiarRegla` llama `flujo_regla_impacto`; con uso responde `en_uso` y no escribe. «Deshacer» y las escrituras usan la
   **última versión conocida** (`useEscrituraDeReglas`), no la del toast. El borrador de la oferta lleva `key` por la firma de lo guardado.
 - Puertos y navieras sólo se **leen** (los gestiona `logistica`, en su drawer arriba del diagrama); sin navieras, la oferta lo dice y nombra el botón

@@ -233,7 +233,7 @@ Estados propios:
 
 ### Flujo 3 — Mover de fase
 
-1. `/logistica` abre la **bandeja del día** (lo que le toca hoy a quien mira, por grupos con su acción) y al lado la **cadena** como gráfica: una fase por punto con cuántos vehículos tiene y cuántos están demorados o trabados. Clic en una fase → su lista (tabla paginada, filtros en URL).
+1. `/logistica` abre la **Cadena** del origen elegido arriba (el último que usaste): la gráfica, una fase por punto con cuántos vehículos tiene y cuántos están demorados o trabados. Clic en una fase → su lista (tabla paginada, filtros en URL). Lo que le toca hoy a quien mira, por grupos con su acción, es la pestaña **Bandeja del día** (`/logistica/bandeja`).
 2. Clic en un vehículo (de la bandeja, de la lista o de «dónde está») → su página `/logistica/vehiculo/<id>` con «Qué falta para pasar a …» abierto (documentos aprobados/faltantes, datos, esperas de repuestos, en vivo). Cada falta trae lo que la destraba: hacerlo ahí («Subir», «Revisar», «Completar», «Registrar»), ir a donde se hace o «Pedirlo» a quien puede.
 3. Subir documento desde el panel (arrastrar o cámara); se sube al confirmar, nunca antes; queda «subido» hasta que alguien con permiso lo
    aprueba.
@@ -482,12 +482,14 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   con aviso de tope; «Anular» el vigente pide motivo en `?panel=anular-comprobante` (sin id: hay a lo sumo uno).
   En el pie de «Vista previa», **«Retocar»** (quien la puede guardar): el mismo modal pasa al modo «Retocar la tarjeta» (estados en «Cotización: retocar la
   tarjeta»). Estados en Flujo 2.
-- **Logística** — `/logistica` (`logistica.ver` en algún origen): la **bandeja del día** y la **cadena como gráfica**; en la URL: `?origen=` (orígenes con la logística encendida), `q` («dónde está»:
-  nombre, VIN o lote; 3 letras o números) y `?panel=lote` (el lote de un contenedor o un booking). `/logistica/fase/[fase]` (la lista de una fase: `[fase]` es el id o `sin_fase`;
-  `?origen=`, `q`, `demoradas`, `por_aprobar`, `contenedor`, `booking`, `naviera`, `cursor`), `/logistica/bandeja/[grupo]` (un grupo entero: `demorados`, `trabados`, `por-aprobar`, `por-vencer`,
-  `llegadas`, `salidas`, `sin-resolver`; `cursor`), `/logistica/vehiculo/[id]` (la página de la unidad, a la que lleva todo vehículo y la notificación de demora; `?hueco=documentos` abre esa
-  pestaña o ese bloque; **meta:** en escritorio, a 1440×900 y a 1280×800, la unidad entra sin desplazar la página, y mover, subir y anotar se hacen sin salir de ella), `/embarques`, `/aduana`, `/gastos` (`?ver=gastos|pagos`). La página de la unidad tiene el hueco «Repuestos» (con `repuestos.ver`): «Espera N repuestos», cada ítem con su proyecto,
-  «Para pasar a «X» espera que llegue a «Y».» y el enlace a su panel; sin espera, «Este vehículo no espera ningún repuesto.». Ver «Logística: estados propios». **Configurar:** el ⚙ «Configurar» (nombre accesible «Configurar la logística»; a la derecha de la barra, en toda página de Logística) lleva a la pestaña Fases del origen de la cadena (`?origen=`) o, si la persona no lo configura, del primero que sí (activos primero), donde están su flujo y sus catálogos («Catálogos de logística (drawer)»). Lo ve quien tiene `flujos.configurar` o `logistica.catalogos.gestionar` en algún origen; sin ninguno, no se dibuja.
+- **Logística** — `/logistica` (`logistica.ver` en algún origen): siempre **en un origen**, elegido arriba como en Vehículos (sin «Todos»); toda página lleva la barra de Logística con
+  los orígenes y las pestañas del elegido (ver «Logística: estados propios» › «La barra y el origen»). `/logistica` es la **Cadena** (la gráfica y «dónde está»); en la URL: `?origen=`
+  (orígenes con la logística encendida; sin él, el último que usaste), `q` («dónde está»: nombre, VIN o lote; 3 letras o números), `en=todos` («Buscar en todos los orígenes») y `?panel=lote`
+  (el lote de un contenedor o un booking). `/logistica/bandeja` (la **Bandeja del día** del origen; `?origen=`). `/logistica/fase/[fase]` (la lista de una fase: `[fase]` es el id o `sin_fase`;
+  `?origen=`, `q`, `demoradas`, `por_aprobar`, `contenedor`, `booking`, `naviera`, `cursor`), `/logistica/bandeja/[grupo]` (un grupo entero del origen: `demorados`, `trabados`, `por-aprobar`, `por-vencer`,
+  `llegadas`, `salidas`, `sin-resolver`; `?origen=`, `cursor`), `/logistica/vehiculo/[id]` (la página de la unidad, a la que lleva todo vehículo y la notificación de demora; `?hueco=documentos` abre esa
+  pestaña o ese bloque; **meta:** en escritorio, a 1440×900 y a 1280×800, la unidad entra sin desplazar la página, y mover, subir y anotar se hacen sin salir de ella), `/embarques`, `/aduana`, `/gastos` (`?ver=gastos|pagos`), todas con `?origen=`. La página de la unidad tiene el hueco «Repuestos» (con `repuestos.ver`): «Espera N repuestos», cada ítem con su proyecto,
+  «Para pasar a «X» espera que llegue a «Y».» y el enlace a su panel; sin espera, «Este vehículo no espera ningún repuesto.». Ver «Logística: estados propios». **Configurar:** el ⚙ «Configurar» (nombre accesible «Configurar la logística»; a la derecha de la barra, en toda página de Logística) lleva a `/configuracion/origenes/<id>/fases` del origen elegido (en la página de un vehículo, el de su vehículo) o, si la persona no lo configura, del primero que sí (activos primero), donde están su flujo y sus catálogos («Catálogos de logística (drawer)»). Lo ve quien tiene `flujos.configurar` o `logistica.catalogos.gestionar` en algún origen; sin ninguno, no se dibuja.
 - **Repuestos** — `/repuestos` (`repuestos.ver`): proyectos por cursor `numero` (`?q=` de 3 letras o un número,
   `?estado=abiertos|cerrados|todos`, `?por=`, `?cursor=`) con número, vehículo o «Externo», cliente, estado derivado, ítems («200+») y
   última actividad; «Nuevo proyecto» (`repuestos.editar`, `N`, `?panel=nuevo-proyecto`, `&vehiculo=<id>` lo abre vinculado, `&lead=<id>` con el
@@ -1316,6 +1318,25 @@ el flujo; la base vuelve a decidir.
 
 ### Logística: estados propios
 
+**La barra y el origen.** Toda página de Logística dibuja arriba su barra, de alto fijo (dos filas: 4,5 rem desde `md`, 44 px cada una por debajo; el esqueleto mide lo mismo):
+la primera, los **orígenes** donde tienes `logistica.ver` y su flujo usa la regla `logistica` (como en Vehículos, con desborde de costado; con uno también se dibuja); la segunda, las
+**pestañas del origen** elegido —**Cadena** y **Bandeja del día** siempre; **Embarques** si su flujo usa `transporte` o `contenedor`; **Aduana** si usa `aduana`; **Gastos** si usa `gastos` o
+`pagos`; las de un área, además, con su permiso en ese origen— y, a la derecha, el ⚙ «Configurar». Todas llevan `?origen=`. Otro origen conserva la pestaña si ese origen la tiene; si no,
+va a su Cadena (sin filtros ni cursor). Sin `?origen=` se dibuja el **último origen** que elegiste, sin redirigir; la primera vez, el primero que ves. Elegir uno (una URL con `?origen=`) lo
+guarda sin esperar. En la página de un vehículo la barra marca el origen del vehículo y no lo guarda. Cambiar de origen o de pestaña no mueve la barra ni el contenido de debajo.
+
+| Caso                                           | Qué se ve                                                                                                                                                      |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ningún origen con logística                    | Sin barra. «Ningún origen tiene la logística encendida.» con «Configurar orígenes» (sólo si configuras alguno) → `/configuracion/origenes`.                    |
+| `?origen=` sin permiso                         | La barra sin ninguno marcado. «No tienes permiso para ver la logística de <origen>.» con «Ir a <primer origen>».                                               |
+| `?origen=` inactivo o con la logística apagada | «La logística de <origen> no está disponible.»; un id desconocido, «Ese origen no está disponible.». Los dos con «Ir a <primer origen>».                       |
+| Último origen que ya no vale                   | Se ignora sin avisar: el primero que ves.                                                                                                                      |
+| El flujo del origen no se pudo leer            | La segunda fila con Cadena y Bandeja del día y, en la misma fila, «No pudimos leer el flujo de <origen>: faltan Embarques, Aduana y Gastos.» con «Reintentar». |
+| Una pestaña que el flujo no usa, por URL       | «<Origen> no usa Aduana.» (o Embarques, Contenedores, Gastos) con «Ver la cadena» → `/logistica?origen=`.                                                      |
+| Una pestaña sin su permiso                     | «No tienes permiso para ver esto».                                                                                                                             |
+| No se pudieron leer los orígenes               | «No pudimos leer los orígenes.» con «Reintentar».                                                                                                              |
+| Sin red al guardar el último origen            | Nada visible: se vuelve a intentar la próxima vez que lo elijas.                                                                                               |
+
 La unidad se dibuja de dos maneras: en su página `/logistica/vehiculo/<id>`, **en zonas** (escritorio) o **en bloques con una barra «Mover»** (celular y tableta vertical; `<PaginaDeLaUnidad>`), y, dentro
 de un drawer: el de `/logistica/gastos?vehiculo=<id>`, con una **sección a la vista por hueco** que monta su contenido al acercarse (`<PanelDeLaUnidad>`), y el del ítem de repuesto (`?item=`), cuyas piezas (`<QueFaltaDelItem>` y una tarjeta por hueco, `<TarjetaDelHuecoDelItem>`) las coloca `repuestos` en su panel en dos columnas (el atajo de una falta abre la tarjeta
 de su hueco).
@@ -1386,37 +1407,38 @@ de su hueco).
   nota común, «Mover los N que pueden» (apagado con motivo si ninguna puede) y «Elegir otro destino». El resultado se dice entero («Se
   movieron 6 de 8.», una línea por unidad que no pasó), con «Reintentar los 2» (vuelve a la vista previa con esas) y «Cerrar».
   `?contenedor=` o `?booking=` abre el mismo drawer con las unidades del grupo que estén en una misma fase, y dice cuántas quedan fuera.
-- **`/logistica` (la bandeja del día):** a la izquierda en escritorio (arriba en el celular), un bloque por grupo con su título y su número con tope («37», «100+»), las primeras 5 filas y «Ver todos»;
-  el orden es Demorados, Trabados, Documentos por aprobar, Documentos por vencer, Llegadas esperadas, Salen hoy y Subastas sin resolver. Cada fila: el nombre del vehículo (enlace a su página; chip de
-  origen si hay más de uno), el detalle («Tránsito» · Desde hace 9 días en esta fase, «Falta para «Aduana»: Documento: BL», vence el…, ETA…, zarpa hoy) y su acción a un toque, sólo con su permiso:
+- **`/logistica/bandeja` (la bandeja del día):** la del origen elegido, un bloque por grupo con su título y su número con tope («37», «100+»), las primeras 5 filas y «Ver todos» (con `?origen=`);
+  el orden es Demorados, Trabados, Documentos por aprobar, Documentos por vencer, Llegadas esperadas, Salen hoy y Subastas sin resolver. Cada fila: el nombre del vehículo (enlace a su página), el detalle («Tránsito» · Desde hace 9 días en esta fase, «Falta para «Aduana»: Documento: BL», vence el…, ETA…, zarpa hoy) y su acción a un toque, sólo con su permiso:
   «Mover», «Ver qué falta», «Revisar» (abre «Documentos»), «Renovar» y, en «sin resolver», «La ganamos» y «No la ganamos» (en la fila, con «Deshacer» de 10 s; si otra persona la resolvió, lo dice).
-  Estados: esqueleto de tres grupos; **vacía** «Nada pendiente hoy» con «Ver la cadena»; error de **un** grupo «No se pudo cargar «Demorados»» con «Reintentar», sin tumbar los demás; un grupo vacío
+  Estados: esqueleto de tres grupos; **vacía** «Nada pendiente hoy» con «Ver la cadena» (la del mismo origen); error de **un** grupo «No se pudo cargar «Demorados»» con «Reintentar», sin tumbar los demás; un grupo vacío
   no se dibuja; sin `logistica.documentos.aprobar` o `.subir` esos grupos no aparecen.
-- **`/logistica` (la cadena):** pestañas de origen (con uno solo no se dibujan), «dónde está» y la gráfica: una línea con un punto por fase (el color de la fase), su nombre, la cifra grande a la
+- **`/logistica` (la cadena):** «dónde está» y la gráfica del origen elegido: una línea con un punto por fase (el color de la fase), su nombre, la cifra grande a la
   derecha (número acotado: `1.000+`), una barra proporcional al máximo del origen con los tramos de demorados y trabados y, en texto, «12 demorados · 3 trabados» (nunca sólo color). Orden: «Sin fase»
   (sólo con vehículos), las activas por orden, las jubiladas con vehículos al final, con «Jubilada» en texto. Cada fase es un enlace a su lista. Estados: esqueleto de la línea; origen sin fases
   (con «Configurar los flujos» si tiene `flujos.configurar`); ningún origen con la logística encendida; sin vehículos («Todavía no hay vehículos en la cadena de este origen.»); error con
-  «Reintentar» y «No se pudo comprobar N origen(es).». Un origen sin permiso no tiene pestaña. **Dónde está** (con `q` válido): hasta 10 de todos tus orígenes con su fase; cada nombre lleva a la página
-  del vehículo; «Ningún vehículo coincide.», «No se pudo comprobar dónde está.» y «Hay más: escribe más para afinar.». La sub-navegación (Cadena · Embarques · Aduana · Gastos) dibuja sólo lo que la
-  persona puede ver; «Cadena» queda marcada también en la lista de una fase y en la de un grupo.
+  «Reintentar» y «No se pudo comprobar N origen(es).». Un origen sin permiso no tiene pestaña. **Dónde está** (con `q` válido): hasta 10 del origen elegido con su fase; con dos orígenes o más, un enlace
+  «Buscar en todos los orígenes» (`?en=todos`: hasta 10 de todos tus orígenes, cada fila con «· <origen>») o, ya en todos, «Buscar sólo en <origen>»; cada nombre lleva a la página del vehículo;
+  «Ningún vehículo coincide.», «No se pudo comprobar dónde está.» y «Hay más: escribe más para afinar.». La pestaña «Cadena» queda marcada también en la lista de una fase, y «Bandeja del día»
+  en la de un grupo.
 - **`/logistica/fase/[fase]` (la lista de una fase):** encabezado «‹ La cadena», el nombre de la fase («Jubilada» en texto) y su origen si hay varios; `<FilterShell>` (búsqueda y filtros) y una tabla
   desde 768 px (tarjetas por debajo): casilla, vehículo (nombre «<principal> · <título>» como enlace, VIN y lote), estado (días en la fase, «En subasta» o «Sin resolver», «Demorado» en texto),
   contenedor, booking y ETA. De a 50 por cursor, sin total y sin «Anterior» («Siguiente» y «Volver al principio»); la selección sobrevive a «Siguiente». Estados: esqueleto de tabla; vacía «No hay
   vehículos en esta fase.» con «Ver la cadena»; por filtro «Ningún vehículo coincide con los filtros.» con «Limpiar»; página sin filas; error con «Reintentar»; «Esta fase ya no está en la cadena
   de este origen.»; un origen ajeno, «No tienes permiso para ver esto».
-- **`/logistica/bandeja/[grupo]`:** el grupo entero, con las mismas filas y acciones que la portada, de a 20 por cursor (con el número «37 en este grupo.» o «100+ en este grupo.» sólo en la primera
-  página). Estados: vacío «No hay demorados hoy.» con «Ver la bandeja»; página sin filas; error con «Reintentar»; un grupo que no existe, «Esa bandeja no existe.»; uno que no ve, «No tienes permiso para
+- **`/logistica/bandeja/[grupo]`:** el grupo entero del origen (título «Demorados · <origen>»), con las mismas filas y acciones que la portada, de a 20 por cursor (con el número «37 en este grupo.» o «100+ en este grupo.» sólo en la primera
+  página). El «Ver todas» de la bandeja de Inicio, que junta todos los orígenes, llega sin `?origen=`: abre el grupo del último origen. Estados: vacío «No hay demorados hoy.» con «Ver la bandeja»; página sin filas; error con «Reintentar»; un grupo que no existe, «Esa bandeja no existe.»; uno que no ve, «No tienes permiso para
   ver esto». En «Trabados» y en los de documentos, si la base paró de recorrer, lo dice («Se revisaron 200 demorados sin encontrar más trabados.») y ofrece «Seguir buscando».
 - **Listas de `/logistica/*`** (gastos, embarques, aduana): por cursor de a 50, sin selector, sin total y sin «Anterior» (la base camina
   sólo hacia adelante: «Siguiente» y «Volver al principio»); filtros en la URL; estados: esqueleto de lista, vacío de primera vez, por
   filtro con «Limpiar filtros», página sin filas con «Volver al principio» y error con «Reintentar». Sin permiso, «No tienes permiso para
   ver esto».
 - **`/logistica/gastos`** (`logistica.ver` y `logistica.gastos.ver` o `pagos.ver`): vista `?ver=gastos|pagos` (sólo con las dos claves;
-  cambiar no conserva filtros); filtros origen (con dos o más), categoría (de todos los orígenes: una propia se nombra «nombre · origen»),
+  cambiar no conserva filtros, sí el origen); la lista es la del origen elegido, sin filtro de origen; filtros categoría (las del origen y las compartidas),
   «Sin confirmar» y rango de fecha; **ninguna suma**. La fila abre
   el panel de la unidad en un drawer (`?vehiculo=`) sin perder filtros ni página y la lista se relee al cerrarlo. El pago confirmado dice «Confirmado»
-  con su fecha (quién, en el sello del panel). «Ver todos en Gastos» sale del tope de los huecos «Gastos» y «Pagos», filtrado por origen.
-- **`/logistica/embarques`** (`logistica.ver`): `?grupo=embarques|contenedores`; filtros naviera, puertos (de los catálogos activos de
+  con su fecha (quién, en el sello del panel). «Ver todos en Gastos» sale del tope de los huecos «Gastos» y «Pagos», con el origen de la unidad.
+- **`/logistica/embarques`** (`logistica.ver`): los embarques o contenedores del origen elegido; `?grupo=embarques|contenedores` (las dos vistas sólo si su flujo usa `transporte` y
+  `contenedor`; con una, sólo ésa, y pedir la otra dice «<Origen> no usa Contenedores.»); filtros naviera, puertos (de los catálogos activos de
   todos los orígenes: un propio se nombra «Arica · Miami»),
   estado («En tránsito», «Ya llegaron») y búsqueda por booking o contenedor (3). Fila: la clave (abre el resumen), naviera, ruta, zarpe,
   ETA, arribo y unidades acotadas («200+»; «Hay unidades que no ves.»); lo que difiere entre unidades dice «Varias», lo que ninguna tiene
@@ -1431,14 +1453,15 @@ de su hueco).
   tapa ninguno (lo común que no cabe se ve rotulado). «Guardar» manda lo tocado a todas o a ninguna («Se aplicó a las N unidades.»; conflicto «No se cambió ninguna:
   <motivo>» con «Recargar»; el rechazo de una unidad junto a su campo con su título). Más de 200 unidades, ocultas o no editables: botón
   apagado con su motivo.
-- **`/logistica/aduana`** (`logistica.ver` lee, `logistica.aduana.gestionar` escribe): filtros `canal`, `pagada` y `q` por número. Fila:
+- **`/logistica/aduana`** (`logistica.ver` lee, `logistica.aduana.gestionar` escribe; sólo en un origen cuyo flujo usa `aduana`): las declaraciones con algún vehículo del origen
+  elegido y las que todavía no tienen ninguno (insignia «Sin vehículos»); filtros `canal`, `pagada` y `q` por número. Fila:
   número (abre el resumen), canal en `<Badge>` con texto, fecha aceptada, tributos («Pagada» o «Faltan los tributos de N», con «y de
-  unidades que no ves»; «Sin vehículos»), unidades acotadas y vencimiento en texto (vencida, hoy, mañana, en N días hasta 7, si no la
+  unidades que no ves»), unidades acotadas y vencimiento en texto (vencida, hoy, mañana, en N días hasta 7, si no la
   fecha; una pagada no se alarma). Resumen en `?declaracion=<id>` (datos y vehículos con «Tiene/Falta el tributo»; sin montos). El hueco
   «Aduana» del panel (regla `aduana`): la declaración vigente, canal, vencimiento y «Tributos pagados: sí|no» con «Ir a Gastos». **Escribir:**
   «Nueva declaración» (`?panel=nueva-declaracion`: número obligatorio y único, fechas, despachante, depósito, notas; borrador) y «Editar»
   (`?panel=editar-declaracion&declaracion=<id>`, no convive con el resumen; conflicto con «Recargar» que conserva lo escrito). «Vehículos
-  de la declaración»: «Quitar» marca (con «Deshacer»), buscador (3, hasta 10) con «Agregar» y «Guardar vehículos» manda todo junto (hasta
+  de la declaración»: «Quitar» marca (con «Deshacer»), buscador (3, hasta 10, en el origen elegido) con «Agregar» y «Guardar vehículos» manda todo junto (hasta
   200); con canal queda todo apagado: la composición queda fija. «Asignar canal» es un `<Confirmar>` en `?panel=canal` con el selector
   adentro; pide al menos un vehículo. El canal no se quita.
 - **Catálogos de logística: estados:** el patrón y la entrada, en «Catálogos de logística (drawer)». Cada catálogo conserva su tope y su aviso.
