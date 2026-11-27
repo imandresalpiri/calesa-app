@@ -22,7 +22,7 @@ import { BarraDeLogistica } from '../../barra-de-logistica'
 import { EsqueletoDeLaBarra } from '../../esqueleto-de-la-barra'
 import { MarcasDeLogistica } from '../../marcas-de-logistica'
 
-export const metadata: Metadata = { title: 'Bandeja del día · Logística' }
+export const metadata: Metadata = { title: 'Grupo de la bandeja · Logística' }
 
 type Props = PageProps<'/logistica/bandeja/[grupo]'>
 
