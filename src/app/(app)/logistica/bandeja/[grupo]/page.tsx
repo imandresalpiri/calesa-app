@@ -21,6 +21,7 @@ import { abrirLaPestana } from '../../abrir-la-pestana'
 import { BarraDeLogistica } from '../../barra-de-logistica'
 import { EsqueletoDeLaBarra } from '../../esqueleto-de-la-barra'
 import { MarcasDeLogistica } from '../../marcas-de-logistica'
+import { SiSeVeEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Grupo de la bandeja · Logística' }
 
@@ -32,12 +33,14 @@ type Props = PageProps<'/logistica/bandeja/[grupo]'>
 export default function PaginaDeUnGrupo({ params, searchParams }: Props) {
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
-      <Suspense fallback={<EsqueletoDeLaBarra />}>
-        <BarraDeLogistica searchParams={searchParams} pestana="bandeja" />
-      </Suspense>
-      <Suspense fallback={<EsqueletoDeLaBandeja />}>
-        <Grupo params={params} searchParams={searchParams} />
-      </Suspense>
+      <SiSeVeEnElLive area="logistica">
+        <Suspense fallback={<EsqueletoDeLaBarra />}>
+          <BarraDeLogistica searchParams={searchParams} pestana="bandeja" />
+        </Suspense>
+        <Suspense fallback={<EsqueletoDeLaBandeja />}>
+          <Grupo params={params} searchParams={searchParams} />
+        </Suspense>
+      </SiSeVeEnElLive>
     </div>
   )
 }

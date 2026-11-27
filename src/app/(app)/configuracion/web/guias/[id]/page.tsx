@@ -10,6 +10,7 @@ import { datosO } from '@/shared/lib/errores'
 import { buttonVariants } from '@/shared/ui/button'
 import { EstadoSinPermiso, EstadoVacio } from '@/shared/ui/estados'
 import { EsqueletoDeEditorDeArticulo } from '@/shared/ui/esqueletos'
+import { ocultoEnElLive } from '../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Guía' }
 
@@ -42,6 +43,10 @@ function NoDisponible() {
 }
 
 async function Guia({ params }: { params: PageProps<'/configuracion/web/guias/[id]'>['params'] }) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   await connection()
   const [sesion, { id }] = await Promise.all([requerirSesion(), params])
   if (!puede(sesion.permisos, 'web.contenido.gestionar')) {

@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ShieldCheckIcon } from 'lucide-react'
 import type { Permisos } from '@/shared/lib/permisos'
 import { NAVEGACION } from '../_shell/navegacion'
@@ -18,6 +18,9 @@ import {
   type SeccionDeConfiguracion,
 } from './secciones'
 import { SECCION_DE_WEB } from './web/seccion'
+
+// `navegacion.ts` lee `equipo/shell.client`, que reexporta hooks cuyas Server Actions importan `server-only`: en Vitest el import llega entero y cae.
+vi.mock('server-only', () => ({}))
 
 const APP = path.join(process.cwd(), 'src/app/(app)')
 

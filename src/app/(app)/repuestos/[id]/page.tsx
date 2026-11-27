@@ -40,6 +40,7 @@ import { SeccionDeCompras } from './seccion-compras'
 import { SeccionDeCotizaciones } from './seccion-cotizaciones'
 import { EsqueletoDelVehiculo, VehiculoDelProyecto } from './vehiculo-del-proyecto'
 import { EsqueletoDeLaTarjetaDelItem, VehiculoYClienteDelItem } from './vehiculo-y-cliente-del-item'
+import { SiSeVeEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Proyecto de repuestos' }
 
@@ -49,7 +50,9 @@ export const metadata: Metadata = { title: 'Proyecto de repuestos' }
 export default function PaginaDeUnProyecto({ params, searchParams }: PageProps<'/repuestos/[id]'>) {
   return (
     <Suspense fallback={<CargandoUnProyectoCuerpo />}>
-      <Proyecto params={params} searchParams={searchParams} />
+      <SiSeVeEnElLive area="repuestos">
+        <Proyecto params={params} searchParams={searchParams} />
+      </SiSeVeEnElLive>
     </Suspense>
   )
 }

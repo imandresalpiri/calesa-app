@@ -11,6 +11,7 @@ import { FormularioDelOrigenNuevo } from '@/modules/origenes/pantallas/origen-nu
 import { PasoAPaso } from '@/modules/origenes/pantallas/puesta-en-marcha'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { EsqueletoFormulario } from '@/shared/ui/esqueletos'
+import { ocultoEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Nuevo origen' }
 
@@ -37,6 +38,10 @@ const PASOS = PASOS_DE_LA_PUESTA_EN_MARCHA.map((clave) => ({
 }))
 
 async function Alta() {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   await connection()
   const sesion = await requerirSesion()
   if (!puede(sesion.permisos, 'origenes.gestionar')) {

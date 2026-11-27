@@ -7,6 +7,7 @@ import {
 import { requerirSesion } from '@/modules/equipo'
 import { leerGaleria } from '@/modules/vehiculos'
 import { urlPublica } from '@/shared/lib/almacen'
+import { rutaOcultaEnElLive } from '../../../../_live/guarda'
 
 // Las fotos del vehículo de una cotización para «Compartir la cotización» (pestaña «Imagen › Fotos»): a lo sumo las 24 del vehículo, cada una con su miniatura de 480 px
 // (la grilla) y su completa de hasta 1.600 px (lo que se comparte), del bucket público `vehiculos`. Con la sesión de quien pide: la cotización y el vehículo, por la RLS.
@@ -31,6 +32,9 @@ export async function GET(
   { params }: RouteContext<'/cotizaciones/[id]/compartir/fotos'>,
 ) {
   await requerirSesion()
+  if (await rutaOcultaEnElLive('cotizaciones')) {
+    return fotos([])
+  }
   const { id } = await params
   if (!z.guid().safeParse(id).success) {
     return fotos([])

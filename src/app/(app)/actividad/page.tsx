@@ -21,6 +21,7 @@ import { leerFiltros } from '@/shared/lib/filtros'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { EsqueletoListado } from '@/shared/ui/esqueletos'
+import { ocultoEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Actividad' }
 
@@ -48,6 +49,10 @@ async function Actividad({
 }: {
   searchParams: PageProps<'/actividad'>['searchParams']
 }) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   await connection()
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   if (!puede(sesion.permisos, 'actividad.ver')) {

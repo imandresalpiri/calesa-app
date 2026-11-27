@@ -44,6 +44,7 @@ import {
   paraElegirDe,
   reglasDeLaHoja,
 } from './lecturas-de-la-hoja'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 // Lo que el área `formula` llena en la hoja (`pantallas/formula-hoja.ts`): el enlace de «Falta publicar la fórmula».
 const { EnlaceSinPublicar } = HUECOS_DE_FORMULA_EN_LA_HOJA
@@ -69,6 +70,10 @@ async function Hoja({
 }: {
   parametros: PageProps<'/cotizaciones/nuevo'>['searchParams']
 }) {
+  const oculto = await ocultoEnElLive('cotizaciones')
+  if (oculto) {
+    return oculto
+  }
   await connection()
   // El asesor de la tarjeta (quien cotiza) se pide ya y se espera junto a las lecturas de la hoja: nunca antes que ellas.
   const asesor = oNulo(asesorQueMira())

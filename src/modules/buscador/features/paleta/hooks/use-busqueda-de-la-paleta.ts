@@ -8,6 +8,7 @@ import { estadoDeError, type EstadoDeLaBusqueda } from '../../../entities/estado
 import {
   agruparResultados,
   seccionesQueBuscan,
+  TIPOS_DEL_BUSCADOR,
   type LeidasPorTipo,
   type TipoDelBuscador,
 } from '../../../entities/ranking'
@@ -40,6 +41,7 @@ async function leer(
 async function buscar(
   pedido: string,
   lecturas: LecturasDeLaPaleta,
+  permitidos: readonly TipoDelBuscador[],
   signal: AbortSignal,
 ): Promise<EstadoDeLaBusqueda> {
   const interp = interpretarBusqueda(pedido)
@@ -48,7 +50,9 @@ async function buscar(
   }
   // Un teléfono no se busca: la sección de leads no pide nada (D4).
   const porTelefono = pareceTelefono(pedido)
-  const tipos = seccionesQueBuscan(interp).filter((tipo) => !(porTelefono && tipo === 'lead'))
+  const tipos = seccionesQueBuscan(interp, permitidos).filter(
+    (tipo) => !(porTelefono && tipo === 'lead'),
+  )
   const leidas = await Promise.all(tipos.map((tipo) => leer(tipo, lecturas, interp.texto, signal)))
   const errores: ErrorApp[] = leidas.flatMap(([, r]) => (r.ok ? [] : [r.error]))
   const porTipo = Object.fromEntries(leidas.flatMap(([tipo, r]) => (r.ok ? [[tipo, r.data]] : [])))
@@ -62,14 +66,17 @@ async function buscar(
 
 // Busca lo que se escribe en la paleta: espera, pide en paralelo las secciones que busca el texto y descarta la respuesta de una búsqueda ya
 // cancelada. El estado se deriva: lo guardado vale sólo si es de la búsqueda de ahora; si no, se espera. Cerrada o bajo el mínimo: en reposo, sin
-// espera ni pedido (los «Últimos abiertos» y las acciones los dibuja la paleta).
+// espera ni pedido (los «Últimos abiertos» y las acciones los dibuja la paleta). `tipos`: las secciones que se pueden pedir (con el Modo Live, sólo lo que
+// muestra); ninguna otra se pide.
 export function useBusquedaDeLaPaleta({
   texto,
   abierta,
+  tipos = TIPOS_DEL_BUSCADOR,
   lecturas = BUSCAR_POR_SECCION,
 }: {
   texto: string
   abierta: boolean
+  tipos?: readonly TipoDelBuscador[]
   lecturas?: LecturasDeLaPaleta
 }): { estado: EstadoDeLaBusqueda; reintentar: () => void } {
   const [intento, setIntento] = useState(0)
@@ -91,7 +98,7 @@ export function useBusquedaDeLaPaleta({
     const controlador = new AbortController()
     const espera = setTimeout(() => {
       setGuardado({ clave, estado: { tipo: 'buscando' } })
-      void buscar(pedido, lecturas, controlador.signal).then((estado) => {
+      void buscar(pedido, lecturas, tipos, controlador.signal).then((estado) => {
         if (!controlador.signal.aborted) {
           setGuardado({ clave, estado })
         }
@@ -101,7 +108,7 @@ export function useBusquedaDeLaPaleta({
       clearTimeout(espera)
       controlador.abort()
     }
-  }, [pedido, clave, lecturas])
+  }, [pedido, clave, lecturas, tipos])
 
   const estado = pedido === null ? REPOSO : guardado?.clave === clave ? guardado.estado : ESPERANDO
   return {

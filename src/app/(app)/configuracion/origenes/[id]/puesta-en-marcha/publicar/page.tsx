@@ -12,6 +12,7 @@ import { abrirLaPuestaEnMarcha } from '../abrir'
 import { MarcoDelPaso, PasoSinPermiso, conPermiso } from '../marco-del-paso'
 import { SinFormula } from '../sin-formula'
 import { Seguir } from '../seguir'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Puesta en marcha: Publicar' }
 
@@ -20,6 +21,10 @@ export const metadata: Metadata = { title: 'Puesta en marcha: Publicar' }
 export default async function PasoPublicar({
   params,
 }: PageProps<'/configuracion/origenes/[id]/puesta-en-marcha/publicar'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const { id } = await params
   return (
     <>

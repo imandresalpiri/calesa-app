@@ -23,6 +23,7 @@ import { BarraDeLogistica } from '../barra-de-logistica'
 import { EsqueletoDeLaBarra } from '../esqueleto-de-la-barra'
 import { CLAVE_DE_DECLARACION } from './clave-de-declaracion'
 import { DeclaracionAbierta, DeclaracionEnEdicion } from './declaracion-abierta'
+import { SiSeVeEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Aduana' }
 
@@ -35,12 +36,14 @@ export default function PaginaDeAduana({ searchParams }: PageProps<'/logistica/a
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       {/* El h1 va fuera del Suspense: está también cargando y sin permiso (9.12-5, R3). Sin cabecera visible: la ocupa la barra. */}
       <h1 className="sr-only">Aduana</h1>
-      <Suspense fallback={<EsqueletoDeLaBarra />}>
-        <BarraDeLogistica searchParams={searchParams} pestana="aduana" />
-      </Suspense>
-      <Suspense fallback={<EsqueletoListado filas={8} columnas={6} />}>
-        <Listado searchParams={searchParams} />
-      </Suspense>
+      <SiSeVeEnElLive area="logistica">
+        <Suspense fallback={<EsqueletoDeLaBarra />}>
+          <BarraDeLogistica searchParams={searchParams} pestana="aduana" />
+        </Suspense>
+        <Suspense fallback={<EsqueletoListado filas={8} columnas={6} />}>
+          <Listado searchParams={searchParams} />
+        </Suspense>
+      </SiSeVeEnElLive>
     </div>
   )
 }

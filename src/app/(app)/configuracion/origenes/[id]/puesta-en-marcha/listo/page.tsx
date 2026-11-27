@@ -14,6 +14,7 @@ import { NoSeAbre } from '../../no-se-abre'
 import { abrirLaPuestaEnMarcha } from '../abrir'
 import { MarcoDelPaso } from '../marco-del-paso'
 import { MOTIVO_DEL_PASO } from '../pasos'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Puesta en marcha: Listo' }
 
@@ -22,6 +23,10 @@ export const metadata: Metadata = { title: 'Puesta en marcha: Listo' }
 export default async function PasoListo({
   params,
 }: PageProps<'/configuracion/origenes/[id]/puesta-en-marcha/listo'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const { id } = await params
   return (
     <>

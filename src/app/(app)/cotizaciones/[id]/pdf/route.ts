@@ -12,6 +12,7 @@ import {
   vehiculoDeLaTarjeta,
 } from '../../datos-de-la-tarjeta'
 import { hermanaDelPdf } from './hermana-del-pdf'
+import { origenOcultoEnElLive, rutaOcultaEnElLive } from '../../../_live/guarda'
 
 // El PDF de una cotización guardada (4.18-3a, `docs/COTIZADOR.md` › «Plantilla de tarjeta (PDF)»): la tarjeta de **lo guardado** en A4, armada en el servidor con la sesión de
 // quien lo pide (la RLS de la hoja guardada y de `cotizacion_tarjeta()` deciden; nunca la secret key). Lo ve quien ve la cotización (P4), sin clave propia.
@@ -30,20 +31,41 @@ const texto = (cuerpo: string, status: number) =>
     headers: { 'Content-Type': 'text/plain; charset=utf-8', ...SIN_GUARDAR },
   })
 
-export async function GET(_peticion: Request, { params }: RouteContext<'/cotizaciones/[id]/pdf'>) {
-  // La segunda barrera tras el proxy: sin sesión, al ingreso; con la cuenta dada de baja, a cerrar la sesión. Antes de leer nada.
-  const sesion = await requerirSesion()
+type LaGuardada = Extract<Awaited<ReturnType<typeof leerHojaDeUnaGuardada>>, { ok: true }>['data']
+
+// La guardada que pide la URL, si quien mira la ve (con el Modo Live, en un área y un origen que muestra); si no, la respuesta que toca.
+async function laGuardadaQueSeVe(
+  params: RouteContext<'/cotizaciones/[id]/pdf'>['params'],
+): Promise<{ lectura: LaGuardada } | { respuesta: Response }> {
+  if (await rutaOcultaEnElLive('cotizaciones')) {
+    return { respuesta: texto(NO_DISPONIBLE, 404) }
+  }
   const { id } = await params
   if (!z.guid().safeParse(id).success) {
-    return texto(NO_DISPONIBLE, 404)
+    return { respuesta: texto(NO_DISPONIBLE, 404) }
   }
   const lectura = await leerHojaDeUnaGuardada(id)
   if (!lectura.ok) {
-    return lectura.error.codigo === 'sin_permiso'
-      ? texto(NO_DISPONIBLE, 404)
-      : texto(NO_SE_PUDO, 500)
+    return {
+      respuesta:
+        lectura.error.codigo === 'sin_permiso' ? texto(NO_DISPONIBLE, 404) : texto(NO_SE_PUDO, 500),
+    }
   }
-  const { hoja } = lectura.data
+  if (await origenOcultoEnElLive(lectura.data.hoja.cotizacion.origenId)) {
+    return { respuesta: texto(NO_DISPONIBLE, 404) }
+  }
+  return { lectura: lectura.data }
+}
+
+export async function GET(_peticion: Request, { params }: RouteContext<'/cotizaciones/[id]/pdf'>) {
+  // La segunda barrera tras el proxy: sin sesión, al ingreso; con la cuenta dada de baja, a cerrar la sesión. Antes de leer nada.
+  const sesion = await requerirSesion()
+  const leida = await laGuardadaQueSeVe(params)
+  if ('respuesta' in leida) {
+    return leida.respuesta
+  }
+  const { lectura } = leida
+  const { hoja } = lectura
   // Los ajustes por `leerAjustes()`, que falla: un PDF que va al cliente no sale con el locale o la zona de fábrica.
   const [cliente, vehiculo, asesor, ajustes] = await Promise.all([
     oNulo(clienteDe(sesion.permisos, hoja.cotizacion.leadId)),
@@ -69,7 +91,7 @@ export async function GET(_peticion: Request, { params }: RouteContext<'/cotizac
   })
   const pdf = await pdfDeUnaGuardada({
     ...(hermana ? { hermana } : {}),
-    lectura: lectura.data,
+    lectura,
     // El día del último guardado (P3 del 4.18-2) y el del vencimiento, en la zona de la empresa: lo mismo que la vista previa de esa guardada.
     contexto: contextoDeLaPagina(
       {

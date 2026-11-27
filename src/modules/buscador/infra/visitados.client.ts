@@ -92,16 +92,22 @@ async function hidratarCotizaciones(supabase: Cliente, ids: string[], signal: Ab
   return filas({ ...leida, esquema: ESQUEMAS_DEL_BUSCADOR.cotizacion })
 }
 
+// `tipos`: los que se pueden leer (con el Modo Live, sólo lo que muestra); sin ninguno, no pide nada.
 export async function leerUltimosAbiertos({
   signal,
+  tipos = TIPOS_DEL_BUSCADOR,
 }: {
   signal: AbortSignal
+  tipos?: readonly TipoDelBuscador[]
 }): Promise<Resultado<Abierto[]>> {
+  if (tipos.length === 0) {
+    return ok([])
+  }
   const supabase = createClient()
   const leidas = await supabase
     .from('visitados')
     .select('tipo, referencia_id, visto_en')
-    .in('tipo', [...TIPOS_DEL_BUSCADOR])
+    .in('tipo', [...tipos])
     .order('visto_en', { ascending: false })
     .limit(ULTIMOS_LEIDOS)
     .abortSignal(signal)

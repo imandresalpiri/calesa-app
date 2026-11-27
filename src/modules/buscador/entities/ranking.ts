@@ -2,7 +2,12 @@
 // feature que compone con `interpretarBusqueda()` de `@/modules/leads/client` (una regla de `entities` no importa otro módulo); aquí llega con su
 // forma (`Interpretacion`). La base repite el mínimo (`_buscador_interpretar`) y manda: esto sólo evita pedidos inútiles y ordena.
 import { cortarAlTope } from '@/shared/lib/conteo'
-import type { FilaPorTipo, TipoDelBuscador, Visita } from './resultados'
+import {
+  TIPOS_DEL_BUSCADOR,
+  type FilaPorTipo,
+  type TipoDelBuscador,
+  type Visita,
+} from './resultados'
 
 export { TIPOS_DEL_BUSCADOR, type TipoDelBuscador } from './resultados'
 
@@ -33,8 +38,15 @@ export type AbiertoDe<T extends TipoDelBuscador> = { tipo: T; fila: FilaPorTipo[
 export type Abierto = { [T in TipoDelBuscador]: AbiertoDe<T> }[TipoDelBuscador]
 
 // Espejo de `_buscador_interpretar` y D10: `#n` (o un número corto) busca leads y cotizaciones, nunca vehículos; un número de 3 o más dígitos sin `#`
-// es también un texto (título, VIN o lote).
-export function seccionesQueBuscan(interpretacion: Interpretacion): readonly TipoDelBuscador[] {
+// es también un texto (título, VIN o lote). `tipos`: los que se pueden buscar (con el Modo Live, sólo lo que muestra); por defecto, todos.
+export function seccionesQueBuscan(
+  interpretacion: Interpretacion,
+  tipos: readonly TipoDelBuscador[] = TIPOS_DEL_BUSCADOR,
+): readonly TipoDelBuscador[] {
+  return seccionesDelTexto(interpretacion).filter((tipo) => tipos.includes(tipo))
+}
+
+function seccionesDelTexto(interpretacion: Interpretacion): readonly TipoDelBuscador[] {
   if (interpretacion === null) {
     return []
   }

@@ -17,12 +17,13 @@ import { ProveedorDeAncho } from '@/shared/ui/ancho-de-pantalla'
 import { EstiloDeMarca } from '@/shared/ui/estilo-de-marca'
 import { SimbolosDeLista } from '@/shared/ui/lista/simbolos-de-lista'
 import { Marca } from '@/shared/ui/marca'
+import { ProveedorDelLive } from '@/shared/ui/proveedor-del-live'
 import { ProveedorRegional } from '@/shared/ui/regional'
 import { BarraLateral } from './_shell/barra-lateral'
 import { EsqueletoShell } from './_shell/esqueleto-shell'
 import { Marco } from './_shell/marco'
 import { MenuUsuario } from './_shell/menu-usuario'
-import { accionesDeLaPaleta } from './_shell/acciones-de-la-paleta'
+import { accionesDeLaPaleta, tiposDeLaPaleta } from './_shell/acciones-de-la-paleta'
 import { HuecoBuscador } from './_shell/huecos/buscador'
 import { HuecoCampana } from './_shell/huecos/campana'
 import { HuecoChat } from './_shell/huecos/chat'
@@ -55,6 +56,28 @@ function marcaDeLaEmpresa(ajustes: Awaited<ReturnType<typeof getAjustes>>): Reac
   )
 }
 
+type SesionDelShell = Awaited<ReturnType<typeof requerirSesion>>
+
+// El menú del usuario: quién es y las entradas de su zona (con el Modo Live, sólo lo que muestra).
+function menuDelUsuario(sesion: SesionDelShell): ReactNode {
+  const entradas = entradasVisibles(sesion.permisos, 'usuario', sesion.live).map(
+    ({ clave, titulo, ruta }) => ({ clave, titulo, ruta }),
+  )
+  return (
+    <MenuUsuario
+      persona={{
+        nombre: nombreVisible(sesion),
+        email: sesion.email,
+        avatarUrl: urlPublicaONull('avatares', sesion.avatarRuta),
+        rol: sesion.roles[0]?.nombre ?? null,
+      }}
+      entradas={entradas}
+      alCerrarSesion={cerrarSesion}
+      puedeConfigurarAyuda={puede(sesion.permisos, 'empresa.ajustes.gestionar')}
+    />
+  )
+}
+
 // Todo lo que depende de quién entró: la sesión, sus permisos y los ajustes de la empresa. Acá se
 // leen una vez y se reparten por props a un marco que no sabe de dónde salen.
 async function Shell({ children }: { children: ReactNode }) {
@@ -64,14 +87,6 @@ async function Shell({ children }: { children: ReactNode }) {
     getTiposCambioDeLaBarra(),
     anchoDeEstaPeticion(),
   ])
-  const nombre = nombreVisible(sesion)
-  const delUsuario = entradasVisibles(sesion.permisos, 'usuario').map(
-    ({ clave, titulo, ruta }) => ({
-      clave,
-      titulo,
-      ruta,
-    }),
-  )
 
   return (
     <ProveedorRegional
@@ -90,43 +105,46 @@ async function Shell({ children }: { children: ReactNode }) {
           {/* La perspectiva «ver como» de esta sesión, para el menú, el banner y quien la pida. */}
           <ProveedorPerspectiva perspectiva={sesion.perspectiva}>
             <ProveedorDeEscribirPorChat habilitado={puede(sesion.permisos, 'chat.participar')}>
-              <Marco
-                nombreEmpresa={ajustes.nombre}
-                marca={marcaDeLaEmpresa(ajustes)}
-                navegacion={<BarraLateral permisos={sesion.permisos} />}
-                // Los que la empresa eligió para la barra (hasta 3; sin ninguno, el por defecto). Sin tipos de cambio vigentes el hueco no ocupa lugar.
-                tipoCambio={
-                  tiposCambio.length > 0 ? (
-                    <TiposCambioVigentes
-                      tipos={tiposCambio}
-                      puedeGestionar={puede(sesion.permisos, 'empresa.tipos_cambio.gestionar')}
-                    />
-                  ) : undefined
-                }
-                altaDeLead={altaDeLead(sesion.permisos)}
-                nuevo={nuevoDeLaBarra(sesion.permisos)}
-                aviso={<BannerPerspectiva />}
-                buscador={<HuecoBuscador acciones={accionesDeLaPaleta(sesion.permisos)} />}
-                campana={
-                  <HuecoCampana usuarioId={sesion.usuarioId} disponibles={RUTAS_CON_PANTALLA} />
-                }
-                flotante={<HuecoChat sesion={sesion} zona={ajustes.zonaHoraria} />}
-                menuUsuario={
-                  <MenuUsuario
-                    persona={{
-                      nombre,
-                      email: sesion.email,
-                      avatarUrl: urlPublicaONull('avatares', sesion.avatarRuta),
-                      rol: sesion.roles[0]?.nombre ?? null,
-                    }}
-                    entradas={delUsuario}
-                    alCerrarSesion={cerrarSesion}
-                    puedeConfigurarAyuda={puede(sesion.permisos, 'empresa.ajustes.gestionar')}
-                  />
-                }
+              {/* El Modo Live: si se puede encender y si esta pantalla se dibujó con él (la cookie; `sesion.permisos` ya viene recortado). */}
+              <ProveedorDelLive
+                puedeEncender={sesion.live.puedeEncender}
+                enElServidor={sesion.live.encendido}
               >
-                {children}
-              </Marco>
+                <Marco
+                  nombreEmpresa={ajustes.nombre}
+                  marca={marcaDeLaEmpresa(ajustes)}
+                  enElLive={sesion.live.encendido}
+                  navegacion={<BarraLateral permisos={sesion.permisos} live={sesion.live} />}
+                  // Los que la empresa eligió para la barra (hasta 3; sin ninguno, el por defecto). Sin tipos de cambio vigentes el hueco no ocupa lugar.
+                  tipoCambio={
+                    tiposCambio.length > 0 ? (
+                      <TiposCambioVigentes
+                        tipos={tiposCambio}
+                        puedeGestionar={puede(sesion.permisos, 'empresa.tipos_cambio.gestionar')}
+                      />
+                    ) : undefined
+                  }
+                  altaDeLead={altaDeLead(sesion.permisos)}
+                  nuevo={nuevoDeLaBarra(sesion.permisos)}
+                  aviso={<BannerPerspectiva />}
+                  buscador={
+                    <HuecoBuscador
+                      acciones={accionesDeLaPaleta(sesion.permisos, sesion.live)}
+                      tipos={tiposDeLaPaleta(sesion.live)}
+                    />
+                  }
+                  // Las notificaciones son de lo que siempre se oculta en el Live: sin campana ni sus avisos.
+                  campana={
+                    sesion.live.encendido ? undefined : (
+                      <HuecoCampana usuarioId={sesion.usuarioId} disponibles={RUTAS_CON_PANTALLA} />
+                    )
+                  }
+                  flotante={<HuecoChat sesion={sesion} zona={ajustes.zonaHoraria} />}
+                  menuUsuario={menuDelUsuario(sesion)}
+                >
+                  {children}
+                </Marco>
+              </ProveedorDelLive>
             </ProveedorDeEscribirPorChat>
           </ProveedorPerspectiva>
         </ProveedorPreferencias>

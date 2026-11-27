@@ -28,6 +28,11 @@ vi.mock('@/modules/datos/composicion', () => ({
 }))
 const getPermisos = vi.fn()
 vi.mock('@/modules/equipo', () => ({ getPermisos: () => getPermisos() }))
+// La guarda del Modo Live: apagado salvo que la prueba diga otra cosa.
+const rutaOcultaEnElLive = vi.fn((_area: string) => Promise.resolve(false))
+vi.mock('../../_live/guarda', () => ({
+  rutaOcultaEnElLive: (area: string) => rutaOcultaEnElLive(area),
+}))
 const leerAjustes = vi.fn()
 vi.mock('@/modules/empresa', () => ({ leerAjustes: () => leerAjustes() }))
 const getOrigenes = vi.fn()

@@ -1,15 +1,19 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { Concesion, Permisos } from '@/shared/lib/permisos'
 import { PANEL_NUEVO_DE_VEHICULOS } from '@/shared/lib/rutas'
-import { accionesDeLaPaleta } from './acciones-de-la-paleta'
+import { accionesDeLaPaleta, tiposDeLaPaleta } from './acciones-de-la-paleta'
+import { LIVE_APAGADO_DE_PRUEBA as APAGADO, liveEncendido } from './live.soporte'
+
+// `equipo/shell.client` reexporta hooks cuyas Server Actions importan `server-only`: en Vitest el import llega entero y cae. Aquí sólo se usa `seOcultaEnElLive`.
+vi.mock('server-only', () => ({}))
 
 function concesiones(...claves: Concesion['clave'][]): Permisos {
   return claves.map((clave) => ({ clave, origenId: null, alcance: 'todos' }))
 }
 
-const titulos = (permisos: Permisos) => accionesDeLaPaleta(permisos).map((a) => a.titulo)
+const titulos = (permisos: Permisos) => accionesDeLaPaleta(permisos, APAGADO).map((a) => a.titulo)
 const porClave = (permisos: Permisos, clave: string) =>
-  accionesDeLaPaleta(permisos).find((a) => a.clave === clave)
+  accionesDeLaPaleta(permisos, APAGADO).find((a) => a.clave === clave)
 
 describe('accionesDeLaPaleta: crear', () => {
   const asesora = concesiones('leads.crear', 'cotizaciones.crear', 'vehiculos.ver')
@@ -21,7 +25,7 @@ describe('accionesDeLaPaleta: crear', () => {
   })
 
   it('sin ningún permiso de crear no hay grupo «crear»', () => {
-    const acciones = accionesDeLaPaleta(concesiones('vehiculos.ver'))
+    const acciones = accionesDeLaPaleta(concesiones('vehiculos.ver'), APAGADO)
     expect(acciones.some((a) => a.grupo === 'crear')).toBe(false)
   })
 
@@ -48,7 +52,7 @@ describe('accionesDeLaPaleta: ir a', () => {
   })
 
   it('con permiso de ver el equipo sí, y lleva a su ruta', () => {
-    const accion = accionesDeLaPaleta(concesiones('equipo.usuarios.ver')).find(
+    const accion = accionesDeLaPaleta(concesiones('equipo.usuarios.ver'), APAGADO).find(
       (a) => a.titulo === 'Configuración: Equipo',
     )
     expect(accion?.destino).toEqual({ tipo: 'ruta', ruta: '/configuracion/equipo' })
@@ -67,6 +71,7 @@ describe('accionesDeLaPaleta: forma', () => {
   it('son datos simples: ni iconos ni permisos cruzan al navegador', () => {
     const acciones = accionesDeLaPaleta(
       concesiones('leads.crear', 'vehiculos.crear', 'cotizaciones.crear', 'equipo.usuarios.ver'),
+      APAGADO,
     )
     for (const accion of acciones) {
       expect(Object.keys(accion).sort()).toEqual([
@@ -83,7 +88,44 @@ describe('accionesDeLaPaleta: forma', () => {
   it('las claves no se repiten (son el value de cada fila)', () => {
     const claves = accionesDeLaPaleta(
       concesiones('leads.crear', 'vehiculos.crear', 'cotizaciones.crear', 'equipo.usuarios.ver'),
+      APAGADO,
     ).map((a) => a.clave)
     expect(new Set(claves).size).toBe(claves.length)
+  })
+})
+
+describe('accionesDeLaPaleta con el Modo Live', () => {
+  it('«Ir a» sólo lo que el Live muestra', () => {
+    const todo = concesiones('leads.ver', 'vehiculos.ver', 'cotizaciones.ver', 'logistica.ver')
+    const ir = accionesDeLaPaleta(todo, liveEncendido())
+      .filter((a) => a.grupo === 'ir')
+      .map((a) => a.clave)
+    expect(ir).toEqual(['ir-vehiculos', 'ir-cotizaciones'])
+  })
+})
+
+describe('tiposDeLaPaleta', () => {
+  it('apagado, busca todo', () => {
+    expect(tiposDeLaPaleta(APAGADO)).toEqual(['lead', 'vehiculo', 'cotizacion'])
+  })
+
+  it('encendido, los leads sólo con «Completo»', () => {
+    expect(tiposDeLaPaleta(liveEncendido())).toEqual(['vehiculo', 'cotizacion'])
+    expect(tiposDeLaPaleta(liveEncendido({ clientes: 'nombres' }))).toEqual([
+      'vehiculo',
+      'cotizacion',
+    ])
+    expect(tiposDeLaPaleta(liveEncendido({ clientes: 'completo' }))).toEqual([
+      'lead',
+      'vehiculo',
+      'cotizacion',
+    ])
+  })
+
+  it('con orígenes elegidos o la sección apagada, vehículos y cotizaciones no se buscan', () => {
+    const origen = '00000000-0000-4000-8000-000000000001'
+    expect(tiposDeLaPaleta(liveEncendido({ origenes: [origen] }))).toEqual([])
+    expect(tiposDeLaPaleta(liveEncendido({ vehiculos: false }))).toEqual(['cotizacion'])
+    expect(tiposDeLaPaleta(liveEncendido({ cotizaciones: false }))).toEqual(['vehiculo'])
   })
 })

@@ -6,6 +6,7 @@ import { NoSeAbre } from '../../no-se-abre'
 import { abrirLaFormulaDeLaPestana, formulaPedida } from '../_formula/abrir-formula'
 import { MarcoDeLaFormula } from '../_formula/marco-de-la-formula'
 import { leerReferenciaDeLaTarjeta } from './referencia'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Tarjeta de la fórmula' }
 
@@ -17,6 +18,10 @@ export default async function PaginaDeLaTarjeta({
   params,
   searchParams,
 }: PageProps<'/configuracion/origenes/[id]/tarjeta'>) {
+  const oculto = await ocultoEnElLive('origenes.lectura')
+  if (oculto) {
+    return oculto
+  }
   const [{ id }, consulta] = await Promise.all([params, searchParams])
   const abierta = await abrirLaFormulaDeLaPestana(id, 'tarjeta', formulaPedida(consulta))
   if (abierta.tipo !== 'abierto') {

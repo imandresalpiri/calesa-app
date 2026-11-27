@@ -4,6 +4,7 @@ import { DatosNuevosDeApibara, EditorDeCampos } from '@/modules/origenes/pantall
 import { datosO } from '@/shared/lib/errores'
 import { abrirOrigen } from '../../abrir-origen'
 import { NoSeAbre } from '../../no-se-abre'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Campos del origen' }
 
@@ -13,6 +14,10 @@ export const metadata: Metadata = { title: 'Campos del origen' }
 export default async function PaginaCamposDelOrigen({
   params,
 }: PageProps<'/configuracion/origenes/[id]/campos'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const abierto = await abrirOrigen((await params).id, 'campos')
   if (abierto.tipo !== 'abierto') {
     return <NoSeAbre abierto={abierto} />

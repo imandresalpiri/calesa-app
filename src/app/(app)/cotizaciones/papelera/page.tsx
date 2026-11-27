@@ -16,6 +16,7 @@ import { LOTES_POR_PAGINA, leerCursor } from '@/shared/lib/paginacion'
 import { unParametro } from '@/shared/lib/rutas'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { EsqueletoBandeja } from '@/shared/ui/esqueletos'
+import { ocultoEnElLive } from '../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Papelera de cotizaciones' }
 
@@ -36,6 +37,10 @@ async function Papelera({
 }: {
   searchParams: PageProps<'/cotizaciones/papelera'>['searchParams']
 }) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   await connection()
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])
   if (!puedeAbrirLaPapeleraDeCotizaciones(sesion.permisos)) {

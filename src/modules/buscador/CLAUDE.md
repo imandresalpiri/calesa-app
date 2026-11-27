@@ -13,13 +13,16 @@ Paleta global (Ctrl/Cmd+K) que busca leads, vehículos, cotizaciones y acciones 
 
 ## Archivos clave
 
-- `entities/ranking.ts` — `seccionesQueBuscan()` (espejo de `_buscador_interpretar`), `agruparResultados()` (número exacto, después lo que empieza con
+- `entities/ranking.ts` — `seccionesQueBuscan(interpretacion, tipos?)` (espejo de `_buscador_interpretar`; `tipos` deja sólo los que se pueden buscar), `agruparResultados()` (número exacto, después lo que empieza con
   el texto, el resto como lo dio la base; `POR_SECCION` = 5). `entities/resultados.ts`: las columnas que se piden (nunca teléfono, campos ni montos).
 - `infra/buscar.client.ts` — una lectura por sección con `.abortSignal(signal)`: nunca lanza y con la señal cancelada no pide nada. Registradas en
   `scripts/guardas/areas-b/paginas-en-la-base.ts` (defecto 5, máximo 20). `infra/visitados.client.ts`: 16 visitas propias, cada entidad hidratada bajo
   su RLS; lo que no llega sale sin marcador.
 - `features/elegir-lead/` — «elegir un lead de mi cartera» (seguimiento o recordatorio desde «Nuevo»): `buscarLeadsDeLaCartera()` pide los candidatos de `buscador_leads` hasta el máximo de la base (20), los pasa por `leads_vista_por_ids` con `en_cartera`
   y muestra 5 («Escribe más» si hay otros); mismo mínimo, misma espera y mismo cancelar que la paleta; un teléfono no se busca.
+- Modo Live: `<Buscador tipos>` (el layout los calcula con `tiposDeLaPaleta(sesion.live)` de `src/app/(app)/_shell/acciones-de-la-paleta.ts`) acota la
+  búsqueda y los «Últimos abiertos»: un tipo que no está no se pide ni se hidrata. Los tipos se fijan por su contenido (`useTiposEstables`): un
+  `router.refresh()` con la paleta abierta no vuelve a pedir.
 - `<RegistrarVisita tipo id />` (Server Action sobre `visita_registrar`, sin DOM, una vez por (tipo, id), sin avisar si falla): lo montan las tres
   fichas **después** de sus salidas «no disponible». La paleta viaja con `diferido()`; los hooks no consultan hasta `abierta`; el layout le pasa las
   acciones ya filtradas por `puede()` (`src/app/(app)/_shell/acciones-de-la-paleta.ts`).

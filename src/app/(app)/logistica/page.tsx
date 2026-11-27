@@ -27,6 +27,7 @@ import { abrirLaPestana } from './abrir-la-pestana'
 import { BarraDeLogistica } from './barra-de-logistica'
 import { EsqueletoDeLaBarra } from './esqueleto-de-la-barra'
 import { MarcasDeLogistica } from './marcas-de-logistica'
+import { SiSeVeEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Logística' }
 
@@ -39,12 +40,14 @@ export default function PaginaDeLogistica({ searchParams }: PageProps<'/logistic
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       {/* El h1 va fuera del Suspense: está también cargando y sin permiso. Sin cabecera visible: la ocupa la barra. */}
       <h1 className="sr-only">Logística</h1>
-      <Suspense fallback={<EsqueletoDeLaBarra />}>
-        <BarraDeLogistica searchParams={searchParams} pestana="cadena" />
-      </Suspense>
-      <Suspense fallback={<EsqueletoDeLaGrafica />}>
-        <Cadena searchParams={searchParams} />
-      </Suspense>
+      <SiSeVeEnElLive area="logistica.cadena">
+        <Suspense fallback={<EsqueletoDeLaBarra />}>
+          <BarraDeLogistica searchParams={searchParams} pestana="cadena" />
+        </Suspense>
+        <Suspense fallback={<EsqueletoDeLaGrafica />}>
+          <Cadena searchParams={searchParams} />
+        </Suspense>
+      </SiSeVeEnElLive>
     </div>
   )
 }

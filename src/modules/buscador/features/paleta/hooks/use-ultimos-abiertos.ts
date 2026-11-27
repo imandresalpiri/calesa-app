@@ -4,16 +4,23 @@ import { useEffect, useState } from 'react'
 import { MENSAJE_INESPERADO, fallo, type Resultado } from '@/shared/lib/errores'
 import { leerUltimosAbiertos } from '../../../composicion.client'
 import { estadoDeError, type EstadoDeLosUltimos } from '../../../entities/estado-de-la-paleta'
-import type { Abierto } from '../../../entities/ranking'
+import { TIPOS_DEL_BUSCADOR, type Abierto, type TipoDelBuscador } from '../../../entities/ranking'
 
-type Lectura = (pedido: { signal: AbortSignal }) => Promise<Resultado<Abierto[]>>
+type Lectura = (pedido: {
+  signal: AbortSignal
+  tipos: readonly TipoDelBuscador[]
+}) => Promise<Resultado<Abierto[]>>
 type Guardado = { clave: string; estado: EstadoDeLosUltimos }
 
 const CARGANDO: EstadoDeLosUltimos = { tipo: 'cargando' }
 
-async function leerSinLanzar(leer: Lectura, signal: AbortSignal): Promise<Resultado<Abierto[]>> {
+async function leerSinLanzar(
+  leer: Lectura,
+  tipos: readonly TipoDelBuscador[],
+  signal: AbortSignal,
+): Promise<Resultado<Abierto[]>> {
   try {
-    return await leer({ signal })
+    return await leer({ signal, tipos })
   } catch {
     return fallo('inesperado', MENSAJE_INESPERADO)
   }
@@ -21,11 +28,14 @@ async function leerSinLanzar(leer: Lectura, signal: AbortSignal): Promise<Result
 
 // «Últimos abiertos» de la paleta. Sin memoria (D5): se vuelve a leer cada vez que la paleta pasa de cerrada a abierta, porque las visitas cambian con
 // cada ficha; mientras se lee no se enseña la lista de la apertura anterior. Cerrar cancela la lectura en vuelo y su respuesta tardía no se guarda.
+// `tipos`: los que se pueden leer (con el Modo Live, sólo lo que muestra); de los demás no se pide ni se hidrata nada.
 export function useUltimosAbiertos({
   abierta,
+  tipos = TIPOS_DEL_BUSCADOR,
   leer = leerUltimosAbiertos,
 }: {
   abierta: boolean
+  tipos?: readonly TipoDelBuscador[]
   leer?: Lectura
 }): { estado: EstadoDeLosUltimos; reintentar: () => void } {
   const [intento, setIntento] = useState(0)
@@ -46,7 +56,7 @@ export function useUltimosAbiertos({
       return
     }
     const controlador = new AbortController()
-    void leerSinLanzar(leer, controlador.signal).then((r) => {
+    void leerSinLanzar(leer, tipos, controlador.signal).then((r) => {
       if (controlador.signal.aborted) {
         return
       }
@@ -60,7 +70,7 @@ export function useUltimosAbiertos({
     return () => {
       controlador.abort()
     }
-  }, [abierta, clave, leer])
+  }, [abierta, clave, leer, tipos])
 
   return {
     estado: abierta && guardado?.clave === clave ? guardado.estado : CARGANDO,

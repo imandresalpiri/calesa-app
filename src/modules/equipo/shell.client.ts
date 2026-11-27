@@ -4,3 +4,6 @@
 // JS de **todas** las pantallas (`docs/RENDIMIENTO.md`). Nada de servidor: para eso está `shell.ts`.
 export { usePerspectiva } from './features/perspectiva/hooks/use-perspectiva'
 export { useMenuPlegado } from './features/perfil/hooks/use-menu-plegado'
+// El menú y la paleta con el Modo Live (`Sesion.live`): una función pura, sin E/S, que el marco usa en el servidor y en sus pruebas.
+export { seOcultaEnElLive, type AreaDelLive } from './entities/live-pantallas'
+export type { EstadoDelLive } from './entities/live-combinar'

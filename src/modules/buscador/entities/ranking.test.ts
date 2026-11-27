@@ -74,6 +74,15 @@ describe('seccionesQueBuscan', () => {
     expect(seccionesQueBuscan(numeroYTexto(123))).toEqual(['lead', 'cotizacion', 'vehiculo'])
     expect(seccionesQueBuscan(texto('Rosa'))).toEqual(['lead', 'vehiculo', 'cotizacion'])
   })
+
+  it('con `tipos`, sólo los que se pueden buscar (el Modo Live): sin ninguno, nada', () => {
+    expect(seccionesQueBuscan(texto('Rosa'), ['vehiculo', 'cotizacion'])).toEqual([
+      'vehiculo',
+      'cotizacion',
+    ])
+    expect(seccionesQueBuscan(soloNumero(12), ['vehiculo'])).toEqual([])
+    expect(seccionesQueBuscan(texto('Rosa'), [])).toEqual([])
+  })
 })
 
 describe('agruparResultados', () => {

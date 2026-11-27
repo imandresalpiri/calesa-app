@@ -6,6 +6,7 @@ import { RUTAS } from '@/shared/lib/rutas'
 import { leerSesion, servicioAcceso } from '../../composicion'
 import { AVISOS } from '../../entities/avisos'
 import { destinoDeCuentaInactiva } from '../../entities/canje'
+import { LIVE_APAGADO, type EstadoDelLive } from '../../entities/live-combinar'
 import type { EstadoCuenta, Sesion } from '../../entities/sesion'
 import { borrarPerspectiva } from '../perspectiva/cookie'
 
@@ -39,6 +40,12 @@ export async function requerirSesionDeEnlace(): Promise<void> {
 export async function getPermisos(): Promise<Permisos> {
   const sesion = await leerSesion()
   return sesion?.permisos ?? []
+}
+
+// El Modo Live de quien pide, para un route handler (sin sacar a nadie: apagado si no hay sesión).
+export async function getLive(): Promise<EstadoDelLive> {
+  const sesion = await leerSesion()
+  return sesion?.live ?? LIVE_APAGADO
 }
 
 // Después de crear una sesión: si la cuenta no puede operar, se cierra ahí mismo y se devuelve

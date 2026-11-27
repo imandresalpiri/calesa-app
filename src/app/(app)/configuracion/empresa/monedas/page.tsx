@@ -5,6 +5,7 @@ import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { EncabezadoDeConfiguracion } from '../../_navegacion/encabezado-de-configuracion'
 import { MONEDAS_DE_LA_EMPRESA, PERMISOS_DE_LA_EMPRESA } from '../seccion'
 import { SeccionMonedas } from './seccion'
+import { ocultoEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: MONEDAS_DE_LA_EMPRESA.titulo }
 
@@ -13,6 +14,10 @@ export const metadata: Metadata = { title: MONEDAS_DE_LA_EMPRESA.titulo }
 export default async function PaginaMonedasDeLaEmpresa({
   searchParams,
 }: PageProps<'/configuracion/empresa/monedas'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const [{ permisos }, parametros] = await Promise.all([requerirSesion(), searchParams])
   if (!PERMISOS_DE_LA_EMPRESA.some((clave) => puede(permisos, clave))) {
     return <EstadoSinPermiso />

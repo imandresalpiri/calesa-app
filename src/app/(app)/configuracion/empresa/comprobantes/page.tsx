@@ -8,6 +8,7 @@ import { EncabezadoDeConfiguracion } from '../../_navegacion/encabezado-de-confi
 import { primeraSubseccionAbierta } from '../../secciones'
 import { PERMISOS_DE_EMPRESA, SECCION_DE_EMPRESA } from '../seccion'
 import { SUBSECCION_DE_COMPROBANTES } from './subseccion'
+import { ocultoEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: SUBSECCION_DE_COMPROBANTES.titulo }
 
@@ -15,6 +16,10 @@ export const metadata: Metadata = { title: SUBSECCION_DE_COMPROBANTES.titulo }
 // `empresa.ajustes.gestionar`. Quien entra a Empresa sin ese permiso la ve apagada en el menú y su URL lo lleva a la primera
 // sub-sección que puede abrir; quien no entra a Empresa, «sin permiso».
 export default async function PaginaComprobantesDeLaEmpresa() {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const { permisos } = await requerirSesion()
   if (!PERMISOS_DE_EMPRESA.some((clave) => puede(permisos, clave))) {
     return <EstadoSinPermiso />

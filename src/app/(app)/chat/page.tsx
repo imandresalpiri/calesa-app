@@ -18,6 +18,7 @@ import { unParametro } from '@/shared/lib/rutas'
 import { Aviso } from '@/shared/ui/aviso'
 import { EstadoSinPermiso } from '@/shared/ui/estados'
 import { EsqueletoDeChat } from './esqueleto-de-chat'
+import { SiSeVeEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Chat' }
 
@@ -90,7 +91,9 @@ async function Conversaciones({ parametros }: { parametros: PageProps<'/chat'>['
 export default function PaginaDeChat({ searchParams }: PageProps<'/chat'>) {
   return (
     <Suspense fallback={<EsqueletoDeChat />}>
-      <Conversaciones parametros={searchParams} />
+      <SiSeVeEnElLive area="siempre-oculto">
+        <Conversaciones parametros={searchParams} />
+      </SiSeVeEnElLive>
     </Suspense>
   )
 }

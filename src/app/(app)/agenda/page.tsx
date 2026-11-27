@@ -23,6 +23,7 @@ import { unParametro } from '@/shared/lib/rutas'
 import { NuevoDeLaAgenda } from './nuevo-de-la-agenda'
 import { leerPedidosDeLaUrl } from './pedidos'
 import { PendientesDeLaPagina } from './pendientes'
+import { ocultoEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Agenda' }
 
@@ -30,6 +31,10 @@ export const metadata: Metadata = { title: 'Agenda' }
 // costado. Lo que se ve lo decide la base con la sesión de quien mira (`agenda_rango` y `agenda_pendientes`, de invocador); la vista, la fecha, las clases y «la de
 // todos» viven en la URL. Los pendientes llegan tras su propio `<Suspense>`: el día no los espera.
 export default async function PaginaDeAgenda({ searchParams }: PageProps<'/agenda'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   // La sesión y los ajustes se leen al pedir la pantalla, no al prepararla.
   await connection()
   const [sesion, ajustes, parametros] = await Promise.all([

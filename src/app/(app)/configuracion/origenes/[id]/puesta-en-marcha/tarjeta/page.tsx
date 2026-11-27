@@ -13,6 +13,7 @@ import { abrirLaPuestaEnMarcha } from '../abrir'
 import { MarcoDelPaso, PasoSinPermiso, conPermiso } from '../marco-del-paso'
 import { SinFormula } from '../sin-formula'
 import { Seguir } from '../seguir'
+import { ocultoEnElLive } from '../../../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Puesta en marcha: Tarjeta' }
 
@@ -25,6 +26,10 @@ const SIN_PLANILLA_COPIADA = 'La fórmula trae la tarjeta de la copia.'
 export default async function PasoTarjeta({
   params,
 }: PageProps<'/configuracion/origenes/[id]/puesta-en-marcha/tarjeta'>) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   const { id } = await params
   return (
     <>

@@ -10,6 +10,7 @@ import { unParametro } from '@/shared/lib/rutas'
 import { EsqueletoFormulario } from '@/shared/ui/esqueletos'
 import { SeccionImportarDeDatos } from './importar'
 import { PestanasDeDatos } from './pestanas-de-datos'
+import { ocultoEnElLive } from '../_live/guarda'
 
 export const metadata: Metadata = { title: 'Datos' }
 
@@ -20,6 +21,10 @@ type Props = {
 
 // `/datos`: exportar e importar (9.06-4b). Cualquiera con sesión entra: «Mis leads» es de todos; el resto lo arman los permisos.
 export default async function PaginaDatos({ searchParams }: Props) {
+  const oculto = await ocultoEnElLive('siempre-oculto')
+  if (oculto) {
+    return oculto
+  }
   // La sesión se lee al pedir la pantalla, no al prepararla.
   await connection()
   const [sesion, parametros] = await Promise.all([requerirSesion(), searchParams])

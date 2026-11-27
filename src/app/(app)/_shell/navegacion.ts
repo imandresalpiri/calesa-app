@@ -18,6 +18,11 @@ import {
   UsersRoundIcon,
   type LucideIcon,
 } from 'lucide-react'
+import {
+  seOcultaEnElLive,
+  type AreaDelLive,
+  type EstadoDelLive,
+} from '@/modules/equipo/shell.client'
 import { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'
 
 export type ZonaNav =
@@ -36,6 +41,8 @@ export type EntradaNav = {
   permisos: readonly ClavePermiso[] | null
   // Existe su `page.tsx`.
   disponible: boolean
+  // Con el Modo Live encendido se ve sólo si sus ajustes muestran esta área (`seOcultaEnElLive`).
+  enElLive: AreaDelLive
 }
 
 export const NAVEGACION = [
@@ -47,6 +54,7 @@ export const NAVEGACION = [
     zona: 'principal',
     permisos: null,
     disponible: true,
+    enElLive: 'inicio',
   },
   {
     clave: 'leads',
@@ -56,6 +64,7 @@ export const NAVEGACION = [
     zona: 'principal',
     permisos: ['leads.ver'],
     disponible: true,
+    enElLive: 'clientes',
   },
   {
     clave: 'vehiculos',
@@ -65,6 +74,7 @@ export const NAVEGACION = [
     zona: 'principal',
     permisos: ['vehiculos.ver'],
     disponible: true,
+    enElLive: 'vehiculos',
   },
   {
     clave: 'cotizaciones',
@@ -74,6 +84,7 @@ export const NAVEGACION = [
     zona: 'principal',
     permisos: ['cotizaciones.ver'],
     disponible: true,
+    enElLive: 'cotizaciones',
   },
   {
     clave: 'logistica',
@@ -83,6 +94,7 @@ export const NAVEGACION = [
     zona: 'principal',
     permisos: ['logistica.ver'],
     disponible: true,
+    enElLive: 'logistica.cadena',
   },
   {
     clave: 'repuestos',
@@ -92,6 +104,7 @@ export const NAVEGACION = [
     zona: 'principal',
     permisos: ['repuestos.ver'],
     disponible: true,
+    enElLive: 'repuestos.estadisticas',
   },
   {
     clave: 'agenda',
@@ -101,6 +114,7 @@ export const NAVEGACION = [
     zona: 'principal',
     permisos: null,
     disponible: true,
+    enElLive: 'siempre-oculto',
   },
   {
     clave: 'chat',
@@ -110,6 +124,7 @@ export const NAVEGACION = [
     zona: 'principal',
     permisos: ['chat.participar'],
     disponible: true,
+    enElLive: 'siempre-oculto',
   },
   {
     clave: 'perfil',
@@ -119,6 +134,7 @@ export const NAVEGACION = [
     zona: 'usuario',
     permisos: null,
     disponible: true,
+    enElLive: 'siempre-oculto',
   },
   {
     clave: 'tablero',
@@ -128,6 +144,7 @@ export const NAVEGACION = [
     zona: 'usuario',
     permisos: ['tablero.metricas.ver'],
     disponible: true,
+    enElLive: 'tablero',
   },
   {
     clave: 'configuracion',
@@ -153,8 +170,10 @@ export const NAVEGACION = [
       'web.ajustes.gestionar',
       'web.contenido.gestionar',
       'web.cola.gestionar',
+      'live.configurar',
     ],
     disponible: true,
+    enElLive: 'origenes.lectura',
   },
   {
     clave: 'actividad',
@@ -164,6 +183,7 @@ export const NAVEGACION = [
     zona: 'usuario',
     permisos: ['actividad.ver'],
     disponible: true,
+    enElLive: 'siempre-oculto',
   },
   {
     clave: 'datos',
@@ -174,15 +194,21 @@ export const NAVEGACION = [
     // Cada persona exporta e importa lo suyo; «todo» lo decide la pantalla con `datos.*.todo`.
     permisos: null,
     disponible: true,
+    enElLive: 'siempre-oculto',
   },
 ] as const satisfies readonly EntradaNav[]
 
-// Lo que esta persona ve en una zona: la entrada tiene pantalla y ella tiene el permiso.
-export function entradasVisibles(permisos: Permisos, zona: ZonaNav): EntradaNav[] {
+// Lo que esta persona ve en una zona: la entrada tiene pantalla, ella tiene el permiso y, con el Modo Live encendido, sus ajustes la muestran.
+export function entradasVisibles(
+  permisos: Permisos,
+  zona: ZonaNav,
+  live: EstadoDelLive,
+): EntradaNav[] {
   return NAVEGACION.filter(
     (entrada: EntradaNav) =>
       entrada.zona === zona &&
       entrada.disponible &&
+      !seOcultaEnElLive(live, entrada.enElLive) &&
       (entrada.permisos === null || entrada.permisos.some((clave) => puede(permisos, clave))),
   )
 }

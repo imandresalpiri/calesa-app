@@ -4,6 +4,7 @@ import { CLAVE_DEL_HUECO_ABIERTO } from '@/modules/logistica'
 import { unParametro } from '@/shared/lib/rutas'
 import { CLASE_DEL_ALTO_DEL_DETALLE } from './alto-del-detalle'
 import { UnidadEnSuPagina } from './unidad-en-su-pagina'
+import { ocultoEnElLive } from '../../../_live/guarda'
 
 export const metadata: Metadata = { title: 'Unidad de logística' }
 
@@ -13,6 +14,10 @@ export default async function PaginaDeLaUnidad({
   params,
   searchParams,
 }: PageProps<'/logistica/vehiculo/[id]'>) {
+  const oculto = await ocultoEnElLive('logistica')
+  if (oculto) {
+    return oculto
+  }
   const [sesion, { id }, parametros] = await Promise.all([requerirSesion(), params, searchParams])
   return (
     <div className={`grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 ${CLASE_DEL_ALTO_DEL_DETALLE}`}>

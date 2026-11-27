@@ -3,6 +3,7 @@ import { getPermisos } from '@/modules/equipo'
 import { esquemaDelPedido, exportarTodo, type SalidaDeExportacionTotal } from '@/modules/datos'
 import { MENSAJE_SESION_VENCIDA } from '@/shared/lib/errores'
 import { ZONA_POR_DEFECTO } from '@/shared/lib/fechas'
+import { rutaOcultaEnElLive } from '../../_live/guarda'
 
 // Exportar todo (9.05-2, `datos.exportar.todo`). Es un POST: un GET se podría disparar desde otra página y gastaría el cupo por hora de quien
 // lo abre. Autentica por la cookie de sesión y comprueba que el pedido salga de esta misma dirección. La constancia
@@ -76,6 +77,12 @@ export async function POST(peticion: Request) {
   const pedido = await leerPedido(peticion)
   if (!pedido) {
     return respuesta({ codigo: 'pedido', mensaje: 'No entendimos el pedido.' }, 400)
+  }
+  if (await rutaOcultaEnElLive('siempre-oculto')) {
+    return respuesta(
+      { codigo: 'oculto', mensaje: 'Esto no se muestra mientras compartes la pantalla.' },
+      404,
+    )
   }
   const [permisos, ajustesLeidos] = await Promise.all([getPermisos(), leerAjustes()])
   // Si no se pueden leer: la zona por defecto y el teléfono con «+» (como el listado).

@@ -17,6 +17,7 @@ import {
   type PaginaAgrupada,
   type PedidoDelListado,
 } from '@/modules/cotizaciones'
+import { origenVisibleEnElLive, type EstadoDelLive } from '@/modules/equipo'
 import { leerNombresDeLeads } from '@/modules/leads'
 import { leerTitulosDeVehiculos } from '@/modules/vehiculos'
 import { datosO } from '@/shared/lib/errores'
@@ -66,12 +67,13 @@ export async function nombreDelLead(permisos: Permisos, id: string | undefined) 
 // la lee el servidor, con la RLS de quien mira y su «Vencida» de la función del listado (`leerUnaDelListado`), y sus nombres y su modo aparte. Si esa lectura falla, el listado
 // no cae: `error`, y el resumen ofrece «Reintentar».
 export async function leerLaDelResumen(
-  permisos: Permisos,
+  { permisos, live }: { permisos: Permisos; live: EstadoDelLive },
   id: string,
 ): Promise<LecturaDelServidor> {
   try {
     const fila = datosO(await leerUnaDelListado(id))
-    if (fila === null) {
+    // Con el Modo Live, la de un origen que no muestra se dice como la que no existe.
+    if (fila === null || !origenVisibleEnElLive(live, fila.origenId)) {
       return { id, estado: 'no_disponible' }
     }
     const [cotizacion] = filasConNombres([fila], await nombresDe(permisos, [fila], { modos: true }))
