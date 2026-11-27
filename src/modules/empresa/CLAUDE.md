@@ -45,7 +45,8 @@ Ajustes de la empresa (marca, datos legales, país, formato regional, zona horar
 - `client.ts`: `guardarTipoCambio` y `EntradaDeGuardarTipoCambio`, para el ⚙ de un tipo de cambio de la hoja (`cotizaciones`); la action exige
   `empresa.tipos_cambio.gestionar` en el servidor. Del asistente de IA, para el panel de compartir: sus topes
   (`LARGO_MAXIMO_INSTRUCCION_DEL_ASISTENTE`, `LARGO_MAXIMO_TEXTO_DEL_ASISTENTE`) y la acción de un error con `causa`
-  (`accionDelAsistente()`, `esCausaDelAsistente()`, `ACCIONES_DEL_ASISTENTE`).
+  (`accionDelAsistente()`, `esCausaDelAsistente()`, `ACCIONES_DEL_ASISTENTE`). Las reglas de un SVG subido (`motivoDeSvgInvalido()`,
+  `medidasDeSvg()`, `PESO_MAXIMO_SVG`), para la biblioteca de imágenes de `artes`.
 - Depende de ningún otro módulo.
 
 ## Archivos clave

@@ -12,7 +12,7 @@ const sinComentarios = (texto: string) =>
     .join('\n')
 
 describe('empresa/client.ts', () => {
-  it('exporta la action del tipo de cambio y su entrada, y lo del asistente para el panel de compartir, y nada más', () => {
+  it('exporta la action del tipo de cambio y su entrada, lo del asistente para el panel de compartir y las reglas del SVG para las artes, y nada más', () => {
     const exports = [
       ...sinComentarios(leer('client.ts')).matchAll(/export\s+(type\s+)?\{([^}]*)\}/g),
     ]
@@ -25,9 +25,12 @@ describe('empresa/client.ts', () => {
       'EntradaDeGuardarTipoCambio',
       'LARGO_MAXIMO_INSTRUCCION as LARGO_MAXIMO_INSTRUCCION_DEL_ASISTENTE',
       'LARGO_MAXIMO_TEXTO as LARGO_MAXIMO_TEXTO_DEL_ASISTENTE',
+      'PESO_MAXIMO_SVG',
       'accionDelAsistente',
       'esCausaDelAsistente',
       'guardarTipoCambio',
+      'medidasDeSvg',
+      'motivoDeSvgInvalido',
       'type CausaDelAsistente',
     ])
   })

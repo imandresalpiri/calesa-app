@@ -14,3 +14,5 @@ export {
   esCausaDelAsistente,
   type CausaDelAsistente,
 } from './entities/asistente-ia/respuesta'
+// Las reglas de un SVG subido (sin código, que diga cuánto mide) y su tope de peso: las usa la biblioteca de imágenes de las artes.
+export { medidasDeSvg, motivoDeSvgInvalido, PESO_MAXIMO_SVG } from './entities/marca'
