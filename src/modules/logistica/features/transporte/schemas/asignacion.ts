@@ -25,8 +25,8 @@ export const esquemaAsignarUnidades = z.strictObject({
 
 export const esquemaQuitarUnidades = z.strictObject({ tipo, origenId: id, unidades: lote })
 
-// Poner un vehículo en un embarque o un contenedor, de los que hay o nuevo (`nuevo` con su booking o su número): uno nuevo se crea antes con `id` como id del intento, y un
-// reintento no lo duplica.
+// Poner un vehículo en un embarque o un contenedor, de los que hay o nuevo (`nuevo` con lo mínimo: booking y naviera del embarque, número y tipo del contenedor): uno nuevo se crea
+// antes con `id` como id del intento, y un reintento no lo duplica.
 export const esquemaPonerElVehiculoEnTransporte = z.strictObject({
   origenId: id,
   vehiculoId: id,
@@ -35,12 +35,19 @@ export const esquemaPonerElVehiculoEnTransporte = z.strictObject({
     z.strictObject({
       tipo: z.literal('embarque'),
       id,
-      nuevo: z.strictObject({ booking: codigoDeTransporte('booking') }).nullable(),
+      nuevo: z
+        .strictObject({ booking: codigoDeTransporte('booking'), naviera_id: id.nullable() })
+        .nullable(),
     }),
     z.strictObject({
       tipo: z.literal('contenedor'),
       id,
-      nuevo: z.strictObject({ numero: codigoDeTransporte('número') }).nullable(),
+      nuevo: z
+        .strictObject({
+          numero: codigoDeTransporte('número'),
+          tipo: z.string().min(1).max(40).nullable(),
+        })
+        .nullable(),
     }),
   ]),
   mover: z.boolean(),

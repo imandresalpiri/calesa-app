@@ -1,8 +1,14 @@
-// El resumen de la tarjeta «Dinero» (gastos, pagos y margen): cuántos gastos y pagos tiene —sólo de los huecos que quien mira ve— y, como aviso, los pagos sin
-// confirmar. No suma montos: un total exacto pediría la lista entera (D34 del plan; `docs/DECISIONES.md`). El margen no se lee para el resumen. Sin I/O.
+// El resumen de la tarjeta «Dinero»: una línea por vista que quien mira ve —cuántos gastos, cuántos pagos y el margen que da la base (`margen_vehiculo`)— y, como aviso,
+// los pagos sin confirmar. No suma montos: un total exacto pediría la lista entera (`docs/DECISIONES.md`); el margen es la cifra de la base, en moneda base. Sin I/O.
 import { cantidadAcotada } from '@/shared/lib/conteo'
 import { CLAVE_DE_PAGO, PAGO_NUEVO, PANEL_PAGO } from '../nucleo/paneles-de-la-unidad'
-import { accionDeVer, type AccionDeLaTarjeta, type ResumenDeTarjeta } from '../nucleo/tarjeta'
+import {
+  accionDeVer,
+  type AccionDeLaTarjeta,
+  type LineaDelResumen,
+  type ResumenDeTarjeta,
+} from '../nucleo/tarjeta'
+import { SIN_VENTA_REGISTRADA } from './margen'
 import { CLAVE_DE_GASTO, GASTO_NUEVO, PANEL_GASTO } from './paneles'
 
 // Cuántos gastos y pagos mira el resumen: los mismos que dibuja cada hueco.
@@ -20,27 +26,45 @@ export const ACCION_REGISTRAR_PAGO: AccionDeLaTarjeta = {
   destino: { tipo: 'drawer', url: { panel: PANEL_PAGO, [CLAVE_DE_PAGO]: PAGO_NUEVO } },
 }
 
+export const SIN_GASTOS_TODAVIA = 'Sin gastos todavía'
+export const SIN_PAGOS_TODAVIA = 'Sin pagos todavía'
+export const MARGEN_SIN_VENTA = `Margen: ${SIN_VENTA_REGISTRADA.toLowerCase()}`
+
 export type DineroDelResumen = {
-  // Cuántos gastos se leyeron (hasta `tope + 1`); nulo si el hueco «Gastos» no se ve.
+  // Cuántos gastos se leyeron (hasta `tope + 1`); nulo si la vista «Gastos» no se ve.
   gastos: number | null
-  // Si cada pago leído está confirmado (hasta `tope + 1`); nulo si el hueco «Pagos» no se ve.
+  // Si cada pago leído está confirmado (hasta `tope + 1`); nulo si la vista «Pagos» no se ve.
   pagos: readonly boolean[] | null
+  // El margen de la base en moneda base (`valor` nulo sin venta registrada, nunca 0); nulo si la vista «Margen» no se ve.
+  margen: { valor: number | null } | null
   puedeRegistrarGasto: boolean
   puedeRegistrarPago: boolean
 }
 
 const TOPE = TOPE_DEL_RESUMEN_DE_DINERO
 
-function lineasDelDinero({ gastos, pagos }: DineroDelResumen): string[] {
-  if (gastos === null && pagos === null) return ['El margen contra la cotización final.']
-  if ((gastos ?? 0) === 0 && (pagos?.length ?? 0) === 0) return ['Sin gastos ni pagos todavía.']
-  const partes = [
-    gastos === null ? null : cantidadAcotada(gastos, TOPE, { singular: 'gasto', plural: 'gastos' }),
-    pagos === null
-      ? null
-      : cantidadAcotada(pagos.length, TOPE, { singular: 'pago', plural: 'pagos' }),
-  ]
-  return [partes.filter((p) => p !== null).join(' · ')]
+function lineasDelDinero({ gastos, pagos, margen }: DineroDelResumen): LineaDelResumen[] {
+  const lineas: LineaDelResumen[] = []
+  if (gastos !== null) {
+    lineas.push(
+      gastos === 0
+        ? SIN_GASTOS_TODAVIA
+        : cantidadAcotada(gastos, TOPE, { singular: 'gasto', plural: 'gastos' }),
+    )
+  }
+  if (pagos !== null) {
+    lineas.push(
+      pagos.length === 0
+        ? SIN_PAGOS_TODAVIA
+        : cantidadAcotada(pagos.length, TOPE, { singular: 'pago', plural: 'pagos' }),
+    )
+  }
+  if (margen !== null) {
+    lineas.push(
+      margen.valor === null ? MARGEN_SIN_VENTA : { etiqueta: 'Margen', monto: margen.valor },
+    )
+  }
+  return lineas
 }
 
 function avisoDelDinero(pagos: readonly boolean[] | null): string | null {

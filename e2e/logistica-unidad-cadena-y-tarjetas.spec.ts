@@ -194,11 +194,15 @@ test('E2E escritorio · la cabecera abre la ficha y las tarjetas abren sus hueco
   for (const clave of ['documentos', 'dinero', 'notas', 'historial'])
     expect(vistas, `la tarjeta ${clave}`).toContain(clave)
 
-  // Dinero junta gastos, pagos y margen en su drawer.
+  // Dinero junta gastos, pagos y margen en su drawer, una pestaña cada uno: abre la primera y cada pestaña queda en la URL.
   await tarjeta(page, 'dinero').locator('[data-abre-tarjeta]').click()
   await expect(page).toHaveURL(/[?&]hueco=dinero/)
-  for (const hueco of ['gastos', 'pagos', 'margen'])
+  await expect(page.locator('[data-hueco="gastos"]')).toBeVisible()
+  for (const hueco of ['pagos', 'margen']) {
+    await page.locator(`[role="tab"][data-vista="${hueco}"]`).click()
     await expect(page.locator(`[data-hueco="${hueco}"]`)).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`[?&]dinero=${hueco}`))
+  }
   await capturar(page, info, 'escritorio-drawer-de-dinero')
   await page.keyboard.press('Escape')
   await expect(page.locator('[data-hueco="gastos"]')).toBeHidden()

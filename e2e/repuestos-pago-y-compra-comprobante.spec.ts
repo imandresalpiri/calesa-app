@@ -107,8 +107,10 @@ test('E2E el pago: la zona del comprobante a la vista, sube, reemplaza y quita; 
   await expect(formulario.getByLabel('Moneda')).toBeVisible()
   await expect(formulario.getByText('Sin confirmar')).toBeVisible()
   await expect(formulario.getByLabel('Fecha')).not.toHaveValue('')
-  for (const grupo of ['Cómo se pagó', 'Notas', 'Comprobante']) {
-    await expect(formulario.getByRole('heading', { name: grupo })).toBeVisible()
+  // «Más datos» a la vista, nunca plegado: el método, el tipo de cambio y las notas.
+  await expect(formulario.getByRole('heading', { name: 'Más datos' })).toBeVisible()
+  for (const campo of ['Método', 'Tipo de cambio', 'Notas']) {
+    await expect(formulario.getByLabel(campo)).toBeVisible()
   }
 
   const zona = formulario.getByRole('group', { name: 'Comprobante' })
@@ -132,7 +134,8 @@ test('E2E el pago: la zona del comprobante a la vista, sube, reemplaza y quita; 
   await edicion.getByRole('button', { name: 'Cancelar' }).click()
   await expect(edicion).toBeHidden()
 
-  await page.getByRole('button', { name: 'Confirmar pago' }).click()
+  await page.getByRole('button', { name: /Más acciones de pago Anticipo con comprobante/ }).click()
+  await page.getByRole('menuitem', { name: 'Confirmar pago' }).click()
   const confirmar = page.getByRole('dialog', {
     name: 'Confirmar el pago «Anticipo con comprobante»',
   })

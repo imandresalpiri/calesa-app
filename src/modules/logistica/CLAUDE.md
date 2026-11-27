@@ -12,9 +12,10 @@ La tarea de oro 3 la prueba `e2e/logistica-tarea-de-oro.spec.ts`. Abiertos (`doc
   «<principal> · <título>» si el origen tiene campo principal y se puede leer: `features/nucleo/unidad-con-identidad.ts`), `huecosVisibles`,
   `ORDEN_DE_HUECOS`, `refDeUnidad`, los tipos de la unidad y de los huecos; por `pantallas/unidad.ts`, `<PanelDeLaUnidad>` (el drawer de gastos: cabecera, «Qué falta» y las `tarjetas` en una columna, sin cadena; cada tarjeta abre sus huecos en un segundo drawer, `?seccion=`), que recibe `relacionados?: ReactNode` (el bloque «Relacionados» de un vehículo, bajo la cabecera y antes de los huecos; lo compone `src/app/(app)/logistica/unidad-abierta.tsx` con `leads.ver`: `logistica` no conoce `vehiculos/relacionados`); por `pantallas/unidad-pagina.ts`, `<PaginaDeLaUnidad>` (la página: la cabecera baja con `cabecera` = `foto`, `identidad`, `ficha`, `relacionados` y `demora`; la `cadena`; las `tarjetas` y «Qué falta» al costado; la barra «Mover» en el celular), `RejillaDeTarjetas`, `TarjetaDeLaUnidad` (el marco: toque, «⋯», anclas de sus huecos y el drawer `?hueco=<tarjeta>`, con `UrlDeLaTarjeta`), `ResumenDeLaTarjeta`, `EsqueletoDelResumen` y `ContenidoDeLaTarjeta`; lo compone `src/app/(app)/logistica/vehiculo/[id]/unidad-en-su-pagina.tsx` con `src/app/(app)/logistica/tarjetas-de-la-unidad.tsx`; por `pantallas/mover-cadena.ts`, `CadenaDeLaUnidadEnLaPagina` y, por `pantallas/unidad-esqueletos.ts`, `EsqueletoDeLaUnidad` y `EsqueletoDeLaFoto` (sólo para `loading.tsx`: importar el barril de `unidad-pagina` bajaría su chunk dos veces).
 - Las tarjetas de la página de la unidad (`docs/GLOSARIO.md` › «Tarjeta de la unidad»; núcleo `entities/nucleo/{tarjetas,tarjeta,acciones-de-la-tarjeta}.ts`): `ORDEN_DE_TARJETAS`,
-  `tarjetasDeLaUnidad(huecos)`, `tarjetaDelHueco`, `esTarjetaConocida`, `ResumenDeTarjeta` (`lineas`, `aviso`, `acciones` como datos, la primera es la principal) y `capacidadesDeLaTarjeta(permisos, origenId)`.
+  `tarjetasDeLaUnidad(huecos)`, `tarjetaDelHueco`, `esTarjetaConocida`, `ResumenDeTarjeta` (hasta tres `lineas`, un texto o `{ etiqueta, monto }` que se dibuja con `<Monto>`; `aviso`, `acciones` como datos, la primera es la principal) y `capacidadesDeLaTarjeta(permisos, origenId)`.
+  Una tarjeta con varios huecos (Dinero) los muestra como **vistas** en pestañas (`entities/nucleo/vistas-de-la-tarjeta.ts`: `vistaActiva`; `VistasDeLaTarjeta`): `?<tarjeta>=<hueco>` con `replace`, sólo la activa montada; un `?panel=` que el hueco declara en `paneles` (`Hueco.paneles`) muestra la suya y gana sobre la pedida; una pedida que no existe cae en la primera.
   Cada área da el resumen de la suya, leído en el servidor con un tope y su índice y armado por una función pura de `entities/<área>/resumen.ts`: `leerResumenDeDocumentos`, `leerResumenDeTransporte`,
-  `leerResumenDeAduana`, `leerResumenDeDinero` (sólo lo de los huecos que se ven; sin sumar montos) y `leerResumenDeNotas`; el del historial, `resumenDelHistorial(pasadas)`, sin consulta. Un fallo
+  `leerResumenDeAduana`, `leerResumenDeDinero` (sólo lo de los huecos que se ven, una línea por vista, el margen por `margen_vehiculo`; sin sumar montos) y `leerResumenDeNotas`; el del historial, `resumenDelHistorial(pasadas)`, sin consulta. Un fallo
   devuelve «No pudimos leer el resumen.» (`resumenQueNoSeLeyo`): la tarjeta se abre igual. Área `mover`: `leerPasadasDeLaUnidad` (tope 50 + 1) y `cadenaDeLaUnidad` (`entities/mover/cadena.ts`: las pasadas,
   la actual y el camino principal), `demoraDeLaUnidad` (núcleo, espejo de `_logistica_dias`) y `opcionesDelFiltro` del historial; las arma `src/app/(app)/logistica/unidad-preparada.ts`.
 - Área `cadena`: `leerResumenDeLaCadena(origenId)` (el número de cada fase: vehículos, demorados y trabados, con tope), `leerLaFase(pedido)` (una página de la lista de una fase,
@@ -174,15 +175,18 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   con la versión leída (`PT409` → «Recargar» conserva lo escrito). `?panel=nueva-declaracion` / `?panel=editar-declaracion&declaracion=<id>` (`shallow: false`,
   no convive con el resumen); `?panel=canal` es un `<Confirmar>` sobre el resumen (`?declaracion=`). La composición se cambia en **un solo envío** (buscador por
   `logistica_donde_esta`, al enviar); con canal queda fija. Todo pide `logistica.aduana.gestionar`.
-- **Área `dinero`.** Huecos «Gastos», «Pagos», «Margen» en `pantallas/dinero-unidad.ts`. `entities/dinero/`: `margen.ts` (`textosDelMargen`: un `null` es «Sin
-  cotización final» o «Sin venta registrada», nunca 0; un 0 verdadero es un monto), `gasto.ts` (`cambiosDeGasto` manda el tipo de cambio sólo si cambió la
+- **Área `dinero`.** Huecos «Gastos», «Pagos», «Margen» en `pantallas/dinero-unidad.ts`, cada uno con sus `paneles`: son las tres vistas del drawer de Dinero (`?dinero=gastos|pagos|margen`). `entities/dinero/`: `margen.ts` (`textosDelMargen`: un `null` es «Sin
+  cotización final» o «Sin venta registrada», nunca 0; un 0 verdadero es un monto; `cifraDelMargen`, la línea de la vista; `QUE_ES_LA_CIFRA`, lo que dice el desglose), `gasto.ts` (`cambiosDeGasto` manda el tipo de cambio sólo si cambió la
   moneda o el tipo), `pago.ts` (monto > 0), `acciones-del-pago.ts` (un confirmado nunca se edita ni se elimina). **`monto_base` lo devuelve la base**: ningún
   componente multiplica por una tasa. El hueco recibe sólo `{ unidad }` y decide «Registrar gasto» con `puede()` sobre `mis_permisos`; protege la base.
   `?panel=gasto&gasto=<id|nuevo>`, `?panel=eliminar-gasto&gasto=<id>`, `?panel=pago|confirmar-pago|eliminar-pago|anular-pago&pago=<id>` (una URL a mano no
   abre lo que el estado o el permiso no dejan). `?panel=pago&pago=<id>` abre cualquier pago que esté en la lista: el formulario (sin confirmar y con permiso de editar) o,
-  si no, `LecturaDelPago` («Pago», sólo lectura con su sello y «Anular pago» con la clave de confirmar). Los paneles de dinero tienen una forma: monto con su moneda
-  (`CampoDeMonto`), estado, fecha y a quién arriba; grupos planos (`GrupoDeCampos`) y la zona del comprobante (`ZonaDeArchivo` vía `CampoDeComprobante`, un archivo por fila,
-  `useArchivoDeLaZona`). Toda escritura de dinero avisa al «Margen» por un evento del navegador (`eventos-de-dinero.ts`) y, con él, un cambio de la unidad (`avisarCambioDeLaUnidad`: «Qué falta» se relee). Confirmar y
+  si no, la lectura («Pago», sólo lectura con su sello y «Anular pago» con la clave de confirmar). Gasto y pago se escriben en un **modal corto** (`ModalDeGasto`, `ModalDePago`,
+  diferidos y montados al abrirse): arriba el monto con su moneda (`MontoDelFormulario` sobre `CampoDeMonto`), la categoría o el concepto, la fecha y la zona del comprobante (`ZonaDeArchivo` vía
+  `CampoDeComprobante`, un archivo por fila, `useArchivoDeLaZona`); debajo, a la vista, «Más datos» (`GrupoDeCampos`: tipo de cambio —`CampoDeTipoDeCambio`, siempre reservado—, proveedor o
+  método, notas). Un conflicto ofrece «Recargar» (`useRecargaDeDinero`: relee la lista y lo escrito queda); un gasto o pago que se fue de la lista dice que ya no está. Sin categorías de gasto
+  activas, el aviso enlaza al catálogo (`rutaDeUnCatalogo`) con `logistica.catalogos.gestionar`. El «Margen» va en una línea con «Ver el desglose» (`?panel=desglose-del-margen`, `DesgloseDelMargen`,
+  diferido: las cinco cifras y lo real por categoría, como los da la base). Las filas de gastos y pagos llevan toda acción en su «⋯» (Confirmar pago, Editar, Ver comprobante, Eliminar, Anular pago). Toda escritura de dinero avisa al «Margen» por un evento del navegador (`eventos-de-dinero.ts`) y, con él, un cambio de la unidad (`avisarCambioDeLaUnidad`: «Qué falta» se relee). Confirmar y
   anular piden `logistica.pagos.confirmar` (global); el sello «Confirmado por <nombre> el <fecha>» lo pone la base; anular pide motivo; el lead va nulo.
   **Pagos de un proyecto de repuestos:** `pantallas/dinero-proyecto.ts` (panel «Pagos» de `/repuestos/[id]`; también `useAlCambiarElDineroDelProyecto`, con el
   que la página se vuelve a pedir tras un pago, y `PARAMETROS_DE_REGISTRAR_PAGO`; `PANELES_DEL_PAGO` sale por `index.ts`): el mismo `CuerpoDePagos` con
@@ -225,13 +229,21 @@ y su regla de `flujos_reglas` está activa; el orden es `ORDEN_DE_HUECOS`, no el
   ≤ 60, código ≤ 12 en mayúsculas sin espacios, orden 0–32.767); la unicidad es de la base, por origen y clave (sin mayúsculas, tildes ni espacios de más), también la
   de un puerto sin país. `<AvisoDeTope>` a 200.
   **Hueco «Transporte»** (`pantallas/transporte-unidad.ts`; `logistica.ver`, regla `transporte`; sólo vehículos): lee `transporte_leer` (la fila con lo resuelto
-  de su embarque y, aparte, su embarque y su contenedor con su versión, su estado y cuántos vehículos visibles llevan: `entities/transporte/lectura-de-la-unidad.ts`) y
-  escribe `guardarTransporte` → `transporte_guardar` con la versión de la fila, la del embarque y la del contenedor que leyó. Un booking o un contenedor tipeado se busca en el
-  origen de la unidad o se crea. Sobre los campos, `LineaDelAviso` dice a quiénes les cambia lo que se guarda (`avisoDelTransporte`: «Cambia para los 2 vehículos de este
-  embarque.», «… y otros que no puedes ver.»), con su alto reservado desde `EsqueletoDelTransporte`. Opciones = lo que ofrece el flujo y usa el origen de la unidad (oferta vacía = todo lo activo que usa: sus propios y
+  de su embarque y, aparte, su embarque y su contenedor con su versión, su estado y cuántos vehículos visibles llevan: `entities/transporte/lectura-de-la-unidad.ts`) y si el flujo
+  usa contenedores (regla `contenedor`, `usaContenedores`). Grupos planos a la vista, en orden de uso (`FormularioDeTransporte`): **«Dónde viaja»** (`DondeViaja`,
+  `entities/transporte/donde-viaja.ts`): el contenedor o el embarque con su `InsigniaDeEstado` y, con embarque, lo suyo mostrado y no repetido como campo (naviera, ruta, zarpe,
+  llegada estimada y real), `LineaDelAviso` («Cambia para los 2 vehículos de este embarque.», `avisoDelTransporte`, alto reservado desde `EsqueletoDelTransporte`), «Elegir o crear»
+  (o «Cambiar») y «Editar el embarque» (`embarqueDeLogistica`; «Ver el embarque» sin permiso) o, en un contenedor sin embarque, «Ver el contenedor». «Elegir o crear» abre
+  `ModalDondeViaja` (`?transporte=donde-viaja`, `CLAVE_DE_DONDE_VIAJA`, diferido y **fuera** del `<form>` del hueco: su `submit` subiría por el portal): «Contenedor | Embarque»
+  (contenedores sólo con `usaContenedores`), «De los que hay» (los primeros 10 del origen por `contenedores_listar`/`embarques_listar`, buscar por prefijo desde 3) o «Nuevo» (número y
+  tipo, o booking y naviera); escribe `ponerElVehiculoEnTransporte` (crea con el id del intento y `transporte_asignar` con la versión). Si ya va en otro, `avisoDeMover` lo dice y el
+  botón es «Moverlo» (la confirmación); el respaldo de la base (`causa: 'mover'`) deja su mensaje y el siguiente envío lleva `mover`. «Completar» de «Qué falta» enfoca por
+  `[data-clave-de-dato~=clave]`: «Elegir o crear» cumple contenedor y booking; «Editar el embarque», naviera y fechas. **Sin embarque**, «Ruta» y «Fechas» son del vehículo (la
+  base no deja propios con embarque, `transportes_embarque_sin_propios`); siempre «Notas»; un «Guardar» → `guardarTransporte` → `transporte_guardar` con la versión de la fila, la del
+  embarque y la del contenedor, sólo con lo cambiado. Opciones = lo que ofrece el flujo y usa el origen de la unidad (oferta vacía = todo lo activo que usa: sus propios y
   los compartidos que no tapa) **más lo ya guardado**, rotulado «(de otro origen)», «(tapado)»/«(tapada)», «(inactiva)» o «(fuera de la oferta)»
   (`entities/transporte/oferta.ts`, `entities/nucleo/alcance-del-catalogo.ts`); lo guardado que no vino en la lectura del origen se pide aparte: nunca se vacía. `useBorradorDeTransporte` guarda los campos tocados: tras un `PT409`, «Recargar» trae la versión nueva y lo
-  escrito sigue. Sin `logistica.transporte.editar` del origen, campos apagados con el motivo. `entities/transporte/transporte.ts` repite los textos de la base
+  escrito sigue. Sin `logistica.transporte.editar` del origen, campos apagados con el motivo y sin «Elegir o crear». `entities/transporte/transporte.ts` repite los textos de la base
   (contenedor y booking `^[A-Z0-9./-]{1,40}$` tras quitar **todo** espacio y pasar a mayúsculas; notas ≤ 2.000; ETA y arribo no antes del zarpe) sólo en lo
   que cambió; `porCampoDe` lleva el `hint` al campo. Un rechazo sin campo va en un aviso sobre «Guardar».
   **`/logistica/embarques`:** los embarques o los contenedores del origen elegido, cada uno con su estado (`entities/transporte/estado.ts`: lo calcula la base) y lo que lleva;

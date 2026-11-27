@@ -258,7 +258,8 @@ test('T7 la dueña ve subir el margen del mes al confirmar un pago', async ({ pa
   const pagos = page.getByRole('list', { name: 'Pagos de la unidad' })
   await expect(pagos.getByText('Sin confirmar')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Confirmar pago' }).click()
+  await page.getByRole('button', { name: /Más acciones de pago Venta T7/ }).click()
+  await page.getByRole('menuitem', { name: 'Confirmar pago' }).click()
   const confirmar = page.getByRole('dialog', { name: 'Confirmar el pago «Venta T7»' })
   await expect(confirmar).toBeVisible()
   await confirmar.getByRole('button', { name: 'Confirmar pago' }).click()

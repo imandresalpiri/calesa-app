@@ -52,3 +52,36 @@ export async function leerEmbarquesParaElegir(
     ? fallo('inesperado', NO_SE_CARGARON_LAS_OPCIONES)
     : ok({ filas: pagina.filas, hayMas: pagina.siguiente !== null })
 }
+
+// Todos los contenedores del origen (con embarque o sin él), para «Dónde viaja» del hueco «Transporte»: la misma lectura de a diez y por prefijo.
+export async function leerContenedoresParaElegir(
+  origenId: string,
+  prefijo: string | null,
+): Promise<Resultado<OpcionesParaElegir<ContenedorDeLaLista>>> {
+  const { data, error } = await createClient().rpc('contenedores_listar', {
+    p_origen: origenId,
+    p_desde: null as unknown as string,
+    p_tope: TOPE_PARA_ELEGIR,
+    p_filtros: conPrefijo(prefijo),
+  })
+  if (error) return { ok: false, error: errorDePostgrest(error) }
+  const pagina = paginaDeContenedoresDesde(data)
+  return pagina === null
+    ? fallo('inesperado', NO_SE_CARGARON_LAS_OPCIONES)
+    : ok({ filas: pagina.filas, hayMas: pagina.siguiente !== null })
+}
+
+// El catálogo fijo de tipos de contenedor (decenas de filas, `tipos_contenedor_pkey`, policy `using (true)`), para «Crear contenedor» desde el hueco.
+const TOPE_DE_TIPOS = 50
+
+export type TipoParaElegir = { clave: string; nombre: string }
+
+export async function leerTiposDeContenedorParaElegir(): Promise<Resultado<TipoParaElegir[]>> {
+  const { data, error } = await createClient()
+    .from('tipos_contenedor')
+    .select('clave, nombre')
+    .eq('activo', true)
+    .order('orden')
+    .limit(TOPE_DE_TIPOS)
+  return error ? { ok: false, error: errorDePostgrest(error) } : ok(data)
+}

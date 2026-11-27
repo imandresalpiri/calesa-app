@@ -66,7 +66,7 @@ export function borradorDelEmbarque(
   }
 }
 
-function errorDelCodigo(texto: string, que: 'booking' | 'número'): string | null {
+export function errorDelCodigo(texto: string, que: 'booking' | 'número'): string | null {
   const codigo = normalizarCodigo(texto)
   if (codigo === '') return `Escribe el ${que}.`
   return FORMA_DEL_CODIGO.test(codigo)

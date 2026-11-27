@@ -50,7 +50,8 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   // arriba a la decena. La ficha en dos columnas tiene que caber en lo mismo. Con la cotización privada (T413: la insignia de las tarjetas y la pregunta de «Aprobar
   // esta») midió 529,6 KB en 35 chunks y, con los botones «Recargar la página» y «Copiar el enlace de esta página» del marco, 530,7; con la cuenta regresiva de la subasta en la izquierda, 531,8: 540 (regla del 5 %).
   // Con el Modo Live configurable (T587: su proveedor y el silencio del push en el marco), 541,0 KB en 35 chunks: 545 (regla del 5 %).
-  '/vehiculos/[id]': 545,
+  // Con el dinero de la unidad en pestañas y modales (T575, ningún import nuevo de la ficha: Next reagrupó los chunks compartidos), junto con el Live, midió 543,3 en 37 chunks: 550 (regla del 5 %).
+  '/vehiculos/[id]': 550,
   // La ficha de un lead (T33), sin tope hasta las dos columnas: medido 548,5 KB en 36 chunks con pestañas y 554,7 KB en 36 con todo a la vista
   // (el marco de bloques, el índice y el resumen de seguimientos), con un lead recién creado; más un 5 % hacia arriba a la decena.
   '/leads/[id]': 595,

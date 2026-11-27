@@ -97,6 +97,7 @@ export const pagosDeLaUnidad = (page: Page): Locator =>
 export async function registrarElPago(
   page: Page,
   pago: { concepto: string; monto: number },
+  opciones: { sinPoderConfirmar?: boolean } = {},
 ): Promise<void> {
   await abrirSeccionDeLaUnidad(page, 'pagos')
   await page.getByRole('button', { name: 'Registrar pago' }).click()
@@ -108,11 +109,22 @@ export async function registrarElPago(
   await expect(formulario).toBeHidden()
   await expect(pagosDeLaUnidad(page).getByText(pago.concepto)).toBeVisible()
   await expect(pagosDeLaUnidad(page).getByText('Sin confirmar')).toBeVisible()
+  if (opciones.sinPoderConfirmar) await sinConfirmarEnElMenu(page, pago.concepto)
+}
+
+// Quien carga el pago no tiene la clave de confirmar: el «⋯» de su fila ofrece «Editar» y no «Confirmar pago».
+async function sinConfirmarEnElMenu(page: Page, concepto: string): Promise<void> {
+  await page.getByRole('button', { name: `Más acciones de pago ${concepto}` }).click()
+  await expect(page.getByRole('menuitem', { name: 'Editar' })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: 'Confirmar pago' })).toHaveCount(0)
+  await page.keyboard.press('Escape')
 }
 
 export async function confirmarElPago(page: Page, concepto: string): Promise<void> {
   await abrirSeccionDeLaUnidad(page, 'pagos')
-  await page.getByRole('button', { name: 'Confirmar pago' }).click()
+  // «Confirmar pago» va en el «⋯» de la fila.
+  await page.getByRole('button', { name: `Más acciones de pago ${concepto}` }).click()
+  await page.getByRole('menuitem', { name: 'Confirmar pago' }).click()
   const confirmar = page.getByRole('dialog', { name: `Confirmar el pago «${concepto}»` })
   await expect(confirmar).toBeVisible()
   await confirmar.getByRole('button', { name: 'Confirmar pago' }).click()

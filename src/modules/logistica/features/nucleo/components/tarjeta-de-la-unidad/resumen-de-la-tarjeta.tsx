@@ -3,8 +3,13 @@
 import type { Route } from 'next'
 import { useRouter } from 'next/navigation'
 import { MasAcciones, type AccionDeMenu } from '@/shared/ui/lista'
+import { Monto } from '@/shared/ui/monto'
 import { salirSinPerder } from '@/shared/ui/salida-con-cambios'
-import type { AccionDeLaTarjeta, ResumenDeTarjeta } from '../../../../entities/nucleo/tarjeta'
+import type {
+  AccionDeLaTarjeta,
+  LineaDelResumen,
+  ResumenDeTarjeta,
+} from '../../../../entities/nucleo/tarjeta'
 import { AvisoDeLaTarjeta } from './aviso-de-la-tarjeta'
 import { useAvisoDeQueFalta } from '../../avisos-de-las-tarjetas'
 import { useTarjeta } from './contexto'
@@ -32,7 +37,23 @@ function lineaDelMenu(
   }
 }
 
-// Lo que dice una tarjeta de la unidad, ya leído en el servidor: hasta dos líneas (cortadas con elipsis), su aviso y el «⋯» con la lista única de sus acciones (la primera, en
+// Una línea: su texto (con `title` para leerla entera) o un monto de la base con su etiqueta.
+function Linea({ linea }: { linea: LineaDelResumen }) {
+  if (typeof linea === 'string') {
+    return (
+      <p className="truncate" title={linea}>
+        {linea}
+      </p>
+    )
+  }
+  return (
+    <p className="truncate">
+      {linea.etiqueta}: <Monto valor={linea.monto} className="font-medium text-(--color-ink)" />
+    </p>
+  )
+}
+
+// Lo que dice una tarjeta de la unidad, ya leído en el servidor: hasta tres líneas (cortadas con elipsis), su aviso y el «⋯» con la lista única de sus acciones (la primera, en
 // negrita, es la del toque). Va sobre el botón que cubre la tarjeta: el texto deja pasar el clic y el «⋯» lo recupera. Mide siempre lo mismo que su esqueleto.
 export function ResumenDeLaTarjeta({ titulo, resumen }: Props) {
   const { clave, abrir } = useTarjeta()
@@ -56,10 +77,8 @@ export function ResumenDeLaTarjeta({ titulo, resumen }: Props) {
   return (
     <>
       <div className="pointer-events-none grid min-h-10 content-start gap-0.5 text-(length:--text-sm) text-(--color-ink-soft)">
-        {resumen.lineas.slice(0, 2).map((linea) => (
-          <p key={linea} className="truncate" title={linea}>
-            {linea}
-          </p>
+        {resumen.lineas.slice(0, 3).map((linea) => (
+          <Linea key={typeof linea === 'string' ? linea : linea.etiqueta} linea={linea} />
         ))}
       </div>
       <div className="flex h-5 items-center">

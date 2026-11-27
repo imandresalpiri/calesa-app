@@ -263,8 +263,11 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
   clave en dos renglones dejan la tarjeta en 550 px y las columnas pasan Avisos push abajo de Web pública. Para entrar, la tarjeta tiene que bajar de
   ≈ 447 px: el resultado de la prueba como fila del `dl`, Proveedor y Modelo en una (`integraciones/components/tarjeta-de-asistente-ia.tsx`).
 - **[—]** «Ayuda» abierta por la URL (`?panel=ayuda`) mientras lee deja el foco en «Elegir mis enlaces» del pie (el cuerpo todavía no tiene nada enfocable): llevarlo al título o a la ✕ (`src/app/(app)/_shell/ayuda/modal-de-ayuda.tsx`).
-- **[—]** El comprobante de «Registrar gasto» es el `<input type="file">` nativo: el navegador escribe «Choose File» y «No file chosen» en su idioma, no
-  en el de la app — usar el botón «Elegir archivos» de los documentos de la unidad (`logistica/features/dinero/components/campo-de-comprobante.tsx`).
+- **[—]** El desglose del margen (`?panel=desglose-del-margen`) dice el error de lectura sin «Reintentar» propio: se reintenta cerrando y abriendo
+  (`logistica/features/dinero/components/desglose-del-margen.tsx`).
+- **[—]** `?panel=desglose-del-margen` sin `logistica.margen.ver` abre el drawer de Dinero en su primera pestaña sin decir por qué no hay desglose.
+- **[—]** Al 200 %, la tarjeta Dinero con tres líneas y el aviso «Pago sin confirmar» corta el aviso con puntos suspensivos: el aviso como cuarta línea
+  reservada o las líneas en una sola (`entities/dinero/resumen.ts`).
 - **[—]** En el diagrama del flujo, una caja movida encima de una flecha tapa su etiqueta (React Flow dibuja las cajas sobre las etiquetas): la salida sigue
   abriéndose desde el panel o moviendo la caja; evaluar subir las etiquetas sobre las cajas (`flujos/features/configuracion/components/diagrama/flecha-de-salida.tsx`).
 - **[—]** El minimapa del diagrama del flujo usa los grises por defecto de React Flow, sin marco ni los tokens (`--color-surface`, `--color-line`): darle el

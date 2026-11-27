@@ -41,7 +41,7 @@ export function TarjetaDelHuecoDelItem({ unidad, huecos, clave }: Props) {
       etiqueta={resumen.acciones[0]?.etiqueta ?? hueco.titulo}
       huecos={[clave]}
       claveDeLaUrl={CLAVE_DE_SECCION_DEL_ITEM}
-      contenido={<ContenidoDeLaTarjeta unidad={unidad} huecos={[hueco]} />}
+      contenido={<ContenidoDeLaTarjeta clave={clave} unidad={unidad} huecos={[hueco]} />}
     >
       <ResumenDeLaTarjeta titulo={hueco.titulo} resumen={resumen} />
     </TarjetaDeLaUnidad>

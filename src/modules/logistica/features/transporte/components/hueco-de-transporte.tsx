@@ -33,6 +33,7 @@ function DeUnVehiculo({ unidad }: { unidad: Unidad }) {
   return (
     <FormularioDeTransporte
       unidadId={unidad.id}
+      origenId={unidad.origenId}
       datos={lectura.datos}
       // Mientras `mis_permisos` no llegó, el formulario está apagado.
       puedeEditar={
@@ -48,8 +49,8 @@ function DeUnVehiculo({ unidad }: { unidad: Unidad }) {
   )
 }
 
-// El hueco «Transporte» del panel de la unidad (6.08-2): naviera, puertos, contenedor, booking, fechas y notas, con la oferta del flujo, guardado con versión y conflicto «Recargar». La unidad de
-// repuesto llega con 8.13: aquí sólo se dice (D19).
+// El hueco «Transporte» del panel de la unidad (6.08-2): dónde viaja (contenedor o embarque, elegido o creado ahí mismo), la ruta y las fechas propias si no va en un embarque y las notas,
+// con la oferta del flujo, guardado con versión y conflicto «Recargar». La unidad de repuesto llega con 8.13: aquí sólo se dice (D19).
 export function HuecoDeTransporte({ unidad }: { unidad: Unidad }) {
   if (unidad.tipo === 'repuesto') {
     return <p className="text-(length:--text-sm) text-(--color-ink-soft)">{TEXTO_DE_REPUESTO}</p>

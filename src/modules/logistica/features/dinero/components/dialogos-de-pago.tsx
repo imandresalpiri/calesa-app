@@ -1,12 +1,13 @@
 'use client'
 
+import { useAbiertoAlgunaVez } from '@/shared/ui/use-abierto-alguna-vez'
 import type { PanelesDePago } from '../hooks/use-paneles-de-pago'
 import { ConfirmarEliminarPago } from './confirmar-eliminar-pago'
 import { ConfirmarPago } from './confirmar-pago'
 import { DrawerDeAnulacion } from './drawer-de-anulacion'
-import { DrawerDePago } from './drawer-de-pago'
+import { ModalDePagoDiferido } from './diferidos-de-dinero'
 
-// Los cuatro paneles del hueco «Pagos»: el formulario, «Confirmar pago», «Eliminar» y «Anular pago». Cada uno vive en su URL (`?panel=…&pago=<id>`) y sólo abre si el estado del pago y el
+// Los cuatro paneles del hueco «Pagos»: el modal corto del pago (diferido, montado al abrirse por primera vez), «Confirmar pago», «Eliminar» y «Anular pago». Cada uno vive en su URL (`?panel=…&pago=<id>`) y sólo abre si el estado del pago y el
 // permiso lo dejan.
 export function DialogosDePago({
   unidadId,
@@ -17,21 +18,26 @@ export function DialogosDePago({
   paneles: PanelesDePago
   permisos: { puedeEditar: boolean; puedeConfirmar: boolean }
 }) {
+  const montado = useAbiertoAlgunaVez(p.formulario.abierto)
   return (
     <>
-      <DrawerDePago
-        abierto={p.formulario.abierto}
-        alCerrar={p.formulario.cerrar}
-        unidadId={unidadId}
-        original={p.formulario.nuevo ? null : p.formulario.original}
-        apertura={p.formulario.apertura}
-        permisos={permisos}
-        alAnular={() => {
-          if (p.formulario.original) {
-            p.abrirAnular(p.formulario.original.id)
-          }
-        }}
-      />
+      {montado ? (
+        <ModalDePagoDiferido
+          // Cada apertura nace de nuevo (otro intento, los campos de lo guardado) y el cierre se va con su animación.
+          key={p.formulario.apertura}
+          abierto={p.formulario.abierto}
+          alCerrar={p.formulario.cerrar}
+          unidadId={unidadId}
+          original={p.formulario.original}
+          perdido={p.formulario.perdido}
+          permisos={permisos}
+          alAnular={() => {
+            if (p.formulario.original) {
+              p.abrirAnular(p.formulario.original.id)
+            }
+          }}
+        />
+      ) : null}
       <ConfirmarPago
         abierto={p.confirmar.abierto}
         pago={p.confirmar.pago}

@@ -1,166 +1,106 @@
 'use client'
 
-import { formatearNumero } from '@/shared/lib/formato'
+import Link from 'next/link'
+import { rutaDeUnCatalogo } from '@/shared/lib/rutas'
+import { Aviso } from '@/shared/ui/aviso'
 import { Campo } from '@/shared/ui/campo'
+import { CampoDeNotas } from '@/shared/ui/campo-de-notas'
 import { CampoSeleccion } from '@/shared/ui/campo-seleccion'
-import { Monto } from '@/shared/ui/monto'
-import { useRegional } from '@/shared/ui/regional'
+import { GrupoDeCampos } from '@/shared/ui/grupo-de-campos'
 import type { OpcionesDeGasto } from '../../../areas/dinero/composicion.client'
 import { categoriasParaElegir } from '../../../entities/dinero/categoria'
 import type { Gasto } from '../../../entities/dinero/gasto'
-import type { TipoDeCambio } from '../../../entities/dinero/tipo-de-cambio'
 import type { useFormularioDeGasto } from '../hooks/use-formulario-de-gasto'
 import { CampoDeComprobante } from './campo-de-comprobante'
+import { CampoDeTipoDeCambio } from './campo-de-tipo-de-cambio'
+import { MontoDelFormulario } from './monto-del-formulario'
+
+type Formulario = ReturnType<typeof useFormularioDeGasto>
 
 type Props = {
   unidadId: string
+  // El origen de la unidad: sus categorías y, sin ninguna, a dónde ir a cargarlas.
+  origenId: string
   original: Gasto | null
-  opciones: OpcionesDeGasto
-  formulario: ReturnType<typeof useFormularioDeGasto>
-}
-
-const TASA_CON_CUATRO_DECIMALES = 4
-
-function etiquetaDelTipo(tipo: TipoDeCambio, locale: string): string {
-  const valor = formatearNumero(tipo.valor, { locale, decimales: TASA_CON_CUATRO_DECIMALES })
-  return `${tipo.nombre} · ${tipo.monedaDe} → ${tipo.monedaA} · ${valor}`
-}
-
-type Formulario = Props['formulario']
-
-// La moneda, el monto y, si la moneda no es la base, el tipo de cambio; el equivalente guardado de un gasto que se edita va de sólo lectura y es el que devolvió la base: acá nunca se multiplica.
-function CamposDeMonto({ original, opciones, formulario: f }: Omit<Props, 'unidadId'>) {
-  const { locale, monedaBase } = useRegional()
-  const { valores, errores, enCurso, tipos } = f
-  return (
-    <>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <CampoSeleccion
-          nombre="gasto-moneda"
-          etiqueta="Moneda"
-          opciones={opciones.monedas.map((m) => ({
-            valor: m.codigo,
-            etiqueta: `${m.codigo} · ${m.nombre}`,
-          }))}
-          value={valores.moneda}
-          onChange={(evento) => {
-            f.escribir({ moneda: evento.target.value })
-          }}
-          error={errores['moneda']}
-          disabled={enCurso}
-        />
-        <Campo
-          nombre="gasto-monto"
-          etiqueta="Monto"
-          inputMode="decimal"
-          autoComplete="off"
-          value={valores.monto}
-          onChange={(evento) => {
-            f.escribir({ monto: evento.target.value })
-          }}
-          error={errores['monto']}
-          disabled={enCurso}
-        />
-      </div>
-      {valores.moneda !== monedaBase ? (
-        <CampoSeleccion
-          nombre="gasto-tipo-de-cambio"
-          etiqueta="Tipo de cambio"
-          opciones={[
-            {
-              valor: '',
-              etiqueta:
-                tipos.length === 0 ? 'Sin tipo de cambio activo' : 'Elige el tipo de cambio',
-            },
-            ...tipos.map((t) => ({ valor: t.id, etiqueta: etiquetaDelTipo(t, locale) })),
-          ]}
-          value={valores.tipoCambioId}
-          onChange={(evento) => {
-            f.escribir({ tipoCambioId: evento.target.value })
-          }}
-          ayuda={`La base guarda el equivalente en ${monedaBase} con el valor de este momento.`}
-          error={errores['tipoCambioId']}
-          disabled={enCurso}
-        />
-      ) : null}
-      {original && original.moneda !== monedaBase && original.tipoCambioAplicado !== null ? (
-        <p className="text-(length:--text-sm) text-(--color-ink-soft)">
-          Equivale a <Monto valor={original.montoBase} />, a{' '}
-          {formatearNumero(original.tipoCambioAplicado, {
-            locale,
-            decimales: TASA_CON_CUATRO_DECIMALES,
-          })}
-          .
-        </p>
-      ) : null}
-    </>
-  )
-}
-
-function CampoDeTexto({
-  clave,
-  nombre,
-  etiqueta,
-  formulario: f,
-  type,
-}: {
-  clave: 'fecha' | 'proveedor' | 'notas'
-  nombre: string
-  etiqueta: string
+  // Nulas mientras se leen.
+  opciones: OpcionesDeGasto | null
   formulario: Formulario
-  type?: 'date'
-}) {
+  // `logistica.catalogos.gestionar` en el origen: sin categorías, el enlace a cargarlas.
+  puedeGestionarCategorias: boolean
+}
+
+export const SIN_CATEGORIAS_DE_GASTO = 'Este origen no tiene categorías de gasto activas.'
+
+// La categoría del origen o, sin ninguna activa, por qué no se puede registrar y a dónde ir (o a quién pedírselo).
+function CategoriaDelGasto({
+  origenId,
+  original,
+  opciones,
+  formulario: f,
+  puedeGestionarCategorias,
+}: Omit<Props, 'unidadId'>) {
+  const categorias = opciones
+    ? categoriasParaElegir(
+        opciones.categorias,
+        original ? { id: original.categoriaId, nombre: original.categoriaNombre } : null,
+        opciones.origenes,
+      )
+    : []
+  if (opciones !== null && categorias.length === 0) {
+    return (
+      <Aviso tono="aviso">
+        <p data-estado="sin-categorias">
+          {SIN_CATEGORIAS_DE_GASTO}{' '}
+          {puedeGestionarCategorias ? (
+            <Link
+              href={rutaDeUnCatalogo(origenId, 'categorias-de-gasto')}
+              className="font-medium text-(--color-ink) underline underline-offset-2"
+            >
+              Cargar categorías
+            </Link>
+          ) : (
+            'Pídeselo a quien configura la logística.'
+          )}
+        </p>
+      </Aviso>
+    )
+  }
   return (
-    <Campo
-      nombre={nombre}
-      etiqueta={etiqueta}
-      type={type}
-      autoComplete="off"
-      value={f.valores[clave]}
+    <CampoSeleccion
+      nombre="gasto-categoria"
+      etiqueta="Categoría"
+      opciones={[{ valor: '', etiqueta: 'Elige una categoría' }, ...categorias]}
+      value={f.valores.categoriaId}
       onChange={(evento) => {
-        f.escribir({ [clave]: evento.target.value })
+        f.escribir({ categoriaId: evento.target.value })
       }}
-      error={f.errores[clave]}
-      disabled={f.enCurso}
+      error={f.errores['categoriaId']}
+      disabled={f.enCurso || opciones === null}
     />
   )
 }
 
-// Los campos del formulario de un gasto: la categoría, el monto con su moneda, la fecha, el proveedor, las notas y el comprobante.
-export function CamposDeGasto({ unidadId, original, opciones, formulario: f }: Props) {
-  const categorias = categoriasParaElegir(
-    opciones.categorias,
-    original ? { id: original.categoriaId, nombre: original.categoriaNombre } : null,
-    opciones.origenes,
-  )
+// Los campos de un gasto, de lo principal a lo secundario y todo a la vista: el monto con su moneda, la categoría, la fecha y el comprobante; debajo, «Más datos» (tipo de cambio,
+// proveedor y notas), un grupo plano que nunca se pliega.
+export function CamposDeGasto(props: Props) {
+  const { unidadId, original, opciones, formulario: f } = props
   return (
-    <>
-      <CampoSeleccion
-        nombre="gasto-categoria"
-        etiqueta="Categoría"
-        opciones={[{ valor: '', etiqueta: 'Elige una categoría' }, ...categorias]}
-        value={f.valores.categoriaId}
-        onChange={(evento) => {
-          f.escribir({ categoriaId: evento.target.value })
-        }}
-        error={f.errores['categoriaId']}
-        disabled={f.enCurso}
-      />
-      <CamposDeMonto original={original} opciones={opciones} formulario={f} />
-      <CampoDeTexto
-        clave="fecha"
-        nombre="gasto-fecha"
-        etiqueta="Fecha"
-        type="date"
-        formulario={f}
-      />
-      <CampoDeTexto
-        clave="proveedor"
-        nombre="gasto-proveedor"
-        etiqueta="Proveedor"
-        formulario={f}
-      />
-      <CampoDeTexto clave="notas" nombre="gasto-notas" etiqueta="Notas" formulario={f} />
+    <div className="grid min-w-0 gap-4">
+      <MontoDelFormulario prefijo="gasto" opciones={opciones} original={original} formulario={f} />
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
+        <CategoriaDelGasto {...props} />
+        <Campo
+          nombre="gasto-fecha"
+          etiqueta="Fecha"
+          type="date"
+          value={f.valores.fecha}
+          onChange={(evento) => {
+            f.escribir({ fecha: evento.target.value })
+          }}
+          error={f.errores['fecha']}
+          disabled={f.enCurso}
+        />
+      </div>
       <CampoDeComprobante
         unidadId={unidadId}
         ruta={f.valores.comprobanteRuta}
@@ -170,6 +110,32 @@ export function CamposDeGasto({ unidadId, original, opciones, formulario: f }: P
         error={f.errores['comprobanteRuta']}
         deshabilitado={f.enCurso}
       />
-    </>
+      <GrupoDeCampos titulo="Más datos">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <CampoDeTipoDeCambio prefijo="gasto" formulario={f} />
+          <Campo
+            nombre="gasto-proveedor"
+            etiqueta="Proveedor"
+            autoComplete="off"
+            value={f.valores.proveedor}
+            onChange={(evento) => {
+              f.escribir({ proveedor: evento.target.value })
+            }}
+            error={f.errores['proveedor']}
+            disabled={f.enCurso}
+          />
+        </div>
+        <CampoDeNotas
+          nombre="gasto-notas"
+          etiqueta="Notas"
+          value={f.valores.notas}
+          onChange={(evento) => {
+            f.escribir({ notas: evento.target.value })
+          }}
+          error={f.errores['notas']}
+          disabled={f.enCurso}
+        />
+      </GrupoDeCampos>
+    </div>
   )
 }

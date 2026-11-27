@@ -15,13 +15,15 @@ import {
 } from '../../../entities/dinero/pago'
 import { opcionesDeTipoDeCambio } from '../../../entities/dinero/tipo-de-cambio'
 import { useEnvioDePago } from './use-envio-de-pago'
+import { estadoDelEnvio } from './estado-del-envio'
 
 type Args = {
   unidadId: string
   // Nulo = «Registrar pago».
   original: Pago | null
   // Las monedas y los tipos de cambio son los mismos que ofrece un gasto (las categorías no se usan).
-  opciones: OpcionesDeGasto
+  // Nulas mientras se leen: el formulario ya se escribe y no se envía hasta que lleguen.
+  opciones: OpcionesDeGasto | null
   alCerrar: () => void
   // Cerrado, lo que esperaba la red no sale ni se escribe borrador.
   abierto: boolean
@@ -45,14 +47,14 @@ export function useFormularioDePago({ unidadId, original, opciones, alCerrar, ab
   )
   const [valores, setValores] = useState<BorradorDePago>(inicial)
   const [errores, setErrores] = useState<Record<string, string>>({})
-  const tipos = opcionesDeTipoDeCambio(opciones.tiposDeCambio, valores.moneda, monedaBase)
+  const tipos = opcionesDeTipoDeCambio(opciones?.tiposDeCambio ?? [], valores.moneda, monedaBase)
 
   function escribir(cambios: Partial<BorradorDePago>) {
     setValores((antes) => {
       const siguiente = { ...antes, ...cambios }
       if (cambios.moneda !== undefined && cambios.moneda !== antes.moneda) {
         siguiente.tipoCambioId = tipoPorOmision(
-          opcionesDeTipoDeCambio(opciones.tiposDeCambio, cambios.moneda, monedaBase),
+          opcionesDeTipoDeCambio(opciones?.tiposDeCambio ?? [], cambios.moneda, monedaBase),
         )
       }
       return siguiente
@@ -88,7 +90,7 @@ export function useFormularioDePago({ unidadId, original, opciones, alCerrar, ab
   })
 
   async function enviar(): Promise<boolean> {
-    if (envio.conflicto !== null || envio.enCurso) {
+    if (opciones === null || envio.conflicto !== null || envio.enCurso) {
       return false
     }
     const validado = validarPago(valores, { monedaBase, locale, tiposDisponibles: tipos.length })
@@ -102,13 +104,9 @@ export function useFormularioDePago({ unidadId, original, opciones, alCerrar, ab
   return {
     valores,
     errores,
-    aviso: envio.aviso,
-    conflicto: envio.conflicto,
-    enCurso: envio.enCurso,
-    enLinea: envio.enLinea,
-    esperandoConexion: envio.esperandoConexion,
+    ...estadoDelEnvio(envio, opciones === null, enviar),
     tipos,
-    // Cerrar ahora perdería lo escrito: el drawer pregunta antes de salir por un aviso.
+    // Cerrar ahora perdería lo escrito: el modal pregunta en su pie.
     hayCambios: JSON.stringify(valores) !== JSON.stringify(inicial),
     escribir,
     enviar,

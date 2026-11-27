@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ok } from '@/shared/lib/errores'
@@ -102,6 +102,16 @@ afterEach(() => {
   cleanup()
 })
 
+// Abre el «⋯» de la fila: toda acción del pago va ahí.
+async function abrirElMenu(nombre: RegExp) {
+  const boton = await screen.findByRole('button', { name: nombre })
+  act(() => {
+    fireEvent.pointerDown(boton)
+    fireEvent.mouseDown(boton)
+    fireEvent.click(boton)
+  })
+}
+
 describe('HuecoDePagos: pagos sin confirmar', () => {
   it('sin permiso de confirmar no hay «Confirmar pago» ni «Anular pago»', async () => {
     lecturas.permisos = [VER, EDITAR]
@@ -115,15 +125,15 @@ describe('HuecoDePagos: pagos sin confirmar', () => {
     expect(screen.getByText('Sin confirmar')).toBeTruthy()
   })
 
-  it('con confirmar y sin editar ofrece «Confirmar pago» y no «Registrar» ni «Editar»', async () => {
+  it('con confirmar y sin editar, su «⋯» ofrece «Confirmar pago» y no «Editar»; sin «Registrar»', async () => {
     lecturas.permisos = [VER, CONFIRMAR]
     dibujar()
     await screen.findByText('Anticipo')
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Confirmar pago' })).toBeTruthy()
-    })
+    expect(screen.queryByRole('button', { name: 'Confirmar pago' })).toBeNull()
+    await abrirElMenu(/Más acciones de pago Anticipo/)
+    expect(await screen.findByRole('menuitem', { name: 'Confirmar pago' })).toBeTruthy()
+    expect(screen.queryByRole('menuitem', { name: 'Editar' })).toBeNull()
     expect(screen.queryByRole('button', { name: /Registrar pago/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: /Más acciones/ })).toBeNull()
   })
 
   it('con editar ofrece «Registrar pago» y «Más acciones»', async () => {

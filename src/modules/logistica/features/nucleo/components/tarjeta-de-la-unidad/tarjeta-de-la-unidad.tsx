@@ -103,7 +103,7 @@ export function TarjetaDeLaUnidad({
       <section
         aria-labelledby={idDelTitulo}
         data-tarjeta={clave}
-        className="relative grid h-32 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] gap-1 overflow-hidden rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-3 has-data-aviso:border-(--color-aviso) has-[[data-slot=toque-de-la-tarjeta]:hover]:bg-(--color-surface-2)"
+        className="relative grid h-36 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] gap-1 overflow-hidden rounded-(--radius-card) border border-(--color-line) bg-(--color-surface) p-3 has-data-aviso:border-(--color-aviso) has-[[data-slot=toque-de-la-tarjeta]:hover]:bg-(--color-surface-2)"
       >
         <ToqueDeLaTarjeta
           etiqueta={etiqueta}
@@ -115,7 +115,13 @@ export function TarjetaDeLaUnidad({
         {huecos.map((hueco) => (
           <span key={hueco} hidden {...{ [ATRIBUTO_DEL_BLOQUE]: hueco }} />
         ))}
-        <OyentesDeLosHuecos huecos={huecos} alPedir={() => abrir()} />
+        <OyentesDeLosHuecos
+          huecos={huecos}
+          // Con varios huecos (Dinero), el drawer abre en la vista del pedido; ya abierto, la cambia `VistasDeLaTarjeta`.
+          alPedir={(hueco) => {
+            abrir(huecos.length > 1 ? { url: { [clave]: hueco } } : {})
+          }}
+        />
         <h3
           id={idDelTitulo}
           className="pointer-events-none relative truncate pe-10 text-(length:--text-base) font-medium text-(--color-ink)"
@@ -137,12 +143,14 @@ function OyentesDeLosHuecos({
   alPedir,
 }: {
   huecos: readonly string[]
-  alPedir: () => void
+  alPedir: (hueco: string) => void
 }) {
   return huecos.map((hueco) => <OyenteDelHueco key={hueco} hueco={hueco} alPedir={alPedir} />)
 }
 
-function OyenteDelHueco({ hueco, alPedir }: { hueco: string; alPedir: () => void }) {
-  useAlPedirAbrirElHueco(hueco, alPedir)
+function OyenteDelHueco({ hueco, alPedir }: { hueco: string; alPedir: (hueco: string) => void }) {
+  useAlPedirAbrirElHueco(hueco, () => {
+    alPedir(hueco)
+  })
   return null
 }

@@ -130,21 +130,34 @@ describe('esquemaAsignarUnidades', () => {
 })
 
 describe('esquemaPonerElVehiculoEnTransporte', () => {
-  it('uno nuevo lleva su booking o su número normalizado', () => {
+  it('uno nuevo lleva lo mínimo: su número normalizado y su tipo, o su booking y su naviera', () => {
     const r = esquemaPonerElVehiculoEnTransporte.parse({
       origenId: O,
       vehiculoId: A,
       actualizadoEn: null,
-      destino: { tipo: 'contenedor', id: B, nuevo: { numero: 'tghu 5678' } },
+      destino: { tipo: 'contenedor', id: B, nuevo: { numero: 'tghu 5678', tipo: '40hc' } },
       mover: false,
     })
-    expect(r.destino).toEqual({ tipo: 'contenedor', id: B, nuevo: { numero: 'TGHU5678' } })
+    expect(r.destino).toEqual({
+      tipo: 'contenedor',
+      id: B,
+      nuevo: { numero: 'TGHU5678', tipo: '40hc' },
+    })
     expect(
       esquemaPonerElVehiculoEnTransporte.safeParse({
         origenId: O,
         vehiculoId: A,
         actualizadoEn: null,
-        destino: { tipo: 'embarque', id: B, nuevo: { numero: 'X' } },
+        destino: { tipo: 'embarque', id: B, nuevo: { booking: 'bk 1', naviera_id: 'x' } },
+        mover: false,
+      }).success,
+    ).toBe(false)
+    expect(
+      esquemaPonerElVehiculoEnTransporte.safeParse({
+        origenId: O,
+        vehiculoId: A,
+        actualizadoEn: null,
+        destino: { tipo: 'embarque', id: B, nuevo: { numero: 'X', tipo: null } },
         mover: false,
       }).success,
     ).toBe(false)

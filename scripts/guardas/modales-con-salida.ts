@@ -54,6 +54,15 @@ export const MODALES: Record<string, RegistroDeModal> = {
       'sólo dibuja los estados de carga, error y sin tipos; los formularios de anotar y agendar son ModalDeFormulario',
   },
   // --- logistica
+  'src/modules/logistica/features/dinero/components/desglose-del-margen.tsx': {
+    sinFormulario:
+      'sólo muestra las cifras del margen de la unidad y lo real por categoría, como lo da la base; nada tipeado que se pierda al cerrar',
+  },
+  'src/modules/logistica/features/dinero/components/modal-de-pago.tsx': {
+    sinFormulario:
+      'el `<Modal>` es la lectura de un pago confirmado (sólo «Cerrar» y «Anular pago», que abre su drawer con el motivo); el pago que se edita va en un ModalDeFormulario',
+    tambien: ['src/modules/logistica/features/dinero/components/lectura-del-pago.tsx'],
+  },
   'src/modules/logistica/features/documentos/components/vista-previa-del-documento.tsx': {
     sinFormulario:
       'sólo mira el archivo de un documento; lo único tipeado es el motivo de un rechazo, una línea del pie que se reescribe y no cambia nada hasta enviarla',

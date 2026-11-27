@@ -75,7 +75,10 @@ export function useHacerAccionDelRequisito() {
       case 'hueco':
         abrirHueco(accion.hueco)
         if (accion.enfocar) {
-          enfocarAlAparecer(selector(ATRIBUTO_DE_CLAVE_DE_DATO, accion.enfocar), { campo: true })
+          // `~=`: un mismo botón o enlace puede cumplir varias claves («Editar el embarque», las del embarque).
+          enfocarAlAparecer(`[${ATRIBUTO_DE_CLAVE_DE_DATO}~="${CSS.escape(accion.enfocar)}"]`, {
+            campo: true,
+          })
         }
         return
       case 'registrar-pago':

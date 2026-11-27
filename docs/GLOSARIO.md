@@ -1052,6 +1052,9 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Contenedor** — `contenedores` / `contenedor_crear|guardar()`: número (único por origen), tipo y sello, en un embarque o todavía sin él (entonces
   sus vehículos llevan sus fechas propias). Entrar a un embarque, cambiar de embarque o salir de él cambia los datos de todos sus vehículos. Se lista con
   `contenedores_listar()` y se abre en su drawer por id (`?contenedor=<id>`, `contenedor_leer()`).
+- **Dónde viaja** — `entities/transporte/donde-viaja.ts`, `DondeViaja`: el contenedor o el embarque en que va una unidad, lo primero de su hueco «Transporte» y de la
+  declaración aduanera. Se elige de los del origen o se crea ahí mismo con lo mínimo («Elegir o crear»); elegir otro cuando ya va en uno la **mueve** («Moverlo»). No: «asignación»,
+  «ubicación».
 - **Suelto** — `QUE_SON_LOS_SUELTOS`, la sección «Sueltos» de la página de un embarque: vehículo de un embarque que no va en un contenedor. No: «sin contenedor».
 - **Algo que falta** — `faltan` de `embarques_listar()` / `contenedores_listar()` y `falta` por vehículo de `embarque_leer()`: al vehículo le falta un requisito bloqueante
   de su fase siguiente (el criterio de los trabados, sin mirar la demora). En la lista, con tope de 200 evaluaciones por llamada (`{ n, hay_mas }`). No es «Trabado»
@@ -1072,6 +1075,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Pago** — `pagos`: pago del cliente; confirmar es un acto sellado.
 - **Desviación / Margen** — `margen_vehiculo()`: cotizado − real / venta − real (null sin venta); `por_categoria` reparte el real por
   categoría de gasto.
+- **Desglose del margen** — `DesgloseDelMargen` (`?panel=desglose-del-margen`): el modal que abre «Ver el desglose» desde la línea del margen: las cinco cifras de
+  `margen_vehiculo()` en la moneda base, qué es cada una y lo real por categoría. No: «detalle», «resumen» (el resumen es el de la tarjeta).
 - **Margen del proyecto** — `repuestos_proyecto_margen()`: por moneda, Σ precios de los ítems − Σ compras; nulo si falta un precio.
 - **Nota** — `notas`: bloc de notas de una unidad; la del cambio de fase apunta a su historial.
 - **Proyecto de repuestos** — `repuestos_proyectos`: un proyecto por vehículo (o externo).
@@ -1343,6 +1348,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
 - **Tarjeta (del ítem)** — cada sección de la columna derecha del panel del ítem (`TARJETAS_DEL_ITEM`): alto fijo, tocable, con su «⋯»; abre su modal, su panel o su drawer (`?seccion=<hueco>` para los de logística). No: «bloque».
 - **Cadena de la unidad** — `CadenaDeLaUnidad` / `cadenaDeLaUnidad()` (`logistica/entities/mover/cadena.ts`): la fila horizontal de fases de la página de la unidad: las **pasadas** (una por cada entrada de `historial_fases`, en orden, sin juntar las repetidas), la **actual** («Actual») y las que **faltan** (el camino principal: desde la actual, la salida activa de menor orden mayor). Tocar una la elige en `?fase_vista=` y «Qué falta» muestra lo de esa fase. No: «la Cadena» de un origen (`/logistica`, la gráfica de todas las fases), ni «línea de tiempo» (la del portal).
 - **Tarjeta de la unidad** — `TarjetaDeLaUnidad` / `ORDEN_DE_TARJETAS`, `TARJETA_DEL_HUECO` (`logistica/entities/nucleo/tarjetas.ts`): cada tema de la unidad (Documentos, Transporte, Repuestos, Aduana, **Dinero** —gastos, pagos y margen—, Notas, Historial) como una tarjeta de alto fijo con su resumen y su aviso, que salen del servidor, y su «⋯»; tocarla hace su acción principal y abre sus huecos en un drawer. No: «zona», «pestaña» ni «bloque»; la «Tarjeta (del ítem)» es la de la columna derecha del panel del ítem.
+- **Vista de la tarjeta** — `VistaDeLaTarjeta`, `vistaActiva` (`logistica/entities/nucleo/vistas-de-la-tarjeta.ts`): cada hueco de una tarjeta que junta varios (Dinero: Gastos, Pagos y
+  Margen) como una pestaña de su drawer, `?<tarjeta>=<hueco>`. No: «sección» (no son hermanas a la vista).
 - **Hueco (de la unidad)** — `HuecoDeLaUnidad` / `ORDEN_DE_HUECOS` (`logistica/entities/nucleo/hueco.ts`): lo que un área de logística aporta a la unidad («Qué falta», documentos, transporte, repuestos, aduana, gastos, pagos, margen, notas, historial), con su permiso y su regla del flujo; se ve en el drawer de su **tarjeta de la unidad** («Qué falta», a la vista al costado). No: «zona», «pestaña» ni «bloque».
 - **Fase vista** — `?fase_vista=<fase>` / `useFaseVista()`, `queMostrarDeLaFase()` (`logistica/entities/mover/fase-vista.ts`): la fase de la **cadena de la unidad** que «Qué falta» muestra en vez de la actual: una pasada (entró, salió, quién y nota), una destino (sus requisitos con mover) u otra («Primero tiene que pasar por «X».»). Sin ella, la actual.
 - **Filtro del historial** — `?historial_fase=`, `?historial_quien=` / `FiltroDelHistorial` (`logistica/entities/mover/filtro-del-historial.ts`): en la página de la unidad, el Historial por la fase a la que entró y por quién lo movió (una persona o «Sistema»); lo hace la base, con las opciones de las pasadas que leyó la cadena.

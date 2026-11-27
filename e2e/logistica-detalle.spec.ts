@@ -157,14 +157,15 @@ test('E2E escritorio · los huecos van en tarjetas y «Dinero» junta gastos, pa
   await expect(page.locator('[data-tarjeta="dinero"]')).toBeVisible()
   await abrirSeccionDeLaUnidad(page, 'gastos')
   await expect(page.locator('[data-hueco="gastos"]')).toBeVisible()
-  await expect(page.locator('[data-hueco="pagos"]')).toBeVisible()
+  await abrirSeccionDeLaUnidad(page, 'margen')
   await expect(page.locator('[data-hueco="margen"]')).toBeVisible()
-  // El drawer abierto queda en la URL y sobrevive a recargar.
+  // El drawer abierto y su vista quedan en la URL y sobreviven a recargar.
   await expect(page).toHaveURL(/hueco=dinero/)
+  await expect(page).toHaveURL(/dinero=margen/)
   expect(await sinDesplazarLaPagina(page)).toBe(true)
   await capturar(page, info, 'escritorio-1440-duena-dinero')
   await page.reload()
-  await expect(page.locator('[data-hueco="gastos"]')).toBeVisible()
+  await expect(page.locator('[data-hueco="margen"]')).toBeVisible()
   // A 1280×800 la dueña tampoco desplaza la página.
   await page.setViewportSize({ width: 1280, height: 800 })
   await expect(page.locator('[data-hueco="margen"]')).toBeVisible()

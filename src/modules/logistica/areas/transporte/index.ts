@@ -31,6 +31,7 @@ export type {
   PaginaDeEmbarques,
 } from '../../entities/transporte/lista-de-embarques'
 export {
+  CLAVE_DE_DONDE_VIAJA,
   CLAVE_DEL_CONTENEDOR_ABIERTO,
   CLAVE_DE_FALTA,
   CLAVE_DE_GRUPO,

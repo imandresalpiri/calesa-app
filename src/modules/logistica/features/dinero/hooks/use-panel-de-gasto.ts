@@ -35,7 +35,9 @@ export function usePanelDeGasto(gastos: readonly Gasto[] | null, puedeEditar: bo
     abierto,
     apertura,
     nuevo: valor === GASTO_NUEVO,
-    original: abierto ? editado : ultimo,
+    // Abierto, el de la lista; si se fue de la lista (otra persona lo eliminó), el último que se mostró y `perdido`: lo escrito queda a la vista y no se guarda.
+    original: valor === GASTO_NUEVO ? null : (editado ?? ultimo),
+    perdido: abierto && valor !== GASTO_NUEVO && editado === null,
     abrirNuevo: () => {
       url.abrir({ [CLAVE_DE_GASTO]: GASTO_NUEVO })
     },
