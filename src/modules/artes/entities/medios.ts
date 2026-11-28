@@ -26,6 +26,13 @@ export const rutaDeLaImagenDelLienzo = (id: string) => `/artes/imagenes/${encode
 export const rutaDelLogoDelLienzo = (variante: string | null) =>
   `/artes/logos/${encodeURIComponent(variante ?? 'principal')}`
 
+// Una foto del vehículo de ejemplo (`/artes/fotos/<vehiculo>/<foto>`), del lado que se pide: la miniatura de 480 px en una lista y la de
+// 1.600 en el lienzo.
+export const LADOS_DE_LA_FOTO = [480, 1600] as const
+export type LadoDeLaFoto = (typeof LADOS_DE_LA_FOTO)[number]
+export const rutaDeLaFotoDelLienzo = (vehiculoId: string, fotoId: string, lado: LadoDeLaFoto) =>
+  `/artes/fotos/${encodeURIComponent(vehiculoId)}/${encodeURIComponent(fotoId)}?ancho=${String(lado)}`
+
 // La etiqueta de un objeto por su ruta en el bucket: la de la biblioteca es por hash (`imagenes/<sha256>.<ext>`), así que la ruta es su
 // versión. Sólo lo que una ETag admite entre comillas.
 export function etiquetaDeLaRuta(ruta: string): string {
