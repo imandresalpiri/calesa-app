@@ -20,7 +20,7 @@ import { expect, test, type Locator, type Page, type TestInfo } from './soporte/
 
 // El editor de artes (docs/UX.md › «Editor de artes») contra la app compilada y el Supabase local, sobre una plantilla Vertical sembrada:
 // R y un arrastre dibujan un rectángulo, T y un clic crean un texto que se escribe en el lienzo; elegido en «Capas», → y Mayús+→ lo mueven
-// 11 px; el ojo lo oculta, Ctrl+] y arrastrar la fila reordenan y Ctrl+Z deshace; Ctrl+S guarda (versión 2 del documento) y al recargar
+// 11 px; el ojo lo oculta, Ctrl+] y arrastrar la fila reordenan y Ctrl+Z deshace; Ctrl+S guarda (versión 3 del documento) y al recargar
 // sigue igual; «Exportar PNG» baja 1080 × 1350 y «Duplicar en otro formato» a Historia deja el texto con su tamaño. Que la caja del lienzo no
 // cambie lo mide `artes-editor-sin-saltos.spec.ts` (este no corre en el celular y la guarda no deja medir la disposición en él).
 test.describe.configure({ mode: 'serial' })
@@ -161,12 +161,12 @@ test('E2E la dueña dibuja, ordena, deshace, guarda, exporta y duplica en otro f
   await test.step('el ojo oculta; Ctrl+] y arrastrar la fila reordenan; Ctrl+Z deshace', () =>
     ocultarYReordenar(page))
 
-  await test.step('Ctrl+S guarda y al recargar sigue igual, en la versión 2', async () => {
+  await test.step('Ctrl+S guarda y al recargar sigue igual, en la versión 3', async () => {
     const guardado = page.getByRole('status').filter({ hasText: /Guardad|Cambios sin guardar/ })
     await expect(guardado).toHaveText('Cambios sin guardar')
     await page.keyboard.press('Control+s')
     await expect(guardado).toHaveText('Guardado')
-    expect(versionDelDocumento(plantilla)).toBe('2')
+    expect(versionDelDocumento(plantilla)).toBe('3')
     await abrirElEditorDeArtes(page, plantilla)
     await abrirCapas(page)
     expect(await nombresDeLasFilas(page)).toEqual(['Rectángulo', FILA])
