@@ -1,12 +1,31 @@
 'use client'
 
 import { Campo } from '@/shared/ui/campo'
-import { formatoDe, MENSAJE_DEL_LADO_PERSONALIZADO } from '../../../entities/formatos'
-import { CAMPO_DEL_ALTO, CAMPO_DEL_ANCHO, type NuevaPlantilla } from '../hooks/use-nueva-plantilla'
+import {
+  formatoDe,
+  MENSAJE_DEL_LADO_PERSONALIZADO,
+  type ClaveDeFormato,
+} from '../../../entities/formatos'
 
-// Ancho y alto de «Nueva plantilla», siempre a la vista: con un formato fijo muestran sus medidas apagadas; con «Personalizado» se escriben, y
-// la línea de abajo (reservada) dice el rango. Elegir otro formato no mueve nada. Comparten su motivo, que va bajo el ancho.
-export function CamposDeMedidas({ formulario }: { formulario: NuevaPlantilla }) {
+type FormularioConMedidas = {
+  formato: ClaveDeFormato
+  personalizado: boolean
+  ancho: string
+  alto: string
+  errores: Record<string, string>
+  escribirLado: (cual: 'ancho' | 'alto', valor: string) => void
+}
+
+type Props = {
+  formulario: FormularioConMedidas
+  // Los ids de los dos campos; el motivo que comparten va en `errores[campos.ancho]`.
+  campos: { ancho: string; alto: string }
+}
+
+// Ancho y alto de «Nueva plantilla» y de «Duplicar en otro formato», siempre a la vista: con un formato fijo muestran sus medidas apagadas; con
+// «Personalizado» se escriben, y la línea de abajo (reservada) dice el rango. Elegir otro formato no mueve nada. Comparten su motivo, que va
+// bajo el ancho.
+export function CamposDeMedidas({ formulario, campos }: Props) {
   const formato = formatoDe(formulario.formato)
   const lado = (cual: 'ancho' | 'alto') =>
     formulario.personalizado ? formulario[cual] : String(formato[cual] ?? '')
@@ -14,7 +33,7 @@ export function CamposDeMedidas({ formulario }: { formulario: NuevaPlantilla }) 
     <div className="grid gap-1.5">
       <div className="grid grid-cols-2 gap-3">
         <Campo
-          nombre={CAMPO_DEL_ANCHO}
+          nombre={campos.ancho}
           etiqueta={`Ancho (${formato.unidad})`}
           inputMode="numeric"
           autoComplete="off"
@@ -23,10 +42,10 @@ export function CamposDeMedidas({ formulario }: { formulario: NuevaPlantilla }) 
           onChange={(evento) => {
             formulario.escribirLado('ancho', evento.target.value)
           }}
-          error={formulario.errores[CAMPO_DEL_ANCHO]}
+          error={formulario.errores[campos.ancho]}
         />
         <Campo
-          nombre={CAMPO_DEL_ALTO}
+          nombre={campos.alto}
           etiqueta={`Alto (${formato.unidad})`}
           inputMode="numeric"
           autoComplete="off"

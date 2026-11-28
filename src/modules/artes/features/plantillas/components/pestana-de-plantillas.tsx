@@ -15,11 +15,13 @@ import type {
 import { useAccionesDeLasPlantillas } from '../hooks/use-acciones-de-las-plantillas'
 import { useFiltrosDeArtes } from '../hooks/use-filtros-de-artes'
 import { usePlantillas } from '../hooks/use-plantillas'
+import { anotarLaVuelta } from '../hooks/vuelta-a-artes'
 import { BarraDeFiltros } from './barra-de-filtros'
 import {
   ConfirmarEliminarPlantillaDiferido,
   ConfirmarHacerlaPrivadaDiferido,
   ModalNuevaPlantillaDiferido,
+  ModalOtroFormatoDiferido,
 } from './diferidos'
 import { ListaDePlantillas } from './lista-de-plantillas'
 
@@ -39,13 +41,14 @@ type Props = {
 }
 
 // La pestaña Plantillas de `/artes`: los filtros arriba, la rejilla con «Ver más» y lo que se abre encima por URL («Nueva plantilla» y las
-// confirmaciones de eliminar y de hacer privada la de otra persona). La página le pone una `key` por filtros: otros filtros empiezan de cero.
+// confirmaciones de eliminar y de hacer privada la de otra persona, «Duplicar en otro formato»). La página le pone una `key` por filtros: otros
+// filtros empiezan de cero. Un clic que abre una plantilla anota antes la dirección de la lista, para volver a ella desde el editor.
 export function PestanaDePlantillas({ inicial, pedido, quien, origenes, porDefecto }: Props) {
   const filtros = useFiltrosDeArtes()
   const plantillas = usePlantillas({ inicial, pedido })
   const acciones = useAccionesDeLasPlantillas({ quien, origenes, porDefecto, plantillas })
   const nueva = usePanelPorUrl(PANEL_NUEVA_PLANTILLA)
-  const { confirmarEliminar, confirmarPrivada } = acciones
+  const { confirmarEliminar, confirmarPrivada, otroFormato } = acciones
   const montarEliminar = useAbiertoAlgunaVez(confirmarEliminar.abierto)
   const montarPrivada = useAbiertoAlgunaVez(confirmarPrivada.abierto)
   const abrirNueva = () => {
@@ -55,6 +58,7 @@ export function PestanaDePlantillas({ inicial, pedido, quien, origenes, porDefec
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
       <BarraDeFiltros origenes={origenes} pedido={pedido} filtros={filtros} alCrear={abrirNueva} />
       <div
+        onClickCapture={anotarLaVuelta}
         aria-busy={filtros.pendiente}
         className={cn(
           'min-w-0 transition-opacity duration-(--dur-rapida)',
@@ -75,6 +79,13 @@ export function PestanaDePlantillas({ inicial, pedido, quien, origenes, porDefec
           origenes={origenes}
           origenInicial={origenInicial(origenes, pedido.origenId)}
           alCerrar={nueva.cerrar}
+        />
+      ) : null}
+      {otroFormato.abierto && otroFormato.plantilla ? (
+        <ModalOtroFormatoDiferido
+          key={otroFormato.apertura}
+          fuente={otroFormato.plantilla}
+          alCerrar={otroFormato.cerrar}
         />
       ) : null}
       {montarEliminar ? (

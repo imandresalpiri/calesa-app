@@ -2,9 +2,11 @@ import 'server-only'
 import { z } from 'zod'
 import { errorDePostgrest, fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { createClient } from '@/shared/lib/supabase/server'
+import { leerDocumento } from '../entities/documento'
 import type { PedidoDePlantillas } from '../entities/filtros'
 import { CLAVES_DE_FORMATO, type TipoDeArte } from '../entities/formatos'
 import { queSeComparte, type QueSeComparte } from '../entities/por-defecto'
+import type { PlantillaParaEditar } from '../entities/tipos'
 import { leerImagenes, leerPlantillas, leerPorDefecto } from './consultas'
 
 // Lo que lee el servidor con la sesión de quien mira: cada página de las pestañas de `/artes` (la primera, con la página; las que siguen, por
@@ -50,6 +52,57 @@ export async function getNombreDeLaPlantilla(
   return leida.success
     ? ok(leida.data)
     : fallo('inesperado', 'No se pudo leer la plantilla de arte.')
+}
+
+const esquemaParaEditar = z.object({
+  id: z.guid(),
+  nombre: z.string(),
+  formato: z.enum(CLAVES_DE_FORMATO),
+  ancho: z.number().int(),
+  alto: z.number().int(),
+  origen_id: z.guid(),
+  visibilidad: z.enum(['privada', 'empresa']),
+  autor_id: z.guid(),
+  documento: z.unknown(),
+  actualizado_en: z.string(),
+})
+
+// La plantilla de arte que abre el editor, si quien mira la ve (RLS), con su documento leído; nula si no existe o no se ve. Por la PK.
+export async function getPlantillaParaEditar(
+  id: string,
+): Promise<Resultado<PlantillaParaEditar | null>> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('artes_plantillas')
+    .select(
+      'id, nombre, formato, ancho, alto, origen_id, visibilidad, autor_id, documento, actualizado_en',
+    )
+    .eq('id', id)
+    .limit(1)
+    .maybeSingle()
+  if (error) {
+    return { ok: false, error: errorDePostgrest(error) }
+  }
+  if (data === null) {
+    return ok(null)
+  }
+  const leida = esquemaParaEditar.safeParse(data)
+  if (!leida.success) {
+    return fallo('inesperado', 'No se pudo leer la plantilla de arte.')
+  }
+  const fila = leida.data
+  return ok({
+    id: fila.id,
+    nombre: fila.nombre,
+    formato: fila.formato,
+    ancho: fila.ancho,
+    alto: fila.alto,
+    origenId: fila.origen_id,
+    visibilidad: fila.visibilidad,
+    autorId: fila.autor_id,
+    actualizadoEn: fila.actualizado_en,
+    documento: leerDocumento(fila.documento),
+  })
 }
 
 const esquemaParaCompartir = z.object({

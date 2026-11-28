@@ -7,6 +7,7 @@
 import type { CapaDeArte, DocumentoDeArte, NodoDelTrazo, PaginaDeArte, Punto } from '../documento'
 import {
   FORMATOS_DE_ARTE,
+  nombreDelTipo,
   tipoDelFormato,
   type ClaveDeFormato,
   type FormatoDeArte,
@@ -20,6 +21,15 @@ export function formatosDestino(clave: ClaveDeFormato): FormatoDeArte[] {
     (formato) =>
       formato.tipo === tipo && (formato.clave !== clave || formato.clave === 'personalizado'),
   )
+}
+
+// Por qué no se puede duplicar de `desde` a `hacia` (otro tipo: px y pt no son la misma unidad), o nulo.
+export function motivoDelFormatoDestino(
+  desde: ClaveDeFormato,
+  hacia: ClaveDeFormato,
+): string | null {
+  const tipo = tipoDelFormato(desde)
+  return tipoDelFormato(hacia) === tipo ? null : `Elige un formato de ${nombreDelTipo(tipo)}.`
 }
 
 type Escala = { sx: number; sy: number; k: number }

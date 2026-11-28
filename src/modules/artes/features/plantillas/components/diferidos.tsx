@@ -8,6 +8,10 @@ export const ModalNuevaPlantillaDiferido = diferido(() =>
   import('./modal-nueva-plantilla').then((modulo) => modulo.ModalNuevaPlantilla),
 )
 
+export const ModalOtroFormatoDiferido = diferido(() =>
+  import('./modal-otro-formato').then((modulo) => modulo.ModalOtroFormato),
+)
+
 export const ConfirmarEliminarPlantillaDiferido = diferido(() =>
   import('./confirmar-eliminar').then((modulo) => modulo.ConfirmarEliminarPlantilla),
 )

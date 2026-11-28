@@ -6,6 +6,7 @@ export {
   getNombreDeLaPlantilla as leerNombreDeLaPlantilla,
   getPaginaDeImagenes as leerPaginaDeImagenes,
   getPaginaDePlantillas as leerPaginaDePlantillas,
+  getPlantillaParaEditar as leerPlantillaParaEditar,
   leerArteParaCompartir,
 } from './infra/lecturas'
 export {
@@ -19,6 +20,7 @@ export {
   crearPlantilla,
   duplicarPlantilla,
   eliminarPlantilla,
+  guardarPlantilla,
   ponerPorDefecto,
   quitarImagen,
   renombrarImagen,

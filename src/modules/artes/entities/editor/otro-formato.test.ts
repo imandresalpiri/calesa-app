@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { documentoVacio, type CapaDe, type CapaDeArte, type DocumentoDeArte } from '../documento'
 import { FORMATOS_DE_ARTE, type Medidas } from '../formatos'
-import { formatosDestino, reacomodarEnOtroFormato } from './otro-formato'
+import { formatosDestino, motivoDelFormatoDestino, reacomodarEnOtroFormato } from './otro-formato'
 
 const BASE = {
   nombre: null,
@@ -289,5 +289,11 @@ describe('los formatos a los que se duplica', () => {
   it('«Personalizado» puede volver a «Personalizado» con otras medidas', () => {
     expect(formatosDestino('personalizado').map((f) => f.clave)).toContain('personalizado')
     expect(formatosDestino('personalizado').every((f) => f.tipo === 'imagen')).toBe(true)
+  })
+
+  it('a otro tipo, el motivo', () => {
+    expect(motivoDelFormatoDestino('vertical', 'cuadrado')).toBeNull()
+    expect(motivoDelFormatoDestino('vertical', 'a4')).toBe('Elige un formato de imagen.')
+    expect(motivoDelFormatoDestino('carta', 'historia')).toBe('Elige un formato de PDF.')
   })
 })

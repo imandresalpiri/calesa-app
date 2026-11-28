@@ -8,8 +8,8 @@ import { MOTIVO_SIN_ARTES } from '../../../entities/permisos-de-artes'
 import type { ImagenDeArte, PaginaDeArtes } from '../../../entities/tipos'
 import { esquemaVerMasImagenes } from '../schemas/imagenes'
 
-// «Ver más» de la biblioteca de imágenes: la página que sigue al cursor, leída en el servidor con la sesión de quien mira (la RLS decide qué ve).
-// Una lectura, no una mutación: no revalida.
+// «Ver más» de la biblioteca de imágenes (con el cursor nulo, la primera página): la que sigue al cursor, leída en el servidor con la sesión
+// de quien mira (la RLS decide qué ve). Una lectura, no una mutación: no revalida.
 export const leerMasImagenesDeArte = actionClient
   .inputSchema(esquemaVerMasImagenes)
   .action(async ({ parsedInput, ctx }): Promise<Resultado<PaginaDeArtes<ImagenDeArte>>> => {

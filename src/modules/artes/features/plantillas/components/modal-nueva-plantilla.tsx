@@ -7,6 +7,8 @@ import { esClaveDeFormato, FORMATOS_DE_ARTE } from '../../../entities/formatos'
 import { LARGO_MAXIMO_DEL_NOMBRE } from '../../../entities/nombres'
 import type { OrigenDeArtes } from '../../../entities/tipos'
 import {
+  CAMPO_DEL_ALTO,
+  CAMPO_DEL_ANCHO,
   CAMPO_DEL_FORMATO,
   CAMPO_DEL_NOMBRE,
   CAMPO_DEL_ORIGEN,
@@ -83,7 +85,10 @@ export function ModalNuevaPlantilla({ origenes, origenInicial, alCerrar }: Props
         }}
         error={formulario.errores[CAMPO_DEL_FORMATO]}
       />
-      <CamposDeMedidas formulario={formulario} />
+      <CamposDeMedidas
+        formulario={formulario}
+        campos={{ ancho: CAMPO_DEL_ANCHO, alto: CAMPO_DEL_ALTO }}
+      />
     </ModalDeFormulario>
   )
 }

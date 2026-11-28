@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { documentoVacio, TOPE_DEL_DOCUMENTO_EN_BYTES } from '../../../entities/documento'
 import {
   esquemaCrearPlantillaDeArte,
+  esquemaDuplicarEnOtroFormato,
   esquemaDuplicarPlantillaDeArte,
   esquemaGuardarPlantillaDeArte,
   esquemaPonerPorDefecto,
@@ -137,6 +138,35 @@ describe('esquemaGuardarPlantillaDeArte', () => {
 
   it('rechaza una miniatura fuera de la carpeta de miniaturas', () => {
     expect(guardar({ miniaturaRuta: `imagenes/${'a'.repeat(64)}.webp` }).success).toBe(false)
+  })
+})
+
+describe('esquemaDuplicarEnOtroFormato', () => {
+  const duplicar = (cambio: Record<string, unknown> = {}) =>
+    esquemaDuplicarEnOtroFormato.safeParse({
+      idNuevo: ID,
+      fuente: ORIGEN,
+      nombre: 'Promo (historia)',
+      formato: 'historia',
+      ancho: null,
+      alto: null,
+      documento: null,
+      ...cambio,
+    })
+
+  it('acepta sin documento (la lista) y con el que se ve (el editor)', () => {
+    expect(duplicar().success).toBe(true)
+    expect(duplicar({ documento: documentoVacio() }).success).toBe(true)
+  })
+
+  it('rechaza un documento inválido y unas medidas fuera del rango', () => {
+    expect(duplicar({ documento: { version: 2, paginas: [] } }).success).toBe(false)
+    expect(duplicar({ formato: 'personalizado', ancho: 100, alto: 100 }).success).toBe(false)
+    expect(duplicar({ formato: 'personalizado', ancho: 800, alto: 600 }).success).toBe(true)
+  })
+
+  it('los ids con guid', () => {
+    expect(duplicar({ fuente: 'x' }).success).toBe(false)
   })
 })
 

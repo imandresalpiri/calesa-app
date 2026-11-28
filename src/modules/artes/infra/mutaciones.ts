@@ -87,6 +87,26 @@ export async function duplicarPlantilla(pedido: {
   return error ? falloDeArtes(error) : respuesta(creada, data)
 }
 
+// Guarda lo que el editor cambió con la versión que se abrió (`PT409` si otra persona guardó antes). La miniatura ya subida; nula, la de antes.
+export async function guardarPlantilla(pedido: {
+  id: string
+  actualizadoEnEsperado: string
+  nombre: string
+  documento: Json
+  miniaturaRuta: string | null
+}): Promise<ResultadoDeAccion<ConVersion>> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('artes_plantilla_guardar', {
+    p_id: pedido.id,
+    p_actualizado_en_esperado: pedido.actualizadoEnEsperado,
+    p_nombre: pedido.nombre,
+    p_documento: pedido.documento,
+    // Los tipos generados no conocen el nulo: la RPC lo acepta (conserva la miniatura).
+    p_miniatura_ruta: pedido.miniaturaRuta as string,
+  })
+  return error ? falloDeArtes(error) : respuesta(conVersion, data)
+}
+
 export async function cambiarVisibilidad(pedido: {
   id: string
   actualizadoEnEsperado: string

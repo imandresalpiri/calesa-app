@@ -12,6 +12,7 @@ import {
   CLAVE_DE_LA_PLANTILLA,
   PANEL_ELIMINAR_PLANTILLA,
   PANEL_HACERLA_PRIVADA,
+  PANEL_OTRO_FORMATO,
 } from '../../../entities/paneles'
 import type { QuienMira } from '../../../entities/permisos-de-artes'
 import { esLaPorDefecto } from '../../../entities/por-defecto'
@@ -22,6 +23,7 @@ import { useDuplicarPlantilla } from './use-duplicar-plantilla'
 import { useEliminarPlantilla } from './use-eliminar-plantilla'
 import { usePorDefectoDeArtes } from './use-por-defecto-de-artes'
 import { useVisibilidadDeLaPlantilla } from './use-visibilidad-de-la-plantilla'
+import { anotarLaVuelta } from './vuelta-a-artes'
 
 type Parametros = {
   quien: QuienMira
@@ -31,8 +33,8 @@ type Parametros = {
 }
 
 // Lo que hace cada línea del «⋯» de una plantilla de arte (la lista y su orden son de `lineasDeLaPlantilla()`): duplicar, la por defecto y
-// la visibilidad de una propia van directo, con su aviso (lo reversible, con «Deshacer»); hacer privada la de otra persona y eliminar abren su
-// confirmación por URL. Un error vuelve como aviso (un conflicto, con «Recargar»).
+// la visibilidad de una propia van directo, con su aviso (lo reversible, con «Deshacer»); duplicar en otro formato abre su modal, y hacer
+// privada la de otra persona y eliminar, su confirmación, todo por URL. Un error vuelve como aviso (un conflicto, con «Recargar»).
 export function useAccionesDeLasPlantillas({
   quien,
   origenes,
@@ -53,14 +55,21 @@ export function useAccionesDeLasPlantillas({
     usePanelPorUrl(PANEL_HACERLA_PRIVADA, [CLAVE_DE_LA_PLANTILLA]),
     plantillas.porId,
   )
+  const otroFormato = useConfirmacionDeLaPlantilla(
+    usePanelPorUrl(PANEL_OTRO_FORMATO, [CLAVE_DE_LA_PLANTILLA]),
+    plantillas.porId,
+  )
   const esAjena = (p: PlantillaDeArte) => p.autorId !== quien.yo
 
   const hacer: Record<ClaveDeAccionDeArte, (p: PlantillaDeArte) => void> = {
     abrir: (p) => {
+      anotarLaVuelta()
       router.push(rutaDeLaPlantillaDeArte(p.id))
     },
     duplicar: (p) => void duplicar(p),
-    'otro-formato': () => undefined,
+    'otro-formato': (p) => {
+      otroFormato.abrir(p.id)
+    },
     'usar-por-defecto': (p) => void porDefectoDe(p, true),
     'quitar-por-defecto': (p) => void porDefectoDe(p, false),
     'hacerla-de-la-empresa': (p) => void visibilidad.cambiar(p, 'empresa', true),
@@ -77,7 +86,7 @@ export function useAccionesDeLasPlantillas({
     },
   }
   const abreEncima = (clave: ClaveDeAccionDeArte, p: PlantillaDeArte) =>
-    clave === 'eliminar' || (clave === 'hacerla-privada' && esAjena(p))
+    clave === 'eliminar' || clave === 'otro-formato' || (clave === 'hacerla-privada' && esAjena(p))
 
   return {
     menuDe: (plantilla: PlantillaDeArte): AccionDeMenu[] =>
@@ -100,6 +109,7 @@ export function useAccionesDeLasPlantillas({
     nombreDelOrigen,
     confirmarEliminar,
     confirmarPrivada,
+    otroFormato,
     eliminacion,
     visibilidad,
   }
