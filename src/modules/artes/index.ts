@@ -9,6 +9,9 @@ export {
   leerPaginaDePlantillas,
   leerPlantillaParaEditar,
   leerTextoBase,
+  pdfDelArte,
+  type PdfDelArte,
+  type PedidoDelPdfDelArte,
   type TextoBaseLeido,
 } from './composicion'
 export {
@@ -44,6 +47,11 @@ export {
   type Falta,
 } from './entities/datos/capas-con-datos'
 export { fotosEnOrden, type FotoParaOrdenar } from './entities/datos/fotos-en-orden'
+export {
+  imagenesDelPdf,
+  paginasConDatos,
+  type PaginaConDatos,
+} from './entities/pdf/paginas-con-datos'
 export { textoDeLoQueFalta } from './entities/datos/lo-que-falta'
 export {
   MOTIVO_SIN_EL_MENSAJE_DEL_PORTAL,
