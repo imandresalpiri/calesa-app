@@ -71,7 +71,8 @@ cada persona para compartir una cotización.
   `efectos-del-formato.ts`: lo que un formato de PDF ofrece y dibuja.
 - `entities/pdf/` — el PDF puro: `geometria-del-pdf.ts` (una página con sus capas con datos → primitivas por posiciones absolutas: fondo, formas,
   líneas, trazos, texto por línea, imagen con su recorte; rotación y opacidad), `color-del-pdf.ts`, `imagen-del-pdf.ts` (de dónde sale cada
-  imagen), `paginas-con-datos.ts` y `pedido-del-pdf.ts` (el cuerpo del `POST`, ≤ `PESO_MAXIMO_DEL_PEDIDO`). `infra/pdf/` (`server-only`) sólo
+  imagen), `paginas-con-datos.ts`, `pedido-del-pdf.ts` (el cuerpo del `POST`, ≤ `PESO_MAXIMO_DEL_PEDIDO`) y `tope-del-pdf.ts` (hasta
+  `MAXIMO_DE_LINEAS_POR_PAGINA` líneas de texto por página: la que pasa no se dibuja). `infra/pdf/` (`server-only`) sólo
   pinta: `documento-del-arte.tsx` (react-pdf: una hoja por página, cada línea de texto en un `<Text>`), `fuentes-del-arte.ts` (la familia
   propia con los cuatro pesos, sin separación en sílabas), `medidas-de-geist.ts`, `imagen-para-el-pdf.ts` (`sharp`: girada, recortada y
   achicada a lo que ocupa) y `pdf-del-arte.ts`. Las fuentes son los TTF de `public/fuentes/geist/`, los mismos que la tarjeta de cotizaciones.

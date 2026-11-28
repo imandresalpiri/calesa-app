@@ -29,6 +29,7 @@ vi.mock('@/modules/artes', async () => ({
   ...(await vi.importActual<object>('@/modules/artes/entities/formatos')),
   ...(await vi.importActual<object>('@/modules/artes/entities/editor/exportar')),
   ...(await vi.importActual<object>('@/modules/artes/entities/pdf/pedido-del-pdf')),
+  ...(await vi.importActual<object>('@/modules/artes/entities/pdf/tope-del-pdf')),
   ...(await vi.importActual<object>('@/modules/artes/entities/pdf/paginas-con-datos')),
   ...(await vi.importActual<object>('@/modules/artes/entities/datos/valores-del-arte')),
   leerPlantillaParaEditar: (id: string) => leerPlantilla(id),
@@ -44,6 +45,7 @@ vi.mock('../../../_arte/pdf/imagenes-para-el-pdf', () => ({
   imagenesParaElPdf: (...args: unknown[]) => leerImagenes(...args),
 }))
 
+import { MENSAJE_DEMASIADAS_LINEAS } from '@/modules/artes'
 import { POST } from './route'
 
 const ID = '00000000-0000-4000-8000-0000000000a7'
@@ -171,7 +173,7 @@ beforeEach(() => {
   leerPlantilla.mockResolvedValue(plantilla())
   leerDatos.mockResolvedValue({ ok: true, data: leidos })
   leerImagenes.mockResolvedValue(new Map())
-  dibujar.mockResolvedValue({ bytes: BYTES, faltan: 2 })
+  dibujar.mockResolvedValue({ ok: true, data: { bytes: BYTES, faltan: 2 } })
 })
 afterEach(() => {
   vi.clearAllMocks()
@@ -282,6 +284,16 @@ describe('POST /artes/[id]/pdf: el PDF', () => {
     leerDatos.mockResolvedValue({ ok: true, data: leidos })
     dibujar.mockRejectedValue(new Error('react-pdf'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(await enTexto(await pedir())).toEqual([500, NO_SE_PUDO])
+  })
+
+  it('una página que pasa su tope de líneas, 422 con el texto que lo dice; otra regla al leer, 500', async () => {
+    dibujar.mockResolvedValue({
+      ok: false,
+      error: { codigo: 'regla', mensaje: MENSAJE_DEMASIADAS_LINEAS },
+    })
+    expect(await enTexto(await pedir())).toEqual([422, MENSAJE_DEMASIADAS_LINEAS])
+    leerDatos.mockResolvedValue({ ok: false, error: { codigo: 'regla', mensaje: 'x' } })
     expect(await enTexto(await pedir())).toEqual([500, NO_SE_PUDO])
   })
 })

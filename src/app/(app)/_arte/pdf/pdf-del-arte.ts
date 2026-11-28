@@ -1,6 +1,7 @@
 // El PDF de un arte con los datos que se vuelven a leer con la sesión de quien pide: el documento (el que se ve en el editor, también sin guardar)
 // resuelto página por página como en el lienzo (`paginasConDatos()`), los montos siempre con su moneda (también con el Modo Live: un PDF se
-// manda), las imágenes leídas por su lector y el dibujo de `pdfDelArte()`. Devuelve los bytes y cuántas imágenes no llegaron. Desde el editor,
+// manda), las imágenes leídas por su lector y el dibujo de `pdfDelArte()`. Devuelve los bytes y cuántas imágenes no llegaron (o la `regla` de una
+// página con más texto que su tope). Desde el editor,
 // con lo elegido como vehículo de ejemplo (`armarElPdfDelArte`: el vehículo que ya no se ve es `no_encontrado`, con su texto); desde una
 // cotización, con la guardada que ya leyó su ruta (`armarElPdfDeLaCotizacion`: la que ya no se ve, `no_encontrado`).
 import 'server-only'
@@ -16,7 +17,7 @@ import {
   type PlantillaDeArte,
 } from '@/modules/artes'
 import type { requerirSesion } from '@/modules/equipo'
-import { fallo, ok, type Resultado } from '@/shared/lib/errores'
+import { fallo, type Resultado } from '@/shared/lib/errores'
 import { NO_ESTA_EL_VEHICULO, NO_ESTA_LA_COTIZACION } from '../../artes/ejemplo/_respuestas'
 import { leerDatosDeLaCotizacionParaElPdf } from './datos-de-la-cotizacion-para-el-pdf'
 import { leerDatosParaElPdf, type DatosParaElPdf } from './datos-para-el-pdf'
@@ -38,15 +39,13 @@ async function dibujarConLosDatos(
   const paginas = paginasConDatos(documento, valores, { catalogo, logos, datos, sinMoneda: false })
   const imagenes = await imagenesParaElPdf(imagenesDelPdf(paginas), { quien: sesion, ...deDonde })
   try {
-    return ok(
-      await pdfDelArte({
-        paginas,
-        medidas: { ancho: plantilla.ancho, alto: plantilla.alto },
-        imagenes,
-        titulo: plantilla.nombre,
-        autor: datos.empresa.nombre,
-      }),
-    )
+    return await pdfDelArte({
+      paginas,
+      medidas: { ancho: plantilla.ancho, alto: plantilla.alto },
+      imagenes,
+      titulo: plantilla.nombre,
+      autor: datos.empresa.nombre,
+    })
   } catch (error) {
     console.error('[pdf] No se pudo dibujar el arte.', error)
     return fallo('inesperado', MENSAJE_SIN_EL_PDF)

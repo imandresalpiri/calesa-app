@@ -654,7 +654,11 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   - En el navegador: una lectura nueva deja sin efecto la anterior; buscar espera mientras se tipea; el popover y «Textos» se piden con `diferido()`
     al abrirse.
 - Plantillas de arte en PDF (Carta y A4): ninguna lista ni consulta nueva y ningún conteo. Topes por diseño: 20 páginas (`MAXIMO_DE_PAGINAS`, el
-  mismo de la base), 300 capas por página y 512 KiB por documento; el pedido de «Descargar PDF», ≤ 600 KB.
+  mismo de la base), 300 capas por página y 512 KiB por documento; el pedido de «Descargar PDF», ≤ 600 KB; 500 líneas de texto por página
+  (`MAXIMO_DE_LINEAS_POR_PAGINA`), mirado al armar la geometría de cada página, antes de dibujar.
+  - Medido con el renderer real (`pdfDelArte`, sin imágenes, 20 páginas): 100 líneas por página, 1,5 s; 500 (el tope), 5,6 s y 441 MB; 1.000,
+    10,4 s y 768 MB; 2.500, 25,5 s y 1,6 GB. Sin el tope, 100 capas de 5.000 letras en cajas angostas eran 500.000 líneas: 14,6 s sólo de
+    geometría y un dibujo que no termina.
   - La tira de páginas dibuja a lo sumo 20 `Stage` chicos (`listening={false}`): sólo se redibuja la miniatura que cambió (`memo`) y la elegida va
     diferida (`useDeferredValue`); las fotos, de 480 px.
   - `POST /artes/<id>/pdf` y el PDF de una cotización con arte: la plantilla, la por defecto (`artes_por_defecto`, por PK), el vehículo, su galería,

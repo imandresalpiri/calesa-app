@@ -59,6 +59,7 @@ export {
   MENSAJE_SIN_LA_PLANTILLA,
   PESO_MAXIMO_DEL_PEDIDO,
 } from './entities/pdf/pedido-del-pdf'
+export { MENSAJE_DEMASIADAS_LINEAS } from './entities/pdf/tope-del-pdf'
 export { nombreDelPdf } from './entities/editor/exportar'
 // Los datos con que se llena un arte (`entities/datos/`): las formas que arma `src/app` (`src/app/(app)/_arte/`) para las rutas del vehículo de
 // ejemplo, y lo puro que resuelve un arte con ellos (el editor y el texto para compartir de una cotización).

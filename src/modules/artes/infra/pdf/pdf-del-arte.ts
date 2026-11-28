@@ -1,9 +1,11 @@
 import 'server-only'
 import { renderToBuffer } from '@react-pdf/renderer'
+import { fallo, ok, type Resultado } from '@/shared/lib/errores'
 import type { Medidas } from '../../entities/formatos'
 import { geometriaDelPdf } from '../../entities/pdf/geometria-del-pdf'
 import { imagenesDelPdf, type PaginaConDatos } from '../../entities/pdf/paginas-con-datos'
 import type { PaginaDelPdf, PrimitivaDelPdf } from '../../entities/pdf/primitivas-del-pdf'
+import { MENSAJE_DEMASIADAS_LINEAS, pasaDelTope } from '../../entities/pdf/tope-del-pdf'
 import { DocumentoDelArte } from './documento-del-arte'
 import {
   imagenParaElPdf,
@@ -15,7 +17,8 @@ import { medidasDeGeist } from './medidas-de-geist'
 
 // Los bytes del PDF de un arte con unos datos: cada página en una hoja del formato, con texto real en Geist. Lo carga la composición con
 // `import()` al pedir un PDF: ninguna otra ruta paga react-pdf ni sharp, y nunca llega al navegador. Las imágenes llegan en bytes por su `src`
-// (`imagenesDelPdf()` dice cuáles); una que no llegó o que no se lee no se dibuja y cuenta en `faltan`, que la ruta avisa.
+// (`imagenesDelPdf()` dice cuáles); una que no llegó o que no se lee no se dibuja y cuenta en `faltan`, que la ruta avisa. Una página con más
+// líneas de texto que su tope (`tope-del-pdf.ts`) no se dibuja: `regla`, con su texto, y se deja de armar en esa página.
 export type PedidoDelPdfDelArte = {
   paginas: readonly PaginaConDatos[]
   medidas: Medidas
@@ -87,12 +90,22 @@ function lasQueFaltan(
   return faltan.size
 }
 
-export async function pdfDelArte(pedido: PedidoDelPdfDelArte): Promise<PdfDelArte> {
+export async function pdfDelArte(pedido: PedidoDelPdfDelArte): Promise<Resultado<PdfDelArte>> {
   const [medir, leidas] = await Promise.all([medidasDeGeist(), leerLasImagenes(pedido.imagenes)])
   const naturales = new Map([...leidas].map(([src, l]) => [src, l.leida.medidas]))
-  const paginas = pedido.paginas.map(({ pagina, conDatos }) =>
-    geometriaDelPdf(pagina, { medidas: pedido.medidas, conDatos, imagenes: naturales, medir }),
-  )
+  const paginas: PaginaDelPdf[] = []
+  for (const { pagina, conDatos } of pedido.paginas) {
+    const geometria = geometriaDelPdf(pagina, {
+      medidas: pedido.medidas,
+      conDatos,
+      imagenes: naturales,
+      medir,
+    })
+    if (pasaDelTope(geometria)) {
+      return fallo('regla', MENSAJE_DEMASIADAS_LINEAS)
+    }
+    paginas.push(geometria)
+  }
   const imagenes = await prepararLasImagenes(paginas, leidas)
   const documento = DocumentoDelArte({
     paginas,
@@ -100,8 +113,8 @@ export async function pdfDelArte(pedido: PedidoDelPdfDelArte): Promise<PdfDelArt
     titulo: pedido.titulo,
     autor: pedido.autor,
   })
-  return {
+  return ok({
     bytes: new Uint8Array(await renderToBuffer(documento)),
     faltan: lasQueFaltan(pedido, paginas, imagenes, leidas),
-  }
+  })
 }

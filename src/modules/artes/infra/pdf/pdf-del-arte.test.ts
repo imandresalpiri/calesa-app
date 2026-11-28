@@ -22,6 +22,10 @@ import {
 } from '../../entities/documento'
 import { METRICAS_DE_GEIST } from '../../entities/editor/fuentes'
 import { imagenesDelPdf, paginasConDatos } from '../../entities/pdf/paginas-con-datos'
+import {
+  MAXIMO_DE_LINEAS_POR_PAGINA,
+  MENSAJE_DEMASIADAS_LINEAS,
+} from '../../entities/pdf/tope-del-pdf'
 import { disposicionDelTexto } from '../../entities/texto/disposicion-del-texto'
 
 vi.mock('server-only', () => ({}))
@@ -83,7 +87,27 @@ async function elPdf(conFoto: boolean) {
       imagenes.set(src, await foto())
     }
   }
-  return pdfDelArte({ paginas, medidas: A4, imagenes, titulo: 'Ficha', autor: 'Calesa Motors' })
+  const hecho = await pdfDelArte({
+    paginas,
+    medidas: A4,
+    imagenes,
+    titulo: 'Ficha',
+    autor: 'Calesa Motors',
+  })
+  if (!hecho.ok) {
+    throw new Error(hecho.error.mensaje)
+  }
+  return hecho.data
+}
+
+// Una página con un texto de `lineas` líneas.
+function conLineas(lineas: number) {
+  const texto = Array.from({ length: lineas }, (_, i) => `Línea ${String(i + 1)}`).join('\n')
+  const largo: DocumentoDeArte = {
+    version: VERSION_DEL_DOCUMENTO,
+    paginas: [paginaCon([{ ...capaDeTexto('t', texto), x: 20, y: 20, ancho: 555, tamano: 6 }])],
+  }
+  return paginasConDatos(largo, valoresDelArte(sinVin, { sinMoneda: false, catalogo }), para)
 }
 
 describe('pdfDelArte', () => {
@@ -120,6 +144,20 @@ describe('pdfDelArte', () => {
     const { bytes, faltan } = await elPdf(false)
     expect(textoDelPdf(bytes).imagenes).toBe(0)
     expect(faltan).toBe(1)
+  })
+
+  it('una página con más líneas que su tope no se dibuja: la regla, con su texto; en el tope, sí', async () => {
+    const pedido = { medidas: A4, imagenes: new Map(), titulo: 'Ficha', autor: 'Calesa Motors' }
+    expect(
+      await pdfDelArte({ ...pedido, paginas: conLineas(MAXIMO_DE_LINEAS_POR_PAGINA + 1) }),
+    ).toEqual({ ok: false, error: { codigo: 'regla', mensaje: MENSAJE_DEMASIADAS_LINEAS } })
+    const enElTope = await pdfDelArte({
+      ...pedido,
+      paginas: conLineas(MAXIMO_DE_LINEAS_POR_PAGINA),
+    })
+    expect(enElTope.ok && textoDelPdf(enElTope.data.bytes).paginas[0]?.lineas.at(-1)).toBe(
+      `Línea ${String(MAXIMO_DE_LINEAS_POR_PAGINA)}`,
+    )
   })
 })
 

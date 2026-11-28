@@ -3,6 +3,7 @@ import {
   CABECERA_DE_LO_QUE_FALTA,
   esquemaDelPedidoDelPdf,
   leerPlantillaParaEditar,
+  MENSAJE_DEMASIADAS_LINEAS,
   MENSAJE_DOCUMENTO_INVALIDO,
   MENSAJE_DOCUMENTO_PESADO,
   MENSAJE_SIN_EL_PDF,
@@ -31,6 +32,7 @@ import { rutaOcultaEnElLive } from '../../../_live/guarda'
 //
 // POST porque el PDF es lo que se ve, como «Exportar PNG»: un GET de lo guardado obligaba a guardar antes. 404 si la plantilla no se ve, no es de
 // PDF, el Modo Live esconde Artes o el vehículo elegido ya no se ve. Una imagen que no llega no es un error: el PDF sale sin ella y la cuenta.
+// 422 también si una página pasa su tope de líneas de texto (`tope-del-pdf.ts`), con el texto que lo dice.
 const OTRO_SITIO = 'Pide el PDF desde el editor de artes.'
 
 const texto = (cuerpo: string, status: number) =>
@@ -103,9 +105,11 @@ export async function POST(peticion: Request, { params }: RouteContext<'/artes/[
   }
   const armado = await armarElPdfDelArte(sesion, { plantilla, ...pedido })
   if (!armado.ok) {
-    return armado.error.codigo === 'no_encontrado'
-      ? texto(armado.error.mensaje, 404)
-      : texto(MENSAJE_SIN_EL_PDF, 500)
+    const { codigo, mensaje } = armado.error
+    if (mensaje === MENSAJE_DEMASIADAS_LINEAS) {
+      return texto(mensaje, 422)
+    }
+    return codigo === 'no_encontrado' ? texto(mensaje, 404) : texto(MENSAJE_SIN_EL_PDF, 500)
   }
   return new Response(armado.data.bytes, {
     status: 200,

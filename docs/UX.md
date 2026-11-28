@@ -2296,8 +2296,9 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
 - **Descargar PDF:** mientras se arma, «Armando el PDF…» con el mismo ancho y apagado (un pedido a la vez); sin red, apagado con «No hay
   conexión.» (en su `title` y para el lector de pantalla); sin ningún elemento en todo el documento, baja igual y avisa «Esta plantilla de arte no
   tiene elementos: el PDF sale en blanco.»; una imagen que no llegó, «El PDF salió sin 1 imagen que no cargó.» («… sin N imágenes que no
-  cargaron.»); si la plantilla ya no se ve, «No encontramos esta plantilla de arte.»; si no se pudo armar, «No se pudo armar el PDF. Vuelve a
-  intentarlo.»; con la sesión vencida, «Tu sesión venció. Vuelve a ingresar.». En sólo lectura, «Descargar PDF» y «Exportar PNG» sí. Un texto que no
+  cargaron.»); si la plantilla ya no se ve, «No encontramos esta plantilla de arte.»; una página con más de 500 líneas de texto, «Una página de
+  un PDF lleva hasta 500 líneas de texto. Ensancha las cajas de texto o reparte el texto en más páginas.»; si no se pudo armar, «No se pudo armar
+  el PDF. Vuelve a intentarlo.»; con la sesión vencida, «Tu sesión venció. Vuelve a ingresar.». En sólo lectura, «Descargar PDF» y «Exportar PNG» sí. Un texto que no
   entra en su caja crece hacia abajo igual en el lienzo y en el PDF: nunca se achica ni se corta.
 - **Vehículo de ejemplo:** sin `vehiculos.ver` en el origen, el disparador apagado con «No ves los vehículos de <origen>: el arte usa los datos de
   ejemplo.». En el popover: «Escribe al menos 3 letras o números.»; «Ningún vehículo de <origen> coincide con «<texto>».»; «<Origen> todavía no

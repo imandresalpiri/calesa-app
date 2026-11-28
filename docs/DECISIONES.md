@@ -1569,6 +1569,11 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   a lo sumo 20, y tipear en el lienzo no espera a su miniatura. La miniatura de la plantilla sale de la de la página 1, con los datos de ejemplo.
 - **Un PDF lleva de 1 a 20 páginas** (`MAXIMO_DE_PAGINAS`, el mismo tope que la base) y un formato de imagen, una. Las capas de una página
   duplicada conservan sus ids: son únicos por página. Ir de una página a otra no es un paso del historial; deshacer lleva a la que cambió.
+- **Una página de un PDF lleva hasta 500 líneas de texto** (`MAXIMO_DE_LINEAS_POR_PAGINA`, decidido sin preguntar): cada línea es un `<Text>` y
+  una caja más angosta que una letra va de a una por línea, así que un documento válido de 600 KB podía pedir cientos de miles de líneas que el
+  servidor no termina de dibujar. Una página que se lee no llega (A4 a 6 pt en tres columnas: unas 350). Se mira página por página al armar la
+  geometría, antes de dibujar: la que pasa da 422 con «Una página de un PDF lleva hasta 500 líneas de texto. …» y no se arma el resto. El lienzo
+  no tiene tope: lo que se ve sigue siendo lo que hay. Desde la cotización, un arte por defecto que pasa el tope es el 500 de un arte que falla.
 - **«Exportar PNG» exporta la página elegida en Carta y A4** (decidido sin preguntar: «Exportar esta página en PNG», `<nombre>-pagina-2.png` con
   más de una): es el PNG que la prueba compara con el PDF.
 
