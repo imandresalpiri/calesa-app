@@ -196,6 +196,19 @@ describe('lo que no se lee', () => {
       false,
     )
   })
+
+  it('dos páginas con el mismo id no se leen', () => {
+    const [pagina] = documentoVacio().paginas
+    expect(leerDocumento({ version: VERSION_DEL_DOCUMENTO, paginas: [pagina, pagina] }).ok).toBe(
+      false,
+    )
+    expect(
+      leerDocumento({
+        version: VERSION_DEL_DOCUMENTO,
+        paginas: [pagina, { ...pagina, id: 'otra' }],
+      }).ok,
+    ).toBe(true)
+  })
 })
 
 describe('topes del documento', () => {

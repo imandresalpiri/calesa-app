@@ -256,9 +256,12 @@ El dominio (nodos, motor, reglas, niveles, cómo se guarda) está en `docs/COTIZ
 - **El PDF** (área `tarjeta`): `GET /cotizaciones/[id]/pdf` (`requerirSesion()`; 404 en texto igual al de la página para lo que no existe, está en la
   papelera o no se ve; `rutaDelPdf(id)`) arma la página (fecha del último guardado en la zona de `leerAjustes()`, que falla en vez de dar lo de fábrica) y
   pide `pdfDeUnaGuardada()` con el contexto de `contextoDeLaPagina()` (el cliente sólo con `leads.ver`: `src/app/(app)/cotizaciones/datos-de-la-tarjeta.ts`, que
-  comparte con la página): `cotizacion_tarjeta` como quien pide, sin memoria, y `infra/tarjeta/pdf/` (Geist TTF recta e itálica). Lo baja quien ve la cotización, sin
+  comparte con la página): `cotizacion_tarjeta` como quien pide, sin memoria, y `infra/tarjeta/pdf/` (Geist TTF recta e itálica, de `public/fuentes/geist/`). Lo baja quien ve la cotización, sin
   clave propia (pie de «Vista previa» y «⋯» de la cabecera de una guardada, `<PdfDelMenu>`; `<a download>` en la tarjeta de lo guardado de la hoja nueva). Las pruebas leen su texto con
-  `scripts/pdf/texto-del-pdf.ts`.
+  `scripts/pdf/texto-del-pdf.ts`. Con una plantilla de arte de PDF del origen (`?plantilla=<id>` o, sin él, la por defecto: `arte-del-pdf.ts` de la ruta), sale el arte
+  con los datos reales de la guardada, sin la hermana (`armarElPdfDeLaCotizacion()` de `src/app/(app)/_arte/pdf/`) con el mismo nombre, `X-Pdf-Arte: <plantilla>` y
+  `X-Imagenes-Que-Faltan`; sin ella, el de hoy con `X-Pdf-Arte: de-hoy`. El módulo no depende de `artes`: `pedirElPdf()` lee esa cabecera por su nombre y el hook avisa
+  «El PDF salió sin N imágenes…» (`textoDeLasImagenesQueFaltan()`).
 - **«Compartir la cotización»** (área `tarjeta`; glosario, `docs/UX.md` › «Cotización: compartir»): el panel `PanelDeCompartir` (`features/tarjeta/components/compartir/`, por
   `diferido()`), en `?panel=compartir` en el detalle (`CompartirDeLaGuardada`, a la vista en la cabecera por el hueco `compartir` de la vista previa, sólo con
   `cotizacionId`) y en `?panel=compartir&para=<id>` fuera de él (`DialogoDeCompartirDeLaFila` y `useAbrirCompartirDeLaFila()` por `pantallas/tarjeta-compartir.ts`:
@@ -615,7 +618,7 @@ la pide: la base de su ETag), `comprobante_emitir|anular`, `comprobantes_serie_c
   otro archivo o lo que no se lee, sin logo. Los dos lo ubican con `cajaDelLogo()` (`entities/tarjeta/caja-del-logo.ts`). Los
   metadatos no nombran al cliente, al asesor ni al vehículo. «Copiar texto» sale de la misma geometría. **La imagen** (`imagenDeUnaGuardada()`,
   `infra/tarjeta/imagen/`, `ImageResponse` con `import()`): la misma geometría como PNG al ancho de la tarjeta, la base de la imagen de la tarjeta (`webpDeUnaGuardada()`; su ruta suma las fuentes
-  de `infra/tarjeta/pdf/fuentes/` a `outputFileTracingIncludes`).
+  de `public/fuentes/geist/` a `outputFileTracingIncludes`).
 - **Las tablas de referencia se escriben sólo por RPC: crear, columnas, desactivar y publicar** (`tabla_referencia_crear|columnas|desactivar|publicar`;
   sin insert, update ni delete para `authenticated`). Todas con versión esperada entera salvo crear (intento por id). Candados: la tabla (`for update`) y
   después `formulas:<origen>` en orden de origen, como el ⚙ y revertir; crear toma el candado `tablas_referencia:crear` (el tope de 100 y la clave entre propias y compartidas). Una columna o tabla

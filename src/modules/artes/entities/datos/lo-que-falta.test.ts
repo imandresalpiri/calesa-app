@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { Falta } from './capas-con-datos'
-import { claveDeLoQueFalta, textoDeLoQueFalta, TOPE_DE_LO_QUE_FALTA } from './lo-que-falta'
+import {
+  claveDeLoQueFalta,
+  juntarLoQueFalta,
+  textoDeLoQueFalta,
+  TOPE_DE_LO_QUE_FALTA,
+} from './lo-que-falta'
 
 const faltas = (...nombres: string[]): Falta[] =>
   nombres.map((nombre, i) => ({ clave: `c${String(i)}`, nombre }))
@@ -35,5 +40,24 @@ describe('el aviso de lo que falta', () => {
     expect(claveDeLoQueFalta(faltas('a', 'b'))).toBe(claveDeLoQueFalta(faltas('x', 'y')))
     expect(claveDeLoQueFalta(faltas('a'))).not.toBe(claveDeLoQueFalta(faltas('a', 'b')))
     expect(claveDeLoQueFalta([])).toBe('')
+  })
+})
+
+describe('juntarLoQueFalta', () => {
+  const vin: Falta = { clave: 'ficha.vin', nombre: 'el VIN' }
+  const foto: Falta = { clave: 'foto.2', nombre: 'la foto 3' }
+  const cotizacion: Falta = { clave: 'cotizacion', nombre: 'la cotización' }
+
+  it('una sola página: su lista tal cual', () => {
+    const unaPagina = [vin, foto]
+    expect(juntarLoQueFalta([unaPagina])).toBe(unaPagina)
+  })
+
+  it('varias: en el orden de las páginas y sin repetir un dato', () => {
+    expect(juntarLoQueFalta([[foto], [], [vin, foto], [cotizacion]])).toEqual([
+      foto,
+      vin,
+      cotizacion,
+    ])
   })
 })

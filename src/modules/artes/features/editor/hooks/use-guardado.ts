@@ -18,6 +18,7 @@ import {
 import { mismoDocumento } from '../../../entities/editor/mismo-documento'
 import { guardarPlantillaDeArte } from '../../plantillas/actions/guardar-plantilla-de-arte'
 import { MENSAJE_DE_VALIDACION_DE_LA_PLANTILLA } from '../../plantillas/hooks/mensajes'
+import { unCuadro } from './un-cuadro'
 import type { LoQueSeEdita } from './use-borrador-local'
 
 type Args = {
@@ -53,14 +54,6 @@ async function subirLaMiniatura(armar: () => Promise<Blob | null>): Promise<stri
     return null
   }
 }
-
-// Ctrl+S con un texto abierto: lo escrito entra al documento al salir del campo, y se lee después de que React lo dibuje.
-const unCuadro = () =>
-  new Promise<void>((listo) => {
-    requestAnimationFrame(() => {
-      listo()
-    })
-  })
 
 function falloDe(envio: Envio<unknown> & { ok: false }): Fallo {
   if ('sinRed' in envio) {

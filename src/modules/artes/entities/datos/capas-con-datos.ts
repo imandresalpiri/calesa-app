@@ -63,7 +63,7 @@ function faltasDelTexto(
   )
 }
 
-type ParaResolver = ConQueSeDibuja & { catalogo: CatalogoDelArte }
+export type ParaResolver = ConQueSeDibuja & { catalogo: CatalogoDelArte }
 
 // Lo de una capa: qué dibuja (o nada), si se esconde y qué le falta.
 type DeLaCapa = { resuelta: CapaResuelta | null; escondida: boolean; faltan: Falta[] }

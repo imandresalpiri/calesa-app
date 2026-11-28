@@ -6,8 +6,9 @@ import { motivoParaNoGuardar } from '../../../entities/datos/resolver-texto'
 import type { CatalogoDelArte } from '../../../entities/datos/variables-del-arte'
 import { claveDelBorrador } from '../../../entities/editor/borrador'
 import { ladoDeLaMiniatura } from '../../../entities/editor/exportar'
+import { tipoDelFormato } from '../../../entities/formatos'
 import type { PlantillaDelEditor } from '../../../entities/tipos'
-import type { ManejoDelLienzo } from '../tipos'
+import type { ManejoDeLaMiniatura, ManejoDelLienzo } from '../tipos'
 import { useBorradorLocal, type PonerEnElEditor } from './use-borrador-local'
 import { useEditorDeArte } from './use-editor-de-arte'
 import { useGuardado } from './use-guardado'
@@ -18,6 +19,8 @@ type Args = {
   personaId: string
   soloLectura: boolean
   lienzo: RefObject<ManejoDelLienzo | null>
+  // La miniatura de la página 1 en la tira de un PDF: la miniatura de la plantilla de arte sale de ahí cuando el lienzo muestra otra.
+  primera: RefObject<ManejoDeLaMiniatura | null>
   // Las variables que el arte llena en el origen de la plantilla: con una que no conoce en algún texto, no se guarda («Corrige {x} para
   // guardar.»).
   catalogo: CatalogoDelArte
@@ -27,15 +30,20 @@ type Args = {
 
 // Lo que se edita y su destino: con qué arranca (lo guardado o el borrador), el documento con su historial, el nombre, el guardado y el
 // borrador local que acompaña a lo que todavía no se guardó. `medidas` (las de la plantilla) también las usa la cámara. La miniatura de la
-// lista de Artes se arma sólo con los datos de ejemplo: con un vehículo elegido se guarda sin cambiarla (la plantilla de la empresa la ve quien
-// quizás no ve ese vehículo ni su cliente).
+// lista de Artes es la de la página 1 y se arma sólo con los datos de ejemplo: con un vehículo elegido se guarda sin cambiarla (la plantilla de
+// la empresa la ve quien quizás no ve ese vehículo ni su cliente).
 export function useDocumentoDelEditor(args: Args) {
-  const { plantilla, personaId, soloLectura, lienzo, catalogo, deEjemplo } = args
+  const { plantilla, personaId, soloLectura, lienzo, primera, catalogo, deEjemplo } = args
   const { ancho, alto } = plantilla
   const medidas = useMemo(() => ({ ancho, alto }), [ancho, alto])
   const clave = claveDelBorrador(plantilla.id, personaId)
   const inicio = useInicioDelEditor(plantilla, clave, soloLectura)
-  const editor = useEditorDeArte(inicio.documento, medidas, soloLectura)
+  const editor = useEditorDeArte(
+    inicio.documento,
+    medidas,
+    soloLectura,
+    tipoDelFormato(plantilla.formato),
+  )
   const [nombre, setNombre] = useState(inicio.nombre)
   const { despachar } = editor
   const actual = useMemo(
@@ -48,19 +56,22 @@ export function useDocumentoDelEditor(args: Args) {
   )
   const motivo = motivoParaNoGuardar(desconocidas)
   const conEjemplo = useRef(deEjemplo)
+  const enLaPrimera = useRef(editor.indice === 0)
   useEffect(() => {
     conEjemplo.current = deEjemplo
-  }, [deEjemplo])
+    enLaPrimera.current = editor.indice === 0
+  }, [deEjemplo, editor.indice])
   const miniatura = useCallback(async () => {
     if (!conEjemplo.current) {
       return null
     }
-    const hecho = await lienzo.current?.imagen({
+    const desde = enLaPrimera.current ? lienzo.current : (primera.current ?? lienzo.current)
+    const hecho = await desde?.imagen({
       pixelRatio: ladoDeLaMiniatura(medidas),
       tipo: 'image/webp',
     })
     return hecho?.blob ?? null
-  }, [lienzo, medidas])
+  }, [lienzo, primera, medidas])
   const terminarElTexto = useCallback(() => lienzo.current?.terminarElTexto() ?? false, [lienzo])
   const guardado = useGuardado({
     id: plantilla.id,

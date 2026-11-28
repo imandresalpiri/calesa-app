@@ -1,7 +1,7 @@
 'use client'
 
 import type { RefObject } from 'react'
-import type { ManejoDelLienzo, PropsDelEditorDeArtes } from '../tipos'
+import type { ManejoDeLaMiniatura, ManejoDelLienzo, PropsDelEditorDeArtes } from '../tipos'
 import { useDatosDelEditor, useEjemploDelEditor } from './use-datos-del-editor'
 import { useDocumentoDelEditor } from './use-documento-del-editor'
 
@@ -10,7 +10,11 @@ import { useDocumentoDelEditor } from './use-documento-del-editor'
 // página después (`useDatosDelEditor`).
 export function useArteConDatos(
   props: PropsDelEditorDeArtes,
-  lienzo: RefObject<ManejoDelLienzo | null>,
+  manejos: {
+    lienzo: RefObject<ManejoDelLienzo | null>
+    // La miniatura de la página 1 en la tira de un PDF.
+    primera: RefObject<ManejoDeLaMiniatura | null>
+  },
 ) {
   const { plantilla, personaId, motivoDeSoloLectura } = props
   const { catalogo, ejemplo } = useEjemploDelEditor(props)
@@ -18,7 +22,7 @@ export function useArteConDatos(
     plantilla,
     personaId,
     soloLectura: motivoDeSoloLectura !== null,
-    lienzo,
+    ...manejos,
     catalogo,
     deEjemplo: ejemplo.datos.deEjemplo,
   })

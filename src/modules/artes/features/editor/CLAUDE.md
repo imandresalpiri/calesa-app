@@ -2,7 +2,7 @@
 
 El editor de artes a pantalla completa (`/artes/<id>`, en `src/app/(editor)/`): riel de herramientas, «Agregar» y «Capas», el lienzo de Konva y
 el panel derecho con «Diseño» (el inspector) y «Textos» (`features/textos`), con atajos, deshacer, borrador local, guardar con versión y exportar
-PNG. El arte se ve con el **Vehículo de ejemplo** (docs/GLOSARIO.md) elegido en la barra. Las reglas son puras en `entities/editor/` y
+PNG. En Carta y A4, la **Tira de páginas** (docs/GLOSARIO.md) abajo del panel izquierdo y «Descargar PDF» en la barra. El arte se ve con el **Vehículo de ejemplo** (docs/GLOSARIO.md) elegido en la barra. Las reglas son puras en `entities/editor/` y
 `entities/datos/`.
 
 ## Entra y sale
@@ -18,9 +18,26 @@ PNG. El arte se ve con el **Vehículo de ejemplo** (docs/GLOSARIO.md) elegido en
   `use-lectura-del-ejemplo.ts`, `use-cotizaciones-de-ejemplo.ts`, con `fetch`): las formas de lo que responden están en
   `entities/datos/respuestas.ts`.
 - Usa del módulo: `guardarPlantillaDeArte` y `duplicarPlantillaDeArte` (`features/plantillas/actions/`), el modal de «Duplicar en otro formato»
-  (`features/plantillas`), la biblioteca (`features/imagenes`: `useImagenes`, `leerMasImagenesDeArte`) y `subirMiniatura` (`composicion.client.ts`).
+  (`features/plantillas`), la biblioteca (`features/imagenes`: `useImagenes`, `leerMasImagenesDeArte`), `subirMiniatura` y `pedirElPdfDelArte`
+  (`composicion.client.ts`).
+- «Descargar PDF» (`components/barra/boton-descargar-pdf.tsx`, sólo en una plantilla de PDF, también en sólo lectura; `ANCHOS_DE_LA_BARRA.pdf`):
+  `hooks/use-descarga-del-pdf-del-arte.ts` termina el texto abierto, manda lo que se ve con lo elegido (`eleccionDelEjemplo()`) al `POST
+/artes/<id>/pdf`, un pedido a la vez y apagado sin conexión, y avisa si salió en blanco o sin alguna imagen.
 
 ## Archivos clave
+
+- **Páginas** (sólo en un formato de PDF): `EstadoDelEditor.paginaId` es la elegida y toda acción escribe en ella (`paginaDe()`, `conPagina`;
+  `medirTexto` lleva su `paginaId`). `hooks/use-paginas.ts` reparte ir, agregar, duplicar, mover y quitar (`entities/editor/paginas.ts`) con sus
+  motivos; RePág y AvPág van a la anterior y a la siguiente. `components/paginas/`: `tira-de-paginas.tsx` (alto fijo de 9 rem, «Páginas» con su «+»
+  y las miniaturas de costado, cada una con su número y su «⋯»), `orden-de-paginas.tsx` (dnd-kit, de costado; con el teclado, Espacio la toma y la
+  suelta) y `menu-de-la-pagina.tsx`. `pestanas-del-panel-izquierdo.tsx` deja «Agregar» y «Capas» arriba: en un PDF el panel reparte su alto fijo.
+- `components/lienzo/miniatura-de-la-pagina.tsx` — un `Stage` chico por página, `listening={false}`, en `memo` (sólo se redibuja la que cambió; la
+  elegida va con `useDeferredValue`), con las fotos de 480 px y la misma `CapaDeContenido` que el lienzo. **La miniatura de la plantilla** sale del
+  lienzo si muestra la página 1; si no, de la miniatura de la página 1 (`primera`, `use-documento-del-editor.ts`), siempre con los datos de ejemplo.
+- **Las fuentes del PDF:** en un formato de PDF el lienzo dibuja la «Geist del PDF» (`FUENTE_DEL_PDF`: una `FontFace` por peso desde
+  `/fuentes/geist/`, `use-fuentes-listas.ts`) y cada texto se parte con `disposicionDelTexto()` midiendo como Konva
+  (`nodos/medir-en-el-navegador.ts`, con la versión de las fuentes cargadas: lo medido con el respaldo no vale). El inspector ofrece sólo Geist
+  en 400, 500, 600 y 700, sin sombra ni borde de texto (`fuentesDelFormato`, `efectosDelFormato`).
 
 - `components/editor-de-artes.tsx` — la raíz diferida: arma el estado y lo reparte por props a la barra, el riel, el panel izquierdo, el lienzo y
   el inspector (`tipos.ts` es el contrato entre ellos). Konva y react-konva sólo los importan `components/lienzo/**` y lo que carga esta raíz.
@@ -51,6 +68,10 @@ PNG. El arte se ve con el **Vehículo de ejemplo** (docs/GLOSARIO.md) elegido en
 
 ## No se rompe
 
+- Un texto se parte con `disposicionDelTexto()` y Konva sólo pinta las líneas (`wrap="none"`): el PDF las parte con la misma regla y las mismas
+  medidas (`e2e/artes-pdf-contra-el-lienzo.spec.ts` compara el PNG de la página con el PDF).
+- La tira tiene alto fijo y cada miniatura caja fija por formato (`ALTO_DE_LA_MINIATURA`): cambiar de página, agregar o quitar no cambia el tamaño
+  del lienzo ni del panel (`e2e/artes-pdf.spec.ts`). Nunca se quita la última página; en sólo lectura la tira se mira y se elige, nada más.
 - Nada de Konva fuera del árbol diferido: `rg "from 'konva'|react-konva"` encuentra sólo archivos de esta carpeta, y la página en frío no los pide
   (`e2e/artes-editor-aviso.spec.ts` lo mira).
 - Ningún `Konva.Image` recibe una URL de otro origen: las imágenes entran por `fuenteDeLaCapa()` (`/artes/imagenes/<id>`, `/artes/logos/<variante>`,
@@ -79,6 +100,8 @@ PNG. El arte se ve con el **Vehículo de ejemplo** (docs/GLOSARIO.md) elegido en
 - Los `dragstart`, `dragmove` y `dragend` de cada nodo llegan al `Stage` (burbujean): `use-arrastre-de-capas` atiende sólo el del nodo de la
   capa (no el del `Stage`, no el de una parte de adentro) y la cámara se mueve con la mano, nunca arrastrando el `Stage`.
 - Un SVG sin medidas no se dibuja en Firefox: quien lo carga le pone `width` y `height` de su fila (los de ejemplo las traen).
+- `window.Konva.stages` incluye las miniaturas de la tira: lo que busca el `Stage` del lienzo filtra por `section[aria-label="Lienzo"]`.
+- En un PDF, «Exportar esta página en PNG» exporta la elegida (`<nombre>-pagina-2.png` con más de una).
 - Exportar espera las fuentes (`document.fonts`) y las imágenes (hasta 10 s), lleva el `Stage` a la identidad y oculta `.interfaz`, y lo repone
   en el `finally`.
 - Copiar y pegar van por `localStorage` (`CLAVE_DEL_PORTAPAPELES`): entre pestañas del editor, no el portapapeles del sistema.

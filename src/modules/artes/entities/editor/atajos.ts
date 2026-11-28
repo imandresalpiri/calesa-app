@@ -34,6 +34,8 @@ export type AccionDelEditor =
   | { tipo: 'ajustar' }
   | { tipo: 'al-cien' }
   | { tipo: 'enter' }
+  // RePág y AvPág: la página anterior o la siguiente (en Carta y A4; con una sola página no hace nada).
+  | { tipo: 'pagina'; hacia: 'anterior' | 'siguiente' }
 
 export const PASO_DE_LAS_FLECHAS = 1
 export const PASO_DE_LAS_FLECHAS_CON_MAYUS = 10
@@ -124,6 +126,9 @@ function sinMod(tecla: TeclaDelEditor): AccionDelEditor | null {
   if (tecla.key === 'Enter') {
     return { tipo: 'enter' }
   }
+  if (tecla.key === 'PageUp' || tecla.key === 'PageDown') {
+    return { tipo: 'pagina', hacia: tecla.key === 'PageUp' ? 'anterior' : 'siguiente' }
+  }
   if (tecla.shiftKey || tecla.altKey) {
     return null
   }
@@ -182,6 +187,8 @@ export const ATAJOS_DEL_EDITOR: readonly { combinacion: string; descripcion: str
   { combinacion: 'mod+shift+[', descripcion: 'Enviar al fondo' },
   { combinacion: 'mod+0', descripcion: 'Ajustar a la pantalla' },
   { combinacion: 'mod+1', descripcion: 'Ver al 100 %' },
+  { combinacion: 'pageup', descripcion: 'Página anterior (Carta y A4)' },
+  { combinacion: 'pagedown', descripcion: 'Página siguiente (Carta y A4)' },
   { combinacion: 'enter', descripcion: 'Editar el texto o terminar el trazo' },
   { combinacion: 'escape', descripcion: 'Deseleccionar o terminar el trazo' },
   { combinacion: 'mod+s', descripcion: 'Guardar' },

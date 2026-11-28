@@ -4,11 +4,11 @@ import { useCallback, useMemo, useState } from 'react'
 import { leerDatosDeLaCotizacion } from '../../../composicion.client'
 import {
   datosDelEjemploElegido,
+  eleccionDelEjemplo,
   leadAlCambiarDeCotizacion,
   leadsDelEjemplo,
   type EjemploConDatos,
 } from '../../../entities/datos/ejemplo-con-datos'
-import type { EjemploElegido } from '../../../entities/datos/ejemplo-elegido'
 import type { DatosDelArte, FijosDelArte } from '../../../entities/datos/tipos'
 import { datosDelArteDeEjemplo } from '../../../entities/editor/datos-de-ejemplo'
 import { elEjemploRecordado, recordarElEjemplo } from './ejemplo-recordado'
@@ -22,14 +22,6 @@ type Args = {
   fijos: FijosDelArte
   // Sin `vehiculos.ver` en el origen: no hay qué elegir y nada se lee (ni lo recordado).
   motivo: string | null
-}
-
-function eleccionDe(elegido: EjemploConDatos): EjemploElegido {
-  return {
-    vehiculoId: elegido.vehiculo.vehiculo.id,
-    cotizacionId: elegido.cotizacion?.cotizacion.id ?? null,
-    leadId: elegido.lead?.leadId ?? null,
-  }
 }
 
 // El vehículo de ejemplo del editor de artes (docs/GLOSARIO.md › «Vehículo de ejemplo»): sin nada elegido, los datos de ejemplo; con un
@@ -46,7 +38,7 @@ export function useVehiculoDeEjemplo({ personaId, plantillaId, origen, fijos, mo
   const recordar = useCallback(
     (siguiente: EjemploConDatos | null) => {
       setElegido(siguiente)
-      recordarElEjemplo(personaId, plantillaId, siguiente ? eleccionDe(siguiente) : null)
+      recordarElEjemplo(personaId, plantillaId, eleccionDelEjemplo(siguiente))
     },
     [personaId, plantillaId],
   )

@@ -7,6 +7,7 @@ import type {
   LeadsDeEjemplo,
   VehiculoDeEjemplo,
 } from './respuestas'
+import type { EjemploElegido } from './ejemplo-elegido'
 import type { DatosDelArte, FijosDelArte } from './tipos'
 
 // Los leads relacionados en su orden (vinculado, interesados, cotizados), sin repetir: uno que está en dos grupos aparece en el primero.
@@ -57,6 +58,17 @@ export type EjemploConDatos = {
   vehiculo: VehiculoDeEjemplo
   cotizacion: CotizacionDeEjemplo | null
   lead: LeadDeEjemplo | null
+}
+
+// Lo elegido sólo por sus ids: lo que se recuerda en este navegador y lo que se manda al pedir el PDF; nulo sin nada elegido.
+export function eleccionDelEjemplo(elegido: EjemploConDatos | null): EjemploElegido | null {
+  return elegido
+    ? {
+        vehiculoId: elegido.vehiculo.vehiculo.id,
+        cotizacionId: elegido.cotizacion?.cotizacion.id ?? null,
+        leadId: elegido.lead?.leadId ?? null,
+      }
+    : null
 }
 
 export function datosDelEjemploElegido(

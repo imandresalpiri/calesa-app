@@ -8,7 +8,7 @@ import { textoDelPdf } from './texto-del-pdf'
 
 // Sólo el lector (4.18-3a, C12): PDFs que arma aquí mismo `@react-pdf/renderer` con las TTF del paso, registradas por su ruta. El documento de la tarjeta tiene su prueba
 // junto a él (`infra/tarjeta/pdf/pdf-de-la-tarjeta.test.ts`).
-const FUENTES = path.join(process.cwd(), 'src/modules/cotizaciones/infra/tarjeta/pdf/fuentes')
+const FUENTES = path.join(process.cwd(), 'public/fuentes/geist')
 Font.register({
   family: 'GeistDelLector',
   fonts: [

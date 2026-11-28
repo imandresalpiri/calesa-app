@@ -1150,8 +1150,11 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   al navegador. Sin imágenes de cotización generadas en el cliente. Las fuentes son Geist del release `vercel/geist-font` v1.9.2 (zip sha256
   `15f066d58dcb99fb10014a49913009fdaf41e464cfb8851a44b44e593c95d3d8`, OFL 1.1): `Geist-Regular.ttf` `2c460a7a71063e53491f343d44b382267bc0cf496e31db64865f962af3152e68`,
   `Geist-SemiBold.ttf` `01923aa148e5202ae70a2e11b2ab4dc41b80bcc374aedccc913d47bb2f591c06`, `Geist-Italic.ttf`
-  `14b65c2dce6eb81a68bee916fed0e63f6d8526400b364cabf166f58e49c71b14` y `Geist-SemiBoldItalic.ttf`
-  `5434c3634179082d63c80a4748df2d4ef2632d69c445cf47f2ef2ac101a582b3`.
+  `14b65c2dce6eb81a68bee916fed0e63f6d8526400b364cabf166f58e49c71b14`, `Geist-SemiBoldItalic.ttf`
+  `5434c3634179082d63c80a4748df2d4ef2632d69c445cf47f2ef2ac101a582b3`, y para los artes de PDF `Geist-Medium.ttf`
+  `e9099e006d4934cae4a8c7d14a1ca2ea724ee2f69f9bdd5b2ffe715baf5524fc` y `Geist-Bold.ttf`
+  `1c24df313b8ddc9550e060cfe5321c6374997f2892880af303b5ded45fed2582`. Viven en `public/fuentes/geist/`, una sola copia: el servidor las lee por su
+  ruta y el navegador por URL.
 - **La imagen de la tarjeta se arma al pedirla, para quien la pide, y no se guarda.** Lleva el asesor (quien mira) y lo que esa persona ve: una guardada sería
   una por persona y cotización, crecería sin tope y habría que invalidarla con cada cambio de perfil o de permisos. WebP con `sharp` (calidad 80, ≤ 1.600 px):
   `ImageResponse` sólo da PNG y `sharp` viene con Next. Lo que evita volver a dibujarla es la caché del navegador: `private, no-cache` con una ETag fuerte y
@@ -1433,7 +1436,7 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
 ### El editor de artes
 
 - **Konva (`konva` y `react-konva`), no un lienzo a mano.** Transformar, ordenar capas, elegir con un recuadro y exportar a PNG es un motor 2D;
-  Konva es el de V1: ≈ 58 KB con gzip, y react-konva ≈ 8 KB más su reconciliador (≈ 38 KB); el chunk diferido del editor, con todo, ≈ 143 KB. Sólo
+  Konva es el de V1: ≈ 58 KB con gzip, y react-konva ≈ 8 KB más su reconciliador (≈ 38 KB); el chunk diferido del editor, con todo, ≈ 154 KB. Sólo
   lo importan `features/editor/components/lienzo/**` y lo que carga la raíz diferida (`EditorDeArtes`): no corre en el servidor ni viaja en frío.
 - **El documento es propio (versión 3), no `stage.toJSON()`.** Konva no serializa imágenes y guardaría sus clases; el documento guarda unidades
   lógicas del formato (el `Stage` escala, el documento no), lo valida Zod y su espejo en la base (`_artes_documento_valido()`). Uno de una versión
@@ -1527,6 +1530,52 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   un ejemplo dejaría cambios que nadie hizo.
 - **Un origen inactivo igual abre su plantilla.** La página busca el origen entre los activos y, si no está, entre todos (`getOrigenes(true)`);
   sin poder leerlo, «No pudimos leer el origen de esta plantilla.».
+
+### Las plantillas de arte en PDF
+
+- **Una sola regla de texto para el lienzo y el PDF** (`entities/texto/disposicion-del-texto.ts`, pura, con `medir` inyectado): el corte de Konva
+  10.11 con `wrap: 'word'` (el prefijo más largo que entra, atrás hasta el último espacio o guion; sin ninguno, por grafema; sin los espacios del
+  final; los `\n` y las líneas vacías respetados) y la base de cada línea con la fórmula de Konva (`i·lh + (A − D)/2 + lh/2`). Konva recibe las
+  líneas ya partidas (`wrap="none"`) y react-pdf una línea por `<Text>`, sin ancho tope: el Knuth-Plass de react-pdf y el corte de Konva parten
+  distinto en los bordes, y con un solo algoritmo sólo pueden diferir las medidas.
+- **Las mismas medidas en los dos lados.** En un formato de PDF el lienzo dibuja Geist desde los mismos TTF que lee react-pdf (la `FontFace`
+  «Geist del PDF» de `/fuentes/geist/`), no la Geist variable de la app, cuyas medidas son otras. El servidor mide con la fuente que react-pdf ya
+  cargó (fontkit adentro de react-pdf, no una dependencia aparte): el avance con kerning, como `measureText`. La unidad es el punto del formato.
+  `e2e/artes-pdf-contra-el-lienzo.spec.ts` lo vigila: el PNG de la página contra el PDF dibujado con pdfjs-dist, a la mitad, difiere en menos
+  del 1,5 % de los píxeles (algún canal más de 48), con el control del texto 2 pt más grande arriba del umbral; el umbral nunca sube de 3 %.
+- **Un formato de PDF ofrece sólo Geist, en 400, 500, 600 y 700, sin sombra ni borde de texto** (decidido sin preguntar): react-pdf no dibuja un
+  desenfoque ni texto con trazo, y lo que el PDF no puede dibujar igual no se ofrece. Una capa vieja que los traiga se dibuja sin ellos en el
+  lienzo y en el PDF (`efectosDelFormato()`); una con otra fuente, como Geist en los dos: el lienzo nunca muestra lo que el PDF no tendrá.
+- **El PDF se dibuja por posiciones absolutas desde una geometría pura** (`entities/pdf/geometria-del-pdf.ts`): cada capa pasa a primitivas
+  (fondo, formas, líneas, trazos, texto por línea, imagen con su recorte) con su rotación alrededor del centro y su opacidad, y
+  `infra/pdf/documento-del-arte.tsx` sólo las pinta. Lo oculto, lo escondido por falta de datos y la imagen que no llegó no salen. Las imágenes
+  llegan en bytes (la ruta las baja con la sesión de quien pide, de a 4, con tope de peso y de espera) y `sharp` las gira, recorta «cubrir» con
+  su foco y achica a lo que ocupan: react-pdf nunca baja una URL, que no tendría tope y quedaría en la caché del proceso.
+- **«Descargar PDF» del editor es un `POST` de lo que se ve** (`/artes/<id>/pdf`, `{ documento, eleccion }`): como «Exportar PNG», el PDF es lo
+  que se ve, también sin guardar; un `GET` de lo guardado obligaba a guardar antes. Del navegador llegan sólo el documento (validado como al
+  guardar, ≤ 600 KB) y los ids de lo elegido: la ruta vuelve a leer la plantilla, el vehículo, la cotización y el lead con la sesión, y nunca usa
+  un dato que mande el navegador. Sólo del mismo sitio (`Sec-Fetch-Site` o `Origin`). Los montos van con su moneda aunque el Modo Live esté
+  encendido: un PDF se manda.
+- **El PDF de la cotización usa la plantilla de PDF por defecto** (o `?plantilla=<id>`, un guid de una de PDF del mismo origen que quien pide ve)
+  con los datos reales de la guardada; sin ella, si ya no se ve, si es de otro origen o con un `?plantilla=` inválido, la tarjeta de siempre.
+  Decidido sin preguntar: **la hermana no va** (el arte nombra una sola cotización), el vehículo va sólo si quien pide lo ve, el cliente sigue a
+  `leads.ver` y al Modo Live, y el archivo se llama igual. Un arte que falla al dibujarse da 500 con su texto, nunca la tarjeta en silencio; una
+  plantilla cuyo documento no se lee, o un error al leer la por defecto, la tarjeta. `cotizaciones` no depende de `artes`: lo arma `src/app/(app)/_arte/pdf/` y la
+  respuesta dice cuál salió (`X-Pdf-Arte`) y cuántas imágenes faltan (`X-Imagenes-Que-Faltan`), cabeceras que el módulo lee por su nombre.
+- **La tira de páginas va abajo en el panel izquierdo, con alto fijo de 9 rem, sólo en Carta y A4.** Descartadas: abajo del lienzo (el marco en
+  frío de `loading.tsx` no sabe el formato, y el lienzo cambiaría de alto al llegar el editor) y una pestaña «Páginas» (escondería las páginas
+  mientras se trabaja en «Capas»). En un PDF el panel reparte su alto fijo: las pestañas arriba y la tira abajo.
+- **Cada miniatura de la tira es un `Stage` chico** (`listening={false}`, en `memo` por página, la elegida con `useDeferredValue`, fotos de 480 px):
+  a lo sumo 20, y tipear en el lienzo no espera a su miniatura. La miniatura de la plantilla sale de la de la página 1, con los datos de ejemplo.
+- **Un PDF lleva de 1 a 20 páginas** (`MAXIMO_DE_PAGINAS`, el mismo tope que la base) y un formato de imagen, una. Las capas de una página
+  duplicada conservan sus ids: son únicos por página. Ir de una página a otra no es un paso del historial; deshacer lleva a la que cambió.
+- **Una página de un PDF lleva hasta 500 líneas de texto** (`MAXIMO_DE_LINEAS_POR_PAGINA`, decidido sin preguntar): cada línea es un `<Text>` y
+  una caja más angosta que una letra va de a una por línea, así que un documento válido de 600 KB podía pedir cientos de miles de líneas que el
+  servidor no termina de dibujar. Una página que se lee no llega (A4 a 6 pt en tres columnas: unas 350). Se mira página por página al armar la
+  geometría, antes de dibujar: la que pasa da 422 con «Una página de un PDF lleva hasta 500 líneas de texto. …» y no se arma el resto. El lienzo
+  no tiene tope: lo que se ve sigue siendo lo que hay. Desde la cotización, un arte por defecto que pasa el tope es el 500 de un arte que falla.
+- **«Exportar PNG» exporta la página elegida en Carta y A4** (decidido sin preguntar: «Exportar esta página en PNG», `<nombre>-pagina-2.png` con
+  más de una): es el PNG que la prueba compara con el PDF.
 
 ## Flujos
 

@@ -10,3 +10,14 @@ export function textoDelFalloDelPdf(codigo: CodigoError): string {
   }
   return 'No se pudo armar el PDF.'
 }
+
+// El aviso de un PDF con la plantilla de arte que salió sin alguna imagen (no cargó a tiempo o ya no existe); sin ninguna, nada. El mismo texto
+// que el editor de artes (`textoDeImagenesQueFaltanEnElPdf()` de `artes`), escrito acá porque `cotizaciones` no depende de `artes`.
+export function textoDeLasImagenesQueFaltan(cuantas: number): string | null {
+  if (cuantas <= 0) {
+    return null
+  }
+  return cuantas === 1
+    ? 'El PDF salió sin 1 imagen que no cargó.'
+    : `El PDF salió sin ${String(cuantas)} imágenes que no cargaron.`
+}

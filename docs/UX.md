@@ -470,7 +470,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   la ve; sin ícono; también con el Modo Live: «Compartir la cotización» en `?panel=compartir`, estados en «Cotización: compartir»); debajo, la cadena de
   versiones. **Lo demás, en el «⋯»** (`<MasAcciones>` con borde, arriba a la derecha), en el orden de la lista única (`accionesDeCotizacion()`, la misma
   del «⋯» del listado sin «Compartir cotización…» ni «Aprobar», que aquí están a la vista): «Vista previa» (`?panel=vista-previa`) · «Descargar PDF»
-  («Descargando…» apagado mientras baja; un fallo lo avisa y se vuelve a elegir) · «Revisiones» · «Marcar final…» (en una preventa, con
+  («Descargando…» apagado mientras baja; un fallo lo avisa y se vuelve a elegir; con una plantilla de arte por defecto para PDF en el origen, baja
+  ese arte con los datos de la guardada, y una imagen que no llegó lo avisa: «El PDF salió sin 1 imagen que no cargó.») · «Revisiones» · «Marcar final…» (en una preventa, con
   `cotizaciones.final.gestionar` del origen; apagado con su motivo debajo; `?panel=marcar-final`) · «Emitir comprobante…» (en una final activa sin
   comprobante vigente, con `cotizaciones.comprobantes.emitir`; `?panel=emitir-comprobante`, el aviso nombra el número «S-N») · «Cotizar encima» (si no
   está al día y la base lo deja; apagado con cambios sin guardar; el aviso de versión conserva su botón) · «Favorita» · «Reportar…» · moderar
@@ -501,8 +502,9 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   1024 px. Arriba, una barra de 3 rem: «Volver a Artes» (a la lista como se dejó), el nombre (editable: un clic, Enter o salir aplica, Esc vuelve;
   se corta antes del formato), el formato, el disparador «Vehículo de ejemplo» (de ancho fijo: «Datos de ejemplo» o «Vehículo de ejemplo:
   <título> · n.º <número>»), el estado del guardado en un renglón de ancho fijo (13 y 14 rem hasta 1280 px, 16 y 18 desde ahí: a 1024 px todo
-  entra) y «Guardar» (apagado sin cambios), y el «⋯» con «Exportar PNG», «Duplicar en otro
-  formato» (`?panel=otro-formato`, de lo que se ve, también sin guardar) y «Atajos de teclado». El disparador abre un popover de alto fijo: buscar
+  entra) y «Guardar» (apagado sin cambios); en Carta y A4, «Descargar PDF» (de ancho fijo: lo que se ve, también sin guardar, con el vehículo de
+  ejemplo elegido, en un PDF con texto real, una hoja por página); y el «⋯» con «Exportar PNG» («Exportar esta página en PNG» en Carta y A4: la
+  página elegida), «Duplicar en otro formato» (`?panel=otro-formato`, de lo que se ve, también sin guardar) y «Atajos de teclado». El disparador abre un popover de alto fijo: buscar
   entre los vehículos del origen de la plantilla que quien mira ve (sin texto, lo más nuevo; con 3 letras o números, título, VIN o lote), la lista
   con su miniatura y «Ver más», y del elegido la «Cotización» (las de «De este vehículo»; entra la aprobada o la primera) y el «Lead» (los
   relacionados o «Ninguno»; entra el de la cotización o el vinculado), en selects nativos; al pie, «Usar los datos de ejemplo». Lo elegido se
@@ -511,7 +513,10 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (mover V, mano H, texto T, rectángulo R, elipse E, línea L, polígono, pluma P e imagen, que abre la biblioteca); las pestañas «Agregar» (Texto con
   los datos como `{marca}`, Formas, Logo con sus variantes, «De la cotización» con la tarjeta y las fotos del vehículo de ejemplo, y la
   biblioteca de imágenes) y «Capas» (arriba la de adelante; ordenar arrastrando o con el teclado, el ojo, el candado, renombrar con doble clic o
-  F2, agrupar y desagrupar, Shift y Ctrl para elegir varias); el lienzo (rueda desplaza, Ctrl+rueda acerca al puntero, espacio y arrastrar es la
+  F2, agrupar y desagrupar, Shift y Ctrl para elegir varias); en Carta y A4, abajo de las pestañas y con alto fijo, la **tira de páginas**:
+  «Páginas» con «+» («Agregar página»: una en blanco después de la elegida) y las miniaturas de costado, cada una con su número y su «⋯» («Duplicar»,
+  «Mover antes», «Mover después», «Quitar»); un clic la elige y el lienzo la muestra; se reordena arrastrando o con el teclado (Espacio la toma, ← y
+  → la mueven, Espacio la suelta, Esc cancela); el lienzo (rueda desplaza, Ctrl+rueda acerca al puntero, espacio y arrastrar es la
   mano, un recuadro elige varias, guías al centro y a los bordes del documento y de otras capas; la píldora del zoom con «Ajustar» y «100 %»); y el
   panel derecho con dos pestañas en su fila de 40 px: «Diseño» (alinear y distribuir, caja, texto y apariencia de lo elegido; de una foto, cuál,
   «Cubrir» o «Contener» y el foco; sin nada elegido, el documento: formato y fondo) y «Textos», junto al lienzo: «Texto base de <origen>» (lo que
@@ -520,7 +525,8 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   un clic lo empieza ahí (como el cursor) y arrastrar le da el ancho. La pluma suma nodos con un clic y curvas arrastrando, cierra en el primero y
   termina con Enter o Esc. Atajos: los de las herramientas, Ctrl+Z y Ctrl+Shift+Z
   (o Ctrl+Y), Ctrl+C, Ctrl+V, Ctrl+D, Supr, Ctrl+A, Ctrl+G y Ctrl+Shift+G, flechas (con Shift de a 10), Ctrl+] y Ctrl+[, Ctrl+0 ajustar, Ctrl+1 al
-  100 %, Ctrl+S guardar y Esc; su lista en «?». Ninguno mientras se escribe. Estados en «Artes (estados propios)». No redirige.
+  100 %, Ctrl+S guardar, Esc y, en Carta y A4, RePág y AvPág (la página anterior y la siguiente); su lista en «?». En Carta y A4 el texto sólo va
+  en Geist (400, 500, 600 y 700) y sin sombra ni borde: lo que el PDF no dibuja igual no se ofrece. Ninguno mientras se escribe. Estados en «Artes (estados propios)». No redirige.
 - **Logística** — `/logistica` (`logistica.ver` en algún origen): siempre **en un origen**, elegido arriba como en Vehículos (sin «Todos»); toda página lleva la barra de Logística con
   los orígenes y las pestañas del elegido (ver «Logística: estados propios» › «La barra y el origen»). `/logistica` es la **Cadena** (la gráfica y «dónde está»); en la URL: `?origen=`
   (orígenes con la logística encendida; sin él, el último que usaste), `q` («dónde está»: nombre, VIN o lote; 3 letras o números), `en=todos` («Buscar en todos los orígenes») y `?panel=lote`
@@ -2278,10 +2284,22 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   enlace o cerrar la pestaña) pregunta, encima del lienzo, «Descartar» o «Seguir editando».
 - **Topes y avisos del lienzo:** «Una página lleva hasta 300 elementos.» (agregar, pegar y duplicar se apagan); una imagen que no carga, el marco con
   la diagonal y «No se pudo cargar la imagen.» en el inspector; exportar sin ella avisa «Se exportó sin 1 imagen que no cargó.» («… sin N imágenes
-  …»); en Carta o A4, «Exportar PNG» apagado con «El PDF se arma con las plantillas de PDF.»; un dato desconocido en un texto, «{x} no es un dato que
+  …»); un dato desconocido en un texto, «{x} no es un dato que
   el arte pueda llenar.» en el inspector, y junto a «Guardar», «Corrige {x} para guardar.» (el borrador se anota igual); `{lote}` (o la subasta)
   en un origen manual, «{lote} no aplica en <origen>: no es de subasta.», y su línea se quita. **Duplicar en otro formato:** los errores de medida junto al campo y los de la base en el modal; al terminar,
   el aviso con «Abrir». Nada salta: columnas de ancho fijo, la barra de alto fijo, el renglón del guardado reservado y los avisos encima del lienzo.
+- **Páginas** (Carta y A4): con 20, «+» y «Duplicar» apagados con «Un PDF lleva hasta 20 páginas.»; «Quitar» en la única, apagado con «Un PDF
+  lleva al menos una página.»; «Mover antes» en la primera y «Mover después» en la última, apagados con «Ya es la primera página.» y «Ya es la
+  última página.». Una página vacía se dibuja y se exporta en blanco. Por peso, el guardado dice «La plantilla de arte pesa más de 512 KB.». En sólo
+  lectura la tira se mira y se elige, y lo demás va apagado con el motivo de sólo lectura. Nada salta: la tira tiene alto fijo, cada miniatura
+  caja fija por formato, y cambiar de página, agregar o quitar no cambia el tamaño del lienzo ni del panel.
+- **Descargar PDF:** mientras se arma, «Armando el PDF…» con el mismo ancho y apagado (un pedido a la vez); sin red, apagado con «No hay
+  conexión.» (en su `title` y para el lector de pantalla); sin ningún elemento en todo el documento, baja igual y avisa «Esta plantilla de arte no
+  tiene elementos: el PDF sale en blanco.»; una imagen que no llegó, «El PDF salió sin 1 imagen que no cargó.» («… sin N imágenes que no
+  cargaron.»); si la plantilla ya no se ve, «No encontramos esta plantilla de arte.»; una página con más de 500 líneas de texto, «Una página de
+  un PDF lleva hasta 500 líneas de texto. Ensancha las cajas de texto o reparte el texto en más páginas.»; si no se pudo armar, «No se pudo armar
+  el PDF. Vuelve a intentarlo.»; con la sesión vencida, «Tu sesión venció. Vuelve a ingresar.». En sólo lectura, «Descargar PDF» y «Exportar PNG» sí. Un texto que no
+  entra en su caja crece hacia abajo igual en el lienzo y en el PDF: nunca se achica ni se corta.
 - **Vehículo de ejemplo:** sin `vehiculos.ver` en el origen, el disparador apagado con «No ves los vehículos de <origen>: el arte usa los datos de
   ejemplo.». En el popover: «Escribe al menos 3 letras o números.»; «Ningún vehículo de <origen> coincide con «<texto>».»; «<Origen> todavía no
   tiene vehículos.»; el tope con «Busca por título, VIN o lote para encontrar otro.»; un vehículo sin fotos, la caja punteada «Sin fotos»; «Sin

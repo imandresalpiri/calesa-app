@@ -149,6 +149,11 @@ describe('mover, quitar y Enter', () => {
     expect(bajar(tecla('Enter'))).toEqual({ tipo: 'enter' })
   })
 
+  it('RePág y AvPág van a la página anterior y a la siguiente', () => {
+    expect(bajar(tecla('PageUp'))).toEqual({ tipo: 'pagina', hacia: 'anterior' })
+    expect(bajar(tecla('PageDown'))).toEqual({ tipo: 'pagina', hacia: 'siguiente' })
+  })
+
   it('Esc no es de esta tabla (lo atiende el proveedor global)', () => {
     expect(bajar(tecla('Escape'))).toBeNull()
   })

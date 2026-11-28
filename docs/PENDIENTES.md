@@ -102,6 +102,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** En una plantilla de arte de la empresa, «Agregar» › «Biblioteca» también ofrece las imágenes personales: se suman al lienzo y la base las
   rechaza al guardar (`_artes_validar_imagenes()`) — decidir si la pestaña las apaga con su motivo.
 - **[—]** Las variantes fijas del logo entran cuadradas (`PROPORCION_SIN_MEDIDAS`): `leerLogos()` no trae las medidas de cada variante.
+- **[—]** Una plantilla de arte en PDF no dibuja sombras ni el borde de un texto (react-pdf no tiene desenfoque ni texto con trazo): el editor no
+  los ofrece en Carta y A4 y una capa que los trae sale sin ellos — dibujarlos en el PDF (una imagen rasterizada debajo del texto real, o un trazo en SVG).
 
 ### Chat
 

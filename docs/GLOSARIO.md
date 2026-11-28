@@ -692,7 +692,8 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   de la **huella de la imagen** (`cotizacion_imagen_huella()`: de qué está hecha para quien pide). En la lista, el resumen y la ficha del vehículo; «Compartir»
   la manda. No es la **Portada** de un vehículo ni la **Vista previa** (el modal con la tarjeta en HTML).
 - **PDF de la cotización** — `GET /cotizaciones/<id>/pdf`, `pdfDeUnaGuardada()`: la tarjeta de lo guardado en A4; lo descarga quien la ve
-  («Descargar PDF», junto a «Copiar texto» y en «Compartir la cotización»). No es el **Compartir** de un lead.
+  («Descargar PDF», junto a «Copiar texto» y en «Compartir la cotización»). Con una **Plantilla por defecto** para PDF en el origen (o
+  `?plantilla=<id>`), es ese arte con los datos reales de la guardada (`armarElPdfDeLaCotizacion()`), sin la hermana. No es el **Compartir** de un lead.
 - **Compartir la cotización** — `PanelDeCompartir`, `DatosParaCompartir`, `textoParaCompartir()`, rutas `GET /cotizaciones/<id>/compartir` y
   `…/compartir/fotos`, `?panel=compartir` (en el detalle) y `?panel=compartir&para=<id>` (fuera de él), pestaña en `?compartir=texto`: el panel «Compartir
   cotización» para mandarle la cotización a un cliente. La pestaña **«Imagen»** ofrece **«Cotización»** (la imagen de la tarjeta) o **«Fotos»** (las del
@@ -710,11 +711,19 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   quien tiene `artes.empresa.gestionar`, las ve todo el equipo de Artes) o **personales** (sólo su dueño). Una plantilla de la empresa sólo usa
   imágenes de la empresa. Una imagen que alguna plantilla usa no se quita (`artes_plantillas_imagenes`).
 - **Plantilla por defecto** — `artes_por_defecto`, `artes_por_defecto_poner()`: la plantilla de arte que cada persona elige por origen y tipo
-  (imagen o PDF) para compartir una cotización. Sin una, o si ya no la ve, se comparte lo de hoy: la **Imagen de la tarjeta** o el **PDF de la cotización**.
+  (imagen o PDF) para compartir una cotización; la de PDF es también lo que baja «Descargar PDF» de la cotización. Sin una, o si ya no la ve, se
+  comparte lo de hoy: la **Imagen de la tarjeta** o la tarjeta del **PDF de la cotización**.
 - **Editor de artes** — `/artes/<id>`, `PantallaDelEditor`, `features/editor/`: la pantalla completa (sin el marco de la app, sólo escritorio desde
   1024 px) donde se dibuja una plantilla de arte: herramientas a la izquierda con «Agregar» y «Capas», el lienzo al centro con zoom y desplazamiento
   libres, y a la derecha las pestañas «Diseño» (el inspector) y «Textos» (el **Texto base del origen** y el mensaje del portal); en la barra, el
-  **Vehículo de ejemplo**. Quien no puede editarla la abre en sólo lectura con «Duplicar para editar».
+  **Vehículo de ejemplo**. En Carta y A4, la **Tira de páginas** y «Descargar PDF» (`POST /artes/<id>/pdf`: lo que se ve, con lo elegido, en un PDF
+  con texto real). Quien no puede editarla la abre en sólo lectura con «Duplicar para editar».
+- **Página** (de una plantilla de arte) — `PaginaDeArte`, `paginas[*]` del documento, `EstadoDelEditor.paginaId` (la elegida): una hoja del arte,
+  con sus capas y grupos; en el PDF, una hoja. Un formato de imagen tiene una; uno de PDF, de 1 a 20 (`MAXIMO_DE_PAGINAS`). No es la página de una
+  lista (la que se lee por cursor) ni la **Página del origen**.
+- **Tira de páginas** — `TiraDePaginas`, `features/editor/components/paginas/`: abajo del panel izquierdo del **Editor de artes**, sólo en Carta y
+  A4, las miniaturas de las páginas de costado con «+» («Agregar página») y el «⋯» de cada una (duplicar, mover antes o después, quitar); se
+  reordena arrastrando o con el teclado y RePág y AvPág cambian de página.
 - **Capa** — `CapaDeArte`, `paginas[*].capas[*]` del documento de una plantilla de arte: cada elemento del lienzo (texto, imagen de la biblioteca,
   forma, línea, trazo, logo, foto del vehículo o tarjeta de la cotización), con su caja en unidades del formato, su rotación alrededor del centro, y
   si está oculta o bloqueada. La foto lleva su encuadre («cubrir» o «contener») y su **foco** (`foco: { x, y }`, de 0 a 1: el punto que queda a la

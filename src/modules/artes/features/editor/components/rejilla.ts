@@ -9,11 +9,12 @@ export const BARRA_DEL_EDITOR =
   'flex min-w-0 items-center gap-2 border-b border-(--color-line) bg-(--color-surface) px-2'
 
 // Los anchos fijos de la barra (los mismos en frío): el disparador del vehículo de ejemplo y el renglón del guardado miden 13rem y 14rem de
-// 1024 a 1280 px, y 16rem y 18rem desde ahí. Fijos por ancho de pantalla, no por contenido (nada salta), y a 1024 px caben con «Volver a
-// Artes», el nombre (se corta), el formato, «Guardar» y el «⋯».
+// 1024 a 1280 px, y 16rem y 18rem desde ahí; «Descargar PDF» (sólo en un PDF), 9rem. Fijos por ancho de pantalla, no por contenido (nada
+// salta), y a 1024 px caben con «Volver a Artes», el nombre (se corta), el formato, «Guardar» y el «⋯».
 export const ANCHOS_DE_LA_BARRA = {
   ejemplo: 'w-52 xl:w-64',
   guardado: 'w-56 xl:w-72',
+  pdf: 'w-36',
 } as const
 
 export const CELDAS_DEL_EDITOR = {

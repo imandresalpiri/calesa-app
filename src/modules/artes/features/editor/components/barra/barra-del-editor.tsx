@@ -5,10 +5,11 @@ import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import type { EstadoDelGuardado } from '../../../../entities/editor/guardado'
 import type { ClaveDelMenuDelEditor } from '../../../../entities/editor/menu-del-editor'
-import { textoDelFormato } from '../../../../entities/formatos'
+import { textoDelFormato, tipoDelFormato } from '../../../../entities/formatos'
 import type { PlantillaDelEditor } from '../../../../entities/tipos'
 import { useVolverAArtes } from '../../hooks/use-volver-a-artes'
 import { CELDAS_DEL_EDITOR } from '../rejilla'
+import { BotonDescargarPdf, type PdfDeLaBarra } from './boton-descargar-pdf'
 import { DuplicarParaEditar } from './duplicar-para-editar'
 import { EnlaceVolverAArtes } from './enlace-volver-a-artes'
 import { MenuDelEditor } from './menu-del-editor'
@@ -25,13 +26,15 @@ type Props = {
   guardado: { estado: EstadoDelGuardado; guardar: () => void; motivo: string | null }
   hacer: Readonly<Record<ClaveDelMenuDelEditor, () => void>>
   ejemplo: ComponentProps<typeof VehiculoDeEjemplo>
+  // Lo que «Descargar PDF» lee al pedirlo (sólo se dibuja en una plantilla de PDF): el texto abierto y el documento que se ve.
+  pdf: PdfDeLaBarra
 }
 
 // La barra del editor de artes (3rem, como en frío): «Volver a Artes», el nombre (se cambia con un clic) y el formato; a la derecha, el
 // vehículo de ejemplo (de ancho fijo), el renglón del guardado y «Guardar» (apagado, con el motivo en el renglón, mientras un texto lleve una
-// variable desconocida) o, en sólo lectura, la insignia, el motivo y «Duplicar para editar»; al final, el «⋯». A 1024 px entra entera: lo de la
-// derecha no se encoge (sus anchos son fijos, `ANCHOS_DE_LA_BARRA`) y se corta el nombre; en sólo lectura se cortan el nombre (con su tope) y el
-// motivo.
+// variable desconocida) o, en sólo lectura, la insignia, el motivo y «Duplicar para editar»; al final, en un PDF «Descargar PDF», y el «⋯». A
+// 1024 px entra entera: lo de la derecha no se encoge (sus anchos son fijos, `ANCHOS_DE_LA_BARRA`) y se corta el nombre; en sólo lectura se
+// cortan el nombre (con su tope) y el motivo.
 export function BarraDelEditor({
   plantilla,
   nombre,
@@ -40,6 +43,7 @@ export function BarraDelEditor({
   guardado,
   hacer,
   ejemplo,
+  pdf,
 }: Props) {
   const volver = useVolverAArtes()
   const idDelRenglon = useId()
@@ -94,6 +98,14 @@ export function BarraDelEditor({
             <DuplicarParaEditar id={plantilla.id} nombre={nombre} />
           </>
         )}
+        {tipoDelFormato(plantilla.formato) === 'pdf' ? (
+          <BotonDescargarPdf
+            {...pdf}
+            plantilla={plantilla}
+            nombre={nombre}
+            ejemplo={ejemplo.ejemplo}
+          />
+        ) : null}
         <MenuDelEditor nombre={nombre} formato={plantilla.formato} hacer={hacer} />
       </div>
     </header>

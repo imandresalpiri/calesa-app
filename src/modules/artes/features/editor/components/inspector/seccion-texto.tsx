@@ -1,14 +1,17 @@
 'use client'
 
-// «Texto» del inspector del editor de artes: la fuente (una que ya no está se ve y se dibuja como la por defecto), el tamaño de la letra (el
-// único lugar que lo cambia), el peso, el interlineado, la alineación, el color, el contorno y, abajo, el aviso de las variables.
+// «Texto» del inspector del editor de artes: la fuente (una que ya no está se ve y se dibuja como la por defecto; en un PDF, sólo Geist), el
+// tamaño de la letra (el único lugar que lo cambia), el peso, el interlineado, la alineación, el color, el contorno (no en un PDF:
+// `efectosDelFormato()`) y, abajo, el aviso de las variables.
 import { TextAlignCenter, TextAlignEnd, TextAlignStart } from 'lucide-react'
 import { PESOS_DE_TEXTO, type CapaDe } from '../../../../entities/documento'
+import { efectosDelFormato } from '../../../../entities/editor/efectos-del-formato'
 import {
-  FUENTES_DE_ARTE,
-  fuenteDe,
+  fuenteDelFormato,
+  fuentesDelFormato,
   NOMBRES_DE_LOS_PESOS,
 } from '../../../../entities/editor/fuentes'
+import type { TipoDeArte } from '../../../../entities/formatos'
 import { LIMITES_DEL_INSPECTOR } from '../../../../entities/editor/inspector'
 import type { DatosEnElEditor, EditorDeArte } from '../../tipos'
 import { AvisoDeLasVariables } from './aviso-de-las-variables'
@@ -23,7 +26,8 @@ import { SeccionDelInspector } from './seccion-del-inspector'
 type Texto = CapaDe<'texto'>
 type Props = { editor: EditorDeArte; capa: Texto; datos: DatosEnElEditor }
 
-const FUENTES = FUENTES_DE_ARTE.map((f) => ({ valor: f.clave, etiqueta: f.nombre }))
+const opcionesDeFuente = (tipo: TipoDeArte) =>
+  fuentesDelFormato(tipo).map((f) => ({ valor: f.clave, etiqueta: f.nombre }))
 const PESOS = PESOS_DE_TEXTO.map((p) => ({ valor: String(p), etiqueta: NOMBRES_DE_LOS_PESOS[p] }))
 const ALINEACIONES = [
   { valor: 'izquierda', etiqueta: 'A la izquierda', icono: TextAlignStart },
@@ -42,8 +46,8 @@ export function SeccionTexto({ editor, capa, datos }: Props) {
     <SeccionDelInspector titulo="Texto">
       <CampoDesplegable
         etiqueta="Fuente"
-        valor={fuenteDe(capa.fuente).clave}
-        opciones={FUENTES}
+        valor={fuenteDelFormato(capa.fuente, editor.tipo).clave}
+        opciones={opcionesDeFuente(editor.tipo)}
         deshabilitado={apagado}
         alCambiar={(fuente) => {
           cambiar('fuente', (c) => ({ ...c, fuente }))
@@ -100,7 +104,9 @@ export function SeccionTexto({ editor, capa, datos }: Props) {
           cambiar('color', (c) => ({ ...c, color }))
         }}
       />
-      <CamposDelBorde editor={editor} capa={capa} etiqueta="Contorno" opcional />
+      {efectosDelFormato(editor.tipo).contornoDelTexto ? (
+        <CamposDelBorde editor={editor} capa={capa} etiqueta="Contorno" opcional />
+      ) : null}
       <AvisoDeLasVariables
         texto={capa.texto}
         catalogo={datos.catalogo}

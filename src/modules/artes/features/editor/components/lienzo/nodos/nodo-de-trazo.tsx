@@ -9,10 +9,11 @@ import {
   atributosDeLaCapa,
   sombraDe,
   TRANSPARENTE,
+  type DelFormato,
   type Interaccion,
 } from './atributos'
 
-type Props = Interaccion & { capa: CapaDe<'trazo'>; escala: number }
+type Props = Interaccion & DelFormato & { capa: CapaDe<'trazo'>; escala: number }
 
 // Un trazo de la pluma: sus curvas Bézier como `Konva.Path`. Cerrado se toca también por dentro; abierto, sólo por la curva.
 export const NodoDeTrazo = memo(function NodoDeTrazo({
@@ -20,12 +21,13 @@ export const NodoDeTrazo = memo(function NodoDeTrazo({
   escala,
   arrastrable,
   escucha,
+  tipo,
 }: Props) {
   const datos = useMemo(() => datosDelTrazo(capa.nodos, capa.cerrado), [capa.nodos, capa.cerrado])
   return (
     <Path
       {...atributosDeLaCapa(capa, { arrastrable, escucha })}
-      {...sombraDe(capa.sombra)}
+      {...sombraDe(capa, tipo)}
       data={datos}
       fill={capa.cerrado ? (capa.relleno ?? TRANSPARENTE) : undefined}
       fillEnabled={capa.cerrado}

@@ -136,6 +136,12 @@ const MANEJADORES: { [T in AccionDelEditor['tipo']]: Manejador<T> } = {
   enter: (c) => {
     c.lienzo?.enter()
   },
+  pagina: (c, a) => {
+    const destino = c.editor.paginas[c.editor.indice + (a.hacia === 'anterior' ? -1 : 1)]
+    if (destino) {
+      c.editor.despachar({ tipo: 'irAPagina', id: destino.id })
+    }
+  },
 }
 
 // Lo que hace cada atajo del editor (`accionDeLaTecla()` dice cuál): cambia el documento por `despachar`, la herramienta, la cámara o le

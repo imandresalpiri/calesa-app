@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   datosDelEjemploElegido,
+  eleccionDelEjemplo,
   gruposDeLeadsDelEjemplo,
   leadAlCambiarDeCotizacion,
   leadPreferido,
@@ -71,6 +72,25 @@ describe('datosDelEjemploElegido', () => {
       asesor: null,
     })
     expect(datos.vehiculo?.id).toBe(ID(5))
+  })
+})
+
+describe('eleccionDelEjemplo', () => {
+  const vehiculo = { vehiculo: { id: ID(5) }, leads: LEADS } as unknown as VehiculoDeEjemplo
+  const cotizacion = { cotizacion: { id: ID(7) }, leadId: null } as unknown as CotizacionDeEjemplo
+
+  it('sólo los ids de lo elegido; sin nada elegido, nula', () => {
+    expect(eleccionDelEjemplo(null)).toBeNull()
+    expect(eleccionDelEjemplo({ vehiculo, cotizacion, lead: beto })).toEqual({
+      vehiculoId: ID(5),
+      cotizacionId: ID(7),
+      leadId: ID(2),
+    })
+    expect(eleccionDelEjemplo({ vehiculo, cotizacion: null, lead: null })).toEqual({
+      vehiculoId: ID(5),
+      cotizacionId: null,
+      leadId: null,
+    })
   })
 })
 

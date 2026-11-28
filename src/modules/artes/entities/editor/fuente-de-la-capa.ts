@@ -7,7 +7,12 @@
 import type { DatosDelArte } from '../datos/tipos'
 import type { CapaConImagen } from '../documento'
 import type { Medidas } from '../formatos'
-import { rutaDeLaFotoDelLienzo, rutaDeLaImagenDelLienzo, rutaDelLogoDelLienzo } from '../medios'
+import {
+  rutaDeLaFotoDelLienzo,
+  rutaDeLaImagenDelLienzo,
+  rutaDelLogoDelLienzo,
+  type LadoDeLaFoto,
+} from '../medios'
 import type { LogoDelEditor } from '../tipos'
 import { fotoDeEjemplo, TARJETA_DE_EJEMPLO } from './datos-de-ejemplo'
 
@@ -17,9 +22,14 @@ export type ConQueSeDibuja = {
   logos: readonly LogoDelEditor[]
   datos: Pick<DatosDelArte, 'deEjemplo' | 'vehiculo' | 'cotizacion'>
   sinMoneda: boolean
+  // El lado con que se pide la foto del vehículo: 1.600 en el lienzo y 480 en la miniatura de una página.
+  anchoDeLaFoto?: LadoDeLaFoto
 }
 
 export const ID_DEL_LOGO_PRINCIPAL = 'principal'
+
+// La foto con que se dibuja la miniatura de una página en la tira (la de la lista de Artes, 480 px).
+export const FOTO_DE_LA_MINIATURA: LadoDeLaFoto = 480
 
 // Lo único que el lienzo carga: rutas propias por id y los SVG de ejemplo. Nunca una URL de otro origen (Storage, apibara).
 const DEL_MISMO_ORIGEN = [
@@ -44,7 +54,10 @@ function delLogo(logos: readonly LogoDelEditor[], id: string): FuenteDeImagen | 
   }
 }
 
-function deLaFoto(indice: number, datos: ConQueSeDibuja['datos']): FuenteDeImagen | null {
+function deLaFoto(
+  indice: number,
+  { datos, anchoDeLaFoto = 1600 }: ConQueSeDibuja,
+): FuenteDeImagen | null {
   if (datos.deEjemplo) {
     const foto = fotoDeEjemplo(indice)
     return { src: foto.src, medidas: { ancho: foto.ancho, alto: foto.alto } }
@@ -54,7 +67,7 @@ function deLaFoto(indice: number, datos: ConQueSeDibuja['datos']): FuenteDeImage
     return null
   }
   return {
-    src: rutaDeLaFotoDelLienzo(datos.vehiculo.id, foto.id, 1600),
+    src: rutaDeLaFotoDelLienzo(datos.vehiculo.id, foto.id, anchoDeLaFoto),
     medidas: { ancho: foto.ancho, alto: foto.alto },
   }
 }
@@ -77,7 +90,7 @@ function sinGuardar(capa: CapaConImagen, con: ConQueSeDibuja): FuenteDeImagen | 
     case 'logo':
       return delLogo(con.logos, capa.varianteId ?? ID_DEL_LOGO_PRINCIPAL)
     case 'foto':
-      return deLaFoto(capa.indice, con.datos)
+      return deLaFoto(capa.indice, con)
     case 'tarjeta':
       return deLaTarjeta(con)
   }

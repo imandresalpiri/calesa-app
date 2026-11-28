@@ -5,7 +5,8 @@
 // pantalla (`<ProveedorDeLaTarjeta>`) sale por `pantallas/tarjeta.ts`.
 //
 // `pdfDeUnaGuardada({ lectura, contexto, locale, empresa, topeDelLogo })` (4.18-3a): los bytes y el nombre del PDF de una guardada, de lo guardado; lo pide
-// `GET /cotizaciones/[id]/pdf`, que arma el contexto con `contextoDeLaPagina()` (puro).
+// `GET /cotizaciones/[id]/pdf`, que arma el contexto con `contextoDeLaPagina()` (puro); `archivoDelPdf(numero)`, el mismo nombre para el PDF con la
+// plantilla de arte.
 //
 // `paraCompartirDeUnaGuardada({ lectura, contexto, locale })`: las cifras de «Compartir la cotización» (conceptos y total de la tarjeta de lo guardado, y el modo); lo
 // pide `GET /cotizaciones/[id]/compartir`, que suma el vehículo y arma `DatosParaCompartir`. `leerVehiculoDeLaCotizacion(id)`: el vehículo por clave primaria, para
@@ -34,6 +35,7 @@ export {
   type DatosParaCompartir,
   type FotoParaCompartir,
 } from '../../entities/tarjeta/compartir/datos-para-compartir'
+export { archivoDelPdf } from '../../entities/tarjeta/archivo-del-pdf'
 export {
   armarLaImagen,
   type ContextoLeido,

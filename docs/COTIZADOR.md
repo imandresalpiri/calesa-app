@@ -1386,8 +1386,15 @@ Lo que no existe, está en la papelera o no se ve es el mismo 404 en texto que l
 de cambio **no es la suma de las filas** sino Bs ÷ tc(`total_en`), con Bs = Σ grupo × tc(su bucket); `e2e/cotizar-pdf.spec.ts` lo cuenta
 con las filas impresas y la tolerancia del redondeo. Los montos van con el texto de `valor-del-dato.ts` (los «Decimales» de su celda; sin ellos, `formatearMonto()`) y siempre con su moneda (el Modo Live es de la
 pantalla); el logo, en `Buffer` por `logoParaDibujar()`, que pasa a PNG lo que react-pdf o satori no leen (WebP, SVG con estilos). Lo dibuja
-`src/modules/cotizaciones/infra/tarjeta/pdf/` con `@react-pdf/renderer` y Geist en TTF (recta e itálica). La misma tarjeta como PNG:
+`src/modules/cotizaciones/infra/tarjeta/pdf/` con `@react-pdf/renderer` y Geist en TTF (recta e itálica, de `public/fuentes/geist/`). La misma tarjeta como PNG:
 `imagenDeUnaGuardada()` (`infra/tarjeta/imagen/`, `ImageResponse`), la base de la imagen de la tarjeta.
+
+**Con una plantilla de arte de PDF.** Si quien pide tiene una **Plantilla por defecto** para PDF en el origen de la cotización y todavía la ve, el
+PDF es ese arte, página por página, con los datos reales de la guardada: su vehículo (si quien pide lo ve), la cotización, su cliente (según
+`leads.ver` y el Modo Live) y quien pide como asesor; los montos, siempre con su moneda. `?plantilla=<id>` elige otra (un guid de una plantilla
+de PDF del mismo origen que quien pide ve). **La hermana no va:** el arte nombra una sola cotización. Sin por defecto, si ya no se ve, si es de
+otro origen o con un `?plantilla=` inválido, sale la tarjeta de arriba, sin cambios. La respuesta dice cuál salió (`X-Pdf-Arte: <id>|de-hoy`) y
+cuántas imágenes no llegaron (`X-Imagenes-Que-Faltan`): el PDF sale sin ellas y «Descargar PDF» lo avisa. El nombre del archivo es el mismo.
 
 ### La imagen de la tarjeta
 

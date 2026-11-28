@@ -3,9 +3,15 @@
 import { memo } from 'react'
 import { Line } from 'react-konva'
 import type { CapaDe } from '../../../../../entities/documento'
-import { AGARRE_EN_PANTALLA, atributosDeLaCapa, sombraDe, type Interaccion } from './atributos'
+import {
+  AGARRE_EN_PANTALLA,
+  atributosDeLaCapa,
+  sombraDe,
+  type DelFormato,
+  type Interaccion,
+} from './atributos'
 
-type Props = Interaccion & { capa: CapaDe<'linea'>; escala: number }
+type Props = Interaccion & DelFormato & { capa: CapaDe<'linea'>; escala: number }
 
 // Una línea recta entre sus dos puntos (relativos a la esquina de su caja). Una fina se agarra igual: el área de clic no baja de 10 px.
 export const NodoDeLinea = memo(function NodoDeLinea({
@@ -13,12 +19,13 @@ export const NodoDeLinea = memo(function NodoDeLinea({
   escala,
   arrastrable,
   escucha,
+  tipo,
 }: Props) {
   const [desde, hasta] = capa.puntos
   return (
     <Line
       {...atributosDeLaCapa(capa, { arrastrable, escucha })}
-      {...sombraDe(capa.sombra)}
+      {...sombraDe(capa, tipo)}
       points={[desde.x, desde.y, hasta.x, hasta.y]}
       stroke={capa.borde}
       strokeWidth={capa.grosor}

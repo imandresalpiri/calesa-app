@@ -1,7 +1,7 @@
 // El lector del PDF de las pruebas (4.18-3a, C12, P3): lo que dice un PDF de `@react-pdf/renderer` (pdfkit 0.20), sin dependencias (sólo `node:zlib`). Lee el texto de cada
 // página por las CMap ToUnicode de sus fuentes, en líneas de arriba abajo (lo que va a la misma altura, de izquierda a derecha y separado por un espacio), cuenta las imágenes
 // (sin las máscaras de transparencia) y junta los colores de relleno. Lo que no sabe leer lo dice y no adivina: una fuente sin ToUnicode (Helvetica), un filtro que no es
-// FlateDecode, un PDF cifrado o algo que no es un PDF.
+// FlateDecode (salvo el JPEG de una imagen), un PDF cifrado o algo que no es un PDF.
 import { inflateSync } from 'node:zlib'
 import { leerContenido, type Cmap, type Trozo } from './contenido-del-pdf'
 import { noEntiende } from './no-entiende'
@@ -25,7 +25,8 @@ function datosDelStream(bytes: Buffer, dic: string, desde: number): Buffer {
   }
   const crudo = bytes.subarray(desde, desde + Number(largo))
   const filtro = /\/Filter\s*\/(\w+)/.exec(dic)?.[1]
-  if (filtro === undefined) {
+  // Una foto en JPEG va tal cual: el lector cuenta las imágenes, no las mira.
+  if (filtro === undefined || (filtro === 'DCTDecode' && /\/Subtype\s*\/Image\b/.test(dic))) {
     return crudo
   }
   if (filtro !== 'FlateDecode') {
@@ -168,14 +169,13 @@ function lineasDe(trozos: Trozo[]): string[] {
   return lineas.map((l) => unir(l.trozos)).filter((l) => l !== '')
 }
 
-function paginaLeida(objetos: Map<number, Objeto>, pagina: Objeto, rellenos: Set<string>) {
+function trozosDe(objetos: Map<number, Objeto>, pagina: Objeto, rellenos: Set<string>): Trozo[] {
   const fuentes = fuentesDe(objetos, pagina)
   const contenidos = /\/Contents\s*(\[[^\]]*\]|\d+ 0 R)/.exec(pagina.dic)?.[1] ?? ''
-  const trozos = [...contenidos.matchAll(/(\d+) 0 R/g)].flatMap((c) => {
+  return [...contenidos.matchAll(/(\d+) 0 R/g)].flatMap((c) => {
     const datos = objeto(objetos, Number(c[1])).datos ?? noEntiende('un contenido sin stream')
     return leerContenido(datos.toString('latin1'), fuentes, rellenos)
   })
-  return { lineas: lineasDe(trozos) }
 }
 
 // Las imágenes que se dibujan: los XObject `/Image` que no son la `/SMask` (la transparencia) de otro.
@@ -187,7 +187,7 @@ function imagenesDe(objetos: Map<number, Objeto>): number {
   return todos.filter(([n, o]) => /\/Subtype\s*\/Image\b/.test(o.dic) && !mascaras.has(n)).length
 }
 
-export function textoDelPdf(bytes: Uint8Array): TextoDelPdf {
+function abrir(bytes: Uint8Array): { objetos: Map<number, Objeto>; paginas: Objeto[] } {
   const crudo = Buffer.from(bytes)
   if (crudo.subarray(0, 5).toString('latin1') !== '%PDF-') {
     noEntiende('no empieza por %PDF-')
@@ -198,9 +198,19 @@ export function textoDelPdf(bytes: Uint8Array): TextoDelPdf {
     noEntiende('está cifrado')
   }
   const raiz = todos.find((o) => /\/Type\s*\/Catalog\b/.test(o.dic)) ?? noEntiende('sin /Catalog')
+  return { objetos, paginas: paginasDe(objetos, ref(raiz.dic, 'Pages')) }
+}
+
+export function textoDelPdf(bytes: Uint8Array): TextoDelPdf {
+  const { objetos, paginas } = abrir(bytes)
   const rellenos = new Set<string>()
-  const paginas = paginasDe(objetos, ref(raiz.dic, 'Pages')).map((p) =>
-    paginaLeida(objetos, p, rellenos),
-  )
-  return { paginas, imagenes: imagenesDe(objetos), rellenos: [...rellenos] }
+  const leidas = paginas.map((p) => ({ lineas: lineasDe(trozosDe(objetos, p, rellenos)) }))
+  return { paginas: leidas, imagenes: imagenesDe(objetos), rellenos: [...rellenos] }
+}
+
+// Los trozos de texto de cada página con su origen (la base, al principio del trozo), en pt desde la esquina de abajo a la izquierda: para
+// ver dónde cae una línea, no sólo qué dice.
+export function trozosDelPdf(bytes: Uint8Array): Trozo[][] {
+  const { objetos, paginas } = abrir(bytes)
+  return paginas.map((p) => trozosDe(objetos, p, new Set()))
 }

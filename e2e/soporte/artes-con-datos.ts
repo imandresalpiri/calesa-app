@@ -74,28 +74,35 @@ type NodoDeKonva = {
   text?: () => string
   image?: () => { src?: string } | undefined
 }
-type Konva = { stages: { find: (tipo: string) => NodoDeKonva[] }[] }
+type Konva = {
+  stages: { find: (tipo: string) => NodoDeKonva[]; container: () => HTMLElement }[]
+}
 
-// Los textos visibles del lienzo, de `window.Konva` (donde lo buscan sus herramientas y las pruebas de navegador).
+// Los textos visibles del lienzo, de `window.Konva` (donde lo buscan sus herramientas y las pruebas de navegador). Sólo el `Stage` del lienzo:
+// las miniaturas de la tira de páginas de un PDF son otros.
 export const textosDelLienzo = (page: Page): Promise<string[]> =>
   page.evaluate(() =>
-    (window as unknown as { Konva: Konva }).Konva.stages.flatMap((stage) =>
-      stage
-        .find('Text')
-        .filter((nodo) => nodo.isVisible())
-        .map((nodo) => nodo.text?.() ?? ''),
-    ),
+    (window as unknown as { Konva: Konva }).Konva.stages
+      .filter((stage) => stage.container().closest('section[aria-label="Lienzo"]') !== null)
+      .flatMap((stage) =>
+        stage
+          .find('Text')
+          .filter((nodo) => nodo.isVisible())
+          .map((nodo) => nodo.text?.() ?? ''),
+      ),
   )
 
-// La ruta (sin el origen) de cada imagen visible del lienzo que ya tiene su archivo.
+// La ruta (sin el origen) de cada imagen visible del lienzo que ya tiene su archivo (sólo el `Stage` del lienzo).
 export const imagenesDelLienzo = (page: Page): Promise<string[]> =>
   page.evaluate(() =>
-    (window as unknown as { Konva: Konva }).Konva.stages.flatMap((stage) =>
-      stage
-        .find('Image')
-        .filter((nodo) => nodo.isVisible())
-        .map((nodo) => nodo.image?.()?.src ?? '')
-        .filter((src) => src !== '')
-        .map((src) => new URL(src).pathname),
-    ),
+    (window as unknown as { Konva: Konva }).Konva.stages
+      .filter((stage) => stage.container().closest('section[aria-label="Lienzo"]') !== null)
+      .flatMap((stage) =>
+        stage
+          .find('Image')
+          .filter((nodo) => nodo.isVisible())
+          .map((nodo) => nodo.image?.()?.src ?? '')
+          .filter((src) => src !== '')
+          .map((src) => new URL(src).pathname),
+      ),
   )

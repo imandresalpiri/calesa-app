@@ -176,6 +176,7 @@ describe('los ayudantes que miden el ancho', () => {
       expect(miden, nombre).toContain(nombre)
     }
     expect(miden).not.toContain('otraPersona')
+    expect(miden).not.toContain('metricasEnElNavegador')
   })
 })
 

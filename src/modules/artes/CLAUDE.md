@@ -1,6 +1,7 @@
 # artes
 
-Plantillas de arte (un formato de redes o de PDF, por origen, privadas o de la empresa), el editor de artes que las dibuja, la biblioteca de
+Plantillas de arte (un formato de redes o de PDF, por origen, privadas o de la empresa; una de PDF, de 1 a 20 páginas), el editor de artes que las dibuja
+y el PDF con texto real que sale de ellas, la biblioteca de
 imágenes que usan, los datos con que se llena un arte (el vehículo de ejemplo, el **Texto base del origen**) y la plantilla por defecto de
 cada persona para compartir una cotización.
 
@@ -29,6 +30,16 @@ cada persona para compartir una cotización.
   - `/artes/ejemplo/cotizaciones/[id]` — el total con su modo, número, vigencia y las celdas del nivel «todos».
   - `/artes/fotos/[vehiculo]/[foto]?ancho=480|1600` — la foto del vehículo por el mismo origen, sólo por ids (inmutable: el objeto es por
     hash; 304 con su ETag): la única puerta de una foto al lienzo.
+- Sale: `POST /artes/[id]/pdf` (`src/app/(app)/artes/[id]/pdf/route.ts`, `rutaDelPdfDelArte()`): «Descargar PDF» del editor en una plantilla de
+  PDF. Recibe lo que se ve (`{ documento, eleccion }`, `esquemaDelPedidoDelPdf`: el documento se valida como al guardar y lo elegido son sólo
+  ids) y responde el PDF adjunto con `X-Imagenes-Que-Faltan`; sólo del mismo sitio (`vieneDelMismoOrigen()`), con la sesión de quien pide y la
+  guarda del Live. Lo arma `src/app/(app)/_arte/pdf/`: vuelve a leer la plantilla, el vehículo, la cotización y el lead por id
+  (`leer-vehiculo-del-arte.ts`, `leer-cotizacion-del-arte.ts`, las mismas lecturas de las rutas del ejemplo), resuelve las capas con los
+  datos del servidor (`paginasConDatos()`, con su moneda) y baja cada imagen por su origen (`deDondeSaleLaImagen()`: la biblioteca, el logo,
+  la foto del vehículo elegido, la tarjeta de su cotización armada con `armarLaImagen()` y las de ejemplo), de a 4, con tope de peso y de
+  espera; la que no llega no va y se cuenta. Del navegador, `pedirElPdfDelArte()` (`composicion.client.ts`). El mismo dibujo da el PDF de una
+  cotización con la plantilla de PDF por defecto de su origen (o la de `?plantilla=`): `GET /cotizaciones/[id]/pdf` lo pide con
+  `armarElPdfDeLaCotizacion()` sobre la guardada ya leída (`datos-de-la-cotizacion-para-el-pdf.ts`: todo real, sin hermana).
 - La página `/artes/[id]` lee además (`src/app/(editor)/artes/[id]/datos-del-editor.ts`) el texto base del origen, el Mensaje del portal, lo fijo
   del arte (empresa, quien comparte, redes) y los motivos de sólo lectura, y los pasa por props.
 - `index.ts`: las lecturas de las dos páginas (`leerPlantillaParaEditar`) y de las rutas de imágenes, `puedeEditarLaPlantilla`, los filtros
@@ -36,7 +47,10 @@ cada persona para compartir una cotización.
   `leerArteParaCompartir(origenId, tipo)` (qué se comparte de una cotización: la plantilla por defecto de quien mira si todavía la ve; si no, lo
   de hoy). Para compartir con plantilla: `leerTextoBase(origenId)`, `textoBaseInicial`, `validarTextoBase`, el resolver puro
   (`resolverTexto`, `capasConDatos`, `valoresDelArte`, `variablesDelArte`, `textoDeLoQueFalta`, `fotosEnOrden`), las formas de los datos y de las
-  respuestas de las rutas, y los motivos del editor.
+  respuestas de las rutas, y los motivos del editor. Para el PDF de un arte: `pdfDelArte()` (react-pdf, fontkit y sharp por `import()`: nada llega
+  al navegador ni a otra ruta), `validarDocumento`, `esquemaDelPedidoDelPdf` y sus textos, `CABECERA_DE_LO_QUE_FALTA`, `deDondeSaleLaImagen`,
+  `paginasConDatos`, `imagenesDelPdf`, `nombreDelPdf`, `tipoDelFormato` y los datos del ejemplo elegido (`datosDelEjemploElegido`,
+  `leadsDelEjemplo`, `datosDelArteDeEjemplo`).
 - `client.ts`: el resolver puro y sus tipos, `claveDelEjemplo` y `recordarElEjemplo(personaId, plantillaId, eleccion)` (deja elegido el vehículo de
   ejemplo antes de abrir el editor), y los tipos de las plantillas y los formatos.
 - Quién entra: quien ve cotizaciones de algún origen (`cotizaciones.ver`). Sin ninguno, `MOTIVO_SIN_ARTES`. En el Modo Live sigue a «Cotizaciones».
@@ -49,6 +63,19 @@ cada persona para compartir una cotización.
 
 - `entities/formatos.ts` — los formatos (`FORMATOS_DE_ARTE`: redes en px, PDF en puntos; «Personalizado», cada lado de 320 a 4.096 px), espejo de
   `_artes_medidas_validas()` y `_artes_tipo_del_formato()` (`scripts/guardas/formatos-de-arte.test.ts` compara los dos).
+- `entities/texto/disposicion-del-texto.ts` — **la regla de texto común**: parte cada texto en líneas y ubica cada una (`x` y la base), la misma
+  en el lienzo y en el PDF, con `medir` inyectado (el lienzo mide con `measureText`, el servidor con fontkit, sobre los mismos TTF).
+- `entities/editor/paginas.ts` — las páginas en el estado del editor: ir, agregar en blanco, duplicar, mover y quitar, con sus topes
+  (`maximoDePaginas(tipo)`: 1 en imagen, `MAXIMO_DE_PAGINAS` en PDF) y la página que muestra deshacer (`paginaQueCambio`);
+  `menu-de-la-pagina.ts`, el «⋯» de cada una en la tira de páginas. `fuentes.ts` (`FUENTE_DEL_PDF`, `METRICAS_DE_GEIST`) y
+  `efectos-del-formato.ts`: lo que un formato de PDF ofrece y dibuja.
+- `entities/pdf/` — el PDF puro: `geometria-del-pdf.ts` (una página con sus capas con datos → primitivas por posiciones absolutas: fondo, formas,
+  líneas, trazos, texto por línea, imagen con su recorte; rotación y opacidad), `color-del-pdf.ts`, `imagen-del-pdf.ts` (de dónde sale cada
+  imagen), `paginas-con-datos.ts`, `pedido-del-pdf.ts` (el cuerpo del `POST`, ≤ `PESO_MAXIMO_DEL_PEDIDO`) y `tope-del-pdf.ts` (hasta
+  `MAXIMO_DE_LINEAS_POR_PAGINA` líneas de texto por página: la que pasa no se dibuja). `infra/pdf/` (`server-only`) sólo
+  pinta: `documento-del-arte.tsx` (react-pdf: una hoja por página, cada línea de texto en un `<Text>`), `fuentes-del-arte.ts` (la familia
+  propia con los cuatro pesos, sin separación en sílabas), `medidas-de-geist.ts`, `imagen-para-el-pdf.ts` (`sharp`: girada, recortada y
+  achicada a lo que ocupa) y `pdf-del-arte.ts`. Las fuentes son los TTF de `public/fuentes/geist/`, los mismos que la tarjeta de cotizaciones.
 - `entities/documento.ts` — la forma del documento (versión 3: `documentoVacio()`, `imagenesDelDocumento()`, `migrarDocumento()`; la v3 suma el
   foco de la foto), espejo de `_artes_documento_valido()`. `entities/capas-del-documento.ts` — las capas, también las con datos (`foto`,
   `tarjeta`, el texto con variables).
@@ -90,6 +117,11 @@ reglas que `validarTextoBase()`, la versión y `PT409`). Pruebas: `supabase/test
 - Una plantilla de la empresa sólo nombra imágenes de la empresa (`_artes_validar_imagenes()`, también al hacerla de la empresa).
 - Una imagen con usos no se quita: la RPC devuelve cuántas plantillas la usan (también las que quien mira no ve).
 - El documento pesa como mucho 512 KiB medidos en la base (`jsonb::text`).
+- Un texto se parte y se ubica sólo con `disposicionDelTexto()`, en el lienzo y en el PDF: Konva recibe las líneas ya partidas (`wrap="none"`) y
+  react-pdf una línea por `<Text>`; ninguno parte con su algoritmo. En un formato de PDF el lienzo dibuja la «Geist del PDF» de los mismos TTF.
+- Lo que un formato de PDF no dibuja igual no se ofrece ni se dibuja en el lienzo (sombras, borde de texto, otra fuente): `efectosDelFormato()`.
+- El PDF no se arma con datos del navegador: la ruta vuelve a leer la plantilla, el vehículo, la cotización y el lead por id con la sesión; del
+  navegador llegan sólo el documento (validado como al guardar) y los ids. Ninguna imagen llega a react-pdf por URL: va en bytes, preparada.
 - El texto no se escala al cambiar de formato ni con el Transformer: `reacomodarEnOtroFormato()` ancla cada capa a su centro y deja `tamano`
   (el test A → B → A lo fija).
 - Las imágenes entran al lienzo sólo por las rutas del mismo origen (o `public/artes/ejemplo/`), por id: nunca una URL firmada en el documento.
@@ -109,5 +141,7 @@ reglas que `validarTextoBase()`, la versión y `PT409`). Pruebas: `supabase/test
 - Las miniaturas son URL firmadas de 600 s (`SEGUNDOS_DE_LA_MINIATURA`) dibujadas con `next/image` `unoptimized`; si una falla, el marcador con
   la proporción del formato.
 - Un SVG de la biblioteca sólo pasa las reglas en el navegador: se dibuja siempre como `<img>` (`MiniaturaDeArte`), nunca en línea.
+- `window.Konva.stages` incluye las miniaturas de la tira de páginas: un e2e que lee el lienzo filtra por el `Stage` dentro de
+  `section[aria-label="Lienzo"]` (`textosDelLienzo`, `imagenesDelLienzo`).
 - La base busca las imágenes del documento sólo en `paginas[*].capas[*]` de tipo `imagen` (`_artes_imagenes_del_documento()`): un lugar nuevo
   para una imagen (un fondo, un grupo) amplía a la vez esa función, `imagenesDelDocumento()` y el esquema del documento.

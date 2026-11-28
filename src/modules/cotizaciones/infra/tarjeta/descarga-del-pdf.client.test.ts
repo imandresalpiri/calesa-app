@@ -37,13 +37,28 @@ describe('pedirElPdf', () => {
     expect(espia).toHaveBeenCalledWith(RUTA, { redirect: 'manual', cache: 'no-store' })
   })
 
-  it('un 200 con un PDF da sus bytes', async () => {
+  it('un 200 con un PDF da sus bytes; sin la cabecera del arte, no falta ninguna imagen', async () => {
     responder(pdf())
     const r = await pedirElPdf(RUTA)
     expect(r.ok).toBe(true)
     if (r.ok) {
-      expect(new Uint8Array(await r.data.arrayBuffer())).toEqual(new Uint8Array([37, 80, 68, 70]))
+      expect(new Uint8Array(await r.data.blob.arrayBuffer())).toEqual(
+        new Uint8Array([37, 80, 68, 70]),
+      )
+      expect(r.data.faltan).toBe(0)
     }
+  })
+
+  it('con la plantilla de arte, cuántas imágenes no llegaron; otra cosa en la cabecera, ninguna', async () => {
+    const conFaltan = (valor: string) =>
+      new Response(new Uint8Array([37]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/pdf', 'X-Imagenes-Que-Faltan': valor },
+      })
+    responder(conFaltan('2'))
+    expect(await pedirElPdf(RUTA)).toMatchObject({ ok: true, data: { faltan: 2 } })
+    responder(conFaltan('-1'))
+    expect(await pedirElPdf(RUTA)).toMatchObject({ ok: true, data: { faltan: 0 } })
   })
 
   it('un 404 es no_encontrado', async () => {

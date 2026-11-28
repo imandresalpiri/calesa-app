@@ -1,11 +1,20 @@
 // El PDF de una cotización guardada pedido desde el navegador (4.18-3b, C5): «Descargar PDF» de «Vista previa» pide la ruta del 4.18-3a con la sesión de quien mira y recibe
 // los bytes, para bajarlos como archivo sin salir de la página. No sigue la redirección (sin sesión la ruta manda al ingreso: bajaría la página de ingreso) y no guarda en
-// caché. Los textos los pone quien dibuja: el cuerpo de la respuesta no se muestra nunca.
+// caché. Los textos los pone quien dibuja: el cuerpo de la respuesta no se muestra nunca. Con la plantilla de arte, la ruta dice además cuántas imágenes no
+// llegaron (`faltan`; el PDF de hoy no la manda: ninguna).
 import { fallo, ok, type Resultado } from '@/shared/lib/errores'
 
 const ES_PDF = /^application\/pdf\b/
 
-export async function pedirElPdf(ruta: string): Promise<Resultado<Blob>> {
+// La de `CABECERA_DE_LO_QUE_FALTA` de `artes`, escrita acá porque `cotizaciones` no depende de `artes`.
+const CABECERA_DE_LO_QUE_FALTA = 'X-Imagenes-Que-Faltan'
+
+export type PdfDescargado = { blob: Blob; faltan: number }
+
+const cuantasFaltan = (cabecera: string | null) =>
+  cabecera !== null && /^\d+$/.test(cabecera) ? Number(cabecera) : 0
+
+export async function pedirElPdf(ruta: string): Promise<Resultado<PdfDescargado>> {
   let respuesta: Response
   try {
     respuesta = await fetch(ruta, { redirect: 'manual', cache: 'no-store' })
@@ -22,7 +31,8 @@ export async function pedirElPdf(ruta: string): Promise<Resultado<Blob>> {
     return fallo('inesperado', 'No se pudo armar el PDF.')
   }
   try {
-    return ok(await respuesta.blob())
+    const faltan = cuantasFaltan(respuesta.headers.get(CABECERA_DE_LO_QUE_FALTA))
+    return ok({ blob: await respuesta.blob(), faltan })
   } catch {
     return fallo('inesperado', 'No se pudo leer el PDF.')
   }

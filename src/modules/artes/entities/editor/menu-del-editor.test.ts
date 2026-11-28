@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { MENSAJE_SIN_PDF } from './exportar'
 import { lineasDelMenuDelEditor } from './menu-del-editor'
 
 const claves = (formato: Parameters<typeof lineasDelMenuDelEditor>[0]) =>
@@ -13,13 +12,18 @@ describe('el «⋯» del editor de artes', () => {
       'separador-de-la-ayuda',
       'atajos',
     ])
-    expect(lineasDelMenuDelEditor('vertical')[0]).toMatchObject({ deshabilitada: false })
+    expect(lineasDelMenuDelEditor('vertical')[0]).toMatchObject({
+      etiqueta: 'Exportar PNG',
+      deshabilitada: false,
+    })
   })
 
-  it('en Carta o A4 exportar va apagado y la nota dice por qué', () => {
-    const lineas = lineasDelMenuDelEditor('carta')
-    expect(lineas[0]).toMatchObject({ clave: 'exportar-png', deshabilitada: true })
-    expect(lineas[1]).toEqual({ tipo: 'nota', clave: 'sin-pdf', texto: MENSAJE_SIN_PDF })
-    expect(claves('a4')).toContain('sin-pdf')
+  it('en Carta o A4 exporta la página que se ve', () => {
+    expect(lineasDelMenuDelEditor('carta')[0]).toMatchObject({
+      clave: 'exportar-png',
+      etiqueta: 'Exportar esta página en PNG',
+      deshabilitada: false,
+    })
+    expect(claves('a4')).toEqual(claves('vertical'))
   })
 })

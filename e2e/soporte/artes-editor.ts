@@ -3,21 +3,25 @@ import { literal, sql } from './sql'
 
 // Las plantillas de arte que siembran los e2e del editor de artes (`artes-editor*.spec.ts`, `presupuesto-js.spec.ts`): se insertan por SQL
 // como `supabase/tests/areas/artes/carreras.mjs`, en la subasta de la semilla, con el documento vacío de la versión 1 (el editor lo lee como
-// el de hoy y lo guarda así) o, con `capas`, uno de la versión 3 con ellas (`artes-editor-con-datos.spec.ts`). Todas llevan `E2E` en el nombre;
-// `borrarPlantillasDeArte()` quita las de un prefijo y sus copias.
+// el de hoy y lo guarda así) o, con `capas`, uno de la versión 3 con ellas (`artes-editor-con-datos.spec.ts`); con `paginas`, una página por
+// lista (Carta y A4, `artes-pdf.spec.ts`). Todas llevan `E2E` en el nombre; `borrarPlantillasDeArte()` quita las de un prefijo y sus copias.
 export type PlantillaSembrada = {
   nombre: string
   autorId: string
-  formato?: 'cuadrado' | 'vertical' | 'historia'
+  formato?: 'cuadrado' | 'vertical' | 'historia' | 'carta' | 'a4'
   visibilidad?: 'privada' | 'empresa'
   // Con capas, el documento va en la versión de hoy (3) con ellas en su única página; sin ellas, el vacío de la versión 1.
   capas?: readonly Record<string, unknown>[]
+  // Varias páginas (`pagina-1`, `pagina-2`…), cada una con sus capas: también en la versión 3.
+  paginas?: readonly (readonly Record<string, unknown>[])[]
 }
 
 const MEDIDAS = {
   cuadrado: [1080, 1080],
   vertical: [1080, 1350],
   historia: [1080, 1920],
+  carta: [612, 792],
+  a4: [595, 842],
 } as const
 
 // El vacío de la versión 1 (una página con su id y su fondo blanco): el editor lo lleva a la 2 al leerlo.
@@ -40,10 +44,15 @@ export const BASE_DE_CAPA = {
   sombra: null,
 } as const
 
-const documentoCon = (capas: readonly Record<string, unknown>[]) =>
+const documentoCon = (paginas: readonly (readonly Record<string, unknown>[])[]) =>
   JSON.stringify({
     version: 3,
-    paginas: [{ id: 'pagina-1', fondo: { tipo: 'color', color: '#ffffff' }, capas, grupos: [] }],
+    paginas: paginas.map((capas, i) => ({
+      id: `pagina-${String(i + 1)}`,
+      fondo: { tipo: 'color', color: '#ffffff' },
+      capas,
+      grupos: [],
+    })),
   })
 
 export function sembrarPlantillaDeArte({
@@ -52,9 +61,11 @@ export function sembrarPlantillaDeArte({
   formato = 'vertical',
   visibilidad = 'privada',
   capas,
+  paginas,
 }: PlantillaSembrada): string {
   const [ancho, alto] = MEDIDAS[formato]
-  const documento = capas === undefined ? DOCUMENTO_V1 : documentoCon(capas)
+  const conPaginas = paginas ?? (capas === undefined ? undefined : [capas])
+  const documento = conPaginas === undefined ? DOCUMENTO_V1 : documentoCon(conPaginas)
   sql(`delete from public.artes_plantillas where nombre = ${literal(nombre)}`)
   return sql(`
     insert into public.artes_plantillas (id, nombre, formato, ancho, alto, origen_id, visibilidad, autor_id, documento)
