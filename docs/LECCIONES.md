@@ -209,6 +209,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 - Pon el motivo de un botón o pestaña apagada en texto visible (`aria-describedby`), no sólo en `title`: un `TabsTrigger` deshabilitado no recibe foco y el lector no lo lee.
 - Al cambiar un token de color corre `design/tokens.test.ts` (contraste AA) y actualiza su espejo del PDF (`estilos-del-documento.ts`) y `e2e/xcell-geometria.spec.ts`.
 - Dale a toda página nueva su `loading.tsx`, un `h1` (`sr-only` si no se ve) fuera del `Suspense` y un `<title>` único: lo exigen `estados-de-ruta.test.ts` y `accesibilidad.spec.ts`.
+  Si su ruta lleva un `[param]`, dale también su entrada en `DINAMICAS` de `e2e/soporte/accesibilidad-rutas.ts`, con lo que siembra
+  `sembrarTerreno`. Sin ella cae A0 del barrido, que es `serial`, y el resto del barrido no corre.
 - Una página que sólo redirige (tras su `loading.tsx`, la redirección es del navegador) se anota en `SOLO_REDIRIGEN` de
   `e2e/soporte/accesibilidad-rutas.ts`, o como `pendiente` en `DINAMICAS` si su ruta lleva un `[param]`: al cambiar la URL todavía se ve el
   esqueleto del destino y el barrido cuenta «0 h1» o cae con «Execution context was destroyed».

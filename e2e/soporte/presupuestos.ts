@@ -55,6 +55,9 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   // La ficha de un lead (T33), sin tope hasta las dos columnas: medido 548,5 KB en 36 chunks con pestañas y 554,7 KB en 36 con todo a la vista
   // (el marco de bloques, el índice y el resumen de seguimientos), con un lead recién creado; más un 5 % hacia arriba a la decena.
   '/leads/[id]': 595,
+  // Artes (T591), con la rejilla de plantillas vacía de la dueña de la prueba: medido 387,8 KB en 28 chunks (la pestaña Imágenes, el modal «Nueva
+  // plantilla» y los diálogos van con `diferido()`; «Ver más» es una Server Action, sin supabase-js); más un 5 % hacia arriba a la decena.
+  '/artes': 410,
   // La matriz de Roles con los niveles de acceso y «Quién crea y quién ve» adentro (T511), sin tope hasta entonces: medido 388,2 KB en 29 chunks (la matriz, el «⋯» y los
   // modales de los niveles y el cuadro van con `diferido()`); más un 5 % hacia arriba a la decena. «Quién crea y quién ve» tenía 420 en Catálogos, con su marco.
   '/configuracion/roles': 410,

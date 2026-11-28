@@ -113,7 +113,8 @@ insert into public.permisos (clave, modulo, nombre, descripcion, por_origen, con
   ('tablero.metricas.ver', 'tablero', 'Ver métricas', 'Tablero con métricas y gráficas', false, false, 'tablero_leads, tablero_cotizaciones', 660),
   ('datos.exportar.todo', 'datos', 'Exportar todo', 'Exportar los datos de todos', false, false, 'datos_exportacion_registrar', 670),
   ('datos.importar.todo', 'datos', 'Importar para todos', 'Importar datos asignándolos a cualquiera', false, false, 'importacion_crear, _importacion_autorizar, leads_importacion_deshacer, policy importaciones', 680),
-  ('live.configurar', 'live', 'Configurar el Modo Live', 'Qué se ve en el Modo Live, por rol y por persona', false, false, 'live_rol_guardar, live_rol_quitar, live_persona_guardar, live_persona_quitar, live_personas, policy live_ajustes_*', 690)
+  ('live.configurar', 'live', 'Configurar el Modo Live', 'Qué se ve en el Modo Live, por rol y por persona', false, false, 'live_rol_guardar, live_rol_quitar, live_persona_guardar, live_persona_quitar, live_personas, policy live_ajustes_*', 690),
+  ('artes.empresa.gestionar', 'artes', 'Gestionar las de la empresa', 'Hacer de la empresa o privada una plantilla de arte, editar o eliminar las de la empresa y cargar la biblioteca de imágenes de la empresa', false, false, 'artes_plantilla_guardar, artes_plantilla_visibilidad, artes_plantilla_eliminar, artes_imagen_crear, artes_imagen_renombrar, artes_imagen_quitar', 695)
 on conflict (clave) do update set nombre = excluded.nombre, descripcion = excluded.descripcion, por_origen = excluded.por_origen, con_alcance = excluded.con_alcance, aplicado_en = excluded.aplicado_en, modulo = excluded.modulo, orden = excluded.orden;
 
 -- ---------------------------------------------------------------------------

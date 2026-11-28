@@ -49,6 +49,7 @@ export type Terreno = {
   cotizacionDeRepuestos: string
   guia: string
   embarque: string
+  plantillaDeArte: string
 }
 
 export type Destino = { url: string } | { pendiente: string; motivo: string }
@@ -111,6 +112,7 @@ export const DINAMICAS: Record<string, (t: Terreno) => Destino> = {
     url: `/repuestos/${t.proyectoDeRepuestos}/cotizaciones/${t.cotizacionDeRepuestos}`,
   }),
   '/configuracion/web/guias/[id]': (t) => ({ url: `/configuracion/web/guias/${t.guia}` }),
+  '/artes/[id]': (t) => ({ url: `/artes/${t.plantillaDeArte}` }),
 }
 
 // Sin sesión de recuperación, elegir la contraseña manda a pedir otro enlace: se barre lo que dibuja ese destino. Sitio web de
@@ -128,6 +130,7 @@ export const SOLO_REDIRIGEN: Record<string, string> = {}
 const claveDelOrigen = (proyecto: string) => `a11y_${proyecto}`
 const tituloDeLaCotizada = (proyecto: string) => `A11y cotizada ${proyecto}`
 const slugDeLaGuia = (proyecto: string) => `e2e-guia-a11y-${proyecto}`
+const nombreDelArte = (proyecto: string) => `A11y arte ${proyecto}`
 
 // Una cotización guardada para `/cotizaciones/[id]` (9.12-2): pide la fórmula publicada de su origen, así que va en la subasta de la semilla
 // (como `presupuesto-js.spec.ts`), sobre un vehículo propio y creada por la dueña del barrido. Antes de sembrar, quita lo que dejó una corrida cortada.
@@ -177,6 +180,17 @@ function sembrarLaGuia(proyecto: string): string {
   )
 }
 
+// Una plantilla de arte privada de la dueña en el origen del barrido, para `/artes/[id]`: se inserta por SQL como `supabase/tests/areas/artes/carreras.mjs`.
+function sembrarLaPlantillaDeArte(origenId: string, proyecto: string, duena: string): string {
+  const nombre = literal(nombreDelArte(proyecto))
+  sql(`delete from public.artes_plantillas where nombre = ${nombre}`)
+  return sql(`
+    insert into public.artes_plantillas (id, nombre, formato, ancho, alto, origen_id, visibilidad, autor_id, documento)
+      values (gen_random_uuid(), ${nombre}, 'cuadrado', 1080, 1080, ${literal(origenId)}::uuid, 'privada',
+        ${literal(idDePersona(duena))}::uuid, '{"version": 1, "paginas": [{"capas": []}]}'::jsonb)
+      returning id`)
+}
+
 export async function sembrarTerreno(proyecto: string, duena: string): Promise<Terreno> {
   const espera = await sembrarEspera(`A11y ${proyecto}`, claveDelOrigen(proyecto))
   const origen = await origenPorClave(`e2e_${claveDelOrigen(proyecto)}`)
@@ -195,6 +209,7 @@ export async function sembrarTerreno(proyecto: string, duena: string): Promise<T
     cotizacionDeRepuestos: sembrarLaCotizacionDeRepuestos(espera.proyectoDeRepuestos, duena),
     guia: sembrarLaGuia(proyecto),
     embarque: sembrarElEmbarque(origen.id, proyecto),
+    plantillaDeArte: sembrarLaPlantillaDeArte(origen.id, proyecto, duena),
   }
 }
 
@@ -213,6 +228,7 @@ function sembrarElEmbarque(origenId: string, proyecto: string): string {
 export async function limpiarTerreno(proyecto: string): Promise<void> {
   quitarLaCotizada(proyecto)
   sql(`delete from public.web_guias where slug = ${literal(slugDeLaGuia(proyecto))}`)
+  sql(`delete from public.artes_plantillas where nombre = ${literal(nombreDelArte(proyecto))}`)
   sql(`
     delete from public.repuestos_cotizaciones where proyecto_id in (
       select p.id from public.repuestos_proyectos p join public.vehiculos v on v.id = p.vehiculo_id

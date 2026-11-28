@@ -625,6 +625,17 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `repuestos_cotizaciones_lineas_cotizacion_id_idx` (tope 200 de la base) y, sólo con `lead_id` y `leads.ver`, una fila de `leads_vista` por PK para el cliente del proyecto. En borrador lee además los ítems del proyecto (`limit 201`, tope
   200 por `armarHoja`); el total en vivo es O(líneas) ≤ 200 por cambio, con líneas y `XCell` en `memo` y callbacks estables.
 
+## Artes
+
+- Plantillas de arte (`artes_plantillas`) e imágenes de la biblioteca (`artes_imagenes`): tablas de configuración (decenas de filas por persona), sin
+  volumen ni `medir-*.sql`. Igual, cada lista va por cursor `(actualizado_en, id)` de a `TAMANO_DE_VER_MAS` + 1, «Ver más» hasta `TOPE_DE_LO_CARGADO`
+  (`<AvisoDeTope>`, con los filtros de la URL como camino a lo demás). Índices: `artes_plantillas_recientes_idx` (sin filtro),
+  `artes_plantillas_origen_idx` (`?origen=`), `artes_plantillas_autor_idx` (`?de=mias`) y `artes_imagenes_recientes_idx`.
+- «Ver más» es una Server Action (`leerMasPlantillasDeArte`, `leerMasImagenesDeArte`) que lee una página en el servidor: supabase-js no viaja en frío.
+- Las miniaturas (480 px, nunca el original) se firman en una sola llamada por página (`createSignedUrls`), URL de 600 s; el documento de una
+  plantilla no se lee en las listas. Los usos de una imagen, al abrir «Quitar», con tope (`artes_imagen_usos`: 101 dice «más de 100»).
+- JS en frío: `/artes` en «JS en frío».
+
 ## Tablero: métricas
 
 - `tablero_leads()` y `tablero_cotizaciones()` (definer): agregados de un período ≤ 366 días (zona de la empresa). `tablero_leads` recorre
@@ -652,7 +663,9 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `/cotizaciones/nuevo` 480 (470,2 medidos sin el resumen de la derecha: la región del total, el cierre con «Guardar» y la ranura de la cabecera; con la hoja con el aspecto de V1, la tarjeta del total como pieza de una sección (`TotalDeHoja`), el interruptor «Privada», los botones «Recargar la página» y «Copiar el enlace de esta página» del marco y la marca, «Calculado» y la región del aviso de un cálculo pisado: regla del 5 %; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
   (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 484,6 medidos con «Hacer privada», la insignia, los dos botones del marco y la cabecera quieta de la ranura: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
   `/logistica/bandeja` 390 (provisional), `/logistica/fase/[fase]` 390, `/logistica/embarques`, `/logistica/embarques/[id]` y `/logistica/aduana` 410 (386,1, 385,7 y 382,3 medidos), `/logistica/vehiculo/[id]` 480, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
-  `/cotizaciones/papelera` 445 (en su spec; 441,3 medidos con el Modo Live configurable en el marco: regla del 5 %).
+  `/cotizaciones/papelera` 445 (en su spec; 441,3 medidos con el Modo Live configurable en el marco: regla del 5 %), `/artes` 410 (387,8 medidos en 28 chunks con
+  la rejilla vacía; la pestaña Imágenes, «Nueva plantilla» y los diálogos van con `diferido()`; «Ver más» es una Server Action: con la lectura desde el navegador,
+  supabase-js sumaba ≈ 70 KB).
 - Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 590,2 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
   frío serían 450: va con `diferido()`; la imagen del resumen, sólo su cáscara: `CLAVE_DEL_VISOR` por el barril del visor sumaba 2,5 KB, se importa de

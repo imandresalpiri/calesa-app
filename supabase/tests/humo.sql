@@ -7056,3 +7056,44 @@ begin
   reset role;
 end $$;
 rollback;
+
+-- @test artes: la plantilla de arte privada y la imagen personal las lee sólo su autor, también la tabla puente; nadie las escribe directo (policies «artes_*: leer»)
+begin;
+do $$
+declare v_rol uuid; v_o uuid; v_n int; v_codigo text;
+  v_ana uuid := '00000000-0000-4000-8000-000000a75e01';
+  v_otra uuid := '00000000-0000-4000-8000-000000a75e02';
+  v_p uuid := '00000000-0000-4000-8000-000000a75c01';
+  v_i uuid := '00000000-0000-4000-8000-000000a75d01';
+begin
+  insert into auth.users (id, email, raw_app_meta_data) values (v_ana, 'humo.artes.ana@ejemplo.com', '{"invitado": true}'), (v_otra, 'humo.artes.otra@ejemplo.com', '{"invitado": true}');
+  update public.perfiles set invitacion_aceptada_en = now() where id in (v_ana, v_otra);
+  delete from public.usuarios_roles where usuario_id in (v_ana, v_otra);
+  insert into public.origenes (clave, nombre) values ('humo_artes', 'Humo artes') returning id into v_o;
+  insert into public.roles (clave, nombre) values ('humo_artes', 'Humo artes') returning id into v_rol;
+  insert into public.usuarios_roles (usuario_id, rol_id, es_principal) values (v_ana, v_rol, true), (v_otra, v_rol, true);
+  insert into public.roles_permisos (rol_id, permiso_clave, origen_id, alcance) values (v_rol, 'cotizaciones.ver', v_o, 'propios');
+  perform set_config('request.jwt.claim.sub', v_ana::text, true);
+  perform set_config('request.jwt.claim.role', 'authenticated', true);
+  set local role authenticated;
+  perform public.artes_imagen_crear(v_i, 'Fondo', 'imagenes/' || repeat('a', 64) || '.png', 'miniaturas/' || repeat('b', 64) || '.webp', 'png', 10, 10, 'personal');
+  perform public.artes_plantilla_crear(v_p, 'Mía', 'cuadrado', 1080, 1080, v_o,
+    jsonb_build_object('version', 1, 'paginas', jsonb_build_array(jsonb_build_object('capas', jsonb_build_array(jsonb_build_object('tipo', 'imagen', 'imagenId', v_i))))));
+  select (select count(*) from public.artes_plantillas where id = v_p) + (select count(*) from public.artes_imagenes where id = v_i)
+       + (select count(*) from public.artes_plantillas_imagenes where plantilla_id = v_p) into v_n;
+  if v_n <> 3 then raise exception 'quien creó la plantilla y la imagen no leyó lo suyo (%)', v_n; end if;
+  reset role;
+  perform set_config('request.jwt.claim.sub', v_otra::text, true);
+  set local role authenticated;
+  select (select count(*) from public.artes_plantillas where id = v_p) + (select count(*) from public.artes_imagenes where id = v_i)
+       + (select count(*) from public.artes_plantillas_imagenes where plantilla_id = v_p) into v_n;
+  if v_n <> 0 then raise exception 'otra persona del mismo origen leyó la privada o la personal (%)', v_n; end if;
+  begin
+    update public.artes_plantillas set visibilidad = 'empresa' where id = v_p;
+    v_codigo := 'sin error';
+  exception when others then v_codigo := sqlstate;
+  end;
+  if v_codigo <> '42501' then raise exception 'el update directo de artes_plantillas dio %', v_codigo; end if;
+  reset role;
+end $$;
+rollback;

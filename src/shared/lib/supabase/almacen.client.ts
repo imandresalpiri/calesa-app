@@ -1,10 +1,10 @@
 import { fallo, ok, type Resultado } from '@/shared/lib/errores'
 import { hashDe } from '@/shared/lib/imagenes'
-import type { BucketPublico } from '@/shared/lib/almacen'
+import type { Bucket, BucketPublico } from '@/shared/lib/almacen'
 import { createClient } from './browser'
 
 type Subida = {
-  bucket: BucketPublico
+  bucket: Bucket
   // Primer tramo de la ruta: las policies de Storage lo comparan (id de la persona, del vehículo…).
   carpeta: string
   contenido: Blob

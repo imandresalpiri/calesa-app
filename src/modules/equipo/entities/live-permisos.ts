@@ -26,6 +26,8 @@ const REGLAS: Record<ModuloPermiso, Regla> = {
   vehiculos: (_, a) => a.vehiculos,
   cotizaciones: (clave, a) =>
     a.cotizaciones && (clave !== 'cotizaciones.configurar' || a.origenesConfig === 'lectura'),
+  // Artes vive con las cotizaciones (`/artes` se oculta con ellas).
+  artes: (_, a) => a.cotizaciones,
   leads: (_, a) => a.clientes === 'completo',
   logistica: (clave, a) => clave === 'logistica.ver' && a.logistica === 'cadena',
   repuestos: (clave, a) => clave === 'repuestos.ver' && a.repuestos === 'estadisticas',

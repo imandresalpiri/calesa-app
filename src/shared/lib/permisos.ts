@@ -88,6 +88,7 @@ export const CLAVES_PERMISO = [
   'datos.exportar.todo',
   'datos.importar.todo',
   'live.configurar',
+  'artes.empresa.gestionar',
 ] as const
 
 // Los permisos de un nivel de acceso de la hoja (D7, paso 4.09) no están en la lista: los crea la empresa al crear un nivel, así que se
@@ -205,6 +206,7 @@ export const MODULOS_PERMISO: Record<ModuloPermiso, string> = {
   vehiculos: 'Vehículos',
   leads: 'Leads',
   cotizaciones: 'Cotizaciones',
+  artes: 'Artes',
   flujos: 'Flujos',
   logistica: 'Logística',
   repuestos: 'Repuestos',

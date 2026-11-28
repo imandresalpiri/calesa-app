@@ -49,6 +49,9 @@ permisos, no por nombre de rol.
   valor por defecto global (⚙), tablas de referencia editables, snapshot por cotización, Modo
   Live, vista previa y PDF con plantilla versionada, versiones (cotizar encima), comentarios,
   adjuntos, reportes, revisiones con diff, preventa/final, comprobantes de venta.
+- **Artes**: plantillas de arte por origen y formato (redes en px, PDF Carta o A4), privadas o de
+  la empresa, con su biblioteca de imágenes (de la empresa o personales) y la plantilla por defecto
+  de cada persona para compartir una cotización; el editor de las capas llega después.
 - **Flujos**: fases con color, orden, inicial/final, jubilación, requisitos de entrada
   (documentos, datos, esperas entre flujos), roles por fase y transición, alerta por demora,
   vitrina y portal con alias, revisión de coherencia, vista previa antes de mover, lotes con
@@ -74,7 +77,7 @@ permisos, no por nombre de rol.
 
 - Multiidioma (sólo español).
 - Offline real (sin conexión no funciona; el caché es el mínimo del shell).
-- Editor de artes para redes (Konva) y directorio de contactos/empresas.
+- Directorio de contactos/empresas.
 - Integración con la API de WhatsApp/Meta.
 - La web pública en sí: va en otro repositorio (skill `sitio-marketing`) sobre el esquema `web`.
 - Multi-empresa en un mismo despliegue.

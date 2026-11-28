@@ -129,6 +129,39 @@ export async function comprimirImagen(
   return imagen.contenido
 }
 
+// Si algún píxel no es del todo opaco, en los datos RGBA de un lienzo (`getImageData().data`): el canal alfa es cada cuarto byte.
+export function hayTransparencia(datos: Uint8ClampedArray): boolean {
+  for (let i = 3; i < datos.length; i += 4) {
+    if ((datos[i] ?? 255) < 255) {
+      return true
+    }
+  }
+  return false
+}
+
+// Para mirar si hay transparencia alcanza una copia chica: un píxel transparente de la original deja alfa < 255 al reducirla.
+const LADO_PARA_VER_EL_ALFA = 256
+
+// Cuánto mide una imagen y si tiene transparencia, decodificándola una vez. Lo que tiene alfa no se guarda en JPEG: lo transparente saldría
+// blanco (el respaldo de `codificar()` en Safari).
+export async function inspeccionarImagen(
+  archivo: Blob,
+): Promise<Dimensiones & { conAlfa: boolean }> {
+  const mapa = await createImageBitmap(archivo, { imageOrientation: 'from-image' })
+  try {
+    const original = { ancho: mapa.width, alto: mapa.height }
+    const chica = dimensionesAjustadas(original, LADO_PARA_VER_EL_ALFA)
+    const lienzo = lienzoDe(mapa, chica)
+    const contexto = lienzo.getContext('2d')
+    const conAlfa = contexto
+      ? hayTransparencia(contexto.getImageData(0, 0, chica.ancho, chica.alto).data)
+      : true
+    return { ...original, conAlfa }
+  } finally {
+    mapa.close()
+  }
+}
+
 // Nombre del objeto en Storage: el SHA-256 de su contenido. La misma foto subida dos veces es un
 // solo objeto, y un objeto nunca cambia de contenido (se puede cachear para siempre).
 export async function hashDe(contenido: Blob): Promise<string> {

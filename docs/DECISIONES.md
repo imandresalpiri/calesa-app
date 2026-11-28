@@ -11,7 +11,8 @@ las trampas, en `docs/LECCIONES.md`.
 
 - **Lo descartado del arranque.** TS 7, Biome, husky y Serwist se descartaron a propósito; boundaries va con la sintaxis v7 (`policies`, elementos como carpetas): la legacy muere en la v8.
 - **Sin paquetes nuevos para lo que se resuelve con lo que hay.** Gráficas en HTML y SVG propio, la cookie del portal con `node:crypto`, el barrido AA por CDP (sin `@axe-core/playwright`). Una sesión agrega sólo lo que está en `scripts/orquestador/dependencias-aprobadas.txt` (lo vigila `.claude/hooks/bloquear-peligrosos.sh`: con pnpm, sin `cd`, `-C`/`--filter` ni variables delante, nombre o nombre@versión, sin alias, git ni tarballs); fuera de ella, como último recurso, la suma a la lista en el mismo PR con la sección «Dependencias nuevas» (por qué no alcanza lo que hay, peso gzip, licencia, mantenimiento, versión verificada hoy), con versión exacta y nunca dos librerías para lo mismo. Aunque esté en la lista, la versión se verifica el día que se agrega. Actualizar o quitar dependencias lo decide la persona. Sin lista legible, el hook no deja agregar nada. Una orden de pnpm que cambia dependencias dentro de otro comando, aunque sea el texto de un grep o de un mensaje de commit, también se bloquea (se busca por «dependencia»; el mensaje va por `git commit -F`). El hook frena el descuido (otro paquete, otro gestor, otra carpeta, una versión que es una ruta), no a una sesión que edite la lista: eso lo frena la regla del prompt y queda a la vista en la sección «Dependencias nuevas» del PR.
-- **Fuera a propósito.** Editor de artes (Konva) y directorio de contactos: navieras es un catálogo plano y los proveedores son texto en gastos.
+- **Fuera a propósito.** Directorio de contactos: navieras es un catálogo plano y los proveedores son texto en gastos.
+- **Las artes viven en su módulo (`artes`), aparte de la tarjeta de la cotización.** Una plantilla de arte es de una persona o de la empresa y de un origen; la tarjeta sigue saliendo de la plantilla de tarjeta de la fórmula. Sin una plantilla por defecto, compartir hace lo de hoy (más abajo, «Artes»).
 - **Componer desde `src/app` por ranuras.** Un módulo no importa otro para dibujar algo ajeno: la página pasa un `ReactNode` o datos serializables (el historial en la barra del vehículo, el lector de opciones de cotizaciones).
 - **El motor de campos es de `shared`.** `shared/lib/campos` (puro) y `shared/ui/campos`; en SQL, `_campo_*` sin leer tablas. Cada módulo conserva su política; `shared` no sabe qué es un lead. Íconos: catálogo cerrado en `shared/lib/iconos.ts`.
 - **Una action desde una pantalla a medio tipear no revalida ni refresca.** En Next 16, `revalidatePath`/`revalidateTag`/`updateTag`/`refresh` redibujan la página que llama y la `key` remonta la hoja o el editor (el ⚙, crear cotización, comentarios, la hoja de ítems de repuestos). Excepción a «revalidar tras mutar».
@@ -1175,6 +1176,7 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
 - **El barrido del bucket `cotizaciones` tiene su rama, como `vehiculos`.** `not exists` sobre los adjuntos, por el índice de `ruta`: la
   rama genérica llama a `storage_refcount()` por objeto y una ventana de 10.000 costaba ≈ 0,9 s (≈ 0,2 s así). Una tabla nueva con rutas de ese bucket va en
   las dos; si falta en la rama, `storage_gc_reclamar()` igual la descarta al ver el refcount.
+  El bucket `artes` tiene su rama, como `cotizaciones`.
 - **Los retoques de la tarjeta son de una cotización, sólo textos y filas ocultas.** Se guardan en `cotizaciones.tarjeta_retoques` (por id de celda y de
   fila) y se aplican a la cuadrícula antes de la geometría, así todo lo que dibuja esa tarjeta los sigue solo; nunca cifras, colores, el logo, tamaños,
   columnas ni combinaciones (la plantilla del origen sigue mandando en la forma). Cotizar encima se los lleva, como el título y las notas. Un `{{` se dibuja
@@ -1392,6 +1394,38 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
 - **Una cotización de la papelera frena la purga de lo que nombra.** Su lead, y su vehículo si está en otro lote (las del lote del vehículo se purgan
   con él): el `set null` cambiaría algo que todavía se restaura. A una viva, purgar su lead la deja sin cliente.
 - **Quién restaura.** Quien envió el lote lo restaura entero aunque ya no vea alguna; los demás necesitan `purgar`. Restaurar es todo o nada; purgar no. Las genéricas `papelera_enviar|restaurar|purgar` conviven sobre los mismos ayudantes.
+
+## Artes
+
+- **Los formatos viven en código, y el PDF en puntos.** `FORMATOS_DE_ARTE` (`entities/formatos.ts`) con su espejo en `_artes_medidas_validas()`,
+  que compara `scripts/guardas/formatos-de-arte.test.ts`: un formato es una medida fija, no un catálogo por empresa. Las medidas se guardan en la
+  fila y no se editan (un arte de otra medida es otro arte). Carta y A4 en puntos, la unidad de `@react-pdf/renderer`.
+- **Bucket privado, servido con URL firmada.** Una imagen personal no es pública: `artes` es privado y la lista firma las miniaturas (600 s) en una
+  sola llamada. Se dibujan con `next/image` `unoptimized` (la URL firmada no pasa por el optimizador). Si una falla, el marcador con la proporción del formato.
+- **Una ruta por hash no mira de quién es el objeto.** El mismo archivo subido por dos personas es un solo objeto (su dueño en Storage, quien lo
+  subió primero), así que `artes_imagen_crear` y `artes_plantilla_guardar` validan la forma de la ruta y no el dueño: pedirlo rompería la
+  segunda subida. Lo lee quien ve una fila que lo nombra (como `documentos`), y nombrar el objeto de otra persona exige su sha256, que es tener
+  el archivo. Un SVG pasa las reglas del logo en el navegador y no en la base: por eso se dibuja siempre como `<img>`, nunca en línea.
+- **Una plantilla de la empresa sólo usa imágenes de la empresa.** Si no, quien la ve no podría leer lo que nombra. Lo exige la base al guardar y al
+  hacerla de la empresa (`_artes_validar_imagenes()`).
+- **Los usos de una imagen van en una tabla puente.** `artes_plantillas_imagenes` (la mantienen las RPC que escriben el documento) cuenta por índice;
+  leer los documentos para contar sería recorrer la tabla. Quitar cuenta también las plantillas que quien quita no ve: no puede romper la de otra
+  persona. La FK sin cascada serializa a quien la nombra contra quien la quita.
+- **Sin auditoría.** Las artes son material de trabajo, no un dato del negocio: sin `auditar()` ni actividad.
+- **Una plantilla nace privada.** Hacerla de la empresa es un paso aparte (con `artes.empresa.gestionar`), reversible con «Deshacer». Hacer privada la
+  de otra persona confirma: quien la cambia deja de verla.
+- **«Ver más» con `TAMANO_DE_VER_MAS`, por una Server Action.** Plantillas e imágenes son de configuración (decenas a cientos): cursor por
+  `(actualizado_en, id)` con su índice, sin conteo ni medición con volumen. Lee en el servidor (`leerMasPlantillasDeArte`, `leerMasImagenesDeArte`,
+  como la columna del flujo de repuestos, `ver-mas-de-la-columna.ts`): leer desde el navegador sumaba supabase-js al JS en frío de `/artes` (≈ 70 KB) y «Mías» sale de la sesión, no de lo
+  que mande el navegador. El cursor no va en la URL: recargar vuelve a la primera página. Tras una mutación la lista vuelve a la primera página
+  (`revalidatePath`, sin `router.refresh()`).
+- **La miniatura tiene caja fija.** Todas las tarjetas miden lo mismo y la imagen va `object-contain` adentro (no la proporción libre de cada
+  formato): nada salta al cargar y la rejilla queda pareja.
+- **Las acciones de la tarjeta van en su «⋯».** Abrir, duplicar, la por defecto, la visibilidad y eliminar son una lista con sus motivos; botones a la
+  vista en cada tarjeta repetirían todo y no caben con el texto al 200 %.
+- **Las imágenes se preparan al elegirlas.** Opaca: WebP ≤ 1.600 px; con transparencia, tal cual si ya es PNG o WebP y cabe, si no PNG; Safari, que no
+  codifica WebP en un `<canvas>`, cae a JPEG (la base admite `jpg`). El motivo de un archivo inválido se ve junto a la zona antes de enviar.
+- **Artes sigue a Cotizaciones en el Modo Live.** `/artes` y `/artes/[id]` son del área `cotizaciones`, y `artes.empresa.gestionar` se va con ella.
 
 ## Flujos
 
