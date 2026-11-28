@@ -18,7 +18,11 @@ PNG. El arte se ve con el **Vehículo de ejemplo** (docs/GLOSARIO.md) elegido en
   `use-lectura-del-ejemplo.ts`, `use-cotizaciones-de-ejemplo.ts`, con `fetch`): las formas de lo que responden están en
   `entities/datos/respuestas.ts`.
 - Usa del módulo: `guardarPlantillaDeArte` y `duplicarPlantillaDeArte` (`features/plantillas/actions/`), el modal de «Duplicar en otro formato»
-  (`features/plantillas`), la biblioteca (`features/imagenes`: `useImagenes`, `leerMasImagenesDeArte`) y `subirMiniatura` (`composicion.client.ts`).
+  (`features/plantillas`), la biblioteca (`features/imagenes`: `useImagenes`, `leerMasImagenesDeArte`), `subirMiniatura` y `pedirElPdfDelArte`
+  (`composicion.client.ts`).
+- «Descargar PDF» (`components/barra/boton-descargar-pdf.tsx`, sólo en una plantilla de PDF, también en sólo lectura; `ANCHOS_DE_LA_BARRA.pdf`):
+  `hooks/use-descarga-del-pdf-del-arte.ts` termina el texto abierto, manda lo que se ve con lo elegido (`eleccionDelEjemplo()`) al `POST
+/artes/<id>/pdf`, un pedido a la vez y apagado sin conexión, y avisa si salió en blanco o sin alguna imagen.
 
 ## Archivos clave
 

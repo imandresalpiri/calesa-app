@@ -29,6 +29,14 @@ cada persona para compartir una cotización.
   - `/artes/ejemplo/cotizaciones/[id]` — el total con su modo, número, vigencia y las celdas del nivel «todos».
   - `/artes/fotos/[vehiculo]/[foto]?ancho=480|1600` — la foto del vehículo por el mismo origen, sólo por ids (inmutable: el objeto es por
     hash; 304 con su ETag): la única puerta de una foto al lienzo.
+- Sale: `POST /artes/[id]/pdf` (`src/app/(app)/artes/[id]/pdf/route.ts`, `rutaDelPdfDelArte()`): «Descargar PDF» del editor en una plantilla de
+  PDF. Recibe lo que se ve (`{ documento, eleccion }`, `esquemaDelPedidoDelPdf`: el documento se valida como al guardar y lo elegido son sólo
+  ids) y responde el PDF adjunto con `X-Imagenes-Que-Faltan`; sólo del mismo sitio (`vieneDelMismoOrigen()`), con la sesión de quien pide y la
+  guarda del Live. Lo arma `src/app/(app)/_arte/pdf/`: vuelve a leer la plantilla, el vehículo, la cotización y el lead por id
+  (`leer-vehiculo-del-arte.ts`, `leer-cotizacion-del-arte.ts`, las mismas lecturas de las rutas del ejemplo), resuelve las capas con los
+  datos del servidor (`paginasConDatos()`, con su moneda) y baja cada imagen por su origen (`deDondeSaleLaImagen()`: la biblioteca, el logo,
+  la foto del vehículo elegido, la tarjeta de su cotización armada con `armarLaImagen()` y las de ejemplo), de a 4, con tope de peso y de
+  espera; la que no llega no va y se cuenta. Del navegador, `pedirElPdfDelArte()` (`composicion.client.ts`).
 - La página `/artes/[id]` lee además (`src/app/(editor)/artes/[id]/datos-del-editor.ts`) el texto base del origen, el Mensaje del portal, lo fijo
   del arte (empresa, quien comparte, redes) y los motivos de sólo lectura, y los pasa por props.
 - `index.ts`: las lecturas de las dos páginas (`leerPlantillaParaEditar`) y de las rutas de imágenes, `puedeEditarLaPlantilla`, los filtros

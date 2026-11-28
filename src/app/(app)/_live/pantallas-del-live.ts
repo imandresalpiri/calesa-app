@@ -26,6 +26,7 @@ export const PANTALLAS_DEL_LIVE: Readonly<Record<string, AreaDelLive | 'siempre-
   'artes/ejemplo/vehiculos/[id]/route.ts': 'cotizaciones',
   'artes/ejemplo/vehiculos/[id]/cotizaciones/route.ts': 'cotizaciones',
   'artes/ejemplo/cotizaciones/[id]/route.ts': 'cotizaciones',
+  'artes/[id]/pdf/route.ts': 'cotizaciones',
   'cotizaciones/[id]/imagen/route.ts': 'cotizaciones',
   'cotizaciones/[id]/pdf/route.ts': 'cotizaciones',
   'cotizaciones/papelera/page.tsx': 'siempre-oculto',

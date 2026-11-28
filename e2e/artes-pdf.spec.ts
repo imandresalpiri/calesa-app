@@ -1,4 +1,3 @@
-// @sin-celular-archivo: el editor de artes es una herramienta de escritorio y desde 1024 px de ancho no se dibuja en el celular
 import { CONTRASENA, entrar } from './soporte/alta'
 import { textosDelLienzo } from './soporte/artes-con-datos'
 import {
@@ -14,7 +13,8 @@ import { expect, test, type Locator, type Page } from './soporte/prueba'
 import { literal, sql } from './soporte/sql'
 
 // Las plantillas de arte en PDF (docs/UX.md › «Editor de artes»): en un A4 la tira de páginas, abajo del panel izquierdo, agrega, duplica,
-// reordena con el teclado y quita páginas sin cambiar el tamaño del lienzo ni del panel, y guardar deja el orden.
+// reordena con el teclado y quita páginas sin cambiar el tamaño del lienzo ni del panel, y guardar deja el orden. Mide la disposición: con el
+// ancho fijo de escritorio corre en los dos proyectos, como `artes-editor-sin-saltos.spec.ts`.
 test.use({ viewport: { width: 1280, height: 800 } })
 
 const UNO = 'E2E Página uno'

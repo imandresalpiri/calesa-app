@@ -45,6 +45,7 @@ export function EditorDeArtes(props: PropsDelEditorDeArtes) {
         guardado={guardado}
         hacer={menu.hacer}
         ejemplo={{ ejemplo, origen: props.origen, motivo: props.motivoDelEjemplo, sinClientes }}
+        pdf={{ lienzo, editor }}
       />
       <div className={CELDAS_DEL_EDITOR.riel}>
         <Herramientas herramienta={h.herramienta} alElegir={h.elegir} soloLectura={soloLectura} />

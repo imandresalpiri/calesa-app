@@ -15,7 +15,11 @@ vi.mock('server-only', () => ({}))
 const CARPETA = 'public/fuentes/geist'
 
 // Las rutas que leen las fuentes del disco: el PDF y la imagen de la tarjeta.
-const RUTAS_QUE_LAS_LEEN = ['/cotizaciones/[id]/pdf', '/cotizaciones/[id]/imagen']
+const RUTAS_QUE_LAS_LEEN = [
+  '/cotizaciones/[id]/pdf',
+  '/cotizaciones/[id]/imagen',
+  '/artes/[id]/pdf',
+]
 
 const archivo = (nombre: string) => path.join(process.cwd(), CARPETA, nombre)
 

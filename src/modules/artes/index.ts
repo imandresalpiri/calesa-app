@@ -22,7 +22,7 @@ export {
   type PedidoDePlantillas,
   type PestanaDeArtes,
 } from './entities/filtros'
-export type { ClaveDeFormato, TipoDeArte } from './entities/formatos'
+export { tipoDelFormato, type ClaveDeFormato, type TipoDeArte } from './entities/formatos'
 export {
   cabecerasDelMedio,
   esquemaDeLaVarianteDelLogo,
@@ -36,7 +36,30 @@ export {
   type QuienMira,
 } from './entities/permisos-de-artes'
 export type { QueSeComparte } from './entities/por-defecto'
-export type { ImagenDeArte, OrigenDeArtes, PlantillaDeArte, PorDefecto } from './entities/tipos'
+export type {
+  ImagenDeArte,
+  LogoDelEditor,
+  OrigenDeArtes,
+  PlantillaDeArte,
+  PorDefecto,
+} from './entities/tipos'
+// El documento de una plantilla de arte y lo que se comprueba antes de usarlo.
+export {
+  MENSAJE_DOCUMENTO_INVALIDO,
+  MENSAJE_DOCUMENTO_PESADO,
+  validarDocumento,
+  type DocumentoDeArte,
+} from './entities/documento'
+// El PDF de un arte (`POST /artes/<id>/pdf`): el pedido, de dónde sale cada imagen y el nombre del archivo.
+export { deDondeSaleLaImagen, type ImagenDelPdf } from './entities/pdf/imagen-del-pdf'
+export {
+  CABECERA_DE_LO_QUE_FALTA,
+  esquemaDelPedidoDelPdf,
+  MENSAJE_SIN_EL_PDF,
+  MENSAJE_SIN_LA_PLANTILLA,
+  PESO_MAXIMO_DEL_PEDIDO,
+} from './entities/pdf/pedido-del-pdf'
+export { nombreDelPdf } from './entities/editor/exportar'
 // Los datos con que se llena un arte (`entities/datos/`): las formas que arma `src/app` (`src/app/(app)/_arte/`) para las rutas del vehículo de
 // ejemplo, y lo puro que resuelve un arte con ellos (el editor y el texto para compartir de una cotización).
 export {
@@ -47,6 +70,9 @@ export {
   type Falta,
 } from './entities/datos/capas-con-datos'
 export { fotosEnOrden, type FotoParaOrdenar } from './entities/datos/fotos-en-orden'
+export { datosDelEjemploElegido, leadsDelEjemplo } from './entities/datos/ejemplo-con-datos'
+export type { EjemploElegido } from './entities/datos/ejemplo-elegido'
+export { datosDelArteDeEjemplo } from './entities/editor/datos-de-ejemplo'
 export {
   imagenesDelPdf,
   paginasConDatos,

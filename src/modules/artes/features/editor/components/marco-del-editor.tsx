@@ -44,6 +44,9 @@ export function MarcoDelEditor({ nombre, formato, tipo, aviso }: Props) {
           <Skeleton className={`h-8 ${ANCHOS_DE_LA_BARRA.ejemplo} shrink-0`} />
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-8 w-20" />
+          {tipo === 'pdf' ? (
+            <Skeleton className={`h-8 ${ANCHOS_DE_LA_BARRA.pdf} shrink-0`} />
+          ) : null}
         </div>
       </header>
       <div aria-hidden className={CELDAS_DEL_EDITOR.riel}>

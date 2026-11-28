@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
     '/cotizaciones/[id]/pdf': ['./public/fuentes/geist/*'],
     // La imagen de la tarjeta: `ImageResponse` lee las mismas fuentes de la tarjeta del disco.
     '/cotizaciones/[id]/imagen': ['./public/fuentes/geist/*'],
+    // El PDF de una plantilla de arte: las fuentes del PDF y las imágenes de ejemplo, que lee del disco.
+    '/artes/[id]/pdf': ['./public/fuentes/geist/*', './public/artes/ejemplo/*'],
     // La fuente de la imagen de los tipos de cambio para compartir: se lee del disco por su ruta.
     '/tipos-de-cambio/imagen': ['./src/modules/empresa/infra/compartir/fuentes/*.ttf'],
   },
