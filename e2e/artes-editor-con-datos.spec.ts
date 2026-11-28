@@ -44,6 +44,7 @@ let duena = ''
 let sinConfigurar = ''
 let plantilla = ''
 let plantillaAjena = ''
+let plantillaA4 = ''
 let origen = { id: '', nombre: '' }
 let conDatos = { id: '', titulo: '', cotizacion: '' }
 let sinNada = { id: '', titulo: '' }
@@ -102,6 +103,12 @@ test.beforeAll(async ({}, info) => {
   plantillaAjena = sembrarPlantillaDeArte({
     nombre: `${nombre} ajena`,
     autorId: idDePersona(sinConfigurar),
+  })
+  plantillaA4 = sembrarPlantillaDeArte({
+    nombre: `${nombre} A4`,
+    autorId: idDePersona(duena),
+    formato: 'a4',
+    capas: capasConDatos('{vehiculo}\nVIN: {vin}'),
   })
   textoBaseDeAntes = sql(
     `select texto from public.artes_textos_base where origen_id = ${literal(origen.id)}::uuid`,
@@ -262,27 +269,36 @@ test('E2E sin cotizaciones.configurar el texto base es de sólo lectura y sin ve
   )
 })
 
+// En un A4, además, «Descargar PDF».
 test.describe('a 1024 px', () => {
   test.use({ viewport: { width: 1024, height: 768 } })
 
-  test('E2E a 1024 px la barra entra entera con un vehículo elegido: el nombre se corta antes del formato', async ({
+  test('E2E a 1024 px la barra entra entera con un vehículo elegido, también en un A4: el nombre se corta antes del formato', async ({
     page,
   }, info) => {
     await entrar(page, duena)
-    await abrirElEditorDeArtes(page, plantilla)
-    await cerrar(page, await elegirVehiculo(page, conDatos))
-    const barra = page.locator('header').first()
-    await expect(barra.getByRole('button', { name: 'Guardar', exact: true })).toBeInViewport({
-      ratio: 1,
-    })
-    await expect(
-      barra.getByRole('button', {
-        name: `Más acciones de ${nombreDe(info.project.name)}`,
-        exact: true,
-      }),
-    ).toBeInViewport({ ratio: 1 })
-    const nombre = await cajaDe(barra.getByRole('heading', { level: 1 }))
-    const formato = await cajaDe(barra.getByText(/ · \d+ × \d+$/))
-    expect(nombre.x + nombre.width).toBeLessThanOrEqual(formato.x)
+    const formatos = [
+      { id: plantilla, nombre: nombreDe(info.project.name), botones: ['Guardar'] },
+      {
+        id: plantillaA4,
+        nombre: `${nombreDe(info.project.name)} A4`,
+        botones: ['Guardar', 'Descargar PDF'],
+      },
+    ]
+    for (const { id, nombre: suNombre, botones } of formatos) {
+      await abrirElEditorDeArtes(page, id)
+      await cerrar(page, await elegirVehiculo(page, conDatos))
+      const barra = page.locator('header').first()
+      for (const boton of [...botones, `Más acciones de ${suNombre}`]) {
+        await expect(barra.getByRole('button', { name: boton, exact: true }), boton).toBeInViewport(
+          {
+            ratio: 1,
+          },
+        )
+      }
+      const nombre = await cajaDe(barra.getByRole('heading', { level: 1 }))
+      const formato = await cajaDe(barra.getByText(/ · (\d+ × \d+|PDF)$/))
+      expect(nombre.x + nombre.width, suNombre).toBeLessThanOrEqual(formato.x)
+    }
   })
 })
