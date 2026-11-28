@@ -1,5 +1,5 @@
-// Las capas que se agregan en el editor de artes: con su tamaño en proporción al formato, centradas en el documento (o en el punto del clic) o
-// en la caja que se dibujó con la herramienta. Y el nombre con que se ve cada capa en «Capas» si nadie la renombró. Puro.
+// Las capas que se agregan en el editor de artes: con su tamaño en proporción al formato, centradas en el documento (o en el punto del clic; un
+// texto, empezando en él) o en la caja que se dibujó con la herramienta. Y el nombre con que se ve cada capa en «Capas» si nadie la renombró. Puro.
 import type { CapaDe, CapaDeArte, Punto, TipoDeCapa } from '../documento'
 import type { Medidas } from '../formatos'
 import type { Caja } from './cajas'
@@ -22,7 +22,14 @@ export type QueSeAgrega =
   | { tipo: 'foto'; indice: number }
   | { tipo: 'tarjeta' }
 
-export type DondeSeAgrega = { id: string; medidas: Medidas; caja?: Caja; centro?: Punto }
+// `inicio`: dónde empieza un texto puesto con un clic (su borde izquierdo y el medio del primer renglón), como el cursor al escribir.
+export type DondeSeAgrega = {
+  id: string
+  medidas: Medidas
+  caja?: Caja
+  centro?: Punto
+  inicio?: Punto
+}
 
 const BASE = {
   nombre: null,
@@ -39,10 +46,13 @@ export function tamanoDelTextoNuevo(medidas: Medidas): number {
   return Math.min(medidas.ancho, medidas.alto) > 1000 ? 48 : 24
 }
 
-// La caja de una capa nueva: la dibujada o una de `ancho × alto` centrada.
+// La caja de una capa nueva: la dibujada, una de `ancho × alto` que empieza en `inicio` o una centrada.
 function cajaNueva(donde: DondeSeAgrega, ancho: number, alto: number): Caja {
   if (donde.caja) {
     return donde.caja
+  }
+  if (donde.inicio) {
+    return { x: donde.inicio.x, y: donde.inicio.y - alto / 2, ancho, alto }
   }
   const medio = donde.centro ?? { x: donde.medidas.ancho / 2, y: donde.medidas.alto / 2 }
   return { x: medio.x - ancho / 2, y: medio.y - alto / 2, ancho, alto }

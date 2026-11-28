@@ -145,13 +145,14 @@ describe('lo que dibujan las herramientas', () => {
     })
   })
 
-  it('el texto con un clic, centrado, y arrastrando, con el ancho de la caja', () => {
+  it('el texto con un clic empieza en él (el medio del renglón) y, arrastrando, tiene el ancho de la caja', () => {
     const clic = capaDibujada(
       'texto',
       { desde: { x: 500, y: 250 }, hasta: null, cuadrada: false },
       donde,
     )
-    expect(clic).toMatchObject({ tipo: 'texto', texto: 'Texto', ancho: 300 })
+    expect(clic).toMatchObject({ tipo: 'texto', texto: 'Texto', x: 500, ancho: 300 })
+    expect(clic.y + clic.alto / 2).toBe(250)
     const caja = capaDibujada(
       'texto',
       { desde: { x: 0, y: 0 }, hasta: { x: 400, y: 30 }, cuadrada: false },

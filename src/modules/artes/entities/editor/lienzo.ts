@@ -64,8 +64,13 @@ export function capaDibujada(
       ? nuevaCapa({ tipo: 'linea', desde, hasta }, donde)
       : nuevaCapa({ tipo: 'linea' }, { ...donde, centro: desde })
   }
-  const que: QueSeAgrega =
-    herramienta === 'texto' ? { tipo: 'texto' } : { tipo: 'forma', forma: herramienta }
+  if (herramienta === 'texto') {
+    // Con un clic, el texto empieza donde se hizo, como el cursor: centrado, lo escrito arrancaría a la izquierda del clic y la página lo cortaría.
+    return hasta
+      ? nuevaCapa({ tipo: 'texto' }, { ...donde, caja: cajaDeArrastre(desde, hasta, cuadrada) })
+      : nuevaCapa({ tipo: 'texto' }, { ...donde, inicio: desde })
+  }
+  const que: QueSeAgrega = { tipo: 'forma', forma: herramienta }
   return hasta
     ? nuevaCapa(que, { ...donde, caja: cajaDeArrastre(desde, hasta, cuadrada) })
     : nuevaCapa(que, { ...donde, centro: desde })

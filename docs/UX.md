@@ -506,8 +506,9 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   biblioteca de imágenes) y «Capas» (arriba la de adelante; ordenar arrastrando o con el teclado, el ojo, el candado, renombrar con doble clic o
   F2, agrupar y desagrupar, Shift y Ctrl para elegir varias); el lienzo (rueda desplaza, Ctrl+rueda acerca al puntero, espacio y arrastrar es la
   mano, un recuadro elige varias, guías al centro y a los bordes del documento y de otras capas; la píldora del zoom con «Ajustar» y «100 %»); y el
-  inspector «Diseño» (alinear y distribuir, caja, texto y apariencia de lo elegido; sin nada elegido, el documento: formato y fondo). La pluma suma
-  nodos con un clic y curvas arrastrando, cierra en el primero y termina con Enter o Esc. Atajos: los de las herramientas, Ctrl+Z y Ctrl+Shift+Z
+  inspector «Diseño» (alinear y distribuir, caja, texto y apariencia de lo elegido; sin nada elegido, el documento: formato y fondo). Con el texto,
+  un clic lo empieza ahí (como el cursor) y arrastrar le da el ancho. La pluma suma nodos con un clic y curvas arrastrando, cierra en el primero y
+  termina con Enter o Esc. Atajos: los de las herramientas, Ctrl+Z y Ctrl+Shift+Z
   (o Ctrl+Y), Ctrl+C, Ctrl+V, Ctrl+D, Supr, Ctrl+A, Ctrl+G y Ctrl+Shift+G, flechas (con Shift de a 10), Ctrl+] y Ctrl+[, Ctrl+0 ajustar, Ctrl+1 al
   100 %, Ctrl+S guardar y Esc; su lista en «?». Ninguno mientras se escribe. Estados en «Artes (estados propios)». No redirige.
 - **Logística** — `/logistica` (`logistica.ver` en algún origen): siempre **en un origen**, elegido arriba como en Vehículos (sin «Todos»); toda página lleva la barra de Logística con
