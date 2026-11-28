@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1067" viewBox="0 0 1600 1067">
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7cb7e8"/>
+      <stop offset="0.62" stop-color="#d9ecf7"/>
+      <stop offset="0.62" stop-color="#b9a585"/>
+      <stop offset="1" stop-color="#8c7a5e"/>
+    </linearGradient>
+    <linearGradient id="carroceria" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f8fa"/>
+      <stop offset="0.55" stop-color="#d8dde3"/>
+      <stop offset="1" stop-color="#9aa3ad"/>
+    </linearGradient>
+    <linearGradient id="vidrio" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b3a4a"/>
+      <stop offset="1" stop-color="#5d7891"/>
+    </linearGradient>
+    <radialGradient id="llanta" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#c9cdd2"/>
+      <stop offset="0.45" stop-color="#7b828a"/>
+      <stop offset="0.5" stop-color="#1d1f22"/>
+      <stop offset="1" stop-color="#2c2f33"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1067" fill="url(#cielo)"/>
+  <ellipse cx="800" cy="842" rx="640" ry="40" fill="#000" opacity="0.25"/>
+  <!-- Camioneta de doble cabina con caja -->
+  <path d="M190 760 L190 600 Q190 570 220 566 L560 552 L700 420 Q720 400 760 400 L1010 400 Q1050 400 1070 430 L1150 552 L1400 552 Q1430 552 1432 584 L1436 760 Z" fill="url(#carroceria)" stroke="#6b737c" stroke-width="4"/>
+  <path d="M600 552 L722 438 Q732 428 750 428 L860 428 L860 552 Z" fill="url(#vidrio)"/>
+  <path d="M884 428 L1000 428 Q1030 428 1044 450 L1112 552 L884 552 Z" fill="url(#vidrio)"/>
+  <rect x="1150" y="560" width="270" height="24" rx="6" fill="#aeb6bf"/>
+  <rect x="180" y="700" width="60" height="30" rx="8" fill="#f2c94c"/>
+  <rect x="1392" y="640" width="44" height="40" rx="6" fill="#d64545"/>
+  <path d="M190 760 L1436 760 L1436 790 Q1436 800 1424 800 L202 800 Q190 800 190 790 Z" fill="#3b4046"/>
+  <circle cx="420" cy="790" r="104" fill="url(#llanta)"/>
+  <circle cx="1210" cy="790" r="104" fill="url(#llanta)"/>
+  <circle cx="420" cy="790" r="22" fill="#e3e6ea"/>
+  <circle cx="1210" cy="790" r="22" fill="#e3e6ea"/>
+</svg>

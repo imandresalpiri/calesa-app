@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" font-family="Arial, sans-serif">
+  <rect width="1080" height="1080" fill="#ffffff"/>
+  <rect x="40" y="40" width="1000" height="1000" rx="24" fill="#ffffff" stroke="#d0d5dc" stroke-width="3"/>
+  <path d="M64 40 L1016 40 Q1040 40 1040 64 L1040 200 L40 200 L40 64 Q40 40 64 40 Z" fill="#1f2937"/>
+  <text x="540" y="138" font-size="58" font-weight="700" fill="#ffffff" text-anchor="middle">Cotización de ejemplo</text>
+  <g font-size="40" fill="#111827">
+    <rect x="40" y="200" width="1000" height="140" fill="#f3f4f6"/>
+    <text x="90" y="285" font-weight="700">Vehículo</text>
+    <text x="990" y="285" text-anchor="end">Toyota Hilux 2021</text>
+    <text x="90" y="425" font-weight="700">Año</text>
+    <text x="990" y="425" text-anchor="end">2021</text>
+    <rect x="40" y="480" width="1000" height="140" fill="#f3f4f6"/>
+    <text x="90" y="565" font-weight="700">Color</text>
+    <text x="990" y="565" text-anchor="end">Blanco</text>
+    <text x="90" y="705" font-weight="700">Kilometraje</text>
+    <text x="990" y="705" text-anchor="end">48.200 km</text>
+    <rect x="40" y="760" width="1000" height="140" fill="#f3f4f6"/>
+    <text x="90" y="845" font-weight="700">Lote</text>
+    <text x="990" y="845" text-anchor="end">1234</text>
+    <text x="90" y="985" font-weight="700">Origen</text>
+    <text x="990" y="985" text-anchor="end">Subasta</text>
+  </g>
+  <g stroke="#d0d5dc" stroke-width="2">
+    <line x1="40" y1="340" x2="1040" y2="340"/>
+    <line x1="40" y1="480" x2="1040" y2="480"/>
+    <line x1="40" y1="620" x2="1040" y2="620"/>
+    <line x1="40" y1="760" x2="1040" y2="760"/>
+    <line x1="40" y1="900" x2="1040" y2="900"/>
+    <line x1="560" y1="200" x2="560" y2="1040"/>
+  </g>
+</svg>
