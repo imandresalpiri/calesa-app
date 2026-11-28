@@ -1,6 +1,7 @@
-// El estado del editor de artes y su reductor: el documento que se edita, su historial y las capas elegidas. Edita la primera página (el
-// documento admite varias; el editor, por ahora, una). Cada acción que cambia el documento suma un paso al historial (o se funde con el
-// anterior); una que no cambia nada devuelve el mismo estado. Las que crean ids reciben con qué crearlos. Puro.
+// El estado del editor de artes y su reductor: el documento que se edita, su historial, la página elegida y sus capas elegidas. Cada acción sobre
+// capas edita la página elegida; las de páginas (`paginas.ts`) cambian cuáles hay. Cada acción que cambia el documento suma un paso al historial
+// (o se funde con el anterior), y deshacer o rehacer llevan a la página que cambió; una que no cambia nada devuelve el mismo estado. Las que crean
+// ids reciben con qué crearlos. Puro.
 import type { CapaDeArte, DocumentoDeArte, FondoDeArte, PaginaDeArte } from '../documento'
 import type { Medidas } from '../formatos'
 import {
@@ -31,10 +32,24 @@ import {
   type Historial,
 } from './historial'
 import { moverEnCapas, ordenar, type HaciaDonde } from './orden'
+import {
+  agregarPagina,
+  conLaPagina,
+  conPaginas,
+  duplicarPagina,
+  irAPagina,
+  medirTexto,
+  moverPagina,
+  paginaQueCambio,
+  quitarLaPagina,
+  type HaciaDondeLaPagina,
+} from './paginas'
 
 export type EstadoDelEditor = {
   documento: DocumentoDeArte
   historial: Historial<DocumentoDeArte>
+  // El id de la página elegida: la que se ve en el lienzo y la que editan las acciones sobre capas.
+  paginaId: string
   // Los ids de las capas elegidas, en el orden de la página.
   seleccion: readonly string[]
 }
@@ -64,18 +79,39 @@ export type AccionDelEstado =
   | { tipo: 'distribuir'; eje: 'horizontal' | 'vertical' }
   | { tipo: 'elegir'; ids: readonly string[]; modo: ModoDeElegir }
   | { tipo: 'elegirEnRecuadro'; recuadro: Caja; sumar: boolean }
-  | { tipo: 'medirTexto'; id: string; alto: number }
+  | { tipo: 'medirTexto'; paginaId: string; id: string; alto: number }
+  | { tipo: 'irAPagina'; id: string }
+  | { tipo: 'agregarPagina'; nuevoId: string; maximo: number }
+  | { tipo: 'duplicarPagina'; id: string; nuevoId: string; maximo: number }
+  | { tipo: 'moverPagina'; id: string; hacia: HaciaDondeLaPagina }
+  | { tipo: 'quitarPagina'; id: string }
   | { tipo: 'deshacer' }
   | { tipo: 'rehacer' }
   | { tipo: 'reemplazar'; documento: DocumentoDeArte }
   | { tipo: 'reiniciar'; documento: DocumentoDeArte }
 
 export function estadoInicial(documento: DocumentoDeArte): EstadoDelEditor {
-  return { documento, historial: historialVacio(), seleccion: [] }
+  return {
+    documento,
+    historial: historialVacio(),
+    paginaId: documento.paginas[0]?.id ?? '',
+    seleccion: [],
+  }
 }
 
-export function paginaDe(documento: DocumentoDeArte): PaginaDeArte | undefined {
-  return documento.paginas[0]
+type ConPagina = Pick<EstadoDelEditor, 'documento' | 'paginaId'>
+
+// El índice de la página elegida; si ya no está, la primera.
+function indiceDe({ documento, paginaId }: ConPagina): number {
+  return Math.max(
+    documento.paginas.findIndex((p) => p.id === paginaId),
+    0,
+  )
+}
+
+// La página elegida.
+export function paginaDe(estado: ConPagina): PaginaDeArte | undefined {
+  return estado.documento.paginas[indiceDe(estado)]
 }
 
 // Los ids que siguen en la página, en su orden.
@@ -88,7 +124,7 @@ const mismosIds = (a: readonly string[], b: readonly string[]) =>
   a.length === b.length && a.every((id, i) => id === b[i])
 
 function conSeleccion(estado: EstadoDelEditor, ids: readonly string[]): EstadoDelEditor {
-  const seleccion = existentes(paginaDe(estado.documento), ids)
+  const seleccion = existentes(paginaDe(estado), ids)
   return mismosIds(seleccion, estado.seleccion) ? estado : { ...estado, seleccion }
 }
 
@@ -100,11 +136,11 @@ function conPagina(
   pagina: PaginaDeArte | null,
   opciones: Opciones = {},
 ): EstadoDelEditor {
-  const actual = paginaDe(estado.documento)
+  const actual = paginaDe(estado)
   if (pagina === null || pagina === actual) {
     return opciones.seleccion ? conSeleccion(estado, opciones.seleccion) : estado
   }
-  const documento = { ...estado.documento, paginas: [pagina, ...estado.documento.paginas.slice(1)] }
+  const documento = conLaPagina(estado.documento, indiceDe(estado), pagina)
   const historial = anotar(estado.historial, estado.documento, opciones.fusion ?? null)
   return conSeleccion({ ...estado, documento, historial }, opciones.seleccion ?? estado.seleccion)
 }
@@ -142,15 +178,39 @@ function pegar(
   })
 }
 
-// Un paso del historial; la selección queda con lo que sigue existiendo.
+// Otro documento (deshacer, rehacer, reemplazar) mirando la página `paginaId`: en otra página, nada elegido; en la misma, lo que sigue existiendo.
+function conOtroDocumento(
+  estado: EstadoDelEditor,
+  cambio: Pick<EstadoDelEditor, 'documento' | 'historial' | 'paginaId'>,
+): EstadoDelEditor {
+  const seleccion = cambio.paginaId === estado.paginaId ? estado.seleccion : []
+  return conSeleccion({ ...estado, ...cambio }, seleccion)
+}
+
+// Un paso del historial, en la página que cambió.
 function viajar(estado: EstadoDelEditor, hacia: 'atras' | 'adelante'): EstadoDelEditor {
   const paso = (hacia === 'atras' ? deshacer : rehacer)(estado.historial, estado.documento)
   if (paso === null) {
     return estado
   }
+  const paginaId = paginaQueCambio(estado.documento, paso.documento, estado.paginaId)
+  return conOtroDocumento(estado, { ...paso, paginaId })
+}
+
+// Un documento que llega de afuera (el borrador, lo guardado por otro): sigue en la página elegida si la tiene; si no, en la primera.
+function reemplazar(estado: EstadoDelEditor, documento: DocumentoDeArte): EstadoDelEditor {
+  if (documento === estado.documento) {
+    return estado
+  }
+  const sigue = documento.paginas.some((p) => p.id === estado.paginaId)
   return conSeleccion(
-    { ...estado, documento: paso.documento, historial: paso.historial },
-    estado.seleccion,
+    {
+      ...estado,
+      documento,
+      historial: anotar(estado.historial, estado.documento, null),
+      paginaId: sigue ? estado.paginaId : (documento.paginas[0]?.id ?? ''),
+    },
+    [],
   )
 }
 
@@ -184,29 +244,22 @@ const MANEJADORES: Manejadores = {
   elegir: (e, a) => elegir(e, a.ids, a.modo),
   elegirEnRecuadro: (e, a, p) =>
     elegir(e, idsEnRecuadro(p, a.recuadro), a.sumar ? 'sumar' : 'reemplazar'),
-  // El alto que el lienzo midió de un texto: no es un paso del historial.
-  medirTexto: (e, a, p) => {
-    const pagina = cambiarCapas(p, [a.id], (c) =>
-      c.tipo === 'texto' && c.alto !== a.alto ? { ...c, alto: a.alto } : c,
-    )
-    return pagina === p
-      ? e
-      : { ...e, documento: { ...e.documento, paginas: [pagina, ...e.documento.paginas.slice(1)] } }
-  },
+  medirTexto: (e, a) => medirTexto(e, a),
+  irAPagina: (e, a) => irAPagina(e, a.id),
+  agregarPagina: (e, a) =>
+    conPaginas(e, agregarPagina(e.documento, e.paginaId, a.nuevoId, a.maximo), a.nuevoId),
+  duplicarPagina: (e, a) =>
+    conPaginas(e, duplicarPagina(e.documento, a.id, a.nuevoId, a.maximo), a.nuevoId),
+  moverPagina: (e, a) => conPaginas(e, moverPagina(e.documento, a.id, a.hacia)),
+  quitarPagina: (e, a) => quitarLaPagina(e, a.id),
   deshacer: (e) => viajar(e, 'atras'),
   rehacer: (e) => viajar(e, 'adelante'),
-  reemplazar: (e, a) =>
-    a.documento === e.documento
-      ? e
-      : conSeleccion(
-          { ...e, documento: a.documento, historial: anotar(e.historial, e.documento, null) },
-          [],
-        ),
+  reemplazar: (e, a) => reemplazar(e, a.documento),
   reiniciar: (_e, a) => estadoInicial(a.documento),
 }
 
 export function reducirEditor(estado: EstadoDelEditor, accion: AccionDelEstado): EstadoDelEditor {
-  const pagina = paginaDe(estado.documento)
+  const pagina = paginaDe(estado)
   if (pagina === undefined) {
     return estado
   }
@@ -220,7 +273,7 @@ export function reducirEditor(estado: EstadoDelEditor, accion: AccionDelEstado):
 
 // Lo que copia «Copiar» de la selección.
 export function portapapelesDeLaSeleccion(estado: EstadoDelEditor): Portapapeles | null {
-  const pagina = paginaDe(estado.documento)
+  const pagina = paginaDe(estado)
   if (!pagina || estado.seleccion.length === 0) {
     return null
   }

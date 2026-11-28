@@ -12,7 +12,12 @@ import {
 } from '../datos/datos-de-prueba.soporte'
 import type { LogoDelEditor } from '../tipos'
 import { FOTOS_DE_EJEMPLO, TARJETA_DE_EJEMPLO } from './datos-de-ejemplo'
-import { esDelMismoOrigen, fuenteDeLaCapa, type ConQueSeDibuja } from './fuente-de-la-capa'
+import {
+  esDelMismoOrigen,
+  FOTO_DE_LA_MINIATURA,
+  fuenteDeLaCapa,
+  type ConQueSeDibuja,
+} from './fuente-de-la-capa'
 
 const LOGOS: readonly LogoDelEditor[] = [
   { id: 'principal', nombre: 'Principal', ancho: null, alto: null },
@@ -59,6 +64,12 @@ describe('la foto del vehículo', () => {
       src: `/artes/fotos/${VEHICULO_ID}/${FOTO_1}?ancho=1600`,
       medidas: { ancho: 1600, alto: 1200 },
     })
+  })
+
+  it('la miniatura de una página la pide de 480 px', () => {
+    expect(
+      fuenteDeLaCapa(capaDeFoto('f', 0), { ...con(), anchoDeLaFoto: FOTO_DE_LA_MINIATURA })?.src,
+    ).toBe(`/artes/fotos/${VEHICULO_ID}/${FOTO_1}?ancho=480`)
   })
 
   it('la que el vehículo no tiene, o sin vehículo, no se dibuja', () => {

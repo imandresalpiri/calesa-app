@@ -108,6 +108,8 @@ const NOMBRE_DE_TECLA: Record<string, string> = {
   arrowdown: '↓',
   arrowleft: '←',
   arrowright: '→',
+  pageup: 'RePág',
+  pagedown: 'AvPág',
   contextmenu: 'Menú',
 }
 

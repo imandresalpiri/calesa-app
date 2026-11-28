@@ -44,9 +44,13 @@ export type FuentesDelLienzo = {
   esperar: () => Promise<void>
 }
 
-// Las fuentes de los textos del lienzo: Konva mide y dibuja con la fuente que haya en ese momento, así que se cargan con `document.fonts.load`
-// y, al llegar, los textos se rehacen. Una que no carga se dibuja con su respaldo.
-export function useFuentesListas(pagina: PaginaDeArte, tipo: TipoDeArte): FuentesDelLienzo {
+// Las fuentes de los textos del documento: Konva mide y dibuja con la fuente que haya en ese momento, así que se cargan con
+// `document.fonts.load` y, al llegar, los textos se rehacen. Una que no carga se dibuja con su respaldo. Las de todas las páginas: el lienzo y
+// las miniaturas de la tira usan las mismas (la raíz lo arma una vez).
+export function useFuentesListas(
+  paginas: readonly PaginaDeArte[],
+  tipo: TipoDeArte,
+): FuentesDelLienzo {
   const [geist] = useState(familiaDeGeist)
   const [version, setVersion] = useState(0)
   const familiaDe = useCallback(
@@ -59,13 +63,15 @@ export function useFuentesListas(pagina: PaginaDeArte, tipo: TipoDeArte): Fuente
     [geist, tipo],
   )
 
-  // Cada familia con cada peso que usan los textos de la página, en una clave que no cambia mientras no cambien.
+  // Cada familia con cada peso que usan los textos del documento, en una clave que no cambia mientras no cambien.
   const pedidas = useMemo(() => {
-    const fuentes = pagina.capas.flatMap((c) =>
-      c.tipo === 'texto' ? [`${String(c.peso)} 16px ${familiaDe(c.fuente)}`] : [],
+    const fuentes = paginas.flatMap((p) =>
+      p.capas.flatMap((c) =>
+        c.tipo === 'texto' ? [`${String(c.peso)} 16px ${familiaDe(c.fuente)}`] : [],
+      ),
     )
     return [...new Set(fuentes)].sort().join(SEPARADOR)
-  }, [pagina.capas, familiaDe])
+  }, [paginas, familiaDe])
 
   const esperar = useCallback(async () => {
     if (typeof document === 'undefined') {

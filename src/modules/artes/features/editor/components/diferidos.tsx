@@ -1,7 +1,7 @@
 'use client'
 
 import { diferido } from '@/shared/ui/diferido'
-import { textoDelFormato } from '../../../entities/formatos'
+import { textoDelFormato, tipoDelFormato } from '../../../entities/formatos'
 import type { PropsDelEditorDeArtes } from '../tipos'
 import { MarcoDelEditor } from './marco-del-editor'
 
@@ -9,6 +9,7 @@ function marcoDe({ plantilla }: PropsDelEditorDeArtes) {
   return {
     nombre: plantilla.nombre,
     formato: textoDelFormato(plantilla.formato, plantilla),
+    tipo: tipoDelFormato(plantilla.formato),
   }
 }
 

@@ -11,11 +11,13 @@ import {
 import type { Medidas, TipoDeArte } from '../../../entities/formatos'
 import type { EditorDeArte } from '../tipos'
 
-// En sólo lectura se elige y se mira (y el lienzo anota el alto que mide de un texto, que no es un cambio): nada más llega al reducer.
+// En sólo lectura se elige, se mira y se va de una página a otra (y el lienzo anota el alto que mide de un texto, que no es un cambio): nada
+// más llega al reducer.
 const SOLO_MIRAR: ReadonlySet<AccionDelEstado['tipo']> = new Set([
   'elegir',
   'elegirEnRecuadro',
   'medirTexto',
+  'irAPagina',
 ])
 
 const PAGINA_VACIA: PaginaDeArte = {
@@ -42,9 +44,12 @@ export function useEditorDeArte(
     },
     [soloLectura],
   )
+  const pagina = paginaDe(estado) ?? PAGINA_VACIA
   return {
     estado,
-    pagina: paginaDe(estado.documento) ?? PAGINA_VACIA,
+    pagina,
+    paginas: estado.documento.paginas,
+    indice: Math.max(estado.documento.paginas.indexOf(pagina), 0),
     despachar,
     medidas,
     tipo,

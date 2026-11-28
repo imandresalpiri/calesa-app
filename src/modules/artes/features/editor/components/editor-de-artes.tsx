@@ -5,7 +5,7 @@ import { useArteConDatos } from '../hooks/use-arte-con-datos'
 import { useMenuDelEditor } from '../hooks/use-menu-del-editor'
 import { useTrabajoEnElLienzo } from '../hooks/use-trabajo-en-el-lienzo'
 import type { EjemploConDatos } from '../../../entities/datos/ejemplo-con-datos'
-import type { ManejoDelLienzo, PropsDelEditorDeArtes } from '../tipos'
+import type { ManejoDeLaMiniatura, ManejoDelLienzo, PropsDelEditorDeArtes } from '../tipos'
 import { AvisosEncimaDelLienzo } from './avisos-encima-del-lienzo'
 import { AbiertoDesdeElMenu } from './barra/abierto-desde-el-menu'
 import { BarraDelEditor } from './barra/barra-del-editor'
@@ -21,22 +21,19 @@ function eleccionDe(elegido: EjemploConDatos | null): string {
 }
 
 // El editor de artes a pantalla completa (la raíz diferida): arma el estado y lo reparte por props. La barra arriba (con el vehículo de
-// ejemplo); abajo el riel de herramientas, «Agregar» y «Capas», el lienzo y el inspector («Diseño» y «Textos»), con las medidas de
-// `rejilla.ts` (las mismas que en frío). El documento con sus datos sale de `useArteConDatos`; la herramienta, la cámara y los atajos, de
-// `useTrabajoEnElLienzo`.
+// ejemplo); abajo el riel de herramientas, «Agregar» y «Capas» (con la tira de páginas en un PDF), el lienzo y el inspector («Diseño» y
+// «Textos»), con las medidas de `rejilla.ts` (las mismas que en frío). El documento con sus datos sale de `useArteConDatos`; la herramienta,
+// la cámara, los atajos y las fuentes, de `useTrabajoEnElLienzo`.
 export function EditorDeArtes(props: PropsDelEditorDeArtes) {
   const { plantilla, logos, motivoDeSoloLectura } = props
   const soloLectura = motivoDeSoloLectura !== null
   const lienzo = useRef<ManejoDelLienzo>(null)
-  const { documento, ejemplo, datos, sinClientes } = useArteConDatos(props, lienzo)
-  const { editor, medidas, nombre, cambiarNombre, guardado, borrador } = documento
-  const { h, alContenedor, tamano, camara, agregar } = useTrabajoEnElLienzo({
-    editor,
-    medidas,
-    soloLectura,
-    lienzo,
-  })
-  const menu = useMenuDelEditor(lienzo, nombre)
+  const primera = useRef<ManejoDeLaMiniatura>(null)
+  const { documento, ejemplo, datos, sinClientes } = useArteConDatos(props, { lienzo, primera })
+  const { editor, nombre, cambiarNombre, guardado, borrador } = documento
+  const trabajo = useTrabajoEnElLienzo({ editor, soloLectura, lienzo })
+  const { h, alContenedor, tamano, camara, agregar, fuentes } = trabajo
+  const menu = useMenuDelEditor(lienzo, nombre, editor)
 
   return (
     <div className={REJILLA_DEL_EDITOR}>
@@ -61,6 +58,8 @@ export function EditorDeArtes(props: PropsDelEditorDeArtes) {
           alCambiarPestana={h.setPestana}
           alAgregar={agregar}
           pedidoDeLaBiblioteca={h.pedidoDeLaBiblioteca}
+          fuentes={fuentes}
+          primera={primera}
         />
       </div>
       <section ref={alContenedor} aria-label="Lienzo" className={CELDAS_DEL_EDITOR.lienzo}>
@@ -74,6 +73,7 @@ export function EditorDeArtes(props: PropsDelEditorDeArtes) {
             alUsarHerramienta={h.volverAMover}
             camara={camara}
             tamano={tamano}
+            fuentes={fuentes}
           />
         ) : null}
         <AvisosEncimaDelLienzo

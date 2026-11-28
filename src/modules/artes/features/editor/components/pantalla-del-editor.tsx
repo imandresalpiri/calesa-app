@@ -1,7 +1,7 @@
 'use client'
 
 import { useConsultaDeMedios } from '@/shared/ui/use-consulta-de-medios'
-import { textoDelFormato } from '../../../entities/formatos'
+import { textoDelFormato, tipoDelFormato } from '../../../entities/formatos'
 import type { PropsDelEditorDeArtes } from '../tipos'
 import { AvisoDePantallaChica } from './aviso-de-pantalla-chica'
 import { EditorDeArtesDiferido } from './diferidos'
@@ -25,6 +25,7 @@ export function PantallaDelEditor(props: PropsDelEditorDeArtes) {
           <MarcoDelEditor
             nombre={plantilla.nombre}
             formato={textoDelFormato(plantilla.formato, plantilla)}
+            tipo={tipoDelFormato(plantilla.formato)}
           />
         )}
       </div>

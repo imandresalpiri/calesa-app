@@ -107,6 +107,7 @@ describe('teclasDeLaCombinacion', () => {
     expect(teclasDeLaCombinacion('alt+shift+r', { mac: true })).toEqual(['⌥', 'Mayús', 'R'])
     expect(teclasDeLaCombinacion('mod+z', { mac: true })).toEqual(['⌘', 'Z'])
     expect(teclasDeLaCombinacion('shift+ ', { mac: false })).toEqual(['Mayús', 'Espacio'])
+    expect(teclasDeLaCombinacion('pageup', { mac: false })).toEqual(['RePág'])
   })
 })
 

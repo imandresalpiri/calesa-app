@@ -14,6 +14,7 @@ import type { AccionDelEstado, EstadoDelEditor } from '../../entities/editor/est
 import type { PestanaIzquierda } from '../../entities/editor/paneles'
 import type { ClaveDeFormato, Medidas, TipoDeArte } from '../../entities/formatos'
 import type { LogoDelEditor, PlantillaDelEditor } from '../../entities/tipos'
+import type { FuentesDelLienzo } from './hooks/use-fuentes-listas'
 
 // El origen de la plantilla: su tipo decide qué datos aplican y sus campos (los del layout, activos o no) dan los `{ficha.<clave>}`.
 export type OrigenDelEditor = {
@@ -49,7 +50,8 @@ export type PropsDelEditorDeArtes = {
 }
 
 // Los datos con que se ve la plantilla (`use-datos-del-editor.ts`): qué `{clave}` conoce el arte en este origen, los datos del vehículo de
-// ejemplo (o los de ejemplo), sus valores ya escritos, la página resuelta, lo que falta y las variables desconocidas de todo el documento.
+// ejemplo (o los de ejemplo), sus valores ya escritos, la página elegida resuelta, lo que falta y las variables desconocidas de todo el
+// documento.
 export type DatosEnElEditor = {
   origen: OrigenDelEditor
   catalogo: CatalogoDelArte
@@ -58,7 +60,7 @@ export type DatosEnElEditor = {
   // El Modo Live: los montos sin su moneda.
   sinMoneda: boolean
   conDatos: CapasConDatos
-  // Lo que le falta a la página con el vehículo elegido (también lo que no cargó); con los datos de ejemplo, nada.
+  // Lo que le falta al documento (todas sus páginas) con el vehículo elegido (también lo que no cargó); con los datos de ejemplo, nada.
   faltan: readonly Falta[]
   // Mientras haya una, la plantilla de arte no se guarda.
   desconocidas: readonly string[]
@@ -67,10 +69,14 @@ export type DatosEnElEditor = {
 // `useReducer`: estable entre dibujos.
 export type Despachar = (accion: AccionDelEstado) => void
 
-// El documento que se edita (la página 1), lo elegido y cómo cambiarlo. `medidas`: las de la plantilla, en unidades del formato.
+// El documento que se edita, la página elegida (la del lienzo), lo elegido y cómo cambiarlo. `medidas`: las de la plantilla, en unidades del
+// formato.
 export type EditorDeArte = {
   estado: EstadoDelEditor
   pagina: PaginaDeArte
+  // Todas las páginas, en orden, y el índice de la elegida.
+  paginas: readonly PaginaDeArte[]
+  indice: number
   despachar: Despachar
   medidas: Medidas
   // El tipo del formato de la plantilla: un PDF tiene páginas, sólo Geist, y ni sombras ni contorno de texto.
@@ -106,6 +112,10 @@ export type ManejoDelLienzo = {
   imagen: (opciones: ImagenPedida) => Promise<{ blob: Blob; faltan: number } | null>
 }
 
+// Lo que la miniatura de la página 1 de la tira le da al editor: su imagen, como la del lienzo (la miniatura de la plantilla de arte sale de
+// la página 1 aunque el lienzo muestre otra).
+export type ManejoDeLaMiniatura = Pick<ManejoDelLienzo, 'imagen'>
+
 export type PropsDelLienzo = {
   ref?: Ref<ManejoDelLienzo>
   editor: EditorDeArte
@@ -119,6 +129,8 @@ export type PropsDelLienzo = {
   camara: CamaraDelEditor
   // El tamaño del área del lienzo en la pantalla (`use-tamano-del-lienzo.ts`).
   tamano: Medidas
+  // Las fuentes del documento (`useFuentesListas`), las mismas que usan las miniaturas de la tira de páginas.
+  fuentes: FuentesDelLienzo
 }
 
 export type PropsDeLasHerramientas = {
@@ -137,6 +149,9 @@ export type PropsDelPanelIzquierdo = {
   alAgregar: (que: QueSeAgrega) => void
   // Cambia en cada pedido de «Imagen» del riel: el panel muestra «Agregar» y lleva la biblioteca a la vista.
   pedidoDeLaBiblioteca: number
+  // Para la tira de páginas de un PDF: las fuentes del documento y la miniatura de la página 1.
+  fuentes: FuentesDelLienzo
+  primera: Ref<ManejoDeLaMiniatura>
 }
 
 // Lo que la pestaña «Textos» recibe de la página tal cual: el texto base del origen y el Mensaje del portal, con sus motivos.

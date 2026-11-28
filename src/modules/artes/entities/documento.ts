@@ -82,10 +82,15 @@ const esquemaDeLaPagina = z
   .superRefine(revisarLaPagina)
 export type PaginaDeArte = z.infer<typeof esquemaDeLaPagina>
 
-export const esquemaDelDocumento = z.object({
-  version: z.literal(VERSION_DEL_DOCUMENTO),
-  paginas: z.array(esquemaDeLaPagina).min(1).max(MAXIMO_DE_PAGINAS),
-})
+// Los ids de página no se repiten: el editor elige, mueve y quita por id.
+export const esquemaDelDocumento = z
+  .object({
+    version: z.literal(VERSION_DEL_DOCUMENTO),
+    paginas: z.array(esquemaDeLaPagina).min(1).max(MAXIMO_DE_PAGINAS),
+  })
+  .refine((d) => new Set(d.paginas.map((p) => p.id)).size === d.paginas.length, {
+    error: 'Dos páginas tienen el mismo id.',
+  })
 export type DocumentoDeArte = z.infer<typeof esquemaDelDocumento>
 
 // Con lo que nace una plantilla de arte: una página blanca, sin capas.
