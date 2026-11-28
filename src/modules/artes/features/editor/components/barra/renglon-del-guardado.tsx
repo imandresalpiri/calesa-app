@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { TEXTOS_DEL_GUARDADO, type EstadoDelGuardado } from '../../../../entities/editor/guardado'
+import { ANCHOS_DE_LA_BARRA } from '../rejilla'
 
 const ICONOS: Readonly<Record<EstadoDelGuardado, typeof CheckIcon>> = {
   guardado: CheckIcon,
@@ -38,7 +39,7 @@ export function RenglonDelGuardado({ id, estado, motivo, alReintentar }: Props) 
         role="status"
         data-estado="sin-guardar"
         title={motivo}
-        className="flex h-8 w-72 shrink-0 items-center justify-end gap-1.5 text-(length:--text-sm) text-(--color-peligro-ink)"
+        className={`flex h-8 ${ANCHOS_DE_LA_BARRA.guardado} shrink-0 items-center justify-end gap-1.5 text-(length:--text-sm) text-(--color-peligro-ink)`}
       >
         <TriangleAlertIcon aria-hidden className="size-4 shrink-0" />
         <span className="truncate">{motivo}</span>
@@ -51,7 +52,7 @@ export function RenglonDelGuardado({ id, estado, motivo, alReintentar }: Props) 
       id={id}
       role="status"
       data-estado={estado}
-      className="flex h-8 w-72 shrink-0 items-center justify-end gap-1.5 text-(length:--text-sm) text-(--color-ink-soft)"
+      className={`flex h-8 ${ANCHOS_DE_LA_BARRA.guardado} shrink-0 items-center justify-end gap-1.5 text-(length:--text-sm) text-(--color-ink-soft)`}
     >
       <Icono
         aria-hidden

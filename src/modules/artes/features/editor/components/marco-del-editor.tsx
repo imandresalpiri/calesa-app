@@ -2,7 +2,12 @@ import type { ReactNode } from 'react'
 import { RUTAS } from '@/shared/lib/rutas'
 import { Skeleton } from '@/shared/ui/skeleton'
 import { EnlaceVolverAArtes } from './barra/enlace-volver-a-artes'
-import { CELDAS_DEL_EDITOR, ENCIMA_DEL_LIENZO, REJILLA_DEL_EDITOR } from './rejilla'
+import {
+  ANCHOS_DE_LA_BARRA,
+  CELDAS_DEL_EDITOR,
+  ENCIMA_DEL_LIENZO,
+  REJILLA_DEL_EDITOR,
+} from './rejilla'
 
 type Props = {
   // Sin ellos (el `loading.tsx`, antes de leer la plantilla), la barra lleva sólo «Volver a Artes».
@@ -33,7 +38,7 @@ export function MarcoDelEditor({ nombre, formato, aviso }: Props) {
           </span>
         ) : null}
         <div aria-hidden className="ml-auto flex min-w-0 items-center gap-2">
-          <Skeleton className="h-8 w-64 shrink-0" />
+          <Skeleton className={`h-8 ${ANCHOS_DE_LA_BARRA.ejemplo} shrink-0`} />
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-8 w-20" />
         </div>

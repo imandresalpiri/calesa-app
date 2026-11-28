@@ -29,7 +29,9 @@ type Props = {
 
 // La barra del editor de artes (3rem, como en frío): «Volver a Artes», el nombre (se cambia con un clic) y el formato; a la derecha, el
 // vehículo de ejemplo (de ancho fijo), el renglón del guardado y «Guardar» (apagado, con el motivo en el renglón, mientras un texto lleve una
-// variable desconocida) o, en sólo lectura, la insignia, el motivo y «Duplicar para editar»; al final, el «⋯».
+// variable desconocida) o, en sólo lectura, la insignia, el motivo y «Duplicar para editar»; al final, el «⋯». A 1024 px entra entera: lo de la
+// derecha no se encoge (sus anchos son fijos, `ANCHOS_DE_LA_BARRA`) y se corta el nombre; en sólo lectura se cortan el nombre (con su tope) y el
+// motivo.
 export function BarraDelEditor({
   plantilla,
   nombre,
@@ -53,7 +55,9 @@ export function BarraDelEditor({
       <span className="shrink-0 text-(length:--text-sm) text-(--color-ink-soft) tabular-nums">
         {textoDelFormato(plantilla.formato, plantilla)}
       </span>
-      <div className="ml-auto flex min-w-0 items-center gap-2">
+      <div
+        className={`ml-auto flex items-center gap-2 ${motivoDeSoloLectura === null ? 'shrink-0' : 'min-w-0'}`}
+      >
         <VehiculoDeEjemplo {...ejemplo} />
         {motivoDeSoloLectura === null ? (
           <>

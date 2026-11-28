@@ -23,7 +23,7 @@ export function NombreEditable({ nombre, alCambiar, soloLectura }: Props) {
 
   if (escrito !== null) {
     return (
-      <h1 className="min-w-0">
+      <h1 className="w-80 min-w-0">
         <input
           aria-label="Nombre de la plantilla de arte"
           aria-invalid={motivo !== null}
@@ -48,13 +48,13 @@ export function NombreEditable({ nombre, alCambiar, soloLectura }: Props) {
               terminar(false)
             }
           }}
-          className={`${CAJA} w-80 border border-(--color-line-strong) bg-(--color-surface) text-(--color-ink) outline-none focus-visible:shadow-(--shadow-focus) aria-invalid:border-(--color-peligro)`}
+          className={`${CAJA} w-full border border-(--color-line-strong) bg-(--color-surface) text-(--color-ink) outline-none focus-visible:shadow-(--shadow-focus) aria-invalid:border-(--color-peligro)`}
         />
       </h1>
     )
   }
   return (
-    <h1 className="min-w-0">
+    <h1 className={soloLectura ? 'max-w-48 min-w-0 xl:max-w-80' : 'min-w-0'}>
       {soloLectura ? (
         <span className={`${CAJA} block truncate leading-8 text-(--color-ink)`}>{nombre}</span>
       ) : (
@@ -64,7 +64,7 @@ export function NombreEditable({ nombre, alCambiar, soloLectura }: Props) {
           onClick={() => {
             setEscrito(nombre)
           }}
-          className={`${CAJA} block truncate text-left text-(--color-ink) outline-none hover:bg-(--color-paper-dim) focus-visible:shadow-(--shadow-focus)`}
+          className={`${CAJA} block w-full truncate text-left text-(--color-ink) outline-none hover:bg-(--color-paper-dim) focus-visible:shadow-(--shadow-focus)`}
         >
           {nombre}
         </button>

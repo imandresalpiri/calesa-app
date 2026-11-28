@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover'
 import { textoDelEjemploElegido } from '../../../../entities/datos/ejemplo-con-datos'
 import type { VehiculoDeEjemploDelEditor } from '../../hooks/use-vehiculo-de-ejemplo'
 import { PanelDelEjemploDiferido } from './diferidos'
+import { ANCHOS_DE_LA_BARRA } from '../rejilla'
 
 type Props = {
   ejemplo: VehiculoDeEjemploDelEditor
@@ -16,7 +17,8 @@ type Props = {
   sinClientes: boolean
 }
 
-const DISPARADOR = 'h-8 w-64 shrink-0 justify-start gap-1.5 px-2'
+// 13rem de 1024 a 1280 px y 16rem desde ahí: con el renglón del guardado, «Guardar» y el «⋯», la barra cabe a 1024 px (`ANCHOS_DE_LA_BARRA`).
+const DISPARADOR = `h-8 ${ANCHOS_DE_LA_BARRA.ejemplo} shrink-0 justify-start gap-1.5 px-2`
 
 // El disparador «Vehículo de ejemplo» de la barra (docs/GLOSARIO.md), de ancho fijo (el título largo se corta): dice con qué datos se ve el
 // arte y abre el popover para elegir el vehículo, su cotización y su lead. Mientras lee, el reloj; sin permiso, apagado y dice por qué.

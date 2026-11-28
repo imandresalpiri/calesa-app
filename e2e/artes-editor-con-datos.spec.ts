@@ -262,3 +262,28 @@ test('E2E sin cotizaciones.configurar el texto base es de sólo lectura y sin ve
     'Sólo quien configura Leads cambia este mensaje.',
   )
 })
+
+test.describe('a 1024 px', () => {
+  test.use({ viewport: { width: 1024, height: 768 } })
+
+  test('E2E a 1024 px la barra entra entera con un vehículo elegido: el nombre se corta antes del formato', async ({
+    page,
+  }, info) => {
+    await entrar(page, duena)
+    await abrirElEditorDeArtes(page, plantilla)
+    await cerrar(page, await elegirVehiculo(page, conDatos))
+    const barra = page.locator('header').first()
+    await expect(barra.getByRole('button', { name: 'Guardar', exact: true })).toBeInViewport({
+      ratio: 1,
+    })
+    await expect(
+      barra.getByRole('button', {
+        name: `Más acciones de ${nombreDe(info.project.name)}`,
+        exact: true,
+      }),
+    ).toBeInViewport({ ratio: 1 })
+    const nombre = await cajaDe(barra.getByRole('heading', { level: 1 }))
+    const formato = await cajaDe(barra.getByText(/ · \d+ × \d+$/))
+    expect(nombre.x + nombre.width).toBeLessThanOrEqual(formato.x)
+  })
+})
