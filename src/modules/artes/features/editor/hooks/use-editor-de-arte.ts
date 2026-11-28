@@ -8,7 +8,7 @@ import {
   reducirEditor,
   type AccionDelEstado,
 } from '../../../entities/editor/estado'
-import type { Medidas } from '../../../entities/formatos'
+import type { Medidas, TipoDeArte } from '../../../entities/formatos'
 import type { EditorDeArte } from '../tipos'
 
 // En sólo lectura se elige y se mira (y el lienzo anota el alto que mide de un texto, que no es un cambio): nada más llega al reducer.
@@ -30,6 +30,7 @@ export function useEditorDeArte(
   documento: DocumentoDeArte,
   medidas: Medidas,
   soloLectura: boolean,
+  tipo: TipoDeArte,
 ): EditorDeArte {
   const [estado, despacharAlReducer] = useReducer(reducirEditor, documento, estadoInicial)
   const despachar = useCallback(
@@ -46,6 +47,7 @@ export function useEditorDeArte(
     pagina: paginaDe(estado.documento) ?? PAGINA_VACIA,
     despachar,
     medidas,
+    tipo,
     soloLectura,
   }
 }

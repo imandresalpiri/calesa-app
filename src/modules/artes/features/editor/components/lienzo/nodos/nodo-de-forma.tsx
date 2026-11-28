@@ -4,18 +4,24 @@ import { memo } from 'react'
 import { Ellipse, Line, Rect } from 'react-konva'
 import type { CapaDe } from '../../../../../entities/documento'
 import { puntosDelPoligono } from '../../../../../entities/editor/dibujo'
-import { atributosDeLaCapa, sombraDe, TRANSPARENTE, type Interaccion } from './atributos'
+import {
+  atributosDeLaCapa,
+  sombraDe,
+  TRANSPARENTE,
+  type DelFormato,
+  type Interaccion,
+} from './atributos'
 
-type Props = Interaccion & { capa: CapaDe<'forma'> }
+type Props = Interaccion & DelFormato & { capa: CapaDe<'forma'> }
 
 // Un rectángulo (con sus esquinas redondeadas), una elipse o un polígono regular que llena su caja. Sin relleno se puede tocar igual.
-export const NodoDeForma = memo(function NodoDeForma({ capa, arrastrable, escucha }: Props) {
+export const NodoDeForma = memo(function NodoDeForma({ capa, arrastrable, escucha, tipo }: Props) {
   const interaccion = { arrastrable, escucha }
   const pintura = {
     fill: capa.relleno ?? TRANSPARENTE,
     stroke: capa.borde ?? undefined,
     strokeWidth: capa.borde ? capa.grosor : 0,
-    ...sombraDe(capa.sombra),
+    ...sombraDe(capa, tipo),
   }
   if (capa.forma === 'elipse') {
     return (

@@ -12,7 +12,7 @@ import type { Camara } from '../../entities/editor/camara'
 import type { QueSeAgrega } from '../../entities/editor/capas-nuevas'
 import type { AccionDelEstado, EstadoDelEditor } from '../../entities/editor/estado'
 import type { PestanaIzquierda } from '../../entities/editor/paneles'
-import type { ClaveDeFormato, Medidas } from '../../entities/formatos'
+import type { ClaveDeFormato, Medidas, TipoDeArte } from '../../entities/formatos'
 import type { LogoDelEditor, PlantillaDelEditor } from '../../entities/tipos'
 
 // El origen de la plantilla: su tipo decide qué datos aplican y sus campos (los del layout, activos o no) dan los `{ficha.<clave>}`.
@@ -73,6 +73,8 @@ export type EditorDeArte = {
   pagina: PaginaDeArte
   despachar: Despachar
   medidas: Medidas
+  // El tipo del formato de la plantilla: un PDF tiene páginas, sólo Geist, y ni sombras ni contorno de texto.
+  tipo: TipoDeArte
   // Sin permiso para editar: se elige y se mira, nada cambia.
   soloLectura: boolean
 }

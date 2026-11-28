@@ -56,6 +56,7 @@ export function Lienzo(props: PropsDelLienzo) {
         <CapaDeContenido
           pagina={pagina}
           medidas={medidas}
+          tipo={editor.tipo}
           conDatos={conDatos}
           escucha={herramienta === 'mover' && !mano}
           soloLectura={soloLectura}

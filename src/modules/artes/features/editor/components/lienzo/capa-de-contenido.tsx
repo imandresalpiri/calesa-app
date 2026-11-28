@@ -7,7 +7,7 @@ import type { CapaDeArte, FondoDeArte, PaginaDeArte } from '../../../../entities
 import { puntosDelDegradado } from '../../../../entities/editor/dibujo'
 import { estaBloqueada, estaOculta } from '../../../../entities/editor/grupos'
 import type { FuenteDeImagen } from '../../../../entities/editor/fuente-de-la-capa'
-import type { Medidas } from '../../../../entities/formatos'
+import type { Medidas, TipoDeArte } from '../../../../entities/formatos'
 import type { FuentesDelLienzo } from '../../hooks/use-fuentes-listas'
 import { NodoDeForma } from './nodos/nodo-de-forma'
 import { NodoDeImagen } from './nodos/nodo-de-imagen'
@@ -18,6 +18,8 @@ import { NodoDeTrazo } from './nodos/nodo-de-trazo'
 type Props = {
   pagina: PaginaDeArte
   medidas: Medidas
+  // Un PDF no dibuja sombras ni el contorno de un texto (`efectosDelFormato()`).
+  tipo: TipoDeArte
   // Lo que dibuja cada capa con los datos de ahora (`capasConDatos()`): el texto resuelto, la imagen de dónde sale y las que se esconden.
   conDatos: CapasConDatos
   // Con «mover»: las capas se eligen y se arrastran. Con otra herramienta (o la mano) el puntero es del Stage.
@@ -64,6 +66,7 @@ function NodoDeLaCapa({
   fuentes,
   escala,
   alMedirTexto,
+  tipo,
   ...interaccion
 }: DelNodo) {
   switch (capa.tipo) {
@@ -71,6 +74,7 @@ function NodoDeLaCapa({
       return (
         <NodoDeTexto
           capa={capa}
+          tipo={tipo}
           texto={texto ?? capa.texto}
           {...interaccion}
           familia={fuentes.familiaDe(capa.fuente)}
@@ -80,16 +84,16 @@ function NodoDeLaCapa({
         />
       )
     case 'forma':
-      return <NodoDeForma capa={capa} {...interaccion} />
+      return <NodoDeForma capa={capa} tipo={tipo} {...interaccion} />
     case 'linea':
-      return <NodoDeLinea capa={capa} escala={escala} {...interaccion} />
+      return <NodoDeLinea capa={capa} escala={escala} tipo={tipo} {...interaccion} />
     case 'trazo':
-      return <NodoDeTrazo capa={capa} escala={escala} {...interaccion} />
+      return <NodoDeTrazo capa={capa} escala={escala} tipo={tipo} {...interaccion} />
     case 'imagen':
     case 'logo':
     case 'foto':
     case 'tarjeta':
-      return <NodoDeImagen capa={capa} fuente={fuente} {...interaccion} />
+      return <NodoDeImagen capa={capa} fuente={fuente} tipo={tipo} {...interaccion} />
   }
 }
 

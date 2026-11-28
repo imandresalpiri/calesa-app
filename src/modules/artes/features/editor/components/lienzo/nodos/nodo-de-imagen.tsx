@@ -8,13 +8,19 @@ import type { FuenteDeImagen } from '../../../../../entities/editor/fuente-de-la
 import type { Medidas } from '../../../../../entities/formatos'
 import { NOMBRE_DEL_RESPALDO } from '../../../hooks/nodos-del-lienzo'
 import { medidasDeLaImagen, useImagenDelLienzo } from '../../../hooks/use-imagen-del-lienzo'
-import { atributosDeLaCapa, sombraDe, TRANSPARENTE, type Interaccion } from './atributos'
+import {
+  atributosDeLaCapa,
+  sombraDe,
+  TRANSPARENTE,
+  type DelFormato,
+  type Interaccion,
+} from './atributos'
 
 const COLOR_DEL_RESPALDO = '#eef0f4'
 const BORDE_DEL_RESPALDO = '#8a8f9b'
 
 // `fuente`: de dónde sale lo que dibuja con los datos de ahora (`capasConDatos()`); nula, el respaldo.
-type Props = Interaccion & { capa: CapaConImagen; fuente: FuenteDeImagen | null }
+type Props = Interaccion & DelFormato & { capa: CapaConImagen; fuente: FuenteDeImagen | null }
 
 type Colocacion = {
   x: number
@@ -99,6 +105,7 @@ export const NodoDeImagen = memo(function NodoDeImagen({
   fuente,
   arrastrable,
   escucha,
+  tipo,
 }: Props) {
   const caja = useMemo(() => ({ ancho: capa.ancho, alto: capa.alto }), [capa.ancho, capa.alto])
   const { imagen, estado } = useImagenDelLienzo(fuente, caja)
@@ -116,7 +123,7 @@ export const NodoDeImagen = memo(function NodoDeImagen({
           cornerRadius={capa.radio}
           listening={false}
           perfectDrawEnabled={false}
-          {...sombraDe(capa.sombra)}
+          {...sombraDe(capa, tipo)}
         />
       ) : (
         <Respaldo caja={caja} fallo={estado === 'fallo'} />

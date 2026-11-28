@@ -6,6 +6,7 @@ import { motivoParaNoGuardar } from '../../../entities/datos/resolver-texto'
 import type { CatalogoDelArte } from '../../../entities/datos/variables-del-arte'
 import { claveDelBorrador } from '../../../entities/editor/borrador'
 import { ladoDeLaMiniatura } from '../../../entities/editor/exportar'
+import { tipoDelFormato } from '../../../entities/formatos'
 import type { PlantillaDelEditor } from '../../../entities/tipos'
 import type { ManejoDelLienzo } from '../tipos'
 import { useBorradorLocal, type PonerEnElEditor } from './use-borrador-local'
@@ -35,7 +36,12 @@ export function useDocumentoDelEditor(args: Args) {
   const medidas = useMemo(() => ({ ancho, alto }), [ancho, alto])
   const clave = claveDelBorrador(plantilla.id, personaId)
   const inicio = useInicioDelEditor(plantilla, clave, soloLectura)
-  const editor = useEditorDeArte(inicio.documento, medidas, soloLectura)
+  const editor = useEditorDeArte(
+    inicio.documento,
+    medidas,
+    soloLectura,
+    tipoDelFormato(plantilla.formato),
+  )
   const [nombre, setNombre] = useState(inicio.nombre)
   const { despachar } = editor
   const actual = useMemo(

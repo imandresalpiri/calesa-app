@@ -24,7 +24,7 @@ export function useLienzo(props: PropsDelLienzo) {
   const { pagina, medidas, despachar } = editor
   const escala = camara.camara.escala
   const mano = props.manoTransitoria || herramienta === 'mano'
-  const fuentes = useFuentesListas(pagina)
+  const fuentes = useFuentesListas(pagina, editor.tipo)
   const imagenesListas = useImagenesListas(pagina, conDatos)
   const texto = useTextoEnElLienzo(editor)
   const pluma = usePluma({ editor, herramienta, escala, alUsarHerramienta })
