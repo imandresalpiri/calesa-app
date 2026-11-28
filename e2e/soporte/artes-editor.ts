@@ -3,12 +3,15 @@ import { literal, sql } from './sql'
 
 // Las plantillas de arte que siembran los e2e del editor de artes (`artes-editor*.spec.ts`, `presupuesto-js.spec.ts`): se insertan por SQL
 // como `supabase/tests/areas/artes/carreras.mjs`, en la subasta de la semilla, con el documento vacío de la versión 1 (el editor lo lee como
-// el de la 2 y lo guarda en la 2). Todas llevan `E2E` en el nombre; `borrarPlantillasDeArte()` quita las de un prefijo y sus copias.
+// el de hoy y lo guarda así) o, con `capas`, uno de la versión 3 con ellas (`artes-editor-con-datos.spec.ts`). Todas llevan `E2E` en el nombre;
+// `borrarPlantillasDeArte()` quita las de un prefijo y sus copias.
 export type PlantillaSembrada = {
   nombre: string
   autorId: string
   formato?: 'cuadrado' | 'vertical' | 'historia'
   visibilidad?: 'privada' | 'empresa'
+  // Con capas, el documento va en la versión de hoy (3) con ellas en su única página; sin ellas, el vacío de la versión 1.
+  capas?: readonly Record<string, unknown>[]
 }
 
 const MEDIDAS = {
@@ -26,19 +29,38 @@ const DOCUMENTO_V1 = JSON.stringify({
 export const subastaDeLaSemilla = (): string =>
   sql("select id from public.origenes where clave = 'subasta_usa'")
 
+// Lo común de toda capa sembrada: visible, sin bloquear, sin grupo ni sombra.
+export const BASE_DE_CAPA = {
+  nombre: null,
+  grupoId: null,
+  rotacion: 0,
+  opacidad: 1,
+  bloqueada: false,
+  oculta: false,
+  sombra: null,
+} as const
+
+const documentoCon = (capas: readonly Record<string, unknown>[]) =>
+  JSON.stringify({
+    version: 3,
+    paginas: [{ id: 'pagina-1', fondo: { tipo: 'color', color: '#ffffff' }, capas, grupos: [] }],
+  })
+
 export function sembrarPlantillaDeArte({
   nombre,
   autorId,
   formato = 'vertical',
   visibilidad = 'privada',
+  capas,
 }: PlantillaSembrada): string {
   const [ancho, alto] = MEDIDAS[formato]
+  const documento = capas === undefined ? DOCUMENTO_V1 : documentoCon(capas)
   sql(`delete from public.artes_plantillas where nombre = ${literal(nombre)}`)
   return sql(`
     insert into public.artes_plantillas (id, nombre, formato, ancho, alto, origen_id, visibilidad, autor_id, documento)
       values (gen_random_uuid(), ${literal(nombre)}, ${literal(formato)}, ${String(ancho)}, ${String(alto)},
         ${literal(subastaDeLaSemilla())}::uuid, ${literal(visibilidad)}, ${literal(autorId)}::uuid,
-        ${literal(DOCUMENTO_V1)}::jsonb)
+        ${literal(documento)}::jsonb)
       returning id`)
 }
 
