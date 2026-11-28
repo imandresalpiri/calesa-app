@@ -7,6 +7,7 @@ import {
   getAprobadasDeVehiculos,
   getMarcaDeLaGuardada,
 } from '../../infra/aprobada/leer'
+import { getPaginaDeEsteVehiculo } from '../../infra/aprobada/de-este-vehiculo'
 import { getOtrasDelVehiculo } from '../../infra/aprobada/otras-del-vehiculo'
 import { getParaComparar } from '../../infra/aprobada/para-comparar'
 
@@ -20,6 +21,10 @@ export const leerMarcaDeLaGuardada = getMarcaDeLaGuardada
 
 // Cuántas otras cotizaciones del vehículo ve quien mira (la línea y el bloque «De este vehículo» de la guardada).
 export const leerOtrasDelVehiculo = getOtrasDelVehiculo
+
+// Una página de «De este vehículo» desde el servidor (la del navegador es `de-este-vehiculo.client.ts`): las cotizaciones del vehículo de ejemplo del
+// editor de artes (`GET /artes/ejemplo/vehiculos/<id>/cotizaciones`, en `src/app`). El cursor, opaco.
+export const leerPaginaDeEsteVehiculo = getPaginaDeEsteVehiculo
 
 // «Comparar cotizaciones»: la hoja guardada de cada una (sin recálculo) y sus marcas, en paralelo.
 export const leerParaComparar = getParaComparar
