@@ -61,4 +61,7 @@ RPC (`security definer`): `artes_plantilla_crear`, `_guardar`, `_duplicar`, `_vi
 - Safari no codifica WebP en un `<canvas>`: la imagen y su miniatura caen a JPEG (por eso la base admite `jpg`).
 - Las miniaturas son URL firmadas de 600 s (`SEGUNDOS_DE_LA_MINIATURA`) dibujadas con `next/image` `unoptimized`; si una falla, el marcador con
   la proporción del formato.
+- Un SVG de la biblioteca sólo pasa las reglas en el navegador: se dibuja siempre como `<img>` (`MiniaturaDeArte`), nunca en línea.
+- La base busca las imágenes del documento sólo en `paginas[*].capas[*]` de tipo `imagen` (`_artes_imagenes_del_documento()`): un lugar nuevo
+  para una imagen (un fondo, un grupo) amplía a la vez esa función, `imagenesDelDocumento()` y el esquema del documento.
 - El editor de las capas, «Duplicar en otro formato» y `guardarPlantillaDeArte` (hoy sólo su esquema y su test) llegan con el editor de artes.

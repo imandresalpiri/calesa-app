@@ -1402,6 +1402,10 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   fila y no se editan (un arte de otra medida es otro arte). Carta y A4 en puntos, la unidad de `@react-pdf/renderer`.
 - **Bucket privado, servido con URL firmada.** Una imagen personal no es pública: `artes` es privado y la lista firma las miniaturas (600 s) en una
   sola llamada. Se dibujan con `next/image` `unoptimized` (la URL firmada no pasa por el optimizador). Si una falla, el marcador con la proporción del formato.
+- **Una ruta por hash no mira de quién es el objeto.** El mismo archivo subido por dos personas es un solo objeto (su dueño en Storage, quien lo
+  subió primero), así que `artes_imagen_crear` y `artes_plantilla_guardar` validan la forma de la ruta y no el dueño: pedirlo rompería la
+  segunda subida. Lo lee quien ve una fila que lo nombra (como `documentos`), y nombrar el objeto de otra persona exige su sha256, que es tener
+  el archivo. Un SVG pasa las reglas del logo en el navegador y no en la base: por eso se dibuja siempre como `<img>`, nunca en línea.
 - **Una plantilla de la empresa sólo usa imágenes de la empresa.** Si no, quien la ve no podría leer lo que nombra. Lo exige la base al guardar y al
   hacerla de la empresa (`_artes_validar_imagenes()`).
 - **Los usos de una imagen van en una tabla puente.** `artes_plantillas_imagenes` (la mantienen las RPC que escriben el documento) cuenta por índice;
