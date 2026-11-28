@@ -373,6 +373,8 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 
 ### Pruebas que prueban algo
 
+- Un `import()` dentro de `page.evaluate` lo transpila Playwright a `require` y falla en el navegador: un módulo para la página (pdfjs-dist) se
+  carga con un `<script type="module">` de una página servida por `page.route` (`e2e/soporte/rasterizar-el-pdf.ts`).
 - Una prueba que pasa con y sin el arreglo no se conserva; una de «con `reduce` no ocurre X» necesita su mitad de control, la que muestra que sin `reduce` sí ocurre.
 - Para afirmar que algo no se envió espera un estado final o un centinela, no un `waitForTimeout`: sin centinela la prueba no demuestra nada.
 - Reproduce una inestable frenando la CPU del navegador (CDP `Emulation.setCPUThrottlingRate`) o con latencia en `page.route` (`rsc`, `rpc`, actions): sin reproducirla, no la des por arreglada.
@@ -492,3 +494,11 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
 ### vehiculos
 
 - Mira el tipo del blob que devuelve el canvas y usa JPEG si hace falta: Safari devuelve PNG aunque pidas WebP.
+
+### artes
+
+- Un texto que dibujan dos motores (Konva y react-pdf) se parte con una sola regla y con las mismas fuentes (`disposicionDelTexto()`, los TTF de
+  `public/fuentes/geist/`): cada motor corta distinto en los bordes y la Geist variable de la app no mide lo que los TTF estáticos; cada motor
+  recibe las líneas ya partidas.
+- `window.Konva.stages` incluye las miniaturas de la tira de páginas: lo que lee el lienzo en un e2e filtra por el `Stage` dentro de
+  `section[aria-label="Lienzo"]`.

@@ -653,6 +653,16 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
     `foto`; inmutables por hash. El texto base, una fila por PK (configuración, sin volumen).
   - En el navegador: una lectura nueva deja sin efecto la anterior; buscar espera mientras se tipea; el popover y «Textos» se piden con `diferido()`
     al abrirse.
+- Plantillas de arte en PDF (Carta y A4): ninguna lista ni consulta nueva y ningún conteo. Topes por diseño: 20 páginas (`MAXIMO_DE_PAGINAS`, el
+  mismo de la base), 300 capas por página y 512 KiB por documento; el pedido de «Descargar PDF», ≤ 600 KB.
+  - La tira de páginas dibuja a lo sumo 20 `Stage` chicos (`listening={false}`): sólo se redibuja la miniatura que cambió (`memo`) y la elegida va
+    diferida (`useDeferredValue`); las fotos, de 480 px.
+  - `POST /artes/<id>/pdf` y el PDF de una cotización con arte: la plantilla, la por defecto (`artes_por_defecto`, por PK), el vehículo, su galería,
+    la cotización y el lead por PK, más lo común del arte (origen, layout, lo fijo y los logos). Hasta 100 imágenes distintas de la biblioteca y 20
+    fotos; cada `src` se baja una vez, de a 4, con ≤ 10 MB y 4 s por imagen, y sale con su lado ≤ 2 × el lado mayor de la hoja (en A4, 1.684 px).
+  - Tiempo (mediana de 3 en caliente, por la ruta de la cotización con la foto del vehículo, en local): la tarjeta de hoy 173 ms, el arte de 1
+    página 136 ms y el de 2 páginas 126 ms. Por página, nunca más que el de hoy. react-pdf, fontkit y `sharp` sólo con `import()` en el servidor;
+    `pdfjs-dist` sólo en `e2e/`.
 - JS en frío: `/artes` y `/artes/[id]` en «JS en frío».
 
 ## Tablero: métricas
@@ -684,8 +694,9 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `/logistica/bandeja` 390 (provisional), `/logistica/fase/[fase]` 390, `/logistica/embarques`, `/logistica/embarques/[id]` y `/logistica/aduana` 410 (386,1, 385,7 y 382,3 medidos), `/logistica/vehiculo/[id]` 480, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
   `/cotizaciones/papelera` 445 (en su spec; 441,3 medidos con el Modo Live configurable en el marco: regla del 5 %), `/artes` 410 (388,4 medidos en 28 chunks con
   la rejilla vacía; la pestaña Imágenes, «Nueva plantilla» y los diálogos van con `diferido()`; «Ver más» es una Server Action: con la lectura desde el navegador,
-  supabase-js sumaba ≈ 70 KB), `/artes/[id]` 250 (231,9 medidos en 15 chunks: el marco del editor de artes, sin el de `(app)`, con el hueco del vehículo de ejemplo y la
-  pestaña «Textos»; Konva, react-konva, dnd-kit, el editor, el popover del vehículo de ejemplo y «Textos» llegan con `diferido()`).
+  supabase-js sumaba ≈ 70 KB), `/artes/[id]` 250 (232,1 medidos en 16 chunks: el marco del editor de artes, sin el de `(app)`, con el hueco del vehículo de ejemplo, la
+  pestaña «Textos» y la reserva de la tira de páginas; Konva, react-konva, dnd-kit, el editor, el popover del vehículo de ejemplo y «Textos» llegan
+  con `diferido()`: el chunk del editor, con la tira, las miniaturas y «Descargar PDF», ≈ 154 KB).
 - Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 590,2 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
   frío serían 450: va con `diferido()`; la imagen del resumen, sólo su cáscara: `CLAVE_DEL_VISOR` por el barril del visor sumaba 2,5 KB, se importa de
@@ -987,7 +998,8 @@ pnpm db:medir:volumen`): invocadora, páginas de `MAXIMO_DE_PAGINA_DE_COTIZACION
   con `diferido()`.
 - PDF de la tarjeta (`e2e/cotizar-pdf.spec.ts`): una cotización por PK — `cotizacion_hoja_guardada`, `cotizacion_evaluar(p_cotizacion)`,
   `cotizacion_tarjeta`, asesor y vehículo por PK y `leerAjustes()` (una RPC más que `getAjustes()`); el logo ≤ 1 MB con 2 s de espera. Topes:
-  150 KB y 1,5 s (40.406 B y 150 ms medidos con la cuadrícula: una página A4). La tarjeta de lo guardado lo ofrece con un `<a download>` sin JS.
+  150 KB y 1,5 s (40.406 B y 150 ms medidos con la cuadrícula: una página A4). Antes, la plantilla de arte por defecto para PDF: `artes_por_defecto`
+  por PK (`leerArteParaCompartir`); con una, el PDF del arte («Artes» › «Plantillas de arte en PDF»). La tarjeta de lo guardado lo ofrece con un `<a download>` sin JS.
   La imagen de la tarjeta (`imagenDeUnaGuardada()`) sale al ancho de la tarjeta (≤ 1.600 px) y carga `next/og` sólo con `import()` en el servidor.
 - **Imagen de la tarjeta** (`GET /cotizaciones/<id>/imagen`): una llamada a `cotizacion_imagen_huella()` (la cotización, el cliente, el vehículo, el perfil
   de quien pide y los ajustes por PK, la plantilla por índice único, y los catálogos de colores y tipos de cambio, decenas de filas) y, con la ETag igual, 304
