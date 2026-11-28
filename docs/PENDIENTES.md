@@ -260,6 +260,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 - **[—]** «Capas» del editor de artes: las filas miden 36 px y cada una suma al Tab su asa, su nombre y sus botones (sin el foco itinerante de un
   `grid`, ↑ y ↓ entre filas).
+- **[—]** «?» en el editor de artes: con su grupo, la lista de atajos es más alta que la ventana (900 px) y abre con el foco en «Cerrar», desplazada
+  hasta abajo: el título y los primeros atajos quedan fuera de la vista hasta subir.
 - **[—]** A 1280 px, la tabla de `/logistica/aduana` desborda: la columna Vehículos queda a la derecha y se llega desplazando; y en la de contenedores
   «Revisar qué falta» se corta contra el «⋯» fijo — una columna menos o el texto de la fila en dos renglones (`aduana/components/tabla-de-declaraciones.tsx`,
   `transporte/components/tabla-de-contenedores.tsx`).
