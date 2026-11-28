@@ -582,6 +582,43 @@ export type Database = {
           },
         ]
       }
+      artes_textos_base: {
+        Row: {
+          actualizado_en: string
+          actualizado_por: string | null
+          origen_id: string
+          texto: string
+        }
+        ComputedFields: never
+        Insert: {
+          actualizado_en?: string
+          actualizado_por?: string | null
+          origen_id: string
+          texto: string
+        }
+        Update: {
+          actualizado_en?: string
+          actualizado_por?: string | null
+          origen_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'artes_textos_base_actualizado_por_fkey'
+            columns: ['actualizado_por']
+            isOneToOne: false
+            referencedRelation: 'perfiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'artes_textos_base_origen_id_fkey'
+            columns: ['origen_id']
+            isOneToOne: true
+            referencedRelation: 'origenes'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       asistente_ia_usos: {
         Row: {
           actualizado_en: string
@@ -8594,6 +8631,18 @@ export type Database = {
         Args: { p_ids: string[]; p_plantilla: string }
         Returns: undefined
       }
+      _artes_texto_base_inicial: {
+        Args: { p_tipo: Database['public']['Enums']['tipo_origen'] }
+        Returns: string
+      }
+      _artes_texto_base_variables_validas: {
+        Args: {
+          p_origen_id: string
+          p_texto: string
+          p_tipo: Database['public']['Enums']['tipo_origen']
+        }
+        Returns: string
+      }
       _artes_tipo_del_formato: { Args: { p_formato: string }; Returns: string }
       _artes_validar_documento: { Args: { p_documento: Json }; Returns: undefined }
       _artes_validar_imagenes: {
@@ -11424,6 +11473,10 @@ export type Database = {
           p_tipo: string
         }
         Returns: Json
+      }
+      artes_texto_base_guardar: {
+        Args: { p_actualizado_en_esperado: string; p_origen_id: string; p_texto: string }
+        Returns: string
       }
       asistente_ia_contar_uso: { Args: Record<PropertyKey, never>; Returns: number }
       asistente_ia_usos_del_mes: { Args: Record<PropertyKey, never>; Returns: Json }

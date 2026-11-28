@@ -7097,3 +7097,34 @@ begin
   reset role;
 end $$;
 rollback;
+
+-- @test artes: el texto base de un origen lo lee quien ve cotizaciones de ese origen y no el de otro; nadie lo escribe directo (policy «artes_textos_base: leer»)
+begin;
+do $$
+declare v_rol uuid; v_o uuid; v_otro uuid; v_n int; v_codigo text;
+  v_ana uuid := '00000000-0000-4000-8000-000000a76e01';
+begin
+  insert into auth.users (id, email, raw_app_meta_data) values (v_ana, 'humo.textobase.ana@ejemplo.com', '{"invitado": true}');
+  update public.perfiles set invitacion_aceptada_en = now() where id = v_ana;
+  delete from public.usuarios_roles where usuario_id = v_ana;
+  insert into public.origenes (clave, nombre) values ('humo_texto_base', 'Humo texto base') returning id into v_o;
+  insert into public.origenes (clave, nombre) values ('humo_texto_otro', 'Humo texto otro') returning id into v_otro;
+  insert into public.roles (clave, nombre) values ('humo_texto_base', 'Humo texto base') returning id into v_rol;
+  insert into public.usuarios_roles (usuario_id, rol_id, es_principal) values (v_ana, v_rol, true);
+  insert into public.roles_permisos (rol_id, permiso_clave, origen_id, alcance) values (v_rol, 'cotizaciones.ver', v_o, 'propios');
+  perform set_config('request.jwt.claim.sub', v_ana::text, true);
+  perform set_config('request.jwt.claim.role', 'authenticated', true);
+  set local role authenticated;
+  select count(*) into v_n from public.artes_textos_base where origen_id = v_o;
+  if v_n <> 1 then raise exception 'quien ve cotizaciones del origen no leyó su texto base (%)', v_n; end if;
+  select count(*) into v_n from public.artes_textos_base where origen_id = v_otro;
+  if v_n <> 0 then raise exception 'quien no ve cotizaciones del otro origen leyó su texto base'; end if;
+  begin
+    update public.artes_textos_base set texto = 'Hola' where origen_id = v_o;
+    v_codigo := 'sin error';
+  exception when others then v_codigo := sqlstate;
+  end;
+  if v_codigo <> '42501' then raise exception 'el update directo de artes_textos_base dio %', v_codigo; end if;
+  reset role;
+end $$;
+rollback;
