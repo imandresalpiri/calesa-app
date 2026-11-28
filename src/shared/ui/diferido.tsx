@@ -43,6 +43,9 @@ type Opciones<P> = {
   // hidratación y mientras llega el código (en vez del esqueleto), y bajo el aviso si no llega (en vez del respaldo). Así lo que se ve no
   // espera al código y no salta cuando llega.
   enFrio?: (props: P) => ReactNode
+  // Con `aviso: 'aqui'`, dónde va el aviso si el código no llegó: lo dibuja adentro de lo que devuelve (el área del lienzo dentro del marco
+  // del editor de artes), en vez de arriba del respaldo o de la versión en frío.
+  conElAviso?: (props: P, aviso: ReactNode) => ReactNode
 }
 
 export const ESPERA_DEL_REINTENTO_MS = 400
@@ -68,6 +71,7 @@ type PropsDelLimite = {
   aviso: 'aqui' | 'pantalla'
   alReintentar: () => void
   respaldo: ReactNode
+  ubicar: ((aviso: ReactNode) => ReactNode) | null
   children: ReactNode
 }
 
@@ -99,6 +103,9 @@ class LimiteDeCarga extends Component<PropsDelLimite, { fallo: boolean }> {
     if (this.props.aviso === 'pantalla') {
       return <div className="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-md">{aviso}</div>
     }
+    if (this.props.ubicar) {
+      return this.props.ubicar(aviso)
+    }
     return this.props.respaldo === null ? (
       aviso
     ) : (
@@ -114,7 +121,7 @@ const SIN_SUSCRIPCION = () => () => {}
 
 export function diferido<P extends object>(
   cargar: Cargador<P>,
-  { esqueleto = null, aviso = 'pantalla', respaldo, enFrio }: Opciones<P> = {},
+  { esqueleto = null, aviso = 'pantalla', respaldo, enFrio, conElAviso }: Opciones<P> = {},
 ): ComponentType<P> {
   let resuelto: ComponentType<P> | undefined
 
@@ -150,6 +157,11 @@ export function diferido<P extends object>(
         key={intento}
         aviso={aviso}
         respaldo={aviso === 'aqui' && debajo ? debajo(props) : null}
+        ubicar={
+          aviso === 'aqui' && conElAviso
+            ? (avisoSinConexion) => conElAviso(props, avisoSinConexion)
+            : null
+        }
         alReintentar={() => {
           setIntento((n) => n + 1)
         }}

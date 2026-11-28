@@ -156,6 +156,26 @@ describe('diferido: en frío', () => {
     expect(screen.getByRole('alert').textContent).toContain(MENSAJE_SIN_CONEXION)
     expect(screen.getByText('Lista de Ana')).toBeTruthy()
   })
+
+  it('con `conElAviso`, el aviso va donde lo pone, adentro de lo que dibuja', async () => {
+    const cargar = vi.fn<() => Promise<typeof Hola>>().mockRejectedValue(new Error('sin red'))
+    const Perezoso = diferido(cargar, {
+      aviso: 'aqui',
+      enFrio: ({ nombre }) => <p>Lista de {nombre}</p>,
+      conElAviso: ({ nombre }, aviso) => (
+        <section aria-label={`Marco de ${nombre}`}>
+          <div data-testid="hueco">{aviso}</div>
+        </section>
+      ),
+    })
+    render(<Perezoso nombre="Ana" />)
+    await avanzar(ESPERA_DEL_REINTENTO_MS)
+    expect(screen.getByTestId('hueco').textContent).toContain(MENSAJE_SIN_CONEXION)
+    expect(screen.getByRole('region', { name: 'Marco de Ana' })).toBeTruthy()
+    expect(screen.queryByText('Lista de Ana')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+    expect(cargar).toHaveBeenCalledTimes(3)
+  })
 })
 
 describe('diferido: estado y caché', () => {
