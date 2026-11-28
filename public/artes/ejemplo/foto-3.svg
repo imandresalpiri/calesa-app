@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1067" viewBox="0 0 1600 1067">
+  <defs>
+    <linearGradient id="atardecer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c3e66"/>
+      <stop offset="0.45" stop-color="#e07a5f"/>
+      <stop offset="0.64" stop-color="#f2cc8f"/>
+      <stop offset="0.64" stop-color="#4f5d4b"/>
+      <stop offset="1" stop-color="#2f3a2d"/>
+    </linearGradient>
+    <linearGradient id="carroceria" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d4a5c"/>
+      <stop offset="0.5" stop-color="#26303d"/>
+      <stop offset="1" stop-color="#141a22"/>
+    </linearGradient>
+    <linearGradient id="vidrio" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2cc8f"/>
+      <stop offset="1" stop-color="#5b4a63"/>
+    </linearGradient>
+    <radialGradient id="llanta" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#b8bec5"/>
+      <stop offset="0.44" stop-color="#6c737b"/>
+      <stop offset="0.5" stop-color="#121315"/>
+      <stop offset="1" stop-color="#23262a"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1067" fill="url(#atardecer)"/>
+  <circle cx="1240" cy="560" r="90" fill="#f9e0a8" opacity="0.7"/>
+  <ellipse cx="800" cy="846" rx="650" ry="42" fill="#000" opacity="0.3"/>
+  <!-- SUV -->
+  <path d="M180 770 L180 590 Q180 556 214 550 L380 530 L520 400 Q546 376 590 376 L1160 376 Q1206 376 1230 410 L1330 540 L1400 552 Q1434 558 1436 596 L1440 770 Z" fill="url(#carroceria)" stroke="#0b0f14" stroke-width="4"/>
+  <path d="M420 530 L540 420 Q556 404 584 404 L760 404 L760 530 Z" fill="url(#vidrio)"/>
+  <path d="M784 404 L1000 404 L1000 530 L784 530 Z" fill="url(#vidrio)"/>
+  <path d="M1024 404 L1150 404 Q1180 404 1196 428 L1270 530 L1024 530 Z" fill="url(#vidrio)"/>
+  <rect x="520" y="352" width="620" height="14" rx="7" fill="#58667a"/>
+  <rect x="172" y="640" width="58" height="34" rx="8" fill="#fef6d8"/>
+  <rect x="1394" y="620" width="46" height="44" rx="8" fill="#e84a3c"/>
+  <path d="M180 770 L1440 770 L1440 800 Q1440 812 1426 812 L194 812 Q180 812 180 800 Z" fill="#0f1216"/>
+  <circle cx="430" cy="800" r="110" fill="url(#llanta)"/>
+  <circle cx="1200" cy="800" r="110" fill="url(#llanta)"/>
+  <circle cx="430" cy="800" r="24" fill="#d5d9de"/>
+  <circle cx="1200" cy="800" r="24" fill="#d5d9de"/>
+</svg>

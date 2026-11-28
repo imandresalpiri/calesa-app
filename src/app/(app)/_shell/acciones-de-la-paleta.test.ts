@@ -100,7 +100,7 @@ describe('accionesDeLaPaleta con el Modo Live', () => {
     const ir = accionesDeLaPaleta(todo, liveEncendido())
       .filter((a) => a.grupo === 'ir')
       .map((a) => a.clave)
-    expect(ir).toEqual(['ir-vehiculos', 'ir-cotizaciones'])
+    expect(ir).toEqual(['ir-vehiculos', 'ir-cotizaciones', 'ir-artes'])
   })
 })
 

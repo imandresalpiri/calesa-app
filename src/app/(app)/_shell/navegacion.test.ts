@@ -29,9 +29,9 @@ describe('NAVEGACION', () => {
     expect(new Set(NAVEGACION.map((entrada) => entrada.ruta)).size).toBe(NAVEGACION.length)
   })
 
-  it('la barra lateral no pasa de 8 entradas (7 más Repuestos)', () => {
+  it('la barra lateral no pasa de 9 entradas (8 más Repuestos)', () => {
     expect(NAVEGACION.filter((entrada) => entrada.zona === 'principal').length).toBeLessThanOrEqual(
-      8,
+      9,
     )
   })
 })
@@ -78,8 +78,8 @@ describe('entradasVisibles con el Modo Live', () => {
   const claves = (live: EstadoDelLive, zona: 'principal' | 'usuario') =>
     entradasVisibles(todo, zona, live).map((entrada) => entrada.clave)
 
-  it('por defecto, sólo Vehículos y Cotizaciones; el menú del usuario, vacío', () => {
-    expect(claves(liveEncendido(), 'principal')).toEqual(['vehiculos', 'cotizaciones'])
+  it('por defecto, sólo Vehículos, Cotizaciones y Artes; el menú del usuario, vacío', () => {
+    expect(claves(liveEncendido(), 'principal')).toEqual(['vehiculos', 'cotizaciones', 'artes'])
     expect(claves(liveEncendido(), 'usuario')).toEqual([])
   })
 

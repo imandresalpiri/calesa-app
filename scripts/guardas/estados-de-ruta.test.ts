@@ -2,10 +2,13 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// Toda página de `(app)` tiene su propio esqueleto mientras carga: el `loading.tsx` de su carpeta, que repite la forma de lo que la
-// página dibuja después. Sin él, la navegación deja la pantalla anterior congelada o en blanco (docs/UX.md › «Cargando»), y uno
+// Toda página de `(app)` y de `(editor)` tiene su propio esqueleto mientras carga: el `loading.tsx` de su carpeta, que repite la forma de
+// lo que la página dibuja después. Sin él, la navegación deja la pantalla anterior congelada o en blanco (docs/UX.md › «Cargando»), y uno
 // heredado dibuja lo de otra pantalla. Auditoría AA, 9.12-4: desde aquí no vale el heredado.
-const RAIZ = join(process.cwd(), 'src', 'app', '(app)')
+const GRUPOS = [
+  { grupo: '(app)', minimo: 20 },
+  { grupo: '(editor)', minimo: 1 },
+] as const
 
 function archivos(carpeta: string, nombre: string): string[] {
   return readdirSync(carpeta, { withFileTypes: true }).flatMap((entrada) => {
@@ -18,15 +21,16 @@ function archivos(carpeta: string, nombre: string): string[] {
 const leer = (ruta: string) => readFileSync(join(process.cwd(), ruta), 'utf8')
 const relativa = (ruta: string) => relative(process.cwd(), ruta)
 
-describe('los esqueletos de ruta', () => {
-  const paginas = archivos(RAIZ, 'page.tsx')
-  const esqueletos = archivos(RAIZ, 'loading.tsx')
+describe.each(GRUPOS)('los esqueletos de ruta de $grupo', ({ grupo, minimo }) => {
+  const raiz = join(process.cwd(), 'src', 'app', grupo)
+  const paginas = archivos(raiz, 'page.tsx')
+  const esqueletos = archivos(raiz, 'loading.tsx')
 
-  it('recorre las páginas de (app)', () => {
-    expect(paginas.length).toBeGreaterThan(20)
+  it('recorre sus páginas', () => {
+    expect(paginas.length).toBeGreaterThanOrEqual(minimo)
   })
 
-  it('toda página de (app) tiene su propio loading.tsx', () => {
+  it('toda página tiene su propio loading.tsx', () => {
     const sinEsqueleto = paginas
       .filter((pagina) => !existsSync(join(dirname(pagina), 'loading.tsx')))
       .map(relativa)

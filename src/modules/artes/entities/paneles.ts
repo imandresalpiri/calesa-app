@@ -5,6 +5,7 @@ export const PANEL_HACERLA_PRIVADA = 'privada'
 export const PANEL_SUBIR_IMAGEN = 'subir'
 export const PANEL_RENOMBRAR_IMAGEN = 'renombrar'
 export const PANEL_QUITAR_IMAGEN = 'quitar'
+export const PANEL_OTRO_FORMATO = 'otro-formato'
 
 export const CLAVE_DE_LA_PLANTILLA = 'plantilla'
 export const CLAVE_DE_LA_IMAGEN = 'imagen'

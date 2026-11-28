@@ -41,3 +41,19 @@ export async function subirImagen(preparada: ImagenPreparada): Promise<Resultado
   }
   return ok({ tipo, ancho, alto, ruta: original.data.ruta, miniaturaRuta: miniatura.data.ruta })
 }
+
+// La miniatura de una plantilla de arte que exportó el editor (480 px de lado mayor), a `miniaturas/<sha256>.<ext>`: WebP, o lo que haya dado
+// el navegador si no sabe codificarlo (Safari: PNG o JPEG).
+export async function subirMiniatura(miniatura: Blob): Promise<Resultado<{ ruta: string }>> {
+  const extension = extensionDe(miniatura.type)
+  if (extension === null) {
+    return fallo('inesperado', NO_SE_SUBIO)
+  }
+  const subida = await subirPorHash({
+    bucket: 'artes',
+    carpeta: 'miniaturas',
+    contenido: miniatura,
+    extension,
+  })
+  return subida.ok ? ok({ ruta: subida.data.ruta }) : subida
+}

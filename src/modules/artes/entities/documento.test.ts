@@ -3,6 +3,7 @@ import {
   documentoVacio,
   imagenesDelDocumento,
   leerDocumento,
+  MAXIMO_DE_CAPAS_POR_PAGINA,
   MAXIMO_DE_IMAGENES_POR_PLANTILLA,
   MENSAJE_DEMASIADAS_IMAGENES,
   MENSAJE_DOCUMENTO_INVALIDO,
@@ -17,6 +18,9 @@ import {
 } from './documento'
 
 const BASE = {
+  nombre: null,
+  grupoId: null,
+  sombra: null,
   x: 0,
   y: 0,
   ancho: 100,
@@ -28,7 +32,16 @@ const BASE = {
 }
 
 function imagen(id: string, imagenId: string): CapaDeArte {
-  return { ...BASE, id, tipo: 'imagen', imagenId, ajuste: 'cubrir' }
+  return {
+    ...BASE,
+    id,
+    tipo: 'imagen',
+    imagenId,
+    ajuste: 'cubrir',
+    radio: 0,
+    borde: null,
+    grosor: 0,
+  }
 }
 
 function texto(id: string, contenido: string): CapaDeArte {
@@ -39,8 +52,12 @@ function texto(id: string, contenido: string): CapaDeArte {
     texto: contenido,
     fuente: 'Inter',
     tamano: 48,
+    peso: 400,
+    interlineado: 1.2,
     color: '#111111',
     alineacion: 'centro',
+    borde: null,
+    grosor: 0,
   }
 }
 
@@ -63,7 +80,9 @@ describe('documento de una plantilla de arte', () => {
     expect(vacio.paginas).toHaveLength(1)
     expect(leerDocumento(vacio)).toEqual({ ok: true, data: vacio })
   })
+})
 
+describe('los tipos de capa', () => {
   it('lee cada tipo de capa', () => {
     const documento = con([
       texto('t1', 'Hola'),
@@ -73,15 +92,65 @@ describe('documento de una plantilla de arte', () => {
         id: 'f1',
         tipo: 'forma',
         forma: 'elipse',
+        lados: null,
         relleno: '#ff0000',
         borde: null,
         grosor: 0,
+        radio: 0,
       },
-      { ...BASE, id: 'l1', tipo: 'logo', varianteId: null },
+      {
+        ...BASE,
+        id: 'p1',
+        tipo: 'forma',
+        forma: 'poligono',
+        lados: 6,
+        relleno: '#00ff00',
+        borde: '#000000',
+        grosor: 2,
+        radio: 0,
+      },
+      {
+        ...BASE,
+        id: 'li1',
+        tipo: 'linea',
+        puntos: [
+          { x: 0, y: 0 },
+          { x: 100, y: 50 },
+        ],
+        borde: '#000000',
+        grosor: 4,
+      },
+      {
+        ...BASE,
+        id: 'tr1',
+        tipo: 'trazo',
+        nodos: [
+          { x: 0, y: 0, entrada: null, salida: { x: 20, y: -10 } },
+          { x: 100, y: 0, entrada: { x: 80, y: 30 }, salida: null },
+        ],
+        cerrado: false,
+        relleno: null,
+        borde: '#123456',
+        grosor: 3,
+      },
+      { ...BASE, id: 'l1', tipo: 'logo', varianteId: null, radio: 0, borde: null, grosor: 0 },
+      {
+        ...BASE,
+        id: 'fo1',
+        tipo: 'foto',
+        indice: 2,
+        ajuste: 'cubrir',
+        radio: 12,
+        borde: null,
+        grosor: 0,
+      },
+      { ...BASE, id: 'ta1', tipo: 'tarjeta', radio: 0, borde: '#cccccc', grosor: 1 },
     ])
     expect(leerDocumento(documento)).toEqual({ ok: true, data: documento })
   })
+})
 
+describe('lo que no se lee', () => {
   it('rechaza una capa inválida', () => {
     const malo = con([{ ...texto('t1', 'x'), color: 'rojo' } as CapaDeArte])
     expect(leerDocumento(malo)).toEqual({
@@ -89,8 +158,10 @@ describe('documento de una plantilla de arte', () => {
       error: { codigo: 'validacion', mensaje: MENSAJE_DOCUMENTO_INVALIDO },
     })
     const sinTipo = {
-      version: 1,
-      paginas: [{ id: 'p', fondo: { tipo: 'color', color: '#fff000' }, capas: [{ id: 'c' }] }],
+      version: 2,
+      paginas: [
+        { id: 'p', fondo: { tipo: 'color', color: '#fff000' }, capas: [{ id: 'c' }], grupos: [] },
+      ],
     }
     expect(leerDocumento(sinTipo).ok).toBe(false)
   })
@@ -116,15 +187,23 @@ describe('documento de una plantilla de arte', () => {
   })
 
   it('pide entre 1 y 20 páginas', () => {
-    expect(leerDocumento({ version: 1, paginas: [] }).ok).toBe(false)
+    expect(leerDocumento({ version: 2, paginas: [] }).ok).toBe(false)
     const [pagina] = documentoVacio().paginas
     const veinte = Array.from({ length: 20 }, (_, i) => ({ ...pagina, id: `p${String(i)}` }))
-    expect(leerDocumento({ version: 1, paginas: veinte }).ok).toBe(true)
-    expect(leerDocumento({ version: 1, paginas: [...veinte, pagina] }).ok).toBe(false)
+    expect(leerDocumento({ version: 2, paginas: veinte }).ok).toBe(true)
+    expect(leerDocumento({ version: 2, paginas: [...veinte, pagina] }).ok).toBe(false)
   })
 })
 
 describe('topes del documento', () => {
+  it('una página lleva hasta 300 capas', () => {
+    const capas = Array.from({ length: MAXIMO_DE_CAPAS_POR_PAGINA }, (_, i) =>
+      texto(`t${String(i)}`, 'x'),
+    )
+    expect(leerDocumento(con(capas)).ok).toBe(true)
+    expect(leerDocumento(con([...capas, texto('otra', 'x')])).ok).toBe(false)
+  })
+
   it('el tope de 512 KiB, justo por debajo y por encima', () => {
     const base = con([texto('t1', '')])
     const relleno = TOPE_DEL_DOCUMENTO_EN_BYTES - pesoDelDocumento(base)

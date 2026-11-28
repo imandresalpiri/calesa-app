@@ -66,7 +66,7 @@ locale)`, el único lector de un número tipeado. `lib/redondeo.ts`: `redondear(
   `pnpm email:probar <destino>`). Ningún archivo se llama `resend.ts`: el lint prohíbe importar algo llamado `resend`.
 - `config/esquemas.ts`: el entorno en Zod (`entornoPublico()`, `entornoDelServidor()`, `pnpm env:check`; lectores en `scripts/lib/entornos/`).
   `config/app.ts`: nombre y colores.
-- `ui/diferido.tsx`: `diferido()` (con `aviso: 'aqui'`, `respaldo(props)` se dibuja bajo «Sin conexión» si el código no llega). `ui/modal.tsx`, `ui/drawer.tsx`, `ui/confirmar.tsx`: diálogos por URL; `ui/modal-de-formulario.tsx`,
+- `ui/diferido.tsx`: `diferido()` (con `aviso: 'aqui'`, `respaldo(props)` se dibuja bajo «Sin conexión» si el código no llega; `conElAviso(props, aviso)` lo pone adentro de lo que dibuja). `ui/modal.tsx`, `ui/drawer.tsx`, `ui/confirmar.tsx`: diálogos por URL; `ui/modal-de-formulario.tsx`,
   `ui/use-envio-de-modal.ts` (envío sin versión), `ui/use-envio-con-version.ts` (`useEnvioConVersion()`: con versión y conflicto; «Recargar»
   hace `router.refresh()` o, con `recargar`, relee la lista que se lee desde el navegador). `<Drawer desplazamiento="propio">`: el cuerpo no se desplaza y lo de adentro llena su alto (el resumen de una cotización: cabecera fija y pestañas). `<Drawer alto="ajustable">` (sólo `lado="bottom"`): el alto lo cambia `<AsaDelPanel>` (arrastrar o ↑ ↓ Inicio Fin; `lib/alto-del-panel.ts`, puro) y se recuerda mientras el panel está montado; en el celular, a pantalla completa. `<Drawer alCostado>`: no modal y sin fondo (lo de atrás se sigue usando; tocar afuera no
   cierra, Esc y la ✕ sí), para el panel que acompaña a una pantalla ancha. `ui/bloque.tsx`: `<Bloque>` es siempre una `<section>` a la vista

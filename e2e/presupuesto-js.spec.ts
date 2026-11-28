@@ -1,5 +1,6 @@
 import { entrar, limpiarAlta, prepararAlta, type PersonasDelAlta } from './soporte/alta'
 import { idDePersona, sembrarCotizaciones } from './soporte/cotizaciones-sembradas'
+import { borrarPlantillasDeArte, sembrarPlantillaDeArte } from './soporte/artes-editor'
 import { enKB, medirJsEnFrio } from './soporte/js-en-frio'
 import {
   PRESUPUESTO_DEL_DOCUMENTO_DE_PERFIL_EN_KB,
@@ -30,6 +31,14 @@ let cotizacionesComparadas: string[] = []
 let leadMedido = ''
 // La página de un embarque de la subasta (`/logistica/embarques/[id]`), vacío: lo crea el spec y lo quita.
 const BOOKING_MEDIDO = 'E2E-JS-EMBARQUE'
+// El editor de artes (`/artes/[id]`), con una plantilla Vertical vacía de la dueña de la prueba: lo crea el spec y lo quita.
+const ARTE_MEDIDO = 'E2E JS del editor de artes'
+let arteMedido = ''
+// Las páginas de un registro que el spec crea: la ficha del lead y el editor de artes.
+const SEMBRADOS: Readonly<Record<string, () => string>> = {
+  '/leads/[id]': () => `/leads/${leadMedido}`,
+  '/artes/[id]': () => `/artes/${arteMedido}`,
+}
 const subasta = (): string => sql("select id from public.origenes where clave = 'subasta_usa'")
 const destinoDe = (ruta: string): string => {
   if (ruta === '/cotizaciones/nuevo') {
@@ -55,8 +64,9 @@ const destinoDe = (ruta: string): string => {
     // La unidad del vehículo medido (de la subasta de la semilla: la dueña la ve).
     return `/logistica/vehiculo/${sql(`select id from public.vehiculos where titulo = ${literal(TITULO_DEL_VEHICULO_MEDIDO)}`)}`
   }
-  if (ruta === '/leads/[id]') {
-    return `/leads/${leadMedido}`
+  const sembrado = SEMBRADOS[ruta]
+  if (sembrado) {
+    return sembrado()
   }
   // Embarques y aduana, en la subasta de la semilla (con sus reglas encendidas).
   if (ruta === '/logistica/embarques' || ruta === '/logistica/aduana') {
@@ -117,6 +127,7 @@ test.beforeAll(async ({}, info) => {
   sembrarLaCotizacionMedida(idDePersona(personas.duena))
   quitarElEmbarqueMedido()
   sembrarElEmbarqueMedido()
+  arteMedido = sembrarPlantillaDeArte({ nombre: ARTE_MEDIDO, autorId: idDePersona(personas.duena) })
   leadMedido = await crearLead({
     nombre: `JS de la ficha ${info.project.name}`,
     telefono: info.project.name === 'escritorio' ? '59170990011' : '59170990012',
@@ -127,6 +138,7 @@ test.beforeAll(async ({}, info) => {
 test.afterAll(async () => {
   quitarLaCotizacionMedida()
   quitarElEmbarqueMedido()
+  borrarPlantillasDeArte(ARTE_MEDIDO)
   if (leadMedido !== '') {
     sql(`delete from public.leads where id = ${literal(leadMedido)}::uuid`)
   }

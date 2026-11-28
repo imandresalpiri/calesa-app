@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  lineasDeLaPlantilla,
-  MOTIVO_DEL_OTRO_FORMATO,
-  type LineaDeLaPlantilla,
-} from './acciones-de-la-plantilla'
+import { lineasDeLaPlantilla, type LineaDeLaPlantilla } from './acciones-de-la-plantilla'
 import { MOTIVO_SIN_GESTIONAR } from './permisos-de-artes'
 
 const YO = 'yo'
@@ -31,22 +27,25 @@ describe('lineasDeLaPlantilla', () => {
     expect(acciones(lineas)).toEqual([
       ['abrir', 'Abrir', false],
       ['duplicar', 'Duplicar', false],
-      ['otro-formato', 'Duplicar en otro formato', true],
+      ['otro-formato', 'Duplicar en otro formato', false],
       ['usar-por-defecto', 'Usar por defecto para imagen en Corea', false],
       ['hacerla-de-la-empresa', 'Hacerla de la empresa', true],
       ['eliminar', 'Eliminar', false],
     ])
-    expect(textosDeNotas(lineas)).toEqual([MOTIVO_DEL_OTRO_FORMATO, MOTIVO_SIN_GESTIONAR])
+    expect(textosDeNotas(lineas)).toEqual([MOTIVO_SIN_GESTIONAR])
     expect(lineas[0]).toMatchObject({ principal: true })
     expect(lineas.find((l) => l.clave === 'eliminar')).toMatchObject({ destructiva: true })
   })
 
-  it('«Duplicar en otro formato» va siempre apagada', () => {
+  it('«Duplicar en otro formato» va encendida para quien la ve, propia o de la empresa', () => {
     for (const gestiona of [true, false]) {
-      const linea = lineasDeLaPlantilla({ yo: YO, gestiona }, MIA).find(
-        (l) => l.clave === 'otro-formato',
-      )
-      expect(linea).toMatchObject({ deshabilitada: true })
+      for (const autorId of [YO, 'otra']) {
+        const linea = lineasDeLaPlantilla(
+          { yo: YO, gestiona },
+          { ...MIA, autorId, visibilidad: 'empresa' },
+        ).find((l) => l.clave === 'otro-formato')
+        expect(linea).toMatchObject({ deshabilitada: false })
+      }
     }
   })
 
@@ -58,12 +57,12 @@ describe('lineasDeLaPlantilla', () => {
     expect(acciones(lineas)).toEqual([
       ['abrir', 'Abrir', false],
       ['duplicar', 'Duplicar', false],
-      ['otro-formato', 'Duplicar en otro formato', true],
+      ['otro-formato', 'Duplicar en otro formato', false],
       ['usar-por-defecto', 'Usar por defecto para imagen en Corea', false],
       ['hacerla-privada', 'Hacerla privada', true],
       ['eliminar', 'Eliminar', true],
     ])
-    expect(textosDeNotas(lineas)).toEqual([MOTIVO_DEL_OTRO_FORMATO, MOTIVO_SIN_GESTIONAR])
+    expect(textosDeNotas(lineas)).toEqual([MOTIVO_SIN_GESTIONAR])
   })
 
   it('con gestionar, todo lo de gestión habilitado y sin nota', () => {
@@ -75,7 +74,7 @@ describe('lineasDeLaPlantilla', () => {
       deshabilitada: false,
     })
     expect(lineas.find((l) => l.clave === 'eliminar')).toMatchObject({ deshabilitada: false })
-    expect(textosDeNotas(lineas)).toEqual([MOTIVO_DEL_OTRO_FORMATO])
+    expect(textosDeNotas(lineas)).toEqual([])
   })
 
   it('la por defecto ofrece quitarla; un PDF dice PDF', () => {

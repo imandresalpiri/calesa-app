@@ -1,6 +1,8 @@
 // Lo que se lee de las plantillas de arte y de la biblioteca de imágenes, ya con nombres de la app. Las versiones (`actualizadoEn`) viajan como
 // el texto que dio la base: pasarlas por `Date` pierde los microsegundos y la RPC respondería `PT409` en vano. Nunca el documento: la lista no
 // lo lee. Puro.
+import type { Resultado } from '@/shared/lib/errores'
+import type { DocumentoDeArte } from './documento'
 import type { ClaveDeFormato, TipoDeArte } from './formatos'
 
 export type VisibilidadDeArte = 'privada' | 'empresa'
@@ -20,6 +22,26 @@ export type PlantillaDeArte = {
   // La URL firmada de la miniatura (600 s), o nula si todavía no tiene.
   miniaturaUrl: string | null
   actualizadoEn: string
+}
+
+// Lo que abre el editor de artes: la plantilla con su documento ya leído (`leerDocumento()`: migrado a la versión actual, o el motivo por el
+// que no se abre, inválido o más nuevo que la app).
+export type PlantillaParaEditar = Omit<PlantillaDeArte, 'autorNombre' | 'miniaturaUrl'> & {
+  documento: Resultado<DocumentoDeArte>
+}
+
+// Lo que el editor de artes recibe de la página: la plantilla con su documento ya válido.
+export type PlantillaDelEditor = Omit<PlantillaParaEditar, 'documento'> & {
+  documento: DocumentoDeArte
+}
+
+// Una variante del logo de la empresa con archivo, como la ofrece el editor (la página la arma con `conArchivo(leerLogos())`): las fijas no
+// tienen medidas.
+export type LogoDelEditor = {
+  id: string
+  nombre: string
+  ancho: number | null
+  alto: number | null
 }
 
 export type ImagenDeArte = {

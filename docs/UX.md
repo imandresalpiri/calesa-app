@@ -260,8 +260,8 @@ Estados propios:
 
 ## Pantallas
 
-Navegación de primer nivel (hasta 7, filtrada por permisos, en `src/app/(app)/_shell/navegacion.ts`): Inicio · Leads · Vehículos ·
-Cotizaciones · Logística · Agenda · Chat; Repuestos sólo con permiso. Configuración, Actividad y Datos van en el menú del usuario y en
+Navegación de primer nivel (hasta 8, filtrada por permisos, en `src/app/(app)/_shell/navegacion.ts`): Inicio · Leads · Vehículos ·
+Cotizaciones · Artes · Logística · Agenda · Chat; Repuestos sólo con permiso. Configuración, Actividad y Datos van en el menú del usuario y en
 `Ctrl/Cmd+K`, con «Mi perfil», «Instalar la app» (sólo si el navegador puede instalarla y aún no corre instalada; en iOS explica «Compartir ›
 Agregar a inicio»), «Ayuda», «Ver como» (quien gestiona roles; no con el Modo Live), tema, densidad y «Cerrar sesión». Con el Modo Live, la
 navegación, el menú y la paleta llevan sólo lo que sus ajustes muestran.
@@ -485,11 +485,11 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   con aviso de tope; «Anular» el vigente pide motivo en `?panel=anular-comprobante` (sin id: hay a lo sumo uno).
   En el pie de «Vista previa», **«Retocar»** (quien la puede guardar): el mismo modal pasa al modo «Retocar la tarjeta» (estados en «Cotización: retocar la
   tarjeta»). Estados en Flujo 2.
-- **Artes** — `/artes` (`cotizaciones.ver` en algún origen; sin entrada en el menú): las plantillas de arte y la biblioteca de imágenes, en dos
+- **Artes** — `/artes` (`cotizaciones.ver` en algún origen; en el menú, después de Cotizaciones): las plantillas de arte y la biblioteca de imágenes, en dos
   pestañas a la vista (`?pestana=imagenes`; sin el parámetro, «Plantillas»). Cambiar de pestaña borra los filtros y los paneles. **Plantillas:** una
   rejilla de tarjetas del mismo alto (miniatura de caja fija con la proporción del formato, nombre, formato y origen, «De la empresa» o «Privada», «Por
   defecto para imagen|PDF» si lo es, y «Tuya» o «De <autor>»); tocar la tarjeta abre `/artes/<id>`, y el «⋯» (sobre la miniatura) lleva «Abrir»,
-  «Duplicar», «Duplicar en otro formato» (apagada: «Llega con el editor de artes.»), «Usar por defecto para imagen|PDF en <origen>» o «Quitar como por
+  «Duplicar», «Duplicar en otro formato» (`?panel=otro-formato&plantilla=<id>`), «Usar por defecto para imagen|PDF en <origen>» o «Quitar como por
   defecto», «Hacerla de la empresa» o «Hacerla privada» y «Eliminar» (lo que no se puede, apagado con su nota). Filtros como chips en la URL: Origen
   (`?origen=`), Formato (`?formato=`) y «De quién» (`?de=mias|empresa`), con «Limpiar filtros»; «Nueva plantilla» (`?panel=nueva`) pide nombre, origen
   (sólo los activos), formato y, si es «Personalizado», ancho y alto (los dos campos siempre a la vista; apagados con la medida del formato). Nace privada.
@@ -497,7 +497,20 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   el archivo, que se prepara al elegirlo; el nombre, que sale del archivo; y «Dónde», Personal o De la empresa); el «⋯» lleva «Renombrar»
   (`?panel=renombrar&imagen=<id>`) y «Quitar» (`?panel=quitar&imagen=<id>`, que antes cuenta cuántas plantillas la usan). Las dos, de a
   `TAMANO_DE_VER_MAS` con «Ver más», hasta `TOPE_DE_LO_CARGADO`. Estados en «Artes (estados propios)».
-- **Plantilla de arte** — `/artes/[id]` (quien la ve): su nombre y «El editor de artes llega pronto.» con «Volver a Artes». No redirige.
+- **Editor de artes** — `/artes/[id]` (quien ve la plantilla de arte), a pantalla completa, fuera del marco (sin menú lateral ni barra), sólo desde
+  1024 px. Arriba, una barra de 3 rem: «Volver a Artes» (a la lista como se dejó), el nombre (editable: un clic, Enter o salir aplica, Esc vuelve),
+  el formato, el estado del guardado en un renglón de ancho fijo y «Guardar» (apagado sin cambios), y el «⋯» con «Exportar PNG», «Duplicar en otro
+  formato» (`?panel=otro-formato`, de lo que se ve, también sin guardar) y «Atajos de teclado». Abajo, en columnas fijas: el riel de herramientas
+  (mover V, mano H, texto T, rectángulo R, elipse E, línea L, polígono, pluma P e imagen, que abre la biblioteca); las pestañas «Agregar» (Texto con
+  los datos como `{marca}`, Formas, Logo con sus variantes, «De la cotización» con la tarjeta y las fotos del vehículo de ejemplo, y la
+  biblioteca de imágenes) y «Capas» (arriba la de adelante; ordenar arrastrando o con el teclado, el ojo, el candado, renombrar con doble clic o
+  F2, agrupar y desagrupar, Shift y Ctrl para elegir varias); el lienzo (rueda desplaza, Ctrl+rueda acerca al puntero, espacio y arrastrar es la
+  mano, un recuadro elige varias, guías al centro y a los bordes del documento y de otras capas; la píldora del zoom con «Ajustar» y «100 %»); y el
+  inspector «Diseño» (alinear y distribuir, caja, texto y apariencia de lo elegido; sin nada elegido, el documento: formato y fondo). Con el texto,
+  un clic lo empieza ahí (como el cursor) y arrastrar le da el ancho. La pluma suma nodos con un clic y curvas arrastrando, cierra en el primero y
+  termina con Enter o Esc. Atajos: los de las herramientas, Ctrl+Z y Ctrl+Shift+Z
+  (o Ctrl+Y), Ctrl+C, Ctrl+V, Ctrl+D, Supr, Ctrl+A, Ctrl+G y Ctrl+Shift+G, flechas (con Shift de a 10), Ctrl+] y Ctrl+[, Ctrl+0 ajustar, Ctrl+1 al
+  100 %, Ctrl+S guardar y Esc; su lista en «?». Ninguno mientras se escribe. Estados en «Artes (estados propios)». No redirige.
 - **Logística** — `/logistica` (`logistica.ver` en algún origen): siempre **en un origen**, elegido arriba como en Vehículos (sin «Todos»); toda página lleva la barra de Logística con
   los orígenes y las pestañas del elegido (ver «Logística: estados propios» › «La barra y el origen»). `/logistica` es la **Cadena** (la gráfica y «dónde está»); en la URL: `?origen=`
   (orígenes con la logística encendida; sin él, el último que usaste), `q` («dónde está»: nombre, VIN o lote; 3 letras o números), `en=todos` («Buscar en todos los orígenes») y `?panel=lote`
@@ -2239,6 +2252,25 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
   para ver otras.» (en Imágenes, «Quita las que ya no uses para ver las más viejas.»).
 - **Celular:** una columna, objetivos de 44 px, texto al 200 % sin cortar, pestañas y filtros con ajuste de línea. Nada salta: la miniatura tiene
   caja fija y las líneas de error, de preparación y de usos están reservadas.
+- **Editor de artes, cargando:** el marco en frío con las mismas medidas (la barra con «Volver a Artes», los paneles en esqueleto y el lienzo
+  gris); si no llega su código, «Sin conexión. No se pudo abrir esto.» con «Reintentar» encima del lienzo. **Más angosto que 1024 px:** «El editor de
+  artes se usa en una computadora.» con «Volver» (sin pedir su código). Oculta en el Modo Live: «Oculto en Modo Live» con «Salir del Modo Live».
+  **Un documento que no se abre:** «Esta plantilla de arte se guardó con una versión más nueva de la app. Recarga.» o «La plantilla de arte no es
+  válida.» con «Reintentar».
+- **Sólo lectura** (la de otra persona, o la de la empresa sin `artes.empresa.gestionar`): se eligen capas y se ve el inspector con los campos
+  apagados, sólo mover y mano, «Agregar» apagado con «Sólo puedes mirar esta plantilla de arte.» y sin borrador. En la barra, «Sólo lectura», el
+  motivo y «Duplicar para editar» (la copia, propia y privada, se abre en el editor).
+- **El guardado**, en su renglón: «Guardado», «Cambios sin guardar», «Guardando…», «Sin conexión: se guarda cuando vuelva.» (sale solo al volver) o
+  «No se pudo guardar.» con «Reintentar» (el motivo en el aviso: el peso, las imágenes personales en una de la empresa). **Conflicto** (`PT409`):
+  encima del lienzo, «Otra persona guardó esta plantilla.» con «Recargar»; lo propio queda en el borrador.
+- **El borrador:** sobre la misma versión se repone al abrir y avisa «Recuperamos los cambios que no guardaste.» con «Descartar»; sobre otra, encima
+  del lienzo, «Tienes cambios sin guardar de antes de que otra persona guardara.» con «Recuperarlos» y «Descartar». **Salir con cambios** (un
+  enlace o cerrar la pestaña) pregunta, encima del lienzo, «Descartar» o «Seguir editando».
+- **Topes y avisos del lienzo:** «Una página lleva hasta 300 elementos.» (agregar, pegar y duplicar se apagan); una imagen que no carga, el marco con
+  la diagonal y «No se pudo cargar la imagen.» en el inspector; exportar sin ella avisa «Se exportó sin 1 imagen que no cargó.» («… sin N imágenes
+  …»); en Carta o A4, «Exportar PNG» apagado con «El PDF se arma con las plantillas de PDF.»; un dato desconocido en un texto, «{x} no es un dato que
+  el arte pueda llenar.» en el inspector. **Duplicar en otro formato:** los errores de medida junto al campo y los de la base en el modal; al terminar,
+  el aviso con «Abrir». Nada salta: columnas de ancho fijo, la barra de alto fijo, el renglón del guardado reservado y los avisos encima del lienzo.
 
 ### Leads: listado (estados propios)
 

@@ -43,7 +43,8 @@ export const esquemaQuitarImagenDeArte = z.object({ id: z.guid(), actualizadoEnE
 export const esquemaUsosDeLaImagen = z.object({ id: z.guid() })
 
 // «Ver más» de la biblioteca: el cursor opaco que dio la página anterior.
-export const esquemaVerMasImagenes = z.object({ cursor: z.string().min(1).max(500) })
+// «Ver más» de la biblioteca: el cursor opaco de la página anterior, o nulo para la primera (la sección del editor la pide al montarse).
+export const esquemaVerMasImagenes = z.object({ cursor: z.string().min(1).max(500).nullable() })
 
 export type EntradaCrearImagenDeArte = z.input<typeof esquemaCrearImagenDeArte>
 export type EntradaRenombrarImagenDeArte = z.input<typeof esquemaRenombrarImagenDeArte>

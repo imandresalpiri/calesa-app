@@ -1,6 +1,5 @@
 // Las líneas del «⋯» de la tarjeta de una plantilla de arte, en su orden: abrir (la principal: tocar la tarjeta hace lo mismo), duplicar y
-// duplicar en otro formato (apagada hasta el editor de artes); usar o quitar como por defecto en su origen; hacerla de la empresa o privada, y
-// eliminar. Lo que no se puede va apagado y una nota dice por qué (una sola vez si el motivo se repite). Puro: el componente le pone a cada
+// duplicar en otro formato; usar o quitar como por defecto en su origen; hacerla de la empresa o privada, y eliminar. Lo que no se puede va apagado y una nota dice por qué (una sola vez si el motivo se repite). Puro: el componente le pone a cada
 // línea lo que hace.
 import { nombreDelTipo, tipoDelFormato, type ClaveDeFormato } from './formatos'
 import {
@@ -10,8 +9,6 @@ import {
   type QuienMira,
 } from './permisos-de-artes'
 import type { VisibilidadDeArte } from './tipos'
-
-export const MOTIVO_DEL_OTRO_FORMATO = 'Llega con el editor de artes.'
 
 export type ClaveDeAccionDeArte =
   | 'abrir'
@@ -63,13 +60,11 @@ export function lineasDeLaPlantilla(
   const tipo = nombreDelTipo(tipoDelFormato(plantilla.formato))
   const visibilidad = puedeCambiarLaVisibilidad(quien, plantilla)
   const eliminar = puedeEliminarLaPlantilla(quien, plantilla)
-  const otroFormato: Permiso = { ok: false, motivo: MOTIVO_DEL_OTRO_FORMATO }
   return [
     { tipo: 'accion', clave: 'abrir', etiqueta: 'Abrir', deshabilitada: false, principal: true },
     { tipo: 'separador', clave: 'separador-de-copias' },
     accion('duplicar', 'Duplicar'),
-    accion('otro-formato', 'Duplicar en otro formato', otroFormato),
-    ...notas([otroFormato], 'motivo-de-copias'),
+    accion('otro-formato', 'Duplicar en otro formato'),
     { tipo: 'separador', clave: 'separador-de-por-defecto' },
     plantilla.esPorDefecto
       ? accion('quitar-por-defecto', 'Quitar como por defecto')

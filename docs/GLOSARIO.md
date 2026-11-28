@@ -711,6 +711,23 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   imágenes de la empresa. Una imagen que alguna plantilla usa no se quita (`artes_plantillas_imagenes`).
 - **Plantilla por defecto** — `artes_por_defecto`, `artes_por_defecto_poner()`: la plantilla de arte que cada persona elige por origen y tipo
   (imagen o PDF) para compartir una cotización. Sin una, o si ya no la ve, se comparte lo de hoy: la **Imagen de la tarjeta** o el **PDF de la cotización**.
+- **Editor de artes** — `/artes/<id>`, `PantallaDelEditor`, `features/editor/`: la pantalla completa (sin el marco de la app, sólo escritorio desde
+  1024 px) donde se dibuja una plantilla de arte: herramientas a la izquierda con «Agregar» y «Capas», el lienzo al centro con zoom y desplazamiento
+  libres, y el inspector «Diseño» a la derecha. Quien no puede editarla la abre en sólo lectura con «Duplicar para editar».
+- **Capa** — `CapaDeArte`, `paginas[*].capas[*]` del documento de una plantilla de arte: cada elemento del lienzo (texto, imagen de la biblioteca,
+  forma, línea, trazo, logo, foto del vehículo o tarjeta de la cotización), con su caja en unidades del formato, su rotación alrededor del centro, y
+  si está oculta o bloqueada. El orden del arreglo es el de dibujo: la última va adelante. No es una **Capa** de un mapa ni de la hoja.
+- **Grupo de capas** — `GrupoDeCapas`, `paginas[*].grupos` y `grupoId` de cada capa: capas que se eligen, mueven, ocultan y bloquean juntas. De un
+  solo nivel y plano (sus miembros van seguidos en el arreglo de capas): «Agrupar» (Ctrl+G) y «Desagrupar» (Ctrl+Mayús+G).
+- **Guía inteligente** — `ajustar()`, `entities/editor/guias.ts`: la línea que aparece al mover una capa cuando su borde o su centro coincide con el
+  borde o el centro del documento o de otra capa visible, y el ajuste que la deja justo ahí (con Alt no ajusta).
+- **Trazo** — `CapaDe<'trazo'>`, la herramienta «Pluma» (P): una figura libre de nodos con curvas Bézier (cada nodo con sus asas de entrada y salida),
+  abierta o cerrada. No es una **Línea**, que es un segmento de dos puntos.
+- **Datos de ejemplo** — `DATOS_DE_EJEMPLO`, `entities/editor/datos-de-ejemplo.ts`: el vehículo y la cotización inventados con que el editor de artes
+  llena las variables (`{vehiculo}`, `{marca}`…), las fotos del vehículo y la tarjeta de la cotización mientras se diseña. Sin montos.
+- **Duplicar en otro formato** — `reacomodarEnOtroFormato()`, `duplicarEnOtroFormato`, `?panel=otro-formato`: la copia de una plantilla de arte en
+  otro formato del mismo tipo (imagen o PDF; una plantilla no cambia de formato). Cada capa conserva su lugar relativo anclada a su centro; imágenes y
+  formas escalan por el menor de los dos factores y **el texto conserva su tamaño**.
 - **Revisión** — `cotizaciones_revisiones`: diff de cada edición.
 - **Reporte** — `cotizaciones_reportes` / `cotizacion_reportar()`, `cotizacion_reporte_retirar()`: marca de problema, uno por persona, con
   motivo; no cambia estado ni versión. «Reportada» = activa con reportes (el valor `reportada` del enum no se usa).

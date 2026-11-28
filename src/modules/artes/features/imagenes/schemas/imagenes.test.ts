@@ -66,8 +66,10 @@ describe('esquemaRenombrarImagenDeArte', () => {
 })
 
 describe('esquemaVerMasImagenes', () => {
-  it('pide un cursor', () => {
+  it('pide un cursor, o nulo para la primera página', () => {
     expect(esquemaVerMasImagenes.safeParse({ cursor: 'abc' }).success).toBe(true)
+    expect(esquemaVerMasImagenes.safeParse({ cursor: null }).success).toBe(true)
     expect(esquemaVerMasImagenes.safeParse({ cursor: '' }).success).toBe(false)
+    expect(esquemaVerMasImagenes.safeParse({}).success).toBe(false)
   })
 })

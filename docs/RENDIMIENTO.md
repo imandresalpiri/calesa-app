@@ -634,7 +634,13 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 - «Ver más» es una Server Action (`leerMasPlantillasDeArte`, `leerMasImagenesDeArte`) que lee una página en el servidor: supabase-js no viaja en frío.
 - Las miniaturas (480 px, nunca el original) se firman en una sola llamada por página (`createSignedUrls`), URL de 600 s; el documento de una
   plantilla no se lee en las listas. Los usos de una imagen, al abrir «Quitar», con tope (`artes_imagen_usos`: 101 dice «más de 100»).
-- JS en frío: `/artes` en «JS en frío».
+- El editor de artes (`/artes/<id>`): el documento llega hasta 300 capas y 100 grupos por página, 200 nodos por trazo y 512 KiB (lo mide el cliente
+  y lo repite la base); el historial guarda 100 pasos con estructura compartida (pocos MB en la práctica). El lienzo dibuja hasta 300 nodos de Konva
+  con `perfectDrawEnabled(false)`: lo oculto no se dibuja y lo bloqueado no escucha. La lista de «Capas» dibuja sus hasta 300 filas sin paginar (es
+  un documento, no una tabla que crece), en `memo` con callbacks estables. Las imágenes del lienzo son las de la biblioteca (≤ 1.600 px) por la ruta
+  del mismo origen, con caché privada (la de la biblioteca, inmutable); «Agregar» muestra sólo miniaturas de 480 px y la biblioteca se lee de a
+  `TAMANO_DE_VER_MAS`. La miniatura de la plantilla se exporta a 480 px de lado mayor.
+- JS en frío: `/artes` y `/artes/[id]` en «JS en frío».
 
 ## Tablero: métricas
 
@@ -654,7 +660,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 ## JS en frío (con gzip, lo que el documento nombra)
 
 - Topes (`PRESUPUESTO_DE_JS_EN_KB` de `e2e/soporte/presupuestos.ts`, lo medido más un 5 % a la decena; uno pasado por ≤ 5 % se sube con la regla del 5 %):
-  `/leads` 560, `/leads/[id]` 595 (590,2 medidos con el `enFrio` de `diferido()`, que viaja en el marco: regla del 5 %), `/perfil` 440, `/vehiculos` 530, `/vehiculos/[id]` 550 (543,3 medidos en 37 chunks con la cotización privada, los dos botones del marco, la cuenta regresiva de la subasta, el Modo Live configurable en el marco y la reagrupación de los chunks compartidos con el dinero de la unidad en pestañas y modales, sin import nuevo en la ficha: regla del 5 %), `/cotizaciones` 400 (con las tarjetas de la lista, la imagen de la tarjeta en frío y el hook de los menús de las filas que comparte con las fichas),
+  `/leads` 560, `/leads/[id]` 600 (595,2 medidos en 39 chunks con el `enFrio` de `diferido()` y la entrada de Artes en el menú, que viajan en el marco: regla del 5 %), `/perfil` 440, `/vehiculos` 530, `/vehiculos/[id]` 550 (543,3 medidos en 37 chunks con la cotización privada, los dos botones del marco, la cuenta regresiva de la subasta, el Modo Live configurable en el marco y la reagrupación de los chunks compartidos con el dinero de la unidad en pestañas y modales, sin import nuevo en la ficha: regla del 5 %), `/cotizaciones` 400 (con las tarjetas de la lista, la imagen de la tarjeta en frío y el hook de los menús de las filas que comparte con las fichas),
   `/cotizaciones/nuevo` 485 (480,4 medidos con el Modo Live configurable en el marco; 478,3 con la posición de cada pieza y el bloque «Avanzado»; con la hoja con el aspecto de V1, la tarjeta del total como pieza de una sección (`TotalDeHoja`), el interruptor «Privada», los botones «Recargar la página» y «Copiar el enlace de esta página» del marco y la marca, «Calculado» y la región del aviso de un cálculo pisado: regla del 5 %; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 500
   (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 488,8 medidos con la rejilla libre; «Hacer privada», la insignia, los dos botones del marco y el orden de los bloques por grupo de campos: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
   `/logistica/fase/[fase]` 390, `/logistica/vehiculo/[id]` 480, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
@@ -665,7 +671,8 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `/logistica/bandeja` 390 (provisional), `/logistica/fase/[fase]` 390, `/logistica/embarques`, `/logistica/embarques/[id]` y `/logistica/aduana` 410 (386,1, 385,7 y 382,3 medidos), `/logistica/vehiculo/[id]` 480, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
   `/cotizaciones/papelera` 445 (en su spec; 441,3 medidos con el Modo Live configurable en el marco: regla del 5 %), `/artes` 410 (387,8 medidos en 28 chunks con
   la rejilla vacía; la pestaña Imágenes, «Nueva plantilla» y los diálogos van con `diferido()`; «Ver más» es una Server Action: con la lectura desde el navegador,
-  supabase-js sumaba ≈ 70 KB).
+  supabase-js sumaba ≈ 70 KB), `/artes/[id]` 250 (231,9 medidos en 15 chunks: el marco del editor de artes, sin el de `(app)`; Konva, react-konva, dnd-kit y el
+  editor llegan con `diferido()`).
 - Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 590,2 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
   frío serían 450: va con `diferido()`; la imagen del resumen, sólo su cáscara: `CLAVE_DEL_VISOR` por el barril del visor sumaba 2,5 KB, se importa de
@@ -724,7 +731,7 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
 - La página de un origen: cada pestaña carga sólo su pantalla (`pantallas/origen-*`, `formula|diseno|plantilla|tablas|diseno-colores|configuracion`).
   JS en frío de las seis pestañas (KB gz, `medirJsEnFrio()` sobre `.next-e2e`; topes en `e2e/soporte/presupuestos.ts`):
   `/configuracion/origenes/<id>/fases` 450,3 (tope 460; el diagrama editable suma su barra y su asa al código en frío de la pestaña), `/planilla` 496,0 (tope 510; la planilla, por `PlanillaDiferida`; sus paneles, «¿Cómo se
-  escribe?» y el drawer «Versiones», en su `diferido()`; el arrastre del número va con eventos de puntero, sin dnd-kit), `/hoja` 417,2 (tope 420; dnd-kit, el lienzo y el
+  escribe?» y el drawer «Versiones», en su `diferido()`; el arrastre del número va con eventos de puntero, sin dnd-kit), `/hoja` 420,3 (tope 430 por la regla del 5 %, con la entrada de Artes en el menú; dnd-kit, el lienzo y el
   inspector del editor de la hoja, en su `diferido()`, y en frío la hoja con sus posiciones; «Publicar…» suma su botón, su modal va en el suyo; «+ Nuevo nivel» y «+ Nuevo color», en otro), `/tarjeta` 418,1 (tope 430; dibuja en frío el aviso de menos de 1.024 px y arma la lectura del lienzo; el
   editor llega por `diferido()`), `/campos` 409,9 (tope 420; el editor de campos de `shared`: el arrastre y el formulario del campo van en su `diferido()` y la búsqueda filtra en el cliente; la lista del combo del grupo y el cuerpo del drawer «Grupos», en los suyos) y `/categorias` 410,8 (tope 420 por la regla del 5 %: el layout del origen trae el grupo de campos y su orden). Cada pestaña paga en frío las migas con el selector de origen, el drawer
   «Datos» y su botón, el tooltip del ⚠ (que sólo lleva la página del origen: `PestanasConDesborde` lo recibe por `conAviso`) y, en las tres de la fórmula, la barra (el selector con su popover, el estado, «Versiones», «Tablas» y el lugar de

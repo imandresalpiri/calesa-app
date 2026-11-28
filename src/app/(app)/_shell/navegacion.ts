@@ -12,6 +12,7 @@ import {
   DatabaseIcon,
   HouseIcon,
   MessagesSquareIcon,
+  PaletteIcon,
   RouteIcon,
   SettingsIcon,
   UserRoundIcon,
@@ -26,7 +27,7 @@ import {
 import { puede, type ClavePermiso, type Permisos } from '@/shared/lib/permisos'
 
 export type ZonaNav =
-  // La barra lateral: hasta 7 entradas de trabajo diario (más Repuestos, sólo con permiso).
+  // La barra lateral: hasta 8 entradas de trabajo diario (más Repuestos, sólo con permiso).
   | 'principal'
   // El menú del usuario: lo que se visita de vez en cuando.
   | 'usuario'
@@ -81,6 +82,16 @@ export const NAVEGACION = [
     titulo: 'Cotizaciones',
     ruta: '/cotizaciones',
     Icono: CalculatorIcon,
+    zona: 'principal',
+    permisos: ['cotizaciones.ver'],
+    disponible: true,
+    enElLive: 'cotizaciones',
+  },
+  {
+    clave: 'artes',
+    titulo: 'Artes',
+    ruta: '/artes',
+    Icono: PaletteIcon,
     zona: 'principal',
     permisos: ['cotizaciones.ver'],
     disponible: true,

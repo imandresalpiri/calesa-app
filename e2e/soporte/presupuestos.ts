@@ -53,11 +53,16 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   // Con el dinero de la unidad en pestañas y modales (T575, ningún import nuevo de la ficha: Next reagrupó los chunks compartidos), junto con el Live, midió 543,3 en 37 chunks: 550 (regla del 5 %).
   '/vehiculos/[id]': 550,
   // La ficha de un lead (T33), sin tope hasta las dos columnas: medido 548,5 KB en 36 chunks con pestañas y 554,7 KB en 36 con todo a la vista
-  // (el marco de bloques, el índice y el resumen de seguimientos), con un lead recién creado; más un 5 % hacia arriba a la decena.
-  '/leads/[id]': 595,
+  // (el marco de bloques, el índice y el resumen de seguimientos), con un lead recién creado; más un 5 % hacia arriba a la decena. Con Artes en el
+  // menú (T592: su entrada y su icono en el marco de toda pantalla), 595,2 KB en 39 chunks: 600 (regla del 5 %).
+  '/leads/[id]': 600,
   // Artes (T591), con la rejilla de plantillas vacía de la dueña de la prueba: medido 387,8 KB en 28 chunks (la pestaña Imágenes, el modal «Nueva
   // plantilla» y los diálogos van con `diferido()`; «Ver más» es una Server Action, sin supabase-js); más un 5 % hacia arriba a la decena.
   '/artes': 410,
+  // El editor de artes (T592), con una plantilla Vertical vacía de la dueña de la prueba: viaja sólo el marco (la barra, el esqueleto, la
+  // pantalla y el `diferido`); Konva, react-konva, dnd-kit y el editor se piden con `import()`. Sin el marco de `(app)`: medido 231,9 KB en 15
+  // chunks, más un 5 % hacia arriba a la decena.
+  '/artes/[id]': 250,
   // La matriz de Roles con los niveles de acceso y «Quién crea y quién ve» adentro (T511), sin tope hasta entonces: medido 388,2 KB en 29 chunks (la matriz, el «⋯» y los
   // modales de los niveles y el cuadro van con `diferido()`); más un 5 % hacia arriba a la decena. «Quién crea y quién ve» tenía 420 en Catálogos, con su marco.
   '/configuracion/roles': 410,
@@ -70,7 +75,8 @@ export const PRESUPUESTO_DE_JS_EN_KB: Readonly<Record<string, number>> = {
   // (`docs/RENDIMIENTO.md`). La barra de la fórmula y la cabecera con las migas viajan en las seis.
   '/configuracion/origenes/[id]/fases': 460,
   '/configuracion/origenes/[id]/planilla': 510,
-  '/configuracion/origenes/[id]/hoja': 420,
+  // Hoja, con Artes en el menú (T592: su entrada y su icono en el marco), 420,3 KB en 31 chunks: 430 (regla del 5 %).
+  '/configuracion/origenes/[id]/hoja': 430,
   '/configuracion/origenes/[id]/tarjeta': 430,
   '/configuracion/origenes/[id]/campos': 420,
   // Con el grupo de campos como catálogo (T576: el layout del origen trae el grupo y su orden), 410,8 KB en 30 chunks: 420 (regla del 5 %).
