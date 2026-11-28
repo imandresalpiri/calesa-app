@@ -125,10 +125,15 @@ test('E2E la tira de páginas agrega, duplica, reordena y quita sin mover el lie
   })
 
   await test.step('con el teclado, la 1 pasa al segundo lugar', async () => {
+    // Cada tecla tras el anuncio de la anterior: con la máquina cargada, una flecha antes de que dnd-kit tome la página no la mueve.
+    const anuncio = (texto: string) => expect(page.getByText(texto, { exact: true })).toBeAttached()
     await pagina(page, 1).focus()
     await page.keyboard.press('Space')
+    await anuncio('Tomaste «Página 1».')
     await page.keyboard.press('ArrowRight')
+    await anuncio('«Página 1» está sobre «Página 2».')
     await page.keyboard.press('Space')
+    await anuncio('Soltaste «Página 1» en el lugar de «Página 2».')
     await pagina(page, 2).click()
     await enLaPagina(page, 2, [UNO])
     await pagina(page, 1).click()
