@@ -131,7 +131,8 @@ export function useGuardado(args: Args) {
     }
     if (otraVez.current) {
       otraVez.current = false
-      return guardar()
+      // Lo pedido mientras volaba sale con la versión que devolvió; si falló, no se repite (un conflicto daría otro `PT409` y otro aviso).
+      return hecho ? guardar() : false
     }
     return hecho
   }
