@@ -18,3 +18,5 @@ sharp
 konva
 # T592: Konva como componentes de React 19 para el editor de artes (la versión mayor sigue a la de React).
 react-konva
+# T594: rasterizar el PDF de un arte en el e2e para compararlo con el lienzo (sólo desarrollo): leer y dibujar un PDF a mano es escribir un visor.
+pdfjs-dist

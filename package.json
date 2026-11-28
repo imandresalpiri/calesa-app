@@ -94,6 +94,7 @@
     "eslint-plugin-boundaries": "^7.4.4",
     "jsdom": "^30.1.3",
     "lefthook": "^2.2.2",
+    "pdfjs-dist": "6.5.438",
     "pg": "8.23.1",
     "prettier": "^3.10.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
