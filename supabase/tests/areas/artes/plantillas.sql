@@ -330,6 +330,11 @@ begin
     raise exception 'guardar no dejó el nombre recortado, el documento y la miniatura';
   end if;
   if pg_temp.artp_refs(p1) is distinct from pg_temp.artp_orden(array[i1, i2]) then raise exception 'la tabla puente quedó % tras sumar una imagen', pg_temp.artp_refs(p1); end if;
+  -- El mismo id escrito con mayúsculas es la misma imagen: una sola referencia, sin chocar en la tabla puente al sumarla.
+  v1 := pg_temp.artp_v(public.artes_plantilla_guardar(p1, v1, 'Dos', pg_temp.artp_doc(i2), m1));
+  v1 := pg_temp.artp_v(public.artes_plantilla_guardar(p1, v1, 'Dos',
+    regexp_replace(pg_temp.artp_doc(i1, i2, i1)::text, i1::text, upper(i1::text))::jsonb, m1));
+  if pg_temp.artp_refs(p1) is distinct from pg_temp.artp_orden(array[i1, i2]) then raise exception 'un id con mayúsculas dejó % en la tabla puente', pg_temp.artp_refs(p1); end if;
 
   -- Una versión vieja, o ninguna, no pisa.
   v := pg_temp.artp_falla(format(guardar, p1, v0, 'Tres', pg_temp.artp_doc(), null));

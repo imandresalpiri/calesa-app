@@ -368,8 +368,8 @@ begin
 end;
 $$;
 
--- Las imágenes que nombra el documento (las capas de tipo imagen, por `imagenId`), sin repetidas. Un id que no es uuid es un documento inválido;
--- más de 100 distintas, también (`MAXIMO_DE_IMAGENES_POR_PLANTILLA`).
+-- Las imágenes que nombra el documento (las capas de tipo imagen, por `imagenId`), sin repetidas: el mismo id en mayúsculas es la misma imagen.
+-- Un id que no es uuid es un documento inválido; más de 100 distintas, también (`MAXIMO_DE_IMAGENES_POR_PLANTILLA`).
 create function public._artes_imagenes_del_documento(p_documento jsonb) returns uuid[]
   language plpgsql immutable
   set search_path = ''
@@ -377,7 +377,7 @@ as $$
 declare v_ids uuid[] := array[]::uuid[]; v_texto text; v_valido boolean;
 begin
   for v_texto in
-    select distinct x #>> '{}'
+    select distinct lower(x #>> '{}')
       from jsonb_path_query(p_documento, 'lax $.paginas[*].capas[*] ? (@.tipo == "imagen").imagenId') x
   loop
     v_valido := v_texto is not null and v_texto ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';

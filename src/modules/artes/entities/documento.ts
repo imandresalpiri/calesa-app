@@ -141,10 +141,11 @@ export function pesoDelDocumento(documento: DocumentoDeArte): number {
   return new TextEncoder().encode(JSON.stringify(documento)).length
 }
 
-// Las imágenes de la biblioteca que usa, sin repetir, en el orden en que aparecen.
+// Las imágenes de la biblioteca que usa, sin repetir (el mismo id en mayúsculas es la misma), en el orden en que aparecen. Espejo de
+// `_artes_imagenes_del_documento()`.
 export function imagenesDelDocumento(documento: DocumentoDeArte): string[] {
   const ids = documento.paginas.flatMap((pagina) =>
-    pagina.capas.flatMap((capa) => (capa.tipo === 'imagen' ? [capa.imagenId] : [])),
+    pagina.capas.flatMap((capa) => (capa.tipo === 'imagen' ? [capa.imagenId.toLowerCase()] : [])),
   )
   return [...new Set(ids)]
 }

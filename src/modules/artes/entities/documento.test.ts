@@ -173,6 +173,7 @@ describe('topes del documento', () => {
       texto('t', 'x'),
       imagen('i2', IMAGEN_B),
       imagen('i3', IMAGEN_A),
+      imagen('i4', IMAGEN_A.toUpperCase()),
     ])
     expect(imagenesDelDocumento(documento)).toEqual([IMAGEN_A, IMAGEN_B])
     expect(imagenesDelDocumento(documentoVacio())).toEqual([])
