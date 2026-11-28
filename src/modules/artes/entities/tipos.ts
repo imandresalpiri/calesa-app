@@ -30,6 +30,20 @@ export type PlantillaParaEditar = Omit<PlantillaDeArte, 'autorNombre' | 'miniatu
   documento: Resultado<DocumentoDeArte>
 }
 
+// Lo que el editor de artes recibe de la página: la plantilla con su documento ya válido.
+export type PlantillaDelEditor = Omit<PlantillaParaEditar, 'documento'> & {
+  documento: DocumentoDeArte
+}
+
+// Una variante del logo de la empresa con archivo, como la ofrece el editor (la página la arma con `conArchivo(leerLogos())`): las fijas no
+// tienen medidas.
+export type LogoDelEditor = {
+  id: string
+  nombre: string
+  ancho: number | null
+  alto: number | null
+}
+
 export type ImagenDeArte = {
   id: string
   nombre: string

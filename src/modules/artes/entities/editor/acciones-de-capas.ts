@@ -19,6 +19,13 @@ export const DESPLAZAMIENTO_DE_LA_COPIA = 16
 
 export type Portapapeles = { capas: readonly CapaDeArte[]; grupos: readonly GrupoDeCapas[] }
 
+export const MENSAJE_DEL_TOPE_DE_CAPAS = `Una página lleva hasta ${String(MAXIMO_DE_CAPAS_POR_PAGINA)} elementos.`
+
+// Si caben `cuantas` capas más en la página (agregar y pegar se apagan si no).
+export function hayLugar(pagina: PaginaDeArte, cuantas = 1): boolean {
+  return pagina.capas.length + cuantas <= MAXIMO_DE_CAPAS_POR_PAGINA
+}
+
 export function agregarCapas(
   pagina: PaginaDeArte,
   capas: readonly CapaDeArte[],

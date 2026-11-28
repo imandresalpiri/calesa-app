@@ -29,31 +29,6 @@ export async function getMisPorDefecto() {
   return leerPorDefecto(await createClient())
 }
 
-const esquemaDelNombre = z.object({ id: z.guid(), nombre: z.string() })
-
-// El nombre de una plantilla de arte que quien mira ve (RLS), o nulo si no existe o no se ve.
-export async function getNombreDeLaPlantilla(
-  id: string,
-): Promise<Resultado<{ id: string; nombre: string } | null>> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('artes_plantillas')
-    .select('id, nombre')
-    .eq('id', id)
-    .limit(1)
-    .maybeSingle()
-  if (error) {
-    return { ok: false, error: errorDePostgrest(error) }
-  }
-  if (data === null) {
-    return ok(null)
-  }
-  const leida = esquemaDelNombre.safeParse(data)
-  return leida.success
-    ? ok(leida.data)
-    : fallo('inesperado', 'No se pudo leer la plantilla de arte.')
-}
-
 const esquemaParaEditar = z.object({
   id: z.guid(),
   nombre: z.string(),

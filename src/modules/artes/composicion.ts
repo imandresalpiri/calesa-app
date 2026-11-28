@@ -3,7 +3,6 @@ import 'server-only'
 
 export {
   getMisPorDefecto as leerMisPorDefecto,
-  getNombreDeLaPlantilla as leerNombreDeLaPlantilla,
   getPaginaDeImagenes as leerPaginaDeImagenes,
   getPaginaDePlantillas as leerPaginaDePlantillas,
   getPlantillaParaEditar as leerPlantillaParaEditar,

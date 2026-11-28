@@ -6,7 +6,9 @@ import {
   alternar,
   copiasDe,
   distribuirCapas,
+  hayLugar,
   idsEnRecuadro,
+  MENSAJE_DEL_TOPE_DE_CAPAS,
   moverCapas,
   pegarCopias,
   portapapelesDe,
@@ -132,5 +134,16 @@ describe('recuadro, alinear y distribuir', () => {
     expect(distribuirCapas(p, ['a', 'b', 'c'], 'horizontal').capas.map((c) => c.x)).toEqual([
       0, 45, 90,
     ])
+  })
+})
+
+describe('el tope de capas', () => {
+  it('caben hasta 300, y el motivo lo dice', () => {
+    const casiLlena = pagina(
+      Array.from({ length: MAXIMO_DE_CAPAS_POR_PAGINA - 1 }, (_, i) => rect(`c${String(i)}`)),
+    )
+    expect(hayLugar(casiLlena)).toBe(true)
+    expect(hayLugar(casiLlena, 2)).toBe(false)
+    expect(MENSAJE_DEL_TOPE_DE_CAPAS).toBe('Una página lleva hasta 300 elementos.')
   })
 })

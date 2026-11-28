@@ -19,7 +19,6 @@ export const PANTALLAS_DEL_LIVE: Readonly<Record<string, AreaDelLive | 'siempre-
   'cotizaciones/[id]/compartir/route.ts': 'cotizaciones',
   'cotizaciones/[id]/compartir/fotos/route.ts': 'cotizaciones',
   'artes/page.tsx': 'cotizaciones',
-  'artes/[id]/page.tsx': 'cotizaciones',
   'artes/imagenes/[id]/route.ts': 'cotizaciones',
   'artes/logos/[variante]/route.ts': 'cotizaciones',
   'cotizaciones/[id]/imagen/route.ts': 'cotizaciones',
@@ -96,4 +95,11 @@ export const PANTALLAS_DEL_LIVE: Readonly<Record<string, AreaDelLive | 'siempre-
 
   'tipos-de-cambio/imagen/route.ts': 'siempre-visible',
   'tipos-de-cambio/texto/route.ts': 'siempre-visible',
+}
+
+// Lo mismo para `(editor)` (rutas relativas a `src/app/(editor)`): las pantallas a pantalla completa, fuera del marco de `(app)`.
+export const PANTALLAS_DEL_LIVE_DEL_EDITOR: Readonly<
+  Record<string, AreaDelLive | 'siempre-visible'>
+> = {
+  'artes/[id]/page.tsx': 'cotizaciones',
 }
