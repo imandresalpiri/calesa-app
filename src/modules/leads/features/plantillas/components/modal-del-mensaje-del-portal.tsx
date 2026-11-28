@@ -8,19 +8,11 @@ import { usePanelPorUrl } from '@/shared/ui/use-panel-por-url'
 import { PANEL_RESTABLECER_PORTAL, type AjustesDeLeads } from '../../../entities/ajustes-de-leads'
 import {
   EJEMPLO_DEL_MENSAJE,
-  ETIQUETA_DE_VARIABLE,
   LARGO_MAXIMO_DEL_MENSAJE,
-  OBLIGATORIAS_DEL_MENSAJE,
-  VARIABLES_DEL_MENSAJE,
   valoresDelMensaje,
 } from '../../../entities/portal-mensaje'
 import { useModalDelMensajeDelPortal } from '../hooks/use-modal-del-mensaje-del-portal'
-
-const VARIABLES = VARIABLES_DEL_MENSAJE.map((clave) => ({
-  clave,
-  etiqueta: ETIQUETA_DE_VARIABLE[clave],
-  obligatoria: OBLIGATORIAS_DEL_MENSAJE.includes(clave),
-}))
+import { VARIABLES_DEL_EDITOR } from './variables-del-mensaje'
 
 type Props = {
   abierto: boolean
@@ -59,7 +51,7 @@ function FormularioDelMensaje({ abierto, alCerrar, portal, empresa, direccion }:
         etiqueta="Texto para WhatsApp"
         valor={modal.texto}
         alCambiar={modal.escribir}
-        variables={VARIABLES}
+        variables={VARIABLES_DEL_EDITOR}
         valores={valoresDelMensaje({ ...EJEMPLO_DEL_MENSAJE, empresa, direccion })}
         motivo={modal.motivo}
         largoMaximo={LARGO_MAXIMO_DEL_MENSAJE}
