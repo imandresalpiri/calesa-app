@@ -103,6 +103,7 @@ async function EditorDeLaPlantilla({ params }: { params: PageProps<'/artes/[id]'
       plantilla={{ ...resto, documento: documento.data }}
       logos={logos}
       motivoDeSoloLectura={permiso.ok ? null : permiso.motivo}
+      personaId={sesion.usuarioId}
     />
   )
 }

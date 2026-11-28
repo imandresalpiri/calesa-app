@@ -18,8 +18,9 @@ export type BorradorDeArte = Omit<z.infer<typeof esquemaDelBorrador>, 'documento
   documento: DocumentoDeArte
 }
 
-export function claveDelBorrador(id: string): string {
-  return `artes:borrador:${id}`
+// Por persona y plantilla: en un navegador compartido, lo que no guardó una no se le ofrece a otra.
+export function claveDelBorrador(id: string, personaId: string): string {
+  return `artes:borrador:${personaId}:${id}`
 }
 
 // Lo que quedó en el navegador, ya leído; un JSON roto, de otra forma o con un documento que no vale es como no tener borrador.

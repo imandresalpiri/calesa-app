@@ -20,8 +20,9 @@ function crudo(extra: Record<string, unknown> = {}): string {
 }
 
 describe('leer el borrador local', () => {
-  it('la clave es por plantilla', () => {
-    expect(claveDelBorrador('abc')).toBe('artes:borrador:abc')
+  it('la clave es por persona y plantilla', () => {
+    expect(claveDelBorrador('abc', 'p1')).toBe('artes:borrador:p1:abc')
+    expect(claveDelBorrador('abc', 'p2')).not.toBe(claveDelBorrador('abc', 'p1'))
   })
 
   it('lee uno bueno con su documento ya leído', () => {

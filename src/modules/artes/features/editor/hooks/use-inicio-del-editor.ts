@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import type { DocumentoDeArte } from '../../../entities/documento'
 import {
-  claveDelBorrador,
   leerBorrador,
   queHacerConElBorrador,
   type BorradorDeArte,
@@ -20,15 +19,19 @@ export type InicioDelEditor = {
   borrador: BorradorDeArte | null
 }
 
-function leerDelNavegador(id: string): BorradorDeArte | null {
+function leerDelNavegador(clave: string): BorradorDeArte | null {
   try {
-    return leerBorrador(localStorage.getItem(claveDelBorrador(id)))
+    return leerBorrador(localStorage.getItem(clave))
   } catch {
     return null
   }
 }
 
-function decidir(plantilla: PlantillaDelEditor, soloLectura: boolean): InicioDelEditor {
+function decidir(
+  plantilla: PlantillaDelEditor,
+  clave: string,
+  soloLectura: boolean,
+): InicioDelEditor {
   const deLaPlantilla = {
     documento: plantilla.documento,
     nombre: plantilla.nombre,
@@ -38,7 +41,7 @@ function decidir(plantilla: PlantillaDelEditor, soloLectura: boolean): InicioDel
   if (soloLectura) {
     return deLaPlantilla
   }
-  const borrador = leerDelNavegador(plantilla.id)
+  const borrador = leerDelNavegador(clave)
   const que = queHacerConElBorrador({
     borrador,
     versionActual: plantilla.actualizadoEn,
@@ -58,10 +61,12 @@ function decidir(plantilla: PlantillaDelEditor, soloLectura: boolean): InicioDel
 // Con qué arranca el editor, decidido una vez al montarse (el editor sólo se dibuja en el navegador: leer `localStorage` acá no cambia la
 // hidratación). Un borrador sobre la versión guardada se repone ya en el primer dibujo, sin mostrar antes lo guardado; uno sobre una versión
 // vieja se ofrece. En sólo lectura no hay borrador.
+// `clave`: la del borrador de quien mira (`claveDelBorrador`).
 export function useInicioDelEditor(
   plantilla: PlantillaDelEditor,
+  clave: string,
   soloLectura: boolean,
 ): InicioDelEditor {
-  const [inicio] = useState(() => decidir(plantilla, soloLectura))
+  const [inicio] = useState(() => decidir(plantilla, clave, soloLectura))
   return inicio
 }

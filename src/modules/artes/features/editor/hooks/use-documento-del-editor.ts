@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState, type RefObject } from 'react'
+import { claveDelBorrador } from '../../../entities/editor/borrador'
 import { ladoDeLaMiniatura } from '../../../entities/editor/exportar'
 import type { PlantillaDelEditor } from '../../../entities/tipos'
 import type { ManejoDelLienzo } from '../tipos'
@@ -11,16 +12,18 @@ import { useInicioDelEditor } from './use-inicio-del-editor'
 
 type Args = {
   plantilla: PlantillaDelEditor
+  personaId: string
   soloLectura: boolean
   lienzo: RefObject<ManejoDelLienzo | null>
 }
 
 // Lo que se edita y su destino: con qué arranca (lo guardado o el borrador), el documento con su historial, el nombre, el guardado y el
 // borrador local que acompaña a lo que todavía no se guardó. `medidas` (las de la plantilla) también las usa la cámara.
-export function useDocumentoDelEditor({ plantilla, soloLectura, lienzo }: Args) {
+export function useDocumentoDelEditor({ plantilla, personaId, soloLectura, lienzo }: Args) {
   const { ancho, alto } = plantilla
   const medidas = useMemo(() => ({ ancho, alto }), [ancho, alto])
-  const inicio = useInicioDelEditor(plantilla, soloLectura)
+  const clave = claveDelBorrador(plantilla.id, personaId)
+  const inicio = useInicioDelEditor(plantilla, clave, soloLectura)
   const editor = useEditorDeArte(inicio.documento, medidas, soloLectura)
   const [nombre, setNombre] = useState(inicio.nombre)
   const { despachar } = editor
@@ -53,7 +56,7 @@ export function useDocumentoDelEditor({ plantilla, soloLectura, lienzo }: Args) 
     [despachar],
   )
   const borrador = useBorradorLocal({
-    id: plantilla.id,
+    clave,
     inicio,
     actual,
     guardado: guardado.guardado,

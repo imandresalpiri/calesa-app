@@ -20,10 +20,11 @@ import { CELDAS_DEL_EDITOR, REJILLA_DEL_EDITOR } from './rejilla'
 
 // El editor de artes a pantalla completa (la raíz diferida): arma el estado y lo reparte por props. La barra arriba; abajo el riel de
 // herramientas, «Agregar» y «Capas», el lienzo y el inspector «Diseño», con las medidas de `rejilla.ts` (las mismas que en frío).
-export function EditorDeArtes({ plantilla, logos, motivoDeSoloLectura }: PropsDelEditorDeArtes) {
+export function EditorDeArtes(props: PropsDelEditorDeArtes) {
+  const { plantilla, logos, motivoDeSoloLectura, personaId } = props
   const soloLectura = motivoDeSoloLectura !== null
   const lienzo = useRef<ManejoDelLienzo>(null)
-  const documento = useDocumentoDelEditor({ plantilla, soloLectura, lienzo })
+  const documento = useDocumentoDelEditor({ plantilla, personaId, soloLectura, lienzo })
   const { editor, medidas, nombre, cambiarNombre, guardado, borrador } = documento
   const h = useHerramientaDelEditor(soloLectura)
   const [contenedor, setContenedor] = useState<HTMLElement | null>(null)

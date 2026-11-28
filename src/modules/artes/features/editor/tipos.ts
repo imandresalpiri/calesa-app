@@ -12,10 +12,12 @@ import type { ClaveDeFormato, Medidas } from '../../entities/formatos'
 import type { LogoDelEditor, PlantillaDelEditor } from '../../entities/tipos'
 
 // Lo que la página le pasa al editor (y a su marco en frío). `motivoDeSoloLectura`: por qué quien mira no puede cambiarla (nulo: puede).
+// `personaId`: quien mira (el borrador local es suyo).
 export type PropsDelEditorDeArtes = {
   plantilla: PlantillaDelEditor
   logos: readonly LogoDelEditor[]
   motivoDeSoloLectura: string | null
+  personaId: string
 }
 
 // `useReducer`: estable entre dibujos.

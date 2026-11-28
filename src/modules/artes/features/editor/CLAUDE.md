@@ -49,5 +49,5 @@ el inspector «Diseño», con atajos, deshacer, borrador local, guardar con vers
 - Exportar espera las fuentes (`document.fonts`) y las imágenes (hasta 10 s), lleva el `Stage` a la identidad y oculta `.interfaz`, y lo repone
   en el `finally`.
 - Copiar y pegar van por `localStorage` (`CLAVE_DEL_PORTAPAPELES`): entre pestañas del editor, no el portapapeles del sistema.
-- El borrador vive en `localStorage` por plantilla (`claveDelBorrador`): se anota unos segundos después del último cambio y al salir, y guardar lo
-  borra.
+- El borrador vive en `localStorage` por persona y plantilla (`claveDelBorrador`): se anota unos segundos después del último cambio y al salir,
+  y guardar lo borra.

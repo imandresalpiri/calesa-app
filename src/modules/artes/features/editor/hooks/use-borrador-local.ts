@@ -3,11 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { avisar } from '@/shared/ui/toasts'
 import type { DocumentoDeArte } from '../../../entities/documento'
-import {
-  claveDelBorrador,
-  ESPERA_DEL_BORRADOR_MS,
-  type BorradorDeArte,
-} from '../../../entities/editor/borrador'
+import { ESPERA_DEL_BORRADOR_MS, type BorradorDeArte } from '../../../entities/editor/borrador'
 import type { InicioDelEditor } from './use-inicio-del-editor'
 
 export type LoQueSeEdita = { documento: DocumentoDeArte; nombre: string }
@@ -16,7 +12,8 @@ export type LoQueSeEdita = { documento: DocumentoDeArte; nombre: string }
 export type PonerEnElEditor = (lo: LoQueSeEdita, como: 'reemplazar' | 'reiniciar') => void
 
 type Args = {
-  id: string
+  // La del borrador de quien mira (`claveDelBorrador`).
+  clave: string
   inicio: InicioDelEditor
   actual: LoQueSeEdita
   guardado: LoQueSeEdita
@@ -49,8 +46,7 @@ function quitar(clave: string): void {
 // cambio y al salir de la página. Guardar lo borra. El repuesto al abrir se avisa con «Descartar»; el de una versión vieja (otra persona
 // guardó después) queda ofrecido —`ofrecido`— hasta «Recuperarlos» o «Descartar», y mientras tanto no se pisa. En sólo lectura, nada.
 export function useBorradorLocal(args: Args) {
-  const { id, inicio, actual, version, hayCambios, soloLectura } = args
-  const clave = claveDelBorrador(id)
+  const { clave, inicio, actual, version, hayCambios, soloLectura } = args
   const [ofrecido, setOfrecido] = useState(inicio.que === 'ofrecer' ? inicio.borrador : null)
   const pendiente = useRef<BorradorDeArte | null>(null)
   const ultimo = useRef(args)
