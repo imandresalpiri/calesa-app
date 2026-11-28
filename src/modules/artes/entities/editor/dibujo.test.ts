@@ -85,6 +85,41 @@ describe('cómo entra una imagen en su caja', () => {
     })
   })
 
+  it('cubrir con foco centra el recorte en ese punto de la foto', () => {
+    const foto = { ancho: 1600, alto: 900 }
+    const caja = { ancho: 100, alto: 100 }
+    expect(recorteParaCubrir(foto, caja, { x: 0.5, y: 0.5 })).toEqual(recorteParaCubrir(foto, caja))
+    expect(recorteParaCubrir(foto, caja, { x: 0.6, y: 0.5 })).toEqual({
+      x: 510,
+      y: 0,
+      ancho: 900,
+      alto: 900,
+    })
+    expect(
+      recorteParaCubrir({ ancho: 100, alto: 400 }, { ancho: 200, alto: 100 }, { x: 0.5, y: 0.25 }),
+    ).toEqual({ x: 0, y: 75, ancho: 100, alto: 50 })
+  })
+
+  it('con el foco junto al borde, el recorte llega al borde y no se sale', () => {
+    const foto = { ancho: 1600, alto: 900 }
+    const caja = { ancho: 100, alto: 100 }
+    expect(recorteParaCubrir(foto, caja, { x: 0, y: 0 })).toEqual({
+      x: 0,
+      y: 0,
+      ancho: 900,
+      alto: 900,
+    })
+    expect(recorteParaCubrir(foto, caja, { x: 1, y: 1 })).toEqual({
+      x: 700,
+      y: 0,
+      ancho: 900,
+      alto: 900,
+    })
+    expect(
+      recorteParaCubrir({ ancho: 100, alto: 400 }, { ancho: 200, alto: 100 }, { x: 1, y: 1 }),
+    ).toEqual({ x: 0, y: 350, ancho: 100, alto: 50 })
+  })
+
   it('contener la deja entera y centrada', () => {
     expect(cajaParaContener({ ancho: 1600, alto: 900 }, { ancho: 100, alto: 100 })).toEqual({
       x: 0,

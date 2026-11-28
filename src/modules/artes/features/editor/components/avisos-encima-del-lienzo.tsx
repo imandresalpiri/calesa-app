@@ -6,7 +6,9 @@ import { AvisoDeConflicto } from '@/shared/ui/aviso-de-conflicto'
 import { Button } from '@/shared/ui/button'
 import { ConfirmarDescarte } from '@/shared/ui/confirmar-descarte'
 import { useSalidaConCambios } from '@/shared/ui/use-salida-con-cambios'
+import type { Falta } from '../../../entities/datos/capas-con-datos'
 import { MENSAJE_DEL_CONFLICTO_DE_ARTE } from '../../../entities/editor/guardado'
+import { AvisoDeDatosQueFaltan } from './aviso-de-datos-que-faltan'
 import { ENCIMA_DEL_LIENZO } from './rejilla'
 
 export const MENSAJE_DEL_BORRADOR_OFRECIDO =
@@ -23,10 +25,14 @@ type Props = {
   alDescartarOfrecido: () => void
   // Al salir con «Descartar»: el borrador local se olvida.
   alDescartarAlSalir: () => void
+  // Lo que el vehículo de ejemplo elegido no llena y qué se eligió (`AvisoDeDatosQueFaltan`).
+  faltan: readonly Falta[]
+  eleccion: string
 }
 
 // Lo que se avisa encima del lienzo, arriba y al centro, sin cambiarle el tamaño, de a uno: salir con cambios («Descartar» o «Seguir
-// editando», `useSalidaConCambios`), el conflicto al guardar (`PT409`, con «Recargar») y el borrador de antes de que otra persona guardara.
+// editando», `useSalidaConCambios`), el conflicto al guardar (`PT409`, con «Recargar»), el borrador de antes de que otra persona guardara y,
+// lo último, los datos que le faltan a la plantilla con el vehículo de ejemplo elegido.
 // Recargar trae la versión nueva: la página cambia su `key` y el editor se vuelve a montar con el borrador ofrecido.
 export function AvisosEncimaDelLienzo(props: Props) {
   const { conflicto, ofrecido } = props
@@ -53,7 +59,7 @@ export function AvisosEncimaDelLienzo(props: Props) {
     )
   }
   if (!ofrecido) {
-    return null
+    return <AvisoDeDatosQueFaltan faltan={props.faltan} eleccion={props.eleccion} />
   }
   return (
     <div className={ENCIMA_DEL_LIENZO}>

@@ -2,6 +2,10 @@
 // inspector y la barra no se conocen entre sí). El documento cambia sólo por `despachar` (el reducer puro de `entities/editor/estado.ts`);
 // la cámara y la herramienta son del lienzo y no entran al historial.
 import type { Ref } from 'react'
+import type { CapasConDatos, Falta } from '../../entities/datos/capas-con-datos'
+import type { DatosDelArte, FijosDelArte, TipoDeOrigenDelArte } from '../../entities/datos/tipos'
+import type { ValoresDelArte } from '../../entities/datos/valores-del-arte'
+import type { CampoDelArte, CatalogoDelArte } from '../../entities/datos/variables-del-arte'
 import type { PaginaDeArte, Punto } from '../../entities/documento'
 import type { HerramientaDelEditor } from '../../entities/editor/atajos'
 import type { Camara } from '../../entities/editor/camara'
@@ -11,13 +15,53 @@ import type { PestanaIzquierda } from '../../entities/editor/paneles'
 import type { ClaveDeFormato, Medidas } from '../../entities/formatos'
 import type { LogoDelEditor, PlantillaDelEditor } from '../../entities/tipos'
 
+// El origen de la plantilla: su tipo decide qué datos aplican y sus campos (los del layout, activos o no) dan los `{ficha.<clave>}`.
+export type OrigenDelEditor = {
+  id: string
+  nombre: string
+  tipo: TipoDeOrigenDelArte
+  campos: readonly CampoDelArte[]
+}
+
+// Qué ve quien mira de los clientes con el Modo Live encendido (`ajustes.clientes` del Live; `completo` con el Live apagado): `apagado`, ningún
+// nombre de lead real (ni en el lienzo ni para elegir).
+export type LiveDelCliente = 'apagado' | 'nombres' | 'completo'
+
 // Lo que la página le pasa al editor (y a su marco en frío). `motivoDeSoloLectura`: por qué quien mira no puede cambiarla (nulo: puede).
-// `personaId`: quien mira (el borrador local es suyo).
+// `personaId`: quien mira (el borrador local y el vehículo de ejemplo recordado son suyos). Los `motivo…`: por qué no puede cambiar ese texto o
+// elegir un vehículo (nulo: puede).
 export type PropsDelEditorDeArtes = {
   plantilla: PlantillaDelEditor
   logos: readonly LogoDelEditor[]
   motivoDeSoloLectura: string | null
   personaId: string
+  origen: OrigenDelEditor
+  // El texto base del origen; nulo si no se pudo leer (se ve el inicial de su tipo y guardar crea la fila).
+  textoBase: { texto: string; actualizadoEn: string } | null
+  motivoDelTextoBase: string | null
+  portal: { mensaje: string | null; actualizadoEn: string | null }
+  motivoDelPortal: string | null
+  // Quien comparte (el asesor que mira) y la empresa: los mismos con los datos de ejemplo y con un vehículo elegido.
+  fijos: FijosDelArte
+  // Sin `vehiculos.ver` en el origen: «No ves los vehículos de <origen>: el arte usa los datos de ejemplo.».
+  motivoDelEjemplo: string | null
+  liveDelCliente: LiveDelCliente
+}
+
+// Los datos con que se ve la plantilla (`use-datos-del-editor.ts`): qué `{clave}` conoce el arte en este origen, los datos del vehículo de
+// ejemplo (o los de ejemplo), sus valores ya escritos, la página resuelta, lo que falta y las variables desconocidas de todo el documento.
+export type DatosEnElEditor = {
+  origen: OrigenDelEditor
+  catalogo: CatalogoDelArte
+  datos: DatosDelArte
+  valores: ValoresDelArte
+  // El Modo Live: los montos sin su moneda.
+  sinMoneda: boolean
+  conDatos: CapasConDatos
+  // Lo que le falta a la página con el vehículo elegido (también lo que no cargó); con los datos de ejemplo, nada.
+  faltan: readonly Falta[]
+  // Mientras haya una, la plantilla de arte no se guarda.
+  desconocidas: readonly string[]
 }
 
 // `useReducer`: estable entre dibujos.
@@ -63,7 +107,8 @@ export type ManejoDelLienzo = {
 export type PropsDelLienzo = {
   ref?: Ref<ManejoDelLienzo>
   editor: EditorDeArte
-  logos: readonly LogoDelEditor[]
+  // La página con los datos del vehículo de ejemplo (`capasConDatos()`): lo que dibuja cada capa y cuáles se esconden.
+  conDatos: CapasConDatos
   herramienta: HerramientaDelEditor
   // Espacio apretado (o la herramienta «mano»): arrastrar desplaza.
   manoTransitoria: boolean
@@ -83,6 +128,7 @@ export type PropsDeLasHerramientas = {
 export type PropsDelPanelIzquierdo = {
   editor: EditorDeArte
   logos: readonly LogoDelEditor[]
+  datos: DatosEnElEditor
   pestana: PestanaIzquierda
   alCambiarPestana: (pestana: PestanaIzquierda) => void
   // Suma una capa en el centro de lo que se ve, la elige y vuelve a «mover». Apagado en sólo lectura o en el tope de capas.
@@ -91,9 +137,17 @@ export type PropsDelPanelIzquierdo = {
   pedidoDeLaBiblioteca: number
 }
 
+// Lo que la pestaña «Textos» recibe de la página tal cual: el texto base del origen y el Mensaje del portal, con sus motivos.
+export type TextosDelEditor = Pick<
+  PropsDelEditorDeArtes,
+  'textoBase' | 'motivoDelTextoBase' | 'portal' | 'motivoDelPortal'
+>
+
 export type PropsDelInspector = {
   editor: EditorDeArte
   logos: readonly LogoDelEditor[]
+  datos: DatosEnElEditor
+  textos: TextosDelEditor
   // El de la plantilla, para nombrarlo en «Documento» («Vertical · 1080 × 1350»).
   formato: ClaveDeFormato
 }

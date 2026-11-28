@@ -28,3 +28,9 @@ export {
   type Creada,
   type ImagenQuitada,
 } from './infra/mutaciones'
+export {
+  getTextoBase as leerTextoBase,
+  guardarTextoBase,
+  type TextoBaseGuardado,
+  type TextoBaseLeido,
+} from './infra/textos-base'

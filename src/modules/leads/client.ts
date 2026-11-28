@@ -53,3 +53,9 @@ export type { ContextoDeImportacion } from './entities/importacion/contexto'
 export { origenInicial } from './entities/contexto-de-alta'
 export type { TablaDePaises } from './entities/paises/resolver'
 export { usePaises } from './features/telefono/hooks/use-paises'
+// El mensaje del portal editado en el lugar: la pestaña «Textos» del editor de artes (`artes`) lo dibuja con lo que lee de `leerAjustesDeLeads()`
+// y guarda por la misma action que el modal de Configuración › Leads (`leads.configurar`, con la versión).
+export {
+  EditorDelMensajeDelPortal,
+  type PropsDelEditorDelMensajeDelPortal,
+} from './features/plantillas/components/editor-del-mensaje-del-portal'

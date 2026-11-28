@@ -1,6 +1,12 @@
 // Las capas que se agregan en el editor de artes: con su tamaño en proporción al formato, centradas en el documento (o en el punto del clic; un
 // texto, empezando en él) o en la caja que se dibujó con la herramienta. Y el nombre con que se ve cada capa en «Capas» si nadie la renombró. Puro.
-import type { CapaDe, CapaDeArte, Punto, TipoDeCapa } from '../documento'
+import {
+  FOCO_AL_CENTRO,
+  type CapaDe,
+  type CapaDeArte,
+  type Punto,
+  type TipoDeCapa,
+} from '../documento'
 import type { Medidas } from '../formatos'
 import type { Caja } from './cajas'
 import { FUENTE_POR_DEFECTO } from './fuentes'
@@ -174,6 +180,7 @@ export function nuevaCapa(que: QueSeAgrega, donde: DondeSeAgrega): CapaDeArte {
         tipo: 'foto',
         indice: que.indice,
         ajuste: 'cubrir',
+        foco: FOCO_AL_CENTRO,
       }
     }
     case 'tarjeta':

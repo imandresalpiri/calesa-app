@@ -15,7 +15,7 @@ import {
   type EstadoDelGuardado,
   type FalloDelGuardado,
 } from '../../../entities/editor/guardado'
-import { mismoJson } from '../../../entities/editor/mismo-json'
+import { mismoDocumento } from '../../../entities/editor/mismo-documento'
 import { guardarPlantillaDeArte } from '../../plantillas/actions/guardar-plantilla-de-arte'
 import { MENSAJE_DE_VALIDACION_DE_LA_PLANTILLA } from '../../plantillas/hooks/mensajes'
 import type { LoQueSeEdita } from './use-borrador-local'
@@ -30,12 +30,15 @@ type Args = {
   miniatura: () => Promise<Blob | null>
   // Termina el texto que se escribe encima del lienzo; `true` si había uno (entra al documento en el cuadro siguiente).
   terminarElTexto: () => boolean
+  // Por qué no se guarda aunque haya cambios («Corrige {x} para guardar.»): nulo si se puede. El borrador local se anota igual.
+  motivoParaNoGuardar: string | null
 }
 
 type Fallo = { tipo: FalloDelGuardado; error: ErrorApp | null }
 
+// El alto de los textos no cuenta: lo mide el lienzo con el vehículo de ejemplo de ahora (`mismoDocumento`).
 const iguales = (a: LoQueSeEdita, b: LoQueSeEdita) =>
-  a.nombre === b.nombre && mismoJson(a.documento, b.documento)
+  a.nombre === b.nombre && mismoDocumento(a.documento, b.documento)
 
 // La miniatura se sube antes de guardar (por hash: repetirla es el mismo objeto). Si no se pudo, se guarda igual y queda la de antes.
 async function subirLaMiniatura(armar: () => Promise<Blob | null>): Promise<string | null> {
@@ -123,6 +126,9 @@ export function useGuardado(args: Args) {
     }
     if (soloLectura || iguales(ultimo.current.actual, ultimo.current.guardado)) {
       return true
+    }
+    if (ultimo.current.motivoParaNoGuardar !== null) {
+      return false
     }
     const hecho = await mandar(enviar)
     if (hecho === null) {

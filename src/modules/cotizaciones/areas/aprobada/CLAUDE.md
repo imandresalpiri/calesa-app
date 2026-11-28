@@ -49,6 +49,10 @@ No es la **Final**. `client.ts` vacío; `index.ts` sólo lleva las lecturas por 
   `entities/aprobada/eleccion-para-comparar.ts` (hasta 3, en el orden de la lista, se sueltan las que ya no están). En la guardada el h2 lo dibuja el servidor con una ranura vacía al lado
   (`ID_DE_LA_RANURA_DE_COMPARAR`) y la isla pone «Comparar» ahí con un portal (`ranuraDeComparar`): el título nunca se vuelve a montar (el foco del «Ver»
   sigue en él) y las casillas y el botón viajan sólo en el chunk diferido.
+- **De este vehículo desde el servidor**: `leerPaginaDeEsteVehiculo({ vehiculoId, cursor })` (`infra/aprobada/de-este-vehiculo.ts`, `index.ts`) es la misma
+  lectura con el cliente de servidor y el cursor opaco (el `siguiente` de la página anterior; uno que no se lee pide la primera), por
+  `cotizaciones_vehiculo_creado_idx`. La pide el vehículo de ejemplo del editor de artes (`GET /artes/ejemplo/vehiculos/<id>/cotizaciones`, en `src/app`), con
+  `filasALaVista()` y `tituloDeLaFila()` (también en `index.ts`).
 
 - **La ficha del vehículo** (`/vehiculos/[id]`, columna izquierda): su «Costo estimado» lee la aprobada con `leerAprobadasDeVehiculos([vehiculoId])` (la lectura del
   inventario, con el modo) y lo dibuja `vehiculos`; «Compartir» es el diálogo del área `tarjeta` (`pantallas/tarjeta-compartir.ts`). Sin aprobada que quien mira vea, «—» con «Cotizar».

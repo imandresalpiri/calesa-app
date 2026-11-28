@@ -498,15 +498,25 @@ al volver la red. El ancho no se anima y los avisos no se mueven. `Ctrl/Cmd+B` n
   (`?panel=renombrar&imagen=<id>`) y «Quitar» (`?panel=quitar&imagen=<id>`, que antes cuenta cuántas plantillas la usan). Las dos, de a
   `TAMANO_DE_VER_MAS` con «Ver más», hasta `TOPE_DE_LO_CARGADO`. Estados en «Artes (estados propios)».
 - **Editor de artes** — `/artes/[id]` (quien ve la plantilla de arte), a pantalla completa, fuera del marco (sin menú lateral ni barra), sólo desde
-  1024 px. Arriba, una barra de 3 rem: «Volver a Artes» (a la lista como se dejó), el nombre (editable: un clic, Enter o salir aplica, Esc vuelve),
-  el formato, el estado del guardado en un renglón de ancho fijo y «Guardar» (apagado sin cambios), y el «⋯» con «Exportar PNG», «Duplicar en otro
-  formato» (`?panel=otro-formato`, de lo que se ve, también sin guardar) y «Atajos de teclado». Abajo, en columnas fijas: el riel de herramientas
+  1024 px. Arriba, una barra de 3 rem: «Volver a Artes» (a la lista como se dejó), el nombre (editable: un clic, Enter o salir aplica, Esc vuelve;
+  se corta antes del formato), el formato, el disparador «Vehículo de ejemplo» (de ancho fijo: «Datos de ejemplo» o «Vehículo de ejemplo:
+  <título> · n.º <número>»), el estado del guardado en un renglón de ancho fijo (13 y 14 rem hasta 1280 px, 16 y 18 desde ahí: a 1024 px todo
+  entra) y «Guardar» (apagado sin cambios), y el «⋯» con «Exportar PNG», «Duplicar en otro
+  formato» (`?panel=otro-formato`, de lo que se ve, también sin guardar) y «Atajos de teclado». El disparador abre un popover de alto fijo: buscar
+  entre los vehículos del origen de la plantilla que quien mira ve (sin texto, lo más nuevo; con 3 letras o números, título, VIN o lote), la lista
+  con su miniatura y «Ver más», y del elegido la «Cotización» (las de «De este vehículo»; entra la aprobada o la primera) y el «Lead» (los
+  relacionados o «Ninguno»; entra el de la cotización o el vinculado), en selects nativos; al pie, «Usar los datos de ejemplo». Lo elegido se
+  recuerda en este navegador por plantilla y no se guarda en ella. Con otro vehículo o cotización todo se rellena solo: lo que falta se esconde y,
+  en un texto, se quita la línea entera cuya variable queda vacía. Abajo, en columnas fijas: el riel de herramientas
   (mover V, mano H, texto T, rectángulo R, elipse E, línea L, polígono, pluma P e imagen, que abre la biblioteca); las pestañas «Agregar» (Texto con
   los datos como `{marca}`, Formas, Logo con sus variantes, «De la cotización» con la tarjeta y las fotos del vehículo de ejemplo, y la
   biblioteca de imágenes) y «Capas» (arriba la de adelante; ordenar arrastrando o con el teclado, el ojo, el candado, renombrar con doble clic o
   F2, agrupar y desagrupar, Shift y Ctrl para elegir varias); el lienzo (rueda desplaza, Ctrl+rueda acerca al puntero, espacio y arrastrar es la
   mano, un recuadro elige varias, guías al centro y a los bordes del documento y de otras capas; la píldora del zoom con «Ajustar» y «100 %»); y el
-  inspector «Diseño» (alinear y distribuir, caja, texto y apariencia de lo elegido; sin nada elegido, el documento: formato y fondo). Con el texto,
+  panel derecho con dos pestañas en su fila de 40 px: «Diseño» (alinear y distribuir, caja, texto y apariencia de lo elegido; de una foto, cuál,
+  «Cubrir» o «Contener» y el foco; sin nada elegido, el documento: formato y fondo) y «Textos», junto al lienzo: «Texto base de <origen>» (lo que
+  acompaña al arte al compartir, con sus variables, «Guardar», «Restablecer» y la vista previa con los datos elegidos) y «Mensaje del portal»
+  (el mismo de Configuración › Leads, con su vista previa con el lead elegido). Con el texto,
   un clic lo empieza ahí (como el cursor) y arrastrar le da el ancho. La pluma suma nodos con un clic y curvas arrastrando, cierra en el primero y
   termina con Enter o Esc. Atajos: los de las herramientas, Ctrl+Z y Ctrl+Shift+Z
   (o Ctrl+Y), Ctrl+C, Ctrl+V, Ctrl+D, Supr, Ctrl+A, Ctrl+G y Ctrl+Shift+G, flechas (con Shift de a 10), Ctrl+] y Ctrl+[, Ctrl+0 ajustar, Ctrl+1 al
@@ -2269,8 +2279,24 @@ guarda al instante** (cada color es una escritura propia; no entra en el borrado
 - **Topes y avisos del lienzo:** «Una página lleva hasta 300 elementos.» (agregar, pegar y duplicar se apagan); una imagen que no carga, el marco con
   la diagonal y «No se pudo cargar la imagen.» en el inspector; exportar sin ella avisa «Se exportó sin 1 imagen que no cargó.» («… sin N imágenes
   …»); en Carta o A4, «Exportar PNG» apagado con «El PDF se arma con las plantillas de PDF.»; un dato desconocido en un texto, «{x} no es un dato que
-  el arte pueda llenar.» en el inspector. **Duplicar en otro formato:** los errores de medida junto al campo y los de la base en el modal; al terminar,
+  el arte pueda llenar.» en el inspector, y junto a «Guardar», «Corrige {x} para guardar.» (el borrador se anota igual); `{lote}` (o la subasta)
+  en un origen manual, «{lote} no aplica en <origen>: no es de subasta.», y su línea se quita. **Duplicar en otro formato:** los errores de medida junto al campo y los de la base en el modal; al terminar,
   el aviso con «Abrir». Nada salta: columnas de ancho fijo, la barra de alto fijo, el renglón del guardado reservado y los avisos encima del lienzo.
+- **Vehículo de ejemplo:** sin `vehiculos.ver` en el origen, el disparador apagado con «No ves los vehículos de <origen>: el arte usa los datos de
+  ejemplo.». En el popover: «Escribe al menos 3 letras o números.»; «Ningún vehículo de <origen> coincide con «<texto>».»; «<Origen> todavía no
+  tiene vehículos.»; el tope con «Busca por título, VIN o lote para encontrar otro.»; un vehículo sin fotos, la caja punteada «Sin fotos»; «Sin
+  cotizaciones de este vehículo» y «Sin leads relacionados»; con el Modo Live y los clientes apagados, el lead «Oculto en Modo Live» (con
+  «nombres», sólo el nombre). Mientras lee, el reloj en el disparador y «Leyendo el vehículo…» al pie; si no llega, el error con «Reintentar» y el
+  lienzo con lo último que tenía. Lo recordado que ya no se ve se suelta en silencio. Nada salta: la lista, la cotización, el lead y el pie
+  tienen su caja.
+- **Faltan datos:** con un vehículo elegido, encima del lienzo, «A esta plantilla le faltan datos con este vehículo: la foto 3, el VIN y la
+  cotización.» (hasta 5 y «y N más»; también una foto o la tarjeta que no cargó) con «Cerrar», que lo deja cerrado hasta que cambie la elección o
+  lo que falta. Va debajo de los demás avisos del lienzo; con los datos de ejemplo no aparece.
+- **Textos:** sin `cotizaciones.configurar` en el origen, el texto base se lee con «Sólo quien configura cotizaciones en <origen> cambia este
+  texto.»; sin configurar Leads, «Sólo quien configura Leads cambia este mensaje.». Una variable desconocida, el aviso del editor y «Guardar»
+  apagado (la base la rechaza igual). En la línea reservada: «Guardando…», «Guardado.», «Sin conexión: no se guardó. Lo escrito queda como
+  borrador.» (el borrador se repone al volver); **conflicto** (`PT409`), el aviso con el texto de la base y «Recargar». La vista previa tiene alto
+  fijo; vacía, «Con estos datos no queda nada que mostrar.».
 
 ### Leads: listado (estados propios)
 

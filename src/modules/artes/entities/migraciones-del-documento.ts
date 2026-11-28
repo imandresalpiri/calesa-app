@@ -93,7 +93,30 @@ function deV1aV2(crudo: unknown): unknown {
   }
 }
 
-const PASOS: Readonly<Record<number, (crudo: unknown) => unknown>> = { 1: deV1aV2 }
+const documentoV2 = z.looseObject({
+  version: z.literal(2),
+  paginas: z.array(z.looseObject({ capas: z.array(z.looseObject({ tipo: z.string() })) })),
+})
+
+// v3 suma el foco a la foto (el centro, como se recortaba hasta v2); nada más cambia.
+function deV2aV3(crudo: unknown): unknown {
+  const leido = documentoV2.safeParse(crudo)
+  if (!leido.success) {
+    return crudo
+  }
+  return {
+    ...leido.data,
+    version: 3,
+    paginas: leido.data.paginas.map((pagina) => ({
+      ...pagina,
+      capas: pagina.capas.map((capa) =>
+        capa.tipo === 'foto' ? { ...capa, foco: { x: 0.5, y: 0.5 } } : capa,
+      ),
+    })),
+  }
+}
+
+const PASOS: Readonly<Record<number, (crudo: unknown) => unknown>> = { 1: deV1aV2, 2: deV2aV3 }
 
 // Aplica los pasos desde la versión del documento hasta la actual, uno tras otro. Una versión sin paso (la actual) queda como está.
 export function migrarDocumento(crudo: unknown): unknown {

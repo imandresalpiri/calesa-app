@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { tieneDatos, type CapasConDatos } from '../../../../entities/datos/capas-con-datos'
+import type { CapaDeArte } from '../../../../entities/documento'
 import {
   filaElegida,
   idDeLaFila,
@@ -16,12 +18,20 @@ import { FilaDeCapa } from './fila-de-capa'
 import { FilaDeGrupo } from './fila-de-grupo'
 import { OrdenDeCapas } from './orden-de-capas'
 
-type Props = { editor: EditorDeArte; logos: readonly LogoDelEditor[] }
+type Props = { editor: EditorDeArte; logos: readonly LogoDelEditor[]; conDatos: CapasConDatos }
+
+function datosDe(capa: CapaDeArte, conDatos: CapasConDatos) {
+  if (!tieneDatos(capa)) {
+    return null
+  }
+  return conDatos.escondidas.has(capa.id) ? 'sin' : 'con'
+}
 
 // La lista de «Capas»: de arriba hacia abajo, lo que está más al frente; cada grupo con su fila y sus miembros debajo, sangrados
 // (`filasDeCapas()`). Se ordena arrastrando (`OrdenDeCapas`). Un clic en una fila la elige (la de una capa, ella sola; la de un grupo, todos
 // sus miembros), con Mayús suma y con Ctrl o ⌘ alterna; en sólo lectura se elige y nada más. Lo que se elige en el lienzo se trae a la vista.
-export function ListaDeCapas({ editor, logos }: Props) {
+// Cada capa que se llena con los datos lo dice («Con datos»; «Sin datos» si con el vehículo de ejemplo no tiene qué mostrar).
+export function ListaDeCapas({ editor, logos, conDatos }: Props) {
   const { pagina, estado, despachar, soloLectura } = editor
   const lista = useRef<HTMLUListElement>(null)
 
@@ -83,6 +93,7 @@ export function ListaDeCapas({ editor, logos }: Props) {
             nombre={nombres.get(fila.capa.id) ?? ''}
             elegida={seleccion.has(fila.capa.id)}
             apagada={estaOculta(pagina, fila.capa)}
+            datos={datosDe(fila.capa, conDatos)}
             soloLectura={soloLectura}
             despachar={despachar}
             alElegir={alElegir}

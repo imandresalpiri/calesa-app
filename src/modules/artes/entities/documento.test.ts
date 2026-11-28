@@ -140,6 +140,7 @@ describe('los tipos de capa', () => {
         tipo: 'foto',
         indice: 2,
         ajuste: 'cubrir',
+        foco: { x: 0.25, y: 1 },
         radio: 12,
         borde: null,
         grosor: 0,
@@ -158,7 +159,7 @@ describe('lo que no se lee', () => {
       error: { codigo: 'validacion', mensaje: MENSAJE_DOCUMENTO_INVALIDO },
     })
     const sinTipo = {
-      version: 2,
+      version: VERSION_DEL_DOCUMENTO,
       paginas: [
         { id: 'p', fondo: { tipo: 'color', color: '#fff000' }, capas: [{ id: 'c' }], grupos: [] },
       ],
@@ -187,11 +188,13 @@ describe('lo que no se lee', () => {
   })
 
   it('pide entre 1 y 20 páginas', () => {
-    expect(leerDocumento({ version: 2, paginas: [] }).ok).toBe(false)
+    expect(leerDocumento({ version: VERSION_DEL_DOCUMENTO, paginas: [] }).ok).toBe(false)
     const [pagina] = documentoVacio().paginas
     const veinte = Array.from({ length: 20 }, (_, i) => ({ ...pagina, id: `p${String(i)}` }))
-    expect(leerDocumento({ version: 2, paginas: veinte }).ok).toBe(true)
-    expect(leerDocumento({ version: 2, paginas: [...veinte, pagina] }).ok).toBe(false)
+    expect(leerDocumento({ version: VERSION_DEL_DOCUMENTO, paginas: veinte }).ok).toBe(true)
+    expect(leerDocumento({ version: VERSION_DEL_DOCUMENTO, paginas: [...veinte, pagina] }).ok).toBe(
+      false,
+    )
   })
 })
 

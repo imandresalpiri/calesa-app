@@ -2,7 +2,12 @@ import type { ReactNode } from 'react'
 import { RUTAS } from '@/shared/lib/rutas'
 import { Skeleton } from '@/shared/ui/skeleton'
 import { EnlaceVolverAArtes } from './barra/enlace-volver-a-artes'
-import { CELDAS_DEL_EDITOR, ENCIMA_DEL_LIENZO, REJILLA_DEL_EDITOR } from './rejilla'
+import {
+  ANCHOS_DE_LA_BARRA,
+  CELDAS_DEL_EDITOR,
+  ENCIMA_DEL_LIENZO,
+  REJILLA_DEL_EDITOR,
+} from './rejilla'
 
 type Props = {
   // Sin ellos (el `loading.tsx`, antes de leer la plantilla), la barra lleva sólo «Volver a Artes».
@@ -14,8 +19,9 @@ type Props = {
 
 const HERRAMIENTAS_EN_FRIO = 9
 
-// El editor de artes antes de su código (puro): la barra fina con «Volver a Artes», el nombre y el formato, y los paneles en esqueleto con las
-// mismas medidas que el editor (`rejilla.ts`). Es la versión en frío del diferido, lo que dibuja el `loading.tsx` y el fondo del aviso si el
+// El editor de artes antes de su código (puro): la barra fina con «Volver a Artes», el nombre y el formato (y, a la derecha, el lugar del vehículo
+// de ejemplo, de ancho fijo), y los paneles en esqueleto con las mismas medidas que el editor (`rejilla.ts`): los dos con la fila de sus dos
+// pestañas. Es la versión en frío del diferido, lo que dibuja el `loading.tsx` y el fondo del aviso si el
 // código no llega.
 export function MarcoDelEditor({ nombre, formato, aviso }: Props) {
   return (
@@ -31,8 +37,11 @@ export function MarcoDelEditor({ nombre, formato, aviso }: Props) {
             {formato}
           </span>
         ) : null}
-        <Skeleton aria-hidden className="ml-auto h-4 w-40" />
-        <Skeleton aria-hidden className="h-8 w-20" />
+        <div aria-hidden className="ml-auto flex min-w-0 items-center gap-2">
+          <Skeleton className={`h-8 ${ANCHOS_DE_LA_BARRA.ejemplo} shrink-0`} />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-8 w-20" />
+        </div>
       </header>
       <div aria-hidden className={CELDAS_DEL_EDITOR.riel}>
         <div className="flex flex-col items-center gap-1 py-2">

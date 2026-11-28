@@ -17,18 +17,20 @@ import {
 } from '@/modules/artes/pantallas/artes-plantilla'
 import { conArchivo, leerLogos } from '@/modules/empresa'
 import { puede, requerirSesion } from '@/modules/equipo'
-import { getOrigenes } from '@/modules/origenes'
+import { getOrigenes, type OrigenResumen } from '@/modules/origenes'
 import { datosO } from '@/shared/lib/errores'
 import { RUTAS } from '@/shared/lib/rutas'
 import { buttonVariants } from '@/shared/ui/button'
 import { EstadoSinPermiso } from '@/shared/ui/estados/estado-sin-permiso'
 import { EstadoVacio } from '@/shared/ui/estados/estado-vacio'
 import { ocultoEnElLive } from '../../../(app)/_live/guarda'
+import { leerDatosDelEditor } from './datos-del-editor'
 
 export const metadata: Metadata = { title: 'Editor de artes' }
 
 const TITULO = 'Plantilla de arte'
 const NO_ESTA = 'No encontramos esta plantilla de arte.'
+const NO_SE_LEYO_EL_ORIGEN = 'No pudimos leer el origen de esta plantilla.'
 
 // El editor de artes de una plantilla (`/artes/<id>`), a pantalla completa. Una que no existe o que quien mira no ve (la RLS) dice que no la
 // encontramos, sin redirigir; la de otra persona, o la de la empresa sin `artes.empresa.gestionar`, se abre en sólo lectura.
@@ -38,6 +40,17 @@ export default function PaginaDelEditorDeArtes({ params }: PageProps<'/artes/[id
       <EditorDeLaPlantilla params={params} />
     </Suspense>
   )
+}
+
+// El origen de la plantilla: entre los activos que ya leyó la página o, si se desactivó después, entre todos (una plantilla de un origen
+// inactivo se sigue abriendo).
+async function origenDeLaPlantilla(origenId: string, activos: readonly OrigenResumen[]) {
+  const activo = activos.find((o) => o.id === origenId)
+  if (activo) {
+    return activo
+  }
+  const todos = await getOrigenes(true)
+  return todos.ok ? (todos.data.find((o) => o.id === origenId) ?? null) : null
 }
 
 // Las variantes del logo con archivo, sólo lo que el editor dibuja (el archivo se pide por `/artes/logos/<variante>`). Si no se pueden leer,
@@ -84,10 +97,13 @@ async function EditorDeLaPlantilla({ params }: { params: PageProps<'/artes/[id]'
     )
   }
   const { documento, ...resto } = encontrada
-  if (!documento.ok) {
+  const origen = await origenDeLaPlantilla(resto.origenId, datosO(todos))
+  if (!documento.ok || origen === null) {
     return (
       <FueraDelEditor titulo={resto.nombre}>
-        <ErrorDelDocumento mensaje={documento.error.mensaje} />
+        <ErrorDelDocumento
+          mensaje={documento.ok ? NO_SE_LEYO_EL_ORIGEN : documento.error.mensaje}
+        />
       </FueraDelEditor>
     )
   }
@@ -96,6 +112,7 @@ async function EditorDeLaPlantilla({ params }: { params: PageProps<'/artes/[id]'
     gestiona: puede(sesion.permisos, 'artes.empresa.gestionar'),
   }
   const permiso = puedeEditarLaPlantilla(quien, resto)
+  const datos = await leerDatosDelEditor(origen, sesion.permisos)
   return (
     // Otra versión guardada (al recargar tras un conflicto), otro editor: empieza de cero con lo nuevo.
     <PantallaDelEditor
@@ -104,6 +121,7 @@ async function EditorDeLaPlantilla({ params }: { params: PageProps<'/artes/[id]'
       logos={logos}
       motivoDeSoloLectura={permiso.ok ? null : permiso.motivo}
       personaId={sesion.usuarioId}
+      {...datos}
     />
   )
 }

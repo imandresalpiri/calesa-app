@@ -22,9 +22,13 @@ Leads (prospectos y clientes) con teléfono principal único y enmascarado salvo
 - Pantallas por `pantallas/<pantalla>.ts` (`listado`, `ficha`, `importar`, `papelera`, `configuracion`, `cotizar`,
   `turno`, `relacionados`, `proyecto-de-repuestos`; sólo `src/app`).
 - `client.ts`: reglas puras, tipos, `<AltaDeLead>`, `normalizarTelefono()`, `interpretarBusqueda()`, `MINIMO_DE_BUSQUEDA` (para `buscador`), la
-  action `completarRecordatorio` (panel `?recordatorio=` de `/agenda`; la RPC exige que sea de quien actúa) y lo puro de la importación de `datos`
+  action `completarRecordatorio` (panel `?recordatorio=` de `/agenda`; la RPC exige que sea de quien actúa), lo puro de la importación de `datos`
   (`prepararFilas`, `preparadorDeFilas` por tramos con el mismo resultado que una pasada, `emparejarColumnas`, `convertir*`, `fecha*`, `usePaises`…):
-  la importación total no tiene otras reglas.
+  la importación total no tiene otras reglas, y `<EditorDelMensajeDelPortal mensaje actualizadoEn cliente empresa motivo>`
+  (`PropsDelEditorDelMensajeDelPortal`): el Mensaje del portal editado en el lugar, que `artes` dibuja en la pestaña «Textos» del editor de artes.
+  Guarda con `guardarMensajeDelPortal` y su versión (lo guardado queda como la base: no se remonta al guardar), «Restablecer» pone el de
+  fábrica en el campo y, sin red, lo escrito queda como borrador (`sessionStorage`, `mensaje-del-portal`); con `motivo` (o sin versión), de sólo
+  lectura. La lógica es la del modal: `features/plantillas/hooks/use-mensaje-del-portal.ts`.
 - `shell.ts`: `<AltaDeLead>` (el drawer y la tecla `N`; el botón es «Nuevo» de la barra, `src/app/(app)/_shell/nuevo/`), `<ProveedorDeEscribirPorChat>`; `shell.client.ts`: `useAbrirNuevoLead()` (paleta y «Nuevo»; no `usePanelDeAlta()`) y `rutaDeAccionSobreUnLead()` (la ficha con su modal de seguimiento o recordatorio abierto, a donde «Nuevo» lleva tras elegir un lead).
 - Rutas: `/leads`, `/leads/[id]` (`leads.ver`; la ficha en dos columnas, `FichaEnDosColumnas` de `shared`: a la izquierda, con su desplazamiento, la cabecera (el «⋯» a
   la derecha del nombre y `textoDeLaCartera()` debajo; `useCartera` vive en `lateral-de-la-ficha.tsx` y alimenta la línea y «Quién lo tiene»), «Datos» (los

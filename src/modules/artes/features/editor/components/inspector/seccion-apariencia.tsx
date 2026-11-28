@@ -3,7 +3,9 @@
 // «Apariencia» del inspector del editor de artes. Con una capa: la opacidad, lo que dibuja según su tipo (relleno, borde, radio, lados; la
 // variante del logo, la foto, el ajuste y si la imagen cargó) y la sombra. Con varias (o un grupo entero): la opacidad que comparten, vacía con
 // «Mixto» si difiere; escribirla la pone en todas.
+import type { CapasConDatos } from '../../../../entities/datos/capas-con-datos'
 import { esCapaConImagen, type CapaDeArte } from '../../../../entities/documento'
+import type { FuenteDeImagen } from '../../../../entities/editor/fuente-de-la-capa'
 import { LIMITES_DEL_INSPECTOR, valorComun } from '../../../../entities/editor/inspector'
 import type { LogoDelEditor } from '../../../../entities/tipos'
 import type { EditorDeArte } from '../../tipos'
@@ -18,11 +20,18 @@ type Props = {
   editor: EditorDeArte
   capas: readonly CapaDeArte[]
   logos: readonly LogoDelEditor[]
+  // Lo que el lienzo dibuja para cada capa con los datos de ahora: la imagen de la única elegida.
+  conDatos: CapasConDatos
+}
+
+function fuenteDe(conDatos: CapasConDatos, id: string): FuenteDeImagen | null {
+  const resuelta = conDatos.resueltas.get(id)
+  return resuelta?.tipo === 'imagen' ? resuelta.fuente : null
 }
 
 const POR_CIENTO = 100
 
-export function SeccionApariencia({ editor, capas, logos }: Props) {
+export function SeccionApariencia({ editor, capas, logos, conDatos }: Props) {
   const ids = capas.map((c) => c.id)
   const opacidad = valorComun(capas, (c) => c.opacidad)
   const [unica] = capas.length === 1 ? capas : []
@@ -46,7 +55,12 @@ export function SeccionApariencia({ editor, capas, logos }: Props) {
       </div>
       {unica ? <CamposDeLaForma editor={editor} capa={unica} /> : null}
       {unica && esCapaConImagen(unica) ? (
-        <CamposDeLaImagen editor={editor} capa={unica} logos={logos} />
+        <CamposDeLaImagen
+          editor={editor}
+          capa={unica}
+          logos={logos}
+          fuente={fuenteDe(conDatos, unica.id)}
+        />
       ) : null}
       {unica ? <CamposDeLaSombra editor={editor} capa={unica} /> : null}
     </SeccionDelInspector>

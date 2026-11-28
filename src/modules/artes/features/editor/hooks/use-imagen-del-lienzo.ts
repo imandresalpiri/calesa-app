@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { FuenteDeImagen } from '../../../entities/editor/fuente-de-la-capa'
 import type { Medidas } from '../../../entities/formatos'
 
@@ -13,6 +13,41 @@ const CARGANDO: ImagenDelLienzo = { imagen: null, estado: 'cargando' }
 // la próxima vez que alguien la pide. Sin `crossOrigin`: todo lo que dibuja el lienzo es del mismo origen.
 const cargas = new Map<string, Promise<HTMLImageElement>>()
 const listas = new Map<string, HTMLImageElement>()
+
+// Las que no cargaron la última vez que se pidieron (una foto o una tarjeta que falla se suma a lo que falta): se reemplaza entera en cada cambio
+// para que `useSyncExternalStore` vea otra.
+let fallidas: ReadonlySet<string> = new Set()
+const oyentes = new Set<() => void>()
+
+function anotar(src: string, fallo: boolean) {
+  if (fallidas.has(src) === fallo) {
+    return
+  }
+  const otras = new Set(fallidas)
+  if (fallo) {
+    otras.add(src)
+  } else {
+    otras.delete(src)
+  }
+  fallidas = otras
+  for (const oyente of oyentes) {
+    oyente()
+  }
+}
+
+function suscribir(oyente: () => void) {
+  oyentes.add(oyente)
+  return () => {
+    oyentes.delete(oyente)
+  }
+}
+
+const lasFallidas = () => fallidas
+
+// Las `src` que no cargaron (cambia cuando una falla o vuelve a cargar).
+export function useImagenesQueFallaron(): ReadonlySet<string> {
+  return useSyncExternalStore(suscribir, lasFallidas, lasFallidas)
+}
 
 // Las medidas con que se dibuja: las del archivo; un SVG sin las suyas, las que le puso quien lo cargó.
 export function medidasDeLaImagen(imagen: HTMLImageElement): Medidas {
@@ -41,10 +76,12 @@ export function cargarImagen(
     }
     imagen.onload = () => {
       listas.set(fuente.src, imagen)
+      anotar(fuente.src, false)
       resolver(imagen)
     }
     imagen.onerror = () => {
       cargas.delete(fuente.src)
+      anotar(fuente.src, true)
       rechazar(new Error(`No se pudo cargar ${fuente.src}`))
     }
     imagen.src = fuente.src

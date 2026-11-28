@@ -6,14 +6,16 @@ guarda nada ni decide qué variables vale cada texto (eso lo dice quien lo usa, 
 ## Entra y sale
 
 - Sale (`index.ts`):
-  - `<EditorConVariables id etiqueta valor alCambiar variables valores? motivo? largoMaximo deshabilitado?>`: `'use client'`. Los botones de variable, la caja, el
-    aviso en vivo, el contador «N de 1000» y, con `valores`, la vista previa. Controlado: el texto vive en quien lo usa.
+  - `<EditorConVariables id etiqueta valor alCambiar variables valores? motivo? largoMaximo deshabilitado? aceptaLaClave? compacto?>`: `'use client'`. Los botones
+    de variable, la caja, el aviso en vivo, el contador «N de 1000» y, con `valores`, la vista previa. Controlado: el texto vive en quien lo usa. `aceptaLaClave`:
+    una familia abierta de claves sin botón (`{ficha.<campo>}`, `{celda.<concepto>}` del texto base de las artes) que vale igual; `compacto`: botones chicos
+    con sólo el nombre, para una columna angosta.
   - `<TextoConVariables texto claves valores? resaltar?>`: sin `'use client'`; un texto en segmentos con las variables como pastillas (el espejo, la vista previa y la
     tarjeta de Mensaje del portal lo usan).
   - `VariableDelEditor` (`{ clave, etiqueta, obligatoria? }`).
 - Lo puro está en `@/shared/lib/texto-con-variables` (`PATRON_DE_VARIABLE`, `partesDelTexto()`, `revisarVariables()`, `insertarEnElCursor()`): la regex es la misma
   que la de la base (`\{([^{}]*)\}`) y la reusan las entities que espejan una validación.
-- Lo usa el Mensaje del portal (`leads`). Un texto nuevo con variables entra por aquí, con su validación espejo de la base.
+- Lo usan el Mensaje del portal (`leads`) y el texto base del origen (`artes`, pestaña «Textos» del editor de artes). Un texto nuevo con variables entra por aquí, con su validación espejo de la base.
 
 ## No se rompe
 

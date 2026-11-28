@@ -7,11 +7,14 @@ import {
 } from './paneles'
 
 describe('las pestañas de los paneles del editor', () => {
-  it('a la izquierda «Agregar» y «Capas»; a la derecha «Diseño»', () => {
+  it('a la izquierda «Agregar» y «Capas»; a la derecha «Diseño» y «Textos»', () => {
     expect(PESTANAS_DEL_PANEL_IZQUIERDO.map((p) => TITULOS_DEL_PANEL_IZQUIERDO[p])).toEqual([
       'Agregar',
       'Capas',
     ])
-    expect(PESTANAS_DEL_PANEL_DERECHO.map((p) => TITULOS_DEL_PANEL_DERECHO[p])).toEqual(['Diseño'])
+    expect(PESTANAS_DEL_PANEL_DERECHO.map((p) => TITULOS_DEL_PANEL_DERECHO[p])).toEqual([
+      'Diseño',
+      'Textos',
+    ])
   })
 })

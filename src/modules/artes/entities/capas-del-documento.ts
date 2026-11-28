@@ -1,4 +1,4 @@
-// Las capas del documento de una plantilla de arte (docs/GLOSARIO.md › «Capa»), versión 2. Coordenadas y tamaños en unidades lógicas del
+// Las capas del documento de una plantilla de arte (docs/GLOSARIO.md › «Capa»), versión 3. Coordenadas y tamaños en unidades lógicas del
 // formato (px o pt), con decimales y sin redondear: `x, y` es la esquina de la caja sin rotar y la rotación (en grados) es alrededor de su
 // centro. Lo que una capa dibuja por dentro (los puntos de una línea, los nodos de un trazo) va relativo a la esquina de su caja. Puro.
 import { z } from 'zod'
@@ -49,7 +49,7 @@ const ajuste = z.enum(['cubrir', 'contener'])
 const capaDeTexto = z.object({
   ...baseDeCapa,
   tipo: z.literal('texto'),
-  // Puede llevar variables `{clave}` (`VARIABLES_DE_ARTE`): se llenan con los datos al dibujar.
+  // Puede llevar variables `{clave}` (el catálogo del origen, `entities/datos/variables-del-arte.ts`): se llenan con los datos al dibujar.
   texto: z.string().max(5000),
   fuente: z.string().min(1).max(80),
   // El tamaño de la letra: no cambia al duplicar en otro formato ni con las asas (sólo el inspector lo cambia).
@@ -131,6 +131,9 @@ const capaDeFoto = z.object({
     .min(0)
     .max(MAXIMO_DE_FOTOS_DEL_VEHICULO - 1),
   ajuste,
+  // El punto de la foto que queda a la vista al recortarla para cubrir la caja, en fracciones de su ancho y su alto (0,5 y 0,5 es el
+  // centro). Con «contener» no cuenta: la foto se ve entera.
+  foco: z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) }),
 })
 
 const capaDeTarjeta = z.object({
@@ -155,6 +158,10 @@ export type CapaDe<T extends TipoDeCapa> = Extract<CapaDeArte, { tipo: T }>
 export type NodoDelTrazo = z.infer<typeof esquemaDelNodo>
 export type Punto = z.infer<typeof punto>
 export type SombraDeCapa = z.infer<typeof esquemaDeLaSombra>
+export type FocoDeLaFoto = CapaDe<'foto'>['foco']
+
+// Con el que nace una foto (y el que le pone la migración a las de antes): el centro, como se recortaba siempre.
+export const FOCO_AL_CENTRO: FocoDeLaFoto = { x: 0.5, y: 0.5 }
 
 // Las capas que dibujan una imagen (con su marco: radio, borde y grosor).
 export const TIPOS_CON_IMAGEN = ['imagen', 'logo', 'foto', 'tarjeta'] as const

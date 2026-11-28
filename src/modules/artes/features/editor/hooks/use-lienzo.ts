@@ -17,7 +17,7 @@ import { useTextoEnElLienzo } from './use-texto-en-el-lienzo'
 // Lo que arma el lienzo con sus props: el Stage, las fuentes, el texto que se escribe, la pluma, el arrastre de capas, el puntero, la rueda,
 // exportar y lo que el editor le pide (`ManejoDelLienzo`).
 export function useLienzo(props: PropsDelLienzo) {
-  const { ref, editor, logos, herramienta, alUsarHerramienta, camara } = props
+  const { ref, editor, conDatos, herramienta, alUsarHerramienta, camara } = props
   const [stage, setStage] = useState<Konva.Stage | null>(null)
   // El área (en estado: exportar mira si el foco está adentro).
   const [area, setArea] = useState<HTMLDivElement | null>(null)
@@ -25,7 +25,7 @@ export function useLienzo(props: PropsDelLienzo) {
   const escala = camara.camara.escala
   const mano = props.manoTransitoria || herramienta === 'mano'
   const fuentes = useFuentesListas(pagina)
-  const imagenesListas = useImagenesListas(pagina, logos)
+  const imagenesListas = useImagenesListas(pagina, conDatos)
   const texto = useTextoEnElLienzo(editor)
   const pluma = usePluma({ editor, herramienta, escala, alUsarHerramienta })
   const arrastre = useArrastreDeCapas({ editor, stage, escala })

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { TEXTOS_DEL_GUARDADO, type EstadoDelGuardado } from '../../../../entities/editor/guardado'
+import { ANCHOS_DE_LA_BARRA } from '../rejilla'
 
 const ICONOS: Readonly<Record<EstadoDelGuardado, typeof CheckIcon>> = {
   guardado: CheckIcon,
@@ -19,17 +20,39 @@ const ICONOS: Readonly<Record<EstadoDelGuardado, typeof CheckIcon>> = {
   error: TriangleAlertIcon,
 }
 
-type Props = { estado: EstadoDelGuardado; alReintentar: () => void }
+type Props = {
+  id?: string
+  estado: EstadoDelGuardado
+  // Por qué no se guarda («Corrige {x} para guardar.»): con cambios, se dice en vez del estado.
+  motivo: string | null
+  alReintentar: () => void
+}
 
 // El renglón del guardado en la barra, de ancho fijo (un estado más largo no empuja nada): «Guardado», «Cambios sin guardar», «Guardando…»,
-// sin conexión (sale solo al volver) o «No se pudo guardar.» con «Reintentar». El lector de pantalla lo oye sin perder el foco.
-export function RenglonDelGuardado({ estado, alReintentar }: Props) {
+// sin conexión (sale solo al volver) o «No se pudo guardar.» con «Reintentar». Con un motivo para no guardar y cambios, el motivo en el color
+// del aviso. El lector de pantalla lo oye sin perder el foco.
+export function RenglonDelGuardado({ id, estado, motivo, alReintentar }: Props) {
+  if (motivo !== null && estado !== 'guardado' && estado !== 'guardando') {
+    return (
+      <div
+        id={id}
+        role="status"
+        data-estado="sin-guardar"
+        title={motivo}
+        className={`flex h-8 ${ANCHOS_DE_LA_BARRA.guardado} shrink-0 items-center justify-end gap-1.5 text-(length:--text-sm) text-(--color-peligro-ink)`}
+      >
+        <TriangleAlertIcon aria-hidden className="size-4 shrink-0" />
+        <span className="truncate">{motivo}</span>
+      </div>
+    )
+  }
   const Icono = ICONOS[estado]
   return (
     <div
+      id={id}
       role="status"
       data-estado={estado}
-      className="flex h-8 w-72 shrink-0 items-center justify-end gap-1.5 text-(length:--text-sm) text-(--color-ink-soft)"
+      className={`flex h-8 ${ANCHOS_DE_LA_BARRA.guardado} shrink-0 items-center justify-end gap-1.5 text-(length:--text-sm) text-(--color-ink-soft)`}
     >
       <Icono
         aria-hidden

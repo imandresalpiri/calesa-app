@@ -1,13 +1,10 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import { useAgregar } from '../hooks/use-agregar'
-import { useAtajosDelEditor } from '../hooks/use-atajos-del-editor'
-import { useCamara } from '../hooks/use-camara'
-import { useDocumentoDelEditor } from '../hooks/use-documento-del-editor'
-import { useHerramientaDelEditor } from '../hooks/use-herramienta-del-editor'
+import { useRef } from 'react'
+import { useArteConDatos } from '../hooks/use-arte-con-datos'
 import { useMenuDelEditor } from '../hooks/use-menu-del-editor'
-import { useTamanoDelLienzo } from '../hooks/use-tamano-del-lienzo'
+import { useTrabajoEnElLienzo } from '../hooks/use-trabajo-en-el-lienzo'
+import type { EjemploConDatos } from '../../../entities/datos/ejemplo-con-datos'
 import type { ManejoDelLienzo, PropsDelEditorDeArtes } from '../tipos'
 import { AvisosEncimaDelLienzo } from './avisos-encima-del-lienzo'
 import { AbiertoDesdeElMenu } from './barra/abierto-desde-el-menu'
@@ -18,27 +15,28 @@ import { Lienzo } from './lienzo/lienzo'
 import { PanelIzquierdo } from './panel-izquierdo'
 import { CELDAS_DEL_EDITOR, REJILLA_DEL_EDITOR } from './rejilla'
 
-// El editor de artes a pantalla completa (la raíz diferida): arma el estado y lo reparte por props. La barra arriba; abajo el riel de
-// herramientas, «Agregar» y «Capas», el lienzo y el inspector «Diseño», con las medidas de `rejilla.ts` (las mismas que en frío).
+// El vehículo y la cotización elegidos: otra elección vuelve a abrir el aviso de lo que falta.
+function eleccionDe(elegido: EjemploConDatos | null): string {
+  return elegido ? `${elegido.vehiculo.vehiculo.id}:${elegido.cotizacion?.cotizacion.id ?? ''}` : ''
+}
+
+// El editor de artes a pantalla completa (la raíz diferida): arma el estado y lo reparte por props. La barra arriba (con el vehículo de
+// ejemplo); abajo el riel de herramientas, «Agregar» y «Capas», el lienzo y el inspector («Diseño» y «Textos»), con las medidas de
+// `rejilla.ts` (las mismas que en frío). El documento con sus datos sale de `useArteConDatos`; la herramienta, la cámara y los atajos, de
+// `useTrabajoEnElLienzo`.
 export function EditorDeArtes(props: PropsDelEditorDeArtes) {
-  const { plantilla, logos, motivoDeSoloLectura, personaId } = props
+  const { plantilla, logos, motivoDeSoloLectura } = props
   const soloLectura = motivoDeSoloLectura !== null
   const lienzo = useRef<ManejoDelLienzo>(null)
-  const documento = useDocumentoDelEditor({ plantilla, personaId, soloLectura, lienzo })
+  const { documento, ejemplo, datos, sinClientes } = useArteConDatos(props, lienzo)
   const { editor, medidas, nombre, cambiarNombre, guardado, borrador } = documento
-  const h = useHerramientaDelEditor(soloLectura)
-  const [contenedor, setContenedor] = useState<HTMLElement | null>(null)
-  const tamano = useTamanoDelLienzo(contenedor)
-  const camara = useCamara(tamano, medidas)
-  const agregar = useAgregar({ editor, camara, tamano, alAgregar: h.volverAMover })
-  const menu = useMenuDelEditor(lienzo, nombre)
-  useAtajosDelEditor({
+  const { h, alContenedor, tamano, camara, agregar } = useTrabajoEnElLienzo({
     editor,
+    medidas,
+    soloLectura,
     lienzo,
-    camara,
-    alElegirHerramienta: h.elegir,
-    alManoTransitoria: h.setManoTransitoria,
   })
+  const menu = useMenuDelEditor(lienzo, nombre)
 
   return (
     <div className={REJILLA_DEL_EDITOR}>
@@ -49,6 +47,7 @@ export function EditorDeArtes(props: PropsDelEditorDeArtes) {
         motivoDeSoloLectura={motivoDeSoloLectura}
         guardado={guardado}
         hacer={menu.hacer}
+        ejemplo={{ ejemplo, origen: props.origen, motivo: props.motivoDelEjemplo, sinClientes }}
       />
       <div className={CELDAS_DEL_EDITOR.riel}>
         <Herramientas herramienta={h.herramienta} alElegir={h.elegir} soloLectura={soloLectura} />
@@ -57,18 +56,19 @@ export function EditorDeArtes(props: PropsDelEditorDeArtes) {
         <PanelIzquierdo
           editor={editor}
           logos={logos}
+          datos={datos}
           pestana={h.pestana}
           alCambiarPestana={h.setPestana}
           alAgregar={agregar}
           pedidoDeLaBiblioteca={h.pedidoDeLaBiblioteca}
         />
       </div>
-      <section ref={setContenedor} aria-label="Lienzo" className={CELDAS_DEL_EDITOR.lienzo}>
+      <section ref={alContenedor} aria-label="Lienzo" className={CELDAS_DEL_EDITOR.lienzo}>
         {tamano ? (
           <Lienzo
             ref={lienzo}
             editor={editor}
-            logos={logos}
+            conDatos={datos.conDatos}
             herramienta={h.herramienta}
             manoTransitoria={h.manoTransitoria}
             alUsarHerramienta={h.volverAMover}
@@ -83,10 +83,18 @@ export function EditorDeArtes(props: PropsDelEditorDeArtes) {
           alRecuperar={borrador.recuperar}
           alDescartarOfrecido={borrador.descartarOfrecido}
           alDescartarAlSalir={borrador.olvidar}
+          faltan={datos.faltan}
+          eleccion={eleccionDe(ejemplo.elegido)}
         />
       </section>
       <div className={CELDAS_DEL_EDITOR.derecha}>
-        <Inspector editor={editor} logos={logos} formato={plantilla.formato} />
+        <Inspector
+          editor={editor}
+          logos={logos}
+          datos={datos}
+          textos={props}
+          formato={plantilla.formato}
+        />
       </div>
       <AbiertoDesdeElMenu
         menu={menu}

@@ -7,6 +7,7 @@ import type { Despachar } from '../../tipos'
 import { BotonesDeLaFila } from './botones-de-la-fila'
 import { FilaOrdenable } from './fila-ordenable'
 import { IconoDeLaCapa } from './icono-de-la-capa'
+import { MarcaDeDatos, type DatosDeLaFila } from './marca-de-datos'
 import { NombreDeLaFila } from './nombre-de-la-fila'
 
 type Props = {
@@ -16,6 +17,8 @@ type Props = {
   elegida: boolean
   // Oculta ella o su grupo.
   apagada: boolean
+  // Si se llena con los datos y, con los de ahora, si tiene qué mostrar; nulo si no usa datos.
+  datos: DatosDeLaFila | null
   soloLectura: boolean
   despachar: Despachar
   // Estable: elige la fila por su id (la capa sola).
@@ -41,6 +44,7 @@ export const FilaDeCapa = memo(function FilaDeCapa(props: Props) {
           nombre={nombre}
           inicial={capa.nombre ?? nombre}
           apagada={props.apagada}
+          marca={props.datos === null ? undefined : <MarcaDeDatos datos={props.datos} />}
           soloLectura={soloLectura}
           renombrando={renombrando}
           alCambiarRenombrando={setRenombrando}

@@ -12,3 +12,9 @@ export { leerParaComparar } from './composicion'
 export { compararCotizaciones, veredictoDeComparar } from '../../entities/aprobada/comparar'
 export type { ModeloDeComparar } from '../../entities/aprobada/comparar'
 export type { AprobarEn } from '../../entities/aprobada/de-este-vehiculo'
+
+// «De este vehículo» leído desde el servidor, de a `TAMANO_DE_ESTE_VEHICULO` con el cursor opaco, y lo puro que lo dibuja (la aprobada primero, sin
+// repetir; el título de cada fila): el vehículo de ejemplo del editor de artes (`GET /artes/ejemplo/vehiculos/<id>/cotizaciones`).
+export { leerPaginaDeEsteVehiculo } from './composicion'
+export { filasALaVista, tituloDeLaFila } from '../../entities/aprobada/de-este-vehiculo'
+export type { PaginaLeidaDeEsteVehiculo } from '../../entities/aprobada/de-este-vehiculo'

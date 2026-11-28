@@ -13,6 +13,8 @@ type Props = {
   inicial: string
   // Oculta (ella o su grupo): el nombre se ve tenue.
   apagada: boolean
+  // Lo que va después del nombre («Con datos», «Sin datos»).
+  marca?: ReactNode
   soloLectura: boolean
   renombrando: boolean
   alCambiarRenombrando: (renombrando: boolean) => void
@@ -84,6 +86,7 @@ export function NombreDeLaFila(props: Props) {
     >
       {props.icono}
       <span className="min-w-0 flex-1 truncate">{nombre}</span>
+      {props.marca}
     </button>
   )
 }

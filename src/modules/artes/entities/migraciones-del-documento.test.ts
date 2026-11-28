@@ -23,7 +23,7 @@ function v1(capas: unknown[]) {
 }
 
 describe('migrar un documento de arte', () => {
-  it('una v1 vacía pasa a v2 con sus grupos vacíos', () => {
+  it('una v1 vacía llega a la versión actual con sus grupos vacíos', () => {
     const leido = leerDocumento(v1([]))
     expect(leido).toEqual({
       ok: true,
@@ -159,6 +159,76 @@ describe('migrar la línea de v1', () => {
       grosor: 3,
     })
     expect(otra).toMatchObject({ tipo: 'linea', borde: '#ff00ff', grosor: 1 })
+  })
+})
+
+const COMUN_V2 = { ...BASE_V1, nombre: null, grupoId: null, sombra: null }
+const SIN_MARCO = { radio: 0, borde: null, grosor: 0 }
+
+function v2(capas: unknown[]) {
+  return {
+    version: 2,
+    paginas: [{ id: 'pagina-1', fondo: { tipo: 'color', color: '#ffffff' }, capas, grupos: [] }],
+  }
+}
+
+describe('migrar de v2 a v3', () => {
+  it('la foto de v2 llega con el foco al centro y lo demás queda como estaba', () => {
+    const foto = { ...COMUN_V2, ...SIN_MARCO, id: 'f', tipo: 'foto', indice: 3, ajuste: 'cubrir' }
+    const logo = { ...COMUN_V2, ...SIN_MARCO, id: 'l', tipo: 'logo', varianteId: null }
+    const tarjeta = { ...COMUN_V2, ...SIN_MARCO, id: 'ta', tipo: 'tarjeta' }
+    const leido = leerDocumento(v2([foto, logo, tarjeta]))
+    expect(leido).toEqual({
+      ok: true,
+      data: {
+        version: 3,
+        paginas: [
+          {
+            id: 'pagina-1',
+            fondo: { tipo: 'color', color: '#ffffff' },
+            capas: [{ ...foto, foco: { x: 0.5, y: 0.5 } }, logo, tarjeta],
+            grupos: [],
+          },
+        ],
+      },
+    })
+  })
+
+  it('cada página de v2 suma el foco a sus fotos', () => {
+    const foto = (id: string) => ({
+      ...COMUN_V2,
+      ...SIN_MARCO,
+      id,
+      tipo: 'foto',
+      indice: 0,
+      ajuste: 'contener',
+    })
+    const crudo = {
+      version: 2,
+      paginas: [
+        { id: 'p1', fondo: { tipo: 'color', color: '#ffffff' }, capas: [foto('a')], grupos: [] },
+        { id: 'p2', fondo: { tipo: 'color', color: '#000000' }, capas: [foto('b')], grupos: [] },
+      ],
+    }
+    const leido = leerDocumento(crudo)
+    if (!leido.ok) {
+      throw new Error(leido.error.mensaje)
+    }
+    expect(leido.data.paginas.flatMap((p) => p.capas)).toEqual([
+      { ...foto('a'), foco: { x: 0.5, y: 0.5 } },
+      { ...foto('b'), foco: { x: 0.5, y: 0.5 } },
+    ])
+  })
+
+  it('una v1 pasa por v2 y llega a v3 con su foto al centro', () => {
+    const migrado = migrarDocumento(v1([]))
+    expect(migrado).toMatchObject({ version: 3 })
+  })
+
+  it('una v2 que no es válida queda como está', () => {
+    const roto = { version: 2, paginas: 'nada' }
+    expect(migrarDocumento(roto)).toBe(roto)
+    expect(leerDocumento(roto).ok).toBe(false)
   })
 })
 

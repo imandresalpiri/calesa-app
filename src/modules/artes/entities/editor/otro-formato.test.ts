@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { documentoVacio, type CapaDe, type CapaDeArte, type DocumentoDeArte } from '../documento'
+import {
+  documentoVacio,
+  VERSION_DEL_DOCUMENTO,
+  type CapaDe,
+  type CapaDeArte,
+  type DocumentoDeArte,
+} from '../documento'
 import { FORMATOS_DE_ARTE, type Medidas } from '../formatos'
 import { formatosDestino, motivoDelFormatoDestino, reacomodarEnOtroFormato } from './otro-formato'
 
@@ -79,7 +85,7 @@ function con(capas: CapaDeArte[], grupos: string[] = []): DocumentoDeArte {
     throw new Error('sin página')
   }
   const delGrupo = grupos.map((id) => ({ id, nombre: 'Grupo', oculto: false, bloqueado: false }))
-  return { version: 2, paginas: [{ ...pagina, capas, grupos: delGrupo }] }
+  return { version: VERSION_DEL_DOCUMENTO, paginas: [{ ...pagina, capas, grupos: delGrupo }] }
 }
 
 const capasDe = (documento: DocumentoDeArte): CapaDeArte[] => documento.paginas[0]?.capas ?? []

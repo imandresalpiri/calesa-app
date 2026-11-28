@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { DocumentoDeArte, PaginaDeArte } from '../documento'
+import { VERSION_DEL_DOCUMENTO, type DocumentoDeArte, type PaginaDeArte } from '../documento'
 import { pagina, rect } from './capas-de-prueba.soporte'
 import {
   estadoInicial,
@@ -10,7 +10,10 @@ import {
   type AccionDelEstado,
 } from './estado'
 
-const documento = (p: PaginaDeArte): DocumentoDeArte => ({ version: 2, paginas: [p] })
+const documento = (p: PaginaDeArte): DocumentoDeArte => ({
+  version: VERSION_DEL_DOCUMENTO,
+  paginas: [p],
+})
 const ids = (d: DocumentoDeArte) => paginaDe(d)?.capas.map((c) => c.id)
 const correr = (inicio: DocumentoDeArte, acciones: AccionDelEstado[]) =>
   acciones.reduce(reducirEditor, estadoInicial(inicio))

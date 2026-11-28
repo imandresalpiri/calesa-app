@@ -1,5 +1,6 @@
 'use client'
 
+import { useId, type ComponentProps } from 'react'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import type { EstadoDelGuardado } from '../../../../entities/editor/guardado'
@@ -13,18 +14,24 @@ import { EnlaceVolverAArtes } from './enlace-volver-a-artes'
 import { MenuDelEditor } from './menu-del-editor'
 import { NombreEditable } from './nombre-editable'
 import { RenglonDelGuardado } from './renglon-del-guardado'
+import { VehiculoDeEjemplo } from './vehiculo-de-ejemplo'
 
 type Props = {
   plantilla: PlantillaDelEditor
   nombre: string
   alCambiarNombre: (nombre: string) => void
   motivoDeSoloLectura: string | null
-  guardado: { estado: EstadoDelGuardado; guardar: () => void }
+  // `motivo`: por qué no se guarda («Corrige {x} para guardar.»); nulo si se puede.
+  guardado: { estado: EstadoDelGuardado; guardar: () => void; motivo: string | null }
   hacer: Readonly<Record<ClaveDelMenuDelEditor, () => void>>
+  ejemplo: ComponentProps<typeof VehiculoDeEjemplo>
 }
 
 // La barra del editor de artes (3rem, como en frío): «Volver a Artes», el nombre (se cambia con un clic) y el formato; a la derecha, el
-// renglón del guardado y «Guardar» o, en sólo lectura, la insignia, el motivo y «Duplicar para editar»; al final, el «⋯».
+// vehículo de ejemplo (de ancho fijo), el renglón del guardado y «Guardar» (apagado, con el motivo en el renglón, mientras un texto lleve una
+// variable desconocida) o, en sólo lectura, la insignia, el motivo y «Duplicar para editar»; al final, el «⋯». A 1024 px entra entera: lo de la
+// derecha no se encoge (sus anchos son fijos, `ANCHOS_DE_LA_BARRA`) y se corta el nombre; en sólo lectura se cortan el nombre (con su tope) y el
+// motivo.
 export function BarraDelEditor({
   plantilla,
   nombre,
@@ -32,8 +39,10 @@ export function BarraDelEditor({
   motivoDeSoloLectura,
   guardado,
   hacer,
+  ejemplo,
 }: Props) {
   const volver = useVolverAArtes()
+  const idDelRenglon = useId()
   return (
     <header className={CELDAS_DEL_EDITOR.barra}>
       <EnlaceVolverAArtes href={volver} />
@@ -46,15 +55,28 @@ export function BarraDelEditor({
       <span className="shrink-0 text-(length:--text-sm) text-(--color-ink-soft) tabular-nums">
         {textoDelFormato(plantilla.formato, plantilla)}
       </span>
-      <div className="ml-auto flex min-w-0 items-center gap-2">
+      <div
+        className={`ml-auto flex items-center gap-2 ${motivoDeSoloLectura === null ? 'shrink-0' : 'min-w-0'}`}
+      >
+        <VehiculoDeEjemplo {...ejemplo} />
         {motivoDeSoloLectura === null ? (
           <>
-            <RenglonDelGuardado estado={guardado.estado} alReintentar={guardado.guardar} />
+            <RenglonDelGuardado
+              id={idDelRenglon}
+              estado={guardado.estado}
+              motivo={guardado.motivo}
+              alReintentar={guardado.guardar}
+            />
             <Button
               type="button"
               size="sm"
               className="h-8 shrink-0"
-              disabled={guardado.estado === 'guardado' || guardado.estado === 'guardando'}
+              aria-describedby={guardado.motivo === null ? undefined : idDelRenglon}
+              disabled={
+                guardado.estado === 'guardado' ||
+                guardado.estado === 'guardando' ||
+                guardado.motivo !== null
+              }
               onClick={guardado.guardar}
             >
               Guardar
