@@ -1,4 +1,3 @@
-// @sin-celular-archivo: el editor de artes es una herramienta de escritorio y desde 1024 px de ancho no se dibuja en el celular
 import { CONTRASENA, entrar } from './soporte/alta'
 import {
   borrarPersonasDePrueba,
