@@ -37,7 +37,7 @@ el inspector «Diseño», con atajos, deshacer, borrador local, guardar con vers
 - Guardar y exportar terminan antes el texto que se escribe encima del lienzo (`terminarElTexto()` del `ManejoDelLienzo`): Ctrl+S vale dentro
   del campo y, si no, guardaría sin lo escrito.
 - Las columnas tienen ancho fijo y la barra alto fijo (`rejilla.ts`, las mismas en frío): elegir, editar o cambiar de pestaña no cambia el
-  tamaño del lienzo. Los avisos van encima del lienzo (`ENCIMA_DEL_LIENZO`).
+  tamaño del lienzo (`e2e/artes-editor-sin-saltos.spec.ts` lo mide). Los avisos van encima del lienzo (`ENCIMA_DEL_LIENZO`).
 - En sólo lectura el reducer no cambia el documento, sólo se usan mover y mano y no hay borrador.
 
 ## Ojo

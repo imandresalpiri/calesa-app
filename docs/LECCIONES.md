@@ -338,8 +338,9 @@ semilla, en `(semilla)`: al integrarse, el orquestador las sube solas al kit (`d
   sección): arrastra con `mouse.down()` y `hover`, espera la marca de soltar (`data-marca-de-soltar`) y recién entonces `mouse.up()`
   (`e2e/soporte/arrastre-del-lienzo.ts`). Para un lugar libre sin pieza encima que sirva de destino, avanza de a pasos y lee el texto de la marca
   («Columna 7, fila 1»: `arrastrarHastaElLugar()`), sin medir.
-- Un spec de Configuración sin celular (`@sin-celular-archivo`) no puede medir ni cambiar el ancho: lo que la pantalla dibuja en otros anchos va en un
-  spec aparte, sin marca, que siembra su propio estado por SQL (el editor de la hoja y `cotizar-hoja-rejilla-libre.spec.ts`).
+- Un spec sin celular (`@sin-celular-archivo`) no puede medir ni cambiar el ancho: lo que la pantalla dibuja en otros anchos, o un «sin saltos»
+  medido con `boundingBox()`, va en un spec aparte, sin marca, con su ancho fijo y su propio estado sembrado por SQL (el editor de la hoja y
+  `cotizar-hoja-rejilla-libre.spec.ts`; el editor de artes y `artes-editor-sin-saltos.spec.ts`).
 - Antes de un arrastre con `page.mouse` (el número de una fila de la planilla) desplaza y recién después mide las cajas, con el destino al
   medio de la ventana: la cabecera y la barra pegadas tapan lo de arriba. Un `<Drawer>` que se cierra deja su fondo encima mientras sale y
   se traga el `pointerdown`: espera a que el asa reciba el puntero (`document.elementFromPoint`, `arrastrarFila()` de `e2e/soporte/planilla.ts`).

@@ -41,7 +41,7 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** Editor de la tarjeta: arrastrar el borde de una fila del lienzo para cambiar su alto (hoy, el campo «Alto» del panel).
 - **[—]** Una bandera que sólo lee la `prueba` de un `elegir` o un término de `Y`/`O` (`SI(nuevo; 100; 50)`) no pide su interruptor en el diseño al publicar (§5 de `validar_diseno()` y `revisarCobertura()` sólo cuentan la `condicion`): decidir si una condición también lo exige.
 - **[—]** En la primera publicación de un origen (las dos esperadas nulas), el borrador puede nacer sobre una v1 que otra persona publicó entre medio — decidir si la esperada nula deja de valer.
-- **[—]** «Compartir la cotización» no tiene el editor de imagen 9:16 de V1 (la historia de WhatsApp o Instagram con la foto y la cotización): hoy se comparte la imagen de la tarjeta o las fotos tal cual — decidir si vuelve. Del asistente de IA ya están el servidor y la configuración; su interfaz en «Compartir la cotización» es de `feat/compartir-con-plantilla`.
+- **[—]** «Compartir la cotización» todavía no usa las plantillas de arte: el editor de artes (`/artes/<id>`) arma la imagen 9:16 de V1 (la historia de WhatsApp o Instagram con la foto y la cotización) con datos de ejemplo, y llenarla con los de una cotización es de `feat/editor-de-artes-con-datos`; hoy se comparte la imagen de la tarjeta o las fotos tal cual. Del asistente de IA ya están el servidor y la configuración; su interfaz en «Compartir la cotización» es de `feat/compartir-con-plantilla`.
 - **[—]** Tablas de referencia: reactivar una desactivada (hoy no se deshace y su clave queda tomada), renombrarla (su nombre; la clave no cambia) y hacer propia una compartida (copiarla al origen con sus filas; hoy se crea una propia vacía con otra clave).
 - **[—]** Publicar una fórmula no revisa en la base que existan su tabla y sus columnas (BUSCARV lo revisa al compilar, con el catálogo del origen) — decidir si `formula_publicar()` lo exige.
 - **[—]** Sin hacer: el filtro «Favoritas» y la insignia en el listado, quién reportó en la lista de reportes, el tiempo real en comentarios y el motivo de lo bloqueado en la fila de un lote de la papelera.
@@ -96,6 +96,12 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 - **[—]** «Compra registrada» no es un paso del proyecto: la base no tiene una clave de requisito que la ubique, así que Compras sólo tiene su pestaña y
   «Registrar compra» nunca es el siguiente de un ítem — decidir si se crea `repuesto.compra` (requisito de dato evaluado por `_requisito_dato_cumple`) y en qué fase.
 - **[—]** La acción de `repuesto.precio` en «Qué falta» lleva al proyecto sin abrir el panel de Cotizaciones — podría ir a `?pestana=cotizaciones`.
+
+### Artes
+
+- **[—]** En una plantilla de arte de la empresa, «Agregar» › «Biblioteca» también ofrece las imágenes personales: se suman al lienzo y la base las
+  rechaza al guardar (`_artes_validar_imagenes()`) — decidir si la pestaña las apaga con su motivo.
+- **[—]** Las variantes fijas del logo entran cuadradas (`PROPORCION_SIN_MEDIDAS`): `leerLogos()` no trae las medidas de cada variante.
 
 ### Chat
 
@@ -187,6 +193,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ### Limpieza y código
 
+- **[—]** Editor de artes: `unidadesQueSeMueven()` (`entities/editor/inspector.ts`) repite `unidadesDe()` de `acciones-de-capas.ts`, y la variante
+  `'principal'` del logo está escrita en `medios.ts`, `fuente-de-la-capa.ts` y `capas-en-la-lista.ts` — una sola de cada una.
 - **[—]** `src/modules/empresa/features/tipos-cambio/hooks/use-guardar-leyenda.ts` no lo importa nadie: quitarlo.
 - **[—]** El grupo de los tipos de documento compartidos se llama `empresa` por dentro (`ClaveDeGrupo`, `VistasDeGrupos.empresa`, `?de=empresa`):
   renombrarlo a `compartidos` muda un parámetro, así que van en el mismo PR sus enlaces y los e2e (`.claude/rules/rutas.md`).
@@ -250,6 +258,8 @@ Al cerrar una, se borra su línea (el PR lo cuenta). Lo nuevo que aparezca al tr
 
 ## Pulido de interfaz
 
+- **[—]** «Capas» del editor de artes: las filas miden 36 px y cada una suma al Tab su asa, su nombre y sus botones (sin el foco itinerante de un
+  `grid`, ↑ y ↓ entre filas).
 - **[—]** A 1280 px, la tabla de `/logistica/aduana` desborda: la columna Vehículos queda a la derecha y se llega desplazando; y en la de contenedores
   «Revisar qué falta» se corta contra el «⋯» fijo — una columna menos o el texto de la fila en dos renglones (`aduana/components/tabla-de-declaraciones.tsx`,
   `transporte/components/tabla-de-contenedores.tsx`).
@@ -349,7 +359,7 @@ Versiones mayores que `pnpm outdated` lista y la tarea mensual de dependencias n
 
 ## Fuera de alcance
 
-- Multiidioma. Offline real (modo sin conexión y sincronización en segundo plano). Editor de artes (Konva). Directorio de contactos/empresas.
+- Multiidioma. Offline real (modo sin conexión y sincronización en segundo plano). Directorio de contactos/empresas.
 - API de WhatsApp/Meta. Multi-empresa por despliegue.
 - La web pública en sí (repo aparte con `sitio-marketing` sobre el esquema `web`).
 - «Visto» en los pendientes de la agenda y en los bloques de Inicio.

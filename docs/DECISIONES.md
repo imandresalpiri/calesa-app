@@ -1425,7 +1425,53 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   vista en cada tarjeta repetirían todo y no caben con el texto al 200 %.
 - **Las imágenes se preparan al elegirlas.** Opaca: WebP ≤ 1.600 px; con transparencia, tal cual si ya es PNG o WebP y cabe, si no PNG; Safari, que no
   codifica WebP en un `<canvas>`, cae a JPEG (la base admite `jpg`). El motivo de un archivo inválido se ve junto a la zona antes de enviar.
-- **Artes sigue a Cotizaciones en el Modo Live.** `/artes` y `/artes/[id]` son del área `cotizaciones`, y `artes.empresa.gestionar` se va con ella.
+- **Artes sigue a Cotizaciones en el Modo Live.** `/artes`, `/artes/[id]` y las rutas de sus imágenes son del área `cotizaciones`, y
+  `artes.empresa.gestionar` se va con ella.
+- **Artes va en el menú principal, después de Cotizaciones.** Con quien ve cotizaciones de algún origen; también en el celular (la lista sí
+  funciona ahí). La barra lateral pasa a 8 entradas de trabajo diario, más Repuestos.
+
+### El editor de artes
+
+- **Konva (`konva` y `react-konva`), no un lienzo a mano.** Transformar, ordenar capas, elegir con un recuadro y exportar a PNG es un motor 2D;
+  Konva es el de V1: ≈ 58 KB con gzip, y react-konva ≈ 8 KB más su reconciliador (≈ 38 KB); el chunk diferido del editor, con todo, ≈ 143 KB. Sólo
+  lo importan `features/editor/components/lienzo/**` y lo que carga la raíz diferida (`EditorDeArtes`): no corre en el servidor ni viaja en frío.
+- **El documento es propio (versión 2), no `stage.toJSON()`.** Konva no serializa imágenes y guardaría sus clases; el documento guarda unidades
+  lógicas del formato (el `Stage` escala, el documento no), lo valida Zod y su espejo en la base (`_artes_documento_valido()`). Uno de una versión
+  más nueva que la app no se abre: «Recarga».
+- **Los grupos son planos y contiguos.** Un grupo es un id que comparten capas seguidas en el orden, sin grupos dentro de grupos: ordenar,
+  arrastrar en «Capas» y pegar los mueven como unidad, y la base busca las imágenes en un solo nivel.
+- **Duplicar en otro formato ancla cada capa a su centro y no toca el tamaño del texto.** El centro escala por cada eje; imágenes y formas, por
+  el menor de los dos factores; el texto conserva `tamano`, `ancho`, interlineado y grosor (el error de V1, multiplicar y redondear `fontSize`,
+  achicaba el texto en cada cambio: lo fija el test A → B → A). Sólo entre formatos del mismo tipo: una imagen no se vuelve PDF. La copia es una
+  plantilla nueva; la de origen no cambia de formato.
+- **Las imágenes entran al lienzo por rutas del mismo origen, por id.** `/artes/imagenes/<id>` (inmutable: el objeto es por hash) y
+  `/artes/logos/<variante>` (revalida con su ETag: una variante cambia de archivo), con sesión y la guarda del Live; los datos de ejemplo, de
+  `public/artes/ejemplo/`. Ninguna URL de otro origen llega a un `Konva.Image`: el lienzo no queda «teñido» y exportar no falla. El documento
+  guarda el id, nunca una URL firmada que vence.
+- **A pantalla completa, en su grupo de rutas.** `/artes/<id>` vive en `src/app/(editor)/`, fuera del marco de `(app)` (sin menú lateral ni
+  barra), con su layout que lee la sesión y los ajustes de la empresa; la cáscara estática y el `loading.tsx` son el marco del editor en frío,
+  con las medidas de `rejilla.ts`. Volver a Artes recupera la lista como se dejó (`artes:volver` en `sessionStorage`): al cambiar de layout el
+  estado de la lista no se conserva. Sólo desde 1024 px; más angosto, el aviso con «Volver» y sin pedir el código.
+- **Tres paneles fijos, a lo Figma, con el riel de herramientas de Photoshop.** Riel (3 rem), «Agregar» y «Capas» (18 rem), el lienzo y el
+  inspector «Diseño» (19 rem): elegir, editar o cambiar de pestaña no cambia el tamaño del lienzo. Descartados: paneles flotantes que se acoplan
+  (cambian el lienzo y saltan), el inspector en una barra contextual (la sombra y el texto no caben con la letra al 200 %) y las capas a la
+  derecha (compiten con el inspector).
+- **Se guarda con «Guardar» o Ctrl+S, no solo.** El borrador sí se anota solo en el navegador (`localStorage`, por plantilla, unos segundos
+  después del último cambio y al salir): un guardado automático pisaría la versión de otra persona sin que nadie lo decida. Un guardado a la
+  vez, cada uno con la versión que devolvió el anterior (`PT409` sólo contra otra persona); sin red, sale solo al volver. El nombre se guarda con
+  el documento y no entra al historial de deshacer.
+- **El borrador al abrir:** sobre la misma versión se repone sin preguntar y avisa con «Descartar»; sobre una vieja (otra persona guardó después)
+  se ofrece encima del lienzo con «Recuperarlos» y «Descartar» (dos salidas: no es un toast). Tras un conflicto, «Recargar» trae lo nuevo y lo
+  propio queda ofrecido.
+- **Los avisos del editor van encima del lienzo, arriba y al centro.** El conflicto, el borrador ofrecido, salir con cambios y el «Sin conexión»
+  del código diferido (`diferido({ conElAviso })`): no cambian el tamaño de nada y la barra queda con «Volver».
+- **Sólo lectura en el mismo editor.** La plantilla de otra persona, o la de la empresa sin `artes.empresa.gestionar`: se eligen capas y se ve el
+  inspector con los campos apagados, sólo mover y mano, sin borrador; en la barra, «Sólo lectura», el motivo y «Duplicar para editar» (la copia
+  es propia y privada).
+- **Los atajos son del editor mientras no se escribe.** Escuchan en `window` y se ignoran dentro de un campo, de un diálogo o un menú, las flechas
+  en una lista de pestañas o de opciones, y Enter o Espacio sobre un botón. Esc, Ctrl+S y «?» van por el proveedor global (`useAtajo`), que suma
+  la lista del editor a «?». Ctrl+Y también rehace y Ctrl+A elige todo lo que no está oculto ni bloqueado. Copiar y pegar usan `localStorage`
+  (entre pestañas, no el portapapeles del sistema); un grupo copiado a medias se pega suelto.
 
 ## Flujos
 
