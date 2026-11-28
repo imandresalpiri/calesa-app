@@ -46,8 +46,9 @@ const sinComentarios = (texto: string) =>
 const PRIMITIVAS_DE_ANCHO =
   /boundingBox|viewportSize|innerWidth|innerHeight|scrollWidth|clientWidth|offsetWidth|getBoundingClientRect|getComputedStyle|fontSize|esMovil|isMobile|matchMedia|measureText/
 const DECLARACION = /^(?:export\s+)?(?:async\s+)?(?:function\s+(\w+)|const\s+(\w+)\s*=)/gm
-// Copian el viewport a otro contexto; no lo miden.
-const NO_MIDEN = new Set(['otraPersona'])
+// Copian el viewport a otro contexto (`otraPersona`) o miden una fuente con `measureText` (`metricasEnElNavegador`, el ascenso de la Geist
+// del PDF): ninguno mide la pantalla ni la disposición.
+const NO_MIDEN = new Set(['otraPersona', 'metricasEnElNavegador'])
 // Archivos de soporte que nombran las primitivas sin medir nada (este, y el que graba las huellas).
 const NO_SE_LEEN = new Set(['sin-celular.ts', 'huella.ts'])
 
