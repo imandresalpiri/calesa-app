@@ -88,6 +88,46 @@ describe('EditorConVariables', () => {
   })
 })
 
+describe('EditorConVariables con aceptaLaClave y compacto', () => {
+  it('una clave que acepta quien lo usa no se avisa ni se marca en rojo', () => {
+    const { container } = render(
+      <EditorConVariables
+        id="texto"
+        etiqueta="Texto"
+        valor="{ficha.motor} {foo}"
+        alCambiar={() => undefined}
+        variables={VARIABLES}
+        aceptaLaClave={(clave) => clave.startsWith('ficha.')}
+        largoMaximo={100}
+      />,
+    )
+    expect(screen.getByRole('status').textContent).toBe(
+      '{foo} no es una variable de este texto. Usa {cliente} o {codigo}.',
+    )
+    expect(container.querySelector('[data-variable="ficha.motor"]')?.className).not.toContain(
+      'peligro',
+    )
+    expect(container.querySelector('[data-variable="foo"]')?.className).toContain('peligro')
+  })
+
+  it('compacto, el botón lleva sólo el nombre y la clave en el título', () => {
+    render(
+      <EditorConVariables
+        id="texto"
+        etiqueta="Texto"
+        valor=""
+        alCambiar={() => undefined}
+        variables={VARIABLES}
+        largoMaximo={100}
+        compacto
+      />,
+    )
+    const boton = screen.getByRole('button', { name: 'Insertar Cliente ({cliente})' })
+    expect(boton.textContent).toBe('Cliente')
+    expect(boton.getAttribute('title')).toBe('{cliente}')
+  })
+})
+
 describe('TextoConVariables', () => {
   it('resalta las variables y marca en rojo la desconocida', () => {
     const { container } = render(<TextoConVariables texto="{cliente} {foo}" claves={['cliente']} />)

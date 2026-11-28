@@ -2,7 +2,11 @@
 
 import { cn } from 'cn'
 import { useId } from 'react'
-import { avisoDeVariablesDesconocidas, revisarVariables } from '@/shared/lib/texto-con-variables'
+import {
+  avisoDeVariablesDesconocidas,
+  PATRON_DE_VARIABLE,
+  revisarVariables,
+} from '@/shared/lib/texto-con-variables'
 import { Label } from '../label'
 import { BotonesDeVariable } from './botones-de-variable'
 import { CajaConEspejo } from './caja-con-espejo'
@@ -23,6 +27,29 @@ type Props = {
   largoMaximo: number
   deshabilitado?: boolean
   etiquetaDeLaVistaPrevia?: string
+  // Una clave que no tiene botón pero el texto acepta (una familia abierta: `{ficha.<campo>}`, `{celda.<concepto>}`): no se avisa ni se
+  // marca en rojo. Sin él, sólo valen las de `variables`.
+  aceptaLaClave?: (clave: string) => boolean
+  // Botones de variable chicos, sólo con su nombre (la clave en el `title`): para una columna angosta con muchas variables.
+  compacto?: boolean
+}
+
+// Las claves que valen en el texto: las de los botones y, de las que el texto lleva, las que acepta quien lo usa.
+function clavesQueValen(
+  texto: string,
+  claves: readonly string[],
+  aceptaLaClave: ((clave: string) => boolean) | undefined,
+): readonly string[] {
+  if (!aceptaLaClave) {
+    return claves
+  }
+  const aceptadas: string[] = []
+  for (const [, clave = ''] of texto.matchAll(PATRON_DE_VARIABLE)) {
+    if (!claves.includes(clave) && !aceptadas.includes(clave) && aceptaLaClave(clave)) {
+      aceptadas.push(clave)
+    }
+  }
+  return aceptadas.length === 0 ? claves : [...claves, ...aceptadas]
 }
 
 // Un texto largo con variables entre llaves: una `<textarea>` nativa (teclado, deshacer, lector de pantalla, IME y celular intactos) con el
@@ -40,13 +67,16 @@ export function EditorConVariables({
   largoMaximo,
   deshabilitado = false,
   etiquetaDeLaVistaPrevia = 'Vista previa',
+  aceptaLaClave,
+  compacto = false,
 }: Props) {
   const { areaRef, guardarSeleccion, insertar } = useInsercionEnElCursor(valor, alCambiar)
   const idAviso = useId()
   const idContador = useId()
   const claves = variables.map((variable) => variable.clave)
+  const valen = clavesQueValen(valor, claves, aceptaLaClave)
   const obligatorias = variables.filter((v) => v.obligatoria === true).map((v) => v.clave)
-  const { desconocidas, faltan } = revisarVariables(valor, claves, obligatorias)
+  const { desconocidas, faltan } = revisarVariables(valor, valen, obligatorias)
   const presentes = new Set(claves.filter((clave) => !faltan.includes(clave)))
   const aviso = motivo ?? avisoDeVariablesDesconocidas(desconocidas, claves)
   const largo = [...valor].length
@@ -59,6 +89,7 @@ export function EditorConVariables({
           variables={variables}
           presentes={presentes}
           deshabilitado={deshabilitado}
+          compacto={compacto}
           alInsertar={insertar}
         />
       </div>
@@ -66,7 +97,7 @@ export function EditorConVariables({
         <CajaConEspejo
           id={id}
           valor={valor}
-          claves={claves}
+          claves={valen}
           deshabilitado={deshabilitado}
           largoMaximo={largoMaximo}
           conAviso={aviso !== null}
@@ -99,7 +130,7 @@ export function EditorConVariables({
         <VistaPreviaDelTexto
           etiqueta={etiquetaDeLaVistaPrevia}
           texto={valor}
-          claves={claves}
+          claves={valen}
           valores={valores}
         />
       ) : null}
