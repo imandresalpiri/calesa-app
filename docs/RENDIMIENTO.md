@@ -640,6 +640,19 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   un documento, no una tabla que crece), en `memo` con callbacks estables. Las imágenes del lienzo son las de la biblioteca (≤ 1.600 px) por la ruta
   del mismo origen, con caché privada (la de la biblioteca, inmutable); «Agregar» muestra sólo miniaturas de 480 px y la biblioteca se lee de a
   `TAMANO_DE_VER_MAS`. La miniatura de la plantilla se exporta a 480 px de lado mayor.
+- Editor de artes con datos (el vehículo de ejemplo, `/artes/ejemplo/*`): ninguna consulta nueva ni total exacto.
+  - `GET /artes/ejemplo/vehiculos`: `buscarVehiculos` del inventario de a `TAMANO_DE_VER_MAS` + 1 por cursor, hasta `TOPE_DE_LO_CARGADO` con
+    `<AvisoDeTope>` (el camino: buscar por título, VIN o lote); sin texto, lo más nuevo por `vehiculos_origen_listado_idx`; con 3 letras o números,
+    las condiciones del inventario por los trigramas `vehiculos_*_trgm`. La medición es la de `medir-vehiculos-inventario.sql`.
+  - `GET /artes/ejemplo/vehiculos/[id]`: el vehículo y su layout por PK, las fotos de su galería (≤ 24; se ofrecen 20) y `vehiculo_relacionados()`
+    con `PRIMEROS_DE_RELACIONADOS`, ya medido en `medir-relacionados.sql` (sin «Ver todos» en el editor).
+  - `GET /artes/ejemplo/vehiculos/[id]/cotizaciones`: «De este vehículo» (`cotizaciones_de_este_vehiculo()`, ≤ 102 filas por
+    `cotizaciones_vehiculo_creado_idx`, medida en `medir-cotizaciones-de-este-vehiculo.sql`), «Ver más cotizaciones» hasta su tope.
+  - `GET /artes/ejemplo/cotizaciones/[id]`: la cotización y su hoja por PK, como «Compartir».
+  - Las fotos, por `/artes/fotos/<vehiculo>/<foto>`: la miniatura de 480 px en la lista y la de 1.600 px sólo para los índices que usa alguna capa
+    `foto`; inmutables por hash. El texto base, una fila por PK (configuración, sin volumen).
+  - En el navegador: una lectura nueva deja sin efecto la anterior; buscar espera mientras se tipea; el popover y «Textos» se piden con `diferido()`
+    al abrirse.
 - JS en frío: `/artes` y `/artes/[id]` en «JS en frío».
 
 ## Tablero: métricas
@@ -669,10 +682,10 @@ Cada sección por su RPC, de a `_acotar_pagina(p_tamano, 5, 20)` + 1, con el mí
   `/cotizaciones/nuevo` 480 (470,2 medidos sin el resumen de la derecha: la región del total, el cierre con «Guardar» y la ranura de la cabecera; con la hoja con el aspecto de V1, la tarjeta del total como pieza de una sección (`TotalDeHoja`), el interruptor «Privada», los botones «Recargar la página» y «Copiar el enlace de esta página» del marco y la marca, «Calculado» y la región del aviso de un cálculo pisado: regla del 5 %; con la subasta, `?origen=`; la línea «Descargar PDF», el contexto del «⋯» de la guardada y el interruptor «Privada» viajan con la hoja), `/cotizaciones/[id]` 490
   (el título de la cotización y la cabecera compacta, con el menú de Base UI del «⋯» en frío; 484,6 medidos con «Hacer privada», la insignia, los dos botones del marco y la cabecera quieta de la ranura: regla del 5 %), `/cotizaciones/comparar` 380, `/logistica` 390,
   `/logistica/bandeja` 390 (provisional), `/logistica/fase/[fase]` 390, `/logistica/embarques`, `/logistica/embarques/[id]` y `/logistica/aduana` 410 (386,1, 385,7 y 382,3 medidos), `/logistica/vehiculo/[id]` 480, `/configuracion/roles` 410 (388,2 medidos con los niveles de acceso y «Quién crea y quién ve» dentro de la matriz; el «⋯» de cada nivel, sus modales y el cuadro van con `diferido()`);
-  `/cotizaciones/papelera` 445 (en su spec; 441,3 medidos con el Modo Live configurable en el marco: regla del 5 %), `/artes` 410 (387,8 medidos en 28 chunks con
+  `/cotizaciones/papelera` 445 (en su spec; 441,3 medidos con el Modo Live configurable en el marco: regla del 5 %), `/artes` 410 (388,4 medidos en 28 chunks con
   la rejilla vacía; la pestaña Imágenes, «Nueva plantilla» y los diálogos van con `diferido()`; «Ver más» es una Server Action: con la lectura desde el navegador,
-  supabase-js sumaba ≈ 70 KB), `/artes/[id]` 250 (231,9 medidos en 15 chunks: el marco del editor de artes, sin el de `(app)`; Konva, react-konva, dnd-kit y el
-  editor llegan con `diferido()`).
+  supabase-js sumaba ≈ 70 KB), `/artes/[id]` 250 (231,9 medidos en 15 chunks: el marco del editor de artes, sin el de `(app)`, con el hueco del vehículo de ejemplo y la
+  pestaña «Textos»; Konva, react-konva, dnd-kit, el editor, el popover del vehículo de ejemplo y «Textos» llegan con `diferido()`).
 - Medido: `/leads` 526,5 KB en 36 chunks y `/leads/[id]` 590,2 KB (el «+» y los «⋯» de los bloques de la derecha van en frío: `DropdownMenu` y `MasAcciones`
   viajan con el «⋯» de la cabecera). Al borde: `/cotizaciones` 391,2 de 400 (con el resumen en pestañas y su lectura sobre las fichas; el despliegue de un grupo y «Comparar» van con `diferido()`; con `<MenuDeVistas>` en
   frío serían 450: va con `diferido()`; la imagen del resumen, sólo su cáscara: `CLAVE_DEL_VISOR` por el barril del visor sumaba 2,5 KB, se importa de

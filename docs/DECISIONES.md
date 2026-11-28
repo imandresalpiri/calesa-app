@@ -1435,7 +1435,7 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
 - **Konva (`konva` y `react-konva`), no un lienzo a mano.** Transformar, ordenar capas, elegir con un recuadro y exportar a PNG es un motor 2D;
   Konva es el de V1: ≈ 58 KB con gzip, y react-konva ≈ 8 KB más su reconciliador (≈ 38 KB); el chunk diferido del editor, con todo, ≈ 143 KB. Sólo
   lo importan `features/editor/components/lienzo/**` y lo que carga la raíz diferida (`EditorDeArtes`): no corre en el servidor ni viaja en frío.
-- **El documento es propio (versión 2), no `stage.toJSON()`.** Konva no serializa imágenes y guardaría sus clases; el documento guarda unidades
+- **El documento es propio (versión 3), no `stage.toJSON()`.** Konva no serializa imágenes y guardaría sus clases; el documento guarda unidades
   lógicas del formato (el `Stage` escala, el documento no), lo valida Zod y su espejo en la base (`_artes_documento_valido()`). Uno de una versión
   más nueva que la app no se abre: «Recarga».
 - **Los grupos son planos y contiguos.** Un grupo es un id que comparten capas seguidas en el orden, sin grupos dentro de grupos: ordenar,
@@ -1445,8 +1445,9 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   achicaba el texto en cada cambio: lo fija el test A → B → A). Sólo entre formatos del mismo tipo: una imagen no se vuelve PDF. La copia es una
   plantilla nueva; la de origen no cambia de formato.
 - **Las imágenes entran al lienzo por rutas del mismo origen, por id.** `/artes/imagenes/<id>` (inmutable: el objeto es por hash) y
-  `/artes/logos/<variante>` (revalida con su ETag: una variante cambia de archivo), con sesión y la guarda del Live; los datos de ejemplo, de
-  `public/artes/ejemplo/`. Ninguna URL de otro origen llega a un `Konva.Image`: el lienzo no queda «teñido» y exportar no falla. El documento
+  `/artes/logos/<variante>` (revalida con su ETag: una variante cambia de archivo), con sesión y la guarda del Live; las fotos de un vehículo, por
+  `/artes/fotos/<vehiculo>/<foto>` (sólo ids: la ruta baja el objeto del bucket público y lo sirve inmutable); la tarjeta, por
+  `/cotizaciones/<id>/imagen`; los datos de ejemplo, de `public/artes/ejemplo/`. Ninguna URL de otro origen llega a un `Konva.Image`: el lienzo no queda «teñido» y exportar no falla. El documento
   guarda el id, nunca una URL firmada que vence.
 - **A pantalla completa, en su grupo de rutas.** `/artes/<id>` vive en `src/app/(editor)/`, fuera del marco de `(app)` (sin menú lateral ni
   barra), con su layout que lee la sesión y los ajustes de la empresa; la cáscara estática y el `loading.tsx` son el marco del editor en frío,
@@ -1473,6 +1474,59 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   en una lista de pestañas o de opciones, y Enter o Espacio sobre un botón. Esc, Ctrl+S y «?» van por el proveedor global (`useAtajo`), que suma
   la lista del editor a «?». Ctrl+Y también rehace y Ctrl+A elige todo lo que no está oculto ni bloqueado. Copiar y pegar usan `localStorage`
   (entre pestañas, no el portapapeles del sistema); un grupo copiado a medias se pega suelto.
+
+### El editor de artes con datos
+
+- **El texto base vive en `artes`** (`artes_textos_base`, uno por origen, con versión, por `artes_texto_base_guardar` con `cotizaciones.configurar`
+  del origen): es «lo que se comparte», junto a las plantillas de arte, y lo lee quien ve cotizaciones del origen. Nace con un inicial según el
+  tipo del origen (de subasta, con lote, subasta y hora del patio; manual, sin ellas), con su espejo puro en TS que una prueba compara con la SQL.
+- **Los datos reales los arma `src/app`, no un import.** `artes` no importa `vehiculos`, `cotizaciones`, `web` ni `leads/index`: compartir una
+  cotización con plantilla hará `cotizaciones → artes`, y lo inverso sería un ciclo. Las rutas GET JSON de `src/app/(app)/artes/ejemplo/*` (nunca
+  guardadas, con la sesión de quien pide y la guarda del Live) leen y arman; el módulo define sólo las formas. Son lecturas: una Server Action no
+  debe revalidar ni remontar lo escrito. La única dependencia nueva es `leads/client` (el editor del Mensaje del portal en el lugar): `leads` no
+  depende de `artes`.
+- **Sin nada elegido, todo es de ejemplo; con un vehículo, todo es real, sin mezclar** (decidido sin preguntar). Mezclar un VIN de ejemplo con un
+  vehículo real mostraría un arte que nunca va a salir; lo que falta se esconde y lo dice el aviso. La miniatura se arma sólo con los datos de
+  ejemplo: la lista de Artes no muestra un cliente ni un precio de nadie.
+- **La línea de una variable vacía se quita entera.** También la que queda en blanco sólo por variables vacías. Una variable de subasta en un origen
+  manual es «conocida que no aplica»: no se ofrece, se avisa y su línea se quita, sin trabar el guardado (las plantillas viejas usan `{lote}`).
+- **Una variable desconocida apaga «Guardar» de la plantilla de arte** con su motivo junto al botón; el borrador local sí se anota (decidido sin
+  preguntar: la lectura literal de «se marca y no se guarda»). En el lienzo se resuelve vacía y no se dibuja nunca. La base rechaza igual la del
+  texto base. El lienzo y el texto base las reconocen con la misma regla que la SQL (`esClaveDelArte`).
+- **Los montos del lienzo van con `formatearMonto`, no con `<Monto>`.** El lienzo es la imagen que se entrega, como el PDF: un texto de Konva no es
+  un componente. Con el Modo Live, el gemelo sin moneda (`formatearMontoSinMoneda`), también en la vista previa de «Textos».
+- **El lead de entrada** es el recordado si sigue entre los relacionados; si no, el de la cotización elegida si está entre ellos; si no, el
+  vinculado; si no, ninguno (decidido sin preguntar). Con el Modo Live sigue a la configuración de los clientes (`src/app/(app)/_arte/lead-de-ejemplo.ts`,
+  puro, para que compartir lo herede): apagado, ningún lead ni nombre en el lienzo («Oculto en Modo Live»); nombres, sólo el nombre.
+- **La cotización no tiene «Ninguna»; el lead sí («Ninguno»).** Con un vehículo elegido la cotización de entrada es la aprobada o la primera de «De
+  este vehículo» (las celdas, el total y la tarjeta salen de ella); un lead puede no haber. Los dos, en selects nativos dentro del popover (un
+  menú dentro de un popover es un segundo nivel).
+- **La elección se recuerda en el navegador**, por persona y plantilla (`artes:ejemplo:<persona>:<plantilla>`), validada con Zod y en try/catch, y
+  no entra al documento: es de quien mira, no del arte. Lo recordado que ya no se ve (un 404) se suelta en silencio y se vuelve a los datos de
+  ejemplo. `recordarElEjemplo` sale por `client.ts` para dejar elegido el ejemplo antes de abrir el editor.
+- **«Vehículo de ejemplo» es un disparador en la barra con su popover**, de ancho fijo el disparador y de alto fijo el popover (diferido: su código
+  se pide al abrirlo). Descartado: tres controles en la barra (vehículo, cotización y lead), que a 1024 px no caben con el nombre, el formato y
+  el guardado. El disparador y el renglón del guardado miden 13 y 14 rem hasta 1280 px y 16 y 18 desde ahí (`ANCHOS_DE_LA_BARRA`): fijos por ancho
+  de pantalla y no por contenido, para que nada salte y a 1024 px entren «Guardar» y el «⋯». Lo de la derecha no se encoge y se corta el nombre; en sólo lectura, el
+  nombre (con tope: 12 rem hasta 1280 px, 20 desde ahí) y el motivo, para que «Duplicar para editar» y el «⋯» entren con cualquier motivo.
+- **Buscar pide 3 letras o números; sin texto, lo más nuevo, de una.** La búsqueda es la del inventario (`buscarVehiculos`, por cursor, hasta el
+  tope): no es una consulta nueva y no lleva medición nueva.
+- **El aviso de lo que falta** sale sólo con un vehículo real (con los de ejemplo no falta nada), es el último de los avisos del lienzo y se cierra
+  por elección: vuelve si cambia el vehículo, la cotización o lo que falta. Una foto o la tarjeta que no carga se suma.
+- **Fotos: el orden de la galería con la portada primero, hasta 20** (`MAXIMO_DE_FOTOS_DEL_VEHICULO`; el vehículo admite 24: de la 21 a la 24 no se
+  ofrecen, decidido sin preguntar). La lista usa la miniatura de 480 px; el lienzo pide 1.600 px sólo para las que usa alguna capa. El foco
+  (`foco: { x, y }` en 0..1, documento v3) sólo actúa con «Cubrir».
+- **`{celda.<concepto>}` sale de las líneas de la tarjeta de lo guardado,** sólo las del nivel «todos» (decidido sin preguntar: ninguna celda de un
+  nivel restringido). No tienen botón: cambian con cada cotización y se aceptan escritas (`valeEnElOrigen`).
+- **`{subasta}` y `{hora_del_patio}`** siguen la regla del texto de compartir de hoy: la fecha y hora en la zona de la empresa con su ciudad, y la del patio sólo con su
+  zona y el cierre conocidos. Una subasta ya pasada igual llena su valor (decidido sin preguntar: avisar es de compartir).
+- **«Textos» es una pestaña del panel derecho**, en la misma vista del lienzo: diferida al abrirla y montada desde entonces (guardar devuelve la
+  versión nueva y el panel sigue con ella; desmontarla perdería la versión). El texto base y el Mensaje del portal son dos secciones planas con
+  su «Guardar»; la versión viaja como el texto que dio la base, nunca por `Date`.
+- **El alto de un texto no cuenta para «Cambios sin guardar».** Con otro vehículo el texto se vuelve a medir y cambia su alto: si contara, elegir
+  un ejemplo dejaría cambios que nadie hizo.
+- **Un origen inactivo igual abre su plantilla.** La página busca el origen entre los activos y, si no está, entre todos (`getOrigenes(true)`);
+  sin poder leerlo, «No pudimos leer el origen de esta plantilla.».
 
 ## Flujos
 

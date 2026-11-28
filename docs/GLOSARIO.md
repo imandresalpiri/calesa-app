@@ -713,18 +713,31 @@ ese nombre: nunca un sinónimo ni su traducción al inglés.
   (imagen o PDF) para compartir una cotización. Sin una, o si ya no la ve, se comparte lo de hoy: la **Imagen de la tarjeta** o el **PDF de la cotización**.
 - **Editor de artes** — `/artes/<id>`, `PantallaDelEditor`, `features/editor/`: la pantalla completa (sin el marco de la app, sólo escritorio desde
   1024 px) donde se dibuja una plantilla de arte: herramientas a la izquierda con «Agregar» y «Capas», el lienzo al centro con zoom y desplazamiento
-  libres, y el inspector «Diseño» a la derecha. Quien no puede editarla la abre en sólo lectura con «Duplicar para editar».
+  libres, y a la derecha las pestañas «Diseño» (el inspector) y «Textos» (el **Texto base del origen** y el mensaje del portal); en la barra, el
+  **Vehículo de ejemplo**. Quien no puede editarla la abre en sólo lectura con «Duplicar para editar».
 - **Capa** — `CapaDeArte`, `paginas[*].capas[*]` del documento de una plantilla de arte: cada elemento del lienzo (texto, imagen de la biblioteca,
   forma, línea, trazo, logo, foto del vehículo o tarjeta de la cotización), con su caja en unidades del formato, su rotación alrededor del centro, y
-  si está oculta o bloqueada. El orden del arreglo es el de dibujo: la última va adelante. No es una **Capa** de un mapa ni de la hoja.
+  si está oculta o bloqueada. La foto lleva su encuadre («cubrir» o «contener») y su **foco** (`foco: { x, y }`, de 0 a 1: el punto que queda a la
+  vista al cubrir). El orden del arreglo es el de dibujo: la última va adelante. No es una **Capa** de un mapa ni de la hoja.
 - **Grupo de capas** — `GrupoDeCapas`, `paginas[*].grupos` y `grupoId` de cada capa: capas que se eligen, mueven, ocultan y bloquean juntas. De un
   solo nivel y plano (sus miembros van seguidos en el arreglo de capas): «Agrupar» (Ctrl+G) y «Desagrupar» (Ctrl+Mayús+G).
 - **Guía inteligente** — `ajustar()`, `entities/editor/guias.ts`: la línea que aparece al mover una capa cuando su borde o su centro coincide con el
   borde o el centro del documento o de otra capa visible, y el ajuste que la deja justo ahí (con Alt no ajusta).
 - **Trazo** — `CapaDe<'trazo'>`, la herramienta «Pluma» (P): una figura libre de nodos con curvas Bézier (cada nodo con sus asas de entrada y salida),
   abierta o cerrada. No es una **Línea**, que es un segmento de dos puntos.
-- **Datos de ejemplo** — `DATOS_DE_EJEMPLO`, `entities/editor/datos-de-ejemplo.ts`: el vehículo y la cotización inventados con que el editor de artes
-  llena las variables (`{vehiculo}`, `{marca}`…), las fotos del vehículo y la tarjeta de la cotización mientras se diseña. Sin montos.
+- **Datos de ejemplo** — `datosDelArteDeEjemplo()`, `entities/editor/datos-de-ejemplo.ts`: el vehículo, la cotización y el lead inventados con que el
+  editor de artes llena los **Elementos con datos** mientras no hay un **Vehículo de ejemplo** elegido (las fotos y la tarjeta de `public/artes/ejemplo/`).
+  Quien comparte y la empresa son siempre los de verdad. Con un vehículo elegido, todo es real: nunca se mezclan.
+- **Vehículo de ejemplo** — `useVehiculoDeEjemplo`, `artes:ejemplo:<persona>:<plantilla>` en el `localStorage`: el vehículo del origen de la plantilla
+  de arte, con una de sus cotizaciones y uno de sus leads relacionados, que la persona elige en la barra del editor para ver la plantilla con datos
+  reales. Se recuerda por plantilla en ese navegador y no se guarda en el documento. Sin `vehiculos.ver` en el origen, los **Datos de ejemplo**.
+- **Elemento con datos** — `entities/datos/`, `capasConDatos()`: una capa que se llena sola con los datos del vehículo, su cotización, el lead, quien
+  comparte y la empresa: un texto con variables (`{vin}`, `{ficha.<clave>}`, `{celda.<concepto>}`, `{red.instagram}`…), la foto N, la tarjeta de la
+  cotización o el logo en su variante. Lo que falta se esconde y, en un texto, **se quita la línea entera** de la variable vacía; arriba del lienzo,
+  «A esta plantilla le faltan datos con este vehículo: …». En «Capas», la marca «Con datos» (y «Sin datos» si quedó escondida).
+- **Texto base del origen** — `artes_textos_base`, `artes_texto_base_guardar()`, `textoBaseInicial()`: el texto de compartir por defecto de un origen,
+  con variables, uno por origen. Nace con el inicial de su tipo (el de subasta nombra el lote, la subasta y la hora del patio; el manual, no). Lo lee
+  quien ve cotizaciones del origen y lo cambia quien tiene `cotizaciones.configurar` en él, desde «Textos» del editor de artes.
 - **Duplicar en otro formato** — `reacomodarEnOtroFormato()`, `duplicarEnOtroFormato`, `?panel=otro-formato`: la copia de una plantilla de arte en
   otro formato del mismo tipo (imagen o PDF; una plantilla no cambia de formato). Cada capa conserva su lugar relativo anclada a su centro; imágenes y
   formas escalan por el menor de los dos factores y **el texto conserva su tamaño**.
