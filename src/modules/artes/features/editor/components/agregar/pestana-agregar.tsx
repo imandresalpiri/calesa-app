@@ -8,15 +8,18 @@ import { SeccionFormas } from './seccion-formas'
 import { SeccionLogo } from './seccion-logo'
 import { SeccionTexto } from './seccion-texto'
 
-type Props = Pick<PropsDelPanelIzquierdo, 'editor' | 'logos' | 'alAgregar' | 'pedidoDeLaBiblioteca'>
+type Props = Pick<
+  PropsDelPanelIzquierdo,
+  'editor' | 'logos' | 'datos' | 'alAgregar' | 'pedidoDeLaBiblioteca'
+>
 
 // La pestaña «Agregar» del panel izquierdo: Texto, Formas, Logo, De la cotización y Biblioteca, una debajo de otra. En sólo lectura o con la
 // página en su tope de capas nada se agrega (cada botón dice por qué).
-export function PestanaAgregar({ editor, logos, alAgregar, pedidoDeLaBiblioteca }: Props) {
+export function PestanaAgregar({ editor, logos, datos, alAgregar, pedidoDeLaBiblioteca }: Props) {
   const motivo = motivoParaAgregar(editor.pagina, editor.soloLectura)
   return (
     <>
-      <SeccionTexto motivo={motivo} alAgregar={alAgregar} />
+      <SeccionTexto motivo={motivo} alAgregar={alAgregar} datos={datos} />
       <SeccionFormas motivo={motivo} alAgregar={alAgregar} />
       <SeccionLogo logos={logos} motivo={motivo} alAgregar={alAgregar} />
       <SeccionDeLaCotizacion motivo={motivo} alAgregar={alAgregar} />

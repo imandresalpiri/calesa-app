@@ -23,7 +23,7 @@ function cursorDe(herramienta: HerramientaDelEditor, mano: boolean, paneando: bo
 // El lienzo del editor de artes: un `Stage` de Konva del tamaño del área, con la cámara (posición y escala), la capa del documento (lo que
 // se exporta) y la de la interfaz encima; el texto que se escribe en el lugar y la píldora del zoom van en HTML sobre él.
 export function Lienzo(props: PropsDelLienzo) {
-  const { editor, logos, herramienta, camara, tamano } = props
+  const { editor, conDatos, herramienta, camara, tamano } = props
   const { pagina, medidas, soloLectura } = editor
   const { escala, mano, texto, puntero, arrastre, fuentes, pluma, colores, ...l } = useLienzo(props)
   const { stage, setStage, setArea, alMedirTexto } = l
@@ -56,7 +56,7 @@ export function Lienzo(props: PropsDelLienzo) {
         <CapaDeContenido
           pagina={pagina}
           medidas={medidas}
-          logos={logos}
+          conDatos={conDatos}
           escucha={herramienta === 'mover' && !mano}
           soloLectura={soloLectura}
           editando={texto.capa?.id ?? null}

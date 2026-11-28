@@ -18,7 +18,7 @@ const FLECHAS: Readonly<Record<string, number>> = { ArrowLeft: -1, ArrowRight: 1
 // no se vuelve a leer al ir y volver); «Capas», sólo mientras se ve (se dibuja con cada cambio del documento). Con el teclado, ← y → cambian
 // de pestaña; la flecha llega a los atajos del editor con `defaultPrevented`.
 export function PanelIzquierdo(props: PropsDelPanelIzquierdo) {
-  const { editor, logos, pestana, alCambiarPestana } = props
+  const { editor, logos, datos, pestana, alCambiarPestana } = props
   const base = useId()
   const agregarVista = useAbiertoAlgunaVez(pestana === 'agregar')
   const idDe = (p: PestanaIzquierda, que: 'pestana' | 'panel') => `${base}-${que}-${p}`
@@ -73,6 +73,7 @@ export function PanelIzquierdo(props: PropsDelPanelIzquierdo) {
           <PestanaAgregar
             editor={editor}
             logos={logos}
+            datos={datos}
             alAgregar={props.alAgregar}
             pedidoDeLaBiblioteca={props.pedidoDeLaBiblioteca}
           />
@@ -85,7 +86,9 @@ export function PanelIzquierdo(props: PropsDelPanelIzquierdo) {
         hidden={pestana !== 'capas'}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
-        {pestana === 'capas' ? <PestanaCapas editor={editor} logos={logos} /> : null}
+        {pestana === 'capas' ? (
+          <PestanaCapas editor={editor} logos={logos} conDatos={datos.conDatos} />
+        ) : null}
       </div>
     </aside>
   )

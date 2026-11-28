@@ -8,15 +8,16 @@ import {
   motivoParaAgrupar,
   motivoParaDesagrupar,
 } from '../../../../entities/editor/capas-en-la-lista'
+import type { CapasConDatos } from '../../../../entities/datos/capas-con-datos'
 import type { LogoDelEditor } from '../../../../entities/tipos'
 import type { EditorDeArte } from '../../tipos'
 import { ListaDeCapas } from './lista-de-capas'
 
-type Props = { editor: EditorDeArte; logos: readonly LogoDelEditor[] }
+type Props = { editor: EditorDeArte; logos: readonly LogoDelEditor[]; conDatos: CapasConDatos }
 
 // La pestaña «Capas» del panel izquierdo: su título con «Agrupar» y «Desagrupar» (apagados, con el motivo en el título, cuando lo elegido no
 // alcanza o en sólo lectura) y la lista de lo que hay en la página.
-export function PestanaCapas({ editor, logos }: Props) {
+export function PestanaCapas({ editor, logos, conDatos }: Props) {
   const { pagina, estado, despachar, soloLectura } = editor
   const id = useId()
   const botones = [
@@ -67,7 +68,7 @@ export function PestanaCapas({ editor, logos }: Props) {
           ))}
         </div>
       </div>
-      <ListaDeCapas editor={editor} logos={logos} />
+      <ListaDeCapas editor={editor} logos={logos} conDatos={conDatos} />
     </section>
   )
 }

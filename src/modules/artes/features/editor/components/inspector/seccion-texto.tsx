@@ -10,7 +10,7 @@ import {
   NOMBRES_DE_LOS_PESOS,
 } from '../../../../entities/editor/fuentes'
 import { LIMITES_DEL_INSPECTOR } from '../../../../entities/editor/inspector'
-import type { EditorDeArte } from '../../tipos'
+import type { DatosEnElEditor, EditorDeArte } from '../../tipos'
 import { AvisoDeLasVariables } from './aviso-de-las-variables'
 import { CampoDeColor } from './campo-de-color'
 import { CampoDeOpciones } from './campo-de-opciones'
@@ -21,7 +21,7 @@ import { CamposDelBorde } from './campos-del-borde'
 import { SeccionDelInspector } from './seccion-del-inspector'
 
 type Texto = CapaDe<'texto'>
-type Props = { editor: EditorDeArte; capa: Texto }
+type Props = { editor: EditorDeArte; capa: Texto; datos: DatosEnElEditor }
 
 const FUENTES = FUENTES_DE_ARTE.map((f) => ({ valor: f.clave, etiqueta: f.nombre }))
 const PESOS = PESOS_DE_TEXTO.map((p) => ({ valor: String(p), etiqueta: NOMBRES_DE_LOS_PESOS[p] }))
@@ -33,7 +33,7 @@ const ALINEACIONES = [
 
 const PASO_DEL_INTERLINEADO = 0.1
 
-export function SeccionTexto({ editor, capa }: Props) {
+export function SeccionTexto({ editor, capa, datos }: Props) {
   const apagado = editor.soloLectura
   const cambiar = (campo: string, cambio: (texto: Texto) => Texto) => {
     cambiarLasCapas(editor, [capa.id], campo, (c) => (c.tipo === 'texto' ? cambio(c) : c))
@@ -101,7 +101,11 @@ export function SeccionTexto({ editor, capa }: Props) {
         }}
       />
       <CamposDelBorde editor={editor} capa={capa} etiqueta="Contorno" opcional />
-      <AvisoDeLasVariables texto={capa.texto} />
+      <AvisoDeLasVariables
+        texto={capa.texto}
+        catalogo={datos.catalogo}
+        origen={datos.origen.nombre}
+      />
     </SeccionDelInspector>
   )
 }
