@@ -1456,9 +1456,10 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   inspector «Diseño» (19 rem): elegir, editar o cambiar de pestaña no cambia el tamaño del lienzo. Descartados: paneles flotantes que se acoplan
   (cambian el lienzo y saltan), el inspector en una barra contextual (la sombra y el texto no caben con la letra al 200 %) y las capas a la
   derecha (compiten con el inspector).
-- **Se guarda con «Guardar» o Ctrl+S, no solo.** El borrador sí se anota solo en el navegador (`localStorage`, por plantilla, unos segundos
-  después del último cambio y al salir): un guardado automático pisaría la versión de otra persona sin que nadie lo decida. Un guardado a la
-  vez, cada uno con la versión que devolvió el anterior (`PT409` sólo contra otra persona); sin red, sale solo al volver. El nombre se guarda con
+- **Se guarda con «Guardar» o Ctrl+S, no solo.** El borrador sí se anota solo en el navegador (`localStorage`, por persona y plantilla, unos
+  segundos después del último cambio y al salir): un guardado automático pisaría la versión de otra persona sin que nadie lo decida. Un guardado
+  a la vez, cada uno con la versión que devolvió el anterior (`PT409` sólo contra otra persona); el que se pidió mientras otro volaba no se
+  repite si ése falló; sin red, sale solo al volver. El nombre se guarda con
   el documento y no entra al historial de deshacer.
 - **El borrador al abrir:** sobre la misma versión se repone sin preguntar y avisa con «Descartar»; sobre una vieja (otra persona guardó después)
   se ofrece encima del lienzo con «Recuperarlos» y «Descartar» (dos salidas: no es un toast). Tras un conflicto, «Recargar» trae lo nuevo y lo
