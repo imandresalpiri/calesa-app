@@ -2,10 +2,13 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CodigoError, Resultado } from '@/shared/lib/errores'
 
-const pedidos: { ruta: string; resolver: (r: Resultado<Blob>) => void }[] = []
+const pedidos: {
+  ruta: string
+  resolver: (r: Resultado<{ blob: Blob; faltan: number }>) => void
+}[] = []
 vi.mock('../../../areas/tarjeta/composicion-pdf.client', () => ({
   pedirElPdf: (ruta: string) =>
-    new Promise<Resultado<Blob>>((resolver) => {
+    new Promise<Resultado<{ blob: Blob; faltan: number }>>((resolver) => {
       pedidos.push({ ruta, resolver })
     }),
 }))
@@ -31,7 +34,7 @@ describe('<DescargarPdfDeLaTarjeta>', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Descargar PDF' }))
     const bajando = screen.getByRole('button', { name: 'Descargando…' }) as HTMLButtonElement
     expect(bajando.disabled).toBe(true)
-    pedidos[0]?.resolver({ ok: true, data: new Blob(['%PDF']) })
+    pedidos[0]?.resolver({ ok: true, data: { blob: new Blob(['%PDF']), faltan: 0 } })
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Descargar PDF' })).toBeTruthy()
     })

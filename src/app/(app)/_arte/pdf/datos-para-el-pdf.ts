@@ -13,6 +13,7 @@ import {
   type CatalogoDelArte,
   type DatosDelArte,
   type EjemploElegido,
+  type FijosDelArte,
   type LogoDelEditor,
 } from '@/modules/artes'
 import { conArchivo, leerLogos } from '@/modules/empresa'
@@ -62,7 +63,7 @@ async function leerElElegido(
 function conElElegido(
   { vehiculo, cotizacion }: Elegido,
   eleccion: EjemploElegido,
-  fijos: Parameters<typeof datosDelEjemploElegido>[1],
+  fijos: FijosDelArte,
 ) {
   const lead =
     leadsDelEjemplo(vehiculo.respuesta.leads).find((l) => l.leadId === eleccion.leadId) ?? null
@@ -75,13 +76,13 @@ function conElElegido(
   }
 }
 
-type ConDatos = { datos: DatosDelArte; fotos: VehiculoDelArte['fotos'] }
+export type ConDatos = { datos: DatosDelArte; fotos: VehiculoDelArte['fotos'] }
 
 // Sin elección, los datos de ejemplo; con ella, los del elegido si todavía se ve (si no, nulo).
 function conLosDatos(
   elegido: Resultado<Elegido | null> | null,
   eleccion: EjemploElegido | null,
-  { fijos, origen }: { fijos: Parameters<typeof datosDelEjemploElegido>[1]; origen: string },
+  { fijos, origen }: { fijos: FijosDelArte; origen: string },
 ): Resultado<ConDatos | null> {
   if (elegido === null || eleccion === null) {
     return ok({ datos: datosDelArteDeEjemplo({ fijos, origen }), fotos: [] })
@@ -92,16 +93,46 @@ function conLosDatos(
   return ok(elegido.data === null ? null : conElElegido(elegido.data, eleccion, fijos))
 }
 
-function deDondeSalen(
-  { datos, fotos }: ConDatos,
-  logos: DatosParaElPdf['deDonde']['logos'],
-): DatosParaElPdf['deDonde'] {
+// Lo que no depende de los datos elegidos: el origen de la plantilla con su catálogo, lo fijo del arte y los logos con archivo.
+export type LoComunDelPdf = {
+  origen: string
+  catalogo: CatalogoDelArte
+  fijos: FijosDelArte
+  logos: ReturnType<typeof conArchivo>
+}
+
+export async function leerLoComunDelPdf(origenId: string): Promise<Resultado<LoComunDelPdf>> {
+  const [origenes, layout, fijos, logos] = await Promise.all([
+    getOrigenes(true),
+    leerLayout(origenId, { conUso: false }),
+    leerFijosDelArte(),
+    leerLogos(),
+  ])
+  const origen = origenes.ok ? origenes.data.find((o) => o.id === origenId) : undefined
+  if (!origen) {
+    return fallo('inesperado', NO_SE_LEYO_EL_ORIGEN)
+  }
+  return ok({
+    origen: origen.nombre,
+    catalogo: variablesDelArte({ tipo: origen.tipo, campos: layout.ok ? layout.data.campos : [] }),
+    fijos,
+    logos: logos.ok ? conArchivo(logos.data) : [],
+  })
+}
+
+// Los datos ya armados con lo común: los logos van al resolver sin su ruta; las imágenes reales salen sólo de lo que es real.
+export function datosParaElPdf(comun: LoComunDelPdf, { datos, fotos }: ConDatos): DatosParaElPdf {
   const real = !datos.deEjemplo
   return {
-    vehiculoId: real ? (datos.vehiculo?.id ?? null) : null,
-    fotos,
-    cotizacionId: real ? (datos.cotizacion?.id ?? null) : null,
-    logos,
+    datos,
+    catalogo: comun.catalogo,
+    logos: comun.logos.map(({ id, nombre, ancho, alto }) => ({ id, nombre, ancho, alto })),
+    deDonde: {
+      vehiculoId: real ? (datos.vehiculo?.id ?? null) : null,
+      fotos,
+      cotizacionId: real ? (datos.cotizacion?.id ?? null) : null,
+      logos: comun.logos,
+    },
   }
 }
 
@@ -109,26 +140,17 @@ export async function leerDatosParaElPdf(
   sesion: Sesion,
   { origenId, eleccion }: { origenId: string; eleccion: EjemploElegido | null },
 ): Promise<Resultado<DatosParaElPdf | null>> {
-  const [origenes, layout, fijos, logos, elegido] = await Promise.all([
-    getOrigenes(true),
-    leerLayout(origenId, { conUso: false }),
-    leerFijosDelArte(),
-    leerLogos(),
+  const [comun, elegido] = await Promise.all([
+    leerLoComunDelPdf(origenId),
     eleccion === null ? null : leerElElegido(sesion, origenId, eleccion),
   ])
-  const origen = origenes.ok ? origenes.data.find((o) => o.id === origenId) : undefined
-  if (!origen) {
-    return fallo('inesperado', NO_SE_LEYO_EL_ORIGEN)
+  if (!comun.ok) {
+    return comun
   }
-  const conDatos = conLosDatos(elegido, eleccion, { fijos, origen: origen.nombre })
+  const { fijos, origen } = comun.data
+  const conDatos = conLosDatos(elegido, eleccion, { fijos, origen })
   if (!conDatos.ok || conDatos.data === null) {
     return conDatos.ok ? ok(null) : conDatos
   }
-  const variantes = logos.ok ? conArchivo(logos.data) : []
-  return ok({
-    datos: conDatos.data.datos,
-    catalogo: variablesDelArte({ tipo: origen.tipo, campos: layout.ok ? layout.data.campos : [] }),
-    logos: variantes.map(({ id, nombre, ancho, alto }) => ({ id, nombre, ancho, alto })),
-    deDonde: deDondeSalen(conDatos.data, variantes),
-  })
+  return ok(datosParaElPdf(comun.data, conDatos.data))
 }

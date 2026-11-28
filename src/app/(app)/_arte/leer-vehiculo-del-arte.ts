@@ -74,9 +74,10 @@ function leadsDe(
 const nombreDelOrigen = (origenes: Awaited<ReturnType<typeof getOrigenes>>, id: string) =>
   (origenes.ok ? origenes.data.find((origen) => origen.id === id)?.nombre : null) ?? ''
 
+// `conLeads: false` no lee los relacionados (el PDF de una cotización ya trae su cliente): salen con su motivo.
 export async function leerVehiculoDelArte(
   sesion: Sesion,
-  { id, origen }: { id: string; origen: string },
+  { id, origen, conLeads = true }: { id: string; origen: string; conLeads?: boolean },
 ): Promise<Resultado<VehiculoDelArte | null>> {
   const vehiculo = await vehiculoVisible(sesion, { id, origen })
   if (!vehiculo.ok || vehiculo.data === null) {
@@ -88,7 +89,7 @@ export async function leerVehiculoDelArte(
     leerSubasta(id),
     getOrigenes(true),
     leerAjustes(),
-    leeLosLeads(sesion) ? leerRelacionadosDelVehiculo(id) : Promise.resolve(null),
+    conLeads && leeLosLeads(sesion) ? leerRelacionadosDelVehiculo(id) : Promise.resolve(null),
   ])
   if (!galeria.ok || !ajustes.ok) {
     return fallo('inesperado', NO_SE_LEYO)

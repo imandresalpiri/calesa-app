@@ -2,7 +2,8 @@
 // de la tarjeta de **lo guardado** (sólo lo del nivel «todos», como «Compartir»: `paraCompartirDeUnaGuardada()`), con su moneda y sin ella, su
 // vigencia y la imagen de su tarjeta por la ruta del mismo origen; y su lead, sólo si quien pide lo ve (y el Modo Live deja leerlo). Una
 // cotización hermana va sola: el arte nombra una. Lo usan la ruta del ejemplo (`/artes/ejemplo/cotizaciones/<id>`) y el PDF de un arte, que
-// vuelve a leer la elegida y comprueba que sea de su vehículo.
+// vuelve a leer la elegida y comprueba que sea de su vehículo; el PDF de una cotización con su plantilla de arte, sobre la guardada que ya leyó
+// (`cotizacionDelArteDeUnaLeida`).
 //
 // `null` si no existe, está en la papelera, no se ve o el Modo Live esconde su origen (el mismo 404 que el PDF, nunca 403); lo demás, el fallo.
 import 'server-only'
@@ -41,6 +42,8 @@ async function leadVisible(sesion: Sesion, leadId: string | null): Promise<strin
   return nombres.ok && nombres.data.has(leadId) ? leadId : null
 }
 
+type LaGuardada = Extract<Awaited<ReturnType<typeof leerHojaDeUnaGuardada>>, { ok: true }>['data']
+
 export async function leerCotizacionDelArte(
   sesion: Sesion,
   id: string,
@@ -49,10 +52,18 @@ export async function leerCotizacionDelArte(
   if (!lectura.ok) {
     return noEstaOFallo(lectura.error)
   }
-  const { hoja } = lectura.data
-  if (await origenOcultoEnElLive(hoja.cotizacion.origenId)) {
+  if (await origenOcultoEnElLive(lectura.data.hoja.cotizacion.origenId)) {
     return ok(null)
   }
+  return cotizacionDelArteDeUnaLeida(sesion, lectura.data)
+}
+
+// Lo mismo sobre una guardada ya leída (y que quien pide ve, con el Modo Live incluido).
+export async function cotizacionDelArteDeUnaLeida(
+  sesion: Sesion,
+  lectura: LaGuardada,
+): Promise<Resultado<CotizacionDelArte | null>> {
+  const { hoja } = lectura
   const [vehiculo, asesor, ajustes, leadId] = await Promise.all([
     oNulo(vehiculoDe(hoja.cotizacion.vehiculoId)),
     asesorQueMira(),
@@ -65,7 +76,7 @@ export async function leerCotizacionDelArte(
   }
   const { locale, zonaHoraria } = ajustes.data.ajustes
   const cifras = await paraCompartirDeUnaGuardada({
-    lectura: lectura.data,
+    lectura,
     contexto: contextoParaCompartir(hoja, {
       vehiculo: vehiculoDeLaTarjeta(vehiculo),
       asesor,

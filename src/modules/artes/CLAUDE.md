@@ -36,7 +36,9 @@ cada persona para compartir una cotización.
   (`leer-vehiculo-del-arte.ts`, `leer-cotizacion-del-arte.ts`, las mismas lecturas de las rutas del ejemplo), resuelve las capas con los
   datos del servidor (`paginasConDatos()`, con su moneda) y baja cada imagen por su origen (`deDondeSaleLaImagen()`: la biblioteca, el logo,
   la foto del vehículo elegido, la tarjeta de su cotización armada con `armarLaImagen()` y las de ejemplo), de a 4, con tope de peso y de
-  espera; la que no llega no va y se cuenta. Del navegador, `pedirElPdfDelArte()` (`composicion.client.ts`).
+  espera; la que no llega no va y se cuenta. Del navegador, `pedirElPdfDelArte()` (`composicion.client.ts`). El mismo dibujo da el PDF de una
+  cotización con la plantilla de PDF por defecto de su origen (o la de `?plantilla=`): `GET /cotizaciones/[id]/pdf` lo pide con
+  `armarElPdfDeLaCotizacion()` sobre la guardada ya leída (`datos-de-la-cotizacion-para-el-pdf.ts`: todo real, sin hermana).
 - La página `/artes/[id]` lee además (`src/app/(editor)/artes/[id]/datos-del-editor.ts`) el texto base del origen, el Mensaje del portal, lo fijo
   del arte (empresa, quien comparte, redes) y los motivos de sólo lectura, y los pasa por props.
 - `index.ts`: las lecturas de las dos páginas (`leerPlantillaParaEditar`) y de las rutas de imágenes, `puedeEditarLaPlantilla`, los filtros

@@ -2,13 +2,19 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Resultado } from '@/shared/lib/errores'
 
-const pedidos: { ruta: string; resolver: (r: Resultado<Blob>) => void }[] = []
+const pedidos: {
+  ruta: string
+  resolver: (r: Resultado<{ blob: Blob; faltan: number }>) => void
+}[] = []
 vi.mock('../../../areas/tarjeta/composicion-pdf.client', () => ({
   pedirElPdf: (ruta: string) =>
-    new Promise<Resultado<Blob>>((resolver) => {
+    new Promise<Resultado<{ blob: Blob; faltan: number }>>((resolver) => {
       pedidos.push({ ruta, resolver })
     }),
 }))
+
+const avisar = vi.fn()
+vi.mock('@/shared/ui/toasts', () => ({ avisar: (mensaje: string) => avisar(mensaje) }))
 
 import { ESPERA_PARA_SOLTAR_MS, useDescargaDelPdf } from './use-descarga-del-pdf'
 
@@ -45,12 +51,34 @@ describe('useDescargaDelPdf', () => {
     expect(result.current.estado).toEqual({ tipo: 'bajando' })
     expect(pedidos.map((p) => p.ruta)).toEqual([`/cotizaciones/${ID}/pdf`])
     await act(async () => {
-      pedidos[0]?.resolver({ ok: true, data: new Blob(['%PDF']) })
+      pedidos[0]?.resolver({ ok: true, data: { blob: new Blob(['%PDF']), faltan: 0 } })
       await Promise.resolve()
     })
     expect(result.current.estado).toEqual({ tipo: 'quieta' })
     expect(nombres).toEqual(['cotizacion-1234.pdf|blob:prueba'])
     expect(document.querySelector('a[download]')).toBeNull()
+  })
+
+  it('el PDF del arte que salió sin alguna imagen se baja igual y lo avisa; sin faltas, no avisa', async () => {
+    const { result } = renderHook(() => useDescargaDelPdf(ID, 7))
+    act(() => {
+      result.current.descargar()
+    })
+    await act(async () => {
+      pedidos[0]?.resolver({ ok: true, data: { blob: new Blob(['%PDF']), faltan: 2 } })
+      await Promise.resolve()
+    })
+    expect(nombres).toEqual(['cotizacion-7.pdf|blob:prueba'])
+    expect(avisar).toHaveBeenCalledWith('El PDF salió sin 2 imágenes que no cargaron.')
+    avisar.mockClear()
+    act(() => {
+      result.current.descargar()
+    })
+    await act(async () => {
+      pedidos[1]?.resolver({ ok: true, data: { blob: new Blob(['%PDF']), faltan: 0 } })
+      await Promise.resolve()
+    })
+    expect(avisar).not.toHaveBeenCalled()
   })
 
   it('suelta la URL del blob después de bajarlo', async () => {
@@ -59,7 +87,7 @@ describe('useDescargaDelPdf', () => {
       result.current.descargar()
     })
     await act(async () => {
-      pedidos[0]?.resolver({ ok: true, data: new Blob(['%PDF']) })
+      pedidos[0]?.resolver({ ok: true, data: { blob: new Blob(['%PDF']), faltan: 0 } })
       await Promise.resolve()
     })
     expect(soltar).not.toHaveBeenCalled()

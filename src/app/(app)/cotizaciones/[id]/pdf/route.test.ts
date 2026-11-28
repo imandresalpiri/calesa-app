@@ -23,6 +23,7 @@ const leerAsesor = vi.fn()
 const pdf = vi.fn()
 // `contextoDeLaPagina()` devuelve lo que recibe: lo que se prueba es qué le pasa la ruta (el formato lo prueba su entidad).
 vi.mock('@/modules/cotizaciones', () => ({
+  archivoDelPdf: (n: number) => `cotizacion-${String(n)}.pdf`,
   leerHojaDeUnaGuardada: (id: string) => leerHoja(id),
   leerAsesorQueMira: () => leerAsesor(),
   pdfDeUnaGuardada: (entrada: unknown) => pdf(entrada),
@@ -49,6 +50,14 @@ vi.mock('@/modules/empresa', () => ({
 vi.mock('@/shared/lib/almacen', () => ({
   urlPublicaONull: (bucket: string, ruta: string | null) =>
     ruta === null ? null : `https://almacen.test/${bucket}/${ruta}`,
+}))
+
+// Qué plantilla de arte se elige lo prueba `arte-del-pdf.test.ts`; acá, qué hace la ruta con lo que devuelve (sin arte: `null`, el PDF de hoy).
+vi.mock('@/modules/artes', () => ({ CABECERA_DE_LO_QUE_FALTA: 'X-Imagenes-Que-Faltan' }))
+const conArte = vi.fn()
+vi.mock('./arte-del-pdf', () => ({
+  CABECERA_DEL_ARTE: 'X-Pdf-Arte',
+  pdfConElArte: (...args: unknown[]) => conArte(...args),
 }))
 
 import { GET } from './route'
@@ -88,8 +97,10 @@ const ajustes = {
 }
 const BYTES = new TextEncoder().encode('%PDF-1.3 prueba')
 
-const pedir = (id = ID) =>
-  GET(new Request(`http://localhost/cotizaciones/${id}/pdf`), { params: Promise.resolve({ id }) })
+const pedir = (id = ID, busqueda = '') =>
+  GET(new Request(`http://localhost/cotizaciones/${id}/pdf${busqueda}`), {
+    params: Promise.resolve({ id }),
+  })
 const fallo = (codigo: string) => ({ ok: false, error: { codigo, mensaje: 'x' } })
 
 beforeEach(() => {
@@ -108,6 +119,7 @@ beforeEach(() => {
   leerCliente.mockResolvedValue({ ok: true, data: { id: LEAD, nombre: 'Juan Pérez' } })
   leerAjustes.mockResolvedValue({ ok: true, data: { ajustes, conDatosCargados: true } })
   pdf.mockResolvedValue({ ok: true, data: { bytes: BYTES, archivo: 'cotizacion-12.pdf' } })
+  conArte.mockResolvedValue(null)
 })
 afterEach(() => {
   vi.useRealTimers()
@@ -166,14 +178,16 @@ describe('GET /cotizaciones/[id]/pdf: la sesión y lo que no se ve', () => {
 })
 
 describe('GET /cotizaciones/[id]/pdf: el PDF', () => {
-  it('200 con el PDF y sus cuatro cabeceras', async () => {
+  it('200 con el PDF de hoy y sus cabeceras', async () => {
     const r = await pedir()
     expect(r.status).toBe(200)
     expect(r.headers.get('content-type')).toBe('application/pdf')
     expect(r.headers.get('content-disposition')).toBe('attachment; filename="cotizacion-12.pdf"')
     expect(r.headers.get('cache-control')).toBe('private, no-store')
     expect(r.headers.get('x-content-type-options')).toBe('nosniff')
+    expect(r.headers.get('x-pdf-arte')).toBe('de-hoy')
     expect(new Uint8Array(await r.arrayBuffer())).toEqual(BYTES)
+    expect(conArte).toHaveBeenCalledWith(activa, { hoja, inicial }, null)
   })
 
   it('arma el contexto: el título, el vehículo con lote y VIN, el asesor, el vencimiento, la empresa, el logo y las fechas en la zona de la empresa (el último guardado, no hoy)', async () => {
@@ -261,5 +275,28 @@ describe('GET /cotizaciones/[id]/pdf: el título de la cotización', () => {
         contexto: expect.objectContaining({ pagina: expect.objectContaining({ titulo: null }) }),
       }),
     )
+  })
+})
+
+describe('GET /cotizaciones/[id]/pdf: con la plantilla de arte', () => {
+  it('con una plantilla de arte, su PDF en lugar del de hoy, con el mismo nombre; su fallo no cae al de hoy', async () => {
+    const ARTE = '00000000-0000-4000-8000-0000000000a1'
+    conArte.mockResolvedValue({
+      plantillaId: ARTE,
+      pdf: { ok: true, data: { bytes: BYTES, faltan: 2 } },
+    })
+    const r = await pedir(ID, `?plantilla=${ARTE}`)
+    expect(conArte).toHaveBeenCalledWith(activa, { hoja, inicial }, ARTE)
+    expect(r.status).toBe(200)
+    expect(r.headers.get('content-disposition')).toBe('attachment; filename="cotizacion-12.pdf"')
+    expect(r.headers.get('x-pdf-arte')).toBe(ARTE)
+    expect(r.headers.get('x-imagenes-que-faltan')).toBe('2')
+    expect(pdf).not.toHaveBeenCalled()
+    conArte.mockResolvedValue({ plantillaId: ARTE, pdf: fallo('no_encontrado') })
+    expect(await (await pedir()).text()).toBe(NO_DISPONIBLE)
+    conArte.mockResolvedValue({ plantillaId: ARTE, pdf: fallo('inesperado') })
+    const roto = await pedir()
+    expect([roto.status, await roto.text()]).toEqual([500, NO_SE_PUDO])
+    expect(pdf).not.toHaveBeenCalled()
   })
 })
