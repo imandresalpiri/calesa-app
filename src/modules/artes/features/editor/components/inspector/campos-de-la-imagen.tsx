@@ -1,16 +1,24 @@
 'use client'
 
-// Lo propio de una capa con imagen en «Apariencia» del inspector del editor de artes: la variante del logo (de las que tiene la empresa), qué
-// foto del vehículo (la 1 es la primera), cómo llena su caja una imagen o una foto (cubrir recorta, contener deja aire) y si la imagen cargó.
-import { MAXIMO_DE_FOTOS_DEL_VEHICULO, type CapaConImagen } from '../../../../entities/documento'
+// Lo propio de una capa con imagen en «Apariencia» del inspector del editor de artes: la variante del logo (de las que tiene la empresa), lo
+// de la foto del vehículo (`CamposDeLaFoto`: cuál, su ajuste y su foco), cómo llena su caja una imagen de la biblioteca (cubrir recorta,
+// contener deja aire) y si la imagen cargó. `fuente` es lo que el lienzo dibuja para la capa con los datos de hoy (nula: no hay de dónde).
+import type { CapaConImagen } from '../../../../entities/documento'
+import type { FuenteDeImagen } from '../../../../entities/editor/fuente-de-la-capa'
 import type { LogoDelEditor } from '../../../../entities/tipos'
 import type { EditorDeArte } from '../../tipos'
 import { CampoDeOpciones } from './campo-de-opciones'
 import { CampoDesplegable } from './campo-desplegable'
 import { cambiarLasCapas, type CambioDeCapa } from './cambiar-las-capas'
+import { CamposDeLaFoto } from './campos-de-la-foto'
 import { EstadoDeLaImagen } from './estado-de-la-imagen'
 
-type Props = { editor: EditorDeArte; capa: CapaConImagen; logos: readonly LogoDelEditor[] }
+type Props = {
+  editor: EditorDeArte
+  capa: CapaConImagen
+  logos: readonly LogoDelEditor[]
+  fuente: FuenteDeImagen | null
+}
 
 // Sin variante, el logo dibuja la principal.
 const LOGO_PRINCIPAL = 'principal'
@@ -20,12 +28,7 @@ const AJUSTES = [
   { valor: 'contener', etiqueta: 'Contener' },
 ] as const
 
-const FOTOS = Array.from({ length: MAXIMO_DE_FOTOS_DEL_VEHICULO }, (_, indice) => ({
-  valor: String(indice),
-  etiqueta: `Foto ${String(indice + 1)}`,
-}))
-
-export function CamposDeLaImagen({ editor, capa, logos }: Props) {
+export function CamposDeLaImagen({ editor, capa, logos, fuente }: Props) {
   const apagado = editor.soloLectura
   const cambiar = (campo: string, cambio: CambioDeCapa) => {
     cambiarLasCapas(editor, [capa.id], campo, cambio)
@@ -43,30 +46,19 @@ export function CamposDeLaImagen({ editor, capa, logos }: Props) {
           }}
         />
       ) : null}
-      {capa.tipo === 'foto' ? (
-        <CampoDesplegable
-          etiqueta="Foto del vehículo"
-          valor={String(capa.indice)}
-          opciones={FOTOS}
-          deshabilitado={apagado}
-          alCambiar={(valor) => {
-            const indice = Number(valor)
-            cambiar('foto', (c) => (c.tipo === 'foto' ? { ...c, indice } : c))
-          }}
-        />
-      ) : null}
-      {capa.tipo === 'imagen' || capa.tipo === 'foto' ? (
+      {capa.tipo === 'foto' ? <CamposDeLaFoto editor={editor} capa={capa} fuente={fuente} /> : null}
+      {capa.tipo === 'imagen' ? (
         <CampoDeOpciones
           etiqueta="Ajuste"
           opciones={AJUSTES}
           valor={capa.ajuste}
           deshabilitado={apagado}
           alCambiar={(ajuste) => {
-            cambiar('ajuste', (c) => ('ajuste' in c ? { ...c, ajuste } : c))
+            cambiar('ajuste', (c) => (c.tipo === 'imagen' ? { ...c, ajuste } : c))
           }}
         />
       ) : null}
-      <EstadoDeLaImagen capa={capa} logos={logos} />
+      <EstadoDeLaImagen capa={capa} fuente={fuente} />
     </>
   )
 }

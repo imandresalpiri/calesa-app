@@ -16,7 +16,7 @@ import { migrarDocumento } from './migraciones-del-documento'
 
 export * from './capas-del-documento'
 
-export const VERSION_DEL_DOCUMENTO = 2
+export const VERSION_DEL_DOCUMENTO = 3
 export const TOPE_DEL_DOCUMENTO_EN_BYTES = 524288
 export const MAXIMO_DE_PAGINAS = 20
 export const MAXIMO_DE_CAPAS_POR_PAGINA = 300

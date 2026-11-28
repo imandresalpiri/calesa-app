@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { documentoVacio } from '../documento'
+import { documentoVacio, VERSION_DEL_DOCUMENTO } from '../documento'
 import {
   claveDelBorrador,
   leerBorrador,
@@ -39,7 +39,7 @@ describe('leer el borrador local', () => {
       version: 1,
       paginas: [{ id: 'p', fondo: { tipo: 'color', color: '#ffffff' }, capas: [] }],
     }
-    expect(leerBorrador(crudo({ documento: v1 }))?.documento.version).toBe(2)
+    expect(leerBorrador(crudo({ documento: v1 }))?.documento.version).toBe(VERSION_DEL_DOCUMENTO)
   })
 
   it('nada, un JSON roto, otra forma o un documento que no vale: sin borrador', () => {

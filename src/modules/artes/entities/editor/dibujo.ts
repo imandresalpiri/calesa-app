@@ -1,6 +1,7 @@
 // Lo que el lienzo del editor de artes dibuja con cuentas: el polígono regular que llena su caja, los extremos del degradado del fondo (el
-// ángulo como en CSS: 0° hacia arriba, 90° hacia la derecha) y cómo entra una imagen en su caja, cubriéndola (recorte) o contenida. Puro.
-import type { CapaDe, Punto } from '../documento'
+// ángulo como en CSS: 0° hacia arriba, 90° hacia la derecha) y cómo entra una imagen en su caja, cubriéndola (recorte, alrededor de su foco)
+// o contenida. Puro.
+import { FOCO_AL_CENTRO, type CapaDe, type FocoDeLaFoto, type Punto } from '../documento'
 import type { Medidas } from '../formatos'
 import type { Caja } from './cajas'
 
@@ -42,15 +43,28 @@ export function puntosDelDegradado(
 
 const sinLado = (m: Medidas) => !(m.ancho > 0 && m.alto > 0)
 
-// La parte de la imagen (en sus px) que cubre la caja sin deformarse: centrada, se recorta lo que sobra.
-export function recorteParaCubrir(imagen: Medidas, caja: Medidas): Caja {
+const entre = (valor: number, minimo: number, maximo: number) =>
+  Math.min(Math.max(valor, minimo), maximo)
+
+// La parte de la imagen (en sus px) que cubre la caja sin deformarse: del mismo tamaño que siempre, centrada en el foco (fracciones de la
+// imagen; sin foco, el centro) y corrida hasta el borde cuando el foco está tan cerca de él que el recorte se saldría.
+export function recorteParaCubrir(
+  imagen: Medidas,
+  caja: Medidas,
+  foco: FocoDeLaFoto = FOCO_AL_CENTRO,
+): Caja {
   if (sinLado(imagen) || sinLado(caja)) {
     return { x: 0, y: 0, ancho: imagen.ancho, alto: imagen.alto }
   }
   const escala = Math.max(caja.ancho / imagen.ancho, caja.alto / imagen.alto)
   const ancho = caja.ancho / escala
   const alto = caja.alto / escala
-  return { x: (imagen.ancho - ancho) / 2, y: (imagen.alto - alto) / 2, ancho, alto }
+  return {
+    x: entre(imagen.ancho * foco.x - ancho / 2, 0, imagen.ancho - ancho),
+    y: entre(imagen.alto * foco.y - alto / 2, 0, imagen.alto - alto),
+    ancho,
+    alto,
+  }
 }
 
 // Dónde va la imagen entera dentro de la caja (relativo a su esquina), centrada y sin deformarse.

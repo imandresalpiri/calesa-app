@@ -2,11 +2,10 @@
 
 import { memo, useMemo } from 'react'
 import { Group, Image as ImagenDeKonva, Line, Rect } from 'react-konva'
-import type { CapaConImagen } from '../../../../../entities/documento'
+import type { CapaConImagen, Punto } from '../../../../../entities/documento'
 import { cajaParaContener, recorteParaCubrir } from '../../../../../entities/editor/dibujo'
-import { fuenteDeLaCapa } from '../../../../../entities/editor/fuente-de-la-capa'
+import type { FuenteDeImagen } from '../../../../../entities/editor/fuente-de-la-capa'
 import type { Medidas } from '../../../../../entities/formatos'
-import type { LogoDelEditor } from '../../../../../entities/tipos'
 import { NOMBRE_DEL_RESPALDO } from '../../../hooks/nodos-del-lienzo'
 import { medidasDeLaImagen, useImagenDelLienzo } from '../../../hooks/use-imagen-del-lienzo'
 import { atributosDeLaCapa, sombraDe, TRANSPARENTE, type Interaccion } from './atributos'
@@ -14,7 +13,8 @@ import { atributosDeLaCapa, sombraDe, TRANSPARENTE, type Interaccion } from './a
 const COLOR_DEL_RESPALDO = '#eef0f4'
 const BORDE_DEL_RESPALDO = '#8a8f9b'
 
-type Props = Interaccion & { capa: CapaConImagen; logos: readonly LogoDelEditor[] }
+// `fuente`: de dónde sale lo que dibuja con los datos de ahora (`capasConDatos()`); nula, el respaldo.
+type Props = Interaccion & { capa: CapaConImagen; fuente: FuenteDeImagen | null }
 
 type Colocacion = {
   x: number
@@ -24,14 +24,19 @@ type Colocacion = {
   crop?: { x: number; y: number; width: number; height: number }
 }
 
-// Dónde va la imagen en su caja: «cubrir» la recorta, «contener» (y siempre el logo y la tarjeta) la deja entera y centrada.
-function colocacion(imagen: HTMLImageElement, caja: Medidas, contener: boolean): Colocacion {
+// Dónde va la imagen en su caja: «cubrir» la recorta alrededor del foco (el de la foto; si no, el centro), «contener» (y siempre el logo y la
+// tarjeta) la deja entera y centrada.
+function colocacion(
+  imagen: HTMLImageElement,
+  caja: Medidas,
+  { contener, foco }: { contener: boolean; foco: Punto | undefined },
+): Colocacion {
   const natural = medidasDeLaImagen(imagen)
   if (contener) {
     const c = cajaParaContener(natural, caja)
     return { x: c.x, y: c.y, width: c.ancho, height: c.alto }
   }
-  const r = recorteParaCubrir(natural, caja)
+  const r = recorteParaCubrir(natural, caja, foco)
   return {
     x: 0,
     y: 0,
@@ -91,15 +96,15 @@ function Marco({ capa, lugar }: { capa: CapaConImagen; lugar: Colocacion | null 
 // Una imagen de la biblioteca, el logo, una foto del vehículo o la tarjeta de la cotización, con su marco (radio, borde) y su sombra.
 export const NodoDeImagen = memo(function NodoDeImagen({
   capa,
-  logos,
+  fuente,
   arrastrable,
   escucha,
 }: Props) {
-  const fuente = useMemo(() => fuenteDeLaCapa(capa, logos), [capa, logos])
   const caja = useMemo(() => ({ ancho: capa.ancho, alto: capa.alto }), [capa.ancho, capa.alto])
   const { imagen, estado } = useImagenDelLienzo(fuente, caja)
   const contener = !('ajuste' in capa) || capa.ajuste === 'contener'
-  const lugar = imagen ? colocacion(imagen, caja, contener) : null
+  const foco = capa.tipo === 'foto' ? capa.foco : undefined
+  const lugar = imagen ? colocacion(imagen, caja, { contener, foco }) : null
 
   return (
     <Group {...atributosDeLaCapa(capa, { arrastrable, escucha })}>
