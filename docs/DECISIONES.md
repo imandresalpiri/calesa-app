@@ -1150,8 +1150,11 @@ permisosDelLive(efectivos, ajustes)` (pura, con test): el menú, «Nuevo», el a
   al navegador. Sin imágenes de cotización generadas en el cliente. Las fuentes son Geist del release `vercel/geist-font` v1.9.2 (zip sha256
   `15f066d58dcb99fb10014a49913009fdaf41e464cfb8851a44b44e593c95d3d8`, OFL 1.1): `Geist-Regular.ttf` `2c460a7a71063e53491f343d44b382267bc0cf496e31db64865f962af3152e68`,
   `Geist-SemiBold.ttf` `01923aa148e5202ae70a2e11b2ab4dc41b80bcc374aedccc913d47bb2f591c06`, `Geist-Italic.ttf`
-  `14b65c2dce6eb81a68bee916fed0e63f6d8526400b364cabf166f58e49c71b14` y `Geist-SemiBoldItalic.ttf`
-  `5434c3634179082d63c80a4748df2d4ef2632d69c445cf47f2ef2ac101a582b3`.
+  `14b65c2dce6eb81a68bee916fed0e63f6d8526400b364cabf166f58e49c71b14`, `Geist-SemiBoldItalic.ttf`
+  `5434c3634179082d63c80a4748df2d4ef2632d69c445cf47f2ef2ac101a582b3`, y para los artes de PDF `Geist-Medium.ttf`
+  `e9099e006d4934cae4a8c7d14a1ca2ea724ee2f69f9bdd5b2ffe715baf5524fc` y `Geist-Bold.ttf`
+  `1c24df313b8ddc9550e060cfe5321c6374997f2892880af303b5ded45fed2582`. Viven en `public/fuentes/geist/`, una sola copia: el servidor las lee por su
+  ruta y el navegador por URL.
 - **La imagen de la tarjeta se arma al pedirla, para quien la pide, y no se guarda.** Lleva el asesor (quien mira) y lo que esa persona ve: una guardada sería
   una por persona y cotización, crecería sin tope y habría que invalidarla con cada cambio de perfil o de permisos. WebP con `sharp` (calidad 80, ≤ 1.600 px):
   `ImageResponse` sólo da PNG y `sharp` viene con Next. Lo que evita volver a dibujarla es la caché del navegador: `private, no-cache` con una ETag fuerte y
